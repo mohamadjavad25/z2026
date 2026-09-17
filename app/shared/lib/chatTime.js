@@ -34,3 +34,30 @@ export function chatDayKey(value) {
   if (!date) return "";
   return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
 }
+
+/**
+ * Honest read receipt for a message the current user sent: "read" only if
+ * the recipient's (or, for a group, every other member's) last_read_at is
+ * at or after this message's createdAt — the same last_read_at column the
+ * inbox's unread-badge count already relies on (see
+ * app/lib/db/repos/messages.js). There is no separate delivered/read table;
+ * every message that made it into the DB counts as "sent" (single check),
+ * and this only ever upgrades it to "read" (double check).
+ */
+export function isMessageRead(message, conversation, myUserId) {
+  if (!message || !conversation) return false;
+  const createdAt = parseSqliteUtc(message.createdAt);
+  if (!createdAt) return false;
+
+  if (conversation.type === "group") {
+    const others = (conversation.members || []).filter((m) => m.id !== myUserId);
+    if (others.length === 0) return false;
+    return others.every((m) => {
+      const readAt = parseSqliteUtc(m.lastReadAt);
+      return Boolean(readAt && readAt >= createdAt);
+    });
+  }
+
+  const readAt = parseSqliteUtc(conversation.peer?.lastReadAt);
+  return Boolean(readAt && readAt >= createdAt);
+}

@@ -224,10 +224,24 @@
 }
 
 .chatInboxHead button,
-.chatConversationHead > button:not(.chatContactTitle),
-.chatComposer button {
+.chatConversationHead > button:not(.chatContactTitle) {
   width: 34px;
   height: 34px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: var(--chat-panel-soft);
+  color: color-mix(in srgb, var(--chat-text) 78%, transparent);
+}
+
+/* Composer controls get the app's 44px tap-target baseline (bigger than the
+   header's compact 34px icon buttons) since these are typed/tapped far more
+   often, on mobile, mid-conversation. */
+.chatComposer button {
+  width: 44px;
+  height: 44px;
   flex: 0 0 auto;
   display: grid;
   place-items: center;
@@ -489,7 +503,7 @@
   grid-column: 1 / -1;
   margin: 0;
   color: inherit;
-  font-size: 0.66rem;
+  font-size: var(--text-base, 0.86rem);
   font-weight: 850;
   line-height: 1.55;
 }
@@ -498,7 +512,7 @@
   grid-column: 1 / -1;
   margin-bottom: -1px;
   color: var(--chat-accent);
-  font-size: 0.56rem;
+  font-size: var(--text-xs, 0.68rem);
   font-weight: 950;
 }
 
@@ -523,8 +537,18 @@
 .chatBubble svg {
   color: currentColor;
   opacity: 0.52;
-  font-size: 0.52rem;
+  font-size: 0.62rem;
   font-weight: 900;
+}
+
+/* Read receipt: a plain single check (currentColor, dimmed, same as the
+   time label) means "sent" — the message reached the server. It only
+   becomes this accented, full-opacity double check once the recipient's
+   real last_read_at has caught up to the message — see isMessageRead in
+   shared/lib/chatTime.js. There's no fabricated "delivered" in between. */
+.chatBubble svg.is-read {
+  color: var(--success, #2f9e5c);
+  opacity: 1;
 }
 
 .chatBubble.is-me {
@@ -1188,7 +1212,7 @@
 }
 
 .chatComposer {
-  min-height: 56px;
+  min-height: 64px;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -1200,14 +1224,14 @@
 .chatComposer input {
   min-width: 0;
   flex: 1;
-  height: 36px;
+  height: 44px;
   border: 0;
   outline: 0;
   border-radius: 999px;
-  padding: 0 12px;
+  padding: 0 14px;
   background: rgba(255, 255, 255, 0.78);
   color: var(--chat-text);
-  font-size: 0.68rem;
+  font-size: var(--text-base, 0.86rem);
 }
 
 .chatComposer input::placeholder,

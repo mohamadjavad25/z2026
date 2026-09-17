@@ -312,6 +312,22 @@ export function useChat({ myUserId = null, onNotice } = {}) {
             if (ok) setActiveConversation(data.conversation);
           }).catch(() => {});
         }
+      } else if (event.type === "read") {
+        // Someone else moved their last_read_at forward — if it's the open
+        // conversation, patch their lastReadAt in place so already-rendered
+        // "sent" bubbles flip to "read" without a refetch.
+        if (event.conversationId === activeConversationIdRef.current) {
+          setActiveConversation((prev) => {
+            if (!prev) return prev;
+            if (prev.peer && prev.peer.id === event.userId) {
+              return { ...prev, peer: { ...prev.peer, lastReadAt: event.readAt } };
+            }
+            if (prev.members) {
+              return { ...prev, members: prev.members.map((m) => (m.id === event.userId ? { ...m, lastReadAt: event.readAt } : m)) };
+            }
+            return prev;
+          });
+        }
       } else if (event.type === "order-status") {
         // Live status push for any order-card bubble already on screen —
         // avoids the card showing a stale "جدید" after the shop ships it.

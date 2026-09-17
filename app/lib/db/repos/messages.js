@@ -138,13 +138,16 @@ export function getConversation(conversationId, userId) {
   if (!convo || !isMember(db, conversationId, userId)) return null;
 
   const members = db.prepare(`
-    SELECT u.id, u.name, u.avatar, u.type
+    SELECT u.id, u.name, u.avatar, u.type, cm.last_read_at AS last_read_at
     FROM conversation_members cm JOIN users u ON u.id = cm.user_id
     WHERE cm.conversation_id = ?
   `).all(conversationId);
 
   const peer = convo.type === "direct" ? members.find((m) => m.id !== userId) || null : null;
 
+  // lastReadAt of the OTHER member(s) rides along here so the UI can derive
+  // an honest read receipt (message.createdAt <= peer's last_read_at) without
+  // a separate read-receipts table — see /api/conversations/[id]/read.
   return {
     id: convo.id,
     type: convo.type,
@@ -152,8 +155,8 @@ export function getConversation(conversationId, userId) {
     avatar: convo.type === "group" ? convo.avatar : (peer?.avatar || ""),
     createdBy: convo.created_by,
     isCreator: convo.created_by === userId,
-    peer: peer ? { id: peer.id, name: peer.name, avatar: peer.avatar, type: peer.type } : null,
-    members: convo.type === "group" ? members.map((m) => ({ id: m.id, name: m.name, avatar: m.avatar, type: m.type })) : undefined,
+    peer: peer ? { id: peer.id, name: peer.name, avatar: peer.avatar, type: peer.type, lastReadAt: peer.last_read_at } : null,
+    members: convo.type === "group" ? members.map((m) => ({ id: m.id, name: m.name, avatar: m.avatar, type: m.type, lastReadAt: m.last_read_at })) : undefined,
     createdAt: convo.created_at,
     updatedAt: convo.updated_at
   };
@@ -217,14 +220,23 @@ export function listConversations(userId, { limit = DEFAULT_PAGE_SIZE, cursor } 
   return { conversations, nextCursor: hasMore ? page[page.length - 1].id : null };
 }
 
-/** Marks every message in the conversation as read by userId (moves their last_read_at forward). Returns false if not a member. */
+/**
+ * Marks every message in the conversation as read by userId (moves their
+ * last_read_at forward). Returns { readAt, recipients } (the other members'
+ * ids, so the caller can push a "read" event to them over SSE and let their
+ * open chat flip a sent tick to a read tick live) — or null if not a member.
+ */
 export function markConversationRead(conversationId, userId) {
   const db = getDb();
-  if (!isMember(db, conversationId, userId)) return false;
+  if (!isMember(db, conversationId, userId)) return null;
   db.prepare(
     "UPDATE conversation_members SET last_read_at = CURRENT_TIMESTAMP WHERE conversation_id = ? AND user_id = ?"
   ).run(conversationId, userId);
-  return true;
+  const row = db.prepare(
+    "SELECT last_read_at FROM conversation_members WHERE conversation_id = ? AND user_id = ?"
+  ).get(conversationId, userId);
+  const recipients = memberIds(db, conversationId).filter((id) => id !== userId);
+  return { readAt: row.last_read_at, recipients };
 }
 
 /** Paginated messages, oldest-first within the returned page. `before` (a message id) fetches older history. */

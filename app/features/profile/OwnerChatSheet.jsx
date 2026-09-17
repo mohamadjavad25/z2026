@@ -1,9 +1,9 @@
 "use client";
 
 import { useRef } from "react";
-import { MessageCircle, Paperclip, Send, X } from "lucide-react";
+import { Check, CheckCheck, MessageCircle, Paperclip, Send, X } from "lucide-react";
 import { ProfileEmptyState } from "./ProfileEmptyState";
-import { formatChatTime } from "../../shared/lib/chatTime";
+import { formatChatTime, isMessageRead } from "../../shared/lib/chatTime";
 import { OrderCardBubble } from "../chat/OrderCardBubble";
 
 const MAX_ATTACHMENT_BYTES = 1_500_000;
@@ -125,20 +125,31 @@ export function OwnerChatSheet({
               description="از کادر پایین پیام بفرست تا گفتگو اینجا نمایش داده شود."
             />
           ) : (
-            safeMessages.map((message) => (
-              <div className={`shopChatBubble ${message.attachmentType === "order" ? "is-order" : ""} ${message.senderUserId === myUserId ? "user" : "shop"}`} key={message.id}>
-                {message.attachmentType === "order" ? (
-                  <OrderCardBubble order={message.order} />
-                ) : (
-                  <>
-                    {message.attachmentType === "image" && message.attachmentUrl ? (
-                      <img className="shopChatBubbleImage" src={message.attachmentUrl} alt="" />
+            safeMessages.map((message) => {
+              const mine = message.senderUserId === myUserId;
+              return (
+                <div className={`shopChatBubble ${message.attachmentType === "order" ? "is-order" : ""} ${mine ? "user" : "shop"}`} key={message.id}>
+                  {message.attachmentType === "order" ? (
+                    <OrderCardBubble order={message.order} />
+                  ) : (
+                    <>
+                      {message.attachmentType === "image" && message.attachmentUrl ? (
+                        <img className="shopChatBubbleImage" src={message.attachmentUrl} alt="" />
+                      ) : null}
+                      {message.body}
+                    </>
+                  )}
+                  <span className="shopChatBubbleMeta">
+                    <time>{formatChatTime(message.createdAt)}</time>
+                    {mine ? (
+                      isMessageRead(message, activeConversation, myUserId)
+                        ? <CheckCheck size={12} className="is-read" />
+                        : <Check size={12} />
                     ) : null}
-                    {message.body}
-                  </>
-                )}
-              </div>
-            ))
+                  </span>
+                </div>
+              );
+            })
           )}
         </div>
         <form className="shopChatComposer" onSubmit={submit}>

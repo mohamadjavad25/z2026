@@ -22,8 +22,17 @@ import {
   X
 } from "lucide-react";
 import { ProfileEmptyState } from "../profile/ProfileEmptyState";
-import { chatDayKey, formatChatDayLabel, formatChatTime } from "../../shared/lib/chatTime";
+import { chatDayKey, formatChatDayLabel, formatChatTime, isMessageRead } from "../../shared/lib/chatTime";
 import { OrderCardBubble } from "../chat/OrderCardBubble";
+
+/** Single check = sent (message made it into the DB). Double check, accented,
+    only once the recipient's real last_read_at has caught up — see
+    isMessageRead in shared/lib/chatTime. No fabricated "delivered" state. */
+function MessageTick({ message, conversation, myUserId }) {
+  return isMessageRead(message, conversation, myUserId)
+    ? <CheckCheck size={13} className="is-read" />
+    : <Check size={13} />;
+}
 
 const MAX_ATTACHMENT_BYTES = 1_500_000; // ~2MB as a base64 data URL, matching the server's cap
 
@@ -465,6 +474,7 @@ export function ChatPage({
                           <article key={message.id} className={`chatBubble is-order ${mine ? "is-me" : "is-them"}`}>
                             <OrderCardBubble order={message.order} />
                             <time>{formatChatTime(message.createdAt)}</time>
+                            {mine ? <MessageTick message={message} conversation={activeConversation} myUserId={myUserId} /> : null}
                           </article>
                         );
                       }
@@ -478,7 +488,7 @@ export function ChatPage({
                           ) : null}
                           {message.body ? <p>{message.body}</p> : null}
                           <time>{formatChatTime(message.createdAt)}</time>
-                          {mine ? <CheckCheck size={12} /> : null}
+                          {mine ? <MessageTick message={message} conversation={activeConversation} myUserId={myUserId} /> : null}
                         </article>
                       );
                     })}
