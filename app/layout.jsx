@@ -1,7 +1,12 @@
 import "./styles.css";
 import Script from "next/script";
 
+// NEXT_PUBLIC_SITE_URL is the single source of truth for the site's public
+// domain (see .env.example at the repo root) — app/sitemap.js and
+// app/robots.js read the same variable, with the same placeholder fallback,
+// so canonical URLs / sitemap entries / robots.txt can never drift apart.
 export const metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://zibaban.example.com"),
   title: "زیبابان | شبکه اجتماعی زیبایی بانوان",
   description: "کشف آرایشگاه، نمونه‌کار واقعی، مشاوره زیبایی و رزرو برای بانوان."
 };

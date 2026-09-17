@@ -5,6 +5,10 @@ import { ArtistPublicPageClient } from "./ArtistPublicPageClient";
 
 export const runtime = "nodejs";
 
+// Same single source of truth as app/sitemap.js, app/robots.js and
+// app/layout.jsx's metadataBase — never hardcode the domain a second time.
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://zibaban.example.com";
+
 function loadArtist(id) {
   const userId = Number(id);
   if (!Number.isFinite(userId)) return null;
@@ -39,16 +43,54 @@ export async function generateMetadata({ params }) {
     : `پروفایل و رزرو آنلاین نوبت ${artist.name} در زیبابان.`;
 
   const title = `${artist.name} | زیبابان`;
+  const canonicalUrl = `${SITE_URL}/artists/${artist.id}`;
 
   return {
     title,
     description,
+    alternates: {
+      canonical: canonicalUrl
+    },
     openGraph: {
       title,
       description,
+      url: canonicalUrl,
       images: artist.avatar ? [{ url: artist.avatar }] : undefined
     }
   };
+}
+
+// Builds Person JSON-LD from real artist fields only. Unlike salons, artists
+// DO have a real reviewCount (getPublicArtist aggregates it from the reviews
+// table, not a static column) so aggregateRating is included, but only when
+// there's at least one real review behind it — never as a fabricated 0/5.
+function buildArtistJsonLd(artist, canonicalUrl) {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: artist.name,
+    url: canonicalUrl
+  };
+  if (artist.avatar) jsonLd.image = artist.avatar;
+  if (artist.bio) jsonLd.description = artist.bio;
+  if (artist.service) jsonLd.jobTitle = `آرتیست ${artist.service}`;
+  if (artist.area) {
+    jsonLd.address = {
+      "@type": "PostalAddress",
+      addressLocality: artist.area,
+      addressCountry: "IR"
+    };
+  }
+  const reviewCount = Number(artist.reviewCount || 0);
+  const ratingValue = Number(artist.rating);
+  if (reviewCount > 0 && Number.isFinite(ratingValue) && ratingValue > 0) {
+    jsonLd.aggregateRating = {
+      "@type": "AggregateRating",
+      ratingValue,
+      reviewCount
+    };
+  }
+  return jsonLd;
 }
 
 export default async function ArtistPublicPage({ params }) {
@@ -57,6 +99,13 @@ export default async function ArtistPublicPage({ params }) {
   if (!artist) {
     notFound();
   }
+  const canonicalUrl = `${SITE_URL}/artists/${artist.id}`;
+  const jsonLd = buildArtistJsonLd(artist, canonicalUrl);
 
-  return <ArtistPublicPageClient artist={artist} />;
+  return (
+    <>
+      <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
+      <ArtistPublicPageClient artist={artist} />
+    </>
+  );
 }

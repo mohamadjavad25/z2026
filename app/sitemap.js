@@ -7,12 +7,11 @@ import { listShops } from "./lib/db/repos/shops.js";
 // app/salons/[id]/page.jsx etc. — must not run on the Edge runtime.
 export const runtime = "nodejs";
 
-// TODO(founder): no production domain is defined anywhere in the codebase yet
-// (no NEXT_PUBLIC_SITE_URL env var, no next.config.mjs entry, no
-// metadataBase in app/layout.jsx). This is a placeholder — replace it with
-// the real zibaban production domain before/at deploy, otherwise every URL
+// Single source of truth: NEXT_PUBLIC_SITE_URL (see .env.example at the repo
+// root). Falls back to the same placeholder as before so nothing breaks in
+// dev/CI without env setup — but set this in production, otherwise every URL
 // submitted to Google will point at this fake address.
-const SITE_URL = "https://zibaban.example.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://zibaban.example.com";
 
 export default function sitemap() {
   ensureDb();

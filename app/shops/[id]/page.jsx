@@ -5,6 +5,10 @@ import { ShopPublicPageClient } from "./ShopPublicPageClient";
 
 export const runtime = "nodejs";
 
+// Same single source of truth as app/sitemap.js, app/robots.js and
+// app/layout.jsx's metadataBase — never hardcode the domain a second time.
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://zibaban.example.com";
+
 function loadShop(id) {
   const userId = Number(id);
   if (!Number.isFinite(userId)) return null;
@@ -46,16 +50,74 @@ export async function generateMetadata({ params }) {
     : `ویترین آنلاین فروشگاه ${shop.name} در زیبابان.`;
 
   const title = `${shop.name} | زیبابان`;
+  const canonicalUrl = `${SITE_URL}/shops/${shop.id}`;
 
   return {
     title,
     description,
+    alternates: {
+      canonical: canonicalUrl
+    },
     openGraph: {
       title,
       description,
+      url: canonicalUrl,
       images: shop.avatar ? [{ url: shop.avatar }] : undefined
     }
   };
+}
+
+// Builds Store JSON-LD from real shop fields only. shop.reviewCount/rating
+// (app/lib/db/repos/shops.js mapShop()) are a real COUNT/AVG over the
+// reviews table — not a static fallback column — so aggregateRating is
+// trustworthy here whenever reviewCount > 0.
+//
+// Deliberately NOT emitting per-product Offer price/priceCurrency here: this
+// task's scope excludes wallet/shell-currency logic, and shop prices in this
+// codebase are formatted strings whose currency unit (rial vs. toman) is
+// exactly the kind of ambiguity that area owns — stating a currency in
+// structured data would risk asserting something we can't verify. Product
+// names/images (real catalog data, no pricing) are included instead so the
+// real product count still shows up to crawlers.
+function buildShopJsonLd(shop, canonicalUrl) {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Store",
+    name: shop.name,
+    url: canonicalUrl
+  };
+  if (shop.avatar) jsonLd.image = shop.avatar;
+  if (shop.bio) jsonLd.description = shop.bio;
+  if (shop.phone) jsonLd.telephone = shop.phone;
+  if (shop.area) {
+    jsonLd.address = {
+      "@type": "PostalAddress",
+      addressLocality: shop.area,
+      addressCountry: "IR"
+    };
+  }
+  const reviewCount = Number(shop.reviewCount || 0);
+  const ratingValue = Number(shop.rating);
+  if (reviewCount > 0 && Number.isFinite(ratingValue) && ratingValue > 0) {
+    jsonLd.aggregateRating = {
+      "@type": "AggregateRating",
+      ratingValue,
+      reviewCount
+    };
+  }
+  const products = Array.isArray(shop.products) ? shop.products : [];
+  if (products.length > 0) {
+    jsonLd.hasOfferCatalog = {
+      "@type": "OfferCatalog",
+      name: `محصولات ${shop.name}`,
+      itemListElement: products.map((product) => {
+        const item = { "@type": "Product", name: product.name };
+        if (product.image) item.image = product.image;
+        return item;
+      })
+    };
+  }
+  return jsonLd;
 }
 
 export default async function ShopPublicPage({ params }) {
@@ -64,6 +126,13 @@ export default async function ShopPublicPage({ params }) {
   if (!shop) {
     notFound();
   }
+  const canonicalUrl = `${SITE_URL}/shops/${shop.id}`;
+  const jsonLd = buildShopJsonLd(shop, canonicalUrl);
 
-  return <ShopPublicPageClient shop={shop} />;
+  return (
+    <>
+      <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
+      <ShopPublicPageClient shop={shop} />
+    </>
+  );
 }

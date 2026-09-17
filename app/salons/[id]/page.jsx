@@ -5,6 +5,10 @@ import { SalonPublicPageClient } from "./SalonPublicPageClient";
 
 export const runtime = "nodejs";
 
+// Same single source of truth as app/sitemap.js, app/robots.js and
+// app/layout.jsx's metadataBase — never hardcode the domain a second time.
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://zibaban.example.com";
+
 function loadSalon(id) {
   const userId = Number(id);
   if (!Number.isFinite(userId)) return null;
@@ -39,16 +43,48 @@ export async function generateMetadata({ params }) {
     : `پروفایل و رزرو آنلاین نوبت ${salon.name} در زیبابان.`;
 
   const title = `${salon.name} | زیبابان`;
+  const canonicalUrl = `${SITE_URL}/salons/${salon.id}`;
 
   return {
     title,
     description,
+    alternates: {
+      canonical: canonicalUrl
+    },
     openGraph: {
       title,
       description,
+      url: canonicalUrl,
       images: salon.avatar ? [{ url: salon.avatar }] : undefined
     }
   };
+}
+
+// Builds LocalBusiness (BeautySalon) JSON-LD from real salon fields only.
+// No aggregateRating: unlike artists/shops, salons have no reviewCount at
+// all in the data model (salons.rating is a raw column that defaults to 5
+// for every brand-new salon regardless of real reviews — see the flag in the
+// SEO report). Fabricating an AggregateRating out of that column would be
+// exactly the "unconditional fake data" pattern this project already fixed
+// elsewhere, so it's omitted entirely rather than guessed at.
+function buildSalonJsonLd(salon, canonicalUrl) {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BeautySalon",
+    name: salon.name,
+    url: canonicalUrl
+  };
+  if (salon.avatar) jsonLd.image = salon.avatar;
+  if (salon.bio) jsonLd.description = salon.bio;
+  if (salon.phone) jsonLd.telephone = salon.phone;
+  if (salon.area) {
+    jsonLd.address = {
+      "@type": "PostalAddress",
+      addressLocality: salon.area,
+      addressCountry: "IR"
+    };
+  }
+  return jsonLd;
 }
 
 export default async function SalonPublicPage({ params }) {
@@ -57,6 +93,13 @@ export default async function SalonPublicPage({ params }) {
   if (!salon) {
     notFound();
   }
+  const canonicalUrl = `${SITE_URL}/salons/${salon.id}`;
+  const jsonLd = buildSalonJsonLd(salon, canonicalUrl);
 
-  return <SalonPublicPageClient salon={salon} />;
+  return (
+    <>
+      <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
+      <SalonPublicPageClient salon={salon} />
+    </>
+  );
 }

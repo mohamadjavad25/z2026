@@ -1,5 +1,7 @@
-// See the TODO in app/sitemap.js — same placeholder domain, same caveat.
-const SITE_URL = "https://zibaban.example.com";
+// Single source of truth: NEXT_PUBLIC_SITE_URL (see .env.example at the repo
+// root) — same variable app/sitemap.js and app/layout.jsx's metadataBase
+// read, so sitemap/robots/canonical URLs can never drift from each other.
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://zibaban.example.com";
 
 // robots.js itself touches no DB, but kept consistent with sitemap.js/the
 // rest of the app (which relies on node:sqlite, a Node.js builtin).
