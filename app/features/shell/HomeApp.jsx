@@ -756,6 +756,7 @@ export function HomeApp() {
     toggleLikePublicArtistReview,
     confirmPublicArtistBooking,
     toggleFollowPublicArtist,
+    shareArtistProfile,
     openPublicArtistWork,
     selectPublicArtistService,
     resetPublicArtistProfile
@@ -2978,7 +2979,7 @@ function getPassportMatch(post) {
           parseDuration={parseServiceDurationMinutes}
           getCardStyle={getPortfolioCardStyle}
           onClose={closePublicArtistProfile}
-          onShare={() => selectedPublicArtist && setAppToast(`لینک پروفایل «${selectedPublicArtist.name}» کپی شد.`)}
+          onShare={shareArtistProfile}
           onSave={() => selectedPublicArtist && setAppToast(`پروفایل «${selectedPublicArtist.name}» ذخیره شد.`)}
           onRatingHover={setPublicArtistRatingHover}
           onConfirmRating={confirmPublicArtistRating}

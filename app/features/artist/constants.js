@@ -12,22 +12,16 @@ export const artistBookingHistoryFilters = [
 
 export const artistBookingHistoryRank = { day: 1, week: 2, month: 3 };
 
-export const publicArtistServicePresets = {};
-
-export const publicArtistServiceFallback = [
-  { id: "pub-default-1", name: "مشاوره زیبایی", price: "رایگان", duration: "۲۰ دقیقه", badge: "شروع", hint: "بررسی نیاز و پیشنهاد سرویس", tone: "soft" },
-  { id: "pub-default-2", name: "سرویس تخصصی", price: "از ۲.۵ م", duration: "۹۰ دقیقه", badge: "پرطرفدار", hint: "بر اساس تخصص آرتیست", tone: "hot" },
-  { id: "pub-default-3", name: "سرویس VIP", price: "از ۶.۵ م", duration: "۱۵۰ دقیقه", badge: "VIP", hint: "جزئیات کامل و اختصاصی", tone: "vip" }
-];
-
+// Bug fix: this used to fall back to 3 hardcoded fake services (fake prices,
+// fake durations) whenever a real artist had none configured, so every
+// service-less artist showed identical made-up offerings indistinguishable
+// from real ones. Now it always reflects the real data — PublicArtistServicesPanel
+// already has an honest "هنوز خدمتی ثبت نشده" empty state for this case.
 export function getPublicArtistServices(artist) {
-  if (Array.isArray(artist?.services) && artist.services.length) {
-    return artist.services.map((service) => ({
-      ...service,
-      id: service.id || `svc-${service.name}`,
-      tone: service.tone || "soft"
-    }));
-  }
-  const role = String(artist?.role || "");
-  return publicArtistServicePresets[role] || publicArtistServiceFallback;
+  const services = Array.isArray(artist?.services) ? artist.services : [];
+  return services.map((service) => ({
+    ...service,
+    id: service.id || `svc-${service.name}`,
+    tone: service.tone || "soft"
+  }));
 }

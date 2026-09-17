@@ -458,6 +458,31 @@ export function usePublicArtistProfile({
     );
   }, [followedArtists, setFollowedArtists, setFollowedSalons, notify]);
 
+  const shareArtistProfile = useCallback(async () => {
+    if (!selectedPublicArtist) return;
+    const name = selectedPublicArtist.name || "آرتیست";
+    const shareText = `پروفایل آرتیست «${name}» در زیبابان`;
+    const artistId = selectedPublicArtist.id;
+    const shareUrl = typeof window !== "undefined"
+      ? (artistId ? `${window.location.origin}/artists/${artistId}` : window.location.href)
+      : "";
+    try {
+      if (typeof navigator !== "undefined" && navigator.share) {
+        await navigator.share({ title: name, text: shareText, url: shareUrl });
+        return;
+      }
+      if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(shareUrl || shareText);
+        notify(`لینک پروفایل «${name}» کپی شد.`);
+        return;
+      }
+    } catch {
+      // user cancelled or share failed
+      return;
+    }
+    notify(`لینک پروفایل «${name}» آماده اشتراک‌گذاری است.`);
+  }, [selectedPublicArtist, notify]);
+
   const openPublicArtistWork = useCallback((item) => {
     if (!item) return;
     closePublicArtistProfile();
@@ -505,6 +530,7 @@ export function usePublicArtistProfile({
     toggleLikePublicArtistReview,
     confirmPublicArtistBooking,
     toggleFollowPublicArtist,
+    shareArtistProfile,
     openPublicArtistWork,
     selectPublicArtistService,
     resetPublicArtistProfile
