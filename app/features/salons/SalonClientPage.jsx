@@ -86,11 +86,13 @@ export function SalonClientPage({
   const visibleServices = services.length ? services : fallbackServices;
   const publicServiceItems = visibleServices.length ? visibleServices : fallbackServices;
   const portfolioItems = selectedSalon?.portfolio?.length ? selectedSalon.portfolio : fallbackPortfolio;
-  const rating = "۴.۸";
-  const followerCount = "۱۲.۴ هزار";
-  const staffCount = 8;
-  const publicName = "سالن نازی‌ها";
-  const publicTag = "سالن زیبایی";
+  const ratingValue = Number(selectedSalon?.rating);
+  const rating = Number.isFinite(ratingValue) && ratingValue > 0 ? toPersianDigits(ratingValue.toFixed(1)) : null;
+  const followerCountValue = Number(selectedSalon?.followerCount ?? selectedSalon?.follower_count ?? 0) || 0;
+  const followerCount = toPersianDigits(followerCountValue);
+  const staffCount = selectedSalon?.staff?.length || 0;
+  const publicName = selectedSalon?.name || "سالن";
+  const publicTag = selectedSalon?.tag || "سالن زیبایی";
   const managerName = selectedSalon?.managerName || selectedSalon?.manager_name || selectedSalon?.ownerName || selectedSalon?.owner_name || "مدیر سالن";
   const teamNames = (selectedSalon?.staff || [])
     .map((member) => member?.name || member?.fullName || member?.artist_name)
@@ -167,10 +169,10 @@ export function SalonClientPage({
             </div>
             <div className="salonPublicRatingCard">
               <span>
-                {toPersianDigits(rating)} امتیاز
+                {rating ? `${rating} امتیاز` : "بدون امتیاز"}
                 <Star size={15} fill="currentColor" />
               </span>
-              <small>({toPersianDigits(reviews.length || 386)} نظر)</small>
+              <small>{reviews.length ? `(${toPersianDigits(reviews.length)} نظر)` : "بدون نظر ثبت‌شده"}</small>
             </div>
             <div className="salonPublicStats">
               <span><UserRound size={17} /> {toPersianDigits(staffCount)} سال سابقه</span>
@@ -250,7 +252,7 @@ export function SalonClientPage({
                   </div>
                 </div>
                 <p className="salonPublicAboutBio">
-                  {selectedSalon.bio || "سالن نازی‌ها با تمرکز روی میکاپ، رنگ مو و خدمات تخصصی زیبایی، تجربه‌ای آرام و دقیق برای رزروهای روزمره و مناسبتی فراهم می‌کند."}
+                  {selectedSalon.bio || "این سالن هنوز توضیحی درباره خودش ثبت نکرده است."}
                 </p>
                 <section className="salonPublicAboutBlock">
                   <h4>مدیر و تیم سالن</h4>
@@ -270,7 +272,7 @@ export function SalonClientPage({
                 <div className="salonPublicAboutFacts">
                   <span><UserRound size={16} /> {toPersianDigits(staffCount)} سال سابقه</span>
                   <span><Heart size={16} /> {followerCount} دنبال‌کننده</span>
-                  <span><Star size={16} fill="currentColor" /> {toPersianDigits(rating)} امتیاز</span>
+                  <span><Star size={16} fill="currentColor" /> {rating ? `${rating} امتیاز` : "بدون امتیاز"}</span>
                   <span><ShieldCheck size={16} /> پروفایل تایید شده</span>
                 </div>
                 <section className="salonPublicAboutBlock">
@@ -281,9 +283,9 @@ export function SalonClientPage({
                   </div>
                 </section>
                 <div className="salonPublicAboutContact">
-                  <span><MapPin size={17} /> تهران، سعادت‌آباد</span>
-                  <span><Clock3 size={17} /> ۲۰:۰۰ - ۲۰:۰۰</span>
-                  <span><Phone size={17} /> ۰۲۱-۱۲۳۴۵۶۷۸</span>
+                  <span><MapPin size={17} /> {selectedSalon.area || "آدرس ثبت نشده"}</span>
+                  <span><Clock3 size={17} /> {selectedSalon.open || "ساعت کاری ثبت نشده"}</span>
+                  <span><Phone size={17} /> {selectedSalon.phone || "شماره تماس ثبت نشده"}</span>
                 </div>
                 <section className="salonPublicAboutBlock">
                   <h4>قوانین رزرو و لغو</h4>

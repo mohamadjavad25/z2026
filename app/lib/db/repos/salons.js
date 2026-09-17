@@ -70,10 +70,18 @@ export function listSalons() {
 }
 
 export function getSalon(userId) {
-  const row = getDb().prepare("SELECT * FROM salons WHERE user_id = ?").get(userId);
+  const row = getDb().prepare(`
+    SELECT s.*, u.avatar, u.bio
+    FROM salons s JOIN users u ON u.id = s.user_id
+    WHERE s.user_id = ?
+  `).get(userId);
   if (!row) return null;
+  const followerCount = countFollowers(row.user_id);
+  const followingCount = countFollowing(row.user_id);
   return {
     id: row.user_id,
+    user_id: row.user_id,
+    source_key: String(row.user_id),
     name: row.name,
     area: row.area,
     tag: row.tag,
@@ -83,6 +91,14 @@ export function getSalon(userId) {
     match: row.match_score,
     phone: row.phone,
     email: row.email,
+    avatar: row.avatar || "",
+    bio: row.bio || "",
+    postCount: row.post_count,
+    post_count: row.post_count,
+    followerCount,
+    follower_count: followerCount,
+    followingCount,
+    following_count: followingCount,
     services: listSalonServices(userId),
     portfolio: listSalonPortfolio(userId),
     staff: listSalonStaff(userId),

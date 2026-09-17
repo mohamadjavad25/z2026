@@ -303,9 +303,12 @@ export function useSalonDirectory({
   }, [savedSalonKeys, notify]);
 
   const shareSalonProfile = useCallback(async (nameHint) => {
-    const name = nameHint || createdProfile?.data?.name || "سالن";
+    const name = nameHint || selectedSalon?.name || createdProfile?.data?.name || "سالن";
     const shareText = `پروفایل سالن «${name}» در زیبابان`;
-    const shareUrl = typeof window !== "undefined" ? window.location.href : "";
+    const salonId = selectedSalon?.id ?? selectedSalon?.source_key;
+    const shareUrl = typeof window !== "undefined"
+      ? (salonId ? `${window.location.origin}/salons/${salonId}` : window.location.href)
+      : "";
     try {
       if (typeof navigator !== "undefined" && navigator.share) {
         await navigator.share({ title: name, text: shareText, url: shareUrl });
@@ -320,7 +323,7 @@ export function useSalonDirectory({
       // cancelled
     }
     notify(`لینک پروفایل «${name}» آماده اشتراک‌گذاری است.`);
-  }, [createdProfile, notify]);
+  }, [createdProfile, notify, selectedSalon]);
 
   const openSalonClientBooking = useCallback((serviceName = "") => {
     if (!selectedSalon) return;
