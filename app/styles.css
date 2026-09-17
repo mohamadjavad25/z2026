@@ -20533,7 +20533,8 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button {
     position: relative;
     z-index: 4;
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+    justify-content: center;
     align-items: stretch;
     min-height: 92px;
     margin: 8px 0 0;

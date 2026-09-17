@@ -4,16 +4,13 @@ import { useState } from "react";
 import {
   Award,
   BadgeCheck,
-  BriefcaseBusiness,
   Heart,
   ImagePlus,
   MapPin,
   ShoppingBag,
-  Smile,
   Star,
   Settings,
   UserPlus,
-  Users,
 } from "lucide-react";
 import { MarbleRatingStars } from "../../components/MarbleRatingStars";
 import { toPersianDigits } from "../../shared/lib/digits";
@@ -62,27 +59,11 @@ export function ProfileHero({
   if (type === "salon") {
     const salonStoryVideo = profile.data?.storyVideo || profile.data?.story_video || profile.data?.introVideo || profile.data?.intro_video || "";
     const salonStoryPoster = profile.data?.storyPoster || profile.data?.story_poster || profile.data?.introPoster || profile.data?.intro_poster || "/salon-public-hero.png";
-    const salonDisplayRating = Number(salonStats?.rating) > 0 ? salonStats.rating : 4.9;
     const salonHeroStats = [
       {
-        value: toPersianDigits(236),
-        label: "پروژه انجام شده",
-        icon: BriefcaseBusiness
-      },
-      {
-        value: toPersianDigits(profile.data?.experienceYears || 4),
+        value: toPersianDigits(profile.data?.experienceYears || 0),
         label: "سال تجربه",
         icon: Award
-      },
-      {
-        value: "۱.۲K",
-        label: "مشتری",
-        icon: Users
-      },
-      {
-        value: `${toPersianDigits(98)}٪`,
-        label: "رضایت مشتریان",
-        icon: Smile
       }
     ];
     // Real rolling-week tabs (today + next 6 days), built by the caller from
@@ -112,14 +93,13 @@ export function ProfileHero({
 
         <div className="salonHeroMeta">
           <div className="profileHeroCopy">
-            <p>آرایشگر و میکاپ آرتیست</p>
+            <p>{profile.data?.tag || "سالن زیبایی"}</p>
             <h2>{name}</h2>
             <span className="salonHeroVerified" aria-hidden="true">✹</span>
           </div>
           <div className="salonHeroRatingPill" aria-label="امتیاز سالن">
-            <b>{toPersianDigits(salonDisplayRating)}</b>
+            <b>بدون امتیاز</b>
             <Star size={13} fill="currentColor" />
-            <span>{toPersianDigits(124)} نظر</span>
           </div>
         </div>
         <div className="salonHeroFutureStats" aria-label="آمار سالن">

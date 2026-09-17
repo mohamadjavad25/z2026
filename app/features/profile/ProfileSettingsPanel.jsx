@@ -194,7 +194,7 @@ export function ProfileSettingsPanel({
       <SettingsToggle
         icon={Truck}
         label="آمادگی ارسال"
-        description="نمایش وضعیت ارسال در ویترین و سفارش"
+        description="وقتی خاموش باشد، فروشگاه‌ات سفارش جدید نمی‌گیرد و این پیام روی ویترین به مشتری‌ها نشان داده می‌شود."
         checked={Boolean(profileSettings.shippingReady)}
         onChange={() => onToggle("shippingReady")}
         onLabel="فعال"
