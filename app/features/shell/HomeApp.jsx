@@ -749,6 +749,7 @@ export function HomeApp() {
     publicArtistGalleryRest,
     publicArtistServices,
     isFollowingPublicArtist,
+    isSavedPublicArtist,
     publicArtistHeroImage,
     openPublicArtistProfile,
     closePublicArtistProfile,
@@ -756,6 +757,7 @@ export function HomeApp() {
     toggleLikePublicArtistReview,
     confirmPublicArtistBooking,
     toggleFollowPublicArtist,
+    toggleSavePublicArtist,
     shareArtistProfile,
     openPublicArtistWork,
     selectPublicArtistService,
@@ -2980,7 +2982,8 @@ function getPassportMatch(post) {
           getCardStyle={getPortfolioCardStyle}
           onClose={closePublicArtistProfile}
           onShare={shareArtistProfile}
-          onSave={() => selectedPublicArtist && setAppToast(`پروفایل «${selectedPublicArtist.name}» ذخیره شد.`)}
+          saved={isSavedPublicArtist}
+          onSave={() => selectedPublicArtist && toggleSavePublicArtist(selectedPublicArtist)}
           onRatingHover={setPublicArtistRatingHover}
           onConfirmRating={confirmPublicArtistRating}
           onToggleReviewLike={toggleLikePublicArtistReview}

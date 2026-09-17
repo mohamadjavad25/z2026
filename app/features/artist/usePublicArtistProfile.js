@@ -96,6 +96,26 @@ export function usePublicArtistProfile({
       || followedArtists.includes(selectedPublicArtist.name)
     : false;
 
+  // Bug fix: the "save" button on the public artist profile used to just show
+  // a fake "ذخیره شد" toast with no state change behind it, so the artist
+  // never actually ended up saved anywhere. This mirrors the existing
+  // toggleSaveSalon pattern (useSalonDirectory.js) — client-side saved-keys
+  // list, same durability level, no new backend endpoint needed.
+  const [savedArtists, setSavedArtists] = useState([]);
+  const isSavedPublicArtist = selectedPublicArtist
+    ? savedArtists.includes(String(selectedPublicArtist.id || selectedPublicArtist.name))
+    : false;
+
+  const toggleSavePublicArtist = useCallback((artist) => {
+    if (!artist?.id && !artist?.name) return;
+    const key = String(artist.id || artist.name);
+    const willSave = !savedArtists.includes(key);
+    setSavedArtists((items) => (
+      items.includes(key) ? items.filter((item) => item !== key) : [...items, key]
+    ));
+    notify(willSave ? `پروفایل «${artist.name || "آرتیست"}» ذخیره شد.` : `پروفایل «${artist.name || "آرتیست"}» از ذخیره‌ها حذف شد.`);
+  }, [savedArtists, notify]);
+
   const publicArtistHeroImage = useMemo(() => {
     const poster = selectedPublicArtist?.storyPoster
       || selectedPublicArtist?.story_poster
@@ -523,6 +543,7 @@ export function usePublicArtistProfile({
     publicArtistGalleryRest,
     publicArtistServices,
     isFollowingPublicArtist,
+    isSavedPublicArtist,
     publicArtistHeroImage,
     openPublicArtistProfile,
     closePublicArtistProfile,
@@ -530,6 +551,7 @@ export function usePublicArtistProfile({
     toggleLikePublicArtistReview,
     confirmPublicArtistBooking,
     toggleFollowPublicArtist,
+    toggleSavePublicArtist,
     shareArtistProfile,
     openPublicArtistWork,
     selectPublicArtistService,

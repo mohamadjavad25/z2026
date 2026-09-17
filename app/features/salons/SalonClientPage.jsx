@@ -32,23 +32,14 @@ import { toPersianDigits } from "../../shared/lib/digits";
 import { SalonClientGallery } from "./SalonClientGallery";
 import { PublicStoryBanner, usePublicStory } from "../../components/PublicStoryBanner";
 
-const fallbackServices = [
-  { id: "makeup", name: "میکاپ", price: "از ۲.۵ م", duration: "۹۰ دقیقه", icon: "makeup" },
-  { id: "chignon", name: "شینیون", price: "از ۱.۸ م", duration: "۹۰ دقیقه", icon: "hair" },
-  { id: "hair-cut", name: "کوتاهی مو", price: "از ۶۵۰ هزار", duration: "۴۵ دقیقه", icon: "scissors" },
-  { id: "keratin", name: "کراتینه", price: "از ۴.۵ م", duration: "۱۵۰ دقیقه", icon: "care" },
-  { id: "highlight", name: "هایلایت", price: "از ۳.۸ م", duration: "۱۸۰ دقیقه", icon: "spark" },
-  { id: "hair-color", name: "رنگ مو", price: "از ۱.۸ م", duration: "۱۲۰ دقیقه", icon: "palette" }
-];
-
-const fallbackPortfolio = [
-  { id: "public-salon-1", title: "رنگ و لایت", image: "/explore-post-hair-balayage.png" },
-  { id: "public-salon-2", title: "شینیون", image: "/explore-post-bridal-pearl.png" },
-  { id: "public-salon-3", title: "مو صاف", image: "/explore-post-hair-waves.png" },
-  { id: "public-salon-4", title: "موج نرم", image: "/story-modern-hair.png" },
-  { id: "public-salon-5", title: "میکاپ", image: "/explore-post-makeup-nude.png" }
-];
-
+// Bug fix: this used to fall back to hardcoded fake services and a fake
+// portfolio gallery (identical stock images) whenever a real salon had none
+// configured, so every service-less/portfolio-less salon showed made-up
+// content indistinguishable from real data. Now it always reflects the real
+// data — the rail/sheet below render an honest "هنوز خدمتی ثبت نشده" /
+// "هنوز نمونه‌کاری ثبت نشده" empty state instead (SalonClientGallery already
+// had this for the portfolio mosaic; it was just being starved by the
+// fallback array upstream).
 function getServiceIcon(service, index) {
   const key = String(service.icon || service.badge || service.name || "").toLowerCase();
   if (key.includes("کوتاه") || key.includes("scissor")) return <Scissors size={21} />;
@@ -83,9 +74,7 @@ export function SalonClientPage({
   const [aboutOpen, setAboutOpen] = useState(false);
   const [publicSheet, setPublicSheet] = useState("");
   const services = selectedSalon ? getVisibleServices(selectedSalon) : [];
-  const visibleServices = services.length ? services : fallbackServices;
-  const publicServiceItems = visibleServices.length ? visibleServices : fallbackServices;
-  const portfolioItems = selectedSalon?.portfolio?.length ? selectedSalon.portfolio : fallbackPortfolio;
+  const portfolioItems = Array.isArray(selectedSalon?.portfolio) ? selectedSalon.portfolio : [];
   const ratingValue = Number(selectedSalon?.rating);
   const rating = Number.isFinite(ratingValue) && ratingValue > 0 ? toPersianDigits(ratingValue.toFixed(1)) : null;
   const followerCountValue = Number(selectedSalon?.followerCount ?? selectedSalon?.follower_count ?? 0) || 0;
@@ -98,7 +87,7 @@ export function SalonClientPage({
     .map((member) => member?.name || member?.fullName || member?.artist_name)
     .filter(Boolean)
     .slice(0, 3);
-  const specialtyNames = visibleServices.slice(0, 4).map((service) => service.name).filter(Boolean);
+  const specialtyNames = services.slice(0, 4).map((service) => service.name).filter(Boolean);
   const storyVideoSrc = selectedSalon?.storyVideo || selectedSalon?.story_video || selectedSalon?.introVideo || selectedSalon?.intro_video || "";
   const storyPosterSrc = selectedSalon?.storyPoster || selectedSalon?.story_poster || selectedSalon?.introPoster || selectedSalon?.intro_poster || "/salon-public-hero.png";
   const story = usePublicStory({ storyVideoSrc, storyPosterSrc });
@@ -195,18 +184,25 @@ export function SalonClientPage({
               <button type="button" onClick={() => setPublicSheet("services")}>مشاهده همه</button>
               <h3>خدمات</h3>
             </div>
-            <div className="salonPublicServiceRail">
-              {publicServiceItems.map((service, index) => (
-                <button
-                  type="button"
-                  key={service.id || service.name}
-                  onClick={() => onOpenBooking(service.name)}
-                >
-                  <span>{getServiceIcon(service, index)}</span>
-                  <b>{service.name}</b>
-                </button>
-              ))}
-            </div>
+            {services.length ? (
+              <div className="salonPublicServiceRail">
+                {services.map((service, index) => (
+                  <button
+                    type="button"
+                    key={service.id || service.name}
+                    onClick={() => onOpenBooking(service.name)}
+                  >
+                    <span>{getServiceIcon(service, index)}</span>
+                    <b>{service.name}</b>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="salonClientEmptyGallery">
+                <Scissors size={22} />
+                <b>هنوز خدمتی ثبت نشده</b>
+              </div>
+            )}
           </section>
 
           <section className="salonPublicCard salonPublicPortfolio">
@@ -229,7 +225,7 @@ export function SalonClientPage({
             <button type="button" className={isSaved ? "is-active" : ""} onClick={() => onSave(selectedSalon)}>
               <Heart size={23} fill={isSaved ? "currentColor" : "none"} />
             </button>
-            <button type="button" className="is-primary" onClick={() => onOpenBooking(getPrimaryBookingService(visibleServices))}>
+            <button type="button" className="is-primary" onClick={() => onOpenBooking(getPrimaryBookingService(services))}>
               <Plus size={30} />
             </button>
             <button type="button" onClick={() => onOpenChat(selectedSalon)} aria-label="چت با سالن">
@@ -308,24 +304,31 @@ export function SalonClientPage({
                   <h3>{publicSheet === "services" ? "همه خدمات سالن" : "همه نمونه‌کارها"}</h3>
                 </div>
                 {publicSheet === "services" ? (
-                  <div className="salonPublicAllServices">
-                    {publicServiceItems.map((service, index) => (
-                      <button
-                        type="button"
-                        key={service.id || service.name}
-                        onClick={() => {
-                          setPublicSheet("");
-                          onOpenBooking(service.name);
-                        }}
-                      >
-                        <span>{getServiceIcon(service, index)}</span>
-                        <b>{service.name}</b>
-                        <small>{service.price || "قیمت توافقی"} · {service.duration || "زمان متغیر"}</small>
-                        <CalendarCheck size={17} />
-                      </button>
-                    ))}
-                  </div>
-                ) : (
+                  services.length ? (
+                    <div className="salonPublicAllServices">
+                      {services.map((service, index) => (
+                        <button
+                          type="button"
+                          key={service.id || service.name}
+                          onClick={() => {
+                            setPublicSheet("");
+                            onOpenBooking(service.name);
+                          }}
+                        >
+                          <span>{getServiceIcon(service, index)}</span>
+                          <b>{service.name}</b>
+                          <small>{service.price || "قیمت توافقی"} · {service.duration || "زمان متغیر"}</small>
+                          <CalendarCheck size={17} />
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="salonClientEmptyGallery">
+                      <Scissors size={22} />
+                      <b>هنوز خدمتی ثبت نشده</b>
+                    </div>
+                  )
+                ) : portfolioItems.length ? (
                   <div className="salonPublicAllPortfolio">
                     {portfolioItems.map((item) => (
                       <figure key={item.id || item.title}>
@@ -333,6 +336,11 @@ export function SalonClientPage({
                         <figcaption>{item.title || "نمونه‌کار"}</figcaption>
                       </figure>
                     ))}
+                  </div>
+                ) : (
+                  <div className="salonClientEmptyGallery">
+                    <ImagePlus size={22} />
+                    <b>هنوز نمونه‌کاری ثبت نشده</b>
                   </div>
                 )}
               </article>

@@ -30,6 +30,7 @@ export function PublicArtistModal({
   userRating,
   ratingHover,
   following,
+  saved,
   galleryTags,
   galleryFilter,
   featuredWork,
@@ -103,10 +104,11 @@ export function PublicArtistModal({
                   </button>
                   <button
                     type="button"
-                    aria-label="ذخیره پروفایل"
+                    aria-label={saved ? "حذف از ذخیره‌ها" : "ذخیره پروفایل"}
+                    className={saved ? "is-saved" : ""}
                     onClick={onSave}
                   >
-                    <Bookmark size={16} />
+                    <Bookmark size={16} fill={saved ? "currentColor" : "none"} />
                   </button>
                 </div>
               </div>
