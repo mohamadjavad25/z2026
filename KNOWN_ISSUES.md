@@ -11,14 +11,17 @@
 
 ---
 
-## سرور wallet در برابر درخواست‌های موازی idempotent نیست
+## سرور wallet در برابر درخواست‌های موازی idempotent نیست — رفع‌شده
 
 - **کشف‌شده در:** فاز UX (busy state تست C2)، ۳ اوت ۲۰۲۶.
-- **رفتار:** دو `POST /api/wallet` موازی (بدون gate کلاینت) هر دو موفق می‌شوند و هر دو اثر می‌گذارند (مثلاً شارژ دوبار انجام می‌شود).
-- **پوشش فعلی:** busy state کلاینت (`walletBusy`) این را در UI عادی می‌پوشاند، ولی محافظت واقعی نیست — دو تب باز، ریترای شبکه‌ای، یا درخواست مستقیم به API همچنان می‌تواند باعث دوبار اجراشدن شود.
-- **راه‌حل واقعی:** idempotency key سمت سرور (کلاینت یک شناسهٔ یکتا برای هر عملیات بفرستد؛ سرور اگر همان کلید را دوباره دید، نتیجهٔ قبلی را برگرداند نه اجرای دوباره) — این با معماری فعلی `withTransaction` سازگار است.
-- **اولویت:** بالا — قبل از استقرار پروداکشن با پول واقعی باید رفع شود.
-- **وضعیت:** شناسایی‌شده، رفع‌نشده.
+- **رفتار قبلی:** دو `POST /api/wallet` موازی (بدون gate کلاینت) هر دو موفق می‌شدند و هر دو اثر می‌گذاشتند (مثلاً شارژ دوبار انجام می‌شد). busy state کلاینت (`walletBusy`) فقط UI عادی را می‌پوشاند؛ دو تب باز، ریترای شبکه‌ای، یا درخواست مستقیم به API همچنان باعث دوبار اجراشدن می‌شد.
+- **رفع:**
+  - **schema v19:** جدول `wallet_idempotency_keys (user_id, kind, key, response_json, PRIMARY KEY(user_id, kind, key))`.
+  - `app/lib/db/repos/wallet.js`: `readIdempotentResult` / `storeIdempotentResult` — هر دو **داخل همان `withTransaction`** فراخوانی مثل مطلق مربوطه (`creditCash` برای demo_credit/booking_earn، `requestWithdraw`)، پس چک-کلید و آپدیت موجودی اتمیک هستند؛ چون `BEGIN IMMEDIATE` نویسنده‌ها را serialize می‌کند، دومین درخواست همزمان با همان کلید منتظر commit اولی می‌ماند و بعد نتیجهٔ ذخیره‌شده را برمی‌گرداند نه اجرای دوباره.
+  - **API:** `POST /api/wallet` فیلد `idempotencyKey` را در body برای `kind: "demo_credit"` و `kind: "withdraw"` می‌پذیرد و به repo پاس می‌دهد.
+  - **کلاینت:** `app/features/wallet/useWalletWorkspace.js` → `requestWalletCharge` و `requestWalletWithdraw` هر دو با `crypto.randomUUID()` یک idempotency key یکتا per-click می‌سازند، پس double-click / دو تب / ریترای شبکه همان کلید را دوباره می‌فرستد نه کلید جدید.
+- **تست:** `node scripts/seed-wallet-test.mjs` — موارد ۷/۷b/۷d: دو `creditCash` واقعاً همزمان (worker_threads + اتصال جدا به DB) با یک idempotencyKey → فقط یک بار net اعمال می‌شود؛ replay بعدی از همان کلید از طریق HTTP هم موجودی را عوض نمی‌کند؛ همین برای `requestWithdraw` (دو withdraw همزمان با یک کلید → فقط یک withdrawal ثبت می‌شود، یک ردیف در `wallet_idempotency_keys`).
+- **وضعیت:** رفع‌شده — ۱۷ سپتامبر ۲۰۲۶ (پوشش تست idempotency اضافه شد؛ پیاده‌سازی سرور/کلاینت از قبل موجود بود ولی این سند به‌روز نشده بود).
 
 ---
 
@@ -137,6 +140,7 @@
 - **PATCH `/api/salon-bookings` → sync `artist_bookings`** — رفع‌شده (۳ اوت ۲۰۲۶)؛ تست `seed-booking-patch-sync-test.mjs` ۲۴/۲۴.
 - **UX false-success (C1/C7/C8)** — رفع‌شده (۳ اوت ۲۰۲۶)؛ جزئیات در `UX_ISSUES.md`؛ تست `seed-ux-false-success-test.mjs`.
 - **UX busy / double-submit (C2–C6)** — رفع‌شده (۳ اوت ۲۰۲۶)؛ جزئیات در `UX_ISSUES.md`؛ تست `seed-ux-busy-test.mjs`.
+- **Wallet idempotency سمت سرور (درخواست‌های موازی)** — رفع‌شده (۱۷ سپتامبر ۲۰۲۶)؛ `wallet_idempotency_keys` (schema v19) + `withTransaction`؛ تست `seed-wallet-test.mjs` #7/#7b/#7d.
 
 ### یادداشت معماری باز (غیر باگ فوری)
 

@@ -5,11 +5,14 @@
  *
  * Covers:
  * 2. Race: 10 concurrent withdraws via worker_threads + separate DB connections
- * 3. Idempotency: two concurrent withdraws that overdraw together → one wins
+ * 3. Overdraw race: two concurrent withdraws (different keys) that overdraw together → one wins
  * 4. demo_credit blocked when NODE_ENV=production
  * 5. feePercent from body ignored (server constant used)
  * 6. Withdraw stays pending (not auto-paid); admin confirm_withdraw → paid
- * 7. --cleanup
+ * 7. Idempotency key: two concurrent demo_credit / withdraw calls with the SAME
+ *    idempotencyKey apply the balance change exactly once (second call returns
+ *    the stored first result instead of re-executing)
+ * 8. --cleanup
  *
  * Usage:
  *   node scripts/seed-wallet-test.mjs
@@ -124,19 +127,53 @@ async function stopServer(child) {
   }
 }
 
-function runWorkerWithdraw({ dbPath, userId, amount }) {
+function runWorkerWithdraw({ dbPath, userId, amount, idempotencyKey = "" }) {
   const workerSource = `
     import { parentPort, workerData } from "node:worker_threads";
     process.env.ZIBABAN_DB_PATH = workerData.dbPath;
     const wallet = await import(${JSON.stringify(pathToFileURL(path.join(root, "app/lib/db/repos/wallet.js")).href)});
-    const result = wallet.requestWithdraw(workerData.userId, workerData.amount, "race-test");
+    const result = wallet.requestWithdraw(workerData.userId, workerData.amount, "race-test", workerData.idempotencyKey || "");
     parentPort.postMessage(result);
   `;
   const tmp = path.join(root, "data", `wallet-race-worker-${process.pid}-${Math.random().toString(16).slice(2)}.mjs`);
   writeFileSync(tmp, workerSource);
   return new Promise((resolve) => {
     const worker = new Worker(tmp, {
-      workerData: { dbPath, userId, amount },
+      workerData: { dbPath, userId, amount, idempotencyKey },
+      type: "module"
+    });
+    worker.on("message", (msg) => {
+      try { rmSync(tmp, { force: true }); } catch { /* ignore */ }
+      resolve(msg);
+    });
+    worker.on("error", (err) => {
+      try { rmSync(tmp, { force: true }); } catch { /* ignore */ }
+      resolve({ ok: false, error: "worker_error", detail: String(err?.message || err) });
+    });
+  });
+}
+
+/** Same pattern as runWorkerWithdraw, but for creditCash (the top-up path) — used
+ *  to prove same-key concurrent demo_credit calls only apply the net amount once. */
+function runWorkerCredit({ dbPath, userId, amount, idempotencyKey = "" }) {
+  const workerSource = `
+    import { parentPort, workerData } from "node:worker_threads";
+    process.env.ZIBABAN_DB_PATH = workerData.dbPath;
+    const wallet = await import(${JSON.stringify(pathToFileURL(path.join(root, "app/lib/db/repos/wallet.js")).href)});
+    const result = wallet.creditCash(workerData.userId, {
+      amount: workerData.amount,
+      asPending: false,
+      type: "demo_credit",
+      note: "idempotency-test",
+      idempotencyKey: workerData.idempotencyKey || ""
+    });
+    parentPort.postMessage(result);
+  `;
+  const tmp = path.join(root, "data", `wallet-idem-worker-${process.pid}-${Math.random().toString(16).slice(2)}.mjs`);
+  writeFileSync(tmp, workerSource);
+  return new Promise((resolve) => {
+    const worker = new Worker(tmp, {
+      workerData: { dbPath, userId, amount, idempotencyKey },
       type: "module"
     });
     worker.on("message", (msg) => {
@@ -399,9 +436,102 @@ async function main() {
     );
     pairCheck.close();
     step(
-      "3. two concurrent overdrawing withdraws → exactly 1 ok",
+      "3. two concurrent overdrawing withdraws (different keys) → exactly 1 ok",
       pairOk === 1 && pairFail === 1 && pairBal === 50_000,
       `ok=${pairOk} fail=${pairFail} finalAvailable=${pairBal}`
+    );
+
+    // --- 7) Idempotency: SAME key, two truly-concurrent demo_credit calls ---
+    // This is the KNOWN_ISSUES.md "wallet is not idempotent against parallel
+    // requests" scenario: e.g. two open tabs, or a network retry, both firing
+    // POST /api/wallet {kind:"demo_credit", idempotencyKey:"same-uuid"} at once.
+    // Expected: only ONE of them actually credits the wallet; the other reads
+    // back the first call's stored result from wallet_idempotency_keys inside
+    // the same withTransaction (BEGIN IMMEDIATE serializes them), so the net
+    // amount is applied exactly once regardless of which one "wins" the race.
+    const creditIdemDb = new DatabaseSync(TEST_DB);
+    const creditIdemStart = 0;
+    creditIdemDb.prepare(`
+      UPDATE wallets SET available_balance = ?, pending_balance = 0, updated_at = CURRENT_TIMESTAMP
+      WHERE user_id = ?
+    `).run(creditIdemStart, userId);
+    creditIdemDb.close();
+
+    const sameKey = `idem-credit-${process.pid}-${Date.now()}`;
+    const creditAmount = 200_000;
+    const expectedCreditFee = Math.floor((creditAmount * 10) / 100);
+    const expectedCreditNet = creditAmount - expectedCreditFee;
+    const creditPair = await Promise.all([
+      runWorkerCredit({ dbPath: TEST_DB, userId, amount: creditAmount, idempotencyKey: sameKey }),
+      runWorkerCredit({ dbPath: TEST_DB, userId, amount: creditAmount, idempotencyKey: sameKey })
+    ]);
+    const creditPairOk = creditPair.filter((r) => r?.ok).length;
+    const creditPairNets = creditPair.map((r) => r?.net);
+    const creditIdemCheck = new DatabaseSync(TEST_DB);
+    const creditIdemBal = Number(
+      creditIdemCheck.prepare("SELECT available_balance FROM wallets WHERE user_id = ?").get(userId)
+        ?.available_balance || 0
+    );
+    const idemKeyRows = creditIdemCheck.prepare(
+      "SELECT COUNT(*) AS n FROM wallet_idempotency_keys WHERE user_id = ? AND kind = 'demo_credit' AND key = ?"
+    ).get(userId, sameKey);
+    creditIdemCheck.close();
+    step(
+      "7. two concurrent demo_credit with SAME idempotencyKey → net applied exactly once",
+      creditPairOk === 2
+        && creditPairNets[0] === expectedCreditNet
+        && creditPairNets[1] === expectedCreditNet
+        && creditIdemBal === expectedCreditNet
+        && Number(idemKeyRows?.n || 0) === 1,
+      `ok=${creditPairOk} nets=${JSON.stringify(creditPairNets)} finalAvailable=${creditIdemBal} expectedNet=${expectedCreditNet} idemRows=${idemKeyRows?.n}`
+    );
+
+    // Same key, called sequentially (not just concurrently) must also be a no-op
+    // the second time — proves the dedupe isn't just an artifact of lock contention.
+    const sequentialRepeat = await api("/api/wallet", {
+      method: "POST",
+      cookie,
+      body: { kind: "demo_credit", amount: creditAmount, asPending: false, idempotencyKey: sameKey }
+    });
+    const repeatAvailable = sequentialRepeat.payload.availableBalance ?? sequentialRepeat.payload.data?.availableBalance;
+    step(
+      "7b. replaying the same idempotencyKey via HTTP afterwards → still no double-credit",
+      sequentialRepeat.res.status === 200 && repeatAvailable === expectedCreditNet,
+      `status=${sequentialRepeat.res.status} available=${repeatAvailable} expected=${expectedCreditNet}`
+    );
+
+    // --- 7c) Idempotency also covers withdraw (same key, concurrent) ---
+    const withdrawIdemDb = new DatabaseSync(TEST_DB);
+    withdrawIdemDb.prepare(`
+      UPDATE wallets SET available_balance = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?
+    `).run(300_000, userId);
+    withdrawIdemDb.close();
+
+    const withdrawSameKey = `idem-withdraw-${process.pid}-${Date.now()}`;
+    const withdrawIdemPair = await Promise.all([
+      runWorkerWithdraw({ dbPath: TEST_DB, userId, amount: 100_000, idempotencyKey: withdrawSameKey }),
+      runWorkerWithdraw({ dbPath: TEST_DB, userId, amount: 100_000, idempotencyKey: withdrawSameKey })
+    ]);
+    const withdrawIdemOk = withdrawIdemPair.filter((r) => r?.ok).length;
+    const withdrawIdemIds = withdrawIdemPair.map((r) => r?.withdrawalId).filter((v) => v != null);
+    const withdrawIdemCheck = new DatabaseSync(TEST_DB);
+    const withdrawIdemBal = Number(
+      withdrawIdemCheck.prepare("SELECT available_balance FROM wallets WHERE user_id = ?").get(userId)
+        ?.available_balance || 0
+    );
+    const withdrawIdemKeyRows = Number(
+      withdrawIdemCheck.prepare(
+        "SELECT COUNT(*) AS n FROM wallet_idempotency_keys WHERE user_id = ? AND kind = 'withdraw' AND key = ?"
+      ).get(userId, withdrawSameKey)?.n || 0
+    );
+    withdrawIdemCheck.close();
+    step(
+      "7d. two concurrent withdraws with SAME idempotencyKey → deducted exactly once, one stored idempotency row",
+      withdrawIdemOk === 2
+        && withdrawIdemIds[0] === withdrawIdemIds[1]
+        && withdrawIdemBal === 200_000
+        && withdrawIdemKeyRows === 1,
+      `ok=${withdrawIdemOk} ids=${JSON.stringify(withdrawIdemIds)} finalAvailable=${withdrawIdemBal} idemKeyRows=${withdrawIdemKeyRows}`
     );
 
     // WAL mode check
