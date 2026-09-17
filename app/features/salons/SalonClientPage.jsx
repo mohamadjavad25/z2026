@@ -254,15 +254,17 @@ export function SalonClientPage({
                   <h4>مدیر و تیم سالن</h4>
                   <div className="salonPublicAboutList">
                     <span><UserRound size={16} /> مدیریت: {managerName}</span>
-                    <span><UserPlus size={16} /> تیم: {teamNames.length ? teamNames.join("، ") : "رنگ‌کار، میکاپ آرتیست، ناخن‌کار"}</span>
+                    <span><UserPlus size={16} /> تیم: {teamNames.length ? teamNames.join("، ") : "هنوز عضو تیمی ثبت نشده"}</span>
                   </div>
                 </section>
                 <section className="salonPublicAboutBlock">
                   <h4>تخصص‌ها و سابقه</h4>
                   <div className="salonPublicAboutChips">
-                    {(specialtyNames.length ? specialtyNames : ["میکاپ", "رنگ مو", "شینیون", "کوتاهی مو"]).map((item) => (
-                      <span key={item}>{item}</span>
-                    ))}
+                    {specialtyNames.length ? (
+                      specialtyNames.map((item) => <span key={item}>{item}</span>)
+                    ) : (
+                      <span>هنوز تخصصی ثبت نشده</span>
+                    )}
                   </div>
                 </section>
                 <div className="salonPublicAboutFacts">
