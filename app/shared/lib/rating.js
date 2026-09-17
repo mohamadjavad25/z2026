@@ -1,4 +1,4 @@
-import { toLatinDigits, toPersianDigits } from "./digits";
+import { toLatinDigits, toPersianDigits } from "./digits.js";
 
 export function parseNumericRating(value) {
   const normalized = toLatinDigits(String(value ?? "")).replace(/[^\d.]/g, "");

@@ -1,4 +1,4 @@
-import { toLatinDigits, toPersianDigits } from "./digits";
+import { toLatinDigits, toPersianDigits } from "./digits.js";
 
 export const PUBLIC_BOOKING_DAY_START = 9 * 60;
 export const PUBLIC_BOOKING_DAY_END = 21 * 60;

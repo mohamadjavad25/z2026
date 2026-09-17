@@ -369,7 +369,7 @@ export function patchSalonBookingWithArtistSync(id, salonUserId, data) {
             status: next.status || "تازه"
           });
         } else {
-          const created = artists.addArtistBooking(newArtistId, {
+          const created = artists.addArtistBookingInTx(newArtistId, {
             client: next.client,
             phone: next.phone,
             service: next.service,
@@ -388,7 +388,7 @@ export function patchSalonBookingWithArtistSync(id, salonUserId, data) {
           if (oldArtistId) linkedArtistIds.push(oldArtistId);
         }
         if (newArtistId) {
-          const created = artists.addArtistBooking(newArtistId, {
+          const created = artists.addArtistBookingInTx(newArtistId, {
             client: next.client,
             phone: next.phone,
             service: next.service,

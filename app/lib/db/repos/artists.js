@@ -1,4 +1,4 @@
-import { getDb } from "../connection.js";
+import { getDb, withTransaction } from "../connection.js";
 import { storyFieldsFor } from "./stories.js";
 import { countFollowers, getUserById, isFollowing } from "./users.js";
 import { listPostsByOwner } from "./posts.js";
@@ -484,7 +484,14 @@ export function cancelArtistBookingRow(bookingId) {
   return updateArtistBookingRow(bookingId, { status: "لغو" });
 }
 
-export function addArtistBooking(artistUserId, data) {
+/**
+ * Slot-conflict check + INSERT for an artist_bookings row, run against whatever
+ * transaction is already open on the caller's connection (no BEGIN/COMMIT of its own).
+ * Mirrors the salons/bookings.js `updateSalonBookingInTx` convention: callers that
+ * already hold a `withTransaction`/`BEGIN IMMEDIATE` (e.g. patchSalonBookingWithArtistSync)
+ * must call this directly instead of `addArtistBooking`, to avoid nesting BEGIN IMMEDIATE.
+ */
+export function addArtistBookingInTx(artistUserId, data) {
   ensureArtistBookingDurationColumn();
   const bookingDate = resolveRollingPersianDateKey(data.bookingDate || data.booking_date || data.date || "");
   const time = normalizeBookingTimeLabel(data.time || "");
@@ -521,6 +528,17 @@ export function addArtistBooking(artistUserId, data) {
     ok: true,
     booking: getDb().prepare("SELECT * FROM artist_bookings WHERE id = ?").get(Number(info.lastInsertRowid))
   };
+}
+
+/**
+ * Public entry point: wraps the check+INSERT above in its own `withTransaction`
+ * (`BEGIN IMMEDIATE`) so two truly concurrent connections can't both pass the
+ * overlap check before either commits. Use this from call sites that are NOT
+ * already inside an open transaction (API routes, syncSalonBookingsForArtist).
+ * Call sites already inside a transaction must use `addArtistBookingInTx` instead.
+ */
+export function addArtistBooking(artistUserId, data) {
+  return withTransaction(getDb(), () => addArtistBookingInTx(artistUserId, data));
 }
 
 export function getPublicArtist(userId, viewerUserId = null) {

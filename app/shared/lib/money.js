@@ -1,4 +1,4 @@
-import { toLatinDigits, toPersianDigits } from "./digits";
+import { toLatinDigits, toPersianDigits } from "./digits.js";
 
 export function formatToman(value) {
   return `${formatTomanNumber(value)} تومان`;

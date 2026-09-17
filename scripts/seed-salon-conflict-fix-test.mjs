@@ -4,7 +4,9 @@
  * DB: data/zibaban-conflict-fix-test.sqlite
  *
  * Covers: S1 overlap, S2 staff, S3 digits, non-overlap regression,
- * concurrent race, and pre-migration Persian-digit row after v12 migrate.
+ * concurrent race (fetch-based), REAL cross-connection concurrency race
+ * (worker_threads, separate node:sqlite connections — see section 7 below),
+ * and pre-migration Persian-digit row after v12 migrate.
  *
  * Usage:
  *   node scripts/seed-salon-conflict-fix-test.mjs
@@ -15,8 +17,9 @@
 import { spawn } from "node:child_process";
 import { existsSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { DatabaseSync } from "node:sqlite";
+import { Worker } from "node:worker_threads";
 import { setTimeout as sleep } from "node:timers/promises";
 import { resolveRollingPersianDateKey } from "../app/shared/lib/persianCalendar.js";
 
@@ -127,6 +130,101 @@ async function register({ phone, type, name }) {
 
 async function book(cookie, body) {
   return api("/api/salon-bookings", { method: "POST", cookie, body });
+}
+
+/**
+ * Runs salons.addSalonBooking() inside its own worker thread, with its own
+ * node:sqlite connection to `dbPath` (set via ZIBABAN_DB_PATH before the repo
+ * module is imported). Mirrors runWorkerCreateOrder in
+ * seed-shop-idempotency-test.mjs / runWorkerCredit in seed-wallet-test.mjs —
+ * this is what actually proves the overlap-check + INSERT in addSalonBooking
+ * are atomic across genuinely independent connections, not just across
+ * concurrent requests interleaved on one Node event loop (which is all a
+ * Promise.all([fetch, fetch]) against one dev server proves).
+ */
+function runWorkerAddSalonBooking({ dbPath, salonUserId, client, phone, service, staff, bookingDate, time, durationMinutes, status }) {
+  const workerSource = `
+    import { parentPort, workerData } from "node:worker_threads";
+    process.env.ZIBABAN_DB_PATH = workerData.dbPath;
+    const salons = await import(${JSON.stringify(pathToFileURL(path.join(root, "app/lib/db/repos/salons.js")).href)});
+    try {
+      const result = salons.addSalonBooking(workerData.salonUserId, {
+        client: workerData.client,
+        phone: workerData.phone,
+        service: workerData.service,
+        staff: workerData.staff,
+        bookingDate: workerData.bookingDate,
+        time: workerData.time,
+        durationMinutes: workerData.durationMinutes,
+        status: workerData.status
+      });
+      parentPort.postMessage(result);
+    } catch (error) {
+      parentPort.postMessage({ ok: false, error: "worker_threw", detail: String(error?.message || error) });
+    }
+  `;
+  const tmp = path.join(root, "data", `salon-booking-race-worker-${process.pid}-${Math.random().toString(16).slice(2)}.mjs`);
+  writeFileSync(tmp, workerSource);
+  return new Promise((resolve) => {
+    const worker = new Worker(tmp, {
+      workerData: { dbPath, salonUserId, client, phone, service, staff, bookingDate, time, durationMinutes, status },
+      type: "module"
+    });
+    worker.on("message", (msg) => {
+      try { rmSync(tmp, { force: true }); } catch { /* ignore */ }
+      resolve(msg);
+    });
+    worker.on("error", (err) => {
+      try { rmSync(tmp, { force: true }); } catch { /* ignore */ }
+      resolve({ ok: false, error: "worker_error", detail: String(err?.message || err) });
+    });
+  });
+}
+
+/**
+ * Runs artists.addArtistBooking() inside its own worker thread, with its own
+ * node:sqlite connection to `dbPath`. Same rationale as
+ * runWorkerAddSalonBooking above, for the artist_bookings table / the direct
+ * public-artist and artist-self booking paths (POST /api/artist/bookings,
+ * POST /api/artist/me kind:"booking"), which do NOT go through
+ * salons.addSalonBooking at all.
+ */
+function runWorkerAddArtistBooking({ dbPath, artistUserId, client, phone, service, bookingDate, time, durationMinutes, status }) {
+  const workerSource = `
+    import { parentPort, workerData } from "node:worker_threads";
+    process.env.ZIBABAN_DB_PATH = workerData.dbPath;
+    const artists = await import(${JSON.stringify(pathToFileURL(path.join(root, "app/lib/db/repos/artists.js")).href)});
+    try {
+      const result = artists.addArtistBooking(workerData.artistUserId, {
+        client: workerData.client,
+        phone: workerData.phone,
+        service: workerData.service,
+        bookingDate: workerData.bookingDate,
+        time: workerData.time,
+        durationMinutes: workerData.durationMinutes,
+        status: workerData.status
+      });
+      parentPort.postMessage(result);
+    } catch (error) {
+      parentPort.postMessage({ ok: false, error: "worker_threw", detail: String(error?.message || error) });
+    }
+  `;
+  const tmp = path.join(root, "data", `artist-booking-race-worker-${process.pid}-${Math.random().toString(16).slice(2)}.mjs`);
+  writeFileSync(tmp, workerSource);
+  return new Promise((resolve) => {
+    const worker = new Worker(tmp, {
+      workerData: { dbPath, artistUserId, client, phone, service, bookingDate, time, durationMinutes, status },
+      type: "module"
+    });
+    worker.on("message", (msg) => {
+      try { rmSync(tmp, { force: true }); } catch { /* ignore */ }
+      resolve(msg);
+    });
+    worker.on("error", (err) => {
+      try { rmSync(tmp, { force: true }); } catch { /* ignore */ }
+      resolve({ ok: false, error: "worker_error", detail: String(err?.message || err) });
+    });
+  });
 }
 
 async function main() {
@@ -258,18 +356,23 @@ async function main() {
     }
 
     // --- Regression: non-overlapping ---
+    // Times picked to stay inside every default day's working hours (closes
+    // as early as 18:00 on پنجشنبه — see defaultHours in
+    // app/lib/db/repos/salons/common.js) and clear of personA's existing
+    // S1 (۱۰:۰۰-۱۱:۳۰) and S2a (۱۴:۰۰-۱۴:۳۰) bookings above, so this doesn't
+    // flake depending on which real-world weekday the suite happens to run.
     console.log("\n--- Regression non-overlap ---");
     {
       const early = await book(clientCookie, {
         salonUserId, client: "R1", phone: "09130002401", service: "خدمت ۹۰ دقیقه",
-        staff: personA.name, bookingDate, time: "۱۸:۰۰", durationMinutes: 90, status: "درخواست"
+        staff: personA.name, bookingDate, time: "۱۲:۰۰", durationMinutes: 90, status: "درخواست"
       });
       const late = await book(clientCookie, {
         salonUserId, client: "R2", phone: "09130002402", service: "خدمت ۳۰ دقیقه",
-        staff: personA.name, bookingDate, time: "۱۹:۳۰", durationMinutes: 30, status: "درخواست"
+        staff: personA.name, bookingDate, time: "۱۳:۳۰", durationMinutes: 30, status: "درخواست"
       });
       step(
-        "non-overlap 18:00+90 and 19:30+30 both 201",
+        "non-overlap 12:00+90 and 13:30+30 both 201",
         early.res.status === 201 && late.res.status === 201,
         `early=${early.res.status} late=${late.res.status}`
       );
@@ -285,7 +388,7 @@ async function main() {
         service: "خدمت ۳۰ دقیقه",
         staff: personA.name,
         bookingDate,
-        time: "۲۰:۰۰",
+        time: "۱۵:۰۰",
         durationMinutes: 30,
         status: "درخواست"
       };
@@ -299,6 +402,103 @@ async function main() {
         "race: exactly one 201 and one 409",
         oneWin,
         `statuses=${r1.res.status},${r2.res.status}`
+      );
+    }
+
+    // --- 7. REAL concurrency: worker_threads, separate node:sqlite connections ---
+    // The section above proves the request-level HTTP race is handled, but
+    // Promise.all([fetch, fetch]) against one Next dev server only proves the
+    // single Node event loop interleaves the two await points — it does NOT
+    // prove the overlap-check + INSERT are atomic against a genuinely
+    // independent connection racing in. This section uses the same
+    // worker_threads + separate-connection pattern already proven for
+    // wallet.js (seed-wallet-test.mjs #7/#7d) and shops.js
+    // (seed-shop-idempotency-test.mjs #5) to test addSalonBooking() and
+    // addArtistBooking() directly, bypassing HTTP entirely.
+    console.log("\n--- 7. REAL concurrency (worker_threads, separate connections) ---");
+    {
+      // 7a. Two truly-parallel addSalonBooking() calls, same salon/staff/slot.
+      const raceSlot = "۲۱:۰۰";
+      const [wa, wb] = await Promise.all([
+        runWorkerAddSalonBooking({
+          dbPath: TEST_DB, salonUserId, client: "WRACE1", phone: "09130002701",
+          service: "خدمت ۳۰ دقیقه", staff: personA.name, bookingDate,
+          time: raceSlot, durationMinutes: 30, status: "درخواست"
+        }),
+        runWorkerAddSalonBooking({
+          dbPath: TEST_DB, salonUserId, client: "WRACE2", phone: "09130002702",
+          service: "خدمت ۳۰ دقیقه", staff: personA.name, bookingDate,
+          time: raceSlot, durationMinutes: 30, status: "درخواست"
+        })
+      ]);
+      const okCount = [wa, wb].filter((r) => r?.ok).length;
+      const conflictCount = [wa, wb].filter((r) => r?.ok === false && r?.error === "conflict").length;
+      step(
+        "7a. salon booking worker race: exactly ONE insert succeeds, ONE gets conflict",
+        okCount === 1 && conflictCount === 1,
+        `okA=${wa?.ok} okB=${wb?.ok} errA=${wa?.error || ""} errB=${wb?.error || ""}`
+      );
+
+      // Compare against the winning insert's OWN stored fields, not the raw
+      // Persian-digit literal passed in — addSalonBooking normalizes
+      // time/booking_date (e.g. to Latin digits) before storing, same as the
+      // HTTP path, so a literal-string comparison here would false-fail.
+      const raceWinner = wa?.ok ? wa.booking : wb?.booking;
+      const raceCheckDb = new DatabaseSync(TEST_DB);
+      const raceSlotRows = Number(
+        raceCheckDb.prepare(`
+          SELECT COUNT(*) AS n FROM salon_bookings
+          WHERE salon_user_id = ? AND booking_date = ? AND time = ? AND staff = ? AND status != 'لغو'
+        `).get(salonUserId, raceWinner?.booking_date, raceWinner?.time, personA.name)?.n || 0
+      );
+      raceCheckDb.close();
+      step(
+        "7b. exactly one non-cancelled salon_bookings row landed for the raced slot",
+        raceSlotRows === 1,
+        `rows=${raceSlotRows}`
+      );
+
+      // 7c. Same race directly against artists.addArtistBooking() (used by
+      // POST /api/artist/bookings and POST /api/artist/me — neither of which
+      // goes through addSalonBooking at all).
+      const artistReg = await register({ phone: "09130002801", type: "artist", name: "آرتیست ریس تست" });
+      const artistUserId = artistReg.payload?.data?.user?.id || artistReg.payload?.profile?.id;
+      step("7c. register artist for race test", artistReg.res.ok && Boolean(artistUserId), `id=${artistUserId}`);
+
+      const artistRaceTime = "۲۲:۰۰";
+      const [aa, ab] = await Promise.all([
+        runWorkerAddArtistBooking({
+          dbPath: TEST_DB, artistUserId, client: "ARACE1", phone: "09130002801",
+          service: "رنگ مو", bookingDate, time: artistRaceTime, durationMinutes: 30, status: "تازه"
+        }),
+        runWorkerAddArtistBooking({
+          dbPath: TEST_DB, artistUserId, client: "ARACE2", phone: "09130002802",
+          service: "رنگ مو", bookingDate, time: artistRaceTime, durationMinutes: 30, status: "تازه"
+        })
+      ]);
+      const artistOkCount = [aa, ab].filter((r) => r?.ok).length;
+      const artistConflictCount = [aa, ab].filter((r) => r?.ok === false && r?.code === "SLOT_TAKEN").length;
+      step(
+        "7d. artist booking worker race: exactly ONE insert succeeds, ONE gets SLOT_TAKEN",
+        artistOkCount === 1 && artistConflictCount === 1,
+        `okA=${aa?.ok} okB=${ab?.ok} codeA=${aa?.code || ""} codeB=${ab?.code || ""}`
+      );
+
+      // Same reasoning as the salon check above: compare against the winning
+      // insert's own stored (normalized) fields, not the raw Persian literal.
+      const artistWinner = aa?.ok ? aa.booking : ab?.booking;
+      const artistCheckDb = new DatabaseSync(TEST_DB);
+      const artistSlotRows = Number(
+        artistCheckDb.prepare(`
+          SELECT COUNT(*) AS n FROM artist_bookings
+          WHERE artist_user_id = ? AND booking_date = ? AND time = ? AND status != 'لغو'
+        `).get(artistUserId, artistWinner?.booking_date, artistWinner?.time)?.n || 0
+      );
+      artistCheckDb.close();
+      step(
+        "7e. exactly one non-cancelled artist_bookings row landed for the raced slot",
+        artistSlotRows === 1,
+        `rows=${artistSlotRows}`
       );
     }
 
