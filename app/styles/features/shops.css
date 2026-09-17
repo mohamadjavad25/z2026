@@ -2654,7 +2654,7 @@
 
   .shopStoreDock,
   .shopStoreSheetBackdrop,
-  .appShell.is-shop-store .shopStoreSheet{
+  .shopStoreSheet{
     display: grid;
   }
 }
@@ -2666,14 +2666,14 @@
 }
 
 /* Public shop storefront — premium mobile commerce target */
-.appShell.is-shop-store .shopsPanel {
+.shopsPanel {
   padding: 8px 10px 104px;
   background:
     radial-gradient(circle at 20% 0%, rgba(124, 92, 226, 0.09), transparent 28%),
     linear-gradient(180deg, rgba(250, 250, 253, 0.98), rgba(241, 243, 248, 0.96));
 }
 
-.appShell.is-shop-store .shopStorefront {
+.shopStorefront {
   gap: 14px;
   width: min(100%, 440px);
   margin: 0 auto;
@@ -2689,17 +2689,17 @@
 }
 
 
-.appShell.is-shop-store .shopStoreFilter {
+.shopStoreFilter {
   gap: 8px;
   padding: 0 2px 2px;
   scrollbar-width: none;
 }
 
-.appShell.is-shop-store .shopStoreFilter::-webkit-scrollbar {
+.shopStoreFilter::-webkit-scrollbar {
   display: none;
 }
 
-.appShell.is-shop-store .shopStoreFilter button {
+.shopStoreFilter button {
   min-width: 72px;
   min-height: 42px;
   padding: 0 15px;
@@ -2709,18 +2709,18 @@
   font-size: 0.75rem;
 }
 
-.appShell.is-shop-store .shopStoreFilter button.active {
+.shopStoreFilter button.active {
   border-color: transparent;
   background: linear-gradient(135deg, #8f5cff, #6d3ee8);
   color: #fff;
   box-shadow: 0 12px 26px rgba(109, 62, 232, 0.22);
 }
 
-.appShell.is-shop-store .shopStoreGrid {
+.shopStoreGrid {
   gap: 12px;
 }
 
-.appShell.is-shop-store .shopStoreFeaturedRail {
+.shopStoreFeaturedRail {
   display: flex;
   gap: 8px;
   width: 100%;
@@ -2730,11 +2730,11 @@
   scrollbar-width: none;
 }
 
-.appShell.is-shop-store .shopStoreFeaturedRail::-webkit-scrollbar {
+.shopStoreFeaturedRail::-webkit-scrollbar {
   display: none;
 }
 
-.appShell.is-shop-store .shopStoreFeaturedCardItem {
+.shopStoreFeaturedCardItem {
   flex: 0 0 128px;
   width: 128px;
   min-width: 0;
@@ -2748,7 +2748,7 @@
 
 /* One horizontally-scrolling row per real category — same mechanics as
    .shopStoreFeaturedRail above, sized for the larger .shopStoreProduct card. */
-.appShell.is-shop-store .shopStoreCategoryRail {
+.shopStoreCategoryRail {
   display: flex;
   gap: 10px;
   overflow-x: auto;
@@ -2756,38 +2756,38 @@
   scroll-snap-type: x proximity;
 }
 
-.appShell.is-shop-store .shopStoreCategoryRail .shopStoreProduct {
+.shopStoreCategoryRail .shopStoreProduct {
   flex: 0 0 158px;
   width: 158px;
   scroll-snap-align: start;
 }
 
-.appShell.is-shop-store .shopStoreFeaturedMedia {
+.shopStoreFeaturedMedia {
   position: relative;
   width: 100%;
   height: 96px;
   background: linear-gradient(145deg, #f2f1f8, #e7e5f0);
 }
 
-.appShell.is-shop-store .shopStoreFeaturedMedia img {
+.shopStoreFeaturedMedia img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.appShell.is-shop-store .shopStoreFeaturedBody {
+.shopStoreFeaturedBody {
   display: grid;
   gap: 2px;
   padding: 8px 9px 10px;
 }
 
-.appShell.is-shop-store .shopStoreFeaturedBody small {
+.shopStoreFeaturedBody small {
   color: var(--muted);
   font-size: 0.6rem;
   font-weight: 700;
 }
 
-.appShell.is-shop-store .shopStoreFeaturedBody b {
+.shopStoreFeaturedBody b {
   font-size: 0.72rem;
   font-weight: 800;
   color: var(--ink);
@@ -2796,20 +2796,20 @@
   white-space: nowrap;
 }
 
-.appShell.is-shop-store .shopStoreFeaturedMeta {
+.shopStoreFeaturedMeta {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-top: 4px;
 }
 
-.appShell.is-shop-store .shopStoreFeaturedMeta span {
+.shopStoreFeaturedMeta span {
   font-size: 0.68rem;
   font-weight: 900;
   color: var(--ink);
 }
 
-.appShell.is-shop-store .shopStoreFeaturedMeta button {
+.shopStoreFeaturedMeta button {
   width: 32px;
   height: 32px;
   display: grid;
@@ -2821,14 +2821,14 @@
   cursor: pointer;
 }
 
-.appShell.is-shop-store .shopStoreProduct {
+.shopStoreProduct {
   border-radius: 20px;
   background: rgba(255, 255, 255, 0.92);
   border: 1px solid rgba(28, 32, 44, 0.07);
   box-shadow: 0 14px 30px rgba(28, 32, 44, 0.06);
 }
 
-.appShell.is-shop-store .shopStoreProductMedia img {
+.shopStoreProductMedia img {
   height: 148px;
   border-radius: 18px 18px 0 0;
 }
@@ -2848,32 +2848,32 @@
   box-shadow: 0 8px 18px rgba(28, 32, 44, 0.12);
 }
 
-.appShell.is-shop-store .shopStoreProductBody {
+.shopStoreProductBody {
   gap: 7px;
   padding: 12px;
 }
 
-.appShell.is-shop-store .shopStoreProductBody h3 {
+.shopStoreProductBody h3 {
   min-height: 42px;
   font-size: 0.92rem;
 }
 
-.appShell.is-shop-store .shopStoreProductBody p {
+.shopStoreProductBody p {
   color: #9294a2;
 }
 
-.appShell.is-shop-store .shopStoreProductMeta {
+.shopStoreProductMeta {
   align-items: end;
   margin-top: 4px;
 }
 
-.appShell.is-shop-store .shopStoreProductMeta b {
+.shopStoreProductMeta b {
   color: #7c5ce2;
   font-size: 0.86rem;
 }
 
 
-.appShell.is-shop-store .shopStoreDock {
+.shopStoreDock {
   right: max(18px, calc((100vw - 440px) / 2 + 18px));
   left: auto;
   bottom: calc(92px + env(safe-area-inset-bottom));
@@ -2884,8 +2884,8 @@
   pointer-events: none;
 }
 
-.appShell.is-shop-store .shopStoreDockCart,
-.appShell.is-shop-store .shopStoreDockChat {
+.shopStoreDockCart,
+.shopStoreDockChat {
   pointer-events: auto;
   min-width: 0;
   width: 58px;
@@ -2900,29 +2900,29 @@
   box-shadow: 0 18px 38px rgba(39, 30, 77, 0.22);
 }
 
-.appShell.is-shop-store .shopStoreDockCart {
+.shopStoreDockCart {
   background: linear-gradient(135deg, #8f5cff, #6d3ee8);
 }
 
-.appShell.is-shop-store .shopStoreDockChat {
+.shopStoreDockChat {
   background: rgba(255, 255, 255, 0.94);
   color: #7c5ce2;
 }
 
-.appShell.is-shop-store .shopStoreDockIcon {
+.shopStoreDockIcon {
   width: auto;
   height: auto;
   border-radius: 0;
   background: transparent;
 }
 
-.appShell.is-shop-store .shopStoreDockIcon b {
+.shopStoreDockIcon b {
   top: -16px;
   left: -16px;
 }
 
-.appShell.is-shop-store .shopStoreDockCopy,
-.appShell.is-shop-store .shopStoreDockChat span {
+.shopStoreDockCopy,
+.shopStoreDockChat span {
   display: none;
 }
 
@@ -2933,7 +2933,7 @@
   }
 
 
-  .appShell.is-shop-store .shopStoreProductMedia img {
+  .shopStoreProductMedia img {
     height: 132px;
   }
 }
@@ -4205,7 +4205,7 @@
    ══════════════════════════════════════════════════════════════════════ */
 
 /* Shell canvas */
-.appShell.is-shop-store .shopsPanel {
+.shopsPanel {
   padding: 8px 10px 118px;
   background:
     radial-gradient(circle at 18% 0%, rgba(124, 92, 226, 0.12), transparent 30%),
@@ -4213,15 +4213,15 @@
     linear-gradient(180deg, #faf9fd 0%, #f3f2f8 48%, #ecebf2 100%);
 }
 
-.appShell.is-shop-store .shopStoreVerifyRow {
+.shopStoreVerifyRow {
   display: flex;
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
 }
 
-.appShell.is-shop-store .shopStoreVerified,
-.appShell.is-shop-store .shopStoreShopBadge {
+.shopStoreVerified,
+.shopStoreShopBadge {
   min-height: 24px;
   display: inline-flex;
   align-items: center;
@@ -4232,19 +4232,19 @@
   font-weight: 900;
 }
 
-.appShell.is-shop-store .shopStoreVerified {
+.shopStoreVerified {
   background: rgba(255, 255, 255, 0.18);
   border: 1px solid rgba(255, 255, 255, 0.26);
   color: #fff;
   backdrop-filter: blur(10px);
 }
 
-.appShell.is-shop-store .shopStoreShopBadge {
+.shopStoreShopBadge {
   background: linear-gradient(135deg, #ffe9b8, #ffd166);
   color: #7a5310;
 }
 
-.appShell.is-shop-store .shopStoreAbout {
+.shopStoreAbout {
   margin: 0;
   color: rgba(255, 255, 255, 0.84);
   font-size: 0.77rem;
@@ -4253,7 +4253,7 @@
 }
 
 
-.appShell.is-shop-store .shopStoreActions button {
+.shopStoreActions button {
   min-height: 48px;
   display: inline-flex;
   align-items: center;
@@ -4270,23 +4270,23 @@
   transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
 }
 
-.appShell.is-shop-store .shopStoreActions button:active { transform: scale(0.98); }
+.shopStoreActions button:active { transform: scale(0.98); }
 
 
 /* ── Sections ── */
 
 
 /* ── Filter chips ── */
-.appShell.is-shop-store .shopStoreFilter {
+.shopStoreFilter {
   display: flex;
   gap: 8px;
   overflow-x: auto;
   padding: 0 2px 2px;
   scrollbar-width: none;
 }
-.appShell.is-shop-store .shopStoreFilter::-webkit-scrollbar { display: none; }
+.shopStoreFilter::-webkit-scrollbar { display: none; }
 
-.appShell.is-shop-store .shopStoreFilter button {
+.shopStoreFilter button {
   flex: 0 0 auto;
   min-width: 76px;
   min-height: 42px;
@@ -4301,9 +4301,9 @@
   transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
 
-.appShell.is-shop-store .shopStoreFilter button:active { transform: scale(0.96); }
+.shopStoreFilter button:active { transform: scale(0.96); }
 
-.appShell.is-shop-store .shopStoreFilter button.active {
+.shopStoreFilter button.active {
   border-color: transparent;
   background: linear-gradient(135deg, #9a6bff, #6d3ee8);
   color: #fff;
@@ -4311,13 +4311,13 @@
 }
 
 /* ── Product grid ── */
-.appShell.is-shop-store .shopStoreGrid {
+.shopStoreGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
 
-.appShell.is-shop-store .shopStoreProduct {
+.shopStoreProduct {
   overflow: hidden;
   border-radius: 20px;
   background: rgba(255, 255, 255, 0.94);
@@ -4326,17 +4326,17 @@
   transition: transform 0.16s ease, box-shadow 0.16s ease;
 }
 
-.appShell.is-shop-store .shopStoreProduct:active {
+.shopStoreProduct:active {
   transform: translateY(-2px);
   box-shadow: 0 18px 36px rgba(28, 32, 44, 0.12);
 }
 
-.appShell.is-shop-store .shopStoreProductMedia {
+.shopStoreProductMedia {
   position: relative;
   overflow: hidden;
 }
 
-.appShell.is-shop-store .shopStoreProductMedia img {
+.shopStoreProductMedia img {
   display: block;
   width: 100%;
   height: 156px;
@@ -4345,11 +4345,11 @@
   transition: transform 0.3s ease;
 }
 
-.appShell.is-shop-store .shopStoreProduct:active .shopStoreProductMedia img {
+.shopStoreProduct:active .shopStoreProductMedia img {
   transform: scale(1.04);
 }
 
-.appShell.is-shop-store .shopStoreProductBadge {
+.shopStoreProductBadge {
   position: absolute;
   top: 9px;
   right: 9px;
@@ -4365,7 +4365,7 @@
   box-shadow: 0 6px 14px rgba(28, 32, 44, 0.14);
 }
 
-.appShell.is-shop-store .shopStoreProductSoldOut {
+.shopStoreProductSoldOut {
   position: absolute;
   inset: 0;
   display: grid;
@@ -4377,7 +4377,7 @@
   backdrop-filter: blur(2px);
 }
 
-.appShell.is-shop-store .shopStoreProductQty {
+.shopStoreProductQty {
   position: absolute;
   left: 9px;
   bottom: 9px;
@@ -4393,7 +4393,7 @@
   font-weight: 900;
 }
 
-.appShell.is-shop-store .shopStoreProductLike {
+.shopStoreProductLike {
   position: absolute;
   left: 9px;
   top: 9px;
@@ -4408,19 +4408,19 @@
   box-shadow: 0 8px 18px rgba(28, 32, 44, 0.14);
 }
 
-.appShell.is-shop-store .shopStoreProductBody {
+.shopStoreProductBody {
   display: grid;
   gap: 6px;
   padding: 12px;
 }
 
-.appShell.is-shop-store .shopStoreProductBody > small {
+.shopStoreProductBody > small {
   color: #7c5ce2;
   font-size: 0.6rem;
   font-weight: 900;
 }
 
-.appShell.is-shop-store .shopStoreProductBody h3 {
+.shopStoreProductBody h3 {
   margin: 0;
   min-height: 40px;
   color: #171827;
@@ -4429,14 +4429,14 @@
   line-height: 1.45;
 }
 
-.appShell.is-shop-store .shopStoreProductBody > p {
+.shopStoreProductBody > p {
   margin: 0;
   color: #9294a2;
   font-size: 0.64rem;
   font-weight: 700;
 }
 
-.appShell.is-shop-store .shopStoreProductMeta {
+.shopStoreProductMeta {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
@@ -4444,26 +4444,26 @@
   margin-top: 3px;
 }
 
-.appShell.is-shop-store .shopStorePrice {
+.shopStorePrice {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-.appShell.is-shop-store .shopStorePrice b {
+.shopStorePrice b {
   color: #6d3ee8;
   font-size: 0.86rem;
   font-weight: 950;
 }
 
-.appShell.is-shop-store .shopStorePrice s {
+.shopStorePrice s {
   color: #b2b3c0;
   font-size: 0.6rem;
   font-weight: 700;
 }
 
 
-.appShell.is-shop-store .shopStoreReviews {
+.shopStoreReviews {
   display: flex;
   flex-wrap: nowrap;
   gap: 11px;
@@ -4483,7 +4483,7 @@
   -webkit-user-select: none;
 }
 
-.appShell.is-shop-store .shopStoreReviews article {
+.shopStoreReviews article {
   flex: 0 0 232px;
   width: 232px;
   display: grid;
@@ -4498,13 +4498,13 @@
   pointer-events: none;
 }
 
-.appShell.is-shop-store .shopStoreReviews article header {
+.shopStoreReviews article header {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.appShell.is-shop-store .shopStoreReviewAvatar {
+.shopStoreReviewAvatar {
   width: 40px;
   height: 40px;
   flex: 0 0 40px;
@@ -4518,18 +4518,18 @@
   box-shadow: 0 6px 14px rgba(109, 62, 232, 0.24);
 }
 
-.appShell.is-shop-store .shopStoreReviewMeta {
+.shopStoreReviewMeta {
   display: grid;
   gap: 2px;
 }
 
-.appShell.is-shop-store .shopStoreReviewMeta b {
+.shopStoreReviewMeta b {
   font-size: 0.8rem;
   font-weight: 900;
   color: #171827;
 }
 
-.appShell.is-shop-store .shopStoreReviewMeta span {
+.shopStoreReviewMeta span {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -4538,7 +4538,7 @@
   font-weight: 900;
 }
 
-.appShell.is-shop-store .shopStoreReviews article > p {
+.shopStoreReviews article > p {
   margin: 0;
   color: #4b4d5a;
   font-size: 0.76rem;
@@ -4546,14 +4546,14 @@
   font-weight: 600;
 }
 
-.appShell.is-shop-store .shopStoreReviews.is-dragging {
+.shopStoreReviews.is-dragging {
   cursor: grabbing;
   scroll-snap-type: none;
   touch-action: none;
 }
 
 /* ── Empty states ── */
-.appShell.is-shop-store .shopStoreEmptyState {
+.shopStoreEmptyState {
   display: grid;
   justify-items: center;
   gap: 8px;
@@ -4564,7 +4564,7 @@
   text-align: center;
 }
 
-.appShell.is-shop-store .shopStoreEmptyIcon {
+.shopStoreEmptyIcon {
   width: 52px;
   height: 52px;
   display: grid;
@@ -4574,13 +4574,13 @@
   color: #7c5ce2;
 }
 
-.appShell.is-shop-store .shopStoreEmptyState b {
+.shopStoreEmptyState b {
   color: #171827;
   font-size: 0.88rem;
   font-weight: 900;
 }
 
-.appShell.is-shop-store .shopStoreEmptyState > span:not(.shopStoreEmptyIcon):not(.profileEmptyIcon) {
+.shopStoreEmptyState > span:not(.shopStoreEmptyIcon):not(.profileEmptyIcon) {
   color: #8d8f9d;
   font-size: 0.72rem;
   line-height: 1.7;
@@ -4588,7 +4588,7 @@
   max-width: 300px;
 }
 
-.appShell.is-shop-store .shopStoreEmptyState button {
+.shopStoreEmptyState button {
   min-height: 40px;
   padding: 0 16px;
   border: 0;
@@ -4601,7 +4601,7 @@
   box-shadow: 0 12px 26px rgba(109, 62, 232, 0.26);
 }
 
-.appShell.is-shop-store .shopStoreEmptyReviews {
+.shopStoreEmptyReviews {
   grid-column: 1 / -1;
   min-height: 120px;
 }
@@ -4610,7 +4610,7 @@
 @media (max-width: 420px) {
 
 
-  .appShell.is-shop-store .shopStoreProductMedia img {
+  .shopStoreProductMedia img {
     height: 136px;
   }
 }
@@ -4686,13 +4686,20 @@
    (immersive full-bleed, light hero, overlapping identity card)
    ══════════════════════════════════════════════════════════════════════ */
 
-/* ── Shell: keep normal app flow; hide bottom nav (dock replaces it) ── */
-.appShell.is-shop-store .bottomNav,
-.appShell.is-shop-store .floatingMobileCta {
+/* ── Shell: keep normal app flow; hide bottom nav (dock replaces it) ──
+   Deliberately kept scoped to the in-app shell (order swapped vs. every
+   other rule in this file so the blanket "unscope .shopStore* selectors so
+   the public /shops/[id] route — which renders no .appShell wrapper at all —
+   can use them too" pass below doesn't touch it): .bottomNav/.floatingMobileCta
+   are the global app-shell chrome, shared by every tab, not shop-storefront-
+   specific elements, so this one must stay app-shell-gated or it would hide
+   the bottom nav/CTA everywhere in the SPA, not just the shop storefront. */
+.is-shop-store.appShell .bottomNav,
+.is-shop-store.appShell .floatingMobileCta {
   display: none !important;
 }
 
-.appShell.is-shop-store .shopsPanel {
+.shopsPanel {
   max-width: 440px;
   margin: 0 auto;
   padding: 10px 12px 120px;
@@ -4703,7 +4710,7 @@
 }
 
 /* ── Storefront root ── */
-.appShell.is-shop-store .shopStorefront {
+.shopStorefront {
   --shop-public-accent: #7f5cff;
   --shop-public-accent-deep: #51378e;
   --shop-public-ink: #171827;
@@ -4716,7 +4723,7 @@
 
 /* ── Hero ── */
 
-.appShell.is-shop-store .shopStoreHeroImage {
+.shopStoreHeroImage {
   position: absolute;
   inset: 0;
   background-size: cover;
@@ -4724,12 +4731,12 @@
   transform: none;
 }
 
-.appShell.is-shop-store .shopStoreHero::after {
+.shopStoreHero::after {
   display: none;
 }
 
 
-.appShell.is-shop-store .shopStoreRoundButton {
+.shopStoreRoundButton {
   width: 48px;
   height: 48px;
   display: grid;
@@ -4742,22 +4749,22 @@
   backdrop-filter: blur(16px);
 }
 
-.appShell.is-shop-store .shopStoreBackButton {
+.shopStoreBackButton {
   grid-column: 1;
   grid-row: 1;
 }
 
-.appShell.is-shop-store .shopStoreBackButton svg {
+.shopStoreBackButton svg {
   transform: none;
 }
 
-.appShell.is-shop-store .shopStoreShareButton {
+.shopStoreShareButton {
   grid-column: 3;
   grid-row: 1;
 }
 
 /* ── Identity card ── */
-.appShell.is-shop-store .shopStoreIdentityCard {
+.shopStoreIdentityCard {
   position: relative;
   z-index: 3;
   display: grid;
@@ -4771,7 +4778,7 @@
 }
 
 
-.appShell.is-shop-store .shopStoreTitle {
+.shopStoreTitle {
   display: grid;
   gap: 6px;
   padding: 0 118px 0 92px;
@@ -4781,7 +4788,7 @@
   text-align: center;
 }
 
-.appShell.is-shop-store .shopStoreTitle h2 {
+.shopStoreTitle h2 {
   margin: 0;
   display: inline-flex;
   align-items: center;
@@ -4794,7 +4801,7 @@
   line-height: 1.25;
 }
 
-.appShell.is-shop-store .shopStoreVerifiedIcon {
+.shopStoreVerifiedIcon {
   flex: 0 0 auto;
   width: 19px;
   height: 19px;
@@ -4805,13 +4812,13 @@
   stroke-width: 3;
 }
 
-.appShell.is-shop-store .shopStoreTitle span {
+.shopStoreTitle span {
   color: var(--shop-public-muted);
   font-size: 0.78rem;
   font-weight: 850;
 }
 
-.appShell.is-shop-store .shopStoreActions button {
+.shopStoreActions button {
   min-width: 0;
   min-height: 50px;
   display: inline-flex;
@@ -4830,7 +4837,7 @@
 }
 
 
-.appShell.is-shop-store .shopStoreActions .shopStoreBuyButton {
+.shopStoreActions .shopStoreBuyButton {
   grid-column: 2;
   grid-row: 1;
   border-color: transparent;
@@ -4840,7 +4847,7 @@
 }
 
 /* ── Section cards ── */
-.appShell.is-shop-store .shopStoreCard {
+.shopStoreCard {
   display: grid;
   gap: 13px;
   margin: 12px 8px 0;
@@ -4851,21 +4858,21 @@
   box-shadow: 0 14px 32px rgba(28, 32, 44, 0.06);
 }
 
-.appShell.is-shop-store .shopStoreSectionHead {
+.shopStoreSectionHead {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
 }
 
-.appShell.is-shop-store .shopStoreSectionHead h3 {
+.shopStoreSectionHead h3 {
   margin: 0;
   color: var(--shop-public-ink);
   font-size: 1.04rem;
   font-weight: 950;
 }
 
-.appShell.is-shop-store .shopStoreSectionHead button {
+.shopStoreSectionHead button {
   min-height: 32px;
   display: inline-flex;
   align-items: center;
@@ -4882,7 +4889,7 @@
 }
 
 /* ── Filter chips ── */
-.appShell.is-shop-store .shopStoreFilter {
+.shopStoreFilter {
   display: flex;
   gap: 7px;
   overflow-x: auto;
@@ -4890,11 +4897,11 @@
   scrollbar-width: none;
 }
 
-.appShell.is-shop-store .shopStoreFilter::-webkit-scrollbar {
+.shopStoreFilter::-webkit-scrollbar {
   display: none;
 }
 
-.appShell.is-shop-store .shopStoreFilter button {
+.shopStoreFilter button {
   flex: 0 0 auto;
   min-height: 36px;
   padding: 0 15px;
@@ -4909,11 +4916,11 @@
   transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
 }
 
-.appShell.is-shop-store .shopStoreFilter button:active {
+.shopStoreFilter button:active {
   transform: scale(0.96);
 }
 
-.appShell.is-shop-store .shopStoreFilter button.active {
+.shopStoreFilter button.active {
   border-color: transparent;
   background: linear-gradient(135deg, var(--shop-public-accent), var(--shop-public-accent-deep));
   color: #ffffff;
@@ -4922,13 +4929,13 @@
 }
 
 /* ── Product grid ── */
-.appShell.is-shop-store .shopStoreGrid {
+.shopStoreGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
 }
 
-.appShell.is-shop-store .shopStoreProduct {
+.shopStoreProduct {
   overflow: hidden;
   border: 1px solid rgba(28, 32, 44, 0.07);
   border-radius: 18px;
@@ -4937,17 +4944,17 @@
   transition: transform 0.16s ease, box-shadow 0.16s ease;
 }
 
-.appShell.is-shop-store .shopStoreProduct:active {
+.shopStoreProduct:active {
   transform: translateY(-2px);
   box-shadow: 0 14px 28px rgba(28, 32, 44, 0.1);
 }
 
-.appShell.is-shop-store .shopStoreProductMedia {
+.shopStoreProductMedia {
   position: relative;
   overflow: hidden;
 }
 
-.appShell.is-shop-store .shopStoreProductMedia img {
+.shopStoreProductMedia img {
   display: block;
   width: 100%;
   height: 148px;
@@ -4955,7 +4962,7 @@
   background: linear-gradient(145deg, #f2f1f8, #e7e5f0);
 }
 
-.appShell.is-shop-store .shopStoreProductBadge {
+.shopStoreProductBadge {
   position: absolute;
   top: 8px;
   right: 8px;
@@ -4971,7 +4978,7 @@
   box-shadow: 0 6px 14px rgba(28, 32, 44, 0.14);
 }
 
-.appShell.is-shop-store .shopStoreProductSoldOut {
+.shopStoreProductSoldOut {
   position: absolute;
   inset: 0;
   display: grid;
@@ -4991,40 +4998,40 @@
  * and nearly disappear over a photo (e.g. a red discount tag on a red
  * product shot). Color comes from the text instead.
  */
-.appShell.is-shop-store .shopStoreProductBadge.badge-جدید,
-.appShell.is-shop-store .shopStoreProductBadge.badge-پیشنهادی {
+.shopStoreProductBadge.badge-جدید,
+.shopStoreProductBadge.badge-پیشنهادی {
   background: rgba(255, 255, 255, 0.94);
   color: var(--info);
 }
 
-.appShell.is-shop-store .shopStoreProductBadge.badge-پرفروش {
+.shopStoreProductBadge.badge-پرفروش {
   background: rgba(255, 255, 255, 0.94);
   color: var(--success);
 }
 
-.appShell.is-shop-store .shopStoreProductBadge.badge-ترند,
-.appShell.is-shop-store .shopStoreProductBadge.badge-کم‌موجودی {
+.shopStoreProductBadge.badge-ترند,
+.shopStoreProductBadge.badge-کم‌موجودی {
   background: rgba(255, 255, 255, 0.94);
   color: var(--warning);
 }
 
-.appShell.is-shop-store .shopStoreProductBadge.badge-تخفیف {
+.shopStoreProductBadge.badge-تخفیف {
   background: rgba(255, 255, 255, 0.94);
   color: var(--danger);
 }
 
-.appShell.is-shop-store .shopStoreProductBadge.badge-لوکس,
-.appShell.is-shop-store .shopStoreProductBadge.badge-VIP {
+.shopStoreProductBadge.badge-لوکس,
+.shopStoreProductBadge.badge-VIP {
   background: var(--ink);
   color: #fff;
 }
 
-.appShell.is-shop-store .shopStoreProductBadge.badge-ناموجود {
+.shopStoreProductBadge.badge-ناموجود {
   background: rgba(255, 255, 255, 0.94);
   color: var(--muted);
 }
 
-.appShell.is-shop-store .shopStoreProductQty {
+.shopStoreProductQty {
   position: absolute;
   left: 8px;
   bottom: 8px;
@@ -5040,7 +5047,7 @@
   font-weight: 900;
 }
 
-.appShell.is-shop-store .shopStoreProductLike {
+.shopStoreProductLike {
   position: absolute;
   left: 8px;
   top: 8px;
@@ -5055,19 +5062,19 @@
   box-shadow: 0 8px 18px rgba(28, 32, 44, 0.14);
 }
 
-.appShell.is-shop-store .shopStoreProductBody {
+.shopStoreProductBody {
   display: grid;
   gap: 6px;
   padding: 11px;
 }
 
-.appShell.is-shop-store .shopStoreProductBody > small {
+.shopStoreProductBody > small {
   color: #6d4be1;
   font-size: 0.58rem;
   font-weight: 900;
 }
 
-.appShell.is-shop-store .shopStoreProductBody h3 {
+.shopStoreProductBody h3 {
   margin: 0;
   min-height: 38px;
   color: #171827;
@@ -5076,14 +5083,14 @@
   line-height: 1.45;
 }
 
-.appShell.is-shop-store .shopStoreProductBody > p {
+.shopStoreProductBody > p {
   margin: 0;
   color: #9294a2;
   font-size: 0.62rem;
   font-weight: 700;
 }
 
-.appShell.is-shop-store .shopStoreProductMeta {
+.shopStoreProductMeta {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
@@ -5091,32 +5098,32 @@
   margin-top: 2px;
 }
 
-.appShell.is-shop-store .shopStorePrice {
+.shopStorePrice {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-.appShell.is-shop-store .shopStorePrice b {
+.shopStorePrice b {
   color: #5d43b5;
   font-size: 0.82rem;
   font-weight: 950;
 }
 
-.appShell.is-shop-store .shopStorePrice s {
+.shopStorePrice s {
   color: #b2b3c0;
   font-size: 0.58rem;
   font-weight: 700;
 }
 
 
-.appShell.is-shop-store .shopStoreProductMeta button:active {
+.shopStoreProductMeta button:active {
   transform: scale(0.92);
 }
 
 
 /* ── Reviews ── */
-.appShell.is-shop-store .shopStoreReviews {
+.shopStoreReviews {
   display: flex;
   flex-wrap: nowrap;
   gap: 10px;
@@ -5136,7 +5143,7 @@
   -webkit-user-select: none;
 }
 
-.appShell.is-shop-store .shopStoreReviews article {
+.shopStoreReviews article {
   flex: 0 0 232px;
   width: 232px;
   display: grid;
@@ -5150,13 +5157,13 @@
   pointer-events: none;
 }
 
-.appShell.is-shop-store .shopStoreReviews article header {
+.shopStoreReviews article header {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.appShell.is-shop-store .shopStoreReviewAvatar {
+.shopStoreReviewAvatar {
   width: 40px;
   height: 40px;
   flex: 0 0 40px;
@@ -5169,18 +5176,18 @@
   font-weight: 950;
 }
 
-.appShell.is-shop-store .shopStoreReviewMeta {
+.shopStoreReviewMeta {
   display: grid;
   gap: 2px;
 }
 
-.appShell.is-shop-store .shopStoreReviewMeta b {
+.shopStoreReviewMeta b {
   font-size: 0.8rem;
   font-weight: 900;
   color: #171827;
 }
 
-.appShell.is-shop-store .shopStoreReviewMeta span {
+.shopStoreReviewMeta span {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -5189,7 +5196,7 @@
   font-weight: 900;
 }
 
-.appShell.is-shop-store .shopStoreReviews article > p {
+.shopStoreReviews article > p {
   margin: 0;
   color: #4b4d5a;
   font-size: 0.76rem;
@@ -5197,14 +5204,14 @@
   font-weight: 600;
 }
 
-.appShell.is-shop-store .shopStoreReviews.is-dragging {
+.shopStoreReviews.is-dragging {
   cursor: grabbing;
   scroll-snap-type: none;
   touch-action: none;
 }
 
 /* ── Info strip ── */
-.appShell.is-shop-store .shopStoreInfoStrip {
+.shopStoreInfoStrip {
   display: grid;
   grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr) minmax(0, 1.15fr);
   gap: 6px;
@@ -5214,7 +5221,7 @@
   background: #f9f7ff;
 }
 
-.appShell.is-shop-store .shopStoreInfoStrip span {
+.shopStoreInfoStrip span {
   min-height: 30px;
   display: flex;
   align-items: center;
@@ -5224,12 +5231,12 @@
   font-weight: 900;
 }
 
-.appShell.is-shop-store .shopStoreInfoStrip svg {
+.shopStoreInfoStrip svg {
   color: var(--shop-public-accent);
 }
 
 /* ── Empty state ── */
-.appShell.is-shop-store .shopStoreEmptyState {
+.shopStoreEmptyState {
   display: grid;
   justify-items: center;
   gap: 8px;
@@ -5240,7 +5247,7 @@
   text-align: center;
 }
 
-.appShell.is-shop-store .shopStoreEmptyIcon {
+.shopStoreEmptyIcon {
   width: 52px;
   height: 52px;
   display: grid;
@@ -5250,13 +5257,13 @@
   color: #7f5cff;
 }
 
-.appShell.is-shop-store .shopStoreEmptyState b {
+.shopStoreEmptyState b {
   color: #171827;
   font-size: 0.88rem;
   font-weight: 900;
 }
 
-.appShell.is-shop-store .shopStoreEmptyState > span:not(.shopStoreEmptyIcon):not(.profileEmptyIcon) {
+.shopStoreEmptyState > span:not(.shopStoreEmptyIcon):not(.profileEmptyIcon) {
   color: #8d8f9d;
   font-size: 0.72rem;
   line-height: 1.7;
@@ -5264,7 +5271,7 @@
   max-width: 300px;
 }
 
-.appShell.is-shop-store .shopStoreEmptyState button {
+.shopStoreEmptyState button {
   min-height: 40px;
   padding: 0 16px;
   border: 0;
@@ -5278,12 +5285,12 @@
   cursor: pointer;
 }
 
-.appShell.is-shop-store .shopStoreEmptyReviews {
+.shopStoreEmptyReviews {
   min-height: 120px;
 }
 
 /* ── Floating dock (cart + chat) — salon-style pill ── */
-.appShell.is-shop-store .shopStoreDock {
+.shopStoreDock {
   right: max(14px, calc((100vw - 430px) / 2 + 14px));
   left: auto;
   bottom: calc(10px + env(safe-area-inset-bottom));
@@ -5294,7 +5301,7 @@
   pointer-events: none;
 }
 
-.appShell.is-shop-store .shopStoreDockCart {
+.shopStoreDockCart {
   pointer-events: auto;
   min-width: 0;
   min-height: 58px;
@@ -5309,7 +5316,7 @@
   box-shadow: 0 18px 38px rgba(88, 63, 174, 0.3);
 }
 
-.appShell.is-shop-store .shopStoreDockChat {
+.shopStoreDockChat {
   pointer-events: auto;
   width: 58px;
   height: 58px;
@@ -5324,68 +5331,68 @@
   box-shadow: 0 16px 34px rgba(28, 32, 44, 0.16);
 }
 
-.appShell.is-shop-store .shopStoreDockIcon {
+.shopStoreDockIcon {
   width: auto;
   height: auto;
   border-radius: 0;
   background: transparent;
 }
 
-.appShell.is-shop-store .shopStoreDockIcon b {
+.shopStoreDockIcon b {
   top: -6px;
   left: -6px;
   background: #ff5b74;
 }
 
-.appShell.is-shop-store .shopStoreDockCopy {
+.shopStoreDockCopy {
   display: flex;
 }
 
-.appShell.is-shop-store .shopStoreDockCopy strong {
+.shopStoreDockCopy strong {
   font-size: 0.8rem;
 }
 
-.appShell.is-shop-store .shopStoreDockCopy small {
+.shopStoreDockCopy small {
   color: rgba(255, 255, 255, 0.78);
   font-size: 0.62rem;
 }
 
-.appShell.is-shop-store .shopStoreDockChat span {
+.shopStoreDockChat span {
   display: none;
 }
 
 /* ── Compact devices ── */
 @media (max-width: 430px) {
-  .appShell.is-shop-store .shopStoreIdentityCard {
+  .shopStoreIdentityCard {
     margin-top: -58px;
     margin-inline: 4px;
     padding: 42px 14px 14px;
   }
 
 
-  .appShell.is-shop-store .shopStoreTitle {
+  .shopStoreTitle {
     padding: 0 104px 0 82px;
   }
 
-  .appShell.is-shop-store .shopStoreTitle h2 {
+  .shopStoreTitle h2 {
     font-size: 1.08rem;
   }
 
 
-  .appShell.is-shop-store .shopStoreActions button {
+  .shopStoreActions button {
     font-size: 0.68rem;
   }
 
-  .appShell.is-shop-store .shopStoreCard {
+  .shopStoreCard {
     margin-inline: 4px;
     padding: 14px;
   }
 
-  .appShell.is-shop-store .shopStoreProductMedia img {
+  .shopStoreProductMedia img {
     height: 132px;
   }
 
-  .appShell.is-shop-store .shopStoreInfoStrip {
+  .shopStoreInfoStrip {
     margin-inline: 4px;
   }
 }
@@ -10052,7 +10059,7 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button:not(.i
 }
 /* ── Storefront new-state styles (design-consistent) ── */
 
-.appShell.is-shop-store .shopStoreProductLike.is-liked {
+.shopStoreProductLike.is-liked {
   color: #7c5ce2;
   background: #ffffff;
   box-shadow:
@@ -10060,14 +10067,14 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button:not(.i
     0 8px 18px rgba(28, 32, 44, 0.14);
 }
 
-.appShell.is-shop-store .shopStoreActions button.primary {
+.shopStoreActions button.primary {
   border-color: transparent;
   background: linear-gradient(135deg, var(--shop-public-accent), var(--shop-public-accent-deep));
   color: #fff;
   box-shadow: 0 16px 30px rgba(88, 63, 174, 0.25);
 }
 
-.appShell.is-shop-store .shopStoreActions button.primary.is-following {
+.shopStoreActions button.primary.is-following {
   background: rgba(127, 92, 255, 0.12);
   color: #5d43b5;
   box-shadow: none;
@@ -10094,7 +10101,7 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button:not(.i
 }
 
 /* Page column: #f6f7fb panel + white 430px storefront column */
-.appShell.is-shop-store .shopsPanel {
+.shopsPanel {
   width: 100% !important;
   max-width: none !important;
   margin: 0 !important;
@@ -10107,7 +10114,7 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button:not(.i
   backdrop-filter: none !important;
 }
 
-.appShell.is-shop-store .shopStorefront {
+.shopStorefront {
   max-width: 430px;
   margin: 0 auto;
   min-height: 100dvh;
@@ -10117,7 +10124,7 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button:not(.i
 
 /* ── Hero: same inset + rounded-bottom treatment as the owner dashboard
    poster (.shopHeroPoster), so both posters read as the same banner. ── */
-.appShell.is-shop-store .shopStoreHero {
+.shopStoreHero {
   height: 190px;
   min-height: 190px !important;
   margin: 0 4px;
@@ -10131,7 +10138,7 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button:not(.i
 /* ── Identity card: sits right below the hero (no overlap), so the hero's
    own rounded bottom corners stay visible against the white card — same
    flush-edge look as the owner dashboard poster. ── */
-.appShell.is-shop-store .shopStoreIdentityCard {
+.shopStoreIdentityCard {
   margin: 0 !important;
   padding: 46px 20px 14px;
   gap: 13px;
@@ -10142,7 +10149,7 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button:not(.i
 }
 
 /* ── Logo: 124px circle on the hero/card boundary ── */
-.appShell.is-shop-store .shopStoreLogo {
+.shopStoreLogo {
   position: absolute;
   top: -76px;
   right: 24px;
@@ -10158,34 +10165,34 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button:not(.i
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
 }
 
-.appShell.is-shop-store .shopStoreLogo svg {
+.shopStoreLogo svg {
   width: 46px;
   height: 46px;
 }
 
 /* ── Title / rating / stats: salon coordinates ── */
-.appShell.is-shop-store .shopStoreTitle {
+.shopStoreTitle {
   min-height: 58px;
   padding: 0 138px 0 94px;
 }
 
-.appShell.is-shop-store .shopStoreTitle h2 {
+.shopStoreTitle h2 {
   font-size: 1.22rem;
 }
 
-.appShell.is-shop-store .shopStoreTitle span {
+.shopStoreTitle span {
   font-size: 0.74rem;
 }
 
 /* ── Actions: salon button metrics ── */
-.appShell.is-shop-store .shopStoreActions button {
+.shopStoreActions button {
   min-height: 48px;
   border-radius: 16px;
   font-size: 0.72rem;
 }
 
 /* ── Section cards: flat ── */
-.appShell.is-shop-store .shopStoreCard {
+.shopStoreCard {
   gap: 12px;
   margin: 12px 20px 0 !important;
   padding: 16px 14px !important;
@@ -10193,18 +10200,18 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button:not(.i
   box-shadow: none !important;
 }
 
-.appShell.is-shop-store .shopStoreSectionHead h3 {
+.shopStoreSectionHead h3 {
   font-size: 1rem;
 }
 
-.appShell.is-shop-store .shopStoreSectionHead button {
+.shopStoreSectionHead button {
   min-height: 26px;
   padding: 0;
   font-size: 0.66rem;
 }
 
 /* ── Products section: full-width, not a box floating on the page ── */
-.appShell.is-shop-store .shopStoreProductsCard {
+.shopStoreProductsCard {
   margin: 12px 0 0 !important;
   padding: 16px 20px !important;
   border: 0 !important;
@@ -10213,7 +10220,7 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button:not(.i
 }
 
 /* ── Info strip: flat card, salon metrics ── */
-.appShell.is-shop-store .shopStoreInfoStrip {
+.shopStoreInfoStrip {
   margin: 11px 20px 0 !important;
   grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.95fr) minmax(0, 1.05fr);
   gap: 4px;
@@ -10225,7 +10232,7 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button:not(.i
   box-shadow: none;
 }
 
-.appShell.is-shop-store .shopStoreInfoStrip span {
+.shopStoreInfoStrip span {
   min-width: 0;
   overflow: hidden;
   font-size: 0.56rem;
@@ -10233,14 +10240,14 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button:not(.i
   white-space: nowrap;
 }
 
-.appShell.is-shop-store .shopStoreInfoStrip svg {
+.shopStoreInfoStrip svg {
   width: 15px;
   height: 15px;
   flex: 0 0 auto;
 }
 
 /* ── Bottom dock: full-width centered bar (salon pattern) ── */
-.appShell.is-shop-store .shopStoreDock {
+.shopStoreDock {
   position: fixed !important;
   z-index: 26 !important;
   right: 50% !important;
@@ -10267,7 +10274,7 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button:not(.i
   direction: rtl;
 }
 
-.appShell.is-shop-store .shopStoreDockCart {
+.shopStoreDockCart {
   pointer-events: auto;
   min-width: 0;
   height: 46px;
@@ -10283,28 +10290,28 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button:not(.i
   color: #3b3e50;
 }
 
-.appShell.is-shop-store .shopStoreDockCart.has-items {
+.shopStoreDockCart.has-items {
   border-color: transparent;
   background: linear-gradient(135deg, var(--shop-public-accent), var(--shop-public-accent-deep));
   color: #ffffff;
   box-shadow: 0 16px 30px rgba(88, 63, 174, 0.28);
 }
 
-.appShell.is-shop-store .shopStoreDockCopy strong {
+.shopStoreDockCopy strong {
   font-size: 0.78rem;
   font-weight: 950;
 }
 
-.appShell.is-shop-store .shopStoreDockCopy small {
+.shopStoreDockCopy small {
   font-size: 0.6rem;
   color: #9a9dad;
 }
 
-.appShell.is-shop-store .shopStoreDockCart.has-items .shopStoreDockCopy small {
+.shopStoreDockCart.has-items .shopStoreDockCopy small {
   color: rgba(255, 255, 255, 0.78);
 }
 
-.appShell.is-shop-store .shopStoreDockChat {
+.shopStoreDockChat {
   pointer-events: auto;
   width: 52px;
   height: 46px;
@@ -10320,28 +10327,28 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button:not(.i
 
 /* ── Compact devices (salon mirror) ── */
 @media (max-width: 430px) {
-  .appShell.is-shop-store .shopStoreHero {
+  .shopStoreHero {
     height: 190px;
     min-height: 190px !important;
   }
 }
 
 /* ── Phase 2 refinements: exact real-salon metrics ── */
-.appShell.is-shop-store .shopStoreIdentityCard {
+.shopStoreIdentityCard {
   padding: 38px 16px 16px;
   border-radius: 28px 28px 0 0 !important;
 }
 
-.appShell.is-shop-store .shopStoreTitle {
+.shopStoreTitle {
   margin-top: -14px;
 }
 
-.appShell.is-shop-store .shopStoreActions {
+.shopStoreActions {
   grid-template-columns: 1fr 1fr;
   direction: rtl;
 }
 
-.appShell.is-shop-store .shopStoreDockCopy {
+.shopStoreDockCopy {
   display: none !important;
 }
 
@@ -10350,13 +10357,13 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button:not(.i
    ══════════════════════════════════════════════════════════════════════ */
 
 /* Logo: flush with the card padding (right:16) */
-.appShell.is-shop-store .shopStoreLogo {
+.shopStoreLogo {
   right: 16px;
 }
 
 /* Title: absolute row beside the logo, vertically aligned with it.
    Layout: [rating/chip] [name + blue verify / address] [logo] */
-.appShell.is-shop-store .shopStoreTitle {
+.shopStoreTitle {
   position: absolute;
   top: -37px;
   right: 152px;
@@ -10368,16 +10375,16 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button:not(.i
   text-align: right;
 }
 
-.appShell.is-shop-store .shopStoreTitle h2 {
+.shopStoreTitle h2 {
   font-size: 1.22rem;
   justify-content: flex-start;
 }
 
-.appShell.is-shop-store .shopStoreTitle span {
+.shopStoreTitle span {
   font-size: 0.78rem;
 }
 
-.appShell.is-shop-store .shopStoreVerifiedIcon {
+.shopStoreVerifiedIcon {
   width: 15px;
   height: 15px;
   padding: 0;
@@ -10388,14 +10395,14 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button:not(.i
 }
 
 /* Actions row: followers beside the follow button */
-.appShell.is-shop-store .shopStoreActions {
+.shopStoreActions {
   display: flex;
   align-items: center;
   gap: 10px;
   direction: rtl;
 }
 
-.appShell.is-shop-store .shopStoreActions button {
+.shopStoreActions button {
   flex: 1 1 0;
   min-width: 0;
   min-height: 48px;
@@ -10404,21 +10411,21 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button:not(.i
 }
 
 /* ── Dock visibility fix: readable icons/buttons on the white bar ── */
-.appShell.is-shop-store .shopStoreDockIcon {
+.shopStoreDockIcon {
   color: #3b3e50;
 }
 
-.appShell.is-shop-store .shopStoreDockCart.has-items .shopStoreDockIcon {
+.shopStoreDockCart.has-items .shopStoreDockIcon {
   color: #ffffff;
 }
 
-.appShell.is-shop-store .shopStoreDockCart {
+.shopStoreDockCart {
   background: #ffffff;
   border: 1px solid rgba(28, 32, 44, 0.14);
   box-shadow: 0 8px 20px rgba(28, 32, 44, 0.1);
 }
 
-.appShell.is-shop-store .shopStoreDockChat {
+.shopStoreDockChat {
   background: #ffffff;
   border: 1px solid rgba(127, 92, 255, 0.35);
   color: #5d43b5;
@@ -10426,11 +10433,11 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button:not(.i
 
 /* ── Compact devices ── */
 @media (max-width: 430px) {
-  .appShell.is-shop-store .shopStoreTitle {
+  .shopStoreTitle {
     right: 152px;
     left: 116px;
   }
-  .appShell.is-shop-store .shopStoreTitle h2 {
+  .shopStoreTitle h2 {
     font-size: 1.02rem;
   }
 }
@@ -10438,7 +10445,7 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button:not(.i
 /* ── Phase 3 fixes round 2 ── */
 
 /* Dock cart gradient: literal colors (dock is outside .shopStorefront, its CSS vars don't reach it) */
-.appShell.is-shop-store .shopStoreDockCart.has-items {
+.shopStoreDockCart.has-items {
   border-color: transparent;
   background: linear-gradient(135deg, #7f5cff, #51378e);
   color: #ffffff;
@@ -10446,12 +10453,12 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button:not(.i
 }
 
 /* Title: lift 7px so its vertical center matches the logo circle center */
-.appShell.is-shop-store .shopStoreTitle {
+.shopStoreTitle {
   top: -44px;
 }
 
 /* ── Fix: title + rating card fixed BELOW the banner (inside the card) ── */
-.appShell.is-shop-store .shopStoreTitle {
+.shopStoreTitle {
   position: static;
   top: auto;
   right: auto;
@@ -10464,17 +10471,17 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button:not(.i
 }
 
 @media (max-width: 430px) {
-  .appShell.is-shop-store .shopStoreTitle {
+  .shopStoreTitle {
     padding: 0 152px 0 116px;
   }
 }
 
 /* ── Fix 2: title + rating at the card's top edge (below banner, but high) ── */
-.appShell.is-shop-store .shopStoreIdentityCard {
+.shopStoreIdentityCard {
   padding-top: 80px;
 }
 
-.appShell.is-shop-store .shopStoreTitle {
+.shopStoreTitle {
   position: absolute;
   top: 0;
   right: 152px;
@@ -10483,14 +10490,14 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button:not(.i
 }
 
 @media (max-width: 430px) {
-  .appShell.is-shop-store .shopStoreTitle {
+  .shopStoreTitle {
     right: 152px;
     left: 116px;
   }
 }
 
 /* ── Buy button moved into the products section head ── */
-.appShell.is-shop-store .shopStoreHeadActions {
+.shopStoreHeadActions {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -10499,7 +10506,7 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button:not(.i
 /* Light, not the bold gradient CTA treatment: this only scrolls to the
    products already below — it isn't the primary action on this screen
    (per-product "add to cart" is), so it shouldn't compete with it. */
-.appShell.is-shop-store .shopStoreHeadActions .shopStoreBuyButton {
+.shopStoreHeadActions .shopStoreBuyButton {
   min-height: 30px;
   display: inline-flex;
   align-items: center;
@@ -10518,7 +10525,7 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button:not(.i
    Logo: thin ring (like salon) + story experience (mirror of salon)
    ══════════════════════════════════════════════════════════════════════ */
 
-.appShell.is-shop-store .shopStoreLogo {
+.shopStoreLogo {
   border-width: 4px;
 }
 
@@ -10563,7 +10570,7 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button:not(.i
 }
 
 /* ═══ Shop client — rating badge on logo + plain stats row, artist-client style ═══ */
-.appShell.is-shop-store .shopStoreLogoRating {
+.shopStoreLogoRating {
   position: absolute;
   bottom: -2px;
   left: 50%;
@@ -10585,11 +10592,11 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button:not(.i
   box-shadow: 0 4px 12px rgba(28, 32, 44, 0.16);
 }
 
-.appShell.is-shop-store .shopStoreLogoRating svg {
+.shopStoreLogoRating svg {
   color: #f2b134;
 }
 
-.appShell.is-shop-store .shopStoreStatsRow {
+.shopStoreStatsRow {
   width: 100%;
   margin: 10px 0 0;
   display: flex;
@@ -10599,7 +10606,7 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button:not(.i
   gap: 14px;
 }
 
-.appShell.is-shop-store .shopStoreStatsRow span {
+.shopStoreStatsRow span {
   display: flex;
   align-items: baseline;
   gap: 5px;
@@ -10609,14 +10616,14 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button:not(.i
   white-space: nowrap;
 }
 
-.appShell.is-shop-store .shopStoreStatsRow b {
+.shopStoreStatsRow b {
   color: #1c202c;
   font-size: 0.86rem;
   font-weight: 950;
 }
 
 /* Follow button — artist-client style */
-.appShell.is-shop-store .shopStoreActions {
+.shopStoreActions {
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -10624,7 +10631,7 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button:not(.i
   direction: rtl;
 }
 
-.appShell.is-shop-store .shopStoreActions .shopStoreFollow {
+.shopStoreActions .shopStoreFollow {
   flex: 1 1 0;
   min-width: 0;
   min-height: 48px;
@@ -10644,25 +10651,25 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button:not(.i
   transition: background 0.16s ease, transform 0.16s ease;
 }
 
-.appShell.is-shop-store .shopStoreActions .shopStoreFollow.is-following {
+.shopStoreActions .shopStoreFollow.is-following {
   background: rgba(96, 81, 155, 0.12);
   color: #60519b;
   box-shadow: none;
 }
 
-.appShell.is-shop-store .shopStoreActions .shopStoreFollow:active {
+.shopStoreActions .shopStoreFollow:active {
   transform: scale(0.98);
 }
 
 /* ═══ Identity card v4 — title back at top, chip left-aligned below title ═══ */
-.appShell.is-shop-store .shopStoreIdentityCard {
+.shopStoreIdentityCard {
   position: relative;
   display: grid;
   gap: 12px;
   padding: 10px 16px 16px;
 }
 
-.appShell.is-shop-store .shopStoreLogoBlock {
+.shopStoreLogoBlock {
   position: absolute;
   top: -60px;
   right: 16px;
@@ -10674,7 +10681,7 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button:not(.i
   z-index: 2;
 }
 
-.appShell.is-shop-store .shopStoreLogo {
+.shopStoreLogo {
   position: static;
   top: auto;
   right: auto;
@@ -10690,10 +10697,10 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button:not(.i
   box-shadow: none !important;
 }
 
-.appShell.is-shop-store .shopStoreLogo svg { width: 36px; height: 36px; }
+.shopStoreLogo svg { width: 36px; height: 36px; }
 
 /* title: back at the very top of the card, beside the logo zone */
-.appShell.is-shop-store .shopStoreTitle {
+.shopStoreTitle {
   position: static;
   top: auto;
   right: auto;
@@ -10708,14 +10715,14 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button:not(.i
 
 /* Name/city size + spacing mirrors the owner dashboard's .studioIdentity
    (strong: 0.94rem/900, small: 0.68rem/700, 4px tick gap) exactly. */
-.appShell.is-shop-store .shopStoreTitle h2 {
+.shopStoreTitle h2 {
   font-size: 0.94rem;
   font-weight: 900;
   line-height: 1.35;
   justify-content: flex-start;
   gap: 4px;
 }
-.appShell.is-shop-store .shopStoreTitle span {
+.shopStoreTitle span {
   font-size: 0.68rem;
   font-weight: 700;
   justify-content: flex-start;
@@ -10723,9 +10730,9 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button:not(.i
 }
 
 @media (max-width: 430px) {
-  .appShell.is-shop-store .shopStoreIdentityCard { padding: 10px 12px 14px; }
-  .appShell.is-shop-store .shopStoreLogoBlock { right: 12px; }
-  .appShell.is-shop-store .shopStoreTitle { margin-right: 122px; }
+  .shopStoreIdentityCard { padding: 10px 12px 14px; }
+  .shopStoreLogoBlock { right: 12px; }
+  .shopStoreTitle { margin-right: 122px; }
 }
 
 /* ═══ Shop directory cards — flat rating / «جدید» (no marble stars) ═══ */
@@ -10751,25 +10758,25 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button:not(.i
 }
 
 /* storefront review rows — flat star instead of marble */
-.appShell.is-shop-store .shopStoreReviewMeta span {
+.shopStoreReviewMeta span {
   display: inline-flex;
   align-items: center;
   gap: 4px;
 }
-.appShell.is-shop-store .shopStoreReviewMeta span svg { color: #5d43b5; }
+.shopStoreReviewMeta span svg { color: #5d43b5; }
 
 /* ══════════════════════════════════════════════════════════════════════
    Reviews — restyled to match the artist public page: flat section
    (no outer box), summary pill, vertical clean-minimal cards.
    ══════════════════════════════════════════════════════════════════════ */
-.appShell.is-shop-store .shopStoreReviewsSection {
+.shopStoreReviewsSection {
   display: grid;
   gap: 12px;
   margin: 12px 0 0 !important;
   padding: 16px 20px !important;
 }
 
-.appShell.is-shop-store .shopStoreReviewSummary {
+.shopStoreReviewSummary {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -10781,13 +10788,13 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button:not(.i
   box-shadow: 0 1px 0 rgba(28, 32, 44, 0.02);
 }
 
-.appShell.is-shop-store .shopStoreReviewSummaryScore {
+.shopStoreReviewSummaryScore {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.appShell.is-shop-store .shopStoreReviewSummaryScore b {
+.shopStoreReviewSummaryScore b {
   color: #23242e;
   font-size: 1.5rem;
   font-weight: 950;
@@ -10795,30 +10802,30 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button:not(.i
   line-height: 1;
 }
 
-.appShell.is-shop-store .shopStoreReviewSummaryCount {
+.shopStoreReviewSummaryCount {
   color: #8b8fa0;
   font-size: 0.7rem;
   font-weight: 800;
   white-space: nowrap;
 }
 
-.appShell.is-shop-store .shopStoreCleanStars {
+.shopStoreCleanStars {
   display: inline-flex;
   align-items: center;
   gap: 2px;
   direction: ltr;
 }
 
-.appShell.is-shop-store .shopStoreCleanStars .is-filled { color: #7c5ce0; }
-.appShell.is-shop-store .shopStoreCleanStars .is-empty { color: rgba(28, 32, 44, 0.16); }
+.shopStoreCleanStars .is-filled { color: #7c5ce0; }
+.shopStoreCleanStars .is-empty { color: rgba(28, 32, 44, 0.16); }
 
-.appShell.is-shop-store .shopStoreReviewList {
+.shopStoreReviewList {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 10px;
 }
 
-.appShell.is-shop-store .shopStoreReviewList article.shopStoreReviewCard {
+.shopStoreReviewList article.shopStoreReviewCard {
   display: flex;
   align-items: flex-start;
   gap: 11px;
@@ -10829,7 +10836,7 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button:not(.i
   box-shadow: 0 1px 0 rgba(28, 32, 44, 0.02);
 }
 
-.appShell.is-shop-store .shopStoreReviewList .shopStoreReviewAvatar {
+.shopStoreReviewList .shopStoreReviewAvatar {
   width: 38px !important;
   height: 38px !important;
   flex: 0 0 38px !important;
@@ -10838,7 +10845,7 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button:not(.i
   font-size: 0.95rem !important;
 }
 
-.appShell.is-shop-store .shopStoreReviewMain {
+.shopStoreReviewMain {
   flex: 1 1 auto;
   min-width: 0;
   display: flex;
@@ -10846,14 +10853,14 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button:not(.i
   gap: 6px;
 }
 
-.appShell.is-shop-store .shopStoreReviewTop {
+.shopStoreReviewTop {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
 }
 
-.appShell.is-shop-store .shopStoreReviewTop b {
+.shopStoreReviewTop b {
   color: #23242e;
   font-size: 0.84rem;
   font-weight: 950;
@@ -10862,7 +10869,7 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button:not(.i
   white-space: nowrap;
 }
 
-.appShell.is-shop-store .shopStoreReviewService {
+.shopStoreReviewService {
   flex: 0 0 auto;
   padding: 3px 9px;
   border-radius: 999px;
@@ -10873,19 +10880,19 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button:not(.i
   white-space: nowrap;
 }
 
-.appShell.is-shop-store .shopStoreReviewMetaRow {
+.shopStoreReviewMetaRow {
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
-.appShell.is-shop-store .shopStoreReviewRate {
+.shopStoreReviewRate {
   color: #7c5ce0;
   font-size: 0.68rem;
   font-weight: 950;
 }
 
-.appShell.is-shop-store .shopStoreReviewList article.shopStoreReviewCard p {
+.shopStoreReviewList article.shopStoreReviewCard p {
   margin: 0;
   color: #3a3d4c;
   font-size: 0.78rem;
