@@ -135,7 +135,7 @@ test("ensureSchemaVersion runs V7→V11 sequentially from schema_version=6", () 
   const version = database.prepare(
     "SELECT value FROM app_meta WHERE key = 'schema_version'"
   ).get().value;
-  assert.equal(version, "11", "final schema_version must be 11");
+  assert.equal(version, "30", "final schema_version must be 30 (ensureSchemaVersion runs every defined step, not just up to v11)");
 
   // v7: hint column
   assert.ok(
@@ -170,4 +170,20 @@ test("ensureSchemaVersion runs V7→V11 sequentially from schema_version=6", () 
     .get()?.sql || "";
   assert.match(walletSql, /available_balance[^,]*CHECK \(available_balance >= 0\)/i);
   assert.match(walletSql, /pending_balance[^,]*CHECK \(pending_balance >= 0\)/i);
+
+  // v30: shell_balance dropped (shell currency / AI Studio removed) — the
+  // real Toman wallet columns (available_balance/pending_balance) survive untouched.
+  assert.equal(
+    columnNames(database, "wallets").includes("shell_balance"),
+    false,
+    "migrateToV30 must drop wallets.shell_balance"
+  );
+  assert.ok(
+    columnNames(database, "wallets").includes("available_balance"),
+    "migrateToV30 must not touch wallets.available_balance"
+  );
+  assert.ok(
+    columnNames(database, "wallets").includes("pending_balance"),
+    "migrateToV30 must not touch wallets.pending_balance"
+  );
 });

@@ -4,7 +4,6 @@
  * Uses: data/zibaban-wallet-test.sqlite (never data/zibaban.sqlite)
  *
  * Covers:
- * 1. Shell charge / spend without 500 (db.transaction removed)
  * 2. Race: 10 concurrent withdraws via worker_threads + separate DB connections
  * 3. Idempotency: two concurrent withdraws that overdraw together → one wins
  * 4. demo_credit blocked when NODE_ENV=production
@@ -229,40 +228,6 @@ async function main() {
     const me = await api("/api/auth/me", { cookie });
     const userId = me.payload?.user?.id || me.payload?.data?.user?.id || me.payload?.id;
     step("resolve user id", Boolean(userId), `userId=${userId}`);
-
-    // --- 1) Shell charge / spend without 500 ---
-    const buy = await api("/api/wallet", {
-      method: "POST",
-      cookie,
-      body: { kind: "shell", amount: 50, note: "test buy" }
-    });
-    step(
-      "1. shell buy (no 500)",
-      buy.res.status === 200 && (buy.payload.shellBalance ?? buy.payload.data?.shellBalance) === 50,
-      `status=${buy.res.status} shell=${buy.payload.shellBalance ?? buy.payload.data?.shellBalance}`
-    );
-
-    const spend = await api("/api/wallet", {
-      method: "POST",
-      cookie,
-      body: { kind: "shell", amount: -10, note: "test spend" }
-    });
-    step(
-      "1b. shell spend (no 500)",
-      spend.res.status === 200 && (spend.payload.shellBalance ?? spend.payload.data?.shellBalance) === 40,
-      `status=${spend.res.status} shell=${spend.payload.shellBalance ?? spend.payload.data?.shellBalance}`
-    );
-
-    const overSpend = await api("/api/wallet", {
-      method: "POST",
-      cookie,
-      body: { kind: "shell", amount: -999, note: "overspend" }
-    });
-    step(
-      "1c. shell overspend rejected",
-      overSpend.res.status === 400,
-      `status=${overSpend.res.status}`
-    );
 
     // --- Bank + demo credit ---
     const bank = await api("/api/wallet", {

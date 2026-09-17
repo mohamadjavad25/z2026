@@ -1,6 +1,7 @@
 /**
- * Full HomeApp integration smoke (LOCAL ONLY) — after Shop / Explore / AI /
+ * Full HomeApp integration smoke (LOCAL ONLY) — after Shop / Explore /
  * Salon-client / Public-artist / Artist-owner / Salon-owner extracts.
+ * (AI Studio / shell-currency step removed along with that feature, 2026-09.)
  *
  * Uses: data/zibaban-integration-test.sqlite (never data/zibaban.sqlite)
  *
@@ -170,7 +171,6 @@ async function main() {
   let portfolioPostId = null;
   let portfolioTitle = "پورتفولیو یکپارچه آرتیست";
   const artistBookingListRef = { current: [] };
-  let publishedAiPosts = [];
 
   try {
     // ─── 1. Register salon + login ───
@@ -546,116 +546,6 @@ async function main() {
       record(16, "سالن: PATCH hours → GET لیست خالی نمی‌شود", ok,
         `before=${hoursBefore.length} patchHours=${hoursFromPatch.length} after=${hoursAfter.length} open=${updated?.open_time}`,
         ok ? "" : JSON.stringify({ patch: patch.payload, after: after.payload }));
-    }
-
-    // ─── 17. AI Studio: seed shells, debit, publish, explore ───
-    {
-      let walletKind = "";
-      const seed = await api("/api/wallet", {
-        method: "POST",
-        cookie: artistCookie,
-        body: { amount: 5, note: "seed integration AI shells" }
-      });
-      let shellBalance = Number(seed.payload?.data?.shellBalance ?? seed.payload?.shellBalance ?? -1);
-      if (seed.res.ok && shellBalance >= 5) {
-        walletKind = "api";
-      } else {
-        // Known changeShellBalance failure path — attempt SQL only to continue publish check;
-        // still record wallet seed as failure with KNOWN tag.
-        const errText = JSON.stringify(seed.payload);
-        const isKnown = seed.status === 500
-          || /transaction/i.test(errText)
-          || /Internal|error/i.test(errText);
-        try {
-          const { DatabaseSync } = await import("node:sqlite");
-          const db = new DatabaseSync(TEST_DB);
-          db.prepare("UPDATE wallets SET shell_balance = ? WHERE user_id = ?").run(5, artistId);
-          const row = db.prepare("SELECT shell_balance FROM wallets WHERE user_id = ?").get(artistId);
-          db.close();
-          shellBalance = Number(row?.shell_balance);
-          walletKind = "sql-fallback";
-        } catch (e) {
-          walletKind = "failed";
-          record(17, "AI Studio: seed شل + publish + Explore", false,
-            `wallet seed failed (${walletKind})`,
-            JSON.stringify({ seed: seed.payload, sqlError: e.message }),
-            isKnown ? "KNOWN_PREEXISTING" : "REGRESSION");
-          // skip rest of step 17
-          shellBalance = -1;
-        }
-        if (shellBalance >= 0 && walletKind === "sql-fallback") {
-          // Continue publish but mark wallet portion as known failure in composite step
-        }
-      }
-
-      if (shellBalance >= 0) {
-        const debit = await api("/api/wallet", {
-          method: "POST",
-          cookie: artistCookie,
-          body: { amount: -1, note: "۱ شل AI integration" }
-        });
-        let debitOk = debit.res.ok;
-        if (!debitOk && walletKind === "sql-fallback") {
-          const { DatabaseSync } = await import("node:sqlite");
-          const db = new DatabaseSync(TEST_DB);
-          db.prepare("UPDATE wallets SET shell_balance = shell_balance - 1 WHERE user_id = ? AND shell_balance >= 1").run(artistId);
-          db.close();
-          debitOk = true;
-        }
-
-        // Local publishedAiPosts (mock create) + real publish
-        const localAi = {
-          id: `ai-local-${Date.now()}`,
-          title: "اثر AI یکپارچه",
-          salon: "آرتیست یکپارچه",
-          area: "AI",
-          tag: "میکاپ",
-          meta: "integration mock",
-          image: "/explore-post-makeup-nude.png"
-        };
-        publishedAiPosts = [localAi];
-
-        const publish = await api("/api/posts", {
-          method: "POST",
-          cookie: artistCookie,
-          body: {
-            title: localAi.title,
-            tag: "میکاپ",
-            caption: localAi.meta,
-            image: localAi.image,
-            inExplore: true,
-            featured: false
-          }
-        });
-        const publishedId = publish.payload?.data?.post?.id;
-        if (publishedId) {
-          publishedAiPosts = [{ ...localAi, id: publishedId }, ...publishedAiPosts.filter((p) => p.id !== localAi.id)];
-        }
-
-        const explore = await api("/api/explore/posts", { cookie: clientCookie });
-        const posts = explore.payload?.data?.posts || [];
-        const inExplore = posts.some((p) => String(p.id) === String(publishedId) || p.title === localAi.title);
-        const merged = [...publishedAiPosts, ...posts];
-        const inMerged = merged.some((p) => p.title === localAi.title);
-
-        const walletOk = walletKind === "api" && seed.res.ok;
-        const publishOk = (publish.status === 201 || publish.res.ok) && Boolean(publishedId) && inExplore && inMerged && debitOk;
-
-        if (walletOk && publishOk) {
-          record(17, "AI Studio: شل + publish + Explore/publishedAiPosts", true,
-            `publishedId=${publishedId} shellsVia=api`);
-        } else if (!walletOk && publishOk) {
-          record(17, "AI Studio: شل + publish + Explore/publishedAiPosts", false,
-            `publish OK but wallet API broken (shellsVia=${walletKind}); known changeShellBalance`,
-            JSON.stringify({ seed: seed.payload, debit: debit.payload, publish: publish.payload }),
-            "KNOWN_PREEXISTING");
-        } else {
-          record(17, "AI Studio: شل + publish + Explore/publishedAiPosts", false,
-            `walletKind=${walletKind} publish=${publish.status} inExplore=${inExplore}`,
-            JSON.stringify({ seed: seed.payload, debit: debit.payload, publish: publish.payload, exploreCount: posts.length }),
-            walletKind !== "api" ? "KNOWN_PREEXISTING" : "REGRESSION");
-        }
-      }
     }
 
     // ─── 18. Shop register + product; client sees in GET /api/shops ───

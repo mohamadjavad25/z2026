@@ -1,6 +1,6 @@
 import { applySchema } from "./schema.js";
 
-const SCHEMA_VERSION = 29;
+const SCHEMA_VERSION = 30;
 
 /** Convert legacy session expiry strings (ISO / SQLite datetime) to epoch ms. Unparseable → 0 (expired). */
 export function sessionExpiryToEpochMs(value) {
@@ -558,6 +558,47 @@ function migrateToV29(database) {
   applySchema(database);
 }
 
+/**
+ * Drop wallets.shell_balance: the in-app "shell" currency and the AI Studio
+ * feature that spent it were removed from the product (frontend + API).
+ * shell_balance has been dead/unread by app code for a while — nothing
+ * writes or reads it anymore (see app/lib/db/repos/wallet.js, app/api/wallet
+ * route). available_balance/pending_balance (the real Toman wallet) are a
+ * separate pair of columns on the same row and are left untouched.
+ * SQLite ALTER TABLE can't DROP COLUMN on every version we might run on, so
+ * rebuild the table the same way migrateWalletsBalanceChecks (v11) did.
+ */
+function migrateDropShellBalance(database) {
+  if (!tableExists(database, "wallets")) {
+    applySchema(database);
+    return;
+  }
+  if (!columnExists(database, "wallets", "shell_balance")) return;
+
+  database.exec("PRAGMA foreign_keys = OFF;");
+  database.exec(`
+    CREATE TABLE wallets_v30 (
+      user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+      available_balance INTEGER NOT NULL DEFAULT 0 CHECK (available_balance >= 0),
+      pending_balance INTEGER NOT NULL DEFAULT 0 CHECK (pending_balance >= 0),
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+  database.exec(`
+    INSERT INTO wallets_v30 (user_id, available_balance, pending_balance, updated_at)
+    SELECT user_id, available_balance, pending_balance, updated_at FROM wallets;
+  `);
+  database.exec("DROP TABLE wallets;");
+  database.exec("ALTER TABLE wallets_v30 RENAME TO wallets;");
+  database.exec("PRAGMA foreign_keys = ON;");
+}
+
+function migrateToV30(database) {
+  migrateToV29(database);
+  migrateDropShellBalance(database);
+  applySchema(database);
+}
+
 function readSchemaVersion(database) {
   const row = database.prepare("SELECT value FROM app_meta WHERE key = 'schema_version'").get();
   return Number(row?.value || 0);
@@ -598,7 +639,8 @@ const MIGRATION_STEPS = [
   { version: 26, migrate: migrateToV26 },
   { version: 27, migrate: migrateToV27 },
   { version: 28, migrate: migrateToV28 },
-  { version: 29, migrate: migrateToV29 }
+  { version: 29, migrate: migrateToV29 },
+  { version: 30, migrate: migrateToV30 }
 ];
 
 export function ensureSchemaVersion(database) {

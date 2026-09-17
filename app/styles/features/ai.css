@@ -1,6 +1,0 @@
-/* Removed as dead code during the 2026-09 cleanup pass:
-   this stylesheet only styled the AI Studio feature, which has already
-   been removed from the UI. Its @import in app/styles.css has also been
-   removed, and the equivalent ~55 inline .ai*-prefixed rules that were
-   duplicated directly in app/styles.css have been deleted too. Safe to
-   delete this file entirely. */

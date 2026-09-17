@@ -1,12 +1,15 @@
 /**
- * UX busy / double-submit fix verification (C2–C6) — LOCAL ONLY.
+ * UX busy / double-submit fix verification (C3–C6) — LOCAL ONLY.
  *
  * DB: data/zibaban-ux-busy-test.sqlite
  *
- * For each C2–C6:
+ * For each C3–C6:
  * - Parallel double-call with busy gate → only one runs
  * - After completion, busy is false again
- * - Live API smoke where useful (wallet shell, salon booking patch)
+ * - Live API smoke where useful (salon booking patch)
+ *
+ * C2 (buyShells / shell-currency busy gate) was removed along with the
+ * shell currency and AI Studio feature (2026-09 cleanup).
  *
  * Usage:
  *   node scripts/seed-ux-busy-test.mjs
@@ -219,43 +222,6 @@ async function main() {
     const artistCookie = artistReg.cookie;
     const artistId = artistReg.payload?.data?.user?.id || artistReg.payload?.profile?.id;
     step("register artist", artistReg.res.ok && Boolean(artistId), `id=${artistId}`);
-
-    // Seed shells for client so C2 can succeed once
-    await api("/api/wallet", {
-      method: "POST",
-      cookie: clientCookie,
-      body: { kind: "shell", amount: 50, note: "seed shells" }
-    });
-
-    // --- C2 buyShells pattern ---
-    console.log("\n--- C2 buyShells ---");
-    await simulateHookAction("C2 buyShells", async () => {
-      const r = await api("/api/wallet", {
-        method: "POST",
-        cookie: clientCookie,
-        body: { kind: "shell", amount: 10, note: "busy test buy" }
-      });
-      if (!r.ok) throw new Error(r.payload.error || "buy failed");
-      return r.payload;
-    });
-
-    // Without gate, parallel buys would both hit (document server is NOT idempotent)
-    {
-      const before = await api("/api/wallet", { cookie: clientCookie });
-      const balBefore = Number(before.payload?.shellBalance ?? before.payload?.data?.shellBalance ?? 0);
-      const [x, y] = await Promise.all([
-        api("/api/wallet", { method: "POST", cookie: clientCookie, body: { kind: "shell", amount: 1, note: "ungated-a" } }),
-        api("/api/wallet", { method: "POST", cookie: clientCookie, body: { kind: "shell", amount: 1, note: "ungated-b" } })
-      ]);
-      const after = await api("/api/wallet", { cookie: clientCookie });
-      const balAfter = Number(after.payload?.shellBalance ?? after.payload?.data?.shellBalance ?? 0);
-      const bothOk = x.ok && y.ok;
-      step(
-        "C2 note: ungated parallel API can both succeed (not idempotent)",
-        bothOk && balAfter === balBefore + 2,
-        `Δ=${balAfter - balBefore} (client busy gate is required)`
-      );
-    }
 
     // --- C3 public artist booking ---
     console.log("\n--- C3 public artist booking ---");

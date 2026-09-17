@@ -27,7 +27,6 @@ export function applySchema(db) {
 
     CREATE TABLE IF NOT EXISTS wallets (
       user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-      shell_balance INTEGER NOT NULL DEFAULT 0 CHECK (shell_balance >= 0),
       available_balance INTEGER NOT NULL DEFAULT 0 CHECK (available_balance >= 0),
       pending_balance INTEGER NOT NULL DEFAULT 0 CHECK (pending_balance >= 0),
       updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP

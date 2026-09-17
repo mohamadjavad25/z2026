@@ -11,7 +11,6 @@ app/
     hooks/                 shared React hooks
     lib/                   shared formatting and date helpers
   features/
-    ai-studio/             AI creation page, state, and presets
     artist/                artist workspace, booking rail, public booking/services panels, helpers
     auth/                  auth/session constants and hooks
     explore/               explore feed page, preview/rating modals, mapping, state
@@ -37,10 +36,6 @@ features/shell/
 Extracted feature UI:
 
 ```text
-features/ai-studio/
-  AiStudioPage.jsx
-  index.js
-
 features/explore/
   ExplorePage.jsx
   ExplorePreviewModal.jsx
