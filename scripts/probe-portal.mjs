@@ -1,0 +1,12 @@
+const list = await (await fetch("http://127.0.0.1:9333/json/list")).json();
+const page = list.find(function (t) { return t.type === "page"; });
+const ws = new WebSocket(page.webSocketDebuggerUrl);
+await new Promise(function (res, rej) { ws.onopen = res; ws.onerror = rej; });
+let idc = 0;
+const pending = new Map();
+ws.onmessage = function (ev) { const m = JSON.parse(ev.data); if (m.id && pending.has(m.id)) { pending.get(m.id)(m); pending.delete(m.id); } };
+const send = function (method, params) { return new Promise(function (resolve) { const id = ++idc; pending.set(id, resolve); ws.send(JSON.stringify({ id: id, method: method, params: params || {} })); setTimeout(function () { if (pending.has(id)) { pending.delete(id); resolve({ timeout: true }); } }, 15000); }); };
+const r = await send("Runtime.evaluate", { expression: "var p = document.querySelector(\"nextjs-portal\"); var ov = document.querySelector(\".nextjs-container-errors\, .nextjs-container-build-error\"); var text = ov ? ov.textContent.slice(0, 1500) : (p ? p.innerHTML.slice(0, 1500) : \"no portal\"); JSON.stringify({ portal: !!p, overlay: !!ov, text: text });", returnByValue: true });
+console.log(r.result ? r.result.result.value : JSON.stringify(r));
+ws.close();
+process.exit(0);

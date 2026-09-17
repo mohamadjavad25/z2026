@@ -1,0 +1,30 @@
+
+import { writeFileSync } from "node:fs";
+const list = await (await fetch("http://127.0.0.1:9333/json/list")).json();
+const page = list.find((t) => t.type === "page");
+const ws = new WebSocket(page.webSocketDebuggerUrl);
+await new Promise((res, rej) => { ws.onopen = res; ws.onerror = rej; });
+let idc = 0; const pending = new Map();
+ws.onmessage = (ev) => { const m = JSON.parse(ev.data); if (m.id && pending.has(m.id)) { pending.get(m.id)(m); pending.delete(m.id); } };
+const send = (method, params = {}) => new Promise((resolve) => { const id = ++idc; pending.set(id, resolve); ws.send(JSON.stringify({ id, method, params })); });
+const ev = async (expression) => { const r = await send("Runtime.evaluate", { expression, returnByValue: true, awaitPromise: true }); if (r.result?.exceptionDetails) return "EVAL_ERR"; return r.result?.result?.value; };
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+await send("Runtime.enable");
+await send("Emulation.setDeviceMetricsOverride", { width: 1440, height: 900, deviceScaleFactor: 1, mobile: false });
+await ev('fetch("/api/auth/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ phone: "09121112233", password: "password123" }) }).then(r => r.json()).catch(e => ({ err: String(e) }))');
+await sleep(600);
+await send("Page.navigate", { url: "http://localhost:3000/" });
+await sleep(6500);
+await ev("document.documentElement.style.scrollBehavior='auto'");
+await ev('(() => { const b = [...document.querySelectorAll(".bottomNav button")].find(x => (x.innerText || "").includes("فروشگاه")); if (b) b.click(); return !!b; })()');
+await sleep(1100);
+await ev('(() => { const el = [...document.querySelectorAll(".shopCard")].find(c => (c.innerText || "").includes("loiih")); if (el) el.click(); return !!el; })()');
+await sleep(2300);
+// add to cart for has-items state
+await ev('(() => { const b = document.querySelector(".shopStoreProduct .shopStoreProductMeta button"); if (b) b.click(); return !!b; })()');
+await sleep(1200);
+const shot = await send("Page.captureScreenshot", { format: "png" });
+writeFileSync("shots/phase3/p3-dock-final.png", Buffer.from(shot.result.data, "base64"));
+const px = await ev('(async () => { const bmp = await createImageBitmap(await (await fetch("data:image/png;base64,' + shot.result.data + '")).blob()); const cv = new OffscreenCanvas(bmp.width, bmp.height); const ctx = cv.getContext("2d"); ctx.drawImage(bmp, 0, 0); const pts = [[886, 863], [860, 855], [895, 862], [540, 862], [551, 862], [860, 830], [700, 863]]; return pts.map(p => { const d = ctx.getImageData(p[0], p[1], 1, 1).data; return [p[0], p[1], d[0], d[1], d[2]]; }); })()');
+console.log("DOCK PIXELS (cart btn 857-915x840-886, chat 525-577):", JSON.stringify(px));
+ws.close();

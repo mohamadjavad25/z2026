@@ -1,0 +1,87 @@
+
+import { writeFileSync } from "node:fs";
+const list = await (await fetch("http://127.0.0.1:9333/json/list")).json();
+const page = list.find((t) => t.type === "page");
+const ws = new WebSocket(page.webSocketDebuggerUrl);
+await new Promise((res, rej) => { ws.onopen = res; ws.onerror = rej; });
+let idc = 0; const pending = new Map();
+const errors = [];
+ws.onmessage = (ev) => {
+  const m = JSON.parse(ev.data);
+  if (m.id && pending.has(m.id)) { pending.get(m.id)(m); pending.delete(m.id); return; }
+  if (m.method === "Runtime.exceptionThrown") errors.push("EXC: " + (m.params.exceptionDetails?.exception?.description || "").slice(0, 150));
+  if (m.method === "Runtime.consoleAPICalled" && m.params.type === "error") errors.push("ERR: " + (m.params.args || []).map(a => a.value ?? a.description ?? "").join(" ").slice(0, 150));
+};
+const send = (method, params = {}) => new Promise((resolve) => { const id = ++idc; pending.set(id, resolve); ws.send(JSON.stringify({ id, method, params })); setTimeout(() => { if (pending.has(id)) { pending.delete(id); resolve({ timeout: true }); } }, 15000); });
+const ev = async (expression, retries = 1) => { for (let i = 0; i <= retries; i++) { const r = await send("Runtime.evaluate", { expression, returnByValue: true, awaitPromise: true }); if (!r.timeout) { if (r.result?.exceptionDetails) return "EVAL_ERR"; return r.result?.result?.value; } await new Promise((x) => setTimeout(x, 3000)); } return "TIMEOUT"; };
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+async function login(phone, password) { await ev('fetch("/api/auth/logout", { method: "POST" }).catch(() => null)'); await sleep(500); await ev('fetch("/api/auth/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ phone: "' + phone + '", password: "' + password + '" }) }).then(r => r.json()).catch(e => ({ err: String(e) }))'); await sleep(800); }
+async function load() { await send("Page.navigate", { url: "http://localhost:3000/" }); await sleep(9000); for (let i = 0; i < 4; i++) { const r = await ev("(() => !!document.querySelector('.appShell'))()"); if (r === true) break; await sleep(2500); } await ev("document.documentElement.style.scrollBehavior='auto'"); await sleep(400); }
+async function snap(name) { const s = await send("Page.captureScreenshot", { format: "png" }); if (s.result?.data) writeFileSync("shots/phase3/" + name + ".png", Buffer.from(s.result.data, "base64")); }
+const hscroll = () => ev('({ sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth })');
+const out = {};
+await send("Runtime.enable");
+await send("Emulation.setDeviceMetricsOverride", { width: 1440, height: 900, deviceScaleFactor: 1, mobile: false });
+
+// CLIENT: salon public story empty + shop public + artist public story empty
+await login("09121112233", "password123");
+await load();
+await ev('(() => { const b = [...document.querySelectorAll(".bottomNav button")].find(x => (x.innerText || "").includes("سالن")); if (b) b.click(); return !!b; })()'); await sleep(2000);
+await ev('(() => { const el = document.querySelector(".salonRow"); if (el) el.click(); return !!el; })()'); await sleep(2500);
+await ev('(() => document.querySelector(".salonPublicLogoSlot")?.click())()'); await sleep(600);
+out.salonPublic = {
+  storyEmpty: await ev('(() => document.querySelector(".salonPublicProfile")?.classList.contains("is-story-empty") || false)()'),
+  railVisible: await ev('(() => getComputedStyle(document.querySelector(".publicStoryRail")).opacity)()'),
+  hscroll: await hscroll()
+};
+await snap("p9-salon-public-story");
+await ev('(() => { const b = [...document.querySelectorAll(".bottomNav button")].find(x => (x.innerText || "").includes("فروشگاه")); if (b) b.click(); return !!b; })()'); await sleep(2000);
+await ev('(() => { const el = [...document.querySelectorAll(".shopCard")].find(c => (c.innerText || "").includes("گلوری")); if (el) el.click(); return !!el; })()'); await sleep(2500);
+await ev('(() => document.querySelector(".shopStoreLogo")?.click())()'); await sleep(600);
+out.shopPublic = {
+  storyEmpty: await ev('(() => document.querySelector(".shopStorefront")?.classList.contains("is-story-empty") || false)()'),
+  hscroll: await hscroll()
+};
+await snap("p9-shop-public-story");
+// artist public (client view) — story empty on avatar click
+await ev('(() => { const b = [...document.querySelectorAll(".bottomNav button")].find(x => (x.innerText || "").includes("اکسپلور")); if (b) b.click(); return !!b; })()'); await sleep(2000);
+await ev('(() => { const el = document.querySelector(".feedCard"); if (el) el.click(); return !!el; })()'); await sleep(1800);
+await ev('(() => { const b = [...document.querySelectorAll(".explorePreviewModal button")].find(x => /پروفایل/.test((x.innerText || "") + (x.getAttribute("aria-label") || ""))); if (b) b.click(); return !!b; })()'); await sleep(2500);
+await ev('(() => document.querySelector(".artistPublicAvatar")?.click())()'); await sleep(600);
+out.artistPublic = {
+  storyEmpty: await ev('(() => document.querySelector(".artistPublicPage")?.classList.contains("is-story-empty") || false)()'),
+  hscroll: await hscroll()
+};
+await snap("p9-artist-public-story");
+
+// OWNERS: creator buttons present
+await login("09124445566", "password123");
+await load();
+await ev('(() => { const b = document.querySelector(".bottomNav .profileTab"); if (b) b.click(); return !!b; })()'); await sleep(3000);
+out.shopOwnerBtn = await ev('(() => !!document.querySelector(".shopRefLogoWrap .salonHeroStoryCreateIcon"))()');
+out.shopOwnerToast = null;
+await login("09123334455", "password123");
+await load();
+await ev('(() => { const b = document.querySelector(".bottomNav .profileTab"); if (b) b.click(); return !!b; })()'); await sleep(3000);
+out.salonOwnerBtn = await ev('(() => !!document.querySelector(".salonHeroAvatarFrame .salonHeroStoryCreateIcon"))()');
+await login("09122223344", "password123");
+await load();
+await ev('(() => { const b = document.querySelector(".bottomNav .profileTab"); if (b) b.click(); return !!b; })()'); await sleep(3000);
+out.artistOwnerBtn = await ev('(() => !!document.querySelector(".profileStoryAvatarWrap .salonHeroStoryCreateIcon"))()');
+
+// MOBILE
+await send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 3, mobile: true, screenWidth: 390, screenHeight: 844 });
+await login("09121112233", "password123");
+await load();
+await ev('(() => { const b = [...document.querySelectorAll(".bottomNav button")].find(x => (x.innerText || "").includes("سالن")); if (b) b.click(); return !!b; })()'); await sleep(2000);
+await ev('(() => { const el = document.querySelector(".salonRow"); if (el) el.click(); return !!el; })()'); await sleep(2500);
+await ev('(() => document.querySelector(".salonPublicLogoSlot")?.click())()'); await sleep(600);
+out.mobile = {
+  storyEmpty: await ev('(() => document.querySelector(".salonPublicProfile")?.classList.contains("is-story-empty") || false)()'),
+  hscroll: await hscroll()
+};
+await snap("p9-mobile-salon-story");
+out.errors = errors;
+console.log(JSON.stringify(out, null, 1));
+ws.close();
+console.error("DONE-MARKER");

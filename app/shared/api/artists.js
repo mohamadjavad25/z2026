@@ -1,0 +1,95 @@
+import { apiFetch, apiJson } from "./client";
+
+/** GET /api/artists → { data: { artists } } (public directory) */
+export async function getArtists() {
+  return apiJson("/api/artists");
+}
+
+/** GET /api/artists/:id → { data: { artist } } (public profile; viewer session optional) */
+export async function getArtist(id) {
+  return apiJson(`/api/artists/${id}`);
+}
+
+/**
+ * GET /api/artist/me → owner workspace
+ * { data: { services, bookings, collabs, invites, pendingInviteCount, breakTime, rating, reviewCount, followers } }
+ * Note: GET also runs syncSalonBookingsForArtist on the server.
+ */
+export async function getArtistMe() {
+  return apiJson("/api/artist/me");
+}
+
+/**
+ * POST /api/artist/me — owner multiplex:
+ * - default body → create service → { data: { service } } 201
+ * - { kind: "booking", … } → { data: { booking, bookings } } 201|409
+ * - { kind: "break", startTime, endTime | clear } → { data: { breakTime } }
+ * - { kind: "collab", … } → { data: { collab } } 201
+ */
+export async function createArtistMe(body) {
+  return apiFetch("/api/artist/me", {
+    method: "POST",
+    body: JSON.stringify(body)
+  });
+}
+
+/** PATCH /api/artist/me → update service { data: { service } } */
+export async function updateArtistMe(body) {
+  return apiFetch("/api/artist/me", {
+    method: "PATCH",
+    body: JSON.stringify(body)
+  });
+}
+
+/**
+ * DELETE /api/artist/me
+ * - { id } → delete service
+ * - { kind: "collab", id } → delete collab
+ */
+export async function deleteArtistMe(body) {
+  return apiFetch("/api/artist/me", {
+    method: "DELETE",
+    body: JSON.stringify(body)
+  });
+}
+
+/**
+ * POST /api/artist/bookings → public/client booking
+ * → 201 { data: { booking, bookedSlots } } or 409 SLOT_TAKEN
+ * Same DB as owner bookings; does NOT return full owner bookings list.
+ */
+export async function createArtistBooking(body) {
+  return apiFetch("/api/artist/bookings", {
+    method: "POST",
+    body: JSON.stringify(body)
+  });
+}
+
+/** PATCH /api/artist/invites → respond { id, status } → { data: { invite, invites, … } } */
+export async function respondArtistInvite(body) {
+  return apiFetch("/api/artist/invites", {
+    method: "PATCH",
+    body: JSON.stringify(body)
+  });
+}
+
+/** POST /api/follows → { data: { following, followerCount, … } } body: { targetUserId } */
+export async function toggleFollow(body) {
+  return apiFetch("/api/follows", {
+    method: "POST",
+    body: JSON.stringify(body)
+  });
+}
+
+/** GET /api/artist-hours → { hours } owner-only */
+export async function getArtistHours() {
+  return apiJson("/api/artist-hours");
+}
+
+/** PATCH /api/artist-hours → { hour, hours } body: { day, open_time?, close_time?, capacity?, active? } */
+export async function updateArtistHours(body) {
+  return apiFetch("/api/artist-hours", {
+    method: "PATCH",
+    body: JSON.stringify(body)
+  });
+}

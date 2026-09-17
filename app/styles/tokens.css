@@ -1,0 +1,91 @@
+:root {
+  --ink: #1c202c;
+  --muted: #6b6f7a;
+  --bg: #d8d9df;
+  --surface: rgba(247, 248, 250, 0.9);
+  --surface-solid: #f7f8fa;
+  --rose: #60519b;
+  --teal: #31323e;
+  --gold: #bfc0d1;
+  --plum: #60519b;
+  --night: #1c202c;
+  --line: rgba(28, 32, 44, 0.11);
+  --soft-line: rgba(255, 255, 255, 0.2);
+  --shadow: 0 26px 80px rgba(28, 32, 44, 0.16);
+  --shadow-soft: 0 14px 40px rgba(28, 32, 44, 0.08);
+  --mother-bg:
+    linear-gradient(180deg, rgba(248, 249, 251, 0.9) 0%, rgba(216, 217, 223, 0.96) 46%, rgba(232, 233, 238, 0.92) 100%),
+    conic-gradient(from 225deg at 58% -8%, rgba(96, 81, 155, 0.08), rgba(255, 255, 255, 0.28), rgba(49, 50, 62, 0.1), rgba(198, 200, 209, 0.3), rgba(96, 81, 155, 0.08)),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.38), transparent 36%),
+    linear-gradient(315deg, rgba(28, 32, 44, 0.1), transparent 44%),
+    var(--bg);
+  --mother-bg-mobile:
+    linear-gradient(180deg, rgba(248, 249, 251, 0.92) 0%, rgba(216, 217, 223, 0.98) 48%, rgba(232, 233, 238, 0.94) 100%),
+    conic-gradient(from 215deg at 54% -6%, rgba(96, 81, 155, 0.1), rgba(255, 255, 255, 0.24), rgba(49, 50, 62, 0.12), rgba(198, 200, 209, 0.28), rgba(96, 81, 155, 0.1)),
+    linear-gradient(150deg, rgba(255, 255, 255, 0.34), transparent 48%),
+    linear-gradient(330deg, rgba(28, 32, 44, 0.09), transparent 46%),
+    var(--bg);
+  --page-glass: rgba(247, 248, 250, 0.62);
+  --page-glass-strong: rgba(247, 248, 250, 0.78);
+
+  /* ── Design-system foundation (added 2026-09, additive only) ──────────
+     Nothing above this comment was changed or renamed — every existing
+     component keeps working exactly as before. These are new tokens for
+     future/updated components to adopt during the UI/UX redesign pass,
+     so spacing, radii, type sizes and semantic colors stop being
+     re-invented ad hoc in every feature's CSS file. */
+
+  /* Spacing scale (px, 4px base grid) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 40px;
+
+  /* Corner-radius scale */
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+  --radius-pill: 999px;
+
+  /* Type scale (rem) — mirrors the sizes already in use across the app */
+  --text-xs: 0.68rem;
+  --text-sm: 0.78rem;
+  --text-base: 0.86rem;
+  --text-md: 0.95rem;
+  --text-lg: 1.1rem;
+  --text-xl: 1.3rem;
+  --text-2xl: 1.6rem;
+
+  /* Semantic feedback colors (success / warning / danger / info) —
+     previously each feature picked its own ad hoc color for these. */
+  --success: #2f9e5c;
+  --success-bg: rgba(47, 158, 92, 0.12);
+  --warning: #b8862c;
+  --warning-bg: rgba(184, 134, 44, 0.12);
+  --danger: #c14545;
+  --danger-bg: rgba(193, 69, 69, 0.12);
+  --info: var(--plum);
+  --info-bg: rgba(96, 81, 155, 0.12);
+
+  /* Elevation / shadow scale, on top of the existing --shadow / --shadow-soft */
+  --shadow-xs: 0 4px 14px rgba(28, 32, 44, 0.06);
+  --shadow-lg: 0 32px 90px rgba(28, 32, 44, 0.2);
+
+  /* Motion */
+  --ease-standard: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --duration-fast: 0.16s;
+  --duration-base: 0.24s;
+
+  /* Z-index scale — keeps new overlay work from guessing a number that
+     collides with existing sheets/toasts/modals. */
+  --z-nav: 20;
+  --z-overlay: 40;
+  --z-sheet: 60;
+  --z-toast: 90;
+  --z-boot: 10000;
+}

@@ -1,0 +1,14 @@
+{
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "leaflet": "^1.9.4",
+    "lucide-react": "latest",
+    "next": "latest",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  }
+}

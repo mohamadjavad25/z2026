@@ -1,0 +1,13 @@
+node_modules
+.next
+.next-*/
+shots/
+work/npm-cache
+out
+*.log
+data/*.sqlite
+data/*.sqlite-*
+data/*.db
+.env
+.env.local
+.env.*.local

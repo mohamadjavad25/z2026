@@ -1,0 +1,3841 @@
+/* artist owner panels — extracted from styles.css (J2) */
+
+/* .artistDashboard */
+.artistDashboard {
+  display: grid;
+  gap: 12px;
+}
+
+/* board chrome for service + review (was shared multi-selector in monolith) */
+.artistServiceBoard,
+.artistReviewBoard {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  border-radius: 24px;
+  background:
+    linear-gradient(165deg, rgba(255, 255, 255, 0.94), rgba(250, 246, 242, 0.9));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    0 16px 34px rgba(28, 32, 44, 0.06);
+}
+
+.artistServiceList {
+  display: grid;
+  gap: 8px;
+}
+
+.artistServiceList strong {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+/* .artistServiceHead */
+.artistServiceHead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* .artistServiceHeadActions */
+.artistServiceHeadActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* .artistServiceKicker */
+.artistServiceKicker {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--teal);
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+}
+
+/* .artistServiceHead strong */
+.artistServiceHead strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--ink);
+  font-size: 1.05rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+/* .artistServiceHead small */
+.artistServiceHead small {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+/* .artistServiceHeadActions > button */
+.artistServiceHeadActions > button {
+  flex: 0 0 auto;
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 13px;
+  border: 1px solid rgba(96, 81, 155, 0.18);
+  border-radius: 12px;
+  background: rgba(96, 81, 155, 0.1);
+  color: var(--teal);
+  font-size: 0.72rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+/* .artistBreakBtn.is-active */
+.artistBreakBtn.is-active {
+  border-color: rgba(96, 81, 155, 0.28);
+  background: rgba(96, 81, 155, 0.16);
+  color: var(--teal);
+}
+
+/* .artistBreakBanner */
+.artistBreakBanner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(96, 81, 155, 0.1);
+  color: #60519b;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+/* .artistBreakBanner b */
+.artistBreakBanner b {
+  color: #0c4f4d;
+  font-weight: 950;
+}
+
+/* .artistBreakBanner > button */
+.artistBreakBanner > button {
+  margin-inline-start: auto;
+  border: 0;
+  background: transparent;
+  color: var(--teal);
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+/* .artistBreakEditor */
+.artistBreakEditor {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 22px;
+  border: 1px solid rgba(96, 81, 155, 0.16);
+  background:
+    radial-gradient(circle at 12% 0%, rgba(96, 81, 155, 0.1), transparent 42%),
+    linear-gradient(180deg, #f7fbfb, #ffffff 55%);
+  box-shadow: 0 14px 34px rgba(96, 81, 155, 0.06);
+}
+
+/* .artistBreakSheet */
+.artistBreakSheet {
+  position: relative;
+  grid-template-rows: 1fr;
+}
+
+/* .artistBreakClose */
+.artistBreakClose {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 2;
+}
+
+/* .artistBreakModalBody */
+.artistBreakModalBody {
+  display: grid;
+  gap: 14px;
+  padding: 52px 18px calc(18px + env(safe-area-inset-bottom, 0px));
+  overflow: auto;
+}
+
+/* .artistBreakEditorHead */
+.artistBreakEditorHead {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+}
+
+/* .artistBreakEditorIcon */
+.artistBreakEditorIcon {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: rgba(96, 81, 155, 0.12);
+  color: var(--teal);
+}
+
+/* .artistBreakEditorHead b */
+.artistBreakEditorHead b {
+  display: block;
+  font-size: 0.98rem;
+  font-weight: 950;
+  letter-spacing: -0.02em;
+}
+
+/* .artistBreakEditorHead small */
+.artistBreakEditorHead small {
+  display: block;
+  margin-top: 2px;
+  color: rgba(96, 81, 155, 0.7);
+  font-size: 0.72rem;
+  font-weight: 750;
+}
+
+/* .artistBreakRange */
+.artistBreakRange {
+  display: grid;
+  border-radius: 22px;
+  background: #fff;
+  border: 1px solid rgba(96, 81, 155, 0.14);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+/* .artistBreakRange.is-side */
+.artistBreakRange.is-side {
+  grid-template-columns: minmax(0, 1fr) 72px minmax(0, 1fr);
+  align-items: center;
+  gap: 0;
+  padding: 12px 10px 14px;
+}
+
+/* .artistBreakRange.is-invalid */
+.artistBreakRange.is-invalid {
+  border-color: rgba(185, 28, 28, 0.28);
+  background: #fff7f7;
+}
+
+/* .artistBreakRangeCol */
+.artistBreakRangeCol {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+/* .artistBreakRangeLabel */
+.artistBreakRangeLabel {
+  color: rgba(28, 32, 44, 0.45);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+}
+
+/* .artistBreakRangeMid */
+.artistBreakRangeMid {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  align-content: center;
+  padding-top: 18px;
+}
+
+/* .artistBreakRangeArrow */
+.artistBreakRangeArrow {
+  color: rgba(96, 81, 155, 0.4);
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+/* .artistBreakRangeMid em */
+.artistBreakRangeMid em {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(96, 81, 155, 0.12);
+  color: #60519b;
+  font-size: 0.66rem;
+  font-style: normal;
+  font-weight: 900;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* .artistBreakRange.is-invalid .artistBreakRangeMid em */
+.artistBreakRange.is-invalid .artistBreakRangeMid em {
+  background: rgba(185, 28, 28, 0.1);
+  color: #b91c1c;
+}
+
+/* .artistBreakEditorActions */
+.artistBreakEditorActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* .artistBreakEditorActions button */
+.artistBreakEditorActions button {
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 12px;
+  border: 0;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+/* .artistBreakEditorActions button:not(.danger):not(.ghost) */
+.artistBreakEditorActions button:not(.danger):not(.ghost) {
+  background: #60519b;
+  color: #fff;
+}
+
+/* .artistBreakEditorActions button:disabled */
+.artistBreakEditorActions button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* .artistBreakEditorActions button.danger */
+.artistBreakEditorActions button.danger {
+  background: rgba(185, 28, 28, 0.1);
+  color: #b91c1c;
+}
+
+/* .artistBreakEditorActions button.ghost */
+.artistBreakEditorActions button.ghost {
+  background: rgba(28, 32, 44, 0.06);
+  color: rgba(28, 32, 44, 0.7);
+}
+
+/* .artistServiceBoard */
+.artistServiceBoard {
+  gap: 14px;
+  padding: 16px;
+  background: #ffffff;
+}
+
+/* .artistServiceBoard > .artistServiceHead */
+.artistServiceBoard > .artistServiceHead {
+  justify-content: flex-start;
+}
+
+/* .artistServiceBoard .artistServiceList */
+.artistServiceBoard .artistServiceList {
+  gap: 10px;
+}
+
+/* .artistServiceCard */
+.artistServiceCard {
+  --service-delay: 0ms;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 14px;
+  border: 1px solid rgba(28, 32, 44, 0.14);
+  border-radius: 18px;
+  background: transparent;
+  box-shadow: none;
+  animation: serviceCardIn 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--service-delay);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+/* .artistServiceCard:hover */
+.artistServiceCard:hover {
+  transform: translateY(-1px);
+  border-color: rgba(28, 32, 44, 0.22);
+  box-shadow: none;
+}
+
+/* .artistServiceCard.is-hot */
+.artistServiceCard.is-hot {
+  background: transparent;
+  border-color: rgba(28, 32, 44, 0.14);
+}
+
+/* .artistServiceCard.is-vip */
+.artistServiceCard.is-vip {
+  background: transparent;
+  border-color: rgba(28, 32, 44, 0.14);
+}
+
+/* .artistServiceMain */
+.artistServiceMain {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+/* .artistServiceTitleRow */
+.artistServiceTitleRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+/* .artistServiceTitleRow strong */
+.artistServiceTitleRow strong {
+  color: var(--ink);
+  font-size: 0.92rem;
+  font-weight: 900;
+  letter-spacing: -0.015em;
+}
+
+/* .artistServiceBadge */
+.artistServiceBadge {
+  min-height: 22px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 9px;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-style: normal;
+  font-weight: 900;
+}
+
+/* .artistServiceBadge.is-hot */
+.artistServiceBadge.is-hot {
+  background: rgba(96, 81, 155, 0.12);
+  color: #9b3650;
+}
+
+/* .artistServiceBadge.is-vip */
+.artistServiceBadge.is-vip {
+  background: rgba(96, 81, 155, 0.16);
+  color: #8a6a1d;
+}
+
+/* .artistServiceBadge.is-soft */
+.artistServiceBadge.is-soft {
+  background: rgba(96, 81, 155, 0.1);
+  color: var(--teal);
+}
+
+/* .artistServiceMain p */
+.artistServiceMain p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+/* .artistServiceMeta */
+.artistServiceMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* .artistServiceMeta span */
+.artistServiceMeta span {
+  min-height: 26px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 9px;
+  border-radius: 999px;
+  background: rgba(28, 32, 44, 0.04);
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+/* .artistServiceMeta svg */
+.artistServiceMeta svg {
+  flex: 0 0 auto;
+  color: var(--teal);
+}
+
+/* .artistServiceSide */
+.artistServiceSide {
+  display: grid;
+  gap: 8px;
+  justify-items: end;
+  align-content: center;
+}
+
+/* .artistServiceSide b */
+.artistServiceSide b {
+  color: var(--ink);
+  font-size: 0.92rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+/* .artistServiceActions */
+.artistServiceActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+/* .artistServiceActions button */
+.artistServiceActions button {
+  width: 32px;
+  min-height: 32px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(28, 32, 44, 0.08);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.88);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+/* .artistServiceActions button.danger */
+.artistServiceActions button.danger {
+  border-color: rgba(96, 81, 155, 0.2);
+  background: rgba(96, 81, 155, 0.1);
+  color: #9b3650;
+}
+
+/* .artistServiceEmpty */
+.artistServiceEmpty {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 10px 10px 18px;
+  border: 1px solid rgba(28, 32, 44, 0.08);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(96, 81, 155, 0.08), transparent 58%),
+    rgba(255, 255, 255, 0.66);
+  text-align: center;
+  color: var(--muted);
+  overflow: hidden;
+}
+
+/* .artistServiceEmpty img */
+.artistServiceEmpty img {
+  width: min(100%, 340px);
+  aspect-ratio: 16 / 9;
+  display: block;
+  border-radius: 16px;
+  object-fit: cover;
+  box-shadow: 0 16px 34px rgba(28, 32, 44, 0.1);
+}
+
+/* .artistServiceEmpty b */
+.artistServiceEmpty b {
+  color: var(--ink);
+  font-size: 0.88rem;
+  font-weight: 900;
+}
+
+/* .artistServiceEmpty span */
+.artistServiceEmpty span {
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+/* .artistServiceEmpty svg */
+.artistServiceEmpty svg {
+  color: var(--teal);
+}
+
+/* .igCommentList — Instagram-style vertical comment thread */
+.igCommentList {
+  display: grid;
+  gap: 14px;
+}
+
+.igComment {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.igCommentAvatarBtn {
+  flex: 0 0 auto;
+  border: 0;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+  border-radius: 50%;
+}
+
+.igCommentAvatar {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(140deg, var(--gold), #d9a441);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.igCommentAvatar.has-image {
+  background-color: rgba(28, 32, 44, 0.06);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.igCommentStar {
+  color: #7c5ce0;
+  flex: 0 0 auto;
+}
+
+.igCommentNameBtn {
+  border: 0;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+  color: var(--ink);
+  font-size: inherit;
+  font-weight: 900;
+  font-family: inherit;
+}
+
+.igCommentNameBtn:hover {
+  text-decoration: underline;
+}
+
+.igCommentBody {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.igCommentText {
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.78rem;
+  line-height: 1.65;
+  font-weight: 600;
+}
+
+.igCommentText b {
+  font-weight: 900;
+  margin-left: 4px;
+}
+
+.igCommentMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.66rem;
+  font-weight: 800;
+}
+
+.igCommentMeta .marbleRatingStars {
+  display: inline-flex;
+}
+
+.igCommentMeta time {
+  color: var(--muted);
+}
+
+.igCommentServiceTag {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(217, 164, 65, 0.14);
+  color: var(--gold);
+  font-size: 0.62rem;
+  font-weight: 800;
+}
+
+.igCommentLikes {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: #e03e6a;
+  font-size: 0.66rem;
+  font-weight: 900;
+}
+
+.igReplyAction {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: var(--muted);
+  font-size: 0.66rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.igReplyAction:hover {
+  color: var(--ink);
+  text-decoration: underline;
+}
+
+/* nested creator reply, indented like Instagram's business reply */
+.igComment.igReply {
+  margin-right: 38px;
+  margin-top: 2px;
+}
+
+.igReplyAvatar {
+  width: 24px;
+  height: 24px;
+  font-size: 0.64rem;
+  background: linear-gradient(140deg, var(--ink), #4a4553);
+}
+
+.igReplyComposer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.igReplyComposer input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 1px solid rgba(28, 32, 44, 0.12);
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--ink);
+  background: #fff;
+}
+
+.igReplyComposer input:focus {
+  outline: none;
+  border-color: var(--gold);
+}
+
+.igReplyCancel {
+  border: 0;
+  background: none;
+  padding: 4px 2px;
+  color: var(--muted);
+  font-size: 0.66rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.igReplySubmit {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--gold);
+  color: #fff;
+  cursor: pointer;
+}
+
+.igReplySubmit:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* .artistWorkPreviewModal */
+.artistWorkPreviewModal {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 18px;
+  background: rgba(18, 20, 23, 0.5);
+  backdrop-filter: blur(14px);
+}
+
+/* .artistWorkPreviewSheet */
+.artistWorkPreviewSheet {
+  width: min(100%, 430px);
+  max-height: min(90dvh, 760px);
+  display: grid;
+  grid-template-rows: auto 1fr;
+  overflow: hidden;
+  border-radius: 24px;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 28px 70px rgba(15, 17, 20, 0.28);
+}
+
+/* .artistWorkPreviewHero */
+.artistWorkPreviewHero {
+  position: relative;
+  height: 280px;
+  overflow: hidden;
+  background: #1a1d21;
+}
+
+/* .artistWorkPreviewHero img */
+.artistWorkPreviewHero img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* .artistWorkPreviewHero::after */
+.artistWorkPreviewHero::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 55%;
+  background: linear-gradient(180deg, transparent, rgba(12, 14, 16, 0.72));
+  pointer-events: none;
+}
+
+/* .artistWorkPreviewHeroCopy */
+.artistWorkPreviewHeroCopy {
+  position: absolute;
+  inset-inline: 16px;
+  bottom: 16px;
+  z-index: 1;
+  display: grid;
+  gap: 8px;
+  color: #fff;
+}
+
+/* .artistWorkPreviewHeroCopy h3 */
+.artistWorkPreviewHeroCopy h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 900;
+  line-height: 1.35;
+  text-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+/* .artistWorkPreviewBody */
+.artistWorkPreviewBody {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  overflow: auto;
+}
+
+/* .artistWorkPreviewStats */
+.artistWorkPreviewStats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+/* .artistWorkPreviewStats > div */
+.artistWorkPreviewStats > div {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 12px 8px;
+  border: 1px solid rgba(28, 32, 44, 0.08);
+  border-radius: 14px;
+  background: #f7f8f9;
+  text-align: center;
+  color: rgba(28, 32, 44, 0.55);
+}
+
+/* .artistWorkPreviewStats span */
+.artistWorkPreviewStats span {
+  font-size: 0.64rem;
+  font-weight: 800;
+}
+
+/* .artistWorkPreviewStats b */
+.artistWorkPreviewStats b {
+  color: var(--ink);
+  font-size: 0.92rem;
+  font-weight: 900;
+}
+
+/* .artistWorkPreviewCaption */
+.artistWorkPreviewCaption {
+  margin: 0;
+  color: rgba(28, 32, 44, 0.72);
+  font-size: 0.84rem;
+  font-weight: 700;
+  line-height: 1.7;
+  text-align: right;
+}
+
+/* .artistWorkPreviewBadge */
+.artistWorkPreviewBadge {
+  width: fit-content;
+  margin: 0;
+  padding: 5px 10px;
+  border-radius: 10px;
+  background: rgba(96, 81, 155, 0.12);
+  color: var(--teal);
+  font-size: 0.7rem;
+  font-style: normal;
+  font-weight: 900;
+}
+
+/* .artistWorkPreviewEdit */
+.artistWorkPreviewEdit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  border: 0;
+  border-radius: 14px;
+  background: #60519b;
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(96, 81, 155, 0.22);
+}
+
+/* .artistWorkClose — floating below the sheet */
+.artistWorkClose {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--ink);
+  cursor: pointer;
+  box-shadow: 0 10px 26px rgba(12, 14, 16, 0.25);
+  backdrop-filter: blur(8px);
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.artistWorkClose:hover {
+  background: #fff;
+  transform: scale(1.06);
+}
+
+.artistWorkClose:active {
+  transform: scale(0.95);
+}
+
+/* --- J7 extracted from styles.css --- */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.breakTimeWheel{
+  --break-wheel-item: 52px;
+  --break-wheel-visible: 3;
+  --break-wheel-side: 1;
+  position: relative;
+  width: 100%;
+  max-width: 148px;
+  height: calc(var(--break-wheel-item) * var(--break-wheel-visible));
+  overflow: hidden;
+  touch-action: pan-y;
+  user-select: none;
+  margin-inline: auto;
+}
+
+
+
+.breakTimeWheelRail{
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-snap-type: y mandatory;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+
+
+.breakTimeWheelRail::-webkit-scrollbar{
+  display: none;
+}
+
+
+
+.breakTimeWheelPad{
+  height: calc(var(--break-wheel-item) * var(--break-wheel-side));
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
+
+
+.breakTimeWheelItem{
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  height: var(--break-wheel-item);
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: rgba(28, 32, 44, 0.28);
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 850;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
+  cursor: pointer;
+  transition: color 0.14s ease, opacity 0.14s ease, transform 0.14s ease;
+  opacity: calc(1 - (min(var(--wheel-distance, 1), 2) * 0.38));
+  transform: scale(calc(1 - (min(var(--wheel-distance, 1), 2) * 0.08)));
+}
+
+/* A global ".withSegmentClock" chip style (inline-flex, fit-content — meant for
+   standalone clock labels elsewhere) collides with this same class name reused
+   by clock-mode wheel items, breaking their row height/width math. Reassert the
+   wheel item's own block layout so every row is a uniform, correctly spaced slot. */
+.breakTimeWheelItem.withSegmentClock{
+  display: grid !important;
+  flex-direction: unset !important;
+  width: 100% !important;
+  gap: 0;
+}
+
+
+
+.breakTimeWheelLabel{
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.84rem;
+  font-weight: 900;
+  line-height: 1.2;
+  color: rgba(15, 95, 93, 0.34);
+}
+
+
+
+.breakTimeWheelFocus{
+  position: absolute;
+  inset-inline: 4px;
+  top: 50%;
+  height: var(--break-wheel-item);
+  transform: translateY(-50%);
+  border-radius: 14px;
+  background: rgba(96, 81, 155, 0.1);
+  border: 1px solid rgba(96, 81, 155, 0.16);
+  pointer-events: none;
+  z-index: 1;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+
+
+.breakTimeWheelMask{
+  position: absolute;
+  inset-inline: 0;
+  height: calc(var(--break-wheel-item) * var(--break-wheel-side));
+  z-index: 2;
+  pointer-events: none;
+}
+
+
+
+.breakTimeWheelMaskTop{
+  top: 0;
+  background: linear-gradient(180deg, #ffffff 18%, rgba(255, 255, 255, 0));
+}
+
+
+
+.breakTimeWheelMaskBottom{
+  bottom: 0;
+  background: linear-gradient(0deg, #ffffff 18%, rgba(255, 255, 255, 0));
+}
+
+
+
+/* Collaboration board — flat, minimal, one row style reused everywhere */
+.collabBoard{
+  display: grid;
+  gap: var(--space-5);
+}
+
+.collabSection{
+  display: grid;
+  gap: var(--space-2);
+}
+
+.collabSectionLabel{
+  color: var(--muted);
+  font-size: var(--text-xs);
+  font-weight: 900;
+}
+
+.collabList{
+  display: grid;
+  gap: var(--space-2);
+}
+
+.collabRow{
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface-solid);
+}
+
+.collabAvatar{
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  background: rgba(28, 32, 44, 0.06);
+  color: var(--muted);
+}
+
+.collabAvatar.hasImage{
+  background: none;
+}
+
+.collabAvatar img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.collabRowBody{
+  min-width: 0;
+  flex: 1 1 auto;
+  display: grid;
+  gap: 2px;
+}
+
+.collabRowBody b,
+.collabRowBody span,
+.collabRowBody small{
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.collabRowBody b{
+  color: var(--ink);
+  font-size: var(--text-sm);
+  font-weight: 900;
+}
+
+.collabRowBody span{
+  color: var(--muted);
+  font-size: var(--text-xs);
+  font-weight: 700;
+}
+
+.collabRowBody small{
+  color: var(--muted);
+  font-size: 0.62rem;
+  font-weight: 600;
+  opacity: 0.82;
+}
+
+.collabStatus{
+  flex: 0 0 auto;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+  font-size: 0.62rem;
+  font-weight: 900;
+  font-style: normal;
+}
+
+.collabStatus.is-active{
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.collabStatus.is-pending{
+  background: var(--warning-bg);
+  color: var(--warning);
+}
+
+.collabStatus.is-ended{
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.collabRowActions{
+  flex: 0 0 auto;
+  display: flex;
+  gap: 6px;
+}
+
+.collabRowActions button,
+.collabDeleteBtn{
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.collabRowActions .is-approve{
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.collabRowActions .is-decline,
+.collabDeleteBtn{
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.collabRowActions button:disabled{
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.collabSalonPicker{
+  display: grid;
+  grid-template-rows: repeat(2, auto);
+  grid-auto-flow: column;
+  grid-auto-columns: max-content;
+  gap: var(--space-2);
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.collabSalonChip{
+  flex: 0 0 auto;
+  max-width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 14px 4px 4px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--surface-solid);
+  color: var(--ink);
+  font-size: var(--text-xs);
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition: border-color var(--duration-fast) var(--ease-standard), background var(--duration-fast) var(--ease-standard);
+}
+
+.collabSalonChip:hover{
+  border-color: var(--plum);
+}
+
+.collabSalonChip .collabAvatar{
+  width: 40px;
+  height: 40px;
+}
+
+.collabSalonChip.is-selected{
+  border-color: var(--plum);
+  background: var(--info-bg);
+  color: var(--plum);
+}
+
+.collabFormToggle{
+  width: 100%;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius-sm);
+  background: none;
+  padding: 0 12px;
+  color: var(--plum);
+  font: inherit;
+  font-size: var(--text-xs);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.collabFormToggle svg{
+  flex: 0 0 auto;
+  transition: transform var(--duration-fast) var(--ease-standard);
+}
+
+.collabFormToggle svg.is-open{
+  transform: rotate(180deg);
+}
+
+.collabForm{
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.collabForm label{
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 0.62rem;
+  font-weight: 800;
+}
+
+.collabForm label.is-wide{
+  grid-column: 1 / -1;
+}
+
+.collabFormRow{
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.collabPresetRow{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.collabPresetChip{
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: none;
+  padding: 4px 10px;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.62rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.collabPresetChip.is-selected{
+  border-color: var(--plum);
+  background: var(--info-bg);
+  color: var(--plum);
+}
+
+.collabForm input,
+.collabForm select{
+  width: 100%;
+  min-height: 38px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface-solid);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-xs);
+  font-weight: 800;
+  padding: 0 10px;
+  outline: none;
+}
+
+.collabForm input:focus,
+.collabForm select:focus{
+  border-color: var(--plum);
+}
+
+.collabForm input.collabHalfInput{
+  width: 50%;
+}
+
+.collabTimeSelect{
+  position: relative;
+}
+
+.collabTimeSelectTrigger{
+  width: 100%;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface-solid);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-xs);
+  font-weight: 800;
+  padding: 0 10px;
+  cursor: pointer;
+}
+
+.collabTimeSelectTrigger svg{
+  flex: 0 0 auto;
+  color: var(--muted);
+  transition: transform var(--duration-fast) var(--ease-standard);
+}
+
+.collabTimeSelect.is-open .collabTimeSelectTrigger{
+  border-color: var(--plum);
+}
+
+.collabTimeSelect.is-open .collabTimeSelectTrigger svg{
+  transform: rotate(180deg);
+}
+
+.collabTimeSelectMenu{
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + 6px);
+  right: 0;
+  left: 0;
+  display: grid;
+  gap: 2px;
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  box-shadow: var(--shadow-soft);
+}
+
+.collabTimeSelectOption{
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  padding: 8px 10px;
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-xs);
+  font-weight: 800;
+  text-align: center;
+  cursor: pointer;
+}
+
+.collabTimeSelectOption:hover{
+  background: rgba(28, 32, 44, 0.05);
+}
+
+.collabTimeSelectOption.is-selected{
+  background: var(--info-bg);
+  color: var(--plum);
+}
+
+.collabForm > button{
+  grid-column: 1 / -1;
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--night);
+  color: #fff;
+  font-size: var(--text-sm);
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.collabForm > button:disabled{
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.collabEmpty{
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: var(--space-6) var(--space-3);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius-md);
+  color: var(--muted);
+  text-align: center;
+}
+
+.collabEmpty svg{
+  opacity: 0.5;
+}
+
+.collabEmpty span{
+  font-size: var(--text-xs);
+  font-weight: 700;
+}
+
+.collabSalonModal{
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(15, 17, 21, 0.5);
+  backdrop-filter: blur(6px);
+}
+
+.collabSalonModalSheet{
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  max-height: 88vh;
+  overflow-y: auto;
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  background: #fff;
+  box-shadow: var(--shadow-lg);
+}
+
+.collabSalonModalSheet .collabList{
+  display: grid;
+  grid-template-rows: repeat(2, auto);
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(200px, 240px);
+  gap: var(--space-2);
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.collabSalonModalSheet .collabRow{
+  min-width: 0;
+}
+
+.collabSalonModalClose{
+  position: absolute;
+  top: var(--space-3);
+  left: var(--space-3);
+  z-index: 1;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(28, 32, 44, 0.06);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.collabSalonModalHead{
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding-left: 36px;
+}
+
+.collabSalonModalHead .collabAvatar{
+  width: 52px;
+  height: 52px;
+}
+
+.collabSalonModalHead > div{
+  min-width: 0;
+  flex: 1 1 auto;
+  display: grid;
+  gap: 2px;
+}
+
+.collabSalonModalHead b{
+  color: var(--ink);
+  font-size: var(--text-md);
+  font-weight: 900;
+}
+
+.collabSalonModalHead span{
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--muted);
+  font-size: var(--text-xs);
+  font-weight: 700;
+}
+
+.collabSalonModalRating{
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px;
+  border-radius: var(--radius-pill);
+  background: rgba(242, 177, 52, 0.14);
+  color: #b8862c;
+  font-size: var(--text-xs);
+  font-weight: 900;
+  font-style: normal;
+}
+
+.collabSalonModalBio{
+  margin: 0;
+  color: var(--ink);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  line-height: 1.7;
+}
+
+@media (max-width: 760px){
+  .collabForm{
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+
+
+.artistBookingRail{
+  position: fixed;
+  z-index: 26;
+  display: grid;
+  gap: 8px;
+  width: 68px;
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 24px;
+  background:
+    linear-gradient(165deg, rgba(255, 255, 255, 0.94), rgba(248, 244, 239, 0.9));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    0 18px 40px rgba(28, 32, 44, 0.16);
+  backdrop-filter: blur(18px);
+  transition:
+    width 0.38s cubic-bezier(0.22, 1, 0.36, 1),
+    padding 0.28s ease,
+    left 0.42s cubic-bezier(0.22, 1, 0.36, 1),
+    right 0.42s cubic-bezier(0.22, 1, 0.36, 1),
+    top 0.42s cubic-bezier(0.22, 1, 0.36, 1),
+    bottom 0.42s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.32s ease,
+    opacity 0.32s ease,
+    box-shadow 0.28s ease,
+    background 0.28s ease,
+    border-color 0.28s ease;
+  touch-action: none;
+  user-select: none;
+  will-change: left, top, transform, opacity;
+}
+
+
+
+.artistBookingRailMenu{
+  display: contents;
+}
+
+
+
+.artistBookingRailHandleIcon,
+.artistBookingRailHandleDots{
+  display: contents;
+}
+
+
+
+.artistBookingRailHandle{
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  width: 100%;
+  min-height: 34px;
+  border: 1px dashed rgba(28, 32, 44, 0.14);
+  border-radius: 12px;
+  padding: 6px 4px;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--muted);
+  font-size: 0.58rem;
+  font-weight: 800;
+  cursor: grab;
+  touch-action: none;
+}
+
+
+
+.artistBookingRailToggle{
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  width: 100%;
+  min-height: 46px;
+  border: 0;
+  border-radius: 16px;
+  padding: 8px 6px;
+  background: linear-gradient(145deg, #1c2328 0%, #2a3338 55%, #60519b 130%);
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 10px 20px rgba(28, 32, 44, 0.2);
+}
+
+
+
+.artistBookingRailTimes{
+  display: grid;
+  gap: 6px;
+}
+
+
+
+.artistBookingRailTime{
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.18s ease;
+}
+
+
+
+.artistBookingRailTime:hover{
+  transform: translateY(-1px);
+}
+
+
+
+.artistBookingRailPanel{
+  display: none;
+  gap: 10px;
+}
+
+
+
+.artistBookingRailHead{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+
+
+.artistBookingRailHead span{
+  display: block;
+  color: var(--teal);
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+
+
+.artistBookingRailHead strong{
+  display: block;
+  margin-top: 2px;
+  color: var(--ink);
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+
+
+.artistBookingRailHead button{
+  min-height: 32px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 11px;
+  background: rgba(96, 81, 155, 0.12);
+  color: var(--teal);
+  font-size: 0.7rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+
+
+.artistBookingRailCreate{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  width: 100%;
+  border: 1px dashed rgba(96, 81, 155, 0.35);
+  border-radius: 14px;
+  background: rgba(96, 81, 155, 0.08);
+  color: var(--teal);
+  font-size: 0.78rem;
+  font-weight: 900;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+
+
+.artistBookingRailCreate:hover{
+  background: rgba(96, 81, 155, 0.14);
+  border-color: rgba(96, 81, 155, 0.55);
+  transform: translateY(-1px);
+}
+
+
+
+.artistBookingRailForm{
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 16px;
+  background: rgba(247, 240, 235, 0.92);
+  border: 1px solid rgba(28, 32, 44, 0.06);
+}
+
+
+
+.artistBookingRailFormHead{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+
+
+.artistBookingRailFormHead strong{
+  color: var(--ink);
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+
+
+.artistBookingRailFormHead button{
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+
+
+.artistBookingRailForm label{
+  display: grid;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 0.66rem;
+  font-weight: 800;
+}
+
+
+
+.artistBookingRailPhone span{
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+
+
+.artistBookingRailPhone em{
+  font-style: normal;
+  color: #9b3650;
+  font-size: 0.58rem;
+  font-weight: 800;
+  opacity: 0.9;
+}
+
+
+
+.artistBookingRailPhone input{
+  border-color: rgba(96, 81, 155, 0.22);
+  box-shadow: inset 0 0 0 1px rgba(96, 81, 155, 0.04);
+}
+
+
+
+.artistBookingRailForm input,
+.artistBookingRailForm select{
+  min-height: 38px;
+  width: 100%;
+  padding: 0 10px;
+  border: 1px solid rgba(28, 32, 44, 0.08);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+
+
+.artistBookingRailFormRow{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+
+
+.artistBookingRailSubmit{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 40px;
+  border: 0;
+  border-radius: 13px;
+  background: #1f2329;
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+
+
+.artistBookingRailSubmit:hover{
+  background: #2a3038;
+}
+
+
+
+.artistBookingRailList{
+  display: grid;
+  gap: 8px;
+  max-height: min(280px, 42vh);
+  overflow-y: auto;
+  padding-inline-end: 2px;
+  scrollbar-width: thin;
+}
+
+
+
+.artistBookingRailList article{
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  padding: 10px 12px 10px 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(28, 32, 44, 0.05);
+  overflow: hidden;
+}
+
+
+
+.artistBookingRailList .artistBookingRailStatus{
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  font-size: 0;
+  line-height: 0;
+  color: transparent;
+  overflow: hidden;
+}
+
+
+
+.artistBookingRailList b{
+  display: block;
+  margin-bottom: 2px;
+  color: var(--ink);
+  font-size: 0.8rem;
+  font-weight: 900;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+
+.artistBookingRailList span{
+  display: block;
+  color: var(--muted);
+  font-size: 0.66rem;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+
+.artistBookingRailEmpty{
+  min-height: 64px;
+  display: grid;
+  place-items: center;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.68);
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-align: center;
+}
+
+
+
+.artistBookingRailListPhone{
+  display: block;
+  margin-top: 3px;
+  color: var(--ink);
+  font-size: 0.64rem;
+  font-weight: 800;
+  font-style: normal;
+  letter-spacing: 0.02em;
+  direction: ltr;
+  text-align: start;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.artistPublicModal{
+  position: fixed;
+  inset: 0;
+  z-index: 72;
+  display: grid;
+  align-items: stretch;
+  padding: 0;
+  background: #111417;
+  animation: artistPublicIn 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+
+
+.artistPublicSheet{
+  width: 100%;
+  height: 100dvh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border-radius: 0;
+  background: #fff;
+  color: var(--ink);
+  scrollbar-width: thin;
+  scroll-behavior: smooth;
+}
+
+
+
+.artistPublicPage{
+  display: grid;
+  min-height: 100%;
+  grid-template-rows: auto auto 1fr;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+
+
+.artistPublicCover{
+  position: relative;
+  min-height: min(34dvh, 280px);
+  height: min(34dvh, 280px);
+  background: #1a1d21 center / cover no-repeat;
+  isolation: isolate;
+}
+
+
+
+.artistPublicCoverShade{
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(12, 14, 16, 0.35), transparent 42%),
+    linear-gradient(0deg, rgba(12, 14, 16, 0.28), transparent 38%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+
+
+.artistPublicHeroTop{
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: min(100%, 560px);
+  margin-inline: auto;
+  padding: calc(12px + env(safe-area-inset-top)) 16px 0;
+}
+
+
+
+.artistPublicBack,
+.artistPublicHeroTopActions button{
+  width: 40px;
+  height: 40px;
+  display: inline-grid;
+  place-items: center;
+  border: 0;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--ink);
+  box-shadow: 0 8px 20px rgba(12, 14, 16, 0.16);
+  cursor: pointer;
+  transition: transform 0.16s ease, background 0.16s ease;
+}
+
+
+
+.artistPublicHeroTopActions{
+  display: inline-flex;
+  gap: 8px;
+}
+
+
+
+.artistPublicBack:hover,
+.artistPublicHeroTopActions button:hover,
+.artistPublicBack:active,
+.artistPublicHeroTopActions button:active{
+  background: #fff;
+  transform: scale(0.96);
+}
+
+
+
+.artistPublicIdentity{
+  position: relative;
+  z-index: 3;
+  display: grid;
+  gap: 14px;
+  width: min(100%, 560px);
+  margin: -42px auto 0;
+  padding: 0 16px 8px;
+}
+
+
+
+.artistPublicAvatar{
+  width: 84px;
+  height: 84px;
+  display: grid;
+  place-items: center;
+  border-radius: 22px;
+  border: 3px solid #fff;
+  box-shadow: 0 14px 30px rgba(15, 17, 20, 0.16);
+  font-size: 1.55rem;
+  font-weight: 900;
+  overflow: hidden;
+  background: #e8eaec center / cover no-repeat;
+  color: var(--ink);
+}
+
+
+
+.artistPublicIdentityCopy{
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+
+
+.artistPublicIdentityHead{
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+
+
+
+.artistPublicHeroRating{
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+
+
+.artistPublicHeroScore{
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+  color: var(--ink);
+  font-size: 0.95rem;
+  font-weight: 950;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  direction: rtl;
+}
+
+
+
+.artistPublicHeroScore span{
+  color: rgba(28, 32, 44, 0.5);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+
+
+.artistPublicHeroStarsRow{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  direction: ltr;
+}
+
+
+
+.artistPublicHeroStarBtn{
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease, filter 0.15s ease;
+  opacity: 0.38;
+  filter: grayscale(0.5);
+}
+
+
+
+.artistPublicHeroStarBtn:hover,
+.artistPublicHeroStarBtn:focus-visible{
+  outline: none;
+  transform: translateY(-1px) scale(1.06);
+}
+
+
+
+.artistPublicIdentityCopy h2{
+  margin: 0;
+  color: var(--ink);
+  font-size: clamp(1.45rem, 5vw, 1.75rem);
+  font-weight: 950;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+
+
+
+.artistPublicIdentityCopy p{
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: rgba(28, 32, 44, 0.62);
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+
+
+.artistPublicBio{
+  color: rgba(28, 32, 44, 0.72);
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+
+
+.artistPublicHeroStars{
+  justify-content: start;
+  gap: 0;
+  pointer-events: none;
+}
+
+
+
+.artistPublicHeroStats{
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding: 12px 0 2px;
+  border-top: 1px solid rgba(28, 32, 44, 0.08);
+  border-bottom: 1px solid rgba(28, 32, 44, 0.08);
+}
+
+
+
+.artistPublicHeroStats span{
+  display: grid;
+  gap: 2px;
+  justify-items: center;
+  text-align: center;
+  color: rgba(28, 32, 44, 0.55);
+  font-size: 0.7rem;
+  font-weight: 750;
+}
+
+
+
+.artistPublicHeroStats b{
+  color: var(--ink);
+  font-size: 1rem;
+  font-weight: 950;
+}
+
+
+
+.artistPublicActions{
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  gap: 8px;
+}
+
+
+
+.artistPublicFollow,
+.artistPublicMessage{
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border-radius: 14px;
+  font: inherit;
+  font-weight: 900;
+  cursor: pointer;
+  transition: transform 0.16s ease, background 0.16s ease;
+}
+
+
+
+.artistPublicFollow{
+  border: 0;
+  background: #60519b;
+  color: #fff;
+  box-shadow: 0 10px 24px rgba(96, 81, 155, 0.22);
+}
+
+
+
+.artistPublicMessage{
+  border: 1px solid rgba(28, 32, 44, 0.12);
+  background: #fff;
+  color: var(--ink);
+}
+
+
+
+.artistPublicFollow:active,
+.artistPublicMessage:active{
+  transform: scale(0.98);
+}
+
+
+
+.artistPublicBody{
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+  width: min(100%, 560px);
+  margin: 0 auto;
+  padding: 8px 16px calc(96px + env(safe-area-inset-bottom));
+}
+
+
+
+.artistPublicModeSticky{
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  padding: 4px 0 8px;
+  background: linear-gradient(180deg, #fff 72%, rgba(255, 255, 255, 0));
+}
+
+
+
+.artistPublicModeRail{
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border-radius: 14px;
+  background: #f3f4f5;
+}
+
+
+
+.artistPublicModeRail button{
+  min-height: 38px;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  color: rgba(28, 32, 44, 0.55);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 850;
+  cursor: pointer;
+  transition: color 0.16s ease, background 0.16s ease;
+}
+
+
+
+.artistPublicContent{
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  animation: artistTabIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+
+
+.artistPublicGallery,
+.artistPublicServices,
+.artistPublicReviews,
+.artistPublicBookingPanel,
+.artistPublicAbout{
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+
+
+
+.artistPublicSectionHint{
+  margin: 0;
+  color: rgba(28, 32, 44, 0.55);
+  font-size: 0.8rem;
+  font-weight: 750;
+}
+
+
+
+.artistPublicGalleryFilters{
+  display: flex;
+  gap: 7px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+
+
+.artistPublicGalleryFilters::-webkit-scrollbar{ display: none; }
+
+
+
+.artistPublicGalleryFilters button{
+  flex: 0 0 auto;
+  min-height: 34px;
+  padding: 0 14px;
+  border: 1px solid rgba(28, 32, 44, 0.1);
+  border-radius: 10px;
+  background: #fff;
+  color: rgba(28, 32, 44, 0.62);
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+
+
+.artistPublicFeatured{
+  position: relative;
+  overflow: hidden;
+  border-radius: 18px;
+  min-height: 240px;
+  cursor: pointer;
+  background: #14181c;
+}
+
+
+
+.artistPublicFeatured img,
+.artistPublicFeaturedFallback{
+  display: block;
+  width: 100%;
+  height: 280px;
+  object-fit: cover;
+  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+
+
+.artistPublicFeaturedFallback,
+.artistPublicCardFallback{
+  background-size: cover;
+  background-position: center;
+}
+
+
+
+.artistPublicFeatured:hover img,
+.artistPublicFeatured:hover .artistPublicFeaturedFallback,
+.artistPublicCard:hover img,
+.artistPublicCard:hover .artistPublicCardFallback{
+  transform: scale(1.04);
+}
+
+
+
+.artistPublicFeaturedShade,
+.artistPublicCardShade{
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 48%, rgba(10, 14, 18, 0.72));
+  pointer-events: none;
+}
+
+
+
+.artistPublicFeaturedCopy,
+.artistPublicCardCopy{
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  display: grid;
+  gap: 4px;
+  padding: 16px;
+  color: #fff;
+}
+
+
+
+.artistPublicWorkTag{
+  width: fit-content;
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(8px);
+  font-size: 0.66rem;
+  font-weight: 800;
+}
+
+
+
+.artistPublicFeaturedCopy h3,
+.artistPublicCardCopy h3{
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+
+
+.artistPublicFeaturedCopy small,
+.artistPublicCardCopy small{
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  opacity: 0.88;
+  font-size: 0.72rem;
+  font-weight: 750;
+}
+
+
+
+.artistPublicGrid{
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+
+
+.artistPublicCard{
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px;
+  min-height: 168px;
+  cursor: pointer;
+  background: #14181c;
+}
+
+
+
+.artistPublicCard img,
+.artistPublicCardFallback{
+  display: block;
+  width: 100%;
+  height: 168px;
+  object-fit: cover;
+  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+
+
+.artistPublicCardCopy{ padding: 12px; gap: 3px; }
+
+
+.artistPublicCardCopy h3{ font-size: 0.84rem; }
+
+
+
+.artistPublicEmpty{
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 36px 16px;
+  border-radius: 16px;
+  background: #f6f7f8;
+  text-align: center;
+  color: rgba(28, 32, 44, 0.55);
+}
+
+
+
+.artistPublicEmpty b{ color: var(--ink); font-size: 0.95rem; }
+
+
+.artistPublicEmpty span{ max-width: 220px; font-size: 0.76rem; font-weight: 700; line-height: 1.55; }
+
+
+
+.artistPublicServiceList{
+  display: grid;
+  gap: 10px;
+}
+
+.artistPublicServiceEmpty{
+  min-height: 150px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+  padding: 22px 16px;
+  border-radius: 18px;
+  text-align: center;
+  color: var(--ink);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(246, 246, 251, 0.7)),
+    radial-gradient(circle at 50% 0%, rgba(96, 81, 155, 0.1), transparent 50%);
+  border: 1px solid rgba(255, 255, 255, 0.62);
+}
+
+.artistPublicServiceEmpty b{
+  font-size: 0.95rem;
+}
+
+.artistPublicServiceEmpty span{
+  max-width: 28ch;
+  font-size: 0.76rem;
+  line-height: 1.55;
+  color: rgba(28, 32, 44, 0.68);
+}
+
+
+
+.artistPublicServiceCard{
+  --service-delay: 0ms;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  padding: 14px;
+  border: 1px solid rgba(28, 32, 44, 0.14);
+  border-radius: 18px;
+  background: transparent;
+  color: inherit;
+  text-align: right;
+  font: inherit;
+  cursor: pointer;
+  box-shadow: none;
+  animation: serviceCardIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--service-delay);
+  transition: border-color 0.16s ease;
+}
+
+
+
+.artistPublicServiceCard:active{
+  transform: none;
+  background: transparent;
+  border-color: rgba(28, 32, 44, 0.22);
+}
+
+
+
+.artistPublicServiceMain{ display: grid; gap: 6px; min-width: 0; }
+
+
+
+.artistPublicServiceTitleRow{
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+
+
+.artistPublicServiceTitleRow strong{
+  font-size: 0.95rem;
+  font-weight: 900;
+  letter-spacing: -0.015em;
+}
+
+
+
+.artistPublicServiceBadge{
+  min-height: 22px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 9px;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-style: normal;
+  font-weight: 900;
+  background: rgba(96, 81, 155, 0.12);
+  color: var(--teal);
+}
+
+
+
+.artistPublicServiceMain p{
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+
+
+.artistPublicServiceMetaLine{
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+
+
+.artistPublicServiceSide{
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+}
+
+
+
+.artistPublicServiceSide b{
+  font-size: 0.95rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+
+
+.artistPublicServicePick{
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 11px;
+  border-radius: 999px;
+  background: rgba(96, 81, 155, 0.12);
+  color: var(--teal);
+  font-size: 0.7rem;
+  font-weight: 900;
+}
+
+
+
+.artistPublicBookingBack{
+  width: fit-content;
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  color: var(--teal);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+
+
+.artistPublicBookingService{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-radius: 0;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid rgba(28, 32, 44, 0.08);
+}
+
+
+
+.artistPublicBookingService span{
+  display: block;
+  margin-bottom: 3px;
+  color: #60519b;
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+
+
+.artistPublicBookingService strong{
+  display: block;
+  margin-bottom: 2px;
+  font-size: 0.95rem;
+  font-weight: 900;
+}
+
+
+
+.artistPublicBookingService small{
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+
+
+.artistPublicBookingService > b{
+  font-size: 0.98rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.artistPublicBookingServiceHint{
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+
+
+.artistPublicStepLabel{
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 850;
+}
+
+
+
+.artistPublicDayRail{
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+
+
+.artistPublicDayRail button,
+.artistPublicSlotGrid button{
+  min-height: 44px;
+  border: 1px solid rgba(28, 32, 44, 0.1);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 850;
+  cursor: pointer;
+  transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease;
+}
+
+
+
+.artistPublicSlotLabel{
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+
+
+.artistPublicSlotLabel span{
+  color: var(--ink);
+  font-size: 0.8rem;
+  font-weight: 900;
+}
+
+
+
+.artistPublicSlotLabel small{
+  color: rgba(28, 32, 44, 0.5);
+  font-size: 0.7rem;
+  font-weight: 750;
+}
+
+
+
+.artistPublicSlotGrid{
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+
+
+.artistPublicSlotEmpty{
+  min-height: 72px;
+  display: grid;
+  place-items: center;
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba(28, 32, 44, 0.04);
+  color: rgba(28, 32, 44, 0.55);
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+
+
+.artistPublicBookingNote{
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.55;
+  text-align: center;
+}
+
+
+
+.artistPublicReviewScore{
+  display: grid;
+  justify-items: start;
+  gap: 6px;
+  padding: 4px 0 8px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+
+
+.artistPublicReviewScore strong{
+  font-size: 2rem;
+  font-weight: 950;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+
+
+.artistPublicReviewScore > span{
+  color: rgba(28, 32, 44, 0.55);
+  font-size: 0.74rem;
+  font-weight: 750;
+}
+
+
+
+.artistPublicReviewStars{ justify-content: start; }
+
+
+
+.artistPublicReviewRail{
+  display: grid;
+  gap: 0;
+}
+
+
+
+.artistPublicReviewRail article{
+  display: grid;
+  gap: 8px;
+  padding: 14px 0;
+  border-radius: 0;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid rgba(28, 32, 44, 0.08);
+}
+
+
+
+.artistPublicReviewRail article > div{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+
+
+.artistPublicReviewRail article > div b{ font-size: 0.88rem; font-weight: 900; }
+
+
+
+.artistPublicReviewRail span{
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+
+
+.artistPublicReviewRail p{
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.65;
+}
+
+
+
+.artistPublicReviewRail small{
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 750;
+}
+
+
+
+.artistPublicAboutBio{
+  margin: 0;
+  padding: 4px 2px;
+  color: var(--ink);
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.8;
+}
+
+
+
+.artistPublicAboutStats{
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+
+
+.artistPublicAboutStats article{
+  display: grid;
+  gap: 3px;
+  justify-items: center;
+  padding: 14px 8px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.86);
+  text-align: center;
+  box-shadow: 0 8px 18px rgba(28, 32, 44, 0.04);
+}
+
+
+
+.artistPublicAboutStats b{ font-size: 1.1rem; font-weight: 900; }
+
+
+.artistPublicAboutStats span{ color: var(--muted); font-size: 0.68rem; font-weight: 800; }
+
+
+
+.artistPublicAboutList{
+  display: grid;
+  gap: 0;
+}
+
+
+
+.artistPublicAboutList > div{
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: 10px;
+  align-items: center;
+  padding: 14px 0;
+  border-radius: 0;
+  background: transparent;
+  border-bottom: 1px solid rgba(28, 32, 44, 0.08);
+}
+
+
+
+.artistPublicAboutList svg{ color: #60519b; justify-self: center; }
+
+
+.artistPublicAboutList b{ display: block; margin-bottom: 2px; font-size: 0.82rem; font-weight: 900; }
+
+
+.artistPublicAboutList span{ color: rgba(28, 32, 44, 0.55); font-size: 0.74rem; font-weight: 700; line-height: 1.45; }
+
+
+
+.artistPublicBooking{
+  position: sticky;
+  bottom: 0;
+  z-index: 7;
+  margin: 0 -16px;
+  padding: 10px 16px calc(12px + env(safe-area-inset-bottom));
+  background: #ffffff;
+  border-top: 1px solid rgba(28, 32, 44, 0.06);
+}
+
+
+
+
+
+
+
+.artistBookingRailTime{
+  background: transparent !important;
+  color: inherit !important;
+  padding: 0 !important;
+}
+
+/* --- J7 extracted from styles.css --- */
+
+
+.breakTimeWheelItem.is-active{
+  color: #60519b;
+  opacity: 1;
+  transform: scale(1.04);
+}
+
+
+
+.breakTimeWheelItem.is-active .breakTimeWheelLabel{
+  font-size: 0.92rem;
+  color: #60519b;
+}
+
+
+
+.breakTimeWheel.is-label .breakTimeWheelItem{
+  color: rgba(15, 95, 93, 0.34);
+}
+
+
+
+.breakTimeWheel.is-label .breakTimeWheelItem.is-active{
+  color: #60519b;
+}
+
+
+
+.breakTimeWheelItem.is-disabled{
+  opacity: 0.14;
+  cursor: not-allowed;
+  transform: none;
+}
+
+
+
+.artistBookingRail.is-collapsed:not(.is-dragging):not(:hover):not(:focus-within){
+  opacity: 0.42;
+  border-color: rgba(255, 255, 255, 0.28);
+  background:
+    linear-gradient(165deg, rgba(255, 255, 255, 0.52), rgba(248, 244, 239, 0.4));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 8px 18px rgba(28, 32, 44, 0.08);
+}
+
+
+
+.artistBookingRail.is-collapsed.is-wall-left:not(.is-dragging):not(:hover):not(:focus-within){
+  transform: translateX(-4px);
+}
+
+
+
+.artistBookingRail.is-collapsed.is-wall-right:not(.is-dragging):not(:hover):not(:focus-within){
+  transform: translateX(4px);
+}
+
+
+
+.artistBookingRail.is-collapsed.is-wall-top:not(.is-dragging):not(:hover):not(:focus-within){
+  transform: translateY(-4px);
+}
+
+
+
+.artistBookingRail.is-collapsed.is-wall-bottom:not(.is-dragging):not(:hover):not(:focus-within){
+  transform: translateY(4px);
+}
+
+
+
+.artistBookingRail.is-collapsed:hover,
+.artistBookingRail.is-collapsed:focus-within{
+  opacity: 1;
+}
+
+
+
+.artistBookingRail.is-collapsed:not(.is-wall-top):not(.is-wall-bottom){
+  width: 68px !important;
+  gap: 0;
+  padding: 0 0 8px;
+  border: 0;
+  border-radius: 18px;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+
+
+.artistBookingRail.is-open .artistBookingRailMenu{
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+}
+
+
+
+.artistBookingRail.is-open .artistBookingRailMenu .artistBookingRailHandle{
+  width: auto;
+  min-width: 76px;
+  justify-self: start;
+}
+
+
+
+.artistBookingRail.is-open .artistBookingRailMenu .artistBookingRailToggle{
+  width: 100%;
+  min-width: 0;
+}
+
+
+
+.artistBookingRail.is-collapsed:not(.is-wall-top):not(.is-wall-bottom) .artistBookingRailMenu{
+  display: grid;
+  gap: 0;
+  width: 68px;
+  max-width: 68px;
+  min-width: 68px;
+  justify-self: stretch;
+  box-sizing: border-box;
+  background: #1f272c;
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+
+
+.artistBookingRail.is-collapsed:not(.is-wall-top):not(.is-wall-bottom) .artistBookingRailHandle,
+.artistBookingRail.is-collapsed:not(.is-wall-top):not(.is-wall-bottom) .artistBookingRailToggle{
+  width: 100%;
+  margin: 0;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none;
+}
+
+
+
+.artistBookingRail.is-collapsed:not(.is-wall-top):not(.is-wall-bottom) .artistBookingRailHandle{
+  position: static;
+  z-index: 2;
+  min-height: 28px;
+  padding: 10px 0 4px;
+  gap: 0;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 0.48rem;
+  line-height: 1.1;
+}
+
+
+
+.artistBookingRail.is-collapsed:not(.is-wall-top):not(.is-wall-bottom) .artistBookingRailHandleDots{
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  grid-template-rows: repeat(3, 3px);
+  align-items: center;
+  justify-items: center;
+  width: 100%;
+  height: auto;
+  margin: 0;
+  padding: 0 10px;
+  gap: 5px 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  box-sizing: border-box;
+}
+
+
+
+.artistBookingRail.is-collapsed:not(.is-wall-top):not(.is-wall-bottom) .artistBookingRailHandleDots i{
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #ffffff;
+  opacity: 0.92;
+}
+
+
+
+.artistBookingRail.is-collapsed:not(.is-wall-top):not(.is-wall-bottom) .artistBookingRailHandleLabel{
+  display: none;
+}
+
+
+
+.artistBookingRail.is-collapsed:not(.is-wall-top):not(.is-wall-bottom) .artistBookingRailToggle{
+  min-height: 44px;
+  padding: 2px 4px 12px;
+  gap: 3px;
+  color: #fff;
+  font-size: 0.52rem;
+  line-height: 1.15;
+}
+
+
+
+.artistBookingRail.is-collapsed:not(.is-wall-top):not(.is-wall-bottom) .artistBookingRailToggle svg{
+  width: 14px;
+  height: 14px;
+}
+
+
+
+.artistBookingRail.is-collapsed .artistBookingRailTimes{
+  gap: 8px;
+  justify-items: center;
+  padding: 8px 4px 0;
+}
+
+
+
+.artistBookingRail.is-collapsed .artistBookingRailTime{
+  overflow: visible;
+  max-width: 100%;
+  width: 100%;
+  display: grid;
+  place-items: center;
+  background: transparent !important;
+}
+
+
+
+.artistBookingRail.is-collapsed.is-dragging:not(.is-wall-top):not(.is-wall-bottom) .artistBookingRailHandle,
+.artistBookingRail.is-collapsed.is-dragging:not(.is-wall-top):not(.is-wall-bottom) .artistBookingRailToggle{
+  background: transparent !important;
+  border-color: transparent !important;
+  color: #fff;
+}
+
+
+
+.artistBookingRail.is-collapsed.is-dragging:not(.is-wall-top):not(.is-wall-bottom) .artistBookingRailHandleDots i{
+  background: #ffffff;
+  opacity: 1;
+  box-shadow: 0 0 0 1px rgba(96, 81, 155, 0.35);
+}
+
+
+
+.artistBookingRail.is-collapsed:not(.is-wall-top):not(.is-wall-bottom) .artistBookingRailHandleGrip{
+  display: none;
+}
+
+
+
+.artistBookingRail.is-open .artistBookingRailHandleDots{
+  display: none;
+}
+
+
+
+.artistBookingRail.is-wall-top,
+.artistBookingRail.is-wall-bottom{
+  width: auto;
+  min-width: 168px;
+  max-width: min(292px, calc(100vw - 20px));
+}
+
+
+
+.artistBookingRail.is-wall-top.is-collapsed,
+.artistBookingRail.is-wall-bottom.is-collapsed{
+  width: auto !important;
+  min-width: 0;
+  max-width: min(200px, calc(100vw - 24px));
+  gap: 0;
+  padding: 0 0 6px;
+  border: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+
+
+.artistBookingRail.is-wall-top.is-collapsed .artistBookingRailMenu,
+.artistBookingRail.is-wall-bottom.is-collapsed .artistBookingRailMenu{
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+  width: 100%;
+  background: #1f272c;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+
+
+.artistBookingRail.is-wall-top.is-collapsed .artistBookingRailHandle,
+.artistBookingRail.is-wall-bottom.is-collapsed .artistBookingRailHandle,
+.artistBookingRail.is-wall-top.is-collapsed .artistBookingRailToggle,
+.artistBookingRail.is-wall-bottom.is-collapsed .artistBookingRailToggle{
+  width: 100%;
+  margin: 0;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none;
+  grid-template-columns: none;
+  justify-items: center;
+  align-items: center;
+  gap: 0;
+  padding-inline: 0;
+  min-height: 0;
+}
+
+
+
+.artistBookingRail.is-wall-top.is-collapsed .artistBookingRailHandle,
+.artistBookingRail.is-wall-bottom.is-collapsed .artistBookingRailHandle{
+  padding: 8px 10px 2px;
+}
+
+
+
+.artistBookingRail.is-wall-top.is-collapsed .artistBookingRailHandleDots,
+.artistBookingRail.is-wall-bottom.is-collapsed .artistBookingRailHandleDots{
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  grid-template-rows: repeat(3, 2.5px);
+  align-items: center;
+  justify-items: center;
+  width: 100%;
+  padding: 0;
+  gap: 4px 0;
+  box-sizing: border-box;
+}
+
+
+
+.artistBookingRail.is-wall-top.is-collapsed .artistBookingRailHandleDots i,
+.artistBookingRail.is-wall-bottom.is-collapsed .artistBookingRailHandleDots i{
+  width: 2.5px;
+  height: 2.5px;
+  border-radius: 50%;
+  background: #ffffff;
+  opacity: 0.9;
+}
+
+
+
+.artistBookingRail.is-wall-top.is-collapsed .artistBookingRailHandleLabel,
+.artistBookingRail.is-wall-bottom.is-collapsed .artistBookingRailHandleLabel,
+.artistBookingRail.is-wall-top.is-collapsed .artistBookingRailHandleGrip,
+.artistBookingRail.is-wall-bottom.is-collapsed .artistBookingRailHandleGrip{
+  display: none;
+}
+
+
+
+.artistBookingRail.is-wall-top.is-collapsed .artistBookingRailToggle,
+.artistBookingRail.is-wall-bottom.is-collapsed .artistBookingRailToggle{
+  grid-template-columns: auto auto;
+  justify-content: center;
+  justify-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 4px 10px 10px;
+  color: #fff;
+  font-size: 0.58rem;
+}
+
+
+
+.artistBookingRail.is-wall-top.is-collapsed .artistBookingRailToggle svg,
+.artistBookingRail.is-wall-bottom.is-collapsed .artistBookingRailToggle svg{
+  width: 13px;
+  height: 13px;
+}
+
+
+
+.artistBookingRail.is-wall-top.is-collapsed .artistBookingRailTimes,
+.artistBookingRail.is-wall-bottom.is-collapsed .artistBookingRailTimes{
+  grid-auto-flow: column;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  padding: 6px 6px 0;
+  justify-items: center;
+}
+
+
+
+.artistBookingRail.is-dragging{
+  transition: none;
+  transform: scale(1.03);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    0 24px 50px rgba(28, 32, 44, 0.28);
+  cursor: grabbing;
+}
+
+
+
+.artistBookingRail.is-open{
+  width: min(292px, calc(100vw - 20px));
+  padding: 12px;
+}
+
+
+
+.artistBookingRail.is-wall-top.is-open,
+.artistBookingRail.is-wall-bottom.is-open{
+  width: min(292px, calc(100vw - 20px));
+}
+
+
+
+.artistBookingRail.is-dragging .artistBookingRailHandle{
+  cursor: grabbing;
+  border-style: solid;
+  border-color: rgba(96, 81, 155, 0.28);
+  background: rgba(96, 81, 155, 0.1);
+  color: var(--teal);
+}
+
+
+
+.artistBookingRail.is-open .artistBookingRailHandle{
+  grid-template-columns: auto 1fr;
+  justify-items: start;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  min-height: 32px;
+  font-size: 0.68rem;
+}
+
+
+
+.artistBookingRail.is-open .artistBookingRailToggle{
+  grid-template-columns: auto 1fr;
+  justify-items: start;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  min-height: 40px;
+  font-size: 0.74rem;
+}
+
+
+
+.artistBookingRail.is-open .artistBookingRailTimes{
+  display: none;
+}
+
+
+
+.artistBookingRailTime.is-ok,
+.artistBookingRailTime.is-wait,
+.artistBookingRailTime.is-vip{
+  background: transparent;
+  border-color: transparent;
+  color: inherit;
+}
+
+
+
+.artistBookingRail.is-open .artistBookingRailPanel{
+  display: grid;
+  animation: bookingRailIn 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+
+
+.artistBookingRailList .artistBookingRailStatus.is-ok{
+  background: #60519b;
+}
+
+
+
+.artistBookingRailList .artistBookingRailStatus.is-wait{
+  background: #d4a017;
+}
+
+
+
+.artistBookingRailList .artistBookingRailStatus.is-vip{
+  background: #78486c;
+}
+
+
+
+.artistBookingRailList time.is-ok{
+  background: rgba(96, 81, 155, 0.12);
+  color: var(--teal);
+}
+
+
+
+.artistBookingRailList time.is-wait{
+  background: rgba(191, 192, 209, 0.28);
+  color: #8a6a1d;
+}
+
+
+
+.artistBookingRailList time.is-vip{
+  background: rgba(96, 81, 155, 0.12);
+  color: #9b3650;
+}
+
+
+
+.artistPublicHeroStarBtn.is-on{
+  opacity: 1;
+  filter: none;
+}
+
+
+
+.artistPublicFollow.is-following{
+  background: rgba(96, 81, 155, 0.12);
+  color: #60519b;
+  box-shadow: none;
+}
+
+
+
+.artistPublicModeRail button.active{
+  color: #60519b;
+  background: #fff;
+  box-shadow: 0 4px 14px rgba(15, 17, 20, 0.06);
+}
+
+
+
+.artistPublicGalleryFilters button.active{
+  border-color: rgba(96, 81, 155, 0.28);
+  background: rgba(96, 81, 155, 0.1);
+  color: #60519b;
+}
+
+
+
+.artistPublicGrid.is-single{ grid-template-columns: 1fr; }
+
+
+
+.artistPublicServiceCard.is-selected,
+.artistPublicServiceCard:hover{
+  border-color: rgba(28, 32, 44, 0.22);
+  background: transparent;
+  box-shadow: none;
+}
+
+
+
+.artistPublicServiceCard.is-hot,
+.artistPublicServiceCard.is-vip{
+  background: transparent;
+}
+
+
+
+.artistPublicServiceBadge.is-hot{ background: rgba(96, 81, 155, 0.14); color: #a44d64; }
+
+
+.artistPublicServiceBadge.is-vip{ background: rgba(96, 81, 155, 0.16); color: #9a6f22; }
+
+
+
+.artistPublicDayRail button.active,
+.artistPublicSlotGrid button.active{
+  border-color: rgba(96, 81, 155, 0.35);
+  background: #60519b;
+  color: #fff;
+}
+
+.artistPublicDayRail button:disabled,
+.artistPublicSlotGrid button:disabled{
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+
+
+
+
+@media (max-width: 760px){
+
+
+
+  .artistBookingRailFormRow{
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+
+
+  .artistPublicHeroStats,
+  .artistPublicAboutStats,
+  .artistPublicDayRail,
+  .artistPublicSlotGrid{
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+
+
+  .artistPublicModeRail{
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* --- J7 extracted from styles.css --- */
+
+
+.appShell.is-auth-gate .artistBookingRail{
+  display: none !important;
+}
