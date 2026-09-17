@@ -186,6 +186,45 @@ function runWorkerCreateOrder({ dbPath, shopUserId, buyerUserId, buyerName, buye
   });
 }
 
+/**
+ * Runs shops.updateOrderStatus() inside its own worker thread, with its own
+ * node:sqlite connection to `dbPath` (set via ZIBABAN_DB_PATH before the
+ * repo module is imported). Mirrors runWorkerCreateOrder above — used to
+ * prove that a status change into a stock-restoring terminal state (cancel/
+ * return) can't double-restock an order under genuine cross-connection
+ * concurrency, the same way createOrder()'s idempotency dedupe was proven
+ * for order placement.
+ */
+function runWorkerUpdateOrderStatus({ dbPath, orderId, shopUserId, status }) {
+  const workerSource = `
+    import { parentPort, workerData } from "node:worker_threads";
+    process.env.ZIBABAN_DB_PATH = workerData.dbPath;
+    const shops = await import(${JSON.stringify(pathToFileURL(path.join(root, "app/lib/db/repos/shops.js")).href)});
+    try {
+      const order = shops.updateOrderStatus(workerData.orderId, workerData.shopUserId, workerData.status);
+      parentPort.postMessage({ ok: true, order });
+    } catch (error) {
+      parentPort.postMessage({ ok: false, error: error?.code || "error", detail: String(error?.message || error) });
+    }
+  `;
+  const tmp = path.join(root, "data", `shop-order-status-race-worker-${process.pid}-${Math.random().toString(16).slice(2)}.mjs`);
+  writeFileSync(tmp, workerSource);
+  return new Promise((resolve) => {
+    const worker = new Worker(tmp, {
+      workerData: { dbPath, orderId, shopUserId, status },
+      type: "module"
+    });
+    worker.on("message", (msg) => {
+      try { rmSync(tmp, { force: true }); } catch { /* ignore */ }
+      resolve(msg);
+    });
+    worker.on("error", (err) => {
+      try { rmSync(tmp, { force: true }); } catch { /* ignore */ }
+      resolve({ ok: false, error: "worker_error", detail: String(err?.message || err) });
+    });
+  });
+}
+
 async function main() {
   console.log("=== shop order idempotency (isolated DB) ===");
   console.log(`TEST_DB: ${TEST_DB}`);
@@ -349,6 +388,80 @@ async function main() {
       "5c. exactly one shop_order_idempotency_keys row and one shop_orders row for the race key",
       raceKeyRows === 1 && raceOrderRows === 1,
       `idemKeyRows=${raceKeyRows} orderRows=${raceOrderRows}`
+    );
+
+    // 6) updateOrderStatus() race: two worker_threads, each with its OWN
+    // node:sqlite connection, both PATCH the SAME order to "لغو شده"
+    // (cancelled) at the same time. Cancelling/returning an order restocks
+    // its line items — if the status-change race weren't serialized the way
+    // createOrder()'s idempotency check is, this would restore stock twice
+    // for a single cancellation, minting inventory out of nothing.
+    const { res: statusProductRes, payload: statusProductPayload } = await api("/api/shop/me", {
+      method: "POST",
+      cookie: shopCookie,
+      body: { name: "محصول تست ریس وضعیت سفارش", priceNum: 50000, stock: 10 }
+    });
+    const statusProductId = statusProductPayload?.data?.product?.id;
+    step(
+      "6. create product for status-race test (stock=10)",
+      statusProductRes.status === 201 && Boolean(statusProductId),
+      `productId=${statusProductId}`
+    );
+
+    const statusOrderQty = 4;
+    const { res: statusOrderRes, payload: statusOrderPayload } = await api("/api/shop/orders", {
+      method: "POST",
+      cookie: buyerCookie,
+      body: {
+        shopUserId: shopId,
+        items: [{ productId: statusProductId, quantity: statusOrderQty }],
+        idempotencyKey: randomUUID()
+      }
+    });
+    const statusOrderId = statusOrderPayload?.data?.order?.id;
+    step(
+      "6. place order to be cancelled (stock 10 - 4 = 6)",
+      statusOrderRes.status === 201 && Boolean(statusOrderId),
+      `orderId=${statusOrderId}`
+    );
+
+    const [cancelA, cancelB] = await Promise.all([
+      runWorkerUpdateOrderStatus({ dbPath: TEST_DB, orderId: statusOrderId, shopUserId: shopId, status: "لغو شده" }),
+      runWorkerUpdateOrderStatus({ dbPath: TEST_DB, orderId: statusOrderId, shopUserId: shopId, status: "لغو شده" })
+    ]);
+    step(
+      "6a. worker_threads race (separate DB connections, SAME order, SAME target status) → both calls succeed",
+      Boolean(cancelA?.ok) && Boolean(cancelB?.ok) &&
+        cancelA?.order?.status === "لغو شده" && cancelB?.order?.status === "لغو شده",
+      `okA=${cancelA?.ok} okB=${cancelB?.ok} statusA=${cancelA?.order?.status} statusB=${cancelB?.order?.status} ` +
+        `errA=${cancelA?.error || ""} errB=${cancelB?.error || ""}`
+    );
+
+    const statusCheckDb = new DatabaseSync(TEST_DB);
+    const statusProductStock = Number(
+      statusCheckDb.prepare("SELECT stock FROM shop_products WHERE id = ?").get(statusProductId)?.stock ?? -1
+    );
+    const finalOrderStatus = statusCheckDb.prepare("SELECT status FROM shop_orders WHERE id = ?").get(statusOrderId)?.status;
+    const restockMovementRows = Number(
+      statusCheckDb.prepare(
+        "SELECT COUNT(*) AS n FROM shop_stock_movements WHERE order_id = ? AND reason = 'cancel_restock'"
+      ).get(statusOrderId)?.n || 0
+    );
+    statusCheckDb.close();
+    step(
+      "6b. stock restored EXACTLY ONCE under real concurrency (6 + 4 = 10, not 14)",
+      statusProductStock === 10,
+      `stock=${statusProductStock} expected=10`
+    );
+    step(
+      "6c. order ends in a single consistent status (لغو شده)",
+      finalOrderStatus === "لغو شده",
+      `status=${finalOrderStatus}`
+    );
+    step(
+      "6d. exactly one cancel_restock stock-movement row for the order (not two)",
+      restockMovementRows === 1,
+      `restockMovementRows=${restockMovementRows}`
     );
   } catch (error) {
     step("suite aborted", false, error.message || String(error));
