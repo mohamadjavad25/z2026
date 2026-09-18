@@ -1,5 +1,6 @@
 export { AppHeader } from "./AppHeader";
 export { BottomNav } from "./BottomNav";
+export { ChatComposeFab } from "./ChatComposeFab";
 export { ClientProfileModal } from "./ClientProfileModal";
 export { HomeApp } from "./HomeApp";
 export { MobileFloatingCta } from "./MobileFloatingCta";

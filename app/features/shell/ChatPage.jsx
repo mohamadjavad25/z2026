@@ -10,14 +10,12 @@ import {
   MessageCircle,
   Paperclip,
   Palette,
-  Plus,
   Search,
   Send,
   Store,
   User,
   UserPlus,
   UsersRound,
-  Wifi,
   WifiOff,
   X
 } from "lucide-react";
@@ -105,7 +103,8 @@ export function ChatPage({
   onLeaveGroup,
   onBack,
   initialPane = "inbox",
-  onPaneChange
+  onPaneChange,
+  composerSignal = 0
 }) {
   const [pane, setPane] = useState("inbox");
   const [draft, setDraft] = useState("");
@@ -201,6 +200,19 @@ export function ChatPage({
     setPane("new-group");
   }
 
+  // The "new group" trigger now lives outside this component (a floating
+  // button rendered by HomeApp, positioned above the bottom nav — see
+  // ChatComposeFab). It reaches into this component by bumping
+  // composerSignal; we only react on an actual change, never on mount.
+  const composerSignalRef = useRef(composerSignal);
+  useEffect(() => {
+    if (composerSignal !== composerSignalRef.current) {
+      composerSignalRef.current = composerSignal;
+      startNewGroup();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [composerSignal]);
+
   async function submitNewGroup(event) {
     event.preventDefault();
     if (!groupTitleDraft.trim() || selectedMemberIds.length === 0) return;
@@ -231,19 +243,13 @@ export function ChatPage({
     >
       <div className={`chatPhoneShell is-${pane}`}>
         {pane === "inbox" ? (
-          <aside className="chatInboxPanel" aria-label="لیست گفتگوها">
-            <header className="chatInboxHead">
-              <div>
-                <span className="chatMiniAvatar" />
-                <h2>{title}</h2>
-                <span className={`chatConnectionDot ${connected ? "is-online" : ""}`} title={connected ? "متصل" : "در حال اتصال…"}>
-                  {connected ? <Wifi size={12} /> : <WifiOff size={12} />}
-                </span>
-              </div>
-              <button type="button" aria-label="ایجاد گروه جدید" onClick={startNewGroup}>
-                <Plus size={17} />
-              </button>
-            </header>
+          <aside className="chatInboxPanel" aria-label={title}>
+            {!connected ? (
+              <p className="chatConnectionBanner" role="status">
+                <WifiOff size={13} />
+                <span>در حال اتصال…</span>
+              </p>
+            ) : null}
 
             <label className="chatSearch">
               <Search size={15} />

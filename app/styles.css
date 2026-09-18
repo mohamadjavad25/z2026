@@ -16751,7 +16751,7 @@ body{
 .appShell.is-chat.is-shop-owner .chatInboxPanel,
 .appShell.is-chat.is-shop-owner .chatConversationPanel,
 .appShell.is-chat.is-shop-owner .chatThread,
-.appShell.is-chat.is-shop-owner .chatInboxHead,
+.appShell.is-chat.is-shop-owner .chatComposeFab,
 .appShell.is-chat.is-shop-owner .chatSearch {
   opacity: 1 !important;
   filter: none !important;
@@ -16765,7 +16765,6 @@ body{
     #f7f8fc !important;
 }
 
-.appShell.is-chat.is-shop-owner .chatInboxHead h2,
 .appShell.is-chat.is-shop-owner .chatThreadBody b {
   color: #20222b !important;
   opacity: 1 !important;
@@ -16779,7 +16778,6 @@ body{
 }
 
 .appShell.is-chat.is-shop-owner .chatAvatarWrap img,
-.appShell.is-chat.is-shop-owner .chatMiniAvatar,
 .appShell.is-chat.is-shop-owner .chatThreadMeta em {
   opacity: 1 !important;
   filter: none !important;

@@ -116,6 +116,7 @@ import { WalletPage, useWalletWorkspace } from "../wallet";
 import { AuthBootScreen } from "./AuthBootScreen";
 
 import { BottomNav } from "./BottomNav";
+import { ChatComposeFab } from "./ChatComposeFab";
 import { ChatPage } from "./ChatPage";
 import { ClientProfileModal } from "./ClientProfileModal";
 import { MobileFloatingCta } from "./MobileFloatingCta";
@@ -170,6 +171,10 @@ export function HomeApp() {
   const [shopPreviewFromDashboard, setShopPreviewFromDashboard] = useState(false);
   const [chatPane, setChatPane] = useState("inbox");
   const [chatInitialPane, setChatInitialPane] = useState("inbox");
+  // Bumped by the floating compose button (ChatComposeFab, rendered outside
+  // ChatPage so it can sit fixed above the bottom nav) to tell ChatPage
+  // "open the new-group picker" — see composerSignal in ChatPage.
+  const [chatComposerSignal, setChatComposerSignal] = useState(0);
   // True only while the full chat tab was reached via "expand" from a shop's
   // own storefront mini-chat — lets exiting the conversation land back on
   // that shop page instead of the generic chat inbox.
@@ -1964,6 +1969,7 @@ function getPassportMatch(post) {
             onRemoveMember={chat.removeGroupMember}
             onLeaveGroup={chat.leaveConversation}
             onPaneChange={setChatPane}
+            composerSignal={chatComposerSignal}
             onBack={() => {
               if (!chatOpenedFromShop) return;
               setChatOpenedFromShop(false);
@@ -1978,6 +1984,11 @@ function getPassportMatch(post) {
             initialPane={chatInitialPane}
           />
         </section>
+
+        <ChatComposeFab
+          open={activeTab === "chat" && chatPane === "inbox"}
+          onClick={() => setChatComposerSignal((n) => n + 1)}
+        />
 
         {activeTab === "salons" && (
           <SalonClientBookingModal

@@ -161,6 +161,10 @@
 .chatInboxPanel {
   height: 100%;
   min-height: 0;
+  /* No more header bar above the list (removed in favor of a floating
+     compose button, see .chatComposeFab) — keep the search bar off the
+     panel's rounded top edge. */
+  padding-top: 12px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(247, 248, 250, 0.7)),
     url("/chat-inbox-wave-bg.png") center center / cover no-repeat,
@@ -172,7 +176,6 @@
   min-height: 0;
 }
 
-.chatInboxHead,
 .chatConversationHead {
   min-height: 58px;
   display: flex;
@@ -182,7 +185,6 @@
   padding: 5px 12px 8px;
 }
 
-.chatInboxHead > div,
 .chatContactTitle {
   min-width: 0;
   display: flex;
@@ -190,7 +192,6 @@
   gap: 9px;
 }
 
-.chatMiniAvatar,
 .chatContactTitle img {
   width: 32px;
   height: 32px;
@@ -202,28 +203,22 @@
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--surface-solid) 5%, transparent);
 }
 
-.chatInboxHead h2 {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 950;
-  letter-spacing: 0;
+/* Inbox no longer has a persistent "connected" dot in a header — it only
+   surfaces as a plain-language banner, and only while actually
+   disconnected, right above the search bar. See chatConnectionBanner. */
+.chatConnectionBanner {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 12px 8px;
+  padding: 6px 11px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.62);
+  color: color-mix(in srgb, var(--chat-muted) 85%, transparent);
+  font-size: 0.64rem;
+  font-weight: 800;
 }
 
-.chatConnectionDot {
-  display: inline-grid;
-  place-items: center;
-  width: 20px;
-  height: 20px;
-  flex: 0 0 auto;
-  border-radius: 50%;
-  color: color-mix(in srgb, var(--chat-muted) 70%, transparent);
-}
-
-.chatConnectionDot.is-online {
-  color: var(--chat-online);
-}
-
-.chatInboxHead button,
 .chatConversationHead > button:not(.chatContactTitle) {
   width: 34px;
   height: 34px;
@@ -251,12 +246,45 @@
   color: color-mix(in srgb, var(--chat-text) 78%, transparent);
 }
 
-.chatInboxHead button,
 .chatConversationHead > button:not(.chatContactTitle):last-child,
 .chatSendButton {
   background: var(--chat-accent-strong) !important;
   color: var(--surface-solid) !important;
   box-shadow: 0 10px 20px color-mix(in srgb, var(--chat-accent) 28%, transparent);
+}
+
+/* Floating "new group" compose button — inbox pane only. Rendered by
+   HomeApp (ChatComposeFab), NOT nested inside .chatPage/.mobilePage, so it
+   escapes that element's page-transition transform and stays fixed to the
+   viewport like .bottomNav/.floatingMobileCta do. Anchor values (right
+   offset formula, bottom safe-area handling, z-index) intentionally match
+   those two so it sits in the same "floating control" plane. The 84px
+   bottom margin clears both bottom bars a chat-inbox viewer can have:
+   the regular .bottomNav (56px + 8px offset) and, for shop-owner accounts,
+   the taller floating .shopOwnerActionDock (62px + 14px offset) that
+   replaces it — with a small visual gap above either. */
+.chatComposeFab {
+  position: fixed;
+  right: max(16px, calc((100vw - 460px) / 2 + 16px));
+  bottom: calc(8px + env(safe-area-inset-bottom));
+  z-index: 24;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 46px;
+  margin-bottom: 84px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--chat-accent-strong, var(--rose));
+  color: var(--surface-solid, #fff);
+  font-weight: 900;
+  font-size: 0.72rem;
+  box-shadow: 0 14px 30px rgba(28, 32, 44, 0.24);
+}
+
+.chatComposeFab span {
+  white-space: nowrap;
 }
 
 .chatSearch {
