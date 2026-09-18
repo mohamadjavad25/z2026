@@ -2,36 +2,38 @@
 
 import { Bookmark, CalendarCheck, ChevronLeft, Pencil, Phone } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
-import { ProfileLocationSettings } from "../profile/ProfileLocationSettings";
 import { ProfileSettingsPanel } from "../profile/ProfileSettingsPanel";
 
 /**
  * Client role — content for the "پروفایل" rail tab (profileView === "overview").
- * Real profile fields only (name/avatar/area/phone, same source as
+ * Real profile fields only (name/avatar/phone, same source as
  * ProfileEditModal) plus shortcuts into the other client panels — no fake
  * stats. Editing itself stays in ProfileEditModal; this is a summary + entry
  * point into it.
  *
+ * No location/area field here: it isn't read anywhere yet (not by order
+ * creation, not by any nearby-salon search), so showing it would just be a
+ * decorative field with no real effect — add it back once a real delivery-
+ * address flow exists (scoped to checkout, not a static profile field, since
+ * a delivery address can differ per order).
+ *
  * This tab is also the client's *only* settings surface (there is no
- * separate settings sheet for clients — see ProfileHero/HomeApp): the city
- * editor and the two notification toggles + logout live here, reusing the
- * same components/handlers the settings sheet used to use, instead of a
- * second edit-profile or saved-posts entry point.
+ * separate settings sheet for clients — see ProfileHero/HomeApp): the
+ * notification toggles + logout live here, reusing the same components/
+ * handlers the settings sheet used to use, instead of a second edit-profile
+ * or saved-posts entry point.
  */
 export function ClientProfileOverview({
   profile,
   onEditProfile,
   onOpenBookings,
   onOpenSaved,
-  locationSaving = false,
-  onSaveLocation,
   profileSettings,
   onToggleSetting,
   onLogout
 }) {
   const name = profile?.data?.name || "";
   const avatar = profile?.data?.avatar || "/profile-icon.svg";
-  const area = profile?.data?.area || "";
   const phone = profile?.data?.phone || "";
 
   return (
@@ -54,13 +56,6 @@ export function ClientProfileOverview({
           ویرایش
         </button>
       </article>
-
-      <ProfileLocationSettings
-        profileType="client"
-        value={area}
-        saving={locationSaving}
-        onSave={onSaveLocation}
-      />
 
       <div className="clientProfileOverviewLinks">
         <button type="button" onClick={onOpenBookings}>

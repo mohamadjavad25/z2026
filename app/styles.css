@@ -23182,9 +23182,9 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button {
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBeautyHero .profileHeroCopy h2 {
   margin: 0;
   color: #171827;
-  font-size: 32px;
-  font-weight: 950;
-  line-height: 1.2;
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1.25;
   letter-spacing: 0;
 }
 

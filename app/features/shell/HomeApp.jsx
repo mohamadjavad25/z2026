@@ -2447,8 +2447,6 @@ function getPassportMatch(post) {
                       onEditProfile={openProfileEdit}
                       onOpenBookings={() => setProfileView("bookings")}
                       onOpenSaved={() => setProfileView("saved")}
-                      locationSaving={profileLocationSaving}
-                      onSaveLocation={saveProfileLocation}
                       profileSettings={profileSettings}
                       onToggleSetting={toggleProfileSetting}
                       onLogout={logoutAccount}
