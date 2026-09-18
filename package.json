@@ -2,12 +2,13 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "test:seed-all": "node scripts/run-all-seed-tests.mjs"
   },
   "dependencies": {
     "leaflet": "^1.9.4",
-    "lucide-react": "latest",
-    "next": "latest",
+    "lucide-react": "^1.24.0",
+    "next": "^16.2.10",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   }
