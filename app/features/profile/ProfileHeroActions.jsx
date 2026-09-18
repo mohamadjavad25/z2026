@@ -38,21 +38,6 @@ export function ProfileHeroActions({
     );
   }
 
-  if (profileType === "client") {
-    return (
-      <div className="profileHeroActions is-clientSettingsAction">
-        <button
-          type="button"
-          className={settingsActive ? "is-active" : ""}
-          onClick={onOpenSettings}
-          aria-label={settingsLabel}
-        >
-          <Settings size={18} />
-        </button>
-      </div>
-    );
-  }
-
   return (
     <div className="profileHeroActions">
       <div className="profileHeroActionsGroup">

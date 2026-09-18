@@ -1,7 +1,9 @@
 "use client";
 
-import { Bookmark, CalendarCheck, ChevronLeft, MapPin, Pencil, Phone } from "lucide-react";
+import { Bookmark, CalendarCheck, ChevronLeft, Pencil, Phone } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
+import { ProfileLocationSettings } from "../profile/ProfileLocationSettings";
+import { ProfileSettingsPanel } from "../profile/ProfileSettingsPanel";
 
 /**
  * Client role — content for the "پروفایل" rail tab (profileView === "overview").
@@ -9,8 +11,24 @@ import { toPersianDigits } from "../../shared/lib/digits";
  * ProfileEditModal) plus shortcuts into the other client panels — no fake
  * stats. Editing itself stays in ProfileEditModal; this is a summary + entry
  * point into it.
+ *
+ * This tab is also the client's *only* settings surface (there is no
+ * separate settings sheet for clients — see ProfileHero/HomeApp): the city
+ * editor and the two notification toggles + logout live here, reusing the
+ * same components/handlers the settings sheet used to use, instead of a
+ * second edit-profile or saved-posts entry point.
  */
-export function ClientProfileOverview({ profile, onEditProfile, onOpenBookings, onOpenSaved }) {
+export function ClientProfileOverview({
+  profile,
+  onEditProfile,
+  onOpenBookings,
+  onOpenSaved,
+  locationSaving = false,
+  onSaveLocation,
+  profileSettings,
+  onToggleSetting,
+  onLogout
+}) {
   const name = profile?.data?.name || "";
   const avatar = profile?.data?.avatar || "/profile-icon.svg";
   const area = profile?.data?.area || "";
@@ -24,10 +42,6 @@ export function ClientProfileOverview({ profile, onEditProfile, onOpenBookings, 
         </span>
         <div className="clientProfileOverviewCopy">
           <strong>{name || "بدون نام"}</strong>
-          <span>
-            <MapPin size={13} />
-            {area || "شهر ثبت نشده"}
-          </span>
           {phone ? (
             <span dir="ltr">
               <Phone size={13} />
@@ -40,6 +54,13 @@ export function ClientProfileOverview({ profile, onEditProfile, onOpenBookings, 
           ویرایش
         </button>
       </article>
+
+      <ProfileLocationSettings
+        profileType="client"
+        value={area}
+        saving={locationSaving}
+        onSave={onSaveLocation}
+      />
 
       <div className="clientProfileOverviewLinks">
         <button type="button" onClick={onOpenBookings}>
@@ -63,6 +84,15 @@ export function ClientProfileOverview({ profile, onEditProfile, onOpenBookings, 
           <ChevronLeft size={16} />
         </button>
       </div>
+
+      {profileSettings ? (
+        <ProfileSettingsPanel
+          profileType="client"
+          profileSettings={profileSettings}
+          onToggle={onToggleSetting}
+          onLogout={onLogout}
+        />
+      ) : null}
     </section>
   );
 }

@@ -45,18 +45,15 @@ export function ProfileSettingsSheet({
   const isShop = profile.type === "shop";
   const isArtist = profile.type === "artist";
   const isSalon = profile.type === "salon";
-  const isClient = profile.type === "client";
   const sheetKicker = isShop ? "پنل فروش فروشگاه" : isSalon ? "" : kicker;
-  const sheetTitle = isShop ? "تنظیمات فروشگاه" : isArtist ? "کنترل‌پنل آرتیست" : isClient ? "تنظیمات بانو" : "تنظیمات";
-  const accountTitle = isShop ? "ویرایش اطلاعات فروشگاه" : isArtist ? "برند شخصی آرتیست" : isSalon ? "ویرایش برند سالن" : isClient ? "ویرایش پروفایل بانو" : "ویرایش پروفایل";
+  const sheetTitle = isShop ? "تنظیمات فروشگاه" : isArtist ? "کنترل‌پنل آرتیست" : "تنظیمات";
+  const accountTitle = isShop ? "ویرایش اطلاعات فروشگاه" : isArtist ? "برند شخصی آرتیست" : isSalon ? "ویرایش برند سالن" : "ویرایش پروفایل";
   const accountDescription = isShop
     ? "لوگو، نام فروشگاه، دسته‌بندی، معرفی و تماس"
     : isArtist
       ? "عکس، نام هنری، تخصص، تماس و مسیر رزرو"
       : isSalon
         ? "لوگو، نام سالن، شماره تماس و مسیر رزرو"
-        : isClient
-          ? "عکس، نام، شهر و تماس"
     : "عکس، نام، تماس، ایمیل و رمز عبور";
   const accountAvatar = isShop
     ? (profile?.data?.avatar || profile?.avatar || "/cosmetics-bold-poster.png")
@@ -70,7 +67,7 @@ export function ProfileSettingsSheet({
       aria-label="تنظیمات"
       onClick={onClose}
     >
-      <aside className={`salonHeroSheetPanel ${isShop ? "is-shop-settings" : ""} ${isArtist ? "is-artist-settings is-salon-settings" : ""} ${(isSalon || isClient) ? "is-salon-settings" : ""}`} onClick={(event) => event.stopPropagation()}>
+      <aside className={`salonHeroSheetPanel ${isShop ? "is-shop-settings" : ""} ${isArtist ? "is-artist-settings is-salon-settings" : ""} ${isSalon ? "is-salon-settings" : ""}`} onClick={(event) => event.stopPropagation()}>
         <div className="salonHeroSheetHead">
           <div>
             {!isShop ? <span>{sheetKicker}</span> : null}
@@ -100,13 +97,13 @@ export function ProfileSettingsSheet({
               ویرایش
             </em>
           </button>
-          {(isArtist || isClient) ? (
-            <section className="salonSettingsBookmarkCard" aria-label={isClient ? "مدل‌های ذخیره‌شده بانو" : "بوکمارک‌های آرتیست"}>
+          {isArtist ? (
+            <section className="salonSettingsBookmarkCard" aria-label="بوکمارک‌های آرتیست">
               <span className="salonSettingsBookmarkIcon">
                 <Bookmark size={18} />
               </span>
               <span className="salonSettingsBookmarkCopy">
-                <strong>{isClient ? "مدل‌های ذخیره‌شده" : "بوکمارک‌های آرتیست"}</strong>
+                <strong>بوکمارک‌های آرتیست</strong>
                 <small>{toPersianDigits(savedPostsCount || 0)} نمونه ذخیره‌شده</small>
               </span>
               <button type="button" onClick={onOpenSaved}>

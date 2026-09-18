@@ -10,7 +10,6 @@ import {
   MapPin,
   ShoppingBag,
   Star,
-  Settings,
   UserPlus,
 } from "lucide-react";
 import { MarbleRatingStars } from "../../components/MarbleRatingStars";
@@ -163,14 +162,6 @@ export function ProfileHero({
             aria-label="ذخیره‌شده‌ها"
           >
             <Bookmark size={18} />
-          </button>
-          <button
-            type="button"
-            className={activePanel === "settings" ? "is-active" : ""}
-            onClick={onOpenSettings}
-            aria-label="تنظیمات پروفایل"
-          >
-            <Settings size={18} />
           </button>
         </div>
         <div className="clientBeautyHeroIdentity">
