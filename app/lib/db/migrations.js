@@ -1,6 +1,6 @@
 import { applySchema } from "./schema.js";
 
-const SCHEMA_VERSION = 32;
+const SCHEMA_VERSION = 33;
 
 /** Convert legacy session expiry strings (ISO / SQLite datetime) to epoch ms. Unparseable → 0 (expired). */
 export function sessionExpiryToEpochMs(value) {
@@ -631,6 +631,12 @@ function migrateToV32(database) {
   }
 }
 
+/** New saved_profiles table only (see schema.js) — applySchema's CREATE TABLE IF NOT EXISTS covers it. */
+function migrateToV33(database) {
+  migrateToV32(database);
+  applySchema(database);
+}
+
 function readSchemaVersion(database) {
   const row = database.prepare("SELECT value FROM app_meta WHERE key = 'schema_version'").get();
   return Number(row?.value || 0);
@@ -674,7 +680,8 @@ const MIGRATION_STEPS = [
   { version: 29, migrate: migrateToV29 },
   { version: 30, migrate: migrateToV30 },
   { version: 31, migrate: migrateToV31 },
-  { version: 32, migrate: migrateToV32 }
+  { version: 32, migrate: migrateToV32 },
+  { version: 33, migrate: migrateToV33 }
 ];
 
 export function ensureSchemaVersion(database) {

@@ -129,6 +129,21 @@ export function applySchema(db) {
       CHECK (follower_user_id != target_user_id)
     );
 
+    -- Real (server-side) "save" for a salon or independent artist's public
+    -- profile — the bookmark button on their page. Same shape/conventions as
+    -- follows: both salons and artists are just rows in users
+    -- (salons.user_id / users.id with type='artist'), so one table with a
+    -- target_user_id covers both kinds; the target's users.type tells a
+    -- reader which kind it is. Mirrors post_saves for the composite-PK /
+    -- idempotent-toggle convention. Not reused for posts -- that's post_saves.
+    CREATE TABLE IF NOT EXISTS saved_profiles (
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      target_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (user_id, target_user_id),
+      CHECK (user_id != target_user_id)
+    );
+
     CREATE TABLE IF NOT EXISTS artist_services (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,

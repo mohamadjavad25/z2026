@@ -5,6 +5,7 @@ import { listPostsByOwner } from "./posts.js";
 import { resolveRollingPersianDateKey } from "../../../shared/lib/persianCalendar.js";
 import { normalizeBookingTimeLabel } from "../../../shared/lib/time.js";
 import { normalizePhone } from "./salons/common.js";
+import { getTargetRatingSummary } from "./social.js";
 
 export { ensureArtistHours, listArtistHours, updateArtistHour } from "./artists/hours.js";
 
@@ -671,4 +672,35 @@ export function listArtists() {
   return getDb().prepare(`
     SELECT id, name, area, service, avatar, bio FROM users WHERE type = 'artist' ORDER BY created_at DESC
   `).all();
+}
+
+/**
+ * Card-sized list of independent artists the user has saved (bookmark
+ * button on the artist's public profile) — for the "ذخیره‌شده‌ها" tab,
+ * alongside saved posts and saved salons. Filters to type = 'artist' so a
+ * saved salon (also stored in saved_profiles, target_user_id points at the
+ * same users table) never leaks into this list.
+ */
+export function listSavedArtistsForUser(userId) {
+  const rows = getDb().prepare(`
+    SELECT u.* FROM saved_profiles sp
+    JOIN users u ON u.id = sp.target_user_id
+    WHERE sp.user_id = ? AND u.type = 'artist'
+    ORDER BY sp.created_at DESC
+  `).all(userId);
+  return rows.map((user) => {
+    const { rating, reviewCount } = getTargetRatingSummary(user.id);
+    return {
+      id: user.id,
+      name: user.name,
+      role: user.service ? `آرتیست ${user.service}` : "آرتیست",
+      area: user.area,
+      bio: user.bio,
+      avatar: user.avatar,
+      service: user.service,
+      rating,
+      reviewCount,
+      followers: countFollowers(user.id)
+    };
+  });
 }

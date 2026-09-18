@@ -69,6 +69,49 @@ export function listSalons() {
   });
 }
 
+/**
+ * Card-sized list of salons the user has saved (bookmark button on the
+ * salon's public profile) — for the "ذخیره‌شده‌ها" tab, alongside saved
+ * posts and saved artists. Deliberately skips the heavy per-salon
+ * services/portfolio/staff/hours queries listSalons()/getSalon() do — a
+ * saved-list card only needs enough to render without another round-trip
+ * (see ProfileSavedPosts.jsx), and post_count already covers the "N
+ * نمونه‌کار" fallback it reads when portfolio isn't present.
+ */
+export function listSavedSalonsForUser(userId) {
+  return getDb().prepare(`
+    SELECT s.*, u.avatar, u.bio
+    FROM saved_profiles sp
+    JOIN salons s ON s.user_id = sp.target_user_id
+    JOIN users u ON u.id = s.user_id
+    WHERE sp.user_id = ?
+    ORDER BY sp.created_at DESC
+  `).all(userId).map((row) => {
+    const followerCount = countFollowers(row.user_id);
+    const followingCount = countFollowing(row.user_id);
+    return {
+      id: row.user_id,
+      user_id: row.user_id,
+      source_key: String(row.user_id),
+      name: row.name,
+      area: row.area,
+      tag: row.tag,
+      price: row.price,
+      open: row.open,
+      rating: row.rating,
+      match: row.match_score,
+      avatar: row.avatar || "",
+      bio: row.bio || "",
+      postCount: row.post_count,
+      post_count: row.post_count,
+      followerCount,
+      follower_count: followerCount,
+      followingCount,
+      following_count: followingCount
+    };
+  });
+}
+
 export function getSalon(userId) {
   const row = getDb().prepare(`
     SELECT s.*, u.avatar, u.bio
