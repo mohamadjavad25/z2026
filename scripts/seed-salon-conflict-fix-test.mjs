@@ -282,7 +282,13 @@ async function main() {
       body: { name: "خدمت ۳۰ دقیقه", price: "300000", duration: "۳۰ دقیقه" }
     });
 
-    const bookingDate = "امروز";
+    // Pinned to "شنبه" (Saturday) rather than "امروز" (today): defaultHours
+    // (app/lib/db/repos/salons/common.js) makes Friday fully closed and
+    // Thursday close at 18:00, so a real-wall-clock "today" made this whole
+    // suite flake depending on which weekday it happened to run on. Saturday
+    // is always active with 10:00-20:00 hours, so every HTTP-facing booking
+    // time below (all <= 17:30) is guaranteed valid regardless of real date.
+    const bookingDate = "شنبه";
 
     // --- S1 ---
     console.log("\n--- S1 duration overlap ---");
@@ -356,11 +362,10 @@ async function main() {
     }
 
     // --- Regression: non-overlapping ---
-    // Times picked to stay inside every default day's working hours (closes
-    // as early as 18:00 on پنجشنبه — see defaultHours in
-    // app/lib/db/repos/salons/common.js) and clear of personA's existing
-    // S1 (۱۰:۰۰-۱۱:۳۰) and S2a (۱۴:۰۰-۱۴:۳۰) bookings above, so this doesn't
-    // flake depending on which real-world weekday the suite happens to run.
+    // Times picked to stay clear of personA's existing S1 (۱۰:۰۰-۱۱:۳۰) and
+    // S2a (۱۴:۰۰-۱۴:۳۰) bookings above; bookingDate is pinned to شنبه (see
+    // above) so this no longer depends on which real-world weekday the
+    // suite happens to run.
     console.log("\n--- Regression non-overlap ---");
     {
       const early = await book(clientCookie, {
@@ -509,7 +514,7 @@ async function main() {
       let legacyOk = false;
       let detail = "";
       try {
-        const dayKey = resolveRollingPersianDateKey("امروز");
+        const dayKey = resolveRollingPersianDateKey(bookingDate);
         const database = new DatabaseSync(TEST_DB);
         // After v12 migrate, column exists; insert Persian digits deliberately.
         database.prepare(`
@@ -525,7 +530,7 @@ async function main() {
           phone: "09130002602",
           service: "خدمت ۳۰ دقیقه",
           staff: personB.name,
-          bookingDate: "امروز",
+          bookingDate,
           time: "17:30",
           durationMinutes: 30,
           status: "درخواست"
