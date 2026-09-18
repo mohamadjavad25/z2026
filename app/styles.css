@@ -23175,30 +23175,6 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button {
   box-shadow: none;
 }
 
-.profilePanel.page-profile:has(.createdProfile.is-client) .clientBeautyHeroActions {
-  position: absolute;
-  top: 16px;
-  left: 16px;
-  z-index: 20;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  pointer-events: auto;
-}
-
-.profilePanel.page-profile:has(.createdProfile.is-client) .clientBeautyHeroActions button {
-  width: 42px;
-  height: 42px;
-  display: grid;
-  place-items: center;
-  border: 1px solid rgba(22, 24, 38, 0.08);
-  border-radius: 15px;
-  color: #262332;
-  background: rgba(255, 255, 255, 0.86);
-  box-shadow: 0 12px 24px rgba(50, 38, 92, 0.1);
-  pointer-events: auto;
-}
-
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBeautyHeroIdentity {
   display: grid;
   grid-template-columns: 92px minmax(0, 1fr);

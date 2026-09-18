@@ -4,7 +4,6 @@ import { useState } from "react";
 import {
   Award,
   BadgeCheck,
-  Bookmark,
   Heart,
   ImagePlus,
   MapPin,
@@ -154,16 +153,6 @@ export function ProfileHero({
   if (type === "client") {
     return (
       <div className={`profileHero ${heroClass} clientBeautyHero`}>
-        <div className="clientBeautyHeroActions">
-          <button
-            type="button"
-            className={activePanel === "saved" ? "is-active" : ""}
-            onClick={onOpenSaved}
-            aria-label="ذخیره‌شده‌ها"
-          >
-            <Bookmark size={18} />
-          </button>
-        </div>
         <div className="clientBeautyHeroIdentity">
           <span className="clientBeautyAvatar">
             <img className="profileAvatarImage" src={avatar} alt="" aria-hidden="true" />
