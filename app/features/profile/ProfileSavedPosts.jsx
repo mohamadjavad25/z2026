@@ -1,12 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { Bookmark, BookmarkX, MapPin, Store } from "lucide-react";
+import { Bookmark, BookmarkX, MapPin, Store, UserRound } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { ProfileEmptyState } from "./ProfileEmptyState";
 
 function getSalonKey(salon) {
   return String(salon.id || salon.source_key || salon.name);
+}
+
+function getArtistKey(artist) {
+  return String(artist.id || artist.name);
 }
 
 function getPostKey(item, index) {
@@ -15,6 +19,12 @@ function getPostKey(item, index) {
 
 function getSalonRatingLabel(salon) {
   const ratingValue = Number(salon?.rating);
+  if (!Number.isFinite(ratingValue) || ratingValue <= 0) return "بدون امتیاز";
+  return `${toPersianDigits(ratingValue.toFixed(1))} امتیاز`;
+}
+
+function getArtistRatingLabel(artist) {
+  const ratingValue = Number(artist?.rating);
   if (!Number.isFinite(ratingValue) || ratingValue <= 0) return "بدون امتیاز";
   return `${toPersianDigits(ratingValue.toFixed(1))} امتیاز`;
 }
@@ -30,12 +40,15 @@ function getMosaicShape(ratio, index) {
 export function ProfileSavedPosts({
   posts,
   salons = [],
+  artists = [],
   onSelectPost,
   onRemovePost,
   onSelectSalon,
-  onRemoveSalon
+  onRemoveSalon,
+  onSelectArtist,
+  onRemoveArtist
 }) {
-  const hasSavedItems = posts.length || salons.length;
+  const hasSavedItems = posts.length || salons.length || artists.length;
   const [imageRatios, setImageRatios] = useState({});
 
   function rememberImageRatio(key, event) {
@@ -96,6 +109,54 @@ export function ProfileSavedPosts({
         </section>
       ) : null}
 
+      {artists.length ? (
+        <section className="savedProfileGroup" aria-label="آرتیست‌های ذخیره‌شده">
+          <div className="savedProfileGroupHead">
+            <span>آرتیست‌های ذخیره‌شده</span>
+            <b>{toPersianDigits(artists.length)} آرتیست</b>
+          </div>
+          <div className="savedSalonList">
+            {artists.map((artist) => (
+              <article
+                className="savedSalonCard"
+                key={getArtistKey(artist)}
+                role="button"
+                tabIndex={0}
+                onClick={() => onSelectArtist(artist)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    onSelectArtist(artist);
+                  }
+                }}
+              >
+                <span className="savedSalonOpen">
+                  <span className="savedSalonLogo">
+                    {artist.avatar ? <img src={artist.avatar} alt="" /> : <UserRound size={20} />}
+                  </span>
+                  <span className="savedSalonBody">
+                    <b>{artist.name}</b>
+                    <small><MapPin size={13} /> {artist.area || artist.role || "آرتیست مستقل"}</small>
+                    <em>{getArtistRatingLabel(artist)} · {toPersianDigits(artist.reviewCount || 0)} نظر</em>
+                  </span>
+                </span>
+                <button
+                  type="button"
+                  className="savedSalonRemove"
+                  aria-label="حذف آرتیست از ذخیره‌ها"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onRemoveArtist(artist);
+                  }}
+                >
+                  <BookmarkX size={17} />
+                </button>
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       {posts.length ? (
         <section className="savedProfileGroup" aria-label="پست‌های ذخیره‌شده">
           <div className="savedProfileGroupHead">
@@ -136,7 +197,7 @@ export function ProfileSavedPosts({
           className="emptySavedState"
           icon={Bookmark}
           title="هنوز چیزی ذخیره نشده"
-          description="پست‌ها، مدل‌ها، سالن‌ها و محصولات ذخیره‌شده اینجا جمع می‌شوند."
+          description="پست‌ها، مدل‌ها، سالن‌ها و آرتیست‌های ذخیره‌شده اینجا جمع می‌شوند."
         />
       ) : null}
     </div>

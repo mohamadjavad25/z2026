@@ -9,6 +9,7 @@ import {
 } from "../../shared/api/salons";
 import { getClientArtistBookings } from "../../shared/api/artists";
 import { getReviews } from "../../shared/api/reviews";
+import { toggleSave } from "../../shared/api/saves";
 import { notifyFromResponse } from "../../shared/lib/apiNotify";
 import { resolveRollingPersianDateKey } from "../../shared/lib/persianCalendar";
 import {
@@ -307,13 +308,44 @@ export function useSalonDirectory({
     }
   }, [followedSalons, notify]);
 
-  const toggleSaveSalon = useCallback((salon) => {
+  const toggleSaveSalon = useCallback(async (salon) => {
     const key = String(salon.id || salon.source_key || salon.name);
-    const willSave = !savedSalonKeys.includes(key);
+    const targetUserId = salon.id || Number(salon.source_key) || null;
+    const previousSaved = savedSalonKeys.includes(key);
+    const willSave = !previousSaved;
+
     setSavedSalonKeys((items) => (
       items.includes(key) ? items.filter((item) => item !== key) : [...items, key]
     ));
-    notify(willSave ? "سالن ذخیره شد." : "سالن از ذخیره‌ها حذف شد.");
+
+    if (!targetUserId) {
+      // No real user id to persist against (e.g. a mock/demo row) — keep the
+      // local-only toggle rather than failing silently.
+      notify(willSave ? "سالن ذخیره شد." : "سالن از ذخیره‌ها حذف شد.");
+      return;
+    }
+
+    try {
+      const result = await toggleSave(targetUserId);
+      if (!notifyFromResponse(notify, result, {
+        failure: "ذخیره سالن انجام نشد؛ دوباره امتحان کن."
+      })) {
+        setSavedSalonKeys((items) => (
+          previousSaved
+            ? (items.includes(key) ? items : [...items, key])
+            : items.filter((item) => item !== key)
+        ));
+        return;
+      }
+      notify(willSave ? "سالن ذخیره شد." : "سالن از ذخیره‌ها حذف شد.");
+    } catch {
+      setSavedSalonKeys((items) => (
+        previousSaved
+          ? (items.includes(key) ? items : [...items, key])
+          : items.filter((item) => item !== key)
+      ));
+      notify("ذخیره سالن انجام نشد؛ دوباره امتحان کن.");
+    }
   }, [savedSalonKeys, notify]);
 
   const shareSalonProfile = useCallback(async (nameHint) => {

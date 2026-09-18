@@ -80,6 +80,7 @@ import {
   ClientProfileOverview
 } from "../client";
 import { getMyShopOrders } from "../../shared/api/shops";
+import { getSaves } from "../../shared/api/saves";
 import { ProfileEmptyState } from "../profile/ProfileEmptyState";
 import { ProfileGallery } from "../profile/ProfileGallery";
 import { ProfileHero } from "../profile/ProfileHero";
@@ -191,6 +192,12 @@ export function HomeApp() {
   const [clientBookingSettings, setClientBookingSettings] = useState(null);
   const [beautyPassport, setBeautyPassport] = useState(null);
   const [followedArtists, setFollowedArtists] = useState([]);
+  // Full card data for the "ذخیره‌شده‌ها" (saved) profile tab — from
+  // GET /api/saves, refreshed alongside follows (see refreshSaves below).
+  // savedSalonKeys/savedArtists (id-only, for button state) live in
+  // useSalonDirectory / usePublicArtistProfile respectively and are seeded
+  // from the same response's savedTargetIds.
+  const [savedProfiles, setSavedProfiles] = useState({ salons: [], artists: [] });
   const [scheduleViewDay, setScheduleViewDay] = useState("");
   const [salonWeekHistoryOpen, setSalonWeekHistoryOpen] = useState(false);
   const [scheduleNow, setScheduleNow] = useState(() => new Date());
@@ -246,6 +253,7 @@ export function HomeApp() {
         await c.refreshExploreFeed?.();
         await c.refreshShopDirectory?.();
         await c.refreshFollows?.();
+        await c.refreshSaves?.();
         try {
           const [walletResponse, passportResponse, salonsResponse] = await Promise.all([
             fetch("/api/wallet"),
@@ -275,6 +283,7 @@ export function HomeApp() {
         c.applyWalletPayload?.(walletPayload);
         setBeautyPassport(passportPayload.passport || passportPayload.data?.passport || null);
         await c.refreshFollows?.();
+        await c.refreshSaves?.();
         if (isStale?.()) return;
       }
 
@@ -302,6 +311,8 @@ export function HomeApp() {
       c.resetArtistWorkspace?.();
       c.resetSalonWorkspace?.();
       setFollowedArtists([]);
+      c.setSavedArtists?.([]);
+      setSavedProfiles({ salons: [], artists: [] });
       c.resetWalletState?.();
       setBeautyPassport(null);
       setClientOrderList([]);
@@ -454,6 +465,7 @@ export function HomeApp() {
     followedSalons,
     setFollowedSalons,
     savedSalonKeys,
+    setSavedSalonKeys,
     salonClientTab,
     setSalonClientTab,
     salonClientReviews,
@@ -774,6 +786,7 @@ export function HomeApp() {
     publicArtistServices,
     isFollowingPublicArtist,
     isSavedPublicArtist,
+    setSavedArtists,
     publicArtistHeroImage,
     openPublicArtistProfile,
     closePublicArtistProfile,
@@ -1274,6 +1287,48 @@ function getPassportMatch(post) {
     }
   }
 
+  // Seeds real saved-salon/saved-artist state from the server — mirrors
+  // refreshFollows above (same "one id list feeds both salon + artist local
+  // state" shape, since a save target can be either type). Also stashes the
+  // full card arrays for the "ذخیره‌شده‌ها" profile tab so it doesn't have to
+  // derive from whatever's currently loaded in salonDirectory.
+  async function refreshSaves() {
+    try {
+      const { ok, data } = await getSaves();
+      if (!ok) return;
+      const ids = (data?.savedTargetIds || []).map(String);
+      setSavedSalonKeys(ids);
+      setSavedArtists(ids);
+      setSavedProfiles({ salons: data?.salons || [], artists: data?.artists || [] });
+    } catch {
+      // ignore
+    }
+  }
+
+  // toggleSaveSalon/toggleSavePublicArtist only update the id-only
+  // savedSalonKeys/savedArtists lists (for button state elsewhere) — they
+  // don't know about savedProfiles' full card arrays, which only the
+  // "ذخیره‌شده‌ها" tab renders. Without this, removing a card from that tab
+  // toggled the DB correctly but left the stale card on screen until the
+  // next full refreshSaves() (e.g. a reload) — DB and UI silently diverged.
+  function removeSavedSalon(salon) {
+    toggleSaveSalon(salon);
+    const key = String(salon.id || salon.source_key || salon.name);
+    setSavedProfiles((prev) => ({
+      ...prev,
+      salons: prev.salons.filter((item) => String(item.id || item.source_key || item.name) !== key)
+    }));
+  }
+
+  function removeSavedArtist(artist) {
+    toggleSavePublicArtist(artist);
+    const key = String(artist.id || artist.name);
+    setSavedProfiles((prev) => ({
+      ...prev,
+      artists: prev.artists.filter((item) => String(item.id || item.name) !== key)
+    }));
+  }
+
   async function refreshClientOrders() {
     try {
       const { ok, data } = await getMyShopOrders();
@@ -1295,6 +1350,7 @@ function getPassportMatch(post) {
     refreshShopDirectory,
     setSalonDirectory,
     refreshFollows,
+    refreshSaves,
     refreshSalonSystemData,
     refreshArtistWorkspace,
     refreshShopWorkspace,
@@ -1310,7 +1366,8 @@ function getPassportMatch(post) {
     resetSalonWorkspace,
     applyWalletPayload,
     resetWalletState,
-    setWalletLoading
+    setWalletLoading,
+    setSavedArtists
   };
 
   useEffect(() => {
@@ -1911,11 +1968,14 @@ function getPassportMatch(post) {
   const renderSavedPosts = () => (
     <ProfileSavedPosts
       posts={savedExplorePosts}
-      salons={savedSalonList}
+      salons={savedProfiles.salons}
+      artists={savedProfiles.artists}
       onSelectPost={selectExplorePost}
       onRemovePost={(item) => toggleSavedPost(item.title, item)}
       onSelectSalon={selectSalonWithStory}
-      onRemoveSalon={toggleSaveSalon}
+      onRemoveSalon={removeSavedSalon}
+      onSelectArtist={openPublicArtistProfile}
+      onRemoveArtist={removeSavedArtist}
     />
   );
 
@@ -1936,6 +1996,13 @@ function getPassportMatch(post) {
               ? { ...current, ...detail }
               : { ...salon, ...detail }
           ));
+          if (typeof detail.isSaved === "boolean") {
+            const salonKey = String(salon.id || salon.source_key || salon.name);
+            setSavedSalonKeys((items) => {
+              if (detail.isSaved) return items.includes(salonKey) ? items : [...items, salonKey];
+              return items.includes(salonKey) ? items.filter((item) => item !== salonKey) : items;
+            });
+          }
         }
       }
     } catch {

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createArtistBooking, getArtist, toggleFollow } from "../../shared/api/artists";
 import { createReview, toggleReviewLike } from "../../shared/api/reviews";
+import { toggleSave } from "../../shared/api/saves";
 import { getApiErrorMessage } from "../../shared/lib/apiNotify";
 import { parseServiceDurationMinutes } from "../../shared/lib/time";
 import { mapExplorePost } from "../explore/mappers";
@@ -96,24 +97,52 @@ export function usePublicArtistProfile({
       || followedArtists.includes(selectedPublicArtist.name)
     : false;
 
-  // Bug fix: the "save" button on the public artist profile used to just show
-  // a fake "ذخیره شد" toast with no state change behind it, so the artist
-  // never actually ended up saved anywhere. This mirrors the existing
-  // toggleSaveSalon pattern (useSalonDirectory.js) — client-side saved-keys
-  // list, same durability level, no new backend endpoint needed.
+  // Real persistence via POST /api/saves (saved_profiles table) — mirrors
+  // toggleFollowPublicArtist's optimistic-update + revert-on-failure shape.
+  // savedArtists is seeded both globally (HomeApp's refreshSaves, from
+  // GET /api/saves' savedTargetIds — see setSavedArtists below) and per
+  // profile-open (isSaved on the GET /api/artists/:id response, in
+  // openPublicArtistProfile) so the button never drifts from the DB.
   const [savedArtists, setSavedArtists] = useState([]);
   const isSavedPublicArtist = selectedPublicArtist
     ? savedArtists.includes(String(selectedPublicArtist.id || selectedPublicArtist.name))
     : false;
 
-  const toggleSavePublicArtist = useCallback((artist) => {
+  const toggleSavePublicArtist = useCallback(async (artist) => {
     if (!artist?.id && !artist?.name) return;
     const key = String(artist.id || artist.name);
-    const willSave = !savedArtists.includes(key);
+    const previousSaved = savedArtists.includes(key);
+    const willSave = !previousSaved;
+
     setSavedArtists((items) => (
       items.includes(key) ? items.filter((item) => item !== key) : [...items, key]
     ));
-    notify(willSave ? `پروفایل «${artist.name || "آرتیست"}» ذخیره شد.` : `پروفایل «${artist.name || "آرتیست"}» از ذخیره‌ها حذف شد.`);
+
+    if (!artist.id) {
+      notify(willSave ? `پروفایل «${artist.name || "آرتیست"}» ذخیره شد.` : `پروفایل «${artist.name || "آرتیست"}» از ذخیره‌ها حذف شد.`);
+      return;
+    }
+
+    try {
+      const { ok, payload } = await toggleSave(artist.id);
+      if (!ok) {
+        setSavedArtists((items) => (
+          previousSaved
+            ? (items.includes(key) ? items : [...items, key])
+            : items.filter((item) => item !== key)
+        ));
+        notify(getApiErrorMessage(payload, "ذخیره آرتیست انجام نشد؛ دوباره امتحان کن."));
+        return;
+      }
+      notify(willSave ? `پروفایل «${artist.name || "آرتیست"}» ذخیره شد.` : `پروفایل «${artist.name || "آرتیست"}» از ذخیره‌ها حذف شد.`);
+    } catch {
+      setSavedArtists((items) => (
+        previousSaved
+          ? (items.includes(key) ? items : [...items, key])
+          : items.filter((item) => item !== key)
+      ));
+      notify("ذخیره آرتیست انجام نشد؛ دوباره امتحان کن.");
+    }
   }, [savedArtists, notify]);
 
   const publicArtistHeroImage = useMemo(() => {
@@ -180,6 +209,13 @@ export function usePublicArtistProfile({
               items.includes(String(data.artist.id)) ? items : [...items, String(data.artist.id)]
             ));
           }
+          const artistKey = String(data.artist.id);
+          setSavedArtists((items) => {
+            if (data.artist.isSaved) {
+              return items.includes(artistKey) ? items : [...items, artistKey];
+            }
+            return items.includes(artistKey) ? items.filter((item) => item !== artistKey) : items;
+          });
         }
       } catch {
         // keep stub artist
@@ -544,6 +580,8 @@ export function usePublicArtistProfile({
     publicArtistServices,
     isFollowingPublicArtist,
     isSavedPublicArtist,
+    savedArtists,
+    setSavedArtists,
     publicArtistHeroImage,
     openPublicArtistProfile,
     closePublicArtistProfile,
