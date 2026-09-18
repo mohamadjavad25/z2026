@@ -1514,7 +1514,7 @@ function getPassportMatch(post) {
       name: createdProfile.data?.name || "سالن",
       area: createdProfile.data?.area || "",
       tag: createdProfile.data?.tag || createdProfile.data?.service || "سالن زیبایی",
-      rating: createdProfile.data?.rating || "۴.۸",
+      rating: createdProfile.data?.rating || "",
       open: createdProfile.data?.open || "امروز",
       bio: createdProfile.data?.bio || "",
       avatar: createdProfile.data?.avatar || "",
@@ -1738,6 +1738,43 @@ function getPassportMatch(post) {
       area: booking.salonArea || booking.salon_area || "",
       avatar: booking.salonAvatar || booking.salon_avatar || ""
     });
+  }
+
+  // "رزرو دوباره" for a direct-artist booking (see listClientArtistBookings
+  // in app/lib/db/repos/artists.js) — opens the artist's own public
+  // profile (PublicArtistModal), not a salon page. The row's name/area/
+  // avatar are reused under salonName/salonArea/salonAvatar for display,
+  // but the routing id is its own artistUserId/sourceArtistUserId field
+  // — never aliased to salon_user_id, so this never gets confused with
+  // rebookSalonFromBooking above.
+  function rebookArtistFromBooking(booking) {
+    if (!booking) return;
+    const artistId = booking.artistUserId || booking.sourceArtistUserId || "";
+    if (!artistId) {
+      setAppToast("این رزرو به یک حساب آرتیست وصل نیست.");
+      return;
+    }
+    openPublicArtistProfile({
+      id: artistId,
+      name: booking.salonName || booking.salon_name || "",
+      area: booking.salonArea || booking.salon_area || "",
+      avatar: booking.salonAvatar || booking.salon_avatar || ""
+    });
+  }
+
+  // Client's own bookings/activity view ("فعالیت من") mixes salon bookings
+  // and direct-artist bookings in one list (see refreshClientBookings in
+  // useSalonDirectory.js). "رزرو دوباره" on a merged row must route to the
+  // right profile type per row, not assume salon — dispatch on
+  // bookingSource here rather than in ClientBookingsPanel/
+  // ClientBookingSettingsModal (presentational; no data-shape branching there).
+  function rebookFromBooking(booking) {
+    if (!booking) return;
+    if (booking.bookingSource === "artist") {
+      rebookArtistFromBooking(booking);
+      return;
+    }
+    rebookSalonFromBooking(booking);
   }
 
   async function openExploreArtistProfile(post) {
@@ -2425,7 +2462,7 @@ function getPassportMatch(post) {
                   <ClientBookingsPanel
                     bookings={clientBookingList}
                     onOpenSettings={setClientBookingSettings}
-                    onRebook={rebookSalonFromBooking}
+                    onRebook={rebookFromBooking}
                   />
                   <ClientOrdersPanel
                     orders={clientOrderList}
@@ -2706,18 +2743,24 @@ function getPassportMatch(post) {
           booking={clientBookingSettings}
           onClose={() => setClientBookingSettings(null)}
           onMessageSalon={(booking) => {
-            const salonUserId = Number(booking.salonUserId || booking.salon_user_id) || null;
+            // Artist-sourced rows (see listClientArtistBookings) never carry
+            // salonUserId/salon_user_id — route those to the artist's own
+            // user id instead, so "پیام به سالن" also works for a direct
+            // artist booking, not just salon ones.
+            const targetUserId = booking.bookingSource === "artist"
+              ? Number(booking.artistUserId || booking.sourceArtistUserId) || null
+              : Number(booking.salonUserId || booking.salon_user_id) || null;
             setClientBookingSettings(null);
-            if (!salonUserId) {
+            if (!targetUserId) {
               setAppToast("این رزرو به یک حساب کاربری وصل نیست.");
               return;
             }
             openOwnerChat();
-            chat.startDirectChat(salonUserId);
+            chat.startDirectChat(targetUserId);
           }}
           onRebookSalon={(booking) => {
             setClientBookingSettings(null);
-            rebookSalonFromBooking(booking);
+            rebookFromBooking(booking);
           }}
         />
 

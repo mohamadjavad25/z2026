@@ -859,7 +859,7 @@ export function useArtistWorkspace({
       image: item.image || "",
       saves: item.saves || "۰",
       views: item.views || "۰",
-      rating: item.rating || "۴.۸",
+      rating: item.rating || "",
       inExplore: Boolean(item.inExplore),
       featured: true
     });

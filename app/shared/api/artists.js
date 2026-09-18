@@ -81,6 +81,16 @@ export async function toggleFollow(body) {
   });
 }
 
+/**
+ * GET /api/artist-bookings → client session only → { bookings }
+ * A client's own bookings made directly with an independent artist
+ * (as opposed to GET /api/salon-bookings' client branch, which is
+ * salon bookings only). Merged into clientBookingList client-side.
+ */
+export async function getClientArtistBookings() {
+  return apiJson("/api/artist-bookings");
+}
+
 /** GET /api/artist-hours → { hours } owner-only */
 export async function getArtistHours() {
   return apiJson("/api/artist-hours");

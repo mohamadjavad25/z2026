@@ -4,6 +4,7 @@ import { countFollowers, getUserById, isFollowing } from "./users.js";
 import { listPostsByOwner } from "./posts.js";
 import { resolveRollingPersianDateKey } from "../../../shared/lib/persianCalendar.js";
 import { normalizeBookingTimeLabel } from "../../../shared/lib/time.js";
+import { normalizePhone } from "./salons/common.js";
 
 export { ensureArtistHours, listArtistHours, updateArtistHour } from "./artists/hours.js";
 
@@ -269,6 +270,71 @@ export function listArtistBookings(artistUserId) {
           }
     };
   });
+}
+
+/**
+ * A client's own bookings made directly with an independent artist
+ * (artist_bookings table). Mirrors listClientSalonBookings in
+ * app/lib/db/repos/salons/bookings.js (same client_user_id/phone/name
+ * match, same "OR" match strategy for legacy rows with no client_user_id).
+ *
+ * Field names intentionally reuse the salon-booking shape
+ * (salonName/salon_name/salonArea/.../salonAvatar/...) so the client
+ * bookings UI (ClientBookingsPanel.getBookingMeta: booking.salonName ||
+ * booking.salon_name, etc.) renders an artist-sourced row with zero
+ * changes. bookingSource/artistUserId are kept as their OWN distinct
+ * fields (never aliased to salon_user_id) so "رزرو دوباره" can tell an
+ * artist booking apart from a salon booking and route to the artist's
+ * public profile instead — see rebookFromBooking in HomeApp.jsx.
+ */
+export function listClientArtistBookings(user) {
+  ensureArtistBookingDurationColumn();
+  const userId = Number(user?.id || 0);
+  const phone = normalizePhone(user?.phone || "");
+  const name = String(user?.name || "").trim();
+  if (!userId && !phone && !name) return [];
+  const conditions = [];
+  const params = [];
+  if (userId) {
+    conditions.push("b.client_user_id = ?");
+    params.push(userId);
+  }
+  if (phone) {
+    conditions.push(`REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(b.client_phone,
+      '۰','0'),'۱','1'),'۲','2'),'۳','3'),'۴','4'),'۵','5'),'۶','6'),'۷','7'),'۸','8'),'۹','9') = ?`);
+    params.push(phone);
+  }
+  if (name) {
+    conditions.push("b.client_name = ?");
+    params.push(name);
+  }
+  return getDb().prepare(`
+    SELECT b.*, u.name AS artist_name, u.area AS artist_area, u.avatar AS artist_avatar, u.phone AS artist_phone
+    FROM artist_bookings b
+    LEFT JOIN users u ON u.id = b.artist_user_id
+    WHERE ${conditions.join(" OR ")}
+    ORDER BY b.id DESC
+  `).all(...params).map((row) => ({
+    ...row,
+    client: row.client_name || "",
+    // NOTE: unlike salon bookings' `phone` column (the booking client's own
+    // number), artist_bookings has no such plain `phone` column — reuse it
+    // here for the client's number and put the artist's own number under
+    // salonPhone/salon_phone (below), matching what ClientBookingSettingsModal
+    // actually calls for "تماس" (booking.salonPhone || booking.salon_phone || booking.phone).
+    phone: row.client_phone || "",
+    salonName: row.artist_name || "آرتیست",
+    salon_name: row.artist_name || "آرتیست",
+    salonArea: row.artist_area || "",
+    salon_area: row.artist_area || "",
+    salonAvatar: row.artist_avatar || "",
+    salon_avatar: row.artist_avatar || "",
+    salonPhone: row.artist_phone || "",
+    salon_phone: row.artist_phone || "",
+    bookingSource: "artist",
+    artistUserId: row.artist_user_id,
+    sourceArtistUserId: row.artist_user_id
+  }));
 }
 
 export function syncSalonBookingsForArtist(artistUserId) {

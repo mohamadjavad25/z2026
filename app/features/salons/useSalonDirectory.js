@@ -7,6 +7,7 @@ import {
   getSalons,
   toggleSalonFollow
 } from "../../shared/api/salons";
+import { getClientArtistBookings } from "../../shared/api/artists";
 import { getReviews } from "../../shared/api/reviews";
 import { notifyFromResponse } from "../../shared/lib/apiNotify";
 import { resolveRollingPersianDateKey } from "../../shared/lib/persianCalendar";
@@ -157,13 +158,26 @@ export function useSalonDirectory({
   }, []);
 
   const refreshClientBookings = useCallback(async () => {
-    try {
-      const { ok, data, payload } = await getSalonBookings();
-      if (!ok) return;
-      setClientBookingList(data?.bookings || payload?.bookings || []);
-    } catch {
-      // keep current client bookings
-    }
+    // Salon bookings (salon_bookings table) + the client's own direct
+    // artist bookings (artist_bookings table, /api/artist-bookings) —
+    // merged into one list so "فعالیت من" shows every real booking, not
+    // just salon ones. See listClientArtistBookings in
+    // app/lib/db/repos/artists.js for why the artist rows already carry
+    // salonName/salon_name (reused field, safe for existing rendering)
+    // alongside their own artistUserId/bookingSource (kept distinct, used
+    // by HomeApp's rebookFromBooking to route to the right profile type).
+    const [salonResult, artistResult] = await Promise.allSettled([
+      getSalonBookings(),
+      getClientArtistBookings()
+    ]);
+    const salonBookings = salonResult.status === "fulfilled" && salonResult.value.ok
+      ? (salonResult.value.data?.bookings || salonResult.value.payload?.bookings || [])
+      : null;
+    const artistBookings = artistResult.status === "fulfilled" && artistResult.value.ok
+      ? (artistResult.value.data?.bookings || artistResult.value.payload?.bookings || [])
+      : [];
+    if (salonBookings === null) return; // keep current list if the primary (salon) fetch failed
+    setClientBookingList([...salonBookings, ...artistBookings]);
   }, []);
 
   const resetSalonClient = useCallback(() => {
