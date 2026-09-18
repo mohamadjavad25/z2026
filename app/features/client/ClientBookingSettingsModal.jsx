@@ -1,9 +1,27 @@
 "use client";
 
-import { AlertTriangle, CalendarCheck, MapPin, MessageCircle, Phone, RotateCcw, X } from "lucide-react";
+import { AlertTriangle, CalendarCheck, CheckCircle2, Clock3, MapPin, MessageCircle, Phone, RotateCcw, TimerOff, X, XCircle } from "lucide-react";
 import { SegmentClock } from "../../components/SegmentClock";
 import { toLatinDigits } from "../../shared/lib/digits";
 import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar";
+
+// Same status-tone mapping as ClientBookingsPanel.jsx's getBookingStatusTone —
+// duplicated (not shared) since it's a tiny presentational lookup local to
+// each booking-status display, matching this codebase's convention for
+// small component-local helpers.
+function getBookingStatusTone(status = "") {
+  if (status === "تایید شده") return "done";
+  if (status === "لغو") return "bad";
+  if (status === "منقضی شده") return "expired";
+  return "pending";
+}
+
+const BOOKING_STATUS_ICONS = {
+  pending: Clock3,
+  done: CheckCircle2,
+  bad: XCircle,
+  expired: TimerOff
+};
 
 /**
  * Client role — booking details / quick actions sheet.
@@ -24,6 +42,8 @@ export function ClientBookingSettingsModal({
   const isChangeMode = booking.clientBookingSheetMode === "change";
   const rawDate = booking.booking_date || booking.date || "";
   const formattedDate = rawDate ? formatRelativeBookingDayLabel(rawDate) : "امروز";
+  const statusTone = getBookingStatusTone(booking.status || "تازه");
+  const StatusIcon = BOOKING_STATUS_ICONS[statusTone];
 
   return (
     <div
@@ -44,7 +64,10 @@ export function ClientBookingSettingsModal({
               <b>{booking.service || "خدمت زیبایی"}</b>
               <em>{salonName}</em>
             </div>
-            <strong>{booking.status || "تازه"}</strong>
+            <strong className={`clientBookingSettingsStatus is-${statusTone}`}>
+              <StatusIcon size={13} />
+              {booking.status || "تازه"}
+            </strong>
           </div>
           <div className="clientBookingSettingsTime">
             <SegmentClock value={booking.time || "زمان"} size="sm" as="span" backgroundColor="transparent" />

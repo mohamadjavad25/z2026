@@ -362,6 +362,36 @@
   font-weight: 950;
 }
 
+/* .clientBookingSettingsStatus — status-aware tones, same palette as
+   ClientBookingsPanel's .clientBookingStatusPill, so the badge here (booking
+   details/change sheet) and the one on the activity-tab card agree with
+   each other instead of telling two different visual stories. */
+.clientBookingSettingsStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.clientBookingSettingsStatus.is-pending {
+  background: rgba(245, 158, 11, 0.14);
+  color: #b45309;
+}
+
+.clientBookingSettingsStatus.is-done {
+  background: rgba(34, 197, 94, 0.14);
+  color: #16a34a;
+}
+
+.clientBookingSettingsStatus.is-bad {
+  background: rgba(214, 69, 69, 0.12);
+  color: #d64545;
+}
+
+.clientBookingSettingsStatus.is-expired {
+  background: rgba(154, 91, 82, 0.14);
+  color: #9a5b52;
+}
+
 /* .clientBookingSettingsTime */
 .clientBookingSettingsTime {
   min-height: 54px;
