@@ -80,6 +80,16 @@ export function ProfileHeroActions({
         {profileType === "artist" && (
           <button
             type="button"
+            className={`${activePanel === "notifications" ? "is-active" : ""} ${notificationCount > 0 ? "has-notifications" : ""}`.trim()}
+            onClick={onOpenNotifications}
+            aria-label="اعلان‌ها"
+          >
+            <Bell size={17} />
+          </button>
+        )}
+        {profileType === "artist" && (
+          <button
+            type="button"
             className="profileHeroPreviewBtn"
             onClick={onPreviewPublic}
             aria-label="پیش‌نمایش پروفایل عمومی"

@@ -1179,6 +1179,15 @@ export function HomeApp() {
     })
   ), [artistWeekRange, artistBookingList]);
 
+  // Real bookings not yet accepted/declined, for the artist notifications
+  // sheet below. Unlike the salon panel's reservationRequestList (still
+  // backed by shell/mockData — a separate, pre-existing issue, not fixed
+  // here), this reads real artistBookingList. "تازه"/"درخواست" = not yet
+  // reviewed; "لغو" (cancelled) never counts as pending.
+  const pendingArtistBookingRequests = useMemo(() => (
+    artistBookingList.filter((item) => item.status === "تازه" || item.status === "درخواست")
+  ), [artistBookingList]);
+
   const scheduleDayAppointments = useMemo(() => (
     salonHistoryAppointments
       .filter((item) => isArtistBookingOnExactDate(item, activeScheduleDateKey))
@@ -2071,9 +2080,17 @@ function getPassportMatch(post) {
               onOpenNotifications={() => {
                 if (createdProfile?.type === "salon") {
                   setSalonHeroSheet((prev) => (prev === "notifications" ? null : "notifications"));
+                } else if (createdProfile?.type === "artist") {
+                  setProfileView((prev) => (prev === "notifications" ? "overview" : "notifications"));
                 }
               }}
-              notificationCount={createdProfile?.type === "salon" ? salonUnreadNoticeCount : 0}
+              notificationCount={
+                createdProfile?.type === "salon"
+                  ? salonUnreadNoticeCount
+                  : createdProfile?.type === "artist"
+                    ? pendingArtistBookingRequests.length + pendingArtistSalonInvites.length
+                    : 0
+              }
               onOpenSettings={() => {
                 if (createdProfile?.type === "salon") {
                   setSalonHeroSheet((prev) => (prev === "settings" ? null : "settings"));
@@ -2508,7 +2525,45 @@ function getPassportMatch(post) {
                   <b>برنامه امروز</b>
                   <small>{salonAppointmentList.length ? `${toPersianDigits(salonAppointmentList.length)} نوبت در برنامه سالن ثبت شده است.` : "برنامه امروز خالی است."}</small>
                 </div>
-                <em>{toPersianDigits(salonUnreadNoticeCount || 0)}</em>
+                <em>{toPersianDigits(salonAppointmentList.length)}</em>
+              </article>
+            </div>
+          </ProfileSheet>
+        )}
+
+        {createdProfile?.type === "artist" && profileView === "notifications" && (
+          <ProfileSheet
+            title="اعلان‌ها"
+            label="اعلان‌ها"
+            kicker="داشبورد آرتیست"
+            panelClassName="salonNotificationsSheetPanel"
+            open
+            onClose={() => setProfileView("overview")}
+          >
+            <div className="salonNotificationsPanel">
+              <article>
+                <span><BellRing size={18} /></span>
+                <div>
+                  <b>نوبت‌های تازه</b>
+                  <small>{pendingArtistBookingRequests.length ? `${toPersianDigits(pendingArtistBookingRequests.length)} نوبت تازه هنوز بررسی نشده است.` : "نوبت تازه‌ای ثبت نشده است."}</small>
+                </div>
+                <em>{toPersianDigits(pendingArtistBookingRequests.length)}</em>
+              </article>
+              <article>
+                <span><UserRound size={18} /></span>
+                <div>
+                  <b>دعوت همکاری سالن‌ها</b>
+                  <small>{pendingArtistSalonInvites.length ? `${toPersianDigits(pendingArtistSalonInvites.length)} دعوت همکاری نیاز به پاسخ دارد.` : "دعوت همکاری تازه‌ای نداری."}</small>
+                </div>
+                <em>{toPersianDigits(pendingArtistSalonInvites.length)}</em>
+              </article>
+              <article>
+                <span><CalendarClock size={18} /></span>
+                <div>
+                  <b>برنامه نوبت‌ها</b>
+                  <small>{artistBookingList.length ? `${toPersianDigits(artistBookingList.length)} نوبت در برنامه‌ات ثبت شده است.` : "برنامه نوبت‌ها خالی است."}</small>
+                </div>
+                <em>{toPersianDigits(artistBookingList.length)}</em>
               </article>
             </div>
           </ProfileSheet>
