@@ -13,6 +13,7 @@ export function applySchema(db) {
       bio TEXT NOT NULL DEFAULT '',
       experience_years TEXT NOT NULL DEFAULT '',
       manager_name TEXT NOT NULL DEFAULT '',
+      last_seen_at TEXT DEFAULT NULL,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );

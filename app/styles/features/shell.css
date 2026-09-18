@@ -375,6 +375,27 @@
   background: var(--chat-online);
 }
 
+/* Same online-dot convention as .chatAvatarWrap, sized for the 32px
+   conversation-header avatar (.chatContactTitle img) instead of the 42px
+   thread-list one. */
+.chatHeaderAvatar {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+}
+
+.chatHeaderAvatar i {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 9px;
+  height: 9px;
+  border: 2px solid var(--chat-bg);
+  border-radius: 50%;
+  background: var(--chat-online);
+}
+
 .chatThreadBody {
   min-width: 0;
   display: grid;

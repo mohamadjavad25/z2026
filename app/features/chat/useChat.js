@@ -24,8 +24,9 @@ const SSE_RETRY_MAX_MS = 20000;
  * connection, and one send/attachment/pagination implementation.
  *
  * Real-time: a single SSE connection (GET /api/messages/stream) pushes new
- * messages and conversation changes (renames, membership) as they happen;
- * a slow poll is kept as a fallback only in case the stream drops.
+ * messages, conversation changes (renames, membership), read receipts and
+ * peer presence (online/offline) as they happen; a slow poll is kept as a
+ * fallback only in case the stream drops.
  */
 export function useChat({ myUserId = null, onNotice } = {}) {
   const notify = useCallback((message) => {
@@ -328,6 +329,31 @@ export function useChat({ myUserId = null, onNotice } = {}) {
             return prev;
           });
         }
+      } else if (event.type === "presence") {
+        // Real online/offline for a conversation partner — driven by their
+        // actual SSE connection count server-side (app/lib/presence.js), not
+        // a poll. Patches every conversation-list row and the open
+        // conversation's peer/member entry that matches this user, live.
+        setConversations((prev) => prev.map((c) => (
+          c.peer && c.peer.id === event.userId
+            ? { ...c, peer: { ...c.peer, online: event.online, lastSeenAt: event.online ? c.peer.lastSeenAt : event.lastSeenAt } }
+            : c
+        )));
+        setActiveConversation((prev) => {
+          if (!prev) return prev;
+          if (prev.peer && prev.peer.id === event.userId) {
+            return { ...prev, peer: { ...prev.peer, online: event.online, lastSeenAt: event.online ? prev.peer.lastSeenAt : event.lastSeenAt } };
+          }
+          if (prev.members) {
+            return {
+              ...prev,
+              members: prev.members.map((m) => (
+                m.id === event.userId ? { ...m, online: event.online, lastSeenAt: event.online ? m.lastSeenAt : event.lastSeenAt } : m
+              ))
+            };
+          }
+          return prev;
+        });
       } else if (event.type === "order-status") {
         // Live status push for any order-card bubble already on screen —
         // avoids the card showing a stale "جدید" after the shop ships it.

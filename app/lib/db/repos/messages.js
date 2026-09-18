@@ -138,7 +138,7 @@ export function getConversation(conversationId, userId) {
   if (!convo || !isMember(db, conversationId, userId)) return null;
 
   const members = db.prepare(`
-    SELECT u.id, u.name, u.avatar, u.type, cm.last_read_at AS last_read_at
+    SELECT u.id, u.name, u.avatar, u.type, u.last_seen_at AS last_seen_at, cm.last_read_at AS last_read_at
     FROM conversation_members cm JOIN users u ON u.id = cm.user_id
     WHERE cm.conversation_id = ?
   `).all(conversationId);
@@ -148,6 +148,10 @@ export function getConversation(conversationId, userId) {
   // lastReadAt of the OTHER member(s) rides along here so the UI can derive
   // an honest read receipt (message.createdAt <= peer's last_read_at) without
   // a separate read-receipts table — see /api/conversations/[id]/read.
+  // lastSeenAt is the DB-backed fallback for OFFLINE members; the live
+  // `online` boolean itself is NOT a DB concern (it comes from the in-process
+  // presence registry) and is stitched on by the API route — see
+  // /api/conversations/[id]/route.js and app/lib/presence.js.
   return {
     id: convo.id,
     type: convo.type,
@@ -155,8 +159,8 @@ export function getConversation(conversationId, userId) {
     avatar: convo.type === "group" ? convo.avatar : (peer?.avatar || ""),
     createdBy: convo.created_by,
     isCreator: convo.created_by === userId,
-    peer: peer ? { id: peer.id, name: peer.name, avatar: peer.avatar, type: peer.type, lastReadAt: peer.last_read_at } : null,
-    members: convo.type === "group" ? members.map((m) => ({ id: m.id, name: m.name, avatar: m.avatar, type: m.type, lastReadAt: m.last_read_at })) : undefined,
+    peer: peer ? { id: peer.id, name: peer.name, avatar: peer.avatar, type: peer.type, lastReadAt: peer.last_read_at, lastSeenAt: peer.last_seen_at } : null,
+    members: convo.type === "group" ? members.map((m) => ({ id: m.id, name: m.name, avatar: m.avatar, type: m.type, lastReadAt: m.last_read_at, lastSeenAt: m.last_seen_at })) : undefined,
     createdAt: convo.created_at,
     updatedAt: convo.updated_at
   };
@@ -193,7 +197,7 @@ export function listConversations(userId, { limit = DEFAULT_PAGE_SIZE, cursor } 
   if (directPeerRows.length) {
     const ids = directPeerRows.map((r) => r.id);
     const peers = db.prepare(`
-      SELECT cm.conversation_id, u.id, u.name, u.avatar, u.type
+      SELECT cm.conversation_id, u.id, u.name, u.avatar, u.type, u.last_seen_at AS last_seen_at
       FROM conversation_members cm JOIN users u ON u.id = cm.user_id
       WHERE cm.conversation_id IN (${ids.map(() => "?").join(",")}) AND cm.user_id != ?
     `).all(...ids, userId);
@@ -207,7 +211,9 @@ export function listConversations(userId, { limit = DEFAULT_PAGE_SIZE, cursor } 
       type: row.type,
       title: row.type === "group" ? row.title : (peer?.name || ""),
       avatar: row.type === "group" ? row.avatar : (peer?.avatar || ""),
-      peer: peer ? { id: peer.id, name: peer.name, avatar: peer.avatar, type: peer.type } : null,
+      // `online` is stitched on by the API route from the in-process
+      // presence registry (not a DB column) — see /api/conversations/route.js.
+      peer: peer ? { id: peer.id, name: peer.name, avatar: peer.avatar, type: peer.type, lastSeenAt: peer.last_seen_at } : null,
       lastMessage: row.last_message || "",
       lastMessageAttachmentType: row.last_message_attachment_type || "",
       lastMessageAt: row.last_message_at || row.updated_at,
@@ -237,6 +243,24 @@ export function markConversationRead(conversationId, userId) {
   ).get(conversationId, userId);
   const recipients = memberIds(db, conversationId).filter((id) => id !== userId);
   return { readAt: row.last_read_at, recipients };
+}
+
+/**
+ * Every distinct other user who shares at least one conversation with
+ * userId (direct peers + group co-members). Used to scope presence
+ * broadcasts — see app/lib/presence.js and /api/messages/stream — so a
+ * user's online/offline state only reaches people they actually talk to,
+ * never a global broadcast.
+ */
+export function listConversationPartnerIds(userId) {
+  const db = getDb();
+  const rows = db.prepare(`
+    SELECT DISTINCT cm2.user_id AS id
+    FROM conversation_members cm1
+    JOIN conversation_members cm2 ON cm2.conversation_id = cm1.conversation_id
+    WHERE cm1.user_id = ? AND cm2.user_id != ?
+  `).all(userId, userId);
+  return rows.map((r) => r.id);
 }
 
 /** Paginated messages, oldest-first within the returned page. `before` (a message id) fetches older history. */

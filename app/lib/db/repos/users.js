@@ -101,3 +101,23 @@ export function isFollowing(followerId, targetId) {
     getDb().prepare("SELECT 1 FROM follows WHERE follower_user_id = ? AND target_user_id = ?").get(followerId, targetId)
   );
 }
+
+/**
+ * Stamps "last seen" the moment a user's last open chat connection (SSE
+ * stream) closes — see app/lib/presence.js. Only written on the 1-connection
+ * -> 0 transition, so it always means "the last time this user was really
+ * online here", never a fabricated/approximate value.
+ */
+export function touchLastSeen(userId) {
+  getDb().prepare("UPDATE users SET last_seen_at = CURRENT_TIMESTAMP WHERE id = ?").run(userId);
+}
+
+/** Batch-fetches last_seen_at for a set of user ids (for enriching offline peers in chat UIs). */
+export function getLastSeenMap(ids) {
+  const unique = [...new Set((ids || []).map(Number).filter((id) => Number.isFinite(id)))];
+  if (!unique.length) return new Map();
+  const rows = getDb().prepare(
+    `SELECT id, last_seen_at FROM users WHERE id IN (${unique.map(() => "?").join(",")})`
+  ).all(...unique);
+  return new Map(rows.map((r) => [r.id, r.last_seen_at || null]));
+}

@@ -36,6 +36,23 @@ export function chatDayKey(value) {
 }
 
 /**
+ * Honest "last seen" label for an OFFLINE peer, built from the real
+ * last_seen_at timestamp — stamped server-side the moment their last open
+ * chat connection (SSE stream) actually closed, see app/lib/presence.js.
+ * Never shown for a peer who's currently online (the caller checks that).
+ */
+export function formatLastSeen(value) {
+  const date = parseSqliteUtc(value);
+  if (!date) return "";
+  const diffMin = Math.floor((Date.now() - date.getTime()) / 60_000);
+  if (diffMin < 1) return "همین الان";
+  if (diffMin < 60) return `${diffMin} دقیقه پیش`;
+  const diffHours = Math.floor(diffMin / 60);
+  if (diffHours < 24) return `${diffHours} ساعت پیش`;
+  return `${formatChatDayLabel(value)} ${formatChatTime(value)}`;
+}
+
+/**
  * Honest read receipt for a message the current user sent: "read" only if
  * the recipient's (or, for a group, every other member's) last_read_at is
  * at or after this message's createdAt — the same last_read_at column the

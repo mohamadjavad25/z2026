@@ -3,8 +3,21 @@ import { error, json, notFound, requireUser } from "../../../lib/http.js";
 import * as messages from "../../../lib/db/repos/messages.js";
 import { publishChatEvent } from "../../../lib/chatEvents.js";
 import { checkRateLimit } from "../../../lib/rateLimit.js";
+import { onlineUserIdSet } from "../../../lib/presence.js";
 
 export const runtime = "nodejs";
+
+/** Stitches the live `online` flag (in-process presence registry) onto a conversation's peer/members. */
+function withPresence(conversation) {
+  if (!conversation) return conversation;
+  const ids = conversation.peer ? [conversation.peer.id] : (conversation.members || []).map((m) => m.id);
+  const online = onlineUserIdSet(ids);
+  return {
+    ...conversation,
+    peer: conversation.peer ? { ...conversation.peer, online: online.has(conversation.peer.id) } : conversation.peer,
+    members: conversation.members ? conversation.members.map((m) => ({ ...m, online: online.has(m.id) })) : conversation.members
+  };
+}
 
 export async function GET(request, { params }) {
   ensureDb();
@@ -13,7 +26,7 @@ export async function GET(request, { params }) {
   const { id } = await params;
   const conversation = messages.getConversation(Number(id), auth.user.id);
   if (!conversation) return notFound("گفتگو پیدا نشد.");
-  return json({ data: { conversation } });
+  return json({ data: { conversation: withPresence(conversation) } });
 }
 
 /** Body: { title } to rename a group, or { addMemberIds: [...] } to invite members. */
@@ -31,14 +44,14 @@ export async function PATCH(request, { params }) {
     const result = messages.addMembers(conversationId, auth.user.id, body.addMemberIds);
     if (!result.ok) return error(result.error, result.code === "NOT_FOUND" ? 404 : result.code === "FORBIDDEN" ? 403 : 400);
     publishChatEvent({ type: "conversation", conversationId, recipients: (result.conversation.members || []).map((m) => m.id) });
-    return json({ data: { conversation: result.conversation } });
+    return json({ data: { conversation: withPresence(result.conversation) } });
   }
 
   if (typeof body.title === "string") {
     const result = messages.renameGroup(conversationId, auth.user.id, body.title);
     if (!result.ok) return error(result.error, result.code === "NOT_FOUND" ? 404 : result.code === "FORBIDDEN" ? 403 : 400);
     publishChatEvent({ type: "conversation", conversationId, recipients: (result.conversation.members || []).map((m) => m.id) });
-    return json({ data: { conversation: result.conversation } });
+    return json({ data: { conversation: withPresence(result.conversation) } });
   }
 
   return error("درخواست نامعتبر است.", 400);

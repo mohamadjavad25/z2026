@@ -22,7 +22,7 @@ import {
   X
 } from "lucide-react";
 import { ProfileEmptyState } from "../profile/ProfileEmptyState";
-import { chatDayKey, formatChatDayLabel, formatChatTime, isMessageRead } from "../../shared/lib/chatTime";
+import { chatDayKey, formatChatDayLabel, formatChatTime, formatLastSeen, isMessageRead } from "../../shared/lib/chatTime";
 import { OrderCardBubble } from "../chat/OrderCardBubble";
 
 /** Single check = sent (message made it into the DB). Double check, accented,
@@ -270,6 +270,7 @@ export function ChatPage({
                   >
                     <span className={`chatAvatarWrap ${hasThreadPhoto(thread) ? "" : "is-placeholder"}`}>
                       {renderThreadAvatar(thread)}
+                      {thread.type !== "group" && thread.peer?.online ? <i aria-hidden="true" title="آنلاین" /> : null}
                     </span>
                     <span className="chatThreadBody">
                       <b>{thread.type === "group" ? thread.title : thread.peer?.name || "کاربر"}</b>
@@ -434,17 +435,33 @@ export function ChatPage({
               >
                 {activeConversation?.type === "group" ? (
                   <span className="chatGroupTitleAvatar"><UsersRound size={17} /></span>
-                ) : activeConversation?.avatar ? (
-                  <img src={activeConversation.avatar} alt="" />
                 ) : (
-                  <span className="chatGroupTitleAvatar">
-                    {(() => {
-                      const Icon = PEER_TYPE_ICON[activeConversation?.peer?.type] || User;
-                      return <Icon size={17} />;
-                    })()}
+                  <span className="chatHeaderAvatar">
+                    {activeConversation?.avatar ? (
+                      <img src={activeConversation.avatar} alt="" />
+                    ) : (
+                      <span className="chatGroupTitleAvatar">
+                        {(() => {
+                          const Icon = PEER_TYPE_ICON[activeConversation?.peer?.type] || User;
+                          return <Icon size={17} />;
+                        })()}
+                      </span>
+                    )}
+                    {activeConversation?.peer?.online ? <i aria-hidden="true" title="آنلاین" /> : null}
                   </span>
                 )}
-                <span><b>{activeConversation?.title || "…"}</b></span>
+                <span>
+                  <b>{activeConversation?.title || "…"}</b>
+                  {activeConversation?.type !== "group" ? (
+                    <small>
+                      {activeConversation?.peer?.online
+                        ? "آنلاین"
+                        : activeConversation?.peer?.lastSeenAt
+                          ? `بازدید ${formatLastSeen(activeConversation.peer.lastSeenAt)}`
+                          : ""}
+                    </small>
+                  ) : null}
+                </span>
               </button>
             </header>
 

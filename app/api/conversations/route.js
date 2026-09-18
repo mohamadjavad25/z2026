@@ -4,6 +4,7 @@ import * as messages from "../../lib/db/repos/messages.js";
 import * as users from "../../lib/db/repos/users.js";
 import { checkRateLimit } from "../../lib/rateLimit.js";
 import { publishChatEvent } from "../../lib/chatEvents.js";
+import { onlineUserIdSet } from "../../lib/presence.js";
 
 export const runtime = "nodejs";
 
@@ -15,6 +16,16 @@ export async function GET(request) {
   const limit = Number(searchParams.get("limit")) || undefined;
   const cursor = Number(searchParams.get("cursor")) || undefined;
   const result = messages.listConversations(auth.user.id, { limit, cursor });
+
+  // Real, current online/offline for each direct peer — from the in-process
+  // presence registry (live SSE connection count), not a DB guess. See
+  // app/lib/presence.js for exactly what "online" means here.
+  const peerIds = result.conversations.map((c) => c.peer?.id).filter(Boolean);
+  const online = onlineUserIdSet(peerIds);
+  result.conversations = result.conversations.map((c) => (
+    c.peer ? { ...c, peer: { ...c.peer, online: online.has(c.peer.id) } } : c
+  ));
+
   return json({ data: result });
 }
 
