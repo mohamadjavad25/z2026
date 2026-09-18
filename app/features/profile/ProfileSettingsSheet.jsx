@@ -56,7 +56,7 @@ export function ProfileSettingsSheet({
       : isSalon
         ? "لوگو، نام سالن، شماره تماس و مسیر رزرو"
         : isClient
-          ? "عکس، نام، شهر، تماس و ترجیحات زیبایی"
+          ? "عکس، نام، شهر و تماس"
     : "عکس، نام، تماس، ایمیل و رمز عبور";
   const accountAvatar = isShop
     ? (profile?.data?.avatar || profile?.avatar || "/cosmetics-bold-poster.png")

@@ -10,6 +10,7 @@ import {
   getBookingDateKey,
   isArtistBookingOnExactDate
 } from "../artist";
+import { BookingHistoryCalendarSheet } from "../profile/BookingHistoryCalendarSheet";
 import { ProfileHeroWeekStrip } from "../profile/ProfileHeroWeekStrip";
 
 /**
@@ -27,11 +28,12 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings }) {
         if (!dateKey || seen.has(dateKey)) return null;
         seen.add(dateKey);
         const matchedFallback = fallbackTabs.find((tab) => tab.dateKey === dateKey);
+        const formattedFallbackLabel = rawDate ? formatRelativeBookingDayLabel(rawDate) : "امروز";
         return {
           id: dateKey,
-          day: matchedFallback?.label || rawDate || "امروز",
-          label: matchedFallback?.label || rawDate || "امروز",
-          meta: matchedFallback?.sub || rawDate || "",
+          day: matchedFallback?.label || formattedFallbackLabel,
+          label: matchedFallback?.label || formattedFallbackLabel,
+          meta: matchedFallback?.sub || formattedFallbackLabel,
           state: `${toPersianDigits(bookings.filter((item) => isArtistBookingOnExactDate(item, dateKey)).length)} نوبت`,
           dateKey
         };
@@ -49,6 +51,7 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings }) {
   }, [bookings]);
 
   const [selectedDay, setSelectedDay] = useState("");
+  const [historyOpen, setHistoryOpen] = useState(false);
   const activeDay = selectedDay || weekTabs[0]?.id || weekTabs[0]?.day || "";
   const activeDateKey = weekTabs.find((tab) => (tab.id || tab.day) === activeDay)?.dateKey || "";
   const activeBookings = useMemo(() => (
@@ -68,11 +71,12 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings }) {
       service: booking.service || "خدمت زیبایی",
       date: rawDate ? formatRelativeBookingDayLabel(rawDate) : "امروز",
       time: booking.time || "زمان",
-      status: booking.status || "تایید شده"
+      status: booking.status || "تازه"
     };
   };
 
   return (
+    <>
     <section className="clientBookingsBoard" aria-label="رزروهای مشتری">
       <div className="boardHead">
         <div>
@@ -88,7 +92,7 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings }) {
             selectedDay={activeDay}
             defaultDay={weekTabs[0]?.id || weekTabs[0]?.day}
             onSelectDay={setSelectedDay}
-            onOpenHistory={() => setSelectedDay(weekTabs[0]?.id || weekTabs[0]?.day || "")}
+            onOpenHistory={() => setHistoryOpen(true)}
             ariaLabel="روزهای رزروهای من"
           />
           {nextBooking ? (() => {
@@ -202,5 +206,42 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings }) {
         </div>
       )}
     </section>
+    <BookingHistoryCalendarSheet
+      open={historyOpen}
+      onOpenChange={setHistoryOpen}
+      selectedDay={activeDateKey}
+      onSelectDay={setSelectedDay}
+      bookings={bookings}
+      matchBookingDay={(booking, dateKey) => isArtistBookingOnExactDate(booking, dateKey)}
+      kicker="رزرو"
+      title="تاریخچه رزروها"
+      emptyDayLabel="رزروی ثبت نشده"
+      renderBooking={(booking, { closeHistory }) => {
+        const meta = getBookingMeta(booking);
+        return (
+          <button
+            type="button"
+            className="clientBookingMiniCard"
+            onClick={() => {
+              closeHistory?.();
+              onOpenSettings?.({ ...booking, clientBookingSheetMode: "details" });
+            }}
+          >
+            <span className={`clientBookingMiniLogo ${meta.avatar ? "hasImage" : ""}`} aria-hidden="true">
+              {meta.avatar ? <img src={meta.avatar} alt="" /> : String(meta.salonName).slice(0, 1)}
+            </span>
+            <div>
+              <b>{meta.service}</b>
+              <small>{meta.salonName} · {meta.date}</small>
+            </div>
+            <div className="clientBookingMiniState">
+              <strong>{meta.status}</strong>
+              <em>{meta.time}</em>
+            </div>
+          </button>
+        );
+      }}
+    />
+    </>
   );
 }

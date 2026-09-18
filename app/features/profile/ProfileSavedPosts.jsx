@@ -13,6 +13,12 @@ function getPostKey(item, index) {
   return String(item.id || item.image || item.title || index);
 }
 
+function getSalonRatingLabel(salon) {
+  const ratingValue = Number(salon?.rating);
+  if (!Number.isFinite(ratingValue) || ratingValue <= 0) return "بدون امتیاز";
+  return `${toPersianDigits(ratingValue.toFixed(1))} امتیاز`;
+}
+
 function getMosaicShape(ratio, index) {
   if (ratio >= 1.55) return "is-wide";
   if (ratio <= 0.72) return "is-tall";
@@ -70,7 +76,7 @@ export function ProfileSavedPosts({
                   <span className="savedSalonBody">
                     <b>{salon.name}</b>
                     <small><MapPin size={13} /> {salon.area || "محدوده نامشخص"}</small>
-                    <em>{salon.rating || "۴.۸"} امتیاز · {toPersianDigits(salon.portfolio?.length || salon.post_count || 0)} نمونه‌کار</em>
+                    <em>{getSalonRatingLabel(salon)} · {toPersianDigits(salon.portfolio?.length || salon.post_count || 0)} نمونه‌کار</em>
                   </span>
                 </span>
                 <button

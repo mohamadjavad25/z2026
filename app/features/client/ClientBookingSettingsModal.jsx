@@ -3,6 +3,7 @@
 import { AlertTriangle, CalendarCheck, MapPin, MessageCircle, Phone, RotateCcw, X } from "lucide-react";
 import { SegmentClock } from "../../components/SegmentClock";
 import { toLatinDigits } from "../../shared/lib/digits";
+import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar";
 
 /**
  * Client role — booking details / quick actions sheet.
@@ -20,6 +21,8 @@ export function ClientBookingSettingsModal({
   const salonName = booking.salonName || booking.salon_name || "سالن منتخب";
   const phone = booking.salonPhone || booking.salon_phone || booking.phone || "";
   const isChangeMode = booking.clientBookingSheetMode === "change";
+  const rawDate = booking.booking_date || booking.date || "";
+  const formattedDate = rawDate ? formatRelativeBookingDayLabel(rawDate) : "امروز";
 
   return (
     <div
@@ -40,7 +43,7 @@ export function ClientBookingSettingsModal({
               <b>{booking.service || "خدمت زیبایی"}</b>
               <em>{salonName}</em>
             </div>
-            <strong>{booking.status || "درخواست"}</strong>
+            <strong>{booking.status || "تازه"}</strong>
           </div>
           <div className="clientBookingSettingsTime">
             <SegmentClock value={booking.time || "زمان"} size="sm" as="span" backgroundColor="transparent" />
@@ -48,7 +51,7 @@ export function ClientBookingSettingsModal({
           <div className="clientBookingSettingsGrid">
             <span>
               <CalendarCheck size={14} /> <b>تاریخ</b>
-              <em>{booking.booking_date || booking.date || "امروز"}</em>
+              <em>{formattedDate}</em>
             </span>
             <span>
               <MapPin size={14} /> <b>محدوده</b>

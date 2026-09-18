@@ -12,7 +12,6 @@ import {
   Globe,
   Lock,
   Moon,
-  Palette,
   Store,
   Tag,
   Briefcase,
@@ -137,15 +136,7 @@ export function ProfileSettingsPanel({
       onLabel="عمومی"
       offLabel="خصوصی"
     />
-  ) : (
-    <SettingsToggle
-      icon={Palette}
-      label="ترجیحات زیبایی"
-      description="سبک‌ها، پوست، مو و مدل‌های ذخیره‌شده"
-      checked={false}
-      onChange={() => {}}
-    />
-  );
+  ) : null;
 
   const artistBooking = profileType === "artist" && artistBookingSettings ? (
     <SettingsGroup title="رزرو و ظرفیت کاری">
@@ -208,7 +199,7 @@ export function ProfileSettingsPanel({
       {shopMainToggles}
       {commonToggles}
 
-      {profileType === "shop" ? null : (
+      {profileTypeToggle ? (
         <SettingsGroup title={
           profileType === "artist" ? "پروفایل آرتیست"
           : profileType === "salon" ? "سالن"
@@ -216,7 +207,7 @@ export function ProfileSettingsPanel({
         }>
           {profileTypeToggle}
         </SettingsGroup>
-      )}
+      ) : null}
 
       {artistBooking}
       {shopOps}
