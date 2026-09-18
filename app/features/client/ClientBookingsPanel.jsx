@@ -125,17 +125,31 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook })
                   {meta.status}
                 </div>
                 <div className="clientBookingFeatureActions">
-                  <button type="button" onClick={() => onOpenSettings?.({ ...nextBooking, clientBookingSheetMode: "details" })}>
-                    <FileText size={18} />
+                  <button
+                    type="button"
+                    className="clientBookingActionPrimary"
+                    onClick={() => onOpenSettings?.({ ...nextBooking, clientBookingSheetMode: "details" })}
+                  >
+                    <FileText size={17} />
                     مشاهده جزئیات
                   </button>
-                  <button type="button" onClick={() => onOpenSettings?.({ ...nextBooking, clientBookingSheetMode: "change" })}>
+                  <button
+                    type="button"
+                    className="clientBookingActionSecondary"
+                    onClick={() => onOpenSettings?.({ ...nextBooking, clientBookingSheetMode: "change" })}
+                    aria-label="تغییر یا لغو نوبت"
+                    title="تغییر یا لغو نوبت"
+                  >
                     <RotateCcw size={18} />
-                    تغییر یا لغو نوبت
                   </button>
-                  <button type="button" onClick={() => onRebook?.(nextBooking)}>
+                  <button
+                    type="button"
+                    className="clientBookingActionSecondary"
+                    onClick={() => onRebook?.(nextBooking)}
+                    aria-label="رزرو دوباره"
+                    title="رزرو دوباره"
+                  >
                     <Sparkles size={18} />
-                    رزرو دوباره
                   </button>
                 </div>
               </article>

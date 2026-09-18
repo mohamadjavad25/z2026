@@ -7889,31 +7889,53 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingFeatureActions {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0;
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
   padding-top: 2px;
+  direction: rtl;
 }
 
-.profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingFeatureActions button {
-  min-height: 40px;
-  display: flex;
-  flex-direction: column;
+.profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingActionPrimary {
+  flex: 1;
+  min-width: 0;
+  min-height: 42px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 3px;
-  padding: 5px 2px;
+  gap: 7px;
   border: 0;
-  background: transparent;
-  color: #7c5ce2;
-  font-size: 10px;
-  font-weight: 850;
-  line-height: 1.3;
-  text-align: center;
+  border-radius: 13px;
+  background: linear-gradient(180deg, #8f5cff, #6d3ee8);
+  color: #ffffff;
+  font-size: 12.5px;
+  font-weight: 900;
+  box-shadow: 0 10px 20px rgba(109, 62, 232, 0.22);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingFeatureActions button + button {
-  border-right: 1px solid rgba(35, 36, 52, 0.08);
+.profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingActionPrimary:active {
+  transform: scale(0.97);
+  box-shadow: 0 6px 14px rgba(109, 62, 232, 0.2);
+}
+
+.profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingActionSecondary {
+  flex: 0 0 auto;
+  width: 42px;
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(124, 92, 226, 0.16);
+  border-radius: 13px;
+  background: rgba(124, 92, 226, 0.07);
+  color: #7c5ce2;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingActionSecondary:active {
+  transform: scale(0.94);
+  background: rgba(124, 92, 226, 0.14);
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingOtherList {
@@ -8265,6 +8287,16 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   background: rgba(255, 255, 255, 0.46);
 }
 
+.profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingsEmpty.is-dayEmpty > svg {
+  box-sizing: border-box;
+  width: 46px;
+  height: 46px;
+  padding: 11px;
+  border-radius: 999px;
+  color: #9a8bc7;
+  background: rgba(124, 92, 226, 0.07);
+}
+
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingsEmpty b {
   color: #171827;
 }
@@ -8273,11 +8305,25 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientActivityStack {
   display: grid;
-  gap: 18px;
+  gap: 22px;
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientActivityStack .clientBookingsBoard {
   padding-bottom: 0;
+}
+
+.profilePanel.page-profile:has(.createdProfile.is-client) .clientActivityStack .clientOrdersBoard {
+  position: relative;
+}
+
+.profilePanel.page-profile:has(.createdProfile.is-client) .clientActivityStack .clientOrdersBoard::before {
+  content: "";
+  position: absolute;
+  top: -12px;
+  right: 4px;
+  left: 4px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(124, 92, 226, 0.16), transparent);
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientOrdersBoard {
@@ -8459,22 +8505,55 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientOrdersLoading,
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientOrdersEmpty {
-  min-height: 160px;
+  min-height: 190px;
   display: grid;
   place-items: center;
   align-content: center;
-  gap: 8px;
-  padding: 20px;
-  border: 1px dashed rgba(124, 92, 226, 0.16);
+  gap: 10px;
+  padding: 22px 20px;
+  border: 1px dashed rgba(124, 92, 226, 0.18);
   border-radius: 22px;
-  background: rgba(255, 255, 255, 0.46);
+  background: rgba(255, 255, 255, 0.5);
   color: #7f8190;
   text-align: center;
+}
+
+.profilePanel.page-profile:has(.createdProfile.is-client) .clientOrdersLoading > svg,
+.profilePanel.page-profile:has(.createdProfile.is-client) .clientOrdersEmpty > svg {
+  box-sizing: border-box;
+  width: 46px;
+  height: 46px;
+  padding: 11px;
+  border-radius: 999px;
+  color: #7c5ce2;
+  background: rgba(124, 92, 226, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(124, 92, 226, 0.14);
+}
+
+.profilePanel.page-profile:has(.createdProfile.is-client) .clientOrdersLoading > svg {
+  animation: clientOrdersPulse 1.6s ease-in-out infinite;
+}
+
+.profilePanel.page-profile:has(.createdProfile.is-client) .clientOrdersEmpty > svg {
+  color: #9a8bc7;
+  background: rgba(124, 92, 226, 0.07);
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientOrdersLoading b,
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientOrdersEmpty b {
   color: #171827;
+  font-size: 13.5px;
+}
+
+.profilePanel.page-profile:has(.createdProfile.is-client) .clientOrdersEmpty span {
+  max-width: 240px;
+  font-size: 11.5px;
+  line-height: 1.7;
+}
+
+@keyframes clientOrdersPulse {
+  0%, 100% { opacity: 0.5; transform: scale(0.92); }
+  50% { opacity: 1; transform: scale(1); }
 }
 
 /* ── Client "پروفایل" overview tab ────────────────────────────────────── */
