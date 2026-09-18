@@ -494,6 +494,67 @@ export function updateOrderStatus(id, shopUserId, status) {
 }
 
 /**
+ * Sweep-only internal transition: a still-unacknowledged "جدید" order whose
+ * shop never took any real action on it within the response window (see
+ * app/lib/bookingExpirySweep.js) auto-transitions to `expiredStatus`.
+ * Deliberately bypasses updateOrderStatus()'s SHOP_ORDER_STATUSES /
+ * ORDER_STATUS_TRANSITIONS guard above — a shop must never be able to set
+ * this status itself via PATCH /api/shop/orders (that route's own
+ * SHOP_ORDER_STATUSES check already rejects anything outside the enum), only
+ * the background sweep may write it, through this dedicated function. Same
+ * architectural split as patchSalonBookingWithArtistSync (real PATCH) vs. the
+ * sweep's own direct writes for bookings.
+ *
+ * Restocks every line item exactly like a shop-driven cancel does
+ * (ORDER_STATUS_RESOLVED path in updateOrderStatus above) — an order the shop
+ * silently let time out shouldn't keep holding stock hostage any longer than
+ * one the shop actively cancelled would; this mirrors that exact existing
+ * behavior rather than inventing new inventory-reversal logic.
+ *
+ * The `WHERE status = 'جدید'` guard on both the SELECT and the UPDATE means
+ * a race with the shop genuinely acting on the order (updateOrderStatus) in
+ * the same instant can never double-transition or double-restock it —
+ * whichever write wins the row lock first wins outright; the loser's UPDATE
+ * simply matches zero rows and this returns null (the sweep just skips it).
+ */
+export function expireStaleOrder(id, expiredStatus) {
+  const db = getDb();
+  return withTransaction(db, () => {
+    const current = db.prepare("SELECT * FROM shop_orders WHERE id = ? AND status = 'جدید'").get(id);
+    if (!current) return null;
+
+    const info = db.prepare(`
+      UPDATE shop_orders SET status = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ? AND status = 'جدید'
+    `).run(expiredStatus, id);
+    if (!info.changes) return null;
+
+    const items = db.prepare(`
+      SELECT id, order_id AS orderId, product_id AS productId, name, quantity, price, price_num AS priceNum
+      FROM shop_order_items WHERE order_id = ? ORDER BY id ASC
+    `).all(id);
+
+    items.forEach((item) => {
+      if (!item.productId) return;
+      db.prepare(`
+        UPDATE shop_products SET stock = stock + ?, updated_at = CURRENT_TIMESTAMP
+        WHERE id = ? AND shop_user_id = ?
+      `).run(item.quantity, item.productId, current.shop_user_id);
+      recordStockMovement(db, {
+        shopUserId: current.shop_user_id,
+        productId: item.productId,
+        productName: item.name,
+        delta: item.quantity,
+        reason: "expire_restock",
+        orderId: id
+      });
+    });
+
+    return { ...db.prepare("SELECT * FROM shop_orders WHERE id = ?").get(id), items };
+  });
+}
+
+/**
  * A client's own purchase history across every shop — same row/item shape as
  * listOrders() (shop-owner side), plus the shop's name/avatar so a client
  * view can label each order and link back to "خرید دوباره" without a second

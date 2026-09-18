@@ -26,6 +26,11 @@ export const shopStockMovementReasons = {
   sale: "فروش",
   cancel_restock: "بازگشت به انبار (لغو سفارش)",
   return_restock: "بازگشت به انبار (مرجوعی)",
+  // Sweep-only reason (see expireStaleOrder in app/lib/db/repos/shops.js) —
+  // the shop never acknowledged the order within 1 hour, so it auto-cancelled
+  // and its stock came back, same as an active cancel but worded distinctly
+  // in the audit trail so the shop can tell the two apart later.
+  expire_restock: "بازگشت به انبار (سفارش دیده‌نشده منقضی شد)",
   manual_adjust: "ویرایش دستی",
   product_deleted: "حذف محصول"
 };

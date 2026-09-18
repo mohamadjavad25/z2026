@@ -4,6 +4,12 @@ import * as shops from "../../../lib/db/repos/shops.js";
 import * as messages from "../../../lib/db/repos/messages.js";
 import { publishChatEvent } from "../../../lib/chatEvents.js";
 import { enrichOrderCards } from "../../../lib/chatOrderCards.js";
+// Side-effect only: guarantees the 1-hour unacknowledged-order auto-expiry
+// sweep (see bookingExpirySweep.js) is running in this process, the same way
+// /api/salon-bookings and /api/artist/bookings already guarantee it for
+// bookings — without this, a server process that only ever serves shop
+// traffic would never start the sweep interval.
+import "../../../lib/bookingExpirySweep.js";
 
 export const runtime = "nodejs";
 

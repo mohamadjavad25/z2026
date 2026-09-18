@@ -1,22 +1,27 @@
 "use client";
 
-import { Check, Package, ReceiptText, RotateCcw, X } from "lucide-react";
+import { Check, Package, ReceiptText, RotateCcw, TimerOff, X } from "lucide-react";
 import { shopOrderStatuses } from "../shops/mappers";
 import { formatToman } from "../../shared/lib/money";
 import { toPersianDigits } from "../../shared/lib/digits";
 
-// The stepper only covers the "things are progressing" path — cancelled and
-// returned orders each get their own distinct (non-stepped) state below
-// instead of pretending they're just stuck on some step.
+// The stepper only covers the "things are progressing" path — cancelled,
+// returned and auto-expired orders each get their own distinct (non-stepped)
+// state below instead of pretending they're just stuck on some step.
 const TRACK_STEPS = shopOrderStatuses.filter((status) => status !== "لغو شده" && status !== "مرجوعی شد");
 
 // Only the two terminal outcomes get a strong color — everything still in
 // motion (new/preparing/shipped) reads as one calm "in progress" tone since
 // the stepper below already carries the detail of exactly which step it's on.
+// "منقضی شده" (shop never acknowledged the order within the 1-hour window —
+// see bookingExpirySweep.js) deliberately gets its OWN tone, not "bad": it
+// means "the shop never answered in time", not "the shop said no" (that's
+// "لغو شده"), same distinction BookingCardBubble.jsx already makes.
 const STATUS_TONE = {
   "تحویل شد": "done",
   "لغو شده": "bad",
-  "مرجوعی شد": "bad"
+  "مرجوعی شد": "bad",
+  "منقضی شده": "expired"
 };
 
 /**
@@ -40,6 +45,7 @@ export function OrderCardBubble({ order }) {
   const items = order.items || [];
   const cancelled = order.status === "لغو شده";
   const returned = order.status === "مرجوعی شد";
+  const expired = order.status === "منقضی شده";
   const stepIndex = TRACK_STEPS.indexOf(order.status);
   const tone = STATUS_TONE[order.status] || "pending";
 
@@ -72,7 +78,12 @@ export function OrderCardBubble({ order }) {
         <b>{formatToman(order.totalNum || 0)}</b>
       </div>
 
-      {cancelled || returned ? (
+      {expired ? (
+        <div className="orderReceiptCardExpired">
+          <TimerOff size={13} />
+          فروشگاه به‌موقع پاسخ نداد و سفارش به‌طور خودکار لغو شد
+        </div>
+      ) : cancelled || returned ? (
         <div className="orderReceiptCardCancelled">
           {cancelled ? <X size={13} /> : <RotateCcw size={13} />}
           {cancelled ? "سفارش لغو شده" : "سفارش مرجوعی شد"}

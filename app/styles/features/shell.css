@@ -709,6 +709,9 @@
 .orderReceiptCardStatus.is-pending { background: var(--info-bg); color: var(--info); }
 .orderReceiptCardStatus.is-done { background: var(--success-bg); color: var(--success); }
 .orderReceiptCardStatus.is-bad { background: var(--danger-bg); color: var(--danger); }
+/* "منقضی شده" — timed out, not actively cancelled by the shop — deliberately
+   NOT var(--danger), same reasoning as .bookingCardStatus.is-expired. */
+.orderReceiptCardStatus.is-expired { background: var(--warning-bg); color: var(--warning); }
 
 .orderReceiptCardItems {
   display: grid;
@@ -863,6 +866,16 @@
   gap: 5px;
   padding-top: 2px;
   color: var(--danger);
+  font-size: 0.7rem;
+  font-weight: 850;
+}
+
+.orderReceiptCardExpired {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding-top: 2px;
+  color: var(--warning);
   font-size: 0.7rem;
   font-weight: 850;
 }

@@ -109,6 +109,11 @@
 .studioTag.is-done { color: #3f7a52; }
 .studioTag.is-cancel { color: var(--studio-danger); }
 .studioTag.is-return { color: var(--studio-wine); }
+/* "منقضی شده" — the shop let the order time out without acting, not an
+   active cancel — deliberately its own color (matched to the equivalent
+   .clientOrderStatus.is-expired / .bookingCardStatus.is-expired elsewhere in
+   the app) rather than reusing .is-cancel's red. */
+.studioTag.is-expired { color: #9a5b52; }
 
 /* ── Ledger stat row (reused across every page) ───────────────────── */
 

@@ -8511,6 +8511,15 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   background: rgba(214, 69, 69, 0.12);
 }
 
+/* "منقضی شده" — the shop never acknowledged the order in time, not an active
+   cancel — deliberately NOT the same red as .is-bad, and matched to the
+   equivalent .clientBookingStatusPill.is-expired color so "timed out" reads
+   the same across the whole client profile, not just for bookings. */
+.profilePanel.page-profile:has(.createdProfile.is-client) .clientOrderStatus.is-expired {
+  color: #9a5b52;
+  background: rgba(154, 91, 82, 0.12);
+}
+
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientOrderCardBody {
   display: flex;
   align-items: center;

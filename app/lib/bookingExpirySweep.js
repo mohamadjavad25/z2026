@@ -1,15 +1,17 @@
 import { getDb } from "./db/connection.js";
 import * as salons from "./db/repos/salons.js";
 import * as artists from "./db/repos/artists.js";
+import * as shops from "./db/repos/shops.js";
 import * as messages from "./db/repos/messages.js";
 import { publishChatEvent } from "./chatEvents.js";
-import { enrichBookingCards } from "./chatOrderCards.js";
+import { enrichBookingCards, enrichOrderCards } from "./chatOrderCards.js";
 
 /**
  * Auto-expiry sweep for booking REQUESTS a salon/artist never actively
  * responded to (Snapp-Food-style bounded response window — founder-approved
  * product decision: 1 hour, auto-cancel on timeout, notify the client).
- * Covers two independent, non-overlapping sources:
+ * Also covers unacknowledged shop orders under the identical policy (see
+ * source 3 below). Covers three independent, non-overlapping sources:
  *
  * 1. `salon_bookings` rows with status "درخواست" (see
  *    confirmSalonClientBooking in useSalonDirectory.js) — the real
@@ -35,6 +37,19 @@ import { enrichBookingCards } from "./chatOrderCards.js";
  *    the salon row) — sweeping it a second time here would be a redundant
  *    second UPDATE + a duplicate "your booking expired" chat card for the
  *    same appointment.
+ *
+ * 3. `shop_orders` rows with status "جدید" (unacknowledged order — see
+ *    createOrder in shops.js repo) — founder-approved product decision
+ *    (2026-09-18): the 1-hour window isn't about giving the shop prep time,
+ *    it's so the buyer knows their order was actually seen, so it gets the
+ *    exact same policy as a booking request. The real "shop took action"
+ *    path is updateOrderStatus (PATCH /api/shop/orders — moves it forward,
+ *    or an explicit cancel); anything else within the window leaves it
+ *    "جدید" and eligible here. Uses its own dedicated sweep-only transition
+ *    (shops.expireStaleOrder), never updateOrderStatus, for the same reason
+ *    paths (1)/(2) never call their real PATCH-backing functions with a
+ *    status outside their public enum — see expireStaleOrder's docstring in
+ *    shops.js for the full guard rationale (including why it restocks).
  */
 
 /** Status written to an expired booking — distinct from "درخواست" (still pending),
@@ -44,6 +59,15 @@ import { enrichBookingCards } from "./chatOrderCards.js";
  *  existing status literal in this codebase (grepped across booking code paths).
  */
 export const BOOKING_REQUEST_EXPIRED_STATUS = "منقضی شده";
+
+/** Same literal as BOOKING_REQUEST_EXPIRED_STATUS, reused deliberately for
+ *  orders too (not a shop-specific wording) — grepped every place a status
+ *  string is compared across this codebase and confirmed booking code always
+ *  queries salon_bookings/artist_bookings and order code always queries
+ *  shop_orders, so the two never share a column or a comparison; reusing the
+ *  identical "timed out" meaning is pure upside (one concept, one string,
+ *  recognizable everywhere) with zero ambiguity risk. */
+export const ORDER_REQUEST_EXPIRED_STATUS = BOOKING_REQUEST_EXPIRED_STATUS;
 
 const DEFAULT_TIMEOUT_MINUTES = 60;
 const DEFAULT_SWEEP_INTERVAL_MS = 3 * 60 * 1000; // every 3 minutes; timeout precision doesn't need to be tighter than this
@@ -82,6 +106,20 @@ function findExpiredDirectArtistBookingRequests(db, minutes) {
     FROM artist_bookings
     WHERE status = 'تازه'
       AND source_salon_user_id IS NULL
+      AND created_at <= datetime('now', ?)
+  `).all(`-${minutes} minutes`);
+}
+
+/** Every still-unacknowledged ("جدید") shop_orders row whose created_at is
+ *  older than the configured window, same DB-clock comparison as the two
+ *  booking finders above — reuses the SAME `minutes` window (timeoutMinutes()),
+ *  per the founder's explicit "the same 1 hour is fine" — no separate
+ *  ZIBABAN_*_TIMEOUT_MINUTES knob for orders; one product policy, one env var. */
+function findExpiredOrders(db, minutes) {
+  return db.prepare(`
+    SELECT id, shop_user_id, buyer_user_id
+    FROM shop_orders
+    WHERE status = 'جدید'
       AND created_at <= datetime('now', ?)
   `).all(`-${minutes} minutes`);
 }
@@ -138,10 +176,44 @@ function notifyClientOfArtistBookingExpiry(booking) {
 }
 
 /**
+ * Same idea as notifyClientOfExpiry, for a shop_orders row — reuses
+ * sendOrderCardMessage, the exact same card mechanism POST /api/shop/orders
+ * already uses for the initial receipt card, so the buyer sees a fresh,
+ * always-live-status card (getOrderById is re-read on every fetch, so it
+ * already shows the new expired status with no extra plumbing) in the
+ * buyer<->shop chat. Also publishes the same "order-status" live-push event
+ * PATCH /api/shop/orders sends, so an order card the buyer already has open
+ * on screen updates instantly too — not just the new card message.
+ */
+function notifyClientOfOrderExpiry(order) {
+  const buyerUserId = Number(order.buyer_user_id || 0);
+  const shopUserId = Number(order.shop_user_id || 0);
+  if (!buyerUserId || !shopUserId || buyerUserId === shopUserId) return;
+  const conversation = messages.getOrCreateDirectConversation(buyerUserId, shopUserId);
+  if (!conversation) return;
+  const sendResult = messages.sendOrderCardMessage(conversation.id, shopUserId, order.id);
+  if (sendResult.ok) {
+    enrichOrderCards([sendResult.message]);
+    publishChatEvent({
+      type: "message",
+      conversationId: conversation.id,
+      message: sendResult.message,
+      recipients: sendResult.recipients
+    });
+  }
+  publishChatEvent({
+    type: "order-status",
+    orderId: order.id,
+    status: ORDER_REQUEST_EXPIRED_STATUS,
+    recipients: [buyerUserId, shopUserId]
+  });
+}
+
+/**
  * Runs one sweep pass synchronously. Exported (not just used by the
  * self-starting interval below) so isolated tests can call it directly
  * instead of waiting for a real interval tick.
- * @returns {{ expired: number, attempted: number, salonExpired: number, artistExpired: number }}
+ * @returns {{ expired: number, attempted: number, salonExpired: number, artistExpired: number, orderExpired: number }}
  */
 export function sweepExpiredBookingRequestsOnce() {
   const db = getDb();
@@ -189,11 +261,33 @@ export function sweepExpiredBookingRequestsOnce() {
     }
   }
 
+  const staleOrders = findExpiredOrders(db, minutes);
+  let orderExpired = 0;
+  for (const row of staleOrders) {
+    // Dedicated sweep-only transition (bypasses updateOrderStatus's public
+    // enum guard) — see expireStaleOrder's docstring in shops.js.
+    const updated = shops.expireStaleOrder(row.id, ORDER_REQUEST_EXPIRED_STATUS);
+    if (updated) {
+      orderExpired += 1;
+      try {
+        notifyClientOfOrderExpiry(row);
+      } catch {
+        // Notification is best-effort; the order is already correctly expired
+        // (and restocked) even if the chat message failed to send.
+      }
+    }
+    // If the transition failed (e.g. the shop genuinely acted on it in the
+    // same instant — see expireStaleOrder's race guard), leave it as-is;
+    // created_at doesn't change, so the next sweep pass simply won't find it
+    // anymore (its status is no longer "جدید").
+  }
+
   return {
-    expired: salonExpired + artistExpired,
-    attempted: staleSalon.length + staleDirectArtist.length,
+    expired: salonExpired + artistExpired + orderExpired,
+    attempted: staleSalon.length + staleDirectArtist.length + staleOrders.length,
     salonExpired,
-    artistExpired
+    artistExpired,
+    orderExpired
   };
 }
 

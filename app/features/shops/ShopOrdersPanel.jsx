@@ -35,6 +35,14 @@ function getStatusTone(status = "") {
   if (status === "تحویل شد") return "done";
   if (status === "لغو شده") return "cancel";
   if (status === "مرجوعی شد") return "return";
+  // Auto-expired by the 1-hour unacknowledged-order sweep (bookingExpirySweep.js)
+  // — deliberately its own tone, not "cancel": this tells the shop owner "I let
+  // this one time out" apart from "I cancelled this one myself", same
+  // distinction already made for artist bookings (bookingUtils.getArtistBookingStatusKey).
+  // NOT in shopOrderStatuses/ORDER_FILTERS above (a shop can never set this
+  // status manually — see SHOP_ORDER_STATUSES in shops.js repo), so it only
+  // ever shows up here via a real order that actually expired.
+  if (status === "منقضی شده") return "expired";
   return "new";
 }
 
@@ -134,7 +142,7 @@ export function ShopOrdersPanel({ orders = [], busyOrderId = null, onChangeStatu
                         {NEXT_STATUS_LABEL[order.status]}
                       </button>
                     ) : null}
-                    {order.status !== "لغو شده" && order.status !== "تحویل شد" && order.status !== "مرجوعی شد" ? (
+                    {order.status !== "لغو شده" && order.status !== "تحویل شد" && order.status !== "مرجوعی شد" && order.status !== "منقضی شده" ? (
                       <button
                         type="button"
                         className="studioLinkButton is-muted"

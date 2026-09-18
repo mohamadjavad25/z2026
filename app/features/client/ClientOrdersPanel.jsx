@@ -7,6 +7,11 @@ import { formatToman } from "../../shared/lib/money";
 function getStatusTone(status = "") {
   if (status === "تحویل شد") return "done";
   if (status === "لغو شده" || status === "مرجوعی شد") return "bad";
+  // Shop never acknowledged the order within the 1-hour window — kept
+  // distinct from "bad" (an active cancel/return) so the client can tell
+  // "timed out" apart from "shop said no", same distinction already made
+  // for bookings (see bookingExpirySweep.js / ClientBookingsPanel.jsx).
+  if (status === "منقضی شده") return "expired";
   return "pending";
 }
 
