@@ -7,6 +7,20 @@ import { enrichOrderCards } from "../../../lib/chatOrderCards.js";
 
 export const runtime = "nodejs";
 
+/**
+ * A logged-in user's own purchase history, as the buyer — across every shop,
+ * not just one. Deliberately role-agnostic (any authenticated user can be a
+ * buyer here, same as POST above), and scoped to auth.user.id only. This is
+ * separate from GET /api/shop/me (shop-owner's own orders, scoped to their
+ * shop) — the two never overlap and neither route changes the other's shape.
+ */
+export async function GET(request) {
+  ensureDb();
+  const auth = requireUser(request);
+  if (!auth.ok) return auth.response;
+  return json({ data: { orders: shops.listOrdersByBuyer(auth.user.id) } });
+}
+
 export async function POST(request) {
   ensureDb();
   // Real identity only — a request body's buyerName/buyerPhone must never

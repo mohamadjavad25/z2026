@@ -493,6 +493,63 @@ export function updateOrderStatus(id, shopUserId, status) {
   });
 }
 
+/**
+ * A client's own purchase history across every shop — same row/item shape as
+ * listOrders() (shop-owner side), plus the shop's name/avatar so a client
+ * view can label each order and link back to "خرید دوباره" without a second
+ * round-trip. Scoped to buyer_user_id only — never exposes another buyer's
+ * orders, and never overlaps with listOrders()'s shop-owner scoping.
+ */
+export function listOrdersByBuyer(buyerUserId) {
+  const db = getDb();
+  const rows = db.prepare(`
+    SELECT o.*, s.name AS shop_name, u.avatar AS shop_avatar,
+      i.id AS item_id, i.product_id AS item_product_id, i.name AS item_name,
+      i.quantity AS item_quantity, i.price AS item_price, i.price_num AS item_price_num
+    FROM shop_orders o
+    LEFT JOIN shops s ON s.user_id = o.shop_user_id
+    LEFT JOIN users u ON u.id = s.user_id
+    LEFT JOIN shop_order_items i ON i.order_id = o.id
+    WHERE o.buyer_user_id = ?
+    ORDER BY o.id DESC, i.id ASC
+  `).all(buyerUserId);
+
+  const ordersById = new Map();
+  for (const row of rows) {
+    let order = ordersById.get(row.id);
+    if (!order) {
+      order = {
+        id: row.id,
+        shop_user_id: row.shop_user_id,
+        shop_name: row.shop_name,
+        shop_avatar: row.shop_avatar || "",
+        buyer_user_id: row.buyer_user_id,
+        buyer_name: row.buyer_name,
+        buyer_phone: row.buyer_phone,
+        status: row.status,
+        total: row.total,
+        total_num: row.total_num,
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+        items: []
+      };
+      ordersById.set(row.id, order);
+    }
+    if (row.item_id != null) {
+      order.items.push({
+        id: row.item_id,
+        orderId: row.id,
+        productId: row.item_product_id,
+        name: row.item_name,
+        quantity: row.item_quantity,
+        price: row.item_price,
+        priceNum: row.item_price_num
+      });
+    }
+  }
+  return Array.from(ordersById.values());
+}
+
 /** Full order snapshot (with each item's current product image, for an order-card chat bubble). Live status — callers should re-fetch, never cache. */
 export function getOrderById(orderId) {
   const db = getDb();

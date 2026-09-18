@@ -55,6 +55,15 @@ export async function createShopOrder(body) {
 }
 
 /**
+ * GET /api/shop/orders → { data: { orders } } — the logged-in user's own
+ * purchase history as a buyer, across every shop (any authenticated role).
+ * Not to be confused with getShopMe(), which is the shop OWNER's orders.
+ */
+export async function getMyShopOrders() {
+  return apiJson("/api/shop/orders");
+}
+
+/**
  * PATCH /api/shop/orders → { data: { order } } (shop role required, ownership-checked)
  * Body: { id, status } — status must be one of SHOP_ORDER_STATUSES.
  */
