@@ -4,6 +4,7 @@ import { useState } from "react";
 import {
   Award,
   BadgeCheck,
+  Bookmark,
   Heart,
   ImagePlus,
   MapPin,
@@ -155,6 +156,14 @@ export function ProfileHero({
     return (
       <div className={`profileHero ${heroClass} clientBeautyHero`}>
         <div className="clientBeautyHeroActions">
+          <button
+            type="button"
+            className={activePanel === "saved" ? "is-active" : ""}
+            onClick={onOpenSaved}
+            aria-label="ذخیره‌شده‌ها"
+          >
+            <Bookmark size={18} />
+          </button>
           <button
             type="button"
             className={activePanel === "settings" ? "is-active" : ""}

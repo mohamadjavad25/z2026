@@ -88,7 +88,7 @@ export function ProfileModeRail({
       {profileType === "client" && (
         <button type="button" className={profileView === "bookings" ? "active" : ""} onClick={() => onProfileView("bookings")}>
           <CalendarCheck size={16} />
-          <span>رزروها</span>
+          <span>فعالیت من</span>
         </button>
       )}
       {profileType === "shop" && (

@@ -75,8 +75,11 @@ import {
 } from "../explore";
 import {
   ClientBookingSettingsModal,
-  ClientBookingsPanel
+  ClientBookingsPanel,
+  ClientOrdersPanel,
+  ClientProfileOverview
 } from "../client";
+import { getMyShopOrders } from "../../shared/api/shops";
 import { ProfileEmptyState } from "../profile/ProfileEmptyState";
 import { ProfileGallery } from "../profile/ProfileGallery";
 import { ProfileHero } from "../profile/ProfileHero";
@@ -191,6 +194,13 @@ export function HomeApp() {
   const [scheduleViewDay, setScheduleViewDay] = useState("");
   const [salonWeekHistoryOpen, setSalonWeekHistoryOpen] = useState(false);
   const [scheduleNow, setScheduleNow] = useState(() => new Date());
+  // Client's own purchase history (buyer side) — see getMyShopOrders() /
+  // GET /api/shop/orders. `clientOrdersLoaded` (not just "loading") is what
+  // the empty state in ClientOrdersPanel keys off of, so a fetch still in
+  // flight is never shown as "no orders yet".
+  const [clientOrderList, setClientOrderList] = useState([]);
+  const [clientOrdersLoaded, setClientOrdersLoaded] = useState(false);
+  const [clientOrdersError, setClientOrdersError] = useState("");
 
 
   const {
@@ -276,6 +286,12 @@ export function HomeApp() {
         await c.refreshShopPromoCards?.();
       }
       if (source === "boot" && profile?.type === "client") await c.refreshClientBookings?.();
+      // Orders is new (this pass) — unlike the boot-only bookings refresh
+      // above (left untouched), fetch on login too so "خرید دوباره" data is
+      // fresh right after signing in, not only after a full page boot.
+      if ((source === "boot" || source === "login") && profile?.type === "client") {
+        await c.refreshClientOrders?.();
+      }
     },
     onLoggedOut: async () => {
       const c = authCascadeRef.current;
@@ -288,6 +304,9 @@ export function HomeApp() {
       setFollowedArtists([]);
       c.resetWalletState?.();
       setBeautyPassport(null);
+      setClientOrderList([]);
+      setClientOrdersLoaded(false);
+      setClientOrdersError("");
       setProfileEditOpen(false);
       setProfileEditAvatar("");
       resetLogoutUiGaps();
@@ -1255,6 +1274,22 @@ function getPassportMatch(post) {
     }
   }
 
+  async function refreshClientOrders() {
+    try {
+      const { ok, data } = await getMyShopOrders();
+      if (ok) {
+        setClientOrderList(data?.orders || []);
+        setClientOrdersError("");
+      } else {
+        setClientOrdersError("خریدها بارگذاری نشد.");
+      }
+    } catch {
+      setClientOrdersError("خریدها بارگذاری نشد؛ اتصال را بررسی کن.");
+    } finally {
+      setClientOrdersLoaded(true);
+    }
+  }
+
   authCascadeRef.current = {
     refreshExploreFeed,
     refreshShopDirectory,
@@ -1266,6 +1301,7 @@ function getPassportMatch(post) {
     refreshShopCategories,
     refreshShopPromoCards,
     refreshClientBookings,
+    refreshClientOrders,
     resetExploreFeed,
     resetShopWorkspace,
     resetSalonClient,
@@ -1619,13 +1655,10 @@ function getPassportMatch(post) {
     setAppToast(`استوری ${STORY_TYPE_LABELS[createdProfile.type]} حذف شد.`);
   }
 
-  async function openExploreArtistProfile(post) {
-
-    const artist = resolveExploreArtist(post);
-    setSelectedPost(null);
-    if (!artist) return;
-
-    const openSalonProfile = async (salonLike) => {
+  // Hoisted out of openExploreArtistProfile (below) so it can also be reused
+  // as the "رزرو دوباره" (book again) navigation from the client's own
+  // bookings/orders activity view — see rebookSalonFromBooking.
+  const openSalonProfile = async (salonLike) => {
       closePublicArtistProfile();
       setSalonClientTab("gallery");
 
@@ -1686,7 +1719,31 @@ function getPassportMatch(post) {
 
       setSelectedSalon(nextSalon);
       goToTab("salons");
-    };
+  };
+
+  // "رزرو دوباره" — reopens the salon a past booking was made with, using the
+  // salon fields the booking row already carries (see listClientSalonBookings
+  // in app/lib/db/repos/salons/bookings.js: salon_user_id/salonName/etc).
+  function rebookSalonFromBooking(booking) {
+    if (!booking) return;
+    const salonId = booking.salon_user_id || booking.sourceSalonUserId || booking.salonUserId || "";
+    if (!salonId) {
+      setAppToast("این رزرو به یک حساب سالن وصل نیست.");
+      return;
+    }
+    openSalonProfile({
+      id: salonId,
+      source_key: String(salonId),
+      name: booking.salonName || booking.salon_name || "",
+      area: booking.salonArea || booking.salon_area || "",
+      avatar: booking.salonAvatar || booking.salon_avatar || ""
+    });
+  }
+
+  async function openExploreArtistProfile(post) {
+    const artist = resolveExploreArtist(post);
+    setSelectedPost(null);
+    if (!artist) return;
 
     if (artist.kind === "self" && artist.entityType === "salon") {
       const ownSalon = artist.source || buildOwnPublicSalon();
@@ -2347,15 +2404,38 @@ function getPassportMatch(post) {
                         });
                       }}
                     />
+                  ) : profileType === "client" ? (
+                    <ClientProfileOverview
+                      profile={createdProfile}
+                      onEditProfile={openProfileEdit}
+                      onOpenBookings={() => setProfileView("bookings")}
+                      onOpenSaved={() => setProfileView("saved")}
+                    />
                   ) : null}
                 </>
               )}
 
               {profileView === "bookings" && profileType === "client" && (
-                <ClientBookingsPanel
-                  bookings={clientBookingList}
-                  onOpenSettings={setClientBookingSettings}
-                />
+                <div className="clientActivityStack" aria-label="فعالیت من">
+                  <ClientBookingsPanel
+                    bookings={clientBookingList}
+                    onOpenSettings={setClientBookingSettings}
+                    onRebook={rebookSalonFromBooking}
+                  />
+                  <ClientOrdersPanel
+                    orders={clientOrderList}
+                    loaded={clientOrdersLoaded}
+                    error={clientOrdersError}
+                    onBuyAgain={(order) => {
+                      if (!order?.shop_user_id) {
+                        setAppToast("این سفارش به یک حساب فروشگاه وصل نیست.");
+                        return;
+                      }
+                      selectShopWithStory({ id: order.shop_user_id, name: order.shop_name || "" }, true);
+                      goToTab("shops");
+                    }}
+                  />
+                </div>
               )}
 
               {profileView === "bookings" && profileType === "artist" && (
@@ -2629,6 +2709,10 @@ function getPassportMatch(post) {
             }
             openOwnerChat();
             chat.startDirectChat(salonUserId);
+          }}
+          onRebookSalon={(booking) => {
+            setClientBookingSettings(null);
+            rebookSalonFromBooking(booking);
           }}
         />
 

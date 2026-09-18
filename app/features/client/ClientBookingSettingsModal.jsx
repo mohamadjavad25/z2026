@@ -13,7 +13,8 @@ export function ClientBookingSettingsModal({
   booking,
   onClose,
   onMessageSalon,
-  onCallSalon
+  onCallSalon,
+  onRebookSalon
 }) {
   if (!booking) return null;
 
@@ -105,6 +106,10 @@ export function ClientBookingSettingsModal({
               >
                 <Phone size={16} />
                 تماس
+              </button>
+              <button type="button" onClick={() => onRebookSalon?.(booking)}>
+                <RotateCcw size={16} />
+                رزرو دوباره
               </button>
             </div>
           )}

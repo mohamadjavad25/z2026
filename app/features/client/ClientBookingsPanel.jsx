@@ -17,7 +17,7 @@ import { ProfileHeroWeekStrip } from "../profile/ProfileHeroWeekStrip";
  * Client role — bookings list on profile bookings tab.
  * Presentational: booking rows + open-settings callback (list from useSalonDirectory).
  */
-export function ClientBookingsPanel({ bookings = [], onOpenSettings }) {
+export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook }) {
   const weekTabs = useMemo(() => {
     const fallbackTabs = buildExactBookingDateTabs(7);
     const seen = new Set();
@@ -132,6 +132,10 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings }) {
                   <button type="button" onClick={() => onOpenSettings?.({ ...nextBooking, clientBookingSheetMode: "change" })}>
                     <RotateCcw size={18} />
                     تغییر یا لغو نوبت
+                  </button>
+                  <button type="button" onClick={() => onRebook?.(nextBooking)}>
+                    <Sparkles size={18} />
+                    رزرو دوباره
                   </button>
                 </div>
               </article>
