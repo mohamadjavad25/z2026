@@ -7609,15 +7609,15 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingsBoard .boardHead span {
   color: #7c5ce2;
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingsBoard .boardHead strong {
   margin: 0;
   color: #171827;
-  font-size: 22px;
-  font-weight: 950;
-  line-height: 1.2;
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1.25;
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingsBoard .boardHead b {
@@ -7764,21 +7764,21 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingFeatureCard {
   display: grid;
-  gap: 16px;
-  padding: 18px;
+  gap: 12px;
+  padding: 14px;
   border: 1px solid rgba(124, 92, 226, 0.16);
-  border-radius: 26px;
+  border-radius: 20px;
   background:
     radial-gradient(circle at 10% 10%, rgba(124, 92, 226, 0.08), transparent 34%),
     rgba(255, 255, 255, 0.86);
-  box-shadow: 0 22px 46px rgba(31, 26, 58, 0.1);
+  box-shadow: 0 16px 32px rgba(31, 26, 58, 0.08);
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingFeatureTop {
   display: grid;
-  grid-template-columns: 68px minmax(0, 1fr);
+  grid-template-columns: 50px minmax(0, 1fr);
   align-items: center;
-  gap: 14px;
+  gap: 10px;
   direction: rtl;
   text-align: right;
 }
@@ -7796,9 +7796,9 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingFeatureLogo {
-  width: 68px;
-  height: 68px;
-  font-size: 22px;
+  width: 50px;
+  height: 50px;
+  font-size: 17px;
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingFeatureLogo img,
@@ -7811,24 +7811,24 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingFeatureTop b {
   display: block;
   color: #171827;
-  font-size: 22px;
-  font-weight: 950;
-  line-height: 1.25;
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1.3;
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingFeatureTop span:not(.clientBookingFeatureLogo) {
   display: block;
-  margin-top: 5px;
+  margin-top: 4px;
   color: #7f8190;
-  font-size: 13px;
-  font-weight: 850;
+  font-size: 11.5px;
+  font-weight: 800;
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingFeatureGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0;
-  padding: 16px 0;
+  padding: 12px 0;
   border-top: 1px solid rgba(35, 36, 52, 0.07);
   border-bottom: 1px solid rgba(35, 36, 52, 0.07);
 }
@@ -7836,7 +7836,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingFeatureGrid > span {
   display: grid;
   justify-items: center;
-  gap: 6px;
+  gap: 4px;
   min-width: 0;
   color: #8b8d9a;
   text-align: center;
@@ -7851,14 +7851,14 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingFeatureGrid small {
-  font-size: 12px;
+  font-size: 10.5px;
   font-weight: 800;
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingFeatureGrid b {
   color: #171827;
-  font-size: 16px;
-  font-weight: 900;
+  font-size: 13px;
+  font-weight: 850;
   line-height: 1.25;
 }
 
@@ -7870,22 +7870,22 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingFeatureGrid .segmentClockDigit {
-  font-size: 18px;
+  font-size: 14px;
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingStatusPill {
   width: fit-content;
-  min-height: 38px;
+  min-height: 30px;
   display: inline-flex;
   align-items: center;
   justify-self: center;
-  gap: 7px;
-  padding: 0 18px;
+  gap: 6px;
+  padding: 0 14px;
   border-radius: 999px;
   color: #16a34a;
   background: rgba(34, 197, 94, 0.14);
-  font-size: 14px;
-  font-weight: 950;
+  font-size: 12px;
+  font-weight: 900;
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingFeatureActions {
@@ -7896,18 +7896,18 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingFeatureActions button {
-  min-height: 46px;
+  min-height: 40px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  padding: 6px 2px;
+  gap: 3px;
+  padding: 5px 2px;
   border: 0;
   background: transparent;
   color: #7c5ce2;
-  font-size: 11px;
-  font-weight: 900;
+  font-size: 10px;
+  font-weight: 850;
   line-height: 1.3;
   text-align: center;
 }
@@ -7929,24 +7929,24 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingMiniCard {
-  min-height: 78px;
+  min-height: 62px;
   display: grid;
-  grid-template-columns: 48px minmax(0, 1fr) auto;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   direction: rtl;
   border: 1px solid rgba(35, 36, 52, 0.07);
-  border-radius: 20px;
-  padding: 10px 12px;
+  border-radius: 16px;
+  padding: 8px 10px;
   background: rgba(255, 255, 255, 0.66);
   color: inherit;
   text-align: right;
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingMiniLogo {
-  width: 48px;
-  height: 48px;
-  font-size: 16px;
+  width: 38px;
+  height: 38px;
+  font-size: 13px;
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingMiniCard div {
@@ -7956,8 +7956,8 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingMiniCard b {
   display: block;
   color: #171827;
-  font-size: 15px;
-  font-weight: 950;
+  font-size: 12.5px;
+  font-weight: 900;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -7965,10 +7965,10 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingMiniCard small {
   display: block;
-  margin-top: 4px;
+  margin-top: 3px;
   color: #7f8190;
-  font-size: 12px;
-  font-weight: 800;
+  font-size: 10.5px;
+  font-weight: 750;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -7977,27 +7977,27 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingMiniState {
   display: grid;
   justify-items: start;
-  gap: 5px;
+  gap: 4px;
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingMiniState strong {
-  min-height: 24px;
+  min-height: 20px;
   display: inline-flex;
   align-items: center;
-  padding: 0 9px;
+  padding: 0 8px;
   border-radius: 999px;
   color: #16a34a;
   background: rgba(34, 197, 94, 0.12);
-  font-size: 11px;
-  font-weight: 950;
+  font-size: 10px;
+  font-weight: 900;
   white-space: nowrap;
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingMiniCard em {
   color: #171827;
-  font-size: 15px;
+  font-size: 12.5px;
   font-style: normal;
-  font-weight: 950;
+  font-weight: 900;
   direction: ltr;
 }
 
@@ -8301,15 +8301,15 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientOrdersBoard .boardHead span {
   color: #7c5ce2;
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientOrdersBoard .boardHead strong {
   margin: 0;
   color: #171827;
-  font-size: 22px;
-  font-weight: 950;
-  line-height: 1.2;
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1.25;
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientOrdersBoard .boardHead b {
@@ -8332,26 +8332,26 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientOrderCard {
   display: grid;
-  gap: 12px;
-  padding: 14px;
+  gap: 10px;
+  padding: 12px;
   border: 1px solid rgba(35, 36, 52, 0.07);
-  border-radius: 22px;
+  border-radius: 18px;
   background: rgba(255, 255, 255, 0.7);
-  box-shadow: 0 14px 28px rgba(24, 18, 46, 0.06);
+  box-shadow: 0 12px 24px rgba(24, 18, 46, 0.05);
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientOrderCardTop {
   display: grid;
-  grid-template-columns: 48px minmax(0, 1fr) auto;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   direction: rtl;
   text-align: right;
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientOrderLogo {
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   display: grid;
   place-items: center;
   overflow: hidden;
@@ -8374,8 +8374,8 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientOrderCardMeta b {
   display: block;
   color: #171827;
-  font-size: 15px;
-  font-weight: 950;
+  font-size: 13px;
+  font-weight: 900;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -8385,16 +8385,16 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   display: block;
   margin-top: 3px;
   color: #7f8190;
-  font-size: 11px;
-  font-weight: 800;
+  font-size: 10px;
+  font-weight: 750;
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientOrderStatus {
   align-self: start;
-  padding: 5px 11px;
+  padding: 4px 10px;
   border-radius: 999px;
-  font-size: 11px;
-  font-weight: 950;
+  font-size: 10px;
+  font-weight: 900;
   white-space: nowrap;
   color: #7c5ce2;
   background: rgba(124, 92, 226, 0.12);
@@ -8427,15 +8427,15 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   text-overflow: ellipsis;
   white-space: nowrap;
   color: #7f8190;
-  font-size: 12px;
-  font-weight: 800;
+  font-size: 11px;
+  font-weight: 750;
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientOrderCardBody b {
   flex-shrink: 0;
   color: #171827;
-  font-size: 14px;
-  font-weight: 950;
+  font-size: 12.5px;
+  font-weight: 900;
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientOrderCardActions {
@@ -8444,17 +8444,17 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientOrderCardActions button {
-  min-height: 38px;
+  min-height: 32px;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 0 14px;
+  gap: 5px;
+  padding: 0 12px;
   border: 0;
-  border-radius: 12px;
+  border-radius: 10px;
   color: #ffffff;
   background: linear-gradient(180deg, #8f5cff, #6d3ee8);
-  font-size: 12px;
-  font-weight: 900;
+  font-size: 11px;
+  font-weight: 850;
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientOrdersLoading,
