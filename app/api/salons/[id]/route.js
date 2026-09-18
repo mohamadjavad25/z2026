@@ -17,5 +17,11 @@ export async function GET(request, context) {
   if (!salon) {
     return NextResponse.json({ error: "سالن پیدا نشد." }, { status: 404 });
   }
+  // A salon switched to "خصوصی" in تنظیمات → پروفایل عمومی سالن is only
+  // visible to its own owner, same rule GET /api/shops/[id] already
+  // enforces for its equivalent toggle.
+  if (!salon.isPublic && viewer?.id !== userId) {
+    return NextResponse.json({ error: "سالن پیدا نشد." }, { status: 404 });
+  }
   return NextResponse.json({ salon });
 }

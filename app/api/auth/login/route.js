@@ -9,14 +9,35 @@ import {
 } from "../../../lib/auth.js";
 import { ensureDb } from "../../../lib/db/connection.js";
 import * as users from "../../../lib/db/repos/users.js";
+import { checkRateLimit } from "../../../lib/rateLimit.js";
 
 export const runtime = "nodejs";
+
+// Per-phone brute-force throttle: nothing else here artificially slows a
+// scripted attacker hammering one known phone number with a password list
+// (scrypt alone is not a real defense at request-per-second scale). Keyed by
+// the normalized phone under attack, not by caller identity (there is none
+// pre-auth) -- same in-memory limiter every other abuse-prone route in this
+// codebase already uses (see /api/conversations/*).
+const LOGIN_ATTEMPT_LIMIT = 10;
+const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 
 export async function POST(request) {
   ensureDb();
   const body = await request.json();
   const phone = normalizePhone(body.phone);
   const password = normalizeDigits(String(body.password || ""));
+
+  if (phone) {
+    const limited = checkRateLimit(`login:${phone}`, LOGIN_ATTEMPT_LIMIT, LOGIN_WINDOW_MS);
+    if (!limited.ok) {
+      return NextResponse.json(
+        { error: "تلاش‌های ورود زیاد بود. چند دقیقه صبر کن.", code: "rate_limited" },
+        { status: 429 }
+      );
+    }
+  }
+
   const user = users.getUserByPhone(phone);
 
   if (!user) {

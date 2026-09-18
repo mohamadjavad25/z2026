@@ -2,6 +2,7 @@ import { getDb } from "../connection.js";
 import { countFollowers } from "./users.js";
 import { storyFieldsFor } from "./stories.js";
 import { isProfileSaved } from "./social.js";
+import { getSettings } from "./userSettings.js";
 import { countFollowing } from "./salons/common.js";
 import { listClientSalonBookings, listSalonBookings } from "./salons/bookings.js";
 import { listSalonHours } from "./salons/hours.js";
@@ -35,7 +36,14 @@ export function listSalons() {
     SELECT s.*, u.avatar, u.bio
     FROM salons s JOIN users u ON u.id = s.user_id
     ORDER BY s.created_at DESC
-  `).all().map((row) => {
+  `).all()
+    // A salon switched to "خصوصی" via تنظیمات → پروفایل عمومی سالن must be
+    // hidden from the public directory, same rule shops.listShops() already
+    // enforces for "ویترین عمومی فروشگاه" (see mapShop's isPublic) — this
+    // was previously never checked at all for salons, so toggling the
+    // setting off did nothing on the read side (still fully listed here).
+    .filter((row) => getSettings(row.user_id).publicPortfolio !== false)
+    .map((row) => {
     const followingCount = countFollowing(row.user_id);
     const followerCount = countFollowers(row.user_id);
     const staff = listSalonStaff(row.user_id);
@@ -50,8 +58,16 @@ export function listSalons() {
       open: row.open,
       rating: row.rating,
       match: row.match_score,
-      phone: row.phone,
-      email: row.email,
+      // Deliberately NOT including phone/email here: row.phone/row.email are
+      // users.phone/users.email -- this account's LOGIN credentials, not a
+      // business contact the owner opted to publish (same finding as the
+      // JSON-LD telephone leak fixed in buildSalonJsonLd -- see
+      // app/salons/[id]/page.jsx). This is the unauthenticated bulk salon
+      // directory (GET /api/salons, no session required): every salon's
+      // login phone/email would otherwise be scrapable in one request. No
+      // salon-card component reads .phone/.email from this list shape
+      // (grepped app/features/salons) -- only the single-salon detail view
+      // (getSalon() below) does, for its "call the salon" contact block.
       avatar: row.avatar || "",
       bio: row.bio || "",
       postCount: row.post_count,
@@ -133,8 +149,16 @@ export function getSalon(userId, viewerUserId = null) {
     open: row.open,
     rating: row.rating,
     match: row.match_score,
+    // phone: still included below -- SalonClientPage's contact block
+    // (salonPublicAboutContact) actively renders it as the salon's "call us"
+    // number. That reuses users.phone (the LOGIN credential), same root
+    // cause as the JSON-LD leak already fixed elsewhere -- flagged for a
+    // product decision (see security report) rather than silently removed,
+    // since removing it here would break a real, currently-shipped feature.
+    // email is NOT included: grepped every salon feature component, nothing
+    // reads .email from this shape -- pure unused PII exposure, same as the
+    // listSalons() case above.
     phone: row.phone,
-    email: row.email,
     avatar: row.avatar || "",
     bio: row.bio || "",
     postCount: row.post_count,
@@ -143,6 +167,13 @@ export function getSalon(userId, viewerUserId = null) {
     follower_count: followerCount,
     followingCount,
     following_count: followingCount,
+    // Repo layer stays permissive (internal callers like POST
+    // /api/salon-bookings look salons up with no viewer at all, including a
+    // salon's own walk-in booking for itself) -- the public-visibility gate
+    // based on this flag lives in the caller (GET /api/salons/[id] route +
+    // the SSR /salons/[id] page), same split shops.js already uses between
+    // getShop()'s isPublic field and the route-level check.
+    isPublic: getSettings(row.user_id).publicPortfolio !== false,
     isSaved: viewerUserId ? isProfileSaved(viewerUserId, row.user_id) : false,
     services: listSalonServices(userId),
     portfolio: listSalonPortfolio(userId),

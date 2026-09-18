@@ -9,7 +9,14 @@ export async function GET(request, { params }) {
   ensureDb();
   const { id } = await params;
   const viewer = getUserFromRequest(request);
-  const artist = artists.getPublicArtist(Number(id), viewer?.id || null);
+  const artistUserId = Number(id);
+  const artist = artists.getPublicArtist(artistUserId, viewer?.id || null);
   if (!artist) return NextResponse.json({ error: "آرتیست یافت نشد." }, { status: 404 });
+  // An artist switched to "خصوصی" in تنظیمات → ویترین عمومی آرتیست is only
+  // visible to its own owner, same rule GET /api/salons/[id] and
+  // GET /api/shops/[id] already enforce for their equivalent toggles.
+  if (!artist.isPublic && viewer?.id !== artistUserId) {
+    return NextResponse.json({ error: "آرتیست یافت نشد." }, { status: 404 });
+  }
   return NextResponse.json({ data: { artist } });
 }

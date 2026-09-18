@@ -6,6 +6,7 @@ import * as artists from "../../lib/db/repos/artists.js";
 import * as messages from "../../lib/db/repos/messages.js";
 import { publishChatEvent } from "../../lib/chatEvents.js";
 import { enrichBookingCards } from "../../lib/chatOrderCards.js";
+import { checkRateLimit } from "../../lib/rateLimit.js";
 // Side-effect import: starts the once-per-process 1-hour booking-request
 // auto-expiry sweep (see that file's docstring) the first time this route
 // module loads — same self-starting-on-import convention as
@@ -97,6 +98,16 @@ export async function POST(request) {
   ensureDb();
   const auth = requireUser(request);
   if (!auth.ok) return auth.response;
+
+  // Per-caller throttle against booking-spam (a client scripting repeated
+  // reservation requests, or a compromised session flooding a salon's
+  // schedule). Same in-memory limiter/pattern this codebase already uses for
+  // other abuse-prone routes (see /api/conversations/*, /api/auth/login).
+  const bookingLimited = checkRateLimit(`salon-booking-create:${auth.user.id}`, 20, 60_000);
+  if (!bookingLimited.ok) {
+    return noStoreJson({ error: "درخواست‌های زیاد. کمی صبر کن." }, { status: 429 });
+  }
+
   const body = await request.json();
   if (!["client", "salon"].includes(auth.user.type)) {
     return noStoreJson({ error: "فقط مشتری یا سالن می‌تواند رزرو ثبت کند." }, { status: 403 });

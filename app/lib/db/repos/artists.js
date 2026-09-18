@@ -6,6 +6,7 @@ import { resolveRollingPersianDateKey } from "../../../shared/lib/persianCalenda
 import { normalizeBookingTimeLabel } from "../../../shared/lib/time.js";
 import { normalizePhone } from "./salons/common.js";
 import { getTargetRatingSummary, isProfileSaved } from "./social.js";
+import { getSettings } from "./userSettings.js";
 
 export { ensureArtistHours, listArtistHours, updateArtistHour } from "./artists/hours.js";
 
@@ -658,6 +659,12 @@ export function getPublicArtist(userId, viewerUserId = null) {
     rating: ratingAgg?.cnt ? Number(ratingAgg.avg_rating).toFixed(1) : "۰",
     reviewCount: Number(ratingAgg?.cnt || 0),
     followers: countFollowers(user.id),
+    // Repo layer stays permissive (GET /api/artist/me calls this with
+    // viewerUserId === userId for the artist's own dashboard, which must
+    // always see itself regardless of the toggle) -- the public-visibility
+    // gate based on this flag lives in the caller (GET /api/artists/[id]
+    // route + the SSR /artists/[id] page), same split salons.js/shops.js use.
+    isPublic: getSettings(user.id).publicPortfolio !== false,
     isFollowing: viewerUserId ? isFollowing(viewerUserId, user.id) : false,
     isSaved: viewerUserId ? isProfileSaved(viewerUserId, user.id) : false,
     posts,
@@ -672,7 +679,12 @@ export function getPublicArtist(userId, viewerUserId = null) {
 export function listArtists() {
   return getDb().prepare(`
     SELECT id, name, area, service, avatar, bio FROM users WHERE type = 'artist' ORDER BY created_at DESC
-  `).all();
+  `).all()
+    // An artist switched to "خصوصی" via تنظیمات → ویترین عمومی آرتیست must be
+    // hidden from the public directory, same rule salons.listSalons() and
+    // shops.listShops() already enforce for their equivalent toggles -- this
+    // was previously never checked at all for artists.
+    .filter((row) => getSettings(row.id).publicPortfolio !== false);
 }
 
 /**

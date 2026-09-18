@@ -15,6 +15,11 @@ function loadArtist(id) {
   ensureDb();
   const artist = artists.getPublicArtist(userId, null);
   if (!artist) return null;
+  // An artist switched to "خصوصی" in تنظیمات → ویترین عمومی آرتیست must stay
+  // hidden here too — GET /api/artists/[id] enforces the exact same rule for
+  // any viewer who isn't the owner, and this standalone public route never
+  // has a logged-in viewer to be the owner.
+  if (!artist.isPublic) return null;
   // node:sqlite's .all()/.get() rows are null-prototype objects. That's fine
   // for JSON.stringify (used by the API routes), but React's RSC boundary
   // rejects null-prototype objects when passing this Server Component's data

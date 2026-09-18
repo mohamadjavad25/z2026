@@ -97,8 +97,17 @@ function mapShop(row) {
     name: row.name,
     area: row.area,
     category: row.category,
-    phone: row.phone,
-    email: row.email,
+    // Deliberately NOT including phone/email: row.phone/row.email are
+    // users.phone/users.email -- this account's LOGIN credentials, not a
+    // business contact the owner opted to publish (same root cause as the
+    // JSON-LD telephone leak fixed in buildShopJsonLd -- see
+    // app/shops/[id]/page.jsx). Both listShops() (GET /api/shops, no
+    // session required) and getShop() (GET /api/shops/[id], also
+    // unauthenticated) go through this mapper, and no shop feature
+    // component reads .phone/.email from either shape (grepped
+    // app/features/shops -- mapShopCard() used to pass them through unread)
+    // -- pure unused PII exposure, unlike the salon detail view's contact
+    // block which actually renders salon.phone.
     bio: row.bio || row.user_bio || "",
     avatar: row.avatar || "",
     rating,

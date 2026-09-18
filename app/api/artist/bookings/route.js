@@ -5,6 +5,7 @@ import * as artists from "../../../lib/db/repos/artists.js";
 import * as messages from "../../../lib/db/repos/messages.js";
 import { publishChatEvent } from "../../../lib/chatEvents.js";
 import { enrichBookingCards } from "../../../lib/chatOrderCards.js";
+import { checkRateLimit } from "../../../lib/rateLimit.js";
 // Side-effect import: starts the once-per-process 1-hour booking-request
 // auto-expiry sweep (see that file's docstring) the first time this route
 // module loads — same self-starting-on-import convention as
@@ -22,6 +23,19 @@ export async function POST(request) {
   const body = await request.json();
   const artistUserId = Number(body.artistUserId);
   if (!artistUserId) return error("آرتیست نامعتبر است.", 400);
+
+  // Per-target throttle: this route deliberately allows anonymous booking
+  // (no session required, see viewer below), so there is no caller identity
+  // to key a limiter by -- keyed on the artist being booked instead, so one
+  // artist's calendar can't be flooded with spam bookings by a scripted
+  // caller hammering this endpoint, logged in or not. Same in-memory
+  // limiter/pattern this codebase already uses elsewhere (see
+  // /api/conversations/*, /api/auth/login, /api/salon-bookings).
+  const bookingLimited = checkRateLimit(`artist-booking-create:${artistUserId}`, 20, 60_000);
+  if (!bookingLimited.ok) {
+    return error("درخواست‌های زیاد. کمی صبر کن.", 429);
+  }
+
   const viewer = getUserFromRequest(request);
   const result = artists.addArtistBooking(artistUserId, {
     ...body,

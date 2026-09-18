@@ -124,8 +124,6 @@ export function mapShopCard(shop) {
     followers: shop.followers ?? shop.followerCount ?? 0,
     orders: shop.orders || "۰",
     eta: shop.eta || "",
-    phone: shop.phone || "",
-    email: shop.email || "",
     acceptingOrders: shop.acceptingOrders !== false,
     ...pickStoryFields(shop)
   };
