@@ -168,20 +168,28 @@ export function ShopStoreDock({
                 <span>سؤالت رو بپرس؛ صاحب فروشگاه پیام رو می‌بینه و در اولین فرصت جواب می‌ده.</span>
               </div>
             ) : (
-              chatMessages.map((message) => (
-                <div className={`shopChatBubble ${message.attachmentType === "order" ? "is-order" : ""} ${message.senderUserId === myUserId ? "user" : "shop"}`} key={message.id}>
-                  {message.attachmentType === "order" ? (
-                    <OrderCardBubble order={message.order} />
-                  ) : (
-                    <>
-                      {message.attachmentType === "image" && message.attachmentUrl ? (
-                        <img className="shopChatBubbleImage" src={message.attachmentUrl} alt="" />
-                      ) : null}
-                      {message.body}
-                    </>
-                  )}
-                </div>
-              ))
+              chatMessages.map((message) => {
+                // Neutral system message — centered, no "user"/"shop"
+                // attribution, so it can never be mistaken for a regular
+                // message either side typed. It structurally can't be faked
+                // either: only POST /api/shop/orders can ever create an
+                // attachmentType:"order" message — see messages.js.
+                if (message.attachmentType === "order") {
+                  return (
+                    <div className="shopChatSystemRow" key={message.id}>
+                      <OrderCardBubble order={message.order} />
+                    </div>
+                  );
+                }
+                return (
+                  <div className={`shopChatBubble ${message.senderUserId === myUserId ? "user" : "shop"}`} key={message.id}>
+                    {message.attachmentType === "image" && message.attachmentUrl ? (
+                      <img className="shopChatBubbleImage" src={message.attachmentUrl} alt="" />
+                    ) : null}
+                    {message.body}
+                  </div>
+                );
+              })
             )}
           </div>
           <div className="shopChatQuick">

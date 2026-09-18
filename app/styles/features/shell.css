@@ -614,75 +614,185 @@
   color: var(--chat-text);
 }
 
-/* ── Order card: receipt + live tracking stepper, shared by every chat
-   surface (ChatPage, OwnerChatSheet, ShopStoreDock) — uses currentColor so
-   it reads correctly whichever bubble color wraps it. ── */
-.chatBubble .chatOrderCard,
-.shopChatBubble .chatOrderCard {
-  grid-column: 1 / -1;
-}
+/* ── Order card: a neutral system receipt, never a left/right chat bubble —
+   see .chatOrderSystemRow below and the matching .shopChatSystemRow in
+   profile.css. Shared by every chat surface (ChatPage, OwnerChatSheet,
+   ShopStoreDock); uses the app-wide design tokens (not --chat-* vars, which
+   are only defined inside the full ChatPage/OwnerChatSheet scopes) so it
+   looks identical everywhere it's dropped in. ── */
 
-.chatOrderCard {
+/* Groups an order-card message under its own centered row instead of the
+   normal left/right .chatBubble.is-me/.is-them flow — .chatDayGroup's
+   children (this row included) are direct flex items of .chatMessageList,
+   so align-self:center here works the same way align-self:flex-end/start
+   does for regular bubbles. */
+.chatOrderSystemRow {
+  align-self: center;
+  width: 100%;
   display: grid;
-  gap: 10px;
-  width: 224px;
+  justify-items: center;
+  gap: 4px;
+  margin: 2px 0;
 }
 
-.chatOrderCardMissing {
+.chatOrderSystemRow time {
+  color: color-mix(in srgb, var(--chat-muted, var(--muted)) 74%, transparent);
+  font-size: 0.6rem;
+  font-weight: 900;
+}
+
+.orderReceiptCard {
+  width: 100%;
+  max-width: 300px;
+  display: grid;
+  gap: var(--space-3, 12px);
+  padding: var(--space-4, 16px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg, 18px);
+  background: var(--surface-solid);
+  box-shadow: var(--shadow-xs, 0 4px 14px rgba(28, 32, 44, 0.06));
+  color: var(--ink);
+}
+
+.orderReceiptCard.is-missing {
+  grid-auto-flow: column;
+  justify-content: start;
+  align-items: center;
+  gap: var(--space-2, 8px);
+  max-width: fit-content;
+  color: var(--muted);
+}
+
+.orderReceiptCard.is-missing p {
   margin: 0;
-  font-size: 0.68rem;
-  opacity: 0.8;
+  font-size: var(--text-xs, 0.68rem);
+  font-weight: 750;
 }
 
-.chatOrderCardHead {
+.orderReceiptCardHead {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2, 8px);
 }
 
-.chatOrderCardThumb {
+.orderReceiptCardIcon {
   flex: 0 0 auto;
-  width: 42px;
-  height: 42px;
+  width: 30px;
+  height: 30px;
   display: grid;
   place-items: center;
-  border-radius: 10px;
-  overflow: hidden;
-  background: color-mix(in srgb, currentColor 12%, transparent);
+  border-radius: var(--radius-pill, 999px);
+  background: var(--info-bg);
+  color: var(--info);
 }
 
-.chatOrderCardThumb img {
+.orderReceiptCardHead b {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink);
+  font-size: var(--text-sm, 0.78rem);
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.orderReceiptCardStatus {
+  flex: 0 0 auto;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill, 999px);
+  font-size: 0.62rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.orderReceiptCardStatus.is-pending { background: var(--info-bg); color: var(--info); }
+.orderReceiptCardStatus.is-done { background: var(--success-bg); color: var(--success); }
+.orderReceiptCardStatus.is-bad { background: var(--danger-bg); color: var(--danger); }
+
+.orderReceiptCardItems {
+  display: grid;
+  gap: var(--space-2, 8px);
+  max-height: 220px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.orderReceiptCardItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+}
+
+.orderReceiptCardThumb {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-sm, 10px);
+  overflow: hidden;
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+  color: var(--muted);
+}
+
+.orderReceiptCardThumb img {
   width: 100%;
   height: 100%;
   display: block;
   object-fit: cover;
 }
 
-.chatOrderCardInfo {
+.orderReceiptCardItemInfo {
   min-width: 0;
+  flex: 1 1 auto;
   display: grid;
-  gap: 2px;
+  gap: 1px;
 }
 
-.chatOrderCardInfo b {
+.orderReceiptCardItemInfo b {
   overflow: hidden;
-  font-size: 0.7rem;
-  font-weight: 900;
+  color: var(--ink);
+  font-size: var(--text-xs, 0.68rem);
+  font-weight: 850;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.chatOrderCardInfo span {
-  font-size: 0.68rem;
+.orderReceiptCardItemInfo small {
+  color: var(--muted);
+  font-size: 0.64rem;
+  font-weight: 750;
+}
+
+.orderReceiptCardTotal {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--space-2, 8px);
+  border-top: 1px dashed var(--line);
+}
+
+.orderReceiptCardTotal span {
+  color: var(--muted);
+  font-size: var(--text-xs, 0.68rem);
+  font-weight: 750;
+}
+
+.orderReceiptCardTotal b {
+  color: var(--ink);
+  font-size: var(--text-sm, 0.78rem);
   font-weight: 950;
 }
 
-.chatOrderCardTrack {
+.orderReceiptCardTrack {
   display: flex;
   align-items: flex-start;
 }
 
-.chatOrderCardStep {
+.orderReceiptCardStep {
   position: relative;
   flex: 1;
   display: grid;
@@ -690,73 +800,71 @@
   gap: 4px;
 }
 
-.chatOrderCardStep::before {
+.orderReceiptCardStep::before {
   content: "";
   position: absolute;
   top: 6px;
   right: 50%;
   width: 100%;
   height: 2px;
-  background: color-mix(in srgb, currentColor 22%, transparent);
+  background: var(--line);
   z-index: 0;
 }
 
-.chatOrderCardStep:first-child::before {
+.orderReceiptCardStep:first-child::before {
   display: none;
 }
 
-.chatOrderCardStep.is-done::before {
-  background: currentColor;
-  opacity: 0.7;
+.orderReceiptCardStep.is-done::before {
+  background: var(--info);
+  opacity: 0.55;
 }
 
-.chatOrderCardDot {
+.orderReceiptCardDot {
   position: relative;
   z-index: 1;
   width: 14px;
   height: 14px;
   display: grid;
   place-items: center;
-  border: 2px solid color-mix(in srgb, currentColor 45%, transparent);
+  border: 2px solid color-mix(in srgb, var(--ink) 22%, transparent);
   border-radius: 50%;
-  background: transparent;
+  background: var(--surface-solid);
 }
 
-.chatOrderCardStep.is-done .chatOrderCardDot {
-  border-color: currentColor;
-  background: currentColor;
-  color: var(--chat-panel, #fff);
+.orderReceiptCardStep.is-done .orderReceiptCardDot {
+  border-color: var(--info);
+  background: var(--info);
+  color: #fff;
 }
 
-.chatOrderCardStep.is-current .chatOrderCardDot {
-  border-color: currentColor;
+.orderReceiptCardStep.is-current .orderReceiptCardDot {
+  border-color: var(--info);
 }
 
-.chatOrderCardStep small {
-  max-width: 52px;
-  overflow: hidden;
-  color: currentColor;
-  font-size: 0.5rem;
+.orderReceiptCardStep small {
+  max-width: 56px;
+  color: var(--muted);
+  font-size: 0.56rem;
   font-weight: 800;
-  line-height: 1.3;
+  line-height: 1.25;
   text-align: center;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  opacity: 0.75;
+  overflow-wrap: break-word;
 }
 
-.chatOrderCardStep.is-current small {
+.orderReceiptCardStep.is-current small {
+  color: var(--ink);
   font-weight: 950;
-  opacity: 1;
 }
 
-.chatOrderCardCancelled {
+.orderReceiptCardCancelled {
   display: flex;
   align-items: center;
   gap: 5px;
-  color: var(--danger, #a8433a);
-  font-size: 0.66rem;
-  font-weight: 900;
+  padding-top: 2px;
+  color: var(--danger);
+  font-size: 0.7rem;
+  font-weight: 850;
 }
 
 .chatBubbleImage {

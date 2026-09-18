@@ -493,12 +493,18 @@ export function ChatPage({
                     {group.messages.map((message) => {
                       const mine = message.senderUserId === myUserId;
                       if (message.attachmentType === "order") {
+                        // Neutral system message — centered, no avatar, no
+                        // "sent by X" attribution and no read-tick (that
+                        // read/unread framing implies a sender/recipient,
+                        // which is exactly what this record must NOT look
+                        // like it has). It structurally can't be faked either
+                        // way: only POST /api/shop/orders can ever create an
+                        // attachmentType:"order" message — see messages.js.
                         return (
-                          <article key={message.id} className={`chatBubble is-order ${mine ? "is-me" : "is-them"}`}>
+                          <div key={message.id} className="chatOrderSystemRow">
                             <OrderCardBubble order={message.order} />
                             <time>{formatChatTime(message.createdAt)}</time>
-                            {mine ? <MessageTick message={message} conversation={activeConversation} myUserId={myUserId} /> : null}
-                          </article>
+                          </div>
                         );
                       }
                       return (

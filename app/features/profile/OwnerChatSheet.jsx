@@ -126,19 +126,26 @@ export function OwnerChatSheet({
             />
           ) : (
             safeMessages.map((message) => {
+              // Neutral system message — centered, no avatar/"sent by X"
+              // attribution and no read-tick, so it can never be mistaken
+              // for a regular message from either side. It structurally
+              // can't be faked either: only POST /api/shop/orders can ever
+              // create an attachmentType:"order" message — see messages.js.
+              if (message.attachmentType === "order") {
+                return (
+                  <div className="shopChatSystemRow" key={message.id}>
+                    <OrderCardBubble order={message.order} />
+                    <time>{formatChatTime(message.createdAt)}</time>
+                  </div>
+                );
+              }
               const mine = message.senderUserId === myUserId;
               return (
-                <div className={`shopChatBubble ${message.attachmentType === "order" ? "is-order" : ""} ${mine ? "user" : "shop"}`} key={message.id}>
-                  {message.attachmentType === "order" ? (
-                    <OrderCardBubble order={message.order} />
-                  ) : (
-                    <>
-                      {message.attachmentType === "image" && message.attachmentUrl ? (
-                        <img className="shopChatBubbleImage" src={message.attachmentUrl} alt="" />
-                      ) : null}
-                      {message.body}
-                    </>
-                  )}
+                <div className={`shopChatBubble ${mine ? "user" : "shop"}`} key={message.id}>
+                  {message.attachmentType === "image" && message.attachmentUrl ? (
+                    <img className="shopChatBubbleImage" src={message.attachmentUrl} alt="" />
+                  ) : null}
+                  {message.body}
                   <span className="shopChatBubbleMeta">
                     <time>{formatChatTime(message.createdAt)}</time>
                     {mine ? (

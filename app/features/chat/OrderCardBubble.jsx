@@ -1,54 +1,90 @@
 "use client";
 
-import { Check, Package, RotateCcw, X } from "lucide-react";
+import { Check, Package, ReceiptText, RotateCcw, X } from "lucide-react";
 import { shopOrderStatuses } from "../shops/mappers";
 import { formatToman } from "../../shared/lib/money";
+import { toPersianDigits } from "../../shared/lib/digits";
 
 // The stepper only covers the "things are progressing" path — cancelled and
 // returned orders each get their own distinct (non-stepped) state below
 // instead of pretending they're just stuck on some step.
 const TRACK_STEPS = shopOrderStatuses.filter((status) => status !== "لغو شده" && status !== "مرجوعی شد");
 
-/** Order receipt/tracking card rendered inside a chat bubble — same data on both the buyer's and the shop's side, always live (never a cached snapshot). */
+// Only the two terminal outcomes get a strong color — everything still in
+// motion (new/preparing/shipped) reads as one calm "in progress" tone since
+// the stepper below already carries the detail of exactly which step it's on.
+const STATUS_TONE = {
+  "تحویل شد": "done",
+  "لغو شده": "bad",
+  "مرجوعی شد": "bad"
+};
+
+/**
+ * Neutral order receipt card. Always rendered as a centered system message
+ * (never inside a normal left/right "is-me"/"is-them" chat bubble) — see
+ * ChatPage.jsx, OwnerChatSheet.jsx and ShopStoreDock.jsx — precisely so it
+ * cannot be mistaken for something either side of the conversation typed.
+ * Content here is always a live snapshot from enrichOrderCards()/order-status
+ * SSE, never a cached copy — do not add local state that could go stale.
+ */
 export function OrderCardBubble({ order }) {
   if (!order) {
-    return <p className="chatOrderCardMissing">این سفارش دیگر در دسترس نیست.</p>;
+    return (
+      <div className="orderReceiptCard is-missing">
+        <ReceiptText size={16} />
+        <p>این سفارش دیگر در دسترس نیست.</p>
+      </div>
+    );
   }
 
   const items = order.items || [];
-  const firstItem = items[0];
-  const extraCount = items.length - 1;
   const cancelled = order.status === "لغو شده";
   const returned = order.status === "مرجوعی شد";
   const stepIndex = TRACK_STEPS.indexOf(order.status);
+  const tone = STATUS_TONE[order.status] || "pending";
 
   return (
-    <div className="chatOrderCard">
-      <div className="chatOrderCardHead">
-        <span className="chatOrderCardThumb">
-          {firstItem?.image ? <img src={firstItem.image} alt="" /> : <Package size={18} />}
+    <div className="orderReceiptCard">
+      <div className="orderReceiptCardHead">
+        <span className="orderReceiptCardIcon">
+          <ReceiptText size={15} />
         </span>
-        <div className="chatOrderCardInfo">
-          <b>{firstItem?.name || "سفارش"}{extraCount > 0 ? ` + ${extraCount} کالای دیگر` : ""}</b>
-          <span>{formatToman(order.totalNum || 0)}</span>
-        </div>
+        <b>سفارش #{toPersianDigits(order.id)}</b>
+        <span className={`orderReceiptCardStatus is-${tone}`}>{order.status}</span>
       </div>
 
-      {cancelled ? (
-        <div className="chatOrderCardCancelled">
-          <X size={13} />
-          سفارش لغو شده
-        </div>
-      ) : returned ? (
-        <div className="chatOrderCardCancelled">
-          <RotateCcw size={13} />
-          سفارش مرجوعی شد
+      <ul className="orderReceiptCardItems">
+        {items.map((item) => (
+          <li key={item.id} className="orderReceiptCardItem">
+            <span className="orderReceiptCardThumb">
+              {item.image ? <img src={item.image} alt="" /> : <Package size={15} />}
+            </span>
+            <span className="orderReceiptCardItemInfo">
+              <b>{item.name}</b>
+              <small>{toPersianDigits(item.quantity)} عدد × {formatToman(item.priceNum || 0)}</small>
+            </span>
+          </li>
+        ))}
+      </ul>
+
+      <div className="orderReceiptCardTotal">
+        <span>جمع کل</span>
+        <b>{formatToman(order.totalNum || 0)}</b>
+      </div>
+
+      {cancelled || returned ? (
+        <div className="orderReceiptCardCancelled">
+          {cancelled ? <X size={13} /> : <RotateCcw size={13} />}
+          {cancelled ? "سفارش لغو شده" : "سفارش مرجوعی شد"}
         </div>
       ) : (
-        <div className="chatOrderCardTrack" aria-label="مراحل سفارش">
+        <div className="orderReceiptCardTrack" aria-label="مراحل سفارش">
           {TRACK_STEPS.map((status, index) => (
-            <div key={status} className={`chatOrderCardStep ${index <= stepIndex ? "is-done" : ""} ${index === stepIndex ? "is-current" : ""}`}>
-              <span className="chatOrderCardDot">{index < stepIndex ? <Check size={10} /> : null}</span>
+            <div
+              key={status}
+              className={`orderReceiptCardStep ${index <= stepIndex ? "is-done" : ""} ${index === stepIndex ? "is-current" : ""}`}
+            >
+              <span className="orderReceiptCardDot">{index < stepIndex ? <Check size={10} /> : null}</span>
               <small>{status}</small>
             </div>
           ))}
