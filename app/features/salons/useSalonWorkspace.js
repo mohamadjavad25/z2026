@@ -32,8 +32,8 @@ import {
   salonArtistStatusOptions as defaultSalonArtistStatusOptions
 } from "../../shared/constants/roles";
 import { getApiErrorMessage, notifyFromResponse } from "../../shared/lib/apiNotify";
+import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar";
 import { buildSalonStaffByName } from "../profile/ScheduleRow";
-import { reservationRequests } from "../shell/mockData";
 
 function fileToDataUrl(file) {
   return new Promise((resolve, reject) => {
@@ -144,7 +144,6 @@ export function useSalonWorkspace({
   const [salonToolSheetOpen, setSalonToolSheetOpen] = useState(false);
   const [settingsHoursOpen, setSettingsHoursOpen] = useState(false);
   const [salonAppointmentList, setSalonAppointmentList] = useState([]);
-  const [reservationRequestList, setReservationRequestList] = useState(reservationRequests);
   const [salonCollabRequestList, setSalonCollabRequestList] = useState([]);
   const [salonArtistInviteList, setSalonArtistInviteList] = useState([]);
   const [salonStaffList, setSalonStaffList] = useState([]);
@@ -191,6 +190,31 @@ export function useSalonWorkspace({
   const pendingSalonCollabRequests = useMemo(() => (
     salonCollabRequestList.filter((item) => item.status === "آماده ارسال")
   ), [salonCollabRequestList]);
+
+  /**
+   * Real pending salon-booking requests — derived straight from the real
+   * `salon_bookings` rows already living in `salonAppointmentList` (via
+   * refreshSalonSystemData / applySalonBookings / the 8s live poll below),
+   * never from mock/fake data. A "request" is just any booking whose status
+   * is still "درخواست" (client asked, salon hasn't responded yet). Mapped
+   * into the field shape SalonScheduleDashboard already renders
+   * (id/client/service/staff/note/time/day/date) so that presentational
+   * component didn't need to change.
+   */
+  const reservationRequestList = useMemo(() => (
+    salonAppointmentList
+      .filter((booking) => booking.status === "درخواست")
+      .map((booking) => ({
+        id: booking.id,
+        client: booking.client,
+        service: booking.service,
+        staff: booking.staff,
+        note: "",
+        time: booking.time,
+        day: formatRelativeBookingDayLabel(booking.booking_date),
+        date: booking.booking_date || ""
+      }))
+  ), [salonAppointmentList]);
 
   const salonUnreadNoticeCount = useMemo(() => (
     reservationRequestList.length + pendingSalonCollabRequests.length
@@ -435,36 +459,38 @@ export function useSalonWorkspace({
     }
   }, [shellNotify, applySalonBookings, onLinkedArtistBooked]);
 
-  const approveReservationRequest = useCallback(async (requestId, { bookingDateForSlots = "امروز" } = {}) => {
-    const request = reservationRequestList.find((item) => item.id === requestId);
-    if (!request) return;
+  /**
+   * Confirms a REAL pending `salon_bookings` row (status "درخواست") in place
+   * via PATCH /api/salon-bookings — the same route/repo function
+   * (patchSalonBookingWithArtistSync) every other owner booking edit here
+   * uses (see patchSalonAppointment above). This used to fabricate a brand
+   * new booking from fake mock data instead of touching the real pending
+   * row at all; that bug is why the salon's notification bell could show 0
+   * while real "درخواست" bookings sat unresolved in the DB forever.
+   */
+  const approveReservationRequest = useCallback(async (requestId) => {
     if (salonRequestBusyIdRef.current) return;
     const busyKey = `reservation:${requestId}`;
     salonRequestBusyIdRef.current = busyKey;
     setSalonRequestBusyId(busyKey);
     try {
-      const { ok, payload } = await createSalonBooking({
-        time: request.time,
-        booking_date: request.day || bookingDateForSlots,
-        client: request.client,
-        service: request.service,
-        staff: request.staff,
-        status: "تایید"
-      });
+      const { ok, payload } = await updateSalonBooking({ id: requestId, status: "تایید شده" });
       if (!ok) {
-        applySalonBookings(payload.bookings, { bump: true });
-        shellNotify(getApiErrorMessage(payload, "این درخواست با یک رزرو دیگر تداخل دارد."));
+        if (Array.isArray(payload.bookings)) applySalonBookings(payload.bookings, { bump: true });
+        shellNotify(getApiErrorMessage(payload, "تایید رزرو انجام نشد."));
         return;
       }
       applySalonBookings(payload.bookings || [], { bump: true });
-      if (typeof onScheduleViewDay === "function") {
-        onScheduleViewDay(payload.booking?.booking_date || request.day || bookingDateForSlots);
+      if (typeof onScheduleViewDay === "function" && payload.booking?.booking_date) {
+        onScheduleViewDay(payload.booking.booking_date);
       }
-      if (payload.linkedArtistId && typeof onLinkedArtistBooked === "function") {
-        onLinkedArtistBooked(payload.linkedArtistId);
+      const notifyIds = Array.isArray(payload.linkedArtistIds) && payload.linkedArtistIds.length
+        ? payload.linkedArtistIds
+        : (payload.linkedArtistId ? [payload.linkedArtistId] : []);
+      if (typeof onLinkedArtistBooked === "function") {
+        for (const artistId of notifyIds) onLinkedArtistBooked(artistId);
       }
-      setReservationRequestList((items) => items.filter((item) => item.id !== requestId));
-      shellNotify("درخواست رزرو تایید شد و در دیتابیس سالن ذخیره شد.");
+      shellNotify("درخواست رزرو تایید شد.");
       await refreshSalonBookingsLive(salonBookingsEpochRef.current);
     } catch {
       shellNotify("تایید رزرو ذخیره نشد؛ دوباره امتحان کن.");
@@ -472,13 +498,42 @@ export function useSalonWorkspace({
       salonRequestBusyIdRef.current = "";
       setSalonRequestBusyId("");
     }
-  }, [reservationRequestList, shellNotify, onScheduleViewDay, onLinkedArtistBooked, applySalonBookings, refreshSalonBookingsLive]);
+  }, [shellNotify, onScheduleViewDay, onLinkedArtistBooked, applySalonBookings, refreshSalonBookingsLive]);
 
-  const declineReservationRequest = useCallback((requestId) => {
+  /**
+   * Rejects a REAL pending `salon_bookings` row by cancelling it — the exact
+   * same cancel path (`status: "لغو"`, `action: "cancel"`) used by the
+   * schedule menu's owner-initiated cancel (see useScheduleBookingMenu.js /
+   * patchSalonAppointment), not a second cancel mechanism. Used to only
+   * drop a fake mock item from local state with no DB write at all.
+   */
+  const declineReservationRequest = useCallback(async (requestId) => {
     if (salonRequestBusyIdRef.current) return;
-    setReservationRequestList((items) => items.filter((item) => item.id !== requestId));
-    shellNotify("درخواست رزرو رد شد.");
-  }, [shellNotify]);
+    const busyKey = `reservation:${requestId}`;
+    salonRequestBusyIdRef.current = busyKey;
+    setSalonRequestBusyId(busyKey);
+    try {
+      const { ok, payload } = await updateSalonBooking({ id: requestId, status: "لغو", action: "cancel" });
+      if (!ok) {
+        if (Array.isArray(payload.bookings)) applySalonBookings(payload.bookings, { bump: true });
+        shellNotify(getApiErrorMessage(payload, "رد درخواست رزرو انجام نشد."));
+        return;
+      }
+      applySalonBookings(payload.bookings || [], { bump: true });
+      const notifyIds = Array.isArray(payload.linkedArtistIds) && payload.linkedArtistIds.length
+        ? payload.linkedArtistIds
+        : (payload.linkedArtistId ? [payload.linkedArtistId] : []);
+      if (typeof onLinkedArtistBooked === "function") {
+        for (const artistId of notifyIds) onLinkedArtistBooked(artistId);
+      }
+      shellNotify("درخواست رزرو رد شد.");
+    } catch {
+      shellNotify("رد درخواست رزرو انجام نشد؛ دوباره امتحان کن.");
+    } finally {
+      salonRequestBusyIdRef.current = "";
+      setSalonRequestBusyId("");
+    }
+  }, [shellNotify, applySalonBookings, onLinkedArtistBooked]);
 
   const updateSalonCollabRequest = useCallback(async (id, status) => {
     if (!id || salonRequestBusyIdRef.current) return;
@@ -1095,7 +1150,6 @@ export function useSalonWorkspace({
     setSalonToolSheetOpen(false);
     setSettingsHoursOpen(false);
     setSalonAppointmentList([]);
-    setReservationRequestList(reservationRequests);
     setSalonCollabRequestList([]);
     setSalonArtistInviteList([]);
     setSalonStaffList([]);
@@ -1135,7 +1189,6 @@ export function useSalonWorkspace({
     salonAppointmentList,
     setSalonAppointmentList,
     reservationRequestList,
-    setReservationRequestList,
     salonCollabRequestList,
     setSalonCollabRequestList,
     salonArtistInviteList,

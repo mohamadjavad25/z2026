@@ -46,8 +46,6 @@ export const salonAppointments = [
   { time: "۱۶:۱۵", client: "سارا", service: "میکاپ نود", staff: "آوا", status: "VIP" }
 ];
 
-export const reservationRequests = [];
-
 export const salonStaff = [
   { name: "مهسا", role: "ناخن‌کار", booked: "۵ وقت", state: "فعال" },
   { name: "لنا", role: "رنگ و لایت", booked: "۳ وقت", state: "آزاد ۱۵:۳۰" },

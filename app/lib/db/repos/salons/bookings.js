@@ -82,18 +82,25 @@ function staffScopesConflict(newStaff, existingStaff) {
   return next === prev;
 }
 
+// 'منقضی شده' (auto-expired: salon never responded within the booking-request
+// window — see app/lib/bookingExpirySweep.js) must be excluded here exactly
+// like 'لغو': an expired request no longer holds its slot, same as an
+// actively-cancelled one. It's kept as a DISTINCT status value from 'لغو'
+// only so the client-facing UI can tell "salon said no" apart from "nobody
+// answered in time" — it must never be treated as "still active" for
+// conflict/availability purposes.
 function listActiveDayBookings(db, salonUserId, bookingDate, excludeId = null) {
   if (excludeId == null) {
     return db.prepare(`
       SELECT id, staff, time, duration_minutes, service, status
       FROM salon_bookings
-      WHERE salon_user_id = ? AND booking_date = ? AND status != 'لغو'
+      WHERE salon_user_id = ? AND booking_date = ? AND status NOT IN ('لغو', 'منقضی شده')
     `).all(salonUserId, bookingDate);
   }
   return db.prepare(`
     SELECT id, staff, time, duration_minutes, service, status
     FROM salon_bookings
-    WHERE salon_user_id = ? AND booking_date = ? AND status != 'لغو' AND id != ?
+    WHERE salon_user_id = ? AND booking_date = ? AND status NOT IN ('لغو', 'منقضی شده') AND id != ?
   `).all(salonUserId, bookingDate, excludeId);
 }
 

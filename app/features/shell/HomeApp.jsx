@@ -627,7 +627,6 @@ export function HomeApp() {
     salonAppointmentList,
     setSalonAppointmentList,
     reservationRequestList,
-    setReservationRequestList,
     salonCollabRequestList,
     setSalonCollabRequestList,
     salonArtistInviteList,

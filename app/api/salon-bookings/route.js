@@ -6,6 +6,13 @@ import * as artists from "../../lib/db/repos/artists.js";
 import * as messages from "../../lib/db/repos/messages.js";
 import { publishChatEvent } from "../../lib/chatEvents.js";
 import { enrichBookingCards } from "../../lib/chatOrderCards.js";
+// Side-effect import: starts the once-per-process 1-hour booking-request
+// auto-expiry sweep (see that file's docstring) the first time this route
+// module loads — same self-starting-on-import convention as
+// app/lib/rateLimit.js's sweep. This is this app's busiest salon-booking
+// entry point (polled every 8s by both the salon owner dashboard and the
+// client's own-bookings view), so it starts within seconds of real use.
+import "../../lib/bookingExpirySweep.js";
 import { resolveRollingPersianDateKey } from "../../shared/lib/persianCalendar.js";
 import {
   buildDayBookingSlots,
@@ -64,7 +71,10 @@ export async function GET(request) {
       return noStoreJson({ bookings: salons.listSalonBookings(auth.user.id) });
     }
     const unavailableSlots = salons.listSalonBookings(salonUserId)
-      .filter((booking) => booking.status !== "لغو")
+      // 'منقضی شده' (auto-expired request, see bookingExpirySweep.js) no longer
+      // holds its slot, same as 'لغو' — otherwise a timed-out request would
+      // wrongly go on blocking that slot for every other client forever.
+      .filter((booking) => booking.status !== "لغو" && booking.status !== "منقضی شده")
       .map((booking) => ({
         booking_date: booking.booking_date,
         time: booking.time,

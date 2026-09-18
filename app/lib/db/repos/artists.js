@@ -437,7 +437,7 @@ export function listArtistBookedSlots(artistUserId, { excludeBookingId = null } 
     SELECT id, booking_date, time, status, service, duration_minutes
     FROM artist_bookings
     WHERE artist_user_id = ?
-      AND status NOT IN ('لغو', 'لغو شده', 'cancelled')
+      AND status NOT IN ('لغو', 'لغو شده', 'cancelled', 'منقضی شده')
     ORDER BY id ASC
   `).all(artistUserId).filter((row) => excludeId == null || Number(row.id) !== excludeId).map((row) => ({
     id: row.id,
