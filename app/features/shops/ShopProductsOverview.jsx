@@ -182,7 +182,12 @@ export function ShopProductsOverview({
   const shopStoryVideo = profile?.data?.storyVideo || profile?.data?.story_video || profile?.data?.introVideo || profile?.data?.intro_video || "";
   const shopStoryPoster = profile?.data?.storyPoster || profile?.data?.story_poster || profile?.data?.introPoster || profile?.data?.intro_poster || "";
 
-  const totalRevenue = orders.reduce((sum, order) => sum + (Number(order.totalNum) || 0), 0);
+  // Same exclusion as ShopInsightsPanel's totalRevenue: a cancelled, returned,
+  // or auto-expired (timed-out, never acknowledged) order never became real
+  // money, so it must not inflate the "فروش کل" figure shown here.
+  const totalRevenue = orders
+    .filter((order) => !["لغو شده", "مرجوعی شد", "منقضی شده"].includes(order.status))
+    .reduce((sum, order) => sum + (Number(order.totalNum) || 0), 0);
   const activeProductCount = products.filter((product) => Number(product.stock || 0) > 0).length;
 
   const featuredProducts = useMemo(

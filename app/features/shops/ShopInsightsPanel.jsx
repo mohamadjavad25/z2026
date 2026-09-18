@@ -21,6 +21,17 @@ function statusCount(orders, status) {
   return orders.filter((order) => order.status === status).length;
 }
 
+// Orders that never became real money for the shop — cancelled outright,
+// returned after the fact, or auto-expired because the shop never
+// acknowledged them in time (see bookingExpirySweep.js). Revenue and the
+// average-order figure must exclude these; counting a cancelled order as
+// "sales" would show a shop owner a real-money number that's simply wrong.
+const NON_REVENUE_STATUSES = new Set(["لغو شده", "مرجوعی شد", "منقضی شده"]);
+
+function isRevenueOrder(order) {
+  return !NON_REVENUE_STATUSES.has(order?.status);
+}
+
 function parseOrderDate(order) {
   const raw = order?.createdAt || order?.created_at || "";
   if (!raw) return null;
@@ -59,8 +70,9 @@ export function ShopInsightsPanel({
   stockMovements = [],
   onOpenOrders
 }) {
-  const totalRevenue = orders.reduce((sum, order) => sum + orderTotal(order), 0);
-  const averageOrder = orders.length ? Math.round(totalRevenue / orders.length) : 0;
+  const revenueOrders = orders.filter(isRevenueOrder);
+  const totalRevenue = revenueOrders.reduce((sum, order) => sum + orderTotal(order), 0);
+  const averageOrder = revenueOrders.length ? Math.round(totalRevenue / revenueOrders.length) : 0;
   const deliveredCount = statusCount(orders, "تحویل شد");
   const conversionRate = orders.length ? Math.round((deliveredCount / orders.length) * 100) : 0;
   const lowStockCount = products.filter((p) => Number(p.stock || 0) > 0 && Number(p.stock || 0) <= 5).length;
@@ -94,8 +106,8 @@ export function ShopInsightsPanel({
         <span>خلاصه فروش</span>
         <strong className="studioNumeral">{totalRevenue ? formatToman(totalRevenue) : "بدون فروش ثبت‌شده"}</strong>
         <small>
-          {orders.length
-            ? `${toPersianDigits(orders.length)} سفارش، میانگین ${formatToman(averageOrder)}`
+          {revenueOrders.length
+            ? `${toPersianDigits(revenueOrders.length)} سفارش، میانگین ${formatToman(averageOrder)}`
             : "با ثبت اولین سفارش، درآمد و رفتار خرید اینجا نمایش داده می‌شود."}
         </small>
       </div>
