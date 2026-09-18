@@ -1,6 +1,9 @@
 import { applySchema } from "./schema.js";
 
-const SCHEMA_VERSION = 33;
+// Exported so scripts/migration-sequential.test.mjs (and any other
+// verification script) can assert against the live value instead of a
+// hardcoded number that silently drifts out of date every time this bumps.
+export const SCHEMA_VERSION = 33;
 
 /** Convert legacy session expiry strings (ISO / SQLite datetime) to epoch ms. Unparseable → 0 (expired). */
 export function sessionExpiryToEpochMs(value) {

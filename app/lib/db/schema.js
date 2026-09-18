@@ -526,5 +526,14 @@ export function applySchema(db) {
     CREATE INDEX IF NOT EXISTS idx_artist_collabs_artist ON artist_collabs(artist_user_id, id DESC);
     CREATE INDEX IF NOT EXISTS idx_salon_artist_invites_artist ON salon_artist_invites(artist_user_id, status, id DESC);
     CREATE INDEX IF NOT EXISTS idx_salon_artist_invites_salon ON salon_artist_invites(salon_user_id, status, id DESC);
+
+    -- Backs the booking-conflict/day-listing hot path (listActiveDayBookings
+    -- in repos/salons/bookings.js). This index was originally only added via
+    -- migrateSalonBookingConflictColumns (migrations.js v12), which never
+    -- runs on a brand-new database — ensureSchemaVersion takes the
+    -- applySchema-only path when current===0, skipping every migration step.
+    -- Mirrored here so a fresh install gets the same index an upgraded DB
+    -- already has, instead of silently missing it.
+    CREATE INDEX IF NOT EXISTS idx_salon_bookings_day ON salon_bookings (salon_user_id, booking_date, status);
   `);
 }

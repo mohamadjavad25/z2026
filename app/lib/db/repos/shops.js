@@ -112,9 +112,19 @@ function mapShop(row) {
   };
 }
 
+// A cancelled, returned, or auto-expired (never-acknowledged) order never
+// became a real sale — same exclusion ShopInsightsPanel/ShopProductsOverview
+// apply to shop-level revenue. Without it, the public "X فروش" badge on a
+// product (ShopStorefrontPage, ShopCatalogPanel, ShopProductDetailModal)
+// counted quantity from orders that were cancelled/returned/expired as if
+// they'd actually sold.
 const PRODUCT_SELECT = `
   SELECT sp.*,
-    (SELECT COALESCE(SUM(quantity), 0) FROM shop_order_items WHERE product_id = sp.id) AS sold
+    (SELECT COALESCE(SUM(i.quantity), 0)
+       FROM shop_order_items i
+       JOIN shop_orders o ON o.id = i.order_id
+       WHERE i.product_id = sp.id
+         AND o.status NOT IN ('لغو شده', 'مرجوعی شد', 'منقضی شده')) AS sold
   FROM shop_products sp
 `;
 
@@ -256,6 +266,11 @@ export function updateProduct(id, shopUserId, data) {
  * حال آماده‌سازی / ارسال شد) — deleting it would strand that order's stock
  * with no product row left to ever restock. Throws {code:"has_active_orders"}.
  * Any remaining stock is written off as a final audit-trail entry.
+ *
+ * 'منقضی شده' (auto-expired — see expireStaleOrder) is excluded here too:
+ * like 'لغو شده'/'مرجوعی شد', it already restocked its line items
+ * (expire_restock) and needs nothing further from this product row, so it
+ * must not count as "still active" and block deletion forever.
  */
 export function deleteProduct(id, shopUserId) {
   const db = getDb();
@@ -266,7 +281,7 @@ export function deleteProduct(id, shopUserId) {
     const activeOrder = db.prepare(`
       SELECT o.id FROM shop_order_items i
       JOIN shop_orders o ON o.id = i.order_id
-      WHERE i.product_id = ? AND o.status NOT IN ('لغو شده', 'مرجوعی شد', 'تحویل شد')
+      WHERE i.product_id = ? AND o.status NOT IN ('لغو شده', 'مرجوعی شد', 'تحویل شد', 'منقضی شده')
       LIMIT 1
     `).get(id);
     if (activeOrder) {

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { DatabaseSync } from "node:sqlite";
 
-import { ensureSchemaVersion } from "../app/lib/db/migrations.js";
+import { ensureSchemaVersion, SCHEMA_VERSION } from "../app/lib/db/migrations.js";
 
 function columnNames(database, table) {
   return database.prepare(`PRAGMA table_info(${table})`).all().map((col) => col.name);
@@ -135,7 +135,11 @@ test("ensureSchemaVersion runs V7→V11 sequentially from schema_version=6", () 
   const version = database.prepare(
     "SELECT value FROM app_meta WHERE key = 'schema_version'"
   ).get().value;
-  assert.equal(version, "30", "final schema_version must be 30 (ensureSchemaVersion runs every defined step, not just up to v11)");
+  assert.equal(
+    version,
+    String(SCHEMA_VERSION),
+    `final schema_version must be ${SCHEMA_VERSION} (ensureSchemaVersion runs every defined step, not just up to v11)`
+  );
 
   // v7: hint column
   assert.ok(
