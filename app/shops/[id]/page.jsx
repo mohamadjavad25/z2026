@@ -88,7 +88,14 @@ function buildShopJsonLd(shop, canonicalUrl) {
   };
   if (shop.avatar) jsonLd.image = shop.avatar;
   if (shop.bio) jsonLd.description = shop.bio;
-  if (shop.phone) jsonLd.telephone = shop.phone;
+  // Deliberately NOT emitting telephone: shop.phone is the users.phone
+  // column, which is this account's LOGIN credential (see getUserByPhone in
+  // app/lib/db/repos/users.js) — not a business contact number the owner
+  // chose to publish. It isn't shown anywhere on ShopPublicPageClient
+  // either, so putting it in crawlable, Google-cached JSON-LD would leak
+  // private auth data the visible page itself never exposes. Re-add this
+  // only once the data model has a distinct "public business phone" field
+  // the owner explicitly opts into.
   if (shop.area) {
     jsonLd.address = {
       "@type": "PostalAddress",
