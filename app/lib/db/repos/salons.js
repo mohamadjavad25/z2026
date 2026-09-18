@@ -1,6 +1,7 @@
 import { getDb } from "../connection.js";
 import { countFollowers } from "./users.js";
 import { storyFieldsFor } from "./stories.js";
+import { isProfileSaved } from "./social.js";
 import { countFollowing } from "./salons/common.js";
 import { listClientSalonBookings, listSalonBookings } from "./salons/bookings.js";
 import { listSalonHours } from "./salons/hours.js";
@@ -112,7 +113,7 @@ export function listSavedSalonsForUser(userId) {
   });
 }
 
-export function getSalon(userId) {
+export function getSalon(userId, viewerUserId = null) {
   const row = getDb().prepare(`
     SELECT s.*, u.avatar, u.bio
     FROM salons s JOIN users u ON u.id = s.user_id
@@ -142,6 +143,7 @@ export function getSalon(userId) {
     follower_count: followerCount,
     followingCount,
     following_count: followingCount,
+    isSaved: viewerUserId ? isProfileSaved(viewerUserId, row.user_id) : false,
     services: listSalonServices(userId),
     portfolio: listSalonPortfolio(userId),
     staff: listSalonStaff(userId),

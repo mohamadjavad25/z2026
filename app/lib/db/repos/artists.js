@@ -5,7 +5,7 @@ import { listPostsByOwner } from "./posts.js";
 import { resolveRollingPersianDateKey } from "../../../shared/lib/persianCalendar.js";
 import { normalizeBookingTimeLabel } from "../../../shared/lib/time.js";
 import { normalizePhone } from "./salons/common.js";
-import { getTargetRatingSummary } from "./social.js";
+import { getTargetRatingSummary, isProfileSaved } from "./social.js";
 
 export { ensureArtistHours, listArtistHours, updateArtistHour } from "./artists/hours.js";
 
@@ -659,6 +659,7 @@ export function getPublicArtist(userId, viewerUserId = null) {
     reviewCount: Number(ratingAgg?.cnt || 0),
     followers: countFollowers(user.id),
     isFollowing: viewerUserId ? isFollowing(viewerUserId, user.id) : false,
+    isSaved: viewerUserId ? isProfileSaved(viewerUserId, user.id) : false,
     posts,
     services,
     reviews,
