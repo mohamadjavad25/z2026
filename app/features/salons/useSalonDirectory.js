@@ -176,9 +176,19 @@ export function useSalonDirectory({
       : null;
     const artistBookings = artistResult.status === "fulfilled" && artistResult.value.ok
       ? (artistResult.value.data?.bookings || artistResult.value.payload?.bookings || [])
-      : [];
-    if (salonBookings === null) return; // keep current list if the primary (salon) fetch failed
-    setClientBookingList([...salonBookings, ...artistBookings]);
+      : null; // null (not []) on failure — same guard shape as salonBookings above, so a
+               // transient failure of just this fetch can't erase previously-shown artist
+               // bookings from "فعالیت من" below.
+    if (salonBookings === null && artistBookings === null) return; // both fetches failed: keep current list untouched
+    setClientBookingList((previous) => {
+      const previousList = previous || [];
+      // bookingSource: "artist" is only ever set on rows from listClientArtistBookings
+      // (see app/lib/db/repos/artists.js) — salon rows never carry it — so this split
+      // cleanly separates "the salon half" from "the artist half" of the merged list.
+      const nextSalonBookings = salonBookings ?? previousList.filter((item) => item.bookingSource !== "artist");
+      const nextArtistBookings = artistBookings ?? previousList.filter((item) => item.bookingSource === "artist");
+      return [...nextSalonBookings, ...nextArtistBookings];
+    });
   }, []);
 
   const resetSalonClient = useCallback(() => {

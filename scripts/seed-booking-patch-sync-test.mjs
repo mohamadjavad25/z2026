@@ -218,7 +218,11 @@ async function main() {
       }
     });
 
-    const bookingDate = "امروز";
+    // Pinned to "شنبه" (Saturday) — same real-date-flakiness fix already applied
+    // to seed-booking-expiry-test.mjs and friends: defaultHours marks Friday
+    // closed and Thursday closing early, so "امروز" ("today") intermittently
+    // 409s with "سالن در این روز تعطیل است." depending on what day this runs.
+    const bookingDate = "شنبه";
 
     // --- 1) Create linked booking ---
     console.log("\n--- 1 create linked booking ---");
@@ -466,6 +470,72 @@ async function main() {
       "A cancelled + B created",
       aAfterMove?.status === "لغو" && Boolean(bAfterMove),
       `A=${aAfterMove?.status} B=${bAfterMove?.time || "missing"}`
+    );
+
+    // --- 6) PATCH status whitelist: a salon may only set "تایید شده" or "لغو" ---
+    // through this public route. "منقضی شده" is sweep-only
+    // (bookingExpirySweep.js) and any other free-text status must be rejected
+    // (previously `patch = body` forwarded body.status straight through with
+    // no enum check, unlike PATCH /api/artist/me's patchOwnArtistBooking).
+    console.log("--- 6 PATCH status whitelist ---");
+    const statusSeed = await api("/api/salon-bookings", {
+      method: "POST",
+      cookie: salonCookie,
+      body: {
+        client: "مشتری Status",
+        phone: "09134003994",
+        service: "خدمت Patch",
+        staff: linkedPerson.name,
+        booking_date: bookingDate,
+        time: "۲۰:۰۰",
+        durationMinutes: 60,
+        status: "تایید"
+      }
+    });
+    const statusId = statusSeed.payload?.booking?.id;
+    step("seed status-whitelist booking", statusSeed.res.status === 201 && Boolean(statusId), `id=${statusId}`);
+
+    const expiredAttempt = await api("/api/salon-bookings", {
+      method: "PATCH",
+      cookie: salonCookie,
+      body: { id: statusId, status: "منقضی شده" }
+    });
+    step(
+      "PATCH status=منقضی شده rejected (400)",
+      expiredAttempt.res.status === 400,
+      `status=${expiredAttempt.res.status} error=${expiredAttempt.payload?.error}`
+    );
+
+    const garbageAttempt = await api("/api/salon-bookings", {
+      method: "PATCH",
+      cookie: salonCookie,
+      body: { id: statusId, status: "xyz-not-a-real-status" }
+    });
+    step(
+      "PATCH garbage status rejected (400)",
+      garbageAttempt.res.status === 400,
+      `status=${garbageAttempt.res.status} error=${garbageAttempt.payload?.error}`
+    );
+
+    const statusListAfterReject = await api("/api/salon-bookings", { cookie: salonCookie });
+    const statusRowAfterReject = (statusListAfterReject.payload?.bookings || []).find(
+      (row) => Number(row.id) === Number(statusId)
+    );
+    step(
+      "row unchanged after rejected status PATCH",
+      Boolean(statusRowAfterReject) && statusRowAfterReject.status !== "منقضی شده" && statusRowAfterReject.status !== "xyz-not-a-real-status",
+      `status=${statusRowAfterReject?.status}`
+    );
+
+    const approveAttempt = await api("/api/salon-bookings", {
+      method: "PATCH",
+      cookie: salonCookie,
+      body: { id: statusId, status: "تایید شده" }
+    });
+    step(
+      "PATCH status=تایید شده still allowed",
+      approveAttempt.res.ok && approveAttempt.payload?.booking?.status === "تایید شده",
+      `status=${approveAttempt.res.status} booking.status=${approveAttempt.payload?.booking?.status}`
     );
   } finally {
     if (!keepServer) await stopServer(child);

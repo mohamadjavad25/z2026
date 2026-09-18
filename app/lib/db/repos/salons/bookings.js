@@ -318,6 +318,17 @@ export function patchSalonBookingWithArtistSync(id, salonUserId, data) {
   `).get(id, salonUserId);
   if (!current) return { ok: false, error: "missing" };
 
+  // An already-expired request (bookingExpirySweep.js) already told the client
+  // "the salon never answered in time" and freed its slot — it must not be
+  // silently resurrected back to "تایید شده" through the normal confirm PATCH
+  // (that would re-serve a client who was already told the request timed out,
+  // with zero notification that it happened). Cancel-to-"لغو" is intentionally
+  // left alone here — cancelling an already-expired row is a harmless no-op,
+  // not a resurrection.
+  if (current.status === "منقضی شده" && data.status === "تایید شده") {
+    return { ok: false, error: "expired" };
+  }
+
   const oldStaff = findSalonStaffForBooking(salonUserId, current.staff, current.service);
   const oldArtistId = oldStaff?.artist_user_id ? Number(oldStaff.artist_user_id) : null;
   const oldArtistBooking = oldArtistId

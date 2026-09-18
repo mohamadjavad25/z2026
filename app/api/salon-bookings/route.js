@@ -220,14 +220,30 @@ export async function PATCH(request) {
   const id = Number(body.id);
   if (!id) return noStoreJson({ error: "شناسه رزرو نامعتبر است." }, { status: 400 });
 
-  const patch = body.status === "لغو" || body.action === "cancel"
-    ? { status: "لغو" }
-    : body;
+  const wantsCancel = body.status === "لغو" || body.action === "cancel";
+  // Whitelist, same shape as patchOwnArtistBooking in /api/artist/me: the only
+  // status transitions a salon owner may set through this public route are
+  // approve ("تایید شده") and cancel ("لغو"). Every other value — including
+  // "منقضی شده", which is sweep-only (bookingExpirySweep.js) and otherwise
+  // frees the slot early via the GET unavailableSlots filter — is rejected.
+  // Other PATCH fields (time/staff/client/…) never carry a status, so this
+  // only fires when the caller explicitly sends one.
+  if (!wantsCancel && body.status != null && body.status !== "" && body.status !== "تایید شده") {
+    return noStoreJson({ error: "وضعیت نامعتبر است." }, { status: 400 });
+  }
+  const patch = wantsCancel ? { status: "لغو" } : body;
   const result = salons.patchSalonBookingWithArtistSync(id, auth.user.id, patch);
 
   if (!result.ok) {
     if (result.error === "missing") {
       return noStoreJson({ error: "رزرو یافت نشد." }, { status: 404 });
+    }
+    if (result.error === "expired") {
+      return noStoreJson({
+        error: "این درخواست به‌دلیل عدم پاسخ به‌موقع منقضی شده و دیگر قابل تایید نیست.",
+        code: "BOOKING_EXPIRED",
+        bookings: salons.listSalonBookings(auth.user.id)
+      }, { status: 409 });
     }
     if (result.error === "artist_conflict") {
       return noStoreJson({

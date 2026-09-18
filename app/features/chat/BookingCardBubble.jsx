@@ -79,7 +79,9 @@ function BookingCardBubble({ booking, kind, missingLabel }) {
       {expired ? (
         <div className="bookingCardExpired">
           <TimerOff size={13} />
-          سالن به‌موقع پاسخ نداد و نوبت به‌طور خودکار لغو شد
+          {kind === "artist"
+            ? "آرتیست به‌موقع پاسخ نداد و نوبت به‌طور خودکار لغو شد"
+            : "سالن به‌موقع پاسخ نداد و نوبت به‌طور خودکار لغو شد"}
         </div>
       ) : null}
     </div>

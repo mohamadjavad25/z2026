@@ -102,6 +102,28 @@ function patchOwnArtistBooking(artistUserId, body) {
     return error("وضعیت نامعتبر است.", 400);
   }
 
+  // An already-expired request (bookingExpirySweep.js) is a dead end by
+  // design: it already freed its slot, so a stale client (e.g. an unrefreshed
+  // "تایید"/"رد" button) must not be able to confirm OR decline it back to
+  // life. Matches the salon-side guard added in patchSalonBookingWithArtistSync's
+  // caller for the same "منقضی شده" resurrection hole.
+  if (current.status === "منقضی شده") {
+    return error("این درخواست به‌دلیل عدم پاسخ به‌موقع منقضی شده و دیگر قابل تایید یا رد نیست.", 409);
+  }
+
+  // Confirming a STALE (but not-yet-swept) row must not silently create a
+  // double booking: re-check the slot against every other active booking for
+  // this artist, excluding this row itself, right before flipping it to
+  // "تایید شده". This is the exact check patchSalonBookingWithArtistSync
+  // already runs for its salon-linked mirror row (via isArtistSlotBlocked) —
+  // the direct-artist-booking confirm path was the one place skipping it.
+  if (
+    nextStatus === "تایید شده"
+    && artists.isArtistSlotBlocked(artistUserId, current.bookingDate, current.time, current.durationMinutes, bookingId)
+  ) {
+    return error("این بازه زمانی توسط نوبت دیگری اشغال شده است.", 409);
+  }
+
   const updatedRow = wantsCancel
     ? artists.cancelArtistBookingRow(bookingId)
     : artists.updateArtistBookingRow(bookingId, { status: nextStatus });
