@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { CalendarCheck, CalendarDays, CheckCircle2, Clock3, FileText, MapPin, RotateCcw, Sparkles } from "lucide-react";
 import { SegmentClock } from "../../components/SegmentClock";
 import { toPersianDigits } from "../../shared/lib/digits";
+import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar";
 import {
   buildExactBookingDateTabs,
   getBookingDateKey,
@@ -60,11 +61,12 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings }) {
   const getBookingMeta = (booking) => {
     const salonName = booking.salonName || booking.salon_name || "سالن منتخب";
     const avatar = booking.salonAvatar || booking.salon_avatar || "";
+    const rawDate = booking.booking_date || booking.date || "";
     return {
       salonName,
       avatar,
       service: booking.service || "خدمت زیبایی",
-      date: booking.booking_date || booking.date || "امروز",
+      date: rawDate ? formatRelativeBookingDayLabel(rawDate) : "امروز",
       time: booking.time || "زمان",
       status: booking.status || "تایید شده"
     };
