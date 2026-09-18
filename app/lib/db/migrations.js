@@ -1,6 +1,6 @@
 import { applySchema } from "./schema.js";
 
-const SCHEMA_VERSION = 30;
+const SCHEMA_VERSION = 31;
 
 /** Convert legacy session expiry strings (ISO / SQLite datetime) to epoch ms. Unparseable → 0 (expired). */
 export function sessionExpiryToEpochMs(value) {
@@ -169,6 +169,13 @@ function migrateWalletsBalanceChecks(database) {
     applySchema(database);
     return;
   }
+  // migrateToV30 already rebuilt `wallets` without shell_balance, and that
+  // rebuild's CREATE TABLE already carries the same non-negative CHECK
+  // constraints this step exists to add — so once shell_balance is gone,
+  // this step's job is already done and re-running it (every migrateToVN
+  // call cascades back through here) would reference a column that no
+  // longer exists. Only real on a database still older than v30.
+  if (!columnExists(database, "wallets", "shell_balance")) return;
 
   // Clamp legacy negatives before enforcing CHECK.
   database.exec(`
@@ -599,6 +606,18 @@ function migrateToV30(database) {
   applySchema(database);
 }
 
+function migrateToV31(database) {
+  migrateToV30(database);
+  // Backs real chat presence: the moment a user's last open SSE connection
+  // closes, /api/messages/stream writes CURRENT_TIMESTAMP here so an offline
+  // peer can show an honest "last seen" instead of nothing — see
+  // app/lib/presence.js and app/lib/db/repos/users.js#touchLastSeen.
+  if (tableExists(database, "users") && !columnExists(database, "users", "last_seen_at")) {
+    database.exec("ALTER TABLE users ADD COLUMN last_seen_at TEXT DEFAULT NULL;");
+  }
+  applySchema(database);
+}
+
 function readSchemaVersion(database) {
   const row = database.prepare("SELECT value FROM app_meta WHERE key = 'schema_version'").get();
   return Number(row?.value || 0);
@@ -640,7 +659,8 @@ const MIGRATION_STEPS = [
   { version: 27, migrate: migrateToV27 },
   { version: 28, migrate: migrateToV28 },
   { version: 29, migrate: migrateToV29 },
-  { version: 30, migrate: migrateToV30 }
+  { version: 30, migrate: migrateToV30 },
+  { version: 31, migrate: migrateToV31 }
 ];
 
 export function ensureSchemaVersion(database) {
