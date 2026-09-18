@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CalendarCheck, CalendarDays, CheckCircle2, Clock3, FileText, MapPin, RotateCcw, Sparkles } from "lucide-react";
+import { CalendarCheck, CalendarDays, CheckCircle2, Clock3, FileText, MapPin, RotateCcw, Sparkles, TimerOff, XCircle } from "lucide-react";
 import { SegmentClock } from "../../components/SegmentClock";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar";
@@ -12,6 +12,44 @@ import {
 } from "../artist";
 import { BookingHistoryCalendarSheet } from "../profile/BookingHistoryCalendarSheet";
 import { ProfileHeroWeekStrip } from "../profile/ProfileHeroWeekStrip";
+
+// Same tone-class convention as ClientOrdersPanel's getStatusTone(): the 4
+// real salon_bookings statuses map to a pill tone + icon so the client can
+// tell "waiting", "confirmed", "salon declined" and "nobody answered in
+// time" apart at a glance instead of every booking reading as confirmed.
+function getBookingStatusTone(status = "") {
+  if (status === "تایید شده") return "done";
+  if (status === "لغو") return "bad";
+  if (status === "منقضی شده") return "expired";
+  return "pending";
+}
+
+const BOOKING_STATUS_ICONS = {
+  pending: Clock3,
+  done: CheckCircle2,
+  bad: XCircle,
+  expired: TimerOff
+};
+
+// SQLite CURRENT_TIMESTAMP strings are UTC with no offset marker ("YYYY-MM-DD
+// HH:MM:SS"); append "Z" (same trick as ClientOrdersPanel's formatOrderDate)
+// so Date parses them as UTC instead of silently treating them as local time.
+const bookingDeadlineTimeFmt = new Intl.DateTimeFormat("en-GB", {
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+  timeZone: "Asia/Tehran"
+});
+
+function formatBookingExpiryDeadline(createdAt, minutes = 60) {
+  const raw = String(createdAt || "").trim();
+  if (!raw) return "";
+  const isoLike = raw.includes("T") ? raw : `${raw.replace(" ", "T")}Z`;
+  const created = new Date(isoLike);
+  if (Number.isNaN(created.getTime())) return "";
+  const deadline = new Date(created.getTime() + minutes * 60 * 1000);
+  return toPersianDigits(bookingDeadlineTimeFmt.format(deadline));
+}
 
 /**
  * Client role — bookings list on profile bookings tab.
@@ -71,7 +109,8 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook })
       service: booking.service || "خدمت زیبایی",
       date: rawDate ? formatRelativeBookingDayLabel(rawDate) : "امروز",
       time: booking.time || "زمان",
-      status: booking.status || "تازه"
+      status: booking.status || "تازه",
+      tone: getBookingStatusTone(booking.status || "تازه")
     };
   };
 
@@ -97,6 +136,10 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook })
           />
           {nextBooking ? (() => {
             const meta = getBookingMeta(nextBooking);
+            const StatusIcon = BOOKING_STATUS_ICONS[meta.tone] || Clock3;
+            const pendingDeadline = meta.status === "درخواست"
+              ? formatBookingExpiryDeadline(nextBooking.created_at)
+              : "";
             return (
               <article className="clientBookingFeatureCard" key={nextBooking.id || `${meta.salonName}-${meta.time}`}>
                 <div className="clientBookingFeatureTop">
@@ -120,10 +163,16 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook })
                     <SegmentClock value={meta.time} size="xs" as="b" backgroundColor="transparent" />
                   </span>
                 </div>
-                <div className="clientBookingStatusPill">
-                  <CheckCircle2 size={16} />
+                <div className={`clientBookingStatusPill is-${meta.tone}`}>
+                  <StatusIcon size={16} />
                   {meta.status}
                 </div>
+                {pendingDeadline ? (
+                  <p className="clientBookingPendingNote">
+                    <Clock3 size={14} />
+                    در انتظار تایید سالن — حداکثر تا ساعت {pendingDeadline}
+                  </p>
+                ) : null}
                 <div className="clientBookingFeatureActions">
                   <button
                     type="button"
@@ -176,7 +225,7 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook })
                       <small>{meta.salonName} · {meta.date}</small>
                     </div>
                     <div className="clientBookingMiniState">
-                      <strong>{meta.status}</strong>
+                      <strong className={`is-${meta.tone}`}>{meta.status}</strong>
                       <em>{meta.time}</em>
                     </div>
                   </button>
@@ -253,7 +302,7 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook })
               <small>{meta.salonName} · {meta.date}</small>
             </div>
             <div className="clientBookingMiniState">
-              <strong>{meta.status}</strong>
+              <strong className={`is-${meta.tone}`}>{meta.status}</strong>
               <em>{meta.time}</em>
             </div>
           </button>

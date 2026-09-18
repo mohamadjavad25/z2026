@@ -7882,10 +7882,48 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   gap: 6px;
   padding: 0 14px;
   border-radius: 999px;
-  color: #16a34a;
-  background: rgba(34, 197, 94, 0.14);
+  /* default/pending tone ("درخواست" — waiting on the salon); see
+     .is-done/.is-bad/.is-expired below for the other 3 real statuses. */
+  color: #b45309;
+  background: rgba(245, 158, 11, 0.14);
   font-size: 12px;
   font-weight: 900;
+}
+
+.profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingStatusPill.is-done {
+  color: #16a34a;
+  background: rgba(34, 197, 94, 0.14);
+}
+
+.profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingStatusPill.is-bad {
+  color: #d64545;
+  background: rgba(214, 69, 69, 0.12);
+}
+
+.profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingStatusPill.is-expired {
+  /* deliberately NOT the same red as .is-bad: expired means "nobody
+     answered in time", not "the salon said no" — keep those visually
+     distinct so the client can tell them apart at a glance. */
+  color: #9a5b52;
+  background: rgba(154, 91, 82, 0.14);
+}
+
+.profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingPendingNote {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgba(245, 158, 11, 0.08);
+  color: #b45309;
+  font-size: 11px;
+  font-weight: 750;
+  line-height: 1.6;
+}
+
+.profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingPendingNote svg {
+  flex: 0 0 auto;
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingFeatureActions {
@@ -8008,11 +8046,28 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   align-items: center;
   padding: 0 8px;
   border-radius: 999px;
-  color: #16a34a;
-  background: rgba(34, 197, 94, 0.12);
+  /* default/pending tone ("درخواست"); mirrors .clientBookingStatusPill's
+     tone convention above. */
+  color: #b45309;
+  background: rgba(245, 158, 11, 0.12);
   font-size: 10px;
   font-weight: 900;
   white-space: nowrap;
+}
+
+.profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingMiniState strong.is-done {
+  color: #16a34a;
+  background: rgba(34, 197, 94, 0.12);
+}
+
+.profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingMiniState strong.is-bad {
+  color: #d64545;
+  background: rgba(214, 69, 69, 0.1);
+}
+
+.profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingMiniState strong.is-expired {
+  color: #9a5b52;
+  background: rgba(154, 91, 82, 0.12);
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingMiniCard em {

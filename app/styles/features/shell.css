@@ -941,6 +941,10 @@
 .bookingCardStatus.is-pending { background: var(--info-bg); color: var(--info); }
 .bookingCardStatus.is-done { background: var(--success-bg); color: var(--success); }
 .bookingCardStatus.is-bad { background: var(--danger-bg); color: var(--danger); }
+/* "منقضی شده" — timed out, not actively declined by the salon — deliberately
+   NOT var(--danger): reusing the cancelled-red would blur the one thing this
+   status exists to communicate (see BookingCardBubble.jsx STATUS_TONE). */
+.bookingCardStatus.is-expired { background: var(--warning-bg); color: var(--warning); }
 
 .bookingCardMetaRow {
   display: flex;
@@ -962,6 +966,16 @@
   gap: 5px;
   padding-top: 2px;
   color: var(--danger);
+  font-size: 0.7rem;
+  font-weight: 850;
+}
+
+.bookingCardExpired {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding-top: 2px;
+  color: var(--warning);
   font-size: 0.7rem;
   font-weight: 850;
 }
