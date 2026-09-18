@@ -26888,6 +26888,11 @@ body:has(.salonStoryCreatorOverlay) .profileModeRail.is-dockRail {
 .publicStoryHeroImage {
   position: absolute;
   inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center;
   background-size: cover;
   background-position: center;
   transition:
@@ -27510,6 +27515,16 @@ body:has(.salonStoryCreatorOverlay) .profileModeRail.is-dockRail {
   font-weight: 900;
   color: #2c2f3e;
   background-color: #ffffff !important;
+}
+
+.artistPublicAvatarImage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center;
 }
 
 /* Rating badge astride the avatar's bottom edge — matches the owner

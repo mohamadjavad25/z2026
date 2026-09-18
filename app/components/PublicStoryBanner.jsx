@@ -145,6 +145,7 @@ export function PublicStoryBanner({
   story,
   heroClassName = "",
   heroImage = "",
+  heroAlt = "",
   topbar = null,
   extra = null,
   emptyTitle = "استوری معرفی هنوز آماده نیست",
@@ -160,11 +161,22 @@ export function PublicStoryBanner({
       role={role}
       aria-label={ariaLabel || undefined}
     >
-      <div
-        className="publicStoryHeroImage"
-        style={heroImage ? { backgroundImage: `url("${heroImage}")` } : undefined}
-        aria-hidden="true"
-      />
+      {heroImage ? (
+        // Real <img> (not a CSS background) so this — usually the single
+        // largest, most prominent photo on the page — is indexable by
+        // Google Image Search and readable by screen readers. heroAlt is
+        // only non-empty when heroImage is a genuine uploaded photo (see
+        // callers); when it's a static placeholder illustration, callers
+        // pass "" and this stays aria-hidden like a decorative background.
+        <img
+          className="publicStoryHeroImage"
+          src={heroImage}
+          alt={heroAlt}
+          aria-hidden={heroAlt ? undefined : "true"}
+        />
+      ) : (
+        <div className="publicStoryHeroImage" aria-hidden="true" />
+      )}
       {storyVideoSrc ? (
         <video
           ref={story.videoRef}

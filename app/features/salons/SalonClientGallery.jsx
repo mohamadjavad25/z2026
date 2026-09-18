@@ -58,7 +58,13 @@ export function SalonClientGallery({ salon, items, getFallbackStyle }) {
               onClick={() => setSelectedItem(item)}
               aria-label={`مشاهده جزئیات ${item.title || "نمونه‌کار"}`}
             >
-              {item.image ? <img src={item.image} alt="" onLoad={(event) => rememberImageRatio(key, event)} /> : null}
+              {item.image ? (
+                <img
+                  src={item.image}
+                  alt={item.title || `نمونه‌کار ${salon?.name || "سالن"}`}
+                  onLoad={(event) => rememberImageRatio(key, event)}
+                />
+              ) : null}
             </button>
           );
         })}
@@ -74,7 +80,9 @@ export function SalonClientGallery({ salon, items, getFallbackStyle }) {
               className={`salonGalleryDetailImage ${selectedItem.image ? "hasImage" : ""}`}
               style={selectedItem.image ? { "--mosaic-image": `url("${selectedItem.image}")` } : getFallbackStyle(selectedItem)}
             >
-              {selectedItem.image ? <img src={selectedItem.image} alt="" /> : null}
+              {selectedItem.image ? (
+                <img src={selectedItem.image} alt={selectedItem.title || `نمونه‌کار ${salon?.name || "سالن"}`} />
+              ) : null}
             </div>
             <div className="salonGalleryDetailBody">
               <div className="salonGalleryDetailTitle">

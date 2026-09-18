@@ -88,6 +88,11 @@ export function PublicArtistModal({
             story={story}
             heroClassName="artistPublicCover"
             heroImage={heroImage}
+            // Unlike salon/shop, the artist hero always resolves to a real
+            // uploaded photo (story poster, a featured portfolio shot, or the
+            // avatar) — there's no generic placeholder illustration fallback
+            // here — so it's always safe to describe.
+            heroAlt={artist.name ? `${artist.name} — تصویر کاور` : ""}
             extra={<div className="artistPublicCoverShade" aria-hidden="true" />}
             topbar={(
               <div className="artistPublicHeroTop">
@@ -121,9 +126,6 @@ export function PublicArtistModal({
             <div className="artistPublicAvatarWrap">
               <div
                 className={`artistPublicAvatar publicStoryLogo ${(artist.avatar || heroImage) ? "hasImage" : ""}`}
-                style={(artist.avatar || heroImage)
-                  ? { backgroundImage: `url("${artist.avatar || heroImage}")` }
-                  : undefined}
                 role={story.logoHandlers.role}
                 tabIndex={story.logoHandlers.tabIndex}
                 aria-label={story.logoHandlers["aria-label"]}
@@ -135,7 +137,18 @@ export function PublicArtistModal({
                 onDoubleClick={story.logoHandlers.onDoubleClick}
                 onKeyDown={story.logoHandlers.onKeyDown}
               >
-                {!(artist.avatar || heroImage) ? String(artist.name || "آ").slice(0, 1) : null}
+                {(artist.avatar || heroImage) ? (
+                  // Real <img> (not a CSS background) so the artist's profile
+                  // photo is indexable by Google Image Search and readable by
+                  // screen readers — it's real content, not decoration.
+                  <img
+                    className="artistPublicAvatarImage"
+                    src={artist.avatar || heroImage}
+                    alt={artist.name ? `تصویر پروفایل ${artist.name}` : "تصویر پروفایل آرتیست"}
+                  />
+                ) : (
+                  String(artist.name || "آ").slice(0, 1)
+                )}
               </div>
               <b className="artistPublicAvatarRating" aria-label={`امتیاز ${toPersianDigits(liveLabel)}`}>
                 {toPersianDigits(liveLabel)}

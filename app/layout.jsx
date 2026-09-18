@@ -5,10 +5,29 @@ import Script from "next/script";
 // domain (see .env.example at the repo root) — app/sitemap.js and
 // app/robots.js read the same variable, with the same placeholder fallback,
 // so canonical URLs / sitemap entries / robots.txt can never drift apart.
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://zibaban.example.com";
+const HOME_TITLE = "زیبابان | شبکه اجتماعی زیبایی بانوان";
+const HOME_DESCRIPTION = "کشف آرایشگاه، نمونه‌کار واقعی، مشاوره زیبایی و رزرو برای بانوان.";
+
 export const metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://zibaban.example.com"),
-  title: "زیبابان | شبکه اجتماعی زیبایی بانوان",
-  description: "کشف آرایشگاه، نمونه‌کار واقعی، مشاوره زیبایی و رزرو برای بانوان."
+  metadataBase: new URL(SITE_URL),
+  title: HOME_TITLE,
+  description: HOME_DESCRIPTION,
+  // The homepage itself was missing alternates.canonical and openGraph —
+  // every /salons, /artists, /shops detail page already has both (see their
+  // generateMetadata), but the root route had neither, so shared links to
+  // zibaban.com itself had no canonical tag and no rich preview card.
+  alternates: {
+    canonical: "/"
+  },
+  openGraph: {
+    title: HOME_TITLE,
+    description: HOME_DESCRIPTION,
+    url: "/",
+    siteName: "زیبابان",
+    locale: "fa_IR",
+    type: "website"
+  }
 };
 
 export default function RootLayout({ children }) {

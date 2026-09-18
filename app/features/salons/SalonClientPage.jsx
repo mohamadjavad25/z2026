@@ -89,8 +89,13 @@ export function SalonClientPage({
     .slice(0, 3);
   const specialtyNames = services.slice(0, 4).map((service) => service.name).filter(Boolean);
   const storyVideoSrc = selectedSalon?.storyVideo || selectedSalon?.story_video || selectedSalon?.introVideo || selectedSalon?.intro_video || "";
-  const storyPosterSrc = selectedSalon?.storyPoster || selectedSalon?.story_poster || selectedSalon?.introPoster || selectedSalon?.intro_poster || "/salon-public-hero.png";
+  const realStoryPosterSrc = selectedSalon?.storyPoster || selectedSalon?.story_poster || selectedSalon?.introPoster || selectedSalon?.intro_poster || "";
+  const storyPosterSrc = realStoryPosterSrc || "/salon-public-hero.png";
   const story = usePublicStory({ storyVideoSrc, storyPosterSrc });
+  // Only describe the hero image to crawlers/screen readers when it's a real
+  // uploaded photo — the generic fallback illustration stays decorative
+  // (empty alt) so it doesn't get indexed as if it were the salon's photo.
+  const heroAlt = realStoryPosterSrc ? `${publicName} — تصویر کاور` : "";
 
   return (
     <div className={`salonPanel mobilePage page-salons ${active ? "is-active" : ""}`} id="salons">
@@ -103,6 +108,7 @@ export function SalonClientPage({
             story={story}
             heroClassName="salonPublicHero"
             heroImage={storyPosterSrc}
+            heroAlt={heroAlt}
             topbar={(
               <>
                 <div className="salonPublicTopbar">

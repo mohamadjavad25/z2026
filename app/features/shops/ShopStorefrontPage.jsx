@@ -122,8 +122,13 @@ export function ShopStorefrontPage({
 
 
   const storyVideoSrc = selectedShop?.storyVideo || selectedShop?.story_video || selectedShop?.introVideo || selectedShop?.intro_video || "";
-  const storyPosterSrc = selectedShop?.storyPoster || selectedShop?.story_poster || selectedShop?.introPoster || selectedShop?.intro_poster || selectedShop?.image || "/salon-public-hero.png";
+  const realStoryPosterSrc = selectedShop?.storyPoster || selectedShop?.story_poster || selectedShop?.introPoster || selectedShop?.intro_poster || selectedShop?.image || "";
+  const storyPosterSrc = realStoryPosterSrc || "/salon-public-hero.png";
   const story = usePublicStory({ storyVideoSrc, storyPosterSrc });
+  // Only describe the hero image to crawlers/screen readers when it's a real
+  // uploaded photo — the generic fallback illustration stays decorative
+  // (empty alt) so it doesn't get indexed as if it were the shop's photo.
+  const heroAlt = realStoryPosterSrc ? `${selectedShop?.name || "فروشگاه"} — تصویر کاور` : "";
 
   function toggleLikedProduct(productId) {
     setLikedProducts((current) => {
@@ -184,6 +189,7 @@ export function ShopStorefrontPage({
             story={story}
             heroClassName="shopStoreHero"
             heroImage={storyPosterSrc}
+            heroAlt={heroAlt}
             topbar={(
               <div className="shopStoreTopbar">
                 <button type="button" className="shopStoreRoundButton shopStoreBackButton" onClick={onBack} aria-label="بازگشت به فروشگاه‌ها">
