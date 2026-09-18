@@ -5,6 +5,7 @@ import { Check, CheckCheck, MessageCircle, Paperclip, Send, X } from "lucide-rea
 import { ProfileEmptyState } from "./ProfileEmptyState";
 import { formatChatTime, isMessageRead } from "../../shared/lib/chatTime";
 import { OrderCardBubble } from "../chat/OrderCardBubble";
+import { SalonBookingCardBubble, ArtistBookingCardBubble } from "../chat/BookingCardBubble";
 
 const MAX_ATTACHMENT_BYTES = 1_500_000;
 
@@ -100,9 +101,11 @@ export function OwnerChatSheet({
                 <span>
                   {thread.lastMessageAttachmentType === "order"
                     ? "🧾 سفارش جدید"
-                    : thread.lastMessageAttachmentType === "image" && !thread.lastMessage
-                      ? "عکس"
-                      : thread.lastMessage || "بدون پیام"}
+                    : thread.lastMessageAttachmentType === "salon-booking" || thread.lastMessageAttachmentType === "artist-booking"
+                      ? "📅 نوبت جدید"
+                      : thread.lastMessageAttachmentType === "image" && !thread.lastMessage
+                        ? "عکس"
+                        : thread.lastMessage || "بدون پیام"}
                 </span>
                 <small>{formatChatTime(thread.lastMessageAt)}{thread.unreadCount ? ` · ${thread.unreadCount}` : ""}</small>
               </button>
@@ -135,6 +138,19 @@ export function OwnerChatSheet({
                 return (
                   <div className="shopChatSystemRow" key={message.id}>
                     <OrderCardBubble order={message.order} />
+                    <time>{formatChatTime(message.createdAt)}</time>
+                  </div>
+                );
+              }
+              if (message.attachmentType === "salon-booking" || message.attachmentType === "artist-booking") {
+                // Same unspoofable, structurally system-only card as the
+                // order card above — only POST /api/salon-bookings and
+                // POST /api/artist/bookings can create these.
+                return (
+                  <div className="shopChatSystemRow" key={message.id}>
+                    {message.attachmentType === "salon-booking"
+                      ? <SalonBookingCardBubble booking={message.booking} />
+                      : <ArtistBookingCardBubble booking={message.booking} />}
                     <time>{formatChatTime(message.createdAt)}</time>
                   </div>
                 );

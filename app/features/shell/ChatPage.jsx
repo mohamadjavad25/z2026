@@ -22,6 +22,7 @@ import {
 import { ProfileEmptyState } from "../profile/ProfileEmptyState";
 import { chatDayKey, formatChatDayLabel, formatChatTime, formatLastSeen, isMessageRead } from "../../shared/lib/chatTime";
 import { OrderCardBubble } from "../chat/OrderCardBubble";
+import { SalonBookingCardBubble, ArtistBookingCardBubble } from "../chat/BookingCardBubble";
 
 /** Single check = sent (message made it into the DB). Double check, accented,
     only once the recipient's real last_read_at has caught up — see
@@ -284,9 +285,11 @@ export function ChatPage({
                         {thread.lastMessageIsMine ? "شما: " : ""}
                         {thread.lastMessageAttachmentType === "order"
                           ? "🧾 سفارش جدید"
-                          : thread.lastMessageAttachmentType === "image" && !thread.lastMessage
-                            ? "عکس"
-                            : thread.lastMessage || "بدون پیام"}
+                          : thread.lastMessageAttachmentType === "salon-booking" || thread.lastMessageAttachmentType === "artist-booking"
+                            ? "📅 نوبت جدید"
+                            : thread.lastMessageAttachmentType === "image" && !thread.lastMessage
+                              ? "عکس"
+                              : thread.lastMessage || "بدون پیام"}
                       </small>
                     </span>
                     <span className="chatThreadMeta">
@@ -503,6 +506,21 @@ export function ChatPage({
                         return (
                           <div key={message.id} className="chatOrderSystemRow">
                             <OrderCardBubble order={message.order} />
+                            <time>{formatChatTime(message.createdAt)}</time>
+                          </div>
+                        );
+                      }
+                      if (message.attachmentType === "salon-booking" || message.attachmentType === "artist-booking") {
+                        // Same neutral-system-row placement as the order card
+                        // above, for a salon/artist appointment instead of a
+                        // paid order — see BookingCardBubble.jsx. Structurally
+                        // unspoofable the same way: only POST /api/salon-bookings
+                        // and POST /api/artist/bookings can create these.
+                        return (
+                          <div key={message.id} className="chatOrderSystemRow">
+                            {message.attachmentType === "salon-booking"
+                              ? <SalonBookingCardBubble booking={message.booking} />
+                              : <ArtistBookingCardBubble booking={message.booking} />}
                             <time>{formatChatTime(message.createdAt)}</time>
                           </div>
                         );

@@ -4,7 +4,7 @@ import * as messages from "../../../../lib/db/repos/messages.js";
 import { parseStoryDataUrl, ALLOWED_POSTER_TYPES } from "../../../../lib/db/repos/stories.js";
 import { publishChatEvent } from "../../../../lib/chatEvents.js";
 import { checkRateLimit } from "../../../../lib/rateLimit.js";
-import { enrichOrderCards } from "../../../../lib/chatOrderCards.js";
+import { enrichCardMessages } from "../../../../lib/chatOrderCards.js";
 
 export const runtime = "nodejs";
 
@@ -25,7 +25,7 @@ export async function GET(request, { params }) {
 
   const result = messages.listMessages(Number(id), auth.user.id, { limit, before });
   if (!result) return error("دسترسی به این گفتگو نداری.", 403);
-  enrichOrderCards(result.messages);
+  enrichCardMessages(result.messages);
   return json({ data: result });
 }
 

@@ -867,6 +867,105 @@
   font-weight: 850;
 }
 
+/* ── Booking card: same neutral-system-row placement as .orderReceiptCard
+   (dropped into .chatOrderSystemRow / .shopChatSystemRow), but its own
+   shape — an appointment ticket (service + when + who + status), not a
+   receipt (item list + total + tracker). See BookingCardBubble.jsx. ── */
+.bookingCard {
+  width: 100%;
+  max-width: 280px;
+  display: grid;
+  gap: var(--space-2, 8px);
+  padding: var(--space-4, 16px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg, 18px);
+  border-inline-start: 3px solid var(--info);
+  background: var(--surface-solid);
+  box-shadow: var(--shadow-xs, 0 4px 14px rgba(28, 32, 44, 0.06));
+  color: var(--ink);
+}
+
+.bookingCard.is-missing {
+  grid-auto-flow: column;
+  justify-content: start;
+  align-items: center;
+  gap: var(--space-2, 8px);
+  max-width: fit-content;
+  border-inline-start-color: var(--line);
+  color: var(--muted);
+}
+
+.bookingCard.is-missing p {
+  margin: 0;
+  font-size: var(--text-xs, 0.68rem);
+  font-weight: 750;
+}
+
+.bookingCardHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+}
+
+.bookingCardIcon {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--info-bg);
+  color: var(--info);
+}
+
+.bookingCardHead b {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink);
+  font-size: var(--text-sm, 0.78rem);
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bookingCardStatus {
+  flex: 0 0 auto;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill, 999px);
+  font-size: 0.62rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.bookingCardStatus.is-pending { background: var(--info-bg); color: var(--info); }
+.bookingCardStatus.is-done { background: var(--success-bg); color: var(--success); }
+.bookingCardStatus.is-bad { background: var(--danger-bg); color: var(--danger); }
+
+.bookingCardMetaRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: var(--text-xs, 0.68rem);
+  font-weight: 750;
+}
+
+.bookingCardMetaRow svg {
+  flex: 0 0 auto;
+  color: var(--info);
+}
+
+.bookingCardCancelled {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding-top: 2px;
+  color: var(--danger);
+  font-size: 0.7rem;
+  font-weight: 850;
+}
+
 .chatBubbleImage {
   grid-column: 1 / -1;
   /* Fixed px, not a percentage: .chatBubble is width:fit-content, and a

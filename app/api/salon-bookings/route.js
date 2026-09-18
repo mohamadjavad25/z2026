@@ -3,6 +3,9 @@ import { requireUser } from "../../lib/http.js";
 import { ensureDb } from "../../lib/db/connection.js";
 import * as salons from "../../lib/db/repos/salons.js";
 import * as artists from "../../lib/db/repos/artists.js";
+import * as messages from "../../lib/db/repos/messages.js";
+import { publishChatEvent } from "../../lib/chatEvents.js";
+import { enrichBookingCards } from "../../lib/chatOrderCards.js";
 import { resolveRollingPersianDateKey } from "../../shared/lib/persianCalendar.js";
 import {
   buildDayBookingSlots,
@@ -170,6 +173,25 @@ export async function POST(request) {
       }, { status: artistResult.code === "SLOT_TAKEN" ? 409 : 400 });
     }
   }
+  // Drop an appointment card into the client↔salon chat, the same way
+  // /api/shop/orders does for a paid order, so "when's my appointment" has
+  // a real, always-current answer. Only when the booker is a real logged-in
+  // client account (client_user_id) — a salon typing in a walk-in's name/phone
+  // with no linked account has nobody to message. The linked-artist mirror
+  // row (artistBooking above, when staff is linked) intentionally does NOT
+  // get its own card from this route — see this session's report for why.
+  const clientUserId = result.booking.client_user_id ? Number(result.booking.client_user_id) : null;
+  if (clientUserId && clientUserId !== salonUserId) {
+    const conversation = messages.getOrCreateDirectConversation(clientUserId, salonUserId);
+    if (conversation) {
+      const sendResult = messages.sendSalonBookingCardMessage(conversation.id, auth.user.id, result.booking.id);
+      if (sendResult.ok) {
+        enrichBookingCards([sendResult.message]);
+        publishChatEvent({ type: "message", conversationId: conversation.id, message: sendResult.message, recipients: sendResult.recipients });
+      }
+    }
+  }
+
   return noStoreJson({
     booking: result.booking,
     bookings: salons.listSalonBookings(salonUserId),

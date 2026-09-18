@@ -1,6 +1,6 @@
 import { applySchema } from "./schema.js";
 
-const SCHEMA_VERSION = 31;
+const SCHEMA_VERSION = 32;
 
 /** Convert legacy session expiry strings (ISO / SQLite datetime) to epoch ms. Unparseable → 0 (expired). */
 export function sessionExpiryToEpochMs(value) {
@@ -618,6 +618,19 @@ function migrateToV31(database) {
   applySchema(database);
 }
 
+/**
+ * messages.booking_ref_id: lets a message be a "booking card" (like
+ * order_ref_id/v27, but for a confirmed appointment instead of a paid
+ * order) linking to either a salon_bookings or an artist_bookings row —
+ * see the column comment in schema.js for why this isn't a real FK.
+ */
+function migrateToV32(database) {
+  migrateToV31(database);
+  if (tableExists(database, "messages") && !columnExists(database, "messages", "booking_ref_id")) {
+    database.exec("ALTER TABLE messages ADD COLUMN booking_ref_id INTEGER;");
+  }
+}
+
 function readSchemaVersion(database) {
   const row = database.prepare("SELECT value FROM app_meta WHERE key = 'schema_version'").get();
   return Number(row?.value || 0);
@@ -660,7 +673,8 @@ const MIGRATION_STEPS = [
   { version: 28, migrate: migrateToV28 },
   { version: 29, migrate: migrateToV29 },
   { version: 30, migrate: migrateToV30 },
-  { version: 31, migrate: migrateToV31 }
+  { version: 31, migrate: migrateToV31 },
+  { version: 32, migrate: migrateToV32 }
 ];
 
 export function ensureSchemaVersion(database) {

@@ -541,6 +541,26 @@ export function addArtistBooking(artistUserId, data) {
   return withTransaction(getDb(), () => addArtistBookingInTx(artistUserId, data));
 }
 
+/** Full booking snapshot for a booking-card chat bubble. Live status — callers should re-fetch, never cache. */
+export function getArtistBookingById(bookingId) {
+  const row = getDb().prepare("SELECT * FROM artist_bookings WHERE id = ?").get(bookingId);
+  if (!row) return null;
+  return {
+    id: row.id,
+    artistUserId: row.artist_user_id,
+    clientUserId: row.client_user_id,
+    sourceSalonUserId: row.source_salon_user_id,
+    client: row.client_name,
+    phone: row.client_phone,
+    service: row.service,
+    bookingDate: row.booking_date,
+    time: row.time,
+    durationMinutes: row.duration_minutes,
+    status: row.status,
+    createdAt: row.created_at
+  };
+}
+
 export function getPublicArtist(userId, viewerUserId = null) {
   const user = getUserById(userId);
   if (!user || user.type !== "artist") return null;

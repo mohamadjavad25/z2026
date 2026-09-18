@@ -483,6 +483,14 @@ export function applySchema(db) {
       attachment_url TEXT NOT NULL DEFAULT '',
       attachment_type TEXT NOT NULL DEFAULT '',
       order_ref_id INTEGER REFERENCES shop_orders(id) ON DELETE SET NULL,
+      -- Booking-card message. attachment_type distinguishes which table this
+      -- points into ('salon-booking' -> salon_bookings.id, 'artist-booking'
+      -- -> artist_bookings.id) — the two source tables have separate id
+      -- spaces, so this is NOT a real FK the same way order_ref_id is (SQLite
+      -- can't express "FK into table A or table B depending on a sibling
+      -- column"); the app layer enforces the pairing. See sendSalonBookingCardMessage
+      -- / sendArtistBookingCardMessage in repos/messages.js.
+      booking_ref_id INTEGER,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
 

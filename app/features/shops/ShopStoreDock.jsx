@@ -6,6 +6,7 @@ import { SkeletonList } from "../../components/Skeleton";
 import { formatToman } from "../../shared/lib/money";
 import { shopChatQuickReplies } from "./mappers";
 import { OrderCardBubble } from "../chat/OrderCardBubble";
+import { SalonBookingCardBubble, ArtistBookingCardBubble } from "../chat/BookingCardBubble";
 
 const MAX_ATTACHMENT_BYTES = 1_500_000;
 
@@ -178,6 +179,19 @@ export function ShopStoreDock({
                   return (
                     <div className="shopChatSystemRow" key={message.id}>
                       <OrderCardBubble order={message.order} />
+                    </div>
+                  );
+                }
+                if (message.attachmentType === "salon-booking" || message.attachmentType === "artist-booking") {
+                  // Not expected in a shop's own chat dock in practice (bookings
+                  // are salon/artist chats), but handled here too for the same
+                  // reason every surface that renders `messages` must: any
+                  // direct conversation can in principle carry any card type.
+                  return (
+                    <div className="shopChatSystemRow" key={message.id}>
+                      {message.attachmentType === "salon-booking"
+                        ? <SalonBookingCardBubble booking={message.booking} />
+                        : <ArtistBookingCardBubble booking={message.booking} />}
                     </div>
                   );
                 }

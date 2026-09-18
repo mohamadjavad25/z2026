@@ -293,6 +293,7 @@ function mapMessage(row) {
     attachmentUrl: row.attachment_url || "",
     attachmentType: row.attachment_type || "",
     orderRefId: row.order_ref_id || null,
+    bookingRefId: row.booking_ref_id || null,
     createdAt: row.created_at
   };
 }
@@ -336,6 +337,40 @@ export function sendOrderCardMessage(conversationId, senderUserId, orderId) {
     const recipients = memberIds(db, conversationId);
     return { ok: true, message, recipients };
   });
+}
+
+function sendBookingCardMessage(conversationId, senderUserId, attachmentType, bookingId) {
+  const db = getDb();
+  if (!isMember(db, conversationId, senderUserId)) return { ok: false, error: "forbidden" };
+  return withTransaction(db, () => {
+    const info = db.prepare(`
+      INSERT INTO messages (conversation_id, sender_user_id, attachment_type, booking_ref_id)
+      VALUES (?, ?, ?, ?)
+    `).run(conversationId, senderUserId, attachmentType, bookingId);
+    db.prepare("UPDATE conversations SET updated_at = CURRENT_TIMESTAMP WHERE id = ?").run(conversationId);
+    const message = mapMessage(db.prepare("SELECT * FROM messages WHERE id = ?").get(Number(info.lastInsertRowid)));
+    const recipients = memberIds(db, conversationId);
+    return { ok: true, message, recipients };
+  });
+}
+
+/**
+ * Sends an automatic "salon booking card" message — an appointment card
+ * linked to a real salon_bookings row, dropped into the client↔salon chat
+ * right after booking so the client has an in-chat way to track it (the
+ * conversation API's caller enriches this with fresh booking data on every
+ * fetch — see enrichBookingCards() in chatOrderCards.js — so it never goes
+ * stale). Mirrors sendOrderCardMessage exactly; server-internal only, never
+ * reachable from client input (see POST /api/conversations/[id]/messages,
+ * which only ever accepts attachmentType "" or "image").
+ */
+export function sendSalonBookingCardMessage(conversationId, senderUserId, bookingId) {
+  return sendBookingCardMessage(conversationId, senderUserId, "salon-booking", bookingId);
+}
+
+/** Same as sendSalonBookingCardMessage, for a real artist_bookings row. */
+export function sendArtistBookingCardMessage(conversationId, senderUserId, bookingId) {
+  return sendBookingCardMessage(conversationId, senderUserId, "artist-booking", bookingId);
 }
 
 export { MAX_MESSAGE_LENGTH, MAX_TITLE_LENGTH, MAX_GROUP_MEMBERS };
