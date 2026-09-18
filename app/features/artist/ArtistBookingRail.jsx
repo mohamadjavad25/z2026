@@ -4,7 +4,7 @@ import { forwardRef } from "react";
 import { CalendarCheck, GripVertical, Plus } from "lucide-react";
 import { SegmentClock } from "../../components/SegmentClock";
 import { toPersianDigits } from "../../shared/lib/digits";
-import { artistAvailableSlots } from "./bookingUtils";
+import { artistAvailableSlots, getArtistBookingStatusKey } from "./bookingUtils";
 import { artistBookingDays } from "./constants";
 
 export const ArtistBookingRail = forwardRef(function ArtistBookingRail(
@@ -32,12 +32,6 @@ export const ArtistBookingRail = forwardRef(function ArtistBookingRail(
 ) {
   const safeBookings = Array.isArray(bookings) ? bookings : [];
   const safeServices = Array.isArray(services) ? services : [];
-
-  function getStatusKey(status) {
-    if (status === "VIP") return "vip";
-    if (status === "تایید") return "ok";
-    return "wait";
-  }
 
   function handleToggle() {
     if (shouldIgnoreClick?.()) return;
@@ -93,7 +87,7 @@ export const ArtistBookingRail = forwardRef(function ArtistBookingRail(
         {safeBookings.map((booking) => (
           <button
             type="button"
-            className={`artistBookingRailTime is-${getStatusKey(booking.status)}`}
+            className={`artistBookingRailTime is-${getArtistBookingStatusKey(booking.status)}`}
             key={`rail-time-${booking.id}`}
             onClick={handleTimeClick}
           >
@@ -173,7 +167,7 @@ export const ArtistBookingRail = forwardRef(function ArtistBookingRail(
             </button>
             <div className="artistBookingRailList">
               {safeBookings.length ? safeBookings.map((booking) => {
-                const statusKey = getStatusKey(booking.status);
+                const statusKey = getArtistBookingStatusKey(booking.status);
                 return (
                   <article key={booking.id} className={`is-${statusKey}`}>
                     <span

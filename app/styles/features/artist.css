@@ -3680,7 +3680,9 @@
 
 .artistBookingRailTime.is-ok,
 .artistBookingRailTime.is-wait,
-.artistBookingRailTime.is-vip{
+.artistBookingRailTime.is-vip,
+.artistBookingRailTime.is-cancelled,
+.artistBookingRailTime.is-expired{
   background: transparent;
   border-color: transparent;
   color: inherit;
@@ -3709,6 +3711,18 @@
 
 .artistBookingRailList .artistBookingRailStatus.is-vip{
   background: #78486c;
+}
+
+
+
+.artistBookingRailList .artistBookingRailStatus.is-cancelled{
+  background: #d64545;
+}
+
+
+
+.artistBookingRailList .artistBookingRailStatus.is-expired{
+  background: #9a5b52;
 }
 
 

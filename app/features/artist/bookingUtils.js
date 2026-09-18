@@ -237,7 +237,17 @@ export function getArtistClientVisits(booking) {
 
 export function getArtistBookingStatusKey(status) {
   if (status === "VIP") return "vip";
-  if (status === "تایید") return "ok";
+  // "تایید" = artist self-entered (already decided when created); "تایید شده"
+  // = a real client request the artist confirmed via the notification panel.
+  // Both mean "confirmed", so both map to "ok" — see the real booking-
+  // confirmation flow added this session (PATCH /api/artist/me kind:"booking").
+  if (status === "تایید" || status === "تایید شده") return "ok";
+  if (status === "لغو") return "cancelled";
+  // Timed-out (salon/artist never responded within the 1-hour window) —
+  // kept distinct from "لغو" so a viewer can tell "actively declined" apart
+  // from "nobody answered in time", same distinction the client-facing
+  // status pill already makes (ClientBookingsPanel.jsx).
+  if (status === "منقضی شده") return "expired";
   return "wait";
 }
 
