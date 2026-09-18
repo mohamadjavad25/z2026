@@ -5,6 +5,7 @@ import {
   BellRing,
   Bookmark,
   CalendarClock,
+  Check,
   Crop,
   Eye,
   MapPin,
@@ -18,9 +19,11 @@ import {
   Upload,
   UserRound,
   Wallet,
-  Percent
+  Percent,
+  X
 } from "lucide-react";
 import { BookingSelect } from "../../components/BookingSelect";
+import { SegmentClock } from "../../components/SegmentClock";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { getApiErrorMessage } from "../../shared/lib/apiNotify";
 import {
@@ -500,6 +503,9 @@ export function HomeApp() {
     artistSalonInviteList,
     artistInviteRespondBusyId,
     artistBookingSubmitting,
+    artistRequestBusyId,
+    confirmArtistBookingRequest,
+    declineArtistBookingRequest,
     artistGalleryFilter,
     setArtistGalleryFilter,
     artistPortfolioItems,
@@ -2763,6 +2769,61 @@ function getPassportMatch(post) {
                 <em>{toPersianDigits(artistBookingList.length)}</em>
               </article>
             </div>
+
+            {pendingArtistBookingRequests.length > 0 && (
+              <section className="salonRequestsBoard" aria-label="نوبت‌های تازه در انتظار پاسخ">
+                <div className="boardHead">
+                  <div>
+                    <span>نوبت‌های تازه</span>
+                    <strong>نیاز به تایید شما</strong>
+                  </div>
+                  <b>{toPersianDigits(pendingArtistBookingRequests.length)} نوبت</b>
+                </div>
+                <div className="reservationRequestList">
+                  {pendingArtistBookingRequests.map((request) => {
+                    const busy = String(artistRequestBusyId) === `booking:${request.id}`;
+                    const anyBusy = Boolean(artistRequestBusyId);
+                    return (
+                      <article className="reservationRequestCard" key={request.id}>
+                        <div className="requestCardMain">
+                          <div className="requestCardWho">
+                            <strong>{request.client || "مشتری"}</strong>
+                            <span>{request.service}</span>
+                            {request.phone ? <small dir="ltr">{request.phone}</small> : null}
+                          </div>
+                          <div className="requestCardAside">
+                            <SegmentClock value={request.time} size="xs" as="span" />
+                            <div className="requestCardWhen">
+                              <em>{formatRelativeBookingDayLabel(request.dateKey || request.date)}</em>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="requestActions">
+                          <button
+                            type="button"
+                            className="is-approve"
+                            disabled={anyBusy}
+                            onClick={() => confirmArtistBookingRequest(request.id)}
+                          >
+                            <Check size={15} />
+                            {busy ? "…" : "تایید"}
+                          </button>
+                          <button
+                            type="button"
+                            className="is-decline"
+                            disabled={anyBusy}
+                            onClick={() => declineArtistBookingRequest(request.id)}
+                          >
+                            <X size={15} />
+                            رد
+                          </button>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
           </ProfileSheet>
         )}
 

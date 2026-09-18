@@ -64,9 +64,55 @@ export async function PATCH(request) {
   const auth = requireUserRole(request, "artist", "فقط آرتیست.");
   if (!auth.ok) return auth.response;
   const body = await request.json();
+  if (body.kind === "booking") {
+    return patchOwnArtistBooking(auth.user.id, body);
+  }
   const service = artists.updateArtistService(Number(body.id), auth.user.id, body);
   if (!service) return notFound();
   return json({ data: { service } });
+}
+
+/**
+ * Real confirm/decline for a client's direct artist_bookings request
+ * ("تازه" -> "تایید شده" or "لغو"), scoped to the authenticated artist —
+ * mirrors PATCH /api/salon-bookings' owner-ownership-check shape (fetch the
+ * row, verify it belongs to this owner, only then mutate), but stays on this
+ * route rather than a new one: GET above already scopes bookings to
+ * auth.user.id via artists.listArtistBookings, and POST above already
+ * multiplexes booking creation behind `kind: "booking"` — this is the same
+ * owner-scoped booking family, now handling the update side too. The public,
+ * anonymous-allowed booking POST stays in /api/artist/bookings; that route
+ * has no owner session to scope a PATCH to.
+ *
+ * Reuses cancelArtistBookingRow for the cancel case specifically (same
+ * low-level function findLinkedSalonArtistBooking-style code already relies
+ * on for a salon-linked mirror row), and updateArtistBookingRow for confirm —
+ * neither has its own ownership check (by this codebase's low-level-row-
+ * function convention), so the artist_user_id match below is load-bearing.
+ */
+function patchOwnArtistBooking(artistUserId, body) {
+  const bookingId = Number(body.id);
+  if (!bookingId) return error("شناسه نوبت نامعتبر است.", 400);
+  const current = artists.getArtistBookingById(bookingId);
+  if (!current || Number(current.artistUserId) !== Number(artistUserId)) return notFound();
+
+  const wantsCancel = body.status === "لغو" || body.action === "cancel";
+  const nextStatus = wantsCancel ? "لغو" : body.status;
+  if (nextStatus !== "تایید شده" && nextStatus !== "لغو") {
+    return error("وضعیت نامعتبر است.", 400);
+  }
+
+  const updatedRow = wantsCancel
+    ? artists.cancelArtistBookingRow(bookingId)
+    : artists.updateArtistBookingRow(bookingId, { status: nextStatus });
+  if (!updatedRow) return notFound();
+
+  return json({
+    data: {
+      booking: artists.getArtistBookingById(bookingId),
+      bookings: artists.listArtistBookings(artistUserId)
+    }
+  });
 }
 
 export async function DELETE(request) {

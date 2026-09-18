@@ -1,37 +1,40 @@
 import { getDb } from "./db/connection.js";
 import * as salons from "./db/repos/salons.js";
+import * as artists from "./db/repos/artists.js";
 import * as messages from "./db/repos/messages.js";
 import { publishChatEvent } from "./chatEvents.js";
 import { enrichBookingCards } from "./chatOrderCards.js";
 
 /**
- * Auto-expiry sweep for salon booking REQUESTS the salon never actively
+ * Auto-expiry sweep for booking REQUESTS a salon/artist never actively
  * responded to (Snapp-Food-style bounded response window — founder-approved
  * product decision: 1 hour, auto-cancel on timeout, notify the client).
+ * Covers two independent, non-overlapping sources:
  *
- * Scope note (deliberately salon-only): a `salon_bookings` row created with
- * status "درخواست" (see confirmSalonClientBooking in useSalonDirectory.js)
- * is the ONLY real "pending, needs an owner decision" state in this app that
- * actually has a real confirm/reject action wired to it (see
- * approveReservationRequest/declineReservationRequest in
- * useSalonWorkspace.js + PATCH /api/salon-bookings). Direct client→artist
- * bookings (POST /api/artist/bookings) default to status "تازه" too, but
- * there is currently NO confirm/reject flow for those at all anywhere in
- * this codebase — an artist booking just sits at "تازه" forever by design
- * (or lack of one). Blanket-expiring every "تازه" artist_bookings row after
- * 1 hour would therefore auto-cancel real, otherwise-fine future
- * appointments that were never meant to be "accepted" in the first place.
- * That is a separate, real gap (flagged back to the founder/product — see
- * this session's report) and intentionally NOT handled by this sweep.
+ * 1. `salon_bookings` rows with status "درخواست" (see
+ *    confirmSalonClientBooking in useSalonDirectory.js) — the real
+ *    confirm/reject action is approveReservationRequest/
+ *    declineReservationRequest in useSalonWorkspace.js + PATCH
+ *    /api/salon-bookings. When a salon booking has a linked staff member
+ *    (staff -> salon_staff.artist_user_id), POST /api/salon-bookings mirrors
+ *    it into artist_bookings with the SAME status, and PATCH
+ *    /api/salon-bookings keeps that mirror in sync via
+ *    salons.patchSalonBookingWithArtistSync. This sweep reuses that exact
+ *    same atomic sync function to expire the salon row, so the mirrored
+ *    artist_bookings row (if any) is expired in the same transaction — no
+ *    separate artist_bookings query needed for the linked-staff case.
  *
- * What this DOES cover on the artist_bookings table: when a salon booking
- * has a linked staff member (staff -> salon_staff.artist_user_id), POST
- * /api/salon-bookings mirrors it into artist_bookings with the SAME status
- * ("درخواست"), and PATCH /api/salon-bookings keeps that mirror in sync via
- * salons.patchSalonBookingWithArtistSync. This sweep reuses that exact same
- * atomic sync function to expire the salon row, so the mirrored
- * artist_bookings row (if any) is expired in the same transaction — no
- * separate artist_bookings query needed for the linked-staff case.
+ * 2. DIRECT `artist_bookings` rows (client booked an independent artist
+ *    straight, not through a salon) with status "تازه" AND
+ *    source_salon_user_id IS NULL — the real confirm/decline action is
+ *    confirmArtistBookingRequest/declineArtistBookingRequest in
+ *    useArtistWorkspace.js + PATCH /api/artist/me (kind: "booking"). The
+ *    `source_salon_user_id IS NULL` filter is load-bearing: a salon-linked
+ *    artist_bookings mirror row already gets expired via path (1) above
+ *    (patchSalonBookingWithArtistSync operates on the SAME transaction as
+ *    the salon row) — sweeping it a second time here would be a redundant
+ *    second UPDATE + a duplicate "your booking expired" chat card for the
+ *    same appointment.
  */
 
 /** Status written to an expired booking — distinct from "درخواست" (still pending),
@@ -69,6 +72,20 @@ function findExpiredSalonBookingRequests(db, minutes) {
   `).all(`-${minutes} minutes`);
 }
 
+/** Every still-pending ("تازه") DIRECT artist_bookings row (source_salon_user_id
+ *  IS NULL — see the module docstring for why that filter matters) whose
+ *  created_at is older than the configured window, same DB-clock comparison
+ *  as findExpiredSalonBookingRequests above. */
+function findExpiredDirectArtistBookingRequests(db, minutes) {
+  return db.prepare(`
+    SELECT id, artist_user_id, client_user_id
+    FROM artist_bookings
+    WHERE status = 'تازه'
+      AND source_salon_user_id IS NULL
+      AND created_at <= datetime('now', ?)
+  `).all(`-${minutes} minutes`);
+}
+
 /**
  * Drops a fresh "salon booking card" system message into the client<->salon
  * chat, reusing the exact same tamper-proof card mechanism
@@ -97,18 +114,42 @@ function notifyClientOfExpiry(booking) {
   }
 }
 
+/** Same idea as notifyClientOfExpiry, for a direct artist_bookings row —
+ *  reuses sendArtistBookingCardMessage, the exact same card mechanism
+ *  POST /api/artist/bookings already uses for the initial booking-confirmation
+ *  card, so the client sees a fresh, always-live-status card in the
+ *  client<->artist chat. */
+function notifyClientOfArtistBookingExpiry(booking) {
+  const clientUserId = Number(booking.client_user_id || 0);
+  const artistUserId = Number(booking.artist_user_id || 0);
+  if (!clientUserId || !artistUserId || clientUserId === artistUserId) return;
+  const conversation = messages.getOrCreateDirectConversation(clientUserId, artistUserId);
+  if (!conversation) return;
+  const sendResult = messages.sendArtistBookingCardMessage(conversation.id, artistUserId, booking.id);
+  if (sendResult.ok) {
+    enrichBookingCards([sendResult.message]);
+    publishChatEvent({
+      type: "message",
+      conversationId: conversation.id,
+      message: sendResult.message,
+      recipients: sendResult.recipients
+    });
+  }
+}
+
 /**
  * Runs one sweep pass synchronously. Exported (not just used by the
  * self-starting interval below) so isolated tests can call it directly
  * instead of waiting for a real interval tick.
- * @returns {{ expired: number, attempted: number }}
+ * @returns {{ expired: number, attempted: number, salonExpired: number, artistExpired: number }}
  */
 export function sweepExpiredBookingRequestsOnce() {
   const db = getDb();
   const minutes = timeoutMinutes();
-  const stale = findExpiredSalonBookingRequests(db, minutes);
-  let expired = 0;
-  for (const row of stale) {
+
+  const staleSalon = findExpiredSalonBookingRequests(db, minutes);
+  let salonExpired = 0;
+  for (const row of staleSalon) {
     // Reuse the exact same atomic salon+linked-artist status-sync path the
     // real PATCH /api/salon-bookings route uses (patchSalonBookingWithArtistSync) —
     // not a second, ad-hoc "just UPDATE the row" mechanism.
@@ -116,7 +157,7 @@ export function sweepExpiredBookingRequestsOnce() {
       status: BOOKING_REQUEST_EXPIRED_STATUS
     });
     if (result.ok) {
-      expired += 1;
+      salonExpired += 1;
       try {
         notifyClientOfExpiry(row);
       } catch {
@@ -128,7 +169,32 @@ export function sweepExpiredBookingRequestsOnce() {
     // leave the row as-is — created_at doesn't change, so the next sweep
     // pass retries it automatically.
   }
-  return { expired, attempted: stale.length };
+
+  const staleDirectArtist = findExpiredDirectArtistBookingRequests(db, minutes);
+  let artistExpired = 0;
+  for (const row of staleDirectArtist) {
+    // A plain single-row UPDATE (updateArtistBookingRow) is already atomic on
+    // its own — unlike the salon case there's no linked mirror row to keep in
+    // sync here (this query already excludes salon-linked rows), so no
+    // withTransaction wrapper is needed.
+    const updated = artists.updateArtistBookingRow(row.id, { status: BOOKING_REQUEST_EXPIRED_STATUS });
+    if (updated) {
+      artistExpired += 1;
+      try {
+        notifyClientOfArtistBookingExpiry(row);
+      } catch {
+        // Notification is best-effort; the booking is already correctly expired
+        // even if the chat message failed to send (e.g. conversation race).
+      }
+    }
+  }
+
+  return {
+    expired: salonExpired + artistExpired,
+    attempted: staleSalon.length + staleDirectArtist.length,
+    salonExpired,
+    artistExpired
+  };
 }
 
 // Self-starting periodic sweep, following this codebase's existing precedent

@@ -42,6 +42,19 @@ export async function updateArtistMe(body) {
 }
 
 /**
+ * PATCH /api/artist/me { kind: "booking", id, status: "تایید شده" | "لغو" (or action: "cancel") }
+ * → owner confirm/decline of a REAL pending (status "تازه") artist_bookings
+ * row — { data: { booking, bookings } }. Same route as updateArtistMe above
+ * (services), dispatched by `kind`, mirroring the POST multiplex.
+ */
+export async function updateArtistBooking(body) {
+  return apiFetch("/api/artist/me", {
+    method: "PATCH",
+    body: JSON.stringify({ kind: "booking", ...body })
+  });
+}
+
+/**
  * DELETE /api/artist/me
  * - { id } → delete service
  * - { kind: "collab", id } → delete collab

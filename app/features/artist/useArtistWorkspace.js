@@ -7,6 +7,7 @@ import {
   getArtistHours,
   getArtistMe,
   respondArtistInvite,
+  updateArtistBooking,
   updateArtistHours,
   updateArtistMe
 } from "../../shared/api/artists";
@@ -102,6 +103,8 @@ export function useArtistWorkspace({
   const [artistInviteRespondBusyId, setArtistInviteRespondBusyId] = useState("");
   const [artistBookingSubmitting, setArtistBookingSubmitting] = useState(false);
   const artistBookingSubmittingRef = useRef(false);
+  const [artistRequestBusyId, setArtistRequestBusyId] = useState("");
+  const artistRequestBusyIdRef = useRef("");
   const [artistWorkspaceLoading, setArtistWorkspaceLoading] = useState(true);
   const [artistGalleryFilter, setArtistGalleryFilter] = useState("همه");
   const [artistPortfolioItems, setArtistPortfolioItems] = useState([]);
@@ -965,6 +968,63 @@ export function useArtistWorkspace({
     }
   }
 
+  /**
+   * Confirms a REAL pending direct artist_bookings row (status "تازه") via
+   * PATCH /api/artist/me — mirrors approveReservationRequest in
+   * useSalonWorkspace.js exactly (same optimistic-list-replace shape),
+   * for the direct-artist-booking equivalent of that salon flow.
+   */
+  const confirmArtistBookingRequest = useCallback(async (bookingId) => {
+    if (artistRequestBusyIdRef.current) return;
+    const busyKey = `booking:${bookingId}`;
+    artistRequestBusyIdRef.current = busyKey;
+    setArtistRequestBusyId(busyKey);
+    try {
+      const { ok, payload } = await updateArtistBooking({ id: bookingId, status: "تایید شده" });
+      if (!ok) {
+        shellNotify(payload?.error || "تایید نوبت انجام نشد.");
+        return;
+      }
+      if (Array.isArray(payload.data?.bookings)) {
+        setArtistBookingList(payload.data.bookings.map(mapArtistBooking).filter(Boolean));
+      }
+      shellNotify("نوبت تایید شد.");
+    } catch {
+      shellNotify("تایید نوبت انجام نشد؛ دوباره امتحان کن.");
+    } finally {
+      artistRequestBusyIdRef.current = "";
+      setArtistRequestBusyId("");
+    }
+  }, [shellNotify]);
+
+  /**
+   * Declines (cancels) a REAL pending direct artist_bookings row — mirrors
+   * declineReservationRequest in useSalonWorkspace.js, same cancel path
+   * (status "لغو", action "cancel") PATCH /api/artist/me now supports.
+   */
+  const declineArtistBookingRequest = useCallback(async (bookingId) => {
+    if (artistRequestBusyIdRef.current) return;
+    const busyKey = `booking:${bookingId}`;
+    artistRequestBusyIdRef.current = busyKey;
+    setArtistRequestBusyId(busyKey);
+    try {
+      const { ok, payload } = await updateArtistBooking({ id: bookingId, status: "لغو", action: "cancel" });
+      if (!ok) {
+        shellNotify(payload?.error || "رد نوبت انجام نشد.");
+        return;
+      }
+      if (Array.isArray(payload.data?.bookings)) {
+        setArtistBookingList(payload.data.bookings.map(mapArtistBooking).filter(Boolean));
+      }
+      shellNotify("نوبت رد شد.");
+    } catch {
+      shellNotify("رد نوبت انجام نشد؛ دوباره امتحان کن.");
+    } finally {
+      artistRequestBusyIdRef.current = "";
+      setArtistRequestBusyId("");
+    }
+  }, [shellNotify]);
+
   async function respondArtistSalonInvite(inviteId, status) {
     if (!inviteId || artistInviteRespondBusyId) return;
     setArtistInviteRespondBusyId(String(inviteId));
@@ -993,6 +1053,9 @@ export function useArtistWorkspace({
     setArtistSalonInviteList,
     artistInviteRespondBusyId,
     artistBookingSubmitting,
+    artistRequestBusyId,
+    confirmArtistBookingRequest,
+    declineArtistBookingRequest,
     artistWorkspaceLoading,
     artistGalleryFilter,
     setArtistGalleryFilter,

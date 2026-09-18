@@ -5,6 +5,15 @@ import * as artists from "../../../lib/db/repos/artists.js";
 import * as messages from "../../../lib/db/repos/messages.js";
 import { publishChatEvent } from "../../../lib/chatEvents.js";
 import { enrichBookingCards } from "../../../lib/chatOrderCards.js";
+// Side-effect import: starts the once-per-process 1-hour booking-request
+// auto-expiry sweep (see that file's docstring) the first time this route
+// module loads — same self-starting-on-import convention as
+// app/lib/rateLimit.js's sweep, and the exact same import POST /api/salon-bookings
+// already does. This is the busiest DIRECT-artist-booking entry point (a
+// client booking an independent artist straight, no salon involved), so the
+// sweep starts within seconds of real use even if no salon booking ever
+// triggers it first.
+import "../../../lib/bookingExpirySweep.js";
 
 export const runtime = "nodejs";
 
