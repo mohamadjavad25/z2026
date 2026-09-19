@@ -3678,6 +3678,9 @@
 
 
 
+/* Background/border stay neutral by design (this collapsed row is a tiny
+   clock-only strip) — status is now conveyed by the SegmentClock digit
+   color itself, set per-status in ArtistBookingRail.jsx. */
 .artistBookingRailTime.is-ok,
 .artistBookingRailTime.is-wait,
 .artistBookingRailTime.is-vip,

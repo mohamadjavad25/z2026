@@ -103,6 +103,7 @@ export function useArtistWorkspace({
   const [artistInviteRespondBusyId, setArtistInviteRespondBusyId] = useState("");
   const [artistBookingSubmitting, setArtistBookingSubmitting] = useState(false);
   const artistBookingSubmittingRef = useRef(false);
+  const [artistBreakSaving, setArtistBreakSaving] = useState(false);
   const [artistRequestBusyId, setArtistRequestBusyId] = useState("");
   const artistRequestBusyIdRef = useRef("");
   const [artistWorkspaceLoading, setArtistWorkspaceLoading] = useState(true);
@@ -676,10 +677,12 @@ export function useArtistWorkspace({
   }
 
   async function saveArtistBreakTime() {
+    if (artistBreakSaving) return;
     if (timeLabelToMinutes(artistBreakDraft.end) <= timeLabelToMinutes(artistBreakDraft.start)) {
       notify("پایان استراحت باید بعد از شروع باشد.");
       return;
     }
+    setArtistBreakSaving(true);
     try {
       const { ok, payload } = await createArtistMe({
         kind: "break",
@@ -698,10 +701,14 @@ export function useArtistWorkspace({
       notify(`تایم استراحت ${artistBreakDraft.start} تا ${artistBreakDraft.end} ذخیره شد.`);
     } catch {
       notify("ذخیره تایم استراحت انجام نشد.");
+    } finally {
+      setArtistBreakSaving(false);
     }
   }
 
   async function clearArtistBreakTime() {
+    if (artistBreakSaving) return;
+    setArtistBreakSaving(true);
     try {
       const { ok } = await createArtistMe({ kind: "break", clear: true });
       if (!ok) {
@@ -713,6 +720,8 @@ export function useArtistWorkspace({
       notify("تایم استراحت حذف شد.");
     } catch {
       notify("حذف تایم استراحت انجام نشد.");
+    } finally {
+      setArtistBreakSaving(false);
     }
   }
 
@@ -1077,6 +1086,7 @@ export function useArtistWorkspace({
     setArtistBreakEditorOpen,
     artistBreakDraft,
     setArtistBreakDraft,
+    artistBreakSaving,
     artistBookingCreateOpen,
     setArtistBookingCreateOpen,
     artistCollabOffers,

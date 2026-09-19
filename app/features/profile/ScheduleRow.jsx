@@ -12,6 +12,31 @@ import {
   resolveBookingDurationMinutes
 } from "../artist/bookingUtils";
 
+// Status-tone mapping, ownerType-aware — NOT a plain copy of
+// ClientBookingSettingsModal.jsx's getBookingStatusTone, because "تازه"
+// means two different things depending on who owns the booking:
+// - salon_bookings: "تازه" is written when the SALON itself enters a
+//   walk-in/appointment (useSalonWorkspace.js addSalonAppointment) — already
+//   settled, no one needs to respond to it. Only "درخواست" (a client's own
+//   self-book request, useSalonDirectory.js) is genuinely pending on the
+//   salon; see useSalonWorkspace.js's reservationRequestList, which filters
+//   on "درخواست" only, never "تازه".
+// - artist_bookings (direct): "تازه" IS the pending-on-artist default (see
+//   useArtistWorkspace.js / HomeApp.jsx's pendingArtistBookingRequests,
+//   which treats "تازه" as not-yet-reviewed); "درخواست" doesn't occur here.
+// "done" means "salon/artist actually confirmed it" — used below only to
+// decide whether the row's time-phase tag (upcoming/live/done) is
+// trustworthy to show, or whether the booking's real approval status needs
+// to override it.
+function getBookingStatusTone(status = "", ownerType = "salon") {
+  if (status === "تایید" || status === "تایید شده") return "done";
+  if (status === "لغو") return "bad";
+  if (status === "منقضی شده") return "expired";
+  if (status === "درخواست") return "pending";
+  if (status === "تازه") return ownerType === "artist" ? "pending" : "done";
+  return "pending";
+}
+
 export function buildSalonStaffByName(staffList = []) {
   const map = new Map();
   for (const person of staffList) {
@@ -110,6 +135,7 @@ function scheduleRowPropsAreEqual(prev, next) {
     && prev.booking?.staffLabel === next.booking?.staffLabel
     && prev.booking?.staffAvatar === next.booking?.staffAvatar
     && prev.booking?.visitCount === next.booking?.visitCount
+    && prev.booking?.source?.status === next.booking?.source?.status
     && prev.actionKind === next.actionKind
     && prev.variant === next.variant
     && prev.booking?.displayTitle === next.booking?.displayTitle
@@ -148,6 +174,18 @@ export const ScheduleRow = memo(function ScheduleRow({
   const title = booking.displayTitle || client;
   const meta = booking.displayMeta || service;
 
+  // The time-phase tag (upcoming/live/done) only means something for a
+  // booking the salon/artist actually confirmed — for one still awaiting a
+  // response, declined, or auto-expired, showing "در حال انجام"/"انجام شد"
+  // as if it were a real appointment is actively misleading. Override the
+  // tag with the real approval status in those 3 cases; leave confirmed
+  // bookings showing the useful time-phase info as before.
+  const rawStatus = booking.source?.status || "";
+  const statusTone = getBookingStatusTone(rawStatus, booking.ownerType);
+  const showStatusTag = statusTone !== "done";
+  const phaseTagClass = showStatusTag ? `is-status-${statusTone}` : `is-${phase}`;
+  const phaseTagLabel = showStatusTag ? (rawStatus || "درخواست") : phaseLabel;
+
   return (
     <article
       className={`todayScheduleRow is-${phase || "upcoming"} ${isClientBooking ? "is-clientBookingRow" : ""}`.trim()}
@@ -184,7 +222,7 @@ export const ScheduleRow = memo(function ScheduleRow({
       </div>
       <div className="scheduleTimeWrap">
         <SegmentClock value={time} size="xs" backgroundColor="transparent" />
-        {!isClientBooking ? <small className={`schedulePhaseTag is-${phase}`}>{phaseLabel}</small> : null}
+        {!isClientBooking ? <small className={`schedulePhaseTag ${phaseTagClass}`}>{phaseTagLabel}</small> : null}
       </div>
       <div className="scheduleStaffCol">
         <button

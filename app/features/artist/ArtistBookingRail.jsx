@@ -7,6 +7,20 @@ import { toPersianDigits } from "../../shared/lib/digits";
 import { artistAvailableSlots, getArtistBookingStatusKey } from "./bookingUtils";
 import { artistBookingDays } from "./constants";
 
+// Same status→color mapping as the expanded list's .artistBookingRailStatus
+// dot (artist.css), reused here so the collapsed clock-only row actually
+// shows status at a glance too — previously the is-ok/is-wait/is-vip/
+// is-cancelled/is-expired classes on this row were no-ops (transparent
+// background + inherited color), so every booking looked identical until
+// the rail was opened.
+const ARTIST_RAIL_TIME_STATUS_COLOR = {
+  ok: "#60519b",
+  wait: "#d4a017",
+  vip: "#78486c",
+  cancelled: "#d64545",
+  expired: "#9a5b52"
+};
+
 export const ArtistBookingRail = forwardRef(function ArtistBookingRail(
   {
     className,
@@ -84,16 +98,27 @@ export const ArtistBookingRail = forwardRef(function ArtistBookingRail(
       </div>
 
       <div className="artistBookingRailTimes" aria-hidden={isOpen}>
-        {safeBookings.map((booking) => (
-          <button
-            type="button"
-            className={`artistBookingRailTime is-${getArtistBookingStatusKey(booking.status)}`}
-            key={`rail-time-${booking.id}`}
-            onClick={handleTimeClick}
-          >
-            <SegmentClock value={booking.time} size="xs" as="span" backgroundColor="transparent" />
-          </button>
-        ))}
+        {safeBookings.map((booking) => {
+          const statusKey = getArtistBookingStatusKey(booking.status);
+          return (
+            <button
+              type="button"
+              className={`artistBookingRailTime is-${statusKey}`}
+              key={`rail-time-${booking.id}`}
+              onClick={handleTimeClick}
+              aria-label={`${booking.time} · ${booking.status}`}
+              title={booking.status}
+            >
+              <SegmentClock
+                value={booking.time}
+                size="xs"
+                as="span"
+                backgroundColor="transparent"
+                color={ARTIST_RAIL_TIME_STATUS_COLOR[statusKey] || undefined}
+              />
+            </button>
+          );
+        })}
       </div>
 
       <div className="artistBookingRailPanel">

@@ -9131,7 +9131,12 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 
 .boardHead strong{
   margin-top: 3px;
-  font-size: 1.22rem;
+  /* Was 1.22rem — noticeably larger than every other board-head title in
+     the app (client boardHeads: 15px flat; artist review boardHead: 1rem).
+     Salon's collab-inbox/reservation-request board heads were the only
+     ones still using this unscoped default, so they read oversized next to
+     everything else on the compact bar this session's polish pass set. */
+  font-size: 1rem;
 }
 
 .boardHead button,
@@ -9476,6 +9481,25 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 .schedulePhaseTag.is-upcoming{
   background: rgba(28, 32, 44, 0.05);
   color: #8b929a;
+}
+
+/* Approval-status tones (not time-of-day) — same palette convention as
+   .clientBookingSettingsStatus/.clientBookingStatusPill so a booking still
+   awaiting confirmation, declined, or auto-expired doesn't silently read as
+   a normal "upcoming/live/done" appointment on the owner's own schedule. */
+.schedulePhaseTag.is-status-pending{
+  background: rgba(245, 158, 11, 0.14);
+  color: #b45309;
+}
+
+.schedulePhaseTag.is-status-bad{
+  background: rgba(214, 69, 69, 0.12);
+  color: #d64545;
+}
+
+.schedulePhaseTag.is-status-expired{
+  background: rgba(154, 91, 82, 0.14);
+  color: #9a5b52;
 }
 
 @keyframes schedulePhasePulse{
@@ -15910,7 +15934,7 @@ body{
   }
 
   .boardHead strong{
-    font-size: 1.04rem;
+    font-size: 0.92rem;
   }
 
   .boardHead button,

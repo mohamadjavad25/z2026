@@ -485,8 +485,14 @@ export function useSalonDirectory({
         ]);
       }
       setSalonClientBooking((current) => ({ ...current, open: false }));
-      shellMsg("رزرو با موفقیت ثبت شد.");
-      notify(`رزرو ${salonClientBooking.service} برای ${salonClientBooking.day} ساعت ${salonClientBooking.time} ثبت شد.`);
+      // Deliberately says "awaiting confirmation", not "ثبت شد" (done/booked) —
+      // the real status right after this call is "درخواست" (pending), and the
+      // salon has up to an hour to respond (bookingExpirySweep.js). The old
+      // "successfully registered" wording read as a done deal and gave no hint
+      // a clock had started, which is exactly the "does the client understand
+      // they're waiting" gap this line exists to close.
+      shellMsg("درخواست رزرو ثبت شد؛ در انتظار تایید سالن.");
+      notify(`رزرو ${salonClientBooking.service} برای ${salonClientBooking.day} ساعت ${salonClientBooking.time} ثبت شد و در انتظار تایید سالن است.`);
       return { ok: true, payload };
     } catch {
       shellMsg("ثبت رزرو انجام نشد؛ دوباره امتحان کن.");

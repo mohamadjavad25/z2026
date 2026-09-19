@@ -118,3 +118,31 @@ export function shortPersianWeekday(day) {
 }
 
 export const SALON_HOUR_TIME_OPTIONS = buildClockOptions(8 * 60, 23 * 60, 60);
+
+// SQLite CURRENT_TIMESTAMP strings are UTC with no offset marker ("YYYY-MM-DD
+// HH:MM:SS"); append "Z" so Date parses them as UTC instead of silently
+// treating them as local time — same trick used everywhere a "respond by"
+// deadline is computed from a row's created_at.
+const requestExpiryDeadlineTimeFmt = new Intl.DateTimeFormat("en-GB", {
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+  timeZone: "Asia/Tehran"
+});
+
+/** Wall-clock "HH:MM" (Persian digits, Tehran time) a pending booking/order
+ *  request auto-expires at, given its created_at and the sweep's timeout
+ *  window (60 minutes by default — see bookingExpirySweep.js). Shared single
+ *  source for every "respond by" / "waiting until" deadline shown across
+ *  client and owner UI (salon bookings, direct artist bookings, shop orders)
+ *  so none of them can drift out of sync with each other or with the sweep's
+ *  own DEFAULT_TIMEOUT_MINUTES. */
+export function formatRequestExpiryDeadline(createdAt, minutes = 60) {
+  const raw = String(createdAt || "").trim();
+  if (!raw) return "";
+  const isoLike = raw.includes("T") ? raw : `${raw.replace(" ", "T")}Z`;
+  const created = new Date(isoLike);
+  if (Number.isNaN(created.getTime())) return "";
+  const deadline = new Date(created.getTime() + minutes * 60 * 1000);
+  return toPersianDigits(requestExpiryDeadlineTimeFmt.format(deadline));
+}

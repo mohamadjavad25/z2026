@@ -1,8 +1,9 @@
 "use client";
 
-import { Package, ReceiptText, RotateCcw } from "lucide-react";
+import { Clock3, Package, ReceiptText, RotateCcw } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatToman } from "../../shared/lib/money";
+import { formatRequestExpiryDeadline } from "../../shared/lib/time";
 
 function getStatusTone(status = "") {
   if (status === "تحویل شد") return "done";
@@ -54,6 +55,15 @@ export function ClientOrdersPanel({ orders = [], loaded = false, error = "", onB
         <div className="clientOrderList">
           {orders.map((order) => {
             const tone = getStatusTone(order.status);
+            // Same "respond by HH:MM" touchpoint ClientBookingsPanel already
+            // shows for a pending salon booking — an order sitting in "جدید"
+            // is under the identical 1-hour unacknowledged-order policy (see
+            // bookingExpirySweep.js), but until now this panel gave the buyer
+            // no way to tell "جدید" apart from "this could take a while" —
+            // just a neutral pending pill with no deadline or urgency cue.
+            const pendingDeadline = order.status === "جدید"
+              ? formatRequestExpiryDeadline(order.created_at)
+              : "";
             return (
               <article className="clientOrderCard" key={order.id}>
                 <div className="clientOrderCardTop">
@@ -73,6 +83,12 @@ export function ClientOrdersPanel({ orders = [], loaded = false, error = "", onB
                   <span>{getOrderItemsSummary(order)}</span>
                   <b>{formatToman(order.total_num || 0)}</b>
                 </div>
+                {pendingDeadline ? (
+                  <p className="clientBookingPendingNote">
+                    <Clock3 size={14} />
+                    در انتظار تایید فروشگاه — حداکثر تا ساعت {pendingDeadline}
+                  </p>
+                ) : null}
                 <div className="clientOrderCardActions">
                   <button type="button" onClick={() => onBuyAgain?.(order)}>
                     <RotateCcw size={15} />

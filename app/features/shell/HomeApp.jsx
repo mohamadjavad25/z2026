@@ -526,6 +526,7 @@ export function HomeApp() {
     setArtistBreakEditorOpen,
     artistBreakDraft,
     setArtistBreakDraft,
+    artistBreakSaving,
     artistBookingCreateOpen,
     setArtistBookingCreateOpen,
     artistCollabOffers,
@@ -2731,6 +2732,65 @@ function getPassportMatch(post) {
                 <em>{toPersianDigits(salonAppointmentList.length)}</em>
               </article>
             </div>
+
+            {reservationRequestList.length > 0 && (
+              <section className="salonRequestsBoard" aria-label="درخواست‌های رزرو در انتظار پاسخ">
+                <div className="boardHead">
+                  <div>
+                    <span>درخواست‌های رزرو</span>
+                    <strong>نیاز به تایید شما</strong>
+                  </div>
+                  <b>{toPersianDigits(reservationRequestList.length)} درخواست</b>
+                </div>
+                <div className="reservationRequestList">
+                  {reservationRequestList.map((request) => {
+                    const busy = String(salonRequestBusyId) === `reservation:${request.id}`;
+                    const anyBusy = Boolean(salonRequestBusyId);
+                    return (
+                      <article className="reservationRequestCard" key={request.id}>
+                        <div className="requestCardMain">
+                          <div className="requestCardWho">
+                            <strong>{request.client}</strong>
+                            <span>{request.service}</span>
+                            <small>
+                              <b>{request.staff}</b>
+                              <em>مسئول</em>
+                            </small>
+                          </div>
+                          <div className="requestCardAside">
+                            <SegmentClock value={request.time} size="xs" as="span" />
+                            <div className="requestCardWhen">
+                              <em>{request.day}</em>
+                              <span>{request.date}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="requestActions">
+                          <button
+                            type="button"
+                            className="is-approve"
+                            disabled={anyBusy}
+                            onClick={() => approveReservationRequest(request.id)}
+                          >
+                            <Check size={15} />
+                            {busy ? "…" : "تایید"}
+                          </button>
+                          <button
+                            type="button"
+                            className="is-decline"
+                            disabled={anyBusy}
+                            onClick={() => declineReservationRequest(request.id)}
+                          >
+                            <X size={15} />
+                            {busy ? "…" : "رد"}
+                          </button>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
           </ProfileSheet>
         )}
 
@@ -3181,6 +3241,7 @@ function getPassportMatch(post) {
           open={artistBreakEditorOpen}
           draft={artistBreakDraft}
           hasBreak={Boolean(artistBreakTime)}
+          saving={artistBreakSaving}
           onDraftChange={setArtistBreakDraft}
           onSave={saveArtistBreakTime}
           onClear={clearArtistBreakTime}

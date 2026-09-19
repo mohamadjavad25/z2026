@@ -423,8 +423,13 @@ export function usePublicArtistProfile({
             }
           : current
       ));
+      // "و در انتظار تایید آرتیست است" (not just "ثبت شد") — the real status
+      // here is "تازه" (pending, up to an hour before auto-expiry, see
+      // bookingExpirySweep.js), same fix as the salon booking confirmation
+      // toast in useSalonDirectory.js for the identical reason: "ثبت شد"
+      // alone reads as a done deal and hides that a clock just started.
       notify(
-        `رزرو «${service.name}» · ${publicArtistBookingDay} ساعت ${publicArtistBookingSlot} برای «${selectedPublicArtist.name}» ثبت شد.`
+        `رزرو «${service.name}» · ${publicArtistBookingDay} ساعت ${publicArtistBookingSlot} برای «${selectedPublicArtist.name}» ثبت شد و در انتظار تایید آرتیست است.`
       );
       setPublicArtistBookingSlot("");
       setPublicArtistView("services");

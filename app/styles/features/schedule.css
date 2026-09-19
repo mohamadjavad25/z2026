@@ -632,6 +632,11 @@
   color: var(--rose);
 }
 
+.requestActions button:disabled{
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .todayScheduleList{
   display: grid;
   gap: 0;

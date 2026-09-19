@@ -3,17 +3,45 @@
 import {
   CalendarCheck,
   Check,
+  CheckCircle2,
+  Clock3,
   History,
   MessageCircle,
   Phone,
   Scissors,
   Timer,
+  TimerOff,
   Trash2,
   UserRound,
-  X
+  X,
+  XCircle
 } from "lucide-react";
 import { SegmentClock } from "../../components/SegmentClock";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
+
+// ownerType-aware status-tone mapping — same convention as
+// ScheduleRow.jsx's getBookingStatusTone (duplicated on purpose per this
+// codebase's convention for small component-local helpers; see that file
+// for why "تازه" needs to resolve differently for salon vs artist
+// bookings). This modal is shared by the salon AND artist owner schedule
+// views, and used to always render booking.status in one fixed green pill
+// no matter what the real status was (so a cancelled or expired booking
+// looked identical to a confirmed one).
+function getBookingStatusTone(status = "", ownerType = "salon") {
+  if (status === "تایید" || status === "تایید شده") return "done";
+  if (status === "لغو") return "bad";
+  if (status === "منقضی شده") return "expired";
+  if (status === "درخواست") return "pending";
+  if (status === "تازه") return ownerType === "artist" ? "pending" : "done";
+  return "pending";
+}
+
+const BOOKING_STATUS_ICONS = {
+  pending: Clock3,
+  done: CheckCircle2,
+  bad: XCircle,
+  expired: TimerOff
+};
 
 /**
  * Shared salon+artist schedule booking settings modal.
@@ -47,6 +75,12 @@ export function ScheduleBookingMenuModal({
   const phone = booking.phone || booking.clientPhone || booking.client_phone || "";
   const slots = timeSlots.length ? timeSlots : [booking.time].filter(Boolean);
   const actionDisabled = Boolean(busy);
+  // booking.ownerType isn't set on every path (e.g. raw history-sheet items
+  // in ArtistScheduleBoard/SalonScheduleDashboard don't carry it) — reuse
+  // isSalonOwner, the same fallback this component already relies on
+  // everywhere else, instead of trusting the raw field directly.
+  const statusTone = getBookingStatusTone(booking.status || "درخواست", isSalonOwner ? "salon" : "artist");
+  const StatusIcon = BOOKING_STATUS_ICONS[statusTone];
   const peerUserId = Number(
     isSalonOwner
       ? booking.clientUserId || booking.client_user_id
@@ -88,7 +122,10 @@ export function ScheduleBookingMenuModal({
                 <History size={17} />
               </button>
             ) : null}
-            <strong>{booking.status || "درخواست"}</strong>
+            <strong className={`clientBookingSettingsStatus is-${statusTone}`}>
+              <StatusIcon size={13} />
+              {booking.status || "درخواست"}
+            </strong>
           </div>
 
           <div className="clientBookingSettingsTime">

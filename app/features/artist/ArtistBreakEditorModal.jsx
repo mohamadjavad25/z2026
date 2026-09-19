@@ -12,6 +12,7 @@ export function ArtistBreakEditorModal({
   open = false,
   draft = { start: "۱۳:۰۰", end: "۱۴:۰۰" },
   hasBreak = false,
+  saving = false,
   onDraftChange,
   onSave,
   onClear,
@@ -85,11 +86,11 @@ export function ArtistBreakEditorModal({
           </div>
 
           <div className="artistBreakEditorActions">
-            <button type="button" onClick={onSave} disabled={isInvalid}>
-              ذخیره بازه
+            <button type="button" onClick={onSave} disabled={isInvalid || saving}>
+              {saving ? "در حال ذخیره..." : "ذخیره بازه"}
             </button>
             {hasBreak ? (
-              <button type="button" className="danger" onClick={onClear}>حذف</button>
+              <button type="button" className="danger" onClick={onClear} disabled={saving}>حذف</button>
             ) : null}
             <button type="button" className="ghost" onClick={onClose}>بستن</button>
           </div>

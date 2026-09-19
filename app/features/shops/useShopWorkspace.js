@@ -432,7 +432,11 @@ export function useShopWorkspace({
       });
 
       if (!notifyFromResponse(notify, result, {
-        success: `سفارش ${shopCartSummary.count} آیتم از ${selectedShop.name} ثبت شد.`,
+        // "و در انتظار تایید فروشگاه است" — real status right after this is
+        // "جدید" (unacknowledged, up to an hour before auto-expiry per the
+        // sweep policy in bookingExpirySweep.js), same fix applied to the
+        // salon/artist booking confirmation toasts for the identical reason.
+        success: `سفارش ${shopCartSummary.count} آیتم از ${selectedShop.name} ثبت شد و در انتظار تایید فروشگاه است.`,
         failure: "ثبت سفارش انجام نشد؛ دوباره امتحان کن."
       })) {
         return;
