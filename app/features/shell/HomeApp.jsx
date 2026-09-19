@@ -2815,7 +2815,7 @@ function getPassportMatch(post) {
                             onClick={() => declineArtistBookingRequest(request.id)}
                           >
                             <X size={15} />
-                            رد
+                            {busy ? "…" : "رد"}
                           </button>
                         </div>
                       </article>

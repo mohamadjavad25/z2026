@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Heart, MessageCircle, Send, Star } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatPersianDayTitle } from "../../shared/lib/persianCalendar";
+import { ProfileEmptyState } from "../profile/ProfileEmptyState";
 import { ProfileGallery } from "../profile/ProfileGallery";
 
 function commentDateLabel(value) {
@@ -91,6 +92,15 @@ export function ArtistOverviewReviews({
         composeAriaLabel="ویرایش نمونه‌کار"
         composeShowFeaturedToggle={false}
       />
+
+      {showingReviews && reviewSummary.count === 0 ? (
+        <ProfileEmptyState
+          className="artistReviewEmptyState"
+          icon={Star}
+          title="هنوز نظری ثبت نشده"
+          description="بعد از اولین نوبتی که تکمیل بشه، نظر مشتری‌ها همین‌جا نمایش داده می‌شود."
+        />
+      ) : null}
 
       {showingReviews && reviewSummary.count > 0 && (
         <section className="artistReviewBoard">
