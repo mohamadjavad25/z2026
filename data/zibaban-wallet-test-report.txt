@@ -1,15 +1,12 @@
 ✓ server up — http://127.0.0.1:3027
 ✓ register shop — status=200
 ✓ resolve user id — userId=1
-✓ 1. shell buy (no 500) — status=200 shell=50
-✓ 1b. shell spend (no 500) — status=200 shell=40
-✓ 1c. shell overspend rejected — status=400
 ✓ bank save — status=200
 ✓ 5. feePercent from body ignored (server 10%) — fee=100000 net=900000 feePercent=10 available=900000
 ✓ 6. withdraw is pending (not paid) — status=200 withdrawStatus=pending id=1
 ✓ 6b. confirm without admin token → 403/503 — status=403
 ✓ 6c. admin confirm_withdraw → paid — status=200 paidStatus=paid
-✓ 4. demo_credit blocked in production (isDemoCreditBlocked → 403) — hasGuard=true status=403 blocked=true err=(node:6288) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/novin/Desktop/zibaban/app/lib/wallet-guards.js is not specified and it doesn't parse as CommonJS.
+✓ 4. demo_credit blocked in production (isDemoCreditBlocked → 403) — hasGuard=true status=403 blocked=true err=(node:23812) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/novin/Desktop/zibaban/app/lib/wallet-guards.js is not specified and it doesn't parse as CommonJS.
 Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
 To eliminate this warning, add "type": "module" to \\?\C:\Users\novin\Desktop\zibaban\package.json.
 (Use `node --trace-warnings ...` to show where the warning was created)
@@ -18,7 +15,10 @@ To eliminate this warning, add "type": "module" to \\?\C:\Users\novin\Desktop\zi
 ✓ race setup balance=500000 — available=500000
 ✓ 2. race 10 concurrent withdraws → exactly 5 ok — ok=5 fail=5 insufficient=5 finalAvailable=0
 ✓ 2b. final balance never negative — finalAvailable=0
-✓ 3. two concurrent overdrawing withdraws → exactly 1 ok — ok=1 fail=1 finalAvailable=50000
+✓ 3. two concurrent overdrawing withdraws (different keys) → exactly 1 ok — ok=1 fail=1 finalAvailable=50000
+✓ 7. two concurrent demo_credit with SAME idempotencyKey → net applied exactly once — ok=2 nets=[180000,180000] finalAvailable=180000 expectedNet=180000 idemRows=1
+✓ 7b. replaying the same idempotencyKey via HTTP afterwards → still no double-credit — status=200 available=180000 expected=180000
+✓ 7d. two concurrent withdraws with SAME idempotencyKey → deducted exactly once, one stored idempotency row — ok=2 ids=[8,8] finalAvailable=200000 idemKeyRows=1
 ✓ WAL mode active — journal_mode=wal
 
 ALL_OK=true
