@@ -26878,6 +26878,14 @@ body:has(.salonStoryCreatorOverlay) .profileModeRail.is-dockRail {
   right: max(8px, calc((100vw - 460px) / 2 + 8px)) !important;
 }
 
+/* .shopStoreDock centers itself via right:50%+translateX(50%) (shops.css) —
+   leaving that transform active on top of the frame-aware left/right above
+   double-shifts it off-screen. left/right alone already center it here. */
+.shopStoreDock {
+  transform: none !important;
+  width: auto !important;
+}
+
 .salonToolWindow .modalClose {
   left: max(12px, calc((100vw - 460px) / 2 + 12px));
 }
