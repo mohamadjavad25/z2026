@@ -19,7 +19,6 @@ import {
   Truck,
   Upload,
   UserRound,
-  Wallet,
   Percent,
   X
 } from "lucide-react";
@@ -120,7 +119,6 @@ import {
   SalonScheduleDashboard,
   ScheduleBookingMenuModal
 } from "../schedule";
-import { WalletPage, useWalletWorkspace } from "../wallet";
 import { AuthBootScreen } from "./AuthBootScreen";
 
 import { BottomNav } from "./BottomNav";
@@ -308,8 +306,6 @@ export function HomeApp() {
     },
     onGuestBoot: async () => {
       const c = authCascadeRef.current;
-      c.resetWalletState?.();
-      c.setWalletLoading?.(false);
       setBeautyPassport(null);
     },
     onAuthenticated: async (profile, { source, isStale }) => {
@@ -320,15 +316,12 @@ export function HomeApp() {
         await c.refreshFollows?.();
         await c.refreshSaves?.();
         try {
-          const [walletResponse, passportResponse, salonsResponse] = await Promise.all([
-            fetch("/api/wallet"),
+          const [passportResponse, salonsResponse] = await Promise.all([
             fetch("/api/beauty-passport"),
             fetch("/api/salons")
           ]);
-          const walletPayload = walletResponse.ok ? await walletResponse.json() : {};
           const passportPayload = passportResponse.ok ? await passportResponse.json() : {};
           const salonsPayload = await salonsResponse.json();
-          c.applyWalletPayload?.(walletPayload);
           setBeautyPassport(passportPayload.passport || passportPayload.data?.passport || null);
           c.setSalonDirectory?.(salonsPayload.salons || salonsPayload.data?.salons || []);
         } catch {
@@ -340,14 +333,11 @@ export function HomeApp() {
         await c.refreshFollows?.();
         await c.refreshSaves?.();
       } else if (source === "boot") {
-        const [walletResponse, passportResponse] = await Promise.all([
-          fetch("/api/wallet"),
+        const [passportResponse] = await Promise.all([
           fetch("/api/beauty-passport")
         ]);
         if (isStale?.()) return;
-        const walletPayload = walletResponse.ok ? await walletResponse.json() : {};
         const passportPayload = passportResponse.ok ? await passportResponse.json() : {};
-        c.applyWalletPayload?.(walletPayload);
         setBeautyPassport(passportPayload.passport || passportPayload.data?.passport || null);
         await c.refreshFollows?.();
         await c.refreshSaves?.();
@@ -388,7 +378,6 @@ export function HomeApp() {
       setFollowedArtists([]);
       c.setSavedArtists?.([]);
       setSavedProfiles({ salons: [], artists: [] });
-      c.resetWalletState?.();
       setBeautyPassport(null);
       setClientOrderList([]);
       setClientOrdersLoaded(false);
@@ -400,28 +389,6 @@ export function HomeApp() {
       await c.refreshShopDirectory?.();
     }
   });
-
-  const {
-    walletTransactions,
-    walletAvailable,
-    walletBankAccount,
-    walletWithdrawals,
-    walletBankDraft,
-    setWalletBankDraft,
-    walletWithdrawAmount,
-    setWalletWithdrawAmount,
-    walletCashMode,
-    setWalletCashMode,
-    walletBusy,
-    walletLoading,
-    setWalletLoading,
-    applyWalletPayload,
-    resetWalletState,
-    refreshWallet,
-    saveWalletBankAccount,
-    requestWalletWithdraw,
-    requestWalletCharge
-  } = useWalletWorkspace({ onNotice: setAppToast });
 
   const {
     shopDirectory,
@@ -1461,9 +1428,6 @@ function getPassportMatch(post) {
     resetPublicArtistProfile,
     resetArtistWorkspace,
     resetSalonWorkspace,
-    applyWalletPayload,
-    resetWalletState,
-    setWalletLoading,
     setSavedArtists
   };
 
@@ -2059,27 +2023,6 @@ function getPassportMatch(post) {
     await shareSalonProfile(createdProfile?.data?.name || "سالن");
   }
 
-  const renderWalletPage = () => (
-    <WalletPage
-      profileType={profileType}
-      walletAvailable={walletAvailable}
-      walletBankAccount={walletBankAccount}
-      walletBankDraft={walletBankDraft}
-      setWalletBankDraft={setWalletBankDraft}
-      walletBusy={walletBusy}
-      walletLoading={walletLoading}
-      walletCashMode={walletCashMode}
-      setWalletCashMode={setWalletCashMode}
-      walletWithdrawAmount={walletWithdrawAmount}
-      setWalletWithdrawAmount={setWalletWithdrawAmount}
-      walletWithdrawals={walletWithdrawals}
-      walletTransactions={walletTransactions}
-      onSaveBankAccount={saveWalletBankAccount}
-      onCharge={requestWalletCharge}
-      onWithdraw={requestWalletWithdraw}
-    />
-  );
-
   const renderSavedPosts = () => (
     <ProfileSavedPosts
       posts={savedExplorePosts}
@@ -2389,14 +2332,6 @@ function getPassportMatch(post) {
                   setProfileView((prev) => (prev === "settings" ? "overview" : "settings"));
                 }
               }}
-              onOpenWallet={() => {
-                refreshWallet();
-                if (createdProfile?.type === "salon") {
-                  setSalonHeroSheet((prev) => (prev === "wallet" ? null : "wallet"));
-                } else {
-                  setProfileView((prev) => (prev === "wallet" ? "overview" : "wallet"));
-                }
-              }}
               onOpenWeekHistory={() => setSalonWeekHistoryOpen(true)}
               onSelectSalonWeekDay={setScheduleViewDay}
               selectedSalonWeekDay={activeScheduleDateKey}
@@ -2430,10 +2365,6 @@ function getPassportMatch(post) {
               }}
               onSalonWorkspace={openSalonWorkspace}
               onProfileView={setProfileView}
-              onWallet={() => {
-                setProfileView((prev) => (prev === "wallet" ? "overview" : "wallet"));
-                refreshWallet();
-              }}
             />
 
           {createdProfile.type === profileType ? (
@@ -3104,25 +3035,6 @@ function getPassportMatch(post) {
           </ProfileSheet>
         )}
 
-        {createdProfile && (
-          (createdProfile.type === "salon" && salonHeroSheet === "wallet")
-          || (createdProfile.type !== "salon" && profileView === "wallet")
-        ) && (
-          <ProfileSheet
-            title="کیف پول"
-            label="کیف پول"
-            panelClassName="salonWalletSheetPanel"
-            hideHeader
-            open
-            onClose={() => {
-              if (createdProfile.type === "salon") setSalonHeroSheet(null);
-              else setProfileView("overview");
-            }}
-          >
-            {renderWalletPage()}
-          </ProfileSheet>
-        )}
-
         <ClientBookingSettingsModal
           booking={clientBookingSettings}
           onClose={() => setClientBookingSettings(null)}
@@ -3176,12 +3088,6 @@ function getPassportMatch(post) {
               setActiveTab("chat");
               return;
             }
-            if (view === "wallet") {
-              refreshWallet();
-              setActiveTab("profile");
-              setProfileView("wallet");
-              return;
-            }
             setActiveTab("profile");
             setProfileView(view);
           }}
@@ -3216,10 +3122,6 @@ function getPassportMatch(post) {
                 }}
                 onSalonWorkspace={openSalonWorkspace}
                 onProfileView={setProfileView}
-                onWallet={() => {
-                  setProfileView((prev) => (prev === "wallet" ? "overview" : "wallet"));
-                  refreshWallet();
-                }}
               />
             ) : null
           }

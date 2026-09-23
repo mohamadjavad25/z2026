@@ -6,8 +6,7 @@ import * as pushRepo from "./db/repos/push.js";
  * an installed-but-no-op service worker and zero push infrastructure, which
  * was the actual root cause of "salon/artist never finds out a request
  * auto-expired unless they happen to reopen the app"). Fails closed and
- * silent, same "unavailable until configured" pattern as the wallet admin
- * token — see .env.example — so a deploy that hasn't set the VAPID env vars
+ * silent — see .env.example — so a deploy that hasn't set the VAPID env vars
  * yet just never sends pushes instead of crashing every booking/order route
  * that tries to notify someone.
  */

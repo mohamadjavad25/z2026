@@ -9,7 +9,6 @@
 @import "./styles/features/salon.css";
 @import "./styles/features/client.css";
 @import "./styles/features/auth.css";
-@import "./styles/features/wallet.css";
 
 
 *{
@@ -1148,7 +1147,6 @@ button{
 }
 
 .globalSearch,
-.walletPill,
 .locationPill,
 .headerActions button{
   border: 1px solid rgba(255, 255, 255, 0.58);
@@ -9196,38 +9194,6 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   background: var(--teal);
 }
 
-.profileMiniWallet{
-  min-height: 48px;
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
-  border-radius: 15px;
-  background: rgba(191, 192, 209, 0.16);
-}
-
-.profileMiniWallet span{
-  color: var(--muted);
-  font-size: 0.74rem;
-  font-weight: 900;
-}
-
-.profileMiniWallet b{
-  color: var(--ink);
-}
-
-.profileMiniWallet button{
-  min-height: 32px;
-  border: 0;
-  border-radius: 11px;
-  padding: 0 10px;
-  background: var(--plum);
-  color: #fff;
-  font-size: 0.72rem;
-  font-weight: 900;
-}
-
 .profileMainBoard{
   display: grid;
   gap: 10px;
@@ -10600,18 +10566,6 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   backdrop-filter: blur(10px);
 }
 
-.salonWalletSheetPanel{
-  gap: 10px;
-}
-
-.salonWalletSheetPanel .walletPage{
-  padding-bottom: 0;
-}
-
-.salonWalletSheetPanel .walletBalanceCard{
-  margin-top: 0;
-}
-
 .salonSidebar{
   width: min(430px, calc(100vw - 22px));
   height: 100%;
@@ -11316,7 +11270,6 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   line-height: 1.6;
 }
 
-.walletRowList,
 .settingsList{
   display: grid;
   gap: 8px;
@@ -14477,7 +14430,6 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .sheetHead,
-.sheetWallet,
 .sheetUploadActions,
 .sheetActions{
   display: flex;

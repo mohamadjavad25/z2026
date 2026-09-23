@@ -1,4 +1,4 @@
-import { CalendarCheck, ImagePlus, Package, Settings, Store, Timer, UserRound, Wallet } from "lucide-react";
+import { CalendarCheck, ImagePlus, Package, Settings, Store, Timer, UserRound } from "lucide-react";
 
 export function ProfileModeRail({
   profileType,
@@ -8,7 +8,6 @@ export function ProfileModeRail({
   onOverview,
   onSalonWorkspace,
   onProfileView,
-  onWallet,
   placement = "panel"
 }) {
   const OverviewIcon = activeRoleMeta.overviewIcon;
@@ -98,16 +97,10 @@ export function ProfileModeRail({
         </button>
       )}
       {profileType === "shop" && (
-        <>
-          <button type="button" className={profileView === "wallet" ? "active" : ""} onClick={onWallet}>
-            <Wallet size={16} />
-            <span>کیف پول</span>
-          </button>
-          <button type="button" className={profileView === "settings" ? "active" : ""} onClick={() => onProfileView("settings")}>
-            <Settings size={16} />
-            <span>تنظیمات</span>
-          </button>
-        </>
+        <button type="button" className={profileView === "settings" ? "active" : ""} onClick={() => onProfileView("settings")}>
+          <Settings size={16} />
+          <span>تنظیمات</span>
+        </button>
       )}
     </div>
   );

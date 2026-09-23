@@ -35,7 +35,6 @@ export function ProfileHero({
   onOpenSaved,
   onOpenNotifications,
   onOpenSettings,
-  onOpenWallet,
   onOpenWeekHistory,
   onSelectSalonWeekDay,
   selectedSalonWeekDay,
@@ -80,7 +79,6 @@ export function ProfileHero({
           onOpenSaved={onOpenSaved}
           onOpenNotifications={onOpenNotifications}
           onOpenSettings={onOpenSettings}
-          onOpenWallet={onOpenWallet}
           onShare={onShare}
           notificationCount={notificationCount}
           showShare={showShare}
@@ -253,7 +251,6 @@ export function ProfileHero({
           onOpenSaved={onOpenSaved}
           onOpenNotifications={onOpenNotifications}
           onOpenSettings={onOpenSettings}
-        onOpenWallet={onOpenWallet}
         onPreviewPublic={onPreviewPublic}
         notificationCount={notificationCount}
       />

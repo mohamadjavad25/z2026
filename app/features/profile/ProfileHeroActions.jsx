@@ -1,4 +1,4 @@
-import { BarChart3, Bell, Eye, MoreVertical, Settings, Share2, Wallet } from "lucide-react";
+import { BarChart3, Bell, Eye, MoreVertical, Settings, Share2 } from "lucide-react";
 
 export function ProfileHeroActions({
   activePanel,
@@ -6,7 +6,6 @@ export function ProfileHeroActions({
   onOpenSaved,
   onOpenNotifications,
   onOpenSettings,
-  onOpenWallet,
   onShare,
   onPreviewPublic,
   notificationCount = 0,
@@ -52,16 +51,6 @@ export function ProfileHeroActions({
         
       </div>
       <div className="profileHeroActionsGroup">
-        {profileType !== "artist" && (
-          <button
-            type="button"
-            className={activePanel === "wallet" ? "is-active" : ""}
-            onClick={onOpenWallet}
-            aria-label="کیف پول"
-          >
-            <Wallet size={17} />
-          </button>
-        )}
         {profileType === "artist" && (
           <button
             type="button"

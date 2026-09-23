@@ -1649,26 +1649,6 @@
 /* --- J7 extracted from styles.css --- */
 
 
-.walletPill{
-  min-height: 52px;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  border-radius: 16px;
-  padding: 0 13px;
-  color: var(--plum);
-  font-weight: 900;
-  white-space: nowrap;
-}
-
-
-
-.walletPill svg{
-  color: var(--rose);
-}
-
-
-
 .salonClientSticky{
   position: fixed;
   right: max(14px, calc((100vw - 430px) / 2 + 14px));
@@ -1849,22 +1829,6 @@
 }
 
 @media (max-width: 760px){
-
-
-  .walletPill{
-    position: relative;
-    z-index: 1;
-    min-height: 40px;
-    border: 0;
-    border-radius: 14px;
-    padding: 0 10px;
-    background: rgba(246, 246, 251, 0.78);
-    font-size: 0.78rem;
-    box-shadow:
-      inset 0 0 0 1px rgba(255, 255, 255, 0.68),
-      0 10px 22px rgba(28, 32, 44, 0.08);
-  }
-
 
 
   .floatingMobileCta{

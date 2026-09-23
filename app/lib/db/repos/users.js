@@ -29,10 +29,6 @@ export function createUser({ phone, passwordHash, type, name, area, service, ema
     managerName || ""
   );
   const userId = Number(info.lastInsertRowid);
-  db.prepare(`
-    INSERT INTO wallets (user_id, available_balance, pending_balance)
-    VALUES (?, 0, 0)
-  `).run(userId);
   if (type === "shop") {
     db.prepare(`
       INSERT INTO shops (user_id, name, area, category, phone, email, bio)
