@@ -22941,6 +22941,33 @@ body:has(.salonStoryCreatorOverlay) .profileModeRail.is-dockRail {
   box-shadow: none;
 }
 
+/* The modeRail dock (above) is a hard-locked 4-button grid, so the
+   "create booking" action floats as its own round button just above it
+   instead of trying to become a 5th grid item. */
+.floatingCreateBookingBtn {
+  display: none;
+}
+
+.page-profile.is-active ~ .floatingCreateBookingBtn {
+  display: grid;
+  position: fixed;
+  place-items: center;
+  right: max(24px, calc((100vw - 460px) / 2 + 24px));
+  bottom: calc(144px + env(safe-area-inset-bottom));
+  z-index: 25;
+  width: 50px;
+  height: 50px;
+  border: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #8a7bc9, #60519b);
+  color: #fff;
+  box-shadow: 0 14px 30px rgba(60, 48, 110, 0.34);
+}
+
+.floatingCreateBookingBtn.is-active {
+  background: linear-gradient(135deg, #60519b, #453a75);
+}
+
 /* 6) Full-screen overlays: keep inside the frame width */
 .salonGalleryDetailBackdrop,
 .salonSidebarBackdrop,
