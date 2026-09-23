@@ -454,7 +454,6 @@ export function HomeApp() {
     submitArtistReviewReply,
     artistWorkTagOptions,
     artistWorkVisibleTagOptions,
-    nearestArtistBookings,
     artistBookingWeekTabs,
     artistScheduleDayLabel,
     pendingArtistSalonInvites,
@@ -2546,7 +2545,6 @@ function getPassportMatch(post) {
           }
           profileType={createdProfile?.type}
           bookingSheetOpen={bookingSheetOpen}
-          todayBookings={nearestArtistBookings}
           modeRail={
             createdProfile?.type === "salon" ? (
               <ProfileModeRail
@@ -2570,12 +2568,6 @@ function getPassportMatch(post) {
               return;
             }
             openBookingSheet();
-          }}
-          onOpenBookings={() => {
-            setProfileView("bookings");
-            setArtistBookingRailOpen(false);
-            setArtistBookingCreateOpen(false);
-            closeBookingSheet();
           }}
         />
 
@@ -2748,6 +2740,14 @@ function getPassportMatch(post) {
           activeTab={activeTab}
           createdProfile={createdProfile}
           onTabChange={goToTab}
+          showCreateBooking={createdProfile?.type === "artist" && activeTab === "profile"}
+          onCreateBooking={() => {
+            if (bookingSheetOpen) {
+              closeBookingSheet();
+              return;
+            }
+            openBookingSheet();
+          }}
         />
         <PublicArtistModal
           artist={selectedPublicArtist}
