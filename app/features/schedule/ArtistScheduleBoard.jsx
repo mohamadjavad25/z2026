@@ -47,7 +47,6 @@ export function ArtistScheduleBoard({
               booking={booking}
               onOpenClient={onOpenClient}
               onAction={onOpenBookingMenu}
-              actionKind="more"
             />
           )) : (
             <div className="salonTodayEmpty">

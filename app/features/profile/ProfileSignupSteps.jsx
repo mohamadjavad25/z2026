@@ -14,7 +14,7 @@ export function ProfileSignupSteps({ step }) {
           </span>
           <span className="profileStepCopy">
             <strong>انتخاب نقش</strong>
-            <small>بانو، سالن، فروشگاه یا آرتیست</small>
+            <small>بانو، سالن یا آرتیست</small>
           </span>
         </li>
         <li className="profileStepBridge" aria-hidden="true">

@@ -20662,7 +20662,7 @@ body{
   left: 8px;
   min-height: 64px;
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   align-items: center;
   gap: 6px;
   padding: 6px 12px;
@@ -22277,7 +22277,7 @@ body:has(.salonStoryCreatorOverlay) .profileModeRail.is-dockRail {
   height: auto !important;
   min-height: 56px !important;
   transform: translateX(50%) !important;
-  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
   gap: 0 !important;
   padding: 4px 12px 6px !important;
   border: 0 !important;

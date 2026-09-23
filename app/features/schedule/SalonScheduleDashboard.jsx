@@ -228,7 +228,6 @@ export function SalonScheduleDashboard({
               booking={item}
               onOpenClient={onOpenClient}
               onAction={onOpenBookingMenu}
-              actionKind="more"
             />
           )) : (
             <div className="salonTodayEmpty">

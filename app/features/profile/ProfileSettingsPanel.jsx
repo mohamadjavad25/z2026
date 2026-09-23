@@ -123,8 +123,8 @@ export function ProfileSettingsPanel({
     <SettingsGroup title={profileType === "artist" ? "کنترل تجربه مشتری" : "عمومی"}>
       <SettingsToggle
         icon={profileSettings.reservationAlerts ? Bell : BellOff}
-        label={profileType === "artist" ? "اعلان رزرو و پیام" : profileType === "salon" ? "اعلان رزرو و تیم" : "اعلان رزرو"}
-        description={profileType === "artist" ? "رزرو مستقیم، پیام مشتری و تغییر وضعیت پرداخت" : profileType === "salon" ? "رزرو جدید، جابه‌جایی نوبت و پیام مشتری" : "رزرو، پیام سالن و وضعیت پرداخت"}
+        label={profileType === "artist" ? "اعلان رزرو" : profileType === "salon" ? "اعلان رزرو و تیم" : "اعلان رزرو"}
+        description={profileType === "artist" ? "درخواست نوبت جدید، تایید یا لغو و انقضای نوبت" : profileType === "salon" ? "رزرو جدید، جابه‌جایی نوبت و انقضای درخواست" : "تایید، لغو یا انقضای نوبتی که رزرو کردی"}
         checked={profileSettings.reservationAlerts}
         onChange={() => onToggle("reservationAlerts")}
       />

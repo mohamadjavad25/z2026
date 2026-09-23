@@ -232,7 +232,9 @@ export function SalonClientPage({
             <button type="button" className="is-primary" onClick={() => onOpenBooking(getPrimaryBookingService(services))}>
               <Plus size={30} />
             </button>
-            <button type="button" className="is-active"><Home size={23} /></button>
+            <button type="button" className="is-active" onClick={onBack} aria-label="بازگشت به سالن‌ها">
+              <Home size={23} />
+            </button>
           </nav>
           {aboutOpen ? (
             <div className="salonPublicAboutOverlay" role="dialog" aria-modal="true" aria-label="درباره سالن" onClick={() => setAboutOpen(false)}>

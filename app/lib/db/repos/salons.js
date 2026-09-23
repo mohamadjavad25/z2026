@@ -38,10 +38,9 @@ export function listSalons() {
     ORDER BY s.created_at DESC
   `).all()
     // A salon switched to "خصوصی" via تنظیمات → پروفایل عمومی سالن must be
-    // hidden from the public directory, same rule shops.listShops() already
-    // enforces for "ویترین عمومی فروشگاه" (see mapShop's isPublic) — this
-    // was previously never checked at all for salons, so toggling the
-    // setting off did nothing on the read side (still fully listed here).
+    // hidden from the public directory — this was previously never checked
+    // at all for salons, so toggling the setting off did nothing on the
+    // read side (still fully listed here).
     .filter((row) => getSettings(row.user_id).publicPortfolio !== false)
     .map((row) => {
     const followingCount = countFollowing(row.user_id);

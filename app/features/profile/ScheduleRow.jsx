@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import { MessageCircle, MoreHorizontal, Store } from "lucide-react";
+import { MoreHorizontal, Store } from "lucide-react";
 import { SegmentClock } from "../../components/SegmentClock";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar";
@@ -136,7 +136,6 @@ function scheduleRowPropsAreEqual(prev, next) {
     && prev.booking?.staffAvatar === next.booking?.staffAvatar
     && prev.booking?.visitCount === next.booking?.visitCount
     && prev.booking?.source?.status === next.booking?.source?.status
-    && prev.actionKind === next.actionKind
     && prev.variant === next.variant
     && prev.booking?.displayTitle === next.booking?.displayTitle
     && prev.booking?.displayMeta === next.booking?.displayMeta
@@ -147,7 +146,6 @@ export const ScheduleRow = memo(function ScheduleRow({
   booking,
   onOpenClient,
   onAction,
-  actionKind = "more",
   variant = "default"
 }) {
   const {
@@ -169,7 +167,6 @@ export const ScheduleRow = memo(function ScheduleRow({
   } = booking;
 
   const isClientBooking = variant === "client";
-  const ActionIcon = actionKind === "message" ? MessageCircle : MoreHorizontal;
   const actionPayload = booking.source ? { ...booking.source, ...booking } : booking;
   const title = booking.displayTitle || client;
   const meta = booking.displayMeta || service;
@@ -228,11 +225,11 @@ export const ScheduleRow = memo(function ScheduleRow({
         <button
           type="button"
           className="scheduleBookingMore"
-          aria-label={actionKind === "message" ? `پیام به ${client}` : `مدیریت رزرو ${client}`}
-          title={actionKind === "message" ? "پیام" : "گزینه‌های رزرو"}
+          aria-label={`مدیریت رزرو ${client}`}
+          title="گزینه‌های رزرو"
           onClick={() => onAction?.(actionPayload)}
         >
-          <ActionIcon size={18} />
+          <MoreHorizontal size={18} />
         </button>
         {!isClientBooking ? <div className="scheduleStaff">
           <span className={`scheduleStaffAvatar ${staffAvatar ? "hasImage" : ""}`} aria-hidden="true">
