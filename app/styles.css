@@ -3472,6 +3472,7 @@ h2{
 
 .bookingCreateForm.is-flat .bookingStepHint,
 .bookingCreateForm.is-flat .bookingWheelPair,
+.bookingCreateForm.is-flat .bookingCreateWheels,
 .bookingCreateForm.is-flat .bookingPrimaryBtn{
   grid-column: 1 / -1;
 }

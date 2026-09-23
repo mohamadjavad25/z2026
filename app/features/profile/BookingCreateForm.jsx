@@ -3,7 +3,6 @@
 import { CalendarCheck } from "lucide-react";
 import { BookingSelect } from "../../components/BookingSelect";
 import { BreakTimeWheel } from "../../components/BreakTimeWheel";
-import { toPersianDigits } from "../../shared/lib/digits";
 
 export function BookingCreateForm({
   role = "salon",
@@ -49,15 +48,11 @@ export function BookingCreateForm({
       className="bookingFormGrid bookingCreateForm is-flat"
       onSubmit={onSubmit}
     >
-      <p className="bookingStepHint">همه جزئیات رزرو را یکجا تکمیل کن و ثبت بزن.</p>
-
       <label>
-        <span>نام مشتری</span>
-        <input name="client" placeholder="مثلاً نازنین محمدی" autoComplete="name" required />
+        <input name="client" placeholder="نام مشتری" autoComplete="name" required />
       </label>
       <label>
-        <span>شماره تماس <em>اختیاری</em></span>
-        <input name="phone" placeholder="۰۹۱۲۰۰۰۰۰۰۰" inputMode="tel" autoComplete="tel" dir="ltr" />
+        <input name="phone" placeholder="شماره تماس (اختیاری)" inputMode="tel" autoComplete="tel" dir="ltr" />
       </label>
 
       <div className={`bookingHalfField ${showStaff ? "" : "is-wide"}`.trim()}>
@@ -86,17 +81,15 @@ export function BookingCreateForm({
         </div>
       ) : null}
 
-      <div className="bookingWheelPair">
-        <div className="bookingDayPicker">
-          <div className="artistPublicSlotLabel">
-            <span>روز</span>
-            <small>اسکرول کن</small>
-          </div>
+      <div className="artistPublicBookingWheels bookingCreateWheels">
+        <div className="artistPublicBookingDayPicker">
+          <span>روز</span>
           <input type="hidden" name={dayFieldName} value={activeDayOption.value} />
           <BreakTimeWheel
             mode="label"
             idPrefix="booking-day"
             visibleCount={5}
+            itemSize={38}
             options={dayLabels}
             value={activeDayOption.label}
             onChange={(label) => {
@@ -104,31 +97,29 @@ export function BookingCreateForm({
               onDayChange?.(option?.value || label);
             }}
             ariaLabel="انتخاب روز رزرو"
+            activeColor="#5d43b5"
+            inactiveColor="rgba(20, 22, 30, 0.82)"
           />
         </div>
-        <div className="bookingTimePicker">
-          <div className="artistPublicSlotLabel">
-            <span>ساعات آزاد</span>
-            <small>
-              {timeOptions.length
-                ? `${toPersianDigits(timeOptions.length)} نوبت`
-                : "خالی"}
-            </small>
-          </div>
+        <div className="artistPublicBookingTimePicker">
+          <span>ساعت</span>
           <input type="hidden" name="time" value={timeValue} />
           {timeOptions.length ? (
             <BreakTimeWheel
               mode="clock"
               idPrefix="booking-time"
               visibleCount={5}
+              itemSize={38}
               options={timeOptions}
               value={timeValue}
               onChange={onTimeChange}
               ariaLabel="انتخاب ساعت رزرو"
+              activeColor="#5d43b5"
+              inactiveColor="rgba(20, 22, 30, 0.82)"
             />
           ) : (
             <div className="artistPublicSlotEmpty">
-              نوبت آزادی نیست.
+              نوبت آزادی نیست
             </div>
           )}
         </div>

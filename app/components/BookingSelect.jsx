@@ -9,13 +9,14 @@ export function BookingSelect({
   value,
   options = [],
   onChange,
-  placeholder = "انتخاب کن",
+  placeholder,
   open = false,
   onOpenChange
 }) {
   const rootRef = useRef(null);
   const listId = useId();
   const selected = options.find((item) => item.value === value) || options[0] || null;
+  const fallbackText = placeholder || label || "انتخاب کن";
 
   useEffect(() => {
     if (!open) return undefined;
@@ -38,7 +39,6 @@ export function BookingSelect({
 
   return (
     <div className={`bookingSelect ${open ? "is-open" : ""}`} ref={rootRef}>
-      <span className="bookingSelectLabel">{label}</span>
       <input type="hidden" name={name} value={selected?.value || ""} />
       <button
         type="button"
@@ -46,10 +46,11 @@ export function BookingSelect({
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={listId}
+        aria-label={label}
         onClick={() => onOpenChange?.(!open)}
       >
         <span className="bookingSelectValue">
-          <b>{selected?.label || placeholder}</b>
+          <b>{selected?.label || fallbackText}</b>
           {selected?.meta ? <small>{selected.meta}</small> : null}
         </span>
         <ChevronDown size={16} aria-hidden="true" />
