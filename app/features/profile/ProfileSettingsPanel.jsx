@@ -13,12 +13,9 @@ import {
   Globe,
   Lock,
   Moon,
-  Store,
   Tag,
   Briefcase,
-  Package,
   Trash2,
-  Truck,
   X
 } from "lucide-react";
 
@@ -121,21 +118,8 @@ export function ProfileSettingsPanel({
 }) {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleteBusy, setDeleteBusy] = useState(false);
-  const shopMainToggles = profileType === "shop" ? (
-    <SettingsGroup title="نمایش فروشگاه">
-      <SettingsToggle
-        icon={profileSettings.publicPortfolio ? Store : Lock}
-        label="ویترین عمومی فروشگاه"
-        description="محصولات، قیمت و موجودی برای مشتری‌ها نمایش داده شود"
-        checked={profileSettings.publicPortfolio}
-        onChange={() => onToggle("publicPortfolio")}
-        onLabel="عمومی"
-        offLabel="خصوصی"
-      />
-    </SettingsGroup>
-  ) : null;
 
-  const commonToggles = profileType === "shop" ? null : (
+  const commonToggles = (
     <SettingsGroup title={profileType === "artist" ? "کنترل تجربه مشتری" : "عمومی"}>
       <SettingsToggle
         icon={profileSettings.reservationAlerts ? Bell : BellOff}
@@ -222,30 +206,8 @@ export function ProfileSettingsPanel({
     </SettingsGroup>
   ) : null;
 
-  const shopOps = profileType === "shop" ? (
-    <SettingsGroup title="سفارش و ارسال">
-      <SettingsToggle
-        icon={profileSettings.orderAlerts ? Package : BellOff}
-        label="اعلان سفارش و پیام"
-        description="سفارش جدید، پیام مشتری و پرداخت موفق"
-        checked={Boolean(profileSettings.orderAlerts)}
-        onChange={() => onToggle("orderAlerts")}
-      />
-      <SettingsToggle
-        icon={Truck}
-        label="آمادگی ارسال"
-        description="وقتی خاموش باشد، فروشگاه‌ات سفارش جدید نمی‌گیرد و این پیام روی ویترین به مشتری‌ها نشان داده می‌شود."
-        checked={Boolean(profileSettings.shippingReady)}
-        onChange={() => onToggle("shippingReady")}
-        onLabel="فعال"
-        offLabel="خاموش"
-      />
-    </SettingsGroup>
-  ) : null;
-
   return (
     <div className="neoSettingsPanel">
-      {shopMainToggles}
       {commonToggles}
 
       {profileTypeToggle ? (
@@ -259,7 +221,6 @@ export function ProfileSettingsPanel({
       ) : null}
 
       {artistBooking}
-      {shopOps}
 
       <button type="button" className="neoSettingsLogout" onClick={onLogout}>
         <LogOut size={16} />

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { Award, Camera, Check, CheckCircle2, Mail, Phone, ShieldCheck, UserRound, X } from "lucide-react";
-import { shopRegistrationCategories } from "../../shared/constants/roles";
 
 /**
  * Registered profile edit modal.
@@ -24,7 +23,6 @@ export function ProfileEditModal({
 
   if (!open || !profile) return null;
   const isSalon = profile.type === "salon";
-  const isShop = profile.type === "shop";
   const avatarSrc = avatarDraft || profile.data?.avatar || "/profile-icon.svg";
   const rawExperienceYears = profile.data?.experienceYears ?? "";
   const experienceYears = /^\d{1,2}$/.test(String(rawExperienceYears)) ? rawExperienceYears : "";
@@ -32,8 +30,8 @@ export function ProfileEditModal({
   const completionSteps = [
     {
       key: "identity",
-      label: isSalon ? "برند و مدیر" : isShop ? "برند فروشگاه" : "هویت",
-      done: Boolean(profile.data?.name && (!isSalon || managerName) && (!isShop || profile.data?.service) && avatarSrc),
+      label: isSalon ? "برند و مدیر" : "هویت",
+      done: Boolean(profile.data?.name && (!isSalon || managerName) && avatarSrc),
       Icon: UserRound
     },
     {
@@ -127,10 +125,10 @@ export function ProfileEditModal({
             <section className={`profileEditSection ${stepIndex === 0 ? "is-active" : ""}`} aria-hidden={stepIndex !== 0}>
               <div className="profileEditSectionHead">
                 <UserRound size={18} />
-                <strong>{isSalon ? "برند سالن و مدیر" : isShop ? "برند فروشگاه" : "هویت اصلی"}</strong>
+                <strong>{isSalon ? "برند سالن و مدیر" : "هویت اصلی"}</strong>
               </div>
               <div className="profileEditFieldGrid">
-                <label>{isSalon ? "نام سالن" : isShop ? "نام فروشگاه" : "نام"}<input name="name" defaultValue={profile.data?.name || ""} /></label>
+                <label>{isSalon ? "نام سالن" : "نام"}<input name="name" defaultValue={profile.data?.name || ""} /></label>
                 {isSalon ? (
                   <>
                     <label>نام مدیر سالن<input name="managerName" defaultValue={managerName} placeholder="مثلاً مریم یوسفی" /></label>
@@ -148,27 +146,6 @@ export function ProfileEditModal({
                         />
                         <small>سال</small>
                       </span>
-                    </label>
-                  </>
-                ) : null}
-                {isShop ? (
-                  <>
-                    <label>دسته‌بندی
-                      <select name="service" defaultValue={profile.data?.service || shopRegistrationCategories[0]}>
-                        {shopRegistrationCategories.map((category) => (
-                          <option key={category} value={category}>{category}</option>
-                        ))}
-                      </select>
-                    </label>
-                    <label className="profileEditBioField">
-                      معرفی فروشگاه <small>اختیاری</small>
-                      <textarea
-                        name="bio"
-                        defaultValue={profile.data?.bio || ""}
-                        placeholder="چند خط درباره فروشگاهت بنویس؛ مشتری‌ها تو پروفایل عمومی می‌بینن."
-                        rows={3}
-                        maxLength={280}
-                      />
                     </label>
                   </>
                 ) : null}
@@ -199,7 +176,7 @@ export function ProfileEditModal({
             </section>
           </div>
           <input type="hidden" name="area" value={profile.data?.area || ""} />
-          {!isShop ? <input type="hidden" name="service" value={profile.data?.service || ""} /> : null}
+          <input type="hidden" name="service" value={profile.data?.service || ""} />
           <div
             className="profileEditStepActions"
             style={{

@@ -66,7 +66,7 @@ export async function generateMetadata({ params }) {
 }
 
 // Builds LocalBusiness (BeautySalon) JSON-LD from real salon fields only.
-// No aggregateRating: unlike artists/shops, salons have no reviewCount at
+// No aggregateRating: unlike artists, salons have no reviewCount at
 // all in the data model (salons.rating is a raw column that defaults to 5
 // for every brand-new salon regardless of real reviews — see the flag in the
 // SEO report). Fabricating an AggregateRating out of that column would be

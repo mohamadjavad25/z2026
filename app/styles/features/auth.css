@@ -232,10 +232,6 @@
   --role-accent: var(--auth-teal);
 }
 
-.appShell.is-auth-gate .profileRoleCard.roleShop {
-  --role-accent: var(--auth-gold);
-}
-
 .appShell.is-auth-gate .profileRoleCard.roleArtist {
   --role-accent: #8b5a7a;
 }

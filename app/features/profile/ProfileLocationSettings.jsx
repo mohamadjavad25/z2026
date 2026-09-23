@@ -466,7 +466,6 @@ export function ProfileLocationSettings({
   const [step, setStep] = useState("province"); // province | city | pin
   const [locating, setLocating] = useState(false);
   const [reverseLoading, setReverseLoading] = useState(false);
-  const isShop = profileType === "shop";
 
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
@@ -673,8 +672,8 @@ export function ProfileLocationSettings({
       <div className="profileLocationHead">
         <MapPin size={18} aria-hidden="true" />
         <div>
-          <strong>{isShop ? "آدرس فروشگاه" : "ثبت لوکیشن"}</strong>
-          <span>{isShop ? "محدوده ارسال و نمایش ویترین را مشخص کن" : profileType === "salon" ? "روی نقشه محل سالن را دقیق مشخص کن" : "روی نقشه محل کارت رو مشخص کن"}</span>
+          <strong>ثبت لوکیشن</strong>
+          <span>{profileType === "salon" ? "روی نقشه محل سالن را دقیق مشخص کن" : "روی نقشه محل کارت رو مشخص کن"}</span>
         </div>
       </div>
 

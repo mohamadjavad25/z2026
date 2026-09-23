@@ -1,4 +1,4 @@
-import { BarChart3, Bell, Eye, MoreVertical, Settings, Share2 } from "lucide-react";
+import { Bell, Eye, MoreVertical, Settings, Share2 } from "lucide-react";
 
 export function ProfileHeroActions({
   activePanel,
@@ -11,8 +11,8 @@ export function ProfileHeroActions({
   notificationCount = 0,
   showShare = false
 }) {
-  const settingsActive = activePanel === "settings" || (profileType === "shop" && activePanel === "insights");
-  const settingsLabel = profileType === "shop" ? "آمار و مالی فروشگاه" : "تنظیمات پروفایل";
+  const settingsActive = activePanel === "settings";
+  const settingsLabel = "تنظیمات پروفایل";
 
   if (profileType === "salon") {
     return (
@@ -46,7 +46,7 @@ export function ProfileHeroActions({
           onClick={onOpenSettings}
           aria-label={settingsLabel}
         >
-          {profileType === "shop" ? <BarChart3 size={18} /> : <Settings size={17} />}
+          <Settings size={17} />
         </button>
         
       </div>

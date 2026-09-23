@@ -4,7 +4,6 @@ import { useRef } from "react";
 import { Check, CheckCheck, MessageCircle, Paperclip, Send, X } from "lucide-react";
 import { ProfileEmptyState } from "./ProfileEmptyState";
 import { formatChatTime, isMessageRead } from "../../shared/lib/chatTime";
-import { OrderCardBubble } from "../chat/OrderCardBubble";
 import { SalonBookingCardBubble, ArtistBookingCardBubble } from "../chat/BookingCardBubble";
 
 const MAX_ATTACHMENT_BYTES = 1_500_000;
@@ -129,19 +128,6 @@ export function OwnerChatSheet({
             />
           ) : (
             safeMessages.map((message) => {
-              // Neutral system message — centered, no avatar/"sent by X"
-              // attribution and no read-tick, so it can never be mistaken
-              // for a regular message from either side. It structurally
-              // can't be faked either: only POST /api/shop/orders can ever
-              // create an attachmentType:"order" message — see messages.js.
-              if (message.attachmentType === "order") {
-                return (
-                  <div className="shopChatSystemRow" key={message.id}>
-                    <OrderCardBubble order={message.order} />
-                    <time>{formatChatTime(message.createdAt)}</time>
-                  </div>
-                );
-              }
               if (message.attachmentType === "salon-booking" || message.attachmentType === "artist-booking") {
                 // Same unspoofable, structurally system-only card as the
                 // order card above — only POST /api/salon-bookings and

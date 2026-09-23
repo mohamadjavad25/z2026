@@ -43,22 +43,17 @@ export function ProfileSettingsSheet({
   onUpdateHour
 }) {
   if (!open || !profile) return null;
-  const isShop = profile.type === "shop";
   const isArtist = profile.type === "artist";
   const isSalon = profile.type === "salon";
-  const sheetKicker = isShop ? "پنل فروش فروشگاه" : isSalon ? "" : kicker;
-  const sheetTitle = isShop ? "تنظیمات فروشگاه" : isArtist ? "کنترل‌پنل آرتیست" : "تنظیمات";
-  const accountTitle = isShop ? "ویرایش اطلاعات فروشگاه" : isArtist ? "برند شخصی آرتیست" : isSalon ? "ویرایش برند سالن" : "ویرایش پروفایل";
-  const accountDescription = isShop
-    ? "لوگو، نام فروشگاه، دسته‌بندی، معرفی و تماس"
-    : isArtist
-      ? "عکس، نام هنری، تخصص، تماس و مسیر رزرو"
-      : isSalon
-        ? "لوگو، نام سالن، شماره تماس و مسیر رزرو"
-    : "عکس، نام، تماس، ایمیل و رمز عبور";
-  const accountAvatar = isShop
-    ? (profile?.data?.avatar || profile?.avatar || "/cosmetics-bold-poster.png")
-    : (profile?.data?.avatar || profile?.avatar || "/profile-icon.svg");
+  const sheetKicker = isSalon ? "" : kicker;
+  const sheetTitle = isArtist ? "کنترل‌پنل آرتیست" : "تنظیمات";
+  const accountTitle = isArtist ? "برند شخصی آرتیست" : isSalon ? "ویرایش برند سالن" : "ویرایش پروفایل";
+  const accountDescription = isArtist
+    ? "عکس، نام هنری، تخصص، تماس و مسیر رزرو"
+    : isSalon
+      ? "لوگو، نام سالن، شماره تماس و مسیر رزرو"
+      : "عکس، نام، تماس، ایمیل و رمز عبور";
+  const accountAvatar = profile?.data?.avatar || profile?.avatar || "/profile-icon.svg";
 
   return (
     <div
@@ -68,10 +63,10 @@ export function ProfileSettingsSheet({
       aria-label="تنظیمات"
       onClick={onClose}
     >
-      <aside className={`salonHeroSheetPanel ${isShop ? "is-shop-settings" : ""} ${isArtist ? "is-artist-settings is-salon-settings" : ""} ${isSalon ? "is-salon-settings" : ""}`} onClick={(event) => event.stopPropagation()}>
+      <aside className={`salonHeroSheetPanel ${isArtist ? "is-artist-settings is-salon-settings" : ""} ${isSalon ? "is-salon-settings" : ""}`} onClick={(event) => event.stopPropagation()}>
         <div className="salonHeroSheetHead">
           <div>
-            {!isShop ? <span>{sheetKicker}</span> : null}
+            <span>{sheetKicker}</span>
             <h3>{sheetTitle}</h3>
           </div>
           <button type="button" onClick={onClose} aria-label="بستن تنظیمات">

@@ -21,7 +21,6 @@ import {
 } from "lucide-react";
 import { ProfileEmptyState } from "../profile/ProfileEmptyState";
 import { chatDayKey, formatChatDayLabel, formatChatTime, formatLastSeen, isMessageRead } from "../../shared/lib/chatTime";
-import { OrderCardBubble } from "../chat/OrderCardBubble";
 import { SalonBookingCardBubble, ArtistBookingCardBubble } from "../chat/BookingCardBubble";
 
 /** Single check = sent (message made it into the DB). Double check, accented,
@@ -496,21 +495,6 @@ export function ChatPage({
                     <div className="chatDayDivider">{group.label}</div>
                     {group.messages.map((message) => {
                       const mine = message.senderUserId === myUserId;
-                      if (message.attachmentType === "order") {
-                        // Neutral system message — centered, no avatar, no
-                        // "sent by X" attribution and no read-tick (that
-                        // read/unread framing implies a sender/recipient,
-                        // which is exactly what this record must NOT look
-                        // like it has). It structurally can't be faked either
-                        // way: only POST /api/shop/orders can ever create an
-                        // attachmentType:"order" message — see messages.js.
-                        return (
-                          <div key={message.id} className="chatOrderSystemRow">
-                            <OrderCardBubble order={message.order} />
-                            <time>{formatChatTime(message.createdAt)}</time>
-                          </div>
-                        );
-                      }
                       if (message.attachmentType === "salon-booking" || message.attachmentType === "artist-booking") {
                         // Same neutral-system-row placement as the order card
                         // above, for a salon/artist appointment instead of a

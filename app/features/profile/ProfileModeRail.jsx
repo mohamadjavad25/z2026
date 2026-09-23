@@ -1,4 +1,4 @@
-import { CalendarCheck, ImagePlus, Package, Settings, Store, Timer, UserRound } from "lucide-react";
+import { CalendarCheck, ImagePlus, Store, Timer, UserRound } from "lucide-react";
 
 export function ProfileModeRail({
   profileType,
@@ -16,7 +16,7 @@ export function ProfileModeRail({
 
   return (
     <div
-      className={`profileModeRail ${placement === "dock" ? "is-dockRail" : "is-panelRail"} ${profileType === "shop" ? "is-compact" : ""} ${profileType === "client" ? "is-client" : ""} ${profileType === "artist" || profileType === "salon" ? "is-artist-rail" : ""} ${profileType === "salon" ? "is-salon" : ""}`}
+      className={`profileModeRail ${placement === "dock" ? "is-dockRail" : "is-panelRail"} ${profileType === "client" ? "is-client" : ""} ${profileType === "artist" || profileType === "salon" ? "is-artist-rail" : ""} ${profileType === "salon" ? "is-salon" : ""}`}
       aria-label="بخش‌های پروفایل"
     >
       {profileType === "salon" && (
@@ -88,18 +88,6 @@ export function ProfileModeRail({
         <button type="button" className={profileView === "bookings" ? "active" : ""} onClick={() => onProfileView("bookings")}>
           <CalendarCheck size={16} />
           <span>فعالیت من</span>
-        </button>
-      )}
-      {profileType === "shop" && (
-        <button type="button" className={profileView === "orders" ? "active" : ""} onClick={() => onProfileView("orders")}>
-          <Package size={16} />
-          <span>سفارش‌ها</span>
-        </button>
-      )}
-      {profileType === "shop" && (
-        <button type="button" className={profileView === "settings" ? "active" : ""} onClick={() => onProfileView("settings")}>
-          <Settings size={16} />
-          <span>تنظیمات</span>
         </button>
       )}
     </div>

@@ -12,7 +12,7 @@ const MAX_POSTER_LEN = 3_000_000;
 
 // Only these profile types ever have a public page that spreads storyFieldsFor —
 // a client account saving a "story" would just be dead storage with no viewer.
-const STORY_ROLES = ["salon", "shop", "artist"];
+const STORY_ROLES = ["salon", "artist"];
 
 export async function GET(request) {
   ensureDb();

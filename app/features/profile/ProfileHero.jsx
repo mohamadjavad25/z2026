@@ -7,7 +7,6 @@ import {
   Heart,
   ImagePlus,
   MapPin,
-  ShoppingBag,
   Star,
   UserPlus,
 } from "lucide-react";
@@ -19,8 +18,8 @@ import { ProfileStoryCreator } from "../../components/ProfileStoryCreator";
 import { ProfileHeroWeekStrip } from "./ProfileHeroWeekStrip";
 
 /**
- * Role-aware profile hero (client / artist / salon / shop).
- * Single component: one wrapper + salon layout fork; artist/shop are additive overlays.
+ * Role-aware profile hero (client / artist / salon).
+ * Single component: one wrapper + salon layout fork; artist is an additive overlay.
  * State/panels stay in HomeApp — only callbacks + display stats are passed.
  */
 export function ProfileHero({
@@ -30,7 +29,6 @@ export function ProfileHero({
   desc = "",
   salonStats,
   artistStats,
-  shopStats,
   activePanel,
   onOpenSaved,
   onOpenNotifications,
@@ -177,7 +175,7 @@ export function ProfileHero({
           aria-hidden="true"
         />
       ) : null}
-      <div className="profileStoryAvatarWrap" onClick={() => (type === "artist" || type === "shop") && setStoryCreatorOpen(true)}>
+      <div className="profileStoryAvatarWrap" onClick={() => type === "artist" && setStoryCreatorOpen(true)}>
         <img className="profileAvatarImage" src={avatar} alt="" aria-hidden="true" />
         {type === "artist" && (
           <b className="artistHeroAvatarRating" aria-label={`امتیاز ${toPersianDigits(artistStats?.rating)}`}>
@@ -185,7 +183,7 @@ export function ProfileHero({
             <Star size={10} fill="currentColor" aria-hidden="true" />
           </b>
         )}
-        {(type === "artist" || type === "shop") && (
+        {type === "artist" && (
           <ProfileStoryCreator
             profileType={type}
             storyVideo={profile.data?.storyVideo || profile.data?.story_video || profile.data?.introVideo || profile.data?.intro_video || ""}
@@ -222,28 +220,6 @@ export function ProfileHero({
           <span><b>{formatCount(artistStats?.followers)}</b> دنبال‌کننده</span>
           <span><b>{artistStats?.bookingCount ?? 0}</b> رزرو فعال</span>
         </div>
-      )}
-      {type === "shop" && (
-        <>
-          <div className="shopHeroTag">
-            <ShoppingBag size={14} />
-            <span>پنل فروش فعال</span>
-          </div>
-          <div className="shopHeroStats" aria-label="آمار فروشگاه">
-            <span>
-              <b>{toPersianDigits(shopStats?.productCount ?? 0)}</b>
-              محصول
-            </span>
-            <span>
-              <b>{toPersianDigits(shopStats?.newOrderCount ?? 0)}</b>
-              سفارش جدید
-            </span>
-            <span>
-              <b>{toPersianDigits(shopStats?.featuredCount ?? 0)}</b>
-              ویژه
-            </span>
-          </div>
-        </>
       )}
       <ProfileHeroActions
           activePanel={activePanel}

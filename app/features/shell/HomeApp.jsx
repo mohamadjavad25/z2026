@@ -9,7 +9,6 @@ import {
   Crop,
   Eye,
   MapPin,
-  Package,
   Palette,
   Pencil,
   Search,
@@ -41,8 +40,7 @@ import {
 import {
   profileRoleMeta,
   salonArtistRoleOptions,
-  salonArtistStatusOptions,
-  shopRegistrationCategories
+  salonArtistStatusOptions
 } from "../../shared/constants/roles";
 import {
   ArtistBookingRail,
@@ -79,10 +77,8 @@ import {
 import {
   ClientBookingSettingsModal,
   ClientBookingsPanel,
-  ClientOrdersPanel,
   ClientProfileOverview
 } from "../client";
-import { getMyShopOrders } from "../../shared/api/shops";
 import { getSaves } from "../../shared/api/saves";
 import { ProfileEmptyState } from "../profile/ProfileEmptyState";
 import { ProfileGallery } from "../profile/ProfileGallery";
@@ -135,13 +131,11 @@ import { ProfileEditModal } from "./ProfileEditModal";
 import { SalonClientFloatingDock } from "./SalonClientFloatingDock";
 import {
   artistReviews,
-  cosmeticShops,
   exploreArtistCatalog,
   explorePosts,
   initialArtistBookings,
   initialArtistPortfolioItems,
   initialArtistServices,
-  initialShopProducts,
   profileBoards,
   salonAppointments,
   salonDetailPortfolio,
@@ -152,22 +146,6 @@ import {
   salonTasks
 } from "./mockData";
 import { ShellSidebar } from "./ShellSidebar";
-import {
-  getShopProductTone,
-  ShopCatalogPanel,
-  ShopInsightsPanel,
-  ShopOrdersPanel,
-  ShopOwnerDock,
-  ShopProductDetailModal,
-  ShopProductEditorSheet,
-  ShopProductsOverview,
-  ShopStorefrontPage,
-  ShopStoreDock,
-  shopProductAspectPresets,
-  shopProductBadges,
-  shopProductEnhancePresets,
-  useShopWorkspace
-} from "../shops";
 
 // SQLite's CURRENT_TIMESTAMP is UTC with no offset marker ("2026-09-19 10:30:00"),
 // which JS parses as LOCAL time unless told otherwise — append "Z" so recency
@@ -230,21 +208,12 @@ async function subscribeToPushNotifications() {
 
 export function HomeApp() {
   const [activeTab, setActiveTab] = useState("profile");
-  // True only while viewing the storefront via the owner's own "پیش‌نمایش
-  // صفحه عمومی" button — makes "بازگشت" return to the shop's own dashboard
-  // instead of the general shop directory, so the preview feels like a
-  // self-contained round trip rather than dropping the owner into browsing.
-  const [shopPreviewFromDashboard, setShopPreviewFromDashboard] = useState(false);
   const [chatPane, setChatPane] = useState("inbox");
   const [chatInitialPane, setChatInitialPane] = useState("inbox");
   // Bumped by the floating compose button (ChatComposeFab, rendered outside
   // ChatPage so it can sit fixed above the bottom nav) to tell ChatPage
   // "open the new-group picker" — see composerSignal in ChatPage.
   const [chatComposerSignal, setChatComposerSignal] = useState(0);
-  // True only while the full chat tab was reached via "expand" from a shop's
-  // own storefront mini-chat — lets exiting the conversation land back on
-  // that shop page instead of the generic chat inbox.
-  const [chatOpenedFromShop, setChatOpenedFromShop] = useState(false);
   const refreshExploreFeedRef = useRef(null);
   const refreshArtistWorkspaceRef = useRef(null);
   const notifyArtistBookingCreatedRef = useRef(null);
@@ -263,13 +232,6 @@ export function HomeApp() {
   const [scheduleViewDay, setScheduleViewDay] = useState("");
   const [salonWeekHistoryOpen, setSalonWeekHistoryOpen] = useState(false);
   const [scheduleNow, setScheduleNow] = useState(() => new Date());
-  // Client's own purchase history (buyer side) — see getMyShopOrders() /
-  // GET /api/shop/orders. `clientOrdersLoaded` (not just "loading") is what
-  // the empty state in ClientOrdersPanel keys off of, so a fetch still in
-  // flight is never shown as "no orders yet".
-  const [clientOrderList, setClientOrderList] = useState([]);
-  const [clientOrdersLoaded, setClientOrdersLoaded] = useState(false);
-  const [clientOrdersError, setClientOrdersError] = useState("");
 
 
   const {
@@ -300,7 +262,6 @@ export function HomeApp() {
     onPublicBoot: async ({ isStale, salonsPayload }) => {
       const c = authCascadeRef.current;
       void c.refreshExploreFeed?.();
-      void c.refreshShopDirectory?.();
       if (isStale()) return;
       c.setSalonDirectory?.(salonsPayload?.salons || salonsPayload?.data?.salons || []);
     },
@@ -312,7 +273,6 @@ export function HomeApp() {
       const c = authCascadeRef.current;
       if (source === "login") {
         await c.refreshExploreFeed?.();
-        await c.refreshShopDirectory?.();
         await c.refreshFollows?.();
         await c.refreshSaves?.();
         try {
@@ -329,7 +289,6 @@ export function HomeApp() {
         }
       } else if (source === "register") {
         await c.refreshExploreFeed?.();
-        await c.refreshShopDirectory?.();
         await c.refreshFollows?.();
         await c.refreshSaves?.();
       } else if (source === "boot") {
@@ -346,18 +305,7 @@ export function HomeApp() {
 
       if (profile?.type === "salon") await c.refreshSalonSystemData?.();
       if (profile?.type === "artist") await c.refreshArtistWorkspace?.();
-      if (profile?.type === "shop") {
-        await c.refreshShopWorkspace?.();
-        await c.refreshShopCategories?.();
-        await c.refreshShopPromoCards?.();
-      }
       if (source === "boot" && profile?.type === "client") await c.refreshClientBookings?.();
-      // Orders is new (this pass) — unlike the boot-only bookings refresh
-      // above (left untouched), fetch on login too so "خرید دوباره" data is
-      // fresh right after signing in, not only after a full page boot.
-      if ((source === "boot" || source === "login") && profile?.type === "client") {
-        await c.refreshClientOrders?.();
-      }
       // Fire-and-forget: real push notifications (see app/lib/push.js) so a
       // salon/artist finds out about a new/expired request even when the
       // app isn't open, closing the gap the full-team audit flagged — an
@@ -370,7 +318,6 @@ export function HomeApp() {
     onLoggedOut: async () => {
       const c = authCascadeRef.current;
       c.resetExploreFeed?.();
-      c.resetShopWorkspace?.();
       c.resetSalonClient?.();
       c.resetPublicArtistProfile?.();
       c.resetArtistWorkspace?.();
@@ -379,95 +326,11 @@ export function HomeApp() {
       c.setSavedArtists?.([]);
       setSavedProfiles({ salons: [], artists: [] });
       setBeautyPassport(null);
-      setClientOrderList([]);
-      setClientOrdersLoaded(false);
-      setClientOrdersError("");
       setProfileEditOpen(false);
       setProfileEditAvatar("");
       resetLogoutUiGaps();
       await c.refreshExploreFeed?.();
-      await c.refreshShopDirectory?.();
     }
-  });
-
-  const {
-    shopDirectory,
-    setShopDirectory,
-    shopCatalog,
-    setShopCatalog,
-    shopStockMovements,
-    shopCategories,
-    shopCategoryBusy,
-    refreshShopCategories,
-    addShopCategory,
-    renameShopCategory,
-    moveShopCategory,
-    removeShopCategory,
-    shopPromoCards,
-    shopPromoCardBusy,
-    refreshShopPromoCards,
-    createShopPromoCardEntry,
-    activateShopPromoCardEntry,
-    removeShopPromoCard,
-    shopOrderList,
-    setShopOrderList,
-    shopCategory,
-    setShopCategory,
-    selectedShop,
-    setSelectedShop,
-    shopStoreFilter,
-    setShopStoreFilter,
-    shopProductSheetOpen,
-    editingShopProduct,
-    viewingShopProduct,
-    shopProductDefaultCategory,
-    shopProductImage,
-    shopProductImageOriginal,
-    shopProductEnhanceTab,
-    setShopProductEnhanceTab,
-    shopProductEnhanceBusy,
-    shopProductActiveEnhance,
-    shopProductActiveAspect,
-    shopCart,
-    shopCartOpen,
-    setShopCartOpen,
-    shopProductsRef,
-    shopReviewsRailRef,
-    visibleShops,
-    selectedShopCatalog,
-    currentShopCart,
-    shopCartSummary,
-    refreshShopDirectory,
-    refreshShopWorkspace,
-    resetShopWorkspace,
-    addToShopCart,
-    updateShopCartQty,
-    shopOrderBusy,
-    submitShopOrder,
-    closeShopStorefront,
-    openShopProductSheet,
-    closeShopProductSheet,
-    handleShopProductImageUpload,
-    clearShopProductImage,
-    applyShopProductEnhance,
-    applyShopProductAspect,
-    resetShopProductImageEdits,
-    saveShopProduct,
-    openShopProductDetail,
-    closeShopProductDetail,
-    editShopProductFromDetail,
-    deleteShopProduct,
-    selectShop,
-    applyFollowCount,
-    bumpFollowOptimistic,
-    shopWorkspaceLoading,
-    shopStoreLoading,
-    changeShopOrderStatus,
-    shopOrderStatusBusyId
-  } = useShopWorkspace({
-    createdProfile,
-    activeTab,
-    onNotice: setAppToast
   });
 
   const {
@@ -864,7 +727,6 @@ export function HomeApp() {
     onNotice: setAppToast
   });
   const [floatingChatOpen, setFloatingChatOpen] = useState(false);
-  const [shopChatSheetOpen, setShopChatSheetOpen] = useState(false);
 
   /** Opens the floating quick-chat sheet on a conversation (or just the inbox list if none given). */
   function openOwnerChat(conversationId = null) {
@@ -913,19 +775,6 @@ export function HomeApp() {
     setSelectedBookingClient,
     patchSalonAppointment
   });
-
-  useEffect(() => {
-    if (
-      activeTab === "profile"
-      && createdProfile?.type === "shop"
-      && createdProfile.type === profileType
-      && profileView === "messages"
-    ) {
-      setProfileView("overview");
-      setChatPane("inbox");
-      setActiveTab("chat");
-    }
-  }, [activeTab, createdProfile?.type, profileType, profileView, setProfileView]);
 
   const activeRoleMeta = profileRoleMeta[profileType] || profileRoleMeta.client;
   const activeCreatedMeta = createdProfile ? (profileRoleMeta[createdProfile.type] || profileRoleMeta.client) : null;
@@ -1034,7 +883,6 @@ export function HomeApp() {
     setScheduleBookingMenu,
     setScheduleBookingView,
     setFloatingChatOpen,
-    setShopChatSheetOpen,
     setClientBookingSettings,
     setArtistServiceCreateOpen,
     setArtistServiceCreateMode,
@@ -1393,37 +1241,15 @@ function getPassportMatch(post) {
     }));
   }
 
-  async function refreshClientOrders() {
-    try {
-      const { ok, data } = await getMyShopOrders();
-      if (ok) {
-        setClientOrderList(data?.orders || []);
-        setClientOrdersError("");
-      } else {
-        setClientOrdersError("خریدها بارگذاری نشد.");
-      }
-    } catch {
-      setClientOrdersError("خریدها بارگذاری نشد؛ اتصال را بررسی کن.");
-    } finally {
-      setClientOrdersLoaded(true);
-    }
-  }
-
   authCascadeRef.current = {
     refreshExploreFeed,
-    refreshShopDirectory,
     setSalonDirectory,
     refreshFollows,
     refreshSaves,
     refreshSalonSystemData,
     refreshArtistWorkspace,
-    refreshShopWorkspace,
-    refreshShopCategories,
-    refreshShopPromoCards,
     refreshClientBookings,
-    refreshClientOrders,
     resetExploreFeed,
-    resetShopWorkspace,
     resetSalonClient,
     resetPublicArtistProfile,
     resetArtistWorkspace,
@@ -1463,7 +1289,7 @@ function getPassportMatch(post) {
       window.scrollTo({ top: 0, left: 0, behavior: "auto" });
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
-      document.querySelectorAll(".workspace, .contentGrid, .mobilePage.is-active, .profilePanel.is-active, .salonPanel.is-active, .shopsPanel.is-active, .feedPanel.is-active").forEach((node) => {
+      document.querySelectorAll(".workspace, .contentGrid, .mobilePage.is-active, .profilePanel.is-active, .salonPanel.is-active, .feedPanel.is-active").forEach((node) => {
         node.scrollTop = 0;
       });
     };
@@ -1481,8 +1307,6 @@ function getPassportMatch(post) {
     salonWorkspace,
     selectedSalon?.id,
     selectedSalon?.source_key,
-    selectedShop?.id,
-    selectedShop?.name,
     selectedPublicArtist?.id
   ]);
 
@@ -1495,15 +1319,9 @@ function getPassportMatch(post) {
       setFloatingChatOpen(false);
       setSelectedSalon(null);
       setChatInitialPane("inbox");
-      setChatOpenedFromShop(false);
       setChatPane("inbox");
       setActiveTab("chat");
       return;
-    }
-    if (tab !== "shops" && selectedShop) {
-      setShopCartOpen(false);
-      setShopChatSheetOpen(false);
-      setShopPreviewFromDashboard(false);
     }
     setActiveTab(tab);
   }
@@ -1667,7 +1485,7 @@ function getPassportMatch(post) {
     };
   }
 
-  const STORY_TYPE_LABELS = { salon: "سالن", shop: "فروشگاه", artist: "آرتیست" };
+  const STORY_TYPE_LABELS = { salon: "سالن", artist: "آرتیست" };
 
   async function saveProfileStory(storyPayload) {
     const storyVideo = typeof storyPayload === "string" ? storyPayload : storyPayload?.video;
@@ -1730,7 +1548,6 @@ function getPassportMatch(post) {
     writeAuthSession(nextProfile);
     setCreatedProfile(nextProfile);
     setSelectedSalon((current) => (current && matchesOwnSalon(current) ? { ...current, ...storyFields } : current));
-    setSelectedShop((current) => (current && String(current.id || "") === ownId ? { ...current, ...storyFields } : current));
     setSelectedPublicArtist((current) => (current && String(current.id || "") === ownId ? { ...current, ...storyFields } : current));
     setSalonDirectory((current) => current.map((salon) => (matchesOwnSalon(salon) ? { ...salon, ...storyFields } : salon)));
     setAppToast(storyVideo ? `استوری معرفی ${STORY_TYPE_LABELS[createdProfile.type]} ذخیره شد.` : `پوستر استوری ${STORY_TYPE_LABELS[createdProfile.type]} ذخیره شد.`);
@@ -1767,7 +1584,6 @@ function getPassportMatch(post) {
     writeAuthSession(nextProfile);
     setCreatedProfile(nextProfile);
     setSelectedSalon((current) => (current && matchesOwnSalon(current) ? stripStoryFields(current) : current));
-    setSelectedShop((current) => (current && String(current.id || "") === ownId ? stripStoryFields(current) : current));
     setSelectedPublicArtist((current) => (current && String(current.id || "") === ownId ? stripStoryFields(current) : current));
     setSalonDirectory((current) => current.map((salon) => (matchesOwnSalon(salon) ? stripStoryFields(salon) : salon)));
     setAppToast(`استوری ${STORY_TYPE_LABELS[createdProfile.type]} حذف شد.`);
@@ -1972,53 +1788,6 @@ function getPassportMatch(post) {
     });
   }
 
-  async function toggleFollowShop(shop) {
-    if (!shop?.id) return;
-    const key = String(shop.id);
-    const previousFollowed = followedArtists.includes(key) || followedSalons.includes(key);
-    const nextFollowed = !previousFollowed;
-
-    function applyFollowed(followed) {
-      setFollowedArtists((items) => (
-        followed ? [...items.filter((item) => item !== key), key] : items.filter((item) => item !== key)
-      ));
-      setFollowedSalons((items) => (
-        followed ? [...items.filter((item) => item !== key), key] : items.filter((item) => item !== key)
-      ));
-    }
-
-    applyFollowed(nextFollowed);
-    bumpFollowOptimistic(shop.id, nextFollowed ? 1 : -1);
-    try {
-      const response = await fetch("/api/follows", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ targetUserId: shop.id })
-      });
-      const payload = await response.json();
-      if (!response.ok) {
-        applyFollowed(previousFollowed);
-        bumpFollowOptimistic(shop.id, nextFollowed ? -1 : 1);
-        setAppToast(payload.error || "فالو فروشگاه ذخیره نشد.");
-        return;
-      }
-      const followerCount = payload.data?.followerCount ?? payload.data?.follower_count;
-      if (followerCount != null) {
-        applyFollowCount(shop.id, followerCount);
-      }
-      setAppToast(
-        nextFollowed
-          ? `فروشگاه «${shop.name}» را دنبال کردی.`
-          : `دنبال کردن «${shop.name}» لغو شد.`
-      );
-    } catch {
-      applyFollowed(previousFollowed);
-      bumpFollowOptimistic(shop.id, nextFollowed ? -1 : 1);
-      setAppToast("فالو فروشگاه ذخیره نشد.");
-    }
-  }
-
-
   async function shareSalonOwnerProfile() {
     await shareSalonProfile(createdProfile?.data?.name || "سالن");
   }
@@ -2068,13 +1837,6 @@ function getPassportMatch(post) {
     }
   };
 
-  const selectShopWithStory = async (shop, fetchDetails = false) => {
-    await selectShop(shop, fetchDetails);
-    const ownStory = (createdProfile?.type === "shop" && shop && String(shop.id) === String(createdProfile?.id)) ? buildOwnStoryFields() : null;
-    if (ownStory) {
-      setSelectedShop((current) => (current && String(current.id) === String(createdProfile?.id) ? { ...current, ...ownStory } : current));
-    }
-  };
   // Hydrate the owner profile with persisted story fields (poster/video) from the server.
   useEffect(() => {
     if (!createdProfile?.id) return;
@@ -2109,7 +1871,7 @@ function getPassportMatch(post) {
   const chatPaneIsFullScreen = chatPane !== "inbox";
 
   return (
-    <main className={`appShell ${activeTab === "chat" ? "is-chat" : ""} ${activeTab === "chat" && chatPaneIsFullScreen ? "is-chat-conversation" : ""} ${!createdProfile ? "is-auth-gate" : ""} ${(activeTab === "profile" || activeTab === "chat") && createdProfile?.type === "shop" && createdProfile.type === profileType ? "is-shop-owner" : ""} ${selectedShop && activeTab === "shops" ? "is-shop-store" : ""} ${selectedSalon && activeTab === "salons" ? "is-salon-client" : ""} ${selectedPublicArtist ? "is-artist-public" : ""} ${!authChecked ? "is-auth-loading" : ""}`}>
+    <main className={`appShell ${activeTab === "chat" ? "is-chat" : ""} ${activeTab === "chat" && chatPaneIsFullScreen ? "is-chat-conversation" : ""} ${!createdProfile ? "is-auth-gate" : ""} ${selectedSalon && activeTab === "salons" ? "is-salon-client" : ""} ${selectedPublicArtist ? "is-artist-public" : ""} ${!authChecked ? "is-auth-loading" : ""}`}>
       {!authChecked ? <AuthBootScreen /> : null}
       <ShellSidebar activeTab={activeTab} onNavigate={goToTab} />
 
@@ -2189,14 +1951,8 @@ function getPassportMatch(post) {
             onLeaveGroup={chat.leaveConversation}
             onPaneChange={setChatPane}
             composerSignal={chatComposerSignal}
-            onBack={() => {
-              if (!chatOpenedFromShop) return;
-              setChatOpenedFromShop(false);
-              setActiveTab("shops");
-            }}
             title={
-              createdProfile?.type === "shop" ? "پیام‌های فروشگاه"
-                : createdProfile?.type === "artist" ? "پیام‌های آرتیست"
+              createdProfile?.type === "artist" ? "پیام‌های آرتیست"
                 : createdProfile?.type === "salon" ? "پیام‌های سالن"
                 : "پیام‌ها"
             }
@@ -2230,35 +1986,6 @@ function getPassportMatch(post) {
             setAppToast("اول نوع خدمت را انتخاب کن.");
           }}
           onMessage={() => openSalonPublicChat(selectedSalon)}
-        />
-
-        <ShopStorefrontPage
-          active={activeTab === "shops"}
-          selectedShop={selectedShop}
-          visibleShops={visibleShops}
-          shopCategory={shopCategory}
-          shopStoreFilter={shopStoreFilter}
-          catalog={selectedShopCatalog}
-          cartItems={currentShopCart}
-          reviews={selectedShop?.reviews || []}
-          loading={shopStoreLoading}
-          productsRef={shopProductsRef}
-          reviewsRef={shopReviewsRailRef}
-          followingShop={Boolean(selectedShop && (followedArtists.includes(String(selectedShop.id)) || followedSalons.includes(String(selectedShop.id))))}
-          isOwnShop={Boolean(selectedShop && createdProfile?.type === "shop" && String(selectedShop.id) === String(createdProfile.id))}
-          onBack={() => {
-            closeShopStorefront();
-            if (shopPreviewFromDashboard) {
-              setShopPreviewFromDashboard(false);
-              goToTab("profile");
-            }
-          }}
-          onFollowShop={toggleFollowShop}
-          onAddToCart={addToShopCart}
-          onFilterChange={setShopStoreFilter}
-          onCategoryChange={setShopCategory}
-          onShopSelect={selectShopWithStory}
-          onNotice={setAppToast}
         />
 
         <section className={`profilePanel mobilePage page-profile ${profileType === "salon" ? "is-salon-profile" : ""} ${!createdProfile || activeTab === "profile" ? "is-active" : ""} ${createdProfile && createdProfile.type === profileType ? "has-floating-cta" : ""}`} id="profile">
@@ -2295,11 +2022,6 @@ function getPassportMatch(post) {
                 portfolioCount: visibleArtistPortfolio.length,
                 bookingCount: artistBookingList.length
               }}
-              shopStats={{
-                productCount: shopCatalog.length,
-                newOrderCount: shopOrderList.filter((order) => order.status === "جدید").length,
-                featuredCount: shopCatalog.filter((item) => item.featured && item.tone !== "off").length
-              }}
               activePanel={createdProfile?.type === "salon" ? salonHeroSheet : profileView}
               onOpenSaved={() => {
                 refreshSaves();
@@ -2326,8 +2048,6 @@ function getPassportMatch(post) {
               onOpenSettings={() => {
                 if (createdProfile?.type === "salon") {
                   setSalonHeroSheet((prev) => (prev === "settings" ? null : "settings"));
-                } else if (createdProfile?.type === "shop") {
-                  setProfileView("insights");
                 } else {
                   setProfileView((prev) => (prev === "settings" ? "overview" : "settings"));
                 }
@@ -2456,41 +2176,6 @@ function getPassportMatch(post) {
                       onHistoryOpenChange={setSalonWeekHistoryOpen}
                     />
                     )
-                  ) : profileType === "shop" ? (
-                    <ShopProductsOverview
-                      profile={createdProfile}
-                      products={shopCatalog}
-                      categories={shopCategories}
-                      onCreateCategory={addShopCategory}
-                      onRenameCategory={renameShopCategory}
-                      onMoveCategory={moveShopCategory}
-                      onDeleteCategory={removeShopCategory}
-                      categoryBusy={shopCategoryBusy}
-                      promoCards={shopPromoCards}
-                      promoCardBusy={shopPromoCardBusy}
-                      onCreatePromoCard={createShopPromoCardEntry}
-                      onActivatePromoCard={activateShopPromoCardEntry}
-                      onDeletePromoCard={removeShopPromoCard}
-                      orders={shopOrderList}
-                      loading={shopWorkspaceLoading}
-                      onOpenProduct={openShopProductDetail}
-                      onCreateProduct={(category) => {
-                        closeOwnerChat();
-                        openShopProductSheet(null, category || "");
-                      }}
-                      onOpenOrders={() => setProfileView("orders")}
-                      onOpenInsights={() => setProfileView("insights")}
-                      onOpenSettings={() => setProfileView("settings")}
-                      onPreviewPublic={() => {
-                        if (createdProfile?.type === "shop" && createdProfile.id) {
-                          setShopPreviewFromDashboard(true);
-                          selectShopWithStory({ id: createdProfile.id, name: createdProfile.data?.name || "" }, true);
-                          goToTab("shops");
-                        }
-                      }}
-                      onStorySave={saveProfileStory}
-                      onStoryDelete={deleteProfileStory}
-                    />
                   ) : profileType === "artist" ? (
                     <ArtistOverviewReviews
                       galleryItems={artistGalleryItems}
@@ -2580,19 +2265,6 @@ function getPassportMatch(post) {
                     onOpenSettings={setClientBookingSettings}
                     onRebook={rebookFromBooking}
                   />
-                  <ClientOrdersPanel
-                    orders={clientOrderList}
-                    loaded={clientOrdersLoaded}
-                    error={clientOrdersError}
-                    onBuyAgain={(order) => {
-                      if (!order?.shop_user_id) {
-                        setAppToast("این سفارش به یک حساب فروشگاه وصل نیست.");
-                        return;
-                      }
-                      selectShopWithStory({ id: order.shop_user_id, name: order.shop_name || "" }, true);
-                      goToTab("shops");
-                    }}
-                  />
                 </div>
               )}
 
@@ -2632,41 +2304,6 @@ function getPassportMatch(post) {
                   onSubmit={addArtistCollabOffer}
                   onDelete={deleteArtistCollabOffer}
                   onInviteRespond={respondArtistSalonInvite}
-                />
-              )}
-
-              {(profileView === "products" || profileView === "discounts") && profileType === "shop" && (
-                <ShopCatalogPanel
-                  products={shopCatalog}
-                  loading={shopWorkspaceLoading}
-                  onBack={() => setProfileView("overview")}
-                  onOpenProduct={openShopProductDetail}
-                  onCreateProduct={() => {
-                    closeOwnerChat();
-                    openShopProductSheet();
-                  }}
-                  onEditProduct={(product) => {
-                    closeOwnerChat();
-                    openShopProductSheet(product);
-                  }}
-                />
-              )}
-
-              {profileView === "insights" && profileType === "shop" && (
-                <ShopInsightsPanel
-                  orders={shopOrderList}
-                  products={shopCatalog}
-                  stockMovements={shopStockMovements}
-                  onBack={() => setProfileView("overview")}
-                  onOpenOrders={() => setProfileView("orders")}
-                />
-              )}
-
-              {profileView === "orders" && profileType === "shop" && (
-                <ShopOrdersPanel
-                  orders={shopOrderList}
-                  busyOrderId={shopOrderStatusBusyId}
-                  onChangeStatus={changeShopOrderStatus}
                 />
               )}
 
@@ -3060,53 +2697,18 @@ function getPassportMatch(post) {
           }}
         />
 
-        <ShopOwnerDock
-          open={Boolean(
-            (activeTab === "profile" || activeTab === "chat")
-            && createdProfile?.type === "shop"
-            && createdProfile.type === profileType
-            && !shopProductSheetOpen
-            && !floatingChatOpen
-            && !viewingShopProduct
-            && !(activeTab === "chat" && chatPaneIsFullScreen)
-            && !["saved", "settings"].includes(profileView)
-          )}
-          activeView={activeTab === "chat" ? "messages" : profileView}
-          unreadCount={chat.totalUnread}
-          homeLogo={createdProfile?.data?.avatar || createdProfile?.avatar || ""}
-          onNavigate={(view) => {
-            closeShopProductSheet();
-            setFloatingChatOpen(false);
-            if (view === "overview") {
-              setActiveTab("profile");
-              setProfileView("overview");
-              return;
-            }
-            if (view === "messages") {
-              setProfileView("overview");
-              setChatPane("inbox");
-              setActiveTab("chat");
-              return;
-            }
-            setActiveTab("profile");
-            setProfileView(view);
-          }}
-        />
-
         <MobileFloatingCta
           open={
             activeTab === "profile"
             && Boolean(createdProfile)
             && createdProfile.type === profileType
-            && !["shop", "client"].includes(createdProfile.type)
+            && createdProfile.type !== "client"
           }
           profileType={createdProfile?.type}
           sheetOpen={Boolean(
-            floatingChatOpen || shopProductSheetOpen
+            floatingChatOpen
             || artistServiceCreateOpen || artistBreakEditorOpen || bookingSheetOpen
           )}
-          shopProductCount={shopCatalog.length}
-          shopUnreadCount={chat.totalUnread}
           bookingSheetOpen={bookingSheetOpen}
           modeRail={
             createdProfile?.type === "salon" ? (
@@ -3125,14 +2727,6 @@ function getPassportMatch(post) {
               />
             ) : null
           }
-          onCreateProduct={() => {
-            setFloatingChatOpen(false);
-            openShopProductSheet();
-          }}
-          onOpenShopChat={() => {
-            closeShopProductSheet();
-            openOwnerChat();
-          }}
           onToggleBooking={() => {
             if (bookingSheetOpen) {
               closeBookingSheet();
@@ -3360,35 +2954,6 @@ function getPassportMatch(post) {
           onSubmitCustom={addArtistService}
           onPickPreset={addArtistServicePreset}
         />
-        <ShopProductDetailModal
-          product={viewingShopProduct ? (shopCatalog.find((item) => item.id === viewingShopProduct.id) || viewingShopProduct) : null}
-          onClose={closeShopProductDetail}
-          onEdit={editShopProductFromDetail}
-          onDelete={deleteShopProduct}
-        />
-        <ShopProductEditorSheet
-          open={shopProductSheetOpen}
-          editingProduct={editingShopProduct}
-          image={shopProductImage}
-          enhanceBusy={shopProductEnhanceBusy}
-          enhanceTab={shopProductEnhanceTab}
-          activeEnhance={shopProductActiveEnhance}
-          activeAspect={shopProductActiveAspect}
-          enhancePresets={shopProductEnhancePresets}
-          aspectPresets={shopProductAspectPresets}
-          categories={shopCategories.length ? shopCategories.map((category) => category.name) : shopRegistrationCategories}
-          defaultCategory={shopProductDefaultCategory}
-          badges={shopProductBadges}
-          onClose={closeShopProductSheet}
-          onSubmit={saveShopProduct}
-          onImageUpload={handleShopProductImageUpload}
-          onImageClear={clearShopProductImage}
-          onEnhanceTabChange={setShopProductEnhanceTab}
-          onApplyEnhance={applyShopProductEnhance}
-          onApplyAspect={applyShopProductAspect}
-          onResetEdits={resetShopProductImageEdits}
-          onDelete={deleteShopProduct}
-        />
         {appToast && (
           <div className="appToast" role="status" aria-live="polite">
             <ShieldCheck size={17} />
@@ -3396,49 +2961,7 @@ function getPassportMatch(post) {
           </div>
         )}
 
-        {selectedShop && activeTab === "shops" && !(createdProfile?.type === "shop" && String(selectedShop.id) === String(createdProfile.id)) && (
-          <ShopStoreDock
-            shop={selectedShop}
-            myUserId={createdProfile?.id}
-            cartOpen={shopCartOpen}
-            chatOpen={shopChatSheetOpen}
-            cartSummary={shopCartSummary}
-            cartItems={currentShopCart}
-            chatMessages={chat.activeMessages}
-            chatLoading={chat.activeMessagesLoading}
-            onOpenCart={() => { setShopCartOpen(true); setShopChatSheetOpen(false); }}
-            onCloseCart={() => setShopCartOpen(false)}
-            onOpenChat={() => { setShopChatSheetOpen(true); setShopCartOpen(false); chat.startDirectChat(selectedShop.id); }}
-            onCloseChat={() => setShopChatSheetOpen(false)}
-            onExpandChat={() => {
-              setShopChatSheetOpen(false);
-              setShopCartOpen(false);
-              setChatOpenedFromShop(true);
-              setChatInitialPane("conversation");
-              setActiveTab("chat");
-            }}
-            onCloseSheets={() => { setShopCartOpen(false); setShopChatSheetOpen(false); }}
-            onUpdateCartQty={updateShopCartQty}
-            onCheckout={submitShopOrder}
-            checkoutBusy={shopOrderBusy}
-            onShowProducts={() => {
-              setShopCartOpen(false);
-              shopProductsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-            }}
-            onSendChatMessage={(body, attachment) => chat.sendMessage({ body, attachment })}
-          />
-        )}
-
-        {(activeTab !== "chat" || chatPane === "inbox") && !(
-          (activeTab === "profile" || activeTab === "chat")
-          && createdProfile?.type === "shop"
-          && createdProfile.type === profileType
-        ) && !(
-          // The shop storefront has its own floating cart+chat dock
-          // (ShopStoreDock, right above) — the generic tab bar underneath it
-          // is redundant there.
-          selectedShop && activeTab === "shops" && !(createdProfile?.type === "shop" && String(selectedShop.id) === String(createdProfile.id))
-        ) && (
+        {(activeTab !== "chat" || chatPane === "inbox") && (
           <BottomNav
             activeTab={activeTab}
             createdProfile={createdProfile}

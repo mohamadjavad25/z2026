@@ -8,8 +8,8 @@ export const runtime = "nodejs";
 
 /**
  * Streams a profile's story video/poster instead of embedding it in JSON —
- * getShop/getSalon/getArtistProfile only ship this URL now (see
- * storyFieldsFor in app/lib/db/repos/stories.js). Supports HTTP Range so the
+ * getSalon/getArtistProfile only ship this URL now (see storyFieldsFor in
+ * app/lib/db/repos/stories.js). Supports HTTP Range so the
  * <video> tag can seek/lazy-load instead of pulling the whole file up front,
  * and is cached hard since the URL itself is versioned (?v=updated_at).
  */
@@ -22,15 +22,11 @@ export async function GET(request, { params }) {
   const { searchParams } = new URL(request.url);
   const kind = searchParams.get("kind") === "poster" ? "poster" : "video";
 
-  // A shop/salon/artist switched to "خصوصی" hides its story the same way it
-  // hides everything else in تنظیمات — except from its own owner. Previously
-  // only checked for type === "shop"; salon/artist have the identical
-  // publicPortfolio toggle ("پروفایل عمومی سالن" / "ویترین عمومی آرتیست",
-  // see ProfileSettingsPanel.jsx) but this route ignored it for them, so a
-  // private salon/artist's story video/poster stayed directly fetchable by
-  // URL regardless of the toggle.
+  // A salon/artist switched to "خصوصی" hides its story the same way it hides
+  // everything else in تنظیمات — except from its own owner (see the
+  // publicPortfolio toggle in ProfileSettingsPanel.jsx).
   const owner = users.getUserById(userId);
-  const privacyAware = owner?.type === "shop" || owner?.type === "salon" || owner?.type === "artist";
+  const privacyAware = owner?.type === "salon" || owner?.type === "artist";
   if (privacyAware && userSettings.getSettings(userId).publicPortfolio === false) {
     const viewer = getUserFromRequest(request);
     if (viewer?.id !== userId) return new Response(null, { status: 404 });

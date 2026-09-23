@@ -12,12 +12,12 @@ export default function robots() {
     rules: [
       {
         userAgent: "*",
-        allow: ["/", "/salons/", "/artists/", "/shops/"],
+        allow: ["/", "/salons/", "/artists/"],
         // /api/* are server endpoints (JSON, mutations, auth), not content —
         // nothing under app/api is a page meant to be indexed. Every other
-        // part of the product (dashboards, profile editing, wallet, chat,
-        // booking management, etc.) lives behind client-side state on "/"
-        // itself rather than its own crawlable URL, so there is currently no
+        // part of the product (dashboards, profile editing, chat, booking
+        // management, etc.) lives behind client-side state on "/" itself
+        // rather than its own crawlable URL, so there is currently no
         // separate internal/auth-gated route to disallow beyond /api/.
         disallow: ["/api/"]
       }

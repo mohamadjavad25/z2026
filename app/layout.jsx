@@ -14,7 +14,7 @@ export const metadata = {
   title: HOME_TITLE,
   description: HOME_DESCRIPTION,
   // The homepage itself was missing alternates.canonical and openGraph —
-  // every /salons, /artists, /shops detail page already has both (see their
+  // every /salons, /artists detail page already has both (see their
   // generateMetadata), but the root route had neither, so shared links to
   // zibaban.com itself had no canonical tag and no rich preview card.
   alternates: {

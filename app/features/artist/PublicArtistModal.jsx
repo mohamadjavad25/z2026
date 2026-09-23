@@ -88,7 +88,7 @@ export function PublicArtistModal({
             story={story}
             heroClassName="artistPublicCover"
             heroImage={heroImage}
-            // Unlike salon/shop, the artist hero always resolves to a real
+            // Unlike salon, the artist hero always resolves to a real
             // uploaded photo (story poster, a featured portfolio shot, or the
             // avatar) — there's no generic placeholder illustration fallback
             // here — so it's always safe to describe.

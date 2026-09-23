@@ -7,7 +7,7 @@ function clamp(value, min, max) {
 }
 
 /**
- * Shared story-player logic for public profiles (salon / shop / artist).
+ * Shared story-player logic for public profiles (salon / artist).
  * One source of truth: open/empty/drag/progress/aspect + logo handlers.
  */
 export function usePublicStory({ storyVideoSrc = "", storyPosterSrc = "" }) {

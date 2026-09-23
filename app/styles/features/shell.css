@@ -66,9 +66,7 @@
 }
 
 .chatInboxEmpty,
-.chatThreadEmpty,
-.shopOwnerInboxList .chatInboxEmpty,
-.shopOwnerThread .chatThreadEmpty {
+.chatThreadEmpty {
   min-height: 140px;
   margin: 8px;
   box-shadow: none;
@@ -1931,12 +1929,6 @@
       0 0 0 2px rgba(255, 255, 255, 0.55),
       0 10px 22px rgba(28, 32, 44, 0.14);
   }
-
-
-
-  .floatingMobileCtaSplit.is-shopCta .ctaGenerate{
-    background: linear-gradient(135deg, #6f5520, #b8943d);
-  }
 }
 
 /* --- J7 extracted from styles.css --- */
@@ -2014,12 +2006,6 @@
     background: rgba(255, 255, 255, 0.22);
     color: #fff;
     box-shadow: none;
-  }
-
-
-
-  .appShell.is-shop-store .floatingMobileCta{
-    display: none !important;
   }
 }
 
@@ -2218,50 +2204,4 @@
 @keyframes uxSkeletonShimmer {
   0% { background-position: 100% 0; }
   100% { background-position: -100% 0; }
-}
-
-.shopStoreEmptyState {
-  min-height: 160px;
-  display: grid;
-  place-items: center;
-  align-content: center;
-  gap: 8px;
-  margin: 8px 0 4px;
-  padding: 22px 16px;
-  border-radius: 18px;
-  text-align: center;
-  color: var(--ink);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(246, 246, 251, 0.7)),
-    radial-gradient(circle at 50% 0%, rgba(96, 81, 155, 0.1), transparent 50%);
-  border: 1px solid rgba(255, 255, 255, 0.62);
-}
-
-.shopStoreEmptyState b {
-  font-size: 0.95rem;
-}
-
-.shopStoreEmptyState span {
-  max-width: 26ch;
-  font-size: 0.78rem;
-  line-height: 1.55;
-  color: rgba(28, 32, 44, 0.68);
-}
-
-.shopStoreEmptyState button {
-  margin-top: 4px;
-  min-height: 44px;
-  padding: 0 16px;
-  border: 0;
-  border-radius: 999px;
-  background: linear-gradient(135deg, var(--teal), #1f6f6d);
-  color: #fff;
-  font: inherit;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-.shopStoreReviews.is-emptyRail {
-  display: block;
-  overflow: visible;
 }

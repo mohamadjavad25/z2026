@@ -1,4 +1,4 @@
-import { Crown, Palette, ShoppingBag, Store } from "lucide-react";
+import { Crown, Palette, Store } from "lucide-react";
 
 export const profileRoles = [
   {
@@ -14,13 +14,6 @@ export const profileRoles = [
     hint: "رزرو و تیم سالن",
     icon: Store,
     tone: "roleSalon"
-  },
-  {
-    id: "shop",
-    label: "فروشگاه",
-    hint: "ویترین محصولات",
-    icon: ShoppingBag,
-    tone: "roleShop"
   },
   {
     id: "artist",
@@ -46,13 +39,6 @@ export const profileRoleMeta = {
     overviewLabel: "داشبورد",
     overviewIcon: Store
   },
-  shop: {
-    kicker: "پنل فروش فروشگاه",
-    desc: "ویترین محصولات، مدیریت سفارش و ارسال",
-    heroClass: "is-shop",
-    overviewLabel: "محصولات",
-    overviewIcon: ShoppingBag
-  },
   artist: {
     kicker: "پروفایل آرتیست",
     desc: "نمونه‌کار، رزرو مستقیم و جذب مشتری",
@@ -63,7 +49,6 @@ export const profileRoleMeta = {
 };
 
 export const salonRegistrationServices = ["ناخن", "مو و رنگ", "میکاپ", "پوست و ابرو"];
-export const shopRegistrationCategories = ["میکاپ", "پوست", "ناخن", "مو", "عطر", "ترکیبی"];
 export const artistSpecialties = ["ناخن", "مو و رنگ", "میکاپ", "پوست و ابرو", "عروس", "چند تخصص"];
 export const salonArtistRoleOptions = ["ناخن‌کار", "رنگ و لایت", "میکاپ آرتیست", "ابرو و پوست", "براشینگ و شینیون", "کراتین و احیا"];
 export const salonArtistStatusOptions = ["فعال", "غیرفعال", "مرخصی"];

@@ -29,12 +29,6 @@ export function createUser({ phone, passwordHash, type, name, area, service, ema
     managerName || ""
   );
   const userId = Number(info.lastInsertRowid);
-  if (type === "shop") {
-    db.prepare(`
-      INSERT INTO shops (user_id, name, area, category, phone, email, bio)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `).run(userId, name || "", area || "", service || "", phone || "", email || "", bio || "");
-  }
   if (type === "salon") {
     db.prepare(`
       INSERT INTO salons (user_id, name, area, tag, phone, email)
@@ -67,12 +61,6 @@ export function updateUser(id, data) {
     WHERE id = ?
   `).run(next.phone, next.name, next.area, next.service, next.email, next.avatar, next.bio, next.experience_years, next.manager_name, next.password_hash, id);
 
-  if (current.type === "shop") {
-    db.prepare(`
-      UPDATE shops SET name = ?, area = ?, category = ?, phone = ?, email = ?, bio = ?, updated_at = CURRENT_TIMESTAMP
-      WHERE user_id = ?
-    `).run(next.name, next.area, next.service, next.phone, next.email, next.bio, id);
-  }
   if (current.type === "salon") {
     db.prepare(`
       UPDATE salons SET name = ?, area = ?, tag = ?, phone = ?, email = ?, updated_at = CURRENT_TIMESTAMP

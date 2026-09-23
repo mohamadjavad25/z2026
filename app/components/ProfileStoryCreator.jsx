@@ -6,12 +6,11 @@ import { Clapperboard, ImagePlus, Trash2, UploadCloud, X } from "lucide-react";
 
 const PROFILE_LABELS = {
   salon: "سالن",
-  shop: "فروشگاه",
   artist: "آرتیست"
 };
 
 /**
- * Shared story creation control for owner profiles (salon / shop / artist).
+ * Shared story creation control for owner profiles (salon / artist).
  * Renders the avatar story button + upload sheet; reuses the existing
  * salonStoryCreator* styles so no duplicate CSS is needed.
  */

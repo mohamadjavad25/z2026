@@ -6,8 +6,7 @@ import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 const TYPE_LABELS = {
   client: "مشتری",
   artist: "آرتیست",
-  salon: "سالن",
-  shop: "فروشگاه"
+  salon: "سالن"
 };
 
 /**

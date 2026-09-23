@@ -5,14 +5,12 @@ import {
   Crown,
   Palette,
   ShieldCheck,
-  ShoppingBag,
   Store
 } from "lucide-react";
 import {
   artistSpecialties,
   profileRoles,
-  salonRegistrationServices,
-  shopRegistrationCategories
+  salonRegistrationServices
 } from "../../shared/constants/roles";
 import { ProfileRoleGrid } from "../profile/ProfileRoleGrid";
 
@@ -147,60 +145,6 @@ export function AuthGateForms({
           </label>
           <button type="submit" className="profileSubmit" disabled={authBusy}>
             {authBusy ? "در حال ثبت…" : "ساخت پروفایل سالن"}
-          </button>
-          <p className="authSwitchHint">
-            قبلاً ثبت‌نام کردی؟{" "}
-            <button type="button" onClick={onSwitchToLogin}>
-              ورود
-            </button>
-          </p>
-        </form>
-      ) : profileType === "shop" ? (
-        <form className={`signupForm is-shop ${activeRoleMeta.heroClass}`} onSubmit={(event) => onProfileSubmit(event, "shop")}>
-          <button type="button" className="profileBackButton" onClick={onBackToRole}>
-            <ChevronLeft size={17} />
-            تغییر نقش
-          </button>
-          <div className="formTitle">
-            <ShoppingBag size={18} />
-            <div>
-              <strong>ثبت‌نام فروشگاه آرایشی</strong>
-              <span>ویترین آنلاین، فروش محصول و ارسال</span>
-            </div>
-          </div>
-          <label>
-            نام فروشگاه
-            <input name="name" placeholder="مثلا گالری رز ولوت" required />
-          </label>
-          <label>
-            محله / شهر
-            <input name="area" placeholder="مثلا جردن، سعادت‌آباد..." required />
-          </label>
-          <label>
-            دسته محصولات
-            <select name="service" defaultValue="" required>
-              <option value="" disabled>
-                انتخاب کن
-              </option>
-              {shopRegistrationCategories.map((category) => (
-                <option key={category}>{category}</option>
-              ))}
-            </select>
-          </label>
-          <label>
-            شماره تماس
-            <input name="phone" placeholder="09..." inputMode="tel" required />
-          </label>
-          <label>
-            رمز کاربر
-            <input name="password" placeholder="حداقل ۸ کاراکتر" type="password" required />
-          </label>
-          <label>
-            ایمیل اختیاری
-            <input name="email" placeholder="shop@email.com" type="email" />
-          </label>
-          <button type="submit" className="profileSubmit" disabled={authBusy}>
-            {authBusy ? "در حال ثبت…" : "ساخت فروشگاه"}
           </button>
           <p className="authSwitchHint">
             قبلاً ثبت‌نام کردی؟{" "}

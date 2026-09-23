@@ -23,7 +23,7 @@ export async function login(body) {
 
 /**
  * POST /api/auth/register
- * body: { phone, password, type: "client"|"artist"|"salon"|"shop", data?: { name, area, service, email, avatar, bio } }
+ * body: { phone, password, type: "client"|"artist"|"salon", data?: { name, area, service, email, avatar, bio } }
  * → 200/201 { data: { user }, profile } + Set-Cookie
  * → 400 / 409
  * Salon register also ensureSalonHours on the server.

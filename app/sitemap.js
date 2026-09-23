@@ -1,7 +1,6 @@
 import { ensureDb } from "./lib/db/connection.js";
 import { listSalons } from "./lib/db/repos/salons.js";
 import { listArtists } from "./lib/db/repos/artists.js";
-import { listShops } from "./lib/db/repos/shops.js";
 
 // The DB layer uses node:sqlite (a Node.js builtin), same as
 // app/salons/[id]/page.jsx etc. — must not run on the Edge runtime.
@@ -25,10 +24,6 @@ export default function sitemap() {
     }
   ];
 
-  // listShops() already filters to isPublic shops only (see the docstring on
-  // that function in app/lib/db/repos/shops.js) — a shop switched to
-  // "خصوصی" must not leak its URL into the sitemap even though its page now
-  // correctly 404s for it.
   const salonEntries = listSalons().map((salon) => ({
     url: `${SITE_URL}/salons/${salon.id}`,
     lastModified: new Date(),
@@ -43,12 +38,5 @@ export default function sitemap() {
     priority: 0.8
   }));
 
-  const shopEntries = listShops().map((shop) => ({
-    url: `${SITE_URL}/shops/${shop.id}`,
-    lastModified: new Date(),
-    changeFrequency: "weekly",
-    priority: 0.8
-  }));
-
-  return [...staticEntries, ...salonEntries, ...artistEntries, ...shopEntries];
+  return [...staticEntries, ...salonEntries, ...artistEntries];
 }

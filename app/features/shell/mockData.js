@@ -2,28 +2,11 @@ export const initialArtistServices = [];
 export const initialArtistPortfolioItems = [];
 export const initialArtistBookings = [];
 export const artistReviews = [];
-export const initialShopProducts = [];
-export const shopOrders = [];
-export const shopSalesInsights = [];
-
-export const shopFinanceSnapshot = [
-  { label: "درآمد هفته", value: "۲۶.۴ م", hint: "+۹٪ رشد", icon: "trend" },
-  { label: "تسویه در انتظار", value: "۳.۲ م", hint: "واریز تا ۲ روز", icon: "wallet" },
-  { label: "قابل برداشت", value: "۸.۶ م", hint: "آماده انتقال", icon: "cash" }
-];
-
-export const shopFinanceTransactions = [
-  { id: "f1", title: "تسویه سفارش‌های دیروز", amount: "+۲.۴ م", time: "امروز ۰۹:۱۰", type: "in" },
-  { id: "f2", title: "کارمزد ارسال فوری", amount: "-۱۸۰ ه", time: "دیروز ۱۸:۴۰", type: "out" },
-  { id: "f3", title: "فروش مستقیم ZB-1042", amount: "+۹۶۰ ه", time: "امروز ۱۱:۲۲", type: "in" },
-  { id: "f4", title: "بازگشت وجه ZB-1031", amount: "-۶۵۰ ه", time: "۳ روز پیش", type: "out" }
-];
 
 export const salonDetailTeam = [];
 export const salonDetailPortfolio = [];
 export const explorePosts = [];
 export const exploreArtistCatalog = {};
-export const cosmeticShops = [];
 
 export const profileBoards = {
   client: [

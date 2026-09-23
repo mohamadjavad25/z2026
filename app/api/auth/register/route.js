@@ -43,7 +43,7 @@ export async function POST(request) {
         { status: 429 }
       );
     }
-    if (!["client", "artist", "salon", "shop"].includes(type)) {
+    if (!["client", "artist", "salon"].includes(type)) {
       return NextResponse.json({ error: "نقش نامعتبر است." }, { status: 400 });
     }
     if (users.getUserByPhone(phone)) {
