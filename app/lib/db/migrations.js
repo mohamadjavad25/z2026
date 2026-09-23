@@ -372,6 +372,7 @@ function migrateToV21(database) {
 function migrateToV22(database) {
   migrateToV21(database);
   applySchema(database);
+  if (!tableExists(database, "shop_products") || !tableExists(database, "shop_categories")) return;
   const shops = database.prepare("SELECT DISTINCT shop_user_id FROM shop_products").all();
   const insertCategory = database.prepare(`
     INSERT OR IGNORE INTO shop_categories (shop_user_id, name) VALUES (?, ?)
@@ -716,69 +717,81 @@ function migrateAccountDeletionCascadeFix(database) {
   database.exec("DROP TABLE artist_bookings;");
   database.exec("ALTER TABLE artist_bookings_v34 RENAME TO artist_bookings;");
 
-  database.exec(`
-    CREATE TABLE shop_orders_v34 (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      shop_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
-      buyer_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
-      buyer_name TEXT NOT NULL DEFAULT '',
-      buyer_phone TEXT NOT NULL DEFAULT '',
-      status TEXT NOT NULL DEFAULT 'جدید',
-      total TEXT NOT NULL DEFAULT '',
-      total_num REAL NOT NULL DEFAULT 0,
-      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-    );
-  `);
-  database.exec(`
-    INSERT INTO shop_orders_v34
-      (id, shop_user_id, buyer_user_id, buyer_name, buyer_phone, status, total, total_num, created_at, updated_at)
-    SELECT id, shop_user_id, buyer_user_id, buyer_name, buyer_phone, status, total, total_num, created_at, updated_at
-    FROM shop_orders;
-  `);
-  database.exec("DROP TABLE shop_orders;");
-  database.exec("ALTER TABLE shop_orders_v34 RENAME TO shop_orders;");
+  // shop_orders/conversations/messages may already be gone (a DB already
+  // stepped past v36's table drop replaying this function via the
+  // migrateToVN cascade, or a synthetic test DB that never had them) — this
+  // fix has nothing to do for a table that doesn't exist, so each block is
+  // guarded rather than assuming the tables from this function's original
+  // (pre-removal) world always exist.
+  if (tableExists(database, "shop_orders")) {
+    database.exec(`
+      CREATE TABLE shop_orders_v34 (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        shop_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        buyer_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        buyer_name TEXT NOT NULL DEFAULT '',
+        buyer_phone TEXT NOT NULL DEFAULT '',
+        status TEXT NOT NULL DEFAULT 'جدید',
+        total TEXT NOT NULL DEFAULT '',
+        total_num REAL NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    database.exec(`
+      INSERT INTO shop_orders_v34
+        (id, shop_user_id, buyer_user_id, buyer_name, buyer_phone, status, total, total_num, created_at, updated_at)
+      SELECT id, shop_user_id, buyer_user_id, buyer_name, buyer_phone, status, total, total_num, created_at, updated_at
+      FROM shop_orders;
+    `);
+    database.exec("DROP TABLE shop_orders;");
+    database.exec("ALTER TABLE shop_orders_v34 RENAME TO shop_orders;");
+  }
 
-  database.exec(`
-    CREATE TABLE conversations_v34 (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      type TEXT NOT NULL DEFAULT 'direct',
-      title TEXT NOT NULL DEFAULT '',
-      avatar TEXT NOT NULL DEFAULT '',
-      created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
-      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-    );
-  `);
-  database.exec(`
-    INSERT INTO conversations_v34 (id, type, title, avatar, created_by, created_at, updated_at)
-    SELECT id, type, title, avatar, created_by, created_at, updated_at
-    FROM conversations;
-  `);
-  database.exec("DROP TABLE conversations;");
-  database.exec("ALTER TABLE conversations_v34 RENAME TO conversations;");
+  if (tableExists(database, "conversations")) {
+    database.exec(`
+      CREATE TABLE conversations_v34 (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        type TEXT NOT NULL DEFAULT 'direct',
+        title TEXT NOT NULL DEFAULT '',
+        avatar TEXT NOT NULL DEFAULT '',
+        created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    database.exec(`
+      INSERT INTO conversations_v34 (id, type, title, avatar, created_by, created_at, updated_at)
+      SELECT id, type, title, avatar, created_by, created_at, updated_at
+      FROM conversations;
+    `);
+    database.exec("DROP TABLE conversations;");
+    database.exec("ALTER TABLE conversations_v34 RENAME TO conversations;");
+  }
 
-  database.exec(`
-    CREATE TABLE messages_v34 (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      conversation_id INTEGER NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
-      sender_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
-      body TEXT NOT NULL DEFAULT '',
-      attachment_url TEXT NOT NULL DEFAULT '',
-      attachment_type TEXT NOT NULL DEFAULT '',
-      order_ref_id INTEGER REFERENCES shop_orders(id) ON DELETE SET NULL,
-      booking_ref_id INTEGER,
-      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-    );
-  `);
-  database.exec(`
-    INSERT INTO messages_v34
-      (id, conversation_id, sender_user_id, body, attachment_url, attachment_type, order_ref_id, booking_ref_id, created_at)
-    SELECT id, conversation_id, sender_user_id, body, attachment_url, attachment_type, order_ref_id, booking_ref_id, created_at
-    FROM messages;
-  `);
-  database.exec("DROP TABLE messages;");
-  database.exec("ALTER TABLE messages_v34 RENAME TO messages;");
+  if (tableExists(database, "messages")) {
+    database.exec(`
+      CREATE TABLE messages_v34 (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        conversation_id INTEGER NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+        sender_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        body TEXT NOT NULL DEFAULT '',
+        attachment_url TEXT NOT NULL DEFAULT '',
+        attachment_type TEXT NOT NULL DEFAULT '',
+        order_ref_id INTEGER REFERENCES shop_orders(id) ON DELETE SET NULL,
+        booking_ref_id INTEGER,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    database.exec(`
+      INSERT INTO messages_v34
+        (id, conversation_id, sender_user_id, body, attachment_url, attachment_type, order_ref_id, booking_ref_id, created_at)
+      SELECT id, conversation_id, sender_user_id, body, attachment_url, attachment_type, order_ref_id, booking_ref_id, created_at
+      FROM messages;
+    `);
+    database.exec("DROP TABLE messages;");
+    database.exec("ALTER TABLE messages_v34 RENAME TO messages;");
+  }
 
   database.exec("PRAGMA foreign_keys = ON;");
 }
