@@ -1,6 +1,7 @@
 "use client";
 
 import { CalendarCheck, Pencil, Plus, Timer, Trash2 } from "lucide-react";
+import { toPersianDigits } from "../../shared/lib/digits";
 import { ProfileEmptyState } from "../profile/ProfileEmptyState";
 
 /**
@@ -55,7 +56,7 @@ export function ArtistServicesPanel({
                 </div>
               </div>
               <div className="artistServiceSide">
-                <b>{service.price}</b>
+                <b>{service.price ? `${toPersianDigits(service.price)} تومان` : "توافقی"}</b>
                 <div className="artistServiceActions">
                   <button type="button" aria-label="ویرایش" title="ویرایش" onClick={() => onEdit?.(service)}>
                     <Pencil size={14} />

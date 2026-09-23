@@ -322,7 +322,7 @@ export function SalonClientPage({
                         >
                           <span>{getServiceIcon(service, index)}</span>
                           <b>{service.name}</b>
-                          <small>{service.price || "قیمت توافقی"} · {service.duration || "زمان متغیر"}</small>
+                          <small>{service.price ? `${toPersianDigits(service.price)} تومان` : "قیمت توافقی"} · {service.duration || "زمان متغیر"}</small>
                           <CalendarCheck size={17} />
                         </button>
                       ))}

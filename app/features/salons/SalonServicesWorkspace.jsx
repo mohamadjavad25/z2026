@@ -160,7 +160,7 @@ export function SalonServicesWorkspace({
                     <p className="salonClientServiceHint">{service.hint}</p>
                   ) : null}
                   <div className="salonClientServiceDetails">
-                    <small className="servicePrice">{service.price || "قیمت را تنظیم کن"}</small>
+                    <small className="servicePrice">{service.price ? `${toPersianDigits(service.price)} تومان` : "قیمت را تنظیم کن"}</small>
                     <small className="serviceDuration">{service.duration || "زمان را تنظیم کن"}</small>
                   </div>
                 </div>
