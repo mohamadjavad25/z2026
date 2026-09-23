@@ -44,7 +44,7 @@ const BOOKING_STATUS_ICONS = {
 
 /**
  * Shared salon+artist schedule booking settings modal.
- * Presentational: booking/view + onChangeTime/Staff/Cancel/Close/Message from HomeApp.
+ * Presentational: booking/view + onChangeTime/Staff/Cancel/Close from HomeApp.
  * Does NOT own schedule triad state.
  */
 export function ScheduleBookingMenuModal({
