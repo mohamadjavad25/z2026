@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Award, Camera, Check, CheckCircle2, Mail, Phone, ShieldCheck, UserRound, X } from "lucide-react";
+import { Camera, Check, CheckCircle2, Mail, Phone, ShieldCheck, UserRound, X } from "lucide-react";
 
 /**
  * Registered profile edit modal.
@@ -42,9 +42,9 @@ export function ProfileEditModal({
     },
     {
       key: "trust",
-      label: isSalon ? "تجربه" : "امنیت",
-      done: isSalon ? Boolean(experienceYears) : true,
-      Icon: isSalon ? Award : ShieldCheck
+      label: "امنیت",
+      done: true,
+      Icon: ShieldCheck
     }
   ];
   const lastStepIndex = completionSteps.length - 1;
@@ -188,6 +188,7 @@ export function ProfileEditModal({
           >
             {stepIndex < lastStepIndex ? (
               <button
+                key="next"
                 type="button"
                 style={{ width: "100%", minWidth: 0 }}
                 onClick={() => setStepIndex((index) => Math.min(lastStepIndex, index + 1))}
@@ -195,7 +196,7 @@ export function ProfileEditModal({
                 بعدی
               </button>
             ) : (
-              <button type="submit" style={{ width: "100%", minWidth: 0 }}><Check size={16} /> ذخیره تغییرات</button>
+              <button key="submit" type="submit" style={{ width: "100%", minWidth: 0 }}><Check size={16} /> ذخیره تغییرات</button>
             )}
             <button
               type="button"
