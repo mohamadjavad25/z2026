@@ -2673,7 +2673,7 @@ function getPassportMatch(post) {
             serviceOptions={(createdProfile?.type === "artist" ? artistServiceList : bookingServiceOptions).map((item) => ({
               value: item.name,
               label: item.name,
-              meta: [item.price, item.duration].filter(Boolean).join(" · ")
+              meta: [item.price ? `${toPersianDigits(item.price)} تومان` : "", item.duration].filter(Boolean).join(" · ")
             }))}
             serviceValue={
               createdProfile?.type === "artist"

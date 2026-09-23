@@ -60,7 +60,7 @@ export function PublicArtistBookingPanel({
             <Timer size={12} /> {activeService?.duration || `${toPersianDigits(durationMinutes)} دقیقه`}
           </small>
         </div>
-        <b>{activeService?.price || "—"}</b>
+        <b>{activeService?.price ? `${toPersianDigits(activeService.price)} تومان` : "—"}</b>
       </div>
 
       {activeService?.hint ? (
