@@ -16,9 +16,8 @@ app/
     explore/               explore feed page, preview/rating modals, mapping, state
     profile/               reusable profile panels/forms/gallery
     salons/                salon directory constants, client page, booking modal, and state
+    schedule/               shared booking-menu/schedule board components
     shell/                 app orchestration, chrome, navigation, mock data
-    shops/                 shop storefront, workspace, cart/chat dock, mappers, product rendering
-    wallet/                wallet page, wallet hook, money formatting
 ```
 
 Current shell split:
@@ -60,11 +59,6 @@ features/profile/
 features/salons/
   SalonClientBookingModal.jsx
   SalonClientPage.jsx
-  index.js
-
-features/shops/
-  ShopStoreDock.jsx
-  ShopStorefrontPage.jsx
   index.js
 
 features/artist/

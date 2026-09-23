@@ -3,17 +3,18 @@
  * seed-booking-expiry-test.mjs for style/harness.
  *
  * DELETE /api/profile does a plain `DELETE FROM users WHERE id = ?` and lets
- * FKs decide the fallout. Five FKs used to be NOT NULL ... ON DELETE CASCADE
- * pointing at a *counterparty*, not the row's own owner — deleting your own
- * account could silently destroy OTHER people's data. Migration v34 (see
- * app/lib/db/migrations.js) relaxes all five to nullable ON DELETE SET NULL.
+ * FKs decide the fallout. The salon_bookings.salon_user_id and
+ * artist_bookings.artist_user_id FKs used to be NOT NULL ... ON DELETE
+ * CASCADE pointing at a *counterparty*, not the row's own owner — deleting
+ * your own account could silently destroy OTHER people's data. Migration v34
+ * (see app/lib/db/migrations.js) relaxes both to nullable ON DELETE SET NULL.
  *
  * Two phases:
  *
  *  A. MIGRATION MECHANICS (no server) — builds a raw SQLite file shaped
  *     exactly like a real pre-v34 production DB (old CASCADE schema, rows
  *     with known ids, schema_version stamped 33), runs the real
- *     ensureSchemaVersion() against it, and proves: all 5 FKs are now
+ *     ensureSchemaVersion() against it, and proves: both FKs are now
  *     SET NULL, every pre-existing row survived with its data intact, a
  *     real DELETE FROM users now nulls the FK instead of deleting the child
  *     row, and AUTOINCREMENT continuity holds (a fresh insert after the
@@ -21,14 +22,10 @@
  *
  *  B. REAL END-TO-END (spins up a test server, fresh DB — exercises the
  *     "brand new install" path, i.e. wipeDomainTables+applySchema, which
- *     phase A's migration path does not cover) — proves the 5 real-world
- *     scenarios through the actual HTTP API: salon/artist/shop account
- *     deletion preserves the other side's booking/order history and it's
- *     still readable without crashing; a conversation's creator deleting
- *     their account preserves the whole thread including the other
- *     participant's messages; a non-creator participant deleting their
- *     account preserves their own sent messages (sender now anonymous)
- *     instead of deleting them out of the shared thread.
+ *     phase A's migration path does not cover) — proves the 2 real-world
+ *     scenarios through the actual HTTP API: salon/artist account deletion
+ *     preserves the other side's booking history and it's still readable
+ *     without crashing.
  *
  * DB: data/zibaban-account-deletion-test.sqlite (phase B, server)
  *     data/zibaban-account-deletion-migration-test.sqlite (phase A, raw)
@@ -120,45 +117,6 @@ function buildLegacyV33Database() {
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
-    CREATE TABLE shop_orders (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      shop_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      buyer_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
-      buyer_name TEXT NOT NULL DEFAULT '',
-      buyer_phone TEXT NOT NULL DEFAULT '',
-      status TEXT NOT NULL DEFAULT 'جدید',
-      total TEXT NOT NULL DEFAULT '',
-      total_num REAL NOT NULL DEFAULT 0,
-      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-    );
-    CREATE TABLE conversations (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      type TEXT NOT NULL DEFAULT 'direct',
-      title TEXT NOT NULL DEFAULT '',
-      avatar TEXT NOT NULL DEFAULT '',
-      created_by INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-    );
-    CREATE TABLE conversation_members (
-      conversation_id INTEGER NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
-      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      last_read_at TEXT NOT NULL DEFAULT '1970-01-01 00:00:00',
-      joined_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      PRIMARY KEY (conversation_id, user_id)
-    );
-    CREATE TABLE messages (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      conversation_id INTEGER NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
-      sender_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      body TEXT NOT NULL DEFAULT '',
-      attachment_url TEXT NOT NULL DEFAULT '',
-      attachment_type TEXT NOT NULL DEFAULT '',
-      order_ref_id INTEGER REFERENCES shop_orders(id) ON DELETE SET NULL,
-      booking_ref_id INTEGER,
-      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-    );
   `);
 
   // Seed users + one row per changed table, all with known ids.
@@ -166,9 +124,6 @@ function buildLegacyV33Database() {
   const salonId = Number(insertUser.run("09150001001", "salon", "سالن قدیمی").lastInsertRowid);
   const clientId = Number(insertUser.run("09150001002", "client", "مشتری قدیمی").lastInsertRowid);
   const artistId = Number(insertUser.run("09150001003", "artist", "آرتیست قدیمی").lastInsertRowid);
-  const shopId = Number(insertUser.run("09150001004", "shop", "فروشگاه قدیمی").lastInsertRowid);
-  const creatorId = Number(insertUser.run("09150001005", "client", "شروع‌کننده گفتگو").lastInsertRowid);
-  const peerId = Number(insertUser.run("09150001006", "client", "طرف مقابل").lastInsertRowid);
 
   const salonBookingId = Number(db.prepare(`
     INSERT INTO salon_bookings (salon_user_id, client_user_id, client, service, booking_date, time, status)
@@ -180,30 +135,12 @@ function buildLegacyV33Database() {
     VALUES (?, ?, 'مشتری قدیمی', 'خدمت آرتیست قدیمی', 'شنبه', '11:00', 'تایید شده')
   `).run(artistId, clientId).lastInsertRowid);
 
-  const orderId = Number(db.prepare(`
-    INSERT INTO shop_orders (shop_user_id, buyer_user_id, buyer_name, status, total, total_num)
-    VALUES (?, ?, 'مشتری قدیمی', 'تحویل شد', '۱۰۰۰۰۰', 100000)
-  `).run(shopId, clientId).lastInsertRowid);
-
-  const conversationId = Number(db.prepare(`
-    INSERT INTO conversations (type, created_by) VALUES ('direct', ?)
-  `).run(creatorId).lastInsertRowid);
-  db.prepare("INSERT INTO conversation_members (conversation_id, user_id) VALUES (?, ?)").run(conversationId, creatorId);
-  db.prepare("INSERT INTO conversation_members (conversation_id, user_id) VALUES (?, ?)").run(conversationId, peerId);
-  const messageFromCreatorId = Number(db.prepare(`
-    INSERT INTO messages (conversation_id, sender_user_id, body) VALUES (?, ?, 'سلام از طرف شروع‌کننده')
-  `).run(conversationId, creatorId).lastInsertRowid);
-  const messageFromPeerId = Number(db.prepare(`
-    INSERT INTO messages (conversation_id, sender_user_id, body) VALUES (?, ?, 'سلام از طرف مقابل')
-  `).run(conversationId, peerId).lastInsertRowid);
-
   db.prepare("INSERT INTO app_meta (key, value) VALUES ('schema_version', '33')").run();
   db.close();
 
   return {
-    salonId, clientId, artistId, shopId, creatorId, peerId,
-    salonBookingId, artistBookingId, orderId, conversationId,
-    messageFromCreatorId, messageFromPeerId
+    salonId, clientId, artistId,
+    salonBookingId, artistBookingId
   };
 }
 
@@ -221,10 +158,7 @@ async function runMigrationPhase() {
 
   for (const [table, column] of [
     ["salon_bookings", "salon_user_id"],
-    ["artist_bookings", "artist_user_id"],
-    ["shop_orders", "shop_user_id"],
-    ["conversations", "created_by"],
-    ["messages", "sender_user_id"]
+    ["artist_bookings", "artist_user_id"]
   ]) {
     const fks = db.prepare(`PRAGMA foreign_key_list(${table})`).all();
     const fk = fks.find((row) => row.from === column);
@@ -238,20 +172,10 @@ async function runMigrationPhase() {
   const artistBooking = db.prepare("SELECT * FROM artist_bookings WHERE id = ?").get(seeded.artistBookingId);
   step("pre-existing artist_bookings row survived the rebuild with same id/data", Boolean(artistBooking) && artistBooking.service === "خدمت آرتیست قدیمی");
 
-  const order = db.prepare("SELECT * FROM shop_orders WHERE id = ?").get(seeded.orderId);
-  step("pre-existing shop_orders row survived the rebuild with same id/data", Boolean(order) && order.total_num === 100000);
-
-  const conversation = db.prepare("SELECT * FROM conversations WHERE id = ?").get(seeded.conversationId);
-  step("pre-existing conversations row survived the rebuild", Boolean(conversation) && Number(conversation.created_by) === seeded.creatorId);
-
-  const msgFromCreator = db.prepare("SELECT * FROM messages WHERE id = ?").get(seeded.messageFromCreatorId);
-  const msgFromPeer = db.prepare("SELECT * FROM messages WHERE id = ?").get(seeded.messageFromPeerId);
-  step("both pre-existing messages survived the rebuild", Boolean(msgFromCreator) && Boolean(msgFromPeer));
-
   // AUTOINCREMENT continuity: a fresh insert after the rebuild must get an
   // id greater than any id that ever existed — proves the rebuild didn't
   // reset the sequence back to 1 (which would risk id collisions with any
-  // stale booking_ref_id/order_ref_id pointer still floating around).
+  // stale reference still floating around).
   const maxIdBefore = seeded.salonBookingId;
   const freshId = Number(db.prepare(`
     INSERT INTO salon_bookings (salon_user_id, client_user_id, client, service, booking_date, time, status)
@@ -276,43 +200,6 @@ async function runMigrationPhase() {
     "deleting the ARTIST preserves the client's booking row (artist_user_id now NULL)",
     Boolean(artistBookingAfterDelete) && artistBookingAfterDelete.artist_user_id === null,
     JSON.stringify(artistBookingAfterDelete)
-  );
-
-  db.prepare("DELETE FROM users WHERE id = ?").run(seeded.shopId);
-  const orderAfterDelete = db.prepare("SELECT * FROM shop_orders WHERE id = ?").get(seeded.orderId);
-  step(
-    "deleting the SHOP preserves the buyer's order row (shop_user_id now NULL)",
-    Boolean(orderAfterDelete) && orderAfterDelete.shop_user_id === null,
-    JSON.stringify(orderAfterDelete)
-  );
-
-  // The other headline bug: deleting whoever STARTED a conversation must not
-  // wipe the whole thread — conversation + BOTH messages must survive.
-  db.prepare("DELETE FROM users WHERE id = ?").run(seeded.creatorId);
-  const conversationAfterCreatorDelete = db.prepare("SELECT * FROM conversations WHERE id = ?").get(seeded.conversationId);
-  const msgFromCreatorAfterDelete = db.prepare("SELECT * FROM messages WHERE id = ?").get(seeded.messageFromCreatorId);
-  const msgFromPeerAfterCreatorDelete = db.prepare("SELECT * FROM messages WHERE id = ?").get(seeded.messageFromPeerId);
-  step(
-    "deleting the conversation CREATOR preserves the conversation row (created_by now NULL)",
-    Boolean(conversationAfterCreatorDelete) && conversationAfterCreatorDelete.created_by === null
-  );
-  step(
-    "...and preserves the creator's OWN message too (sender_user_id now NULL, body intact)",
-    Boolean(msgFromCreatorAfterDelete) && msgFromCreatorAfterDelete.sender_user_id === null && msgFromCreatorAfterDelete.body === "سلام از طرف شروع‌کننده"
-  );
-  step(
-    "...and preserves the OTHER participant's message untouched",
-    Boolean(msgFromPeerAfterCreatorDelete) && Number(msgFromPeerAfterCreatorDelete.sender_user_id) === seeded.peerId
-  );
-
-  // Deleting the NON-creator participant must preserve THEIR message too
-  // (not just the creator's) — the other headline bug this closes.
-  db.prepare("DELETE FROM users WHERE id = ?").run(seeded.peerId);
-  const msgFromPeerAfterPeerDelete = db.prepare("SELECT * FROM messages WHERE id = ?").get(seeded.messageFromPeerId);
-  step(
-    "deleting a NON-creator participant preserves their own message (sender_user_id now NULL)",
-    Boolean(msgFromPeerAfterPeerDelete) && msgFromPeerAfterPeerDelete.sender_user_id === null,
-    JSON.stringify(msgFromPeerAfterPeerDelete)
   );
 
   db.close();
@@ -395,12 +282,6 @@ async function register({ phone, type, name }) {
   });
 }
 
-async function findConversationWith(cookie, peerUserId) {
-  const { payload } = await api("/api/conversations", { cookie });
-  const list = payload?.data?.conversations || [];
-  return list.find((c) => c.peer?.id === peerUserId) || null;
-}
-
 async function runServerPhase() {
   console.log("\n=== Phase B: real end-to-end through the HTTP API (fresh DB) ===");
   cleanupDbFiles();
@@ -454,75 +335,6 @@ async function runServerPhase() {
 
     const client2History = await api("/api/artist-bookings", { cookie: client2Cookie });
     step("client's GET /api/artist-bookings still works after artist deletion (no crash)", client2History.res.status === 200, `status=${client2History.res.status} body=${JSON.stringify(client2History.payload).slice(0, 200)}`);
-
-    // ── Shop deletion preserves the buyer's order history ───────────────
-    const shopReg = await register({ phone: "09150002005", type: "shop", name: "فروشگاه تست حذف" });
-    const shopCookie = shopReg.cookie;
-    const shopUserId = shopReg.payload?.data?.user?.id;
-    const buyerReg = await register({ phone: "09150002006", type: "client", name: "خریدار تست حذف" });
-    const buyerCookie = buyerReg.cookie;
-
-    const product = await api("/api/shop/me", {
-      method: "POST", cookie: shopCookie,
-      body: { name: "محصول تست", priceNum: 100000, stock: 10 }
-    });
-    const productId = product.payload?.data?.product?.id;
-    step("shop product created", Boolean(productId), JSON.stringify(product.payload).slice(0, 200));
-
-    const order = await api("/api/shop/orders", {
-      method: "POST", cookie: buyerCookie,
-      body: { shopUserId, items: [{ productId, quantity: 1 }] }
-    });
-    step("buyer order created", order.res.status === 201, `status=${order.res.status} body=${JSON.stringify(order.payload).slice(0, 200)}`);
-
-    const deleteShop = await api("/api/profile", { method: "DELETE", cookie: shopCookie });
-    step("shop account deleted", deleteShop.res.status === 200);
-
-    const buyerHistory = await api("/api/shop/orders", { cookie: buyerCookie });
-    step("buyer's GET /api/shop/orders still works after shop deletion (no crash)", buyerHistory.res.status === 200);
-    const survivedOrder = (buyerHistory.payload?.data?.orders || []).find((o) => Number(o.id) === Number(order.payload?.data?.order?.id));
-    step("buyer's order with the deleted shop is still in their history", Boolean(survivedOrder), JSON.stringify(survivedOrder));
-
-    // ── Conversation creator deletion preserves the whole thread ───────
-    const creatorReg = await register({ phone: "09150002007", type: "client", name: "شروع‌کننده گفتگو" });
-    const creatorCookie = creatorReg.cookie;
-    const peerReg = await register({ phone: "09150002008", type: "client", name: "طرف مقابل گفتگو" });
-    const peerCookie = peerReg.cookie;
-    const peerUserId = peerReg.payload?.data?.user?.id;
-    const creatorUserId = creatorReg.payload?.data?.user?.id;
-
-    const convStart = await api("/api/conversations", { method: "POST", cookie: creatorCookie, body: { peerUserId } });
-    const conversationId = convStart.payload?.data?.conversation?.id;
-    step("conversation started", Boolean(conversationId), JSON.stringify(convStart.payload).slice(0, 200));
-
-    await api(`/api/conversations/${conversationId}/messages`, { method: "POST", cookie: creatorCookie, body: { body: "پیام از شروع‌کننده" } });
-    await api(`/api/conversations/${conversationId}/messages`, { method: "POST", cookie: peerCookie, body: { body: "پیام از طرف مقابل" } });
-
-    const deleteCreator = await api("/api/profile", { method: "DELETE", cookie: creatorCookie });
-    step("conversation creator account deleted", deleteCreator.res.status === 200);
-
-    const peerThreadAfterCreatorDelete = await api(`/api/conversations/${conversationId}/messages`, { cookie: peerCookie });
-    step("peer can still read the full thread after the creator deleted their account (no crash)", peerThreadAfterCreatorDelete.res.status === 200);
-    const msgsAfterCreatorDelete = peerThreadAfterCreatorDelete.payload?.data?.messages || [];
-    step(
-      "both messages (creator's AND peer's) survived the creator's account deletion",
-      msgsAfterCreatorDelete.some((m) => m.body === "پیام از شروع‌کننده") && msgsAfterCreatorDelete.some((m) => m.body === "پیام از طرف مقابل"),
-      `count=${msgsAfterCreatorDelete.length}`
-    );
-
-    // ── Non-creator participant deletion preserves their own messages ──
-    const deletePeer = await api("/api/profile", { method: "DELETE", cookie: peerCookie });
-    step("non-creator participant account deleted", deletePeer.res.status === 200);
-    // Nobody with a session can read this conversation anymore (both real
-    // users are gone) — verify directly in the DB instead, same as phase A.
-    const rawDb = new DatabaseSync(SERVER_DB);
-    const peerMessageRow = rawDb.prepare("SELECT * FROM messages WHERE conversation_id = ? AND body = ?").get(conversationId, "پیام از طرف مقابل");
-    rawDb.close();
-    step(
-      "the non-creator's own message survived their account deletion (sender_user_id now NULL)",
-      Boolean(peerMessageRow) && peerMessageRow.sender_user_id === null,
-      JSON.stringify(peerMessageRow)
-    );
   } catch (err) {
     step("unexpected error", false, String(err?.stack || err));
   } finally {

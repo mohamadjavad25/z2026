@@ -1,6 +1,6 @@
 /**
  * Shared API → user-facing Persian notify helpers.
- * Matches wallet / booking convention: prefer payload.error, then payload.message.
+ * Matches this app's API convention: prefer payload.error, then payload.message.
  */
 
 /** Extract a user-facing error string from an API JSON body. */

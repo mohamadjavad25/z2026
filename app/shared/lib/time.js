@@ -130,13 +130,13 @@ const requestExpiryDeadlineTimeFmt = new Intl.DateTimeFormat("en-GB", {
   timeZone: "Asia/Tehran"
 });
 
-/** Wall-clock "HH:MM" (Persian digits, Tehran time) a pending booking/order
+/** Wall-clock "HH:MM" (Persian digits, Tehran time) a pending booking
  *  request auto-expires at, given its created_at and the sweep's timeout
  *  window (60 minutes by default — see bookingExpirySweep.js). Shared single
  *  source for every "respond by" / "waiting until" deadline shown across
- *  client and owner UI (salon bookings, direct artist bookings, shop orders)
- *  so none of them can drift out of sync with each other or with the sweep's
- *  own DEFAULT_TIMEOUT_MINUTES. */
+ *  client and owner UI (salon bookings, direct artist bookings) so none of
+ *  them can drift out of sync with each other or with the sweep's own
+ *  DEFAULT_TIMEOUT_MINUTES. */
 export function formatRequestExpiryDeadline(createdAt, minutes = 60) {
   const raw = String(createdAt || "").trim();
   if (!raw) return "";

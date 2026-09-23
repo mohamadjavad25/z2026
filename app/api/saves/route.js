@@ -36,8 +36,8 @@ export async function GET(request) {
 /**
  * POST /api/saves { targetUserId } → toggle save on a salon or independent
  * artist's public profile. Mirrors POST /api/follows' auth/response shape;
- * target must be an existing salon/artist user (a client or shop id is
- * rejected, same spirit as toggleFollow's self-save 400).
+ * target must be an existing salon/artist user (a client id is rejected,
+ * same spirit as toggleFollow's self-save 400).
  */
 export async function POST(request) {
   ensureDb();

@@ -1,6 +1,6 @@
 /**
- * Lightweight busy/in-flight guards used to stop a user action (charge
- * wallet, create a booking, approve a request, ...) from firing twice when
+ * Lightweight busy/in-flight guards used to stop a user action (create a
+ * booking, approve a request, ...) from firing twice when
  * clicked rapidly or from two tabs. Each of the app's hooks inlines this
  * exact pattern locally (a ref for the synchronous check + state for the UI
  * disabled attribute); these two factories are the reference implementation
