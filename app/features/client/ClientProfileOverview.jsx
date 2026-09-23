@@ -1,6 +1,6 @@
 "use client";
 
-import { Bookmark, CalendarCheck, ChevronLeft, Pencil, Phone } from "lucide-react";
+import { Bookmark, ChevronLeft, Pencil, Phone } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { ProfileSettingsPanel } from "../profile/ProfileSettingsPanel";
 
@@ -22,15 +22,19 @@ import { ProfileSettingsPanel } from "../profile/ProfileSettingsPanel";
  * notification toggles + logout live here, reusing the same components/
  * handlers the settings sheet used to use, instead of a second edit-profile
  * or saved-posts entry point.
+ *
+ * No "فعالیت من" shortcut here: ProfileModeRail already renders that as a
+ * tab right above this screen, so a second button to the same
+ * profileView("bookings") destination was a pure duplicate.
  */
 export function ClientProfileOverview({
   profile,
   onEditProfile,
-  onOpenBookings,
   onOpenSaved,
   profileSettings,
   onToggleSetting,
-  onLogout
+  onLogout,
+  onDeleteAccount
 }) {
   const name = profile?.data?.name || "";
   const avatar = profile?.data?.avatar || "/profile-icon.svg";
@@ -58,16 +62,6 @@ export function ClientProfileOverview({
       </article>
 
       <div className="clientProfileOverviewLinks">
-        <button type="button" onClick={onOpenBookings}>
-          <span className="clientProfileOverviewLinkIcon">
-            <CalendarCheck size={17} />
-          </span>
-          <span className="clientProfileOverviewLinkCopy">
-            <strong>فعالیت من</strong>
-            <small>رزروها و خریدهای ثبت‌شده</small>
-          </span>
-          <ChevronLeft size={16} />
-        </button>
         <button type="button" onClick={onOpenSaved}>
           <span className="clientProfileOverviewLinkIcon">
             <Bookmark size={17} />
@@ -86,6 +80,7 @@ export function ClientProfileOverview({
           profileSettings={profileSettings}
           onToggle={onToggleSetting}
           onLogout={onLogout}
+          onDeleteAccount={onDeleteAccount}
         />
       ) : null}
     </section>

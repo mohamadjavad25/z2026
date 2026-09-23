@@ -186,7 +186,13 @@ export function listClientSalonBookings(user) {
     ORDER BY b.id DESC
   `).all(...params).map((row) => ({
     ...row,
-    salonName: row.salon_name || "سالن",
+    // salon_user_id is now nullable (see migration v34 — deleting a salon
+    // account no longer destroys the client's own booking history with it),
+    // so a booking can legitimately outlive its salon. Distinguish that from
+    // any other reason the join came up empty, matching this codebase's
+    // existing "‹thing› حذف‌شده" convention (see ShopInsightsPanel.jsx's
+    // "محصول حذف‌شده" for a deleted product on an old order line).
+    salonName: row.salon_name || (row.salon_user_id ? "سالن" : "سالن حذف‌شده"),
     salonArea: row.salon_area || "",
     salonPhone: row.salon_phone || "",
     salonAvatar: row.salon_avatar || "",

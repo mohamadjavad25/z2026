@@ -325,8 +325,11 @@ export function listClientArtistBookings(user) {
     // salonPhone/salon_phone (below), matching what ClientBookingSettingsModal
     // actually calls for "تماس" (booking.salonPhone || booking.salon_phone || booking.phone).
     phone: row.client_phone || "",
-    salonName: row.artist_name || "آرتیست",
-    salon_name: row.artist_name || "آرتیست",
+    // artist_user_id is now nullable (see migration v34 — deleting an
+    // artist account no longer destroys the client's own booking history
+    // with them), same distinction as listClientSalonBookings' salonName.
+    salonName: row.artist_name || (row.artist_user_id ? "آرتیست" : "آرتیست حذف‌شده"),
+    salon_name: row.artist_name || (row.artist_user_id ? "آرتیست" : "آرتیست حذف‌شده"),
     salonArea: row.artist_area || "",
     salon_area: row.artist_area || "",
     salonAvatar: row.artist_avatar || "",

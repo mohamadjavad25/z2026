@@ -3,7 +3,7 @@
 import { AlertTriangle, CalendarCheck, CheckCircle2, Clock3, MapPin, MessageCircle, Phone, RotateCcw, TimerOff, X, XCircle } from "lucide-react";
 import { SegmentClock } from "../../components/SegmentClock";
 import { toLatinDigits } from "../../shared/lib/digits";
-import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar";
+import { formatRelativeBookingDayLabel, resolveRollingPersianDate } from "../../shared/lib/persianCalendar";
 
 // Same status-tone mapping as ClientBookingsPanel.jsx's getBookingStatusTone —
 // duplicated (not shared) since it's a tiny presentational lookup local to
@@ -22,6 +22,22 @@ const BOOKING_STATUS_ICONS = {
   bad: XCircle,
   expired: TimerOff
 };
+
+// "رزرو دوباره" only makes sense once this specific booking is settled —
+// cancelled/expired outright, or confirmed and its date has already passed
+// (the service actually happened). While it's still pending or confirmed
+// for a future date, the client already has an active booking; offering
+// "book again" there reads as if nothing was booked at all.
+function isBookingSettled(booking) {
+  const status = booking?.status || "";
+  if (status === "لغو" || status === "منقضی شده") return true;
+  if (status !== "تایید شده") return false;
+  const rawDate = booking?.booking_date || booking?.date || "";
+  if (!rawDate) return false;
+  const bookingDate = resolveRollingPersianDate(rawDate);
+  const today = resolveRollingPersianDate("امروز");
+  return bookingDate.getTime() <= today.getTime();
+}
 
 /**
  * Client role — booking details / quick actions sheet.
@@ -130,10 +146,12 @@ export function ClientBookingSettingsModal({
                 <Phone size={16} />
                 تماس
               </button>
-              <button type="button" onClick={() => onRebookSalon?.(booking)}>
-                <RotateCcw size={16} />
-                رزرو دوباره
-              </button>
+              {isBookingSettled(booking) ? (
+                <button type="button" onClick={() => onRebookSalon?.(booking)}>
+                  <RotateCcw size={16} />
+                  رزرو دوباره
+                </button>
+              ) : null}
             </div>
           )}
         </div>

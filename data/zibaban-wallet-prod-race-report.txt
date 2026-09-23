@@ -7,7 +7,7 @@
 ✓ SQL seed available=500000 — available=500000
 ✓ prod server B up (same DB) — http://127.0.0.1:3032
 ✓ session shared across processes — status=200
-✓ 2. multi-process race: exactly 5 of 10 succeed — ok=5 fail=5 insufficient≈5 okA=2 okB=3 finalAvailable=0
+✓ 2. multi-process race: exactly 5 of 10 succeed — ok=5 fail=5 insufficient≈5 okA=3 okB=2 finalAvailable=0
 ✓ 2b. multi-process final balance never negative — finalAvailable=0
 ✓ 2c. matches prior worker_threads race outcome (5/5/0) — same correct outcome under true cross-process parallelism
 ✓ 2d. cross-process overdraw pair → exactly 1 ok — ok=1 fail=1 finalAvailable=50000

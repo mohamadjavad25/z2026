@@ -293,6 +293,7 @@ export function mapArtistBooking(row) {
     phone: profile?.phone || row.client_phone || row.phone || "",
     service: row.service || "",
     status: row.status || "تایید",
+    createdAt: row.created_at || "",
     durationMinutes: Number(row.duration_minutes || 0) || 60,
     history: row.history || "day",
     visits: Array.isArray(row.visits) ? row.visits : Array.from({ length: 10 }, () => 0)

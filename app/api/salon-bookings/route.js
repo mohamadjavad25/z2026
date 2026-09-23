@@ -7,6 +7,7 @@ import * as messages from "../../lib/db/repos/messages.js";
 import { publishChatEvent } from "../../lib/chatEvents.js";
 import { enrichBookingCards } from "../../lib/chatOrderCards.js";
 import { checkRateLimit } from "../../lib/rateLimit.js";
+import { sendPushToUser } from "../../lib/push.js";
 // Side-effect import: starts the once-per-process 1-hour booking-request
 // auto-expiry sweep (see that file's docstring) the first time this route
 // module loads — same self-starting-on-import convention as
@@ -212,6 +213,16 @@ export async function POST(request) {
       }
     }
   }
+  // Real-time heads-up for the salon the moment a real client requests a
+  // slot, not just whenever they next happen to poll/open the dashboard —
+  // only when the CLIENT is the one who just requested it (a salon entering
+  // its own walk-in booking doesn't need to be told about its own action).
+  if (auth.user.type === "client") {
+    void sendPushToUser(salonUserId, {
+      title: "درخواست رزرو جدید",
+      body: `${client} — ${service} · ${time}`
+    });
+  }
 
   return noStoreJson({
     booking: result.booking,
@@ -267,6 +278,20 @@ export async function PATCH(request) {
       error: "این زمان قابل رزرو نیست.",
       bookings: salons.listSalonBookings(auth.user.id)
     }, { status: 409 });
+  }
+
+  // Only for an explicit approve/cancel decision (wantsCancel or the
+  // whitelisted "تایید شده" transition above) — a plain time/staff edit
+  // patches through the same route with no status field and shouldn't spam
+  // a push for every minor change.
+  if (patch.status === "تایید شده" || patch.status === "لغو") {
+    const bookingClientUserId = result.booking.client_user_id ? Number(result.booking.client_user_id) : null;
+    if (bookingClientUserId) {
+      void sendPushToUser(bookingClientUserId, {
+        title: patch.status === "تایید شده" ? "نوبت شما تایید شد" : "نوبت شما لغو شد",
+        body: `${result.booking.service || "نوبت"} — ${result.booking.booking_date || ""} ${result.booking.time || ""}`.trim()
+      });
+    }
   }
 
   return noStoreJson({

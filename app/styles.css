@@ -8078,6 +8078,120 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   direction: ltr;
 }
 
+/* BookingHistoryCalendarSheet reuses .clientBookingMiniCard for its rows,
+   but ProfileSheet renders through a portal straight to document.body
+   (see ProfileSheet.jsx), so it never sits inside .profilePanel.page-profile
+   — the client-scoped rules above silently never matched there, leaving
+   history rows as unstyled plain text. Mirror the same look, scoped to the
+   history sheet instead. */
+.salonHeroSheetPanel.bookingWeekHistorySheet .clientBookingMiniLogo {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 999px;
+  color: #7c5ce2;
+  background: rgba(124, 92, 226, 0.08);
+  border: 1px solid rgba(124, 92, 226, 0.14);
+  font-weight: 950;
+  width: 38px;
+  height: 38px;
+  font-size: 13px;
+}
+
+.salonHeroSheetPanel.bookingWeekHistorySheet .clientBookingMiniLogo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bookingWeekHistoryItem:has(.clientBookingMiniCard) {
+  border-bottom: 0;
+  padding: 4px 0;
+}
+
+.salonHeroSheetPanel.bookingWeekHistorySheet .clientBookingMiniCard {
+  width: 100%;
+  min-height: 62px;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  direction: rtl;
+  border: 1px solid rgba(35, 36, 52, 0.07);
+  border-radius: 16px;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.66);
+  color: inherit;
+  text-align: right;
+}
+
+.salonHeroSheetPanel.bookingWeekHistorySheet .clientBookingMiniCard div {
+  min-width: 0;
+}
+
+.salonHeroSheetPanel.bookingWeekHistorySheet .clientBookingMiniCard b {
+  display: block;
+  color: #171827;
+  font-size: 12.5px;
+  font-weight: 900;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.salonHeroSheetPanel.bookingWeekHistorySheet .clientBookingMiniCard small {
+  display: block;
+  margin-top: 3px;
+  color: #7f8190;
+  font-size: 10.5px;
+  font-weight: 750;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.salonHeroSheetPanel.bookingWeekHistorySheet .clientBookingMiniState {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+}
+
+.salonHeroSheetPanel.bookingWeekHistorySheet .clientBookingMiniState strong {
+  min-height: 20px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 8px;
+  border-radius: 999px;
+  color: #b45309;
+  background: rgba(245, 158, 11, 0.12);
+  font-size: 10px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.salonHeroSheetPanel.bookingWeekHistorySheet .clientBookingMiniState strong.is-done {
+  color: #16a34a;
+  background: rgba(34, 197, 94, 0.12);
+}
+
+.salonHeroSheetPanel.bookingWeekHistorySheet .clientBookingMiniState strong.is-bad {
+  color: #d64545;
+  background: rgba(214, 69, 69, 0.1);
+}
+
+.salonHeroSheetPanel.bookingWeekHistorySheet .clientBookingMiniState strong.is-expired {
+  color: #9a5b52;
+  background: rgba(154, 91, 82, 0.12);
+}
+
+.salonHeroSheetPanel.bookingWeekHistorySheet .clientBookingMiniCard em {
+  color: #171827;
+  font-size: 12.5px;
+  font-style: normal;
+  font-weight: 900;
+  direction: ltr;
+}
+
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingList .todayScheduleRow {
   min-height: 92px;
   display: grid;
@@ -8801,6 +8915,14 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .neoSettingsLogout {
+  min-height: 40px;
+  border-radius: 12px;
+  font-size: 0.74rem;
+  font-weight: 850;
+  gap: 6px;
+}
+
+.profilePanel.page-profile:has(.createdProfile.is-client) .neoSettingsDelete {
   min-height: 40px;
   border-radius: 12px;
   font-size: 0.74rem;
@@ -11394,6 +11516,103 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 .neoSettingsLogout:hover{
   background: linear-gradient(135deg, rgba(155, 54, 80, 0.12), rgba(155, 54, 80, 0.06));
   border-color: rgba(155, 54, 80, 0.25);
+}
+
+/* Deliberately more muted than .neoSettingsLogout at rest — this is a much
+   heavier action and shouldn't visually compete with "خروج از حساب" for
+   attention; it earns a stronger red only in the confirm step below. */
+.neoSettingsDelete{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  margin-top: 6px;
+  border: 1px solid rgba(28, 32, 44, 0.1);
+  border-radius: 14px;
+  background: transparent;
+  color: var(--muted, #777b8d);
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 850;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.neoSettingsDelete:hover{
+  color: var(--rose, #9b3650);
+  border-color: rgba(155, 54, 80, 0.2);
+  background: rgba(155, 54, 80, 0.04);
+}
+
+.neoSettingsDeleteConfirm{
+  display: grid;
+  gap: 8px;
+  margin-top: 6px;
+  padding: 12px;
+  border: 1px solid rgba(155, 54, 80, 0.18);
+  border-radius: 14px;
+  background: rgba(155, 54, 80, 0.05);
+}
+
+.neoSettingsDeleteConfirmHead{
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--rose, #9b3650);
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.neoSettingsDeleteConfirm p{
+  margin: 0;
+  color: var(--muted, #777b8d);
+  font-size: 0.74rem;
+  font-weight: 750;
+  line-height: 1.7;
+}
+
+.neoSettingsDeleteConfirm input{
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid rgba(155, 54, 80, 0.2);
+  border-radius: 12px;
+  background: #ffffff;
+  color: var(--ink, #171827);
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.neoSettingsDeleteConfirmActions{
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 8px;
+}
+
+.neoSettingsDeleteConfirmActions button{
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 0;
+  border-radius: 12px;
+  font-size: 0.78rem;
+  font-weight: 900;
+  background: rgba(28, 32, 44, 0.06);
+  color: var(--ink, #171827);
+}
+
+.neoSettingsDeleteConfirmActions button.is-danger{
+  background: var(--rose, #9b3650);
+  color: #ffffff;
+}
+
+.neoSettingsDeleteConfirmActions button:disabled{
+  opacity: 0.5;
+  pointer-events: none;
 }
 
 .settingsHead{
@@ -22833,6 +23052,59 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button {
   box-shadow: inset 0 0 0 1px rgba(124, 92, 226, 0.12);
 }
 
+/* Quick-actions rows inside ScheduleBookingMenuModal's "menu" view — never
+   had real CSS before (rendered as plain unstyled text buttons). */
+.scheduleBookingMiniActions,
+.scheduleBookingReviewActions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.scheduleBookingReviewActions {
+  grid-template-columns: 1fr 1fr;
+}
+
+.scheduleBookingMiniActions button,
+.scheduleBookingReviewActions button {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 6px;
+  border: 1px solid rgba(124, 92, 226, 0.14);
+  border-radius: 13px;
+  background: rgba(124, 92, 226, 0.08);
+  color: #6d4be1;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.scheduleBookingMiniActions button.is-danger {
+  color: #b42318;
+  background: rgba(244, 63, 94, 0.09);
+  border-color: rgba(244, 63, 94, 0.14);
+}
+
+.scheduleBookingReviewActions button.is-approve {
+  color: #16a34a;
+  background: rgba(34, 197, 94, 0.12);
+  border-color: rgba(34, 197, 94, 0.16);
+}
+
+.scheduleBookingReviewActions button.is-decline {
+  color: #d64545;
+  background: rgba(214, 69, 69, 0.1);
+  border-color: rgba(214, 69, 69, 0.14);
+}
+
+.scheduleBookingMiniActions button:disabled,
+.scheduleBookingReviewActions button:disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
 .artistCreateModal {
   background: rgba(12, 14, 20, 0.52);
   backdrop-filter: blur(18px);
@@ -23080,6 +23352,149 @@ body:has(.appShell.is-shop-owner) .shopOwnerActionDock.is-floating button {
   color: #6d4be1;
   font-style: normal;
   font-weight: 950;
+}
+
+/* reservationRequestCard/requestCard/requestActions markup is shared by
+   SalonScheduleDashboard.jsx (rendered inline) and the salon/artist
+   notifications ProfileSheet above (rendered through a portal to
+   document.body — see ProfileSheet.jsx) — these rules are intentionally
+   unscoped so both call sites pick them up. Never had real styling before
+   (every card rendered as plain unstyled text/buttons in both places). */
+.salonRequestsBoard {
+  display: grid;
+  gap: 10px;
+}
+
+.reservationRequestList {
+  display: grid;
+  gap: 8px;
+}
+
+.reservationRequestCard {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 18px;
+  background: #ffffff;
+  border: 1px solid rgba(28, 32, 44, 0.08);
+  box-shadow: 0 12px 26px rgba(28, 32, 44, 0.06);
+}
+
+.requestCardMain {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.requestCardWho {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.requestCardWho strong {
+  color: #171827;
+  font-size: 0.86rem;
+  font-weight: 950;
+}
+
+.requestCardWho span {
+  color: #6d4be1;
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.requestCardWho small {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #777b8d;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.requestCardWho small i {
+  width: 3px;
+  height: 3px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.5;
+}
+
+.requestCardAside {
+  flex: 0 0 auto;
+  display: grid;
+  justify-items: end;
+  gap: 4px;
+}
+
+.requestCardWhen {
+  display: grid;
+  justify-items: end;
+  color: #777b8d;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.requestCardWhen em {
+  font-style: normal;
+  color: #171827;
+}
+
+.requestActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.requestActions button {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 0;
+  border-radius: 12px;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.requestActions .is-approve {
+  background: rgba(34, 197, 94, 0.12);
+  color: #16a34a;
+}
+
+.requestActions .is-decline {
+  background: rgba(214, 69, 69, 0.1);
+  color: #d64545;
+}
+
+.requestActions button:disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Informational-only variant (auto-expired requests) — no action row, so it
+   needs its own muted, non-actionable look distinct from a real pending
+   request card. See recentlyExpiredSalonBookings/recentlyExpiredArtistBookings
+   in HomeApp.jsx. */
+.reservationRequestCard.is-expiredNotice {
+  background: rgba(28, 32, 44, 0.03);
+  box-shadow: none;
+}
+
+.expiredNoticeTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(154, 91, 82, 0.12);
+  color: #9a5b52;
+  font-size: 0.68rem;
+  font-weight: 900;
+  white-space: nowrap;
 }
 
 .salonHeroSheetPanel.is-salon-settings .profileLocationSettings {

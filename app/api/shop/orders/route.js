@@ -4,6 +4,7 @@ import * as shops from "../../../lib/db/repos/shops.js";
 import * as messages from "../../../lib/db/repos/messages.js";
 import { publishChatEvent } from "../../../lib/chatEvents.js";
 import { enrichOrderCards } from "../../../lib/chatOrderCards.js";
+import { sendPushToUser } from "../../../lib/push.js";
 // Side-effect only: guarantees the 1-hour unacknowledged-order auto-expiry
 // sweep (see bookingExpirySweep.js) is running in this process, the same way
 // /api/salon-bookings and /api/artist/bookings already guarantee it for
@@ -73,6 +74,10 @@ export async function POST(request) {
           publishChatEvent({ type: "message", conversationId: conversation.id, message: sendResult.message, recipients: sendResult.recipients });
         }
       }
+      void sendPushToUser(shopUserId, {
+        title: "سفارش جدید",
+        body: `${auth.user.name || "خریدار"} — ${order.total ? `${order.total} تومان` : ""}`.trim()
+      });
     }
 
     return json({ data: { order } }, { status: replayed ? 200 : 201 });
@@ -117,6 +122,10 @@ export async function PATCH(request) {
       orderId: order.id,
       status: order.status,
       recipients: [order.buyer_user_id, auth.user.id]
+    });
+    void sendPushToUser(Number(order.buyer_user_id), {
+      title: "وضعیت سفارش شما تغییر کرد",
+      body: `سفارش شما — ${order.status}`
     });
   }
 

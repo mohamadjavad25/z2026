@@ -39,3 +39,10 @@ export async function register(body) {
 export async function logout() {
   return apiFetch("/api/auth/logout", { method: "POST" });
 }
+
+/** DELETE /api/profile → { profile: null, data: { user: null } } + clear cookie.
+ *  Permanent — see migration v34 for what happens to other users' data that
+ *  referenced this account (preserved, not cascade-deleted). */
+export async function deleteAccount() {
+  return apiFetch("/api/profile", { method: "DELETE" });
+}

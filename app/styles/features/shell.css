@@ -993,6 +993,24 @@
   font-weight: 850;
 }
 
+/* Recovery CTA — only rendered on the client's own view of a settled
+   (cancelled/expired) booking card, see BookingCardBubble.jsx. */
+.bookingCardRebook {
+  margin-top: 6px;
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  border: 0;
+  border-radius: 11px;
+  background: var(--accent, #6d4be1);
+  color: #ffffff;
+  font-size: 0.74rem;
+  font-weight: 900;
+}
+
 .chatBubbleImage {
   grid-column: 1 / -1;
   /* Fixed px, not a percentage: .chatBubble is width:fit-content, and a

@@ -26,6 +26,7 @@ export function ProfileSettingsSheet({
   savedSalonsCount = 0,
   onOpenSaved,
   onLogout,
+  onDeleteAccount,
   // salon hours (only used when profile.type === "salon")
   hoursOpen = false,
   onToggleHoursOpen,
@@ -169,6 +170,7 @@ export function ProfileSettingsSheet({
             artistBookingSettings={profile.type === "artist" ? artistBookingSettings : null}
             onArtistBookingChange={profile.type === "artist" ? onArtistBookingChange : null}
             onLogout={onLogout}
+            onDeleteAccount={onDeleteAccount}
           />
         </div>
       </aside>

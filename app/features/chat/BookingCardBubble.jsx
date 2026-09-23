@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarCheck2, Clock3, TimerOff, User2, X } from "lucide-react";
+import { CalendarCheck2, Clock3, RotateCcw, TimerOff, User2, X } from "lucide-react";
 import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar";
 import { toPersianDigits } from "../../shared/lib/digits";
 
@@ -31,7 +31,7 @@ const STATUS_TONE = {
  * can't be mistaken for something either side typed. Content here is always
  * a live snapshot from enrichBookingCards(), never cached locally.
  */
-function BookingCardBubble({ booking, kind, missingLabel }) {
+function BookingCardBubble({ booking, kind, missingLabel, onRebook }) {
   if (!booking) {
     return (
       <div className="bookingCard is-missing">
@@ -43,6 +43,13 @@ function BookingCardBubble({ booking, kind, missingLabel }) {
 
   const cancelled = booking.status === "لغو";
   const expired = booking.status === "منقضی شده";
+  // Recovery CTA right at the moment the client sees the bad news — the
+  // whole point is not making them dig back into "فعالیت من" to find this
+  // exact booking again. onRebook is only ever passed by the client's own
+  // view of the conversation (see ChatPage.jsx); the salon/artist side of
+  // the SAME card never gets this prop, so it never sees "book again" on
+  // its own settled request.
+  const canRebook = typeof onRebook === "function" && (cancelled || expired);
   const tone = STATUS_TONE[booking.status] || "pending";
   const dateLabel = formatRelativeBookingDayLabel(booking.bookingDate);
   const staffLabel = kind === "salon" ? String(booking.staff || "").trim() : "";
@@ -84,14 +91,21 @@ function BookingCardBubble({ booking, kind, missingLabel }) {
             : "سالن به‌موقع پاسخ نداد و نوبت به‌طور خودکار لغو شد"}
         </div>
       ) : null}
+
+      {canRebook ? (
+        <button type="button" className="bookingCardRebook" onClick={() => onRebook(booking)}>
+          <RotateCcw size={14} />
+          رزرو دوباره
+        </button>
+      ) : null}
     </div>
   );
 }
 
-export function SalonBookingCardBubble({ booking }) {
-  return <BookingCardBubble booking={booking} kind="salon" missingLabel="این نوبت دیگر در دسترس نیست." />;
+export function SalonBookingCardBubble({ booking, onRebook }) {
+  return <BookingCardBubble booking={booking} kind="salon" missingLabel="این نوبت دیگر در دسترس نیست." onRebook={onRebook} />;
 }
 
-export function ArtistBookingCardBubble({ booking }) {
-  return <BookingCardBubble booking={booking} kind="artist" missingLabel="این نوبت دیگر در دسترس نیست." />;
+export function ArtistBookingCardBubble({ booking, onRebook }) {
+  return <BookingCardBubble booking={booking} kind="artist" missingLabel="این نوبت دیگر در دسترس نیست." onRebook={onRebook} />;
 }

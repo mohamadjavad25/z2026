@@ -5,6 +5,7 @@ import * as shops from "./db/repos/shops.js";
 import * as messages from "./db/repos/messages.js";
 import { publishChatEvent } from "./chatEvents.js";
 import { enrichBookingCards, enrichOrderCards } from "./chatOrderCards.js";
+import { sendPushToUser } from "./push.js";
 
 /**
  * Auto-expiry sweep for booking REQUESTS a salon/artist never actively
@@ -89,7 +90,7 @@ function sweepIntervalMs() {
  *  Date.now() — so this is immune to any clock skew between the Node process and SQLite. */
 function findExpiredSalonBookingRequests(db, minutes) {
   return db.prepare(`
-    SELECT id, salon_user_id, client_user_id
+    SELECT id, salon_user_id, client_user_id, client, service
     FROM salon_bookings
     WHERE status = 'درخواست'
       AND created_at <= datetime('now', ?)
@@ -102,7 +103,7 @@ function findExpiredSalonBookingRequests(db, minutes) {
  *  as findExpiredSalonBookingRequests above. */
 function findExpiredDirectArtistBookingRequests(db, minutes) {
   return db.prepare(`
-    SELECT id, artist_user_id, client_user_id
+    SELECT id, artist_user_id, client_user_id, client_name, service
     FROM artist_bookings
     WHERE status = 'تازه'
       AND source_salon_user_id IS NULL
@@ -117,7 +118,7 @@ function findExpiredDirectArtistBookingRequests(db, minutes) {
  *  ZIBABAN_*_TIMEOUT_MINUTES knob for orders; one product policy, one env var. */
 function findExpiredOrders(db, minutes) {
   return db.prepare(`
-    SELECT id, shop_user_id, buyer_user_id
+    SELECT id, shop_user_id, buyer_user_id, buyer_name, total
     FROM shop_orders
     WHERE status = 'جدید'
       AND created_at <= datetime('now', ?)
@@ -150,6 +151,18 @@ function notifyClientOfExpiry(booking) {
       recipients: sendResult.recipients
     });
   }
+  void sendPushToUser(clientUserId, {
+    title: "نوبت شما منقضی شد",
+    body: `${booking.service || "نوبت"} — سالن به‌موقع پاسخ نداد و نوبت به‌طور خودکار لغو شد.`
+  });
+  // The owner-facing half of this fix — see recentlyExpiredSalonBookings in
+  // HomeApp.jsx for the in-app counterpart. Before this, a salon that
+  // ignored a request had literally zero signal anything happened: the
+  // pending count just quietly dropped to zero.
+  void sendPushToUser(salonUserId, {
+    title: "یک درخواست رزرو منقضی شد",
+    body: `${booking.client || "مشتری"} — ${booking.service || "نوبت"} به‌دلیل عدم پاسخ در ۱ ساعت منقضی شد.`
+  });
 }
 
 /** Same idea as notifyClientOfExpiry, for a direct artist_bookings row —
@@ -173,6 +186,14 @@ function notifyClientOfArtistBookingExpiry(booking) {
       recipients: sendResult.recipients
     });
   }
+  void sendPushToUser(clientUserId, {
+    title: "نوبت شما منقضی شد",
+    body: `${booking.service || "نوبت"} — آرتیست به‌موقع پاسخ نداد و نوبت به‌طور خودکار لغو شد.`
+  });
+  void sendPushToUser(artistUserId, {
+    title: "یک درخواست نوبت منقضی شد",
+    body: `${booking.client_name || booking.client || "مشتری"} — ${booking.service || "نوبت"} به‌دلیل عدم پاسخ در ۱ ساعت منقضی شد.`
+  });
 }
 
 /**
@@ -206,6 +227,14 @@ function notifyClientOfOrderExpiry(order) {
     orderId: order.id,
     status: ORDER_REQUEST_EXPIRED_STATUS,
     recipients: [buyerUserId, shopUserId]
+  });
+  void sendPushToUser(buyerUserId, {
+    title: "سفارش شما منقضی شد",
+    body: `سفارش ${order.total ? `${order.total} تومان` : ""} — فروشگاه به‌موقع پاسخ نداد و سفارش به‌طور خودکار لغو شد.`
+  });
+  void sendPushToUser(shopUserId, {
+    title: "یک سفارش منقضی شد",
+    body: `${order.buyer_name || "خریدار"} — سفارش به‌دلیل عدم پاسخ در ۱ ساعت منقضی و کالا به موجودی بازگشت.`
   });
 }
 

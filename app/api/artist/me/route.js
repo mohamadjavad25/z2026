@@ -1,6 +1,7 @@
 import { error, json, notFound, requireUserRole } from "../../../lib/http.js";
 import * as artists from "../../../lib/db/repos/artists.js";
 import * as salons from "../../../lib/db/repos/salons.js";
+import { sendPushToUser } from "../../../lib/push.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -128,6 +129,13 @@ function patchOwnArtistBooking(artistUserId, body) {
     ? artists.cancelArtistBookingRow(bookingId)
     : artists.updateArtistBookingRow(bookingId, { status: nextStatus });
   if (!updatedRow) return notFound();
+
+  if (current.clientUserId) {
+    void sendPushToUser(Number(current.clientUserId), {
+      title: nextStatus === "تایید شده" ? "نوبت شما تایید شد" : "نوبت شما لغو شد",
+      body: `${current.service || "نوبت"} — ${current.bookingDate || ""} ${current.time || ""}`.trim()
+    });
+  }
 
   return json({
     data: {

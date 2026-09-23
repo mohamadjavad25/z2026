@@ -253,10 +253,18 @@
   backdrop-filter: blur(10px);
 }
 
-/* .clientBookingSettings */
+/* .clientBookingSettings — the backdrop centers this with `place-items:
+   center` and no height limit of its own, so content taller than the
+   viewport (e.g. ScheduleBookingMenuModal's client-profile panel plus its
+   quick-action rows) used to get silently clipped by the viewport edge with
+   no way to scroll to the rest — position:fixed ancestors don't move with
+   page scroll, so there was no scroll path to the clipped part at all.
+   max-height + its own overflow-y makes the card scroll internally instead. */
 .clientBookingSettings {
   position: relative;
   width: min(100%, 340px);
+  max-height: calc(100dvh - 36px);
+  overflow-y: auto;
   display: grid;
   gap: 10px;
   padding: 14px;

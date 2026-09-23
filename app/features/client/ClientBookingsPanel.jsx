@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { CalendarCheck, CalendarDays, CheckCircle2, Clock3, FileText, MapPin, RotateCcw, Sparkles, TimerOff, XCircle } from "lucide-react";
 import { SegmentClock } from "../../components/SegmentClock";
 import { toPersianDigits } from "../../shared/lib/digits";
-import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar";
+import { formatRelativeBookingDayLabel, resolveRollingPersianDate } from "../../shared/lib/persianCalendar";
 import {
   buildExactBookingDateTabs,
   getBookingDateKey,
@@ -30,6 +30,21 @@ const BOOKING_STATUS_ICONS = {
   bad: XCircle,
   expired: TimerOff
 };
+
+// Same rule as ClientBookingSettingsModal's isBookingSettled (duplicated,
+// not shared — small component-local helper, matching this codebase's
+// convention): "رزرو دوباره" only makes sense once this booking is settled,
+// not while it's still an active pending/upcoming one.
+function isBookingSettled(booking) {
+  const status = booking?.status || "";
+  if (status === "لغو" || status === "منقضی شده") return true;
+  if (status !== "تایید شده") return false;
+  const rawDate = booking?.booking_date || booking?.date || "";
+  if (!rawDate) return false;
+  const bookingDate = resolveRollingPersianDate(rawDate);
+  const today = resolveRollingPersianDate("امروز");
+  return bookingDate.getTime() <= today.getTime();
+}
 
 // SQLite CURRENT_TIMESTAMP strings are UTC with no offset marker ("YYYY-MM-DD
 // HH:MM:SS"); append "Z" (same trick as ClientOrdersPanel's formatOrderDate)
@@ -191,15 +206,17 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook })
                   >
                     <RotateCcw size={18} />
                   </button>
-                  <button
-                    type="button"
-                    className="clientBookingActionSecondary"
-                    onClick={() => onRebook?.(nextBooking)}
-                    aria-label="رزرو دوباره"
-                    title="رزرو دوباره"
-                  >
-                    <Sparkles size={18} />
-                  </button>
+                  {isBookingSettled(nextBooking) ? (
+                    <button
+                      type="button"
+                      className="clientBookingActionSecondary"
+                      onClick={() => onRebook?.(nextBooking)}
+                      aria-label="رزرو دوباره"
+                      title="رزرو دوباره"
+                    >
+                      <Sparkles size={18} />
+                    </button>
+                  ) : null}
                 </div>
               </article>
             );

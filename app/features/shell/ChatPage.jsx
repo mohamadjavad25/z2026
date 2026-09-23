@@ -105,7 +105,8 @@ export function ChatPage({
   onBack,
   initialPane = "inbox",
   onPaneChange,
-  composerSignal = 0
+  composerSignal = 0,
+  onRebookBooking
 }) {
   const [pane, setPane] = useState("inbox");
   const [draft, setDraft] = useState("");
@@ -516,11 +517,18 @@ export function ChatPage({
                         // paid order — see BookingCardBubble.jsx. Structurally
                         // unspoofable the same way: only POST /api/salon-bookings
                         // and POST /api/artist/bookings can create these.
+                        // Only the client side of this conversation ever gets a
+                        // rebook affordance on their own booking card — the
+                        // salon/artist owner viewing the SAME message must not
+                        // see "book again" on a request that's theirs to manage.
+                        const isClientViewer = Boolean(
+                          myUserId && message.booking?.clientUserId === myUserId
+                        );
                         return (
                           <div key={message.id} className="chatOrderSystemRow">
                             {message.attachmentType === "salon-booking"
-                              ? <SalonBookingCardBubble booking={message.booking} />
-                              : <ArtistBookingCardBubble booking={message.booking} />}
+                              ? <SalonBookingCardBubble booking={message.booking} onRebook={isClientViewer ? (b) => onRebookBooking?.(b, "salon-booking") : undefined} />
+                              : <ArtistBookingCardBubble booking={message.booking} onRebook={isClientViewer ? (b) => onRebookBooking?.(b, "artist-booking") : undefined} />}
                             <time>{formatChatTime(message.createdAt)}</time>
                           </div>
                         );

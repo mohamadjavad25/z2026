@@ -144,6 +144,13 @@ export function getConversation(conversationId, userId) {
   `).all(conversationId);
 
   const peer = convo.type === "direct" ? members.find((m) => m.id !== userId) || null : null;
+  // A direct conversation's OTHER member row is gone (not just unloaded —
+  // conversation_members.user_id stays ON DELETE CASCADE on purpose, see
+  // migration v34) exactly when that account was deleted. There's no name
+  // to recover (the membership row carried no snapshot), so this generic
+  // label is the best available, same as salonName's "‹thing› حذف‌شده"
+  // fallback elsewhere for a deleted counterparty.
+  const peerIsDeletedAccount = convo.type === "direct" && !peer;
 
   // lastReadAt of the OTHER member(s) rides along here so the UI can derive
   // an honest read receipt (message.createdAt <= peer's last_read_at) without
@@ -155,7 +162,7 @@ export function getConversation(conversationId, userId) {
   return {
     id: convo.id,
     type: convo.type,
-    title: convo.type === "group" ? convo.title : (peer?.name || ""),
+    title: convo.type === "group" ? convo.title : (peer?.name || (peerIsDeletedAccount ? "حساب حذف‌شده" : "")),
     avatar: convo.type === "group" ? convo.avatar : (peer?.avatar || ""),
     createdBy: convo.created_by,
     isCreator: convo.created_by === userId,
@@ -206,10 +213,13 @@ export function listConversations(userId, { limit = DEFAULT_PAGE_SIZE, cursor } 
 
   const conversations = page.map((row) => {
     const peer = peerByConversation.get(row.id) || null;
+    // Same "‹thing› حذف‌شده" fallback as getConversation above — see there
+    // for why the peer row is simply gone (not recoverable) once deleted.
+    const peerIsDeletedAccount = row.type === "direct" && !peer;
     return {
       id: row.id,
       type: row.type,
-      title: row.type === "group" ? row.title : (peer?.name || ""),
+      title: row.type === "group" ? row.title : (peer?.name || (peerIsDeletedAccount ? "حساب حذف‌شده" : "")),
       avatar: row.type === "group" ? row.avatar : (peer?.avatar || ""),
       // `online` is stitched on by the API route from the in-process
       // presence registry (not a DB column) — see /api/conversations/route.js.

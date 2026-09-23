@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import {
+  AlertTriangle,
   ChevronDown,
   EyeOff,
   Bell,
@@ -16,8 +17,53 @@ import {
   Tag,
   Briefcase,
   Package,
-  Truck
+  Trash2,
+  Truck,
+  X
 } from "lucide-react";
+
+const DELETE_CONFIRM_WORD = "حذف";
+
+/**
+ * Inline (not a separate modal) type-to-confirm gate for account deletion —
+ * a single tap is too easy to hit by accident for something this
+ * irreversible (see migration v34: the account and everything only it
+ * owned is gone for good, though other users' own history with it is now
+ * preserved). Requires literally typing "حذف" before the real action is
+ * even clickable.
+ */
+function DeleteAccountConfirm({ onConfirm, onCancel, busy }) {
+  const [typed, setTyped] = useState("");
+  const matches = typed.trim() === DELETE_CONFIRM_WORD;
+  return (
+    <div className="neoSettingsDeleteConfirm" role="alertdialog" aria-label="تایید حذف حساب">
+      <div className="neoSettingsDeleteConfirmHead">
+        <AlertTriangle size={16} />
+        <b>این کار برگشت‌ناپذیر است</b>
+      </div>
+      <p>حساب و اطلاعاتی که فقط متعلق به خودت است برای همیشه حذف می‌شود. برای تایید، کلمه «{DELETE_CONFIRM_WORD}» را تایپ کن.</p>
+      <input
+        type="text"
+        inputMode="text"
+        autoComplete="off"
+        value={typed}
+        onChange={(e) => setTyped(e.target.value)}
+        placeholder={DELETE_CONFIRM_WORD}
+        disabled={busy}
+      />
+      <div className="neoSettingsDeleteConfirmActions">
+        <button type="button" onClick={onCancel} disabled={busy}>
+          <X size={15} />
+          انصراف
+        </button>
+        <button type="button" className="is-danger" disabled={!matches || busy} onClick={onConfirm}>
+          <Trash2 size={15} />
+          {busy ? "در حال حذف…" : "تایید حذف حساب"}
+        </button>
+      </div>
+    </div>
+  );
+}
 
 function SettingsToggle({ icon: Icon, label, description, checked, onChange, onLabel, offLabel }) {
   return (
@@ -70,8 +116,11 @@ export function ProfileSettingsPanel({
   onToggle,
   artistBookingSettings,
   onArtistBookingChange,
-  onLogout
+  onLogout,
+  onDeleteAccount
 }) {
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleteBusy, setDeleteBusy] = useState(false);
   const shopMainToggles = profileType === "shop" ? (
     <SettingsGroup title="نمایش فروشگاه">
       <SettingsToggle
@@ -216,6 +265,28 @@ export function ProfileSettingsPanel({
         <LogOut size={16} />
         <span>خروج از حساب</span>
       </button>
+
+      {onDeleteAccount ? (
+        deleteConfirmOpen ? (
+          <DeleteAccountConfirm
+            busy={deleteBusy}
+            onCancel={() => setDeleteConfirmOpen(false)}
+            onConfirm={async () => {
+              setDeleteBusy(true);
+              try {
+                await onDeleteAccount();
+              } finally {
+                setDeleteBusy(false);
+              }
+            }}
+          />
+        ) : (
+          <button type="button" className="neoSettingsDelete" onClick={() => setDeleteConfirmOpen(true)}>
+            <Trash2 size={16} />
+            <span>حذف حساب</span>
+          </button>
+        )
+      ) : null}
     </div>
   );
 }

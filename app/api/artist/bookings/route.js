@@ -6,6 +6,7 @@ import * as messages from "../../../lib/db/repos/messages.js";
 import { publishChatEvent } from "../../../lib/chatEvents.js";
 import { enrichBookingCards } from "../../../lib/chatOrderCards.js";
 import { checkRateLimit } from "../../../lib/rateLimit.js";
+import { sendPushToUser } from "../../../lib/push.js";
 // Side-effect import: starts the once-per-process 1-hour booking-request
 // auto-expiry sweep (see that file's docstring) the first time this route
 // module loads — same self-starting-on-import convention as
@@ -60,6 +61,10 @@ export async function POST(request) {
         publishChatEvent({ type: "message", conversationId: conversation.id, message: sendResult.message, recipients: sendResult.recipients });
       }
     }
+    void sendPushToUser(artistUserId, {
+      title: "درخواست نوبت جدید",
+      body: `${result.booking.client || result.booking.client_name || "مشتری"} — ${result.booking.service || ""}`.trim()
+    });
   }
 
   return json({

@@ -15,6 +15,7 @@ import {
   Search,
   Settings,
   ShieldCheck,
+  TimerOff,
   Truck,
   Upload,
   UserRound,
@@ -169,6 +170,66 @@ import {
   shopProductEnhancePresets,
   useShopWorkspace
 } from "../shops";
+
+// SQLite's CURRENT_TIMESTAMP is UTC with no offset marker ("2026-09-19 10:30:00"),
+// which JS parses as LOCAL time unless told otherwise — append "Z" so recency
+// checks (e.g. "expired within the last day") aren't off by the browser's
+// timezone offset.
+function isWithinLastHours(sqliteTimestamp, hours) {
+  if (!sqliteTimestamp) return false;
+  const ms = Date.parse(`${sqliteTimestamp}Z`.replace(" ", "T"));
+  if (!Number.isFinite(ms)) return false;
+  return Date.now() - ms <= hours * 3600 * 1000;
+}
+
+// PushManager needs the VAPID public key as a raw Uint8Array, not the
+// base64url string it's distributed as — standard conversion, same one
+// every Web Push how-to uses (there's no browser-native helper for it).
+function urlBase64ToUint8Array(base64String) {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const rawData = atob(base64);
+  return Uint8Array.from(rawData, (char) => char.charCodeAt(0));
+}
+
+/**
+ * Best-effort push opt-in, called once per authenticated session (see
+ * onAuthenticated below). Silently does nothing when: push isn't supported
+ * (SSR, unsupported browser), the server hasn't configured VAPID keys yet
+ * (see .env.example), permission was already denied (re-prompting a denied
+ * permission is a browser no-op anyway, but skip the API round-trip), or a
+ * subscription already exists (subscribe() on an existing subscription just
+ * returns it — this still re-POSTs it, which is fine, saveSubscription
+ * upserts by endpoint).
+ */
+async function subscribeToPushNotifications() {
+  if (typeof window === "undefined") return;
+  if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+  const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+  if (!publicKey) return;
+  if (typeof Notification !== "undefined" && Notification.permission === "denied") return;
+
+  try {
+    if (typeof Notification !== "undefined" && Notification.permission === "default") {
+      const permission = await Notification.requestPermission();
+      if (permission !== "granted") return;
+    }
+    const registration = await navigator.serviceWorker.ready;
+    const subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(publicKey)
+    });
+    await fetch("/api/push/subscribe", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ subscription })
+    });
+  } catch {
+    // Best-effort — a failed subscribe attempt must never block or crash
+    // the login flow it's piggybacking on.
+  }
+}
+
 export function HomeApp() {
   const [activeTab, setActiveTab] = useState("profile");
   // True only while viewing the storefront via the owner's own "پیش‌نمایش
@@ -233,7 +294,8 @@ export function HomeApp() {
     writeAuthSession,
     handleLoginSubmit,
     handleProfileSubmit,
-    logoutAccount
+    logoutAccount,
+    deleteAccountPermanently
   } = useAuthSession({
     onEnterTab: setActiveTab,
     onShellNotice: setAppToast,
@@ -275,6 +337,8 @@ export function HomeApp() {
       } else if (source === "register") {
         await c.refreshExploreFeed?.();
         await c.refreshShopDirectory?.();
+        await c.refreshFollows?.();
+        await c.refreshSaves?.();
       } else if (source === "boot") {
         const [walletResponse, passportResponse] = await Promise.all([
           fetch("/api/wallet"),
@@ -304,6 +368,14 @@ export function HomeApp() {
       if ((source === "boot" || source === "login") && profile?.type === "client") {
         await c.refreshClientOrders?.();
       }
+      // Fire-and-forget: real push notifications (see app/lib/push.js) so a
+      // salon/artist finds out about a new/expired request even when the
+      // app isn't open, closing the gap the full-team audit flagged — an
+      // installed-but-no-op service worker was the actual root cause of
+      // "owner never finds out a request auto-expired". Every authenticated
+      // session tries once; subscribeToPushNotifications no-ops quietly if
+      // unsupported, already denied, or already subscribed.
+      void subscribeToPushNotifications();
     },
     onLoggedOut: async () => {
       const c = authCascadeRef.current;
@@ -1231,6 +1303,25 @@ export function HomeApp() {
     artistBookingList.filter((item) => item.status === "تازه" || item.status === "درخواست")
   ), [artistBookingList]);
 
+  // Auto-expiry (see app/lib/bookingExpirySweep.js) silently flips a stale
+  // request's status away from "درخواست"/"تازه" — it DROPS OUT of the pending
+  // lists above with zero signal to the owner that anything happened (the
+  // client gets a chat card; the salon/artist previously got nothing at all).
+  // Surfaced here as its own read-only "recently expired" list (last 24h,
+  // by created_at) so the notifications sheet can show it — informational
+  // only, no approve/decline actions, since the window already closed.
+  const recentlyExpiredSalonBookings = useMemo(() => (
+    salonAppointmentList.filter((booking) => (
+      booking.status === "منقضی شده" && isWithinLastHours(booking.created_at, 24)
+    ))
+  ), [salonAppointmentList]);
+
+  const recentlyExpiredArtistBookings = useMemo(() => (
+    artistBookingList.filter((item) => (
+      item.status === "منقضی شده" && isWithinLastHours(item.createdAt, 24)
+    ))
+  ), [artistBookingList]);
+
   const scheduleDayAppointments = useMemo(() => (
     salonHistoryAppointments
       .filter((item) => isArtistBookingOnExactDate(item, activeScheduleDateKey))
@@ -1840,6 +1931,24 @@ function getPassportMatch(post) {
     rebookSalonFromBooking(booking);
   }
 
+  // Same rebook routing as rebookFromBooking, called from the client's own
+  // chat booking card the instant they see "منقضی شده"/"لغو" (see
+  // BookingCardBubble's onRebook + ChatPage.jsx) — the recovery path the
+  // audit flagged as missing right at the moment of expiry, not just buried
+  // back in "فعالیت من". The chat card hands over getSalonBookingById's/
+  // getArtistBookingById's already-camelCased shape (salonUserId/
+  // artistUserId, not the raw snake_case DB columns) — rebookSalonFromBooking
+  // expects salon_user_id, so that one needs remapping; rebookArtistFromBooking
+  // already reads artistUserId directly, so the artist case can pass through.
+  function rebookFromChatBookingCard(booking, attachmentType) {
+    if (!booking) return;
+    if (attachmentType === "artist-booking") {
+      rebookArtistFromBooking(booking);
+      return;
+    }
+    rebookSalonFromBooking({ ...booking, salon_user_id: booking.salonUserId });
+  }
+
   async function openExploreArtistProfile(post) {
     const artist = resolveExploreArtist(post);
     setSelectedPost(null);
@@ -2149,6 +2258,7 @@ function getPassportMatch(post) {
                 : "پیام‌ها"
             }
             initialPane={chatInitialPane}
+            onRebookBooking={rebookFromChatBookingCard}
           />
         </section>
 
@@ -2249,6 +2359,7 @@ function getPassportMatch(post) {
               }}
               activePanel={createdProfile?.type === "salon" ? salonHeroSheet : profileView}
               onOpenSaved={() => {
+                refreshSaves();
                 if (createdProfile?.type === "salon") {
                   setSalonHeroSheet((prev) => (prev === "saved" ? null : "saved"));
                 } else {
@@ -2264,9 +2375,9 @@ function getPassportMatch(post) {
               }}
               notificationCount={
                 createdProfile?.type === "salon"
-                  ? salonUnreadNoticeCount
+                  ? salonUnreadNoticeCount + recentlyExpiredSalonBookings.length
                   : createdProfile?.type === "artist"
-                    ? pendingArtistBookingRequests.length + pendingArtistSalonInvites.length
+                    ? pendingArtistBookingRequests.length + pendingArtistSalonInvites.length + recentlyExpiredArtistBookings.length
                     : 0
               }
               onOpenSettings={() => {
@@ -2518,11 +2629,14 @@ function getPassportMatch(post) {
                     <ClientProfileOverview
                       profile={createdProfile}
                       onEditProfile={openProfileEdit}
-                      onOpenBookings={() => setProfileView("bookings")}
-                      onOpenSaved={() => setProfileView("saved")}
+                      onOpenSaved={() => {
+                        refreshSaves();
+                        setProfileView("saved");
+                      }}
                       profileSettings={profileSettings}
                       onToggleSetting={toggleProfileSetting}
                       onLogout={logoutAccount}
+                      onDeleteAccount={deleteAccountPermanently}
                     />
                   ) : null}
                 </>
@@ -2647,6 +2761,24 @@ function getPassportMatch(post) {
           onChangeTime={changeScheduleBookingTime}
           onChangeStaff={changeScheduleBookingStaff}
           onCancel={cancelScheduleBooking}
+          onApprove={async () => {
+            if (!scheduleBookingMenu) return;
+            if (scheduleBookingMenu.ownerType === "salon") {
+              await approveReservationRequest(scheduleBookingMenu.id);
+            } else {
+              await confirmArtistBookingRequest(scheduleBookingMenu.id);
+            }
+            closeScheduleBookingMenu();
+          }}
+          onDecline={async () => {
+            if (!scheduleBookingMenu) return;
+            if (scheduleBookingMenu.ownerType === "salon") {
+              await declineReservationRequest(scheduleBookingMenu.id);
+            } else {
+              await declineArtistBookingRequest(scheduleBookingMenu.id);
+            }
+            closeScheduleBookingMenu();
+          }}
           busy={scheduleBookingBusy}
           onMessage={(peerUserId) => {
             openOwnerChat();
@@ -2682,6 +2814,7 @@ function getPassportMatch(post) {
             else setProfileView("saved");
           }}
           onLogout={logoutAccount}
+          onDeleteAccount={deleteAccountPermanently}
           hoursOpen={settingsHoursOpen}
           onToggleHoursOpen={() => setSettingsHoursOpen((open) => !open)}
           hoursPresets={createdProfile?.type === "artist" ? artistHoursPresets : salonHoursPresets}
@@ -2791,6 +2924,39 @@ function getPassportMatch(post) {
                 </div>
               </section>
             )}
+
+            {recentlyExpiredSalonBookings.length > 0 && (
+              <section className="salonRequestsBoard salonExpiredNoticeBoard" aria-label="درخواست‌های منقضی‌شده اخیر">
+                <div className="boardHead">
+                  <div>
+                    <span>منقضی‌شده‌های اخیر</span>
+                    <strong>بدون پاسخ در بازه ۱ ساعته باقی ماندند</strong>
+                  </div>
+                  <b>{toPersianDigits(recentlyExpiredSalonBookings.length)} مورد</b>
+                </div>
+                <div className="reservationRequestList">
+                  {recentlyExpiredSalonBookings.map((booking) => (
+                    <article className="reservationRequestCard is-expiredNotice" key={booking.id}>
+                      <div className="requestCardMain">
+                        <div className="requestCardWho">
+                          <strong>{booking.client}</strong>
+                          <span>{booking.service}</span>
+                        </div>
+                        <div className="requestCardAside">
+                          <span className="expiredNoticeTag">
+                            <TimerOff size={14} />
+                            منقضی شد
+                          </span>
+                          <div className="requestCardWhen">
+                            <em>{formatRelativeBookingDayLabel(booking.booking_date)}</em>
+                          </div>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            )}
           </ProfileSheet>
         )}
 
@@ -2881,6 +3047,39 @@ function getPassportMatch(post) {
                       </article>
                     );
                   })}
+                </div>
+              </section>
+            )}
+
+            {recentlyExpiredArtistBookings.length > 0 && (
+              <section className="salonRequestsBoard salonExpiredNoticeBoard" aria-label="نوبت‌های منقضی‌شده اخیر">
+                <div className="boardHead">
+                  <div>
+                    <span>منقضی‌شده‌های اخیر</span>
+                    <strong>بدون پاسخ در بازه ۱ ساعته باقی ماندند</strong>
+                  </div>
+                  <b>{toPersianDigits(recentlyExpiredArtistBookings.length)} مورد</b>
+                </div>
+                <div className="reservationRequestList">
+                  {recentlyExpiredArtistBookings.map((request) => (
+                    <article className="reservationRequestCard is-expiredNotice" key={request.id}>
+                      <div className="requestCardMain">
+                        <div className="requestCardWho">
+                          <strong>{request.client || "مشتری"}</strong>
+                          <span>{request.service}</span>
+                        </div>
+                        <div className="requestCardAside">
+                          <span className="expiredNoticeTag">
+                            <TimerOff size={14} />
+                            منقضی شد
+                          </span>
+                          <div className="requestCardWhen">
+                            <em>{formatRelativeBookingDayLabel(request.dateKey || request.date)}</em>
+                          </div>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
                 </div>
               </section>
             )}

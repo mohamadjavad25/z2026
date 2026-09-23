@@ -606,7 +606,10 @@ export function listOrdersByBuyer(buyerUserId) {
       order = {
         id: row.id,
         shop_user_id: row.shop_user_id,
-        shop_name: row.shop_name,
+        // shop_user_id is now nullable (see migration v34 — deleting a shop
+        // account no longer destroys the buyer's own order history with
+        // it), same "‹thing› حذف‌شده" fallback as listClientSalonBookings.
+        shop_name: row.shop_name || (row.shop_user_id ? "" : "فروشگاه حذف‌شده"),
         shop_avatar: row.shop_avatar || "",
         buyer_user_id: row.buyer_user_id,
         buyer_name: row.buyer_name,

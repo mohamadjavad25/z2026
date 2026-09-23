@@ -3,7 +3,7 @@ import { applySchema } from "./schema.js";
 // Exported so scripts/migration-sequential.test.mjs (and any other
 // verification script) can assert against the live value instead of a
 // hardcoded number that silently drifts out of date every time this bumps.
-export const SCHEMA_VERSION = 33;
+export const SCHEMA_VERSION = 35;
 
 /** Convert legacy session expiry strings (ISO / SQLite datetime) to epoch ms. Unparseable → 0 (expired). */
 export function sessionExpiryToEpochMs(value) {
@@ -640,6 +640,175 @@ function migrateToV33(database) {
   applySchema(database);
 }
 
+/**
+ * DELETE /api/profile does a plain `DELETE FROM users` and lets FKs decide
+ * what happens to everything that row touched. Five FKs were `NOT NULL ...
+ * ON DELETE CASCADE` pointing at a *counterparty*, not the row's own owner —
+ * deleting your own account could silently destroy OTHER people's data:
+ *   - salon_bookings.salon_user_id / artist_bookings.artist_user_id /
+ *     shop_orders.shop_user_id: a salon/artist/shop deleting their account
+ *     wiped every client/buyer's booking or order HISTORY with them.
+ *   - conversations.created_by: whoever started a conversation deleting
+ *     their account cascade-deleted the `conversations` row itself, which
+ *     in turn cascades through conversation_members/messages — wiping the
+ *     WHOLE thread, including every message the other participant sent.
+ *   - messages.sender_user_id: even without the above, a non-creator
+ *     participant deleting their account deleted every message THEY sent,
+ *     leaving the survivor's thread full of orphaned, out-of-context replies.
+ * Relaxed all five to nullable `ON DELETE SET NULL` (rebuild-table pattern,
+ * same as migrateDropShellBalance above — SQLite can't ALTER a column's FK
+ * in place). Deliberately NOT touched: conversation_members.user_id (stays
+ * CASCADE — removing the deleted user's own membership is correct, it only
+ * affects their own data) and reviews.target_user_id (out of scope — has a
+ * legitimate case for either behavior, not the data-loss class this fixes).
+ */
+function migrateAccountDeletionCascadeFix(database) {
+  database.exec("PRAGMA foreign_keys = OFF;");
+
+  database.exec(`
+    CREATE TABLE salon_bookings_v34 (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      salon_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      client_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      client TEXT NOT NULL DEFAULT '',
+      phone TEXT NOT NULL DEFAULT '',
+      service TEXT NOT NULL DEFAULT '',
+      staff TEXT NOT NULL DEFAULT '',
+      booking_date TEXT NOT NULL DEFAULT '',
+      time TEXT NOT NULL DEFAULT '',
+      duration_minutes INTEGER NOT NULL DEFAULT 60,
+      status TEXT NOT NULL DEFAULT 'تازه',
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+  database.exec(`
+    INSERT INTO salon_bookings_v34
+      (id, salon_user_id, client_user_id, client, phone, service, staff, booking_date, time, duration_minutes, status, created_at)
+    SELECT id, salon_user_id, client_user_id, client, phone, service, staff, booking_date, time, duration_minutes, status, created_at
+    FROM salon_bookings;
+  `);
+  database.exec("DROP TABLE salon_bookings;");
+  database.exec("ALTER TABLE salon_bookings_v34 RENAME TO salon_bookings;");
+
+  database.exec(`
+    CREATE TABLE artist_bookings_v34 (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      artist_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      client_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      source_salon_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      client_name TEXT NOT NULL DEFAULT '',
+      client_phone TEXT NOT NULL DEFAULT '',
+      service TEXT NOT NULL DEFAULT '',
+      booking_date TEXT NOT NULL DEFAULT '',
+      time TEXT NOT NULL DEFAULT '',
+      duration_minutes INTEGER NOT NULL DEFAULT 60,
+      status TEXT NOT NULL DEFAULT 'تازه',
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+  database.exec(`
+    INSERT INTO artist_bookings_v34
+      (id, artist_user_id, client_user_id, source_salon_user_id, client_name, client_phone, service, booking_date, time, duration_minutes, status, created_at, updated_at)
+    SELECT id, artist_user_id, client_user_id, source_salon_user_id, client_name, client_phone, service, booking_date, time, duration_minutes, status, created_at, updated_at
+    FROM artist_bookings;
+  `);
+  database.exec("DROP TABLE artist_bookings;");
+  database.exec("ALTER TABLE artist_bookings_v34 RENAME TO artist_bookings;");
+
+  database.exec(`
+    CREATE TABLE shop_orders_v34 (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      shop_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      buyer_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      buyer_name TEXT NOT NULL DEFAULT '',
+      buyer_phone TEXT NOT NULL DEFAULT '',
+      status TEXT NOT NULL DEFAULT 'جدید',
+      total TEXT NOT NULL DEFAULT '',
+      total_num REAL NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+  database.exec(`
+    INSERT INTO shop_orders_v34
+      (id, shop_user_id, buyer_user_id, buyer_name, buyer_phone, status, total, total_num, created_at, updated_at)
+    SELECT id, shop_user_id, buyer_user_id, buyer_name, buyer_phone, status, total, total_num, created_at, updated_at
+    FROM shop_orders;
+  `);
+  database.exec("DROP TABLE shop_orders;");
+  database.exec("ALTER TABLE shop_orders_v34 RENAME TO shop_orders;");
+
+  database.exec(`
+    CREATE TABLE conversations_v34 (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      type TEXT NOT NULL DEFAULT 'direct',
+      title TEXT NOT NULL DEFAULT '',
+      avatar TEXT NOT NULL DEFAULT '',
+      created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+  database.exec(`
+    INSERT INTO conversations_v34 (id, type, title, avatar, created_by, created_at, updated_at)
+    SELECT id, type, title, avatar, created_by, created_at, updated_at
+    FROM conversations;
+  `);
+  database.exec("DROP TABLE conversations;");
+  database.exec("ALTER TABLE conversations_v34 RENAME TO conversations;");
+
+  database.exec(`
+    CREATE TABLE messages_v34 (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      conversation_id INTEGER NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+      sender_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      body TEXT NOT NULL DEFAULT '',
+      attachment_url TEXT NOT NULL DEFAULT '',
+      attachment_type TEXT NOT NULL DEFAULT '',
+      order_ref_id INTEGER REFERENCES shop_orders(id) ON DELETE SET NULL,
+      booking_ref_id INTEGER,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+  database.exec(`
+    INSERT INTO messages_v34
+      (id, conversation_id, sender_user_id, body, attachment_url, attachment_type, order_ref_id, booking_ref_id, created_at)
+    SELECT id, conversation_id, sender_user_id, body, attachment_url, attachment_type, order_ref_id, booking_ref_id, created_at
+    FROM messages;
+  `);
+  database.exec("DROP TABLE messages;");
+  database.exec("ALTER TABLE messages_v34 RENAME TO messages;");
+
+  database.exec("PRAGMA foreign_keys = ON;");
+}
+
+/** True once salon_bookings.salon_user_id is already ON DELETE SET NULL —
+ *  lets migrateToV34 skip a re-run cleanly if a prior attempt crashed after
+ *  finishing the rebuild but before the schema_version write (same defensive
+ *  intent as migrateDropShellBalance's columnExists guard above). */
+function accountDeletionCascadeFixApplied(database) {
+  if (!tableExists(database, "salon_bookings")) return false;
+  const fks = database.prepare("PRAGMA foreign_key_list(salon_bookings)").all();
+  const fk = fks.find((row) => row.from === "salon_user_id");
+  return Boolean(fk && fk.on_delete === "SET NULL");
+}
+
+function migrateToV34(database) {
+  migrateToV33(database);
+  if (!accountDeletionCascadeFixApplied(database)) {
+    migrateAccountDeletionCascadeFix(database);
+  }
+  applySchema(database);
+}
+
+/** New push_subscriptions table only (see schema.js and app/lib/push.js) —
+ *  applySchema's CREATE TABLE IF NOT EXISTS covers it. */
+function migrateToV35(database) {
+  migrateToV34(database);
+  applySchema(database);
+}
+
 function readSchemaVersion(database) {
   const row = database.prepare("SELECT value FROM app_meta WHERE key = 'schema_version'").get();
   return Number(row?.value || 0);
@@ -684,7 +853,9 @@ const MIGRATION_STEPS = [
   { version: 30, migrate: migrateToV30 },
   { version: 31, migrate: migrateToV31 },
   { version: 32, migrate: migrateToV32 },
-  { version: 33, migrate: migrateToV33 }
+  { version: 33, migrate: migrateToV33 },
+  { version: 34, migrate: migrateToV34 },
+  { version: 35, migrate: migrateToV35 }
 ];
 
 export function ensureSchemaVersion(database) {

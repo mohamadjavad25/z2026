@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getAuthMe, login as apiLogin, logout as apiLogout, register as apiRegister } from "../../shared/api/auth";
+import { deleteAccount as apiDeleteAccount, getAuthMe, login as apiLogin, logout as apiLogout, register as apiRegister } from "../../shared/api/auth";
 import { AUTH_SESSION_KEY, normalizeProfile, readAuthSession, writeAuthSession } from "./constants";
 
 /**
@@ -242,6 +242,21 @@ export function useAuthSession({
     onShellNoticeRef.current?.("از حساب خارج شدی.");
   }
 
+  /** Permanent. Same client-side cleanup as logoutAccount (session already
+   *  gone server-side once the user row is deleted) — see migration v34 for
+   *  what this does and doesn't take down with it. */
+  async function deleteAccountPermanently() {
+    try {
+      await apiDeleteAccount();
+    } catch {
+      // Even if the request itself failed, don't strand the UI in a
+      // half-deleted state — fall through to the same cleanup logout uses.
+    }
+    clearAuthSession();
+    await onLoggedOutRef.current?.();
+    onShellNoticeRef.current?.("حساب شما برای همیشه حذف شد.");
+  }
+
   return {
     authChecked,
     createdProfile,
@@ -265,6 +280,7 @@ export function useAuthSession({
     handleLoginSubmit,
     handleProfileSubmit,
     logoutAccount,
+    deleteAccountPermanently,
     normalizeProfile,
     writeAuthSession
   };

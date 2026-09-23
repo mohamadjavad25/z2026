@@ -60,12 +60,20 @@ export function ScheduleBookingMenuModal({
   onChangeTime,
   onChangeStaff,
   onCancel,
+  onApprove,
+  onDecline,
   onMessage,
   busy = false
 }) {
   if (!open || !booking) return null;
 
   const isSalonOwner = booking.ownerType === "salon";
+  // Same "not yet reviewed" definition ScheduleRow.jsx/getBookingStatusTone
+  // above use — "درخواست" for either role, "تازه" only counts as pending for
+  // an artist (a salon's own "تازه" walk-in entry is already settled). This
+  // is the one entry point that previously had zero approve/decline action —
+  // the client's booking might sit here forever without a next step visible.
+  const isPendingReview = booking.status === "درخواست" || (!isSalonOwner && booking.status === "تازه");
   const sourceSalon = booking.sourceSalon || {};
   const avatar = booking.clientAvatar || booking.client_avatar || sourceSalon.avatar || "";
   const title = booking.client || booking.salonName || sourceSalon.name || "رزرو";
@@ -196,6 +204,18 @@ export function ScheduleBookingMenuModal({
                   تماس
                 </button>
               </div>
+              {isPendingReview ? (
+                <div className="scheduleBookingReviewActions">
+                  <button type="button" className="is-approve" disabled={actionDisabled} onClick={onApprove}>
+                    <Check size={16} />
+                    {busy ? "در حال…" : "تایید نوبت"}
+                  </button>
+                  <button type="button" className="is-decline" disabled={actionDisabled} onClick={onDecline}>
+                    <X size={16} />
+                    رد کردن
+                  </button>
+                </div>
+              ) : null}
               {isSalonOwner ? (
                 <div className="scheduleBookingMiniActions">
                   <button type="button" disabled={actionDisabled} onClick={() => onViewChange?.("time")}>

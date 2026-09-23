@@ -144,6 +144,21 @@ export function applySchema(db) {
       CHECK (user_id != target_user_id)
     );
 
+    -- One row per browser/device a user granted Web Push permission on (see
+    -- app/lib/push.js). A user can have several (phone + desktop, two
+    -- browsers). endpoint is globally unique — it's the push service's own
+    -- per-registration URL, never reused across users/devices.
+    CREATE TABLE IF NOT EXISTS push_subscriptions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      endpoint TEXT NOT NULL UNIQUE,
+      p256dh TEXT NOT NULL,
+      auth TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_push_subscriptions_user ON push_subscriptions(user_id);
+
     CREATE TABLE IF NOT EXISTS artist_services (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -179,7 +194,7 @@ export function applySchema(db) {
 
     CREATE TABLE IF NOT EXISTS artist_bookings (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      artist_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      artist_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
       client_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
       source_salon_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
       client_name TEXT NOT NULL DEFAULT '',
@@ -307,7 +322,7 @@ export function applySchema(db) {
 
     CREATE TABLE IF NOT EXISTS shop_orders (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      shop_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      shop_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
       buyer_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
       buyer_name TEXT NOT NULL DEFAULT '',
       buyer_phone TEXT NOT NULL DEFAULT '',
@@ -400,7 +415,7 @@ export function applySchema(db) {
 
     CREATE TABLE IF NOT EXISTS salon_bookings (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      salon_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      salon_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
       client_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
       client TEXT NOT NULL DEFAULT '',
       phone TEXT NOT NULL DEFAULT '',
@@ -477,7 +492,7 @@ export function applySchema(db) {
       type TEXT NOT NULL DEFAULT 'direct',
       title TEXT NOT NULL DEFAULT '',
       avatar TEXT NOT NULL DEFAULT '',
-      created_by INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
@@ -493,7 +508,7 @@ export function applySchema(db) {
     CREATE TABLE IF NOT EXISTS messages (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       conversation_id INTEGER NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
-      sender_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      sender_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
       body TEXT NOT NULL DEFAULT '',
       attachment_url TEXT NOT NULL DEFAULT '',
       attachment_type TEXT NOT NULL DEFAULT '',
