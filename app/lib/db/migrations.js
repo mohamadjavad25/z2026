@@ -3,7 +3,7 @@ import { applySchema } from "./schema.js";
 // Exported so scripts/migration-sequential.test.mjs (and any other
 // verification script) can assert against the live value instead of a
 // hardcoded number that silently drifts out of date every time this bumps.
-export const SCHEMA_VERSION = 35;
+export const SCHEMA_VERSION = 36;
 
 /** Convert legacy session expiry strings (ISO / SQLite datetime) to epoch ms. Unparseable → 0 (expired). */
 export function sessionExpiryToEpochMs(value) {
@@ -809,6 +809,86 @@ function migrateToV35(database) {
   applySchema(database);
 }
 
+/**
+ * Chat, wallet, and shop were removed from the product entirely (regulatory
+ * surface reduction — legal review found the wallet's stored balance looked
+ * like unlicensed PSP activity, and the shop/chat surfaces added scope with
+ * no matching upside pre-launch; see docs/DEVLOG.md). Only client/artist/
+ * salon remain as account types and booking flows as the product.
+ *
+ * Drops every wallet/shop/chat table outright (their app code and repos are
+ * already gone as of this commit) and rebuilds `users` to drop 'shop' from
+ * the type CHECK — SQLite can't ALTER a CHECK constraint in place, same
+ * rebuild pattern as migrateAccountDeletionCascadeFix (v34) above.
+ *
+ * Shop-type user rows are deleted first (not converted) — existing FK
+ * ON DELETE CASCADE/SET NULL actions (shops.user_id, shop_products.
+ * shop_user_id, etc., all still in place at this point in the chain) unwind
+ * a shop account's own data the same way a real account deletion would,
+ * before the tables themselves disappear a few statements later anyway. This
+ * mirrors the "no real user data to preserve pre-launch" call already made
+ * for this whole removal, not a general policy for handling removed roles.
+ */
+function migrateDropChatWalletShop(database) {
+  if (tableExists(database, "users")) {
+    database.exec("DELETE FROM users WHERE type = 'shop';");
+  }
+
+  database.exec("PRAGMA foreign_keys = OFF;");
+  for (const table of [
+    "wallet_idempotency_keys", "wallet_withdrawals", "wallet_bank_accounts",
+    "wallet_transactions", "wallets",
+    "shop_order_idempotency_keys", "shop_stock_movements", "shop_order_items",
+    "shop_orders", "shop_promo_cards", "shop_categories", "shop_products", "shops",
+    "messages", "conversation_members", "conversations"
+  ]) {
+    database.exec(`DROP TABLE IF EXISTS "${table}";`);
+  }
+
+  if (tableExists(database, "users")) {
+    const row = database.prepare(
+      "SELECT sql FROM sqlite_master WHERE type='table' AND name='users'"
+    ).get();
+    const usersCheckIncludesShop = Boolean(row?.sql && row.sql.includes("'shop'"));
+    if (usersCheckIncludesShop) {
+      database.exec(`
+        CREATE TABLE users_v36 (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          phone TEXT NOT NULL UNIQUE,
+          password_hash TEXT NOT NULL,
+          type TEXT NOT NULL CHECK (type IN ('client', 'artist', 'salon')),
+          name TEXT NOT NULL DEFAULT '',
+          area TEXT NOT NULL DEFAULT '',
+          service TEXT NOT NULL DEFAULT '',
+          email TEXT NOT NULL DEFAULT '',
+          avatar TEXT NOT NULL DEFAULT '',
+          bio TEXT NOT NULL DEFAULT '',
+          experience_years TEXT NOT NULL DEFAULT '',
+          manager_name TEXT NOT NULL DEFAULT '',
+          last_seen_at TEXT DEFAULT NULL,
+          created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+      `);
+      database.exec(`
+        INSERT INTO users_v36
+          (id, phone, password_hash, type, name, area, service, email, avatar, bio, experience_years, manager_name, last_seen_at, created_at, updated_at)
+        SELECT id, phone, password_hash, type, name, area, service, email, avatar, bio, experience_years, manager_name, last_seen_at, created_at, updated_at
+        FROM users;
+      `);
+      database.exec("DROP TABLE users;");
+      database.exec("ALTER TABLE users_v36 RENAME TO users;");
+    }
+  }
+  database.exec("PRAGMA foreign_keys = ON;");
+}
+
+function migrateToV36(database) {
+  migrateToV35(database);
+  migrateDropChatWalletShop(database);
+  applySchema(database);
+}
+
 function readSchemaVersion(database) {
   const row = database.prepare("SELECT value FROM app_meta WHERE key = 'schema_version'").get();
   return Number(row?.value || 0);
@@ -855,7 +935,8 @@ const MIGRATION_STEPS = [
   { version: 32, migrate: migrateToV32 },
   { version: 33, migrate: migrateToV33 },
   { version: 34, migrate: migrateToV34 },
-  { version: 35, migrate: migrateToV35 }
+  { version: 35, migrate: migrateToV35 },
+  { version: 36, migrate: migrateToV36 }
 ];
 
 export function ensureSchemaVersion(database) {

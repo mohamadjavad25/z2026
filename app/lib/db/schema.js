@@ -4,7 +4,7 @@ export function applySchema(db) {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       phone TEXT NOT NULL UNIQUE,
       password_hash TEXT NOT NULL,
-      type TEXT NOT NULL CHECK (type IN ('client', 'artist', 'salon', 'shop')),
+      type TEXT NOT NULL CHECK (type IN ('client', 'artist', 'salon')),
       name TEXT NOT NULL DEFAULT '',
       area TEXT NOT NULL DEFAULT '',
       service TEXT NOT NULL DEFAULT '',
@@ -25,66 +25,6 @@ export function applySchema(db) {
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
     -- sessions.expires_at stores epoch milliseconds as a decimal string (e.g. "1788249600000").
-
-    CREATE TABLE IF NOT EXISTS wallets (
-      user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-      available_balance INTEGER NOT NULL DEFAULT 0 CHECK (available_balance >= 0),
-      pending_balance INTEGER NOT NULL DEFAULT 0 CHECK (pending_balance >= 0),
-      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-    );
-
-    CREATE TABLE IF NOT EXISTS wallet_transactions (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      amount INTEGER NOT NULL,
-      currency TEXT NOT NULL DEFAULT 'shell' CHECK (currency IN ('shell', 'toman')),
-      type TEXT NOT NULL DEFAULT 'adjustment',
-      status TEXT NOT NULL DEFAULT 'posted',
-      note TEXT NOT NULL DEFAULT '',
-      ref_type TEXT NOT NULL DEFAULT '',
-      ref_id TEXT NOT NULL DEFAULT '',
-      balance_after INTEGER NOT NULL DEFAULT 0,
-      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-    );
-
-    CREATE TABLE IF NOT EXISTS wallet_bank_accounts (
-      user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-      sheba TEXT NOT NULL DEFAULT '',
-      holder_name TEXT NOT NULL DEFAULT '',
-      bank_name TEXT NOT NULL DEFAULT '',
-      verified INTEGER NOT NULL DEFAULT 0,
-      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-    );
-
-    CREATE TABLE IF NOT EXISTS wallet_withdrawals (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      amount INTEGER NOT NULL,
-      fee INTEGER NOT NULL DEFAULT 0,
-      net_amount INTEGER NOT NULL,
-      sheba TEXT NOT NULL DEFAULT '',
-      holder_name TEXT NOT NULL DEFAULT '',
-      status TEXT NOT NULL DEFAULT 'pending'
-        CHECK (status IN ('pending', 'processing', 'paid', 'rejected', 'failed')),
-      note TEXT NOT NULL DEFAULT '',
-      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-    );
-
-    CREATE INDEX IF NOT EXISTS idx_wallet_tx_user ON wallet_transactions(user_id, id DESC);
-    CREATE INDEX IF NOT EXISTS idx_wallet_withdrawals_user ON wallet_withdrawals(user_id, id DESC);
-
-    -- De-dupes a client-supplied key per user+kind so a retried/duplicated
-    -- wallet mutation (demo_credit, withdraw) returns the first response
-    -- instead of re-applying its effect. See withIdempotentWalletCall.
-    CREATE TABLE IF NOT EXISTS wallet_idempotency_keys (
-      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      kind TEXT NOT NULL,
-      key TEXT NOT NULL,
-      response_json TEXT NOT NULL,
-      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      PRIMARY KEY (user_id, kind, key)
-    );
 
     CREATE TABLE IF NOT EXISTS posts (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -254,123 +194,12 @@ export function applySchema(db) {
     );
 
     -- Real persistence for the profile settings toggles (public/private
-    -- storefront, order alerts, etc.) — one JSON blob per user, merged with
-    -- defaults in app/lib/db/repos/userSettings.js. Some keys (shop's
-    -- publicPortfolio/shippingReady) are read back by shops.js to actually
-    -- gate storefront visibility and checkout, not just store a UI toggle.
+    -- portfolio, reservation alerts, etc.) — one JSON blob per user, merged
+    -- with defaults in app/lib/db/repos/userSettings.js.
     CREATE TABLE IF NOT EXISTS user_settings (
       user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
       settings TEXT NOT NULL DEFAULT '{}',
       updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-    );
-
-    CREATE TABLE IF NOT EXISTS shops (
-      user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-      name TEXT NOT NULL DEFAULT '',
-      area TEXT NOT NULL DEFAULT '',
-      category TEXT NOT NULL DEFAULT '',
-      phone TEXT NOT NULL DEFAULT '',
-      email TEXT NOT NULL DEFAULT '',
-      bio TEXT NOT NULL DEFAULT '',
-      rating REAL NOT NULL DEFAULT 0,
-      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-    );
-
-    CREATE TABLE IF NOT EXISTS shop_products (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      shop_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      name TEXT NOT NULL,
-      category TEXT NOT NULL DEFAULT '',
-      price TEXT NOT NULL DEFAULT '',
-      price_num REAL NOT NULL DEFAULT 0,
-      stock INTEGER NOT NULL DEFAULT 0,
-      badge TEXT NOT NULL DEFAULT '',
-      image TEXT NOT NULL DEFAULT '',
-      description TEXT NOT NULL DEFAULT '',
-      featured INTEGER NOT NULL DEFAULT 0,
-      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-    );
-
-    -- Real, ownable categories (not just whatever string sits on a product) —
-    -- lets an owner create a category before any product uses it yet, and
-    -- keeps a stable creation order for the dashboard/storefront row layout.
-    CREATE TABLE IF NOT EXISTS shop_categories (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      shop_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      name TEXT NOT NULL,
-      sort_order INTEGER NOT NULL DEFAULT 0,
-      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      UNIQUE(shop_user_id, name)
-    );
-
-    -- A shop's own library of promo cards (own icon + color, free text) —
-    -- owner builds up a list and picks which one is active; only the active
-    -- one renders, on both the owner dashboard and the public storefront.
-    CREATE TABLE IF NOT EXISTS shop_promo_cards (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      shop_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      icon_key TEXT NOT NULL,
-      tone TEXT NOT NULL,
-      primary_text TEXT NOT NULL DEFAULT '',
-      secondary_text TEXT NOT NULL DEFAULT '',
-      is_active INTEGER NOT NULL DEFAULT 0,
-      sort_order INTEGER NOT NULL DEFAULT 0,
-      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-    );
-
-    CREATE TABLE IF NOT EXISTS shop_orders (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      shop_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
-      buyer_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
-      buyer_name TEXT NOT NULL DEFAULT '',
-      buyer_phone TEXT NOT NULL DEFAULT '',
-      status TEXT NOT NULL DEFAULT 'جدید',
-      total TEXT NOT NULL DEFAULT '',
-      total_num REAL NOT NULL DEFAULT 0,
-      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-    );
-
-    CREATE TABLE IF NOT EXISTS shop_order_items (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      order_id INTEGER NOT NULL REFERENCES shop_orders(id) ON DELETE CASCADE,
-      product_id INTEGER REFERENCES shop_products(id) ON DELETE SET NULL,
-      name TEXT NOT NULL DEFAULT '',
-      quantity INTEGER NOT NULL DEFAULT 1,
-      price TEXT NOT NULL DEFAULT '',
-      price_num REAL NOT NULL DEFAULT 0
-    );
-
-    -- Every stock change on a product, with why it happened — sale (order
-    -- placed), cancel_restock / return_restock (order cancelled or returned,
-    -- stock given back), manual_adjust (owner edited the number by hand), or
-    -- product_deleted (remaining stock written off when the product is
-    -- removed). Read-only audit trail; nothing here is ever updated in place.
-    CREATE TABLE IF NOT EXISTS shop_stock_movements (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      shop_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      product_id INTEGER REFERENCES shop_products(id) ON DELETE SET NULL,
-      product_name TEXT NOT NULL DEFAULT '',
-      delta INTEGER NOT NULL,
-      reason TEXT NOT NULL,
-      order_id INTEGER REFERENCES shop_orders(id) ON DELETE SET NULL,
-      note TEXT NOT NULL DEFAULT '',
-      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-    );
-
-    -- De-dupes a client-supplied key per buyer so a retried/duplicated
-    -- POST /api/shop/orders (network retry, a double-submit that slips past
-    -- the client busy-gate, two truly-parallel requests) returns the first
-    -- order instead of placing (and stock-decrementing) a second one. Same
-    -- pattern as wallet_idempotency_keys — see createOrder in repos/shops.js.
-    CREATE TABLE IF NOT EXISTS shop_order_idempotency_keys (
-      buyer_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      key TEXT NOT NULL,
-      response_json TEXT NOT NULL,
-      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      PRIMARY KEY (buyer_user_id, key)
     );
 
     CREATE TABLE IF NOT EXISTS salons (
@@ -483,60 +312,12 @@ export function applySchema(db) {
       updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
 
-    -- Unified messaging: a conversation is "direct" (exactly 2 members, the
-    -- old a_user_id/b_user_id model) or "group" (named, N members) — same
-    -- tables serve both, membership lives in conversation_members so a group
-    -- can grow/shrink without reshaping the conversation row itself.
-    CREATE TABLE IF NOT EXISTS conversations (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      type TEXT NOT NULL DEFAULT 'direct',
-      title TEXT NOT NULL DEFAULT '',
-      avatar TEXT NOT NULL DEFAULT '',
-      created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
-      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-    );
-
-    CREATE TABLE IF NOT EXISTS conversation_members (
-      conversation_id INTEGER NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
-      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      last_read_at TEXT NOT NULL DEFAULT '1970-01-01 00:00:00',
-      joined_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      PRIMARY KEY (conversation_id, user_id)
-    );
-
-    CREATE TABLE IF NOT EXISTS messages (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      conversation_id INTEGER NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
-      sender_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
-      body TEXT NOT NULL DEFAULT '',
-      attachment_url TEXT NOT NULL DEFAULT '',
-      attachment_type TEXT NOT NULL DEFAULT '',
-      order_ref_id INTEGER REFERENCES shop_orders(id) ON DELETE SET NULL,
-      -- Booking-card message. attachment_type distinguishes which table this
-      -- points into ('salon-booking' -> salon_bookings.id, 'artist-booking'
-      -- -> artist_bookings.id) — the two source tables have separate id
-      -- spaces, so this is NOT a real FK the same way order_ref_id is (SQLite
-      -- can't express "FK into table A or table B depending on a sibling
-      -- column"); the app layer enforces the pairing. See sendSalonBookingCardMessage
-      -- / sendArtistBookingCardMessage in repos/messages.js.
-      booking_ref_id INTEGER,
-      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-    );
-
-    CREATE INDEX IF NOT EXISTS idx_conversation_members_user ON conversation_members(user_id);
-    CREATE INDEX IF NOT EXISTS idx_messages_conversation ON messages(conversation_id, id);
     CREATE INDEX IF NOT EXISTS idx_posts_owner ON posts(owner_user_id);
     CREATE INDEX IF NOT EXISTS idx_posts_explore ON posts(in_explore, created_at);
     CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
     CREATE INDEX IF NOT EXISTS idx_follows_target ON follows(target_user_id);
     CREATE INDEX IF NOT EXISTS idx_reviews_target ON reviews(target_user_id);
     CREATE INDEX IF NOT EXISTS idx_review_likes_review ON review_likes(review_id);
-    CREATE INDEX IF NOT EXISTS idx_shop_products_shop ON shop_products(shop_user_id);
-    CREATE INDEX IF NOT EXISTS idx_shop_orders_shop ON shop_orders(shop_user_id);
-    CREATE INDEX IF NOT EXISTS idx_shop_order_items_order ON shop_order_items(order_id);
-    CREATE INDEX IF NOT EXISTS idx_shop_order_items_product ON shop_order_items(product_id);
-    CREATE INDEX IF NOT EXISTS idx_shop_stock_movements_shop ON shop_stock_movements(shop_user_id, id DESC);
     CREATE INDEX IF NOT EXISTS idx_artist_services_user ON artist_services(user_id);
     CREATE INDEX IF NOT EXISTS idx_artist_collabs_artist ON artist_collabs(artist_user_id, id DESC);
     CREATE INDEX IF NOT EXISTS idx_salon_artist_invites_artist ON salon_artist_invites(artist_user_id, status, id DESC);

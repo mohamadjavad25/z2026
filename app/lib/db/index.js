@@ -6,4 +6,3 @@ export * as artists from "./repos/artists.js";
 export * as salons from "./repos/salons.js";
 export * as social from "./repos/social.js";
 export * as passport from "./repos/passport.js";
-export * as messages from "./repos/messages.js";
