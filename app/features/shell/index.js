@@ -1,4 +1,3 @@
-export { AppHeader } from "./AppHeader";
 export { BottomNav } from "./BottomNav";
 export { ClientProfileModal } from "./ClientProfileModal";
 export { HomeApp } from "./HomeApp";

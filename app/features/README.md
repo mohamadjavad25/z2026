@@ -25,7 +25,6 @@ Current shell split:
 ```text
 features/shell/
   HomeApp.jsx              orchestration and legacy page composition
-  AppHeader.jsx            top workspace header
   BottomNav.jsx            mobile tab navigation
   mockData.js              static/demo data used by HomeApp
   index.js                 public exports for the shell feature
