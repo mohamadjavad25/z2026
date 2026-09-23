@@ -1,9 +1,6 @@
 import { getDb } from "./db/connection.js";
 import * as salons from "./db/repos/salons.js";
 import * as artists from "./db/repos/artists.js";
-import * as messages from "./db/repos/messages.js";
-import { publishChatEvent } from "./chatEvents.js";
-import { enrichBookingCards } from "./chatOrderCards.js";
 import { sendPushToUser } from "./push.js";
 
 /**
@@ -34,8 +31,8 @@ import { sendPushToUser } from "./push.js";
  *    artist_bookings mirror row already gets expired via path (1) above
  *    (patchSalonBookingWithArtistSync operates on the SAME transaction as
  *    the salon row) — sweeping it a second time here would be a redundant
- *    second UPDATE + a duplicate "your booking expired" chat card for the
- *    same appointment.
+ *    second UPDATE + a duplicate "your booking expired" push notification
+ *    for the same appointment.
  */
 
 /** Status written to an expired booking — distinct from "درخواست" (still pending),
@@ -87,32 +84,11 @@ function findExpiredDirectArtistBookingRequests(db, minutes) {
   `).all(`-${minutes} minutes`);
 }
 
-/**
- * Drops a fresh "salon booking card" system message into the client<->salon
- * chat, reusing the exact same tamper-proof card mechanism
- * POST /api/salon-bookings already uses right after a booking is created
- * (see sendSalonBookingCardMessage there) — a real, persistent, visible
- * channel that reaches the client even if they aren't in the app right now
- * (they'll see the unread badge / card next time they open it), unlike a
- * client-side-only toast. The card always re-renders the booking's CURRENT
- * live status (enrichBookingCards), so it shows "منقضی شده" correctly.
- */
+/** Push notifications for both sides of an expired salon booking request. */
 function notifyClientOfExpiry(booking) {
   const clientUserId = Number(booking.client_user_id || 0);
   const salonUserId = Number(booking.salon_user_id || 0);
   if (!clientUserId || !salonUserId || clientUserId === salonUserId) return;
-  const conversation = messages.getOrCreateDirectConversation(clientUserId, salonUserId);
-  if (!conversation) return;
-  const sendResult = messages.sendSalonBookingCardMessage(conversation.id, salonUserId, booking.id);
-  if (sendResult.ok) {
-    enrichBookingCards([sendResult.message]);
-    publishChatEvent({
-      type: "message",
-      conversationId: conversation.id,
-      message: sendResult.message,
-      recipients: sendResult.recipients
-    });
-  }
   void sendPushToUser(clientUserId, {
     title: "نوبت شما منقضی شد",
     body: `${booking.service || "نوبت"} — سالن به‌موقع پاسخ نداد و نوبت به‌طور خودکار لغو شد.`
@@ -127,27 +103,11 @@ function notifyClientOfExpiry(booking) {
   });
 }
 
-/** Same idea as notifyClientOfExpiry, for a direct artist_bookings row —
- *  reuses sendArtistBookingCardMessage, the exact same card mechanism
- *  POST /api/artist/bookings already uses for the initial booking-confirmation
- *  card, so the client sees a fresh, always-live-status card in the
- *  client<->artist chat. */
+/** Same idea as notifyClientOfExpiry, for a direct artist_bookings row. */
 function notifyClientOfArtistBookingExpiry(booking) {
   const clientUserId = Number(booking.client_user_id || 0);
   const artistUserId = Number(booking.artist_user_id || 0);
   if (!clientUserId || !artistUserId || clientUserId === artistUserId) return;
-  const conversation = messages.getOrCreateDirectConversation(clientUserId, artistUserId);
-  if (!conversation) return;
-  const sendResult = messages.sendArtistBookingCardMessage(conversation.id, artistUserId, booking.id);
-  if (sendResult.ok) {
-    enrichBookingCards([sendResult.message]);
-    publishChatEvent({
-      type: "message",
-      conversationId: conversation.id,
-      message: sendResult.message,
-      recipients: sendResult.recipients
-    });
-  }
   void sendPushToUser(clientUserId, {
     title: "نوبت شما منقضی شد",
     body: `${booking.service || "نوبت"} — آرتیست به‌موقع پاسخ نداد و نوبت به‌طور خودکار لغو شد.`
@@ -183,7 +143,7 @@ export function sweepExpiredBookingRequestsOnce() {
         notifyClientOfExpiry(row);
       } catch {
         // Notification is best-effort; the booking is already correctly expired
-        // even if the chat message failed to send (e.g. conversation race).
+        // even if the push notification failed to send.
       }
     }
     // If patch failed (e.g. a genuine slot conflict on the artist mirror),
@@ -205,7 +165,7 @@ export function sweepExpiredBookingRequestsOnce() {
         notifyClientOfArtistBookingExpiry(row);
       } catch {
         // Notification is best-effort; the booking is already correctly expired
-        // even if the chat message failed to send (e.g. conversation race).
+        // even if the push notification failed to send.
       }
     }
   }

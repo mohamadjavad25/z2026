@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CalendarCheck, CalendarDays, CheckCircle2, Clock3, FileText, MapPin, RotateCcw, Sparkles, TimerOff, XCircle } from "lucide-react";
+import { CalendarCheck, CalendarDays, CheckCircle2, Clock3, FileText, MapPin, Sparkles, TimerOff, XCircle } from "lucide-react";
 import { SegmentClock } from "../../components/SegmentClock";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatRelativeBookingDayLabel, resolveRollingPersianDate } from "../../shared/lib/persianCalendar";
@@ -196,15 +196,6 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook })
                   >
                     <FileText size={17} />
                     مشاهده جزئیات
-                  </button>
-                  <button
-                    type="button"
-                    className="clientBookingActionSecondary"
-                    onClick={() => onOpenSettings?.({ ...nextBooking, clientBookingSheetMode: "change" })}
-                    aria-label="تغییر یا لغو نوبت"
-                    title="تغییر یا لغو نوبت"
-                  >
-                    <RotateCcw size={18} />
                   </button>
                   {isBookingSettled(nextBooking) ? (
                     <button

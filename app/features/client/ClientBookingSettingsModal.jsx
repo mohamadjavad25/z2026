@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, CalendarCheck, CheckCircle2, Clock3, MapPin, MessageCircle, Phone, RotateCcw, TimerOff, X, XCircle } from "lucide-react";
+import { CalendarCheck, CheckCircle2, Clock3, MapPin, Phone, RotateCcw, TimerOff, X, XCircle } from "lucide-react";
 import { SegmentClock } from "../../components/SegmentClock";
 import { toLatinDigits } from "../../shared/lib/digits";
 import { formatRelativeBookingDayLabel, resolveRollingPersianDate } from "../../shared/lib/persianCalendar";
@@ -41,12 +41,11 @@ function isBookingSettled(booking) {
 
 /**
  * Client role — booking details / quick actions sheet.
- * Presentational: selected booking + message/call/close callbacks.
+ * Presentational: selected booking + call/close callbacks.
  */
 export function ClientBookingSettingsModal({
   booking,
   onClose,
-  onMessageSalon,
   onCallSalon,
   onRebookSalon
 }) {
@@ -55,7 +54,6 @@ export function ClientBookingSettingsModal({
   const avatar = booking.salonAvatar || booking.salon_avatar || "";
   const salonName = booking.salonName || booking.salon_name || "سالن منتخب";
   const phone = booking.salonPhone || booking.salon_phone || booking.phone || "";
-  const isChangeMode = booking.clientBookingSheetMode === "change";
   const rawDate = booking.booking_date || booking.date || "";
   const formattedDate = rawDate ? formatRelativeBookingDayLabel(rawDate) : "امروز";
   const statusTone = getBookingStatusTone(booking.status || "تازه");
@@ -76,7 +74,7 @@ export function ClientBookingSettingsModal({
               {avatar ? <img src={avatar} alt="" /> : String(salonName || "س").slice(0, 1)}
             </span>
             <div>
-              <small>{isChangeMode ? "تغییر یا لغو نوبت" : "جزئیات رزرو"}</small>
+              <small>جزئیات رزرو</small>
               <b>{booking.service || "خدمت زیبایی"}</b>
               <em>{salonName}</em>
             </div>
@@ -98,62 +96,28 @@ export function ClientBookingSettingsModal({
               <em>{booking.salonArea || booking.salon_area || "ثبت نشده"}</em>
             </span>
           </div>
-          {isChangeMode ? (
-            <>
-              <div className="clientBookingChangePanel">
-                <span>
-                  <RotateCcw size={17} />
-                  <b>درخواست تغییر زمان</b>
-                  <em>زمان جدید را با سالن هماهنگ کن؛ وضعیت نوبت تا تایید سالن همین‌جا نمایش داده می‌شود.</em>
-                </span>
-                <span className="is-warning">
-                  <AlertTriangle size={17} />
-                  <b>لغو نوبت</b>
-                  <em>لغو نوبت ممکن است طبق قوانین سالن نیاز به تایید یا بررسی داشته باشد.</em>
-                </span>
-              </div>
-              <div className="clientBookingSettingsActions is-changeMode">
-                <button type="button" className="primary" onClick={() => onMessageSalon?.(booking)}>
-                  <MessageCircle size={16} />
-                  پیام برای تغییر زمان
-                </button>
-                <button type="button" className="danger" onClick={() => onMessageSalon?.(booking)}>
-                  <X size={16} />
-                  درخواست لغو نوبت
-                </button>
-              </div>
-            </>
-          ) : (
-            <div className="clientBookingSettingsActions">
-              <button
-                type="button"
-                className="primary"
-                onClick={() => onMessageSalon?.(booking)}
-              >
-                <MessageCircle size={16} />
-                پیام به سالن
+          <div className="clientBookingSettingsActions">
+            <button
+              type="button"
+              className="primary"
+              onClick={() => {
+                if (typeof onCallSalon === "function") {
+                  onCallSalon(booking);
+                  return;
+                }
+                if (phone) window.location.href = `tel:${toLatinDigits(phone)}`;
+              }}
+            >
+              <Phone size={16} />
+              تماس
+            </button>
+            {isBookingSettled(booking) ? (
+              <button type="button" onClick={() => onRebookSalon?.(booking)}>
+                <RotateCcw size={16} />
+                رزرو دوباره
               </button>
-              <button
-                type="button"
-                onClick={() => {
-                  if (typeof onCallSalon === "function") {
-                    onCallSalon(booking);
-                    return;
-                  }
-                  if (phone) window.location.href = `tel:${toLatinDigits(phone)}`;
-                }}
-              >
-                <Phone size={16} />
-                تماس
-              </button>
-              {isBookingSettled(booking) ? (
-                <button type="button" onClick={() => onRebookSalon?.(booking)}>
-                  <RotateCcw size={16} />
-                  رزرو دوباره
-                </button>
-              ) : null}
-            </div>
-          )}
+            ) : null}
+          </div>
         </div>
         <button type="button" className="clientBookingSettingsClose" onClick={onClose} aria-label="بستن تنظیمات رزرو">
           <X size={18} />

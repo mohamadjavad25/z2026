@@ -2,9 +2,6 @@ import { getUserFromRequest } from "../../../lib/auth.js";
 import { ensureDb } from "../../../lib/db/connection.js";
 import { error, json } from "../../../lib/http.js";
 import * as artists from "../../../lib/db/repos/artists.js";
-import * as messages from "../../../lib/db/repos/messages.js";
-import { publishChatEvent } from "../../../lib/chatEvents.js";
-import { enrichBookingCards } from "../../../lib/chatOrderCards.js";
 import { checkRateLimit } from "../../../lib/rateLimit.js";
 import { sendPushToUser } from "../../../lib/push.js";
 // Side-effect import: starts the once-per-process 1-hour booking-request
@@ -31,7 +28,7 @@ export async function POST(request) {
   // artist's calendar can't be flooded with spam bookings by a scripted
   // caller hammering this endpoint, logged in or not. Same in-memory
   // limiter/pattern this codebase already uses elsewhere (see
-  // /api/conversations/*, /api/auth/login, /api/salon-bookings).
+  // /api/auth/login, /api/salon-bookings).
   const bookingLimited = checkRateLimit(`artist-booking-create:${artistUserId}`, 20, 60_000);
   if (!bookingLimited.ok) {
     return error("درخواست‌های زیاد. کمی صبر کن.", 429);
@@ -48,19 +45,7 @@ export async function POST(request) {
     return json({ error: result.error, code: result.code }, { status: result.code === "SLOT_TAKEN" ? 409 : 400 });
   }
 
-  // Same appointment-card mechanism as /api/salon-bookings, for a client
-  // booking an artist directly. Only when the booker is a real logged-in
-  // account (this route also allows anonymous booking — see the report —
-  // so `viewer` can be null, in which case there's nobody to message).
   if (viewer?.id && viewer.id !== artistUserId) {
-    const conversation = messages.getOrCreateDirectConversation(viewer.id, artistUserId);
-    if (conversation) {
-      const sendResult = messages.sendArtistBookingCardMessage(conversation.id, viewer.id, result.booking.id);
-      if (sendResult.ok) {
-        enrichBookingCards([sendResult.message]);
-        publishChatEvent({ type: "message", conversationId: conversation.id, message: sendResult.message, recipients: sendResult.recipients });
-      }
-    }
     void sendPushToUser(artistUserId, {
       title: "درخواست نوبت جدید",
       body: `${result.booking.client || result.booking.client_name || "مشتری"} — ${result.booking.service || ""}`.trim()

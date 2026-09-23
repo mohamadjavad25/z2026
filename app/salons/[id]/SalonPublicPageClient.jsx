@@ -7,7 +7,7 @@ import { getVisibleSalonServiceItems } from "../../features/salons/useSalonDirec
 // Standalone, unauthenticated rendering of a single salon's public profile.
 // This is the pilot Next.js route for SEO/shareable salon links — it reuses
 // the same presentation component the in-app (client-state) salon flow uses,
-// but none of the interactive actions here (follow/save/book/chat) have a
+// but none of the interactive actions here (follow/save/book) have a
 // logged-in session or the app's socket/booking state to act on. Rather than
 // half-implement those without auth, we send the visitor into the SPA shell
 // to actually log in and use them. See backend report for the tradeoff note.
@@ -46,7 +46,6 @@ export function SalonPublicPageClient({ salon }) {
       onSave={goToApp}
       onShare={handleShare}
       onOpenBooking={goToApp}
-      onOpenChat={goToApp}
       onSelectSalon={goToApp}
     />
   );

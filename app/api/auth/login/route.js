@@ -18,7 +18,7 @@ export const runtime = "nodejs";
 // (scrypt alone is not a real defense at request-per-second scale). Keyed by
 // the normalized phone under attack, not by caller identity (there is none
 // pre-auth) -- same in-memory limiter every other abuse-prone route in this
-// codebase already uses (see /api/conversations/*).
+// codebase already uses (see /api/salon-bookings, /api/artist/bookings).
 const LOGIN_ATTEMPT_LIMIT = 10;
 const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 

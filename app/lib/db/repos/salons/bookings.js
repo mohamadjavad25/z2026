@@ -452,22 +452,3 @@ export function cancelSalonBooking(id, salonUserId) {
   return patchSalonBookingWithArtistSync(id, salonUserId, { status: "لغو" });
 }
 
-/** Full booking snapshot for a booking-card chat bubble. Live status — callers should re-fetch, never cache. */
-export function getSalonBookingById(bookingId) {
-  const row = getDb().prepare("SELECT * FROM salon_bookings WHERE id = ?").get(bookingId);
-  if (!row) return null;
-  return {
-    id: row.id,
-    salonUserId: row.salon_user_id,
-    clientUserId: row.client_user_id,
-    client: row.client,
-    phone: row.phone,
-    service: row.service,
-    staff: row.staff,
-    bookingDate: row.booking_date,
-    time: row.time,
-    durationMinutes: row.duration_minutes,
-    status: row.status,
-    createdAt: row.created_at
-  };
-}

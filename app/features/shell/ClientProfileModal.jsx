@@ -1,6 +1,5 @@
 "use client";
 
-import { MessageCircle } from "lucide-react";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 
 const TYPE_LABELS = {
@@ -13,9 +12,9 @@ const TYPE_LABELS = {
  * Booking client profile modal (opened from schedule rows) — also reused
  * as a lightweight reviewer profile when a review's author has no richer
  * public profile view wired up (see HomeApp's onOpenReviewer).
- * Presentational: client payload + message/close callbacks from HomeApp.
+ * Presentational: client payload + close callback from HomeApp.
  */
-export function ClientProfileModal({ client, onClose, onMessage }) {
+export function ClientProfileModal({ client, onClose }) {
   if (!client) return null;
 
   return (
@@ -94,10 +93,6 @@ export function ClientProfileModal({ client, onClose, onMessage }) {
         ) : null}
 
         <div className="clientProfileActions">
-          <button type="button" onClick={() => onMessage?.(client)}>
-            <MessageCircle size={16} />
-            پیام به مشتری
-          </button>
           {client.phone ? (
             <a className="clientProfileCall" href={`tel:${toLatinDigits(client.phone)}`}>
               تماس

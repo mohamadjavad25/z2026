@@ -11,7 +11,6 @@ import {
   Heart,
   ImagePlus,
   MapPin,
-  MessageSquare,
   Palette,
   Phone,
   Plus,
@@ -68,7 +67,6 @@ export function SalonClientPage({
   onSave,
   onShare,
   onOpenBooking,
-  onOpenChat,
   onSelectSalon
 }) {
   const [aboutOpen, setAboutOpen] = useState(false);
@@ -233,9 +231,6 @@ export function SalonClientPage({
             </button>
             <button type="button" className="is-primary" onClick={() => onOpenBooking(getPrimaryBookingService(services))}>
               <Plus size={30} />
-            </button>
-            <button type="button" onClick={() => onOpenChat(selectedSalon)} aria-label="چت با سالن">
-              <MessageSquare size={23} />
             </button>
             <button type="button" className="is-active"><Home size={23} /></button>
           </nav>

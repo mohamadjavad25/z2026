@@ -91,7 +91,6 @@ import {
   normalizeSalonScheduleBooking,
   withScheduleTimeline
 } from "../profile/ScheduleRow";
-import { OwnerChatSheet } from "../profile/OwnerChatSheet";
 import { ProfileSavedPosts } from "../profile/ProfileSavedPosts";
 import { ProfileSettingsSheet } from "../profile/ProfileSettingsSheet";
 import { ProfileSheet } from "../profile/ProfileSheet";
@@ -118,12 +117,9 @@ import {
 import { AuthBootScreen } from "./AuthBootScreen";
 
 import { BottomNav } from "./BottomNav";
-import { ChatComposeFab } from "./ChatComposeFab";
-import { ChatPage } from "./ChatPage";
 import { ClientProfileModal } from "./ClientProfileModal";
 import { MobileFloatingCta } from "./MobileFloatingCta";
 import { useBookingCreateSheet } from "./useBookingCreateSheet";
-import { useChat } from "../chat/useChat";
 import { useProfileEditor } from "./useProfileEditor";
 import { useScheduleBookingMenu } from "./useScheduleBookingMenu";
 import { useServiceComposer } from "./useServiceComposer";
@@ -208,12 +204,6 @@ async function subscribeToPushNotifications() {
 
 export function HomeApp() {
   const [activeTab, setActiveTab] = useState("profile");
-  const [chatPane, setChatPane] = useState("inbox");
-  const [chatInitialPane, setChatInitialPane] = useState("inbox");
-  // Bumped by the floating compose button (ChatComposeFab, rendered outside
-  // ChatPage so it can sit fixed above the bottom nav) to tell ChatPage
-  // "open the new-group picker" — see composerSignal in ChatPage.
-  const [chatComposerSignal, setChatComposerSignal] = useState(0);
   const refreshExploreFeedRef = useRef(null);
   const refreshArtistWorkspaceRef = useRef(null);
   const notifyArtistBookingCreatedRef = useRef(null);
@@ -722,21 +712,6 @@ export function HomeApp() {
     onArtistBookingCreated: notifyArtistBookingCreated
   });
 
-  const chat = useChat({
-    myUserId: createdProfile?.id || null,
-    onNotice: setAppToast
-  });
-  const [floatingChatOpen, setFloatingChatOpen] = useState(false);
-
-  /** Opens the floating quick-chat sheet on a conversation (or just the inbox list if none given). */
-  function openOwnerChat(conversationId = null) {
-    setFloatingChatOpen(true);
-    if (conversationId) chat.openConversation(conversationId);
-  }
-  function closeOwnerChat() {
-    setFloatingChatOpen(false);
-  }
-
   const {
     artistServiceCreateOpen,
     setArtistServiceCreateOpen,
@@ -870,7 +845,6 @@ export function HomeApp() {
     salonToolSheetOpen,
     salonTool,
     setActiveTab,
-    setShopOwnerChatOpen: setFloatingChatOpen,
     setArtistBookingRailOpen,
     setArtistBookingCreateOpen,
     setSalonHeroSheet,
@@ -882,7 +856,6 @@ export function HomeApp() {
     setBookingSheetOpen,
     setScheduleBookingMenu,
     setScheduleBookingView,
-    setFloatingChatOpen,
     setClientBookingSettings,
     setArtistServiceCreateOpen,
     setArtistServiceCreateMode,
@@ -1121,8 +1094,8 @@ export function HomeApp() {
   // Auto-expiry (see app/lib/bookingExpirySweep.js) silently flips a stale
   // request's status away from "درخواست"/"تازه" — it DROPS OUT of the pending
   // lists above with zero signal to the owner that anything happened (the
-  // client gets a chat card; the salon/artist previously got nothing at all).
-  // Surfaced here as its own read-only "recently expired" list (last 24h,
+  // client gets a push notification; the salon/artist previously got nothing
+  // at all). Surfaced here as its own read-only "recently expired" list (last 24h,
   // by created_at) so the notifications sheet can show it — informational
   // only, no approve/decline actions, since the window already closed.
   const recentlyExpiredSalonBookings = useMemo(() => (
@@ -1315,42 +1288,7 @@ function getPassportMatch(post) {
       setActiveTab("profile");
       return;
     }
-    if (tab === "chat") {
-      setFloatingChatOpen(false);
-      setSelectedSalon(null);
-      setChatInitialPane("inbox");
-      setChatPane("inbox");
-      setActiveTab("chat");
-      return;
-    }
     setActiveTab(tab);
-  }
-
-  async function openSalonPublicChat(salon) {
-    if (!salon) return;
-    const salonId = String(salon.id || "");
-    const salonSourceKey = String(salon.source_key || "");
-    const profileId = String(createdProfile?.id || "");
-    const profileName = createdProfile?.data?.name || "";
-    const isOwnerSalon = createdProfile?.type === "salon" && (
-      (profileId && (salonId === profileId || salonSourceKey === profileId))
-      || (profileName && salon.name === profileName)
-    );
-
-    setFloatingChatOpen(false);
-    setSelectedSalon(null);
-
-    if (isOwnerSalon) {
-      setChatInitialPane("inbox");
-      setChatPane("inbox");
-      setActiveTab("chat");
-      return;
-    }
-
-    setChatInitialPane("conversation");
-    setChatPane("conversation");
-    setActiveTab("chat");
-    await chat.startDirectChat(salon.id);
   }
 
   function resolveExploreArtist(post) {
@@ -1711,24 +1649,6 @@ function getPassportMatch(post) {
     rebookSalonFromBooking(booking);
   }
 
-  // Same rebook routing as rebookFromBooking, called from the client's own
-  // chat booking card the instant they see "منقضی شده"/"لغو" (see
-  // BookingCardBubble's onRebook + ChatPage.jsx) — the recovery path the
-  // audit flagged as missing right at the moment of expiry, not just buried
-  // back in "فعالیت من". The chat card hands over getSalonBookingById's/
-  // getArtistBookingById's already-camelCased shape (salonUserId/
-  // artistUserId, not the raw snake_case DB columns) — rebookSalonFromBooking
-  // expects salon_user_id, so that one needs remapping; rebookArtistFromBooking
-  // already reads artistUserId directly, so the artist case can pass through.
-  function rebookFromChatBookingCard(booking, attachmentType) {
-    if (!booking) return;
-    if (attachmentType === "artist-booking") {
-      rebookArtistFromBooking(booking);
-      return;
-    }
-    rebookSalonFromBooking({ ...booking, salon_user_id: booking.salonUserId });
-  }
-
   async function openExploreArtistProfile(post) {
     const artist = resolveExploreArtist(post);
     setSelectedPost(null);
@@ -1865,13 +1785,8 @@ function getPassportMatch(post) {
   }, [createdProfile?.id]);
 
 
-  // "inbox" is the only chat pane the floating owner dock/dock-space CSS
-  // should coexist with — details/new-group/add-members/conversation are
-  // all full-screen sub-views of the chat tab.
-  const chatPaneIsFullScreen = chatPane !== "inbox";
-
   return (
-    <main className={`appShell ${activeTab === "chat" ? "is-chat" : ""} ${activeTab === "chat" && chatPaneIsFullScreen ? "is-chat-conversation" : ""} ${!createdProfile ? "is-auth-gate" : ""} ${selectedSalon && activeTab === "salons" ? "is-salon-client" : ""} ${selectedPublicArtist ? "is-artist-public" : ""} ${!authChecked ? "is-auth-loading" : ""}`}>
+    <main className={`appShell ${!createdProfile ? "is-auth-gate" : ""} ${selectedSalon && activeTab === "salons" ? "is-salon-client" : ""} ${selectedPublicArtist ? "is-artist-public" : ""} ${!authChecked ? "is-auth-loading" : ""}`}>
       {!authChecked ? <AuthBootScreen /> : null}
       <ShellSidebar activeTab={activeTab} onNavigate={goToTab} />
 
@@ -1925,46 +1840,9 @@ function getPassportMatch(post) {
             onShare={shareSalonProfile}
             onTabChange={setSalonClientTab}
             onOpenBooking={openSalonClientBooking}
-            onOpenChat={openSalonPublicChat}
             onSelectSalon={selectSalonWithStory}
           />
-
-          <ChatPage
-            active={activeTab === "chat"}
-            myUserId={createdProfile?.id}
-            connected={chat.connected}
-            conversations={chat.conversations}
-            conversationsLoading={chat.conversationsLoading}
-            activeConversationId={chat.activeConversationId}
-            activeConversation={chat.activeConversation}
-            activeMessages={chat.activeMessages}
-            activeMessagesLoading={chat.activeMessagesLoading}
-            hasMoreMessages={chat.hasMoreMessages}
-            sendBusy={chat.sendBusy}
-            onOpenConversation={chat.openConversation}
-            onLoadMore={chat.loadMoreMessages}
-            onSend={chat.sendMessage}
-            onCreateGroup={chat.createGroup}
-            onAddMembers={chat.addGroupMembers}
-            onRenameGroup={chat.renameGroup}
-            onRemoveMember={chat.removeGroupMember}
-            onLeaveGroup={chat.leaveConversation}
-            onPaneChange={setChatPane}
-            composerSignal={chatComposerSignal}
-            title={
-              createdProfile?.type === "artist" ? "پیام‌های آرتیست"
-                : createdProfile?.type === "salon" ? "پیام‌های سالن"
-                : "پیام‌ها"
-            }
-            initialPane={chatInitialPane}
-            onRebookBooking={rebookFromChatBookingCard}
-          />
         </section>
-
-        <ChatComposeFab
-          open={activeTab === "chat" && chatPane === "inbox"}
-          onClick={() => setChatComposerSignal((n) => n + 1)}
-        />
 
         {activeTab === "salons" && (
           <SalonClientBookingModal
@@ -1985,7 +1863,6 @@ function getPassportMatch(post) {
             setSalonClientTab("services");
             setAppToast("اول نوع خدمت را انتخاب کن.");
           }}
-          onMessage={() => openSalonPublicChat(selectedSalon)}
         />
 
         <section className={`profilePanel mobilePage page-profile ${profileType === "salon" ? "is-salon-profile" : ""} ${!createdProfile || activeTab === "profile" ? "is-active" : ""} ${createdProfile && createdProfile.type === profileType ? "has-floating-cta" : ""}`} id="profile">
@@ -2348,11 +2225,6 @@ function getPassportMatch(post) {
             closeScheduleBookingMenu();
           }}
           busy={scheduleBookingBusy}
-          onMessage={(peerUserId) => {
-            openOwnerChat();
-            chat.startDirectChat(peerUserId);
-            closeScheduleBookingMenu();
-          }}
         />
 
         <ProfileSettingsSheet
@@ -2675,22 +2547,6 @@ function getPassportMatch(post) {
         <ClientBookingSettingsModal
           booking={clientBookingSettings}
           onClose={() => setClientBookingSettings(null)}
-          onMessageSalon={(booking) => {
-            // Artist-sourced rows (see listClientArtistBookings) never carry
-            // salonUserId/salon_user_id — route those to the artist's own
-            // user id instead, so "پیام به سالن" also works for a direct
-            // artist booking, not just salon ones.
-            const targetUserId = booking.bookingSource === "artist"
-              ? Number(booking.artistUserId || booking.sourceArtistUserId) || null
-              : Number(booking.salonUserId || booking.salon_user_id) || null;
-            setClientBookingSettings(null);
-            if (!targetUserId) {
-              setAppToast("این رزرو به یک حساب کاربری وصل نیست.");
-              return;
-            }
-            openOwnerChat();
-            chat.startDirectChat(targetUserId);
-          }}
           onRebookSalon={(booking) => {
             setClientBookingSettings(null);
             rebookFromBooking(booking);
@@ -2706,8 +2562,7 @@ function getPassportMatch(post) {
           }
           profileType={createdProfile?.type}
           sheetOpen={Boolean(
-            floatingChatOpen
-            || artistServiceCreateOpen || artistBreakEditorOpen || bookingSheetOpen
+            artistServiceCreateOpen || artistBreakEditorOpen || bookingSheetOpen
           )}
           bookingSheetOpen={bookingSheetOpen}
           modeRail={
@@ -2734,7 +2589,6 @@ function getPassportMatch(post) {
             }
             openBookingSheet();
           }}
-          onOpenClientChat={() => openOwnerChat()}
         />
 
         {createdProfile?.type === "artist" && activeTab === "profile" && (
@@ -2775,18 +2629,6 @@ function getPassportMatch(post) {
           />
         )}
 
-        <OwnerChatSheet
-          open={floatingChatOpen}
-          myUserId={createdProfile?.id}
-          activeConversation={chat.activeConversation}
-          messages={chat.activeMessages}
-          threads={chat.conversations}
-          sendBusy={chat.sendBusy}
-          onClose={closeOwnerChat}
-          onSelectThread={chat.openConversation}
-          onSend={(body, attachment) => chat.sendMessage({ body, attachment })}
-        />
-
         {createdProfile?.type === "salon" && (
           <SalonToolSheets
             open={salonToolSheetOpen}
@@ -2814,15 +2656,6 @@ function getPassportMatch(post) {
         <ClientProfileModal
           client={scheduleBookingMenu ? null : selectedBookingClient}
           onClose={() => setSelectedBookingClient(null)}
-          onMessage={(client) => {
-            setSelectedBookingClient(null);
-            if (!client.id) {
-              setAppToast("این مشتری به یک حساب کاربری وصل نیست.");
-              return;
-            }
-            openOwnerChat();
-            chat.startDirectChat(client.id);
-          }}
         />
         <BookingSheet
           open={bookingSheetOpen && (createdProfile?.type === "salon" || createdProfile?.type === "artist")}
@@ -2961,14 +2794,11 @@ function getPassportMatch(post) {
           </div>
         )}
 
-        {(activeTab !== "chat" || chatPane === "inbox") && (
-          <BottomNav
-            activeTab={activeTab}
-            createdProfile={createdProfile}
-            chatOpen={floatingChatOpen}
-            onTabChange={goToTab}
-          />
-        )}
+        <BottomNav
+          activeTab={activeTab}
+          createdProfile={createdProfile}
+          onTabChange={goToTab}
+        />
         <PublicArtistModal
           artist={selectedPublicArtist}
           heroImage={publicArtistHeroImage}
@@ -2997,15 +2827,6 @@ function getPassportMatch(post) {
           onToggleReviewLike={toggleLikePublicArtistReview}
           viewerUserId={createdProfile?.id}
           onFollow={() => selectedPublicArtist && toggleFollowPublicArtist(selectedPublicArtist)}
-          onMessage={async () => {
-            if (!selectedPublicArtist?.id) return;
-            const peerId = selectedPublicArtist.id;
-            closePublicArtistProfile();
-            setChatInitialPane("conversation");
-            setChatPane("conversation");
-            setActiveTab("chat");
-            await chat.startDirectChat(peerId);
-          }}
           onViewChange={setPublicArtistView}
           onGalleryFilterChange={setPublicArtistGalleryFilter}
           onOpenWork={openPublicArtistWork}

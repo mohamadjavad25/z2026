@@ -37,7 +37,6 @@ import { salonRegistrationServices } from "../../shared/constants/roles";
  *   salonToolSheetOpen?: boolean,
  *   salonTool?: unknown,
  *   setActiveTab: (tab: string) => void,
- *   setShopOwnerChatOpen: (open: boolean) => void,
  *   setArtistBookingRailOpen: (open: boolean) => void,
  *   setArtistBookingCreateOpen: (open: boolean) => void,
  *   setSalonHeroSheet: (sheet: unknown) => void,
@@ -57,7 +56,6 @@ export function useBookingCreateSheet({
   salonToolSheetOpen = false,
   salonTool = null,
   setActiveTab,
-  setShopOwnerChatOpen,
   setArtistBookingRailOpen,
   setArtistBookingCreateOpen,
   setSalonHeroSheet,
@@ -126,7 +124,6 @@ export function useBookingCreateSheet({
 
   const openBookingSheet = useCallback(() => {
     setActiveTab("profile");
-    setShopOwnerChatOpen(false);
     setArtistBookingRailOpen(false);
     setArtistBookingCreateOpen(false);
     setSalonHeroSheet(null);
@@ -148,7 +145,6 @@ export function useBookingCreateSheet({
     bookingDate,
     artistServiceList,
     setActiveTab,
-    setShopOwnerChatOpen,
     setArtistBookingRailOpen,
     setArtistBookingCreateOpen,
     setSalonHeroSheet,

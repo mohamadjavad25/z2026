@@ -27,9 +27,8 @@ function ensureConfigured() {
  * a user has subscribed on. Best-effort per subscription: one dead
  * subscription (uninstalled app, revoked permission) must never block
  * delivery to the user's other devices, and a send failure here must never
- * fail the booking/order/chat action that triggered it — callers fire this
- * and move on, same "notification is best-effort" precedent already
- * established for the chat booking-card sends in bookingExpirySweep.js.
+ * fail the booking action that triggered it — callers fire this and move
+ * on ("notification is best-effort", see bookingExpirySweep.js).
  */
 export async function sendPushToUser(userId, { title, body, url = "/" } = {}) {
   if (!ensureConfigured()) return { ok: false, sent: 0, reason: "not-configured" };

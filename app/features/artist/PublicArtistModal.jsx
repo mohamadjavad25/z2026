@@ -1,6 +1,6 @@
 "use client";
 
-import { BadgeCheck, Bookmark, CalendarCheck, ChevronLeft, Heart, Info, MapPin, MessageCircle, Share2, Sparkles, Star, Timer, X } from "lucide-react";
+import { BadgeCheck, Bookmark, CalendarCheck, ChevronLeft, Heart, Info, MapPin, Share2, Sparkles, Star, Timer, X } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatCount } from "../../shared/lib/rating";
 import { isPublicArtistSlotBlocked } from "./bookingUtils";
@@ -46,7 +46,6 @@ export function PublicArtistModal({
   onRatingHover,
   onConfirmRating,
   onFollow,
-  onMessage,
   onViewChange,
   onGalleryFilterChange,
   onOpenWork,
@@ -182,14 +181,6 @@ export function PublicArtistModal({
               >
                 <Heart size={16} />
                 {following ? "دنبال می‌کنی" : "فالو"}
-              </button>
-              <button
-                type="button"
-                className="artistPublicMessage"
-                onClick={onMessage}
-              >
-                <MessageCircle size={16} />
-                پیام
               </button>
             </div>
           </section>

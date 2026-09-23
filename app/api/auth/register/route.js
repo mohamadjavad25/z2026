@@ -17,7 +17,7 @@ export const runtime = "nodejs";
 // Per-phone throttle against scripted signup spam (account-creation flood /
 // repeated-attempt scraping of the "already registered" check). Same
 // in-memory limiter this codebase already uses for other abuse-prone routes
-// (see /api/conversations/*, /api/auth/login). This does not throttle a
+// (see /api/auth/login, /api/salon-bookings). This does not throttle a
 // distributed attacker rotating phone numbers -- that needs a trusted-proxy
 // IP source this app's deployment doesn't define yet (see security report).
 const REGISTER_ATTEMPT_LIMIT = 5;

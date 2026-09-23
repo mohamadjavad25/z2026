@@ -89,7 +89,6 @@ export function ArtistPublicPageClient({ artist }) {
       onRatingHover={() => {}}
       onConfirmRating={goToApp}
       onFollow={goToApp}
-      onMessage={goToApp}
       onViewChange={() => {}}
       onGalleryFilterChange={setGalleryFilter}
       onOpenWork={goToApp}

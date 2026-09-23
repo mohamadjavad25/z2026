@@ -1,30 +1,5 @@
 
 
-/* Order-card message — a neutral system receipt, deliberately NOT a
-   .shopChatBubble.user/.shop bubble: no left/right attribution, no avatar,
-   so it can't be mistaken for something either side of the chat typed. The
-   card itself (.orderReceiptCard, in shell.css) is shared with ChatPage. */
-.shopChatSystemRow {
-  justify-self: stretch;
-  width: 100%;
-  display: grid;
-  justify-items: center;
-  gap: 4px;
-}
-
-/* Read receipt row, same honest sent/read logic as the full chat page
-   (ChatPage.jsx) — single check = sent, accented double check = the other
-   side's real last_read_at has caught up (see isMessageRead). */
-.shopChatBubbleMeta {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 4px;
-  margin-top: 4px;
-  font-size: var(--text-xs, 0.68rem);
-  opacity: 0.68;
-}
-
 .profileHero {
   position: relative;
   display: flex;

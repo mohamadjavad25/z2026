@@ -6,7 +6,6 @@ import {
   CheckCircle2,
   Clock3,
   History,
-  MessageCircle,
   Phone,
   Scissors,
   Timer,
@@ -62,7 +61,6 @@ export function ScheduleBookingMenuModal({
   onCancel,
   onApprove,
   onDecline,
-  onMessage,
   busy = false
 }) {
   if (!open || !booking) return null;
@@ -89,11 +87,6 @@ export function ScheduleBookingMenuModal({
   // everywhere else, instead of trusting the raw field directly.
   const statusTone = getBookingStatusTone(booking.status || "درخواست", isSalonOwner ? "salon" : "artist");
   const StatusIcon = BOOKING_STATUS_ICONS[statusTone];
-  const peerUserId = Number(
-    isSalonOwner
-      ? booking.clientUserId || booking.client_user_id
-      : booking.salonUserId || booking.salon_user_id
-  ) || null;
 
   return (
     <div
@@ -182,18 +175,6 @@ export function ScheduleBookingMenuModal({
                 </div>
               ) : null}
               <div className="clientBookingSettingsActions scheduleBookingSettingsActions">
-                <button
-                  type="button"
-                  className="primary"
-                  disabled={!peerUserId}
-                  title={peerUserId ? undefined : "این رزرو به یک حساب کاربری وصل نیست."}
-                  onClick={() => {
-                    if (peerUserId) onMessage?.(peerUserId);
-                  }}
-                >
-                  <MessageCircle size={16} />
-                  پیام
-                </button>
                 <button
                   type="button"
                   onClick={() => {

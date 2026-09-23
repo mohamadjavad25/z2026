@@ -1,13 +1,11 @@
 "use client";
 
-import { Crown, LayoutGrid, MessageCircle, ShoppingBag, Sparkles, Store } from "lucide-react";
+import { Crown, LayoutGrid, Sparkles, Store } from "lucide-react";
 
 export function ShellSidebar({ activeTab = "feed", onNavigate }) {
   const navItems = [
     { id: "salons", label: "سالن‌ها", Icon: Store },
-    { id: "feed", label: "اکسپلور", Icon: LayoutGrid },
-    { id: "chat", label: "چت", Icon: MessageCircle },
-    { id: "shops", label: "فروشگاه", Icon: ShoppingBag }
+    { id: "feed", label: "اکسپلور", Icon: LayoutGrid }
   ];
 
   function handleNavigate(event, tab) {

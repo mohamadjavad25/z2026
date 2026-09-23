@@ -22674,7 +22674,6 @@ body:has(.salonStoryCreatorOverlay) .profileModeRail.is-dockRail {
   max-width: 460px;
   margin-inline: auto;
   grid-template-columns: minmax(0, 1fr);
-  --chat-bottom-nav-space: calc(72px + env(safe-area-inset-bottom));
   box-shadow:
     0 0 0 1px rgba(28, 32, 44, 0.08),
     0 30px 90px rgba(28, 32, 44, 0.22);
@@ -24836,17 +24835,6 @@ body::after {
 
 /* 4) client profile page — remove the purple radial/gradient wash */
 .profilePanel.page-profile:has(.createdProfile.is-client) {
-  background: #ffffff !important;
-}
-
-/* 5) chat — white phone surface instead of gray gradient + wave image */
-.appShell.is-chat,
-.appShell.is-chat .workspace,
-.chatPhoneShell {
-  background: #ffffff !important;
-}
-.chatInboxPanel,
-.chatConversationPanel {
   background: #ffffff !important;
 }
 

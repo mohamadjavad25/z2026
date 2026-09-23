@@ -612,7 +612,7 @@ export function addArtistBooking(artistUserId, data) {
   return withTransaction(getDb(), () => addArtistBookingInTx(artistUserId, data));
 }
 
-/** Full booking snapshot for a booking-card chat bubble. Live status — callers should re-fetch, never cache. */
+/** Full booking snapshot, camelCased. Live status — callers should re-fetch, never cache. */
 export function getArtistBookingById(bookingId) {
   const row = getDb().prepare("SELECT * FROM artist_bookings WHERE id = ?").get(bookingId);
   if (!row) return null;

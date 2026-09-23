@@ -7,7 +7,6 @@ export function createLogoutUiGapResets(setters) {
     setBookingSheetOpen,
     setScheduleBookingMenu,
     setScheduleBookingView,
-    setFloatingChatOpen,
     setClientBookingSettings,
     setArtistServiceCreateOpen,
     setArtistServiceCreateMode,
@@ -23,7 +22,6 @@ export function createLogoutUiGapResets(setters) {
     setBookingSheetOpen?.(false);
     setScheduleBookingMenu?.(null);
     setScheduleBookingView?.("menu");
-    setFloatingChatOpen?.(false);
     setClientBookingSettings?.(null);
     setArtistServiceCreateOpen?.(false);
     setArtistServiceCreateMode?.("preset");
@@ -47,7 +45,6 @@ export const LOGOUT_UI_GAP_DEFAULTS = {
   bookingSheetOpen: false,
   scheduleBookingMenu: null,
   scheduleBookingView: "menu",
-  floatingChatOpen: false,
   clientBookingSettings: null,
   artistServiceCreateOpen: false,
   artistServiceCreateMode: "preset",
