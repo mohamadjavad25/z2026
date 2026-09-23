@@ -141,7 +141,6 @@ import {
   salonStaff,
   salonTasks
 } from "./mockData";
-import { ShellSidebar } from "./ShellSidebar";
 
 // SQLite's CURRENT_TIMESTAMP is UTC with no offset marker ("2026-09-19 10:30:00"),
 // which JS parses as LOCAL time unless told otherwise — append "Z" so recency
@@ -1788,7 +1787,6 @@ function getPassportMatch(post) {
   return (
     <main className={`appShell ${!createdProfile ? "is-auth-gate" : ""} ${selectedSalon && activeTab === "salons" ? "is-salon-client" : ""} ${selectedPublicArtist ? "is-artist-public" : ""} ${!authChecked ? "is-auth-loading" : ""}`}>
       {!authChecked ? <AuthBootScreen /> : null}
-      <ShellSidebar activeTab={activeTab} onNavigate={goToTab} />
 
       <section className="workspace">
         {!createdProfile ? (
