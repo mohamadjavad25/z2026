@@ -1,4 +1,3 @@
-export { ArtistBookingRail } from "./ArtistBookingRail";
 export { ArtistBreakEditorModal } from "./ArtistBreakEditorModal";
 export { ArtistCollabBoard } from "./ArtistCollabBoard";
 export { ArtistOverviewReviews } from "./ArtistOverviewReviews";

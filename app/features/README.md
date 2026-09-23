@@ -60,7 +60,6 @@ features/salons/
   index.js
 
 features/artist/
-  ArtistBookingRail.jsx
   PublicArtistAboutPanel.jsx
   PublicArtistBookingPanel.jsx
   PublicArtistGalleryPanel.jsx

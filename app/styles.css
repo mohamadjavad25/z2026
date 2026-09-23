@@ -22968,6 +22968,69 @@ body:has(.salonStoryCreatorOverlay) .profileModeRail.is-dockRail {
   background: linear-gradient(135deg, #60519b, #453a75);
 }
 
+/* Artist's merged floating bar: create-booking button + today's booked
+   times in one navy/plum bar, replacing what used to be two separate
+   floating widgets in this same corner of the screen. */
+.floatingMobileCta.floatingArtistBar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(135deg, var(--night), var(--plum));
+}
+
+.floatingArtistBarCreate {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 42px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 900;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.floatingArtistBarCreate.is-active {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.floatingArtistBarTimes {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 42px;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  overflow-x: auto;
+  scrollbar-width: none;
+  cursor: pointer;
+}
+
+.floatingArtistBarTimes::-webkit-scrollbar {
+  display: none;
+}
+
+.floatingArtistBarTimes > * {
+  flex: 0 0 auto;
+}
+
+.floatingArtistBarEmpty {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.7rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 /* 6) Full-screen overlays: keep inside the frame width */
 .salonGalleryDetailBackdrop,
 .salonSidebarBackdrop,

@@ -43,7 +43,6 @@ import {
   salonArtistStatusOptions
 } from "../../shared/constants/roles";
 import {
-  ArtistBookingRail,
   ArtistBreakEditorModal,
   ArtistCollabBoard,
   ArtistOverviewReviews,
@@ -52,7 +51,6 @@ import {
   PublicArtistModal,
   buildExactBookingDateTabs,
   buildExactBookingDateTabsCentered,
-  getArtistRailDockStyle,
   getBookingDateKey,
   getBookingDateOffsetDays,
   isArtistBookingOnExactDate,
@@ -418,13 +416,11 @@ export function HomeApp() {
     artistBreakDraft,
     setArtistBreakDraft,
     artistBreakSaving,
-    artistBookingCreateOpen,
     setArtistBookingCreateOpen,
     artistCollabOffers,
     setArtistCollabOffers,
     artistCollabDraft,
     setArtistCollabDraft,
-    artistBookingRailOpen,
     setArtistBookingRailOpen,
     artistBookingSettings,
     setArtistBookingSettings,
@@ -444,13 +440,6 @@ export function HomeApp() {
     weeklyArtistCapacityTotal,
     updateArtistHour,
     updateArtistHoursPreset,
-    artistRailDock,
-    setArtistRailDock,
-    artistRailDragging,
-    artistRailDragPos,
-    artistRailSize,
-    artistRailRef,
-    artistRailDragRef,
     visibleArtistPortfolio,
     artistGalleryTags,
     artistGalleryItems,
@@ -473,9 +462,6 @@ export function HomeApp() {
     refreshArtistWorkspace,
     notifyArtistBookingCreated,
     resetArtistWorkspace,
-    onArtistRailHandlePointerDown,
-    onArtistRailHandlePointerMove,
-    onArtistRailHandlePointerUp,
     handleArtistBookingCreate,
     openArtistBreakEditor,
     closeArtistBreakEditor,
@@ -2559,10 +2545,8 @@ function getPassportMatch(post) {
             && createdProfile.type !== "client"
           }
           profileType={createdProfile?.type}
-          sheetOpen={Boolean(
-            artistServiceCreateOpen || artistBreakEditorOpen || bookingSheetOpen
-          )}
           bookingSheetOpen={bookingSheetOpen}
+          todayBookings={nearestArtistBookings}
           modeRail={
             createdProfile?.type === "salon" ? (
               <ProfileModeRail
@@ -2587,45 +2571,13 @@ function getPassportMatch(post) {
             }
             openBookingSheet();
           }}
+          onOpenBookings={() => {
+            setProfileView("bookings");
+            setArtistBookingRailOpen(false);
+            setArtistBookingCreateOpen(false);
+            closeBookingSheet();
+          }}
         />
-
-        {createdProfile?.type === "artist" && activeTab === "profile" && (
-          <ArtistBookingRail
-            ref={artistRailRef}
-            className={`artistBookingRail is-wall-${artistRailDock.wall} ${artistBookingRailOpen ? "is-open" : "is-collapsed"} ${artistRailDragging ? "is-dragging" : ""}`}
-            style={artistRailDragging && artistRailDragPos
-              ? { left: artistRailDragPos.x, top: artistRailDragPos.y, right: "auto", bottom: "auto" }
-              : getArtistRailDockStyle(artistRailDock, artistRailSize.w, artistRailSize.h, {
-                  tucked: !artistBookingRailOpen
-                })}
-            isOpen={artistBookingRailOpen}
-            isDragging={artistRailDragging}
-            bookings={nearestArtistBookings}
-            services={artistServiceList}
-            createOpen={artistBookingCreateOpen}
-            onHandlePointerDown={onArtistRailHandlePointerDown}
-            onHandlePointerMove={onArtistRailHandlePointerMove}
-            onHandlePointerUp={onArtistRailHandlePointerUp}
-            shouldIgnoreClick={() => artistRailDragRef.current.moved || artistRailDragging}
-            onToggle={() => {
-              setArtistBookingRailOpen((open) => {
-                if (open) setArtistBookingCreateOpen(false);
-                return !open;
-              });
-            }}
-            onOpen={() => setArtistBookingRailOpen(true)}
-            onShowAll={() => {
-              setProfileView("bookings");
-              setArtistBookingRailOpen(false);
-              setArtistBookingCreateOpen(false);
-              closeBookingSheet();
-            }}
-            onCreateOpen={() => setArtistBookingCreateOpen(true)}
-            onCreateClose={() => setArtistBookingCreateOpen(false)}
-            onCreateSubmit={handleArtistBookingCreate}
-            createSubmitting={artistBookingSubmitting}
-          />
-        )}
 
         {createdProfile?.type === "salon" && (
           <SalonToolSheets
