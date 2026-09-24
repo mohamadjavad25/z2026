@@ -656,7 +656,7 @@ export function getPublicArtist(userId, viewerUserId = null) {
     role: user.service ? `آرتیست ${user.service}` : "آرتیست",
     area: user.area,
     bio: user.bio,
-    avatar: user.avatar,
+    avatar: user.avatar ? `/api/media/avatar/${user.id}` : "",
     service: user.service,
     experienceYears: user.experience_years || "",
     rating: ratingAgg?.cnt ? Number(ratingAgg.avg_rating).toFixed(1) : "۰",
@@ -687,7 +687,9 @@ export function listArtists() {
     // hidden from the public directory, same rule salons.listSalons() and
     // shops.listShops() already enforce for their equivalent toggles -- this
     // was previously never checked at all for artists.
-    .filter((row) => getSettings(row.id).publicPortfolio !== false);
+    .filter((row) => getSettings(row.id).publicPortfolio !== false)
+    // Media URL, not raw base64 -- see app/api/media/avatar/[userId]/route.js.
+    .map((row) => ({ ...row, avatar: row.avatar ? `/api/media/avatar/${row.id}` : "" }));
 }
 
 /**

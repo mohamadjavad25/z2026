@@ -67,7 +67,7 @@ export function listSalons() {
       // salon-card component reads .phone/.email from this list shape
       // (grepped app/features/salons) -- only the single-salon detail view
       // (getSalon() below) does, for its "call the salon" contact block.
-      avatar: row.avatar || "",
+      avatar: row.avatar ? `/api/media/avatar/${row.user_id}` : "",
       bio: row.bio || "",
       postCount: row.post_count,
       followerCount,
@@ -116,7 +116,7 @@ export function listSavedSalonsForUser(userId) {
       open: row.open,
       rating: row.rating,
       match: row.match_score,
-      avatar: row.avatar || "",
+      avatar: row.avatar ? `/api/media/avatar/${row.user_id}` : "",
       bio: row.bio || "",
       postCount: row.post_count,
       post_count: row.post_count,
@@ -158,7 +158,7 @@ export function getSalon(userId, viewerUserId = null) {
     // reads .email from this shape -- pure unused PII exposure, same as the
     // listSalons() case above.
     phone: row.phone,
-    avatar: row.avatar || "",
+    avatar: row.avatar ? `/api/media/avatar/${row.user_id}` : "",
     bio: row.bio || "",
     postCount: row.post_count,
     post_count: row.post_count,

@@ -1,5 +1,13 @@
 import { getDb } from "../connection.js";
 
+// Both image/ownerAvatar are stored as raw data:<type>;base64,<data> strings
+// in the DB but shipped here as media-endpoint URLs, never inline -- this
+// mapper is the single choke point for every post list (explore feed, a
+// salon/artist's portfolio via listSalonPortfolio -> listPostsByOwner), so
+// embedding the raw base64 here was why a 5-post explore feed shipped
+// ~3MB of JSON and the salon directory (which embeds each salon's full
+// portfolio) shipped ~1.85MB for a handful of salons. See
+// app/api/media/post/[postId]/route.js and .../media/avatar/[userId]/route.js.
 function mapPost(row) {
   if (!row) return null;
   return {
@@ -7,7 +15,7 @@ function mapPost(row) {
     ownerUserId: row.owner_user_id,
     title: row.title,
     tag: row.tag || "",
-    image: row.image || "",
+    image: row.image ? `/api/media/post/${row.id}` : "",
     caption: row.caption || "",
     inExplore: Boolean(row.in_explore),
     featured: Boolean(row.featured),
@@ -17,7 +25,7 @@ function mapPost(row) {
     rating: row.rating_count ? String(Number(row.rating_avg).toFixed(1)) : "",
     salon: row.owner_name || "",
     ownerType: row.owner_type || "",
-    ownerAvatar: row.owner_avatar || "",
+    ownerAvatar: row.owner_avatar ? `/api/media/avatar/${row.owner_user_id}` : "",
     ownerArea: row.owner_area || "",
     ownerBio: row.owner_bio || "",
     ownerService: row.owner_service || "",
