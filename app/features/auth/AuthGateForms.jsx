@@ -4,6 +4,8 @@ import { useState } from "react";
 import {
   ChevronLeft,
   Crown,
+  Eye,
+  EyeOff,
   Palette,
   ShieldCheck,
   Store
@@ -14,6 +16,32 @@ import {
   salonRegistrationServices
 } from "../../shared/constants/roles";
 import { ProfileRoleGrid } from "../profile/ProfileRoleGrid";
+
+function PasswordField({ name, placeholder, ariaLabel, required, minLength, onInput, defaultValue }) {
+  const [visible, setVisible] = useState(false);
+  return (
+    <div className="authPasswordField">
+      <input
+        name={name}
+        placeholder={placeholder}
+        aria-label={ariaLabel}
+        type={visible ? "text" : "password"}
+        required={required}
+        minLength={minLength}
+        onInput={onInput}
+        defaultValue={defaultValue}
+      />
+      <button
+        type="button"
+        className="authPasswordToggle"
+        onClick={() => setVisible((v) => !v)}
+        aria-label={visible ? "پنهان کردن رمز عبور" : "نمایش رمز عبور"}
+      >
+        {visible ? <EyeOff size={16} /> : <Eye size={16} />}
+      </button>
+    </div>
+  );
+}
 
 function handlePasswordConfirmInput(event) {
   const form = event.currentTarget.form;
@@ -131,20 +159,6 @@ export function AuthGateForms({
       <div className="authGateHero" data-mode={authMode} data-step={signupStep}>
         <div className="authGateCopy">
           <p className="authGateBrand">زیبابان</p>
-          <h2>
-            {authMode === "login"
-              ? "خوش اومدی"
-              : signupStep === "form"
-                ? "تقریباً آماده‌ای"
-                : "زیبایی از اینجا شروع می‌شه"}
-          </h2>
-          <span>
-            {authMode === "login"
-              ? "شماره و رمز؛ تمام."
-              : signupStep === "form"
-                ? "چند فیلد کوتاه — کمتر از یک دقیقه."
-                : "نقشت را بگو؛ مسیرت باز می‌شه."}
-          </span>
         </div>
       </div>
 
@@ -166,19 +180,13 @@ export function AuthGateForms({
         recoveryOpen ? (
           <PasswordRecoveryPanel onClose={() => setRecoveryOpen(false)} />
         ) : (
+        <>
         <form className="signupForm is-login" onSubmit={onLoginSubmit}>
-          <div className="formTitle">
-            <ShieldCheck size={18} />
-            <div>
-              <strong>ورود به زیبابان</strong>
-              <span>شماره تماس و رمز عبور حسابت را وارد کن</span>
-            </div>
-          </div>
           <label>
-            شماره تماس
             <input
               name="phone"
-              placeholder="09..."
+              placeholder="شماره تماس"
+              aria-label="شماره تماس"
               inputMode="tel"
               dir="ltr"
               maxLength={11}
@@ -187,24 +195,22 @@ export function AuthGateForms({
             />
           </label>
           <label>
-            رمز عبور
-            <input name="password" placeholder="رمز عبور" type="password" required />
+            <PasswordField name="password" placeholder="رمز عبور" ariaLabel="رمز عبور" required />
           </label>
+          <button type="button" className="authForgotLink" onClick={() => setRecoveryOpen(true)}>
+            رمز عبور را فراموش کردی؟
+          </button>
           <button type="submit" className="profileSubmit" disabled={authBusy}>
             {authBusy ? "در حال ورود…" : "ورود"}
           </button>
-          <p className="authSwitchHint">
-            <button type="button" onClick={() => setRecoveryOpen(true)}>
-              رمز عبور را فراموش کردی؟
-            </button>
-          </p>
-          <p className="authSwitchHint">
-            حساب نداری؟{" "}
-            <button type="button" onClick={onSwitchToSignup}>
-              ثبت‌نام کن
-            </button>
-          </p>
         </form>
+        <p className="authSwitchHint is-pageFooter">
+          حساب نداری؟{" "}
+          <button type="button" onClick={onSwitchToSignup}>
+            ثبت‌نام کن
+          </button>
+        </p>
+        </>
         )
       ) : signupStep !== "form" ? null : profileType === "salon" ? (
         <form className={`signupForm is-salon ${activeRoleMeta.heroClass}`} onSubmit={(event) => onProfileSubmit(event, "salon")}>
@@ -254,11 +260,11 @@ export function AuthGateForms({
           </label>
           <label>
             رمز کاربر
-            <input name="password" placeholder="حداقل ۸ کاراکتر" type="password" required minLength={8} />
+            <PasswordField name="password" placeholder="حداقل ۸ کاراکتر" required minLength={8} />
           </label>
           <label>
             تکرار رمز عبور
-            <input name="passwordConfirm" placeholder="رمز عبور را دوباره وارد کن" type="password" required onInput={handlePasswordConfirmInput} />
+            <PasswordField name="passwordConfirm" placeholder="رمز عبور را دوباره وارد کن" required onInput={handlePasswordConfirmInput} />
           </label>
           <label>
             ایمیل اختیاری
@@ -321,11 +327,11 @@ export function AuthGateForms({
           </label>
           <label>
             رمز کاربر
-            <input name="password" placeholder="حداقل ۸ کاراکتر" type="password" required minLength={8} />
+            <PasswordField name="password" placeholder="حداقل ۸ کاراکتر" required minLength={8} />
           </label>
           <label>
             تکرار رمز عبور
-            <input name="passwordConfirm" placeholder="رمز عبور را دوباره وارد کن" type="password" required onInput={handlePasswordConfirmInput} />
+            <PasswordField name="passwordConfirm" placeholder="رمز عبور را دوباره وارد کن" required onInput={handlePasswordConfirmInput} />
           </label>
           <label>
             ایمیل اختیاری
@@ -377,11 +383,11 @@ export function AuthGateForms({
           </label>
           <label>
             رمز کاربر
-            <input name="password" placeholder="حداقل ۸ کاراکتر" type="password" required minLength={8} />
+            <PasswordField name="password" placeholder="حداقل ۸ کاراکتر" required minLength={8} />
           </label>
           <label>
             تکرار رمز عبور
-            <input name="passwordConfirm" placeholder="رمز عبور را دوباره وارد کن" type="password" required onInput={handlePasswordConfirmInput} />
+            <PasswordField name="passwordConfirm" placeholder="رمز عبور را دوباره وارد کن" required onInput={handlePasswordConfirmInput} />
           </label>
           <label>
             ایمیل اختیاری
