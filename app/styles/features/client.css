@@ -528,13 +528,13 @@
   left: 12px;
   width: 34px;
   height: 34px;
+  display: grid;
+  place-items: center;
   border: 0;
   border-radius: 12px;
   background: rgba(28, 32, 44, 0.06);
   color: var(--ink);
   font-family: inherit;
-  font-size: 1.2rem;
-  line-height: 1;
   cursor: pointer;
 }
 

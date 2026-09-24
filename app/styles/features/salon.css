@@ -3695,6 +3695,31 @@
 
 
 
+.salonClientBookingPhoneWarning{
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid rgba(214, 79, 79, 0.22);
+  border-radius: 12px;
+  background: rgba(214, 79, 79, 0.07);
+  color: #a13c3c;
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1.6;
+}
+
+.salonClientBookingPhoneWarning button{
+  border: 0;
+  background: none;
+  padding: 0;
+  color: #60519b;
+  font-size: inherit;
+  font-weight: 950;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+
+
 .salonClientBookingConfirm{
   min-height: 42px;
   display: flex;
@@ -3905,37 +3930,6 @@
 
 
 
-.salonClientReviewScore{
-  display: grid;
-  gap: 6px;
-  justify-items: start;
-  padding: 14px 16px;
-  border-radius: 16px;
-  background: rgba(243, 244, 245, 0.9);
-}
-
-
-
-.salonClientReviewScore strong{
-  color: var(--ink);
-  font-size: 1.5rem;
-  font-weight: 950;
-  line-height: 1;
-}
-
-
-
-.salonClientReviewScore span{
-  color: var(--muted);
-  font-size: 0.72rem;
-  font-weight: 800;
-}
-
-
-
-.salonClientReviewStars{
-  justify-content: start;
-}
 
 
 

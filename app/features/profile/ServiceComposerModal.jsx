@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Timer } from "lucide-react";
+import { Check, Timer, X } from "lucide-react";
 
 /**
  * Shared artist + salon service create/edit modal.
@@ -34,7 +34,7 @@ export function ServiceComposerModal({
             <h3>{draft.id ? "ویرایش خدمت" : "افزودن خدمت"}</h3>
           </div>
           <button type="button" className="artistServiceClose" onClick={onClose} aria-label="بستن">
-            ×
+            <X size={17} />
           </button>
         </header>
 

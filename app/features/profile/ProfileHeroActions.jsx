@@ -20,7 +20,8 @@ export function ProfileHeroActions({
         <button
           type="button"
           className={`${activePanel === "notifications" ? "is-active" : ""} ${notificationCount > 0 ? "has-notifications" : ""}`.trim()}
-          onClick={onOpenNotifications || onOpenSaved}
+          onClick={onOpenNotifications}
+          disabled={typeof onOpenNotifications !== "function"}
           aria-label="اعلان‌ها"
         >
           <Bell size={17} />
@@ -51,7 +52,7 @@ export function ProfileHeroActions({
         
       </div>
       <div className="profileHeroActionsGroup">
-        {profileType === "artist" && (
+        {(profileType === "artist" || profileType === "client") && (
           <button
             type="button"
             className={`${activePanel === "notifications" ? "is-active" : ""} ${notificationCount > 0 ? "has-notifications" : ""}`.trim()}

@@ -50,7 +50,7 @@ export function SalonCreateStaffModal({
           <label>
             شماره تماس
             <span className="artistCreateInputIcon"><Phone size={14} /></span>
-            <input name="phone" placeholder="۰۹..." inputMode="tel" autoComplete="tel" />
+            <input name="phone" placeholder="۰۹..." inputMode="tel" autoComplete="tel" dir="ltr" maxLength={11} />
           </label>
 
           <div className="artistCreateField wide">

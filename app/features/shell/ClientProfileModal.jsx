@@ -1,5 +1,6 @@
 "use client";
 
+import { X } from "lucide-react";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 
 const TYPE_LABELS = {
@@ -27,7 +28,7 @@ export function ClientProfileModal({ client, onClose }) {
     >
       <article className="clientProfileSheet" onClick={(event) => event.stopPropagation()}>
         <button type="button" className="clientProfileClose" onClick={onClose} aria-label="بستن">
-          ×
+          <X size={17} />
         </button>
         <div className="clientProfileHero">
           <div className={`clientProfileAvatar ${client.avatar ? "hasImage" : ""}`}>

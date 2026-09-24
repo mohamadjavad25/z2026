@@ -8,7 +8,8 @@ import {
   Percent,
   Phone,
   ShieldCheck,
-  Timer
+  Timer,
+  X
 } from "lucide-react";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 
@@ -53,7 +54,7 @@ export function SalonStaffProfileModal({
     >
       <article className="artistProfileSheet is-staffProfile" onClick={(event) => event.stopPropagation()}>
         <button type="button" className="artistProfileClose" onClick={onClose} aria-label="بستن">
-          ×
+          <X size={17} />
         </button>
 
         <header className="staffProfileHero">

@@ -50,6 +50,47 @@
 
 
 
+.exploreSearch{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  margin-bottom: 12px;
+  padding: 0 14px;
+  border-radius: 14px;
+  background: rgba(28, 32, 44, 0.05);
+  color: var(--muted);
+}
+
+.exploreSearch svg{
+  flex: 0 0 auto;
+}
+
+.exploreSearch input{
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.exploreSearch input::placeholder{
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.exploreSearch input:focus{
+  outline: none;
+}
+
+.exploreSearch input::-webkit-search-cancel-button{
+  -webkit-appearance: none;
+}
+
+
+
 .feedCards{
   columns: 2 160px;
   column-gap: 12px;

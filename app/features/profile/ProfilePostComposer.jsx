@@ -1,6 +1,6 @@
 "use client";
 
-import { Camera, Check, ChevronDown, ImagePlus, Trash2, Upload } from "lucide-react";
+import { Camera, Check, ChevronDown, ImagePlus, Trash2, Upload, X } from "lucide-react";
 import { createPortal } from "react-dom";
 
 /**
@@ -106,7 +106,7 @@ export function ProfilePostComposer({
           )}
         </div>
         <button type="button" className="artistWorkClose" onClick={onClose} aria-label="بستن" disabled={saving}>
-          ×
+          <X size={17} />
         </button>
 
         <form className="artistWorkForm" onSubmit={onSubmit}>

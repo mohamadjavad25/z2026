@@ -158,7 +158,7 @@ export function ProfileEditModal({
                 <strong>اطلاعات تماس</strong>
               </div>
               <div className="profileEditFieldGrid">
-                <label>شماره تماس<input name="phone" defaultValue={profile.data?.phone || ""} inputMode="tel" /></label>
+                <label>شماره تماس<input name="phone" defaultValue={profile.data?.phone || ""} inputMode="tel" dir="ltr" maxLength={11} /></label>
                 <label>ایمیل <small>اختیاری اما مهم</small><input name="email" defaultValue={profile.data?.email || ""} type="email" placeholder="برای اطلاع‌رسانی و بازیابی حساب" /></label>
               </div>
             </section>

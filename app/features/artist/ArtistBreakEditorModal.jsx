@@ -1,5 +1,6 @@
 "use client";
 
+import { X } from "lucide-react";
 import { BreakTimeWheel } from "../../components/BreakTimeWheel";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { buildClockOptions, timeLabelToMinutes } from "../../shared/lib/time";
@@ -53,7 +54,7 @@ export function ArtistBreakEditorModal({
     >
       <article className="artistServiceSheet artistBreakSheet" onClick={(event) => event.stopPropagation()}>
         <button type="button" className="artistServiceClose artistBreakClose" onClick={onClose} aria-label="بستن">
-          ×
+          <X size={17} />
         </button>
 
         <div className="artistBreakModalBody">

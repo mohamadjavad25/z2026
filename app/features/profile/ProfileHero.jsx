@@ -4,11 +4,12 @@ import { useState } from "react";
 import {
   Award,
   BadgeCheck,
+  Bell,
   Heart,
   ImagePlus,
   MapPin,
   Star,
-  UserPlus,
+  UserPlus
 } from "lucide-react";
 import { MarbleRatingStars } from "../../components/MarbleRatingStars";
 import { toPersianDigits } from "../../shared/lib/digits";
@@ -161,6 +162,14 @@ export function ProfileHero({
               {profile.data?.area || "آدرس ثبت نشده"}
             </span>
           </div>
+          <button
+            type="button"
+            className={`clientBeautyHeroBell ${activePanel === "notifications" ? "is-active" : ""} ${notificationCount > 0 ? "has-notifications" : ""}`.trim()}
+            onClick={onOpenNotifications}
+            aria-label="اعلان‌ها"
+          >
+            <Bell size={18} />
+          </button>
         </div>
       </div>
     );

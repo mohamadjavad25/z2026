@@ -1,6 +1,7 @@
 "use client";
 
-import { Sparkles } from "lucide-react";
+import { useState } from "react";
+import { Search, Sparkles } from "lucide-react";
 import { SkeletonList } from "../../components/Skeleton";
 import { categories } from "../../shared/constants/categories";
 
@@ -12,7 +13,16 @@ export function ExplorePage({
   onCategoryChange,
   onPostSelect
 }) {
+  const [query, setQuery] = useState("");
   const safePosts = Array.isArray(posts) ? posts : [];
+  const normalizedQuery = query.trim();
+  const visiblePosts = normalizedQuery
+    ? safePosts.filter((item) =>
+        [item.title, item.salon, item.area, item.tag]
+          .filter(Boolean)
+          .some((field) => field.includes(normalizedQuery))
+      )
+    : safePosts;
 
   return (
     <div className={`feedPanel mobilePage page-feed ${active ? "is-active" : ""}`} id="feed">
@@ -21,8 +31,18 @@ export function ExplorePage({
           <span>اکسپلور زیبایی</span>
           <strong>مدل‌ها و ترندهای روز</strong>
         </div>
-        <b>{loading ? "…" : `${safePosts.length} مدل`}</b>
+        <b>{loading ? "…" : `${visiblePosts.length} مدل`}</b>
       </div>
+      <label className="exploreSearch">
+        <Search size={16} />
+        <input
+          type="search"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="جستجوی مدل، سالن یا محدوده..."
+          aria-label="جستجو در اکسپلور"
+        />
+      </label>
       <div className="categoryRail" role="tablist" aria-label="فیلتر دسته‌ها">
         {categories.map((cat) => (
           <button
@@ -46,8 +66,14 @@ export function ExplorePage({
             <b>هنوز پستی در اکسپلور نیست</b>
             <p>با ثبت‌نام آرتیست و انتشار نمونه‌کار، اینجا پر می‌شود.</p>
           </div>
+        ) : visiblePosts.length === 0 ? (
+          <div className="emptySalonDirectory">
+            <Search size={22} />
+            <b>نتیجه‌ای پیدا نشد</b>
+            <p>عبارت دیگری را امتحان کن.</p>
+          </div>
         ) : null}
-        {!loading && safePosts.map((item) => (
+        {!loading && visiblePosts.map((item) => (
           <article
             className={`feedCard ${item.color}${item.image ? " hasImage" : ` ${item.tile}`}`}
             key={item.id || item.title}

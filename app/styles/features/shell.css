@@ -595,6 +595,79 @@
   flex: 0 0 auto;
 }
 
+
+
+.pushSoftAsk{
+  position: fixed;
+  right: 16px;
+  left: 16px;
+  bottom: calc(82px + env(safe-area-inset-bottom));
+  z-index: 90;
+  max-width: 428px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: 8px 10px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(96, 81, 155, 0.96), rgba(43, 38, 55, 0.96));
+  color: #fff;
+  box-shadow: 0 18px 44px rgba(28, 32, 44, 0.24);
+  backdrop-filter: blur(18px);
+}
+
+.pushSoftAsk > svg{
+  margin-top: 2px;
+  color: #bfc0d1;
+  flex: 0 0 auto;
+}
+
+.pushSoftAsk > div{
+  display: grid;
+  gap: 2px;
+}
+
+.pushSoftAsk b{
+  font-size: 0.82rem;
+  font-weight: 950;
+}
+
+.pushSoftAsk small{
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.pushSoftAskActions{
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.pushSoftAskActions button{
+  border: 0;
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 0.72rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.pushSoftAskActions button:first-child{
+  background: #fff;
+  color: #1c202c;
+}
+
+.pushSoftAskActions button:last-child{
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
 /* --- J7 extracted from styles.css --- */
 
 

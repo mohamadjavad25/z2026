@@ -171,6 +171,13 @@ function urlBase64ToUint8Array(base64String) {
  * returns it — this still re-POSTs it, which is fine, saveSubscription
  * upserts by endpoint).
  */
+function pushNotificationsSupported() {
+  if (typeof window === "undefined") return false;
+  if (!("serviceWorker" in navigator) || !("PushManager" in window)) return false;
+  if (typeof Notification === "undefined") return false;
+  return Boolean(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY);
+}
+
 async function subscribeToPushNotifications() {
   if (typeof window === "undefined") return;
   if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
@@ -199,6 +206,18 @@ async function subscribeToPushNotifications() {
   }
 }
 
+const AUTH_GATE_SPARKLES = [
+  { x: 14, y: 16, size: 3, delay: 0 },
+  { x: 78, y: 9, size: 2, delay: 1.4 },
+  { x: 32, y: 32, size: 2.4, delay: 2.8 },
+  { x: 87, y: 27, size: 3.4, delay: 0.6 },
+  { x: 8, y: 46, size: 2, delay: 3.6 },
+  { x: 62, y: 50, size: 2.8, delay: 1.9 },
+  { x: 91, y: 57, size: 2, delay: 4.4 },
+  { x: 22, y: 63, size: 3.2, delay: 2.2 },
+  { x: 48, y: 20, size: 2, delay: 5 }
+];
+
 export function HomeApp() {
   const [activeTab, setActiveTab] = useState("profile");
   const refreshExploreFeedRef = useRef(null);
@@ -207,6 +226,7 @@ export function HomeApp() {
   const applySalonBookingsRef = useRef(null);
   const authCascadeRef = useRef({});
   const [appToast, setAppToast] = useState("");
+  const [pushSoftAskVisible, setPushSoftAskVisible] = useState(false);
   const [clientBookingSettings, setClientBookingSettings] = useState(null);
   const [beautyPassport, setBeautyPassport] = useState(null);
   const [followedArtists, setFollowedArtists] = useState([]);
@@ -293,14 +313,24 @@ export function HomeApp() {
       if (profile?.type === "salon") await c.refreshSalonSystemData?.();
       if (profile?.type === "artist") await c.refreshArtistWorkspace?.();
       if (source === "boot" && profile?.type === "client") await c.refreshClientBookings?.();
-      // Fire-and-forget: real push notifications (see app/lib/push.js) so a
-      // salon/artist finds out about a new/expired request even when the
-      // app isn't open, closing the gap the full-team audit flagged — an
-      // installed-but-no-op service worker was the actual root cause of
-      // "owner never finds out a request auto-expired". Every authenticated
-      // session tries once; subscribeToPushNotifications no-ops quietly if
-      // unsupported, already denied, or already subscribed.
-      void subscribeToPushNotifications();
+      // Real push notifications (see app/lib/push.js) so a salon/artist/client
+      // finds out about a new/expired request even when the app isn't open.
+      // Only auto-(re)subscribe silently when permission is already granted;
+      // a cold Notification.requestPermission() with zero context is a
+      // reliable way to get a reflexive "Block" (and a denied permission can
+      // never be re-prompted per the browser spec), so a fresh "default"
+      // permission instead shows an in-app soft-ask banner that explains why
+      // before the real browser prompt fires — see pushSoftAskVisible below.
+      if (typeof Notification !== "undefined" && Notification.permission === "granted") {
+        void subscribeToPushNotifications();
+      } else if (
+        typeof Notification !== "undefined" &&
+        Notification.permission === "default" &&
+        pushNotificationsSupported() &&
+        !window.localStorage.getItem("zibaban_push_soft_ask_dismissed")
+      ) {
+        setPushSoftAskVisible(true);
+      }
     },
     onLoggedOut: async () => {
       const c = authCascadeRef.current;
@@ -385,6 +415,44 @@ export function HomeApp() {
     onOwnerBookingsSync: (bookings) => applySalonBookingsRef.current?.(bookings, { bump: true }),
     onLinkedArtistBooked: (id) => notifyArtistBookingCreatedRef.current?.(id)
   });
+
+  // Clients don't have a real-time "seen" flag from the server, so we track
+  // which booking statuses the client has already looked at locally: a
+  // {bookingId: status} snapshot in localStorage, scoped per account. A
+  // booking counts as "unseen" when its current status differs from the
+  // last snapshot taken (covers both "never seen this booking" and "status
+  // changed since I last opened the panel"), for the 3 statuses worth
+  // surfacing a notification for (pending doesn't need one — it's expected).
+  const clientSeenStorageKey = createdProfile?.type === "client" && createdProfile?.id
+    ? `zibaban_client_seen_bookings_${createdProfile.id}`
+    : "";
+  const unseenClientBookingCount = useMemo(() => {
+    if (!clientSeenStorageKey || typeof window === "undefined") return 0;
+    let seenMap = {};
+    try {
+      seenMap = JSON.parse(window.localStorage.getItem(clientSeenStorageKey) || "{}");
+    } catch {
+      seenMap = {};
+    }
+    return clientBookingList.filter((booking) => {
+      const status = booking.status || "";
+      if (!["تایید شده", "لغو", "منقضی شده"].includes(status)) return false;
+      return seenMap[booking.id] !== status;
+    }).length;
+  }, [clientBookingList, clientSeenStorageKey]);
+
+  function markClientBookingsSeen() {
+    if (!clientSeenStorageKey || typeof window === "undefined") return;
+    const seenMap = {};
+    clientBookingList.forEach((booking) => {
+      if (booking.id != null) seenMap[booking.id] = booking.status || "";
+    });
+    try {
+      window.localStorage.setItem(clientSeenStorageKey, JSON.stringify(seenMap));
+    } catch {
+      // best-effort only
+    }
+  }
 
   const {
     artistReviewList,
@@ -1776,23 +1844,24 @@ function getPassportMatch(post) {
       <section className="workspace">
         {!createdProfile ? (
           <div className="authGateBg" aria-hidden="true">
-            <video
-              className="authGateVideo"
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="auto"
-              poster="/profile-icon.png"
-              onLoadedMetadata={(event) => {
-                event.currentTarget.playbackRate = 0.45;
-              }}
-              onPlay={(event) => {
-                event.currentTarget.playbackRate = 0.45;
-              }}
-            >
-              <source src="/auth-gate-bg.mp4" type="video/mp4" />
-            </video>
+            <div className="authGateAurora">
+              <span className="authAuroraBlob authAuroraBlob--gold" />
+              <span className="authAuroraBlob authAuroraBlob--blush" />
+              <span className="authAuroraBlob authAuroraBlob--teal" />
+              {AUTH_GATE_SPARKLES.map((sparkle, index) => (
+                <span
+                  key={index}
+                  className="authAuroraSparkle"
+                  style={{
+                    left: `${sparkle.x}%`,
+                    top: `${sparkle.y}%`,
+                    width: `${sparkle.size}px`,
+                    height: `${sparkle.size}px`,
+                    animationDelay: `${sparkle.delay}s`
+                  }}
+                />
+              ))}
+            </div>
             <span className="authGateScrim" />
           </div>
         ) : null}
@@ -1837,6 +1906,7 @@ function getPassportMatch(post) {
             onClose={closeSalonClientBooking}
             onChange={patchSalonClientBooking}
             onConfirm={confirmSalonClientBooking}
+            onEditProfile={openProfileEdit}
           />
         )}
 
@@ -1894,7 +1964,8 @@ function getPassportMatch(post) {
               onOpenNotifications={() => {
                 if (createdProfile?.type === "salon") {
                   setSalonHeroSheet((prev) => (prev === "notifications" ? null : "notifications"));
-                } else if (createdProfile?.type === "artist") {
+                } else if (createdProfile?.type === "artist" || createdProfile?.type === "client") {
+                  if (createdProfile?.type === "client") markClientBookingsSeen();
                   setProfileView((prev) => (prev === "notifications" ? "overview" : "notifications"));
                 }
               }}
@@ -1903,7 +1974,9 @@ function getPassportMatch(post) {
                   ? salonUnreadNoticeCount + recentlyExpiredSalonBookings.length
                   : createdProfile?.type === "artist"
                     ? pendingArtistBookingRequests.length + pendingArtistSalonInvites.length + recentlyExpiredArtistBookings.length
-                    : 0
+                    : createdProfile?.type === "client"
+                      ? unseenClientBookingCount
+                      : 0
               }
               onOpenSettings={() => {
                 if (createdProfile?.type === "salon") {
@@ -2509,6 +2582,59 @@ function getPassportMatch(post) {
           </ProfileSheet>
         )}
 
+        {createdProfile?.type === "client" && profileView === "notifications" && (
+          <ProfileSheet
+            title="اعلان‌ها"
+            label="اعلان‌ها"
+            kicker="فعالیت من"
+            panelClassName="salonNotificationsSheetPanel"
+            open
+            onClose={() => setProfileView("overview")}
+          >
+            {(() => {
+              const notifiableStatuses = ["تایید شده", "لغو", "منقضی شده"];
+              const recentBookingNotices = clientBookingList
+                .filter((booking) => notifiableStatuses.includes(booking.status || ""))
+                .sort((a, b) => new Date(`${(b.created_at || "").replace(" ", "T")}Z`) - new Date(`${(a.created_at || "").replace(" ", "T")}Z`))
+                .slice(0, 20);
+              return recentBookingNotices.length ? (
+                <div className="reservationRequestList" aria-label="آخرین تغییرات رزروها">
+                  {recentBookingNotices.map((booking) => {
+                    const StatusIcon = booking.status === "تایید شده" ? Check : booking.status === "لغو" ? X : TimerOff;
+                    const statusClass = booking.status === "تایید شده" ? "is-approve" : booking.status === "لغو" ? "is-decline" : "is-expiredNotice";
+                    return (
+                      <article className={`reservationRequestCard ${statusClass}`} key={booking.id}>
+                        <div className="requestCardMain">
+                          <div className="requestCardWho">
+                            <strong>{booking.salonName || booking.salon_name || "سالن"}</strong>
+                            <span>{booking.service}</span>
+                          </div>
+                          <div className="requestCardAside">
+                            <span className="expiredNoticeTag">
+                              <StatusIcon size={14} />
+                              {booking.status}
+                            </span>
+                          </div>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="salonNotificationsPanel">
+                  <article>
+                    <span><BellRing size={18} /></span>
+                    <div>
+                      <b>هنوز اعلانی نداری</b>
+                      <small>تغییر وضعیت رزروهایت اینجا نمایش داده می‌شود.</small>
+                    </div>
+                  </article>
+                </div>
+              );
+            })()}
+          </ProfileSheet>
+        )}
+
         {createdProfile && (
           (createdProfile.type === "salon" && salonHeroSheet === "saved")
           || (createdProfile.type !== "salon" && profileView === "saved")
@@ -2733,6 +2859,36 @@ function getPassportMatch(post) {
           <div className="appToast" role="status" aria-live="polite">
             <ShieldCheck size={17} />
             <span>{appToast}</span>
+          </div>
+        )}
+
+        {pushSoftAskVisible && (
+          <div className="pushSoftAsk" role="status" aria-live="polite">
+            <BellRing size={17} />
+            <div>
+              <b>اعلان‌ها را فعال کن</b>
+              <small>تا از تایید، رد یا انقضای رزروهایت حتی وقتی اپ باز نیست باخبر شوی.</small>
+            </div>
+            <div className="pushSoftAskActions">
+              <button
+                type="button"
+                onClick={() => {
+                  setPushSoftAskVisible(false);
+                  void subscribeToPushNotifications();
+                }}
+              >
+                فعال کن
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setPushSoftAskVisible(false);
+                  window.localStorage.setItem("zibaban_push_soft_ask_dismissed", "1");
+                }}
+              >
+                بعداً
+              </button>
+            </div>
           </div>
         )}
 

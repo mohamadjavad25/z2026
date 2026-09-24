@@ -49,10 +49,18 @@ export function BookingCreateForm({
       onSubmit={onSubmit}
     >
       <label>
-        <input name="client" placeholder="نام مشتری" autoComplete="name" required />
+        <input name="client" placeholder="نام مشتری" aria-label="نام مشتری" autoComplete="name" required />
       </label>
       <label>
-        <input name="phone" placeholder="شماره تماس (اختیاری)" inputMode="tel" autoComplete="tel" dir="ltr" />
+        <input
+          name="phone"
+          placeholder="شماره تماس (اختیاری)"
+          aria-label="شماره تماس"
+          inputMode="tel"
+          autoComplete="tel"
+          dir="ltr"
+          maxLength={11}
+        />
       </label>
 
       <div className={`bookingHalfField ${showStaff ? "" : "is-wide"}`.trim()}>
@@ -133,6 +141,15 @@ export function BookingCreateForm({
         <CalendarCheck size={15} />
         {isBusy ? "در حال ثبت..." : "ثبت رزرو"}
       </button>
+      {!isBusy && (submitDisabled || !serviceValue || !timeOptions.length) ? (
+        <p className="bookingCreateDisabledHint">
+          {submitDisabled
+            ? "ابتدا حداقل یک خدمت به پروفایلت اضافه کن."
+            : !serviceValue
+              ? "برای ثبت، ابتدا خدمت را انتخاب کن."
+              : "برای این روز نوبت آزادی نیست."}
+        </p>
+      ) : null}
     </form>
   );
 }

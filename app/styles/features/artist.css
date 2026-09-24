@@ -3034,7 +3034,7 @@
 
 
 
-.artistPublicReviewScore{
+.artistPublicReviewSummary{
   display: grid;
   justify-items: start;
   gap: 6px;
@@ -3047,7 +3047,15 @@
 
 
 
-.artistPublicReviewScore strong{
+.artistPublicReviewSummaryScore{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+
+
+.artistPublicReviewSummaryScore b{
   font-size: 2rem;
   font-weight: 950;
   letter-spacing: -0.03em;
@@ -3056,7 +3064,7 @@
 
 
 
-.artistPublicReviewScore > span{
+.artistPublicReviewSummaryCount{
   color: rgba(28, 32, 44, 0.55);
   font-size: 0.74rem;
   font-weight: 750;

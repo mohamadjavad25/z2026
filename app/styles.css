@@ -2055,6 +2055,45 @@ h2{
   line-height: 1.5;
 }
 
+.salonSearchBar{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  margin: 12px 0;
+  padding: 0 14px;
+  border-radius: 14px;
+  background: rgba(28, 32, 44, 0.05);
+  color: var(--muted);
+}
+
+.salonSearchBar svg{
+  flex: 0 0 auto;
+}
+
+.salonSearchBar input{
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.salonSearchBar input::placeholder{
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.salonSearchBar input:focus{
+  outline: none;
+}
+
+.salonSearchBar input::-webkit-search-cancel-button{
+  -webkit-appearance: none;
+}
+
 .salonList{
   display: grid;
   gap: 12px;
@@ -3494,6 +3533,15 @@ h2{
   justify-content: center;
   gap: 8px;
   min-height: 48px;
+}
+
+.bookingCreateDisabledHint{
+  grid-column: 1 / -1;
+  margin: -2px 0 0;
+  color: var(--muted, rgba(28, 32, 44, 0.55));
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-align: center;
 }
 
 
@@ -10692,7 +10740,12 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .profileLocationEmpty{
+  display: grid;
+  place-items: center;
+  min-height: 64px;
   padding: 18px 12px;
+  border-radius: 16px;
+  background: rgba(28, 32, 44, 0.04);
   text-align: center;
   color: var(--muted);
   font-size: 0.78rem;
@@ -12013,12 +12066,13 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   left: 12px;
   width: 34px;
   height: 34px;
+  display: grid;
+  place-items: center;
   border: 0;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.14);
   color: #17363f;
   font-family: inherit;
-  font-size: 1.2rem;
   cursor: pointer;
   backdrop-filter: blur(14px);
 }

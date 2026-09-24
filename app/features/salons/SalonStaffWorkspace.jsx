@@ -127,7 +127,16 @@ export function SalonStaffWorkspace({
                   <b>{person.artist_name || person.name}</b>
                   <span>
                     {person.role || person.artist_service || "آرتیست"}
-                    {person.artist_area ? ` · ${person.artist_area}` : person.phone ? ` · ${person.phone}` : ""}
+                    {person.artist_area ? (
+                      ` · ${person.artist_area}`
+                    ) : person.phone ? (
+                      <>
+                        {" · "}
+                        <span dir="ltr">{toPersianDigits(person.phone)}</span>
+                      </>
+                    ) : (
+                      ""
+                    )}
                   </span>
                   <em className={isActive ? "is-active" : "is-idle"}>
                     <i aria-hidden="true" />

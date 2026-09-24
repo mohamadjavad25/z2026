@@ -28,6 +28,12 @@ export function normalizePhone(value) {
     .replace(/[\s\-()]/g, "");
 }
 
+const IRAN_MOBILE_PATTERN = /^09\d{9}$/;
+
+export function isValidIranMobile(value) {
+  return IRAN_MOBILE_PATTERN.test(String(value || ""));
+}
+
 export function hashPassword(password) {
   const salt = randomBytes(16).toString("hex");
   const hash = scryptSync(String(password), salt, 64).toString("hex");

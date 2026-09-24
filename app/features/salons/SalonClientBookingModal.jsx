@@ -12,14 +12,16 @@ export function SalonClientBookingModal({
   busy,
   onClose,
   onChange,
-  onConfirm
+  onConfirm,
+  onEditProfile
 }) {
   if (!open || !salon) return null;
 
   const profileName = booking.client || "مشتری زیبابان";
+  const hasPhone = Boolean(booking.phone);
   const profilePhone = booking.phone || "شماره تماس ثبت نشده";
   const selectedDayIndex = Math.max(0, salonClientBookingDays.indexOf(booking.day));
-  const canSubmit = Boolean(freeTimes.length && !busy);
+  const canSubmit = Boolean(freeTimes.length && !busy && hasPhone);
 
   function selectNextDay() {
     const nextIndex = (selectedDayIndex + 1) % salonClientBookingDays.length;
@@ -100,6 +102,16 @@ export function SalonClientBookingModal({
               <b dir="ltr">{profilePhone}</b>
             </span>
           </div>
+          {!hasPhone ? (
+            <p className="salonClientBookingPhoneWarning">
+              برای رزرو، شماره تماس را در پروفایلت ثبت کن.{" "}
+              {typeof onEditProfile === "function" ? (
+                <button type="button" onClick={onEditProfile}>
+                  ثبت شماره تماس
+                </button>
+              ) : null}
+            </p>
+          ) : null}
           <label className={`salonClientBookingConfirm ${booking.profileConfirmed ? "is-confirmed" : ""}`}>
             <input
               type="checkbox"

@@ -15,6 +15,7 @@ import {
   Phone,
   Plus,
   Scissors,
+  Search,
   ShieldCheck,
   Share2,
   Sparkles,
@@ -71,6 +72,15 @@ export function SalonClientPage({
 }) {
   const [aboutOpen, setAboutOpen] = useState(false);
   const [publicSheet, setPublicSheet] = useState("");
+  const [salonQuery, setSalonQuery] = useState("");
+  const normalizedSalonQuery = salonQuery.trim();
+  const visibleSalons = normalizedSalonQuery
+    ? salons.filter((salon) =>
+        [salon.name, salon.area, salon.tag]
+          .filter(Boolean)
+          .some((field) => field.includes(normalizedSalonQuery))
+      )
+    : salons;
   const services = selectedSalon ? getVisibleServices(selectedSalon) : [];
   const portfolioItems = Array.isArray(selectedSalon?.portfolio) ? selectedSalon.portfolio : [];
   const ratingValue = Number(selectedSalon?.rating);
@@ -286,7 +296,7 @@ export function SalonClientPage({
                 <div className="salonPublicAboutContact">
                   <span><MapPin size={17} /> {selectedSalon.area || "آدرس ثبت نشده"}</span>
                   <span><Clock3 size={17} /> {selectedSalon.open || "ساعت کاری ثبت نشده"}</span>
-                  <span><Phone size={17} /> {selectedSalon.phone || "شماره تماس ثبت نشده"}</span>
+                  <span><Phone size={17} /> {selectedSalon.phone ? <span dir="ltr">{toPersianDigits(selectedSalon.phone)}</span> : "شماره تماس ثبت نشده"}</span>
                 </div>
                 <section className="salonPublicAboutBlock">
                   <h4>قوانین رزرو و لغو</h4>
@@ -363,8 +373,18 @@ export function SalonClientPage({
               <span>سالن مورد علاقه‌ت رو پیدا کن و در چند ثانیه وقت بگیر.</span>
             </div>
           </div>
+          <label className="salonSearchBar">
+            <Search size={16} />
+            <input
+              type="search"
+              value={salonQuery}
+              onChange={(event) => setSalonQuery(event.target.value)}
+              placeholder="جستجوی سالن یا محدوده..."
+              aria-label="جستجوی سالن"
+            />
+          </label>
           <div className="salonList">
-          {salons.length ? salons.map((salon) => {
+          {visibleSalons.length ? visibleSalons.map((salon) => {
             const serviceCount = getVisibleServices(salon).length;
             const localStaffCount = salon.staff?.length || 0;
             return (
@@ -429,7 +449,14 @@ export function SalonClientPage({
                 </div>
               </article>
             );
-          }) : (
+          }) : normalizedSalonQuery ? (
+            <div className="emptySalonDirectory">
+              <Search size={22} />
+              <div>
+                <b>نتیجه‌ای پیدا نشد</b>
+              </div>
+            </div>
+          ) : (
             <div className="emptySalonDirectory">
               <img src="/salons-empty-illustration.png" alt="" aria-hidden="true" />
               <div>

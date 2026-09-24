@@ -5,7 +5,8 @@ import {
   publicUser,
   setSessionCookie,
   normalizePhone,
-  normalizeDigits
+  normalizeDigits,
+  isValidIranMobile
 } from "../../../lib/auth.js";
 import { ensureDb } from "../../../lib/db/connection.js";
 import * as users from "../../../lib/db/repos/users.js";
@@ -34,6 +35,9 @@ export async function POST(request) {
 
     if (!phone || !password) {
       return NextResponse.json({ error: "شماره و رمز عبور لازم است." }, { status: 400 });
+    }
+    if (!isValidIranMobile(phone)) {
+      return NextResponse.json({ error: "شماره تماس باید یک شماره موبایل معتبر ایران باشد (مثلا 09123456789)." }, { status: 400 });
     }
 
     const limited = checkRateLimit(`register:${phone}`, REGISTER_ATTEMPT_LIMIT, REGISTER_WINDOW_MS);

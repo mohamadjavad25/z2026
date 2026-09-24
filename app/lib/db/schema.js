@@ -312,6 +312,17 @@ export function applySchema(db) {
       updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE IF NOT EXISTS password_reset_requests (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      phone TEXT NOT NULL,
+      note TEXT NOT NULL DEFAULT '',
+      status TEXT NOT NULL DEFAULT 'pending',
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      resolved_at TEXT
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_password_reset_requests_status ON password_reset_requests(status);
+
     CREATE INDEX IF NOT EXISTS idx_posts_owner ON posts(owner_user_id);
     CREATE INDEX IF NOT EXISTS idx_posts_explore ON posts(in_explore, created_at);
     CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
