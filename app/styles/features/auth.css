@@ -35,7 +35,7 @@
   background: transparent;
 }
 
-/* Full-bleed video background */
+/* Full-bleed animated aurora background */
 
 .authGateBg {
   position: absolute;
@@ -45,15 +45,110 @@
   pointer-events: none;
 }
 
-.authGateVideo {
+.authGateAurora {
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center center;
-  transform: scale(1.02);
-  animation: authVideoIn 1.1s cubic-bezier(0.22, 1, 0.36, 1) both;
+  overflow: hidden;
+  background: radial-gradient(120% 90% at 50% -10%, #241a22 0%, #141016 55%, #0d0b0f 100%);
+  animation: authAuroraIn 1s ease both;
+}
+
+.authAuroraBlob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(54px);
+  opacity: 0.55;
+  mix-blend-mode: screen;
+  will-change: transform;
+}
+
+.authAuroraBlob--gold {
+  width: 62vw;
+  height: 62vw;
+  max-width: 340px;
+  max-height: 340px;
+  top: -14%;
+  left: -10%;
+  background: radial-gradient(circle, var(--auth-gold) 0%, rgba(201, 164, 106, 0) 72%);
+  animation: auroraDriftA 22s ease-in-out infinite;
+}
+
+.authAuroraBlob--blush {
+  width: 70vw;
+  height: 70vw;
+  max-width: 380px;
+  max-height: 380px;
+  top: 18%;
+  right: -18%;
+  background: radial-gradient(circle, var(--auth-blush) 0%, rgba(196, 91, 106, 0) 70%);
+  animation: auroraDriftB 26s ease-in-out infinite;
+}
+
+.authAuroraBlob--teal {
+  width: 58vw;
+  height: 58vw;
+  max-width: 320px;
+  max-height: 320px;
+  bottom: -12%;
+  left: 6%;
+  background: radial-gradient(circle, var(--auth-teal) 0%, rgba(47, 111, 108, 0) 72%);
+  animation: auroraDriftC 30s ease-in-out infinite;
+}
+
+.authAuroraSparkle {
+  position: absolute;
+  border-radius: 50%;
+  background: #fff;
+  opacity: 0;
+  box-shadow: 0 0 6px 1px rgba(255, 255, 255, 0.8);
+  animation: sparkleTwinkle 4.5s ease-in-out infinite;
+}
+
+@keyframes authAuroraIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes auroraDriftA {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(8%, 10%) scale(1.12);
+  }
+}
+
+@keyframes auroraDriftB {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-10%, 6%) scale(1.08);
+  }
+}
+
+@keyframes auroraDriftC {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(6%, -8%) scale(1.1);
+  }
+}
+
+@keyframes sparkleTwinkle {
+  0%, 100% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1);
+  }
 }
 
 .authGateScrim {
@@ -161,17 +256,6 @@
   }
   to {
     opacity: 1;
-  }
-}
-
-@keyframes authVideoIn {
-  from {
-    opacity: 0;
-    transform: scale(1.08);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1.02);
   }
 }
 
@@ -400,7 +484,9 @@
 
 @media (prefers-reduced-motion: reduce) {
   .authGateHero,
-  .authGateVideo,
+  .authGateAurora,
+  .authAuroraBlob,
+  .authAuroraSparkle,
   .authGateCopy,
   .authGateBrand,
   .authGateCopy h2,
@@ -411,7 +497,7 @@
     animation: none !important;
   }
 
-  .authGateVideo {
-    transform: none;
+  .authAuroraSparkle {
+    opacity: 0.6;
   }
 }
