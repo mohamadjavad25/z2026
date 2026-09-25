@@ -12,11 +12,11 @@ function mapSalonInvite(row) {
     id: row.id,
     salonId: row.salon_user_id,
     salonName: row.salon_name || "",
-    salonAvatar: row.salon_avatar || "",
+    salonAvatar: row.salon_avatar && row.salon_user_id ? `/api/media/avatar/${row.salon_user_id}` : "",
     salonArea: row.salon_area || "",
     artistId: row.artist_user_id,
     artistName: row.artist_name || "آرتیست زیبابان",
-    artistAvatar: row.artist_avatar || "",
+    artistAvatar: row.artist_avatar && row.artist_user_id ? `/api/media/avatar/${row.artist_user_id}` : "",
     artistService: row.artist_service || "",
     artistArea: row.artist_area || "",
     artistPhone: row.artist_phone || "",
@@ -203,6 +203,96 @@ export function createSalonArtistInvite(salonUserId, data) {
     ok: true,
     invite: mapSalonInvite(getInviteRow(Number(info.lastInsertRowid))),
     created: true
+  };
+}
+
+/**
+ * Self-service join via the salon's QR/link (app/join-salon/[id]) — the
+ * artist is the one acting (scanned the code themselves), so unlike
+ * createSalonArtistInvite this skips the PENDING step entirely and lands
+ * straight on ACCEPTED + a real salon_staff row. Physically showing/scanning
+ * the code is the trust signal a search-based invite doesn't have; the
+ * salon can still remove the person from پرسنل afterward like any other
+ * staff row if this was a mistake.
+ */
+export function joinSalonByArtist(salonUserId, artistUserId) {
+  const salon = getDb().prepare(`
+    SELECT s.name, s.area FROM salons s WHERE s.user_id = ?
+  `).get(salonUserId);
+  if (!salon) {
+    return { ok: false, error: "سالن پیدا نشد.", code: "SALON_NOT_FOUND" };
+  }
+
+  const artist = getDb().prepare(`
+    SELECT id, name, phone, area, service, bio FROM users WHERE id = ? AND type = 'artist' LIMIT 1
+  `).get(artistUserId);
+  if (!artist) {
+    return { ok: false, error: "آرتیست پیدا نشد.", code: "ARTIST_NOT_FOUND" };
+  }
+
+  const alreadyStaff = getDb().prepare(`
+    SELECT id FROM salon_staff WHERE salon_user_id = ? AND artist_user_id = ? LIMIT 1
+  `).get(salonUserId, artistUserId);
+  if (alreadyStaff) {
+    return { ok: false, error: "شما همین حالا عضو تیم این سالن هستید.", code: "ALREADY_STAFF" };
+  }
+
+  const role = artist.service || "آرتیست";
+  const bio = artist.bio || "پیوستن با اسکن کد QR سالن";
+
+  const existingInvite = getDb().prepare(`
+    SELECT id FROM salon_artist_invites WHERE salon_user_id = ? AND artist_user_id = ? LIMIT 1
+  `).get(salonUserId, artistUserId);
+
+  if (existingInvite) {
+    getDb().prepare(`
+      UPDATE salon_artist_invites
+      SET role = ?, bio = ?, status = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).run(role, bio, ACCEPTED, existingInvite.id);
+  } else {
+    getDb().prepare(`
+      INSERT INTO salon_artist_invites
+        (salon_user_id, artist_user_id, role, bio, access_level, status)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).run(salonUserId, artistUserId, role, bio, "همکار", ACCEPTED);
+  }
+
+  const staffPerson = addSalonStaff(salonUserId, {
+    artist_user_id: artistUserId,
+    name: artist.name,
+    phone: artist.phone || "",
+    role,
+    bio,
+    booked: "۰ وقت",
+    state: "فعال",
+    access_level: "همکار"
+  });
+
+  return {
+    ok: true,
+    staffPerson,
+    salon: { id: salonUserId, name: salon.name || "سالن", area: salon.area || "" }
+  };
+}
+
+/** Minimal public preview for the QR-join landing page — no auth, so it
+ *  deliberately exposes only name/area/avatar, nothing from getSalon()'s
+ *  fuller (owner-facing) shape. Works even if the salon set its public
+ *  showcase private — that toggle is about the client-facing storefront,
+ *  unrelated to whether staff can join the team. */
+export function getSalonJoinPreview(salonUserId) {
+  const row = getDb().prepare(`
+    SELECT s.user_id, s.name, s.area, u.avatar
+    FROM salons s JOIN users u ON u.id = s.user_id
+    WHERE s.user_id = ?
+  `).get(salonUserId);
+  if (!row) return null;
+  return {
+    id: row.user_id,
+    name: row.name || "سالن",
+    area: row.area || "",
+    avatar: row.avatar ? `/api/media/avatar/${row.user_id}` : ""
   };
 }
 

@@ -1,5 +1,5 @@
 import { ensureDb, getDb } from "../../../../lib/db/connection.js";
-import { parseStoryDataUrl, ALLOWED_POSTER_TYPES } from "../../../../lib/db/repos/stories.js";
+import { parseMediaDataUrl, ALLOWED_POSTER_TYPES } from "../../../../lib/db/repos/media.js";
 
 export const runtime = "nodejs";
 
@@ -18,7 +18,7 @@ export async function GET(request, { params }) {
   if (!postId) return new Response(null, { status: 404 });
 
   const row = getDb().prepare("SELECT image FROM posts WHERE id = ?").get(postId);
-  const parsed = parseStoryDataUrl(row?.image, ALLOWED_POSTER_TYPES);
+  const parsed = parseMediaDataUrl(row?.image, ALLOWED_POSTER_TYPES);
   if (!parsed) return new Response(null, { status: 404 });
 
   const buffer = Buffer.from(parsed.base64, "base64");

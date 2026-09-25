@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Palette, Pencil, Plus, Sparkles, Trash2, UserRound, WandSparkles } from "lucide-react";
+import { Check, Pencil, Plus, Trash2, UserRound } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { ProfileEmptyState } from "../profile/ProfileEmptyState";
 
@@ -39,7 +39,7 @@ export function SalonServicesWorkspace({
             onAction={onCreate}
           />
         ) : (
-          services.map((service, index) => {
+          services.map((service) => {
             const selectedArtistIds = Array.isArray(service.staff_ids)
               ? service.staff_ids.map(String)
               : service.staff_id
@@ -150,9 +150,6 @@ export function SalonServicesWorkspace({
                       </div>
                     ) : null}
                   </div>
-                </div>
-                <div className="salonClientServiceIcon">
-                  {index % 3 === 0 ? <Sparkles size={18} /> : index % 3 === 1 ? <Palette size={18} /> : <WandSparkles size={18} />}
                 </div>
                 <div className="salonClientServiceBody">
                   <strong>{service.name}</strong>

@@ -131,7 +131,7 @@ export function listSalonBookings(salonUserId) {
   const rows = getDb().prepare("SELECT * FROM salon_bookings WHERE salon_user_id = ? ORDER BY id DESC").all(salonUserId);
   const enrichedRows = rows.map((row) => {
     const client = findBookingClient(row);
-    const avatar = client?.avatar || "";
+    const avatar = client?.avatar ? `/api/media/avatar/${client.id}` : "";
     const staffPerson = staffByName.get(String(row.staff || "").trim()) || null;
     const staffAvatar = staffPerson?.avatar || staffPerson?.staff_avatar || "";
     return {
@@ -190,12 +190,11 @@ export function listClientSalonBookings(user) {
     // account no longer destroys the client's own booking history with it),
     // so a booking can legitimately outlive its salon. Distinguish that from
     // any other reason the join came up empty, matching this codebase's
-    // existing "‹thing› حذف‌شده" convention (see ShopInsightsPanel.jsx's
-    // "محصول حذف‌شده" for a deleted product on an old order line).
+    // existing "‹thing› حذف‌شده" convention for a deleted parent row.
     salonName: row.salon_name || (row.salon_user_id ? "سالن" : "سالن حذف‌شده"),
     salonArea: row.salon_area || "",
     salonPhone: row.salon_phone || "",
-    salonAvatar: row.salon_avatar || "",
+    salonAvatar: row.salon_avatar && row.source_salon_user_id ? `/api/media/avatar/${row.source_salon_user_id}` : "",
     sourceSalonUserId: row.source_salon_user_id || row.salon_user_id
   }));
 }

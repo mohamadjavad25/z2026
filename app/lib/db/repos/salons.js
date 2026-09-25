@@ -1,6 +1,5 @@
 import { getDb } from "../connection.js";
 import { countFollowers } from "./users.js";
-import { storyFieldsFor } from "./stories.js";
 import { isProfileSaved } from "./social.js";
 import { getSettings } from "./userSettings.js";
 import { countFollowing } from "./salons/common.js";
@@ -28,7 +27,9 @@ export {
   countPendingArtistInvites,
   createSalonArtistInvite,
   cancelSalonArtistInvite,
-  respondArtistSalonInvite
+  respondArtistSalonInvite,
+  joinSalonByArtist,
+  getSalonJoinPreview
 } from "./salons/invites.js";
 
 export function listSalons() {
@@ -55,7 +56,6 @@ export function listSalons() {
       tag: row.tag,
       price: row.price,
       open: row.open,
-      rating: row.rating,
       match: row.match_score,
       // Deliberately NOT including phone/email here: row.phone/row.email are
       // users.phone/users.email -- this account's LOGIN credentials, not a
@@ -78,9 +78,7 @@ export function listSalons() {
       services: listSalonServices(row.user_id),
       portfolio: listSalonPortfolio(row.user_id),
       staff,
-      hours: listSalonHours(row.user_id),
-      // Keep the list light: full story video only travels with getSalon (public page detail).
-      hasStory: Boolean(storyFieldsFor(row.user_id))
+      hours: listSalonHours(row.user_id)
     };
   });
 }
@@ -114,7 +112,6 @@ export function listSavedSalonsForUser(userId) {
       tag: row.tag,
       price: row.price,
       open: row.open,
-      rating: row.rating,
       match: row.match_score,
       avatar: row.avatar ? `/api/media/avatar/${row.user_id}` : "",
       bio: row.bio || "",
@@ -146,7 +143,6 @@ export function getSalon(userId, viewerUserId = null) {
     tag: row.tag,
     price: row.price,
     open: row.open,
-    rating: row.rating,
     match: row.match_score,
     // phone: still included below -- SalonClientPage's contact block
     // (salonPublicAboutContact) actively renders it as the salon's "call us"
@@ -170,16 +166,15 @@ export function getSalon(userId, viewerUserId = null) {
     // /api/salon-bookings look salons up with no viewer at all, including a
     // salon's own walk-in booking for itself) -- the public-visibility gate
     // based on this flag lives in the caller (GET /api/salons/[id] route +
-    // the SSR /salons/[id] page), same split shops.js already uses between
-    // getShop()'s isPublic field and the route-level check.
+    // the SSR /salons/[id] page), same split artists.js already uses
+    // between getArtist()'s isPublic field and the route-level check.
     isPublic: getSettings(row.user_id).publicPortfolio !== false,
     isSaved: viewerUserId ? isProfileSaved(viewerUserId, row.user_id) : false,
     services: listSalonServices(userId),
     portfolio: listSalonPortfolio(userId),
     staff: listSalonStaff(userId),
     hours: listSalonHours(userId),
-    bookings: listSalonBookings(userId),
-    ...(storyFieldsFor(userId) || {})
+    bookings: listSalonBookings(userId)
   };
 }
 

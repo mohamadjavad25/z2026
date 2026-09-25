@@ -19,8 +19,6 @@ export async function GET(request) {
       invites: salons.listArtistSalonInvites(auth.user.id),
       pendingInviteCount: salons.countPendingArtistInvites(auth.user.id),
       breakTime: artists.getArtistBreak(auth.user.id),
-      rating: profile?.rating || "۰",
-      reviewCount: profile?.reviewCount || 0,
       followers: profile?.followers || 0
     }
   });

@@ -1,0 +1,25 @@
+/* Top-level "تنظیمات" tab — simple, readable, replaces the old Explore tab. */
+
+.settingsPageHead{
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 16px;
+}
+
+.settingsPageHead span{
+  color: var(--teal);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.settingsPageHead strong{
+  color: var(--night);
+  font-size: 1.05rem;
+  font-weight: 950;
+}
+
+.settingsPageBody{
+  display: grid;
+  gap: 14px;
+}

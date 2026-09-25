@@ -1,13 +1,7 @@
 "use client";
 
-import { Eye, Pencil, Star, X } from "lucide-react";
+import { Eye, Pencil, X } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
-
-function getWorkRatingLabel(work) {
-  const ratingValue = Number(work?.rating);
-  if (!Number.isFinite(ratingValue) || ratingValue <= 0) return "بدون امتیاز";
-  return toPersianDigits(ratingValue.toFixed(1));
-}
 
 /**
  * Artist owner — portfolio work preview modal.
@@ -38,11 +32,6 @@ export function ArtistWorkPreviewModal({ work, onClose, onEdit }) {
               <Eye size={15} />
               <span>بازدید</span>
               <b>{toPersianDigits(work.views || "۰")}</b>
-            </div>
-            <div>
-              <Star size={15} />
-              <span>امتیاز</span>
-              <b>{getWorkRatingLabel(work)}</b>
             </div>
           </div>
           {work.caption ? (

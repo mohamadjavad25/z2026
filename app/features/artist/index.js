@@ -37,7 +37,6 @@ export {
 export { PublicArtistBookingPanel } from "./PublicArtistBookingPanel";
 export { PublicArtistGalleryPanel } from "./PublicArtistGalleryPanel";
 export { PublicArtistModal } from "./PublicArtistModal";
-export { PublicArtistReviewsPanel } from "./PublicArtistReviewsPanel";
 export { PublicArtistServicesPanel } from "./PublicArtistServicesPanel";
 export {
   clampRail,

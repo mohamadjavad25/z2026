@@ -1,5 +1,10 @@
 import { getDb } from "../../connection.js";
 import { normalizePhone } from "./common.js";
+
+function artistAvatarUrl(artist) {
+  return artist?.avatar ? `/api/media/avatar/${artist.id}` : "";
+}
+
 export function listSalonStaff(salonUserId) {
   ensureSalonStaffArtistColumn();
   const rows = getDb().prepare(`
@@ -18,11 +23,12 @@ export function listSalonStaff(salonUserId) {
         WHERE id = ? AND salon_user_id = ?
       `).run(artist.id, row.id, salonUserId);
     }
+    const staffAvatarUrl = artistAvatarUrl(artist);
     return {
       ...row,
       artist_user_id: artist?.id || row.artist_user_id || null,
-      avatar: artist?.avatar || "",
-      staff_avatar: artist?.avatar || "",
+      avatar: staffAvatarUrl,
+      staff_avatar: staffAvatarUrl,
       artist_name: artist?.name || row.name || "",
       artist_area: artist?.area || "",
       artist_bio: artist?.bio || row.bio || "",
@@ -113,8 +119,8 @@ export function findSalonStaffForBooking(salonUserId, staffName, serviceName = "
   return {
     ...row,
     artist_user_id: artist?.id || row.artist_user_id || null,
-    avatar: artist?.avatar || "",
-    staff_avatar: artist?.avatar || ""
+    avatar: artistAvatarUrl(artist),
+    staff_avatar: artistAvatarUrl(artist)
   };
 }
 
@@ -159,8 +165,8 @@ export function addSalonStaff(salonUserId, data) {
   return {
     ...created,
     artist_user_id: artist?.id || created.artist_user_id || null,
-    avatar: artist?.avatar || "",
-    staff_avatar: artist?.avatar || "",
+    avatar: artistAvatarUrl(artist),
+    staff_avatar: artistAvatarUrl(artist),
     artist_name: artist?.name || created.name || "",
     artist_area: artist?.area || "",
     artist_bio: artist?.bio || created.bio || "",
@@ -246,8 +252,8 @@ export function updateSalonStaff(id, salonUserId, data) {
   return {
     ...updated,
     artist_user_id: artist?.id || updated.artist_user_id || null,
-    avatar: artist?.avatar || "",
-    staff_avatar: artist?.avatar || "",
+    avatar: artistAvatarUrl(artist),
+    staff_avatar: artistAvatarUrl(artist),
     artist_name: artist?.name || updated.name || "",
     artist_area: artist?.area || "",
     artist_bio: artist?.bio || updated.bio || "",

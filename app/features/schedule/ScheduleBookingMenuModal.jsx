@@ -1,9 +1,11 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   CalendarCheck,
   Check,
   CheckCircle2,
+  ChevronDown,
   Clock3,
   History,
   Phone,
@@ -63,6 +65,16 @@ export function ScheduleBookingMenuModal({
   onDecline,
   busy = false
 }) {
+  // Collapsed by default — the full client profile (stats/contact/history)
+  // is a lot to show for every booking at once; it opens on demand via the
+  // (previously dead) history icon in the head. Reset per booking so
+  // switching bookings doesn't leave a stale expanded state behind, since
+  // this modal instance is reused rather than remounted per booking.
+  const [clientPanelOpen, setClientPanelOpen] = useState(false);
+  useEffect(() => {
+    setClientPanelOpen(false);
+  }, [booking?.id]);
+
   if (!open || !booking) return null;
 
   const isSalonOwner = booking.ownerType === "salon";
@@ -116,9 +128,11 @@ export function ScheduleBookingMenuModal({
             {clientProfile ? (
               <button
                 type="button"
-                className="scheduleBookingHistoryIcon"
-                aria-label="تاریخچه خدمات مشتری"
+                className={`scheduleBookingHistoryIcon ${clientPanelOpen ? "is-active" : ""}`}
+                aria-label={clientPanelOpen ? "بستن تاریخچه خدمات مشتری" : "نمایش تاریخچه خدمات مشتری"}
+                aria-expanded={clientPanelOpen}
                 title="تاریخچه خدمات"
+                onClick={() => setClientPanelOpen((wasOpen) => !wasOpen)}
               >
                 <History size={17} />
               </button>
@@ -141,35 +155,45 @@ export function ScheduleBookingMenuModal({
                 <span><UserRound size={14} /> <b>{isSalonOwner ? "آرتیست" : "منبع"}</b><em>{subtitle}</em></span>
               </div>
               {clientProfile ? (
-                <div className="scheduleBookingClientPanel" aria-label="پروفایل مشتری">
-                  <div className="scheduleBookingClientHead">
+                <div className={`scheduleBookingClientPanel ${clientPanelOpen ? "is-open" : ""}`} aria-label="پروفایل مشتری">
+                  <button
+                    type="button"
+                    className="scheduleBookingClientHead"
+                    aria-expanded={clientPanelOpen}
+                    onClick={() => setClientPanelOpen((wasOpen) => !wasOpen)}
+                  >
                     <span className={`scheduleBookingClientAvatar ${clientProfile.avatar ? "hasImage" : ""}`} aria-hidden="true">
                       {clientProfile.avatar ? <img src={clientProfile.avatar} alt="" /> : String(clientProfile.name || "م").slice(0, 1)}
                     </span>
-                    <span>
+                    <span className="scheduleBookingClientHeadCopy">
                       <small>پروفایل مشتری</small>
                       <b>{clientProfile.name}</b>
-                      <em>{clientProfile.area || "ایران"}</em>
+                      <em>{toPersianDigits(clientProfile.bookingCount || 1)} نوبت{clientProfile.area ? ` · ${clientProfile.area}` : ""}</em>
                     </span>
-                  </div>
-                  <div className="scheduleBookingClientStats">
-                    <span><b>{toPersianDigits(clientProfile.bookingCount || 1)}</b><em>نوبت</em></span>
-                    <span><b>{clientProfile.lastBooking?.service || booking.service || "—"}</b><em>آخرین خدمت</em></span>
-                    <span><b>{clientProfile.lastBooking?.date || clientProfile.lastBooking?.booking_date || booking.date || "—"}</b><em>آخرین نوبت</em></span>
-                  </div>
-                  <div className="scheduleBookingClientInfo">
-                    <span><b>تماس</b><em dir="ltr">{clientProfile.phone || "ثبت نشده"}</em></span>
-                    <span><b>منطقه</b><em>{clientProfile.area || "ثبت نشده"}</em></span>
-                  </div>
-                  {clientProfile.bookings?.length ? (
-                    <div className="scheduleBookingClientRail">
-                      {clientProfile.bookings.slice(0, 3).map((item) => (
-                        <article key={item.id || `${item.date}-${item.time}-${item.service}`}>
-                          <b>{item.service || "خدمت"}</b>
-                          <span>{item.date || item.booking_date || "—"} · {item.time || "—"}</span>
-                          <em>{item.status || "رزرو"}</em>
-                        </article>
-                      ))}
+                    <ChevronDown size={16} className="scheduleBookingClientChevron" />
+                  </button>
+                  {clientPanelOpen ? (
+                    <div className="scheduleBookingClientBody">
+                      <div className="scheduleBookingClientStats">
+                        <span><b>{toPersianDigits(clientProfile.bookingCount || 1)}</b><em>نوبت</em></span>
+                        <span><b>{clientProfile.lastBooking?.service || booking.service || "—"}</b><em>آخرین خدمت</em></span>
+                        <span><b>{clientProfile.lastBooking?.date || clientProfile.lastBooking?.booking_date || booking.date || "—"}</b><em>آخرین نوبت</em></span>
+                      </div>
+                      <div className="scheduleBookingClientInfo">
+                        <span><b>تماس</b><em dir="ltr">{clientProfile.phone || "ثبت نشده"}</em></span>
+                        <span><b>منطقه</b><em>{clientProfile.area || "ثبت نشده"}</em></span>
+                      </div>
+                      {clientProfile.bookings?.length ? (
+                        <div className="scheduleBookingClientRail">
+                          {clientProfile.bookings.slice(0, 3).map((item) => (
+                            <article key={item.id || `${item.date}-${item.time}-${item.service}`}>
+                              <b>{item.service || "خدمت"}</b>
+                              <span>{item.date || item.booking_date || "—"} · {item.time || "—"}</span>
+                              <em>{item.status || "رزرو"}</em>
+                            </article>
+                          ))}
+                        </div>
+                      ) : null}
                     </div>
                   ) : null}
                 </div>

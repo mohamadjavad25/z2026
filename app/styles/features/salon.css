@@ -90,11 +90,10 @@
 
 .salonWorkspacePanel.is-staff .staffActionGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 8px;
 }
 
-.salonWorkspacePanel.is-staff .artistCreateCard,
 .salonWorkspacePanel.is-staff .artistInviteCard {
   position: relative;
   min-height: 64px;
@@ -117,7 +116,6 @@
     background 0.18s ease;
 }
 
-.salonWorkspacePanel.is-staff .artistCreateCard:hover,
 .salonWorkspacePanel.is-staff .artistInviteCard:hover {
   transform: none;
   border-color: rgba(28, 32, 44, 0.22);
@@ -125,17 +123,8 @@
   box-shadow: none;
 }
 
-.salonWorkspacePanel.is-staff .artistCreateCard:active,
 .salonWorkspacePanel.is-staff .artistInviteCard:active {
   transform: none;
-}
-
-.salonWorkspacePanel.is-staff .artistCreateCard {
-  border-color: rgba(28, 32, 44, 0.28);
-}
-
-.salonWorkspacePanel.is-staff .artistCreateCard:hover {
-  border-color: rgba(28, 32, 44, 0.4);
 }
 
 .salonWorkspacePanel.is-staff .artistInviteCard {
@@ -156,11 +145,6 @@
   background: transparent;
   color: var(--ink);
   flex: 0 0 auto;
-}
-
-.salonWorkspacePanel.is-staff .artistCreateCard .staffActionIcon {
-  background: transparent;
-  color: var(--ink);
 }
 
 .salonWorkspacePanel.is-staff .artistInviteCard .staffActionIcon {
@@ -195,12 +179,6 @@
   white-space: nowrap;
 }
 
-.salonWorkspacePanel.is-staff .artistCreateCard .staffActionCopy small {
-  color: rgba(28, 32, 44, 0.52);
-  opacity: 1;
-}
-
-.salonWorkspacePanel.is-staff .artistCreateCard svg,
 .salonWorkspacePanel.is-staff .artistInviteCard svg {
   color: inherit;
 }
@@ -210,18 +188,116 @@
   50% { opacity: 0.7; transform: scale(0.88); }
 }
 
-.artistInviteSheet .artistInviteSheetLead {
-  margin: 0 0 12px;
-  color: rgba(28, 32, 44, 0.55);
-  font-size: 0.74rem;
-  font-weight: 750;
-  line-height: 1.55;
+.artistInviteQrCard {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 14px;
+  border: 1px solid rgba(96, 81, 155, 0.16);
+  border-radius: 20px;
+  background: linear-gradient(165deg, rgba(96, 81, 155, 0.06), rgba(255, 255, 255, 0.9));
+}
+
+.artistInviteQrHead {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.artistInviteQrIcon {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: rgba(96, 81, 155, 0.14);
+  color: var(--plum);
+}
+
+.artistInviteQrHead b {
+  display: block;
+  color: var(--ink);
+  font-size: 0.84rem;
+  font-weight: 950;
+}
+
+.artistInviteQrHead span {
+  display: block;
+  margin-top: 2px;
+  color: rgba(28, 32, 44, 0.58);
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+.artistInviteQrImage {
+  width: 168px;
+  height: 168px;
+  display: grid;
+  place-items: center;
+  margin: 0 auto;
+  padding: 10px;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 10px 24px rgba(28, 32, 44, 0.08);
+}
+
+.artistInviteQrImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.artistInviteQrCopy {
+  justify-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid rgba(96, 81, 155, 0.24);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--plum);
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 900;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.artistInviteQrCopy:hover {
+  background: rgba(96, 81, 155, 0.06);
+  border-color: rgba(96, 81, 155, 0.36);
+}
+
+.artistInviteDivider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0 10px;
+}
+
+.artistInviteDivider span {
+  flex: 1 1 auto;
+  height: 1px;
+  background: rgba(28, 32, 44, 0.1);
+}
+
+.artistInviteDivider em {
+  flex: 0 0 auto;
+  color: rgba(28, 32, 44, 0.48);
+  font-size: 0.66rem;
+  font-style: normal;
+  font-weight: 800;
+  white-space: nowrap;
 }
 
 .artistInviteList {
   display: grid;
   gap: 8px;
-  max-height: min(58vh, 420px);
+  max-height: min(48vh, 360px);
   overflow: auto;
   padding: 2px;
 }
@@ -230,22 +306,29 @@
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 10px;
-  padding: 10px;
+  gap: 11px;
+  padding: 11px;
   border: 1px solid rgba(28, 32, 44, 0.08);
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 6px 16px rgba(28, 32, 44, 0.04);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.artistInviteRow:hover {
+  border-color: rgba(28, 32, 44, 0.16);
+  box-shadow: 0 10px 22px rgba(28, 32, 44, 0.07);
 }
 
 .artistInviteAvatar {
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   display: grid;
   place-items: center;
   border-radius: 14px;
   background: rgba(28, 32, 44, 0.08);
   color: var(--ink);
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   font-weight: 950;
   overflow: hidden;
 }
@@ -263,7 +346,7 @@
 .artistInviteCopy {
   min-width: 0;
   display: grid;
-  gap: 2px;
+  gap: 3px;
 }
 
 .artistInviteCopy b {
@@ -285,8 +368,12 @@
 }
 
 .artistInviteCopy em {
+  justify-self: start;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(135, 96, 25, 0.12);
   color: #876019;
-  font-size: 0.62rem;
+  font-size: 0.6rem;
   font-style: normal;
   font-weight: 850;
 }
@@ -304,16 +391,20 @@
   color: #fff;
   font-size: 0.72rem;
   font-weight: 900;
+  cursor: pointer;
 }
 
 .artistInviteSend:disabled {
   opacity: 0.55;
+  cursor: default;
 }
 
 .artistInviteEmpty {
   display: grid;
-  place-items: center;
-  min-height: 120px;
+  justify-items: center;
+  align-content: center;
+  gap: 8px;
+  min-height: 100px;
   padding: 18px;
   border-radius: 16px;
   background: rgba(28, 32, 44, 0.04);
@@ -1191,45 +1282,6 @@
   line-height: 1.1;
 }
 
-.artistCreateCard {
-  width: 100%;
-  min-height: 52px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 0 16px;
-  border: 1px solid rgba(255, 255, 255, 0.34);
-  border-radius: 18px;
-  background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(236, 249, 247, 0.86));
-  color: #60519b;
-  font: inherit;
-  font-size: 0.88rem;
-  font-weight: 950;
-  box-shadow:
-    0 14px 28px rgba(7, 13, 18, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.7);
-  cursor: pointer;
-  transition: transform 0.16s ease, box-shadow 0.16s ease;
-}
-
-.artistCreateCard:hover {
-  transform: translateY(-1px);
-  box-shadow:
-    0 18px 32px rgba(7, 13, 18, 0.16),
-    inset 0 1px 0 rgba(255, 255, 255, 0.78);
-}
-
-.artistCreateCard:active {
-  transform: translateY(0);
-}
-
-.artistCreateCard svg {
-  flex: 0 0 auto;
-  color: #60519b;
-}
-
 .artistListHead {
   margin: 4px 0 0;
 }
@@ -1288,12 +1340,6 @@
   font-size: 0.74rem;
   font-weight: 700;
   line-height: 1.55;
-}
-
-.salonToolWindow.is-staff .artistCreateCard {
-  background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(236, 249, 247, 0.9));
-  color: #60519b;
 }
 
 .salonToolWindow.is-staff .artistEmptyState button {
@@ -1771,6 +1817,25 @@
   letter-spacing: 0.01em;
 }
 
+.artistProfileSheet.is-staffProfile .staffProfileOwnerBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  width: fit-content;
+  padding: 4px 9px;
+  border-radius: 999px;
+}
+
+.artistProfileSheet.is-staffProfile .staffProfileOwnerBadge.is-linked {
+  background: rgba(56, 178, 132, 0.2);
+  color: #b8f5d8;
+}
+
+.artistProfileSheet.is-staffProfile .staffProfileOwnerBadge.is-local {
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.82);
+}
+
 .artistProfileSheet.is-staffProfile .staffProfileHeroCopy b {
   font-size: 1.28rem;
   line-height: 1.25;
@@ -1931,6 +1996,49 @@
   font-size: 0.8rem;
   font-style: normal;
   font-weight: 900;
+}
+
+.artistProfileSheet.is-staffProfile .staffProfileFact.is-editable {
+  position: relative;
+  border: 1px dashed rgba(96, 81, 155, 0.22);
+  width: 100%;
+  text-align: inherit;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.artistProfileSheet.is-staffProfile .staffProfileFact.is-editable .staffProfileFactEditIcon {
+  position: absolute;
+  top: 10px;
+  inset-inline-end: 10px;
+  color: var(--staff-muted);
+  opacity: 0.65;
+}
+
+.artistProfileSheet.is-staffProfile .staffProfileFact.is-editing input {
+  min-width: 0;
+  border: 0;
+  border-bottom: 1px solid rgba(96, 81, 155, 0.32);
+  padding: 2px 0;
+  background: transparent;
+  color: var(--staff-ink);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 900;
+  outline: none;
+}
+
+.artistProfileSheet.is-staffProfile .staffProfileFact.is-editing button {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  background: var(--staff-accent);
+  color: #fff;
+  justify-self: end;
 }
 
 .artistProfileSheet.is-staffProfile .staffProfileCollab {
@@ -2518,11 +2626,6 @@
 .staffInsightStrip b {
     font-size: 0.9rem;
   }
-.artistCreateCard {
-    min-height: 48px;
-    border-radius: 16px;
-    font-size: 0.84rem;
-  }
 .artistListHead {
     margin: 2px 0 0;
   }
@@ -2575,8 +2678,7 @@
     grid-template-columns: 1fr;
     gap: 7px;
   }
-.salonWorkspacePanel.is-staff .artistCreateCard,
-  .salonWorkspacePanel.is-staff .artistInviteCard {
+.salonWorkspacePanel.is-staff .artistInviteCard {
     min-height: 62px;
     padding: 11px 12px;
     border-radius: 16px;
@@ -3246,6 +3348,22 @@
   background: rgba(96, 81, 155, 0.12);
   color: #60519b;
   box-shadow: none;
+}
+
+
+
+/* Manager cards (salon owner's own service list) drop the decorative
+   left icon entirely, so the card collapses to body + actions. */
+.salonClientServiceCard.is-manager{
+  grid-template-columns: minmax(0, 1fr) 60px;
+}
+
+.salonClientServiceCard.is-manager .salonClientServiceBody{
+  grid-column: 1;
+}
+
+.salonClientServiceCard.is-manager .salonClientServiceAction{
+  grid-column: 2;
 }
 
 

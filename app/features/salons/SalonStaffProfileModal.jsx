@@ -1,21 +1,87 @@
 "use client";
 
+import { useState } from "react";
 import {
   CalendarCheck,
   CalendarDays,
+  Check,
   Eye,
   MapPin,
+  Pencil,
   Percent,
   Phone,
   ShieldCheck,
   Timer,
+  UserRound,
   X
 } from "lucide-react";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 
 /**
+ * A fact row that becomes a small inline form on click — used only for
+ * fields the salon actually owns (name/phone of a salon-only staff entry).
+ * Never used for data mirrored from a real artist account.
+ */
+function EditableFact({ icon: Icon, label, value, placeholder, dir, formatValue, onSave }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value || "");
+
+  if (!editing) {
+    return (
+      <button
+        type="button"
+        className="staffProfileFact is-editable"
+        onClick={() => {
+          setDraft(value || "");
+          setEditing(true);
+        }}
+      >
+        <span className="staffProfileFactIcon"><Icon size={14} /></span>
+        <div>
+          <b>{label}</b>
+          <em dir={dir}>{value ? (formatValue ? formatValue(value) : value) : placeholder}</em>
+        </div>
+        <Pencil size={12} className="staffProfileFactEditIcon" />
+      </button>
+    );
+  }
+
+  return (
+    <form
+      className="staffProfileFact is-editing"
+      onSubmit={(event) => {
+        event.preventDefault();
+        const next = draft.trim();
+        if (next && next !== value) onSave(next);
+        setEditing(false);
+      }}
+    >
+      <span className="staffProfileFactIcon"><Icon size={14} /></span>
+      <input
+        autoFocus
+        dir={dir}
+        value={draft}
+        placeholder={placeholder}
+        onChange={(event) => setDraft(event.target.value)}
+        onBlur={(event) => event.currentTarget.form?.requestSubmit()}
+      />
+      <button type="submit" aria-label="ذخیره" onMouseDown={(event) => event.preventDefault()}>
+        <Check size={14} />
+      </button>
+    </form>
+  );
+}
+
+/**
  * Salon owner — staff profile / manage modal.
  * Presentational: selected staff + role/state/remove/public callbacks.
+ *
+ * Two distinct data-ownership modes, made explicit with a badge:
+ *  - linked artist account (hasPublic): contact/region belong to the
+ *    artist's own profile, shown read-only — the salon can't edit
+ *    someone else's account from here.
+ *  - salon-only placeholder (!hasPublic): the salon fully owns this
+ *    record, so name/phone are editable in place.
  */
 export function SalonStaffProfileModal({
   staff,
@@ -62,7 +128,10 @@ export function SalonStaffProfileModal({
             {staffAvatar ? <img src={staffAvatar} alt="" /> : String(staffName || "آ").slice(0, 1)}
           </div>
           <div className="staffProfileHeroCopy">
-            <span>{hasPublic ? "پروفایل واقعی آرتیست" : "پروفایل پرسنل سالن"}</span>
+            <span className={`staffProfileOwnerBadge ${hasPublic ? "is-linked" : "is-local"}`}>
+              {hasPublic ? <ShieldCheck size={12} /> : <UserRound size={12} />}
+              {hasPublic ? "حساب آرتیست متصل" : "فقط ثبت در سالن"}
+            </span>
             <b>{staffName}</b>
             <small>{staffRole}{staffArea ? ` · ${staffArea}` : ""}</small>
           </div>
@@ -104,22 +173,46 @@ export function SalonStaffProfileModal({
         <section className="staffProfileSection">
           <div className="staffProfileSectionHead">
             <span>اطلاعات همکاری</span>
+            <small>{hasPublic ? "از حساب آرتیست · فقط نمایش" : "ثبت‌شده در سالن · قابل ویرایش"}</small>
           </div>
           <div className="staffProfileFacts">
-            <div className="staffProfileFact">
-              <span className="staffProfileFactIcon"><Phone size={14} /></span>
-              <div>
-                <b>تماس</b>
-                <em dir="ltr">{staffPhone ? toPersianDigits(staffPhone) : "ثبت نشده"}</em>
-              </div>
-            </div>
-            <div className="staffProfileFact">
-              <span className="staffProfileFactIcon"><MapPin size={14} /></span>
-              <div>
-                <b>منطقه</b>
-                <em>{staffArea || "ثبت نشده"}</em>
-              </div>
-            </div>
+            {hasPublic ? (
+              <>
+                <div className="staffProfileFact">
+                  <span className="staffProfileFactIcon"><Phone size={14} /></span>
+                  <div>
+                    <b>تماس</b>
+                    <em dir="ltr">{staffPhone ? toPersianDigits(staffPhone) : "ثبت نشده"}</em>
+                  </div>
+                </div>
+                <div className="staffProfileFact">
+                  <span className="staffProfileFactIcon"><MapPin size={14} /></span>
+                  <div>
+                    <b>منطقه</b>
+                    <em>{staffArea || "ثبت نشده"}</em>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <EditableFact
+                  icon={UserRound}
+                  label="نام"
+                  value={staffName}
+                  placeholder="نام پرسنل"
+                  onSave={(name) => onUpdate?.(staff, { name }, "نام بروزرسانی شد.")}
+                />
+                <EditableFact
+                  icon={Phone}
+                  label="تماس"
+                  value={staffPhone}
+                  placeholder="شماره تماس"
+                  dir="ltr"
+                  formatValue={toPersianDigits}
+                  onSave={(phone) => onUpdate?.(staff, { phone }, "شماره تماس بروزرسانی شد.")}
+                />
+              </>
+            )}
             <div className="staffProfileFact">
               <span className="staffProfileFactIcon"><ShieldCheck size={14} /></span>
               <div>

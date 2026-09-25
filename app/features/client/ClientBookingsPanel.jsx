@@ -13,9 +13,8 @@ import {
 import { BookingHistoryCalendarSheet } from "../profile/BookingHistoryCalendarSheet";
 import { ProfileHeroWeekStrip } from "../profile/ProfileHeroWeekStrip";
 
-// Same tone-class convention as ClientOrdersPanel's getStatusTone(): the 4
-// real salon_bookings statuses map to a pill tone + icon so the client can
-// tell "waiting", "confirmed", "salon declined" and "nobody answered in
+// The 4 real salon_bookings statuses map to a pill tone + icon so the client
+// can tell "waiting", "confirmed", "salon declined" and "nobody answered in
 // time" apart at a glance instead of every booking reading as confirmed.
 function getBookingStatusTone(status = "") {
   if (status === "تایید شده") return "done";
@@ -47,8 +46,8 @@ function isBookingSettled(booking) {
 }
 
 // SQLite CURRENT_TIMESTAMP strings are UTC with no offset marker ("YYYY-MM-DD
-// HH:MM:SS"); append "Z" (same trick as ClientOrdersPanel's formatOrderDate)
-// so Date parses them as UTC instead of silently treating them as local time.
+// HH:MM:SS"); append "Z" so Date parses them as UTC instead of silently
+// treating them as local time.
 const bookingDeadlineTimeFmt = new Intl.DateTimeFormat("en-GB", {
   hour: "2-digit",
   minute: "2-digit",

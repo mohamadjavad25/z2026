@@ -21,8 +21,6 @@ function mapPost(row) {
     featured: Boolean(row.featured),
     saves: String(row.saves_count || 0),
     views: String(row.views_count || 0),
-    comments: String(row.comments_count || 0),
-    rating: row.rating_count ? String(Number(row.rating_avg).toFixed(1)) : "",
     salon: row.owner_name || "",
     ownerType: row.owner_type || "",
     ownerAvatar: row.owner_avatar ? `/api/media/avatar/${row.owner_user_id}` : "",
@@ -143,50 +141,3 @@ export function listSavedTitles(userId) {
   `).all(userId).map((row) => String(row.id)).filter(Boolean);
 }
 
-export function ratePost(userId, postId, rating, comment) {
-  const db = getDb();
-  const value = Math.max(1, Math.min(5, Number(rating) || 0));
-  const text = String(comment || "").trim().slice(0, 300);
-  db.prepare(`
-    INSERT INTO post_ratings (user_id, post_id, rating, comment)
-    VALUES (?, ?, ?, ?)
-    ON CONFLICT(user_id, post_id) DO UPDATE SET rating = excluded.rating, comment = excluded.comment, updated_at = CURRENT_TIMESTAMP
-  `).run(userId, postId, value, text);
-  const agg = db.prepare(`
-    SELECT AVG(rating) AS avg_rating, COUNT(*) AS cnt FROM post_ratings WHERE post_id = ?
-  `).get(postId);
-  db.prepare(`
-    UPDATE posts SET rating_avg = ?, rating_count = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?
-  `).run(Number(agg?.avg_rating || 0), Number(agg?.cnt || 0), postId);
-  return getPostById(postId);
-}
-
-export function listPostComments(postId) {
-  return getDb().prepare(`
-    SELECT r.user_id, u.name, r.rating, r.comment, r.updated_at
-    FROM post_ratings r
-    JOIN users u ON u.id = r.user_id
-    WHERE r.post_id = ? AND TRIM(r.comment) != ''
-    ORDER BY r.updated_at DESC
-  `).all(postId).map((row) => ({
-    user_id: row.user_id,
-    name: row.name || "کاربر",
-    rating: Number(row.rating),
-    comment: row.comment,
-    updated_at: row.updated_at
-  }));
-}
-
-export function listUserRatings(userId) {
-  const rows = getDb().prepare(`
-    SELECT p.id, p.title, r.rating FROM post_ratings r
-    JOIN posts p ON p.id = r.post_id
-    WHERE r.user_id = ?
-  `).all(userId);
-  const map = {};
-  rows.forEach((row) => {
-    map[row.title] = row.rating;
-    map[String(row.id)] = row.rating;
-  });
-  return map;
-}

@@ -39,15 +39,6 @@ export function SalonStaffWorkspace({
       </div>
 
       <div className="staffActionGrid">
-        <button type="button" className="artistCreateCard" onClick={onCreateStaff}>
-          <span className="staffActionIcon" aria-hidden="true">
-            <UserPlus size={18} />
-          </span>
-          <span className="staffActionCopy">
-            <b>ایجاد پروفایل آرتیست</b>
-            <small>عضویت مستقیم در تیم سالن</small>
-          </span>
-        </button>
         <button type="button" className="artistInviteCard" onClick={onInviteNearby}>
           <span className="staffActionIcon" aria-hidden="true">
             <Send size={17} />

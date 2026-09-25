@@ -36,7 +36,6 @@ export function SalonPublicPageClient({ salon }) {
       active
       selectedSalon={salon}
       salons={[]}
-      reviews={[]}
       isFollowing={false}
       isSaved={false}
       getVisibleServices={getVisibleSalonServiceItems}

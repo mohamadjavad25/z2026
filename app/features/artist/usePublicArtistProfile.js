@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createArtistBooking, getArtist, toggleFollow } from "../../shared/api/artists";
-import { createReview, toggleReviewLike } from "../../shared/api/reviews";
 import { toggleSave } from "../../shared/api/saves";
 import { getApiErrorMessage } from "../../shared/lib/apiNotify";
 import { parseServiceDurationMinutes } from "../../shared/lib/time";
@@ -11,7 +10,7 @@ import { isPublicArtistSlotBlocked } from "./bookingUtils";
 import { salonClientBookingDays, getPublicArtistServices } from "./constants";
 
 /**
- * Public artist profile modal (customer view) — gallery, reviews, follow, booking.
+ * Public artist profile modal (customer view) — gallery, follow, booking.
  *
  * Does NOT own artist-owner workspace (portfolio CRUD, /api/artist/me schedule, …).
  *
@@ -51,9 +50,6 @@ export function usePublicArtistProfile({
   }, [onNotice]);
 
   const [selectedPublicArtist, setSelectedPublicArtist] = useState(null);
-  const [publicArtistReviews, setPublicArtistReviews] = useState([]);
-  const [publicArtistUserRating, setPublicArtistUserRating] = useState(0);
-  const [publicArtistRatingHover, setPublicArtistRatingHover] = useState(0);
   const [publicArtistView, setPublicArtistView] = useState("gallery");
   const [publicArtistGalleryFilter, setPublicArtistGalleryFilter] = useState("همه");
   const [publicArtistBookingDay, setPublicArtistBookingDay] = useState(salonClientBookingDays[0]);
@@ -146,12 +142,6 @@ export function usePublicArtistProfile({
   }, [savedArtists, notify]);
 
   const publicArtistHeroImage = useMemo(() => {
-    const poster = selectedPublicArtist?.storyPoster
-      || selectedPublicArtist?.story_poster
-      || selectedPublicArtist?.introPoster
-      || selectedPublicArtist?.intro_poster
-      || "";
-    if (poster) return poster;
     const cover = publicArtistPortfolio.find((item) => item.featured) || publicArtistPortfolio[0];
     return cover?.image || selectedPublicArtist?.avatar || "/explore-post-hair-balayage.png";
   }, [selectedPublicArtist, publicArtistPortfolio]);
@@ -164,16 +154,8 @@ export function usePublicArtistProfile({
 
   const applyPublicArtistPayload = useCallback((full) => {
     if (!full) return;
-    const reviews = Array.isArray(full.reviews) ? full.reviews : [];
     setSelectedPublicArtist(full);
-    setPublicArtistReviews(reviews);
-    const myId = Number(createdProfile?.id || 0);
-    const mine = myId
-      ? reviews.find((review) => Number(review.author_user_id) === myId)
-      : null;
-    setPublicArtistUserRating(mine ? Math.round(Number(mine.rating) || 0) : 0);
-    setPublicArtistRatingHover(0);
-  }, [createdProfile?.id]);
+  }, []);
 
   const closePublicArtistProfile = useCallback(() => {
     setSelectedPublicArtist(null);
@@ -182,9 +164,6 @@ export function usePublicArtistProfile({
     setPublicArtistBookingDay(salonClientBookingDays[0]);
     setPublicArtistBookingSlot("");
     setPublicArtistSelectedServiceId("");
-    setPublicArtistUserRating(0);
-    setPublicArtistRatingHover(0);
-    setPublicArtistReviews([]);
   }, []);
 
   const openPublicArtistProfile = useCallback(async (artist) => {
@@ -195,9 +174,6 @@ export function usePublicArtistProfile({
     setPublicArtistBookingDay(salonClientBookingDays[0]);
     setPublicArtistBookingSlot("");
     setPublicArtistSelectedServiceId("");
-    setPublicArtistUserRating(0);
-    setPublicArtistRatingHover(0);
-    setPublicArtistReviews([]);
     setSelectedPublicArtist(artist);
     if (artist.id) {
       try {
@@ -222,126 +198,6 @@ export function usePublicArtistProfile({
       }
     }
   }, [applyPublicArtistPayload, setFollowedArtists, onBeforeOpen]);
-
-  const confirmPublicArtistRating = useCallback(async (stars, text = "") => {
-    if (!selectedPublicArtist || stars < 1) return;
-    if (!selectedPublicArtist.id) {
-      notify("آرتیست نامعتبر است.");
-      return;
-    }
-    if (createdProfile?.id && Number(createdProfile.id) === Number(selectedPublicArtist.id)) {
-      notify("نمی‌تونی به پروفایل خودت امتیاز بدی.");
-      return;
-    }
-
-    const previous = publicArtistUserRating;
-    setPublicArtistUserRating(stars);
-    setPublicArtistRatingHover(0);
-
-    try {
-      const { ok, payload } = await createReview({
-        targetUserId: selectedPublicArtist.id,
-        rating: stars,
-        text: text || "",
-        service: ""
-      });
-      if (!ok) {
-        setPublicArtistUserRating(previous);
-        notify(payload?.error || "امتیاز در سرور ذخیره نشد.");
-        return;
-      }
-
-      notify(`${["", "۱", "۲", "۳", "۴", "۵"][stars]} ستاره ثبت شد. ممنون!`);
-
-      const refresh = await getArtist(selectedPublicArtist.id);
-      if (refresh.ok && refresh.data?.artist) {
-        applyPublicArtistPayload(refresh.data.artist);
-        setPublicArtistUserRating(stars);
-        return;
-      }
-
-      const review = payload?.data?.review;
-      setSelectedPublicArtist((current) => (
-        current
-          ? {
-              ...current,
-              rating: payload?.data?.rating || current.rating,
-              reviewCount: Number(payload?.data?.reviewCount || current.reviewCount || 0)
-            }
-          : current
-      ));
-      if (review) {
-        setPublicArtistReviews((items) => {
-          const nextItem = {
-            id: review.id,
-            author_user_id: review.author_user_id,
-            name: review.name || createdProfile?.data?.name || "تو",
-            rating: review.rating,
-            text: review.text || "",
-            service: review.service || ""
-          };
-          const index = items.findIndex((item) => (
-            Number(item.id) === Number(review.id)
-            || (review.author_user_id && Number(item.author_user_id) === Number(review.author_user_id))
-          ));
-          if (index >= 0) {
-            return items.map((item, i) => (i === index ? { ...item, ...nextItem } : item));
-          }
-          return [{ ...nextItem, like_count: 0, liked_by_me: false }, ...items];
-        });
-      }
-    } catch {
-      setPublicArtistUserRating(previous);
-      notify("امتیاز در سرور ذخیره نشد.");
-    }
-  }, [
-    selectedPublicArtist,
-    createdProfile,
-    publicArtistUserRating,
-    applyPublicArtistPayload,
-    notify
-  ]);
-
-  const toggleLikePublicArtistReview = useCallback(async (reviewId) => {
-    if (!reviewId) return;
-    if (!createdProfile?.id) {
-      notify("برای لایک کردن ابتدا وارد شو.");
-      return;
-    }
-
-    let previousState = null;
-    setPublicArtistReviews((items) => items.map((item) => {
-      if (Number(item.id) !== Number(reviewId)) return item;
-      previousState = { liked_by_me: item.liked_by_me, like_count: item.like_count };
-      const nextLiked = !item.liked_by_me;
-      const nextCount = Math.max(0, Number(item.like_count || 0) + (nextLiked ? 1 : -1));
-      return { ...item, liked_by_me: nextLiked, like_count: nextCount };
-    }));
-
-    const revert = () => {
-      setPublicArtistReviews((items) => items.map((item) => (
-        Number(item.id) === Number(reviewId) && previousState ? { ...item, ...previousState } : item
-      )));
-    };
-
-    try {
-      const { ok, payload } = await toggleReviewLike(reviewId);
-      if (!ok) {
-        revert();
-        notify(payload?.error || "لایک ثبت نشد.");
-        return;
-      }
-      const { liked, likeCount } = payload?.data || {};
-      setPublicArtistReviews((items) => items.map((item) => (
-        Number(item.id) === Number(reviewId)
-          ? { ...item, liked_by_me: Boolean(liked), like_count: Number(likeCount ?? item.like_count) }
-          : item
-      )));
-    } catch {
-      revert();
-      notify("لایک ثبت نشد.");
-    }
-  }, [createdProfile, notify]);
 
   const confirmPublicArtistBooking = useCallback(async () => {
     if (!selectedPublicArtist) return;
@@ -563,10 +419,6 @@ export function usePublicArtistProfile({
   return {
     selectedPublicArtist,
     setSelectedPublicArtist,
-    publicArtistReviews,
-    publicArtistUserRating,
-    publicArtistRatingHover,
-    setPublicArtistRatingHover,
     publicArtistView,
     setPublicArtistView,
     publicArtistGalleryFilter,
@@ -590,8 +442,6 @@ export function usePublicArtistProfile({
     publicArtistHeroImage,
     openPublicArtistProfile,
     closePublicArtistProfile,
-    confirmPublicArtistRating,
-    toggleLikePublicArtistReview,
     confirmPublicArtistBooking,
     toggleFollowPublicArtist,
     toggleSavePublicArtist,

@@ -19,7 +19,6 @@ import {
   ShieldCheck,
   Share2,
   Sparkles,
-  Star,
   Store,
   UserPlus,
   UserRound,
@@ -27,10 +26,8 @@ import {
   X
 } from "lucide-react";
 import { SegmentClock } from "../../components/SegmentClock";
-import { MarbleRatingStars } from "../../components/MarbleRatingStars";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { SalonClientGallery } from "./SalonClientGallery";
-import { PublicStoryBanner, usePublicStory } from "../../components/PublicStoryBanner";
 
 // Bug fix: this used to fall back to hardcoded fake services and a fake
 // portfolio gallery (identical stock images) whenever a real salon had none
@@ -58,7 +55,6 @@ export function SalonClientPage({
   active,
   selectedSalon,
   salons,
-  reviews,
   isFollowing,
   isSaved,
   getVisibleServices,
@@ -83,8 +79,6 @@ export function SalonClientPage({
     : salons;
   const services = selectedSalon ? getVisibleServices(selectedSalon) : [];
   const portfolioItems = Array.isArray(selectedSalon?.portfolio) ? selectedSalon.portfolio : [];
-  const ratingValue = Number(selectedSalon?.rating);
-  const rating = Number.isFinite(ratingValue) && ratingValue > 0 ? toPersianDigits(ratingValue.toFixed(1)) : null;
   const followerCountValue = Number(selectedSalon?.followerCount ?? selectedSalon?.follower_count ?? 0) || 0;
   const followerCount = toPersianDigits(followerCountValue);
   const staffCount = selectedSalon?.staff?.length || 0;
@@ -96,62 +90,33 @@ export function SalonClientPage({
     .filter(Boolean)
     .slice(0, 3);
   const specialtyNames = services.slice(0, 4).map((service) => service.name).filter(Boolean);
-  const storyVideoSrc = selectedSalon?.storyVideo || selectedSalon?.story_video || selectedSalon?.introVideo || selectedSalon?.intro_video || "";
-  const realStoryPosterSrc = selectedSalon?.storyPoster || selectedSalon?.story_poster || selectedSalon?.introPoster || selectedSalon?.intro_poster || "";
-  const storyPosterSrc = realStoryPosterSrc || "/salon-public-hero.png";
-  const story = usePublicStory({ storyVideoSrc, storyPosterSrc });
-  // Only describe the hero image to crawlers/screen readers when it's a real
-  // uploaded photo — the generic fallback illustration stays decorative
-  // (empty alt) so it doesn't get indexed as if it were the salon's photo.
-  const heroAlt = realStoryPosterSrc ? `${publicName} — تصویر کاور` : "";
 
   return (
     <div className={`salonPanel mobilePage page-salons ${active ? "is-active" : ""}`} id="salons">
       {active && selectedSalon ? (
         <section
-          className={`salonClientPage salonPublicProfile ${story.storyStateClasses}`}
+          className="salonClientPage salonPublicProfile"
           aria-label={`صفحه مشتری ${selectedSalon.name}`}
         >
-          <PublicStoryBanner
-            story={story}
-            heroClassName="salonPublicHero"
-            heroImage={storyPosterSrc}
-            heroAlt={heroAlt}
-            topbar={(
-              <>
-                <div className="salonPublicTopbar">
-                  <button type="button" className="salonPublicRoundButton salonPublicBackButton" onClick={onBack} aria-label="بازگشت به سالن‌ها">
-                    <ChevronLeft size={20} />
-                  </button>
-                  <button
-                    type="button"
-                    className="salonPublicRoundButton salonPublicMenuButton"
-                    onClick={() => onShare(selectedSalon.name)}
-                    aria-label="اشتراک‌گذاری"
-                  >
-                    <Share2 size={20} />
-                  </button>
-                </div>
-                              </>
-            )}
-            emptyTitle="استوری معرفی هنوز آماده نیست"
-            emptyText="وقتی سالن ویدیوی معرفی اضافه کند، همین‌جا مثل یک استوری پخش می‌شود."
-          />
+          <header className="salonPublicHero">
+            <img className="publicStoryHeroImage" src="/salon-public-hero.png" alt="" aria-hidden="true" />
+            <div className="salonPublicTopbar">
+              <button type="button" className="salonPublicRoundButton salonPublicBackButton" onClick={onBack} aria-label="بازگشت به سالن‌ها">
+                <ChevronLeft size={20} />
+              </button>
+              <button
+                type="button"
+                className="salonPublicRoundButton salonPublicMenuButton"
+                onClick={() => onShare(selectedSalon.name)}
+                aria-label="اشتراک‌گذاری"
+              >
+                <Share2 size={20} />
+              </button>
+            </div>
+          </header>
 
           <section className="salonPublicIdentityCard">
-            <div
-              className="salonPublicLogoSlot publicStoryLogo"
-              role={story.logoHandlers.role}
-              tabIndex={story.logoHandlers.tabIndex}
-              aria-label="کشیدن لوگو برای نمایش ویدیوی معرفی سالن"
-              onPointerDown={story.logoHandlers.onPointerDown}
-              onPointerMove={story.logoHandlers.onPointerMove}
-              onPointerUp={story.logoHandlers.onPointerUp}
-              onPointerCancel={story.logoHandlers.onPointerCancel}
-              onClick={story.logoHandlers.onClick}
-              onDoubleClick={story.logoHandlers.onDoubleClick}
-              onKeyDown={story.logoHandlers.onKeyDown}
-            >
+            <div className="salonPublicLogoSlot">
               <div className="profileHero is-salon salonPublicAvatarHost">
                 <div className="salonHeroAvatarFrame">
                   <img
@@ -169,13 +134,6 @@ export function SalonClientPage({
                 <BadgeCheck className="salonPublicVerifiedIcon" size={18} />
               </h2>
               <span>{publicTag}</span>
-            </div>
-            <div className="salonPublicRatingCard">
-              <span>
-                {rating ? `${rating} امتیاز` : "بدون امتیاز"}
-                <Star size={15} fill="currentColor" />
-              </span>
-              <small>{reviews.length ? `(${toPersianDigits(reviews.length)} نظر)` : "بدون نظر ثبت‌شده"}</small>
             </div>
             <div className="salonPublicStats">
               <span><UserRound size={17} /> {toPersianDigits(staffCount)} سال سابقه</span>
@@ -283,14 +241,13 @@ export function SalonClientPage({
                 <div className="salonPublicAboutFacts">
                   <span><UserRound size={16} /> {toPersianDigits(staffCount)} سال سابقه</span>
                   <span><Heart size={16} /> {followerCount} دنبال‌کننده</span>
-                  <span><Star size={16} fill="currentColor" /> {rating ? `${rating} امتیاز` : "بدون امتیاز"}</span>
                   <span><ShieldCheck size={16} /> پروفایل تایید شده</span>
                 </div>
                 <section className="salonPublicAboutBlock">
                   <h4>مجوزها و اعتماد</h4>
                   <div className="salonPublicAboutList">
                     <span><ShieldCheck size={16} /> اطلاعات سالن تایید شده</span>
-                    <span><BadgeCheck size={16} /> نمونه‌کارها و امتیازها قابل بررسی هستند</span>
+                    <span><BadgeCheck size={16} /> نمونه‌کارها قابل بررسی هستند</span>
                   </div>
                 </section>
                 <div className="salonPublicAboutContact">
@@ -414,14 +371,6 @@ export function SalonClientPage({
                     </div>
                   </div>
                   <div className="salonCardStats" aria-label="اطلاعات سالن">
-                    {salon.rating ? (
-                      <span>
-                        <MarbleRatingStars count={1} className="inlineRatingStars" label={`امتیاز ${salon.rating}`} />
-                        <b>{toPersianDigits(salon.rating)}</b>
-                      </span>
-                    ) : (
-                      <span className="salonNewTag">جدید</span>
-                    )}
                     {(salon.post_count || salon.portfolio?.length || 0) > 0 ? (
                       <span><ImagePlus size={13} /><b>{toPersianDigits(salon.post_count || salon.portfolio?.length || 0)}</b> نمونه‌کار</span>
                     ) : null}

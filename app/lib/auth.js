@@ -36,7 +36,7 @@ export function isValidIranMobile(value) {
 
 export function hashPassword(password) {
   const salt = randomBytes(16).toString("hex");
-  const hash = scryptSync(String(password), salt, 64).toString("hex");
+  const hash = scryptSync(normalizeDigits(password), salt, 64).toString("hex");
   return `${salt}:${hash}`;
 }
 
@@ -44,7 +44,7 @@ export function verifyPassword(password, stored) {
   if (!stored || !String(stored).includes(":")) return false;
   const [salt, hash] = String(stored).split(":");
   if (!salt || !hash) return false;
-  const next = scryptSync(String(password), salt, 64);
+  const next = scryptSync(normalizeDigits(password), salt, 64);
   const prev = Buffer.from(hash, "hex");
   if (prev.length !== next.length) return false;
   return timingSafeEqual(prev, next);
@@ -60,7 +60,13 @@ export function publicUser(row) {
     service: row.service || "",
     phone: row.phone || "",
     email: row.email || "",
-    avatar: row.avatar || "",
+    // Stream the real (often huge, base64-in-sqlite) image via the media
+    // route instead of embedding it in this JSON payload — this response
+    // rides along on every login and every silent /api/auth/me session
+    // check, so an inline data URL here meant re-downloading the user's
+    // full-size avatar on nearly every request. See app/lib/db/repos/posts.js
+    // (mapPost) for the same fix applied to feed/portfolio images.
+    avatar: row.avatar ? `/api/media/avatar/${row.id}` : "",
     bio: row.bio || "",
     experienceYears: row.experience_years || "",
     managerName: row.manager_name || ""

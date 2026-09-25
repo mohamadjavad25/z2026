@@ -1,49 +1,19 @@
 "use client";
 
-import { Bookmark, ChevronLeft, Share2, Star, X } from "lucide-react";
-import { toPersianDigits } from "../../shared/lib/digits";
-
-function CleanStar({ filled = false, size = 17 }) {
-  return (
-    <Star
-      size={size}
-      strokeWidth={1.8}
-      className={`exploreCleanStar ${filled ? "is-filled" : "is-empty"}`}
-      fill={filled ? "currentColor" : "none"}
-      aria-hidden="true"
-    />
-  );
-}
-
-function CommentStars({ rating }) {
-  const level = Math.max(0, Math.min(5, Math.round(Number(rating) || 0)));
-  return (
-    <span className="explorePreviewCommentStars" aria-label={`امتیاز ${toPersianDigits(level)} از ۵`}>
-      {[1, 2, 3, 4, 5].map((index) => (
-        <CleanStar key={index} filled={index <= level} size={11} />
-      ))}
-    </span>
-  );
-}
+import { Bookmark, ChevronLeft, Share2, X } from "lucide-react";
 
 export function ExplorePreviewModal({
   post,
   exploreArtist,
   isSaved,
-  userRating,
-  comments,
   beautyPassport,
   passportMatch,
   onClose,
   onToggleSaved,
-  onOpenRating,
   onShare,
   onOpenArtistProfile
 }) {
   if (!post) return null;
-
-  const ratingLabel = post.rating ? toPersianDigits(post.rating) : "امتیاز";
-  const commentList = Array.isArray(comments) ? comments : [];
 
   return (
     <div
@@ -78,10 +48,6 @@ export function ExplorePreviewModal({
                 {exploreArtist.area ? ` · ${exploreArtist.area}` : ""}
               </small>
             </span>
-            <span className="exploreArtistRating">
-              <CleanStar filled size={13} />
-              <em>{exploreArtist.rating}</em>
-            </span>
             <ChevronLeft size={18} className="exploreArtistChevron" aria-hidden="true" />
           </header>
         )}
@@ -111,17 +77,6 @@ export function ExplorePreviewModal({
             </button>
             <button
               type="button"
-              className={`exploreStatBtn exploreStatRate ${userRating ? "is-active is-rate" : ""}`}
-              aria-pressed={Boolean(userRating)}
-              aria-label={userRating ? "امتیاز دادی" : "امتیاز بده"}
-              onClick={onOpenRating}
-            >
-              <span className="exploreStatIcon">
-                <CleanStar filled={Boolean(userRating)} size={18} />
-              </span>
-            </button>
-            <button
-              type="button"
               className="exploreStatBtn"
               aria-label="اشتراک"
               onClick={onShare}
@@ -141,26 +96,6 @@ export function ExplorePreviewModal({
               <b>{passportMatch} هماهنگی با شناسنامه تو</b>
               <small>{beautyPassport.summary}</small>
             </div>
-          )}
-
-          {commentList.length > 0 && (
-            <section className="explorePreviewComments" aria-label="نظرات">
-              <h4>نظرات</h4>
-              {commentList.map((item) => (
-                <div className="explorePreviewComment" key={item.user_id}>
-                  <span className="explorePreviewCommentAvatar" aria-hidden="true">
-                    {String(item.name || "؟").slice(0, 1)}
-                  </span>
-                  <div className="explorePreviewCommentMain">
-                    <div className="explorePreviewCommentTop">
-                      <b>{item.name}</b>
-                      <CommentStars rating={item.rating} />
-                    </div>
-                    <p>{item.comment}</p>
-                  </div>
-                </div>
-              ))}
-            </section>
           )}
         </div>
       </article>

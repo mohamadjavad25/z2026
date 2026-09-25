@@ -10,9 +10,7 @@ const TYPE_LABELS = {
 };
 
 /**
- * Booking client profile modal (opened from schedule rows) — also reused
- * as a lightweight reviewer profile when a review's author has no richer
- * public profile view wired up (see HomeApp's onOpenReviewer).
+ * Booking client profile modal (opened from schedule rows).
  * Presentational: client payload + close callback from HomeApp.
  */
 export function ClientProfileModal({ client, onClose }) {

@@ -1,6 +1,6 @@
 import { apiFetch, apiJson } from "./client";
 
-/** GET /api/explore/posts → { data: { posts, savedTitles, ratings } } */
+/** GET /api/explore/posts → { data: { posts, savedTitles } } */
 export async function getExplorePosts(tag) {
   const query = tag && tag !== "همه" ? `?tag=${encodeURIComponent(tag)}` : "";
   return apiJson(`/api/explore/posts${query}`);
@@ -34,23 +34,10 @@ export async function deletePost(id) {
   });
 }
 
-/** GET /api/posts/:id/comments → { data: { comments } } */
-export async function getPostComments(id) {
-  return apiJson(`/api/posts/${id}/comments`);
-}
-
 /** POST /api/posts/:id/save → { data: { saved: boolean } } */
 export async function savePost(id) {
   return apiFetch(`/api/posts/${id}/save`, {
     method: "POST"
-  });
-}
-
-/** POST /api/posts/:id/rate → { data: { post } } body: { rating } */
-export async function ratePost(id, body) {
-  return apiFetch(`/api/posts/${id}/rate`, {
-    method: "POST",
-    body: JSON.stringify(body)
   });
 }
 

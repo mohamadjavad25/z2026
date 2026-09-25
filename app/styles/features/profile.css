@@ -2566,28 +2566,6 @@
 
 
 
-.sheetWallet{
-  justify-content: space-between;
-  gap: 8px;
-  min-height: 38px;
-  padding: 0 10px;
-  border-radius: 14px;
-  background: rgba(191, 192, 209, 0.18);
-  color: var(--plum);
-  font-size: 0.74rem;
-  font-weight: 900;
-}
-
-
-
-.sheetWallet span{
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-}
-
-
-
 .passportIntro,
 .passportCard{
   display: grid;

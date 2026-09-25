@@ -1,13 +1,17 @@
 "use client";
 
-import { LayoutGrid, Plus, Store } from "lucide-react";
+import { Plus, Settings, Store, Users } from "lucide-react";
 
 export function BottomNav({ activeTab, createdProfile, onTabChange, showCreateBooking = false, onCreateBooking }) {
+  // Salon owners already run a salon — browsing the salon directory (a
+  // client-facing feature) isn't useful to them, so their third tab opens
+  // their own customer community instead. See SalonCustomersPage.
+  const isSalonOwner = createdProfile?.type === "salon";
   return (
     <nav className="bottomNav" aria-label="ناوبری موبایل">
-      <button type="button" onClick={() => onTabChange("feed")} className={activeTab === "feed" ? "active" : ""}>
-        <LayoutGrid size={20} />
-        <span>اکسپلور</span>
+      <button type="button" onClick={() => onTabChange("settings")} className={activeTab === "settings" ? "active" : ""}>
+        <Settings size={20} />
+        <span>تنظیمات</span>
       </button>
       {showCreateBooking ? (
         <button
@@ -28,10 +32,17 @@ export function BottomNav({ activeTab, createdProfile, onTabChange, showCreateBo
           <img className="profileNavImage" src={createdProfile?.data?.avatar || "/profile-icon.svg"} alt="" aria-hidden="true" />
         </button>
       )}
-      <button type="button" onClick={() => onTabChange("salons")} className={activeTab === "salons" ? "active" : ""}>
-        <Store size={20} />
-        <span>سالن</span>
-      </button>
+      {isSalonOwner ? (
+        <button type="button" onClick={() => onTabChange("customers")} className={activeTab === "customers" ? "active" : ""}>
+          <Users size={20} />
+          <span>مشتریان</span>
+        </button>
+      ) : (
+        <button type="button" onClick={() => onTabChange("salons")} className={activeTab === "salons" ? "active" : ""}>
+          <Store size={20} />
+          <span>سالن</span>
+        </button>
+      )}
     </nav>
   );
 }

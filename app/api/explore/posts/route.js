@@ -12,6 +12,5 @@ export async function GET(request) {
   const list = posts.listExplorePosts({ tag });
   const user = getUserFromRequest(request);
   const savedTitles = user ? posts.listSavedTitles(user.id) : [];
-  const ratings = user ? posts.listUserRatings(user.id) : {};
-  return NextResponse.json({ data: { posts: list, savedTitles, ratings } });
+  return NextResponse.json({ data: { posts: list, savedTitles } });
 }

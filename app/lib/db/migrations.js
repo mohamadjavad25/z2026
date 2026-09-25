@@ -3,7 +3,7 @@ import { applySchema } from "./schema.js";
 // Exported so scripts/migration-sequential.test.mjs (and any other
 // verification script) can assert against the live value instead of a
 // hardcoded number that silently drifts out of date every time this bumps.
-export const SCHEMA_VERSION = 36;
+export const SCHEMA_VERSION = 37;
 
 /** Convert legacy session expiry strings (ISO / SQLite datetime) to epoch ms. Unparseable → 0 (expired). */
 export function sessionExpiryToEpochMs(value) {
@@ -843,11 +843,19 @@ function migrateToV35(database) {
  * for this whole removal, not a general policy for handling removed roles.
  */
 function migrateDropChatWalletShop(database) {
+  // Must come before the DELETE below: with FK enforcement on, SQLite
+  // validates the whole foreign-key graph on a DELETE from a referenced
+  // table (users), including messages.order_ref_id's dangling reference to
+  // shop_orders once that table is already gone from a prior run of this
+  // same migration — turning enforcement off first makes this function
+  // safe to invoke again on an already-migrated database (every later
+  // migrateToVN chains back through this one, so it does run again).
+  database.exec("PRAGMA foreign_keys = OFF;");
+
   if (tableExists(database, "users")) {
     database.exec("DELETE FROM users WHERE type = 'shop';");
   }
 
-  database.exec("PRAGMA foreign_keys = OFF;");
   for (const table of [
     "wallet_idempotency_keys", "wallet_withdrawals", "wallet_bank_accounts",
     "wallet_transactions", "wallets",
@@ -902,6 +910,89 @@ function migrateToV36(database) {
   applySchema(database);
 }
 
+/**
+ * The star-rating system (salon/artist reviews with a numeric score, and
+ * the separate explore-post star rating) and the profile "story" system
+ * (video/poster self-intro played back like an Instagram story) were both
+ * removed from the product entirely — their app code and repos are already
+ * gone as of this commit.
+ *
+ * Drops every reviews/rating/story table outright and rebuilds `posts` and
+ * `salons` to drop their now-dead rating columns — SQLite can't drop a
+ * column in place on older engines, same create-copy-drop-rename rebuild as
+ * migrateDropChatWalletShop (v36) above.
+ */
+function migrateDropRatingsAndStory(database) {
+  database.exec("PRAGMA foreign_keys = OFF;");
+  for (const table of ["review_likes", "reviews", "post_ratings", "profile_stories"]) {
+    database.exec(`DROP TABLE IF EXISTS "${table}";`);
+  }
+
+  if (tableExists(database, "posts") && columnExists(database, "posts", "rating_avg")) {
+    database.exec(`
+      CREATE TABLE posts_v37 (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        owner_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        title TEXT NOT NULL,
+        tag TEXT NOT NULL DEFAULT '',
+        image TEXT NOT NULL DEFAULT '',
+        caption TEXT NOT NULL DEFAULT '',
+        in_explore INTEGER NOT NULL DEFAULT 1,
+        featured INTEGER NOT NULL DEFAULT 0,
+        saves_count INTEGER NOT NULL DEFAULT 0,
+        views_count INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    database.exec(`
+      INSERT INTO posts_v37
+        (id, owner_user_id, title, tag, image, caption, in_explore, featured, saves_count, views_count, created_at, updated_at)
+      SELECT id, owner_user_id, title, tag, image, caption, in_explore, featured, saves_count, views_count, created_at, updated_at
+      FROM posts;
+    `);
+    database.exec("DROP TABLE posts;");
+    database.exec("ALTER TABLE posts_v37 RENAME TO posts;");
+  }
+
+  if (tableExists(database, "salons") && columnExists(database, "salons", "rating")) {
+    database.exec(`
+      CREATE TABLE salons_v37 (
+        user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+        name TEXT NOT NULL DEFAULT '',
+        area TEXT NOT NULL DEFAULT '',
+        tag TEXT NOT NULL DEFAULT '',
+        price TEXT NOT NULL DEFAULT '',
+        open TEXT NOT NULL DEFAULT '',
+        match_score TEXT NOT NULL DEFAULT '',
+        phone TEXT NOT NULL DEFAULT '',
+        email TEXT NOT NULL DEFAULT '',
+        post_count INTEGER NOT NULL DEFAULT 0,
+        follower_count INTEGER NOT NULL DEFAULT 0,
+        following_count INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    database.exec(`
+      INSERT INTO salons_v37
+        (user_id, name, area, tag, price, open, match_score, phone, email, post_count, follower_count, following_count, created_at, updated_at)
+      SELECT user_id, name, area, tag, price, open, match_score, phone, email, post_count, follower_count, following_count, created_at, updated_at
+      FROM salons;
+    `);
+    database.exec("DROP TABLE salons;");
+    database.exec("ALTER TABLE salons_v37 RENAME TO salons;");
+  }
+
+  database.exec("PRAGMA foreign_keys = ON;");
+}
+
+function migrateToV37(database) {
+  migrateToV36(database);
+  migrateDropRatingsAndStory(database);
+  applySchema(database);
+}
+
 function readSchemaVersion(database) {
   const row = database.prepare("SELECT value FROM app_meta WHERE key = 'schema_version'").get();
   return Number(row?.value || 0);
@@ -949,7 +1040,8 @@ const MIGRATION_STEPS = [
   { version: 33, migrate: migrateToV33 },
   { version: 34, migrate: migrateToV34 },
   { version: 35, migrate: migrateToV35 },
-  { version: 36, migrate: migrateToV36 }
+  { version: 36, migrate: migrateToV36 },
+  { version: 37, migrate: migrateToV37 }
 ];
 
 export function ensureSchemaVersion(database) {

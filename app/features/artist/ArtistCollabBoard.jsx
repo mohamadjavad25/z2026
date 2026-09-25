@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Check, ChevronDown, MapPin, Send, Sparkles, Star, Store, Trash2, Users, X } from "lucide-react";
+import { Check, ChevronDown, MapPin, Send, Sparkles, Store, Trash2, Users, X } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { buildClockOptions } from "../../shared/lib/time";
 
@@ -154,9 +154,6 @@ function SalonPreviewModal({ salon, draft, onDraftChange, onSubmit, onClose }) {
             <b>{salon.name}</b>
             {salon.area ? <span><MapPin size={12} />{salon.area}</span> : null}
           </div>
-          {salon.rating ? (
-            <em className="collabSalonModalRating"><Star size={12} fill="currentColor" />{toPersianDigits(salon.rating)}</em>
-          ) : null}
         </header>
 
         <section className="collabSection">

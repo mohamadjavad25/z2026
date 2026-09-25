@@ -143,7 +143,7 @@ export function ProfileSettingsPanel({
       <SettingsToggle
         icon={profileSettings.publicPortfolio ? Globe : Lock}
         label="ویترین عمومی آرتیست"
-        description="نمونه‌کار، خدمات، امتیاز و مسیر رزرو برای مشتری‌ها"
+        description="نمونه‌کار، خدمات و مسیر رزرو برای مشتری‌ها"
         checked={profileSettings.publicPortfolio}
         onChange={() => onToggle("publicPortfolio")}
         onLabel="عمومی"

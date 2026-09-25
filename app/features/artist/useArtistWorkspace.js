@@ -11,10 +11,7 @@ import {
   updateArtistHours,
   updateArtistMe
 } from "../../shared/api/artists";
-import { getAuthMe } from "../../shared/api/auth";
 import { createPost, deletePost, getPosts, updatePost, viewPost } from "../../shared/api/posts";
-import { getReviews, replyToReview } from "../../shared/api/reviews";
-import { formatRating, parseNumericRating } from "../../shared/lib/rating";
 import {
   buildClockOptions,
   getTodayPersianWeekday,
@@ -94,11 +91,7 @@ export function useArtistWorkspace({
     longPressTimer: null
   });
 
-  const [artistReviewList, setArtistReviewList] = useState([]);
-  const [artistReplyingReviewId, setArtistReplyingReviewId] = useState("");
-  const [artistReplyDraft, setArtistReplyDraft] = useState("");
-  const [artistReplySubmitting, setArtistReplySubmitting] = useState(false);
-  const [artistSocialStats, setArtistSocialStats] = useState({ rating: "۰", reviewCount: 0, followers: 0 });
+  const [artistSocialStats, setArtistSocialStats] = useState({ followers: 0 });
   const [artistSalonInviteList, setArtistSalonInviteList] = useState([]);
   const [artistInviteRespondBusyId, setArtistInviteRespondBusyId] = useState("");
   const [artistBookingSubmitting, setArtistBookingSubmitting] = useState(false);
@@ -181,49 +174,6 @@ export function useArtistWorkspace({
     [artistPortfolioItems, previewingArtistWorkId]
   );
 
-  const artistReviewSummary = useMemo(() => {
-    const ratings = artistReviewList
-      .map((review) => parseNumericRating(review.rating))
-      .filter((rating) => rating > 0);
-    if (!ratings.length) return { count: 0, rating: "" };
-    const average = ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length;
-    return { count: artistReviewList.length, rating: formatRating(average) };
-  }, [artistReviewList]);
-
-  const openArtistReviewReply = useCallback((review) => {
-    setArtistReplyingReviewId(String(review?.id ?? ""));
-    setArtistReplyDraft(review?.reply_text || "");
-  }, []);
-
-  const closeArtistReviewReply = useCallback(() => {
-    setArtistReplyingReviewId("");
-    setArtistReplyDraft("");
-  }, []);
-
-  const submitArtistReviewReply = useCallback(async () => {
-    const reviewId = artistReplyingReviewId;
-    if (!reviewId) return;
-    const text = artistReplyDraft.trim();
-    setArtistReplySubmitting(true);
-    try {
-      const { ok, payload } = await replyToReview(reviewId, text);
-      if (!ok) {
-        shellNotify(payload?.error || "ثبت پاسخ ناموفق بود.");
-        return;
-      }
-      const updated = payload?.data?.review;
-      setArtistReviewList((list) => list.map((review) => (
-        String(review.id) === String(reviewId)
-          ? { ...review, reply_text: updated?.reply_text ?? text, replied_at: updated?.replied_at ?? new Date().toISOString() }
-          : review
-      )));
-      setArtistReplyingReviewId("");
-      setArtistReplyDraft("");
-    } finally {
-      setArtistReplySubmitting(false);
-    }
-  }, [artistReplyingReviewId, artistReplyDraft, shellNotify]);
-
   const artistWorkTagOptions = useMemo(() => {
     const tags = Array.from(new Set(artistPortfolioItems.map((item) => item.tag).filter(Boolean)));
     return Array.from(new Set(["مو", "میکاپ", "ناخن", "پوست", "ابرو", ...tags]));
@@ -276,18 +226,8 @@ export function useArtistWorkspace({
           setArtistSalonInviteList(data.invites || []);
           setArtistBreakTime(data.breakTime || null);
           setArtistSocialStats({
-            rating: data.rating || "۰",
-            reviewCount: Number(data.reviewCount || 0),
             followers: Number(data.followers || 0)
           });
-        }
-      }
-      const me = await getAuthMe();
-      const userId = me.payload?.profile?.id || me.data?.user?.id || me.data?.profile?.id;
-      if (userId) {
-        const reviewsRes = await getReviews(userId);
-        if (reviewsRes.ok) {
-          setArtistReviewList(reviewsRes.data?.reviews || []);
         }
       }
     } catch {
@@ -406,10 +346,9 @@ export function useArtistWorkspace({
     setArtistBreakTime(null);
     setArtistBreakEditorOpen(false);
     setArtistBookingList([]);
-    setArtistReviewList([]);
     setArtistCollabOffers([]);
     setArtistSalonInviteList([]);
-    setArtistSocialStats({ rating: "۰", reviewCount: 0, followers: 0 });
+    setArtistSocialStats({ followers: 0 });
     setArtistBookingCreateOpen(false);
     setArtistBookingRailOpen(false);
     setEditingArtistWork(null);
@@ -871,7 +810,6 @@ export function useArtistWorkspace({
       image: item.image || "",
       saves: item.saves || "۰",
       views: item.views || "۰",
-      rating: item.rating || "",
       inExplore: Boolean(item.inExplore),
       featured: true
     });
@@ -1056,7 +994,6 @@ export function useArtistWorkspace({
 
   return {
     artistBookingsEpochRef,
-    artistReviewList,
     artistSocialStats,
     artistSalonInviteList,
     setArtistSalonInviteList,
@@ -1124,14 +1061,6 @@ export function useArtistWorkspace({
     artistGalleryTags,
     artistGalleryItems,
     previewingArtistWork,
-    artistReviewSummary,
-    artistReplyingReviewId,
-    artistReplyDraft,
-    setArtistReplyDraft,
-    artistReplySubmitting,
-    openArtistReviewReply,
-    closeArtistReviewReply,
-    submitArtistReviewReply,
     artistWorkTagOptions,
     artistWorkVisibleTagOptions,
     nearestArtistBookings,

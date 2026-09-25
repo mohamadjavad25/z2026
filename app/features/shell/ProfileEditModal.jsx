@@ -16,10 +16,23 @@ export function ProfileEditModal({
   onSubmit
 }) {
   const [stepIndex, setStepIndex] = useState(0);
+  // The "بعدی" (next) button turns into the "ذخیره تغییرات" (save & close)
+  // submit button the moment the last step is reached, in the exact same
+  // spot — a habitual second tap right after landing there (very common
+  // on mobile) used to submit and close the whole modal before anyone got
+  // a chance to type a new password. A brief guard keeps that same tap
+  // from landing on the now-different button underneath it.
+  const [justArrived, setJustArrived] = useState(false);
 
   useEffect(() => {
     if (open) setStepIndex(0);
   }, [open]);
+
+  useEffect(() => {
+    setJustArrived(true);
+    const timer = setTimeout(() => setJustArrived(false), 500);
+    return () => clearTimeout(timer);
+  }, [stepIndex]);
 
   if (!open || !profile) return null;
   const isSalon = profile.type === "salon";
@@ -196,7 +209,15 @@ export function ProfileEditModal({
                 بعدی
               </button>
             ) : (
-              <button key="submit" type="submit" style={{ width: "100%", minWidth: 0 }}><Check size={16} /> ذخیره تغییرات</button>
+              <button
+                key="submit"
+                type="submit"
+                className="profileEditSaveBtn"
+                disabled={justArrived}
+                style={{ width: "100%", minWidth: 0 }}
+              >
+                <Check size={16} /> ذخیره تغییرات
+              </button>
             )}
             <button
               type="button"

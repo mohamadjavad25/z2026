@@ -8,7 +8,6 @@ import {
   toggleSalonFollow
 } from "../../shared/api/salons";
 import { getClientArtistBookings } from "../../shared/api/artists";
-import { getReviews } from "../../shared/api/reviews";
 import { toggleSave } from "../../shared/api/saves";
 import { notifyFromResponse } from "../../shared/lib/apiNotify";
 import { resolveRollingPersianDateKey } from "../../shared/lib/persianCalendar";
@@ -56,7 +55,7 @@ function getSalonHourForDay(hours, day) {
 }
 
 /**
- * Salon **client** directory: public list, storefront, follow/save, reviews, booking modal.
+ * Salon **client** directory: public list, storefront, follow/save, booking modal.
  *
  * Does NOT own salon-owner dashboard state (salonAppointmentList, hours editor, staff CRUD, …).
  *
@@ -91,7 +90,6 @@ export function useSalonDirectory({
   const [followedSalons, setFollowedSalons] = useState([]);
   const [savedSalonKeys, setSavedSalonKeys] = useState([]);
   const [salonClientTab, setSalonClientTab] = useState("services");
-  const [salonClientReviews, setSalonClientReviews] = useState([]);
   const [salonClientBooking, setSalonClientBooking] = useState(initialBooking);
   const [salonClientBookingBusy, setSalonClientBookingBusy] = useState(false);
   const [salonClientUnavailableSlots, setSalonClientUnavailableSlots] = useState([]);
@@ -196,7 +194,6 @@ export function useSalonDirectory({
     setFollowedSalons([]);
     setSavedSalonKeys([]);
     setSalonClientTab("services");
-    setSalonClientReviews([]);
     setSalonClientBooking(initialBooking);
     setSalonClientBookingBusy(false);
     setSalonClientUnavailableSlots([]);
@@ -204,27 +201,8 @@ export function useSalonDirectory({
   }, []);
 
   useEffect(() => {
-    if (!selectedSalon) {
-      setSalonClientReviews([]);
-      return undefined;
-    }
+    if (!selectedSalon) return;
     setSalonClientTab("services");
-    const salonUserId = selectedSalon.id || selectedSalon.source_key;
-    if (!salonUserId) {
-      setSalonClientReviews([]);
-      return undefined;
-    }
-    let cancelled = false;
-    getReviews(salonUserId)
-      .then(({ ok, data }) => {
-        if (!cancelled) setSalonClientReviews(ok ? (data?.reviews || []) : []);
-      })
-      .catch(() => {
-        if (!cancelled) setSalonClientReviews([]);
-      });
-    return () => {
-      cancelled = true;
-    };
   }, [selectedSalon?.id, selectedSalon?.source_key]);
 
   useEffect(() => {
@@ -523,8 +501,6 @@ export function useSalonDirectory({
     setSavedSalonKeys,
     salonClientTab,
     setSalonClientTab,
-    salonClientReviews,
-    setSalonClientReviews,
     salonClientBooking,
     setSalonClientBooking,
     salonClientBookingBusy,

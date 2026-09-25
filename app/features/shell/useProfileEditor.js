@@ -18,16 +18,15 @@ const DEFAULT_PROFILE_SETTINGS = {
  * settings toggles shown in the profile settings sheet.
  *
  * Depends on pieces owned by useAuthSession (createdProfile, setCreatedProfile,
- * setProfileType, setProfileView, lockSession, writeAuthSession) and by
- * useSalonWorkspace (setSalonHeroSheet) — this hook must be called after both,
- * with their return values passed in.
+ * setProfileType, setProfileView, lockSession, writeAuthSession) — this hook
+ * must be called after it, with its return values passed in.
  *
  * @param {{
  *   createdProfile?: { type?: string, data?: Record<string, unknown> } | null,
  *   setCreatedProfile: (profile: unknown) => void,
  *   setProfileType: (type: string) => void,
  *   setProfileView: (view: string) => void,
- *   setSalonHeroSheet: (sheet: unknown) => void,
+ *   setActiveTab?: (tab: string) => void,
  *   lockSession: () => void,
  *   writeAuthSession: (profile: unknown) => void,
  *   onNotice?: (msg: string) => void
@@ -38,7 +37,7 @@ export function useProfileEditor({
   setCreatedProfile,
   setProfileType,
   setProfileView,
-  setSalonHeroSheet,
+  setActiveTab,
   lockSession,
   writeAuthSession,
   onNotice
@@ -96,6 +95,14 @@ export function useProfileEditor({
         return;
       }
     }
+    // profileEditAvatar is seeded from createdProfile.data.avatar when the
+    // sheet opens, which is now a /api/media/avatar/… URL (see publicUser()
+    // in app/lib/auth.js), not the actual image — only a freshly-picked file
+    // (a real "data:" URL from handleProfileAvatarUpload's FileReader) is a
+    // genuine new avatar. Sending the URL back would overwrite the stored
+    // image with that URL string, breaking it. Omit the field entirely when
+    // nothing new was picked, so the server keeps the current avatar as-is.
+    const nextAvatar = profileEditAvatar.startsWith("data:") ? profileEditAvatar : "";
     try {
       const response = await fetch("/api/profile", {
         method: "POST",
@@ -113,7 +120,7 @@ export function useProfileEditor({
             managerName: data.managerName || createdProfile.data.managerName || "",
             password: nextPassword,
             currentPassword,
-            avatar: profileEditAvatar || createdProfile.data.avatar || ""
+            ...(nextAvatar ? { avatar: nextAvatar } : {})
           }
         })
       });
@@ -134,15 +141,13 @@ export function useProfileEditor({
       setProfileEditAvatar("");
       if (profile.type === "salon") {
         setProfileView("overview");
-        setSalonHeroSheet("settings");
-      } else {
-        setProfileView("settings");
       }
+      setActiveTab?.("settings");
       notify(nextPassword ? "اطلاعات و رمز عبور به‌روزرسانی شد." : "اطلاعات ثبت‌نام به‌روزرسانی شد.");
     } catch {
       notify("ویرایش انجام نشد؛ دوباره امتحان کن.");
     }
-  }, [createdProfile, profileEditAvatar, lockSession, writeAuthSession, setCreatedProfile, setProfileView, setSalonHeroSheet, notify]);
+  }, [createdProfile, profileEditAvatar, lockSession, writeAuthSession, setCreatedProfile, setProfileView, setActiveTab, notify]);
 
   const saveProfileLocation = useCallback(async (nextArea) => {
     if (!createdProfile) return;

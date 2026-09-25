@@ -1,14 +1,14 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { getExplorePosts, getPostComments, ratePost, savePost } from "../../shared/api/posts";
+import { getExplorePosts, savePost } from "../../shared/api/posts";
 import { mapExplorePost } from "./mappers";
 
 /**
- * Explore feed: server posts, category filter, save/rate UI, preview selection.
+ * Explore feed: server posts, category filter, save UI, preview selection.
  * AI Studio posts are merged via `publishedAiPosts` input (read-only) — no import of AI hook.
  *
- * `savedPostTitles` / ratings live here (source of truth from GET /api/explore/posts).
+ * `savedPostTitles` lives here (source of truth from GET /api/explore/posts).
  * Cross-domain consumers (AI local-save, artist public gallery) read/call into this hook.
  *
  * @param {{
@@ -30,10 +30,7 @@ export function useExploreFeed({
   const [exploreLoading, setExploreLoading] = useState(true);
   const [exploreCategory, setExploreCategory] = useState("همه");
   const [savedPostTitles, setSavedPostTitles] = useState([]);
-  const [explorePostRatings, setExplorePostRatings] = useState({});
-  const [exploreRatingPicker, setExploreRatingPicker] = useState(null);
   const [selectedPost, setSelectedPost] = useState(null);
-  const [selectedPostComments, setSelectedPostComments] = useState([]);
 
   const visibleExplorePosts = useMemo(() => {
     const all = [...publishedAiPosts, ...explorePostList];
@@ -56,10 +53,6 @@ export function useExploreFeed({
       : savedPostTitles.includes(selectedPost.title)
     : false;
 
-  const selectedPostUserRating = selectedPost
-    ? explorePostRatings[selectedPost.id] || explorePostRatings[selectedPost.title] || 0
-    : 0;
-
   const refreshExploreFeed = useCallback(async () => {
     try {
       const { ok, data, payload } = await getExplorePosts();
@@ -68,9 +61,6 @@ export function useExploreFeed({
       setExplorePostList(posts);
       if (Array.isArray(data?.savedTitles)) {
         setSavedPostTitles(data.savedTitles.map(String));
-      }
-      if (data?.ratings && typeof data.ratings === "object") {
-        setExplorePostRatings(data.ratings);
       }
     } catch {
       // keep current feed
@@ -83,8 +73,6 @@ export function useExploreFeed({
     setExplorePostList([]);
     setExploreLoading(true);
     setSavedPostTitles([]);
-    setExplorePostRatings({});
-    setExploreRatingPicker(null);
     setSelectedPost(null);
     setExploreCategory("همه");
   }, []);
@@ -115,77 +103,9 @@ export function useExploreFeed({
     }
   }, [notify, refreshExploreFeed]);
 
-  const loadPostComments = useCallback(async (postId) => {
-    if (postId == null) {
-      setSelectedPostComments([]);
-      return;
-    }
-    try {
-      const { ok, payload } = await getPostComments(postId);
-      setSelectedPostComments(ok ? payload?.data?.comments || [] : []);
-    } catch {
-      setSelectedPostComments([]);
-    }
-  }, []);
-
-  const selectExplorePost = useCallback(async (post) => {
+  const selectExplorePost = useCallback((post) => {
     setSelectedPost(post || null);
-    if (post?.id != null) {
-      await loadPostComments(post.id);
-    } else {
-      setSelectedPostComments([]);
-    }
-  }, [loadPostComments]);
-
-  const openExploreRatingPicker = useCallback((post) => {
-    if (!post?.title) return;
-    setExploreRatingPicker({
-      title: post.title,
-      postId: post.id,
-      current: explorePostRatings[post.id] || explorePostRatings[post.title] || 0,
-      hover: 0
-    });
-  }, [explorePostRatings]);
-
-  const closeExploreRatingPicker = useCallback(() => {
-    setExploreRatingPicker(null);
   }, []);
-
-  const setExploreRatingHover = useCallback((stars) => {
-    setExploreRatingPicker((prev) => (prev ? { ...prev, hover: stars } : prev));
-  }, []);
-
-  const confirmExploreRating = useCallback(async (stars, comment) => {
-    if (!exploreRatingPicker?.title || stars < 1) return;
-    const title = exploreRatingPicker.title;
-    const postId = exploreRatingPicker.postId;
-    setExplorePostRatings((prev) => ({
-      ...prev,
-      [title]: stars,
-      ...(postId ? { [String(postId)]: stars } : {})
-    }));
-    setExploreRatingPicker(null);
-    const commentText = String(comment || "").trim();
-    notify(commentText ? "امتیاز و نظرت ثبت شد. ممنون!" : `${["", "۱", "۲", "۳", "۴", "۵"][stars]} ستاره ثبت شد. ممنون!`);
-    if (postId != null) {
-      try {
-        const { ok, payload } = await ratePost(postId, { rating: stars, comment: commentText });
-        if (!ok) throw new Error(payload?.error || "rate failed");
-        const ratedPost = payload?.data?.post;
-        if (ratedPost) {
-          setSelectedPost((current) => (
-            current && Number(current.id) === Number(ratedPost.id)
-              ? { ...current, ...ratedPost }
-              : current
-          ));
-          await loadPostComments(ratedPost.id);
-        }
-        await refreshExploreFeed();
-      } catch {
-        notify("امتیاز در سرور ذخیره نشد.");
-      }
-    }
-  }, [exploreRatingPicker, notify, refreshExploreFeed]);
 
   const shareExplorePost = useCallback(async (post) => {
     if (!post) return;
@@ -219,25 +139,16 @@ export function useExploreFeed({
     setExploreCategory,
     savedPostTitles,
     setSavedPostTitles,
-    explorePostRatings,
-    setExplorePostRatings,
-    exploreRatingPicker,
     selectedPost,
     setSelectedPost,
-    selectedPostComments,
     selectExplorePost,
     visibleExplorePosts,
     savedExplorePosts,
     selectedPostIsSaved,
-    selectedPostUserRating,
     refreshExploreFeed,
     resetExploreFeed,
     rememberLocalSavedTitle,
     toggleSavedPost,
-    openExploreRatingPicker,
-    closeExploreRatingPicker,
-    setExploreRatingHover,
-    confirmExploreRating,
     shareExplorePost
   };
 }

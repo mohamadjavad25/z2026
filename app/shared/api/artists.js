@@ -12,7 +12,7 @@ export async function getArtist(id) {
 
 /**
  * GET /api/artist/me → owner workspace
- * { data: { services, bookings, collabs, invites, pendingInviteCount, breakTime, rating, reviewCount, followers } }
+ * { data: { services, bookings, collabs, invites, pendingInviteCount, breakTime, followers } }
  * Note: GET also runs syncSalonBookingsForArtist on the server.
  */
 export async function getArtistMe() {

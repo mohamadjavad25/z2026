@@ -1,7 +1,6 @@
 export const initialArtistServices = [];
 export const initialArtistPortfolioItems = [];
 export const initialArtistBookings = [];
-export const artistReviews = [];
 
 export const salonDetailTeam = [];
 export const salonDetailPortfolio = [];

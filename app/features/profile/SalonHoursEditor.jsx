@@ -6,7 +6,7 @@ import { toPersianDigits } from "../../shared/lib/digits";
 import { shortPersianWeekday, timeLabelToMinutes } from "../../shared/lib/time";
 
 /**
- * Salon hours editor nested inside ProfileSettingsSheet.
+ * Salon hours editor nested inside the "تنظیمات" tab (SettingsPage).
  * Presentational: hours list/presets/selection owned by HomeApp / useSalonWorkspace.
  */
 export function SalonHoursEditor({

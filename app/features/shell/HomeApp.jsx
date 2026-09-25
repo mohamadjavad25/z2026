@@ -67,11 +67,10 @@ import {
   useAuthSession
 } from "../auth";
 import {
-  ExplorePage,
   ExplorePreviewModal,
-  ExploreRatingModal,
   useExploreFeed
 } from "../explore";
+import { SettingsPage } from "../settings";
 import {
   ClientBookingSettingsModal,
   ClientBookingsPanel,
@@ -81,6 +80,7 @@ import { getSaves } from "../../shared/api/saves";
 import { ProfileEmptyState } from "../profile/ProfileEmptyState";
 import { ProfileGallery } from "../profile/ProfileGallery";
 import { ProfileHero } from "../profile/ProfileHero";
+import { ProfileHeroWeekStrip } from "../profile/ProfileHeroWeekStrip";
 import { ProfileModeRail } from "../profile/ProfileModeRail";
 import { BookingCreateForm } from "../profile/BookingCreateForm";
 import { BookingSheet } from "../profile/BookingSheet";
@@ -90,13 +90,13 @@ import {
   withScheduleTimeline
 } from "../profile/ScheduleRow";
 import { ProfileSavedPosts } from "../profile/ProfileSavedPosts";
-import { ProfileSettingsSheet } from "../profile/ProfileSettingsSheet";
 import { ProfileSheet } from "../profile/ProfileSheet";
 import { ServiceComposerModal } from "../profile/ServiceComposerModal";
 import {
   SalonClientBookingModal,
   SalonClientPage,
   SalonCreateStaffModal,
+  SalonCustomersPage,
   SalonNearbyInviteSheet,
   SalonServicesWorkspace,
   SalonStaffProfileModal,
@@ -124,7 +124,6 @@ import { useServiceComposer } from "./useServiceComposer";
 import { ProfileEditModal } from "./ProfileEditModal";
 import { SalonClientFloatingDock } from "./SalonClientFloatingDock";
 import {
-  artistReviews,
   exploreArtistCatalog,
   explorePosts,
   initialArtistBookings,
@@ -220,6 +219,24 @@ const AUTH_GATE_SPARKLES = [
 
 export function HomeApp() {
   const [activeTab, setActiveTab] = useState("profile");
+
+  // Capture ?join={salonId} from a /join-salon/[id] QR/link redirect (guest
+  // branch — see JoinSalonPageClient) before the auth gate renders, so the
+  // pending join survives the login/signup round trip. Runs once, first
+  // hook in the tree, so it always wins the race against useAuthSession's
+  // own mount effect below. useAuthSession's onAuthenticated callback reads
+  // this same key once a session exists (login/register/already-booted).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const joinSalonId = new URLSearchParams(window.location.search).get("join");
+    if (!joinSalonId) return;
+    try {
+      window.localStorage.setItem("zibaban_pending_join_salon", joinSalonId);
+    } catch {
+      // ignore — join just won't auto-fire post-login
+    }
+    window.history.replaceState({}, "", window.location.pathname);
+  }, []);
   const refreshExploreFeedRef = useRef(null);
   const refreshArtistWorkspaceRef = useRef(null);
   const notifyArtistBookingCreatedRef = useRef(null);
@@ -240,6 +257,39 @@ export function HomeApp() {
   const [salonWeekHistoryOpen, setSalonWeekHistoryOpen] = useState(false);
   const [scheduleNow, setScheduleNow] = useState(() => new Date());
 
+  // Fires from useAuthSession's onAuthenticated below (boot/login/register —
+  // covers an artist who was already logged in when they opened the
+  // /join-salon/[id] link too, not just the guest→signup round trip).
+  async function tryJoinPendingSalon(profile) {
+    if (profile?.type !== "artist" || typeof window === "undefined") return;
+    let pendingSalonId = "";
+    try {
+      pendingSalonId = window.localStorage.getItem("zibaban_pending_join_salon") || "";
+    } catch {
+      return;
+    }
+    if (!pendingSalonId) return;
+    try {
+      window.localStorage.removeItem("zibaban_pending_join_salon");
+    } catch {
+      // ignore
+    }
+    try {
+      const response = await fetch("/api/artist/join-salon", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ salonUserId: Number(pendingSalonId) })
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (response.ok) {
+        setAppToast(`به تیم «${payload?.data?.salon?.name || "سالن"}» پیوستی!`);
+      } else if (payload?.code !== "ALREADY_STAFF") {
+        setAppToast(payload?.error || "پیوستن به تیم سالن انجام نشد.");
+      }
+    } catch {
+      setAppToast("پیوستن به تیم سالن انجام نشد.");
+    }
+  }
 
   const {
     authChecked,
@@ -311,7 +361,10 @@ export function HomeApp() {
       }
 
       if (profile?.type === "salon") await c.refreshSalonSystemData?.();
-      if (profile?.type === "artist") await c.refreshArtistWorkspace?.();
+      if (profile?.type === "artist") {
+        await c.refreshArtistWorkspace?.();
+        await tryJoinPendingSalon(profile);
+      }
       if (source === "boot" && profile?.type === "client") await c.refreshClientBookings?.();
       // Real push notifications (see app/lib/push.js) so a salon/artist/client
       // finds out about a new/expired request even when the app isn't open.
@@ -352,26 +405,15 @@ export function HomeApp() {
 
   const {
     explorePostList,
-    exploreCategory,
-    setExploreCategory,
-    exploreRatingPicker,
     selectedPost,
     setSelectedPost,
-    selectedPostComments,
     selectExplorePost,
-    visibleExplorePosts,
     savedExplorePosts,
     selectedPostIsSaved,
-    selectedPostUserRating,
     refreshExploreFeed,
     resetExploreFeed,
     toggleSavedPost,
-    openExploreRatingPicker,
-    closeExploreRatingPicker,
-    setExploreRatingHover,
-    confirmExploreRating,
-    shareExplorePost,
-    exploreLoading
+    shareExplorePost
   } = useExploreFeed({
     createdProfile,
     onNotice: setAppToast
@@ -390,11 +432,9 @@ export function HomeApp() {
     setSavedSalonKeys,
     salonClientTab,
     setSalonClientTab,
-    salonClientReviews,
     salonClientBooking,
     salonClientBookingBusy,
     clientBookingList,
-    savedSalonList,
     salonClientFreeTimes,
     isFollowingSelectedSalon,
     isSavedSelectedSalon,
@@ -455,7 +495,6 @@ export function HomeApp() {
   }
 
   const {
-    artistReviewList,
     artistSocialStats,
     artistSalonInviteList,
     artistInviteRespondBusyId,
@@ -512,14 +551,6 @@ export function HomeApp() {
     artistGalleryTags,
     artistGalleryItems,
     previewingArtistWork,
-    artistReviewSummary,
-    artistReplyingReviewId,
-    artistReplyDraft,
-    setArtistReplyDraft,
-    artistReplySubmitting,
-    openArtistReviewReply,
-    closeArtistReviewReply,
-    submitArtistReviewReply,
     artistWorkTagOptions,
     artistWorkVisibleTagOptions,
     artistBookingWeekTabs,
@@ -701,7 +732,7 @@ export function HomeApp() {
     setCreatedProfile,
     setProfileType,
     setProfileView,
-    setSalonHeroSheet,
+    setActiveTab,
     lockSession,
     writeAuthSession,
     onNotice: setAppToast
@@ -715,10 +746,6 @@ export function HomeApp() {
   const {
     selectedPublicArtist,
     setSelectedPublicArtist,
-    publicArtistReviews,
-    publicArtistUserRating,
-    publicArtistRatingHover,
-    setPublicArtistRatingHover,
     publicArtistView,
     setPublicArtistView,
     publicArtistGalleryFilter,
@@ -740,8 +767,6 @@ export function HomeApp() {
     publicArtistHeroImage,
     openPublicArtistProfile,
     closePublicArtistProfile,
-    confirmPublicArtistRating,
-    toggleLikePublicArtistReview,
     confirmPublicArtistBooking,
     toggleFollowPublicArtist,
     toggleSavePublicArtist,
@@ -851,9 +876,7 @@ export function HomeApp() {
       || String(salon.source_key) === String(createdProfile?.id)
       || salon.name === createdProfile?.data?.name
     ));
-    const ratingValue = ownSalon?.rating || createdProfile?.data?.rating || "۰";
     return {
-      rating: toPersianDigits(ratingValue || "۰"),
       followers: Number(ownSalon?.follower_count ?? ownSalon?.followerCount ?? createdProfile?.data?.follower_count ?? 0),
       following: Number(ownSalon?.following_count ?? ownSalon?.followingCount ?? createdProfile?.data?.following_count ?? 0),
       posts: salonPortfolioList.length
@@ -1365,7 +1388,6 @@ function getPassportMatch(post) {
         name: createdProfile.data.name,
         area: createdProfile.data.area || post.area || "",
         role: createdProfile.data.service || post.tag || (createdProfile.type === "salon" ? "سالن زیبایی" : "آرتیست"),
-        rating: post.rating || "",
         bio: createdProfile.data.bio || post.meta || "",
         source: createdProfile.type === "salon"
           ? (fromDirectory || null)
@@ -1381,7 +1403,6 @@ function getPassportMatch(post) {
         name: fromDirectory?.name || post.salon || "سالن",
         area: fromDirectory?.area || post.area || "",
         role: fromDirectory?.tag || post.tag || "سالن زیبایی",
-        rating: fromDirectory?.rating || post.rating || "",
         bio: fromDirectory?.bio || post.meta || "",
         source: fromDirectory || null,
         kind: "salon",
@@ -1394,7 +1415,6 @@ function getPassportMatch(post) {
       name: post.salon || "آرتیست",
       area: post.area || "",
       role: post.ownerService ? `آرتیست ${post.ownerService}` : (post.tag || "آرتیست"),
-      rating: post.rating || "",
       bio: post.ownerBio || post.meta || "",
       source: null,
       kind: "artist",
@@ -1403,22 +1423,6 @@ function getPassportMatch(post) {
   }
 
   function buildOwnPublicSalon() {
-    const ownStoryVideo = createdProfile?.data?.storyVideo || createdProfile?.data?.story_video || createdProfile?.data?.introVideo || createdProfile?.data?.intro_video || "";
-    const ownStoryPoster = createdProfile?.data?.storyPoster || createdProfile?.data?.story_poster || createdProfile?.data?.introPoster || createdProfile?.data?.intro_poster || "";
-    const ownStoryFields = {
-      ...(ownStoryVideo ? {
-        storyVideo: ownStoryVideo,
-        story_video: ownStoryVideo,
-        introVideo: ownStoryVideo,
-        intro_video: ownStoryVideo
-      } : {}),
-      ...(ownStoryPoster ? {
-        storyPoster: ownStoryPoster,
-        story_poster: ownStoryPoster,
-        introPoster: ownStoryPoster,
-        intro_poster: ownStoryPoster
-      } : {})
-    };
     const fromDirectory = salonDirectory.find((salon) => (
       String(salon.id) === String(createdProfile?.id)
       || String(salon.source_key) === String(createdProfile?.id)
@@ -1427,7 +1431,6 @@ function getPassportMatch(post) {
     if (fromDirectory) {
       return {
         ...fromDirectory,
-        ...ownStoryFields,
         portfolio: fromDirectory.portfolio?.length ? fromDirectory.portfolio : salonPortfolioList,
         staff: fromDirectory.staff?.length ? fromDirectory.staff : salonStaffList,
         services: fromDirectory.services?.length ? fromDirectory.services : salonServiceList
@@ -1440,11 +1443,9 @@ function getPassportMatch(post) {
       name: createdProfile.data?.name || "سالن",
       area: createdProfile.data?.area || "",
       tag: createdProfile.data?.tag || createdProfile.data?.service || "سالن زیبایی",
-      rating: createdProfile.data?.rating || "",
       open: createdProfile.data?.open || "امروز",
       bio: createdProfile.data?.bio || "",
       avatar: createdProfile.data?.avatar || "",
-      ...ownStoryFields,
       post_count: salonPortfolioList.length,
       follower_count: Number(createdProfile.data?.follower_count || 0),
       following_count: Number(createdProfile.data?.following_count || 0),
@@ -1452,131 +1453,6 @@ function getPassportMatch(post) {
       staff: salonStaffList,
       services: salonServiceList
     };
-  }
-
-  function buildOwnStoryFields() {
-    const data = createdProfile?.data || {};
-    const video = data.storyVideo || data.story_video || data.introVideo || data.intro_video || "";
-    const poster = data.storyPoster || data.story_poster || data.introPoster || data.intro_poster || "";
-    if (!video && !poster) return null;
-    return {
-      ...(video ? {
-        storyVideo: video,
-        story_video: video,
-        introVideo: video,
-        intro_video: video
-      } : {}),
-      ...(poster ? {
-        storyPoster: poster,
-        story_poster: poster,
-        introPoster: poster,
-        intro_poster: poster
-      } : {})
-    };
-  }
-
-  const STORY_TYPE_LABELS = { salon: "سالن", artist: "آرتیست" };
-
-  async function saveProfileStory(storyPayload) {
-    const storyVideo = typeof storyPayload === "string" ? storyPayload : storyPayload?.video;
-    const storyPoster = typeof storyPayload === "string" ? "" : storyPayload?.poster;
-    if (!createdProfile || !STORY_TYPE_LABELS[createdProfile.type] || (!storyVideo && !storyPoster)) return;
-    let persisted = false;
-    let serverError = "";
-    try {
-      const response = await fetch("/api/profile/story", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ video: storyVideo, poster: storyPoster })
-      });
-      persisted = response.ok;
-      if (!response.ok) {
-        try {
-          const errorBody = await response.json();
-          serverError = errorBody?.error || "";
-        } catch {
-          serverError = "";
-        }
-      }
-    } catch {
-      persisted = false;
-    }
-    if (!persisted) {
-      setAppToast(serverError || "ذخیره استوری در سرور انجام نشد؛ دوباره امتحان کن.");
-      return;
-    }
-    const storyFields = {
-      ...(storyVideo ? {
-        storyVideo,
-        story_video: storyVideo,
-        introVideo: storyVideo,
-        intro_video: storyVideo
-      } : {}),
-      ...(storyPoster ? {
-        storyPoster,
-        story_poster: storyPoster,
-        introPoster: storyPoster,
-        intro_poster: storyPoster
-      } : {})
-    };
-    const nextProfile = {
-      ...createdProfile,
-      data: {
-        ...createdProfile.data,
-        ...storyFields
-      }
-    };
-    const ownId = String(createdProfile.id || "");
-    const ownName = createdProfile.data?.name || "";
-    const matchesOwnSalon = (salon) => (
-      String(salon.id || "") === ownId
-      || String(salon.source_key || "") === ownId
-      || (ownName && salon.name === ownName)
-    );
-
-    lockSession();
-    writeAuthSession(nextProfile);
-    setCreatedProfile(nextProfile);
-    setSelectedSalon((current) => (current && matchesOwnSalon(current) ? { ...current, ...storyFields } : current));
-    setSelectedPublicArtist((current) => (current && String(current.id || "") === ownId ? { ...current, ...storyFields } : current));
-    setSalonDirectory((current) => current.map((salon) => (matchesOwnSalon(salon) ? { ...salon, ...storyFields } : salon)));
-    setAppToast(storyVideo ? `استوری معرفی ${STORY_TYPE_LABELS[createdProfile.type]} ذخیره شد.` : `پوستر استوری ${STORY_TYPE_LABELS[createdProfile.type]} ذخیره شد.`);
-  }
-
-  async function deleteProfileStory() {
-    if (!createdProfile || !STORY_TYPE_LABELS[createdProfile.type]) return;
-    try {
-      const response = await fetch("/api/profile/story", { method: "DELETE" });
-      if (!response.ok) {
-        setAppToast("حذف استوری انجام نشد؛ دوباره امتحان کن.");
-        return;
-      }
-    } catch {
-      setAppToast("حذف استوری انجام نشد؛ دوباره امتحان کن.");
-      return;
-    }
-    const STORY_KEYS = ["storyVideo", "story_video", "introVideo", "intro_video", "storyPoster", "story_poster", "introPoster", "intro_poster"];
-    const stripStoryFields = (entity) => {
-      if (!entity) return entity;
-      const next = { ...entity };
-      for (const key of STORY_KEYS) delete next[key];
-      return next;
-    };
-    const ownId = String(createdProfile.id || "");
-    const ownName = createdProfile.data?.name || "";
-    const matchesOwnSalon = (salon) => (
-      String(salon.id || "") === ownId
-      || String(salon.source_key || "") === ownId
-      || (ownName && salon.name === ownName)
-    );
-    const nextProfile = { ...createdProfile, data: stripStoryFields(createdProfile.data) };
-    lockSession();
-    writeAuthSession(nextProfile);
-    setCreatedProfile(nextProfile);
-    setSelectedSalon((current) => (current && matchesOwnSalon(current) ? stripStoryFields(current) : current));
-    setSelectedPublicArtist((current) => (current && String(current.id || "") === ownId ? stripStoryFields(current) : current));
-    setSalonDirectory((current) => current.map((salon) => (matchesOwnSalon(salon) ? stripStoryFields(salon) : salon)));
-    setAppToast(`استوری ${STORY_TYPE_LABELS[createdProfile.type]} حذف شد.`);
   }
 
   // Hoisted out of openExploreArtistProfile (below) so it can also be reused
@@ -1598,7 +1474,6 @@ function getPassportMatch(post) {
         name: salonLike.name,
         area: salonLike.area,
         tag: salonLike.role || salonLike.tag,
-        rating: salonLike.rating,
         open: salonLike.open || "امروز",
         bio: salonLike.bio || "",
         avatar: salonLike.avatar || "",
@@ -1625,7 +1500,7 @@ function getPassportMatch(post) {
         // keep the resolved salon from the current post/directory
       }
 
-      // The list stays light (no story video); pull the full detail for the public page.
+      // The list stays light; pull the full detail for the public page.
       if (nextSalon?.id) {
         try {
           const detailResponse = await fetch("/api/salons/" + encodeURIComponent(nextSalon.id));
@@ -1720,10 +1595,6 @@ function getPassportMatch(post) {
         kind: "artist",
         entityType: "artist"
       });
-      const ownStory = buildOwnStoryFields();
-      if (ownStory) {
-        setSelectedPublicArtist((current) => (current ? { ...current, ...ownStory } : current));
-      }
       return;
     }
 
@@ -1771,7 +1642,7 @@ function getPassportMatch(post) {
       artists={savedProfiles.artists}
       onSelectPost={selectExplorePost}
       onRemovePost={(item) => toggleSavedPost(item.title, item)}
-      onSelectSalon={selectSalonWithStory}
+      onSelectSalon={selectSalonWithDetail}
       onRemoveSalon={removeSavedSalon}
       onSelectArtist={openPublicArtistProfile}
       onRemoveArtist={removeSavedArtist}
@@ -1780,7 +1651,7 @@ function getPassportMatch(post) {
 
   const selectedExploreArtist = selectedPost ? resolveExploreArtist(selectedPost) : null;
 
-  const selectSalonWithStory = async (salon) => {
+  const selectSalonWithDetail = async (salon) => {
     if (!salon) return;
     setSalonClientTab("gallery");
     setSelectedSalon(salon);
@@ -1809,33 +1680,37 @@ function getPassportMatch(post) {
     }
   };
 
-  // Hydrate the owner profile with persisted story fields (poster/video) from the server.
-  useEffect(() => {
-    if (!createdProfile?.id) return;
-    let cancelled = false;
-    fetch("/api/profile/story")
-      .then((response) => (response.ok ? response.json() : null))
-      .then((payload) => {
-        if (cancelled || !payload?.story) return;
-        const video = String(payload.story.video || "");
-        const poster = String(payload.story.poster || "");
-        if (!video && !poster) return;
-        setCreatedProfile((current) => {
-          if (!current) return current;
-          return {
-            ...current,
-            data: {
-              ...current.data,
-              ...(video ? { storyVideo: video, story_video: video, introVideo: video, intro_video: video } : {}),
-              ...(poster ? { storyPoster: poster, story_poster: poster, introPoster: poster, intro_poster: poster } : {})
-            }
-          };
-        });
-      })
-      .catch(() => {});
-    return () => { cancelled = true; };
-  }, [createdProfile?.id]);
+  const profileModeRail = (
+    <ProfileModeRail
+      placement="panel"
+      profileType={profileType}
+      profileView={profileView}
+      salonWorkspace={salonWorkspace}
+      activeRoleMeta={activeRoleMeta}
+      onOverview={() => {
+        closeSalonWorkspace();
+        setProfileView("overview");
+      }}
+      onSalonWorkspace={openSalonWorkspace}
+      onProfileView={setProfileView}
+    />
+  );
 
+  // Floats above the bottom nav (same slot the tab rail used to float in) —
+  // rendered as a sibling of the animated .mobilePage tree via
+  // MobileFloatingCta, not nested inside ProfileHero, because a
+  // position:fixed element nested inside .mobilePage.is-active gets trapped
+  // by that element's page-transition transform and never reaches the real
+  // viewport edge. See MobileFloatingCta.jsx.
+  const salonWeekStripFloating = (
+    <ProfileHeroWeekStrip
+      items={salonHeroWeekTabs}
+      selectedDay={activeScheduleDateKey}
+      onSelectDay={setScheduleViewDay}
+      onOpenHistory={() => setSalonWeekHistoryOpen(true)}
+      ariaLabel="برنامه هفته سالن"
+    />
+  );
 
   return (
     <main className={`appShell ${!createdProfile ? "is-auth-gate" : ""} ${selectedSalon && activeTab === "salons" ? "is-salon-client" : ""} ${selectedPublicArtist ? "is-artist-public" : ""} ${!authChecked ? "is-auth-loading" : ""}`}>
@@ -1867,21 +1742,50 @@ function getPassportMatch(post) {
         ) : null}
 
         <section className="contentGrid">
-          <ExplorePage
-            active={activeTab === "feed"}
-            exploreCategory={exploreCategory}
-            posts={visibleExplorePosts}
-            loading={exploreLoading}
-            onCategoryChange={setExploreCategory}
-            onPostSelect={selectExplorePost}
+          <SettingsPage
+            active={activeTab === "settings"}
+            profile={createdProfile}
+            locationSaving={profileLocationSaving}
+            onSaveLocation={saveProfileLocation}
+            onEditProfile={openProfileEdit}
+            profileSettings={profileSettings}
+            onToggleSetting={toggleProfileSetting}
+            artistBookingSettings={artistBookingSettings}
+            onArtistBookingChange={setArtistBookingSettings}
+            savedPostsCount={savedExplorePosts.length}
+            onOpenSaved={() => {
+              if (createdProfile?.type === "salon") setSalonHeroSheet("saved");
+              else setProfileView("saved");
+            }}
+            onLogout={logoutAccount}
+            onDeleteAccount={deleteAccountPermanently}
+            hoursOpen={settingsHoursOpen}
+            onToggleHoursOpen={() => setSettingsHoursOpen((open) => !open)}
+            hoursPresets={createdProfile?.type === "artist" ? artistHoursPresets : salonHoursPresets}
+            activeHoursPresetId={createdProfile?.type === "artist" ? activeArtistHoursPreset : activeHoursPreset}
+            activeHoursPresetMeta={createdProfile?.type === "artist" ? activeArtistHoursPresetMeta : activeHoursPresetMeta}
+            hoursList={createdProfile?.type === "artist" ? artistHoursList : salonHoursList}
+            selectedHour={createdProfile?.type === "artist" ? selectedArtistHour : selectedSalonHour}
+            hourTimeOptions={createdProfile?.type === "artist" ? artistHourTimeOptions : salonHourTimeOptions}
+            openDaysCount={createdProfile?.type === "artist" ? openArtistHoursDaysCount : activeSalonHours.length}
+            weeklyCapacityTotal={createdProfile?.type === "artist" ? weeklyArtistCapacityTotal : weeklyCapacityTotal}
+            onSelectHoursPreset={createdProfile?.type === "artist" ? updateArtistHoursPreset : updateSalonHoursPreset}
+            onSelectHourDay={createdProfile?.type === "artist" ? setSelectedArtistHourDay : setSelectedSalonHourDay}
+            onUpdateHour={createdProfile?.type === "artist" ? updateArtistHour : updateSalonHour}
           />
+
+          {createdProfile?.type === "salon" && (
+            <SalonCustomersPage
+              active={activeTab === "customers"}
+              bookings={salonAppointmentList}
+            />
+          )}
 
           <SalonClientPage
             active={activeTab === "salons"}
             selectedSalon={selectedSalon}
             salons={salonDirectory}
             tab={salonClientTab}
-            reviews={salonClientReviews}
             isFollowing={isFollowingSelectedSalon}
             isSaved={isSavedSelectedSalon}
             getVisibleServices={getVisibleSalonServiceItems}
@@ -1892,7 +1796,7 @@ function getPassportMatch(post) {
             onShare={shareSalonProfile}
             onTabChange={setSalonClientTab}
             onOpenBooking={openSalonClientBooking}
-            onSelectSalon={selectSalonWithStory}
+            onSelectSalon={selectSalonWithDetail}
           />
         </section>
 
@@ -1947,7 +1851,6 @@ function getPassportMatch(post) {
               desc={activeCreatedMeta?.desc || ""}
               salonStats={salonSocialStats}
               artistStats={{
-                rating: artistSocialStats.rating,
                 followers: artistSocialStats.followers,
                 portfolioCount: visibleArtistPortfolio.length,
                 bookingCount: artistBookingList.length
@@ -1978,22 +1881,9 @@ function getPassportMatch(post) {
                       ? unseenClientBookingCount
                       : 0
               }
-              onOpenSettings={() => {
-                if (createdProfile?.type === "salon") {
-                  setSalonHeroSheet((prev) => (prev === "settings" ? null : "settings"));
-                } else {
-                  setProfileView((prev) => (prev === "settings" ? "overview" : "settings"));
-                }
-              }}
-              onOpenWeekHistory={() => setSalonWeekHistoryOpen(true)}
-              onSelectSalonWeekDay={setScheduleViewDay}
-              selectedSalonWeekDay={activeScheduleDateKey}
-              salonWeekTabs={salonHeroWeekTabs}
-              showSalonWeekStrip={!salonWorkspace && profileView === "overview"}
+              onOpenSettings={() => setActiveTab("settings")}
               onShare={shareSalonOwnerProfile}
               showShare={createdProfile?.type === "salon"}
-              onStorySave={saveProfileStory}
-              onStoryDelete={deleteProfileStory}
               onPreviewPublic={() => {
                 if (createdProfile?.type === "artist" && createdProfile.id) {
                   openPublicArtistProfile({
@@ -2004,21 +1894,10 @@ function getPassportMatch(post) {
                   });
                 }
               }}
+              modeRail={createdProfile?.type === "salon" ? profileModeRail : null}
             />
 
-            <ProfileModeRail
-              placement="panel"
-              profileType={profileType}
-              profileView={profileView}
-              salonWorkspace={salonWorkspace}
-              activeRoleMeta={activeRoleMeta}
-              onOverview={() => {
-                closeSalonWorkspace();
-                setProfileView("overview");
-              }}
-              onSalonWorkspace={openSalonWorkspace}
-              onProfileView={setProfileView}
-            />
+            {createdProfile?.type !== "salon" && profileModeRail}
 
           {createdProfile.type === profileType ? (
             <div className={`createdProfile ${activeRoleMeta.heroClass || ""}`}>
@@ -2123,7 +2002,6 @@ function getPassportMatch(post) {
                         image: "",
                         saves: "۰",
                         views: "۰",
-                        rating: "",
                         inExplore: true,
                         featured: true
                       })}
@@ -2139,40 +2017,6 @@ function getPassportMatch(post) {
                       composeVisibleTagOptions={artistWorkVisibleTagOptions}
                       composeTagMenuOpen={artistWorkTagMenuOpen}
                       onComposeTagMenuOpenChange={setArtistWorkTagMenuOpen}
-                      reviewSummary={artistReviewSummary}
-                      reviews={artistReviewList}
-                      artistAvatar={createdProfile?.data?.avatar || ""}
-                      replyingReviewId={artistReplyingReviewId}
-                      replyDraft={artistReplyDraft}
-                      onReplyDraftChange={setArtistReplyDraft}
-                      replySubmitting={artistReplySubmitting}
-                      onOpenReply={openArtistReviewReply}
-                      onCloseReply={closeArtistReviewReply}
-                      onSubmitReply={submitArtistReviewReply}
-                      onOpenReviewer={(review) => {
-                        if (!review) return;
-                        if (review.author_type === "artist" && review.author_user_id) {
-                          openPublicArtistProfile({
-                            id: review.author_user_id,
-                            name: review.name,
-                            avatar: review.author_avatar || ""
-                          });
-                          return;
-                        }
-                        setSelectedBookingClient({
-                          id: review.author_user_id || null,
-                          name: review.name || "کاربر",
-                          avatar: review.author_avatar || "",
-                          area: review.author_area || "",
-                          type: review.author_type || "client",
-                          kicker: "پروفایل نظردهنده",
-                          bio: "",
-                          phone: "",
-                          bookingCount: 1,
-                          bookings: [],
-                          lastBooking: null
-                        });
-                      }}
                     />
                   ) : profileType === "client" ? (
                     <ClientProfileOverview
@@ -2281,49 +2125,6 @@ function getPassportMatch(post) {
             closeScheduleBookingMenu();
           }}
           busy={scheduleBookingBusy}
-        />
-
-        <ProfileSettingsSheet
-          open={Boolean(
-            createdProfile && (
-              (createdProfile.type === "salon" && salonHeroSheet === "settings")
-              || (createdProfile.type !== "salon" && profileView === "settings")
-            )
-          )}
-          profile={createdProfile}
-          kicker={activeCreatedMeta?.kicker || "پروفایل"}
-          locationSaving={profileLocationSaving}
-          onSaveLocation={saveProfileLocation}
-          onEditProfile={openProfileEdit}
-          onClose={() => {
-            if (createdProfile?.type === "salon") setSalonHeroSheet(null);
-            else setProfileView("overview");
-          }}
-          profileSettings={profileSettings}
-          onToggleSetting={toggleProfileSetting}
-          artistBookingSettings={artistBookingSettings}
-          onArtistBookingChange={setArtistBookingSettings}
-          savedPostsCount={savedExplorePosts.length}
-          savedSalonsCount={savedSalonList.length}
-          onOpenSaved={() => {
-            if (createdProfile?.type === "salon") setSalonHeroSheet("saved");
-            else setProfileView("saved");
-          }}
-          onLogout={logoutAccount}
-          onDeleteAccount={deleteAccountPermanently}
-          hoursOpen={settingsHoursOpen}
-          onToggleHoursOpen={() => setSettingsHoursOpen((open) => !open)}
-          hoursPresets={createdProfile?.type === "artist" ? artistHoursPresets : salonHoursPresets}
-          activeHoursPresetId={createdProfile?.type === "artist" ? activeArtistHoursPreset : activeHoursPreset}
-          activeHoursPresetMeta={createdProfile?.type === "artist" ? activeArtistHoursPresetMeta : activeHoursPresetMeta}
-          hoursList={createdProfile?.type === "artist" ? artistHoursList : salonHoursList}
-          selectedHour={createdProfile?.type === "artist" ? selectedArtistHour : selectedSalonHour}
-          hourTimeOptions={createdProfile?.type === "artist" ? artistHourTimeOptions : salonHourTimeOptions}
-          openDaysCount={createdProfile?.type === "artist" ? openArtistHoursDaysCount : activeSalonHours.length}
-          weeklyCapacityTotal={createdProfile?.type === "artist" ? weeklyArtistCapacityTotal : weeklyCapacityTotal}
-          onSelectHoursPreset={createdProfile?.type === "artist" ? updateArtistHoursPreset : updateSalonHoursPreset}
-          onSelectHourDay={createdProfile?.type === "artist" ? setSelectedArtistHourDay : setSelectedSalonHourDay}
-          onUpdateHour={createdProfile?.type === "artist" ? updateArtistHour : updateSalonHour}
         />
 
         {createdProfile?.type === "salon" && salonHeroSheet === "notifications" && (
@@ -2670,31 +2471,11 @@ function getPassportMatch(post) {
             && createdProfile.type !== "client"
           }
           profileType={createdProfile?.type}
-          bookingSheetOpen={bookingSheetOpen}
           modeRail={
-            createdProfile?.type === "salon" ? (
-              <ProfileModeRail
-                placement="dock"
-                profileType={profileType}
-                profileView={profileView}
-                salonWorkspace={salonWorkspace}
-                activeRoleMeta={activeRoleMeta}
-                onOverview={() => {
-                  closeSalonWorkspace();
-                  setProfileView("overview");
-                }}
-                onSalonWorkspace={openSalonWorkspace}
-                onProfileView={setProfileView}
-              />
-            ) : null
+            createdProfile?.type === "salon" && !salonWorkspace && profileView === "overview"
+              ? salonWeekStripFloating
+              : null
           }
-          onToggleBooking={() => {
-            if (bookingSheetOpen) {
-              closeBookingSheet();
-              return;
-            }
-            openBookingSheet();
-          }}
         />
 
         {createdProfile?.type === "salon" && (
@@ -2801,6 +2582,8 @@ function getPassportMatch(post) {
           loading={nearbyArtistsLoading}
           artists={nearbyArtists}
           busyId={artistInviteBusyId}
+          salonId={createdProfile?.id}
+          salonName={createdProfile?.data?.name || "سالن"}
           onClose={() => {
             setArtistInviteOpen(false);
             setArtistInviteBusyId("");
@@ -2896,7 +2679,7 @@ function getPassportMatch(post) {
           activeTab={activeTab}
           createdProfile={createdProfile}
           onTabChange={goToTab}
-          showCreateBooking={createdProfile?.type === "artist" && activeTab === "profile"}
+          showCreateBooking={(createdProfile?.type === "artist" || createdProfile?.type === "salon") && activeTab === "profile"}
           onCreateBooking={() => {
             if (bookingSheetOpen) {
               closeBookingSheet();
@@ -2911,9 +2694,6 @@ function getPassportMatch(post) {
           view={publicArtistView}
           portfolio={publicArtistPortfolio}
           services={publicArtistServices}
-          reviews={publicArtistReviews}
-          userRating={publicArtistUserRating}
-          ratingHover={publicArtistRatingHover}
           following={isFollowingPublicArtist}
           galleryTags={publicArtistGalleryTags}
           galleryFilter={publicArtistGalleryFilter}
@@ -2928,10 +2708,6 @@ function getPassportMatch(post) {
           onShare={shareArtistProfile}
           saved={isSavedPublicArtist}
           onSave={() => selectedPublicArtist && toggleSavePublicArtist(selectedPublicArtist)}
-          onRatingHover={setPublicArtistRatingHover}
-          onConfirmRating={confirmPublicArtistRating}
-          onToggleReviewLike={toggleLikePublicArtistReview}
-          viewerUserId={createdProfile?.id}
           onFollow={() => selectedPublicArtist && toggleFollowPublicArtist(selectedPublicArtist)}
           onViewChange={setPublicArtistView}
           onGalleryFilterChange={setPublicArtistGalleryFilter}
@@ -2946,21 +2722,12 @@ function getPassportMatch(post) {
           post={selectedPost}
           exploreArtist={selectedExploreArtist}
           isSaved={selectedPostIsSaved}
-          userRating={selectedPostUserRating}
-          comments={selectedPostComments}
           beautyPassport={beautyPassport}
           passportMatch={selectedPost ? getPassportMatch(selectedPost) : ""}
           onClose={() => setSelectedPost(null)}
           onToggleSaved={() => selectedPost && toggleSavedPost(selectedPost.title, selectedPost)}
-          onOpenRating={() => selectedPost && openExploreRatingPicker(selectedPost)}
           onShare={() => selectedPost && shareExplorePost(selectedPost)}
           onOpenArtistProfile={() => selectedPost && openExploreArtistProfile(selectedPost)}
-        />
-        <ExploreRatingModal
-          picker={exploreRatingPicker}
-          onClose={closeExploreRatingPicker}
-          onHover={setExploreRatingHover}
-          onConfirm={confirmExploreRating}
         />
       </section>
     </main>

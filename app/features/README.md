@@ -13,10 +13,11 @@ app/
   features/
     artist/                artist workspace, booking rail, public booking/services panels, helpers
     auth/                  auth/session constants and hooks
-    explore/               explore feed page, preview/rating modals, mapping, state
+    explore/               saved-post preview modal, mapping, state (feed browsing removed — see settings/)
     profile/               reusable profile panels/forms/gallery
     salons/                salon directory constants, client page, booking modal, and state
     schedule/               shared booking-menu/schedule board components
+    settings/              top-level "تنظیمات" tab (replaces the old Explore tab)
     shell/                 app orchestration, chrome, navigation, mock data
 ```
 
@@ -34,9 +35,11 @@ Extracted feature UI:
 
 ```text
 features/explore/
-  ExplorePage.jsx
   ExplorePreviewModal.jsx
-  ExploreRatingModal.jsx
+  index.js
+
+features/settings/
+  SettingsPage.jsx
   index.js
 
 features/profile/

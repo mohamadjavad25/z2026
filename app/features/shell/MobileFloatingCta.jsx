@@ -1,43 +1,24 @@
 "use client";
 
-import { Plus } from "lucide-react";
-
 /**
- * Owner mobile floating CTA (salon only).
- * Presentational: open flags + callbacks owned by HomeApp.
- * Salon uses modeRail (ProfileModeRail) in the purple dock, which is a
- * hard-locked 4-button grid (styled per nth-child at multiple cascade
- * layers) — a "create booking" button doesn't fit inside it without
- * breaking that layout, so it renders as its own small round button
- * floating just above the dock instead.
- * Artist's create-booking entry point lives in BottomNav instead (the
- * profile tab's avatar swaps for a "+" button while already on the
- * profile page) — see BottomNav.jsx's showCreateBooking prop.
+ * Owner mobile floating dock (salon only) — renders the ProfileModeRail
+ * ("خدمات/رزروها/پرسنل/پست‌ها" purple dock) above the global BottomNav.
+ * Create-booking used to also float its own round "+" button here, but
+ * that's now handled the same way artist's is — the global BottomNav's
+ * profile-tab avatar swaps for a "+" button while already on the profile
+ * page (see BottomNav.jsx's showCreateBooking prop) — so it doesn't need
+ * a second, redundant entry point floating over the page content.
  */
 export function MobileFloatingCta({
   open = false,
   profileType,
-  bookingSheetOpen = false,
-  modeRail = null,
-  onToggleBooking
+  modeRail = null
 }) {
   if (!open || !profileType || !modeRail) return null;
 
   return (
-    <>
-      <div className="floatingMobileCta is-modeRail" aria-label="بخش‌های پروفایل موبایل">
-        {modeRail}
-      </div>
-      <button
-        type="button"
-        className={`floatingCreateBookingBtn ${bookingSheetOpen ? "is-active" : ""}`}
-        onClick={onToggleBooking}
-        aria-label="ثبت رزرو دستی"
-        aria-pressed={bookingSheetOpen}
-        title="ثبت رزرو دستی"
-      >
-        <Plus size={20} />
-      </button>
-    </>
+    <div className="floatingMobileCta is-modeRail" aria-label="بخش‌های پروفایل موبایل">
+      {modeRail}
+    </div>
   );
 }

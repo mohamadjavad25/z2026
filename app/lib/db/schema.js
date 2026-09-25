@@ -37,9 +37,6 @@ export function applySchema(db) {
       featured INTEGER NOT NULL DEFAULT 0,
       saves_count INTEGER NOT NULL DEFAULT 0,
       views_count INTEGER NOT NULL DEFAULT 0,
-      comments_count INTEGER NOT NULL DEFAULT 0,
-      rating_avg REAL NOT NULL DEFAULT 0,
-      rating_count INTEGER NOT NULL DEFAULT 0,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
@@ -48,16 +45,6 @@ export function applySchema(db) {
       user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
       post_id INTEGER NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      PRIMARY KEY (user_id, post_id)
-    );
-
-    CREATE TABLE IF NOT EXISTS post_ratings (
-      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      post_id INTEGER NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
-      rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
-      comment TEXT NOT NULL DEFAULT '',
-      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
       PRIMARY KEY (user_id, post_id)
     );
 
@@ -165,34 +152,6 @@ export function applySchema(db) {
       updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
 
-    CREATE TABLE IF NOT EXISTS reviews (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      target_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      author_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
-      author_name TEXT NOT NULL DEFAULT '',
-      rating REAL NOT NULL DEFAULT 5,
-      text TEXT NOT NULL DEFAULT '',
-      service TEXT NOT NULL DEFAULT '',
-      reply_text TEXT NOT NULL DEFAULT '',
-      replied_at TEXT,
-      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-    );
-
-    CREATE TABLE IF NOT EXISTS review_likes (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      review_id INTEGER NOT NULL REFERENCES reviews(id) ON DELETE CASCADE,
-      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      UNIQUE(review_id, user_id)
-    );
-
-    CREATE TABLE IF NOT EXISTS profile_stories (
-      user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-      video TEXT NOT NULL DEFAULT '',
-      poster TEXT NOT NULL DEFAULT '',
-      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-    );
-
     -- Real persistence for the profile settings toggles (public/private
     -- portfolio, reservation alerts, etc.) — one JSON blob per user, merged
     -- with defaults in app/lib/db/repos/userSettings.js.
@@ -209,7 +168,6 @@ export function applySchema(db) {
       tag TEXT NOT NULL DEFAULT '',
       price TEXT NOT NULL DEFAULT '',
       open TEXT NOT NULL DEFAULT '',
-      rating TEXT NOT NULL DEFAULT '',
       match_score TEXT NOT NULL DEFAULT '',
       phone TEXT NOT NULL DEFAULT '',
       email TEXT NOT NULL DEFAULT '',
@@ -327,8 +285,6 @@ export function applySchema(db) {
     CREATE INDEX IF NOT EXISTS idx_posts_explore ON posts(in_explore, created_at);
     CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
     CREATE INDEX IF NOT EXISTS idx_follows_target ON follows(target_user_id);
-    CREATE INDEX IF NOT EXISTS idx_reviews_target ON reviews(target_user_id);
-    CREATE INDEX IF NOT EXISTS idx_review_likes_review ON review_likes(review_id);
     CREATE INDEX IF NOT EXISTS idx_artist_services_user ON artist_services(user_id);
     CREATE INDEX IF NOT EXISTS idx_artist_collabs_artist ON artist_collabs(artist_user_id, id DESC);
     CREATE INDEX IF NOT EXISTS idx_salon_artist_invites_artist ON salon_artist_invites(artist_user_id, status, id DESC);

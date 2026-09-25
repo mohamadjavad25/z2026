@@ -47,9 +47,7 @@ export function ArtistPublicPageClient({ artist }) {
   const featuredWork = galleryItems[0] || null;
   const galleryRest = galleryItems.slice(1);
 
-  const heroImage = artist?.storyPoster
-    || artist?.story_poster
-    || (portfolio.find((item) => item.featured) || portfolio[0])?.image
+  const heroImage = (portfolio.find((item) => item.featured) || portfolio[0])?.image
     || artist?.avatar
     || "";
 
@@ -70,9 +68,6 @@ export function ArtistPublicPageClient({ artist }) {
       view="gallery"
       portfolio={portfolio}
       services={services}
-      reviews={Array.isArray(artist?.reviews) ? artist.reviews : []}
-      userRating={0}
-      ratingHover={0}
       following={false}
       galleryTags={galleryTags}
       galleryFilter={galleryFilter}
@@ -86,8 +81,6 @@ export function ArtistPublicPageClient({ artist }) {
       onClose={goToApp}
       onShare={handleShare}
       onSave={goToApp}
-      onRatingHover={() => {}}
-      onConfirmRating={goToApp}
       onFollow={goToApp}
       onViewChange={() => {}}
       onGalleryFilterChange={setGalleryFilter}
@@ -96,8 +89,6 @@ export function ArtistPublicPageClient({ artist }) {
       onBookingDayChange={setBookingDay}
       onBookingSlotChange={setBookingSlot}
       onConfirmBooking={goToApp}
-      onToggleReviewLike={goToApp}
-      viewerUserId={null}
     />
   );
 }

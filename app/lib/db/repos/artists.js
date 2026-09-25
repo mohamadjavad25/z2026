@@ -1,11 +1,10 @@
 import { getDb, withTransaction } from "../connection.js";
-import { storyFieldsFor } from "./stories.js";
 import { countFollowers, getUserById, isFollowing } from "./users.js";
 import { listPostsByOwner } from "./posts.js";
 import { resolveRollingPersianDateKey } from "../../../shared/lib/persianCalendar.js";
 import { normalizeBookingTimeLabel } from "../../../shared/lib/time.js";
 import { normalizePhone } from "./salons/common.js";
-import { getTargetRatingSummary, isProfileSaved } from "./social.js";
+import { isProfileSaved } from "./social.js";
 import { getSettings } from "./userSettings.js";
 
 export { ensureArtistHours, listArtistHours, updateArtistHour } from "./artists/hours.js";
@@ -63,7 +62,7 @@ function mapArtistCollab(row) {
     id: row.id,
     salonId: row.salon_user_id,
     salonName: row.salon_name,
-    salonAvatar: row.salon_avatar || "",
+    salonAvatar: row.salon_avatar && row.salon_user_id ? `/api/media/avatar/${row.salon_user_id}` : "",
     area: row.area,
     service: row.service,
     days: row.days,
@@ -102,7 +101,7 @@ export function listSalonCollabRequests(salonUserId) {
     ...mapArtistCollab(row),
     artistId: row.artist_user_id,
     artistName: row.artist_name || "آرتیست زیبابان",
-    artistAvatar: row.artist_avatar || "",
+    artistAvatar: row.artist_avatar && row.artist_user_id ? `/api/media/avatar/${row.artist_user_id}` : "",
     artistService: row.artist_service || "",
     artistArea: row.artist_area || ""
   }));
@@ -247,7 +246,7 @@ export function listArtistBookings(artistUserId) {
         ? {
             id: row.source_salon_user_id,
             name: row.source_salon_name || "",
-            avatar: row.source_salon_avatar || "",
+            avatar: row.source_salon_avatar ? `/api/media/avatar/${row.source_salon_user_id}` : "",
             area: row.source_salon_area || ""
           }
         : null,
@@ -257,7 +256,7 @@ export function listArtistBookings(artistUserId) {
             name: client.name || row.client_name || "",
             phone: client.phone || row.client_phone || "",
             area: client.area || "",
-            avatar: client.avatar || "",
+            avatar: client.avatar ? `/api/media/avatar/${client.id}` : "",
             bio: client.bio || "",
             type: client.type || "client"
           }
@@ -332,8 +331,8 @@ export function listClientArtistBookings(user) {
     salon_name: row.artist_name || (row.artist_user_id ? "آرتیست" : "آرتیست حذف‌شده"),
     salonArea: row.artist_area || "",
     salon_area: row.artist_area || "",
-    salonAvatar: row.artist_avatar || "",
-    salon_avatar: row.artist_avatar || "",
+    salonAvatar: row.artist_avatar && row.artist_user_id ? `/api/media/avatar/${row.artist_user_id}` : "",
+    salon_avatar: row.artist_avatar && row.artist_user_id ? `/api/media/avatar/${row.artist_user_id}` : "",
     salonPhone: row.artist_phone || "",
     salon_phone: row.artist_phone || "",
     bookingSource: "artist",
@@ -637,19 +636,6 @@ export function getPublicArtist(userId, viewerUserId = null) {
   if (!user || user.type !== "artist") return null;
   const posts = listPostsByOwner(userId);
   const services = listArtistServices(userId);
-  const reviews = getDb().prepare(`
-    SELECT r.id, r.author_user_id, r.author_name AS name, r.rating, r.text, r.service, r.created_at, r.reply_text, r.replied_at,
-           u.type AS author_type, u.avatar AS author_avatar, u.area AS author_area,
-           (SELECT COUNT(*) FROM review_likes rl WHERE rl.review_id = r.id) AS like_count,
-           EXISTS(SELECT 1 FROM review_likes rl2 WHERE rl2.review_id = r.id AND rl2.user_id = ?) AS liked_by_me
-    FROM reviews r
-    LEFT JOIN users u ON u.id = r.author_user_id
-    WHERE r.target_user_id = ?
-    ORDER BY r.id DESC LIMIT 50
-  `).all(viewerUserId || 0, userId);
-  const ratingAgg = getDb().prepare(`
-    SELECT AVG(rating) AS avg_rating, COUNT(*) AS cnt FROM reviews WHERE target_user_id = ?
-  `).get(userId);
   return {
     id: user.id,
     name: user.name,
@@ -659,23 +645,19 @@ export function getPublicArtist(userId, viewerUserId = null) {
     avatar: user.avatar ? `/api/media/avatar/${user.id}` : "",
     service: user.service,
     experienceYears: user.experience_years || "",
-    rating: ratingAgg?.cnt ? Number(ratingAgg.avg_rating).toFixed(1) : "۰",
-    reviewCount: Number(ratingAgg?.cnt || 0),
     followers: countFollowers(user.id),
     // Repo layer stays permissive (GET /api/artist/me calls this with
     // viewerUserId === userId for the artist's own dashboard, which must
     // always see itself regardless of the toggle) -- the public-visibility
     // gate based on this flag lives in the caller (GET /api/artists/[id]
-    // route + the SSR /artists/[id] page), same split salons.js/shops.js use.
+    // route + the SSR /artists/[id] page), same split salons.js uses.
     isPublic: getSettings(user.id).publicPortfolio !== false,
     isFollowing: viewerUserId ? isFollowing(viewerUserId, user.id) : false,
     isSaved: viewerUserId ? isProfileSaved(viewerUserId, user.id) : false,
     posts,
     services,
-    reviews,
     bookedSlots: listArtistBookedSlots(userId),
-    breakTime: getArtistBreak(userId),
-    ...(storyFieldsFor(user.id) || {})
+    breakTime: getArtistBreak(userId)
   };
 }
 
@@ -684,9 +666,9 @@ export function listArtists() {
     SELECT id, name, area, service, avatar, bio FROM users WHERE type = 'artist' ORDER BY created_at DESC
   `).all()
     // An artist switched to "خصوصی" via تنظیمات → ویترین عمومی آرتیست must be
-    // hidden from the public directory, same rule salons.listSalons() and
-    // shops.listShops() already enforce for their equivalent toggles -- this
-    // was previously never checked at all for artists.
+    // hidden from the public directory, same rule salons.listSalons()
+    // already enforces for its equivalent toggle -- this was previously
+    // never checked at all for artists.
     .filter((row) => getSettings(row.id).publicPortfolio !== false)
     // Media URL, not raw base64 -- see app/api/media/avatar/[userId]/route.js.
     .map((row) => ({ ...row, avatar: row.avatar ? `/api/media/avatar/${row.id}` : "" }));
@@ -706,19 +688,14 @@ export function listSavedArtistsForUser(userId) {
     WHERE sp.user_id = ? AND u.type = 'artist'
     ORDER BY sp.created_at DESC
   `).all(userId);
-  return rows.map((user) => {
-    const { rating, reviewCount } = getTargetRatingSummary(user.id);
-    return {
-      id: user.id,
-      name: user.name,
-      role: user.service ? `آرتیست ${user.service}` : "آرتیست",
-      area: user.area,
-      bio: user.bio,
-      avatar: user.avatar,
-      service: user.service,
-      rating,
-      reviewCount,
-      followers: countFollowers(user.id)
-    };
-  });
+  return rows.map((user) => ({
+    id: user.id,
+    name: user.name,
+    role: user.service ? `آرتیست ${user.service}` : "آرتیست",
+    area: user.area,
+    bio: user.bio,
+    avatar: user.avatar ? `/api/media/avatar/${user.id}` : "",
+    service: user.service,
+    followers: countFollowers(user.id)
+  }));
 }

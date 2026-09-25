@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import {
+  Brush,
   ChevronLeft,
-  Crown,
   Eye,
   EyeOff,
-  Palette,
+  Scissors,
   ShieldCheck,
-  Store
+  UserRound
 } from "lucide-react";
 import {
   artistSpecialties,
@@ -219,7 +219,7 @@ export function AuthGateForms({
             تغییر نقش
           </button>
           <div className="formTitle">
-            <Store size={18} />
+            <Scissors size={18} />
             <div>
               <strong>ثبت‌نام سالن زیبایی</strong>
               <span>اطلاعات اولیه برای ساخت پروفایل حرفه‌ای</span>
@@ -287,7 +287,7 @@ export function AuthGateForms({
             تغییر نقش
           </button>
           <div className="formTitle">
-            <Palette size={18} />
+            <Brush size={18} />
             <div>
               <strong>ثبت‌نام آرتیست</strong>
               <span>برند شخصی، نمونه‌کار و رزرو مستقیم</span>
@@ -354,7 +354,7 @@ export function AuthGateForms({
             تغییر نقش
           </button>
           <div className="formTitle">
-            <Crown size={18} />
+            <UserRound size={18} />
             <div>
               <strong>ثبت‌نام بانو</strong>
               <span>برای پیشنهاد مدل، تست AI و رزرو دقیق‌تر</span>

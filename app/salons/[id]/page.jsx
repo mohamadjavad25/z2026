@@ -37,10 +37,8 @@ export async function generateMetadata({ params }) {
   }
 
   const serviceCount = Array.isArray(salon.services) ? salon.services.length : 0;
-  const ratingValue = Number(salon.rating);
   const facts = [];
   if (salon.area) facts.push(`در ${salon.area}`);
-  if (Number.isFinite(ratingValue) && ratingValue > 0) facts.push(`امتیاز ${ratingValue.toFixed(1)} از ۵`);
   if (serviceCount > 0) facts.push(`${serviceCount} خدمت قابل رزرو`);
 
   const description = facts.length
@@ -66,12 +64,8 @@ export async function generateMetadata({ params }) {
 }
 
 // Builds LocalBusiness (BeautySalon) JSON-LD from real salon fields only.
-// No aggregateRating: unlike artists, salons have no reviewCount at
-// all in the data model (salons.rating is a raw column that defaults to 5
-// for every brand-new salon regardless of real reviews — see the flag in the
-// SEO report). Fabricating an AggregateRating out of that column would be
-// exactly the "unconditional fake data" pattern this project already fixed
-// elsewhere, so it's omitted entirely rather than guessed at.
+// No aggregateRating: the rating/review system was removed from the
+// product entirely, so there's no real data to build one from.
 function buildSalonJsonLd(salon, canonicalUrl) {
   const jsonLd = {
     "@context": "https://schema.org",

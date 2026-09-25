@@ -1,5 +1,6 @@
 import "./styles.css";
 import Script from "next/script";
+import PbdqInspector from "./components/PbdqInspector.jsx";
 
 // NEXT_PUBLIC_SITE_URL is the single source of truth for the site's public
 // domain (see .env.example at the repo root) — app/sitemap.js and
@@ -46,6 +47,7 @@ export default function RootLayout({ children }) {
         <meta name="apple-mobile-web-app-title" content="زیبابان" />
       </head>
       <body>
+        <PbdqInspector />
         {children}
         <Script id="sw-register" strategy="afterInteractive">
           {`if ("serviceWorker" in navigator) {

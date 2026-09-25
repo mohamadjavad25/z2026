@@ -3,10 +3,12 @@
 @import "./styles/features/profile.css";
 @import "./styles/features/schedule.css";
 @import "./styles/features/explore.css";
+@import "./styles/features/settings.css";
 @import "./styles/features/artist.css";
 @import "./styles/features/salon.css";
 @import "./styles/features/client.css";
 @import "./styles/features/auth.css";
+@import "./styles/features/joinSalon.css";
 
 
 *{
@@ -102,7 +104,7 @@
   }
 
   .profileHero.is-salon .salonHeroFutureStats,
-  .profileHero.is-salon .salonHeroWeekStrip {
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekStrip {
     background: rgba(255, 255, 255, 0.98) !important;
     border: 1px solid rgba(28, 32, 44, 0.07) !important;
     box-shadow: 0 16px 30px rgba(18, 12, 35, 0.12) !important;
@@ -230,7 +232,7 @@
     font-size: 0.53rem !important;
   }
 
-  .profileHero.is-salon .salonHeroWeekStrip {
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekStrip {
     min-height: 98px !important;
     margin-top: 14px !important;
     padding: 10px !important;
@@ -240,20 +242,20 @@
       inset 0 1px 0 rgba(255, 255, 255, 0.94) !important;
   }
 
-  .profileHero.is-salon .salonHeroWeekDays {
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDays {
     gap: 3px !important;
   }
 
-  .profileHero.is-salon .salonHeroWeekDay {
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDay {
     min-height: 74px !important;
     border-radius: 13px !important;
   }
 
-  .profileHero.is-salon .salonHeroWeekDay.is-active {
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDay.is-active {
     background: #f3f1f8 !important;
   }
 
-  .profileHero.is-salon .salonHeroWeekDay.is-active b {
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDay.is-active b {
     background: linear-gradient(180deg, #8f5cff, #6335d8) !important;
   }
 }
@@ -264,7 +266,7 @@
    so it still looks right on a today-but-not-selected day, at every
    breakpoint. The .is-active b rules above/below just restyle it slightly
    further when a day also happens to be selected. */
-.profileHero.is-salon .salonHeroWeekDay b {
+:is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDay b {
   width: 26px;
   height: 26px;
   display: grid;
@@ -293,7 +295,7 @@
    intentionally out-specifies/overrides the repeat(5, ...) grid rules above
    at every breakpoint — same override pattern already used throughout this
    file — so it wins regardless of viewport width. */
-.profileHero.is-salon .salonHeroWeekStrip .salonHeroWeekDays,
+:is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekStrip .salonHeroWeekDays,
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingList > .salonHeroWeekStrip .salonHeroWeekDays {
   display: flex !important;
   grid-template-columns: none !important;
@@ -306,13 +308,13 @@
   gap: 6px !important;
 }
 
-.profileHero.is-salon .salonHeroWeekStrip .salonHeroWeekDays::-webkit-scrollbar,
+:is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekStrip .salonHeroWeekDays::-webkit-scrollbar,
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingList > .salonHeroWeekStrip .salonHeroWeekDays::-webkit-scrollbar {
   display: none;
   height: 0;
 }
 
-.profileHero.is-salon .salonHeroWeekStrip .salonHeroWeekDay,
+:is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekStrip .salonHeroWeekDay,
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingList > .salonHeroWeekStrip .salonHeroWeekDay {
   flex: 0 0 auto !important;
   width: 66px !important;
@@ -320,12 +322,12 @@
 }
 
 /* Mouse-drag affordance for the day rail (touch/trackpad scroll natively). */
-.profileHero.is-salon .salonHeroWeekStrip .salonHeroWeekDays,
+:is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekStrip .salonHeroWeekDays,
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingList > .salonHeroWeekStrip .salonHeroWeekDays {
   cursor: grab;
 }
 
-.profileHero.is-salon .salonHeroWeekStrip .salonHeroWeekDays:active,
+:is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekStrip .salonHeroWeekDays:active,
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingList > .salonHeroWeekStrip .salonHeroWeekDays:active {
   cursor: grabbing;
 }
@@ -895,52 +897,12 @@ h1{
   font-weight: 700;
 }
 
-.brandStoryRail,
 .homeCategoryRail{
   display: flex;
   gap: 12px;
   overflow-x: auto;
   padding: 2px 2px 4px;
   scroll-snap-type: x mandatory;
-}
-
-.brandStory{
-  flex: 0 0 auto;
-  width: 74px;
-  display: grid;
-  gap: 8px;
-  justify-items: center;
-  border: 0;
-  padding: 0;
-  background: transparent;
-  color: var(--ink);
-  scroll-snap-align: start;
-}
-
-.brandStoryRing{
-  width: 64px;
-  height: 64px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  padding: 3px;
-  background: linear-gradient(135deg, var(--rose), var(--gold), var(--teal));
-  box-shadow: 0 10px 22px rgba(96, 81, 155, 0.18);
-}
-
-.brandStoryRing img{
-  width: 100%;
-  height: 100%;
-  border: 2px solid #f6f6fb;
-  border-radius: 50%;
-  object-fit: cover;
-  background: var(--night);
-}
-
-.brandStory small{
-  font-size: 0.68rem;
-  font-weight: 800;
-  text-align: center;
 }
 
 .homeCategoryCard{
@@ -1455,8 +1417,8 @@ h1{
 
 .feedPanel,
 .salonPanel,
-.shopsPanel,
-.profilePanel{
+.profilePanel,
+.settingsPagePanel{
   margin-top: 20px;
   border: 1px solid rgba(255, 255, 255, 0.62);
   background:
@@ -1801,7 +1763,8 @@ h2{
 }
 
 .feedPanel,
-.salonPanel{
+.salonPanel,
+.settingsPagePanel{
   padding: 20px;
 }
 
@@ -2229,11 +2192,6 @@ h2{
 .salonCardStats b{
   color: inherit;
   font-size: 0.72rem;
-}
-
-.salonNewTag{
-  color: #7c5ce2 !important;
-  background: rgba(124, 92, 226, 0.12) !important;
 }
 
 .salonCardFooter{
@@ -4493,7 +4451,6 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 .appShell.is-auth-gate .appHeader,
 .appShell.is-auth-gate .feedPanel,
 .appShell.is-auth-gate .salonPanel,
-.appShell.is-auth-gate .shopsPanel,
 .appShell.is-auth-gate .floatingMobileCta,
 .appShell.is-auth-gate .mobilePage:not(.page-profile){
   display: none !important;
@@ -7345,7 +7302,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   color: #171827;
 }
 
-/* ── Client "فعالیت من" (bookings + orders stack) ─────────────────────── */
+/* ── Client "فعالیت من" (bookings stack) ──────────────────────────────── */
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientActivityStack {
   display: grid;
@@ -7354,259 +7311,6 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientActivityStack .clientBookingsBoard {
   padding-bottom: 0;
-}
-
-.profilePanel.page-profile:has(.createdProfile.is-client) .clientActivityStack .clientOrdersBoard {
-  position: relative;
-}
-
-.profilePanel.page-profile:has(.createdProfile.is-client) .clientActivityStack .clientOrdersBoard::before {
-  content: "";
-  position: absolute;
-  top: -12px;
-  right: 4px;
-  left: 4px;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(124, 92, 226, 0.16), transparent);
-}
-
-.profilePanel.page-profile:has(.createdProfile.is-client) .clientOrdersBoard {
-  display: grid;
-  gap: 14px;
-  padding: 0 0 102px;
-  background: transparent;
-  border: 0;
-  box-shadow: none;
-}
-
-.profilePanel.page-profile:has(.createdProfile.is-client) .clientOrdersBoard .boardHead {
-  align-items: end;
-  padding: 0 4px;
-  direction: rtl;
-}
-
-.profilePanel.page-profile:has(.createdProfile.is-client) .clientOrdersBoard .boardHead > div {
-  text-align: right;
-}
-
-.profilePanel.page-profile:has(.createdProfile.is-client) .clientOrdersBoard .boardHead span {
-  color: #7c5ce2;
-  font-size: 11px;
-}
-
-.profilePanel.page-profile:has(.createdProfile.is-client) .clientOrdersBoard .boardHead strong {
-  margin: 0;
-  color: #171827;
-  font-size: 15px;
-  font-weight: 900;
-  line-height: 1.25;
-}
-
-.profilePanel.page-profile:has(.createdProfile.is-client) .clientOrdersBoard .boardHead b {
-  align-self: center;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  color: #7c5ce2;
-  background: transparent;
-  box-shadow: none;
-  font-size: 12px;
-  font-weight: 900;
-  line-height: 1;
-}
-
-.profilePanel.page-profile:has(.createdProfile.is-client) .clientOrderList {
-  display: grid;
-  gap: 12px;
-}
-
-.profilePanel.page-profile:has(.createdProfile.is-client) .clientOrderCard {
-  display: grid;
-  gap: 10px;
-  padding: 12px;
-  border: 1px solid rgba(35, 36, 52, 0.07);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.7);
-  box-shadow: 0 12px 24px rgba(24, 18, 46, 0.05);
-}
-
-.profilePanel.page-profile:has(.createdProfile.is-client) .clientOrderCardTop {
-  display: grid;
-  grid-template-columns: 40px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 10px;
-  direction: rtl;
-  text-align: right;
-}
-
-.profilePanel.page-profile:has(.createdProfile.is-client) .clientOrderLogo {
-  width: 40px;
-  height: 40px;
-  display: grid;
-  place-items: center;
-  overflow: hidden;
-  border-radius: 999px;
-  color: #7c5ce2;
-  background: rgba(124, 92, 226, 0.08);
-  border: 1px solid rgba(124, 92, 226, 0.14);
-}
-
-.profilePanel.page-profile:has(.createdProfile.is-client) .clientOrderLogo img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.profilePanel.page-profile:has(.createdProfile.is-client) .clientOrderCardMeta {
-  min-width: 0;
-}
-
-.profilePanel.page-profile:has(.createdProfile.is-client) .clientOrderCardMeta b {
-  display: block;
-  color: #171827;
-  font-size: 13px;
-  font-weight: 900;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.profilePanel.page-profile:has(.createdProfile.is-client) .clientOrderCardMeta small {
-  display: block;
-  margin-top: 3px;
-  color: #7f8190;
-  font-size: 10px;
-  font-weight: 750;
-}
-
-.profilePanel.page-profile:has(.createdProfile.is-client) .clientOrderStatus {
-  align-self: start;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 10px;
-  font-weight: 900;
-  white-space: nowrap;
-  color: #7c5ce2;
-  background: rgba(124, 92, 226, 0.12);
-}
-
-.profilePanel.page-profile:has(.createdProfile.is-client) .clientOrderStatus.is-done {
-  color: #16a34a;
-  background: rgba(34, 197, 94, 0.14);
-}
-
-.profilePanel.page-profile:has(.createdProfile.is-client) .clientOrderStatus.is-bad {
-  color: #d64545;
-  background: rgba(214, 69, 69, 0.12);
-}
-
-/* "منقضی شده" — the shop never acknowledged the order in time, not an active
-   cancel — deliberately NOT the same red as .is-bad, and matched to the
-   equivalent .clientBookingStatusPill.is-expired color so "timed out" reads
-   the same across the whole client profile, not just for bookings. */
-.profilePanel.page-profile:has(.createdProfile.is-client) .clientOrderStatus.is-expired {
-  color: #9a5b52;
-  background: rgba(154, 91, 82, 0.12);
-}
-
-.profilePanel.page-profile:has(.createdProfile.is-client) .clientOrderCardBody {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding-top: 10px;
-  border-top: 1px solid rgba(35, 36, 52, 0.07);
-  direction: rtl;
-  text-align: right;
-}
-
-.profilePanel.page-profile:has(.createdProfile.is-client) .clientOrderCardBody span {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: #7f8190;
-  font-size: 11px;
-  font-weight: 750;
-}
-
-.profilePanel.page-profile:has(.createdProfile.is-client) .clientOrderCardBody b {
-  flex-shrink: 0;
-  color: #171827;
-  font-size: 12.5px;
-  font-weight: 900;
-}
-
-.profilePanel.page-profile:has(.createdProfile.is-client) .clientOrderCardActions {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.profilePanel.page-profile:has(.createdProfile.is-client) .clientOrderCardActions button {
-  min-height: 32px;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 0 12px;
-  border: 0;
-  border-radius: 10px;
-  color: #ffffff;
-  background: linear-gradient(180deg, #8f5cff, #6d3ee8);
-  font-size: 11px;
-  font-weight: 850;
-}
-
-.profilePanel.page-profile:has(.createdProfile.is-client) .clientOrdersLoading,
-.profilePanel.page-profile:has(.createdProfile.is-client) .clientOrdersEmpty {
-  min-height: 190px;
-  display: grid;
-  place-items: center;
-  align-content: center;
-  gap: 10px;
-  padding: 22px 20px;
-  border: 1px dashed rgba(124, 92, 226, 0.18);
-  border-radius: 22px;
-  background: rgba(255, 255, 255, 0.5);
-  color: #7f8190;
-  text-align: center;
-}
-
-.profilePanel.page-profile:has(.createdProfile.is-client) .clientOrdersLoading > svg,
-.profilePanel.page-profile:has(.createdProfile.is-client) .clientOrdersEmpty > svg {
-  box-sizing: border-box;
-  width: 46px;
-  height: 46px;
-  padding: 11px;
-  border-radius: 999px;
-  color: #7c5ce2;
-  background: rgba(124, 92, 226, 0.1);
-  box-shadow: inset 0 0 0 1px rgba(124, 92, 226, 0.14);
-}
-
-.profilePanel.page-profile:has(.createdProfile.is-client) .clientOrdersLoading > svg {
-  animation: clientOrdersPulse 1.6s ease-in-out infinite;
-}
-
-.profilePanel.page-profile:has(.createdProfile.is-client) .clientOrdersEmpty > svg {
-  color: #9a8bc7;
-  background: rgba(124, 92, 226, 0.07);
-}
-
-.profilePanel.page-profile:has(.createdProfile.is-client) .clientOrdersLoading b,
-.profilePanel.page-profile:has(.createdProfile.is-client) .clientOrdersEmpty b {
-  color: #171827;
-  font-size: 13.5px;
-}
-
-.profilePanel.page-profile:has(.createdProfile.is-client) .clientOrdersEmpty span {
-  max-width: 240px;
-  font-size: 11.5px;
-  line-height: 1.7;
-}
-
-@keyframes clientOrdersPulse {
-  0%, 100% { opacity: 0.5; transform: scale(0.92); }
-  50% { opacity: 1; transform: scale(1); }
 }
 
 /* ── Client "پروفایل" overview tab ────────────────────────────────────── */
@@ -7738,7 +7442,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
    directly in this page now, not inside the old settings-sheet modal that
    other roles still use — so it needs its own compact sizing here rather
    than the base .neoSettings* rules (sized for a roomier modal sheet),
-   scoped narrowly so salon/artist/shop's own sheet is untouched. */
+   scoped narrowly so salon/artist's own sheet is untouched. */
 .profilePanel.page-profile:has(.createdProfile.is-client) .neoSettingsGroupHead {
   min-height: 34px;
   padding: 0 12px;
@@ -12017,15 +11721,6 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   height: 26px;
 }
 
-.inlineRatingStars{
-  margin-inline-end: 3px;
-}
-
-.inlineRatingStars .marbleRatingStar{
-  width: 16px;
-  height: 16px;
-}
-
 .artistCurve{
   display: none;
 }
@@ -13471,7 +13166,6 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   .adShowcase,
   .resultPanel,
   .contentGrid,
-  .shopsPanel,
   .profilePanel{
     grid-template-columns: 1fr;
   }
@@ -13902,7 +13596,6 @@ body{
 
   .feedPanel,
   .salonPanel,
-  .shopsPanel,
   .profilePanel{
     margin-top: 10px;
     border-radius: 20px;
@@ -14914,17 +14607,6 @@ body{
     min-height: 32px;
     border-radius: 10px;
     font-size: 0.72rem;
-  }
-
-  .profileMiniWallet{
-    min-height: 42px;
-    border-radius: 13px;
-    padding: 7px 8px;
-  }
-
-  .profileMiniWallet button{
-    min-height: 30px;
-    font-size: 0.66rem;
   }
 
   .boardHead strong{
@@ -16198,6 +15880,39 @@ body{
     margin-top: 8px !important;
   }
 
+  .profileHero.is-salon .profileModeRail.is-panelRail.is-salon {
+    position: absolute !important;
+    top: calc(294px + env(safe-area-inset-top)) !important;
+    left: 18px !important;
+    right: 18px !important;
+    z-index: 6 !important;
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 4px !important;
+    margin: 0 !important;
+    padding: 4px !important;
+    border: 0 !important;
+    border-radius: 16px !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .profileHero.is-salon .profileModeRail.is-panelRail.is-salon button {
+    min-height: 44px !important;
+    display: grid !important;
+    place-items: center !important;
+    gap: 4px !important;
+    border-radius: 14px !important;
+    color: rgba(42, 37, 56, 0.62) !important;
+    font-size: 0.62rem !important;
+    background: transparent !important;
+  }
+
+  .profileHero.is-salon .profileModeRail.is-panelRail.is-salon button.active {
+    color: #7656b8 !important;
+    box-shadow: inset 0 -3px 0 #7656b8 !important;
+  }
+
   .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGallery {
     position: relative !important;
     gap: 10px !important;
@@ -16373,6 +16088,17 @@ body{
     border-radius: 24px 24px 30px 30px !important;
     background: #7656b8 !important;
     box-shadow: 0 18px 42px rgba(82, 58, 157, 0.26) !important;
+  }
+
+  /* Salon's week strip floats as its own white card (see the base,
+     unqueried :has() rule below in the stylesheet) — this mobile-width
+     rule above is more specific (sibling combinator) and was winning with
+     !important, leaving the purple dock chrome behind the white card. */
+  .page-profile.is-active ~ .floatingMobileCta.is-modeRail:has(.salonHeroWeekStrip) {
+    padding: 0 0 72px !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
   }
 
   .floatingMobileCta.is-modeRail .profileModeRail button {
@@ -17158,7 +16884,7 @@ body{
     color: #7a3ff2;
   }
 
-  .profileHero.is-salon .salonHeroWeekStrip {
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekStrip {
     position: relative;
     z-index: 4;
     display: grid;
@@ -17173,7 +16899,7 @@ body{
     box-shadow: 0 14px 26px rgba(18, 12, 35, 0.08);
   }
 
-  .profileHero.is-salon .salonHeroWeekArrow {
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekArrow {
     width: 28px;
     height: 28px;
     display: grid;
@@ -17184,13 +16910,13 @@ body{
     color: #7a3ff2;
   }
 
-  .profileHero.is-salon .salonHeroWeekDays {
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDays {
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 4px;
   }
 
-  .profileHero.is-salon .salonHeroWeekDay {
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDay {
     min-width: 0;
     min-height: 70px;
     display: grid;
@@ -17205,15 +16931,15 @@ body{
     text-align: center;
   }
 
-  .profileHero.is-salon .salonHeroWeekDay span {
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDay span {
     color: rgba(31, 33, 48, 0.84) !important;
     font-size: 0.56rem !important;
     font-weight: 950;
     line-height: 1.15;
   }
 
-  .profileHero.is-salon .salonHeroWeekDay small,
-  .profileHero.is-salon .salonHeroWeekDay em {
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDay small,
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDay em {
     color: rgba(31, 33, 48, 0.48);
     font-size: 0.48rem;
     font-style: normal;
@@ -17222,20 +16948,20 @@ body{
     white-space: nowrap;
   }
 
-  .profileHero.is-salon .salonHeroWeekDay em {
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDay em {
     color: #22a872;
   }
 
-  .profileHero.is-salon .salonHeroWeekDay.is-off em {
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDay.is-off em {
     color: #e1526d;
   }
 
-  .profileHero.is-salon .salonHeroWeekDay.is-active {
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDay.is-active {
     background: #f4f1fa;
     box-shadow: inset 0 0 0 1px rgba(96, 81, 155, 0.08);
   }
 
-  .profileHero.is-salon .salonHeroWeekDay.is-active b {
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDay.is-active b {
     width: 26px;
     height: 26px;
     display: grid;
@@ -17399,6 +17125,10 @@ body{
   .profileHero.is-salon::before {
     display: block !important;
     height: 216px !important;
+    left: 10px !important;
+    right: 10px !important;
+    width: auto !important;
+    border-radius: 0 0 14px 14px !important;
     background:
       radial-gradient(circle at 74% 25%, rgba(135, 108, 255, 0.18), transparent 30%),
       linear-gradient(180deg, rgba(4, 5, 10, 0.02), rgba(4, 4, 10, 0.18) 68%, rgba(255, 255, 255, 0.72) 100%),
@@ -17408,6 +17138,10 @@ body{
 
   .profileHero.is-salon .salonHeroBanner {
     height: 216px !important;
+    left: 10px !important;
+    right: 10px !important;
+    width: auto !important;
+    border-radius: 0 0 14px 14px !important;
     background:
       linear-gradient(90deg, rgba(6, 7, 12, 0.98) 0%, rgba(22, 9, 50, 0.95) 50%, rgba(5, 6, 12, 0.98) 100%),
       url("/salon-hero-doodle.png") center top / cover no-repeat !important;
@@ -17501,7 +17235,7 @@ body{
   .profileHero.is-salon .profileHeroCopy h2 {
     grid-column: 2 !important;
     grid-row: 1 !important;
-    color: #ffffff !important;
+    color: #1c202c !important;
     font-size: 1.24rem !important;
     font-weight: 950 !important;
     line-height: 1.15 !important;
@@ -17510,7 +17244,7 @@ body{
   .profileHero.is-salon .profileHeroCopy p {
     grid-column: 1 / -1 !important;
     grid-row: 2 !important;
-    color: rgba(255, 255, 255, 0.68) !important;
+    color: rgba(28, 32, 44, 0.58) !important;
     font-size: 0.66rem !important;
     font-weight: 800 !important;
   }
@@ -17570,7 +17304,7 @@ body{
     stroke-width: 1.9;
   }
 
-  .profileHero.is-salon .salonHeroWeekStrip {
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekStrip {
     min-height: 96px !important;
     margin-top: 15px !important;
     padding: 10px 9px !important;
@@ -17583,49 +17317,49 @@ body{
       inset 0 1px 0 rgba(255, 255, 255, 0.96) !important;
   }
 
-  .profileHero.is-salon .salonHeroWeekArrow {
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekArrow {
     width: 28px !important;
     height: 28px !important;
     background: #f7f3ff !important;
     color: #8550f1 !important;
   }
 
-  .profileHero.is-salon .salonHeroWeekDays {
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDays {
     grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
     gap: 3px !important;
   }
 
-  .profileHero.is-salon .salonHeroWeekDay {
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDay {
     min-height: 74px !important;
     padding: 7px 1px !important;
     border-radius: 13px !important;
   }
 
-  .profileHero.is-salon .salonHeroWeekDay span {
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDay span {
     color: rgba(33, 34, 49, 0.8) !important;
     font-size: 0.52rem !important;
     font-weight: 950 !important;
   }
 
-  .profileHero.is-salon .salonHeroWeekDay small,
-  .profileHero.is-salon .salonHeroWeekDay em {
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDay small,
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDay em {
     font-size: 0.45rem !important;
     font-weight: 850 !important;
   }
 
-  .profileHero.is-salon .salonHeroWeekDay em {
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDay em {
     color: #22a872 !important;
   }
 
-  .profileHero.is-salon .salonHeroWeekDay.is-off em {
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDay.is-off em {
     color: #f0445f !important;
   }
 
-  .profileHero.is-salon .salonHeroWeekDay.is-active {
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDay.is-active {
     background: #f3f1f8 !important;
   }
 
-  .profileHero.is-salon .salonHeroWeekDay.is-active b {
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDay.is-active b {
     width: 27px !important;
     height: 27px !important;
     background: linear-gradient(180deg, #8d5cff, #6235d7) !important;
@@ -17634,19 +17368,20 @@ body{
 }
 
 @media (max-width: 760px) {
-  .profileHero.is-salon .salonHeroFutureStats {
-    margin-top: calc(144px + env(safe-area-inset-top)) !important;
-  }
-
-  .profileHero.is-salon .salonHeroWeekStrip {
-    margin-top: 14px !important;
+  /* Floats above the bottom nav via MobileFloatingCta (a plain sibling of
+     the animated .mobilePage tree) — see HomeApp's salonWeekStripFloating.
+     It's no longer rendered inside .profileHero, so it just needs to fill
+     that wrapper cleanly, not position itself. */
+  .floatingMobileCta .salonHeroWeekStrip {
+    margin: 0 !important;
+    width: auto !important;
   }
 
   .profileHero.is-salon .salonHeroMeta {
     position: absolute !important;
-    top: calc(58px + env(safe-area-inset-top)) !important;
+    top: calc(228px + env(safe-area-inset-top)) !important;
     right: 142px !important;
-    left: 102px !important;
+    left: 16px !important;
     z-index: 7 !important;
     width: auto !important;
     min-height: 0 !important;
@@ -17679,14 +17414,14 @@ body{
     grid-column: 1 !important;
     grid-row: 1 !important;
     max-width: 100% !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    white-space: nowrap !important;
-    color: #ffffff !important;
-    font-size: 1.18rem !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    white-space: normal !important;
+    color: #1c202c !important;
+    font-size: 0.92rem !important;
     font-weight: 950 !important;
-    line-height: 1.12 !important;
-    text-shadow: 0 8px 18px rgba(0, 0, 0, 0.34) !important;
+    line-height: 1.25 !important;
+    text-shadow: none !important;
   }
 
   .profileHero.is-salon .salonHeroVerified {
@@ -17707,7 +17442,7 @@ body{
     overflow: hidden !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
-    color: rgba(255, 255, 255, 0.72) !important;
+    color: rgba(28, 32, 44, 0.58) !important;
     font-size: 0.62rem !important;
     font-weight: 800 !important;
     line-height: 1.25 !important;
@@ -18167,7 +17902,13 @@ body{
   }
 
   .profileHero.is-salon:not(:has(.salonHeroWeekStrip)) {
-    min-height: 276px !important;
+    /* The week strip used to live inside the hero and this rule shrank the
+       hero when it wasn't there (workspace panels open). Now the week strip
+       never lives here (it floats above the bottom nav instead — see
+       HomeApp's salonWeekStripFloating) and the tab rail always does, so
+       this must stay tall enough for the rail regardless of workspace
+       state, or the workspace content below paints over it. */
+    min-height: 360px !important;
     padding-bottom: 10px !important;
   }
 
@@ -18290,7 +18031,9 @@ body{
   .profilePanel.page-profile.is-salon-profile ~ .bottomNav .profileTab,
   .profilePanel.page-profile:has(.createdProfile.is-salon) ~ .bottomNav .profileTab {
     background:
-      conic-gradient(from 228deg, #f3fbff 0deg, #cfd8ff 46deg, #8a68ff 124deg, #111a3c 218deg, #dfe8ff 306deg, #f3fbff 360deg) !important;
+      radial-gradient(circle at 22% 24%, #f3fbff 0%, rgba(243, 251, 255, 0) 46%),
+      radial-gradient(circle at 78% 24%, #f3fbff 0%, rgba(243, 251, 255, 0) 46%),
+      linear-gradient(180deg, #8a68ff 0%, #111a3c 100%) !important;
     box-shadow:
       0 0 0 0.5px rgba(226, 236, 255, 0.42),
       0 0 7px rgba(174, 160, 255, 0.38),
@@ -18621,8 +18364,30 @@ body{
 
 .scheduleBookingClientHead {
   display: grid;
-  grid-template-columns: 46px minmax(0, 1fr);
+  grid-template-columns: 46px minmax(0, 1fr) 18px;
   align-items: center;
+  gap: 10px;
+  width: 100%;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  text-align: inherit;
+  cursor: pointer;
+}
+
+.scheduleBookingClientChevron {
+  color: rgba(28, 32, 44, 0.4);
+  transition: transform 180ms ease;
+}
+
+.scheduleBookingClientPanel.is-open .scheduleBookingClientChevron {
+  transform: rotate(180deg);
+}
+
+.scheduleBookingClientBody {
+  display: grid;
   gap: 10px;
 }
 
@@ -18645,7 +18410,8 @@ body{
   border-radius: 50%;
 }
 
-.scheduleBookingClientHead span:last-child {
+.scheduleBookingClientHead span:last-child,
+.scheduleBookingClientHeadCopy {
   display: grid;
   gap: 2px;
   min-width: 0;
@@ -18844,6 +18610,12 @@ body{
   background: rgba(124, 92, 226, 0.1);
   color: #6d4be1;
   box-shadow: inset 0 0 0 1px rgba(124, 92, 226, 0.12);
+}
+
+.scheduleBookingHistoryIcon.is-active {
+  background: #6d4be1;
+  color: #fff;
+  box-shadow: none;
 }
 
 /* Quick-actions rows inside ScheduleBookingMenuModal's "menu" view — never
@@ -20204,6 +19976,12 @@ body{
   grid-column: 2 !important;
 }
 
+.profileEditModal .profileEditSaveBtn:disabled {
+  opacity: 0.55 !important;
+  box-shadow: none !important;
+  cursor: not-allowed;
+}
+
 .profileEditModal .profileEditProgressTrack > button::before {
   content: "";
   position: absolute;
@@ -20486,39 +20264,6 @@ body{
 .salonPublicTitle span {
   color: var(--salon-public-muted);
   font-size: 0.78rem;
-  font-weight: 850;
-}
-
-.salonPublicRatingCard {
-  position: absolute;
-  top: 50px;
-  left: 20px;
-  width: 86px;
-  min-height: 72px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  padding: 8px;
-  border: 0;
-  border-radius: 17px;
-  background: #fbfbfd;
-  box-shadow: 0 12px 24px rgba(28, 32, 44, 0.05);
-}
-
-.salonPublicRatingCard span {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: #444858;
-  font-size: 0.74rem;
-  font-weight: 950;
-}
-
-.salonPublicRatingCard small {
-  color: var(--salon-public-muted);
-  font-size: 0.68rem;
   font-weight: 850;
 }
 
@@ -20945,18 +20690,6 @@ body{
   font-size: 0.78rem !important;
 }
 
-.salonPublicRatingCard {
-  top: 46px !important;
-  left: 20px !important;
-  width: 84px !important;
-  min-height: 70px !important;
-  border-radius: 18px !important;
-}
-
-.salonPublicRatingCard span svg {
-  color: #f4bd45 !important;
-}
-
 .salonPublicStats {
   gap: 8px 32px !important;
 }
@@ -21055,12 +20788,6 @@ body{
 
   .salonPublicTitle h2 {
     font-size: 1.16rem !important;
-  }
-
-  .salonPublicRatingCard {
-    left: 16px !important;
-    width: 82px !important;
-    min-height: 68px !important;
   }
 
   .salonPublicCard {
@@ -21188,22 +20915,6 @@ body{
 
 .salonPublicTitle span {
   font-size: 0.74rem;
-}
-
-.salonPublicRatingCard {
-  top: 42px;
-  left: 20px;
-  width: 80px;
-  min-height: 66px;
-  padding: 7px;
-}
-
-.salonPublicRatingCard span {
-  font-size: 0.68rem;
-}
-
-.salonPublicRatingCard small {
-  font-size: 0.62rem;
 }
 
 .salonPublicStats {
@@ -21358,13 +21069,6 @@ body{
     font-size: 1.08rem;
   }
 
-  .salonPublicRatingCard {
-    top: 39px;
-    left: 16px;
-    width: 76px;
-    min-height: 62px;
-  }
-
   .salonPublicCard {
     margin-inline: 14px;
     padding: 13px 12px;
@@ -21430,24 +21134,6 @@ body{
   font-size: 0.72rem !important;
 }
 
-.salonPublicRatingCard {
-  top: 45px !important;
-  left: 16px !important;
-  width: 74px !important;
-  min-height: 66px !important;
-  padding: 7px 5px !important;
-  box-shadow: none !important;
-}
-
-.salonPublicRatingCard span {
-  gap: 4px !important;
-  font-size: 0.65rem !important;
-}
-
-.salonPublicRatingCard small {
-  font-size: 0.58rem !important;
-}
-
 .salonPublicStats {
   grid-row: 2 !important;
   justify-self: center !important;
@@ -21494,12 +21180,6 @@ body{
 
   .salonPublicTitle h2 {
     font-size: 1.08rem !important;
-  }
-
-  .salonPublicRatingCard {
-    left: 14px !important;
-    width: 72px !important;
-    min-height: 64px !important;
   }
 
   .salonPublicStats {
@@ -21909,160 +21589,34 @@ body{
   box-shadow: none !important;
 }
 
-/* Logo-drag story interaction for the public salon hero. */
-.salonPublicProfile {
-  --story-drag: 0px;
-  --story-drag-progress: 0%;
-  --story-progress: 0%;
-}
 
-.salonPublicHero {
-  transition:
-    min-height 0.42s cubic-bezier(0.22, 1, 0.36, 1),
-    border-radius 0.42s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.salonPublicProfile.is-story-open .salonPublicHero {
-  min-height: min(76vw, 430px) !important;
-  border-radius: 0 0 34px 34px;
-}
-
-.salonPublicProfile.is-story-open.is-story-square .salonPublicHero {
-  min-height: min(98vw, 540px) !important;
-}
-
-.salonPublicProfile.is-story-open.is-story-tall .salonPublicHero {
-  min-height: min(136vw, 670px) !important;
-}
-
-.salonPublicProfile.is-story-empty .salonPublicHero {
-  min-height: min(70vw, 382px) !important;
-  border-radius: 0 0 30px 30px;
-}
-
-/* Salon admin story handle: the same new interaction for the owner profile. */
-.profileHero.is-salon {
-  --salon-admin-story-drag: 0px;
-  --salon-admin-story-drag-progress: 0%;
-}
-
-.profileHero.is-salon .salonAdminStoryHandle {
-  cursor: grab;
-  touch-action: pan-y;
-}
-
-.profileHero.is-salon .salonAdminStoryHandle:active {
-  cursor: grabbing;
-}
-
-.profileHero.is-salon.is-story-dragging .salonAdminStoryHandle {
-  transform: translateX(calc(var(--salon-admin-story-drag) * -0.34)) scale(1.035);
-  filter: drop-shadow(0 16px 26px rgba(93, 70, 220, 0.28));
-}
-
-.salonAdminStoryRail {
-  position: absolute;
-  z-index: 9;
-  right: 146px;
-  top: calc(72px + env(safe-area-inset-top));
-  left: 18px;
-  height: 5px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.32);
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.18);
-  opacity: 0;
-  transform: scaleX(0.92);
-  transform-origin: right center;
-  transition:
-    opacity 0.22s ease,
-    transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
-  pointer-events: none;
-}
-
-.salonAdminStoryRail span {
-  width: var(--salon-admin-story-drag-progress);
-  height: 100%;
-  display: block;
-  border-radius: inherit;
-  background: linear-gradient(90deg, #ffffff, #8a68ff);
-  box-shadow: 0 0 18px rgba(138, 104, 255, 0.56);
-}
-
-.profileHero.is-salon.is-story-dragging .salonAdminStoryRail,
-.profileHero.is-salon.is-story-empty .salonAdminStoryRail {
-  opacity: 1;
-  transform: scaleX(1);
-}
-
-.profileHero.is-salon.is-story-empty .salonAdminStoryRail span {
-  width: 100%;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.92), rgba(138, 104, 255, 0.38));
-}
-
-.salonAdminStoryCreate {
-  position: absolute;
-  z-index: 11;
-  right: 146px;
-  top: calc(88px + env(safe-area-inset-top));
-  min-height: 36px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  padding: 0 13px;
-  border: 1px solid rgba(255, 255, 255, 0.42);
-  border-radius: 999px;
+.profileHero.is-salon .salonHeroBanner {
   background:
-    linear-gradient(135deg, rgba(138, 104, 255, 0.94), rgba(17, 26, 60, 0.92));
-  color: #ffffff;
-  font-family: inherit;
-  font-size: 0.7rem;
-  font-weight: 950;
-  box-shadow:
-    0 14px 28px rgba(17, 26, 60, 0.22),
-    inset 0 1px 0 rgba(255, 255, 255, 0.24);
-  -webkit-backdrop-filter: blur(14px);
-  backdrop-filter: blur(14px);
+    url("/salon-hero-doodle.png") center / cover no-repeat !important;
 }
 
-.salonAdminStoryCreate svg {
-  flex: 0 0 auto;
-  color: #ffffff;
-}
-
-.salonAdminStoryEmpty {
-  position: absolute;
-  z-index: 10;
-  right: 18px;
-  top: calc(132px + env(safe-area-inset-top));
-  width: min(280px, calc(100% - 36px));
+.salonHeroQrBtn {
+  position: absolute !important;
+  top: calc(26px + env(safe-area-inset-top));
+  left: auto;
+  right: 20px;
+  z-index: 9;
+  width: 40px;
+  height: 40px;
   display: grid;
-  gap: 4px;
-  padding: 12px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.36);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.82);
-  color: #171827;
-  text-align: right;
-  box-shadow: 0 18px 38px rgba(5, 5, 18, 0.18);
-  -webkit-backdrop-filter: blur(16px) saturate(1.08);
-  backdrop-filter: blur(16px) saturate(1.08);
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 50%;
+  background: rgba(10, 11, 18, 0.4);
+  color: rgba(255, 255, 255, 0.96);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 6px 16px rgba(0, 0, 0, 0.22);
 }
 
-.salonAdminStoryEmpty b {
-  font-size: 0.78rem;
-  font-weight: 950;
+.salonHeroQrBtn:disabled {
+  opacity: 0.5;
 }
 
-.salonAdminStoryEmpty span {
-  color: rgba(23, 24, 39, 0.58);
-  font-size: 0.64rem;
-  font-weight: 850;
-  line-height: 1.55;
-}
-
-.salonStoryCreatorOverlay {
+.salonQrSheetOverlay {
   position: fixed;
   inset: 0;
   z-index: 2147483000;
@@ -22077,23 +21631,21 @@ body{
   backdrop-filter: blur(22px) saturate(1.1);
 }
 
-body:has(.salonStoryCreatorOverlay) .bottomNav,
-body:has(.salonStoryCreatorOverlay) .floatingMobileCta,
-body:has(.salonStoryCreatorOverlay) .profileModeRail.is-dockRail {
+body:has(.salonQrSheetOverlay) .bottomNav,
+body:has(.salonQrSheetOverlay) .floatingMobileCta,
+body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   opacity: 0 !important;
   visibility: hidden !important;
   pointer-events: none !important;
 }
 
-.salonStoryCreatorSheet {
+.salonQrSheetCard {
   position: relative;
-  width: min(344px, calc(100vw - 44px));
-  max-height: min(560px, 88dvh);
+  width: min(320px, calc(100vw - 44px));
   display: grid;
-  gap: 10px;
-  padding: 16px;
-  overflow-y: auto;
-  overscroll-behavior: contain;
+  justify-items: center;
+  gap: 12px;
+  padding: 22px 18px 20px;
   border: 1px solid rgba(255, 255, 255, 0.86);
   border-radius: 26px;
   background:
@@ -22105,7 +21657,7 @@ body:has(.salonStoryCreatorOverlay) .profileModeRail.is-dockRail {
   animation: sheetRise 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.salonStoryCreatorClose {
+.salonQrSheetClose {
   position: absolute;
   top: 14px;
   left: 14px;
@@ -22119,14 +21671,14 @@ body:has(.salonStoryCreatorOverlay) .profileModeRail.is-dockRail {
   color: #171827;
 }
 
-.salonStoryCreatorHead {
+.salonQrSheetHead {
   display: grid;
   gap: 4px;
-  padding: 2px 0 4px 42px;
+  padding: 2px 34px 0 0;
   text-align: right;
 }
 
-.salonStoryCreatorHead span {
+.salonQrSheetHead span {
   width: fit-content;
   display: inline-flex;
   align-items: center;
@@ -22137,7 +21689,7 @@ body:has(.salonStoryCreatorOverlay) .profileModeRail.is-dockRail {
   font-weight: 950;
 }
 
-.salonStoryCreatorHead h3 {
+.salonQrSheetHead h3 {
   margin: 0;
   color: #171827;
   font-size: 1rem;
@@ -22145,223 +21697,168 @@ body:has(.salonStoryCreatorOverlay) .profileModeRail.is-dockRail {
   line-height: 1.35;
 }
 
-.salonStoryCreatorHead p {
-  margin: 0;
-  color: rgba(23, 24, 39, 0.58);
-  font-size: 0.72rem;
-  font-weight: 850;
-  line-height: 1.7;
-}
-
-.salonStoryCreatorPreview {
-  min-height: 186px;
+.salonQrSheetImage {
+  width: 220px;
+  height: 220px;
   display: grid;
   place-items: center;
   overflow: hidden;
-  border-radius: 22px;
-  background:
-    radial-gradient(circle at 50% 0%, rgba(138, 104, 255, 0.16), transparent 48%),
-    #0a0b13;
-  color: #ffffff;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: inset 0 0 0 1px rgba(23, 24, 39, 0.08);
 }
 
-.salonStoryCreatorPreview video {
+.salonQrSheetImage img {
   width: 100%;
   height: 100%;
-  min-height: 186px;
-  display: block;
   object-fit: contain;
-  background: #05050b;
 }
 
-.salonStoryCreatorPreview div {
-  display: grid;
-  justify-items: center;
-  gap: 9px;
-  padding: 24px;
+.salonQrSheetHint {
+  margin: 0;
+  color: rgba(23, 24, 39, 0.58);
+  font-size: 0.74rem;
+  font-weight: 800;
+  line-height: 1.7;
   text-align: center;
 }
 
-.salonStoryCreatorPreview b {
-  font-size: 0.9rem;
-  font-weight: 950;
-}
-
-.salonStoryCreatorPreview span {
-  color: rgba(255, 255, 255, 0.64);
-  font-size: 0.72rem;
-  font-weight: 800;
-}
-
-.salonStoryCreatorUploads {
-  display: grid;
-  grid-template-columns: 92px minmax(0, 1fr);
-  gap: 10px;
-}
-
-.salonStoryPosterControl,
-.salonStoryUploadControl {
-  min-height: 48px;
-  display: inline-flex;
+.salonCustomersHead {
+  display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.salonCustomersHead span {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--teal);
+  font-size: 0.74rem;
+  font-weight: 900;
+}
+
+.salonCustomersHead strong {
+  display: block;
+  color: var(--ink);
+  font-size: 1.12rem;
+  font-weight: 900;
+  line-height: 1.35;
+}
+
+.salonCustomersHead b {
+  flex: 0 0 auto;
+  min-height: 32px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(96, 81, 155, 0.1);
+  color: var(--teal);
+  font-size: 0.7rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.salonCustomersSearch {
+  display: flex;
+  align-items: center;
   gap: 8px;
-  border: 1px solid rgba(118, 87, 232, 0.14);
-  border-radius: 17px;
-  background: rgba(138, 104, 255, 0.1);
-  color: #6f52d8;
-  font-size: 0.78rem;
-  font-weight: 950;
+  min-height: 44px;
+  margin-bottom: 12px;
+  padding: 0 14px;
+  border-radius: 14px;
+  background: rgba(28, 32, 44, 0.05);
+  color: var(--muted);
+}
+
+.salonCustomersSearch svg {
+  flex: 0 0 auto;
+}
+
+.salonCustomersSearch input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.salonCustomersSearch input::placeholder {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.salonCustomersSearch input:focus {
+  outline: none;
+}
+
+.salonCustomersSearch input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+}
+
+.salonCustomersList {
+  display: grid;
+  gap: 8px;
+}
+
+.salonCustomerRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 16px;
+  background: rgba(28, 32, 44, 0.04);
   cursor: pointer;
 }
 
-.salonStoryPosterControl {
-  position: relative;
-  min-height: 74px;
-  overflow: hidden;
-  padding: 0;
-  background: #090a13;
-}
-
-.salonStoryPosterControl img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  opacity: 0.82;
-}
-
-.salonStoryPosterControl span {
-  position: relative;
-  z-index: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  width: calc(100% - 10px);
-  min-height: 28px;
-  margin-top: auto;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.88);
-  color: #6f52d8;
-  font-size: 0.6rem;
-  font-weight: 950;
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-}
-
-.salonStoryUploadControl input {
-  display: none;
-}
-
-.salonStoryPosterControl input {
-  display: none;
-}
-
-.salonStoryCreatorTips {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 6px;
-}
-
-.salonStoryCreatorTips span {
-  min-height: 42px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  padding: 6px;
+.salonCustomerAvatar {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
   border-radius: 14px;
-  background: #f7f7fb;
-  color: rgba(23, 24, 39, 0.68);
-  font-size: 0.58rem;
-  font-weight: 900;
-  text-align: center;
+  object-fit: cover;
+  background: rgba(28, 32, 44, 0.08);
 }
 
-.salonStoryCreatorTips svg {
-  color: #7657e8;
-  flex: 0 0 auto;
-}
-
-.salonStoryCreatorError {
-  margin: 0;
-  padding: 8px 12px;
-  border-radius: 12px;
-  background: var(--danger-bg);
-  color: var(--danger);
-  font-size: 0.72rem;
-  font-weight: 800;
-  text-align: center;
-}
-
-.salonStoryPublishButton {
-  min-height: 50px;
-  border: 0;
-  border-radius: 17px;
-  background: linear-gradient(135deg, #8a68ff, #5d43b5);
-  color: #ffffff;
-  font-family: inherit;
-  font-size: 0.84rem;
-  font-weight: 950;
-  box-shadow: 0 16px 30px rgba(96, 70, 196, 0.24);
-}
-
-.salonStoryCreatorActions {
-  display: flex;
-  gap: 8px;
-}
-
-.salonStoryCreatorActions .salonStoryPublishButton {
+.salonCustomerInfo {
   flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
 }
 
-.salonStoryPublishButton:disabled,
-.salonStoryDeleteButton:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+.salonCustomerInfo b {
+  color: var(--ink);
+  font-size: 0.86rem;
+  font-weight: 900;
 }
 
-.salonStoryDeleteButton {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 50px;
-  padding: 0 16px;
-  border: 0;
-  border-radius: 17px;
-  background: var(--danger-bg);
-  color: var(--danger);
-  font-family: inherit;
-  font-size: 0.78rem;
+.salonCustomerInfo span {
+  color: var(--muted);
+  font-size: 0.74rem;
   font-weight: 800;
 }
 
-@media (max-width: 430px) {
-  .salonAdminStoryRail {
-    right: 136px;
-    left: 16px;
-  }
-
-  .salonAdminStoryCreate {
-    right: 136px;
-    top: calc(84px + env(safe-area-inset-top));
-  }
+.salonCustomerInfo small {
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1.5;
 }
 
-.salonPublicProfile .salonPublicHeroImage {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 55%, rgba(255, 255, 255, 0.14) 100%),
-    var(--salon-story-poster, url("/salon-public-hero.png")) center / cover no-repeat !important;
-}
-
-.profileHero.is-salon .salonHeroBanner {
-  background:
-    linear-gradient(90deg, rgba(15, 8, 34, 0.72), rgba(6, 6, 13, 0.58)),
-    var(--salon-story-poster, url("/salon-hero-doodle.png")) center / cover no-repeat !important;
+.salonCustomerCallBtn {
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(96, 81, 155, 0.12);
+  color: var(--teal);
 }
 
 .salonPublicProfile .salonPublicServices {
@@ -22829,14 +22326,17 @@ body:has(.salonStoryCreatorOverlay) .profileModeRail.is-dockRail {
 
 .feedPanel,
 .salonPanel,
-.shopsPanel,
-.profilePanel {
+.profilePanel,
+.salonCustomersPage,
+.settingsPagePanel {
   margin-top: 10px;
   border-radius: 20px;
 }
 
 .feedPanel,
-.salonPanel {
+.salonPanel,
+.salonCustomersPage,
+.settingsPagePanel {
   padding: 12px;
 }
 
@@ -22849,7 +22349,6 @@ body:has(.salonStoryCreatorOverlay) .profileModeRail.is-dockRail {
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-artist),
-.profilePanel.page-profile:has(.createdProfile.is-shop),
 .profilePanel.page-profile:has(.createdProfile.is-client) {
   min-height: 100vh;
   padding: 18px 8px calc(178px + env(safe-area-inset-bottom));
@@ -22942,7 +22441,7 @@ body:has(.salonStoryCreatorOverlay) .profileModeRail.is-dockRail {
 .bottomNav .profileTab.is-createBooking {
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, #8a7bc9, #60519b);
+  background: radial-gradient(circle at 50% 24%, #8a7bc9, #60519b);
   color: #fff;
 }
 
@@ -23021,6 +22520,17 @@ body:has(.salonStoryCreatorOverlay) .profileModeRail.is-dockRail {
   padding: 8px 6px 62px;
 }
 
+/* Salon's week strip reuses this floating slot (see HomeApp's
+   salonWeekStripFloating) but is its own white card with its own
+   border/shadow — the purple dock chrome underneath it would just show
+   as a clashing border, so it's flattened away here. */
+.floatingMobileCta.is-modeRail:has(.salonHeroWeekStrip) {
+  padding: 0 0 72px;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
 .floatingMobileCta.is-modeRail .profileModeRail {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -23090,7 +22600,7 @@ body:has(.salonStoryCreatorOverlay) .profileModeRail.is-dockRail {
 .artistWorkModal,
 .postModal,
 .artistProfileModal,
-.salonStoryCreatorOverlay,
+.salonQrSheetOverlay,
 .salonPublicAboutOverlay,
 .salonPublicBrowseOverlay,
 .scheduleBookingModal,
@@ -23151,168 +22661,9 @@ body:has(.salonStoryCreatorOverlay) .profileModeRail.is-dockRail {
   display: block;
   object-fit: cover;
   object-position: center;
-  opacity: 1;
-  transform: scale(1);
-  transition:
-    opacity 0.32s ease,
-    transform 0.56s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.publicStoryVideo {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  width: 100%;
-  height: 100%;
-  display: block;
-  object-fit: cover;
-  object-position: center;
-  opacity: 0;
-  transform: scale(1.018);
-  transition:
-    opacity 0.32s ease,
-    transform 0.56s cubic-bezier(0.22, 1, 0.36, 1);
-  pointer-events: none;
-}
-
-.is-story-open .publicStoryVideo {
-  opacity: 1;
-  transform: scale(1);
-}
-
-.is-story-open.is-story-tall .publicStoryVideo {
-  object-fit: contain;
-  background:
-    radial-gradient(circle at 50% 26%, rgba(138, 104, 255, 0.22), transparent 42%),
-    #05050b;
-}
-
-.is-story-open .publicStoryHeroImage {
-  opacity: 0;
-  transform: scale(1.03);
-}
-
-.publicStoryRail {
-  position: absolute;
-  z-index: 10;
-  right: 152px;
-  bottom: 24px;
-  left: 18px;
-  height: 5px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.5);
-  box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.35),
-    0 10px 24px rgba(15, 18, 34, 0.12);
-  opacity: 0;
-  transform: translateY(8px) scaleX(0.96);
-  transform-origin: right center;
-  transition:
-    opacity 0.24s ease,
-    transform 0.34s cubic-bezier(0.22, 1, 0.36, 1);
-  pointer-events: none;
-}
-
-.publicStoryRail span {
-  width: var(--story-progress);
-  height: 100%;
-  display: block;
-  border-radius: inherit;
-  background: linear-gradient(90deg, #ffffff, #8f6bff);
-  box-shadow: 0 0 18px rgba(143, 107, 255, 0.54);
-  transition: width 0.12s linear;
-}
-
-.is-story-open .publicStoryRail,
-.is-story-empty .publicStoryRail,
-.is-story-dragging .publicStoryRail {
-  opacity: 1;
-  transform: translateY(0) scaleX(1);
-}
-
-.is-story-empty .publicStoryRail span {
-  width: 100%;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.92), rgba(143, 107, 255, 0.32));
-}
-
-.is-story-dragging .publicStoryRail span {
-  width: var(--story-drag-progress);
-}
-
-.publicStoryEmpty {
-  position: absolute;
-  z-index: 11;
-  right: 18px;
-  bottom: 42px;
-  left: 18px;
-  display: grid;
-  gap: 5px;
-  padding: 14px 138px 14px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.52);
-  border-radius: 22px;
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(245, 242, 255, 0.58));
-  color: #171827;
-  box-shadow: 0 22px 44px rgba(22, 19, 42, 0.14);
-  -webkit-backdrop-filter: blur(18px) saturate(1.08);
-  backdrop-filter: blur(18px) saturate(1.08);
-  animation: sheetRise 0.26s ease both;
-}
-
-.publicStoryEmpty b {
-  font-size: 0.86rem;
-  font-weight: 950;
-}
-
-.publicStoryEmpty span {
-  color: rgba(23, 24, 39, 0.58);
-  font-size: 0.68rem;
-  font-weight: 850;
-  line-height: 1.65;
-}
-
-/* Draggable logo (rendered by each page with its own look) */
-.publicStoryLogo {
-  cursor: grab;
-  touch-action: pan-y;
-  transition:
-    transform 0.34s cubic-bezier(0.22, 1, 0.36, 1),
-    filter 0.34s ease;
-}
-
-.publicStoryLogo:active {
-  cursor: grabbing;
-}
-
-.is-story-dragging .publicStoryLogo {
-  transform: translateX(calc(var(--story-drag) * -0.42)) scale(1.035);
-  filter: drop-shadow(0 14px 24px rgba(87, 66, 190, 0.22));
-}
-
-.is-story-open .publicStoryLogo {
-  transform: translateY(-4px) scale(0.94);
-}
-
-.is-story-empty .publicStoryLogo {
-  transform: translateY(-2px) scale(0.97);
-}
-
-@media (max-width: 430px) {
-  .publicStoryRail {
-    right: 144px;
-    left: 16px;
-    bottom: 20px;
-  }
-
-  .publicStoryEmpty {
-    padding-right: 126px;
-    bottom: 38px;
-  }
-}
-
-
-/* Artist profile hero: story poster as the hero backdrop (mobile-first, all widths) */
+/* Artist profile hero: cover backdrop (mobile-first, all widths) */
 .profilePanel.page-profile:has(.createdProfile.is-artist) .profileHero.is-artist > .artistHeroPoster {
   position: absolute !important;
   inset: 0 !important;
@@ -23417,35 +22768,7 @@ body:has(.salonStoryCreatorOverlay) .profileModeRail.is-dockRail {
     0 10px 26px rgba(10, 6, 24, 0.22) !important;
 }
 
-/* Rating badge: small, soft pill sitting astride the avatar's bottom edge
-   (number + star only — the label lives in .artistHeroStats instead). */
-.profilePanel.page-profile:has(.createdProfile.is-artist) .artistHeroAvatarRating {
-  position: absolute !important;
-  top: 22px !important;
-  right: 72px !important;
-  transform: translateX(50%) !important;
-  z-index: 4 !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 3px !important;
-  padding: 3px 8px !important;
-  border-radius: 999px !important;
-  border: 1px solid rgba(28, 32, 44, 0.06) !important;
-  background: rgba(255, 255, 255, 0.92) !important;
-  backdrop-filter: blur(6px) !important;
-  color: #1c202c !important;
-  font-size: 0.62rem !important;
-  font-weight: 950 !important;
-  line-height: 1 !important;
-  white-space: nowrap !important;
-  box-shadow: 0 4px 12px rgba(28, 32, 44, 0.16) !important;
-}
-
-.profilePanel.page-profile:has(.createdProfile.is-artist) .artistHeroAvatarRating svg {
-  color: #f2b134 !important;
-}
-
-/* Name + rating badge: below the poster, beside the avatar */
+/* Name: below the poster, beside the avatar */
 .profilePanel.page-profile:has(.createdProfile.is-artist) .profileHero.is-artist .profileHeroCopy {
   position: relative !important;
   top: auto !important;
@@ -23530,8 +22853,7 @@ body:has(.salonStoryCreatorOverlay) .profileModeRail.is-dockRail {
   backdrop-filter: none !important;
 }
 
-/* Stats: compact left-aligned stack, no card — the rating moved onto the
-   avatar (.artistHeroAvatarRating) so this is just followers + bookings.
+/* Stats: compact left-aligned stack, no card — just followers + bookings.
    Positioned absolutely so it sits level with the name/city column on the
    opposite (left) side, instead of stacking below it in flow. */
 .profilePanel.page-profile:has(.createdProfile.is-artist) .profileHero.is-artist .artistHeroStats {
@@ -23622,7 +22944,7 @@ body:has(.salonStoryCreatorOverlay) .profileModeRail.is-dockRail {
 /* ═══ Owner salon hero avatar: always an interactive circle (any viewport) ═══ */
 .profilePanel.page-profile:has(.createdProfile.is-salon) .profileHero.is-salon .salonHeroAvatarFrame {
   position: absolute !important;
-  top: calc(28px + env(safe-area-inset-top)) !important;
+  top: calc(158px + env(safe-area-inset-top)) !important;
   right: 25px !important;
   z-index: 8 !important;
   width: 112px !important;
@@ -23778,34 +23100,6 @@ body:has(.salonStoryCreatorOverlay) .profileModeRail.is-dockRail {
   object-position: center;
 }
 
-/* Rating badge astride the avatar's bottom edge — matches the owner
-   profile's .artistHeroAvatarRating look exactly. */
-.artistPublicAvatarRating {
-  position: absolute;
-  bottom: -2px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 2;
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  padding: 3px 8px;
-  border-radius: 999px;
-  border: 1px solid rgba(28, 32, 44, 0.06);
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(6px);
-  color: #1c202c;
-  font-size: 0.62rem;
-  font-weight: 950;
-  line-height: 1;
-  white-space: nowrap;
-  box-shadow: 0 4px 12px rgba(28, 32, 44, 0.16);
-}
-
-.artistPublicAvatarRating svg {
-  color: #f2b134;
-}
-
 .artistPublicTitle h2 {
   margin: 0;
   display: inline-flex;
@@ -23911,6 +23205,27 @@ body:has(.salonStoryCreatorOverlay) .profileModeRail.is-dockRail {
    needs a small top margin on top of that. */
 .profilePanel.page-profile:has(.createdProfile.is-artist) > .profileModeRail.is-panelRail.is-artist-rail {
   margin: 8px -8px 12px !important;
+}
+
+/* Salon panel rail — sits inside the hero (between the name/meta and the
+   week strip) via ProfileHero's modeRail slot, not as a sibling of
+   .profilePanel like the artist rail — see the position:absolute rule
+   above for its actual placement. This just keeps the background flat. */
+.profileHero.is-salon .profileModeRail.is-panelRail.is-salon {
+  background: transparent !important;
+  box-shadow: none !important;
+  margin: 0 !important;
+}
+
+.profileHero.is-salon .profileModeRail.is-panelRail.is-salon button,
+.profileHero.is-salon .profileModeRail.is-panelRail.is-salon button.active {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.profileHero.is-salon .profileModeRail.is-panelRail.is-salon button.active {
+  color: #7656b8 !important;
+  box-shadow: inset 0 -3px 0 #7656b8 !important;
 }
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -24032,20 +23347,6 @@ body:has(.salonStoryCreatorOverlay) .profileModeRail.is-dockRail {
   min-height: 20px !important;
   padding: 0 8px !important;
   font-size: 0.58rem !important;
-}
-
-/* Reviews: compact */
-.artistPublicReviewScore strong {
-  font-size: 1.35rem !important;
-}
-
-.artistPublicReviewRail article {
-  padding: 10px 0 !important;
-}
-
-.artistPublicReviewRail p {
-  font-size: 0.78rem !important;
-  line-height: 1.55 !important;
 }
 
 /* About: compact */
@@ -24430,367 +23731,6 @@ body:has(.salonStoryCreatorOverlay) .profileModeRail.is-dockRail {
   text-decoration: line-through;
 }
 
-/* ═══ Artist public reviews — clean minimal cards (no marble stars) ═══ */
-.artistPublicReviewSummary {
-  display: flex !important;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 13px 15px !important;
-  border: 1px solid rgba(28, 32, 44, 0.08) !important;
-  border-radius: 16px !important;
-  background: linear-gradient(180deg, #ffffff 0%, #faf8fe 100%) !important;
-  box-shadow: 0 1px 0 rgba(28, 32, 44, 0.02) !important;
-}
-
-.artistPublicReviewSummaryScore {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.artistPublicReviewSummaryScore b {
-  color: #23242e;
-  font-size: 1.5rem;
-  font-weight: 950;
-  letter-spacing: -0.02em;
-  line-height: 1;
-}
-
-.artistPublicReviewSummaryCount {
-  color: #8b8fa0 !important;
-  font-size: 0.7rem !important;
-  font-weight: 800 !important;
-  white-space: nowrap;
-}
-
-/* Flat single-accent stars */
-.artistPublicCleanStars {
-  display: inline-flex !important;
-  align-items: center;
-  gap: 2px !important;
-  direction: ltr;
-}
-
-.artistPublicCleanStars .is-filled {
-  color: #7c5ce0;
-}
-
-.artistPublicCleanStars .is-empty {
-  color: rgba(28, 32, 44, 0.16);
-}
-
-/* Review cards */
-.artistPublicReviewRail {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) !important;
-  gap: 10px !important;
-}
-
-.artistPublicReviewRail article.artistPublicReviewCard {
-  display: flex !important;
-  align-items: flex-start;
-  gap: 11px !important;
-  padding: 13px 14px !important;
-  border: 1px solid rgba(28, 32, 44, 0.08) !important;
-  border-bottom: 1px solid rgba(28, 32, 44, 0.08) !important;
-  border-radius: 16px !important;
-  background: #ffffff !important;
-  box-shadow: 0 1px 0 rgba(28, 32, 44, 0.02) !important;
-}
-
-.artistPublicReviewAvatar {
-  flex: 0 0 38px;
-  width: 38px;
-  height: 38px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: rgba(96, 81, 155, 0.1);
-  color: #5d43b5;
-  font-size: 0.95rem;
-  font-weight: 950;
-}
-
-.artistPublicReviewAvatar.has-image {
-  background-color: rgba(28, 32, 44, 0.06);
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-}
-
-.artistPublicReviewMain {
-  flex: 1 1 auto;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.artistPublicReviewTop {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.artistPublicReviewTop b {
-  color: #23242e;
-  font-size: 0.84rem;
-  font-weight: 950;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.artistPublicReviewService {
-  flex: 0 0 auto;
-  padding: 3px 9px;
-  border-radius: 999px;
-  background: rgba(96, 81, 155, 0.09);
-  color: #5d43b5 !important;
-  font-size: 0.62rem !important;
-  font-weight: 900 !important;
-  white-space: nowrap;
-}
-
-.artistPublicReviewMeta {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.artistPublicReviewRate {
-  color: #7c5ce0 !important;
-  font-size: 0.68rem !important;
-  font-weight: 950 !important;
-}
-
-.artistPublicReviewDate {
-  margin-inline-start: auto;
-  color: #a0a4b6;
-  font-size: 0.62rem;
-  font-weight: 750;
-}
-
-.artistPublicReviewRail article.artistPublicReviewCard p {
-  margin: 0 !important;
-  color: #3a3d4c !important;
-  font-size: 0.78rem !important;
-  font-weight: 650 !important;
-  line-height: 1.7 !important;
-}
-
-/* Platform-style reply thread — indented under the review, like Instagram/Google replies */
-.artistPublicReviewReply {
-  display: flex !important;
-  align-items: flex-start;
-  gap: 8px !important;
-  margin: 10px 0 0 !important;
-  padding: 10px 12px !important;
-  border-radius: 14px !important;
-  background: rgba(96, 81, 155, 0.07) !important;
-  border-inline-start: 2px solid rgba(96, 81, 155, 0.35) !important;
-}
-
-.artistPublicReviewReplyAvatar {
-  flex: 0 0 26px;
-  width: 26px;
-  height: 26px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: #5d43b5;
-  color: #fff;
-  font-size: 0.72rem;
-  font-weight: 950;
-}
-
-.artistPublicReviewReplyAvatar.has-image {
-  background-color: rgba(28, 32, 44, 0.06);
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-}
-
-.artistPublicReviewReplyBody {
-  flex: 1 1 auto;
-  min-width: 0;
-  display: grid;
-  gap: 3px;
-}
-
-.artistPublicReviewReplyTop {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.artistPublicReviewReplyTop b {
-  color: #5d43b5 !important;
-  font-size: 0.72rem !important;
-  font-weight: 950 !important;
-}
-
-.artistPublicReviewReplyDate {
-  margin-inline-start: auto;
-  color: #a0a4b6;
-  font-size: 0.6rem;
-  font-weight: 700;
-}
-
-.artistPublicReviewReply p {
-  margin: 0 !important;
-  color: #3a3d4c !important;
-  font-size: 0.76rem !important;
-  font-weight: 600 !important;
-  line-height: 1.65 !important;
-}
-
-/* Like a review */
-.artistPublicReviewLike {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  align-self: flex-start;
-  margin-top: 2px;
-  padding: 4px 9px;
-  border: 1px solid rgba(28, 32, 44, 0.1);
-  border-radius: 999px;
-  background: #fff;
-  color: #8b8fa0;
-  font-size: 0.68rem;
-  font-weight: 800;
-  cursor: pointer;
-  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease, transform 0.1s ease;
-}
-
-.artistPublicReviewLike:active {
-  transform: scale(0.94);
-}
-
-.artistPublicReviewLike.is-liked {
-  border-color: rgba(224, 62, 106, 0.35);
-  background: rgba(224, 62, 106, 0.08);
-  color: #e03e6a;
-}
-
-/* Write-a-review composer */
-.artistPublicReviewComposer {
-  display: grid;
-  gap: 10px;
-  padding: 14px !important;
-  border: 1px solid rgba(28, 32, 44, 0.08) !important;
-  border-radius: 16px !important;
-  background: linear-gradient(180deg, #ffffff 0%, #faf8fe 100%) !important;
-}
-
-.artistPublicReviewComposerLabel {
-  color: #23242e;
-  font-size: 0.8rem;
-  font-weight: 900;
-}
-
-.artistPublicReviewComposerStars {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  direction: ltr;
-}
-
-.artistPublicReviewComposerStars button {
-  padding: 2px;
-  border: 0;
-  background: transparent;
-  color: rgba(28, 32, 44, 0.22);
-  cursor: pointer;
-  transition: color 0.12s ease, transform 0.12s ease;
-}
-
-.artistPublicReviewComposerStars button.is-active {
-  color: #7c5ce0;
-  transform: scale(1.08);
-}
-
-.artistPublicReviewComposerRow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.artistPublicReviewComposerRow input {
-  flex: 1 1 auto;
-  min-width: 0;
-  padding: 10px 12px;
-  border: 1px solid rgba(28, 32, 44, 0.12);
-  border-radius: 12px;
-  background: #fff;
-  color: #23242e;
-  font: inherit;
-  font-size: 0.78rem;
-}
-
-.artistPublicReviewComposerRow input:focus {
-  outline: none;
-  border-color: rgba(124, 92, 224, 0.5);
-}
-
-.artistPublicReviewComposerRow button {
-  flex: 0 0 auto;
-  padding: 10px 16px;
-  border: 0;
-  border-radius: 12px;
-  background: #5d43b5;
-  color: #fff;
-  font-size: 0.76rem;
-  font-weight: 900;
-  cursor: pointer;
-  transition: opacity 0.15s ease;
-}
-
-.artistPublicReviewComposerRow button:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-/* Empty state — reviews only (gallery keeps its own look) */
-.artistPublicReviews .artistPublicEmpty {
-  display: grid;
-  justify-items: center;
-  gap: 6px;
-  padding: 26px 16px !important;
-  border: 1px dashed rgba(28, 32, 44, 0.14);
-  border-radius: 16px !important;
-  background: rgba(246, 246, 251, 0.6) !important;
-  text-align: center;
-}
-
-.artistPublicEmptyIcon {
-  display: grid;
-  place-items: center;
-  width: 42px;
-  height: 42px;
-  margin-bottom: 2px;
-  border-radius: 50%;
-  background: rgba(96, 81, 155, 0.1);
-  color: #5d43b5;
-}
-
-.artistPublicReviews .artistPublicEmpty b {
-  color: #23242e;
-  font-size: 0.82rem;
-  font-weight: 950;
-}
-
-.artistPublicReviews .artistPublicEmpty > span:last-child {
-  max-width: 240px;
-  color: #8b8fa0;
-  font-size: 0.68rem;
-  font-weight: 750;
-  line-height: 1.7;
-}
-
 /* ═══ Artist public — About icon button in sticky bar + popup modal ═══ */
 .artistPublicBooking {
   display: flex !important;
@@ -24987,8 +23927,8 @@ body::after {
 .appShell:not(.is-auth-gate) .explorePanel,
 .appShell:not(.is-auth-gate) .salonPanel,
 .appShell:not(.is-auth-gate) .salonsPanel,
-.appShell:not(.is-auth-gate) .shopsPanel,
-.appShell:not(.is-auth-gate) .profilePanel {
+.appShell:not(.is-auth-gate) .profilePanel,
+.appShell:not(.is-auth-gate) .settingsPagePanel {
   background: #ffffff !important;
 }
 

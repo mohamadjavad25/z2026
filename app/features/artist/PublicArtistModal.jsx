@@ -1,24 +1,14 @@
 "use client";
 
-import { BadgeCheck, Bookmark, CalendarCheck, ChevronLeft, Heart, Info, MapPin, Share2, Sparkles, Star, Timer, X } from "lucide-react";
+import { BadgeCheck, Bookmark, CalendarCheck, ChevronLeft, Heart, Info, MapPin, Share2, X } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
-import { formatCount } from "../../shared/lib/rating";
+import { formatCount } from "../../shared/lib/counts";
 import { isPublicArtistSlotBlocked } from "./bookingUtils";
 import { PublicArtistAboutPanel } from "./PublicArtistAboutPanel";
 import { PublicArtistBookingPanel } from "./PublicArtistBookingPanel";
 import { PublicArtistGalleryPanel } from "./PublicArtistGalleryPanel";
-import { PublicArtistReviewsPanel } from "./PublicArtistReviewsPanel";
 import { PublicArtistServicesPanel } from "./PublicArtistServicesPanel";
 import { useState } from "react";
-import { PublicStoryBanner, usePublicStory } from "../../components/PublicStoryBanner";
-
-function parseRatingValue(value) {
-  const normalized = String(value ?? "")
-    .replace(/[۰-۹]/g, (digit) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit)))
-    .replace("٫", ".")
-    .replace(",", ".");
-  return Number(normalized) || 0;
-}
 
 export function PublicArtistModal({
   artist,
@@ -26,9 +16,6 @@ export function PublicArtistModal({
   view,
   portfolio,
   services,
-  reviews,
-  userRating,
-  ratingHover,
   following,
   saved,
   galleryTags,
@@ -43,8 +30,6 @@ export function PublicArtistModal({
   onClose,
   onShare,
   onSave,
-  onRatingHover,
-  onConfirmRating,
   onFollow,
   onViewChange,
   onGalleryFilterChange,
@@ -53,26 +38,11 @@ export function PublicArtistModal({
   onBookingDayChange,
   onBookingSlotChange,
   onConfirmBooking,
-  bookingBusy = false,
-  onToggleReviewLike,
-  viewerUserId
+  bookingBusy = false
 }) {
-  const storyVideoSrc = artist?.storyVideo || artist?.story_video || artist?.introVideo || artist?.intro_video || "";
-  const storyPosterSrc = artist?.storyPoster || artist?.story_poster || artist?.introPoster || artist?.intro_poster || heroImage || "";
-  const story = usePublicStory({ storyVideoSrc, storyPosterSrc });
   const [bookingPopup, setBookingPopup] = useState(false);
   const [aboutPopup, setAboutPopup] = useState(false);
   if (!artist) return null;
-
-
-  const reviewAvg = reviews.length
-    ? reviews.reduce((sum, review) => sum + parseRatingValue(review.rating), 0) / reviews.length
-    : 0;
-  const liveAvg = reviewAvg || parseRatingValue(artist.rating);
-  const liveLabel = liveAvg
-    ? (Number.isInteger(liveAvg) ? String(liveAvg) : liveAvg.toFixed(1))
-    : "۰";
-  const activeLevel = ratingHover || userRating || Math.round(liveAvg) || 0;
 
   return (
     <div
@@ -82,60 +52,49 @@ export function PublicArtistModal({
       aria-label={`پروفایل عمومی ${artist.name}`}
     >
       <article className="artistPublicSheet">
-        <section className={`artistPublicPage ${story.storyStateClasses}`} aria-label={`صفحه عمومی ${artist.name}`}>
-          <PublicStoryBanner
-            story={story}
-            heroClassName="artistPublicCover"
-            heroImage={heroImage}
-            // Unlike salon, the artist hero always resolves to a real
-            // uploaded photo (story poster, a featured portfolio shot, or the
-            // avatar) — there's no generic placeholder illustration fallback
-            // here — so it's always safe to describe.
-            heroAlt={artist.name ? `${artist.name} — تصویر کاور` : ""}
-            extra={<div className="artistPublicCoverShade" aria-hidden="true" />}
-            topbar={(
-              <div className="artistPublicHeroTop">
-                <button type="button" className="artistPublicBack" onClick={onClose} aria-label="بازگشت">
-                  <ChevronLeft size={18} />
-                </button>
-                <div className="artistPublicHeroTopActions">
-                  <button
-                    type="button"
-                    aria-label="اشتراک‌گذاری"
-                    onClick={onShare}
-                  >
-                    <Share2 size={16} />
-                  </button>
-                  <button
-                    type="button"
-                    aria-label={saved ? "حذف از ذخیره‌ها" : "ذخیره پروفایل"}
-                    className={saved ? "is-saved" : ""}
-                    onClick={onSave}
-                  >
-                    <Bookmark size={16} fill={saved ? "currentColor" : "none"} />
-                  </button>
-                </div>
-              </div>
+        <section className="artistPublicPage" aria-label={`صفحه عمومی ${artist.name}`}>
+          <header className="artistPublicCover">
+            {heroImage ? (
+              // Real <img> (not a CSS background) so this — usually the
+              // single largest, most prominent photo on the page — is
+              // indexable by Google Image Search and readable by screen
+              // readers.
+              <img
+                className="publicStoryHeroImage"
+                src={heroImage}
+                alt={artist.name ? `${artist.name} — تصویر کاور` : ""}
+              />
+            ) : (
+              <div className="publicStoryHeroImage" aria-hidden="true" />
             )}
-            emptyTitle="استوری معرفی هنوز آماده نیست"
-            emptyText="وقتی آرتیست ویدیوی معرفی اضافه کند، همین‌جا مثل یک استوری پخش می‌شود."
-          />
+            <div className="artistPublicCoverShade" aria-hidden="true" />
+            <div className="artistPublicHeroTop">
+              <button type="button" className="artistPublicBack" onClick={onClose} aria-label="بازگشت">
+                <ChevronLeft size={18} />
+              </button>
+              <div className="artistPublicHeroTopActions">
+                <button
+                  type="button"
+                  aria-label="اشتراک‌گذاری"
+                  onClick={onShare}
+                >
+                  <Share2 size={16} />
+                </button>
+                <button
+                  type="button"
+                  aria-label={saved ? "حذف از ذخیره‌ها" : "ذخیره پروفایل"}
+                  className={saved ? "is-saved" : ""}
+                  onClick={onSave}
+                >
+                  <Bookmark size={16} fill={saved ? "currentColor" : "none"} />
+                </button>
+              </div>
+            </div>
+          </header>
 
           <section className="artistPublicIdentityCard">
             <div className="artistPublicAvatarWrap">
-              <div
-                className={`artistPublicAvatar publicStoryLogo ${(artist.avatar || heroImage) ? "hasImage" : ""}`}
-                role={story.logoHandlers.role}
-                tabIndex={story.logoHandlers.tabIndex}
-                aria-label={story.logoHandlers["aria-label"]}
-                onPointerDown={story.logoHandlers.onPointerDown}
-                onPointerMove={story.logoHandlers.onPointerMove}
-                onPointerUp={story.logoHandlers.onPointerUp}
-                onPointerCancel={story.logoHandlers.onPointerCancel}
-                onClick={story.logoHandlers.onClick}
-                onDoubleClick={story.logoHandlers.onDoubleClick}
-                onKeyDown={story.logoHandlers.onKeyDown}
-              >
+              <div className={`artistPublicAvatar ${(artist.avatar || heroImage) ? "hasImage" : ""}`}>
                 {(artist.avatar || heroImage) ? (
                   // Real <img> (not a CSS background) so the artist's profile
                   // photo is indexable by Google Image Search and readable by
@@ -149,10 +108,6 @@ export function PublicArtistModal({
                   String(artist.name || "آ").slice(0, 1)
                 )}
               </div>
-              <b className="artistPublicAvatarRating" aria-label={`امتیاز ${toPersianDigits(liveLabel)}`}>
-                {toPersianDigits(liveLabel)}
-                <Star size={10} fill="currentColor" aria-hidden="true" />
-              </b>
             </div>
 
             <div className="artistPublicTitle">
@@ -202,16 +157,6 @@ export function PublicArtistModal({
                     getCardStyle={getCardStyle}
                     onTagChange={onGalleryFilterChange}
                     onOpenWork={onOpenWork}
-                  />
-                  <PublicArtistReviewsPanel
-                    artist={artist}
-                    reviews={reviews}
-                    viewerUserId={viewerUserId}
-                    userRating={userRating}
-                    ratingHover={ratingHover}
-                    onRatingHover={onRatingHover}
-                    onSubmitReview={onConfirmRating}
-                    onToggleLike={onToggleReviewLike}
                   />
                 </>
             </div>

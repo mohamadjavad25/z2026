@@ -11,8 +11,7 @@ export function ProfileHeroActions({
   notificationCount = 0,
   showShare = false
 }) {
-  const settingsActive = activePanel === "settings";
-  const settingsLabel = "تنظیمات پروفایل";
+  const settingsLabel = "تنظیمات";
 
   if (profileType === "salon") {
     return (
@@ -28,7 +27,6 @@ export function ProfileHeroActions({
         </button>
         <button
           type="button"
-          className={settingsActive ? "is-active" : ""}
           onClick={onOpenSettings}
           aria-label={settingsLabel}
         >
@@ -43,7 +41,6 @@ export function ProfileHeroActions({
       <div className="profileHeroActionsGroup">
         <button
           type="button"
-          className={settingsActive ? "is-active" : ""}
           onClick={onOpenSettings}
           aria-label={settingsLabel}
         >

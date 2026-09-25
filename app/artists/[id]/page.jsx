@@ -25,7 +25,7 @@ function loadArtist(id) {
   // rejects null-prototype objects when passing this Server Component's data
   // down to the "use client" ArtistPublicPageClient. Round-tripping through
   // JSON strips the prototype and gives plain objects/arrays throughout
-  // (posts/services/reviews/bookedSlots), which is what the client boundary needs.
+  // (posts/services/bookedSlots), which is what the client boundary needs.
   return JSON.parse(JSON.stringify(artist));
 }
 
@@ -37,10 +37,8 @@ export async function generateMetadata({ params }) {
   }
 
   const serviceCount = Array.isArray(artist.services) ? artist.services.length : 0;
-  const ratingValue = Number(artist.rating);
   const facts = [];
   if (artist.area) facts.push(`در ${artist.area}`);
-  if (Number.isFinite(ratingValue) && ratingValue > 0) facts.push(`امتیاز ${ratingValue.toFixed(1)} از ۵`);
   if (serviceCount > 0) facts.push(`${serviceCount} خدمت قابل رزرو`);
 
   const description = facts.length
@@ -65,10 +63,7 @@ export async function generateMetadata({ params }) {
   };
 }
 
-// Builds Person JSON-LD from real artist fields only. Unlike salons, artists
-// DO have a real reviewCount (getPublicArtist aggregates it from the reviews
-// table, not a static column) so aggregateRating is included, but only when
-// there's at least one real review behind it — never as a fabricated 0/5.
+// Builds Person JSON-LD from real artist fields only.
 function buildArtistJsonLd(artist, canonicalUrl) {
   const jsonLd = {
     "@context": "https://schema.org",
@@ -84,15 +79,6 @@ function buildArtistJsonLd(artist, canonicalUrl) {
       "@type": "PostalAddress",
       addressLocality: artist.area,
       addressCountry: "IR"
-    };
-  }
-  const reviewCount = Number(artist.reviewCount || 0);
-  const ratingValue = Number(artist.rating);
-  if (reviewCount > 0 && Number.isFinite(ratingValue) && ratingValue > 0) {
-    jsonLd.aggregateRating = {
-      "@type": "AggregateRating",
-      ratingValue,
-      reviewCount
     };
   }
   return jsonLd;

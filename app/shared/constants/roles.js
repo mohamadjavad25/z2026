@@ -1,25 +1,25 @@
-import { Crown, Palette, Store } from "lucide-react";
+import { Brush, Scissors, UserRound } from "lucide-react";
 
 export const profileRoles = [
   {
     id: "client",
     label: "بانو",
     hint: "کشف، تست و رزرو",
-    icon: Crown,
+    icon: UserRound,
     tone: "roleClient"
   },
   {
     id: "salon",
     label: "سالن زیبایی",
     hint: "رزرو و تیم سالن",
-    icon: Store,
+    icon: Scissors,
     tone: "roleSalon"
   },
   {
     id: "artist",
     label: "آرتیست",
     hint: "نمونه‌کار و رزرو",
-    icon: Palette,
+    icon: Brush,
     tone: "roleArtist"
   }
 ];
@@ -30,21 +30,21 @@ export const profileRoleMeta = {
     desc: "رزرو نوبت از سالن‌ها و آرتیست‌ها",
     heroClass: "is-client",
     overviewLabel: "پروفایل",
-    overviewIcon: Crown
+    overviewIcon: UserRound
   },
   salon: {
     kicker: "داشبورد سالن",
     desc: "رزروها، پرسنل، ساعت کاری و نمونه‌کارها",
     heroClass: "is-salon",
     overviewLabel: "داشبورد",
-    overviewIcon: Store
+    overviewIcon: Scissors
   },
   artist: {
     kicker: "پروفایل آرتیست",
     desc: "نمونه‌کار، رزرو مستقیم و جذب مشتری",
     heroClass: "is-artist",
     overviewLabel: "پروفایل",
-    overviewIcon: Palette
+    overviewIcon: Brush
   }
 };
 
