@@ -1,5 +1,6 @@
 "use client";
 
+import { createPortal } from "react-dom";
 import { ChevronDown, Minus, Plus, Timer, X } from "lucide-react";
 import { BreakTimeWheel } from "../../components/BreakTimeWheel";
 import { toPersianDigits } from "../../shared/lib/digits";
@@ -63,7 +64,7 @@ export function SalonHoursEditor({
         </em>
         <ChevronDown size={15} className={`settingsSalonHoursChev ${open ? "is-open" : ""}`} aria-hidden="true" />
       </button>
-      {open ? (
+      {open && typeof document !== "undefined" ? createPortal(
         <div
           className="settingsHoursModal"
           role="dialog"
@@ -220,7 +221,8 @@ export function SalonHoursEditor({
           >
             <X size={18} />
           </button>
-        </div>
+        </div>,
+        document.body
       ) : null}
     </div>
   );

@@ -156,19 +156,18 @@ export function SettingsPage({
         />
 
         {isArtist || isSalon ? (
-          <section className="salonSettingsBookmarkCard" aria-label="بوکمارک‌ها">
-            <span className="salonSettingsBookmarkIcon">
-              <Bookmark size={18} />
-            </span>
-            <span className="salonSettingsBookmarkCopy">
-              <strong>{isArtist ? "بوکمارک‌های آرتیست" : "بوکمارک‌های سالن"}</strong>
-              {isArtist ? <small>{toPersianDigits(savedPostsCount || 0)} نمونه ذخیره‌شده</small> : null}
-            </span>
-            <button type="button" onClick={onOpenSaved}>
-              مشاهده
-              <ChevronLeft size={16} />
+          <div className="settingsRowCard">
+            <button type="button" className="profileLocationRow" onClick={onOpenSaved}>
+              <span className="profileLocationRowIcon" aria-hidden="true">
+                <Bookmark size={17} />
+              </span>
+              <span className="profileLocationRowInfo">
+                <strong>{isArtist ? "بوکمارک‌های آرتیست" : "بوکمارک‌های سالن"}</strong>
+                <span>{isArtist ? `${toPersianDigits(savedPostsCount || 0)} نمونه ذخیره‌شده` : "مشاهده لیست ذخیره‌شده‌ها"}</span>
+              </span>
+              <ChevronLeft size={16} className="profileLocationRowChevron" aria-hidden="true" />
             </button>
-          </section>
+          </div>
         ) : null}
 
         {isSalon ? (
