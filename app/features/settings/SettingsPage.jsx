@@ -7,35 +7,77 @@ import { ProfileLocationSettings } from "../profile/ProfileLocationSettings";
 import { ProfileSettingsPanel } from "../profile/ProfileSettingsPanel";
 import { SalonHoursEditor } from "../profile/SalonHoursEditor";
 
-/** One tap-to-replace image row (logo/poster) — hidden file input behind a visible button. */
-function ImagePickerRow({ variant, label, hint, image, saving, onPick }) {
-  const inputRef = useRef(null);
+/**
+ * One card for everything about how the profile looks: poster banner, logo/
+ * avatar (overlapping the banner, Instagram-edit style), and the name/
+ * specialty/contact edit entry — was three separate, visually repetitive
+ * cards (each showing the same logo thumbnail on its own row).
+ */
+function BrandCard({ hasPoster, poster, avatar, logoSaving, posterSaving, onSaveLogo, onSavePoster, accountTitle, accountDescription, onEditProfile }) {
+  const logoInputRef = useRef(null);
+  const posterInputRef = useRef(null);
+
   return (
-    <div className={`settingsImagePicker is-${variant}`}>
-      <div className="settingsImagePickerPreview">
-        {image ? <img src={image} alt="" /> : <ImagePlus size={variant === "logo" ? 18 : 22} />}
-      </div>
-      <div className="settingsImagePickerCopy">
-        <strong>{label}</strong>
-        <small>{hint}</small>
-      </div>
-      <button
-        type="button"
-        className="settingsImagePickerBtn"
-        onClick={() => inputRef.current?.click()}
-        disabled={saving}
-      >
-        <Camera size={14} />
-        {saving ? "در حال آپلود…" : image ? "تغییر" : "افزودن"}
+    <section className="brandCard" aria-label="برند و ظاهر پروفایل">
+      {hasPoster ? (
+        <div className="brandCardPoster">
+          {poster ? <img src={poster} alt="" /> : <ImagePlus size={20} />}
+          <button
+            type="button"
+            className="brandCardPosterEdit"
+            onClick={() => posterInputRef.current?.click()}
+            disabled={posterSaving}
+          >
+            <Camera size={12} />
+            {posterSaving ? "در حال آپلود…" : poster ? "تغییر پوستر" : "افزودن پوستر"}
+          </button>
+          <input ref={posterInputRef} type="file" accept="image/*" hidden onChange={onSavePoster} />
+
+          <div className="brandCardAvatarWrap">
+            <span className="brandCardAvatar">
+              <img src={avatar} alt="" />
+            </span>
+            <button
+              type="button"
+              className="brandCardAvatarEdit"
+              onClick={() => logoInputRef.current?.click()}
+              disabled={logoSaving}
+              aria-label="تغییر لوگو"
+            >
+              <Camera size={11} />
+            </button>
+            <input ref={logoInputRef} type="file" accept="image/*" hidden onChange={onSaveLogo} />
+          </div>
+        </div>
+      ) : (
+        <div className="brandCardAvatarOnly">
+          <span className="brandCardAvatar">
+            <img src={avatar} alt="" />
+          </span>
+          <button
+            type="button"
+            className="brandCardAvatarEdit"
+            onClick={() => logoInputRef.current?.click()}
+            disabled={logoSaving}
+            aria-label="تغییر عکس پروفایل"
+          >
+            <Camera size={11} />
+          </button>
+          <input ref={logoInputRef} type="file" accept="image/*" hidden onChange={onSaveLogo} />
+        </div>
+      )}
+
+      <button type="button" className={`brandCardFooter ${hasPoster ? "has-overlap" : ""}`} onClick={onEditProfile}>
+        <span className="brandCardFooterCopy">
+          <strong>{accountTitle}</strong>
+          <small>{accountDescription}</small>
+        </span>
+        <em className="brandCardFooterAction">
+          <Pencil size={14} />
+          ویرایش
+        </em>
       </button>
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*"
-        hidden
-        onChange={onPick}
-      />
-    </div>
+    </section>
   );
 }
 
@@ -105,40 +147,18 @@ export function SettingsPage({
           onSave={onSaveLocation}
         />
 
-        <button type="button" className="settingsAccountCard" onClick={onEditProfile}>
-          <span className="settingsAccountAvatar">
-            <img src={accountAvatar} alt="" />
-          </span>
-          <span className="settingsAccountCopy">
-            <strong>{accountTitle}</strong>
-            {!isSalon ? <small>{accountDescription}</small> : null}
-          </span>
-          <em className="settingsAccountAction">
-            <Pencil size={15} />
-            ویرایش
-          </em>
-        </button>
-
-        <section className="settingsImagesSection" aria-label="لوگو و پوستر">
-          <ImagePickerRow
-            variant="logo"
-            label={isSalon ? "لوگوی سالن" : isArtist ? "لوگو / آواتار" : "عکس پروفایل"}
-            hint="روی پروفایل، کارت‌ها و نتایج جستجو نشان داده می‌شود"
-            image={accountAvatar !== "/profile-icon.svg" ? accountAvatar : ""}
-            saving={logoSaving}
-            onPick={(event) => onSaveLogo?.(event)}
-          />
-          {isArtist || isSalon ? (
-            <ImagePickerRow
-              variant="poster"
-              label="پوستر پروفایل"
-              hint="تصویر پس‌زمینه بالای پروفایل عمومی"
-              image={profile?.data?.poster || ""}
-              saving={posterSaving}
-              onPick={(event) => onSavePoster?.(event)}
-            />
-          ) : null}
-        </section>
+        <BrandCard
+          hasPoster={isArtist || isSalon}
+          poster={profile?.data?.poster || ""}
+          avatar={accountAvatar}
+          logoSaving={logoSaving}
+          posterSaving={posterSaving}
+          onSaveLogo={onSaveLogo}
+          onSavePoster={onSavePoster}
+          accountTitle={accountTitle}
+          accountDescription={accountDescription}
+          onEditProfile={onEditProfile}
+        />
 
         {isArtist || isSalon ? (
           <section className="salonSettingsBookmarkCard" aria-label="بوکمارک‌ها">

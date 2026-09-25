@@ -24,83 +24,160 @@
   gap: 14px;
 }
 
-.settingsImagesSection{
-  display: grid;
-  gap: 8px;
-}
-
-.settingsImagePicker{
-  display: grid;
-  grid-template-columns: 52px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 12px;
-  min-height: 78px;
-  padding: 12px;
+/* Brand card: poster + logo + name/specialty edit entry, merged into one
+   surface instead of three stacked cards that each repeated the same logo
+   thumbnail. */
+.brandCard{
   border: 1px solid rgba(96, 81, 155, 0.14);
-  border-radius: 18px;
+  border-radius: 20px;
   background: #fff;
   box-shadow: 0 10px 22px rgba(28, 32, 44, 0.04);
+  overflow: hidden;
 }
 
-.settingsImagePickerPreview{
-  width: 52px;
-  height: 52px;
+.brandCardPoster{
+  position: relative;
+  height: 96px;
   display: grid;
   place-items: center;
+  color: rgba(255, 255, 255, 0.75);
+  background:
+    radial-gradient(circle at 25% 15%, rgba(255, 255, 255, 0.12), transparent 45%),
+    linear-gradient(135deg, #2a2140, #171225);
+}
+
+.brandCardPoster img{
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.brandCardPosterEdit{
+  position: absolute;
+  top: 10px;
+  inset-inline-start: 10px;
+  min-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(10, 10, 18, 0.5);
+  backdrop-filter: blur(6px);
+  color: #fff;
+  font-size: 0.64rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.brandCardPosterEdit:disabled{
+  opacity: 0.65;
+}
+
+.brandCardAvatarWrap{
+  position: absolute;
+  bottom: -22px;
+  inset-inline-end: 14px;
+  z-index: 1;
+}
+
+.brandCardAvatarOnly{
+  position: relative;
+  width: fit-content;
+  margin: 16px 16px 0 auto;
+}
+
+.brandCardAvatar{
+  width: 60px;
+  height: 60px;
+  display: block;
   overflow: hidden;
-  border-radius: 16px;
+  border-radius: 18px;
+  border: 3px solid #fff;
   background: rgba(96, 81, 155, 0.1);
-  color: var(--teal);
+  box-shadow: 0 8px 18px rgba(28, 32, 44, 0.12);
 }
 
-.settingsImagePicker.is-poster .settingsImagePickerPreview{
-  border-radius: 12px;
-}
-
-.settingsImagePickerPreview img{
+.brandCardAvatar img{
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
 }
 
-.settingsImagePickerCopy{
+.brandCardAvatarEdit{
+  position: absolute;
+  bottom: -3px;
+  inset-inline-end: -3px;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: var(--teal);
+  color: #fff;
+}
+
+.brandCardAvatarEdit:disabled{
+  opacity: 0.65;
+}
+
+.brandCardFooter{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 0;
+  background: transparent;
+  text-align: inherit;
+  font: inherit;
+  color: inherit;
+}
+
+.brandCardFooter.has-overlap{
+  padding-top: 30px;
+}
+
+.brandCardFooterCopy{
   display: grid;
   gap: 3px;
   min-width: 0;
   text-align: right;
 }
 
-.settingsImagePickerCopy strong{
+.brandCardFooterCopy strong{
   color: var(--night);
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   font-weight: 950;
 }
 
-.settingsImagePickerCopy small{
+.brandCardFooterCopy small{
   overflow: hidden;
   color: var(--muted);
-  font-size: 0.66rem;
+  font-size: 0.68rem;
   font-weight: 750;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.settingsImagePickerBtn{
-  min-height: 36px;
+.brandCardFooterAction{
+  flex: 0 0 auto;
+  min-height: 32px;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 0 13px;
-  border: 0;
+  gap: 5px;
+  padding: 0 11px;
   border-radius: 11px;
   background: rgba(96, 81, 155, 0.12);
   color: var(--teal);
-  font-size: 0.72rem;
+  font-size: 0.7rem;
+  font-style: normal;
   font-weight: 900;
   white-space: nowrap;
-}
-
-.settingsImagePickerBtn:disabled{
-  opacity: 0.6;
 }

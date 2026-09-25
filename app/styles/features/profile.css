@@ -1592,69 +1592,6 @@
   padding: 4px 0 0;
 }
 
-.settingsAccountCard {
-  display: grid !important;
-  grid-template-columns: 52px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 12px;
-  min-height: 78px !important;
-  padding: 12px !important;
-  border: 1px solid rgba(96, 81, 155, 0.18) !important;
-  background:
-    radial-gradient(circle at 100% 0%, rgba(96, 81, 155, 0.16), transparent 44%),
-    linear-gradient(145deg, rgba(255, 255, 255, 0.97), rgba(236, 247, 246, 0.94)) !important;
-  box-shadow: 0 12px 26px rgba(22, 70, 72, 0.1);
-}
-
-.settingsAccountAvatar {
-  width: 52px;
-  height: 52px;
-  overflow: hidden;
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  background: rgba(96, 81, 155, 0.1);
-}
-
-.settingsAccountAvatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-.settingsAccountCopy {
-  display: grid;
-  gap: 3px;
-  text-align: right;
-}
-
-.settingsAccountCopy strong {
-  color: var(--ink);
-  font-size: 0.9rem;
-  font-weight: 950;
-}
-
-.settingsAccountCopy small {
-  margin-top: 0 !important;
-  color: var(--muted);
-  font-size: 0.72rem;
-  font-weight: 750;
-}
-
-.settingsAccountAction {
-  min-height: 34px;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 0 11px;
-  border-radius: 11px;
-  background: rgba(96, 81, 155, 0.12);
-  color: var(--teal);
-  font-size: 0.72rem;
-  font-style: normal;
-  font-weight: 900;
-}
-
 /* --- J7 extracted from styles.css --- */
 
 
