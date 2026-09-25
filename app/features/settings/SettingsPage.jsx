@@ -134,11 +134,6 @@ export function SettingsPage({
 
   return (
     <div className={`settingsPagePanel mobilePage page-settings ${active ? "is-active" : ""}`} id="settings">
-      <div className="settingsPageHead">
-        <span>تنظیمات</span>
-        <strong>{isArtist ? "کنترل‌پنل آرتیست" : isSalon ? "مدیریت سالن" : "حساب کاربری"}</strong>
-      </div>
-
       <div className="settingsPageBody">
         <ProfileLocationSettings
           profileType={profile?.type}

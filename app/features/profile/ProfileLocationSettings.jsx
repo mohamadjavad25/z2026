@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
-import { ChevronDown, MapPin, Navigation, Search, X, Check, Locate } from "lucide-react";
+import { ChevronDown, ChevronLeft, MapPin, Navigation, Search, X, Check, Locate } from "lucide-react";
 
 const PROVINCES = [
   {
@@ -669,41 +669,34 @@ export function ProfileLocationSettings({
 
   return (
     <section className="profileLocationSettings" aria-label="ثبت لوکیشن" ref={panelRef}>
-      <div className="profileLocationHead">
-        <MapPin size={18} aria-hidden="true" />
-        <div>
-          <strong>ثبت لوکیشن</strong>
-          <span>{profileType === "salon" ? "روی نقشه محل سالن را دقیق مشخص کن" : "روی نقشه محل کارت رو مشخص کن"}</span>
-        </div>
-      </div>
-
       {!mapOpen && (
-        <div className="profileLocationDisplay">
+        <button type="button" className="profileLocationRow" onClick={openMap}>
+          <span className="profileLocationRowIcon" aria-hidden="true">
+            <MapPin size={17} />
+          </span>
+          <span className="profileLocationRowInfo">
+            <strong>ثبت لوکیشن</strong>
+            <span>
+              {hasAddress
+                ? address
+                : profileType === "salon" ? "روی نقشه محل سالن را مشخص کن" : "روی نقشه محل کارت رو مشخص کن"}
+            </span>
+          </span>
           {hasAddress ? (
-            <div className="profileLocationResult">
-              <span className="profileLocationChip is-set" role="button" tabIndex={0} onClick={openMap}>
-                <Navigation size={14} aria-hidden="true" />
-                <span>{address}</span>
-                <span
-                  role="button"
-                  tabIndex={0}
-                  className="profileLocationChipClear"
-                  onClick={(e) => { e.stopPropagation(); setAddress(""); onSave?.(""); }}
-                  onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); setAddress(""); onSave?.(""); } }}
-                  aria-label="حذف لوکیشن"
-                >
-                  <X size={12} />
-                </span>
-              </span>
-            </div>
+            <span
+              role="button"
+              tabIndex={0}
+              className="profileLocationRowClear"
+              onClick={(e) => { e.stopPropagation(); setAddress(""); onSave?.(""); }}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); setAddress(""); onSave?.(""); } }}
+              aria-label="حذف لوکیشن"
+            >
+              <X size={13} />
+            </span>
           ) : (
-            <button type="button" className="profileLocationChip is-empty" onClick={openMap}>
-              <MapPin size={14} aria-hidden="true" />
-              <span>انتخاب روی نقشه</span>
-              <ChevronDown size={14} aria-hidden="true" />
-            </button>
+            <ChevronLeft size={16} className="profileLocationRowChevron" aria-hidden="true" />
           )}
-        </div>
+        </button>
       )}
 
       {mapOpen && (
