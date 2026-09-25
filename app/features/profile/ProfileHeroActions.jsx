@@ -1,18 +1,18 @@
-import { Bell, Eye, MoreVertical, Settings, Share2 } from "lucide-react";
+import { Bell, Eye, Share2 } from "lucide-react";
 
+// The gear/settings icon that used to live here was removed: "تنظیمات" is
+// now its own bottom-nav tab (see SettingsPage), so a second entry point
+// floating on top of the profile poster was pure duplication.
 export function ProfileHeroActions({
   activePanel,
   profileType,
   onOpenSaved,
   onOpenNotifications,
-  onOpenSettings,
   onShare,
   onPreviewPublic,
   notificationCount = 0,
   showShare = false
 }) {
-  const settingsLabel = "تنظیمات";
-
   if (profileType === "salon") {
     return (
       <div className="profileHeroActions is-salonTopActions">
@@ -25,29 +25,12 @@ export function ProfileHeroActions({
         >
           <Bell size={17} />
         </button>
-        <button
-          type="button"
-          onClick={onOpenSettings}
-          aria-label={settingsLabel}
-        >
-          <MoreVertical size={18} />
-        </button>
       </div>
     );
   }
 
   return (
     <div className="profileHeroActions">
-      <div className="profileHeroActionsGroup">
-        <button
-          type="button"
-          onClick={onOpenSettings}
-          aria-label={settingsLabel}
-        >
-          <Settings size={17} />
-        </button>
-        
-      </div>
       <div className="profileHeroActionsGroup">
         {(profileType === "artist" || profileType === "client") && (
           <button

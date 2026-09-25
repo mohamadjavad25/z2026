@@ -10,6 +10,7 @@ export function applySchema(db) {
       service TEXT NOT NULL DEFAULT '',
       email TEXT NOT NULL DEFAULT '',
       avatar TEXT NOT NULL DEFAULT '',
+      poster TEXT NOT NULL DEFAULT '',
       bio TEXT NOT NULL DEFAULT '',
       experience_years TEXT NOT NULL DEFAULT '',
       manager_name TEXT NOT NULL DEFAULT '',

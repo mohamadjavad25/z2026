@@ -23,3 +23,84 @@
   display: grid;
   gap: 14px;
 }
+
+.settingsImagesSection{
+  display: grid;
+  gap: 8px;
+}
+
+.settingsImagePicker{
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 78px;
+  padding: 12px;
+  border: 1px solid rgba(96, 81, 155, 0.14);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 10px 22px rgba(28, 32, 44, 0.04);
+}
+
+.settingsImagePickerPreview{
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 16px;
+  background: rgba(96, 81, 155, 0.1);
+  color: var(--teal);
+}
+
+.settingsImagePicker.is-poster .settingsImagePickerPreview{
+  border-radius: 12px;
+}
+
+.settingsImagePickerPreview img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.settingsImagePickerCopy{
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  text-align: right;
+}
+
+.settingsImagePickerCopy strong{
+  color: var(--night);
+  font-size: 0.85rem;
+  font-weight: 950;
+}
+
+.settingsImagePickerCopy small{
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.66rem;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settingsImagePickerBtn{
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 13px;
+  border: 0;
+  border-radius: 11px;
+  background: rgba(96, 81, 155, 0.12);
+  color: var(--teal);
+  font-size: 0.72rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.settingsImagePickerBtn:disabled{
+  opacity: 0.6;
+}

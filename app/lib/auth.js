@@ -67,6 +67,7 @@ export function publicUser(row) {
     // full-size avatar on nearly every request. See app/lib/db/repos/posts.js
     // (mapPost) for the same fix applied to feed/portfolio images.
     avatar: row.avatar ? `/api/media/avatar/${row.id}` : "",
+    poster: row.poster ? `/api/media/poster/${row.id}` : "",
     bio: row.bio || "",
     experienceYears: row.experience_years || "",
     managerName: row.manager_name || ""

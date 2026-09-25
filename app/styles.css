@@ -21595,6 +21595,20 @@ body{
     url("/salon-hero-doodle.png") center / cover no-repeat !important;
 }
 
+/* A user-uploaded poster paints as a real image on top of the decorative
+   doodle background above (that background is set with !important across
+   several breakpoints, so overriding it directly is fragile — painting over
+   it is not). */
+.salonHeroBannerImage,
+.artistHeroPosterImage {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .salonHeroQrBtn {
   position: absolute !important;
   top: calc(26px + env(safe-area-inset-top));

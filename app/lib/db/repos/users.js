@@ -10,11 +10,11 @@ export function getUserByPhone(phone) {
   return getDb().prepare("SELECT * FROM users WHERE phone = ?").get(normalized) || null;
 }
 
-export function createUser({ phone, passwordHash, type, name, area, service, email, avatar, bio, experienceYears, managerName }) {
+export function createUser({ phone, passwordHash, type, name, area, service, email, avatar, poster, bio, experienceYears, managerName }) {
   const db = getDb();
   const info = db.prepare(`
-    INSERT INTO users (phone, password_hash, type, name, area, service, email, avatar, bio, experience_years, manager_name)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO users (phone, password_hash, type, name, area, service, email, avatar, poster, bio, experience_years, manager_name)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     String(phone || "").trim(),
     passwordHash,
@@ -24,6 +24,7 @@ export function createUser({ phone, passwordHash, type, name, area, service, ema
     service || "",
     email || "",
     avatar || "",
+    poster || "",
     bio || "",
     experienceYears || "",
     managerName || ""
@@ -49,6 +50,7 @@ export function updateUser(id, data) {
     service: data.service ?? current.service,
     email: data.email ?? current.email,
     avatar: data.avatar ?? current.avatar,
+    poster: data.poster ?? current.poster,
     bio: data.bio ?? current.bio,
     experience_years: data.experienceYears ?? data.experience_years ?? current.experience_years ?? "",
     manager_name: data.managerName ?? data.manager_name ?? current.manager_name ?? "",
@@ -56,10 +58,10 @@ export function updateUser(id, data) {
   };
   db.prepare(`
     UPDATE users SET
-      phone = ?, name = ?, area = ?, service = ?, email = ?, avatar = ?, bio = ?, experience_years = ?, manager_name = ?, password_hash = ?,
+      phone = ?, name = ?, area = ?, service = ?, email = ?, avatar = ?, poster = ?, bio = ?, experience_years = ?, manager_name = ?, password_hash = ?,
       updated_at = CURRENT_TIMESTAMP
     WHERE id = ?
-  `).run(next.phone, next.name, next.area, next.service, next.email, next.avatar, next.bio, next.experience_years, next.manager_name, next.password_hash, id);
+  `).run(next.phone, next.name, next.area, next.service, next.email, next.avatar, next.poster, next.bio, next.experience_years, next.manager_name, next.password_hash, id);
 
   if (current.type === "salon") {
     db.prepare(`

@@ -210,6 +210,67 @@ export function useProfileEditor({
     reader.readAsDataURL(file);
   }, [notify]);
 
+  const [logoSaving, setLogoSaving] = useState(false);
+  const [posterSaving, setPosterSaving] = useState(false);
+
+  // Direct, one-tap image swap used by the Settings tab — separate from
+  // handleProfileAvatarUpload/profileEditAvatar above, which only stage a
+  // draft for the full "ویرایش پروفایل" form's own submit.
+  const saveProfileImage = useCallback((field, file, { setBusy } = {}) => {
+    if (!createdProfile || !file) return;
+    if (!file.type.startsWith("image/")) {
+      notify("فقط فایل تصویری مجاز است.");
+      return;
+    }
+    if (file.size > 4 * 1024 * 1024) {
+      notify("حجم تصویر باید کمتر از ۴ مگابایت باشد.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const dataUrl = String(reader.result || "");
+      if (!dataUrl) return;
+      setBusy?.(true);
+      try {
+        const response = await fetch("/api/profile", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ data: { [field]: dataUrl } })
+        });
+        const payload = await response.json();
+        if (!response.ok) {
+          notify(payload.error || "ذخیره تصویر انجام نشد.");
+          return;
+        }
+        const profile = normalizeProfile(payload.profile);
+        if (!profile) {
+          notify("ذخیره تصویر انجام نشد.");
+          return;
+        }
+        writeAuthSession(profile);
+        setCreatedProfile(profile);
+        notify(field === "avatar" ? "لوگو بروزرسانی شد." : "پوستر بروزرسانی شد.");
+      } catch {
+        notify("ذخیره تصویر انجام نشد؛ دوباره امتحان کن.");
+      } finally {
+        setBusy?.(false);
+      }
+    };
+    reader.readAsDataURL(file);
+  }, [createdProfile, writeAuthSession, setCreatedProfile, notify]);
+
+  const saveProfileLogo = useCallback((event) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    saveProfileImage("avatar", file, { setBusy: setLogoSaving });
+  }, [saveProfileImage]);
+
+  const saveProfilePoster = useCallback((event) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    saveProfileImage("poster", file, { setBusy: setPosterSaving });
+  }, [saveProfileImage]);
+
   const toggleProfileSetting = useCallback((key) => {
     let nextValue = null;
     setProfileSettings((settings) => {
@@ -244,6 +305,10 @@ export function useProfileEditor({
     saveProfileLocation,
     openProfileEdit,
     handleProfileAvatarUpload,
-    toggleProfileSetting
+    toggleProfileSetting,
+    logoSaving,
+    posterSaving,
+    saveProfileLogo,
+    saveProfilePoster
   };
 }

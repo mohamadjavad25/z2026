@@ -1,10 +1,43 @@
 "use client";
 
-import { Bookmark, ChevronLeft, Pencil } from "lucide-react";
+import { useRef } from "react";
+import { Bookmark, Camera, ChevronLeft, ImagePlus, Pencil } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { ProfileLocationSettings } from "../profile/ProfileLocationSettings";
 import { ProfileSettingsPanel } from "../profile/ProfileSettingsPanel";
 import { SalonHoursEditor } from "../profile/SalonHoursEditor";
+
+/** One tap-to-replace image row (logo/poster) — hidden file input behind a visible button. */
+function ImagePickerRow({ variant, label, hint, image, saving, onPick }) {
+  const inputRef = useRef(null);
+  return (
+    <div className={`settingsImagePicker is-${variant}`}>
+      <div className="settingsImagePickerPreview">
+        {image ? <img src={image} alt="" /> : <ImagePlus size={variant === "logo" ? 18 : 22} />}
+      </div>
+      <div className="settingsImagePickerCopy">
+        <strong>{label}</strong>
+        <small>{hint}</small>
+      </div>
+      <button
+        type="button"
+        className="settingsImagePickerBtn"
+        onClick={() => inputRef.current?.click()}
+        disabled={saving}
+      >
+        <Camera size={14} />
+        {saving ? "در حال آپلود…" : image ? "تغییر" : "افزودن"}
+      </button>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        hidden
+        onChange={onPick}
+      />
+    </div>
+  );
+}
 
 /**
  * Top-level "تنظیمات" tab — replaces the old Explore tab. Same settings
@@ -17,6 +50,10 @@ export function SettingsPage({
   locationSaving = false,
   onSaveLocation,
   onEditProfile,
+  logoSaving = false,
+  posterSaving = false,
+  onSaveLogo,
+  onSavePoster,
   profileSettings,
   onToggleSetting,
   artistBookingSettings = null,
@@ -81,6 +118,27 @@ export function SettingsPage({
             ویرایش
           </em>
         </button>
+
+        <section className="settingsImagesSection" aria-label="لوگو و پوستر">
+          <ImagePickerRow
+            variant="logo"
+            label={isSalon ? "لوگوی سالن" : isArtist ? "لوگو / آواتار" : "عکس پروفایل"}
+            hint="روی پروفایل، کارت‌ها و نتایج جستجو نشان داده می‌شود"
+            image={accountAvatar !== "/profile-icon.svg" ? accountAvatar : ""}
+            saving={logoSaving}
+            onPick={(event) => onSaveLogo?.(event)}
+          />
+          {isArtist || isSalon ? (
+            <ImagePickerRow
+              variant="poster"
+              label="پوستر پروفایل"
+              hint="تصویر پس‌زمینه بالای پروفایل عمومی"
+              image={profile?.data?.poster || ""}
+              saving={posterSaving}
+              onPick={(event) => onSavePoster?.(event)}
+            />
+          ) : null}
+        </section>
 
         {isArtist || isSalon ? (
           <section className="salonSettingsBookmarkCard" aria-label="بوکمارک‌ها">

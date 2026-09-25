@@ -35,6 +35,7 @@ export function normalizeProfile(profile) {
       phone: profile.phone || "",
       email: profile.email || "",
       avatar: profile.avatar || "",
+      poster: profile.poster || "",
       bio: profile.bio || "",
       experienceYears: profile.experienceYears || profile.experience_years || "",
       managerName: profile.managerName || profile.manager_name || ""

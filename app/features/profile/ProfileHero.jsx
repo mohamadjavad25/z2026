@@ -30,7 +30,6 @@ export function ProfileHero({
   activePanel,
   onOpenSaved,
   onOpenNotifications,
-  onOpenSettings,
   onShare,
   notificationCount = 0,
   showShare = false,
@@ -40,6 +39,7 @@ export function ProfileHero({
   const type = profile?.type || "";
   const name = profile?.data?.name || "پروفایل زیبابان";
   const avatar = profile?.data?.avatar || "/profile-icon.svg";
+  const poster = profile?.data?.poster || "";
   const [qrSheetOpen, setQrSheetOpen] = useState(false);
   if (!profile) return null;
 
@@ -50,13 +50,14 @@ export function ProfileHero({
 
     return (
       <div className={`profileHero ${heroClass}`}>
-        <div className="salonHeroBanner" />
+        <div className="salonHeroBanner">
+          {poster ? <img className="salonHeroBannerImage" src={poster} alt="" aria-hidden="true" /> : null}
+        </div>
         <ProfileHeroActions
           activePanel={activePanel}
           profileType={type}
           onOpenSaved={onOpenSaved}
           onOpenNotifications={onOpenNotifications}
-          onOpenSettings={onOpenSettings}
           onShare={onShare}
           notificationCount={notificationCount}
           showShare={showShare}
@@ -142,7 +143,11 @@ export function ProfileHero({
 
   return (
     <div className={`profileHero ${heroClass}`}>
-      {type === "artist" ? <div className="artistHeroPoster" aria-hidden="true" /> : null}
+      {type === "artist" ? (
+        <div className="artistHeroPoster" aria-hidden="true">
+          {poster ? <img className="artistHeroPosterImage" src={poster} alt="" /> : null}
+        </div>
+      ) : null}
       <div className="profileStoryAvatarWrap">
         <img className="profileAvatarImage" src={avatar} alt="" aria-hidden="true" />
       </div>
@@ -177,7 +182,6 @@ export function ProfileHero({
           profileType={type}
           onOpenSaved={onOpenSaved}
           onOpenNotifications={onOpenNotifications}
-          onOpenSettings={onOpenSettings}
         onPreviewPublic={onPreviewPublic}
         notificationCount={notificationCount}
       />

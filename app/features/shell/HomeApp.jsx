@@ -726,7 +726,11 @@ export function HomeApp() {
     saveProfileLocation,
     openProfileEdit,
     handleProfileAvatarUpload,
-    toggleProfileSetting
+    toggleProfileSetting,
+    logoSaving,
+    posterSaving,
+    saveProfileLogo,
+    saveProfilePoster
   } = useProfileEditor({
     createdProfile,
     setCreatedProfile,
@@ -1748,6 +1752,10 @@ function getPassportMatch(post) {
             locationSaving={profileLocationSaving}
             onSaveLocation={saveProfileLocation}
             onEditProfile={openProfileEdit}
+            logoSaving={logoSaving}
+            posterSaving={posterSaving}
+            onSaveLogo={saveProfileLogo}
+            onSavePoster={saveProfilePoster}
             profileSettings={profileSettings}
             onToggleSetting={toggleProfileSetting}
             artistBookingSettings={artistBookingSettings}
@@ -1881,7 +1889,6 @@ function getPassportMatch(post) {
                       ? unseenClientBookingCount
                       : 0
               }
-              onOpenSettings={() => setActiveTab("settings")}
               onShare={shareSalonOwnerProfile}
               showShare={createdProfile?.type === "salon"}
               onPreviewPublic={() => {

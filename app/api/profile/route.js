@@ -36,6 +36,7 @@ export async function POST(request) {
       service: data.service,
       email: data.email,
       avatar: data.avatar,
+      poster: data.poster,
       bio: data.bio,
       experienceYears: data.experienceYears,
       managerName: data.managerName

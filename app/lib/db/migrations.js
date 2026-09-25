@@ -3,7 +3,7 @@ import { applySchema } from "./schema.js";
 // Exported so scripts/migration-sequential.test.mjs (and any other
 // verification script) can assert against the live value instead of a
 // hardcoded number that silently drifts out of date every time this bumps.
-export const SCHEMA_VERSION = 37;
+export const SCHEMA_VERSION = 38;
 
 /** Convert legacy session expiry strings (ISO / SQLite datetime) to epoch ms. Unparseable → 0 (expired). */
 export function sessionExpiryToEpochMs(value) {
@@ -993,6 +993,15 @@ function migrateToV37(database) {
   applySchema(database);
 }
 
+/** users.poster: the profile hero's banner/cover image (logo already had `avatar`; the poster/banner had no stored image at all, only a decorative CSS pattern), streamed the same way as avatar via /api/media/poster/[userId]. */
+function migrateToV38(database) {
+  migrateToV37(database);
+  if (tableExists(database, "users") && !columnExists(database, "users", "poster")) {
+    database.exec("ALTER TABLE users ADD COLUMN poster TEXT NOT NULL DEFAULT '';");
+  }
+  applySchema(database);
+}
+
 function readSchemaVersion(database) {
   const row = database.prepare("SELECT value FROM app_meta WHERE key = 'schema_version'").get();
   return Number(row?.value || 0);
@@ -1041,7 +1050,8 @@ const MIGRATION_STEPS = [
   { version: 34, migrate: migrateToV34 },
   { version: 35, migrate: migrateToV35 },
   { version: 36, migrate: migrateToV36 },
-  { version: 37, migrate: migrateToV37 }
+  { version: 37, migrate: migrateToV37 },
+  { version: 38, migrate: migrateToV38 }
 ];
 
 export function ensureSchemaVersion(database) {
