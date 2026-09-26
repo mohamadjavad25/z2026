@@ -43,13 +43,6 @@ function PasswordField({ name, placeholder, ariaLabel, required, minLength, onIn
   );
 }
 
-function handlePasswordConfirmInput(event) {
-  const form = event.currentTarget.form;
-  const password = form?.elements?.password?.value || "";
-  const confirm = event.currentTarget;
-  confirm.setCustomValidity(confirm.value && confirm.value !== password ? "رمز عبور و تکرار آن یکسان نیستند" : "");
-}
-
 // No SMS/OTP provider is wired in yet, so this can't be real self-service
 // password reset — it files a manual-recovery request the founder/support
 // follows up on by phone (see app/api/auth/password-reset-requests). Still
@@ -86,7 +79,7 @@ function PasswordRecoveryPanel({ onClose }) {
     return (
       <div className="signupForm is-login is-recovery">
         <div className="formTitle">
-          <ShieldCheck size={18} />
+          <span className="formTitleIcon"><ShieldCheck size={18} /></span>
           <div>
             <strong>درخواست ثبت شد</strong>
             <span>تیم پشتیبانی طی ۲۴ ساعت با همین شماره تماس می‌گیرد.</span>
@@ -100,7 +93,7 @@ function PasswordRecoveryPanel({ onClose }) {
   return (
     <form className="signupForm is-login is-recovery" onSubmit={handleSubmit}>
       <div className="formTitle">
-        <ShieldCheck size={18} />
+        <span className="formTitleIcon"><ShieldCheck size={18} /></span>
         <div>
           <strong>بازیابی رمز عبور</strong>
           <span>شماره تماس حسابت را وارد کن تا پشتیبانی برای بازیابی تماس بگیرد.</span>
@@ -219,11 +212,8 @@ export function AuthGateForms({
             تغییر نقش
           </button>
           <div className="formTitle">
-            <Scissors size={18} />
-            <div>
-              <strong>ثبت‌نام سالن زیبایی</strong>
-              <span>اطلاعات اولیه برای ساخت پروفایل حرفه‌ای</span>
-            </div>
+            <span className="formTitleIcon"><Scissors size={18} /></span>
+            <strong>سالن زیبایی</strong>
           </div>
           <label>
             نام سالن
@@ -263,10 +253,6 @@ export function AuthGateForms({
             <PasswordField name="password" placeholder="حداقل ۸ کاراکتر" required minLength={8} />
           </label>
           <label>
-            تکرار رمز عبور
-            <PasswordField name="passwordConfirm" placeholder="رمز عبور را دوباره وارد کن" required onInput={handlePasswordConfirmInput} />
-          </label>
-          <label>
             ایمیل اختیاری
             <input name="email" placeholder="salon@email.com" type="email" />
           </label>
@@ -287,11 +273,8 @@ export function AuthGateForms({
             تغییر نقش
           </button>
           <div className="formTitle">
-            <Brush size={18} />
-            <div>
-              <strong>ثبت‌نام آرتیست</strong>
-              <span>برند شخصی، نمونه‌کار و رزرو مستقیم</span>
-            </div>
+            <span className="formTitleIcon"><Brush size={18} /></span>
+            <strong>آرتیست</strong>
           </div>
           <label>
             نام هنری
@@ -330,10 +313,6 @@ export function AuthGateForms({
             <PasswordField name="password" placeholder="حداقل ۸ کاراکتر" required minLength={8} />
           </label>
           <label>
-            تکرار رمز عبور
-            <PasswordField name="passwordConfirm" placeholder="رمز عبور را دوباره وارد کن" required onInput={handlePasswordConfirmInput} />
-          </label>
-          <label>
             ایمیل اختیاری
             <input name="email" placeholder="artist@email.com" type="email" />
           </label>
@@ -354,11 +333,8 @@ export function AuthGateForms({
             تغییر نقش
           </button>
           <div className="formTitle">
-            <UserRound size={18} />
-            <div>
-              <strong>ثبت‌نام بانو</strong>
-              <span>برای پیشنهاد مدل، تست AI و رزرو دقیق‌تر</span>
-            </div>
+            <span className="formTitleIcon"><UserRound size={18} /></span>
+            <strong>بانو</strong>
           </div>
           <label>
             نام یا نام نمایشی
@@ -384,10 +360,6 @@ export function AuthGateForms({
           <label>
             رمز کاربر
             <PasswordField name="password" placeholder="حداقل ۸ کاراکتر" required minLength={8} />
-          </label>
-          <label>
-            تکرار رمز عبور
-            <PasswordField name="passwordConfirm" placeholder="رمز عبور را دوباره وارد کن" required onInput={handlePasswordConfirmInput} />
           </label>
           <label>
             ایمیل اختیاری

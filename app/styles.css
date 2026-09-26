@@ -4481,16 +4481,21 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 
 .formTitle{
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: var(--space-3);
   padding-bottom: var(--space-2);
   margin-bottom: var(--space-1);
   border-bottom: 1px solid var(--line);
 }
 
-.formTitle svg{
+.formTitleIcon{
   flex: none;
-  margin-top: 2px;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--form-accent, var(--teal)) 14%, white);
   color: var(--form-accent, var(--teal));
 }
 
