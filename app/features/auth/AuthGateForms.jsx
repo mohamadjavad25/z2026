@@ -1,21 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Brush,
-  ChevronLeft,
-  Eye,
-  EyeOff,
-  Scissors,
-  ShieldCheck,
-  UserRound
-} from "lucide-react";
-import {
-  artistSpecialties,
-  profileRoles,
-  salonRegistrationServices
-} from "../../shared/constants/roles";
+import { ChevronLeft, Eye, EyeOff, ShieldCheck } from "lucide-react";
+import { beautySpecialtyOptions, profileRoles } from "../../shared/constants/roles";
 import { ProfileRoleGrid } from "../profile/ProfileRoleGrid";
+import { SpecialtyMultiSelect } from "./SpecialtyMultiSelect";
 
 function PasswordField({ name, placeholder, ariaLabel, required, minLength, onInput, defaultValue }) {
   const [visible, setVisible] = useState(false);
@@ -99,21 +88,19 @@ function PasswordRecoveryPanel({ onClose }) {
           <span>شماره تماس حسابت را وارد کن تا پشتیبانی برای بازیابی تماس بگیرد.</span>
         </div>
       </div>
-      <label>
-        شماره تماس
-        <input
-          name="phone"
-          placeholder="09..."
-          inputMode="tel"
-          dir="ltr"
-          maxLength={11}
-          pattern="09[0-9]{9}"
-          title="شماره موبایل معتبر وارد کن (مثلا 09123456789)"
-          value={phone}
-          onChange={(event) => setPhone(event.target.value)}
-          required
-        />
-      </label>
+      <input
+        name="phone"
+        placeholder="شماره تماس"
+        aria-label="شماره تماس"
+        inputMode="tel"
+        dir="ltr"
+        maxLength={11}
+        pattern="09[0-9]{9}"
+        title="شماره موبایل معتبر وارد کن (مثلا 09123456789)"
+        value={phone}
+        onChange={(event) => setPhone(event.target.value)}
+        required
+      />
       {error ? <p className="authNotice" role="alert">{error}</p> : null}
       <button type="submit" className="profileSubmit" disabled={status === "sending"}>
         {status === "sending" ? "در حال ارسال…" : "ثبت درخواست بازیابی"}
@@ -175,21 +162,17 @@ export function AuthGateForms({
         ) : (
         <>
         <form className="signupForm is-login" onSubmit={onLoginSubmit}>
-          <label>
-            <input
-              name="phone"
-              placeholder="شماره تماس"
-              aria-label="شماره تماس"
-              inputMode="tel"
-              dir="ltr"
-              maxLength={11}
-              defaultValue={lastPhone}
-              required
-            />
-          </label>
-          <label>
-            <PasswordField name="password" placeholder="رمز عبور" ariaLabel="رمز عبور" required />
-          </label>
+          <input
+            name="phone"
+            placeholder="شماره تماس"
+            aria-label="شماره تماس"
+            inputMode="tel"
+            dir="ltr"
+            maxLength={11}
+            defaultValue={lastPhone}
+            required
+          />
+          <PasswordField name="password" placeholder="رمز عبور" ariaLabel="رمز عبور" required />
           <button type="button" className="authForgotLink" onClick={() => setRecoveryOpen(true)}>
             رمز عبور را فراموش کردی؟
           </button>
@@ -212,34 +195,16 @@ export function AuthGateForms({
             تغییر نقش
           </button>
           <div className="formTitle">
-            <span className="formTitleIcon"><Scissors size={18} /></span>
             <strong>سالن زیبایی</strong>
           </div>
-          <label>
-            نام سالن
-            <input name="name" placeholder="مثلا سالن روژان" required />
-          </label>
-          <label>
-            محدوده فعالیت
-            <input name="area" placeholder="مثلا جردن، سعادت‌آباد..." required />
-          </label>
-          <label>
-            خدمات اصلی
-            <select name="service" defaultValue="" required>
-              <option value="" disabled>
-                انتخاب کن
-              </option>
-              <option>تمام خدمات</option>
-              {salonRegistrationServices.map((service) => (
-                <option key={service}>{service}</option>
-              ))}
-            </select>
-          </label>
-          <label>
-            شماره تماس
+          <input name="name" placeholder="نام سالن" aria-label="نام سالن" required />
+          <input name="area" placeholder="محدوده فعالیت" aria-label="محدوده فعالیت" required />
+          <SpecialtyMultiSelect name="service" placeholder="خدمات اصلی" options={beautySpecialtyOptions} required />
+          <div className="formRow">
             <input
               name="phone"
-              placeholder="09..."
+              placeholder="شماره تماس"
+              aria-label="شماره تماس"
               inputMode="tel"
               dir="ltr"
               maxLength={11}
@@ -247,17 +212,11 @@ export function AuthGateForms({
               title="شماره موبایل معتبر وارد کن (مثلا 09123456789)"
               required
             />
-          </label>
-          <label>
-            رمز کاربر
-            <PasswordField name="password" placeholder="حداقل ۸ کاراکتر" required minLength={8} />
-          </label>
-          <label>
-            ایمیل اختیاری
-            <input name="email" placeholder="salon@email.com" type="email" />
-          </label>
+            <PasswordField name="password" placeholder="رمز کاربر" ariaLabel="رمز کاربر" required minLength={8} />
+          </div>
+          <input name="email" placeholder="ایمیل (اختیاری)" aria-label="ایمیل اختیاری" type="email" />
           <button type="submit" className="profileSubmit" disabled={authBusy}>
-            {authBusy ? "در حال ثبت…" : "ساخت پروفایل سالن"}
+            {authBusy ? "در حال ثبت…" : "تکمیل ثبت‌نام"}
           </button>
           <p className="authSwitchHint">
             قبلاً ثبت‌نام کردی؟{" "}
@@ -273,33 +232,16 @@ export function AuthGateForms({
             تغییر نقش
           </button>
           <div className="formTitle">
-            <span className="formTitleIcon"><Brush size={18} /></span>
             <strong>آرتیست</strong>
           </div>
-          <label>
-            نام هنری
-            <input name="name" placeholder="مثلا لنا میکاپ" required />
-          </label>
-          <label>
-            تخصص اصلی
-            <select name="service" defaultValue="" required>
-              <option value="" disabled>
-                انتخاب کن
-              </option>
-              {artistSpecialties.map((specialty) => (
-                <option key={specialty}>{specialty}</option>
-              ))}
-            </select>
-          </label>
-          <label>
-            محدوده / سالن محل کار
-            <input name="area" placeholder="مثلا جردن · سالن روژان" required />
-          </label>
-          <label>
-            شماره تماس
+          <input name="name" placeholder="نام هنری" aria-label="نام هنری" required />
+          <SpecialtyMultiSelect name="service" placeholder="تخصص اصلی" options={beautySpecialtyOptions} required />
+          <input name="area" placeholder="محدوده / سالن محل کار" aria-label="محدوده یا سالن محل کار" required />
+          <div className="formRow">
             <input
               name="phone"
-              placeholder="09..."
+              placeholder="شماره تماس"
+              aria-label="شماره تماس"
               inputMode="tel"
               dir="ltr"
               maxLength={11}
@@ -307,17 +249,11 @@ export function AuthGateForms({
               title="شماره موبایل معتبر وارد کن (مثلا 09123456789)"
               required
             />
-          </label>
-          <label>
-            رمز کاربر
-            <PasswordField name="password" placeholder="حداقل ۸ کاراکتر" required minLength={8} />
-          </label>
-          <label>
-            ایمیل اختیاری
-            <input name="email" placeholder="artist@email.com" type="email" />
-          </label>
+            <PasswordField name="password" placeholder="رمز کاربر" ariaLabel="رمز کاربر" required minLength={8} />
+          </div>
+          <input name="email" placeholder="ایمیل (اختیاری)" aria-label="ایمیل اختیاری" type="email" />
           <button type="submit" className="profileSubmit" disabled={authBusy}>
-            {authBusy ? "در حال ثبت…" : "ساخت پروفایل آرتیست"}
+            {authBusy ? "در حال ثبت…" : "تکمیل ثبت‌نام"}
           </button>
           <p className="authSwitchHint">
             قبلاً ثبت‌نام کردی؟{" "}
@@ -333,22 +269,15 @@ export function AuthGateForms({
             تغییر نقش
           </button>
           <div className="formTitle">
-            <span className="formTitleIcon"><UserRound size={18} /></span>
             <strong>بانو</strong>
           </div>
-          <label>
-            نام یا نام نمایشی
-            <input name="name" placeholder="مثلا نازنین" required />
-          </label>
-          <label>
-            شهر و محدوده
-            <input name="area" placeholder="مثلا تهران، جردن" required />
-          </label>
-          <label>
-            شماره تماس
+          <input name="name" placeholder="نام یا نام نمایشی" aria-label="نام یا نام نمایشی" required />
+          <input name="area" placeholder="شهر و محدوده" aria-label="شهر و محدوده" required />
+          <div className="formRow">
             <input
               name="phone"
-              placeholder="09..."
+              placeholder="شماره تماس"
+              aria-label="شماره تماس"
               inputMode="tel"
               dir="ltr"
               maxLength={11}
@@ -356,17 +285,11 @@ export function AuthGateForms({
               title="شماره موبایل معتبر وارد کن (مثلا 09123456789)"
               required
             />
-          </label>
-          <label>
-            رمز کاربر
-            <PasswordField name="password" placeholder="حداقل ۸ کاراکتر" required minLength={8} />
-          </label>
-          <label>
-            ایمیل اختیاری
-            <input name="email" placeholder="name@email.com" type="email" />
-          </label>
+            <PasswordField name="password" placeholder="رمز کاربر" ariaLabel="رمز کاربر" required minLength={8} />
+          </div>
+          <input name="email" placeholder="ایمیل (اختیاری)" aria-label="ایمیل اختیاری" type="email" />
           <button type="submit" className="profileSubmit" disabled={authBusy}>
-            {authBusy ? "در حال ثبت…" : "ساخت پروفایل بانو"}
+            {authBusy ? "در حال ثبت…" : "تکمیل ثبت‌نام"}
           </button>
           <p className="authSwitchHint">
             قبلاً ثبت‌نام کردی؟{" "}

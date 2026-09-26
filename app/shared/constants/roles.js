@@ -48,7 +48,29 @@ export const profileRoleMeta = {
   }
 };
 
-export const salonRegistrationServices = ["ناخن", "مو و رنگ", "میکاپ", "پوست و ابرو"];
-export const artistSpecialties = ["ناخن", "مو و رنگ", "میکاپ", "پوست و ابرو", "عروس", "چند تخصص"];
+// Base specialty/service catalog shown in the multi-select dropdown on the
+// salon/artist signup forms (SpecialtyMultiSelect.jsx). Deliberately broader
+// than the old single-select list -- a person can still add anything not
+// listed here via the dropdown's own "add" field.
+export const beautySpecialtyOptions = [
+  "ناخن",
+  "کاشت ناخن",
+  "ژل و لاک",
+  "مو و رنگ",
+  "کراتینه و احیا",
+  "اکستنشن مو",
+  "میکاپ",
+  "میکاپ عروس",
+  "ابرو و میکروبلیدینگ",
+  "لمینت مژه و ابرو",
+  "پوست و اپیلاسیون",
+  "وکس بدن",
+  "ماساژ و اسپا",
+  "حنا و مهندی"
+];
+
+// Kept for any older import still expecting these two names.
+export const salonRegistrationServices = beautySpecialtyOptions;
+export const artistSpecialties = beautySpecialtyOptions;
 export const salonArtistRoleOptions = ["ناخن‌کار", "رنگ و لایت", "میکاپ آرتیست", "ابرو و پوست", "براشینگ و شینیون", "کراتین و احیا"];
 export const salonArtistStatusOptions = ["فعال", "غیرفعال", "مرخصی"];

@@ -6,6 +6,7 @@
   --auth-blush: #c45b6a;
   --auth-gold: #c9a46a;
   --auth-teal: #2f6f6c;
+  --auth-input-border: #372c63;
   font-family: "Vazirmatn", Tahoma, sans-serif;
 }
 
@@ -449,20 +450,16 @@
   color: rgba(22, 20, 26, 0.56);
 }
 
-.appShell.is-auth-gate .signupForm label {
-  color: rgba(22, 20, 26, 0.56);
-}
-
 .appShell.is-auth-gate .signupForm input,
-.appShell.is-auth-gate .signupForm select {
-  border-color: rgba(22, 20, 26, 0.12);
-  background: rgba(255, 255, 255, 0.7);
+.appShell.is-auth-gate .signupForm select,
+.appShell.is-auth-gate .specialtySelectTrigger {
+  border-color: var(--auth-input-border);
+  background: transparent;
   color: var(--auth-ink);
 }
 
-.appShell.is-auth-gate .signupForm input:focus,
-.appShell.is-auth-gate .signupForm select:focus {
-  background: #fff;
+.appShell.is-auth-gate .specialtySelectCheck {
+  border-color: var(--auth-input-border);
 }
 
 .appShell.is-auth-gate .signupForm .profileSubmit {

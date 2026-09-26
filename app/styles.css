@@ -4482,9 +4482,23 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 .formTitle{
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: var(--space-3);
-  padding-bottom: var(--space-2);
+  text-align: center;
+  padding-bottom: var(--space-3);
   margin-bottom: var(--space-1);
+}
+
+/* Role forms: a plain centered heading, no icon, no rule beneath -- the
+   role is already the whole point of the title, nothing else to divide
+   it from. Recovery/status panels keep the icon + subtitle layout below. */
+.formTitle:not(:has(.formTitleIcon)){
+  padding-bottom: var(--space-2);
+}
+
+.formTitle:has(.formTitleIcon){
+  justify-content: flex-start;
+  text-align: right;
   border-bottom: 1px solid var(--line);
 }
 
@@ -4505,9 +4519,14 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .formTitle strong{
+  font-size: var(--text-xl);
+  font-weight: 850;
+  letter-spacing: -0.015em;
+}
+
+.formTitle:has(.formTitleIcon) strong{
   font-size: var(--text-lg);
   font-weight: 800;
-  letter-spacing: -0.01em;
 }
 
 .formTitle span{
@@ -4518,27 +4537,35 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   line-height: 1.5;
 }
 
-.signupForm label{
-  display: grid;
-  gap: var(--space-2);
-  color: var(--muted);
-  font-size: var(--text-sm);
-  font-weight: 700;
+/* Fields have no external label anymore (their name is the placeholder
+   text inside the input) -- a plain gap between direct children of the
+   card is all the vertical rhythm they need. A gentle staggered reveal
+   plays on the card's direct children regardless of what they are
+   (input, .formRow, .specialtySelect, the submit button, ...). */
+.signupForm > *{
   opacity: 0;
   transform: translateY(6px);
   animation: signupFieldIn var(--duration-base) var(--ease-standard) forwards;
-  animation-delay: calc(var(--field-index, 0) * 35ms + 60ms);
 }
 
-.signupForm label:nth-of-type(1){ --field-index: 1; }
-.signupForm label:nth-of-type(2){ --field-index: 2; }
-.signupForm label:nth-of-type(3){ --field-index: 3; }
-.signupForm label:nth-of-type(4){ --field-index: 4; }
-.signupForm label:nth-of-type(5){ --field-index: 5; }
-.signupForm label:nth-of-type(6){ --field-index: 6; }
+.signupForm > *:nth-child(1){ animation-delay: 20ms; }
+.signupForm > *:nth-child(2){ animation-delay: 55ms; }
+.signupForm > *:nth-child(3){ animation-delay: 90ms; }
+.signupForm > *:nth-child(4){ animation-delay: 125ms; }
+.signupForm > *:nth-child(5){ animation-delay: 160ms; }
+.signupForm > *:nth-child(6){ animation-delay: 195ms; }
+.signupForm > *:nth-child(7){ animation-delay: 230ms; }
+.signupForm > *:nth-child(8){ animation-delay: 265ms; }
+.signupForm > *:nth-child(9){ animation-delay: 300ms; }
 
 @keyframes signupFieldIn{
   to{ opacity: 1; transform: translateY(0); }
+}
+
+.formRow{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
 }
 
 .authForgotLink{
@@ -4573,10 +4600,12 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 .signupForm select,
 .signupForm textarea{
   width: 100%;
-  border: 1px solid var(--line);
+  /* Same fill as the card around it -- the only thing that reads as an
+     input is the thin indigo-plum hairline, not a fill-color change. */
+  border: 1px solid var(--auth-input-border, color-mix(in srgb, var(--plum) 55%, var(--night) 45%));
   outline: 0;
   border-radius: var(--radius-md);
-  background: var(--surface);
+  background: transparent;
   color: var(--ink);
   font-size: var(--text-base);
   font-weight: 600;
@@ -4603,7 +4632,6 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 .signupForm input:focus,
 .signupForm select:focus,
 .signupForm textarea:focus{
-  background: var(--surface-solid);
   border-color: var(--form-accent, var(--teal));
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--form-accent, var(--teal)) 16%, transparent);
 }
@@ -4669,6 +4697,177 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 
 .profileSubmit:disabled{
   opacity: 0.7;
+}
+
+/* ── Specialty multi-select (SpecialtyMultiSelect.jsx) ─────────────── */
+
+.specialtySelect{
+  /* `.signupForm` is a grid container, and per the Grid/Flexbox spec a
+     grid item's z-index is honored even at position:static -- so without
+     an explicit z-index here, this item paints in plain DOM order among
+     its *sibling* grid items, and the dropdown panel below (however high
+     its own z-index) ends up stacked BEHIND the form's later fields
+     instead of floating over them. */
+  position: relative;
+  z-index: 2;
+}
+
+.specialtySelectTrigger{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  border: 1px solid var(--auth-input-border, color-mix(in srgb, var(--plum) 55%, var(--night) 45%));
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--ink);
+  font-size: var(--text-base);
+  font-weight: 600;
+  font-family: inherit;
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
+}
+
+.specialtySelectTrigger span{
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.specialtySelectTrigger .is-placeholder{
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.specialtySelectTrigger:hover{
+  border-color: color-mix(in srgb, var(--form-accent, var(--teal)) 40%, var(--auth-input-border, var(--line)));
+}
+
+.specialtySelectChevron{
+  flex: none;
+  color: var(--muted);
+  transition: transform var(--duration-fast) ease;
+}
+
+.specialtySelectChevron[data-open="true"]{
+  transform: rotate(180deg);
+}
+
+.specialtySelectValue{
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.specialtySelectPanel{
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + 6px);
+  inset-inline: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface-solid);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-2);
+  max-height: 260px;
+  display: flex;
+  flex-direction: column;
+  animation: signupFieldIn var(--duration-fast) var(--ease-standard) both;
+}
+
+.specialtySelectPanel ul{
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+}
+
+.specialtySelectOption{
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 9px 8px;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background var(--duration-fast) ease;
+}
+
+.specialtySelectOption:hover{
+  background: color-mix(in srgb, var(--form-accent, var(--teal)) 8%, transparent);
+}
+
+.specialtySelectOption input{
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.specialtySelectCheck{
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 1px solid var(--auth-input-border, var(--line));
+  color: #fff;
+}
+
+.specialtySelectOption[data-checked="true"] .specialtySelectCheck{
+  background: var(--form-accent, var(--teal));
+  border-color: var(--form-accent, var(--teal));
+}
+
+.specialtySelectAdd{
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--line);
+}
+
+.specialtySelectAdd input{
+  flex: 1;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  padding: 8px 10px;
+  font-size: var(--text-sm);
+  font-family: inherit;
+  color: var(--ink);
+}
+
+.specialtySelectAdd input:focus{
+  outline: 0;
+  border-color: var(--form-accent, var(--teal));
+}
+
+.specialtySelectAdd button{
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--form-accent, var(--teal));
+  color: #fff;
+  cursor: pointer;
 }
 
 .roleKpiGrid{
@@ -14503,13 +14702,14 @@ body{
     font-size: 0.72rem;
   }
 
-  .signupForm label{
-    font-size: 0.76rem;
+  .formRow{
+    gap: var(--space-2);
   }
 
   .signupForm input,
   .signupForm select,
-  .signupForm textarea{
+  .signupForm textarea,
+  .specialtySelectTrigger{
     min-height: 44px;
     padding: 10px 12px;
     font-size: 0.82rem;
