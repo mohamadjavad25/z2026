@@ -2,26 +2,41 @@ import { Pool } from "pg";
 import { applySchema } from "./schema.js";
 
 /**
- * Vercel's Postgres/Supabase integration sets POSTGRES_URL (pooled, via
- * PgBouncer/Supavisor in transaction mode) and POSTGRES_URL_NON_POOLING
- * (direct connection). We prefer the NON-pooling/direct URL: the `pg`
- * package issues every parameterized query as an extended-protocol
- * (prepared) statement, and PgBouncer's transaction-pooling mode hands out
- * a different physical server connection per transaction, which breaks
- * server-side prepared statements ("prepared statement ... does not
- * exist" or similar opaque failures) -- this is exactly what was causing
- * every write (e.g. registration) to fail after switching this project
- * from SQLite to Supabase Postgres. A serverless function's connection
- * lifetime is short, so a direct connection per invocation is fine; it
- * just doesn't share a pool of already-open TCP connections the way
- * PgBouncer does. DATABASE_URL is accepted as a common fallback name so
- * this also works against a plain self-hosted Postgres.
+ * Vercel's Supabase integration sets POSTGRES_URL (pooled, via Supavisor in
+ * transaction mode -- fine for a serverless function's short connection
+ * lifetime and avoids exhausting Supabase's direct-connection limit) and
+ * POSTGRES_URL_NON_POOLING (direct). DATABASE_URL is accepted as a common
+ * fallback name so this also works against a plain self-hosted Postgres.
  */
-const connectionString =
-  process.env.POSTGRES_URL_NON_POOLING ||
+const rawConnectionString =
   process.env.POSTGRES_URL ||
+  process.env.POSTGRES_URL_NON_POOLING ||
   process.env.DATABASE_URL ||
   "";
+
+/**
+ * Supabase's connection strings include `?sslmode=require` (sometimes with
+ * other query params). `pg` parses that itself and, on some versions,
+ * derives its own default-strict TLS options from it that can win out
+ * over -- or fight with -- an explicit `ssl` config object, producing
+ * `SELF_SIGNED_CERT_IN_CHAIN` even though we pass rejectUnauthorized:false
+ * (Supabase's Postgres presents a cert chain that isn't in Node's default
+ * trust store). Stripping sslmode from the string removes that ambiguity;
+ * our own `ssl` option below is then the only source of truth.
+ */
+function stripSslMode(connString) {
+  if (!connString) return connString;
+  try {
+    const url = new URL(connString);
+    url.searchParams.delete("sslmode");
+    return url.toString();
+  } catch {
+    return connString;
+  }
+}
+
+const connectionString = stripSslMode(rawConnectionString);
+const sslDisabled = rawConnectionString.includes("sslmode=disable");
 
 let pool = null;
 
@@ -34,14 +49,12 @@ function getPool() {
   }
   pool = new Pool({
     connectionString,
-    // Most managed Postgres (Neon/Vercel Postgres included) requires TLS and
-    // presents a certificate that isn't in Node's default trust store in
-    // every environment; rejectUnauthorized:false matches what Vercel's own
+    // Supabase (and most managed Postgres) requires TLS and presents a
+    // certificate chain that isn't in Node's default trust store;
+    // rejectUnauthorized:false matches what Supabase's/Vercel's own
     // Postgres quickstart snippets use. This can be tightened with a real
     // CA bundle later if desired.
-    ssl: connectionString.includes("sslmode=disable")
-      ? false
-      : { rejectUnauthorized: false }
+    ssl: sslDisabled ? false : { rejectUnauthorized: false }
   });
   return pool;
 }
