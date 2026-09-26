@@ -624,6 +624,9 @@ export function useSalonWorkspace({
           if (id && staffIds.has(id)) return false;
           if (id && pendingInviteIds.has(id)) return false;
           if (name && staffNames.has(name)) return false;
+          // An artist with no bio/specialty set hasn't filled in anything
+          // a salon could actually invite them to collaborate on yet.
+          if (!artist.bio || !artist.service) return false;
           return true;
         })
         .map((artist) => {
@@ -641,7 +644,7 @@ export function useSalonWorkspace({
     }
   }, [safeSalonStaffList, createdProfile?.data?.area, shellNotify]);
 
-  const inviteNearbyArtist = useCallback(async (artist) => {
+  const inviteNearbyArtist = useCallback(async (artist, terms = {}) => {
     if (!artist?.id || artistInviteBusyId) return;
     setArtistInviteBusyId(String(artist.id));
     try {
@@ -649,7 +652,12 @@ export function useSalonWorkspace({
         artist_user_id: artist.id,
         role: artist.service || "آرتیست",
         bio: artist.bio || artist.area || "دعوت‌شده از آرتیست‌های نزدیک",
-        access_level: "همکار"
+        access_level: "همکار",
+        days: terms.days || "",
+        from: terms.from || "",
+        to: terms.to || "",
+        share: terms.share || "",
+        capacity: terms.capacity || ""
       });
       if (!ok) {
         shellNotify(payload.error || "دعوت آرتیست انجام نشد.");

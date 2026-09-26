@@ -5,41 +5,17 @@ import { createPortal } from "react-dom";
 import { Check, ChevronDown, MapPin, Send, Sparkles, Store, Trash2, Users, X } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { buildClockOptions } from "../../shared/lib/time";
+import { CAPACITY_PRESETS, DAY_PRESETS, NEGOTIABLE, PresetRow, SHARE_PRESETS } from "../collab/collabPresets";
 
 function getSalonKey(salon) {
   return String(salon.id || salon.source_key || salon.name);
 }
 
-const DAY_PRESETS = [
-  { label: "شنبه تا چهارشنبه", value: "شنبه، یکشنبه، دوشنبه، سه‌شنبه، چهارشنبه" },
-  { label: "آخر هفته", value: "پنجشنبه، جمعه" },
-  { label: "هر روز", value: "شنبه، یکشنبه، دوشنبه، سه‌شنبه، چهارشنبه، پنجشنبه، جمعه" }
-];
-const NEGOTIABLE = "توافقی";
-const SHARE_PRESETS = [
-  ...["۳۰", "۴۰", "۵۰", "۶۰"].map((value) => ({ label: `${value}٪`, value })),
-  { label: NEGOTIABLE, value: NEGOTIABLE }
-];
-const CAPACITY_PRESETS = [
-  ...["۲", "۴", "۶", "۸"].map((value) => ({ label: value, value })),
-  { label: NEGOTIABLE, value: NEGOTIABLE }
-];
-
-function PresetRow({ options, isSelected, onPick }) {
-  return (
-    <div className="collabPresetRow">
-      {options.map((option) => (
-        <button
-          type="button"
-          key={option.label}
-          className={`collabPresetChip ${isSelected(option.value) ? "is-selected" : ""}`}
-          onClick={() => onPick(option.value)}
-        >
-          {option.label}
-        </button>
-      ))}
-    </div>
-  );
+/** A salon with no bio and no services has nothing for an artist to
+ *  evaluate before proposing terms -- keep it out of the picker until the
+ *  salon has actually filled its profile in. */
+function hasCollabInfo(salon) {
+  return Boolean(salon.bio) && Array.isArray(salon.services) && salon.services.length > 0;
 }
 
 /** Minimal styled dropdown — replaces the native <select>'s OS-rendered popup. */
@@ -104,6 +80,18 @@ function statusTone(status) {
   if (status === "تایید شد") return "is-active";
   if (status === "رد شد" || status === "لغو شد" || status === "پایان یافت") return "is-ended";
   return "is-pending";
+}
+
+/** Compact one-line summary of a salon-sent invite's terms — days/hours/
+ *  share/capacity, whichever the salon actually filled in. Empty when the
+ *  salon set no terms at all (e.g. an older plain team invite). */
+function formatInviteTerms(invite) {
+  return [
+    invite.days,
+    invite.from && invite.to ? `${invite.from} تا ${invite.to}` : "",
+    invite.share ? `${invite.share}٪ سهم` : "",
+    invite.capacity ? `ظرفیت ${invite.capacity}` : ""
+  ].filter(Boolean).join(" · ");
 }
 
 function CollabAvatar({ src }) {
@@ -313,7 +301,7 @@ export function ArtistCollabBoard({
   onInviteRespond
 }) {
   const [previewSalon, setPreviewSalon] = useState(null);
-  const hiringSalons = salons;
+  const hiringSalons = salons.filter(hasCollabInfo);
   const selectedSalon = salons.find((item) => String(item.id) === String(draft.salonId)) || hiringSalons[0];
   const pendingInvites = invites.filter((item) => item.status === "در انتظار تایید");
   const handledInvites = invites.filter((item) => item.status !== "در انتظار تایید");
@@ -333,7 +321,7 @@ export function ArtistCollabBoard({
                   avatar={invite.salonAvatar}
                   title={invite.salonName || "سالن زیبابان"}
                   subtitle={invite.role || invite.artistService || "همکار سالن"}
-                  meta={invite.salonArea}
+                  meta={formatInviteTerms(invite) || invite.salonArea}
                   actions={
                     <div className="collabRowActions">
                       <button
@@ -440,7 +428,7 @@ export function ArtistCollabBoard({
                 avatar={invite.salonAvatar}
                 title={invite.salonName || "سالن زیبابان"}
                 subtitle={invite.role || "همکار"}
-                meta={invite.salonArea}
+                meta={formatInviteTerms(invite) || invite.salonArea}
                 status={invite.status}
               />
             ))}

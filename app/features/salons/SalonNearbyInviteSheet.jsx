@@ -1,9 +1,74 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Copy, QrCode, Search, Send } from "lucide-react";
+import { Check, ChevronDown, Copy, QrCode, Search, Send } from "lucide-react";
 import { ProfileSheet } from "../profile/ProfileSheet";
 import { useQrCode } from "../../shared/hooks/useQrCode";
+import { CAPACITY_PRESETS, DAY_PRESETS, HOUR_RANGE_PRESETS, PresetRow, SHARE_PRESETS } from "../collab/collabPresets";
+
+const DEFAULT_TERMS = {
+  days: DAY_PRESETS[2].value,
+  from: HOUR_RANGE_PRESETS[0].from,
+  to: HOUR_RANGE_PRESETS[0].to,
+  share: SHARE_PRESETS[1].value,
+  capacity: CAPACITY_PRESETS[1].value
+};
+
+/** Light, tap-only terms picker shown before a salon-sent invite goes out —
+ *  every field starts pre-filled with a sensible default so confirming
+ *  needs no typing at all; the chips are only there to adjust it. */
+function InviteTermsPanel({ terms, onChange, onConfirm, onCancel, busy }) {
+  const hourLabel = HOUR_RANGE_PRESETS.find((p) => p.from === terms.from && p.to === terms.to)?.label
+    || `${terms.from} تا ${terms.to}`;
+  return (
+    <div className="artistInviteTermsPanel">
+      <div className="artistInviteTermsField">
+        <span>روزها</span>
+        <PresetRow
+          options={DAY_PRESETS}
+          isSelected={(value) => terms.days === value}
+          onPick={(value) => onChange({ days: value })}
+        />
+      </div>
+      <div className="artistInviteTermsField">
+        <span>ساعت</span>
+        <PresetRow
+          options={HOUR_RANGE_PRESETS.map((p) => ({ label: p.label, value: p.label }))}
+          isSelected={(value) => value === hourLabel}
+          onPick={(value) => {
+            const preset = HOUR_RANGE_PRESETS.find((p) => p.label === value);
+            if (preset) onChange({ from: preset.from, to: preset.to });
+          }}
+        />
+      </div>
+      <div className="artistInviteTermsField">
+        <span>سهم آرتیست</span>
+        <PresetRow
+          options={SHARE_PRESETS}
+          isSelected={(value) => terms.share === value}
+          onPick={(value) => onChange({ share: value })}
+        />
+      </div>
+      <div className="artistInviteTermsField">
+        <span>ظرفیت روزانه</span>
+        <PresetRow
+          options={CAPACITY_PRESETS}
+          isSelected={(value) => terms.capacity === value}
+          onPick={(value) => onChange({ capacity: value })}
+        />
+      </div>
+      <div className="artistInviteTermsActions">
+        <button type="button" className="artistInviteTermsCancel" onClick={onCancel}>
+          انصراف
+        </button>
+        <button type="button" className="artistInviteSend" disabled={busy} onClick={onConfirm}>
+          <Send size={14} aria-hidden="true" />
+          {busy ? "..." : "ارسال دعوت"}
+        </button>
+      </div>
+    </div>
+  );
+}
 
 /**
  * Salon owner — add-artist sheet: QR/link join (fast, in-person — the artist
@@ -22,10 +87,27 @@ export function SalonNearbyInviteSheet({
   onInvite
 }) {
   const [copied, setCopied] = useState(false);
+  const [expandedId, setExpandedId] = useState("");
+  const [terms, setTerms] = useState(DEFAULT_TERMS);
   const joinUrl = open && salonId && typeof window !== "undefined"
     ? `${window.location.origin}/join-salon/${salonId}`
     : "";
   const qrDataUrl = useQrCode(joinUrl, open);
+
+  function toggleTerms(artist) {
+    const id = String(artist.id || artist.name);
+    if (expandedId === id) {
+      setExpandedId("");
+      return;
+    }
+    setTerms(DEFAULT_TERMS);
+    setExpandedId(id);
+  }
+
+  function confirmInvite(artist) {
+    onInvite?.(artist, terms);
+    setExpandedId("");
+  }
 
   async function copyJoinLink() {
     if (!joinUrl) return;
@@ -80,29 +162,42 @@ export function SalonNearbyInviteSheet({
         <div className="artistInviteList" aria-label="لیست آرتیست‌های نزدیک">
           {artists.map((artist) => {
             const busy = String(busyId) === String(artist.id);
+            const id = String(artist.id || artist.name);
+            const expanded = expandedId === id;
             return (
-              <article className="artistInviteRow" key={artist.id || artist.name}>
-                <span className={`artistInviteAvatar ${artist.avatar ? "hasImage" : ""}`} aria-hidden="true">
-                  {artist.avatar ? <img src={artist.avatar} alt="" /> : String(artist.name || "آ").slice(0, 1)}
-                </span>
-                <div className="artistInviteCopy">
-                  <b>{artist.name || "آرتیست زیبابان"}</b>
-                  <span>
-                    {artist.service || "آرتیست"}
-                    {artist.area ? ` · ${artist.area}` : ""}
+              <div className="artistInviteEntry" key={id}>
+                <article className="artistInviteRow">
+                  <span className={`artistInviteAvatar ${artist.avatar ? "hasImage" : ""}`} aria-hidden="true">
+                    {artist.avatar ? <img src={artist.avatar} alt="" /> : String(artist.name || "آ").slice(0, 1)}
                   </span>
-                  {artist.isNearby ? <em>نزدیک به محدوده سالن</em> : null}
-                </div>
-                <button
-                  type="button"
-                  className="artistInviteSend"
-                  disabled={busy}
-                  onClick={() => onInvite?.(artist)}
-                >
-                  <Send size={14} aria-hidden="true" />
-                  {busy ? "..." : "دعوت"}
-                </button>
-              </article>
+                  <div className="artistInviteCopy">
+                    <b>{artist.name || "آرتیست زیبابان"}</b>
+                    <span>
+                      {artist.service || "آرتیست"}
+                      {artist.area ? ` · ${artist.area}` : ""}
+                    </span>
+                    {artist.isNearby ? <em>نزدیک به محدوده سالن</em> : null}
+                  </div>
+                  <button
+                    type="button"
+                    className={`artistInviteSend ${expanded ? "is-open" : ""}`}
+                    disabled={busy}
+                    onClick={() => toggleTerms(artist)}
+                  >
+                    {expanded ? <ChevronDown size={14} aria-hidden="true" /> : <Send size={14} aria-hidden="true" />}
+                    {busy ? "..." : expanded ? "بستن" : "دعوت"}
+                  </button>
+                </article>
+                {expanded ? (
+                  <InviteTermsPanel
+                    terms={terms}
+                    onChange={(patch) => setTerms((current) => ({ ...current, ...patch }))}
+                    onConfirm={() => confirmInvite(artist)}
+                    onCancel={() => setExpandedId("")}
+                    busy={busy}
+                  />
+                ) : null}
+              </div>
             );
           })}
         </div>

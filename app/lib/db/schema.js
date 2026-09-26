@@ -260,6 +260,11 @@ const SCHEMA_SQL = `
     role TEXT NOT NULL DEFAULT '',
     bio TEXT NOT NULL DEFAULT '',
     access_level TEXT NOT NULL DEFAULT 'همکار',
+    days TEXT NOT NULL DEFAULT '',
+    from_time TEXT NOT NULL DEFAULT '',
+    to_time TEXT NOT NULL DEFAULT '',
+    share_percent TEXT NOT NULL DEFAULT '',
+    capacity TEXT NOT NULL DEFAULT '',
     status TEXT NOT NULL DEFAULT 'در انتظار تایید',
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -316,6 +321,17 @@ const SCHEMA_SQL = `
   -- Backs the booking-conflict/day-listing hot path (listActiveDayBookings
   -- in repos/salons/bookings.js).
   CREATE INDEX IF NOT EXISTS idx_salon_bookings_day ON salon_bookings (salon_user_id, booking_date, status);
+
+  -- salon_artist_invites gained collaboration-terms columns (days/hours/
+  -- share/capacity, mirroring artist_collabs) after this table already
+  -- existed in production -- CREATE TABLE IF NOT EXISTS above never
+  -- touches an already-existing table, so the columns are added here
+  -- explicitly for databases that created the table before this change.
+  ALTER TABLE salon_artist_invites ADD COLUMN IF NOT EXISTS days TEXT NOT NULL DEFAULT '';
+  ALTER TABLE salon_artist_invites ADD COLUMN IF NOT EXISTS from_time TEXT NOT NULL DEFAULT '';
+  ALTER TABLE salon_artist_invites ADD COLUMN IF NOT EXISTS to_time TEXT NOT NULL DEFAULT '';
+  ALTER TABLE salon_artist_invites ADD COLUMN IF NOT EXISTS share_percent TEXT NOT NULL DEFAULT '';
+  ALTER TABLE salon_artist_invites ADD COLUMN IF NOT EXISTS capacity TEXT NOT NULL DEFAULT '';
 `;
 
 export async function applySchema(runner) {

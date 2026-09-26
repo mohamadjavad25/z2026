@@ -399,6 +399,55 @@
   cursor: default;
 }
 
+.artistInviteSend.is-open {
+  background: rgba(28, 32, 44, 0.08);
+  color: var(--ink);
+}
+
+.artistInviteEntry {
+  display: grid;
+  gap: 8px;
+}
+
+.artistInviteTermsPanel {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(28, 32, 44, 0.08);
+  border-radius: 16px;
+  background: rgba(28, 32, 44, 0.03);
+}
+
+.artistInviteTermsField {
+  display: grid;
+  gap: 6px;
+}
+
+.artistInviteTermsField > span {
+  color: rgba(28, 32, 44, 0.55);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.artistInviteTermsActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.artistInviteTermsCancel {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid rgba(28, 32, 44, 0.14);
+  border-radius: 12px;
+  background: none;
+  color: rgba(28, 32, 44, 0.6);
+  font-size: 0.72rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
 .artistInviteEmpty {
   display: grid;
   justify-items: center;

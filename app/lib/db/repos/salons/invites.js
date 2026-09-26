@@ -23,6 +23,11 @@ function mapSalonInvite(row) {
     role: row.role || "",
     bio: row.bio || "",
     accessLevel: row.access_level || "همکار",
+    days: row.days || "",
+    from: row.from_time || "",
+    to: row.to_time || "",
+    share: row.share_percent || "",
+    capacity: row.capacity || "",
     status: row.status || PENDING,
     createdAt: row.created_at,
     updatedAt: row.updated_at
@@ -177,6 +182,11 @@ export async function createSalonArtistInvite(salonUserId, data) {
   const role = data.role || artist.service || "آرتیست";
   const bio = data.bio || artist.bio || artist.area || "دعوت‌شده از آرتیست‌های نزدیک";
   const accessLevel = data.accessLevel || data.access_level || "همکار";
+  const days = data.days || "";
+  const fromTime = data.from || data.fromTime || data.from_time || "";
+  const toTime = data.to || data.toTime || data.to_time || "";
+  const sharePercent = data.share || data.sharePercent || data.share_percent || "";
+  const capacity = data.capacity || "";
 
   if (existing) {
     if (existing.status === PENDING) {
@@ -192,18 +202,18 @@ export async function createSalonArtistInvite(salonUserId, data) {
     }
     await run(db, `
       UPDATE salon_artist_invites
-      SET role = ?, bio = ?, access_level = ?, status = ?, updated_at = CURRENT_TIMESTAMP
+      SET role = ?, bio = ?, access_level = ?, days = ?, from_time = ?, to_time = ?, share_percent = ?, capacity = ?, status = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
-    `, [role, bio, accessLevel, PENDING, existing.id]);
+    `, [role, bio, accessLevel, days, fromTime, toTime, sharePercent, capacity, PENDING, existing.id]);
     return { ok: true, invite: mapSalonInvite(await getInviteRow(existing.id, db)), created: false };
   }
 
   const info = await run(db, `
     INSERT INTO salon_artist_invites
-      (salon_user_id, artist_user_id, role, bio, access_level, status)
-    VALUES (?, ?, ?, ?, ?, ?)
+      (salon_user_id, artist_user_id, role, bio, access_level, days, from_time, to_time, share_percent, capacity, status)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     RETURNING id
-  `, [salonUserId, artistUserId, role, bio, accessLevel, PENDING]);
+  `, [salonUserId, artistUserId, role, bio, accessLevel, days, fromTime, toTime, sharePercent, capacity, PENDING]);
 
   return {
     ok: true,
@@ -357,6 +367,14 @@ export async function respondArtistSalonInvite(id, artistUserId, status) {
   let staffCreated = false;
 
   if (nextStatus === ACCEPTED) {
+    const termsBio = [
+      current.bio || "دعوت تایید‌شده توسط آرتیست",
+      current.days ? `روزها: ${current.days}` : "",
+      current.from_time && current.to_time ? `ساعت: ${current.from_time} تا ${current.to_time}` : "",
+      current.share_percent ? `سهم آرتیست: ${current.share_percent}٪` : "",
+      current.capacity ? `ظرفیت روزانه: ${current.capacity}` : ""
+    ].filter(Boolean).join(" · ");
+
     const existingStaff = await get(db, `
       SELECT * FROM salon_staff
       WHERE salon_user_id = ? AND artist_user_id = ?
@@ -366,9 +384,9 @@ export async function respondArtistSalonInvite(id, artistUserId, status) {
     if (existingStaff) {
       await run(db, `
         UPDATE salon_staff
-        SET state = ?, access_level = ?, role = COALESCE(NULLIF(?, ''), role), updated_at = CURRENT_TIMESTAMP
+        SET state = ?, access_level = ?, role = COALESCE(NULLIF(?, ''), role), bio = ?, updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
-      `, ["فعال", current.access_level || "همکار", current.role || "", existingStaff.id]);
+      `, ["فعال", current.access_level || "همکار", current.role || "", termsBio, existingStaff.id]);
       staffPerson = await get(db, "SELECT * FROM salon_staff WHERE id = ?", [existingStaff.id]);
       staffCreated = false;
     } else {
@@ -377,7 +395,7 @@ export async function respondArtistSalonInvite(id, artistUserId, status) {
         name: invite.artistName,
         phone: invite.artistPhone || "",
         role: current.role || invite.artistService || "آرتیست",
-        bio: current.bio || "دعوت تایید‌شده توسط آرتیست",
+        bio: termsBio,
         booked: "۰ وقت",
         state: "فعال",
         access_level: current.access_level || "همکار"
