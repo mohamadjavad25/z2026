@@ -2,19 +2,24 @@ import { Pool } from "pg";
 import { applySchema } from "./schema.js";
 
 /**
- * Vercel's Postgres/Neon integration (and most managed Postgres providers)
- * set POSTGRES_URL (pooled, for normal app traffic) and
- * POSTGRES_URL_NON_POOLING (direct, for long-lived/transactional work). We
- * default to the pooled URL for everything -- a serverless function's
- * request lifecycle is short, and withTransaction() below still gets one
- * dedicated client checked out of the pool for its whole BEGIN..COMMIT, so
- * pooling at the connection level doesn't interfere with transaction
- * correctness. DATABASE_URL is accepted as a common fallback name so this
- * also works against a plain self-hosted Postgres.
+ * Vercel's Postgres/Supabase integration sets POSTGRES_URL (pooled, via
+ * PgBouncer/Supavisor in transaction mode) and POSTGRES_URL_NON_POOLING
+ * (direct connection). We prefer the NON-pooling/direct URL: the `pg`
+ * package issues every parameterized query as an extended-protocol
+ * (prepared) statement, and PgBouncer's transaction-pooling mode hands out
+ * a different physical server connection per transaction, which breaks
+ * server-side prepared statements ("prepared statement ... does not
+ * exist" or similar opaque failures) -- this is exactly what was causing
+ * every write (e.g. registration) to fail after switching this project
+ * from SQLite to Supabase Postgres. A serverless function's connection
+ * lifetime is short, so a direct connection per invocation is fine; it
+ * just doesn't share a pool of already-open TCP connections the way
+ * PgBouncer does. DATABASE_URL is accepted as a common fallback name so
+ * this also works against a plain self-hosted Postgres.
  */
 const connectionString =
-  process.env.POSTGRES_URL ||
   process.env.POSTGRES_URL_NON_POOLING ||
+  process.env.POSTGRES_URL ||
   process.env.DATABASE_URL ||
   "";
 
