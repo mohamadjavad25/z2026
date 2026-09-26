@@ -732,6 +732,8 @@ export function HomeApp() {
     toggleProfileSetting,
     logoSaving,
     posterSaving,
+    avatarPreview,
+    posterPreview,
     saveProfileLogo,
     saveProfilePoster
   } = useProfileEditor({
@@ -1757,6 +1759,8 @@ function getPassportMatch(post) {
             onEditProfile={openProfileEdit}
             logoSaving={logoSaving}
             posterSaving={posterSaving}
+            avatarPreview={avatarPreview}
+            posterPreview={posterPreview}
             onSaveLogo={saveProfileLogo}
             onSavePoster={saveProfilePoster}
             profileSettings={profileSettings}

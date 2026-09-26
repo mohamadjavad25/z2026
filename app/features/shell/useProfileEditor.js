@@ -212,11 +212,21 @@ export function useProfileEditor({
 
   const [logoSaving, setLogoSaving] = useState(false);
   const [posterSaving, setPosterSaving] = useState(false);
+  // Same-tab preview of a just-picked avatar/poster, shown instead of the
+  // server's `/api/media/.../[userId]` URL until the next real page load.
+  // That URL is stable per user, so after re-uploading a *different* image
+  // the <img src> string never changes -- React never re-renders it and
+  // the browser never even asks for the new bytes, so the old picture
+  // just stays put (reported bug: picking another image "doesn't replace"
+  // the old one). Holding the freshly-read data URL locally sidesteps
+  // that entirely: it's the literal new bytes, not a URL to refetch.
+  const [avatarPreview, setAvatarPreview] = useState("");
+  const [posterPreview, setPosterPreview] = useState("");
 
   // Direct, one-tap image swap used by the Settings tab — separate from
   // handleProfileAvatarUpload/profileEditAvatar above, which only stage a
   // draft for the full "ویرایش پروفایل" form's own submit.
-  const saveProfileImage = useCallback((field, file, { setBusy } = {}) => {
+  const saveProfileImage = useCallback((field, file, { setBusy, setPreview } = {}) => {
     if (!createdProfile || !file) return;
     if (!file.type.startsWith("image/")) {
       notify("فقط فایل تصویری مجاز است.");
@@ -230,6 +240,7 @@ export function useProfileEditor({
     reader.onload = async () => {
       const dataUrl = String(reader.result || "");
       if (!dataUrl) return;
+      setPreview?.(dataUrl);
       setBusy?.(true);
       try {
         const response = await fetch("/api/profile", {
@@ -262,13 +273,13 @@ export function useProfileEditor({
   const saveProfileLogo = useCallback((event) => {
     const file = event.target.files?.[0];
     event.target.value = "";
-    saveProfileImage("avatar", file, { setBusy: setLogoSaving });
+    saveProfileImage("avatar", file, { setBusy: setLogoSaving, setPreview: setAvatarPreview });
   }, [saveProfileImage]);
 
   const saveProfilePoster = useCallback((event) => {
     const file = event.target.files?.[0];
     event.target.value = "";
-    saveProfileImage("poster", file, { setBusy: setPosterSaving });
+    saveProfileImage("poster", file, { setBusy: setPosterSaving, setPreview: setPosterPreview });
   }, [saveProfileImage]);
 
   const toggleProfileSetting = useCallback((key) => {
@@ -308,6 +319,8 @@ export function useProfileEditor({
     toggleProfileSetting,
     logoSaving,
     posterSaving,
+    avatarPreview,
+    posterPreview,
     saveProfileLogo,
     saveProfilePoster
   };

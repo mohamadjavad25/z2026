@@ -94,6 +94,8 @@ export function SettingsPage({
   onEditProfile,
   logoSaving = false,
   posterSaving = false,
+  avatarPreview = "",
+  posterPreview = "",
   onSaveLogo,
   onSavePoster,
   profileSettings,
@@ -131,7 +133,7 @@ export function SettingsPage({
     : isSalon
       ? "لوگو، نام سالن، شماره تماس و مسیر رزرو"
       : "عکس، نام، تماس، ایمیل و رمز عبور";
-  const accountAvatar = profile?.data?.avatar || profile?.avatar || "/profile-icon.svg";
+  const accountAvatar = avatarPreview || profile?.data?.avatar || profile?.avatar || "/profile-icon.svg";
 
   return (
     <div className={`settingsPagePanel mobilePage page-settings ${active ? "is-active" : ""}`} id="settings">
@@ -145,7 +147,7 @@ export function SettingsPage({
 
         <BrandCard
           hasPoster={isArtist || isSalon}
-          poster={profile?.data?.poster || ""}
+          poster={posterPreview || profile?.data?.poster || ""}
           avatar={accountAvatar}
           logoSaving={logoSaving}
           posterSaving={posterSaving}
