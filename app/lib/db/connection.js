@@ -98,15 +98,41 @@ export async function run(runner, sql, params = []) {
   return { changes: result.rowCount || 0, rows: result.rows };
 }
 
+// Arbitrary fixed key for the schema-setup advisory lock (any bigint works;
+// just needs to be the same constant everywhere this runs).
+const SCHEMA_LOCK_KEY = 727310;
+
 let ready = false;
 let readyPromise = null;
 
+/**
+ * `CREATE TABLE IF NOT EXISTS` is not safe under concurrent execution --
+ * two connections can both see "doesn't exist yet" and race to create it,
+ * and one loses with a duplicate-key error against Postgres's own system
+ * catalog (pg_type), not a real app table. On Vercel this is common:
+ * several serverless instances can cold-start around the same moment,
+ * each running ensureDb() for the first time in its own process memory
+ * (the `ready` flag above only dedupes within a single instance). A
+ * Postgres advisory lock serializes applySchema() across every instance
+ * hitting the same database, so only one actually runs the DDL at a time
+ * and the rest wait, then find the schema already there.
+ */
 export async function ensureDb() {
   if (ready) return getPool();
   if (!readyPromise) {
     readyPromise = (async () => {
       const p = getPool();
-      await applySchema(p);
+      const client = await p.connect();
+      try {
+        await client.query("SELECT pg_advisory_lock($1)", [SCHEMA_LOCK_KEY]);
+        try {
+          await applySchema(client);
+        } finally {
+          await client.query("SELECT pg_advisory_unlock($1)", [SCHEMA_LOCK_KEY]);
+        }
+      } finally {
+        client.release();
+      }
       ready = true;
       return p;
     })();
