@@ -559,25 +559,8 @@
 }
 
 .hoursOpenToggle {
-  min-width: 72px;
-  min-height: 36px;
-  border: 0;
-  border-radius: 999px;
-  padding: 0 14px;
-  font-family: inherit;
-  font-size: 0.74rem;
-  font-weight: 900;
+  flex: 0 0 auto;
   cursor: pointer;
-}
-
-.hoursOpenToggle.is-on {
-  background: rgba(96, 81, 155, 0.16);
-  color: var(--teal);
-}
-
-.hoursOpenToggle.is-off {
-  background: rgba(28, 32, 44, 0.08);
-  color: var(--muted);
 }
 
 .hoursDayRange {

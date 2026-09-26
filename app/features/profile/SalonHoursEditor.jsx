@@ -1,7 +1,7 @@
 "use client";
 
 import { createPortal } from "react-dom";
-import { ChevronDown, Copy, Minus, Plus, Timer, X } from "lucide-react";
+import { ChevronDown, CopyCheck, Minus, Plus, Timer, X } from "lucide-react";
 import { BreakTimeWheel } from "../../components/BreakTimeWheel";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { shortPersianWeekday, timeLabelToMinutes } from "../../shared/lib/time";
@@ -133,14 +133,19 @@ export function SalonHoursEditor({
                     <strong>{selectedHour.day}</strong>
                     <span>{selectedHour.active ? "برای این روز وقت می‌گیری" : "این روز تعطیل است"}</span>
                   </div>
-                  <button
-                    type="button"
-                    className={`hoursOpenToggle ${selectedHour.active ? "is-on" : "is-off"}`}
-                    aria-pressed={Boolean(selectedHour.active)}
-                    onClick={() => onUpdateHour?.(selectedHour, { active: !selectedHour.active })}
-                  >
-                    {selectedHour.active ? "باز" : "تعطیل"}
-                  </button>
+                  <label className="neoSettingsSwitch hoursOpenToggle" data-on={Boolean(selectedHour.active)}>
+                    <input
+                      type="checkbox"
+                      checked={Boolean(selectedHour.active)}
+                      onChange={() => onUpdateHour?.(selectedHour, { active: !selectedHour.active })}
+                    />
+                    <span className="neoSettingsSwitchTrack">
+                      <span className="neoSettingsSwitchKnob" />
+                    </span>
+                    <span className="neoSettingsSwitchLabel">
+                      {selectedHour.active ? "باز" : "تعطیل"}
+                    </span>
+                  </label>
                 </div>
 
                 {selectedHour.active ? (
@@ -184,7 +189,7 @@ export function SalonHoursEditor({
                         disabled={isInvalidRange}
                         onClick={() => onCopyToOpenDays?.(selectedHour)}
                       >
-                        <Copy size={13} />
+                        <CopyCheck size={14} />
                         اعمال همین ساعت به {toPersianDigits(otherOpenDaysCount)} روز باز دیگر
                       </button>
                     ) : null}

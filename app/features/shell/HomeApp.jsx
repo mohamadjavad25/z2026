@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   BellRing,
   Bookmark,
@@ -2648,12 +2649,22 @@ function getPassportMatch(post) {
           onSubmitCustom={addArtistService}
           onPickPreset={addArtistServicePreset}
         />
-        {appToast && (
+        {appToast && typeof document !== "undefined" ? createPortal(
+          // Portaled straight to <body> — this toast has an intentionally
+          // enormous z-index (see .appToast) to float above every sheet/
+          // modal in the app, but that only works against siblings in the
+          // same stacking context. Any modal rendered inline (not portaled)
+          // sits inside .mobilePage.is-active, whose page-in animation
+          // leaves a `transform` on it, which pins a NEW stacking context —
+          // trapping this toast behind portaled overlays (like
+          // ScheduleBookingMenuModal, SalonHoursEditor) no matter how high
+          // its own z-index is set.
           <div className="appToast" role="status" aria-live="polite">
             <ShieldCheck size={17} />
             <span>{appToast}</span>
-          </div>
-        )}
+          </div>,
+          document.body
+        ) : null}
 
         {pushSoftAskVisible && (
           <div className="pushSoftAsk" role="status" aria-live="polite">
