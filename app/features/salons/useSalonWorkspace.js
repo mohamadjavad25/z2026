@@ -770,6 +770,36 @@ export function useSalonWorkspace({
     }
   }, [salonHoursList, shellNotify]);
 
+  /**
+   * Copies one day's open/close time + capacity onto every other open day,
+   * in one batch — the tedious part of the hours editor was setting the
+   * same start/end time on each day one at a time; this is the "apply to
+   * the rest of the week" shortcut for that. Closed days are left alone.
+   */
+  const copySalonHourToOpenDays = useCallback(async (sourceHour) => {
+    const targets = salonHoursList.filter((hour) => hour.active);
+    try {
+      // Sequential on purpose (not Promise.all): several concurrent
+      // authenticated PATCHes racing the session-touch poll (GET
+      // /api/artist/me-equivalent presence heartbeat) could land out of
+      // order and make the client-side hours list flicker/reset mid-update.
+      let latestHours = salonHoursList;
+      for (const hour of targets) {
+        const nextHour = { ...hour, open_time: sourceHour.open_time, close_time: sourceHour.close_time, capacity: sourceHour.capacity };
+        const result = await updateSalonHours(nextHour);
+        if (!result.ok) {
+          shellNotify(getApiErrorMessage(result.payload, "اعمال ساعت به بقیه روزها انجام نشد؛ دوباره امتحان کن."));
+          return;
+        }
+        latestHours = result.payload.hours || latestHours;
+      }
+      setSalonHoursList(latestHours);
+      shellNotify("ساعت روی بقیه روزهای باز اعمال شد.");
+    } catch {
+      shellNotify("اعمال ساعت به بقیه روزها انجام نشد؛ دوباره امتحان کن.");
+    }
+  }, [salonHoursList, shellNotify]);
+
   /** Dedicated salon "add service" form (name/price/duration only, no hint/tone). */
   const addSalonService = useCallback(async (event) => {
     event.preventDefault();
@@ -1258,6 +1288,7 @@ export function useSalonWorkspace({
     removeSalonStaff,
     updateSalonHour,
     updateSalonHoursPreset,
+    copySalonHourToOpenDays,
     addSalonService,
     assignSalonServiceArtist,
     toggleSalonServiceArtist,

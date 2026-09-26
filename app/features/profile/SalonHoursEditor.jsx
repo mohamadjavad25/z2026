@@ -1,7 +1,7 @@
 "use client";
 
 import { createPortal } from "react-dom";
-import { ChevronDown, Minus, Plus, Timer, X } from "lucide-react";
+import { ChevronDown, Copy, Minus, Plus, Timer, X } from "lucide-react";
 import { BreakTimeWheel } from "../../components/BreakTimeWheel";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { shortPersianWeekday, timeLabelToMinutes } from "../../shared/lib/time";
@@ -24,7 +24,8 @@ export function SalonHoursEditor({
   weeklyCapacityTotal = 0,
   onSelectPreset,
   onSelectDay,
-  onUpdateHour
+  onUpdateHour,
+  onCopyToOpenDays
 }) {
   const clockOptions = timeOptions.length ? timeOptions : [];
   const startOptions = clockOptions.slice(0, -1);
@@ -35,6 +36,7 @@ export function SalonHoursEditor({
   const disabledEnds = clockOptions.filter((slot) => timeLabelToMinutes(slot) <= startMinutes);
   const durationMinutes = Math.max(0, endMinutes - startMinutes);
   const isInvalidRange = selectedHour?.active && endMinutes <= startMinutes;
+  const otherOpenDaysCount = hoursList.filter((item) => item.active && item.day !== selectedHour?.day).length;
 
   const pickStart = (slot) => {
     if (!selectedHour) return;
@@ -175,6 +177,17 @@ export function SalonHoursEditor({
                         />
                       </div>
                     </div>
+                    {otherOpenDaysCount > 0 ? (
+                      <button
+                        type="button"
+                        className="hoursCopyToOpenDays"
+                        disabled={isInvalidRange}
+                        onClick={() => onCopyToOpenDays?.(selectedHour)}
+                      >
+                        <Copy size={13} />
+                        اعمال همین ساعت به {toPersianDigits(otherOpenDaysCount)} روز باز دیگر
+                      </button>
+                    ) : null}
                     <div className="hoursCapacityControl settingsHoursCapacityControl">
                       <span>ظرفیت روز</span>
                       <div>

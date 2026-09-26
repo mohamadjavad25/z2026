@@ -116,7 +116,8 @@ export function SettingsPage({
   weeklyCapacityTotal = 0,
   onSelectHoursPreset,
   onSelectHourDay,
-  onUpdateHour
+  onUpdateHour,
+  onCopyHourToOpenDays
 }) {
   if (!profile) {
     return <div className={`settingsPagePanel mobilePage page-settings ${active ? "is-active" : ""}`} id="settings" />;
@@ -186,6 +187,7 @@ export function SettingsPage({
             onSelectPreset={onSelectHoursPreset}
             onSelectDay={onSelectHourDay}
             onUpdateHour={onUpdateHour}
+            onCopyToOpenDays={onCopyHourToOpenDays}
           />
         ) : null}
 
@@ -205,6 +207,7 @@ export function SettingsPage({
             onSelectPreset={onSelectHoursPreset}
             onSelectDay={onSelectHourDay}
             onUpdateHour={onUpdateHour}
+            onCopyToOpenDays={onCopyHourToOpenDays}
           />
         ) : null}
 

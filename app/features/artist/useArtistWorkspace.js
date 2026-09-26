@@ -329,6 +329,36 @@ export function useArtistWorkspace({
   }, [artistHoursList, shellNotify]);
 
   /**
+   * Copies one day's open/close time + capacity onto every other open day —
+   * the "apply to the rest of the week" shortcut, so setting hours doesn't
+   * mean repeating the same start/end time pick for each day one at a time.
+   * Closed days are left alone.
+   */
+  const copyArtistHourToOpenDays = useCallback(async (sourceHour) => {
+    const targets = artistHoursList.filter((hour) => hour.active);
+    try {
+      // Sequential on purpose (not Promise.all): several concurrent
+      // authenticated PATCHes racing the session-touch poll (GET
+      // /api/artist/me, see presence heartbeat) could land out of order and
+      // make the client-side hours list flicker/reset mid-update.
+      let latestHours = artistHoursList;
+      for (const hour of targets) {
+        const nextHour = { ...hour, open_time: sourceHour.open_time, close_time: sourceHour.close_time, capacity: sourceHour.capacity };
+        const result = await updateArtistHours(nextHour);
+        if (!result.ok) {
+          shellNotify(result.payload?.error || "اعمال ساعت به بقیه روزها انجام نشد؛ دوباره امتحان کن.");
+          return;
+        }
+        latestHours = result.payload.hours || latestHours;
+      }
+      setArtistHoursList(latestHours);
+      shellNotify("ساعت روی بقیه روزهای باز اعمال شد.");
+    } catch {
+      shellNotify("اعمال ساعت به بقیه روزها انجام نشد؛ دوباره امتحان کن.");
+    }
+  }, [artistHoursList, shellNotify]);
+
+  /**
    * Called after a successful public booking (POST /api/artist/bookings).
    * Only refreshes when the logged-in artist is the booking target.
    */
@@ -1050,6 +1080,7 @@ export function useArtistWorkspace({
     weeklyArtistCapacityTotal,
     updateArtistHour,
     updateArtistHoursPreset,
+    copyArtistHourToOpenDays,
     artistRailDock,
     setArtistRailDock,
     artistRailDragging,

@@ -547,6 +547,7 @@ export function HomeApp() {
     weeklyArtistCapacityTotal,
     updateArtistHour,
     updateArtistHoursPreset,
+    copyArtistHourToOpenDays,
     visibleArtistPortfolio,
     artistGalleryTags,
     artistGalleryItems,
@@ -677,6 +678,7 @@ export function HomeApp() {
     removeSalonStaff,
     updateSalonHour,
     updateSalonHoursPreset,
+    copySalonHourToOpenDays,
     addSalonService,
     assignSalonServiceArtist,
     toggleSalonServiceArtist,
@@ -1778,6 +1780,7 @@ function getPassportMatch(post) {
             openDaysCount={createdProfile?.type === "artist" ? openArtistHoursDaysCount : activeSalonHours.length}
             weeklyCapacityTotal={createdProfile?.type === "artist" ? weeklyArtistCapacityTotal : weeklyCapacityTotal}
             onSelectHoursPreset={createdProfile?.type === "artist" ? updateArtistHoursPreset : updateSalonHoursPreset}
+            onCopyHourToOpenDays={createdProfile?.type === "artist" ? copyArtistHourToOpenDays : copySalonHourToOpenDays}
             onSelectHourDay={createdProfile?.type === "artist" ? setSelectedArtistHourDay : setSelectedSalonHourDay}
             onUpdateHour={createdProfile?.type === "artist" ? updateArtistHour : updateSalonHour}
           />
