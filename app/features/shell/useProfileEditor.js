@@ -232,7 +232,7 @@ export function useProfileEditor({
    * from the server, which is correct there too (see the ETag fix on
    * those two media routes).
    */
-  const saveProfileField = useCallback((field, value, { setBusy, successMessage } = {}) => {
+  const saveProfileFields = useCallback((fields, { setBusy, successMessage } = {}) => {
     if (!createdProfile) return;
     setBusy?.(true);
     return (async () => {
@@ -240,7 +240,7 @@ export function useProfileEditor({
         const response = await fetch("/api/profile", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ data: { [field]: value } })
+          body: JSON.stringify({ data: fields })
         });
         const payload = await response.json();
         if (!response.ok) {
@@ -252,7 +252,7 @@ export function useProfileEditor({
           notify("ذخیره انجام نشد.");
           return;
         }
-        if (profile.data) profile.data[field] = value;
+        if (profile.data) Object.assign(profile.data, fields);
         writeAuthSession(profile);
         setCreatedProfile(profile);
         if (successMessage) notify(successMessage);
@@ -264,10 +264,18 @@ export function useProfileEditor({
     })();
   }, [createdProfile, writeAuthSession, setCreatedProfile, notify]);
 
-  // Direct, one-tap image swap used by the Settings tab — separate from
-  // handleProfileAvatarUpload/profileEditAvatar above, which only stage a
-  // draft for the full "ویرایش پروفایل" form's own submit.
-  const saveProfileImage = useCallback((field, file, { setBusy } = {}) => {
+  const saveProfileField = useCallback((field, value, opts) => (
+    saveProfileFields({ [field]: value }, opts)
+  ), [saveProfileFields]);
+
+  // A picked file doesn't save right away -- it's staged here so the
+  // position editor opens immediately with the *new* image (not the old
+  // stored one), and the actual upload + chosen focal point are sent to
+  // the server together in one request once the user confirms there.
+  const [pendingAvatarUpload, setPendingAvatarUpload] = useState("");
+  const [pendingPosterUpload, setPendingPosterUpload] = useState("");
+
+  const stageProfileImage = useCallback((file, setPending) => {
     if (!file) return;
     if (!file.type.startsWith("image/")) {
       notify("فقط فایل تصویری مجاز است.");
@@ -280,26 +288,40 @@ export function useProfileEditor({
     const reader = new FileReader();
     reader.onload = () => {
       const dataUrl = String(reader.result || "");
-      if (!dataUrl) return;
-      saveProfileField(field, dataUrl, {
-        setBusy,
-        successMessage: field === "avatar" ? "لوگو بروزرسانی شد." : "پوستر بروزرسانی شد."
-      });
+      if (dataUrl) setPending(dataUrl);
     };
     reader.readAsDataURL(file);
-  }, [saveProfileField, notify]);
+  }, [notify]);
 
   const saveProfileLogo = useCallback((event) => {
     const file = event.target.files?.[0];
     event.target.value = "";
-    saveProfileImage("avatar", file, { setBusy: setLogoSaving });
-  }, [saveProfileImage]);
+    stageProfileImage(file, setPendingAvatarUpload);
+  }, [stageProfileImage]);
 
   const saveProfilePoster = useCallback((event) => {
     const file = event.target.files?.[0];
     event.target.value = "";
-    saveProfileImage("poster", file, { setBusy: setPosterSaving });
-  }, [saveProfileImage]);
+    stageProfileImage(file, setPendingPosterUpload);
+  }, [stageProfileImage]);
+
+  const confirmAvatarUpload = useCallback((position) => {
+    if (!pendingAvatarUpload) return;
+    saveProfileFields(
+      { avatar: pendingAvatarUpload, avatarPosition: position },
+      { setBusy: setLogoSaving, successMessage: "لوگو بروزرسانی شد." }
+    );
+    setPendingAvatarUpload("");
+  }, [pendingAvatarUpload, saveProfileFields]);
+
+  const confirmPosterUpload = useCallback((position) => {
+    if (!pendingPosterUpload) return;
+    saveProfileFields(
+      { poster: pendingPosterUpload, posterPosition: position },
+      { setBusy: setPosterSaving, successMessage: "پوستر بروزرسانی شد." }
+    );
+    setPendingPosterUpload("");
+  }, [pendingPosterUpload, saveProfileFields]);
 
   const removeProfileLogo = useCallback(() => {
     saveProfileField("avatar", "", { setBusy: setLogoSaving, successMessage: "لوگو حذف شد." });
@@ -359,6 +381,12 @@ export function useProfileEditor({
     removeProfileLogo,
     removeProfilePoster,
     saveAvatarPosition,
-    savePosterPosition
+    savePosterPosition,
+    pendingAvatarUpload,
+    pendingPosterUpload,
+    confirmAvatarUpload,
+    confirmPosterUpload,
+    cancelAvatarUpload: () => setPendingAvatarUpload(""),
+    cancelPosterUpload: () => setPendingPosterUpload("")
   };
 }

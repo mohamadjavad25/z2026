@@ -124,6 +124,7 @@ export function SalonClientPage({
                     src={selectedSalon.avatar || "/profile-icon.svg"}
                     alt=""
                     aria-hidden="true"
+                    style={{ objectPosition: selectedSalon.avatarPosition || "50% 50%" }}
                   />
                 </div>
               </div>
@@ -211,7 +212,12 @@ export function SalonClientPage({
                   <X size={18} />
                 </button>
                 <div className="salonPublicAboutHead">
-                  <img src={selectedSalon.avatar || "/profile-icon.svg"} alt="" aria-hidden="true" />
+                  <img
+                    src={selectedSalon.avatar || "/profile-icon.svg"}
+                    alt=""
+                    aria-hidden="true"
+                    style={{ objectPosition: selectedSalon.avatarPosition || "50% 50%" }}
+                  />
                   <div>
                     <span>درباره سالن</span>
                     <h3>{publicName}</h3>
@@ -361,7 +367,7 @@ export function SalonClientPage({
                 <div className="salonCardMain">
                   <div className="salonCardHead">
                     <div className={`salonIcon ${salon.avatar ? "hasImage" : ""}`} aria-hidden="true">
-                      {salon.avatar ? <img src={salon.avatar} alt="" /> : <Store size={21} />}
+                      {salon.avatar ? <img src={salon.avatar} alt="" style={{ objectPosition: salon.avatarPosition || "50% 50%" }} /> : <Store size={21} />}
                     </div>
                     <div>
                       <h3>{salon.name}</h3>

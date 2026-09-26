@@ -30,7 +30,13 @@ export function BottomNav({ activeTab, createdProfile, onTabChange, showCreateBo
           className={`profileTab ${activeTab === "profile" ? "active" : ""}`}
           aria-label="پروفایل"
         >
-          <img className="profileNavImage" src={createdProfile?.data?.avatar || "/profile-icon.svg"} alt="" aria-hidden="true" />
+          <img
+            className="profileNavImage"
+            src={createdProfile?.data?.avatar || "/profile-icon.svg"}
+            alt=""
+            aria-hidden="true"
+            style={{ objectPosition: createdProfile?.data?.avatarPosition || "50% 50%" }}
+          />
         </button>
       )}
       {isBusinessOwner ? (

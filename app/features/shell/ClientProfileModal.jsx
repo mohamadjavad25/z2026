@@ -31,7 +31,7 @@ export function ClientProfileModal({ client, onClose }) {
         <div className="clientProfileHero">
           <div className={`clientProfileAvatar ${client.avatar ? "hasImage" : ""}`}>
             {client.avatar ? (
-              <img src={client.avatar} alt="" />
+              <img src={client.avatar} alt="" style={{ objectPosition: client.avatarPosition || client.clientAvatarPosition || "50% 50%" }} />
             ) : (
               String(client.name || "م").slice(0, 1)
             )}

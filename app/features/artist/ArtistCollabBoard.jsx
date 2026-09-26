@@ -94,10 +94,10 @@ function formatInviteTerms(invite) {
   ].filter(Boolean).join(" · ");
 }
 
-function CollabAvatar({ src }) {
+function CollabAvatar({ src, position = "50% 50%" }) {
   return (
     <span className={`collabAvatar ${src ? "hasImage" : ""}`} aria-hidden="true">
-      {src ? <img src={src} alt="" /> : <Store size={16} />}
+      {src ? <img src={src} alt="" style={{ objectPosition: position }} /> : <Store size={16} />}
     </span>
   );
 }
@@ -137,7 +137,7 @@ function SalonPreviewModal({ salon, draft, onDraftChange, onSubmit, onClose }) {
         </button>
 
         <header className="collabSalonModalHead">
-          <CollabAvatar src={salon.avatar} />
+          <CollabAvatar src={salon.avatar} position={salon.avatarPosition} />
           <div>
             <b>{salon.name}</b>
             {salon.area ? <span><MapPin size={12} />{salon.area}</span> : null}
@@ -368,7 +368,7 @@ export function ArtistCollabBoard({
                     setPreviewSalon(salon);
                   }}
                 >
-                  <CollabAvatar src={salon.avatar} />
+                  <CollabAvatar src={salon.avatar} position={salon.avatarPosition} />
                   {salon.name}
                 </button>
               );

@@ -103,6 +103,7 @@ export function PublicArtistModal({
                     className="artistPublicAvatarImage"
                     src={artist.avatar || heroImage}
                     alt={artist.name ? `تصویر پروفایل ${artist.name}` : "تصویر پروفایل آرتیست"}
+                    style={{ objectPosition: artist.avatarPosition || "50% 50%" }}
                   />
                 ) : (
                   String(artist.name || "آ").slice(0, 1)

@@ -72,7 +72,7 @@ export function ProfileSavedPosts({
               >
                 <span className="savedSalonOpen">
                   <span className="savedSalonLogo">
-                    {salon.avatar ? <img src={salon.avatar} alt="" /> : <Store size={20} />}
+                    {salon.avatar ? <img src={salon.avatar} alt="" style={{ objectPosition: salon.avatarPosition || "50% 50%" }} /> : <Store size={20} />}
                   </span>
                   <span className="savedSalonBody">
                     <b>{salon.name}</b>
@@ -120,7 +120,7 @@ export function ProfileSavedPosts({
               >
                 <span className="savedSalonOpen">
                   <span className="savedSalonLogo">
-                    {artist.avatar ? <img src={artist.avatar} alt="" /> : <UserRound size={20} />}
+                    {artist.avatar ? <img src={artist.avatar} alt="" style={{ objectPosition: artist.avatarPosition || "50% 50%" }} /> : <UserRound size={20} />}
                   </span>
                   <span className="savedSalonBody">
                     <b>{artist.name}</b>

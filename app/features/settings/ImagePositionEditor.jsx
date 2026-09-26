@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Check, RotateCcw } from "lucide-react";
 import { ProfileSheet } from "../profile/ProfileSheet";
 
@@ -25,6 +25,16 @@ export function ImagePositionEditor({ open, shape, image, position, busy = false
   const [pos, setPos] = useState(() => parsePosition(position));
   const [dragging, setDragging] = useState(false);
   const frameRef = useRef(null);
+
+  // This component stays mounted across opens (`open` just toggles the
+  // early-return below), so the picked-file/image and its starting
+  // position must be re-synced on every open -- otherwise a second open
+  // (a new upload, or an existing image with a different saved position)
+  // would keep showing wherever the *previous* session left the crosshair.
+  useEffect(() => {
+    if (open) setPos(parsePosition(position));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, image]);
 
   if (!open) return null;
 

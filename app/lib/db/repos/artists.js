@@ -665,6 +665,7 @@ export async function getPublicArtist(userId, viewerUserId = null) {
     area: user.area,
     bio: user.bio,
     avatar: user.avatar ? `/api/media/avatar/${user.id}` : "",
+    avatarPosition: user.avatar_position || "",
     service: user.service,
     experienceYears: user.experience_years || "",
     followers: await countFollowers(user.id),
@@ -686,7 +687,7 @@ export async function getPublicArtist(userId, viewerUserId = null) {
 export async function listArtists() {
   const db = await getDb();
   const rows = await all(db, `
-    SELECT id, name, area, service, avatar, bio FROM users WHERE type = 'artist' ORDER BY created_at DESC
+    SELECT id, name, area, service, avatar, bio, avatar_position FROM users WHERE type = 'artist' ORDER BY created_at DESC
   `);
   // An artist switched to "خصوصی" via تنظیمات → ویترین عمومی آرتیست must be
   // hidden from the public directory, same rule salons.listSalons()
@@ -698,7 +699,11 @@ export async function listArtists() {
     if (settings.publicPortfolio !== false) visible.push(row);
   }
   // Media URL, not raw base64 -- see app/api/media/avatar/[userId]/route.js.
-  return visible.map((row) => ({ ...row, avatar: row.avatar ? `/api/media/avatar/${row.id}` : "" }));
+  return visible.map((row) => ({
+    ...row,
+    avatar: row.avatar ? `/api/media/avatar/${row.id}` : "",
+    avatarPosition: row.avatar_position || ""
+  }));
 }
 
 /**
@@ -725,6 +730,7 @@ export async function listSavedArtistsForUser(userId) {
       area: user.area,
       bio: user.bio,
       avatar: user.avatar ? `/api/media/avatar/${user.id}` : "",
+      avatarPosition: user.avatar_position || "",
       service: user.service,
       followers: await countFollowers(user.id, db)
     });

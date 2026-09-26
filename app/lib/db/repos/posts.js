@@ -24,6 +24,7 @@ function mapPost(row) {
     salon: row.owner_name || "",
     ownerType: row.owner_type || "",
     ownerAvatar: row.owner_avatar ? `/api/media/avatar/${row.owner_user_id}` : "",
+    ownerAvatarPosition: row.owner_avatar_position || "",
     ownerArea: row.owner_area || "",
     ownerBio: row.owner_bio || "",
     ownerService: row.owner_service || "",
@@ -36,6 +37,7 @@ const postSelect = `
     u.name AS owner_name,
     u.type AS owner_type,
     u.avatar AS owner_avatar,
+    u.avatar_position AS owner_avatar_position,
     u.area AS owner_area,
     u.bio AS owner_bio,
     u.service AS owner_service

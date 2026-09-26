@@ -90,13 +90,26 @@ function BrandCard({
   onRemovePoster,
   onSaveAvatarPosition,
   onSavePosterPosition,
+  pendingAvatarUpload = "",
+  pendingPosterUpload = "",
+  onConfirmAvatarUpload,
+  onConfirmPosterUpload,
+  onCancelAvatarUpload,
+  onCancelPosterUpload,
   accountTitle,
   accountDescription,
   onEditProfile
 }) {
   const logoInputRef = useRef(null);
   const posterInputRef = useRef(null);
+  // "reposition" opens the editor manually on the already-saved image;
+  // a fresh pendingAvatarUpload/pendingPosterUpload (set the instant a
+  // file is picked, before any upload happens) opens it automatically on
+  // the new image instead, so choosing where to crop is part of picking
+  // the photo, not a separate step after it's already live everywhere.
   const [positionEditor, setPositionEditor] = useState(null);
+  const avatarEditorOpen = Boolean(pendingAvatarUpload) || positionEditor === "avatar";
+  const posterEditorOpen = Boolean(pendingPosterUpload) || positionEditor === "poster";
 
   return (
     <section className="brandCard" aria-label="برند و ظاهر پروفایل">
@@ -163,22 +176,36 @@ function BrandCard({
       </button>
 
       <ImagePositionEditor
-        open={positionEditor === "avatar"}
+        open={avatarEditorOpen}
         shape="circle"
-        image={avatar}
-        position={avatarPosition}
+        image={pendingAvatarUpload || avatar}
+        position={pendingAvatarUpload ? "50% 50%" : avatarPosition}
         busy={logoSaving}
-        onSave={(value) => { onSaveAvatarPosition(value); setPositionEditor(null); }}
-        onClose={() => setPositionEditor(null)}
+        onSave={(value) => {
+          if (pendingAvatarUpload) {
+            onConfirmAvatarUpload(value);
+          } else {
+            onSaveAvatarPosition(value);
+            setPositionEditor(null);
+          }
+        }}
+        onClose={() => (pendingAvatarUpload ? onCancelAvatarUpload() : setPositionEditor(null))}
       />
       <ImagePositionEditor
-        open={positionEditor === "poster"}
+        open={posterEditorOpen}
         shape="wide"
-        image={poster}
-        position={posterPosition}
+        image={pendingPosterUpload || poster}
+        position={pendingPosterUpload ? "50% 50%" : posterPosition}
         busy={posterSaving}
-        onSave={(value) => { onSavePosterPosition(value); setPositionEditor(null); }}
-        onClose={() => setPositionEditor(null)}
+        onSave={(value) => {
+          if (pendingPosterUpload) {
+            onConfirmPosterUpload(value);
+          } else {
+            onSavePosterPosition(value);
+            setPositionEditor(null);
+          }
+        }}
+        onClose={() => (pendingPosterUpload ? onCancelPosterUpload() : setPositionEditor(null))}
       />
     </section>
   );
@@ -203,6 +230,12 @@ export function SettingsPage({
   onRemovePoster,
   onSaveAvatarPosition,
   onSavePosterPosition,
+  pendingAvatarUpload = "",
+  pendingPosterUpload = "",
+  onConfirmAvatarUpload,
+  onConfirmPosterUpload,
+  onCancelAvatarUpload,
+  onCancelPosterUpload,
   profileSettings,
   onToggleSetting,
   artistBookingSettings = null,
@@ -264,6 +297,12 @@ export function SettingsPage({
           onRemovePoster={onRemovePoster}
           onSaveAvatarPosition={onSaveAvatarPosition}
           onSavePosterPosition={onSavePosterPosition}
+          pendingAvatarUpload={pendingAvatarUpload}
+          pendingPosterUpload={pendingPosterUpload}
+          onConfirmAvatarUpload={onConfirmAvatarUpload}
+          onConfirmPosterUpload={onConfirmPosterUpload}
+          onCancelAvatarUpload={onCancelAvatarUpload}
+          onCancelPosterUpload={onCancelPosterUpload}
           accountTitle={accountTitle}
           accountDescription={accountDescription}
           onEditProfile={onEditProfile}

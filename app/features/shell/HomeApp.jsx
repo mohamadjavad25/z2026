@@ -737,7 +737,13 @@ export function HomeApp() {
     removeProfileLogo,
     removeProfilePoster,
     saveAvatarPosition,
-    savePosterPosition
+    savePosterPosition,
+    pendingAvatarUpload,
+    pendingPosterUpload,
+    confirmAvatarUpload,
+    confirmPosterUpload,
+    cancelAvatarUpload,
+    cancelPosterUpload
   } = useProfileEditor({
     createdProfile,
     setCreatedProfile,
@@ -1767,6 +1773,12 @@ function getPassportMatch(post) {
             onRemovePoster={removeProfilePoster}
             onSaveAvatarPosition={saveAvatarPosition}
             onSavePosterPosition={savePosterPosition}
+            pendingAvatarUpload={pendingAvatarUpload}
+            pendingPosterUpload={pendingPosterUpload}
+            onConfirmAvatarUpload={confirmAvatarUpload}
+            onConfirmPosterUpload={confirmPosterUpload}
+            onCancelAvatarUpload={cancelAvatarUpload}
+            onCancelPosterUpload={cancelPosterUpload}
             profileSettings={profileSettings}
             onToggleSetting={toggleProfileSetting}
             artistBookingSettings={artistBookingSettings}

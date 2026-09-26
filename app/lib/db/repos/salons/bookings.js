@@ -137,6 +137,7 @@ export async function listSalonBookings(salonUserId) {
   for (const row of rows) {
     const client = await findBookingClient(row, db);
     const avatar = client?.avatar ? `/api/media/avatar/${client.id}` : "";
+    const avatarPosition = client?.avatar_position || "";
     const staffPerson = staffByName.get(String(row.staff || "").trim()) || null;
     const staffAvatar = staffPerson?.avatar || staffPerson?.staff_avatar || "";
     enrichedRows.push({
@@ -144,6 +145,8 @@ export async function listSalonBookings(salonUserId) {
       client_user_id: client?.id || null,
       client_avatar: avatar,
       clientAvatar: avatar,
+      client_avatar_position: avatarPosition,
+      clientAvatarPosition: avatarPosition,
       staff_avatar: staffAvatar,
       staffAvatar,
       staff_artist_user_id: staffPerson?.artist_user_id || null,

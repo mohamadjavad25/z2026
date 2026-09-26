@@ -35,7 +35,7 @@ export {
 export async function listSalons() {
   const db = await getDb();
   const rows = await all(db, `
-    SELECT s.*, u.avatar, u.bio
+    SELECT s.*, u.avatar, u.bio, u.avatar_position
     FROM salons s JOIN users u ON u.id = s.user_id
     ORDER BY s.created_at DESC
   `);
@@ -71,6 +71,7 @@ export async function listSalons() {
       // (grepped app/features/salons) -- only the single-salon detail view
       // (getSalon() below) does, for its "call the salon" contact block.
       avatar: row.avatar ? `/api/media/avatar/${row.user_id}` : "",
+      avatarPosition: row.avatar_position || "",
       bio: row.bio || "",
       postCount: row.post_count,
       followerCount,
@@ -99,7 +100,7 @@ export async function listSalons() {
 export async function listSavedSalonsForUser(userId) {
   const db = await getDb();
   const rows = await all(db, `
-    SELECT s.*, u.avatar, u.bio
+    SELECT s.*, u.avatar, u.bio, u.avatar_position
     FROM saved_profiles sp
     JOIN salons s ON s.user_id = sp.target_user_id
     JOIN users u ON u.id = s.user_id
@@ -121,6 +122,7 @@ export async function listSavedSalonsForUser(userId) {
       open: row.open,
       match: row.match_score,
       avatar: row.avatar ? `/api/media/avatar/${row.user_id}` : "",
+      avatarPosition: row.avatar_position || "",
       bio: row.bio || "",
       postCount: row.post_count,
       post_count: row.post_count,
@@ -136,7 +138,7 @@ export async function listSavedSalonsForUser(userId) {
 export async function getSalon(userId, viewerUserId = null) {
   const db = await getDb();
   const row = await get(db, `
-    SELECT s.*, u.avatar, u.bio
+    SELECT s.*, u.avatar, u.bio, u.avatar_position
     FROM salons s JOIN users u ON u.id = s.user_id
     WHERE s.user_id = ?
   `, [userId]);
@@ -164,6 +166,7 @@ export async function getSalon(userId, viewerUserId = null) {
     // listSalons() case above.
     phone: row.phone,
     avatar: row.avatar ? `/api/media/avatar/${row.user_id}` : "",
+    avatarPosition: row.avatar_position || "",
     bio: row.bio || "",
     postCount: row.post_count,
     post_count: row.post_count,
