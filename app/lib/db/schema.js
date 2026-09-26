@@ -33,6 +33,8 @@ const SCHEMA_SQL = `
     email TEXT NOT NULL DEFAULT '',
     avatar TEXT NOT NULL DEFAULT '',
     poster TEXT NOT NULL DEFAULT '',
+    avatar_position TEXT NOT NULL DEFAULT '',
+    poster_position TEXT NOT NULL DEFAULT '',
     bio TEXT NOT NULL DEFAULT '',
     experience_years TEXT NOT NULL DEFAULT '',
     manager_name TEXT NOT NULL DEFAULT '',
@@ -332,6 +334,12 @@ const SCHEMA_SQL = `
   ALTER TABLE salon_artist_invites ADD COLUMN IF NOT EXISTS to_time TEXT NOT NULL DEFAULT '';
   ALTER TABLE salon_artist_invites ADD COLUMN IF NOT EXISTS share_percent TEXT NOT NULL DEFAULT '';
   ALTER TABLE salon_artist_invites ADD COLUMN IF NOT EXISTS capacity TEXT NOT NULL DEFAULT '';
+
+  -- users gained avatar_position/poster_position (a CSS object-position
+  -- string like "50% 30%", set from the crop/reposition editor) after
+  -- this table already existed in production.
+  ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_position TEXT NOT NULL DEFAULT '';
+  ALTER TABLE users ADD COLUMN IF NOT EXISTS poster_position TEXT NOT NULL DEFAULT '';
 `;
 
 export async function applySchema(runner) {

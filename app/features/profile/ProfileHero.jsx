@@ -40,6 +40,8 @@ export function ProfileHero({
   const name = profile?.data?.name || "پروفایل زیبابان";
   const avatar = profile?.data?.avatar || "/profile-icon.svg";
   const poster = profile?.data?.poster || "";
+  const avatarPosition = profile?.data?.avatarPosition || "50% 50%";
+  const posterPosition = profile?.data?.posterPosition || "50% 50%";
   const [qrSheetOpen, setQrSheetOpen] = useState(false);
   if (!profile) return null;
 
@@ -51,7 +53,7 @@ export function ProfileHero({
     return (
       <div className={`profileHero ${heroClass}`}>
         <div className="salonHeroBanner">
-          {poster ? <img className="salonHeroBannerImage" src={poster} alt="" aria-hidden="true" /> : null}
+          {poster ? <img className="salonHeroBannerImage" src={poster} alt="" aria-hidden="true" style={{ objectPosition: posterPosition }} /> : null}
         </div>
         <ProfileHeroActions
           activePanel={activePanel}
@@ -79,7 +81,7 @@ export function ProfileHero({
           onOpenChange={setQrSheetOpen}
         />
         <div className="salonHeroAvatarFrame">
-          <img className="profileAvatarImage" src={avatar} alt="" aria-hidden="true" />
+          <img className="profileAvatarImage" src={avatar} alt="" aria-hidden="true" style={{ objectPosition: avatarPosition }} />
         </div>
 
         <div className="salonHeroMeta">
@@ -118,7 +120,7 @@ export function ProfileHero({
       <div className={`profileHero ${heroClass} clientBeautyHero`}>
         <div className="clientBeautyHeroIdentity">
           <span className="clientBeautyAvatar">
-            <img className="profileAvatarImage" src={avatar} alt="" aria-hidden="true" />
+            <img className="profileAvatarImage" src={avatar} alt="" aria-hidden="true" style={{ objectPosition: avatarPosition }} />
           </span>
           <div className="profileHeroCopy">
             <p>{kicker || "پروفایل بانو"}</p>
@@ -145,11 +147,11 @@ export function ProfileHero({
     <div className={`profileHero ${heroClass}`}>
       {type === "artist" ? (
         <div className="artistHeroPoster" aria-hidden="true">
-          {poster ? <img className="artistHeroPosterImage" src={poster} alt="" /> : null}
+          {poster ? <img className="artistHeroPosterImage" src={poster} alt="" style={{ objectPosition: posterPosition }} /> : null}
         </div>
       ) : null}
       <div className="profileStoryAvatarWrap">
-        <img className="profileAvatarImage" src={avatar} alt="" aria-hidden="true" />
+        <img className="profileAvatarImage" src={avatar} alt="" aria-hidden="true" style={{ objectPosition: avatarPosition }} />
       </div>
       <div className="profileHeroCopy">
         {type !== "artist" && <p>{kicker}</p>}

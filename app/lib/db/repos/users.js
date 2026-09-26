@@ -54,6 +54,8 @@ export async function updateUser(id, data) {
     email: data.email ?? current.email,
     avatar: data.avatar ?? current.avatar,
     poster: data.poster ?? current.poster,
+    avatar_position: data.avatarPosition ?? data.avatar_position ?? current.avatar_position ?? "",
+    poster_position: data.posterPosition ?? data.poster_position ?? current.poster_position ?? "",
     bio: data.bio ?? current.bio,
     experience_years: data.experienceYears ?? data.experience_years ?? current.experience_years ?? "",
     manager_name: data.managerName ?? data.manager_name ?? current.manager_name ?? "",
@@ -61,10 +63,10 @@ export async function updateUser(id, data) {
   };
   await run(db, `
     UPDATE users SET
-      phone = ?, name = ?, area = ?, service = ?, email = ?, avatar = ?, poster = ?, bio = ?, experience_years = ?, manager_name = ?, password_hash = ?,
+      phone = ?, name = ?, area = ?, service = ?, email = ?, avatar = ?, poster = ?, avatar_position = ?, poster_position = ?, bio = ?, experience_years = ?, manager_name = ?, password_hash = ?,
       updated_at = CURRENT_TIMESTAMP
     WHERE id = ?
-  `, [next.phone, next.name, next.area, next.service, next.email, next.avatar, next.poster, next.bio, next.experience_years, next.manager_name, next.password_hash, id]);
+  `, [next.phone, next.name, next.area, next.service, next.email, next.avatar, next.poster, next.avatar_position, next.poster_position, next.bio, next.experience_years, next.manager_name, next.password_hash, id]);
 
   if (current.type === "salon") {
     await run(db, `

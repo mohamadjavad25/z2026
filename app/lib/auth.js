@@ -66,8 +66,18 @@ export function publicUser(row) {
     // check, so an inline data URL here meant re-downloading the user's
     // full-size avatar on nearly every request. See app/lib/db/repos/posts.js
     // (mapPost) for the same fix applied to feed/portfolio images.
-    avatar: row.avatar ? `/api/media/avatar/${row.id}` : "",
-    poster: row.poster ? `/api/media/poster/${row.id}` : "",
+    //
+    // ?v=<updated_at> makes the URL itself change whenever the row is
+    // saved (avatar/poster re-upload, removal, or reposition) -- without
+    // it the URL is identical before and after a change, so a browser
+    // that already cached the old response for it (even briefly) keeps
+    // showing the old image on refresh regardless of the media route's
+    // own cache headers, since it never even asks again until that cache
+    // entry expires on its own.
+    avatar: row.avatar ? `/api/media/avatar/${row.id}?v=${encodeURIComponent(row.updated_at || "")}` : "",
+    poster: row.poster ? `/api/media/poster/${row.id}?v=${encodeURIComponent(row.updated_at || "")}` : "",
+    avatarPosition: row.avatar_position || "",
+    posterPosition: row.poster_position || "",
     bio: row.bio || "",
     experienceYears: row.experience_years || "",
     managerName: row.manager_name || ""

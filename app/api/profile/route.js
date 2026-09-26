@@ -37,6 +37,8 @@ export async function POST(request) {
       email: data.email,
       avatar: data.avatar,
       poster: data.poster,
+      avatarPosition: data.avatarPosition,
+      posterPosition: data.posterPosition,
       bio: data.bio,
       experienceYears: data.experienceYears,
       managerName: data.managerName

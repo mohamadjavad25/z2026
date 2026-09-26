@@ -212,22 +212,63 @@ export function useProfileEditor({
 
   const [logoSaving, setLogoSaving] = useState(false);
   const [posterSaving, setPosterSaving] = useState(false);
-  // Same-tab preview of a just-picked avatar/poster, shown instead of the
-  // server's `/api/media/.../[userId]` URL until the next real page load.
-  // That URL is stable per user, so after re-uploading a *different* image
-  // the <img src> string never changes -- React never re-renders it and
-  // the browser never even asks for the new bytes, so the old picture
-  // just stays put (reported bug: picking another image "doesn't replace"
-  // the old one). Holding the freshly-read data URL locally sidesteps
-  // that entirely: it's the literal new bytes, not a URL to refetch.
-  const [avatarPreview, setAvatarPreview] = useState("");
-  const [posterPreview, setPosterPreview] = useState("");
+
+  /**
+   * Saves one profile.data field (avatar/poster dataURL or "" to remove,
+   * avatarPosition/posterPosition as a CSS object-position string) and
+   * folds the exact value we just sent into local/session state instead of
+   * trusting the server's echoed profile for it.
+   *
+   * Why: avatar/poster are served from a URL that's stable per user
+   * (/api/media/.../[userId]) — after a change the server still echoes
+   * back that same URL string, so nothing downstream (ProfileHero,
+   * BottomNav, Settings, ...) ever sees a different `src` to react to,
+   * and the old image just keeps showing everywhere in this session
+   * (reported: fixed in Settings but nowhere else, because that was the
+   * one spot patched with its own local preview — this replaces that
+   * with a fix at the shared profile state itself, so every consumer
+   * picks it up at once). Patching the field locally sidesteps the stale
+   * URL entirely for this session; the next real page load re-fetches
+   * from the server, which is correct there too (see the ETag fix on
+   * those two media routes).
+   */
+  const saveProfileField = useCallback((field, value, { setBusy, successMessage } = {}) => {
+    if (!createdProfile) return;
+    setBusy?.(true);
+    return (async () => {
+      try {
+        const response = await fetch("/api/profile", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ data: { [field]: value } })
+        });
+        const payload = await response.json();
+        if (!response.ok) {
+          notify(payload.error || "ذخیره انجام نشد.");
+          return;
+        }
+        const profile = normalizeProfile(payload.profile);
+        if (!profile) {
+          notify("ذخیره انجام نشد.");
+          return;
+        }
+        if (profile.data) profile.data[field] = value;
+        writeAuthSession(profile);
+        setCreatedProfile(profile);
+        if (successMessage) notify(successMessage);
+      } catch {
+        notify("ذخیره انجام نشد؛ دوباره امتحان کن.");
+      } finally {
+        setBusy?.(false);
+      }
+    })();
+  }, [createdProfile, writeAuthSession, setCreatedProfile, notify]);
 
   // Direct, one-tap image swap used by the Settings tab — separate from
   // handleProfileAvatarUpload/profileEditAvatar above, which only stage a
   // draft for the full "ویرایش پروفایل" form's own submit.
-  const saveProfileImage = useCallback((field, file, { setBusy, setPreview } = {}) => {
-    if (!createdProfile || !file) return;
+  const saveProfileImage = useCallback((field, file, { setBusy } = {}) => {
+    if (!file) return;
     if (!file.type.startsWith("image/")) {
       notify("فقط فایل تصویری مجاز است.");
       return;
@@ -237,50 +278,44 @@ export function useProfileEditor({
       return;
     }
     const reader = new FileReader();
-    reader.onload = async () => {
+    reader.onload = () => {
       const dataUrl = String(reader.result || "");
       if (!dataUrl) return;
-      setPreview?.(dataUrl);
-      setBusy?.(true);
-      try {
-        const response = await fetch("/api/profile", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ data: { [field]: dataUrl } })
-        });
-        const payload = await response.json();
-        if (!response.ok) {
-          notify(payload.error || "ذخیره تصویر انجام نشد.");
-          return;
-        }
-        const profile = normalizeProfile(payload.profile);
-        if (!profile) {
-          notify("ذخیره تصویر انجام نشد.");
-          return;
-        }
-        writeAuthSession(profile);
-        setCreatedProfile(profile);
-        notify(field === "avatar" ? "لوگو بروزرسانی شد." : "پوستر بروزرسانی شد.");
-      } catch {
-        notify("ذخیره تصویر انجام نشد؛ دوباره امتحان کن.");
-      } finally {
-        setBusy?.(false);
-      }
+      saveProfileField(field, dataUrl, {
+        setBusy,
+        successMessage: field === "avatar" ? "لوگو بروزرسانی شد." : "پوستر بروزرسانی شد."
+      });
     };
     reader.readAsDataURL(file);
-  }, [createdProfile, writeAuthSession, setCreatedProfile, notify]);
+  }, [saveProfileField, notify]);
 
   const saveProfileLogo = useCallback((event) => {
     const file = event.target.files?.[0];
     event.target.value = "";
-    saveProfileImage("avatar", file, { setBusy: setLogoSaving, setPreview: setAvatarPreview });
+    saveProfileImage("avatar", file, { setBusy: setLogoSaving });
   }, [saveProfileImage]);
 
   const saveProfilePoster = useCallback((event) => {
     const file = event.target.files?.[0];
     event.target.value = "";
-    saveProfileImage("poster", file, { setBusy: setPosterSaving, setPreview: setPosterPreview });
+    saveProfileImage("poster", file, { setBusy: setPosterSaving });
   }, [saveProfileImage]);
+
+  const removeProfileLogo = useCallback(() => {
+    saveProfileField("avatar", "", { setBusy: setLogoSaving, successMessage: "لوگو حذف شد." });
+  }, [saveProfileField]);
+
+  const removeProfilePoster = useCallback(() => {
+    saveProfileField("poster", "", { setBusy: setPosterSaving, successMessage: "پوستر حذف شد." });
+  }, [saveProfileField]);
+
+  const saveAvatarPosition = useCallback((position) => (
+    saveProfileField("avatarPosition", position, { setBusy: setLogoSaving })
+  ), [saveProfileField]);
+
+  const savePosterPosition = useCallback((position) => (
+    saveProfileField("posterPosition", position, { setBusy: setPosterSaving })
+  ), [saveProfileField]);
 
   const toggleProfileSetting = useCallback((key) => {
     let nextValue = null;
@@ -319,9 +354,11 @@ export function useProfileEditor({
     toggleProfileSetting,
     logoSaving,
     posterSaving,
-    avatarPreview,
-    posterPreview,
     saveProfileLogo,
-    saveProfilePoster
+    saveProfilePoster,
+    removeProfileLogo,
+    removeProfilePoster,
+    saveAvatarPosition,
+    savePosterPosition
   };
 }

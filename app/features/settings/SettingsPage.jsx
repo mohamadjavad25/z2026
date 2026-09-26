@@ -1,11 +1,74 @@
 "use client";
 
-import { useRef } from "react";
-import { Bookmark, Camera, ChevronLeft, ImagePlus, Pencil } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Bookmark, Camera, ChevronLeft, ImagePlus, Move, Pencil, Trash2 } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { ProfileLocationSettings } from "../profile/ProfileLocationSettings";
 import { ProfileSettingsPanel } from "../profile/ProfileSettingsPanel";
 import { SalonHoursEditor } from "../profile/SalonHoursEditor";
+import { ImagePositionEditor } from "./ImagePositionEditor";
+
+/**
+ * The camera-icon trigger over an existing avatar/poster opens this small
+ * menu (تغییر / تنظیم موقعیت / حذف) instead of adding three separate
+ * buttons around the image — same footprint as the old single edit
+ * button when there's nothing to manage yet (no image → just the plain
+ * "افزودن" button, no menu at all).
+ */
+function ImageEditMenu({ hasImage, busy, triggerClassName, triggerLabel, triggerIcon, onPickFile, onReposition, onRemove }) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const handleOutside = (event) => {
+      if (rootRef.current && !rootRef.current.contains(event.target)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, [open]);
+
+  if (!hasImage) {
+    return (
+      <button type="button" className={triggerClassName} onClick={onPickFile} disabled={busy}>
+        {triggerIcon}
+        {triggerLabel}
+      </button>
+    );
+  }
+
+  return (
+    <div className="imageEditMenu" ref={rootRef}>
+      <button
+        type="button"
+        className={triggerClassName}
+        onClick={() => setOpen((value) => !value)}
+        disabled={busy}
+        aria-haspopup="menu"
+        aria-expanded={open}
+      >
+        {triggerIcon}
+        {busy ? "در حال ذخیره…" : triggerLabel}
+      </button>
+      {open ? (
+        <div className="imageEditMenuPanel" role="menu">
+          <button type="button" role="menuitem" onClick={() => { setOpen(false); onPickFile(); }}>
+            <Camera size={13} aria-hidden="true" />
+            تغییر عکس
+          </button>
+          <button type="button" role="menuitem" onClick={() => { setOpen(false); onReposition(); }}>
+            <Move size={13} aria-hidden="true" />
+            تنظیم موقعیت
+          </button>
+          <button type="button" role="menuitem" className="is-danger" onClick={() => { setOpen(false); onRemove(); }}>
+            <Trash2 size={13} aria-hidden="true" />
+            حذف عکس
+          </button>
+        </div>
+      ) : null}
+    </div>
+  );
+}
 
 /**
  * One card for everything about how the profile looks: poster banner, logo/
@@ -13,56 +76,77 @@ import { SalonHoursEditor } from "../profile/SalonHoursEditor";
  * specialty/contact edit entry — was three separate, visually repetitive
  * cards (each showing the same logo thumbnail on its own row).
  */
-function BrandCard({ hasPoster, poster, avatar, logoSaving, posterSaving, onSaveLogo, onSavePoster, accountTitle, accountDescription, onEditProfile }) {
+function BrandCard({
+  hasPoster,
+  poster,
+  posterPosition,
+  avatar,
+  avatarPosition,
+  logoSaving,
+  posterSaving,
+  onSaveLogo,
+  onSavePoster,
+  onRemoveLogo,
+  onRemovePoster,
+  onSaveAvatarPosition,
+  onSavePosterPosition,
+  accountTitle,
+  accountDescription,
+  onEditProfile
+}) {
   const logoInputRef = useRef(null);
   const posterInputRef = useRef(null);
+  const [positionEditor, setPositionEditor] = useState(null);
 
   return (
     <section className="brandCard" aria-label="برند و ظاهر پروفایل">
       {hasPoster ? (
         <div className="brandCardPoster">
-          {poster ? <img src={poster} alt="" /> : <ImagePlus size={20} />}
-          <button
-            type="button"
-            className="brandCardPosterEdit"
-            onClick={() => posterInputRef.current?.click()}
-            disabled={posterSaving}
-          >
-            <Camera size={12} />
-            {posterSaving ? "در حال آپلود…" : poster ? "تغییر پوستر" : "افزودن پوستر"}
-          </button>
+          {poster ? <img src={poster} alt="" style={{ objectPosition: posterPosition || "50% 50%" }} /> : <ImagePlus size={20} />}
+          <ImageEditMenu
+            hasImage={Boolean(poster)}
+            busy={posterSaving}
+            triggerClassName="brandCardPosterEdit"
+            triggerLabel={poster ? "تغییر پوستر" : "افزودن پوستر"}
+            triggerIcon={<Camera size={12} aria-hidden="true" />}
+            onPickFile={() => posterInputRef.current?.click()}
+            onReposition={() => setPositionEditor("poster")}
+            onRemove={onRemovePoster}
+          />
           <input ref={posterInputRef} type="file" accept="image/*" hidden onChange={onSavePoster} />
 
           <div className="brandCardAvatarWrap">
             <span className="brandCardAvatar">
-              <img src={avatar} alt="" />
+              <img src={avatar} alt="" style={{ objectPosition: avatarPosition || "50% 50%" }} />
             </span>
-            <button
-              type="button"
-              className="brandCardAvatarEdit"
-              onClick={() => logoInputRef.current?.click()}
-              disabled={logoSaving}
-              aria-label="تغییر لوگو"
-            >
-              <Camera size={11} />
-            </button>
+            <ImageEditMenu
+              hasImage={Boolean(avatar) && !avatar.includes("/profile-icon.svg")}
+              busy={logoSaving}
+              triggerClassName="brandCardAvatarEdit"
+              triggerLabel=""
+              triggerIcon={<Camera size={11} aria-hidden="true" />}
+              onPickFile={() => logoInputRef.current?.click()}
+              onReposition={() => setPositionEditor("avatar")}
+              onRemove={onRemoveLogo}
+            />
             <input ref={logoInputRef} type="file" accept="image/*" hidden onChange={onSaveLogo} />
           </div>
         </div>
       ) : (
         <div className="brandCardAvatarOnly">
           <span className="brandCardAvatar">
-            <img src={avatar} alt="" />
+            <img src={avatar} alt="" style={{ objectPosition: avatarPosition || "50% 50%" }} />
           </span>
-          <button
-            type="button"
-            className="brandCardAvatarEdit"
-            onClick={() => logoInputRef.current?.click()}
-            disabled={logoSaving}
-            aria-label="تغییر عکس پروفایل"
-          >
-            <Camera size={11} />
-          </button>
+          <ImageEditMenu
+            hasImage={Boolean(avatar) && !avatar.includes("/profile-icon.svg")}
+            busy={logoSaving}
+            triggerClassName="brandCardAvatarEdit"
+            triggerLabel=""
+            triggerIcon={<Camera size={11} aria-hidden="true" />}
+            onPickFile={() => logoInputRef.current?.click()}
+            onReposition={() => setPositionEditor("avatar")}
+            onRemove={onRemoveLogo}
+          />
           <input ref={logoInputRef} type="file" accept="image/*" hidden onChange={onSaveLogo} />
         </div>
       )}
@@ -77,6 +161,25 @@ function BrandCard({ hasPoster, poster, avatar, logoSaving, posterSaving, onSave
           ویرایش
         </em>
       </button>
+
+      <ImagePositionEditor
+        open={positionEditor === "avatar"}
+        shape="circle"
+        image={avatar}
+        position={avatarPosition}
+        busy={logoSaving}
+        onSave={(value) => { onSaveAvatarPosition(value); setPositionEditor(null); }}
+        onClose={() => setPositionEditor(null)}
+      />
+      <ImagePositionEditor
+        open={positionEditor === "poster"}
+        shape="wide"
+        image={poster}
+        position={posterPosition}
+        busy={posterSaving}
+        onSave={(value) => { onSavePosterPosition(value); setPositionEditor(null); }}
+        onClose={() => setPositionEditor(null)}
+      />
     </section>
   );
 }
@@ -94,10 +197,12 @@ export function SettingsPage({
   onEditProfile,
   logoSaving = false,
   posterSaving = false,
-  avatarPreview = "",
-  posterPreview = "",
   onSaveLogo,
   onSavePoster,
+  onRemoveLogo,
+  onRemovePoster,
+  onSaveAvatarPosition,
+  onSavePosterPosition,
   profileSettings,
   onToggleSetting,
   artistBookingSettings = null,
@@ -133,7 +238,7 @@ export function SettingsPage({
     : isSalon
       ? "لوگو، نام سالن، شماره تماس و مسیر رزرو"
       : "عکس، نام، تماس، ایمیل و رمز عبور";
-  const accountAvatar = avatarPreview || profile?.data?.avatar || profile?.avatar || "/profile-icon.svg";
+  const accountAvatar = profile?.data?.avatar || profile?.avatar || "/profile-icon.svg";
 
   return (
     <div className={`settingsPagePanel mobilePage page-settings ${active ? "is-active" : ""}`} id="settings">
@@ -147,12 +252,18 @@ export function SettingsPage({
 
         <BrandCard
           hasPoster={isArtist || isSalon}
-          poster={posterPreview || profile?.data?.poster || ""}
+          poster={profile?.data?.poster || ""}
+          posterPosition={profile?.data?.posterPosition || ""}
           avatar={accountAvatar}
+          avatarPosition={profile?.data?.avatarPosition || ""}
           logoSaving={logoSaving}
           posterSaving={posterSaving}
           onSaveLogo={onSaveLogo}
           onSavePoster={onSavePoster}
+          onRemoveLogo={onRemoveLogo}
+          onRemovePoster={onRemovePoster}
+          onSaveAvatarPosition={onSaveAvatarPosition}
+          onSavePosterPosition={onSavePosterPosition}
           accountTitle={accountTitle}
           accountDescription={accountDescription}
           onEditProfile={onEditProfile}
