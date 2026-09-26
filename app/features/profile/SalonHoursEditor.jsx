@@ -159,10 +159,6 @@ export function SalonHoursEditor({
                           onChange={pickStart}
                           ariaLabel={`ساعت شروع ${selectedHour.day}`}
                           idPrefix={`salon-hour-open-${selectedHour.day}`}
-                          activeColor="#24143f"
-                          inactiveColor="rgba(36, 20, 63, 0.26)"
-                          disabledColor="rgba(36, 20, 63, 0.12)"
-                          clockSize="xs"
                         />
                       </div>
                       <em>{isInvalidRange ? "نامعتبر" : `${toPersianDigits(durationMinutes)} دقیقه`}</em>
@@ -175,10 +171,6 @@ export function SalonHoursEditor({
                           onChange={(slot) => onUpdateHour?.(selectedHour, { close_time: slot })}
                           ariaLabel={`ساعت پایان ${selectedHour.day}`}
                           idPrefix={`salon-hour-close-${selectedHour.day}`}
-                          activeColor="#24143f"
-                          inactiveColor="rgba(36, 20, 63, 0.26)"
-                          disabledColor="rgba(36, 20, 63, 0.12)"
-                          clockSize="xs"
                         />
                       </div>
                     </div>

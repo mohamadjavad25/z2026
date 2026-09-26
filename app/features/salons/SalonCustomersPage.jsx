@@ -15,38 +15,46 @@ function customerKey(booking) {
 }
 
 /**
- * Owner's own customer community — grouped from their real bookings
- * (salonAppointmentList for a salon, artistBookingList for an artist),
- * not a separate table: a "customer" is anyone who has ever booked with
- * this account. Rows already arrive newest first (listSalonBookings /
- * the artist booking list both order by id DESC), so the first booking
+ * Groups an owner's real bookings (salonAppointmentList for a salon,
+ * artistBookingList for an artist) into one row per real-world customer --
+ * shared between this page and the owner's own booking-create form (its
+ * name-lookup autocomplete), so a returning walk-in doesn't have to be
+ * retyped from scratch every time the owner already has their number on
+ * file from a past visit. Rows already arrive newest first (listSalonBookings
+ * / the artist booking list both order by id DESC), so the first booking
  * seen per grouping key is that customer's most recent visit.
+ */
+export function buildBookingCustomers(bookings = []) {
+  const byKey = new Map();
+  bookings.forEach((booking) => {
+    const key = customerKey(booking);
+    if (!key) return;
+    const existing = byKey.get(key);
+    if (existing) {
+      existing.visitCount += booking.status === "لغو" ? 0 : 1;
+      return;
+    }
+    byKey.set(key, {
+      key,
+      name: booking.client || "مشتری",
+      phone: booking.phone || "",
+      avatar: booking.client_avatar || booking.clientAvatar || "",
+      lastService: booking.service || "",
+      lastDate: booking.booking_date || booking.date || "",
+      visitCount: booking.status === "لغو" ? 0 : 1
+    });
+  });
+  return [...byKey.values()];
+}
+
+/**
+ * Owner's own customer community page. See buildBookingCustomers above for
+ * how a "customer" is derived from real bookings.
  */
 export function SalonCustomersPage({ active, bookings = [], onOpenBooking, ownerLabel = "سالن شما" }) {
   const [query, setQuery] = useState("");
 
-  const customers = useMemo(() => {
-    const byKey = new Map();
-    bookings.forEach((booking) => {
-      const key = customerKey(booking);
-      if (!key) return;
-      const existing = byKey.get(key);
-      if (existing) {
-        existing.visitCount += booking.status === "لغو" ? 0 : 1;
-        return;
-      }
-      byKey.set(key, {
-        key,
-        name: booking.client || "مشتری",
-        phone: booking.phone || "",
-        avatar: booking.client_avatar || booking.clientAvatar || "",
-        lastService: booking.service || "",
-        lastDate: booking.booking_date || booking.date || "",
-        visitCount: booking.status === "لغو" ? 0 : 1
-      });
-    });
-    return [...byKey.values()];
-  }, [bookings]);
+  const customers = useMemo(() => buildBookingCustomers(bookings), [bookings]);
 
   const normalizedQuery = query.trim();
   const visibleCustomers = normalizedQuery

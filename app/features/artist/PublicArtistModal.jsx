@@ -8,6 +8,7 @@ import { PublicArtistAboutPanel } from "./PublicArtistAboutPanel";
 import { PublicArtistBookingPanel } from "./PublicArtistBookingPanel";
 import { PublicArtistGalleryPanel } from "./PublicArtistGalleryPanel";
 import { PublicArtistServicesPanel } from "./PublicArtistServicesPanel";
+import { ProfileSheet } from "../profile/ProfileSheet";
 import { useState } from "react";
 
 export function PublicArtistModal({
@@ -178,9 +179,13 @@ export function PublicArtistModal({
             </div>
           </div>
 
-          {bookingPopup ? (
-            <div className="artistBookingPopup" role="dialog" aria-modal="true" aria-label="رزرو نوبت" onClick={() => setBookingPopup(false)}>
-              <article className="artistBookingPopupSheet" onClick={(event) => event.stopPropagation()}>
+          <ProfileSheet
+            open={bookingPopup}
+            kicker={artist.name || "آرتیست"}
+            title="رزرو نوبت"
+            panelClassName="artistBookingPopupSheet"
+            onClose={() => setBookingPopup(false)}
+          >
                 <PublicArtistBookingPanel
                   artist={artist}
                   services={services}
@@ -223,12 +228,7 @@ export function PublicArtistModal({
                   <CalendarCheck size={17} />
                   {bookingBusy ? "در حال ثبت..." : bookingSlot ? `تایید رزرو · ${bookingDay} ${bookingSlot}` : "ساعت را انتخاب کن"}
                 </button>
-              </article>
-              <button type="button" className="artistBookingPopupClose" onClick={() => setBookingPopup(false)}>
-                <X size={18} />
-              </button>
-            </div>
-          ) : null}
+          </ProfileSheet>
 
           {aboutPopup ? (
             <div

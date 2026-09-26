@@ -80,9 +80,6 @@ export function PublicArtistBookingPanel({
             disabledValues={fullDays}
             onChange={(day) => onDayChange(day, durationMinutes)}
             ariaLabel="انتخاب روز رزرو"
-            activeColor="#5d43b5"
-            inactiveColor="rgba(20, 22, 30, 0.82)"
-            disabledColor="rgba(28, 32, 44, 0.22)"
           />
         </div>
         <div className="artistPublicBookingTimePicker">
@@ -97,8 +94,6 @@ export function PublicArtistBookingPanel({
               value={bookingSlot}
               onChange={onSlotChange}
               ariaLabel="انتخاب ساعت رزرو"
-              activeColor="#5d43b5"
-              inactiveColor="rgba(20, 22, 30, 0.82)"
             />
           ) : (
             <div className="artistPublicSlotEmpty">

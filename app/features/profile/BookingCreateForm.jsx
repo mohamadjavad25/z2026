@@ -1,12 +1,15 @@
 "use client";
 
-import { CalendarCheck } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { CalendarCheck, History } from "lucide-react";
+import { toPersianDigits } from "../../shared/lib/digits";
 import { BookingSelect } from "../../components/BookingSelect";
 import { BreakTimeWheel } from "../../components/BreakTimeWheel";
 
 export function BookingCreateForm({
   role = "salon",
   onSubmit,
+  customerOptions = [],
   serviceOptions = [],
   serviceValue = "",
   serviceMenuOpen = false,
@@ -27,6 +30,33 @@ export function BookingCreateForm({
   submitting = false
 }) {
   const showStaff = role === "salon";
+  const nameInputRef = useRef(null);
+  const phoneInputRef = useRef(null);
+  const suggestBoxRef = useRef(null);
+  const [nameQuery, setNameQuery] = useState("");
+  const [suggestOpen, setSuggestOpen] = useState(false);
+  const normalizedQuery = nameQuery.trim();
+  const matchingCustomers = normalizedQuery
+    ? customerOptions
+      .filter((item) => item.name && item.name.includes(normalizedQuery))
+      .slice(0, 5)
+    : [];
+
+  useEffect(() => {
+    if (!suggestOpen) return undefined;
+    const handleOutside = (event) => {
+      if (suggestBoxRef.current && !suggestBoxRef.current.contains(event.target)) setSuggestOpen(false);
+    };
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, [suggestOpen]);
+
+  function applyCustomer(customer) {
+    if (nameInputRef.current) nameInputRef.current.value = customer.name;
+    if (phoneInputRef.current) phoneInputRef.current.value = customer.phone || "";
+    setNameQuery(customer.name);
+    setSuggestOpen(false);
+  }
   const dayFieldName = role === "salon" ? "booking_date" : "date";
   const isBusy = Boolean(submitting);
   const normalizedDayOptions = dayOptions.map((option) => (
@@ -48,11 +78,47 @@ export function BookingCreateForm({
       className="bookingFormGrid bookingCreateForm is-flat"
       onSubmit={onSubmit}
     >
-      <label>
-        <input name="client" placeholder="نام مشتری" aria-label="نام مشتری" autoComplete="name" required />
+      <label className="bookingClientLookup" ref={suggestBoxRef}>
+        <input
+          ref={nameInputRef}
+          name="client"
+          placeholder="نام مشتری"
+          aria-label="نام مشتری"
+          autoComplete="name"
+          defaultValue=""
+          required
+          onChange={(event) => {
+            setNameQuery(event.target.value);
+            setSuggestOpen(true);
+          }}
+          onFocus={() => setSuggestOpen(true)}
+        />
+        {suggestOpen && matchingCustomers.length ? (
+          <div className="bookingClientSuggestList" role="listbox" aria-label="مشتریان قبلی">
+            {matchingCustomers.map((customer) => (
+              <button
+                type="button"
+                key={customer.key}
+                role="option"
+                className="bookingClientSuggestItem"
+                onClick={() => applyCustomer(customer)}
+              >
+                <History size={13} aria-hidden="true" />
+                <span>
+                  <b>{customer.name}</b>
+                  <small>
+                    {customer.phone ? toPersianDigits(customer.phone) : "شماره ثبت نشده"}
+                    {customer.lastService ? ` · ${customer.lastService}` : ""}
+                  </small>
+                </span>
+              </button>
+            ))}
+          </div>
+        ) : null}
       </label>
       <label>
         <input
+          ref={phoneInputRef}
           name="phone"
           placeholder="شماره تماس (اختیاری)"
           aria-label="شماره تماس"
@@ -105,8 +171,6 @@ export function BookingCreateForm({
               onDayChange?.(option?.value || label);
             }}
             ariaLabel="انتخاب روز رزرو"
-            activeColor="#5d43b5"
-            inactiveColor="rgba(20, 22, 30, 0.82)"
           />
         </div>
         <div className="artistPublicBookingTimePicker">
@@ -122,8 +186,6 @@ export function BookingCreateForm({
               value={timeValue}
               onChange={onTimeChange}
               ariaLabel="انتخاب ساعت رزرو"
-              activeColor="#5d43b5"
-              inactiveColor="rgba(20, 22, 30, 0.82)"
             />
           ) : (
             <div className="artistPublicSlotEmpty">

@@ -19,11 +19,17 @@ export function BreakTimeWheel({
   visibleCount = 3,
   mode = "clock",
   idPrefix = "break-wheel",
-  activeColor = "#0f5f5d",
-  inactiveColor = "rgba(15, 95, 93, 0.34)",
-  disabledColor = "rgba(15, 95, 93, 0.18)",
+  // Canonical look for every hour/day wheel in the app -- the working-hours
+  // editor (SalonHoursEditor) is the reference; every other usage (booking
+  // creation, the artist break-time editor) used to override these with
+  // its own one-off colors, so the exact same control read as three
+  // visually different pickers depending on where you ran into it. Now
+  // it's one look, defined once, here.
+  activeColor = "#24143f",
+  inactiveColor = "rgba(36, 20, 63, 0.26)",
+  disabledColor = "rgba(36, 20, 63, 0.12)",
   itemSize = BREAK_WHEEL_ITEM,
-  clockSize = "sm"
+  clockSize = "xs"
 }) {
   const railRef = useRef(null);
   const settleTimer = useRef(0);
@@ -97,6 +103,49 @@ export function BreakTimeWheel({
 
   useEffect(() => () => window.clearTimeout(settleTimer.current), []);
 
+  // Roving-tabindex keyboard nav -- only the active option is tab-stoppable
+  // (below), so arrow keys are the only way to move between options once
+  // focused. Previously this listbox had none at all: a keyboard user could
+  // Tab to the active option and nowhere else, with no way to change it
+  // without a pointer/touch scroll gesture.
+  function focusOption(slot) {
+    const el = railRef.current?.querySelector(`#${CSS.escape(`${idPrefix}-${slot}`)}`);
+    el?.focus();
+  }
+
+  function moveSelection(fromIndex, step) {
+    if (!options.length) return;
+    let index = fromIndex;
+    for (let guard = 0; guard < options.length; guard += 1) {
+      index += step;
+      if (index < 0 || index > options.length - 1) return;
+      if (!disabledValues.includes(options[index])) break;
+    }
+    index = Math.max(0, Math.min(options.length - 1, index));
+    if (disabledValues.includes(options[index])) return;
+    setVisualIndex(index);
+    scrollToIndex(index, "smooth");
+    const next = options[index];
+    if (next && next !== value) onChange?.(next);
+    focusOption(next);
+  }
+
+  function handleItemKeyDown(event, index) {
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      moveSelection(index, 1);
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      moveSelection(index, -1);
+    } else if (event.key === "Home") {
+      event.preventDefault();
+      moveSelection(-1, 1);
+    } else if (event.key === "End") {
+      event.preventDefault();
+      moveSelection(options.length, -1);
+    }
+  }
+
   return (
     <div
       className={`breakTimeWheel ${mode === "label" ? "is-label" : "is-clock"}`}
@@ -139,6 +188,7 @@ export function BreakTimeWheel({
                 scrollToIndex(index, "smooth");
                 onChange?.(slot);
               }}
+              onKeyDown={(event) => handleItemKeyDown(event, index)}
             >
               {mode === "clock" ? (
                 <SegmentClock

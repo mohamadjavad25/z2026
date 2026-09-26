@@ -3502,6 +3502,76 @@ h2{
   text-align: center;
 }
 
+.bookingClientLookup{
+  position: relative;
+  z-index: 3;
+}
+
+.bookingClientSuggestList{
+  position: absolute;
+  inset-inline: 0;
+  top: calc(100% + 4px);
+  z-index: 5;
+  display: grid;
+  gap: 2px;
+  padding: 6px;
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid rgba(28, 32, 44, 0.1);
+  border-radius: 15px;
+  background: #fff;
+  box-shadow: 0 14px 30px rgba(28, 32, 44, 0.14);
+}
+
+.bookingClientSuggestItem{
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  min-height: 0 !important;
+  border: 0 !important;
+  border-radius: 10px !important;
+  background: transparent !important;
+  padding: 7px 8px;
+  color: var(--ink) !important;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-align: right;
+  cursor: pointer;
+}
+
+.bookingClientSuggestItem:hover,
+.bookingClientSuggestItem:focus-visible{
+  background: rgba(93, 67, 181, 0.08) !important;
+}
+
+.bookingClientSuggestItem svg{
+  flex: none;
+  color: var(--muted, rgba(28, 32, 44, 0.45));
+}
+
+.bookingClientSuggestItem span{
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.bookingClientSuggestItem b{
+  font-size: 0.74rem;
+  font-weight: 900;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bookingClientSuggestItem small{
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--muted, rgba(28, 32, 44, 0.5));
+  direction: ltr;
+  text-align: right;
+}
+
 
 
 
@@ -23522,54 +23592,16 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
 }
 
 /* ═══ Booking popup ═══ */
-.artistBookingPopup {
-  position: fixed;
-  inset: 0;
-  z-index: 41;
-  display: grid;
-  place-items: center;
-  padding: 20px;
-  background: rgba(12, 8, 26, 0.5);
-  backdrop-filter: blur(6px);
-  animation: artistPopupIn 0.22s ease both;
-}
-
+/* Backdrop/sizing now come from the shared .salonHeroSheetPanel/
+   .salonHeroSheetBackdrop (ProfileSheet) -- this only adds this
+   popup's own inner spacing on top of that shared shell. */
 .artistBookingPopupSheet {
-  position: relative;
-  width: min(380px, 100%);
-  max-height: min(84dvh, 640px);
   display: flex;
   flex-direction: column;
-  padding: 22px 20px 18px;
-  border-radius: 24px;
-  background: #ffffff;
-  box-shadow: 0 28px 70px rgba(10, 6, 24, 0.3);
-  overflow-y: auto;
-  scrollbar-width: thin;
+  padding: 6px 4px 18px;
 }
 
-.artistBookingPopupClose {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  z-index: 2;
-  width: 32px;
-  height: 32px;
-  display: grid;
-  place-items: center;
-  border: 0;
-  border-radius: 50%;
-  background: rgba(28, 32, 44, 0.06);
-  color: #4a4d5e;
-  cursor: pointer;
-  transition: background 0.15s ease;
-}
-
-.artistBookingPopupClose:hover {
-  background: rgba(28, 32, 44, 0.12);
-}
-
-.artistBookingPopup .artistPublicBookingPanel {
+.artistBookingPopupSheet .artistPublicBookingPanel {
   display: grid;
   gap: 12px;
   padding-top: 6px;
@@ -23629,8 +23661,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
 
 /* ═══ Popups v2: column layout, floating close below the modal, slot scroll ═══ */
 
-.artistServicePopup,
-.artistBookingPopup {
+.artistServicePopup {
   display: flex !important;
   flex-direction: column;
   align-items: center;
@@ -23638,30 +23669,11 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   gap: 14px;
 }
 
-.artistBookingPopupClose {
-  position: static !important;
-  width: 44px;
-  height: 44px;
-  display: grid !important;
-  place-items: center;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.95);
-  color: #5d43b5;
-  font: inherit;
-  cursor: pointer;
-  box-shadow: 0 12px 28px rgba(10, 6, 24, 0.22);
-  transition: transform 0.16s ease, background 0.16s ease;
-}
-
-.artistServicePopupClose:hover,
-.artistBookingPopupClose:hover {
+.artistServicePopupClose:hover {
   background: #ffffff;
 }
 
-.artistServicePopupClose:active,
-.artistBookingPopupClose:active {
+.artistServicePopupClose:active {
   transform: scale(0.97);
 }
 
@@ -23670,12 +23682,6 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
 .artistServicePopupSheet {
   border-radius: 26px !important;
   box-shadow: 0 30px 70px rgba(10, 6, 24, 0.34) !important;
-}
-
-.artistBookingPopupSheet {
-  border-radius: 26px !important;
-  box-shadow: 0 30px 70px rgba(10, 6, 24, 0.34) !important;
-  padding-top: 26px !important;
 }
 
 /* Day picker caption + polish */
@@ -23699,7 +23705,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   font-weight: 750;
 }
 
-.artistBookingPopup .breakTimeWheel.is-label .breakTimeWheelLabel {
+.artistBookingPopupSheet .breakTimeWheel.is-label .breakTimeWheelLabel {
   font-size: 0.82rem;
   font-weight: 850;
   white-space: nowrap;
@@ -23784,12 +23790,12 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
 }
 
 /* Full days in the wheel: clearly disabled */
-.artistBookingPopup .breakTimeWheelItem.is-disabled {
+.artistBookingPopupSheet .breakTimeWheelItem.is-disabled {
   opacity: 0.35;
   cursor: not-allowed;
 }
 
-.artistBookingPopup .breakTimeWheelItem.is-disabled .breakTimeWheelLabel {
+.artistBookingPopupSheet .breakTimeWheelItem.is-disabled .breakTimeWheelLabel {
   text-decoration: line-through;
 }
 

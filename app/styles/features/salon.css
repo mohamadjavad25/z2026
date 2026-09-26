@@ -3527,36 +3527,16 @@
 
 
 
-.salonClientBookingModal{
-  position: fixed;
-  inset: 0;
-  z-index: 82;
-  display: grid;
-  align-items: center;
-  justify-items: center;
-  padding: calc(18px + env(safe-area-inset-top)) 12px calc(18px + env(safe-area-inset-bottom));
-  background: rgba(12, 16, 19, 0.34);
-  backdrop-filter: blur(14px);
-  animation: salonBookingModalIn 0.2s ease both;
-}
-
-
-
+/* Sizing/backdrop now come from the shared .salonHeroSheetPanel/
+   .salonHeroSheetBackdrop (ProfileSheet) -- this only adds the
+   booking-specific tint and inner spacing on top of that shared shell. */
 .salonClientBookingPanel{
-  width: min(100%, 430px);
-  max-height: min(88dvh, 720px);
   display: grid;
   gap: 12px;
   padding: 13px;
-  border: 1px solid rgba(96, 81, 155, 0.18);
-  border-radius: 24px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(232, 247, 246, 0.94));
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.86),
-    0 28px 70px rgba(8, 11, 14, 0.26);
-  overflow: auto;
-  animation: salonBookingSheetIn 0.26s cubic-bezier(0.22, 1, 0.36, 1) both;
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(232, 247, 246, 0.94)),
+    var(--surface-solid);
 }
 
 
@@ -4768,7 +4748,6 @@
   .salonClientBookingPanel{
     gap: 10px;
     padding: 11px;
-    border-radius: 18px;
   }
 
 

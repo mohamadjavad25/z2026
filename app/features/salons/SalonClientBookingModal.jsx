@@ -2,6 +2,7 @@
 
 import { CalendarCheck, CheckCircle2, Phone, UserRound, X } from "lucide-react";
 import { BreakTimeWheel } from "../../components/BreakTimeWheel";
+import { ProfileSheet } from "../profile/ProfileSheet";
 import { salonClientBookingDays } from "../artist/constants";
 
 export function SalonClientBookingModal({
@@ -29,14 +30,13 @@ export function SalonClientBookingModal({
   }
 
   return (
-    <div
-      className="salonClientBookingModal"
-      role="dialog"
-      aria-modal="true"
-      aria-label="ثبت رزرو سالن"
-      onClick={onClose}
+    <ProfileSheet
+      open={open}
+      label="ثبت رزرو سالن"
+      panelClassName="salonClientBookingPanel"
+      hideHeader
+      onClose={onClose}
     >
-      <div className="salonClientBookingPanel" onClick={(event) => event.stopPropagation()}>
         <div className="salonClientBookingHead">
           <button
             type="button"
@@ -134,7 +134,6 @@ export function SalonClientBookingModal({
           <CalendarCheck size={17} />
           {busy ? "در حال ثبت..." : booking.profileConfirmed ? "رزرو نوبت" : "تایید اطلاعات و رزرو"}
         </button>
-      </div>
-    </div>
+    </ProfileSheet>
   );
 }

@@ -92,6 +92,7 @@ import { ProfileSavedPosts } from "../profile/ProfileSavedPosts";
 import { ProfileSheet } from "../profile/ProfileSheet";
 import { ServiceComposerModal } from "../profile/ServiceComposerModal";
 import {
+  buildBookingCustomers,
   SalonClientBookingModal,
   SalonClientPage,
   SalonCreateStaffModal,
@@ -1011,6 +1012,10 @@ export function HomeApp() {
     });
     return unique.length ? unique : ["امروز"];
   }, [salonHoursList, salonAppointmentList]);
+
+  const bookingCustomerOptions = useMemo(() => (
+    buildBookingCustomers(createdProfile?.type === "artist" ? artistBookingList : salonAppointmentList)
+  ), [createdProfile?.type, artistBookingList, salonAppointmentList]);
 
   const salonHistoryAppointments = useMemo(() => (
     salonAppointmentList
@@ -2557,6 +2562,7 @@ function getPassportMatch(post) {
         >
           <BookingCreateForm
             role={createdProfile?.type === "artist" ? "artist" : "salon"}
+            customerOptions={bookingCustomerOptions}
             onSubmit={(event) => {
               if (createdProfile?.type === "artist") {
                 handleArtistBookingCreate(event);
