@@ -49,23 +49,23 @@ export const profileRoleMeta = {
 };
 
 // Base specialty/service catalog shown in the multi-select dropdown on the
-// salon/artist signup forms (SpecialtyMultiSelect.jsx). Deliberately broader
-// than the old single-select list -- a person can still add anything not
-// listed here via the dropdown's own "add" field.
+// salon/artist signup forms (SpecialtyMultiSelect.jsx) -- main service
+// categories, not every possible sub-treatment. A user who doesn't find
+// what they're after adds it themselves via the dropdown's own "add"
+// field (kept in that dropdown's local component state only, so it never
+// becomes part of any other user's list -- see SpecialtyMultiSelect.jsx).
 export const beautySpecialtyOptions = [
   "ناخن",
-  "کاشت ناخن",
-  "ژل و لاک",
-  "مو و رنگ",
-  "کراتینه و احیا",
+  "کوتاهی و مدل مو",
+  "رنگ مو",
+  "کراتین و احیا",
   "اکستنشن مو",
   "میکاپ",
-  "میکاپ عروس",
-  "ابرو و میکروبلیدینگ",
-  "لمینت مژه و ابرو",
-  "پوست و اپیلاسیون",
-  "وکس بدن",
+  "ابرو و مژه",
+  "پوست و پاکسازی",
+  "اپیلاسیون و وکس",
   "ماساژ و اسپا",
+  "تتو و خالکوبی",
   "حنا و مهندی"
 ];
 

@@ -1,6 +1,7 @@
 import "./styles.css";
 import Script from "next/script";
 import PbdqInspector from "./components/PbdqInspector.jsx";
+import { ViewportHeightFix } from "./components/ViewportHeightFix.jsx";
 
 // NEXT_PUBLIC_SITE_URL is the single source of truth for the site's public
 // domain (see .env.example at the repo root) — app/sitemap.js and
@@ -9,6 +10,22 @@ import PbdqInspector from "./components/PbdqInspector.jsx";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://zibaban.example.com";
 const HOME_TITLE = "زیبابان | شبکه اجتماعی زیبایی بانوان";
 const HOME_DESCRIPTION = "کشف آرایشگاه، نمونه‌کار واقعی، مشاوره زیبایی و رزرو برای بانوان.";
+
+// interactiveWidget: "resizes-content" tells the browser to resize the
+// actual layout viewport (not just the visual one) when the on-screen
+// keyboard opens/closes. Without it (the Next.js/browser default is
+// "resizes-visual" on Chrome/Android), 100dvh-based layouts don't reflow
+// when the keyboard appears -- content can end up shifted or covered, and
+// never quite lands back in the same spot once the keyboard closes. This
+// is exactly the auth-gate form drift reported: fields anchored to the
+// bottom of a dvh-tall column need the browser to actually recompute that
+// height around the keyboard, not just the visible viewport shrinking
+// underneath a layout that hasn't moved.
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  interactiveWidget: "resizes-content"
+};
 
 export const metadata = {
   metadataBase: new URL(SITE_URL),
@@ -48,6 +65,7 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         <PbdqInspector />
+        <ViewportHeightFix />
         {children}
         <Script id="sw-register" strategy="afterInteractive">
           {`if ("serviceWorker" in navigator) {

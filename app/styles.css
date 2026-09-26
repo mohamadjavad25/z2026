@@ -4451,6 +4451,12 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   isolation: isolate;
   min-height: 100vh;
   min-height: 100dvh;
+  /* `--vh` (set by ViewportHeightFix.jsx from visualViewport) keeps this
+     exact height in sync with the keyboard on browsers/versions that
+     don't reflow 100dvh around it -- without it, a form anchored to the
+     bottom of this column (margin-top: auto) can drift when the keyboard
+     opens/closes instead of landing back exactly where it started. */
+  min-height: calc(var(--vh, 1vh) * 100);
   max-width: 440px;
   margin: 0 auto;
   padding: 0;
@@ -4467,6 +4473,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   padding: 0 18px;
   min-height: 100vh;
   min-height: 100dvh;
+  min-height: calc(var(--vh, 1vh) * 100);
   background: transparent;
 }
 
