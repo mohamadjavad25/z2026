@@ -415,48 +415,75 @@
   text-underline-offset: 3px;
 }
 
-/* Forms on auth gate — quieter surface */
+/* Forms on auth gate — one quiet, unified surface (not a box floating on
+   the aurora): a soft ivory pane, thin hairline border, restrained shadow.
+   Per-role identity comes from --form-accent (set in styles.css) tinting
+   the icon, focus rings and button only — not from a different gradient
+   or border color per role. */
 
 .appShell.is-auth-gate .signupForm {
   margin-top: auto;
   margin-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-  padding: 18px 16px;
-  border: 0;
-  border-radius: 22px;
-  background: rgba(255, 252, 249, 0.9);
-  box-shadow: 0 18px 40px rgba(22, 20, 26, 0.18);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  padding: 26px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 26px;
+  background: rgba(255, 252, 249, 0.92);
+  box-shadow: 0 20px 50px -14px rgba(10, 8, 12, 0.35);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   animation: authCopyIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+.appShell.is-auth-gate .signupForm .formTitle {
+  border-bottom-color: rgba(22, 20, 26, 0.08);
+}
+
 .appShell.is-auth-gate .signupForm .formTitle strong {
-  font-size: 1.05rem;
+  font-size: 1.08rem;
   font-weight: 850;
+  color: var(--auth-ink);
 }
 
 .appShell.is-auth-gate .signupForm .formTitle span {
-  font-size: 0.78rem;
+  font-size: 0.8rem;
+  color: rgba(22, 20, 26, 0.56);
+}
+
+.appShell.is-auth-gate .signupForm label {
+  color: rgba(22, 20, 26, 0.56);
+}
+
+.appShell.is-auth-gate .signupForm input,
+.appShell.is-auth-gate .signupForm select {
+  border-color: rgba(22, 20, 26, 0.12);
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--auth-ink);
+}
+
+.appShell.is-auth-gate .signupForm input:focus,
+.appShell.is-auth-gate .signupForm select:focus {
+  background: #fff;
 }
 
 .appShell.is-auth-gate .signupForm .profileSubmit {
-  border: 0;
-  border-radius: 16px;
-  min-height: 50px;
-  background: linear-gradient(145deg, #1c171c 0%, #2a2228 55%, #3d2a32 120%);
-  color: #fff;
   font-family: "Vazirmatn", Tahoma, sans-serif;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  box-shadow: 0 14px 28px rgba(22, 20, 26, 0.22);
 }
 
 .appShell.is-auth-gate .profileBackButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   border: 0;
-  background: rgba(22, 20, 26, 0.05);
-  border-radius: 12px;
+  background: none;
+  padding: 0;
+  color: rgba(22, 20, 26, 0.5);
+  font-weight: 700;
+  font-size: 0.8rem;
+  transition: color 0.18s ease;
+}
+
+.appShell.is-auth-gate .profileBackButton:hover {
   color: var(--auth-ink);
-  font-weight: 750;
 }
 
 .appShell.is-auth-gate .authSwitchHint {

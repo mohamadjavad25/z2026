@@ -4240,38 +4240,28 @@ h2{
 }
 
 .signupForm{
+  --form-accent: var(--plum);
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
   margin-top: 14px;
-  padding: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.82);
-  border-radius: 24px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(246, 246, 251, 0.96)),
-    #f6f6fb;
-  box-shadow: 0 16px 36px rgba(28, 32, 44, 0.08);
+  padding: var(--space-6) var(--space-5);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  background: var(--surface-solid);
+  box-shadow: var(--shadow-xs);
 }
 
 .signupForm.is-salon{
-  border-color: rgba(96, 81, 155, 0.18);
+  --form-accent: var(--teal);
 }
 
 .signupForm.is-artist{
-  border-color: rgba(120, 72, 108, 0.18);
+  --form-accent: #78486c;
 }
 
 .signupForm.is-client{
-  border-color: rgba(96, 81, 155, 0.18);
-}
-
-.signupForm.is-login{
-  border-color: rgba(96, 81, 155, 0.2);
-  grid-template-columns: 1fr;
-}
-
-.signupForm.is-login label{
-  grid-column: 1 / -1;
+  --form-accent: var(--rose);
 }
 
 .authModeSwitch{
@@ -4485,20 +4475,23 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .signupForm .profileBackButton{
-  grid-column: 1 / -1;
   margin-bottom: 2px;
+  justify-self: start;
 }
 
 .formTitle{
-  grid-column: 1 / -1;
   display: flex;
-  align-items: center;
-  gap: 10px;
-  padding-bottom: 4px;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding-bottom: var(--space-2);
+  margin-bottom: var(--space-1);
+  border-bottom: 1px solid var(--line);
 }
 
 .formTitle svg{
-  color: var(--teal);
+  flex: none;
+  margin-top: 2px;
+  color: var(--form-accent, var(--teal));
 }
 
 .formTitle strong,
@@ -4507,44 +4500,61 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .formTitle strong{
-  margin-bottom: 3px;
+  font-size: var(--text-lg);
+  font-weight: 800;
+  letter-spacing: -0.01em;
 }
 
 .formTitle span{
+  margin-top: 2px;
   color: var(--muted);
-  font-size: 0.78rem;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  line-height: 1.5;
 }
 
 .signupForm label{
   display: grid;
-  gap: 6px;
-  color: var(--ink);
-  font-size: 0.82rem;
-  font-weight: 900;
+  gap: var(--space-2);
+  color: var(--muted);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  opacity: 0;
+  transform: translateY(6px);
+  animation: signupFieldIn var(--duration-base) var(--ease-standard) forwards;
+  animation-delay: calc(var(--field-index, 0) * 35ms + 60ms);
 }
 
-.signupForm label:nth-of-type(1),
-.signupForm label:nth-of-type(2),
-.signupForm label:nth-of-type(5){
-  grid-column: 1 / -1;
+.signupForm label:nth-of-type(1){ --field-index: 1; }
+.signupForm label:nth-of-type(2){ --field-index: 2; }
+.signupForm label:nth-of-type(3){ --field-index: 3; }
+.signupForm label:nth-of-type(4){ --field-index: 4; }
+.signupForm label:nth-of-type(5){ --field-index: 5; }
+.signupForm label:nth-of-type(6){ --field-index: 6; }
+
+@keyframes signupFieldIn{
+  to{ opacity: 1; transform: translateY(0); }
 }
 
 .authForgotLink{
-  grid-column: 1 / -1;
   justify-self: end;
-  margin-top: -4px;
+  margin-top: -6px;
   border: 0;
   background: none;
   padding: 0;
-  color: var(--teal);
-  font-size: 0.72rem;
-  font-weight: 800;
+  color: var(--muted);
+  font-size: var(--text-xs);
+  font-weight: 700;
   white-space: nowrap;
   cursor: pointer;
+  transition: color var(--duration-fast) ease;
+}
+
+.authForgotLink:hover{
+  color: var(--form-accent, var(--teal));
 }
 
 .authSwitchHint.is-pageFooter{
-  grid-column: auto;
   margin: auto 0 0;
   padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px));
   color: rgba(247, 241, 234, 0.75);
@@ -4560,10 +4570,37 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   width: 100%;
   border: 1px solid var(--line);
   outline: 0;
-  border-radius: 15px;
-  background: rgba(255, 255, 255, 0.86);
+  border-radius: var(--radius-md);
+  background: var(--surface);
   color: var(--ink);
-  padding: 10px 12px;
+  font-size: var(--text-base);
+  font-weight: 600;
+  padding: 12px 14px;
+  transition:
+    border-color var(--duration-fast) ease,
+    box-shadow var(--duration-fast) ease,
+    background var(--duration-fast) ease;
+}
+
+.signupForm input::placeholder,
+.signupForm select:invalid,
+.signupForm textarea::placeholder{
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.signupForm input:hover,
+.signupForm select:hover,
+.signupForm textarea:hover{
+  border-color: color-mix(in srgb, var(--form-accent, var(--teal)) 35%, var(--line));
+}
+
+.signupForm input:focus,
+.signupForm select:focus,
+.signupForm textarea:focus{
+  background: var(--surface-solid);
+  border-color: var(--form-accent, var(--teal));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--form-accent, var(--teal)) 16%, transparent);
 }
 
 .signupForm textarea{
@@ -4577,46 +4614,56 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .authPasswordField input{
-  padding-left: 38px;
+  padding-left: 40px;
 }
 
 .authPasswordToggle{
   position: absolute;
   top: 50%;
-  left: 6px;
+  left: 4px;
   transform: translateY(-50%);
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   display: grid;
   place-items: center;
   border: 0;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   background: none;
   color: var(--muted);
   cursor: pointer;
+  transition: color var(--duration-fast) ease, background var(--duration-fast) ease;
+}
+
+.authPasswordToggle:hover{
+  color: var(--ink);
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
 }
 
 .profileSubmit{
-  grid-column: 1 / -1;
-  min-height: 48px;
+  margin-top: var(--space-2);
+  min-height: 50px;
   border: 0;
-  border-radius: 16px;
-  background: linear-gradient(135deg, var(--night), var(--plum));
+  border-radius: var(--radius-md);
+  background: var(--form-accent, var(--night));
   color: #fff;
-  font-weight: 900;
-  box-shadow: 0 14px 30px rgba(28, 32, 44, 0.18);
+  font-size: var(--text-base);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  box-shadow: 0 10px 24px -8px color-mix(in srgb, var(--form-accent, var(--night)) 65%, transparent);
+  transition: transform var(--duration-fast) ease, box-shadow var(--duration-fast) ease, filter var(--duration-fast) ease;
 }
 
-.signupForm.is-salon .profileSubmit{
-  background: linear-gradient(135deg, #145f5d, var(--teal));
+.profileSubmit:hover:not(:disabled){
+  filter: brightness(1.06);
+  box-shadow: 0 14px 30px -8px color-mix(in srgb, var(--form-accent, var(--night)) 70%, transparent);
 }
 
-.signupForm.is-artist .profileSubmit{
-  background: linear-gradient(135deg, #51344d, #78486c);
+.profileSubmit:active:not(:disabled){
+  transform: scale(0.985);
 }
 
-.signupForm.is-client .profileSubmit{
-  background: linear-gradient(135deg, var(--night), var(--rose));
+.profileSubmit:disabled{
+  opacity: 0.7;
 }
 
 .roleKpiGrid{
@@ -14442,17 +14489,13 @@ body{
   }
 
   .signupForm{
-    gap: 7px;
-    padding: 10px;
-    border-radius: 18px;
-  }
-
-  .formTitle{
-    gap: 8px;
+    gap: var(--space-3);
+    padding: var(--space-5) var(--space-4);
+    border-radius: var(--radius-lg);
   }
 
   .formTitle span{
-    font-size: 0.7rem;
+    font-size: 0.72rem;
   }
 
   .signupForm label{
@@ -14462,10 +14505,9 @@ body{
   .signupForm input,
   .signupForm select,
   .signupForm textarea{
-    min-height: 36px;
-    border-radius: 13px;
-    padding: 7px 9px;
-    font-size: 0.76rem;
+    min-height: 44px;
+    padding: 10px 12px;
+    font-size: 0.82rem;
   }
 
   .signupForm textarea{
@@ -14473,9 +14515,8 @@ body{
   }
 
   .profileSubmit{
-    min-height: 40px;
-    border-radius: 14px;
-    font-size: 0.82rem;
+    min-height: 46px;
+    font-size: 0.86rem;
   }
 
   .roleKpiGrid{
