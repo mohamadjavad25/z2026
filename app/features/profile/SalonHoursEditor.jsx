@@ -155,6 +155,7 @@ export function SalonHoursEditor({
                           activeColor="#24143f"
                           inactiveColor="rgba(36, 20, 63, 0.26)"
                           disabledColor="rgba(36, 20, 63, 0.12)"
+                          clockSize="xs"
                         />
                       </div>
                       <em>{isInvalidRange ? "نامعتبر" : `${toPersianDigits(durationMinutes)} دقیقه`}</em>
@@ -170,6 +171,7 @@ export function SalonHoursEditor({
                           activeColor="#24143f"
                           inactiveColor="rgba(36, 20, 63, 0.26)"
                           disabledColor="rgba(36, 20, 63, 0.12)"
+                          clockSize="xs"
                         />
                       </div>
                     </div>

@@ -22,7 +22,8 @@ export function BreakTimeWheel({
   activeColor = "#0f5f5d",
   inactiveColor = "rgba(15, 95, 93, 0.34)",
   disabledColor = "rgba(15, 95, 93, 0.18)",
-  itemSize = BREAK_WHEEL_ITEM
+  itemSize = BREAK_WHEEL_ITEM,
+  clockSize = "sm"
 }) {
   const railRef = useRef(null);
   const settleTimer = useRef(0);
@@ -142,7 +143,7 @@ export function BreakTimeWheel({
               {mode === "clock" ? (
                 <SegmentClock
                   value={slot}
-                  size="sm"
+                  size={clockSize}
                   as="span"
                   backgroundColor="transparent"
                   color={active ? activeColor : disabled ? disabledColor : inactiveColor}
