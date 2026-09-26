@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { SegmentClock } from "../../components/SegmentClock";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
+import { formatRequestExpiryDeadline, getRequestExpiryMinutesLeft } from "../../shared/lib/time";
 
 // ownerType-aware status-tone mapping — same convention as
 // ScheduleRow.jsx's getBookingStatusTone (duplicated on purpose per this
@@ -211,6 +212,18 @@ export function ScheduleBookingMenuModal({
               </div>
               {isPendingReview ? (
                 <div className="scheduleBookingReviewActions">
+                  {(() => {
+                    const createdAt = booking.createdAt || booking.created_at || "";
+                    const minutesLeft = getRequestExpiryMinutesLeft(createdAt);
+                    const deadline = formatRequestExpiryDeadline(createdAt);
+                    if (minutesLeft === null || !deadline) return null;
+                    return (
+                      <span className={`requestExpiryBadge ${minutesLeft <= 15 ? "is-urgent" : ""}`}>
+                        <Timer size={12} aria-hidden="true" />
+                        {minutesLeft > 0 ? `تا ساعت ${deadline} تایید کن` : "زمان تایید تمام شده"}
+                      </span>
+                    );
+                  })()}
                   <button type="button" className="is-approve" disabled={actionDisabled} onClick={onApprove}>
                     <Check size={16} />
                     {busy ? "در حال…" : "تایید نوبت"}

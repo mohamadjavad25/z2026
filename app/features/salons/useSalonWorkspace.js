@@ -212,7 +212,8 @@ export function useSalonWorkspace({
         note: "",
         time: booking.time,
         day: formatRelativeBookingDayLabel(booking.booking_date),
-        date: booking.booking_date || ""
+        date: booking.booking_date || "",
+        createdAt: booking.created_at || ""
       }))
   ), [salonAppointmentList]);
 

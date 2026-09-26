@@ -213,6 +213,11 @@ export function usePublicArtistProfile({
       notify("اول روز و ساعت نوبت را انتخاب کن.");
       return;
     }
+    if (!createdProfile?.data?.phone) {
+      setPublicArtistView("booking");
+      notify("برای رزرو، ابتدا شماره تماس را در پروفایلت ثبت کن.");
+      return;
+    }
     if (!selectedPublicArtist.id) {
       notify("آرتیست نامعتبر است.");
       return;

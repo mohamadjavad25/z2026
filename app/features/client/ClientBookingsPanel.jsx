@@ -5,6 +5,7 @@ import { CalendarCheck, CalendarDays, CheckCircle2, Clock3, FileText, Sparkles, 
 import { SegmentClock } from "../../components/SegmentClock";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatRelativeBookingDayLabel, resolveRollingPersianDate } from "../../shared/lib/persianCalendar";
+import { formatRequestExpiryDeadline } from "../../shared/lib/time";
 import {
   buildExactBookingDateTabs,
   getBookingDateKey,
@@ -43,26 +44,6 @@ function isBookingSettled(booking) {
   const bookingDate = resolveRollingPersianDate(rawDate);
   const today = resolveRollingPersianDate("امروز");
   return bookingDate.getTime() <= today.getTime();
-}
-
-// SQLite CURRENT_TIMESTAMP strings are UTC with no offset marker ("YYYY-MM-DD
-// HH:MM:SS"); append "Z" so Date parses them as UTC instead of silently
-// treating them as local time.
-const bookingDeadlineTimeFmt = new Intl.DateTimeFormat("en-GB", {
-  hour: "2-digit",
-  minute: "2-digit",
-  hour12: false,
-  timeZone: "Asia/Tehran"
-});
-
-function formatBookingExpiryDeadline(createdAt, minutes = 60) {
-  const raw = String(createdAt || "").trim();
-  if (!raw) return "";
-  const isoLike = raw.includes("T") ? raw : `${raw.replace(" ", "T")}Z`;
-  const created = new Date(isoLike);
-  if (Number.isNaN(created.getTime())) return "";
-  const deadline = new Date(created.getTime() + minutes * 60 * 1000);
-  return toPersianDigits(bookingDeadlineTimeFmt.format(deadline));
 }
 
 /**
@@ -152,7 +133,7 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook })
             const meta = getBookingMeta(nextBooking);
             const StatusIcon = BOOKING_STATUS_ICONS[meta.tone] || Clock3;
             const pendingDeadline = meta.status === "درخواست"
-              ? formatBookingExpiryDeadline(nextBooking.created_at)
+              ? formatRequestExpiryDeadline(nextBooking.created_at)
               : "";
             return (
               <article className="clientBookingFeatureCard" key={nextBooking.id || `${meta.salonName}-${meta.time}`}>

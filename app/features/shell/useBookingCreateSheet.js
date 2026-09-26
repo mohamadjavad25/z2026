@@ -2,17 +2,25 @@
 
 import { useCallback, useEffect, useState } from "react";
 import {
-  artistAvailableSlots,
-  artistBookingDays,
-  getBookingDateKey
+  buildExactBookingDateTabs,
+  getBookingDateKey,
+  isPublicArtistSlotBlocked
 } from "../artist";
 import {
   buildDayBookingSlots,
+  buildPublicBookingSlots,
   parseServiceDurationMinutes,
   rangesOverlap,
   timeLabelToMinutes
 } from "../../shared/lib/time";
 import { salonRegistrationServices } from "../../shared/constants/roles";
+
+// 7 real calendar days starting today -- matches the rolling range the
+// client-facing direct-artist booking flow already offers
+// (PublicArtistBookingPanel/salonClientBookingDays), so an artist logging a
+// walk-in/phone booking themselves isn't limited to "today/tomorrow/day
+// after" the way this sheet used to be.
+const ARTIST_BOOKING_DAY_TABS = buildExactBookingDateTabs(7);
 
 /**
  * The "create a booking" sheet: open/close, the staff/service/day/time
@@ -52,6 +60,8 @@ export function useBookingCreateSheet({
   salonAppointmentList = [],
   salonScheduleWeekTabs = [],
   activeSalonHours = [],
+  artistBookingList = [],
+  artistBreakTime = null,
   salonWorkspace = null,
   salonToolSheetOpen = false,
   salonTool = null,
@@ -122,6 +132,36 @@ export function useBookingCreateSheet({
     )
   );
 
+  // Artist side of this same sheet: a real rolling week (not the old fixed
+  // "امروز/فردا/پس‌فردا") and slots actually filtered against the artist's
+  // own bookings + break time -- previously every hourly slot 09:00-21:00
+  // showed as pickable regardless of what was already booked, and a
+  // conflict only surfaced after submitting.
+  const artistBookingDayOptions = ARTIST_BOOKING_DAY_TABS.map((tab) => ({
+    value: tab.dateKey,
+    label: `${tab.label} ${tab.sub || ""}`.trim()
+  }));
+  const artistBookingDateForSlots = artistBookingDayOptions.some((tab) => tab.value === bookingDate)
+    ? bookingDate
+    : (artistBookingDayOptions[0]?.value || "امروز");
+  const selectedArtistService = artistServiceList.find((item) => item.name === bookingServiceName)
+    || artistServiceList[0];
+  const artistServiceDuration = parseServiceDurationMinutes(selectedArtistService?.duration);
+  const artistBookingDaySlots = buildPublicBookingSlots(artistServiceDuration);
+  const artistBookedSlots = artistBookingList
+    .filter((item) => item.status !== "لغو")
+    .map((item) => ({
+      booking_date: item.date,
+      time: item.time,
+      duration_minutes: item.durationMinutes
+    }));
+  const artistBookingFreeSlots = artistBookingDaySlots.filter((slot) => !isPublicArtistSlotBlocked(
+    { breakTime: artistBreakTime, bookedSlots: artistBookedSlots },
+    artistBookingDateForSlots,
+    slot,
+    artistServiceDuration
+  ));
+
   const openBookingSheet = useCallback(() => {
     setActiveTab("profile");
     setArtistBookingRailOpen(false);
@@ -132,9 +172,10 @@ export function useBookingCreateSheet({
     if (createdProfile?.type === "salon") {
       setSalonWorkspace(null);
     } else {
-      const nextDay = artistBookingDays.includes(bookingDate) ? bookingDate : (artistBookingDays[1] || artistBookingDays[0] || "فردا");
+      const nextDay = artistBookingDayOptions.some((tab) => tab.value === bookingDate)
+        ? bookingDate
+        : (artistBookingDayOptions[0]?.value || "امروز");
       setBookingDate(nextDay);
-      setBookingTime(artistAvailableSlots[0] || "");
       if (artistServiceList[0]?.name) {
         setBookingServiceName(artistServiceList[0].name);
       }
@@ -144,6 +185,7 @@ export function useBookingCreateSheet({
     createdProfile?.type,
     bookingDate,
     artistServiceList,
+    artistBookingDayOptions,
     setActiveTab,
     setArtistBookingRailOpen,
     setArtistBookingCreateOpen,
@@ -166,13 +208,19 @@ export function useBookingCreateSheet({
 
   useEffect(() => {
     const slots = createdProfile?.type === "artist" && bookingSheetOpen
-      ? artistAvailableSlots
+      ? artistBookingFreeSlots
       : bookingFreeSlots;
     if (!slots.length) return;
     if (!slots.includes(bookingTime)) {
       setBookingTime(slots[0]);
     }
-  }, [createdProfile?.type, bookingSheetOpen, bookingFreeSlots.join("|"), bookingTime]);
+  }, [
+    createdProfile?.type,
+    bookingSheetOpen,
+    bookingFreeSlots.join("|"),
+    artistBookingFreeSlots.join("|"),
+    bookingTime
+  ]);
 
   return {
     bookingSheetOpen,
@@ -194,6 +242,10 @@ export function useBookingCreateSheet({
     selectedBookingService,
     bookingDaySlots,
     bookingFreeSlots,
+    artistBookingDayOptions,
+    artistBookingDateForSlots,
+    artistBookingFreeSlots,
+    selectedArtistService,
     openBookingSheet,
     closeBookingSheet
   };

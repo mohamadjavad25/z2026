@@ -38,7 +38,9 @@ export function PublicArtistModal({
   onBookingDayChange,
   onBookingSlotChange,
   onConfirmBooking,
-  bookingBusy = false
+  bookingBusy = false,
+  clientPhone = "",
+  onEditProfile
 }) {
   const [bookingPopup, setBookingPopup] = useState(false);
   const [aboutPopup, setAboutPopup] = useState(false);
@@ -198,14 +200,24 @@ export function PublicArtistModal({
                   }}
                   onSlotChange={onBookingSlotChange}
                 />
+                {!clientPhone ? (
+                  <p className="artistBookingPhoneWarning">
+                    برای رزرو، شماره تماس را در پروفایلت ثبت کن — بدون آن آرتیست نمی‌تواند برای تایید با تو تماس بگیرد.{" "}
+                    {typeof onEditProfile === "function" ? (
+                      <button type="button" onClick={onEditProfile}>
+                        ثبت شماره تماس
+                      </button>
+                    ) : null}
+                  </p>
+                ) : null}
                 <button
                   type="button"
                   className="artistBookingPopupConfirm"
-                  disabled={bookingBusy}
+                  disabled={bookingBusy || !bookingSlot || !clientPhone}
                   onClick={() => {
-                    if (bookingBusy) return;
+                    if (bookingBusy || !bookingSlot || !clientPhone) return;
                     onConfirmBooking();
-                    if (bookingSlot) setBookingPopup(false);
+                    setBookingPopup(false);
                   }}
                 >
                   <CalendarCheck size={17} />

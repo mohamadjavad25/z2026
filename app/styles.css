@@ -19128,6 +19128,30 @@ body{
   box-shadow: 0 12px 26px rgba(28, 32, 44, 0.06);
 }
 
+.requestExpiryBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--warning-bg);
+  color: var(--warning);
+  font-size: 0.68rem;
+  font-weight: 850;
+}
+
+.requestExpiryBadge.is-urgent {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.scheduleBookingReviewActions .requestExpiryBadge {
+  grid-column: 1 / -1;
+  justify-self: center;
+  margin-bottom: 2px;
+}
+
 .requestCardMain {
   display: flex;
   align-items: center;
@@ -23549,6 +23573,29 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   display: grid;
   gap: 12px;
   padding-top: 6px;
+}
+
+.artistBookingPhoneWarning {
+  margin: 10px 0 0;
+  padding: 8px 10px;
+  border: 1px solid rgba(214, 79, 79, 0.22);
+  border-radius: 12px;
+  background: rgba(214, 79, 79, 0.07);
+  color: #a13c3c;
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1.6;
+}
+
+.artistBookingPhoneWarning button {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: #60519b;
+  font-size: inherit;
+  font-weight: 950;
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 .artistBookingPopupConfirm {

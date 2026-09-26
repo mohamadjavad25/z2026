@@ -146,3 +146,18 @@ export function formatRequestExpiryDeadline(createdAt, minutes = 60) {
   const deadline = new Date(created.getTime() + minutes * 60 * 1000);
   return toPersianDigits(requestExpiryDeadlineTimeFmt.format(deadline));
 }
+
+/** Minutes left before a pending request's auto-expiry sweep picks it up
+ *  (see formatRequestExpiryDeadline above) -- null when createdAt can't be
+ *  parsed, so callers can distinguish "unknown" from "already expired"
+ *  (a real, negative-but-defined number). Used to style the deadline badge
+ *  as urgent once only a few minutes remain, not just show a static time. */
+export function getRequestExpiryMinutesLeft(createdAt, minutes = 60) {
+  const raw = String(createdAt || "").trim();
+  if (!raw) return null;
+  const isoLike = raw.includes("T") ? raw : `${raw.replace(" ", "T")}Z`;
+  const created = new Date(isoLike);
+  if (Number.isNaN(created.getTime())) return null;
+  const deadline = created.getTime() + minutes * 60 * 1000;
+  return Math.round((deadline - Date.now()) / 60000);
+}

@@ -56,8 +56,6 @@ import {
   getBookingDateOffsetDays,
   isArtistBookingOnExactDate,
   isArtistBookingOnSelectedDay,
-  artistBookingDays,
-  artistAvailableSlots,
   useArtistWorkspace,
   usePublicArtistProfile
 } from "../artist";
@@ -923,6 +921,10 @@ export function HomeApp() {
     selectedBookingService,
     bookingDaySlots,
     bookingFreeSlots,
+    artistBookingDayOptions,
+    artistBookingDateForSlots,
+    artistBookingFreeSlots,
+    selectedArtistService,
     openBookingSheet,
     closeBookingSheet
   } = useBookingCreateSheet({
@@ -933,6 +935,8 @@ export function HomeApp() {
     salonAppointmentList,
     salonScheduleWeekTabs,
     activeSalonHours,
+    artistBookingList,
+    artistBreakTime,
     salonWorkspace,
     salonToolSheetOpen,
     salonTool,
@@ -2584,8 +2588,14 @@ function getPassportMatch(post) {
             onStaffChange={setBookingStaffName}
             dayOptions={
               createdProfile?.type === "artist"
-                ? artistBookingDays
+                ? artistBookingDayOptions
                 : salonScheduleWeekTabs
+                  // A booking can only ever be created for today or later --
+                  // this same tab list is shared with the schedule-browsing
+                  // view (which legitimately looks a few days into the
+                  // past), so the past-date exclusion belongs here, not on
+                  // salonScheduleWeekTabs itself.
+                  .filter((tab) => (tab.offset ?? 0) >= 0)
                   .filter((tab) => {
                     const hour = salonHoursList.find((item) => item.day === tab.day);
                     return hour ? Boolean(hour.active) : true;
@@ -2595,13 +2605,9 @@ function getPassportMatch(post) {
                     label: `${tab.label} ${tab.sub || ""}`.trim()
                   }))
             }
-            dayValue={
-              createdProfile?.type === "artist"
-                ? (artistBookingDays.includes(bookingDate) ? bookingDate : (artistBookingDays[0] || "امروز"))
-                : bookingDateForSlots
-            }
+            dayValue={createdProfile?.type === "artist" ? artistBookingDateForSlots : bookingDateForSlots}
             onDayChange={setBookingDate}
-            timeOptions={createdProfile?.type === "artist" ? artistAvailableSlots : bookingFreeSlots}
+            timeOptions={createdProfile?.type === "artist" ? artistBookingFreeSlots : bookingFreeSlots}
             timeValue={bookingTime}
             onTimeChange={setBookingTime}
             submitting={
@@ -2766,6 +2772,8 @@ function getPassportMatch(post) {
           onBookingSlotChange={setPublicArtistBookingSlot}
           onConfirmBooking={confirmPublicArtistBooking}
           bookingBusy={publicArtistBookingBusy}
+          clientPhone={createdProfile?.data?.phone || ""}
+          onEditProfile={openProfileEdit}
         />
         <ExplorePreviewModal
           post={selectedPost}
