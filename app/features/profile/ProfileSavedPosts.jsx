@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Bookmark, BookmarkX, MapPin, Store, UserRound } from "lucide-react";
+import { BookmarkX, MapPin, Store, UserRound } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { ProfileEmptyState } from "./ProfileEmptyState";
 
@@ -182,7 +182,7 @@ export function ProfileSavedPosts({
       {!hasSavedItems ? (
         <ProfileEmptyState
           className="emptySavedState"
-          icon={Bookmark}
+          image="/saved-empty.png"
           title="هنوز چیزی ذخیره نشده"
           description="پست‌ها، مدل‌ها، سالن‌ها و آرتیست‌های ذخیره‌شده اینجا جمع می‌شوند."
         />

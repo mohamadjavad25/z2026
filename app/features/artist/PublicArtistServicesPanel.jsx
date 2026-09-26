@@ -15,7 +15,7 @@ export function PublicArtistServicesPanel({
     <section className="artistPublicServices" aria-label="خدمات آرتیست">
       {safeServices.length === 0 ? (
         <div className="artistPublicServiceEmpty" role="status">
-          <Sparkles size={22} />
+          <img className="artistPublicEmptyImg" src="/artist-services-public-empty.png" alt="" draggable={false} />
           <b>هنوز خدمتی ثبت نشده</b>
           <span>این آرتیست فعلاً خدمتی برای رزرو آنلاین اضافه نکرده؛ بعداً سر بزن.</span>
         </div>

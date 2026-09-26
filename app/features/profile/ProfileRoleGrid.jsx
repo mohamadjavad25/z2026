@@ -14,7 +14,11 @@ export function ProfileRoleGrid({ roles, onSelectRole }) {
             onClick={() => onSelectRole(role.id)}
           >
             <span className="profileRoleIcon" aria-hidden="true">
-              <Icon size={20} strokeWidth={1.8} />
+              {role.image ? (
+                <img src={role.image} alt="" draggable={false} />
+              ) : (
+                <Icon size={20} strokeWidth={1.8} />
+              )}
             </span>
             <span className="profileRoleCopy">
               <strong>{role.label}</strong>

@@ -14,7 +14,7 @@ import { getVisibleSalonServiceItems } from "../../features/salons/useSalonDirec
 function getPortfolioCardStyle(item) {
   return item?.image
     ? { backgroundImage: `linear-gradient(180deg, rgba(12, 14, 16, 0.04) 0%, transparent 46%, rgba(12, 14, 16, 0.68) 100%), url("${item.image}")` }
-    : undefined;
+    : { backgroundImage: `url("/gallery-tile-empty.png")` };
 }
 
 export function SalonPublicPageClient({ salon }) {

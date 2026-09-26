@@ -2413,6 +2413,8 @@
 
 
 
+.artistPublicEmptyImg{ width: min(176px, 78%); max-height: 124px; object-fit: contain; }
+
 .artistPublicEmpty b{ color: var(--ink); font-size: 0.95rem; }
 
 

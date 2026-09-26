@@ -6,6 +6,7 @@ export const profileRoles = [
     label: "بانو",
     hint: "کشف، تست و رزرو",
     icon: UserRound,
+    image: "/role-client.png",
     tone: "roleClient"
   },
   {
@@ -13,6 +14,7 @@ export const profileRoles = [
     label: "سالن زیبایی",
     hint: "رزرو و تیم سالن",
     icon: Scissors,
+    image: "/role-salon.png",
     tone: "roleSalon"
   },
   {
@@ -20,6 +22,7 @@ export const profileRoles = [
     label: "آرتیست",
     hint: "نمونه‌کار و رزرو",
     icon: Brush,
+    image: "/role-artist.png",
     tone: "roleArtist"
   }
 ];

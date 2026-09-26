@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CalendarCheck, CalendarDays, CheckCircle2, Clock3, FileText, MapPin, Sparkles, TimerOff, XCircle } from "lucide-react";
+import { CalendarCheck, CalendarDays, CheckCircle2, Clock3, FileText, Sparkles, TimerOff, XCircle } from "lucide-react";
 import { SegmentClock } from "../../components/SegmentClock";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatRelativeBookingDayLabel, resolveRollingPersianDate } from "../../shared/lib/persianCalendar";
@@ -249,32 +249,13 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook })
         </div>
       ) : (
         <div className="clientBookingsEmpty">
-          <div className="clientBookingsEmptyArt" aria-hidden="true">
-            <span className="clientBookingsEmptyGlow is-soft" />
-            <span className="clientBookingsEmptyGlow is-deep" />
-            <span className="clientBookingsEmptyOrb is-calendar">
-              <CalendarCheck size={24} />
-            </span>
-            <span className="clientBookingsEmptyOrb is-pin">
-              <MapPin size={18} />
-            </span>
-            <span className="clientBookingsEmptyOrb is-spark">
-              <Sparkles size={18} />
-            </span>
-            <span className="clientBookingsEmptyPath" />
-            <span className="clientBookingsEmptyCard is-main">
-              <i />
-              <b />
-              <em />
-            </span>
-            <span className="clientBookingsEmptyCard is-mini">
-              <i />
-              <b />
-            </span>
-            <span className="clientBookingsEmptyTime">
-              <Clock3 size={17} />
-            </span>
-          </div>
+          <img
+            className="clientBookingsEmptyArt"
+            src="/client-bookings-empty.png"
+            alt=""
+            aria-hidden="true"
+            draggable={false}
+          />
           <b>هنوز رزروی ثبت نشده</b>
           <span>بعد از رزرو سالن، نوبت‌ها اینجا نمایش داده می‌شوند.</span>
         </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { Send, Settings, UserPlus, X } from "lucide-react";
+import { Send, Settings, X } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { ProfileEmptyState } from "../profile/ProfileEmptyState";
 
@@ -153,7 +153,7 @@ export function SalonStaffWorkspace({
       ) : (
         <ProfileEmptyState
           className="artistEmptyState"
-          icon={UserPlus}
+          image="/salon-team-empty.png"
           title="هنوز آرتیستی ثبت نشده"
           description="اولین پروفایل را بساز تا رزرو، خدمات و همکاری‌های سالن از همینجا مدیریت شوند."
           actionLabel="ایجاد اولین آرتیست"

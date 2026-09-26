@@ -1,7 +1,5 @@
 "use client";
 
-import { Palette } from "lucide-react";
-
 export function PublicArtistGalleryPanel({
   tags,
   activeTag,
@@ -86,7 +84,7 @@ export function PublicArtistGalleryPanel({
         </div>
       ) : (
         <div className="artistPublicEmpty">
-          <Palette size={22} />
+          <img className="artistPublicEmptyImg" src="/artist-gallery-public-empty.png" alt="" draggable={false} />
           <b>هنوز نمونه‌کاری نیست</b>
           <span>به‌زودی کارهای این آرتیست اینجا می‌آید.</span>
         </div>
