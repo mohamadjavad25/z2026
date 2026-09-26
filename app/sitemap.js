@@ -6,6 +6,13 @@ import { listArtists } from "./lib/db/repos/artists.js";
 // as app/salons/[id]/page.jsx etc. — must not run on the Edge runtime.
 export const runtime = "nodejs";
 
+// Force this to render per-request instead of at build time: the DB
+// connection string is a Vercel "sensitive" env var, which is only exposed
+// to running functions, never to the build step — a static/prerendered
+// sitemap would fail every production build. A per-request sitemap is also
+// the more correct behavior anyway, since salons/artists change over time.
+export const dynamic = "force-dynamic";
+
 // Single source of truth: NEXT_PUBLIC_SITE_URL (see .env.example at the repo
 // root). Falls back to the same placeholder as before so nothing breaks in
 // dev/CI without env setup — but set this in production, otherwise every URL
