@@ -7,20 +7,20 @@ import { requireUser } from "../../lib/http.js";
 export const runtime = "nodejs";
 
 export async function GET(request) {
-  ensureDb();
-  const auth = requireUser(request);
+  await ensureDb();
+  const auth = await requireUser(request);
   if (!auth.ok) return auth.response;
   return NextResponse.json({ profile: publicUser(auth.user), data: { user: publicUser(auth.user) } });
 }
 
 export async function POST(request) {
-  ensureDb();
+  await ensureDb();
   try {
     const body = await request.json();
 
     // Legacy signup path without session → redirect clients to /api/auth/register
     // Keep PATCH-like profile update for logged-in users.
-    const auth = requireUser(request);
+    const auth = await requireUser(request);
     if (!auth.ok) {
       return NextResponse.json(
         { error: "برای ثبت‌نام از /api/auth/register استفاده کن." },
@@ -52,7 +52,7 @@ export async function POST(request) {
       patch.password_hash = hashPassword(data.password);
     }
 
-    const user = users.updateUser(auth.user.id, patch);
+    const user = await users.updateUser(auth.user.id, patch);
     return NextResponse.json({ profile: publicUser(user), data: { user: publicUser(user) } });
   } catch (error) {
     console.error(error);
@@ -61,11 +61,11 @@ export async function POST(request) {
 }
 
 export async function DELETE(request) {
-  ensureDb();
-  const auth = requireUser(request);
+  await ensureDb();
+  const auth = await requireUser(request);
   if (!auth.ok) return auth.response;
   // Soft approach: delete user cascades via FK
-  const { getDb } = await import("../../lib/db/connection.js");
-  getDb().prepare("DELETE FROM users WHERE id = ?").run(auth.user.id);
+  const { getDb, run } = await import("../../lib/db/connection.js");
+  await run(await getDb(), "DELETE FROM users WHERE id = ?", [auth.user.id]);
   return NextResponse.json({ profile: null, data: { user: null } });
 }

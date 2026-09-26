@@ -19,16 +19,16 @@ export const runtime = "nodejs";
  * checks, mirroring GET /api/follows' followingIds.
  */
 export async function GET(request) {
-  ensureDb();
-  const auth = requireUser(request);
+  await ensureDb();
+  const auth = await requireUser(request);
   if (!auth.ok) return auth.response;
-  const savedSalons = salons.listSavedSalonsForUser(auth.user.id);
-  const savedArtists = artists.listSavedArtistsForUser(auth.user.id);
+  const savedSalons = await salons.listSavedSalonsForUser(auth.user.id);
+  const savedArtists = await artists.listSavedArtistsForUser(auth.user.id);
   return NextResponse.json({
     data: {
       salons: savedSalons,
       artists: savedArtists,
-      savedTargetIds: social.listSavedProfileIds(auth.user.id)
+      savedTargetIds: await social.listSavedProfileIds(auth.user.id)
     }
   });
 }
@@ -40,19 +40,19 @@ export async function GET(request) {
  * same spirit as toggleFollow's self-save 400).
  */
 export async function POST(request) {
-  ensureDb();
-  const auth = requireUser(request);
+  await ensureDb();
+  const auth = await requireUser(request);
   if (!auth.ok) return auth.response;
   const body = await request.json();
   const targetUserId = Number(body.targetUserId || body.userId);
   if (!targetUserId) return NextResponse.json({ error: "هدف لازم است." }, { status: 400 });
 
-  const target = getUserById(targetUserId);
+  const target = await getUserById(targetUserId);
   if (!target || (target.type !== "salon" && target.type !== "artist")) {
     return NextResponse.json({ error: "این پروفایل قابل ذخیره نیست." }, { status: 400 });
   }
 
-  const result = social.toggleSaveProfile(auth.user.id, targetUserId);
+  const result = await social.toggleSaveProfile(auth.user.id, targetUserId);
   if (!result.ok && result.error === "self") {
     return NextResponse.json({ error: "نمی‌توانی پروفایل خودت را ذخیره کنی." }, { status: 400 });
   }

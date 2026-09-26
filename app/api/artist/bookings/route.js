@@ -17,7 +17,7 @@ import "../../../lib/bookingExpirySweep.js";
 export const runtime = "nodejs";
 
 export async function POST(request) {
-  ensureDb();
+  await ensureDb();
   const body = await request.json();
   const artistUserId = Number(body.artistUserId);
   if (!artistUserId) return error("آرتیست نامعتبر است.", 400);
@@ -34,8 +34,8 @@ export async function POST(request) {
     return error("درخواست‌های زیاد. کمی صبر کن.", 429);
   }
 
-  const viewer = getUserFromRequest(request);
-  const result = artists.addArtistBooking(artistUserId, {
+  const viewer = await getUserFromRequest(request);
+  const result = await artists.addArtistBooking(artistUserId, {
     ...body,
     clientUserId: viewer?.id || null,
     clientName: body.clientName || viewer?.name || "",
@@ -55,7 +55,7 @@ export async function POST(request) {
   return json({
     data: {
       booking: result.booking,
-      bookedSlots: artists.listArtistBookedSlots(artistUserId)
+      bookedSlots: await artists.listArtistBookedSlots(artistUserId)
     }
   }, { status: 201 });
 }

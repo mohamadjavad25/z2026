@@ -11,12 +11,12 @@ export const runtime = "nodejs";
  * users at once.
  */
 export async function GET(request, { params }) {
-  ensureDb();
+  await ensureDb();
   const { userId: userIdParam } = await params;
   const userId = Number(userIdParam);
   if (!userId) return new Response(null, { status: 404 });
 
-  const user = getUserById(userId);
+  const user = await getUserById(userId);
   const parsed = parseMediaDataUrl(user?.poster, ALLOWED_POSTER_TYPES);
   if (!parsed) return new Response(null, { status: 404 });
 

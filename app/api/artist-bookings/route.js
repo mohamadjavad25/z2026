@@ -20,11 +20,11 @@ export const dynamic = "force-dynamic";
  * route's existing owner/staff-availability branches stay untouched.
  */
 export async function GET(request) {
-  ensureDb();
-  const auth = requireUser(request);
+  await ensureDb();
+  const auth = await requireUser(request);
   if (!auth.ok) return auth.response;
   if (auth.user.type !== "client") {
     return json({ error: "فقط مشتری." }, { status: 403 });
   }
-  return json({ bookings: artists.listClientArtistBookings(auth.user) });
+  return json({ bookings: await artists.listClientArtistBookings(auth.user) });
 }

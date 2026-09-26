@@ -19,7 +19,7 @@ const REQUEST_WINDOW_MS = 60 * 60 * 1000;
 // the founder/support to act on by phone; GET/resolve below are gated by a
 // shared admin token since there's no admin login system yet either.
 export async function POST(request) {
-  ensureDb();
+  await ensureDb();
   try {
     const body = await request.json();
     const phone = normalizePhone(body.phone || "");
@@ -37,7 +37,7 @@ export async function POST(request) {
       );
     }
 
-    const result = passwordResetRequests.createRequest(phone, note);
+    const result = await passwordResetRequests.createRequest(phone, note);
     return NextResponse.json({ data: { id: result.id } });
   } catch (error) {
     console.error(error);
@@ -52,10 +52,10 @@ function isAdminAuthorized(request) {
 }
 
 export async function GET(request) {
-  ensureDb();
+  await ensureDb();
   if (!isAdminAuthorized(request)) {
     return NextResponse.json({ error: "دسترسی مجاز نیست." }, { status: 401 });
   }
-  const requests = passwordResetRequests.listPendingRequests();
+  const requests = await passwordResetRequests.listPendingRequests();
   return NextResponse.json({ data: { requests } });
 }

@@ -23,7 +23,7 @@ const LOGIN_ATTEMPT_LIMIT = 10;
 const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 
 export async function POST(request) {
-  ensureDb();
+  await ensureDb();
   const body = await request.json();
   const phone = normalizePhone(body.phone);
   const password = normalizeDigits(String(body.password || ""));
@@ -38,7 +38,7 @@ export async function POST(request) {
     }
   }
 
-  const user = users.getUserByPhone(phone);
+  const user = await users.getUserByPhone(phone);
 
   if (!user) {
     return NextResponse.json(
@@ -54,7 +54,7 @@ export async function POST(request) {
     );
   }
 
-  const session = createSessionForUser(user.id);
+  const session = await createSessionForUser(user.id);
   const response = NextResponse.json({ data: { user: publicUser(user) }, profile: publicUser(user) });
   setSessionCookie(response, session.token, session.expiresAt);
   return response;

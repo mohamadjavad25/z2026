@@ -6,19 +6,19 @@ import * as passport from "../../lib/db/repos/passport.js";
 export const runtime = "nodejs";
 
 export async function GET(request) {
-  ensureDb();
-  const auth = requireUser(request);
+  await ensureDb();
+  const auth = await requireUser(request);
   if (!auth.ok) return auth.response;
-  return NextResponse.json({ passport: passport.getPassport(auth.user.id) });
+  return NextResponse.json({ passport: await passport.getPassport(auth.user.id) });
 }
 
 // Activation is free until a real pricing/payment model exists (the app has
 // no wallet or payment gateway).
 export async function POST(request) {
-  ensureDb();
-  const auth = requireUser(request);
+  await ensureDb();
+  const auth = await requireUser(request);
   if (!auth.ok) return auth.response;
   const body = await request.json().catch(() => ({}));
-  const saved = passport.savePassport(auth.user.id, body || {});
+  const saved = await passport.savePassport(auth.user.id, body || {});
   return NextResponse.json({ passport: saved, data: { passport: saved } });
 }

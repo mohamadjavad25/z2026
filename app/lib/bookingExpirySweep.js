@@ -1,4 +1,4 @@
-import { getDb } from "./db/connection.js";
+import { getDb, all } from "./db/connection.js";
 import * as salons from "./db/repos/salons.js";
 import * as artists from "./db/repos/artists.js";
 import { sendPushToUser } from "./push.js";
@@ -59,29 +59,29 @@ function sweepIntervalMs() {
 }
 
 /** Every still-pending ("درخواست") salon_bookings row whose created_at is older than the
- *  configured window, compared using the DB's own clock (datetime('now', ...)) — not JS
- *  Date.now() — so this is immune to any clock skew between the Node process and SQLite. */
-function findExpiredSalonBookingRequests(db, minutes) {
-  return db.prepare(`
+ *  configured window, compared using the DB's own clock (NOW() - INTERVAL ...) — not JS
+ *  Date.now() — so this is immune to any clock skew between the Node process and Postgres. */
+async function findExpiredSalonBookingRequests(db, minutes) {
+  return all(db, `
     SELECT id, salon_user_id, client_user_id, client, service
     FROM salon_bookings
     WHERE status = 'درخواست'
-      AND created_at <= datetime('now', ?)
-  `).all(`-${minutes} minutes`);
+      AND created_at::timestamptz <= (NOW() - (?::double precision * INTERVAL '1 minute'))
+  `, [minutes]);
 }
 
 /** Every still-pending ("تازه") DIRECT artist_bookings row (source_salon_user_id
  *  IS NULL — see the module docstring for why that filter matters) whose
  *  created_at is older than the configured window, same DB-clock comparison
  *  as findExpiredSalonBookingRequests above. */
-function findExpiredDirectArtistBookingRequests(db, minutes) {
-  return db.prepare(`
+async function findExpiredDirectArtistBookingRequests(db, minutes) {
+  return all(db, `
     SELECT id, artist_user_id, client_user_id, client_name, service
     FROM artist_bookings
     WHERE status = 'تازه'
       AND source_salon_user_id IS NULL
-      AND created_at <= datetime('now', ?)
-  `).all(`-${minutes} minutes`);
+      AND created_at::timestamptz <= (NOW() - (?::double precision * INTERVAL '1 minute'))
+  `, [minutes]);
 }
 
 /** Push notifications for both sides of an expired salon booking request. */
@@ -124,17 +124,17 @@ function notifyClientOfArtistBookingExpiry(booking) {
  * instead of waiting for a real interval tick.
  * @returns {{ expired: number, attempted: number, salonExpired: number, artistExpired: number }}
  */
-export function sweepExpiredBookingRequestsOnce() {
-  const db = getDb();
+export async function sweepExpiredBookingRequestsOnce() {
+  const db = await getDb();
   const minutes = timeoutMinutes();
 
-  const staleSalon = findExpiredSalonBookingRequests(db, minutes);
+  const staleSalon = await findExpiredSalonBookingRequests(db, minutes);
   let salonExpired = 0;
   for (const row of staleSalon) {
     // Reuse the exact same atomic salon+linked-artist status-sync path the
     // real PATCH /api/salon-bookings route uses (patchSalonBookingWithArtistSync) —
     // not a second, ad-hoc "just UPDATE the row" mechanism.
-    const result = salons.patchSalonBookingWithArtistSync(row.id, row.salon_user_id, {
+    const result = await salons.patchSalonBookingWithArtistSync(row.id, row.salon_user_id, {
       status: BOOKING_REQUEST_EXPIRED_STATUS
     });
     if (result.ok) {
@@ -151,14 +151,14 @@ export function sweepExpiredBookingRequestsOnce() {
     // pass retries it automatically.
   }
 
-  const staleDirectArtist = findExpiredDirectArtistBookingRequests(db, minutes);
+  const staleDirectArtist = await findExpiredDirectArtistBookingRequests(db, minutes);
   let artistExpired = 0;
   for (const row of staleDirectArtist) {
     // A plain single-row UPDATE (updateArtistBookingRow) is already atomic on
     // its own — unlike the salon case there's no linked mirror row to keep in
     // sync here (this query already excludes salon-linked rows), so no
     // withTransaction wrapper is needed.
-    const updated = artists.updateArtistBookingRow(row.id, { status: BOOKING_REQUEST_EXPIRED_STATUS });
+    const updated = await artists.updateArtistBookingRow(row.id, { status: BOOKING_REQUEST_EXPIRED_STATUS });
     if (updated) {
       artistExpired += 1;
       try {
@@ -186,11 +186,10 @@ export function sweepExpiredBookingRequestsOnce() {
 if (typeof setInterval === "function" && !globalThis.__zibabanBookingExpirySweepStarted) {
   globalThis.__zibabanBookingExpirySweepStarted = true;
   setInterval(() => {
-    try {
-      sweepExpiredBookingRequestsOnce();
-    } catch {
-      // Best-effort background sweep — a failed pass must not crash the
-      // server; the next tick retries.
-    }
+    // Best-effort background sweep — a failed pass must not crash the
+    // server; the next tick retries. sweepExpiredBookingRequestsOnce() is
+    // async now (Postgres queries), so this must catch a rejected promise,
+    // not just a thrown synchronous error.
+    sweepExpiredBookingRequestsOnce().catch(() => {});
   }, sweepIntervalMs()).unref?.();
 }

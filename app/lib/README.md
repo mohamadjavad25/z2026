@@ -16,9 +16,9 @@ app/lib/rateLimit.js     in-memory rate limiting for sensitive routes
 app/lib/bookingExpirySweep.js  background sweep that expires stale bookings
 app/lib/db.js            @deprecated compatibility shim re-exporting app/lib/db/* + auth.js
 app/lib/db/
-  connection.js          SQLite connection and runtime readiness
-  migrations.js          schema version checks and incremental migrations
-  schema.js              canonical table/index definitions
+  connection.js          Postgres pool/connection and runtime readiness
+  migrations.js          unused (kept only for legacy scripts/*seed-test*.mjs) — see note below
+  schema.js              canonical table/index definitions (applied fresh on every cold start)
   repos/                 domain-specific database operations
     users.js             account CRUD, publicUser() shaping
     sessions.js           session token issue/lookup/revoke
@@ -52,8 +52,16 @@ request -> auth/role guard -> repo call -> JSON response
 Database rules:
 
 ```text
-connection.js            owns opening SQLite and enabling pragmas
-migrations.js            owns schema version changes
-schema.js                owns CREATE TABLE/INDEX statements
-repos/*.js               own SQL queries and data mapping per domain
+connection.js            owns the Postgres Pool, ensureDb()/getDb()/withTransaction()
+schema.js                owns CREATE TABLE/INDEX statements (idempotent, run on every cold start)
+repos/*.js               own SQL queries and data mapping per domain (all async now)
 ```
+
+This app runs on Postgres (`pg` package), not SQLite — see `.env.example`
+for the required `POSTGRES_URL`. There is no migration history to replay:
+`schema.js`'s `applySchema()` is the full, final schema and is safe to call
+on every cold start (`IF NOT EXISTS` throughout). `migrations.js` is no
+longer imported anywhere in the app; it's kept only because a few
+`scripts/*seed-test*.mjs` integration scripts still reference it — those
+scripts are SQLite-shaped (`ZIBABAN_DB_PATH` + `node:sqlite`) and do not run
+against this app's live Postgres database without further work.

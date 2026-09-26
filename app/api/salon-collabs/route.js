@@ -14,35 +14,35 @@ function requireSalon(user) {
 }
 
 export async function GET(request) {
-  ensureDb();
-  const auth = requireUser(request);
+  await ensureDb();
+  const auth = await requireUser(request);
   if (!auth.ok) return auth.response;
   const forbidden = requireSalon(auth.user);
   if (forbidden) return forbidden;
 
   return NextResponse.json({
-    collabs: artists.listSalonCollabRequests(auth.user.id)
+    collabs: await artists.listSalonCollabRequests(auth.user.id)
   });
 }
 
 export async function PATCH(request) {
-  ensureDb();
-  const auth = requireUser(request);
+  await ensureDb();
+  const auth = await requireUser(request);
   if (!auth.ok) return auth.response;
   const forbidden = requireSalon(auth.user);
   if (forbidden) return forbidden;
 
   const body = await request.json();
-  const collab = artists.updateSalonCollabStatus(Number(body.id), auth.user.id, body.status);
+  const collab = await artists.updateSalonCollabStatus(Number(body.id), auth.user.id, body.status);
   if (!collab) return NextResponse.json({ error: "پیشنهاد پیدا نشد." }, { status: 404 });
   const staffResult = body.status === "تایید شد"
-    ? salons.addSalonStaffFromCollab(auth.user.id, collab)
+    ? await salons.addSalonStaffFromCollab(auth.user.id, collab)
     : null;
 
   return NextResponse.json({
     collab,
-    collabs: artists.listSalonCollabRequests(auth.user.id),
-    staff: salons.listSalonStaff(auth.user.id),
+    collabs: await artists.listSalonCollabRequests(auth.user.id),
+    staff: await salons.listSalonStaff(auth.user.id),
     staffPerson: staffResult?.person || null,
     staffCreated: staffResult?.created || false
   });

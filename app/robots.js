@@ -4,7 +4,7 @@
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://zibaban.example.com";
 
 // robots.js itself touches no DB, but kept consistent with sitemap.js/the
-// rest of the app (which relies on node:sqlite, a Node.js builtin).
+// rest of the app (which relies on the `pg` package, a Node.js-only client).
 export const runtime = "nodejs";
 
 export default function robots() {

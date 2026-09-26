@@ -25,7 +25,7 @@ const REGISTER_ATTEMPT_LIMIT = 5;
 const REGISTER_WINDOW_MS = 60 * 60 * 1000;
 
 export async function POST(request) {
-  ensureDb();
+  await ensureDb();
   try {
     const body = await request.json();
     const phone = normalizePhone(body.phone || body.data?.phone || "");
@@ -50,11 +50,11 @@ export async function POST(request) {
     if (!["client", "artist", "salon"].includes(type)) {
       return NextResponse.json({ error: "نقش نامعتبر است." }, { status: 400 });
     }
-    if (users.getUserByPhone(phone)) {
+    if (await users.getUserByPhone(phone)) {
       return NextResponse.json({ error: "این شماره قبلاً ثبت شده است." }, { status: 409 });
     }
 
-    const user = users.createUser({
+    const user = await users.createUser({
       phone,
       passwordHash: hashPassword(password),
       type,
@@ -66,9 +66,9 @@ export async function POST(request) {
       bio: data.bio || ""
     });
 
-    if (type === "salon") ensureSalonHours(user.id);
+    if (type === "salon") await ensureSalonHours(user.id);
 
-    const session = createSessionForUser(user.id);
+    const session = await createSessionForUser(user.id);
     const safe = publicUser(user);
     const response = NextResponse.json({ data: { user: safe }, profile: safe });
     setSessionCookie(response, session.token, session.expiresAt);

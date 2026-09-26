@@ -1,4 +1,4 @@
-import { getDb } from "../connection.js";
+import { getDb, get, run } from "../connection.js";
 
 /**
  * Defaults for every known toggle across roles. getSettings always returns
@@ -17,10 +17,9 @@ export const DEFAULT_SETTINGS = {
 
 const KNOWN_KEYS = new Set(Object.keys(DEFAULT_SETTINGS));
 
-export function getSettings(userId) {
-  const row = getDb().prepare(
-    "SELECT settings FROM user_settings WHERE user_id = ?"
-  ).get(Number(userId));
+export async function getSettings(userId, runner = null) {
+  const db = runner || (await getDb());
+  const row = await get(db, "SELECT settings FROM user_settings WHERE user_id = ?", [Number(userId)]);
   let stored = {};
   if (row?.settings) {
     try {
@@ -33,20 +32,21 @@ export function getSettings(userId) {
 }
 
 /** Merges `patch` (only known keys, coerced to boolean) into the stored settings and returns the full result. */
-export function saveSettings(userId, patch = {}) {
-  const current = getSettings(userId);
+export async function saveSettings(userId, patch = {}) {
+  const db = await getDb();
+  const current = await getSettings(userId, db);
   const next = { ...current };
   for (const key of Object.keys(patch)) {
     if (KNOWN_KEYS.has(key)) {
       next[key] = Boolean(patch[key]);
     }
   }
-  getDb().prepare(`
+  await run(db, `
     INSERT INTO user_settings (user_id, settings, updated_at)
     VALUES (?, ?, CURRENT_TIMESTAMP)
     ON CONFLICT(user_id) DO UPDATE SET
       settings = excluded.settings,
       updated_at = excluded.updated_at
-  `).run(Number(userId), JSON.stringify(next));
+  `, [Number(userId), JSON.stringify(next)]);
   return next;
 }

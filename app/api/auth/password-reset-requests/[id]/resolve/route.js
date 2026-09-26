@@ -17,13 +17,13 @@ function isAdminAuthorized(request) {
 // agreed on. There is no self-service path here on purpose — see the create
 // route's comment on why (no SMS/OTP provider yet).
 export async function POST(request, { params }) {
-  ensureDb();
+  await ensureDb();
   if (!isAdminAuthorized(request)) {
     return NextResponse.json({ error: "دسترسی مجاز نیست." }, { status: 401 });
   }
 
   const { id } = await params;
-  const resetRequest = passwordResetRequests.getRequestById(id);
+  const resetRequest = await passwordResetRequests.getRequestById(id);
   if (!resetRequest) {
     return NextResponse.json({ error: "درخواست پیدا نشد." }, { status: 404 });
   }
@@ -34,13 +34,13 @@ export async function POST(request, { params }) {
     return NextResponse.json({ error: "رمز عبور جدید باید حداقل ۸ کاراکتر باشد." }, { status: 400 });
   }
 
-  const user = users.getUserByPhone(resetRequest.phone);
+  const user = await users.getUserByPhone(resetRequest.phone);
   if (!user) {
     return NextResponse.json({ error: "حسابی با این شماره پیدا نشد." }, { status: 404 });
   }
 
-  users.updateUser(user.id, { password_hash: hashPassword(newPassword) });
-  passwordResetRequests.markResolved(id);
+  await users.updateUser(user.id, { password_hash: hashPassword(newPassword) });
+  await passwordResetRequests.markResolved(id);
 
   return NextResponse.json({ data: { ok: true } });
 }

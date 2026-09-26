@@ -17,8 +17,8 @@ export function notFound(message = "یافت نشد.") {
   return error(message, 404);
 }
 
-export function requireUser(request) {
-  const result = requireUserCore(request);
+export async function requireUser(request) {
+  const result = await requireUserCore(request);
   if (!result.ok) {
     return {
       ok: false,
@@ -34,8 +34,8 @@ export function requireRole(user, role, message = "دسترسی غیرمجاز."
   return null;
 }
 
-export function requireUserRole(request, role, message) {
-  const auth = requireUser(request);
+export async function requireUserRole(request, role, message) {
+  const auth = await requireUser(request);
   if (!auth.ok) return auth;
   const forbidden = requireRole(auth.user, role, message);
   if (forbidden) return { ok: false, user: auth.user, response: forbidden };

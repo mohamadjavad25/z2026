@@ -1,4 +1,4 @@
-import { getDb } from "../connection.js";
+import { getDb, all, get, run } from "../connection.js";
 
 /**
  * Manual account-recovery queue: no SMS/OTP provider is wired in yet (see
@@ -8,35 +8,40 @@ import { getDb } from "../connection.js";
  * pending rows directly (via the admin-token-protected API routes) and
  * resolves one by calling the user back and setting a new password.
  */
-export function createRequest(phone, note = "") {
-  const row = getDb().prepare(`
+export async function createRequest(phone, note = "") {
+  const db = await getDb();
+  const result = await run(db, `
     INSERT INTO password_reset_requests (phone, note, status, created_at)
-    VALUES (?, ?, 'pending', datetime('now'))
-  `).run(String(phone), String(note || "").slice(0, 300));
-  return { ok: true, id: Number(row.lastInsertRowid) };
+    VALUES (?, ?, 'pending', CURRENT_TIMESTAMP)
+    RETURNING id
+  `, [String(phone), String(note || "").slice(0, 300)]);
+  return { ok: true, id: Number(result.rows[0].id) };
 }
 
-export function listPendingRequests() {
-  return getDb().prepare(`
+export async function listPendingRequests() {
+  const db = await getDb();
+  return all(db, `
     SELECT id, phone, note, status, created_at, resolved_at
     FROM password_reset_requests
     WHERE status = 'pending'
     ORDER BY created_at DESC
-  `).all();
+  `);
 }
 
-export function getRequestById(id) {
-  return getDb().prepare(`
+export async function getRequestById(id) {
+  const db = await getDb();
+  return get(db, `
     SELECT id, phone, note, status, created_at, resolved_at
     FROM password_reset_requests
     WHERE id = ?
-  `).get(Number(id));
+  `, [Number(id)]);
 }
 
-export function markResolved(id) {
-  getDb().prepare(`
+export async function markResolved(id) {
+  const db = await getDb();
+  await run(db, `
     UPDATE password_reset_requests
-    SET status = 'resolved', resolved_at = datetime('now')
+    SET status = 'resolved', resolved_at = CURRENT_TIMESTAMP
     WHERE id = ?
-  `).run(Number(id));
+  `, [Number(id)]);
 }

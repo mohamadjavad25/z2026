@@ -1,4 +1,4 @@
-import { getDb, withTransaction } from "../connection.js";
+import { getDb, withTransaction, all, get, run } from "../connection.js";
 import { countFollowers, getUserById, isFollowing } from "./users.js";
 import { listPostsByOwner } from "./posts.js";
 import { resolveRollingPersianDateKey } from "../../../shared/lib/persianCalendar.js";
@@ -9,18 +9,21 @@ import { getSettings } from "./userSettings.js";
 
 export { ensureArtistHours, listArtistHours, updateArtistHour } from "./artists/hours.js";
 
-export function listArtistServices(userId) {
-  return getDb().prepare(`
+export async function listArtistServices(userId, runner = null) {
+  const db = runner || (await getDb());
+  return all(db, `
     SELECT id, name, price, duration, hint, badge, tone
     FROM artist_services WHERE user_id = ? ORDER BY id ASC
-  `).all(userId);
+  `, [userId]);
 }
 
-export function addArtistService(userId, data) {
-  const info = getDb().prepare(`
+export async function addArtistService(userId, data) {
+  const db = await getDb();
+  const info = await run(db, `
     INSERT INTO artist_services (user_id, name, price, duration, hint, badge, tone)
     VALUES (?, ?, ?, ?, ?, ?, ?)
-  `).run(
+    RETURNING id
+  `, [
     userId,
     data.name || "",
     data.price || "",
@@ -28,18 +31,19 @@ export function addArtistService(userId, data) {
     data.hint || "",
     data.badge || "",
     data.tone || "soft"
-  );
-  return getDb().prepare("SELECT * FROM artist_services WHERE id = ?").get(Number(info.lastInsertRowid));
+  ]);
+  return get(db, "SELECT * FROM artist_services WHERE id = ?", [Number(info.rows[0].id)]);
 }
 
-export function updateArtistService(id, userId, data) {
-  const current = getDb().prepare("SELECT * FROM artist_services WHERE id = ? AND user_id = ?").get(id, userId);
+export async function updateArtistService(id, userId, data) {
+  const db = await getDb();
+  const current = await get(db, "SELECT * FROM artist_services WHERE id = ? AND user_id = ?", [id, userId]);
   if (!current) return null;
-  getDb().prepare(`
+  await run(db, `
     UPDATE artist_services SET
       name = ?, price = ?, duration = ?, hint = ?, badge = ?, tone = ?, updated_at = CURRENT_TIMESTAMP
     WHERE id = ? AND user_id = ?
-  `).run(
+  `, [
     data.name ?? current.name,
     data.price ?? current.price,
     data.duration ?? current.duration,
@@ -48,12 +52,14 @@ export function updateArtistService(id, userId, data) {
     data.tone ?? current.tone,
     id,
     userId
-  );
-  return getDb().prepare("SELECT * FROM artist_services WHERE id = ?").get(id);
+  ]);
+  return get(db, "SELECT * FROM artist_services WHERE id = ?", [id]);
 }
 
-export function deleteArtistService(id, userId) {
-  return getDb().prepare("DELETE FROM artist_services WHERE id = ? AND user_id = ?").run(id, userId).changes > 0;
+export async function deleteArtistService(id, userId) {
+  const db = await getDb();
+  const result = await run(db, "DELETE FROM artist_services WHERE id = ? AND user_id = ?", [id, userId]);
+  return result.changes > 0;
 }
 
 function mapArtistCollab(row) {
@@ -75,18 +81,21 @@ function mapArtistCollab(row) {
   };
 }
 
-export function listArtistCollabs(userId) {
-  return getDb().prepare(`
+export async function listArtistCollabs(userId) {
+  const db = await getDb();
+  const rows = await all(db, `
     SELECT c.*, u.avatar AS salon_avatar
     FROM artist_collabs c
     LEFT JOIN users u ON u.id = c.salon_user_id
     WHERE c.artist_user_id = ?
     ORDER BY c.id DESC
-  `).all(userId).map(mapArtistCollab).filter(Boolean);
+  `, [userId]);
+  return rows.map(mapArtistCollab).filter(Boolean);
 }
 
-export function listSalonCollabRequests(salonUserId) {
-  return getDb().prepare(`
+export async function listSalonCollabRequests(salonUserId) {
+  const db = await getDb();
+  const rows = await all(db, `
     SELECT
       c.*,
       u.name AS artist_name,
@@ -97,7 +106,8 @@ export function listSalonCollabRequests(salonUserId) {
     JOIN users u ON u.id = c.artist_user_id
     WHERE c.salon_user_id = ?
     ORDER BY c.id DESC
-  `).all(salonUserId).map((row) => ({
+  `, [salonUserId]);
+  return rows.map((row) => ({
     ...mapArtistCollab(row),
     artistId: row.artist_user_id,
     artistName: row.artist_name || "آرتیست زیبابان",
@@ -107,12 +117,14 @@ export function listSalonCollabRequests(salonUserId) {
   }));
 }
 
-export function addArtistCollab(userId, data) {
-  const info = getDb().prepare(`
+export async function addArtistCollab(userId, data) {
+  const db = await getDb();
+  const info = await run(db, `
     INSERT INTO artist_collabs
       (artist_user_id, salon_user_id, salon_name, area, service, days, from_time, to_time, share_percent, capacity, status)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(
+    RETURNING id
+  `, [
     userId,
     data.salonId || data.salon_user_id || null,
     data.salonName || data.salon_name || "",
@@ -124,56 +136,65 @@ export function addArtistCollab(userId, data) {
     data.share || data.sharePercent || data.share_percent || "",
     data.capacity || "",
     data.status || "آماده ارسال"
-  );
-  return mapArtistCollab(getDb().prepare(`
+  ]);
+  const row = await get(db, `
     SELECT c.*, u.avatar AS salon_avatar
     FROM artist_collabs c
     LEFT JOIN users u ON u.id = c.salon_user_id
     WHERE c.id = ?
-  `).get(Number(info.lastInsertRowid)));
+  `, [Number(info.rows[0].id)]);
+  return mapArtistCollab(row);
 }
 
-export function deleteArtistCollab(id, userId) {
-  return getDb().prepare("DELETE FROM artist_collabs WHERE id = ? AND artist_user_id = ?").run(id, userId).changes > 0;
+export async function deleteArtistCollab(id, userId) {
+  const db = await getDb();
+  const result = await run(db, "DELETE FROM artist_collabs WHERE id = ? AND artist_user_id = ?", [id, userId]);
+  return result.changes > 0;
 }
 
-export function updateSalonCollabStatus(id, salonUserId, status) {
+export async function updateSalonCollabStatus(id, salonUserId, status) {
+  const db = await getDb();
   const allowed = new Set(["تایید شد", "رد شد", "آماده ارسال", "پایان یافت"]);
   const nextStatus = allowed.has(status) ? status : "آماده ارسال";
-  const result = getDb().prepare(`
+  const result = await run(db, `
     UPDATE artist_collabs
     SET status = ?, updated_at = CURRENT_TIMESTAMP
     WHERE id = ? AND salon_user_id = ?
-  `).run(nextStatus, id, salonUserId);
+  `, [nextStatus, id, salonUserId]);
   if (result.changes < 1) return null;
-  return listSalonCollabRequests(salonUserId).find((item) => Number(item.id) === Number(id)) || null;
+  const rows = await listSalonCollabRequests(salonUserId);
+  return rows.find((item) => Number(item.id) === Number(id)) || null;
 }
 
-export function endSalonCollabsForArtist(salonUserId, artistUserId) {
+export async function endSalonCollabsForArtist(salonUserId, artistUserId) {
   const artistId = Number(artistUserId || 0);
   if (!salonUserId || !artistId) return 0;
-  return getDb().prepare(`
+  const db = await getDb();
+  const result = await run(db, `
     UPDATE artist_collabs
     SET status = 'پایان یافت', updated_at = CURRENT_TIMESTAMP
     WHERE salon_user_id = ?
       AND artist_user_id = ?
       AND status IN ('تایید شد', 'آماده ارسال')
-  `).run(salonUserId, artistId).changes;
+  `, [salonUserId, artistId]);
+  return result.changes;
 }
 
-export function getArtistBreak(userId) {
-  const row = getDb().prepare(`
+export async function getArtistBreak(userId, runner = null) {
+  const db = runner || (await getDb());
+  const row = await get(db, `
     SELECT start_time, end_time FROM artist_breaks WHERE user_id = ?
-  `).get(userId);
+  `, [userId]);
   if (!row?.start_time || !row?.end_time) return null;
   return { start: row.start_time, end: row.end_time };
 }
 
-export function setArtistBreak(userId, startTime, endTime) {
+export async function setArtistBreak(userId, startTime, endTime) {
+  const db = await getDb();
   const start = String(startTime || "").trim();
   const end = String(endTime || "").trim();
   if (!start || !end) {
-    getDb().prepare("DELETE FROM artist_breaks WHERE user_id = ?").run(userId);
+    await run(db, "DELETE FROM artist_breaks WHERE user_id = ?", [userId]);
     return null;
   }
   const startMinutes = timeToMinutes(start);
@@ -181,25 +202,26 @@ export function setArtistBreak(userId, startTime, endTime) {
   if (!(endMinutes > startMinutes)) {
     return { ok: false, error: "پایان استراحت باید بعد از شروع باشد." };
   }
-  getDb().prepare(`
+  await run(db, `
     INSERT INTO artist_breaks (user_id, start_time, end_time, updated_at)
     VALUES (?, ?, ?, CURRENT_TIMESTAMP)
     ON CONFLICT(user_id) DO UPDATE SET
       start_time = excluded.start_time,
       end_time = excluded.end_time,
       updated_at = CURRENT_TIMESTAMP
-  `).run(userId, start, end);
+  `, [userId, start, end]);
   return { ok: true, break: { start, end } };
 }
 
-export function clearArtistBreak(userId) {
-  getDb().prepare("DELETE FROM artist_breaks WHERE user_id = ?").run(userId);
+export async function clearArtistBreak(userId) {
+  const db = await getDb();
+  await run(db, "DELETE FROM artist_breaks WHERE user_id = ?", [userId]);
   return null;
 }
 
-export function listArtistBookings(artistUserId) {
-  ensureArtistBookingDurationColumn();
-  const rows = getDb().prepare(`
+export async function listArtistBookings(artistUserId) {
+  const db = await getDb();
+  const rows = await all(db, `
     SELECT
       b.*,
       salon.name AS source_salon_name,
@@ -209,7 +231,7 @@ export function listArtistBookings(artistUserId) {
     LEFT JOIN users salon ON salon.id = b.source_salon_user_id
     WHERE b.artist_user_id = ?
     ORDER BY b.id DESC
-  `).all(artistUserId);
+  `, [artistUserId]);
 
   function sameArtistClient(a, b) {
     if (!a || !b) return false;
@@ -234,11 +256,12 @@ export function listArtistBookings(artistUserId) {
     return visits;
   }
 
-  return rows.map((row) => {
-    const client = row.client_user_id ? getUserById(row.client_user_id) : null;
+  const result = [];
+  for (const row of rows) {
+    const client = row.client_user_id ? await getUserById(row.client_user_id, db) : null;
     const history = rows.filter((item) => sameArtistClient(item, row));
     const visits = buildVisits(history);
-    return {
+    result.push({
       ...row,
       visits,
       visit_count: visits.filter((level) => level > 0).length,
@@ -269,8 +292,9 @@ export function listArtistBookings(artistUserId) {
             bio: "",
             type: "client"
           }
-    };
-  });
+    });
+  }
+  return result;
 }
 
 /**
@@ -288,8 +312,8 @@ export function listArtistBookings(artistUserId) {
  * artist booking apart from a salon booking and route to the artist's
  * public profile instead — see rebookFromBooking in HomeApp.jsx.
  */
-export function listClientArtistBookings(user) {
-  ensureArtistBookingDurationColumn();
+export async function listClientArtistBookings(user) {
+  const db = await getDb();
   const userId = Number(user?.id || 0);
   const phone = normalizePhone(user?.phone || "");
   const name = String(user?.name || "").trim();
@@ -309,13 +333,14 @@ export function listClientArtistBookings(user) {
     conditions.push("b.client_name = ?");
     params.push(name);
   }
-  return getDb().prepare(`
+  const rows = await all(db, `
     SELECT b.*, u.name AS artist_name, u.area AS artist_area, u.avatar AS artist_avatar, u.phone AS artist_phone
     FROM artist_bookings b
     LEFT JOIN users u ON u.id = b.artist_user_id
     WHERE ${conditions.join(" OR ")}
     ORDER BY b.id DESC
-  `).all(...params).map((row) => ({
+  `, params);
+  return rows.map((row) => ({
     ...row,
     client: row.client_name || "",
     // NOTE: unlike salon bookings' `phone` column (the booking client's own
@@ -341,9 +366,9 @@ export function listClientArtistBookings(user) {
   }));
 }
 
-export function syncSalonBookingsForArtist(artistUserId) {
-  ensureArtistBookingDurationColumn();
-  const linkedSalonBookings = getDb().prepare(`
+export async function syncSalonBookingsForArtist(artistUserId) {
+  const db = await getDb();
+  const linkedSalonBookings = await all(db, `
     SELECT b.*
     FROM salon_bookings b
     JOIN salon_staff st
@@ -352,11 +377,11 @@ export function syncSalonBookingsForArtist(artistUserId) {
     WHERE st.artist_user_id = ?
       AND b.status != 'لغو'
     ORDER BY b.id ASC
-  `).all(artistUserId);
+  `, [artistUserId]);
 
   let synced = 0;
   for (const booking of linkedSalonBookings) {
-    const exact = getDb().prepare(`
+    const exact = await get(db, `
       SELECT id, source_salon_user_id
       FROM artist_bookings
       WHERE artist_user_id = ?
@@ -366,28 +391,28 @@ export function syncSalonBookingsForArtist(artistUserId) {
         AND booking_date = ?
         AND time = ?
       LIMIT 1
-    `).get(
+    `, [
       artistUserId,
       booking.client || "",
       booking.phone || "",
       booking.service || "",
       booking.booking_date || "",
       booking.time || ""
-    );
+    ]);
 
     if (exact) {
       if (!exact.source_salon_user_id) {
-        getDb().prepare(`
+        await run(db, `
           UPDATE artist_bookings
           SET source_salon_user_id = ?, status = ?, updated_at = CURRENT_TIMESTAMP
           WHERE id = ?
-        `).run(booking.salon_user_id, booking.status || "تازه", exact.id);
+        `, [booking.salon_user_id, booking.status || "تازه", exact.id]);
         synced += 1;
       }
       continue;
     }
 
-    const result = addArtistBooking(artistUserId, {
+    const result = await addArtistBooking(artistUserId, {
       client: booking.client,
       phone: booking.phone,
       service: booking.service,
@@ -399,16 +424,6 @@ export function syncSalonBookingsForArtist(artistUserId) {
     if (result.ok) synced += 1;
   }
   return { synced };
-}
-
-function ensureArtistBookingDurationColumn() {
-  const cols = getDb().prepare("PRAGMA table_info(artist_bookings)").all();
-  if (!cols.some((col) => col.name === "duration_minutes")) {
-    getDb().exec("ALTER TABLE artist_bookings ADD COLUMN duration_minutes INTEGER NOT NULL DEFAULT 60");
-  }
-  if (!cols.some((col) => col.name === "source_salon_user_id")) {
-    getDb().exec("ALTER TABLE artist_bookings ADD COLUMN source_salon_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL");
-  }
 }
 
 function toAsciiDigits(value) {
@@ -429,20 +444,21 @@ function rangesOverlap(startA, endA, startB, endB) {
   return startA < endB && startB < endA;
 }
 
-export function listArtistBookedSlots(artistUserId, { excludeBookingId = null } = {}) {
-  ensureArtistBookingDurationColumn();
-  const services = listArtistServices(artistUserId);
+export async function listArtistBookedSlots(artistUserId, { excludeBookingId = null } = {}, runner = null) {
+  const db = runner || (await getDb());
+  const services = await listArtistServices(artistUserId, db);
   const serviceDurationMap = Object.fromEntries(
     services.map((service) => [service.name, parseDurationMinutes(service.duration)])
   );
   const excludeId = excludeBookingId != null ? Number(excludeBookingId) : null;
-  return getDb().prepare(`
+  const rows = await all(db, `
     SELECT id, booking_date, time, status, service, duration_minutes
     FROM artist_bookings
     WHERE artist_user_id = ?
       AND status NOT IN ('لغو', 'لغو شده', 'cancelled', 'منقضی شده')
     ORDER BY id ASC
-  `).all(artistUserId).filter((row) => excludeId == null || Number(row.id) !== excludeId).map((row) => ({
+  `, [artistUserId]);
+  return rows.filter((row) => excludeId == null || Number(row.id) !== excludeId).map((row) => ({
     id: row.id,
     booking_date: row.booking_date,
     time: row.time,
@@ -454,13 +470,14 @@ export function listArtistBookedSlots(artistUserId, { excludeBookingId = null } 
   }));
 }
 
-export function isArtistSlotBlocked(artistUserId, bookingDate, time, durationMinutes = 60, excludeBookingId = null) {
+export async function isArtistSlotBlocked(artistUserId, bookingDate, time, durationMinutes = 60, excludeBookingId = null, runner = null) {
   if (!artistUserId || !bookingDate || !time) return false;
+  const db = runner || (await getDb());
   const bookingDateKey = resolveRollingPersianDateKey(bookingDate);
   const start = timeToMinutes(time);
   const end = start + Math.max(15, Number(durationMinutes) || 60);
 
-  const artistBreak = getArtistBreak(artistUserId);
+  const artistBreak = await getArtistBreak(artistUserId, db);
   if (artistBreak) {
     const breakStart = timeToMinutes(artistBreak.start);
     const breakEnd = timeToMinutes(artistBreak.end);
@@ -469,7 +486,8 @@ export function isArtistSlotBlocked(artistUserId, bookingDate, time, durationMin
     }
   }
 
-  return listArtistBookedSlots(artistUserId, { excludeBookingId })
+  const bookedSlots = await listArtistBookedSlots(artistUserId, { excludeBookingId }, db);
+  return bookedSlots
     .filter((item) => resolveRollingPersianDateKey(item.booking_date) === bookingDateKey)
     .some((item) => {
       const bookedStart = timeToMinutes(item.time);
@@ -482,14 +500,14 @@ export function isArtistSlotBlocked(artistUserId, bookingDate, time, durationMin
  * Find the artist_bookings row mirrored from a salon booking (by source salon + slot fingerprint).
  * Prefer active (non-cancelled) rows when duplicates exist.
  */
-export function findLinkedSalonArtistBooking(artistUserId, salonUserId, salonBookingRow) {
+export async function findLinkedSalonArtistBooking(artistUserId, salonUserId, salonBookingRow, runner = null) {
   if (!artistUserId || !salonUserId || !salonBookingRow) return null;
-  ensureArtistBookingDurationColumn();
+  const db = runner || (await getDb());
   const bookingDate = resolveRollingPersianDateKey(salonBookingRow.booking_date || "");
   const timeNorm = normalizeBookingTimeLabel(salonBookingRow.time || "");
   if (!bookingDate || !timeNorm) return null;
 
-  const rows = getDb().prepare(`
+  const rows = await all(db, `
     SELECT *
     FROM artist_bookings
     WHERE artist_user_id = ?
@@ -501,21 +519,21 @@ export function findLinkedSalonArtistBooking(artistUserId, salonUserId, salonBoo
     ORDER BY
       CASE WHEN status IN ('لغو', 'لغو شده', 'cancelled') THEN 1 ELSE 0 END ASC,
       id DESC
-  `).all(
+  `, [
     Number(artistUserId),
     Number(salonUserId),
     salonBookingRow.client || "",
     salonBookingRow.phone || "",
     salonBookingRow.service || "",
     bookingDate
-  );
+  ]);
 
   return rows.find((row) => normalizeBookingTimeLabel(row.time || "") === timeNorm) || null;
 }
 
-export function updateArtistBookingRow(bookingId, fields = {}) {
-  ensureArtistBookingDurationColumn();
-  const current = getDb().prepare("SELECT * FROM artist_bookings WHERE id = ?").get(Number(bookingId));
+export async function updateArtistBookingRow(bookingId, fields = {}, runner = null) {
+  const db = runner || (await getDb());
+  const current = await get(db, "SELECT * FROM artist_bookings WHERE id = ?", [Number(bookingId)]);
   if (!current) return null;
   const next = {
     client_name: fields.client_name ?? fields.client ?? current.client_name,
@@ -531,12 +549,12 @@ export function updateArtistBookingRow(bookingId, fields = {}) {
     ),
     status: fields.status ?? current.status
   };
-  getDb().prepare(`
+  await run(db, `
     UPDATE artist_bookings
     SET client_name = ?, client_phone = ?, service = ?, booking_date = ?, time = ?,
         duration_minutes = ?, status = ?, updated_at = CURRENT_TIMESTAMP
     WHERE id = ?
-  `).run(
+  `, [
     next.client_name || "",
     next.client_phone || "",
     next.service || "",
@@ -545,24 +563,25 @@ export function updateArtistBookingRow(bookingId, fields = {}) {
     next.duration_minutes,
     next.status || "تازه",
     Number(bookingId)
-  );
-  return getDb().prepare("SELECT * FROM artist_bookings WHERE id = ?").get(Number(bookingId));
+  ]);
+  return get(db, "SELECT * FROM artist_bookings WHERE id = ?", [Number(bookingId)]);
 }
 
 /** Soft-cancel (status لغو) — keeps history aligned with salon cancel. */
-export function cancelArtistBookingRow(bookingId) {
-  return updateArtistBookingRow(bookingId, { status: "لغو" });
+export async function cancelArtistBookingRow(bookingId, runner = null) {
+  return updateArtistBookingRow(bookingId, { status: "لغو" }, runner);
 }
 
 /**
  * Slot-conflict check + INSERT for an artist_bookings row, run against whatever
  * transaction is already open on the caller's connection (no BEGIN/COMMIT of its own).
  * Mirrors the salons/bookings.js `updateSalonBookingInTx` convention: callers that
- * already hold a `withTransaction`/`BEGIN IMMEDIATE` (e.g. patchSalonBookingWithArtistSync)
- * must call this directly instead of `addArtistBooking`, to avoid nesting BEGIN IMMEDIATE.
+ * already hold a `withTransaction` (e.g. patchSalonBookingWithArtistSync) must pass
+ * their transaction `client` as `runner`, to avoid running these queries on a
+ * different, non-transactional pooled connection.
  */
-export function addArtistBookingInTx(artistUserId, data) {
-  ensureArtistBookingDurationColumn();
+export async function addArtistBookingInTx(artistUserId, data, runner = null) {
+  const db = runner || (await getDb());
   const bookingDate = resolveRollingPersianDateKey(data.bookingDate || data.booking_date || data.date || "");
   const time = normalizeBookingTimeLabel(data.time || "");
   const durationMinutes = Math.max(
@@ -574,15 +593,16 @@ export function addArtistBookingInTx(artistUserId, data) {
   if (!bookingDate || !time) {
     return { ok: false, error: "روز و ساعت لازم است.", code: "MISSING_SLOT" };
   }
-  if (isArtistSlotBlocked(artistUserId, bookingDate, time, durationMinutes, data.excludeBookingId ?? null)) {
+  if (await isArtistSlotBlocked(artistUserId, bookingDate, time, durationMinutes, data.excludeBookingId ?? null, db)) {
     return { ok: false, error: "این بازه زمانی با نوبت دیگری تداخل دارد.", code: "SLOT_TAKEN" };
   }
 
-  const info = getDb().prepare(`
+  const info = await run(db, `
     INSERT INTO artist_bookings
       (artist_user_id, client_user_id, source_salon_user_id, client_name, client_phone, service, booking_date, time, duration_minutes, status)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(
+    RETURNING id
+  `, [
     artistUserId,
     data.clientUserId || null,
     data.sourceSalonUserId || data.source_salon_user_id || null,
@@ -593,27 +613,29 @@ export function addArtistBookingInTx(artistUserId, data) {
     time,
     durationMinutes,
     data.status || "تازه"
-  );
+  ]);
   return {
     ok: true,
-    booking: getDb().prepare("SELECT * FROM artist_bookings WHERE id = ?").get(Number(info.lastInsertRowid))
+    booking: await get(db, "SELECT * FROM artist_bookings WHERE id = ?", [Number(info.rows[0].id)])
   };
 }
 
 /**
  * Public entry point: wraps the check+INSERT above in its own `withTransaction`
- * (`BEGIN IMMEDIATE`) so two truly concurrent connections can't both pass the
- * overlap check before either commits. Use this from call sites that are NOT
- * already inside an open transaction (API routes, syncSalonBookingsForArtist).
- * Call sites already inside a transaction must use `addArtistBookingInTx` instead.
+ * so two truly concurrent connections can't both pass the overlap check before
+ * either commits. Use this from call sites that are NOT already inside an open
+ * transaction (API routes, syncSalonBookingsForArtist). Call sites already
+ * inside a transaction must use `addArtistBookingInTx` (with their tx client)
+ * instead.
  */
-export function addArtistBooking(artistUserId, data) {
-  return withTransaction(getDb(), () => addArtistBookingInTx(artistUserId, data));
+export async function addArtistBooking(artistUserId, data) {
+  return withTransaction(null, (client) => addArtistBookingInTx(artistUserId, data, client));
 }
 
 /** Full booking snapshot, camelCased. Live status — callers should re-fetch, never cache. */
-export function getArtistBookingById(bookingId) {
-  const row = getDb().prepare("SELECT * FROM artist_bookings WHERE id = ?").get(bookingId);
+export async function getArtistBookingById(bookingId) {
+  const db = await getDb();
+  const row = await get(db, "SELECT * FROM artist_bookings WHERE id = ?", [bookingId]);
   if (!row) return null;
   return {
     id: row.id,
@@ -631,11 +653,11 @@ export function getArtistBookingById(bookingId) {
   };
 }
 
-export function getPublicArtist(userId, viewerUserId = null) {
-  const user = getUserById(userId);
+export async function getPublicArtist(userId, viewerUserId = null) {
+  const user = await getUserById(userId);
   if (!user || user.type !== "artist") return null;
-  const posts = listPostsByOwner(userId);
-  const services = listArtistServices(userId);
+  const posts = await listPostsByOwner(userId);
+  const services = await listArtistServices(userId);
   return {
     id: user.id,
     name: user.name,
@@ -645,33 +667,38 @@ export function getPublicArtist(userId, viewerUserId = null) {
     avatar: user.avatar ? `/api/media/avatar/${user.id}` : "",
     service: user.service,
     experienceYears: user.experience_years || "",
-    followers: countFollowers(user.id),
+    followers: await countFollowers(user.id),
     // Repo layer stays permissive (GET /api/artist/me calls this with
     // viewerUserId === userId for the artist's own dashboard, which must
     // always see itself regardless of the toggle) -- the public-visibility
     // gate based on this flag lives in the caller (GET /api/artists/[id]
     // route + the SSR /artists/[id] page), same split salons.js uses.
-    isPublic: getSettings(user.id).publicPortfolio !== false,
-    isFollowing: viewerUserId ? isFollowing(viewerUserId, user.id) : false,
-    isSaved: viewerUserId ? isProfileSaved(viewerUserId, user.id) : false,
+    isPublic: (await getSettings(user.id)).publicPortfolio !== false,
+    isFollowing: viewerUserId ? await isFollowing(viewerUserId, user.id) : false,
+    isSaved: viewerUserId ? await isProfileSaved(viewerUserId, user.id) : false,
     posts,
     services,
-    bookedSlots: listArtistBookedSlots(userId),
-    breakTime: getArtistBreak(userId)
+    bookedSlots: await listArtistBookedSlots(userId),
+    breakTime: await getArtistBreak(userId)
   };
 }
 
-export function listArtists() {
-  return getDb().prepare(`
+export async function listArtists() {
+  const db = await getDb();
+  const rows = await all(db, `
     SELECT id, name, area, service, avatar, bio FROM users WHERE type = 'artist' ORDER BY created_at DESC
-  `).all()
-    // An artist switched to "خصوصی" via تنظیمات → ویترین عمومی آرتیست must be
-    // hidden from the public directory, same rule salons.listSalons()
-    // already enforces for its equivalent toggle -- this was previously
-    // never checked at all for artists.
-    .filter((row) => getSettings(row.id).publicPortfolio !== false)
-    // Media URL, not raw base64 -- see app/api/media/avatar/[userId]/route.js.
-    .map((row) => ({ ...row, avatar: row.avatar ? `/api/media/avatar/${row.id}` : "" }));
+  `);
+  // An artist switched to "خصوصی" via تنظیمات → ویترین عمومی آرتیست must be
+  // hidden from the public directory, same rule salons.listSalons()
+  // already enforces for its equivalent toggle -- this was previously
+  // never checked at all for artists.
+  const visible = [];
+  for (const row of rows) {
+    const settings = await getSettings(row.id, db);
+    if (settings.publicPortfolio !== false) visible.push(row);
+  }
+  // Media URL, not raw base64 -- see app/api/media/avatar/[userId]/route.js.
+  return visible.map((row) => ({ ...row, avatar: row.avatar ? `/api/media/avatar/${row.id}` : "" }));
 }
 
 /**
@@ -681,21 +708,26 @@ export function listArtists() {
  * saved salon (also stored in saved_profiles, target_user_id points at the
  * same users table) never leaks into this list.
  */
-export function listSavedArtistsForUser(userId) {
-  const rows = getDb().prepare(`
+export async function listSavedArtistsForUser(userId) {
+  const db = await getDb();
+  const rows = await all(db, `
     SELECT u.* FROM saved_profiles sp
     JOIN users u ON u.id = sp.target_user_id
     WHERE sp.user_id = ? AND u.type = 'artist'
     ORDER BY sp.created_at DESC
-  `).all(userId);
-  return rows.map((user) => ({
-    id: user.id,
-    name: user.name,
-    role: user.service ? `آرتیست ${user.service}` : "آرتیست",
-    area: user.area,
-    bio: user.bio,
-    avatar: user.avatar ? `/api/media/avatar/${user.id}` : "",
-    service: user.service,
-    followers: countFollowers(user.id)
-  }));
+  `, [userId]);
+  const result = [];
+  for (const user of rows) {
+    result.push({
+      id: user.id,
+      name: user.name,
+      role: user.service ? `آرتیست ${user.service}` : "آرتیست",
+      area: user.area,
+      bio: user.bio,
+      avatar: user.avatar ? `/api/media/avatar/${user.id}` : "",
+      service: user.service,
+      followers: await countFollowers(user.id, db)
+    });
+  }
+  return result;
 }

@@ -1,66 +1,76 @@
-import { getDb } from "../connection.js";
+import { getDb, all, get, run } from "../connection.js";
 
-export function toggleFollow(followerUserId, targetUserId) {
+export async function toggleFollow(followerUserId, targetUserId) {
   if (followerUserId === targetUserId) return { ok: false, error: "self" };
-  const db = getDb();
-  const existing = db.prepare(`
+  const db = await getDb();
+  const existing = await get(db, `
     SELECT 1 FROM follows WHERE follower_user_id = ? AND target_user_id = ?
-  `).get(followerUserId, targetUserId);
+  `, [followerUserId, targetUserId]);
   let following = true;
   if (existing) {
-    db.prepare("DELETE FROM follows WHERE follower_user_id = ? AND target_user_id = ?").run(followerUserId, targetUserId);
+    await run(db, "DELETE FROM follows WHERE follower_user_id = ? AND target_user_id = ?", [followerUserId, targetUserId]);
     following = false;
   } else {
-    db.prepare("INSERT INTO follows (follower_user_id, target_user_id) VALUES (?, ?)").run(followerUserId, targetUserId);
+    await run(db, "INSERT INTO follows (follower_user_id, target_user_id) VALUES (?, ?)", [followerUserId, targetUserId]);
   }
-  const count = db.prepare("SELECT COUNT(*) AS c FROM follows WHERE target_user_id = ?").get(targetUserId);
+  const count = await get(db, "SELECT COUNT(*) AS c FROM follows WHERE target_user_id = ?", [targetUserId]);
   const followerCount = Number(count?.c || 0);
   // Keep denormalized salon counter in sync when target is a salon
-  db.prepare("UPDATE salons SET follower_count = ? WHERE user_id = ?").run(followerCount, targetUserId);
+  await run(db, "UPDATE salons SET follower_count = ? WHERE user_id = ?", [followerCount, targetUserId]);
   return { following, followerCount, follower_count: followerCount };
 }
 
-export function listFollowingIds(followerUserId) {
-  return getDb().prepare(`
+export async function listFollowingIds(followerUserId) {
+  const db = await getDb();
+  const rows = await all(db, `
     SELECT target_user_id FROM follows WHERE follower_user_id = ?
-  `).all(followerUserId).map((row) => row.target_user_id);
+  `, [followerUserId]);
+  return rows.map((row) => row.target_user_id);
 }
 
 /**
  * Real (server-side) save/unsave of a salon or independent artist's public
  * profile — the bookmark button on their page. Target must be an existing
  * salon or artist `users` row (checked by the caller before this runs).
- * Mirrors toggleFollow's shape/self-check; check-then-insert/delete runs
- * synchronously on node:sqlite's single-threaded connection, same as every
- * other toggle in this file, so a rapid double-click can't interleave and
- * duplicate/desync a row.
+ * Mirrors toggleFollow's shape/self-check; check-then-insert/delete used to
+ * run synchronously on node:sqlite's single-threaded connection so a rapid
+ * double-click couldn't interleave and duplicate/desync a row -- on Postgres
+ * the INSERT below uses ON CONFLICT DO NOTHING (equivalent to the old
+ * `INSERT OR IGNORE`) to keep that same idempotent-toggle guarantee even
+ * across concurrent connections.
  */
-export function toggleSaveProfile(userId, targetUserId) {
+export async function toggleSaveProfile(userId, targetUserId) {
   if (userId === targetUserId) return { ok: false, error: "self" };
-  const db = getDb();
-  const existing = db.prepare(`
+  const db = await getDb();
+  const existing = await get(db, `
     SELECT 1 FROM saved_profiles WHERE user_id = ? AND target_user_id = ?
-  `).get(userId, targetUserId);
+  `, [userId, targetUserId]);
   let saved;
   if (existing) {
-    db.prepare("DELETE FROM saved_profiles WHERE user_id = ? AND target_user_id = ?").run(userId, targetUserId);
+    await run(db, "DELETE FROM saved_profiles WHERE user_id = ? AND target_user_id = ?", [userId, targetUserId]);
     saved = false;
   } else {
-    db.prepare("INSERT OR IGNORE INTO saved_profiles (user_id, target_user_id) VALUES (?, ?)").run(userId, targetUserId);
+    await run(db, `
+      INSERT INTO saved_profiles (user_id, target_user_id) VALUES (?, ?)
+      ON CONFLICT (user_id, target_user_id) DO NOTHING
+    `, [userId, targetUserId]);
     saved = true;
   }
   return { ok: true, saved, targetUserId };
 }
 
-export function listSavedProfileIds(userId) {
-  return getDb().prepare(`
+export async function listSavedProfileIds(userId) {
+  const db = await getDb();
+  const rows = await all(db, `
     SELECT target_user_id FROM saved_profiles WHERE user_id = ?
-  `).all(userId).map((row) => row.target_user_id);
+  `, [userId]);
+  return rows.map((row) => row.target_user_id);
 }
 
-export function isProfileSaved(userId, targetUserId) {
+export async function isProfileSaved(userId, targetUserId, runner = null) {
   if (!userId) return false;
-  return Boolean(getDb().prepare(`
+  const db = runner || (await getDb());
+  return Boolean(await get(db, `
     SELECT 1 FROM saved_profiles WHERE user_id = ? AND target_user_id = ?
-  `).get(userId, targetUserId));
+  `, [userId, targetUserId]));
 }

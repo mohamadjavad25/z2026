@@ -1,4 +1,4 @@
-import { getDb } from "../../connection.js";
+import { getDb, all, get, run } from "../../connection.js";
 import { addSalonStaff } from "./staff.js";
 
 const PENDING = "در انتظار تایید";
@@ -29,9 +29,10 @@ function mapSalonInvite(row) {
   };
 }
 
-export function listSalonArtistInvites(salonUserId, { status } = {}) {
+export async function listSalonArtistInvites(salonUserId, { status } = {}) {
+  const db = await getDb();
   const rows = status
-    ? getDb().prepare(`
+    ? await all(db, `
         SELECT
           i.*,
           u.name AS artist_name,
@@ -48,8 +49,8 @@ export function listSalonArtistInvites(salonUserId, { status } = {}) {
         LEFT JOIN users salon_user ON salon_user.id = i.salon_user_id
         WHERE i.salon_user_id = ? AND i.status = ?
         ORDER BY i.id DESC
-      `).all(salonUserId, status)
-    : getDb().prepare(`
+      `, [salonUserId, status])
+    : await all(db, `
         SELECT
           i.*,
           u.name AS artist_name,
@@ -66,13 +67,14 @@ export function listSalonArtistInvites(salonUserId, { status } = {}) {
         LEFT JOIN users salon_user ON salon_user.id = i.salon_user_id
         WHERE i.salon_user_id = ?
         ORDER BY i.id DESC
-      `).all(salonUserId);
+      `, [salonUserId]);
   return rows.map(mapSalonInvite).filter(Boolean);
 }
 
-export function listArtistSalonInvites(artistUserId, { status } = {}) {
+export async function listArtistSalonInvites(artistUserId, { status } = {}) {
+  const db = await getDb();
   const rows = status
-    ? getDb().prepare(`
+    ? await all(db, `
         SELECT
           i.*,
           u.name AS artist_name,
@@ -89,8 +91,8 @@ export function listArtistSalonInvites(artistUserId, { status } = {}) {
         LEFT JOIN users salon_user ON salon_user.id = i.salon_user_id
         WHERE i.artist_user_id = ? AND i.status = ?
         ORDER BY i.id DESC
-      `).all(artistUserId, status)
-    : getDb().prepare(`
+      `, [artistUserId, status])
+    : await all(db, `
         SELECT
           i.*,
           u.name AS artist_name,
@@ -107,21 +109,23 @@ export function listArtistSalonInvites(artistUserId, { status } = {}) {
         LEFT JOIN users salon_user ON salon_user.id = i.salon_user_id
         WHERE i.artist_user_id = ?
         ORDER BY i.id DESC
-      `).all(artistUserId);
+      `, [artistUserId]);
   return rows.map(mapSalonInvite).filter(Boolean);
 }
 
-export function countPendingArtistInvites(artistUserId) {
-  const row = getDb().prepare(`
+export async function countPendingArtistInvites(artistUserId) {
+  const db = await getDb();
+  const row = await get(db, `
     SELECT COUNT(*) AS count
     FROM salon_artist_invites
     WHERE artist_user_id = ? AND status = ?
-  `).get(artistUserId, PENDING);
+  `, [artistUserId, PENDING]);
   return Number(row?.count || 0);
 }
 
-function getInviteRow(id) {
-  return getDb().prepare(`
+async function getInviteRow(id, runner = null) {
+  const db = runner || (await getDb());
+  return get(db, `
     SELECT
       i.*,
       u.name AS artist_name,
@@ -137,37 +141,38 @@ function getInviteRow(id) {
     LEFT JOIN salons s ON s.user_id = i.salon_user_id
     LEFT JOIN users salon_user ON salon_user.id = i.salon_user_id
     WHERE i.id = ?
-  `).get(id);
+  `, [id]);
 }
 
-export function createSalonArtistInvite(salonUserId, data) {
+export async function createSalonArtistInvite(salonUserId, data) {
+  const db = await getDb();
   const artistUserId = Number(data.artistUserId || data.artist_user_id || 0);
   if (!artistUserId) {
     return { ok: false, error: "آرتیست نامعتبر است.", code: "INVALID_ARTIST" };
   }
 
-  const artist = getDb().prepare(`
+  const artist = await get(db, `
     SELECT id, name, phone, area, service, avatar, bio, type
     FROM users WHERE id = ? AND type = 'artist' LIMIT 1
-  `).get(artistUserId);
+  `, [artistUserId]);
   if (!artist) {
     return { ok: false, error: "آرتیست پیدا نشد.", code: "ARTIST_NOT_FOUND" };
   }
 
-  const alreadyStaff = getDb().prepare(`
+  const alreadyStaff = await get(db, `
     SELECT id FROM salon_staff
     WHERE salon_user_id = ? AND artist_user_id = ?
     LIMIT 1
-  `).get(salonUserId, artistUserId);
+  `, [salonUserId, artistUserId]);
   if (alreadyStaff) {
     return { ok: false, error: "این آرتیست همین حالا در پرسنل سالن است.", code: "ALREADY_STAFF" };
   }
 
-  const existing = getDb().prepare(`
+  const existing = await get(db, `
     SELECT * FROM salon_artist_invites
     WHERE salon_user_id = ? AND artist_user_id = ?
     LIMIT 1
-  `).get(salonUserId, artistUserId);
+  `, [salonUserId, artistUserId]);
 
   const role = data.role || artist.service || "آرتیست";
   const bio = data.bio || artist.bio || artist.area || "دعوت‌شده از آرتیست‌های نزدیک";
@@ -179,29 +184,30 @@ export function createSalonArtistInvite(salonUserId, data) {
         ok: false,
         error: "دعوت قبلی هنوز در انتظار تایید آرتیست است.",
         code: "PENDING_EXISTS",
-        invite: mapSalonInvite(getInviteRow(existing.id))
+        invite: mapSalonInvite(await getInviteRow(existing.id, db))
       };
     }
     if (existing.status === ACCEPTED) {
       return { ok: false, error: "این آرتیست قبلا دعوت را پذیرفته است.", code: "ALREADY_ACCEPTED" };
     }
-    getDb().prepare(`
+    await run(db, `
       UPDATE salon_artist_invites
       SET role = ?, bio = ?, access_level = ?, status = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
-    `).run(role, bio, accessLevel, PENDING, existing.id);
-    return { ok: true, invite: mapSalonInvite(getInviteRow(existing.id)), created: false };
+    `, [role, bio, accessLevel, PENDING, existing.id]);
+    return { ok: true, invite: mapSalonInvite(await getInviteRow(existing.id, db)), created: false };
   }
 
-  const info = getDb().prepare(`
+  const info = await run(db, `
     INSERT INTO salon_artist_invites
       (salon_user_id, artist_user_id, role, bio, access_level, status)
     VALUES (?, ?, ?, ?, ?, ?)
-  `).run(salonUserId, artistUserId, role, bio, accessLevel, PENDING);
+    RETURNING id
+  `, [salonUserId, artistUserId, role, bio, accessLevel, PENDING]);
 
   return {
     ok: true,
-    invite: mapSalonInvite(getInviteRow(Number(info.lastInsertRowid))),
+    invite: mapSalonInvite(await getInviteRow(Number(info.rows[0].id), db)),
     created: true
   };
 }
@@ -215,24 +221,25 @@ export function createSalonArtistInvite(salonUserId, data) {
  * salon can still remove the person from پرسنل afterward like any other
  * staff row if this was a mistake.
  */
-export function joinSalonByArtist(salonUserId, artistUserId) {
-  const salon = getDb().prepare(`
+export async function joinSalonByArtist(salonUserId, artistUserId) {
+  const db = await getDb();
+  const salon = await get(db, `
     SELECT s.name, s.area FROM salons s WHERE s.user_id = ?
-  `).get(salonUserId);
+  `, [salonUserId]);
   if (!salon) {
     return { ok: false, error: "سالن پیدا نشد.", code: "SALON_NOT_FOUND" };
   }
 
-  const artist = getDb().prepare(`
+  const artist = await get(db, `
     SELECT id, name, phone, area, service, bio FROM users WHERE id = ? AND type = 'artist' LIMIT 1
-  `).get(artistUserId);
+  `, [artistUserId]);
   if (!artist) {
     return { ok: false, error: "آرتیست پیدا نشد.", code: "ARTIST_NOT_FOUND" };
   }
 
-  const alreadyStaff = getDb().prepare(`
+  const alreadyStaff = await get(db, `
     SELECT id FROM salon_staff WHERE salon_user_id = ? AND artist_user_id = ? LIMIT 1
-  `).get(salonUserId, artistUserId);
+  `, [salonUserId, artistUserId]);
   if (alreadyStaff) {
     return { ok: false, error: "شما همین حالا عضو تیم این سالن هستید.", code: "ALREADY_STAFF" };
   }
@@ -240,25 +247,25 @@ export function joinSalonByArtist(salonUserId, artistUserId) {
   const role = artist.service || "آرتیست";
   const bio = artist.bio || "پیوستن با اسکن کد QR سالن";
 
-  const existingInvite = getDb().prepare(`
+  const existingInvite = await get(db, `
     SELECT id FROM salon_artist_invites WHERE salon_user_id = ? AND artist_user_id = ? LIMIT 1
-  `).get(salonUserId, artistUserId);
+  `, [salonUserId, artistUserId]);
 
   if (existingInvite) {
-    getDb().prepare(`
+    await run(db, `
       UPDATE salon_artist_invites
       SET role = ?, bio = ?, status = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
-    `).run(role, bio, ACCEPTED, existingInvite.id);
+    `, [role, bio, ACCEPTED, existingInvite.id]);
   } else {
-    getDb().prepare(`
+    await run(db, `
       INSERT INTO salon_artist_invites
         (salon_user_id, artist_user_id, role, bio, access_level, status)
       VALUES (?, ?, ?, ?, ?, ?)
-    `).run(salonUserId, artistUserId, role, bio, "همکار", ACCEPTED);
+    `, [salonUserId, artistUserId, role, bio, "همکار", ACCEPTED]);
   }
 
-  const staffPerson = addSalonStaff(salonUserId, {
+  const staffPerson = await addSalonStaff(salonUserId, {
     artist_user_id: artistUserId,
     name: artist.name,
     phone: artist.phone || "",
@@ -281,12 +288,13 @@ export function joinSalonByArtist(salonUserId, artistUserId) {
  *  fuller (owner-facing) shape. Works even if the salon set its public
  *  showcase private — that toggle is about the client-facing storefront,
  *  unrelated to whether staff can join the team. */
-export function getSalonJoinPreview(salonUserId) {
-  const row = getDb().prepare(`
+export async function getSalonJoinPreview(salonUserId) {
+  const db = await getDb();
+  const row = await get(db, `
     SELECT s.user_id, s.name, s.area, u.avatar
     FROM salons s JOIN users u ON u.id = s.user_id
     WHERE s.user_id = ?
-  `).get(salonUserId);
+  `, [salonUserId]);
   if (!row) return null;
   return {
     id: row.user_id,
@@ -296,34 +304,36 @@ export function getSalonJoinPreview(salonUserId) {
   };
 }
 
-export function cancelSalonArtistInvite(id, salonUserId) {
-  const current = getDb().prepare(`
+export async function cancelSalonArtistInvite(id, salonUserId) {
+  const db = await getDb();
+  const current = await get(db, `
     SELECT * FROM salon_artist_invites
     WHERE id = ? AND salon_user_id = ?
-  `).get(id, salonUserId);
+  `, [id, salonUserId]);
   if (!current) return null;
   if (current.status !== PENDING) {
-    return mapSalonInvite(getInviteRow(id));
+    return mapSalonInvite(await getInviteRow(id, db));
   }
-  getDb().prepare(`
+  await run(db, `
     UPDATE salon_artist_invites
     SET status = ?, updated_at = CURRENT_TIMESTAMP
     WHERE id = ? AND salon_user_id = ?
-  `).run(CANCELLED, id, salonUserId);
-  return mapSalonInvite(getInviteRow(id));
+  `, [CANCELLED, id, salonUserId]);
+  return mapSalonInvite(await getInviteRow(id, db));
 }
 
-export function respondArtistSalonInvite(id, artistUserId, status) {
+export async function respondArtistSalonInvite(id, artistUserId, status) {
+  const db = await getDb();
   const allowed = new Set([ACCEPTED, REJECTED]);
   const nextStatus = allowed.has(status) ? status : null;
   if (!nextStatus) {
     return { ok: false, error: "وضعیت نامعتبر است.", code: "INVALID_STATUS" };
   }
 
-  const current = getDb().prepare(`
+  const current = await get(db, `
     SELECT * FROM salon_artist_invites
     WHERE id = ? AND artist_user_id = ?
-  `).get(id, artistUserId);
+  `, [id, artistUserId]);
   if (!current) {
     return { ok: false, error: "دعوت پیدا نشد.", code: "NOT_FOUND" };
   }
@@ -332,37 +342,37 @@ export function respondArtistSalonInvite(id, artistUserId, status) {
       ok: false,
       error: "این دعوت دیگر قابل پاسخ نیست.",
       code: "NOT_PENDING",
-      invite: mapSalonInvite(getInviteRow(id))
+      invite: mapSalonInvite(await getInviteRow(id, db))
     };
   }
 
-  getDb().prepare(`
+  await run(db, `
     UPDATE salon_artist_invites
     SET status = ?, updated_at = CURRENT_TIMESTAMP
     WHERE id = ? AND artist_user_id = ?
-  `).run(nextStatus, id, artistUserId);
+  `, [nextStatus, id, artistUserId]);
 
-  const invite = mapSalonInvite(getInviteRow(id));
+  const invite = mapSalonInvite(await getInviteRow(id, db));
   let staffPerson = null;
   let staffCreated = false;
 
   if (nextStatus === ACCEPTED) {
-    const existingStaff = getDb().prepare(`
+    const existingStaff = await get(db, `
       SELECT * FROM salon_staff
       WHERE salon_user_id = ? AND artist_user_id = ?
       LIMIT 1
-    `).get(current.salon_user_id, current.artist_user_id);
+    `, [current.salon_user_id, current.artist_user_id]);
 
     if (existingStaff) {
-      getDb().prepare(`
+      await run(db, `
         UPDATE salon_staff
         SET state = ?, access_level = ?, role = COALESCE(NULLIF(?, ''), role), updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
-      `).run("فعال", current.access_level || "همکار", current.role || "", existingStaff.id);
-      staffPerson = getDb().prepare("SELECT * FROM salon_staff WHERE id = ?").get(existingStaff.id);
+      `, ["فعال", current.access_level || "همکار", current.role || "", existingStaff.id]);
+      staffPerson = await get(db, "SELECT * FROM salon_staff WHERE id = ?", [existingStaff.id]);
       staffCreated = false;
     } else {
-      staffPerson = addSalonStaff(current.salon_user_id, {
+      staffPerson = await addSalonStaff(current.salon_user_id, {
         artist_user_id: current.artist_user_id,
         name: invite.artistName,
         phone: invite.artistPhone || "",
@@ -381,6 +391,6 @@ export function respondArtistSalonInvite(id, artistUserId, status) {
     invite,
     staffPerson,
     staffCreated,
-    invites: listArtistSalonInvites(artistUserId)
+    invites: await listArtistSalonInvites(artistUserId)
   };
 }

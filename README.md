@@ -14,7 +14,7 @@ kept for context, not as a description of the current app.
 ## Stack
 
 - [Next.js](https://nextjs.org) (App Router) + React, plain CSS (no Tailwind)
-- SQLite via Node's built-in `node:sqlite`, no ORM — see `app/lib/README.md`
+- Postgres via the `pg` package, no ORM — see `app/lib/README.md`
 - Session auth with hashed passwords (`node:crypto` scrypt), no third-party auth
 - Web Push (VAPID) for real browser notifications
 
@@ -22,14 +22,16 @@ kept for context, not as a description of the current app.
 
 ```bash
 npm install
-cp .env.example .env.local   # fill in VAPID keys etc. — see comments in the file
+cp .env.example .env.local   # fill in POSTGRES_URL, VAPID keys etc. — see comments in the file
 npm run dev
 ```
 
-The app runs at `http://localhost:3000`. SQLite data lives at
-`data/zibaban.sqlite` by default (created on first run; override with
-`ZIBABAN_DB_PATH`). There's no separate seed step — the schema self-migrates
-on boot (`app/lib/db/migrations.js`).
+You need a reachable Postgres database first — set `POSTGRES_URL` in
+`.env.local` (a local Postgres, a Docker container, or a hosted one; on
+Vercel, add the Vercel Postgres integration and it's set for you). The app
+runs at `http://localhost:3000`. There's no separate seed/migrate step — the
+schema is applied automatically and idempotently on first connection
+(`app/lib/db/schema.js`).
 
 ```bash
 npm run build   # production build

@@ -6,11 +6,11 @@ import * as posts from "../../../lib/db/repos/posts.js";
 export const runtime = "nodejs";
 
 export async function GET(request) {
-  ensureDb();
+  await ensureDb();
   const { searchParams } = new URL(request.url);
   const tag = searchParams.get("tag") || "همه";
-  const list = posts.listExplorePosts({ tag });
-  const user = getUserFromRequest(request);
-  const savedTitles = user ? posts.listSavedTitles(user.id) : [];
+  const list = await posts.listExplorePosts({ tag });
+  const user = await getUserFromRequest(request);
+  const savedTitles = user ? await posts.listSavedTitles(user.id) : [];
   return NextResponse.json({ data: { posts: list, savedTitles } });
 }

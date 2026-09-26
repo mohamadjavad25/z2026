@@ -1,24 +1,28 @@
-import { getDb } from "../connection.js";
+import { getDb, all, get, run } from "../connection.js";
 
-export function createSession(token, userId, expiresAt) {
-  getDb().prepare(`
+export async function createSession(token, userId, expiresAt) {
+  const db = await getDb();
+  await run(db, `
     INSERT INTO sessions (token, user_id, expires_at) VALUES (?, ?, ?)
-  `).run(token, userId, String(expiresAt));
+  `, [token, userId, String(expiresAt)]);
 }
 
-export function getValidSession(token) {
+export async function getValidSession(token) {
+  const db = await getDb();
   const now = Date.now();
-  const row = getDb().prepare(`
+  const row = await get(db, `
     SELECT * FROM sessions
-    WHERE token = ? AND CAST(expires_at AS INTEGER) > ?
-  `).get(token, now);
+    WHERE token = ? AND CAST(expires_at AS BIGINT) > ?
+  `, [token, now]);
   return row || null;
 }
 
-export function deleteSession(token) {
-  getDb().prepare("DELETE FROM sessions WHERE token = ?").run(token);
+export async function deleteSession(token) {
+  const db = await getDb();
+  await run(db, "DELETE FROM sessions WHERE token = ?", [token]);
 }
 
-export function deleteUserSessions(userId) {
-  getDb().prepare("DELETE FROM sessions WHERE user_id = ?").run(userId);
+export async function deleteUserSessions(userId) {
+  const db = await getDb();
+  await run(db, "DELETE FROM sessions WHERE user_id = ?", [userId]);
 }

@@ -5,8 +5,8 @@ import { ensureDb } from "../../../lib/db/connection.js";
 export const runtime = "nodejs";
 
 export async function GET(request) {
-  ensureDb();
-  const user = getUserFromRequest(request);
+  await ensureDb();
+  const user = await getUserFromRequest(request);
   if (!user) {
     return NextResponse.json({ data: { user: null } });
   }

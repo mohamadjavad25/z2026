@@ -1,13 +1,15 @@
-import { getDb } from "../connection.js";
+import { getDb, get, run } from "../connection.js";
 
-export function getPassport(userId) {
-  return getDb().prepare("SELECT * FROM beauty_passports WHERE user_id = ?").get(userId) || null;
+export async function getPassport(userId) {
+  const db = await getDb();
+  return (await get(db, "SELECT * FROM beauty_passports WHERE user_id = ?", [userId])) || null;
 }
 
-export function savePassport(userId, data = {}) {
+export async function savePassport(userId, data = {}) {
+  const db = await getDb();
   const expires = new Date();
   expires.setMonth(expires.getMonth() + 1);
-  getDb().prepare(`
+  await run(db, `
     INSERT INTO beauty_passports
       (user_id, active, skin_tone, undertone, face_shape, hair_type, signature, summary, expires_at)
     VALUES (?, 1, ?, ?, ?, ?, ?, ?, ?)
@@ -21,7 +23,7 @@ export function savePassport(userId, data = {}) {
       summary = excluded.summary,
       expires_at = excluded.expires_at,
       updated_at = CURRENT_TIMESTAMP
-  `).run(
+  `, [
     userId,
     data.skinTone || data.skin_tone || "متوسط گرم",
     data.undertone || "گرم",
@@ -30,6 +32,6 @@ export function savePassport(userId, data = {}) {
     data.signature || "نود گلو",
     data.summary || "پروفایل زیبایی شخصی‌سازی‌شده برای پیشنهاد مدل و رزرو دقیق‌تر.",
     expires.toISOString()
-  );
+  ]);
   return getPassport(userId);
 }

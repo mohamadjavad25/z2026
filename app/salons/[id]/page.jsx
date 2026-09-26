@@ -9,29 +9,26 @@ export const runtime = "nodejs";
 // app/layout.jsx's metadataBase — never hardcode the domain a second time.
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://zibaban.example.com";
 
-function loadSalon(id) {
+async function loadSalon(id) {
   const userId = Number(id);
   if (!Number.isFinite(userId)) return null;
-  ensureDb();
-  const salon = salons.getSalon(userId);
+  await ensureDb();
+  const salon = await salons.getSalon(userId);
   if (!salon) return null;
   // A salon switched to "خصوصی" in تنظیمات → پروفایل عمومی سالن must stay
   // hidden here too — GET /api/salons/[id] enforces the exact same rule for
   // any viewer who isn't the owner, and this standalone public route never
   // has a logged-in viewer to be the owner.
   if (!salon.isPublic) return null;
-  // node:sqlite's .all()/.get() rows are null-prototype objects. That's fine
-  // for JSON.stringify (used by the API routes), but React's RSC boundary
-  // rejects null-prototype objects when passing this Server Component's data
-  // down to the "use client" SalonPublicPageClient. Round-tripping through
-  // JSON strips the prototype and gives plain objects/arrays throughout
-  // (services/portfolio/staff/hours), which is what the client boundary needs.
+  // Round-tripping through JSON.stringify/parse guarantees plain
+  // objects/arrays throughout (services/portfolio/staff/hours) before
+  // crossing the "use client" SalonPublicPageClient RSC boundary.
   return JSON.parse(JSON.stringify(salon));
 }
 
 export async function generateMetadata({ params }) {
   const { id } = await params;
-  const salon = loadSalon(id);
+  const salon = await loadSalon(id);
   if (!salon) {
     return { title: "سالن پیدا نشد | زیبابان" };
   }
@@ -95,7 +92,7 @@ function buildSalonJsonLd(salon, canonicalUrl) {
 
 export default async function SalonPublicPage({ params }) {
   const { id } = await params;
-  const salon = loadSalon(id);
+  const salon = await loadSalon(id);
   if (!salon) {
     notFound();
   }

@@ -98,35 +98,35 @@ export function getSessionToken(request) {
   return request.cookies.get(SESSION_COOKIE)?.value || "";
 }
 
-export function getUserFromRequest(request) {
-  ensureDb();
+export async function getUserFromRequest(request) {
+  await ensureDb();
   const token = getSessionToken(request);
   if (!token) return null;
-  const session = sessions.getValidSession(token);
+  const session = await sessions.getValidSession(token);
   if (!session) return null;
   return users.getUserById(session.user_id);
 }
 
-export function requireUser(request) {
-  const user = getUserFromRequest(request);
+export async function requireUser(request) {
+  const user = await getUserFromRequest(request);
   if (!user) {
     return { ok: false, error: "unauthorized", user: null };
   }
   return { ok: true, user };
 }
 
-export function createSessionForUser(userId) {
-  ensureDb();
+export async function createSessionForUser(userId) {
+  await ensureDb();
   const token = randomBytes(32).toString("hex");
   // Epoch ms — comparable numerically; avoids ISO vs CURRENT_TIMESTAMP string mismatch.
   const expiresAt = Date.now() + SESSION_DAYS * 24 * 60 * 60 * 1000;
-  sessions.createSession(token, userId, expiresAt);
+  await sessions.createSession(token, userId, expiresAt);
   return { token, expiresAt };
 }
 
-export function destroySession(token) {
+export async function destroySession(token) {
   if (!token) return;
-  sessions.deleteSession(token);
+  await sessions.deleteSession(token);
 }
 
 export { users, sessions };

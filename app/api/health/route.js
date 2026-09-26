@@ -9,13 +9,13 @@ export const runtime = "nodejs";
  * balancer health check — none of these are chosen yet, this just gives
  * infra a real, cheap thing to point at once one is). Deliberately public
  * (no auth) and deliberately tiny: confirms the process is up AND the
- * SQLite connection actually works (a real query, not just "the file
- * exists"), without leaking any app data or internals in the response.
+ * Postgres connection actually works (a real query, not just "env var is
+ * set"), without leaking any app data or internals in the response.
  */
 export async function GET() {
   try {
-    const db = getDb();
-    db.prepare("SELECT 1").get();
+    const db = await getDb();
+    await db.query("SELECT 1");
     return NextResponse.json({ ok: true, uptimeSeconds: Math.round(process.uptime()) });
   } catch {
     return NextResponse.json({ ok: false }, { status: 503 });

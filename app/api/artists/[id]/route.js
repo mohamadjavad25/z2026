@@ -6,11 +6,11 @@ import * as artists from "../../../lib/db/repos/artists.js";
 export const runtime = "nodejs";
 
 export async function GET(request, { params }) {
-  ensureDb();
+  await ensureDb();
   const { id } = await params;
-  const viewer = getUserFromRequest(request);
+  const viewer = await getUserFromRequest(request);
   const artistUserId = Number(id);
-  const artist = artists.getPublicArtist(artistUserId, viewer?.id || null);
+  const artist = await artists.getPublicArtist(artistUserId, viewer?.id || null);
   if (!artist) return NextResponse.json({ error: "آرتیست یافت نشد." }, { status: 404 });
   // An artist switched to "خصوصی" in تنظیمات → ویترین عمومی آرتیست is only
   // visible to its own owner, same rule GET /api/salons/[id] already

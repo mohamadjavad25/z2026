@@ -9,29 +9,26 @@ export const runtime = "nodejs";
 // app/layout.jsx's metadataBase — never hardcode the domain a second time.
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://zibaban.example.com";
 
-function loadArtist(id) {
+async function loadArtist(id) {
   const userId = Number(id);
   if (!Number.isFinite(userId)) return null;
-  ensureDb();
-  const artist = artists.getPublicArtist(userId, null);
+  await ensureDb();
+  const artist = await artists.getPublicArtist(userId, null);
   if (!artist) return null;
   // An artist switched to "خصوصی" in تنظیمات → ویترین عمومی آرتیست must stay
   // hidden here too — GET /api/artists/[id] enforces the exact same rule for
   // any viewer who isn't the owner, and this standalone public route never
   // has a logged-in viewer to be the owner.
   if (!artist.isPublic) return null;
-  // node:sqlite's .all()/.get() rows are null-prototype objects. That's fine
-  // for JSON.stringify (used by the API routes), but React's RSC boundary
-  // rejects null-prototype objects when passing this Server Component's data
-  // down to the "use client" ArtistPublicPageClient. Round-tripping through
-  // JSON strips the prototype and gives plain objects/arrays throughout
-  // (posts/services/bookedSlots), which is what the client boundary needs.
+  // Round-tripping through JSON.stringify/parse guarantees plain
+  // objects/arrays throughout (posts/services/bookedSlots) before crossing
+  // the "use client" ArtistPublicPageClient RSC boundary.
   return JSON.parse(JSON.stringify(artist));
 }
 
 export async function generateMetadata({ params }) {
   const { id } = await params;
-  const artist = loadArtist(id);
+  const artist = await loadArtist(id);
   if (!artist) {
     return { title: "آرتیست پیدا نشد | زیبابان" };
   }
@@ -86,7 +83,7 @@ function buildArtistJsonLd(artist, canonicalUrl) {
 
 export default async function ArtistPublicPage({ params }) {
   const { id } = await params;
-  const artist = loadArtist(id);
+  const artist = await loadArtist(id);
   if (!artist) {
     notFound();
   }

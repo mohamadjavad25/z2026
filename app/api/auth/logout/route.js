@@ -9,9 +9,9 @@ import { ensureDb } from "../../../lib/db/connection.js";
 export const runtime = "nodejs";
 
 export async function POST(request) {
-  ensureDb();
+  await ensureDb();
   const token = getSessionToken(request);
-  destroySession(token);
+  await destroySession(token);
   const response = NextResponse.json({ data: { ok: true } });
   clearSessionCookie(response);
   return response;

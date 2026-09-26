@@ -7,66 +7,66 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(request) {
-  const auth = requireUserRole(request, "artist", "فقط آرتیست.");
+  const auth = await requireUserRole(request, "artist", "فقط آرتیست.");
   if (!auth.ok) return auth.response;
-  const profile = artists.getPublicArtist(auth.user.id, auth.user.id);
-  artists.syncSalonBookingsForArtist(auth.user.id);
+  const profile = await artists.getPublicArtist(auth.user.id, auth.user.id);
+  await artists.syncSalonBookingsForArtist(auth.user.id);
   return json({
     data: {
-      services: artists.listArtistServices(auth.user.id),
-      bookings: artists.listArtistBookings(auth.user.id),
-      collabs: artists.listArtistCollabs(auth.user.id),
-      invites: salons.listArtistSalonInvites(auth.user.id),
-      pendingInviteCount: salons.countPendingArtistInvites(auth.user.id),
-      breakTime: artists.getArtistBreak(auth.user.id),
+      services: await artists.listArtistServices(auth.user.id),
+      bookings: await artists.listArtistBookings(auth.user.id),
+      collabs: await artists.listArtistCollabs(auth.user.id),
+      invites: await salons.listArtistSalonInvites(auth.user.id),
+      pendingInviteCount: await salons.countPendingArtistInvites(auth.user.id),
+      breakTime: await artists.getArtistBreak(auth.user.id),
       followers: profile?.followers || 0
     }
   });
 }
 
 export async function POST(request) {
-  const auth = requireUserRole(request, "artist", "فقط آرتیست.");
+  const auth = await requireUserRole(request, "artist", "فقط آرتیست.");
   if (!auth.ok) return auth.response;
   const body = await request.json();
   if (body.kind === "booking") {
-    const result = artists.addArtistBooking(auth.user.id, body);
+    const result = await artists.addArtistBooking(auth.user.id, body);
     if (!result.ok) {
       return json({ error: result.error, code: result.code }, { status: result.code === "SLOT_TAKEN" ? 409 : 400 });
     }
     return json({
       data: {
         booking: result.booking,
-        bookings: artists.listArtistBookings(auth.user.id)
+        bookings: await artists.listArtistBookings(auth.user.id)
       }
     }, { status: 201 });
   }
   if (body.kind === "break") {
     if (body.clear) {
-      artists.clearArtistBreak(auth.user.id);
+      await artists.clearArtistBreak(auth.user.id);
       return json({ data: { breakTime: null } });
     }
-    const result = artists.setArtistBreak(auth.user.id, body.startTime, body.endTime);
+    const result = await artists.setArtistBreak(auth.user.id, body.startTime, body.endTime);
     if (result && result.ok === false) {
       return error(result.error, 400);
     }
-    return json({ data: { breakTime: result?.break || artists.getArtistBreak(auth.user.id) } });
+    return json({ data: { breakTime: result?.break || await artists.getArtistBreak(auth.user.id) } });
   }
   if (body.kind === "collab") {
-    const collab = artists.addArtistCollab(auth.user.id, body);
+    const collab = await artists.addArtistCollab(auth.user.id, body);
     return json({ data: { collab } }, { status: 201 });
   }
-  const service = artists.addArtistService(auth.user.id, body);
+  const service = await artists.addArtistService(auth.user.id, body);
   return json({ data: { service } }, { status: 201 });
 }
 
 export async function PATCH(request) {
-  const auth = requireUserRole(request, "artist", "فقط آرتیست.");
+  const auth = await requireUserRole(request, "artist", "فقط آرتیست.");
   if (!auth.ok) return auth.response;
   const body = await request.json();
   if (body.kind === "booking") {
     return patchOwnArtistBooking(auth.user.id, body);
   }
-  const service = artists.updateArtistService(Number(body.id), auth.user.id, body);
+  const service = await artists.updateArtistService(Number(body.id), auth.user.id, body);
   if (!service) return notFound();
   return json({ data: { service } });
 }
@@ -89,10 +89,10 @@ export async function PATCH(request) {
  * neither has its own ownership check (by this codebase's low-level-row-
  * function convention), so the artist_user_id match below is load-bearing.
  */
-function patchOwnArtistBooking(artistUserId, body) {
+async function patchOwnArtistBooking(artistUserId, body) {
   const bookingId = Number(body.id);
   if (!bookingId) return error("شناسه نوبت نامعتبر است.", 400);
-  const current = artists.getArtistBookingById(bookingId);
+  const current = await artists.getArtistBookingById(bookingId);
   if (!current || Number(current.artistUserId) !== Number(artistUserId)) return notFound();
 
   const wantsCancel = body.status === "لغو" || body.action === "cancel";
@@ -118,14 +118,14 @@ function patchOwnArtistBooking(artistUserId, body) {
   // the direct-artist-booking confirm path was the one place skipping it.
   if (
     nextStatus === "تایید شده"
-    && artists.isArtistSlotBlocked(artistUserId, current.bookingDate, current.time, current.durationMinutes, bookingId)
+    && await artists.isArtistSlotBlocked(artistUserId, current.bookingDate, current.time, current.durationMinutes, bookingId)
   ) {
     return error("این بازه زمانی توسط نوبت دیگری اشغال شده است.", 409);
   }
 
   const updatedRow = wantsCancel
-    ? artists.cancelArtistBookingRow(bookingId)
-    : artists.updateArtistBookingRow(bookingId, { status: nextStatus });
+    ? await artists.cancelArtistBookingRow(bookingId)
+    : await artists.updateArtistBookingRow(bookingId, { status: nextStatus });
   if (!updatedRow) return notFound();
 
   if (current.clientUserId) {
@@ -137,22 +137,22 @@ function patchOwnArtistBooking(artistUserId, body) {
 
   return json({
     data: {
-      booking: artists.getArtistBookingById(bookingId),
-      bookings: artists.listArtistBookings(artistUserId)
+      booking: await artists.getArtistBookingById(bookingId),
+      bookings: await artists.listArtistBookings(artistUserId)
     }
   });
 }
 
 export async function DELETE(request) {
-  const auth = requireUserRole(request, "artist", "فقط آرتیست.");
+  const auth = await requireUserRole(request, "artist", "فقط آرتیست.");
   if (!auth.ok) return auth.response;
   const body = await request.json();
   if (body.kind === "collab") {
-    const ok = artists.deleteArtistCollab(Number(body.id), auth.user.id);
+    const ok = await artists.deleteArtistCollab(Number(body.id), auth.user.id);
     if (!ok) return notFound();
     return json({ data: { ok: true } });
   }
-  const ok = artists.deleteArtistService(Number(body.id), auth.user.id);
+  const ok = await artists.deleteArtistService(Number(body.id), auth.user.id);
   if (!ok) return notFound();
   return json({ data: { ok: true } });
 }

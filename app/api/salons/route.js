@@ -5,7 +5,7 @@ import * as salons from "../../lib/db/repos/salons.js";
 export const runtime = "nodejs";
 
 export async function GET() {
-  ensureDb();
-  const list = salons.listSalons();
+  await ensureDb();
+  const list = await salons.listSalons();
   return NextResponse.json({ salons: list });
 }

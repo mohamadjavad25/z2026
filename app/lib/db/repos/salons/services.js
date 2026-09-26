@@ -1,8 +1,10 @@
-import { getDb } from "../../connection.js";
+import { getDb, all, get, run } from "../../connection.js";
 import { listSalonStaff } from "./staff.js";
-export function listSalonServices(salonUserId) {
-  const staff = listSalonStaff(salonUserId);
-  return getDb().prepare(`
+
+export async function listSalonServices(salonUserId, runner = null) {
+  const db = runner || (await getDb());
+  const staff = await listSalonStaff(salonUserId, db);
+  const rows = await all(db, `
     SELECT
       s.*,
       st.name AS staff_name,
@@ -12,7 +14,8 @@ export function listSalonServices(salonUserId) {
       ON st.id = s.staff_id AND st.salon_user_id = s.salon_user_id
     WHERE s.salon_user_id = ?
     ORDER BY s.id
-  `).all(salonUserId).map((service) => {
+  `, [salonUserId]);
+  return rows.map((service) => {
     const staffIds = String(service.staff_ids || "").trim()
       ? String(service.staff_ids).split(",").map((id) => id.trim()).filter(Boolean)
       : service.staff_id
@@ -27,8 +30,9 @@ export function listSalonServices(salonUserId) {
   });
 }
 
-function getSalonServiceRow(id) {
-  return getDb().prepare(`
+async function getSalonServiceRow(id, runner = null) {
+  const db = runner || (await getDb());
+  return get(db, `
     SELECT
       s.*,
       st.name AS staff_name,
@@ -37,17 +41,19 @@ function getSalonServiceRow(id) {
     LEFT JOIN salon_staff st
       ON st.id = s.staff_id AND st.salon_user_id = s.salon_user_id
     WHERE s.id = ?
-  `).get(id);
+  `, [id]);
 }
 
-export function addSalonService(salonUserId, data) {
+export async function addSalonService(salonUserId, data) {
+  const db = await getDb();
   const staffId = data.staff_id == null || data.staff_id === "" ? null : Number(data.staff_id);
   const staffIds = Array.isArray(data.staff_ids)
     ? data.staff_ids.map((id) => String(id)).filter(Boolean).join(",")
     : String(data.staff_ids || "");
-  const info = getDb().prepare(`
+  const info = await run(db, `
     INSERT INTO salon_services (salon_user_id, name, price, duration, hint, staff_id, staff_ids) VALUES (?, ?, ?, ?, ?, ?, ?)
-  `).run(
+    RETURNING id
+  `, [
     salonUserId,
     data.name || "",
     data.price || "",
@@ -55,12 +61,13 @@ export function addSalonService(salonUserId, data) {
     data.hint || "",
     Number.isFinite(staffId) ? staffId : null,
     staffIds
-  );
-  return getSalonServiceRow(Number(info.lastInsertRowid));
+  ]);
+  return getSalonServiceRow(Number(info.rows[0].id), db);
 }
 
-export function updateSalonService(id, salonUserId, data) {
-  const current = getDb().prepare("SELECT * FROM salon_services WHERE id = ? AND salon_user_id = ?").get(id, salonUserId);
+export async function updateSalonService(id, salonUserId, data) {
+  const db = await getDb();
+  const current = await get(db, "SELECT * FROM salon_services WHERE id = ? AND salon_user_id = ?", [id, salonUserId]);
   if (!current) return null;
 
   let nextStaffId = current.staff_id;
@@ -78,9 +85,9 @@ export function updateSalonService(id, salonUserId, data) {
       : String(data.staff_ids || "");
   }
 
-  getDb().prepare(`
+  await run(db, `
     UPDATE salon_services SET name = ?, price = ?, duration = ?, hint = ?, staff_id = ?, staff_ids = ? WHERE id = ? AND salon_user_id = ?
-  `).run(
+  `, [
     data.name ?? current.name,
     data.price ?? current.price,
     data.duration ?? current.duration,
@@ -89,10 +96,12 @@ export function updateSalonService(id, salonUserId, data) {
     nextStaffIds,
     id,
     salonUserId
-  );
-  return getSalonServiceRow(id);
+  ]);
+  return getSalonServiceRow(id, db);
 }
 
-export function deleteSalonService(id, salonUserId) {
-  return getDb().prepare("DELETE FROM salon_services WHERE id = ? AND salon_user_id = ?").run(id, salonUserId).changes > 0;
+export async function deleteSalonService(id, salonUserId) {
+  const db = await getDb();
+  const result = await run(db, "DELETE FROM salon_services WHERE id = ? AND salon_user_id = ?", [id, salonUserId]);
+  return result.changes > 0;
 }

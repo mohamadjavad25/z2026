@@ -1,4 +1,4 @@
-import { getDb } from "../../connection.js";
+import { getDb, get } from "../../connection.js";
 
 export const defaultHours = [
   { day: "شنبه", open_time: "۱۰:۰۰", close_time: "۲۰:۰۰", capacity: 8, active: 1 },
@@ -18,7 +18,8 @@ export function normalizePhone(phone) {
   return toAsciiDigits(phone).replace(/[^\d+]/g, "").trim();
 }
 
-export function countFollowing(userId) {
-  const row = getDb().prepare("SELECT COUNT(*) AS c FROM follows WHERE follower_user_id = ?").get(userId);
+export async function countFollowing(userId, runner = null) {
+  const db = runner || (await getDb());
+  const row = await get(db, "SELECT COUNT(*) AS c FROM follows WHERE follower_user_id = ?", [userId]);
   return Number(row?.c || 0);
 }

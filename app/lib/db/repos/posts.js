@@ -1,4 +1,4 @@
-import { getDb } from "../connection.js";
+import { getDb, all, get, run } from "../connection.js";
 
 // Both image/ownerAvatar are stored as raw data:<type>;base64,<data> strings
 // in the DB but shipped here as media-endpoint URLs, never inline -- this
@@ -43,45 +43,54 @@ const postSelect = `
   JOIN users u ON u.id = p.owner_user_id
 `;
 
-export function listExplorePosts({ tag } = {}) {
+export async function listExplorePosts({ tag } = {}, runner = null) {
+  const db = runner || (await getDb());
   if (tag && tag !== "همه") {
-    return getDb().prepare(`
+    const rows = await all(db, `
       ${postSelect}
       WHERE p.in_explore = 1 AND p.tag = ?
       ORDER BY p.featured DESC, p.created_at DESC
-    `).all(tag).map(mapPost);
+    `, [tag]);
+    return rows.map(mapPost);
   }
-  return getDb().prepare(`
+  const rows = await all(db, `
     ${postSelect}
     WHERE p.in_explore = 1
     ORDER BY p.featured DESC, p.created_at DESC
-  `).all().map(mapPost);
+  `);
+  return rows.map(mapPost);
 }
 
-export function listPostsByOwner(ownerUserId) {
-  return getDb().prepare(`
+export async function listPostsByOwner(ownerUserId, runner = null) {
+  const db = runner || (await getDb());
+  const rows = await all(db, `
     ${postSelect}
     WHERE p.owner_user_id = ?
     ORDER BY p.featured DESC, p.created_at DESC
-  `).all(ownerUserId).map(mapPost);
+  `, [ownerUserId]);
+  return rows.map(mapPost);
 }
 
-export function getPostById(id) {
-  return mapPost(getDb().prepare(`${postSelect} WHERE p.id = ?`).get(id));
+export async function getPostById(id, runner = null) {
+  const db = runner || (await getDb());
+  return mapPost(await get(db, `${postSelect} WHERE p.id = ?`, [id]));
 }
 
-export function incrementPostViews(id) {
-  getDb().prepare(`
+export async function incrementPostViews(id) {
+  const db = await getDb();
+  await run(db, `
     UPDATE posts SET views_count = views_count + 1 WHERE id = ?
-  `).run(id);
-  return getPostById(id);
+  `, [id]);
+  return getPostById(id, db);
 }
 
-export function createPost(ownerUserId, data) {
-  const info = getDb().prepare(`
+export async function createPost(ownerUserId, data, runner = null) {
+  const db = runner || (await getDb());
+  const info = await run(db, `
     INSERT INTO posts (owner_user_id, title, tag, image, caption, in_explore, featured)
     VALUES (?, ?, ?, ?, ?, ?, ?)
-  `).run(
+    RETURNING id
+  `, [
     ownerUserId,
     data.title || "",
     data.tag || "",
@@ -89,19 +98,20 @@ export function createPost(ownerUserId, data) {
     data.caption || "",
     data.inExplore === false ? 0 : 1,
     data.featured ? 1 : 0
-  );
-  return getPostById(Number(info.lastInsertRowid));
+  ]);
+  return getPostById(Number(info.rows[0].id), db);
 }
 
-export function updatePost(id, ownerUserId, data) {
-  const current = getDb().prepare("SELECT * FROM posts WHERE id = ? AND owner_user_id = ?").get(id, ownerUserId);
+export async function updatePost(id, ownerUserId, data, runner = null) {
+  const db = runner || (await getDb());
+  const current = await get(db, "SELECT * FROM posts WHERE id = ? AND owner_user_id = ?", [id, ownerUserId]);
   if (!current) return null;
-  getDb().prepare(`
+  await run(db, `
     UPDATE posts SET
       title = ?, tag = ?, image = ?, caption = ?, in_explore = ?, featured = ?,
       updated_at = CURRENT_TIMESTAMP
     WHERE id = ? AND owner_user_id = ?
-  `).run(
+  `, [
     data.title ?? current.title,
     data.tag ?? current.tag,
     data.image ?? current.image,
@@ -110,34 +120,36 @@ export function updatePost(id, ownerUserId, data) {
     data.featured === undefined ? current.featured : (data.featured ? 1 : 0),
     id,
     ownerUserId
-  );
-  return getPostById(id);
+  ]);
+  return getPostById(id, db);
 }
 
-export function deletePost(id, ownerUserId) {
-  const result = getDb().prepare("DELETE FROM posts WHERE id = ? AND owner_user_id = ?").run(id, ownerUserId);
+export async function deletePost(id, ownerUserId, runner = null) {
+  const db = runner || (await getDb());
+  const result = await run(db, "DELETE FROM posts WHERE id = ? AND owner_user_id = ?", [id, ownerUserId]);
   return result.changes > 0;
 }
 
-export function toggleSave(userId, postId) {
-  const db = getDb();
-  const existing = db.prepare("SELECT 1 FROM post_saves WHERE user_id = ? AND post_id = ?").get(userId, postId);
+export async function toggleSave(userId, postId) {
+  const db = await getDb();
+  const existing = await get(db, "SELECT 1 FROM post_saves WHERE user_id = ? AND post_id = ?", [userId, postId]);
   if (existing) {
-    db.prepare("DELETE FROM post_saves WHERE user_id = ? AND post_id = ?").run(userId, postId);
-    db.prepare("UPDATE posts SET saves_count = MAX(saves_count - 1, 0) WHERE id = ?").run(postId);
+    await run(db, "DELETE FROM post_saves WHERE user_id = ? AND post_id = ?", [userId, postId]);
+    await run(db, "UPDATE posts SET saves_count = GREATEST(saves_count - 1, 0) WHERE id = ?", [postId]);
     return { saved: false };
   }
-  db.prepare("INSERT INTO post_saves (user_id, post_id) VALUES (?, ?)").run(userId, postId);
-  db.prepare("UPDATE posts SET saves_count = saves_count + 1 WHERE id = ?").run(postId);
+  await run(db, "INSERT INTO post_saves (user_id, post_id) VALUES (?, ?)", [userId, postId]);
+  await run(db, "UPDATE posts SET saves_count = saves_count + 1 WHERE id = ?", [postId]);
   return { saved: true };
 }
 
-export function listSavedTitles(userId) {
-  return getDb().prepare(`
+export async function listSavedTitles(userId) {
+  const db = await getDb();
+  const rows = await all(db, `
     SELECT p.id FROM post_saves s
     JOIN posts p ON p.id = s.post_id
     WHERE s.user_id = ?
     ORDER BY s.created_at DESC
-  `).all(userId).map((row) => String(row.id)).filter(Boolean);
+  `, [userId]);
+  return rows.map((row) => String(row.id)).filter(Boolean);
 }
-

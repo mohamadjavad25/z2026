@@ -32,7 +32,7 @@ function ensureConfigured() {
  */
 export async function sendPushToUser(userId, { title, body, url = "/" } = {}) {
   if (!ensureConfigured()) return { ok: false, sent: 0, reason: "not-configured" };
-  const subscriptions = pushRepo.listSubscriptionsForUser(userId);
+  const subscriptions = await pushRepo.listSubscriptionsForUser(userId);
   if (!subscriptions.length) return { ok: true, sent: 0 };
 
   const payload = JSON.stringify({ title, body, url });
@@ -46,7 +46,7 @@ export async function sendPushToUser(userId, { title, body, url = "/" } = {}) {
       sent += 1;
     } catch (error) {
       if (error?.statusCode === 404 || error?.statusCode === 410) {
-        pushRepo.removeSubscriptionById(sub.id);
+        await pushRepo.removeSubscriptionById(sub.id);
       }
       // Any other failure (network blip, push service outage) is left
       // alone — the subscription might still be good next time.

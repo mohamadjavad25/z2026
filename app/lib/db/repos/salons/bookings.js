@@ -1,4 +1,4 @@
-import { getDb, withTransaction } from "../../connection.js";
+import { getDb, withTransaction, all, get, run } from "../../connection.js";
 import { getUserByPhone } from "../users.js";
 import * as artists from "../artists.js";
 import { resolveRollingPersianDateKey } from "../../../../shared/lib/persianCalendar.js";
@@ -12,26 +12,27 @@ import { normalizePhone } from "./common.js";
 import { listSalonServices } from "./services.js";
 import { findSalonStaffForBooking, listSalonStaff } from "./staff.js";
 
-function findBookingClient(row) {
+async function findBookingClient(row, runner) {
   const rawPhone = String(row.phone || "").trim();
   const phone = normalizePhone(rawPhone);
   if (phone) {
-    const byNormalized = getDb().prepare(`
+    const byNormalized = await get(runner, `
       SELECT * FROM users
       WHERE REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(phone,
         '۰','0'),'۱','1'),'۲','2'),'۳','3'),'۴','4'),'۵','5'),'۶','6'),'۷','7'),'۸','8'),'۹','9') = ?
       LIMIT 1
-    `).get(phone);
+    `, [phone]);
     if (byNormalized) return byNormalized;
-    const byRaw = getUserByPhone(rawPhone);
+    const byRaw = await getUserByPhone(rawPhone, runner);
     if (byRaw) return byRaw;
   }
   const clientName = String(row.client || "").trim();
   if (!clientName) return null;
-  return getDb().prepare(`
+  return get(runner, `
     SELECT * FROM users WHERE type = 'client' AND name = ? LIMIT 1
-  `).get(clientName);
+  `, [clientName]);
 }
+
 function buildClientVisitLevels(historyRows) {
   const recent = [...historyRows]
     .filter((item) => item && item.status !== "لغو")
@@ -57,13 +58,14 @@ function sameSalonClient(a, b) {
   return Boolean(aName && bName && aName === bName);
 }
 
-function resolveSalonBookingDuration(salonUserId, data) {
+async function resolveSalonBookingDuration(salonUserId, data, runner) {
   const explicit = Number(data.durationMinutes || data.duration_minutes);
   if (Number.isFinite(explicit) && explicit > 0) return Math.max(15, explicit);
   if (data.duration) return parseServiceDurationMinutes(data.duration);
   const serviceName = String(data.service || "").trim();
   if (serviceName) {
-    const match = listSalonServices(salonUserId).find((item) => String(item.name || "").trim() === serviceName);
+    const services = await listSalonServices(salonUserId, runner);
+    const match = services.find((item) => String(item.name || "").trim() === serviceName);
     if (match?.duration) return parseServiceDurationMinutes(match.duration);
   }
   return 60;
@@ -89,22 +91,22 @@ function staffScopesConflict(newStaff, existingStaff) {
 // only so the client-facing UI can tell "salon said no" apart from "nobody
 // answered in time" — it must never be treated as "still active" for
 // conflict/availability purposes.
-function listActiveDayBookings(db, salonUserId, bookingDate, excludeId = null) {
+async function listActiveDayBookings(db, salonUserId, bookingDate, excludeId = null) {
   if (excludeId == null) {
-    return db.prepare(`
+    return all(db, `
       SELECT id, staff, time, duration_minutes, service, status
       FROM salon_bookings
       WHERE salon_user_id = ? AND booking_date = ? AND status NOT IN ('لغو', 'منقضی شده')
-    `).all(salonUserId, bookingDate);
+    `, [salonUserId, bookingDate]);
   }
-  return db.prepare(`
+  return all(db, `
     SELECT id, staff, time, duration_minutes, service, status
     FROM salon_bookings
     WHERE salon_user_id = ? AND booking_date = ? AND status NOT IN ('لغو', 'منقضی شده') AND id != ?
-  `).all(salonUserId, bookingDate, excludeId);
+  `, [salonUserId, bookingDate, excludeId]);
 }
 
-function findOverlapConflict(db, {
+async function findOverlapConflict(db, {
   salonUserId,
   bookingDate,
   time,
@@ -114,7 +116,7 @@ function findOverlapConflict(db, {
 }) {
   const start = timeLabelToMinutes(time);
   const end = start + Math.max(15, Number(durationMinutes) || 60);
-  const rows = listActiveDayBookings(db, salonUserId, bookingDate, excludeId);
+  const rows = await listActiveDayBookings(db, salonUserId, bookingDate, excludeId);
   return rows.find((row) => {
     if (!staffScopesConflict(staff, row.staff)) return false;
     const bookedStart = timeLabelToMinutes(row.time);
@@ -124,17 +126,20 @@ function findOverlapConflict(db, {
   }) || null;
 }
 
-export function listSalonBookings(salonUserId) {
+export async function listSalonBookings(salonUserId) {
+  const db = await getDb();
+  const staffList = await listSalonStaff(salonUserId, db);
   const staffByName = new Map(
-    listSalonStaff(salonUserId).map((person) => [String(person.name || "").trim(), person])
+    staffList.map((person) => [String(person.name || "").trim(), person])
   );
-  const rows = getDb().prepare("SELECT * FROM salon_bookings WHERE salon_user_id = ? ORDER BY id DESC").all(salonUserId);
-  const enrichedRows = rows.map((row) => {
-    const client = findBookingClient(row);
+  const rows = await all(db, "SELECT * FROM salon_bookings WHERE salon_user_id = ? ORDER BY id DESC", [salonUserId]);
+  const enrichedRows = [];
+  for (const row of rows) {
+    const client = await findBookingClient(row, db);
     const avatar = client?.avatar ? `/api/media/avatar/${client.id}` : "";
     const staffPerson = staffByName.get(String(row.staff || "").trim()) || null;
     const staffAvatar = staffPerson?.avatar || staffPerson?.staff_avatar || "";
-    return {
+    enrichedRows.push({
       ...row,
       client_user_id: client?.id || null,
       client_avatar: avatar,
@@ -143,8 +148,8 @@ export function listSalonBookings(salonUserId) {
       staffAvatar,
       staff_artist_user_id: staffPerson?.artist_user_id || null,
       staff_has_artist_profile: Boolean(staffPerson?.has_artist_profile)
-    };
-  });
+    });
+  }
 
   return enrichedRows.map((row) => {
     const history = enrichedRows.filter((item) => sameSalonClient(item, row));
@@ -157,7 +162,8 @@ export function listSalonBookings(salonUserId) {
   });
 }
 
-export function listClientSalonBookings(user) {
+export async function listClientSalonBookings(user) {
+  const db = await getDb();
   const userId = Number(user?.id || 0);
   const phone = normalizePhone(user?.phone || "");
   const name = String(user?.name || "").trim();
@@ -177,14 +183,15 @@ export function listClientSalonBookings(user) {
     conditions.push("b.client = ?");
     params.push(name);
   }
-  return getDb().prepare(`
+  const rows = await all(db, `
     SELECT b.*, s.name AS salon_name, s.area AS salon_area, s.phone AS salon_phone, s.user_id AS source_salon_user_id, u.avatar AS salon_avatar
     FROM salon_bookings b
     LEFT JOIN salons s ON s.user_id = b.salon_user_id
     LEFT JOIN users u ON u.id = b.salon_user_id
     WHERE ${conditions.join(" OR ")}
     ORDER BY b.id DESC
-  `).all(...params).map((row) => ({
+  `, params);
+  return rows.map((row) => ({
     ...row,
     // salon_user_id is now nullable (see migration v34 — deleting a salon
     // account no longer destroys the client's own booking history with it),
@@ -199,15 +206,14 @@ export function listClientSalonBookings(user) {
   }));
 }
 
-export function addSalonBooking(salonUserId, data) {
-  const db = getDb();
+export async function addSalonBooking(salonUserId, data) {
   const bookingDate = resolveRollingPersianDateKey(data.bookingDate || data.booking_date || data.date || "");
   const staff = data.staff || "";
   const time = normalizeBookingTimeLabel(data.time || "");
-  const durationMinutes = resolveSalonBookingDuration(salonUserId, data);
+  const durationMinutes = await resolveSalonBookingDuration(salonUserId, data, await getDb());
 
-  return withTransaction(db, () => {
-    const conflict = findOverlapConflict(db, {
+  return withTransaction(null, async (db) => {
+    const conflict = await findOverlapConflict(db, {
       salonUserId,
       bookingDate,
       time,
@@ -216,11 +222,12 @@ export function addSalonBooking(salonUserId, data) {
     });
     if (conflict) return { ok: false, error: "conflict" };
 
-    const info = db.prepare(`
+    const info = await run(db, `
       INSERT INTO salon_bookings
         (salon_user_id, client_user_id, client, phone, service, staff, booking_date, time, duration_minutes, status)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
+      RETURNING id
+    `, [
       salonUserId,
       data.clientUserId || data.client_user_id || null,
       data.client || "",
@@ -231,10 +238,10 @@ export function addSalonBooking(salonUserId, data) {
       time,
       durationMinutes,
       data.status || "تازه"
-    );
+    ]);
     return {
       ok: true,
-      booking: db.prepare("SELECT * FROM salon_bookings WHERE id = ?").get(Number(info.lastInsertRowid))
+      booking: await get(db, "SELECT * FROM salon_bookings WHERE id = ?", [Number(info.rows[0].id)])
     };
   });
 }
@@ -258,11 +265,11 @@ function buildSalonBookingNext(current, data) {
 }
 
 /** Salon-row update inside an open transaction (no BEGIN/COMMIT of its own). */
-function updateSalonBookingInTx(db, id, salonUserId, current, data) {
+async function updateSalonBookingInTx(db, id, salonUserId, current, data) {
   const next = buildSalonBookingNext(current, data);
 
   if (next.status !== "لغو") {
-    const conflict = findOverlapConflict(db, {
+    const conflict = await findOverlapConflict(db, {
       salonUserId,
       bookingDate: next.booking_date,
       time: next.time,
@@ -273,11 +280,11 @@ function updateSalonBookingInTx(db, id, salonUserId, current, data) {
     if (conflict) return { ok: false, error: "conflict" };
   }
 
-  db.prepare(`
+  await run(db, `
     UPDATE salon_bookings
     SET client = ?, phone = ?, service = ?, staff = ?, booking_date = ?, time = ?, duration_minutes = ?, status = ?
     WHERE id = ? AND salon_user_id = ?
-  `).run(
+  `, [
     next.client || "",
     next.phone || "",
     next.service || "",
@@ -288,22 +295,22 @@ function updateSalonBookingInTx(db, id, salonUserId, current, data) {
     next.status || "تازه",
     id,
     salonUserId
-  );
+  ]);
 
   return {
     ok: true,
-    booking: db.prepare("SELECT * FROM salon_bookings WHERE id = ?").get(id)
+    booking: await get(db, "SELECT * FROM salon_bookings WHERE id = ?", [id])
   };
 }
 
-export function updateSalonBooking(id, salonUserId, data) {
-  const db = getDb();
-  const current = db.prepare(`
+export async function updateSalonBooking(id, salonUserId, data) {
+  const pool = await getDb();
+  const current = await get(pool, `
     SELECT * FROM salon_bookings WHERE id = ? AND salon_user_id = ?
-  `).get(id, salonUserId);
+  `, [id, salonUserId]);
   if (!current) return { ok: false, error: "missing" };
 
-  return withTransaction(db, () => updateSalonBookingInTx(db, id, salonUserId, current, data));
+  return withTransaction(null, (db) => updateSalonBookingInTx(db, id, salonUserId, current, data));
 }
 
 /**
@@ -316,11 +323,11 @@ export function updateSalonBooking(id, salonUserId, data) {
  * - Linked A → linked B → soft-cancel A, create on B (artist slot conflict rolls back both tables).
  * - Unlinked → linked B → create on B.
  */
-export function patchSalonBookingWithArtistSync(id, salonUserId, data) {
-  const db = getDb();
-  const current = db.prepare(`
+export async function patchSalonBookingWithArtistSync(id, salonUserId, data) {
+  const pool = await getDb();
+  const current = await get(pool, `
     SELECT * FROM salon_bookings WHERE id = ? AND salon_user_id = ?
-  `).get(id, salonUserId);
+  `, [id, salonUserId]);
   if (!current) return { ok: false, error: "missing" };
 
   // An already-expired request (bookingExpirySweep.js) already told the client
@@ -334,19 +341,19 @@ export function patchSalonBookingWithArtistSync(id, salonUserId, data) {
     return { ok: false, error: "expired" };
   }
 
-  const oldStaff = findSalonStaffForBooking(salonUserId, current.staff, current.service);
+  const oldStaff = await findSalonStaffForBooking(salonUserId, current.staff, current.service, pool);
   const oldArtistId = oldStaff?.artist_user_id ? Number(oldStaff.artist_user_id) : null;
   const oldArtistBooking = oldArtistId
-    ? artists.findLinkedSalonArtistBooking(oldArtistId, salonUserId, current)
+    ? await artists.findLinkedSalonArtistBooking(oldArtistId, salonUserId, current, pool)
     : null;
 
   try {
-    return withTransaction(db, () => {
-      const salonResult = updateSalonBookingInTx(db, id, salonUserId, current, data);
+    return await withTransaction(null, async (db) => {
+      const salonResult = await updateSalonBookingInTx(db, id, salonUserId, current, data);
       if (!salonResult.ok) return salonResult;
 
       const next = salonResult.booking;
-      const newStaff = findSalonStaffForBooking(salonUserId, next.staff, next.service);
+      const newStaff = await findSalonStaffForBooking(salonUserId, next.staff, next.service, db);
       const newArtistId = newStaff?.artist_user_id ? Number(newStaff.artist_user_id) : null;
       const linkedArtistIds = [];
       const cancelled = next.status === "لغو";
@@ -368,21 +375,22 @@ export function patchSalonBookingWithArtistSync(id, salonUserId, data) {
 
       if (cancelled) {
         if (oldArtistBooking) {
-          artists.cancelArtistBookingRow(oldArtistBooking.id);
+          await artists.cancelArtistBookingRow(oldArtistBooking.id, db);
           if (oldArtistId) linkedArtistIds.push(oldArtistId);
         }
       } else if (oldArtistId && newArtistId && oldArtistId === newArtistId) {
         if (oldArtistBooking) {
-          if (artists.isArtistSlotBlocked(
+          if (await artists.isArtistSlotBlocked(
             newArtistId,
             next.booking_date,
             next.time,
             next.duration_minutes,
-            oldArtistBooking.id
+            oldArtistBooking.id,
+            db
           )) {
             failArtist("ARTIST_SLOT_TAKEN", "این ساعت برای آرتیست قبلاً رزرو شده است.");
           }
-          artists.updateArtistBookingRow(oldArtistBooking.id, {
+          await artists.updateArtistBookingRow(oldArtistBooking.id, {
             client: next.client,
             phone: next.phone,
             service: next.service,
@@ -390,9 +398,9 @@ export function patchSalonBookingWithArtistSync(id, salonUserId, data) {
             time: next.time,
             duration_minutes: next.duration_minutes,
             status: next.status || "تازه"
-          });
+          }, db);
         } else {
-          const created = artists.addArtistBookingInTx(newArtistId, {
+          const created = await artists.addArtistBookingInTx(newArtistId, {
             client: next.client,
             phone: next.phone,
             service: next.service,
@@ -401,17 +409,17 @@ export function patchSalonBookingWithArtistSync(id, salonUserId, data) {
             durationMinutes: next.duration_minutes,
             sourceSalonUserId: salonUserId,
             status: next.status || "تازه"
-          });
+          }, db);
           if (!created.ok) failArtist(created.code || "ARTIST_BOOKING_FAILED", created.error);
         }
         linkedArtistIds.push(newArtistId);
       } else {
         if (oldArtistBooking) {
-          artists.cancelArtistBookingRow(oldArtistBooking.id);
+          await artists.cancelArtistBookingRow(oldArtistBooking.id, db);
           if (oldArtistId) linkedArtistIds.push(oldArtistId);
         }
         if (newArtistId) {
-          const created = artists.addArtistBookingInTx(newArtistId, {
+          const created = await artists.addArtistBookingInTx(newArtistId, {
             client: next.client,
             phone: next.phone,
             service: next.service,
@@ -420,7 +428,7 @@ export function patchSalonBookingWithArtistSync(id, salonUserId, data) {
             durationMinutes: next.duration_minutes,
             sourceSalonUserId: salonUserId,
             status: next.status || "تازه"
-          });
+          }, db);
           if (!created.ok) failArtist(created.code || "ARTIST_BOOKING_FAILED", created.error);
           linkedArtistIds.push(newArtistId);
         }
@@ -447,7 +455,6 @@ export function patchSalonBookingWithArtistSync(id, salonUserId, data) {
   }
 }
 
-export function cancelSalonBooking(id, salonUserId) {
+export async function cancelSalonBooking(id, salonUserId) {
   return patchSalonBookingWithArtistSync(id, salonUserId, { status: "لغو" });
 }
-

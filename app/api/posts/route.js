@@ -6,20 +6,20 @@ import * as posts from "../../lib/db/repos/posts.js";
 export const runtime = "nodejs";
 
 export async function GET(request) {
-  ensureDb();
-  const auth = requireUser(request);
+  await ensureDb();
+  const auth = await requireUser(request);
   if (!auth.ok) return auth.response;
-  return NextResponse.json({ data: { posts: posts.listPostsByOwner(auth.user.id) } });
+  return NextResponse.json({ data: { posts: await posts.listPostsByOwner(auth.user.id) } });
 }
 
 export async function POST(request) {
-  ensureDb();
-  const auth = requireUser(request);
+  await ensureDb();
+  const auth = await requireUser(request);
   if (!auth.ok) return auth.response;
   const body = await request.json();
   if (!body.title) {
     return NextResponse.json({ error: "عنوان لازم است." }, { status: 400 });
   }
-  const post = posts.createPost(auth.user.id, body);
+  const post = await posts.createPost(auth.user.id, body);
   return NextResponse.json({ data: { post } }, { status: 201 });
 }

@@ -6,6 +6,6 @@ import * as artists from "../../lib/db/repos/artists.js";
 export const runtime = "nodejs";
 
 export async function GET(request) {
-  ensureDb();
-  return NextResponse.json({ data: { artists: artists.listArtists() } });
+  await ensureDb();
+  return NextResponse.json({ data: { artists: await artists.listArtists() } });
 }

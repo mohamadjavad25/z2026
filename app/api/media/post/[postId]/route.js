@@ -1,4 +1,4 @@
-import { ensureDb, getDb } from "../../../../lib/db/connection.js";
+import { ensureDb, getDb, get } from "../../../../lib/db/connection.js";
 import { parseMediaDataUrl, ALLOWED_POSTER_TYPES } from "../../../../lib/db/repos/media.js";
 
 export const runtime = "nodejs";
@@ -12,12 +12,12 @@ export const runtime = "nodejs";
  * feed shipped ~3MB of JSON and the salon directory shipped ~1.85MB.
  */
 export async function GET(request, { params }) {
-  ensureDb();
+  await ensureDb();
   const { postId: postIdParam } = await params;
   const postId = Number(postIdParam);
   if (!postId) return new Response(null, { status: 404 });
 
-  const row = getDb().prepare("SELECT image FROM posts WHERE id = ?").get(postId);
+  const row = await get(await getDb(), "SELECT image FROM posts WHERE id = ?", [postId]);
   const parsed = parseMediaDataUrl(row?.image, ALLOWED_POSTER_TYPES);
   if (!parsed) return new Response(null, { status: 404 });
 
