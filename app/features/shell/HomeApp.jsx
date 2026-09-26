@@ -1801,6 +1801,14 @@ function getPassportMatch(post) {
             />
           )}
 
+          {createdProfile?.type === "artist" && (
+            <SalonCustomersPage
+              active={activeTab === "customers"}
+              bookings={artistBookingList}
+              ownerLabel="شما"
+            />
+          )}
+
           <SalonClientPage
             active={activeTab === "salons"}
             selectedSalon={selectedSalon}

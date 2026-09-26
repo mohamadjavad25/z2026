@@ -7,7 +7,7 @@ import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar"
 
 function customerKey(booking) {
   return (
-    (booking.client_user_id && `id:${booking.client_user_id}`)
+    ((booking.client_user_id || booking.clientUserId) && `id:${booking.client_user_id || booking.clientUserId}`)
     || (booking.phone && `phone:${String(booking.phone).replace(/\D/g, "")}`)
     || (booking.client && `name:${booking.client.trim()}`)
     || null
@@ -15,13 +15,14 @@ function customerKey(booking) {
 }
 
 /**
- * Salon owner's own customer community — grouped from the salon's real
- * bookings (salonAppointmentList), not a separate table: a "customer" is
- * anyone who has ever booked with this salon. Rows already arrive newest
- * first (listSalonBookings orders by id DESC), so the first booking seen
- * per grouping key is that customer's most recent visit.
+ * Owner's own customer community — grouped from their real bookings
+ * (salonAppointmentList for a salon, artistBookingList for an artist),
+ * not a separate table: a "customer" is anyone who has ever booked with
+ * this account. Rows already arrive newest first (listSalonBookings /
+ * the artist booking list both order by id DESC), so the first booking
+ * seen per grouping key is that customer's most recent visit.
  */
-export function SalonCustomersPage({ active, bookings = [], onOpenBooking }) {
+export function SalonCustomersPage({ active, bookings = [], onOpenBooking, ownerLabel = "سالن شما" }) {
   const [query, setQuery] = useState("");
 
   const customers = useMemo(() => {
@@ -59,7 +60,7 @@ export function SalonCustomersPage({ active, bookings = [], onOpenBooking }) {
       <div className="salonCustomersHead">
         <div>
           <span>جامعه مشتریان</span>
-          <strong>سالن شما</strong>
+          <strong>{ownerLabel}</strong>
         </div>
         <b>{toPersianDigits(visibleCustomers.length)} مشتری</b>
       </div>

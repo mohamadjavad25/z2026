@@ -3,10 +3,11 @@
 import { Plus, Settings, Store, Users } from "lucide-react";
 
 export function BottomNav({ activeTab, createdProfile, onTabChange, showCreateBooking = false, onCreateBooking }) {
-  // Salon owners already run a salon — browsing the salon directory (a
-  // client-facing feature) isn't useful to them, so their third tab opens
-  // their own customer community instead. See SalonCustomersPage.
-  const isSalonOwner = createdProfile?.type === "salon";
+  // Salon/artist owners already run their own business — browsing the
+  // salon directory (a client-facing feature) isn't useful to them, so
+  // their third tab opens their own customer community instead. See
+  // SalonCustomersPage.
+  const isBusinessOwner = createdProfile?.type === "salon" || createdProfile?.type === "artist";
   return (
     <nav className="bottomNav" aria-label="ناوبری موبایل">
       <button type="button" onClick={() => onTabChange("settings")} className={activeTab === "settings" ? "active" : ""}>
@@ -32,7 +33,7 @@ export function BottomNav({ activeTab, createdProfile, onTabChange, showCreateBo
           <img className="profileNavImage" src={createdProfile?.data?.avatar || "/profile-icon.svg"} alt="" aria-hidden="true" />
         </button>
       )}
-      {isSalonOwner ? (
+      {isBusinessOwner ? (
         <button type="button" onClick={() => onTabChange("customers")} className={activeTab === "customers" ? "active" : ""}>
           <Users size={20} />
           <span>مشتریان</span>
