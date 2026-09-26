@@ -22735,9 +22735,10 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   background-image:
     radial-gradient(circle at 88% 10%, rgba(89, 42, 132, 0.28), transparent 26%),
     radial-gradient(circle at 18% 5%, rgba(53, 20, 93, 0.34), transparent 34%),
-    linear-gradient(150deg, #15072f 0%, #21083f 46%, #350960 100%);
+    url("/artist-hero-doodle.png");
   background-size: cover;
   background-position: center;
+  background-color: #15072f;
   pointer-events: none;
 }
 

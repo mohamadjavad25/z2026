@@ -581,6 +581,13 @@
   text-align: center;
 }
 
+.authBootLogo {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  border-radius: 20px;
+}
+
 .authBootBrand {
   margin: 0;
   font-size: clamp(1.8rem, 6vw, 2.4rem);
