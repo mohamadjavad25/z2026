@@ -112,11 +112,39 @@ let readyPromise = null;
  * catalog (pg_type), not a real app table. On Vercel this is common:
  * several serverless instances can cold-start around the same moment,
  * each running ensureDb() for the first time in its own process memory
- * (the `ready` flag above only dedupes within a single instance). A
- * Postgres advisory lock serializes applySchema() across every instance
- * hitting the same database, so only one actually runs the DDL at a time
- * and the rest wait, then find the schema already there.
+ * (the `ready` flag above only dedupes within a single instance).
+ *
+ * This used to serialize applySchema() with a *session*-level
+ * pg_advisory_lock/unlock pair. POSTGRES_URL is Supabase's pooled
+ * Supavisor connection in transaction mode, which is free to swap the
+ * physical backend behind a client's socket between statements (only a
+ * single in-flight transaction is pinned to one backend). A session lock
+ * taken on one statement could end up "held" by a backend that a later
+ * unlock statement never reaches, orphaning it forever -- every future
+ * cold start then blocks inside pg_advisory_lock waiting on a lock nobody
+ * can ever release, until Postgres's statement_timeout kills the wait and
+ * the request 500s. That's exactly what took every DB-backed route down
+ * (see incident: every route calling ensureDb() started failing with
+ * "canceling statement due to statement timeout").
+ *
+ * pg_try_advisory_xact_lock is transaction-scoped: it's released
+ * automatically at COMMIT/ROLLBACK, which lines up with the one backend
+ * Supavisor pins for that single transaction, so it can never leak across
+ * a pooled connection swap. It's also non-blocking, so a genuinely stuck
+ * lock (e.g. left over from the old code, on a backend Supabase hasn't
+ * recycled yet) can never wedge every future request again -- we just
+ * retry briefly, then proceed assuming the schema (already long
+ * established in production) is there.
  */
+async function tryAcquireSchemaLock(client) {
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const { rows } = await client.query("SELECT pg_try_advisory_xact_lock($1) AS locked", [SCHEMA_LOCK_KEY]);
+    if (rows[0]?.locked) return true;
+    await new Promise((resolve) => setTimeout(resolve, 300));
+  }
+  return false;
+}
+
 export async function ensureDb() {
   if (ready) return getPool();
   if (!readyPromise) {
@@ -124,18 +152,28 @@ export async function ensureDb() {
       const p = getPool();
       const client = await p.connect();
       try {
-        await client.query("SELECT pg_advisory_lock($1)", [SCHEMA_LOCK_KEY]);
+        await client.query("BEGIN");
         try {
-          await applySchema(client);
-        } finally {
-          await client.query("SELECT pg_advisory_unlock($1)", [SCHEMA_LOCK_KEY]);
+          if (await tryAcquireSchemaLock(client)) {
+            await applySchema(client);
+          }
+          await client.query("COMMIT");
+        } catch (error) {
+          await client.query("ROLLBACK").catch(() => {});
+          throw error;
         }
       } finally {
         client.release();
       }
       ready = true;
       return p;
-    })();
+    })().catch((error) => {
+      // Don't let one failed attempt permanently poison this warm
+      // instance -- without this, every request landing on it would keep
+      // replaying the same cached rejection until the instance recycles.
+      readyPromise = null;
+      throw error;
+    });
   }
   return readyPromise;
 }
