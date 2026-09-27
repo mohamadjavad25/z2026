@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { CalendarCheck, History, Plus } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { BookingSelect } from "../../components/BookingSelect";
+import { BookingDateTimeWheels } from "../../components/BookingDateTimeWheels";
 
 export function BookingCreateForm({
   role = "salon",
@@ -63,24 +64,6 @@ export function BookingCreateForm({
   }
   const dayFieldName = role === "salon" ? "booking_date" : "date";
   const isBusy = Boolean(submitting);
-  // Day/time are no longer picked by hand here -- the owner just books
-  // "now" (booking_date/time still get submitted, auto-managed by
-  // useBookingCreateSheet's own nearest-free-slot logic, the same as
-  // before whenever the wheel's value fell outside the free slots).
-  const normalizedDayOptions = dayOptions.map((option) => (
-    option && typeof option === "object"
-      ? {
-        value: String(option.value ?? option.day ?? option.label ?? ""),
-        label: String(option.label ?? option.day ?? option.value ?? "")
-      }
-      : { value: String(option || ""), label: String(option || "") }
-  )).filter((option) => option.value && option.label);
-  const activeDayValue = (
-    normalizedDayOptions.find((option) => option.value === dayValue)
-    || normalizedDayOptions.find((option) => option.label === dayValue)
-    || normalizedDayOptions[0]
-    || { value: dayValue }
-  ).value;
 
   return (
     <form
@@ -164,8 +147,16 @@ export function BookingCreateForm({
         </div>
       ) : null}
 
-      <input type="hidden" name={dayFieldName} value={activeDayValue} />
-      <input type="hidden" name="time" value={timeValue} />
+      <BookingDateTimeWheels
+        dayOptions={dayOptions}
+        dayValue={dayValue}
+        onDayChange={onDayChange}
+        dayFieldName={dayFieldName}
+        timeOptions={timeOptions}
+        timeValue={timeValue}
+        onTimeChange={onTimeChange}
+        timeFieldName="time"
+      />
 
       <button
         type="submit"
