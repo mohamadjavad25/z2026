@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { Timer } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
-import { BreakTimeWheel } from "../../components/BreakTimeWheel";
+import { BookingDateTimeWheels } from "../../components/BookingDateTimeWheels";
 import {
   buildPublicBookingSlots,
   isPublicArtistSlotBlocked
@@ -67,37 +67,20 @@ export function PublicArtistBookingPanel({
         <p className="artistPublicBookingServiceHint">{activeService.hint}</p>
       ) : null}
 
-      <div className="artistPublicBookingWheels">
-        <div className="artistPublicBookingDayPicker">
-          <span>روز رزرو</span>
-          <BreakTimeWheel
-            mode="label"
-            idPrefix="public-artist-booking-day"
-            options={salonClientBookingDays}
-            value={bookingDay}
-            disabledValues={fullDays}
-            onChange={(day) => onDayChange(day, durationMinutes)}
-            ariaLabel="انتخاب روز رزرو"
-          />
-        </div>
-        <div className="artistPublicBookingTimePicker">
-          <span>ساعت رزرو</span>
-          {freeSlots.length ? (
-            <BreakTimeWheel
-              mode="clock"
-              idPrefix="public-artist-booking-time"
-              options={freeSlots}
-              value={bookingSlot}
-              onChange={onSlotChange}
-              ariaLabel="انتخاب ساعت رزرو"
-            />
-          ) : (
-            <div className="artistPublicSlotEmpty">
-              برای این روز نوبت آزادی با این مدت‌زمان نیست.
-            </div>
-          )}
-        </div>
-      </div>
+      <BookingDateTimeWheels
+        dayOptions={salonClientBookingDays}
+        dayValue={bookingDay}
+        onDayChange={(day) => onDayChange(day, durationMinutes)}
+        disabledDays={fullDays}
+        dayIdPrefix="public-artist-booking-day"
+        dayLabel="روز رزرو"
+        timeOptions={freeSlots}
+        timeValue={bookingSlot}
+        onTimeChange={onSlotChange}
+        timeIdPrefix="public-artist-booking-time"
+        timeLabel="ساعت رزرو"
+        emptyTimeMessage="برای این روز نوبت آزادی با این مدت‌زمان نیست."
+      />
 
       <p className="artistPublicBookingNote">
         در طول مدت خدمت، ساعت دیگری قابل رزرو نیست.

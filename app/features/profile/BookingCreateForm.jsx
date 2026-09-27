@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { CalendarCheck, History } from "lucide-react";
+import { CalendarCheck, History, Plus } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { BookingSelect } from "../../components/BookingSelect";
-import { BreakTimeWheel } from "../../components/BreakTimeWheel";
+import { BookingDateTimeWheels } from "../../components/BookingDateTimeWheels";
 
 export function BookingCreateForm({
   role = "salon",
@@ -27,7 +27,8 @@ export function BookingCreateForm({
   timeValue = "",
   onTimeChange,
   submitDisabled = false,
-  submitting = false
+  submitting = false,
+  onAddService
 }) {
   const showStaff = role === "salon";
   const nameInputRef = useRef(null);
@@ -63,19 +64,6 @@ export function BookingCreateForm({
   }
   const dayFieldName = role === "salon" ? "booking_date" : "date";
   const isBusy = Boolean(submitting);
-  const normalizedDayOptions = dayOptions.map((option) => (
-    option && typeof option === "object"
-      ? {
-        value: String(option.value ?? option.day ?? option.label ?? ""),
-        label: String(option.label ?? option.day ?? option.value ?? "")
-      }
-      : { value: String(option || ""), label: String(option || "") }
-  )).filter((option) => option.value && option.label);
-  const activeDayOption = normalizedDayOptions.find((option) => option.value === dayValue)
-    || normalizedDayOptions.find((option) => option.label === dayValue)
-    || normalizedDayOptions[0]
-    || { value: dayValue, label: dayValue };
-  const dayLabels = normalizedDayOptions.map((option) => option.label);
 
   return (
     <form
@@ -159,41 +147,16 @@ export function BookingCreateForm({
         </div>
       ) : null}
 
-      <div className="artistPublicBookingWheels bookingCreateWheels">
-        <div className="artistPublicBookingDayPicker">
-          <span>روز</span>
-          <input type="hidden" name={dayFieldName} value={activeDayOption.value} />
-          <BreakTimeWheel
-            mode="label"
-            idPrefix="booking-day"
-            options={dayLabels}
-            value={activeDayOption.label}
-            onChange={(label) => {
-              const option = normalizedDayOptions.find((item) => item.label === label);
-              onDayChange?.(option?.value || label);
-            }}
-            ariaLabel="انتخاب روز رزرو"
-          />
-        </div>
-        <div className="artistPublicBookingTimePicker">
-          <span>ساعت</span>
-          <input type="hidden" name="time" value={timeValue} />
-          {timeOptions.length ? (
-            <BreakTimeWheel
-              mode="clock"
-              idPrefix="booking-time"
-              options={timeOptions}
-              value={timeValue}
-              onChange={onTimeChange}
-              ariaLabel="انتخاب ساعت رزرو"
-            />
-          ) : (
-            <div className="artistPublicSlotEmpty">
-              نوبت آزادی نیست
-            </div>
-          )}
-        </div>
-      </div>
+      <BookingDateTimeWheels
+        dayOptions={dayOptions}
+        dayValue={dayValue}
+        onDayChange={onDayChange}
+        dayFieldName={dayFieldName}
+        timeOptions={timeOptions}
+        timeValue={timeValue}
+        onTimeChange={onTimeChange}
+        timeFieldName="time"
+      />
 
       <button
         type="submit"
@@ -203,13 +166,20 @@ export function BookingCreateForm({
         <CalendarCheck size={15} />
         {isBusy ? "در حال ثبت..." : "ثبت رزرو"}
       </button>
-      {!isBusy && (submitDisabled || !serviceValue || !timeOptions.length) ? (
+      {!isBusy && submitDisabled ? (
+        <button
+          type="button"
+          className="bookingCreateAddServiceBtn"
+          onClick={onAddService}
+        >
+          <Plus size={14} />
+          ابتدا یک خدمت به پروفایلت اضافه کن
+        </button>
+      ) : !isBusy && (!serviceValue || !timeOptions.length) ? (
         <p className="bookingCreateDisabledHint">
-          {submitDisabled
-            ? "ابتدا حداقل یک خدمت به پروفایلت اضافه کن."
-            : !serviceValue
-              ? "برای ثبت، ابتدا خدمت را انتخاب کن."
-              : "برای این روز نوبت آزادی نیست."}
+          {!serviceValue
+            ? "برای ثبت، ابتدا خدمت را انتخاب کن."
+            : "برای این روز نوبت آزادی نیست."}
         </p>
       ) : null}
     </form>

@@ -1,7 +1,7 @@
 "use client";
 
 import { CalendarCheck, CheckCircle2, Phone, UserRound, X } from "lucide-react";
-import { BreakTimeWheel } from "../../components/BreakTimeWheel";
+import { BookingDateTimeWheels } from "../../components/BookingDateTimeWheels";
 import { ProfileSheet } from "../profile/ProfileSheet";
 import { salonClientBookingDays } from "../artist/constants";
 
@@ -56,34 +56,19 @@ export function SalonClientBookingModal({
           </button>
         </div>
 
-        <div className="salonClientBookingWheelPair">
-          <div className="bookingDayPicker">
-            <BreakTimeWheel
-              mode="label"
-              idPrefix="salon-client-booking-day"
-              visibleCount={5}
-              options={salonClientBookingDays}
-              value={booking.day}
-              onChange={(day) => onChange({ day })}
-              ariaLabel="انتخاب روز رزرو سالن"
-            />
-          </div>
-          <div className="bookingTimePicker">
-            {freeTimes.length ? (
-              <BreakTimeWheel
-                mode="clock"
-                idPrefix="salon-client-booking-time"
-                visibleCount={5}
-                options={freeTimes}
-                value={booking.time}
-                onChange={(time) => onChange({ time })}
-                ariaLabel="انتخاب ساعت رزرو سالن"
-              />
-            ) : (
-              <div className="artistPublicSlotEmpty">برای این روز ساعتی آزاد نیست.</div>
-            )}
-          </div>
-        </div>
+        <BookingDateTimeWheels
+          dayOptions={salonClientBookingDays}
+          dayValue={booking.day}
+          onDayChange={(day) => onChange({ day })}
+          dayIdPrefix="salon-client-booking-day"
+          dayAriaLabel="انتخاب روز رزرو سالن"
+          timeOptions={freeTimes}
+          timeValue={booking.time}
+          onTimeChange={(time) => onChange({ time })}
+          timeIdPrefix="salon-client-booking-time"
+          timeAriaLabel="انتخاب ساعت رزرو سالن"
+          emptyTimeMessage="برای این روز ساعتی آزاد نیست."
+        />
 
         <div className="salonClientBookingProfile">
           <div className="salonClientBookingProfileHead">

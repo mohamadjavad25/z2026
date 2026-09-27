@@ -2860,11 +2860,6 @@ h2{
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-.salonClientBookingWheelPair .bookingDayPicker,
-.salonClientBookingWheelPair .bookingTimePicker{
-  min-width: 0;
-}
-
 .salonClientGallery .profilePostCard{
   min-height: 132px;
   border-radius: 18px;
@@ -3182,10 +3177,6 @@ h2{
   box-shadow: none;
 }
 
-.salonWorkspacePanel .bookingWheelPair{
-  gap: 8px;
-}
-
 .salonWorkspacePanel .bookingDeskPanel{
   gap: 8px;
   padding: 10px;
@@ -3394,28 +3385,6 @@ h2{
   box-shadow: none;
 }
 
-.salonWorkspacePanel.is-booking .bookingDayPicker,
-.salonWorkspacePanel.is-booking .bookingTimePicker{
-  padding: 10px;
-  border-radius: 18px;
-  background: rgba(246, 247, 250, 0.95);
-  box-shadow: inset 0 0 0 1px rgba(28, 32, 44, 0.06);
-}
-
-.salonWorkspacePanel.is-booking .bookingCreateForm .bookingWheelPair .breakTimeWheel{
-  background:
-    linear-gradient(180deg, rgba(28, 32, 44, 0.03), rgba(255, 255, 255, 0.92));
-  box-shadow: inset 0 0 0 1px rgba(28, 32, 44, 0.08);
-}
-
-.salonWorkspacePanel.is-booking .bookingCreateForm .bookingWheelPair .breakTimeWheelMaskTop{
-  background: linear-gradient(180deg, rgba(246, 247, 250, 0.98) 12%, rgba(246, 247, 250, 0));
-}
-
-.salonWorkspacePanel.is-booking .bookingCreateForm .bookingWheelPair .breakTimeWheelMaskBottom{
-  background: linear-gradient(0deg, rgba(246, 247, 250, 0.98) 12%, rgba(246, 247, 250, 0));
-}
-
 .salonWorkspacePanel.is-booking .bookingPrimaryBtn,
 .salonWorkspacePanel.is-booking .bookingCreateForm > .bookingPrimaryBtn,
 .salonWorkspacePanel.is-booking .bookingStepActions .bookingPrimaryBtn{
@@ -3468,7 +3437,6 @@ h2{
 }
 
 .bookingCreateForm.is-flat .bookingStepHint,
-.bookingCreateForm.is-flat .bookingWheelPair,
 .bookingCreateForm.is-flat .bookingCreateWheels,
 .bookingCreateForm.is-flat .bookingPrimaryBtn{
   grid-column: 1 / -1;
@@ -3500,6 +3468,29 @@ h2{
   font-size: 0.68rem;
   font-weight: 700;
   text-align: center;
+}
+
+.bookingCreateAddServiceBtn{
+  grid-column: 1 / -1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+  margin: -2px 0 0;
+  padding: 0 12px;
+  border: 1px dashed rgba(96, 81, 155, 0.32);
+  border-radius: 13px;
+  background: rgba(96, 81, 155, 0.05);
+  color: #5d43b5;
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.bookingCreateAddServiceBtn:active{
+  transform: scale(0.98);
 }
 
 .bookingClientLookup{
@@ -12742,80 +12733,6 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   display: none;
 }
 
-.bookingStepDetails .bookingWheelPair{
-  grid-column: 1 / -1;
-}
-
-.bookingWheelPair{
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  align-items: stretch;
-}
-
-.bookingDayPicker,
-.bookingTimePicker{
-  display: grid;
-  gap: 7px;
-  align-content: start;
-  min-width: 0;
-  padding: 10px;
-  border-radius: 18px;
-  background: rgba(246, 246, 251, 0.9);
-  box-shadow: inset 0 0 0 1px rgba(28, 32, 44, 0.06);
-}
-
-.bookingDayPicker > span,
-.bookingTimePicker > span{
-  color: #263238;
-  font-size: 0.7rem;
-  font-weight: 900;
-}
-
-.bookingCreateForm .bookingWheelPair .artistPublicSlotLabel{
-  margin: 0;
-}
-
-.bookingCreateForm .bookingWheelPair .breakTimeWheel{
-  width: 100%;
-  max-width: none;
-  justify-self: center;
-  border-radius: 16px;
-  background:
-    linear-gradient(180deg, rgba(96, 81, 155, 0.05), rgba(246, 246, 251, 0.92));
-  box-shadow: inset 0 0 0 1px rgba(96, 81, 155, 0.1);
-}
-
-.bookingCreateForm .bookingWheelPair .breakTimeWheelItem{
-  grid-column: auto;
-  min-height: var(--break-wheel-item);
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-}
-
-.bookingCreateForm .bookingWheelPair .breakTimeWheelMaskTop{
-  background: linear-gradient(180deg, rgba(246, 246, 251, 0.98) 12%, rgba(246, 246, 251, 0));
-}
-
-.bookingCreateForm .bookingWheelPair .breakTimeWheelMaskBottom{
-  background: linear-gradient(0deg, rgba(246, 246, 251, 0.98) 12%, rgba(246, 246, 251, 0));
-}
-
-.bookingCreateForm .bookingWheelPair .artistPublicSlotEmpty{
-  min-height: calc(var(--break-wheel-item, 52px) * 5);
-  display: grid;
-  place-items: center;
-  padding: 12px;
-  border-radius: 16px;
-  background: rgba(28, 32, 44, 0.03);
-  color: rgba(28, 32, 44, 0.5);
-  font-size: 0.74rem;
-  font-weight: 800;
-  text-align: center;
-}
-
 .bookingCreateForm legend{
   padding: 0 8px;
   color: var(--teal);
@@ -15575,16 +15492,6 @@ body{
 
   .bookingStepClient{
     grid-template-columns: 1fr !important;
-  }
-
-  .bookingWheelPair{
-    gap: 8px;
-  }
-
-  .bookingDayPicker,
-  .bookingTimePicker{
-    padding: 8px;
-    border-radius: 16px;
   }
 
   .bookingCreateForm label{

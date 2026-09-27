@@ -13,7 +13,6 @@ import {
   rangesOverlap,
   timeLabelToMinutes
 } from "../../shared/lib/time";
-import { salonRegistrationServices } from "../../shared/constants/roles";
 
 // 7 real calendar days starting today -- matches the rolling range the
 // client-facing direct-artist booking flow already offers
@@ -96,12 +95,18 @@ export function useBookingCreateSheet({
   }, [salonAppointmentList]);
 
   const bookingStaffForSlots = bookingStaffName || safeSalonStaffList[0]?.name || "";
-  const bookingServiceOptions = salonServiceList.length
-    ? salonServiceList
-    : salonRegistrationServices.map((name) => ({ name, price: "", duration: "" }));
-  const bookingStaffOptions = safeSalonStaffList.length
-    ? safeSalonStaffList
-    : [{ name: "مدیر سالن", role: "هماهنگی رزرو" }, { name: "متخصص زیبایی", role: "خدمات اصلی" }];
+  // Real services/staff only -- these used to fall back to fabricated
+  // options (generic specialty-category names with no real price/duration
+  // as a fake "service", "مدیر سالن"/"متخصص زیبایی" as fake "staff") the
+  // moment the real list was empty, which looked exactly like a real,
+  // selected service/staff member. That's actively misleading: the owner
+  // sees what looks like a normal dropdown selection while the submit
+  // button is disabled for a reason they can't see (no real service
+  // exists yet) -- BookingCreateForm's empty state (see its onAddService
+  // prop) is what should tell them that now, not fake data standing in
+  // for the real thing.
+  const bookingServiceOptions = salonServiceList;
+  const bookingStaffOptions = safeSalonStaffList;
   const selectedBookingStaff = bookingStaffForSlots || bookingStaffOptions[0]?.name || "";
 
   const bookingDateForSlots = bookingDate

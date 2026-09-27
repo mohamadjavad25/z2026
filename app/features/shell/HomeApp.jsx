@@ -2563,6 +2563,11 @@ function getPassportMatch(post) {
           <BookingCreateForm
             role={createdProfile?.type === "artist" ? "artist" : "salon"}
             customerOptions={bookingCustomerOptions}
+            onAddService={() => {
+              closeBookingSheet();
+              if (createdProfile?.type === "artist") openArtistServiceCreate();
+              else openSalonServiceCreate();
+            }}
             onSubmit={(event) => {
               if (createdProfile?.type === "artist") {
                 handleArtistBookingCreate(event);
