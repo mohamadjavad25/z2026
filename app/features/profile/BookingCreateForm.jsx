@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { CalendarCheck, History, Plus } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { BookingSelect } from "../../components/BookingSelect";
+import { DateTimeWheelPicker } from "../../components/DateTimeWheelPicker";
 
 export function BookingCreateForm({
   role = "salon",
@@ -63,10 +64,10 @@ export function BookingCreateForm({
   }
   const dayFieldName = role === "salon" ? "booking_date" : "date";
   const isBusy = Boolean(submitting);
-  // Day/time are no longer picked by hand here -- the owner just books
-  // "now" (booking_date/time still get submitted, auto-managed by
-  // useBookingCreateSheet's own nearest-free-slot logic, the same as
-  // before whenever the wheel's value fell outside the free slots).
+  // DateTimeWheelPicker is a controlled display (onDayChange/onTimeChange
+  // just update the parent's state) -- it doesn't submit anything itself,
+  // so this form still needs its own hidden inputs carrying the resolved
+  // day *value* (not label) and time for the native FormData submit.
   const normalizedDayOptions = dayOptions.map((option) => (
     option && typeof option === "object"
       ? {
@@ -166,6 +167,17 @@ export function BookingCreateForm({
 
       <input type="hidden" name={dayFieldName} value={activeDayValue} />
       <input type="hidden" name="time" value={timeValue} />
+
+      <DateTimeWheelPicker
+        dayOptions={dayOptions}
+        dayValue={dayValue}
+        onDayChange={onDayChange}
+        dayIdPrefix="booking-day"
+        timeOptions={timeOptions}
+        timeValue={timeValue}
+        onTimeChange={onTimeChange}
+        timeIdPrefix="booking-time"
+      />
 
       <button
         type="submit"
