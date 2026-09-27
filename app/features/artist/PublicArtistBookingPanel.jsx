@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { Timer } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
-import { BookingDateTimeWheels } from "../../components/BookingDateTimeWheels";
+import { DateTimeWheelPicker } from "../../components/DateTimeWheelPicker";
 import {
   buildPublicBookingSlots,
   isPublicArtistSlotBlocked
@@ -67,7 +67,7 @@ export function PublicArtistBookingPanel({
         <p className="artistPublicBookingServiceHint">{activeService.hint}</p>
       ) : null}
 
-      <BookingDateTimeWheels
+      <DateTimeWheelPicker
         dayOptions={salonClientBookingDays}
         dayValue={bookingDay}
         onDayChange={(day) => onDayChange(day, durationMinutes)}

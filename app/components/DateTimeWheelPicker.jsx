@@ -3,37 +3,32 @@
 import { BreakTimeWheel } from "./BreakTimeWheel";
 
 /**
- * The one shared "pick a day, pick a time" control for every booking flow
- * (the owner's own booking-create form, the client-facing direct-artist
- * booking panel, the client-facing salon booking modal). Each of these used
- * to compose its own copy of this day+time wheel pair with its own wrapper
- * markup/classNames -- which is exactly how they drifted into three
- * visually different-looking controls despite all wrapping the same
- * BreakTimeWheel. Change the look here once, everywhere that books a
- * day/time picks it up.
+ * Day+time picker for booking flows -- renders inside the exact same
+ * ".settingsHoursWheelRange" card the working-hours editor uses (see
+ * SalonHoursEditor.jsx), not a lookalike copy of it. That one shell is the
+ * single style source for every wheel-pair in the app now: this component
+ * adds nothing of its own beyond the ".is-pair" column-count override
+ * (two wheels, no duration badge between them -- day+time isn't a range
+ * like start/end working hours are).
  *
- * dayOptions/timeOptions accept either plain strings or {value, label}
- * objects (day tabs sometimes carry a separate value/label, e.g. a rolling
- * "امروز"/"فردا" label against a real date-key value); onDayChange always
- * receives the option's value (falling back to its label if there's no
- * separate value).
+ * dayOptions/timeOptions accept plain strings or {value, label} objects
+ * (a rolling label like "امروز" against a real date-key value, say);
+ * onDayChange always receives the option's value.
  */
-export function BookingDateTimeWheels({
+export function DateTimeWheelPicker({
   dayOptions = [],
   dayValue = "",
   onDayChange,
   disabledDays = [],
-  dayIdPrefix = "booking-day",
-  dayAriaLabel = "انتخاب روز رزرو",
-  dayFieldName,
+  dayIdPrefix = "wheel-day",
   dayLabel = "روز",
+  dayAriaLabel = "انتخاب روز",
   timeOptions = [],
   timeValue = "",
   onTimeChange,
-  timeIdPrefix = "booking-time",
-  timeAriaLabel = "انتخاب ساعت رزرو",
-  timeFieldName,
+  timeIdPrefix = "wheel-time",
   timeLabel = "ساعت",
+  timeAriaLabel = "انتخاب ساعت",
   emptyTimeMessage = "نوبت آزادی نیست"
 }) {
   const normalizedDayOptions = dayOptions.map((option) => (
@@ -48,20 +43,18 @@ export function BookingDateTimeWheels({
     || normalizedDayOptions.find((option) => option.label === dayValue)
     || normalizedDayOptions[0]
     || { value: dayValue, label: dayValue };
-  const dayLabels = normalizedDayOptions.map((option) => option.label);
   const disabledDayLabels = normalizedDayOptions
     .filter((option) => disabledDays.includes(option.value) || disabledDays.includes(option.label))
     .map((option) => option.label);
 
   return (
-    <div className="artistPublicBookingWheels bookingCreateWheels">
-      <div className="artistPublicBookingDayPicker">
+    <div className="settingsHoursWheelRange is-pair">
+      <div>
         <span>{dayLabel}</span>
-        {dayFieldName ? <input type="hidden" name={dayFieldName} value={activeDayOption.value} /> : null}
         <BreakTimeWheel
           mode="label"
           idPrefix={dayIdPrefix}
-          options={dayLabels}
+          options={normalizedDayOptions.map((option) => option.label)}
           value={activeDayOption.label}
           disabledValues={disabledDayLabels}
           onChange={(label) => {
@@ -71,9 +64,8 @@ export function BookingDateTimeWheels({
           ariaLabel={dayAriaLabel}
         />
       </div>
-      <div className="artistPublicBookingTimePicker">
+      <div>
         <span>{timeLabel}</span>
-        {timeFieldName ? <input type="hidden" name={timeFieldName} value={timeValue} /> : null}
         {timeOptions.length ? (
           <BreakTimeWheel
             mode="clock"

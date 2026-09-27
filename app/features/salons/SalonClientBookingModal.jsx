@@ -1,7 +1,7 @@
 "use client";
 
 import { CalendarCheck, CheckCircle2, Phone, UserRound, X } from "lucide-react";
-import { BookingDateTimeWheels } from "../../components/BookingDateTimeWheels";
+import { DateTimeWheelPicker } from "../../components/DateTimeWheelPicker";
 import { ProfileSheet } from "../profile/ProfileSheet";
 import { salonClientBookingDays } from "../artist/constants";
 
@@ -56,7 +56,7 @@ export function SalonClientBookingModal({
           </button>
         </div>
 
-        <BookingDateTimeWheels
+        <DateTimeWheelPicker
           dayOptions={salonClientBookingDays}
           dayValue={booking.day}
           onDayChange={(day) => onChange({ day })}

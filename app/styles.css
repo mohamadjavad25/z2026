@@ -3445,7 +3445,6 @@ h2{
 }
 
 .bookingCreateForm.is-flat .bookingStepHint,
-.bookingCreateForm.is-flat .bookingCreateWheels,
 .bookingCreateForm.is-flat .bookingPrimaryBtn{
   grid-column: 1 / -1;
 }
@@ -23624,79 +23623,6 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   font-size: 0.82rem;
   font-weight: 850;
   white-space: nowrap;
-}
-
-/* ═══ Booking popup: side-by-side day/time wheels — same card/focus-box
-   treatment as .settingsHoursWheelRange (the working-hours editor) so every
-   scroll-wheel in the app reads as one control, not a frameless one-off. ═══ */
-
-.artistPublicBookingWheels {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  align-items: stretch;
-  padding: 10px;
-  border-radius: 18px;
-  background: #ffffff;
-  box-shadow: inset 0 0 0 1px rgba(124, 92, 226, 0.1);
-}
-
-.artistPublicBookingDayPicker,
-.artistPublicBookingTimePicker {
-  display: grid;
-  gap: 7px;
-  align-content: start;
-  min-width: 0;
-  text-align: center;
-}
-
-.artistPublicBookingDayPicker > span,
-.artistPublicBookingTimePicker > span {
-  color: var(--muted);
-  font-size: 0.66rem;
-  font-weight: 850;
-}
-
-.artistPublicBookingWheels .breakTimeWheel {
-  width: 100%;
-  max-width: none;
-}
-
-.artistPublicBookingWheels .breakTimeWheelRail {
-  scroll-behavior: smooth;
-}
-
-.artistPublicBookingWheels .breakTimeWheelFocus {
-  background: rgba(124, 92, 226, 0.1);
-  border-color: rgba(124, 92, 226, 0.2);
-}
-
-.artistPublicBookingWheels .breakTimeWheelMaskTop,
-.artistPublicBookingWheels .breakTimeWheelMaskBottom {
-  background: linear-gradient(var(--mask-direction, 180deg), #fff 18%, rgba(255, 255, 255, 0));
-}
-
-.artistPublicBookingWheels .breakTimeWheelMaskBottom {
-  --mask-direction: 0deg;
-}
-
-.artistPublicBookingWheels .breakTimeWheel.is-label .breakTimeWheelLabel {
-  white-space: nowrap;
-  transition: color 0.16s ease, font-weight 0.16s ease;
-}
-
-.artistPublicBookingWheels .breakTimeWheelItem {
-  min-width: 0;
-  padding: 0 4px;
-}
-
-.artistPublicBookingWheels .artistPublicSlotEmpty {
-  min-height: 190px;
-  font-size: 0.7rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
 }
 
 /* Full days in the wheel: clearly disabled */

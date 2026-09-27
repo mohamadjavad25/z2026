@@ -1550,6 +1550,13 @@
   box-shadow: inset 0 0 0 1px rgba(124, 92, 226, 0.1);
 }
 
+/* Day+time pickers (DateTimeWheelPicker) -- two wheels, no duration badge
+   between them, unlike the start/end working-hours range above. Same card,
+   same wheel styling, just one column short. */
+.settingsHoursWheelRange.is-pair {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .settingsHoursWheelRange > div {
   display: grid;
   gap: 7px;
