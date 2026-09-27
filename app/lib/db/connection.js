@@ -70,6 +70,21 @@ function getPool() {
     idleTimeoutMillis: 10_000,
     connectionTimeoutMillis: 8_000
   });
+  // pg's own docs: a pooled client sitting idle can still be dropped by the
+  // network/remote side (exactly what Supavisor's own idle/connection
+  // limits do) -- when that happens the Pool emits 'error' on an idle
+  // client with no query attached to catch it, and Node treats an
+  // unhandled 'error' event as fatal (crashes the process). Without this
+  // listener, one dropped idle connection could take down the whole warm
+  // serverless instance -- every request already in flight on it fails,
+  // and Vercel has to cold-start a replacement -- which reads externally
+  // as exactly the kind of sudden multi-minute burst of unrelated
+  // timeouts/"Connection terminated unexpectedly" errors seen here. This
+  // just logs it and lets the pool quietly open a fresh connection on the
+  // next checkout instead.
+  pool.on("error", (error) => {
+    console.error("Idle Postgres client error (pool recovers automatically):", error.message);
+  });
   return pool;
 }
 
