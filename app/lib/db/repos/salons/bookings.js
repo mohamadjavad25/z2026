@@ -133,14 +133,29 @@ export async function listSalonBookings(salonUserId) {
     staffList.map((person) => [String(person.name || "").trim(), person])
   );
   const rows = await all(db, "SELECT * FROM salon_bookings WHERE salon_user_id = ? ORDER BY id DESC", [salonUserId]);
-  const enrichedRows = [];
-  for (const row of rows) {
-    const client = await findBookingClient(row, db);
+
+  // findBookingClient runs an unindexed, 10-nested-REPLACE phone-matching
+  // scan over the whole users table (falling back to a name lookup) --
+  // expensive on its own, and this used to run it once per booking,
+  // sequentially, so a salon with many bookings from the same handful of
+  // repeat customers re-ran that same expensive scan for every single one
+  // of their visits. Look each unique customer (by phone, or by name when
+  // there's no phone) up once, concurrently, instead.
+  const clientKey = (row) => normalizePhone(row.phone || "") || `name:${String(row.client || "").trim()}`;
+  const uniqueKeys = [...new Set(rows.map(clientKey))];
+  const clientByKey = new Map(
+    await Promise.all(
+      uniqueKeys.map(async (key) => [key, await findBookingClient(rows.find((row) => clientKey(row) === key), db)])
+    )
+  );
+
+  const enrichedRows = rows.map((row) => {
+    const client = clientByKey.get(clientKey(row));
     const avatar = client?.avatar ? `/api/media/avatar/${client.id}` : "";
     const avatarPosition = client?.avatar_position || "";
     const staffPerson = staffByName.get(String(row.staff || "").trim()) || null;
     const staffAvatar = staffPerson?.avatar || staffPerson?.staff_avatar || "";
-    enrichedRows.push({
+    return {
       ...row,
       client_user_id: client?.id || null,
       client_avatar: avatar,
@@ -151,8 +166,8 @@ export async function listSalonBookings(salonUserId) {
       staffAvatar,
       staff_artist_user_id: staffPerson?.artist_user_id || null,
       staff_has_artist_profile: Boolean(staffPerson?.has_artist_profile)
-    });
-  }
+    };
+  });
 
   return enrichedRows.map((row) => {
     const history = enrichedRows.filter((item) => sameSalonClient(item, row));

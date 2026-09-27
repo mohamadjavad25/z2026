@@ -14,8 +14,11 @@ export async function listSalonStaff(salonUserId, runner = null) {
     ORDER BY st.id
   `, [salonUserId]);
 
-  const result = [];
-  for (const row of rows) {
+  // resolveArtistUserForStaff can run an unindexed phone-matching scan for
+  // any staff member not yet linked to an artist account -- independent
+  // per row, so resolve (and self-heal artist_user_id) for every row
+  // concurrently instead of one at a time.
+  const result = await Promise.all(rows.map(async (row) => {
     const artist = await resolveArtistUserForStaff(row, db);
     if (artist?.id && !row.artist_user_id) {
       await run(db, `
@@ -25,7 +28,7 @@ export async function listSalonStaff(salonUserId, runner = null) {
       `, [artist.id, row.id, salonUserId]);
     }
     const staffAvatarUrl = artistAvatarUrl(artist);
-    result.push({
+    return {
       ...row,
       artist_user_id: artist?.id || row.artist_user_id || null,
       avatar: staffAvatarUrl,
@@ -36,8 +39,8 @@ export async function listSalonStaff(salonUserId, runner = null) {
       artist_service: artist?.service || "",
       artist_phone: artist?.phone || row.phone || "",
       has_artist_profile: Boolean(artist?.id)
-    });
-  }
+    };
+  }));
   return result;
 }
 
