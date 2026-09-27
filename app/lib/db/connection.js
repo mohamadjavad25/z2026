@@ -54,7 +54,21 @@ function getPool() {
     // rejectUnauthorized:false matches what Supabase's/Vercel's own
     // Postgres quickstart snippets use. This can be tightened with a real
     // CA bundle later if desired.
-    ssl: sslDisabled ? false : { rejectUnauthorized: false }
+    ssl: sslDisabled ? false : { rejectUnauthorized: false },
+    // POSTGRES_URL is Supabase's Supavisor pooler in transaction mode --
+    // it already multiplexes many app-side "connections" onto a small set
+    // of real Postgres backends, so a generous per-instance pool here just
+    // multiplies against Supavisor's own connection cap (many concurrent
+    // Vercel function instances each keeping up the `pg` default of 10).
+    // Keeping this small leaves Supavisor's pool as the actual bottleneck
+    // instead of exhausting it. connectionTimeoutMillis turns "no
+    // connection available" into a fast, clear error instead of the
+    // default (wait forever) -- previously a saturated pooler meant the
+    // request just hung until Postgres's own statement_timeout or
+    // Vercel's function timeout killed it.
+    max: 5,
+    idleTimeoutMillis: 10_000,
+    connectionTimeoutMillis: 8_000
   });
   return pool;
 }
