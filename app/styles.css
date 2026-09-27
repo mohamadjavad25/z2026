@@ -23711,30 +23711,35 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   white-space: nowrap;
 }
 
-/* ═══ Booking popup: side-by-side day/time wheels — frameless, compact ═══ */
+/* ═══ Booking popup: side-by-side day/time wheels — same card/focus-box
+   treatment as .settingsHoursWheelRange (the working-hours editor) so every
+   scroll-wheel in the app reads as one control, not a frameless one-off. ═══ */
 
 .artistPublicBookingWheels {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  gap: 10px;
   align-items: stretch;
+  padding: 10px;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: inset 0 0 0 1px rgba(124, 92, 226, 0.1);
 }
 
 .artistPublicBookingDayPicker,
 .artistPublicBookingTimePicker {
   display: grid;
-  gap: 8px;
+  gap: 7px;
   align-content: start;
   min-width: 0;
-  padding: 10px 0 12px;
+  text-align: center;
 }
 
 .artistPublicBookingDayPicker > span,
 .artistPublicBookingTimePicker > span {
-  color: #5d43b5;
+  color: var(--muted);
   font-size: 0.66rem;
-  font-weight: 900;
-  text-align: center;
+  font-weight: 850;
 }
 
 .artistPublicBookingWheels .breakTimeWheel {
@@ -23746,14 +23751,14 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   scroll-behavior: smooth;
 }
 
-/* No boxed "frame" around the active row — color + weight + scale carry the selection instead */
 .artistPublicBookingWheels .breakTimeWheelFocus {
-  display: none;
+  background: rgba(124, 92, 226, 0.1);
+  border-color: rgba(124, 92, 226, 0.2);
 }
 
 .artistPublicBookingWheels .breakTimeWheelMaskTop,
 .artistPublicBookingWheels .breakTimeWheelMaskBottom {
-  background: linear-gradient(var(--mask-direction, 180deg), #fff 30%, rgba(255, 255, 255, 0));
+  background: linear-gradient(var(--mask-direction, 180deg), #fff 18%, rgba(255, 255, 255, 0));
 }
 
 .artistPublicBookingWheels .breakTimeWheelMaskBottom {
@@ -23761,8 +23766,6 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
 }
 
 .artistPublicBookingWheels .breakTimeWheel.is-label .breakTimeWheelLabel {
-  font-size: 0.82rem;
-  font-weight: 800;
   white-space: nowrap;
   transition: color 0.16s ease, font-weight 0.16s ease;
 }
@@ -23770,14 +23773,6 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
 .artistPublicBookingWheels .breakTimeWheelItem {
   min-width: 0;
   padding: 0 4px;
-}
-
-.artistPublicBookingWheels .breakTimeWheelItem.is-active {
-  transform: scale(1.14);
-}
-
-.artistPublicBookingWheels .breakTimeWheel.is-label .breakTimeWheelItem.is-active .breakTimeWheelLabel {
-  font-weight: 900;
 }
 
 .artistPublicBookingWheels .artistPublicSlotEmpty {
