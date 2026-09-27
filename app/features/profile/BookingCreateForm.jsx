@@ -36,11 +36,15 @@ export function BookingCreateForm({
   const [nameQuery, setNameQuery] = useState("");
   const [suggestOpen, setSuggestOpen] = useState(false);
   const normalizedQuery = nameQuery.trim();
-  const matchingCustomers = normalizedQuery
-    ? customerOptions
-      .filter((item) => item.name && item.name.includes(normalizedQuery))
-      .slice(0, 5)
-    : [];
+  // Empty query -> most recent customers (customerOptions already arrives
+  // newest-visit-first, see buildBookingCustomers), so focusing the empty
+  // field surfaces last-visit suggestions immediately instead of only
+  // reacting once the owner starts typing a matching name.
+  const matchingCustomers = (
+    normalizedQuery
+      ? customerOptions.filter((item) => item.name && item.name.includes(normalizedQuery))
+      : customerOptions
+  ).slice(0, 5);
 
   useEffect(() => {
     if (!suggestOpen) return undefined;
@@ -162,8 +166,6 @@ export function BookingCreateForm({
           <BreakTimeWheel
             mode="label"
             idPrefix="booking-day"
-            visibleCount={5}
-            itemSize={38}
             options={dayLabels}
             value={activeDayOption.label}
             onChange={(label) => {
@@ -180,8 +182,6 @@ export function BookingCreateForm({
             <BreakTimeWheel
               mode="clock"
               idPrefix="booking-time"
-              visibleCount={5}
-              itemSize={38}
               options={timeOptions}
               value={timeValue}
               onChange={onTimeChange}

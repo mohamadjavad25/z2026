@@ -73,8 +73,6 @@ export function PublicArtistBookingPanel({
           <BreakTimeWheel
             mode="label"
             idPrefix="public-artist-booking-day"
-            visibleCount={5}
-            itemSize={38}
             options={salonClientBookingDays}
             value={bookingDay}
             disabledValues={fullDays}
@@ -88,8 +86,6 @@ export function PublicArtistBookingPanel({
             <BreakTimeWheel
               mode="clock"
               idPrefix="public-artist-booking-time"
-              visibleCount={5}
-              itemSize={38}
               options={freeSlots}
               value={bookingSlot}
               onChange={onSlotChange}
