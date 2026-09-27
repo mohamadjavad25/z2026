@@ -256,12 +256,20 @@ export async function listArtistBookings(artistUserId) {
     return visits;
   }
 
-  const result = [];
-  for (const row of rows) {
-    const client = row.client_user_id ? await getUserById(row.client_user_id, db) : null;
+  // Many rows share the same client_user_id (repeat customers) -- fetch
+  // each unique client once, concurrently, instead of re-querying the same
+  // user row over and over, sequentially, once per booking.
+  const uniqueClientIds = [...new Set(rows.map((row) => row.client_user_id).filter(Boolean))];
+  const clientsById = new Map(
+    (await Promise.all(uniqueClientIds.map((id) => getUserById(id, db))))
+      .map((client, index) => [uniqueClientIds[index], client])
+  );
+
+  const result = rows.map((row) => {
+    const client = row.client_user_id ? clientsById.get(row.client_user_id) || null : null;
     const history = rows.filter((item) => sameArtistClient(item, row));
     const visits = buildVisits(history);
-    result.push({
+    return {
       ...row,
       visits,
       visit_count: visits.filter((level) => level > 0).length,
@@ -292,8 +300,8 @@ export async function listArtistBookings(artistUserId) {
             bio: "",
             type: "client"
           }
-    });
-  }
+    };
+  });
   return result;
 }
 
@@ -656,8 +664,25 @@ export async function getArtistBookingById(bookingId) {
 export async function getPublicArtist(userId, viewerUserId = null) {
   const user = await getUserById(userId);
   if (!user || user.type !== "artist") return null;
-  const posts = await listPostsByOwner(userId);
-  const services = await listArtistServices(userId);
+  const [
+    posts,
+    services,
+    followers,
+    settings,
+    isFollowingViewer,
+    isSaved,
+    bookedSlots,
+    breakTime
+  ] = await Promise.all([
+    listPostsByOwner(userId),
+    listArtistServices(userId),
+    countFollowers(user.id),
+    getSettings(user.id),
+    viewerUserId ? isFollowing(viewerUserId, user.id) : false,
+    viewerUserId ? isProfileSaved(viewerUserId, user.id) : false,
+    listArtistBookedSlots(userId),
+    getArtistBreak(userId)
+  ]);
   return {
     id: user.id,
     name: user.name,
@@ -668,19 +693,19 @@ export async function getPublicArtist(userId, viewerUserId = null) {
     avatarPosition: user.avatar_position || "",
     service: user.service,
     experienceYears: user.experience_years || "",
-    followers: await countFollowers(user.id),
+    followers,
     // Repo layer stays permissive (GET /api/artist/me calls this with
     // viewerUserId === userId for the artist's own dashboard, which must
     // always see itself regardless of the toggle) -- the public-visibility
     // gate based on this flag lives in the caller (GET /api/artists/[id]
     // route + the SSR /artists/[id] page), same split salons.js uses.
-    isPublic: (await getSettings(user.id)).publicPortfolio !== false,
-    isFollowing: viewerUserId ? await isFollowing(viewerUserId, user.id) : false,
-    isSaved: viewerUserId ? await isProfileSaved(viewerUserId, user.id) : false,
+    isPublic: settings.publicPortfolio !== false,
+    isFollowing: isFollowingViewer,
+    isSaved,
     posts,
     services,
-    bookedSlots: await listArtistBookedSlots(userId),
-    breakTime: await getArtistBreak(userId)
+    bookedSlots,
+    breakTime
   };
 }
 
@@ -692,12 +717,11 @@ export async function listArtists() {
   // An artist switched to "خصوصی" via تنظیمات → ویترین عمومی آرتیست must be
   // hidden from the public directory, same rule salons.listSalons()
   // already enforces for its equivalent toggle -- this was previously
-  // never checked at all for artists.
-  const visible = [];
-  for (const row of rows) {
-    const settings = await getSettings(row.id, db);
-    if (settings.publicPortfolio !== false) visible.push(row);
-  }
+  // never checked at all for artists. Settings lookups are independent
+  // per row, so run them concurrently instead of one full row at a time
+  // (same fix as listSalons() -- see its comment for why this matters).
+  const settingsByRow = await Promise.all(rows.map((row) => getSettings(row.id, db)));
+  const visible = rows.filter((row, index) => settingsByRow[index].publicPortfolio !== false);
   // Media URL, not raw base64 -- see app/api/media/avatar/[userId]/route.js.
   return visible.map((row) => ({
     ...row,
@@ -721,19 +745,16 @@ export async function listSavedArtistsForUser(userId) {
     WHERE sp.user_id = ? AND u.type = 'artist'
     ORDER BY sp.created_at DESC
   `, [userId]);
-  const result = [];
-  for (const user of rows) {
-    result.push({
-      id: user.id,
-      name: user.name,
-      role: user.service ? `آرتیست ${user.service}` : "آرتیست",
-      area: user.area,
-      bio: user.bio,
-      avatar: user.avatar ? `/api/media/avatar/${user.id}` : "",
-      avatarPosition: user.avatar_position || "",
-      service: user.service,
-      followers: await countFollowers(user.id, db)
-    });
-  }
+  const result = await Promise.all(rows.map(async (user) => ({
+    id: user.id,
+    name: user.name,
+    role: user.service ? `آرتیست ${user.service}` : "آرتیست",
+    area: user.area,
+    bio: user.bio,
+    avatar: user.avatar ? `/api/media/avatar/${user.id}` : "",
+    avatarPosition: user.avatar_position || "",
+    service: user.service,
+    followers: await countFollowers(user.id, db)
+  })));
   return result;
 }

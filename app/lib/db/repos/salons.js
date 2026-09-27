@@ -39,18 +39,32 @@ export async function listSalons() {
     FROM salons s JOIN users u ON u.id = s.user_id
     ORDER BY s.created_at DESC
   `);
-  const result = [];
-  for (const row of rows) {
+  // Each row needs 7 more lookups (settings, 2 counts, staff/services/
+  // portfolio/hours) -- this used to run all of that dead sequentially, one
+  // full row at a time (1 + 7*N round-trips to Postgres through Supavisor,
+  // none overlapping). With any real number of salons that's the app's
+  // single heaviest source of DB round-trips, and a big part of why
+  // /api/salons was one of the routes hit hardest by the statement-timeout
+  // incidents. None of these 7 lookups depend on each other or on another
+  // row, so they can all run concurrently -- the shared pool (capped at 5
+  // in connection.js) still bounds how many physical queries are in flight
+  // at once, this just stops them queuing behind each other for no reason.
+  const built = await Promise.all(rows.map(async (row) => {
     // A salon switched to "خصوصی" via تنظیمات → پروفایل عمومی سالن must be
     // hidden from the public directory — this was previously never checked
     // at all for salons, so toggling the setting off did nothing on the
     // read side (still fully listed here).
     const settings = await getSettings(row.user_id, db);
-    if (settings.publicPortfolio === false) continue;
-    const followingCount = await countFollowing(row.user_id, db);
-    const followerCount = await countFollowers(row.user_id, db);
-    const staff = await listSalonStaff(row.user_id, db);
-    result.push({
+    if (settings.publicPortfolio === false) return null;
+    const [followingCount, followerCount, staff, services, portfolio, hours] = await Promise.all([
+      countFollowing(row.user_id, db),
+      countFollowers(row.user_id, db),
+      listSalonStaff(row.user_id, db),
+      listSalonServices(row.user_id, db),
+      listSalonPortfolio(row.user_id, db),
+      listSalonHours(row.user_id, db)
+    ]);
+    return {
       id: row.user_id,
       user_id: row.user_id,
       source_key: String(row.user_id),
@@ -79,13 +93,13 @@ export async function listSalons() {
       post_count: row.post_count,
       follower_count: followerCount,
       following_count: followingCount,
-      services: await listSalonServices(row.user_id, db),
-      portfolio: await listSalonPortfolio(row.user_id, db),
+      services,
+      portfolio,
       staff,
-      hours: await listSalonHours(row.user_id, db)
-    });
-  }
-  return result;
+      hours
+    };
+  }));
+  return built.filter(Boolean);
 }
 
 /**
@@ -107,11 +121,12 @@ export async function listSavedSalonsForUser(userId) {
     WHERE sp.user_id = ?
     ORDER BY sp.created_at DESC
   `, [userId]);
-  const result = [];
-  for (const row of rows) {
-    const followerCount = await countFollowers(row.user_id, db);
-    const followingCount = await countFollowing(row.user_id, db);
-    result.push({
+  const result = await Promise.all(rows.map(async (row) => {
+    const [followerCount, followingCount] = await Promise.all([
+      countFollowers(row.user_id, db),
+      countFollowing(row.user_id, db)
+    ]);
+    return {
       id: row.user_id,
       user_id: row.user_id,
       source_key: String(row.user_id),
@@ -130,8 +145,8 @@ export async function listSavedSalonsForUser(userId) {
       follower_count: followerCount,
       followingCount,
       following_count: followingCount
-    });
-  }
+    };
+  }));
   return result;
 }
 
@@ -143,8 +158,27 @@ export async function getSalon(userId, viewerUserId = null) {
     WHERE s.user_id = ?
   `, [userId]);
   if (!row) return null;
-  const followerCount = await countFollowers(row.user_id, db);
-  const followingCount = await countFollowing(row.user_id, db);
+  const [
+    followerCount,
+    followingCount,
+    settings,
+    isSaved,
+    services,
+    portfolio,
+    staff,
+    hours,
+    bookings
+  ] = await Promise.all([
+    countFollowers(row.user_id, db),
+    countFollowing(row.user_id, db),
+    getSettings(row.user_id, db),
+    viewerUserId ? isProfileSaved(viewerUserId, row.user_id, db) : false,
+    listSalonServices(userId, db),
+    listSalonPortfolio(userId, db),
+    listSalonStaff(userId, db),
+    listSalonHours(userId, db),
+    listSalonBookings(userId)
+  ]);
   return {
     id: row.user_id,
     user_id: row.user_id,
@@ -180,13 +214,13 @@ export async function getSalon(userId, viewerUserId = null) {
     // based on this flag lives in the caller (GET /api/salons/[id] route +
     // the SSR /salons/[id] page), same split artists.js already uses
     // between getArtist()'s isPublic field and the route-level check.
-    isPublic: (await getSettings(row.user_id, db)).publicPortfolio !== false,
-    isSaved: viewerUserId ? await isProfileSaved(viewerUserId, row.user_id, db) : false,
-    services: await listSalonServices(userId, db),
-    portfolio: await listSalonPortfolio(userId, db),
-    staff: await listSalonStaff(userId, db),
-    hours: await listSalonHours(userId, db),
-    bookings: await listSalonBookings(userId)
+    isPublic: settings.publicPortfolio !== false,
+    isSaved,
+    services,
+    portfolio,
+    staff,
+    hours,
+    bookings
   };
 }
 
