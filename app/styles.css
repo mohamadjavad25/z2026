@@ -15,6 +15,14 @@
   box-sizing: border-box;
 }
 
+/* Backs up the <meta name="color-scheme"> in app/layout.jsx's viewport
+   export -- see the comment there. Some browsers check the CSS property,
+   others the meta tag; declaring both closes off either heuristic
+   force-recoloring this intentionally light-only UI. */
+:root{
+  color-scheme: light;
+}
+
 @media (max-width: 760px) {
   .profilePanel.page-profile:has(.createdProfile.is-salon),
   .profilePanel.page-profile:has(.createdProfile.is-salon) .createdProfile {

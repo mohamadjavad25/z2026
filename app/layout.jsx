@@ -24,7 +24,21 @@ const HOME_DESCRIPTION = "کشف آرایشگاه، نمونه‌کار واقع
 export const viewport = {
   width: "device-width",
   initialScale: 1,
-  interactiveWidget: "resizes-content"
+  interactiveWidget: "resizes-content",
+  // The whole UI is hand-designed for a single light palette -- no
+  // prefers-color-scheme:dark rules exist anywhere in the app. Without this,
+  // a browser/OS that has its own "auto-darken web content" heuristic on
+  // (Chrome's "Auto dark theme for web contents" on Android, active by
+  // default in many regions whenever the system is in dark mode -- and the
+  // same heuristic also fires in desktop Chrome once its theme is set to
+  // Auto/Dark) has no signal that this page already has an intentional
+  // color scheme, so it force-inverts/recolors it: light, near-transparent
+  // fills (e.g. the booking wheel's ~10%-opacity purple focus box) get
+  // pushed toward dark, solid ones, while the page's own CSS -- and the
+  // DOM's own computed styles -- still read back exactly as authored. This
+  // one flag is what tells that heuristic "this page already chose its
+  // colors, leave it alone."
+  colorScheme: "light"
 };
 
 export const metadata = {
