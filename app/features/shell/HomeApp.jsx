@@ -327,35 +327,31 @@ export function HomeApp() {
     onAuthenticated: async (profile, { source, isStale }) => {
       const c = authCascadeRef.current;
       if (source === "login") {
-        await c.refreshExploreFeed?.();
-        await c.refreshFollows?.();
-        await c.refreshSaves?.();
-        try {
-          const [passportResponse, salonsResponse] = await Promise.all([
-            fetch("/api/beauty-passport"),
-            fetch("/api/salons")
-          ]);
-          const passportPayload = passportResponse.ok ? await passportResponse.json() : {};
-          const salonsPayload = await salonsResponse.json();
-          setBeautyPassport(passportPayload.passport || passportPayload.data?.passport || null);
-          c.setSalonDirectory?.(salonsPayload.salons || salonsPayload.data?.salons || []);
-        } catch {
-          // ignore secondary loads
-        }
-      } else if (source === "register") {
-        await c.refreshExploreFeed?.();
-        await c.refreshFollows?.();
-        await c.refreshSaves?.();
-      } else if (source === "boot") {
-        const [passportResponse] = await Promise.all([
+        // salonDirectory is already populated from the boot-time guest
+        // fetch (onPublicBoot below) -- GET /api/salons is unauthenticated
+        // and returns the exact same public, viewer-independent data
+        // whether or not anyone is logged in, so re-fetching it again here
+        // on every login was pure duplicate work. These three don't depend
+        // on each other, so run them together instead of one after another.
+        const [, , , passportPayload] = await Promise.all([
+          c.refreshExploreFeed?.(),
+          c.refreshFollows?.(),
+          c.refreshSaves?.(),
           fetch("/api/beauty-passport")
+            .then((response) => (response.ok ? response.json() : {}))
+            .catch(() => ({}))
+        ]);
+        setBeautyPassport(passportPayload.passport || passportPayload.data?.passport || null);
+      } else if (source === "register") {
+        await Promise.all([c.refreshExploreFeed?.(), c.refreshFollows?.(), c.refreshSaves?.()]);
+      } else if (source === "boot") {
+        const [passportPayload] = await Promise.all([
+          fetch("/api/beauty-passport").then((response) => (response.ok ? response.json() : {})).catch(() => ({})),
+          c.refreshFollows?.(),
+          c.refreshSaves?.()
         ]);
         if (isStale?.()) return;
-        const passportPayload = passportResponse.ok ? await passportResponse.json() : {};
         setBeautyPassport(passportPayload.passport || passportPayload.data?.passport || null);
-        await c.refreshFollows?.();
-        await c.refreshSaves?.();
-        if (isStale?.()) return;
       }
 
       if (profile?.type === "salon") await c.refreshSalonSystemData?.();

@@ -32,21 +32,9 @@ import {
   salonArtistStatusOptions as defaultSalonArtistStatusOptions
 } from "../../shared/constants/roles";
 import { getApiErrorMessage, notifyFromResponse } from "../../shared/lib/apiNotify";
+import { compressImageToDataUrl } from "../../shared/lib/imageCompression";
 import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar";
 import { buildSalonStaffByName } from "../profile/ScheduleRow";
-
-function fileToDataUrl(file) {
-  return new Promise((resolve, reject) => {
-    if (!file || typeof file === "string" || file.size === 0) {
-      resolve("");
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result || ""));
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
 
 /**
  * Salon **owner** dashboard: bookings, reservation inbox, staff, artist invites/collabs,
@@ -1046,7 +1034,7 @@ export function useSalonWorkspace({
       return;
     }
     try {
-      const dataUrl = await fileToDataUrl(file);
+      const dataUrl = await compressImageToDataUrl(file);
       setSalonWorkDraft((prev) => {
         if (!prev) return prev;
         const next = { ...prev, image: dataUrl };

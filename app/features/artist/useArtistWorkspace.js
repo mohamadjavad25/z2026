@@ -12,6 +12,7 @@ import {
   updateArtistMe
 } from "../../shared/api/artists";
 import { createPost, deletePost, getPosts, updatePost, viewPost } from "../../shared/api/posts";
+import { compressImageToDataUrl } from "../../shared/lib/imageCompression";
 import {
   buildClockOptions,
   getTodayPersianWeekday,
@@ -850,7 +851,7 @@ export function useArtistWorkspace({
     setEditingArtistWork(null);
   }
 
-  function handleArtistWorkImageUpload(event) {
+  async function handleArtistWorkImageUpload(event) {
     const file = event.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith("image/")) {
@@ -863,13 +864,12 @@ export function useArtistWorkspace({
       event.target.value = "";
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => {
-      setEditingArtistWork((prev) => (prev ? { ...prev, image: String(reader.result) } : prev));
-      notify("تصویر نمونه‌کار بارگذاری شد.");
-    };
-    reader.readAsDataURL(file);
     event.target.value = "";
+    // Downscale + re-encode before it becomes a data URL POSTed to the
+    // server -- see imageCompression.js.
+    const dataUrl = await compressImageToDataUrl(file);
+    setEditingArtistWork((prev) => (prev ? { ...prev, image: dataUrl } : prev));
+    notify("تصویر نمونه‌کار بارگذاری شد.");
   }
 
   function clearArtistWorkImage() {
