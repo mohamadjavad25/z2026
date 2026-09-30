@@ -50,14 +50,14 @@ export async function listExplorePosts({ tag } = {}, runner = null) {
   if (tag && tag !== "همه") {
     const rows = await all(db, `
       ${postSelect}
-      WHERE p.in_explore = 1 AND p.tag = ?
+      WHERE p.in_explore AND p.tag = ?
       ORDER BY p.featured DESC, p.created_at DESC
     `, [tag]);
     return rows.map(mapPost);
   }
   const rows = await all(db, `
     ${postSelect}
-    WHERE p.in_explore = 1
+    WHERE p.in_explore
     ORDER BY p.featured DESC, p.created_at DESC
   `);
   return rows.map(mapPost);
@@ -98,8 +98,8 @@ export async function createPost(ownerUserId, data, runner = null) {
     data.tag || "",
     data.image || "",
     data.caption || "",
-    data.inExplore === false ? 0 : 1,
-    data.featured ? 1 : 0
+    data.inExplore !== false,
+    Boolean(data.featured)
   ]);
   return getPostById(Number(info.rows[0].id), db);
 }
@@ -118,8 +118,8 @@ export async function updatePost(id, ownerUserId, data, runner = null) {
     data.tag ?? current.tag,
     data.image ?? current.image,
     data.caption ?? current.caption,
-    data.inExplore === undefined ? current.in_explore : (data.inExplore ? 1 : 0),
-    data.featured === undefined ? current.featured : (data.featured ? 1 : 0),
+    data.inExplore === undefined ? current.in_explore : Boolean(data.inExplore),
+    data.featured === undefined ? current.featured : Boolean(data.featured),
     id,
     ownerUserId
   ]);

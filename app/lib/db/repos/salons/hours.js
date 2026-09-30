@@ -37,7 +37,7 @@ export async function updateSalonHour(salonUserId, day, data) {
     data.openTime ?? data.open_time ?? null,
     data.closeTime ?? data.close_time ?? null,
     data.capacity ?? null,
-    data.active === undefined ? null : (data.active ? 1 : 0),
+    data.active === undefined ? null : Boolean(data.active),
     salonUserId,
     day
   ]);

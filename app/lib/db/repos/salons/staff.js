@@ -60,12 +60,14 @@ async function resolveArtistUserForStaff(staff, runner = null) {
   const rawPhone = String(staff.phone || "").trim();
   const phone = normalizePhone(rawPhone);
   if (phone) {
+    // users.phone is already normalized (Persian/Arabic digits -> ASCII) at
+    // write time in app/api/auth/register/route.js, so a plain equality
+    // check is correct here and, unlike a REPLACE()-wrapped comparison,
+    // can use the column's own UNIQUE index.
     const byPhone = await get(db, `
       SELECT id, name, phone, area, service, avatar, bio, type
       FROM users
-      WHERE type = 'artist'
-        AND REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(phone,
-          '۰','0'),'۱','1'),'۲','2'),'۳','3'),'۴','4'),'۵','5'),'۶','6'),'۷','7'),'۸','8'),'۹','9') = ?
+      WHERE type = 'artist' AND phone = ?
       LIMIT 1
     `, [phone]);
     if (byPhone) return byPhone;

@@ -333,8 +333,10 @@ export async function listClientArtistBookings(user) {
     params.push(userId);
   }
   if (phone) {
-    conditions.push(`REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(b.client_phone,
-      '۰','0'),'۱','1'),'۲','2'),'۳','3'),'۴','4'),'۵','5'),'۶','6'),'۷','7'),'۸','8'),'۹','9') = ?`);
+    // b.phone_normalized is a generated column (migrations/005_normalized_phone.sql)
+    // that runs the same digit-normalization at write time, indexed --
+    // unlike wrapping b.client_phone in REPLACE() on every read, this is sargable.
+    conditions.push("b.phone_normalized = ?");
     params.push(phone);
   }
   if (name) {

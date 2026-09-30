@@ -12,9 +12,9 @@ export async function savePassport(userId, data = {}) {
   await run(db, `
     INSERT INTO beauty_passports
       (user_id, active, skin_tone, undertone, face_shape, hair_type, signature, summary, expires_at)
-    VALUES (?, 1, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, true, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(user_id) DO UPDATE SET
-      active = 1,
+      active = true,
       skin_tone = excluded.skin_tone,
       undertone = excluded.undertone,
       face_shape = excluded.face_shape,

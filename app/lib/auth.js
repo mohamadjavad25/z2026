@@ -74,8 +74,8 @@ export function publicUser(row) {
     // showing the old image on refresh regardless of the media route's
     // own cache headers, since it never even asks again until that cache
     // entry expires on its own.
-    avatar: row.avatar ? `/api/media/avatar/${row.id}?v=${encodeURIComponent(row.updated_at || "")}` : "",
-    poster: row.poster ? `/api/media/poster/${row.id}?v=${encodeURIComponent(row.updated_at || "")}` : "",
+    avatar: row.avatar ? `/api/media/avatar/${row.id}?v=${encodeURIComponent(row.updated_at?.toISOString?.() || row.updated_at || "")}` : "",
+    poster: row.poster ? `/api/media/poster/${row.id}?v=${encodeURIComponent(row.updated_at?.toISOString?.() || row.updated_at || "")}` : "",
     avatarPosition: row.avatar_position || "",
     posterPosition: row.poster_position || "",
     bio: row.bio || "",

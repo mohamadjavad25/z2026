@@ -1,13 +1,13 @@
 import { getDb, all, get, run } from "../../connection.js";
 
 const defaultArtistHours = [
-  { day: "شنبه", open_time: "۱۰:۰۰", close_time: "۲۰:۰۰", capacity: 8, active: 1 },
-  { day: "یکشنبه", open_time: "۱۰:۰۰", close_time: "۲۰:۰۰", capacity: 8, active: 1 },
-  { day: "دوشنبه", open_time: "۱۰:۰۰", close_time: "۲۰:۰۰", capacity: 8, active: 1 },
-  { day: "سه‌شنبه", open_time: "۱۰:۰۰", close_time: "۲۰:۰۰", capacity: 8, active: 1 },
-  { day: "چهارشنبه", open_time: "۱۰:۰۰", close_time: "۲۰:۰۰", capacity: 8, active: 1 },
-  { day: "پنجشنبه", open_time: "۱۰:۰۰", close_time: "۱۸:۰۰", capacity: 5, active: 1 },
-  { day: "جمعه", open_time: "", close_time: "", capacity: 0, active: 0 }
+  { day: "شنبه", open_time: "۱۰:۰۰", close_time: "۲۰:۰۰", capacity: 8, active: true },
+  { day: "یکشنبه", open_time: "۱۰:۰۰", close_time: "۲۰:۰۰", capacity: 8, active: true },
+  { day: "دوشنبه", open_time: "۱۰:۰۰", close_time: "۲۰:۰۰", capacity: 8, active: true },
+  { day: "سه‌شنبه", open_time: "۱۰:۰۰", close_time: "۲۰:۰۰", capacity: 8, active: true },
+  { day: "چهارشنبه", open_time: "۱۰:۰۰", close_time: "۲۰:۰۰", capacity: 8, active: true },
+  { day: "پنجشنبه", open_time: "۱۰:۰۰", close_time: "۱۸:۰۰", capacity: 5, active: true },
+  { day: "جمعه", open_time: "", close_time: "", capacity: 0, active: false }
 ];
 
 export async function ensureArtistHours(artistUserId, runner = null) {
@@ -46,7 +46,7 @@ export async function updateArtistHour(artistUserId, day, data) {
     data.openTime ?? data.open_time ?? null,
     data.closeTime ?? data.close_time ?? null,
     data.capacity ?? null,
-    data.active === undefined ? null : (data.active ? 1 : 0),
+    data.active === undefined ? null : Boolean(data.active),
     artistUserId,
     day
   ]);

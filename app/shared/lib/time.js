@@ -130,6 +130,19 @@ const requestExpiryDeadlineTimeFmt = new Intl.DateTimeFormat("en-GB", {
   timeZone: "Asia/Tehran"
 });
 
+/** Normalizes a row's created_at/updated_at into something `new Date()`/
+ *  `Date.parse()` parses as UTC. Handles both shapes this codebase's API
+ *  responses have used: a real ISO 8601 string (already has "T" and a
+ *  trailing offset/"Z" — native TIMESTAMPTZ, JSON-serialized from a JS
+ *  Date, passed through unchanged) and the older bare
+ *  "YYYY-MM-DD HH:MM:SS" text-timestamp shape with no offset marker, which
+ *  JS would otherwise silently parse as local time instead of UTC. */
+export function toIsoLikeTimestamp(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  return raw.includes("T") ? raw : `${raw.replace(" ", "T")}Z`;
+}
+
 /** Wall-clock "HH:MM" (Persian digits, Tehran time) a pending booking
  *  request auto-expires at, given its created_at and the sweep's timeout
  *  window (60 minutes by default — see bookingExpirySweep.js). Shared single
@@ -138,9 +151,8 @@ const requestExpiryDeadlineTimeFmt = new Intl.DateTimeFormat("en-GB", {
  *  them can drift out of sync with each other or with the sweep's own
  *  DEFAULT_TIMEOUT_MINUTES. */
 export function formatRequestExpiryDeadline(createdAt, minutes = 60) {
-  const raw = String(createdAt || "").trim();
-  if (!raw) return "";
-  const isoLike = raw.includes("T") ? raw : `${raw.replace(" ", "T")}Z`;
+  const isoLike = toIsoLikeTimestamp(createdAt);
+  if (!isoLike) return "";
   const created = new Date(isoLike);
   if (Number.isNaN(created.getTime())) return "";
   const deadline = new Date(created.getTime() + minutes * 60 * 1000);
@@ -153,9 +165,8 @@ export function formatRequestExpiryDeadline(createdAt, minutes = 60) {
  *  (a real, negative-but-defined number). Used to style the deadline badge
  *  as urgent once only a few minutes remain, not just show a static time. */
 export function getRequestExpiryMinutesLeft(createdAt, minutes = 60) {
-  const raw = String(createdAt || "").trim();
-  if (!raw) return null;
-  const isoLike = raw.includes("T") ? raw : `${raw.replace(" ", "T")}Z`;
+  const isoLike = toIsoLikeTimestamp(createdAt);
+  if (!isoLike) return null;
   const created = new Date(isoLike);
   if (Number.isNaN(created.getTime())) return null;
   const deadline = created.getTime() + minutes * 60 * 1000;

@@ -32,7 +32,8 @@ import {
   getTodayPersianWeekday,
   parseServiceDurationMinutes,
   SALON_HOUR_TIME_OPTIONS,
-  timeLabelToMinutes
+  timeLabelToMinutes,
+  toIsoLikeTimestamp
 } from "../../shared/lib/time";
 import {
   formatRelativeBookingDayLabel,
@@ -139,13 +140,10 @@ import {
   salonTasks
 } from "./mockData";
 
-// SQLite's CURRENT_TIMESTAMP is UTC with no offset marker ("2026-09-19 10:30:00"),
-// which JS parses as LOCAL time unless told otherwise — append "Z" so recency
-// checks (e.g. "expired within the last day") aren't off by the browser's
-// timezone offset.
-function isWithinLastHours(sqliteTimestamp, hours) {
-  if (!sqliteTimestamp) return false;
-  const ms = Date.parse(`${sqliteTimestamp}Z`.replace(" ", "T"));
+function isWithinLastHours(timestamp, hours) {
+  const isoLike = toIsoLikeTimestamp(timestamp);
+  if (!isoLike) return false;
+  const ms = Date.parse(isoLike);
   if (!Number.isFinite(ms)) return false;
   return Date.now() - ms <= hours * 3600 * 1000;
 }
@@ -2444,7 +2442,7 @@ function getPassportMatch(post) {
               const notifiableStatuses = ["تایید شده", "لغو", "منقضی شده"];
               const recentBookingNotices = clientBookingList
                 .filter((booking) => notifiableStatuses.includes(booking.status || ""))
-                .sort((a, b) => new Date(`${(b.created_at || "").replace(" ", "T")}Z`) - new Date(`${(a.created_at || "").replace(" ", "T")}Z`))
+                .sort((a, b) => new Date(toIsoLikeTimestamp(b.created_at)) - new Date(toIsoLikeTimestamp(a.created_at)))
                 .slice(0, 20);
               return recentBookingNotices.length ? (
                 <div className="reservationRequestList" aria-label="آخرین تغییرات رزروها">

@@ -4,16 +4,15 @@ export async function createSession(token, userId, expiresAt) {
   const db = await getDb();
   await run(db, `
     INSERT INTO sessions (token, user_id, expires_at) VALUES (?, ?, ?)
-  `, [token, userId, String(expiresAt)]);
+  `, [token, userId, new Date(expiresAt).toISOString()]);
 }
 
 export async function getValidSession(token) {
   const db = await getDb();
-  const now = Date.now();
   const row = await get(db, `
     SELECT * FROM sessions
-    WHERE token = ? AND CAST(expires_at AS BIGINT) > ?
-  `, [token, now]);
+    WHERE token = ? AND expires_at > NOW()
+  `, [token]);
   return row || null;
 }
 

@@ -66,7 +66,7 @@ async function findExpiredSalonBookingRequests(db, minutes) {
     SELECT id, salon_user_id, client_user_id, client, service
     FROM salon_bookings
     WHERE status = 'درخواست'
-      AND created_at::timestamptz <= (NOW() - (?::double precision * INTERVAL '1 minute'))
+      AND created_at <= (NOW() - (?::double precision * INTERVAL '1 minute'))
   `, [minutes]);
 }
 
@@ -80,7 +80,7 @@ async function findExpiredDirectArtistBookingRequests(db, minutes) {
     FROM artist_bookings
     WHERE status = 'تازه'
       AND source_salon_user_id IS NULL
-      AND created_at::timestamptz <= (NOW() - (?::double precision * INTERVAL '1 minute'))
+      AND created_at <= (NOW() - (?::double precision * INTERVAL '1 minute'))
   `, [minutes]);
 }
 
