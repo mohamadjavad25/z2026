@@ -50,6 +50,22 @@ export function verifyPassword(password, stored) {
   return timingSafeEqual(prev, next);
 }
 
+/** Timing-safe check of the `x-admin-token` header against
+ *  ZIBABAN_ADMIN_TOKEN (gates the manual password-reset admin queue) --
+ *  same timingSafeEqual pattern as verifyPassword above, instead of a plain
+ *  `===` that leaks how many leading bytes matched via response timing.
+ *  Length-checked first since timingSafeEqual throws on a length mismatch
+ *  rather than returning false. */
+export function verifyAdminToken(request) {
+  const expected = process.env.ZIBABAN_ADMIN_TOKEN || "";
+  if (!expected) return false;
+  const provided = request.headers.get("x-admin-token") || "";
+  const expectedBuf = Buffer.from(expected);
+  const providedBuf = Buffer.from(provided);
+  if (expectedBuf.length !== providedBuf.length) return false;
+  return timingSafeEqual(expectedBuf, providedBuf);
+}
+
 export function publicUser(row) {
   if (!row) return null;
   return {

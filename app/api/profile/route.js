@@ -70,6 +70,18 @@ async function _DELETE(request) {
   await ensureDb();
   const auth = await requireUser(request);
   if (!auth.ok) return auth.response;
+  // Require re-entering the current password, same bar as the
+  // password-change branch of POST /api/profile above -- without this, a
+  // stolen/hijacked session cookie alone was enough to permanently delete
+  // the account with a single unauthenticated-content-check-only request.
+  const body = await request.json().catch(() => ({}));
+  const currentPassword = typeof body?.currentPassword === "string" ? body.currentPassword : "";
+  if (!currentPassword) {
+    return NextResponse.json({ error: "برای حذف حساب، رمز عبور فعلی را وارد کن." }, { status: 400 });
+  }
+  if (!verifyPassword(currentPassword, auth.user.password_hash)) {
+    return NextResponse.json({ error: "رمز فعلی نادرست است." }, { status: 400 });
+  }
   // Soft approach: delete user cascades via FK
   const { getDb, run } = await import("../../lib/db/connection.js");
   await run(await getDb(), "DELETE FROM users WHERE id = ?", [auth.user.id]);

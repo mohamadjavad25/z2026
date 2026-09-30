@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { normalizePhone, isValidIranMobile } from "../../../lib/auth.js";
+import { normalizePhone, isValidIranMobile, verifyAdminToken } from "../../../lib/auth.js";
 import { ensureDb } from "../../../lib/db/connection.js";
 import * as passwordResetRequests from "../../../lib/db/repos/passwordResetRequests.js";
 import { checkRateLimit } from "../../../lib/rateLimit.js";
@@ -46,15 +46,9 @@ async function _POST(request) {
   }
 }
 
-function isAdminAuthorized(request) {
-  const token = process.env.ZIBABAN_ADMIN_TOKEN || "";
-  if (!token) return false;
-  return request.headers.get("x-admin-token") === token;
-}
-
 async function _GET(request) {
   await ensureDb();
-  if (!isAdminAuthorized(request)) {
+  if (!verifyAdminToken(request)) {
     return NextResponse.json({ error: "دسترسی مجاز نیست." }, { status: 401 });
   }
   const requests = await passwordResetRequests.listPendingRequests();

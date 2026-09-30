@@ -242,19 +242,24 @@ export function useAuthSession({
     onShellNoticeRef.current?.("از حساب خارج شدی.");
   }
 
-  /** Permanent. Same client-side cleanup as logoutAccount (session already
-   *  gone server-side once the user row is deleted) — see migration v34 for
-   *  what this does and doesn't take down with it. */
-  async function deleteAccountPermanently() {
-    try {
-      await apiDeleteAccount();
-    } catch {
-      // Even if the request itself failed, don't strand the UI in a
-      // half-deleted state — fall through to the same cleanup logout uses.
+  /** Permanent. Requires re-entering the current password (server-enforced
+   *  in DELETE /api/profile) so a hijacked/stolen session cookie alone can't
+   *  destroy the account -- same re-auth bar the password-change branch of
+   *  POST /api/profile already requires. Returns { ok: false, error } on a
+   *  wrong password (caller shows it inline and keeps the confirm dialog
+   *  open) instead of clearing the session -- only a genuine success falls
+   *  through to the same client-side cleanup logoutAccount uses (session is
+   *  already gone server-side once the user row is deleted; see migration
+   *  v34 for what this does and doesn't take down with it). */
+  async function deleteAccountPermanently(password) {
+    const { ok, payload } = await apiDeleteAccount(password);
+    if (!ok) {
+      return { ok: false, error: payload?.error || "حذف حساب انجام نشد." };
     }
     clearAuthSession();
     await onLoggedOutRef.current?.();
     onShellNoticeRef.current?.("حساب شما برای همیشه حذف شد.");
+    return { ok: true };
   }
 
   return {

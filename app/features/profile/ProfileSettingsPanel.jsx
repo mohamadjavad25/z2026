@@ -29,16 +29,17 @@ const DELETE_CONFIRM_WORD = "حذف";
  * preserved). Requires literally typing "حذف" before the real action is
  * even clickable.
  */
-function DeleteAccountConfirm({ onConfirm, onCancel, busy }) {
+function DeleteAccountConfirm({ onConfirm, onCancel, busy, error }) {
   const [typed, setTyped] = useState("");
-  const matches = typed.trim() === DELETE_CONFIRM_WORD;
+  const [password, setPassword] = useState("");
+  const matches = typed.trim() === DELETE_CONFIRM_WORD && password.length > 0;
   return (
     <div className="neoSettingsDeleteConfirm" role="alertdialog" aria-label="تایید حذف حساب">
       <div className="neoSettingsDeleteConfirmHead">
         <AlertTriangle size={16} />
         <b>این کار برگشت‌ناپذیر است</b>
       </div>
-      <p>حساب و اطلاعاتی که فقط متعلق به خودت است برای همیشه حذف می‌شود. برای تایید، کلمه «{DELETE_CONFIRM_WORD}» را تایپ کن.</p>
+      <p>حساب و اطلاعاتی که فقط متعلق به خودت است برای همیشه حذف می‌شود. برای تایید، کلمه «{DELETE_CONFIRM_WORD}» را تایپ کن و رمز عبور فعلی‌ات را وارد کن.</p>
       <input
         type="text"
         inputMode="text"
@@ -48,12 +49,21 @@ function DeleteAccountConfirm({ onConfirm, onCancel, busy }) {
         placeholder={DELETE_CONFIRM_WORD}
         disabled={busy}
       />
+      <input
+        type="password"
+        autoComplete="current-password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        placeholder="رمز عبور فعلی"
+        disabled={busy}
+      />
+      {error ? <p className="neoSettingsDeleteConfirmError">{error}</p> : null}
       <div className="neoSettingsDeleteConfirmActions">
         <button type="button" onClick={onCancel} disabled={busy}>
           <X size={15} />
           انصراف
         </button>
-        <button type="button" className="is-danger" disabled={!matches || busy} onClick={onConfirm}>
+        <button type="button" className="is-danger" disabled={!matches || busy} onClick={() => onConfirm(password)}>
           <Trash2 size={15} />
           {busy ? "در حال حذف…" : "تایید حذف حساب"}
         </button>
@@ -118,6 +128,7 @@ export function ProfileSettingsPanel({
 }) {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleteBusy, setDeleteBusy] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   const commonToggles = (
     <SettingsGroup title={profileType === "artist" ? "کنترل تجربه مشتری" : "عمومی"}>
@@ -231,13 +242,18 @@ export function ProfileSettingsPanel({
         deleteConfirmOpen ? (
           <DeleteAccountConfirm
             busy={deleteBusy}
-            onCancel={() => setDeleteConfirmOpen(false)}
-            onConfirm={async () => {
+            error={deleteError}
+            onCancel={() => {
+              setDeleteConfirmOpen(false);
+              setDeleteError("");
+            }}
+            onConfirm={async (password) => {
               setDeleteBusy(true);
-              try {
-                await onDeleteAccount();
-              } finally {
-                setDeleteBusy(false);
+              setDeleteError("");
+              const result = await onDeleteAccount(password);
+              setDeleteBusy(false);
+              if (result && result.ok === false) {
+                setDeleteError(result.error || "رمز عبور اشتباه است.");
               }
             }}
           />

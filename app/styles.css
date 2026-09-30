@@ -10451,6 +10451,14 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   text-align: center;
 }
 
+.neoSettingsDeleteConfirmError{
+  margin: 0;
+  color: var(--rose, #9b3650);
+  font-size: 0.74rem;
+  font-weight: 800;
+  line-height: 1.6;
+}
+
 .neoSettingsDeleteConfirmActions{
   display: grid;
   grid-template-columns: 1fr 1.4fr;
