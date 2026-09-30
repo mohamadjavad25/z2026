@@ -5,7 +5,7 @@ import { resolveRollingPersianDateKey } from "../../../shared/lib/persianCalenda
 import { normalizeBookingTimeLabel } from "../../../shared/lib/time.js";
 import { normalizePhone } from "./salons/common.js";
 import { isProfileSaved } from "./social.js";
-import { getSettings } from "./userSettings.js";
+import { getSettings, DEFAULT_SETTINGS } from "./userSettings.js";
 
 export { ensureArtistHours, listArtistHours, updateArtistHour } from "./artists/hours.js";
 
@@ -741,11 +741,21 @@ export async function listArtists({ cursor, limit } = {}) {
   // An artist switched to "خصوصی" via تنظیمات → ویترین عمومی آرتیست must be
   // hidden from the public directory, same rule salons.listSalons()
   // already enforces for its equivalent toggle -- this was previously
-  // never checked at all for artists. Settings lookups are independent
-  // per row, so run them concurrently instead of one full row at a time
-  // (same fix as listSalons() -- see its comment for why this matters).
-  const settingsByRow = await Promise.all(rows.map((row) => getSettings(row.id, db)));
-  const visible = rows.filter((row, index) => settingsByRow[index].publicPortfolio !== false);
+  // never checked at all for artists. One batched query for every row's
+  // settings instead of N round-trips (same fix as listSalons(), see its
+  // comment for the round-trip-count reasoning).
+  const userIds = rows.map((row) => row.id);
+  const settingsRows = userIds.length
+    ? await all(db, "SELECT user_id, settings FROM user_settings WHERE user_id = ANY(?)", [userIds])
+    : [];
+  const settingsByUser = new Map(settingsRows.map((r) => [
+    r.user_id,
+    r.settings && typeof r.settings === "object" ? r.settings : {}
+  ]));
+  const visible = rows.filter((row) => {
+    const settings = { ...DEFAULT_SETTINGS, ...(settingsByUser.get(row.id) || {}) };
+    return settings.publicPortfolio !== false;
+  });
   // Media URL, not raw base64 -- see app/api/media/avatar/[userId]/route.js.
   const mapped = visible.map((row) => ({
     ...row,

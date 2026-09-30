@@ -1,8 +1,8 @@
 import { getDb, all, get, run } from "../connection.js";
 import { countFollowers } from "./users.js";
 import { isProfileSaved } from "./social.js";
-import { getSettings } from "./userSettings.js";
-import { countFollowing } from "./salons/common.js";
+import { getSettings, DEFAULT_SETTINGS } from "./userSettings.js";
+import { countFollowing, defaultHours } from "./salons/common.js";
 import { listSalonBookings } from "./salons/bookings.js";
 import { listSalonHours } from "./salons/hours.js";
 import { listSalonPortfolio } from "./salons/portfolio.js";
@@ -76,31 +76,75 @@ export async function listSalons({ cursor, limit } = {}) {
   const hasMore = pageSize ? rawRows.length > pageSize : false;
   const rows = pageSize ? rawRows.slice(0, pageSize) : rawRows;
   const nextCursor = hasMore ? rows[rows.length - 1].user_id : null;
-  // Each row needs 7 more lookups (settings, 2 counts, staff/services/
-  // portfolio/hours) -- this used to run all of that dead sequentially, one
-  // full row at a time (1 + 7*N round-trips to Postgres through Supavisor,
-  // none overlapping). With any real number of salons that's the app's
-  // single heaviest source of DB round-trips, and a big part of why
-  // /api/salons was one of the routes hit hardest by the statement-timeout
-  // incidents. None of these 7 lookups depend on each other or on another
-  // row, so they can all run concurrently -- the shared pool (capped at 5
-  // in connection.js) still bounds how many physical queries are in flight
-  // at once, this just stops them queuing behind each other for no reason.
-  const built = await Promise.all(rows.map(async (row) => {
+
+  if (rows.length === 0) {
+    return pageSize ? { salons: [], nextCursor: null } : [];
+  }
+
+  // This used to run 7 lookups PER ROW (settings, 2 follow counts, staff,
+  // services, portfolio, hours) -- with Promise.all per row, but still
+  // 1 + 7*N round-trips total, all competing for the 5-connection pool
+  // (connection.js), which meant "concurrent" mostly just meant "queued
+  // 5-wide" rather than actually fast. That was the single heaviest source
+  // of DB round-trips in the app and the main reason /api/salons (hit on
+  // every app boot and again after every login) was slow.
+  //
+  // Batched instead: one query per *kind* of lookup, covering every salon
+  // on this page at once, independent of how many salons there are.
+  //
+  // staff/portfolio are deliberately NOT fetched here (unlike before) --
+  // grepped every directory/browse consumer (useSalonDirectory.js,
+  // HomeApp.jsx): none of them read salon.staff/.portfolio from this list
+  // shape. Opening a salon's detail view (selectSalonWithDetail in
+  // HomeApp.jsx) always re-fetches the full single-salon getSalon() payload
+  // -- which still includes staff/portfolio, unchanged below -- and merges
+  // it over whatever came from this list. services/hours ARE kept because
+  // useSalonDirectory.js's inline booking modal reads them directly off a
+  // directory row without waiting for that detail fetch.
+  const userIds = rows.map((row) => row.user_id);
+  const [settingsRows, followerRows, followingRows, serviceRows, hourRows] = await Promise.all([
+    all(db, "SELECT user_id, settings FROM user_settings WHERE user_id = ANY(?)", [userIds]),
+    all(db, "SELECT target_user_id, COUNT(*) AS c FROM follows WHERE target_user_id = ANY(?) GROUP BY target_user_id", [userIds]),
+    all(db, "SELECT follower_user_id, COUNT(*) AS c FROM follows WHERE follower_user_id = ANY(?) GROUP BY follower_user_id", [userIds]),
+    // Deliberately a plain column select, not listSalonServices()'s
+    // staff-enrichment JOIN (which itself calls listSalonStaff(), the
+    // expensive per-staff artist-resolution fanout) -- confirmed nothing
+    // in the directory/booking-modal path reads service.staff_members/
+    // staff_names, only .name/.price/.duration/.hint, all plain columns.
+    all(db, "SELECT * FROM salon_services WHERE salon_user_id = ANY(?) ORDER BY id", [userIds]),
+    all(db, "SELECT * FROM salon_hours WHERE salon_user_id = ANY(?)", [userIds])
+  ]);
+
+  const settingsByUser = new Map(settingsRows.map((r) => [
+    r.user_id,
+    r.settings && typeof r.settings === "object" ? r.settings : {}
+  ]));
+  const followerByUser = new Map(followerRows.map((r) => [r.target_user_id, Number(r.c)]));
+  const followingByUser = new Map(followingRows.map((r) => [r.follower_user_id, Number(r.c)]));
+  const servicesByUser = new Map();
+  for (const svc of serviceRows) {
+    if (!servicesByUser.has(svc.salon_user_id)) servicesByUser.set(svc.salon_user_id, []);
+    servicesByUser.get(svc.salon_user_id).push(svc);
+  }
+  const hourOrder = new Map(defaultHours.map((h, i) => [h.day, i]));
+  const hoursByUser = new Map();
+  for (const hour of hourRows) {
+    if (!hoursByUser.has(hour.salon_user_id)) hoursByUser.set(hour.salon_user_id, []);
+    hoursByUser.get(hour.salon_user_id).push(hour);
+  }
+  for (const list of hoursByUser.values()) {
+    list.sort((a, b) => (hourOrder.get(a.day) ?? 99) - (hourOrder.get(b.day) ?? 99));
+  }
+
+  const built = rows.map((row) => {
     // A salon switched to "خصوصی" via تنظیمات → پروفایل عمومی سالن must be
     // hidden from the public directory — this was previously never checked
     // at all for salons, so toggling the setting off did nothing on the
     // read side (still fully listed here).
-    const settings = await getSettings(row.user_id, db);
+    const settings = { ...DEFAULT_SETTINGS, ...(settingsByUser.get(row.user_id) || {}) };
     if (settings.publicPortfolio === false) return null;
-    const [followingCount, followerCount, staff, services, portfolio, hours] = await Promise.all([
-      countFollowing(row.user_id, db),
-      countFollowers(row.user_id, db),
-      listSalonStaff(row.user_id, db),
-      listSalonServices(row.user_id, db),
-      listSalonPortfolio(row.user_id, db),
-      listSalonHours(row.user_id, db)
-    ]);
+    const followerCount = followerByUser.get(row.user_id) || 0;
+    const followingCount = followingByUser.get(row.user_id) || 0;
     return {
       id: row.user_id,
       user_id: row.user_id,
@@ -130,12 +174,12 @@ export async function listSalons({ cursor, limit } = {}) {
       post_count: row.post_count,
       follower_count: followerCount,
       following_count: followingCount,
-      services,
-      portfolio,
-      staff,
-      hours
+      services: servicesByUser.get(row.user_id) || [],
+      hours: hoursByUser.get(row.user_id) || [],
+      portfolio: [],
+      staff: []
     };
-  }));
+  });
   const visible = built.filter(Boolean);
   return pageSize ? { salons: visible, nextCursor } : visible;
 }
