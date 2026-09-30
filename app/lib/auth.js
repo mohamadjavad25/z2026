@@ -50,16 +50,34 @@ export function verifyPassword(password, stored) {
   return timingSafeEqual(prev, next);
 }
 
-/** Timing-safe check of the `x-admin-token` header against
- *  ZIBABAN_ADMIN_TOKEN (gates the manual password-reset admin queue) --
+/** Timing-safe check of a request header against an expected secret --
  *  same timingSafeEqual pattern as verifyPassword above, instead of a plain
  *  `===` that leaks how many leading bytes matched via response timing.
  *  Length-checked first since timingSafeEqual throws on a length mismatch
- *  rather than returning false. */
-export function verifyAdminToken(request) {
-  const expected = process.env.ZIBABAN_ADMIN_TOKEN || "";
+ *  rather than returning false. Returns false (never throws) if `expected`
+ *  is unset, so a misconfigured deployment fails closed. */
+function verifyHeaderSecret(request, headerName, expected) {
   if (!expected) return false;
-  const provided = request.headers.get("x-admin-token") || "";
+  const provided = request.headers.get(headerName) || "";
+  const expectedBuf = Buffer.from(expected);
+  const providedBuf = Buffer.from(provided);
+  if (expectedBuf.length !== providedBuf.length) return false;
+  return timingSafeEqual(expectedBuf, providedBuf);
+}
+
+/** Gates the manual password-reset admin queue. */
+export function verifyAdminToken(request) {
+  return verifyHeaderSecret(request, "x-admin-token", process.env.ZIBABAN_ADMIN_TOKEN || "");
+}
+
+/** Gates app/api/cron/* endpoints -- a scheduler (Supabase pg_cron via
+ *  `net.http_post`, or any external scheduler) calls these with
+ *  `Authorization: Bearer <CRON_SECRET>`. */
+export function verifyCronSecret(request) {
+  const auth = request.headers.get("authorization") || "";
+  const provided = auth.startsWith("Bearer ") ? auth.slice(7) : "";
+  const expected = process.env.CRON_SECRET || "";
+  if (!expected) return false;
   const expectedBuf = Buffer.from(expected);
   const providedBuf = Buffer.from(provided);
   if (expectedBuf.length !== providedBuf.length) return false;

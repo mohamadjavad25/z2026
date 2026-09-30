@@ -101,9 +101,9 @@ async function _POST(request) {
 
   // Per-caller throttle against booking-spam (a client scripting repeated
   // reservation requests, or a compromised session flooding a salon's
-  // schedule). Same in-memory limiter/pattern this codebase already uses for
+  // schedule). Same DB-backed limiter/pattern this codebase already uses for
   // other abuse-prone routes (see /api/auth/login, /api/artist/bookings).
-  const bookingLimited = checkRateLimit(`salon-booking-create:${auth.user.id}`, 20, 60_000);
+  const bookingLimited = await checkRateLimit(`salon-booking-create:${auth.user.id}`, 20, 60_000);
   if (!bookingLimited.ok) {
     return noStoreJson({ error: "درخواست‌های زیاد. کمی صبر کن." }, { status: 429 });
   }

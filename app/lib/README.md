@@ -12,7 +12,7 @@ app/api/                 Next.js route handlers
 app/lib/http.js          shared API response/auth guards
 app/lib/auth.js          sessions, cookies, password helpers
 app/lib/push.js          web push (VAPID) subscribe/send helpers
-app/lib/rateLimit.js     in-memory rate limiting for sensitive routes
+app/lib/rateLimit.js     DB-backed rate limiting for sensitive routes
 app/lib/bookingExpirySweep.js  background sweep that expires stale bookings
 app/lib/db/
   connection.js          Postgres pool/connection, query helpers, withTransaction()

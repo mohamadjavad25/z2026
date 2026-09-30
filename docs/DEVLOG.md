@@ -14,6 +14,29 @@
 
 ---
 
+## 2026-09-30 — Rate limiting به Postgres منتقل شد؛ expiry sweep از setInterval به یه cron endpoint واقعی
+- **مشکل واقعی**: `app/lib/rateLimit.js` یه `Map` توی حافظه بود، با این کامنت که «این اپ deployment چندنمونه‌ای/serverless نداره» — این ادعا برای هدف واقعی دیپلوی این پروژه (Vercel serverless + Supabase) اشتباه بود: هر instance سرورلس حافظه‌ی پروسه‌ی جدا داره، پس یه rate limit با هر cold start ریست می‌شد و با پخش‌شدن درخواست‌ها بین چند instance به‌راحتی دور زده می‌شد.
+- **رفع شد**: `migrations/007_rate_limit_hits.sql` یه جدول `rate_limit_hits(key, hit_at)` با ایندکس روی `(key, hit_at)` اضافه کرد؛ `app/lib/rateLimit.js` بازنویسی شد تا شمارش را از این جدول (نه یه Map محلی) بخونه. تابع الان async شده؛ هر ۵ نقطه‌ی صدازننده (`login`, `register`, `password-reset-requests`, `salon-bookings`, `artist/bookings`) به‌روزرسانی شدن.
+- **تست واقعی و قانع‌کننده**: چون در این محیط چندتا instance سرورلس واقعی وجود نداره، دقیقاً سناریوی مشکل رو با **دو پروسه‌ی Node کاملاً جدا** (پورت‌های ۳۰۰۰ و ۳۰۰۱، هر دو به یه دیتابیس Postgres) شبیه‌سازی کردیم — یعنی دقیقاً همون چیزی که ادعای کامنت قدیمی می‌گفت اتفاق نمی‌افته. با محدودیت ۱۰ تلاش، ۱۱ درخواست لاگین غلط رو متناوب بین این دو پروسه فرستادیم: درخواست یازدهم درست با ۴۲۹ رد شد — با پیاده‌سازی قبلی (Map جدا در هر پروسه) این تست باید ۲۰ تلاش رو قبول می‌کرد (۱۰ تا در هر پروسه) قبل از اینکه هر کدوم به‌تنهایی محدود بشن.
+- **همین مشکل برای expiry sweep هم وجود داشت**: `bookingExpirySweep.js` یه `setInterval` خودراه‌انداز داشت که روی سرورلس هیچ تضمینی نداره واقعاً اجرا بشه (instance ممکنه scale-to-zero بشه). حذف شد؛ به‌جاش `app/api/cron/expire-bookings/route.js` اضافه شد که `sweepExpiredBookingRequestsOnce()` رو صدا می‌زنه، پشت `Authorization: Bearer $CRON_SECRET` (مقایسه‌ی timing-safe، همون الگوی `verifyAdminToken`). `instrumentation.js` که فقط برای self-start این دو ماژول وجود داشت، چون دیگه هیچ‌کدوم self-start نمی‌کنن، حذف شد.
+- با تست واقعی تأیید شد: endpoint بدون/با secret غلط → ۴۰۱؛ با secret درست → اجرای واقعی sweep؛ یه رزرو ۲ ساعت قبل (بک‌دیت‌شده، فراتر از پنجره‌ی ۶۰ دقیقه‌ای) با فراخوانی endpoint واقعاً به `منقضی شده` تغییر وضعیت داد.
+- **کاری که انجام نشد و مستند می‌مونه**: واقعاً زمان‌بندی‌کردن این endpoint (یعنی یه scheduler واقعی که هر ۳ دقیقه صداش بزنه) نیاز به یه پروژه‌ی واقعی Supabase داره که در این محیط وجود نداره. برای راه‌اندازی در آینده روی یه پروژه‌ی واقعی Supabase:
+  ```sql
+  -- یک‌بار، روی پروژه‌ی واقعی Supabase (که pg_cron از قبل فعاله):
+  select cron.schedule(
+    'expire-bookings',
+    '*/3 * * * *', -- هر ۳ دقیقه، هم‌راستا با RECOMMENDED_SWEEP_INTERVAL_MS
+    $$
+    select net.http_post(
+      url := 'https://<your-deployed-domain>/api/cron/expire-bookings',
+      headers := jsonb_build_object('Authorization', 'Bearer ' || '<CRON_SECRET واقعی>')
+    );
+    $$
+  );
+  ```
+  `CRON_SECRET` باید هم در `.env`ی دیپلوی‌شده‌ی اپ و هم توی این SQL (یا بهتر، از طریق Supabase Vault) یکسان تنظیم بشه. جایگزین: هر scheduler خارجی دیگه (مثل یه GitHub Action با cron trigger) هم کار می‌کنه، چون endpoint فقط یه POST با هدر Authorization می‌خواد، وابسته به هیچ ویژگی خاص Supabase نیست.
+- فایل‌های اصلی تغییر کرده: `migrations/007_rate_limit_hits.sql` (جدید)، `app/lib/rateLimit.js`، `app/lib/bookingExpirySweep.js`، `app/lib/auth.js` (`verifyCronSecret`)، `app/api/cron/expire-bookings/route.js` (جدید)، حذف `instrumentation.js`، ۵ route که `checkRateLimit` صدا می‌زنن.
+
 ## 2026-09-30 — سقف حجم سمت سرور برای آپلود عکس‌ها؛ جابه‌جایی به Supabase Storage به‌عنوان کار آینده مستند شد
 - تا امروز، اعتبارسنجی حجم عکس‌های آپلودی (آواتار، پوستر، عکس پست، عکس نمونه‌کار سالن) فقط سمت کلاینت (جاوااسکریپت مرورگر، قبل از `FileReader.readAsDataURL`) بود — یعنی با یه درخواست مستقیم به API قابل دور زدن بود و هیچ سقفی روی حجمی که واقعاً توی ستون‌های `TEXT` پستگرس ذخیره می‌شد وجود نداشت.
 - `app/lib/mediaLimits.js` اضافه شد: تابع `isImageDataUrlTooLarge()` که حجم واقعی (decode‌شده) یه رشته‌ی `data:...;base64,...` رو حساب می‌کنه و در برابر سقف ۵ مگابایت چک می‌کنه؛ برای رشته‌هایی که اصلاً `data:` URL نیستن (مثلاً وقتی کلاینت همون آدرس رسانه‌ی موجود رو بدون تغییر دوباره می‌فرسته) هیچ‌وقت true برنمی‌گردونه، تا یه آپلود عوض‌نشده اشتباهی رد نشه.

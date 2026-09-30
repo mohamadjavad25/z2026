@@ -30,7 +30,7 @@ async function _POST(request) {
       return NextResponse.json({ error: "شماره تماس باید یک شماره موبایل معتبر ایران باشد." }, { status: 400 });
     }
 
-    const limited = checkRateLimit(`password-reset-request:${phone}`, REQUEST_LIMIT, REQUEST_WINDOW_MS);
+    const limited = await checkRateLimit(`password-reset-request:${phone}`, REQUEST_LIMIT, REQUEST_WINDOW_MS);
     if (!limited.ok) {
       return NextResponse.json(
         { error: "درخواست‌های زیادی ثبت شده. کمی بعد دوباره امتحان کن.", code: "rate_limited" },
