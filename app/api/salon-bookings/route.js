@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
-import { requireUser } from "../../lib/http.js";
+import { requireUser, validateBody } from "../../lib/http.js";
 import { ensureDb } from "../../lib/db/connection.js";
 import * as salons from "../../lib/db/repos/salons.js";
 import * as artists from "../../lib/db/repos/artists.js";
 import { checkRateLimit } from "../../lib/rateLimit.js";
 import { sendPushToUser } from "../../lib/push.js";
+import { createBookingSchema } from "../../lib/validation/booking.js";
 // Side-effect import: starts the once-per-process 1-hour booking-request
 // auto-expiry sweep (see that file's docstring) the first time this route
 // module loads — same self-starting-on-import convention as
@@ -111,6 +112,13 @@ export async function POST(request) {
   if (!["client", "salon"].includes(auth.user.type)) {
     return noStoreJson({ error: "فقط مشتری یا سالن می‌تواند رزرو ثبت کند." }, { status: 403 });
   }
+  // Validated/stripped body used only for the addSalonBooking() spread
+  // below -- zod drops any unlisted key (in particular `status`), so a
+  // caller can never self-confirm a booking by including "status": "تایید شده"
+  // in the request; every other field on this route still reads from the
+  // raw `body` above, unaffected.
+  const v = validateBody(createBookingSchema, body);
+  if (!v.ok) return v.response;
   const salonUserId = body.salonUserId ? Number(body.salonUserId) : auth.user.id;
   if (!salonUserId) return noStoreJson({ error: "شناسه سالن نامعتبر است." }, { status: 400 });
   const salon = await salons.getSalon(salonUserId);
@@ -159,7 +167,7 @@ export async function POST(request) {
     }, { status: 409 });
   }
   const result = await salons.addSalonBooking(salonUserId, {
-    ...body,
+    ...v.data,
     client,
     phone,
     service,

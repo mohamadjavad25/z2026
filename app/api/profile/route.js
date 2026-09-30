@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { hashPassword, publicUser, verifyPassword } from "../../lib/auth.js";
 import { ensureDb } from "../../lib/db/connection.js";
 import * as users from "../../lib/db/repos/users.js";
-import { requireUser } from "../../lib/http.js";
+import { requireUser, validateBody } from "../../lib/http.js";
+import { profileUpdateSchema } from "../../lib/validation/user.js";
 
 export const runtime = "nodejs";
 
@@ -28,7 +29,10 @@ export async function POST(request) {
       );
     }
 
-    const data = body.data || body;
+    const rawData = body.data || body;
+    const v = validateBody(profileUpdateSchema, rawData);
+    if (!v.ok) return v.response;
+    const data = v.data;
     const patch = {
       name: data.name,
       phone: data.phone,

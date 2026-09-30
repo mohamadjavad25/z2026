@@ -41,3 +41,19 @@ export async function requireUserRole(request, role, message) {
   if (forbidden) return { ok: false, user: auth.user, response: forbidden };
   return auth;
 }
+
+/** Validates `body` against a zod `schema`. On failure returns a 400 whose
+ *  message is the first validation issue, in the same `{ ok, response }`
+ *  shape as requireUser/requireUserRole so route code reads the same way:
+ *  `const v = validateBody(schema, body); if (!v.ok) return v.response;`.
+ *  On success, `v.data` is the parsed (and any zod-coerced/defaulted)
+ *  value -- routes should use it instead of the raw body from here on. */
+export function validateBody(schema, body) {
+  const result = schema.safeParse(body);
+  if (!result.success) {
+    const issue = result.error.issues[0];
+    const path = issue?.path?.length ? `${issue.path.join(".")}: ` : "";
+    return { ok: false, data: null, response: error(`${path}${issue?.message || "ورودی نامعتبر است."}`, 400) };
+  }
+  return { ok: true, data: result.data, response: null };
+}
