@@ -45,22 +45,54 @@ const postSelect = `
   JOIN users u ON u.id = p.owner_user_id
 `;
 
-export async function listExplorePosts({ tag } = {}, runner = null) {
+/**
+ * Cursor-paginated when `limit` is given (GET /api/explore/posts); called
+ * with no `limit` (any other internal caller) returns the full, unbounded
+ * feed -- same opt-in-by-passing-limit convention as listSalons()/
+ * listArtists().
+ *
+ * The feed sorts `featured DESC, created_at DESC` (featured posts always
+ * first), so a plain `id < cursor` keyset isn't correct on its own -- a
+ * non-featured post's id can be lower than a featured one that sorts
+ * before it. Cursors instead on the same compound key it sorts by, using
+ * Postgres row comparison `(p.featured, p.id) < (?, ?)` (id substitutes for
+ * created_at as the tiebreaker -- both are monotonic with insertion order,
+ * and id gives an exact, unique tiebreaker a timestamp isn't guaranteed to).
+ * Encoded as a single opaque "1:123"/"0:123" string so route/frontend code
+ * threads one cursor value, not two.
+ */
+export async function listExplorePosts({ tag, cursor, limit } = {}, runner = null) {
   const db = runner || (await getDb());
+  const params = [];
+  let where = "p.in_explore";
   if (tag && tag !== "همه") {
-    const rows = await all(db, `
-      ${postSelect}
-      WHERE p.in_explore AND p.tag = ?
-      ORDER BY p.featured DESC, p.created_at DESC
-    `, [tag]);
-    return rows.map(mapPost);
+    where += " AND p.tag = ?";
+    params.push(tag);
   }
-  const rows = await all(db, `
+  if (cursor) {
+    const [cFeatured, cId] = String(cursor).split(":");
+    where += " AND (p.featured, p.id) < (?, ?)";
+    params.push(cFeatured === "1", Number(cId) || 0);
+  }
+  let limitClause = "";
+  const pageSize = limit ? Math.min(Math.max(Number(limit) || 20, 1), 50) : null;
+  if (pageSize) {
+    limitClause = "LIMIT ?";
+    params.push(pageSize + 1);
+  }
+  const rawRows = await all(db, `
     ${postSelect}
-    WHERE p.in_explore
-    ORDER BY p.featured DESC, p.created_at DESC
-  `);
-  return rows.map(mapPost);
+    WHERE ${where}
+    ORDER BY p.featured DESC, p.id DESC
+    ${limitClause}
+  `, params);
+  const hasMore = pageSize ? rawRows.length > pageSize : false;
+  const rows = pageSize ? rawRows.slice(0, pageSize) : rawRows;
+  const nextCursor = hasMore
+    ? `${rows[rows.length - 1].featured ? 1 : 0}:${rows[rows.length - 1].id}`
+    : null;
+  const mapped = rows.map(mapPost);
+  return pageSize ? { posts: mapped, nextCursor } : mapped;
 }
 
 export async function listPostsByOwner(ownerUserId, runner = null) {

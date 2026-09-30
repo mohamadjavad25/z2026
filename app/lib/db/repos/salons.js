@@ -32,13 +32,50 @@ export {
   getSalonJoinPreview
 } from "./salons/invites.js";
 
-export async function listSalons() {
+/**
+ * Cursor-paginated when `limit` is given (GET /api/salons); called with no
+ * arguments it returns the full, unbounded list -- app/sitemap.js needs
+ * every salon to build a complete sitemap, not one page of them, so that
+ * caller intentionally omits `limit`.
+ *
+ * Cursors on s.user_id (salons' own primary key, a FK onto the
+ * SERIAL users.id -- unique and monotonic with creation order, so it's a
+ * correct, indexed substitute for cursoring on created_at, which isn't
+ * guaranteed unique). Fetches `limit + 1` raw rows to detect whether
+ * another page exists without a separate COUNT(*) query.
+ *
+ * Note: the per-row publicPortfolio privacy filter below runs AFTER this
+ * page is fetched, so a page can come back with fewer than `limit` visible
+ * salons even when more exist later (the filtered-out rows still consumed
+ * a slot in this page's LIMIT) -- an accepted tradeoff for keeping the
+ * query itself simple, not a pagination bug: nextCursor always reflects
+ * the true underlying table position, so paging through it still visits
+ * every row exactly once.
+ */
+export async function listSalons({ cursor, limit } = {}) {
   const db = await getDb();
-  const rows = await all(db, `
+  const params = [];
+  let where = "";
+  if (cursor != null) {
+    where = "WHERE s.user_id < ?";
+    params.push(Number(cursor));
+  }
+  let limitClause = "";
+  const pageSize = limit ? Math.min(Math.max(Number(limit) || 20, 1), 50) : null;
+  if (pageSize) {
+    limitClause = "LIMIT ?";
+    params.push(pageSize + 1);
+  }
+  const rawRows = await all(db, `
     SELECT s.*, u.avatar, u.bio, u.avatar_position
     FROM salons s JOIN users u ON u.id = s.user_id
-    ORDER BY s.created_at DESC
-  `);
+    ${where}
+    ORDER BY s.user_id DESC
+    ${limitClause}
+  `, params);
+  const hasMore = pageSize ? rawRows.length > pageSize : false;
+  const rows = pageSize ? rawRows.slice(0, pageSize) : rawRows;
+  const nextCursor = hasMore ? rows[rows.length - 1].user_id : null;
   // Each row needs 7 more lookups (settings, 2 counts, staff/services/
   // portfolio/hours) -- this used to run all of that dead sequentially, one
   // full row at a time (1 + 7*N round-trips to Postgres through Supavisor,
@@ -99,7 +136,8 @@ export async function listSalons() {
       hours
     };
   }));
-  return built.filter(Boolean);
+  const visible = built.filter(Boolean);
+  return pageSize ? { salons: visible, nextCursor } : visible;
 }
 
 /**

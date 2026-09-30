@@ -711,11 +711,33 @@ export async function getPublicArtist(userId, viewerUserId = null) {
   };
 }
 
-export async function listArtists() {
+/**
+ * Cursor-paginated when `limit` is given (GET /api/artists); called with no
+ * arguments (app/sitemap.js) returns the full, unbounded list -- see
+ * salons.js's listSalons() for the identical reasoning (same nextCursor/
+ * privacy-filter-after-fetch tradeoff, same why-not-created_at note).
+ * Cursors on users.id, artists' own primary key.
+ */
+export async function listArtists({ cursor, limit } = {}) {
   const db = await getDb();
-  const rows = await all(db, `
-    SELECT id, name, area, service, avatar, bio, avatar_position FROM users WHERE type = 'artist' ORDER BY created_at DESC
-  `);
+  const params = [];
+  let where = "type = 'artist'";
+  if (cursor != null) {
+    where += " AND id < ?";
+    params.push(Number(cursor));
+  }
+  let limitClause = "";
+  const pageSize = limit ? Math.min(Math.max(Number(limit) || 20, 1), 50) : null;
+  if (pageSize) {
+    limitClause = "LIMIT ?";
+    params.push(pageSize + 1);
+  }
+  const rawRows = await all(db, `
+    SELECT id, name, area, service, avatar, bio, avatar_position FROM users WHERE ${where} ORDER BY id DESC ${limitClause}
+  `, params);
+  const hasMore = pageSize ? rawRows.length > pageSize : false;
+  const rows = pageSize ? rawRows.slice(0, pageSize) : rawRows;
+  const nextCursor = hasMore ? rows[rows.length - 1].id : null;
   // An artist switched to "خصوصی" via تنظیمات → ویترین عمومی آرتیست must be
   // hidden from the public directory, same rule salons.listSalons()
   // already enforces for its equivalent toggle -- this was previously
@@ -725,11 +747,12 @@ export async function listArtists() {
   const settingsByRow = await Promise.all(rows.map((row) => getSettings(row.id, db)));
   const visible = rows.filter((row, index) => settingsByRow[index].publicPortfolio !== false);
   // Media URL, not raw base64 -- see app/api/media/avatar/[userId]/route.js.
-  return visible.map((row) => ({
+  const mapped = visible.map((row) => ({
     ...row,
     avatar: row.avatar ? `/api/media/avatar/${row.id}` : "",
     avatarPosition: row.avatar_position || ""
   }));
+  return pageSize ? { artists: mapped, nextCursor } : mapped;
 }
 
 /**
