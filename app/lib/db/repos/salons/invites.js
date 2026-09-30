@@ -173,12 +173,6 @@ export async function createSalonArtistInvite(salonUserId, data) {
     return { ok: false, error: "این آرتیست همین حالا در پرسنل سالن است.", code: "ALREADY_STAFF" };
   }
 
-  const existing = await get(db, `
-    SELECT * FROM salon_artist_invites
-    WHERE salon_user_id = ? AND artist_user_id = ?
-    LIMIT 1
-  `, [salonUserId, artistUserId]);
-
   const role = data.role || artist.service || "آرتیست";
   const bio = data.bio || artist.bio || artist.area || "دعوت‌شده از آرتیست‌های نزدیک";
   const accessLevel = data.accessLevel || data.access_level || "همکار";
@@ -188,38 +182,58 @@ export async function createSalonArtistInvite(salonUserId, data) {
   const sharePercent = data.share || data.sharePercent || data.share_percent || "";
   const capacity = data.capacity || "";
 
-  if (existing) {
-    if (existing.status === PENDING) {
-      return {
-        ok: false,
-        error: "دعوت قبلی هنوز در انتظار تایید آرتیست است.",
-        code: "PENDING_EXISTS",
-        invite: mapSalonInvite(await getInviteRow(existing.id, db))
-      };
-    }
-    if (existing.status === ACCEPTED) {
-      return { ok: false, error: "این آرتیست قبلا دعوت را پذیرفته است.", code: "ALREADY_ACCEPTED" };
-    }
-    await run(db, `
-      UPDATE salon_artist_invites
-      SET role = ?, bio = ?, access_level = ?, days = ?, from_time = ?, to_time = ?, share_percent = ?, capacity = ?, status = ?, updated_at = CURRENT_TIMESTAMP
-      WHERE id = ?
-    `, [role, bio, accessLevel, days, fromTime, toTime, sharePercent, capacity, PENDING, existing.id]);
-    return { ok: true, invite: mapSalonInvite(await getInviteRow(existing.id, db)), created: false };
-  }
-
-  const info = await run(db, `
+  // Atomic insert-or-detect-conflict, same fix as toggleFollow/toggleSave
+  // (app/lib/db/repos/social.js): the old code did SELECT existing, branch,
+  // THEN INSERT -- so two truly concurrent requests for the same (salon,
+  // artist) pair could both pass the "no existing row" check before
+  // either committed, both attempt the INSERT, and the loser crash with a
+  // raw, unhandled Postgres 23505 unique-violation instead of a
+  // structured response. ON CONFLICT DO NOTHING means at most one
+  // concurrent INSERT ever wins; salon_artist_invites' own
+  // UNIQUE(salon_user_id, artist_user_id) constraint (migrations/001_baseline.sql)
+  // is what backs this.
+  const inserted = await run(db, `
     INSERT INTO salon_artist_invites
       (salon_user_id, artist_user_id, role, bio, access_level, days, from_time, to_time, share_percent, capacity, status)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT (salon_user_id, artist_user_id) DO NOTHING
     RETURNING id
   `, [salonUserId, artistUserId, role, bio, accessLevel, days, fromTime, toTime, sharePercent, capacity, PENDING]);
 
-  return {
-    ok: true,
-    invite: mapSalonInvite(await getInviteRow(Number(info.rows[0].id), db)),
-    created: true
-  };
+  if (inserted.rows[0]) {
+    return {
+      ok: true,
+      invite: mapSalonInvite(await getInviteRow(Number(inserted.rows[0].id), db)),
+      created: true
+    };
+  }
+
+  // Conflict happened -- a row already exists (from before, or from a
+  // concurrent request that just won the race above). Re-fetch it now
+  // that it's guaranteed to exist, and branch exactly as before.
+  const existing = await get(db, `
+    SELECT * FROM salon_artist_invites
+    WHERE salon_user_id = ? AND artist_user_id = ?
+    LIMIT 1
+  `, [salonUserId, artistUserId]);
+
+  if (existing.status === PENDING) {
+    return {
+      ok: false,
+      error: "دعوت قبلی هنوز در انتظار تایید آرتیست است.",
+      code: "PENDING_EXISTS",
+      invite: mapSalonInvite(await getInviteRow(existing.id, db))
+    };
+  }
+  if (existing.status === ACCEPTED) {
+    return { ok: false, error: "این آرتیست قبلا دعوت را پذیرفته است.", code: "ALREADY_ACCEPTED" };
+  }
+  await run(db, `
+    UPDATE salon_artist_invites
+    SET role = ?, bio = ?, access_level = ?, days = ?, from_time = ?, to_time = ?, share_percent = ?, capacity = ?, status = ?, updated_at = CURRENT_TIMESTAMP
+    WHERE id = ?
+  `, [role, bio, accessLevel, days, fromTime, toTime, sharePercent, capacity, PENDING, existing.id]);
+  return { ok: true, invite: mapSalonInvite(await getInviteRow(existing.id, db)), created: false };
 }
 
 /**

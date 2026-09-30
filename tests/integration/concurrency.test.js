@@ -42,4 +42,31 @@ describe("toggle race conditions", () => {
     // actual insert -- see the rowCount-gated counter fix in posts.js.
     expect(Number(row.saves)).toBeLessThanOrEqual(1);
   });
+
+  it("10 truly concurrent salon-artist invites for the same pair never throw and leave exactly one pending invite", async () => {
+    const salon = createClient();
+    await registerUser(salon, { type: "salon", name: "Race Salon" });
+    const artistClient = createClient();
+    const artist = await registerUser(artistClient, { type: "artist", name: "Invited Artist" });
+
+    const results = await Promise.all(
+      Array.from({ length: 10 }, () => salon.post("/api/salon-invites", { artistUserId: artist.user.id }))
+    );
+    // No request should have failed with an unhandled-error 500 from a
+    // duplicate-key race (see app/lib/db/repos/salons/invites.js's
+    // createSalonArtistInvite -- same class of fix as toggleFollow/
+    // toggleSave above).
+    for (const res of results) {
+      expect(res.status).not.toBe(500);
+    }
+    // Exactly one request should have actually created the invite (201 +
+    // created: true); every other concurrent request must see the
+    // PENDING_EXISTS branch (400), never a second row.
+    const created = results.filter((res) => res.status === 201 && res.payload.created === true);
+    expect(created.length).toBe(1);
+
+    const invites = await salon.get("/api/salon-invites");
+    const matching = invites.payload.invites.filter((invite) => Number(invite.artistId) === artist.user.id);
+    expect(matching.length).toBe(1);
+  });
 });
