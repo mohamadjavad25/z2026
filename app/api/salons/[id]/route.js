@@ -2,10 +2,11 @@ import { NextResponse } from "next/server";
 import { getUserFromRequest } from "../../../lib/auth.js";
 import { ensureDb } from "../../../lib/db/connection.js";
 import * as salons from "../../../lib/db/repos/salons.js";
+import { withErrorHandling } from "../../../lib/http.js";
 
 export const runtime = "nodejs";
 
-export async function GET(request, context) {
+async function _GET(request, context) {
   await ensureDb();
   const params = await context?.params;
   const userId = Number(params?.id);
@@ -25,3 +26,5 @@ export async function GET(request, context) {
   }
   return NextResponse.json({ salon });
 }
+
+export const GET = withErrorHandling(_GET);

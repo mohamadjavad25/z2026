@@ -10,6 +10,7 @@ import {
 import { ensureDb } from "../../../lib/db/connection.js";
 import * as users from "../../../lib/db/repos/users.js";
 import { checkRateLimit } from "../../../lib/rateLimit.js";
+import { withErrorHandling } from "../../../lib/http.js";
 
 export const runtime = "nodejs";
 
@@ -22,7 +23,7 @@ export const runtime = "nodejs";
 const LOGIN_ATTEMPT_LIMIT = 10;
 const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 
-export async function POST(request) {
+async function _POST(request) {
   await ensureDb();
   const body = await request.json();
   const phone = normalizePhone(body.phone);
@@ -59,3 +60,5 @@ export async function POST(request) {
   setSessionCookie(response, session.token, session.expiresAt);
   return response;
 }
+
+export const POST = withErrorHandling(_POST);

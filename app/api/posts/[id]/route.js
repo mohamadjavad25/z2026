@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { requireUser } from "../../../lib/http.js";
+import { requireUser, withErrorHandling } from "../../../lib/http.js";
 import { ensureDb } from "../../../lib/db/connection.js";
 import * as posts from "../../../lib/db/repos/posts.js";
 
 export const runtime = "nodejs";
 
-export async function GET(_request, { params }) {
+async function _GET(_request, { params }) {
   await ensureDb();
   const { id } = await params;
   const post = await posts.getPostById(Number(id));
@@ -13,7 +13,7 @@ export async function GET(_request, { params }) {
   return NextResponse.json({ data: { post } });
 }
 
-export async function PATCH(request, { params }) {
+async function _PATCH(request, { params }) {
   await ensureDb();
   const auth = await requireUser(request);
   if (!auth.ok) return auth.response;
@@ -24,7 +24,7 @@ export async function PATCH(request, { params }) {
   return NextResponse.json({ data: { post } });
 }
 
-export async function DELETE(request, { params }) {
+async function _DELETE(request, { params }) {
   await ensureDb();
   const auth = await requireUser(request);
   if (!auth.ok) return auth.response;
@@ -33,3 +33,7 @@ export async function DELETE(request, { params }) {
   if (!ok) return NextResponse.json({ error: "یافت نشد." }, { status: 404 });
   return NextResponse.json({ data: { ok: true } });
 }
+
+export const GET = withErrorHandling(_GET);
+export const PATCH = withErrorHandling(_PATCH);
+export const DELETE = withErrorHandling(_DELETE);

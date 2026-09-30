@@ -12,6 +12,7 @@ import { ensureDb } from "../../../lib/db/connection.js";
 import * as users from "../../../lib/db/repos/users.js";
 import { ensureSalonHours } from "../../../lib/db/repos/salons.js";
 import { checkRateLimit } from "../../../lib/rateLimit.js";
+import { withErrorHandling } from "../../../lib/http.js";
 
 export const runtime = "nodejs";
 
@@ -24,7 +25,7 @@ export const runtime = "nodejs";
 const REGISTER_ATTEMPT_LIMIT = 5;
 const REGISTER_WINDOW_MS = 60 * 60 * 1000;
 
-export async function POST(request) {
+async function _POST(request) {
   await ensureDb();
   try {
     const body = await request.json();
@@ -78,3 +79,5 @@ export async function POST(request) {
     return NextResponse.json({ error: "ثبت‌نام انجام نشد." }, { status: 500 });
   }
 }
+
+export const POST = withErrorHandling(_POST);

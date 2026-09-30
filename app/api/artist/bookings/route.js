@@ -1,6 +1,6 @@
 import { getUserFromRequest } from "../../../lib/auth.js";
 import { ensureDb } from "../../../lib/db/connection.js";
-import { error, json, validateBody } from "../../../lib/http.js";
+import { error, json, validateBody, withErrorHandling } from "../../../lib/http.js";
 import * as artists from "../../../lib/db/repos/artists.js";
 import { checkRateLimit } from "../../../lib/rateLimit.js";
 import { sendPushToUser } from "../../../lib/push.js";
@@ -17,7 +17,7 @@ import "../../../lib/bookingExpirySweep.js";
 
 export const runtime = "nodejs";
 
-export async function POST(request) {
+async function _POST(request) {
   await ensureDb();
   const body = await request.json();
   const artistUserId = Number(body.artistUserId);
@@ -67,3 +67,5 @@ export async function POST(request) {
     }
   }, { status: 201 });
 }
+
+export const POST = withErrorHandling(_POST);

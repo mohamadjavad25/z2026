@@ -1,4 +1,4 @@
-import { json, notFound, requireUserRole } from "../../../lib/http.js";
+import { json, notFound, requireUserRole, withErrorHandling } from "../../../lib/http.js";
 import * as salons from "../../../lib/db/repos/salons.js";
 
 export const runtime = "nodejs";
@@ -6,7 +6,7 @@ export const runtime = "nodejs";
 /** POST /api/artist/join-salon — body: { salonUserId }. The artist-initiated
  *  counterpart of POST /api/salon-invites (salon → artist): scanning the
  *  salon's QR/link lands here and joins the team immediately. */
-export async function POST(request) {
+async function _POST(request) {
   const auth = await requireUserRole(request, "artist", "فقط آرتیست.");
   if (!auth.ok) return auth.response;
   const body = await request.json();
@@ -21,3 +21,5 @@ export async function POST(request) {
   }
   return json({ data: result }, { status: 201 });
 }
+
+export const POST = withErrorHandling(_POST);

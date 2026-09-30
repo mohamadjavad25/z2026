@@ -1,16 +1,16 @@
-import { json, notFound, requireUserRole } from "../../lib/http.js";
+import { json, notFound, requireUserRole, withErrorHandling } from "../../lib/http.js";
 import * as salons from "../../lib/db/repos/salons.js";
 import * as artists from "../../lib/db/repos/artists.js";
 
 export const runtime = "nodejs";
 
-export async function GET(request) {
+async function _GET(request) {
   const auth = await requireUserRole(request, "salon", "فقط سالن.");
   if (!auth.ok) return auth.response;
   return json({ staff: await salons.listSalonStaff(auth.user.id) });
 }
 
-export async function POST(request) {
+async function _POST(request) {
   const auth = await requireUserRole(request, "salon", "فقط سالن.");
   if (!auth.ok) return auth.response;
   const body = await request.json();
@@ -18,7 +18,7 @@ export async function POST(request) {
   return json({ person, staff: await salons.listSalonStaff(auth.user.id) }, { status: 201 });
 }
 
-export async function PATCH(request) {
+async function _PATCH(request) {
   const auth = await requireUserRole(request, "salon", "فقط سالن.");
   if (!auth.ok) return auth.response;
   const body = await request.json();
@@ -27,7 +27,7 @@ export async function PATCH(request) {
   return json({ person, staff: await salons.listSalonStaff(auth.user.id) });
 }
 
-export async function DELETE(request) {
+async function _DELETE(request) {
   const auth = await requireUserRole(request, "salon", "فقط سالن.");
   if (!auth.ok) return auth.response;
   const body = await request.json();
@@ -45,3 +45,8 @@ export async function DELETE(request) {
     artistUserId
   });
 }
+
+export const GET = withErrorHandling(_GET);
+export const POST = withErrorHandling(_POST);
+export const PATCH = withErrorHandling(_PATCH);
+export const DELETE = withErrorHandling(_DELETE);

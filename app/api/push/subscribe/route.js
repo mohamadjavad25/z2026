@@ -1,13 +1,13 @@
 import { ensureDb } from "../../../lib/db/connection.js";
 import * as push from "../../../lib/db/repos/push.js";
-import { json, requireUser } from "../../../lib/http.js";
+import { json, requireUser, withErrorHandling } from "../../../lib/http.js";
 
 export const runtime = "nodejs";
 
 /** Saves the browser's PushSubscription for the logged-in user — called
  *  right after a successful pushManager.subscribe() on the client (see
  *  the subscribe flow in HomeApp.jsx). */
-export async function POST(request) {
+async function _POST(request) {
   await ensureDb();
   const auth = await requireUser(request);
   if (!auth.ok) return auth.response;
@@ -23,7 +23,7 @@ export async function POST(request) {
 
 /** Drops one subscription — called when the browser reports the
  *  subscription is no longer valid, or the user turns notifications off. */
-export async function DELETE(request) {
+async function _DELETE(request) {
   await ensureDb();
   const auth = await requireUser(request);
   if (!auth.ok) return auth.response;
@@ -35,3 +35,6 @@ export async function DELETE(request) {
   await push.removeSubscription(auth.user.id, endpoint);
   return json({ data: { ok: true } });
 }
+
+export const POST = withErrorHandling(_POST);
+export const DELETE = withErrorHandling(_DELETE);

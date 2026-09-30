@@ -5,10 +5,11 @@ import {
   getSessionToken
 } from "../../../lib/auth.js";
 import { ensureDb } from "../../../lib/db/connection.js";
+import { withErrorHandling } from "../../../lib/http.js";
 
 export const runtime = "nodejs";
 
-export async function POST(request) {
+async function _POST(request) {
   await ensureDb();
   const token = getSessionToken(request);
   await destroySession(token);
@@ -16,3 +17,5 @@ export async function POST(request) {
   clearSessionCookie(response);
   return response;
 }
+
+export const POST = withErrorHandling(_POST);

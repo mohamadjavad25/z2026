@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireUser } from "../../lib/http.js";
+import { requireUser, withErrorHandling } from "../../lib/http.js";
 import { ensureDb } from "../../lib/db/connection.js";
 import * as social from "../../lib/db/repos/social.js";
 import * as salons from "../../lib/db/repos/salons.js";
@@ -18,7 +18,7 @@ export const runtime = "nodejs";
  * savedTargetIds is a flat id list for quick "is this open profile saved?"
  * checks, mirroring GET /api/follows' followingIds.
  */
-export async function GET(request) {
+async function _GET(request) {
   await ensureDb();
   const auth = await requireUser(request);
   if (!auth.ok) return auth.response;
@@ -39,7 +39,7 @@ export async function GET(request) {
  * target must be an existing salon/artist user (a client id is rejected,
  * same spirit as toggleFollow's self-save 400).
  */
-export async function POST(request) {
+async function _POST(request) {
   await ensureDb();
   const auth = await requireUser(request);
   if (!auth.ok) return auth.response;
@@ -58,3 +58,6 @@ export async function POST(request) {
   }
   return NextResponse.json({ data: result });
 }
+
+export const GET = withErrorHandling(_GET);
+export const POST = withErrorHandling(_POST);

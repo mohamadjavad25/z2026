@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireUser as requireUserCore } from "./auth.js";
+import { logger } from "./logger.js";
 
 export function json(data, init) {
   const headers = new Headers(init?.headers || {});
@@ -56,4 +57,31 @@ export function validateBody(schema, body) {
     return { ok: false, data: null, response: error(`${path}${issue?.message || "ورودی نامعتبر است."}`, 400) };
   }
   return { ok: true, data: result.data, response: null };
+}
+
+/**
+ * Wraps a route handler (GET/POST/PATCH/DELETE) so an unexpected thrown
+ * error (a DB constraint violation, a dropped connection, a bug) returns
+ * this app's own JSON error shape instead of Next.js's generic unhandled-
+ * exception response -- and gets logged with the route/method that threw,
+ * instead of a bare `console.error` with no context. Forwards every
+ * argument (request, and { params } for dynamic routes) unchanged.
+ * Route-level `try/catch` for an *expected* failure the route wants to
+ * turn into a specific error message/status is unaffected -- this only
+ * catches what would otherwise propagate uncaught.
+ */
+export function withErrorHandling(handler) {
+  return async (...args) => {
+    try {
+      return await handler(...args);
+    } catch (err) {
+      const request = args[0];
+      logger.error("Unhandled route error", {
+        error: err,
+        method: request?.method,
+        url: request?.url
+      });
+      return error("خطای سرور. لطفاً دوباره امتحان کنید.", 500);
+    }
+  };
 }

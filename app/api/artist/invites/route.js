@@ -1,9 +1,9 @@
-import { json, notFound, requireUserRole } from "../../../lib/http.js";
+import { json, notFound, requireUserRole, withErrorHandling } from "../../../lib/http.js";
 import * as salons from "../../../lib/db/repos/salons.js";
 
 export const runtime = "nodejs";
 
-export async function GET(request) {
+async function _GET(request) {
   const auth = await requireUserRole(request, "artist", "فقط آرتیست.");
   if (!auth.ok) return auth.response;
   const { searchParams } = new URL(request.url);
@@ -16,7 +16,7 @@ export async function GET(request) {
   });
 }
 
-export async function PATCH(request) {
+async function _PATCH(request) {
   const auth = await requireUserRole(request, "artist", "فقط آرتیست.");
   if (!auth.ok) return auth.response;
   const body = await request.json();
@@ -36,3 +36,6 @@ export async function PATCH(request) {
     }
   });
 }
+
+export const GET = withErrorHandling(_GET);
+export const PATCH = withErrorHandling(_PATCH);

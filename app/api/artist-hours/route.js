@@ -1,15 +1,15 @@
-import { json, requireUserRole } from "../../lib/http.js";
+import { json, requireUserRole, withErrorHandling } from "../../lib/http.js";
 import * as artists from "../../lib/db/repos/artists.js";
 
 export const runtime = "nodejs";
 
-export async function GET(request) {
+async function _GET(request) {
   const auth = await requireUserRole(request, "artist", "فقط آرتیست.");
   if (!auth.ok) return auth.response;
   return json({ hours: await artists.listArtistHours(auth.user.id) });
 }
 
-export async function PATCH(request) {
+async function _PATCH(request) {
   const auth = await requireUserRole(request, "artist", "فقط آرتیست.");
   if (!auth.ok) return auth.response;
   const body = await request.json();
@@ -19,3 +19,6 @@ export async function PATCH(request) {
     hours: await artists.listArtistHours(auth.user.id)
   });
 }
+
+export const GET = withErrorHandling(_GET);
+export const PATCH = withErrorHandling(_PATCH);

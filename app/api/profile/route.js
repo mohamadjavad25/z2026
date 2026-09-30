@@ -2,19 +2,19 @@ import { NextResponse } from "next/server";
 import { hashPassword, publicUser, verifyPassword } from "../../lib/auth.js";
 import { ensureDb } from "../../lib/db/connection.js";
 import * as users from "../../lib/db/repos/users.js";
-import { requireUser, validateBody } from "../../lib/http.js";
+import { requireUser, validateBody, withErrorHandling } from "../../lib/http.js";
 import { profileUpdateSchema } from "../../lib/validation/user.js";
 
 export const runtime = "nodejs";
 
-export async function GET(request) {
+async function _GET(request) {
   await ensureDb();
   const auth = await requireUser(request);
   if (!auth.ok) return auth.response;
   return NextResponse.json({ profile: publicUser(auth.user), data: { user: publicUser(auth.user) } });
 }
 
-export async function POST(request) {
+async function _POST(request) {
   await ensureDb();
   try {
     const body = await request.json();
@@ -66,7 +66,7 @@ export async function POST(request) {
   }
 }
 
-export async function DELETE(request) {
+async function _DELETE(request) {
   await ensureDb();
   const auth = await requireUser(request);
   if (!auth.ok) return auth.response;
@@ -75,3 +75,7 @@ export async function DELETE(request) {
   await run(await getDb(), "DELETE FROM users WHERE id = ?", [auth.user.id]);
   return NextResponse.json({ profile: null, data: { user: null } });
 }
+
+export const GET = withErrorHandling(_GET);
+export const POST = withErrorHandling(_POST);
+export const DELETE = withErrorHandling(_DELETE);

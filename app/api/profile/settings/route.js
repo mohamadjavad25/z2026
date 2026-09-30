@@ -1,19 +1,19 @@
 import { NextResponse } from "next/server";
 import { ensureDb } from "../../../lib/db/connection.js";
-import { requireUser, validateBody } from "../../../lib/http.js";
+import { requireUser, validateBody, withErrorHandling } from "../../../lib/http.js";
 import * as userSettings from "../../../lib/db/repos/userSettings.js";
 import { settingsPatchSchema } from "../../../lib/validation/settings.js";
 
 export const runtime = "nodejs";
 
-export async function GET(request) {
+async function _GET(request) {
   await ensureDb();
   const auth = await requireUser(request);
   if (!auth.ok) return auth.response;
   return NextResponse.json({ settings: await userSettings.getSettings(auth.user.id) });
 }
 
-export async function POST(request) {
+async function _POST(request) {
   await ensureDb();
   const auth = await requireUser(request);
   if (!auth.ok) return auth.response;
@@ -27,3 +27,6 @@ export async function POST(request) {
   const settings = await userSettings.saveSettings(auth.user.id, v.data);
   return NextResponse.json({ settings });
 }
+
+export const GET = withErrorHandling(_GET);
+export const POST = withErrorHandling(_POST);

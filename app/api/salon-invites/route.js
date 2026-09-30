@@ -1,9 +1,9 @@
-import { json, notFound, requireUserRole } from "../../lib/http.js";
+import { json, notFound, requireUserRole, withErrorHandling } from "../../lib/http.js";
 import * as salons from "../../lib/db/repos/salons.js";
 
 export const runtime = "nodejs";
 
-export async function GET(request) {
+async function _GET(request) {
   const auth = await requireUserRole(request, "salon", "فقط سالن.");
   if (!auth.ok) return auth.response;
   const { searchParams } = new URL(request.url);
@@ -13,7 +13,7 @@ export async function GET(request) {
   });
 }
 
-export async function POST(request) {
+async function _POST(request) {
   const auth = await requireUserRole(request, "salon", "فقط سالن.");
   if (!auth.ok) return auth.response;
   const body = await request.json();
@@ -28,7 +28,7 @@ export async function POST(request) {
   }, { status: 201 });
 }
 
-export async function DELETE(request) {
+async function _DELETE(request) {
   const auth = await requireUserRole(request, "salon", "فقط سالن.");
   if (!auth.ok) return auth.response;
   const body = await request.json();
@@ -39,3 +39,7 @@ export async function DELETE(request) {
     invites: await salons.listSalonArtistInvites(auth.user.id)
   });
 }
+
+export const GET = withErrorHandling(_GET);
+export const POST = withErrorHandling(_POST);
+export const DELETE = withErrorHandling(_DELETE);
