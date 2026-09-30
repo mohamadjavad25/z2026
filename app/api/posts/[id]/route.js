@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireUser, withErrorHandling } from "../../../lib/http.js";
 import { ensureDb } from "../../../lib/db/connection.js";
 import * as posts from "../../../lib/db/repos/posts.js";
+import { isImageDataUrlTooLarge } from "../../../lib/mediaLimits.js";
 
 export const runtime = "nodejs";
 
@@ -19,6 +20,9 @@ async function _PATCH(request, { params }) {
   if (!auth.ok) return auth.response;
   const { id } = await params;
   const body = await request.json();
+  if (isImageDataUrlTooLarge(body.image)) {
+    return NextResponse.json({ error: "حجم عکس بیش از حد مجاز (۵ مگابایت) است." }, { status: 413 });
+  }
   const post = await posts.updatePost(Number(id), auth.user.id, body);
   if (!post) return NextResponse.json({ error: "یافت نشد." }, { status: 404 });
   return NextResponse.json({ data: { post } });
