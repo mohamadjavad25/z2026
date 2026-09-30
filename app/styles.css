@@ -9,6 +9,7 @@
 @import "./styles/features/client.css";
 @import "./styles/features/auth.css";
 @import "./styles/features/joinSalon.css";
+@import "./styles/features/legal.css";
 
 
 *{
@@ -10360,6 +10361,28 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 
 .neoSettingsSwitch[data-on="true"] .neoSettingsSwitchLabel{
   color: var(--teal);
+}
+
+.neoSettingsLegalLinks{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  min-height: 40px;
+  margin-bottom: 8px;
+}
+
+.neoSettingsLegalLinks a{
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.neoSettingsLegalLinks a:hover{
+  color: var(--ink);
+  text-decoration: underline;
 }
 
 .neoSettingsLogout{

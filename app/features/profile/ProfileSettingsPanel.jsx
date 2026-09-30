@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
   AlertTriangle,
   ChevronDown,
@@ -232,6 +233,11 @@ export function ProfileSettingsPanel({
       ) : null}
 
       {artistBooking}
+
+      <div className="neoSettingsLegalLinks">
+        <Link href="/terms">قوانین و مقررات</Link>
+        <Link href="/privacy">حریم خصوصی</Link>
+      </div>
 
       <button type="button" className="neoSettingsLogout" onClick={onLogout}>
         <LogOut size={16} />
