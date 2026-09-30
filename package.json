@@ -2,8 +2,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
-    "test:seed-all": "node scripts/run-all-seed-tests.mjs"
+    "start": "next start"
   },
   "dependencies": {
     "leaflet": "^1.9.4",

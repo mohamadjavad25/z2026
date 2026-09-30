@@ -36,7 +36,6 @@ schema is applied automatically and idempotently on first connection
 ```bash
 npm run build   # production build
 npm run start   # run the production build
-npm run test:seed-all   # run the scripts/*seed-test*.mjs suite against an isolated DB
 ```
 
 ## Project layout

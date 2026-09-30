@@ -12,8 +12,7 @@ export async function GET(request) {
   return NextResponse.json({ passport: await passport.getPassport(auth.user.id) });
 }
 
-// Activation is free until a real pricing/payment model exists (the app has
-// no wallet or payment gateway).
+// Activation is free until a real pricing/payment model exists.
 export async function POST(request) {
   await ensureDb();
   const auth = await requireUser(request);

@@ -7,7 +7,7 @@
 const buckets = new Map();
 
 /**
- * @param {string} key - unique per (scope, actor) e.g. "message-send:42"
+ * @param {string} key - unique per (scope, actor) e.g. "login:09121234567"
  * @param {number} limit - max hits allowed inside the window
  * @param {number} windowMs - window size in ms
  * @returns {{ ok: true } | { ok: false, retryAfterMs: number }}

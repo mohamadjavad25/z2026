@@ -1,6 +1,6 @@
 ---
 name: backend-dev
-description: Senior backend specialist for this Next.js (App Router) project's server-side code — API routes under app/api/**/route.js, data access, auth, sessions, validation, and business logic. Use for building or fixing endpoints (bookings, wallet, messaging, orders, follows, reviews, etc.), schema/data-shape decisions, and server-side bugs. Not for visual/UI work.
+description: Senior backend specialist for this Next.js (App Router) project's server-side code — API routes under app/api/**/route.js, data access, auth, sessions, validation, and business logic. Use for building or fixing endpoints (bookings, follows, profiles, portfolios, etc.), schema/data-shape decisions, and server-side bugs. Not for visual/UI work.
 tools: Read, Write, Edit, Grep, Glob, Bash
 model: sonnet
 ---

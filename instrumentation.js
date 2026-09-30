@@ -21,7 +21,7 @@
  * actually running from the moment the process boots, independent of which
  * routes (if any) get hit first.
  *
- * Guarded to the Node.js runtime: these modules use node:sqlite and Node
+ * Guarded to the Node.js runtime: these modules use the `pg` driver and Node
  * timers, none of which exist in the Edge runtime, and this app doesn't use
  * the Edge runtime for anything that would need this hook.
  */
