@@ -3,7 +3,8 @@ import { getDb, all, run } from "../connection.js";
 /**
  * Web Push subscription storage. One row per browser/device a user has
  * granted notification permission on (a user can have several — phone +
- * desktop, or two browsers) — see schema.js's push_subscriptions table.
+ * desktop, or two browsers) — see migrations/001_baseline.sql's
+ * push_subscriptions table.
  * endpoint is the natural dedupe key: the same browser re-subscribing (e.g.
  * after clearing site data) gets a fresh endpoint, but re-registering the
  * SAME still-valid subscription (a page reload re-running the subscribe

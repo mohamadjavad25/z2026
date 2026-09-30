@@ -15,8 +15,7 @@ app/lib/push.js          web push (VAPID) subscribe/send helpers
 app/lib/rateLimit.js     in-memory rate limiting for sensitive routes
 app/lib/bookingExpirySweep.js  background sweep that expires stale bookings
 app/lib/db/
-  connection.js          Postgres pool/connection and runtime readiness
-  schema.js              canonical table/index definitions (applied fresh on every cold start)
+  connection.js          Postgres pool/connection, query helpers, withTransaction()
   repos/                 domain-specific database operations
     users.js             account CRUD, publicUser() shaping
     sessions.js           session token issue/lookup/revoke
@@ -51,11 +50,22 @@ Database rules:
 
 ```text
 connection.js            owns the Postgres Pool, ensureDb()/getDb()/withTransaction()
-schema.js                owns CREATE TABLE/INDEX statements (idempotent, run on every cold start)
+migrations/*.sql         owns CREATE TABLE/INDEX statements, one versioned file per change
 repos/*.js               own SQL queries and data mapping per domain (all async now)
 ```
 
 This app runs on Postgres (`pg` package), not SQLite — see `.env.example`
-for the required `POSTGRES_URL`. There is no migration history to replay:
-`schema.js`'s `applySchema()` is the full, final schema and is safe to call
-on every cold start (`IF NOT EXISTS` throughout).
+for the required `POSTGRES_URL`. Schema changes are real, versioned
+migrations under `migrations/` (run with `npm run migrate`, via
+[node-pg-migrate](https://salsita.github.io/node-pg-migrate/)), applied once
+at deploy time — not an idempotent DDL script re-run on every cold start.
+`migrations/001_baseline.sql` is a faithful capture of the schema that used
+to be bootstrapped that way; every change since is its own numbered file.
+`node-pg-migrate` is a migration *runner*, not an ORM or query builder — it
+doesn't change how `repos/*.js` issue queries, which stay hand-written SQL
+by design.
+
+Running migrations locally: set `POSTGRES_URL` (or `POSTGRES_URL_NON_POOLING`
+for a direct, non-pooled connection — preferred for migrations, since some
+DDL needs session-level locks a transaction-mode pooler like Supavisor
+doesn't support) in `.env.local`, then `npm run migrate`.
