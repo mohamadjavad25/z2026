@@ -1,4 +1,4 @@
-import { getDb, all, get, run } from "../connection.js";
+import { getDb, get, run } from "../connection.js";
 
 export async function createSession(token, userId, expiresAt) {
   const db = await getDb();

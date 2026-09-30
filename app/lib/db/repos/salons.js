@@ -3,7 +3,7 @@ import { countFollowers } from "./users.js";
 import { isProfileSaved } from "./social.js";
 import { getSettings } from "./userSettings.js";
 import { countFollowing } from "./salons/common.js";
-import { listClientSalonBookings, listSalonBookings } from "./salons/bookings.js";
+import { listSalonBookings } from "./salons/bookings.js";
 import { listSalonHours } from "./salons/hours.js";
 import { listSalonPortfolio } from "./salons/portfolio.js";
 import { listSalonServices } from "./salons/services.js";

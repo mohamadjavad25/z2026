@@ -18,4 +18,11 @@ jobs:
 
       - run: npm ci
 
+      - run: npm run lint
+
       - run: npm run build
+
+      # Runs against a real, disposable Postgres 16 container via
+      # Testcontainers -- ubuntu-latest runners have Docker available by
+      # default, which is all Testcontainers needs.
+      - run: npm test
