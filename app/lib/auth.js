@@ -50,6 +50,26 @@ export function verifyPassword(password, stored) {
   return timingSafeEqual(prev, next);
 }
 
+/**
+ * Fixed dummy scrypt hash (salt:hash of an arbitrary, never-real password)
+ * with the exact shape verifyPassword expects. Its only use is
+ * app/api/auth/login/route.js's "phone not registered" branch: calling
+ * verifyPassword(password, DUMMY_PASSWORD_HASH) there and discarding the
+ * (always-false) result burns the same scryptSync cost a genuine "wrong
+ * password" check pays, so the two cases take equal time. Without this,
+ * "not found" returns instantly (no scrypt run at all) while "wrong
+ * password" pays scrypt's cost -- a measurable timing side-channel an
+ * attacker could use to enumerate registered phone numbers even if the
+ * two response bodies were made identical. This intentionally does NOT
+ * unify the response codes themselves (not_found vs bad_password) --
+ * app/features/auth/useAuthSession.js relies on that distinction for a
+ * real UX feature (auto-redirect to signup), and the DB-backed rate
+ * limiter (app/lib/rateLimit.js) is the primary defense against
+ * brute-force enumeration either way.
+ */
+export const DUMMY_PASSWORD_HASH =
+  "129869637c2b150b07704aa06e1e0d47:8d39cd87a4ce6233ce8467ec5936e12554bc75103d0a0a28279f21d0b45ffd16865af8aa0721735e7d75f1c43abf75bc291c59c963ff531b8ac1a970723d600c";
+
 /** Timing-safe check of a request header against an expected secret --
  *  same timingSafeEqual pattern as verifyPassword above, instead of a plain
  *  `===` that leaks how many leading bytes matched via response timing.

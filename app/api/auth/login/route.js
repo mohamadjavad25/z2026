@@ -5,7 +5,8 @@ import {
   setSessionCookie,
   verifyPassword,
   normalizePhone,
-  normalizeDigits
+  normalizeDigits,
+  DUMMY_PASSWORD_HASH
 } from "../../../lib/auth.js";
 import { ensureDb } from "../../../lib/db/connection.js";
 import * as users from "../../../lib/db/repos/users.js";
@@ -42,6 +43,14 @@ async function _POST(request) {
   const user = await users.getUserByPhone(phone);
 
   if (!user) {
+    // Burn the same scryptSync cost a real "wrong password" check below
+    // pays, against a fixed dummy hash -- otherwise this branch returns
+    // instantly while a wrong-password attempt doesn't, a timing
+    // side-channel that leaks whether a phone number is registered even
+    // though the response bodies already differ (see DUMMY_PASSWORD_HASH's
+    // doc comment in app/lib/auth.js for why the codes themselves stay
+    // distinct on purpose).
+    verifyPassword(password, DUMMY_PASSWORD_HASH);
     return NextResponse.json(
       { error: "حسابی با این شماره پیدا نشد. اول ثبت‌نام کن.", code: "not_found" },
       { status: 401 }
