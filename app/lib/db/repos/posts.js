@@ -129,7 +129,7 @@ export async function updatePost(id, ownerUserId, data, runner = null) {
 export async function deletePost(id, ownerUserId, runner = null) {
   const db = runner || (await getDb());
   const result = await run(db, "DELETE FROM posts WHERE id = ? AND owner_user_id = ?", [id, ownerUserId]);
-  return result.changes > 0;
+  return result.rowCount > 0;
 }
 
 export async function toggleSave(userId, postId) {

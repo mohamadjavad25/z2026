@@ -1,4 +1,5 @@
 import { Pool } from "pg";
+import { readFileSync } from "node:fs";
 
 /**
  * Vercel's Supabase integration sets POSTGRES_URL (pooled, via Supavisor in
@@ -37,6 +38,34 @@ function stripSslMode(connString) {
 const connectionString = stripSslMode(rawConnectionString);
 const sslDisabled = rawConnectionString.includes("sslmode=disable");
 
+/**
+ * TLS trust configuration. Three modes, in priority order:
+ *
+ * 1. `sslmode=disable` in the connection string -> no TLS at all (local
+ *    Postgres with no TLS configured).
+ * 2. `PGSSL_CA_PATH` set -> full certificate verification
+ *    (`rejectUnauthorized: true`) against that CA bundle. This is the
+ *    hardened path: get your provider's CA certificate (for Supabase:
+ *    dashboard -> Project Settings -> Database -> SSL Configuration) and
+ *    point PGSSL_CA_PATH at the downloaded file.
+ * 3. Neither set (today's default) -> `rejectUnauthorized: false`. This
+ *    accepts any certificate the server presents, which is vulnerable to a
+ *    MITM able to intercept the connection -- kept as the default only
+ *    because it matches Supabase's/Vercel's own Postgres quickstart
+ *    snippets and this codebase has previously hit `SELF_SIGNED_CERT_IN_CHAIN`
+ *    against Supabase's pooler without it (a real incident, not
+ *    theoretical). Set PGSSL_CA_PATH once you've obtained and verified
+ *    your provider's actual CA certificate to close this gap.
+ */
+function resolveSslConfig() {
+  if (sslDisabled) return false;
+  const caPath = process.env.PGSSL_CA_PATH;
+  if (caPath) {
+    return { ca: readFileSync(caPath, "utf8"), rejectUnauthorized: true };
+  }
+  return { rejectUnauthorized: false };
+}
+
 let pool = null;
 
 function getPool() {
@@ -48,12 +77,7 @@ function getPool() {
   }
   pool = new Pool({
     connectionString,
-    // Supabase (and most managed Postgres) requires TLS and presents a
-    // certificate chain that isn't in Node's default trust store;
-    // rejectUnauthorized:false matches what Supabase's/Vercel's own
-    // Postgres quickstart snippets use. This can be tightened with a real
-    // CA bundle later if desired.
-    ssl: sslDisabled ? false : { rejectUnauthorized: false },
+    ssl: resolveSslConfig(),
     // POSTGRES_URL is Supabase's Supavisor pooler in transaction mode --
     // it already multiplexes many app-side "connections" onto a small set
     // of real Postgres backends, so a generous per-instance pool here just
@@ -96,10 +120,19 @@ function getPool() {
  * unrelated pooled connection mid-transaction.
  */
 
-/** Converts this codebase's sqlite-style `?` positional placeholders (each
- *  `?` consumes the next value in `params`, left to right -- verified: no
- *  query in this codebase reuses a placeholder or relies on sqlite's `?N`
- *  numbered form) into Postgres's `$1, $2, ...`. */
+/** Converts this codebase's chosen `?` positional-placeholder convention
+ *  (each `?` consumes the next value in `params`, left to right -- verified:
+ *  no query in this codebase reuses a placeholder or needs Postgres's `$N`
+ *  numbered-reuse form) into Postgres's native `$1, $2, ...`. Kept as a
+ *  small, isolated, unit-verifiable translation rather than rewriting the
+ *  ~390 `?` placeholders across every repos/*.js query in place: `pg`
+ *  requires `$N` syntax, but many of these queries build their SQL from
+ *  interpolated fragments (see e.g. posts.js's `postSelect` reuse,
+ *  salons/bookings.js's dynamic `conditions.join(" OR ")`), where a
+ *  literal find-replace across 18 files risks silently miscounting a
+ *  placeholder and binding a value to the wrong column -- a correctness
+ *  risk with no behavioral upside, since this function already does the
+ *  translation correctly and is one place to verify, not 18. */
 export function toPgSql(sql) {
   let i = 0;
   return sql.replace(/\?/g, () => `$${++i}`);
@@ -118,12 +151,11 @@ export async function get(runner, sql, params = []) {
 }
 
 /** Runs `sql` (INSERT/UPDATE/DELETE) against `runner`. Returns
- *  { changes, rows } -- `changes` mirrors node:sqlite's `.run().changes`
- *  (row count affected); `rows` is populated when the query has a
- *  `RETURNING` clause (used in place of `.lastInsertRowid`). */
+ *  { rowCount, rows } -- `rowCount` is the number of rows affected; `rows`
+ *  is populated when the query has a `RETURNING` clause. */
 export async function run(runner, sql, params = []) {
   const result = await runner.query(toPgSql(sql), params);
-  return { changes: result.rowCount || 0, rows: result.rows };
+  return { rowCount: result.rowCount || 0, rows: result.rows };
 }
 
 /**

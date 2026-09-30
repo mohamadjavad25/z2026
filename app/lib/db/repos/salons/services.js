@@ -103,5 +103,5 @@ export async function updateSalonService(id, salonUserId, data) {
 export async function deleteSalonService(id, salonUserId) {
   const db = await getDb();
   const result = await run(db, "DELETE FROM salon_services WHERE id = ? AND salon_user_id = ?", [id, salonUserId]);
-  return result.changes > 0;
+  return result.rowCount > 0;
 }

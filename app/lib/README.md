@@ -69,3 +69,13 @@ Running migrations locally: set `POSTGRES_URL` (or `POSTGRES_URL_NON_POOLING`
 for a direct, non-pooled connection — preferred for migrations, since some
 DDL needs session-level locks a transaction-mode pooler like Supavisor
 doesn't support) in `.env.local`, then `npm run migrate`.
+
+`connection.js`'s `?`-placeholder convention (`toPgSql()`, translated to
+Postgres's native `$1, $2, ...` before every query) is a deliberate choice,
+not unfinished cleanup: `pg` requires `$N` syntax, but many queries across
+`repos/*.js` build their SQL from interpolated fragments, where rewriting
+~390 placeholders by hand across 18 files risks silently miscounting one
+and binding a value to the wrong column. One small, isolated, verifiable
+translation function is safer than that. TLS: see `PGSSL_CA_PATH` in
+`.env.example` for hardening the DB connection to full certificate
+verification instead of the current `rejectUnauthorized: false` default.

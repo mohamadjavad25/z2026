@@ -270,6 +270,6 @@ export async function deleteSalonStaff(id, salonUserId) {
   const current = await get(db, "SELECT * FROM salon_staff WHERE id = ? AND salon_user_id = ?", [id, salonUserId]);
   if (!current) return { ok: false, person: null };
   const result = await run(db, "DELETE FROM salon_staff WHERE id = ? AND salon_user_id = ?", [id, salonUserId]);
-  const ok = result.changes > 0;
+  const ok = result.rowCount > 0;
   return { ok, person: ok ? current : null };
 }

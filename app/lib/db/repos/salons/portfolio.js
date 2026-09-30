@@ -123,5 +123,5 @@ export async function deleteSalonPortfolio(id, salonUserId) {
     return true;
   }
   const result = await run(db, "DELETE FROM salon_portfolio WHERE id = ? AND salon_user_id = ?", [id, salonUserId]);
-  return result.changes > 0;
+  return result.rowCount > 0;
 }

@@ -59,7 +59,7 @@ export async function updateArtistService(id, userId, data) {
 export async function deleteArtistService(id, userId) {
   const db = await getDb();
   const result = await run(db, "DELETE FROM artist_services WHERE id = ? AND user_id = ?", [id, userId]);
-  return result.changes > 0;
+  return result.rowCount > 0;
 }
 
 function mapArtistCollab(row) {
@@ -149,7 +149,7 @@ export async function addArtistCollab(userId, data) {
 export async function deleteArtistCollab(id, userId) {
   const db = await getDb();
   const result = await run(db, "DELETE FROM artist_collabs WHERE id = ? AND artist_user_id = ?", [id, userId]);
-  return result.changes > 0;
+  return result.rowCount > 0;
 }
 
 export async function updateSalonCollabStatus(id, salonUserId, status) {
@@ -161,7 +161,7 @@ export async function updateSalonCollabStatus(id, salonUserId, status) {
     SET status = ?, updated_at = CURRENT_TIMESTAMP
     WHERE id = ? AND salon_user_id = ?
   `, [nextStatus, id, salonUserId]);
-  if (result.changes < 1) return null;
+  if (result.rowCount < 1) return null;
   const rows = await listSalonCollabRequests(salonUserId);
   return rows.find((item) => Number(item.id) === Number(id)) || null;
 }
@@ -177,7 +177,7 @@ export async function endSalonCollabsForArtist(salonUserId, artistUserId) {
       AND artist_user_id = ?
       AND status IN ('تایید شد', 'آماده ارسال')
   `, [salonUserId, artistId]);
-  return result.changes;
+  return result.rowCount;
 }
 
 export async function getArtistBreak(userId, runner = null) {
