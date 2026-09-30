@@ -1,5 +1,17 @@
 import { getDb, all, get, run } from "../connection.js";
 
+/**
+ * Check-then-act (SELECT then DELETE/INSERT) with no transaction wrapper,
+ * same as toggleSaveProfile below -- but until this fix, the INSERT branch
+ * had no ON CONFLICT guard, unlike toggleSaveProfile's. Two truly
+ * concurrent follow-clicks (double-click, two tabs, a retried request)
+ * could both pass the SELECT seeing "not following yet" and both attempt
+ * INSERT INTO follows -- the second lost the composite-PK race with an
+ * uncaught duplicate-key error (no try/catch on this route), surfacing as
+ * an unstructured 500 instead of the idempotent toggle a "follow" button
+ * needs. ON CONFLICT DO NOTHING closes that the same way
+ * toggleSaveProfile's already did.
+ */
 export async function toggleFollow(followerUserId, targetUserId) {
   if (followerUserId === targetUserId) return { ok: false, error: "self" };
   const db = await getDb();
@@ -11,7 +23,10 @@ export async function toggleFollow(followerUserId, targetUserId) {
     await run(db, "DELETE FROM follows WHERE follower_user_id = ? AND target_user_id = ?", [followerUserId, targetUserId]);
     following = false;
   } else {
-    await run(db, "INSERT INTO follows (follower_user_id, target_user_id) VALUES (?, ?)", [followerUserId, targetUserId]);
+    await run(db, `
+      INSERT INTO follows (follower_user_id, target_user_id) VALUES (?, ?)
+      ON CONFLICT (follower_user_id, target_user_id) DO NOTHING
+    `, [followerUserId, targetUserId]);
   }
   const count = await get(db, "SELECT COUNT(*) AS c FROM follows WHERE target_user_id = ?", [targetUserId]);
   const followerCount = Number(count?.c || 0);

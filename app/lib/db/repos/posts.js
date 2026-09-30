@@ -132,16 +132,34 @@ export async function deletePost(id, ownerUserId, runner = null) {
   return result.rowCount > 0;
 }
 
+/**
+ * Same check-then-act race app/lib/db/repos/social.js's toggleFollow had:
+ * two truly concurrent toggles (double-click, two tabs) could both pass the
+ * SELECT and both attempt INSERT, the second losing the composite-PK race
+ * with an uncaught duplicate-key error. Fixed the same way, with
+ * ON CONFLICT DO NOTHING -- and since that means an INSERT/DELETE here can
+ * now legitimately affect zero rows (a concurrent call already did it),
+ * saves_count is only adjusted when result.rowCount confirms this call's
+ * statement actually changed a row; otherwise two concurrent saves would
+ * both increment the counter even though only one post_saves row exists.
+ */
 export async function toggleSave(userId, postId) {
   const db = await getDb();
   const existing = await get(db, "SELECT 1 FROM post_saves WHERE user_id = ? AND post_id = ?", [userId, postId]);
   if (existing) {
-    await run(db, "DELETE FROM post_saves WHERE user_id = ? AND post_id = ?", [userId, postId]);
-    await run(db, "UPDATE posts SET saves_count = GREATEST(saves_count - 1, 0) WHERE id = ?", [postId]);
+    const result = await run(db, "DELETE FROM post_saves WHERE user_id = ? AND post_id = ?", [userId, postId]);
+    if (result.rowCount > 0) {
+      await run(db, "UPDATE posts SET saves_count = GREATEST(saves_count - 1, 0) WHERE id = ?", [postId]);
+    }
     return { saved: false };
   }
-  await run(db, "INSERT INTO post_saves (user_id, post_id) VALUES (?, ?)", [userId, postId]);
-  await run(db, "UPDATE posts SET saves_count = saves_count + 1 WHERE id = ?", [postId]);
+  const result = await run(db, `
+    INSERT INTO post_saves (user_id, post_id) VALUES (?, ?)
+    ON CONFLICT (user_id, post_id) DO NOTHING
+  `, [userId, postId]);
+  if (result.rowCount > 0) {
+    await run(db, "UPDATE posts SET saves_count = saves_count + 1 WHERE id = ?", [postId]);
+  }
   return { saved: true };
 }
 
