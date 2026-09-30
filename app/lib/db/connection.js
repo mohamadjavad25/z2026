@@ -84,12 +84,19 @@ function getPool() {
     // multiplies against Supavisor's own connection cap (many concurrent
     // Vercel function instances each keeping up the `pg` default of 10).
     // Keeping this small leaves Supavisor's pool as the actual bottleneck
-    // instead of exhausting it. connectionTimeoutMillis turns "no
+    // instead of exhausting it. Was 5; raised to 10 as a safety margin
+    // now that the N+1 query fanouts that used to saturate this pool
+    // (listSalons()/listArtists(), see git history) are gone -- the real
+    // fix was cutting query COUNT, not widening the pool around it, but a
+    // few concurrent requests each still running a handful of queries
+    // benefit from a little more headroom than 5. PGPOOL_MAX overrides it
+    // for a deployment that knows its own Supavisor/Postgres connection
+    // budget better than this default. connectionTimeoutMillis turns "no
     // connection available" into a fast, clear error instead of the
     // default (wait forever) -- previously a saturated pooler meant the
     // request just hung until Postgres's own statement_timeout or
     // Vercel's function timeout killed it.
-    max: 5,
+    max: Number(process.env.PGPOOL_MAX) || 10,
     idleTimeoutMillis: 10_000,
     connectionTimeoutMillis: 8_000
   });
