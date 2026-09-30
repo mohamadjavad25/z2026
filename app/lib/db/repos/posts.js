@@ -1,4 +1,5 @@
 import { getDb, all, get, run } from "../connection.js";
+import { uploadImageDataUrl } from "../../storage.js";
 
 // Both image/ownerAvatar are stored as raw data:<type>;base64,<data> strings
 // in the DB but shipped here as media-endpoint URLs, never inline -- this
@@ -133,22 +134,41 @@ export async function createPost(ownerUserId, data, runner = null) {
     data.inExplore !== false,
     Boolean(data.featured)
   ]);
-  return getPostById(Number(info.rows[0].id), db);
+  const postId = Number(info.rows[0].id);
+  // Dual-write to Supabase Storage (see app/lib/storage.js) -- same
+  // best-effort, never-throws pattern as users.js's createUser/
+  // updateUser. Covers both direct post creation (POST /api/posts) and
+  // salon-portfolio uploads, since addSalonPortfolio routes through this
+  // same function (see app/lib/db/repos/salons/portfolio.js).
+  if (data.image) {
+    const imageUrl = await uploadImageDataUrl(data.image, { kind: "post", ownerId: postId });
+    if (imageUrl) {
+      await run(db, "UPDATE posts SET image_url = ? WHERE id = ?", [imageUrl, postId]);
+    }
+  }
+  return getPostById(postId, db);
 }
 
 export async function updatePost(id, ownerUserId, data, runner = null) {
   const db = runner || (await getDb());
   const current = await get(db, "SELECT * FROM posts WHERE id = ? AND owner_user_id = ?", [id, ownerUserId]);
   if (!current) return null;
+
+  let imageUrl = current.image_url;
+  if (data.image !== undefined && data.image !== current.image) {
+    imageUrl = data.image ? await uploadImageDataUrl(data.image, { kind: "post", ownerId: id }) : null;
+  }
+
   await run(db, `
     UPDATE posts SET
-      title = ?, tag = ?, image = ?, caption = ?, in_explore = ?, featured = ?,
+      title = ?, tag = ?, image = ?, image_url = ?, caption = ?, in_explore = ?, featured = ?,
       updated_at = CURRENT_TIMESTAMP
     WHERE id = ? AND owner_user_id = ?
   `, [
     data.title ?? current.title,
     data.tag ?? current.tag,
     data.image ?? current.image,
+    imageUrl,
     data.caption ?? current.caption,
     data.inExplore === undefined ? current.in_explore : Boolean(data.inExplore),
     data.featured === undefined ? current.featured : Boolean(data.featured),

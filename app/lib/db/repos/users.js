@@ -1,4 +1,5 @@
 import { getDb, all, get, run } from "../connection.js";
+import { uploadImageDataUrl } from "../../storage.js";
 
 export async function getUserById(id, runner = null) {
   const db = runner || (await getDb());
@@ -39,6 +40,24 @@ export async function createUser({ phone, passwordHash, type, name, area, servic
       VALUES (?, ?, ?, ?, ?, ?)
     `, [userId, name || "", area || "", service || "", phone || "", email || ""]);
   }
+  // Dual-write to Supabase Storage (see app/lib/storage.js and
+  // migrations/008_media_storage_urls.sql) -- registration rarely
+  // includes an avatar/poster (usually added later via profile edit,
+  // which goes through updateUser's own dual-write below), but handled
+  // here too for completeness. Best-effort: uploadImageDataUrl never
+  // throws, and a failed/unconfigured upload just leaves *_url unset,
+  // same as before this columns existed.
+  if (avatar || poster) {
+    const [avatarUrl, posterUrl] = await Promise.all([
+      avatar ? uploadImageDataUrl(avatar, { kind: "avatar", ownerId: userId }) : null,
+      poster ? uploadImageDataUrl(poster, { kind: "poster", ownerId: userId }) : null
+    ]);
+    if (avatarUrl || posterUrl) {
+      await run(db, `
+        UPDATE users SET avatar_url = COALESCE(?, avatar_url), poster_url = COALESCE(?, poster_url) WHERE id = ?
+      `, [avatarUrl, posterUrl, userId]);
+    }
+  }
   return getUserById(userId, db);
 }
 
@@ -61,12 +80,29 @@ export async function updateUser(id, data) {
     manager_name: data.managerName ?? data.manager_name ?? current.manager_name ?? "",
     password_hash: data.password_hash ?? current.password_hash
   };
+
+  // Dual-write to Supabase Storage (see app/lib/storage.js) -- only when
+  // avatar/poster is genuinely changing (a fresh "data:..." string, not
+  // the unchanged current value): re-uploading on every unrelated
+  // profile edit would be wasted work and would race the *_url column
+  // against nothing having actually changed. Removal (empty string)
+  // clears the URL too; leaving the field untouched (data.avatar
+  // undefined) leaves *_url untouched as well.
+  let avatarUrl = current.avatar_url;
+  if (data.avatar !== undefined && data.avatar !== current.avatar) {
+    avatarUrl = data.avatar ? await uploadImageDataUrl(data.avatar, { kind: "avatar", ownerId: id }) : null;
+  }
+  let posterUrl = current.poster_url;
+  if (data.poster !== undefined && data.poster !== current.poster) {
+    posterUrl = data.poster ? await uploadImageDataUrl(data.poster, { kind: "poster", ownerId: id }) : null;
+  }
+
   await run(db, `
     UPDATE users SET
-      phone = ?, name = ?, area = ?, service = ?, email = ?, avatar = ?, poster = ?, avatar_position = ?, poster_position = ?, bio = ?, experience_years = ?, manager_name = ?, password_hash = ?,
+      phone = ?, name = ?, area = ?, service = ?, email = ?, avatar = ?, poster = ?, avatar_url = ?, poster_url = ?, avatar_position = ?, poster_position = ?, bio = ?, experience_years = ?, manager_name = ?, password_hash = ?,
       updated_at = CURRENT_TIMESTAMP
     WHERE id = ?
-  `, [next.phone, next.name, next.area, next.service, next.email, next.avatar, next.poster, next.avatar_position, next.poster_position, next.bio, next.experience_years, next.manager_name, next.password_hash, id]);
+  `, [next.phone, next.name, next.area, next.service, next.email, next.avatar, next.poster, avatarUrl, posterUrl, next.avatar_position, next.poster_position, next.bio, next.experience_years, next.manager_name, next.password_hash, id]);
 
   if (current.type === "salon") {
     await run(db, `
