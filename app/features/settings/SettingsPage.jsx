@@ -1,32 +1,22 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Bookmark, Camera, ChevronLeft, ImagePlus, Move, Pencil, Trash2 } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
+import { ProfileSheet } from "../profile/ProfileSheet";
 import { ProfileLocationSettings } from "../profile/ProfileLocationSettings";
 import { ProfileSettingsPanel } from "../profile/ProfileSettingsPanel";
 import { SalonHoursEditor } from "../profile/SalonHoursEditor";
 import { ImagePositionEditor } from "./ImagePositionEditor";
 
 /**
- * The camera-icon trigger over an existing avatar/poster opens this small
- * menu (تغییر / تنظیم موقعیت / حذف) instead of adding three separate
- * buttons around the image — same footprint as the old single edit
- * button when there's nothing to manage yet (no image → just the plain
- * "افزودن" button, no menu at all).
+ * The camera-icon trigger over an existing avatar/poster opens a bottom
+ * action sheet (تغییر / تنظیم تصویر / حذف). It is portaled, so the parent
+ * card's overflow can never clip it (an inline dropdown was cut off by the
+ * poster band). With no image yet the trigger just opens the file picker.
  */
-function ImageEditMenu({ hasImage, busy, triggerClassName, triggerLabel, triggerIcon, onPickFile, onReposition, onRemove }) {
+function ImageEditMenu({ hasImage, busy, title, triggerClassName, triggerLabel, triggerIcon, onPickFile, onReposition, onRemove }) {
   const [open, setOpen] = useState(false);
-  const rootRef = useRef(null);
-
-  useEffect(() => {
-    if (!open) return undefined;
-    const handleOutside = (event) => {
-      if (rootRef.current && !rootRef.current.contains(event.target)) setOpen(false);
-    };
-    document.addEventListener("mousedown", handleOutside);
-    return () => document.removeEventListener("mousedown", handleOutside);
-  }, [open]);
 
   if (!hasImage) {
     return (
@@ -37,35 +27,49 @@ function ImageEditMenu({ hasImage, busy, triggerClassName, triggerLabel, trigger
     );
   }
 
+  function run(action) {
+    setOpen(false);
+    action();
+  }
+
   return (
-    <div className="imageEditMenu" ref={rootRef}>
+    <div className="imageEditMenu">
       <button
         type="button"
         className={triggerClassName}
-        onClick={() => setOpen((value) => !value)}
+        onClick={() => setOpen(true)}
         disabled={busy}
-        aria-haspopup="menu"
+        aria-haspopup="dialog"
         aria-expanded={open}
       >
         {triggerIcon}
         {busy ? "در حال ذخیره…" : triggerLabel}
       </button>
-      {open ? (
-        <div className="imageEditMenuPanel" role="menu">
-          <button type="button" role="menuitem" onClick={() => { setOpen(false); onPickFile(); }}>
-            <Camera size={13} aria-hidden="true" />
-            تغییر عکس
+      <ProfileSheet
+        open={open}
+        kicker="تصویر پروفایل"
+        title={title}
+        label={title}
+        panelClassName="imageActionSheet"
+        onClose={() => setOpen(false)}
+      >
+        <div className="imageActionList" role="menu">
+          <button type="button" role="menuitem" onClick={() => run(onPickFile)}>
+            <span><Camera size={17} aria-hidden="true" /></span>
+            <b>انتخاب عکس جدید</b>
+            <small>از گالری یا دوربین</small>
           </button>
-          <button type="button" role="menuitem" onClick={() => { setOpen(false); onReposition(); }}>
-            <Move size={13} aria-hidden="true" />
-            تنظیم موقعیت
+          <button type="button" role="menuitem" onClick={() => run(onReposition)}>
+            <span><Move size={17} aria-hidden="true" /></span>
+            <b>تنظیم کادر تصویر</b>
+            <small>جابه‌جایی و بزرگ‌نمایی</small>
           </button>
-          <button type="button" role="menuitem" className="is-danger" onClick={() => { setOpen(false); onRemove(); }}>
-            <Trash2 size={13} aria-hidden="true" />
-            حذف عکس
+          <button type="button" role="menuitem" className="is-danger" onClick={() => run(onRemove)}>
+            <span><Trash2 size={17} aria-hidden="true" /></span>
+            <b>حذف عکس</b>
           </button>
         </div>
-      ) : null}
+      </ProfileSheet>
     </div>
   );
 }
@@ -119,6 +123,7 @@ function BrandCard({
           <ImageEditMenu
             hasImage={Boolean(poster)}
             busy={posterSaving}
+            title="پوستر"
             triggerClassName="brandCardPosterEdit"
             triggerLabel={poster ? "تغییر پوستر" : "افزودن پوستر"}
             triggerIcon={<Camera size={12} aria-hidden="true" />}
@@ -135,6 +140,7 @@ function BrandCard({
             <ImageEditMenu
               hasImage={Boolean(avatar) && !avatar.includes("/profile-icon.svg")}
               busy={logoSaving}
+              title="لوگو"
               triggerClassName="brandCardAvatarEdit"
               triggerLabel=""
               triggerIcon={<Camera size={11} aria-hidden="true" />}
@@ -153,6 +159,7 @@ function BrandCard({
           <ImageEditMenu
             hasImage={Boolean(avatar) && !avatar.includes("/profile-icon.svg")}
             busy={logoSaving}
+            title="لوگو"
             triggerClassName="brandCardAvatarEdit"
             triggerLabel=""
             triggerIcon={<Camera size={11} aria-hidden="true" />}
@@ -179,13 +186,12 @@ function BrandCard({
         open={avatarEditorOpen}
         shape="circle"
         image={pendingAvatarUpload || avatar}
-        position={pendingAvatarUpload ? "50% 50%" : avatarPosition}
         busy={logoSaving}
-        onSave={(value) => {
+        onSave={(value, cropped) => {
           if (pendingAvatarUpload) {
-            onConfirmAvatarUpload(value);
+            onConfirmAvatarUpload(value, cropped);
           } else {
-            onSaveAvatarPosition(value);
+            onSaveAvatarPosition(value, cropped);
             setPositionEditor(null);
           }
         }}
@@ -195,13 +201,12 @@ function BrandCard({
         open={posterEditorOpen}
         shape="wide"
         image={pendingPosterUpload || poster}
-        position={pendingPosterUpload ? "50% 50%" : posterPosition}
         busy={posterSaving}
-        onSave={(value) => {
+        onSave={(value, cropped) => {
           if (pendingPosterUpload) {
-            onConfirmPosterUpload(value);
+            onConfirmPosterUpload(value, cropped);
           } else {
-            onSavePosterPosition(value);
+            onSavePosterPosition(value, cropped);
             setPositionEditor(null);
           }
         }}
