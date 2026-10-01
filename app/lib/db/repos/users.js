@@ -3,21 +3,21 @@ import { uploadImageDataUrl } from "../../storage.js";
 
 export async function getUserById(id, runner = null) {
   const db = runner || (await getDb());
-  return (await get(db, "SELECT * FROM users WHERE id = ?", [id])) || null;
+  return (await get(db, "SELECT * FROM users WHERE id = $1", [id])) || null;
 }
 
 export async function getUserByPhone(phone, runner = null) {
   const normalized = String(phone || "").trim();
   if (!normalized) return null;
   const db = runner || (await getDb());
-  return (await get(db, "SELECT * FROM users WHERE phone = ?", [normalized])) || null;
+  return (await get(db, "SELECT * FROM users WHERE phone = $1", [normalized])) || null;
 }
 
 export async function createUser({ phone, passwordHash, type, name, area, service, email, avatar, poster, bio, experienceYears, managerName }) {
   const db = await getDb();
   const info = await run(db, `
     INSERT INTO users (phone, password_hash, type, name, area, service, email, avatar, poster, bio, experience_years, manager_name)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
     RETURNING id
   `, [
     String(phone || "").trim(),
@@ -37,7 +37,7 @@ export async function createUser({ phone, passwordHash, type, name, area, servic
   if (type === "salon") {
     await run(db, `
       INSERT INTO salons (user_id, name, area, tag, phone, email)
-      VALUES (?, ?, ?, ?, ?, ?)
+      VALUES ($1, $2, $3, $4, $5, $6)
     `, [userId, name || "", area || "", service || "", phone || "", email || ""]);
   }
   // Dual-write to Supabase Storage (see app/lib/storage.js and
@@ -54,7 +54,7 @@ export async function createUser({ phone, passwordHash, type, name, area, servic
     ]);
     if (avatarUrl || posterUrl) {
       await run(db, `
-        UPDATE users SET avatar_url = COALESCE(?, avatar_url), poster_url = COALESCE(?, poster_url) WHERE id = ?
+        UPDATE users SET avatar_url = COALESCE($1, avatar_url), poster_url = COALESCE($2, poster_url) WHERE id = $3
       `, [avatarUrl, posterUrl, userId]);
     }
   }
@@ -99,15 +99,15 @@ export async function updateUser(id, data) {
 
   await run(db, `
     UPDATE users SET
-      phone = ?, name = ?, area = ?, service = ?, email = ?, avatar = ?, poster = ?, avatar_url = ?, poster_url = ?, avatar_position = ?, poster_position = ?, bio = ?, experience_years = ?, manager_name = ?, password_hash = ?,
+      phone = $1, name = $2, area = $3, service = $4, email = $5, avatar = $6, poster = $7, avatar_url = $8, poster_url = $9, avatar_position = $10, poster_position = $11, bio = $12, experience_years = $13, manager_name = $14, password_hash = $15,
       updated_at = CURRENT_TIMESTAMP
-    WHERE id = ?
+    WHERE id = $16
   `, [next.phone, next.name, next.area, next.service, next.email, next.avatar, next.poster, avatarUrl, posterUrl, next.avatar_position, next.poster_position, next.bio, next.experience_years, next.manager_name, next.password_hash, id]);
 
   if (current.type === "salon") {
     await run(db, `
-      UPDATE salons SET name = ?, area = ?, tag = ?, phone = ?, email = ?, updated_at = CURRENT_TIMESTAMP
-      WHERE user_id = ?
+      UPDATE salons SET name = $1, area = $2, tag = $3, phone = $4, email = $5, updated_at = CURRENT_TIMESTAMP
+      WHERE user_id = $6
     `, [next.name, next.area, next.service, next.phone, next.email, id]);
   }
   return getUserById(id, db);
@@ -115,12 +115,12 @@ export async function updateUser(id, data) {
 
 export async function listUsersByType(type) {
   const db = await getDb();
-  return all(db, "SELECT * FROM users WHERE type = ? ORDER BY created_at DESC", [type]);
+  return all(db, "SELECT * FROM users WHERE type = $1 ORDER BY created_at DESC", [type]);
 }
 
 export async function countFollowers(userId, runner = null) {
   const db = runner || (await getDb());
-  const row = await get(db, "SELECT COUNT(*) AS c FROM follows WHERE target_user_id = ?", [userId]);
+  const row = await get(db, "SELECT COUNT(*) AS c FROM follows WHERE target_user_id = $1", [userId]);
   return Number(row?.c || 0);
 }
 
@@ -128,6 +128,6 @@ export async function isFollowing(followerId, targetId, runner = null) {
   if (!followerId || !targetId) return false;
   const db = runner || (await getDb());
   return Boolean(
-    await get(db, "SELECT 1 FROM follows WHERE follower_user_id = ? AND target_user_id = ?", [followerId, targetId])
+    await get(db, "SELECT 1 FROM follows WHERE follower_user_id = $1 AND target_user_id = $2", [followerId, targetId])
   );
 }

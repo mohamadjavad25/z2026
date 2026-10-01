@@ -37,7 +37,7 @@ async function backfillUsers(db) {
     ]);
     if (avatarUrl || posterUrl) {
       await run(db, `
-        UPDATE users SET avatar_url = COALESCE(?, avatar_url), poster_url = COALESCE(?, poster_url) WHERE id = ?
+        UPDATE users SET avatar_url = COALESCE($1, avatar_url), poster_url = COALESCE($2, poster_url) WHERE id = $3
       `, [avatarUrl, posterUrl, row.id]);
       done += 1;
     } else if (needsAvatar || needsPoster) {
@@ -58,7 +58,7 @@ async function backfillPosts(db) {
     }
     const imageUrl = await uploadImageDataUrl(row.image, { kind: "post", ownerId: row.id });
     if (imageUrl) {
-      await run(db, "UPDATE posts SET image_url = ? WHERE id = ?", [imageUrl, row.id]);
+      await run(db, "UPDATE posts SET image_url = $1 WHERE id = $2", [imageUrl, row.id]);
       done += 1;
     } else {
       console.warn(`  post ${row.id}: upload failed (check logs above) -- left for a future re-run`);

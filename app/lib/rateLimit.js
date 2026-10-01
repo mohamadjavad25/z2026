@@ -28,7 +28,7 @@ export async function checkRateLimit(key, limit, windowMs) {
   const row = await get(db, `
     SELECT COUNT(*) AS c, MIN(hit_at) AS oldest
     FROM rate_limit_hits
-    WHERE key = ? AND hit_at > ?
+    WHERE key = $1 AND hit_at > $2
   `, [key, windowStart]);
   const count = Number(row?.c || 0);
   if (count >= limit) {
@@ -36,7 +36,7 @@ export async function checkRateLimit(key, limit, windowMs) {
     const retryAfterMs = Math.max(windowMs - (Date.now() - oldestMs), 0);
     return { ok: false, retryAfterMs };
   }
-  await run(db, "INSERT INTO rate_limit_hits (key, hit_at) VALUES (?, NOW())", [key]);
+  await run(db, "INSERT INTO rate_limit_hits (key, hit_at) VALUES ($1, NOW())", [key]);
   // Opportunistic cleanup instead of a scheduled sweep (a setInterval sweep
   // has the same serverless-instance problem this whole rewrite exists to
   // fix -- it might never run again after a cold start): a small random

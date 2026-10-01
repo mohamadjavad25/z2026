@@ -21,7 +21,7 @@ async function findBookingClient(row, runner) {
     // check is correct here and, unlike a REPLACE()-wrapped comparison,
     // can use the column's own UNIQUE index.
     const byNormalized = await get(runner, `
-      SELECT * FROM users WHERE phone = ? LIMIT 1
+      SELECT * FROM users WHERE phone = $1 LIMIT 1
     `, [phone]);
     if (byNormalized) return byNormalized;
     const byRaw = await getUserByPhone(rawPhone, runner);
@@ -30,7 +30,7 @@ async function findBookingClient(row, runner) {
   const clientName = String(row.client || "").trim();
   if (!clientName) return null;
   return get(runner, `
-    SELECT * FROM users WHERE type = 'client' AND name = ? LIMIT 1
+    SELECT * FROM users WHERE type = 'client' AND name = $1 LIMIT 1
   `, [clientName]);
 }
 
@@ -97,13 +97,13 @@ async function listActiveDayBookings(db, salonUserId, bookingDate, excludeId = n
     return all(db, `
       SELECT id, staff, time, duration_minutes, service, status
       FROM salon_bookings
-      WHERE salon_user_id = ? AND booking_date = ? AND status NOT IN ('لغو', 'منقضی شده')
+      WHERE salon_user_id = $1 AND booking_date = $2 AND status NOT IN ('لغو', 'منقضی شده')
     `, [salonUserId, bookingDate]);
   }
   return all(db, `
     SELECT id, staff, time, duration_minutes, service, status
     FROM salon_bookings
-    WHERE salon_user_id = ? AND booking_date = ? AND status NOT IN ('لغو', 'منقضی شده') AND id != ?
+    WHERE salon_user_id = $1 AND booking_date = $2 AND status NOT IN ('لغو', 'منقضی شده') AND id != $3
   `, [salonUserId, bookingDate, excludeId]);
 }
 
@@ -133,7 +133,7 @@ export async function listSalonBookings(salonUserId) {
   const staffByName = new Map(
     staffList.map((person) => [String(person.name || "").trim(), person])
   );
-  const rows = await all(db, "SELECT * FROM salon_bookings WHERE salon_user_id = ? ORDER BY id DESC", [salonUserId]);
+  const rows = await all(db, "SELECT * FROM salon_bookings WHERE salon_user_id = $1 ORDER BY id DESC", [salonUserId]);
 
   // findBookingClient runs an unindexed, 10-nested-REPLACE phone-matching
   // scan over the whole users table (falling back to a name lookup) --
@@ -190,19 +190,19 @@ export async function listClientSalonBookings(user) {
   const conditions = [];
   const params = [];
   if (userId) {
-    conditions.push("b.client_user_id = ?");
     params.push(userId);
+    conditions.push(`b.client_user_id = $${params.length}`);
   }
   if (phone) {
     // b.phone_normalized is a generated column (migrations/005_normalized_phone.sql)
     // that runs the same digit-normalization at write time, indexed --
     // unlike wrapping b.phone in REPLACE() on every read, this is sargable.
-    conditions.push("b.phone_normalized = ?");
     params.push(phone);
+    conditions.push(`b.phone_normalized = $${params.length}`);
   }
   if (name) {
-    conditions.push("b.client = ?");
     params.push(name);
+    conditions.push(`b.client = $${params.length}`);
   }
   const rows = await all(db, `
     SELECT b.*, s.name AS salon_name, s.area AS salon_area, s.phone AS salon_phone, s.user_id AS source_salon_user_id, u.avatar AS salon_avatar
@@ -246,7 +246,7 @@ export async function addSalonBooking(salonUserId, data) {
     const info = await run(db, `
       INSERT INTO salon_bookings
         (salon_user_id, client_user_id, client, phone, service, staff, booking_date, time, duration_minutes, status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       RETURNING id
     `, [
       salonUserId,
@@ -262,7 +262,7 @@ export async function addSalonBooking(salonUserId, data) {
     ]);
     return {
       ok: true,
-      booking: await get(db, "SELECT * FROM salon_bookings WHERE id = ?", [Number(info.rows[0].id)])
+      booking: await get(db, "SELECT * FROM salon_bookings WHERE id = $1", [Number(info.rows[0].id)])
     };
   });
 }
@@ -303,8 +303,8 @@ async function updateSalonBookingInTx(db, id, salonUserId, current, data) {
 
   await run(db, `
     UPDATE salon_bookings
-    SET client = ?, phone = ?, service = ?, staff = ?, booking_date = ?, time = ?, duration_minutes = ?, status = ?
-    WHERE id = ? AND salon_user_id = ?
+    SET client = $1, phone = $2, service = $3, staff = $4, booking_date = $5, time = $6, duration_minutes = $7, status = $8
+    WHERE id = $9 AND salon_user_id = $10
   `, [
     next.client || "",
     next.phone || "",
@@ -320,14 +320,14 @@ async function updateSalonBookingInTx(db, id, salonUserId, current, data) {
 
   return {
     ok: true,
-    booking: await get(db, "SELECT * FROM salon_bookings WHERE id = ?", [id])
+    booking: await get(db, "SELECT * FROM salon_bookings WHERE id = $1", [id])
   };
 }
 
 export async function updateSalonBooking(id, salonUserId, data) {
   const pool = await getDb();
   const current = await get(pool, `
-    SELECT * FROM salon_bookings WHERE id = ? AND salon_user_id = ?
+    SELECT * FROM salon_bookings WHERE id = $1 AND salon_user_id = $2
   `, [id, salonUserId]);
   if (!current) return { ok: false, error: "missing" };
 
@@ -347,7 +347,7 @@ export async function updateSalonBooking(id, salonUserId, data) {
 export async function patchSalonBookingWithArtistSync(id, salonUserId, data) {
   const pool = await getDb();
   const current = await get(pool, `
-    SELECT * FROM salon_bookings WHERE id = ? AND salon_user_id = ?
+    SELECT * FROM salon_bookings WHERE id = $1 AND salon_user_id = $2
   `, [id, salonUserId]);
   if (!current) return { ok: false, error: "missing" };
 

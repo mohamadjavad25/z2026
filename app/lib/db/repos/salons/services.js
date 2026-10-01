@@ -12,7 +12,7 @@ export async function listSalonServices(salonUserId, runner = null) {
     FROM salon_services s
     LEFT JOIN salon_staff st
       ON st.id = s.staff_id AND st.salon_user_id = s.salon_user_id
-    WHERE s.salon_user_id = ?
+    WHERE s.salon_user_id = $1
     ORDER BY s.id
   `, [salonUserId]);
   return rows.map((service) => {
@@ -40,7 +40,7 @@ async function getSalonServiceRow(id, runner = null) {
     FROM salon_services s
     LEFT JOIN salon_staff st
       ON st.id = s.staff_id AND st.salon_user_id = s.salon_user_id
-    WHERE s.id = ?
+    WHERE s.id = $1
   `, [id]);
 }
 
@@ -51,7 +51,7 @@ export async function addSalonService(salonUserId, data) {
     ? data.staff_ids.map((id) => String(id)).filter(Boolean).join(",")
     : String(data.staff_ids || "");
   const info = await run(db, `
-    INSERT INTO salon_services (salon_user_id, name, price, duration, hint, staff_id, staff_ids) VALUES (?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO salon_services (salon_user_id, name, price, duration, hint, staff_id, staff_ids) VALUES ($1, $2, $3, $4, $5, $6, $7)
     RETURNING id
   `, [
     salonUserId,
@@ -67,7 +67,7 @@ export async function addSalonService(salonUserId, data) {
 
 export async function updateSalonService(id, salonUserId, data) {
   const db = await getDb();
-  const current = await get(db, "SELECT * FROM salon_services WHERE id = ? AND salon_user_id = ?", [id, salonUserId]);
+  const current = await get(db, "SELECT * FROM salon_services WHERE id = $1 AND salon_user_id = $2", [id, salonUserId]);
   if (!current) return null;
 
   let nextStaffId = current.staff_id;
@@ -86,7 +86,7 @@ export async function updateSalonService(id, salonUserId, data) {
   }
 
   await run(db, `
-    UPDATE salon_services SET name = ?, price = ?, duration = ?, hint = ?, staff_id = ?, staff_ids = ? WHERE id = ? AND salon_user_id = ?
+    UPDATE salon_services SET name = $1, price = $2, duration = $3, hint = $4, staff_id = $5, staff_ids = $6 WHERE id = $7 AND salon_user_id = $8
   `, [
     data.name ?? current.name,
     data.price ?? current.price,
@@ -102,6 +102,6 @@ export async function updateSalonService(id, salonUserId, data) {
 
 export async function deleteSalonService(id, salonUserId) {
   const db = await getDb();
-  const result = await run(db, "DELETE FROM salon_services WHERE id = ? AND salon_user_id = ?", [id, salonUserId]);
+  const result = await run(db, "DELETE FROM salon_services WHERE id = $1 AND salon_user_id = $2", [id, salonUserId]);
   return result.rowCount > 0;
 }

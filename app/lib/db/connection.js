@@ -127,33 +127,15 @@ function getPool() {
  * unrelated pooled connection mid-transaction.
  */
 
-/** Converts this codebase's chosen `?` positional-placeholder convention
- *  (each `?` consumes the next value in `params`, left to right -- verified:
- *  no query in this codebase reuses a placeholder or needs Postgres's `$N`
- *  numbered-reuse form) into Postgres's native `$1, $2, ...`. Kept as a
- *  small, isolated, unit-verifiable translation rather than rewriting the
- *  ~390 `?` placeholders across every repos/*.js query in place: `pg`
- *  requires `$N` syntax, but many of these queries build their SQL from
- *  interpolated fragments (see e.g. posts.js's `postSelect` reuse,
- *  salons/bookings.js's dynamic `conditions.join(" OR ")`), where a
- *  literal find-replace across 18 files risks silently miscounting a
- *  placeholder and binding a value to the wrong column -- a correctness
- *  risk with no behavioral upside, since this function already does the
- *  translation correctly and is one place to verify, not 18. */
-export function toPgSql(sql) {
-  let i = 0;
-  return sql.replace(/\?/g, () => `$${++i}`);
-}
-
 /** Runs `sql` against `runner` (pool or client) and returns every row. */
 export async function all(runner, sql, params = []) {
-  const result = await runner.query(toPgSql(sql), params);
+  const result = await runner.query(sql, params);
   return result.rows;
 }
 
 /** Runs `sql` against `runner` and returns the first row, or null. */
 export async function get(runner, sql, params = []) {
-  const result = await runner.query(toPgSql(sql), params);
+  const result = await runner.query(sql, params);
   return result.rows[0] || null;
 }
 
@@ -161,7 +143,7 @@ export async function get(runner, sql, params = []) {
  *  { rowCount, rows } -- `rowCount` is the number of rows affected; `rows`
  *  is populated when the query has a `RETURNING` clause. */
 export async function run(runner, sql, params = []) {
-  const result = await runner.query(toPgSql(sql), params);
+  const result = await runner.query(sql, params);
   return { rowCount: result.rowCount || 0, rows: result.rows };
 }
 

@@ -70,12 +70,10 @@ for a direct, non-pooled connection — preferred for migrations, since some
 DDL needs session-level locks a transaction-mode pooler like Supavisor
 doesn't support) in `.env.local`, then `npm run migrate`.
 
-`connection.js`'s `?`-placeholder convention (`toPgSql()`, translated to
-Postgres's native `$1, $2, ...` before every query) is a deliberate choice,
-not unfinished cleanup: `pg` requires `$N` syntax, but many queries across
-`repos/*.js` build their SQL from interpolated fragments, where rewriting
-~390 placeholders by hand across 18 files risks silently miscounting one
-and binding a value to the wrong column. One small, isolated, verifiable
-translation function is safer than that. TLS: see `PGSSL_CA_PATH` in
-`.env.example` for hardening the DB connection to full certificate
-verification instead of the current `rejectUnauthorized: false` default.
+`repos/*.js` write Postgres's native `$1, $2, ...` placeholders directly —
+the earlier `?`-placeholder translation layer (`toPgSql()`, a holdover from
+an older SQLite-backed version of this codebase) has been removed; every
+query across all 18 repo files was converted and re-verified against the
+integration test suite. TLS: see `PGSSL_CA_PATH` in `.env.example` for
+hardening the DB connection to full certificate verification instead of the
+current `rejectUnauthorized: false` default.

@@ -52,7 +52,7 @@ export async function listSalonArtistInvites(salonUserId, { status } = {}) {
         JOIN users u ON u.id = i.artist_user_id
         LEFT JOIN salons s ON s.user_id = i.salon_user_id
         LEFT JOIN users salon_user ON salon_user.id = i.salon_user_id
-        WHERE i.salon_user_id = ? AND i.status = ?
+        WHERE i.salon_user_id = $1 AND i.status = $2
         ORDER BY i.id DESC
       `, [salonUserId, status])
     : await all(db, `
@@ -70,7 +70,7 @@ export async function listSalonArtistInvites(salonUserId, { status } = {}) {
         JOIN users u ON u.id = i.artist_user_id
         LEFT JOIN salons s ON s.user_id = i.salon_user_id
         LEFT JOIN users salon_user ON salon_user.id = i.salon_user_id
-        WHERE i.salon_user_id = ?
+        WHERE i.salon_user_id = $1
         ORDER BY i.id DESC
       `, [salonUserId]);
   return rows.map(mapSalonInvite).filter(Boolean);
@@ -94,7 +94,7 @@ export async function listArtistSalonInvites(artistUserId, { status } = {}) {
         JOIN users u ON u.id = i.artist_user_id
         LEFT JOIN salons s ON s.user_id = i.salon_user_id
         LEFT JOIN users salon_user ON salon_user.id = i.salon_user_id
-        WHERE i.artist_user_id = ? AND i.status = ?
+        WHERE i.artist_user_id = $1 AND i.status = $2
         ORDER BY i.id DESC
       `, [artistUserId, status])
     : await all(db, `
@@ -112,7 +112,7 @@ export async function listArtistSalonInvites(artistUserId, { status } = {}) {
         JOIN users u ON u.id = i.artist_user_id
         LEFT JOIN salons s ON s.user_id = i.salon_user_id
         LEFT JOIN users salon_user ON salon_user.id = i.salon_user_id
-        WHERE i.artist_user_id = ?
+        WHERE i.artist_user_id = $1
         ORDER BY i.id DESC
       `, [artistUserId]);
   return rows.map(mapSalonInvite).filter(Boolean);
@@ -123,7 +123,7 @@ export async function countPendingArtistInvites(artistUserId) {
   const row = await get(db, `
     SELECT COUNT(*) AS count
     FROM salon_artist_invites
-    WHERE artist_user_id = ? AND status = ?
+    WHERE artist_user_id = $1 AND status = $2
   `, [artistUserId, PENDING]);
   return Number(row?.count || 0);
 }
@@ -145,7 +145,7 @@ async function getInviteRow(id, runner = null) {
     JOIN users u ON u.id = i.artist_user_id
     LEFT JOIN salons s ON s.user_id = i.salon_user_id
     LEFT JOIN users salon_user ON salon_user.id = i.salon_user_id
-    WHERE i.id = ?
+    WHERE i.id = $1
   `, [id]);
 }
 
@@ -158,7 +158,7 @@ export async function createSalonArtistInvite(salonUserId, data) {
 
   const artist = await get(db, `
     SELECT id, name, phone, area, service, avatar, bio, type
-    FROM users WHERE id = ? AND type = 'artist' LIMIT 1
+    FROM users WHERE id = $1 AND type = 'artist' LIMIT 1
   `, [artistUserId]);
   if (!artist) {
     return { ok: false, error: "آرتیست پیدا نشد.", code: "ARTIST_NOT_FOUND" };
@@ -166,7 +166,7 @@ export async function createSalonArtistInvite(salonUserId, data) {
 
   const alreadyStaff = await get(db, `
     SELECT id FROM salon_staff
-    WHERE salon_user_id = ? AND artist_user_id = ?
+    WHERE salon_user_id = $1 AND artist_user_id = $2
     LIMIT 1
   `, [salonUserId, artistUserId]);
   if (alreadyStaff) {
@@ -195,7 +195,7 @@ export async function createSalonArtistInvite(salonUserId, data) {
   const inserted = await run(db, `
     INSERT INTO salon_artist_invites
       (salon_user_id, artist_user_id, role, bio, access_level, days, from_time, to_time, share_percent, capacity, status)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
     ON CONFLICT (salon_user_id, artist_user_id) DO NOTHING
     RETURNING id
   `, [salonUserId, artistUserId, role, bio, accessLevel, days, fromTime, toTime, sharePercent, capacity, PENDING]);
@@ -213,7 +213,7 @@ export async function createSalonArtistInvite(salonUserId, data) {
   // that it's guaranteed to exist, and branch exactly as before.
   const existing = await get(db, `
     SELECT * FROM salon_artist_invites
-    WHERE salon_user_id = ? AND artist_user_id = ?
+    WHERE salon_user_id = $1 AND artist_user_id = $2
     LIMIT 1
   `, [salonUserId, artistUserId]);
 
@@ -230,8 +230,8 @@ export async function createSalonArtistInvite(salonUserId, data) {
   }
   await run(db, `
     UPDATE salon_artist_invites
-    SET role = ?, bio = ?, access_level = ?, days = ?, from_time = ?, to_time = ?, share_percent = ?, capacity = ?, status = ?, updated_at = CURRENT_TIMESTAMP
-    WHERE id = ?
+    SET role = $1, bio = $2, access_level = $3, days = $4, from_time = $5, to_time = $6, share_percent = $7, capacity = $8, status = $9, updated_at = CURRENT_TIMESTAMP
+    WHERE id = $10
   `, [role, bio, accessLevel, days, fromTime, toTime, sharePercent, capacity, PENDING, existing.id]);
   return { ok: true, invite: mapSalonInvite(await getInviteRow(existing.id, db)), created: false };
 }
@@ -248,21 +248,21 @@ export async function createSalonArtistInvite(salonUserId, data) {
 export async function joinSalonByArtist(salonUserId, artistUserId) {
   const db = await getDb();
   const salon = await get(db, `
-    SELECT s.name, s.area FROM salons s WHERE s.user_id = ?
+    SELECT s.name, s.area FROM salons s WHERE s.user_id = $1
   `, [salonUserId]);
   if (!salon) {
     return { ok: false, error: "سالن پیدا نشد.", code: "SALON_NOT_FOUND" };
   }
 
   const artist = await get(db, `
-    SELECT id, name, phone, area, service, bio FROM users WHERE id = ? AND type = 'artist' LIMIT 1
+    SELECT id, name, phone, area, service, bio FROM users WHERE id = $1 AND type = 'artist' LIMIT 1
   `, [artistUserId]);
   if (!artist) {
     return { ok: false, error: "آرتیست پیدا نشد.", code: "ARTIST_NOT_FOUND" };
   }
 
   const alreadyStaff = await get(db, `
-    SELECT id FROM salon_staff WHERE salon_user_id = ? AND artist_user_id = ? LIMIT 1
+    SELECT id FROM salon_staff WHERE salon_user_id = $1 AND artist_user_id = $2 LIMIT 1
   `, [salonUserId, artistUserId]);
   if (alreadyStaff) {
     return { ok: false, error: "شما همین حالا عضو تیم این سالن هستید.", code: "ALREADY_STAFF" };
@@ -272,20 +272,20 @@ export async function joinSalonByArtist(salonUserId, artistUserId) {
   const bio = artist.bio || "پیوستن با اسکن کد QR سالن";
 
   const existingInvite = await get(db, `
-    SELECT id FROM salon_artist_invites WHERE salon_user_id = ? AND artist_user_id = ? LIMIT 1
+    SELECT id FROM salon_artist_invites WHERE salon_user_id = $1 AND artist_user_id = $2 LIMIT 1
   `, [salonUserId, artistUserId]);
 
   if (existingInvite) {
     await run(db, `
       UPDATE salon_artist_invites
-      SET role = ?, bio = ?, status = ?, updated_at = CURRENT_TIMESTAMP
-      WHERE id = ?
+      SET role = $1, bio = $2, status = $3, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $4
     `, [role, bio, ACCEPTED, existingInvite.id]);
   } else {
     await run(db, `
       INSERT INTO salon_artist_invites
         (salon_user_id, artist_user_id, role, bio, access_level, status)
-      VALUES (?, ?, ?, ?, ?, ?)
+      VALUES ($1, $2, $3, $4, $5, $6)
     `, [salonUserId, artistUserId, role, bio, "همکار", ACCEPTED]);
   }
 
@@ -317,7 +317,7 @@ export async function getSalonJoinPreview(salonUserId) {
   const row = await get(db, `
     SELECT s.user_id, s.name, s.area, u.avatar
     FROM salons s JOIN users u ON u.id = s.user_id
-    WHERE s.user_id = ?
+    WHERE s.user_id = $1
   `, [salonUserId]);
   if (!row) return null;
   return {
@@ -332,7 +332,7 @@ export async function cancelSalonArtistInvite(id, salonUserId) {
   const db = await getDb();
   const current = await get(db, `
     SELECT * FROM salon_artist_invites
-    WHERE id = ? AND salon_user_id = ?
+    WHERE id = $1 AND salon_user_id = $2
   `, [id, salonUserId]);
   if (!current) return null;
   if (current.status !== PENDING) {
@@ -340,8 +340,8 @@ export async function cancelSalonArtistInvite(id, salonUserId) {
   }
   await run(db, `
     UPDATE salon_artist_invites
-    SET status = ?, updated_at = CURRENT_TIMESTAMP
-    WHERE id = ? AND salon_user_id = ?
+    SET status = $1, updated_at = CURRENT_TIMESTAMP
+    WHERE id = $2 AND salon_user_id = $3
   `, [CANCELLED, id, salonUserId]);
   return mapSalonInvite(await getInviteRow(id, db));
 }
@@ -356,7 +356,7 @@ export async function respondArtistSalonInvite(id, artistUserId, status) {
 
   const current = await get(db, `
     SELECT * FROM salon_artist_invites
-    WHERE id = ? AND artist_user_id = ?
+    WHERE id = $1 AND artist_user_id = $2
   `, [id, artistUserId]);
   if (!current) {
     return { ok: false, error: "دعوت پیدا نشد.", code: "NOT_FOUND" };
@@ -372,8 +372,8 @@ export async function respondArtistSalonInvite(id, artistUserId, status) {
 
   await run(db, `
     UPDATE salon_artist_invites
-    SET status = ?, updated_at = CURRENT_TIMESTAMP
-    WHERE id = ? AND artist_user_id = ?
+    SET status = $1, updated_at = CURRENT_TIMESTAMP
+    WHERE id = $2 AND artist_user_id = $3
   `, [nextStatus, id, artistUserId]);
 
   const invite = mapSalonInvite(await getInviteRow(id, db));
@@ -391,17 +391,17 @@ export async function respondArtistSalonInvite(id, artistUserId, status) {
 
     const existingStaff = await get(db, `
       SELECT * FROM salon_staff
-      WHERE salon_user_id = ? AND artist_user_id = ?
+      WHERE salon_user_id = $1 AND artist_user_id = $2
       LIMIT 1
     `, [current.salon_user_id, current.artist_user_id]);
 
     if (existingStaff) {
       await run(db, `
         UPDATE salon_staff
-        SET state = ?, access_level = ?, role = COALESCE(NULLIF(?, ''), role), bio = ?, updated_at = CURRENT_TIMESTAMP
-        WHERE id = ?
+        SET state = $1, access_level = $2, role = COALESCE(NULLIF($3, ''), role), bio = $4, updated_at = CURRENT_TIMESTAMP
+        WHERE id = $5
       `, ["فعال", current.access_level || "همکار", current.role || "", termsBio, existingStaff.id]);
-      staffPerson = await get(db, "SELECT * FROM salon_staff WHERE id = ?", [existingStaff.id]);
+      staffPerson = await get(db, "SELECT * FROM salon_staff WHERE id = $1", [existingStaff.id]);
       staffCreated = false;
     } else {
       staffPerson = await addSalonStaff(current.salon_user_id, {

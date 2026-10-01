@@ -20,6 +20,6 @@ export function normalizePhone(phone) {
 
 export async function countFollowing(userId, runner = null) {
   const db = runner || (await getDb());
-  const row = await get(db, "SELECT COUNT(*) AS c FROM follows WHERE follower_user_id = ?", [userId]);
+  const row = await get(db, "SELECT COUNT(*) AS c FROM follows WHERE follower_user_id = $1", [userId]);
   return Number(row?.c || 0);
 }

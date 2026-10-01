@@ -17,7 +17,7 @@ export async function listSalonPortfolio(salonUserId, runner = null) {
     created_at: post.createdAt
   }));
 
-  const legacyRows = await all(db, "SELECT * FROM salon_portfolio WHERE salon_user_id = ? ORDER BY id DESC", [salonUserId]);
+  const legacyRows = await all(db, "SELECT * FROM salon_portfolio WHERE salon_user_id = $1 ORDER BY id DESC", [salonUserId]);
   const legacy = legacyRows.map((row) => ({
     ...row,
     caption: "",
@@ -33,9 +33,9 @@ export async function listSalonPortfolio(salonUserId, runner = null) {
 
 async function syncSalonPostCount(salonUserId, runner = null) {
   const db = runner || (await getDb());
-  const countRow = await get(db, "SELECT COUNT(*) AS c FROM posts WHERE owner_user_id = ?", [salonUserId]);
+  const countRow = await get(db, "SELECT COUNT(*) AS c FROM posts WHERE owner_user_id = $1", [salonUserId]);
   const count = Number(countRow?.c || 0);
-  await run(db, "UPDATE salons SET post_count = ? WHERE user_id = ?", [count, salonUserId]);
+  await run(db, "UPDATE salons SET post_count = $1 WHERE user_id = $2", [count, salonUserId]);
 }
 
 export async function addSalonPortfolio(salonUserId, data) {
@@ -89,7 +89,7 @@ export async function updateSalonPortfolio(id, salonUserId, data) {
     };
   }
 
-  const current = await get(db, "SELECT * FROM salon_portfolio WHERE id = ? AND salon_user_id = ?", [id, salonUserId]);
+  const current = await get(db, "SELECT * FROM salon_portfolio WHERE id = $1 AND salon_user_id = $2", [id, salonUserId]);
   if (!current) return null;
 
   const post = await postsRepo.createPost(salonUserId, {
@@ -100,7 +100,7 @@ export async function updateSalonPortfolio(id, salonUserId, data) {
     inExplore: data.inExplore !== false,
     featured: Boolean(data.featured)
   }, db);
-  await run(db, "DELETE FROM salon_portfolio WHERE id = ? AND salon_user_id = ?", [id, salonUserId]);
+  await run(db, "DELETE FROM salon_portfolio WHERE id = $1 AND salon_user_id = $2", [id, salonUserId]);
   await syncSalonPostCount(salonUserId, db);
   return {
     id: post.id,
@@ -122,6 +122,6 @@ export async function deleteSalonPortfolio(id, salonUserId) {
     await syncSalonPostCount(salonUserId, db);
     return true;
   }
-  const result = await run(db, "DELETE FROM salon_portfolio WHERE id = ? AND salon_user_id = ?", [id, salonUserId]);
+  const result = await run(db, "DELETE FROM salon_portfolio WHERE id = $1 AND salon_user_id = $2", [id, salonUserId]);
   return result.rowCount > 0;
 }

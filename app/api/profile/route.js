@@ -90,7 +90,7 @@ async function _DELETE(request) {
   }
   // Soft approach: delete user cascades via FK
   const { getDb, run } = await import("../../lib/db/connection.js");
-  await run(await getDb(), "DELETE FROM users WHERE id = ?", [auth.user.id]);
+  await run(await getDb(), "DELETE FROM users WHERE id = $1", [auth.user.id]);
   return NextResponse.json({ data: { user: null } });
 }
 

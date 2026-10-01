@@ -57,14 +57,14 @@ export async function listSalons({ cursor, limit } = {}) {
   const params = [];
   let where = "";
   if (cursor != null) {
-    where = "WHERE s.user_id < ?";
     params.push(Number(cursor));
+    where = `WHERE s.user_id < $${params.length}`;
   }
   let limitClause = "";
   const pageSize = limit ? Math.min(Math.max(Number(limit) || 20, 1), 50) : null;
   if (pageSize) {
-    limitClause = "LIMIT ?";
     params.push(pageSize + 1);
+    limitClause = `LIMIT $${params.length}`;
   }
   const rawRows = await all(db, `
     SELECT s.*, u.avatar, u.bio, u.avatar_position
@@ -103,16 +103,16 @@ export async function listSalons({ cursor, limit } = {}) {
   // directory row without waiting for that detail fetch.
   const userIds = rows.map((row) => row.user_id);
   const [settingsRows, followerRows, followingRows, serviceRows, hourRows] = await Promise.all([
-    all(db, "SELECT user_id, settings FROM user_settings WHERE user_id = ANY(?)", [userIds]),
-    all(db, "SELECT target_user_id, COUNT(*) AS c FROM follows WHERE target_user_id = ANY(?) GROUP BY target_user_id", [userIds]),
-    all(db, "SELECT follower_user_id, COUNT(*) AS c FROM follows WHERE follower_user_id = ANY(?) GROUP BY follower_user_id", [userIds]),
+    all(db, "SELECT user_id, settings FROM user_settings WHERE user_id = ANY($1)", [userIds]),
+    all(db, "SELECT target_user_id, COUNT(*) AS c FROM follows WHERE target_user_id = ANY($1) GROUP BY target_user_id", [userIds]),
+    all(db, "SELECT follower_user_id, COUNT(*) AS c FROM follows WHERE follower_user_id = ANY($1) GROUP BY follower_user_id", [userIds]),
     // Deliberately a plain column select, not listSalonServices()'s
     // staff-enrichment JOIN (which itself calls listSalonStaff(), the
     // expensive per-staff artist-resolution fanout) -- confirmed nothing
     // in the directory/booking-modal path reads service.staff_members/
     // staff_names, only .name/.price/.duration/.hint, all plain columns.
-    all(db, "SELECT * FROM salon_services WHERE salon_user_id = ANY(?) ORDER BY id", [userIds]),
-    all(db, "SELECT * FROM salon_hours WHERE salon_user_id = ANY(?)", [userIds])
+    all(db, "SELECT * FROM salon_services WHERE salon_user_id = ANY($1) ORDER BY id", [userIds]),
+    all(db, "SELECT * FROM salon_hours WHERE salon_user_id = ANY($1)", [userIds])
   ]);
 
   const settingsByUser = new Map(settingsRows.map((r) => [
@@ -200,7 +200,7 @@ export async function listSavedSalonsForUser(userId) {
     FROM saved_profiles sp
     JOIN salons s ON s.user_id = sp.target_user_id
     JOIN users u ON u.id = s.user_id
-    WHERE sp.user_id = ?
+    WHERE sp.user_id = $1
     ORDER BY sp.created_at DESC
   `, [userId]);
   const result = await Promise.all(rows.map(async (row) => {
@@ -237,7 +237,7 @@ export async function getSalon(userId, viewerUserId = null) {
   const row = await get(db, `
     SELECT s.*, u.avatar, u.bio, u.avatar_position
     FROM salons s JOIN users u ON u.id = s.user_id
-    WHERE s.user_id = ?
+    WHERE s.user_id = $1
   `, [userId]);
   if (!row) return null;
   const [
@@ -310,15 +310,15 @@ export async function setSalonFollow(salonUserId, followerUserId, follow = true)
   const db = await getDb();
   if (follow) {
     await run(db, `
-      INSERT INTO follows (follower_user_id, target_user_id) VALUES (?, ?)
+      INSERT INTO follows (follower_user_id, target_user_id) VALUES ($1, $2)
       ON CONFLICT (follower_user_id, target_user_id) DO NOTHING
     `, [followerUserId, salonUserId]);
   } else {
-    await run(db, "DELETE FROM follows WHERE follower_user_id = ? AND target_user_id = ?", [followerUserId, salonUserId]);
+    await run(db, "DELETE FROM follows WHERE follower_user_id = $1 AND target_user_id = $2", [followerUserId, salonUserId]);
   }
-  const count = await get(db, "SELECT COUNT(*) AS c FROM follows WHERE target_user_id = ?", [salonUserId]);
+  const count = await get(db, "SELECT COUNT(*) AS c FROM follows WHERE target_user_id = $1", [salonUserId]);
   const followerCount = Number(count?.c || 0);
-  await run(db, "UPDATE salons SET follower_count = ? WHERE user_id = ?", [followerCount, salonUserId]);
+  await run(db, "UPDATE salons SET follower_count = $1 WHERE user_id = $2", [followerCount, salonUserId]);
   return {
     following: follow,
     followerCount,

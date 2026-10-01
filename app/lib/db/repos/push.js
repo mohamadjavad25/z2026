@@ -19,7 +19,7 @@ export async function saveSubscription(userId, subscription) {
   const db = await getDb();
   await run(db, `
     INSERT INTO push_subscriptions (user_id, endpoint, p256dh, auth, created_at)
-    VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+    VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)
     ON CONFLICT(endpoint) DO UPDATE SET
       user_id = excluded.user_id,
       p256dh = excluded.p256dh,
@@ -32,14 +32,14 @@ export async function saveSubscription(userId, subscription) {
 export async function removeSubscription(userId, endpoint) {
   if (!userId || !endpoint) return { ok: false };
   const db = await getDb();
-  await run(db, "DELETE FROM push_subscriptions WHERE user_id = ? AND endpoint = ?", [Number(userId), String(endpoint)]);
+  await run(db, "DELETE FROM push_subscriptions WHERE user_id = $1 AND endpoint = $2", [Number(userId), String(endpoint)]);
   return { ok: true };
 }
 
 export async function listSubscriptionsForUser(userId) {
   if (!userId) return [];
   const db = await getDb();
-  return all(db, "SELECT id, endpoint, p256dh, auth FROM push_subscriptions WHERE user_id = ?", [Number(userId)]);
+  return all(db, "SELECT id, endpoint, p256dh, auth FROM push_subscriptions WHERE user_id = $1", [Number(userId)]);
 }
 
 /** Called when a push send comes back 404/410 (gone) — the browser/OS
@@ -49,5 +49,5 @@ export async function listSubscriptionsForUser(userId) {
 export async function removeSubscriptionById(subscriptionId) {
   if (!subscriptionId) return;
   const db = await getDb();
-  await run(db, "DELETE FROM push_subscriptions WHERE id = ?", [Number(subscriptionId)]);
+  await run(db, "DELETE FROM push_subscriptions WHERE id = $1", [Number(subscriptionId)]);
 }

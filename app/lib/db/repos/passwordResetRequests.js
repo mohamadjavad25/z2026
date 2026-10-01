@@ -12,7 +12,7 @@ export async function createRequest(phone, note = "") {
   const db = await getDb();
   const result = await run(db, `
     INSERT INTO password_reset_requests (phone, note, status, created_at)
-    VALUES (?, ?, 'pending', CURRENT_TIMESTAMP)
+    VALUES ($1, $2, 'pending', CURRENT_TIMESTAMP)
     RETURNING id
   `, [String(phone), String(note || "").slice(0, 300)]);
   return { ok: true, id: Number(result.rows[0].id) };
@@ -33,7 +33,7 @@ export async function getRequestById(id) {
   return get(db, `
     SELECT id, phone, note, status, created_at, resolved_at
     FROM password_reset_requests
-    WHERE id = ?
+    WHERE id = $1
   `, [Number(id)]);
 }
 
@@ -42,6 +42,6 @@ export async function markResolved(id) {
   await run(db, `
     UPDATE password_reset_requests
     SET status = 'resolved', resolved_at = CURRENT_TIMESTAMP
-    WHERE id = ?
+    WHERE id = $1
   `, [Number(id)]);
 }

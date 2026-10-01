@@ -18,7 +18,7 @@ async function _GET(request, { params }) {
   const postId = Number(postIdParam);
   if (!postId) return new Response(null, { status: 404 });
 
-  const row = await get(await getDb(), "SELECT image FROM posts WHERE id = ?", [postId]);
+  const row = await get(await getDb(), "SELECT image FROM posts WHERE id = $1", [postId]);
   const parsed = parseMediaDataUrl(row?.image, ALLOWED_POSTER_TYPES);
   if (!parsed) return new Response(null, { status: 404 });
 

@@ -67,19 +67,19 @@ export async function listExplorePosts({ tag, cursor, limit } = {}, runner = nul
   const params = [];
   let where = "p.in_explore";
   if (tag && tag !== "همه") {
-    where += " AND p.tag = ?";
     params.push(tag);
+    where += ` AND p.tag = $${params.length}`;
   }
   if (cursor) {
     const [cFeatured, cId] = String(cursor).split(":");
-    where += " AND (p.featured, p.id) < (?, ?)";
     params.push(cFeatured === "1", Number(cId) || 0);
+    where += ` AND (p.featured, p.id) < ($${params.length - 1}, $${params.length})`;
   }
   let limitClause = "";
   const pageSize = limit ? Math.min(Math.max(Number(limit) || 20, 1), 50) : null;
   if (pageSize) {
-    limitClause = "LIMIT ?";
     params.push(pageSize + 1);
+    limitClause = `LIMIT $${params.length}`;
   }
   const rawRows = await all(db, `
     ${postSelect}
@@ -100,7 +100,7 @@ export async function listPostsByOwner(ownerUserId, runner = null) {
   const db = runner || (await getDb());
   const rows = await all(db, `
     ${postSelect}
-    WHERE p.owner_user_id = ?
+    WHERE p.owner_user_id = $1
     ORDER BY p.featured DESC, p.created_at DESC
   `, [ownerUserId]);
   return rows.map(mapPost);
@@ -108,13 +108,13 @@ export async function listPostsByOwner(ownerUserId, runner = null) {
 
 export async function getPostById(id, runner = null) {
   const db = runner || (await getDb());
-  return mapPost(await get(db, `${postSelect} WHERE p.id = ?`, [id]));
+  return mapPost(await get(db, `${postSelect} WHERE p.id = $1`, [id]));
 }
 
 export async function incrementPostViews(id) {
   const db = await getDb();
   await run(db, `
-    UPDATE posts SET views_count = views_count + 1 WHERE id = ?
+    UPDATE posts SET views_count = views_count + 1 WHERE id = $1
   `, [id]);
   return getPostById(id, db);
 }
@@ -123,7 +123,7 @@ export async function createPost(ownerUserId, data, runner = null) {
   const db = runner || (await getDb());
   const info = await run(db, `
     INSERT INTO posts (owner_user_id, title, tag, image, caption, in_explore, featured)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
     RETURNING id
   `, [
     ownerUserId,
@@ -143,7 +143,7 @@ export async function createPost(ownerUserId, data, runner = null) {
   if (data.image) {
     const imageUrl = await uploadImageDataUrl(data.image, { kind: "post", ownerId: postId });
     if (imageUrl) {
-      await run(db, "UPDATE posts SET image_url = ? WHERE id = ?", [imageUrl, postId]);
+      await run(db, "UPDATE posts SET image_url = $1 WHERE id = $2", [imageUrl, postId]);
     }
   }
   return getPostById(postId, db);
@@ -151,7 +151,7 @@ export async function createPost(ownerUserId, data, runner = null) {
 
 export async function updatePost(id, ownerUserId, data, runner = null) {
   const db = runner || (await getDb());
-  const current = await get(db, "SELECT * FROM posts WHERE id = ? AND owner_user_id = ?", [id, ownerUserId]);
+  const current = await get(db, "SELECT * FROM posts WHERE id = $1 AND owner_user_id = $2", [id, ownerUserId]);
   if (!current) return null;
 
   let imageUrl = current.image_url;
@@ -161,9 +161,9 @@ export async function updatePost(id, ownerUserId, data, runner = null) {
 
   await run(db, `
     UPDATE posts SET
-      title = ?, tag = ?, image = ?, image_url = ?, caption = ?, in_explore = ?, featured = ?,
+      title = $1, tag = $2, image = $3, image_url = $4, caption = $5, in_explore = $6, featured = $7,
       updated_at = CURRENT_TIMESTAMP
-    WHERE id = ? AND owner_user_id = ?
+    WHERE id = $8 AND owner_user_id = $9
   `, [
     data.title ?? current.title,
     data.tag ?? current.tag,
@@ -180,7 +180,7 @@ export async function updatePost(id, ownerUserId, data, runner = null) {
 
 export async function deletePost(id, ownerUserId, runner = null) {
   const db = runner || (await getDb());
-  const result = await run(db, "DELETE FROM posts WHERE id = ? AND owner_user_id = ?", [id, ownerUserId]);
+  const result = await run(db, "DELETE FROM posts WHERE id = $1 AND owner_user_id = $2", [id, ownerUserId]);
   return result.rowCount > 0;
 }
 
@@ -197,20 +197,20 @@ export async function deletePost(id, ownerUserId, runner = null) {
  */
 export async function toggleSave(userId, postId) {
   const db = await getDb();
-  const existing = await get(db, "SELECT 1 FROM post_saves WHERE user_id = ? AND post_id = ?", [userId, postId]);
+  const existing = await get(db, "SELECT 1 FROM post_saves WHERE user_id = $1 AND post_id = $2", [userId, postId]);
   if (existing) {
-    const result = await run(db, "DELETE FROM post_saves WHERE user_id = ? AND post_id = ?", [userId, postId]);
+    const result = await run(db, "DELETE FROM post_saves WHERE user_id = $1 AND post_id = $2", [userId, postId]);
     if (result.rowCount > 0) {
-      await run(db, "UPDATE posts SET saves_count = GREATEST(saves_count - 1, 0) WHERE id = ?", [postId]);
+      await run(db, "UPDATE posts SET saves_count = GREATEST(saves_count - 1, 0) WHERE id = $1", [postId]);
     }
     return { saved: false };
   }
   const result = await run(db, `
-    INSERT INTO post_saves (user_id, post_id) VALUES (?, ?)
+    INSERT INTO post_saves (user_id, post_id) VALUES ($1, $2)
     ON CONFLICT (user_id, post_id) DO NOTHING
   `, [userId, postId]);
   if (result.rowCount > 0) {
-    await run(db, "UPDATE posts SET saves_count = saves_count + 1 WHERE id = ?", [postId]);
+    await run(db, "UPDATE posts SET saves_count = saves_count + 1 WHERE id = $1", [postId]);
   }
   return { saved: true };
 }
@@ -220,7 +220,7 @@ export async function listSavedTitles(userId) {
   const rows = await all(db, `
     SELECT p.id FROM post_saves s
     JOIN posts p ON p.id = s.post_id
-    WHERE s.user_id = ?
+    WHERE s.user_id = $1
     ORDER BY s.created_at DESC
   `, [userId]);
   return rows.map((row) => String(row.id)).filter(Boolean);
