@@ -186,3 +186,16 @@ export async function deleteSalonInvite(id) {
     body: JSON.stringify({ id })
   });
 }
+
+/** GET /api/salon-rules → { data: { rules } } (salon owner) */
+export async function getSalonRules() {
+  return apiJson("/api/salon-rules");
+}
+
+/** PUT /api/salon-rules { rules } → { data: { rules } } (saved, trimmed text) */
+export async function saveSalonRules(rules) {
+  return apiJson("/api/salon-rules", {
+    method: "PUT",
+    body: JSON.stringify({ rules })
+  });
+}

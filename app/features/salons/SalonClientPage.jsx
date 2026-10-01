@@ -227,6 +227,12 @@ export function SalonClientPage({
                 <p className="salonPublicAboutBio">
                   {selectedSalon.bio || "این سالن هنوز توضیحی درباره خودش ثبت نکرده است."}
                 </p>
+                {selectedSalon.rules ? (
+                  <section className="salonPublicAboutBlock salonPublicAboutRules">
+                    <h4>قوانین و شرایط سالن</h4>
+                    <p>{selectedSalon.rules}</p>
+                  </section>
+                ) : null}
                 <section className="salonPublicAboutBlock">
                   <h4>مدیر و تیم سالن</h4>
                   <div className="salonPublicAboutList">

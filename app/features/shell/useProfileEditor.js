@@ -308,19 +308,19 @@ export function useProfileEditor({
     stageProfileImage(file, setPendingPosterUpload);
   }, [stageProfileImage]);
 
-  const confirmAvatarUpload = useCallback((position) => {
+  const confirmAvatarUpload = useCallback((position, croppedImage) => {
     if (!pendingAvatarUpload) return;
     saveProfileFields(
-      { avatar: pendingAvatarUpload, avatarPosition: position },
+      { avatar: croppedImage || pendingAvatarUpload, avatarPosition: position },
       { setBusy: setLogoSaving, successMessage: "لوگو بروزرسانی شد." }
     );
     setPendingAvatarUpload("");
   }, [pendingAvatarUpload, saveProfileFields]);
 
-  const confirmPosterUpload = useCallback((position) => {
+  const confirmPosterUpload = useCallback((position, croppedImage) => {
     if (!pendingPosterUpload) return;
     saveProfileFields(
-      { poster: pendingPosterUpload, posterPosition: position },
+      { poster: croppedImage || pendingPosterUpload, posterPosition: position },
       { setBusy: setPosterSaving, successMessage: "پوستر بروزرسانی شد." }
     );
     setPendingPosterUpload("");
@@ -334,13 +334,19 @@ export function useProfileEditor({
     saveProfileField("poster", "", { setBusy: setPosterSaving, successMessage: "پوستر حذف شد." });
   }, [saveProfileField]);
 
-  const saveAvatarPosition = useCallback((position) => (
-    saveProfileField("avatarPosition", position, { setBusy: setLogoSaving })
-  ), [saveProfileField]);
+  const saveAvatarPosition = useCallback((position, croppedImage) => (
+    saveProfileFields(
+      croppedImage ? { avatar: croppedImage, avatarPosition: position } : { avatarPosition: position },
+      { setBusy: setLogoSaving, successMessage: "لوگو بروزرسانی شد." }
+    )
+  ), [saveProfileFields]);
 
-  const savePosterPosition = useCallback((position) => (
-    saveProfileField("posterPosition", position, { setBusy: setPosterSaving })
-  ), [saveProfileField]);
+  const savePosterPosition = useCallback((position, croppedImage) => (
+    saveProfileFields(
+      croppedImage ? { poster: croppedImage, posterPosition: position } : { posterPosition: position },
+      { setBusy: setPosterSaving, successMessage: "پوستر بروزرسانی شد." }
+    )
+  ), [saveProfileFields]);
 
   const toggleProfileSetting = useCallback((key) => {
     let nextValue = null;

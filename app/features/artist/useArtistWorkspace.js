@@ -12,7 +12,6 @@ import {
   updateArtistMe
 } from "../../shared/api/artists";
 import { createPost, deletePost, getPosts, updatePost, viewPost } from "../../shared/api/posts";
-import { compressImageToDataUrl } from "../../shared/lib/imageCompression";
 import {
   buildClockOptions,
   getTodayPersianWeekday,
@@ -175,17 +174,11 @@ export function useArtistWorkspace({
     [artistPortfolioItems, previewingArtistWorkId]
   );
 
-  const artistWorkTagOptions = useMemo(() => {
-    const tags = Array.from(new Set(artistPortfolioItems.map((item) => item.tag).filter(Boolean)));
-    return Array.from(new Set(["مو", "میکاپ", "ناخن", "پوست", "ابرو", ...tags]));
-  }, [artistPortfolioItems]);
-
-  const artistWorkVisibleTagOptions = useMemo(() => {
-    const query = String(editingArtistWork?.tag || "").trim();
-    if (!query) return artistWorkTagOptions;
-    const filtered = artistWorkTagOptions.filter((tag) => tag.includes(query));
-    return filtered.length ? filtered : artistWorkTagOptions;
-  }, [artistWorkTagOptions, editingArtistWork?.tag]);
+  // Post categories are exactly the services on the artist's menu.
+  const artistWorkTagOptions = useMemo(
+    () => Array.from(new Set(artistServiceList.map((item) => String(item.name || "").trim()).filter(Boolean))),
+    [artistServiceList]
+  );
 
   const nearestArtistBookings = useMemo(
     () => sortArtistBookingsNearest(
@@ -851,27 +844,6 @@ export function useArtistWorkspace({
     setEditingArtistWork(null);
   }
 
-  async function handleArtistWorkImageUpload(event) {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      notify("فقط فایل تصویری مجاز است.");
-      event.target.value = "";
-      return;
-    }
-    if (file.size > 6 * 1024 * 1024) {
-      notify("حجم تصویر باید کمتر از ۶ مگابایت باشد.");
-      event.target.value = "";
-      return;
-    }
-    event.target.value = "";
-    // Downscale + re-encode before it becomes a data URL POSTed to the
-    // server -- see imageCompression.js.
-    const dataUrl = await compressImageToDataUrl(file);
-    setEditingArtistWork((prev) => (prev ? { ...prev, image: dataUrl } : prev));
-    notify("تصویر نمونه‌کار بارگذاری شد.");
-  }
-
   function clearArtistWorkImage() {
     setEditingArtistWork((prev) => (prev ? { ...prev, image: "" } : prev));
   }
@@ -1093,7 +1065,6 @@ export function useArtistWorkspace({
     artistGalleryItems,
     previewingArtistWork,
     artistWorkTagOptions,
-    artistWorkVisibleTagOptions,
     nearestArtistBookings,
     artistBookingWeekTabs,
     artistScheduleDayLabel,
@@ -1122,7 +1093,6 @@ export function useArtistWorkspace({
     closeArtistWorkPreview,
     openArtistWorkModal,
     closeArtistWorkModal,
-    handleArtistWorkImageUpload,
     clearArtistWorkImage,
     syncArtistWorkToExplore,
     saveArtistWork,

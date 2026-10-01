@@ -253,6 +253,9 @@ async function _PATCH(request) {
     if (result.error === "missing") {
       return noStoreJson({ error: "رزرو یافت نشد." }, { status: 404 });
     }
+    if (result.error === "past") {
+      return noStoreJson({ error: "رزرو گذشته قابل ویرایش نیست." }, { status: 409 });
+    }
     if (result.error === "expired") {
       return noStoreJson({
         error: "این درخواست به‌دلیل عدم پاسخ به‌موقع منقضی شده و دیگر قابل تایید نیست.",

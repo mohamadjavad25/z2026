@@ -284,6 +284,7 @@ export async function getSalon(userId, viewerUserId = null) {
     avatar: row.avatar ? `/api/media/avatar/${row.user_id}` : "",
     avatarPosition: row.avatar_position || "",
     bio: row.bio || "",
+    rules: row.rules || "",
     postCount: row.post_count,
     post_count: row.post_count,
     followerCount,
@@ -326,4 +327,19 @@ export async function setSalonFollow(salonUserId, followerUserId, follow = true)
     source_key: String(salonUserId),
     salonUserId
   };
+}
+
+export const SALON_RULES_MAX_LENGTH = 2000;
+
+export async function getSalonRules(userId) {
+  const db = await getDb();
+  const row = await get(db, "SELECT rules FROM salons WHERE user_id = $1", [userId]);
+  return row?.rules || "";
+}
+
+export async function updateSalonRules(userId, rules) {
+  const db = await getDb();
+  const text = String(rules ?? "").replace(/\r\n/g, "\n").trim().slice(0, SALON_RULES_MAX_LENGTH);
+  await run(db, "UPDATE salons SET rules = $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2", [text, userId]);
+  return text;
 }

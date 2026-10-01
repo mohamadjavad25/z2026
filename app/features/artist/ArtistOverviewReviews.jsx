@@ -18,10 +18,9 @@ export function ArtistOverviewReviews({
   onComposeClose,
   onComposeSubmit,
   onComposeDelete,
-  onComposeImageUpload,
+  onComposeNotify,
   onComposeImageClear,
   composeTagOptions = [],
-  composeVisibleTagOptions = [],
   composeTagMenuOpen = false,
   onComposeTagMenuOpenChange
 }) {
@@ -34,17 +33,16 @@ export function ArtistOverviewReviews({
         activeFilter={galleryFilter}
         onFilterChange={onGalleryFilterChange}
         onAdd={onAddWork}
-        addLabel="افزودن کار"
+        addLabel="ایجاد پست"
         onItemClick={onItemClick}
         composeValue={composeValue}
         onComposeChange={onComposeChange}
         onComposeClose={onComposeClose}
         onComposeSubmit={onComposeSubmit}
         onComposeDelete={onComposeDelete}
-        onComposeImageUpload={onComposeImageUpload}
+        onComposeNotify={onComposeNotify}
         onComposeImageClear={onComposeImageClear}
         composeTagOptions={composeTagOptions}
-        composeVisibleTagOptions={composeVisibleTagOptions}
         composeTagMenuOpen={composeTagMenuOpen}
         onComposeTagMenuOpenChange={onComposeTagMenuOpenChange}
         composeAriaLabel="ویرایش نمونه‌کار"

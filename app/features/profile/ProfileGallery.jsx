@@ -34,16 +34,14 @@ export function ProfileGallery({
   onComposeClose,
   onComposeSubmit,
   onComposeDelete,
-  onComposeImageUpload,
+  onComposeNotify,
   onComposeImageClear,
   composeTagOptions = [],
-  composeVisibleTagOptions,
   composeTagMenuOpen = false,
   onComposeTagMenuOpenChange,
   composeSaving = false,
   composeAriaLabel,
   composeShowCaption = true,
-  composeShowExploreToggle = true,
   composeShowFeaturedToggle = false,
   composeSubmitLabel = "ذخیره"
 }) {
@@ -173,16 +171,14 @@ export function ProfileGallery({
           onClose={onComposeClose}
           onSubmit={onComposeSubmit}
           onDelete={onComposeDelete}
-          onImageUpload={onComposeImageUpload}
+          onNotify={onComposeNotify}
           onImageClear={onComposeImageClear}
           tagOptions={composeTagOptions}
-          visibleTagOptions={composeVisibleTagOptions}
           tagMenuOpen={composeTagMenuOpen}
           onTagMenuOpenChange={onComposeTagMenuOpenChange}
           saving={composeSaving}
           ariaLabel={composeAriaLabel}
           showCaption={composeShowCaption}
-          showExploreToggle={composeShowExploreToggle}
           showFeaturedToggle={composeShowFeaturedToggle}
           submitLabel={composeSubmitLabel}
         />

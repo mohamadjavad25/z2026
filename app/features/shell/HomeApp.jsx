@@ -106,7 +106,8 @@ import {
   salonServiceCatalog,
   useSalonDirectory,
   useSalonWorkspace,
-  getVisibleSalonServiceItems
+  getVisibleSalonServiceItems,
+  computeStaffStats
 } from "../salons";
 import {
   ArtistScheduleBoard,
@@ -547,7 +548,6 @@ export function HomeApp() {
     artistGalleryItems,
     previewingArtistWork,
     artistWorkTagOptions,
-    artistWorkVisibleTagOptions,
     artistBookingWeekTabs,
     artistScheduleDayLabel,
     pendingArtistSalonInvites,
@@ -568,7 +568,6 @@ export function HomeApp() {
     closeArtistWorkPreview,
     openArtistWorkModal,
     closeArtistWorkModal,
-    handleArtistWorkImageUpload,
     clearArtistWorkImage,
     syncArtistWorkToExplore,
     saveArtistWork,
@@ -679,7 +678,6 @@ export function HomeApp() {
     deleteSalonService,
     resetPortfolioComposer,
     openPortfolioComposer,
-    handleSalonWorkImageUpload,
     clearSalonWorkImage,
     addSalonPortfolio,
     deleteSalonPortfolio,
@@ -841,18 +839,11 @@ export function HomeApp() {
   const activeRoleMeta = profileRoleMeta[profileType] || profileRoleMeta.client;
   const activeCreatedMeta = createdProfile ? (profileRoleMeta[createdProfile.type] || profileRoleMeta.client) : null;
 
-  const salonWorkTagOptions = useMemo(() => {
-    const defaults = ["ناخن", "مو", "میکاپ", "عروس"];
-    const fromList = Array.from(new Set(salonPortfolioList.map((item) => item.tag).filter(Boolean)));
-    return Array.from(new Set([...defaults, ...fromList]));
-  }, [salonPortfolioList]);
-
-  const salonWorkVisibleTagOptions = useMemo(() => {
-    const query = String(salonWorkDraft?.tag || "").trim();
-    if (!query) return salonWorkTagOptions;
-    const filtered = salonWorkTagOptions.filter((tag) => tag.includes(query));
-    return filtered.length ? filtered : salonWorkTagOptions;
-  }, [salonWorkTagOptions, salonWorkDraft?.tag]);
+  // Post categories are exactly the services on this owner's menu.
+  const salonWorkTagOptions = useMemo(
+    () => Array.from(new Set(salonServiceList.map((item) => String(item.name || "").trim()).filter(Boolean))),
+    [salonServiceList]
+  );
 
   // Centered on today (3 days back, today, 3 days forward) rather than
   // today-forward-only, so the salon hero week strip can scroll both
@@ -1010,6 +1001,12 @@ export function HomeApp() {
   const bookingCustomerOptions = useMemo(() => (
     buildBookingCustomers(createdProfile?.type === "artist" ? artistBookingList : salonAppointmentList)
   ), [createdProfile?.type, artistBookingList, salonAppointmentList]);
+
+  const selectedStaffStats = useMemo(() => (
+    selectedArtistProfile
+      ? computeStaffStats(selectedArtistProfile, salonAppointmentList, salonServiceList)
+      : null
+  ), [selectedArtistProfile, salonAppointmentList, salonServiceList]);
 
   const salonHistoryAppointments = useMemo(() => (
     salonAppointmentList
@@ -1774,6 +1771,7 @@ function getPassportMatch(post) {
             onSavePoster={saveProfilePoster}
             onRemoveLogo={removeProfileLogo}
             onRemovePoster={removeProfilePoster}
+            onNotify={setAppToast}
             onSaveAvatarPosition={saveAvatarPosition}
             onSavePosterPosition={savePosterPosition}
             pendingAvatarUpload={pendingAvatarUpload}
@@ -1984,7 +1982,7 @@ function getPassportMatch(post) {
                           label="گالری پست‌ها"
                           items={salonPortfolioList}
                           onAdd={() => openPortfolioComposer()}
-                          addLabel="افزودن پست جدید"
+                          addLabel="ایجاد پست"
                           getFallbackStyle={getPortfolioCardStyle}
                           editingId={salonWorkDraft && salonWorkDraft.id !== "new" ? salonWorkDraft.id : null}
                           onItemClick={(item) => openPortfolioComposer(item)}
@@ -1993,15 +1991,14 @@ function getPassportMatch(post) {
                           onComposeClose={resetPortfolioComposer}
                           onComposeSubmit={addSalonPortfolio}
                           onComposeDelete={deleteSalonPortfolioFromComposer}
-                          onComposeImageUpload={handleSalonWorkImageUpload}
+                          onComposeNotify={setAppToast}
                           onComposeImageClear={clearSalonWorkImage}
                           composeTagOptions={salonWorkTagOptions}
-                          composeVisibleTagOptions={salonWorkVisibleTagOptions}
                           composeTagMenuOpen={salonWorkTagMenuOpen}
                           onComposeTagMenuOpenChange={setSalonWorkTagMenuOpen}
                           composeSaving={portfolioSaving}
                           composeAriaLabel={salonWorkDraft?.id === "new" ? "پست جدید" : "ویرایش پست"}
-                          composeSubmitLabel={salonWorkDraft?.id === "new" ? "انتشار در اکسپلور" : "ذخیره تغییرات"}
+                          composeSubmitLabel={salonWorkDraft?.id === "new" ? "انتشار پست" : "ذخیره تغییرات"}
                           composeShowFeaturedToggle={false}
                         />
                       )}
@@ -2039,7 +2036,7 @@ function getPassportMatch(post) {
                       onAddWork={() => openArtistWorkModal({
                         id: "new",
                         title: "",
-                        tag: "میکاپ",
+                        tag: artistServiceList[0]?.name || "",
                         caption: "",
                         image: "",
                         saves: "۰",
@@ -2053,10 +2050,9 @@ function getPassportMatch(post) {
                       onComposeClose={closeArtistWorkModal}
                       onComposeSubmit={saveArtistWork}
                       onComposeDelete={deleteArtistWork}
-                      onComposeImageUpload={handleArtistWorkImageUpload}
+                      onComposeNotify={setAppToast}
                       onComposeImageClear={clearArtistWorkImage}
                       composeTagOptions={artistWorkTagOptions}
-                      composeVisibleTagOptions={artistWorkVisibleTagOptions}
                       composeTagMenuOpen={artistWorkTagMenuOpen}
                       onComposeTagMenuOpenChange={setArtistWorkTagMenuOpen}
                     />
@@ -2139,7 +2135,6 @@ function getPassportMatch(post) {
             && (createdProfile?.type === "salon" || createdProfile?.type === "artist")
           )}
           booking={scheduleBookingMenu}
-          clientProfile={selectedBookingClient}
           view={scheduleBookingView}
           onViewChange={setScheduleBookingView}
           timeSlots={bookingDaySlots}
@@ -2532,6 +2527,7 @@ function getPassportMatch(post) {
         )}
         <SalonStaffProfileModal
           staff={selectedArtistProfile}
+          stats={selectedStaffStats}
           roleOptions={salonArtistRoleOptions}
           onClose={() => setSelectedArtistProfile(null)}
           onUpdate={(person, patch, notice) => {
