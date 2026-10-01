@@ -1,9 +1,10 @@
 import { getUserFromRequest } from "../../../lib/auth.js";
 import { ensureDb } from "../../../lib/db/connection.js";
-import { error, json } from "../../../lib/http.js";
+import { error, json, validateBody, withErrorHandling } from "../../../lib/http.js";
 import * as artists from "../../../lib/db/repos/artists.js";
 import { checkRateLimit } from "../../../lib/rateLimit.js";
 import { sendPushToUser } from "../../../lib/push.js";
+import { createBookingSchema } from "../../../lib/validation/booking.js";
 // Side-effect import: starts the once-per-process 1-hour booking-request
 // auto-expiry sweep (see that file's docstring) the first time this route
 // module loads — same self-starting-on-import convention as
@@ -16,7 +17,7 @@ import "../../../lib/bookingExpirySweep.js";
 
 export const runtime = "nodejs";
 
-export async function POST(request) {
+async function _POST(request) {
   await ensureDb();
   const body = await request.json();
   const artistUserId = Number(body.artistUserId);
@@ -26,17 +27,24 @@ export async function POST(request) {
   // (no session required, see viewer below), so there is no caller identity
   // to key a limiter by -- keyed on the artist being booked instead, so one
   // artist's calendar can't be flooded with spam bookings by a scripted
-  // caller hammering this endpoint, logged in or not. Same in-memory
+  // caller hammering this endpoint, logged in or not. Same DB-backed
   // limiter/pattern this codebase already uses elsewhere (see
   // /api/auth/login, /api/salon-bookings).
-  const bookingLimited = checkRateLimit(`artist-booking-create:${artistUserId}`, 20, 60_000);
+  const bookingLimited = await checkRateLimit(`artist-booking-create:${artistUserId}`, 20, 60_000);
   if (!bookingLimited.ok) {
     return error("درخواست‌های زیاد. کمی صبر کن.", 429);
   }
 
+  // Validated/stripped body -- zod drops any unlisted key (in particular
+  // `status`), so this fully anonymous, unauthenticated route can never be
+  // used to create a pre-confirmed booking by including
+  // "status": "تایید شده" in the request.
+  const v = validateBody(createBookingSchema, body);
+  if (!v.ok) return v.response;
+
   const viewer = await getUserFromRequest(request);
   const result = await artists.addArtistBooking(artistUserId, {
-    ...body,
+    ...v.data,
     clientUserId: viewer?.id || null,
     clientName: body.clientName || viewer?.name || "",
     clientPhone: body.clientPhone || viewer?.phone || ""
@@ -59,3 +67,5 @@ export async function POST(request) {
     }
   }, { status: 201 });
 }
+
+export const POST = withErrorHandling(_POST);

@@ -1,11 +1,18 @@
 {
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test:seed-all": "node scripts/run-all-seed-tests.mjs"
+    "migrate": "node scripts/migrate.mjs up",
+    "test": "next build && vitest run",
+    "lint": "eslint ."
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.117.2",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.24.0",
     "next": "^16.2.10",
@@ -13,6 +20,16 @@
     "qrcode": "^1.5.4",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "web-push": "^3.6.7"
+    "web-push": "^3.6.7",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@testcontainers/postgresql": "^12.2.0",
+    "eslint": "^10.11.0",
+    "eslint-plugin-n": "^18.4.0",
+    "globals": "^17.12.0",
+    "node-pg-migrate": "^9.0.0",
+    "vitest": "^5.0.2"
   }
 }

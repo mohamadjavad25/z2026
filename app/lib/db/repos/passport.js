@@ -2,7 +2,7 @@ import { getDb, get, run } from "../connection.js";
 
 export async function getPassport(userId) {
   const db = await getDb();
-  return (await get(db, "SELECT * FROM beauty_passports WHERE user_id = ?", [userId])) || null;
+  return (await get(db, "SELECT * FROM beauty_passports WHERE user_id = $1", [userId])) || null;
 }
 
 export async function savePassport(userId, data = {}) {
@@ -12,9 +12,9 @@ export async function savePassport(userId, data = {}) {
   await run(db, `
     INSERT INTO beauty_passports
       (user_id, active, skin_tone, undertone, face_shape, hair_type, signature, summary, expires_at)
-    VALUES (?, 1, ?, ?, ?, ?, ?, ?, ?)
+    VALUES ($1, true, $2, $3, $4, $5, $6, $7, $8)
     ON CONFLICT(user_id) DO UPDATE SET
-      active = 1,
+      active = true,
       skin_tone = excluded.skin_tone,
       undertone = excluded.undertone,
       face_shape = excluded.face_shape,

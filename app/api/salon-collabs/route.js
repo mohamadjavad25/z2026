@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireUser } from "../../lib/http.js";
+import { requireUser, withErrorHandling } from "../../lib/http.js";
 import { ensureDb } from "../../lib/db/connection.js";
 import * as artists from "../../lib/db/repos/artists.js";
 import * as salons from "../../lib/db/repos/salons.js";
@@ -13,7 +13,7 @@ function requireSalon(user) {
   return null;
 }
 
-export async function GET(request) {
+async function _GET(request) {
   await ensureDb();
   const auth = await requireUser(request);
   if (!auth.ok) return auth.response;
@@ -21,11 +21,11 @@ export async function GET(request) {
   if (forbidden) return forbidden;
 
   return NextResponse.json({
-    collabs: await artists.listSalonCollabRequests(auth.user.id)
+    data: { collabs: await artists.listSalonCollabRequests(auth.user.id) }
   });
 }
 
-export async function PATCH(request) {
+async function _PATCH(request) {
   await ensureDb();
   const auth = await requireUser(request);
   if (!auth.ok) return auth.response;
@@ -40,10 +40,15 @@ export async function PATCH(request) {
     : null;
 
   return NextResponse.json({
-    collab,
-    collabs: await artists.listSalonCollabRequests(auth.user.id),
-    staff: await salons.listSalonStaff(auth.user.id),
-    staffPerson: staffResult?.person || null,
-    staffCreated: staffResult?.created || false
+    data: {
+      collab,
+      collabs: await artists.listSalonCollabRequests(auth.user.id),
+      staff: await salons.listSalonStaff(auth.user.id),
+      staffPerson: staffResult?.person || null,
+      staffCreated: staffResult?.created || false
+    }
   });
 }
+
+export const GET = withErrorHandling(_GET);
+export const PATCH = withErrorHandling(_PATCH);

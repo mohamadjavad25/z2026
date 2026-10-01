@@ -119,8 +119,15 @@ export function useAuthSession({
           setProfileType(savedProfile.type);
           onEnterTabRef.current?.("profile");
 
-          await onAuthenticatedRef.current?.(savedProfile, { source: "boot", bootId, isStale });
-          if (isStale()) return;
+          // Deliberately not awaited: onAuthenticated cascades into several
+          // more fetches (salon/artist workspace, client bookings, follows,
+          // saves, beauty passport) that used to block the boot screen
+          // (authChecked below) until every one of them finished. The user
+          // is identified -- that's all the boot screen needs to know to
+          // get out of the way; each feature area fills in on its own as
+          // its own data arrives instead of gating the whole app shell.
+          Promise.resolve(onAuthenticatedRef.current?.(savedProfile, { source: "boot", bootId, isStale }))
+            .catch(() => {});
         } else {
           setCreatedProfile(null);
           onEnterTabRef.current?.("profile");
@@ -171,8 +178,13 @@ export function useAuthSession({
         // ignore
       }
       enterAuthenticatedSession(profile, "profile");
-      await onAuthenticatedRef.current?.(profile, { source: "login" });
+      // Login already succeeded at this point -- show the toast right away
+      // instead of waiting on onAuthenticated's cascade of background
+      // refreshes (explore feed, follows, saves, salon/artist workspace),
+      // which could take seconds and had nothing to do with whether login
+      // itself worked.
       onShellNoticeRef.current?.("با موفقیت وارد شدی.");
+      Promise.resolve(onAuthenticatedRef.current?.(profile, { source: "login" })).catch(() => {});
     } catch {
       setAuthNotice("ورود انجام نشد؛ دوباره امتحان کن.");
     } finally {
@@ -220,8 +232,10 @@ export function useAuthSession({
       }
 
       enterAuthenticatedSession(profile, "profile");
-      await onAuthenticatedRef.current?.(profile, { source: "register" });
+      // Same reasoning as login above: the account already exists at this
+      // point, so the toast shouldn't wait on background refreshes.
       onShellNoticeRef.current?.("حساب ساخته شد و آماده استفاده است.");
+      Promise.resolve(onAuthenticatedRef.current?.(profile, { source: "register" })).catch(() => {});
     } catch {
       setAuthNotice("ثبت‌نام انجام نشد؛ دوباره امتحان کن.");
       onShellNoticeRef.current?.("ذخیره پروفایل انجام نشد؛ دوباره امتحان کن.");
@@ -238,23 +252,31 @@ export function useAuthSession({
       // ignore
     }
     clearAuthSession();
-    await onLoggedOutRef.current?.();
+    // The session is already cleared client-side at this point -- show the
+    // toast right away instead of waiting on onLoggedOut's cleanup/refetch
+    // cascade (which includes a full explore-feed refresh).
     onShellNoticeRef.current?.("از حساب خارج شدی.");
+    Promise.resolve(onLoggedOutRef.current?.()).catch(() => {});
   }
 
-  /** Permanent. Same client-side cleanup as logoutAccount (session already
-   *  gone server-side once the user row is deleted) — see migration v34 for
-   *  what this does and doesn't take down with it. */
-  async function deleteAccountPermanently() {
-    try {
-      await apiDeleteAccount();
-    } catch {
-      // Even if the request itself failed, don't strand the UI in a
-      // half-deleted state — fall through to the same cleanup logout uses.
+  /** Permanent. Requires re-entering the current password (server-enforced
+   *  in DELETE /api/profile) so a hijacked/stolen session cookie alone can't
+   *  destroy the account -- same re-auth bar the password-change branch of
+   *  POST /api/profile already requires. Returns { ok: false, error } on a
+   *  wrong password (caller shows it inline and keeps the confirm dialog
+   *  open) instead of clearing the session -- only a genuine success falls
+   *  through to the same client-side cleanup logoutAccount uses (session is
+   *  already gone server-side once the user row is deleted; see migration
+   *  v34 for what this does and doesn't take down with it). */
+  async function deleteAccountPermanently(password) {
+    const { ok, payload } = await apiDeleteAccount(password);
+    if (!ok) {
+      return { ok: false, error: payload?.error || "حذف حساب انجام نشد." };
     }
     clearAuthSession();
     await onLoggedOutRef.current?.();
     onShellNoticeRef.current?.("حساب شما برای همیشه حذف شد.");
+    return { ok: true };
   }
 
   return {

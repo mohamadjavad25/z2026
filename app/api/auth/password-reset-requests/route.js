@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 
-import { normalizePhone, isValidIranMobile } from "../../../lib/auth.js";
+import { normalizePhone, isValidIranMobile, verifyAdminToken } from "../../../lib/auth.js";
 import { ensureDb } from "../../../lib/db/connection.js";
 import * as passwordResetRequests from "../../../lib/db/repos/passwordResetRequests.js";
 import { checkRateLimit } from "../../../lib/rateLimit.js";
+import { withErrorHandling } from "../../../lib/http.js";
 
 export const runtime = "nodejs";
 
@@ -18,7 +19,7 @@ const REQUEST_WINDOW_MS = 60 * 60 * 1000;
 // isn't possible today. This route only files a manual-recovery request for
 // the founder/support to act on by phone; GET/resolve below are gated by a
 // shared admin token since there's no admin login system yet either.
-export async function POST(request) {
+async function _POST(request) {
   await ensureDb();
   try {
     const body = await request.json();
@@ -29,7 +30,7 @@ export async function POST(request) {
       return NextResponse.json({ error: "شماره تماس باید یک شماره موبایل معتبر ایران باشد." }, { status: 400 });
     }
 
-    const limited = checkRateLimit(`password-reset-request:${phone}`, REQUEST_LIMIT, REQUEST_WINDOW_MS);
+    const limited = await checkRateLimit(`password-reset-request:${phone}`, REQUEST_LIMIT, REQUEST_WINDOW_MS);
     if (!limited.ok) {
       return NextResponse.json(
         { error: "درخواست‌های زیادی ثبت شده. کمی بعد دوباره امتحان کن.", code: "rate_limited" },
@@ -45,17 +46,14 @@ export async function POST(request) {
   }
 }
 
-function isAdminAuthorized(request) {
-  const token = process.env.ZIBABAN_ADMIN_TOKEN || "";
-  if (!token) return false;
-  return request.headers.get("x-admin-token") === token;
-}
-
-export async function GET(request) {
+async function _GET(request) {
   await ensureDb();
-  if (!isAdminAuthorized(request)) {
+  if (!verifyAdminToken(request)) {
     return NextResponse.json({ error: "دسترسی مجاز نیست." }, { status: 401 });
   }
   const requests = await passwordResetRequests.listPendingRequests();
   return NextResponse.json({ data: { requests } });
 }
+
+export const POST = withErrorHandling(_POST);
+export const GET = withErrorHandling(_GET);

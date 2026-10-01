@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { normalizeProfile } from "../auth";
+import { compressImageToDataUrl } from "../../shared/lib/imageCompression";
 
 const DEFAULT_PROFILE_SETTINGS = {
   reservationAlerts: true,
@@ -62,8 +63,9 @@ export function useProfileEditor({
         const response = await fetch("/api/profile/settings");
         if (!response.ok) return;
         const payload = await response.json();
-        if (!cancelled && payload?.settings) {
-          setProfileSettings((current) => ({ ...current, ...payload.settings }));
+        const settings = payload?.data?.settings;
+        if (!cancelled && settings) {
+          setProfileSettings((current) => ({ ...current, ...settings }));
         }
       } catch {
         // Keep defaults; the toggle itself will surface an error if the user acts on it.
@@ -129,7 +131,7 @@ export function useProfileEditor({
         notify(payload.error || "ویرایش ذخیره نشد.");
         return;
       }
-      const profile = normalizeProfile(payload.profile);
+      const profile = normalizeProfile(payload.data?.user);
       if (!profile) {
         notify("ویرایش ذخیره نشد.");
         return;
@@ -170,7 +172,7 @@ export function useProfileEditor({
         notify(payload.error || "ذخیره لوکیشن انجام نشد.");
         return;
       }
-      const profile = normalizeProfile(payload.profile);
+      const profile = normalizeProfile(payload.data?.user);
       if (!profile) {
         notify("ذخیره لوکیشن انجام نشد.");
         return;
@@ -192,7 +194,7 @@ export function useProfileEditor({
     setProfileEditOpen(true);
   }, [createdProfile]);
 
-  const handleProfileAvatarUpload = useCallback((event) => {
+  const handleProfileAvatarUpload = useCallback(async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith("image/")) {
@@ -205,9 +207,10 @@ export function useProfileEditor({
       event.target.value = "";
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => setProfileEditAvatar(String(reader.result || ""));
-    reader.readAsDataURL(file);
+    // Downscale + re-encode before it ever becomes a data URL sent to the
+    // server -- see imageCompression.js for why (a multi-MB phone photo
+    // otherwise gets base64-encoded and POSTed essentially as-is).
+    setProfileEditAvatar(await compressImageToDataUrl(file));
   }, [notify]);
 
   const [logoSaving, setLogoSaving] = useState(false);
@@ -247,7 +250,7 @@ export function useProfileEditor({
           notify(payload.error || "ذخیره انجام نشد.");
           return;
         }
-        const profile = normalizeProfile(payload.profile);
+        const profile = normalizeProfile(payload.data?.user);
         if (!profile) {
           notify("ذخیره انجام نشد.");
           return;
@@ -275,7 +278,7 @@ export function useProfileEditor({
   const [pendingAvatarUpload, setPendingAvatarUpload] = useState("");
   const [pendingPosterUpload, setPendingPosterUpload] = useState("");
 
-  const stageProfileImage = useCallback((file, setPending) => {
+  const stageProfileImage = useCallback(async (file, setPending) => {
     if (!file) return;
     if (!file.type.startsWith("image/")) {
       notify("فقط فایل تصویری مجاز است.");
@@ -285,12 +288,12 @@ export function useProfileEditor({
       notify("حجم تصویر باید کمتر از ۴ مگابایت باشد.");
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = String(reader.result || "");
-      if (dataUrl) setPending(dataUrl);
-    };
-    reader.readAsDataURL(file);
+    // Same downscale-before-upload as handleProfileAvatarUpload above --
+    // this is the path confirmAvatarUpload/confirmPosterUpload eventually
+    // POST to the server, so this is where the real payload-size win
+    // happens for the logo/poster position-editor flow.
+    const dataUrl = await compressImageToDataUrl(file);
+    if (dataUrl) setPending(dataUrl);
   }, [notify]);
 
   const saveProfileLogo = useCallback((event) => {

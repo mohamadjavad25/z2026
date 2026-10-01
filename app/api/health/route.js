@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getDb } from "../../lib/db/connection.js";
+import { withErrorHandling } from "../../lib/http.js";
 
 export const runtime = "nodejs";
 
@@ -12,7 +13,7 @@ export const runtime = "nodejs";
  * Postgres connection actually works (a real query, not just "env var is
  * set"), without leaking any app data or internals in the response.
  */
-export async function GET() {
+async function _GET() {
   try {
     const db = await getDb();
     await db.query("SELECT 1");
@@ -21,3 +22,5 @@ export async function GET() {
     return NextResponse.json({ ok: false }, { status: 503 });
   }
 }
+
+export const GET = withErrorHandling(_GET);

@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { ensureDb } from "../../../../lib/db/connection.js";
 import { getUserById } from "../../../../lib/db/repos/users.js";
 import { parseMediaDataUrl, ALLOWED_POSTER_TYPES } from "../../../../lib/db/repos/media.js";
+import { withErrorHandling } from "../../../../lib/http.js";
 
 export const runtime = "nodejs";
 
@@ -23,7 +24,7 @@ export const runtime = "nodejs";
  * conditional request: a cheap 304 when the avatar hasn't changed, a
  * fresh 200 the moment it has.
  */
-export async function GET(request, { params }) {
+async function _GET(request, { params }) {
   await ensureDb();
   const { userId: userIdParam } = await params;
   const userId = Number(userIdParam);
@@ -51,3 +52,5 @@ export async function GET(request, { params }) {
     headers: { ...headers, "Content-Length": String(buffer.length) }
   });
 }
+
+export const GET = withErrorHandling(_GET);

@@ -1,5 +1,6 @@
 import { ensureDb, getDb, get } from "../../../../lib/db/connection.js";
 import { parseMediaDataUrl, ALLOWED_POSTER_TYPES } from "../../../../lib/db/repos/media.js";
+import { withErrorHandling } from "../../../../lib/http.js";
 
 export const runtime = "nodejs";
 
@@ -11,13 +12,13 @@ export const runtime = "nodejs";
  * applied to avatars — together these were the reason a 5-post explore
  * feed shipped ~3MB of JSON and the salon directory shipped ~1.85MB.
  */
-export async function GET(request, { params }) {
+async function _GET(request, { params }) {
   await ensureDb();
   const { postId: postIdParam } = await params;
   const postId = Number(postIdParam);
   if (!postId) return new Response(null, { status: 404 });
 
-  const row = await get(await getDb(), "SELECT image FROM posts WHERE id = ?", [postId]);
+  const row = await get(await getDb(), "SELECT image FROM posts WHERE id = $1", [postId]);
   const parsed = parseMediaDataUrl(row?.image, ALLOWED_POSTER_TYPES);
   if (!parsed) return new Response(null, { status: 404 });
 
@@ -32,3 +33,5 @@ export async function GET(request, { params }) {
     }
   });
 }
+
+export const GET = withErrorHandling(_GET);

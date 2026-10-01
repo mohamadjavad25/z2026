@@ -2,12 +2,13 @@ import "./styles.css";
 import Script from "next/script";
 import PbdqInspector from "./components/PbdqInspector.jsx";
 import { ViewportHeightFix } from "./components/ViewportHeightFix.jsx";
+import { getSiteUrl } from "./lib/siteUrl.js";
 
 // NEXT_PUBLIC_SITE_URL is the single source of truth for the site's public
 // domain (see .env.example at the repo root) — app/sitemap.js and
 // app/robots.js read the same variable, with the same placeholder fallback,
 // so canonical URLs / sitemap entries / robots.txt can never drift apart.
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://zibaban.example.com";
+const SITE_URL = getSiteUrl();
 const HOME_TITLE = "زیبابان | شبکه اجتماعی زیبایی بانوان";
 const HOME_DESCRIPTION = "کشف آرایشگاه، نمونه‌کار واقعی، مشاوره زیبایی و رزرو برای بانوان.";
 

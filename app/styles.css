@@ -9,6 +9,8 @@
 @import "./styles/features/client.css";
 @import "./styles/features/auth.css";
 @import "./styles/features/joinSalon.css";
+@import "./styles/features/legal.css";
+@import "./styles/features/errorPage.css";
 
 
 *{
@@ -10362,6 +10364,28 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   color: var(--teal);
 }
 
+.neoSettingsLegalLinks{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  min-height: 40px;
+  margin-bottom: 8px;
+}
+
+.neoSettingsLegalLinks a{
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.neoSettingsLegalLinks a:hover{
+  color: var(--ink);
+  text-decoration: underline;
+}
+
 .neoSettingsLogout{
   display: flex;
   align-items: center;
@@ -10449,6 +10473,14 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   font-size: 0.82rem;
   font-weight: 800;
   text-align: center;
+}
+
+.neoSettingsDeleteConfirmError{
+  margin: 0;
+  color: var(--rose, #9b3650);
+  font-size: 0.74rem;
+  font-weight: 800;
+  line-height: 1.6;
 }
 
 .neoSettingsDeleteConfirmActions{

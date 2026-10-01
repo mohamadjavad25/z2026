@@ -1,24 +1,19 @@
 import { NextResponse } from "next/server";
-import { hashPassword, normalizeDigits } from "../../../../../lib/auth.js";
+import { hashPassword, normalizeDigits, verifyAdminToken } from "../../../../../lib/auth.js";
 import { ensureDb } from "../../../../../lib/db/connection.js";
 import * as passwordResetRequests from "../../../../../lib/db/repos/passwordResetRequests.js";
 import * as users from "../../../../../lib/db/repos/users.js";
+import { withErrorHandling } from "../../../../../lib/http.js";
 
 export const runtime = "nodejs";
-
-function isAdminAuthorized(request) {
-  const token = process.env.ZIBABAN_ADMIN_TOKEN || "";
-  if (!token) return false;
-  return request.headers.get("x-admin-token") === token;
-}
 
 // Admin (founder/support) calls this after phoning the requester back and
 // confirming their identity out-of-band, then sets the new password they
 // agreed on. There is no self-service path here on purpose — see the create
 // route's comment on why (no SMS/OTP provider yet).
-export async function POST(request, { params }) {
+async function _POST(request, { params }) {
   await ensureDb();
-  if (!isAdminAuthorized(request)) {
+  if (!verifyAdminToken(request)) {
     return NextResponse.json({ error: "دسترسی مجاز نیست." }, { status: 401 });
   }
 
@@ -44,3 +39,5 @@ export async function POST(request, { params }) {
 
   return NextResponse.json({ data: { ok: true } });
 }
+
+export const POST = withErrorHandling(_POST);

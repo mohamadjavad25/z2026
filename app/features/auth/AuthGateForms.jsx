@@ -6,6 +6,23 @@ import { beautySpecialtyOptions, profileRoles } from "../../shared/constants/rol
 import { ProfileRoleGrid } from "../profile/ProfileRoleGrid";
 import { SpecialtyMultiSelect } from "./SpecialtyMultiSelect";
 
+// target="_blank" (not next/link) deliberately -- this sits inside a
+// half-filled signup form; navigating away in the same tab would lose
+// whatever the user already typed.
+function TermsAgreement() {
+  return (
+    <label className="authTermsAgreement">
+      <input type="checkbox" name="agreeTerms" required />
+      <span>
+        <a href="/terms" target="_blank" rel="noopener noreferrer">قوانین و مقررات</a>
+        {" "}و{" "}
+        <a href="/privacy" target="_blank" rel="noopener noreferrer">حریم خصوصی</a>
+        {" "}زیبابان رو خوندم و قبول دارم.
+      </span>
+    </label>
+  );
+}
+
 function PasswordField({ name, placeholder, ariaLabel, required, minLength, onInput, defaultValue }) {
   const [visible, setVisible] = useState(false);
   return (
@@ -215,6 +232,7 @@ export function AuthGateForms({
             <PasswordField name="password" placeholder="رمز کاربر" ariaLabel="رمز کاربر" required minLength={8} />
           </div>
           <input name="email" placeholder="ایمیل (اختیاری)" aria-label="ایمیل اختیاری" type="email" />
+          <TermsAgreement />
           <button type="submit" className="profileSubmit" disabled={authBusy}>
             {authBusy ? "در حال ثبت…" : "تکمیل ثبت‌نام"}
           </button>
@@ -252,6 +270,7 @@ export function AuthGateForms({
             <PasswordField name="password" placeholder="رمز کاربر" ariaLabel="رمز کاربر" required minLength={8} />
           </div>
           <input name="email" placeholder="ایمیل (اختیاری)" aria-label="ایمیل اختیاری" type="email" />
+          <TermsAgreement />
           <button type="submit" className="profileSubmit" disabled={authBusy}>
             {authBusy ? "در حال ثبت…" : "تکمیل ثبت‌نام"}
           </button>
@@ -288,6 +307,7 @@ export function AuthGateForms({
             <PasswordField name="password" placeholder="رمز کاربر" ariaLabel="رمز کاربر" required minLength={8} />
           </div>
           <input name="email" placeholder="ایمیل (اختیاری)" aria-label="ایمیل اختیاری" type="email" />
+          <TermsAgreement />
           <button type="submit" className="profileSubmit" disabled={authBusy}>
             {authBusy ? "در حال ثبت…" : "تکمیل ثبت‌نام"}
           </button>

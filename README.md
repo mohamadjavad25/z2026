@@ -28,15 +28,13 @@ npm run dev
 
 You need a reachable Postgres database first — set `POSTGRES_URL` in
 `.env.local` (a local Postgres, a Docker container, or a hosted one; on
-Vercel, add the Vercel Postgres integration and it's set for you). The app
-runs at `http://localhost:3000`. There's no separate seed/migrate step — the
-schema is applied automatically and idempotently on first connection
-(`app/lib/db/schema.js`).
+Vercel, add the Vercel Postgres integration and it's set for you). Then run
+the migrations once (`npm run migrate`) before starting the app — see
+`app/lib/README.md`. The app runs at `http://localhost:3000`.
 
 ```bash
 npm run build   # production build
 npm run start   # run the production build
-npm run test:seed-all   # run the scripts/*seed-test*.mjs suite against an isolated DB
 ```
 
 ## Project layout

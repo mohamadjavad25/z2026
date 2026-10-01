@@ -1,41 +1,50 @@
-/**
- * Minimal in-memory sliding-window rate limiter. Good enough for a single
- * Node process (this app has no multi-instance/serverless deployment) —
- * resets on restart, which is fine for abuse throttling rather than a hard
- * quota. Keyed by caller-supplied string (usually `${scope}:${userId}`).
- */
-const buckets = new Map();
+import { getDb, get, run } from "./db/connection.js";
 
 /**
- * @param {string} key - unique per (scope, actor) e.g. "message-send:42"
+ * DB-backed sliding-window rate limiter (rate_limit_hits table, migration
+ * 007). Replaces a previous in-memory Map implementation whose own comment
+ * claimed "this app has no multi-instance/serverless deployment" -- false
+ * for the app's actual Vercel serverless target: each serverless instance
+ * has its own independent process memory, so an in-memory bucket resets on
+ * every cold start and is trivially bypassed by a caller whose requests
+ * happen to land on different instances (or just bad luck with cold
+ * starts). A shared Postgres table is the one thing every instance
+ * actually has in common.
+ *
+ * Not perfectly atomic under heavy concurrency (two simultaneous calls for
+ * the same key can both read a count under the limit and both insert,
+ * overshooting it by a small margin) -- acceptable for abuse throttling
+ * the same way the old in-memory version was also only approximate, and
+ * not worth a transaction/advisory-lock for this use case.
+ *
+ * @param {string} key - unique per (scope, actor) e.g. "login:09121234567"
  * @param {number} limit - max hits allowed inside the window
  * @param {number} windowMs - window size in ms
- * @returns {{ ok: true } | { ok: false, retryAfterMs: number }}
+ * @returns {Promise<{ ok: true } | { ok: false, retryAfterMs: number }>}
  */
-export function checkRateLimit(key, limit, windowMs) {
-  const now = Date.now();
-  const hits = (buckets.get(key) || []).filter((ts) => now - ts < windowMs);
-  if (hits.length >= limit) {
-    const retryAfterMs = windowMs - (now - hits[0]);
-    return { ok: false, retryAfterMs: Math.max(retryAfterMs, 0) };
+export async function checkRateLimit(key, limit, windowMs) {
+  const db = await getDb();
+  const windowStart = new Date(Date.now() - windowMs).toISOString();
+  const row = await get(db, `
+    SELECT COUNT(*) AS c, MIN(hit_at) AS oldest
+    FROM rate_limit_hits
+    WHERE key = $1 AND hit_at > $2
+  `, [key, windowStart]);
+  const count = Number(row?.c || 0);
+  if (count >= limit) {
+    const oldestMs = row?.oldest ? new Date(row.oldest).getTime() : Date.now();
+    const retryAfterMs = Math.max(windowMs - (Date.now() - oldestMs), 0);
+    return { ok: false, retryAfterMs };
   }
-  hits.push(now);
-  buckets.set(key, hits);
+  await run(db, "INSERT INTO rate_limit_hits (key, hit_at) VALUES ($1, NOW())", [key]);
+  // Opportunistic cleanup instead of a scheduled sweep (a setInterval sweep
+  // has the same serverless-instance problem this whole rewrite exists to
+  // fix -- it might never run again after a cold start): a small random
+  // chance on any check to prune hits old enough that no window this app
+  // uses could still care about them. Best-effort -- a failed cleanup
+  // never blocks the actual rate-limit decision above.
+  if (Math.random() < 0.01) {
+    run(db, "DELETE FROM rate_limit_hits WHERE hit_at < NOW() - INTERVAL '1 hour'").catch(() => {});
+  }
   return { ok: true };
-}
-
-// Periodic sweep so the map doesn't grow unbounded with stale keys from
-// users who sent a burst once and never came back.
-const SWEEP_INTERVAL_MS = 10 * 60 * 1000;
-const MAX_KEY_AGE_MS = 30 * 60 * 1000;
-if (typeof setInterval === "function" && !globalThis.__zibabanRateLimitSweepStarted) {
-  globalThis.__zibabanRateLimitSweepStarted = true;
-  setInterval(() => {
-    const now = Date.now();
-    for (const [key, hits] of buckets) {
-      const freshHits = hits.filter((ts) => now - ts < MAX_KEY_AGE_MS);
-      if (freshHits.length === 0) buckets.delete(key);
-      else buckets.set(key, freshHits);
-    }
-  }, SWEEP_INTERVAL_MS).unref?.();
 }

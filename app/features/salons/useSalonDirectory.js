@@ -428,9 +428,9 @@ export function useSalonDirectory({
         return { ok: false, status, payload };
       }
       if (String(salonUserId) === String(createdProfile?.id) && typeof onOwnerBookingsSync === "function") {
-        onOwnerBookingsSync(payload?.bookings || []);
+        onOwnerBookingsSync(payload?.data?.bookings || []);
       }
-      const linkedArtistId = payload?.linkedArtistId;
+      const linkedArtistId = payload?.data?.linkedArtistId;
       if (linkedArtistId && typeof onLinkedArtistBooked === "function") {
         try {
           await onLinkedArtistBooked(linkedArtistId);
@@ -438,26 +438,27 @@ export function useSalonDirectory({
           // artist refresh is best-effort; salon booking already succeeded
         }
       }
-      if (payload?.booking) {
+      if (payload?.data?.booking) {
+        const createdBooking = payload.data.booking;
         setSalonClientUnavailableSlots((slots) => [
           ...slots,
           {
-            booking_date: payload.booking.booking_date,
-            time: payload.booking.time,
-            duration_minutes: payload.booking.duration_minutes || durationMinutes
+            booking_date: createdBooking.booking_date,
+            time: createdBooking.time,
+            duration_minutes: createdBooking.duration_minutes || durationMinutes
           }
         ]);
         setClientBookingList((items) => [
           {
-            ...payload.booking,
+            ...createdBooking,
             salonName: selectedSalon.name,
             salonArea: selectedSalon.area,
             salonPhone: selectedSalon.phone,
             salonAvatar: selectedSalon.avatar,
             service: salonClientBooking.service,
-            booking_date: payload.booking.booking_date || salonClientBooking.day,
-            time: payload.booking.time || salonClientBooking.time,
-            status: payload.booking.status || "درخواست"
+            booking_date: createdBooking.booking_date || salonClientBooking.day,
+            time: createdBooking.time || salonClientBooking.time,
+            status: createdBooking.status || "درخواست"
           },
           ...items
         ]);

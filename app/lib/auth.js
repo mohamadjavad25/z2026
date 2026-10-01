@@ -50,6 +50,60 @@ export function verifyPassword(password, stored) {
   return timingSafeEqual(prev, next);
 }
 
+/**
+ * Fixed dummy scrypt hash (salt:hash of an arbitrary, never-real password)
+ * with the exact shape verifyPassword expects. Its only use is
+ * app/api/auth/login/route.js's "phone not registered" branch: calling
+ * verifyPassword(password, DUMMY_PASSWORD_HASH) there and discarding the
+ * (always-false) result burns the same scryptSync cost a genuine "wrong
+ * password" check pays, so the two cases take equal time. Without this,
+ * "not found" returns instantly (no scrypt run at all) while "wrong
+ * password" pays scrypt's cost -- a measurable timing side-channel an
+ * attacker could use to enumerate registered phone numbers even if the
+ * two response bodies were made identical. This intentionally does NOT
+ * unify the response codes themselves (not_found vs bad_password) --
+ * app/features/auth/useAuthSession.js relies on that distinction for a
+ * real UX feature (auto-redirect to signup), and the DB-backed rate
+ * limiter (app/lib/rateLimit.js) is the primary defense against
+ * brute-force enumeration either way.
+ */
+export const DUMMY_PASSWORD_HASH =
+  "129869637c2b150b07704aa06e1e0d47:8d39cd87a4ce6233ce8467ec5936e12554bc75103d0a0a28279f21d0b45ffd16865af8aa0721735e7d75f1c43abf75bc291c59c963ff531b8ac1a970723d600c";
+
+/** Timing-safe check of a request header against an expected secret --
+ *  same timingSafeEqual pattern as verifyPassword above, instead of a plain
+ *  `===` that leaks how many leading bytes matched via response timing.
+ *  Length-checked first since timingSafeEqual throws on a length mismatch
+ *  rather than returning false. Returns false (never throws) if `expected`
+ *  is unset, so a misconfigured deployment fails closed. */
+function verifyHeaderSecret(request, headerName, expected) {
+  if (!expected) return false;
+  const provided = request.headers.get(headerName) || "";
+  const expectedBuf = Buffer.from(expected);
+  const providedBuf = Buffer.from(provided);
+  if (expectedBuf.length !== providedBuf.length) return false;
+  return timingSafeEqual(expectedBuf, providedBuf);
+}
+
+/** Gates the manual password-reset admin queue. */
+export function verifyAdminToken(request) {
+  return verifyHeaderSecret(request, "x-admin-token", process.env.ZIBABAN_ADMIN_TOKEN || "");
+}
+
+/** Gates app/api/cron/* endpoints -- a scheduler (Supabase pg_cron via
+ *  `net.http_post`, or any external scheduler) calls these with
+ *  `Authorization: Bearer <CRON_SECRET>`. */
+export function verifyCronSecret(request) {
+  const auth = request.headers.get("authorization") || "";
+  const provided = auth.startsWith("Bearer ") ? auth.slice(7) : "";
+  const expected = process.env.CRON_SECRET || "";
+  if (!expected) return false;
+  const expectedBuf = Buffer.from(expected);
+  const providedBuf = Buffer.from(provided);
+  if (expectedBuf.length !== providedBuf.length) return false;
+  return timingSafeEqual(expectedBuf, providedBuf);
+}
+
 export function publicUser(row) {
   if (!row) return null;
   return {
@@ -74,8 +128,8 @@ export function publicUser(row) {
     // showing the old image on refresh regardless of the media route's
     // own cache headers, since it never even asks again until that cache
     // entry expires on its own.
-    avatar: row.avatar ? `/api/media/avatar/${row.id}?v=${encodeURIComponent(row.updated_at || "")}` : "",
-    poster: row.poster ? `/api/media/poster/${row.id}?v=${encodeURIComponent(row.updated_at || "")}` : "",
+    avatar: row.avatar ? `/api/media/avatar/${row.id}?v=${encodeURIComponent(row.updated_at?.toISOString?.() || row.updated_at || "")}` : "",
+    poster: row.poster ? `/api/media/poster/${row.id}?v=${encodeURIComponent(row.updated_at?.toISOString?.() || row.updated_at || "")}` : "",
     avatarPosition: row.avatar_position || "",
     posterPosition: row.poster_position || "",
     bio: row.bio || "",
@@ -84,6 +138,19 @@ export function publicUser(row) {
   };
 }
 
+/**
+ * CSRF: deliberately no separate token/double-submit-cookie scheme.
+ * `sameSite: "lax"` below means the browser never attaches this cookie to
+ * a state-changing cross-site request (a form POST or fetch() from another
+ * origin) in the first place — only top-level navigations (plain links)
+ * still send it, and this app has no state-changing GET route. That's a
+ * complete defense as long as every caller of this app's API *is*
+ * same-origin, which is true today (no separate frontend domain, no
+ * mobile app hitting these routes with its own stored cookie). If either
+ * of those ever changes -- a separate frontend origin, a mobile app, a
+ * public API for third parties -- this reasoning no longer holds and a
+ * real CSRF token should be added before that ships, not after.
+ */
 export function setSessionCookie(response, token, expiresAt) {
   response.cookies.set(SESSION_COOKIE, token, {
     httpOnly: true,

@@ -1,4 +1,4 @@
-import { error, json, notFound, requireUserRole } from "../../../lib/http.js";
+import { error, json, notFound, requireUserRole, withErrorHandling } from "../../../lib/http.js";
 import * as artists from "../../../lib/db/repos/artists.js";
 import * as salons from "../../../lib/db/repos/salons.js";
 import { sendPushToUser } from "../../../lib/push.js";
@@ -6,7 +6,7 @@ import { sendPushToUser } from "../../../lib/push.js";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET(request) {
+async function _GET(request) {
   const auth = await requireUserRole(request, "artist", "فقط آرتیست.");
   if (!auth.ok) return auth.response;
   const profile = await artists.getPublicArtist(auth.user.id, auth.user.id);
@@ -24,7 +24,7 @@ export async function GET(request) {
   });
 }
 
-export async function POST(request) {
+async function _POST(request) {
   const auth = await requireUserRole(request, "artist", "فقط آرتیست.");
   if (!auth.ok) return auth.response;
   const body = await request.json();
@@ -59,7 +59,7 @@ export async function POST(request) {
   return json({ data: { service } }, { status: 201 });
 }
 
-export async function PATCH(request) {
+async function _PATCH(request) {
   const auth = await requireUserRole(request, "artist", "فقط آرتیست.");
   if (!auth.ok) return auth.response;
   const body = await request.json();
@@ -143,7 +143,7 @@ async function patchOwnArtistBooking(artistUserId, body) {
   });
 }
 
-export async function DELETE(request) {
+async function _DELETE(request) {
   const auth = await requireUserRole(request, "artist", "فقط آرتیست.");
   if (!auth.ok) return auth.response;
   const body = await request.json();
@@ -156,3 +156,8 @@ export async function DELETE(request) {
   if (!ok) return notFound();
   return json({ data: { ok: true } });
 }
+
+export const GET = withErrorHandling(_GET);
+export const POST = withErrorHandling(_POST);
+export const PATCH = withErrorHandling(_PATCH);
+export const DELETE = withErrorHandling(_DELETE);

@@ -187,14 +187,14 @@ export async function deleteSalonInvite(id) {
   });
 }
 
-/** GET /api/salon-rules → { rules } (salon owner) */
+/** GET /api/salon-rules → { data: { rules } } (salon owner) */
 export async function getSalonRules() {
   return apiJson("/api/salon-rules");
 }
 
-/** PUT /api/salon-rules { rules } → { rules } (saved, trimmed text) */
+/** PUT /api/salon-rules { rules } → { data: { rules } } (saved, trimmed text) */
 export async function saveSalonRules(rules) {
-  return apiFetch("/api/salon-rules", {
+  return apiJson("/api/salon-rules", {
     method: "PUT",
     body: JSON.stringify({ rules })
   });

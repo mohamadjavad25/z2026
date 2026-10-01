@@ -1,0 +1,49 @@
+name: Expire stale booking requests
+
+# Provider-agnostic scheduler for app/api/cron/expire-bookings, since this
+# repo doesn't depend on any one deploy target (Supabase pg_cron needs a
+# real Supabase project; Vercel Cron needs a real Vercel deployment --
+# neither existed yet when this was added, see docs/DEVLOG.md). A GitHub
+# Actions schedule works against whatever the app ends up deployed to, as
+# long as APP_URL/CRON_SECRET repo secrets are set.
+#
+# Setup once a real deployment exists: repo Settings -> Secrets and
+# variables -> Actions, add APP_URL (e.g. https://zibaban.example.com,
+# no trailing slash) and CRON_SECRET (must match the app's own
+# CRON_SECRET env var -- see .env.example). Until those secrets are set,
+# every run below no-ops instead of failing loudly on every schedule tick.
+#
+# 3 minutes (RECOMMENDED_SWEEP_INTERVAL_MS in app/lib/bookingExpirySweep.js)
+# is below GitHub's practical reliability floor for scheduled workflows
+# (GitHub's own docs: schedules can be delayed, especially below ~5min,
+# during high load) -- 5 minutes is the closest reliable match. A booking
+# request sitting expired for a few extra minutes before this sweep picks
+# it up is a cosmetic delay, not a correctness issue (see
+# app/lib/bookingExpirySweep.js's own doc comment).
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch: {}
+
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call /api/cron/expire-bookings
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$APP_URL" ] || [ -z "$CRON_SECRET" ]; then
+            echo "APP_URL/CRON_SECRET repo secrets not set yet -- skipping (see comment at the top of this workflow file)."
+            exit 0
+          fi
+          status=$(curl -sS -o /tmp/response.json -w "%{http_code}" \
+            -X POST "$APP_URL/api/cron/expire-bookings" \
+            -H "Authorization: Bearer $CRON_SECRET")
+          echo "HTTP $status"
+          cat /tmp/response.json
+          if [ "$status" -lt 200 ] || [ "$status" -ge 300 ]; then
+            exit 1
+          fi

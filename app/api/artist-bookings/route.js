@@ -1,4 +1,4 @@
-import { json, requireUser } from "../../lib/http.js";
+import { json, requireUser, withErrorHandling } from "../../lib/http.js";
 import { ensureDb } from "../../lib/db/connection.js";
 import * as artists from "../../lib/db/repos/artists.js";
 
@@ -19,12 +19,14 @@ export const dynamic = "force-dynamic";
  * its own endpoint instead of folding into /api/salon-bookings so that
  * route's existing owner/staff-availability branches stay untouched.
  */
-export async function GET(request) {
+async function _GET(request) {
   await ensureDb();
   const auth = await requireUser(request);
   if (!auth.ok) return auth.response;
   if (auth.user.type !== "client") {
     return json({ error: "فقط مشتری." }, { status: 403 });
   }
-  return json({ bookings: await artists.listClientArtistBookings(auth.user) });
+  return json({ data: { bookings: await artists.listClientArtistBookings(auth.user) } });
 }
+
+export const GET = withErrorHandling(_GET);

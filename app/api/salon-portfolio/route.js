@@ -1,36 +1,54 @@
-import { json, notFound, requireUserRole } from "../../lib/http.js";
+import { error, json, notFound, requireUserRole, withErrorHandling } from "../../lib/http.js";
 import * as salons from "../../lib/db/repos/salons.js";
+import { isImageDataUrlTooLarge, isImageDataUrlInvalidType } from "../../lib/mediaLimits.js";
 
 export const runtime = "nodejs";
 
-export async function GET(request) {
+async function _GET(request) {
   const auth = await requireUserRole(request, "salon", "فقط سالن.");
   if (!auth.ok) return auth.response;
-  return json({ portfolio: await salons.listSalonPortfolio(auth.user.id) });
+  return json({ data: { portfolio: await salons.listSalonPortfolio(auth.user.id) } });
 }
 
-export async function POST(request) {
+async function _POST(request) {
   const auth = await requireUserRole(request, "salon", "فقط سالن.");
   if (!auth.ok) return auth.response;
   const body = await request.json();
+  if (isImageDataUrlTooLarge(body.tile) || isImageDataUrlTooLarge(body.image)) {
+    return error("حجم عکس بیش از حد مجاز (۵ مگابایت) است.", 413);
+  }
+  if (isImageDataUrlInvalidType(body.tile) || isImageDataUrlInvalidType(body.image)) {
+    return error("فرمت عکس پشتیبانی نمی‌شود.", 400);
+  }
   const item = await salons.addSalonPortfolio(auth.user.id, body);
-  return json({ item }, { status: 201 });
+  return json({ data: { item } }, { status: 201 });
 }
 
-export async function PATCH(request) {
+async function _PATCH(request) {
   const auth = await requireUserRole(request, "salon", "فقط سالن.");
   if (!auth.ok) return auth.response;
   const body = await request.json();
+  if (isImageDataUrlTooLarge(body.tile) || isImageDataUrlTooLarge(body.image)) {
+    return error("حجم عکس بیش از حد مجاز (۵ مگابایت) است.", 413);
+  }
+  if (isImageDataUrlInvalidType(body.tile) || isImageDataUrlInvalidType(body.image)) {
+    return error("فرمت عکس پشتیبانی نمی‌شود.", 400);
+  }
   const item = await salons.updateSalonPortfolio(Number(body.id), auth.user.id, body);
   if (!item) return notFound();
-  return json({ item });
+  return json({ data: { item } });
 }
 
-export async function DELETE(request) {
+async function _DELETE(request) {
   const auth = await requireUserRole(request, "salon", "فقط سالن.");
   if (!auth.ok) return auth.response;
   const body = await request.json();
   const ok = await salons.deleteSalonPortfolio(Number(body.id), auth.user.id);
   if (!ok) return notFound();
-  return json({ ok: true });
+  return json({ data: { ok: true } });
 }
+
+export const GET = withErrorHandling(_GET);
+export const POST = withErrorHandling(_POST);
+export const PATCH = withErrorHandling(_PATCH);
+export const DELETE = withErrorHandling(_DELETE);

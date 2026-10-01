@@ -19,15 +19,11 @@ const KNOWN_KEYS = new Set(Object.keys(DEFAULT_SETTINGS));
 
 export async function getSettings(userId, runner = null) {
   const db = runner || (await getDb());
-  const row = await get(db, "SELECT settings FROM user_settings WHERE user_id = ?", [Number(userId)]);
-  let stored = {};
-  if (row?.settings) {
-    try {
-      stored = JSON.parse(row.settings) || {};
-    } catch {
-      stored = {};
-    }
-  }
+  const row = await get(db, "SELECT settings FROM user_settings WHERE user_id = $1", [Number(userId)]);
+  // settings is JSONB -- the `pg` driver already parses it into a plain JS
+  // object, no manual JSON.parse needed (or possible: row.settings is an
+  // object here, not a JSON string).
+  const stored = row?.settings && typeof row.settings === "object" ? row.settings : {};
   return { ...DEFAULT_SETTINGS, ...stored };
 }
 
@@ -43,7 +39,7 @@ export async function saveSettings(userId, patch = {}) {
   }
   await run(db, `
     INSERT INTO user_settings (user_id, settings, updated_at)
-    VALUES (?, ?, CURRENT_TIMESTAMP)
+    VALUES ($1, $2, CURRENT_TIMESTAMP)
     ON CONFLICT(user_id) DO UPDATE SET
       settings = excluded.settings,
       updated_at = excluded.updated_at

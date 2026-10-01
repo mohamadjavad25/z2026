@@ -368,29 +368,29 @@ export function useSalonWorkspace({
         status: "تازه"
       });
       if (!ok) {
-        applySalonBookings(payload.bookings, { bump: true });
+        applySalonBookings(payload.data?.bookings, { bump: true });
         shellNotify(getApiErrorMessage(payload, "این زمان قابل رزرو نیست."));
         return;
       }
       salonBookingsEpochRef.current += 1;
-      const nextBookings = Array.isArray(payload.bookings) ? payload.bookings : null;
+      const nextBookings = Array.isArray(payload.data?.bookings) ? payload.data.bookings : null;
       if (nextBookings) {
         setSalonAppointmentList(nextBookings);
-      } else if (payload.booking) {
+      } else if (payload.data?.booking) {
         setSalonAppointmentList((list) => (
-          list.some((item) => String(item.id) === String(payload.booking.id)) ? list : [payload.booking, ...list]
+          list.some((item) => String(item.id) === String(payload.data.booking.id)) ? list : [payload.data.booking, ...list]
         ));
       }
       if (typeof onScheduleViewDay === "function") {
-        onScheduleViewDay(payload.booking?.booking_date || bookingDate);
+        onScheduleViewDay(payload.data?.booking?.booking_date || bookingDate);
       }
-      shellNotify(payload.artistBooking
+      shellNotify(payload.data?.artistBooking
         ? "رزرو در سالن ثبت شد و برای آرتیست هم ارسال شد."
         : "رزرو در سالن ثبت شد؛ این پرسنل به پروفایل آرتیست وصل نیست.");
       notify("رزرو با موفقیت ثبت شد.");
       setSalonToolSheetOpen(false);
-      if (payload.linkedArtistId && typeof onLinkedArtistBooked === "function") {
-        onLinkedArtistBooked(payload.linkedArtistId);
+      if (payload.data?.linkedArtistId && typeof onLinkedArtistBooked === "function") {
+        onLinkedArtistBooked(payload.data.linkedArtistId);
       }
       try {
         form.reset();
@@ -423,14 +423,14 @@ export function useSalonWorkspace({
     try {
       const { ok, payload } = await updateSalonBooking({ id: booking.id, ...patch });
       if (!ok) {
-        if (Array.isArray(payload.bookings)) applySalonBookings(payload.bookings, { bump: true });
+        if (Array.isArray(payload.data?.bookings)) applySalonBookings(payload.data.bookings, { bump: true });
         shellNotify(getApiErrorMessage(payload, "به‌روزرسانی رزرو انجام نشد."));
         return false;
       }
-      applySalonBookings(payload.bookings || [], { bump: true });
-      const notifyIds = Array.isArray(payload.linkedArtistIds) && payload.linkedArtistIds.length
-        ? payload.linkedArtistIds
-        : (payload.linkedArtistId ? [payload.linkedArtistId] : []);
+      applySalonBookings(payload.data?.bookings || [], { bump: true });
+      const notifyIds = Array.isArray(payload.data?.linkedArtistIds) && payload.data.linkedArtistIds.length
+        ? payload.data.linkedArtistIds
+        : (payload.data?.linkedArtistId ? [payload.data.linkedArtistId] : []);
       if (typeof onLinkedArtistBooked === "function") {
         for (const artistId of notifyIds) {
           onLinkedArtistBooked(artistId);
@@ -464,17 +464,17 @@ export function useSalonWorkspace({
     try {
       const { ok, payload } = await updateSalonBooking({ id: requestId, status: "تایید شده" });
       if (!ok) {
-        if (Array.isArray(payload.bookings)) applySalonBookings(payload.bookings, { bump: true });
+        if (Array.isArray(payload.data?.bookings)) applySalonBookings(payload.data.bookings, { bump: true });
         shellNotify(getApiErrorMessage(payload, "تایید رزرو انجام نشد."));
         return;
       }
-      applySalonBookings(payload.bookings || [], { bump: true });
-      if (typeof onScheduleViewDay === "function" && payload.booking?.booking_date) {
-        onScheduleViewDay(payload.booking.booking_date);
+      applySalonBookings(payload.data?.bookings || [], { bump: true });
+      if (typeof onScheduleViewDay === "function" && payload.data?.booking?.booking_date) {
+        onScheduleViewDay(payload.data.booking.booking_date);
       }
-      const notifyIds = Array.isArray(payload.linkedArtistIds) && payload.linkedArtistIds.length
-        ? payload.linkedArtistIds
-        : (payload.linkedArtistId ? [payload.linkedArtistId] : []);
+      const notifyIds = Array.isArray(payload.data?.linkedArtistIds) && payload.data.linkedArtistIds.length
+        ? payload.data.linkedArtistIds
+        : (payload.data?.linkedArtistId ? [payload.data.linkedArtistId] : []);
       if (typeof onLinkedArtistBooked === "function") {
         for (const artistId of notifyIds) onLinkedArtistBooked(artistId);
       }
@@ -503,14 +503,14 @@ export function useSalonWorkspace({
     try {
       const { ok, payload } = await updateSalonBooking({ id: requestId, status: "لغو", action: "cancel" });
       if (!ok) {
-        if (Array.isArray(payload.bookings)) applySalonBookings(payload.bookings, { bump: true });
+        if (Array.isArray(payload.data?.bookings)) applySalonBookings(payload.data.bookings, { bump: true });
         shellNotify(getApiErrorMessage(payload, "رد درخواست رزرو انجام نشد."));
         return;
       }
-      applySalonBookings(payload.bookings || [], { bump: true });
-      const notifyIds = Array.isArray(payload.linkedArtistIds) && payload.linkedArtistIds.length
-        ? payload.linkedArtistIds
-        : (payload.linkedArtistId ? [payload.linkedArtistId] : []);
+      applySalonBookings(payload.data?.bookings || [], { bump: true });
+      const notifyIds = Array.isArray(payload.data?.linkedArtistIds) && payload.data.linkedArtistIds.length
+        ? payload.data.linkedArtistIds
+        : (payload.data?.linkedArtistId ? [payload.data.linkedArtistId] : []);
       if (typeof onLinkedArtistBooked === "function") {
         for (const artistId of notifyIds) onLinkedArtistBooked(artistId);
       }
@@ -534,13 +534,13 @@ export function useSalonWorkspace({
         shellNotify(getApiErrorMessage(payload, "به‌روزرسانی پیشنهاد همکاری انجام نشد."));
         return;
       }
-      setSalonCollabRequestList(payload.collabs || []);
-      if (Array.isArray(payload.staff)) {
-        setSalonStaffList(payload.staff);
-        setSelectedStaffName((current) => current || payload.staff[0]?.name || "");
+      setSalonCollabRequestList(payload.data?.collabs || []);
+      if (Array.isArray(payload.data?.staff)) {
+        setSalonStaffList(payload.data.staff);
+        setSelectedStaffName((current) => current || payload.data.staff[0]?.name || "");
       }
       shellNotify(status === "تایید شد"
-        ? (payload.staffCreated ? "پیشنهاد تایید شد و آرتیست به پرسنل اضافه شد." : "پیشنهاد تایید شد؛ این آرتیست قبلا در پرسنل بود.")
+        ? (payload.data?.staffCreated ? "پیشنهاد تایید شد و آرتیست به پرسنل اضافه شد." : "پیشنهاد تایید شد؛ این آرتیست قبلا در پرسنل بود.")
         : "پیشنهاد همکاری رد شد.");
     } catch {
       shellNotify("به‌روزرسانی پیشنهاد همکاری انجام نشد.");
@@ -567,7 +567,7 @@ export function useSalonWorkspace({
       if (!notifyFromResponse(shellNotify, result, { failure: "ثبت پرسنل انجام نشد؛ دوباره امتحان کن." })) {
         return;
       }
-      const nextStaff = Array.isArray(result.payload.staff) ? result.payload.staff : [];
+      const nextStaff = Array.isArray(result.payload.data?.staff) ? result.payload.data.staff : [];
       setSalonStaffList(nextStaff);
       setSelectedStaffName(nextName);
       shellNotify("پرسنل جدید در دیتابیس سالن ذخیره شد.");
@@ -651,7 +651,7 @@ export function useSalonWorkspace({
         shellNotify(payload.error || "دعوت آرتیست انجام نشد.");
         return;
       }
-      setSalonArtistInviteList(Array.isArray(payload.invites) ? payload.invites : []);
+      setSalonArtistInviteList(Array.isArray(payload.data?.invites) ? payload.data.invites : []);
       setNearbyArtists((current) => current.filter((item) => Number(item.id) !== Number(artist.id)));
       shellNotify(`دعوت برای «${artist.name || "آرتیست"}» ارسال شد؛ تا تایید آرتیست نهایی نیست.`);
     } catch {
@@ -668,7 +668,7 @@ export function useSalonWorkspace({
         shellNotify(payload.error || "لغو دعوت انجام نشد.");
         return;
       }
-      setSalonArtistInviteList(Array.isArray(payload.invites) ? payload.invites : []);
+      setSalonArtistInviteList(Array.isArray(payload.data?.invites) ? payload.data.invites : []);
       shellNotify("دعوت لغو شد.");
     } catch {
       shellNotify("لغو دعوت انجام نشد؛ دوباره امتحان کن.");
@@ -683,7 +683,7 @@ export function useSalonWorkspace({
       if (!notifyFromResponse(shellNotify, result, { failure: "به‌روزرسانی پرسنل انجام نشد؛ دوباره امتحان کن." })) {
         return;
       }
-      const nextStaff = Array.isArray(result.payload.staff) ? result.payload.staff : [];
+      const nextStaff = Array.isArray(result.payload.data?.staff) ? result.payload.data.staff : [];
       setSalonStaffList(nextStaff);
       setSelectedStaffName((current) => patch.name || current || nextStaff[0]?.name || "");
       if (notice) shellNotify(notice);
@@ -704,14 +704,14 @@ export function useSalonWorkspace({
         shellNotify(payload.error || "حذف پرسنل انجام نشد؛ دوباره امتحان کن.");
         return;
       }
-      const nextStaff = Array.isArray(payload.staff) ? payload.staff : [];
+      const nextStaff = Array.isArray(payload.data?.staff) ? payload.data.staff : [];
       setSalonStaffList(nextStaff);
       setSelectedStaffName(nextStaff[0]?.name || "");
-      if (payload.artistNotified) {
+      if (payload.data?.artistNotified) {
         if (typeof onArtistCollabOffersPatch === "function") {
           onArtistCollabOffersPatch((items) => items.map((offer) => (
             Number(offer.salonId) === Number(createdProfile?.id)
-            && Number(offer.artistId || 0) === Number(payload.artistUserId || person.artist_user_id || 0)
+            && Number(offer.artistId || 0) === Number(payload.data?.artistUserId || person.artist_user_id || 0)
               ? { ...offer, status: "پایان یافت" }
               : offer
           )));
@@ -732,7 +732,7 @@ export function useSalonWorkspace({
       if (!notifyFromResponse(shellNotify, result, { failure: "به‌روزرسانی تقویم سالن انجام نشد؛ دوباره امتحان کن." })) {
         return;
       }
-      setSalonHoursList(result.payload.hours || []);
+      setSalonHoursList(result.payload.data?.hours || []);
       shellNotify(`تقویم ${nextHour.day} در دیتابیس سالن ذخیره شد.`);
     } catch {
       shellNotify("به‌روزرسانی تقویم سالن انجام نشد؛ دوباره امتحان کن.");
@@ -758,7 +758,7 @@ export function useSalonWorkspace({
         shellNotify(getApiErrorMessage(failed.payload, "ذخیره گزینه کلی ساعت کاری انجام نشد؛ دوباره امتحان کن."));
         return;
       }
-      const latestHours = results[results.length - 1]?.payload?.hours || nextHours;
+      const latestHours = results[results.length - 1]?.payload?.data?.hours || nextHours;
       setSalonHoursList(latestHours);
       shellNotify("گزینه کلی ساعت کاری روی تقویم سالن اعمال شد.");
     } catch {
@@ -787,7 +787,7 @@ export function useSalonWorkspace({
           shellNotify(getApiErrorMessage(result.payload, "اعمال ساعت به بقیه روزها انجام نشد؛ دوباره امتحان کن."));
           return;
         }
-        latestHours = result.payload.hours || latestHours;
+        latestHours = result.payload.data?.hours || latestHours;
       }
       setSalonHoursList(latestHours);
       shellNotify("ساعت روی بقیه روزهای باز اعمال شد.");
@@ -810,7 +810,7 @@ export function useSalonWorkspace({
         shellNotify(payload.error || "ذخیره خدمت انجام نشد؛ دوباره امتحان کن.");
         return;
       }
-      const savedService = payload.service;
+      const savedService = payload.data?.service;
       if (savedService?.name) {
         setSalonServiceList((items) => (
           items.some((item) => String(item.id) === String(savedService.id)) ? items : [...items, savedService]
@@ -857,7 +857,7 @@ export function useSalonWorkspace({
         shellNotify(payload.error || "انتخاب آرتیست انجام نشد؛ دوباره امتحان کن.");
         return;
       }
-      const saved = payload.service;
+      const saved = payload.data?.service;
       if (saved) {
         const selectedPeople = staffId ? safeSalonStaffList.filter((person) => String(person.id) === String(staffId)) : [];
         const nextService = {
@@ -929,7 +929,7 @@ export function useSalonWorkspace({
         return;
       }
       const selectedPeople = safeSalonStaffList.filter((person) => nextIds.includes(String(person.id)));
-      const saved = payload.service;
+      const saved = payload.data?.service;
       const nextService = {
         ...(saved || service),
         staff_id: primaryStaffId,
@@ -981,8 +981,8 @@ export function useSalonWorkspace({
       if (!notifyFromResponse(shellNotify, result, { failure: "حذف خدمت انجام نشد؛ دوباره امتحان کن." })) {
         return;
       }
-      if (Array.isArray(result.payload.services)) {
-        setSalonServiceList(result.payload.services);
+      if (Array.isArray(result.payload.data?.services)) {
+        setSalonServiceList(result.payload.data.services);
       }
       await refreshSalonSystemData();
       shellNotify("خدمت از دیتابیس حذف شد.");

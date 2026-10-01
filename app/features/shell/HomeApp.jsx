@@ -32,7 +32,8 @@ import {
   getTodayPersianWeekday,
   parseServiceDurationMinutes,
   SALON_HOUR_TIME_OPTIONS,
-  timeLabelToMinutes
+  timeLabelToMinutes,
+  toIsoLikeTimestamp
 } from "../../shared/lib/time";
 import {
   formatRelativeBookingDayLabel,
@@ -140,13 +141,10 @@ import {
   salonTasks
 } from "./mockData";
 
-// SQLite's CURRENT_TIMESTAMP is UTC with no offset marker ("2026-09-19 10:30:00"),
-// which JS parses as LOCAL time unless told otherwise — append "Z" so recency
-// checks (e.g. "expired within the last day") aren't off by the browser's
-// timezone offset.
-function isWithinLastHours(sqliteTimestamp, hours) {
-  if (!sqliteTimestamp) return false;
-  const ms = Date.parse(`${sqliteTimestamp}Z`.replace(" ", "T"));
+function isWithinLastHours(timestamp, hours) {
+  const isoLike = toIsoLikeTimestamp(timestamp);
+  if (!isoLike) return false;
+  const ms = Date.parse(isoLike);
   if (!Number.isFinite(ms)) return false;
   return Date.now() - ms <= hours * 3600 * 1000;
 }
@@ -330,35 +328,31 @@ export function HomeApp() {
     onAuthenticated: async (profile, { source, isStale }) => {
       const c = authCascadeRef.current;
       if (source === "login") {
-        await c.refreshExploreFeed?.();
-        await c.refreshFollows?.();
-        await c.refreshSaves?.();
-        try {
-          const [passportResponse, salonsResponse] = await Promise.all([
-            fetch("/api/beauty-passport"),
-            fetch("/api/salons")
-          ]);
-          const passportPayload = passportResponse.ok ? await passportResponse.json() : {};
-          const salonsPayload = await salonsResponse.json();
-          setBeautyPassport(passportPayload.passport || passportPayload.data?.passport || null);
-          c.setSalonDirectory?.(salonsPayload.salons || salonsPayload.data?.salons || []);
-        } catch {
-          // ignore secondary loads
-        }
-      } else if (source === "register") {
-        await c.refreshExploreFeed?.();
-        await c.refreshFollows?.();
-        await c.refreshSaves?.();
-      } else if (source === "boot") {
-        const [passportResponse] = await Promise.all([
+        // salonDirectory is already populated from the boot-time guest
+        // fetch (onPublicBoot below) -- GET /api/salons is unauthenticated
+        // and returns the exact same public, viewer-independent data
+        // whether or not anyone is logged in, so re-fetching it again here
+        // on every login was pure duplicate work. These three don't depend
+        // on each other, so run them together instead of one after another.
+        const [, , , passportPayload] = await Promise.all([
+          c.refreshExploreFeed?.(),
+          c.refreshFollows?.(),
+          c.refreshSaves?.(),
           fetch("/api/beauty-passport")
+            .then((response) => (response.ok ? response.json() : {}))
+            .catch(() => ({}))
+        ]);
+        setBeautyPassport(passportPayload.passport || passportPayload.data?.passport || null);
+      } else if (source === "register") {
+        await Promise.all([c.refreshExploreFeed?.(), c.refreshFollows?.(), c.refreshSaves?.()]);
+      } else if (source === "boot") {
+        const [passportPayload] = await Promise.all([
+          fetch("/api/beauty-passport").then((response) => (response.ok ? response.json() : {})).catch(() => ({})),
+          c.refreshFollows?.(),
+          c.refreshSaves?.()
         ]);
         if (isStale?.()) return;
-        const passportPayload = passportResponse.ok ? await passportResponse.json() : {};
         setBeautyPassport(passportPayload.passport || passportPayload.data?.passport || null);
-        await c.refreshFollows?.();
-        await c.refreshSaves?.();
-        if (isStale?.()) return;
       }
 
       if (profile?.type === "salon") await c.refreshSalonSystemData?.();
@@ -1529,7 +1523,7 @@ function getPassportMatch(post) {
           const detailResponse = await fetch("/api/salons/" + encodeURIComponent(nextSalon.id));
           if (detailResponse.ok) {
             const detailPayload = await detailResponse.json();
-            const detail = detailPayload.salon || detailPayload;
+            const detail = detailPayload.data?.salon || detailPayload.salon;
             if (detail && typeof detail === "object") {
               nextSalon = { ...nextSalon, ...detail };
             }
@@ -1682,7 +1676,7 @@ function getPassportMatch(post) {
       const response = await fetch("/api/salons/" + encodeURIComponent(salon.id));
       if (response.ok) {
         const payload = await response.json();
-        const detail = payload.salon || payload;
+        const detail = payload.data?.salon || payload.salon;
         if (detail && typeof detail === "object") {
           setSelectedSalon((current) => (
             current && String(current.id) === String(salon.id)
@@ -2439,7 +2433,7 @@ function getPassportMatch(post) {
               const notifiableStatuses = ["تایید شده", "لغو", "منقضی شده"];
               const recentBookingNotices = clientBookingList
                 .filter((booking) => notifiableStatuses.includes(booking.status || ""))
-                .sort((a, b) => new Date(`${(b.created_at || "").replace(" ", "T")}Z`) - new Date(`${(a.created_at || "").replace(" ", "T")}Z`))
+                .sort((a, b) => new Date(toIsoLikeTimestamp(b.created_at)) - new Date(toIsoLikeTimestamp(a.created_at)))
                 .slice(0, 20);
               return recentBookingNotices.length ? (
                 <div className="reservationRequestList" aria-label="آخرین تغییرات رزروها">

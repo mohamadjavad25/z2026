@@ -290,7 +290,7 @@ export function useArtistWorkspace({
         shellNotify(result.payload?.error || "به‌روزرسانی ساعت کاری انجام نشد؛ دوباره امتحان کن.");
         return;
       }
-      setArtistHoursList(result.payload.hours || []);
+      setArtistHoursList(result.payload.data?.hours || []);
     } catch {
       shellNotify("به‌روزرسانی ساعت کاری انجام نشد؛ دوباره امتحان کن.");
     }
@@ -315,7 +315,7 @@ export function useArtistWorkspace({
         shellNotify(failed.payload?.error || "ذخیره گزینه کلی ساعت کاری انجام نشد؛ دوباره امتحان کن.");
         return;
       }
-      const latestHours = results[results.length - 1]?.payload?.hours || nextHours;
+      const latestHours = results[results.length - 1]?.payload?.data?.hours || nextHours;
       setArtistHoursList(latestHours);
     } catch {
       shellNotify("ذخیره گزینه کلی ساعت کاری انجام نشد؛ دوباره امتحان کن.");
@@ -343,7 +343,7 @@ export function useArtistWorkspace({
           shellNotify(result.payload?.error || "اعمال ساعت به بقیه روزها انجام نشد؛ دوباره امتحان کن.");
           return;
         }
-        latestHours = result.payload.hours || latestHours;
+        latestHours = result.payload.data?.hours || latestHours;
       }
       setArtistHoursList(latestHours);
       shellNotify("ساعت روی بقیه روزهای باز اعمال شد.");

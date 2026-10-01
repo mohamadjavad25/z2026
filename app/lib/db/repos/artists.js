@@ -5,7 +5,7 @@ import { resolveRollingPersianDateKey } from "../../../shared/lib/persianCalenda
 import { normalizeBookingTimeLabel } from "../../../shared/lib/time.js";
 import { normalizePhone } from "./salons/common.js";
 import { isProfileSaved } from "./social.js";
-import { getSettings } from "./userSettings.js";
+import { getSettings, DEFAULT_SETTINGS } from "./userSettings.js";
 
 export { ensureArtistHours, listArtistHours, updateArtistHour } from "./artists/hours.js";
 
@@ -13,7 +13,7 @@ export async function listArtistServices(userId, runner = null) {
   const db = runner || (await getDb());
   return all(db, `
     SELECT id, name, price, duration, hint, badge, tone
-    FROM artist_services WHERE user_id = ? ORDER BY id ASC
+    FROM artist_services WHERE user_id = $1 ORDER BY id ASC
   `, [userId]);
 }
 
@@ -21,7 +21,7 @@ export async function addArtistService(userId, data) {
   const db = await getDb();
   const info = await run(db, `
     INSERT INTO artist_services (user_id, name, price, duration, hint, badge, tone)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
     RETURNING id
   `, [
     userId,
@@ -32,17 +32,17 @@ export async function addArtistService(userId, data) {
     data.badge || "",
     data.tone || "soft"
   ]);
-  return get(db, "SELECT * FROM artist_services WHERE id = ?", [Number(info.rows[0].id)]);
+  return get(db, "SELECT * FROM artist_services WHERE id = $1", [Number(info.rows[0].id)]);
 }
 
 export async function updateArtistService(id, userId, data) {
   const db = await getDb();
-  const current = await get(db, "SELECT * FROM artist_services WHERE id = ? AND user_id = ?", [id, userId]);
+  const current = await get(db, "SELECT * FROM artist_services WHERE id = $1 AND user_id = $2", [id, userId]);
   if (!current) return null;
   await run(db, `
     UPDATE artist_services SET
-      name = ?, price = ?, duration = ?, hint = ?, badge = ?, tone = ?, updated_at = CURRENT_TIMESTAMP
-    WHERE id = ? AND user_id = ?
+      name = $1, price = $2, duration = $3, hint = $4, badge = $5, tone = $6, updated_at = CURRENT_TIMESTAMP
+    WHERE id = $7 AND user_id = $8
   `, [
     data.name ?? current.name,
     data.price ?? current.price,
@@ -53,13 +53,13 @@ export async function updateArtistService(id, userId, data) {
     id,
     userId
   ]);
-  return get(db, "SELECT * FROM artist_services WHERE id = ?", [id]);
+  return get(db, "SELECT * FROM artist_services WHERE id = $1", [id]);
 }
 
 export async function deleteArtistService(id, userId) {
   const db = await getDb();
-  const result = await run(db, "DELETE FROM artist_services WHERE id = ? AND user_id = ?", [id, userId]);
-  return result.changes > 0;
+  const result = await run(db, "DELETE FROM artist_services WHERE id = $1 AND user_id = $2", [id, userId]);
+  return result.rowCount > 0;
 }
 
 function mapArtistCollab(row) {
@@ -87,7 +87,7 @@ export async function listArtistCollabs(userId) {
     SELECT c.*, u.avatar AS salon_avatar
     FROM artist_collabs c
     LEFT JOIN users u ON u.id = c.salon_user_id
-    WHERE c.artist_user_id = ?
+    WHERE c.artist_user_id = $1
     ORDER BY c.id DESC
   `, [userId]);
   return rows.map(mapArtistCollab).filter(Boolean);
@@ -104,7 +104,7 @@ export async function listSalonCollabRequests(salonUserId) {
       u.area AS artist_area
     FROM artist_collabs c
     JOIN users u ON u.id = c.artist_user_id
-    WHERE c.salon_user_id = ?
+    WHERE c.salon_user_id = $1
     ORDER BY c.id DESC
   `, [salonUserId]);
   return rows.map((row) => ({
@@ -122,7 +122,7 @@ export async function addArtistCollab(userId, data) {
   const info = await run(db, `
     INSERT INTO artist_collabs
       (artist_user_id, salon_user_id, salon_name, area, service, days, from_time, to_time, share_percent, capacity, status)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
     RETURNING id
   `, [
     userId,
@@ -141,15 +141,15 @@ export async function addArtistCollab(userId, data) {
     SELECT c.*, u.avatar AS salon_avatar
     FROM artist_collabs c
     LEFT JOIN users u ON u.id = c.salon_user_id
-    WHERE c.id = ?
+    WHERE c.id = $1
   `, [Number(info.rows[0].id)]);
   return mapArtistCollab(row);
 }
 
 export async function deleteArtistCollab(id, userId) {
   const db = await getDb();
-  const result = await run(db, "DELETE FROM artist_collabs WHERE id = ? AND artist_user_id = ?", [id, userId]);
-  return result.changes > 0;
+  const result = await run(db, "DELETE FROM artist_collabs WHERE id = $1 AND artist_user_id = $2", [id, userId]);
+  return result.rowCount > 0;
 }
 
 export async function updateSalonCollabStatus(id, salonUserId, status) {
@@ -158,10 +158,10 @@ export async function updateSalonCollabStatus(id, salonUserId, status) {
   const nextStatus = allowed.has(status) ? status : "آماده ارسال";
   const result = await run(db, `
     UPDATE artist_collabs
-    SET status = ?, updated_at = CURRENT_TIMESTAMP
-    WHERE id = ? AND salon_user_id = ?
+    SET status = $1, updated_at = CURRENT_TIMESTAMP
+    WHERE id = $2 AND salon_user_id = $3
   `, [nextStatus, id, salonUserId]);
-  if (result.changes < 1) return null;
+  if (result.rowCount < 1) return null;
   const rows = await listSalonCollabRequests(salonUserId);
   return rows.find((item) => Number(item.id) === Number(id)) || null;
 }
@@ -173,17 +173,17 @@ export async function endSalonCollabsForArtist(salonUserId, artistUserId) {
   const result = await run(db, `
     UPDATE artist_collabs
     SET status = 'پایان یافت', updated_at = CURRENT_TIMESTAMP
-    WHERE salon_user_id = ?
-      AND artist_user_id = ?
+    WHERE salon_user_id = $1
+      AND artist_user_id = $2
       AND status IN ('تایید شد', 'آماده ارسال')
   `, [salonUserId, artistId]);
-  return result.changes;
+  return result.rowCount;
 }
 
 export async function getArtistBreak(userId, runner = null) {
   const db = runner || (await getDb());
   const row = await get(db, `
-    SELECT start_time, end_time FROM artist_breaks WHERE user_id = ?
+    SELECT start_time, end_time FROM artist_breaks WHERE user_id = $1
   `, [userId]);
   if (!row?.start_time || !row?.end_time) return null;
   return { start: row.start_time, end: row.end_time };
@@ -194,7 +194,7 @@ export async function setArtistBreak(userId, startTime, endTime) {
   const start = String(startTime || "").trim();
   const end = String(endTime || "").trim();
   if (!start || !end) {
-    await run(db, "DELETE FROM artist_breaks WHERE user_id = ?", [userId]);
+    await run(db, "DELETE FROM artist_breaks WHERE user_id = $1", [userId]);
     return null;
   }
   const startMinutes = timeToMinutes(start);
@@ -204,7 +204,7 @@ export async function setArtistBreak(userId, startTime, endTime) {
   }
   await run(db, `
     INSERT INTO artist_breaks (user_id, start_time, end_time, updated_at)
-    VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+    VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
     ON CONFLICT(user_id) DO UPDATE SET
       start_time = excluded.start_time,
       end_time = excluded.end_time,
@@ -215,7 +215,7 @@ export async function setArtistBreak(userId, startTime, endTime) {
 
 export async function clearArtistBreak(userId) {
   const db = await getDb();
-  await run(db, "DELETE FROM artist_breaks WHERE user_id = ?", [userId]);
+  await run(db, "DELETE FROM artist_breaks WHERE user_id = $1", [userId]);
   return null;
 }
 
@@ -229,7 +229,7 @@ export async function listArtistBookings(artistUserId) {
       salon.area AS source_salon_area
     FROM artist_bookings b
     LEFT JOIN users salon ON salon.id = b.source_salon_user_id
-    WHERE b.artist_user_id = ?
+    WHERE b.artist_user_id = $1
     ORDER BY b.id DESC
   `, [artistUserId]);
 
@@ -329,17 +329,19 @@ export async function listClientArtistBookings(user) {
   const conditions = [];
   const params = [];
   if (userId) {
-    conditions.push("b.client_user_id = ?");
     params.push(userId);
+    conditions.push(`b.client_user_id = $${params.length}`);
   }
   if (phone) {
-    conditions.push(`REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(b.client_phone,
-      '۰','0'),'۱','1'),'۲','2'),'۳','3'),'۴','4'),'۵','5'),'۶','6'),'۷','7'),'۸','8'),'۹','9') = ?`);
+    // b.phone_normalized is a generated column (migrations/005_normalized_phone.sql)
+    // that runs the same digit-normalization at write time, indexed --
+    // unlike wrapping b.client_phone in REPLACE() on every read, this is sargable.
     params.push(phone);
+    conditions.push(`b.phone_normalized = $${params.length}`);
   }
   if (name) {
-    conditions.push("b.client_name = ?");
     params.push(name);
+    conditions.push(`b.client_name = $${params.length}`);
   }
   const rows = await all(db, `
     SELECT b.*, u.name AS artist_name, u.area AS artist_area, u.avatar AS artist_avatar, u.phone AS artist_phone
@@ -382,7 +384,7 @@ export async function syncSalonBookingsForArtist(artistUserId) {
     JOIN salon_staff st
       ON st.salon_user_id = b.salon_user_id
       AND st.name = b.staff
-    WHERE st.artist_user_id = ?
+    WHERE st.artist_user_id = $1
       AND b.status != 'لغو'
     ORDER BY b.id ASC
   `, [artistUserId]);
@@ -392,12 +394,12 @@ export async function syncSalonBookingsForArtist(artistUserId) {
     const exact = await get(db, `
       SELECT id, source_salon_user_id
       FROM artist_bookings
-      WHERE artist_user_id = ?
-        AND client_name = ?
-        AND client_phone = ?
-        AND service = ?
-        AND booking_date = ?
-        AND time = ?
+      WHERE artist_user_id = $1
+        AND client_name = $2
+        AND client_phone = $3
+        AND service = $4
+        AND booking_date = $5
+        AND time = $6
       LIMIT 1
     `, [
       artistUserId,
@@ -412,8 +414,8 @@ export async function syncSalonBookingsForArtist(artistUserId) {
       if (!exact.source_salon_user_id) {
         await run(db, `
           UPDATE artist_bookings
-          SET source_salon_user_id = ?, status = ?, updated_at = CURRENT_TIMESTAMP
-          WHERE id = ?
+          SET source_salon_user_id = $1, status = $2, updated_at = CURRENT_TIMESTAMP
+          WHERE id = $3
         `, [booking.salon_user_id, booking.status || "تازه", exact.id]);
         synced += 1;
       }
@@ -462,7 +464,7 @@ export async function listArtistBookedSlots(artistUserId, { excludeBookingId = n
   const rows = await all(db, `
     SELECT id, booking_date, time, status, service, duration_minutes
     FROM artist_bookings
-    WHERE artist_user_id = ?
+    WHERE artist_user_id = $1
       AND status NOT IN ('لغو', 'لغو شده', 'cancelled', 'منقضی شده')
     ORDER BY id ASC
   `, [artistUserId]);
@@ -518,12 +520,12 @@ export async function findLinkedSalonArtistBooking(artistUserId, salonUserId, sa
   const rows = await all(db, `
     SELECT *
     FROM artist_bookings
-    WHERE artist_user_id = ?
-      AND source_salon_user_id = ?
-      AND client_name = ?
-      AND client_phone = ?
-      AND service = ?
-      AND booking_date = ?
+    WHERE artist_user_id = $1
+      AND source_salon_user_id = $2
+      AND client_name = $3
+      AND client_phone = $4
+      AND service = $5
+      AND booking_date = $6
     ORDER BY
       CASE WHEN status IN ('لغو', 'لغو شده', 'cancelled') THEN 1 ELSE 0 END ASC,
       id DESC
@@ -541,7 +543,7 @@ export async function findLinkedSalonArtistBooking(artistUserId, salonUserId, sa
 
 export async function updateArtistBookingRow(bookingId, fields = {}, runner = null) {
   const db = runner || (await getDb());
-  const current = await get(db, "SELECT * FROM artist_bookings WHERE id = ?", [Number(bookingId)]);
+  const current = await get(db, "SELECT * FROM artist_bookings WHERE id = $1", [Number(bookingId)]);
   if (!current) return null;
   const next = {
     client_name: fields.client_name ?? fields.client ?? current.client_name,
@@ -559,9 +561,9 @@ export async function updateArtistBookingRow(bookingId, fields = {}, runner = nu
   };
   await run(db, `
     UPDATE artist_bookings
-    SET client_name = ?, client_phone = ?, service = ?, booking_date = ?, time = ?,
-        duration_minutes = ?, status = ?, updated_at = CURRENT_TIMESTAMP
-    WHERE id = ?
+    SET client_name = $1, client_phone = $2, service = $3, booking_date = $4, time = $5,
+        duration_minutes = $6, status = $7, updated_at = CURRENT_TIMESTAMP
+    WHERE id = $8
   `, [
     next.client_name || "",
     next.client_phone || "",
@@ -572,7 +574,7 @@ export async function updateArtistBookingRow(bookingId, fields = {}, runner = nu
     next.status || "تازه",
     Number(bookingId)
   ]);
-  return get(db, "SELECT * FROM artist_bookings WHERE id = ?", [Number(bookingId)]);
+  return get(db, "SELECT * FROM artist_bookings WHERE id = $1", [Number(bookingId)]);
 }
 
 /** Soft-cancel (status لغو) — keeps history aligned with salon cancel. */
@@ -608,7 +610,7 @@ export async function addArtistBookingInTx(artistUserId, data, runner = null) {
   const info = await run(db, `
     INSERT INTO artist_bookings
       (artist_user_id, client_user_id, source_salon_user_id, client_name, client_phone, service, booking_date, time, duration_minutes, status)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
     RETURNING id
   `, [
     artistUserId,
@@ -624,7 +626,7 @@ export async function addArtistBookingInTx(artistUserId, data, runner = null) {
   ]);
   return {
     ok: true,
-    booking: await get(db, "SELECT * FROM artist_bookings WHERE id = ?", [Number(info.rows[0].id)])
+    booking: await get(db, "SELECT * FROM artist_bookings WHERE id = $1", [Number(info.rows[0].id)])
   };
 }
 
@@ -643,7 +645,7 @@ export async function addArtistBooking(artistUserId, data) {
 /** Full booking snapshot, camelCased. Live status — callers should re-fetch, never cache. */
 export async function getArtistBookingById(bookingId) {
   const db = await getDb();
-  const row = await get(db, "SELECT * FROM artist_bookings WHERE id = ?", [bookingId]);
+  const row = await get(db, "SELECT * FROM artist_bookings WHERE id = $1", [bookingId]);
   if (!row) return null;
   return {
     id: row.id,
@@ -709,25 +711,58 @@ export async function getPublicArtist(userId, viewerUserId = null) {
   };
 }
 
-export async function listArtists() {
+/**
+ * Cursor-paginated when `limit` is given (GET /api/artists); called with no
+ * arguments (app/sitemap.js) returns the full, unbounded list -- see
+ * salons.js's listSalons() for the identical reasoning (same nextCursor/
+ * privacy-filter-after-fetch tradeoff, same why-not-created_at note).
+ * Cursors on users.id, artists' own primary key.
+ */
+export async function listArtists({ cursor, limit } = {}) {
   const db = await getDb();
-  const rows = await all(db, `
-    SELECT id, name, area, service, avatar, bio, avatar_position FROM users WHERE type = 'artist' ORDER BY created_at DESC
-  `);
+  const params = [];
+  let where = "type = 'artist'";
+  if (cursor != null) {
+    params.push(Number(cursor));
+    where += ` AND id < $${params.length}`;
+  }
+  let limitClause = "";
+  const pageSize = limit ? Math.min(Math.max(Number(limit) || 20, 1), 50) : null;
+  if (pageSize) {
+    params.push(pageSize + 1);
+    limitClause = `LIMIT $${params.length}`;
+  }
+  const rawRows = await all(db, `
+    SELECT id, name, area, service, avatar, bio, avatar_position FROM users WHERE ${where} ORDER BY id DESC ${limitClause}
+  `, params);
+  const hasMore = pageSize ? rawRows.length > pageSize : false;
+  const rows = pageSize ? rawRows.slice(0, pageSize) : rawRows;
+  const nextCursor = hasMore ? rows[rows.length - 1].id : null;
   // An artist switched to "خصوصی" via تنظیمات → ویترین عمومی آرتیست must be
   // hidden from the public directory, same rule salons.listSalons()
   // already enforces for its equivalent toggle -- this was previously
-  // never checked at all for artists. Settings lookups are independent
-  // per row, so run them concurrently instead of one full row at a time
-  // (same fix as listSalons() -- see its comment for why this matters).
-  const settingsByRow = await Promise.all(rows.map((row) => getSettings(row.id, db)));
-  const visible = rows.filter((row, index) => settingsByRow[index].publicPortfolio !== false);
+  // never checked at all for artists. One batched query for every row's
+  // settings instead of N round-trips (same fix as listSalons(), see its
+  // comment for the round-trip-count reasoning).
+  const userIds = rows.map((row) => row.id);
+  const settingsRows = userIds.length
+    ? await all(db, "SELECT user_id, settings FROM user_settings WHERE user_id = ANY($1)", [userIds])
+    : [];
+  const settingsByUser = new Map(settingsRows.map((r) => [
+    r.user_id,
+    r.settings && typeof r.settings === "object" ? r.settings : {}
+  ]));
+  const visible = rows.filter((row) => {
+    const settings = { ...DEFAULT_SETTINGS, ...(settingsByUser.get(row.id) || {}) };
+    return settings.publicPortfolio !== false;
+  });
   // Media URL, not raw base64 -- see app/api/media/avatar/[userId]/route.js.
-  return visible.map((row) => ({
+  const mapped = visible.map((row) => ({
     ...row,
     avatar: row.avatar ? `/api/media/avatar/${row.id}` : "",
     avatarPosition: row.avatar_position || ""
   }));
+  return pageSize ? { artists: mapped, nextCursor } : mapped;
 }
 
 /**
@@ -742,7 +777,7 @@ export async function listSavedArtistsForUser(userId) {
   const rows = await all(db, `
     SELECT u.* FROM saved_profiles sp
     JOIN users u ON u.id = sp.target_user_id
-    WHERE sp.user_id = ? AND u.type = 'artist'
+    WHERE sp.user_id = $1 AND u.type = 'artist'
     ORDER BY sp.created_at DESC
   `, [userId]);
   const result = await Promise.all(rows.map(async (user) => ({

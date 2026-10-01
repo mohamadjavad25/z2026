@@ -51,12 +51,12 @@ export function SalonRulesSettings({ onNotify }) {
     if (saving) return;
     setSaving(true);
     try {
-      const { ok, payload } = await saveSalonRules(draft);
+      const { ok, data, payload } = await saveSalonRules(draft);
       if (!ok) {
         onNotify?.(payload?.error || "ذخیره قوانین انجام نشد.");
         return;
       }
-      setSaved(String(payload?.rules ?? draft.trim()));
+      setSaved(String(data?.rules ?? draft.trim()));
       setOpen(false);
       onNotify?.("قوانین و شرایط سالن ذخیره شد.");
     } catch {

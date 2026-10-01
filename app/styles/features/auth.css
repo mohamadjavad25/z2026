@@ -486,6 +486,26 @@
   color: var(--auth-ink);
 }
 
+.appShell.is-auth-gate .authTermsAgreement {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.74rem;
+  line-height: 1.6;
+  color: rgba(22, 20, 26, 0.6);
+  cursor: pointer;
+}
+
+.appShell.is-auth-gate .authTermsAgreement input[type="checkbox"] {
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.appShell.is-auth-gate .authTermsAgreement a {
+  color: var(--auth-ink);
+  text-decoration: underline;
+}
+
 .appShell.is-auth-gate .authSwitchHint {
   color: rgba(22, 20, 26, 0.5);
 }

@@ -1,6 +1,7 @@
 import { ensureDb } from "./lib/db/connection.js";
 import { listSalons } from "./lib/db/repos/salons.js";
 import { listArtists } from "./lib/db/repos/artists.js";
+import { getSiteUrl } from "./lib/siteUrl.js";
 
 // The DB layer uses the `pg` package (a real TCP/TLS Postgres client), same
 // as app/salons/[id]/page.jsx etc. — must not run on the Edge runtime.
@@ -16,8 +17,9 @@ export const dynamic = "force-dynamic";
 // Single source of truth: NEXT_PUBLIC_SITE_URL (see .env.example at the repo
 // root). Falls back to the same placeholder as before so nothing breaks in
 // dev/CI without env setup — but set this in production, otherwise every URL
-// submitted to Google will point at this fake address.
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://zibaban.example.com";
+// submitted to Google will point at this fake address (getSiteUrl() logs a
+// console.error in production if this was forgotten).
+const SITE_URL = getSiteUrl();
 
 export default async function sitemap() {
   await ensureDb();

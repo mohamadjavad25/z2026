@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
-import { requireUser } from "../../lib/http.js";
+import { requireUser, validateBody, withErrorHandling } from "../../lib/http.js";
 import { ensureDb } from "../../lib/db/connection.js";
 import * as salons from "../../lib/db/repos/salons.js";
 import * as artists from "../../lib/db/repos/artists.js";
 import { checkRateLimit } from "../../lib/rateLimit.js";
 import { sendPushToUser } from "../../lib/push.js";
+import { createBookingSchema } from "../../lib/validation/booking.js";
 // Side-effect import: starts the once-per-process 1-hour booking-request
 // auto-expiry sweep (see that file's docstring) the first time this route
 // module loads — same self-starting-on-import convention as
@@ -57,7 +58,7 @@ function resolveRequestedDuration(body, salon) {
   return 60;
 }
 
-export async function GET(request) {
+async function _GET(request) {
   await ensureDb();
   const auth = await requireUser(request);
   if (!auth.ok) return auth.response;
@@ -67,7 +68,8 @@ export async function GET(request) {
     const salonUserId = Number(requestedSalonId);
     if (!salonUserId) return noStoreJson({ error: "شناسه سالن نامعتبر است." }, { status: 400 });
     if (auth.user.type === "salon" && salonUserId === auth.user.id) {
-      return noStoreJson({ bookings: await salons.listSalonBookings(auth.user.id) });
+      const bookings = await salons.listSalonBookings(auth.user.id);
+      return noStoreJson({ data: { bookings } });
     }
     const allBookings = await salons.listSalonBookings(salonUserId);
     const unavailableSlots = allBookings
@@ -83,26 +85,28 @@ export async function GET(request) {
         staff: booking.staff,
         status: booking.status
     }));
-    return noStoreJson({ unavailableSlots, hours: await salons.listSalonHours(salonUserId) });
+    return noStoreJson({ data: { unavailableSlots, hours: await salons.listSalonHours(salonUserId) } });
   }
   if (auth.user.type === "client") {
-    return noStoreJson({ bookings: await salons.listClientSalonBookings(auth.user) });
+    const bookings = await salons.listClientSalonBookings(auth.user);
+    return noStoreJson({ data: { bookings } });
   }
   const forbidden = requireSalon(auth.user);
   if (forbidden) return forbidden;
-  return noStoreJson({ bookings: await salons.listSalonBookings(auth.user.id) });
+  const bookings = await salons.listSalonBookings(auth.user.id);
+  return noStoreJson({ data: { bookings } });
 }
 
-export async function POST(request) {
+async function _POST(request) {
   await ensureDb();
   const auth = await requireUser(request);
   if (!auth.ok) return auth.response;
 
   // Per-caller throttle against booking-spam (a client scripting repeated
   // reservation requests, or a compromised session flooding a salon's
-  // schedule). Same in-memory limiter/pattern this codebase already uses for
+  // schedule). Same DB-backed limiter/pattern this codebase already uses for
   // other abuse-prone routes (see /api/auth/login, /api/artist/bookings).
-  const bookingLimited = checkRateLimit(`salon-booking-create:${auth.user.id}`, 20, 60_000);
+  const bookingLimited = await checkRateLimit(`salon-booking-create:${auth.user.id}`, 20, 60_000);
   if (!bookingLimited.ok) {
     return noStoreJson({ error: "درخواست‌های زیاد. کمی صبر کن." }, { status: 429 });
   }
@@ -111,6 +115,13 @@ export async function POST(request) {
   if (!["client", "salon"].includes(auth.user.type)) {
     return noStoreJson({ error: "فقط مشتری یا سالن می‌تواند رزرو ثبت کند." }, { status: 403 });
   }
+  // Validated/stripped body used only for the addSalonBooking() spread
+  // below -- zod drops any unlisted key (in particular `status`), so a
+  // caller can never self-confirm a booking by including "status": "تایید شده"
+  // in the request; every other field on this route still reads from the
+  // raw `body` above, unaffected.
+  const v = validateBody(createBookingSchema, body);
+  if (!v.ok) return v.response;
   const salonUserId = body.salonUserId ? Number(body.salonUserId) : auth.user.id;
   if (!salonUserId) return noStoreJson({ error: "شناسه سالن نامعتبر است." }, { status: 400 });
   const salon = await salons.getSalon(salonUserId);
@@ -155,11 +166,11 @@ export async function POST(request) {
     return noStoreJson({
       error: "این ساعت برای آرتیست قبلاً رزرو شده است.",
       code: "ARTIST_SLOT_TAKEN",
-      bookings: await salons.listSalonBookings(salonUserId)
+      data: { bookings: await salons.listSalonBookings(salonUserId) }
     }, { status: 409 });
   }
   const result = await salons.addSalonBooking(salonUserId, {
-    ...body,
+    ...v.data,
     client,
     phone,
     service,
@@ -189,7 +200,7 @@ export async function POST(request) {
       return noStoreJson({
         error: artistResult.error || "رزرو برای آرتیست ثبت نشد.",
         code: artistResult.code || "ARTIST_BOOKING_FAILED",
-        bookings: await salons.listSalonBookings(salonUserId)
+        data: { bookings: await salons.listSalonBookings(salonUserId) }
       }, { status: artistResult.code === "SLOT_TAKEN" ? 409 : 400 });
     }
   }
@@ -205,14 +216,16 @@ export async function POST(request) {
   }
 
   return noStoreJson({
-    booking: result.booking,
-    bookings: await salons.listSalonBookings(salonUserId),
-    artistBooking,
-    linkedArtistId: linkedStaff?.artist_user_id || null
+    data: {
+      booking: result.booking,
+      bookings: await salons.listSalonBookings(salonUserId),
+      artistBooking,
+      linkedArtistId: linkedStaff?.artist_user_id || null
+    }
   }, { status: 201 });
 }
 
-export async function PATCH(request) {
+async function _PATCH(request) {
   await ensureDb();
   const auth = await requireUser(request);
   if (!auth.ok) return auth.response;
@@ -247,19 +260,19 @@ export async function PATCH(request) {
       return noStoreJson({
         error: "این درخواست به‌دلیل عدم پاسخ به‌موقع منقضی شده و دیگر قابل تایید نیست.",
         code: "BOOKING_EXPIRED",
-        bookings: await salons.listSalonBookings(auth.user.id)
+        data: { bookings: await salons.listSalonBookings(auth.user.id) }
       }, { status: 409 });
     }
     if (result.error === "artist_conflict") {
       return noStoreJson({
         error: result.message || "این ساعت برای آرتیست قبلاً رزرو شده است.",
         code: result.code || "ARTIST_SLOT_TAKEN",
-        bookings: await salons.listSalonBookings(auth.user.id)
+        data: { bookings: await salons.listSalonBookings(auth.user.id) }
       }, { status: 409 });
     }
     return noStoreJson({
       error: "این زمان قابل رزرو نیست.",
-      bookings: await salons.listSalonBookings(auth.user.id)
+      data: { bookings: await salons.listSalonBookings(auth.user.id) }
     }, { status: 409 });
   }
 
@@ -278,9 +291,15 @@ export async function PATCH(request) {
   }
 
   return noStoreJson({
-    booking: result.booking,
-    bookings: await salons.listSalonBookings(auth.user.id),
-    linkedArtistId: result.linkedArtistId ?? null,
-    linkedArtistIds: result.linkedArtistIds || []
+    data: {
+      booking: result.booking,
+      bookings: await salons.listSalonBookings(auth.user.id),
+      linkedArtistId: result.linkedArtistId ?? null,
+      linkedArtistIds: result.linkedArtistIds || []
+    }
   });
 }
+
+export const GET = withErrorHandling(_GET);
+export const POST = withErrorHandling(_POST);
+export const PATCH = withErrorHandling(_PATCH);

@@ -1,13 +1,13 @@
 import { getDb, get } from "../../connection.js";
 
 export const defaultHours = [
-  { day: "شنبه", open_time: "۱۰:۰۰", close_time: "۲۰:۰۰", capacity: 8, active: 1 },
-  { day: "یکشنبه", open_time: "۱۰:۰۰", close_time: "۲۰:۰۰", capacity: 8, active: 1 },
-  { day: "دوشنبه", open_time: "۱۰:۰۰", close_time: "۲۰:۰۰", capacity: 8, active: 1 },
-  { day: "سه‌شنبه", open_time: "۱۰:۰۰", close_time: "۲۰:۰۰", capacity: 8, active: 1 },
-  { day: "چهارشنبه", open_time: "۱۰:۰۰", close_time: "۲۰:۰۰", capacity: 8, active: 1 },
-  { day: "پنجشنبه", open_time: "۱۰:۰۰", close_time: "۱۸:۰۰", capacity: 5, active: 1 },
-  { day: "جمعه", open_time: "", close_time: "", capacity: 0, active: 0 }
+  { day: "شنبه", open_time: "۱۰:۰۰", close_time: "۲۰:۰۰", capacity: 8, active: true },
+  { day: "یکشنبه", open_time: "۱۰:۰۰", close_time: "۲۰:۰۰", capacity: 8, active: true },
+  { day: "دوشنبه", open_time: "۱۰:۰۰", close_time: "۲۰:۰۰", capacity: 8, active: true },
+  { day: "سه‌شنبه", open_time: "۱۰:۰۰", close_time: "۲۰:۰۰", capacity: 8, active: true },
+  { day: "چهارشنبه", open_time: "۱۰:۰۰", close_time: "۲۰:۰۰", capacity: 8, active: true },
+  { day: "پنجشنبه", open_time: "۱۰:۰۰", close_time: "۱۸:۰۰", capacity: 5, active: true },
+  { day: "جمعه", open_time: "", close_time: "", capacity: 0, active: false }
 ];
 
 export function toAsciiDigits(value) {
@@ -20,6 +20,6 @@ export function normalizePhone(phone) {
 
 export async function countFollowing(userId, runner = null) {
   const db = runner || (await getDb());
-  const row = await get(db, "SELECT COUNT(*) AS c FROM follows WHERE follower_user_id = ?", [userId]);
+  const row = await get(db, "SELECT COUNT(*) AS c FROM follows WHERE follower_user_id = $1", [userId]);
   return Number(row?.c || 0);
 }

@@ -12,19 +12,20 @@ import { ensureDb } from "../../../lib/db/connection.js";
 import * as users from "../../../lib/db/repos/users.js";
 import { ensureSalonHours } from "../../../lib/db/repos/salons.js";
 import { checkRateLimit } from "../../../lib/rateLimit.js";
+import { withErrorHandling } from "../../../lib/http.js";
 
 export const runtime = "nodejs";
 
 // Per-phone throttle against scripted signup spam (account-creation flood /
 // repeated-attempt scraping of the "already registered" check). Same
-// in-memory limiter this codebase already uses for other abuse-prone routes
+// DB-backed limiter this codebase already uses for other abuse-prone routes
 // (see /api/auth/login, /api/salon-bookings). This does not throttle a
 // distributed attacker rotating phone numbers -- that needs a trusted-proxy
 // IP source this app's deployment doesn't define yet (see security report).
 const REGISTER_ATTEMPT_LIMIT = 5;
 const REGISTER_WINDOW_MS = 60 * 60 * 1000;
 
-export async function POST(request) {
+async function _POST(request) {
   await ensureDb();
   try {
     const body = await request.json();
@@ -40,7 +41,7 @@ export async function POST(request) {
       return NextResponse.json({ error: "شماره تماس باید یک شماره موبایل معتبر ایران باشد (مثلا 09123456789)." }, { status: 400 });
     }
 
-    const limited = checkRateLimit(`register:${phone}`, REGISTER_ATTEMPT_LIMIT, REGISTER_WINDOW_MS);
+    const limited = await checkRateLimit(`register:${phone}`, REGISTER_ATTEMPT_LIMIT, REGISTER_WINDOW_MS);
     if (!limited.ok) {
       return NextResponse.json(
         { error: "تلاش‌های ثبت‌نام زیاد بود. کمی بعد دوباره امتحان کن.", code: "rate_limited" },
@@ -70,7 +71,7 @@ export async function POST(request) {
 
     const session = await createSessionForUser(user.id);
     const safe = publicUser(user);
-    const response = NextResponse.json({ data: { user: safe }, profile: safe });
+    const response = NextResponse.json({ data: { user: safe } });
     setSessionCookie(response, session.token, session.expiresAt);
     return response;
   } catch (error) {
@@ -78,3 +79,5 @@ export async function POST(request) {
     return NextResponse.json({ error: "ثبت‌نام انجام نشد." }, { status: 500 });
   }
 }
+
+export const POST = withErrorHandling(_POST);

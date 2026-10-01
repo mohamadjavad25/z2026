@@ -44,18 +44,19 @@ import { sendPushToUser } from "./push.js";
 export const BOOKING_REQUEST_EXPIRED_STATUS = "منقضی شده";
 
 const DEFAULT_TIMEOUT_MINUTES = 60;
-const DEFAULT_SWEEP_INTERVAL_MS = 3 * 60 * 1000; // every 3 minutes; timeout precision doesn't need to be tighter than this
+
+// Recommended external-scheduler interval for app/api/cron/expire-bookings
+// (see vercel.json) -- timeout precision doesn't need to be tighter than
+// this. Not read from here anymore (the old in-process setInterval this
+// constant configured is gone -- see git history / docs/DEVLOG.md), kept
+// only as the documented source of truth for what to put in the scheduler.
+export const RECOMMENDED_SWEEP_INTERVAL_MS = 3 * 60 * 1000;
 
 /** Test-speedup hook, same idea as ZIBABAN_BOOKING_PATCH_SYNC_TEST elsewhere in this file's neighbors:
  *  lets an isolated test shrink the window to seconds instead of waiting a real hour. */
 function timeoutMinutes() {
   const override = Number(process.env.ZIBABAN_BOOKING_REQUEST_TIMEOUT_MINUTES);
   return Number.isFinite(override) && override > 0 ? override : DEFAULT_TIMEOUT_MINUTES;
-}
-
-function sweepIntervalMs() {
-  const override = Number(process.env.ZIBABAN_BOOKING_EXPIRY_SWEEP_MS);
-  return Number.isFinite(override) && override > 0 ? override : DEFAULT_SWEEP_INTERVAL_MS;
 }
 
 /** Every still-pending ("درخواست") salon_bookings row whose created_at is older than the
@@ -66,7 +67,7 @@ async function findExpiredSalonBookingRequests(db, minutes) {
     SELECT id, salon_user_id, client_user_id, client, service
     FROM salon_bookings
     WHERE status = 'درخواست'
-      AND created_at::timestamptz <= (NOW() - (?::double precision * INTERVAL '1 minute'))
+      AND created_at <= (NOW() - ($1::double precision * INTERVAL '1 minute'))
   `, [minutes]);
 }
 
@@ -80,7 +81,7 @@ async function findExpiredDirectArtistBookingRequests(db, minutes) {
     FROM artist_bookings
     WHERE status = 'تازه'
       AND source_salon_user_id IS NULL
-      AND created_at::timestamptz <= (NOW() - (?::double precision * INTERVAL '1 minute'))
+      AND created_at <= (NOW() - ($1::double precision * INTERVAL '1 minute'))
   `, [minutes]);
 }
 
@@ -178,18 +179,13 @@ export async function sweepExpiredBookingRequestsOnce() {
   };
 }
 
-// Self-starting periodic sweep, following this codebase's existing precedent
-// for in-process background behavior started once at module-import time
-// (see app/lib/rateLimit.js's sweep) — guarded by a globalThis flag so
-// Next.js dev-mode module reloads (Turbopack HMR) never double-start it.
-// .unref() so this interval alone never keeps the Node process alive.
-if (typeof setInterval === "function" && !globalThis.__zibabanBookingExpirySweepStarted) {
-  globalThis.__zibabanBookingExpirySweepStarted = true;
-  setInterval(() => {
-    // Best-effort background sweep — a failed pass must not crash the
-    // server; the next tick retries. sweepExpiredBookingRequestsOnce() is
-    // async now (Postgres queries), so this must catch a rejected promise,
-    // not just a thrown synchronous error.
-    sweepExpiredBookingRequestsOnce().catch(() => {});
-  }, sweepIntervalMs()).unref?.();
-}
+// A self-starting setInterval used to live here (see git history) --
+// removed because it has the same core problem it was trying to solve for
+// booking expiry in the first place: on the app's actual Vercel serverless
+// deployment target, function instances are ephemeral and scale to zero,
+// so there's no guarantee any instance stays warm long enough for the
+// interval to ever fire. sweepExpiredBookingRequestsOnce() is now called
+// from app/api/cron/expire-bookings/route.js, triggered by an external
+// scheduler (Supabase pg_cron or any other) on a real fixed schedule
+// instead of an in-process timer with no reliability guarantee under this
+// deployment model.

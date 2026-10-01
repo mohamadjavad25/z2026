@@ -40,9 +40,16 @@ export async function logout() {
   return apiFetch("/api/auth/logout", { method: "POST" });
 }
 
-/** DELETE /api/profile → { profile: null, data: { user: null } } + clear cookie.
+/** DELETE /api/profile  body: { currentPassword }
+ *  → 200 { profile: null, data: { user: null } } + clear cookie
+ *  → 400 { error } if currentPassword is missing/wrong (re-auth required,
+ *     same bar as the password-change branch of POST /api/profile, so a
+ *     hijacked session cookie alone can't destroy the account).
  *  Permanent — see migration v34 for what happens to other users' data that
  *  referenced this account (preserved, not cascade-deleted). */
-export async function deleteAccount() {
-  return apiFetch("/api/profile", { method: "DELETE" });
+export async function deleteAccount(currentPassword) {
+  return apiFetch("/api/profile", {
+    method: "DELETE",
+    body: JSON.stringify({ currentPassword })
+  });
 }
