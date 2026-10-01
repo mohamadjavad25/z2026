@@ -16,6 +16,7 @@ import {
   X
 } from "lucide-react";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
+import { StaffPerformanceChart } from "./StaffPerformanceChart";
 
 /**
  * A fact row that becomes a small inline form on click — used only for
@@ -85,6 +86,7 @@ function EditableFact({ icon: Icon, label, value, placeholder, dir, formatValue,
  */
 export function SalonStaffProfileModal({
   staff,
+  stats = null,
   roleOptions = [],
   onClose,
   onUpdate,
@@ -169,6 +171,8 @@ export function SalonStaffProfileModal({
             </button>
           )}
         </div>
+
+        <StaffPerformanceChart stats={stats} />
 
         <section className="staffProfileSection">
           <div className="staffProfileSectionHead">

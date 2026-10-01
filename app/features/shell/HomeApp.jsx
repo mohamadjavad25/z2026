@@ -105,7 +105,8 @@ import {
   salonServiceCatalog,
   useSalonDirectory,
   useSalonWorkspace,
-  getVisibleSalonServiceItems
+  getVisibleSalonServiceItems,
+  computeStaffStats
 } from "../salons";
 import {
   ArtistScheduleBoard,
@@ -1006,6 +1007,12 @@ export function HomeApp() {
   const bookingCustomerOptions = useMemo(() => (
     buildBookingCustomers(createdProfile?.type === "artist" ? artistBookingList : salonAppointmentList)
   ), [createdProfile?.type, artistBookingList, salonAppointmentList]);
+
+  const selectedStaffStats = useMemo(() => (
+    selectedArtistProfile
+      ? computeStaffStats(selectedArtistProfile, salonAppointmentList, salonServiceList)
+      : null
+  ), [selectedArtistProfile, salonAppointmentList, salonServiceList]);
 
   const salonHistoryAppointments = useMemo(() => (
     salonAppointmentList
@@ -2525,6 +2532,7 @@ function getPassportMatch(post) {
         )}
         <SalonStaffProfileModal
           staff={selectedArtistProfile}
+          stats={selectedStaffStats}
           roleOptions={salonArtistRoleOptions}
           onClose={() => setSelectedArtistProfile(null)}
           onUpdate={(person, patch, notice) => {

@@ -10,3 +10,4 @@ export { SalonStaffWorkspace } from "./SalonStaffWorkspace";
 export { SalonToolSheets } from "./SalonToolSheets";
 export { useSalonDirectory, getVisibleSalonServiceItems } from "./useSalonDirectory";
 export { useSalonWorkspace } from "./useSalonWorkspace";
+export { computeStaffStats } from "./staffStats";
