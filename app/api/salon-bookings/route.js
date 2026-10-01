@@ -68,7 +68,8 @@ async function _GET(request) {
     const salonUserId = Number(requestedSalonId);
     if (!salonUserId) return noStoreJson({ error: "شناسه سالن نامعتبر است." }, { status: 400 });
     if (auth.user.type === "salon" && salonUserId === auth.user.id) {
-      return noStoreJson({ bookings: await salons.listSalonBookings(auth.user.id) });
+      const bookings = await salons.listSalonBookings(auth.user.id);
+      return noStoreJson({ data: { bookings } });
     }
     const allBookings = await salons.listSalonBookings(salonUserId);
     const unavailableSlots = allBookings
@@ -84,14 +85,16 @@ async function _GET(request) {
         staff: booking.staff,
         status: booking.status
     }));
-    return noStoreJson({ unavailableSlots, hours: await salons.listSalonHours(salonUserId) });
+    return noStoreJson({ data: { unavailableSlots, hours: await salons.listSalonHours(salonUserId) } });
   }
   if (auth.user.type === "client") {
-    return noStoreJson({ bookings: await salons.listClientSalonBookings(auth.user) });
+    const bookings = await salons.listClientSalonBookings(auth.user);
+    return noStoreJson({ data: { bookings } });
   }
   const forbidden = requireSalon(auth.user);
   if (forbidden) return forbidden;
-  return noStoreJson({ bookings: await salons.listSalonBookings(auth.user.id) });
+  const bookings = await salons.listSalonBookings(auth.user.id);
+  return noStoreJson({ data: { bookings } });
 }
 
 async function _POST(request) {
@@ -163,7 +166,7 @@ async function _POST(request) {
     return noStoreJson({
       error: "این ساعت برای آرتیست قبلاً رزرو شده است.",
       code: "ARTIST_SLOT_TAKEN",
-      bookings: await salons.listSalonBookings(salonUserId)
+      data: { bookings: await salons.listSalonBookings(salonUserId) }
     }, { status: 409 });
   }
   const result = await salons.addSalonBooking(salonUserId, {
@@ -197,7 +200,7 @@ async function _POST(request) {
       return noStoreJson({
         error: artistResult.error || "رزرو برای آرتیست ثبت نشد.",
         code: artistResult.code || "ARTIST_BOOKING_FAILED",
-        bookings: await salons.listSalonBookings(salonUserId)
+        data: { bookings: await salons.listSalonBookings(salonUserId) }
       }, { status: artistResult.code === "SLOT_TAKEN" ? 409 : 400 });
     }
   }
@@ -213,10 +216,12 @@ async function _POST(request) {
   }
 
   return noStoreJson({
-    booking: result.booking,
-    bookings: await salons.listSalonBookings(salonUserId),
-    artistBooking,
-    linkedArtistId: linkedStaff?.artist_user_id || null
+    data: {
+      booking: result.booking,
+      bookings: await salons.listSalonBookings(salonUserId),
+      artistBooking,
+      linkedArtistId: linkedStaff?.artist_user_id || null
+    }
   }, { status: 201 });
 }
 
@@ -252,19 +257,19 @@ async function _PATCH(request) {
       return noStoreJson({
         error: "این درخواست به‌دلیل عدم پاسخ به‌موقع منقضی شده و دیگر قابل تایید نیست.",
         code: "BOOKING_EXPIRED",
-        bookings: await salons.listSalonBookings(auth.user.id)
+        data: { bookings: await salons.listSalonBookings(auth.user.id) }
       }, { status: 409 });
     }
     if (result.error === "artist_conflict") {
       return noStoreJson({
         error: result.message || "این ساعت برای آرتیست قبلاً رزرو شده است.",
         code: result.code || "ARTIST_SLOT_TAKEN",
-        bookings: await salons.listSalonBookings(auth.user.id)
+        data: { bookings: await salons.listSalonBookings(auth.user.id) }
       }, { status: 409 });
     }
     return noStoreJson({
       error: "این زمان قابل رزرو نیست.",
-      bookings: await salons.listSalonBookings(auth.user.id)
+      data: { bookings: await salons.listSalonBookings(auth.user.id) }
     }, { status: 409 });
   }
 
@@ -283,10 +288,12 @@ async function _PATCH(request) {
   }
 
   return noStoreJson({
-    booking: result.booking,
-    bookings: await salons.listSalonBookings(auth.user.id),
-    linkedArtistId: result.linkedArtistId ?? null,
-    linkedArtistIds: result.linkedArtistIds || []
+    data: {
+      booking: result.booking,
+      bookings: await salons.listSalonBookings(auth.user.id),
+      linkedArtistId: result.linkedArtistId ?? null,
+      linkedArtistIds: result.linkedArtistIds || []
+    }
   });
 }
 

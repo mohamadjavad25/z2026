@@ -12,7 +12,7 @@ async function _GET(request) {
   await ensureDb();
   const auth = await requireUser(request);
   if (!auth.ok) return auth.response;
-  return NextResponse.json({ profile: publicUser(auth.user), data: { user: publicUser(auth.user) } });
+  return NextResponse.json({ data: { user: publicUser(auth.user) } });
 }
 
 async function _POST(request) {
@@ -65,7 +65,7 @@ async function _POST(request) {
     }
 
     const user = await users.updateUser(auth.user.id, patch);
-    return NextResponse.json({ profile: publicUser(user), data: { user: publicUser(user) } });
+    return NextResponse.json({ data: { user: publicUser(user) } });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: "ذخیره پروفایل انجام نشد." }, { status: 500 });
@@ -91,7 +91,7 @@ async function _DELETE(request) {
   // Soft approach: delete user cascades via FK
   const { getDb, run } = await import("../../lib/db/connection.js");
   await run(await getDb(), "DELETE FROM users WHERE id = ?", [auth.user.id]);
-  return NextResponse.json({ profile: null, data: { user: null } });
+  return NextResponse.json({ data: { user: null } });
 }
 
 export const GET = withErrorHandling(_GET);

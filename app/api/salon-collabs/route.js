@@ -21,7 +21,7 @@ async function _GET(request) {
   if (forbidden) return forbidden;
 
   return NextResponse.json({
-    collabs: await artists.listSalonCollabRequests(auth.user.id)
+    data: { collabs: await artists.listSalonCollabRequests(auth.user.id) }
   });
 }
 
@@ -40,11 +40,13 @@ async function _PATCH(request) {
     : null;
 
   return NextResponse.json({
-    collab,
-    collabs: await artists.listSalonCollabRequests(auth.user.id),
-    staff: await salons.listSalonStaff(auth.user.id),
-    staffPerson: staffResult?.person || null,
-    staffCreated: staffResult?.created || false
+    data: {
+      collab,
+      collabs: await artists.listSalonCollabRequests(auth.user.id),
+      staff: await salons.listSalonStaff(auth.user.id),
+      staffPerson: staffResult?.person || null,
+      staffCreated: staffResult?.created || false
+    }
   });
 }
 

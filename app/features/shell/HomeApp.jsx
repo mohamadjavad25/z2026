@@ -1526,7 +1526,7 @@ function getPassportMatch(post) {
           const detailResponse = await fetch("/api/salons/" + encodeURIComponent(nextSalon.id));
           if (detailResponse.ok) {
             const detailPayload = await detailResponse.json();
-            const detail = detailPayload.salon || detailPayload;
+            const detail = detailPayload.data?.salon || detailPayload.salon;
             if (detail && typeof detail === "object") {
               nextSalon = { ...nextSalon, ...detail };
             }
@@ -1679,7 +1679,7 @@ function getPassportMatch(post) {
       const response = await fetch("/api/salons/" + encodeURIComponent(salon.id));
       if (response.ok) {
         const payload = await response.json();
-        const detail = payload.salon || payload;
+        const detail = payload.data?.salon || payload.salon;
         if (detail && typeof detail === "object") {
           setSelectedSalon((current) => (
             current && String(current.id) === String(salon.id)

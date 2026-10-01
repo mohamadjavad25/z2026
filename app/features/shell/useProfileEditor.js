@@ -63,8 +63,9 @@ export function useProfileEditor({
         const response = await fetch("/api/profile/settings");
         if (!response.ok) return;
         const payload = await response.json();
-        if (!cancelled && payload?.settings) {
-          setProfileSettings((current) => ({ ...current, ...payload.settings }));
+        const settings = payload?.data?.settings;
+        if (!cancelled && settings) {
+          setProfileSettings((current) => ({ ...current, ...settings }));
         }
       } catch {
         // Keep defaults; the toggle itself will surface an error if the user acts on it.
@@ -130,7 +131,7 @@ export function useProfileEditor({
         notify(payload.error || "ویرایش ذخیره نشد.");
         return;
       }
-      const profile = normalizeProfile(payload.profile);
+      const profile = normalizeProfile(payload.data?.user);
       if (!profile) {
         notify("ویرایش ذخیره نشد.");
         return;
@@ -171,7 +172,7 @@ export function useProfileEditor({
         notify(payload.error || "ذخیره لوکیشن انجام نشد.");
         return;
       }
-      const profile = normalizeProfile(payload.profile);
+      const profile = normalizeProfile(payload.data?.user);
       if (!profile) {
         notify("ذخیره لوکیشن انجام نشد.");
         return;
@@ -249,7 +250,7 @@ export function useProfileEditor({
           notify(payload.error || "ذخیره انجام نشد.");
           return;
         }
-        const profile = normalizeProfile(payload.profile);
+        const profile = normalizeProfile(payload.data?.user);
         if (!profile) {
           notify("ذخیره انجام نشد.");
           return;

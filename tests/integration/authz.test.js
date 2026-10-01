@@ -18,7 +18,7 @@ describe("ownership scoping (IDOR checks)", () => {
       phone: booker.phone
     });
     expect(created.ok).toBe(true);
-    const bookingId = created.payload.booking.id;
+    const bookingId = created.payload.data.booking.id;
 
     const salonBClient = createClient();
     await registerUser(salonBClient, { type: "salon", name: "Salon B" });
@@ -31,7 +31,7 @@ describe("ownership scoping (IDOR checks)", () => {
     expect(hijackAttempt.ok).toBe(false);
 
     const stillOwnedBySalonA = await salonAClient.get("/api/salon-bookings");
-    const row = stillOwnedBySalonA.payload.bookings.find((b) => b.id === bookingId);
+    const row = stillOwnedBySalonA.payload.data.bookings.find((b) => b.id === bookingId);
     expect(row.status).toBe("تازه");
   });
 

@@ -11,7 +11,7 @@ async function _GET(request) {
   if (!user) {
     return NextResponse.json({ data: { user: null } });
   }
-  return NextResponse.json({ data: { user: publicUser(user) }, profile: publicUser(user) });
+  return NextResponse.json({ data: { user: publicUser(user) } });
 }
 
 export const GET = withErrorHandling(_GET);

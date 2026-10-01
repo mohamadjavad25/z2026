@@ -10,7 +10,7 @@ async function _GET(request) {
   await ensureDb();
   const auth = await requireUser(request);
   if (!auth.ok) return auth.response;
-  return NextResponse.json({ passport: await passport.getPassport(auth.user.id) });
+  return NextResponse.json({ data: { passport: await passport.getPassport(auth.user.id) } });
 }
 
 // Activation is free until a real pricing/payment model exists.
@@ -22,7 +22,7 @@ async function _POST(request) {
   const v = validateBody(passportSchema, body || {});
   if (!v.ok) return v.response;
   const saved = await passport.savePassport(auth.user.id, v.data);
-  return NextResponse.json({ passport: saved, data: { passport: saved } });
+  return NextResponse.json({ data: { passport: saved } });
 }
 
 export const GET = withErrorHandling(_GET);

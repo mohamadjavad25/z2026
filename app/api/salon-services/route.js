@@ -6,7 +6,7 @@ export const runtime = "nodejs";
 async function _GET(request) {
   const auth = await requireUserRole(request, "salon", "فقط سالن.");
   if (!auth.ok) return auth.response;
-  return json({ services: await salons.listSalonServices(auth.user.id) });
+  return json({ data: { services: await salons.listSalonServices(auth.user.id) } });
 }
 
 async function _POST(request) {
@@ -14,7 +14,7 @@ async function _POST(request) {
   if (!auth.ok) return auth.response;
   const body = await request.json();
   const service = await salons.addSalonService(auth.user.id, body);
-  return json({ service }, { status: 201 });
+  return json({ data: { service } }, { status: 201 });
 }
 
 async function _PATCH(request) {
@@ -23,7 +23,7 @@ async function _PATCH(request) {
   const body = await request.json();
   const service = await salons.updateSalonService(Number(body.id), auth.user.id, body);
   if (!service) return notFound();
-  return json({ service });
+  return json({ data: { service } });
 }
 
 async function _DELETE(request) {
@@ -32,7 +32,7 @@ async function _DELETE(request) {
   const body = await request.json();
   const ok = await salons.deleteSalonService(Number(body.id), auth.user.id);
   if (!ok) return notFound();
-  return json({ ok: true });
+  return json({ data: { ok: true } });
 }
 
 export const GET = withErrorHandling(_GET);

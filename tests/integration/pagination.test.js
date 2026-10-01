@@ -18,7 +18,7 @@ describe("cursor pagination", () => {
       const qs = cursor ? `?limit=10&cursor=${cursor}` : "?limit=10";
       const res = await anon.get(`/api/salons${qs}`);
       expect(res.ok).toBe(true);
-      collected.push(...res.payload.salons.map((s) => s.id));
+      collected.push(...res.payload.data.salons.map((s) => s.id));
       pages += 1;
 
       if (pages === 1) {
@@ -44,6 +44,6 @@ describe("cursor pagination", () => {
     const res = await anon.get("/api/salons");
     expect(res.ok).toBe(true);
     expect(res.payload.data.nextCursor).toBeUndefined();
-    expect(Array.isArray(res.payload.salons)).toBe(true);
+    expect(Array.isArray(res.payload.data.salons)).toBe(true);
   });
 });

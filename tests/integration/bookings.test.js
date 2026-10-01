@@ -26,7 +26,7 @@ describe("salon bookings", () => {
       status: "تایید شده" // attempted injection -- must be ignored server-side
     });
     expect(res.ok).toBe(true);
-    expect(res.payload.booking.status).toBe("تازه");
+    expect(res.payload.data.booking.status).toBe("تازه");
   });
 
   it("rejects a second booking that overlaps an already-booked slot", async () => {
@@ -67,10 +67,10 @@ describe("salon bookings", () => {
     expect(created.ok).toBe(true);
 
     const confirmed = await salonClient.patch("/api/salon-bookings", {
-      id: created.payload.booking.id,
+      id: created.payload.data.booking.id,
       status: "تایید شده"
     });
     expect(confirmed.ok).toBe(true);
-    expect(confirmed.payload.booking.status).toBe("تایید شده");
+    expect(confirmed.payload.data.booking.status).toBe("تایید شده");
   });
 });

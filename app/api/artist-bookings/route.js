@@ -26,7 +26,7 @@ async function _GET(request) {
   if (auth.user.type !== "client") {
     return json({ error: "فقط مشتری." }, { status: 403 });
   }
-  return json({ bookings: await artists.listClientArtistBookings(auth.user) });
+  return json({ data: { bookings: await artists.listClientArtistBookings(auth.user) } });
 }
 
 export const GET = withErrorHandling(_GET);

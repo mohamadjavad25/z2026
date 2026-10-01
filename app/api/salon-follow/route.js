@@ -14,7 +14,7 @@ async function _POST(request) {
   if (!salonUserId) return NextResponse.json({ error: "سالن نامعتبر است." }, { status: 400 });
   const follow = body.follow !== false;
   const result = await salons.setSalonFollow(salonUserId, auth.user.id, follow);
-  return NextResponse.json({ data: result, follow: result, ...result });
+  return NextResponse.json({ data: result });
 }
 
 export const POST = withErrorHandling(_POST);

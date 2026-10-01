@@ -7,7 +7,7 @@ export const runtime = "nodejs";
 async function _GET(request) {
   const auth = await requireUserRole(request, "salon", "فقط سالن.");
   if (!auth.ok) return auth.response;
-  return json({ staff: await salons.listSalonStaff(auth.user.id) });
+  return json({ data: { staff: await salons.listSalonStaff(auth.user.id) } });
 }
 
 async function _POST(request) {
@@ -15,7 +15,7 @@ async function _POST(request) {
   if (!auth.ok) return auth.response;
   const body = await request.json();
   const person = await salons.addSalonStaff(auth.user.id, body);
-  return json({ person, staff: await salons.listSalonStaff(auth.user.id) }, { status: 201 });
+  return json({ data: { person, staff: await salons.listSalonStaff(auth.user.id) } }, { status: 201 });
 }
 
 async function _PATCH(request) {
@@ -24,7 +24,7 @@ async function _PATCH(request) {
   const body = await request.json();
   const person = await salons.updateSalonStaff(Number(body.id), auth.user.id, body);
   if (!person) return notFound();
-  return json({ person, staff: await salons.listSalonStaff(auth.user.id) });
+  return json({ data: { person, staff: await salons.listSalonStaff(auth.user.id) } });
 }
 
 async function _DELETE(request) {
@@ -38,11 +38,13 @@ async function _DELETE(request) {
     ? await artists.endSalonCollabsForArtist(auth.user.id, artistUserId)
     : 0;
   return json({
-    ok: true,
-    staff: await salons.listSalonStaff(auth.user.id),
-    endedCollabs,
-    artistNotified: endedCollabs > 0,
-    artistUserId
+    data: {
+      ok: true,
+      staff: await salons.listSalonStaff(auth.user.id),
+      endedCollabs,
+      artistNotified: endedCollabs > 0,
+      artistUserId
+    }
   });
 }
 

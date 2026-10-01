@@ -71,7 +71,7 @@ async function _POST(request) {
 
     const session = await createSessionForUser(user.id);
     const safe = publicUser(user);
-    const response = NextResponse.json({ data: { user: safe }, profile: safe });
+    const response = NextResponse.json({ data: { user: safe } });
     setSessionCookie(response, session.token, session.expiresAt);
     return response;
   } catch (error) {

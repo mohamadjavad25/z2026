@@ -8,9 +8,8 @@ async function _GET(request) {
   if (!auth.ok) return auth.response;
   const { searchParams } = new URL(request.url);
   const status = searchParams.get("status") || undefined;
-  return json({
-    invites: await salons.listSalonArtistInvites(auth.user.id, { status })
-  });
+  const invites = await salons.listSalonArtistInvites(auth.user.id, { status });
+  return json({ data: { invites } });
 }
 
 async function _POST(request) {
@@ -19,12 +18,14 @@ async function _POST(request) {
   const body = await request.json();
   const result = await salons.createSalonArtistInvite(auth.user.id, body);
   if (!result.ok) {
-    return json({ error: result.error, code: result.code, invite: result.invite || null }, { status: 400 });
+    return json({ error: result.error, code: result.code, data: { invite: result.invite || null } }, { status: 400 });
   }
   return json({
-    invite: result.invite,
-    created: result.created,
-    invites: await salons.listSalonArtistInvites(auth.user.id)
+    data: {
+      invite: result.invite,
+      created: result.created,
+      invites: await salons.listSalonArtistInvites(auth.user.id)
+    }
   }, { status: 201 });
 }
 
@@ -35,8 +36,10 @@ async function _DELETE(request) {
   const invite = await salons.cancelSalonArtistInvite(Number(body.id), auth.user.id);
   if (!invite) return notFound();
   return json({
-    invite,
-    invites: await salons.listSalonArtistInvites(auth.user.id)
+    data: {
+      invite,
+      invites: await salons.listSalonArtistInvites(auth.user.id)
+    }
   });
 }
 

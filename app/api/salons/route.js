@@ -16,10 +16,10 @@ async function _GET(request) {
   // listSalons({}) (no limit) already returns the full unbounded list.
   if (!cursor && !limitParam) {
     const list = await salons.listSalons();
-    return NextResponse.json({ salons: list, data: { salons: list } });
+    return NextResponse.json({ data: { salons: list } });
   }
   const { salons: list, nextCursor } = await salons.listSalons({ cursor, limit: Number(limitParam) || 20 });
-  return NextResponse.json({ salons: list, data: { salons: list, nextCursor } });
+  return NextResponse.json({ data: { salons: list, nextCursor } });
 }
 
 export const GET = withErrorHandling(_GET);

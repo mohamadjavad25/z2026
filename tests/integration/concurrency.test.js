@@ -62,11 +62,11 @@ describe("toggle race conditions", () => {
     // Exactly one request should have actually created the invite (201 +
     // created: true); every other concurrent request must see the
     // PENDING_EXISTS branch (400), never a second row.
-    const created = results.filter((res) => res.status === 201 && res.payload.created === true);
+    const created = results.filter((res) => res.status === 201 && res.payload.data.created === true);
     expect(created.length).toBe(1);
 
     const invites = await salon.get("/api/salon-invites");
-    const matching = invites.payload.invites.filter((invite) => Number(invite.artistId) === artist.user.id);
+    const matching = invites.payload.data.invites.filter((invite) => Number(invite.artistId) === artist.user.id);
     expect(matching.length).toBe(1);
   });
 });

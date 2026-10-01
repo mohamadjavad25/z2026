@@ -24,7 +24,7 @@ async function _GET(request, context) {
   if (!salon.isPublic && viewer?.id !== userId) {
     return NextResponse.json({ error: "سالن پیدا نشد." }, { status: 404 });
   }
-  return NextResponse.json({ salon });
+  return NextResponse.json({ data: { salon } });
 }
 
 export const GET = withErrorHandling(_GET);

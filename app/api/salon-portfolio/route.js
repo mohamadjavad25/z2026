@@ -7,7 +7,7 @@ export const runtime = "nodejs";
 async function _GET(request) {
   const auth = await requireUserRole(request, "salon", "فقط سالن.");
   if (!auth.ok) return auth.response;
-  return json({ portfolio: await salons.listSalonPortfolio(auth.user.id) });
+  return json({ data: { portfolio: await salons.listSalonPortfolio(auth.user.id) } });
 }
 
 async function _POST(request) {
@@ -18,7 +18,7 @@ async function _POST(request) {
     return error("حجم عکس بیش از حد مجاز (۵ مگابایت) است.", 413);
   }
   const item = await salons.addSalonPortfolio(auth.user.id, body);
-  return json({ item }, { status: 201 });
+  return json({ data: { item } }, { status: 201 });
 }
 
 async function _PATCH(request) {
@@ -30,7 +30,7 @@ async function _PATCH(request) {
   }
   const item = await salons.updateSalonPortfolio(Number(body.id), auth.user.id, body);
   if (!item) return notFound();
-  return json({ item });
+  return json({ data: { item } });
 }
 
 async function _DELETE(request) {
@@ -39,7 +39,7 @@ async function _DELETE(request) {
   const body = await request.json();
   const ok = await salons.deleteSalonPortfolio(Number(body.id), auth.user.id);
   if (!ok) return notFound();
-  return json({ ok: true });
+  return json({ data: { ok: true } });
 }
 
 export const GET = withErrorHandling(_GET);

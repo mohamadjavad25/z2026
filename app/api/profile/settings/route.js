@@ -10,7 +10,7 @@ async function _GET(request) {
   await ensureDb();
   const auth = await requireUser(request);
   if (!auth.ok) return auth.response;
-  return NextResponse.json({ settings: await userSettings.getSettings(auth.user.id) });
+  return NextResponse.json({ data: { settings: await userSettings.getSettings(auth.user.id) } });
 }
 
 async function _POST(request) {
@@ -25,7 +25,7 @@ async function _POST(request) {
   const v = validateBody(settingsPatchSchema, rawPatch);
   if (!v.ok) return v.response;
   const settings = await userSettings.saveSettings(auth.user.id, v.data);
-  return NextResponse.json({ settings });
+  return NextResponse.json({ data: { settings } });
 }
 
 export const GET = withErrorHandling(_GET);

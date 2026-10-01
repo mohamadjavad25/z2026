@@ -6,7 +6,7 @@ export const runtime = "nodejs";
 async function _GET(request) {
   const auth = await requireUserRole(request, "salon", "فقط سالن.");
   if (!auth.ok) return auth.response;
-  return json({ hours: await salons.listSalonHours(auth.user.id) });
+  return json({ data: { hours: await salons.listSalonHours(auth.user.id) } });
 }
 
 async function _PATCH(request) {
@@ -15,8 +15,10 @@ async function _PATCH(request) {
   const body = await request.json();
   const hour = await salons.updateSalonHour(auth.user.id, body.day, body);
   return json({
-    hour,
-    hours: await salons.listSalonHours(auth.user.id)
+    data: {
+      hour,
+      hours: await salons.listSalonHours(auth.user.id)
+    }
   });
 }
 
