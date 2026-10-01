@@ -2133,7 +2133,6 @@ function getPassportMatch(post) {
             && (createdProfile?.type === "salon" || createdProfile?.type === "artist")
           )}
           booking={scheduleBookingMenu}
-          clientProfile={selectedBookingClient}
           view={scheduleBookingView}
           onViewChange={setScheduleBookingView}
           timeSlots={bookingDaySlots}

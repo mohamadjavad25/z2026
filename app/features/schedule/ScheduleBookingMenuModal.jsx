@@ -7,7 +7,7 @@ import {
   CheckCircle2,
   ChevronDown,
   Clock3,
-  History,
+  Eye,
   Phone,
   Scissors,
   Timer,
@@ -17,6 +17,8 @@ import {
   X,
   XCircle
 } from "lucide-react";
+import { getBookingDateOffsetDays, getBookingTimelinePhase } from "../artist/bookingUtils";
+import { isPersianDateKey } from "../../shared/lib/persianCalendar";
 import { SegmentClock } from "../../components/SegmentClock";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { formatRequestExpiryDeadline, getRequestExpiryMinutesLeft } from "../../shared/lib/time";
@@ -38,6 +40,22 @@ function getBookingStatusTone(status = "", ownerType = "salon") {
   return "pending";
 }
 
+// A booking is "past" once its day is behind us, or it is today and its
+// time slot has already ended. Past bookings are review-only.
+function isBookingInPast(booking) {
+  const date = String(booking?.source?.booking_date || booking?.booking_date || booking?.date || "").trim();
+  if (booking?.phase === "done") return true;
+  if (isPersianDateKey(date)) {
+    const offset = getBookingDateOffsetDays(date);
+    if (offset < 0) return true;
+    if (offset > 0) return false;
+  }
+  return getBookingTimelinePhase(
+    { date: isPersianDateKey(date) ? "امروز" : date, time: booking?.time },
+    { durationMinutes: booking?.durationMinutes }
+  ) === "done";
+}
+
 const BOOKING_STATUS_ICONS = {
   pending: Clock3,
   done: CheckCircle2,
@@ -53,7 +71,6 @@ const BOOKING_STATUS_ICONS = {
 export function ScheduleBookingMenuModal({
   open,
   booking,
-  clientProfile = null,
   view = "menu",
   onViewChange,
   timeSlots = [],
@@ -66,14 +83,11 @@ export function ScheduleBookingMenuModal({
   onDecline,
   busy = false
 }) {
-  // Collapsed by default — the full client profile (stats/contact/history)
-  // is a lot to show for every booking at once; it opens on demand via the
-  // (previously dead) history icon in the head. Reset per booking so
-  // switching bookings doesn't leave a stale expanded state behind, since
-  // this modal instance is reused rather than remounted per booking.
-  const [clientPanelOpen, setClientPanelOpen] = useState(false);
+  // The artist picker opens inline; reset per booking because this modal
+  // instance is reused rather than remounted per booking.
+  const [artistPickerOpen, setArtistPickerOpen] = useState(false);
   useEffect(() => {
-    setClientPanelOpen(false);
+    setArtistPickerOpen(false);
   }, [booking?.id]);
 
   if (!open || !booking) return null;
@@ -92,12 +106,20 @@ export function ScheduleBookingMenuModal({
     ? (booking.staff || "آرتیست ثبت نشده")
     : (sourceSalon.name || booking.staff || "رزرو شخصی");
   const phone = booking.phone || booking.clientPhone || booking.client_phone || "";
+  const currentArtistAvatar = isSalonOwner
+    ? (booking.staffAvatar || staffOptions.find((person) => person.name === booking.staff)?.avatar || "")
+    : (sourceSalon.avatar || "");
   const slots = timeSlots.length ? timeSlots : [booking.time].filter(Boolean);
   const actionDisabled = Boolean(busy);
   // booking.ownerType isn't set on every path (e.g. raw history-sheet items
   // in ArtistScheduleBoard/SalonScheduleDashboard don't carry it) — reuse
   // isSalonOwner, the same fallback this component already relies on
   // everywhere else, instead of trusting the raw field directly.
+  const isPast = isBookingInPast(booking);
+  const isCancelled = booking.status === "لغو" || booking.status === "منقضی شده";
+  // Past or settled bookings can be reviewed, never edited.
+  const readOnly = isPast || isCancelled;
+  const canManage = isSalonOwner && !readOnly;
   const statusTone = getBookingStatusTone(booking.status || "درخواست", isSalonOwner ? "salon" : "artist");
   const StatusIcon = BOOKING_STATUS_ICONS[statusTone];
 
@@ -117,27 +139,11 @@ export function ScheduleBookingMenuModal({
             </span>
             <div>
               <small>
-                {view === "time"
-                  ? "تغییر ساعت"
-                  : view === "staff"
-                    ? "تغییر آرتیست"
-                    : "تنظیمات رزرو"}
+                {view === "time" ? "تغییر ساعت" : readOnly ? "جزئیات رزرو · فقط مشاهده" : "جزئیات رزرو"}
               </small>
               <b>{title}</b>
               <em>{subtitle}</em>
             </div>
-            {clientProfile ? (
-              <button
-                type="button"
-                className={`scheduleBookingHistoryIcon ${clientPanelOpen ? "is-active" : ""}`}
-                aria-label={clientPanelOpen ? "بستن تاریخچه خدمات مشتری" : "نمایش تاریخچه خدمات مشتری"}
-                aria-expanded={clientPanelOpen}
-                title="تاریخچه خدمات"
-                onClick={() => setClientPanelOpen((wasOpen) => !wasOpen)}
-              >
-                <History size={17} />
-              </button>
-            ) : null}
             <strong className={`clientBookingSettingsStatus is-${statusTone}`}>
               <StatusIcon size={13} />
               {booking.status || "درخواست"}
@@ -150,67 +156,81 @@ export function ScheduleBookingMenuModal({
 
           {view === "menu" ? (
             <>
-              <div className="clientBookingSettingsGrid scheduleBookingSettingsGrid">
-                <span><CalendarCheck size={14} /> <b>تاریخ</b><em>{booking.booking_date || booking.date || "امروز"}</em></span>
-                <span><Scissors size={14} /> <b>خدمت</b><em>{booking.service || "خدمت زیبایی"}</em></span>
-                <span><UserRound size={14} /> <b>{isSalonOwner ? "آرتیست" : "منبع"}</b><em>{subtitle}</em></span>
-              </div>
-              {clientProfile ? (
-                <div className={`scheduleBookingClientPanel ${clientPanelOpen ? "is-open" : ""}`} aria-label="پروفایل مشتری">
-                  <button
-                    type="button"
-                    className="scheduleBookingClientHead"
-                    aria-expanded={clientPanelOpen}
-                    onClick={() => setClientPanelOpen((wasOpen) => !wasOpen)}
-                  >
-                    <span className={`scheduleBookingClientAvatar ${clientProfile.avatar ? "hasImage" : ""}`} aria-hidden="true">
-                      {clientProfile.avatar ? <img src={clientProfile.avatar} alt="" /> : String(clientProfile.name || "م").slice(0, 1)}
-                    </span>
-                    <span className="scheduleBookingClientHeadCopy">
-                      <small>پروفایل مشتری</small>
-                      <b>{clientProfile.name}</b>
-                      <em>{toPersianDigits(clientProfile.bookingCount || 1)} نوبت{clientProfile.area ? ` · ${clientProfile.area}` : ""}</em>
-                    </span>
-                    <ChevronDown size={16} className="scheduleBookingClientChevron" />
-                  </button>
-                  {clientPanelOpen ? (
-                    <div className="scheduleBookingClientBody">
-                      <div className="scheduleBookingClientStats">
-                        <span><b>{toPersianDigits(clientProfile.bookingCount || 1)}</b><em>نوبت</em></span>
-                        <span><b>{clientProfile.lastBooking?.service || booking.service || "—"}</b><em>آخرین خدمت</em></span>
-                        <span><b>{clientProfile.lastBooking?.date || clientProfile.lastBooking?.booking_date || booking.date || "—"}</b><em>آخرین نوبت</em></span>
-                      </div>
-                      <div className="scheduleBookingClientInfo">
-                        <span><b>تماس</b><em dir="ltr">{clientProfile.phone || "ثبت نشده"}</em></span>
-                        <span><b>منطقه</b><em>{clientProfile.area || "ثبت نشده"}</em></span>
-                      </div>
-                      {clientProfile.bookings?.length ? (
-                        <div className="scheduleBookingClientRail">
-                          {clientProfile.bookings.slice(0, 3).map((item) => (
-                            <article key={item.id || `${item.date}-${item.time}-${item.service}`}>
-                              <b>{item.service || "خدمت"}</b>
-                              <span>{item.date || item.booking_date || "—"} · {item.time || "—"}</span>
-                              <em>{item.status || "رزرو"}</em>
-                            </article>
-                          ))}
-                        </div>
-                      ) : null}
-                    </div>
-                  ) : null}
+              <div className="scheduleBookingDetails">
+                <div className="scheduleBookingDetail">
+                  <CalendarCheck size={15} aria-hidden="true" />
+                  <span>تاریخ</span>
+                  <b>{booking.booking_date || booking.date || "امروز"}</b>
                 </div>
-              ) : null}
-              <div className="clientBookingSettingsActions scheduleBookingSettingsActions">
+                <div className="scheduleBookingDetail">
+                  <Scissors size={15} aria-hidden="true" />
+                  <span>خدمت</span>
+                  <b>{booking.service || "خدمت زیبایی"}</b>
+                </div>
+                {phone ? (
+                  <div className="scheduleBookingDetail">
+                    <Phone size={15} aria-hidden="true" />
+                    <span>تماس</span>
+                    <b dir="ltr">{toPersianDigits(phone)}</b>
+                  </div>
+                ) : null}
+              </div>
+
+              <div className={`scheduleBookingArtist ${artistPickerOpen ? "is-open" : ""}`}>
                 <button
                   type="button"
-                  onClick={() => {
-                    if (phone) window.location.href = `tel:${toLatinDigits(phone)}`;
-                  }}
+                  className="scheduleBookingArtistCurrent"
+                  disabled={!canManage || actionDisabled}
+                  aria-expanded={canManage ? artistPickerOpen : undefined}
+                  aria-haspopup={canManage ? "listbox" : undefined}
+                  onClick={() => canManage && setArtistPickerOpen((open) => !open)}
                 >
-                  <Phone size={16} />
-                  تماس
+                  <span className={`scheduleStaffAvatar ${currentArtistAvatar ? "hasImage" : ""}`} aria-hidden="true">
+                    {currentArtistAvatar ? <img src={currentArtistAvatar} alt="" /> : String(subtitle || "آ").slice(0, 1)}
+                  </span>
+                  <span className="scheduleBookingArtistCopy">
+                    <small>{isSalonOwner ? "آرتیست" : "منبع"}</small>
+                    <b>{subtitle}</b>
+                  </span>
+                  {canManage ? <ChevronDown size={16} className="scheduleBookingArtistChevron" aria-hidden="true" /> : null}
                 </button>
+                {canManage && artistPickerOpen ? (
+                  <div className="scheduleBookingArtistList" role="listbox" aria-label="انتخاب آرتیست">
+                    {staffOptions.map((person) => {
+                      const personAvatar = person.avatar || person.staff_avatar || "";
+                      const active = person.name === booking.staff;
+                      return (
+                        <button
+                          type="button"
+                          role="option"
+                          aria-selected={active}
+                          key={person.id || person.name}
+                          className={active ? "is-selected" : ""}
+                          disabled={actionDisabled}
+                          onClick={() => {
+                            if (active) {
+                              setArtistPickerOpen(false);
+                              return;
+                            }
+                            onChangeStaff?.(person.name);
+                          }}
+                        >
+                          <span className={`scheduleStaffAvatar ${personAvatar ? "hasImage" : ""}`} aria-hidden="true">
+                            {personAvatar ? <img src={personAvatar} alt="" /> : String(person.artist_name || person.name || "آ").slice(0, 1)}
+                          </span>
+                          <span className="scheduleBookingStaffCopy">
+                            <b>{person.artist_name || person.name}</b>
+                            <small>{person.role || person.artist_service || "آرتیست"}{person.artist_area ? ` · ${person.artist_area}` : ""}</small>
+                          </span>
+                          {active ? <Check size={16} /> : null}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : null}
               </div>
-              {isPendingReview ? (
+
+              {isPendingReview && !readOnly ? (
                 <div className="scheduleBookingReviewActions">
                   {(() => {
                     const createdAt = booking.createdAt || booking.created_at || "";
@@ -234,22 +254,49 @@ export function ScheduleBookingMenuModal({
                   </button>
                 </div>
               ) : null}
-              {isSalonOwner ? (
-                <div className="scheduleBookingMiniActions">
-                  <button type="button" disabled={actionDisabled} onClick={() => onViewChange?.("time")}>
-                    <Timer size={15} />
+
+              {readOnly ? (
+                <p className="scheduleBookingReadOnlyNote">
+                  <Eye size={14} aria-hidden="true" />
+                  این رزرو گذشته است و فقط قابل مشاهده است.
+                </p>
+              ) : null}
+
+              <div className="scheduleBookingActionRow">
+                {canManage ? (
+                  <button type="button" className="is-time" disabled={actionDisabled} onClick={() => onViewChange?.("time")}>
+                    <Timer size={16} />
                     تغییر ساعت
                   </button>
-                  <button type="button" disabled={actionDisabled} onClick={() => onViewChange?.("staff")}>
-                    <UserRound size={15} />
-                    تغییر آرتیست
+                ) : null}
+                <button
+                  type="button"
+                  className="is-icon"
+                  disabled={!phone}
+                  aria-label="تماس با مشتری"
+                  title="تماس"
+                  onClick={() => {
+                    if (phone) window.location.href = `tel:${toLatinDigits(phone)}`;
+                  }}
+                >
+                  <Phone size={17} />
+                </button>
+                {canManage ? (
+                  <button
+                    type="button"
+                    className="is-icon is-danger"
+                    disabled={actionDisabled}
+                    aria-label="حذف رزرو"
+                    title="حذف رزرو"
+                    onClick={() => {
+                      if (typeof window !== "undefined" && !window.confirm("این رزرو لغو شود؟")) return;
+                      onCancel?.();
+                    }}
+                  >
+                    <Trash2 size={17} />
                   </button>
-                  <button type="button" className="is-danger" disabled={actionDisabled} onClick={onCancel}>
-                    <Trash2 size={15} />
-                    {busy ? "در حال…" : "لغو"}
-                  </button>
-                </div>
-              ) : null}
+                ) : null}
+              </div>
             </>
           ) : null}
 
@@ -276,35 +323,6 @@ export function ScheduleBookingMenuModal({
             </div>
           ) : null}
 
-          {view === "staff" ? (
-            <div className="scheduleBookingPickList is-staff">
-              <button type="button" className="scheduleBookingBack" disabled={actionDisabled} onClick={() => onViewChange?.("menu")}>
-                بازگشت
-              </button>
-              {staffOptions.map((person) => {
-                const personAvatar = person.avatar || person.staff_avatar || "";
-                const active = person.name === booking.staff;
-                return (
-                  <button
-                    type="button"
-                    key={person.id || person.name}
-                    className={active ? "is-selected" : ""}
-                    disabled={actionDisabled}
-                    onClick={() => onChangeStaff?.(person.name)}
-                  >
-                    <span className={`scheduleStaffAvatar ${personAvatar ? "hasImage" : ""}`} aria-hidden="true">
-                      {personAvatar ? <img src={personAvatar} alt="" /> : String(person.artist_name || person.name || "آ").slice(0, 1)}
-                    </span>
-                    <span className="scheduleBookingStaffCopy">
-                      <b>{person.artist_name || person.name}</b>
-                      <small>{person.role || person.artist_service || "آرتیست"}{person.artist_area ? ` · ${person.artist_area}` : ""}</small>
-                    </span>
-                    {active ? <Check size={16} /> : null}
-                  </button>
-                );
-              })}
-            </div>
-          ) : null}
         </div>
         <button type="button" className="clientBookingSettingsClose" onClick={onClose} aria-label="بستن تنظیمات رزرو">
           <X size={18} />

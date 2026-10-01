@@ -1341,3 +1341,215 @@
     height: 30px;
     border-radius: 10px;
   }}
+
+/* Booking details modal (shared salon + artist) */
+.scheduleBookingDetails{
+  display: grid;
+  border: 1px solid rgba(28, 32, 44, 0.07);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.9);
+  overflow: hidden;
+}
+
+.scheduleBookingDetail{
+  display: grid;
+  grid-template-columns: 18px 56px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 14px;
+  color: var(--teal);
+}
+
+.scheduleBookingDetail + .scheduleBookingDetail{
+  border-top: 1px solid rgba(28, 32, 44, 0.06);
+}
+
+.scheduleBookingDetail span{
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.scheduleBookingDetail b{
+  min-width: 0;
+  color: var(--ink);
+  font-size: 0.82rem;
+  font-weight: 900;
+  text-align: start;
+  overflow-wrap: anywhere;
+}
+
+.scheduleBookingArtist{
+  display: grid;
+  border: 1px solid rgba(28, 32, 44, 0.07);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.9);
+  overflow: hidden;
+}
+
+.scheduleBookingArtist.is-open{
+  border-color: rgba(96, 81, 155, 0.3);
+}
+
+.scheduleBookingArtistCurrent{
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 58px;
+  padding: 8px 12px;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: start;
+}
+
+.scheduleBookingArtistCurrent:not(:disabled){
+  cursor: pointer;
+}
+
+.scheduleBookingArtistCurrent:disabled{
+  opacity: 1;
+  cursor: default;
+}
+
+.scheduleBookingArtistCopy{
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.scheduleBookingArtistCopy small{
+  color: var(--muted);
+  font-size: 0.66rem;
+  font-weight: 800;
+}
+
+.scheduleBookingArtistCopy b{
+  font-size: 0.88rem;
+  font-weight: 900;
+}
+
+.scheduleBookingArtistChevron{
+  flex: none;
+  color: var(--teal);
+  transition: transform 0.18s ease;
+}
+
+.scheduleBookingArtist.is-open .scheduleBookingArtistChevron{
+  transform: rotate(180deg);
+}
+
+.scheduleBookingArtistList{
+  display: grid;
+  gap: 6px;
+  max-height: 220px;
+  overflow: auto;
+  padding: 8px;
+  border-top: 1px solid rgba(28, 32, 44, 0.07);
+  background: rgba(246, 246, 251, 0.7);
+}
+
+.scheduleBookingArtistList button{
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border: 1px solid rgba(28, 32, 44, 0.07);
+  border-radius: 14px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.scheduleBookingArtistList button.is-selected{
+  border-color: rgba(96, 81, 155, 0.3);
+  background: rgba(96, 81, 155, 0.1);
+}
+
+.scheduleBookingArtistList .scheduleBookingStaffCopy{
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.scheduleBookingArtistList b{
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.scheduleBookingArtistList small{
+  color: var(--muted);
+  font-size: 0.66rem;
+  font-weight: 700;
+}
+
+.scheduleBookingReadOnlyNote{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 0;
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: rgba(28, 32, 44, 0.05);
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.scheduleBookingActionRow{
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.scheduleBookingActionRow button{
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 0;
+  border-radius: 14px;
+  background: rgba(28, 32, 44, 0.06);
+  color: #405969;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 950;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.scheduleBookingActionRow button.is-time{
+  flex: 1;
+  background: linear-gradient(135deg, var(--night), var(--plum));
+  color: #fff;
+}
+
+.scheduleBookingActionRow button.is-icon{
+  flex: 0 0 46px;
+  width: 46px;
+  padding: 0;
+}
+
+.scheduleBookingActionRow button.is-icon:only-child{
+  flex: 1;
+  width: auto;
+}
+
+.scheduleBookingActionRow button.is-danger{
+  background: rgba(155, 54, 80, 0.08);
+  color: #9b3650;
+}
+
+.scheduleBookingActionRow button:disabled{
+  opacity: 0.45;
+  cursor: not-allowed;
+}
