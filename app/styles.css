@@ -10,6 +10,7 @@
 @import "./styles/features/auth.css";
 @import "./styles/features/joinSalon.css";
 @import "./styles/features/legal.css";
+@import "./styles/features/errorPage.css";
 
 
 *{

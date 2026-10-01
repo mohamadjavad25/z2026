@@ -138,6 +138,19 @@ export function publicUser(row) {
   };
 }
 
+/**
+ * CSRF: deliberately no separate token/double-submit-cookie scheme.
+ * `sameSite: "lax"` below means the browser never attaches this cookie to
+ * a state-changing cross-site request (a form POST or fetch() from another
+ * origin) in the first place — only top-level navigations (plain links)
+ * still send it, and this app has no state-changing GET route. That's a
+ * complete defense as long as every caller of this app's API *is*
+ * same-origin, which is true today (no separate frontend domain, no
+ * mobile app hitting these routes with its own stored cookie). If either
+ * of those ever changes -- a separate frontend origin, a mobile app, a
+ * public API for third parties -- this reasoning no longer holds and a
+ * real CSRF token should be added before that ships, not after.
+ */
 export function setSessionCookie(response, token, expiresAt) {
   response.cookies.set(SESSION_COOKIE, token, {
     httpOnly: true,

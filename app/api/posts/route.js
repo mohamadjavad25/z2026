@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { requireUser, withErrorHandling } from "../../lib/http.js";
 import { ensureDb } from "../../lib/db/connection.js";
 import * as posts from "../../lib/db/repos/posts.js";
-import { isImageDataUrlTooLarge } from "../../lib/mediaLimits.js";
+import { isImageDataUrlTooLarge, isImageDataUrlInvalidType } from "../../lib/mediaLimits.js";
 
 export const runtime = "nodejs";
 
@@ -23,6 +23,9 @@ async function _POST(request) {
   }
   if (isImageDataUrlTooLarge(body.image)) {
     return NextResponse.json({ error: "حجم عکس بیش از حد مجاز (۵ مگابایت) است." }, { status: 413 });
+  }
+  if (isImageDataUrlInvalidType(body.image)) {
+    return NextResponse.json({ error: "فرمت عکس پشتیبانی نمی‌شود." }, { status: 400 });
   }
   const post = await posts.createPost(auth.user.id, body);
   return NextResponse.json({ data: { post } }, { status: 201 });

@@ -2,12 +2,13 @@ import { notFound } from "next/navigation";
 import { ensureDb } from "../../lib/db/connection.js";
 import * as salons from "../../lib/db/repos/salons.js";
 import { SalonPublicPageClient } from "./SalonPublicPageClient";
+import { getSiteUrl } from "../../lib/siteUrl.js";
 
 export const runtime = "nodejs";
 
 // Same single source of truth as app/sitemap.js, app/robots.js and
 // app/layout.jsx's metadataBase — never hardcode the domain a second time.
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://zibaban.example.com";
+const SITE_URL = getSiteUrl();
 
 async function loadSalon(id) {
   const userId = Number(id);

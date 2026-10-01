@@ -4,7 +4,7 @@ import { ensureDb } from "../../lib/db/connection.js";
 import * as users from "../../lib/db/repos/users.js";
 import { requireUser, validateBody, withErrorHandling } from "../../lib/http.js";
 import { profileUpdateSchema } from "../../lib/validation/user.js";
-import { isImageDataUrlTooLarge } from "../../lib/mediaLimits.js";
+import { isImageDataUrlTooLarge, isImageDataUrlInvalidType } from "../../lib/mediaLimits.js";
 
 export const runtime = "nodejs";
 
@@ -37,6 +37,9 @@ async function _POST(request) {
 
     if (isImageDataUrlTooLarge(data.avatar) || isImageDataUrlTooLarge(data.poster)) {
       return NextResponse.json({ error: "حجم عکس بیش از حد مجاز (۵ مگابایت) است." }, { status: 413 });
+    }
+    if (isImageDataUrlInvalidType(data.avatar) || isImageDataUrlInvalidType(data.poster)) {
+      return NextResponse.json({ error: "فرمت عکس پشتیبانی نمی‌شود." }, { status: 400 });
     }
 
     const patch = {
