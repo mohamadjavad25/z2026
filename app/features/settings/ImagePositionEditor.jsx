@@ -1,107 +1,57 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { Check, RotateCcw } from "lucide-react";
+import { useRef } from "react";
+import { Check } from "lucide-react";
 import { ProfileSheet } from "../profile/ProfileSheet";
+import { ImageCropper } from "../../components/ImageCropper";
 
-function clamp(value, min, max) {
-  return Math.min(max, Math.max(min, value));
-}
-
-function parsePosition(position) {
-  const match = /^(-?\d+(?:\.\d+)?)%\s+(-?\d+(?:\.\d+)?)%$/.exec(String(position || "").trim());
-  if (!match) return { x: 50, y: 50 };
-  return { x: clamp(Number(match[1]), 0, 100), y: clamp(Number(match[2]), 0, 100) };
-}
+// Frame ratios match where each image is really shown (logo: square tile,
+// poster: the wide banner band), so the framing chosen here is the framing
+// users see everywhere.
+const FRAMES = {
+  circle: { aspect: 1, outputWidth: 720, title: "تنظیم لوگو", shape: "circle" },
+  wide: { aspect: 343 / 248, outputWidth: 1440, title: "تنظیم پوستر", shape: "rect" }
+};
 
 /**
- * Drag-to-focus crop picker for the avatar (circle) and poster (wide
- * banner) — the frame here matches the real on-screen aspect ratio
- * (1:1 for the avatar, ~343:248 for the poster band), so wherever the
- * user drags the focal point to is exactly where it lands in the app,
- * no separate "preview" that can drift from the real thing.
+ * Pan/zoom crop sheet for the logo and poster. Saving bakes the framed
+ * region into a new image, so it is identical on every surface; the
+ * object-position stays at center because the crop is already applied.
  */
-export function ImagePositionEditor({ open, shape, image, position, busy = false, onSave, onClose }) {
-  const [pos, setPos] = useState(() => parsePosition(position));
-  const [dragging, setDragging] = useState(false);
-  const frameRef = useRef(null);
-
-  // This component stays mounted across opens (`open` just toggles the
-  // early-return below), so the picked-file/image and its starting
-  // position must be re-synced on every open -- otherwise a second open
-  // (a new upload, or an existing image with a different saved position)
-  // would keep showing wherever the *previous* session left the crosshair.
-  useEffect(() => {
-    if (open) setPos(parsePosition(position));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, image]);
+export function ImagePositionEditor({ open, shape, image, busy = false, onSave, onClose }) {
+  const cropperRef = useRef(null);
+  const frame = FRAMES[shape] || FRAMES.wide;
 
   if (!open) return null;
 
-  function updateFromEvent(event) {
-    const rect = frameRef.current?.getBoundingClientRect();
-    if (!rect || !rect.width || !rect.height) return;
-    const x = clamp(((event.clientX - rect.left) / rect.width) * 100, 0, 100);
-    const y = clamp(((event.clientY - rect.top) / rect.height) * 100, 0, 100);
-    setPos({ x, y });
+  function handleSave() {
+    const cropped = cropperRef.current?.exportCrop?.();
+    if (!cropped) return;
+    onSave("50% 50%", cropped);
   }
-
-  function handlePointerDown(event) {
-    event.preventDefault();
-    frameRef.current?.setPointerCapture?.(event.pointerId);
-    setDragging(true);
-    updateFromEvent(event);
-  }
-
-  function handlePointerMove(event) {
-    if (!dragging) return;
-    updateFromEvent(event);
-  }
-
-  function stopDragging() {
-    setDragging(false);
-  }
-
-  const positionValue = `${pos.x.toFixed(1)}% ${pos.y.toFixed(1)}%`;
 
   return (
     <ProfileSheet
       open={open}
       kicker="تنظیم تصویر"
-      title={shape === "circle" ? "موقعیت لوگو" : "موقعیت پوستر"}
-      label="تنظیم موقعیت تصویر"
+      title={frame.title}
+      label="تنظیم تصویر"
       panelClassName="imagePositionSheet"
       onClose={onClose}
     >
-      <p className="imagePositionHint">بکشید تا قسمتی از عکس که می‌خواهید نمایش داده شود را انتخاب کنید.</p>
-      <div
-        ref={frameRef}
-        className={`imagePositionFrame is-${shape}`}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={stopDragging}
-        onPointerLeave={stopDragging}
-        onPointerCancel={stopDragging}
-      >
-        <img
-          src={image}
-          alt=""
-          draggable={false}
-          style={{ objectPosition: positionValue }}
-        />
-        <span className="imagePositionCrosshair" style={{ left: `${pos.x}%`, top: `${pos.y}%` }} aria-hidden="true" />
-      </div>
+      <ImageCropper
+        key={image}
+        ref={cropperRef}
+        src={image}
+        aspect={frame.aspect}
+        shape={frame.shape}
+        outputWidth={frame.outputWidth}
+      />
       <div className="imagePositionActions">
-        <button type="button" className="imagePositionReset" onClick={() => setPos({ x: 50, y: 50 })}>
-          <RotateCcw size={14} aria-hidden="true" />
-          بازگشت به مرکز
+        <button type="button" className="imagePositionReset" onClick={onClose} disabled={busy}>
+          انصراف
         </button>
-        <button
-          type="button"
-          className="imagePositionSave"
-          disabled={busy}
-          onClick={() => onSave(positionValue)}
-        >
+        <button type="button" className="imagePositionSave" disabled={busy} onClick={handleSave}>
           <Check size={14} aria-hidden="true" />
           {busy ? "..." : "ذخیره"}
         </button>

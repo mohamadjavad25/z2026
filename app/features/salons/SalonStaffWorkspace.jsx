@@ -155,9 +155,7 @@ export function SalonStaffWorkspace({
           className="artistEmptyState"
           image="/salon-team-empty.png"
           title="هنوز آرتیستی ثبت نشده"
-          description="اولین پروفایل را بساز تا رزرو، خدمات و همکاری‌های سالن از همینجا مدیریت شوند."
-          actionLabel="ایجاد اولین آرتیست"
-          onAction={onCreateStaff}
+          description="آرتیست‌ها را از بین آرتیست‌های نزدیک دعوت کن تا رزرو، خدمات و همکاری‌های سالن از همینجا مدیریت شوند."
         />
       )}
     </>

@@ -35,19 +35,6 @@ import { getApiErrorMessage, notifyFromResponse } from "../../shared/lib/apiNoti
 import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar";
 import { buildSalonStaffByName } from "../profile/ScheduleRow";
 
-function fileToDataUrl(file) {
-  return new Promise((resolve, reject) => {
-    if (!file || typeof file === "string" || file.size === 0) {
-      resolve("");
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result || ""));
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
 /**
  * Salon **owner** dashboard: bookings, reservation inbox, staff, artist invites/collabs,
  * services, portfolio, working hours.
@@ -1016,7 +1003,7 @@ export function useSalonWorkspace({
       setSalonWorkDraft({
         id: item.id,
         title: item.title || "",
-        tag: item.tag || "ناخن",
+        tag: item.tag || "",
         caption: item.caption || "",
         image: item.image || "",
         tile: item.tile || "tile1",
@@ -1028,39 +1015,14 @@ export function useSalonWorkspace({
     setSalonWorkDraft({
       id: "new",
       title: "",
-      tag: "ناخن",
+      tag: salonServiceList[0]?.name || "",
       caption: "",
       image: "",
       tile: "tile1",
       inExplore: true,
       featured: true
     });
-  }, []);
-
-  const handleSalonWorkImageUpload = useCallback(async (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      shellNotify("فقط فایل تصویری مجاز است.");
-      event.target.value = "";
-      return;
-    }
-    try {
-      const dataUrl = await fileToDataUrl(file);
-      setSalonWorkDraft((prev) => {
-        if (!prev) return prev;
-        const next = { ...prev, image: dataUrl };
-        if (!String(prev.title || "").trim()) {
-          const base = String(file.name || "").replace(/\.[^.]+$/, "").trim();
-          if (base) next.title = base.slice(0, 40);
-        }
-        return next;
-      });
-    } catch {
-      shellNotify("خواندن عکس انجام نشد؛ دوباره امتحان کن.");
-    }
-    event.target.value = "";
-  }, [shellNotify]);
+  }, [salonServiceList]);
 
   const clearSalonWorkImage = useCallback(() => {
     setSalonWorkDraft((prev) => (prev ? { ...prev, image: "" } : prev));
@@ -1070,7 +1032,7 @@ export function useSalonWorkspace({
     event.preventDefault();
     if (portfolioSaving || !salonWorkDraft) return;
     const title = String(salonWorkDraft.title || "").trim();
-    const tag = String(salonWorkDraft.tag || "").trim() || "ناخن";
+    const tag = String(salonWorkDraft.tag || "").trim();
     const image = String(salonWorkDraft.image || "").trim();
     const caption = String(salonWorkDraft.caption || "").trim();
     const inExplore = salonWorkDraft.inExplore !== false;
@@ -1081,6 +1043,10 @@ export function useSalonWorkspace({
     }
     if (!title) {
       shellNotify("عنوان پست را وارد کن.");
+      return;
+    }
+    if (!tag) {
+      shellNotify("دسته پست را از بین خدمات انتخاب کن.");
       return;
     }
 
@@ -1304,7 +1270,6 @@ export function useSalonWorkspace({
     deleteSalonService,
     resetPortfolioComposer,
     openPortfolioComposer,
-    handleSalonWorkImageUpload,
     clearSalonWorkImage,
     addSalonPortfolio,
     deleteSalonPortfolio,

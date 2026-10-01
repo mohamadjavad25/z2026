@@ -1,7 +1,7 @@
 import { getDb, withTransaction, all, get, run } from "../../connection.js";
 import { getUserByPhone } from "../users.js";
 import * as artists from "../artists.js";
-import { resolveRollingPersianDateKey } from "../../../../shared/lib/persianCalendar.js";
+import { formatPersianDateKey, isPersianDateKey, resolveRollingPersianDateKey } from "../../../../shared/lib/persianCalendar.js";
 import {
   normalizeBookingTimeLabel,
   parseServiceDurationMinutes,
@@ -347,6 +347,12 @@ export async function patchSalonBookingWithArtistSync(id, salonUserId, data) {
     SELECT * FROM salon_bookings WHERE id = ? AND salon_user_id = ?
   `, [id, salonUserId]);
   if (!current) return { ok: false, error: "missing" };
+
+  // Past bookings are review-only. Persian date keys (YYYY-MM-DD, zero
+  // padded) sort lexicographically, so a plain string compare is enough.
+  if (isPersianDateKey(current.booking_date) && current.booking_date < formatPersianDateKey(new Date())) {
+    return { ok: false, error: "past" };
+  }
 
   // An already-expired request (bookingExpirySweep.js) already told the client
   // "the salon never answered in time" and freed its slot — it must not be

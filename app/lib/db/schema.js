@@ -340,6 +340,10 @@ const SCHEMA_SQL = `
   -- this table already existed in production.
   ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_position TEXT NOT NULL DEFAULT '';
   ALTER TABLE users ADD COLUMN IF NOT EXISTS poster_position TEXT NOT NULL DEFAULT '';
+
+  -- Free-text salon rules & terms (cancellation policy, lateness, ...), written
+  -- by the salon owner and shown on the public salon page.
+  ALTER TABLE salons ADD COLUMN IF NOT EXISTS rules TEXT NOT NULL DEFAULT '';
 `;
 
 export async function applySchema(runner) {

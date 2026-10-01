@@ -1,7 +1,14 @@
 "use client";
 
-import { Camera, Check, ChevronDown, ImagePlus, Trash2, Upload, X } from "lucide-react";
+import { useRef, useState } from "react";
+import { Camera, Check, ChevronDown, Crop, ImagePlus, Trash2, Upload, X } from "lucide-react";
 import { createPortal } from "react-dom";
+import { ImageCropper } from "../../components/ImageCropper";
+
+const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
+// 4:5 is the card ratio used in explore and the galleries, so the framing
+// chosen here is exactly what every card shows.
+const POST_ASPECT = 4 / 5;
 
 /**
  * Shared post / portfolio composer (artist + salon).
@@ -14,28 +21,54 @@ export function ProfilePostComposer({
   onClose,
   onSubmit,
   onDelete,
-  onImageUpload,
+  onNotify,
   onImageClear,
   tagOptions = [],
-  visibleTagOptions,
   tagMenuOpen = false,
   onTagMenuOpenChange,
   saving = false,
   ariaLabel = "ویرایش نمونه‌کار",
   showCaption = true,
-  showExploreToggle = true,
   showFeaturedToggle = false,
   submitLabel = "ذخیره"
 }) {
+  const cropperRef = useRef(null);
+  const [cropSrc, setCropSrc] = useState("");
+
   if (!value || typeof document === "undefined") return null;
 
-  const tags = Array.isArray(visibleTagOptions) ? visibleTagOptions : tagOptions;
+  // Categories are exactly the services on the menu; no free typing.
+  const tagChoices = Array.from(new Set(tagOptions.map((tag) => String(tag || "").trim()).filter(Boolean)));
   const canSubmit = Boolean(
     String(value.title || "").trim() &&
     String(value.tag || "").trim() &&
     String(value.image || "").trim()
   );
   const isNew = String(value.id).startsWith("new-") || value.id === "new";
+
+  function handleFile(event) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      onNotify?.("فقط فایل تصویری مجاز است.");
+      return;
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      onNotify?.("حجم تصویر باید کمتر از ۸ مگابایت باشد.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setCropSrc(String(reader.result || ""));
+    reader.readAsDataURL(file);
+  }
+
+  function confirmCrop() {
+    const cropped = cropperRef.current?.exportCrop?.();
+    if (!cropped) return;
+    patch({ image: cropped });
+    setCropSrc("");
+  }
 
   function patch(next) {
     onChange?.((prev) => (prev ? { ...prev, ...next } : prev));
@@ -49,66 +82,79 @@ export function ProfilePostComposer({
       aria-label={ariaLabel}
     >
       <article className="artistWorkSheet" onClick={(event) => event.stopPropagation()}>
-        <div className={`artistWorkHero ${value.image ? "has-image" : ""}`}>
-          {value.image ? (
-            <>
-              <img src={value.image} alt={value.title || "نمونه‌کار"} />
-              <div className="artistWorkUploadOverlay">
-                <span className="srOnly">تصویر آپلود‌شده</span>
-                <div>
-                  <label className="artistWorkUploadBtn" aria-label="تعویض تصویر" title="تعویض تصویر">
-                    <ImagePlus size={15} />
-                    <input
-                      className="captureInput"
-                      type="file"
-                      accept="image/*"
-                      onChange={onImageUpload}
-                      disabled={saving}
-                    />
-                  </label>
-                  <button type="button" onClick={onImageClear} disabled={saving} aria-label="حذف تصویر" title="حذف تصویر">
-                    <Trash2 size={15} />
+        {cropSrc || value.image ? (
+          <div className="artistWorkCropStage">
+            {cropSrc ? (
+              <>
+                <ImageCropper
+                  key={cropSrc}
+                  ref={cropperRef}
+                  src={cropSrc}
+                  aspect={POST_ASPECT}
+                  outputWidth={1080}
+                />
+                <div className="artistWorkCropActions">
+                  <button type="button" className="artistWorkCropCancel" onClick={() => setCropSrc("")}>
+                    انصراف
+                  </button>
+                  <button type="button" className="artistWorkCropConfirm" onClick={confirmCrop}>
+                    <Check size={15} /> تایید کادر
                   </button>
                 </div>
+              </>
+            ) : (
+              <div className="artistWorkHero has-image">
+                <img src={value.image} alt={value.title || "نمونه‌کار"} />
+                <div className="artistWorkUploadOverlay">
+                  <span className="srOnly">تصویر پست</span>
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => setCropSrc(value.image)}
+                      disabled={saving}
+                      aria-label="تنظیم کادر تصویر"
+                      title="تنظیم کادر تصویر"
+                    >
+                      <Crop size={15} />
+                    </button>
+                    <label className="artistWorkUploadBtn" aria-label="تعویض تصویر" title="تعویض تصویر">
+                      <ImagePlus size={15} />
+                      <input className="captureInput" type="file" accept="image/*" onChange={handleFile} disabled={saving} />
+                    </label>
+                    <button type="button" onClick={onImageClear} disabled={saving} aria-label="حذف تصویر" title="حذف تصویر">
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
+                </div>
               </div>
-            </>
-          ) : (
+            )}
+          </div>
+        ) : (
+          <div className="artistWorkHero">
             <div className="artistWorkUploadEmpty">
               <Upload size={28} />
               <b>تصویر نمونه‌کار را آپلود کن</b>
-              <span>عکس واضح از کار، بهترین نتیجه در گالری و اکسپلور می‌دهد.</span>
+              <span>بعد از انتخاب، کادر عکس را جابه‌جا و بزرگ‌کوچک می‌کنی.</span>
               <div className="artistWorkUploadActions">
                 <label>
                   <Camera size={16} />
                   دوربین
-                  <input
-                    className="captureInput"
-                    type="file"
-                    accept="image/*"
-                    capture="environment"
-                    onChange={onImageUpload}
-                    disabled={saving}
-                  />
+                  <input className="captureInput" type="file" accept="image/*" capture="environment" onChange={handleFile} disabled={saving} />
                 </label>
                 <label>
                   <ImagePlus size={16} />
                   گالری
-                  <input
-                    className="captureInput"
-                    type="file"
-                    accept="image/*"
-                    onChange={onImageUpload}
-                    disabled={saving}
-                  />
+                  <input className="captureInput" type="file" accept="image/*" onChange={handleFile} disabled={saving} />
                 </label>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
         <button type="button" className="artistWorkClose" onClick={onClose} aria-label="بستن" disabled={saving}>
           <X size={17} />
         </button>
 
+        {cropSrc ? null : (
         <form className="artistWorkForm" onSubmit={onSubmit}>
           <div className="artistWorkRow">
             <label className="artistWorkField">
@@ -124,31 +170,22 @@ export function ProfilePostComposer({
             <div className="artistWorkField artistWorkCategoryField">
               <span>دسته</span>
               <div className={`artistWorkTagSelect ${tagMenuOpen ? "is-open" : ""}`}>
-                <div className="artistWorkTagTrigger">
-                  <input
-                    value={value.tag || ""}
-                    onChange={(event) => {
-                      patch({ tag: event.target.value });
-                      onTagMenuOpenChange?.(true);
-                    }}
-                    onFocus={() => onTagMenuOpenChange?.(true)}
-                    placeholder="دسته را بنویس"
-                    aria-haspopup="listbox"
-                    aria-expanded={tagMenuOpen}
-                    disabled={saving}
-                  />
-                  <button
-                    type="button"
-                    aria-label="نمایش دسته‌ها"
-                    onClick={() => onTagMenuOpenChange?.(!tagMenuOpen)}
-                    disabled={saving}
-                  >
-                    <ChevronDown size={16} aria-hidden="true" />
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  className="artistWorkTagTrigger"
+                  aria-haspopup="listbox"
+                  aria-expanded={tagMenuOpen}
+                  onClick={() => onTagMenuOpenChange?.(!tagMenuOpen)}
+                  disabled={saving || !tagChoices.length}
+                >
+                  <span className={value.tag ? "" : "is-placeholder"}>
+                    {value.tag || (tagChoices.length ? "انتخاب خدمت" : "اول خدمت تعریف کن")}
+                  </span>
+                  <ChevronDown size={16} aria-hidden="true" />
+                </button>
                 {tagMenuOpen && (
                   <div className="artistWorkTagMenu" role="listbox" aria-label="انتخاب دسته">
-                    {tags.map((tag) => (
+                    {tagChoices.map((tag) => (
                       <button
                         type="button"
                         key={tag}
@@ -163,17 +200,6 @@ export function ProfilePostComposer({
                         {tag}
                       </button>
                     ))}
-                    {value.tag && !tagOptions.includes(value.tag) && (
-                      <button
-                        type="button"
-                        role="option"
-                        aria-selected="true"
-                        className="active"
-                        onClick={() => onTagMenuOpenChange?.(false)}
-                      >
-                        {String(value.tag).trim()}
-                      </button>
-                    )}
                   </div>
                 )}
               </div>
@@ -193,23 +219,8 @@ export function ProfilePostComposer({
             </label>
           ) : null}
 
-          {(showExploreToggle || showFeaturedToggle) && (
+          {showFeaturedToggle && (
             <div className="artistWorkSwitches">
-              {showExploreToggle ? (
-                <button
-                  type="button"
-                  className="artistWorkSwitch"
-                  aria-pressed={Boolean(value.inExplore)}
-                  disabled={saving}
-                  onClick={() => patch({ inExplore: !value.inExplore })}
-                >
-                  <span>نمایش در اکسپلور</span>
-                  <small>در فید اکسپلور</small>
-                  <b className={value.inExplore ? "is-on" : "is-off"}>
-                    {value.inExplore ? "روشن" : "خاموش"}
-                  </b>
-                </button>
-              ) : null}
               {showFeaturedToggle ? (
                 <button
                   type="button"
@@ -241,6 +252,7 @@ export function ProfilePostComposer({
             </div>
           )}
         </form>
+        )}
       </article>
     </div>,
     document.body
