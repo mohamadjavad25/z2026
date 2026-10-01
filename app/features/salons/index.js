@@ -4,6 +4,7 @@ export { SalonClientPage } from "./SalonClientPage";
 export { SalonCreateStaffModal } from "./SalonCreateStaffModal";
 export { SalonCustomersPage, buildBookingCustomers } from "./SalonCustomersPage";
 export { SalonNearbyInviteSheet } from "./SalonNearbyInviteSheet";
+export { SalonRulesSettings } from "./SalonRulesSettings";
 export { SalonServicesWorkspace } from "./SalonServicesWorkspace";
 export { SalonStaffProfileModal } from "./SalonStaffProfileModal";
 export { SalonStaffWorkspace } from "./SalonStaffWorkspace";

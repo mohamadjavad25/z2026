@@ -8,6 +8,7 @@ import { ProfileLocationSettings } from "../profile/ProfileLocationSettings";
 import { ProfileSettingsPanel } from "../profile/ProfileSettingsPanel";
 import { SalonHoursEditor } from "../profile/SalonHoursEditor";
 import { ImagePositionEditor } from "./ImagePositionEditor";
+import { SalonRulesSettings } from "../salons/SalonRulesSettings";
 
 /**
  * The camera-icon trigger over an existing avatar/poster opens a bottom
@@ -249,6 +250,7 @@ export function SettingsPage({
   onOpenSaved,
   onLogout,
   onDeleteAccount,
+  onNotify,
   hoursOpen = false,
   onToggleHoursOpen,
   hoursPresets = [],
@@ -327,6 +329,8 @@ export function SettingsPage({
             </button>
           </div>
         ) : null}
+
+        {isSalon ? <SalonRulesSettings onNotify={onNotify} /> : null}
 
         {isSalon ? (
           <SalonHoursEditor

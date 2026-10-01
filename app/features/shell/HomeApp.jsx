@@ -1777,6 +1777,7 @@ function getPassportMatch(post) {
             onSavePoster={saveProfilePoster}
             onRemoveLogo={removeProfileLogo}
             onRemovePoster={removeProfilePoster}
+            onNotify={setAppToast}
             onSaveAvatarPosition={saveAvatarPosition}
             onSavePosterPosition={savePosterPosition}
             pendingAvatarUpload={pendingAvatarUpload}

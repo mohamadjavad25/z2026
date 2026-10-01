@@ -448,3 +448,73 @@ button.artistWorkTagTrigger > svg{
 .artistWorkTagSelect.is-open > button.artistWorkTagTrigger > svg{
   transform: rotate(180deg);
 }
+
+/* Salon rules & terms */
+.salonRulesHint{
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 750;
+  line-height: 1.8;
+}
+
+.salonRulesInput{
+  width: 100%;
+  min-height: 240px;
+  padding: 14px;
+  border: 1px solid rgba(28, 32, 44, 0.12);
+  border-radius: 16px;
+  background: #fff;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 0.86rem;
+  font-weight: 700;
+  line-height: 1.9;
+  resize: vertical;
+}
+
+.salonRulesInput:focus{
+  outline: none;
+  border-color: rgba(96, 81, 155, 0.45);
+  box-shadow: 0 0 0 3px rgba(96, 81, 155, 0.12);
+}
+
+.salonRulesFoot{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.salonRulesFoot small{
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.salonPublicAboutRules p{
+  margin: 0;
+  white-space: pre-line;
+  color: var(--ink);
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.95;
+}
+
+/* Image action sheet: compact bottom sheet instead of a full-screen panel */
+.salonHeroSheetBackdrop:has(.imageActionSheet){
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(28, 32, 44, 0.4);
+  backdrop-filter: blur(8px);
+}
+
+.salonHeroSheetPanel.imageActionSheet{
+  width: min(430px, 100%);
+  height: auto;
+  min-height: 0;
+  max-height: 80dvh;
+  padding: 14px 14px calc(22px + env(safe-area-inset-bottom));
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -18px 50px rgba(28, 32, 44, 0.22);
+}
