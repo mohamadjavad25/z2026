@@ -59,6 +59,11 @@ const sslDisabled = rawConnectionString.includes("sslmode=disable");
  */
 function resolveSslConfig() {
   if (sslDisabled) return false;
+  // PGSSL_CA (inline PEM) wins over PGSSL_CA_PATH: an env var is always
+  // present in a serverless function, a file may not be traced into it.
+  // rejectUnauthorized: true also checks the hostname (verify-full).
+  const inlineCa = process.env.PGSSL_CA;
+  if (inlineCa) return { ca: inlineCa, rejectUnauthorized: true };
   const caPath = process.env.PGSSL_CA_PATH;
   if (caPath) {
     return { ca: readFileSync(caPath, "utf8"), rejectUnauthorized: true };
