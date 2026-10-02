@@ -66,6 +66,9 @@ const nextConfig = {
   allowedDevOrigins: ["127.0.0.1", "localhost", "*.*.*.*"],
   // Isolated smoke tests set NEXT_DIST_DIR so a second `next dev` does not collide with the main lock.
   distDir: process.env.NEXT_DIST_DIR || ".next",
+  // connection.js reads the DB CA at runtime via PGSSL_CA_PATH; make sure
+  // the file is traced into every serverless function that touches the DB.
+  outputFileTracingIncludes: { "/**": ["./certs/**"] },
   async headers() {
     return [
       {
