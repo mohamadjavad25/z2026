@@ -18,7 +18,12 @@ import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
+// MIGRATE_DATABASE_URL wins over everything: Vercel's Supabase integration
+// manages POSTGRES_URL_NON_POOLING itself (read-only, and it points at the
+// IPv6-only direct host, unreachable from Vercel's IPv4 builders), so a
+// session-mode pooler URL for migrations goes in this separate variable.
 const rawConnectionString =
+  process.env.MIGRATE_DATABASE_URL ||
   process.env.POSTGRES_URL_NON_POOLING ||
   process.env.POSTGRES_URL ||
   process.env.DATABASE_URL ||
