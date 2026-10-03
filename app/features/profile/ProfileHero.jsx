@@ -61,6 +61,7 @@ export function ProfileHero({
           onOpenSaved={onOpenSaved}
           onOpenNotifications={onOpenNotifications}
           onShare={onShare}
+          onPreviewPublic={onPreviewPublic}
           notificationCount={notificationCount}
           showShare={showShare}
         />

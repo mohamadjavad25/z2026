@@ -25,6 +25,16 @@ export function ProfileHeroActions({
         >
           <Bell size={17} />
         </button>
+        <button
+          type="button"
+          className="profileHeroPreviewBtn"
+          onClick={onPreviewPublic}
+          disabled={typeof onPreviewPublic !== "function"}
+          aria-label="پیش‌نمایش پروفایل عمومی"
+          title="پیش‌نمایش پروفایل عمومی"
+        >
+          <Eye size={17} />
+        </button>
       </div>
     );
   }

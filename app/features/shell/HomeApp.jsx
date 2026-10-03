@@ -1925,6 +1925,11 @@ function getPassportMatch(post) {
               onShare={shareSalonOwnerProfile}
               showShare={createdProfile?.type === "salon"}
               onPreviewPublic={() => {
+                if (createdProfile?.type === "salon") {
+                  const ownSalon = buildOwnPublicSalon();
+                  if (ownSalon) openSalonProfile(ownSalon);
+                  return;
+                }
                 if (createdProfile?.type === "artist" && createdProfile.id) {
                   openPublicArtistProfile({
                     id: createdProfile.id,
