@@ -8738,7 +8738,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   font-size: 0.72rem;
 }
 
-.bookingFormGrid button,
+.bookingFormGrid > button,
 .staffCreateForm button,
 .serviceCreateForm button,
 .hoursEditor button,
@@ -12960,13 +12960,13 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
-.bookingCreateForm button{
+.bookingCreateForm > button{
   grid-column: 1 / -1;
   min-height: 54px;
   border-radius: 17px;
-  background: linear-gradient(135deg, #31323e, #60519b);
+  background: #14161d;
   font-size: 0.86rem;
-  box-shadow: 0 16px 32px rgba(96, 81, 155, 0.22);
+  box-shadow: 0 12px 24px rgba(20, 22, 29, 0.18);
 }
 
 .bookingStepActions{
@@ -15546,7 +15546,7 @@ body{
     font-size: 0.78rem;
   }
 
-  .bookingCreateForm button{
+  .bookingCreateForm > button{
     min-height: 54px;
     border-radius: 17px;
     font-size: 0.84rem;

@@ -212,3 +212,76 @@
 .salonClientBookingPanel .salonClientBookingConfirm > span {
   background: #ffffff;
 }
+
+/* ═══ "ایجاد رزرو" sheet (BookingSheet + BookingCreateForm) ═══════════════
+   Root cause of the old purple blobs: generic ".bookingCreateForm button"
+   / ".bookingFormGrid button" rules styled EVERY button in the form --
+   including the wheel items -- like the big primary button, and out-ranked
+   the wheel's own classes. Those rules are now direct-child only (see
+   styles.css); the wheel is also made full-width here. */
+.salonHeroSheetPanel.bookingSheet {
+  --bk-ink: #14161d;
+  --bk-muted: #6f7380;
+  --bk-line: #ececf0;
+  --bk-soft: #f6f6f8;
+  background: #ffffff;
+}
+
+@media (max-width: 760px) {
+  .salonHeroSheetBackdrop:has(> .bookingSheet) {
+    background: #ffffff;
+  }
+}
+
+.bookingSheet .salonHeroSheetHead span { color: var(--bk-muted); }
+.bookingSheet .salonHeroSheetHead h3 { color: var(--bk-ink); font-weight: 950; }
+.bookingSheet .salonHeroSheetHead button {
+  border: 0;
+  background: var(--bk-soft);
+  color: var(--bk-ink);
+}
+
+.bookingCreateForm .settingsHoursWheelRange {
+  grid-column: 1 / -1;
+  padding: 14px 10px;
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow: inset 0 0 0 1px var(--bk-line), 0 8px 24px rgba(20, 22, 29, 0.05);
+}
+
+.bookingCreateForm .settingsHoursWheelRange > div > span {
+  color: var(--bk-muted);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.bookingCreateForm .breakTimeWheelFocus {
+  background: var(--bk-soft);
+  border: 1px solid #e4e4ea;
+  box-shadow: none;
+}
+
+.bookingCreateForm .breakTimeWheelItem,
+.bookingCreateForm .breakTimeWheelLabel {
+  color: rgba(20, 22, 29, 0.36);
+}
+
+.bookingCreateForm .breakTimeWheelItem.is-active,
+.bookingCreateForm .breakTimeWheelItem.is-active .breakTimeWheelLabel,
+.bookingCreateForm .breakTimeWheel.is-label .breakTimeWheelItem.is-active {
+  color: var(--bk-ink);
+}
+
+.bookingCreateForm input:focus,
+.bookingCreateForm .bookingSelectTrigger:focus-visible {
+  border-color: rgba(20, 22, 29, 0.35);
+  box-shadow: 0 0 0 3px rgba(20, 22, 29, 0.07);
+}
+
+.bookingCreateForm .bookingSelectTrigger svg { color: var(--bk-ink); }
+.bookingCreateForm > .bookingPrimaryBtn:disabled {
+  background: #d9dae0;
+  color: #8b8e99;
+  box-shadow: none;
+  opacity: 1;
+}
