@@ -103,6 +103,7 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook })
       salonName,
       avatar,
       service: booking.service || "خدمت زیبایی",
+      serviceEmoji: booking.service_emoji || "",
       date: rawDate ? formatRelativeBookingDayLabel(rawDate) : "امروز",
       time: booking.time || "زمان",
       status: booking.status || "تازه",
@@ -143,7 +144,7 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook })
                     {meta.avatar ? <img src={meta.avatar} alt="" /> : String(meta.salonName).slice(0, 1)}
                   </span>
                   <div>
-                    <b className="svcInline"><ServiceIcon name={meta.service} size="xs" />{meta.service}</b>
+                    <b className="svcInline"><ServiceIcon emoji={meta.serviceEmoji} name={meta.service} size="xs" />{meta.service}</b>
                     <span>{meta.salonName}</span>
                   </div>
                 </div>
@@ -210,7 +211,7 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook })
                       {meta.avatar ? <img src={meta.avatar} alt="" /> : String(meta.salonName).slice(0, 1)}
                     </span>
                     <div>
-                      <b className="svcInline"><ServiceIcon name={meta.service} size="xs" />{meta.service}</b>
+                      <b className="svcInline"><ServiceIcon emoji={meta.serviceEmoji} name={meta.service} size="xs" />{meta.service}</b>
                       <small>{meta.salonName} · {meta.date}</small>
                     </div>
                     <div className="clientBookingMiniState">
@@ -268,7 +269,7 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook })
               {meta.avatar ? <img src={meta.avatar} alt="" /> : String(meta.salonName).slice(0, 1)}
             </span>
             <div>
-              <b className="svcInline"><ServiceIcon name={meta.service} size="xs" />{meta.service}</b>
+              <b className="svcInline"><ServiceIcon emoji={meta.serviceEmoji} name={meta.service} size="xs" />{meta.service}</b>
               <small>{meta.salonName} · {meta.date}</small>
             </div>
             <div className="clientBookingMiniState">

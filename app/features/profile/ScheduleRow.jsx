@@ -63,6 +63,7 @@ export function normalizeSalonScheduleBooking(item, staffByName, serviceList = [
     clientAvatar: item?.clientAvatar || item?.client_avatar || "",
     phone: String(item?.phone || "").trim(),
     service: item?.service || "خدمت",
+    serviceEmoji: item?.service_emoji || "",
     date,
     time: item?.time || "",
     staff: staffName,
@@ -92,6 +93,7 @@ export function normalizeArtistScheduleBooking(booking, serviceList = []) {
     clientAvatar: booking?.clientAvatar || booking?.client_avatar || "",
     phone: String(booking?.phone || "").trim(),
     service: booking?.service || "خدمت",
+    serviceEmoji: booking?.service_emoji || "",
     date,
     time: booking?.time || "",
     staff: "",
@@ -131,6 +133,7 @@ function scheduleRowPropsAreEqual(prev, next) {
     && prev.booking?.clientAvatar === next.booking?.clientAvatar
     && prev.booking?.phone === next.booking?.phone
     && prev.booking?.service === next.booking?.service
+    && prev.booking?.serviceEmoji === next.booking?.serviceEmoji
     && prev.booking?.date === next.booking?.date
     && prev.booking?.time === next.booking?.time
     && prev.booking?.staffLabel === next.booking?.staffLabel
@@ -199,7 +202,7 @@ export const ScheduleRow = memo(function ScheduleRow({
         <div className="scheduleMetaCopy">
           <b>{title}</b>
           <span>
-            <ServiceIcon name={service} size="xs" className="svcInlineIcon" />
+            <ServiceIcon emoji={booking.serviceEmoji} name={service} size="xs" className="svcInlineIcon" />
             {meta}
             <i aria-hidden="true">•</i>
             {date}

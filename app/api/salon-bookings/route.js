@@ -188,6 +188,7 @@ async function _POST(request) {
       client: result.booking.client,
       phone: result.booking.phone,
       service: result.booking.service,
+      serviceEmoji: result.booking.service_emoji,
       bookingDate: result.booking.booking_date,
       time: result.booking.time,
       sourceSalonUserId: salonUserId,

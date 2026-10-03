@@ -10,6 +10,7 @@ import {
 } from "../../../../shared/lib/time.js";
 import { normalizePhone } from "./common.js";
 import { listSalonServices } from "./services.js";
+import { resolveBookingServiceEmoji } from "../serviceEmoji.js";
 import { findSalonStaffForBooking, listSalonStaff } from "./staff.js";
 
 async function findBookingClient(row, runner) {
@@ -243,10 +244,16 @@ export async function addSalonBooking(salonUserId, data) {
     });
     if (conflict) return { ok: false, error: "conflict" };
 
+    const serviceEmoji = await resolveBookingServiceEmoji(db, {
+      kind: "salon",
+      ownerId: salonUserId,
+      service: data.service,
+      explicit: data.serviceEmoji ?? data.service_emoji
+    });
     const info = await run(db, `
       INSERT INTO salon_bookings
-        (salon_user_id, client_user_id, client, phone, service, staff, booking_date, time, duration_minutes, status)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        (salon_user_id, client_user_id, client, phone, service, service_emoji, staff, booking_date, time, duration_minutes, status)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
       RETURNING id
     `, [
       salonUserId,
@@ -254,6 +261,7 @@ export async function addSalonBooking(salonUserId, data) {
       data.client || "",
       data.phone || "",
       data.service || "",
+      serviceEmoji,
       staff,
       bookingDate,
       time,
@@ -272,6 +280,7 @@ function buildSalonBookingNext(current, data) {
     client: data.client ?? current.client,
     phone: data.phone ?? current.phone,
     service: data.service ?? current.service,
+    service_emoji: current.service_emoji || "",
     staff: data.staff ?? current.staff,
     booking_date: resolveRollingPersianDateKey(data.booking_date ?? data.bookingDate ?? data.date ?? current.booking_date),
     time: normalizeBookingTimeLabel(data.time ?? current.time),
@@ -288,6 +297,15 @@ function buildSalonBookingNext(current, data) {
 /** Salon-row update inside an open transaction (no BEGIN/COMMIT of its own). */
 async function updateSalonBookingInTx(db, id, salonUserId, current, data) {
   const next = buildSalonBookingNext(current, data);
+  // Re-snapshot the icon only when the service itself changed.
+  if (String(next.service || "") !== String(current.service || "")) {
+    next.service_emoji = await resolveBookingServiceEmoji(db, {
+      kind: "salon",
+      ownerId: salonUserId,
+      service: next.service,
+      explicit: data.serviceEmoji ?? data.service_emoji
+    });
+  }
 
   if (next.status !== "لغو") {
     const conflict = await findOverlapConflict(db, {
@@ -303,8 +321,8 @@ async function updateSalonBookingInTx(db, id, salonUserId, current, data) {
 
   await run(db, `
     UPDATE salon_bookings
-    SET client = $1, phone = $2, service = $3, staff = $4, booking_date = $5, time = $6, duration_minutes = $7, status = $8
-    WHERE id = $9 AND salon_user_id = $10
+    SET client = $1, phone = $2, service = $3, staff = $4, booking_date = $5, time = $6, duration_minutes = $7, status = $8, service_emoji = $9
+    WHERE id = $10 AND salon_user_id = $11
   `, [
     next.client || "",
     next.phone || "",
@@ -314,6 +332,7 @@ async function updateSalonBookingInTx(db, id, salonUserId, current, data) {
     next.time || "",
     next.duration_minutes,
     next.status || "تازه",
+    next.service_emoji || "",
     id,
     salonUserId
   ]);
@@ -421,6 +440,7 @@ export async function patchSalonBookingWithArtistSync(id, salonUserId, data) {
             client: next.client,
             phone: next.phone,
             service: next.service,
+            service_emoji: next.service_emoji,
             booking_date: next.booking_date,
             time: next.time,
             duration_minutes: next.duration_minutes,
@@ -431,6 +451,7 @@ export async function patchSalonBookingWithArtistSync(id, salonUserId, data) {
             client: next.client,
             phone: next.phone,
             service: next.service,
+            serviceEmoji: next.service_emoji,
             bookingDate: next.booking_date,
             time: next.time,
             durationMinutes: next.duration_minutes,
@@ -450,6 +471,7 @@ export async function patchSalonBookingWithArtistSync(id, salonUserId, data) {
             client: next.client,
             phone: next.phone,
             service: next.service,
+            serviceEmoji: next.service_emoji,
             bookingDate: next.booking_date,
             time: next.time,
             durationMinutes: next.duration_minutes,

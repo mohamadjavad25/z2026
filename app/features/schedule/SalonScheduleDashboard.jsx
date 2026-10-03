@@ -81,7 +81,7 @@ export function SalonScheduleDashboard({
                   </div>
                 </div>
                 <div className="salonCollabDeal">
-                  <b className="svcInline"><ServiceIcon name={request.service} size="xs" />{request.service}</b>
+                  <b className="svcInline"><ServiceIcon emoji={request.service_emoji} name={request.service} size="xs" />{request.service}</b>
                   <span>{request.days}</span>
                   <em>{request.from} تا {request.to} · {request.capacity} نفر در روز</em>
                 </div>
@@ -124,7 +124,7 @@ export function SalonScheduleDashboard({
                 <div className="requestCardMain">
                   <div className="requestCardWho">
                     <strong>{request.client}</strong>
-                    <span className="svcInline"><ServiceIcon name={request.service} size="xs" />{request.service}</span>
+                    <span className="svcInline"><ServiceIcon emoji={request.service_emoji} name={request.service} size="xs" />{request.service}</span>
                     <small>
                       <b>{request.staff}</b>
                       <em>مسئول</em>
@@ -205,7 +205,7 @@ export function SalonScheduleDashboard({
                   <div className="scheduleMetaCopy">
                     <b>{item.client}</b>
                     <span>
-                      <ServiceIcon name={item.service} size="xs" className="svcInlineIcon" />
+                      <ServiceIcon emoji={item.service_emoji} name={item.service} size="xs" className="svcInlineIcon" />
                       {item.service || "خدمت"}
                       <i aria-hidden="true">•</i>
                       {item.booking_date || item.date || "امروز"}

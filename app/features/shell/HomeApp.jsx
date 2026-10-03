@@ -2219,7 +2219,7 @@ function getPassportMatch(post) {
                         <div className="requestCardMain">
                           <div className="requestCardWho">
                             <strong>{request.client}</strong>
-                            <span className="svcInline"><ServiceIcon name={request.service} size="xs" />{request.service}</span>
+                            <span className="svcInline"><ServiceIcon emoji={request.service_emoji} name={request.service} size="xs" />{request.service}</span>
                             <small>
                               <b>{request.staff}</b>
                               <em>مسئول</em>
@@ -2275,7 +2275,7 @@ function getPassportMatch(post) {
                       <div className="requestCardMain">
                         <div className="requestCardWho">
                           <strong>{booking.client}</strong>
-                          <span className="svcInline"><ServiceIcon name={booking.service} size="xs" />{booking.service}</span>
+                          <span className="svcInline"><ServiceIcon emoji={booking.service_emoji} name={booking.service} size="xs" />{booking.service}</span>
                         </div>
                         <div className="requestCardAside">
                           <span className="expiredNoticeTag">
@@ -2349,7 +2349,7 @@ function getPassportMatch(post) {
                         <div className="requestCardMain">
                           <div className="requestCardWho">
                             <strong>{request.client || "مشتری"}</strong>
-                            <span className="svcInline"><ServiceIcon name={request.service} size="xs" />{request.service}</span>
+                            <span className="svcInline"><ServiceIcon emoji={request.service_emoji} name={request.service} size="xs" />{request.service}</span>
                             {request.phone ? <small dir="ltr">{request.phone}</small> : null}
                           </div>
                           <div className="requestCardAside">
@@ -2401,7 +2401,7 @@ function getPassportMatch(post) {
                       <div className="requestCardMain">
                         <div className="requestCardWho">
                           <strong>{request.client || "مشتری"}</strong>
-                          <span className="svcInline"><ServiceIcon name={request.service} size="xs" />{request.service}</span>
+                          <span className="svcInline"><ServiceIcon emoji={request.service_emoji} name={request.service} size="xs" />{request.service}</span>
                         </div>
                         <div className="requestCardAside">
                           <span className="expiredNoticeTag">
@@ -2446,7 +2446,7 @@ function getPassportMatch(post) {
                         <div className="requestCardMain">
                           <div className="requestCardWho">
                             <strong>{booking.salonName || booking.salon_name || "سالن"}</strong>
-                            <span className="svcInline"><ServiceIcon name={booking.service} size="xs" />{booking.service}</span>
+                            <span className="svcInline"><ServiceIcon emoji={booking.service_emoji} name={booking.service} size="xs" />{booking.service}</span>
                           </div>
                           <div className="requestCardAside">
                             <span className="expiredNoticeTag">

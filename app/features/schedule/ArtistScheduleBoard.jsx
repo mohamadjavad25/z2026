@@ -107,7 +107,7 @@ export function ArtistScheduleBoard({
                 <div className="scheduleMetaCopy">
                   <b>{booking.client}</b>
                   <span>
-                    <ServiceIcon name={booking.service} size="xs" className="svcInlineIcon" />
+                    <ServiceIcon emoji={booking.service_emoji} name={booking.service} size="xs" className="svcInlineIcon" />
                     {booking.service || "خدمت"}
                     <i aria-hidden="true">•</i>
                     {booking.date || "امروز"}

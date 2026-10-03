@@ -166,7 +166,7 @@ export function ScheduleBookingMenuModal({
                 <div className="scheduleBookingDetail">
                   <Scissors size={15} aria-hidden="true" />
                   <span>خدمت</span>
-                  <b className="svcInline"><ServiceIcon name={booking.service} size="xs" />{booking.service || "خدمت زیبایی"}</b>
+                  <b className="svcInline"><ServiceIcon emoji={booking.service_emoji} name={booking.service} size="xs" />{booking.service || "خدمت زیبایی"}</b>
                 </div>
                 {phone ? (
                   <div className="scheduleBookingDetail">

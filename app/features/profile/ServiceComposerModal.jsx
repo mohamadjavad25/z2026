@@ -101,11 +101,11 @@ export function ServiceComposerModal({
             <div className="artistServiceNameRow">
               <button
                 type="button"
-                className={`serviceEmojiSlot${draft.emoji ? " has" : ""}`}
+                className={`serviceEmojiSlot${draft.emoji || draft.name.trim() ? " has" : ""}`}
                 aria-label="انتخاب آیکن خدمت"
                 onClick={() => setPickerOpen(true)}
               >
-                {draft.emoji ? <ServiceIcon emoji={draft.emoji} name={draft.name} size="lg" /> : <Plus size={20} />}
+                {draft.emoji || draft.name.trim() ? <ServiceIcon emoji={draft.emoji} name={draft.name} size="lg" /> : <Plus size={20} />}
               </button>
               <label className="artistServiceField">
                 <span>نام خدمت</span>

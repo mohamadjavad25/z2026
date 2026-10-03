@@ -76,7 +76,7 @@ export function ClientBookingSettingsModal({
             </span>
             <div>
               <small>جزئیات رزرو</small>
-              <b className="svcInline"><ServiceIcon name={booking.service} size="xs" />{booking.service || "خدمت زیبایی"}</b>
+              <b className="svcInline"><ServiceIcon emoji={booking.service_emoji} name={booking.service} size="xs" />{booking.service || "خدمت زیبایی"}</b>
               <em>{salonName}</em>
             </div>
             <strong className={`clientBookingSettingsStatus is-${statusTone}`}>

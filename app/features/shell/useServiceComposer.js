@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { guessBeautyEmojiId } from "../../shared/constants/beautyEmoji";
 
 const EMPTY_DRAFT = { id: null, name: "", price: "", duration: "۶۰ دقیقه", hint: "", emoji: "" };
 
@@ -63,7 +64,9 @@ export function useServiceComposer({
       price: price || "توافقی",
       duration: duration || "۶۰ دقیقه",
       hint: hint || "خدمت سفارشی",
-      emoji: String(artistServiceDraft.emoji || ""),
+      // No icon picked -> store the name-based guess so the service (and every
+      // booking made from it) carries a real, stable icon id.
+      emoji: String(artistServiceDraft.emoji || guessBeautyEmojiId(name) || ""),
       tone: "soft"
     };
     try {
