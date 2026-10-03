@@ -271,5 +271,13 @@ export async function deleteSalonStaff(id, salonUserId) {
   if (!current) return { ok: false, person: null };
   const result = await run(db, "DELETE FROM salon_staff WHERE id = $1 AND salon_user_id = $2", [id, salonUserId]);
   const ok = result.rowCount > 0;
+  // An accepted invite would otherwise block inviting this artist again.
+  if (ok && current.artist_user_id) {
+    await run(db, `
+      UPDATE salon_artist_invites
+      SET status = 'لغو شد', updated_at = CURRENT_TIMESTAMP
+      WHERE salon_user_id = $1 AND artist_user_id = $2 AND status = 'تایید شد'
+    `, [salonUserId, current.artist_user_id]);
+  }
   return { ok, person: ok ? current : null };
 }

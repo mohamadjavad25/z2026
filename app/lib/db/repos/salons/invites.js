@@ -447,3 +447,83 @@ export async function respondArtistSalonInvite(id, artistUserId, status) {
     invites: await listArtistSalonInvites(artistUserId)
   };
 }
+
+
+/**
+ * The teams an artist currently belongs to (salon_staff rows linked to their
+ * account), with the salon's identity and the agreed terms from the accepted
+ * invite or proposal (whichever exists). Powers the artist's "تیم‌های من".
+ */
+export async function listArtistTeams(artistUserId) {
+  const db = await getDb();
+  const rows = await all(db, `
+    SELECT
+      st.id AS staff_id,
+      st.salon_user_id,
+      st.role,
+      st.state,
+      st.created_at,
+      COALESCE(NULLIF(s.name, ''), su.name) AS salon_name,
+      COALESCE(s.area, '') AS salon_area,
+      su.avatar AS salon_avatar,
+      COALESCE(i.days, c.days, '') AS days,
+      COALESCE(i.from_time, c.from_time, '') AS from_time,
+      COALESCE(i.to_time, c.to_time, '') AS to_time,
+      COALESCE(i.share_percent, c.share_percent, '') AS share_percent,
+      COALESCE(i.capacity, c.capacity, '') AS capacity
+    FROM salon_staff st
+    JOIN users su ON su.id = st.salon_user_id
+    LEFT JOIN salons s ON s.user_id = st.salon_user_id
+    LEFT JOIN salon_artist_invites i
+      ON i.salon_user_id = st.salon_user_id AND i.artist_user_id = st.artist_user_id AND i.status = 'تایید شد'
+    LEFT JOIN LATERAL (
+      SELECT * FROM artist_collabs
+      WHERE salon_user_id = st.salon_user_id AND artist_user_id = st.artist_user_id AND status = 'تایید شد'
+      ORDER BY id DESC LIMIT 1
+    ) c ON TRUE
+    WHERE st.artist_user_id = $1
+    ORDER BY st.id DESC
+  `, [artistUserId]);
+  return rows.map((row) => ({
+    staffId: row.staff_id,
+    salonId: row.salon_user_id,
+    salonName: row.salon_name || "سالن",
+    salonArea: row.salon_area || "",
+    salonAvatar: row.salon_avatar ? `/api/media/avatar/${row.salon_user_id}` : "",
+    role: row.role || "",
+    state: row.state || "فعال",
+    since: row.created_at,
+    days: row.days || "",
+    from: row.from_time || "",
+    to: row.to_time || "",
+    share: row.share_percent || "",
+    capacity: row.capacity || ""
+  }));
+}
+
+/**
+ * The artist leaves a salon's team on their own. Mirrors the salon removing a
+ * member: the staff row goes, accepted collaborations end, and the accepted
+ * invite is cancelled so the pair can reconnect later through any of the paths.
+ */
+export async function leaveSalonTeam(artistUserId, salonUserId) {
+  const db = await getDb();
+  const staff = await get(db, `
+    SELECT id, name FROM salon_staff WHERE salon_user_id = $1 AND artist_user_id = $2 LIMIT 1
+  `, [salonUserId, artistUserId]);
+  if (!staff) {
+    return { ok: false, error: "تو عضو تیم این سالن نیستی.", code: "NOT_MEMBER" };
+  }
+  await run(db, "DELETE FROM salon_staff WHERE salon_user_id = $1 AND artist_user_id = $2", [salonUserId, artistUserId]);
+  await run(db, `
+    UPDATE artist_collabs
+    SET status = 'پایان یافت', updated_at = CURRENT_TIMESTAMP
+    WHERE salon_user_id = $1 AND artist_user_id = $2 AND status IN ('تایید شد', 'آماده ارسال')
+  `, [salonUserId, artistUserId]);
+  await run(db, `
+    UPDATE salon_artist_invites
+    SET status = 'لغو شد', updated_at = CURRENT_TIMESTAMP
+    WHERE salon_user_id = $1 AND artist_user_id = $2 AND status IN ('تایید شد', 'در انتظار تایید')
+  `, [salonUserId, artistUserId]);
+  return { ok: true };
+}

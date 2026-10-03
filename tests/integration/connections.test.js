@@ -112,3 +112,41 @@ describe("salon <-> artist connection", () => {
     expect((await clientClient.get("/api/salon-collabs")).ok).toBe(false);
   });
 });
+
+describe("teams: membership, leaving and reconnecting", () => {
+  it("lists the artist's teams with the agreed terms, and the artist can leave and be re-invited", async () => {
+    const { salonClient, salon, artistClient, artist } = await setup();
+    const sent = await salonClient.post("/api/salon-invites", {
+      artistUserId: artist.user.id, role: "رنگ و لایت", days: TERMS.days, from: TERMS.from, to: TERMS.to, share: TERMS.share, capacity: TERMS.capacity
+    });
+    await artistClient.patch("/api/artist/invites", { id: sent.payload.data.invite.id, status: "تایید شد" });
+
+    const teams = await artistClient.get("/api/artist/teams");
+    expect(teams.payload.data.teams).toHaveLength(1);
+    expect(teams.payload.data.teams[0]).toMatchObject({ salonId: salon.user.id, share: TERMS.share, days: TERMS.days });
+
+    const left = await artistClient.delete("/api/artist/teams", { salonUserId: salon.user.id });
+    expect(left.ok).toBe(true);
+    expect(left.payload.data.teams).toEqual([]);
+    expect(await staffOf(salonClient)).toEqual([]);
+
+    // leaving twice is refused
+    const twice = await artistClient.delete("/api/artist/teams", { salonUserId: salon.user.id });
+    expect(twice.status).toBe(404);
+
+    // the pair can reconnect: the earlier accepted invite no longer blocks a new one
+    const again = await salonClient.post("/api/salon-invites", { artistUserId: artist.user.id });
+    expect(again.status).toBe(201);
+  });
+
+  it("a salon removing a member also lets it invite that artist again", async () => {
+    const { salonClient, artistClient, artist } = await setup();
+    const sent = await salonClient.post("/api/salon-invites", { artistUserId: artist.user.id });
+    await artistClient.patch("/api/artist/invites", { id: sent.payload.data.invite.id, status: "تایید شد" });
+    const [member] = await staffOf(salonClient);
+    const removed = await salonClient.delete("/api/salon-staff", { id: member.id });
+    expect(removed.ok).toBe(true);
+    const again = await salonClient.post("/api/salon-invites", { artistUserId: artist.user.id });
+    expect(again.status).toBe(201);
+  });
+});
