@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { ServiceIcon } from "../../components/ServiceIcon";
+import { PageIcon } from "../../components/PageIcon";
 import { createPortal } from "react-dom";
 import {
   BellRing,
@@ -2185,7 +2186,7 @@ function getPassportMatch(post) {
                 <em>{toPersianDigits(reservationRequestList.length)}</em>
               </article>
               <article>
-                <span><UserRound size={18} /></span>
+                <span><PageIcon name="collab" size={22} /></span>
                 <div>
                   <b>همکاری و پرسنل</b>
                   <small>{pendingSalonCollabRequests.length ? `${toPersianDigits(pendingSalonCollabRequests.length)} درخواست همکاری نیاز به پاسخ دارد.` : "درخواست همکاری تازه‌ای نداری."}</small>
@@ -2193,7 +2194,7 @@ function getPassportMatch(post) {
                 <em>{toPersianDigits(pendingSalonCollabRequests.length)}</em>
               </article>
               <article>
-                <span><CalendarClock size={18} /></span>
+                <span><PageIcon name="bookings" size={22} /></span>
                 <div>
                   <b>برنامه امروز</b>
                   <small>{salonAppointmentList.length ? `${toPersianDigits(salonAppointmentList.length)} نوبت در برنامه سالن ثبت شده است.` : "برنامه امروز خالی است."}</small>
@@ -2315,7 +2316,7 @@ function getPassportMatch(post) {
                 <em>{toPersianDigits(pendingArtistBookingRequests.length)}</em>
               </article>
               <article>
-                <span><UserRound size={18} /></span>
+                <span><PageIcon name="collab" size={22} /></span>
                 <div>
                   <b>دعوت همکاری سالن‌ها</b>
                   <small>{pendingArtistSalonInvites.length ? `${toPersianDigits(pendingArtistSalonInvites.length)} دعوت همکاری نیاز به پاسخ دارد.` : "دعوت همکاری تازه‌ای نداری."}</small>

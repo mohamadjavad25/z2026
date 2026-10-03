@@ -754,3 +754,131 @@ button.svcCard:active { transform: scale(0.99); }
 /* Owner cards: price sits in the chip row, actions stack on the side. */
 .svcChip.is-price { background: #14161d; color: #ffffff; font-weight: 950; }
 .svcCardSide .svcActions { flex-direction: column; }
+
+/* ═══ Page / section icons (PageIcon) ═══════════════════════════════════ */
+.pageIcon { flex: none; display: block; color: inherit; }
+.pageIcon .pi-s { stroke: var(--pi-ink, currentColor); }
+
+/* Inactive tabs are muted; the active one shows its full colour. */
+.bottomNav button:not(.active) .pageIcon,
+.profileModeRail button:not(.active) .pageIcon {
+  filter: saturate(0.55) opacity(0.9);
+  transition: filter 0.2s ease, transform 0.2s ease;
+}
+
+.bottomNav button.active .pageIcon,
+.profileModeRail button.active .pageIcon {
+  filter: none;
+  transform: translateY(-1px) scale(1.06);
+}
+
+/* Active rail chips are light surfaces: draw the outlines in ink. */
+.profileModeRail button.active .pageIcon,
+.bottomNav button.active .pageIcon { --pi-ink: #14161d; }
+
+/* On the dark floating dock the outlines stay light; its active chip is a
+   translucent white wash, so keep them white there. */
+.floatingMobileCta.is-modeRail .profileModeRail button .pageIcon { --pi-ink: #ffffff; }
+
+.profileModeRail button .pageIcon { width: 20px; height: 20px; }
+.bottomNav button .pageIcon { width: 24px; height: 24px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .bottomNav button.active .pageIcon,
+  .profileModeRail button.active .pageIcon { transform: none; }
+}
+
+/* Active tab accent: ink instead of the legacy purple (higher specificity
+   than the many per-role rules in styles.css, which load after this file). */
+:root .profileModeRail.profileModeRail button.active,
+:root .profileModeRail.profileModeRail button.active span {
+  color: #14161d !important;
+}
+
+:root:root:root .profileModeRail.profileModeRail.profileModeRail.is-panelRail:not(.is-client) button.active {
+  box-shadow: inset 0 -3px 0 #14161d !important;
+}
+
+:root .profileModeRail.profileModeRail.is-client.is-panelRail button.active {
+  color: #14161d !important;
+}
+
+/* ═══ Collaboration page ═════════════════════════════════════════════════ */
+.collabHero {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 18px 16px 16px;
+  border: 1px solid #ececf0;
+  border-radius: 26px;
+  background:
+    radial-gradient(120% 90% at 50% 0%, #fff4ea 0%, rgba(255, 244, 234, 0) 62%),
+    #ffffff;
+  text-align: center;
+  box-shadow: 0 10px 28px rgba(20, 22, 29, 0.06);
+}
+
+.collabIllustration { width: min(100%, 320px); height: auto; overflow: visible; }
+
+.collabHero h3 { margin: 4px 0 0; color: #14161d; font-size: 1.18rem; font-weight: 950; }
+
+.collabHero p {
+  margin: 0;
+  max-width: 30ch;
+  color: #6f7380;
+  font-size: 0.8rem;
+  font-weight: 750;
+  line-height: 1.75;
+}
+
+.collabSteps {
+  list-style: none;
+  width: 100%;
+  margin: 6px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.collabSteps li {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 6px;
+  padding: 10px 6px;
+  border-radius: 16px;
+  background: #f6f6f8;
+}
+
+.collabSteps b {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #14161d;
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 950;
+}
+
+.collabSteps span { color: #4b4f5c; font-size: 0.68rem; font-weight: 850; line-height: 1.5; }
+
+.collabBoard .collabSectionLabel {
+  color: #14161d;
+  font-size: 0.82rem;
+  font-weight: 950;
+}
+
+.collabEmpty.is-lively {
+  gap: 8px;
+  padding: 22px 16px;
+  border: 1.5px dashed #dcdce4;
+  border-radius: 22px;
+  background: #fafafc;
+}
+
+.collabEmpty.is-lively svg { opacity: 1; }
+.collabEmpty.is-lively b { color: #14161d; font-size: 0.9rem; font-weight: 950; }
+.collabEmpty.is-lively span { max-width: 32ch; line-height: 1.7; }

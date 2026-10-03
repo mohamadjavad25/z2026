@@ -1,6 +1,7 @@
 "use client";
 
-import { Plus, Settings, Store, Users } from "lucide-react";
+import { Plus } from "lucide-react";
+import { PageIcon } from "../../components/PageIcon";
 
 export function BottomNav({ activeTab, createdProfile, onTabChange, showCreateBooking = false, onCreateBooking }) {
   // Salon/artist owners already run their own business — browsing the
@@ -11,7 +12,7 @@ export function BottomNav({ activeTab, createdProfile, onTabChange, showCreateBo
   return (
     <nav className="bottomNav" aria-label="ناوبری موبایل">
       <button type="button" onClick={() => onTabChange("settings")} className={activeTab === "settings" ? "active" : ""}>
-        <Settings size={20} />
+        <PageIcon name="settings" size={24} />
         <span>تنظیمات</span>
       </button>
       {showCreateBooking ? (
@@ -41,12 +42,12 @@ export function BottomNav({ activeTab, createdProfile, onTabChange, showCreateBo
       )}
       {isBusinessOwner ? (
         <button type="button" onClick={() => onTabChange("customers")} className={activeTab === "customers" ? "active" : ""}>
-          <Users size={20} />
+          <PageIcon name="customers" size={24} />
           <span>مشتریان</span>
         </button>
       ) : (
         <button type="button" onClick={() => onTabChange("salons")} className={activeTab === "salons" ? "active" : ""}>
-          <Store size={20} />
+          <PageIcon name="discover" size={24} />
           <span>سالن</span>
         </button>
       )}
