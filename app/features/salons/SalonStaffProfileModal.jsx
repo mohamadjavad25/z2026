@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { StaffPerformanceChart } from "./StaffPerformanceChart";
+import { ServiceIcon } from "../../components/ServiceIcon";
 
 /**
  * A fact row that becomes a small inline form on click — used only for
@@ -126,8 +127,8 @@ export function SalonStaffProfileModal({
         </button>
 
         <header className="staffProfileHero">
-          <div className={`staffProfileAvatar ${staffAvatar ? "hasImage" : ""}`}>
-            {staffAvatar ? <img src={staffAvatar} alt="" /> : String(staffName || "آ").slice(0, 1)}
+          <div className="staffProfileAvatar hasImage">
+            <img src={staffAvatar || "/profile-icon.svg"} alt="" />
           </div>
           <div className="staffProfileHeroCopy">
             <span className={`staffProfileOwnerBadge ${hasPublic ? "is-linked" : "is-local"}`}>
@@ -135,7 +136,10 @@ export function SalonStaffProfileModal({
               {hasPublic ? "حساب آرتیست متصل" : "فقط ثبت در سالن"}
             </span>
             <b>{staffName}</b>
-            <small>{staffRole}{staffArea ? ` · ${staffArea}` : ""}</small>
+            <small className="staffProfileRole">
+              <ServiceIcon name={staffRole} size="xs" />
+              {staffRole}{staffArea ? ` · ${staffArea}` : ""}
+            </small>
           </div>
           <em className={`staffProfileState ${isActive ? "is-active" : "is-idle"}`}>
             <i />
