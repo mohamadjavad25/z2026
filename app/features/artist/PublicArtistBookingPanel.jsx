@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { ServiceIcon } from "../../components/ServiceIcon";
 import { Timer } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { DateTimeWheelPicker } from "../../components/DateTimeWheelPicker";
@@ -53,7 +54,8 @@ export function PublicArtistBookingPanel({
     <section className="artistPublicBookingPanel" aria-label="انتخاب نوبت">
 
       <div className="artistPublicBookingService">
-        <div>
+        <ServiceIcon emoji={activeService?.emoji} name={activeService?.name} size="lg" />
+        <div className="artistPublicBookingServiceInfo">
           <span>خدمت انتخاب‌شده</span>
           <strong>{activeService?.name || "خدمت"}</strong>
           <small>

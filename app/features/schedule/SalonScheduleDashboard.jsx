@@ -1,6 +1,7 @@
 "use client";
 
 import { AlarmClock, Check, ChevronLeft, MoreHorizontal, X } from "lucide-react";
+import { ServiceIcon } from "../../components/ServiceIcon";
 import { SegmentClock } from "../../components/SegmentClock";
 import { SkeletonList } from "../../components/Skeleton";
 import { toPersianDigits } from "../../shared/lib/digits";
@@ -80,7 +81,7 @@ export function SalonScheduleDashboard({
                   </div>
                 </div>
                 <div className="salonCollabDeal">
-                  <b>{request.service}</b>
+                  <b className="svcInline"><ServiceIcon emoji={request.service_emoji} name={request.service} size="xs" />{request.service}</b>
                   <span>{request.days}</span>
                   <em>{request.from} تا {request.to} · {request.capacity} نفر در روز</em>
                 </div>
@@ -123,7 +124,7 @@ export function SalonScheduleDashboard({
                 <div className="requestCardMain">
                   <div className="requestCardWho">
                     <strong>{request.client}</strong>
-                    <span>{request.service}</span>
+                    <span className="svcInline"><ServiceIcon emoji={request.service_emoji} name={request.service} size="xs" />{request.service}</span>
                     <small>
                       <b>{request.staff}</b>
                       <em>مسئول</em>
@@ -204,6 +205,7 @@ export function SalonScheduleDashboard({
                   <div className="scheduleMetaCopy">
                     <b>{item.client}</b>
                     <span>
+                      <ServiceIcon emoji={item.service_emoji} name={item.service} size="xs" className="svcInlineIcon" />
                       {item.service || "خدمت"}
                       <i aria-hidden="true">•</i>
                       {item.booking_date || item.date || "امروز"}

@@ -1,0 +1,275 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   Services UI -- icon tiles + service cards (artist & salon, owner & public)
+   Loaded last. New class names (svc*) are used for the restyled cards so
+   legacy rules in styles.css / feature css can't leak into them.
+   Palette: white surfaces, ink text, per-category pastel tile behind icons.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── Icon tile ────────────────────────────────────────────────────────── */
+.serviceIcon {
+  --svc-tint: #f1f1f5;
+  --svc-ring: #e4e4ec;
+  flex: none;
+  width: var(--svc-tile, 48px);
+  height: var(--svc-tile, 48px);
+  display: inline-grid;
+  place-items: center;
+  border-radius: 30%;
+  background: var(--svc-tint);
+  box-shadow: inset 0 0 0 1px var(--svc-ring);
+  vertical-align: middle;
+}
+
+.serviceIcon > .serviceEmoji { filter: drop-shadow(0 2px 3px rgba(20, 22, 29, 0.12)); }
+
+.serviceIcon.cat-hair      { --svc-tint: #fff1e3; --svc-ring: #fbdcbc; }
+.serviceIcon.cat-makeup    { --svc-tint: #ffeaf1; --svc-ring: #fbcddd; }
+.serviceIcon.cat-brow_lash { --svc-tint: #eef0f6; --svc-ring: #d9dcea; }
+.serviceIcon.cat-nails     { --svc-tint: #ffeef4; --svc-ring: #fbd0e0; }
+.serviceIcon.cat-skin      { --svc-tint: #e8f7f1; --svc-ring: #c4eadb; }
+.serviceIcon.cat-clinic    { --svc-tint: #e8f3fc; --svc-ring: #c6e0f6; }
+.serviceIcon.cat-body      { --svc-tint: #f0f7e6; --svc-ring: #d9ebbd; }
+.serviceIcon.cat-general   { --svc-tint: #fff7e0; --svc-ring: #f6e5a8; }
+
+.serviceIcon.is-xs { border-radius: 9px; }
+.serviceIcon.is-sm { border-radius: 11px; }
+
+/* Inline icon + text pairing used in booking rows, headers, selects */
+.svcInline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.svcInline > b,
+.svcInline > span:not(.serviceIcon) {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Service card (owner lists + public lists) ───────────────────────── */
+.svcList {
+  display: grid;
+  gap: 10px;
+}
+
+.svcCard {
+  --service-delay: 0ms;
+  position: relative;
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid #ececf0;
+  border-radius: 20px;
+  background: #ffffff;
+  color: #14161d;
+  font: inherit;
+  text-align: right;
+  box-shadow: 0 6px 18px rgba(20, 22, 29, 0.05);
+  animation: serviceCardIn 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--service-delay);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+button.svcCard { cursor: pointer; }
+
+button.svcCard:hover,
+button.svcCard:focus-visible {
+  transform: translateY(-1px);
+  border-color: #dcdce4;
+  box-shadow: 0 10px 24px rgba(20, 22, 29, 0.09);
+}
+
+button.svcCard:active { transform: scale(0.99); }
+
+.svcCard.is-selected {
+  border-color: #14161d;
+  box-shadow: 0 0 0 1px #14161d, 0 10px 24px rgba(20, 22, 29, 0.1);
+}
+
+.svcCardBody {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+}
+
+.svcCardTitle {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.svcCardTitle strong {
+  color: #14161d;
+  font-size: 0.98rem;
+  font-weight: 950;
+  line-height: 1.3;
+}
+
+.svcCardBadge {
+  min-height: 21px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 9px;
+  border-radius: 999px;
+  background: #f1f1f5;
+  color: #4b4f5c;
+  font-size: 0.62rem;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.svcCardHint {
+  margin: 0;
+  color: #6f7380;
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+.svcCardMeta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.svcChip {
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 9px;
+  border-radius: 999px;
+  background: #f6f6f8;
+  color: #4b4f5c;
+  font-size: 0.68rem;
+  font-weight: 850;
+}
+
+.svcCardSide {
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+}
+
+.svcPrice {
+  color: #14161d;
+  font-size: 0.92rem;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.svcCardChevron { color: #9a9dab; }
+
+.svcActions {
+  display: flex;
+  gap: 6px;
+}
+
+.svcActions button {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 11px;
+  background: #f6f6f8;
+  color: #14161d;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.svcActions button:active { transform: scale(0.94); }
+.svcActions button.danger { color: #c14545; background: #fdf0f0; }
+
+/* ── Owner toolbar ───────────────────────────────────────────────────── */
+.svcToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 2px 2px 4px;
+}
+
+.svcToolbar > div { display: grid; gap: 2px; }
+.svcToolbar span { color: #6f7380; font-size: 0.72rem; font-weight: 800; }
+.svcToolbar b { color: #14161d; font-size: 1.02rem; font-weight: 950; }
+
+.svcAddBtn {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 14px;
+  background: #14161d;
+  color: #ffffff;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 950;
+  box-shadow: 0 8px 18px rgba(20, 22, 29, 0.16);
+  cursor: pointer;
+}
+
+/* ── Salon service card: staff picker sits under the body ─────────────── */
+.svcCard.is-manager { grid-template-columns: auto minmax(0, 1fr) auto; }
+.svcCard.is-manager .serviceArtistPick { justify-self: start; }
+.svcStaffRow { grid-column: 2 / -1; display: flex; align-items: center; gap: 8px; }
+.svcStaffRow small { color: #6f7380; font-size: 0.68rem; font-weight: 800; }
+
+/* ── Public salon rails / sheet (SalonClientPage) ────────────────────── */
+.salonPublicServiceRail > button > span:has(> .serviceIcon),
+.salonPublicAllServices > button > span:has(> .serviceIcon) {
+  background: transparent !important;
+  box-shadow: none !important;
+  width: auto !important;
+  height: auto !important;
+  display: inline-grid;
+  place-items: center;
+}
+
+/* ── Preset picker cards in the composer ─────────────────────────────── */
+.artistServicePresetCard > .serviceIcon {
+  grid-column: 2;
+  grid-row: 2 / span 3;
+  justify-self: end;
+  align-self: center;
+}
+
+.serviceEmojiSlot.has { background: transparent; }
+
+/* ── Booking sheets: the chosen service ──────────────────────────────── */
+.artistPublicBookingService .svcInline { gap: 12px; }
+.salonClientBookingHead .svcInline { gap: 10px; }
+
+/* ── BookingSelect options with icons ────────────────────────────────── */
+.bookingSelectTrigger .serviceIcon,
+.bookingSelectMenu .serviceIcon { margin-inline-end: 2px; }
+
+.bookingCreateForm .bookingSelectTrigger:has(> .serviceIcon) {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.bookingSelectMenu button:has(> .serviceIcon) {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.svcInlineIcon { margin-inline-end: 6px; vertical-align: middle; }
+
+.artistPublicBookingService > .serviceIcon { margin-inline-end: 2px; }
+.artistPublicBookingService { gap: 12px; }
+.artistPublicBookingServiceInfo { flex: 1 1 auto; min-width: 0; }
+.salonClientBookingHead > .serviceIcon { flex: none; }
+
+/* Icon + text rows inside cards that set their own text colour */
+.requestCardWho .svcInline,
+.scheduleBookingDetail .svcInline { color: inherit; }

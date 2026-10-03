@@ -25,7 +25,7 @@ import {
   WandSparkles,
   X
 } from "lucide-react";
-import { ServiceEmoji } from "../../components/ServiceEmoji";
+import { ServiceIcon } from "../../components/ServiceIcon";
 import { SegmentClock } from "../../components/SegmentClock";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { SalonClientGallery } from "./SalonClientGallery";
@@ -38,15 +38,6 @@ import { SalonClientGallery } from "./SalonClientGallery";
 // "هنوز نمونه‌کاری ثبت نشده" empty state instead (SalonClientGallery already
 // had this for the portfolio mosaic; it was just being starved by the
 // fallback array upstream).
-function getServiceIcon(service, index) {
-  const key = String(service.icon || service.badge || service.name || "").toLowerCase();
-  if (key.includes("کوتاه") || key.includes("scissor")) return <Scissors size={21} />;
-  if (key.includes("رنگ") || key.includes("color") || key.includes("palette")) return <Palette size={21} />;
-  if (key.includes("کرات") || key.includes("care")) return <ShieldCheck size={21} />;
-  if (key.includes("میکاپ") || key.includes("makeup")) return <WandSparkles size={21} />;
-  if (key.includes("های") || key.includes("spark")) return <Sparkles size={21} />;
-  return index % 2 ? <UserRound size={21} /> : <Scissors size={21} />;
-}
 
 function getPrimaryBookingService(services) {
   return services[0]?.name || "رزرو وقت";
@@ -160,13 +151,13 @@ export function SalonClientPage({
             </div>
             {services.length ? (
               <div className="salonPublicServiceRail">
-                {services.map((service, index) => (
+                {services.map((service) => (
                   <button
                     type="button"
                     key={service.id || service.name}
                     onClick={() => onOpenBooking(service.name)}
                   >
-                    <span><ServiceEmoji id={service.emoji} name={service.name} size={34} fallback={getServiceIcon(service, index)} /></span>
+                    <ServiceIcon emoji={service.emoji} name={service.name} size="lg" />
                     <b>{service.name}</b>
                   </button>
                 ))}
@@ -291,7 +282,7 @@ export function SalonClientPage({
                 {publicSheet === "services" ? (
                   services.length ? (
                     <div className="salonPublicAllServices">
-                      {services.map((service, index) => (
+                      {services.map((service) => (
                         <button
                           type="button"
                           key={service.id || service.name}
@@ -300,7 +291,7 @@ export function SalonClientPage({
                             onOpenBooking(service.name);
                           }}
                         >
-                          <span><ServiceEmoji id={service.emoji} name={service.name} size={34} fallback={getServiceIcon(service, index)} /></span>
+                          <ServiceIcon emoji={service.emoji} name={service.name} size="lg" />
                           <b>{service.name}</b>
                           <small>{service.price ? `${toPersianDigits(service.price)} تومان` : "قیمت توافقی"} · {service.duration || "زمان متغیر"}</small>
                           <CalendarCheck size={17} />

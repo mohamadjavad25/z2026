@@ -74,3 +74,53 @@ describe("salon bookings", () => {
     expect(confirmed.payload.data.booking.status).toBe("تایید شده");
   });
 });
+
+describe("booking service icon snapshot", () => {
+  it("stamps the salon service's chosen icon on the booking, and keeps it if the service is renamed", async () => {
+    const { bookerClient, salonClient, salon, booker } = await setupSalonAndClient();
+    const svc = await salonClient.post("/api/salon-services", {
+      name: "ژلیش ویژه",
+      price: "۱۰۰",
+      duration: "۶۰ دقیقه",
+      emoji: "gem"
+    });
+    expect(svc.status).toBe(201);
+
+    const created = await bookerClient.post("/api/salon-bookings", {
+      salonUserId: salon.user.id,
+      service: "ژلیش ویژه",
+      bookingDate: "سه‌شنبه",
+      time: "۱۴:۰۰",
+      client: booker.user.name,
+      phone: booker.phone
+    });
+    expect(created.ok).toBe(true);
+    expect(created.payload.data.booking.service_emoji).toBe("gem");
+
+    // Renaming the service later must not rewrite history.
+    const renamed = await salonClient.patch("/api/salon-services", {
+      id: svc.payload.data.service.id,
+      name: "ژلیش جدید",
+      emoji: "heart"
+    });
+    expect(renamed.ok).toBe(true);
+    const list = await salonClient.get("/api/salon-bookings");
+    const row = list.payload.data.bookings.find((item) => item.id === created.payload.data.booking.id);
+    expect(row.service_emoji).toBe("gem");
+  });
+
+  it("falls back to an empty icon (never an invalid id) when the service has none", async () => {
+    const { bookerClient, salon, booker } = await setupSalonAndClient();
+    const created = await bookerClient.post("/api/salon-bookings", {
+      salonUserId: salon.user.id,
+      service: "خدمت ناشناخته",
+      bookingDate: "چهارشنبه",
+      time: "۱۵:۰۰",
+      client: booker.user.name,
+      phone: booker.phone,
+      serviceEmoji: "<script>"
+    });
+    expect(created.ok).toBe(true);
+    expect(created.payload.data.booking.service_emoji).toBe("");
+  });
+});

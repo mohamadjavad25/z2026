@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Check, Plus, Timer, X } from "lucide-react";
-import { ServiceEmoji } from "../../components/ServiceEmoji";
+import { ServiceIcon } from "../../components/ServiceIcon";
 import { ServiceEmojiPicker } from "../../components/ServiceEmojiPicker";
 
 /**
@@ -84,7 +84,7 @@ export function ServiceComposerModal({
                   onClick={() => onPickPreset?.(service)}
                 >
                   <span className="artistServicePresetBadge">{service.badge}</span>
-                  <ServiceEmoji id={service.emoji} name={service.name} size={44} className="artistServicePresetEmoji" />
+                  <ServiceIcon emoji={service.emoji} name={service.name} size="lg" />
                   <strong>{service.name}</strong>
                   <small>{service.hint}</small>
                   <span className="artistServicePresetMeta">
@@ -101,11 +101,11 @@ export function ServiceComposerModal({
             <div className="artistServiceNameRow">
               <button
                 type="button"
-                className={`serviceEmojiSlot${draft.emoji ? " has" : ""}`}
+                className={`serviceEmojiSlot${draft.emoji || draft.name.trim() ? " has" : ""}`}
                 aria-label="انتخاب آیکن خدمت"
                 onClick={() => setPickerOpen(true)}
               >
-                {draft.emoji ? <ServiceEmoji id={draft.emoji} size={40} /> : <Plus size={20} />}
+                {draft.emoji || draft.name.trim() ? <ServiceIcon emoji={draft.emoji} name={draft.name} size="lg" /> : <Plus size={20} />}
               </button>
               <label className="artistServiceField">
                 <span>نام خدمت</span>

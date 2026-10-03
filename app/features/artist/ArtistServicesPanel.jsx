@@ -2,7 +2,7 @@
 
 import { CalendarCheck, Pencil, Plus, Timer, Trash2 } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
-import { ServiceEmoji } from "../../components/ServiceEmoji";
+import { ServiceIcon } from "../../components/ServiceIcon";
 import { ProfileEmptyState } from "../profile/ProfileEmptyState";
 
 /**
@@ -17,16 +17,18 @@ export function ArtistServicesPanel({
 }) {
   return (
     <section className="artistServiceBoard" aria-label="مدیریت خدمات آرتیست">
-      <div className="artistServiceHead">
-        <div className="artistServiceHeadActions">
-          <button type="button" onClick={onCreate}>
-            <Plus size={15} />
-            افزودن خدمت
-          </button>
+      <div className="svcToolbar">
+        <div>
+          <span>خدمات من</span>
+          <b>{toPersianDigits(services.length)} خدمت</b>
         </div>
+        <button type="button" className="svcAddBtn" onClick={onCreate}>
+          <Plus size={16} />
+          افزودن خدمت
+        </button>
       </div>
 
-      <div className="artistServiceList">
+      <div className="svcList">
         {services.length === 0 ? (
           <ProfileEmptyState
             className="artistServiceEmpty"
@@ -39,32 +41,30 @@ export function ArtistServicesPanel({
         ) : (
           services.map((service, index) => (
             <article
-              className={`artistServiceCard is-${service.tone || "soft"}${service.badge ? " has-badge" : ""}`}
+              className="svcCard"
               key={service.id}
               style={{ "--service-delay": `${index * 55}ms` }}
             >
-              <ServiceEmoji id={service.emoji} name={service.name} size={44} className="artistServiceEmoji" />
-              <div className="artistServiceMain">
-                <div className="artistServiceTitleRow">
+              <ServiceIcon emoji={service.emoji} name={service.name} size="lg" />
+              <div className="svcCardBody">
+                <div className="svcCardTitle">
                   <strong>{service.name}</strong>
-                  {service.badge ? (
-                    <em className={`artistServiceBadge is-${service.tone || "soft"}`}>{service.badge}</em>
-                  ) : null}
+                  {service.badge ? <em className="svcCardBadge">{service.badge}</em> : null}
                 </div>
-                <p>{service.hint}</p>
-                <div className="artistServiceMeta">
-                  <span><Timer size={13} /> {service.duration}</span>
-                  <span><CalendarCheck size={13} /> قابل رزرو</span>
+                {service.hint ? <p className="svcCardHint">{service.hint}</p> : null}
+                <div className="svcCardMeta">
+                  <span className="svcChip"><Timer size={12} /> {service.duration}</span>
+                  <span className="svcChip"><CalendarCheck size={12} /> قابل رزرو</span>
                 </div>
               </div>
-              <div className="artistServiceSide">
-                <b>{service.price ? `${toPersianDigits(service.price)} تومان` : "توافقی"}</b>
-                <div className="artistServiceActions">
+              <div className="svcCardSide">
+                <b className="svcPrice">{service.price ? `${toPersianDigits(service.price)} تومان` : "توافقی"}</b>
+                <div className="svcActions">
                   <button type="button" aria-label="ویرایش" title="ویرایش" onClick={() => onEdit?.(service)}>
-                    <Pencil size={14} />
+                    <Pencil size={15} />
                   </button>
                   <button type="button" className="danger" aria-label="حذف" title="حذف" onClick={() => onDelete?.(service.id)}>
-                    <Trash2 size={14} />
+                    <Trash2 size={15} />
                   </button>
                 </div>
               </div>

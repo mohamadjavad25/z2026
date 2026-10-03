@@ -1,6 +1,7 @@
 "use client";
 
 import { CalendarCheck, CheckCircle2, Phone, UserRound, X } from "lucide-react";
+import { ServiceIcon } from "../../components/ServiceIcon";
 import { DateTimeWheelPicker } from "../../components/DateTimeWheelPicker";
 import { ProfileSheet } from "../profile/ProfileSheet";
 import { salonClientBookingDays } from "../artist/constants";
@@ -18,6 +19,8 @@ export function SalonClientBookingModal({
 }) {
   if (!open || !salon) return null;
 
+  const serviceEmoji = (Array.isArray(salon.services) ? salon.services : [])
+    .find((item) => item.name === booking.service)?.emoji || "";
   const profileName = booking.client || "مشتری زیبابان";
   const hasPhone = Boolean(booking.phone);
   const profilePhone = booking.phone || "شماره تماس ثبت نشده";
@@ -47,6 +50,7 @@ export function SalonClientBookingModal({
             <CalendarCheck size={14} />
             {booking.day}
           </button>
+          <ServiceIcon emoji={serviceEmoji} name={booking.service} size="md" />
           <div>
             <strong>{booking.service}</strong>
             <small>{salon.name}</small>

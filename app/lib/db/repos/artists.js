@@ -5,7 +5,7 @@ import { resolveRollingPersianDateKey } from "../../../shared/lib/persianCalenda
 import { normalizeBookingTimeLabel } from "../../../shared/lib/time.js";
 import { normalizePhone } from "./salons/common.js";
 import { isProfileSaved } from "./social.js";
-import { normalizeServiceEmoji } from "./serviceEmoji.js";
+import { normalizeServiceEmoji, resolveBookingServiceEmoji } from "./serviceEmoji.js";
 import { getSettings, DEFAULT_SETTINGS } from "./userSettings.js";
 
 export { ensureArtistHours, listArtistHours, updateArtistHour } from "./artists/hours.js";
@@ -429,6 +429,7 @@ export async function syncSalonBookingsForArtist(artistUserId) {
       client: booking.client,
       phone: booking.phone,
       service: booking.service,
+      serviceEmoji: booking.service_emoji,
       bookingDate: booking.booking_date,
       time: booking.time,
       sourceSalonUserId: booking.salon_user_id,
@@ -552,6 +553,7 @@ export async function updateArtistBookingRow(bookingId, fields = {}, runner = nu
     client_name: fields.client_name ?? fields.client ?? current.client_name,
     client_phone: fields.client_phone ?? fields.phone ?? current.client_phone,
     service: fields.service ?? current.service,
+    service_emoji: current.service_emoji || "",
     booking_date: resolveRollingPersianDateKey(
       fields.booking_date ?? fields.bookingDate ?? fields.date ?? current.booking_date
     ),
@@ -562,11 +564,22 @@ export async function updateArtistBookingRow(bookingId, fields = {}, runner = nu
     ),
     status: fields.status ?? current.status
   };
+  // Re-snapshot the icon only when the service changed (or one is supplied).
+  if (fields.service_emoji != null || String(next.service || "") !== String(current.service || "")) {
+    next.service_emoji = await resolveBookingServiceEmoji(db, {
+      kind: "artist",
+      ownerId: current.artist_user_id,
+      service: next.service,
+      explicit: fields.service_emoji
+    }) || (current.source_salon_user_id
+      ? await resolveBookingServiceEmoji(db, { kind: "salon", ownerId: current.source_salon_user_id, service: next.service })
+      : "");
+  }
   await run(db, `
     UPDATE artist_bookings
     SET client_name = $1, client_phone = $2, service = $3, booking_date = $4, time = $5,
-        duration_minutes = $6, status = $7, updated_at = CURRENT_TIMESTAMP
-    WHERE id = $8
+        duration_minutes = $6, status = $7, service_emoji = $8, updated_at = CURRENT_TIMESTAMP
+    WHERE id = $9
   `, [
     next.client_name || "",
     next.client_phone || "",
@@ -575,6 +588,7 @@ export async function updateArtistBookingRow(bookingId, fields = {}, runner = nu
     next.time || "",
     next.duration_minutes,
     next.status || "تازه",
+    next.service_emoji || "",
     Number(bookingId)
   ]);
   return get(db, "SELECT * FROM artist_bookings WHERE id = $1", [Number(bookingId)]);
@@ -610,18 +624,28 @@ export async function addArtistBookingInTx(artistUserId, data, runner = null) {
     return { ok: false, error: "این بازه زمانی با نوبت دیگری تداخل دارد.", code: "SLOT_TAKEN" };
   }
 
+  const sourceSalonUserId = data.sourceSalonUserId || data.source_salon_user_id || null;
+  const serviceEmoji = await resolveBookingServiceEmoji(db, {
+    kind: "artist",
+    ownerId: artistUserId,
+    service: data.service,
+    explicit: data.serviceEmoji ?? data.service_emoji
+  }) || (sourceSalonUserId
+    ? await resolveBookingServiceEmoji(db, { kind: "salon", ownerId: sourceSalonUserId, service: data.service })
+    : "");
   const info = await run(db, `
     INSERT INTO artist_bookings
-      (artist_user_id, client_user_id, source_salon_user_id, client_name, client_phone, service, booking_date, time, duration_minutes, status)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      (artist_user_id, client_user_id, source_salon_user_id, client_name, client_phone, service, service_emoji, booking_date, time, duration_minutes, status)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
     RETURNING id
   `, [
     artistUserId,
     data.clientUserId || null,
-    data.sourceSalonUserId || data.source_salon_user_id || null,
+    sourceSalonUserId,
     data.clientName || data.client || "",
     data.clientPhone || data.phone || "",
     data.service || "",
+    serviceEmoji,
     bookingDate,
     time,
     durationMinutes,
