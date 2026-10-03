@@ -217,12 +217,15 @@ export function useSalonWorkspace({
   const refreshSalonSystemData = useCallback(async () => {
     const epoch = ++salonBookingsEpochRef.current;
     try {
+      // The public directory is the heaviest call and nothing in the owner's own
+      // tools waits on it: start it now, but apply the owner data first and sync
+      // the directory when it lands instead of blocking the whole refresh on it.
+      const salonsPromise = getSalons().catch(() => ({ ok: false }));
       const [
         servicesRes,
         portfolioRes,
         bookingsRes,
         staffRes,
-        salonsRes,
         hoursRes,
         collabsRes,
         invitesRes
@@ -231,7 +234,6 @@ export function useSalonWorkspace({
         getSalonPortfolio(),
         getSalonBookings(),
         getSalonStaff(),
-        getSalons(),
         getSalonHours(),
         getSalonCollabs(),
         getSalonInvites()
@@ -252,6 +254,15 @@ export function useSalonWorkspace({
       setSalonArtistInviteList(invitesRes.data?.invites || []);
       setSelectedStaffName((current) => current || nextStaff[0]?.name || "");
 
+      pushBookingDefaults({
+        staffName: nextStaff[0]?.name || "",
+        serviceName: nextServices[0]?.name || "",
+        date: nextHours.find((hour) => hour.active)?.day || "امروز"
+      });
+      setSalonWorkspaceLoading(false);
+
+      const salonsRes = await salonsPromise;
+      if (!salonsRes.ok) return;
       const nextSalonDirectory = salonsRes.data?.salons || [];
       syncSalonDirectory(nextSalonDirectory);
       syncSelectedSalon((current) => {
@@ -261,12 +272,6 @@ export function useSalonWorkspace({
           || String(salon.source_key || "") === String(current.source_key || "")
           || salon.name === current.name
         )) || current;
-      });
-
-      pushBookingDefaults({
-        staffName: nextStaff[0]?.name || "",
-        serviceName: nextServices[0]?.name || "",
-        date: nextHours.find((hour) => hour.active)?.day || "امروز"
       });
     } catch {
       // keep current salon workspace data
