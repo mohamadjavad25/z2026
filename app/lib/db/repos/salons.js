@@ -28,6 +28,8 @@ export {
   createSalonArtistInvite,
   cancelSalonArtistInvite,
   respondArtistSalonInvite,
+  listArtistTeams,
+  leaveSalonTeam,
   joinSalonByArtist,
   getSalonJoinPreview
 } from "./salons/invites.js";

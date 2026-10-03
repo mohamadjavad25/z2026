@@ -2,6 +2,8 @@ import { error, json, notFound, requireUserRole, withErrorHandling } from "../..
 import * as artists from "../../../lib/db/repos/artists.js";
 import * as salons from "../../../lib/db/repos/salons.js";
 import { sendPushToUser } from "../../../lib/push.js";
+import { notifyConnection } from "../../../lib/connectionNotify.js";
+import { checkRateLimit } from "../../../lib/rateLimit.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -52,8 +54,18 @@ async function _POST(request) {
     return json({ data: { breakTime: result?.break || await artists.getArtistBreak(auth.user.id) } });
   }
   if (body.kind === "collab") {
-    const collab = await artists.addArtistCollab(auth.user.id, body);
-    return json({ data: { collab } }, { status: 201 });
+    const limited = await checkRateLimit(`artist-collab:${auth.user.id}`, 10, 60_000);
+    if (!limited.ok) return error("درخواست‌های زیاد. کمی صبر کن.", 429);
+    const result = await artists.addArtistCollab(auth.user.id, body);
+    if (!result.ok) {
+      return json({ error: result.error, code: result.code }, { status: result.code === "SALON_NOT_FOUND" ? 404 : 400 });
+    }
+    notifyConnection(result.collab.salonId, {
+      title: "پیشنهاد همکاری تازه",
+      body: `${auth.user.name || "یک آرتیست"} می‌خواهد با سالنت همکاری کند.`,
+      url: "/"
+    });
+    return json({ data: { collab: result.collab } }, { status: 201 });
   }
   const service = await artists.addArtistService(auth.user.id, body);
   return json({ data: { service } }, { status: 201 });

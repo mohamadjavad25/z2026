@@ -112,9 +112,11 @@ export function JoinSalonPageClient({ salon }) {
           </div>
         ) : (
           <>
-            <p className="joinSalonHint">
-              با تایید، به‌عنوان آرتیست به تیم «{salon.name}» اضافه می‌شوی و می‌توانی نوبت‌ها را از همان‌جا مدیریت کنی.
-            </p>
+            <ul className="joinSalonPerks">
+              <li>نوبت‌های مشتری‌های سالن در برنامه‌ات هم نشان داده می‌شود</li>
+              <li>سالن بلافاصله از پیوستن تو باخبر می‌شود</li>
+              <li>هر زمان خواستی از بخش «همکاری» می‌توانی تیم را ترک کنی</li>
+            </ul>
             {errorText ? <p className="joinSalonHint is-warning">{errorText}</p> : null}
             <button type="button" className="joinSalonAction" disabled={status === "joining"} onClick={handleJoin}>
               {status === "joining" ? "در حال پیوستن..." : `پیوستن به تیم ${salon.name}`}

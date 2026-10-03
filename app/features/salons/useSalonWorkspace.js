@@ -7,7 +7,6 @@ import {
   createSalonInvite,
   createSalonPortfolio,
   createSalonService as createSalonServiceApi,
-  createSalonStaff,
   deleteSalonInvite,
   deleteSalonPortfolio as deleteSalonPortfolioApi,
   deleteSalonService as deleteSalonServiceApi,
@@ -27,10 +26,6 @@ import {
   updateSalonService as updateSalonServiceApi,
   updateSalonStaff as updateSalonStaffApi
 } from "../../shared/api/salons";
-import {
-  salonArtistRoleOptions as defaultSalonArtistRoleOptions,
-  salonArtistStatusOptions as defaultSalonArtistStatusOptions
-} from "../../shared/constants/roles";
 import { getApiErrorMessage, notifyFromResponse } from "../../shared/lib/apiNotify";
 import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar";
 import { buildSalonStaffByName } from "../profile/ScheduleRow";
@@ -83,8 +78,6 @@ import { buildSalonStaffByName } from "../profile/ScheduleRow";
  *   onSalonDirectorySync?: (salons: any[] | ((items: any[]) => any[])) => void,
  *   onSelectedSalonSync?: (updater: any | ((current: any) => any)) => void,
  *   onBookingDefaults?: (defaults: { staffName?: string, serviceName?: string, date?: string }) => void,
- *   salonArtistRoleOptions?: string[],
- *   salonArtistStatusOptions?: string[]
  * }} options
  */
 export function useSalonWorkspace({
@@ -99,8 +92,6 @@ export function useSalonWorkspace({
   onSalonDirectorySync,
   onSelectedSalonSync,
   onBookingDefaults,
-  salonArtistRoleOptions = defaultSalonArtistRoleOptions,
-  salonArtistStatusOptions = defaultSalonArtistStatusOptions
 } = {}) {
   const notify = useCallback((message) => {
     if (typeof onNotice === "function" && message) onNotice(message);
@@ -141,7 +132,6 @@ export function useSalonWorkspace({
   const [selectedStaffName, setSelectedStaffName] = useState("");
   const [selectedArtistProfile, setSelectedArtistProfile] = useState(null);
   const [selectedBookingClient, setSelectedBookingClient] = useState(null);
-  const [artistCreateOpen, setArtistCreateOpen] = useState(false);
   const [artistInviteOpen, setArtistInviteOpen] = useState(false);
   const [nearbyArtists, setNearbyArtists] = useState([]);
   const [nearbyArtistsLoading, setNearbyArtistsLoading] = useState(false);
@@ -153,8 +143,6 @@ export function useSalonWorkspace({
   const [salonRequestBusyId, setSalonRequestBusyId] = useState("");
   const salonRequestBusyIdRef = useRef("");
   const [salonWorkspaceLoading, setSalonWorkspaceLoading] = useState(true);
-  const [artistCreateRole, setArtistCreateRole] = useState(salonArtistRoleOptions[0]);
-  const [artistCreateStatus, setArtistCreateStatus] = useState(salonArtistStatusOptions[0]);
   const [salonWorkDraft, setSalonWorkDraft] = useState(null);
   const [salonWorkTagMenuOpen, setSalonWorkTagMenuOpen] = useState(false);
   const [portfolioSaving, setPortfolioSaving] = useState(false);
@@ -549,36 +537,6 @@ export function useSalonWorkspace({
       setSalonRequestBusyId("");
     }
   }, [shellNotify]);
-
-  const addSalonStaff = useCallback(async (event) => {
-    event.preventDefault();
-    const data = Object.fromEntries(new FormData(event.currentTarget).entries());
-    const nextName = data.name || "عضو جدید";
-    try {
-      const result = await createSalonStaff({
-        name: nextName,
-        phone: data.phone || "",
-        role: data.role || "متخصص زیبایی",
-        bio: data.bio || "",
-        booked: "۰ وقت",
-        state: data.shift || "فعال",
-        access_level: "آرتیست"
-      });
-      if (!notifyFromResponse(shellNotify, result, { failure: "ثبت پرسنل انجام نشد؛ دوباره امتحان کن." })) {
-        return;
-      }
-      const nextStaff = Array.isArray(result.payload.data?.staff) ? result.payload.data.staff : [];
-      setSalonStaffList(nextStaff);
-      setSelectedStaffName(nextName);
-      shellNotify("پرسنل جدید در دیتابیس سالن ذخیره شد.");
-      setArtistCreateOpen(false);
-      setArtistCreateRole(salonArtistRoleOptions[0]);
-      setArtistCreateStatus(salonArtistStatusOptions[0]);
-      event.currentTarget.reset();
-    } catch {
-      shellNotify("ثبت پرسنل انجام نشد؛ دوباره امتحان کن.");
-    }
-  }, [shellNotify, salonArtistRoleOptions, salonArtistStatusOptions]);
 
   const openNearbyArtistInvite = useCallback(async () => {
     setArtistInviteOpen(true);
@@ -1166,18 +1124,15 @@ export function useSalonWorkspace({
     setSelectedStaffName("");
     setSelectedArtistProfile(null);
     setSelectedBookingClient(null);
-    setArtistCreateOpen(false);
     setArtistInviteOpen(false);
     setNearbyArtists([]);
     setNearbyArtistsLoading(false);
     setArtistInviteBusyId("");
-    setArtistCreateRole(salonArtistRoleOptions[0]);
-    setArtistCreateStatus(salonArtistStatusOptions[0]);
     setSalonWorkDraft(null);
     setSalonWorkTagMenuOpen(false);
     setPortfolioSaving(false);
     setServiceArtistMenuId(null);
-  }, [salonArtistRoleOptions, salonArtistStatusOptions]);
+  }, []);
 
   return {
     salonBookingsEpochRef,
@@ -1214,8 +1169,6 @@ export function useSalonWorkspace({
     setSelectedArtistProfile,
     selectedBookingClient,
     setSelectedBookingClient,
-    artistCreateOpen,
-    setArtistCreateOpen,
     artistInviteOpen,
     setArtistInviteOpen,
     nearbyArtists,
@@ -1227,10 +1180,6 @@ export function useSalonWorkspace({
     scheduleBookingBusy,
     salonRequestBusyId,
     salonWorkspaceLoading,
-    artistCreateRole,
-    setArtistCreateRole,
-    artistCreateStatus,
-    setArtistCreateStatus,
     salonWorkDraft,
     setSalonWorkDraft,
     salonWorkTagMenuOpen,
@@ -1255,7 +1204,6 @@ export function useSalonWorkspace({
     approveReservationRequest,
     declineReservationRequest,
     updateSalonCollabRequest,
-    addSalonStaff,
     openNearbyArtistInvite,
     inviteNearbyArtist,
     cancelSalonArtistInvite,

@@ -1,5 +1,6 @@
 import { json, notFound, requireUserRole, withErrorHandling } from "../../../lib/http.js";
 import * as salons from "../../../lib/db/repos/salons.js";
+import { notifyConnection } from "../../../lib/connectionNotify.js";
 
 export const runtime = "nodejs";
 
@@ -26,6 +27,14 @@ async function _PATCH(request) {
     if (result.code === "NOT_FOUND") return notFound();
     return json({ error: result.error, code: result.code, invite: result.invite || null }, { status: statusCode });
   }
+  const accepted = result.invite?.status === "تایید شد";
+  notifyConnection(result.invite?.salonId, {
+    title: accepted ? "آرتیست به تیم پیوست" : "دعوت رد شد",
+    body: accepted
+      ? `${auth.user.name || "آرتیست"} دعوتت را پذیرفت و حالا عضو تیم است.`
+      : `${auth.user.name || "آرتیست"} دعوتت را نپذیرفت.`,
+    url: "/"
+  });
   return json({
     data: {
       invite: result.invite,

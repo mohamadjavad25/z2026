@@ -86,6 +86,19 @@ export async function respondArtistInvite(body) {
   });
 }
 
+/** GET /api/artist/teams → { data: { teams } } the salons this artist belongs to */
+export async function getArtistTeams() {
+  return apiJson("/api/artist/teams");
+}
+
+/** DELETE /api/artist/teams { salonUserId } → leave that team → { data: { teams } } */
+export async function leaveArtistTeam(body) {
+  return apiFetch("/api/artist/teams", {
+    method: "DELETE",
+    body: JSON.stringify(body)
+  });
+}
+
 /** POST /api/follows → { data: { following, followerCount, … } } body: { targetUserId } */
 export async function toggleFollow(body) {
   return apiFetch("/api/follows", {

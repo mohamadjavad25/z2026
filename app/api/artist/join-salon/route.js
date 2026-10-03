@@ -1,5 +1,6 @@
 import { json, notFound, requireUserRole, withErrorHandling } from "../../../lib/http.js";
 import * as salons from "../../../lib/db/repos/salons.js";
+import { notifyConnection } from "../../../lib/connectionNotify.js";
 
 export const runtime = "nodejs";
 
@@ -19,6 +20,11 @@ async function _POST(request) {
     if (result.code === "SALON_NOT_FOUND") return notFound(result.error);
     return json({ error: result.error, code: result.code }, { status: 400 });
   }
+  notifyConnection(salonUserId, {
+    title: "آرتیست جدید در تیم",
+    body: `${auth.user.name || "یک آرتیست"} با کد QR سالنت به تیم پیوست.`,
+    url: "/"
+  });
   return json({ data: result }, { status: 201 });
 }
 

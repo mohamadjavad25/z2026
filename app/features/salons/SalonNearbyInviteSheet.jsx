@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Check, ChevronDown, Copy, QrCode, Search, Send } from "lucide-react";
+import { Check, ChevronDown, Copy, QrCode, Send } from "lucide-react";
 import { ProfileSheet } from "../profile/ProfileSheet";
 import { useQrCode } from "../../shared/hooks/useQrCode";
 import { CAPACITY_PRESETS, DAY_PRESETS, HOUR_RANGE_PRESETS, PresetRow, SHARE_PRESETS } from "../collab/collabPresets";
+import { ServiceIcon } from "../../components/ServiceIcon";
+import { ServiceIconStrip } from "../../components/ServiceIconStrip";
 
 const DEFAULT_TERMS = {
   days: DAY_PRESETS[2].value,
@@ -167,12 +169,13 @@ export function SalonNearbyInviteSheet({
             return (
               <div className="artistInviteEntry" key={id}>
                 <article className="artistInviteRow">
-                  <span className={`artistInviteAvatar ${artist.avatar ? "hasImage" : ""}`} aria-hidden="true">
-                    {artist.avatar ? <img src={artist.avatar} alt="" /> : String(artist.name || "آ").slice(0, 1)}
+                  <span className="artistInviteAvatar hasImage" aria-hidden="true">
+                    <img src={artist.avatar || "/profile-icon.svg"} alt="" />
                   </span>
                   <div className="artistInviteCopy">
                     <b>{artist.name || "آرتیست زیبابان"}</b>
-                    <span>
+                    <span className="inviteRole">
+                      <ServiceIcon name={artist.service} size="xs" />
                       {artist.service || "آرتیست"}
                       {artist.area ? ` · ${artist.area}` : ""}
                     </span>
@@ -202,9 +205,10 @@ export function SalonNearbyInviteSheet({
           })}
         </div>
       ) : (
-        <div className="artistInviteEmpty">
-          <Search size={18} aria-hidden="true" />
-          آرتیست آزادی برای دعوت پیدا نشد.
+        <div className="artistInviteEmpty is-lively">
+          <ServiceIconStrip ids={["haircut", "manicure", "lipstick"]} size="md" />
+          <b>آرتیست آزادی نزدیکت پیدا نشد</b>
+          <span>کد QR بالا را برای آرتیست‌ها بفرست تا مستقیم به تیم بپیوندند.</span>
         </div>
       )}
     </ProfileSheet>
