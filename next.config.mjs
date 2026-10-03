@@ -59,6 +59,8 @@ if (process.env.NODE_ENV === "production") {
 }
 
 const nextConfig = {
+  // Stop `next dev` from auto-generating AGENTS.md / CLAUDE.md in the repo root.
+  agentRules: false,
   // "*.*.*.*" allows any IPv4 host (e.g. your PC's address on a phone
   // hotspot / home Wi-Fi) to load the dev server from another device on
   // the same network, without hardcoding one specific IP that changes
