@@ -1,4 +1,4 @@
-import { CalendarCheck, ImagePlus, Store, Timer, UserRound } from "lucide-react";
+import { PageIcon } from "../../components/PageIcon";
 
 export function ProfileModeRail({
   profileType,
@@ -10,8 +10,9 @@ export function ProfileModeRail({
   onProfileView,
   placement = "panel"
 }) {
-  const OverviewIcon = activeRoleMeta.overviewIcon;
-  const DockOverviewIcon = profileType === "artist" && placement === "dock" ? ImagePlus : OverviewIcon;
+  // Overview icon per role: storefront for a salon, posts for an artist's dock,
+  // person for everyone else.
+  const overviewIconName = profileType === "salon" ? "salon" : profileType === "artist" && placement === "dock" ? "posts" : "me";
   const overviewLabel = profileType === "artist" && placement === "panel" ? "من" : activeRoleMeta.overviewLabel;
 
   return (
@@ -21,7 +22,7 @@ export function ProfileModeRail({
     >
       {profileType === "salon" && (
         <button type="button" className={salonWorkspace === "portfolio" ? "active" : ""} onClick={() => onSalonWorkspace("portfolio")}>
-          <ImagePlus size={16} />
+          <PageIcon name="posts" size={20} />
           <span>پست‌ها</span>
         </button>
       )}
@@ -33,7 +34,7 @@ export function ProfileModeRail({
           onClick={onOverview}
           aria-label={overviewLabel}
         >
-          <DockOverviewIcon size={16} />
+          <PageIcon name={overviewIconName} size={20} />
           {placement !== "dock" && <span>{overviewLabel}</span>}
         </button>
       )}
@@ -41,11 +42,11 @@ export function ProfileModeRail({
       {profileType === "salon" && (
         <>
           <button type="button" className={salonWorkspace === "staff" ? "active" : ""} onClick={() => onSalonWorkspace("staff")}>
-            <UserRound size={16} />
+            <PageIcon name="staff" size={20} />
             <span>پرسنل</span>
           </button>
           <button type="button" className={salonWorkspace === "hours" ? "active" : ""} onClick={() => onSalonWorkspace("hours")}>
-            <Timer size={16} />
+            <PageIcon name="services" size={20} />
             <span>خدمات</span>
           </button>
         </>
@@ -54,7 +55,7 @@ export function ProfileModeRail({
       {profileType === "artist" && (
         <>
           <button type="button" className={profileView === "overview" ? "active" : ""} onClick={onOverview}>
-            <ImagePlus size={16} />
+            <PageIcon name="posts" size={20} />
             <span>نمونه‌کار</span>
           </button>
           <button
@@ -71,22 +72,22 @@ export function ProfileModeRail({
               });
             }}
           >
-            <CalendarCheck size={16} />
+            <PageIcon name="bookings" size={20} />
             <span>رزروها</span>
           </button>
           <button type="button" className={profileView === "services" ? "active" : ""} onClick={() => onProfileView("services")}>
-            <Timer size={16} />
+            <PageIcon name="services" size={20} />
             <span>خدمات</span>
           </button>
           <button type="button" className={profileView === "collabs" ? "active" : ""} onClick={() => onProfileView("collabs")}>
-            <Store size={16} />
+            <PageIcon name="collab" size={20} />
             <span>همکاری</span>
           </button>
         </>
       )}
       {profileType === "client" && (
         <button type="button" className={profileView === "bookings" ? "active" : ""} onClick={() => onProfileView("bookings")}>
-          <CalendarCheck size={16} />
+          <PageIcon name="activity" size={20} />
           <span>فعالیت من</span>
         </button>
       )}

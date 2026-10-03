@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { PageIcon } from "../../components/PageIcon";
+import { CollabIllustration } from "../../components/CollabIllustration";
 import { createPortal } from "react-dom";
 import { Check, ChevronDown, MapPin, Send, Sparkles, Store, Trash2, Users, X } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
@@ -309,6 +311,17 @@ export function ArtistCollabBoard({
   return (
     <>
     <section className="collabBoard" aria-label="همکاری آرتیست با سالن‌ها">
+      <div className="collabHero">
+        <CollabIllustration />
+        <h3>با سالن‌ها همکار شو</h3>
+        <p>پیشنهادت را بفرست؛ اگر سالن قبول کند، عضو تیمش می‌شوی و رزروها را با هم مدیریت می‌کنید.</p>
+        <ol className="collabSteps">
+          <li><b>۱</b><span>سالن را انتخاب کن</span></li>
+          <li><b>۲</b><span>خدمت، سهم و روزهایت را بنویس</span></li>
+          <li><b>۳</b><span>منتظر پاسخ سالن بمان</span></li>
+        </ol>
+      </div>
+
       {pendingInvites.length > 0 ? (
         <div className="collabSection">
           <small className="collabSectionLabel">دعوت سالن‌ها</small>
@@ -352,7 +365,7 @@ export function ArtistCollabBoard({
       ) : null}
 
       <div className="collabSection">
-        <small className="collabSectionLabel">ارسال درخواست همکاری</small>
+        <small className="collabSectionLabel">سالن‌هایی که همکار می‌پذیرند</small>
 
         {hiringSalons.length ? (
           <div className="collabSalonPicker" role="listbox" aria-label="انتخاب سالن">
@@ -375,9 +388,10 @@ export function ArtistCollabBoard({
             })}
           </div>
         ) : (
-          <div className="collabEmpty">
-            <Store size={22} />
-            <span>فعلا سالنی برای همکاری موجود نیست.</span>
+          <div className="collabEmpty is-lively">
+            <PageIcon name="discover" size={44} />
+            <b>هنوز سالنی آماده‌ی همکاری نیست</b>
+            <span>سالن‌ها بعد از تکمیل معرفی و خدماتشان اینجا پیدا می‌شوند؛ کمی بعد دوباره سر بزن.</span>
           </div>
         )}
       </div>
@@ -411,9 +425,10 @@ export function ArtistCollabBoard({
             })}
           </div>
         ) : (
-          <div className="collabEmpty">
-            <Store size={22} />
-            <span>هنوز پیشنهادی نساخته‌ای.</span>
+          <div className="collabEmpty is-lively">
+            <PageIcon name="collab" size={44} />
+            <b>هنوز پیشنهادی نفرستاده‌ای</b>
+            <span>یک سالن را از بالا انتخاب کن و اولین پیشنهاد همکاری‌ات را بساز.</span>
           </div>
         )}
       </div>
