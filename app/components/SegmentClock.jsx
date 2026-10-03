@@ -93,7 +93,9 @@ function Segment({ active, color, size, id, skew }) {
 
   const innerStyle = {
     backgroundColor: color,
-    filter: active ? "opacity(1) grayscale(0)" : "opacity(0.3) grayscale(0.7)",
+    // Unlit segments stay faintly visible (LCD look) but must never compete
+    // with the lit ones -- times are the key info on every booking.
+    filter: active ? "opacity(1) grayscale(0)" : "opacity(0.07) grayscale(1)",
     color,
     clipPath: ss.clipPath,
     WebkitClipPath: ss.clipPath,

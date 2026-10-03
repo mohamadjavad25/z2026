@@ -187,68 +187,64 @@ export const ScheduleRow = memo(function ScheduleRow({
   const phaseTagClass = showStatusTag ? `is-status-${statusTone}` : `is-${phase}`;
   const phaseTagLabel = showStatusTag ? (rawStatus || "درخواست") : phaseLabel;
 
+  const chipClass = showStatusTag ? `is-status-${statusTone}` : `is-${phase || "upcoming"}`;
+
   return (
-    <article
-      className={`todayScheduleRow is-${phase || "upcoming"} ${isClientBooking ? "is-clientBookingRow" : ""}`.trim()}
+    <div
+      className={`bkRow is-${phase || "upcoming"}${showStatusTag ? ` is-tone-${statusTone}` : ""}${isClientBooking ? " is-client" : ""}`}
       data-phase={phase}
+      role="group"
+      aria-label={`${title}، ${meta}، ${date}، ${time}`}
     >
-      <div
-        className="scheduleMeta"
-        aria-label={`${title}، ${meta}، ${date}`}
-      >
-        <span className={`scheduleClientAvatar ${clientAvatar ? "hasImage" : ""}`} aria-hidden="true">
-          {clientAvatar ? <img src={clientAvatar} alt="" /> : clientInitial}
-        </span>
-        <div className="scheduleMetaCopy">
+      <ServiceIcon emoji={booking.serviceEmoji} name={service} size="md" className="bkIcon" />
+
+      <div className="bkBody">
+        <div className="bkTitle">
           <b>{title}</b>
-          <span>
-            <ServiceIcon emoji={booking.serviceEmoji} name={service} size="xs" className="svcInlineIcon" />
-            {meta}
-            <i aria-hidden="true">•</i>
-            {date}
-          </span>
-          {!isClientBooking ? (
-            <div className="artistVisitRow" aria-label={`${toPersianDigits(visitCount)} رزرو این مشتری`}>
-              <div className="artistVisitGrid" title={`${toPersianDigits(visitCount)} از ۱۰`}>
-                {visits.map((level, index) => (
-                  <i
-                    key={`${booking.id ?? `${time}-${client}`}-visit-${index}`}
-                    className={`is-l${level}`}
-                    aria-hidden="true"
-                  />
-                ))}
-              </div>
-            </div>
-          ) : null}
+          {!isClientBooking || showStatusTag ? <span className={`bkChip ${chipClass}`}>{phaseTagLabel}</span> : null}
         </div>
+        <div className="bkMeta">
+          <span>{meta}</span>
+          <i aria-hidden="true" />
+          <span>{date}</span>
+        </div>
+        {!isClientBooking ? (
+          <div className="bkFoot">
+            <span className="bkWho">
+              <span className={`bkWhoAvatar ${staffAvatar ? "hasImage" : ""}`} aria-hidden="true">
+                {staffAvatar ? (
+                  <img src={staffAvatar} alt="" />
+                ) : sourceSalon ? (
+                  <Store size={12} />
+                ) : (
+                  staffInitial
+                )}
+              </span>
+              {staffLabel}
+            </span>
+            <span className="bkVisits" aria-label={`${toPersianDigits(visitCount)} رزرو این مشتری`} title={`${toPersianDigits(visitCount)} از ۱۰`}>
+              {visits.map((level, index) => (
+                <i key={`${booking.id ?? `${time}-${client}`}-visit-${index}`} className={`is-l${level}`} aria-hidden="true" />
+              ))}
+            </span>
+          </div>
+        ) : null}
       </div>
-      <div className="scheduleTimeWrap">
-        <SegmentClock value={time} size="xs" backgroundColor="transparent" />
-        {!isClientBooking ? <small className={`schedulePhaseTag ${phaseTagClass}`}>{phaseTagLabel}</small> : null}
-      </div>
-      <div className="scheduleStaffCol">
+
+      <div className="bkSide">
+        <div className="bkTime">
+          <SegmentClock value={time} size="xs" backgroundColor="transparent" />
+        </div>
         <button
           type="button"
-          className="scheduleBookingMore"
+          className="bkMore"
           aria-label={`مدیریت رزرو ${client}`}
           title="گزینه‌های رزرو"
           onClick={() => onAction?.(actionPayload)}
         >
           <MoreHorizontal size={18} />
         </button>
-        {!isClientBooking ? <div className="scheduleStaff">
-          <span className={`scheduleStaffAvatar ${staffAvatar ? "hasImage" : ""}`} aria-hidden="true">
-            {staffAvatar ? (
-              <img src={staffAvatar} alt="" />
-            ) : sourceSalon && !staffAvatar ? (
-              <Store size={14} />
-            ) : (
-              staffInitial
-            )}
-          </span>
-          <small>{staffLabel}</small>
-        </div> : null}
       </div>
-    </article>
+    </div>
   );
 }, scheduleRowPropsAreEqual);

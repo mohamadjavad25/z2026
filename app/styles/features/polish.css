@@ -135,3 +135,161 @@
 
 .salonPromoHeader.salonPromoHeader .salonPromoHeaderBody b { color: #14161d; }
 .salonPromoHeader.salonPromoHeader .salonPromoHeaderBody span { color: #6f7380; }
+
+/* ═══ Booking rows (ScheduleRow) ═════════════════════════════════════════ */
+.bkRow {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #ececf0;
+  border-radius: 22px;
+  background: #ffffff;
+  color: #14161d;
+  box-shadow: 0 6px 18px rgba(20, 22, 29, 0.05);
+  overflow: hidden;
+}
+
+/* phase accent: a slim bar on the leading edge */
+.bkRow::before {
+  content: "";
+  position: absolute;
+  inset-block: 14px;
+  inset-inline-start: 0;
+  width: 4px;
+  border-radius: 0 4px 4px 0;
+  background: #14161d;
+}
+
+.bkRow.is-live::before { background: #1fb583; }
+.bkRow.is-done::before { background: #c9ccd6; }
+.bkRow.is-tone-pending::before { background: #f0a020; }
+.bkRow.is-tone-bad::before,
+.bkRow.is-tone-expired::before { background: #c14545; }
+
+.bkRow.is-done { background: #fafafc; }
+.bkRow.is-done .bkIcon { filter: saturate(0.5); opacity: 0.85; }
+.bkRow.is-done .bkTitle b { color: #6f7380; }
+
+.bkRow.is-live {
+  border-color: #bfeadb;
+  box-shadow: 0 0 0 3px rgba(31, 181, 131, 0.12), 0 6px 18px rgba(20, 22, 29, 0.05);
+}
+
+.bkIcon { flex: none; }
+
+.bkBody { flex: 1 1 auto; min-width: 0; display: grid; gap: 4px; }
+
+.bkTitle { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 8px; }
+.bkTitle b { color: #14161d; font-size: 0.95rem; font-weight: 950; line-height: 1.3; }
+
+.bkChip {
+  min-height: 21px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 9px;
+  border-radius: 999px;
+  background: #f1f1f5;
+  color: #4b4f5c;
+  font-size: 0.62rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.bkChip.is-upcoming { background: #e8f0fb; color: #2b5fb8; }
+.bkChip.is-live { background: #e2f7ef; color: #11805c; }
+.bkChip.is-done { background: #f1f1f5; color: #6f7380; }
+.bkChip.is-status-pending { background: #fff1d6; color: #a86a00; }
+.bkChip.is-status-bad,
+.bkChip.is-status-expired { background: #fdecec; color: #b13a3a; }
+
+.bkMeta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  color: #6f7380;
+  font-size: 0.74rem;
+  font-weight: 750;
+}
+
+.bkMeta i { width: 3px; height: 3px; border-radius: 50%; background: #b9bcc8; }
+
+.bkFoot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 2px; }
+
+.bkWho {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  color: #4b4f5c;
+  font-size: 0.68rem;
+  font-weight: 850;
+}
+
+.bkWhoAvatar {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  background: #f1f1f5;
+  color: #4b4f5c;
+  font-size: 0.62rem;
+  font-weight: 950;
+}
+
+.bkWhoAvatar img { width: 100%; height: 100%; object-fit: cover; }
+
+.bkVisits { display: inline-flex; gap: 2px; direction: ltr; }
+.bkVisits i { width: 5px; height: 5px; border-radius: 2px; background: #e4e4ea; }
+.bkVisits i.is-l1 { background: #c9ccd6; }
+.bkVisits i.is-l2 { background: #8f93a3; }
+.bkVisits i.is-l3 { background: #14161d; }
+
+.bkSide { flex: none; display: grid; justify-items: center; gap: 4px; }
+
+.bkTime {
+  padding: 4px 6px;
+  border-radius: 12px;
+  background: #f6f6f8;
+}
+
+.bkMore {
+  width: 34px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #6f7380;
+  cursor: pointer;
+}
+
+.bkMore:hover,
+.bkMore:focus-visible { background: #f1f1f5; color: #14161d; }
+
+/* Client booking feature card: service icon leads, salon avatar trails. */
+:root .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingFeatureTop {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 12px;
+}
+
+:root .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingFeatureTop .serviceIcon {
+  display: inline-grid;
+  margin: 0;
+}
+
+:root .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingFeatureLogo {
+  width: 38px;
+  height: 38px;
+  font-size: 14px;
+}
+
+:root .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingFeatureTop b {
+  font-size: 1rem;
+}
