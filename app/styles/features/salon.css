@@ -3535,8 +3535,7 @@
   gap: 12px;
   padding: 13px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(232, 247, 246, 0.94)),
-    var(--surface-solid);
+    #ffffff;
 }
 
 
@@ -4407,8 +4406,8 @@
 
 
 .salonClientBookingOptions button.active{
-  border-color: rgba(96, 81, 155, 0.3);
-  background: #60519b;
+  border-color: #14161d;
+  background: #14161d;
   color: #fff;
 }
 
