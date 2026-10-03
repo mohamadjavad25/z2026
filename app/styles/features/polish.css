@@ -625,3 +625,43 @@
 .joinSalonPerks { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 8px; text-align: right; }
 .joinSalonPerks li { position: relative; padding: 9px 34px 9px 12px; border-radius: 14px; background: #fafafc; border: 1px solid #ececf0; color: #3b3e49; font-size: 0.78rem; font-weight: 800; line-height: 1.6; }
 .joinSalonPerks li::before { content: "✓"; position: absolute; right: 11px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; border-radius: 50%; background: #14161d; color: #fff; font-size: 0.65rem; line-height: 18px; text-align: center; }
+
+/* ---- Staff profile modal (smd*) ---- */
+.artistProfileSheet.is-staffProfile.smdSheet { background: #ffffff; padding-bottom: 8px; }
+.smdHero { display: grid; justify-items: center; gap: 8px; padding: 34px 18px 14px; background: linear-gradient(180deg, #f4f4f8, #ffffff); }
+.smdAvatar { position: relative; width: 92px; height: 92px; }
+.smdAvatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid #ffffff; box-shadow: 0 8px 24px rgba(20, 22, 29, 0.18); background: #ececf0; }
+.smdDot { position: absolute; bottom: 4px; right: 4px; width: 16px; height: 16px; border-radius: 50%; border: 3px solid #fff; background: #9aa0ad; }
+.smdDot.is-active { background: #16a34a; }
+.smdName { color: #14161d; font-size: 1.15rem; font-weight: 950; }
+.smdRole { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px 5px 10px; border-radius: 999px; background: #f1f1f5; color: #3b3e49; font-size: 0.78rem; font-weight: 850; }
+.smdMeta { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.smdMeta span { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; border: 1px solid #ececf0; background: #fff; color: #6f7380; font-size: 0.7rem; font-weight: 800; }
+.smdMeta .smdState.is-active { color: #15803d; border-color: #bbe5c8; background: #f0fbf4; }
+.smdMeta .smdState.is-idle { color: #6f7380; }
+.smdActions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 6px 16px 14px; }
+.smdBtn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 44px; border: 1px solid #ececf0; border-radius: 14px; background: #fff; color: #14161d; font: inherit; font-size: 0.82rem; font-weight: 900; text-decoration: none; cursor: pointer; }
+.smdBtn.is-primary { background: #14161d; border-color: #14161d; color: #fff; }
+.smdBtn:disabled { opacity: 0.45; cursor: default; }
+.smdSection { display: grid; gap: 9px; padding: 8px 16px 10px; }
+.smdSection h4 { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin: 0; color: #14161d; font-size: 0.86rem; font-weight: 950; }
+.smdSection h4 small { color: #8a8e9b; font-size: 0.68rem; font-weight: 700; }
+.smdList { border: 1px solid #ececf0; border-radius: 18px; background: #fff; overflow: hidden; }
+.smdRow { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 46px; padding: 0 14px; border: 0; background: transparent; color: #14161d; font: inherit; text-align: right; }
+.smdRow + .smdRow { border-top: 1px solid #f1f1f5; }
+.smdRow > svg:first-child { color: #8a8e9b; flex: none; }
+.smdRow > span { color: #6f7380; font-size: 0.76rem; font-weight: 800; }
+.smdRow > b { margin-left: auto; margin-right: 0; font-size: 0.82rem; font-weight: 900; }
+.smdRow.is-editable { cursor: pointer; }
+.smdRow input { flex: 1; min-width: 0; border: 0; background: #f6f6f9; border-radius: 10px; padding: 8px 10px; font: inherit; font-weight: 800; }
+.smdRow .smdEdit { color: #b3b6c1; }
+.smdTerms { display: flex; flex-wrap: wrap; gap: 7px; }
+.smdTerms span { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 14px; background: #f6f6f9; color: #14161d; font-size: 0.76rem; font-weight: 850; }
+.smdBio { margin: 0; padding: 12px 14px; border-radius: 16px; background: #f6f6f9; color: #3b3e49; font-size: 0.78rem; font-weight: 700; line-height: 1.8; }
+.smdRoles { display: flex; flex-wrap: wrap; gap: 7px; }
+.smdRoles button { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px 7px 10px; border: 1.5px solid #ececf0; border-radius: 999px; background: #fff; color: #3b3e49; font: inherit; font-size: 0.74rem; font-weight: 850; cursor: pointer; }
+.smdRoles button.active { border-color: #14161d; background: #14161d; color: #fff; }
+.smdFooter { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px 16px 14px; }
+.smdToggle, .smdEnd { min-height: 44px; border-radius: 14px; font: inherit; font-size: 0.8rem; font-weight: 900; cursor: pointer; }
+.smdToggle { border: 1px solid #ececf0; background: #fff; color: #14161d; }
+.smdEnd { border: 1px solid #f6d3d0; background: #fff5f4; color: #b42318; }
