@@ -1,5 +1,6 @@
 import { getDb, all, get, run } from "../../connection.js";
 import { listSalonStaff } from "./staff.js";
+import { normalizeServiceEmoji } from "../serviceEmoji.js";
 
 export async function listSalonServices(salonUserId, runner = null) {
   const db = runner || (await getDb());
@@ -51,7 +52,7 @@ export async function addSalonService(salonUserId, data) {
     ? data.staff_ids.map((id) => String(id)).filter(Boolean).join(",")
     : String(data.staff_ids || "");
   const info = await run(db, `
-    INSERT INTO salon_services (salon_user_id, name, price, duration, hint, staff_id, staff_ids) VALUES ($1, $2, $3, $4, $5, $6, $7)
+    INSERT INTO salon_services (salon_user_id, name, price, duration, hint, staff_id, staff_ids, emoji) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
     RETURNING id
   `, [
     salonUserId,
@@ -60,7 +61,8 @@ export async function addSalonService(salonUserId, data) {
     data.duration || "",
     data.hint || "",
     Number.isFinite(staffId) ? staffId : null,
-    staffIds
+    staffIds,
+    normalizeServiceEmoji(data.emoji)
   ]);
   return getSalonServiceRow(Number(info.rows[0].id), db);
 }
@@ -86,7 +88,7 @@ export async function updateSalonService(id, salonUserId, data) {
   }
 
   await run(db, `
-    UPDATE salon_services SET name = $1, price = $2, duration = $3, hint = $4, staff_id = $5, staff_ids = $6 WHERE id = $7 AND salon_user_id = $8
+    UPDATE salon_services SET name = $1, price = $2, duration = $3, hint = $4, staff_id = $5, staff_ids = $6, emoji = $7 WHERE id = $8 AND salon_user_id = $9
   `, [
     data.name ?? current.name,
     data.price ?? current.price,
@@ -94,6 +96,7 @@ export async function updateSalonService(id, salonUserId, data) {
     Object.prototype.hasOwnProperty.call(data, "hint") ? (data.hint || "") : current.hint,
     nextStaffId,
     nextStaffIds,
+    Object.prototype.hasOwnProperty.call(data, "emoji") ? normalizeServiceEmoji(data.emoji) : current.emoji,
     id,
     salonUserId
   ]);

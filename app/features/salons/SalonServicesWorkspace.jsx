@@ -2,6 +2,7 @@
 
 import { Check, Pencil, Plus, Trash2, UserRound } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
+import { ServiceEmoji } from "../../components/ServiceEmoji";
 import { ProfileEmptyState } from "../profile/ProfileEmptyState";
 
 /**
@@ -152,7 +153,10 @@ export function SalonServicesWorkspace({
                   </div>
                 </div>
                 <div className="salonClientServiceBody">
-                  <strong>{service.name}</strong>
+                  <strong>
+                    <ServiceEmoji id={service.emoji} name={service.name} size={26} className="serviceEmojiInline" />
+                    {service.name}
+                  </strong>
                   {service.hint ? (
                     <p className="salonClientServiceHint">{service.hint}</p>
                   ) : null}

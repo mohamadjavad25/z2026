@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronLeft, Sparkles, Timer } from "lucide-react";
+import { ServiceEmoji } from "../../components/ServiceEmoji";
 import { toPersianDigits } from "../../shared/lib/digits";
 
 export function PublicArtistServicesPanel({
@@ -32,7 +33,7 @@ export function PublicArtistServicesPanel({
                 onClick={() => onServiceClick?.(service)}
               >
                 <span className="artistPublicServiceIcon" aria-hidden="true">
-                  <Sparkles size={16} />
+                  <ServiceEmoji id={service.emoji} name={service.name} size={30} fallback={<Sparkles size={16} />} />
                 </span>
                 <span className="artistPublicServiceInfo">
                   <strong className="artistPublicServiceTitle">{service.name}</strong>

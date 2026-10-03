@@ -2800,3 +2800,172 @@
   color: currentColor !important;
   box-shadow: none !important;
 }
+
+/* ---- Service emoji (vector icons) ---- */
+.serviceEmoji {
+  display: block;
+  flex: none;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+
+.serviceEmojiInline {
+  display: inline-block;
+  vertical-align: middle;
+  margin-inline-end: 6px;
+}
+
+.artistServiceCard:has(> .artistServiceEmoji) {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.artistServicePresetCard > .artistServicePresetEmoji {
+  grid-column: 2;
+  grid-row: 2 / span 3;
+  justify-self: end;
+  align-self: center;
+}
+
+.artistServiceNameRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.artistServiceNameRow .artistServiceField {
+  flex: 1 1 auto;
+}
+
+.serviceEmojiSlot {
+  flex: none;
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  border: 2px dashed rgba(96, 81, 155, 0.35);
+  background: rgba(96, 81, 155, 0.07);
+  color: #5d43b5;
+  cursor: pointer;
+}
+
+.serviceEmojiSlot.has {
+  border-style: solid;
+  border-color: transparent;
+}
+
+.serviceEmojiOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(20, 18, 32, 0.4);
+}
+
+.serviceEmojiSheet {
+  width: 100%;
+  max-width: 480px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+  border-radius: 24px 24px 0 0;
+  background: #fff;
+}
+
+.serviceEmojiSheetHead {
+  display: flex;
+  gap: 8px;
+}
+
+.serviceEmojiSheetHead input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(28, 32, 44, 0.14);
+  border-radius: 14px;
+  font: inherit;
+}
+
+.serviceEmojiSheetHead button {
+  flex: none;
+  width: 40px;
+  border: 0;
+  border-radius: 12px;
+  background: rgba(96, 81, 155, 0.08);
+  cursor: pointer;
+}
+
+.serviceEmojiTabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.serviceEmojiTabs button {
+  flex: none;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(96, 81, 155, 0.09);
+  color: #5d43b5;
+  font: inherit;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.serviceEmojiTabs button.on {
+  background: #5d43b5;
+  color: #fff;
+}
+
+.serviceEmojiGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  overflow-y: auto;
+}
+
+.serviceEmojiGrid button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 2px;
+  border: 0;
+  border-radius: 14px;
+  background: none;
+  color: rgba(28, 32, 44, 0.65);
+  font: inherit;
+  font-size: 0.68rem;
+  text-align: center;
+  cursor: pointer;
+}
+
+.serviceEmojiGrid button:hover,
+.serviceEmojiGrid button.on {
+  background: rgba(96, 81, 155, 0.1);
+}
+
+.serviceEmojiEmpty {
+  grid-column: 1 / -1;
+  margin: 12px 0;
+  text-align: center;
+  color: rgba(28, 32, 44, 0.55);
+  font-size: 0.8rem;
+}
+
+.serviceEmojiClear {
+  border: 0;
+  background: none;
+  color: #c0392b;
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}

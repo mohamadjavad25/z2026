@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 
-const EMPTY_DRAFT = { id: null, name: "", price: "", duration: "۶۰ دقیقه", hint: "" };
+const EMPTY_DRAFT = { id: null, name: "", price: "", duration: "۶۰ دقیقه", hint: "", emoji: "" };
 
 /**
  * Artist/salon "add or edit a service" composer: the create-sheet open/mode/
@@ -63,6 +63,7 @@ export function useServiceComposer({
       price: price || "توافقی",
       duration: duration || "۶۰ دقیقه",
       hint: hint || "خدمت سفارشی",
+      emoji: String(artistServiceDraft.emoji || ""),
       tone: "soft"
     };
     try {
@@ -91,6 +92,7 @@ export function useServiceComposer({
       duration: service.duration,
       hint: service.hint,
       badge: service.badge,
+      emoji: service.emoji || "",
       tone: service.tone || "soft"
     };
     try {
@@ -123,7 +125,8 @@ export function useServiceComposer({
       name: item.name || "",
       price: item.price || "",
       duration: item.duration || "۶۰ دقیقه",
-      hint: item.hint || ""
+      hint: item.hint || "",
+      emoji: item.emoji || ""
     });
     setArtistServiceCreateOpen(true);
   }, []);

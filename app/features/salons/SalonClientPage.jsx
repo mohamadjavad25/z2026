@@ -25,6 +25,7 @@ import {
   WandSparkles,
   X
 } from "lucide-react";
+import { ServiceEmoji } from "../../components/ServiceEmoji";
 import { SegmentClock } from "../../components/SegmentClock";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { SalonClientGallery } from "./SalonClientGallery";
@@ -165,7 +166,7 @@ export function SalonClientPage({
                     key={service.id || service.name}
                     onClick={() => onOpenBooking(service.name)}
                   >
-                    <span>{getServiceIcon(service, index)}</span>
+                    <span><ServiceEmoji id={service.emoji} name={service.name} size={34} fallback={getServiceIcon(service, index)} /></span>
                     <b>{service.name}</b>
                   </button>
                 ))}
@@ -299,7 +300,7 @@ export function SalonClientPage({
                             onOpenBooking(service.name);
                           }}
                         >
-                          <span>{getServiceIcon(service, index)}</span>
+                          <span><ServiceEmoji id={service.emoji} name={service.name} size={34} fallback={getServiceIcon(service, index)} /></span>
                           <b>{service.name}</b>
                           <small>{service.price ? `${toPersianDigits(service.price)} تومان` : "قیمت توافقی"} · {service.duration || "زمان متغیر"}</small>
                           <CalendarCheck size={17} />
