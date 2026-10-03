@@ -140,13 +140,14 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook })
             return (
               <article className="clientBookingFeatureCard" key={nextBooking.id || `${meta.salonName}-${meta.time}`}>
                 <div className="clientBookingFeatureTop">
+                  <ServiceIcon emoji={meta.serviceEmoji} name={meta.service} size="lg" className="clientBookingFeatureIcon" />
+                  <div>
+                    <b>{meta.service}</b>
+                    <span>{meta.salonName}</span>
+                  </div>
                   <span className={`clientBookingFeatureLogo ${meta.avatar ? "hasImage" : ""}`} aria-hidden="true">
                     {meta.avatar ? <img src={meta.avatar} alt="" /> : String(meta.salonName).slice(0, 1)}
                   </span>
-                  <div>
-                    <b className="svcInline"><ServiceIcon emoji={meta.serviceEmoji} name={meta.service} size="xs" />{meta.service}</b>
-                    <span>{meta.salonName}</span>
-                  </div>
                 </div>
                 <div className="clientBookingFeatureGrid">
                   <span>
