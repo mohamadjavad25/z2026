@@ -6,6 +6,15 @@ export async function getUserById(id, runner = null) {
   return (await get(db, "SELECT * FROM users WHERE id = $1", [id])) || null;
 }
 
+/** Profile fields only -- avatar comes back as a present/absent flag, never the base64 bytes. */
+export async function getUserLiteById(id, runner = null) {
+  const db = runner || (await getDb());
+  return (await get(db, `
+    SELECT id, name, phone, type, area, bio, avatar_position, (avatar <> '') AS avatar
+    FROM users WHERE id = $1
+  `, [id])) || null;
+}
+
 export async function getUserByPhone(phone, runner = null) {
   const normalized = String(phone || "").trim();
   if (!normalized) return null;
