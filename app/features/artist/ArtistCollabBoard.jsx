@@ -1,13 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { PageIcon } from "../../components/PageIcon";
 import { CollabIllustration } from "../../components/CollabIllustration";
 import { createPortal } from "react-dom";
-import { Check, ChevronDown, MapPin, Send, Sparkles, Store, Trash2, Users, X } from "lucide-react";
+import { Check, LogOut, MapPin, Send, Sparkles, Store, Trash2, Users, X } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
-import { buildClockOptions } from "../../shared/lib/time";
-import { CAPACITY_PRESETS, DAY_PRESETS, NEGOTIABLE, PresetRow, SHARE_PRESETS } from "../collab/collabPresets";
+import { TermsChips, TermsEditor } from "../collab/TermsEditor";
 
 function getSalonKey(salon) {
   return String(salon.id || salon.source_key || salon.name);
@@ -18,56 +17,6 @@ function getSalonKey(salon) {
  *  salon has actually filled its profile in. */
 function hasCollabInfo(salon) {
   return Boolean(salon.bio) && Array.isArray(salon.services) && salon.services.length > 0;
-}
-
-/** Minimal styled dropdown — replaces the native <select>'s OS-rendered popup. */
-function TimeSelect({ value, options, onChange, label }) {
-  const [open, setOpen] = useState(false);
-  const rootRef = useRef(null);
-
-  useEffect(() => {
-    if (!open) return undefined;
-    const handleOutside = (event) => {
-      if (rootRef.current && !rootRef.current.contains(event.target)) setOpen(false);
-    };
-    document.addEventListener("mousedown", handleOutside);
-    return () => document.removeEventListener("mousedown", handleOutside);
-  }, [open]);
-
-  return (
-    <div className={`collabTimeSelect ${open ? "is-open" : ""}`} ref={rootRef}>
-      <button
-        type="button"
-        className="collabTimeSelectTrigger"
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        aria-label={label}
-        onClick={() => setOpen((v) => !v)}
-      >
-        <span>{value}</span>
-        <ChevronDown size={14} />
-      </button>
-      {open ? (
-        <div className="collabTimeSelectMenu" role="listbox" aria-label={label}>
-          {options.map((slot) => (
-            <button
-              type="button"
-              key={slot}
-              role="option"
-              aria-selected={slot === value}
-              className={`collabTimeSelectOption ${slot === value ? "is-selected" : ""}`}
-              onClick={() => {
-                onChange(slot);
-                setOpen(false);
-              }}
-            >
-              {slot}
-            </button>
-          ))}
-        </div>
-      ) : null}
-    </div>
-  );
 }
 
 const STATUS_LABEL = {
@@ -84,18 +33,6 @@ function statusTone(status) {
   return "is-pending";
 }
 
-/** Compact one-line summary of a salon-sent invite's terms — days/hours/
- *  share/capacity, whichever the salon actually filled in. Empty when the
- *  salon set no terms at all (e.g. an older plain team invite). */
-function formatInviteTerms(invite) {
-  return [
-    invite.days,
-    invite.from && invite.to ? `${invite.from} تا ${invite.to}` : "",
-    invite.share ? `${invite.share}٪ سهم` : "",
-    invite.capacity ? `ظرفیت ${invite.capacity}` : ""
-  ].filter(Boolean).join(" · ");
-}
-
 function CollabAvatar({ src, position = "50% 50%" }) {
   return (
     <span className={`collabAvatar ${src ? "hasImage" : ""}`} aria-hidden="true">
@@ -104,7 +41,7 @@ function CollabAvatar({ src, position = "50% 50%" }) {
   );
 }
 
-function CollabRow({ avatar, title, subtitle, meta, status, actions }) {
+function CollabRow({ avatar, title, subtitle, meta, terms, status, actions }) {
   return (
     <article className="collabRow">
       <CollabAvatar src={avatar} />
@@ -112,6 +49,7 @@ function CollabRow({ avatar, title, subtitle, meta, status, actions }) {
         <b>{title}</b>
         {subtitle ? <span>{subtitle}</span> : null}
         {meta ? <small>{meta}</small> : null}
+        {terms || null}
       </div>
       {status ? <em className={`collabStatus ${statusTone(status)}`}>{STATUS_LABEL[status] || status}</em> : null}
       {actions || null}
@@ -213,67 +151,7 @@ function SalonPreviewModal({ salon, draft, onDraftChange, onSubmit, onClose }) {
               onClose();
             }}
           >
-            <label className="is-wide">
-              <span>روزها</span>
-              <input
-                value={draft.days}
-                onChange={(event) => onDraftChange({ days: event.target.value })}
-                placeholder="شنبه، دوشنبه، چهارشنبه"
-              />
-              <PresetRow
-                options={DAY_PRESETS}
-                isSelected={(value) => draft.days === value}
-                onPick={(value) => onDraftChange({ days: value })}
-              />
-            </label>
-            <div className="collabFormRow">
-              <label>
-                <span>شروع</span>
-                <TimeSelect
-                  value={draft.from}
-                  options={buildClockOptions(9 * 60, 21 * 60, 60)}
-                  onChange={(slot) => onDraftChange({ from: slot })}
-                  label="ساعت شروع"
-                />
-              </label>
-              <label>
-                <span>پایان</span>
-                <TimeSelect
-                  value={draft.to}
-                  options={buildClockOptions(10 * 60, 22 * 60, 60)}
-                  onChange={(slot) => onDraftChange({ to: slot })}
-                  label="ساعت پایان"
-                />
-              </label>
-            </div>
-            <label>
-              <span>سهم آرتیست</span>
-              <input
-                className="collabHalfInput"
-                inputMode="numeric"
-                value={draft.share}
-                onChange={(event) => onDraftChange({ share: toPersianDigits(event.target.value.replace(/[^\d۰-۹]/g, "")) })}
-              />
-              <PresetRow
-                options={SHARE_PRESETS}
-                isSelected={(value) => draft.share === value}
-                onPick={(value) => onDraftChange({ share: value })}
-              />
-            </label>
-            <label>
-              <span>ظرفیت روزانه</span>
-              <input
-                className="collabHalfInput"
-                inputMode="numeric"
-                value={draft.capacity}
-                onChange={(event) => onDraftChange({ capacity: toPersianDigits(event.target.value.replace(/[^\d۰-۹]/g, "")) })}
-              />
-              <PresetRow
-                options={CAPACITY_PRESETS}
-                isSelected={(value) => draft.capacity === value}
-                onPick={(value) => onDraftChange({ capacity: value })}
-              />
-            </label>
+            <TermsEditor value={draft} onChange={onDraftChange} />
             <button type="submit">
               <Send size={14} />
               ارسال به {salon.name}
@@ -295,160 +173,221 @@ export function ArtistCollabBoard({
   salons,
   offers,
   invites = [],
+  teams = [],
+  teamBusyId = "",
   inviteRespondBusyId = "",
   draft,
   onDraftChange,
   onSubmit,
   onDelete,
-  onInviteRespond
+  onInviteRespond,
+  onLeaveTeam
 }) {
   const [previewSalon, setPreviewSalon] = useState(null);
-  const hiringSalons = salons.filter(hasCollabInfo);
-  const selectedSalon = salons.find((item) => String(item.id) === String(draft.salonId)) || hiringSalons[0];
   const pendingInvites = invites.filter((item) => item.status === "در انتظار تایید");
   const handledInvites = invites.filter((item) => item.status !== "در انتظار تایید");
+  const [tab, setTab] = useState(() => (pendingInvites.length ? "invites" : teams.length ? "teams" : "propose"));
+  const hiringSalons = salons.filter(hasCollabInfo);
+  const selectedSalon = salons.find((item) => String(item.id) === String(draft.salonId)) || hiringSalons[0];
+  const tabs = [
+    { key: "invites", label: "دعوت‌ها", count: pendingInvites.length, hot: pendingInvites.length > 0 },
+    { key: "teams", label: "تیم‌های من", count: teams.length },
+    { key: "propose", label: "پیشنهاد من", count: offers.length }
+  ];
 
   return (
     <>
     <section className="collabBoard" aria-label="همکاری آرتیست با سالن‌ها">
-      <div className="collabHero">
-        <CollabIllustration />
-        <h3>با سالن‌ها همکار شو</h3>
-        <p>پیشنهادت را بفرست؛ اگر سالن قبول کند، عضو تیمش می‌شوی و رزروها را با هم مدیریت می‌کنید.</p>
-        <ol className="collabSteps">
-          <li><b>۱</b><span>سالن را انتخاب کن</span></li>
-          <li><b>۲</b><span>خدمت، سهم و روزهایت را بنویس</span></li>
-          <li><b>۳</b><span>منتظر پاسخ سالن بمان</span></li>
-        </ol>
+      <div className="clHub" role="tablist" aria-label="بخش‌های همکاری">
+        {tabs.map((item) => (
+          <button
+            type="button"
+            role="tab"
+            key={item.key}
+            aria-selected={tab === item.key}
+            className={`clHubTab ${tab === item.key ? "is-active" : ""} ${item.hot ? "is-hot" : ""}`}
+            onClick={() => setTab(item.key)}
+          >
+            {item.label}
+            {item.count ? <b>{toPersianDigits(item.count)}</b> : null}
+          </button>
+        ))}
       </div>
 
-      {pendingInvites.length > 0 ? (
+      {tab === "invites" ? (
+        <>
+          <div className="collabSection">
+            <small className="collabSectionLabel">دعوت سالن‌ها</small>
+            {pendingInvites.length ? (
+              <div className="collabList">
+                {pendingInvites.map((invite) => {
+                  const busy = String(inviteRespondBusyId) === String(invite.id);
+                  return (
+                    <CollabRow
+                      key={invite.id}
+                      avatar={invite.salonAvatar}
+                      title={invite.salonName || "سالن زیبابان"}
+                      subtitle={invite.role || invite.artistService || "همکار سالن"}
+                      meta={invite.salonArea}
+                      terms={<TermsChips days={invite.days} from={invite.from} to={invite.to} share={invite.share} capacity={invite.capacity} />}
+                      actions={
+                        <div className="collabRowActions">
+                          <button type="button" className="is-approve" disabled={busy} onClick={() => onInviteRespond?.(invite.id, "تایید شد")} aria-label="تایید دعوت">
+                            <Check size={14} />
+                          </button>
+                          <button type="button" className="is-decline" disabled={busy} onClick={() => onInviteRespond?.(invite.id, "رد شد")} aria-label="رد دعوت">
+                            <X size={14} />
+                          </button>
+                        </div>
+                      }
+                    />
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="collabEmpty is-lively">
+                <PageIcon name="collab" size={44} />
+                <b>دعوت تازه‌ای نداری</b>
+                <span>سالن‌ها می‌توانند تو را به تیمشان دعوت کنند؛ یا خودت از تب «پیشنهاد من» شروع کن.</span>
+              </div>
+            )}
+          </div>
+          {handledInvites.length > 0 ? (
+            <div className="collabSection">
+              <small className="collabSectionLabel">دعوت‌های پاسخ‌داده‌شده ({toPersianDigits(handledInvites.length)})</small>
+              <div className="collabList">
+                {handledInvites.map((invite) => (
+                  <CollabRow
+                    key={`handled-invite-${invite.id}`}
+                    avatar={invite.salonAvatar}
+                    title={invite.salonName || "سالن زیبابان"}
+                    subtitle={invite.role || "همکار"}
+                    meta={invite.salonArea}
+                    status={invite.status}
+                  />
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </>
+      ) : null}
+
+      {tab === "teams" ? (
         <div className="collabSection">
-          <small className="collabSectionLabel">دعوت سالن‌ها</small>
-          <div className="collabList">
-            {pendingInvites.map((invite) => {
-              const busy = String(inviteRespondBusyId) === String(invite.id);
-              return (
+          <small className="collabSectionLabel">سالن‌هایی که عضو آن‌ها هستی ({toPersianDigits(teams.length)})</small>
+          {teams.length ? (
+            <div className="collabList">
+              {teams.map((team) => (
                 <CollabRow
-                  key={invite.id}
-                  avatar={invite.salonAvatar}
-                  title={invite.salonName || "سالن زیبابان"}
-                  subtitle={invite.role || invite.artistService || "همکار سالن"}
-                  meta={formatInviteTerms(invite) || invite.salonArea}
+                  key={team.staffId}
+                  avatar={team.salonAvatar}
+                  title={team.salonName}
+                  subtitle={team.role || "همکار سالن"}
+                  meta={team.salonArea}
+                  terms={<TermsChips days={team.days} from={team.from} to={team.to} share={team.share} capacity={team.capacity} />}
                   actions={
-                    <div className="collabRowActions">
-                      <button
-                        type="button"
-                        className="is-approve"
-                        disabled={busy}
-                        onClick={() => onInviteRespond?.(invite.id, "تایید شد")}
-                        aria-label="تایید دعوت"
-                      >
-                        <Check size={14} />
-                      </button>
-                      <button
-                        type="button"
-                        className="is-decline"
-                        disabled={busy}
-                        onClick={() => onInviteRespond?.(invite.id, "رد شد")}
-                        aria-label="رد دعوت"
-                      >
-                        <X size={14} />
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      className="clLeaveBtn"
+                      disabled={String(teamBusyId) === String(team.salonId)}
+                      onClick={() => onLeaveTeam?.(team.salonId)}
+                    >
+                      <LogOut size={13} />
+                      ترک تیم
+                    </button>
                   }
                 />
-              );
-            })}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="collabEmpty is-lively">
+              <PageIcon name="collab" size={44} />
+              <b>هنوز عضو تیمی نیستی</b>
+              <span>دعوت یک سالن را بپذیر، QR سالن را اسکن کن یا برای سالن پیشنهاد همکاری بفرست.</span>
+            </div>
+          )}
         </div>
       ) : null}
 
-      <div className="collabSection">
-        <small className="collabSectionLabel">سالن‌هایی که همکار می‌پذیرند</small>
-
-        {hiringSalons.length ? (
-          <div className="collabSalonPicker" role="listbox" aria-label="انتخاب سالن">
-            {hiringSalons.map((salon) => {
-              const active = selectedSalon && getSalonKey(selectedSalon) === getSalonKey(salon);
-              return (
-                <button
-                  type="button"
-                  key={getSalonKey(salon)}
-                  className={`collabSalonChip ${active ? "is-selected" : ""}`}
-                  onClick={() => {
-                    onDraftChange({ salonId: salon.id || salon.source_key || salon.name });
-                    setPreviewSalon(salon);
-                  }}
-                >
-                  <CollabAvatar src={salon.avatar} position={salon.avatarPosition} />
-                  {salon.name}
-                </button>
-              );
-            })}
+      {tab === "propose" ? (
+        <>
+          <div className="collabHero">
+            <CollabIllustration />
+            <h3>با سالن‌ها همکار شو</h3>
+            <p>پیشنهادت را بفرست؛ اگر سالن قبول کند، عضو تیمش می‌شوی و رزروها را با هم مدیریت می‌کنید.</p>
+            <ol className="collabSteps">
+              <li><b>۱</b><span>سالن را انتخاب کن</span></li>
+              <li><b>۲</b><span>روزها، ساعت و سهمت را مشخص کن</span></li>
+              <li><b>۳</b><span>منتظر پاسخ سالن بمان</span></li>
+            </ol>
           </div>
-        ) : (
-          <div className="collabEmpty is-lively">
-            <PageIcon name="discover" size={44} />
-            <b>هنوز سالنی آماده‌ی همکاری نیست</b>
-            <span>سالن‌ها بعد از تکمیل معرفی و خدماتشان اینجا پیدا می‌شوند؛ کمی بعد دوباره سر بزن.</span>
-          </div>
-        )}
-      </div>
 
-      <div className="collabSection">
-        <small className="collabSectionLabel">پیشنهادهای من ({toPersianDigits(offers.length)})</small>
-        {offers.length ? (
-          <div className="collabList">
-            {offers.map((offer) => {
-              const salonProfile = salons.find((salon) => (
-                String(salon.id) === String(offer.salonId) || salon.name === offer.salonName
-              ));
-              const isPending = offer.status !== "تایید شد" && offer.status !== "پایان یافت";
-              const shareLabel = offer.share === NEGOTIABLE ? "سهم توافقی" : `${offer.share}٪ سهم`;
-              const capacityLabel = offer.capacity === NEGOTIABLE ? "ظرفیت توافقی" : `${offer.capacity} نفر در روز`;
-              return (
-                <CollabRow
-                  key={offer.id}
-                  avatar={offer.salonAvatar || salonProfile?.avatar}
-                  title={offer.salonName}
-                  subtitle={`${offer.service} · ${shareLabel}`}
-                  meta={`${offer.from} تا ${offer.to} · ${capacityLabel}`}
-                  status={offer.status}
-                  actions={isPending ? (
-                    <button type="button" className="collabDeleteBtn" aria-label="حذف پیشنهاد" onClick={() => onDelete(offer.id)}>
-                      <Trash2 size={14} />
+          <div className="collabSection">
+            <small className="collabSectionLabel">سالن‌هایی که همکار می‌پذیرند</small>
+            {hiringSalons.length ? (
+              <div className="collabSalonPicker" role="listbox" aria-label="انتخاب سالن">
+                {hiringSalons.map((salon) => {
+                  const active = selectedSalon && getSalonKey(selectedSalon) === getSalonKey(salon);
+                  return (
+                    <button
+                      type="button"
+                      key={getSalonKey(salon)}
+                      className={`collabSalonChip ${active ? "is-selected" : ""}`}
+                      onClick={() => {
+                        onDraftChange({ salonId: salon.id || salon.source_key || salon.name });
+                        setPreviewSalon(salon);
+                      }}
+                    >
+                      <CollabAvatar src={salon.avatar} position={salon.avatarPosition} />
+                      {salon.name}
                     </button>
-                  ) : null}
-                />
-              );
-            })}
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="collabEmpty is-lively">
+                <PageIcon name="discover" size={44} />
+                <b>هنوز سالنی آماده‌ی همکاری نیست</b>
+                <span>سالن‌ها بعد از تکمیل معرفی و خدماتشان اینجا پیدا می‌شوند؛ کمی بعد دوباره سر بزن.</span>
+              </div>
+            )}
           </div>
-        ) : (
-          <div className="collabEmpty is-lively">
-            <PageIcon name="collab" size={44} />
-            <b>هنوز پیشنهادی نفرستاده‌ای</b>
-            <span>یک سالن را از بالا انتخاب کن و اولین پیشنهاد همکاری‌ات را بساز.</span>
-          </div>
-        )}
-      </div>
 
-      {handledInvites.length > 0 ? (
-        <div className="collabSection">
-          <small className="collabSectionLabel">دعوت‌های پاسخ‌داده‌شده ({toPersianDigits(handledInvites.length)})</small>
-          <div className="collabList">
-            {handledInvites.map((invite) => (
-              <CollabRow
-                key={`handled-invite-${invite.id}`}
-                avatar={invite.salonAvatar}
-                title={invite.salonName || "سالن زیبابان"}
-                subtitle={invite.role || "همکار"}
-                meta={formatInviteTerms(invite) || invite.salonArea}
-                status={invite.status}
-              />
-            ))}
+          <div className="collabSection">
+            <small className="collabSectionLabel">پیشنهادهای ارسالی ({toPersianDigits(offers.length)})</small>
+            {offers.length ? (
+              <div className="collabList">
+                {offers.map((offer) => {
+                  const salonProfile = salons.find((salon) => (
+                    String(salon.id) === String(offer.salonId) || salon.name === offer.salonName
+                  ));
+                  const isPending = offer.status !== "تایید شد" && offer.status !== "پایان یافت" && offer.status !== "رد شد";
+                  return (
+                    <CollabRow
+                      key={offer.id}
+                      avatar={offer.salonAvatar || salonProfile?.avatar}
+                      title={offer.salonName}
+                      subtitle={offer.service}
+                      terms={<TermsChips days={offer.days} from={offer.from} to={offer.to} share={offer.share} capacity={offer.capacity} />}
+                      status={offer.status === "آماده ارسال" ? "در انتظار تایید" : offer.status}
+                      actions={isPending ? (
+                        <button type="button" className="collabDeleteBtn" aria-label="حذف پیشنهاد" onClick={() => onDelete(offer.id)}>
+                          <Trash2 size={14} />
+                        </button>
+                      ) : null}
+                    />
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="collabEmpty is-lively">
+                <PageIcon name="collab" size={44} />
+                <b>هنوز پیشنهادی نفرستاده‌ای</b>
+                <span>یک سالن را از بالا انتخاب کن و اولین پیشنهاد همکاری‌ات را بساز.</span>
+              </div>
+            )}
           </div>
-        </div>
+        </>
       ) : null}
     </section>
     <SalonPreviewModal

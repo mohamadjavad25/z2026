@@ -7,6 +7,8 @@ import {
   getArtistHours,
   getArtistMe,
   respondArtistInvite,
+  getArtistTeams,
+  leaveArtistTeam,
   updateArtistBooking,
   updateArtistHours,
   updateArtistMe
@@ -93,6 +95,8 @@ export function useArtistWorkspace({
 
   const [artistSocialStats, setArtistSocialStats] = useState({ followers: 0 });
   const [artistSalonInviteList, setArtistSalonInviteList] = useState([]);
+  const [artistTeams, setArtistTeams] = useState([]);
+  const [artistTeamBusyId, setArtistTeamBusyId] = useState("");
   const [artistInviteRespondBusyId, setArtistInviteRespondBusyId] = useState("");
   const [artistBookingSubmitting, setArtistBookingSubmitting] = useState(false);
   const artistBookingSubmittingRef = useRef(false);
@@ -204,7 +208,8 @@ export function useArtistWorkspace({
   const refreshArtistWorkspace = useCallback(async () => {
     const epoch = ++artistBookingsEpochRef.current;
     try {
-      const [postsRes, meRes, hoursRes] = await Promise.all([getPosts(), getArtistMe(), getArtistHours()]);
+      const [postsRes, meRes, hoursRes, teamsRes] = await Promise.all([getPosts(), getArtistMe(), getArtistHours(), getArtistTeams()]);
+      if (teamsRes.ok) setArtistTeams(teamsRes.data?.teams || []);
       if (postsRes.ok) {
         setArtistPortfolioItems((postsRes.data?.posts || []).map(mapPortfolioItem).filter(Boolean));
       }
@@ -984,6 +989,10 @@ export function useArtistWorkspace({
         return;
       }
       setArtistSalonInviteList(payload.data?.invites || []);
+      if (status === "تایید شد") {
+        const teamsRes = await getArtistTeams();
+        if (teamsRes.ok) setArtistTeams(teamsRes.data?.teams || []);
+      }
       shellNotify(status === "تایید شد"
         ? "دعوت سالن پذیرفته شد و به پرسنل اضافه شدی."
         : "دعوت سالن رد شد.");
@@ -994,7 +1003,29 @@ export function useArtistWorkspace({
     }
   }
 
+  async function leaveArtistSalonTeam(salonUserId) {
+    if (!salonUserId || artistTeamBusyId) return;
+    if (typeof window !== "undefined" && !window.confirm("از این تیم خارج می‌شوی و دیگر در برنامه‌ی سالن نیستی. ادامه؟")) return;
+    setArtistTeamBusyId(String(salonUserId));
+    try {
+      const { ok, payload } = await leaveArtistTeam({ salonUserId });
+      if (!ok) {
+        shellNotify(payload?.error || "خروج از تیم انجام نشد.");
+        return;
+      }
+      setArtistTeams(payload.data?.teams || []);
+      shellNotify("از تیم خارج شدی.");
+    } catch {
+      shellNotify("خروج از تیم انجام نشد؛ دوباره امتحان کن.");
+    } finally {
+      setArtistTeamBusyId("");
+    }
+  }
+
   return {
+    artistTeams,
+    artistTeamBusyId,
+    leaveArtistSalonTeam,
     artistBookingsEpochRef,
     artistSocialStats,
     artistSalonInviteList,

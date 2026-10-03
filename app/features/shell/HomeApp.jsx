@@ -493,6 +493,9 @@ export function HomeApp() {
     artistSocialStats,
     artistSalonInviteList,
     artistInviteRespondBusyId,
+    artistTeams,
+    artistTeamBusyId,
+    leaveArtistSalonTeam,
     artistBookingSubmitting,
     artistRequestBusyId,
     confirmArtistBookingRequest,
@@ -2101,6 +2104,9 @@ function getPassportMatch(post) {
                   offers={artistCollabOffers}
                   invites={artistSalonInviteList}
                   inviteRespondBusyId={artistInviteRespondBusyId}
+                  teams={artistTeams}
+                  teamBusyId={artistTeamBusyId}
+                  onLeaveTeam={leaveArtistSalonTeam}
                   draft={artistCollabDraft}
                   onDraftChange={(patch) => setArtistCollabDraft((draft) => ({ ...draft, ...patch }))}
                   onSubmit={addArtistCollabOffer}
