@@ -32,25 +32,23 @@ function EditableFact({ icon: Icon, label, value, placeholder, dir, formatValue,
     return (
       <button
         type="button"
-        className="staffProfileFact is-editable"
+        className="smdRow is-editable"
         onClick={() => {
           setDraft(value || "");
           setEditing(true);
         }}
       >
-        <span className="staffProfileFactIcon"><Icon size={14} /></span>
-        <div>
-          <b>{label}</b>
-          <em dir={dir}>{value ? (formatValue ? formatValue(value) : value) : placeholder}</em>
-        </div>
-        <Pencil size={12} className="staffProfileFactEditIcon" />
+        <Icon size={15} />
+        <span>{label}</span>
+        <b dir={dir}>{value ? (formatValue ? formatValue(value) : value) : placeholder}</b>
+        <Pencil size={12} className="smdEdit" />
       </button>
     );
   }
 
   return (
     <form
-      className="staffProfileFact is-editing"
+      className="smdRow is-editing"
       onSubmit={(event) => {
         event.preventDefault();
         const next = draft.trim();
@@ -58,7 +56,7 @@ function EditableFact({ icon: Icon, label, value, placeholder, dir, formatValue,
         setEditing(false);
       }}
     >
-      <span className="staffProfileFactIcon"><Icon size={14} /></span>
+      <Icon size={15} />
       <input
         autoFocus
         dir={dir}
@@ -111,7 +109,7 @@ export function SalonStaffProfileModal({
   const collabHours = staffBio.match(/ساعت:\s*([^·]+)/)?.[1]?.trim() || "";
   const collabShare = staffBio.match(/سهم آرتیست:\s*([^·]+)/)?.[1]?.trim() || "";
   const isCollabBio = /پیشنهاد همکاری|سهم آرتیست|روزها:/.test(staffBio);
-  const plainBio = isCollabBio ? "" : staffBio;
+  const plainBio = isCollabBio || /^پیوستن با اسکن کد QR/.test(staffBio) ? "" : staffBio;
 
   return (
     <div
@@ -121,84 +119,69 @@ export function SalonStaffProfileModal({
       aria-label={`مدیریت ${staffName}`}
       onClick={onClose}
     >
-      <article className="artistProfileSheet is-staffProfile" onClick={(event) => event.stopPropagation()}>
+      <article className="artistProfileSheet is-staffProfile smdSheet" onClick={(event) => event.stopPropagation()}>
         <button type="button" className="artistProfileClose" onClick={onClose} aria-label="بستن">
           <X size={17} />
         </button>
 
-        <header className="staffProfileHero">
-          <div className="staffProfileAvatar hasImage">
+        <header className="smdHero">
+          <div className="smdAvatar">
             <img src={staffAvatar || "/profile-icon.svg"} alt="" />
+            <i className={`smdDot ${isActive ? "is-active" : "is-idle"}`} aria-hidden="true" />
           </div>
-          <div className="staffProfileHeroCopy">
-            <span className={`staffProfileOwnerBadge ${hasPublic ? "is-linked" : "is-local"}`}>
-              {hasPublic ? <ShieldCheck size={12} /> : <UserRound size={12} />}
-              {hasPublic ? "حساب آرتیست متصل" : "فقط ثبت در سالن"}
-            </span>
-            <b>{staffName}</b>
-            <small className="staffProfileRole">
-              <ServiceIcon name={staffRole} size="xs" />
-              {staffRole}{staffArea ? ` · ${staffArea}` : ""}
-            </small>
+          <b className="smdName">{staffName}</b>
+          <span className="smdRole">
+            <ServiceIcon name={staffRole} size="xs" />
+            {staffRole}
+          </span>
+          <div className="smdMeta">
+            <span className={`smdState ${isActive ? "is-active" : "is-idle"}`}>{staffState}</span>
+            {hasPublic ? <span className="smdLinked"><ShieldCheck size={12} />عضو زیبابان</span> : null}
+            {staffArea ? <span><MapPin size={12} />{staffArea}</span> : null}
           </div>
-          <em className={`staffProfileState ${isActive ? "is-active" : "is-idle"}`}>
-            <i />
-            {staffState}
-          </em>
         </header>
 
-        <div className="staffProfileQuickActions">
+        <div className="smdActions">
           {staffPhone ? (
-            <a className="staffProfileQuickBtn" href={`tel:${toLatinDigits(staffPhone)}`}>
+            <a className="smdBtn" href={`tel:${toLatinDigits(staffPhone)}`}>
               <Phone size={15} />
               تماس
             </a>
           ) : (
-            <button type="button" className="staffProfileQuickBtn" disabled>
+            <button type="button" className="smdBtn" disabled>
               <Phone size={15} />
               بدون شماره
             </button>
           )}
           {hasPublic ? (
-            <button
-              type="button"
-              className="staffProfileQuickBtn is-primary"
-              onClick={() => onOpenPublic?.(staff)}
-            >
+            <button type="button" className="smdBtn is-primary" onClick={() => onOpenPublic?.(staff)}>
               <Eye size={15} />
               پروفایل عمومی
             </button>
           ) : (
-            <button type="button" className="staffProfileQuickBtn" disabled>
+            <button type="button" className="smdBtn" disabled>
               <Eye size={15} />
-              بدون پروفایل عمومی
+              بدون پروفایل
             </button>
           )}
         </div>
 
         <StaffPerformanceChart stats={stats} />
 
-        <section className="staffProfileSection">
-          <div className="staffProfileSectionHead">
-            <span>اطلاعات همکاری</span>
-            <small>{hasPublic ? "از حساب آرتیست · فقط نمایش" : "ثبت‌شده در سالن · قابل ویرایش"}</small>
-          </div>
-          <div className="staffProfileFacts">
+        <section className="smdSection">
+          <h4>اطلاعات تماس و دسترسی</h4>
+          <div className="smdList">
             {hasPublic ? (
               <>
-                <div className="staffProfileFact">
-                  <span className="staffProfileFactIcon"><Phone size={14} /></span>
-                  <div>
-                    <b>تماس</b>
-                    <em dir="ltr">{staffPhone ? toPersianDigits(staffPhone) : "ثبت نشده"}</em>
-                  </div>
+                <div className="smdRow">
+                  <Phone size={15} />
+                  <span>تماس</span>
+                  <b dir="ltr">{staffPhone ? toPersianDigits(staffPhone) : "ثبت نشده"}</b>
                 </div>
-                <div className="staffProfileFact">
-                  <span className="staffProfileFactIcon"><MapPin size={14} /></span>
-                  <div>
-                    <b>منطقه</b>
-                    <em>{staffArea || "ثبت نشده"}</em>
-                  </div>
+                <div className="smdRow">
+                  <MapPin size={15} />
+                  <span>منطقه</span>
+                  <b>{staffArea || "ثبت نشده"}</b>
                 </div>
               </>
             ) : (
@@ -221,76 +204,40 @@ export function SalonStaffProfileModal({
                 />
               </>
             )}
-            <div className="staffProfileFact">
-              <span className="staffProfileFactIcon"><ShieldCheck size={14} /></span>
-              <div>
-                <b>سطح دسترسی</b>
-                <em>{staffAccess}</em>
-              </div>
+            <div className="smdRow">
+              <ShieldCheck size={15} />
+              <span>سطح دسترسی</span>
+              <b>{staffAccess}</b>
             </div>
             {staffBooked ? (
-              <div className="staffProfileFact">
-                <span className="staffProfileFactIcon"><CalendarCheck size={14} /></span>
-                <div>
-                  <b>رزروها</b>
-                  <em>{toPersianDigits(staffBooked)}</em>
-                </div>
+              <div className="smdRow">
+                <CalendarCheck size={15} />
+                <span>رزروها</span>
+                <b>{toPersianDigits(staffBooked)}</b>
               </div>
             ) : null}
           </div>
         </section>
 
         {(collabDays || collabHours || collabShare) ? (
-          <section className="staffProfileSection">
-            <div className="staffProfileSectionHead">
-              <span>شرایط همکاری</span>
-              <small>از پیشنهاد همکاری</small>
-            </div>
-            <div className="staffProfileCollab">
-              {collabDays ? (
-                <article>
-                  <CalendarDays size={15} />
-                  <div>
-                    <b>روزها</b>
-                    <span>{collabDays}</span>
-                  </div>
-                </article>
-              ) : null}
-              {collabHours ? (
-                <article>
-                  <Timer size={15} />
-                  <div>
-                    <b>ساعت</b>
-                    <span>{toPersianDigits(collabHours)}</span>
-                  </div>
-                </article>
-              ) : null}
-              {collabShare ? (
-                <article>
-                  <Percent size={15} />
-                  <div>
-                    <b>سهم آرتیست</b>
-                    <span>{toPersianDigits(collabShare)}</span>
-                  </div>
-                </article>
-              ) : null}
+          <section className="smdSection">
+            <h4>شرایط همکاری</h4>
+            <div className="smdTerms">
+              {collabDays ? <span><CalendarDays size={14} />{collabDays}</span> : null}
+              {collabHours ? <span><Timer size={14} />{toPersianDigits(collabHours)}</span> : null}
+              {collabShare ? <span><Percent size={14} />سهم آرتیست {toPersianDigits(collabShare)}</span> : null}
             </div>
           </section>
         ) : plainBio ? (
-          <section className="staffProfileSection">
-            <div className="staffProfileSectionHead">
-              <span>توضیحات</span>
-            </div>
-            <p className="staffProfileBio">{plainBio}</p>
+          <section className="smdSection">
+            <h4>توضیحات</h4>
+            <p className="smdBio">{plainBio}</p>
           </section>
         ) : null}
 
-        <section className="staffProfileSection">
-          <div className="staffProfileSectionHead">
-            <span>حوزه فعالیت</span>
-            <small>برای رزرو و منوی سالن</small>
-          </div>
-          <div className="staffProfileRoles" role="group" aria-label="حوزه فعالیت">
+        <section className="smdSection">
+          <h4>حوزه فعالیت <small>برای رزرو و منوی سالن</small></h4>
+          <div className="smdRoles" role="group" aria-label="حوزه فعالیت">
             {roleOptions.map((role) => (
               <button
                 type="button"
@@ -302,16 +249,17 @@ export function SalonStaffProfileModal({
                   onUpdate?.(staff, { role }, `حوزه ${staffName} تغییر کرد.`);
                 }}
               >
+                <ServiceIcon name={role} size="xs" />
                 {role}
               </button>
             ))}
           </div>
         </section>
 
-        <footer className="staffProfileFooter">
+        <footer className="smdFooter">
           <button
             type="button"
-            className={`staffProfileToggle ${isActive ? "" : "is-activate"}`}
+            className="smdToggle"
             onClick={() => {
               const nextState = isActive ? "غیرفعال" : "فعال";
               onUpdate?.(staff, { state: nextState }, `وضعیت همکاری ${staffName} تغییر کرد.`);
@@ -319,11 +267,7 @@ export function SalonStaffProfileModal({
           >
             {isActive ? "غیرفعال کردن" : "فعال کردن مجدد"}
           </button>
-          <button
-            type="button"
-            className="staffProfileEnd"
-            onClick={() => onRemove?.(staff)}
-          >
+          <button type="button" className="smdEnd" onClick={() => onRemove?.(staff)}>
             پایان همکاری
           </button>
         </footer>
