@@ -1,5 +1,6 @@
 import { json, notFound, requireUserRole, withErrorHandling } from "../../lib/http.js";
 import * as salons from "../../lib/db/repos/salons.js";
+import { notifyConnection } from "../../lib/connectionNotify.js";
 
 export const runtime = "nodejs";
 
@@ -20,6 +21,11 @@ async function _POST(request) {
   if (!result.ok) {
     return json({ error: result.error, code: result.code, data: { invite: result.invite || null } }, { status: 400 });
   }
+  notifyConnection(result.invite?.artistId, {
+    title: "دعوت به تیم",
+    body: `${auth.user.name || "یک سالن"} تو را به تیمش دعوت کرد؛ شرایط را ببین و پاسخ بده.`,
+    url: "/"
+  });
   return json({
     data: {
       invite: result.invite,

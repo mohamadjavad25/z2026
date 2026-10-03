@@ -173,6 +173,20 @@ export async function createSalonArtistInvite(salonUserId, data) {
     return { ok: false, error: "این آرتیست همین حالا در پرسنل سالن است.", code: "ALREADY_STAFF" };
   }
 
+  // The artist already proposed to this salon: answering that proposal is the
+  // right move (otherwise the pair would have two live requests at once).
+  const pendingProposal = await get(db, `
+    SELECT id FROM artist_collabs
+    WHERE salon_user_id = $1 AND artist_user_id = $2 AND status = 'آماده ارسال' LIMIT 1
+  `, [salonUserId, artistUserId]);
+  if (pendingProposal) {
+    return {
+      ok: false,
+      error: "این آرتیست خودش پیشنهاد همکاری فرستاده؛ از بخش درخواست‌ها پاسخش را بده.",
+      code: "PROPOSAL_PENDING"
+    };
+  }
+
   const role = data.role || artist.service || "آرتیست";
   const bio = data.bio || artist.bio || artist.area || "دعوت‌شده از آرتیست‌های نزدیک";
   const accessLevel = data.accessLevel || data.access_level || "همکار";
@@ -288,6 +302,13 @@ export async function joinSalonByArtist(salonUserId, artistUserId) {
       VALUES ($1, $2, $3, $4, $5, $6)
     `, [salonUserId, artistUserId, role, bio, "همکار", ACCEPTED]);
   }
+
+  // Joining answers any proposal this artist had pending with the same salon.
+  await run(db, `
+    UPDATE artist_collabs
+    SET status = 'تایید شد', updated_at = CURRENT_TIMESTAMP
+    WHERE salon_user_id = $1 AND artist_user_id = $2 AND status = 'آماده ارسال'
+  `, [salonUserId, artistUserId]);
 
   const staffPerson = await addSalonStaff(salonUserId, {
     artist_user_id: artistUserId,

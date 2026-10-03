@@ -3,6 +3,7 @@ import { requireUser, withErrorHandling } from "../../lib/http.js";
 import { ensureDb } from "../../lib/db/connection.js";
 import * as artists from "../../lib/db/repos/artists.js";
 import * as salons from "../../lib/db/repos/salons.js";
+import { notifyConnection } from "../../lib/connectionNotify.js";
 
 export const runtime = "nodejs";
 
@@ -33,11 +34,26 @@ async function _PATCH(request) {
   if (forbidden) return forbidden;
 
   const body = await request.json();
-  const collab = await artists.updateSalonCollabStatus(Number(body.id), auth.user.id, body.status);
-  if (!collab) return NextResponse.json({ error: "پیشنهاد پیدا نشد." }, { status: 404 });
+  const result = await artists.updateSalonCollabStatus(Number(body.id), auth.user.id, body.status);
+  if (!result.ok) {
+    return NextResponse.json(
+      { error: result.error, code: result.code },
+      { status: result.code === "NOT_FOUND" ? 404 : 409 }
+    );
+  }
+  const collab = result.collab;
   const staffResult = body.status === "تایید شد"
     ? await salons.addSalonStaffFromCollab(auth.user.id, collab)
     : null;
+  if (body.status === "تایید شد" || body.status === "رد شد") {
+    notifyConnection(collab?.artistId, {
+      title: body.status === "تایید شد" ? "پیشنهادت پذیرفته شد" : "پیشنهادت رد شد",
+      body: body.status === "تایید شد"
+        ? `${auth.user.name || "سالن"} پیشنهاد همکاری‌ات را پذیرفت و حالا عضو تیم هستی.`
+        : `${auth.user.name || "سالن"} پیشنهاد همکاری‌ات را نپذیرفت.`,
+      url: "/"
+    });
+  }
 
   return NextResponse.json({
     data: {

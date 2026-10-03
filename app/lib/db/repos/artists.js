@@ -120,8 +120,65 @@ export async function listSalonCollabRequests(salonUserId) {
   }));
 }
 
+const COLLAB_PENDING = "آماده ارسال";
+const COLLAB_ACCEPTED = "تایید شد";
+const COLLAB_REJECTED = "رد شد";
+const COLLAB_ENDED = "پایان یافت";
+
+function cleanText(value, max = 120) {
+  return String(value ?? "").trim().slice(0, max);
+}
+
+/**
+ * An artist's collaboration proposal to a salon. Validated server-side: the
+ * salon must exist, the artist must not already be on its team, and there must
+ * be no live invite or proposal for the same pair (the invite and proposal
+ * flows are two doors into the same team, so each checks the other). The status
+ * is always "pending" -- only the salon can move it (updateSalonCollabStatus).
+ */
 export async function addArtistCollab(userId, data) {
   const db = await getDb();
+  const salonUserId = Number(data.salonId || data.salon_user_id || 0) || null;
+  if (!salonUserId) {
+    return { ok: false, error: "سالن نامعتبر است.", code: "INVALID_SALON" };
+  }
+  const salon = await get(db, `
+    SELECT u.id, COALESCE(NULLIF(s.name, ''), u.name) AS name, COALESCE(s.area, '') AS area
+    FROM users u
+    LEFT JOIN salons s ON s.user_id = u.id
+    WHERE u.id = $1 AND u.type = 'salon'
+  `, [salonUserId]);
+  if (!salon) {
+    return { ok: false, error: "سالن پیدا نشد.", code: "SALON_NOT_FOUND" };
+  }
+
+  const alreadyStaff = await get(db, `
+    SELECT id FROM salon_staff WHERE salon_user_id = $1 AND artist_user_id = $2 LIMIT 1
+  `, [salonUserId, userId]);
+  if (alreadyStaff) {
+    return { ok: false, error: "تو همین حالا عضو تیم این سالن هستی.", code: "ALREADY_STAFF" };
+  }
+
+  const pendingInvite = await get(db, `
+    SELECT id FROM salon_artist_invites
+    WHERE salon_user_id = $1 AND artist_user_id = $2 AND status = 'در انتظار تایید' LIMIT 1
+  `, [salonUserId, userId]);
+  if (pendingInvite) {
+    return {
+      ok: false,
+      error: "این سالن قبلاً تو را دعوت کرده؛ از بخش «دعوت‌ها» به آن پاسخ بده.",
+      code: "INVITE_PENDING"
+    };
+  }
+
+  const pendingProposal = await get(db, `
+    SELECT id FROM artist_collabs
+    WHERE artist_user_id = $1 AND salon_user_id = $2 AND status = $3 LIMIT 1
+  `, [userId, salonUserId, COLLAB_PENDING]);
+  if (pendingProposal) {
+    return { ok: false, error: "پیشنهاد قبلی‌ات هنوز در انتظار پاسخ این سالن است.", code: "PENDING_EXISTS" };
+  }
+
   const info = await run(db, `
     INSERT INTO artist_collabs
       (artist_user_id, salon_user_id, salon_name, area, service, days, from_time, to_time, share_percent, capacity, status)
@@ -129,16 +186,16 @@ export async function addArtistCollab(userId, data) {
     RETURNING id
   `, [
     userId,
-    data.salonId || data.salon_user_id || null,
-    data.salonName || data.salon_name || "",
-    data.area || "",
-    data.service || "",
-    data.days || "",
-    data.from || data.fromTime || data.from_time || "",
-    data.to || data.toTime || data.to_time || "",
-    data.share || data.sharePercent || data.share_percent || "",
-    data.capacity || "",
-    data.status || "آماده ارسال"
+    salonUserId,
+    salon.name || "",
+    salon.area || "",
+    cleanText(data.service),
+    cleanText(data.days, 200),
+    cleanText(data.from || data.fromTime || data.from_time, 12),
+    cleanText(data.to || data.toTime || data.to_time, 12),
+    cleanText(data.share || data.sharePercent || data.share_percent, 12),
+    cleanText(data.capacity, 12),
+    COLLAB_PENDING
   ]);
   const row = await get(db, `
     SELECT c.*, u.avatar AS salon_avatar
@@ -146,7 +203,7 @@ export async function addArtistCollab(userId, data) {
     LEFT JOIN users u ON u.id = c.salon_user_id
     WHERE c.id = $1
   `, [Number(info.rows[0].id)]);
-  return mapArtistCollab(row);
+  return { ok: true, collab: mapArtistCollab(row) };
 }
 
 export async function deleteArtistCollab(id, userId) {
@@ -155,18 +212,30 @@ export async function deleteArtistCollab(id, userId) {
   return result.rowCount > 0;
 }
 
+// Only forward moves: a pending proposal is accepted or declined, an accepted
+// collaboration can later be ended. Anything else (re-accepting a declined one,
+// "accepting" an ended one) is refused so a stale screen can't resurrect it.
+const COLLAB_TRANSITIONS = {
+  [COLLAB_PENDING]: new Set([COLLAB_ACCEPTED, COLLAB_REJECTED]),
+  [COLLAB_ACCEPTED]: new Set([COLLAB_ENDED])
+};
+
 export async function updateSalonCollabStatus(id, salonUserId, status) {
   const db = await getDb();
-  const allowed = new Set(["تایید شد", "رد شد", "آماده ارسال", "پایان یافت"]);
-  const nextStatus = allowed.has(status) ? status : "آماده ارسال";
-  const result = await run(db, `
+  const current = await get(db, `
+    SELECT status FROM artist_collabs WHERE id = $1 AND salon_user_id = $2
+  `, [id, salonUserId]);
+  if (!current) return { ok: false, code: "NOT_FOUND", error: "پیشنهاد پیدا نشد." };
+  if (!COLLAB_TRANSITIONS[current.status]?.has(status)) {
+    return { ok: false, code: "INVALID_TRANSITION", error: "این پیشنهاد دیگر قابل تغییر نیست." };
+  }
+  await run(db, `
     UPDATE artist_collabs
     SET status = $1, updated_at = CURRENT_TIMESTAMP
     WHERE id = $2 AND salon_user_id = $3
-  `, [nextStatus, id, salonUserId]);
-  if (result.rowCount < 1) return null;
+  `, [status, id, salonUserId]);
   const rows = await listSalonCollabRequests(salonUserId);
-  return rows.find((item) => Number(item.id) === Number(id)) || null;
+  return { ok: true, collab: rows.find((item) => Number(item.id) === Number(id)) || null };
 }
 
 export async function endSalonCollabsForArtist(salonUserId, artistUserId) {

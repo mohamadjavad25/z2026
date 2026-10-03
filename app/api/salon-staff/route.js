@@ -1,6 +1,7 @@
 import { json, notFound, requireUserRole, withErrorHandling } from "../../lib/http.js";
 import * as salons from "../../lib/db/repos/salons.js";
 import * as artists from "../../lib/db/repos/artists.js";
+import { notifyConnection } from "../../lib/connectionNotify.js";
 
 export const runtime = "nodejs";
 
@@ -33,6 +34,11 @@ async function _DELETE(request) {
   const endedCollabs = artistUserId
     ? await artists.endSalonCollabsForArtist(auth.user.id, artistUserId)
     : 0;
+  notifyConnection(artistUserId, {
+    title: "همکاری پایان یافت",
+    body: `همکاری‌ات با ${auth.user.name || "سالن"} پایان یافت.`,
+    url: "/"
+  });
   return json({
     data: {
       ok: true,
