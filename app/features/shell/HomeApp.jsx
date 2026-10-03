@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { ServiceIcon } from "../../components/ServiceIcon";
 import { createPortal } from "react-dom";
 import {
   BellRing,
@@ -2218,7 +2219,7 @@ function getPassportMatch(post) {
                         <div className="requestCardMain">
                           <div className="requestCardWho">
                             <strong>{request.client}</strong>
-                            <span>{request.service}</span>
+                            <span className="svcInline"><ServiceIcon name={request.service} size="xs" />{request.service}</span>
                             <small>
                               <b>{request.staff}</b>
                               <em>مسئول</em>
@@ -2274,7 +2275,7 @@ function getPassportMatch(post) {
                       <div className="requestCardMain">
                         <div className="requestCardWho">
                           <strong>{booking.client}</strong>
-                          <span>{booking.service}</span>
+                          <span className="svcInline"><ServiceIcon name={booking.service} size="xs" />{booking.service}</span>
                         </div>
                         <div className="requestCardAside">
                           <span className="expiredNoticeTag">
@@ -2348,7 +2349,7 @@ function getPassportMatch(post) {
                         <div className="requestCardMain">
                           <div className="requestCardWho">
                             <strong>{request.client || "مشتری"}</strong>
-                            <span>{request.service}</span>
+                            <span className="svcInline"><ServiceIcon name={request.service} size="xs" />{request.service}</span>
                             {request.phone ? <small dir="ltr">{request.phone}</small> : null}
                           </div>
                           <div className="requestCardAside">
@@ -2400,7 +2401,7 @@ function getPassportMatch(post) {
                       <div className="requestCardMain">
                         <div className="requestCardWho">
                           <strong>{request.client || "مشتری"}</strong>
-                          <span>{request.service}</span>
+                          <span className="svcInline"><ServiceIcon name={request.service} size="xs" />{request.service}</span>
                         </div>
                         <div className="requestCardAside">
                           <span className="expiredNoticeTag">
@@ -2445,7 +2446,7 @@ function getPassportMatch(post) {
                         <div className="requestCardMain">
                           <div className="requestCardWho">
                             <strong>{booking.salonName || booking.salon_name || "سالن"}</strong>
-                            <span>{booking.service}</span>
+                            <span className="svcInline"><ServiceIcon name={booking.service} size="xs" />{booking.service}</span>
                           </div>
                           <div className="requestCardAside">
                             <span className="expiredNoticeTag">
@@ -2568,6 +2569,8 @@ function getPassportMatch(post) {
             serviceOptions={(createdProfile?.type === "artist" ? artistServiceList : bookingServiceOptions).map((item) => ({
               value: item.name,
               label: item.name,
+              emoji: item.emoji,
+              withIcon: true,
               meta: [item.price ? `${toPersianDigits(item.price)} تومان` : "", item.duration].filter(Boolean).join(" · ")
             }))}
             serviceValue={

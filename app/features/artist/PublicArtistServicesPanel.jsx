@@ -1,7 +1,7 @@
 "use client";
 
-import { ChevronLeft, Sparkles, Timer } from "lucide-react";
-import { ServiceEmoji } from "../../components/ServiceEmoji";
+import { ChevronLeft, Timer } from "lucide-react";
+import { ServiceIcon } from "../../components/ServiceIcon";
 import { toPersianDigits } from "../../shared/lib/digits";
 
 export function PublicArtistServicesPanel({
@@ -21,32 +21,30 @@ export function PublicArtistServicesPanel({
           <span>این آرتیست فعلاً خدمتی برای رزرو آنلاین اضافه نکرده؛ بعداً سر بزن.</span>
         </div>
       ) : (
-        <div className="artistPublicServiceList">
+        <div className="svcList">
           {safeServices.map((service, index) => {
             const active = selectedServiceId === service.id;
             return (
               <button
                 type="button"
-                className={`artistPublicServiceCard ${active ? "is-selected" : ""}`}
+                className={`svcCard ${active ? "is-selected" : ""}`}
                 key={service.id}
                 style={{ "--service-delay": `${index * 40}ms` }}
                 onClick={() => onServiceClick?.(service)}
               >
-                <span className="artistPublicServiceIcon" aria-hidden="true">
-                  <ServiceEmoji id={service.emoji} name={service.name} size={30} fallback={<Sparkles size={16} />} />
-                </span>
-                <span className="artistPublicServiceInfo">
-                  <strong className="artistPublicServiceTitle">{service.name}</strong>
+                <ServiceIcon emoji={service.emoji} name={service.name} size="lg" />
+                <span className="svcCardBody">
+                  <span className="svcCardTitle"><strong>{service.name}</strong></span>
+                  {service.hint ? <span className="svcCardHint">{service.hint}</span> : null}
                   {service.duration ? (
-                    <span className="artistPublicServiceMetaLine">
-                      <Timer size={12} />
-                      {service.duration}
+                    <span className="svcCardMeta">
+                      <span className="svcChip"><Timer size={12} /> {service.duration}</span>
                     </span>
                   ) : null}
                 </span>
-                <span className="artistPublicServiceSide">
-                  <b>{service.price ? `${toPersianDigits(service.price)} تومان` : "توافقی"}</b>
-                  <ChevronLeft size={15} aria-hidden="true" />
+                <span className="svcCardSide">
+                  <b className="svcPrice">{service.price ? `${toPersianDigits(service.price)} تومان` : "توافقی"}</b>
+                  <ChevronLeft size={16} className="svcCardChevron" aria-hidden="true" />
                 </span>
               </button>
             );

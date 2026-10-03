@@ -1,6 +1,7 @@
 "use client";
 
 import { CalendarCheck, CheckCircle2, Clock3, MapPin, Phone, RotateCcw, TimerOff, X, XCircle } from "lucide-react";
+import { ServiceIcon } from "../../components/ServiceIcon";
 import { SegmentClock } from "../../components/SegmentClock";
 import { toLatinDigits } from "../../shared/lib/digits";
 import { formatRelativeBookingDayLabel, resolveRollingPersianDate } from "../../shared/lib/persianCalendar";
@@ -75,7 +76,7 @@ export function ClientBookingSettingsModal({
             </span>
             <div>
               <small>جزئیات رزرو</small>
-              <b>{booking.service || "خدمت زیبایی"}</b>
+              <b className="svcInline"><ServiceIcon name={booking.service} size="xs" />{booking.service || "خدمت زیبایی"}</b>
               <em>{salonName}</em>
             </div>
             <strong className={`clientBookingSettingsStatus is-${statusTone}`}>

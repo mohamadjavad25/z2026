@@ -1,6 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
+import { ServiceIcon } from "../../components/ServiceIcon";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 
 const TYPE_LABELS = {
@@ -82,7 +83,7 @@ export function ClientProfileModal({ client, onClose }) {
             <div className="clientProfileBookingRail">
               {client.bookings.slice(0, 5).map((item) => (
                 <article key={item.id}>
-                  <b>{item.service || "خدمت"}</b>
+                  <b className="svcInline"><ServiceIcon name={item.service} size="xs" />{item.service || "خدمت"}</b>
                   <span>{item.date} · {item.time}</span>
                   <em>{item.status}</em>
                 </article>

@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef } from "react";
 import { Check, ChevronDown } from "lucide-react";
+import { ServiceIcon } from "./ServiceIcon";
 
 export function BookingSelect({
   label,
@@ -49,6 +50,7 @@ export function BookingSelect({
         aria-label={label}
         onClick={() => onOpenChange?.(!open)}
       >
+        {selected?.withIcon ? <ServiceIcon emoji={selected.emoji} name={selected.label} size="sm" /> : null}
         <span className="bookingSelectValue">
           <b>{selected?.label || fallbackText}</b>
           {selected?.meta ? <small>{selected.meta}</small> : null}
@@ -71,6 +73,7 @@ export function BookingSelect({
                   onOpenChange?.(false);
                 }}
               >
+                {item.withIcon ? <ServiceIcon emoji={item.emoji} name={item.label} size="sm" /> : null}
                 <span className="bookingSelectOptionText">
                   <b>{item.label}</b>
                   {item.meta ? <small>{item.meta}</small> : null}

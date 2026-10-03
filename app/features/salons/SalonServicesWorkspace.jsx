@@ -2,7 +2,7 @@
 
 import { Check, Pencil, Plus, Trash2, UserRound } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
-import { ServiceEmoji } from "../../components/ServiceEmoji";
+import { ServiceIcon } from "../../components/ServiceIcon";
 import { ProfileEmptyState } from "../profile/ProfileEmptyState";
 
 /**
@@ -22,14 +22,17 @@ export function SalonServicesWorkspace({
 }) {
   return (
     <>
-      <div className="toolPanelHead hoursWorkspaceHead">
+      <div className="svcToolbar">
         <div>
           <span>خدمات</span>
           <b>منوی خدمات · {toPersianDigits(services.length)}</b>
         </div>
-        <button type="button" onClick={onCreate}>افزودن</button>
+        <button type="button" className="svcAddBtn" onClick={onCreate}>
+          <Plus size={16} />
+          افزودن
+        </button>
       </div>
-      <div className="salonClientServiceList salonServiceManagerList">
+      <div className="svcList salonServiceManagerList">
         {services.length === 0 ? (
           <ProfileEmptyState
             className="artistServiceEmpty"
@@ -55,10 +58,16 @@ export function SalonServicesWorkspace({
             const menuOpen = String(serviceArtistMenuId) === String(service.id);
             return (
               <article
-                className={`salonClientServiceCard is-manager${menuOpen ? " is-pickingArtist" : ""}`}
+                className={`svcCard is-manager${menuOpen ? " is-pickingArtist" : ""}`}
                 key={service.id}
               >
-                <div className="salonClientServiceMeta">
+                <ServiceIcon emoji={service.emoji} name={service.name} size="lg" />
+                <div className="svcCardBody">
+                  <div className="svcCardTitle"><strong>{service.name}</strong></div>
+                  {service.hint ? <p className="svcCardHint">{service.hint}</p> : null}
+                  <div className="svcCardMeta">
+                    <span className="svcChip">{service.duration || "زمان را تنظیم کن"}</span>
+                  </div>
                   <div className="serviceArtistPick">
                     <button
                       type="button"
@@ -152,26 +161,14 @@ export function SalonServicesWorkspace({
                     ) : null}
                   </div>
                 </div>
-                <div className="salonClientServiceBody">
-                  <strong>
-                    <ServiceEmoji id={service.emoji} name={service.name} size={26} className="serviceEmojiInline" />
-                    {service.name}
-                  </strong>
-                  {service.hint ? (
-                    <p className="salonClientServiceHint">{service.hint}</p>
-                  ) : null}
-                  <div className="salonClientServiceDetails">
-                    <small className="servicePrice">{service.price ? `${toPersianDigits(service.price)} تومان` : "قیمت را تنظیم کن"}</small>
-                    <small className="serviceDuration">{service.duration || "زمان را تنظیم کن"}</small>
-                  </div>
-                </div>
-                <div className="salonClientServiceAction">
-                  <div className="artistServiceActions">
+                <div className="svcCardSide">
+                  <b className="svcPrice">{service.price ? `${toPersianDigits(service.price)} تومان` : "قیمت را تنظیم کن"}</b>
+                  <div className="svcActions">
                     <button type="button" aria-label="ویرایش" title="ویرایش" onClick={() => onEdit?.(service)}>
-                      <Pencil size={14} />
+                      <Pencil size={15} />
                     </button>
                     <button type="button" className="danger" aria-label="حذف" title="حذف" onClick={() => onDelete?.(service.id)}>
-                      <Trash2 size={14} />
+                      <Trash2 size={15} />
                     </button>
                   </div>
                 </div>

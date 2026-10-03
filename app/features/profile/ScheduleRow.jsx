@@ -1,6 +1,7 @@
 "use client";
 
 import { memo } from "react";
+import { ServiceIcon } from "../../components/ServiceIcon";
 import { MoreHorizontal, Store } from "lucide-react";
 import { SegmentClock } from "../../components/SegmentClock";
 import { toPersianDigits } from "../../shared/lib/digits";
@@ -198,6 +199,7 @@ export const ScheduleRow = memo(function ScheduleRow({
         <div className="scheduleMetaCopy">
           <b>{title}</b>
           <span>
+            <ServiceIcon name={service} size="xs" className="svcInlineIcon" />
             {meta}
             <i aria-hidden="true">•</i>
             {date}

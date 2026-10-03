@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { ServiceIcon } from "../../components/ServiceIcon";
 import { CalendarCheck, CalendarDays, CheckCircle2, Clock3, FileText, Sparkles, TimerOff, XCircle } from "lucide-react";
 import { SegmentClock } from "../../components/SegmentClock";
 import { toPersianDigits } from "../../shared/lib/digits";
@@ -142,7 +143,7 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook })
                     {meta.avatar ? <img src={meta.avatar} alt="" /> : String(meta.salonName).slice(0, 1)}
                   </span>
                   <div>
-                    <b>{meta.service}</b>
+                    <b className="svcInline"><ServiceIcon name={meta.service} size="xs" />{meta.service}</b>
                     <span>{meta.salonName}</span>
                   </div>
                 </div>
@@ -209,7 +210,7 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook })
                       {meta.avatar ? <img src={meta.avatar} alt="" /> : String(meta.salonName).slice(0, 1)}
                     </span>
                     <div>
-                      <b>{meta.service}</b>
+                      <b className="svcInline"><ServiceIcon name={meta.service} size="xs" />{meta.service}</b>
                       <small>{meta.salonName} · {meta.date}</small>
                     </div>
                     <div className="clientBookingMiniState">
@@ -267,7 +268,7 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook })
               {meta.avatar ? <img src={meta.avatar} alt="" /> : String(meta.salonName).slice(0, 1)}
             </span>
             <div>
-              <b>{meta.service}</b>
+              <b className="svcInline"><ServiceIcon name={meta.service} size="xs" />{meta.service}</b>
               <small>{meta.salonName} · {meta.date}</small>
             </div>
             <div className="clientBookingMiniState">

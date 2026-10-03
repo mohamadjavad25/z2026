@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ServiceIcon } from "../../components/ServiceIcon";
 import { ChevronLeft, Coffee, MoreHorizontal, Store } from "lucide-react";
 import { SegmentClock } from "../../components/SegmentClock";
 import { SkeletonList } from "../../components/Skeleton";
@@ -106,6 +107,7 @@ export function ArtistScheduleBoard({
                 <div className="scheduleMetaCopy">
                   <b>{booking.client}</b>
                   <span>
+                    <ServiceIcon name={booking.service} size="xs" className="svcInlineIcon" />
                     {booking.service || "خدمت"}
                     <i aria-hidden="true">•</i>
                     {booking.date || "امروز"}
