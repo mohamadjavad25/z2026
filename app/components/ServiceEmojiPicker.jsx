@@ -1,11 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { X } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { BEAUTY_EMOJIS, EMOJI_CATEGORIES } from "../shared/constants/beautyEmoji";
 import { ServiceEmoji } from "./ServiceEmoji";
+import { ServiceIcon } from "./ServiceIcon";
 
-/** Bottom-sheet icon picker (search + category tabs). */
+/** Bottom-sheet icon picker (search + category tabs with their own icons). */
 export function ServiceEmojiPicker({ open, value = "", onPick, onClose }) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
@@ -21,9 +22,14 @@ export function ServiceEmojiPicker({ open, value = "", onPick, onClose }) {
   if (!open) return null;
 
   return (
-    <div className="serviceEmojiOverlay" role="dialog" aria-modal="true" aria-label="انتخاب آیکن خدمت" onClick={onClose}>
-      <div className="serviceEmojiSheet" onClick={(event) => event.stopPropagation()}>
-        <div className="serviceEmojiSheetHead">
+    <div className="svcPickerOverlay" role="dialog" aria-modal="true" aria-label="انتخاب آیکن خدمت" onClick={onClose}>
+      <div className="svcPicker" onClick={(event) => event.stopPropagation()}>
+        <div className="svcPickerHead">
+          <strong>آیکن خدمت</strong>
+          <button type="button" className="svcPickerClose" onClick={onClose} aria-label="بستن"><X size={18} /></button>
+        </div>
+        <label className="svcSearch">
+          <Search size={16} aria-hidden="true" />
           <input
             type="search"
             value={query}
@@ -31,10 +37,19 @@ export function ServiceEmojiPicker({ open, value = "", onPick, onClose }) {
             placeholder="جستجو… (مثلاً ناخن، رنگ، لیزر)"
             aria-label="جستجوی آیکن"
           />
-          <button type="button" onClick={onClose} aria-label="بستن"><X size={17} /></button>
-        </div>
-        <div className="serviceEmojiTabs" role="tablist">
-          {[{ id: "all", fa: "همه" }, ...EMOJI_CATEGORIES].map((item) => (
+        </label>
+        <div className="svcTabs" role="tablist">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={category === "all"}
+            className={category === "all" ? "on" : ""}
+            onClick={() => setCategory("all")}
+          >
+            <ServiceEmoji id="sparkles" size={20} />
+            همه
+          </button>
+          {EMOJI_CATEGORIES.map((item) => (
             <button
               type="button"
               role="tab"
@@ -43,26 +58,28 @@ export function ServiceEmojiPicker({ open, value = "", onPick, onClose }) {
               key={item.id}
               onClick={() => setCategory(item.id)}
             >
+              <ServiceEmoji id={item.icon} size={20} />
               {item.fa}
             </button>
           ))}
         </div>
-        <div className="serviceEmojiGrid">
-          {items.length === 0 ? <p className="serviceEmojiEmpty">آیکنی پیدا نشد.</p> : null}
+        <div className="svcPickerGrid">
+          {items.length === 0 ? <p className="svcEmpty">آیکنی پیدا نشد.</p> : null}
           {items.map((item) => (
             <button
               type="button"
               key={item.id}
               className={value === item.id ? "on" : ""}
               onClick={() => onPick?.(item.id)}
+              aria-pressed={value === item.id}
             >
-              <ServiceEmoji id={item.id} size={40} />
+              <ServiceIcon emoji={item.id} size="md" />
               <span>{item.fa}</span>
             </button>
           ))}
         </div>
         {value ? (
-          <button type="button" className="serviceEmojiClear" onClick={() => onPick?.("")}>حذف آیکن</button>
+          <button type="button" className="svcPickerClear" onClick={() => onPick?.("")}>حذف آیکن (انتخاب خودکار)</button>
         ) : null}
       </div>
     </div>

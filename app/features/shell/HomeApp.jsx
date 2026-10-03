@@ -104,7 +104,6 @@ import {
   SalonStaffProfileModal,
   SalonStaffWorkspace,
   SalonToolSheets,
-  salonServiceCatalog,
   useSalonDirectory,
   useSalonWorkspace,
   getVisibleSalonServiceItems,
@@ -124,6 +123,7 @@ import { useBookingCreateSheet } from "./useBookingCreateSheet";
 import { useProfileEditor } from "./useProfileEditor";
 import { useScheduleBookingMenu } from "./useScheduleBookingMenu";
 import { useServiceComposer } from "./useServiceComposer";
+import { SERVICE_CATALOG } from "../../shared/constants/serviceCatalog";
 import { ProfileEditModal } from "./ProfileEditModal";
 import { SalonClientFloatingDock } from "./SalonClientFloatingDock";
 import {
@@ -807,6 +807,7 @@ export function HomeApp() {
     setArtistServiceDraft,
     addArtistService,
     addArtistServicePreset,
+    customizeServicePreset,
     openArtistServiceCreate,
     openSalonServiceCreate,
     closeArtistServiceCreate,
@@ -2679,13 +2680,15 @@ function getPassportMatch(post) {
           open={artistServiceCreateOpen}
           mode={artistServiceCreateMode}
           draft={artistServiceDraft}
-          catalog={salonServiceCatalog}
+          catalog={SERVICE_CATALOG}
+          specialties={createdProfile?.data?.service || ""}
           existingServices={activeServiceManagerList}
           onClose={closeArtistServiceCreate}
           onModeChange={setArtistServiceCreateMode}
           onDraftChange={(patch) => setArtistServiceDraft((prev) => ({ ...prev, ...patch }))}
           onSubmitCustom={addArtistService}
           onPickPreset={addArtistServicePreset}
+          onCustomizePreset={customizeServicePreset}
         />
         {appToast && typeof document !== "undefined" ? createPortal(
           // Portaled straight to <body> — this toast has an intentionally

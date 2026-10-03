@@ -3,6 +3,7 @@
 import { CalendarCheck, Pencil, Plus, Timer, Trash2 } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { ServiceIcon } from "../../components/ServiceIcon";
+import { ServiceIconStrip } from "../../components/ServiceIconStrip";
 import { ProfileEmptyState } from "../profile/ProfileEmptyState";
 
 /**
@@ -32,7 +33,7 @@ export function ArtistServicesPanel({
         {services.length === 0 ? (
           <ProfileEmptyState
             className="artistServiceEmpty"
-            image="/artist-services-empty.png"
+            visual={<ServiceIconStrip />}
             title="هنوز خدمتی ثبت نشده"
             description="اولین خدمت را اضافه کن تا قیمت، مدت‌زمان و رزرو مستقیم برای مشتری روشن شود."
             actionLabel="افزودن اولین خدمت"
@@ -53,12 +54,12 @@ export function ArtistServicesPanel({
                 </div>
                 {service.hint ? <p className="svcCardHint">{service.hint}</p> : null}
                 <div className="svcCardMeta">
+                  <span className="svcChip is-price">{service.price ? `${toPersianDigits(service.price)} تومان` : "توافقی"}</span>
                   <span className="svcChip"><Timer size={12} /> {service.duration}</span>
                   <span className="svcChip"><CalendarCheck size={12} /> قابل رزرو</span>
                 </div>
               </div>
               <div className="svcCardSide">
-                <b className="svcPrice">{service.price ? `${toPersianDigits(service.price)} تومان` : "توافقی"}</b>
                 <div className="svcActions">
                   <button type="button" aria-label="ویرایش" title="ویرایش" onClick={() => onEdit?.(service)}>
                     <Pencil size={15} />

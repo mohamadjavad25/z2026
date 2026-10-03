@@ -238,14 +238,9 @@ button.svcCard:active { transform: scale(0.99); }
 }
 
 /* ── Preset picker cards in the composer ─────────────────────────────── */
-.artistServicePresetCard > .serviceIcon {
-  grid-column: 2;
-  grid-row: 2 / span 3;
-  justify-self: end;
-  align-self: center;
-}
 
-.serviceEmojiSlot.has { background: transparent; }
+
+
 
 /* ── Booking sheets: the chosen service ──────────────────────────────── */
 .artistPublicBookingService .svcInline { gap: 12px; }
@@ -273,3 +268,489 @@ button.svcCard:active { transform: scale(0.99); }
 /* Icon + text rows inside cards that set their own text colour */
 .requestCardWho .svcInline,
 .scheduleBookingDetail .svcInline { color: inherit; }
+
+/* ── Category tints for the extended icon pack ────────────────────────── */
+.serviceIcon.cat-men      { --svc-tint: #e8f0fb; --svc-ring: #c9dbf4; }
+.serviceIcon.cat-bridal   { --svc-tint: #fff0f5; --svc-ring: #fbd0e0; }
+.serviceIcon.cat-tattoo   { --svc-tint: #f1ecfb; --svc-ring: #dcd0f4; }
+.serviceIcon.cat-wellness { --svc-tint: #eaf8ef; --svc-ring: #c6ebd3; }
+
+/* ═══ Service composer (catalog + editor) ═══════════════════════════════ */
+.svcSheetBackdrop,
+.svcPickerOverlay {
+  position: fixed;
+  inset: 0;
+  left: max(0px, calc((100vw - 460px) / 2));
+  right: max(0px, calc((100vw - 460px) / 2));
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(20, 22, 29, 0.45);
+  backdrop-filter: blur(8px);
+}
+
+.svcSheetBackdrop { z-index: 220; }
+.svcPickerOverlay { z-index: 240; }
+
+.svcSheet,
+.svcPicker {
+  width: 100%;
+  max-height: min(92dvh, 760px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
+  border-radius: 28px 28px 0 0;
+  background: #ffffff;
+  color: #14161d;
+  box-shadow: 0 -20px 60px rgba(20, 22, 29, 0.22);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  animation: svcSheetIn 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes svcSheetIn {
+  from { transform: translateY(24px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+.svcSheetHead,
+.svcPickerHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.svcSheetHead span { display: block; color: #6f7380; font-size: 0.72rem; font-weight: 800; }
+.svcSheetHead h3 { margin: 2px 0 0; color: #14161d; font-size: 1.15rem; font-weight: 950; }
+.svcPickerHead strong { font-size: 1.05rem; font-weight: 950; }
+
+.svcSheetClose,
+.svcPickerClose {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 14px;
+  background: #f6f6f8;
+  color: #14161d;
+  cursor: pointer;
+}
+
+/* mode switch */
+.svcModeSwitch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 16px;
+  background: #f6f6f8;
+}
+
+.svcModeSwitch button {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: #6f7380;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 900;
+  cursor: pointer;
+  transition: background 0.16s ease, color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.svcModeSwitch button.on {
+  background: #ffffff;
+  color: #14161d;
+  box-shadow: 0 4px 12px rgba(20, 22, 29, 0.08);
+}
+
+.svcModeSwitch button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* search */
+.svcSearch {
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px;
+  border-radius: 15px;
+  background: #f6f6f8;
+  color: #6f7380;
+}
+
+.svcSearch input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #14161d;
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.svcSearch:focus-within { box-shadow: 0 0 0 2px rgba(20, 22, 29, 0.14); }
+
+/* category tabs */
+.svcTabs {
+  display: flex;
+  gap: 8px;
+  margin: 0 -16px;
+  padding: 2px 16px 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.svcTabs::-webkit-scrollbar { display: none; }
+
+.svcTabs button {
+  flex: 0 0 auto;
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px 0 12px;
+  border: 1px solid #ececf0;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #4b4f5c;
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 900;
+  cursor: pointer;
+  transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease;
+}
+
+.svcTabs button.on {
+  border-color: #14161d;
+  background: #14161d;
+  color: #ffffff;
+}
+
+.svcCatalogHint {
+  margin: 0;
+  color: #6f7380;
+  font-size: 0.72rem;
+  font-weight: 750;
+  line-height: 1.6;
+}
+
+/* catalog grid */
+.svcCatalog { display: grid; gap: 12px; min-height: 0; }
+
+.svcPresetGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.svcPreset {
+  position: relative;
+  display: flex;
+  min-width: 0;
+}
+
+.svcPresetMain {
+  width: 100%;
+  display: grid;
+  justify-items: start;
+  align-content: start;
+  gap: 6px;
+  padding: 12px;
+  border: 1px solid #ececf0;
+  border-radius: 20px;
+  background: #ffffff;
+  color: #14161d;
+  font: inherit;
+  text-align: right;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(20, 22, 29, 0.04);
+  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+}
+
+.svcPresetMain:hover,
+.svcPresetMain:focus-visible {
+  transform: translateY(-1px);
+  border-color: #dcdce4;
+  box-shadow: 0 10px 22px rgba(20, 22, 29, 0.09);
+}
+
+.svcPresetMain:active { transform: scale(0.98); }
+.svcPresetMain strong { font-size: 0.88rem; font-weight: 950; line-height: 1.35; }
+
+.svcPresetMain small {
+  color: #6f7380;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1.55;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.svcPresetMeta {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 8px;
+  margin-top: 2px;
+}
+
+.svcPresetMeta em {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: #6f7380;
+  font-size: 0.66rem;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.svcPresetMeta b { color: #14161d; font-size: 0.7rem; font-weight: 950; }
+
+.svcPresetQuick {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 11px;
+  background: #14161d;
+  color: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 6px 14px rgba(20, 22, 29, 0.2);
+}
+
+.svcPresetQuick:active { transform: scale(0.92); }
+
+.svcPreset.is-added .svcPresetMain { opacity: 0.55; cursor: default; }
+
+.svcPresetDone {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  min-height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: #e8f7f1;
+  color: #1f8f64;
+  font-size: 0.62rem;
+  font-weight: 900;
+}
+
+.svcEmptyState {
+  grid-column: 1 / -1;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 26px 12px;
+  text-align: center;
+}
+
+.svcEmptyState b { font-size: 0.95rem; font-weight: 950; }
+.svcEmptyState span { color: #6f7380; font-size: 0.76rem; font-weight: 700; }
+
+.svcEmptyState button {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 14px;
+  background: #14161d;
+  color: #ffffff;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 950;
+  cursor: pointer;
+}
+
+.svcEmpty { grid-column: 1 / -1; margin: 0; padding: 18px; color: #6f7380; text-align: center; font-size: 0.8rem; font-weight: 800; }
+
+/* editor form */
+.svcForm { display: grid; gap: 12px; }
+
+.svcFormHero {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.svcFormHero .svcField { flex: 1 1 auto; }
+
+.svcIconSlot {
+  flex: none;
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.svcIconSlot small { color: #6f7380; font-size: 0.64rem; font-weight: 850; }
+
+.svcIconSlotEmpty {
+  width: 72px;
+  height: 72px;
+  display: grid;
+  place-items: center;
+  border: 2px dashed #cfd1da;
+  border-radius: 24px;
+  background: #f6f6f8;
+  color: #4b4f5c;
+}
+
+.svcField { display: grid; gap: 6px; min-width: 0; }
+.svcField span { color: #4b4f5c; font-size: 0.72rem; font-weight: 900; }
+
+.svcField input,
+.svcField textarea {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid #e4e4ea;
+  border-radius: 15px;
+  background: #ffffff;
+  color: #14161d;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 750;
+  outline: 0;
+}
+
+.svcField textarea { padding: 12px 14px; min-height: 76px; resize: none; line-height: 1.6; }
+
+.svcField input:focus,
+.svcField textarea:focus {
+  border-color: #14161d;
+  box-shadow: 0 0 0 3px rgba(20, 22, 29, 0.08);
+}
+
+.svcFieldRow { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+.svcChips { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.svcChips button {
+  min-height: 34px;
+  padding: 0 13px;
+  border: 1px solid #ececf0;
+  border-radius: 999px;
+  background: #f6f6f8;
+  color: #4b4f5c;
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.svcChips button.on { border-color: #14161d; background: #14161d; color: #ffffff; }
+
+.svcSubmit {
+  min-height: 54px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 17px;
+  background: #14161d;
+  color: #ffffff;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 950;
+  cursor: pointer;
+  box-shadow: 0 12px 24px rgba(20, 22, 29, 0.18);
+}
+
+.svcSubmit:active { transform: scale(0.98); }
+
+/* icon picker */
+.svcPickerGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.svcPickerGrid button {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 10px 6px;
+  border: 2px solid transparent;
+  border-radius: 18px;
+  background: #ffffff;
+  color: #4b4f5c;
+  font: inherit;
+  cursor: pointer;
+}
+
+.svcPickerGrid button span { font-size: 0.68rem; font-weight: 850; line-height: 1.35; text-align: center; }
+.svcPickerGrid button:hover { background: #f6f6f8; }
+.svcPickerGrid button.on { border-color: #14161d; background: #f6f6f8; color: #14161d; }
+
+.svcPickerClear {
+  min-height: 44px;
+  border: 0;
+  border-radius: 14px;
+  background: #f6f6f8;
+  color: #c14545;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+/* Sheet children must never shrink inside the column (scroll instead). */
+.svcSheet > *,
+.svcPicker > *,
+.svcCatalog > * { flex-shrink: 0; }
+
+/* ── Lively icon strip (empty states) ────────────────────────────────── */
+.svcIconStrip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 6px 0 2px;
+}
+
+.svcIconStrip .svcFloat {
+  animation: svcFloat 3.2s ease-in-out infinite;
+  animation-delay: var(--svc-float-delay, 0s);
+}
+
+.svcIconStrip .svcFloat:nth-child(odd) { margin-top: 10px; }
+
+@keyframes svcFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .svcIconStrip .svcFloat { animation: none; }
+}
+
+/* Owner cards: price sits in the chip row, actions stack on the side. */
+.svcChip.is-price { background: #14161d; color: #ffffff; font-weight: 950; }
+.svcCardSide .svcActions { flex-direction: column; }

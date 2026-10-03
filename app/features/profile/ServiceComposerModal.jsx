@@ -1,13 +1,23 @@
 "use client";
 
-import { useState } from "react";
-import { Check, Plus, Timer, X } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Check, Plus, Search, Timer, X } from "lucide-react";
+import { ServiceEmoji } from "../../components/ServiceEmoji";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { ServiceEmojiPicker } from "../../components/ServiceEmojiPicker";
+import { EMOJI_CATEGORIES } from "../../shared/constants/beautyEmoji";
+import { categoriesForSpecialties } from "../../shared/constants/serviceCatalog";
+import { toPersianDigits } from "../../shared/lib/digits";
+
+const DURATION_CHIPS = ["۱۵ دقیقه", "۳۰ دقیقه", "۴۵ دقیقه", "۶۰ دقیقه", "۹۰ دقیقه", "۱۲۰ دقیقه", "۱۸۰ دقیقه"];
 
 /**
  * Shared artist + salon service create/edit modal.
- * Presentational: draft/mode + catalog + callbacks stay owned by HomeApp.
+ *
+ * Two tabs: a searchable catalog of ready-made services (tap one to open it
+ * pre-filled in the editor, or hit + to add it as-is) and the editor itself,
+ * where the owner can change the name, icon, price, duration and description.
+ * Presentational: draft/mode + callbacks stay owned by HomeApp / the hook.
  */
 export function ServiceComposerModal({
   open,
@@ -15,113 +25,219 @@ export function ServiceComposerModal({
   draft,
   catalog = [],
   existingServices = [],
+  specialties = "",
   onClose,
   onModeChange,
   onDraftChange,
   onSubmitCustom,
-  onPickPreset
+  onPickPreset,
+  onCustomizePreset
 }) {
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [category, setCategory] = useState("mine");
+
+  const mine = useMemo(() => categoriesForSpecialties(specialties), [specialties]);
+  // Categories shown as chips: the owner's own fields first, then the rest.
+  const orderedCategories = useMemo(() => {
+    const first = EMOJI_CATEGORIES.filter((item) => mine.includes(item.id));
+    const rest = EMOJI_CATEGORIES.filter((item) => !mine.includes(item.id));
+    return [...first, ...rest];
+  }, [mine]);
+  const activeCategory = category === "mine" && !mine.length ? "all" : category;
+
+  const addedNames = useMemo(() => new Set(existingServices.map((item) => item.name)), [existingServices]);
+
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const wanted = activeCategory === "mine" ? mine : activeCategory === "all" ? null : [activeCategory];
+    return catalog
+      .filter((item) => (!wanted || wanted.includes(item.category))
+        && (!q || `${item.name} ${item.hint} ${item.badge}`.toLowerCase().includes(q)))
+      .sort((a, b) => Number(addedNames.has(a.name)) - Number(addedNames.has(b.name)));
+  }, [catalog, activeCategory, mine, query, addedNames]);
 
   if (!open || !draft) return null;
 
+  const editing = Boolean(draft.id);
+
   return (
     <div
-      className="artistServiceModal"
+      className="svcSheetBackdrop"
       role="dialog"
       aria-modal="true"
-      aria-label="افزودن خدمت"
+      aria-label={editing ? "ویرایش خدمت" : "افزودن خدمت"}
       onClick={onClose}
     >
-      <article className="artistServiceSheet" onClick={(event) => event.stopPropagation()}>
-        <header className="artistServiceHead">
+      <article className="svcSheet" onClick={(event) => event.stopPropagation()}>
+        <header className="svcSheetHead">
           <div>
-            <h3>{draft.id ? "ویرایش خدمت" : "افزودن خدمت"}</h3>
+            <span>خدمات</span>
+            <h3>{editing ? "ویرایش خدمت" : "افزودن خدمت"}</h3>
           </div>
-          <button type="button" className="artistServiceClose" onClick={onClose} aria-label="بستن">
-            <X size={17} />
+          <button type="button" className="svcSheetClose" onClick={onClose} aria-label="بستن">
+            <X size={18} />
           </button>
         </header>
 
-        <div className="artistServiceModeSwitch" role="tablist" aria-label="روش افزودن خدمت">
+        <div className="svcModeSwitch" role="tablist" aria-label="روش افزودن خدمت">
           <button
             type="button"
             role="tab"
             aria-selected={mode === "preset"}
-            className={mode === "preset" ? "active" : ""}
-            disabled={Boolean(draft.id)}
+            className={mode === "preset" ? "on" : ""}
+            disabled={editing}
             onClick={() => onModeChange?.("preset")}
           >
-            خدمات آماده
+            <ServiceEmoji id="sparkles" size={20} />
+            کاتالوگ خدمات
           </button>
           <button
             type="button"
             role="tab"
             aria-selected={mode === "custom"}
-            className={mode === "custom" ? "active" : ""}
+            className={mode === "custom" ? "on" : ""}
             onClick={() => onModeChange?.("custom")}
           >
-            ایجاد خدمت
+            <ServiceEmoji id="makeup_lesson" size={20} />
+            {editing ? "ویرایش" : "ساخت خدمت"}
           </button>
         </div>
 
         {mode === "preset" ? (
-          <div className="artistServicePresetList" role="list">
-            {[...catalog]
-              .sort((a, b) => {
-                const aAdded = existingServices.some((item) => item.name === a.name);
-                const bAdded = existingServices.some((item) => item.name === b.name);
-                return Number(aAdded) - Number(bAdded);
-              })
-              .map((service) => {
-                const alreadyAdded = existingServices.some((item) => item.name === service.name);
-              return (
+          <div className="svcCatalog">
+            <label className="svcSearch">
+              <Search size={16} aria-hidden="true" />
+              <input
+                type="search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="جستجوی خدمت… (مثلاً ژلیش، لیزر، شینیون)"
+                aria-label="جستجوی خدمت"
+              />
+            </label>
+            <div className="svcTabs" role="tablist" aria-label="دسته‌بندی خدمات">
+              {mine.length ? (
                 <button
                   type="button"
-                  key={service.id}
-                  className={`artistServicePresetCard is-${service.tone || "soft"}${alreadyAdded ? " is-added" : ""}`}
-                  disabled={alreadyAdded}
-                  onClick={() => onPickPreset?.(service)}
+                  role="tab"
+                  aria-selected={activeCategory === "mine"}
+                  className={activeCategory === "mine" ? "on" : ""}
+                  onClick={() => setCategory("mine")}
                 >
-                  <span className="artistServicePresetBadge">{service.badge}</span>
-                  <ServiceIcon emoji={service.emoji} name={service.name} size="lg" />
-                  <strong>{service.name}</strong>
-                  <small>{service.hint}</small>
-                  <span className="artistServicePresetMeta">
-                    <em><Timer size={13} /> {service.duration}</em>
-                    <b>{service.price}</b>
-                  </span>
-                  <i>{alreadyAdded ? "اضافه شده" : "افزودن"}</i>
+                  <ServiceEmoji id="heart" size={20} />
+                  تخصص من
                 </button>
-              );
-            })}
-          </div>
-        ) : (
-          <form className="artistServiceForm" onSubmit={onSubmitCustom}>
-            <div className="artistServiceNameRow">
+              ) : null}
               <button
                 type="button"
-                className={`serviceEmojiSlot${draft.emoji || draft.name.trim() ? " has" : ""}`}
+                role="tab"
+                aria-selected={activeCategory === "all"}
+                className={activeCategory === "all" ? "on" : ""}
+                onClick={() => setCategory("all")}
+              >
+                <ServiceEmoji id="sparkles" size={20} />
+                همه
+              </button>
+              {orderedCategories.map((item) => (
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={activeCategory === item.id}
+                  className={activeCategory === item.id ? "on" : ""}
+                  key={item.id}
+                  onClick={() => setCategory(item.id)}
+                >
+                  <ServiceEmoji id={item.icon} size={20} />
+                  {item.fa}
+                </button>
+              ))}
+            </div>
+
+            <p className="svcCatalogHint">
+              روی خدمت بزن تا قبل از افزودن، نام، قیمت و جزئیاتش را ویرایش کنی.
+            </p>
+
+            <div className="svcPresetGrid" role="list">
+              {visible.length === 0 ? (
+                <div className="svcEmptyState" role="status">
+                  <ServiceIcon emoji="mirror" size="xl" />
+                  <b>خدمتی پیدا نشد</b>
+                  <span>می‌توانی خدمت دلخواهت را خودت بسازی.</span>
+                  <button type="button" onClick={() => onModeChange?.("custom")}>
+                    <Plus size={15} />
+                    ساخت خدمت جدید
+                  </button>
+                </div>
+              ) : null}
+              {visible.map((service) => {
+                const added = addedNames.has(service.name);
+                return (
+                  <div className={`svcPreset${added ? " is-added" : ""}`} role="listitem" key={service.id}>
+                    <button
+                      type="button"
+                      className="svcPresetMain"
+                      disabled={added}
+                      onClick={() => onCustomizePreset?.(service)}
+                      aria-label={`${service.name}، ${service.price}، ${service.duration}`}
+                    >
+                      <ServiceIcon emoji={service.emoji} name={service.name} size="lg" />
+                      <strong>{service.name}</strong>
+                      <small>{service.hint}</small>
+                      <span className="svcPresetMeta">
+                        <em><Timer size={12} /> {toPersianDigits(service.duration)}</em>
+                        <b>{service.price}</b>
+                      </span>
+                    </button>
+                    {added ? (
+                      <span className="svcPresetDone"><Check size={14} /> اضافه شده</span>
+                    ) : (
+                      <button
+                        type="button"
+                        className="svcPresetQuick"
+                        aria-label={`افزودن سریع ${service.name}`}
+                        title="افزودن سریع"
+                        onClick={() => onPickPreset?.(service)}
+                      >
+                        <Plus size={16} />
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ) : (
+          <form className="svcForm" onSubmit={onSubmitCustom}>
+            <div className="svcFormHero">
+              <button
+                type="button"
+                className="svcIconSlot"
                 aria-label="انتخاب آیکن خدمت"
                 onClick={() => setPickerOpen(true)}
               >
-                {draft.emoji || draft.name.trim() ? <ServiceIcon emoji={draft.emoji} name={draft.name} size="lg" /> : <Plus size={20} />}
+                {draft.emoji || draft.name.trim() ? (
+                  <ServiceIcon emoji={draft.emoji} name={draft.name} size="xl" />
+                ) : (
+                  <span className="svcIconSlotEmpty"><Plus size={26} /></span>
+                )}
+                <small>{draft.emoji ? "تغییر آیکن" : "انتخاب آیکن"}</small>
               </button>
-              <label className="artistServiceField">
+              <label className="svcField">
                 <span>نام خدمت</span>
                 <input
                   value={draft.name}
                   onChange={(event) => onDraftChange?.({ name: event.target.value })}
-                  placeholder="مثلا شینیون کلاسیک"
+                  placeholder="مثلاً شینیون کلاسیک"
                   required
                   autoFocus
                 />
               </label>
             </div>
 
-            <div className="artistServiceRow">
-              <label className="artistServiceField">
-                <span>قیمت</span>
+            <div className="svcFieldRow">
+              <label className="svcField">
+                <span>قیمت (تومان)</span>
                 <input
                   value={draft.price}
                   onChange={(event) => onDraftChange?.({ price: event.target.value })}
@@ -129,7 +245,7 @@ export function ServiceComposerModal({
                   inputMode="text"
                 />
               </label>
-              <label className="artistServiceField">
+              <label className="svcField">
                 <span>مدت</span>
                 <input
                   value={draft.duration}
@@ -139,12 +255,12 @@ export function ServiceComposerModal({
               </label>
             </div>
 
-            <div className="artistServiceDurationRow" role="group" aria-label="انتخاب سریع مدت">
-              {["۳۰ دقیقه", "۶۰ دقیقه", "۹۰ دقیقه", "۱۲۰ دقیقه"].map((option) => (
+            <div className="svcChips" role="group" aria-label="انتخاب سریع مدت">
+              {DURATION_CHIPS.map((option) => (
                 <button
                   type="button"
                   key={option}
-                  className={draft.duration === option ? "active" : ""}
+                  className={draft.duration === option ? "on" : ""}
                   onClick={() => onDraftChange?.({ duration: option })}
                 >
                   {option.replace(" دقیقه", "′")}
@@ -152,19 +268,19 @@ export function ServiceComposerModal({
               ))}
             </div>
 
-            <label className="artistServiceField">
+            <label className="svcField">
               <span>توضیح کوتاه</span>
               <textarea
                 value={draft.hint}
                 onChange={(event) => onDraftChange?.({ hint: event.target.value })}
-                placeholder="مثلا مناسب مراسم و مهمانی"
+                placeholder="مثلاً مناسب مراسم و مهمانی"
                 rows={2}
               />
             </label>
 
-            <button type="submit" className="artistServiceSubmit">
-              <Check size={16} />
-              {draft.id ? "ذخیره تغییرات" : "تایید و افزودن خدمت"}
+            <button type="submit" className="svcSubmit">
+              <Check size={17} />
+              {editing ? "ذخیره تغییرات" : "افزودن به خدمات من"}
             </button>
           </form>
         )}
