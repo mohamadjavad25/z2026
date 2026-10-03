@@ -32,6 +32,14 @@ Vercel, add the Vercel Postgres integration and it's set for you). Then run
 the migrations once (`npm run migrate`) before starting the app — see
 `app/lib/README.md`. The app runs at `http://localhost:3000`.
 
+With Docker, a ready-made Postgres is one command away:
+
+```bash
+docker compose up -d
+cp .env.example .env.local   # then set POSTGRES_URL=postgresql://zibaban:zibaban@localhost:5432/zibaban
+POSTGRES_URL=postgresql://zibaban:zibaban@localhost:5432/zibaban npm run migrate
+```
+
 ```bash
 npm run build   # production build
 npm run start   # run the production build

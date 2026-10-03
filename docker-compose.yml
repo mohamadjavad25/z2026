@@ -1,0 +1,24 @@
+# Local development Postgres. Usage:
+#   docker compose up -d
+#   POSTGRES_URL=postgresql://zibaban:zibaban@localhost:5432/zibaban npm run migrate
+services:
+  db:
+    image: postgres:16
+    container_name: zibaban-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: zibaban
+      POSTGRES_PASSWORD: zibaban
+      POSTGRES_DB: zibaban
+    ports:
+      - "5432:5432"
+    volumes:
+      - zibaban-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zibaban -d zibaban"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  zibaban-pgdata:
