@@ -193,13 +193,25 @@ export const ScheduleRow = memo(function ScheduleRow({
     <div
       className={`bkRow is-${phase || "upcoming"}${showStatusTag ? ` is-tone-${statusTone}` : ""}${isClientBooking ? " is-client" : ""}`}
       data-phase={phase}
-      role="group"
-      aria-label={`${title}، ${meta}، ${date}، ${time}`}
+      role="button"
+      tabIndex={0}
+      aria-label={`مدیریت رزرو ${title}، ${meta}، ${date}، ${time}`}
+      onClick={() => onAction?.(actionPayload)}
+      onKeyDown={(event) => {
+        if (event.target !== event.currentTarget) return;
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onAction?.(actionPayload);
+        }
+      }}
     >
       <ServiceIcon emoji={booking.serviceEmoji} name={service} size="md" className="bkIcon" />
 
       <div className="bkBody">
         <div className="bkTitle">
+          {!isClientBooking ? (
+            <img className="bkAvatar" src={clientAvatar || "/profile-icon.svg"} alt="" aria-hidden="true" draggable={false} />
+          ) : null}
           <b>{title}</b>
           {!isClientBooking || showStatusTag ? <span className={`bkChip ${chipClass}`}>{phaseTagLabel}</span> : null}
         </div>
@@ -235,15 +247,9 @@ export const ScheduleRow = memo(function ScheduleRow({
         <div className="bkTime">
           <SegmentClock value={time} size="xs" backgroundColor="transparent" />
         </div>
-        <button
-          type="button"
-          className="bkMore"
-          aria-label={`مدیریت رزرو ${client}`}
-          title="گزینه‌های رزرو"
-          onClick={() => onAction?.(actionPayload)}
-        >
+        <span className="bkMore" aria-hidden="true">
           <MoreHorizontal size={18} />
-        </button>
+        </span>
       </div>
     </div>
   );

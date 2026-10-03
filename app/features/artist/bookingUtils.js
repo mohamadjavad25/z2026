@@ -292,6 +292,7 @@ export function mapArtistBooking(row) {
     sourceSalon: row.sourceSalon || row.source_salon || null,
     phone: profile?.phone || row.client_phone || row.phone || "",
     service: row.service || "",
+    service_emoji: row.service_emoji || "",
     status: row.status || "تایید",
     createdAt: row.created_at || "",
     durationMinutes: Number(row.duration_minutes || 0) || 60,

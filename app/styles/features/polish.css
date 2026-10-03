@@ -293,3 +293,33 @@
 :root .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingFeatureTop b {
   font-size: 1rem;
 }
+
+/* Whole booking cards open their details -- make that obvious. */
+.bkRow[role="button"],
+.clientBookingFeatureCard.is-clickable { cursor: pointer; }
+
+.bkRow[role="button"] {
+  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bkRow[role="button"]:hover { border-color: #dcdce4; box-shadow: 0 10px 24px rgba(20, 22, 29, 0.09); }
+.bkRow[role="button"]:active { transform: scale(0.99); }
+.bkRow[role="button"]:focus-visible { outline: 3px solid rgba(20, 22, 29, 0.25); outline-offset: 2px; }
+
+.bkAvatar {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #f1f1f5;
+  box-shadow: 0 0 0 1.5px #ffffff, 0 0 0 2.5px #e4e4ea;
+}
+
+.bkMore { pointer-events: none; }
+.bkRow[role="button"]:hover .bkMore { background: #f1f1f5; color: #14161d; }
+
+/* Booking-details header: a real logo tile for the customer / source */
+.scheduleBookingSettings .clientBookingSettingsAvatar img,
+.scheduleBookingSettings .scheduleStaffAvatar img { width: 100%; height: 100%; object-fit: cover; }

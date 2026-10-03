@@ -24,6 +24,9 @@ import { SegmentClock } from "../../components/SegmentClock";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { formatRequestExpiryDeadline, getRequestExpiryMinutesLeft } from "../../shared/lib/time";
 
+// Shown when a customer / staff member / source has no uploaded photo.
+const DEFAULT_AVATAR = "/profile-icon.svg";
+
 // ownerType-aware status-tone mapping — same convention as
 // ScheduleRow.jsx's getBookingStatusTone (duplicated on purpose per this
 // codebase's convention for small component-local helpers; see that file
@@ -101,15 +104,16 @@ export function ScheduleBookingMenuModal({
   // the client's booking might sit here forever without a next step visible.
   const isPendingReview = booking.status === "درخواست" || (!isSalonOwner && booking.status === "تازه");
   const sourceSalon = booking.sourceSalon || {};
-  const avatar = booking.clientAvatar || booking.client_avatar || sourceSalon.avatar || "";
+  // Always show a logo: the uploaded photo when there is one, else the app's default profile icon.
+  const avatar = booking.clientAvatar || booking.client_avatar || sourceSalon.avatar || DEFAULT_AVATAR;
   const title = booking.client || booking.salonName || sourceSalon.name || "رزرو";
   const subtitle = isSalonOwner
     ? (booking.staff || "آرتیست ثبت نشده")
     : (sourceSalon.name || booking.staff || "رزرو شخصی");
   const phone = booking.phone || booking.clientPhone || booking.client_phone || "";
   const currentArtistAvatar = isSalonOwner
-    ? (booking.staffAvatar || staffOptions.find((person) => person.name === booking.staff)?.avatar || "")
-    : (sourceSalon.avatar || "");
+    ? (booking.staffAvatar || staffOptions.find((person) => person.name === booking.staff)?.avatar || DEFAULT_AVATAR)
+    : (sourceSalon.avatar || DEFAULT_AVATAR);
   const slots = timeSlots.length ? timeSlots : [booking.time].filter(Boolean);
   const actionDisabled = Boolean(busy);
   // booking.ownerType isn't set on every path (e.g. raw history-sheet items
@@ -135,8 +139,8 @@ export function ScheduleBookingMenuModal({
       <div className="clientBookingSettingsWrap" onClick={(event) => event.stopPropagation()}>
         <div className="clientBookingSettings scheduleBookingSettings">
           <div className="clientBookingSettingsHead">
-            <span className={`clientBookingSettingsAvatar ${avatar ? "hasImage" : ""}`} aria-hidden="true">
-              {avatar ? <img src={avatar} alt="" /> : String(title || "ر").slice(0, 1)}
+            <span className="clientBookingSettingsAvatar hasImage" aria-hidden="true">
+              <img src={avatar} alt="" />
             </span>
             <div>
               <small>
@@ -186,8 +190,8 @@ export function ScheduleBookingMenuModal({
                   aria-haspopup={canManage ? "listbox" : undefined}
                   onClick={() => canManage && setArtistPickerOpen((open) => !open)}
                 >
-                  <span className={`scheduleStaffAvatar ${currentArtistAvatar ? "hasImage" : ""}`} aria-hidden="true">
-                    {currentArtistAvatar ? <img src={currentArtistAvatar} alt="" /> : String(subtitle || "آ").slice(0, 1)}
+                  <span className="scheduleStaffAvatar hasImage" aria-hidden="true">
+                    <img src={currentArtistAvatar} alt="" />
                   </span>
                   <span className="scheduleBookingArtistCopy">
                     <small>{isSalonOwner ? "آرتیست" : "منبع"}</small>
