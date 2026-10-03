@@ -138,7 +138,11 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook })
               ? formatRequestExpiryDeadline(nextBooking.created_at)
               : "";
             return (
-              <article className="clientBookingFeatureCard" key={nextBooking.id || `${meta.salonName}-${meta.time}`}>
+              <article
+                className="clientBookingFeatureCard is-clickable"
+                key={nextBooking.id || `${meta.salonName}-${meta.time}`}
+                onClick={() => onOpenSettings?.({ ...nextBooking, clientBookingSheetMode: "details" })}
+              >
                 <div className="clientBookingFeatureTop">
                   <ServiceIcon emoji={meta.serviceEmoji} name={meta.service} size="lg" className="clientBookingFeatureIcon" />
                   <div>
@@ -175,7 +179,10 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook })
                   <button
                     type="button"
                     className="clientBookingActionPrimary"
-                    onClick={() => onOpenSettings?.({ ...nextBooking, clientBookingSheetMode: "details" })}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onOpenSettings?.({ ...nextBooking, clientBookingSheetMode: "details" });
+                    }}
                   >
                     <FileText size={17} />
                     مشاهده جزئیات
@@ -184,7 +191,10 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook })
                     <button
                       type="button"
                       className="clientBookingActionSecondary"
-                      onClick={() => onRebook?.(nextBooking)}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onRebook?.(nextBooking);
+                      }}
                       aria-label="رزرو دوباره"
                       title="رزرو دوباره"
                     >
