@@ -1,7 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Phone, Search, Users } from "lucide-react";
+import { PageIcon } from "../../components/PageIcon";
+import { ServiceIcon } from "../../components/ServiceIcon";
+import { Phone, Search } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar";
 
@@ -66,9 +68,12 @@ export function SalonCustomersPage({ active, bookings = [], onOpenBooking, owner
   return (
     <div className={`salonCustomersPage mobilePage page-customers ${active ? "is-active" : ""}`} id="customers">
       <div className="salonCustomersHead">
-        <div>
-          <span>جامعه مشتریان</span>
-          <strong>{ownerLabel}</strong>
+        <div className="salonCustomersTitle">
+          <span className="pageHeadIcon" aria-hidden="true"><PageIcon name="customers" size={30} /></span>
+          <div>
+            <span>جامعه مشتریان</span>
+            <strong>{ownerLabel}</strong>
+          </div>
         </div>
         <b>{toPersianDigits(visibleCustomers.length)} مشتری</b>
       </div>
@@ -84,10 +89,10 @@ export function SalonCustomersPage({ active, bookings = [], onOpenBooking, owner
       </label>
       <div className="salonCustomersList">
         {customers.length === 0 ? (
-          <div className="emptySalonDirectory">
-            <Users size={22} />
+          <div className="emptySalonDirectory is-lively">
+            <PageIcon name="customers" size={64} />
             <b>هنوز مشتری‌ای ثبت نشده</b>
-            <p>با اولین رزرو، اینجا پر می‌شود.</p>
+            <p>با اولین رزرو، مشتری‌هایت اینجا جمع می‌شوند و می‌توانی با یک ضربه تماس بگیری.</p>
           </div>
         ) : visibleCustomers.length === 0 ? (
           <div className="emptySalonDirectory">
@@ -102,9 +107,11 @@ export function SalonCustomersPage({ active, bookings = [], onOpenBooking, owner
             <div className="salonCustomerInfo">
               <b>{customer.name}</b>
               <span dir="ltr">{customer.phone ? toPersianDigits(customer.phone) : "شماره ثبت نشده"}</span>
+              {customer.lastService ? (
+                <em className="salonCustomerService"><ServiceIcon name={customer.lastService} size="xs" />{customer.lastService}</em>
+              ) : null}
               <small>
                 {toPersianDigits(customer.visitCount)} بار رزرو
-                {customer.lastService ? ` · آخرین خدمت: ${customer.lastService}` : ""}
                 {customer.lastDate ? ` · ${formatRelativeBookingDayLabel(customer.lastDate)}` : ""}
               </small>
             </div>

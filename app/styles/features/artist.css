@@ -82,9 +82,9 @@
   align-items: center;
   gap: 6px;
   padding: 0 13px;
-  border: 1px solid rgba(96, 81, 155, 0.18);
+  border: 1px solid rgba(20, 22, 29, 0.18);
   border-radius: 12px;
-  background: rgba(96, 81, 155, 0.1);
+  background: rgba(20, 22, 29, 0.1);
   color: var(--teal);
   font-size: 0.72rem;
   font-weight: 900;
@@ -93,8 +93,8 @@
 
 /* .artistBreakBtn.is-active */
 .artistBreakBtn.is-active {
-  border-color: rgba(96, 81, 155, 0.28);
-  background: rgba(96, 81, 155, 0.16);
+  border-color: rgba(20, 22, 29, 0.28);
+  background: rgba(20, 22, 29, 0.16);
   color: var(--teal);
 }
 
@@ -105,8 +105,8 @@
   gap: 8px;
   padding: 10px 12px;
   border-radius: 14px;
-  background: rgba(96, 81, 155, 0.1);
-  color: #60519b;
+  background: rgba(20, 22, 29, 0.1);
+  color: #14161d;
   font-size: 0.78rem;
   font-weight: 800;
 }
@@ -135,11 +135,11 @@
   gap: 14px;
   padding: 16px;
   border-radius: 22px;
-  border: 1px solid rgba(96, 81, 155, 0.16);
+  border: 1px solid rgba(20, 22, 29, 0.16);
   background:
-    radial-gradient(circle at 12% 0%, rgba(96, 81, 155, 0.1), transparent 42%),
+    radial-gradient(circle at 12% 0%, rgba(20, 22, 29, 0.1), transparent 42%),
     linear-gradient(180deg, #f7fbfb, #ffffff 55%);
-  box-shadow: 0 14px 34px rgba(96, 81, 155, 0.06);
+  box-shadow: 0 14px 34px rgba(20, 22, 29, 0.06);
 }
 
 /* .artistBreakSheet */
@@ -179,7 +179,7 @@
   display: grid;
   place-items: center;
   border-radius: 14px;
-  background: rgba(96, 81, 155, 0.12);
+  background: rgba(20, 22, 29, 0.12);
   color: var(--teal);
 }
 
@@ -195,7 +195,7 @@
 .artistBreakEditorHead small {
   display: block;
   margin-top: 2px;
-  color: rgba(96, 81, 155, 0.7);
+  color: rgba(20, 22, 29, 0.7);
   font-size: 0.72rem;
   font-weight: 750;
 }
@@ -205,7 +205,7 @@
   display: grid;
   border-radius: 22px;
   background: #fff;
-  border: 1px solid rgba(96, 81, 155, 0.14);
+  border: 1px solid rgba(20, 22, 29, 0.14);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
@@ -250,7 +250,7 @@
 
 /* .artistBreakRangeArrow */
 .artistBreakRangeArrow {
-  color: rgba(96, 81, 155, 0.4);
+  color: rgba(20, 22, 29, 0.4);
   font-size: 0.95rem;
   line-height: 1;
 }
@@ -263,8 +263,8 @@
   min-height: 28px;
   padding: 0 10px;
   border-radius: 999px;
-  background: rgba(96, 81, 155, 0.12);
-  color: #60519b;
+  background: rgba(20, 22, 29, 0.12);
+  color: #14161d;
   font-size: 0.66rem;
   font-style: normal;
   font-weight: 900;
@@ -299,7 +299,7 @@
 
 /* .artistBreakEditorActions button:not(.danger):not(.ghost) */
 .artistBreakEditorActions button:not(.danger):not(.ghost) {
-  background: #60519b;
+  background: #14161d;
   color: #fff;
 }
 
@@ -411,19 +411,19 @@
 
 /* .artistServiceBadge.is-hot */
 .artistServiceBadge.is-hot {
-  background: rgba(96, 81, 155, 0.12);
+  background: rgba(20, 22, 29, 0.12);
   color: #9b3650;
 }
 
 /* .artistServiceBadge.is-vip */
 .artistServiceBadge.is-vip {
-  background: rgba(96, 81, 155, 0.16);
+  background: rgba(20, 22, 29, 0.16);
   color: #8a6a1d;
 }
 
 /* .artistServiceBadge.is-soft */
 .artistServiceBadge.is-soft {
-  background: rgba(96, 81, 155, 0.1);
+  background: rgba(20, 22, 29, 0.1);
   color: var(--teal);
 }
 
@@ -504,8 +504,8 @@
 
 /* .artistServiceActions button.danger */
 .artistServiceActions button.danger {
-  border-color: rgba(96, 81, 155, 0.2);
-  background: rgba(96, 81, 155, 0.1);
+  border-color: rgba(20, 22, 29, 0.2);
+  background: rgba(20, 22, 29, 0.1);
   color: #9b3650;
 }
 
@@ -518,7 +518,7 @@
   border: 1px solid rgba(28, 32, 44, 0.08);
   border-radius: 20px;
   background:
-    radial-gradient(circle at 50% 0%, rgba(96, 81, 155, 0.08), transparent 58%),
+    radial-gradient(circle at 50% 0%, rgba(20, 22, 29, 0.08), transparent 58%),
     rgba(255, 255, 255, 0.66);
   text-align: center;
   color: var(--muted);
@@ -684,7 +684,7 @@
   margin: 0;
   padding: 5px 10px;
   border-radius: 10px;
-  background: rgba(96, 81, 155, 0.12);
+  background: rgba(20, 22, 29, 0.12);
   color: var(--teal);
   font-size: 0.7rem;
   font-style: normal;
@@ -700,13 +700,13 @@
   min-height: 48px;
   border: 0;
   border-radius: 14px;
-  background: #60519b;
+  background: #14161d;
   color: #fff;
   font-family: inherit;
   font-size: 0.88rem;
   font-weight: 900;
   cursor: pointer;
-  box-shadow: 0 10px 24px rgba(96, 81, 155, 0.22);
+  box-shadow: 0 10px 24px rgba(20, 22, 29, 0.22);
 }
 
 /* .artistWorkClose — floating below the sheet */
@@ -912,8 +912,8 @@
   height: var(--break-wheel-item);
   transform: translateY(-50%);
   border-radius: 14px;
-  background: rgba(96, 81, 155, 0.1);
-  border: 1px solid rgba(96, 81, 155, 0.16);
+  background: rgba(20, 22, 29, 0.1);
+  border: 1px solid rgba(20, 22, 29, 0.16);
   pointer-events: none;
   z-index: 1;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
@@ -1533,7 +1533,7 @@
   border: 0;
   border-radius: 16px;
   padding: 8px 6px;
-  background: linear-gradient(145deg, #1c2328 0%, #2a3338 55%, #60519b 130%);
+  background: linear-gradient(145deg, #1c2328 0%, #2a3338 55%, #14161d 130%);
   color: #fff;
   font-size: 0.62rem;
   font-weight: 900;
@@ -1613,7 +1613,7 @@
   padding: 0 11px;
   border: 0;
   border-radius: 11px;
-  background: rgba(96, 81, 155, 0.12);
+  background: rgba(20, 22, 29, 0.12);
   color: var(--teal);
   font-size: 0.7rem;
   font-weight: 900;
@@ -1629,9 +1629,9 @@
   gap: 8px;
   min-height: 40px;
   width: 100%;
-  border: 1px dashed rgba(96, 81, 155, 0.35);
+  border: 1px dashed rgba(20, 22, 29, 0.35);
   border-radius: 14px;
-  background: rgba(96, 81, 155, 0.08);
+  background: rgba(20, 22, 29, 0.08);
   color: var(--teal);
   font-size: 0.78rem;
   font-weight: 900;
@@ -1642,8 +1642,8 @@
 
 
 .artistBookingRailCreate:hover{
-  background: rgba(96, 81, 155, 0.14);
-  border-color: rgba(96, 81, 155, 0.55);
+  background: rgba(20, 22, 29, 0.14);
+  border-color: rgba(20, 22, 29, 0.55);
   transform: translateY(-1px);
 }
 
@@ -1718,8 +1718,8 @@
 
 
 .artistBookingRailPhone input{
-  border-color: rgba(96, 81, 155, 0.22);
-  box-shadow: inset 0 0 0 1px rgba(96, 81, 155, 0.04);
+  border-color: rgba(20, 22, 29, 0.22);
+  box-shadow: inset 0 0 0 1px rgba(20, 22, 29, 0.04);
 }
 
 
@@ -2136,9 +2136,9 @@
 
 .artistPublicFollow{
   border: 0;
-  background: #60519b;
+  background: #14161d;
   color: #fff;
-  box-shadow: 0 10px 24px rgba(96, 81, 155, 0.22);
+  box-shadow: 0 10px 24px rgba(20, 22, 29, 0.22);
 }
 
 
@@ -2439,7 +2439,7 @@
   color: var(--ink);
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(246, 246, 251, 0.7)),
-    radial-gradient(circle at 50% 0%, rgba(96, 81, 155, 0.1), transparent 50%);
+    radial-gradient(circle at 50% 0%, rgba(20, 22, 29, 0.1), transparent 50%);
   border: 1px solid rgba(255, 255, 255, 0.62);
 }
 
@@ -2517,7 +2517,7 @@
   font-size: 0.62rem;
   font-style: normal;
   font-weight: 900;
-  background: rgba(96, 81, 155, 0.12);
+  background: rgba(20, 22, 29, 0.12);
   color: var(--teal);
 }
 
@@ -2566,7 +2566,7 @@
   align-items: center;
   padding: 0 11px;
   border-radius: 999px;
-  background: rgba(96, 81, 155, 0.12);
+  background: rgba(20, 22, 29, 0.12);
   color: var(--teal);
   font-size: 0.7rem;
   font-weight: 900;
@@ -2609,7 +2609,7 @@
 .artistPublicBookingService span{
   display: block;
   margin-bottom: 3px;
-  color: #60519b;
+  color: #14161d;
   font-size: 0.68rem;
   font-weight: 900;
 }
@@ -2804,7 +2804,7 @@
 
 
 
-.artistPublicAboutList svg{ color: #60519b; justify-self: center; }
+.artistPublicAboutList svg{ color: #14161d; justify-self: center; }
 
 
 .artistPublicAboutList b{ display: block; margin-bottom: 2px; font-size: 0.82rem; font-weight: 900; }
@@ -2840,7 +2840,7 @@
 
 
 .breakTimeWheelItem.is-active{
-  color: #60519b;
+  color: #14161d;
   opacity: 1;
   transform: scale(1.04);
 }
@@ -2849,7 +2849,7 @@
 
 .breakTimeWheelItem.is-active .breakTimeWheelLabel{
   font-size: 0.92rem;
-  color: #60519b;
+  color: #14161d;
 }
 
 
@@ -2861,7 +2861,7 @@
 
 
 .breakTimeWheel.is-label .breakTimeWheelItem.is-active{
-  color: #60519b;
+  color: #14161d;
 }
 
 
@@ -3079,7 +3079,7 @@
 .artistBookingRail.is-collapsed.is-dragging:not(.is-wall-top):not(.is-wall-bottom) .artistBookingRailHandleDots i{
   background: #ffffff;
   opacity: 1;
-  box-shadow: 0 0 0 1px rgba(96, 81, 155, 0.35);
+  box-shadow: 0 0 0 1px rgba(20, 22, 29, 0.35);
 }
 
 
@@ -3257,8 +3257,8 @@
 .artistBookingRail.is-dragging .artistBookingRailHandle{
   cursor: grabbing;
   border-style: solid;
-  border-color: rgba(96, 81, 155, 0.28);
-  background: rgba(96, 81, 155, 0.1);
+  border-color: rgba(20, 22, 29, 0.28);
+  background: rgba(20, 22, 29, 0.1);
   color: var(--teal);
 }
 
@@ -3317,7 +3317,7 @@
 
 
 .artistBookingRailList .artistBookingRailStatus.is-ok{
-  background: #60519b;
+  background: #14161d;
 }
 
 
@@ -3347,7 +3347,7 @@
 
 
 .artistBookingRailList time.is-ok{
-  background: rgba(96, 81, 155, 0.12);
+  background: rgba(20, 22, 29, 0.12);
   color: var(--teal);
 }
 
@@ -3361,22 +3361,22 @@
 
 
 .artistBookingRailList time.is-vip{
-  background: rgba(96, 81, 155, 0.12);
+  background: rgba(20, 22, 29, 0.12);
   color: #9b3650;
 }
 
 
 
 .artistPublicFollow.is-following{
-  background: rgba(96, 81, 155, 0.12);
-  color: #60519b;
+  background: rgba(20, 22, 29, 0.12);
+  color: #14161d;
   box-shadow: none;
 }
 
 
 
 .artistPublicModeRail button.active{
-  color: #60519b;
+  color: #14161d;
   background: #fff;
   box-shadow: 0 4px 14px rgba(15, 17, 20, 0.06);
 }
@@ -3384,9 +3384,9 @@
 
 
 .artistPublicGalleryFilters button.active{
-  border-color: rgba(96, 81, 155, 0.28);
-  background: rgba(96, 81, 155, 0.1);
-  color: #60519b;
+  border-color: rgba(20, 22, 29, 0.28);
+  background: rgba(20, 22, 29, 0.1);
+  color: #14161d;
 }
 
 
@@ -3411,17 +3411,17 @@
 
 
 
-.artistPublicServiceBadge.is-hot{ background: rgba(96, 81, 155, 0.14); color: #a44d64; }
+.artistPublicServiceBadge.is-hot{ background: rgba(20, 22, 29, 0.14); color: #a44d64; }
 
 
-.artistPublicServiceBadge.is-vip{ background: rgba(96, 81, 155, 0.16); color: #9a6f22; }
+.artistPublicServiceBadge.is-vip{ background: rgba(20, 22, 29, 0.16); color: #9a6f22; }
 
 
 
 .artistPublicDayRail button.active,
 .artistPublicSlotGrid button.active{
-  border-color: rgba(96, 81, 155, 0.35);
-  background: #60519b;
+  border-color: rgba(20, 22, 29, 0.35);
+  background: #14161d;
   color: #fff;
 }
 

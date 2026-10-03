@@ -6,7 +6,7 @@
   --auth-blush: #c45b6a;
   --auth-gold: #c9a46a;
   --auth-teal: #2f6f6c;
-  --auth-input-border: #372c63;
+  --auth-input-border: #14161d;
   font-family: "Vazirmatn", Tahoma, sans-serif;
 }
 
@@ -159,7 +159,7 @@
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(180deg, rgba(10, 8, 12, 0.55) 0%, rgba(10, 8, 12, 0.12) 22%, rgba(10, 8, 12, 0.05) 48%, rgba(10, 8, 12, 0.35) 72%, rgba(10, 8, 12, 0.82) 100%);
+    linear-gradient(180deg, rgba(9, 9, 13, 0.55) 0%, rgba(9, 9, 13, 0.12) 22%, rgba(9, 9, 13, 0.05) 48%, rgba(9, 9, 13, 0.35) 72%, rgba(9, 9, 13, 0.82) 100%);
 }
 
 /* Brand pinned to top; video breathes in the middle */
@@ -432,7 +432,7 @@
   border: 1px solid rgba(255, 255, 255, 0.5);
   border-radius: 26px;
   background: rgba(255, 252, 249, 0.92);
-  box-shadow: 0 20px 50px -14px rgba(10, 8, 12, 0.35);
+  box-shadow: 0 20px 50px -14px rgba(9, 9, 13, 0.35);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   animation: authCopyIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;

@@ -43,7 +43,7 @@ export default function GlobalError({ error, reset }) {
               fontWeight: 900,
               fontFamily: "inherit",
               color: "#fff",
-              background: "linear-gradient(135deg, #8a68ff, #5d43b5)",
+              background: "#14161d",
               cursor: "pointer"
             }}
           >

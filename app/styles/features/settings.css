@@ -9,7 +9,7 @@
    surface instead of three stacked cards that each repeated the same logo
    thumbnail. */
 .brandCard{
-  border: 1px solid rgba(96, 81, 155, 0.14);
+  border: 1px solid rgba(20, 22, 29, 0.14);
   border-radius: 20px;
   background: #fff;
   box-shadow: 0 10px 22px rgba(28, 32, 44, 0.04);
@@ -24,7 +24,7 @@
   color: rgba(255, 255, 255, 0.75);
   background:
     radial-gradient(circle at 25% 15%, rgba(255, 255, 255, 0.12), transparent 45%),
-    linear-gradient(135deg, #2a2140, #171225);
+    linear-gradient(135deg, #2c2c30, #19191d);
 }
 
 .brandCardPoster img{
@@ -78,7 +78,7 @@
   overflow: hidden;
   border-radius: 18px;
   border: 3px solid #fff;
-  background: rgba(96, 81, 155, 0.1);
+  background: rgba(20, 22, 29, 0.1);
   box-shadow: 0 8px 18px rgba(28, 32, 44, 0.12);
 }
 
@@ -142,8 +142,8 @@
   display: grid;
   place-items: center;
   border-radius: 12px;
-  background: rgba(96, 81, 155, 0.1);
-  color: var(--plum, #60519b);
+  background: rgba(20, 22, 29, 0.1);
+  color: var(--plum, #14161d);
 }
 
 .imageActionList button b{
@@ -262,7 +262,7 @@
   gap: 5px;
   padding: 0 11px;
   border-radius: 11px;
-  background: rgba(96, 81, 155, 0.12);
+  background: rgba(20, 22, 29, 0.12);
   color: var(--teal);
   font-size: 0.7rem;
   font-style: normal;
@@ -285,7 +285,7 @@
   touch-action: none;
   cursor: grab;
   border-radius: 16px;
-  background: #14111f;
+  background: #16161a;
   box-shadow: inset 0 0 0 1px rgba(28, 32, 44, 0.1);
   -webkit-user-select: none;
   user-select: none;
@@ -357,7 +357,7 @@
 .imageCropperZoom input[type="range"]{
   flex: 1;
   min-width: 0;
-  accent-color: var(--plum, #60519b);
+  accent-color: var(--plum, #14161d);
 }
 
 .imageCropperHint{
@@ -441,7 +441,7 @@ button.artistWorkTagTrigger > span.is-placeholder{
 
 button.artistWorkTagTrigger > svg{
   flex: none;
-  color: #60519b;
+  color: #14161d;
   transition: transform 0.18s ease;
 }
 
@@ -475,8 +475,8 @@ button.artistWorkTagTrigger > svg{
 
 .salonRulesInput:focus{
   outline: none;
-  border-color: rgba(96, 81, 155, 0.45);
-  box-shadow: 0 0 0 3px rgba(96, 81, 155, 0.12);
+  border-color: rgba(20, 22, 29, 0.45);
+  box-shadow: 0 0 0 3px rgba(20, 22, 29, 0.12);
 }
 
 .salonRulesFoot{
