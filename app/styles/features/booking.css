@@ -1,0 +1,214 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   Booking flows (artist popup + salon sheet) -- clean white look.
+   Loaded last on purpose and scoped to the two booking sheets, so the
+   shared wheel/sheet shells keep their look everywhere else (e.g. the
+   working-hours editor). Palette: white surfaces, ink text, soft gray
+   hairlines, ink-black as the single accent -- no purple.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.salonHeroSheetPanel.artistBookingPopupSheet,
+.salonHeroSheetPanel.salonClientBookingPanel {
+  --bk-ink: #14161d;
+  --bk-muted: #6f7380;
+  --bk-line: #ececf0;
+  --bk-soft: #f6f6f8;
+  background: #ffffff;
+  color: var(--bk-ink);
+}
+
+@media (max-width: 760px) {
+  .salonHeroSheetBackdrop:has(> .artistBookingPopupSheet),
+  .salonHeroSheetBackdrop:has(> .salonClientBookingPanel) {
+    background: #ffffff;
+  }
+}
+
+/* ── Sheet header (artist popup) ─────────────────────────────────────── */
+.artistBookingPopupSheet .salonHeroSheetHead {
+  padding: 8px 4px 12px;
+  border-bottom: 1px solid var(--bk-line);
+}
+
+.artistBookingPopupSheet .salonHeroSheetHead span {
+  color: var(--bk-muted);
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.artistBookingPopupSheet .salonHeroSheetHead h3 {
+  color: var(--bk-ink);
+  font-size: 1.12rem;
+  font-weight: 950;
+}
+
+.artistBookingPopupSheet .salonHeroSheetHead button {
+  border: 0;
+  background: var(--bk-soft);
+  color: var(--bk-ink);
+}
+
+/* ── Selected-service summary ─────────────────────────────────────────── */
+.artistBookingPopupSheet .artistPublicBookingService {
+  padding: 14px;
+  border: 1px solid var(--bk-line);
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 6px 18px rgba(20, 22, 29, 0.04);
+}
+
+.artistBookingPopupSheet .artistPublicBookingService span {
+  color: var(--bk-muted);
+}
+
+.artistBookingPopupSheet .artistPublicBookingService strong {
+  color: var(--bk-ink);
+  font-size: 1rem;
+}
+
+.artistBookingPopupSheet .artistPublicBookingService small {
+  color: var(--bk-muted);
+}
+
+.artistBookingPopupSheet .artistPublicBookingService > b {
+  color: var(--bk-ink);
+}
+
+.artistBookingPopupSheet .artistPublicBookingServiceHint,
+.artistBookingPopupSheet .artistPublicBookingNote {
+  color: var(--bk-muted);
+}
+
+/* ── Day / time wheel card ───────────────────────────────────────────── */
+.artistBookingPopupSheet .settingsHoursWheelRange,
+.salonClientBookingPanel .settingsHoursWheelRange {
+  padding: 14px 10px;
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow: inset 0 0 0 1px var(--bk-line), 0 8px 24px rgba(20, 22, 29, 0.05);
+}
+
+.artistBookingPopupSheet .settingsHoursWheelRange > div > span,
+.salonClientBookingPanel .settingsHoursWheelRange > div > span {
+  color: var(--bk-muted);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.artistBookingPopupSheet .breakTimeWheelFocus,
+.salonClientBookingPanel .breakTimeWheelFocus {
+  background: var(--bk-soft);
+  border: 1px solid #e4e4ea;
+  box-shadow: none;
+}
+
+.artistBookingPopupSheet .breakTimeWheelItem,
+.salonClientBookingPanel .breakTimeWheelItem,
+.artistBookingPopupSheet .breakTimeWheel.is-label .breakTimeWheelItem,
+.salonClientBookingPanel .breakTimeWheel.is-label .breakTimeWheelItem {
+  color: rgba(20, 22, 29, 0.34);
+}
+
+.artistBookingPopupSheet .breakTimeWheelLabel,
+.salonClientBookingPanel .breakTimeWheelLabel {
+  color: rgba(20, 22, 29, 0.38);
+}
+
+.artistBookingPopupSheet .breakTimeWheelItem.is-active,
+.salonClientBookingPanel .breakTimeWheelItem.is-active,
+.artistBookingPopupSheet .breakTimeWheel.is-label .breakTimeWheelItem.is-active,
+.salonClientBookingPanel .breakTimeWheel.is-label .breakTimeWheelItem.is-active,
+.artistBookingPopupSheet .breakTimeWheelItem.is-active .breakTimeWheelLabel,
+.salonClientBookingPanel .breakTimeWheelItem.is-active .breakTimeWheelLabel {
+  color: var(--bk-ink);
+}
+
+.artistBookingPopupSheet .artistPublicSlotEmpty,
+.salonClientBookingPanel .artistPublicSlotEmpty {
+  background: var(--bk-soft);
+  color: var(--bk-muted);
+}
+
+/* ── Phone warning ───────────────────────────────────────────────────── */
+.artistBookingPopupSheet .artistBookingPhoneWarning button,
+.salonClientBookingPanel .salonClientBookingPhoneWarning button {
+  color: var(--bk-ink);
+}
+
+/* ── Primary action: solid ink, no purple gradient ───────────────────── */
+.artistBookingPopupSheet .artistBookingPopupConfirm,
+.salonClientBookingPanel .salonClientBookingSubmit {
+  min-height: 52px;
+  border-radius: 16px;
+  background: #14161d;
+  color: #ffffff;
+  font-size: 0.88rem;
+  box-shadow: 0 10px 22px rgba(20, 22, 29, 0.18);
+}
+
+.artistBookingPopupSheet .artistBookingPopupConfirm:disabled,
+.salonClientBookingPanel .salonClientBookingSubmit:disabled {
+  background: #d9dae0;
+  color: #8b8e99;
+  opacity: 1;
+  box-shadow: none;
+}
+
+/* ── Salon booking sheet ─────────────────────────────────────────────── */
+.salonClientBookingPanel {
+  gap: 14px;
+  padding: 14px;
+}
+
+.salonClientBookingPanel .salonClientBookingHead {
+  background: var(--bk-soft);
+  box-shadow: inset 0 0 0 1px var(--bk-line);
+}
+
+.salonClientBookingPanel .salonClientBookingBadge {
+  background: #ffffff;
+  color: var(--bk-ink);
+  box-shadow: inset 0 0 0 1px #e4e4ea;
+}
+
+.salonClientBookingPanel .salonClientBookingBadge:hover,
+.salonClientBookingPanel .salonClientBookingBadge:focus-visible {
+  background: #ececf0;
+}
+
+.salonClientBookingPanel .salonClientBookingHead strong {
+  color: var(--bk-ink);
+}
+
+.salonClientBookingPanel .salonClientBookingHead small,
+.salonClientBookingPanel .salonClientBookingProfileHead small,
+.salonClientBookingPanel .salonClientBookingProfileGrid small {
+  color: var(--bk-muted);
+}
+
+.salonClientBookingPanel .salonClientBookingHead .salonClientBookingClose {
+  background: #ffffff;
+  box-shadow: inset 0 0 0 1px #e4e4ea;
+}
+
+.salonClientBookingPanel .salonClientBookingProfile {
+  border: 1px solid var(--bk-line);
+  background: #ffffff;
+}
+
+.salonClientBookingPanel .salonClientBookingProfileGrid > span {
+  border: 1px solid var(--bk-line);
+  background: var(--bk-soft);
+}
+
+.salonClientBookingPanel .salonClientBookingProfileGrid svg {
+  color: var(--bk-ink);
+}
+
+.salonClientBookingPanel .salonClientBookingConfirm {
+  border: 1px solid var(--bk-line);
+  background: var(--bk-soft);
+}
+
+.salonClientBookingPanel .salonClientBookingConfirm > span {
+  background: #ffffff;
+}
