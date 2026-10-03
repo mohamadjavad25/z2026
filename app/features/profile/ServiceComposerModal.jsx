@@ -1,6 +1,9 @@
 "use client";
 
-import { Check, Timer, X } from "lucide-react";
+import { useState } from "react";
+import { Check, Plus, Timer, X } from "lucide-react";
+import { ServiceEmoji } from "../../components/ServiceEmoji";
+import { ServiceEmojiPicker } from "../../components/ServiceEmojiPicker";
 
 /**
  * Shared artist + salon service create/edit modal.
@@ -18,6 +21,8 @@ export function ServiceComposerModal({
   onSubmitCustom,
   onPickPreset
 }) {
+  const [pickerOpen, setPickerOpen] = useState(false);
+
   if (!open || !draft) return null;
 
   return (
@@ -79,6 +84,7 @@ export function ServiceComposerModal({
                   onClick={() => onPickPreset?.(service)}
                 >
                   <span className="artistServicePresetBadge">{service.badge}</span>
+                  <ServiceEmoji id={service.emoji} name={service.name} size={44} className="artistServicePresetEmoji" />
                   <strong>{service.name}</strong>
                   <small>{service.hint}</small>
                   <span className="artistServicePresetMeta">
@@ -92,16 +98,26 @@ export function ServiceComposerModal({
           </div>
         ) : (
           <form className="artistServiceForm" onSubmit={onSubmitCustom}>
-            <label className="artistServiceField">
-              <span>نام خدمت</span>
-              <input
-                value={draft.name}
-                onChange={(event) => onDraftChange?.({ name: event.target.value })}
-                placeholder="مثلا شینیون کلاسیک"
-                required
-                autoFocus
-              />
-            </label>
+            <div className="artistServiceNameRow">
+              <button
+                type="button"
+                className={`serviceEmojiSlot${draft.emoji ? " has" : ""}`}
+                aria-label="انتخاب آیکن خدمت"
+                onClick={() => setPickerOpen(true)}
+              >
+                {draft.emoji ? <ServiceEmoji id={draft.emoji} size={40} /> : <Plus size={20} />}
+              </button>
+              <label className="artistServiceField">
+                <span>نام خدمت</span>
+                <input
+                  value={draft.name}
+                  onChange={(event) => onDraftChange?.({ name: event.target.value })}
+                  placeholder="مثلا شینیون کلاسیک"
+                  required
+                  autoFocus
+                />
+              </label>
+            </div>
 
             <div className="artistServiceRow">
               <label className="artistServiceField">
@@ -153,6 +169,15 @@ export function ServiceComposerModal({
           </form>
         )}
       </article>
+      <ServiceEmojiPicker
+        open={pickerOpen}
+        value={draft.emoji || ""}
+        onClose={() => setPickerOpen(false)}
+        onPick={(id) => {
+          onDraftChange?.({ emoji: id });
+          setPickerOpen(false);
+        }}
+      />
     </div>
   );
 }

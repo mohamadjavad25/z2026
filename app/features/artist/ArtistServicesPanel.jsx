@@ -2,6 +2,7 @@
 
 import { CalendarCheck, Pencil, Plus, Timer, Trash2 } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
+import { ServiceEmoji } from "../../components/ServiceEmoji";
 import { ProfileEmptyState } from "../profile/ProfileEmptyState";
 
 /**
@@ -42,6 +43,7 @@ export function ArtistServicesPanel({
               key={service.id}
               style={{ "--service-delay": `${index * 55}ms` }}
             >
+              <ServiceEmoji id={service.emoji} name={service.name} size={44} className="artistServiceEmoji" />
               <div className="artistServiceMain">
                 <div className="artistServiceTitleRow">
                   <strong>{service.name}</strong>

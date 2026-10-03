@@ -5,6 +5,7 @@ import { resolveRollingPersianDateKey } from "../../../shared/lib/persianCalenda
 import { normalizeBookingTimeLabel } from "../../../shared/lib/time.js";
 import { normalizePhone } from "./salons/common.js";
 import { isProfileSaved } from "./social.js";
+import { normalizeServiceEmoji } from "./serviceEmoji.js";
 import { getSettings, DEFAULT_SETTINGS } from "./userSettings.js";
 
 export { ensureArtistHours, listArtistHours, updateArtistHour } from "./artists/hours.js";
@@ -12,7 +13,7 @@ export { ensureArtistHours, listArtistHours, updateArtistHour } from "./artists/
 export async function listArtistServices(userId, runner = null) {
   const db = runner || (await getDb());
   return all(db, `
-    SELECT id, name, price, duration, hint, badge, tone
+    SELECT id, name, price, duration, hint, badge, tone, emoji
     FROM artist_services WHERE user_id = $1 ORDER BY id ASC
   `, [userId]);
 }
@@ -20,8 +21,8 @@ export async function listArtistServices(userId, runner = null) {
 export async function addArtistService(userId, data) {
   const db = await getDb();
   const info = await run(db, `
-    INSERT INTO artist_services (user_id, name, price, duration, hint, badge, tone)
-    VALUES ($1, $2, $3, $4, $5, $6, $7)
+    INSERT INTO artist_services (user_id, name, price, duration, hint, badge, tone, emoji)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
     RETURNING id
   `, [
     userId,
@@ -30,7 +31,8 @@ export async function addArtistService(userId, data) {
     data.duration || "",
     data.hint || "",
     data.badge || "",
-    data.tone || "soft"
+    data.tone || "soft",
+    normalizeServiceEmoji(data.emoji)
   ]);
   return get(db, "SELECT * FROM artist_services WHERE id = $1", [Number(info.rows[0].id)]);
 }
@@ -41,8 +43,8 @@ export async function updateArtistService(id, userId, data) {
   if (!current) return null;
   await run(db, `
     UPDATE artist_services SET
-      name = $1, price = $2, duration = $3, hint = $4, badge = $5, tone = $6, updated_at = CURRENT_TIMESTAMP
-    WHERE id = $7 AND user_id = $8
+      name = $1, price = $2, duration = $3, hint = $4, badge = $5, tone = $6, emoji = $7, updated_at = CURRENT_TIMESTAMP
+    WHERE id = $8 AND user_id = $9
   `, [
     data.name ?? current.name,
     data.price ?? current.price,
@@ -50,6 +52,7 @@ export async function updateArtistService(id, userId, data) {
     data.hint ?? current.hint,
     data.badge ?? current.badge,
     data.tone ?? current.tone,
+    Object.prototype.hasOwnProperty.call(data, "emoji") ? normalizeServiceEmoji(data.emoji) : current.emoji,
     id,
     userId
   ]);
