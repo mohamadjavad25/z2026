@@ -13,7 +13,8 @@ export function ProfileEditModal({
   avatarDraft = "",
   onClose,
   onAvatarUpload,
-  onSubmit
+  onSubmit,
+  saving = false
 }) {
   const [stepIndex, setStepIndex] = useState(0);
   // The "بعدی" (next) button turns into the "ذخیره تغییرات" (save & close)
@@ -213,10 +214,10 @@ export function ProfileEditModal({
                 key="submit"
                 type="submit"
                 className="profileEditSaveBtn"
-                disabled={justArrived}
+                disabled={justArrived || saving}
                 style={{ width: "100%", minWidth: 0 }}
               >
-                <Check size={16} /> ذخیره تغییرات
+                <Check size={16} /> {saving ? "در حال ذخیره…" : "ذخیره تغییرات"}
               </button>
             )}
             <button

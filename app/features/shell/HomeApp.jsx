@@ -419,6 +419,7 @@ export function HomeApp() {
   const {
     salonDirectory,
     setSalonDirectory,
+    salonDirectoryLoading,
     selectedSalon,
     setSelectedSalon,
     followedSalons,
@@ -493,6 +494,7 @@ export function HomeApp() {
     artistSocialStats,
     artistSalonInviteList,
     artistInviteRespondBusyId,
+    artistWorkSaving,
     artistTeams,
     artistTeamBusyId,
     leaveArtistSalonTeam,
@@ -711,6 +713,7 @@ export function HomeApp() {
     profileLocationSaving,
     profileSettings,
     updateRegisteredProfile,
+    profileSaving,
     saveProfileLocation,
     openProfileEdit,
     handleProfileAvatarUpload,
@@ -1497,19 +1500,27 @@ function getPassportMatch(post) {
         staff: salonLike.staff || []
       };
 
-      let nextSalon = salonDirectory.find(matchesSalon) || fallbackSalon;
-      try {
-        const response = await fetch("/api/salons");
-        if (response.ok) {
-          const payload = await response.json();
-          const list = payload.salons || payload.data?.salons || [];
-          if (list.length) {
-            setSalonDirectory(list);
-            nextSalon = list.find(matchesSalon) || nextSalon;
+      // Show the page right away from what we already have, then refine it:
+      // the old flow awaited two sequential round trips before anything moved.
+      const localSalon = salonDirectory.find(matchesSalon);
+      let nextSalon = localSalon || fallbackSalon;
+      setSelectedSalon(nextSalon);
+      goToTab("salons");
+
+      if (!localSalon) {
+        try {
+          const response = await fetch("/api/salons");
+          if (response.ok) {
+            const payload = await response.json();
+            const list = payload.salons || payload.data?.salons || [];
+            if (list.length) {
+              setSalonDirectory(list);
+              nextSalon = list.find(matchesSalon) || nextSalon;
+            }
           }
+        } catch {
+          // keep the resolved salon from the current post/directory
         }
-      } catch {
-        // keep the resolved salon from the current post/directory
       }
 
       // The list stays light; pull the full detail for the public page.
@@ -1529,7 +1540,6 @@ function getPassportMatch(post) {
       }
 
       setSelectedSalon(nextSalon);
-      goToTab("salons");
   };
 
   // "رزرو دوباره" — reopens the salon a past booking was made with, using the
@@ -1821,6 +1831,7 @@ function getPassportMatch(post) {
             active={activeTab === "salons"}
             selectedSalon={selectedSalon}
             salons={salonDirectory}
+            directoryLoading={salonDirectoryLoading}
             tab={salonClientTab}
             isFollowing={isFollowingSelectedSalon}
             isSaved={isSavedSelectedSalon}
@@ -2039,6 +2050,7 @@ function getPassportMatch(post) {
                       onComposeChange={setEditingArtistWork}
                       onComposeClose={closeArtistWorkModal}
                       onComposeSubmit={saveArtistWork}
+                      composeSaving={artistWorkSaving}
                       onComposeDelete={deleteArtistWork}
                       onComposeNotify={setAppToast}
                       onComposeImageClear={clearArtistWorkImage}
@@ -2640,6 +2652,7 @@ function getPassportMatch(post) {
           onAvatarUpload={handleProfileAvatarUpload}
           onClearAvatar={() => setProfileEditAvatar("")}
           onSubmit={updateRegisteredProfile}
+          saving={profileSaving}
         />
         <ArtistWorkPreviewModal
           work={previewingArtistWork}

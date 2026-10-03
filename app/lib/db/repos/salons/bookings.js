@@ -1,5 +1,4 @@
 import { getDb, withTransaction, all, get, run } from "../../connection.js";
-import { getUserByPhone } from "../users.js";
 import * as artists from "../artists.js";
 import { formatPersianDateKey, isPersianDateKey, resolveRollingPersianDateKey } from "../../../../shared/lib/persianCalendar.js";
 import {
@@ -9,9 +8,14 @@ import {
   timeLabelToMinutes
 } from "../../../../shared/lib/time.js";
 import { normalizePhone } from "./common.js";
+import { buildClientHistoryLookup } from "../clientHistory.js";
 import { listSalonServices } from "./services.js";
 import { resolveBookingServiceEmoji } from "../serviceEmoji.js";
 import { findSalonStaffForBooking, listSalonStaff } from "./staff.js";
+
+// Safety cap: a salon's dashboard never needs its entire lifetime of rows, and an
+// unbounded SELECT grows linearly with every booking ever made.
+const LIST_BOOKINGS_LIMIT = 1500;
 
 async function findBookingClient(row, runner) {
   const rawPhone = String(row.phone || "").trim();
@@ -22,16 +26,18 @@ async function findBookingClient(row, runner) {
     // check is correct here and, unlike a REPLACE()-wrapped comparison,
     // can use the column's own UNIQUE index.
     const byNormalized = await get(runner, `
-      SELECT * FROM users WHERE phone = $1 LIMIT 1
+      SELECT id, (avatar <> '') AS avatar, avatar_position FROM users WHERE phone = $1 LIMIT 1
     `, [phone]);
     if (byNormalized) return byNormalized;
-    const byRaw = await getUserByPhone(rawPhone, runner);
+    const byRaw = await get(runner, `
+      SELECT id, (avatar <> '') AS avatar, avatar_position FROM users WHERE phone = $1 LIMIT 1
+    `, [rawPhone]);
     if (byRaw) return byRaw;
   }
   const clientName = String(row.client || "").trim();
   if (!clientName) return null;
   return get(runner, `
-    SELECT * FROM users WHERE type = 'client' AND name = $1 LIMIT 1
+    SELECT id, (avatar <> '') AS avatar, avatar_position FROM users WHERE type = 'client' AND name = $1 LIMIT 1
   `, [clientName]);
 }
 
@@ -45,19 +51,6 @@ function buildClientVisitLevels(historyRows) {
     visits[index] = item.status === "VIP" ? 2 : 1;
   });
   return visits;
-}
-
-function sameSalonClient(a, b) {
-  if (!a || !b) return false;
-  const aUserId = a.client_user_id || a.clientUserId || null;
-  const bUserId = b.client_user_id || b.clientUserId || null;
-  if (aUserId && bUserId && String(aUserId) === String(bUserId)) return true;
-  const aPhone = normalizePhone(a.phone || a.client_phone || "");
-  const bPhone = normalizePhone(b.phone || b.client_phone || "");
-  if (aPhone && bPhone && aPhone === bPhone) return true;
-  const aName = String(a.client || a.client_name || "").trim();
-  const bName = String(b.client || b.client_name || "").trim();
-  return Boolean(aName && bName && aName === bName);
 }
 
 async function resolveSalonBookingDuration(salonUserId, data, runner) {
@@ -134,7 +127,7 @@ export async function listSalonBookings(salonUserId) {
   const staffByName = new Map(
     staffList.map((person) => [String(person.name || "").trim(), person])
   );
-  const rows = await all(db, "SELECT * FROM salon_bookings WHERE salon_user_id = $1 ORDER BY id DESC", [salonUserId]);
+  const rows = await all(db, `SELECT * FROM salon_bookings WHERE salon_user_id = $1 ORDER BY id DESC LIMIT ${LIST_BOOKINGS_LIMIT}`, [salonUserId]);
 
   // findBookingClient runs an unindexed, 10-nested-REPLACE phone-matching
   // scan over the whole users table (falling back to a name lookup) --
@@ -171,8 +164,13 @@ export async function listSalonBookings(salonUserId) {
     };
   });
 
-  return enrichedRows.map((row) => {
-    const history = enrichedRows.filter((item) => sameSalonClient(item, row));
+  const historyOf = buildClientHistoryLookup(enrichedRows, (row) => ({
+    userId: row.client_user_id || null,
+    phone: normalizePhone(row.phone || row.client_phone || ""),
+    name: String(row.client || row.client_name || "").trim()
+  }));
+  return enrichedRows.map((row, index) => {
+    const history = historyOf(index);
     const visits = buildClientVisitLevels(history);
     return {
       ...row,
@@ -206,7 +204,7 @@ export async function listClientSalonBookings(user) {
     conditions.push(`b.client = $${params.length}`);
   }
   const rows = await all(db, `
-    SELECT b.*, s.name AS salon_name, s.area AS salon_area, s.phone AS salon_phone, s.user_id AS source_salon_user_id, u.avatar AS salon_avatar
+    SELECT b.*, s.name AS salon_name, s.area AS salon_area, s.phone AS salon_phone, s.user_id AS source_salon_user_id, (u.avatar <> '') AS salon_avatar
     FROM salon_bookings b
     LEFT JOIN salons s ON s.user_id = b.salon_user_id
     LEFT JOIN users u ON u.id = b.salon_user_id

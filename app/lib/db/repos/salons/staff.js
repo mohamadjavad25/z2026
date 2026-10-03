@@ -50,7 +50,7 @@ async function resolveArtistUserForStaff(staff, runner = null) {
 
   if (staff.artist_user_id) {
     const linked = await get(db, `
-      SELECT id, name, phone, area, service, avatar, bio, type
+      SELECT id, name, phone, area, service, (avatar <> '') AS avatar, bio, type
       FROM users WHERE id = $1 AND type = 'artist'
       LIMIT 1
     `, [staff.artist_user_id]);
@@ -65,7 +65,7 @@ async function resolveArtistUserForStaff(staff, runner = null) {
     // check is correct here and, unlike a REPLACE()-wrapped comparison,
     // can use the column's own UNIQUE index.
     const byPhone = await get(db, `
-      SELECT id, name, phone, area, service, avatar, bio, type
+      SELECT id, name, phone, area, service, (avatar <> '') AS avatar, bio, type
       FROM users
       WHERE type = 'artist' AND phone = $1
       LIMIT 1
@@ -76,7 +76,7 @@ async function resolveArtistUserForStaff(staff, runner = null) {
   const name = String(staff.name || "").trim();
   if (!name) return null;
   return get(db, `
-    SELECT id, name, phone, area, service, avatar, bio, type
+    SELECT id, name, phone, area, service, (avatar <> '') AS avatar, bio, type
     FROM users
     WHERE type = 'artist' AND name = $1
     LIMIT 1

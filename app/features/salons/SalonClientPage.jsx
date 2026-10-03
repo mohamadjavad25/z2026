@@ -1,5 +1,6 @@
 "use client";
 
+import { SkeletonList } from "../../components/Skeleton";
 import { useEffect, useState } from "react";
 import {
   BadgeCheck,
@@ -47,6 +48,7 @@ export function SalonClientPage({
   active,
   selectedSalon,
   salons,
+  directoryLoading = false,
   isFollowing,
   isSaved,
   getVisibleServices,
@@ -415,6 +417,8 @@ export function SalonClientPage({
                 <b>نتیجه‌ای پیدا نشد</b>
               </div>
             </div>
+) : directoryLoading ? (
+            <SkeletonList rows={4} variant="card" label="در حال بارگذاری سالن‌ها" />
           ) : (
             <div className="emptySalonDirectory">
               <img src="/salons-empty-illustration.png" alt="" aria-hidden="true" />

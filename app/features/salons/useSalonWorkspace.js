@@ -1,5 +1,6 @@
 "use client";
 
+import { usePolling } from "../../shared/lib/usePolling";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getArtists } from "../../shared/api/artists";
 import {
@@ -216,12 +217,15 @@ export function useSalonWorkspace({
   const refreshSalonSystemData = useCallback(async () => {
     const epoch = ++salonBookingsEpochRef.current;
     try {
+      // The public directory is the heaviest call and nothing in the owner's own
+      // tools waits on it: start it now, but apply the owner data first and sync
+      // the directory when it lands instead of blocking the whole refresh on it.
+      const salonsPromise = getSalons().catch(() => ({ ok: false }));
       const [
         servicesRes,
         portfolioRes,
         bookingsRes,
         staffRes,
-        salonsRes,
         hoursRes,
         collabsRes,
         invitesRes
@@ -230,7 +234,6 @@ export function useSalonWorkspace({
         getSalonPortfolio(),
         getSalonBookings(),
         getSalonStaff(),
-        getSalons(),
         getSalonHours(),
         getSalonCollabs(),
         getSalonInvites()
@@ -251,6 +254,15 @@ export function useSalonWorkspace({
       setSalonArtistInviteList(invitesRes.data?.invites || []);
       setSelectedStaffName((current) => current || nextStaff[0]?.name || "");
 
+      pushBookingDefaults({
+        staffName: nextStaff[0]?.name || "",
+        serviceName: nextServices[0]?.name || "",
+        date: nextHours.find((hour) => hour.active)?.day || "امروز"
+      });
+      setSalonWorkspaceLoading(false);
+
+      const salonsRes = await salonsPromise;
+      if (!salonsRes.ok) return;
       const nextSalonDirectory = salonsRes.data?.salons || [];
       syncSalonDirectory(nextSalonDirectory);
       syncSelectedSalon((current) => {
@@ -260,12 +272,6 @@ export function useSalonWorkspace({
           || String(salon.source_key || "") === String(current.source_key || "")
           || salon.name === current.name
         )) || current;
-      });
-
-      pushBookingDefaults({
-        staffName: nextStaff[0]?.name || "",
-        serviceName: nextServices[0]?.name || "",
-        date: nextHours.find((hour) => hour.active)?.day || "امروز"
       });
     } catch {
       // keep current salon workspace data
@@ -284,9 +290,7 @@ export function useSalonWorkspace({
     }
   }, [createdProfile?.type]);
 
-  useEffect(() => {
-    if (createdProfile?.type !== "salon") return undefined;
-    const pollSalonLive = async () => {
+  const pollSalonLive = async () => {
       const epoch = salonBookingsEpochRef.current;
       try {
         const [collabsRes, bookingsRes] = await Promise.all([getSalonCollabs(), getSalonBookings()]);
@@ -298,10 +302,7 @@ export function useSalonWorkspace({
         // keep current inbox / bookings
       }
     };
-    pollSalonLive();
-    const timer = window.setInterval(pollSalonLive, 8000);
-    return () => window.clearInterval(timer);
-  }, [createdProfile?.type]);
+  usePolling(pollSalonLive, 10000, createdProfile?.type === "salon");
 
   useEffect(() => {
     const activeTool = salonWorkspace || (salonToolSheetOpen ? salonTool : null);

@@ -1,5 +1,6 @@
 import { getDb, withTransaction, all, get, run } from "../connection.js";
-import { countFollowers, getUserById, isFollowing } from "./users.js";
+import { countFollowers, getUserById, getUserLiteById, isFollowing } from "./users.js";
+import { buildClientHistoryLookup } from "./clientHistory.js";
 import { listPostsByOwner } from "./posts.js";
 import { resolveRollingPersianDateKey } from "../../../shared/lib/persianCalendar.js";
 import { normalizeBookingTimeLabel } from "../../../shared/lib/time.js";
@@ -87,7 +88,7 @@ function mapArtistCollab(row) {
 export async function listArtistCollabs(userId) {
   const db = await getDb();
   const rows = await all(db, `
-    SELECT c.*, u.avatar AS salon_avatar
+    SELECT c.*, (u.avatar <> '') AS salon_avatar
     FROM artist_collabs c
     LEFT JOIN users u ON u.id = c.salon_user_id
     WHERE c.artist_user_id = $1
@@ -102,7 +103,7 @@ export async function listSalonCollabRequests(salonUserId) {
     SELECT
       c.*,
       u.name AS artist_name,
-      u.avatar AS artist_avatar,
+      (u.avatar <> '') AS artist_avatar,
       u.service AS artist_service,
       u.area AS artist_area
     FROM artist_collabs c
@@ -198,7 +199,7 @@ export async function addArtistCollab(userId, data) {
     COLLAB_PENDING
   ]);
   const row = await get(db, `
-    SELECT c.*, u.avatar AS salon_avatar
+    SELECT c.*, (u.avatar <> '') AS salon_avatar
     FROM artist_collabs c
     LEFT JOIN users u ON u.id = c.salon_user_id
     WHERE c.id = $1
@@ -297,24 +298,14 @@ export async function listArtistBookings(artistUserId) {
     SELECT
       b.*,
       salon.name AS source_salon_name,
-      salon.avatar AS source_salon_avatar,
+      (salon.avatar <> '') AS source_salon_avatar,
       salon.area AS source_salon_area
     FROM artist_bookings b
     LEFT JOIN users salon ON salon.id = b.source_salon_user_id
     WHERE b.artist_user_id = $1
     ORDER BY b.id DESC
+    LIMIT 1500
   `, [artistUserId]);
-
-  function sameArtistClient(a, b) {
-    if (!a || !b) return false;
-    if (a.client_user_id && b.client_user_id && Number(a.client_user_id) === Number(b.client_user_id)) return true;
-    const aPhone = String(a.client_phone || "").trim();
-    const bPhone = String(b.client_phone || "").trim();
-    if (aPhone && bPhone && aPhone === bPhone) return true;
-    const aName = String(a.client_name || "").trim();
-    const bName = String(b.client_name || "").trim();
-    return Boolean(aName && bName && aName === bName);
-  }
 
   function buildVisits(historyRows) {
     const recent = [...historyRows]
@@ -333,13 +324,18 @@ export async function listArtistBookings(artistUserId) {
   // user row over and over, sequentially, once per booking.
   const uniqueClientIds = [...new Set(rows.map((row) => row.client_user_id).filter(Boolean))];
   const clientsById = new Map(
-    (await Promise.all(uniqueClientIds.map((id) => getUserById(id, db))))
+    (await Promise.all(uniqueClientIds.map((id) => getUserLiteById(id, db))))
       .map((client, index) => [uniqueClientIds[index], client])
   );
 
-  const result = rows.map((row) => {
+  const historyOf = buildClientHistoryLookup(rows, (row) => ({
+    userId: row.client_user_id || null,
+    phone: String(row.client_phone || "").trim(),
+    name: String(row.client_name || "").trim()
+  }));
+  const result = rows.map((row, index) => {
     const client = row.client_user_id ? clientsById.get(row.client_user_id) || null : null;
-    const history = rows.filter((item) => sameArtistClient(item, row));
+    const history = historyOf(index);
     const visits = buildVisits(history);
     return {
       ...row,
@@ -416,7 +412,7 @@ export async function listClientArtistBookings(user) {
     conditions.push(`b.client_name = $${params.length}`);
   }
   const rows = await all(db, `
-    SELECT b.*, u.name AS artist_name, u.area AS artist_area, u.avatar AS artist_avatar, u.phone AS artist_phone
+    SELECT b.*, u.name AS artist_name, u.area AS artist_area, (u.avatar <> '') AS artist_avatar, u.phone AS artist_phone
     FROM artist_bookings b
     LEFT JOIN users u ON u.id = b.artist_user_id
     WHERE ${conditions.join(" OR ")}
@@ -829,7 +825,7 @@ export async function listArtists({ cursor, limit } = {}) {
     limitClause = `LIMIT $${params.length}`;
   }
   const rawRows = await all(db, `
-    SELECT id, name, area, service, avatar, bio, avatar_position FROM users WHERE ${where} ORDER BY id DESC ${limitClause}
+    SELECT id, name, area, service, (avatar <> '') AS avatar, bio, avatar_position FROM users WHERE ${where} ORDER BY id DESC ${limitClause}
   `, params);
   const hasMore = pageSize ? rawRows.length > pageSize : false;
   const rows = pageSize ? rawRows.slice(0, pageSize) : rawRows;
@@ -871,7 +867,7 @@ export async function listArtists({ cursor, limit } = {}) {
 export async function listSavedArtistsForUser(userId) {
   const db = await getDb();
   const rows = await all(db, `
-    SELECT u.* FROM saved_profiles sp
+    SELECT u.id, u.name, u.service, u.area, u.bio, u.avatar_position, (u.avatar <> '') AS avatar FROM saved_profiles sp
     JOIN users u ON u.id = sp.target_user_id
     WHERE sp.user_id = $1 AND u.type = 'artist'
     ORDER BY sp.created_at DESC

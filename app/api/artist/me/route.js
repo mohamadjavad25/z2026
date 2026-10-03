@@ -1,6 +1,7 @@
 import { error, json, notFound, requireUserRole, withErrorHandling } from "../../../lib/http.js";
 import * as artists from "../../../lib/db/repos/artists.js";
 import * as salons from "../../../lib/db/repos/salons.js";
+import { countFollowers } from "../../../lib/db/repos/users.js";
 import { sendPushToUser } from "../../../lib/push.js";
 import { notifyConnection } from "../../../lib/connectionNotify.js";
 import { checkRateLimit } from "../../../lib/rateLimit.js";
@@ -11,18 +12,23 @@ export const dynamic = "force-dynamic";
 async function _GET(request) {
   const auth = await requireUserRole(request, "artist", "فقط آرتیست.");
   if (!auth.ok) return auth.response;
-  const profile = await artists.getPublicArtist(auth.user.id, auth.user.id);
-  await artists.syncSalonBookingsForArtist(auth.user.id);
+  const userId = auth.user.id;
+  // The sync reconciles salon bookings into the artist's list, so it must finish
+  // before the bookings are read; everything else is independent.
+  const [followers] = await Promise.all([
+    countFollowers(userId),
+    artists.syncSalonBookingsForArtist(userId)
+  ]);
+  const [services, bookings, collabs, invites, pendingInviteCount, breakTime] = await Promise.all([
+    artists.listArtistServices(userId),
+    artists.listArtistBookings(userId),
+    artists.listArtistCollabs(userId),
+    salons.listArtistSalonInvites(userId),
+    salons.countPendingArtistInvites(userId),
+    artists.getArtistBreak(userId)
+  ]);
   return json({
-    data: {
-      services: await artists.listArtistServices(auth.user.id),
-      bookings: await artists.listArtistBookings(auth.user.id),
-      collabs: await artists.listArtistCollabs(auth.user.id),
-      invites: await salons.listArtistSalonInvites(auth.user.id),
-      pendingInviteCount: await salons.countPendingArtistInvites(auth.user.id),
-      breakTime: await artists.getArtistBreak(auth.user.id),
-      followers: profile?.followers || 0
-    }
+    data: { services, bookings, collabs, invites, pendingInviteCount, breakTime, followers }
   });
 }
 
