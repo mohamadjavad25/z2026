@@ -34,10 +34,11 @@ function mapPost(row) {
 }
 
 const postSelect = `
-  SELECT p.*,
+  SELECT p.id, p.owner_user_id, p.title, p.tag, p.caption, p.in_explore, p.featured, p.saves_count, p.views_count, p.created_at, p.updated_at, p.image_url,
+    (p.image <> '') AS image,
     u.name AS owner_name,
     u.type AS owner_type,
-    u.avatar AS owner_avatar,
+    (u.avatar <> '') AS owner_avatar,
     u.avatar_position AS owner_avatar_position,
     u.area AS owner_area,
     u.bio AS owner_bio,

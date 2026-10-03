@@ -50,6 +50,8 @@ export function useProfileEditor({
   const [profileEditOpen, setProfileEditOpen] = useState(false);
   const [profileEditAvatar, setProfileEditAvatar] = useState("");
   const [profileLocationSaving, setProfileLocationSaving] = useState(false);
+  const [profileSaving, setProfileSaving] = useState(false);
+  const profileSavingRef = useRef(false);
   const [profileSettings, setProfileSettings] = useState(DEFAULT_PROFILE_SETTINGS);
   const settingsLoadedForId = useRef(null);
 
@@ -78,7 +80,7 @@ export function useProfileEditor({
 
   const updateRegisteredProfile = useCallback(async (event) => {
     event.preventDefault();
-    if (!createdProfile) return;
+    if (!createdProfile || profileSavingRef.current) return;
     const data = Object.fromEntries(new FormData(event.currentTarget).entries());
     const nextPassword = String(data.password || "").trim();
     const confirmPassword = String(data.passwordConfirm || "").trim();
@@ -105,6 +107,8 @@ export function useProfileEditor({
     // image with that URL string, breaking it. Omit the field entirely when
     // nothing new was picked, so the server keeps the current avatar as-is.
     const nextAvatar = profileEditAvatar.startsWith("data:") ? profileEditAvatar : "";
+    profileSavingRef.current = true;
+    setProfileSaving(true);
     try {
       const response = await fetch("/api/profile", {
         method: "POST",
@@ -148,6 +152,9 @@ export function useProfileEditor({
       notify(nextPassword ? "اطلاعات و رمز عبور به‌روزرسانی شد." : "اطلاعات ثبت‌نام به‌روزرسانی شد.");
     } catch {
       notify("ویرایش انجام نشد؛ دوباره امتحان کن.");
+    } finally {
+      profileSavingRef.current = false;
+      setProfileSaving(false);
     }
   }, [createdProfile, profileEditAvatar, lockSession, writeAuthSession, setCreatedProfile, setProfileView, setActiveTab, notify]);
 
@@ -377,6 +384,7 @@ export function useProfileEditor({
     profileEditAvatar,
     setProfileEditAvatar,
     profileLocationSaving,
+    profileSaving,
     profileSettings,
     updateRegisteredProfile,
     saveProfileLocation,

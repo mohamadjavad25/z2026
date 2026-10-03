@@ -41,12 +41,12 @@ export async function listSalonArtistInvites(salonUserId, { status } = {}) {
         SELECT
           i.*,
           u.name AS artist_name,
-          u.avatar AS artist_avatar,
+          (u.avatar <> '') AS artist_avatar,
           u.service AS artist_service,
           u.area AS artist_area,
           u.phone AS artist_phone,
           s.name AS salon_name,
-          salon_user.avatar AS salon_avatar,
+          (salon_user.avatar <> '') AS salon_avatar,
           s.area AS salon_area
         FROM salon_artist_invites i
         JOIN users u ON u.id = i.artist_user_id
@@ -59,12 +59,12 @@ export async function listSalonArtistInvites(salonUserId, { status } = {}) {
         SELECT
           i.*,
           u.name AS artist_name,
-          u.avatar AS artist_avatar,
+          (u.avatar <> '') AS artist_avatar,
           u.service AS artist_service,
           u.area AS artist_area,
           u.phone AS artist_phone,
           s.name AS salon_name,
-          salon_user.avatar AS salon_avatar,
+          (salon_user.avatar <> '') AS salon_avatar,
           s.area AS salon_area
         FROM salon_artist_invites i
         JOIN users u ON u.id = i.artist_user_id
@@ -83,12 +83,12 @@ export async function listArtistSalonInvites(artistUserId, { status } = {}) {
         SELECT
           i.*,
           u.name AS artist_name,
-          u.avatar AS artist_avatar,
+          (u.avatar <> '') AS artist_avatar,
           u.service AS artist_service,
           u.area AS artist_area,
           u.phone AS artist_phone,
           s.name AS salon_name,
-          salon_user.avatar AS salon_avatar,
+          (salon_user.avatar <> '') AS salon_avatar,
           s.area AS salon_area
         FROM salon_artist_invites i
         JOIN users u ON u.id = i.artist_user_id
@@ -101,12 +101,12 @@ export async function listArtistSalonInvites(artistUserId, { status } = {}) {
         SELECT
           i.*,
           u.name AS artist_name,
-          u.avatar AS artist_avatar,
+          (u.avatar <> '') AS artist_avatar,
           u.service AS artist_service,
           u.area AS artist_area,
           u.phone AS artist_phone,
           s.name AS salon_name,
-          salon_user.avatar AS salon_avatar,
+          (salon_user.avatar <> '') AS salon_avatar,
           s.area AS salon_area
         FROM salon_artist_invites i
         JOIN users u ON u.id = i.artist_user_id
@@ -134,12 +134,12 @@ async function getInviteRow(id, runner = null) {
     SELECT
       i.*,
       u.name AS artist_name,
-      u.avatar AS artist_avatar,
+      (u.avatar <> '') AS artist_avatar,
       u.service AS artist_service,
       u.area AS artist_area,
       u.phone AS artist_phone,
       s.name AS salon_name,
-      salon_user.avatar AS salon_avatar,
+      (salon_user.avatar <> '') AS salon_avatar,
       s.area AS salon_area
     FROM salon_artist_invites i
     JOIN users u ON u.id = i.artist_user_id
@@ -336,7 +336,7 @@ export async function joinSalonByArtist(salonUserId, artistUserId) {
 export async function getSalonJoinPreview(salonUserId) {
   const db = await getDb();
   const row = await get(db, `
-    SELECT s.user_id, s.name, s.area, u.avatar
+    SELECT s.user_id, s.name, s.area, (u.avatar <> '') AS avatar
     FROM salons s JOIN users u ON u.id = s.user_id
     WHERE s.user_id = $1
   `, [salonUserId]);
@@ -465,7 +465,7 @@ export async function listArtistTeams(artistUserId) {
       st.created_at,
       COALESCE(NULLIF(s.name, ''), su.name) AS salon_name,
       COALESCE(s.area, '') AS salon_area,
-      su.avatar AS salon_avatar,
+      (su.avatar <> '') AS salon_avatar,
       COALESCE(i.days, c.days, '') AS days,
       COALESCE(i.from_time, c.from_time, '') AS from_time,
       COALESCE(i.to_time, c.to_time, '') AS to_time,

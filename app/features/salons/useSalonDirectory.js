@@ -1,5 +1,6 @@
 "use client";
 
+import { usePolling } from "../../shared/lib/usePolling";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   createSalonBooking,
@@ -85,7 +86,14 @@ export function useSalonDirectory({
     if (typeof onShellNotice === "function" && message) onShellNotice(message);
   }, [onShellNotice]);
 
-  const [salonDirectory, setSalonDirectory] = useState([]);
+  const [salonDirectory, setSalonDirectoryRaw] = useState([]);
+  // False until the first directory payload (even an empty one) has landed, so
+  // the UI can show a loading placeholder instead of the "no salons" empty state.
+  const [salonDirectoryLoaded, setSalonDirectoryLoaded] = useState(false);
+  const setSalonDirectory = useCallback((value) => {
+    setSalonDirectoryLoaded(true);
+    setSalonDirectoryRaw(value);
+  }, []);
   const [selectedSalon, setSelectedSalon] = useState(null);
   const [followedSalons, setFollowedSalons] = useState([]);
   const [savedSalonKeys, setSavedSalonKeys] = useState([]);
@@ -239,12 +247,7 @@ export function useSalonDirectory({
     }
   }, [salonClientBooking.open, salonClientBooking.day, salonClientBooking.time, salonClientFreeTimes]);
 
-  useEffect(() => {
-    if (createdProfile?.type !== "client") return undefined;
-    refreshClientBookings();
-    const timer = window.setInterval(refreshClientBookings, 8000);
-    return () => window.clearInterval(timer);
-  }, [createdProfile?.type, refreshClientBookings]);
+  usePolling(refreshClientBookings, 10000, createdProfile?.type === "client");
 
   const toggleFollowSalon = useCallback(async (salon) => {
     const followKey = String(salon.id || salon.source_key || salon.name);
@@ -494,6 +497,7 @@ export function useSalonDirectory({
   return {
     salonDirectory,
     setSalonDirectory,
+    salonDirectoryLoading: !salonDirectoryLoaded,
     selectedSalon,
     setSelectedSalon,
     followedSalons,

@@ -1,5 +1,6 @@
 "use client";
 
+import { usePolling } from "../../shared/lib/usePolling";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   createArtistMe,
@@ -97,6 +98,7 @@ export function useArtistWorkspace({
   const [artistSalonInviteList, setArtistSalonInviteList] = useState([]);
   const [artistTeams, setArtistTeams] = useState([]);
   const [artistTeamBusyId, setArtistTeamBusyId] = useState("");
+  const [artistWorkSaving, setArtistWorkSaving] = useState(false);
   const [artistInviteRespondBusyId, setArtistInviteRespondBusyId] = useState("");
   const [artistBookingSubmitting, setArtistBookingSubmitting] = useState(false);
   const artistBookingSubmittingRef = useRef(false);
@@ -389,12 +391,7 @@ export function useArtistWorkspace({
     setSelectedArtistHourDay("");
   }, []);
 
-  useEffect(() => {
-    if (createdProfile?.type !== "artist") return undefined;
-    refreshArtistBookingsOnly();
-    const timer = window.setInterval(refreshArtistBookingsOnly, 8000);
-    return () => window.clearInterval(timer);
-  }, [createdProfile?.type, refreshArtistBookingsOnly]);
+  usePolling(refreshArtistBookingsOnly, 10000, createdProfile?.type === "artist");
 
   useEffect(() => {
     if (!artistGalleryTags.includes(artistGalleryFilter)) {
@@ -884,6 +881,8 @@ export function useArtistWorkspace({
       inExplore: Boolean(editingArtistWork.inExplore),
       featured: true
     };
+    if (artistWorkSaving) return;
+    setArtistWorkSaving(true);
     try {
       const isNew = String(editingArtistWork.id).startsWith("new-") || editingArtistWork.id === "new";
       const { ok, payload } = isNew
@@ -898,6 +897,8 @@ export function useArtistWorkspace({
       notify("نمونه‌کار ذخیره شد.");
     } catch {
       notify("ذخیره نمونه‌کار انجام نشد.");
+    } finally {
+      setArtistWorkSaving(false);
     }
   }
 
@@ -1023,6 +1024,7 @@ export function useArtistWorkspace({
   }
 
   return {
+    artistWorkSaving,
     artistTeams,
     artistTeamBusyId,
     leaveArtistSalonTeam,

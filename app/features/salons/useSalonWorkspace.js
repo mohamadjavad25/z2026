@@ -1,5 +1,6 @@
 "use client";
 
+import { usePolling } from "../../shared/lib/usePolling";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getArtists } from "../../shared/api/artists";
 import {
@@ -284,9 +285,7 @@ export function useSalonWorkspace({
     }
   }, [createdProfile?.type]);
 
-  useEffect(() => {
-    if (createdProfile?.type !== "salon") return undefined;
-    const pollSalonLive = async () => {
+  const pollSalonLive = async () => {
       const epoch = salonBookingsEpochRef.current;
       try {
         const [collabsRes, bookingsRes] = await Promise.all([getSalonCollabs(), getSalonBookings()]);
@@ -298,10 +297,7 @@ export function useSalonWorkspace({
         // keep current inbox / bookings
       }
     };
-    pollSalonLive();
-    const timer = window.setInterval(pollSalonLive, 8000);
-    return () => window.clearInterval(timer);
-  }, [createdProfile?.type]);
+  usePolling(pollSalonLive, 10000, createdProfile?.type === "salon");
 
   useEffect(() => {
     const activeTool = salonWorkspace || (salonToolSheetOpen ? salonTool : null);

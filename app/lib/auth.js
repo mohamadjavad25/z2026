@@ -179,9 +179,7 @@ export async function getUserFromRequest(request) {
   await ensureDb();
   const token = getSessionToken(request);
   if (!token) return null;
-  const session = await sessions.getValidSession(token);
-  if (!session) return null;
-  return users.getUserById(session.user_id);
+  return sessions.getSessionUser(token);
 }
 
 export async function requireUser(request) {
