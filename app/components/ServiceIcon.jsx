@@ -11,7 +11,7 @@ import { ServiceEmoji } from "./ServiceEmoji";
  */
 const SIZES = { xs: [28, 20], sm: [36, 26], md: [48, 34], lg: [60, 44], xl: [72, 54] };
 
-export function ServiceIcon({ emoji, name, size = "md", className = "" }) {
+export function ServiceIcon({ emoji, name, size = "md", className = "", style }) {
   const id = getBeautyEmoji(emoji)
     ? emoji
     : guessBeautyEmojiId(name) || "sparkles";
@@ -20,7 +20,7 @@ export function ServiceIcon({ emoji, name, size = "md", className = "" }) {
   return (
     <span
       className={`serviceIcon is-${size} cat-${category} ${className}`.trim()}
-      style={{ "--svc-tile": `${tile}px` }}
+      style={{ "--svc-tile": `${tile}px`, ...style }}
       aria-hidden="true"
     >
       <ServiceEmoji id={id} size={glyph} />

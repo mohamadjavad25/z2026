@@ -17905,101 +17905,33 @@ body{
     color: #111a3c !important;
   }
 
-  .appShell:has(.createdProfile.is-salon) .artistServiceModeSwitch {
-    padding: 4px !important;
-    border: 1px solid rgba(28, 32, 44, 0.06) !important;
-    border-radius: 15px !important;
-    background: #ffffff !important;
-  }
+  
 
-  .appShell:has(.createdProfile.is-salon) .artistServiceModeSwitch button {
-    min-height: 38px !important;
-    border-radius: 12px !important;
-    color: rgba(17, 26, 60, 0.62) !important;
-  }
+  
 
-  .appShell:has(.createdProfile.is-salon) .artistServiceModeSwitch button.active {
-    background: #ffffff !important;
-    color: #6f52c9 !important;
-    box-shadow: 0 8px 20px rgba(17, 26, 60, 0.08) !important;
-  }
+  
 
-  .appShell:has(.createdProfile.is-salon) .artistServicePresetList {
-    gap: 10px !important;
-    padding-right: 1px !important;
-    background: #ffffff !important;
-  }
+  
 
-  .appShell:has(.createdProfile.is-salon) .artistServiceModeSwitch::before,
-  .appShell:has(.createdProfile.is-salon) .artistServiceModeSwitch::after,
-  .appShell:has(.createdProfile.is-salon) .artistServicePresetList::before,
-  .appShell:has(.createdProfile.is-salon) .artistServicePresetList::after {
-    display: none !important;
-    background: transparent !important;
-  }
+  
 
-  .appShell:has(.createdProfile.is-salon) .artistServicePresetCard {
-    position: relative !important;
-    min-height: 142px !important;
-    padding: 14px 14px 46px !important;
-    border: 1px solid rgba(28, 32, 44, 0.07) !important;
-    border-radius: 18px !important;
-    background: #ffffff !important;
-    box-shadow: 0 10px 26px rgba(17, 26, 60, 0.06) !important;
-  }
+  
 
-  .appShell:has(.createdProfile.is-salon) .artistServicePresetBadge {
-    background: rgba(138, 104, 255, 0.1) !important;
-    color: #6f52c9 !important;
-  }
+  
 
-  .appShell:has(.createdProfile.is-salon) .artistServicePresetCard strong {
-    color: #171a2f !important;
-  }
+  
 
-  .appShell:has(.createdProfile.is-salon) .artistServicePresetCard small {
-    color: rgba(23, 26, 47, 0.5) !important;
-  }
+  
 
-  .appShell:has(.createdProfile.is-salon) .artistServicePresetMeta em,
-  .appShell:has(.createdProfile.is-salon) .artistServicePresetMeta b {
-    background: rgba(17, 26, 60, 0.055) !important;
-    color: rgba(23, 26, 47, 0.62) !important;
-  }
+  
 
-  .appShell:has(.createdProfile.is-salon) .artistServicePresetCard > i {
-    position: absolute !important;
-    left: 12px !important;
-    bottom: 12px !important;
-    z-index: 2 !important;
-    min-width: 82px !important;
-    min-height: 30px !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    border-radius: 999px !important;
-    background: rgba(17, 26, 60, 0.055) !important;
-    color: rgba(23, 26, 47, 0.62) !important;
-    font-size: 0.68rem !important;
-    font-style: normal !important;
-    font-weight: 900 !important;
-  }
+  
 
-  .appShell:has(.createdProfile.is-salon) .artistServicePresetCard:not(.is-added) > i {
-    background: linear-gradient(135deg, #8a68ff, #111a3c) !important;
-    color: #ffffff !important;
-  }
+  
 
-  .appShell:has(.createdProfile.is-salon) .artistServiceForm input,
-  .appShell:has(.createdProfile.is-salon) .artistServiceForm textarea {
-    border-color: rgba(28, 32, 44, 0.08) !important;
-    background: rgba(255, 255, 255, 0.9) !important;
-  }
+  
 
-  .appShell:has(.createdProfile.is-salon) .artistServiceSubmit {
-    background: linear-gradient(135deg, #8a68ff, #111a3c) !important;
-    box-shadow: 0 14px 28px rgba(17, 26, 60, 0.2) !important;
-  }
+  
 
   .salonWorkspacePanel.is-hours > .hoursWorkspaceHead {
     width: calc(100% - 44px) !important;

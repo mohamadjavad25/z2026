@@ -1,6 +1,7 @@
 export function ProfileEmptyState({
   className = "",
   image,
+  visual,
   icon: Icon,
   title,
   description,
@@ -10,7 +11,9 @@ export function ProfileEmptyState({
 }) {
   return (
     <div className={`profileEmptyState ${className}`.trim()} role={role}>
-      {image ? (
+      {visual ? (
+        visual
+      ) : image ? (
         <img src={image} alt="" aria-hidden="true" draggable={false} />
       ) : Icon ? (
         <span className="profileEmptyIcon" aria-hidden="true">

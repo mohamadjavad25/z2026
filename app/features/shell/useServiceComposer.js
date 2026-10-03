@@ -3,7 +3,7 @@
 import { useCallback, useState } from "react";
 import { guessBeautyEmojiId } from "../../shared/constants/beautyEmoji";
 
-const EMPTY_DRAFT = { id: null, name: "", price: "", duration: "۶۰ دقیقه", hint: "", emoji: "" };
+const EMPTY_DRAFT = { id: null, name: "", price: "", duration: "۶۰ دقیقه", hint: "", emoji: "", badge: "" };
 
 /**
  * Artist/salon "add or edit a service" composer: the create-sheet open/mode/
@@ -67,6 +67,7 @@ export function useServiceComposer({
       // No icon picked -> store the name-based guess so the service (and every
       // booking made from it) carries a real, stable icon id.
       emoji: String(artistServiceDraft.emoji || guessBeautyEmojiId(name) || ""),
+      badge: String(artistServiceDraft.badge || ""),
       tone: "soft"
     };
     try {
@@ -129,9 +130,26 @@ export function useServiceComposer({
       price: item.price || "",
       duration: item.duration || "۶۰ دقیقه",
       hint: item.hint || "",
-      emoji: item.emoji || ""
+      emoji: item.emoji || "",
+      badge: item.badge || ""
     });
     setArtistServiceCreateOpen(true);
+  }, []);
+
+  // A catalog pick opens the editor pre-filled, so the owner can adjust the
+  // name, price, duration, description and icon before it is added.
+  const customizeServicePreset = useCallback((service) => {
+    if (!service) return;
+    setArtistServiceCreateMode("custom");
+    setArtistServiceDraft({
+      id: null,
+      name: service.name || "",
+      price: service.price || "",
+      duration: service.duration || "۶۰ دقیقه",
+      hint: service.hint || "",
+      emoji: service.emoji || "",
+      badge: service.badge || ""
+    });
   }, []);
 
   return {
@@ -143,6 +161,7 @@ export function useServiceComposer({
     setArtistServiceDraft,
     addArtistService,
     addArtistServicePreset,
+    customizeServicePreset,
     openArtistServiceCreate,
     openSalonServiceCreate,
     closeArtistServiceCreate,

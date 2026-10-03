@@ -2,6 +2,7 @@
 
 import { ChevronLeft, Timer } from "lucide-react";
 import { ServiceIcon } from "../../components/ServiceIcon";
+import { ServiceIconStrip } from "../../components/ServiceIconStrip";
 import { toPersianDigits } from "../../shared/lib/digits";
 
 export function PublicArtistServicesPanel({
@@ -16,7 +17,7 @@ export function PublicArtistServicesPanel({
     <section className="artistPublicServices" aria-label="خدمات آرتیست">
       {safeServices.length === 0 ? (
         <div className="artistPublicServiceEmpty" role="status">
-          <img className="artistPublicEmptyImg" src="/artist-services-public-empty.png" alt="" draggable={false} />
+          <ServiceIconStrip size="md" />
           <b>هنوز خدمتی ثبت نشده</b>
           <span>این آرتیست فعلاً خدمتی برای رزرو آنلاین اضافه نکرده؛ بعداً سر بزن.</span>
         </div>
