@@ -43,8 +43,7 @@ import {
 } from "../../shared/lib/persianCalendar";
 import {
   profileRoleMeta,
-  salonArtistRoleOptions,
-  salonArtistStatusOptions
+  salonArtistRoleOptions
 } from "../../shared/constants/roles";
 import {
   ArtistBreakEditorModal,
@@ -98,7 +97,6 @@ import {
   buildBookingCustomers,
   SalonClientBookingModal,
   SalonClientPage,
-  SalonCreateStaffModal,
   SalonCustomersPage,
   SalonNearbyInviteSheet,
   SalonServicesWorkspace,
@@ -625,8 +623,6 @@ export function HomeApp() {
     setSelectedArtistProfile,
     selectedBookingClient,
     setSelectedBookingClient,
-    artistCreateOpen,
-    setArtistCreateOpen,
     artistInviteOpen,
     setArtistInviteOpen,
     nearbyArtists,
@@ -637,10 +633,6 @@ export function HomeApp() {
     salonBookingSubmitting,
     scheduleBookingBusy,
     salonRequestBusyId,
-    artistCreateRole,
-    setArtistCreateRole,
-    artistCreateStatus,
-    setArtistCreateStatus,
     salonWorkDraft,
     setSalonWorkDraft,
     salonWorkTagMenuOpen,
@@ -665,7 +657,6 @@ export function HomeApp() {
     approveReservationRequest,
     declineReservationRequest,
     updateSalonCollabRequest,
-    addSalonStaff,
     openNearbyArtistInvite,
     inviteNearbyArtist,
     cancelSalonArtistInvite,
@@ -705,9 +696,7 @@ export function HomeApp() {
       if (staffName) setBookingStaffName((current) => current || staffName);
       if (serviceName) setBookingServiceName((current) => current || serviceName);
       if (date) setBookingDate((current) => current || date);
-    },
-    salonArtistRoleOptions,
-    salonArtistStatusOptions
+    }
   });
   applySalonBookingsRef.current = applySalonBookings;
 
@@ -1954,11 +1943,6 @@ function getPassportMatch(post) {
                           activeStaffCount={activeStaffCount}
                           pendingInvites={pendingSalonArtistInvites}
                           staffList={safeSalonStaffList}
-                          onCreateStaff={() => {
-                            setArtistCreateRole(salonArtistRoleOptions[0]);
-                            setArtistCreateStatus(salonArtistStatusOptions[0]);
-                            setArtistCreateOpen(true);
-                          }}
                           onInviteNearby={openNearbyArtistInvite}
                           onCancelInvite={cancelSalonArtistInvite}
                           onOpenStaffPublic={openSalonStaffPublicProfile}
@@ -2642,17 +2626,6 @@ function getPassportMatch(post) {
           onInvite={inviteNearbyArtist}
         />
 
-        <SalonCreateStaffModal
-          open={artistCreateOpen}
-          role={artistCreateRole}
-          status={artistCreateStatus}
-          roleOptions={salonArtistRoleOptions}
-          statusOptions={salonArtistStatusOptions}
-          onClose={() => setArtistCreateOpen(false)}
-          onRoleChange={setArtistCreateRole}
-          onStatusChange={setArtistCreateStatus}
-          onSubmit={addSalonStaff}
-        />
         <ProfileEditModal
           open={profileEditOpen && Boolean(createdProfile)}
           profile={createdProfile}

@@ -125,14 +125,6 @@ export async function getSalonStaff() {
   return apiJson("/api/salon-staff");
 }
 
-/** POST /api/salon-staff → { person, staff } 201 */
-export async function createSalonStaff(body) {
-  return apiFetch("/api/salon-staff", {
-    method: "POST",
-    body: JSON.stringify(body)
-  });
-}
-
 /** PATCH /api/salon-staff → { person, staff } */
 export async function updateSalonStaff(body) {
   return apiFetch("/api/salon-staff", {
