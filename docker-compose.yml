@@ -1,6 +1,6 @@
 # Local development Postgres. Usage:
-#   docker compose up -d
-#   POSTGRES_URL=postgresql://zibaban:zibaban@localhost:5432/zibaban npm run migrate
+#   npm run db:up
+
 services:
   db:
     image: postgres:16

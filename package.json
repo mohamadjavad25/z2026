@@ -8,6 +8,9 @@
     "build": "next build",
     "start": "next start",
     "migrate": "node scripts/migrate.mjs up",
+    "db:up": "docker compose up -d --wait db",
+    "db:down": "docker compose down",
+    "db:reset": "docker compose down -v && npm run db:up && npm run migrate",
     "test": "next build && vitest run",
     "lint": "eslint ."
   },

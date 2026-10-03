@@ -35,10 +35,17 @@ the migrations once (`npm run migrate`) before starting the app — see
 With Docker, a ready-made Postgres is one command away:
 
 ```bash
-docker compose up -d
-cp .env.example .env.local   # then set POSTGRES_URL=postgresql://zibaban:zibaban@localhost:5432/zibaban
-POSTGRES_URL=postgresql://zibaban:zibaban@localhost:5432/zibaban npm run migrate
+npm ci
+cp .env.example .env.local
+# in .env.local set:
+#   POSTGRES_URL=postgresql://zibaban:zibaban@localhost:5432/zibaban?sslmode=disable
+npm run db:up        # start Postgres (docker-compose.yml) and wait until healthy
+npm run migrate      # reads .env.local
+npm run dev
 ```
+
+`npm run db:down` stops the database (data is kept); `npm run db:reset` wipes
+it and re-applies all migrations.
 
 ```bash
 npm run build   # production build

@@ -14,9 +14,13 @@
 // neither, it falls back to `no-verify` with a warning (Supabase's chain is
 // not in Node's default trust store, so a plain `require` would fail).
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+
+// Local dev: pick up .env.local like `next dev` does (real env vars win --
+// loadEnvFile never overrides variables that are already set).
+if (existsSync(".env.local")) process.loadEnvFile(".env.local");
 
 // MIGRATE_DATABASE_URL wins over everything: Vercel's Supabase integration
 // manages POSTGRES_URL_NON_POOLING itself (read-only, and it points at the
