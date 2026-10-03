@@ -1,10 +1,18 @@
 import { ChevronLeft } from "lucide-react";
+import { PageIcon } from "../../components/PageIcon";
+import { ServiceEmoji } from "../../components/ServiceEmoji";
+
+// One concept icon per role: person (client), storefront (salon), brush (artist).
+function RoleGlyph({ id }) {
+  if (id === "salon") return <PageIcon name="salon" size={32} />;
+  if (id === "artist") return <ServiceEmoji id="makeup_brush" size={32} />;
+  return <PageIcon name="me" size={32} />;
+}
 
 export function ProfileRoleGrid({ roles, onSelectRole }) {
   return (
     <div className="profileRoleGrid" role="group" aria-label="انتخاب نوع پروفایل">
       {roles.map((role, index) => {
-        const Icon = role.icon;
         return (
           <button
             type="button"
@@ -14,11 +22,7 @@ export function ProfileRoleGrid({ roles, onSelectRole }) {
             onClick={() => onSelectRole(role.id)}
           >
             <span className="profileRoleIcon" aria-hidden="true">
-              {role.image ? (
-                <img src={role.image} alt="" draggable={false} />
-              ) : (
-                <Icon size={20} strokeWidth={1.8} />
-              )}
+              <RoleGlyph id={role.id} />
             </span>
             <span className="profileRoleCopy">
               <strong>{role.label}</strong>

@@ -272,7 +272,7 @@ button.svcCard:active { transform: scale(0.99); }
 /* ── Category tints for the extended icon pack ────────────────────────── */
 .serviceIcon.cat-men      { --svc-tint: #e8f0fb; --svc-ring: #c9dbf4; }
 .serviceIcon.cat-bridal   { --svc-tint: #fff0f5; --svc-ring: #fbd0e0; }
-.serviceIcon.cat-tattoo   { --svc-tint: #f1ecfb; --svc-ring: #dcd0f4; }
+.serviceIcon.cat-tattoo   { --svc-tint: #f3f3f5; --svc-ring: #6f7380; }
 .serviceIcon.cat-wellness { --svc-tint: #eaf8ef; --svc-ring: #c6ebd3; }
 
 /* ═══ Service composer (catalog + editor) ═══════════════════════════════ */

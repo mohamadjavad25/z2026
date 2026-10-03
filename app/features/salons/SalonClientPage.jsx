@@ -18,7 +18,6 @@ import {
   Search,
   ShieldCheck,
   Share2,
-  Sparkles,
   Store,
   UserPlus,
   UserRound,
@@ -26,6 +25,7 @@ import {
   X
 } from "lucide-react";
 import { ServiceIcon } from "../../components/ServiceIcon";
+import { ServiceIconStrip } from "../../components/ServiceIconStrip";
 import { SegmentClock } from "../../components/SegmentClock";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { SalonClientGallery } from "./SalonClientGallery";
@@ -326,9 +326,7 @@ export function SalonClientPage({
       ) : (
         <>
           <div className="salonPromoHeader">
-            <div className="salonPromoHeaderIcon">
-              <Sparkles size={22} />
-            </div>
+            <ServiceIconStrip ids={["haircut", "manicure", "lipstick", "facial"]} size="sm" />
             <div className="salonPromoHeaderBody">
               <b>بهترین سالن‌های زیبایی شهر، آماده‌ی رزرو</b>
               <span>سالن مورد علاقه‌ت رو پیدا کن و در چند ثانیه وقت بگیر.</span>
@@ -374,6 +372,14 @@ export function SalonClientPage({
                       )}
                     </div>
                   </div>
+                  {serviceCount > 0 ? (
+                    <div className="salonCardServices" aria-label="خدمات سالن">
+                      {getVisibleServices(salon).slice(0, 5).map((service) => (
+                        <ServiceIcon key={service.id || service.name} emoji={service.emoji} name={service.name} size="sm" />
+                      ))}
+                      {serviceCount > 5 ? <span className="salonCardServicesMore">+{toPersianDigits(serviceCount - 5)}</span> : null}
+                    </div>
+                  ) : null}
                   <div className="salonCardStats" aria-label="اطلاعات سالن">
                     {(salon.post_count || salon.portfolio?.length || 0) > 0 ? (
                       <span><ImagePlus size={13} /><b>{toPersianDigits(salon.post_count || salon.portfolio?.length || 0)}</b> نمونه‌کار</span>

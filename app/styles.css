@@ -13,6 +13,7 @@
 @import "./styles/features/errorPage.css";
 @import "./styles/features/booking.css";
 @import "./styles/features/services.css";
+@import "./styles/features/polish.css";
 
 
 *{
@@ -39,7 +40,7 @@
     display: block !important;
     padding: calc(20px + env(safe-area-inset-top)) 16px 16px !important;
     border-radius: 0 0 26px 26px !important;
-    background: linear-gradient(180deg, #070611 0 58%, #ffffff 58% 100%) !important;
+    background: linear-gradient(180deg, #0a0a0e 0 58%, #ffffff 58% 100%) !important;
     box-shadow: none !important;
     overflow: hidden !important;
     isolation: isolate;
@@ -50,7 +51,7 @@
     inset: 0 0 auto !important;
     height: 246px !important;
     background:
-      linear-gradient(90deg, rgba(15, 8, 34, 0.95), rgba(6, 6, 13, 0.9)),
+      linear-gradient(90deg, rgba(19, 19, 23, 0.95), rgba(6, 6, 13, 0.9)),
       url("/salon-hero-doodle.png") center top / cover no-repeat !important;
     -webkit-mask-image: none !important;
     mask-image: none !important;
@@ -119,7 +120,7 @@
   :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekStrip {
     background: rgba(255, 255, 255, 0.98) !important;
     border: 1px solid rgba(28, 32, 44, 0.07) !important;
-    box-shadow: 0 16px 30px rgba(18, 12, 35, 0.12) !important;
+    box-shadow: 0 16px 30px rgba(21, 21, 25, 0.12) !important;
   }
 }
 
@@ -134,8 +135,8 @@
   .profileHero.is-salon .salonHeroBanner {
     height: 232px !important;
     background:
-      radial-gradient(circle at 73% 22%, rgba(123, 89, 255, 0.16), transparent 32%),
-      linear-gradient(90deg, rgba(10, 8, 20, 0.96), rgba(19, 8, 44, 0.9) 56%, rgba(4, 5, 10, 0.96)),
+      radial-gradient(circle at 73% 22%, rgba(111, 115, 128, 0.16), transparent 32%),
+      linear-gradient(90deg, rgba(13, 13, 17, 0.96), rgba(23, 23, 27, 0.9) 56%, rgba(4, 5, 10, 0.96)),
       url("/salon-hero-doodle.png") center top / cover no-repeat !important;
     filter: saturate(0.9) contrast(1.08);
   }
@@ -181,8 +182,8 @@
     right: 118px !important;
     width: 31px !important;
     height: 31px !important;
-    color: #7442e6 !important;
-    box-shadow: 0 10px 22px rgba(32, 18, 62, 0.24) !important;
+    color: #14161d !important;
+    box-shadow: 0 10px 22px rgba(36, 36, 40, 0.24) !important;
   }
 
   .profileHero.is-salon .salonHeroMeta {
@@ -222,7 +223,7 @@
   .profileHero.is-salon .salonHeroRatingPill {
     min-height: 29px !important;
     padding: 4px 12px !important;
-    background: rgba(9, 7, 21, 0.56) !important;
+    background: rgba(13, 13, 17, 0.56) !important;
     border-color: rgba(255, 255, 255, 0.12) !important;
   }
 
@@ -232,7 +233,7 @@
     padding: 13px 10px 12px !important;
     border-radius: 18px !important;
     box-shadow:
-      0 18px 34px rgba(17, 14, 32, 0.12),
+      0 18px 34px rgba(21, 21, 25, 0.12),
       inset 0 1px 0 rgba(255, 255, 255, 0.92) !important;
   }
 
@@ -250,7 +251,7 @@
     padding: 10px !important;
     border-radius: 18px !important;
     box-shadow:
-      0 16px 30px rgba(17, 14, 32, 0.08),
+      0 16px 30px rgba(21, 21, 25, 0.08),
       inset 0 1px 0 rgba(255, 255, 255, 0.94) !important;
   }
 
@@ -264,11 +265,11 @@
   }
 
   :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDay.is-active {
-    background: #f3f1f8 !important;
+    background: #f4f4f6 !important;
   }
 
   :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDay.is-active b {
-    background: linear-gradient(180deg, #8f5cff, #6335d8) !important;
+    background: linear-gradient(180deg, #6f7380, #14161d) !important;
   }
 }
 
@@ -285,9 +286,9 @@
   place-items: center;
   margin-top: 2px;
   border-radius: 50%;
-  background: linear-gradient(180deg, #8f5cff, #6d3ee8);
+  background: linear-gradient(180deg, #6f7380, #14161d);
   color: #ffffff;
-  box-shadow: 0 8px 16px rgba(109, 62, 232, 0.3);
+  box-shadow: 0 8px 16px rgba(20, 22, 29, 0.3);
 }
 
 /* Prevent native text-selection drag on the day rail (any host) — without
@@ -432,7 +433,7 @@ button{
   padding: 22px;
   background:
     linear-gradient(160deg, rgba(255, 255, 255, 0.08), transparent 32%),
-    linear-gradient(22deg, rgba(96, 81, 155, 0.2), transparent 44%),
+    linear-gradient(22deg, rgba(20, 22, 29, 0.2), transparent 44%),
     var(--night);
   color: #fff;
   display: flex;
@@ -498,7 +499,7 @@ button{
   place-items: center;
   border-radius: 14px;
   background: linear-gradient(135deg, var(--rose), var(--gold));
-  box-shadow: 0 16px 38px rgba(96, 81, 155, 0.34);
+  box-shadow: 0 16px 38px rgba(20, 22, 29, 0.34);
 }
 
 .sideNav{
@@ -546,7 +547,7 @@ button{
   min-height: 42px;
   border: 0;
   border-radius: 12px;
-  background: linear-gradient(135deg, #bfc0d1, #60519b);
+  background: linear-gradient(135deg, #bfc0d1, #14161d);
   color: #241b18;
   font-weight: 900;
 }
@@ -594,7 +595,7 @@ button{
   border-radius: 13px;
   background: linear-gradient(135deg, var(--rose), var(--gold));
   color: #fff;
-  box-shadow: 0 12px 24px rgba(96, 81, 155, 0.22);
+  box-shadow: 0 12px 24px rgba(20, 22, 29, 0.22);
 }
 
 .globalSearch,
@@ -661,7 +662,7 @@ button{
   color: #fff;
   font-size: 0.62rem;
   font-weight: 950;
-  box-shadow: 0 8px 16px rgba(96, 81, 155, 0.24);
+  box-shadow: 0 8px 16px rgba(20, 22, 29, 0.24);
 }
 
 .heroApp{
@@ -673,8 +674,8 @@ button{
   border: 1px solid rgba(255, 255, 255, 0.62);
   background:
     linear-gradient(135deg, rgba(246, 246, 251, 0.95), rgba(241, 229, 222, 0.88)),
-    radial-gradient(circle at 14% 14%, rgba(96, 81, 155, 0.2), transparent 34%),
-    radial-gradient(circle at 92% 18%, rgba(96, 81, 155, 0.18), transparent 28%);
+    radial-gradient(circle at 14% 14%, rgba(20, 22, 29, 0.2), transparent 34%),
+    radial-gradient(circle at 92% 18%, rgba(20, 22, 29, 0.18), transparent 28%);
   border-radius: 28px;
   overflow: hidden;
   box-shadow: var(--shadow);
@@ -1087,8 +1088,8 @@ h1{
   inset: -20% -10% auto;
   height: 70%;
   background:
-    radial-gradient(circle at 30% 40%, rgba(96, 81, 155, 0.45), transparent 55%),
-    radial-gradient(circle at 78% 30%, rgba(96, 81, 155, 0.4), transparent 50%);
+    radial-gradient(circle at 30% 40%, rgba(20, 22, 29, 0.45), transparent 55%),
+    radial-gradient(circle at 78% 30%, rgba(20, 22, 29, 0.4), transparent 50%);
   animation: homeGlow 4.8s ease-in-out infinite alternate;
   pointer-events: none;
   z-index: 1;
@@ -1126,7 +1127,7 @@ h1{
   gap: 4px;
   padding: 22px 18px;
   background:
-    linear-gradient(145deg, rgba(28, 32, 44, 0.96), rgba(96, 81, 155, 0.92) 55%, rgba(96, 81, 155, 0.88));
+    linear-gradient(145deg, rgba(28, 32, 44, 0.96), rgba(20, 22, 29, 0.92) 55%, rgba(20, 22, 29, 0.88));
   color: #fff;
 }
 
@@ -1171,7 +1172,7 @@ h1{
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 28px;
   background:
-    linear-gradient(135deg, rgba(28, 32, 44, 0.96), rgba(96, 81, 155, 0.92) 54%, rgba(96, 81, 155, 0.9)),
+    linear-gradient(135deg, rgba(28, 32, 44, 0.96), rgba(20, 22, 29, 0.92) 54%, rgba(20, 22, 29, 0.9)),
     var(--night);
   color: #fff;
   box-shadow: 0 28px 76px rgba(28, 32, 44, 0.22);
@@ -1264,7 +1265,7 @@ h1{
   overflow: hidden;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent 58%),
-    linear-gradient(135deg, rgba(96, 81, 155, 0.3), rgba(191, 192, 209, 0.14));
+    linear-gradient(135deg, rgba(20, 22, 29, 0.3), rgba(191, 192, 209, 0.14));
 }
 
 .adProductVisual span{
@@ -1283,7 +1284,7 @@ h1{
 .adProductCard.product2 .adProductVisual{
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.2), transparent 56%),
-    linear-gradient(135deg, rgba(96, 81, 155, 0.42), rgba(255, 255, 255, 0.12));
+    linear-gradient(135deg, rgba(20, 22, 29, 0.42), rgba(255, 255, 255, 0.12));
 }
 
 .adProductCard.product2 .adProductVisual span{
@@ -1298,7 +1299,7 @@ h1{
 .adProductCard.product3 .adProductVisual{
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent 58%),
-    linear-gradient(135deg, rgba(96, 81, 155, 0.36), rgba(96, 81, 155, 0.44));
+    linear-gradient(135deg, rgba(20, 22, 29, 0.36), rgba(20, 22, 29, 0.44));
 }
 
 .adProductCard.product3 .adProductVisual span{
@@ -1515,10 +1516,10 @@ h2{
   place-items: center;
   position: relative;
   overflow: hidden;
-  border: 1px dashed rgba(96, 81, 155, 0.46);
+  border: 1px dashed rgba(20, 22, 29, 0.46);
   border-radius: 22px;
   background:
-    linear-gradient(135deg, rgba(96, 81, 155, 0.08), rgba(96, 81, 155, 0.08)),
+    linear-gradient(135deg, rgba(20, 22, 29, 0.08), rgba(20, 22, 29, 0.08)),
     #f6f6fb;
   color: var(--muted);
   text-align: center;
@@ -1574,7 +1575,7 @@ h2{
   gap: 5px;
   padding: 7px 9px;
   border-radius: 999px;
-  background: rgba(96, 81, 155, 0.1);
+  background: rgba(20, 22, 29, 0.1);
   color: var(--teal);
   font-size: 0.82rem;
   font-weight: 800;
@@ -1734,7 +1735,7 @@ h2{
   margin-bottom: 14px;
   padding: 8px 11px;
   border-radius: 999px;
-  background: rgba(96, 81, 155, 0.1);
+  background: rgba(20, 22, 29, 0.1);
   color: var(--rose);
   font-weight: 900;
 }
@@ -1926,7 +1927,7 @@ h2{
 }
 
 .postMeta .matchChip{
-  background: rgba(96, 81, 155, 0.72);
+  background: rgba(20, 22, 29, 0.72);
   color: #fff;
 }
 
@@ -1992,7 +1993,7 @@ h2{
   border-radius: 0;
   background:
     linear-gradient(to bottom, transparent 0%, transparent 48%, #ffffff 100%),
-    linear-gradient(135deg, #6a4fc7 0%, #a374e8 55%, #ff9ecb 100%);
+    linear-gradient(135deg, #14161d 0%, #6f7380 55%, #ff9ecb 100%);
   color: #ffffff;
 }
 
@@ -2083,7 +2084,7 @@ h2{
   border-radius: 24px;
   background:
     linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(246, 246, 251, 0.82)),
-    radial-gradient(circle at 12% 10%, rgba(96, 81, 155, 0.14), transparent 36%);
+    radial-gradient(circle at 12% 10%, rgba(20, 22, 29, 0.14), transparent 36%);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.96),
     0 16px 34px rgba(28, 32, 44, 0.08);
@@ -2097,7 +2098,7 @@ h2{
   position: absolute;
   inset: 8px;
   border-radius: 20px;
-  border: 1px solid rgba(96, 81, 155, 0.08);
+  border: 1px solid rgba(20, 22, 29, 0.08);
   pointer-events: none;
 }
 
@@ -2107,7 +2108,7 @@ h2{
 }
 
 .salonRow:focus-visible{
-  outline: 3px solid rgba(96, 81, 155, 0.28);
+  outline: 3px solid rgba(20, 22, 29, 0.28);
   outline-offset: 3px;
 }
 
@@ -2141,7 +2142,7 @@ h2{
   place-items: center;
   border: 1px solid rgba(255, 255, 255, 0.72);
   border-radius: 15px;
-  background: linear-gradient(135deg, rgba(96, 81, 155, 0.16), rgba(191, 192, 209, 0.22));
+  background: linear-gradient(135deg, rgba(20, 22, 29, 0.16), rgba(191, 192, 209, 0.22));
   color: var(--teal);
   flex: 0 0 auto;
   overflow: hidden;
@@ -2191,7 +2192,7 @@ h2{
   padding: 0 8px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.72);
-  color: #60519b;
+  color: #14161d;
   font-weight: 900;
   font-size: 0.64rem;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.86);
@@ -2226,8 +2227,8 @@ h2{
 }
 
 .salonServiceChip{
-  background: rgba(96, 81, 155, 0.09);
-  color: #60519b;
+  background: rgba(20, 22, 29, 0.09);
+  color: #14161d;
 }
 
 .salonRow button{
@@ -2239,7 +2240,7 @@ h2{
   justify-content: center;
   gap: 6px;
   border-radius: 15px;
-  background: linear-gradient(135deg, #20243f, #60519b);
+  background: linear-gradient(135deg, #20243f, #14161d);
   color: #fff;
   font-weight: 900;
   box-shadow: 0 12px 22px rgba(32, 36, 63, 0.2);
@@ -2269,7 +2270,7 @@ h2{
   border-radius: 18px;
   object-fit: cover;
   object-position: center;
-  box-shadow: 0 14px 30px rgba(96, 81, 155, 0.1);
+  box-shadow: 0 14px 30px rgba(20, 22, 29, 0.1);
 }
 
 .emptySalonDirectory div{
@@ -2735,7 +2736,7 @@ h2{
   display: grid;
   place-items: center;
   border-radius: 14px;
-  background: linear-gradient(135deg, rgba(96, 81, 155, 0.18), rgba(96, 81, 155, 0.14));
+  background: linear-gradient(135deg, rgba(20, 22, 29, 0.18), rgba(20, 22, 29, 0.14));
   color: var(--plum);
   font-weight: 900;
 }
@@ -2853,7 +2854,7 @@ h2{
 }
 
 .salonClientServiceDetails .servicePrice{
-  background: rgba(96, 81, 155, 0.1);
+  background: rgba(20, 22, 29, 0.1);
   color: #31323e;
 }
 
@@ -2959,8 +2960,8 @@ h2{
   width: fit-content;
   padding: 6px 10px;
   border-radius: 999px;
-  background: rgba(96, 81, 155, 0.1);
-  color: #60519b;
+  background: rgba(20, 22, 29, 0.1);
+  color: #14161d;
   font-size: 0.68rem;
   font-weight: 900;
 }
@@ -2985,14 +2986,14 @@ h2{
   gap: 9px;
   min-height: 54px;
   padding: 12px;
-  border: 1px solid rgba(96, 81, 155, 0.08);
+  border: 1px solid rgba(20, 22, 29, 0.08);
   border-radius: 18px;
   background: #fff;
   color: #1c202c;
 }
 
 .salonGalleryArtistInfo svg{
-  color: #60519b;
+  color: #14161d;
 }
 
 .salonGalleryArtistInfo small,
@@ -3061,7 +3062,7 @@ h2{
   pointer-events: none;
   background:
     radial-gradient(circle at 20% 0%, rgba(255, 255, 255, 0.54), transparent 36%),
-    radial-gradient(circle at 92% 18%, rgba(96, 81, 155, 0.06), transparent 28%);
+    radial-gradient(circle at 92% 18%, rgba(20, 22, 29, 0.06), transparent 28%);
 }
 
 .profilePanel.is-salon-profile > *,
@@ -3084,7 +3085,7 @@ h2{
   border: 1px solid rgba(255, 255, 255, 0.42);
   border-radius: 999px;
   background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.28), rgba(96, 81, 155, 0.55));
+    linear-gradient(145deg, rgba(255, 255, 255, 0.28), rgba(20, 22, 29, 0.55));
   color: #fff;
   font: inherit;
   font-size: 0.8rem;
@@ -3103,7 +3104,7 @@ h2{
 .salonHeroBack:hover,
 .salonHeroBack:focus-visible{
   background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.36), rgba(96, 81, 155, 0.7));
+    linear-gradient(145deg, rgba(255, 255, 255, 0.36), rgba(20, 22, 29, 0.7));
   box-shadow:
     0 0 0 1px rgba(118, 224, 220, 0.45),
     0 12px 28px rgba(8, 11, 14, 0.32),
@@ -3138,7 +3139,7 @@ h2{
   gap: 10px;
   margin-top: 6px;
   padding: 12px 10px 14px;
-  border: 1px solid rgba(96, 81, 155, 0.1);
+  border: 1px solid rgba(20, 22, 29, 0.1);
   border-radius: 22px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(246, 246, 251, 0.97));
@@ -3193,8 +3194,8 @@ h2{
   gap: 8px;
   padding: 10px;
   border-radius: 16px;
-  background: rgba(96, 81, 155, 0.04);
-  border: 1px solid rgba(96, 81, 155, 0.08);
+  background: rgba(20, 22, 29, 0.04);
+  border: 1px solid rgba(20, 22, 29, 0.08);
 }
 
 .salonWorkspacePanel .bookingDeskStats{
@@ -3490,10 +3491,10 @@ h2{
   min-height: 40px;
   margin: -2px 0 0;
   padding: 0 12px;
-  border: 1px dashed rgba(96, 81, 155, 0.32);
+  border: 1px dashed rgba(20, 22, 29, 0.32);
   border-radius: 13px;
-  background: rgba(96, 81, 155, 0.05);
-  color: #5d43b5;
+  background: rgba(20, 22, 29, 0.05);
+  color: #14161d;
   font-family: inherit;
   font-size: 0.72rem;
   font-weight: 850;
@@ -3543,7 +3544,7 @@ h2{
 
 .bookingClientSuggestItem:hover,
 .bookingClientSuggestItem:focus-visible{
-  background: rgba(93, 67, 181, 0.08) !important;
+  background: rgba(20, 22, 29, 0.08) !important;
 }
 
 .bookingClientSuggestItem svg{
@@ -3688,7 +3689,7 @@ h2{
   border: 0;
   border-radius: 12px;
   padding: 0 12px;
-  background: rgba(96, 81, 155, 0.12);
+  background: rgba(20, 22, 29, 0.12);
   color: var(--teal);
   font: inherit;
   font-size: 0.72rem;
@@ -3704,8 +3705,8 @@ h2{
   display: grid;
   place-items: center;
   border-radius: 26px;
-  background: linear-gradient(135deg, #2b222f, #60519b 58%, #bfc0d1);
-  box-shadow: 0 18px 40px rgba(96, 81, 155, 0.22);
+  background: linear-gradient(135deg, #2b222f, #14161d 58%, #bfc0d1);
+  box-shadow: 0 18px 40px rgba(20, 22, 29, 0.22);
   overflow: hidden;
 }
 
@@ -3723,7 +3724,7 @@ h2{
   width: 44px;
   height: 50px;
   border-radius: 28px 28px 24px 24px;
-  background: linear-gradient(145deg, #261d2a, #60519b);
+  background: linear-gradient(145deg, #202024, #14161d);
   top: 16px;
 }
 
@@ -3868,8 +3869,8 @@ h2{
   border: 1px solid rgba(255, 255, 255, 0.7);
   border-radius: 24px;
   background:
-    radial-gradient(circle at 12% 0%, rgba(96, 81, 155, 0.1), transparent 42%),
-    radial-gradient(circle at 92% 8%, rgba(96, 81, 155, 0.1), transparent 36%),
+    radial-gradient(circle at 12% 0%, rgba(20, 22, 29, 0.1), transparent 42%),
+    radial-gradient(circle at 92% 8%, rgba(20, 22, 29, 0.1), transparent 36%),
     linear-gradient(165deg, rgba(255, 255, 255, 0.97), rgba(248, 244, 239, 0.92));
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.98),
@@ -3923,7 +3924,7 @@ h2{
   min-height: 28px;
   padding: 0 11px;
   border-radius: 999px;
-  background: rgba(96, 81, 155, 0.1);
+  background: rgba(20, 22, 29, 0.1);
   color: var(--teal);
   font-size: 0.72rem;
   font-weight: 900;
@@ -4057,7 +4058,7 @@ h2{
   position: absolute;
   inset: -5px;
   border-radius: 17px;
-  border: 1px solid rgba(96, 81, 155, 0.22);
+  border: 1px solid rgba(20, 22, 29, 0.22);
   animation: stepPulse 1.8s ease-out infinite;
   pointer-events: none;
 }
@@ -4083,16 +4084,16 @@ h2{
 
 .profileStepList > li.is-done .profileStepDot{
   background:
-    linear-gradient(180deg, rgba(96, 81, 155, 0.16), rgba(96, 81, 155, 0.1));
-  border-color: rgba(96, 81, 155, 0.22);
+    linear-gradient(180deg, rgba(20, 22, 29, 0.16), rgba(20, 22, 29, 0.1));
+  border-color: rgba(20, 22, 29, 0.22);
   color: var(--teal);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.55),
-    0 10px 18px rgba(96, 81, 155, 0.12);
+    0 10px 18px rgba(20, 22, 29, 0.12);
 }
 
 .profileStepList > li.is-done .profileStepCopy small{
-  color: rgba(96, 81, 155, 0.78);
+  color: rgba(20, 22, 29, 0.78);
 }
 
 .profileRoleGrid{
@@ -4104,8 +4105,8 @@ h2{
 
 .profileRoleCard{
   --role-accent: var(--rose);
-  --role-wash: rgba(96, 81, 155, 0.14);
-  --role-deep: rgba(96, 81, 155, 0.22);
+  --role-wash: rgba(20, 22, 29, 0.14);
+  --role-deep: rgba(20, 22, 29, 0.22);
   position: relative;
   isolation: isolate;
   min-height: 112px;
@@ -4136,14 +4137,14 @@ h2{
 
 .profileRoleCard.roleSalon{
   --role-accent: var(--teal);
-  --role-wash: rgba(96, 81, 155, 0.14);
-  --role-deep: rgba(96, 81, 155, 0.2);
+  --role-wash: rgba(20, 22, 29, 0.14);
+  --role-deep: rgba(20, 22, 29, 0.2);
 }
 
 .profileRoleCard.roleArtist{
   --role-accent: var(--plum);
-  --role-wash: rgba(96, 81, 155, 0.12);
-  --role-deep: rgba(96, 81, 155, 0.2);
+  --role-wash: rgba(20, 22, 29, 0.12);
+  --role-deep: rgba(20, 22, 29, 0.2);
 }
 
 .profileRoleCard:hover,
@@ -4301,9 +4302,9 @@ h2{
 }
 
 .profileTypeGrid button.selected{
-  border-color: rgba(96, 81, 155, 0.34);
-  background: linear-gradient(135deg, rgba(96, 81, 155, 0.14), rgba(191, 192, 209, 0.14));
-  box-shadow: 0 14px 32px rgba(96, 81, 155, 0.12);
+  border-color: rgba(20, 22, 29, 0.34);
+  background: linear-gradient(135deg, rgba(20, 22, 29, 0.14), rgba(191, 192, 209, 0.14));
+  box-shadow: 0 14px 32px rgba(20, 22, 29, 0.12);
 }
 
 .profileTypeGrid svg{
@@ -4368,7 +4369,7 @@ h2{
   width: calc(50% - 5px);
   border-radius: 17px;
   background:
-    linear-gradient(145deg, #1c2328 0%, #243036 48%, #60519b 130%);
+    linear-gradient(145deg, #1c2328 0%, #243036 48%, #14161d 130%);
   box-shadow:
     0 12px 26px rgba(28, 32, 44, 0.28),
     inset 0 1px 0 rgba(255, 255, 255, 0.14);
@@ -4411,7 +4412,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .authModeSwitch button:focus-visible{
-  outline: 2px solid rgba(96, 81, 155, 0.45);
+  outline: 2px solid rgba(20, 22, 29, 0.45);
   outline-offset: 2px;
 }
 
@@ -4470,7 +4471,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   margin: 10px 0 0;
   padding: 10px 12px;
   border-radius: 14px;
-  background: rgba(96, 81, 155, 0.1);
+  background: rgba(20, 22, 29, 0.1);
   color: #9b3650;
   font-size: 0.84rem;
   font-weight: 800;
@@ -4999,7 +5000,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   border: 1px solid rgba(120, 72, 108, 0.16);
   border-radius: 22px;
   background:
-    linear-gradient(145deg, rgba(120, 72, 108, 0.1), rgba(96, 81, 155, 0.08)),
+    linear-gradient(145deg, rgba(120, 72, 108, 0.1), rgba(20, 22, 29, 0.08)),
     rgba(246, 246, 251, 0.94);
 }
 
@@ -5020,7 +5021,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   color: #fff;
   font-size: 1.35rem;
   font-weight: 900;
-  box-shadow: 0 14px 30px rgba(96, 81, 155, 0.24);
+  box-shadow: 0 14px 30px rgba(20, 22, 29, 0.24);
 }
 
 .artistIdentityKicker{
@@ -5160,7 +5161,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   padding: 0 14px;
   border: 0;
   border-radius: 14px;
-  background: linear-gradient(145deg, #1c2328 0%, #2a3338 55%, #60519b 130%);
+  background: linear-gradient(145deg, #1c2328 0%, #2a3338 55%, #14161d 130%);
   color: #fff;
   font-size: 0.74rem;
   font-weight: 900;
@@ -5199,8 +5200,8 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 
 .artistGalleryFilters button.active,
 .profileGalleryFilters button.active{
-  background: rgba(96, 81, 155, 0.12);
-  border-color: rgba(96, 81, 155, 0.22);
+  background: rgba(20, 22, 29, 0.12);
+  border-color: rgba(20, 22, 29, 0.22);
   color: var(--teal);
   transform: translateY(-1px);
 }
@@ -5401,7 +5402,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .profileGalleryCard.is-editing{
-  outline: 2px solid rgba(96, 81, 155, 0.35);
+  outline: 2px solid rgba(20, 22, 29, 0.35);
   outline-offset: 2px;
 }
 
@@ -5466,7 +5467,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   border: 0;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.92);
-  color: #60519b;
+  color: #14161d;
   box-shadow: 0 8px 18px rgba(28, 32, 44, 0.12);
   cursor: pointer;
 }
@@ -5484,7 +5485,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   border: 1px solid rgba(28, 32, 44, 0.08);
   border-radius: 20px;
   background:
-    radial-gradient(120% 80% at 50% 0%, rgba(96, 81, 155, 0.08), transparent 55%),
+    radial-gradient(120% 80% at 50% 0%, rgba(20, 22, 29, 0.08), transparent 55%),
     rgba(255, 255, 255, 0.72);
   text-align: center;
   color: var(--muted);
@@ -5516,8 +5517,8 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   place-items: center;
   margin-bottom: 2px;
   border-radius: 16px;
-  background: rgba(96, 81, 155, 0.1);
-  color: #60519b;
+  background: rgba(20, 22, 29, 0.1);
+  color: #14161d;
 }
 
 .artistGalleryEmpty b,
@@ -5541,7 +5542,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   padding: 0 16px;
   border: 0;
   border-radius: 14px;
-  background: linear-gradient(145deg, #1c2328, #60519b);
+  background: linear-gradient(145deg, #1c2328, #14161d);
   color: #fff;
   font-size: 0.76rem;
   font-weight: 900;
@@ -5762,7 +5763,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   gap: 2px;
   padding: 10px 12px;
   border-radius: 18px;
-  background: linear-gradient(160deg, rgba(28, 32, 44, 0.92), rgba(66, 58, 96, 0.9));
+  background: linear-gradient(160deg, rgba(28, 32, 44, 0.92), rgba(20, 22, 29, 0.9));
   color: #fff;
   box-shadow: 0 12px 24px rgba(28, 32, 44, 0.18);
 }
@@ -5863,7 +5864,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   place-items: center;
   padding: 0 4px;
   border-radius: 999px;
-  background: rgba(96, 81, 155, 0.12);
+  background: rgba(20, 22, 29, 0.12);
   color: var(--teal);
   font-size: 0.58rem;
   font-style: normal;
@@ -5878,16 +5879,16 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .bookingWeekHistoryCalDay.is-today:not(.is-active){
-  border-color: rgba(96, 81, 155, 0.18);
-  background: rgba(96, 81, 155, 0.06);
+  border-color: rgba(20, 22, 29, 0.18);
+  background: rgba(20, 22, 29, 0.06);
 }
 
 .bookingWeekHistoryCalDay.has-bookings i{
-  background: rgba(96, 81, 155, 0.4);
+  background: rgba(20, 22, 29, 0.4);
 }
 
 .bookingWeekHistoryCalDay.is-active{
-  border-color: rgba(96, 81, 155, 0.22);
+  border-color: rgba(20, 22, 29, 0.22);
   background: #fff;
   color: var(--teal);
   box-shadow: 0 10px 22px rgba(28, 32, 44, 0.08);
@@ -5899,7 +5900,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .bookingWeekHistoryCalDay.is-active em{
-  background: rgba(96, 81, 155, 0.16);
+  background: rgba(20, 22, 29, 0.16);
 }
 
 .bookingWeekHistoryDateMeta{
@@ -5951,7 +5952,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   min-height: 30px;
   padding: 0 10px;
   border-radius: 999px;
-  background: rgba(96, 81, 155, 0.1);
+  background: rgba(20, 22, 29, 0.1);
   color: var(--teal);
   font-size: 0.72rem;
   font-style: normal;
@@ -6099,7 +6100,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   display: inline-grid;
   place-items: center;
   border-radius: 999px;
-  background: rgba(96, 81, 155, 0.09);
+  background: rgba(20, 22, 29, 0.09);
   color: var(--teal);
   font-size: 0.68rem;
   font-weight: 950;
@@ -6128,7 +6129,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .artistBookingPageStatus.is-ok{
-  background: #60519b;
+  background: #14161d;
 }
 
 .artistBookingPageStatus.is-wait{
@@ -6151,10 +6152,10 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   gap: 8px;
   align-items: center;
   padding: 7px 8px;
-  border: 1px solid rgba(96, 81, 155, 0.1);
+  border: 1px solid rgba(20, 22, 29, 0.1);
   border-radius: 14px;
   background:
-    radial-gradient(circle at 100% 0%, rgba(96, 81, 155, 0.1), transparent 44%),
+    radial-gradient(circle at 100% 0%, rgba(20, 22, 29, 0.1), transparent 44%),
     rgba(245, 253, 252, 0.88);
 }
 
@@ -6164,7 +6165,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   display: grid;
   place-items: center;
   border-radius: 13px;
-  background: linear-gradient(135deg, rgba(96, 81, 155, 0.14), rgba(96, 81, 155, 0.12));
+  background: linear-gradient(135deg, rgba(20, 22, 29, 0.14), rgba(20, 22, 29, 0.12));
   color: var(--teal);
   overflow: hidden;
 }
@@ -6232,7 +6233,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 .artistBookingPageInfo:hover,
 .artistBookingPageInfo:focus-visible{
   outline: none;
-  background: rgba(96, 81, 155, 0.06);
+  background: rgba(20, 22, 29, 0.06);
 }
 
 .artistBookingClientAvatar{
@@ -6241,8 +6242,8 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   display: grid;
   place-items: center;
   border-radius: 12px;
-  background: rgba(96, 81, 155, 0.12);
-  color: #60519b;
+  background: rgba(20, 22, 29, 0.12);
+  color: #14161d;
   font-size: 0.85rem;
   font-weight: 900;
   overflow: hidden;
@@ -6285,7 +6286,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   max-width: 100%;
   padding: 0 7px 0 4px;
   border-radius: 999px;
-  background: rgba(96, 81, 155, 0.09);
+  background: rgba(20, 22, 29, 0.09);
   color: var(--teal);
   font-size: 0.58rem;
   font-weight: 950;
@@ -6329,7 +6330,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 
 .artistBookingPageInfo:hover .artistBookingClientOpen,
 .artistBookingPageInfo:focus-visible .artistBookingClientOpen{
-  color: #60519b;
+  color: #14161d;
 }
 
 .artistBookingPagePhone{
@@ -6354,7 +6355,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   height: 34px;
   border: 0;
   border-radius: 12px;
-  background: rgba(96, 81, 155, 0.1);
+  background: rgba(20, 22, 29, 0.1);
   color: var(--teal);
   cursor: pointer;
   flex-shrink: 0;
@@ -6362,7 +6363,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .artistBookingPageMsg:hover{
-  background: rgba(96, 81, 155, 0.18);
+  background: rgba(20, 22, 29, 0.18);
   transform: translateY(-1px);
 }
 
@@ -6395,11 +6396,11 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .artistVisitGrid i.is-l1{
-  background: rgba(96, 81, 155, 0.38);
+  background: rgba(20, 22, 29, 0.38);
 }
 
 .artistVisitGrid i.is-l2{
-  background: #60519b;
+  background: #14161d;
 }
 
 .artistBookingList article{
@@ -6479,7 +6480,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .artistBookingStatus.is-ok{
-  background: rgba(96, 81, 155, 0.12);
+  background: rgba(20, 22, 29, 0.12);
   color: var(--teal);
 }
 
@@ -6529,7 +6530,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   border: 1px solid rgba(28, 32, 44, 0.08);
   border-radius: 18px;
   background:
-    radial-gradient(circle at 50% 0%, rgba(96, 81, 155, 0.08), transparent 58%),
+    radial-gradient(circle at 50% 0%, rgba(20, 22, 29, 0.08), transparent 58%),
     rgba(255, 255, 255, 0.68);
   text-align: center;
   color: var(--muted);
@@ -6610,7 +6611,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   gap: 10px;
   padding: 12px;
   border-radius: 16px;
-  background: linear-gradient(135deg, rgba(120, 72, 108, 0.12), rgba(96, 81, 155, 0.08));
+  background: linear-gradient(135deg, rgba(120, 72, 108, 0.12), rgba(20, 22, 29, 0.08));
   color: var(--ink);
 }
 
@@ -6731,7 +6732,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .artistBookingSwitch input:checked{
-  background: #60519b;
+  background: #14161d;
 }
 
 .artistBookingSwitch input:checked::after{
@@ -6776,7 +6777,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingsBoard .boardHead span {
-  color: #7c5ce2;
+  color: #14161d;
   font-size: 11px;
 }
 
@@ -6793,7 +6794,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   padding: 0;
   border: 0;
   border-radius: 0;
-  color: #7c5ce2;
+  color: #14161d;
   background: transparent;
   box-shadow: none;
   font-size: 12px;
@@ -6821,9 +6822,9 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   display: grid;
   place-items: center;
   gap: 3px;
-  border: 1px solid rgba(124, 92, 226, 0.12);
+  border: 1px solid rgba(20, 22, 29, 0.12);
   border-radius: 16px;
-  color: #7c5ce2;
+  color: #14161d;
   background: rgba(255, 255, 255, 0.72);
   box-shadow: none;
 }
@@ -6836,13 +6837,13 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingList .artistBookingWeekRail {
   min-width: 0;
   grid-auto-columns: minmax(72px, 1fr);
-  border-color: rgba(124, 92, 226, 0.12);
+  border-color: rgba(20, 22, 29, 0.12);
   background: rgba(255, 255, 255, 0.34);
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingList .artistBookingWeekRail button.active {
-  color: #7c5ce2;
-  box-shadow: 0 10px 22px rgba(52, 38, 98, 0.1);
+  color: #14161d;
+  box-shadow: 0 10px 22px rgba(20, 22, 29, 0.1);
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingList > .salonHeroWeekStrip {
@@ -6857,7 +6858,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   border: 1px solid rgba(28, 32, 44, 0.07);
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.98);
-  box-shadow: 0 14px 26px rgba(18, 12, 35, 0.08);
+  box-shadow: 0 14px 26px rgba(21, 21, 25, 0.08);
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingList > .salonHeroWeekStrip .salonHeroWeekArrow {
@@ -6867,8 +6868,8 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   place-items: center;
   border: 0;
   border-radius: 50%;
-  background: #f6f2ff;
-  color: #7a3ff2;
+  background: #f8f8fa;
+  color: #14161d;
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingList > .salonHeroWeekStrip .salonHeroWeekDays {
@@ -6914,8 +6915,8 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingList > .salonHeroWeekStrip .salonHeroWeekDay.is-active {
-  background: #f4f1fa;
-  box-shadow: inset 0 0 0 1px rgba(96, 81, 155, 0.08);
+  background: #f5f5f7;
+  box-shadow: inset 0 0 0 1px rgba(20, 22, 29, 0.08);
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingList > .salonHeroWeekStrip .salonHeroWeekDay.is-active b {
@@ -6925,21 +6926,21 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   place-items: center;
   margin-top: 2px;
   border-radius: 50%;
-  background: linear-gradient(180deg, #8f5cff, #6d3ee8);
+  background: linear-gradient(180deg, #6f7380, #14161d);
   color: #ffffff;
-  box-shadow: 0 8px 16px rgba(109, 62, 232, 0.3);
+  box-shadow: 0 8px 16px rgba(20, 22, 29, 0.3);
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingFeatureCard {
   display: grid;
   gap: 12px;
   padding: 14px;
-  border: 1px solid rgba(124, 92, 226, 0.16);
+  border: 1px solid rgba(20, 22, 29, 0.16);
   border-radius: 20px;
   background:
-    radial-gradient(circle at 10% 10%, rgba(124, 92, 226, 0.08), transparent 34%),
+    radial-gradient(circle at 10% 10%, rgba(20, 22, 29, 0.08), transparent 34%),
     rgba(255, 255, 255, 0.86);
-  box-shadow: 0 16px 32px rgba(31, 26, 58, 0.08);
+  box-shadow: 0 16px 32px rgba(38, 38, 42, 0.08);
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingFeatureTop {
@@ -6957,9 +6958,9 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   place-items: center;
   overflow: hidden;
   border-radius: 999px;
-  color: #7c5ce2;
-  background: rgba(124, 92, 226, 0.08);
-  border: 1px solid rgba(124, 92, 226, 0.14);
+  color: #14161d;
+  background: rgba(20, 22, 29, 0.08);
+  border: 1px solid rgba(20, 22, 29, 0.14);
   font-weight: 950;
 }
 
@@ -7112,17 +7113,17 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   gap: 7px;
   border: 0;
   border-radius: 13px;
-  background: linear-gradient(180deg, #8f5cff, #6d3ee8);
+  background: linear-gradient(180deg, #6f7380, #14161d);
   color: #ffffff;
   font-size: 12.5px;
   font-weight: 900;
-  box-shadow: 0 10px 20px rgba(109, 62, 232, 0.22);
+  box-shadow: 0 10px 20px rgba(20, 22, 29, 0.22);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingActionPrimary:active {
   transform: scale(0.97);
-  box-shadow: 0 6px 14px rgba(109, 62, 232, 0.2);
+  box-shadow: 0 6px 14px rgba(20, 22, 29, 0.2);
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingActionSecondary {
@@ -7132,16 +7133,16 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(124, 92, 226, 0.16);
+  border: 1px solid rgba(20, 22, 29, 0.16);
   border-radius: 13px;
-  background: rgba(124, 92, 226, 0.07);
-  color: #7c5ce2;
+  background: rgba(20, 22, 29, 0.07);
+  color: #14161d;
   transition: transform 0.15s ease, background 0.15s ease;
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingActionSecondary:active {
   transform: scale(0.94);
-  background: rgba(124, 92, 226, 0.14);
+  background: rgba(20, 22, 29, 0.14);
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingOtherList {
@@ -7257,9 +7258,9 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   place-items: center;
   overflow: hidden;
   border-radius: 999px;
-  color: #7c5ce2;
-  background: rgba(124, 92, 226, 0.08);
-  border: 1px solid rgba(124, 92, 226, 0.14);
+  color: #14161d;
+  background: rgba(20, 22, 29, 0.08);
+  border: 1px solid rgba(20, 22, 29, 0.14);
   font-weight: 950;
   width: 38px;
   height: 38px;
@@ -7395,9 +7396,9 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   place-items: center;
   overflow: hidden;
   border-radius: 999px;
-  color: #7c5ce2;
-  background: rgba(124, 92, 226, 0.08);
-  border: 1px solid rgba(124, 92, 226, 0.1);
+  color: #14161d;
+  background: rgba(20, 22, 29, 0.08);
+  border: 1px solid rgba(20, 22, 29, 0.1);
   font-size: 15px;
   font-weight: 950;
 }
@@ -7447,7 +7448,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   display: inline-block;
   flex: 0 0 auto;
   border-radius: 999px;
-  background: rgba(124, 92, 226, 0.45);
+  background: rgba(20, 22, 29, 0.45);
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingList .scheduleTimeWrap {
@@ -7521,9 +7522,9 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   place-items: center;
   overflow: hidden;
   border-radius: 999px;
-  color: #7c5ce2;
-  background: rgba(124, 92, 226, 0.08);
-  border: 1px solid rgba(124, 92, 226, 0.1);
+  color: #14161d;
+  background: rgba(20, 22, 29, 0.08);
+  border: 1px solid rgba(20, 22, 29, 0.1);
   font-size: 15px;
   font-weight: 950;
 }
@@ -7572,7 +7573,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   height: 4px;
   display: inline-block;
   border-radius: 999px;
-  background: rgba(124, 92, 226, 0.45);
+  background: rgba(20, 22, 29, 0.45);
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingTime {
@@ -7619,7 +7620,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingsEmpty.is-dayEmpty {
   min-height: 160px;
-  border: 1px dashed rgba(124, 92, 226, 0.16);
+  border: 1px dashed rgba(20, 22, 29, 0.16);
   border-radius: 22px;
   background: rgba(255, 255, 255, 0.46);
 }
@@ -7630,8 +7631,8 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   height: 46px;
   padding: 11px;
   border-radius: 999px;
-  color: #9a8bc7;
-  background: rgba(124, 92, 226, 0.07);
+  color: #6f7380;
+  background: rgba(20, 22, 29, 0.07);
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingsEmpty b {
@@ -7663,10 +7664,10 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   align-items: center;
   gap: 10px;
   padding: 12px 14px;
-  border: 1px solid rgba(124, 92, 226, 0.16);
+  border: 1px solid rgba(20, 22, 29, 0.16);
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.86);
-  box-shadow: 0 14px 28px rgba(31, 26, 58, 0.07);
+  box-shadow: 0 14px 28px rgba(38, 38, 42, 0.07);
   direction: rtl;
   text-align: right;
 }
@@ -7678,7 +7679,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   overflow: hidden;
   border-radius: 50%;
   background: #fff;
-  box-shadow: 0 0 0 3px #fff, 0 0 0 4px rgba(124, 92, 226, 0.15);
+  box-shadow: 0 0 0 3px #fff, 0 0 0 4px rgba(20, 22, 29, 0.15);
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientProfileOverviewAvatar img {
@@ -7719,8 +7720,8 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   padding: 0 10px;
   border: 0;
   border-radius: 10px;
-  color: #7c5ce2;
-  background: rgba(124, 92, 226, 0.1);
+  color: #14161d;
+  background: rgba(20, 22, 29, 0.1);
   font-size: 11px;
   font-weight: 850;
   white-space: nowrap;
@@ -7752,8 +7753,8 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   display: grid;
   place-items: center;
   border-radius: 11px;
-  color: #7c5ce2;
-  background: rgba(124, 92, 226, 0.1);
+  color: #14161d;
+  background: rgba(20, 22, 29, 0.1);
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientProfileOverviewLinkCopy {
@@ -7857,7 +7858,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   border: 0;
   border-radius: 0;
   background:
-    radial-gradient(circle at 50% 0%, rgba(126, 105, 159, 0.18), transparent 34%),
+    radial-gradient(circle at 50% 0%, rgba(20, 22, 29, 0.18), transparent 34%),
     linear-gradient(180deg, rgba(248, 242, 247, 0.94), rgba(191, 192, 209, 0.98)),
     var(--bg);
   box-shadow: none;
@@ -7869,7 +7870,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   border: 0;
   border-radius: 0;
   background:
-    radial-gradient(circle at 50% 0%, rgba(96, 81, 155, 0.1), transparent 34%),
+    radial-gradient(circle at 50% 0%, rgba(20, 22, 29, 0.1), transparent 34%),
     linear-gradient(180deg, rgba(246, 246, 251, 0.96), rgba(235, 237, 244, 0.98)),
     var(--bg);
   box-shadow: none;
@@ -7899,7 +7900,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   justify-content: center;
   gap: 5px;
   border-radius: 13px;
-  background: rgba(96, 81, 155, 0.09);
+  background: rgba(20, 22, 29, 0.09);
   color: var(--teal);
   font-size: 0.74rem;
   font-weight: 900;
@@ -7910,10 +7911,10 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   gap: 9px;
   margin-top: 10px;
   padding: 12px;
-  border: 1px solid rgba(96, 81, 155, 0.16);
+  border: 1px solid rgba(20, 22, 29, 0.16);
   border-radius: 22px;
   background:
-    linear-gradient(135deg, rgba(96, 81, 155, 0.1), rgba(96, 81, 155, 0.1)),
+    linear-gradient(135deg, rgba(20, 22, 29, 0.1), rgba(20, 22, 29, 0.1)),
     rgba(246, 246, 251, 0.86);
   box-shadow: 0 16px 36px rgba(28, 32, 44, 0.08);
 }
@@ -8008,7 +8009,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   flex: 0 0 auto;
   border-radius: 18px;
   object-fit: cover;
-  box-shadow: 0 10px 24px rgba(96, 81, 155, 0.18);
+  box-shadow: 0 10px 24px rgba(20, 22, 29, 0.18);
 }
 
 .createdProfileTop span{
@@ -8155,7 +8156,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 
 .boardHead button{
   border: 0;
-  background: rgba(96, 81, 155, 0.1);
+  background: rgba(20, 22, 29, 0.1);
   color: var(--teal);
 }
 
@@ -8315,14 +8316,14 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   padding: 11px;
   border-radius: 17px;
   background:
-    linear-gradient(135deg, rgba(28, 32, 44, 0.92), rgba(96, 81, 155, 0.86)),
+    linear-gradient(135deg, rgba(28, 32, 44, 0.92), rgba(20, 22, 29, 0.86)),
     var(--night);
   color: #fff;
 }
 
 .profilePassport.active{
   background:
-    linear-gradient(135deg, rgba(96, 81, 155, 0.92), rgba(96, 81, 155, 0.86)),
+    linear-gradient(135deg, rgba(20, 22, 29, 0.92), rgba(20, 22, 29, 0.86)),
     var(--teal);
 }
 
@@ -8413,7 +8414,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 .scheduleDayDots button.is-active{
   background: #bfc0d1;
   color: #31323e;
-  box-shadow: 0 4px 10px rgba(96, 81, 155, 0.22);
+  box-shadow: 0 4px 10px rgba(20, 22, 29, 0.22);
   transform: translateY(-1px);
 }
 
@@ -8473,7 +8474,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .schedulePhaseTag.is-live{
-  background: rgba(96, 81, 155, 0.16);
+  background: rgba(20, 22, 29, 0.16);
   color: var(--teal);
   animation: schedulePhasePulse 1.8s ease-in-out infinite;
 }
@@ -8537,11 +8538,11 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .salonQuickGrid button.active{
-  background: linear-gradient(135deg, rgba(96, 81, 155, 0.18), rgba(191, 192, 209, 0.16));
+  background: linear-gradient(135deg, rgba(20, 22, 29, 0.18), rgba(191, 192, 209, 0.16));
   color: var(--teal);
   box-shadow:
-    inset 0 0 0 1px rgba(96, 81, 155, 0.2),
-    0 12px 28px rgba(96, 81, 155, 0.1);
+    inset 0 0 0 1px rgba(20, 22, 29, 0.2),
+    0 12px 28px rgba(20, 22, 29, 0.1);
 }
 
 .createdProfile.is-salon .salonQuickGrid{
@@ -8561,11 +8562,11 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   color: var(--ink);
   text-align: right;
   background:
-    radial-gradient(circle at 16% 14%, rgba(96, 81, 155, 0.12), transparent 34%),
+    radial-gradient(circle at 16% 14%, rgba(20, 22, 29, 0.12), transparent 34%),
     linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(246, 239, 233, 0.62));
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.74),
-    0 14px 30px rgba(96, 81, 155, 0.07);
+    0 14px 30px rgba(20, 22, 29, 0.07);
   backdrop-filter: blur(12px);
 }
 
@@ -8623,7 +8624,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   border-radius: 12px;
   background: rgba(246, 246, 251, 0.72);
   color: var(--teal);
-  box-shadow: 0 10px 22px rgba(96, 81, 155, 0.08);
+  box-shadow: 0 10px 22px rgba(20, 22, 29, 0.08);
 }
 
 .createdProfile.is-salon .salonQuickGrid button span{
@@ -8634,20 +8635,20 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   background: rgba(246, 246, 251, 0.78);
   font-size: 0.78rem;
   color: var(--plum);
-  box-shadow: 0 10px 20px rgba(96, 81, 155, 0.08);
+  box-shadow: 0 10px 20px rgba(20, 22, 29, 0.08);
 }
 
 .createdProfile.is-salon .salonQuickGrid button.active{
   color: var(--ink);
   box-shadow:
-    inset 0 0 0 1px rgba(96, 81, 155, 0.22),
-    0 18px 42px rgba(96, 81, 155, 0.12);
+    inset 0 0 0 1px rgba(20, 22, 29, 0.22),
+    0 18px 42px rgba(20, 22, 29, 0.12);
 }
 
 .createdProfile.is-salon .salonQuickGrid button.active::before{
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(235, 248, 246, 0.78)),
-    radial-gradient(circle at 78% 18%, rgba(96, 81, 155, 0.18), transparent 34%);
+    radial-gradient(circle at 78% 18%, rgba(20, 22, 29, 0.18), transparent 34%);
 }
 
 .createdProfile.is-salon .salonQuickGrid button.active span{
@@ -8768,7 +8769,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .staffCreateDrawer{
-  border: 1px solid rgba(96, 81, 155, 0.12);
+  border: 1px solid rgba(20, 22, 29, 0.12);
   border-radius: 17px;
   background: rgba(255, 255, 255, 0.58);
   overflow: hidden;
@@ -8798,10 +8799,10 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .portfolioCreateDrawer{
-  border: 1px solid rgba(96, 81, 155, 0.12);
+  border: 1px solid rgba(20, 22, 29, 0.12);
   border-radius: 18px;
   background:
-    linear-gradient(135deg, rgba(96, 81, 155, 0.08), rgba(191, 192, 209, 0.12)),
+    linear-gradient(135deg, rgba(20, 22, 29, 0.08), rgba(191, 192, 209, 0.12)),
     rgba(255, 255, 255, 0.72);
   overflow: hidden;
 }
@@ -8832,13 +8833,13 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   overflow-x: auto;
   margin: 2px -4px 0;
   padding: 9px 4px 10px;
-  border: 1px solid rgba(96, 81, 155, 0.08);
+  border: 1px solid rgba(20, 22, 29, 0.08);
   border-radius: 20px;
   background:
     linear-gradient(180deg, rgba(246, 246, 251, 0.98), rgba(246, 246, 251, 0.9)),
     var(--surface-solid);
   backdrop-filter: blur(14px);
-  box-shadow: 0 12px 26px rgba(96, 81, 155, 0.08);
+  box-shadow: 0 12px 26px rgba(20, 22, 29, 0.08);
   scrollbar-width: none;
 }
 
@@ -8852,7 +8853,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   grid-template-columns: auto 1fr;
   align-items: center;
   gap: 5px 8px;
-  border: 1px solid rgba(96, 81, 155, 0.12);
+  border: 1px solid rgba(20, 22, 29, 0.12);
   border-radius: 18px;
   padding: 9px;
   background:
@@ -8865,11 +8866,11 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .staffTabs button.active{
-  border-color: rgba(96, 81, 155, 0.48);
+  border-color: rgba(20, 22, 29, 0.48);
   background:
-    linear-gradient(135deg, rgba(96, 81, 155, 0.18), rgba(255, 255, 255, 0.92)),
+    linear-gradient(135deg, rgba(20, 22, 29, 0.18), rgba(255, 255, 255, 0.92)),
     #fff;
-  box-shadow: 0 14px 28px rgba(96, 81, 155, 0.12);
+  box-shadow: 0 14px 28px rgba(20, 22, 29, 0.12);
   transform: translateY(-1px);
 }
 
@@ -8883,7 +8884,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   background: linear-gradient(135deg, var(--rose), var(--plum));
   color: #fff;
   font-weight: 900;
-  box-shadow: 0 10px 22px rgba(96, 81, 155, 0.2);
+  box-shadow: 0 10px 22px rgba(20, 22, 29, 0.2);
 }
 
 .staffTabs b,
@@ -8909,7 +8910,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   max-width: 100%;
   padding: 3px 8px;
   border-radius: 999px;
-  background: rgba(96, 81, 155, 0.1);
+  background: rgba(20, 22, 29, 0.1);
   color: var(--teal);
   font-size: 0.58rem;
   font-style: normal;
@@ -8921,13 +8922,13 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   display: grid;
   gap: 9px;
   padding: 11px;
-  border: 1px solid rgba(96, 81, 155, 0.12);
+  border: 1px solid rgba(20, 22, 29, 0.12);
   border-radius: 22px;
   background:
     radial-gradient(circle at 12% 8%, rgba(191, 192, 209, 0.18), transparent 30%),
     linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(236, 249, 247, 0.78)),
     #fff;
-  box-shadow: 0 18px 36px rgba(96, 81, 155, 0.09);
+  box-shadow: 0 18px 36px rgba(20, 22, 29, 0.09);
 }
 
 .staffProfileTop{
@@ -8966,7 +8967,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   display: grid;
   place-items: center;
   border-radius: 14px;
-  background: rgba(96, 81, 155, 0.1);
+  background: rgba(20, 22, 29, 0.1);
   color: var(--teal);
   font-size: 0.78rem;
 }
@@ -9068,7 +9069,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   border: 0;
   border-radius: 12px;
   padding: 0 9px;
-  background: rgba(96, 81, 155, 0.1);
+  background: rgba(20, 22, 29, 0.1);
   color: var(--teal);
   font-size: 0.62rem;
   font-weight: 900;
@@ -9093,7 +9094,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .staffControlGrid button.danger{
-  background: rgba(96, 81, 155, 0.1);
+  background: rgba(20, 22, 29, 0.1);
   color: var(--rose);
 }
 
@@ -9180,7 +9181,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   gap: 5px;
   border-radius: 16px;
   background:
-    linear-gradient(135deg, rgba(96, 81, 155, 0.1), rgba(96, 81, 155, 0.1)),
+    linear-gradient(135deg, rgba(20, 22, 29, 0.1), rgba(20, 22, 29, 0.1)),
     rgba(255, 255, 255, 0.72);
   color: var(--muted);
   font-size: 0.7rem;
@@ -9337,7 +9338,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 .bookingTimeline small{
   padding: 5px 7px;
   border-radius: 999px;
-  background: rgba(96, 81, 155, 0.1);
+  background: rgba(20, 22, 29, 0.1);
   color: var(--rose);
   font-size: 0.62rem;
   font-weight: 900;
@@ -9448,7 +9449,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   flex: 1;
   border: 0;
   border-radius: 10px;
-  background: rgba(96, 81, 155, 0.1);
+  background: rgba(20, 22, 29, 0.1);
   color: var(--teal);
   font-family: inherit;
   font-size: 0.62rem;
@@ -9457,7 +9458,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 
 .miniManageActions button.danger,
 .portfolioManageActions button.danger{
-  background: rgba(96, 81, 155, 0.12);
+  background: rgba(20, 22, 29, 0.12);
   color: var(--rose);
 }
 
@@ -9513,7 +9514,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   gap: 10px;
   padding: 12px;
   background:
-    linear-gradient(135deg, rgba(28, 32, 44, 0.95), rgba(96, 81, 155, 0.9)),
+    linear-gradient(135deg, rgba(28, 32, 44, 0.95), rgba(20, 22, 29, 0.9)),
     var(--night);
   color: #fff;
 }
@@ -9729,7 +9730,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   display: grid;
   place-items: center;
   border-radius: 999px;
-  background: rgba(96, 81, 155, 0.1);
+  background: rgba(20, 22, 29, 0.1);
   color: var(--teal);
   font-weight: 900;
 }
@@ -9852,7 +9853,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 .savedProfileGroupHead b{
   padding: 5px 9px;
   border-radius: 999px;
-  background: rgba(96, 81, 155, 0.1);
+  background: rgba(20, 22, 29, 0.1);
   color: var(--plum);
   font-size: 0.66rem;
   font-weight: 900;
@@ -9880,7 +9881,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 
 .savedSalonCard:hover,
 .savedSalonCard:focus-visible{
-  border-color: rgba(96, 81, 155, 0.3);
+  border-color: rgba(20, 22, 29, 0.3);
   box-shadow: 0 16px 34px rgba(28, 32, 44, 0.11);
   transform: translateY(-1px);
   outline: none;
@@ -9960,7 +9961,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   place-items: center;
   border: 0;
   border-radius: 13px;
-  background: rgba(96, 81, 155, 0.09);
+  background: rgba(20, 22, 29, 0.09);
   color: var(--plum);
 }
 
@@ -10087,14 +10088,14 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   border: 1px solid rgba(28, 32, 44, 0.08);
   border-radius: 20px;
   background:
-    radial-gradient(circle at 50% 0%, rgba(96, 81, 155, 0.08), transparent 58%),
+    radial-gradient(circle at 50% 0%, rgba(20, 22, 29, 0.08), transparent 58%),
     rgba(255, 255, 255, 0.66);
   color: var(--muted);
   text-align: center;
 }
 
 .emptySavedState svg{
-  color: rgba(96, 81, 155, 0.72);
+  color: rgba(20, 22, 29, 0.72);
 }
 
 .emptySavedState b{
@@ -10109,7 +10110,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   padding: 12px;
   border-radius: 16px;
   background:
-    linear-gradient(135deg, rgba(96, 81, 155, 0.1), rgba(191, 192, 209, 0.14)),
+    linear-gradient(135deg, rgba(20, 22, 29, 0.1), rgba(191, 192, 209, 0.14)),
     rgba(255, 255, 255, 0.58);
 }
 
@@ -10212,9 +10213,9 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .neoSettingsGroup{
-  border: 1px solid rgba(96, 81, 155, 0.1);
+  border: 1px solid rgba(20, 22, 29, 0.1);
   border-radius: 16px;
-  background: linear-gradient(165deg, rgba(255, 255, 255, 0.92), rgba(248, 246, 252, 0.88));
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.92), rgba(249, 249, 251, 0.88));
   overflow: hidden;
   transition: box-shadow 0.2s ease;
 }
@@ -10279,7 +10280,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   display: grid;
   place-items: center;
   border-radius: 11px;
-  background: linear-gradient(135deg, rgba(96, 81, 155, 0.08), rgba(93, 67, 181, 0.06));
+  background: linear-gradient(135deg, rgba(20, 22, 29, 0.08), rgba(20, 22, 29, 0.06));
   color: var(--teal);
 }
 
@@ -10331,11 +10332,11 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .neoSettingsSwitch[data-on="true"] .neoSettingsSwitchTrack{
-  background: linear-gradient(135deg, #8a68ff, #5d43b5);
+  background: linear-gradient(135deg, #6f7380, #14161d);
   box-shadow:
-    inset 0 1px 2px rgba(93, 67, 181, 0.15),
-    0 4px 12px rgba(93, 67, 181, 0.2),
-    0 0 0 1px rgba(93, 67, 181, 0.08);
+    inset 0 1px 2px rgba(20, 22, 29, 0.15),
+    0 4px 12px rgba(20, 22, 29, 0.2),
+    0 0 0 1px rgba(20, 22, 29, 0.08);
 }
 
 .neoSettingsSwitchKnob{
@@ -10521,7 +10522,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   gap: 9px;
   padding: 10px;
   border-radius: 16px;
-  background: rgba(96, 81, 155, 0.08);
+  background: rgba(20, 22, 29, 0.08);
 }
 
 .settingsHead svg{
@@ -10541,7 +10542,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 
 .profileLocationSettings,
 .settingsRowCard{
-  border: 1px solid rgba(96, 81, 155, 0.12);
+  border: 1px solid rgba(20, 22, 29, 0.12);
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.92);
   text-align: right;
@@ -10579,7 +10580,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   display: grid;
   place-items: center;
   border-radius: 11px;
-  background: rgba(96, 81, 155, 0.1);
+  background: rgba(20, 22, 29, 0.1);
   color: var(--teal);
 }
 
@@ -10635,7 +10636,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 /* --- Map Panel --- */
 
 .profileLocationMapPanel{
-  border: 1px solid rgba(96, 81, 155, 0.15);
+  border: 1px solid rgba(20, 22, 29, 0.15);
   border-radius: 16px;
   background: #fff;
   overflow: hidden;
@@ -10662,7 +10663,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   min-height: 44px;
   padding: 0 12px;
   border-bottom: 1px solid rgba(28, 32, 44, 0.06);
-  background: rgba(248, 246, 252, 0.6);
+  background: rgba(249, 249, 251, 0.6);
 }
 
 .profileLocationPickerHead svg:first-child{
@@ -10723,9 +10724,9 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   min-height: 40px;
   padding: 0 14px;
   margin: 8px 10px 0;
-  border: 1px dashed rgba(93, 67, 181, 0.25);
+  border: 1px dashed rgba(20, 22, 29, 0.25);
   border-radius: 12px;
-  background: rgba(93, 67, 181, 0.04);
+  background: rgba(20, 22, 29, 0.04);
   color: var(--teal);
   font-family: inherit;
   font-size: 0.78rem;
@@ -10735,7 +10736,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .profileLocationLocateMe:hover{
-  background: rgba(93, 67, 181, 0.08);
+  background: rgba(20, 22, 29, 0.08);
 }
 
 .profileLocationLocateMe:disabled{
@@ -10771,7 +10772,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   padding: 0 12px;
   border: 1px solid rgba(28, 32, 44, 0.08);
   border-radius: 11px;
-  background: rgba(248, 246, 252, 0.5);
+  background: rgba(249, 249, 251, 0.5);
   color: var(--ink);
   font-family: inherit;
   font-size: 0.78rem;
@@ -10781,15 +10782,15 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .profileLocationOption:hover{
-  background: rgba(96, 81, 155, 0.08);
-  border-color: rgba(96, 81, 155, 0.2);
+  background: rgba(20, 22, 29, 0.08);
+  border-color: rgba(20, 22, 29, 0.2);
 }
 
 .profileLocationOption.is-active{
-  background: linear-gradient(135deg, #8a68ff, #5d43b5);
+  background: linear-gradient(135deg, #6f7380, #14161d);
   border-color: transparent;
   color: #fff;
-  box-shadow: 0 4px 12px rgba(93, 67, 181, 0.2);
+  box-shadow: 0 4px 12px rgba(20, 22, 29, 0.2);
 }
 
 .profileLocationOption.is-active svg{
@@ -10802,7 +10803,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   display: inline-grid;
   place-items: center;
   border-radius: 7px;
-  background: rgba(96, 81, 155, 0.1);
+  background: rgba(20, 22, 29, 0.1);
   color: var(--muted);
   font-size: 0.62rem;
   font-weight: 900;
@@ -10820,7 +10821,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   justify-content: space-between;
   padding: 8px 12px;
   border-bottom: 1px solid rgba(28, 32, 44, 0.06);
-  background: rgba(93, 67, 181, 0.04);
+  background: rgba(20, 22, 29, 0.04);
 }
 
 .profileLocationBreadcrumb{
@@ -10829,7 +10830,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   gap: 4px;
   padding: 3px 10px;
   border-radius: 10px;
-  background: rgba(93, 67, 181, 0.1);
+  background: rgba(20, 22, 29, 0.1);
   color: var(--teal);
   font-size: 0.72rem;
   font-weight: 850;
@@ -10862,7 +10863,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   justify-content: space-between;
   padding: 8px 12px;
   border-bottom: 1px solid rgba(28, 32, 44, 0.06);
-  background: rgba(248, 246, 252, 0.85);
+  background: rgba(249, 249, 251, 0.85);
   z-index: 2;
 }
 
@@ -10872,7 +10873,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   gap: 4px;
   border: 0;
   background: transparent;
-  color: #60519b;
+  color: #14161d;
   font-family: inherit;
   font-size: 0.72rem;
   font-weight: 850;
@@ -10890,7 +10891,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   gap: 5px;
   padding: 3px 10px;
   border-radius: 10px;
-  background: rgba(93, 67, 181, 0.1);
+  background: rgba(20, 22, 29, 0.1);
   color: var(--teal);
   font-size: 0.74rem;
   font-weight: 850;
@@ -10947,13 +10948,13 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   min-height: 44px;
   border: 0;
   border-radius: 14px;
-  background: linear-gradient(135deg, #60519b, #4a3d82);
+  background: linear-gradient(135deg, #14161d, #14161d);
   color: #fff;
   font-family: inherit;
   font-size: 0.84rem;
   font-weight: 900;
   cursor: pointer;
-  box-shadow: 0 8px 22px rgba(96, 81, 155, 0.25);
+  box-shadow: 0 8px 22px rgba(20, 22, 29, 0.25);
   transition: background 0.2s ease;
 }
 
@@ -11043,7 +11044,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .settingsList b.is-on{
-  background: linear-gradient(135deg, #8a68ff, #5d43b5);
+  background: linear-gradient(135deg, #6f7380, #14161d);
 }
 
 .settingsList b.is-off::after{
@@ -11051,8 +11052,8 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .settingsList button.logoutButton{
-  border-color: rgba(96, 81, 155, 0.24);
-  background: linear-gradient(135deg, rgba(96, 81, 155, 0.12), rgba(96, 81, 155, 0.08));
+  border-color: rgba(20, 22, 29, 0.24);
+  background: linear-gradient(135deg, rgba(20, 22, 29, 0.12), rgba(20, 22, 29, 0.08));
 }
 
 .settingsList button.logoutButton span{
@@ -11191,12 +11192,12 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   gap: 6px;
   padding: 0 12px;
   border-radius: 14px;
-  background: #60519b;
+  background: #14161d;
   color: #fff;
   font-size: 0.74rem;
   font-weight: 900;
   cursor: pointer;
-  box-shadow: 0 10px 22px rgba(96, 81, 155, 0.28);
+  box-shadow: 0 10px 22px rgba(20, 22, 29, 0.28);
 }
 
 .artistWorkUploadOverlay{
@@ -11317,8 +11318,8 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 .artistWorkForm textarea:focus{
   outline: none;
   background-color: #fff;
-  border-color: rgba(96, 81, 155, 0.45);
-  box-shadow: 0 0 0 3px rgba(96, 81, 155, 0.12);
+  border-color: rgba(20, 22, 29, 0.45);
+  box-shadow: 0 0 0 3px rgba(20, 22, 29, 0.12);
 }
 
 .artistWorkForm select:focus{
@@ -11384,8 +11385,8 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   place-items: center;
   border: 0;
   border-radius: 9px;
-  background: rgba(96, 81, 155, 0.08);
-  color: #60519b;
+  background: rgba(20, 22, 29, 0.08);
+  color: #14161d;
   cursor: pointer;
 }
 
@@ -11396,8 +11397,8 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 
 .artistWorkTagSelect.is-open .artistWorkTagTrigger{
   background: #fff;
-  border-color: rgba(96, 81, 155, 0.45);
-  box-shadow: 0 0 0 3px rgba(96, 81, 155, 0.12);
+  border-color: rgba(20, 22, 29, 0.45);
+  box-shadow: 0 0 0 3px rgba(20, 22, 29, 0.12);
 }
 
 .artistWorkTagSelect.is-open .artistWorkTagTrigger button svg{
@@ -11434,7 +11435,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 
 .artistWorkTagMenu button.active{
   border-color: transparent;
-  background: #60519b;
+  background: #14161d;
   color: #fff;
 }
 
@@ -11511,7 +11512,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .artistWorkSwitch b.is-on{
-  background: linear-gradient(135deg, #8a68ff, #5d43b5);
+  background: linear-gradient(135deg, #6f7380, #14161d);
 }
 
 .artistWorkSwitch b.is-off::after{
@@ -11543,10 +11544,10 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .artistWorkSave{
-  background: #60519b;
+  background: #14161d;
   color: #fff;
   font-size: 0.84rem;
-  box-shadow: 0 10px 24px rgba(96, 81, 155, 0.22);
+  box-shadow: 0 10px 24px rgba(20, 22, 29, 0.22);
 }
 
 .artistWorkDelete{
@@ -11583,7 +11584,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .profilePostComposer .artistWorkUploadBtn {
-  background: rgba(124, 92, 226, 0.88);
+  background: rgba(20, 22, 29, 0.88);
 }
 
 .profilePostComposer .artistWorkUploadOverlay button {
@@ -11667,7 +11668,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   border-radius: 22px;
   background:
     radial-gradient(circle at 18% 10%, rgba(191, 192, 209, 0.24), transparent 36%),
-    linear-gradient(120deg, rgba(96, 81, 155, 0.62), rgba(43, 38, 55, 0.58)),
+    linear-gradient(120deg, rgba(20, 22, 29, 0.62), rgba(42, 42, 46, 0.58)),
     url("/salon-sidebar-system.png");
   background-size: cover;
   background-position: center;
@@ -11771,12 +11772,12 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   gap: 5px;
   padding: 7px 6px;
   border-radius: 15px;
-  background: rgba(96, 81, 155, 0.08);
+  background: rgba(20, 22, 29, 0.08);
   color: var(--teal);
   font-size: 0.62rem;
   font-weight: 900;
   text-align: center;
-  box-shadow: inset 0 0 0 1px rgba(96, 81, 155, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(20, 22, 29, 0.08);
 }
 
 .staffRosterGrid{
@@ -11805,10 +11806,10 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .staffRosterGrid button.active{
-  border-color: rgba(96, 81, 155, 0.36);
+  border-color: rgba(20, 22, 29, 0.36);
   background:
     linear-gradient(135deg, rgba(236, 249, 247, 0.96), rgba(255, 255, 255, 0.92));
-  box-shadow: 0 12px 26px rgba(96, 81, 155, 0.12);
+  box-shadow: 0 12px 26px rgba(20, 22, 29, 0.12);
 }
 
 .staffRosterAvatar,
@@ -11818,7 +11819,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   border-radius: 18px;
   background:
     radial-gradient(circle at 30% 20%, rgba(191, 192, 209, 0.34), transparent 42%),
-    linear-gradient(135deg, rgba(96, 81, 155, 0.92), rgba(96, 81, 155, 0.82));
+    linear-gradient(135deg, rgba(20, 22, 29, 0.92), rgba(20, 22, 29, 0.82));
   color: #fff;
   font-weight: 950;
 }
@@ -11854,7 +11855,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   max-width: 88px;
   padding: 5px 8px;
   border-radius: 999px;
-  background: rgba(96, 81, 155, 0.09);
+  background: rgba(20, 22, 29, 0.09);
   color: var(--teal);
   font-size: 0.6rem;
   font-style: normal;
@@ -11916,7 +11917,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 .artistProfileForm select{
   width: 100%;
   min-height: 44px;
-  border: 1px solid rgba(96, 81, 155, 0.1);
+  border: 1px solid rgba(20, 22, 29, 0.1);
   border-radius: 15px;
   background: rgba(255, 255, 255, 0.94);
   color: var(--ink);
@@ -11947,7 +11948,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   place-items: center;
   border: 0;
   border-radius: 50%;
-  background: rgba(96, 81, 155, 0.08);
+  background: rgba(20, 22, 29, 0.08);
   color: var(--teal);
   font-family: inherit;
   box-shadow: inset 0 0 0 1px rgba(28, 32, 44, 0.08);
@@ -12041,7 +12042,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .marbleRibbon.violet{
-  stroke: #b95cff;
+  stroke: #6f7380;
   stroke-width: 11;
   opacity: 0.82;
 }
@@ -12081,7 +12082,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   justify-items: center;
   padding: 18px 14px;
   background:
-    radial-gradient(circle at 16% 72%, rgba(96, 81, 155, 0.18), transparent 32%),
+    radial-gradient(circle at 16% 72%, rgba(20, 22, 29, 0.18), transparent 32%),
     radial-gradient(circle at 84% 18%, rgba(191, 192, 209, 0.14), transparent 28%),
     rgba(12, 15, 18, 0.48);
   backdrop-filter: blur(18px) saturate(0.72);
@@ -12100,7 +12101,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   background:
     radial-gradient(circle at 12% 0%, rgba(191, 192, 209, 0.44), transparent 34%),
     radial-gradient(circle at 90% 14%, rgba(191, 192, 209, 0.2), transparent 26%),
-    radial-gradient(circle at 22% 92%, rgba(96, 81, 155, 0.34), transparent 34%),
+    radial-gradient(circle at 22% 92%, rgba(20, 22, 29, 0.34), transparent 34%),
     linear-gradient(145deg, rgba(16, 53, 62, 0.88), rgba(37, 44, 61, 0.86) 46%, rgba(246, 246, 251, 0.72));
   color: #fff;
   box-shadow:
@@ -12372,7 +12373,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   min-width: 58px;
   padding: 8px 9px;
   border-radius: 16px;
-  background: rgba(96, 81, 155, 0.1);
+  background: rgba(20, 22, 29, 0.1);
   color: var(--plum);
   font-size: 0.7rem;
   text-align: center;
@@ -12426,11 +12427,11 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .staffAccessPanel button.active{
-  border-color: rgba(96, 81, 155, 0.34);
+  border-color: rgba(20, 22, 29, 0.34);
   background:
-    linear-gradient(135deg, rgba(96, 81, 155, 0.14), rgba(255, 255, 255, 0.9));
+    linear-gradient(135deg, rgba(20, 22, 29, 0.14), rgba(255, 255, 255, 0.9));
   color: var(--teal);
-  box-shadow: 0 12px 24px rgba(96, 81, 155, 0.12);
+  box-shadow: 0 12px 24px rgba(20, 22, 29, 0.12);
 }
 
 .staffAccessPanel b,
@@ -12462,7 +12463,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   padding: 18px;
   border-radius: 20px;
   background:
-    linear-gradient(135deg, rgba(96, 81, 155, 0.08), rgba(191, 192, 209, 0.1));
+    linear-gradient(135deg, rgba(20, 22, 29, 0.08), rgba(191, 192, 209, 0.1));
   color: var(--muted);
   text-align: center;
   font-size: 0.72rem;
@@ -12497,7 +12498,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .portfolioToolHead span{
-  color: #60519b;
+  color: #14161d;
   font-size: 0.7rem;
   font-weight: 900;
 }
@@ -12523,19 +12524,19 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   justify-content: center;
   gap: 8px;
   padding: 0 16px;
-  border: 1px solid rgba(96, 81, 155, 0.16);
+  border: 1px solid rgba(20, 22, 29, 0.16);
   border-radius: 16px;
   background: #fff;
-  color: #60519b;
+  color: #14161d;
   font: inherit;
   font-size: 0.86rem;
   font-weight: 950;
-  box-shadow: 0 10px 22px rgba(96, 81, 155, 0.08);
+  box-shadow: 0 10px 22px rgba(20, 22, 29, 0.08);
   cursor: pointer;
 }
 
 .portfolioCreateCard svg{
-  color: #60519b;
+  color: #14161d;
 }
 
 .portfolioCreateForm{
@@ -12631,8 +12632,8 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .portfolioTagChips button.active{
-  border-color: rgba(96, 81, 155, 0.35);
-  background: #60519b;
+  border-color: rgba(20, 22, 29, 0.35);
+  background: #14161d;
   color: #fff;
 }
 
@@ -12658,7 +12659,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   gap: 3px;
   padding: 8px 6px;
   border-radius: 15px;
-  background: rgba(96, 81, 155, 0.07);
+  background: rgba(20, 22, 29, 0.07);
   color: rgba(28, 32, 44, 0.55);
   font-size: 0.62rem;
   font-weight: 850;
@@ -12696,8 +12697,8 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   place-items: center;
   margin-bottom: 2px;
   border-radius: 16px;
-  background: rgba(96, 81, 155, 0.1);
-  color: #60519b;
+  background: rgba(20, 22, 29, 0.1);
+  color: #14161d;
 }
 
 .portfolioEmptyState b{
@@ -12720,13 +12721,13 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   padding: 0 16px;
   border: 0;
   border-radius: 14px;
-  background: #60519b;
+  background: #14161d;
   color: #fff;
   font: inherit;
   font-size: 0.8rem;
   font-weight: 900;
   cursor: pointer;
-  box-shadow: 0 10px 22px rgba(96, 81, 155, 0.22);
+  box-shadow: 0 10px 22px rgba(20, 22, 29, 0.22);
 }
 
 
@@ -12822,7 +12823,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 
 .bookingSelectTrigger svg{
   flex: 0 0 auto;
-  color: #60519b;
+  color: #14161d;
   transition: transform 0.18s ease;
 }
 
@@ -12851,9 +12852,9 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .bookingCreateForm .bookingSelect.is-open .bookingSelectTrigger{
-  border-color: rgba(96, 81, 155, 0.42);
+  border-color: rgba(20, 22, 29, 0.42);
   background: rgba(246, 246, 251, 0.98);
-  box-shadow: 0 0 0 3px rgba(96, 81, 155, 0.12);
+  box-shadow: 0 0 0 3px rgba(20, 22, 29, 0.12);
 }
 
 .bookingCreateForm .bookingSelect.is-open .bookingSelectTrigger svg{
@@ -12871,7 +12872,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   max-height: 220px;
   overflow: auto;
   padding: 8px;
-  border: 1px solid rgba(96, 81, 155, 0.14);
+  border: 1px solid rgba(20, 22, 29, 0.14);
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.98);
   box-shadow: 0 18px 40px rgba(28, 32, 44, 0.16);
@@ -12919,13 +12920,13 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .bookingCreateForm .bookingSelectMenu button:hover{
-  background: rgba(96, 81, 155, 0.06);
+  background: rgba(20, 22, 29, 0.06);
 }
 
 .bookingCreateForm .bookingSelectMenu button.active{
-  border-color: rgba(96, 81, 155, 0.18);
-  background: rgba(96, 81, 155, 0.12);
-  color: #60519b;
+  border-color: rgba(20, 22, 29, 0.18);
+  background: rgba(20, 22, 29, 0.12);
+  color: #14161d;
 }
 
 .bookingCreateForm .bookingSelectMenu button.active small{
@@ -12938,7 +12939,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .bookingCreateForm .bookingSelectMenu button svg{
-  color: #60519b;
+  color: #14161d;
 }
 
 .bookingCreateForm label{
@@ -13012,7 +13013,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   gap: 3px;
   padding: 7px;
   border-radius: 15px;
-  background: rgba(96, 81, 155, 0.07);
+  background: rgba(20, 22, 29, 0.07);
   color: var(--teal);
   font-size: 0.62rem;
   font-weight: 900;
@@ -13112,7 +13113,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   justify-items: center;
   align-content: center;
   gap: 4px;
-  border: 1px solid rgba(96, 81, 155, 0.1);
+  border: 1px solid rgba(20, 22, 29, 0.1);
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.74);
   color: var(--teal);
@@ -13226,7 +13227,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   width: fit-content;
   padding: 4px 8px;
   border-radius: 999px;
-  background: rgba(96, 81, 155, 0.1);
+  background: rgba(20, 22, 29, 0.1);
   color: var(--teal);
   font-size: 0.72rem;
   font-weight: 900;
@@ -13323,7 +13324,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   overflow: hidden;
   border-radius: 18px;
   background:
-    linear-gradient(135deg, rgba(96, 81, 155, 0.12), rgba(96, 81, 155, 0.1)),
+    linear-gradient(135deg, rgba(20, 22, 29, 0.12), rgba(20, 22, 29, 0.1)),
     #fffaf4;
   color: var(--muted);
 }
@@ -13407,7 +13408,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   display: grid;
   place-items: center;
   border-radius: 13px;
-  background: rgba(96, 81, 155, 0.08);
+  background: rgba(20, 22, 29, 0.08);
   color: var(--teal);
   font-size: 0.7rem;
   font-weight: 900;
@@ -13487,8 +13488,8 @@ body{
     border-radius: 24px;
     background:
       linear-gradient(135deg, rgba(246, 246, 251, 0.92), rgba(240, 229, 221, 0.72)),
-      radial-gradient(circle at 12% 0%, rgba(96, 81, 155, 0.18), transparent 35%),
-      radial-gradient(circle at 90% 18%, rgba(96, 81, 155, 0.16), transparent 30%);
+      radial-gradient(circle at 12% 0%, rgba(20, 22, 29, 0.18), transparent 35%),
+      radial-gradient(circle at 90% 18%, rgba(20, 22, 29, 0.16), transparent 30%);
     backdrop-filter: blur(24px);
     box-shadow: 0 18px 48px rgba(28, 32, 44, 0.12);
   }
@@ -13521,8 +13522,8 @@ body{
     width: 38px;
     height: 38px;
     border-radius: 14px;
-    background: linear-gradient(135deg, #60519b, #60519b);
-    box-shadow: 0 12px 26px rgba(96, 81, 155, 0.28);
+    background: linear-gradient(135deg, #14161d, #14161d);
+    box-shadow: 0 12px 26px rgba(20, 22, 29, 0.28);
   }
 
   .headerActions{
@@ -13671,7 +13672,7 @@ body{
     gap: 14px;
     margin-top: 10px;
     background:
-      linear-gradient(155deg, rgba(28, 32, 44, 0.97), rgba(96, 81, 155, 0.92) 60%, rgba(96, 81, 155, 0.88)),
+      linear-gradient(155deg, rgba(28, 32, 44, 0.97), rgba(20, 22, 29, 0.92) 60%, rgba(20, 22, 29, 0.88)),
       var(--night);
   }
 
@@ -14020,9 +14021,9 @@ body{
     gap: 5px;
     margin-top: 8px;
     padding: 10px;
-    border: 1px solid rgba(96, 81, 155, 0.14);
+    border: 1px solid rgba(20, 22, 29, 0.14);
     border-radius: 15px;
-    background: rgba(96, 81, 155, 0.08);
+    background: rgba(20, 22, 29, 0.08);
     color: var(--ink);
   }
 
@@ -14104,7 +14105,7 @@ body{
 }
 
 .salonPortfolioCard.is-editing{
-  outline: 2px solid rgba(96, 81, 155, 0.35);
+  outline: 2px solid rgba(20, 22, 29, 0.35);
   outline-offset: 2px;
 }
 
@@ -14173,7 +14174,7 @@ body{
   border: 0;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.92);
-  color: #60519b;
+  color: #14161d;
   box-shadow: 0 8px 18px rgba(28, 32, 44, 0.12);
   cursor: pointer;
 }
@@ -15203,7 +15204,7 @@ body{
   }
 
   .floatingMobileCtaSplit .ctaManage .ctaIcon{
-    background: rgba(96, 81, 155, 0.12);
+    background: rgba(20, 22, 29, 0.12);
     color: var(--plum);
   }
 
@@ -15956,7 +15957,7 @@ body{
 
 .profileHero:has(+ .createdProfile){
   background:
-    linear-gradient(135deg, rgba(96, 81, 155, 0.14), rgba(96, 81, 155, 0.1)),
+    linear-gradient(135deg, rgba(20, 22, 29, 0.14), rgba(20, 22, 29, 0.1)),
     rgba(246, 246, 251, 0.86);
   box-shadow: 0 16px 36px rgba(28, 32, 44, 0.08);
 }
@@ -16008,13 +16009,13 @@ body{
 
 .profileHero.is-salon .profileModeRail.is-inHero button.active{
   background: rgba(255, 255, 255, 0.96);
-  color: #60519b;
+  color: #14161d;
   box-shadow: 0 8px 20px rgba(8, 11, 14, 0.18);
 }
 
 .profileHero.is-salon .profileModeRail.is-inHero button.active span,
 .profileHero.is-salon .profileModeRail.is-inHero button.active svg{
-  color: #60519b !important;
+  color: #14161d !important;
 }
 
 .appShell.is-auth-gate .profileHero.is-salon{
@@ -16070,9 +16071,9 @@ body{
     border-radius: 0 !important;
     overflow: hidden !important;
     background:
-      radial-gradient(circle at 88% 10%, rgba(89, 42, 132, 0.28), transparent 26%),
-      radial-gradient(circle at 18% 5%, rgba(53, 20, 93, 0.34), transparent 34%),
-      linear-gradient(150deg, #15072f 0%, #21083f 46%, #350960 100%) !important;
+      radial-gradient(circle at 88% 10%, rgba(20, 22, 29, 0.28), transparent 26%),
+      radial-gradient(circle at 18% 5%, rgba(51, 51, 55, 0.34), transparent 34%),
+      linear-gradient(150deg, #18181c 0%, #202024 46%, #2f2f33 100%) !important;
     box-shadow: 0 12px 30px rgba(13, 22, 48, 0.28) !important;
   }
 
@@ -16084,7 +16085,7 @@ body{
     background:
       repeating-radial-gradient(
         ellipse 250px 92px at -32px 86px,
-        rgba(103, 61, 153, 0.28) 0 1px,
+        rgba(20, 22, 29, 0.28) 0 1px,
         transparent 2px 6px
       ),
       repeating-radial-gradient(
@@ -16119,14 +16120,14 @@ body{
     place-items: center !important;
     gap: 4px !important;
     border-radius: 14px !important;
-    color: rgba(42, 37, 56, 0.62) !important;
+    color: rgba(42, 42, 46, 0.62) !important;
     font-size: 0.62rem !important;
     background: transparent !important;
   }
 
   .profilePanel.page-profile:has(.createdProfile.is-artist) > .profileModeRail.is-panelRail.is-artist-rail button.active {
-    color: #7656b8 !important;
-    box-shadow: inset 0 -3px 0 #7656b8 !important;
+    color: #14161d !important;
+    box-shadow: inset 0 -3px 0 #14161d !important;
   }
 
   .profilePanel.page-profile:has(.createdProfile.is-artist) .artistDashboard {
@@ -16157,14 +16158,14 @@ body{
     place-items: center !important;
     gap: 4px !important;
     border-radius: 14px !important;
-    color: rgba(42, 37, 56, 0.62) !important;
+    color: rgba(42, 42, 46, 0.62) !important;
     font-size: 0.62rem !important;
     background: transparent !important;
   }
 
   .profileHero.is-salon .profileModeRail.is-panelRail.is-salon button.active {
-    color: #7656b8 !important;
-    box-shadow: inset 0 -3px 0 #7656b8 !important;
+    color: #14161d !important;
+    box-shadow: inset 0 -3px 0 #14161d !important;
   }
 
   .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGallery {
@@ -16188,23 +16189,23 @@ body{
   .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGalleryHead > button {
     min-height: 40px !important;
     padding: 0 14px !important;
-    border: 1px solid rgba(118, 86, 184, 0.16) !important;
+    border: 1px solid rgba(20, 22, 29, 0.16) !important;
     border-radius: 16px !important;
     background: #fff !important;
-    color: #4a1593 !important;
+    color: #14161d !important;
     backdrop-filter: blur(16px) !important;
-    box-shadow: 0 12px 28px rgba(42, 11, 104, 0.1) !important;
+    box-shadow: 0 12px 28px rgba(52, 52, 56, 0.1) !important;
   }
 
   .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGalleryHead > button.profileGalleryHeadTab {
-    color: rgba(42, 37, 56, 0.66) !important;
+    color: rgba(42, 42, 46, 0.66) !important;
   }
 
   .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGalleryHead > button.profileGalleryHeadTab.active {
-    border-color: rgba(118, 86, 184, 0.28) !important;
-    background: #7656b8 !important;
+    border-color: rgba(20, 22, 29, 0.28) !important;
+    background: #14161d !important;
     color: #fff !important;
-    box-shadow: 0 12px 28px rgba(118, 86, 184, 0.18) !important;
+    box-shadow: 0 12px 28px rgba(20, 22, 29, 0.18) !important;
   }
 
   .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGalleryGrid,
@@ -16233,7 +16234,7 @@ body{
     margin: 0 !important;
     border-radius: 22px !important;
     aspect-ratio: 4 / 5 !important;
-    box-shadow: 0 16px 34px rgba(42, 11, 104, 0.12) !important;
+    box-shadow: 0 16px 34px rgba(52, 52, 56, 0.12) !important;
   }
 
   .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGalleryGrid.is-single .profileGalleryCard {
@@ -16241,7 +16242,7 @@ body{
     min-height: 300px !important;
     margin: 0 auto !important;
     aspect-ratio: 4 / 5 !important;
-    box-shadow: 0 20px 46px rgba(42, 11, 104, 0.16) !important;
+    box-shadow: 0 20px 46px rgba(52, 52, 56, 0.16) !important;
   }
 
   .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGalleryGrid.is-pair .profileGalleryCard {
@@ -16269,7 +16270,7 @@ body{
 
   .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGalleryCardShade {
     background:
-      linear-gradient(180deg, rgba(8, 6, 18, 0.02) 0%, transparent 48%, rgba(8, 6, 18, 0.74) 100%) !important;
+      linear-gradient(180deg, rgba(11, 11, 15, 0.02) 0%, transparent 48%, rgba(11, 11, 15, 0.74) 100%) !important;
   }
 
   .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGalleryCardCopy {
@@ -16283,8 +16284,8 @@ body{
     border: 1px solid rgba(255, 255, 255, 0.82) !important;
     border-radius: 24px !important;
     background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 247, 252, 0.94)) !important;
-    box-shadow: 0 18px 40px rgba(42, 11, 104, 0.08) !important;
+      linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(250, 250, 252, 0.94)) !important;
+    box-shadow: 0 18px 40px rgba(52, 52, 56, 0.08) !important;
   }
 
   .profilePanel.page-profile:has(.createdProfile.is-artist) .artistReviewBoard .boardHead {
@@ -16293,7 +16294,7 @@ body{
   }
 
   .profilePanel.page-profile:has(.createdProfile.is-artist) .artistReviewBoard .boardHead strong {
-    color: #171421 !important;
+    color: #18181c !important;
     font-size: 1rem !important;
     font-weight: 950 !important;
   }
@@ -16304,8 +16305,8 @@ body{
     align-items: center !important;
     padding: 0 10px !important;
     border-radius: 999px !important;
-    background: rgba(118, 86, 184, 0.1) !important;
-    color: #4a1593 !important;
+    background: rgba(20, 22, 29, 0.1) !important;
+    color: #14161d !important;
     font-size: 0.78rem !important;
     font-weight: 950 !important;
   }
@@ -16325,14 +16326,14 @@ body{
     gap: 8px !important;
     min-height: 104px !important;
     padding: 12px !important;
-    border: 1px solid rgba(42, 11, 104, 0.06) !important;
+    border: 1px solid rgba(52, 52, 56, 0.06) !important;
     border-radius: 18px !important;
     background: rgba(255, 255, 255, 0.92) !important;
-    box-shadow: 0 10px 24px rgba(42, 11, 104, 0.06) !important;
+    box-shadow: 0 10px 24px rgba(52, 52, 56, 0.06) !important;
   }
 
   .profilePanel.page-profile:has(.createdProfile.is-artist) .artistReviewRail p {
-    color: #2a2538 !important;
+    color: #2a2a2e !important;
     font-size: 0.72rem !important;
     line-height: 1.7 !important;
   }
@@ -16340,8 +16341,8 @@ body{
   .page-profile.is-active ~ .floatingMobileCta.is-modeRail {
     padding: 6px 6px 72px !important;
     border-radius: 24px 24px 30px 30px !important;
-    background: #7656b8 !important;
-    box-shadow: 0 18px 42px rgba(82, 58, 157, 0.26) !important;
+    background: #14161d !important;
+    box-shadow: 0 18px 42px rgba(20, 22, 29, 0.26) !important;
   }
 
   /* Salon's week strip floats as its own white card (see the base,
@@ -16392,8 +16393,8 @@ body{
     gap: 12px !important;
     padding: max(14px, env(safe-area-inset-top)) 12px calc(92px + env(safe-area-inset-bottom)) !important;
     background:
-      linear-gradient(180deg, #f8f7fc 0%, #fff 30%, #fff 100%) !important;
-    color: #1f1a2e !important;
+      linear-gradient(180deg, #fafafc 0%, #fff 30%, #fff 100%) !important;
+    color: #202024 !important;
   }
 
   .salonHeroSheetPanel.is-artist-settings .salonHeroSheetHead {
@@ -16402,24 +16403,24 @@ body{
   }
 
   .salonHeroSheetPanel.is-artist-settings .salonHeroSheetHead span {
-    color: #7656b8 !important;
+    color: #14161d !important;
     font-size: 0.68rem !important;
     font-weight: 950 !important;
   }
 
   .salonHeroSheetPanel.is-artist-settings .salonHeroSheetHead h3 {
     margin: 2px 0 0 !important;
-    color: #171225 !important;
+    color: #19191d !important;
     font-size: 1.18rem !important;
     font-weight: 950 !important;
   }
 
   .salonHeroSheetPanel.is-artist-settings .salonHeroSheetHead button {
-    border: 1px solid rgba(42, 37, 56, 0.08) !important;
+    border: 1px solid rgba(42, 42, 46, 0.08) !important;
     border-radius: 14px !important;
     background: #fff !important;
-    color: #1f1a2e !important;
-    box-shadow: 0 10px 24px rgba(42, 11, 104, 0.06) !important;
+    color: #202024 !important;
+    box-shadow: 0 10px 24px rgba(52, 52, 56, 0.06) !important;
   }
 
   .salonHeroSheetPanel.is-artist-settings .settingsPanel {
@@ -16429,10 +16430,10 @@ body{
   .salonHeroSheetPanel.is-artist-settings .profileLocationSettings,
   .salonHeroSheetPanel.is-artist-settings .settingsAccountCard,
   .salonHeroSheetPanel.is-artist-settings .neoSettingsGroup {
-    border: 1px solid rgba(118, 86, 184, 0.09) !important;
+    border: 1px solid rgba(20, 22, 29, 0.09) !important;
     border-radius: 22px !important;
     background: #fff !important;
-    box-shadow: 0 14px 34px rgba(42, 11, 104, 0.06) !important;
+    box-shadow: 0 14px 34px rgba(52, 52, 56, 0.06) !important;
   }
 
   .salonHeroSheetPanel.is-artist-settings .profileLocationSettings {
@@ -16442,14 +16443,14 @@ body{
   .salonHeroSheetPanel.is-artist-settings .profileLocationHead strong,
   .salonHeroSheetPanel.is-artist-settings .settingsAccountCopy strong,
   .salonHeroSheetPanel.is-artist-settings .neoSettingsToggleCopy b {
-    color: #1f1a2e !important;
+    color: #202024 !important;
     font-weight: 950 !important;
   }
 
   .salonHeroSheetPanel.is-artist-settings .profileLocationHead span,
   .salonHeroSheetPanel.is-artist-settings .settingsAccountCopy small,
   .salonHeroSheetPanel.is-artist-settings .neoSettingsToggleCopy small {
-    color: rgba(42, 37, 56, 0.58) !important;
+    color: rgba(42, 42, 46, 0.58) !important;
   }
 
   .salonHeroSheetPanel.is-artist-settings .settingsAccountCard {
@@ -16463,7 +16464,7 @@ body{
     width: 58px !important;
     height: 58px !important;
     border-radius: 18px !important;
-    background: #171225 !important;
+    background: #19191d !important;
     box-shadow: 0 0 0 3px rgba(201, 157, 53, 0.45) !important;
   }
 
@@ -16477,8 +16478,8 @@ body{
     min-height: 36px !important;
     padding: 0 12px !important;
     border-radius: 14px !important;
-    background: rgba(118, 86, 184, 0.1) !important;
-    color: #7656b8 !important;
+    background: rgba(20, 22, 29, 0.1) !important;
+    color: #14161d !important;
     font-weight: 950 !important;
   }
 
@@ -16489,7 +16490,7 @@ body{
   .salonHeroSheetPanel.is-artist-settings .neoSettingsGroupHead {
     min-height: 46px !important;
     padding: 0 14px !important;
-    color: #7656b8 !important;
+    color: #14161d !important;
     font-size: 0.74rem !important;
     font-weight: 950 !important;
   }
@@ -16504,7 +16505,7 @@ body{
     grid-template-columns: 38px minmax(0, 1fr) auto !important;
     padding: 10px !important;
     border-radius: 16px !important;
-    background: #f8f7fc !important;
+    background: #fafafc !important;
   }
 
   .salonHeroSheetPanel.is-artist-settings .neoSettingsToggleIcon {
@@ -16512,21 +16513,21 @@ body{
     height: 38px !important;
     border-radius: 14px !important;
     background: #fff !important;
-    color: #7656b8 !important;
-    box-shadow: 0 8px 18px rgba(42, 11, 104, 0.06) !important;
+    color: #14161d !important;
+    box-shadow: 0 8px 18px rgba(52, 52, 56, 0.06) !important;
   }
 
   .salonHeroSheetPanel.is-artist-settings .neoSettingsSwitchTrack {
-    background: rgba(42, 37, 56, 0.16) !important;
+    background: rgba(42, 42, 46, 0.16) !important;
   }
 
   .salonHeroSheetPanel.is-artist-settings .neoSettingsSwitch[data-on="true"] .neoSettingsSwitchTrack {
-    background: linear-gradient(135deg, #221b37, #7656b8) !important;
-    box-shadow: 0 8px 18px rgba(118, 86, 184, 0.18) !important;
+    background: linear-gradient(135deg, #252529, #14161d) !important;
+    box-shadow: 0 8px 18px rgba(20, 22, 29, 0.18) !important;
   }
 
   .salonHeroSheetPanel.is-artist-settings .neoSettingsSwitch[data-on="true"] .neoSettingsSwitchLabel {
-    color: #7656b8 !important;
+    color: #14161d !important;
   }
 
   .salonHeroSheetPanel.is-artist-settings .neoSettingsLogout {
@@ -16553,7 +16554,7 @@ body{
   }
 
   .salonHeroSheetPanel.is-artist-settings .salonHeroSheetHead span {
-    color: #7b61dc !important;
+    color: #14161d !important;
     font-size: 12px !important;
     font-weight: 900 !important;
   }
@@ -16591,8 +16592,8 @@ body{
     color: #ffffff;
     background:
       radial-gradient(circle at 16% 8%, rgba(255, 255, 255, 0.24), transparent 28%),
-      linear-gradient(145deg, #171827 0%, #2c2050 48%, #7c5ce2 100%);
-    box-shadow: 0 18px 38px rgba(52, 38, 112, 0.22);
+      linear-gradient(145deg, #171827 0%, #323236 48%, #14161d 100%);
+    box-shadow: 0 18px 38px rgba(20, 22, 29, 0.22);
   }
 
   .salonHeroSheetPanel.is-artist-settings .artistSettingsHeroGlow {
@@ -16683,7 +16684,7 @@ body{
     display: block;
     height: 100%;
     border-radius: inherit;
-    background: linear-gradient(90deg, #ffffff, #d9ccff);
+    background: linear-gradient(90deg, #ffffff, #e6e6e8);
     box-shadow: 0 0 18px rgba(255, 255, 255, 0.36);
   }
 
@@ -16759,8 +16760,8 @@ body{
   .salonHeroSheetPanel.is-artist-settings .profileLocationHead > svg,
   .salonHeroSheetPanel.is-artist-settings .neoSettingsToggleIcon,
   .salonHeroSheetPanel.is-artist-settings .artistSettingsBookmarkIcon {
-    color: #714fea !important;
-    background: rgba(124, 92, 226, 0.1) !important;
+    color: #14161d !important;
+    background: rgba(20, 22, 29, 0.1) !important;
     box-shadow: none !important;
   }
 
@@ -16787,7 +16788,7 @@ body{
     grid-template-columns: 62px minmax(0, 1fr) auto !important;
     gap: 12px !important;
     padding: 12px !important;
-    background: linear-gradient(135deg, #ffffff 0%, #fbfaff 100%) !important;
+    background: linear-gradient(135deg, #ffffff 0%, #fcfcfe 100%) !important;
   }
 
   .salonHeroSheetPanel.is-artist-settings .settingsAccountAvatar {
@@ -16795,16 +16796,16 @@ body{
     height: 58px !important;
     border-radius: 19px !important;
     background: #171827 !important;
-    box-shadow: 0 0 0 3px #ffffff, 0 0 0 4px rgba(124, 92, 226, 0.22), 0 12px 24px rgba(34, 27, 55, 0.16) !important;
+    box-shadow: 0 0 0 3px #ffffff, 0 0 0 4px rgba(20, 22, 29, 0.22), 0 12px 24px rgba(37, 37, 41, 0.16) !important;
   }
 
   .salonHeroSheetPanel.is-artist-settings .settingsAccountAction {
     min-height: 36px !important;
     padding: 0 12px !important;
     border-radius: 14px !important;
-    border: 1px solid rgba(124, 92, 226, 0.16) !important;
-    background: rgba(124, 92, 226, 0.1) !important;
-    color: #714fea !important;
+    border: 1px solid rgba(20, 22, 29, 0.16) !important;
+    background: rgba(20, 22, 29, 0.1) !important;
+    color: #14161d !important;
     font-size: 12px !important;
     font-weight: 950 !important;
   }
@@ -16815,7 +16816,7 @@ body{
     align-items: center;
     gap: 10px;
     padding: 12px;
-    background: linear-gradient(135deg, #ffffff 0%, #fbfaff 100%) !important;
+    background: linear-gradient(135deg, #ffffff 0%, #fcfcfe 100%) !important;
   }
 
   .salonHeroSheetPanel.is-artist-settings .artistSettingsBookmarkCard button {
@@ -16826,8 +16827,8 @@ body{
     border: 0;
     border-radius: 14px;
     padding: 0 12px;
-    color: #714fea;
-    background: rgba(124, 92, 226, 0.1);
+    color: #14161d;
+    background: rgba(20, 22, 29, 0.1);
     font-size: 12px;
     font-weight: 900;
   }
@@ -16839,7 +16840,7 @@ body{
   .salonHeroSheetPanel.is-artist-settings .neoSettingsGroupHead {
     min-height: 48px !important;
     padding: 0 14px !important;
-    color: #714fea !important;
+    color: #14161d !important;
     font-size: 12px !important;
     font-weight: 950 !important;
   }
@@ -16854,7 +16855,7 @@ body{
     grid-template-columns: 38px minmax(0, 1fr) auto !important;
     padding: 10px !important;
     border-radius: 16px !important;
-    background: #f8f7fc !important;
+    background: #fafafc !important;
   }
 
   .salonHeroSheetPanel.is-artist-settings .neoSettingsSwitchTrack {
@@ -16862,12 +16863,12 @@ body{
   }
 
   .salonHeroSheetPanel.is-artist-settings .neoSettingsSwitch[data-on="true"] .neoSettingsSwitchTrack {
-    background: linear-gradient(135deg, #7c5ce2, #4f32a4) !important;
-    box-shadow: 0 8px 18px rgba(124, 92, 226, 0.18) !important;
+    background: linear-gradient(135deg, #14161d, #14161d) !important;
+    box-shadow: 0 8px 18px rgba(20, 22, 29, 0.18) !important;
   }
 
   .salonHeroSheetPanel.is-artist-settings .neoSettingsSwitch[data-on="true"] .neoSettingsSwitchLabel {
-    color: #714fea !important;
+    color: #14161d !important;
   }
 }
 @media (max-width: 760px) {
@@ -16880,9 +16881,9 @@ body{
   }
 
   .profileHero.is-salon {
-    --salon-hero-dark: #070611;
-    --salon-hero-purple: #241044;
-    --salon-hero-violet: #7f46df;
+    --salon-hero-dark: #0a0a0e;
+    --salon-hero-purple: #26262a;
+    --salon-hero-violet: #14161d;
     --salon-avatar-size: 104px;
     position: relative;
     min-height: 408px;
@@ -16893,7 +16894,7 @@ body{
     isolation: isolate;
     border-radius: 0 0 26px 26px !important;
     background:
-      linear-gradient(180deg, rgba(7, 6, 17, 0) 0 58%, #ffffff 58% 100%),
+      linear-gradient(180deg, rgba(10, 10, 14, 0) 0 58%, #ffffff 58% 100%),
       var(--salon-hero-dark) !important;
     box-shadow: none !important;
     color: #ffffff;
@@ -16907,7 +16908,7 @@ body{
     height: 246px;
     pointer-events: none;
     background:
-      radial-gradient(circle at 68% 28%, rgba(126, 83, 255, 0.2), transparent 30%),
+      radial-gradient(circle at 68% 28%, rgba(111, 115, 128, 0.2), transparent 30%),
       linear-gradient(180deg, rgba(2, 3, 10, 0.1), rgba(5, 5, 13, 0.5) 72%, rgba(255, 255, 255, 0.96) 100%),
       url("/salon-hero-doodle.png");
     background-size: cover;
@@ -16921,7 +16922,7 @@ body{
     width: 100%;
     height: 246px;
     background:
-      linear-gradient(90deg, rgba(15, 8, 34, 0.95), rgba(6, 6, 13, 0.9)),
+      linear-gradient(90deg, rgba(19, 19, 23, 0.95), rgba(6, 6, 13, 0.9)),
       url("/salon-hero-doodle.png") center top / cover no-repeat !important;
     opacity: 1;
     -webkit-mask-image: none !important;
@@ -16989,8 +16990,8 @@ body{
     border: 0;
     border-radius: 50%;
     background: #ffffff;
-    color: #7a3ff2;
-    box-shadow: 0 8px 18px rgba(18, 12, 35, 0.2);
+    color: #14161d;
+    box-shadow: 0 8px 18px rgba(21, 21, 25, 0.2);
   }
 
   .profileHero.is-salon .salonHeroMeta {
@@ -17056,7 +17057,7 @@ body{
     display: grid;
     place-items: center;
     border-radius: 50%;
-    background: linear-gradient(135deg, #a98cff, #6d47f0);
+    background: linear-gradient(135deg, #6f7380, #14161d);
     color: #ffffff !important;
     font-size: 0.55rem !important;
     line-height: 1;
@@ -17071,7 +17072,7 @@ body{
     padding: 5px 12px;
     border: 1px solid rgba(255, 255, 255, 0.14);
     border-radius: 999px;
-    background: rgba(10, 7, 24, 0.56);
+    background: rgba(14, 14, 18, 0.56);
     color: #ffffff;
     font-size: 0.72rem;
     font-weight: 900;
@@ -17101,7 +17102,7 @@ body{
     border-radius: 18px;
     background: rgba(255, 255, 255, 0.97);
     color: #1f2130;
-    box-shadow: 0 16px 30px rgba(18, 12, 35, 0.12);
+    box-shadow: 0 16px 30px rgba(21, 21, 25, 0.12);
   }
 
   .profileHero.is-salon .salonHeroFutureStats span {
@@ -17116,7 +17117,7 @@ body{
   }
 
   .profileHero.is-salon .salonHeroFutureStats span + span {
-    border-right: 1px solid rgba(96, 81, 155, 0.14);
+    border-right: 1px solid rgba(20, 22, 29, 0.14);
   }
 
   .profileHero.is-salon .salonHeroFutureStats b {
@@ -17135,7 +17136,7 @@ body{
   }
 
   .profileHero.is-salon .salonHeroFutureStats svg {
-    color: #7a3ff2;
+    color: #14161d;
   }
 
   :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekStrip {
@@ -17150,7 +17151,7 @@ body{
     border: 1px solid rgba(28, 32, 44, 0.07);
     border-radius: 18px;
     background: rgba(255, 255, 255, 0.98);
-    box-shadow: 0 14px 26px rgba(18, 12, 35, 0.08);
+    box-shadow: 0 14px 26px rgba(21, 21, 25, 0.08);
   }
 
   :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekArrow {
@@ -17160,8 +17161,8 @@ body{
     place-items: center;
     border: 0;
     border-radius: 50%;
-    background: #f6f2ff;
-    color: #7a3ff2;
+    background: #f8f8fa;
+    color: #14161d;
   }
 
   :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDays {
@@ -17211,8 +17212,8 @@ body{
   }
 
   :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDay.is-active {
-    background: #f4f1fa;
-    box-shadow: inset 0 0 0 1px rgba(96, 81, 155, 0.08);
+    background: #f5f5f7;
+    box-shadow: inset 0 0 0 1px rgba(20, 22, 29, 0.08);
   }
 
   :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDay.is-active b {
@@ -17222,9 +17223,9 @@ body{
     place-items: center;
     margin-top: 2px;
     border-radius: 50%;
-    background: linear-gradient(180deg, #8f5cff, #6d3ee8);
+    background: linear-gradient(180deg, #6f7380, #14161d);
     color: #ffffff;
-    box-shadow: 0 8px 16px rgba(109, 62, 232, 0.3);
+    box-shadow: 0 8px 16px rgba(20, 22, 29, 0.3);
   }
 }
 
@@ -17247,7 +17248,7 @@ body{
     border: 1px solid rgba(28, 32, 44, 0.07);
     border-radius: 18px;
     background: rgba(255, 255, 255, 0.98);
-    box-shadow: 0 14px 26px rgba(18, 12, 35, 0.08);
+    box-shadow: 0 14px 26px rgba(21, 21, 25, 0.08);
   }
 
   .artistBookingsPage .salonHeroWeekArrow {
@@ -17257,8 +17258,8 @@ body{
     place-items: center;
     border: 0;
     border-radius: 50%;
-    background: #f6f2ff;
-    color: #7a3ff2;
+    background: #f8f8fa;
+    color: #14161d;
   }
 
   .artistBookingsPage .salonHeroWeekDays {
@@ -17308,8 +17309,8 @@ body{
   }
 
   .artistBookingsPage .salonHeroWeekDay.is-active {
-    background: #f4f1fa;
-    box-shadow: inset 0 0 0 1px rgba(96, 81, 155, 0.08);
+    background: #f5f5f7;
+    box-shadow: inset 0 0 0 1px rgba(20, 22, 29, 0.08);
   }
 
   .artistBookingsPage .salonHeroWeekDay.is-active b {
@@ -17319,9 +17320,9 @@ body{
     place-items: center;
     margin-top: 2px;
     border-radius: 50%;
-    background: linear-gradient(180deg, #8f5cff, #6d3ee8);
+    background: linear-gradient(180deg, #6f7380, #14161d);
     color: #ffffff;
-    box-shadow: 0 8px 16px rgba(109, 62, 232, 0.3);
+    box-shadow: 0 8px 16px rgba(20, 22, 29, 0.3);
   }
 }
 
@@ -17332,9 +17333,9 @@ body{
   place-items: center;
   margin-top: 2px;
   border-radius: 50%;
-  background: linear-gradient(180deg, #8f5cff, #6d3ee8);
+  background: linear-gradient(180deg, #6f7380, #14161d);
   color: #ffffff;
-  box-shadow: 0 8px 16px rgba(109, 62, 232, 0.3);
+  box-shadow: 0 8px 16px rgba(20, 22, 29, 0.3);
 }
 
 .artistBookingsPage .salonHeroWeekDays {
@@ -17384,7 +17385,7 @@ body{
     width: auto !important;
     border-radius: 0 0 14px 14px !important;
     background:
-      radial-gradient(circle at 74% 25%, rgba(135, 108, 255, 0.18), transparent 30%),
+      radial-gradient(circle at 74% 25%, rgba(111, 115, 128, 0.18), transparent 30%),
       linear-gradient(180deg, rgba(4, 5, 10, 0.02), rgba(4, 4, 10, 0.18) 68%, rgba(255, 255, 255, 0.72) 100%),
       url("/salon-hero-doodle.png") center top / cover no-repeat !important;
     opacity: 1;
@@ -17397,7 +17398,7 @@ body{
     width: auto !important;
     border-radius: 0 0 14px 14px !important;
     background:
-      linear-gradient(90deg, rgba(6, 7, 12, 0.98) 0%, rgba(22, 9, 50, 0.95) 50%, rgba(5, 6, 12, 0.98) 100%),
+      linear-gradient(90deg, rgba(6, 7, 12, 0.98) 0%, rgba(27, 27, 31, 0.95) 50%, rgba(5, 6, 12, 0.98) 100%),
       url("/salon-hero-doodle.png") center top / cover no-repeat !important;
     opacity: 1 !important;
     filter: contrast(1.04) saturate(0.9) brightness(0.86);
@@ -17442,8 +17443,8 @@ body{
     width: 7px;
     height: 7px;
     border-radius: 50%;
-    background: #8b5cff;
-    box-shadow: 0 0 0 2px rgba(7, 6, 17, 0.7);
+    background: #6f7380;
+    box-shadow: 0 0 0 2px rgba(10, 10, 14, 0.7);
   }
 
   .profileHero.is-salon .profileAvatarImage {
@@ -17468,7 +17469,7 @@ body{
     width: 31px !important;
     height: 31px !important;
     background: #ffffff !important;
-    color: #6f42df !important;
+    color: #14161d !important;
   }
 
   .profileHero.is-salon .salonHeroMeta {
@@ -17508,7 +17509,7 @@ body{
     grid-row: 1 !important;
     width: 15px !important;
     height: 15px !important;
-    background: linear-gradient(135deg, #a98cff, #6f4cf2) !important;
+    background: linear-gradient(135deg, #6f7380, #14161d) !important;
   }
 
   .profileHero.is-salon .salonHeroRatingPill {
@@ -17529,7 +17530,7 @@ body{
     border-radius: 16px !important;
     background: #ffffff !important;
     box-shadow:
-      0 14px 30px rgba(19, 16, 37, 0.1),
+      0 14px 30px rgba(24, 24, 28, 0.1),
       inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
   }
 
@@ -17554,7 +17555,7 @@ body{
   }
 
   .profileHero.is-salon .salonHeroFutureStats svg {
-    color: #8654f2 !important;
+    color: #14161d !important;
     stroke-width: 1.9;
   }
 
@@ -17567,15 +17568,15 @@ body{
     border-radius: 17px !important;
     background: #ffffff !important;
     box-shadow:
-      0 12px 28px rgba(19, 16, 37, 0.07),
+      0 12px 28px rgba(24, 24, 28, 0.07),
       inset 0 1px 0 rgba(255, 255, 255, 0.96) !important;
   }
 
   :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekArrow {
     width: 28px !important;
     height: 28px !important;
-    background: #f7f3ff !important;
-    color: #8550f1 !important;
+    background: #f9f9fb !important;
+    color: #14161d !important;
   }
 
   :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDays {
@@ -17610,14 +17611,14 @@ body{
   }
 
   :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDay.is-active {
-    background: #f3f1f8 !important;
+    background: #f4f4f6 !important;
   }
 
   :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDay.is-active b {
     width: 27px !important;
     height: 27px !important;
-    background: linear-gradient(180deg, #8d5cff, #6235d7) !important;
-    box-shadow: 0 9px 16px rgba(98, 53, 215, 0.28) !important;
+    background: linear-gradient(180deg, #6f7380, #14161d) !important;
+    box-shadow: 0 9px 16px rgba(20, 22, 29, 0.28) !important;
   }
 }
 
@@ -17756,12 +17757,12 @@ body{
     outline-offset: 3px !important;
     background:
       linear-gradient(#05050b, #05050b) padding-box,
-      conic-gradient(from 220deg, #eaf7ff 0deg, #24305f 52deg, #6d43e6 126deg, #111a3f 202deg, #b9dcff 282deg, #eaf7ff 360deg) border-box !important;
+      conic-gradient(from 220deg, #eaf7ff 0deg, #24305f 52deg, #14161d 126deg, #111a3f 202deg, #b9dcff 282deg, #eaf7ff 360deg) border-box !important;
     box-shadow:
       0 0 0 5px rgba(26, 32, 70, 0.42),
-      0 0 0 7px rgba(106, 74, 222, 0.26),
+      0 0 0 7px rgba(20, 22, 29, 0.26),
       0 0 18px rgba(197, 228, 255, 0.62),
-      0 0 34px rgba(75, 48, 166, 0.44),
+      0 0 34px rgba(20, 22, 29, 0.44),
       0 18px 34px rgba(0, 0, 0, 0.28) !important;
   }
 
@@ -17771,7 +17772,7 @@ body{
     z-index: 10 !important;
     box-shadow:
       0 0 0 4px rgba(8, 9, 17, 0.22),
-      0 10px 22px rgba(32, 18, 62, 0.24) !important;
+      0 10px 22px rgba(36, 36, 40, 0.24) !important;
   }
 }
 
@@ -17788,11 +17789,11 @@ body{
     border-radius: 50% !important;
     padding: 4px !important;
     background:
-      conic-gradient(from 214deg, #eefaff 0deg, #7fd0ff 44deg, #7951f0 118deg, #16214d 190deg, #bfeaff 260deg, #eefaff 360deg) !important;
+      conic-gradient(from 214deg, #eefaff 0deg, #7fd0ff 44deg, #14161d 118deg, #16214d 190deg, #bfeaff 260deg, #eefaff 360deg) !important;
     box-shadow:
       0 0 0 1px rgba(238, 250, 255, 0.78),
       0 0 18px rgba(121, 198, 255, 0.86),
-      0 0 34px rgba(93, 70, 220, 0.52),
+      0 0 34px rgba(20, 22, 29, 0.52),
       0 18px 34px rgba(0, 0, 0, 0.3) !important;
   }
 
@@ -17842,10 +17843,10 @@ body{
     border: 0 !important;
     border-radius: 50% !important;
     background: #ffffff !important;
-    color: #6f42df !important;
+    color: #14161d !important;
     box-shadow:
       0 0 0 4px rgba(5, 5, 11, 0.16),
-      0 10px 22px rgba(32, 18, 62, 0.24) !important;
+      0 10px 22px rgba(36, 36, 40, 0.24) !important;
   }
 
   .profileHero.is-salon > .profileAvatarImage,
@@ -17857,7 +17858,7 @@ body{
 @media (max-width: 760px) {
   .appShell:has(.createdProfile.is-salon) .artistServiceModal {
     background:
-      radial-gradient(circle at 50% 100%, rgba(112, 82, 202, 0.42), transparent 34%),
+      radial-gradient(circle at 50% 100%, rgba(20, 22, 29, 0.42), transparent 34%),
       rgba(4, 5, 12, 0.68) !important;
     -webkit-backdrop-filter: blur(18px) saturate(1.08) !important;
     backdrop-filter: blur(18px) saturate(1.08) !important;
@@ -17870,7 +17871,7 @@ body{
     border-radius: 22px !important;
     background: #ffffff !important;
     box-shadow:
-      0 0 0 1px rgba(138, 104, 255, 0.14),
+      0 0 0 1px rgba(111, 115, 128, 0.14),
       0 28px 70px rgba(4, 5, 12, 0.34) !important;
   }
 
@@ -17880,7 +17881,7 @@ body{
   }
 
   .appShell:has(.createdProfile.is-salon) .artistServiceHead span {
-    color: #7b62d9 !important;
+    color: #14161d !important;
     font-size: 0.68rem !important;
   }
 
@@ -17969,8 +17970,8 @@ body{
     min-width: 78px !important;
     min-height: 40px !important;
     border-radius: 13px !important;
-    background: linear-gradient(135deg, #6f52c9, #5d43b5) !important;
-    box-shadow: 0 10px 22px rgba(96, 81, 155, 0.18) !important;
+    background: linear-gradient(135deg, #14161d, #14161d) !important;
+    box-shadow: 0 10px 22px rgba(20, 22, 29, 0.18) !important;
   }
 
   .salonWorkspacePanel.is-hours .salonServiceManagerList {
@@ -18006,8 +18007,8 @@ body{
     width: 38px !important;
     height: 38px !important;
     border-radius: 14px !important;
-    background: rgba(96, 81, 155, 0.12) !important;
-    color: #6d4ed0 !important;
+    background: rgba(20, 22, 29, 0.12) !important;
+    color: #14161d !important;
   }
 
   .salonWorkspacePanel.is-hours .salonServiceManagerList .salonClientServiceBody {
@@ -18219,10 +18220,10 @@ body{
     background:
       radial-gradient(circle at 22% 24%, #f3fbff 0%, rgba(243, 251, 255, 0) 46%),
       radial-gradient(circle at 78% 24%, #f3fbff 0%, rgba(243, 251, 255, 0) 46%),
-      linear-gradient(180deg, #8a68ff 0%, #111a3c 100%) !important;
+      linear-gradient(180deg, #6f7380 0%, #111a3c 100%) !important;
     box-shadow:
       0 0 0 0.5px rgba(226, 236, 255, 0.42),
-      0 0 7px rgba(174, 160, 255, 0.38),
+      0 0 7px rgba(111, 115, 128, 0.38),
       0 0 13px rgba(17, 26, 60, 0.26),
       0 14px 28px rgba(28, 32, 44, 0.28) !important;
   }
@@ -18251,10 +18252,10 @@ body{
   .profileHero.is-salon .salonHeroAvatarFrame {
     padding: 0.75px !important;
     background:
-      conic-gradient(from 228deg, #f3fbff 0deg, #cfd8ff 46deg, #8a68ff 124deg, #111a3c 218deg, #dfe8ff 306deg, #f3fbff 360deg) !important;
+      conic-gradient(from 228deg, #f3fbff 0deg, #cfd8ff 46deg, #6f7380 124deg, #111a3c 218deg, #dfe8ff 306deg, #f3fbff 360deg) !important;
     box-shadow:
       0 0 0 0.5px rgba(226, 236, 255, 0.42),
-      0 0 7px rgba(174, 160, 255, 0.38),
+      0 0 7px rgba(111, 115, 128, 0.38),
       0 0 13px rgba(17, 26, 60, 0.26) !important;
   }
 
@@ -18288,8 +18289,8 @@ body{
     width: 28px !important;
     height: 28px !important;
     background: #ffffff !important;
-    color: #6e46e8 !important;
-    box-shadow: 0 8px 18px rgba(17, 13, 42, 0.24) !important;
+    color: #14161d !important;
+    box-shadow: 0 8px 18px rgba(25, 25, 29, 0.24) !important;
   }
 }
 
@@ -18349,10 +18350,10 @@ body{
 
 @media (max-width: 760px) {
   .salonWorkspacePanel.is-portfolio .profileGalleryHead button {
-    background: linear-gradient(135deg, #8a68ff, #5d43b5) !important;
+    background: linear-gradient(135deg, #6f7380, #14161d) !important;
     color: #ffffff !important;
     border-color: transparent !important;
-    box-shadow: 0 12px 24px rgba(96, 81, 155, 0.22) !important;
+    box-shadow: 0 12px 24px rgba(20, 22, 29, 0.22) !important;
   }
 
   .salonWorkspacePanel.is-portfolio .profileGalleryGrid.is-single {
@@ -18379,7 +18380,7 @@ body{
   }
 
   .salonHeroSheetPanel.is-salon-settings .salonHeroSheetHead span {
-    color: #7b61dc !important;
+    color: #14161d !important;
     font-weight: 800 !important;
   }
 
@@ -18530,7 +18531,7 @@ body{
   place-items: center;
   overflow: hidden;
   border-radius: 50%;
-  background: linear-gradient(135deg, #8a68ff, #263056);
+  background: linear-gradient(135deg, #6f7380, #263056);
   color: #fff;
   font-weight: 900;
 }
@@ -18634,8 +18635,8 @@ body{
   grid-row: 1 / span 2;
   padding: 4px 8px;
   border-radius: 999px;
-  background: rgba(124, 92, 226, 0.1);
-  color: #6d4be1;
+  background: rgba(20, 22, 29, 0.1);
+  color: #14161d;
 }
 
 .scheduleBookingSettings .clientBookingSettingsHead {
@@ -18655,8 +18656,8 @@ body{
   align-items: center;
   padding: 12px;
   border-radius: 17px;
-  background: rgba(124, 92, 226, 0.08);
-  color: #6d4be1;
+  background: rgba(20, 22, 29, 0.08);
+  color: #14161d;
   text-align: right;
 }
 
@@ -18701,10 +18702,10 @@ body{
   justify-content: center;
   gap: 5px;
   padding: 0 6px;
-  border: 1px solid rgba(124, 92, 226, 0.14);
+  border: 1px solid rgba(20, 22, 29, 0.14);
   border-radius: 13px;
-  background: rgba(124, 92, 226, 0.08);
-  color: #6d4be1;
+  background: rgba(20, 22, 29, 0.08);
+  color: #14161d;
   font-size: 12px;
   font-weight: 900;
   line-height: 1.3;
@@ -18718,7 +18719,7 @@ body{
 
 .clientBookingSettingsActions button.primary {
   color: #ffffff;
-  background: linear-gradient(180deg, #8f5cff, #6d3ee8);
+  background: linear-gradient(180deg, #6f7380, #14161d);
   border-color: transparent;
 }
 
@@ -18739,13 +18740,13 @@ body{
   place-items: center;
   border: 0;
   border-radius: 12px;
-  background: rgba(124, 92, 226, 0.1);
-  color: #6d4be1;
-  box-shadow: inset 0 0 0 1px rgba(124, 92, 226, 0.12);
+  background: rgba(20, 22, 29, 0.1);
+  color: #14161d;
+  box-shadow: inset 0 0 0 1px rgba(20, 22, 29, 0.12);
 }
 
 .scheduleBookingHistoryIcon.is-active {
-  background: #6d4be1;
+  background: #14161d;
   color: #fff;
   box-shadow: none;
 }
@@ -18771,10 +18772,10 @@ body{
   justify-content: center;
   gap: 6px;
   padding: 0 6px;
-  border: 1px solid rgba(124, 92, 226, 0.14);
+  border: 1px solid rgba(20, 22, 29, 0.14);
   border-radius: 13px;
-  background: rgba(124, 92, 226, 0.08);
-  color: #6d4be1;
+  background: rgba(20, 22, 29, 0.08);
+  color: #14161d;
   font-size: 12px;
   font-weight: 900;
 }
@@ -18850,7 +18851,7 @@ body{
   padding: 14px;
   border-radius: 20px;
   background:
-    linear-gradient(135deg, rgba(124, 92, 226, 0.1), rgba(255, 255, 255, 0.96)),
+    linear-gradient(135deg, rgba(20, 22, 29, 0.1), rgba(255, 255, 255, 0.96)),
     #f8f8fc;
   color: #171827;
   box-shadow: inset 0 0 0 1px rgba(28, 32, 44, 0.06);
@@ -18862,8 +18863,8 @@ body{
   width: 58px;
   height: 58px;
   border-radius: 18px;
-  background: rgba(124, 92, 226, 0.12);
-  color: #6d4be1;
+  background: rgba(20, 22, 29, 0.12);
+  color: #14161d;
 }
 
 .artistCreateSheet .artistCreateHero > div:last-child {
@@ -18873,7 +18874,7 @@ body{
 }
 
 .artistCreateSheet .artistCreateHero span {
-  color: #7b61dc;
+  color: #14161d;
 }
 
 .artistCreateSheet .artistCreateHero b {
@@ -18957,9 +18958,9 @@ body{
 .artistCreateSheet .artistCreateChipGrid button.active,
 .artistCreateSheet .artistCreateStatusRail button.active {
   border-color: transparent;
-  background: linear-gradient(135deg, #8a68ff, #5d43b5);
+  background: linear-gradient(135deg, #6f7380, #14161d);
   color: #ffffff;
-  box-shadow: 0 12px 24px rgba(96, 70, 196, 0.18);
+  box-shadow: 0 12px 24px rgba(20, 22, 29, 0.18);
 }
 
 .artistCreateSheet .artistCreateStatusRail {
@@ -18986,12 +18987,12 @@ body{
   gap: 8px;
   border: 0;
   border-radius: 16px;
-  background: linear-gradient(135deg, #7f5cff, #51378e);
+  background: linear-gradient(135deg, #6f7380, #14161d);
   color: #ffffff;
   font-family: inherit;
   font-size: 0.9rem;
   font-weight: 950;
-  box-shadow: 0 16px 32px rgba(88, 63, 174, 0.24);
+  box-shadow: 0 16px 32px rgba(20, 22, 29, 0.24);
 }
 
 .salonNotificationsPanel {
@@ -19017,8 +19018,8 @@ body{
   display: grid;
   place-items: center;
   border-radius: 15px;
-  background: rgba(124, 92, 226, 0.1);
-  color: #6d4be1;
+  background: rgba(20, 22, 29, 0.1);
+  color: #14161d;
 }
 
 .salonNotificationsPanel article div {
@@ -19046,8 +19047,8 @@ body{
   display: grid;
   place-items: center;
   border-radius: 999px;
-  background: #f3f0ff;
-  color: #6d4be1;
+  background: #f8f8fa;
+  color: #14161d;
   font-style: normal;
   font-weight: 950;
 }
@@ -19122,7 +19123,7 @@ body{
 }
 
 .requestCardWho span {
-  color: #6d4be1;
+  color: #14161d;
   font-size: 0.74rem;
   font-weight: 800;
 }
@@ -19227,11 +19228,11 @@ body{
   border: 0 !important;
   border-radius: 22px !important;
   background:
-    linear-gradient(135deg, rgba(11, 17, 46, 0.92) 0%, rgba(57, 34, 116, 0.86) 48%, rgba(138, 104, 255, 0.82) 100%),
+    linear-gradient(135deg, rgba(11, 17, 46, 0.92) 0%, rgba(20, 22, 29, 0.86) 48%, rgba(111, 115, 128, 0.82) 100%),
     url("/salon-hero-doodle.png") center / cover no-repeat !important;
   color: #ffffff;
   box-shadow:
-    0 16px 34px rgba(30, 20, 72, 0.22),
+    0 16px 34px rgba(41, 41, 45, 0.22),
     inset 0 1px 0 rgba(255, 255, 255, 0.22) !important;
 }
 
@@ -19294,11 +19295,11 @@ body{
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.94);
   color: #171827;
-  box-shadow: 0 10px 22px rgba(18, 12, 48, 0.16);
+  box-shadow: 0 10px 22px rgba(27, 27, 31, 0.16);
 }
 
 .salonHeroSheetPanel.is-salon-settings .profileLocationChip > svg:first-child {
-  color: #6d4be1 !important;
+  color: #14161d !important;
 }
 
 .salonHeroSheetPanel.is-salon-settings .profileLocationChip span:not(.profileLocationChipClear) {
@@ -19324,11 +19325,11 @@ body{
   align-items: center !important;
   gap: 12px !important;
   padding: 12px !important;
-  border: 1px solid rgba(124, 92, 226, 0.18) !important;
+  border: 1px solid rgba(20, 22, 29, 0.18) !important;
   border-radius: 20px !important;
   background:
-    linear-gradient(135deg, rgba(124, 92, 226, 0.1), rgba(255, 255, 255, 0.98)) !important;
-  box-shadow: 0 14px 30px rgba(64, 43, 132, 0.1) !important;
+    linear-gradient(135deg, rgba(20, 22, 29, 0.1), rgba(255, 255, 255, 0.98)) !important;
+  box-shadow: 0 14px 30px rgba(20, 22, 29, 0.1) !important;
 }
 
 .salonHeroSheetPanel.is-salon-settings .salonHeroSheetHead span:empty {
@@ -19345,8 +19346,8 @@ body{
   border-radius: 50% !important;
   background: #0d0e17 !important;
   box-shadow:
-    0 0 0 2px rgba(124, 92, 226, 0.22),
-    0 12px 24px rgba(18, 12, 48, 0.16) !important;
+    0 0 0 2px rgba(20, 22, 29, 0.22),
+    0 12px 24px rgba(27, 27, 31, 0.16) !important;
 }
 
 .salonHeroSheetPanel.is-salon-settings .settingsAccountAvatar img {
@@ -19376,11 +19377,11 @@ body{
   gap: 6px !important;
   padding: 0 12px !important;
   border-radius: 16px !important;
-  background: linear-gradient(135deg, #8a68ff, #5d43b5) !important;
+  background: linear-gradient(135deg, #6f7380, #14161d) !important;
   color: #ffffff !important;
   font-style: normal !important;
   font-weight: 950 !important;
-  box-shadow: 0 12px 22px rgba(96, 70, 196, 0.24) !important;
+  box-shadow: 0 12px 22px rgba(20, 22, 29, 0.24) !important;
 }
 
 .salonHeroSheetPanel.is-salon-settings .salonSettingsBookmarkCard button {
@@ -19396,7 +19397,7 @@ body{
   height: 44px;
   border-radius: 0;
   background: transparent;
-  color: #7c5cff;
+  color: #6f7380;
 }
 
 .salonHeroSheetPanel.is-salon-settings .salonSettingsBookmarkIcon svg {
@@ -19426,7 +19427,7 @@ body{
   height: 34px !important;
   border-radius: 11px !important;
   color: var(--teal) !important;
-  background: linear-gradient(135deg, rgba(96, 81, 155, 0.08), rgba(93, 67, 181, 0.06)) !important;
+  background: linear-gradient(135deg, rgba(20, 22, 29, 0.08), rgba(20, 22, 29, 0.06)) !important;
 }
 
 .salonHeroSheetPanel.is-artist-settings.is-salon-settings .neoSettingsToggleCopy b {
@@ -19446,11 +19447,11 @@ body{
 }
 
 .salonHeroSheetPanel.is-artist-settings.is-salon-settings .neoSettingsSwitch[data-on="true"] .neoSettingsSwitchTrack {
-  background: linear-gradient(135deg, #8a68ff, #5d43b5) !important;
+  background: linear-gradient(135deg, #6f7380, #14161d) !important;
   box-shadow:
-    inset 0 1px 2px rgba(93, 67, 181, 0.15),
-    0 4px 12px rgba(93, 67, 181, 0.2),
-    0 0 0 1px rgba(93, 67, 181, 0.08) !important;
+    inset 0 1px 2px rgba(20, 22, 29, 0.15),
+    0 4px 12px rgba(20, 22, 29, 0.2),
+    0 0 0 1px rgba(20, 22, 29, 0.08) !important;
 }
 
 .salonHeroSheetPanel.is-artist-settings.is-salon-settings .neoSettingsSwitch[data-on="true"] .neoSettingsSwitchLabel {
@@ -19459,8 +19460,8 @@ body{
 
 .profilePanel.page-profile:has(.createdProfile.is-client) {
   background:
-    radial-gradient(circle at 84% 6%, rgba(124, 92, 226, 0.12), transparent 24%),
-    linear-gradient(180deg, #fbfaff 0%, #f4f2fb 46%, #ffffff 100%) !important;
+    radial-gradient(circle at 84% 6%, rgba(20, 22, 29, 0.12), transparent 24%),
+    linear-gradient(180deg, #fcfcfe 0%, #f6f6f8 46%, #ffffff 100%) !important;
   padding-left: 4px !important;
   padding-right: 4px !important;
 }
@@ -19496,8 +19497,8 @@ body{
   background: #ffffff;
   box-shadow:
     0 0 0 4px #ffffff,
-    0 0 0 5px rgba(124, 92, 226, 0.15),
-    0 16px 30px rgba(48, 34, 90, 0.16);
+    0 0 0 5px rgba(20, 22, 29, 0.15),
+    0 16px 30px rgba(56, 56, 60, 0.16);
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBeautyAvatar .profileAvatarImage {
@@ -19517,7 +19518,7 @@ body{
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBeautyHero .profileHeroCopy p {
   margin: 0 0 2px;
-  color: #7664af;
+  color: #14161d;
   font-size: 13px;
   font-weight: 850;
 }
@@ -19546,7 +19547,7 @@ body{
   margin: 8px 0 0;
   padding: 7px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  border: 1px solid rgba(124, 92, 226, 0.16);
+  border: 1px solid rgba(20, 22, 29, 0.16);
   border-radius: 24px;
   background: rgba(255, 255, 255, 0.18);
   box-shadow: none;
@@ -19561,9 +19562,9 @@ body{
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .profileModeRail.is-client.is-panelRail button.active {
-  color: #4f3a9d;
+  color: #14161d;
   background: rgba(255, 255, 255, 0.96);
-  box-shadow: 0 10px 22px rgba(52, 38, 98, 0.12);
+  box-shadow: 0 10px 22px rgba(20, 22, 29, 0.12);
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .createdProfile.is-client {
@@ -19628,7 +19629,7 @@ body{
 }
 
 .clientBeautyBoardHead span {
-  color: #7664af;
+  color: #14161d;
   font-size: 13px;
   font-weight: 850;
 }
@@ -19656,9 +19657,9 @@ body{
   justify-content: flex-end;
   border-radius: 999px;
   padding: 0 12px;
-  color: #7c5ce2;
-  background: rgba(124, 92, 226, 0.1);
-  border: 1px solid rgba(124, 92, 226, 0.12);
+  color: #14161d;
+  background: rgba(20, 22, 29, 0.1);
+  border: 1px solid rgba(20, 22, 29, 0.12);
   font-size: 12px;
   font-style: normal;
   font-weight: 900;
@@ -19678,14 +19679,14 @@ body{
   margin: 0 0 6px;
   border: 0;
   border-radius: 18px;
-  box-shadow: 0 18px 34px rgba(30, 27, 45, 0.13);
+  box-shadow: 0 18px 34px rgba(32, 32, 36, 0.13);
 }
 
 .profilePostCard.clientBeautyModelCard::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, transparent 45%, rgba(10, 9, 14, 0.52) 100%);
+  background: linear-gradient(180deg, transparent 45%, rgba(10, 10, 14, 0.52) 100%);
   pointer-events: none;
 }
 
@@ -19749,8 +19750,8 @@ body{
   display: grid;
   place-items: center;
   border-radius: 20px;
-  color: #7c5ce2;
-  background: rgba(124, 92, 226, 0.12);
+  color: #14161d;
+  background: rgba(20, 22, 29, 0.12);
 }
 
 .clientBeautyCreateModel div {
@@ -19775,8 +19776,8 @@ body{
   display: grid;
   place-items: center;
   border-radius: 999px;
-  color: #7c5ce2;
-  background: rgba(124, 92, 226, 0.08);
+  color: #14161d;
+  background: rgba(20, 22, 29, 0.08);
   font-size: 24px;
   font-style: normal;
 }
@@ -19874,8 +19875,8 @@ body{
 }
 
 .profileEditModal .profileEditProgressTrack > button {
-  --profile-step-ring: #e6e1f4;
-  --profile-step-ring-shadow: rgba(124, 92, 226, 0);
+  --profile-step-ring: #ebebed;
+  --profile-step-ring-shadow: rgba(20, 22, 29, 0);
   color: #73788a !important;
   position: relative !important;
   isolation: isolate;
@@ -19887,7 +19888,7 @@ body{
   top: 19px;
   height: 3px;
   border-radius: 999px;
-  background: #e6e1f4;
+  background: #ebebed;
   transition: background 0.22s ease, box-shadow 0.22s ease;
   pointer-events: none;
 }
@@ -19903,8 +19904,8 @@ body{
 }
 
 .profileEditModal .profileEditProgressSegment.is-active {
-  background: linear-gradient(90deg, #5d43b5, #8a68ff);
-  box-shadow: 0 4px 12px rgba(96, 70, 196, 0.18);
+  background: linear-gradient(90deg, #14161d, #6f7380);
+  box-shadow: 0 4px 12px rgba(20, 22, 29, 0.18);
 }
 
 .profileEditModal .profileEditFieldGrid .profileEditYearsField {
@@ -19918,7 +19919,7 @@ body{
   align-items: center;
   gap: 8px;
   padding: 0 12px;
-  border: 1px solid rgba(124, 92, 226, 0.18);
+  border: 1px solid rgba(20, 22, 29, 0.18);
   border-radius: 15px;
   background: #f8f9fd;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.7);
@@ -19936,7 +19937,7 @@ body{
 }
 
 .profileEditModal .profileEditYearsControl small {
-  color: #7f5cff;
+  color: #6f7380;
   font-size: 0.72rem;
   font-weight: 950;
   white-space: nowrap;
@@ -19965,7 +19966,7 @@ body{
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  background: conic-gradient(from -90deg, var(--profile-step-ring) 0 100%, #e6e1f4 0);
+  background: conic-gradient(from -90deg, var(--profile-step-ring) 0 100%, #ebebed 0);
   transform: translateX(-50%);
   box-shadow: 0 8px 16px var(--profile-step-ring-shadow);
   -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 0);
@@ -19975,13 +19976,13 @@ body{
 
 .profileEditModal .profileEditProgressTrack > button.is-done,
 .profileEditModal .profileEditProgressTrack > button.is-active {
-  --profile-step-ring: #7f5cff;
-  --profile-step-ring-shadow: rgba(96, 70, 196, 0.2);
-  color: #5d43b5 !important;
+  --profile-step-ring: #6f7380;
+  --profile-step-ring-shadow: rgba(20, 22, 29, 0.2);
+  color: #14161d !important;
 }
 
 .profileEditModal .profileEditProgressTrack > button.is-active {
-  --profile-step-ring: #8a68ff;
+  --profile-step-ring: #6f7380;
 }
 
 .profileEditModal .profileEditProgress.profileEditProgress button svg {
@@ -20001,8 +20002,8 @@ body{
 }
 
 .salonPanel.page-salons:has(.salonPublicProfile) {
-  --salon-public-accent: #7f5cff;
-  --salon-public-accent-deep: #51378e;
+  --salon-public-accent: #6f7380;
+  --salon-public-accent-deep: #14161d;
   --salon-public-ink: #171827;
   --salon-public-muted: #777b8d;
   --salon-public-line: rgba(28, 32, 44, 0.08);
@@ -20044,7 +20045,7 @@ body{
   min-height: 372px;
   overflow: hidden;
   border-radius: 0 0 0 0;
-  background: #d9d7e8;
+  background: #6f7380;
   isolation: isolate;
 }
 
@@ -20127,7 +20128,7 @@ body{
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.9);
   color: #171827;
-  box-shadow: 0 12px 24px rgba(18, 15, 31, 0.12);
+  box-shadow: 0 12px 24px rgba(21, 21, 25, 0.12);
   backdrop-filter: blur(16px);
 }
 
@@ -20174,7 +20175,7 @@ body{
   border-radius: 50%;
   background:
     radial-gradient(circle at 32% 20%, rgba(255, 255, 255, 0.28), transparent 30%),
-    linear-gradient(135deg, #332066, #4b2b72 62%, #2e174f);
+    linear-gradient(135deg, #14161d, #14161d 62%, #2e2e32);
   color: #ffffff;
   box-shadow:
     0 20px 44px rgba(28, 32, 44, 0.16),
@@ -20230,7 +20231,7 @@ body{
   height: 19px;
   padding: 3px;
   border-radius: 50%;
-  background: #7f5cff;
+  background: #6f7380;
   color: #ffffff;
   stroke-width: 3;
 }
@@ -20302,12 +20303,12 @@ body{
 }
 
 .salonPublicActions button.is-following {
-  background: rgba(127, 92, 255, 0.12);
-  color: #5d43b5;
+  background: rgba(111, 115, 128, 0.12);
+  color: #14161d;
 }
 
 .salonPublicActions .salonPublicMessageButton {
-  color: #5d43b5;
+  color: #14161d;
 }
 
 .salonPublicActions .salonPublicBookButton {
@@ -20316,7 +20317,7 @@ body{
   background: linear-gradient(135deg, var(--salon-public-accent), var(--salon-public-accent-deep));
   border-color: transparent;
   color: #ffffff;
-  box-shadow: 0 16px 30px rgba(88, 63, 174, 0.25);
+  box-shadow: 0 16px 30px rgba(20, 22, 29, 0.25);
 }
 
 .salonPublicActions .salonPublicMessageButton {
@@ -20360,7 +20361,7 @@ body{
   border: 0;
   border-radius: 999px;
   background: transparent;
-  color: #6d4be1;
+  color: #14161d;
   font-size: 0.68rem;
   font-weight: 950;
 }
@@ -20457,7 +20458,7 @@ body{
   gap: 6px;
   padding: 8px 10px;
   border-radius: 18px;
-  background: #f9f7ff;
+  background: #fbfbfd;
 }
 
 .salonPublicInfoStrip span {
@@ -20489,7 +20490,7 @@ body{
   align-items: center;
   gap: 6px;
   padding: 6px 12px;
-  border: 1px solid rgba(127, 92, 255, 0.16);
+  border: 1px solid rgba(111, 115, 128, 0.16);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.96);
   box-shadow:
@@ -20514,7 +20515,7 @@ body{
 
 .salonPublicBottomDock button.is-active {
   color: var(--salon-public-accent);
-  background: rgba(127, 92, 255, 0.12);
+  background: rgba(111, 115, 128, 0.12);
 }
 
 .salonPublicBottomDock button.is-primary {
@@ -20525,7 +20526,7 @@ body{
   border-radius: 25px;
   background: linear-gradient(135deg, var(--salon-public-accent), var(--salon-public-accent-deep));
   color: #ffffff;
-  box-shadow: 0 16px 30px rgba(88, 63, 174, 0.28);
+  box-shadow: 0 16px 30px rgba(20, 22, 29, 0.28);
 }
 
 @media (max-width: 430px) {
@@ -20831,8 +20832,8 @@ body{
 }
 
 .salonPublicProfile {
-  --salon-public-accent: #7a55ee;
-  --salon-public-accent-deep: #5b36c2;
+  --salon-public-accent: #14161d;
+  --salon-public-accent-deep: #14161d;
   max-width: 430px;
   margin: 0 auto;
   border-radius: 0;
@@ -21265,11 +21266,11 @@ body{
   padding: 0 !important;
   border-radius: 0 !important;
   background: transparent !important;
-  color: #7a55ee !important;
-  fill: #7a55ee !important;
+  color: #14161d !important;
+  fill: #14161d !important;
   stroke: #ffffff !important;
   stroke-width: 2.8 !important;
-  filter: drop-shadow(0 4px 8px rgba(122, 85, 238, 0.18)) !important;
+  filter: drop-shadow(0 4px 8px rgba(20, 22, 29, 0.18)) !important;
 }
 
 .salonPublicTitle span {
@@ -21420,7 +21421,7 @@ body{
   border: 4px solid #090911 !important;
   background:
     radial-gradient(circle at 30% 18%, rgba(255, 255, 255, 0.2), transparent 34%),
-    linear-gradient(135deg, #2f1850 0%, #4a2775 54%, #24113e 100%) !important;
+    linear-gradient(135deg, #2f2f33 0%, #14161d 54%, #242428 100%) !important;
   box-shadow:
     0 0 0 3px #d9b44a,
     0 0 0 6px rgba(153, 190, 255, 0.42),
@@ -21436,7 +21437,7 @@ body{
   pointer-events: none;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.18),
-    inset 0 -18px 28px rgba(11, 7, 24, 0.28);
+    inset 0 -18px 28px rgba(14, 14, 18, 0.28);
 }
 
 .salonPublicLogo strong,
@@ -21523,11 +21524,11 @@ body{
   border-radius: 50% !important;
   padding: 4px !important;
   background:
-    conic-gradient(from 214deg, #eefaff 0deg, #7fd0ff 44deg, #7951f0 118deg, #16214d 190deg, #bfeaff 260deg, #eefaff 360deg) !important;
+    conic-gradient(from 214deg, #eefaff 0deg, #7fd0ff 44deg, #14161d 118deg, #16214d 190deg, #bfeaff 260deg, #eefaff 360deg) !important;
   box-shadow:
     0 0 0 1px rgba(238, 250, 255, 0.78),
     0 0 18px rgba(121, 198, 255, 0.86),
-    0 0 34px rgba(93, 70, 220, 0.52),
+    0 0 34px rgba(20, 22, 29, 0.52),
     0 18px 34px rgba(0, 0, 0, 0.3) !important;
 }
 
@@ -21613,7 +21614,7 @@ body{
   padding: calc(18px + env(safe-area-inset-top)) 18px calc(18px + env(safe-area-inset-bottom));
   overflow-y: auto;
   background:
-    radial-gradient(circle at 50% 16%, rgba(138, 104, 255, 0.22), transparent 34%),
+    radial-gradient(circle at 50% 16%, rgba(111, 115, 128, 0.22), transparent 34%),
     rgba(5, 6, 14, 0.74);
   -webkit-backdrop-filter: blur(22px) saturate(1.1);
   backdrop-filter: blur(22px) saturate(1.1);
@@ -21637,7 +21638,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   border: 1px solid rgba(255, 255, 255, 0.86);
   border-radius: 26px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 247, 255, 0.96));
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(251, 251, 253, 0.96));
   color: #171827;
   box-shadow:
     0 30px 80px rgba(4, 5, 12, 0.42),
@@ -21672,7 +21673,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   align-items: center;
   gap: 6px;
   justify-self: end;
-  color: #7657e8;
+  color: #14161d;
   font-size: 0.66rem;
   font-weight: 950;
 }
@@ -21742,7 +21743,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   place-items: center;
   padding: 0 12px;
   border-radius: 999px;
-  background: rgba(96, 81, 155, 0.1);
+  background: rgba(20, 22, 29, 0.1);
   color: var(--teal);
   font-size: 0.7rem;
   font-weight: 900;
@@ -21845,7 +21846,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: rgba(96, 81, 155, 0.12);
+  background: rgba(20, 22, 29, 0.12);
   color: var(--teal);
 }
 
@@ -21888,7 +21889,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
 
 .salonPublicProfile .salonPublicBottomDock button.is-active {
   color: var(--salon-public-accent) !important;
-  background: rgba(127, 92, 255, 0.12) !important;
+  background: rgba(111, 115, 128, 0.12) !important;
 }
 
 .salonPublicProfile .salonPublicBottomDock button.is-primary {
@@ -21932,7 +21933,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   padding: 16px;
   overflow-y: auto;
   overscroll-behavior: contain;
-  border: 1px solid rgba(127, 92, 255, 0.12);
+  border: 1px solid rgba(111, 115, 128, 0.12);
   border-radius: 26px;
   background: rgba(255, 255, 255, 0.96);
   box-shadow:
@@ -21950,7 +21951,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   place-items: center;
   border: 0;
   border-radius: 50%;
-  background: #f5f2ff;
+  background: #f8f8fa;
   color: #242735;
 }
 
@@ -21970,7 +21971,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   padding: 4px;
   background: #05050b;
   object-fit: contain;
-  box-shadow: 0 0 0 3px rgba(127, 92, 255, 0.14);
+  box-shadow: 0 0 0 3px rgba(111, 115, 128, 0.14);
 }
 
 .salonPublicAboutHead span,
@@ -22026,7 +22027,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   gap: 7px;
   padding: 0 10px;
   border-radius: 14px;
-  background: #f8f7ff;
+  background: #fbfbfd;
   color: #565b6d;
   font-size: 0.66rem;
   font-weight: 900;
@@ -22046,7 +22047,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   align-items: center;
   padding: 0 11px;
   border-radius: 999px;
-  background: rgba(127, 92, 255, 0.1);
+  background: rgba(111, 115, 128, 0.1);
   color: var(--salon-public-accent);
   font-size: 0.66rem;
   font-weight: 950;
@@ -22067,7 +22068,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   gap: 7px;
   padding: 0 10px;
   border-radius: 14px;
-  background: #f8f7ff;
+  background: #fbfbfd;
   color: #565b6d;
   font-size: 0.66rem;
   font-weight: 900;
@@ -22107,7 +22108,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   padding: 16px;
   overflow-y: auto;
   overscroll-behavior: contain;
-  border: 1px solid rgba(127, 92, 255, 0.12);
+  border: 1px solid rgba(111, 115, 128, 0.12);
   border-radius: 26px;
   background: rgba(255, 255, 255, 0.96);
   box-shadow:
@@ -22137,7 +22138,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   transform: translateX(-50%);
   width: 42px;
   height: 42px;
-  background: #f4f1ff;
+  background: #f8f8fa;
   color: var(--salon-public-accent);
   box-shadow: 0 10px 24px rgba(28, 32, 44, 0.12);
 }
@@ -22190,7 +22191,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: #f4f1ff;
+  background: #f8f8fa;
   color: var(--salon-public-accent);
 }
 
@@ -22238,7 +22239,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   aspect-ratio: 0.78;
   display: block;
   border-radius: 18px;
-  background: #f4f1ff;
+  background: #f8f8fa;
   object-fit: cover;
 }
 
@@ -22429,7 +22430,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
 .bottomNav .profileTab.is-createBooking {
   display: grid;
   place-items: center;
-  background: radial-gradient(circle at 50% 24%, #8a7bc9, #60519b);
+  background: radial-gradient(circle at 50% 24%, #14161d, #14161d);
   color: #fff;
 }
 
@@ -22490,7 +22491,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   padding: 12px 10px 68px;
   border: 0;
   border-radius: 30px 30px 36px 36px;
-  background: #a394c5;
+  background: #6f7380;
   color: #fff;
   font-weight: 900;
   font-size: 0.86rem;
@@ -22573,13 +22574,13 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   height: 50px;
   border: 0;
   border-radius: 50%;
-  background: linear-gradient(135deg, #8a7bc9, #60519b);
+  background: linear-gradient(135deg, #14161d, #14161d);
   color: #fff;
-  box-shadow: 0 14px 30px rgba(60, 48, 110, 0.34);
+  box-shadow: 0 14px 30px rgba(20, 22, 29, 0.34);
 }
 
 .floatingCreateBookingBtn.is-active {
-  background: linear-gradient(135deg, #60519b, #453a75);
+  background: linear-gradient(135deg, #14161d, #14161d);
 }
 
 /* 6) Full-screen overlays: keep inside the frame width */
@@ -22665,7 +22666,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(21, 7, 47, 0.42) 0%, rgba(21, 7, 47, 0.18) 38%, rgba(21, 7, 47, 0.78) 100%);
+  background: linear-gradient(180deg, rgba(24, 24, 28, 0.42) 0%, rgba(24, 24, 28, 0.18) 38%, rgba(24, 24, 28, 0.78) 100%);
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-artist) .profileHero.is-artist > :not(.artistHeroPoster, .profileHeroActions) {
@@ -22692,7 +22693,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   padding-top: 0 !important;
   padding-left: 0 !important;
   padding-right: 0 !important;
-  background: linear-gradient(180deg, #f8f5fc 0%, #fdfcff 100%) !important;
+  background: linear-gradient(180deg, #f9f9fb 0%, #fefeff 100%) !important;
   box-shadow: none !important;
 }
 
@@ -22707,12 +22708,12 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   min-height: 248px !important;
   margin: 0 !important;
   background-image:
-    radial-gradient(circle at 88% 10%, rgba(89, 42, 132, 0.28), transparent 26%),
-    radial-gradient(circle at 18% 5%, rgba(53, 20, 93, 0.34), transparent 34%),
+    radial-gradient(circle at 88% 10%, rgba(20, 22, 29, 0.28), transparent 26%),
+    radial-gradient(circle at 18% 5%, rgba(51, 51, 55, 0.34), transparent 34%),
     url("/artist-hero-doodle.png");
   background-size: cover;
   background-position: center;
-  background-color: #15072f;
+  background-color: #18181c;
   pointer-events: none;
 }
 
@@ -22721,7 +22722,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   position: absolute;
   inset: auto 0 0 0;
   height: 80px;
-  background: linear-gradient(180deg, transparent, rgba(15, 7, 34, 0.5));
+  background: linear-gradient(180deg, transparent, rgba(18, 18, 22, 0.5));
   pointer-events: none;
 }
 
@@ -22735,7 +22736,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   inset: auto 0 0 0;
   height: 28px;
   border-radius: 24px 24px 0 0 !important;
-  background: linear-gradient(180deg, #f8f5fc 0%, #fdfcff 100%);
+  background: linear-gradient(180deg, #f9f9fb 0%, #fefeff 100%);
   pointer-events: none;
 }
 
@@ -22752,9 +22753,9 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   border: 1px solid rgba(233, 240, 255, 0.9) !important;
   box-shadow:
     0 0 0 0.5px rgba(226, 236, 255, 0.42),
-    0 0 7px rgba(174, 160, 255, 0.38),
+    0 0 7px rgba(111, 115, 128, 0.38),
     0 0 13px rgba(17, 26, 60, 0.26),
-    0 10px 26px rgba(10, 6, 24, 0.22) !important;
+    0 10px 26px rgba(14, 14, 18, 0.22) !important;
 }
 
 /* Name: below the poster, beside the avatar */
@@ -22834,10 +22835,10 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   min-height: 28px !important;
   padding: 0 10px !important;
   justify-self: start !important;
-  border: 1px solid rgba(96, 81, 155, 0.18) !important;
+  border: 1px solid rgba(20, 22, 29, 0.18) !important;
   border-radius: 999px !important;
-  background: rgba(96, 81, 155, 0.1) !important;
-  color: #5d43b5 !important;
+  background: rgba(20, 22, 29, 0.1) !important;
+  color: #14161d !important;
   box-shadow: none !important;
   backdrop-filter: none !important;
 }
@@ -22923,7 +22924,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   height: 32px !important;
   border-radius: 50% !important;
   border: 1px solid rgba(255, 255, 255, 0.2) !important;
-  background: rgba(18, 7, 43, 0.45) !important;
+  background: rgba(23, 23, 27, 0.45) !important;
   color: rgba(255, 255, 255, 0.9) !important;
   box-shadow: none !important;
   backdrop-filter: blur(12px) !important;
@@ -22944,10 +22945,10 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   padding: 0.75px !important;
   cursor: pointer;
   background:
-    conic-gradient(from 228deg, #f3fbff 0deg, #cfd8ff 46deg, #8a68ff 124deg, #111a3c 218deg, #dfe8ff 306deg, #f3fbff 360deg) !important;
+    conic-gradient(from 228deg, #f3fbff 0deg, #cfd8ff 46deg, #6f7380 124deg, #111a3c 218deg, #dfe8ff 306deg, #f3fbff 360deg) !important;
   box-shadow:
     0 0 0 0.5px rgba(226, 236, 255, 0.42),
-    0 0 7px rgba(174, 160, 255, 0.38),
+    0 0 7px rgba(111, 115, 128, 0.38),
     0 0 13px rgba(17, 26, 60, 0.26) !important;
 }
 
@@ -22998,10 +22999,10 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   border: 0 !important;
   border-radius: 50% !important;
   background: #ffffff !important;
-  color: #6f42df !important;
+  color: #14161d !important;
   box-shadow:
     0 0 0 4px rgba(5, 5, 11, 0.16),
-    0 10px 22px rgba(32, 18, 62, 0.24) !important;
+    0 10px 22px rgba(36, 36, 40, 0.24) !important;
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-salon) .profileHero.is-salon > .profileAvatarImage,
@@ -23017,9 +23018,9 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   min-height: 304px !important;
   height: 304px !important;
   background:
-    radial-gradient(circle at 88% 12%, rgba(122, 84, 232, 0.4), transparent 30%),
-    radial-gradient(circle at 14% 6%, rgba(60, 24, 104, 0.55), transparent 36%),
-    linear-gradient(155deg, #15072f 0%, #241044 48%, #3a1265 100%) !important;
+    radial-gradient(circle at 88% 12%, rgba(20, 22, 29, 0.4), transparent 30%),
+    radial-gradient(circle at 14% 6%, rgba(20, 22, 29, 0.55), transparent 36%),
+    linear-gradient(155deg, #18181c 0%, #26262a 48%, #36363a 100%) !important;
 }
 
 .artistPublicHeroTop {
@@ -23034,7 +23035,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   height: 46px !important;
   border-radius: 50% !important;
   background: rgba(255, 255, 255, 0.94) !important;
-  box-shadow: 0 10px 22px rgba(15, 7, 34, 0.2) !important;
+  box-shadow: 0 10px 22px rgba(18, 18, 22, 0.2) !important;
 }
 
 .artistPublicIdentityCard {
@@ -23069,9 +23070,9 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   border: 1px solid rgba(233, 240, 255, 0.9) !important;
   box-shadow:
     0 0 0 0.5px rgba(226, 236, 255, 0.42),
-    0 0 7px rgba(174, 160, 255, 0.38),
+    0 0 7px rgba(111, 115, 128, 0.38),
     0 0 13px rgba(17, 26, 60, 0.26),
-    0 10px 26px rgba(10, 6, 24, 0.22) !important;
+    0 10px 26px rgba(14, 14, 18, 0.22) !important;
   overflow: hidden;
   font-size: 2.3rem;
   font-weight: 900;
@@ -23142,18 +23143,18 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
 
 .artistPublicFollow {
   border-color: transparent;
-  background: linear-gradient(135deg, #8a63e8 0%, #5d3fb8 100%);
+  background: linear-gradient(135deg, #14161d 0%, #14161d 100%);
   color: #ffffff;
 }
 
 .artistPublicFollow.is-following {
-  background: rgba(122, 92, 232, 0.12);
-  color: #5d43b5;
+  background: rgba(20, 22, 29, 0.12);
+  color: #14161d;
 }
 
 .artistPublicMessage {
   background: #ffffff;
-  color: #5d43b5;
+  color: #14161d;
 }
 
 .artistPublicFollow:active,
@@ -23182,8 +23183,8 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-artist) > .profileModeRail.is-panelRail.is-artist-rail button.active {
-  color: #7656b8 !important;
-  box-shadow: inset 0 -3px 0 #7656b8 !important;
+  color: #14161d !important;
+  box-shadow: inset 0 -3px 0 #14161d !important;
 }
 
 /* Extra top margin here compensates for .artistHeroStats now being
@@ -23213,8 +23214,8 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
 }
 
 .profileHero.is-salon .profileModeRail.is-panelRail.is-salon button.active {
-  color: #7656b8 !important;
-  box-shadow: inset 0 -3px 0 #7656b8 !important;
+  color: #14161d !important;
+  box-shadow: inset 0 -3px 0 #14161d !important;
 }
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -23377,13 +23378,13 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
 }
 
 .artistPublicServiceCard:hover {
-  border-color: rgba(96, 81, 155, 0.32);
-  box-shadow: 0 8px 20px rgba(96, 81, 155, 0.08);
+  border-color: rgba(20, 22, 29, 0.32);
+  box-shadow: 0 8px 20px rgba(20, 22, 29, 0.08);
 }
 
 .artistPublicServiceCard.is-selected {
-  border-color: #5d43b5;
-  background: rgba(96, 81, 155, 0.05);
+  border-color: #14161d;
+  background: rgba(20, 22, 29, 0.05);
 }
 
 .artistPublicServiceIcon {
@@ -23393,8 +23394,8 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   display: grid;
   place-items: center;
   border-radius: 12px;
-  background: rgba(96, 81, 155, 0.1);
-  color: #5d43b5;
+  background: rgba(20, 22, 29, 0.1);
+  color: #14161d;
 }
 
 .artistPublicServiceInfo {
@@ -23428,7 +23429,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   display: flex;
   align-items: center;
   gap: 4px;
-  color: #5d43b5;
+  color: #14161d;
 }
 
 .artistPublicServiceSide b {
@@ -23503,7 +23504,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   border: 0;
   background: none;
   padding: 0;
-  color: #60519b;
+  color: #14161d;
   font-size: inherit;
   font-weight: 950;
   text-decoration: underline;
@@ -23561,7 +23562,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
 /* Popup sheets polish */
 .artistServicePopupSheet {
   border-radius: 26px !important;
-  box-shadow: 0 30px 70px rgba(10, 6, 24, 0.34) !important;
+  box-shadow: 0 30px 70px rgba(14, 14, 18, 0.34) !important;
 }
 
 /* Day picker caption + polish */
@@ -23617,10 +23618,10 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   justify-content: center;
   gap: 8px;
   padding: 0 18px;
-  border: 1px solid rgba(96, 81, 155, 0.22) !important;
+  border: 1px solid rgba(20, 22, 29, 0.22) !important;
   border-radius: 999px !important;
   background: #ffffff !important;
-  color: #5d43b5 !important;
+  color: #14161d !important;
   box-shadow: none !important;
   font: inherit;
   font-size: 0.85rem;
@@ -23630,8 +23631,8 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
 }
 
 .artistPublicAboutBtn:hover {
-  border-color: rgba(96, 81, 155, 0.34) !important;
-  background: rgba(96, 81, 155, 0.05) !important;
+  border-color: rgba(20, 22, 29, 0.34) !important;
+  background: rgba(20, 22, 29, 0.05) !important;
 }
 
 .artistPublicAboutBtn:active {
@@ -23648,7 +23649,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   justify-content: center;
   gap: 14px;
   padding: 20px;
-  background: rgba(12, 8, 26, 0.5);
+  background: rgba(15, 15, 19, 0.5);
   backdrop-filter: blur(6px);
   animation: artistPopupIn 0.22s ease both;
 }
@@ -23661,7 +23662,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   padding: 22px 20px 20px;
   border-radius: 26px;
   background: #ffffff;
-  box-shadow: 0 30px 70px rgba(10, 6, 24, 0.34);
+  box-shadow: 0 30px 70px rgba(14, 14, 18, 0.34);
   overflow-y: auto;
   scrollbar-width: thin;
 }
@@ -23676,10 +23677,10 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   border: 0;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.95);
-  color: #5d43b5;
+  color: #14161d;
   font: inherit;
   cursor: pointer;
-  box-shadow: 0 12px 28px rgba(10, 6, 24, 0.22);
+  box-shadow: 0 12px 28px rgba(14, 14, 18, 0.22);
   transition: transform 0.16s ease, background 0.16s ease;
 }
 
@@ -23707,8 +23708,8 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: rgba(96, 81, 155, 0.1);
-  color: #5d43b5;
+  background: rgba(20, 22, 29, 0.1);
+  color: #14161d;
 }
 
 .artistAboutPopupHead h3 {
@@ -23740,7 +23741,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   border: 1px solid rgba(28, 32, 44, 0.08) !important;
   border-bottom: 1px solid rgba(28, 32, 44, 0.08) !important;
   border-radius: 16px !important;
-  background: linear-gradient(180deg, #ffffff 0%, #faf8fe 100%) !important;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfbfd 100%) !important;
   box-shadow: 0 1px 0 rgba(28, 32, 44, 0.02);
 }
 
@@ -23751,8 +23752,8 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   padding: 10px;
   box-sizing: border-box;
   border-radius: 50%;
-  background: rgba(96, 81, 155, 0.1);
-  color: #5d43b5 !important;
+  background: rgba(20, 22, 29, 0.1);
+  color: #14161d !important;
 }
 
 .artistAboutPopupSheet .artistPublicAboutList b {

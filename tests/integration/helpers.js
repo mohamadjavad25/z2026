@@ -33,21 +33,26 @@ export function createClient() {
   };
 }
 
-let phoneCounter = 0;
+const usedPhones = new Set();
 /** Unique-per-call Iranian mobile number (all test files share one live
  *  database, sequentially -- see vitest.config.js -- so every registered
  *  user across every test needs a phone that's never been used before).
  *
- *  Vitest gives each test file its own isolated module registry (visible
- *  as separate worker startups even with fileParallelism: false), so a
- *  plain in-module counter restarts at 0 for every file and collides with
- *  phones already registered by an earlier file. A random per-module salt
- *  (fixed for the lifetime of one file's run) combined with the counter
- *  keeps numbers unique both within a file and across files. */
-const fileSalt = Math.floor(Math.random() * 900) + 100;
+ *  Vitest gives each test file its own isolated module registry, so
+ *  in-module state restarts for every file and can't coordinate across
+ *  files. An earlier "random per-file salt + counter" scheme collided
+ *  whenever two files drew the same 3-digit salt (~2% of runs, surfacing as
+ *  "این شماره قبلاً ثبت شده است" in whichever file ran second). Drawing a
+ *  fresh random 7-digit suffix per call makes a clash across the whole run
+ *  vanishingly unlikely (tens of phones in a 10^7 space), and the in-module
+ *  set rules out repeats within one file. */
 export function uniquePhone() {
-  phoneCounter += 1;
-  return `0912${fileSalt}${String(1000 + phoneCounter).slice(-4)}`;
+  for (;;) {
+    const suffix = String(Math.floor(Math.random() * 1e7)).padStart(7, "0");
+    if (usedPhones.has(suffix)) continue;
+    usedPhones.add(suffix);
+    return `0912${suffix}`;
+  }
 }
 
 export async function registerUser(client, { type = "client", name = "Test User", password = "testpass123" } = {}) {

@@ -8,7 +8,7 @@
   padding: 18px;
   border-radius: 24px;
   background:
-    linear-gradient(135deg, rgba(96, 81, 155, 0.16), rgba(96, 81, 155, 0.1)),
+    linear-gradient(135deg, rgba(20, 22, 29, 0.16), rgba(20, 22, 29, 0.1)),
     rgba(246, 246, 251, 0.76);
 }
 
@@ -282,7 +282,7 @@
 .salonHeroFollowStats svg {
   width: 12px;
   height: 12px;
-  color: #60519b;
+  color: #14161d;
 }
 
 .salonHeroFollowStats b {
@@ -304,7 +304,7 @@
   display: block;
   object-fit: cover;
   object-position: center 40%;
-  background: linear-gradient(135deg, #2b222f, #60519b 58%, #bfc0d1);
+  background: linear-gradient(135deg, #2b222f, #14161d 58%, #bfc0d1);
 }
 
 .profileHero p {
@@ -370,10 +370,10 @@
   gap: 12px;
   min-height: 168px;
   background:
-    linear-gradient(135deg, rgba(96, 81, 155, 0.92), rgba(120, 72, 108, 0.78)),
+    linear-gradient(135deg, rgba(20, 22, 29, 0.92), rgba(120, 72, 108, 0.78)),
     radial-gradient(circle at 88% 18%, rgba(191, 192, 209, 0.28), transparent 34%);
   color: #fff;
-  box-shadow: 0 18px 42px rgba(96, 81, 155, 0.22);
+  box-shadow: 0 18px 42px rgba(20, 22, 29, 0.22);
 }
 
 .profileHero.is-artist .profileAvatarImage {
@@ -449,7 +449,7 @@
 
 .profileHero.is-client {
   background:
-    linear-gradient(135deg, rgba(96, 81, 155, 0.14), rgba(191, 192, 209, 0.1)),
+    linear-gradient(135deg, rgba(20, 22, 29, 0.14), rgba(191, 192, 209, 0.1)),
     rgba(246, 246, 251, 0.76);
 }
 
@@ -531,7 +531,7 @@
 }
 
 .hoursDayChip.is-open {
-  background: rgba(96, 81, 155, 0.1);
+  background: rgba(20, 22, 29, 0.1);
   color: var(--teal);
 }
 
@@ -540,7 +540,7 @@
 }
 
 .hoursDayChip.is-selected {
-  border-color: rgba(96, 81, 155, 0.35);
+  border-color: rgba(20, 22, 29, 0.35);
   background: #fff;
   color: var(--ink);
   box-shadow: 0 8px 18px rgba(22, 70, 72, 0.1);
@@ -555,7 +555,7 @@
   gap: 12px;
   padding: 12px;
   border-radius: 16px;
-  background: rgba(96, 81, 155, 0.06);
+  background: rgba(20, 22, 29, 0.06);
 }
 
 .hoursOpenToggle {
@@ -596,7 +596,7 @@
   justify-content: center;
   gap: 6px;
   padding: 0 10px;
-  border: 1px dashed rgba(96, 81, 155, 0.28);
+  border: 1px dashed rgba(20, 22, 29, 0.28);
   border-radius: 12px;
   background: transparent;
   color: var(--teal);
@@ -642,7 +642,7 @@
   justify-content: center;
   border: 0;
   border-radius: 10px;
-  background: rgba(96, 81, 155, 0.1);
+  background: rgba(20, 22, 29, 0.1);
   color: var(--teal);
   cursor: pointer;
 }
@@ -773,7 +773,7 @@
   display: grid;
   gap: 11px;
   padding: 12px;
-  border: 1px solid rgba(96, 81, 155, 0.12);
+  border: 1px solid rgba(20, 22, 29, 0.12);
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.92);
 }
@@ -821,7 +821,7 @@
 }
 
 .artistServiceHead span {
-  color: #60519b;
+  color: #14161d;
   font-size: 0.68rem;
   font-weight: 900;
 }
@@ -1070,7 +1070,7 @@
 .hoursPresetGrid button.is-active {
   background: #fff;
   color: var(--teal);
-  box-shadow: 0 1px 2px rgba(28, 32, 44, 0.06), 0 8px 18px rgba(96, 81, 155, 0.1);
+  box-shadow: 0 1px 2px rgba(28, 32, 44, 0.06), 0 8px 18px rgba(20, 22, 29, 0.1);
 }
 
 .hoursPresetHint {
@@ -1140,7 +1140,7 @@
   padding: 3px;
   border-radius: 0;
   background: transparent;
-  color: #7c5cff;
+  color: #6f7380;
   stroke-width: 1.85;
 }
 
@@ -1168,8 +1168,8 @@
   grid-row: 1;
   padding: 7px 10px;
   border-radius: 999px;
-  background: rgba(124, 92, 226, 0.1);
-  color: #6d4be1;
+  background: rgba(20, 22, 29, 0.1);
+  color: #14161d;
   font-size: 0.68rem;
   font-style: normal;
   font-weight: 900;
@@ -1224,15 +1224,15 @@
   padding: 8px 10px;
   border-radius: 16px;
   background:
-    radial-gradient(circle at 0 0, rgba(124, 92, 226, 0.18), transparent 44%),
-    linear-gradient(135deg, rgba(124, 92, 226, 0.08), rgba(255, 255, 255, 0.98)),
+    radial-gradient(circle at 0 0, rgba(20, 22, 29, 0.18), transparent 44%),
+    linear-gradient(135deg, rgba(20, 22, 29, 0.08), rgba(255, 255, 255, 0.98)),
     #ffffff;
 }
 
 .settingsHoursHero > svg {
   width: 26px;
   height: 26px;
-  color: #7c5cff;
+  color: #6f7380;
   stroke-width: 1.75;
 }
 
@@ -1243,7 +1243,7 @@
 }
 
 .settingsHoursHero span {
-  color: #7c5cff;
+  color: #6f7380;
   font-size: 0.6rem;
   font-weight: 900;
 }
@@ -1258,21 +1258,21 @@
   padding: 6px 9px;
   border-radius: 999px;
   background: #ffffff;
-  color: #6d4be1;
+  color: #14161d;
   font-size: 0.62rem;
   font-style: normal;
   font-weight: 900;
-  box-shadow: inset 0 0 0 1px rgba(124, 92, 226, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(20, 22, 29, 0.1);
 }
 
 .settingsHoursPresetGrid {
-  background: #f4f1fb;
+  background: #f6f6f8;
 }
 
 .settingsHoursPresetGrid button.is-active {
   color: #ffffff;
-  background: linear-gradient(135deg, #8a68ff, #5d43b5);
-  box-shadow: 0 12px 24px rgba(96, 70, 196, 0.18);
+  background: linear-gradient(135deg, #6f7380, #14161d);
+  box-shadow: 0 12px 24px rgba(20, 22, 29, 0.18);
 }
 
 .settingsHoursPresetHint {
@@ -1298,9 +1298,9 @@
 }
 
 .settingsHoursWeekStrip .hoursDayChip.is-selected {
-  border-color: rgba(124, 92, 226, 0.28);
-  color: #6d4be1;
-  box-shadow: 0 12px 26px rgba(96, 70, 196, 0.12);
+  border-color: rgba(20, 22, 29, 0.28);
+  color: #14161d;
+  box-shadow: 0 12px 26px rgba(20, 22, 29, 0.12);
 }
 
 .settingsHoursDayEditor {
@@ -1318,7 +1318,7 @@
   padding: 10px;
   border-radius: 18px;
   background: #ffffff;
-  box-shadow: inset 0 0 0 1px rgba(124, 92, 226, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(20, 22, 29, 0.1);
 }
 
 /* Day+time pickers (DateTimeWheelPicker) -- two wheels, no duration badge
@@ -1345,8 +1345,8 @@
   align-self: center;
   padding: 7px 8px;
   border-radius: 999px;
-  background: rgba(124, 92, 226, 0.1);
-  color: #5d43b5;
+  background: rgba(20, 22, 29, 0.1);
+  color: #14161d;
   font-size: 0.66rem;
   font-style: normal;
   font-weight: 900;
@@ -1363,8 +1363,8 @@
 }
 
 .settingsHoursWheelRange .breakTimeWheelFocus {
-  background: rgba(124, 92, 226, 0.1);
-  border-color: rgba(124, 92, 226, 0.2);
+  background: rgba(20, 22, 29, 0.1);
+  border-color: rgba(20, 22, 29, 0.2);
 }
 
 .settingsHoursWheelRange .breakTimeWheelMaskTop {
@@ -1498,9 +1498,9 @@
   padding: 12px;
   border-radius: 20px;
   background:
-    radial-gradient(circle at 100% 0, rgba(124, 92, 226, 0.16), transparent 44%),
-    linear-gradient(135deg, rgba(124, 92, 226, 0.08), rgba(255, 255, 255, 0.96));
-  box-shadow: inset 0 0 0 1px rgba(124, 92, 226, 0.09);
+    radial-gradient(circle at 100% 0, rgba(20, 22, 29, 0.16), transparent 44%),
+    linear-gradient(135deg, rgba(20, 22, 29, 0.08), rgba(255, 255, 255, 0.96));
+  box-shadow: inset 0 0 0 1px rgba(20, 22, 29, 0.09);
 }
 
 .profileEditHeroCopy {
@@ -1510,7 +1510,7 @@
 }
 
 .profileEditHeroCopy span {
-  color: #7c5cff;
+  color: #6f7380;
   font-size: 0.68rem;
   font-weight: 900;
 }
@@ -1542,7 +1542,7 @@
   top: 50%;
   height: 4px;
   border-radius: 999px;
-  background: #e8e2f7;
+  background: #ececee;
   transform: translateY(-50%);
 }
 
@@ -1554,7 +1554,7 @@
   width: calc((66.666% - 36px) * var(--profile-edit-progress, 0));
   height: 4px;
   border-radius: 999px;
-  background: linear-gradient(90deg, #8a68ff, #5d43b5);
+  background: linear-gradient(90deg, #6f7380, #14161d);
   transform: translateY(-50%);
   transition: width 0.22s ease;
 }
@@ -1577,7 +1577,7 @@
   cursor: pointer;
   box-shadow:
     0 0 0 4px #f8f8fb,
-    inset 0 0 0 1px rgba(124, 92, 226, 0.16);
+    inset 0 0 0 1px rgba(20, 22, 29, 0.16);
   transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
 }
 
@@ -1589,19 +1589,19 @@
 
 .profileEditProgress button.is-done {
   background: #ffffff;
-  color: #6d4be1;
+  color: #14161d;
   box-shadow:
     0 0 0 4px #f8f8fb,
-    inset 0 0 0 2px rgba(124, 92, 226, 0.42);
+    inset 0 0 0 2px rgba(20, 22, 29, 0.42);
 }
 
 .profileEditProgress button.is-active {
-  background: linear-gradient(135deg, #8a68ff, #5d43b5);
+  background: linear-gradient(135deg, #6f7380, #14161d);
   color: #ffffff;
   transform: scale(1.12);
   box-shadow:
     0 0 0 5px #f8f8fb,
-    0 10px 20px rgba(96, 70, 196, 0.22);
+    0 10px 20px rgba(20, 22, 29, 0.22);
 }
 
 .profileEditSection {
@@ -1621,7 +1621,7 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  color: #6d4be1;
+  color: #14161d;
 }
 
 .profileEditSectionHead strong {
@@ -1656,7 +1656,7 @@
 }
 
 .profileEditForm label small {
-  color: #7c5cff;
+  color: #6f7380;
   font-size: 0.62rem;
   font-weight: 850;
 }
@@ -1688,8 +1688,8 @@
 
 .profileEditForm input:focus{
   outline: none;
-  border-color: rgba(96, 81, 155, 0.4);
-  box-shadow: 0 0 0 3px rgba(96, 81, 155, 0.12);
+  border-color: rgba(20, 22, 29, 0.4);
+  box-shadow: 0 0 0 3px rgba(20, 22, 29, 0.12);
 }
 
 
@@ -1753,9 +1753,9 @@
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: #60519b;
+  background: #14161d;
   color: #fff;
-  box-shadow: 0 4px 10px rgba(96, 81, 155, 0.28);
+  box-shadow: 0 4px 10px rgba(20, 22, 29, 0.28);
   pointer-events: none;
 }
 
@@ -1774,8 +1774,8 @@
   padding: 0 10px;
   border: 0;
   border-radius: 999px;
-  background: rgba(124, 92, 226, 0.12);
-  color: #5d43b5;
+  background: rgba(20, 22, 29, 0.12);
+  color: #14161d;
   font-size: 0.7rem;
   font-weight: 850;
   cursor: pointer;
@@ -1798,19 +1798,19 @@
   gap: 7px;
   border: 0;
   border-radius: 14px;
-  background: linear-gradient(135deg, #7f5cff, #51378e);
+  background: linear-gradient(135deg, #6f7380, #14161d);
   color: #fff;
   font-family: inherit;
   font-size: 0.88rem;
   font-weight: 900;
   cursor: pointer;
-  box-shadow: 0 10px 22px rgba(96, 81, 155, 0.22);
+  box-shadow: 0 10px 22px rgba(20, 22, 29, 0.22);
 }
 
 .profileEditStepActions button.is-secondary {
   background: #ffffff;
-  color: #5d43b5;
-  box-shadow: inset 0 0 0 1px rgba(124, 92, 226, 0.16);
+  color: #14161d;
+  box-shadow: inset 0 0 0 1px rgba(20, 22, 29, 0.16);
 }
 
 .profileEditStepActions button:disabled {
@@ -1822,11 +1822,11 @@
 
 .profileEditStepActions button:not(:disabled):hover,
 .profileEditForm > button[type="submit"]:hover{
-  background: #51378e;
+  background: #14161d;
 }
 
 .profileEditStepActions button.is-secondary:not(:disabled):hover {
-  background: #f4f1fb;
+  background: #f6f6f8;
 }
 
 
@@ -1898,15 +1898,15 @@
 
 
 .profileEditModal .profileEditForm > button[type="submit"]{
-  background: linear-gradient(135deg, #7f5cff, #51378e);
+  background: linear-gradient(135deg, #6f7380, #14161d);
   color: #fff;
-  box-shadow: 0 10px 22px rgba(96, 81, 155, 0.22);
+  box-shadow: 0 10px 22px rgba(20, 22, 29, 0.22);
 }
 
 .profileEditModal .profileEditStepActions button:not(.is-secondary) {
-  background: linear-gradient(135deg, #7f5cff, #51378e);
+  background: linear-gradient(135deg, #6f7380, #14161d);
   color: #fff;
-  box-shadow: 0 10px 22px rgba(96, 81, 155, 0.22);
+  box-shadow: 0 10px 22px rgba(20, 22, 29, 0.22);
 }
 
 .profileEditModal .profileEditSheet.profileEditSheet {
@@ -1946,8 +1946,8 @@
     linear-gradient(135deg, rgba(246, 247, 255, 0.96), rgba(255, 255, 255, 0.98)),
     #ffffff;
   box-shadow:
-    inset 0 0 0 1px rgba(124, 92, 226, 0.11),
-    0 14px 30px rgba(52, 43, 98, 0.08);
+    inset 0 0 0 1px rgba(20, 22, 29, 0.11),
+    0 14px 30px rgba(20, 22, 29, 0.08);
 }
 
 .profileEditModal .profileEditHeroCopy {
@@ -1956,7 +1956,7 @@
 }
 
 .profileEditModal .profileEditHeroCopy span {
-  color: #785be8;
+  color: #14161d;
   font-size: 0.68rem;
   font-weight: 950;
 }
@@ -1978,8 +1978,8 @@
   border: 2px solid rgba(255, 255, 255, 0.96);
   background: #11131e;
   box-shadow:
-    0 0 0 1px rgba(124, 92, 226, 0.18),
-    0 12px 24px rgba(20, 18, 42, 0.16);
+    0 0 0 1px rgba(20, 22, 29, 0.18),
+    0 12px 24px rgba(27, 27, 31, 0.16);
 }
 
 .profileEditModal .profileEditAvatarPreview img {
@@ -1992,10 +1992,10 @@
   bottom: -3px;
   width: 28px;
   height: 28px;
-  background: linear-gradient(135deg, #8a68ff, #5d43b5);
+  background: linear-gradient(135deg, #6f7380, #14161d);
   box-shadow:
     0 0 0 3px #ffffff,
-    0 8px 16px rgba(88, 63, 174, 0.28);
+    0 8px 16px rgba(20, 22, 29, 0.28);
 }
 
 .profileEditModal .profileEditAvatarClear,
@@ -2013,10 +2013,10 @@
 }
 
 .profileEditModal .profileEditAvatarClear {
-  border: 1px solid rgba(124, 92, 226, 0.16);
+  border: 1px solid rgba(20, 22, 29, 0.16);
   background: #ffffff;
-  color: #6148c9;
-  box-shadow: 0 8px 18px rgba(54, 42, 110, 0.08);
+  color: #14161d;
+  box-shadow: 0 8px 18px rgba(20, 22, 29, 0.08);
 }
 
 .profileEditModal .profileEditAvatarHint {
@@ -2035,14 +2035,14 @@
   right: calc(16.666% + 20px);
   top: 24px;
   height: 3px;
-  background: #e6e1f4;
+  background: #ebebed;
 }
 
 .profileEditModal .profileEditProgress::after {
   right: calc(16.666% + 20px);
   top: 24px;
   height: 3px;
-  background: linear-gradient(90deg, #5d43b5, #8a68ff);
+  background: linear-gradient(90deg, #14161d, #6f7380);
 }
 
 .profileEditModal .profileEditProgress button {
@@ -2067,7 +2067,7 @@
   background: #ffffff;
   box-shadow:
     0 0 0 4px #f7f7fb,
-    inset 0 0 0 1px rgba(124, 92, 226, 0.15);
+    inset 0 0 0 1px rgba(20, 22, 29, 0.15);
 }
 
 .profileEditModal .profileEditProgress button span {
@@ -2082,28 +2082,28 @@
 }
 
 .profileEditModal .profileEditProgress button.is-done {
-  color: #5d43b5;
+  color: #14161d;
   box-shadow: none;
 }
 
 .profileEditModal .profileEditProgress button.is-done svg {
   box-shadow:
     0 0 0 4px #f7f7fb,
-    inset 0 0 0 2px rgba(124, 92, 226, 0.36);
+    inset 0 0 0 2px rgba(20, 22, 29, 0.36);
 }
 
 .profileEditModal .profileEditProgress button.is-active {
-  color: #51378e;
+  color: #14161d;
   transform: none;
   box-shadow: none;
 }
 
 .profileEditModal .profileEditProgress button.is-active svg {
-  background: linear-gradient(135deg, #8a68ff, #5d43b5);
+  background: linear-gradient(135deg, #6f7380, #14161d);
   color: #ffffff;
   box-shadow:
     0 0 0 5px #f7f7fb,
-    0 12px 22px rgba(96, 70, 196, 0.2);
+    0 12px 22px rgba(20, 22, 29, 0.2);
 }
 
 .profileEditModal .profileEditSection {
@@ -2119,7 +2119,7 @@
 .profileEditModal .profileEditSectionHead {
   justify-content: flex-start;
   gap: 7px;
-  color: #7658df;
+  color: #14161d;
 }
 
 .profileEditModal .profileEditSectionHead strong {
@@ -2177,9 +2177,9 @@
 
 .profileEditModal .profileEditStepActions button.is-secondary {
   background: #ffffff;
-  color: #5d43b5;
+  color: #14161d;
   box-shadow:
-    inset 0 0 0 1px rgba(124, 92, 226, 0.15),
+    inset 0 0 0 1px rgba(20, 22, 29, 0.15),
     0 8px 18px rgba(28, 32, 44, 0.05);
 }
 
@@ -2212,7 +2212,7 @@
   .profileEditModal .profileEditAvatarClear {
     width: 34px;
     padding: 0;
-    color: #5d43b5;
+    color: #14161d;
   }
 
   .profileEditModal .profileEditAvatarClear svg {
@@ -2237,7 +2237,7 @@
   padding: 10px;
   border-radius: 15px;
   background:
-    linear-gradient(135deg, rgba(96, 81, 155, 0.12), rgba(191, 192, 209, 0.18)),
+    linear-gradient(135deg, rgba(20, 22, 29, 0.12), rgba(191, 192, 209, 0.18)),
     rgba(255, 255, 255, 0.74);
 }
 
@@ -2339,7 +2339,7 @@
 
 .passportCard{
   background:
-    linear-gradient(135deg, rgba(96, 81, 155, 0.12), rgba(96, 81, 155, 0.1)),
+    linear-gradient(135deg, rgba(20, 22, 29, 0.12), rgba(20, 22, 29, 0.1)),
     rgba(255, 255, 255, 0.7);
 }
 
@@ -2452,8 +2452,8 @@
 }
 
 .profileEditModal .profileEditProgressTrack > button {
-  --profile-step-ring: #e6e1f4;
-  --profile-step-ring-shadow: rgba(124, 92, 226, 0);
+  --profile-step-ring: #ebebed;
+  --profile-step-ring-shadow: rgba(20, 22, 29, 0);
   color: #73788a !important;
   position: relative !important;
   isolation: isolate;
@@ -2465,7 +2465,7 @@
   top: 19px;
   height: 3px;
   border-radius: 999px;
-  background: #e6e1f4;
+  background: #ebebed;
   transition: background 0.22s ease, box-shadow 0.22s ease;
   pointer-events: none;
 }
@@ -2481,8 +2481,8 @@
 }
 
 .profileEditModal .profileEditProgressSegment.is-active {
-  background: linear-gradient(90deg, #5d43b5, #8a68ff);
-  box-shadow: 0 4px 12px rgba(96, 70, 196, 0.18);
+  background: linear-gradient(90deg, #14161d, #6f7380);
+  box-shadow: 0 4px 12px rgba(20, 22, 29, 0.18);
 }
 
 .profileEditModal .profileEditFieldGrid .profileEditYearsField {
@@ -2496,7 +2496,7 @@
   align-items: center;
   gap: 8px;
   padding: 0 12px;
-  border: 1px solid rgba(124, 92, 226, 0.18);
+  border: 1px solid rgba(20, 22, 29, 0.18);
   border-radius: 15px;
   background: #f8f9fd;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.7);
@@ -2514,7 +2514,7 @@
 }
 
 .profileEditModal .profileEditYearsControl small {
-  color: #7f5cff;
+  color: #6f7380;
   font-size: 0.72rem;
   font-weight: 950;
   white-space: nowrap;
@@ -2537,7 +2537,7 @@
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  background: conic-gradient(from -90deg, var(--profile-step-ring) 0 100%, #e6e1f4 0);
+  background: conic-gradient(from -90deg, var(--profile-step-ring) 0 100%, #ebebed 0);
   transform: translateX(-50%);
   box-shadow: 0 8px 16px var(--profile-step-ring-shadow);
   -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 0);
@@ -2547,13 +2547,13 @@
 
 .profileEditModal .profileEditProgressTrack > button.is-done,
 .profileEditModal .profileEditProgressTrack > button.is-active {
-  --profile-step-ring: #7f5cff;
-  --profile-step-ring-shadow: rgba(96, 70, 196, 0.2);
-  color: #5d43b5 !important;
+  --profile-step-ring: #6f7380;
+  --profile-step-ring-shadow: rgba(20, 22, 29, 0.2);
+  color: #14161d !important;
 }
 
 .profileEditModal .profileEditProgressTrack > button.is-active {
-  --profile-step-ring: #8a68ff;
+  --profile-step-ring: #6f7380;
 }
 
 .profileEditModal .profileEditProgress.profileEditProgress button svg {
