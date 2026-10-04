@@ -401,22 +401,27 @@ export async function listClientArtistBookings(user) {
     params.push(userId);
     conditions.push(`b.client_user_id = $${params.length}`);
   }
+  // Same matching rule as listClientSalonBookings: rows with no account id match by phone, or by
+  // name only when they have no phone at all (never a bare name against everyone's rows).
   if (phone) {
     // b.phone_normalized is a generated column (migrations/005_normalized_phone.sql)
     // that runs the same digit-normalization at write time, indexed --
     // unlike wrapping b.client_phone in REPLACE() on every read, this is sargable.
     params.push(phone);
-    conditions.push(`b.phone_normalized = $${params.length}`);
+    conditions.push(`(b.client_user_id IS NULL AND b.phone_normalized = $${params.length})`);
   }
   if (name) {
     params.push(name);
-    conditions.push(`b.client_name = $${params.length}`);
+    conditions.push(`(b.client_user_id IS NULL AND COALESCE(b.client_phone, '') = '' AND b.client_name = $${params.length})`);
   }
   const rows = await all(db, `
     SELECT b.*, u.name AS artist_name, u.area AS artist_area, (u.avatar <> '') AS artist_avatar, u.phone AS artist_phone
     FROM artist_bookings b
     LEFT JOIN users u ON u.id = b.artist_user_id
-    WHERE ${conditions.join(" OR ")}
+    -- source_salon_user_id IS NOT NULL = the artist-calendar copy of a SALON booking; the client
+    -- already has that booking from listClientSalonBookings, so listing it again showed every
+    -- salon-with-staff booking twice, once per table, each with its own (diverging) status.
+    WHERE b.source_salon_user_id IS NULL AND (${conditions.join(" OR ")})
     ORDER BY b.id DESC
   `, params);
   return rows.map((row) => ({

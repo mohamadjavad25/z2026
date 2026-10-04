@@ -169,8 +169,12 @@ async function _POST(request) {
       data: { bookings: await salons.listSalonBookings(salonUserId) }
     }, { status: 409 });
   }
+  // A client's own booking is a REQUEST the salon must answer ("درخواست": shows up in the salon's
+  // pending list, expires after an hour). An entry made by the salon itself is already settled
+  // ("تازه"). The status is decided here, never read from the body.
   const result = await salons.addSalonBooking(salonUserId, {
     ...v.data,
+    status: auth.user.type === "client" ? "درخواست" : "تازه",
     client,
     phone,
     service,
