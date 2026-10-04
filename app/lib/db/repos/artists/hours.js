@@ -52,3 +52,11 @@ export async function updateArtistHour(artistUserId, day, data) {
   ]);
   return get(db, "SELECT * FROM artist_hours WHERE artist_user_id = $1 AND day = $2", [artistUserId, day]);
 }
+
+/** Public, read-only view: never creates the default rows (a visit must not write). */
+export async function listArtistHoursPublic(artistUserId, runner = null) {
+  const db = runner || (await getDb());
+  const order = new Map(defaultArtistHours.map((h, i) => [h.day, i]));
+  const rows = await all(db, "SELECT day, open_time, close_time, active FROM artist_hours WHERE artist_user_id = $1", [artistUserId]);
+  return rows.sort((a, b) => (order.get(a.day) ?? 99) - (order.get(b.day) ?? 99));
+}

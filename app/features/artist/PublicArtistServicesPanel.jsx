@@ -1,9 +1,8 @@
 "use client";
 
-import { ChevronLeft, Timer } from "lucide-react";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { ServiceIconStrip } from "../../components/ServiceIconStrip";
-import { toPersianDigits } from "../../shared/lib/digits";
+import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
 
 export function PublicArtistServicesPanel({
   services,
@@ -22,31 +21,25 @@ export function PublicArtistServicesPanel({
           <span>این آرتیست فعلاً خدمتی برای رزرو آنلاین اضافه نکرده؛ بعداً سر بزن.</span>
         </div>
       ) : (
-        <div className="svcList">
-          {safeServices.map((service, index) => {
-            const active = selectedServiceId === service.id;
+        <div className="spvServiceList">
+          {safeServices.map((service) => {
+            const amount = parseTomanAmount(service.price);
             return (
               <button
                 type="button"
-                className={`svcCard ${active ? "is-selected" : ""}`}
+                className={`spvService ${selectedServiceId === service.id ? "is-selected" : ""}`}
                 key={service.id}
-                style={{ "--service-delay": `${index * 40}ms` }}
                 onClick={() => onServiceClick?.(service)}
               >
-                <ServiceIcon emoji={service.emoji} name={service.name} size="lg" />
-                <span className="svcCardBody">
-                  <span className="svcCardTitle"><strong>{service.name}</strong></span>
-                  {service.hint ? <span className="svcCardHint">{service.hint}</span> : null}
-                  {service.duration ? (
-                    <span className="svcCardMeta">
-                      <span className="svcChip"><Timer size={12} /> {service.duration}</span>
-                    </span>
-                  ) : null}
+                <ServiceIcon emoji={service.emoji} name={service.name} size="md" />
+                <span className="spvServiceBody">
+                  <b>{service.name}</b>
+                  <small>{service.duration || "زمان متغیر"}</small>
                 </span>
-                <span className="svcCardSide">
-                  <b className="svcPrice">{service.price ? `${toPersianDigits(service.price)} تومان` : "توافقی"}</b>
-                  <ChevronLeft size={16} className="svcCardChevron" aria-hidden="true" />
+                <span className="spvServicePrice">
+                  {amount ? <><b>{formatTomanNumber(amount)}</b><em>تومان</em></> : <em>قیمت توافقی</em>}
                 </span>
+                <span className="spvServiceGo">رزرو</span>
               </button>
             );
           })}

@@ -1,8 +1,10 @@
 "use client";
 
-import { BadgeCheck, Bookmark, CalendarCheck, ChevronLeft, Heart, Info, MapPin, Share2, X } from "lucide-react";
+import { Bookmark, CalendarCheck, ChevronLeft, Heart, Info, MapPin, Share2 } from "lucide-react";
+import { SheetClose } from "../../components/SheetClose";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatCount } from "../../shared/lib/counts";
+import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
 import { isPublicArtistSlotBlocked } from "./bookingUtils";
 import { PublicArtistAboutPanel } from "./PublicArtistAboutPanel";
 import { PublicArtistBookingPanel } from "./PublicArtistBookingPanel";
@@ -46,6 +48,10 @@ export function PublicArtistModal({
   const [bookingPopup, setBookingPopup] = useState(false);
   const [aboutPopup, setAboutPopup] = useState(false);
   if (!artist) return null;
+
+  const specialties = String(artist.service || "").split(/[،,]/).map((item) => item.trim()).filter(Boolean).slice(0, 4);
+  const prices = (services || []).map((service) => parseTomanAmount(service.price)).filter(Boolean);
+  const fromPrice = prices.length ? Math.min(...prices) : 0;
 
   return (
     <div
@@ -117,8 +123,12 @@ export function PublicArtistModal({
             <div className="artistPublicTitle">
               <h2>
                 <span className="artistPublicNameText">{artist.name}</span>
-                <BadgeCheck className="artistPublicVerifiedIcon" size={15} />
               </h2>
+              {specialties.length ? (
+                <div className="spvSpecialties">
+                  {specialties.map((item) => <span key={item}>{item}</span>)}
+                </div>
+              ) : null}
               {artist.area ? (
                 <span className="artistPublicCityTag">
                   <MapPin size={12} />
@@ -128,9 +138,11 @@ export function PublicArtistModal({
             </div>
 
             <div className="artistPublicStatsRow" aria-label="آمار آرتیست">
-              <span><b>{toPersianDigits(artist.experienceYears || 0)}</b> سال تجربه</span>
+              {Number(artist.experienceYears) > 0 ? <span><b>{toPersianDigits(artist.experienceYears)}</b> سال تجربه</span> : null}
               <span><b>{formatCount(artist.followers)}</b> دنبال‌کننده</span>
+              {portfolio?.length ? <span><b>{toPersianDigits(portfolio.length)}</b> نمونه‌کار</span> : null}
             </div>
+            {artist.bio ? <p className="spvBioLine">{artist.bio}</p> : null}
 
             <div className="artistPublicActions">
               <button
@@ -139,7 +151,7 @@ export function PublicArtistModal({
                 onClick={onFollow}
               >
                 <Heart size={16} />
-                {following ? "دنبال می‌کنی" : "فالو"}
+                {following ? "دنبال می‌کنی" : "دنبال کردن"}
               </button>
             </div>
           </section>
@@ -165,18 +177,26 @@ export function PublicArtistModal({
                 </>
             </div>
 
-            <div className="artistPublicBooking">
+            <nav className="spvBar" aria-label="رزرو و اطلاعات">
+              <button type="button" className="spvBarIcon" onClick={() => setAboutPopup(true)} aria-label="درباره هنرمند" title="درباره هنرمند">
+                <Info size={22} />
+              </button>
               <button
                 type="button"
-                className="artistPublicAboutBtn"
-                onClick={() => setAboutPopup(true)}
-                aria-label="درباره هنرمند"
-                title="درباره هنرمند"
+                className="spvBarBook"
+                disabled={!services?.length}
+                onClick={() => {
+                  const service = services.find((item) => item.id === selectedServiceId) || services[0];
+                  if (!service) return;
+                  onSelectService(service.id);
+                  setBookingPopup(true);
+                }}
               >
-                <Info size={18} />
-                <span>درباره هنرمند</span>
+                <CalendarCheck size={19} />
+                رزرو نوبت
+                {fromPrice ? <small>از {formatTomanNumber(fromPrice)} تومان</small> : null}
               </button>
-            </div>
+            </nav>
           </div>
 
           <ProfileSheet
@@ -247,14 +267,7 @@ export function PublicArtistModal({
                 </div>
                 <PublicArtistAboutPanel artist={artist} />
               </article>
-              <button
-                type="button"
-                className="artistAboutPopupClose"
-                onClick={() => setAboutPopup(false)}
-                aria-label="بستن"
-              >
-                <X size={18} />
-              </button>
+              <SheetClose onClick={() => setAboutPopup(false)} />
             </div>
           ) : null}
         </section>

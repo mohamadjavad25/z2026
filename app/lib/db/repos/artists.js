@@ -8,6 +8,7 @@ import { normalizePhone } from "./salons/common.js";
 import { isProfileSaved } from "./social.js";
 import { normalizeServiceEmoji, resolveBookingServiceEmoji } from "./serviceEmoji.js";
 import { getSettings, DEFAULT_SETTINGS } from "./userSettings.js";
+import { listArtistHoursPublic } from "./artists/hours.js";
 
 export { ensureArtistHours, listArtistHours, updateArtistHour } from "./artists/hours.js";
 
@@ -766,7 +767,8 @@ export async function getPublicArtist(userId, viewerUserId = null) {
     isFollowingViewer,
     isSaved,
     bookedSlots,
-    breakTime
+    breakTime,
+    hours
   ] = await Promise.all([
     listPostsByOwner(userId, null, { publicOnly: Number(viewerUserId || 0) !== Number(userId) }),
     listArtistServices(userId),
@@ -775,7 +777,8 @@ export async function getPublicArtist(userId, viewerUserId = null) {
     viewerUserId ? isFollowing(viewerUserId, user.id) : false,
     viewerUserId ? isProfileSaved(viewerUserId, user.id) : false,
     listArtistBookedSlots(userId),
-    getArtistBreak(userId)
+    getArtistBreak(userId),
+    listArtistHoursPublic(userId)
   ]);
   return {
     id: user.id,
@@ -799,7 +802,8 @@ export async function getPublicArtist(userId, viewerUserId = null) {
     posts,
     services,
     bookedSlots,
-    breakTime
+    breakTime,
+    hours
   };
 }
 
