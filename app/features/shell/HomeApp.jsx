@@ -1953,7 +1953,7 @@ function getPassportMatch(post) {
                   : createdProfile?.type === "artist"
                     ? pendingArtistBookingRequests.length + pendingArtistSalonInvites.length + recentlyExpiredArtistBookings.length
                     : createdProfile?.type === "client"
-                      ? unseenClientBookingCount
+                      ? (profileSettings.reservationAlerts === false ? 0 : unseenClientBookingCount)
                       : 0
               }
               onShare={shareSalonOwnerProfile}
@@ -2090,15 +2090,14 @@ function getPassportMatch(post) {
                   ) : profileType === "client" ? (
                     <ClientProfileOverview
                       profile={createdProfile}
+                      bookings={clientBookingList}
+                      savedCount={savedPosts.length}
                       onEditProfile={openProfileEdit}
                       onOpenSaved={() => {
                         refreshSaves();
                         setProfileView("saved");
                       }}
-                      profileSettings={profileSettings}
-                      onToggleSetting={toggleProfileSetting}
-                      onLogout={logoutAccount}
-                      onDeleteAccount={deleteAccountPermanently}
+                      onOpenBookings={() => setProfileView("bookings")}
                     />
                   ) : null}
                 </>

@@ -20,7 +20,7 @@ export function isBookingActive(booking) {
   return ["تازه", "درخواست", "تایید شده"].includes(booking?.status || "تازه");
 }
 
-function isBookingInPast(booking) {
+export function isBookingInPast(booking) {
   const rawDate = booking?.booking_date || booking?.date || "";
   if (!rawDate) return false;
   return resolveRollingPersianDate(rawDate).getTime() < resolveRollingPersianDate("امروز").getTime();
@@ -29,4 +29,17 @@ function isBookingInPast(booking) {
 /** The client can cancel their own booking while it is active and not already past. */
 export function canClientCancel(booking) {
   return isBookingActive(booking) && !isBookingInPast(booking);
+}
+
+/** The soonest still-active booking that hasn't passed yet (date, then clock time). */
+export function pickNextBooking(bookings = []) {
+  const toKey = (booking) => {
+    const raw = booking?.booking_date || booking?.date || "";
+    const day = raw ? resolveRollingPersianDate(raw).getTime() : 0;
+    const clock = String(booking?.time || "").replace(/[۰-۹]/g, (d) => "۰۱۲۳۴۵۶۷۸۹".indexOf(d)).replace(/\D/g, "").padStart(4, "0");
+    return day * 10000 + Number(clock || 0);
+  };
+  return bookings
+    .filter((booking) => isBookingActive(booking) && !isBookingInPast(booking))
+    .sort((a, b) => toKey(a) - toKey(b))[0] || null;
 }
