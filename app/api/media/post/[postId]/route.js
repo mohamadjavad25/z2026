@@ -2,6 +2,11 @@ import { ensureDb, getDb, get } from "../../../../lib/db/connection.js";
 import { parseMediaDataUrl, ALLOWED_POSTER_TYPES } from "../../../../lib/db/repos/media.js";
 import { withErrorHandling } from "../../../../lib/http.js";
 import { getUserFromRequest } from "../../../../lib/auth.js";
+import sharp from "sharp";
+
+// Widths a grid card can ask for with ?w= (the full-size picture is only for the viewer).
+const THUMB_WIDTHS = new Set([240, 480, 720]);
+const YEAR = 60 * 60 * 24 * 365;
 
 export const runtime = "nodejs";
 
@@ -30,14 +35,30 @@ async function _GET(request, { params }) {
     if (!viewer || Number(viewer.id) !== Number(row.owner_user_id)) return new Response(null, { status: 404 });
   }
 
-  const buffer = Buffer.from(parsed.base64, "base64");
+  let buffer = Buffer.from(parsed.base64, "base64");
+  let contentType = parsed.contentType;
+
+  const width = Number(new URL(request.url).searchParams.get("w"));
+  if (THUMB_WIDTHS.has(width)) {
+    try {
+      buffer = await sharp(buffer).rotate().resize({ width, withoutEnlargement: true }).webp({ quality: 74 }).toBuffer();
+      contentType = "image/webp";
+    } catch {
+      // not resizable (e.g. an odd format): fall back to the original bytes
+    }
+  }
+
+  // The ?v= in every post URL changes whenever the picture does, so a versioned URL never goes stale.
+  const versioned = new URL(request.url).searchParams.has("v");
   return new Response(buffer, {
     status: 200,
     headers: {
-      "Content-Type": parsed.contentType,
+      "Content-Type": contentType,
       "X-Content-Type-Options": "nosniff",
       "Content-Length": String(buffer.length),
-      "Cache-Control": isPrivate ? "private, no-store" : "public, max-age=3600"
+      "Cache-Control": isPrivate
+        ? "private, no-store"
+        : versioned ? `public, max-age=${YEAR}, immutable` : "public, max-age=3600"
     }
   });
 }

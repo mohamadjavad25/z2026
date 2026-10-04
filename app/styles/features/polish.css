@@ -808,3 +808,13 @@
 .cpoLinkCopy strong { font-size: 0.86rem; font-weight: 950; }
 .cpoLinkCopy small { color: #6f7380; font-size: 0.72rem; font-weight: 750; }
 .spSectionTitle { margin: 6px 4px -2px; color: #6f7380; font-size: 0.74rem; font-weight: 950; letter-spacing: 0; }
+
+/* Gallery cards: a pale placeholder while a picture loads (the old near-black flashed on every open). */
+.profileGalleryGrid .profileGalleryCard,
+.salonClientMosaicTile.hasImage,
+.artistPublicGrid .artistPublicCard { background-color: #e9e4e8; }
+
+/* Gallery cards: a pale placeholder while a picture loads (the old near-black flashed on every open). */
+.profileGalleryGrid .profileGalleryCard,
+.salonClientMosaicTile.hasImage,
+.artistPublicGrid .artistPublicCard { background-color: #e9e4e8; }

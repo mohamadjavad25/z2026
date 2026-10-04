@@ -1,5 +1,6 @@
 "use client";
 
+import { thumbUrl } from "../../shared/lib/mediaUrl";
 import { ImagePlus, Lock, Pin } from "lucide-react";
 import { SkeletonList } from "../../components/Skeleton";
 import { ProfilePostComposer } from "./ProfilePostComposer";
@@ -107,7 +108,7 @@ export function ProfileGallery({
             className={`profileGalleryGrid ${mosaicClass}`}
             aria-label={label}
           >
-            {items.map((item) => {
+            {items.map((item, index) => {
               const key = item.id || item.title;
               const isEditing = editingId != null && editingId === item.id;
               const clickable = typeof onItemClick === "function";
@@ -136,7 +137,7 @@ export function ProfileGallery({
                   }
                 >
                   {item.image ? (
-                    <img src={item.image} alt={item.title || "نمونه‌کار"} loading="lazy" decoding="async" />
+                    <img src={thumbUrl(item.image, 480)} alt={item.title || "نمونه‌کار"} loading={index < 8 ? "eager" : "lazy"} fetchPriority={index < 4 ? "high" : "auto"} decoding="async" />
                   ) : (
                     <div
                       className="profileGalleryCardFallback"
