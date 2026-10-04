@@ -75,8 +75,15 @@ export function useServiceComposer({
         ? await upsertSalonOwnerService(body, { editingId })
         : await upsertArtistOwnerService(body, { editingId });
       if (!ok) return;
-      closeArtistServiceCreate();
-      notify(editingId ? "خدمت به‌روزرسانی شد." : `خدمت «${name}» اضافه شد.`);
+      if (editingId) {
+        closeArtistServiceCreate();
+        notify("خدمت به‌روزرسانی شد.");
+      } else {
+        // Stay in the sheet: back to the catalog so the next service can be picked right away.
+        setArtistServiceCreateMode("preset");
+        setArtistServiceDraft(EMPTY_DRAFT);
+        notify(`خدمت «${name}» اضافه شد.`);
+      }
     } catch {
       notify(editingId ? "ویرایش خدمت انجام نشد." : "افزودن خدمت انجام نشد.");
     }
@@ -104,12 +111,12 @@ export function useServiceComposer({
         ? await upsertSalonOwnerService(body)
         : await upsertArtistOwnerService(body);
       if (!ok) return;
-      closeArtistServiceCreate();
+      // Keep the catalog open so several services can be added in one go.
       notify(`خدمت «${service.name}» اضافه شد.`);
     } catch {
       notify("افزودن خدمت انجام نشد.");
     }
-  }, [createdProfile, salonServiceList, artistServiceList, upsertSalonOwnerService, upsertArtistOwnerService, closeArtistServiceCreate, notify]);
+  }, [createdProfile, salonServiceList, artistServiceList, upsertSalonOwnerService, upsertArtistOwnerService, notify]);
 
   const openArtistServiceCreate = useCallback(() => {
     setArtistServiceCreateMode("preset");

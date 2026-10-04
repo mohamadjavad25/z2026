@@ -882,3 +882,12 @@ button.svcCard:active { transform: scale(0.99); }
 .collabEmpty.is-lively svg { opacity: 1; }
 .collabEmpty.is-lively b { color: #14161d; font-size: 0.9rem; font-weight: 950; }
 .collabEmpty.is-lively span { max-width: 32ch; line-height: 1.7; }
+
+/* "Done" bar under the catalog: stays visible while scrolling so the owner can pick many, then leave. */
+.svcDone {
+  position: sticky;
+  bottom: 0;
+  width: 100%;
+  margin-top: 10px;
+  box-shadow: 0 -10px 18px -8px rgba(255, 255, 255, 0.95);
+}

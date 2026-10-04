@@ -153,7 +153,7 @@ export function ServiceComposerModal({
             </div>
 
             <p className="svcCatalogHint">
-              روی خدمت بزن تا قبل از افزودن، نام، قیمت و جزئیاتش را ویرایش کنی.
+              روی خدمت بزن تا نام و قیمتش را ویرایش کنی، یا با + سریع اضافه‌اش کن. می‌توانی چند خدمت پشت‌سرهم انتخاب کنی.
             </p>
 
             <div className="svcPresetGrid" role="list">
@@ -204,6 +204,10 @@ export function ServiceComposerModal({
                 );
               })}
             </div>
+            <button type="button" className="svcSubmit svcDone" onClick={onClose}>
+              <Check size={17} />
+              {addedNames.size ? "تمام" : "بستن"}
+            </button>
           </div>
         ) : (
           <form className="svcForm" onSubmit={onSubmitCustom}>
