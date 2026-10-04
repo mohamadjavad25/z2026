@@ -1,287 +1,226 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { CalendarDays, Clock3, FileText, History, Sparkles } from "lucide-react";
 import { ServiceIcon } from "../../components/ServiceIcon";
-import { CalendarCheck, CalendarDays, CheckCircle2, Clock3, FileText, Sparkles, TimerOff, XCircle } from "lucide-react";
 import { SegmentClock } from "../../components/SegmentClock";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatRelativeBookingDayLabel, resolveRollingPersianDate } from "../../shared/lib/persianCalendar";
 import { formatRequestExpiryDeadline } from "../../shared/lib/time";
+import { ClientBookingHistorySheet } from "./ClientBookingHistorySheet";
 import {
-  buildExactBookingDateTabs,
-  getBookingDateKey,
-  isArtistBookingOnExactDate
-} from "../artist";
-import { BookingHistoryCalendarSheet } from "../profile/BookingHistoryCalendarSheet";
-import { ProfileHeroWeekStrip } from "../profile/ProfileHeroWeekStrip";
-import { bookingStatusLabel, bookingStatusTone } from "./bookingStatus";
+  bookingStatusLabel,
+  bookingStatusTone,
+  isBookingActive,
+  isBookingInPast
+} from "./bookingStatus";
 
-const BOOKING_STATUS_ICONS = {
-  pending: Clock3,
-  done: CheckCircle2,
-  bad: XCircle,
-  expired: TimerOff
-};
-
-// Same rule as ClientBookingSettingsModal's isBookingSettled (duplicated,
-// not shared — small component-local helper, matching this codebase's
-// convention): "رزرو دوباره" only makes sense once this booking is settled,
-// not while it's still an active pending/upcoming one.
+// "رزرو دوباره" only makes sense once this specific booking is settled — cancelled / expired
+// outright, or confirmed and its date has already passed. Not while it is still pending or upcoming.
 function isBookingSettled(booking) {
   const status = booking?.status || "";
   if (status === "لغو" || status === "منقضی شده") return true;
   if (status !== "تایید شده") return false;
   const rawDate = booking?.booking_date || booking?.date || "";
   if (!rawDate) return false;
-  const bookingDate = resolveRollingPersianDate(rawDate);
-  const today = resolveRollingPersianDate("امروز");
-  return bookingDate.getTime() <= today.getTime();
+  return resolveRollingPersianDate(rawDate).getTime() <= resolveRollingPersianDate("امروز").getTime();
+}
+
+function dayOf(booking) {
+  return booking.booking_date || booking.date || "";
+}
+
+/** Earliest first: by date, then by clock time. */
+function compareUpcoming(a, b) {
+  const da = dayOf(a) ? resolveRollingPersianDate(dayOf(a)).getTime() : 0;
+  const db = dayOf(b) ? resolveRollingPersianDate(dayOf(b)).getTime() : 0;
+  if (da !== db) return da - db;
+  return String(a.time || "").localeCompare(String(b.time || ""));
+}
+
+function metaOf(booking) {
+  const rawDate = dayOf(booking);
+  return {
+    salonName: booking.salonName || booking.salon_name || "سالن منتخب",
+    avatar: booking.salonAvatar || booking.salon_avatar || "",
+    service: booking.service || "خدمت زیبایی",
+    serviceEmoji: booking.service_emoji || "",
+    date: rawDate ? formatRelativeBookingDayLabel(rawDate) : "امروز",
+    time: booking.time || "زمان",
+    status: bookingStatusLabel(booking.status),
+    tone: bookingStatusTone(booking.status || "تازه")
+  };
 }
 
 /**
- * Client role — bookings list on profile bookings tab.
- * Presentational: booking rows + open-settings callback (list from useSalonDirectory).
+ * Client role — "فعالیت من". Shows what is still ahead (the next appointment as a big card, the
+ * rest as a short list); everything that is over, cancelled or expired lives behind the history
+ * button. No day strip: a client has a handful of bookings, not a schedule to page through.
  */
 export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook }) {
-  const weekTabs = useMemo(() => {
-    const fallbackTabs = buildExactBookingDateTabs(7);
-    const seen = new Set();
-    const bookingTabs = bookings
-      .map((booking) => {
-        const rawDate = booking.booking_date || booking.date || "";
-        const dateKey = getBookingDateKey(rawDate || "امروز");
-        if (!dateKey || seen.has(dateKey)) return null;
-        seen.add(dateKey);
-        const matchedFallback = fallbackTabs.find((tab) => tab.dateKey === dateKey);
-        const formattedFallbackLabel = rawDate ? formatRelativeBookingDayLabel(rawDate) : "امروز";
-        return {
-          id: dateKey,
-          day: matchedFallback?.label || formattedFallbackLabel,
-          label: matchedFallback?.label || formattedFallbackLabel,
-          meta: matchedFallback?.sub || formattedFallbackLabel,
-          state: `${toPersianDigits(bookings.filter((item) => isArtistBookingOnExactDate(item, dateKey)).length)} نوبت`,
-          dateKey
-        };
-      })
-      .filter(Boolean);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
-    return (bookingTabs.length ? bookingTabs : fallbackTabs.map((tab) => ({
-      id: tab.dateKey,
-      day: tab.label,
-      label: tab.label,
-      meta: tab.sub || "",
-      state: `${toPersianDigits(bookings.filter((item) => isArtistBookingOnExactDate(item, tab.dateKey)).length)} نوبت`,
-      dateKey: tab.dateKey
-    })));
+  const { upcoming, past } = useMemo(() => {
+    const ahead = [];
+    const behind = [];
+    bookings.forEach((booking) => {
+      if (isBookingActive(booking) && !isBookingInPast(booking)) ahead.push(booking);
+      else behind.push(booking);
+    });
+    return { upcoming: ahead.sort(compareUpcoming), past: behind };
   }, [bookings]);
 
-  const [selectedDay, setSelectedDay] = useState("");
-  const [historyOpen, setHistoryOpen] = useState(false);
-  const activeDay = selectedDay || weekTabs[0]?.id || weekTabs[0]?.day || "";
-  const activeDateKey = weekTabs.find((tab) => (tab.id || tab.day) === activeDay)?.dateKey || "";
-  const activeBookings = useMemo(() => (
-    activeDateKey
-      ? bookings.filter((booking) => isArtistBookingOnExactDate(booking, activeDateKey))
-      : bookings
-  ), [bookings, activeDateKey]);
-  const [nextBooking, ...otherBookings] = activeBookings;
-
-  const getBookingMeta = (booking) => {
-    const salonName = booking.salonName || booking.salon_name || "سالن منتخب";
-    const avatar = booking.salonAvatar || booking.salon_avatar || "";
-    const rawDate = booking.booking_date || booking.date || "";
-    return {
-      salonName,
-      avatar,
-      service: booking.service || "خدمت زیبایی",
-      serviceEmoji: booking.service_emoji || "",
-      date: rawDate ? formatRelativeBookingDayLabel(rawDate) : "امروز",
-      time: booking.time || "زمان",
-      status: bookingStatusLabel(booking.status),
-      tone: bookingStatusTone(booking.status || "تازه")
-    };
-  };
+  const [nextBooking, ...otherBookings] = upcoming;
 
   return (
     <>
-    <section className="clientBookingsBoard" aria-label="رزروهای مشتری">
-      <div className="boardHead">
-        <div>
-          <span>رزروهای من</span>
-          <strong>نوبت‌های ثبت‌شده</strong>
-        </div>
-        <b>{toPersianDigits(bookings.length)} رزرو</b>
-      </div>
-      {bookings.length ? (
-        <div className="clientBookingList">
-          <ProfileHeroWeekStrip
-            items={weekTabs}
-            selectedDay={activeDay}
-            defaultDay={weekTabs[0]?.id || weekTabs[0]?.day}
-            onSelectDay={setSelectedDay}
-            onOpenHistory={() => setHistoryOpen(true)}
-            ariaLabel="روزهای رزروهای من"
-          />
-          {nextBooking ? (() => {
-            const meta = getBookingMeta(nextBooking);
-            const StatusIcon = BOOKING_STATUS_ICONS[meta.tone] || Clock3;
-            const pendingDeadline = (nextBooking.status === "درخواست" || nextBooking.status === "تازه")
-              ? formatRequestExpiryDeadline(nextBooking.created_at)
-              : "";
-            return (
-              <article
-                className="clientBookingFeatureCard is-clickable"
-                key={nextBooking.id || `${meta.salonName}-${meta.time}`}
-                onClick={() => onOpenSettings?.({ ...nextBooking, clientBookingSheetMode: "details" })}
-              >
-                <div className="clientBookingFeatureTop">
-                  <ServiceIcon emoji={meta.serviceEmoji} name={meta.service} size="lg" className="clientBookingFeatureIcon" />
-                  <div>
-                    <b>{meta.service}</b>
-                    <span>{meta.salonName}</span>
-                  </div>
-                  <span className={`clientBookingFeatureLogo ${meta.avatar ? "hasImage" : ""}`} aria-hidden="true">
-                    {meta.avatar ? <img src={meta.avatar} alt="" /> : String(meta.salonName).slice(0, 1)}
-                  </span>
-                </div>
-                <div className="clientBookingFeatureGrid">
-                  <span>
-                    <CalendarDays size={17} />
-                    <small>تاریخ</small>
-                    <b>{meta.date}</b>
-                  </span>
-                  <span>
-                    <Clock3 size={17} />
-                    <small>ساعت</small>
-                    <SegmentClock value={meta.time} size="xs" as="b" backgroundColor="transparent" />
-                  </span>
-                </div>
-                <div className={`clientBookingStatusPill is-${meta.tone}`}>
-                  <StatusIcon size={16} />
-                  {meta.status}
-                </div>
-                {pendingDeadline ? (
-                  <p className="clientBookingPendingNote">
-                    <Clock3 size={14} />
-                    در انتظار تایید سالن — حداکثر تا ساعت {pendingDeadline}
-                  </p>
-                ) : null}
-                <div className="clientBookingFeatureActions">
-                  <button
-                    type="button"
-                    className="clientBookingActionPrimary"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      onOpenSettings?.({ ...nextBooking, clientBookingSheetMode: "details" });
-                    }}
-                  >
-                    <FileText size={17} />
-                    مشاهده جزئیات
-                  </button>
-                  {isBookingSettled(nextBooking) ? (
-                    <button
-                      type="button"
-                      className="clientBookingActionSecondary"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        onRebook?.(nextBooking);
-                      }}
-                      aria-label="رزرو دوباره"
-                      title="رزرو دوباره"
-                    >
-                      <Sparkles size={18} />
-                    </button>
-                  ) : null}
-                </div>
-              </article>
-            );
-          })() : null}
-
-          {otherBookings.length ? (
-            <div className="clientBookingOtherList" aria-label="سایر نوبت‌ها">
-              <span>سایر نوبت‌ها</span>
-              {otherBookings.map((booking, index) => {
-                const meta = getBookingMeta(booking);
-                return (
-                  <button
-                    type="button"
-                    className="clientBookingMiniCard"
-                    key={booking.id || `${meta.salonName}-${meta.time}-${index}`}
-                    onClick={() => onOpenSettings?.(booking)}
-                  >
-                    <span className={`clientBookingMiniLogo ${meta.avatar ? "hasImage" : ""}`} aria-hidden="true">
-                      {meta.avatar ? <img src={meta.avatar} alt="" /> : String(meta.salonName).slice(0, 1)}
-                    </span>
-                    <div>
-                      <b className="svcInline"><ServiceIcon emoji={meta.serviceEmoji} name={meta.service} size="xs" />{meta.service}</b>
-                      <small>{meta.salonName} · {meta.date}</small>
-                    </div>
-                    <div className="clientBookingMiniState">
-                      <strong className={`is-${meta.tone}`}>{meta.status}</strong>
-                      <em>{meta.time}</em>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          ) : activeBookings.length === 0 ? (
-            <div className="clientBookingsEmpty is-dayEmpty">
-              <CalendarCheck size={24} />
-              <b>برای این روز نوبتی نداری</b>
-              <span>از نوار بالا تاریخ‌های دیگر را ببین.</span>
-            </div>
-          ) : null}
-        </div>
-      ) : (
-        <div className="clientBookingsEmpty">
-          <img
-            className="clientBookingsEmptyArt"
-            src="/client-bookings-empty.webp"
-            alt=""
-            aria-hidden="true"
-            draggable={false}
-          />
-          <b>هنوز رزروی ثبت نشده</b>
-          <span>بعد از رزرو سالن، نوبت‌ها اینجا نمایش داده می‌شوند.</span>
-        </div>
-      )}
-    </section>
-    <BookingHistoryCalendarSheet
-      open={historyOpen}
-      onOpenChange={setHistoryOpen}
-      selectedDay={activeDateKey}
-      onSelectDay={setSelectedDay}
-      bookings={bookings}
-      matchBookingDay={(booking, dateKey) => isArtistBookingOnExactDate(booking, dateKey)}
-      kicker="رزرو"
-      title="تاریخچه رزروها"
-      emptyDayLabel="رزروی ثبت نشده"
-      renderBooking={(booking, { closeHistory }) => {
-        const meta = getBookingMeta(booking);
-        return (
+      <section className="clientBookingsBoard" aria-label="رزروهای مشتری">
+        <div className="boardHead cbpHead">
+          <div>
+            <span>رزروهای من</span>
+            <strong>{upcoming.length ? "نوبت‌های پیش‌رو" : "نوبت پیش‌رویی نداری"}</strong>
+          </div>
           <button
             type="button"
-            className="clientBookingMiniCard"
-            onClick={() => {
-              closeHistory?.();
-              onOpenSettings?.({ ...booking, clientBookingSheetMode: "details" });
-            }}
+            className="cbpHistoryBtn"
+            onClick={() => setHistoryOpen(true)}
+            aria-label={`سابقه رزروها، ${toPersianDigits(past.length)} مورد`}
           >
-            <span className={`clientBookingMiniLogo ${meta.avatar ? "hasImage" : ""}`} aria-hidden="true">
-              {meta.avatar ? <img src={meta.avatar} alt="" /> : String(meta.salonName).slice(0, 1)}
-            </span>
-            <div>
-              <b className="svcInline"><ServiceIcon emoji={meta.serviceEmoji} name={meta.service} size="xs" />{meta.service}</b>
-              <small>{meta.salonName} · {meta.date}</small>
-            </div>
-            <div className="clientBookingMiniState">
-              <strong className={`is-${meta.tone}`}>{meta.status}</strong>
-              <em>{meta.time}</em>
-            </div>
+            <History size={18} />
+            <span>سابقه</span>
+            {past.length ? <b>{toPersianDigits(past.length)}</b> : null}
           </button>
-        );
-      }}
-    />
+        </div>
+
+        {nextBooking ? (() => {
+          const meta = metaOf(nextBooking);
+          const pendingDeadline = (nextBooking.status === "درخواست" || nextBooking.status === "تازه")
+            ? formatRequestExpiryDeadline(nextBooking.created_at)
+            : "";
+          return (
+            <article
+              className="clientBookingFeatureCard is-clickable"
+              onClick={() => onOpenSettings?.({ ...nextBooking, clientBookingSheetMode: "details" })}
+            >
+              <div className="clientBookingFeatureTop">
+                <ServiceIcon emoji={meta.serviceEmoji} name={meta.service} size="lg" className="clientBookingFeatureIcon" />
+                <div>
+                  <b>{meta.service}</b>
+                  <span>{meta.salonName}</span>
+                </div>
+                <span className={`clientBookingFeatureLogo ${meta.avatar ? "hasImage" : ""}`} aria-hidden="true">
+                  {meta.avatar ? <img src={meta.avatar} alt="" /> : String(meta.salonName).slice(0, 1)}
+                </span>
+              </div>
+              <div className="clientBookingFeatureGrid">
+                <span>
+                  <CalendarDays size={17} />
+                  <small>تاریخ</small>
+                  <b>{meta.date}</b>
+                </span>
+                <span>
+                  <Clock3 size={17} />
+                  <small>ساعت</small>
+                  <SegmentClock value={meta.time} size="xs" as="b" backgroundColor="transparent" />
+                </span>
+              </div>
+              <div className={`clientBookingStatusPill is-${meta.tone}`}>{meta.status}</div>
+              {pendingDeadline ? (
+                <p className="clientBookingPendingNote">
+                  <Clock3 size={14} />
+                  در انتظار تایید — حداکثر تا ساعت {pendingDeadline}
+                </p>
+              ) : null}
+              <div className="clientBookingFeatureActions">
+                <button
+                  type="button"
+                  className="clientBookingActionPrimary"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onOpenSettings?.({ ...nextBooking, clientBookingSheetMode: "details" });
+                  }}
+                >
+                  <FileText size={17} />
+                  مشاهده جزئیات
+                </button>
+                {isBookingSettled(nextBooking) ? (
+                  <button
+                    type="button"
+                    className="clientBookingActionSecondary"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onRebook?.(nextBooking);
+                    }}
+                    aria-label="رزرو دوباره"
+                    title="رزرو دوباره"
+                  >
+                    <Sparkles size={18} />
+                  </button>
+                ) : null}
+              </div>
+            </article>
+          );
+        })() : (
+          <div className="clientBookingsEmpty">
+            <img
+              className="clientBookingsEmptyArt"
+              src="/client-bookings-empty.webp"
+              alt=""
+              aria-hidden="true"
+              draggable={false}
+            />
+            <b>{bookings.length ? "نوبت فعالی نداری" : "هنوز رزروی ثبت نشده"}</b>
+            <span>
+              {bookings.length
+                ? "نوبت‌های قبلی‌ات در سابقه هستند. از بخش «سالن» نوبت تازه بگیر."
+                : "بعد از رزرو سالن، نوبت‌ها اینجا نمایش داده می‌شوند."}
+            </span>
+          </div>
+        )}
+
+        {otherBookings.length ? (
+          <div className="clientBookingOtherList" aria-label="سایر نوبت‌های پیش‌رو">
+            <span>سایر نوبت‌های پیش‌رو</span>
+            {otherBookings.map((booking, index) => {
+              const meta = metaOf(booking);
+              return (
+                <button
+                  type="button"
+                  className="clientBookingMiniCard"
+                  key={`${booking.bookingSource || "salon"}-${booking.id || index}`}
+                  onClick={() => onOpenSettings?.(booking)}
+                >
+                  <span className={`clientBookingMiniLogo ${meta.avatar ? "hasImage" : ""}`} aria-hidden="true">
+                    {meta.avatar ? <img src={meta.avatar} alt="" /> : String(meta.salonName).slice(0, 1)}
+                  </span>
+                  <div>
+                    <b className="svcInline"><ServiceIcon emoji={meta.serviceEmoji} name={meta.service} size="xs" />{meta.service}</b>
+                    <small>{meta.salonName} · {meta.date}</small>
+                  </div>
+                  <div className="clientBookingMiniState">
+                    <strong className={`is-${meta.tone}`}>{meta.status}</strong>
+                    <em>{meta.time}</em>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        ) : null}
+      </section>
+
+      <ClientBookingHistorySheet
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        bookings={past}
+        onOpenBooking={(booking) => {
+          setHistoryOpen(false);
+          onOpenSettings?.({ ...booking, clientBookingSheetMode: "details" });
+        }}
+        onRebook={(booking) => {
+          setHistoryOpen(false);
+          onRebook?.(booking);
+        }}
+      />
     </>
   );
 }
