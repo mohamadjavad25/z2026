@@ -132,7 +132,7 @@ export function ProfileSettingsPanel({
   const [deleteError, setDeleteError] = useState("");
 
   const commonToggles = (
-    <SettingsGroup title={profileType === "artist" ? "کنترل تجربه مشتری" : "عمومی"}>
+    <SettingsGroup title={profileType === "artist" ? "کنترل تجربه مشتری" : profileType === "client" ? "اعلان‌ها" : "عمومی"}>
       <SettingsToggle
         icon={profileSettings.reservationAlerts ? Bell : BellOff}
         label={profileType === "artist" ? "اعلان رزرو" : profileType === "salon" ? "اعلان رزرو و تیم" : "اعلان رزرو"}
@@ -140,13 +140,15 @@ export function ProfileSettingsPanel({
         checked={profileSettings.reservationAlerts}
         onChange={() => onToggle("reservationAlerts")}
       />
-      <SettingsToggle
-        icon={Sparkles}
-        label={profileType === "artist" ? "پیشنهاد رشد پروفایل" : profileType === "salon" ? "پیشنهاد رشد سالن" : "پیشنهاد هوشمند"}
-        description={profileType === "artist" ? "ایده نمونه‌کار، قیمت‌گذاری و جذب مشتری بهتر" : profileType === "salon" ? "بهبود خدمات، ظرفیت، قیمت و محتوای سالن" : "مدل، سالن و پیشنهادهای شخصی"}
-        checked={profileSettings.smartSuggestions}
-        onChange={() => onToggle("smartSuggestions")}
-      />
+      {profileType === "client" ? null : (
+        <SettingsToggle
+          icon={Sparkles}
+          label={profileType === "artist" ? "پیشنهاد رشد پروفایل" : "پیشنهاد رشد سالن"}
+          description={profileType === "artist" ? "ایده نمونه‌کار، قیمت‌گذاری و جذب مشتری بهتر" : "بهبود خدمات، ظرفیت، قیمت و محتوای سالن"}
+          checked={profileSettings.smartSuggestions}
+          onChange={() => onToggle("smartSuggestions")}
+        />
+      )}
     </SettingsGroup>
   );
 
