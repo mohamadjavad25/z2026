@@ -1,5 +1,5 @@
 import { getDb, withTransaction, all, get, run } from "../connection.js";
-import { countFollowers, getUserById, getUserLiteById, isFollowing } from "./users.js";
+import { countFollowers, countFollowCountsMany, getUserById, getUserLiteById, isFollowing } from "./users.js";
 import { buildClientHistoryLookup } from "./clientHistory.js";
 import { listPostsByOwner } from "./posts.js";
 import { resolveRollingPersianDateKey } from "../../../shared/lib/persianCalendar.js";
@@ -872,7 +872,8 @@ export async function listSavedArtistsForUser(userId) {
     WHERE sp.user_id = $1 AND u.type = 'artist'
     ORDER BY sp.created_at DESC
   `, [userId]);
-  const result = await Promise.all(rows.map(async (user) => ({
+  const counts = await countFollowCountsMany(rows.map((user) => user.id), db);
+  const result = rows.map((user) => ({
     id: user.id,
     name: user.name,
     role: user.service ? `آرتیست ${user.service}` : "آرتیست",
@@ -881,7 +882,7 @@ export async function listSavedArtistsForUser(userId) {
     avatar: user.avatar ? `/api/media/avatar/${user.id}` : "",
     avatarPosition: user.avatar_position || "",
     service: user.service,
-    followers: await countFollowers(user.id, db)
-  })));
+    followers: counts.followers.get(Number(user.id)) || 0
+  }));
   return result;
 }

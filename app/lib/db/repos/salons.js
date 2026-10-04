@@ -1,5 +1,5 @@
 import { getDb, all, get, run } from "../connection.js";
-import { countFollowers } from "./users.js";
+import { countFollowers, countFollowCountsMany } from "./users.js";
 import { isProfileSaved } from "./social.js";
 import { getSettings, DEFAULT_SETTINGS } from "./userSettings.js";
 import { countFollowing, defaultHours } from "./salons/common.js";
@@ -205,11 +205,10 @@ export async function listSavedSalonsForUser(userId) {
     WHERE sp.user_id = $1
     ORDER BY sp.created_at DESC
   `, [userId]);
-  const result = await Promise.all(rows.map(async (row) => {
-    const [followerCount, followingCount] = await Promise.all([
-      countFollowers(row.user_id, db),
-      countFollowing(row.user_id, db)
-    ]);
+  const counts = await countFollowCountsMany(rows.map((row) => row.user_id), db);
+  const result = rows.map((row) => {
+    const followerCount = counts.followers.get(Number(row.user_id)) || 0;
+    const followingCount = counts.following.get(Number(row.user_id)) || 0;
     return {
       id: row.user_id,
       user_id: row.user_id,
@@ -230,7 +229,7 @@ export async function listSavedSalonsForUser(userId) {
       followingCount,
       following_count: followingCount
     };
-  }));
+  });
   return result;
 }
 

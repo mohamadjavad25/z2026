@@ -114,6 +114,7 @@ import {
   ScheduleBookingMenuModal
 } from "../schedule";
 import { AuthBootScreen } from "./AuthBootScreen";
+import { NetworkBusyBar } from "../../components/NetworkBusyBar";
 
 import { BottomNav } from "./BottomNav";
 import { ClientProfileModal } from "./ClientProfileModal";
@@ -1736,6 +1737,7 @@ function getPassportMatch(post) {
 
   return (
     <main className={`appShell ${!createdProfile ? "is-auth-gate" : ""} ${selectedSalon && activeTab === "salons" ? "is-salon-client" : ""} ${selectedPublicArtist ? "is-artist-public" : ""} ${!authChecked ? "is-auth-loading" : ""}`}>
+      <NetworkBusyBar />
       {!authChecked ? <AuthBootScreen /> : null}
 
       <section className="workspace">

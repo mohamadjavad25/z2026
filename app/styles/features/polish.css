@@ -731,3 +731,9 @@
 
 /* Keep the last content clear of the floating close button. */
 *:has(> .sheetClose) { padding-bottom: 84px !important; }
+
+/* ---- Global in-flight indicator ---- */
+.networkBusyBar { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 100002; overflow: hidden; background: rgba(20, 22, 29, 0.08); pointer-events: none; }
+.networkBusyBar i { display: block; height: 100%; width: 40%; border-radius: 3px; background: #14161d; animation: networkBusySlide 1s ease-in-out infinite; }
+@keyframes networkBusySlide { 0% { transform: translateX(-100%); } 100% { transform: translateX(260%); } }
+@media (prefers-reduced-motion: reduce) { .networkBusyBar i { animation: none; width: 100%; opacity: 0.6; } }

@@ -133,6 +133,22 @@ export async function countFollowers(userId, runner = null) {
   return Number(row?.c || 0);
 }
 
+/** Follower / following counts for many users in two grouped queries (no per-row round trips). */
+export async function countFollowCountsMany(userIds, runner = null) {
+  const ids = [...new Set(userIds.map(Number).filter(Boolean))];
+  const followers = new Map();
+  const following = new Map();
+  if (!ids.length) return { followers, following };
+  const db = runner || (await getDb());
+  const [followerRows, followingRows] = await Promise.all([
+    all(db, "SELECT target_user_id AS id, COUNT(*) AS c FROM follows WHERE target_user_id = ANY($1) GROUP BY target_user_id", [ids]),
+    all(db, "SELECT follower_user_id AS id, COUNT(*) AS c FROM follows WHERE follower_user_id = ANY($1) GROUP BY follower_user_id", [ids])
+  ]);
+  followerRows.forEach((row) => followers.set(Number(row.id), Number(row.c)));
+  followingRows.forEach((row) => following.set(Number(row.id), Number(row.c)));
+  return { followers, following };
+}
+
 export async function isFollowing(followerId, targetId, runner = null) {
   if (!followerId || !targetId) return false;
   const db = runner || (await getDb());

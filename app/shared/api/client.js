@@ -1,8 +1,10 @@
+import { trackRequest } from "./busyTracker";
+
 export async function apiFetch(path, options = {}) {
-  const response = await fetch(path, {
+  const response = await trackRequest(fetch(path, {
     headers: { "Content-Type": "application/json", ...(options.headers || {}) },
     ...options
-  });
+  }), options.method);
   const payload = await response.json().catch(() => ({}));
   return { ok: response.ok, status: response.status, payload, response };
 }

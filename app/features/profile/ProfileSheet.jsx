@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
-import { X } from "lucide-react";
+import { SheetClose } from "../../components/SheetClose";
 
 export function ProfileSheet({ open, kicker = "پروفایل", title, label, panelClassName = "", hideHeader = false, onClose, children }) {
   // Every sheet in the app shares this shell, so Escape-to-close only
@@ -36,12 +36,10 @@ export function ProfileSheet({ open, kicker = "پروفایل", title, label, pa
               <span>{kicker}</span>
               <h3>{title}</h3>
             </div>
-            <button type="button" onClick={onClose} aria-label={`بستن ${title}`}>
-              <X size={18} />
-            </button>
           </div>
         )}
         {children}
+        <SheetClose onClick={onClose} label={`بستن ${title || ""}`.trim()} />
       </aside>
     </div>,
     document.body

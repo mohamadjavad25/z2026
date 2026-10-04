@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarCheck, CheckCircle2, Phone, UserRound, X } from "lucide-react";
+import { CalendarCheck, CheckCircle2, Phone, UserRound } from "lucide-react";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { DateTimeWheelPicker } from "../../components/DateTimeWheelPicker";
 import { ProfileSheet } from "../profile/ProfileSheet";
@@ -55,9 +55,6 @@ export function SalonClientBookingModal({
             <strong>{booking.service}</strong>
             <small>{salon.name}</small>
           </div>
-          <button type="button" className="salonClientBookingClose" onClick={onClose} aria-label="بستن">
-            <X size={16} />
-          </button>
         </div>
 
         <DateTimeWheelPicker
