@@ -1,5 +1,7 @@
 "use client";
 
+import { thumbUrl } from "../../shared/lib/mediaUrl";
+
 export function PublicArtistGalleryPanel({
   tags,
   activeTag,
@@ -49,7 +51,7 @@ export function PublicArtistGalleryPanel({
               onKeyDown={(event) => handleKeyOpen(event, featured)}
             >
               {featured.image ? (
-                <img src={featured.image} alt={featured.title} />
+                <img src={thumbUrl(featured.image, 720)} alt={featured.title} fetchPriority="high" />
               ) : (
                 <div className="artistPublicCardFallback" style={getCardStyle(featured)} />
               )}
@@ -70,7 +72,7 @@ export function PublicArtistGalleryPanel({
               onKeyDown={(event) => handleKeyOpen(event, item)}
             >
               {item.image ? (
-                <img src={item.image} alt={item.title} />
+                <img src={thumbUrl(item.image, 480)} alt={item.title} loading="eager" />
               ) : (
                 <div className="artistPublicCardFallback" style={getCardStyle(item)} />
               )}

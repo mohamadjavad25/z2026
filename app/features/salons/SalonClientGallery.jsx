@@ -1,5 +1,6 @@
 "use client";
 
+import { thumbUrl } from "../../shared/lib/mediaUrl";
 import { useState } from "react";
 import { ImagePlus } from "lucide-react";
 import { PostViewer } from "../posts/PostViewer";
@@ -66,9 +67,9 @@ export function SalonClientGallery({ salon, items, getFallbackStyle, postActions
             >
               {item.image ? (
                 <img
-                  src={item.image}
+                  src={thumbUrl(item.image, 720)}
                   alt={item.title || `نمونه‌کار ${salon?.name || "سالن"}`}
-                  loading="lazy"
+                  loading={index < 6 ? "eager" : "lazy"}
                   decoding="async"
                   onLoad={(event) => rememberImageRatio(key, event)}
                 />

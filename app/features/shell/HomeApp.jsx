@@ -74,6 +74,7 @@ import {
 } from "../posts";
 import { SettingsPage } from "../settings";
 import { useAppSounds } from "./useAppSounds";
+import { preloadImages, thumbUrl } from "../../shared/lib/mediaUrl";
 import {
   ClientBookingSettingsModal,
   ClientBookingsPanel,
@@ -1200,6 +1201,15 @@ export function HomeApp() {
       item.status === "منقضی شده" && isWithinLastHours(item.createdAt, 24)
     ))
   ), [artistBookingList]);
+
+  // Warm the browser cache with the gallery thumbnails as soon as the lists arrive, so opening a
+  // gallery tab shows pictures at once instead of loading them after the tab appears.
+  useEffect(() => {
+    const lists = [salonPortfolioList, artistPortfolioItems, selectedSalon?.portfolio];
+    const urls = lists.flatMap((list) => (Array.isArray(list) ? list.slice(0, 12) : []))
+      .map((item) => thumbUrl(item?.image, 480));
+    preloadImages(urls);
+  }, [salonPortfolioList, artistPortfolioItems, selectedSalon?.portfolio]);
 
   // Sounds for arriving requests / invites / status changes, toasts and the appointment alarm.
   const salonRequestIds = useMemo(() => reservationRequestList.map((item) => item.id), [reservationRequestList]);
