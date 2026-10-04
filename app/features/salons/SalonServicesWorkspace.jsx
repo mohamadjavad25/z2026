@@ -48,6 +48,8 @@ export function SalonServicesWorkspace({
           services.map((service) => {
             const selectedArtistIds = Array.isArray(service.staff_ids)
               ? service.staff_ids.map(String)
+              : String(service.staff_ids || "").trim()
+                ? String(service.staff_ids).split(",").map((id) => id.trim()).filter(Boolean)
               : service.staff_id
                 ? [String(service.staff_id)]
                 : [];
@@ -103,7 +105,7 @@ export function SalonServicesWorkspace({
                     </button>
                     <ProfileSheet
                       open={menuOpen}
-                      kicker="آرتیست‌های این خدمت"
+                      kicker={selectedArtistIds.length ? `${toPersianDigits(selectedArtistIds.length)} آرتیست انتخاب شده` : "آرتیستی انتخاب نشده"}
                       title={service.name}
                       panelClassName="sasSheet"
                       onClose={() => onMenuToggle?.(null)}

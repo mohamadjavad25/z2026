@@ -25,6 +25,8 @@ export async function listSalonServices(salonUserId, runner = null) {
     const staffMembers = staff.filter((person) => staffIds.includes(String(person.id)));
     return {
       ...service,
+      // The column is a comma string; clients get the parsed list.
+      staff_ids: staffIds,
       staff_members: staffMembers,
       staff_names: staffMembers.map((person) => person.name).filter(Boolean).join("، ")
     };
