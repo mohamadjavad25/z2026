@@ -69,8 +69,10 @@ export function validateBody(schema, body) {
   const result = schema.safeParse(body);
   if (!result.success) {
     const issue = result.error.issues[0];
-    const path = issue?.path?.length ? `${issue.path.join(".")}: ` : "";
-    return { ok: false, data: null, response: error(`${path}${issue?.message || "ورودی نامعتبر است."}`, 400) };
+    // Users read this message in the UI: only pass it through when it is already Persian
+    // (zod's default messages and the "field: " prefix are English).
+    const message = /[؀-ۿ]/.test(issue?.message || "") ? issue.message : "ورودی نامعتبر است؛ بررسی کن و دوباره امتحان کن.";
+    return { ok: false, data: null, response: error(message, 400) };
   }
   return { ok: true, data: result.data, response: null };
 }

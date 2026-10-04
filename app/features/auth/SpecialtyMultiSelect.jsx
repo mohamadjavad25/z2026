@@ -18,7 +18,7 @@ import { toPersianDigits } from "../../shared/lib/digits";
  * type="hidden" -- hidden inputs skip HTML5 constraint validation, and
  * `required` needs to keep working here).
  */
-export function SpecialtyMultiSelect({ name, placeholder, options, required, defaultValue = "" }) {
+export function SpecialtyMultiSelect({ name, placeholder, options, required, defaultValue = "", onChange, invalid = false, describedBy }) {
   const initial = String(defaultValue || "").split(/[،,]/).map((item) => item.trim()).filter(Boolean);
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState(initial);
@@ -33,10 +33,13 @@ export function SpecialtyMultiSelect({ name, placeholder, options, required, def
     return q ? allOptions.filter((option) => option.includes(q)) : allOptions;
   }, [allOptions, query]);
 
+  function commit(next) {
+    setSelected(next);
+    onChange?.(next);
+  }
+
   function toggleOption(option) {
-    setSelected((prev) =>
-      prev.includes(option) ? prev.filter((item) => item !== option) : [...prev, option]
-    );
+    commit(selected.includes(option) ? selected.filter((item) => item !== option) : [...selected, option]);
   }
 
   function addCustomOption() {
@@ -46,7 +49,7 @@ export function SpecialtyMultiSelect({ name, placeholder, options, required, def
       setExtraOptions((prev) => [...prev, value]);
     }
     if (!selected.includes(value)) {
-      setSelected((prev) => [...prev, value]);
+      commit([...selected, value]);
     }
     setDraft("");
     setQuery("");
@@ -65,6 +68,8 @@ export function SpecialtyMultiSelect({ name, placeholder, options, required, def
         onClick={() => setOpen(true)}
         aria-haspopup="dialog"
         aria-expanded={open}
+        aria-invalid={invalid || undefined}
+        aria-describedby={describedBy}
       >
         {selected.length ? (
           <span className="specialtySelectChips">

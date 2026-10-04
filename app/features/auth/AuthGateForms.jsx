@@ -1,19 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { ChevronLeft, Eye, EyeOff, ShieldCheck } from "lucide-react";
 import { beautySpecialtyOptions, profileRoles } from "../../shared/constants/roles";
 import { toLatinDigits } from "../../shared/lib/digits";
+import { Button, Field } from "../../components/ui";
 import { ProfileRoleGrid } from "../profile/ProfileRoleGrid";
+import { firstInvalidField, validateLogin, validateSignup } from "./formValidation";
 import { SpecialtyMultiSelect } from "./SpecialtyMultiSelect";
 
 // target="_blank" (not next/link) deliberately -- this sits inside a
 // half-filled signup form; navigating away in the same tab would lose
 // whatever the user already typed.
-function TermsAgreement() {
+function TermsAgreement({ error, onChange }) {
+  const errorId = useId();
   return (
+    <div className="authTermsBlock">
     <label className="authTermsAgreement">
-      <input type="checkbox" name="agreeTerms" required />
+      <input type="checkbox" name="agreeTerms" onChange={onChange} aria-invalid={error ? true : undefined} aria-describedby={error ? errorId : undefined} />
       <span>
         <a href="/terms" target="_blank" rel="noopener noreferrer">قوانین و مقررات</a>
         {" "}و{" "}
@@ -21,23 +25,21 @@ function TermsAgreement() {
         {" "}زیبابان رو خوندم و قبول دارم.
       </span>
     </label>
+    {error ? <small id={errorId} className="ui-field-error" role="alert">{error}</small> : null}
+    </div>
   );
 }
 
-function PasswordField({ name, placeholder, ariaLabel, required, minLength, onInput, defaultValue, autoComplete = "current-password" }) {
+function PasswordField({ name, placeholder, autoComplete = "current-password", controlProps }) {
   const [visible, setVisible] = useState(false);
   return (
     <div className="authPasswordField">
       <input
         name={name}
         placeholder={placeholder}
-        aria-label={ariaLabel}
         type={visible ? "text" : "password"}
         autoComplete={autoComplete}
-        required={required}
-        minLength={minLength}
-        onInput={onInput}
-        defaultValue={defaultValue}
+        {...controlProps}
       />
       <button
         type="button"
@@ -62,6 +64,12 @@ function PasswordRecoveryPanel({ onClose }) {
 
   async function handleSubmit(event) {
     event.preventDefault();
+    const phoneError = validateLogin({ phone, password: "x" }).phone;
+    if (phoneError) {
+      setError(phoneError);
+      setStatus("error");
+      return;
+    }
     setStatus("sending");
     setError("");
     try {
@@ -99,7 +107,7 @@ function PasswordRecoveryPanel({ onClose }) {
   }
 
   return (
-    <form className="signupForm is-login is-recovery" onSubmit={handleSubmit}>
+    <form className="signupForm is-login is-recovery" noValidate onSubmit={handleSubmit}>
       <div className="formTitle">
         <span className="formTitleIcon"><ShieldCheck size={18} /></span>
         <div>
@@ -116,11 +124,9 @@ function PasswordRecoveryPanel({ onClose }) {
         autoComplete="tel"
         onInput={(event) => { event.currentTarget.value = toLatinDigits(event.currentTarget.value); }}
         maxLength={11}
-        pattern="09[0-9]{9}"
-        title="شماره موبایل معتبر وارد کن (مثلا 09123456789)"
         value={phone}
-        onChange={(event) => setPhone(event.target.value)}
-        required
+        onChange={(event) => { setPhone(event.target.value); setError(""); }}
+        aria-invalid={error ? true : undefined}
       />
       {error ? <p className="authNotice" role="alert">{error}</p> : null}
       <button type="submit" className="profileSubmit" disabled={status === "sending"}>
@@ -128,6 +134,164 @@ function PasswordRecoveryPanel({ onClose }) {
       </button>
       <p className="authSwitchHint">
         <button type="button" onClick={onClose}>بازگشت به ورود</button>
+      </p>
+    </form>
+  );
+}
+
+const ROLE_FORMS = {
+  salon: {
+    title: "سالن زیبایی",
+    name: { label: "نام سالن", placeholder: "نام سالن" },
+    area: { label: "محدوده فعالیت", placeholder: "محدوده فعالیت" },
+    service: { placeholder: "خدمات اصلی" },
+    order: ["name", "area", "service"]
+  },
+  artist: {
+    title: "آرتیست",
+    name: { label: "نام هنری", placeholder: "نام هنری" },
+    area: { label: "محدوده یا سالن محل کار", placeholder: "محدوده / سالن محل کار" },
+    service: { placeholder: "تخصص اصلی" },
+    order: ["name", "service", "area"]
+  },
+  client: {
+    title: "بانو",
+    name: { label: "نام یا نام نمایشی", placeholder: "نام یا نام نمایشی" },
+    area: { label: "شهر و محدوده", placeholder: "شهر و محدوده" },
+    order: ["name", "area"]
+  }
+};
+
+const normalizePhoneInput = (event) => { event.currentTarget.value = toLatinDigits(event.currentTarget.value); };
+
+/** Focus the first invalid control; the specialty picker has no real input to focus, so its trigger is used. */
+function focusField(form, field) {
+  if (!form || !field) return;
+  const target = field === "service"
+    ? form.querySelector(".specialtySelectTrigger")
+    : form.querySelector(`[name="${field}"]`);
+  target?.focus?.({ preventScroll: false });
+  target?.scrollIntoView?.({ block: "center", behavior: "smooth" });
+}
+
+/** Shared form state: Persian per-field errors, cleared as the user fixes each field. */
+function useAuthForm(validate, onValid) {
+  const [errors, setErrors] = useState({});
+  const clear = (name) => setErrors((current) => (current[name] ? { ...current, [name]: undefined } : current));
+  function handleSubmit(event) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const data = Object.fromEntries(new FormData(form).entries());
+    const found = validate(data);
+    if (Object.keys(found).length) {
+      setErrors(found);
+      focusField(form, firstInvalidField(found));
+      return;
+    }
+    setErrors({});
+    onValid(event);
+  }
+  return { errors, clear, handleSubmit, onInput: (event) => event.target?.name && clear(event.target.name) };
+}
+
+function PhoneAndPassword({ errors, newPassword }) {
+  return (
+    <div className="formRow">
+      <Field label="شماره تماس" error={errors.phone} hideLabel>
+        {(props) => (
+          <input name="phone" placeholder="شماره تماس" inputMode="tel" dir="ltr" autoComplete="tel" maxLength={11} onInput={normalizePhoneInput} {...props} />
+        )}
+      </Field>
+      <Field label="رمز عبور" error={errors.password} hideLabel>
+        {(props) => (
+          <PasswordField
+            name="password"
+            placeholder={newPassword ? "رمز عبور (حداقل ۸ کاراکتر)" : "رمز عبور"}
+            autoComplete={newPassword ? "new-password" : "current-password"}
+            controlProps={props}
+          />
+        )}
+      </Field>
+    </div>
+  );
+}
+
+function LoginForm({ authBusy, defaultPhone, onSubmit, onForgot }) {
+  const form = useAuthForm(validateLogin, onSubmit);
+  return (
+    <form className="signupForm is-login" noValidate onSubmit={form.handleSubmit} onInput={form.onInput}>
+      <Field label="شماره تماس" error={form.errors.phone} hideLabel>
+        {(props) => (
+          <input name="phone" placeholder="شماره تماس" inputMode="tel" dir="ltr" autoComplete="tel" maxLength={11} defaultValue={defaultPhone} onInput={normalizePhoneInput} {...props} />
+        )}
+      </Field>
+      <Field label="رمز عبور" error={form.errors.password} hideLabel>
+        {(props) => <PasswordField name="password" placeholder="رمز عبور" controlProps={props} />}
+      </Field>
+      <button type="button" className="authForgotLink" onClick={onForgot}>
+        رمز عبور را فراموش کردی؟
+      </button>
+      <button type="submit" className="profileSubmit" disabled={authBusy}>
+        {authBusy ? "در حال ورود…" : "ورود"}
+      </button>
+    </form>
+  );
+}
+
+function SignupForm({ type, heroClass, authBusy, onBackToRole, onSwitchToLogin, onProfileSubmit }) {
+  const config = ROLE_FORMS[type] || ROLE_FORMS.client;
+  const form = useAuthForm((data) => validateSignup(type, data), (event) => onProfileSubmit(event, type));
+  const serviceErrorId = useId();
+  return (
+    <form
+      className={`signupForm is-${type} ${heroClass || ""}`}
+      noValidate
+      onSubmit={form.handleSubmit}
+      onInput={form.onInput}
+      onChange={(event) => { if (event.target?.name === "agreeTerms") form.clear("agreeTerms"); }}
+    >
+      <button type="button" className="profileBackButton" onClick={onBackToRole}>
+        <ChevronLeft size={17} />
+        تغییر نقش
+      </button>
+      <div className="formTitle">
+        <strong>{config.title}</strong>
+      </div>
+      {config.order.map((field) => {
+        if (field === "service") {
+          return (
+            <div className="ui-field" key="service">
+              <SpecialtyMultiSelect
+                name="service"
+                placeholder={config.service.placeholder}
+                options={beautySpecialtyOptions}
+                invalid={Boolean(form.errors.service)}
+                describedBy={form.errors.service ? serviceErrorId : undefined}
+                onChange={() => form.clear("service")}
+              />
+              {form.errors.service ? <small id={serviceErrorId} className="ui-field-error" role="alert">{form.errors.service}</small> : null}
+            </div>
+          );
+        }
+        return (
+          <Field key={field} label={config[field].label} error={form.errors[field]} hideLabel>
+            {(props) => <input name={field} placeholder={config[field].placeholder} {...props} />}
+          </Field>
+        );
+      })}
+      <PhoneAndPassword errors={form.errors} newPassword />
+      <Field label="ایمیل (اختیاری)" error={form.errors.email} hideLabel>
+        {(props) => <input name="email" type="email" placeholder="ایمیل (اختیاری)" dir="ltr" {...props} />}
+      </Field>
+      <TermsAgreement error={form.errors.agreeTerms} />
+      <button type="submit" className="profileSubmit" disabled={authBusy}>
+        {authBusy ? "در حال ثبت…" : "تکمیل ثبت‌نام"}
+      </button>
+      <p className="authSwitchHint">
+        قبلاً ثبت‌نام کردی؟{" "}
+        <button type="button" onClick={onSwitchToLogin}>
+          ورود
+        </button>
       </p>
     </form>
   );
@@ -183,27 +347,7 @@ export function AuthGateForms({
           <PasswordRecoveryPanel onClose={() => setRecoveryOpen(false)} />
         ) : (
         <>
-        <form className="signupForm is-login" onSubmit={onLoginSubmit}>
-          <input
-            name="phone"
-            placeholder="شماره تماس"
-            aria-label="شماره تماس"
-            inputMode="tel"
-            dir="ltr"
-            autoComplete="tel"
-            onInput={(event) => { event.currentTarget.value = toLatinDigits(event.currentTarget.value); }}
-            maxLength={11}
-            defaultValue={lastPhone}
-            required
-          />
-          <PasswordField name="password" placeholder="رمز عبور" ariaLabel="رمز عبور" required />
-          <button type="button" className="authForgotLink" onClick={() => setRecoveryOpen(true)}>
-            رمز عبور را فراموش کردی؟
-          </button>
-          <button type="submit" className="profileSubmit" disabled={authBusy}>
-            {authBusy ? "در حال ورود…" : "ورود"}
-          </button>
-        </form>
+        <LoginForm authBusy={authBusy} defaultPhone={lastPhone} onSubmit={onLoginSubmit} onForgot={() => setRecoveryOpen(true)} />
         <p className="authSwitchHint is-pageFooter">
           حساب نداری؟{" "}
           <button type="button" onClick={onSwitchToSignup}>
@@ -212,125 +356,15 @@ export function AuthGateForms({
         </p>
         </>
         )
-      ) : signupStep !== "form" ? null : profileType === "salon" ? (
-        <form className={`signupForm is-salon ${activeRoleMeta.heroClass}`} onSubmit={(event) => onProfileSubmit(event, "salon")}>
-          <button type="button" className="profileBackButton" onClick={onBackToRole}>
-            <ChevronLeft size={17} />
-            تغییر نقش
-          </button>
-          <div className="formTitle">
-            <strong>سالن زیبایی</strong>
-          </div>
-          <input name="name" placeholder="نام سالن" aria-label="نام سالن" required />
-          <input name="area" placeholder="محدوده فعالیت" aria-label="محدوده فعالیت" required />
-          <SpecialtyMultiSelect name="service" placeholder="خدمات اصلی" options={beautySpecialtyOptions} required />
-          <div className="formRow">
-            <input
-              name="phone"
-              placeholder="شماره تماس"
-              aria-label="شماره تماس"
-              inputMode="tel"
-              dir="ltr"
-              autoComplete="tel"
-              onInput={(event) => { event.currentTarget.value = toLatinDigits(event.currentTarget.value); }}
-              maxLength={11}
-              pattern="09[0-9]{9}"
-              title="شماره موبایل معتبر وارد کن (مثلا 09123456789)"
-              required
-            />
-            <PasswordField name="password" placeholder="رمز عبور (حداقل ۸ کاراکتر)" ariaLabel="رمز عبور" required minLength={8} autoComplete="new-password" />
-          </div>
-          <input name="email" placeholder="ایمیل (اختیاری)" aria-label="ایمیل اختیاری" type="email" />
-          <TermsAgreement />
-          <button type="submit" className="profileSubmit" disabled={authBusy}>
-            {authBusy ? "در حال ثبت…" : "تکمیل ثبت‌نام"}
-          </button>
-          <p className="authSwitchHint">
-            قبلاً ثبت‌نام کردی؟{" "}
-            <button type="button" onClick={onSwitchToLogin}>
-              ورود
-            </button>
-          </p>
-        </form>
-      ) : profileType === "artist" ? (
-        <form className={`signupForm is-artist ${activeRoleMeta.heroClass}`} onSubmit={(event) => onProfileSubmit(event, "artist")}>
-          <button type="button" className="profileBackButton" onClick={onBackToRole}>
-            <ChevronLeft size={17} />
-            تغییر نقش
-          </button>
-          <div className="formTitle">
-            <strong>آرتیست</strong>
-          </div>
-          <input name="name" placeholder="نام هنری" aria-label="نام هنری" required />
-          <SpecialtyMultiSelect name="service" placeholder="تخصص اصلی" options={beautySpecialtyOptions} required />
-          <input name="area" placeholder="محدوده / سالن محل کار" aria-label="محدوده یا سالن محل کار" required />
-          <div className="formRow">
-            <input
-              name="phone"
-              placeholder="شماره تماس"
-              aria-label="شماره تماس"
-              inputMode="tel"
-              dir="ltr"
-              autoComplete="tel"
-              onInput={(event) => { event.currentTarget.value = toLatinDigits(event.currentTarget.value); }}
-              maxLength={11}
-              pattern="09[0-9]{9}"
-              title="شماره موبایل معتبر وارد کن (مثلا 09123456789)"
-              required
-            />
-            <PasswordField name="password" placeholder="رمز عبور (حداقل ۸ کاراکتر)" ariaLabel="رمز عبور" required minLength={8} autoComplete="new-password" />
-          </div>
-          <input name="email" placeholder="ایمیل (اختیاری)" aria-label="ایمیل اختیاری" type="email" />
-          <TermsAgreement />
-          <button type="submit" className="profileSubmit" disabled={authBusy}>
-            {authBusy ? "در حال ثبت…" : "تکمیل ثبت‌نام"}
-          </button>
-          <p className="authSwitchHint">
-            قبلاً ثبت‌نام کردی؟{" "}
-            <button type="button" onClick={onSwitchToLogin}>
-              ورود
-            </button>
-          </p>
-        </form>
-      ) : (
-        <form className={`signupForm is-client ${activeRoleMeta.heroClass}`} onSubmit={(event) => onProfileSubmit(event, "client")}>
-          <button type="button" className="profileBackButton" onClick={onBackToRole}>
-            <ChevronLeft size={17} />
-            تغییر نقش
-          </button>
-          <div className="formTitle">
-            <strong>بانو</strong>
-          </div>
-          <input name="name" placeholder="نام یا نام نمایشی" aria-label="نام یا نام نمایشی" required />
-          <input name="area" placeholder="شهر و محدوده" aria-label="شهر و محدوده" required />
-          <div className="formRow">
-            <input
-              name="phone"
-              placeholder="شماره تماس"
-              aria-label="شماره تماس"
-              inputMode="tel"
-              dir="ltr"
-              autoComplete="tel"
-              onInput={(event) => { event.currentTarget.value = toLatinDigits(event.currentTarget.value); }}
-              maxLength={11}
-              pattern="09[0-9]{9}"
-              title="شماره موبایل معتبر وارد کن (مثلا 09123456789)"
-              required
-            />
-            <PasswordField name="password" placeholder="رمز عبور (حداقل ۸ کاراکتر)" ariaLabel="رمز عبور" required minLength={8} autoComplete="new-password" />
-          </div>
-          <input name="email" placeholder="ایمیل (اختیاری)" aria-label="ایمیل اختیاری" type="email" />
-          <TermsAgreement />
-          <button type="submit" className="profileSubmit" disabled={authBusy}>
-            {authBusy ? "در حال ثبت…" : "تکمیل ثبت‌نام"}
-          </button>
-          <p className="authSwitchHint">
-            قبلاً ثبت‌نام کردی؟{" "}
-            <button type="button" onClick={onSwitchToLogin}>
-              ورود
-            </button>
-          </p>
-        </form>
+      ) : signupStep !== "form" ? null : (
+        <SignupForm
+          type={profileType === "salon" || profileType === "artist" ? profileType : "client"}
+          heroClass={activeRoleMeta.heroClass}
+          authBusy={authBusy}
+          onBackToRole={onBackToRole}
+          onSwitchToLogin={onSwitchToLogin}
+          onProfileSubmit={onProfileSubmit}
+        />
       )}
     </>
   );

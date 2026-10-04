@@ -577,3 +577,12 @@ form.signupForm:not(.is-login) .formRow { grid-template-columns: 1fr !important;
    the moment a wrong password was sent. In login mode the notice sits in the normal flow. */
 .appShell.is-auth-gate .authGateHero[data-mode="login"] ~ .authNotice { margin-top: 28px; }
 .appShell.is-auth-gate .authGateHero[data-mode="login"] ~ .authNotice + .signupForm.is-login { margin-top: 10px; }
+
+/* Inline field errors on the light auth cards. */
+.appShell.is-auth-gate .ui-field { gap: 4px; }
+.appShell.is-auth-gate .ui-field-error { padding-inline: 6px; color: #b42a2a; }
+.appShell.is-auth-gate .ui-field.has-error input,
+.appShell.is-auth-gate .ui-field.has-error .specialtySelectTrigger { box-shadow: inset 0 0 0 1.5px #d94a4a; }
+.appShell.is-auth-gate .authTermsBlock { display: grid; gap: 4px; }
+
+.appShell.is-auth-gate .authGateHero ~ .authNotice { background: rgba(120, 24, 40, 0.86); color: #fff; font-weight: 700; padding: 12px 16px; }
