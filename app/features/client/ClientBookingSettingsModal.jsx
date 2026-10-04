@@ -5,8 +5,8 @@ import { CalendarCheck, CheckCircle2, Clock3, MapPin, Phone, RotateCcw, TimerOff
 import { SheetClose } from "../../components/SheetClose";
 import { bookingStatusLabel, bookingStatusTone, canClientCancel } from "./bookingStatus";
 import { ServiceIcon } from "../../components/ServiceIcon";
-import { SegmentClock } from "../../components/SegmentClock";
-import { toLatinDigits } from "../../shared/lib/digits";
+import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
+import { formatRequestExpiryDeadline } from "../../shared/lib/time";
 import { formatRelativeBookingDayLabel, resolveRollingPersianDate } from "../../shared/lib/persianCalendar";
 
 const BOOKING_STATUS_ICONS = {
@@ -54,6 +54,9 @@ export function ClientBookingSettingsModal({
   const formattedDate = rawDate ? formatRelativeBookingDayLabel(rawDate) : "امروز";
   const statusTone = bookingStatusTone(booking.status || "تازه");
   const StatusIcon = BOOKING_STATUS_ICONS[statusTone];
+  const area = booking.salonArea || booking.salon_area || "";
+  const duration = Number(booking.duration_minutes) || 0;
+  const pendingDeadline = statusTone === "pending" ? formatRequestExpiryDeadline(booking.created_at || booking.createdAt) : "";
 
   return (
     <div
@@ -79,19 +82,36 @@ export function ClientBookingSettingsModal({
               {bookingStatusLabel(booking.status)}
             </strong>
           </div>
-          <div className="clientBookingSettingsTime">
-            <SegmentClock value={booking.time || "زمان"} size="sm" as="span" backgroundColor="transparent" />
-          </div>
           <div className="clientBookingSettingsGrid">
             <span>
               <CalendarCheck size={14} /> <b>تاریخ</b>
               <em>{formattedDate}</em>
             </span>
-            <span>
-              <MapPin size={14} /> <b>محدوده</b>
-              <em>{booking.salonArea || booking.salon_area || "ثبت نشده"}</em>
-            </span>
+            {booking.time ? (
+              <span>
+                <Clock3 size={14} /> <b>ساعت</b>
+                <em>{toPersianDigits(toLatinDigits(booking.time))}</em>
+              </span>
+            ) : null}
+            {duration ? (
+              <span>
+                <Clock3 size={14} /> <b>مدت</b>
+                <em>{toPersianDigits(duration)} دقیقه</em>
+              </span>
+            ) : null}
+            {area ? (
+              <span>
+                <MapPin size={14} /> <b>محدوده</b>
+                <em>{area}</em>
+              </span>
+            ) : null}
           </div>
+          {pendingDeadline ? (
+            <p className="clientBookingPendingNote">
+              <Clock3 size={14} />
+              سالن تا ساعت {pendingDeadline} پاسخ می‌دهد؛ وگرنه رزرو خودکار لغو می‌شود.
+            </p>
+          ) : null}
           <div className="clientBookingSettingsActions">
             <button
               type="button"

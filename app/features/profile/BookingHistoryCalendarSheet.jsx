@@ -147,7 +147,7 @@ export function BookingHistoryCalendarSheet({
                     count > 0 ? "has-bookings" : ""
                   ].filter(Boolean).join(" ")}
                   aria-selected={active}
-                  aria-label={`${cell.weekday} ${cell.dayLabel} · ${toPersianDigits(count)} نوبت`}
+                  aria-label={`${cell.weekday} ${cell.dayLabel} • ${toPersianDigits(count)} نوبت`}
                   onClick={() => pickCell(cell)}
                 >
                   <strong>{cell.dayLabel}</strong>

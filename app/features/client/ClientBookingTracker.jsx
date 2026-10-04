@@ -92,8 +92,8 @@ export function ClientBookingTracker({ bookings = [], onOpen }) {
         <span className="cbtText">
           <b>{title}</b>
           <small>
-            {booking.service || "نوبت"} · {placeOf(booking)}
-            {confirmed ? ` · ${formatRelativeBookingDayLabel(booking.booking_date || booking.date || "امروز")} ${booking.time ? toPersianDigits(booking.time) : ""}` : ""}
+            {booking.service || "نوبت"} • {placeOf(booking)}
+            {confirmed ? ` • ${formatRelativeBookingDayLabel(booking.booking_date || booking.date || "امروز")} ${booking.time ? toPersianDigits(booking.time) : ""}` : ""}
           </small>
         </span>
         <ChevronLeft size={18} />

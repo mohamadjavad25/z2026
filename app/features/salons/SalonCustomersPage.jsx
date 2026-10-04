@@ -64,7 +64,7 @@ function CustomerSheet({ customer, onClose }) {
                 <ServiceIcon emoji={booking.service_emoji} name={booking.service} size="xs" />
                 <div>
                   <b>{booking.service || "خدمت"}</b>
-                  <small>{date ? formatRelativeBookingDayLabel(date) : "—"}{booking.time ? ` · ${toPersianDigits(booking.time)}` : ""}</small>
+                  <small>{date ? formatRelativeBookingDayLabel(date) : "—"}{booking.time ? ` • ${toPersianDigits(booking.time)}` : ""}</small>
                 </div>
                 <em className={`is-${tone}`}>{bookingStatusLabel(booking.status)}</em>
               </li>
@@ -185,7 +185,7 @@ export function SalonCustomersPage({ active, bookings = [], ownerLabel = "سال
                 ) : null}
                 <small>
                   {toPersianDigits(customer.visitCount)} بار رزرو
-                  {customer.upcoming > 0 ? ` · ${toPersianDigits(customer.upcoming)} نوبت پیش‌رو` : customer.lastDate ? ` · ${formatRelativeBookingDayLabel(customer.lastDate)}` : ""}
+                  {customer.upcoming > 0 ? ` • ${toPersianDigits(customer.upcoming)} نوبت پیش‌رو` : customer.lastDate ? ` • ${formatRelativeBookingDayLabel(customer.lastDate)}` : ""}
                 </small>
               </span>
             </button>

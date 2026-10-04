@@ -468,7 +468,17 @@ export function useSalonDirectory({
         status: "درخواست"
       });
       if (!ok) {
-        shellMsg(payload?.error || "این زمان قابل رزرو نیست.");
+        if (status === 409) {
+          // Someone else took the slot between loading the list and tapping submit: drop it from
+          // the grid so the client picks another instead of retrying the same dead time.
+          setSalonClientUnavailableSlots((slots) => [
+            ...slots,
+            { booking_date: salonClientBooking.day, time: salonClientBooking.time, duration_minutes: durationMinutes }
+          ]);
+          shellMsg("این ساعت همین الان رزرو شد؛ ساعت دیگری انتخاب کن.");
+        } else {
+          shellMsg(payload?.error || "این زمان قابل رزرو نیست.");
+        }
         return { ok: false, status, payload };
       }
       playSound("submit");

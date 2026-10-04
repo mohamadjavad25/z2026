@@ -15,6 +15,7 @@ export function BookingSlotPicker({
   dayValue = "",
   onDayChange,
   disabledDays = [],
+  closedDays = [],
   timeOptions = [],
   timeValue = "",
   onTimeChange,
@@ -35,7 +36,8 @@ export function BookingSlotPicker({
         {dayOptions.map((label, index) => {
           const [weekday = "", dayNumber = "", ...month] = String(label).split(" ");
           const selected = label === dayValue;
-          const disabled = disabledDays.includes(label);
+          const closed = closedDays.includes(label);
+          const disabled = closed || disabledDays.includes(label);
           return (
             <button
               type="button"
@@ -49,7 +51,7 @@ export function BookingSlotPicker({
             >
               <small>{index === 0 ? "امروز" : weekday}</small>
               <b>{dayNumber}</b>
-              <em>{disabled ? "پر" : month.join(" ")}</em>
+              <em>{closed ? "تعطیل" : disabled ? "پر" : month.join(" ")}</em>
             </button>
           );
         })}

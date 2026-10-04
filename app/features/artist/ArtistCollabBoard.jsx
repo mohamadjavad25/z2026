@@ -127,7 +127,7 @@ function SalonPreviewModal({ salon, draft, onDraftChange, onSubmit, onClose }) {
                     <b>{service.name}</b>
                     <span>
                       {service.price ? `${formatTomanNumber(parseTomanAmount(service.price))} تومان` : "قیمت توافقی"}
-                      {service.duration ? ` · ${service.duration}` : ""}
+                      {service.duration ? ` • ${service.duration}` : ""}
                     </span>
                   </div>
                 </article>

@@ -825,3 +825,5 @@
 .clientProfileAvatar.hasImage{
   background: #e8eaec center / cover no-repeat;
 }
+.clientBookingSettings .clientBookingPendingNote { display: flex; align-items: flex-start; gap: 8px; margin: 0; padding: 10px 12px; border-radius: 14px; background: #fff7e8; color: #8a5a00; font-size: 0.78rem; font-weight: 800; line-height: 1.8; }
+.clientBookingSettings .clientBookingPendingNote svg { flex: 0 0 auto; margin-top: 4px; }

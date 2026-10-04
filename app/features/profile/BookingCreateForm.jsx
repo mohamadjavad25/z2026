@@ -118,7 +118,7 @@ export function BookingCreateForm({
                   <b>{customer.name}</b>
                   <small>
                     {customer.phone ? toPersianDigits(customer.phone) : "شماره ثبت نشده"}
-                    {customer.lastService ? ` · ${customer.lastService}` : ""}
+                    {customer.lastService ? ` • ${customer.lastService}` : ""}
                   </small>
                 </span>
               </button>

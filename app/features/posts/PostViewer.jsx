@@ -119,7 +119,7 @@ export function PostViewer({
               </span>
               <span className="pvOwnerMeta">
                 <b>{owner.name}</b>
-                {owner.role || owner.area ? <small>{[owner.role, owner.area].filter(Boolean).join(" · ")}</small> : null}
+                {owner.role || owner.area ? <small>{[owner.role, owner.area].filter(Boolean).join(" • ")}</small> : null}
               </span>
               {onOpenOwner ? <ChevronLeft size={16} aria-hidden="true" /> : null}
             </button>

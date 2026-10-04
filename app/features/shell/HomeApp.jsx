@@ -948,9 +948,9 @@ export function HomeApp() {
   });
 
   const salonHoursPresets = [
-    { id: "standard", label: "معمولی", detail: "شنبه تا چهارشنبه · ۱۰ تا ۲۰ · ظرفیت ۸" },
-    { id: "extended", label: "پرفشار", detail: "همه روزها باز · ۱۰ تا ۲۲ · ظرفیت ۱۲" },
-    { id: "weekend", label: "آخر هفته", detail: "پنجشنبه و جمعه · ۱۲ تا ۱۸ · ظرفیت ۵" }
+    { id: "standard", label: "معمولی", detail: "شنبه تا چهارشنبه • ۱۰ تا ۲۰ • ظرفیت ۸" },
+    { id: "extended", label: "پرفشار", detail: "همه روزها باز • ۱۰ تا ۲۲ • ظرفیت ۱۲" },
+    { id: "weekend", label: "آخر هفته", detail: "پنجشنبه و جمعه • ۱۲ تا ۱۸ • ظرفیت ۵" }
   ];
   const activeHoursPreset = useMemo(() => {
     if (!salonHoursList.length) return null;
@@ -2614,7 +2614,7 @@ function getPassportMatch(post) {
               label: item.name,
               emoji: item.emoji,
               withIcon: true,
-              meta: [item.price ? `${formatTomanNumber(parseTomanAmount(item.price))} تومان` : "", item.duration].filter(Boolean).join(" · ")
+              meta: [item.price ? `${formatTomanNumber(parseTomanAmount(item.price))} تومان` : "", item.duration].filter(Boolean).join(" • ")
             }))}
             serviceValue={
               createdProfile?.type === "artist"

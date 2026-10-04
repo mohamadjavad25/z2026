@@ -108,7 +108,7 @@ export function SalonClientPage({
   const todayHours = weekHours.find((row) => row.day === todayName);
   const openStatus = weekHours.length
     ? (todayHours?.active
-        ? { open: true, text: `امروز باز است · ${toPersianDigits(todayHours.open_time || "")} تا ${toPersianDigits(todayHours.close_time || "")}` }
+        ? { open: true, text: `امروز باز است • ${toPersianDigits(todayHours.open_time || "")} تا ${toPersianDigits(todayHours.close_time || "")}` }
         : { open: false, text: "امروز تعطیل است" })
     : null;
   const prices = services.map((service) => parseTomanAmount(service.price)).filter(Boolean);
@@ -359,7 +359,7 @@ export function SalonClientPage({
                         >
                           <ServiceIcon emoji={service.emoji} name={service.name} size="lg" />
                           <b>{service.name}</b>
-                          <small>{service.price ? `${formatTomanNumber(parseTomanAmount(service.price))} تومان` : "قیمت توافقی"} · {service.duration || "زمان متغیر"}</small>
+                          <small>{service.price ? `${formatTomanNumber(parseTomanAmount(service.price))} تومان` : "قیمت توافقی"} • {service.duration || "زمان متغیر"}</small>
                           <CalendarCheck size={17} />
                         </button>
                       ))}
@@ -438,7 +438,7 @@ export function SalonClientPage({
                   <div className="sdrTitle">
                     <h3>{salon.name}</h3>
                     {[salon.area, salon.tag].filter(Boolean).length > 0 ? (
-                      <p><MapPin size={12} />{[salon.area, salon.tag].filter(Boolean).join(" · ")}</p>
+                      <p><MapPin size={12} />{[salon.area, salon.tag].filter(Boolean).join(" • ")}</p>
                     ) : null}
                   </div>
                   {(() => {
@@ -462,7 +462,7 @@ export function SalonClientPage({
                     })()}
                     <small>
                       {(salon.post_count || salon.portfolio?.length || 0) > 0 ? `${toPersianDigits(salon.post_count || salon.portfolio?.length || 0)} نمونه‌کار` : ""}
-                      {(salon.post_count || salon.portfolio?.length || 0) > 0 && localStaffCount > 0 ? " · " : ""}
+                      {(salon.post_count || salon.portfolio?.length || 0) > 0 && localStaffCount > 0 ? " • " : ""}
                       {localStaffCount > 0 ? `${toPersianDigits(localStaffCount)} آرتیست` : ""}
                     </small>
                   </div>

@@ -128,7 +128,7 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook })
               {pendingDeadline ? (
                 <p className="clientBookingPendingNote">
                   <Clock3 size={14} />
-                  در انتظار تایید — حداکثر تا ساعت {pendingDeadline}
+                  سالن تا ساعت {pendingDeadline} پاسخ می‌دهد؛ وگرنه رزرو خودکار لغو می‌شود
                 </p>
               ) : null}
               <div className="clientBookingFeatureActions">
@@ -195,7 +195,7 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook })
                   </span>
                   <div>
                     <b className="svcInline"><ServiceIcon emoji={meta.serviceEmoji} name={meta.service} size="xs" />{meta.service}</b>
-                    <small>{meta.salonName} · {meta.date}</small>
+                    <small>{meta.salonName} • {meta.date}</small>
                   </div>
                   <div className="clientBookingMiniState">
                     <strong className={`is-${meta.tone}`}>{meta.status}</strong>

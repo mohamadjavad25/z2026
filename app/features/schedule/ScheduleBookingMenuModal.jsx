@@ -144,7 +144,7 @@ export function ScheduleBookingMenuModal({
             </span>
             <div>
               <small>
-                {view === "time" ? "تغییر ساعت" : readOnly ? "جزئیات رزرو · فقط مشاهده" : "جزئیات رزرو"}
+                {view === "time" ? "تغییر ساعت" : readOnly ? "جزئیات رزرو • فقط مشاهده" : "جزئیات رزرو"}
               </small>
               <b>{title}</b>
               <em>{subtitle}</em>
@@ -225,7 +225,7 @@ export function ScheduleBookingMenuModal({
                           </span>
                           <span className="scheduleBookingStaffCopy">
                             <b>{person.artist_name || person.name}</b>
-                            <small>{person.role || person.artist_service || "آرتیست"}{person.artist_area ? ` · ${person.artist_area}` : ""}</small>
+                            <small>{person.role || person.artist_service || "آرتیست"}{person.artist_area ? ` • ${person.artist_area}` : ""}</small>
                           </span>
                           {active ? <Check size={16} /> : null}
                         </button>
