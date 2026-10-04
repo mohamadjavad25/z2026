@@ -1,0 +1,46 @@
+/* ---- Public salon page (spv*) ---- */
+.spvHeroFallback { position: absolute; inset: 0; background: linear-gradient(160deg, #2b2d3a, #14161d 60%, #3b3e49); }
+.spvHeroFallback::after { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.14), transparent 55%); }
+.spvArea { display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; color: #6f7380; font-size: 0.74rem; font-weight: 800; }
+.spvStats { margin: 0 !important; display: flex; justify-content: center; gap: 18px; padding: 4px 0; color: #6f7380; font-size: 0.74rem; font-weight: 800; }
+.spvStats span { display: grid; justify-items: center; gap: 1px; }
+.spvStats b { color: #14161d; font-size: 1rem; font-weight: 950; }
+.spvActions { display: grid !important; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0 !important; direction: rtl; }
+.spvActions button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 46px; border: 1px solid #ececf0; border-radius: 16px; background: #fff; color: #14161d; font: inherit; font-size: 0.84rem; font-weight: 900; cursor: pointer; }
+.spvActions button.is-following { background: #f1f1f5; }
+.spvCall { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 46px; border: 1px solid #ececf0; border-radius: 16px; background: #fff; color: #14161d; font-size: 0.84rem; font-weight: 900; text-decoration: none; }
+.spvOpen { display: inline-flex; align-items: center; justify-content: center; gap: 6px; margin: 2px auto 0; padding: 6px 14px; border-radius: 999px; font-size: 0.74rem; font-weight: 850; }
+.spvOpen.is-open { background: #f0fbf4; color: #15803d; }
+.spvOpen.is-closed { background: #f1f1f5; color: #6f7380; }
+
+.spvServiceList { display: grid; gap: 8px; }
+.spvService { display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; border: 1px solid #ececf0; border-radius: 18px; background: #fff; color: #14161d; font: inherit; text-align: right; cursor: pointer; }
+.spvServiceBody { display: grid; gap: 2px; min-width: 0; }
+.spvServiceBody b { font-size: 0.88rem; font-weight: 900; }
+.spvServiceBody small { color: #8a8e9b; font-size: 0.7rem; font-weight: 700; }
+.spvServicePrice { display: grid; justify-items: end; line-height: 1.3; }
+.spvServicePrice b { font-size: 0.86rem; font-weight: 950; }
+.spvServicePrice em { color: #8a8e9b; font-size: 0.66rem; font-style: normal; font-weight: 800; }
+.spvServiceGo { padding: 7px 13px; border-radius: 12px; background: #14161d; color: #fff; font-size: 0.74rem; font-weight: 900; }
+
+.spvTeamRail { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+.spvTeamRail::-webkit-scrollbar { display: none; }
+.spvMember { display: grid; justify-items: center; gap: 3px; min-width: 76px; text-align: center; }
+.spvMember img { width: 62px; height: 62px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; box-shadow: 0 4px 14px rgba(20, 22, 29, 0.16); background: #ececf0; }
+.spvMember b { font-size: 0.78rem; font-weight: 900; }
+.spvMember small { color: #8a8e9b; font-size: 0.66rem; font-weight: 700; }
+
+.spvHours ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.spvHours li { display: flex; justify-content: space-between; padding: 9px 12px; border-radius: 12px; color: #3b3e49; font-size: 0.8rem; font-weight: 800; }
+.spvHours li.is-today { background: #f1f1f5; color: #14161d; }
+.spvHours li b { font-weight: 900; }
+
+.spvBar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; display: flex; align-items: center; gap: 8px; padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); background: rgba(255, 255, 255, 0.94); backdrop-filter: blur(14px); border-top: 1px solid #ececf0; }
+.spvBarIcon { width: 50px; height: 50px; flex: none; display: grid; place-items: center; border: 1px solid #ececf0; border-radius: 16px; background: #fff; color: #14161d; cursor: pointer; }
+.spvBarIcon.is-on { color: #e11d48; border-color: #fecdd3; background: #fff1f2; }
+.spvBarBook { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 50px; border: 0; border-radius: 16px; background: #14161d; color: #fff; font: inherit; font-size: 0.95rem; font-weight: 950; cursor: pointer; box-shadow: 0 10px 24px rgba(20, 22, 29, 0.28); }
+.spvBarBook small { margin-inline-start: 4px; color: rgba(255, 255, 255, 0.72); font-size: 0.68rem; font-weight: 800; }
+.spvBarBook:disabled { opacity: 0.5; }
+:root .salonPublicProfile { padding-bottom: 96px; }
+.spvChip.is-open { background: #f0fbf4 !important; color: #15803d !important; }
+.spvChip.is-closed { background: #f1f1f5 !important; color: #6f7380 !important; }
