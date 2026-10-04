@@ -9,6 +9,7 @@ import style from "./beautyArt/style.js";
 import face from "./beautyArt/face.js";
 import clinic from "./beautyArt/clinic.js";
 import life from "./beautyArt/life.js";
+import nails from "./beautyArt/nails.js";
 
 // `icon` is the pack icon that represents the category in tabs and headers.
 export const EMOJI_CATEGORIES = [
@@ -151,7 +152,8 @@ const META = [
   ["express", "سریع و فوری", "Express", "general", "سریع فوری اکسپرس express"]
 ];
 
-const ART = { ...hair, ...style, ...face, ...clinic, ...life };
+// later packs override earlier art for the same id (nails.js redraws the nail icons)
+const ART = { ...hair, ...style, ...face, ...clinic, ...life, ...nails };
 
 export const BEAUTY_EMOJIS = META.map(([id, fa, en, category, tags]) => {
   const inner = ART[id];
