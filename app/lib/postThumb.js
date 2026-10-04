@@ -1,4 +1,3 @@
-import sharp from "sharp";
 import { parseMediaDataUrl, ALLOWED_POSTER_TYPES } from "./db/repos/media.js";
 
 export const THUMB_WIDTH = 480;
@@ -8,6 +7,9 @@ export async function resizeDataUrl(dataUrl, width) {
   const parsed = parseMediaDataUrl(dataUrl, ALLOWED_POSTER_TYPES);
   if (!parsed) return null;
   try {
+    // Loaded on demand: if the native image library is unavailable on some host, only thumbnails
+    // are lost (callers fall back to the original picture), not every route that imports this file.
+    const { default: sharp } = await import("sharp");
     return await sharp(Buffer.from(parsed.base64, "base64"))
       .rotate()
       .resize({ width, withoutEnlargement: true })
