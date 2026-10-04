@@ -461,10 +461,6 @@
   color: var(--auth-ink);
 }
 
-.appShell.is-auth-gate .specialtySelectCheck {
-  border-color: var(--auth-input-border);
-}
-
 .appShell.is-auth-gate .signupForm .profileSubmit {
   font-family: "Vazirmatn", Tahoma, sans-serif;
 }
