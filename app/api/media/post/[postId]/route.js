@@ -2,7 +2,8 @@ import { ensureDb, getDb, get } from "../../../../lib/db/connection.js";
 import { parseMediaDataUrl, ALLOWED_POSTER_TYPES } from "../../../../lib/db/repos/media.js";
 import { withErrorHandling } from "../../../../lib/http.js";
 import { getUserFromRequest } from "../../../../lib/auth.js";
-import sharp from "sharp";
+import { THUMB_WIDTH, resizeDataUrl } from "../../../../lib/postThumb.js";
+import { run } from "../../../../lib/db/connection.js";
 
 // Widths a grid card can ask for with ?w= (the full-size picture is only for the viewer).
 const THUMB_WIDTHS = new Set([240, 480, 720]);
@@ -24,9 +25,14 @@ async function _GET(request, { params }) {
   const postId = Number(postIdParam);
   if (!postId) return new Response(null, { status: 404 });
 
-  const row = await get(await getDb(), "SELECT image, is_public, owner_user_id FROM posts WHERE id = $1", [postId]);
-  const parsed = parseMediaDataUrl(row?.image, ALLOWED_POSTER_TYPES);
-  if (!parsed) return new Response(null, { status: 404 });
+  const db = await getDb();
+  const width = Number(new URL(request.url).searchParams.get("w"));
+  const wantsThumb = THUMB_WIDTHS.has(width);
+  const row = await get(db, `
+    SELECT ${wantsThumb && width <= THUMB_WIDTH ? "thumb," : ""} is_public, owner_user_id,
+      ${wantsThumb && width <= THUMB_WIDTH ? "" : "image,"} 1 AS present
+    FROM posts WHERE id = $1`, [postId]);
+  if (!row) return new Response(null, { status: 404 });
 
   // A post its owner made private is served to the owner only, and never cached shared.
   const isPrivate = row.is_public === false;
@@ -35,16 +41,30 @@ async function _GET(request, { params }) {
     if (!viewer || Number(viewer.id) !== Number(row.owner_user_id)) return new Response(null, { status: 404 });
   }
 
-  let buffer = Buffer.from(parsed.base64, "base64");
-  let contentType = parsed.contentType;
-
-  const width = Number(new URL(request.url).searchParams.get("w"));
-  if (THUMB_WIDTHS.has(width)) {
-    try {
-      buffer = await sharp(buffer).rotate().resize({ width, withoutEnlargement: true }).webp({ quality: 74 }).toBuffer();
-      contentType = "image/webp";
-    } catch {
-      // not resizable (e.g. an odd format): fall back to the original bytes
+  let buffer;
+  let contentType;
+  if (wantsThumb && width <= THUMB_WIDTH && row.thumb) {
+    // Made when the post was saved: nothing to resize.
+    buffer = Buffer.from(row.thumb, "base64");
+    contentType = "image/webp";
+  } else {
+    const full = wantsThumb && width <= THUMB_WIDTH
+      ? (await get(db, "SELECT image FROM posts WHERE id = $1", [postId]))?.image
+      : row.image;
+    const parsed = parseMediaDataUrl(full, ALLOWED_POSTER_TYPES);
+    if (!parsed) return new Response(null, { status: 404 });
+    buffer = Buffer.from(parsed.base64, "base64");
+    contentType = parsed.contentType;
+    if (wantsThumb) {
+      const resized = await resizeDataUrl(full, width);
+      if (resized) {
+        buffer = resized;
+        contentType = "image/webp";
+        // Older posts have no stored thumbnail yet: keep the 480 one for next time.
+        if (width === THUMB_WIDTH) {
+          void run(db, "UPDATE posts SET thumb = $1 WHERE id = $2 AND thumb = ''", [resized.toString("base64"), postId]).catch(() => {});
+        }
+      }
     }
   }
 

@@ -1,3 +1,4 @@
+import { makeThumbBase64 } from "../../postThumb.js";
 import { getDb, all, get, run, withTransaction } from "../connection.js";
 import { uploadImageDataUrl } from "../../storage.js";
 
@@ -51,6 +52,16 @@ export const POST_LIMITS = Object.freeze({ title: 80, tag: 40, caption: 600, pin
 
 function clip(value, max) {
   return String(value ?? "").trim().slice(0, max);
+}
+
+/** Builds and stores the 480px thumbnail for a post (best effort: the media route also makes one on demand). */
+async function storeThumb(db, postId, image) {
+  try {
+    const thumb = await makeThumbBase64(image);
+    if (thumb) await run(db, "UPDATE posts SET thumb = $1 WHERE id = $2", [thumb, postId]);
+  } catch {
+    // the media route falls back to resizing on demand
+  }
 }
 
 /** Only a real data URL is ever stored as an image. The client echoes the media URL of an
@@ -149,6 +160,7 @@ export async function createPost(ownerUserId, data, runner = null, options = {})
   // Best-effort dual-write to external storage (see app/lib/storage.js).
   if (image) {
     const storeImage = async () => {
+      await storeThumb(db, postId, image);
       const imageUrl = await uploadImageDataUrl(image, { kind: "post", ownerId: postId });
       if (imageUrl) {
         await run(db, "UPDATE posts SET image_url = $1 WHERE id = $2", [imageUrl, postId]);
@@ -177,6 +189,7 @@ export async function updatePost(id, ownerUserId, data, runner = null, options =
   await run(db, `
     UPDATE posts SET
       title = $1, tag = $2, image = $3, image_url = $4, caption = $5, is_public = $6, featured = $7,
+      thumb = CASE WHEN $10 THEN '' ELSE thumb END,
       updated_at = CURRENT_TIMESTAMP
     WHERE id = $8 AND owner_user_id = $9
   `, [
@@ -188,11 +201,13 @@ export async function updatePost(id, ownerUserId, data, runner = null, options =
     data.isPublic === undefined ? current.is_public : Boolean(data.isPublic),
     pinned,
     id,
-    ownerUserId
+    ownerUserId,
+    imageChanged
   ]);
   await syncOwnerPostCount(db, ownerUserId);
   if (imageChanged) {
     const storeImage = async () => {
+      await storeThumb(db, id, nextImage);
       const uploaded = await uploadImageDataUrl(nextImage, { kind: "post", ownerId: id });
       if (uploaded) {
         await run(db, "UPDATE posts SET image_url = $1 WHERE id = $2 AND owner_user_id = $3", [uploaded, id, ownerUserId]);

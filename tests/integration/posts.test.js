@@ -110,3 +110,31 @@ describe("posts", () => {
     expect(del.ok).toBe(true);
   });
 });
+
+describe("post thumbnails", () => {
+  it("serves a small cached WebP for ?w=480 and the original otherwise", async () => {
+    const sharp = (await import("sharp")).default;
+    const big = await sharp({ create: { width: 1200, height: 1500, channels: 3, background: "#d06080" } }).jpeg({ quality: 92 }).toBuffer();
+    const image = `data:image/jpeg;base64,${big.toString("base64")}`;
+    const { client } = await artistWithPost();
+    const created = await client.post("/api/posts", { title: "بزرگ", tag: "ناخن", caption: "x", image });
+    expect(created.ok).toBe(true);
+    const url = created.payload.data.post.image;
+    expect(url).toContain("?v=");
+
+    const thumb = await fetch(`${TEST_BASE_URL}${url}&w=480`);
+    expect(thumb.status).toBe(200);
+    expect(thumb.headers.get("content-type")).toBe("image/webp");
+    expect(thumb.headers.get("cache-control")).toContain("immutable");
+    const thumbBytes = Buffer.from(await thumb.arrayBuffer());
+    expect(thumbBytes.length).toBeLessThan(big.length);
+    expect((await sharp(thumbBytes).metadata()).width).toBe(480);
+
+    // The second request comes from the stored thumbnail and is identical.
+    const again = Buffer.from(await (await fetch(`${TEST_BASE_URL}${url}&w=480`)).arrayBuffer());
+    expect(again.equals(thumbBytes)).toBe(true);
+
+    const original = await fetch(`${TEST_BASE_URL}${url}`);
+    expect(original.headers.get("content-type")).toBe("image/jpeg");
+  });
+});
