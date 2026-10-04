@@ -226,9 +226,9 @@ export function useArtistWorkspace({
   }, []);
 
   const artistHoursPresets = [
-    { id: "standard", label: "معمولی", detail: "شنبه تا چهارشنبه · ۱۰ تا ۲۰ · ظرفیت ۸" },
-    { id: "extended", label: "پرفشار", detail: "همه روزها باز · ۱۰ تا ۲۲ · ظرفیت ۱۲" },
-    { id: "weekend", label: "آخر هفته", detail: "پنجشنبه و جمعه · ۱۲ تا ۱۸ · ظرفیت ۵" }
+    { id: "standard", label: "معمولی", detail: "شنبه تا چهارشنبه • ۱۰ تا ۲۰ • ظرفیت ۸" },
+    { id: "extended", label: "پرفشار", detail: "همه روزها باز • ۱۰ تا ۲۲ • ظرفیت ۱۲" },
+    { id: "weekend", label: "آخر هفته", detail: "پنجشنبه و جمعه • ۱۲ تا ۱۸ • ظرفیت ۵" }
   ];
 
   const activeArtistHoursPreset = useMemo(() => {

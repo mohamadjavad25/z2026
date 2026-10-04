@@ -282,7 +282,7 @@ export function usePublicArtistProfile({
       // toast in useSalonDirectory.js for the identical reason: "ثبت شد"
       // alone reads as a done deal and hides that a clock just started.
       notify(
-        `رزرو «${service.name}» · ${publicArtistBookingDay} ساعت ${publicArtistBookingSlot} برای «${selectedPublicArtist.name}» ثبت شد و در انتظار تایید آرتیست است.`
+        `رزرو «${service.name}» • ${publicArtistBookingDay} ساعت ${publicArtistBookingSlot} برای «${selectedPublicArtist.name}» ثبت شد و در انتظار تایید آرتیست است.`
       );
       setPublicArtistBookingSlot("");
       setPublicArtistView("services");

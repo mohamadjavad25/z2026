@@ -177,7 +177,7 @@ export function SalonNearbyInviteSheet({
                     <span className="inviteRole">
                       <ServiceIcon name={artist.service} size="xs" />
                       {artist.service || "آرتیست"}
-                      {artist.area ? ` · ${artist.area}` : ""}
+                      {artist.area ? ` • ${artist.area}` : ""}
                     </span>
                     {artist.isNearby ? <em>نزدیک به محدوده سالن</em> : null}
                   </div>

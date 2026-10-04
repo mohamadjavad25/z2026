@@ -79,7 +79,7 @@ export function ClientBookingHistorySheet({ open, onClose, bookings = [], onOpen
                         <ServiceIcon emoji={booking.service_emoji} name={booking.service} size="sm" />
                         <span className="cbhRowText">
                           <b>{booking.service || "خدمت زیبایی"}</b>
-                          <small>{place}{booking.time ? ` · ${toPersianDigits(booking.time)}` : ""}</small>
+                          <small>{place}{booking.time ? ` • ${toPersianDigits(booking.time)}` : ""}</small>
                         </span>
                         <em className={`is-${tone}`}>{bookingStatusLabel(booking.status)}</em>
                       </button>

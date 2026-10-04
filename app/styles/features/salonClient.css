@@ -99,3 +99,6 @@
 .artistPublicPage .scId .spvSpecialties { justify-content: center; }
 .scStats { grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); }
 .sdrBook.is-soon { background: #eceef3; color: #6f7380; }
+.bspTimes { max-height: none; overflow: visible; }
+.bspDay.is-disabled { opacity: 0.5; }
+.salonClientBookingSummary { margin: 0; padding: 12px 14px; border-radius: 14px; background: #f1f5ff; color: #1f3a78; font-size: 0.82rem; font-weight: 850; line-height: 1.8; text-align: center; }

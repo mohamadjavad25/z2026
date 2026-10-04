@@ -68,7 +68,7 @@ export function ClientProfileOverview({
           <span className="cpoNextWhen">
             <Clock3 size={14} />
             {formatRelativeBookingDayLabel(next.booking_date || next.date || "امروز")}
-            {next.time ? ` · ${toPersianDigits(next.time)}` : ""}
+            {next.time ? ` • ${toPersianDigits(next.time)}` : ""}
           </span>
         </button>
       ) : (

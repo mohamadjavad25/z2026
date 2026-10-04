@@ -229,7 +229,7 @@ export function PublicArtistModal({
                   }}
                 >
                   <CalendarCheck size={17} />
-                  {bookingBusy ? "در حال ثبت..." : bookingSlot ? (guest ? "ورود و ادامه رزرو" : `تایید رزرو · ${bookingDay} ${bookingSlot}`) : "ساعت را انتخاب کن"}
+                  {bookingBusy ? "در حال ثبت..." : bookingSlot ? (guest ? "ورود و ادامه رزرو" : `تایید رزرو • ${bookingDay} ${bookingSlot}`) : "ساعت را انتخاب کن"}
                 </button>
           </ProfileSheet>
 

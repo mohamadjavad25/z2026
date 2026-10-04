@@ -71,7 +71,7 @@ export function SalonStaffWorkspace({
                 <span className="stfRole">
                   <ServiceIcon name={invite.role || invite.artistService} size="xs" />
                   {invite.role || invite.artistService || "آرتیست"}
-                  {invite.artistArea ? ` · ${invite.artistArea}` : ""}
+                  {invite.artistArea ? ` • ${invite.artistArea}` : ""}
                 </span>
                 <em className="stfState is-pending"><i aria-hidden="true" />در انتظار تایید</em>
               </div>

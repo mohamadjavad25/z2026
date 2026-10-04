@@ -39,7 +39,7 @@ export function ClientProfileModal({ client, onClose }) {
             <b>{client.name}</b>
             <small>
               {client.area || "ایران"}
-              {client.type ? ` · ${TYPE_LABELS[client.type] || client.type}` : ""}
+              {client.type ? ` • ${TYPE_LABELS[client.type] || client.type}` : ""}
             </small>
           </div>
         </div>
@@ -81,7 +81,7 @@ export function ClientProfileModal({ client, onClose }) {
               {client.bookings.slice(0, 5).map((item) => (
                 <article key={item.id}>
                   <b className="svcInline"><ServiceIcon emoji={item.service_emoji} name={item.service} size="xs" />{item.service || "خدمت"}</b>
-                  <span>{item.date} · {item.time}</span>
+                  <span>{item.date} • {item.time}</span>
                   <em>{item.status}</em>
                 </article>
               ))}

@@ -142,8 +142,8 @@ export function BookingWeekRail({
                 key={item.day}
                 className={active ? "active" : ""}
                 aria-selected={active}
-                aria-label={`${item.label || item.day} · ${toPersianDigits(count)} نوبت`}
-                title={`${item.label || item.day} · ${toPersianDigits(count)} نوبت`}
+                aria-label={`${item.label || item.day} • ${toPersianDigits(count)} نوبت`}
+                title={`${item.label || item.day} • ${toPersianDigits(count)} نوبت`}
                 onClick={() => onSelectDay?.(item.day)}
               >
                 <span>{item.label || item.day}</span>
@@ -213,7 +213,7 @@ export function BookingWeekRail({
                       count > 0 ? "has-bookings" : ""
                     ].filter(Boolean).join(" ")}
                     aria-selected={active}
-                    aria-label={`${cell.weekday} ${cell.dayLabel} · ${toPersianDigits(count)} نوبت`}
+                    aria-label={`${cell.weekday} ${cell.dayLabel} • ${toPersianDigits(count)} نوبت`}
                     onClick={() => pickCell(cell)}
                   >
                     <strong>{cell.dayLabel}</strong>

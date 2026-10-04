@@ -83,7 +83,7 @@ export function SalonScheduleDashboard({
                 <div className="salonCollabDeal">
                   <b className="svcInline"><ServiceIcon emoji={request.service_emoji} name={request.service} size="xs" />{request.service}</b>
                   <span>{request.days}</span>
-                  <em>{request.from} تا {request.to} · {request.capacity} نفر در روز</em>
+                  <em>{request.from} تا {request.to} • {request.capacity} نفر در روز</em>
                 </div>
                 <div className="salonCollabSharePill">
                   <b>{request.share}٪</b>

@@ -117,7 +117,7 @@ export function usePostActivity({ onNotice } = {}) {
     if (!post) return;
     const url = postUrl(post);
     const title = post.title || "نمونه‌کار";
-    const text = `${title}${post.salon ? ` · ${post.salon}` : ""} — زیبابان`;
+    const text = `${title}${post.salon ? ` • ${post.salon}` : ""} — زیبابان`;
     try {
       if (typeof navigator !== "undefined" && navigator.share) {
         await navigator.share({ title, text, url });
