@@ -51,3 +51,18 @@
 .scActions button.is-following { background: #f1f1f5; color: #14161d; }
 .scActions a { background: #fff; color: #14161d; box-shadow: inset 0 0 0 1.5px #e4e4ea; }
 .salonPublicProfile { padding-bottom: 110px; }
+
+/* ── Salon services: pick the artists for a service (sas*) — a bottom sheet, so it can never be clipped by the card ── */
+.sasBody { display: grid; gap: 8px; padding: 4px 2px 8px; }
+.sasHint { margin: 0 0 4px; color: #6f7380; font-size: 0.76rem; font-weight: 750; line-height: 1.8; }
+.sasEmpty { margin: 12px 0; padding: 18px 14px; border-radius: 16px; background: #fafafc; box-shadow: inset 0 0 0 1.5px #e4e4ea; color: #6f7380; font-size: 0.8rem; font-weight: 750; line-height: 1.8; text-align: center; }
+.sasRow { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 12px; border: 0; border-radius: 18px; background: #fff; box-shadow: inset 0 0 0 1px #ececf1; font: inherit; color: #14161d; text-align: start; cursor: pointer; }
+.sasRow.is-selected { background: #f4fbf6; box-shadow: inset 0 0 0 1.5px #86d3a0; }
+.sasAvatar { flex: 0 0 auto; width: 46px; height: 46px; display: grid; place-items: center; overflow: hidden; border-radius: 50%; background: #fff3f7; box-shadow: inset 0 0 0 1px #fbd0e0; font-weight: 950; }
+.sasAvatar img { width: 100%; height: 100%; object-fit: cover; }
+.sasName { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.sasName b { font-size: 0.9rem; font-weight: 950; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sasName small { color: #6f7380; font-size: 0.72rem; font-weight: 750; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sasCheck { flex: 0 0 auto; width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%; box-shadow: inset 0 0 0 1.5px #d4d4dc; color: #fff; }
+.sasRow.is-selected .sasCheck { background: #1c9c55; box-shadow: none; }
+.sasClear { margin-top: 4px; min-height: 44px; border: 0; border-radius: 14px; background: #fff1f1; color: #b42a2a; font: inherit; font-size: 0.8rem; font-weight: 900; }
