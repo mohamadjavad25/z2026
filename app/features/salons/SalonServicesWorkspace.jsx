@@ -2,6 +2,7 @@
 
 import { Check, Pencil, Plus, Trash2, UserRound } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
+import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { ServiceIconStrip } from "../../components/ServiceIconStrip";
 import { ProfileEmptyState } from "../profile/ProfileEmptyState";
@@ -70,7 +71,7 @@ export function SalonServicesWorkspace({
                   <div className="svcCardTitle"><strong>{service.name}</strong></div>
                   {service.hint ? <p className="svcCardHint">{service.hint}</p> : null}
                   <div className="svcCardMeta">
-                    <span className="svcChip is-price">{service.price ? `${toPersianDigits(service.price)} تومان` : "قیمت را تنظیم کن"}</span>
+                    <span className="svcChip is-price">{service.price ? `${formatTomanNumber(parseTomanAmount(service.price))} تومان` : "قیمت را تنظیم کن"}</span>
                     <span className="svcChip">{service.duration || "زمان را تنظیم کن"}</span>
                   </div>
                   <div className="serviceArtistPick">

@@ -145,7 +145,7 @@ export function SalonScheduleDashboard({
                   <button
                     type="button"
                     className="is-approve"
-                    disabled={anyBusy}
+                    disabled={anyBusy || (getRequestExpiryMinutesLeft(request.createdAt) ?? 1) <= 0}
                     onClick={() => onApproveRequest?.(request.id, { bookingDateForSlots })}
                   >
                     <Check size={15} />

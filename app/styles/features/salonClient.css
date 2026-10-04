@@ -98,3 +98,4 @@
 .artistBookingPhoneWarning.is-info { background: #f1f5ff; color: #2a4a8a; }
 .artistPublicPage .scId .spvSpecialties { justify-content: center; }
 .scStats { grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); }
+.sdrBook.is-soon { background: #eceef3; color: #6f7380; }

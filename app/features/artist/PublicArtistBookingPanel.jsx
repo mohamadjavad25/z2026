@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { Timer } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
+import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
 import { BookingSlotPicker } from "../../components/BookingSlotPicker";
 import {
   buildPublicBookingSlots,
@@ -73,7 +74,7 @@ export function PublicArtistBookingPanel({
             <Timer size={12} /> {activeService?.duration || `${toPersianDigits(durationMinutes)} دقیقه`}
           </small>
         </div>
-        <b>{activeService?.price ? `${toPersianDigits(activeService.price)} تومان` : "—"}</b>
+        <b>{activeService?.price ? `${formatTomanNumber(parseTomanAmount(activeService.price))} تومان` : "—"}</b>
       </div>
 
       {activeService?.hint ? (

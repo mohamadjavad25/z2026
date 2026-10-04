@@ -67,6 +67,15 @@ export function ClientBookingTracker({ bookings = [], onOpen }) {
       .sort((a, b) => String(b.created_at || "").localeCompare(String(a.created_at || "")))
   ), [bookings]);
 
+  // Tell the page a chip is floating above the bottom bar so it can reserve room for it
+  // (otherwise it covers the last card of whatever list is underneath).
+  const chipVisible = Boolean(flash) || pending.length > 0;
+  useEffect(() => {
+    if (!chipVisible) return undefined;
+    document.documentElement.dataset.cbt = "1";
+    return () => { delete document.documentElement.dataset.cbt; };
+  }, [chipVisible]);
+
   if (flash) {
     const { booking, status } = flash;
     const confirmed = status === "تایید شده";
@@ -105,10 +114,10 @@ export function ClientBookingTracker({ bookings = [], onOpen }) {
         <Hourglass size={18} />
       </span>
       <span className="cbtText">
-        <b>در حال ارسال به {label} · منتظر تأیید</b>
+        <b>منتظر تأیید {label}</b>
         <small>
-          {current.service || "نوبت"} · {placeOf(current)}
-          {deadline ? ` · حداکثر تا ${deadline}` : ""}
+          {current.service || "نوبت"} — {placeOf(current)}
+          {deadline ? ` — حداکثر تا ${deadline}` : ""}
         </small>
       </span>
       {pending.length > 1 ? <em className="cbtCount">{toPersianDigits(pending.length)}</em> : <CalendarCheck size={18} aria-hidden="true" />}
