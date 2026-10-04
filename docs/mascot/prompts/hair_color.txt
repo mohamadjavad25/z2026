@@ -1,0 +1,9 @@
+Same mascot as the reference image, identical design, colors and line style: chubby cream-white creature, orange curly hair with a heart-shaped curl on top, big glossy dark eyes, rose-pink cheeks, pink apron, makeup brush behind the ear.
+
+Scene: Half-body, concentrated happy face with the tongue tip slightly out. One hand holds a round teal tint bowl full of glossy orange dye, the other a wide flat tint brush loaded with dye; a fresh orange-to-pink stripe is painted on one of its curls. A couple of dye drops fall into the bowl.
+
+Square 1:1 image, the character centered and filling about 80% of the frame with even empty margin on all sides. One clear pose and at most one or two props, with a bold simple silhouette that stays readable at 48×48 pixels.
+
+Flat vector sticker style, clean dark outline of uniform weight, soft cel-shading.
+
+Pure plain white background. No text, letters, numbers or logos anywhere. No purple, violet, lavender or lilac anywhere. No frame, border, badge, circle or colored backdrop behind the character, and no shadow on the ground.

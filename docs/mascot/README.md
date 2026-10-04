@@ -4,7 +4,7 @@
 
 ## گردش کار
 1. کاراکتر مرجع تأییدشده را نگه دار (`mascot/reference.png`).
-2. `node scripts/mascot-prompts.mjs` → `docs/mascot/STICKERS.md` (۱۶۸ پرامپت، هر استیکر یک پرامپت کامل).
+2. `node scripts/mascot-prompts.mjs` → `docs/mascot/STICKERS.md` + `prompts/<id>.txt` + `prompts.jsonl` + `prompts.csv`؛ وضعیت از روی `assets/mascot/raw/<id>.png` و `assets/mascot/stickers/<id>.webp` خودکار محاسبه می‌شود. `--print --only a,b` / `--pending` / `--check` هم هست.
 3. هر پرامپت را با تصویر مرجع در **همان ابزار تصویری که نمونهٔ خوب را ساخت** اجرا کن و شیت را بدون فشرده‌سازی ذخیره کن.
 4. شیت را برش بزن:
    `node scripts/slice-sticker-sheet.mjs mascot/sheets/sheet-01.png --ids haircut,hair_color,... --out public/emoji`
