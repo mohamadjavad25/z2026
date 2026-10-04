@@ -74,6 +74,7 @@ import {
 } from "../posts";
 import { SettingsPage } from "../settings";
 import { useAppSounds } from "./useAppSounds";
+import { ClientBookingTracker } from "../client/ClientBookingTracker";
 import { preloadImages, thumbUrl } from "../../shared/lib/mediaUrl";
 import {
   ClientBookingSettingsModal,
@@ -2798,6 +2799,10 @@ function getPassportMatch(post) {
             </div>
           </div>
         )}
+
+        {createdProfile?.type === "client" ? (
+          <ClientBookingTracker bookings={clientBookingList} onOpen={setClientBookingSettings} />
+        ) : null}
 
         <BottomNav
           activeTab={activeTab}
