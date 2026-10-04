@@ -73,6 +73,7 @@ import {
   usePostActivity
 } from "../posts";
 import { SettingsPage } from "../settings";
+import { useAppSounds } from "./useAppSounds";
 import {
   ClientBookingSettingsModal,
   ClientBookingsPanel,
@@ -1200,6 +1201,27 @@ export function HomeApp() {
     ))
   ), [artistBookingList]);
 
+  // Sounds for arriving requests / invites / status changes, toasts and the appointment alarm.
+  const salonRequestIds = useMemo(() => reservationRequestList.map((item) => item.id), [reservationRequestList]);
+  const artistRequestIds = useMemo(() => pendingArtistBookingRequests.map((item) => item.id), [pendingArtistBookingRequests]);
+  const soundInviteIds = useMemo(() => (
+    createdProfile?.type === "salon"
+      ? pendingSalonCollabRequests.map((item) => item.id)
+      : pendingArtistSalonInvites.map((item) => item.id)
+  ), [createdProfile?.type, pendingSalonCollabRequests, pendingArtistSalonInvites]);
+  useAppSounds({
+    profile: createdProfile,
+    alertsOn: profileSettings.reservationAlerts !== false,
+    toast: appToast,
+    clientBookings: clientBookingList,
+    salonBookings: salonAppointmentList,
+    artistBookings: artistBookingList,
+    salonRequestIds,
+    artistRequestIds,
+    inviteIds: soundInviteIds,
+    onReminder: setAppToast
+  });
+
   const scheduleDayAppointments = useMemo(() => (
     salonHistoryAppointments
       .filter((item) => isArtistBookingOnExactDate(item, activeScheduleDateKey))
@@ -1326,17 +1348,6 @@ function getPassportMatch(post) {
     const timer = window.setInterval(() => setScheduleNow(new Date()), 30000);
     return () => window.clearInterval(timer);
   }, [createdProfile?.type]);
-
-  useEffect(() => {
-    if (!serviceArtistMenuId) return undefined;
-    const onPointerDown = (event) => {
-      const openPick = document.querySelector(".is-pickingArtist .serviceArtistPick");
-      if (openPick && openPick.contains(event.target)) return;
-      setServiceArtistMenuId(null);
-    };
-    document.addEventListener("pointerdown", onPointerDown);
-    return () => document.removeEventListener("pointerdown", onPointerDown);
-  }, [serviceArtistMenuId]);
 
   useEffect(() => {
     if (!appToast) return undefined;

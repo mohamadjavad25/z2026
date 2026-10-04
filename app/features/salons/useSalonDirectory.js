@@ -1,5 +1,6 @@
 "use client";
 
+import { playSound } from "../../shared/lib/sounds";
 import { usePolling } from "../../shared/lib/usePolling";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
@@ -455,6 +456,7 @@ export function useSalonDirectory({
         shellMsg(payload?.error || "این زمان قابل رزرو نیست.");
         return { ok: false, status, payload };
       }
+      playSound("submit");
       if (String(salonUserId) === String(createdProfile?.id) && typeof onOwnerBookingsSync === "function") {
         onOwnerBookingsSync(payload?.data?.bookings || []);
       }

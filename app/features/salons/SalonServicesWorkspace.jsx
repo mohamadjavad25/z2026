@@ -5,6 +5,7 @@ import { toPersianDigits } from "../../shared/lib/digits";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { ServiceIconStrip } from "../../components/ServiceIconStrip";
 import { ProfileEmptyState } from "../profile/ProfileEmptyState";
+import { ProfileSheet } from "../profile/ProfileSheet";
 
 /**
  * Salon owner — services manager (workspace key "hours" / label خدمات).
@@ -100,67 +101,51 @@ export function SalonServicesWorkspace({
                         </span>
                       </span>
                     </button>
-                    {menuOpen ? (
-                      <div
-                        className="serviceArtistMenu"
-                        role="listbox"
-                        aria-label="لیست آرتیست‌ها"
-                        aria-multiselectable="true"
-                        onPointerDown={(event) => event.stopPropagation()}
-                        onClick={(event) => event.stopPropagation()}
-                      >
+                    <ProfileSheet
+                      open={menuOpen}
+                      kicker="آرتیست‌های این خدمت"
+                      title={service.name}
+                      panelClassName="sasSheet"
+                      onClose={() => onMenuToggle?.(null)}
+                    >
+                      <div className="sasBody" role="listbox" aria-label="لیست آرتیست‌ها" aria-multiselectable="true">
                         {staffList.length === 0 ? (
-                          <p>هنوز پرسنلی ثبت نشده</p>
+                          <p className="sasEmpty">هنوز پرسنلی ثبت نشده. اول از بخش پرسنل یک آرتیست اضافه کن.</p>
                         ) : (
                           <>
+                            <p className="sasHint">آرتیستی را که این خدمت را انجام می‌دهد انتخاب کن. می‌توانی چند نفر را انتخاب کنی.</p>
                             {staffList.map((person) => {
                               const selected = selectedArtistIds.includes(String(person.id));
+                              const avatar = person.avatar || person.staff_avatar || "";
                               return (
                                 <button
                                   type="button"
                                   role="option"
                                   aria-selected={selected}
-                                  className={selected ? "is-selected" : ""}
+                                  className={`sasRow${selected ? " is-selected" : ""}`}
                                   key={person.id || person.name}
-                                  onPointerDown={(event) => {
-                                    event.preventDefault();
-                                    event.stopPropagation();
-                                    onToggleArtist?.(service, person.id);
-                                  }}
-                                  onClick={(event) => {
-                                    event.preventDefault();
-                                    event.stopPropagation();
-                                  }}
+                                  onClick={() => onToggleArtist?.(service, person.id)}
                                 >
-                                  <span>
+                                  <span className={`sasAvatar ${avatar ? "hasImage" : ""}`} aria-hidden="true">
+                                    {avatar ? <img src={avatar} alt="" /> : String(person.name || "آ").slice(0, 1)}
+                                  </span>
+                                  <span className="sasName">
                                     <b>{person.name}</b>
                                     <small>{person.role || "آرتیست"}</small>
                                   </span>
-                                  {selected ? <Check size={14} /> : null}
+                                  <span className="sasCheck" aria-hidden="true">{selected ? <Check size={15} /> : null}</span>
                                 </button>
                               );
                             })}
                             {selectedArtistIds.length ? (
-                              <button
-                                type="button"
-                                className="is-clear"
-                                onPointerDown={(event) => {
-                                  event.preventDefault();
-                                  event.stopPropagation();
-                                  onClearArtists?.(service);
-                                }}
-                                onClick={(event) => {
-                                  event.preventDefault();
-                                  event.stopPropagation();
-                                }}
-                              >
+                              <button type="button" className="sasClear" onClick={() => onClearArtists?.(service)}>
                                 حذف همه آرتیست‌ها
                               </button>
                             ) : null}
                           </>
                         )}
                       </div>
-                    ) : null}
+                    </ProfileSheet>
                   </div>
                 </div>
                 <div className="svcCardSide">

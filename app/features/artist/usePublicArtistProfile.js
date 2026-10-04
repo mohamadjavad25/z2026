@@ -1,5 +1,6 @@
 "use client";
 
+import { playSound } from "../../shared/lib/sounds";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createArtistBooking, getArtist, toggleFollow } from "../../shared/api/artists";
 import { toggleSave } from "../../shared/api/saves";
@@ -274,6 +275,7 @@ export function usePublicArtistProfile({
             }
           : current
       ));
+      playSound("submit");
       // "و در انتظار تایید آرتیست است" (not just "ثبت شد") — the real status
       // here is "تازه" (pending, up to an hour before auto-expiry, see
       // bookingExpirySweep.js), same fix as the salon booking confirmation
