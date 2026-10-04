@@ -564,3 +564,8 @@
 
 /* Signup: phone and password each get a full-width row (side by side they were too narrow on a phone). */
 form.signupForm:not(.is-login) .formRow { grid-template-columns: 1fr !important; }
+
+/* Login: the error notice used to push the whole form down (margin-top:auto), so the form jumped
+   the moment a wrong password was sent. In login mode the notice sits in the normal flow. */
+.appShell.is-auth-gate .authGateHero[data-mode="login"] ~ .authNotice { margin-top: 28px; }
+.appShell.is-auth-gate .authGateHero[data-mode="login"] ~ .authNotice + .signupForm.is-login { margin-top: 10px; }

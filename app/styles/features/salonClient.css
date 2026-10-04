@@ -26,16 +26,16 @@
 .sdrBook { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 16px; border-radius: 14px; background: #14161d; color: #fff; font-size: 0.8rem; font-weight: 900; }
 
 /* ── Public salon page ── */
-.salonPublicProfile .scHero { position: relative; height: 210px; overflow: hidden; background: #f4e4ea; }
+:is(.salonPublicProfile, .artistPublicPage) .scHero { position: relative; height: 210px; overflow: hidden; background: #f4e4ea; }
 .scHeroImage { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .scHeroFallback { position: absolute; inset: 0; background: radial-gradient(120% 90% at 20% 0%, #ffd9e6 0%, transparent 60%), radial-gradient(100% 80% at 90% 20%, #ffe9c9 0%, transparent 55%), linear-gradient(160deg, #fbe6ee, #f6efe7); }
 .scTopbar { position: absolute; top: 14px; left: 14px; right: 14px; display: flex; justify-content: space-between; z-index: 2; }
 .scRound { width: 42px; height: 42px; display: grid; place-items: center; border: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.92); color: #14161d; box-shadow: 0 6px 16px rgba(20, 22, 29, 0.14); }
-.salonPublicProfile .scId { position: relative; z-index: 1; margin: -34px 20px 0; padding: 52px 16px 16px; display: grid; justify-items: center; gap: 4px; border-radius: 26px; background: #fff; box-shadow: inset 0 0 0 1px #ececf1, 0 12px 32px rgba(20, 22, 29, 0.08); text-align: center; }
+:is(.salonPublicProfile, .artistPublicPage) .scId { position: relative; z-index: 1; margin: -34px 20px 0; padding: 52px 16px 16px; display: grid; justify-items: center; gap: 4px; border-radius: 26px; background: #fff; box-shadow: inset 0 0 0 1px #ececf1, 0 12px 32px rgba(20, 22, 29, 0.08); text-align: center; }
 .scAvatar { position: absolute; top: -40px; left: 50%; transform: translateX(-50%); width: 80px; height: 80px; overflow: hidden; border-radius: 50%; background: #fff; box-shadow: 0 0 0 4px #fff, 0 10px 24px rgba(20, 22, 29, 0.16); }
 .scAvatar img { width: 100%; height: 100%; object-fit: cover; }
-.salonPublicProfile .scId h2 { margin: 0; color: #14161d; font-size: 1.2rem; font-weight: 950; line-height: 1.4; }
-.salonPublicProfile .scId p { margin: 0; }
+:is(.salonPublicProfile, .artistPublicPage) .scId h2 { margin: 0; color: #14161d; font-size: 1.2rem; font-weight: 950; line-height: 1.4; }
+:is(.salonPublicProfile, .artistPublicPage) .scId p { margin: 0; }
 .scTag { color: #6f7380; font-size: 0.78rem; font-weight: 800; }
 .scArea { display: inline-flex; align-items: center; gap: 4px; color: #6f7380; font-size: 0.76rem; font-weight: 750; }
 .scOpen { display: inline-flex; align-items: center; gap: 5px; margin-top: 4px; padding: 5px 12px; border-radius: 999px; font-size: 0.72rem; font-weight: 900; }
@@ -91,3 +91,10 @@
 .bspDay:focus-visible, .bspTime:focus-visible { outline: 3px solid #14161d; outline-offset: 2px; }
 @media (max-width: 360px) { .bspTimes { grid-template-columns: repeat(3, 1fr); } }
 @media (prefers-reduced-motion: reduce) { .bspDay, .bspTime { transition: none; } }
+.scTopActions { display: flex; gap: 8px; }
+.scRound.is-saved { color: #e11d48; }
+.scAvatarLetter { width: 100%; height: 100%; display: grid; place-items: center; font-size: 1.8rem; font-weight: 950; color: #14161d; background: #fff3f7; }
+.scBio { color: #4b4f5c; font-size: 0.8rem; font-weight: 700; line-height: 1.9; max-width: 34ch; }
+.artistBookingPhoneWarning.is-info { background: #f1f5ff; color: #2a4a8a; }
+.artistPublicPage .scId .spvSpecialties { justify-content: center; }
+.scStats { grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); }

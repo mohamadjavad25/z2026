@@ -163,7 +163,7 @@ export function AuthGateForms({
         </div>
       </div>
 
-      {authNotice ? <p className="authNotice" role="alert">{authNotice}</p> : null}
+      {authNotice && !recoveryOpen ? <p className="authNotice" role="alert">{authNotice}</p> : null}
 
       {authMode === "signup" && signupStep === "role" && (
         <div className="authGateDock">
