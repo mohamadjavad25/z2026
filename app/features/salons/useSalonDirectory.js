@@ -1,5 +1,6 @@
 "use client";
 
+import { isSlotInPast } from "../../shared/lib/slots";
 import { playSound } from "../../shared/lib/sounds";
 import { usePolling } from "../../shared/lib/usePolling";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -132,6 +133,7 @@ export function useSalonDirectory({
     );
     const selectedDateKey = resolveRollingPersianDateKey(salonClientBooking.day);
     return baseSlots.filter((time) => {
+      if (isSlotInPast(salonClientBooking.day, time)) return false;
       const start = timeLabelToMinutes(time);
       const end = start + duration;
       return !salonClientUnavailableSlots.some((slot) => {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createClient, registerUser } from "./helpers.js";
+import { createClient, registerUser, futureBookingDay } from "./helpers.js";
 
 describe("ownership scoping (IDOR checks)", () => {
   it("a salon cannot PATCH another salon's booking by guessing its id", async () => {
@@ -12,7 +12,7 @@ describe("ownership scoping (IDOR checks)", () => {
     const created = await bookerClient.post("/api/salon-bookings", {
       salonUserId: salonA.user.id,
       service: "مانیکور",
-      bookingDate: "سه‌شنبه",
+      bookingDate: futureBookingDay(2),
       time: "۱۳:۰۰",
       client: booker.user.name,
       phone: booker.phone

@@ -1,3 +1,4 @@
+import { isSlotInPast } from "../../../shared/lib/slots.js";
 import { getUserFromRequest } from "../../../lib/auth.js";
 import { ensureDb } from "../../../lib/db/connection.js";
 import { error, json, validateBody, withErrorHandling } from "../../../lib/http.js";
@@ -43,6 +44,9 @@ async function _POST(request) {
   if (!v.ok) return v.response;
 
   const viewer = await getUserFromRequest(request);
+  if (isSlotInPast(v.data.bookingDate || v.data.booking_date || v.data.date || "", v.data.time || "")) {
+    return error("این ساعت گذشته است. ساعت دیگری انتخاب کن.", 409);
+  }
   const result = await artists.addArtistBooking(artistUserId, {
     ...v.data,
     clientUserId: viewer?.id || null,

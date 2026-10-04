@@ -1,3 +1,4 @@
+import { isSlotInPast } from "../../shared/lib/slots.js";
 import { NextResponse } from "next/server";
 import { requireUser, validateBody, withErrorHandling } from "../../lib/http.js";
 import { ensureDb } from "../../lib/db/connection.js";
@@ -142,6 +143,9 @@ async function _POST(request) {
   if (!client) return noStoreJson({ error: "نام مشتری برای رزرو لازم است." }, { status: 400 });
   if (auth.user.type === "client" && !phone) {
     return noStoreJson({ error: "برای ثبت رزرو، شماره تماس لازم است." }, { status: 400 });
+  }
+  if (auth.user.type === "client" && isSlotInPast(bookingDateKey, time)) {
+    return noStoreJson({ error: "این ساعت گذشته است. ساعت دیگری انتخاب کن." }, { status: 409 });
   }
   const hour = findHourForBookingDay(await salons.listSalonHours(salonUserId), rawBookingDay, bookingDateKey);
   if (hour && !Number(hour.active)) {

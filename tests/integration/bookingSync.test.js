@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createClient, registerUser } from "./helpers.js";
+import { createClient, registerUser, futureBookingDay } from "./helpers.js";
 
 async function setup() {
   const salonClient = createClient();
@@ -14,7 +14,7 @@ async function setup() {
   return { salonClient, salon, artistClient, artist, clientClient, client };
 }
 
-async function bookSalonWithStaff(ctx, bookingDate = "شنبه", time = "۱۰:۰۰") {
+async function bookSalonWithStaff(ctx, bookingDate = futureBookingDay(2), time = "۱۰:۰۰") {
   const staff = (await ctx.salonClient.get("/api/salon-staff")).payload.data.staff;
   const created = await ctx.clientClient.post("/api/salon-bookings", {
     salonUserId: ctx.salon.user.id,
@@ -57,7 +57,7 @@ describe("salon booking assigned to a staff artist", () => {
 
   it("the salon's confirm shows on the artist's side and the artist's decline cancels the salon booking", async () => {
     const ctx = await setup();
-    const booking = await bookSalonWithStaff(ctx, "یکشنبه", "۱۱:۰۰");
+    const booking = await bookSalonWithStaff(ctx, futureBookingDay(3), "۱۱:۰۰");
     await ctx.artistClient.get("/api/artist/me");
     const salonConfirm = await ctx.salonClient.patch("/api/salon-bookings", { id: booking.id, status: "تایید شده" });
     expect(salonConfirm.ok).toBe(true);
@@ -82,7 +82,7 @@ describe("client booking lists", () => {
     const userA = await registerUser(a, { type: "client", name: "مریم همنام" });
     await registerUser(b, { type: "client", name: "مریم همنام" });
     const created = await a.post("/api/salon-bookings", {
-      salonUserId: salon.user.id, service: "کوتاهی مو", bookingDate: "شنبه", time: "۱۰:۰۰",
+      salonUserId: salon.user.id, service: "کوتاهی مو", bookingDate: futureBookingDay(2), time: "۱۰:۰۰",
       client: userA.user.name, phone: userA.phone
     });
     expect(created.ok).toBe(true);
@@ -93,10 +93,10 @@ describe("client booking lists", () => {
 
   it("a request made by a client is pending for the salon; the salon's own entry is settled", async () => {
     const ctx = await setup();
-    const booking = await bookSalonWithStaff(ctx, "دوشنبه", "۱۲:۰۰");
+    const booking = await bookSalonWithStaff(ctx, futureBookingDay(4), "۱۲:۰۰");
     expect(booking.status).toBe("درخواست");
     const own = await ctx.salonClient.post("/api/salon-bookings", {
-      service: "کوتاهی مو", bookingDate: "سه‌شنبه", time: "۱۳:۰۰", client: "حضوری", phone: "09120000001"
+      service: "کوتاهی مو", bookingDate: futureBookingDay(2), time: "۱۳:۰۰", client: "حضوری", phone: "09120000001"
     });
     expect(own.ok).toBe(true);
     expect(own.payload.data.booking.status).toBe("تازه");

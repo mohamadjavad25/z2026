@@ -4,12 +4,13 @@ import { useEffect } from "react";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { Timer } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
-import { DateTimeWheelPicker } from "../../components/DateTimeWheelPicker";
+import { BookingSlotPicker } from "../../components/BookingSlotPicker";
 import {
   buildPublicBookingSlots,
   isPublicArtistSlotBlocked
 } from "./bookingUtils";
 import { salonClientBookingDays } from "./constants";
+import { isSlotInPast } from "../../shared/lib/slots";
 import { getTehranClockMinutes, timeLabelToMinutes } from "../../shared/lib/time";
 
 export function PublicArtistBookingPanel({
@@ -28,7 +29,7 @@ export function PublicArtistBookingPanel({
   const durationMinutes = parseDuration(activeService?.duration);
   const slots = buildPublicBookingSlots(durationMinutes);
   const freeSlots = slots.filter(
-    (slot) => !isPublicArtistSlotBlocked(
+    (slot) => !isSlotInPast(bookingDay, slot) && !isPublicArtistSlotBlocked(
       artist,
       bookingDay,
       slot,
@@ -38,7 +39,7 @@ export function PublicArtistBookingPanel({
 
   // Rule: a day with NO free slot is full — shown disabled and not selectable.
   const fullDays = salonClientBookingDays.filter((day) => (
-    !slots.some((slot) => !isPublicArtistSlotBlocked(artist, day, slot, durationMinutes))
+    !slots.some((slot) => !isSlotInPast(day, slot) && !isPublicArtistSlotBlocked(artist, day, slot, durationMinutes))
   ));
 
   // Default: nearest free hour (from now), refreshed when the day changes.
@@ -69,18 +70,14 @@ export function PublicArtistBookingPanel({
         <p className="artistPublicBookingServiceHint">{activeService.hint}</p>
       ) : null}
 
-      <DateTimeWheelPicker
+      <BookingSlotPicker
         dayOptions={salonClientBookingDays}
         dayValue={bookingDay}
         onDayChange={(day) => onDayChange(day, durationMinutes)}
         disabledDays={fullDays}
-        dayIdPrefix="public-artist-booking-day"
-        dayLabel="روز رزرو"
         timeOptions={freeSlots}
         timeValue={bookingSlot}
         onTimeChange={onSlotChange}
-        timeIdPrefix="public-artist-booking-time"
-        timeLabel="ساعت رزرو"
         emptyTimeMessage="برای این روز نوبت آزادی با این مدت‌زمان نیست."
       />
 

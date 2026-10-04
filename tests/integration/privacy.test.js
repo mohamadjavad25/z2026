@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createClient, registerUser } from "./helpers.js";
+import { createClient, registerUser, futureBookingDay } from "./helpers.js";
 
 describe("public salon payload", () => {
   it("never exposes bookings, client names or client phone numbers", async () => {
@@ -12,7 +12,7 @@ describe("public salon payload", () => {
     const booked = await customerClient.post("/api/salon-bookings", {
       salonUserId: salon.user.id,
       service: "کراتین مو",
-      bookingDate: "شنبه",
+      bookingDate: futureBookingDay(2),
       time: "۱۰:۰۰",
       client: "Secret Customer",
       phone: customer.phone

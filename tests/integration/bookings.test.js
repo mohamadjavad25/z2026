@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createClient, registerUser } from "./helpers.js";
+import { createClient, registerUser, futureBookingDay } from "./helpers.js";
 
 async function setupSalonAndClient() {
   const salonClient = createClient();
@@ -19,7 +19,7 @@ describe("salon bookings", () => {
     const res = await bookerClient.post("/api/salon-bookings", {
       salonUserId: salon.user.id,
       service: "کوتاهی مو",
-      bookingDate: "شنبه",
+      bookingDate: futureBookingDay(2),
       time: "۱۰:۰۰",
       client: booker.user.name,
       phone: booker.phone,
@@ -34,7 +34,7 @@ describe("salon bookings", () => {
     const first = await bookerClient.post("/api/salon-bookings", {
       salonUserId: salon.user.id,
       service: "کوتاهی مو",
-      bookingDate: "یکشنبه",
+      bookingDate: futureBookingDay(2),
       time: "۱۱:۰۰",
       client: booker.user.name,
       phone: booker.phone
@@ -46,7 +46,7 @@ describe("salon bookings", () => {
     const second = await secondBookerClient.post("/api/salon-bookings", {
       salonUserId: salon.user.id,
       service: "کوتاهی مو",
-      bookingDate: "یکشنبه",
+      bookingDate: futureBookingDay(2),
       time: "۱۱:۰۰",
       client: secondBooker.user.name,
       phone: secondBooker.phone
@@ -59,7 +59,7 @@ describe("salon bookings", () => {
     const created = await bookerClient.post("/api/salon-bookings", {
       salonUserId: salon.user.id,
       service: "رنگ مو",
-      bookingDate: "دوشنبه",
+      bookingDate: futureBookingDay(2),
       time: "۱۲:۰۰",
       client: booker.user.name,
       phone: booker.phone
@@ -89,7 +89,7 @@ describe("booking service icon snapshot", () => {
     const created = await bookerClient.post("/api/salon-bookings", {
       salonUserId: salon.user.id,
       service: "ژلیش ویژه",
-      bookingDate: "سه‌شنبه",
+      bookingDate: futureBookingDay(2),
       time: "۱۴:۰۰",
       client: booker.user.name,
       phone: booker.phone
@@ -114,7 +114,7 @@ describe("booking service icon snapshot", () => {
     const created = await bookerClient.post("/api/salon-bookings", {
       salonUserId: salon.user.id,
       service: "خدمت ناشناخته",
-      bookingDate: "چهارشنبه",
+      bookingDate: futureBookingDay(2),
       time: "۱۵:۰۰",
       client: booker.user.name,
       phone: booker.phone,
@@ -131,7 +131,7 @@ describe("client cancels own booking", () => {
     const created = await bookerClient.post("/api/salon-bookings", {
       salonUserId: salon.user.id,
       service: "کوتاهی مو",
-      bookingDate: "شنبه",
+      bookingDate: futureBookingDay(2),
       time: "۱۰:۰۰",
       client: booker.user.name,
       phone: booker.phone
@@ -162,7 +162,7 @@ describe("client cancels own booking", () => {
     const rebook = await other.post("/api/salon-bookings", {
       salonUserId: salon.user.id,
       service: "کوتاهی مو",
-      bookingDate: "شنبه",
+      bookingDate: futureBookingDay(2),
       time: "۱۰:۰۰",
       client: otherUser.user.name,
       phone: otherUser.phone
