@@ -677,3 +677,57 @@
 
 .profileEditSpecialty .specialtySelectTrigger { background: #fff; color: #14161d; border: 1px solid #dcdce4; box-shadow: none; }
 .profileEditSpecialty .specialtySelectPanel { position: static; max-height: 230px; overflow-y: auto; margin-top: 6px; box-shadow: none; border: 1px solid #ececf0; }
+
+/* ---- Bottom-centered sheet close (SheetClose) ---- */
+.sheetClose {
+  /* Fixed (not sticky): sticky is clamped to its grid area inside grid-based sheets. */
+  position: fixed !important;
+  left: 50% !important;
+  right: auto !important;
+  top: auto !important;
+  bottom: max(16px, env(safe-area-inset-bottom)) !important;
+  z-index: 100001;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #14161d !important;
+  color: #ffffff !important;
+  cursor: pointer;
+  box-shadow: 0 10px 26px rgba(20, 22, 29, 0.32);
+  transform: translateX(-50%) !important;
+}
+.sheetClose:active { transform: translateX(-50%) scale(0.94) !important; }
+.sheetClose:disabled { opacity: 0.5; }
+
+/* ---- Busy overlay for sheets (temporary look; a branded loader replaces it later) ---- */
+.sheetBusy {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(3px);
+  color: #14161d;
+  font-size: 0.86rem;
+}
+.sheetBusySpinner {
+  width: 38px;
+  height: 38px;
+  border: 3.5px solid #e4e4ea;
+  border-top-color: #14161d;
+  border-radius: 50%;
+  animation: sheetBusySpin 0.8s linear infinite;
+}
+@keyframes sheetBusySpin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .sheetBusySpinner { animation-duration: 2s; } }
+
+/* Keep the last content clear of the floating close button. */
+*:has(> .sheetClose) { padding-bottom: 84px !important; }

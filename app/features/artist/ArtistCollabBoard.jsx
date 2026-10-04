@@ -7,6 +7,7 @@ import { createPortal } from "react-dom";
 import { Check, LogOut, MapPin, Send, Sparkles, Store, Trash2, Users, X } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { TermsChips, TermsEditor } from "../collab/TermsEditor";
+import { SheetClose } from "../../components/SheetClose";
 
 function getSalonKey(salon) {
   return String(salon.id || salon.source_key || salon.name);
@@ -72,9 +73,6 @@ function SalonPreviewModal({ salon, draft, onDraftChange, onSubmit, onClose }) {
       onClick={onClose}
     >
       <article className="collabSalonModalSheet" onClick={(event) => event.stopPropagation()}>
-        <button type="button" className="collabSalonModalClose" onClick={onClose} aria-label="بستن">
-          <X size={18} />
-        </button>
 
         <header className="collabSalonModalHead">
           <CollabAvatar src={salon.avatar} position={salon.avatarPosition} />
@@ -158,6 +156,7 @@ function SalonPreviewModal({ salon, draft, onDraftChange, onSubmit, onClose }) {
             </button>
           </form>
         </section>
+  <SheetClose onClick={onClose} />
       </article>
     </div>,
     document.body

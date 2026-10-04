@@ -1,9 +1,9 @@
 "use client";
 
-import { X } from "lucide-react";
 import { BreakTimeWheel } from "../../components/BreakTimeWheel";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { buildClockOptions, timeLabelToMinutes } from "../../shared/lib/time";
+import { SheetClose } from "../../components/SheetClose";
 
 /**
  * Artist owner — break time range editor modal.
@@ -53,9 +53,6 @@ export function ArtistBreakEditorModal({
       onClick={onClose}
     >
       <article className="artistServiceSheet artistBreakSheet" onClick={(event) => event.stopPropagation()}>
-        <button type="button" className="artistServiceClose artistBreakClose" onClick={onClose} aria-label="بستن">
-          <X size={17} />
-        </button>
 
         <div className="artistBreakModalBody">
           <div className={`artistBreakRange is-side ${isInvalid ? "is-invalid" : ""}`}>
@@ -96,6 +93,7 @@ export function ArtistBreakEditorModal({
             <button type="button" className="ghost" onClick={onClose}>بستن</button>
           </div>
         </div>
+  <SheetClose onClick={onClose} />
       </article>
     </div>
   );

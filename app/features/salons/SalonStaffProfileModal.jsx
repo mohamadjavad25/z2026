@@ -13,12 +13,12 @@ import {
   Phone,
   ShieldCheck,
   Timer,
-  UserRound,
-  X
+  UserRound
 } from "lucide-react";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { StaffPerformanceChart } from "./StaffPerformanceChart";
 import { ServiceIcon } from "../../components/ServiceIcon";
+import { SheetClose } from "../../components/SheetClose";
 
 /**
  * A fact row that becomes a small inline form on click — used only for
@@ -122,10 +122,6 @@ export function SalonStaffProfileModal({
       onClick={onClose}
     >
       <article className="artistProfileSheet is-staffProfile smdSheet" onClick={(event) => event.stopPropagation()}>
-        <button type="button" className="artistProfileClose" onClick={onClose} aria-label="بستن">
-          <X size={17} />
-        </button>
-
         <header className="smdHero">
           <div className="smdAvatar">
             <img src={staffAvatar || "/profile-icon.svg"} alt="" />
@@ -285,6 +281,7 @@ export function SalonStaffProfileModal({
             پایان همکاری
           </button>
         </footer>
+  <SheetClose onClick={onClose} />
       </article>
     </div>
   );

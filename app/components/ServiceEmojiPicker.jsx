@@ -1,10 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Search, X } from "lucide-react";
+import { Search } from "lucide-react";
 import { BEAUTY_EMOJIS, EMOJI_CATEGORIES } from "../shared/constants/beautyEmoji";
 import { ServiceEmoji } from "./ServiceEmoji";
 import { ServiceIcon } from "./ServiceIcon";
+import { SheetClose } from "./SheetClose";
 
 /** Bottom-sheet icon picker (search + category tabs with their own icons). */
 export function ServiceEmojiPicker({ open, value = "", onPick, onClose }) {
@@ -26,7 +27,6 @@ export function ServiceEmojiPicker({ open, value = "", onPick, onClose }) {
       <div className="svcPicker" onClick={(event) => event.stopPropagation()}>
         <div className="svcPickerHead">
           <strong>آیکن خدمت</strong>
-          <button type="button" className="svcPickerClose" onClick={onClose} aria-label="بستن"><X size={18} /></button>
         </div>
         <label className="svcSearch">
           <Search size={16} aria-hidden="true" />
@@ -81,6 +81,7 @@ export function ServiceEmojiPicker({ open, value = "", onPick, onClose }) {
         {value ? (
           <button type="button" className="svcPickerClear" onClick={() => onPick?.("")}>حذف آیکن (انتخاب خودکار)</button>
         ) : null}
+        <SheetClose onClick={onClose} />
       </div>
     </div>
   );

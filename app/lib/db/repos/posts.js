@@ -16,7 +16,7 @@ function mapPost(row) {
     ownerUserId: row.owner_user_id,
     title: row.title,
     tag: row.tag || "",
-    image: row.image ? `/api/media/post/${row.id}` : "",
+    image: row.image ? `/api/media/post/${row.id}?v=${row.updated_at ? new Date(row.updated_at).getTime() : 0}` : "",
     caption: row.caption || "",
     inExplore: Boolean(row.in_explore),
     featured: Boolean(row.featured),
@@ -120,7 +120,13 @@ export async function incrementPostViews(id) {
   return getPostById(id, db);
 }
 
-export async function createPost(ownerUserId, data, runner = null) {
+/**
+ * `options.defer(fn)` lets a caller (the API route) run the slow, best-effort
+ * external-storage upload after the response has been sent instead of making the
+ * user wait for it -- the media route serves from the DB copy, so the post is
+ * fully usable the moment the row is inserted.
+ */
+export async function createPost(ownerUserId, data, runner = null, options = {}) {
   const db = runner || (await getDb());
   const info = await run(db, `
     INSERT INTO posts (owner_user_id, title, tag, image, caption, in_explore, featured)
@@ -142,22 +148,28 @@ export async function createPost(ownerUserId, data, runner = null) {
   // salon-portfolio uploads, since addSalonPortfolio routes through this
   // same function (see app/lib/db/repos/salons/portfolio.js).
   if (data.image) {
-    const imageUrl = await uploadImageDataUrl(data.image, { kind: "post", ownerId: postId });
-    if (imageUrl) {
-      await run(db, "UPDATE posts SET image_url = $1 WHERE id = $2", [imageUrl, postId]);
-    }
+    const storeImage = async () => {
+      const imageUrl = await uploadImageDataUrl(data.image, { kind: "post", ownerId: postId });
+      if (imageUrl) {
+        await run(db, "UPDATE posts SET image_url = $1 WHERE id = $2", [imageUrl, postId]);
+      }
+    };
+    if (options.defer) options.defer(storeImage);
+    else await storeImage();
   }
   return getPostById(postId, db);
 }
 
-export async function updatePost(id, ownerUserId, data, runner = null) {
+export async function updatePost(id, ownerUserId, data, runner = null, options = {}) {
   const db = runner || (await getDb());
   const current = await get(db, "SELECT * FROM posts WHERE id = $1 AND owner_user_id = $2", [id, ownerUserId]);
   if (!current) return null;
 
   let imageUrl = current.image_url;
-  if (data.image !== undefined && data.image !== current.image) {
-    imageUrl = data.image ? await uploadImageDataUrl(data.image, { kind: "post", ownerId: id }) : null;
+  const imageChanged = data.image !== undefined && data.image !== current.image;
+  if (imageChanged) {
+    // Stale until the (possibly deferred) upload below lands.
+    imageUrl = null;
   }
 
   await run(db, `
@@ -176,6 +188,16 @@ export async function updatePost(id, ownerUserId, data, runner = null) {
     id,
     ownerUserId
   ]);
+  if (imageChanged && data.image) {
+    const storeImage = async () => {
+      const uploaded = await uploadImageDataUrl(data.image, { kind: "post", ownerId: id });
+      if (uploaded) {
+        await run(db, "UPDATE posts SET image_url = $1 WHERE id = $2 AND owner_user_id = $3", [uploaded, id, ownerUserId]);
+      }
+    };
+    if (options.defer) options.defer(storeImage);
+    else await storeImage();
+  }
   return getPostById(id, db);
 }
 
