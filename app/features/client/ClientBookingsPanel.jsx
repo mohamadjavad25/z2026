@@ -14,16 +14,7 @@ import {
 } from "../artist";
 import { BookingHistoryCalendarSheet } from "../profile/BookingHistoryCalendarSheet";
 import { ProfileHeroWeekStrip } from "../profile/ProfileHeroWeekStrip";
-
-// The 4 real salon_bookings statuses map to a pill tone + icon so the client
-// can tell "waiting", "confirmed", "salon declined" and "nobody answered in
-// time" apart at a glance instead of every booking reading as confirmed.
-function getBookingStatusTone(status = "") {
-  if (status === "تایید شده") return "done";
-  if (status === "لغو") return "bad";
-  if (status === "منقضی شده") return "expired";
-  return "pending";
-}
+import { bookingStatusLabel, bookingStatusTone } from "./bookingStatus";
 
 const BOOKING_STATUS_ICONS = {
   pending: Clock3,
@@ -106,8 +97,8 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook })
       serviceEmoji: booking.service_emoji || "",
       date: rawDate ? formatRelativeBookingDayLabel(rawDate) : "امروز",
       time: booking.time || "زمان",
-      status: booking.status || "تازه",
-      tone: getBookingStatusTone(booking.status || "تازه")
+      status: bookingStatusLabel(booking.status),
+      tone: bookingStatusTone(booking.status || "تازه")
     };
   };
 
@@ -134,7 +125,7 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook })
           {nextBooking ? (() => {
             const meta = getBookingMeta(nextBooking);
             const StatusIcon = BOOKING_STATUS_ICONS[meta.tone] || Clock3;
-            const pendingDeadline = meta.status === "درخواست"
+            const pendingDeadline = (nextBooking.status === "درخواست" || nextBooking.status === "تازه")
               ? formatRequestExpiryDeadline(nextBooking.created_at)
               : "";
             return (

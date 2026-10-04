@@ -2,7 +2,7 @@ import { getDb, withTransaction, all, get, run } from "../connection.js";
 import { countFollowers, countFollowCountsMany, getUserById, getUserLiteById, isFollowing } from "./users.js";
 import { buildClientHistoryLookup } from "./clientHistory.js";
 import { listPostsByOwner } from "./posts.js";
-import { resolveRollingPersianDateKey } from "../../../shared/lib/persianCalendar.js";
+import { formatPersianDateKey, isPersianDateKey, resolveRollingPersianDateKey } from "../../../shared/lib/persianCalendar.js";
 import { normalizeBookingTimeLabel } from "../../../shared/lib/time.js";
 import { normalizePhone } from "./salons/common.js";
 import { isProfileSaved } from "./social.js";
@@ -889,4 +889,17 @@ export async function listSavedArtistsForUser(userId) {
     followers: counts.followers.get(Number(user.id)) || 0
   }));
   return result;
+}
+
+/** A client cancels their OWN direct artist booking (active and not in the past only). */
+export async function cancelArtistBookingByClient(id, clientUserId) {
+  const db = await getDb();
+  const current = await get(db, "SELECT * FROM artist_bookings WHERE id = $1 AND client_user_id = $2", [id, clientUserId]);
+  if (!current) return { ok: false, error: "missing" };
+  if (!["تازه", "درخواست", "تایید شده"].includes(current.status)) return { ok: false, error: "inactive" };
+  if (isPersianDateKey(current.booking_date) && current.booking_date < formatPersianDateKey(new Date())) {
+    return { ok: false, error: "past" };
+  }
+  await run(db, "UPDATE artist_bookings SET status = 'لغو', updated_at = CURRENT_TIMESTAMP WHERE id = $1", [id]);
+  return { ok: true, booking: { ...current, status: "لغو" }, artistUserId: current.artist_user_id };
 }

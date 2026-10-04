@@ -10,6 +10,7 @@ import {
 } from "../../shared/api/salons";
 import { getClientArtistBookings } from "../../shared/api/artists";
 import { toggleSave } from "../../shared/api/saves";
+import { apiFetch } from "../../shared/api/client";
 import { notifyFromResponse } from "../../shared/lib/apiNotify";
 import { resolveRollingPersianDateKey } from "../../shared/lib/persianCalendar";
 import {
@@ -196,6 +197,30 @@ export function useSalonDirectory({
       return [...nextSalonBookings, ...nextArtistBookings];
     });
   }, []);
+
+  /** The client cancels one of their own bookings (salon or direct-artist). */
+  const cancelClientBooking = useCallback(async (booking) => {
+    if (!booking?.id) return false;
+    const isArtist = booking.bookingSource === "artist";
+    try {
+      const { ok, payload } = await apiFetch(`/api/${isArtist ? "artist-bookings" : "salon-bookings"}/${booking.id}/cancel`, {
+        method: "POST",
+        body: "{}"
+      });
+      if (!ok) {
+        notify(payload?.error || "لغو رزرو انجام نشد.");
+        return false;
+      }
+      setClientBookingList((list) => list.map((item) => (
+        item.id === booking.id && (item.bookingSource === "artist") === isArtist ? { ...item, status: "لغو" } : item
+      )));
+      notify("رزرو لغو شد.");
+      return true;
+    } catch {
+      notify("لغو رزرو انجام نشد؛ دوباره امتحان کن.");
+      return false;
+    }
+  }, [notify]);
 
   const resetSalonClient = useCallback(() => {
     setSelectedSalon(null);
@@ -519,6 +544,7 @@ export function useSalonDirectory({
     isSavedSelectedSalon,
     refreshSalonDirectory,
     refreshClientBookings,
+    cancelClientBooking,
     resetSalonClient,
     toggleFollowSalon,
     toggleSaveSalon,

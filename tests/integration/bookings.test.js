@@ -124,3 +124,49 @@ describe("booking service icon snapshot", () => {
     expect(created.payload.data.booking.service_emoji).toBe("");
   });
 });
+
+describe("client cancels own booking", () => {
+  it("only the booking's client can cancel; the salon sees it cancelled and the slot frees up", async () => {
+    const { salonClient, salon, bookerClient, booker } = await setupSalonAndClient();
+    const created = await bookerClient.post("/api/salon-bookings", {
+      salonUserId: salon.user.id,
+      service: "کوتاهی مو",
+      bookingDate: "شنبه",
+      time: "۱۰:۰۰",
+      client: booker.user.name,
+      phone: booker.phone
+    });
+    expect(created.ok).toBe(true);
+    const id = created.payload.data.booking.id;
+
+    // Someone else cannot cancel it; neither can the salon through the client route.
+    const stranger = createClient();
+    await registerUser(stranger, { type: "client", name: "Stranger" });
+    expect((await stranger.post(`/api/salon-bookings/${id}/cancel`, {})).status).toBe(404);
+    expect((await salonClient.post(`/api/salon-bookings/${id}/cancel`, {})).status).toBe(403);
+    expect((await bookerClient.post("/api/salon-bookings/abc/cancel", {})).status).toBe(404);
+
+    const cancelled = await bookerClient.post(`/api/salon-bookings/${id}/cancel`, {});
+    expect(cancelled.ok).toBe(true);
+    expect(cancelled.payload.data.booking.status).toBe("لغو");
+
+    const salonList = await salonClient.get("/api/salon-bookings");
+    expect(salonList.payload.data.bookings.find((b) => b.id === id).status).toBe("لغو");
+
+    // Already cancelled -> no longer active.
+    expect((await bookerClient.post(`/api/salon-bookings/${id}/cancel`, {})).status).toBe(409);
+
+    // The slot is free again for someone else.
+    const other = createClient();
+    const otherUser = await registerUser(other, { type: "client", name: "Other" });
+    const rebook = await other.post("/api/salon-bookings", {
+      salonUserId: salon.user.id,
+      service: "کوتاهی مو",
+      bookingDate: "شنبه",
+      time: "۱۰:۰۰",
+      client: otherUser.user.name,
+      phone: otherUser.phone
+    });
+    expect(rebook.ok).toBe(true);
+  });
+});
