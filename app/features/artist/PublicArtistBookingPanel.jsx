@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { Timer } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
@@ -42,6 +42,16 @@ export function PublicArtistBookingPanel({
     !slots.some((slot) => !isSlotInPast(day, slot) && !isPublicArtistSlotBlocked(artist, day, slot, durationMinutes))
   ));
 
+  // Open on the first day that still has a free hour (today is often already over), until the
+  // client picks a day themselves.
+  const autoDayRef = useRef(true);
+  const firstOpenDay = salonClientBookingDays.find((day) => !fullDays.includes(day));
+  useEffect(() => {
+    if (autoDayRef.current && fullDays.includes(bookingDay) && firstOpenDay && firstOpenDay !== bookingDay) {
+      onDayChange(firstOpenDay, durationMinutes);
+    }
+  }, [bookingDay, fullDays.join("|")]);
+
   // Default: nearest free hour (from now), refreshed when the day changes.
   useEffect(() => {
     if (!bookingSlot && freeSlots.length) {
@@ -73,7 +83,7 @@ export function PublicArtistBookingPanel({
       <BookingSlotPicker
         dayOptions={salonClientBookingDays}
         dayValue={bookingDay}
-        onDayChange={(day) => onDayChange(day, durationMinutes)}
+        onDayChange={(day) => { autoDayRef.current = false; onDayChange(day, durationMinutes); }}
         disabledDays={fullDays}
         timeOptions={freeSlots}
         timeValue={bookingSlot}

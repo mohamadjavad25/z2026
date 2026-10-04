@@ -89,6 +89,7 @@ export function ArtistPublicPageClient({ artist }) {
       onBookingDayChange={setBookingDay}
       onBookingSlotChange={setBookingSlot}
       onConfirmBooking={goToApp}
+      guest
     />
   );
 }
