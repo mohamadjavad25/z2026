@@ -842,3 +842,28 @@
 @keyframes cbtSlide { 0% { transform: translateX(120%); } 100% { transform: translateX(-260%); } }
 @keyframes cbtPop { from { transform: scale(0.4); } to { transform: scale(1); } }
 @media (prefers-reduced-motion: reduce) { .cbt, .cbtIcon i, .cbtIcon svg, .cbtBar i, .cbt.is-ok .cbtIcon { animation: none !important; } }
+
+/* ── Client "فعالیت من": header with history button + history sheet (cbp* / cbh*) ── */
+.cbpHead { align-items: center !important; }
+.cbpHistoryBtn { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 7px; min-height: 42px; padding: 0 14px; border: 0; border-radius: 999px; background: #fff; box-shadow: inset 0 0 0 1px #e4e4ea, 0 6px 16px rgba(20, 22, 29, 0.06); color: #14161d; font: inherit; font-size: 0.78rem; font-weight: 900; cursor: pointer; transition: transform 0.08s; }
+.cbpHistoryBtn:active { transform: scale(0.96); }
+.cbpHistoryBtn b { min-width: 22px; height: 22px; display: grid; place-items: center; padding: 0 6px; border-radius: 999px; background: #14161d; color: #fff; font-size: 0.7rem; font-weight: 950; }
+.cbhBody { display: grid; gap: 14px; padding: 4px 2px 8px; }
+.cbhChips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+.cbhChips button { flex: 0 0 auto; min-height: 38px; padding: 0 16px; border: 0; border-radius: 999px; background: #fff; box-shadow: inset 0 0 0 1px #e4e4ea; color: #4b4f5c; font: inherit; font-size: 0.76rem; font-weight: 850; cursor: pointer; }
+.cbhChips button.is-on { background: #14161d; color: #fff; box-shadow: none; }
+.cbhGroup { display: grid; gap: 8px; }
+.cbhGroup h4 { margin: 0; color: #6f7380; font-size: 0.74rem; font-weight: 950; }
+.cbhGroup ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.cbhGroup li { display: flex; align-items: center; gap: 8px; }
+.cbhRow { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 0; border-radius: 18px; background: #fff; box-shadow: inset 0 0 0 1px #ececf1; font: inherit; color: #14161d; text-align: start; cursor: pointer; }
+.cbhRowText { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.cbhRowText b { font-size: 0.86rem; font-weight: 950; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cbhRowText small { color: #6f7380; font-size: 0.7rem; font-weight: 750; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cbhRow em { flex: 0 0 auto; font-style: normal; font-size: 0.68rem; font-weight: 900; padding: 4px 10px; border-radius: 999px; background: #eceef3; color: #4b4f5c; }
+.cbhRow em.is-done { background: #e3f6ea; color: #1c7c45; }
+.cbhRow em.is-bad, .cbhRow em.is-expired { background: #fde8e8; color: #b42a2a; }
+.cbhAgain { flex: 0 0 auto; width: 40px; height: 40px; display: grid; place-items: center; border: 0; border-radius: 50%; background: #f1f1f5; color: #14161d; cursor: pointer; }
+.cbhEmpty { display: grid; justify-items: center; gap: 6px; padding: 34px 16px; border-radius: 22px; background: #fafafc; box-shadow: inset 0 0 0 1.5px #e4e4ea; color: #6f7380; text-align: center; }
+.cbhEmpty b { color: #14161d; font-size: 0.92rem; font-weight: 950; }
+.cbhEmpty span { font-size: 0.76rem; font-weight: 700; line-height: 1.8; }
