@@ -139,6 +139,10 @@ export function useSalonWorkspace({
   const [artistInviteBusyId, setArtistInviteBusyId] = useState("");
   const [salonBookingSubmitting, setSalonBookingSubmitting] = useState(false);
   const salonBookingSubmittingRef = useRef(false);
+  // Artist ticks on a service (see toggleSalonServiceArtist): latest wanted list, last server-accepted list, save queue.
+  const serviceArtistDesiredRef = useRef(new Map());
+  const serviceArtistConfirmedRef = useRef(new Map());
+  const serviceArtistChainRef = useRef(new Map());
   const [scheduleBookingBusy, setScheduleBookingBusy] = useState(false);
   const scheduleBookingBusyRef = useRef(false);
   const [salonRequestBusyId, setSalonRequestBusyId] = useState("");
@@ -239,7 +243,12 @@ export function useSalonWorkspace({
         getSalonInvites()
       ]);
 
-      const nextServices = servicesRes.data?.services || [];
+      // A service whose artist ticks are still being saved keeps its local list: this refresh may
+      // have been fetched before the save landed and would otherwise flip the ticks back.
+      const nextServices = (servicesRes.data?.services || []).map((item) => {
+        const wanted = serviceArtistDesiredRef.current.get(String(item.id));
+        return wanted ? { ...item, staff_ids: wanted, staff_id: wanted[0] || null } : item;
+      });
       const nextStaff = Array.isArray(staffRes.data?.staff) ? staffRes.data.staff : [];
       const nextHours = hoursRes.data?.hours || [];
 
@@ -861,74 +870,93 @@ export function useSalonWorkspace({
     }
   }, [safeSalonStaffList, syncSalonDirectory, syncSelectedSalon, refreshSalonSystemData, shellNotify]);
 
-  const toggleSalonServiceArtist = useCallback(async (service, staffId) => {
+  // Artist ticks on a service: the screen updates the instant you tap, the server catches up in
+  // order. `desired` is the latest wanted list per service (so two quick taps on different artists
+  // both count even before the first save returns), `confirmed` the last list the server accepted
+  // (what we fall back to if a save fails).
+  const applyServiceArtists = useCallback((serviceId, nextIds, saved = null) => {
+    const selectedPeople = safeSalonStaffList.filter((person) => nextIds.includes(String(person.id)));
+    const patch = {
+      ...(saved || {}),
+      staff_id: nextIds[0] || null,
+      staff_ids: nextIds,
+      staff_members: selectedPeople,
+      staff_names: selectedPeople.map((person) => person.name).filter(Boolean).join("، "),
+      staff_name: selectedPeople[0]?.name || "",
+      staff_role: selectedPeople[0]?.role || ""
+    };
+    const merge = (items) => items.map((item) => (String(item.id) === String(serviceId) ? { ...item, ...patch } : item));
+    setSalonServiceList(merge);
+    syncSalonDirectory((items) => items.map((salon) => {
+      const services = Array.isArray(salon.services) ? salon.services : [];
+      if (!services.some((item) => String(item.id) === String(serviceId))) return salon;
+      return {
+        ...salon,
+        services: merge(services),
+        staff: Array.isArray(salon.staff) && salon.staff.length ? salon.staff : safeSalonStaffList
+      };
+    }));
+    syncSelectedSalon((current) => {
+      if (!current) return current;
+      const services = Array.isArray(current.services) ? current.services : [];
+      if (!services.some((item) => String(item.id) === String(serviceId))) return current;
+      return {
+        ...current,
+        services: merge(services),
+        staff: Array.isArray(current.staff) && current.staff.length ? current.staff : safeSalonStaffList
+      };
+    });
+  }, [safeSalonStaffList, syncSalonDirectory, syncSelectedSalon]);
+
+  const toggleSalonServiceArtist = useCallback((service, staffId) => {
     if (!service?.id) return;
-    const currentIds = Array.isArray(service.staff_ids)
+    const key = String(service.id);
+    const fromService = Array.isArray(service.staff_ids)
       ? service.staff_ids.map(String)
+      : String(service.staff_ids || "").trim()
+        ? String(service.staff_ids).split(",").map((id) => id.trim()).filter(Boolean)
       : service.staff_id
         ? [String(service.staff_id)]
         : [];
+    if (!serviceArtistConfirmedRef.current.has(key)) serviceArtistConfirmedRef.current.set(key, fromService);
+    const currentIds = serviceArtistDesiredRef.current.get(key) ?? fromService;
     const id = String(staffId);
-    const nextIds = currentIds.includes(id)
-      ? currentIds.filter((item) => item !== id)
-      : [...currentIds, id];
-    const primaryStaffId = nextIds[0] || null;
+    const nextIds = currentIds.includes(id) ? currentIds.filter((item) => item !== id) : [...currentIds, id];
+    serviceArtistDesiredRef.current.set(key, nextIds);
+    applyServiceArtists(service.id, nextIds);
 
-    try {
-      const { ok, payload } = await updateSalonServiceApi({
-        id: service.id,
-        name: service.name,
-        price: service.price,
-        duration: service.duration,
-        staff_id: primaryStaffId,
-        staff_ids: nextIds
-      });
-      if (!ok) {
-        shellNotify(payload.error || "انتخاب آرتیست انجام نشد؛ دوباره امتحان کن.");
-        return;
+    const previous = serviceArtistChainRef.current.get(key) || Promise.resolve();
+    const next = previous.then(async () => {
+      try {
+        const { ok, payload } = await updateSalonServiceApi({
+          id: service.id,
+          name: service.name,
+          price: service.price,
+          duration: service.duration,
+          staff_id: nextIds[0] || null,
+          staff_ids: nextIds
+        });
+        if (!ok) throw new Error(payload?.error || "");
+        serviceArtistConfirmedRef.current.set(key, nextIds);
+      } catch (error) {
+        const confirmed = serviceArtistConfirmedRef.current.get(key) || [];
+        serviceArtistDesiredRef.current.set(key, confirmed);
+        applyServiceArtists(service.id, confirmed);
+        shellNotify(error?.message || "انتخاب آرتیست ذخیره نشد؛ دوباره امتحان کن.");
       }
-      const selectedPeople = safeSalonStaffList.filter((person) => nextIds.includes(String(person.id)));
-      const saved = payload.data?.service;
-      const nextService = {
-        ...(saved || service),
-        staff_id: primaryStaffId,
-        staff_ids: nextIds,
-        staff_members: selectedPeople,
-        staff_names: selectedPeople.map((person) => person.name).filter(Boolean).join("، "),
-        staff_name: selectedPeople[0]?.name || "",
-        staff_role: selectedPeople[0]?.role || ""
-      };
-      setSalonServiceList((items) => items.map((item) => (
-        String(item.id) === String(service.id) ? { ...item, ...nextService } : item
-      )));
-      syncSalonDirectory((items) => items.map((salon) => {
-        const services = Array.isArray(salon.services) ? salon.services : [];
-        const hasService = services.some((item) => String(item.id) === String(service.id));
-        if (!hasService) return salon;
-        return {
-          ...salon,
-          services: services.map((item) => String(item.id) === String(service.id) ? { ...item, ...nextService } : item),
-          staff: Array.isArray(salon.staff) && salon.staff.length ? salon.staff : safeSalonStaffList
-        };
-      }));
-      syncSelectedSalon((current) => {
-        if (!current) return current;
-        const services = Array.isArray(current.services) ? current.services : [];
-        const hasService = services.some((item) => String(item.id) === String(service.id));
-        if (!hasService) return current;
-        return {
-          ...current,
-          services: services.map((item) => String(item.id) === String(service.id) ? { ...item, ...nextService } : item),
-          staff: Array.isArray(current.staff) && current.staff.length ? current.staff : safeSalonStaffList
-        };
-      });
-      shellNotify(nextIds.length
-        ? `${nextIds.length} آرتیست برای «${service.name}» انتخاب شد.`
-        : `آرتیست‌های «${service.name}» برداشته شدند.`);
-    } catch {
-      shellNotify("انتخاب آرتیست انجام نشد؛ دوباره امتحان کن.");
-    }
-  }, [safeSalonStaffList, syncSalonDirectory, syncSelectedSalon, shellNotify]);
+    });
+    serviceArtistChainRef.current.set(key, next);
+    // Once the queue for this service has drained, forget it so later changes start from fresh data.
+    // (kept a few seconds past the last save so a refresh that was already in flight cannot undo it)
+    next.then(() => {
+      window.setTimeout(() => {
+        if (serviceArtistChainRef.current.get(key) !== next) return;
+        serviceArtistChainRef.current.delete(key);
+        serviceArtistDesiredRef.current.delete(key);
+        serviceArtistConfirmedRef.current.delete(key);
+      }, 4000);
+    });
+  }, [applyServiceArtists, shellNotify]);
 
   const deleteSalonService = useCallback(async (id) => {
     const target = salonServiceList.find((item) => item.id === id);
