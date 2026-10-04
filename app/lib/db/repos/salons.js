@@ -3,7 +3,6 @@ import { countFollowers, countFollowCountsMany } from "./users.js";
 import { isProfileSaved } from "./social.js";
 import { getSettings, DEFAULT_SETTINGS } from "./userSettings.js";
 import { countFollowing, defaultHours } from "./salons/common.js";
-import { listSalonBookings } from "./salons/bookings.js";
 import { listSalonHours } from "./salons/hours.js";
 import { listSalonPortfolio } from "./salons/portfolio.js";
 import { listSalonServices } from "./salons/services.js";
@@ -236,7 +235,7 @@ export async function listSavedSalonsForUser(userId) {
 export async function getSalon(userId, viewerUserId = null) {
   const db = await getDb();
   const row = await get(db, `
-    SELECT s.*, (u.avatar <> '') AS avatar, u.bio, u.avatar_position
+    SELECT s.*, (u.avatar <> '') AS avatar, (u.poster <> '') AS has_poster, u.bio, u.avatar_position, u.poster_position, u.updated_at AS user_updated_at
     FROM salons s JOIN users u ON u.id = s.user_id
     WHERE s.user_id = $1
   `, [userId]);
@@ -249,8 +248,7 @@ export async function getSalon(userId, viewerUserId = null) {
     services,
     portfolio,
     staff,
-    hours,
-    bookings
+    hours
   ] = await Promise.all([
     countFollowers(row.user_id, db),
     countFollowing(row.user_id, db),
@@ -259,8 +257,7 @@ export async function getSalon(userId, viewerUserId = null) {
     listSalonServices(userId, db),
     listSalonPortfolio(userId, db, { publicOnly: Number(viewerUserId || 0) !== Number(userId) }),
     listSalonStaff(userId, db),
-    listSalonHours(userId, db),
-    listSalonBookings(userId)
+    listSalonHours(userId, db)
   ]);
   return {
     id: row.user_id,
@@ -284,6 +281,8 @@ export async function getSalon(userId, viewerUserId = null) {
     phone: row.phone,
     avatar: row.avatar ? `/api/media/avatar/${row.user_id}` : "",
     avatarPosition: row.avatar_position || "",
+    poster: row.has_poster ? `/api/media/poster/${row.user_id}?v=${row.user_updated_at ? new Date(row.user_updated_at).getTime() : 0}` : "",
+    posterPosition: row.poster_position || "",
     bio: row.bio || "",
     rules: row.rules || "",
     postCount: row.post_count,
@@ -303,8 +302,7 @@ export async function getSalon(userId, viewerUserId = null) {
     services,
     portfolio,
     staff,
-    hours,
-    bookings
+    hours
   };
 }
 
