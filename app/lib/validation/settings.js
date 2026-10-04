@@ -10,5 +10,9 @@ export const settingsPatchSchema = z.object({
   orderAlerts: z.boolean().optional(),
   shippingReady: z.boolean().optional(),
   smartSuggestions: z.boolean().optional(),
-  showPrices: z.boolean().optional()
+  showPrices: z.boolean().optional(),
+  vacationMode: z.boolean().optional(),
+  directBooking: z.boolean().optional(),
+  autoConfirm: z.boolean().optional(),
+  reminders: z.boolean().optional()
 });

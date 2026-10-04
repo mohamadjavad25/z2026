@@ -127,12 +127,6 @@ export function useArtistWorkspace({
     capacity: "۴"
   });
   const [artistBookingRailOpen, setArtistBookingRailOpen] = useState(false);
-  const [artistBookingSettings, setArtistBookingSettings] = useState({
-    directBooking: true,
-    autoConfirm: false,
-    reminders: true,
-    vacationMode: false
-  });
   const [artistBookingSelectedDay, setArtistBookingSelectedDay] = useState(getTodayPersianWeekday());
   const [artistHoursList, setArtistHoursList] = useState([]);
   const [artistHoursOpen, setArtistHoursOpen] = useState(false);
@@ -1039,8 +1033,6 @@ export function useArtistWorkspace({
     setArtistCollabDraft,
     artistBookingRailOpen,
     setArtistBookingRailOpen,
-    artistBookingSettings,
-    setArtistBookingSettings,
     artistBookingSelectedDay,
     setArtistBookingSelectedDay,
     artistHoursList,

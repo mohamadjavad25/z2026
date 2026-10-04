@@ -5,6 +5,7 @@ import { error, json, validateBody, withErrorHandling } from "../../../lib/http.
 import * as artists from "../../../lib/db/repos/artists.js";
 import { checkRateLimit } from "../../../lib/rateLimit.js";
 import { sendPushToUser } from "../../../lib/push.js";
+import * as userSettings from "../../../lib/db/repos/userSettings.js";
 import { createBookingSchema } from "../../../lib/validation/booking.js";
 // Side-effect import: starts the once-per-process 1-hour booking-request
 // auto-expiry sweep (see that file's docstring) the first time this route
@@ -47,8 +48,19 @@ async function _POST(request) {
   if (isSlotInPast(v.data.bookingDate || v.data.booking_date || v.data.date || "", v.data.time || "")) {
     return error("این ساعت گذشته است. ساعت دیگری انتخاب کن.", 409);
   }
+  const artistSettings = await userSettings.getSettings(artistUserId);
+  const isOwner = viewer?.id === artistUserId;
+  if (!isOwner && (artistSettings.vacationMode || artistSettings.directBooking === false)) {
+    return error(
+      artistSettings.vacationMode
+        ? "این آرتیست فعلاً در مرخصی است و نوبت جدید نمی‌پذیرد."
+        : "این آرتیست فعلاً رزرو مستقیم را بسته است.",
+      403
+    );
+  }
   const result = await artists.addArtistBooking(artistUserId, {
     ...v.data,
+    ...(!isOwner && viewer?.id && artistSettings.autoConfirm ? { status: "تایید شده" } : {}),
     clientUserId: viewer?.id || null,
     clientName: body.clientName || viewer?.name || "",
     clientPhone: body.clientPhone || viewer?.phone || ""

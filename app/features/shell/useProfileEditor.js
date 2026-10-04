@@ -10,7 +10,11 @@ const DEFAULT_PROFILE_SETTINGS = {
   smartSuggestions: true,
   orderAlerts: true,
   shippingReady: true,
-  showPrices: true
+  showPrices: true,
+  vacationMode: false,
+  directBooking: true,
+  autoConfirm: false,
+  reminders: true
 };
 
 /**
@@ -54,6 +58,10 @@ export function useProfileEditor({
   const profileSavingRef = useRef(false);
   const [profileSettings, setProfileSettings] = useState(DEFAULT_PROFILE_SETTINGS);
   const settingsLoadedForId = useRef(null);
+  // Mirror of profileSettings readable synchronously, so a toggle can compute
+  // its next value *before* sending (a setState updater runs later, not inline).
+  const settingsRef = useRef(DEFAULT_PROFILE_SETTINGS);
+  const settingsSaveChain = useRef(new Map());
 
   useEffect(() => {
     const userId = createdProfile?.id;
@@ -67,7 +75,9 @@ export function useProfileEditor({
         const payload = await response.json();
         const settings = payload?.data?.settings;
         if (!cancelled && settings) {
-          setProfileSettings((current) => ({ ...current, ...settings }));
+          const merged = { ...settingsRef.current, ...settings };
+          settingsRef.current = merged;
+          setProfileSettings(merged);
         }
       } catch {
         // Keep defaults; the toggle itself will surface an error if the user acts on it.
@@ -355,28 +365,37 @@ export function useProfileEditor({
     )
   ), [saveProfileFields]);
 
+  const applySetting = useCallback((key, value) => {
+    const next = { ...settingsRef.current, [key]: value };
+    settingsRef.current = next;
+    setProfileSettings(next);
+  }, []);
+
   const toggleProfileSetting = useCallback((key) => {
-    let nextValue = null;
-    setProfileSettings((settings) => {
-      nextValue = !settings[key];
-      return { ...settings, [key]: nextValue };
-    });
-    fetch("/api/profile/settings", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ settings: { [key]: nextValue } })
-    })
-      .then(async (response) => {
+    const value = !settingsRef.current[key];
+    const previous = !value;
+    applySetting(key, value);
+    // One request at a time per key, in tap order, so rapid taps can't land
+    // out of order on the server and leave it opposite to what's on screen.
+    const chain = settingsSaveChain.current;
+    const run = (chain.get(key) || Promise.resolve()).then(async () => {
+      try {
+        const response = await fetch("/api/profile/settings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ settings: { [key]: value } })
+        });
         if (response.ok) return;
         const payload = await response.json().catch(() => ({}));
-        setProfileSettings((settings) => ({ ...settings, [key]: !nextValue }));
-        notify(payload.error || "ذخیره تنظیمات انجام نشد.");
-      })
-      .catch(() => {
-        setProfileSettings((settings) => ({ ...settings, [key]: !nextValue }));
-        notify("ذخیره تنظیمات انجام نشد؛ اتصال را بررسی کن.");
-      });
-  }, [notify]);
+        throw new Error(/[\u0600-\u06FF]/.test(payload?.error || "") ? payload.error : "");
+      } catch (err) {
+        // Only roll back if no newer tap has changed this key since.
+        if (settingsRef.current[key] === value) applySetting(key, previous);
+        notify(err?.message || "ذخیره تنظیمات انجام نشد؛ اتصال را بررسی کن و دوباره امتحان کن.");
+      }
+    });
+    chain.set(key, run);
+  }, [applySetting, notify]);
 
   return {
     profileEditOpen,

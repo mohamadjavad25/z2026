@@ -244,8 +244,6 @@ export function SettingsPage({
   onCancelPosterUpload,
   profileSettings,
   onToggleSetting,
-  artistBookingSettings = null,
-  onArtistBookingChange = null,
   savedPostsCount = 0,
   onOpenSaved,
   onLogout,
@@ -380,8 +378,6 @@ export function SettingsPage({
           profileType={profile.type}
           profileSettings={profileSettings}
           onToggle={onToggleSetting}
-          artistBookingSettings={isArtist ? artistBookingSettings : null}
-          onArtistBookingChange={isArtist ? onArtistBookingChange : null}
           onLogout={onLogout}
           onDeleteAccount={onDeleteAccount}
         />

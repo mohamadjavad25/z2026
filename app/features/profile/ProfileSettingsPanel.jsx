@@ -125,8 +125,6 @@ export function ProfileSettingsPanel({
   profileType,
   profileSettings,
   onToggle,
-  artistBookingSettings,
-  onArtistBookingChange,
   onLogout,
   onDeleteAccount
 }) {
@@ -192,14 +190,14 @@ export function ProfileSettingsPanel({
     />
   ) : null;
 
-  const artistBooking = profileType === "artist" && artistBookingSettings ? (
+  const artistBooking = profileType === "artist" ? (
     <SettingsGroup title="رزرو و ظرفیت کاری">
       <SettingsToggle
         icon={Moon}
         label="حالت مرخصی"
         description="نوبت‌گیری جدید موقتاً بسته شود، بدون خصوصی کردن پروفایل"
-        checked={Boolean(artistBookingSettings.vacationMode)}
-        onChange={(v) => onArtistBookingChange?.({ ...artistBookingSettings, vacationMode: v })}
+        checked={Boolean(profileSettings.vacationMode)}
+        onChange={() => onToggle("vacationMode")}
         onLabel="فعال"
         offLabel="خاموش"
       />
@@ -207,22 +205,22 @@ export function ProfileSettingsPanel({
         icon={CalendarCheck}
         label="رزرو مستقیم"
         description="مشتری از پروفایل عمومی بدون واسطه وقت بگیرد"
-        checked={artistBookingSettings.directBooking}
-        onChange={(v) => onArtistBookingChange?.({ ...artistBookingSettings, directBooking: v })}
+        checked={Boolean(profileSettings.directBooking)}
+        onChange={() => onToggle("directBooking")}
       />
       <SettingsToggle
         icon={Briefcase}
         label="تأیید سریع نوبت"
         description="نوبت‌های جدید بدون بررسی دستی تایید شوند"
-        checked={artistBookingSettings.autoConfirm}
-        onChange={(v) => onArtistBookingChange?.({ ...artistBookingSettings, autoConfirm: v })}
+        checked={Boolean(profileSettings.autoConfirm)}
+        onChange={() => onToggle("autoConfirm")}
       />
       <SettingsToggle
         icon={Bell}
         label="یادآوری مشتری"
         description="قبل از زمان نوبت برای مشتری یادآوری ارسال شود"
-        checked={artistBookingSettings.reminders}
-        onChange={(v) => onArtistBookingChange?.({ ...artistBookingSettings, reminders: v })}
+        checked={Boolean(profileSettings.reminders)}
+        onChange={() => onToggle("reminders")}
       />
     </SettingsGroup>
   ) : null;
