@@ -82,14 +82,13 @@ export function SalonClientPage({
   const [aboutOpen, setAboutOpen] = useState(false);
   const [publicSheet, setPublicSheet] = useState("");
   const [salonQuery, setSalonQuery] = useState("");
+  const [onlyOpen, setOnlyOpen] = useState(false);
   const normalizedSalonQuery = salonQuery.trim();
-  const visibleSalons = normalizedSalonQuery
-    ? salons.filter((salon) =>
-        [salon.name, salon.area, salon.tag]
-          .filter(Boolean)
-          .some((field) => field.includes(normalizedSalonQuery))
-      )
-    : salons;
+  const visibleSalons = salons.filter((salon) => {
+    if (onlyOpen && !getTodayStatus(salon.hours)?.open) return false;
+    if (!normalizedSalonQuery) return true;
+    return [salon.name, salon.area, salon.tag].filter(Boolean).some((field) => field.includes(normalizedSalonQuery));
+  });
   const services = selectedSalon ? getVisibleServices(selectedSalon) : [];
   const portfolioItems = Array.isArray(selectedSalon?.portfolio) ? selectedSalon.portfolio : [];
   const followerCountValue = Number(selectedSalon?.followerCount ?? selectedSalon?.follower_count ?? 0) || 0;
@@ -122,78 +121,61 @@ export function SalonClientPage({
           className="salonClientPage salonPublicProfile"
           aria-label={`صفحه مشتری ${selectedSalon.name}`}
         >
-          <header className="salonPublicHero spvHero">
+          <header className="scHero">
             {selectedSalon.poster ? (
               <img
-                className="publicStoryHeroImage"
+                className="scHeroImage"
                 src={selectedSalon.poster}
                 alt=""
                 aria-hidden="true"
                 style={{ objectPosition: selectedSalon.posterPosition || "50% 50%" }}
               />
             ) : (
-              <div className="spvHeroFallback" aria-hidden="true" />
+              <div className="scHeroFallback" aria-hidden="true" />
             )}
-            <div className="salonPublicTopbar">
-              <button type="button" className="salonPublicRoundButton salonPublicBackButton" onClick={onBack} aria-label="بازگشت به سالن‌ها">
+            <div className="scTopbar">
+              <button type="button" className="scRound" onClick={onBack} aria-label="بازگشت به سالن‌ها">
                 <ChevronLeft size={20} />
               </button>
-              <button
-                type="button"
-                className="salonPublicRoundButton salonPublicMenuButton"
-                onClick={() => onShare(selectedSalon.name)}
-                aria-label="اشتراک‌گذاری"
-              >
-                <Share2 size={20} />
+              <button type="button" className="scRound" onClick={() => onShare(selectedSalon.name)} aria-label="اشتراک‌گذاری">
+                <Share2 size={19} />
               </button>
             </div>
           </header>
 
-          <section className="salonPublicIdentityCard">
-            <div className="salonPublicLogoSlot">
-              <div className="profileHero is-salon salonPublicAvatarHost">
-                <div className="salonHeroAvatarFrame">
-                  <img
-                    className="profileAvatarImage"
-                    src={selectedSalon.avatar || "/profile-icon.svg"}
-                    alt=""
-                    aria-hidden="true"
-                    style={{ objectPosition: selectedSalon.avatarPosition || "50% 50%" }}
-                  />
-                </div>
-              </div>
+          <section className="scId">
+            <span className="scAvatar">
+              <img
+                src={selectedSalon.avatar || "/profile-icon.svg"}
+                alt=""
+                aria-hidden="true"
+                style={{ objectPosition: selectedSalon.avatarPosition || "50% 50%" }}
+              />
+            </span>
+            <h2>{publicName}</h2>
+            <p className="scTag">{publicTag}</p>
+            {selectedSalon.area ? <p className="scArea"><MapPin size={13} />{selectedSalon.area}</p> : null}
+            {openStatus ? (
+              <p className={`scOpen ${openStatus.open ? "is-open" : "is-closed"}`}>
+                <Clock3 size={13} /> {openStatus.text}
+              </p>
+            ) : null}
+            <div className="scStats">
+              <span><b>{toPersianDigits(staffCount)}</b>عضو تیم</span>
+              <span><b>{toPersianDigits(services.length)}</b>خدمت</span>
+              <span><b>{followerCount}</b>دنبال‌کننده</span>
             </div>
-            <div className="salonPublicTitle">
-              <h2>{publicName}</h2>
-              <span>{publicTag}</span>
-              {selectedSalon.area ? <small className="spvArea"><MapPin size={13} />{selectedSalon.area}</small> : null}
-            </div>
-            <div className="spvStats">
-              <span><b>{toPersianDigits(staffCount)}</b> عضو تیم</span>
-              <span><b>{toPersianDigits(services.length)}</b> خدمت</span>
-              <span><b>{followerCount}</b> دنبال‌کننده</span>
-            </div>
-            <div className="spvActions">
-              <button
-                type="button"
-                className={isFollowing ? "is-following" : ""}
-                onClick={() => onFollow(selectedSalon)}
-              >
-                {isFollowing ? <Check size={18} /> : <UserPlus size={18} />}
+            <div className="scActions">
+              <button type="button" className={isFollowing ? "is-following" : ""} onClick={() => onFollow(selectedSalon)}>
+                {isFollowing ? <Check size={17} /> : <UserPlus size={17} />}
                 {isFollowing ? "دنبال می‌کنی" : "دنبال کردن"}
               </button>
               {selectedSalon.phone ? (
-                <a className="spvCall" href={`tel:${toLatinDigits(selectedSalon.phone)}`} aria-label="تماس با سالن">
-                  <Phone size={18} />
-                  تماس
+                <a href={`tel:${toLatinDigits(selectedSalon.phone)}`} aria-label="تماس با سالن">
+                  <Phone size={17} /> تماس
                 </a>
               ) : null}
             </div>
-            {openStatus ? (
-              <p className={`spvOpen ${openStatus.open ? "is-open" : "is-closed"}`}>
-                <Clock3 size={14} /> {openStatus.text}
-              </p>
-            ) : null}
           </section>
 
           <section className="salonPublicCard salonPublicServices">
@@ -427,13 +409,17 @@ export function SalonClientPage({
               aria-label="جستجوی سالن"
             />
           </label>
-          <div className="salonList">
+          <div className="sdrChips" role="tablist" aria-label="فیلتر سالن‌ها">
+            <button type="button" role="tab" aria-selected={!onlyOpen} className={!onlyOpen ? "is-on" : ""} onClick={() => setOnlyOpen(false)}>همه سالن‌ها</button>
+            <button type="button" role="tab" aria-selected={onlyOpen} className={onlyOpen ? "is-on" : ""} onClick={() => setOnlyOpen(true)}>امروز باز است</button>
+          </div>
+          <div className="salonList sdrList">
           {visibleSalons.length ? visibleSalons.map((salon) => {
             const serviceCount = getVisibleServices(salon).length;
             const localStaffCount = salon.staff?.length || 0;
             return (
               <article
-                className="salonRow"
+                className="sdr"
                 key={salon.id || salon.name}
                 role="button"
                 tabIndex={0}
@@ -445,63 +431,46 @@ export function SalonClientPage({
                   }
                 }}
               >
-                <div className="salonCardMain">
-                  <div className="salonCardHead">
-                    <div className={`salonIcon ${salon.avatar ? "hasImage" : ""}`} aria-hidden="true">
-                      {salon.avatar ? <img src={salon.avatar} alt="" style={{ objectPosition: salon.avatarPosition || "50% 50%" }} /> : <Store size={21} />}
-                    </div>
-                    <div>
-                      <h3>{salon.name}</h3>
-                      {[salon.area, salon.tag].filter(Boolean).length > 0 && (
-                        <p><MapPin size={12} /> {[salon.area, salon.tag].filter(Boolean).join(" · ")}</p>
-                      )}
-                    </div>
-                  </div>
-                  {serviceCount > 0 ? (
-                    <div className="salonCardServices" aria-label="خدمات سالن">
-                      {getVisibleServices(salon).slice(0, 5).map((service) => (
-                        <ServiceIcon key={service.id || service.name} emoji={service.emoji} name={service.name} size="sm" />
-                      ))}
-                      {serviceCount > 5 ? <span className="salonCardServicesMore">+{toPersianDigits(serviceCount - 5)}</span> : null}
-                    </div>
-                  ) : null}
-                  <div className="salonCardStats" aria-label="اطلاعات سالن">
-                    {(salon.post_count || salon.portfolio?.length || 0) > 0 ? (
-                      <span><ImagePlus size={13} /><b>{toPersianDigits(salon.post_count || salon.portfolio?.length || 0)}</b> نمونه‌کار</span>
-                    ) : null}
-                    {localStaffCount > 0 ? (
-                      <span><UserRound size={13} /><b>{toPersianDigits(localStaffCount)}</b> آرتیست</span>
+                <div className="sdrHead">
+                  <span className={`sdrLogo ${salon.avatar ? "hasImage" : ""}`} aria-hidden="true">
+                    {salon.avatar ? <img src={salon.avatar} alt="" style={{ objectPosition: salon.avatarPosition || "50% 50%" }} /> : <Store size={22} />}
+                  </span>
+                  <div className="sdrTitle">
+                    <h3>{salon.name}</h3>
+                    {[salon.area, salon.tag].filter(Boolean).length > 0 ? (
+                      <p><MapPin size={12} />{[salon.area, salon.tag].filter(Boolean).join(" · ")}</p>
                     ) : null}
                   </div>
+                  {(() => {
+                    const status = getTodayStatus(salon.hours);
+                    return status ? <span className={`sdrOpen ${status.open ? "is-open" : "is-closed"}`}>{status.open ? "باز" : "تعطیل"}</span> : null;
+                  })()}
                 </div>
-                <div className="salonCardFooter">
-                  <div className="salonCardFooterChips">
-                    {(() => {
-                      const status = getTodayStatus(salon.hours);
-                      return status ? (
-                        <span className={`salonOpenChip spvChip ${status.open ? "is-open" : "is-closed"}`}>{status.short}</span>
-                      ) : null;
-                    })()}
+                {serviceCount > 0 ? (
+                  <div className="sdrServices" aria-label="خدمات سالن">
+                    {getVisibleServices(salon).slice(0, 5).map((service) => (
+                      <ServiceIcon key={service.id || service.name} emoji={service.emoji} name={service.name} size="sm" />
+                    ))}
+                    {serviceCount > 5 ? <span className="sdrMore">+{toPersianDigits(serviceCount - 5)}</span> : null}
+                  </div>
+                ) : null}
+                <div className="sdrFoot">
+                  <div className="sdrMeta">
                     {(() => {
                       const from = getMinPrice(getVisibleServices(salon));
-                      return from ? <span className="salonServiceChip">از {formatTomanNumber(from)} تومان</span> : (
-                        <span className="salonServiceChip">{toPersianDigits(serviceCount)} خدمت</span>
-                      );
+                      return from ? <b>از {formatTomanNumber(from)} تومان</b> : <b>{toPersianDigits(serviceCount)} خدمت</b>;
                     })()}
+                    <small>
+                      {(salon.post_count || salon.portfolio?.length || 0) > 0 ? `${toPersianDigits(salon.post_count || salon.portfolio?.length || 0)} نمونه‌کار` : ""}
+                      {(salon.post_count || salon.portfolio?.length || 0) > 0 && localStaffCount > 0 ? " · " : ""}
+                      {localStaffCount > 0 ? `${toPersianDigits(localStaffCount)} آرتیست` : ""}
+                    </small>
                   </div>
-                  <button
-                    type="button"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      onSelectSalon(salon);
-                    }}
-                  >
-                    <CalendarCheck size={17} /> رزرو
-                  </button>
+                  <span className="sdrBook"><CalendarCheck size={16} /> رزرو</span>
                 </div>
               </article>
             );
-          }) : normalizedSalonQuery ? (
+          }) : normalizedSalonQuery || onlyOpen ? (
             <div className="emptySalonDirectory">
               <Search size={22} />
               <div>

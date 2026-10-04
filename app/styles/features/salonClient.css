@@ -1,0 +1,53 @@
+/* Client-facing salons: directory cards (sdr*) and public salon page (sc*).
+   Fresh class names on purpose: the legacy salonPublic and salonRow rules were
+   redefined many times over in styles.css and fought each other. */
+/* ── Directory ── */
+.sdrChips { display: flex; gap: 8px; margin: 0 0 12px; overflow-x: auto; scrollbar-width: none; }
+.sdrChips button { flex: 0 0 auto; min-height: 36px; padding: 0 14px; border: 0; border-radius: 999px; background: #fff; box-shadow: inset 0 0 0 1px #e4e4ea; color: #4b4f5c; font: inherit; font-size: 0.76rem; font-weight: 850; }
+.sdrChips button.is-on { background: #14161d; color: #fff; box-shadow: none; }
+.sdrList { display: grid; gap: 12px; padding-bottom: 110px; }
+.sdr { display: grid; gap: 12px; padding: 14px; border-radius: 22px; background: #fff; box-shadow: inset 0 0 0 1px #ececf1, 0 10px 28px rgba(20, 22, 29, 0.06); cursor: pointer; outline: none; }
+.sdr:focus-visible { box-shadow: 0 0 0 3px #14161d33; }
+.sdrHead { display: flex; align-items: center; gap: 12px; }
+.sdrLogo { flex: 0 0 auto; width: 54px; height: 54px; display: grid; place-items: center; overflow: hidden; border-radius: 18px; background: #fff3f7; box-shadow: inset 0 0 0 1px #fbd0e0; color: #14161d; }
+.sdrLogo img { width: 100%; height: 100%; object-fit: cover; }
+.sdrTitle { flex: 1; min-width: 0; display: grid; gap: 3px; }
+.sdr .sdrTitle h3 { margin: 0; color: #14161d; font-size: 1rem; font-weight: 950; line-height: 1.35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sdr .sdrTitle p { margin: 0; display: flex; align-items: center; gap: 4px; color: #6f7380; font-size: 0.74rem; font-weight: 750; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sdrOpen { flex: 0 0 auto; padding: 4px 10px; border-radius: 999px; font-size: 0.68rem; font-weight: 900; }
+.sdrOpen.is-open { background: #e3f6ea; color: #1c7c45; }
+.sdrOpen.is-closed { background: #f1f1f5; color: #6f7380; }
+.sdrServices { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.sdrMore { min-width: 34px; height: 34px; display: grid; place-items: center; padding: 0 8px; border-radius: 12px; background: #f1f1f5; color: #4b4f5c; font-size: 0.72rem; font-weight: 900; }
+.sdrFoot { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 12px; border-top: 1px dashed #e8e8ee; }
+.sdrMeta { display: grid; gap: 2px; min-width: 0; }
+.sdrMeta b { color: #14161d; font-size: 0.84rem; font-weight: 950; }
+.sdrMeta small { color: #6f7380; font-size: 0.7rem; font-weight: 750; }
+.sdrBook { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 16px; border-radius: 14px; background: #14161d; color: #fff; font-size: 0.8rem; font-weight: 900; }
+
+/* ── Public salon page ── */
+.salonPublicProfile .scHero { position: relative; height: 210px; overflow: hidden; background: #f4e4ea; }
+.scHeroImage { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.scHeroFallback { position: absolute; inset: 0; background: radial-gradient(120% 90% at 20% 0%, #ffd9e6 0%, transparent 60%), radial-gradient(100% 80% at 90% 20%, #ffe9c9 0%, transparent 55%), linear-gradient(160deg, #fbe6ee, #f6efe7); }
+.scTopbar { position: absolute; top: 14px; left: 14px; right: 14px; display: flex; justify-content: space-between; z-index: 2; }
+.scRound { width: 42px; height: 42px; display: grid; place-items: center; border: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.92); color: #14161d; box-shadow: 0 6px 16px rgba(20, 22, 29, 0.14); }
+.salonPublicProfile .scId { position: relative; z-index: 1; margin: -34px 20px 0; padding: 52px 16px 16px; display: grid; justify-items: center; gap: 4px; border-radius: 26px; background: #fff; box-shadow: inset 0 0 0 1px #ececf1, 0 12px 32px rgba(20, 22, 29, 0.08); text-align: center; }
+.scAvatar { position: absolute; top: -40px; left: 50%; transform: translateX(-50%); width: 80px; height: 80px; overflow: hidden; border-radius: 50%; background: #fff; box-shadow: 0 0 0 4px #fff, 0 10px 24px rgba(20, 22, 29, 0.16); }
+.scAvatar img { width: 100%; height: 100%; object-fit: cover; }
+.salonPublicProfile .scId h2 { margin: 0; color: #14161d; font-size: 1.2rem; font-weight: 950; line-height: 1.4; }
+.salonPublicProfile .scId p { margin: 0; }
+.scTag { color: #6f7380; font-size: 0.78rem; font-weight: 800; }
+.scArea { display: inline-flex; align-items: center; gap: 4px; color: #6f7380; font-size: 0.76rem; font-weight: 750; }
+.scOpen { display: inline-flex; align-items: center; gap: 5px; margin-top: 4px; padding: 5px 12px; border-radius: 999px; font-size: 0.72rem; font-weight: 900; }
+.scOpen.is-open { background: #e3f6ea; color: #1c7c45; }
+.scOpen.is-closed { background: #f1f1f5; color: #6f7380; }
+.scStats { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 10px; padding: 12px 0; border-block: 1px solid #f0f0f4; }
+.scStats span { display: grid; gap: 2px; color: #6f7380; font-size: 0.7rem; font-weight: 800; }
+.scStats span + span { border-inline-start: 1px solid #f0f0f4; }
+.scStats b { color: #14161d; font-size: 1.1rem; font-weight: 950; }
+.scActions { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+.scActions:has(> :only-child) { grid-template-columns: 1fr; }
+.scActions button, .scActions a { min-height: 46px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; border: 0; border-radius: 14px; background: #14161d; color: #fff; font: inherit; font-size: 0.84rem; font-weight: 900; text-decoration: none; }
+.scActions button.is-following { background: #f1f1f5; color: #14161d; }
+.scActions a { background: #fff; color: #14161d; box-shadow: inset 0 0 0 1.5px #e4e4ea; }
+.salonPublicProfile { padding-bottom: 110px; }

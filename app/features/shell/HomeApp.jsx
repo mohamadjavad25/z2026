@@ -126,7 +126,6 @@ import { useScheduleBookingMenu } from "./useScheduleBookingMenu";
 import { useServiceComposer } from "./useServiceComposer";
 import { SERVICE_CATALOG } from "../../shared/constants/serviceCatalog";
 import { ProfileEditModal } from "./ProfileEditModal";
-import { SalonClientFloatingDock } from "./SalonClientFloatingDock";
 import {
   initialArtistBookings,
   initialArtistPortfolioItems,
@@ -1889,13 +1888,6 @@ function getPassportMatch(post) {
           />
         )}
 
-        <SalonClientFloatingDock
-          open={activeTab === "salons" && Boolean(selectedSalon)}
-          onBook={() => {
-            setSalonClientTab("services");
-            setAppToast("اول نوع خدمت را انتخاب کن.");
-          }}
-        />
 
         <section className={`profilePanel mobilePage page-profile ${profileType === "salon" ? "is-salon-profile" : ""} ${!createdProfile || activeTab === "profile" ? "is-active" : ""} ${createdProfile && createdProfile.type === profileType ? "has-floating-cta" : ""}`} id="profile">
           {!createdProfile ? (
