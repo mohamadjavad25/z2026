@@ -17,8 +17,12 @@ import {
   Tag,
   Briefcase,
   Trash2,
+  Volume2,
+  VolumeX,
   X
 } from "lucide-react";
+import { useSoundPreference } from "../../shared/lib/useSoundPreference";
+import { playSound } from "../../shared/lib/sounds";
 
 const DELETE_CONFIRM_WORD = "حذف";
 
@@ -127,6 +131,7 @@ export function ProfileSettingsPanel({
   onLogout,
   onDeleteAccount
 }) {
+  const [soundOn, setSoundOn] = useSoundPreference();
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [deleteError, setDeleteError] = useState("");
@@ -139,6 +144,18 @@ export function ProfileSettingsPanel({
         description={profileType === "artist" ? "درخواست نوبت جدید، تایید یا لغو و انقضای نوبت" : profileType === "salon" ? "رزرو جدید، جابه‌جایی نوبت و انقضای درخواست" : "تایید، لغو یا انقضای نوبتی که رزرو کردی"}
         checked={profileSettings.reservationAlerts}
         onChange={() => onToggle("reservationAlerts")}
+      />
+      <SettingsToggle
+        icon={soundOn ? Volume2 : VolumeX}
+        label="صدای اعلان‌ها"
+        description="روی همین دستگاه برای اعلان، نوبت‌ها و یادآوری پخش شود"
+        checked={soundOn}
+        onChange={(value) => {
+          setSoundOn(value);
+          if (value) window.setTimeout(() => playSound("notify"), 60);
+        }}
+        onLabel="روشن"
+        offLabel="خاموش"
       />
       {profileType === "client" ? null : (
         <SettingsToggle
