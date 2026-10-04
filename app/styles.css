@@ -4886,11 +4886,19 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 /* ── Specialty picker sheet ─────────────────────────────────────────── */
-.specialtySheet{
+/* Fixed-height column: only the tile grid scrolls, the add field and the
+   confirm button stay put under it (above the floating close button). */
+.salonHeroSheetPanel.specialtySheet{
   display: flex;
   flex-direction: column;
   gap: 12px;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+  padding-bottom: 0;
 }
+
+.specialtySheet > *{ flex: 0 0 auto; }
 
 .specialtySheetSearch{
   display: flex;
@@ -4919,6 +4927,15 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .specialtySheetSearch input:focus{ outline: 0; }
+
+.specialtySheet > .specialtySheetGrid{
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  align-content: start;
+  padding: 2px 2px 6px;
+}
 
 .specialtySheetGrid{
   display: grid;
@@ -5012,14 +5029,6 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .specialtySheetAdd button:disabled{ opacity: 0.35; cursor: default; }
-
-/* Sits above the floating close button (76px reserve). */
-.specialtySheetBar{
-  position: sticky;
-  bottom: 76px;
-  padding: 10px 0 2px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0), #fff 32%);
-}
 
 .specialtySheetDone{
   width: 100%;
