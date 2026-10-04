@@ -1,8 +1,8 @@
 import { NextResponse, after } from "next/server";
-import { requireUser, withErrorHandling } from "../../lib/http.js";
+import { error, readJson, requireUser, withErrorHandling } from "../../lib/http.js";
 import { ensureDb } from "../../lib/db/connection.js";
 import * as posts from "../../lib/db/repos/posts.js";
-import { isImageDataUrlTooLarge, isImageDataUrlInvalidType } from "../../lib/mediaLimits.js";
+import { POST_AUTHOR_TYPES, limitPostWrites, validatePostBody } from "../../lib/postGuard.js";
 
 export const runtime = "nodejs";
 
@@ -17,16 +17,13 @@ async function _POST(request) {
   await ensureDb();
   const auth = await requireUser(request);
   if (!auth.ok) return auth.response;
-  const body = await request.json();
-  if (!body.title) {
-    return NextResponse.json({ error: "عنوان لازم است." }, { status: 400 });
-  }
-  if (isImageDataUrlTooLarge(body.image)) {
-    return NextResponse.json({ error: "حجم عکس بیش از حد مجاز (۵ مگابایت) است." }, { status: 413 });
-  }
-  if (isImageDataUrlInvalidType(body.image)) {
-    return NextResponse.json({ error: "فرمت عکس پشتیبانی نمی‌شود." }, { status: 400 });
-  }
+  if (!POST_AUTHOR_TYPES.includes(auth.user.type)) return error("فقط آرتیست‌ها و سالن‌ها می‌توانند نمونه‌کار منتشر کنند.", 403);
+  const limited = await limitPostWrites(auth.user.id);
+  if (limited) return limited;
+  const body = await readJson(request);
+  if (!body) return error("درخواست نامعتبر است.", 400);
+  const invalid = validatePostBody(body, { creating: true });
+  if (invalid) return invalid;
   const post = await posts.createPost(auth.user.id, body, null, { defer: (fn) => after(fn) });
   return NextResponse.json({ data: { post } }, { status: 201 });
 }

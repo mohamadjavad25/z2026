@@ -768,7 +768,7 @@ export async function getPublicArtist(userId, viewerUserId = null) {
     bookedSlots,
     breakTime
   ] = await Promise.all([
-    listPostsByOwner(userId),
+    listPostsByOwner(userId, null, { publicOnly: Number(viewerUserId || 0) !== Number(userId) }),
     listArtistServices(userId),
     countFollowers(user.id),
     getSettings(user.id),

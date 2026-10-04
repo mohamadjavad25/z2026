@@ -1,6 +1,7 @@
 import { ensureDb, getDb, get } from "../../../../lib/db/connection.js";
 import { parseMediaDataUrl, ALLOWED_POSTER_TYPES } from "../../../../lib/db/repos/media.js";
 import { withErrorHandling } from "../../../../lib/http.js";
+import { getUserFromRequest } from "../../../../lib/auth.js";
 
 export const runtime = "nodejs";
 
@@ -18,9 +19,16 @@ async function _GET(request, { params }) {
   const postId = Number(postIdParam);
   if (!postId) return new Response(null, { status: 404 });
 
-  const row = await get(await getDb(), "SELECT image FROM posts WHERE id = $1", [postId]);
+  const row = await get(await getDb(), "SELECT image, in_explore, owner_user_id FROM posts WHERE id = $1", [postId]);
   const parsed = parseMediaDataUrl(row?.image, ALLOWED_POSTER_TYPES);
   if (!parsed) return new Response(null, { status: 404 });
+
+  // A post its owner made private is served to the owner only, and never cached shared.
+  const isPrivate = row.in_explore === false;
+  if (isPrivate) {
+    const viewer = await getUserFromRequest(request);
+    if (!viewer || Number(viewer.id) !== Number(row.owner_user_id)) return new Response(null, { status: 404 });
+  }
 
   const buffer = Buffer.from(parsed.base64, "base64");
   return new Response(buffer, {
@@ -29,7 +37,7 @@ async function _GET(request, { params }) {
       "Content-Type": parsed.contentType,
       "X-Content-Type-Options": "nosniff",
       "Content-Length": String(buffer.length),
-      "Cache-Control": "public, max-age=3600"
+      "Cache-Control": isPrivate ? "private, no-store" : "public, max-age=3600"
     }
   });
 }

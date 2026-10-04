@@ -1,7 +1,7 @@
 import { after } from "next/server";
-import { error, json, notFound, requireUserRole, withErrorHandling } from "../../lib/http.js";
+import { error, json, notFound, parseId, readJson, requireUserRole, withErrorHandling } from "../../lib/http.js";
 import * as salons from "../../lib/db/repos/salons.js";
-import { isImageDataUrlTooLarge, isImageDataUrlInvalidType } from "../../lib/mediaLimits.js";
+import { limitPostWrites, validatePostBody } from "../../lib/postGuard.js";
 
 export const runtime = "nodejs";
 
@@ -14,13 +14,12 @@ async function _GET(request) {
 async function _POST(request) {
   const auth = await requireUserRole(request, "salon", "فقط سالن.");
   if (!auth.ok) return auth.response;
-  const body = await request.json();
-  if (isImageDataUrlTooLarge(body.tile) || isImageDataUrlTooLarge(body.image)) {
-    return error("حجم عکس بیش از حد مجاز (۵ مگابایت) است.", 413);
-  }
-  if (isImageDataUrlInvalidType(body.tile) || isImageDataUrlInvalidType(body.image)) {
-    return error("فرمت عکس پشتیبانی نمی‌شود.", 400);
-  }
+  const limited = await limitPostWrites(auth.user.id);
+  if (limited) return limited;
+  const body = await readJson(request);
+  if (!body) return error("درخواست نامعتبر است.", 400);
+  const invalid = validatePostBody(body, { creating: true });
+  if (invalid) return invalid;
   const item = await salons.addSalonPortfolio(auth.user.id, body, { defer: (fn) => after(fn) });
   return json({ data: { item } }, { status: 201 });
 }
@@ -28,14 +27,14 @@ async function _POST(request) {
 async function _PATCH(request) {
   const auth = await requireUserRole(request, "salon", "فقط سالن.");
   if (!auth.ok) return auth.response;
-  const body = await request.json();
-  if (isImageDataUrlTooLarge(body.tile) || isImageDataUrlTooLarge(body.image)) {
-    return error("حجم عکس بیش از حد مجاز (۵ مگابایت) است.", 413);
-  }
-  if (isImageDataUrlInvalidType(body.tile) || isImageDataUrlInvalidType(body.image)) {
-    return error("فرمت عکس پشتیبانی نمی‌شود.", 400);
-  }
-  const item = await salons.updateSalonPortfolio(Number(body.id), auth.user.id, body, { defer: (fn) => after(fn) });
+  const limited = await limitPostWrites(auth.user.id);
+  if (limited) return limited;
+  const body = await readJson(request);
+  const id = parseId(body?.id);
+  if (!body || !id) return error("درخواست نامعتبر است.", 400);
+  const invalid = validatePostBody(body, { creating: false });
+  if (invalid) return invalid;
+  const item = await salons.updateSalonPortfolio(id, auth.user.id, body, { defer: (fn) => after(fn) });
   if (!item) return notFound();
   return json({ data: { item } });
 }
@@ -43,8 +42,12 @@ async function _PATCH(request) {
 async function _DELETE(request) {
   const auth = await requireUserRole(request, "salon", "فقط سالن.");
   if (!auth.ok) return auth.response;
-  const body = await request.json();
-  const ok = await salons.deleteSalonPortfolio(Number(body.id), auth.user.id);
+  const limited = await limitPostWrites(auth.user.id);
+  if (limited) return limited;
+  const body = await readJson(request);
+  const id = parseId(body?.id);
+  if (!id) return error("درخواست نامعتبر است.", 400);
+  const ok = await salons.deleteSalonPortfolio(id, auth.user.id);
   if (!ok) return notFound();
   return json({ data: { ok: true } });
 }
