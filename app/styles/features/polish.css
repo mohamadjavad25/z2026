@@ -818,3 +818,27 @@
 .profileGalleryGrid .profileGalleryCard,
 .salonClientMosaicTile.hasImage,
 .artistPublicGrid .artistPublicCard { background-color: #e9e4e8; }
+
+/* ── Client booking tracker chip (cbt*) ── */
+.cbt { position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 40; width: min(402px, calc(100% - 28px)); display: flex; align-items: center; gap: 12px; padding: 11px 14px 14px; border: 0; border-radius: 20px; overflow: hidden; background: rgba(255, 255, 255, 0.94); backdrop-filter: blur(16px); box-shadow: 0 14px 34px rgba(20, 22, 29, 0.2), inset 0 0 0 1px #ececf1; color: #14161d; font: inherit; text-align: start; cursor: pointer; animation: cbtIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.cbtIcon { position: relative; flex: 0 0 auto; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; background: #fff3f7; color: #14161d; }
+.cbtIcon i { position: absolute; inset: -2px; border-radius: 50%; border: 3px solid transparent; border-top-color: #e11d74; border-right-color: #ffb3d1; animation: cbtSpin 1s linear infinite; }
+.cbtIcon svg { animation: cbtTilt 2.4s ease-in-out infinite; }
+.cbtText { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.cbtText b { font-size: 0.86rem; font-weight: 950; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cbtText small { color: #6f7380; font-size: 0.72rem; font-weight: 750; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cbtCount { flex: 0 0 auto; min-width: 26px; height: 26px; display: grid; place-items: center; padding: 0 7px; border-radius: 999px; background: #14161d; color: #fff; font-style: normal; font-size: 0.74rem; font-weight: 950; }
+.cbtBar { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: #f0e4ea; overflow: hidden; }
+.cbtBar i { display: block; height: 100%; width: 100%; transform-origin: right center; background: linear-gradient(90deg, #ff7ab0, #e11d74, #ff7ab0); background-size: 200% 100%; animation: cbtSheen 1.6s linear infinite; transition: transform 0.6s ease; }
+.cbtBar.is-indeterminate i { width: 40%; animation: cbtSlide 1.2s ease-in-out infinite; }
+.cbt.is-ok { background: linear-gradient(135deg, #e9f9ef, #fff); box-shadow: 0 14px 34px rgba(28, 156, 85, 0.25), inset 0 0 0 1.5px #86d3a0; padding-bottom: 11px; }
+.cbt.is-ok .cbtIcon { background: #1c9c55; color: #fff; animation: cbtPop 0.5s cubic-bezier(0.22, 1.6, 0.36, 1) both; }
+.cbt.is-bad { background: #fff7f7; box-shadow: 0 14px 34px rgba(20, 22, 29, 0.18), inset 0 0 0 1.5px #f2c1c1; padding-bottom: 11px; }
+.cbt.is-bad .cbtIcon { background: #fde8e8; color: #b42a2a; }
+@keyframes cbtIn { from { opacity: 0; transform: translateX(-50%) translateY(14px) scale(0.97); } to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); } }
+@keyframes cbtSpin { to { transform: rotate(360deg); } }
+@keyframes cbtTilt { 0%, 40% { transform: rotate(0); } 60%, 100% { transform: rotate(180deg); } }
+@keyframes cbtSheen { to { background-position: -200% 0; } }
+@keyframes cbtSlide { 0% { transform: translateX(120%); } 100% { transform: translateX(-260%); } }
+@keyframes cbtPop { from { transform: scale(0.4); } to { transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .cbt, .cbtIcon i, .cbtIcon svg, .cbtBar i, .cbt.is-ok .cbtIcon { animation: none !important; } }

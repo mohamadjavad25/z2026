@@ -86,7 +86,7 @@ export function PublicArtistGalleryPanel({
         </div>
       ) : (
         <div className="artistPublicEmpty">
-          <img className="artistPublicEmptyImg" src="/artist-gallery-public-empty.png" alt="" draggable={false} />
+          <img className="artistPublicEmptyImg" src="/artist-gallery-public-empty.webp" alt="" draggable={false} />
           <b>هنوز نمونه‌کاری نیست</b>
           <span>به‌زودی کارهای این آرتیست اینجا می‌آید.</span>
         </div>

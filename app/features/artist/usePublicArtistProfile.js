@@ -134,7 +134,7 @@ export function usePublicArtistProfile({
 
   const publicArtistHeroImage = useMemo(() => {
     const cover = publicArtistPortfolio.find((item) => item.featured) || publicArtistPortfolio[0];
-    return cover?.image || selectedPublicArtist?.avatar || "/explore-post-hair-balayage.png";
+    return cover?.image || selectedPublicArtist?.avatar || "/explore-post-hair-balayage.webp";
   }, [selectedPublicArtist, publicArtistPortfolio]);
 
   useEffect(() => {

@@ -74,6 +74,7 @@ import {
 } from "../posts";
 import { SettingsPage } from "../settings";
 import { useAppSounds } from "./useAppSounds";
+import { ClientBookingTracker } from "../client/ClientBookingTracker";
 import { preloadImages, thumbUrl } from "../../shared/lib/mediaUrl";
 import {
   ClientBookingSettingsModal,
@@ -1277,7 +1278,7 @@ function getPassportMatch(post) {
   function getPortfolioCardStyle(item) {
     return item.image
       ? { backgroundImage: `linear-gradient(180deg, rgba(12, 14, 16, 0.04) 0%, transparent 46%, rgba(12, 14, 16, 0.68) 100%), url("${item.image}")` }
-      : { backgroundImage: `url("/gallery-tile-empty.png")` };
+      : { backgroundImage: `url("/gallery-tile-empty.webp")` };
   }
 
 
@@ -2798,6 +2799,10 @@ function getPassportMatch(post) {
             </div>
           </div>
         )}
+
+        {createdProfile?.type === "client" ? (
+          <ClientBookingTracker bookings={clientBookingList} onOpen={setClientBookingSettings} />
+        ) : null}
 
         <BottomNav
           activeTab={activeTab}

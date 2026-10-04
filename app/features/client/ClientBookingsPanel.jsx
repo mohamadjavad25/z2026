@@ -236,7 +236,7 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook })
         <div className="clientBookingsEmpty">
           <img
             className="clientBookingsEmptyArt"
-            src="/client-bookings-empty.png"
+            src="/client-bookings-empty.webp"
             alt=""
             aria-hidden="true"
             draggable={false}

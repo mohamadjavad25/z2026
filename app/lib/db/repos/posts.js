@@ -1,4 +1,3 @@
-import { makeThumbBase64 } from "../../postThumb.js";
 import { getDb, all, get, run, withTransaction } from "../connection.js";
 import { uploadImageDataUrl } from "../../storage.js";
 
@@ -54,14 +53,10 @@ function clip(value, max) {
   return String(value ?? "").trim().slice(0, max);
 }
 
-/** Builds and stores the 480px thumbnail for a post (best effort: the media route also makes one on demand). */
-async function storeThumb(db, postId, image) {
-  try {
-    const thumb = await makeThumbBase64(image);
-    if (thumb) await run(db, "UPDATE posts SET thumb = $1 WHERE id = $2", [thumb, postId]);
-  } catch {
-    // the media route falls back to resizing on demand
-  }
+/** The small grid picture the browser made next to the full one; anything else is ignored. */
+function asThumb(value) {
+  const text = typeof value === "string" ? value : "";
+  return /^data:image\/(webp|jpeg|png);base64,/.test(text) && text.length <= 200_000 ? text : "";
 }
 
 /** Only a real data URL is ever stored as an image. The client echoes the media URL of an
@@ -143,14 +138,15 @@ export async function createPost(ownerUserId, data, runner = null, options = {})
   const image = asDataImage(data.image);
   const pinned = Boolean(data.featured) && (await countPinned(db, ownerUserId)) < POST_LIMITS.pinned;
   const info = await run(db, `
-    INSERT INTO posts (owner_user_id, title, tag, image, caption, is_public, featured)
-    VALUES ($1, $2, $3, $4, $5, $6, $7)
+    INSERT INTO posts (owner_user_id, title, tag, image, thumb, caption, is_public, featured)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
     RETURNING id
   `, [
     ownerUserId,
     clip(data.title, POST_LIMITS.title),
     clip(data.tag, POST_LIMITS.tag),
     image,
+    image ? asThumb(data.thumb) : "",
     clip(data.caption, POST_LIMITS.caption),
     data.isPublic !== false,
     pinned
@@ -160,7 +156,6 @@ export async function createPost(ownerUserId, data, runner = null, options = {})
   // Best-effort dual-write to external storage (see app/lib/storage.js).
   if (image) {
     const storeImage = async () => {
-      await storeThumb(db, postId, image);
       const imageUrl = await uploadImageDataUrl(image, { kind: "post", ownerId: postId });
       if (imageUrl) {
         await run(db, "UPDATE posts SET image_url = $1 WHERE id = $2", [imageUrl, postId]);
@@ -189,7 +184,7 @@ export async function updatePost(id, ownerUserId, data, runner = null, options =
   await run(db, `
     UPDATE posts SET
       title = $1, tag = $2, image = $3, image_url = $4, caption = $5, is_public = $6, featured = $7,
-      thumb = CASE WHEN $10 THEN '' ELSE thumb END,
+      thumb = CASE WHEN $10 THEN $11 ELSE thumb END,
       updated_at = CURRENT_TIMESTAMP
     WHERE id = $8 AND owner_user_id = $9
   `, [
@@ -202,12 +197,12 @@ export async function updatePost(id, ownerUserId, data, runner = null, options =
     pinned,
     id,
     ownerUserId,
-    imageChanged
+    imageChanged,
+    imageChanged ? asThumb(data.thumb) : ""
   ]);
   await syncOwnerPostCount(db, ownerUserId);
   if (imageChanged) {
     const storeImage = async () => {
-      await storeThumb(db, id, nextImage);
       const uploaded = await uploadImageDataUrl(nextImage, { kind: "post", ownerId: id });
       if (uploaded) {
         await run(db, "UPDATE posts SET image_url = $1 WHERE id = $2 AND owner_user_id = $3", [uploaded, id, ownerUserId]);

@@ -182,7 +182,7 @@ export function ProfileSavedPosts({
       {!hasSavedItems ? (
         <ProfileEmptyState
           className="emptySavedState"
-          image="/saved-empty.png"
+          image="/saved-empty.webp"
           title="هنوز چیزی ذخیره نشده"
           description="پست‌ها، مدل‌ها، سالن‌ها و آرتیست‌های ذخیره‌شده اینجا جمع می‌شوند."
         />

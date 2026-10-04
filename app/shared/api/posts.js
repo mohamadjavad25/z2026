@@ -1,4 +1,12 @@
 import { apiFetch, apiJson } from "./client";
+import { makeThumbDataUrl } from "../lib/imageThumb";
+
+/** A new picture travels with its small grid copy (made here, so the server needs no image library). */
+async function withThumb(body) {
+  if (!body || typeof body.image !== "string" || !body.image.startsWith("data:image/")) return body;
+  const thumb = await makeThumbDataUrl(body.image);
+  return thumb ? { ...body, thumb } : body;
+}
 
 /** GET /api/posts/saved → { data: { posts } } the signed-in user's saved posts */
 export async function getSavedPosts() {
@@ -14,7 +22,7 @@ export async function getPosts() {
 export async function createPost(body) {
   return apiFetch("/api/posts", {
     method: "POST",
-    body: JSON.stringify(body)
+    body: JSON.stringify(await withThumb(body))
   });
 }
 
@@ -22,7 +30,7 @@ export async function createPost(body) {
 export async function updatePost(id, body) {
   return apiFetch(`/api/posts/${id}`, {
     method: "PATCH",
-    body: JSON.stringify(body)
+    body: JSON.stringify(await withThumb(body))
   });
 }
 

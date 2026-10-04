@@ -253,7 +253,7 @@ export function SalonScheduleDashboard({
             />
           )) : (
             <div className="salonTodayEmpty">
-              <img src="/salon-today-empty.png" alt="" aria-hidden="true" />
+              <img src="/salon-today-empty.webp" alt="" aria-hidden="true" />
               <b>برای «{emptyDayLabel}» رزروی ثبت نشده</b>
             </div>
           )}

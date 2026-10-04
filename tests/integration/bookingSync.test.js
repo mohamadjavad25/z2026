@@ -102,3 +102,15 @@ describe("client booking lists", () => {
     expect(own.payload.data.booking.status).toBe("تازه");
   });
 });
+
+describe("GET /api/client-bookings", () => {
+  it("returns salon and artist bookings together, for clients only", async () => {
+    const ctx = await setup();
+    const booking = await bookSalonWithStaff(ctx, futureBookingDay(2), "۱۰:۰۰");
+    const res = await ctx.clientClient.get("/api/client-bookings");
+    expect(res.ok).toBe(true);
+    expect(res.payload.data.salonBookings.map((b) => b.id)).toContain(booking.id);
+    expect(res.payload.data.artistBookings).toEqual([]);
+    expect((await ctx.salonClient.get("/api/client-bookings")).status).toBe(403);
+  });
+});
