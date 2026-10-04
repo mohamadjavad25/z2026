@@ -1,9 +1,0 @@
-Same mascot as the reference image, identical design, colors and line style: chubby cream-white creature, orange curly hair with a heart-shaped curl on top, big glossy dark eyes, rose-pink cheeks, pink apron, makeup brush behind the ear.
-
-Scene: Half-body, gentle happy smile, one eye winking. It combs one long orange lock with a big wide-tooth tortoise-shell comb; a smooth shine streak runs along the lock. A wooden paddle brush rests in its other hand.
-
-Square 1:1 image, the character centered and filling about 80% of the frame with even empty margin on all sides. One clear pose and at most one or two props, with a bold simple silhouette that stays readable at 48×48 pixels.
-
-Flat vector sticker style, clean dark outline of uniform weight, soft cel-shading.
-
-Pure plain white background. No text, letters, numbers or logos anywhere. No purple, violet, lavender or lilac anywhere. No frame, border, badge, circle or colored backdrop behind the character, and no shadow on the ground.
