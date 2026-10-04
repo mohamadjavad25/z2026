@@ -437,6 +437,7 @@ export function HomeApp() {
     isSavedSelectedSalon,
     refreshSalonDirectory,
     refreshClientBookings,
+    cancelClientBooking,
     resetSalonClient,
     toggleFollowSalon,
     toggleSaveSalon,
@@ -2525,8 +2526,10 @@ function getPassportMatch(post) {
         )}
 
         <ClientBookingSettingsModal
+          key={clientBookingSettings ? `${clientBookingSettings.bookingSource || "salon"}-${clientBookingSettings.id}` : "none"}
           booking={clientBookingSettings}
           onClose={() => setClientBookingSettings(null)}
+          onCancelBooking={cancelClientBooking}
           onRebookSalon={(booking) => {
             setClientBookingSettings(null);
             rebookFromBooking(booking);

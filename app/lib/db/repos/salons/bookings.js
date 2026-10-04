@@ -505,3 +505,17 @@ export async function patchSalonBookingWithArtistSync(id, salonUserId, data) {
 export async function cancelSalonBooking(id, salonUserId) {
   return patchSalonBookingWithArtistSync(id, salonUserId, { status: "لغو" });
 }
+
+/**
+ * A client cancels their OWN salon booking. Only the booking's client may do it, only while it
+ * is still active (waiting or confirmed) and not in the past; everything else -- the artist
+ * calendar sync, slot release -- goes through the same path as the salon cancelling.
+ */
+export async function cancelSalonBookingByClient(id, clientUserId) {
+  const db = await getDb();
+  const current = await get(db, "SELECT * FROM salon_bookings WHERE id = $1 AND client_user_id = $2", [id, clientUserId]);
+  if (!current) return { ok: false, error: "missing" };
+  if (!["تازه", "درخواست", "تایید شده"].includes(current.status)) return { ok: false, error: "inactive" };
+  const result = await patchSalonBookingWithArtistSync(id, current.salon_user_id, { status: "لغو" });
+  return result.ok ? { ok: true, booking: result.booking, salonUserId: current.salon_user_id } : result;
+}

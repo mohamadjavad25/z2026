@@ -1,21 +1,13 @@
 "use client";
 
-import { CalendarCheck, CheckCircle2, Clock3, MapPin, Phone, RotateCcw, TimerOff, X, XCircle } from "lucide-react";
+import { useState } from "react";
+import { CalendarCheck, CheckCircle2, Clock3, MapPin, Phone, RotateCcw, TimerOff, XCircle } from "lucide-react";
+import { SheetClose } from "../../components/SheetClose";
+import { bookingStatusLabel, bookingStatusTone, canClientCancel } from "./bookingStatus";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { SegmentClock } from "../../components/SegmentClock";
 import { toLatinDigits } from "../../shared/lib/digits";
 import { formatRelativeBookingDayLabel, resolveRollingPersianDate } from "../../shared/lib/persianCalendar";
-
-// Same status-tone mapping as ClientBookingsPanel.jsx's getBookingStatusTone —
-// duplicated (not shared) since it's a tiny presentational lookup local to
-// each booking-status display, matching this codebase's convention for
-// small component-local helpers.
-function getBookingStatusTone(status = "") {
-  if (status === "تایید شده") return "done";
-  if (status === "لغو") return "bad";
-  if (status === "منقضی شده") return "expired";
-  return "pending";
-}
 
 const BOOKING_STATUS_ICONS = {
   pending: Clock3,
@@ -48,8 +40,11 @@ export function ClientBookingSettingsModal({
   booking,
   onClose,
   onCallSalon,
-  onRebookSalon
+  onRebookSalon,
+  onCancelBooking
 }) {
+  const [confirming, setConfirming] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   if (!booking) return null;
 
   const avatar = booking.salonAvatar || booking.salon_avatar || "";
@@ -57,7 +52,7 @@ export function ClientBookingSettingsModal({
   const phone = booking.salonPhone || booking.salon_phone || booking.phone || "";
   const rawDate = booking.booking_date || booking.date || "";
   const formattedDate = rawDate ? formatRelativeBookingDayLabel(rawDate) : "امروز";
-  const statusTone = getBookingStatusTone(booking.status || "تازه");
+  const statusTone = bookingStatusTone(booking.status || "تازه");
   const StatusIcon = BOOKING_STATUS_ICONS[statusTone];
 
   return (
@@ -81,7 +76,7 @@ export function ClientBookingSettingsModal({
             </div>
             <strong className={`clientBookingSettingsStatus is-${statusTone}`}>
               <StatusIcon size={13} />
-              {booking.status || "تازه"}
+              {bookingStatusLabel(booking.status)}
             </strong>
           </div>
           <div className="clientBookingSettingsTime">
@@ -119,10 +114,38 @@ export function ClientBookingSettingsModal({
               </button>
             ) : null}
           </div>
+          {canClientCancel(booking) && onCancelBooking ? (
+            confirming ? (
+              <div className="cbCancelConfirm" role="alertdialog" aria-label="تأیید لغو رزرو">
+                <p>این رزرو لغو شود؟ سالن بلافاصله باخبر می‌شود.</p>
+                <div>
+                  <button
+                    type="button"
+                    className="is-danger"
+                    disabled={cancelling}
+                    onClick={async () => {
+                      setCancelling(true);
+                      const ok = await onCancelBooking(booking);
+                      setCancelling(false);
+                      if (ok) {
+                        setConfirming(false);
+                        onClose?.();
+                      }
+                    }}
+                  >
+                    {cancelling ? "در حال لغو…" : "بله، لغو شود"}
+                  </button>
+                  <button type="button" disabled={cancelling} onClick={() => setConfirming(false)}>نه، نگه دار</button>
+                </div>
+              </div>
+            ) : (
+              <button type="button" className="cbCancelBtn" onClick={() => setConfirming(true)}>
+                <XCircle size={16} /> لغو رزرو
+              </button>
+            )
+          ) : null}
         </div>
-        <button type="button" className="clientBookingSettingsClose" onClick={onClose} aria-label="بستن تنظیمات رزرو">
-          <X size={18} />
-        </button>
+        <SheetClose onClick={onClose} />
       </div>
     </div>
   );

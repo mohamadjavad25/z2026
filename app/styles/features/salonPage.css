@@ -58,3 +58,12 @@
 :root .artistPublicActions { display: grid !important; margin: 0 !important; }
 :root .artistPublicFollow { width: 100% !important; margin: 0 !important; background: #fff !important; color: #14161d !important; border: 1px solid #dcdce4 !important; box-shadow: none !important; }
 :root .artistPublicFollow.is-following { background: #f1f1f5 !important; }
+
+/* ---- Client booking cancel ---- */
+.cbCancelBtn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; width: 100%; min-height: 46px; margin-top: 10px; border: 1px solid #f6d3d0; border-radius: 14px; background: #fff5f4; color: #b42318; font: inherit; font-size: 0.84rem; font-weight: 900; cursor: pointer; }
+.cbCancelConfirm { display: grid; gap: 10px; margin-top: 10px; padding: 12px; border: 1px solid #f6d3d0; border-radius: 16px; background: #fff5f4; }
+.cbCancelConfirm p { margin: 0; color: #7a271a; font-size: 0.8rem; font-weight: 800; line-height: 1.7; }
+.cbCancelConfirm > div { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.cbCancelConfirm button { min-height: 42px; border: 1px solid #ececf0; border-radius: 12px; background: #fff; color: #14161d; font: inherit; font-size: 0.8rem; font-weight: 900; cursor: pointer; }
+.cbCancelConfirm button.is-danger { background: #b42318; border-color: #b42318; color: #fff; }
+.cbCancelConfirm button:disabled { opacity: 0.6; }
