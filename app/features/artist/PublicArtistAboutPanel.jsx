@@ -1,39 +1,48 @@
 "use client";
 
-import { MapPin, ShieldCheck, Timer } from "lucide-react";
+import { MapPin, Timer } from "lucide-react";
+import { toPersianDigits } from "../../shared/lib/digits";
 
+const PERSIAN_WEEKDAYS = ["یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنجشنبه", "جمعه", "شنبه"];
+
+/** Only what the artist actually entered: bio, area and real working hours. */
 export function PublicArtistAboutPanel({ artist }) {
   if (!artist) return null;
+  const hours = Array.isArray(artist.hours) ? artist.hours : [];
+  const today = PERSIAN_WEEKDAYS[new Date().getDay()];
 
   return (
     <section className="artistPublicAbout" aria-label="درباره آرتیست">
-      <p className="artistPublicAboutBio">
-        {artist.bio
-          || `${artist.role} با تمرکز روی کار تمیز، مشاوره صادقانه و نتیجه‌ای که در عکس و واقعیت یکی باشد.`}
-      </p>
+      {artist.bio ? <p className="artistPublicAboutBio">{artist.bio}</p> : (
+        <p className="artistPublicAboutBio is-empty">این آرتیست هنوز توضیحی دربارهٔ خودش ننوشته است.</p>
+      )}
 
       <div className="artistPublicAboutList">
-        <div>
-          <MapPin size={16} />
+        {artist.area ? (
           <div>
-            <b>محدوده</b>
-            <span>{artist.area || "ایران"} · آدرس بعد از تایید</span>
+            <MapPin size={16} />
+            <div>
+              <b>محدوده</b>
+              <span>{artist.area}</span>
+            </div>
           </div>
-        </div>
-        <div>
-          <Timer size={16} />
+        ) : null}
+        {hours.length ? (
           <div>
-            <b>ساعات کاری</b>
-            <span>شنبه تا پنجشنبه · ۱۰:۰۰ تا ۲۰:۰۰</span>
+            <Timer size={16} />
+            <div>
+              <b>ساعات کاری</b>
+              <ul className="spvAboutHours">
+                {hours.map((row) => (
+                  <li key={row.day} className={row.day === today ? "is-today" : ""}>
+                    <span>{row.day}</span>
+                    <span>{row.active ? `${toPersianDigits(row.open_time || "")} تا ${toPersianDigits(row.close_time || "")}` : "تعطیل"}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
-        </div>
-        <div>
-          <ShieldCheck size={16} />
-          <div>
-            <b>قوانین</b>
-            <span>لغو رایگان تا ۱۲ ساعت قبل</span>
-          </div>
-        </div>
+        ) : null}
       </div>
     </section>
   );
