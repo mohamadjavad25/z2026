@@ -39,6 +39,8 @@ export function ProfileEditModal({
 
   if (!open || !profile) return null;
   const isSalon = profile.type === "salon";
+  // Field of activity exists for artists and salons only; clients have none.
+  const hasActivityField = profile.type === "artist" || isSalon;
   const avatarSrc = avatarDraft || profile.data?.avatar || "/profile-icon.svg";
   const rawExperienceYears = profile.data?.experienceYears ?? "";
   const experienceYears = /^\d{1,2}$/.test(String(rawExperienceYears)) ? rawExperienceYears : "";
@@ -145,17 +147,21 @@ export function ProfileEditModal({
               </div>
               <div className="profileEditFieldGrid">
                 <label>{isSalon ? "نام سالن" : "نام"}<input name="name" defaultValue={profile.data?.name || ""} /></label>
-                {!isSalon ? (
+                {hasActivityField ? (
                   <div className="profileEditSpecialty">
                     <span>حوزه فعالیت</span>
                     <SpecialtyMultiSelect
                       name="service"
-                      placeholder="تخصص‌هایت را انتخاب کن"
+                      placeholder={isSalon ? "خدمات اصلی سالن را انتخاب کن" : "تخصص‌هایت را انتخاب کن"}
                       options={beautySpecialtyOptions}
                       defaultValue={profile.data?.service || ""}
                       required
                     />
-                    <small>فقط خودت این را تعیین می‌کنی؛ سالن‌ها آن را در تیمشان می‌بینند ولی نمی‌توانند تغییرش دهند.</small>
+                    <small>
+                      {isSalon
+                        ? "این در معرفی سالن شما نمایش داده می‌شود."
+                        : "فقط خودت این را تعیین می‌کنی؛ سالن‌ها آن را در تیمشان می‌بینند ولی نمی‌توانند تغییرش دهند."}
+                    </small>
                   </div>
                 ) : null}
                 {isSalon ? (
@@ -205,7 +211,7 @@ export function ProfileEditModal({
             </section>
           </div>
           <input type="hidden" name="area" value={profile.data?.area || ""} />
-          {isSalon ? <input type="hidden" name="service" value={profile.data?.service || ""} /> : null}
+          {hasActivityField ? null : <input type="hidden" name="service" value={profile.data?.service || ""} />}
           <div
             className="profileEditStepActions"
             style={{
