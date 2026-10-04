@@ -359,7 +359,7 @@ export function SalonClientPage({
                         >
                           <ServiceIcon emoji={service.emoji} name={service.name} size="lg" />
                           <b>{service.name}</b>
-                          <small>{service.price ? `${toPersianDigits(service.price)} تومان` : "قیمت توافقی"} · {service.duration || "زمان متغیر"}</small>
+                          <small>{service.price ? `${formatTomanNumber(parseTomanAmount(service.price))} تومان` : "قیمت توافقی"} · {service.duration || "زمان متغیر"}</small>
                           <CalendarCheck size={17} />
                         </button>
                       ))}
@@ -458,7 +458,7 @@ export function SalonClientPage({
                   <div className="sdrMeta">
                     {(() => {
                       const from = getMinPrice(getVisibleServices(salon));
-                      return from ? <b>از {formatTomanNumber(from)} تومان</b> : <b>{toPersianDigits(serviceCount)} خدمت</b>;
+                      return from ? <b>از {formatTomanNumber(from)} تومان</b> : <b>{serviceCount > 0 ? `${toPersianDigits(serviceCount)} خدمت` : "هنوز خدمتی ثبت نشده"}</b>;
                     })()}
                     <small>
                       {(salon.post_count || salon.portfolio?.length || 0) > 0 ? `${toPersianDigits(salon.post_count || salon.portfolio?.length || 0)} نمونه‌کار` : ""}
@@ -466,7 +466,11 @@ export function SalonClientPage({
                       {localStaffCount > 0 ? `${toPersianDigits(localStaffCount)} آرتیست` : ""}
                     </small>
                   </div>
-                  <span className="sdrBook"><CalendarCheck size={16} /> رزرو</span>
+                  {serviceCount > 0 ? (
+                    <span className="sdrBook"><CalendarCheck size={16} /> رزرو</span>
+                  ) : (
+                    <span className="sdrBook is-soon">به‌زودی</span>
+                  )}
                 </div>
               </article>
             );

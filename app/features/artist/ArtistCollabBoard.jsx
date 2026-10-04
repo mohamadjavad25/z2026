@@ -6,6 +6,7 @@ import { CollabIllustration } from "../../components/CollabIllustration";
 import { createPortal } from "react-dom";
 import { Check, LogOut, MapPin, Send, Sparkles, Store, Trash2, Users, X } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
+import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
 import { TermsChips, TermsEditor } from "../collab/TermsEditor";
 import { SheetClose } from "../../components/SheetClose";
 
@@ -125,7 +126,7 @@ function SalonPreviewModal({ salon, draft, onDraftChange, onSubmit, onClose }) {
                   <div className="collabRowBody">
                     <b>{service.name}</b>
                     <span>
-                      {service.price ? `${toPersianDigits(service.price)} تومان` : "قیمت توافقی"}
+                      {service.price ? `${formatTomanNumber(parseTomanAmount(service.price))} تومان` : "قیمت توافقی"}
                       {service.duration ? ` · ${service.duration}` : ""}
                     </span>
                   </div>

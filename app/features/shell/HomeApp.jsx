@@ -27,6 +27,7 @@ import {
 import { BookingSelect } from "../../components/BookingSelect";
 import { SegmentClock } from "../../components/SegmentClock";
 import { toPersianDigits } from "../../shared/lib/digits";
+import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
 import { getApiErrorMessage } from "../../shared/lib/apiNotify";
 import {
   buildClockOptions,
@@ -319,7 +320,6 @@ export function HomeApp() {
     onShellNotice: setAppToast,
     onPublicBoot: async ({ isStale, salonsPayload }) => {
       const c = authCascadeRef.current;
-      void c.refreshSavedPosts?.();
       if (isStale()) return;
       c.setSalonDirectory?.(salonsPayload?.salons || salonsPayload?.data?.salons || []);
     },
@@ -396,7 +396,6 @@ export function HomeApp() {
       setProfileEditOpen(false);
       setProfileEditAvatar("");
       resetLogoutUiGaps();
-      await c.refreshSavedPosts?.();
     }
   });
 
@@ -2615,7 +2614,7 @@ function getPassportMatch(post) {
               label: item.name,
               emoji: item.emoji,
               withIcon: true,
-              meta: [item.price ? `${toPersianDigits(item.price)} تومان` : "", item.duration].filter(Boolean).join(" · ")
+              meta: [item.price ? `${formatTomanNumber(parseTomanAmount(item.price))} تومان` : "", item.duration].filter(Boolean).join(" · ")
             }))}
             serviceValue={
               createdProfile?.type === "artist"

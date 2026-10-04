@@ -205,6 +205,16 @@
   animation: authCopyIn 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
 }
 
+.authGateTagline {
+  margin: 8px 0 0;
+  color: rgba(247, 241, 234, 0.88);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.6;
+  text-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  animation: authCopyIn 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
+}
+
 .authGateCopy h2 {
   margin: 0;
   font-size: 1.08rem;
@@ -377,7 +387,7 @@
 .appShell.is-auth-gate .profileRoleCard small {
   grid-column: auto;
   max-width: none;
-  color: rgba(22, 20, 26, 0.52);
+  color: rgba(22, 20, 26, 0.68);
   font-size: 0.78rem;
   font-weight: 600;
   line-height: 1.4;
@@ -401,13 +411,15 @@
 .authGateLoginCue {
   margin: 4px 0 0;
   text-align: center;
-  color: rgba(247, 241, 234, 0.72);
-  font-size: 0.88rem;
+  color: rgba(247, 241, 234, 0.85);
+  font-size: 0.92rem;
   font-weight: 650;
   animation: authCopyIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.35s both;
 }
 
 .authGateLoginCue button {
+  min-height: 40px;
+  padding: 0 6px !important;
   border: 0;
   background: transparent;
   color: #fff;

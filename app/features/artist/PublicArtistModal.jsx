@@ -172,7 +172,7 @@ export function PublicArtistModal({
                 }}
               >
                 <CalendarCheck size={19} />
-                رزرو نوبت
+                {services?.length ? "رزرو نوبت" : "هنوز خدمتی برای رزرو نیست"}
                 {fromPrice ? <small>از {formatTomanNumber(fromPrice)} تومان</small> : null}
               </button>
             </nav>

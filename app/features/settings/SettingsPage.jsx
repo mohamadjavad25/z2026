@@ -21,7 +21,7 @@ function ImageEditMenu({ hasImage, busy, title, triggerClassName, triggerLabel, 
 
   if (!hasImage) {
     return (
-      <button type="button" className={triggerClassName} onClick={onPickFile} disabled={busy}>
+      <button type="button" className={triggerClassName} onClick={onPickFile} disabled={busy} aria-label={triggerLabel || title}>
         {triggerIcon}
         {triggerLabel}
       </button>
@@ -42,6 +42,7 @@ function ImageEditMenu({ hasImage, busy, title, triggerClassName, triggerLabel, 
         disabled={busy}
         aria-haspopup="dialog"
         aria-expanded={open}
+        aria-label={triggerLabel || title}
       >
         {triggerIcon}
         {busy ? "در حال ذخیره…" : triggerLabel}

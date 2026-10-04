@@ -2,6 +2,7 @@
 
 import { CalendarCheck, Pencil, Plus, Timer, Trash2 } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
+import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { ServiceIconStrip } from "../../components/ServiceIconStrip";
 import { ProfileEmptyState } from "../profile/ProfileEmptyState";
@@ -54,7 +55,7 @@ export function ArtistServicesPanel({
                 </div>
                 {service.hint ? <p className="svcCardHint">{service.hint}</p> : null}
                 <div className="svcCardMeta">
-                  <span className="svcChip is-price">{service.price ? `${toPersianDigits(service.price)} تومان` : "توافقی"}</span>
+                  <span className="svcChip is-price">{service.price ? `${formatTomanNumber(parseTomanAmount(service.price))} تومان` : "توافقی"}</span>
                   <span className="svcChip"><Timer size={12} /> {service.duration}</span>
                   <span className="svcChip"><CalendarCheck size={12} /> قابل رزرو</span>
                 </div>
