@@ -965,9 +965,8 @@ export function useSalonWorkspace({
         tag: item.tag || "",
         caption: item.caption || "",
         image: item.image || "",
-        tile: item.tile || "tile1",
-        inExplore: true,
-        featured: true
+        inExplore: item.inExplore !== false,
+        featured: Boolean(item.featured)
       });
       return;
     }
@@ -977,9 +976,8 @@ export function useSalonWorkspace({
       tag: salonServiceList[0]?.name || "",
       caption: "",
       image: "",
-      tile: "tile1",
       inExplore: true,
-      featured: true
+      featured: false
     });
   }, [salonServiceList]);
 
@@ -995,7 +993,7 @@ export function useSalonWorkspace({
     const image = String(salonWorkDraft.image || "").trim();
     const caption = String(salonWorkDraft.caption || "").trim();
     const inExplore = salonWorkDraft.inExplore !== false;
-    const featured = true;
+    const featured = Boolean(salonWorkDraft.featured);
     if (!image) {
       shellNotify("اول یک عکس برای پست انتخاب کن.");
       return;
@@ -1017,8 +1015,7 @@ export function useSalonWorkspace({
           id: salonWorkDraft.id,
           title,
           tag,
-          tile: salonWorkDraft.tile || "tile1",
-          image,
+          ...(image.startsWith("data:") ? { image } : {}),
           caption,
           inExplore,
           featured
@@ -1037,11 +1034,8 @@ export function useSalonWorkspace({
           typeof onExploreRefresh === "function" ? onExploreRefresh() : null
         ]).catch(() => {});
       } else {
-        const nextIndex = salonPortfolioList.length % 4;
-        const tiles = ["tile1", "tile3", "tile4", "tile8"];
         const { ok, payload } = await createSalonPortfolio({
           title,
-          tile: tiles[nextIndex],
           tag,
           image,
           caption,

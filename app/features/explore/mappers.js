@@ -17,7 +17,9 @@ export function mapExplorePost(post) {
     ownerType: post.ownerType || "",
     caption: post.caption || "",
     inExplore: post.inExplore !== false,
-    featured: Boolean(post.featured)
+    featured: Boolean(post.featured),
+    ownerAvatar: post.ownerAvatar || "",
+    createdAt: post.createdAt || ""
   };
 }
 
@@ -31,7 +33,8 @@ export function mapPortfolioItem(post) {
     views: post.views || "۰",
     image: post.image || "",
     caption: post.caption || "",
-    inExplore: Boolean(post.inExplore),
-    featured: Boolean(post.featured)
+    inExplore: post.inExplore !== false,
+    featured: Boolean(post.featured),
+    createdAt: post.createdAt || post.created_at || ""
   };
 }

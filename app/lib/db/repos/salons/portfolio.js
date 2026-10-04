@@ -16,7 +16,8 @@ function toItem(post, salonUserId) {
     featured: Boolean(post.featured),
     saves: post.saves,
     views: post.views,
-    created_at: post.createdAt
+    created_at: post.createdAt,
+    createdAt: post.createdAt
   };
 }
 

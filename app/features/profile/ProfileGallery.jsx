@@ -1,6 +1,7 @@
 "use client";
 
-import { ImagePlus } from "lucide-react";
+import { ImagePlus, Lock, Pin } from "lucide-react";
+import { SkeletonList } from "../../components/Skeleton";
 import { ProfilePostComposer } from "./ProfilePostComposer";
 
 const EMPTY_COLLAGE_SRC = "/artist-gallery-empty-collage.png";
@@ -42,7 +43,9 @@ export function ProfileGallery({
   composeSaving = false,
   composeAriaLabel,
   composeShowCaption = true,
-  composeShowFeaturedToggle = false,
+  composeShowVisibility = true,
+  composeShowPin = true,
+  loading = false,
   composeSubmitLabel = "ذخیره"
 }) {
   const showFilters = Array.isArray(filters) && filters.length > 2 && typeof onFilterChange === "function";
@@ -95,6 +98,10 @@ export function ProfileGallery({
           </div>
         ) : null}
 
+        {!hideBody && loading && !hasItems ? (
+          <SkeletonList rows={4} variant="card" label="در حال بارگذاری گالری" />
+        ) : null}
+
         {!hideBody && hasItems ? (
           <div
             className={`profileGalleryGrid ${mosaicClass}`}
@@ -129,7 +136,7 @@ export function ProfileGallery({
                   }
                 >
                   {item.image ? (
-                    <img src={item.image} alt={item.title || "نمونه‌کار"} />
+                    <img src={item.image} alt={item.title || "نمونه‌کار"} loading="lazy" decoding="async" />
                   ) : (
                     <div
                       className="profileGalleryCardFallback"
@@ -141,14 +148,19 @@ export function ProfileGallery({
                   <div className="profileGalleryCardCopy">
                     {item.tag ? <span className="profileGalleryTag">{item.tag}</span> : null}
                     {item.title ? <h3>{item.title}</h3> : null}
-                    {item.featured ? <em className="profileGalleryFeaturedBadge">ویترین اصلی</em> : null}
                   </div>
+                  {item.featured || item.inExplore === false ? (
+                    <div className="profileGalleryFlags">
+                      {item.inExplore === false ? <span title="فقط خودت می‌بینی"><Lock size={12} /></span> : null}
+                      {item.featured ? <span title="سنجاق‌شده"><Pin size={12} /></span> : null}
+                    </div>
+                  ) : null}
                   {actions ? <div className="profileGalleryCardActions">{actions}</div> : null}
                 </article>
               );
             })}
           </div>
-        ) : !hideBody ? (
+        ) : !hideBody && !loading ? (
           <div className="profileGalleryEmpty">
             <div className="profileGalleryEmptyVisual" aria-hidden="true">
               <img src={EMPTY_COLLAGE_SRC} alt="" />
@@ -179,7 +191,9 @@ export function ProfileGallery({
           saving={composeSaving}
           ariaLabel={composeAriaLabel}
           showCaption={composeShowCaption}
-          showFeaturedToggle={composeShowFeaturedToggle}
+          showVisibility={composeShowVisibility}
+          showPin={composeShowPin}
+          pinnedCount={items.filter((item) => item.featured && String(item.id) !== String(composeValue.id)).length}
           submitLabel={composeSubmitLabel}
         />
       ) : null}

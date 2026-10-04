@@ -14,7 +14,7 @@ import {
   updateArtistHours,
   updateArtistMe
 } from "../../shared/api/artists";
-import { createPost, deletePost, getPosts, updatePost, viewPost } from "../../shared/api/posts";
+import { createPost, deletePost, getPosts, updatePost } from "../../shared/api/posts";
 import {
   buildClockOptions,
   getTodayPersianWeekday,
@@ -142,28 +142,9 @@ export function useArtistWorkspace({
   const [artistRailDragPos, setArtistRailDragPos] = useState(null);
   const [artistRailSize, setArtistRailSize] = useState({ w: 68, h: 200 });
 
-  const visibleArtistPortfolio = useMemo(() => {
-    const sortFeatured = (list) => {
-      const featured = list.filter((item) => item.featured);
-      const rest = list.filter((item) => !item.featured);
-      return [...featured, ...rest];
-    };
-    const specialty = createdProfile?.data?.service || "";
-    let list = artistPortfolioItems;
-    if (specialty && specialty !== "چند تخصص") {
-      const tagMap = {
-        ناخن: "ناخن",
-        "مو و رنگ": "مو",
-        میکاپ: "میکاپ",
-        "پوست و ابرو": "پوست",
-        عروس: "میکاپ"
-      };
-      const tag = tagMap[specialty] || specialty;
-      const filtered = artistPortfolioItems.filter((item) => item.tag === tag);
-      list = filtered.length ? filtered : artistPortfolioItems;
-    }
-    return sortFeatured(list);
-  }, [createdProfile?.data?.service, artistPortfolioItems]);
+  // The owner always sees every one of their own posts (the server already orders pinned
+  // first, then newest) -- never filtered down by profile specialty.
+  const visibleArtistPortfolio = artistPortfolioItems;
 
   const artistGalleryTags = useMemo(() => {
     const tags = Array.from(new Set(visibleArtistPortfolio.map((item) => item.tag)));
@@ -788,36 +769,9 @@ export function useArtistWorkspace({
     }
   }
 
-  async function openArtistWorkPreview(item) {
+  function openArtistWorkPreview(item) {
     if (!item?.id) return;
-    const numericId = Number(item.id);
-    if (Number.isFinite(numericId)) {
-      setArtistPortfolioItems((items) => items.map((work) => (
-        Number(work.id) === numericId
-          ? { ...work, views: String((Number(work.views) || 0) + 1) }
-          : work
-      )));
-    }
     setPreviewingArtistWorkId(item.id);
-    if (!Number.isFinite(numericId)) return;
-    try {
-      const { ok, payload } = await viewPost(numericId);
-      const post = payload?.data?.post;
-      if (ok && post) {
-        const mapped = mapPortfolioItem(post);
-        if (mapped) {
-          setArtistPortfolioItems((items) => items.map((work) => (
-            Number(work.id) === numericId ? { ...work, ...mapped } : work
-          )));
-        }
-      }
-    } catch {
-      setArtistPortfolioItems((items) => items.map((work) => (
-        Number(work.id) === numericId
-          ? { ...work, views: String(Math.max((Number(work.views) || 1) - 1, 0)) }
-          : work
-      )));
-    }
   }
 
   function closeArtistWorkPreview() {
@@ -836,8 +790,8 @@ export function useArtistWorkspace({
       image: item.image || "",
       saves: item.saves || "۰",
       views: item.views || "۰",
-      inExplore: Boolean(item.inExplore),
-      featured: true
+      inExplore: item.inExplore !== false,
+      featured: Boolean(item.featured)
     });
   }
 
@@ -877,9 +831,11 @@ export function useArtistWorkspace({
       title,
       tag,
       caption: String(editingArtistWork.caption || "").trim(),
-      image,
-      inExplore: Boolean(editingArtistWork.inExplore),
-      featured: true
+      // Only a freshly picked/cropped picture is sent. An unchanged one is just its media
+      // URL, and echoing that back used to overwrite the stored image.
+      ...(image.startsWith("data:") ? { image } : {}),
+      inExplore: editingArtistWork.inExplore !== false,
+      featured: Boolean(editingArtistWork.featured)
     };
     if (artistWorkSaving) return;
     setArtistWorkSaving(true);
@@ -918,7 +874,9 @@ export function useArtistWorkspace({
     if (typeof window !== "undefined" && !window.confirm("این پست از گالری نمونه‌کار حذف شود؟")) {
       return;
     }
+    if (artistWorkSaving) return;
     const id = editingArtistWork.id;
+    setArtistWorkSaving(true);
     try {
       const { ok, payload } = await deletePost(id);
       if (!ok) {
@@ -932,6 +890,8 @@ export function useArtistWorkspace({
       void syncArtistWorkToExplore().catch(() => {});
     } catch {
       notify("حذف انجام نشد.");
+    } finally {
+      setArtistWorkSaving(false);
     }
   }
 

@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { Camera, Check, ChevronDown, Crop, ImagePlus, Trash2, Upload } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Camera, Check, ChevronDown, Crop, Globe, ImagePlus, Lock, Pin, Trash2, Upload } from "lucide-react";
 import { createPortal } from "react-dom";
 import { ImageCropper } from "../../components/ImageCropper";
 import { SheetClose } from "../../components/SheetClose";
@@ -30,21 +30,40 @@ export function ProfilePostComposer({
   saving = false,
   ariaLabel = "ویرایش نمونه‌کار",
   showCaption = true,
-  showFeaturedToggle = false,
+  showVisibility = true,
+  showPin = true,
+  pinnedCount = 0,
+  pinLimit = 3,
   submitLabel = "ذخیره"
 }) {
   const cropperRef = useRef(null);
   const [cropSrc, setCropSrc] = useState("");
+  const isOpen = Boolean(value);
+
+  // Escape closes the composer (or just the crop step), never mid-save.
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const onKey = (event) => {
+      if (event.key !== "Escape" || saving) return;
+      if (cropSrc) setCropSrc("");
+      else onClose?.();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [isOpen, saving, cropSrc, onClose]);
 
   if (!value || typeof document === "undefined") return null;
 
   // Categories are exactly the services on the menu; no free typing.
   const tagChoices = Array.from(new Set(tagOptions.map((tag) => String(tag || "").trim()).filter(Boolean)));
-  const canSubmit = Boolean(
-    String(value.title || "").trim() &&
-    String(value.tag || "").trim() &&
-    String(value.image || "").trim()
-  );
+  const missing = [
+    !String(value.image || "").trim() ? "تصویر" : "",
+    !String(value.title || "").trim() ? "عنوان" : "",
+    !String(value.tag || "").trim() ? "دسته" : ""
+  ].filter(Boolean);
+  const canSubmit = missing.length === 0;
+  const isPrivate = value.inExplore === false;
+  const pinDisabled = !value.featured && pinnedCount >= pinLimit;
   const isNew = String(value.id).startsWith("new-") || value.id === "new";
 
   function handleFile(event) {
@@ -160,6 +179,7 @@ export function ProfilePostComposer({
                 value={value.title || ""}
                 onChange={(event) => patch({ title: event.target.value })}
                 placeholder="عنوان نمونه‌کار"
+                maxLength={80}
                 required
                 disabled={saving}
               />
@@ -209,45 +229,57 @@ export function ProfilePostComposer({
               <textarea
                 value={value.caption || ""}
                 onChange={(event) => patch({ caption: event.target.value })}
-                placeholder="توضیح کوتاه برای اکسپلور و گالری"
-                rows={2}
+                placeholder="توضیح کوتاه دربارهٔ این کار"
+                rows={3}
+                maxLength={600}
                 disabled={saving}
               />
             </label>
           ) : null}
 
-          {showFeaturedToggle && (
-            <div className="artistWorkSwitches">
-              {showFeaturedToggle ? (
-                <button
-                  type="button"
-                  className="artistWorkSwitch"
-                  aria-pressed={Boolean(value.featured)}
-                  disabled={saving}
-                  onClick={() => patch({ featured: !value.featured })}
-                >
-                  <span>ویترین اصلی</span>
-                  <small>اول گالری</small>
-                  <b className={value.featured ? "is-on" : "is-off"}>
-                    {value.featured ? "روشن" : "خاموش"}
-                  </b>
+          {showVisibility ? (
+            <div className="artistWorkField">
+              <span>چه کسی ببیند؟</span>
+              <div className="pcVisibility" role="radiogroup" aria-label="نمایش پست">
+                <button type="button" role="radio" aria-checked={!isPrivate} className={!isPrivate ? "is-on" : ""} disabled={saving} onClick={() => patch({ inExplore: true })}>
+                  <Globe size={15} /> همه
                 </button>
-              ) : null}
+                <button type="button" role="radio" aria-checked={isPrivate} className={isPrivate ? "is-on" : ""} disabled={saving} onClick={() => patch({ inExplore: false })}>
+                  <Lock size={15} /> فقط من
+                </button>
+              </div>
+              <small className="pcHint">{isPrivate ? "این کار در پروفایل عمومی و جست‌وجو دیده نمی‌شود." : "این کار در پروفایل عمومی تو نمایش داده می‌شود."}</small>
             </div>
-          )}
+          ) : null}
 
-          {canSubmit && (
-            <div className="artistWorkActions">
-              <button type="submit" className="artistWorkSave" disabled={saving}>
-                <Check size={16} /> {saving ? "در حال ذخیره..." : submitLabel}
+          {showPin ? (
+            <button
+              type="button"
+              className={`pcPin ${value.featured ? "is-on" : ""}`}
+              aria-pressed={Boolean(value.featured)}
+              disabled={saving || pinDisabled}
+              onClick={() => patch({ featured: !value.featured })}
+            >
+              <Pin size={16} />
+              <span>
+                <b>سنجاق به ابتدای گالری</b>
+                <small>{pinDisabled ? `حداکثر ${pinLimit} کار را می‌توانی سنجاق کنی.` : "کارهای سنجاق‌شده همیشه اول دیده می‌شوند."}</small>
+              </span>
+              <i>{value.featured ? "روشن" : "خاموش"}</i>
+            </button>
+          ) : null}
+
+          <div className="artistWorkActions">
+            <button type="submit" className="artistWorkSave" disabled={saving || !canSubmit}>
+              <Check size={16} /> {saving ? "در حال ذخیره..." : submitLabel}
+            </button>
+            {!isNew && typeof onDelete === "function" ? (
+              <button type="button" className="artistWorkDelete" onClick={onDelete} disabled={saving}>
+                <Trash2 size={15} /> حذف
               </button>
-              {!isNew && typeof onDelete === "function" ? (
-                <button type="button" className="artistWorkDelete" onClick={onDelete} disabled={saving}>
-                  <Trash2 size={15} /> حذف
-                </button>
-              ) : null}
-            </div>
-          )}
+            ) : null}
+          </div>
+          {!canSubmit ? <p className="pcMissing" role="status">برای ذخیره لازم است: {missing.join("، ")}</p> : null}
         </form>
         )}
         <SheetClose onClick={onClose} disabled={saving} />

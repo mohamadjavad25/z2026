@@ -69,6 +69,7 @@ import {
 } from "../auth";
 import {
   ExplorePreviewModal,
+  mapExplorePost,
   useExploreFeed
 } from "../explore";
 import { SettingsPage } from "../settings";
@@ -406,6 +407,8 @@ export function HomeApp() {
     selectExplorePost,
     savedExplorePosts,
     selectedPostIsSaved,
+    savedPostTitles,
+    recordPostView,
     refreshExploreFeed,
     resetExploreFeed,
     toggleSavedPost,
@@ -787,7 +790,7 @@ export function HomeApp() {
     setFollowedArtists,
     setFollowedSalons,
     onNotice: setAppToast,
-    onSelectExplorePost: setSelectedPost,
+    onSelectExplorePost: selectExplorePost,
     onBeforeOpen: () => {
       setSelectedArtistProfile(null);
       setSelectedSalon(null);
@@ -1672,7 +1675,23 @@ function getPassportMatch(post) {
     />
   );
 
+  const [salonPreviewWorkId, setSalonPreviewWorkId] = useState(null);
+  const salonPreviewWork = useMemo(
+    () => salonPortfolioList.find((item) => String(item.id) === String(salonPreviewWorkId)) || null,
+    [salonPortfolioList, salonPreviewWorkId]
+  );
+
   const selectedExploreArtist = selectedPost ? resolveExploreArtist(selectedPost) : null;
+
+  // Neighbours to browse with the viewer arrows: the saved list when the post came from
+  // there, otherwise the same owner's posts from the feed.
+  const selectedPostSiblings = (() => {
+    if (!selectedPost) return [];
+    const sameId = (item) => String(item.id) === String(selectedPost.id);
+    if (savedExplorePosts.some(sameId)) return savedExplorePosts;
+    const ownerPosts = explorePostList.filter((item) => String(item.ownerUserId) === String(selectedPost.ownerUserId));
+    return ownerPosts.some(sameId) ? ownerPosts : [];
+  })();
 
   const selectSalonWithDetail = async (salon) => {
     if (!salon) return;
@@ -1833,6 +1852,17 @@ function getPassportMatch(post) {
             active={activeTab === "salons"}
             selectedSalon={selectedSalon}
             salons={salonDirectory}
+            postActions={{
+              isSaved: (post) => savedPostTitles.includes(String(post.id)),
+              toggleSave: (post) => toggleSavedPost(post.title, mapExplorePost({
+                ...post,
+                ownerUserId: selectedSalon?.id,
+                ownerType: "salon",
+                salon: selectedSalon?.name
+              })),
+              share: shareExplorePost,
+              view: recordPostView
+            }}
             directoryLoading={salonDirectoryLoading}
             tab={salonClientTab}
             isFollowing={isFollowingSelectedSalon}
@@ -1988,7 +2018,7 @@ function getPassportMatch(post) {
                           addLabel="ایجاد پست"
                           getFallbackStyle={getPortfolioCardStyle}
                           editingId={salonWorkDraft && salonWorkDraft.id !== "new" ? salonWorkDraft.id : null}
-                          onItemClick={(item) => openPortfolioComposer(item)}
+                          onItemClick={(item) => setSalonPreviewWorkId(item.id)}
                           composeValue={salonWorkDraft}
                           onComposeChange={setSalonWorkDraft}
                           onComposeClose={resetPortfolioComposer}
@@ -2000,9 +2030,9 @@ function getPassportMatch(post) {
                           composeTagMenuOpen={salonWorkTagMenuOpen}
                           onComposeTagMenuOpenChange={setSalonWorkTagMenuOpen}
                           composeSaving={portfolioSaving}
+                          loading={salonWorkspaceLoading}
                           composeAriaLabel={salonWorkDraft?.id === "new" ? "پست جدید" : "ویرایش پست"}
                           composeSubmitLabel={salonWorkDraft?.id === "new" ? "انتشار پست" : "ذخیره تغییرات"}
-                          composeShowFeaturedToggle={false}
                         />
                       )}
                       </div>
@@ -2033,6 +2063,7 @@ function getPassportMatch(post) {
                   ) : profileType === "artist" ? (
                     <ArtistOverviewReviews
                       galleryItems={artistGalleryItems}
+                      loading={artistWorkspaceLoading}
                       galleryTags={artistGalleryTags}
                       galleryFilter={artistGalleryFilter}
                       onGalleryFilterChange={setArtistGalleryFilter}
@@ -2045,7 +2076,7 @@ function getPassportMatch(post) {
                         saves: "۰",
                         views: "۰",
                         inExplore: true,
-                        featured: true
+                        featured: false
                       })}
                       onItemClick={openArtistWorkPreview}
                       composeValue={editingArtistWork}
@@ -2657,9 +2688,35 @@ function getPassportMatch(post) {
           saving={profileSaving}
         />
         <ArtistWorkPreviewModal
+          work={salonPreviewWork}
+          works={salonPortfolioList}
+          owner={createdProfile?.type === "salon" ? {
+            name: createdProfile.data?.name || "",
+            role: "سالن زیبایی",
+            area: createdProfile.data?.area || "",
+            avatar: createdProfile.data?.avatar || ""
+          } : null}
+          onClose={() => setSalonPreviewWorkId(null)}
+          onEdit={(item) => {
+            setSalonPreviewWorkId(null);
+            openPortfolioComposer(item);
+          }}
+          onNavigate={(next) => setSalonPreviewWorkId(next.id)}
+          onShare={shareExplorePost}
+        />
+        <ArtistWorkPreviewModal
           work={previewingArtistWork}
+          works={artistGalleryItems}
+          owner={createdProfile?.type === "artist" ? {
+            name: createdProfile.data?.name || "",
+            role: createdProfile.data?.service || "",
+            area: createdProfile.data?.area || "",
+            avatar: createdProfile.data?.avatar || ""
+          } : null}
           onClose={closeArtistWorkPreview}
           onEdit={openArtistWorkModal}
+          onNavigate={(next) => setPreviewingArtistWorkId(next.id)}
+          onShare={shareExplorePost}
         />
         <ArtistBreakEditorModal
           open={artistBreakEditorOpen}
@@ -2779,6 +2836,8 @@ function getPassportMatch(post) {
         />
         <ExplorePreviewModal
           post={selectedPost}
+          posts={selectedPostSiblings}
+          onNavigate={selectExplorePost}
           exploreArtist={selectedExploreArtist}
           isSaved={selectedPostIsSaved}
           beautyPassport={beautyPassport}
