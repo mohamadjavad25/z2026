@@ -57,6 +57,9 @@ async function _POST(request) {
       managerName: data.managerName
     };
 
+    // Clients have no field of activity.
+    if (auth.user.type === "client") delete patch.service;
+
     if (data.password) {
       if (!data.currentPassword) {
         return NextResponse.json({ error: "برای تغییر رمز، رمز فعلی را وارد کن." }, { status: 400 });
