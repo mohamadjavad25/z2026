@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { SpecialtyMultiSelect } from "../auth/SpecialtyMultiSelect";
+import { beautySpecialtyOptions } from "../../shared/constants/roles";
 import { Camera, Check, CheckCircle2, Mail, Phone, ShieldCheck, UserRound, X } from "lucide-react";
 
 /**
@@ -143,6 +145,19 @@ export function ProfileEditModal({
               </div>
               <div className="profileEditFieldGrid">
                 <label>{isSalon ? "نام سالن" : "نام"}<input name="name" defaultValue={profile.data?.name || ""} /></label>
+                {!isSalon ? (
+                  <div className="profileEditSpecialty">
+                    <span>حوزه فعالیت</span>
+                    <SpecialtyMultiSelect
+                      name="service"
+                      placeholder="تخصص‌هایت را انتخاب کن"
+                      options={beautySpecialtyOptions}
+                      defaultValue={profile.data?.service || ""}
+                      required
+                    />
+                    <small>فقط خودت این را تعیین می‌کنی؛ سالن‌ها آن را در تیمشان می‌بینند ولی نمی‌توانند تغییرش دهند.</small>
+                  </div>
+                ) : null}
                 {isSalon ? (
                   <>
                     <label>نام مدیر سالن<input name="managerName" defaultValue={managerName} placeholder="مثلاً مریم یوسفی" /></label>
@@ -190,7 +205,7 @@ export function ProfileEditModal({
             </section>
           </div>
           <input type="hidden" name="area" value={profile.data?.area || ""} />
-          <input type="hidden" name="service" value={profile.data?.service || ""} />
+          {isSalon ? <input type="hidden" name="service" value={profile.data?.service || ""} /> : null}
           <div
             className="profileEditStepActions"
             style={{
