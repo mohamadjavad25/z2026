@@ -14,6 +14,22 @@ export function error(message, status = 400) {
   return json({ error: message }, { status });
 }
 
+/** Positive integer id from a route param / body field, or null when it is not one. */
+export function parseId(value) {
+  const n = Number(value);
+  return Number.isSafeInteger(n) && n > 0 ? n : null;
+}
+
+/** Request body as an object, or null when it is missing / not valid JSON. */
+export async function readJson(request) {
+  try {
+    const body = await request.json();
+    return body && typeof body === "object" && !Array.isArray(body) ? body : null;
+  } catch {
+    return null;
+  }
+}
+
 export function notFound(message = "یافت نشد.") {
   return error(message, 404);
 }

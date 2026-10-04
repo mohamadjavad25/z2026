@@ -180,7 +180,7 @@ export function useAuthSession({
       enterAuthenticatedSession(profile, "profile");
       // Login already succeeded at this point -- show the toast right away
       // instead of waiting on onAuthenticated's cascade of background
-      // refreshes (explore feed, follows, saves, salon/artist workspace),
+      // refreshes (follows, saves, salon/artist workspace),
       // which could take seconds and had nothing to do with whether login
       // itself worked.
       onShellNoticeRef.current?.("با موفقیت وارد شدی.");
@@ -254,7 +254,7 @@ export function useAuthSession({
     clearAuthSession();
     // The session is already cleared client-side at this point -- show the
     // toast right away instead of waiting on onLoggedOut's cleanup/refetch
-    // cascade (which includes a full explore-feed refresh).
+    // cascade.
     onShellNoticeRef.current?.("از حساب خارج شدی.");
     Promise.resolve(onLoggedOutRef.current?.()).catch(() => {});
   }

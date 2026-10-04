@@ -58,6 +58,7 @@ export function SalonClientPage({
   onFollow,
   onSave,
   onShare,
+  postActions = null,
   onOpenBooking,
   onSelectSalon
 }) {
@@ -181,7 +182,9 @@ export function SalonClientPage({
             <SalonClientGallery
               salon={selectedSalon}
               items={portfolioItems.slice(0, 5)}
+              allItems={portfolioItems}
               getFallbackStyle={getPortfolioCardStyle}
+              postActions={postActions}
             />
   
           </section>
@@ -306,7 +309,7 @@ export function SalonClientPage({
                   <div className="salonPublicAllPortfolio">
                     {portfolioItems.map((item) => (
                       <figure key={item.id || item.title}>
-                        {item.image ? <img src={item.image} alt={item.title || "نمونه کار سالن"} /> : <span style={getPortfolioCardStyle(item)} />}
+                        {item.image ? <img src={item.image} alt={item.title || "نمونه کار سالن"} loading="lazy" decoding="async" /> : <span style={getPortfolioCardStyle(item)} />}
                         <figcaption>{item.title || "نمونه‌کار"}</figcaption>
                       </figure>
                     ))}

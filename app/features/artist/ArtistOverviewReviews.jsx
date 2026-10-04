@@ -22,7 +22,8 @@ export function ArtistOverviewReviews({
   onComposeImageClear,
   composeTagOptions = [],
   composeTagMenuOpen = false,
-  onComposeTagMenuOpenChange
+  onComposeTagMenuOpenChange,
+  loading = false
 }) {
   return (
     <div className="artistDashboard">
@@ -46,7 +47,7 @@ export function ArtistOverviewReviews({
         composeTagMenuOpen={composeTagMenuOpen}
         onComposeTagMenuOpenChange={onComposeTagMenuOpenChange}
         composeAriaLabel="ویرایش نمونه‌کار"
-        composeShowFeaturedToggle={false}
+        loading={loading}
       />
     </div>
   );

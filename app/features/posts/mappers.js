@@ -1,4 +1,4 @@
-export function mapExplorePost(post) {
+export function mapSharedPost(post) {
   if (!post) return null;
   return {
     id: post.id,
@@ -16,8 +16,10 @@ export function mapExplorePost(post) {
     ownerUserId: post.ownerUserId,
     ownerType: post.ownerType || "",
     caption: post.caption || "",
-    inExplore: post.inExplore !== false,
-    featured: Boolean(post.featured)
+    isPublic: post.isPublic !== false,
+    featured: Boolean(post.featured),
+    ownerAvatar: post.ownerAvatar || "",
+    createdAt: post.createdAt || ""
   };
 }
 
@@ -31,7 +33,8 @@ export function mapPortfolioItem(post) {
     views: post.views || "۰",
     image: post.image || "",
     caption: post.caption || "",
-    inExplore: Boolean(post.inExplore),
-    featured: Boolean(post.featured)
+    isPublic: post.isPublic !== false,
+    featured: Boolean(post.featured),
+    createdAt: post.createdAt || post.created_at || ""
   };
 }

@@ -1,9 +1,8 @@
 import { apiFetch, apiJson } from "./client";
 
-/** GET /api/explore/posts → { data: { posts, savedTitles } } */
-export async function getExplorePosts(tag) {
-  const query = tag && tag !== "همه" ? `?tag=${encodeURIComponent(tag)}` : "";
-  return apiJson(`/api/explore/posts${query}`);
+/** GET /api/posts/saved → { data: { posts } } the signed-in user's saved posts */
+export async function getSavedPosts() {
+  return apiJson("/api/posts/saved");
 }
 
 /** GET /api/posts → { data: { posts } } (owner session; artist/salon portfolio) */
@@ -34,10 +33,11 @@ export async function deletePost(id) {
   });
 }
 
-/** POST /api/posts/:id/save → { data: { saved: boolean } } */
-export async function savePost(id) {
+/** POST /api/posts/:id/save { saved } → { data: { saved, savesCount } } (idempotent: sets the state) */
+export async function setPostSaved(id, saved) {
   return apiFetch(`/api/posts/${id}/save`, {
-    method: "POST"
+    method: "POST",
+    body: JSON.stringify({ saved: Boolean(saved) })
   });
 }
 

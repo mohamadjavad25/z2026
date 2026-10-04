@@ -1,18 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { ImagePlus, UserRound } from "lucide-react";
-import { SheetClose } from "../../components/SheetClose";
+import { ImagePlus } from "lucide-react";
+import { PostViewer } from "../posts/PostViewer";
 
 function getItemKey(item, index) {
   return String(item.id || item.image || item.title || index);
-}
-
-function getItemArtist(item, salon) {
-  const direct = item.artist_name || item.staff_name || item.artist || "";
-  if (direct) return direct;
-  const staff = Array.isArray(salon?.staff) ? salon.staff : [];
-  return staff[0]?.artist_name || staff[0]?.name || "تیم سالن";
 }
 
 function getMosaicShape(ratio, index) {
@@ -23,9 +16,16 @@ function getMosaicShape(ratio, index) {
   return index % 5 === 0 ? "is-featured" : "is-square";
 }
 
-export function SalonClientGallery({ salon, items, getFallbackStyle }) {
+/**
+ * Public salon portfolio strip. Tapping a work opens the shared PostViewer (browse, save,
+ * share); opening one counts a view via `postActions.view`.
+ *
+ * postActions: { isSaved(post), toggleSave(post), share(post), view(post) }
+ */
+export function SalonClientGallery({ salon, items, getFallbackStyle, postActions = null, allItems = null }) {
   const [selectedItem, setSelectedItem] = useState(null);
   const [imageRatios, setImageRatios] = useState({});
+  const browseList = allItems?.length ? allItems : items;
 
   function rememberImageRatio(key, event) {
     const image = event.currentTarget;
@@ -33,6 +33,11 @@ export function SalonClientGallery({ salon, items, getFallbackStyle }) {
       ? image.naturalWidth / image.naturalHeight
       : 1;
     setImageRatios((items) => (items[key] === ratio ? items : { ...items, [key]: ratio }));
+  }
+
+  function openItem(item) {
+    setSelectedItem(item);
+    postActions?.view?.(item);
   }
 
   if (!items?.length) {
@@ -46,7 +51,7 @@ export function SalonClientGallery({ salon, items, getFallbackStyle }) {
 
   return (
     <>
-      <div className="salonClientMosaicGallery" aria-label="گالری موزاییکی سالن">
+      <div className="salonClientMosaicGallery" aria-label="گالری سالن">
         {items.map((item, index) => {
           const key = getItemKey(item, index);
           const shape = getMosaicShape(imageRatios[key], index);
@@ -56,13 +61,15 @@ export function SalonClientGallery({ salon, items, getFallbackStyle }) {
               className={`salonClientMosaicTile ${shape} ${item.image ? "hasImage" : ""}`}
               key={key}
               style={item.image ? undefined : getFallbackStyle(item)}
-              onClick={() => setSelectedItem(item)}
+              onClick={() => openItem(item)}
               aria-label={`مشاهده جزئیات ${item.title || "نمونه‌کار"}`}
             >
               {item.image ? (
                 <img
                   src={item.image}
                   alt={item.title || `نمونه‌کار ${salon?.name || "سالن"}`}
+                  loading="lazy"
+                  decoding="async"
                   onLoad={(event) => rememberImageRatio(key, event)}
                 />
               ) : null}
@@ -71,35 +78,16 @@ export function SalonClientGallery({ salon, items, getFallbackStyle }) {
         })}
       </div>
 
-      {selectedItem && (
-        <div className="salonGalleryDetailBackdrop" role="dialog" aria-modal="true" aria-label="جزئیات نمونه‌کار" onClick={() => setSelectedItem(null)}>
-          <article className="salonGalleryDetailPanel" onClick={(event) => event.stopPropagation()}>
-            <div
-              className={`salonGalleryDetailImage ${selectedItem.image ? "hasImage" : ""}`}
-              style={selectedItem.image ? { "--mosaic-image": `url("${selectedItem.image}")` } : getFallbackStyle(selectedItem)}
-            >
-              {selectedItem.image ? (
-                <img src={selectedItem.image} alt={selectedItem.title || `نمونه‌کار ${salon?.name || "سالن"}`} />
-              ) : null}
-            </div>
-            <div className="salonGalleryDetailBody">
-              <div className="salonGalleryDetailTitle">
-                <span>{selectedItem.tag || "نمونه‌کار"}</span>
-                <h3>{selectedItem.title || "نمونه‌کار سالن"}</h3>
-                {selectedItem.caption ? <p>{selectedItem.caption}</p> : null}
-              </div>
-              <div className="salonGalleryArtistInfo">
-                <UserRound size={17} />
-                <div>
-                  <small>آرتیست اجراکننده</small>
-                  <b>{getItemArtist(selectedItem, salon)}</b>
-                </div>
-              </div>
-            </div>
-            <SheetClose onClick={() => setSelectedItem(null)} />
-          </article>
-        </div>
-      )}
+      <PostViewer
+        post={selectedItem}
+        posts={browseList}
+        owner={selectedItem ? { name: salon?.name || "سالن", role: "سالن زیبایی", area: salon?.area || "", avatar: salon?.avatar || "" } : null}
+        isSaved={selectedItem ? Boolean(postActions?.isSaved?.(selectedItem)) : false}
+        onClose={() => setSelectedItem(null)}
+        onNavigate={openItem}
+        onToggleSaved={() => selectedItem && postActions?.toggleSave?.(selectedItem)}
+        onShare={() => selectedItem && postActions?.share?.(selectedItem)}
+      />
     </>
   );
 }

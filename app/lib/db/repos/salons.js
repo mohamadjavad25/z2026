@@ -257,7 +257,7 @@ export async function getSalon(userId, viewerUserId = null) {
     getSettings(row.user_id, db),
     viewerUserId ? isProfileSaved(viewerUserId, row.user_id, db) : false,
     listSalonServices(userId, db),
-    listSalonPortfolio(userId, db),
+    listSalonPortfolio(userId, db, { publicOnly: Number(viewerUserId || 0) !== Number(userId) }),
     listSalonStaff(userId, db),
     listSalonHours(userId, db),
     listSalonBookings(userId)

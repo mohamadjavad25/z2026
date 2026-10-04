@@ -1,0 +1,75 @@
+/* ---- Post viewer (pv*) ---- */
+.pvOverlay { position: fixed; inset: 0; z-index: 9000; display: grid; place-items: center; padding: 16px 16px 84px; background: rgba(15, 17, 20, 0.62); backdrop-filter: blur(6px); overflow-y: auto; }
+.pvSheet { position: relative; width: min(420px, 100%); max-height: 100%; overflow-y: auto; border-radius: 28px; background: #ffffff; color: #14161d; box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4); outline: none; animation: pvIn 240ms cubic-bezier(0.22, 1, 0.36, 1); }
+@keyframes pvIn { from { opacity: 0; transform: translateY(16px) scale(0.98); } to { opacity: 1; transform: none; } }
+.pvMedia { position: relative; aspect-ratio: 4 / 5; background: #ececf0; overflow: hidden; }
+.pvMedia img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pvMediaEmpty { width: 100%; height: 100%; background: linear-gradient(160deg, #e9e9ef, #d4d4de); }
+.pvCounter { position: absolute; top: 12px; right: 12px; padding: 4px 10px; border-radius: 999px; background: rgba(20, 22, 29, 0.6); color: #fff; font-size: 0.68rem; font-weight: 850; backdrop-filter: blur(6px); }
+.pvNav { position: absolute; top: 50%; width: 38px; height: 38px; margin-top: -19px; display: grid; place-items: center; border: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.88); color: #14161d; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2); cursor: pointer; }
+.pvNav.is-prev { right: 10px; }
+.pvNav.is-next { left: 10px; }
+.pvBadges { position: absolute; bottom: 12px; right: 12px; display: flex; gap: 6px; }
+.pvBadges span { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 999px; background: rgba(20, 22, 29, 0.72); color: #fff; font-size: 0.68rem; font-weight: 850; }
+.pvBody { display: grid; gap: 12px; padding: 16px 16px 6px; }
+.pvOwner { display: flex; align-items: center; gap: 10px; width: 100%; padding: 0; border: 0; background: transparent; font: inherit; text-align: right; cursor: pointer; color: inherit; }
+.pvOwner:disabled { cursor: default; }
+.pvOwnerAvatar { width: 40px; height: 40px; flex: none; display: grid; place-items: center; overflow: hidden; border-radius: 50%; background: #14161d; color: #fff; font-weight: 900; }
+.pvOwnerAvatar img { width: 100%; height: 100%; object-fit: cover; }
+.pvOwnerMeta { display: grid; gap: 1px; min-width: 0; flex: 1; }
+.pvOwnerMeta b { font-size: 0.9rem; font-weight: 950; }
+.pvOwnerMeta small { color: #6f7380; font-size: 0.72rem; font-weight: 700; }
+.pvTitleRow { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.pvTitleRow h3 { margin: 0; font-size: 1.05rem; font-weight: 950; line-height: 1.5; }
+.pvTag { flex: none; padding: 4px 11px; border-radius: 999px; background: #f1f1f5; color: #3b3e49; font-size: 0.7rem; font-weight: 850; }
+.pvCaption { margin: 0; color: #3b3e49; font-size: 0.84rem; font-weight: 700; line-height: 1.9; white-space: pre-wrap; overflow-wrap: anywhere; }
+.pvStats { display: flex; flex-wrap: wrap; gap: 6px 14px; color: #6f7380; font-size: 0.72rem; font-weight: 800; }
+.pvStats span { display: inline-flex; align-items: center; gap: 5px; }
+.pvActions { display: flex; gap: 8px; padding-bottom: 6px; }
+.pvAction { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 46px; border: 1px solid #ececf0; border-radius: 14px; background: #fff; color: #14161d; font: inherit; font-size: 0.82rem; font-weight: 900; cursor: pointer; }
+.pvAction.is-on { background: #14161d; border-color: #14161d; color: #fff; }
+.pvAction.is-primary { background: #14161d; border-color: #14161d; color: #fff; }
+.pvSheet > .sheetClose { position: fixed; }
+
+/* ---- Composer extras (pc*) ---- */
+.pcVisibility { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 4px; border-radius: 14px; background: #f1f1f5; }
+.pcVisibility button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; border: 0; border-radius: 11px; background: transparent; color: #6f7380; font: inherit; font-size: 0.8rem; font-weight: 900; cursor: pointer; }
+.pcVisibility button.is-on { background: #ffffff; color: #14161d; box-shadow: 0 2px 8px rgba(20, 22, 29, 0.12); }
+.pcHint { color: #8a8e9b; font-size: 0.68rem; font-weight: 700; line-height: 1.6; }
+.pcPin { display: flex; align-items: center; gap: 10px; width: 100%; padding: 11px 13px; border: 1.5px solid #ececf0; border-radius: 16px; background: #ffffff; color: #14161d; font: inherit; text-align: right; cursor: pointer; }
+.pcPin > span { display: grid; flex: 1; gap: 2px; }
+.pcPin b { font-size: 0.82rem; font-weight: 900; }
+.pcPin small { color: #8a8e9b; font-size: 0.68rem; font-weight: 700; }
+.pcPin i { font-style: normal; padding: 3px 10px; border-radius: 999px; background: #f1f1f5; color: #6f7380; font-size: 0.68rem; font-weight: 900; }
+.pcPin.is-on { border-color: #14161d; }
+.pcPin.is-on i { background: #14161d; color: #fff; }
+.pcPin:disabled { opacity: 0.55; cursor: default; }
+.pcMissing { margin: 0; text-align: center; color: #b45309; font-size: 0.74rem; font-weight: 800; }
+
+/* ---- Gallery flags ---- */
+.profileGalleryFlags { position: absolute; top: 10px; left: 10px; display: flex; gap: 5px; }
+.profileGalleryFlags span { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: rgba(20, 22, 29, 0.66); color: #fff; backdrop-filter: blur(4px); }
+
+/* ---- Shared post page (/p/[id]) ---- */
+.ppPage { min-height: 100dvh; display: grid; place-items: center; padding: 20px 16px; background: #f4f4f8; }
+.ppCard { width: min(440px, 100%); overflow: hidden; border-radius: 28px; background: #fff; box-shadow: 0 20px 60px rgba(20, 22, 29, 0.14); }
+.ppImage { display: block; width: 100%; aspect-ratio: 4 / 5; object-fit: cover; background: #ececf0; }
+.ppBody { display: grid; gap: 12px; padding: 16px; }
+.ppTitleRow { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.ppTitleRow h1 { margin: 0; font-size: 1.1rem; font-weight: 950; line-height: 1.5; color: #14161d; }
+.ppTag { flex: none; padding: 4px 11px; border-radius: 999px; background: #f1f1f5; color: #3b3e49; font-size: 0.7rem; font-weight: 850; }
+.ppCaption { margin: 0; color: #3b3e49; font-size: 0.86rem; font-weight: 700; line-height: 1.9; white-space: pre-wrap; }
+.ppOwner { display: grid; gap: 2px; padding: 14px; border-radius: 18px; background: #14161d; color: #fff; text-decoration: none; }
+.ppOwner b { font-size: 0.95rem; font-weight: 950; }
+.ppOwner small { color: rgba(255, 255, 255, 0.7); font-size: 0.72rem; font-weight: 700; }
+.ppOwner span { margin-top: 6px; font-size: 0.78rem; font-weight: 900; }
+
+/* ---- Composer: light, scrollable sheet ---- */
+:root .profilePostComposer .artistWorkSheet { display: block; overflow-y: auto; max-height: min(92dvh, 820px); padding-bottom: 0; }
+:root .profilePostComposer .artistWorkHero:not(.has-image) { height: auto; min-height: 0; background: #f6f6f9; border-bottom: 1px solid #ececf0; }
+:root .profilePostComposer .artistWorkUploadEmpty { min-height: 0; padding: 24px 18px 18px; color: #14161d; }
+:root .profilePostComposer .artistWorkUploadEmpty svg { color: #14161d; }
+:root .profilePostComposer .artistWorkUploadEmpty b { color: #14161d; }
+:root .profilePostComposer .artistWorkUploadEmpty span { color: #6f7380; }
+:root .profilePostComposer .artistWorkUploadActions label { background: #ffffff; color: #14161d; border: 1px solid #dcdce4; box-shadow: none; }
+.pvOverlay .pvSheet { padding-bottom: 0 !important; }

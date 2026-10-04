@@ -12,7 +12,7 @@ export const runtime = "nodejs";
  * GET /api/saves → the signed-in user's saved salons + saved artists, in
  * full card shape (see listSavedSalonsForUser/listSavedArtistsForUser) so
  * the "ذخیره‌شده‌ها" tab can render both lists without another round-trip —
- * same idea as GET /api/explore/posts folding listSavedTitles(userId) into
+ * same idea as folding listSavedTitles(userId) into
  * its response for saved posts, just as a dedicated endpoint here since
  * saves aren't tied to one listing route.
  * savedTargetIds is a flat id list for quick "is this open profile saved?"

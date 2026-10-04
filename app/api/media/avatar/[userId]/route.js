@@ -11,7 +11,7 @@ export const runtime = "nodejs";
  * that mentions that user (salon/artist directory listings, post owner
  * info, ...). users.avatar is stored as a raw data:<type>;base64,<data>
  * string, and shipping that inline on every list item was the single
- * biggest contributor to GET /api/salons and GET /api/explore/posts
+ * biggest contributor to GET /api/salons
  * ballooning to 1-3MB responses for a handful of rows.
  *
  * The URL is stable per user, so it used to be cached hard

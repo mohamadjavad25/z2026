@@ -5,7 +5,7 @@ import { createArtistBooking, getArtist, toggleFollow } from "../../shared/api/a
 import { toggleSave } from "../../shared/api/saves";
 import { getApiErrorMessage } from "../../shared/lib/apiNotify";
 import { parseServiceDurationMinutes } from "../../shared/lib/time";
-import { mapExplorePost } from "../explore/mappers";
+import { mapSharedPost } from "../posts/mappers";
 import { isPublicArtistSlotBlocked } from "./bookingUtils";
 import { salonClientBookingDays, getPublicArtistServices } from "./constants";
 
@@ -14,34 +14,29 @@ import { salonClientBookingDays, getPublicArtistServices } from "./constants";
  *
  * Does NOT own artist-owner workspace (portfolio CRUD, /api/artist/me schedule, …).
  *
- * explorePostList / publishedAiPosts are read-only inputs for portfolio fallback merge.
- * Opening from Explore stays in HomeApp (resolveExploreArtist + salon vs artist branch);
+ * Opening a post stays in HomeApp (resolvePostOwner + salon vs artist branch);
  * HomeApp calls openPublicArtistProfile(artistStub) when the target is an artist.
  *
  * Booking uses POST /api/artist/bookings (public/client path), not owner /api/artist/me.
  *
  * @param {{
  *   createdProfile?: { id?: number|string, type?: string, data?: Record<string, unknown> } | null,
- *   explorePostList?: Array<Record<string, unknown>>,
- *   publishedAiPosts?: Array<Record<string, unknown>>,
  *   followedArtists?: string[],
  *   setFollowedArtists?: (updater: unknown) => void,
  *   setFollowedSalons?: (updater: unknown) => void,
  *   onNotice?: (msg: string) => void,
- *   onSelectExplorePost?: (post: Record<string, unknown> | null) => void,
+ *   onSelectPost?: (post: Record<string, unknown> | null) => void,
  *   onBeforeOpen?: () => void,
  *   onArtistBookingCreated?: (artistUserId: number|string) => void | Promise<void>
  * }} options
  */
 export function usePublicArtistProfile({
   createdProfile = null,
-  explorePostList = [],
-  publishedAiPosts = [],
   followedArtists = [],
   setFollowedArtists,
   setFollowedSalons,
   onNotice,
-  onSelectExplorePost,
+  onSelectPost,
   onBeforeOpen,
   onArtistBookingCreated
 } = {}) {
@@ -60,15 +55,10 @@ export function usePublicArtistProfile({
 
   const publicArtistPortfolio = useMemo(() => {
     if (!selectedPublicArtist?.name) return [];
-    const fromArtist = Array.isArray(selectedPublicArtist.posts)
-      ? selectedPublicArtist.posts.map(mapExplorePost)
-      : [];
-    if (fromArtist.length) return fromArtist.filter(Boolean);
-    const all = [...(publishedAiPosts || []), ...(explorePostList || [])];
-    return all.filter((post) => (
-      post.salon === selectedPublicArtist.name || post.ownerUserId === selectedPublicArtist.id
-    ));
-  }, [selectedPublicArtist, publishedAiPosts, explorePostList]);
+    return (Array.isArray(selectedPublicArtist.posts) ? selectedPublicArtist.posts : [])
+      .map(mapSharedPost)
+      .filter(Boolean);
+  }, [selectedPublicArtist]);
 
   const publicArtistGalleryTags = useMemo(() => {
     const tags = Array.from(new Set(publicArtistPortfolio.map((item) => item.tag).filter(Boolean)));
@@ -408,8 +398,8 @@ export function usePublicArtistProfile({
   const openPublicArtistWork = useCallback((item) => {
     if (!item) return;
     closePublicArtistProfile();
-    if (typeof onSelectExplorePost === "function") onSelectExplorePost(item);
-  }, [closePublicArtistProfile, onSelectExplorePost]);
+    if (typeof onSelectPost === "function") onSelectPost(item);
+  }, [closePublicArtistProfile, onSelectPost]);
 
   const selectPublicArtistService = useCallback((serviceId) => {
     setPublicArtistSelectedServiceId(serviceId);
