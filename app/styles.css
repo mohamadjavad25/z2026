@@ -4819,10 +4819,9 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
 }
 
-.specialtySelectTrigger span{
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.specialtySelectTrigger > span{
+  min-width: 0;
+  text-align: start;
 }
 
 .specialtySelectTrigger .is-placeholder{
@@ -4866,58 +4865,94 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   background: var(--surface-solid);
   box-shadow: var(--shadow-lg);
   padding: var(--space-2);
-  max-height: 260px;
+  max-height: min(380px, 55vh);
   display: flex;
   flex-direction: column;
   animation: signupFieldIn var(--duration-fast) var(--ease-standard) both;
 }
 
-.specialtySelectPanel ul{
-  list-style: none;
-  margin: 0;
-  padding: 0;
+.specialtySelectGrid{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  padding: 2px;
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .specialtySelectOption{
-  position: relative;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
-  padding: 9px 8px;
-  border-radius: var(--radius-sm);
-  font-size: var(--text-base);
-  font-weight: 600;
+  gap: 5px;
+  min-height: 36px;
+  padding: 0 13px;
+  border: 1px solid var(--auth-input-border, var(--line));
+  border-radius: 999px;
+  background: transparent;
   color: var(--ink);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 700;
   cursor: pointer;
-  transition: background var(--duration-fast) ease;
+  transition: background var(--duration-fast) ease, border-color var(--duration-fast) ease, color var(--duration-fast) ease;
 }
 
 .specialtySelectOption:hover{
   background: color-mix(in srgb, var(--form-accent, var(--teal)) 8%, transparent);
 }
 
-.specialtySelectOption input{
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-}
-
-.specialtySelectCheck{
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 20px;
-  height: 20px;
-  border-radius: 6px;
-  border: 1px solid var(--auth-input-border, var(--line));
+.specialtySelectOption[data-checked="true"]{
+  background: var(--form-accent, var(--teal));
+  border-color: var(--form-accent, var(--teal));
   color: #fff;
 }
 
-.specialtySelectOption[data-checked="true"] .specialtySelectCheck{
+.specialtySelectChips{
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.specialtySelectChips em{
+  font-style: normal;
+  font-size: 0.74rem;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--form-accent, var(--teal)) 12%, transparent);
+  color: var(--ink);
+}
+
+.specialtySelectCount{
+  flex: none;
+  margin-inline-start: auto;
+  min-width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
   background: var(--form-accent, var(--teal));
-  border-color: var(--form-accent, var(--teal));
+  color: #fff;
+  font-size: 0.7rem;
+}
+
+.specialtySelectDone{
+  flex: none;
+  margin-top: var(--space-2);
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--form-accent, var(--teal));
+  color: #fff;
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 800;
+  cursor: pointer;
 }
 
 .specialtySelectAdd{

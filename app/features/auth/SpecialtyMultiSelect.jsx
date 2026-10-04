@@ -60,9 +60,14 @@ export function SpecialtyMultiSelect({ name, placeholder, options, required, def
         aria-haspopup="listbox"
         aria-expanded={open}
       >
-        <span className={selected.length ? "" : "is-placeholder"}>
-          {selected.length ? selected.join("، ") : placeholder}
-        </span>
+        {selected.length ? (
+          <span className="specialtySelectChips">
+            {selected.map((item) => <em key={item}>{item}</em>)}
+          </span>
+        ) : (
+          <span className="is-placeholder">{placeholder}</span>
+        )}
+        {selected.length ? <b className="specialtySelectCount">{selected.length.toLocaleString("fa-IR")}</b> : null}
         <ChevronDown size={16} className="specialtySelectChevron" data-open={open} />
       </button>
 
@@ -80,26 +85,25 @@ export function SpecialtyMultiSelect({ name, placeholder, options, required, def
 
       {open ? (
         <div className="specialtySelectPanel" role="listbox" aria-multiselectable="true">
-          <ul>
+          <div className="specialtySelectGrid">
             {allOptions.map((option) => {
               const checked = selected.includes(option);
               return (
-                <li key={option}>
-                  <label className="specialtySelectOption" data-checked={checked}>
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={() => toggleOption(option)}
-                    />
-                    <span className="specialtySelectCheck">
-                      {checked ? <Check size={13} /> : null}
-                    </span>
-                    {option}
-                  </label>
-                </li>
+                <button
+                  type="button"
+                  key={option}
+                  role="option"
+                  aria-selected={checked}
+                  className="specialtySelectOption"
+                  data-checked={checked}
+                  onClick={() => toggleOption(option)}
+                >
+                  {checked ? <Check size={13} aria-hidden="true" /> : null}
+                  {option}
+                </button>
               );
             })}
-          </ul>
+          </div>
           <div className="specialtySelectAdd">
             <input
               type="text"
@@ -117,6 +121,10 @@ export function SpecialtyMultiSelect({ name, placeholder, options, required, def
               <Plus size={16} />
             </button>
           </div>
+          <button type="button" className="specialtySelectDone" onClick={() => setOpen(false)}>
+            <Check size={15} aria-hidden="true" />
+            تأیید انتخاب‌ها
+          </button>
         </div>
       ) : null}
     </div>
