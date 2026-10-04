@@ -1,0 +1,17 @@
+# مسکات و استیکر خدمات
+
+هدف: ۱۰۹ آیکن خدمت (همان `id`های `app/shared/constants/beautyEmoji.js`) به‌صورت استیکر بدون قاب و پس‌زمینه، همه با یک کاراکتر و یک سبک.
+
+## گردش کار
+1. کاراکتر مرجع تأییدشده را نگه دار (`mascot/reference.png`).
+2. `node scripts/mascot-prompts.mjs` → `docs/mascot/STICKERS.md` + `prompts/<id>.txt` + `prompts.jsonl` + `prompts.csv`؛ وضعیت از روی `assets/mascot/raw/<id>.png` و `assets/mascot/stickers/<id>.webp` خودکار محاسبه می‌شود. `--print --only a,b` / `--pending` / `--check` هم هست.
+3. هر پرامپت را با تصویر مرجع در **همان ابزار تصویری که نمونهٔ خوب را ساخت** اجرا کن و شیت را بدون فشرده‌سازی ذخیره کن.
+4. شیت را برش بزن:
+   `node scripts/slice-sticker-sheet.mjs mascot/sheets/sheet-01.png --ids haircut,hair_color,... --out public/emoji`
+   (خط `ids:` زیر هر پرامپت را کپی کن.) خروجی: `id.webp` (۵۱۲) و `id@128.webp` با پس‌زمینهٔ شفاف.
+5. جایگزینی در اپ با فال‌بک به SVG فعلی انجام می‌شود، پس می‌شود شیت‌ها را تدریجی اضافه کرد.
+
+## قواعد
+- شناسه‌ها هرگز تغییر نمی‌کنند (در دیتابیس ذخیره‌اند).
+- استیکرها نباید به هم بچسبند؛ اگر برش خطای «separate stickers» داد همان شیت را دوباره بساز.
+- بدون بنفش، بدون متن، خط دور هم‌ضخامت.
