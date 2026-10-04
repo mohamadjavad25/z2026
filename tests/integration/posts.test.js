@@ -54,7 +54,7 @@ describe("posts", () => {
   });
 
   it("private posts are visible to their owner only", async () => {
-    const { client, artist, post } = await artistWithPost({ inExplore: false });
+    const { client, artist, post } = await artistWithPost({ isPublic: false });
     const anon = createClient();
     expect((await anon.get(`/api/posts/${post.id}`)).status).toBe(404);
     expect((await fetch(`${TEST_BASE_URL}/api/media/post/${post.id}`)).status).toBe(404);
@@ -64,7 +64,7 @@ describe("posts", () => {
     const ownProfile = await client.get(`/api/artists/${artist.user.id}`);
     expect(ownProfile.payload.data.artist.posts.some((p) => p.id === post.id)).toBe(true);
     // Making it public exposes it.
-    await client.patch(`/api/posts/${post.id}`, { inExplore: true });
+    await client.patch(`/api/posts/${post.id}`, { isPublic: true });
     expect((await anon.get(`/api/posts/${post.id}`)).status).toBe(200);
   });
 

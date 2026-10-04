@@ -3,9 +3,9 @@ import { uploadImageDataUrl } from "../../storage.js";
 
 // Both image/ownerAvatar are stored as raw data:<type>;base64,<data> strings
 // in the DB but shipped here as media-endpoint URLs, never inline -- this
-// mapper is the single choke point for every post list (explore feed, a
+// mapper is the single choke point for every post list (a
 // salon/artist's portfolio via listSalonPortfolio -> listPostsByOwner), so
-// embedding the raw base64 here was why a 5-post explore feed shipped
+// embedding the raw base64 here was why a post list shipped
 // ~3MB of JSON and the salon directory (which embeds each salon's full
 // portfolio) shipped ~1.85MB for a handful of salons. See
 // app/api/media/post/[postId]/route.js and .../media/avatar/[userId]/route.js.
@@ -18,7 +18,7 @@ function mapPost(row) {
     tag: row.tag || "",
     image: row.image ? `/api/media/post/${row.id}?v=${row.updated_at ? new Date(row.updated_at).getTime() : 0}` : "",
     caption: row.caption || "",
-    inExplore: Boolean(row.in_explore),
+    isPublic: Boolean(row.is_public),
     featured: Boolean(row.featured),
     saves: String(row.saves_count || 0),
     views: String(row.views_count || 0),
@@ -34,7 +34,7 @@ function mapPost(row) {
 }
 
 const postSelect = `
-  SELECT p.id, p.owner_user_id, p.title, p.tag, p.caption, p.in_explore, p.featured, p.saves_count, p.views_count, p.created_at, p.updated_at, p.image_url,
+  SELECT p.id, p.owner_user_id, p.title, p.tag, p.caption, p.is_public, p.featured, p.saves_count, p.views_count, p.created_at, p.updated_at, p.image_url,
     (p.image <> '') AS image,
     u.name AS owner_name,
     u.type AS owner_type,
@@ -46,56 +46,6 @@ const postSelect = `
   FROM posts p
   JOIN users u ON u.id = p.owner_user_id
 `;
-
-/**
- * Cursor-paginated when `limit` is given (GET /api/explore/posts); called
- * with no `limit` (any other internal caller) returns the full, unbounded
- * feed -- same opt-in-by-passing-limit convention as listSalons()/
- * listArtists().
- *
- * The feed sorts `featured DESC, created_at DESC` (featured posts always
- * first), so a plain `id < cursor` keyset isn't correct on its own -- a
- * non-featured post's id can be lower than a featured one that sorts
- * before it. Cursors instead on the same compound key it sorts by, using
- * Postgres row comparison `(p.featured, p.id) < (?, ?)` (id substitutes for
- * created_at as the tiebreaker -- both are monotonic with insertion order,
- * and id gives an exact, unique tiebreaker a timestamp isn't guaranteed to).
- * Encoded as a single opaque "1:123"/"0:123" string so route/frontend code
- * threads one cursor value, not two.
- */
-export async function listExplorePosts({ tag, cursor, limit } = {}, runner = null) {
-  const db = runner || (await getDb());
-  const params = [];
-  let where = "p.in_explore";
-  if (tag && tag !== "همه") {
-    params.push(tag);
-    where += ` AND p.tag = $${params.length}`;
-  }
-  if (cursor) {
-    const [cFeatured, cId] = String(cursor).split(":");
-    params.push(cFeatured === "1", Number(cId) || 0);
-    where += ` AND (p.featured, p.id) < ($${params.length - 1}, $${params.length})`;
-  }
-  let limitClause = "";
-  const pageSize = limit ? Math.min(Math.max(Number(limit) || 20, 1), 50) : null;
-  if (pageSize) {
-    params.push(pageSize + 1);
-    limitClause = `LIMIT $${params.length}`;
-  }
-  const rawRows = await all(db, `
-    ${postSelect}
-    WHERE ${where}
-    ORDER BY p.featured DESC, p.id DESC
-    ${limitClause}
-  `, params);
-  const hasMore = pageSize ? rawRows.length > pageSize : false;
-  const rows = pageSize ? rawRows.slice(0, pageSize) : rawRows;
-  const nextCursor = hasMore
-    ? `${rows[rows.length - 1].featured ? 1 : 0}:${rows[rows.length - 1].id}`
-    : null;
-  const mapped = rows.map(mapPost);
-  return pageSize ? { posts: mapped, nextCursor } : mapped;
-}
 
 export const POST_LIMITS = Object.freeze({ title: 80, tag: 40, caption: 600, pinned: 3 });
 
@@ -119,7 +69,7 @@ async function countPinned(db, ownerUserId, exceptId = 0) {
 async function syncOwnerPostCount(db, ownerUserId) {
   await run(db, `
     UPDATE salons SET post_count = (
-      SELECT COUNT(*) FROM posts WHERE owner_user_id = $1 AND in_explore
+      SELECT COUNT(*) FROM posts WHERE owner_user_id = $1 AND is_public
     ) WHERE user_id = $1
   `, [ownerUserId]);
 }
@@ -132,7 +82,7 @@ export async function listPostsByOwner(ownerUserId, runner = null, { publicOnly 
   const db = runner || (await getDb());
   const rows = await all(db, `
     ${postSelect}
-    WHERE p.owner_user_id = $1 ${publicOnly ? "AND p.in_explore" : ""}
+    WHERE p.owner_user_id = $1 ${publicOnly ? "AND p.is_public" : ""}
     ORDER BY p.featured DESC, p.created_at DESC, p.id DESC
   `, [ownerUserId]);
   return rows.map(mapPost);
@@ -147,7 +97,7 @@ export async function getPostById(id, runner = null) {
 export async function getVisiblePost(id, viewerUserId = null, runner = null) {
   const post = await getPostById(id, runner);
   if (!post) return null;
-  if (post.inExplore || (viewerUserId && Number(viewerUserId) === Number(post.ownerUserId))) return post;
+  if (post.isPublic || (viewerUserId && Number(viewerUserId) === Number(post.ownerUserId))) return post;
   return null;
 }
 
@@ -182,7 +132,7 @@ export async function createPost(ownerUserId, data, runner = null, options = {})
   const image = asDataImage(data.image);
   const pinned = Boolean(data.featured) && (await countPinned(db, ownerUserId)) < POST_LIMITS.pinned;
   const info = await run(db, `
-    INSERT INTO posts (owner_user_id, title, tag, image, caption, in_explore, featured)
+    INSERT INTO posts (owner_user_id, title, tag, image, caption, is_public, featured)
     VALUES ($1, $2, $3, $4, $5, $6, $7)
     RETURNING id
   `, [
@@ -191,7 +141,7 @@ export async function createPost(ownerUserId, data, runner = null, options = {})
     clip(data.tag, POST_LIMITS.tag),
     image,
     clip(data.caption, POST_LIMITS.caption),
-    data.inExplore !== false,
+    data.isPublic !== false,
     pinned
   ]);
   const postId = Number(info.rows[0].id);
@@ -226,7 +176,7 @@ export async function updatePost(id, ownerUserId, data, runner = null, options =
 
   await run(db, `
     UPDATE posts SET
-      title = $1, tag = $2, image = $3, image_url = $4, caption = $5, in_explore = $6, featured = $7,
+      title = $1, tag = $2, image = $3, image_url = $4, caption = $5, is_public = $6, featured = $7,
       updated_at = CURRENT_TIMESTAMP
     WHERE id = $8 AND owner_user_id = $9
   `, [
@@ -235,7 +185,7 @@ export async function updatePost(id, ownerUserId, data, runner = null, options =
     imageChanged ? nextImage : current.image,
     imageUrl,
     data.caption === undefined ? current.caption : clip(data.caption, POST_LIMITS.caption),
-    data.inExplore === undefined ? current.in_explore : Boolean(data.inExplore),
+    data.isPublic === undefined ? current.is_public : Boolean(data.isPublic),
     pinned,
     id,
     ownerUserId
@@ -292,20 +242,14 @@ export async function toggleSave(userId, postId) {
   return setSave(userId, postId);
 }
 
-/** The user's saved posts, newest save first -- independent of the explore feed. */
+/** The user's saved posts, newest save first. */
 export async function listSavedPosts(userId) {
   const db = await getDb();
   const rows = await all(db, `
     ${postSelect}
     JOIN post_saves s ON s.post_id = p.id AND s.user_id = $1
-    WHERE p.in_explore OR p.owner_user_id = $1
+    WHERE p.is_public OR p.owner_user_id = $1
     ORDER BY s.created_at DESC
   `, [userId]);
   return rows.map(mapPost);
-}
-
-export async function listSavedTitles(userId) {
-  const db = await getDb();
-  const rows = await all(db, "SELECT post_id FROM post_saves WHERE user_id = $1 ORDER BY created_at DESC", [userId]);
-  return rows.map((row) => String(row.post_id));
 }

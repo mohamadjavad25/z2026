@@ -71,7 +71,7 @@ import { buildSalonStaffByName } from "../profile/ScheduleRow";
  *   createdProfile?: { id?: number|string, type?: string, data?: Record<string, unknown> } | null,
  *   onNotice?: (msg: string) => void,
  *   onShellNotice?: (msg: string) => void,
- *   onExploreRefresh?: () => Promise<void> | void,
+ *   onPostsChanged?: () => Promise<void> | void,
  *   onScheduleViewDay?: (day: string) => void,
  *   onCloseBookingSheet?: () => void,
  *   onLinkedArtistBooked?: (linkedArtistId: number|string) => void,
@@ -85,7 +85,7 @@ export function useSalonWorkspace({
   createdProfile = null,
   onNotice,
   onShellNotice,
-  onExploreRefresh,
+  onPostsChanged,
   onScheduleViewDay,
   onCloseBookingSheet,
   onLinkedArtistBooked,
@@ -965,7 +965,7 @@ export function useSalonWorkspace({
         tag: item.tag || "",
         caption: item.caption || "",
         image: item.image || "",
-        inExplore: item.inExplore !== false,
+        isPublic: item.isPublic !== false,
         featured: Boolean(item.featured)
       });
       return;
@@ -976,7 +976,7 @@ export function useSalonWorkspace({
       tag: salonServiceList[0]?.name || "",
       caption: "",
       image: "",
-      inExplore: true,
+      isPublic: true,
       featured: false
     });
   }, [salonServiceList]);
@@ -992,7 +992,7 @@ export function useSalonWorkspace({
     const tag = String(salonWorkDraft.tag || "").trim();
     const image = String(salonWorkDraft.image || "").trim();
     const caption = String(salonWorkDraft.caption || "").trim();
-    const inExplore = salonWorkDraft.inExplore !== false;
+    const isPublic = salonWorkDraft.isPublic !== false;
     const featured = Boolean(salonWorkDraft.featured);
     if (!image) {
       shellNotify("اول یک عکس برای پست انتخاب کن.");
@@ -1017,7 +1017,7 @@ export function useSalonWorkspace({
           tag,
           ...(image.startsWith("data:") ? { image } : {}),
           caption,
-          inExplore,
+          isPublic,
           featured
         });
         if (!ok) {
@@ -1028,10 +1028,10 @@ export function useSalonWorkspace({
         if (savedItem) {
           setSalonPortfolioList((items) => items.map((item) => (String(item.id) === String(savedItem.id) ? { ...item, ...savedItem } : item)));
         }
-        shellNotify(inExplore ? "پست به‌روزرسانی و در اکسپلور منتشر شد." : "پست سالن به‌روزرسانی شد.");
+        shellNotify(isPublic ? "پست به‌روزرسانی شد." : "پست به‌روزرسانی شد و فقط خودت می‌بینی.");
         void Promise.all([
           refreshSalonSystemData(),
-          typeof onExploreRefresh === "function" ? onExploreRefresh() : null
+          typeof onPostsChanged === "function" ? onPostsChanged() : null
         ]).catch(() => {});
       } else {
         const { ok, payload } = await createSalonPortfolio({
@@ -1039,7 +1039,7 @@ export function useSalonWorkspace({
           tag,
           image,
           caption,
-          inExplore,
+          isPublic,
           featured
         });
         if (!ok) {
@@ -1047,13 +1047,13 @@ export function useSalonWorkspace({
           return;
         }
         // Show the new post immediately from the API response; the heavy
-        // refreshes (workspace, explore, public directory) run in the background.
+        // refreshes (workspace, public directory) run in the background.
         const createdItem = payload.data?.item;
         if (createdItem) setSalonPortfolioList((items) => [createdItem, ...items]);
-        shellNotify(inExplore ? "پست در اکسپلور منتشر شد." : "نمونه‌کار سالن ذخیره شد.");
+        shellNotify(isPublic ? "پست منتشر شد." : "پست ذخیره شد و فقط خودت می‌بینی.");
         void Promise.all([
           refreshSalonSystemData(),
-          typeof onExploreRefresh === "function" ? onExploreRefresh() : null
+          typeof onPostsChanged === "function" ? onPostsChanged() : null
         ]).catch(() => {});
       }
       resetPortfolioComposer();
@@ -1062,7 +1062,7 @@ export function useSalonWorkspace({
     } finally {
       setPortfolioSaving(false);
     }
-  }, [portfolioSaving, salonWorkDraft, salonPortfolioList.length, shellNotify, refreshSalonSystemData, onExploreRefresh, syncSalonDirectory, resetPortfolioComposer]);
+  }, [portfolioSaving, salonWorkDraft, salonPortfolioList.length, shellNotify, refreshSalonSystemData, onPostsChanged, syncSalonDirectory, resetPortfolioComposer]);
 
   const deleteSalonPortfolio = useCallback(async (id) => {
     if (!id) return;
@@ -1078,12 +1078,12 @@ export function useSalonWorkspace({
       shellNotify("پست سالن حذف شد.");
       void Promise.all([
         refreshSalonSystemData(),
-        typeof onExploreRefresh === "function" ? onExploreRefresh() : null
+        typeof onPostsChanged === "function" ? onPostsChanged() : null
       ]).catch(() => {});
     } catch {
       shellNotify("حذف پست انجام نشد؛ دوباره امتحان کن.");
     }
-  }, [shellNotify, refreshSalonSystemData, onExploreRefresh, salonWorkDraft, resetPortfolioComposer]);
+  }, [shellNotify, refreshSalonSystemData, onPostsChanged, salonWorkDraft, resetPortfolioComposer]);
 
   const deleteSalonPortfolioFromComposer = useCallback(async () => {
     if (!salonWorkDraft?.id) return;

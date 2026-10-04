@@ -5,7 +5,7 @@ import * as posts from "../../../lib/db/repos/posts.js";
 
 export const runtime = "nodejs";
 
-/** The signed-in user's saved posts (independent of the explore feed). */
+/** The signed-in user's saved posts. */
 async function _GET(request) {
   await ensureDb();
   const auth = await requireUser(request);

@@ -57,7 +57,7 @@ export function PostViewer({
 
   if (!post || typeof document === "undefined") return null;
 
-  const isPrivate = post.inExplore === false;
+  const isPrivate = post.isPublic === false;
   const age = formatPostAge(post.createdAt);
 
   function handleTouchEnd(event) {

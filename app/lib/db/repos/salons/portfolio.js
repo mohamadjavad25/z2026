@@ -12,7 +12,7 @@ function toItem(post, salonUserId) {
     tag: post.tag || "",
     image: post.image || "",
     caption: post.caption || "",
-    inExplore: post.inExplore !== false,
+    isPublic: post.isPublic !== false,
     featured: Boolean(post.featured),
     saves: post.saves,
     views: post.views,

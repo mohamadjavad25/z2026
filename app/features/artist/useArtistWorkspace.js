@@ -21,7 +21,7 @@ import {
   SALON_HOUR_TIME_OPTIONS,
   timeLabelToMinutes
 } from "../../shared/lib/time";
-import { mapPortfolioItem } from "../explore/mappers";
+import { mapPortfolioItem } from "../posts/mappers";
 import {
   buildArtistBookingWeekTabs,
   getArtistBookingDayRank,
@@ -54,7 +54,7 @@ import {
  *   salonDirectory?: Array<Record<string, unknown>>,
  *   onNotice?: (msg: string) => void,
  *   onShellNotice?: (msg: string) => void,
- *   onExploreRefresh?: () => Promise<void> | void,
+ *   onPostsChanged?: () => Promise<void> | void,
  *   onCloseBookingSheet?: () => void
  * }} options
  */
@@ -64,7 +64,7 @@ export function useArtistWorkspace({
   salonDirectory = [],
   onNotice,
   onShellNotice,
-  onExploreRefresh,
+  onPostsChanged,
   onCloseBookingSheet
 } = {}) {
   const notify = useCallback((message) => {
@@ -790,7 +790,7 @@ export function useArtistWorkspace({
       image: item.image || "",
       saves: item.saves || "۰",
       views: item.views || "۰",
-      inExplore: item.inExplore !== false,
+      isPublic: item.isPublic !== false,
       featured: Boolean(item.featured)
     });
   }
@@ -804,9 +804,9 @@ export function useArtistWorkspace({
     setEditingArtistWork((prev) => (prev ? { ...prev, image: "" } : prev));
   }
 
-  async function syncArtistWorkToExplore() {
-    if (typeof onExploreRefresh === "function") {
-      await onExploreRefresh();
+  async function syncArtistPosts() {
+    if (typeof onPostsChanged === "function") {
+      await onPostsChanged();
     }
     if (createdProfile?.type === "artist") {
       await refreshArtistWorkspace();
@@ -834,7 +834,7 @@ export function useArtistWorkspace({
       // Only a freshly picked/cropped picture is sent. An unchanged one is just its media
       // URL, and echoing that back used to overwrite the stored image.
       ...(image.startsWith("data:") ? { image } : {}),
-      inExplore: editingArtistWork.inExplore !== false,
+      isPublic: editingArtistWork.isPublic !== false,
       featured: Boolean(editingArtistWork.featured)
     };
     if (artistWorkSaving) return;
@@ -849,7 +849,7 @@ export function useArtistWorkspace({
         return;
       }
       // The API already returned the saved post: put it in the gallery and close
-      // the sheet right away, then refresh explore / workspace in the background
+      // the sheet right away, then refresh the workspace in the background
       // instead of making the user wait for those two extra round trips.
       const saved = mapPortfolioItem(payload.data?.post);
       if (saved) {
@@ -861,7 +861,7 @@ export function useArtistWorkspace({
       }
       setEditingArtistWork(null);
       notify("نمونه‌کار ذخیره شد.");
-      void syncArtistWorkToExplore().catch(() => {});
+      void syncArtistPosts().catch(() => {});
     } catch {
       notify("ذخیره نمونه‌کار انجام نشد.");
     } finally {
@@ -887,7 +887,7 @@ export function useArtistWorkspace({
       setEditingArtistWork(null);
       setPreviewingArtistWorkId((prev) => (prev === id ? null : prev));
       notify("نمونه‌کار از گالری حذف شد.");
-      void syncArtistWorkToExplore().catch(() => {});
+      void syncArtistPosts().catch(() => {});
     } catch {
       notify("حذف انجام نشد.");
     } finally {
@@ -1099,7 +1099,7 @@ export function useArtistWorkspace({
     openArtistWorkModal,
     closeArtistWorkModal,
     clearArtistWorkImage,
-    syncArtistWorkToExplore,
+    syncArtistPosts,
     saveArtistWork,
     deleteArtistWork,
     respondArtistSalonInvite

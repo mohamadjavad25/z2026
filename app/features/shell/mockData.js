@@ -4,12 +4,10 @@ export const initialArtistBookings = [];
 
 export const salonDetailTeam = [];
 export const salonDetailPortfolio = [];
-export const explorePosts = [];
-export const exploreArtistCatalog = {};
 
 export const profileBoards = {
   client: [
-    { title: "فرنچ کروم رز", meta: "ذخیره‌شده از اکسپلور", tile: "tile1", tag: "ناخن" },
+    { title: "فرنچ کروم رز", meta: "ذخیره‌شده", tile: "tile1", tag: "ناخن" },
     { title: "بالیاژ کاراملی", meta: "مناسب تناژ گرم", tile: "tile3", tag: "مو" },
     { title: "میکاپ نود", meta: "برای تست بعدی AI", tile: "tile4", tag: "میکاپ" },
     { title: "ابروی طبیعی", meta: "مدل پیشنهادی", tile: "tile5", tag: "ابرو" }

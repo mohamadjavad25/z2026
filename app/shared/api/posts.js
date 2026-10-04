@@ -1,15 +1,5 @@
 import { apiFetch, apiJson } from "./client";
 
-/** GET /api/explore/posts → { data: { posts, savedTitles, nextCursor? } } (paginated when limit is given) */
-export async function getExplorePosts({ tag, cursor, limit } = {}) {
-  const params = new URLSearchParams();
-  if (tag && tag !== "همه") params.set("tag", tag);
-  if (cursor) params.set("cursor", cursor);
-  if (limit) params.set("limit", String(limit));
-  const query = params.toString();
-  return apiJson(`/api/explore/posts${query ? `?${query}` : ""}`);
-}
-
 /** GET /api/posts/saved → { data: { posts } } the signed-in user's saved posts */
 export async function getSavedPosts() {
   return apiJson("/api/posts/saved");

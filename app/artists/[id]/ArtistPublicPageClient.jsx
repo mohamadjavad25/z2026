@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PublicArtistModal } from "../../features/artist/PublicArtistModal";
 import { getPublicArtistServices, salonClientBookingDays } from "../../features/artist/constants";
-import { mapExplorePost } from "../../features/explore/mappers";
+import { mapSharedPost } from "../../features/posts/mappers";
 import { parseServiceDurationMinutes } from "../../shared/lib/time";
 
 // Standalone, unauthenticated rendering of a single artist's public profile.
@@ -32,7 +32,7 @@ export function ArtistPublicPageClient({ artist }) {
   const services = useMemo(() => getPublicArtistServices(artist), [artist]);
 
   const portfolio = useMemo(
-    () => (Array.isArray(artist?.posts) ? artist.posts.map(mapExplorePost).filter(Boolean) : []),
+    () => (Array.isArray(artist?.posts) ? artist.posts.map(mapSharedPost).filter(Boolean) : []),
     [artist]
   );
 

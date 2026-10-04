@@ -7,7 +7,7 @@ import { ImageCropper } from "../../components/ImageCropper";
 import { SheetClose } from "../../components/SheetClose";
 
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
-// 4:5 is the card ratio used in explore and the galleries, so the framing
+// 4:5 is the card ratio used in the galleries, so the framing
 // chosen here is exactly what every card shows.
 const POST_ASPECT = 4 / 5;
 
@@ -62,7 +62,7 @@ export function ProfilePostComposer({
     !String(value.tag || "").trim() ? "دسته" : ""
   ].filter(Boolean);
   const canSubmit = missing.length === 0;
-  const isPrivate = value.inExplore === false;
+  const isPrivate = value.isPublic === false;
   const pinDisabled = !value.featured && pinnedCount >= pinLimit;
   const isNew = String(value.id).startsWith("new-") || value.id === "new";
 
@@ -241,10 +241,10 @@ export function ProfilePostComposer({
             <div className="artistWorkField">
               <span>چه کسی ببیند؟</span>
               <div className="pcVisibility" role="radiogroup" aria-label="نمایش پست">
-                <button type="button" role="radio" aria-checked={!isPrivate} className={!isPrivate ? "is-on" : ""} disabled={saving} onClick={() => patch({ inExplore: true })}>
+                <button type="button" role="radio" aria-checked={!isPrivate} className={!isPrivate ? "is-on" : ""} disabled={saving} onClick={() => patch({ isPublic: true })}>
                   <Globe size={15} /> همه
                 </button>
-                <button type="button" role="radio" aria-checked={isPrivate} className={isPrivate ? "is-on" : ""} disabled={saving} onClick={() => patch({ inExplore: false })}>
+                <button type="button" role="radio" aria-checked={isPrivate} className={isPrivate ? "is-on" : ""} disabled={saving} onClick={() => patch({ isPublic: false })}>
                   <Lock size={15} /> فقط من
                 </button>
               </div>

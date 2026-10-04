@@ -34,7 +34,7 @@ describe("toggle race conditions", () => {
       expect(res.status).not.toBe(500);
     }
 
-    const refreshed = await owner.get("/api/explore/posts");
+    const refreshed = await owner.get("/api/posts");
     const row = refreshed.payload.data.posts.find((p) => p.id === post.payload.data.post.id);
     // saves_count must reflect the true number of post_saves rows (0 or 1
     // for one saver toggling 10 times), never inflated by concurrent

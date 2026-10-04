@@ -68,10 +68,10 @@ import {
   useAuthSession
 } from "../auth";
 import {
-  ExplorePreviewModal,
-  mapExplorePost,
-  useExploreFeed
-} from "../explore";
+  PostPreviewModal,
+  mapSharedPost,
+  usePostActivity
+} from "../posts";
 import { SettingsPage } from "../settings";
 import {
   ClientBookingSettingsModal,
@@ -128,8 +128,6 @@ import { SERVICE_CATALOG } from "../../shared/constants/serviceCatalog";
 import { ProfileEditModal } from "./ProfileEditModal";
 import { SalonClientFloatingDock } from "./SalonClientFloatingDock";
 import {
-  exploreArtistCatalog,
-  explorePosts,
   initialArtistBookings,
   initialArtistPortfolioItems,
   initialArtistServices,
@@ -238,7 +236,7 @@ export function HomeApp() {
     }
     window.history.replaceState({}, "", window.location.pathname);
   }, []);
-  const refreshExploreFeedRef = useRef(null);
+  const refreshSavedPostsRef = useRef(null);
   const refreshArtistWorkspaceRef = useRef(null);
   const notifyArtistBookingCreatedRef = useRef(null);
   const applySalonBookingsRef = useRef(null);
@@ -319,7 +317,7 @@ export function HomeApp() {
     onShellNotice: setAppToast,
     onPublicBoot: async ({ isStale, salonsPayload }) => {
       const c = authCascadeRef.current;
-      void c.refreshExploreFeed?.();
+      void c.refreshSavedPosts?.();
       if (isStale()) return;
       c.setSalonDirectory?.(salonsPayload?.salons || salonsPayload?.data?.salons || []);
     },
@@ -337,7 +335,7 @@ export function HomeApp() {
         // on every login was pure duplicate work. These three don't depend
         // on each other, so run them together instead of one after another.
         const [, , , passportPayload] = await Promise.all([
-          c.refreshExploreFeed?.(),
+          c.refreshSavedPosts?.(),
           c.refreshFollows?.(),
           c.refreshSaves?.(),
           fetch("/api/beauty-passport")
@@ -346,7 +344,7 @@ export function HomeApp() {
         ]);
         setBeautyPassport(passportPayload.passport || passportPayload.data?.passport || null);
       } else if (source === "register") {
-        await Promise.all([c.refreshExploreFeed?.(), c.refreshFollows?.(), c.refreshSaves?.()]);
+        await Promise.all([c.refreshSavedPosts?.(), c.refreshFollows?.(), c.refreshSaves?.()]);
       } else if (source === "boot") {
         const [passportPayload] = await Promise.all([
           fetch("/api/beauty-passport").then((response) => (response.ok ? response.json() : {})).catch(() => ({})),
@@ -384,7 +382,7 @@ export function HomeApp() {
     },
     onLoggedOut: async () => {
       const c = authCascadeRef.current;
-      c.resetExploreFeed?.();
+      c.resetPostActivity?.();
       c.resetSalonClient?.();
       c.resetPublicArtistProfile?.();
       c.resetArtistWorkspace?.();
@@ -396,29 +394,28 @@ export function HomeApp() {
       setProfileEditOpen(false);
       setProfileEditAvatar("");
       resetLogoutUiGaps();
-      await c.refreshExploreFeed?.();
+      await c.refreshSavedPosts?.();
     }
   });
 
   const {
-    explorePostList,
     selectedPost,
     setSelectedPost,
-    selectExplorePost,
-    savedExplorePosts,
+    openPost,
+    savedPosts,
     selectedPostIsSaved,
     savedPostTitles,
     recordPostView,
-    refreshExploreFeed,
-    resetExploreFeed,
+    refreshSavedPosts,
+    resetPostActivity,
     toggleSavedPost,
-    shareExplorePost
-  } = useExploreFeed({
+    sharePost
+  } = usePostActivity({
     createdProfile,
     onNotice: setAppToast
   });
 
-  refreshExploreFeedRef.current = refreshExploreFeed;
+  refreshSavedPostsRef.current = refreshSavedPosts;
 
   const {
     salonDirectory,
@@ -578,7 +575,7 @@ export function HomeApp() {
     openArtistWorkModal,
     closeArtistWorkModal,
     clearArtistWorkImage,
-    syncArtistWorkToExplore,
+    syncArtistPosts,
     saveArtistWork,
     deleteArtistWork,
     respondArtistSalonInvite,
@@ -589,7 +586,7 @@ export function HomeApp() {
     salonDirectory,
     onNotice: setAppToast,
     onShellNotice: setAppToast,
-    onExploreRefresh: () => refreshExploreFeedRef.current?.(),
+    onPostsChanged: () => refreshSavedPostsRef.current?.(),
     onCloseBookingSheet: () => {
       setBookingSheetOpen(false);
       setBookingSelectMenu("");
@@ -691,7 +688,7 @@ export function HomeApp() {
     createdProfile,
     onNotice: setAppToast,
     onShellNotice: setAppToast,
-    onExploreRefresh: () => refreshExploreFeedRef.current?.(),
+    onPostsChanged: () => refreshSavedPostsRef.current?.(),
     onScheduleViewDay: setScheduleViewDay,
     onCloseBookingSheet: () => {
       setBookingSheetOpen(false);
@@ -785,12 +782,11 @@ export function HomeApp() {
     resetPublicArtistProfile
   } = usePublicArtistProfile({
     createdProfile,
-    explorePostList,
     followedArtists,
     setFollowedArtists,
     setFollowedSalons,
     onNotice: setAppToast,
-    onSelectExplorePost: selectExplorePost,
+    onSelectPost: openPost,
     onBeforeOpen: () => {
       setSelectedArtistProfile(null);
       setSelectedSalon(null);
@@ -1309,14 +1305,14 @@ function getPassportMatch(post) {
   }
 
   authCascadeRef.current = {
-    refreshExploreFeed,
+    refreshSavedPosts,
     setSalonDirectory,
     refreshFollows,
     refreshSaves,
     refreshSalonSystemData,
     refreshArtistWorkspace,
     refreshClientBookings,
-    resetExploreFeed,
+    resetPostActivity,
     resetSalonClient,
     resetPublicArtistProfile,
     resetArtistWorkspace,
@@ -1385,7 +1381,7 @@ function getPassportMatch(post) {
     setActiveTab(tab);
   }
 
-  function resolveExploreArtist(post) {
+  function resolvePostOwner(post) {
     if (!post) return null;
     const fromDirectory = salonDirectory.find((salon) => (
       salon.name === post.salon
@@ -1474,7 +1470,7 @@ function getPassportMatch(post) {
     };
   }
 
-  // Hoisted out of openExploreArtistProfile (below) so it can also be reused
+  // Hoisted out of openPostOwnerProfile (below) so it can also be reused
   // as the "رزرو دوباره" (book again) navigation from the client's own
   // bookings/orders activity view — see rebookSalonFromBooking.
   const openSalonProfile = async (salonLike) => {
@@ -1602,8 +1598,8 @@ function getPassportMatch(post) {
     rebookSalonFromBooking(booking);
   }
 
-  async function openExploreArtistProfile(post) {
-    const artist = resolveExploreArtist(post);
+  async function openPostOwnerProfile(post) {
+    const artist = resolvePostOwner(post);
     setSelectedPost(null);
     if (!artist) return;
 
@@ -1663,10 +1659,10 @@ function getPassportMatch(post) {
 
   const renderSavedPosts = () => (
     <ProfileSavedPosts
-      posts={savedExplorePosts}
+      posts={savedPosts}
       salons={savedProfiles.salons}
       artists={savedProfiles.artists}
-      onSelectPost={selectExplorePost}
+      onSelectPost={openPost}
       onRemovePost={(item) => toggleSavedPost(item.title, item)}
       onSelectSalon={selectSalonWithDetail}
       onRemoveSalon={removeSavedSalon}
@@ -1681,16 +1677,15 @@ function getPassportMatch(post) {
     [salonPortfolioList, salonPreviewWorkId]
   );
 
-  const selectedExploreArtist = selectedPost ? resolveExploreArtist(selectedPost) : null;
+  const selectedPostOwner = selectedPost ? resolvePostOwner(selectedPost) : null;
 
-  // Neighbours to browse with the viewer arrows: the saved list when the post came from
-  // there, otherwise the same owner's posts from the feed.
+  // Neighbours to browse with the viewer arrows: the saved list when the post came from there.
   const selectedPostSiblings = (() => {
     if (!selectedPost) return [];
     const sameId = (item) => String(item.id) === String(selectedPost.id);
-    if (savedExplorePosts.some(sameId)) return savedExplorePosts;
-    const ownerPosts = explorePostList.filter((item) => String(item.ownerUserId) === String(selectedPost.ownerUserId));
-    return ownerPosts.some(sameId) ? ownerPosts : [];
+    if (savedPosts.some(sameId)) return savedPosts;
+    if (publicArtistPortfolio.some(sameId)) return publicArtistPortfolio;
+    return [];
   })();
 
   const selectSalonWithDetail = async (salon) => {
@@ -1810,7 +1805,7 @@ function getPassportMatch(post) {
             onToggleSetting={toggleProfileSetting}
             artistBookingSettings={artistBookingSettings}
             onArtistBookingChange={setArtistBookingSettings}
-            savedPostsCount={savedExplorePosts.length}
+            savedPostsCount={savedPosts.length}
             onOpenSaved={() => {
               if (createdProfile?.type === "salon") setSalonHeroSheet("saved");
               else setProfileView("saved");
@@ -1854,13 +1849,13 @@ function getPassportMatch(post) {
             salons={salonDirectory}
             postActions={{
               isSaved: (post) => savedPostTitles.includes(String(post.id)),
-              toggleSave: (post) => toggleSavedPost(post.title, mapExplorePost({
+              toggleSave: (post) => toggleSavedPost(post.title, mapSharedPost({
                 ...post,
                 ownerUserId: selectedSalon?.id,
                 ownerType: "salon",
                 salon: selectedSalon?.name
               })),
-              share: shareExplorePost,
+              share: sharePost,
               view: recordPostView
             }}
             directoryLoading={salonDirectoryLoading}
@@ -2075,7 +2070,7 @@ function getPassportMatch(post) {
                         image: "",
                         saves: "۰",
                         views: "۰",
-                        inExplore: true,
+                        isPublic: true,
                         featured: false
                       })}
                       onItemClick={openArtistWorkPreview}
@@ -2702,7 +2697,7 @@ function getPassportMatch(post) {
             openPortfolioComposer(item);
           }}
           onNavigate={(next) => setSalonPreviewWorkId(next.id)}
-          onShare={shareExplorePost}
+          onShare={sharePost}
         />
         <ArtistWorkPreviewModal
           work={previewingArtistWork}
@@ -2716,7 +2711,7 @@ function getPassportMatch(post) {
           onClose={closeArtistWorkPreview}
           onEdit={openArtistWorkModal}
           onNavigate={(next) => setPreviewingArtistWorkId(next.id)}
-          onShare={shareExplorePost}
+          onShare={sharePost}
         />
         <ArtistBreakEditorModal
           open={artistBreakEditorOpen}
@@ -2834,18 +2829,18 @@ function getPassportMatch(post) {
           clientPhone={createdProfile?.data?.phone || ""}
           onEditProfile={openProfileEdit}
         />
-        <ExplorePreviewModal
+        <PostPreviewModal
           post={selectedPost}
           posts={selectedPostSiblings}
-          onNavigate={selectExplorePost}
-          exploreArtist={selectedExploreArtist}
+          onNavigate={openPost}
+          postOwner={selectedPostOwner}
           isSaved={selectedPostIsSaved}
           beautyPassport={beautyPassport}
           passportMatch={selectedPost ? getPassportMatch(selectedPost) : ""}
           onClose={() => setSelectedPost(null)}
           onToggleSaved={() => selectedPost && toggleSavedPost(selectedPost.title, selectedPost)}
-          onShare={() => selectedPost && shareExplorePost(selectedPost)}
-          onOpenArtistProfile={() => selectedPost && openExploreArtistProfile(selectedPost)}
+          onShare={() => selectedPost && sharePost(selectedPost)}
+          onOpenArtistProfile={() => selectedPost && openPostOwnerProfile(selectedPost)}
         />
       </section>
     </main>

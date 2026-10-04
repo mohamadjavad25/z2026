@@ -149,9 +149,9 @@ export function ProfileGallery({
                     {item.tag ? <span className="profileGalleryTag">{item.tag}</span> : null}
                     {item.title ? <h3>{item.title}</h3> : null}
                   </div>
-                  {item.featured || item.inExplore === false ? (
+                  {item.featured || item.isPublic === false ? (
                     <div className="profileGalleryFlags">
-                      {item.inExplore === false ? <span title="فقط خودت می‌بینی"><Lock size={12} /></span> : null}
+                      {item.isPublic === false ? <span title="فقط خودت می‌بینی"><Lock size={12} /></span> : null}
                       {item.featured ? <span title="سنجاق‌شده"><Pin size={12} /></span> : null}
                     </div>
                   ) : null}

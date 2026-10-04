@@ -6,10 +6,10 @@ import { PostViewer } from "../posts/PostViewer";
  * Any visitor opening someone else's post (public gallery, saved list, share link).
  * Thin wrapper over the shared PostViewer.
  */
-export function ExplorePreviewModal({
+export function PostPreviewModal({
   post,
   posts = [],
-  exploreArtist,
+  postOwner,
   isSaved,
   beautyPassport,
   passportMatch,
@@ -30,11 +30,11 @@ export function ExplorePreviewModal({
     <PostViewer
       post={post}
       posts={posts}
-      owner={exploreArtist ? {
-        name: exploreArtist.name,
-        role: exploreArtist.role,
-        area: exploreArtist.area,
-        avatar: exploreArtist.avatar || post?.ownerAvatar || ""
+      owner={postOwner ? {
+        name: postOwner.name,
+        role: postOwner.role,
+        area: postOwner.area,
+        avatar: postOwner.avatar || post?.ownerAvatar || ""
       } : null}
       isSaved={isSaved}
       extra={passport}
@@ -42,7 +42,7 @@ export function ExplorePreviewModal({
       onNavigate={onNavigate}
       onToggleSaved={onToggleSaved}
       onShare={onShare}
-      onOpenOwner={exploreArtist ? onOpenArtistProfile : undefined}
+      onOpenOwner={postOwner ? onOpenArtistProfile : undefined}
     />
   );
 }
