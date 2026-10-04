@@ -28,7 +28,8 @@ import {
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { ServiceIconStrip } from "../../components/ServiceIconStrip";
 import { SegmentClock } from "../../components/SegmentClock";
-import { toPersianDigits } from "../../shared/lib/digits";
+import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
+import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
 import { SalonClientGallery } from "./SalonClientGallery";
 import { SheetClose } from "../../components/SheetClose";
 
@@ -40,6 +41,22 @@ import { SheetClose } from "../../components/SheetClose";
 // "هنوز نمونه‌کاری ثبت نشده" empty state instead (SalonClientGallery already
 // had this for the portfolio mosaic; it was just being starved by the
 // fallback array upstream).
+
+// JS getDay(): 0 = Sunday ... 6 = Saturday; the salon's hours rows are keyed by the Persian weekday name.
+const PERSIAN_WEEKDAYS = ["یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنجشنبه", "جمعه", "شنبه"];
+
+function getTodayStatus(hours) {
+  if (!Array.isArray(hours) || !hours.length) return null;
+  const row = hours.find((item) => item.day === PERSIAN_WEEKDAYS[new Date().getDay()]);
+  return row?.active
+    ? { open: true, short: `امروز تا ${toPersianDigits(row.close_time || "")}` }
+    : { open: false, short: "امروز تعطیل" };
+}
+
+function getMinPrice(services) {
+  const prices = (services || []).map((service) => parseTomanAmount(service.price)).filter(Boolean);
+  return prices.length ? Math.min(...prices) : 0;
+}
 
 function getPrimaryBookingService(services) {
   return services[0]?.name || "رزرو وقت";
@@ -86,6 +103,17 @@ export function SalonClientPage({
     .filter(Boolean)
     .slice(0, 3);
   const specialtyNames = services.slice(0, 4).map((service) => service.name).filter(Boolean);
+  const teamMembers = (selectedSalon?.staff || []).filter((member) => member && (member.artist_name || member.name)).slice(0, 12);
+  const weekHours = Array.isArray(selectedSalon?.hours) ? selectedSalon.hours : [];
+  const todayName = PERSIAN_WEEKDAYS[new Date().getDay()];
+  const todayHours = weekHours.find((row) => row.day === todayName);
+  const openStatus = weekHours.length
+    ? (todayHours?.active
+        ? { open: true, text: `امروز باز است · ${toPersianDigits(todayHours.open_time || "")} تا ${toPersianDigits(todayHours.close_time || "")}` }
+        : { open: false, text: "امروز تعطیل است" })
+    : null;
+  const prices = services.map((service) => parseTomanAmount(service.price)).filter(Boolean);
+  const minPrice = prices.length ? Math.min(...prices) : 0;
 
   return (
     <div className={`salonPanel mobilePage page-salons ${active ? "is-active" : ""}`} id="salons">
@@ -94,8 +122,18 @@ export function SalonClientPage({
           className="salonClientPage salonPublicProfile"
           aria-label={`صفحه مشتری ${selectedSalon.name}`}
         >
-          <header className="salonPublicHero">
-            <img className="publicStoryHeroImage" src="/salon-public-hero.png" alt="" aria-hidden="true" />
+          <header className="salonPublicHero spvHero">
+            {selectedSalon.poster ? (
+              <img
+                className="publicStoryHeroImage"
+                src={selectedSalon.poster}
+                alt=""
+                aria-hidden="true"
+                style={{ objectPosition: selectedSalon.posterPosition || "50% 50%" }}
+              />
+            ) : (
+              <div className="spvHeroFallback" aria-hidden="true" />
+            )}
             <div className="salonPublicTopbar">
               <button type="button" className="salonPublicRoundButton salonPublicBackButton" onClick={onBack} aria-label="بازگشت به سالن‌ها">
                 <ChevronLeft size={20} />
@@ -126,17 +164,16 @@ export function SalonClientPage({
               </div>
             </div>
             <div className="salonPublicTitle">
-              <h2>
-                {publicName}
-                <BadgeCheck className="salonPublicVerifiedIcon" size={18} />
-              </h2>
+              <h2>{publicName}</h2>
               <span>{publicTag}</span>
+              {selectedSalon.area ? <small className="spvArea"><MapPin size={13} />{selectedSalon.area}</small> : null}
             </div>
-            <div className="salonPublicStats">
-              <span><UserRound size={17} /> {toPersianDigits(staffCount)} سال سابقه</span>
-              <span><Heart size={17} /> {followerCount} دنبال‌کننده</span>
+            <div className="spvStats">
+              <span><b>{toPersianDigits(staffCount)}</b> عضو تیم</span>
+              <span><b>{toPersianDigits(services.length)}</b> خدمت</span>
+              <span><b>{followerCount}</b> دنبال‌کننده</span>
             </div>
-            <div className="salonPublicActions">
+            <div className="spvActions">
               <button
                 type="button"
                 className={isFollowing ? "is-following" : ""}
@@ -145,24 +182,43 @@ export function SalonClientPage({
                 {isFollowing ? <Check size={18} /> : <UserPlus size={18} />}
                 {isFollowing ? "دنبال می‌کنی" : "دنبال کردن"}
               </button>
+              {selectedSalon.phone ? (
+                <a className="spvCall" href={`tel:${toLatinDigits(selectedSalon.phone)}`} aria-label="تماس با سالن">
+                  <Phone size={18} />
+                  تماس
+                </a>
+              ) : null}
             </div>
+            {openStatus ? (
+              <p className={`spvOpen ${openStatus.open ? "is-open" : "is-closed"}`}>
+                <Clock3 size={14} /> {openStatus.text}
+              </p>
+            ) : null}
           </section>
 
           <section className="salonPublicCard salonPublicServices">
             <div className="salonPublicSectionHead">
-              <button type="button" onClick={() => setPublicSheet("services")}>مشاهده همه</button>
-              <h3>خدمات</h3>
+              {services.length > 5 ? <button type="button" onClick={() => setPublicSheet("services")}>مشاهده همه</button> : <span />}
+              <h3>خدمات و قیمت</h3>
             </div>
             {services.length ? (
-              <div className="salonPublicServiceRail">
-                {services.map((service) => (
+              <div className="spvServiceList">
+                {services.slice(0, 5).map((service) => (
                   <button
                     type="button"
+                    className="spvService"
                     key={service.id || service.name}
                     onClick={() => onOpenBooking(service.name)}
                   >
-                    <ServiceIcon emoji={service.emoji} name={service.name} size="lg" />
-                    <b>{service.name}</b>
+                    <ServiceIcon emoji={service.emoji} name={service.name} size="md" />
+                    <span className="spvServiceBody">
+                      <b>{service.name}</b>
+                      <small>{service.duration || "زمان متغیر"}</small>
+                    </span>
+                    <span className="spvServicePrice">
+                      {parseTomanAmount(service.price) ? <><b>{formatTomanNumber(parseTomanAmount(service.price))}</b><em>تومان</em></> : <em>قیمت توافقی</em>}
+                    </span>
+                    <span className="spvServiceGo">رزرو</span>
                   </button>
                 ))}
               </div>
@@ -174,9 +230,28 @@ export function SalonClientPage({
             )}
           </section>
 
+          {teamMembers.length ? (
+            <section className="salonPublicCard spvTeam">
+              <div className="salonPublicSectionHead">
+                <span />
+                <h3>تیم سالن</h3>
+              </div>
+              <div className="spvTeamRail">
+                {teamMembers.map((member) => (
+                  <div className="spvMember" key={member.id || member.name}>
+                    <img src={member.avatar || member.staff_avatar || "/profile-icon.svg"} alt="" loading="lazy" decoding="async" />
+                    <b>{member.artist_name || member.name}</b>
+                    <small>{String(member.role || member.artist_service || "آرتیست").split(/[،,]/)[0]}</small>
+                  </div>
+                ))}
+              </div>
+            </section>
+          ) : null}
+
+          {portfolioItems.length ? (
           <section className="salonPublicCard salonPublicPortfolio">
             <div className="salonPublicSectionHead">
-              <button type="button" onClick={() => setPublicSheet("portfolio")}>مشاهده همه</button>
+              {portfolioItems.length > 5 ? <button type="button" onClick={() => setPublicSheet("portfolio")}>مشاهده همه</button> : <span />}
               <h3>نمونه‌کارها</h3>
             </div>
             <SalonClientGallery
@@ -186,21 +261,37 @@ export function SalonClientPage({
               getFallbackStyle={getPortfolioCardStyle}
               postActions={postActions}
             />
-  
           </section>
+          ) : null}
 
-          <nav className="salonPublicBottomDock" aria-label="ناوبری صفحه سالن">
-            <button type="button" className={aboutOpen ? "is-active" : ""} onClick={() => setAboutOpen(true)} aria-label="درباره سالن">
-              <UserRound size={23} />
+          {weekHours.length ? (
+            <section className="salonPublicCard spvHours">
+              <div className="salonPublicSectionHead">
+                <span />
+                <h3>ساعت کاری</h3>
+              </div>
+              <ul>
+                {weekHours.map((row) => (
+                  <li key={row.day} className={row.day === todayName ? "is-today" : ""}>
+                    <b>{row.day}</b>
+                    <span>{row.active ? `${toPersianDigits(row.open_time || "")} تا ${toPersianDigits(row.close_time || "")}` : "تعطیل"}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+
+          <nav className="spvBar" aria-label="رزرو و ذخیره">
+            <button type="button" className={`spvBarIcon ${isSaved ? "is-on" : ""}`} onClick={() => onSave(selectedSalon)} aria-label={isSaved ? "حذف از ذخیره‌شده‌ها" : "ذخیره سالن"} aria-pressed={isSaved}>
+              <Heart size={22} fill={isSaved ? "currentColor" : "none"} />
             </button>
-            <button type="button" className={isSaved ? "is-active" : ""} onClick={() => onSave(selectedSalon)}>
-              <Heart size={23} fill={isSaved ? "currentColor" : "none"} />
+            <button type="button" className="spvBarIcon" onClick={() => setAboutOpen(true)} aria-label="درباره سالن">
+              <UserRound size={22} />
             </button>
-            <button type="button" className="is-primary" onClick={() => onOpenBooking(getPrimaryBookingService(services))}>
-              <Plus size={30} />
-            </button>
-            <button type="button" className="is-active" onClick={onBack} aria-label="بازگشت به سالن‌ها">
-              <Home size={23} />
+            <button type="button" className="spvBarBook" onClick={() => onOpenBooking(getPrimaryBookingService(services))} disabled={!services.length}>
+              <CalendarCheck size={19} />
+              رزرو نوبت
+              {minPrice ? <small>از {formatTomanNumber(minPrice)} تومان</small> : null}
             </button>
           </nav>
           {aboutOpen ? (
@@ -236,7 +327,7 @@ export function SalonClientPage({
                   </div>
                 </section>
                 <section className="salonPublicAboutBlock">
-                  <h4>تخصص‌ها و سابقه</h4>
+                  <h4>تخصص‌ها</h4>
                   <div className="salonPublicAboutChips">
                     {specialtyNames.length ? (
                       specialtyNames.map((item) => <span key={item}>{item}</span>)
@@ -246,17 +337,9 @@ export function SalonClientPage({
                   </div>
                 </section>
                 <div className="salonPublicAboutFacts">
-                  <span><UserRound size={16} /> {toPersianDigits(staffCount)} سال سابقه</span>
+                  <span><UserRound size={16} /> {toPersianDigits(staffCount)} عضو تیم</span>
                   <span><Heart size={16} /> {followerCount} دنبال‌کننده</span>
-                  <span><ShieldCheck size={16} /> پروفایل تایید شده</span>
                 </div>
-                <section className="salonPublicAboutBlock">
-                  <h4>مجوزها و اعتماد</h4>
-                  <div className="salonPublicAboutList">
-                    <span><ShieldCheck size={16} /> اطلاعات سالن تایید شده</span>
-                    <span><BadgeCheck size={16} /> نمونه‌کارها قابل بررسی هستند</span>
-                  </div>
-                </section>
                 <div className="salonPublicAboutContact">
                   <span><MapPin size={17} /> {selectedSalon.area || "آدرس ثبت نشده"}</span>
                   <span><Clock3 size={17} /> {selectedSalon.open || "ساعت کاری ثبت نشده"}</span>
@@ -393,10 +476,18 @@ export function SalonClientPage({
                 </div>
                 <div className="salonCardFooter">
                   <div className="salonCardFooterChips">
-                    <span className="salonOpenChip">
-                      {salon.open ? <SegmentClock value={salon.open} size="xs" as="span" /> : "آماده رزرو"}
-                    </span>
-                    <span className="salonServiceChip">{toPersianDigits(serviceCount)} خدمت</span>
+                    {(() => {
+                      const status = getTodayStatus(salon.hours);
+                      return status ? (
+                        <span className={`salonOpenChip spvChip ${status.open ? "is-open" : "is-closed"}`}>{status.short}</span>
+                      ) : null;
+                    })()}
+                    {(() => {
+                      const from = getMinPrice(getVisibleServices(salon));
+                      return from ? <span className="salonServiceChip">از {formatTomanNumber(from)} تومان</span> : (
+                        <span className="salonServiceChip">{toPersianDigits(serviceCount)} خدمت</span>
+                      );
+                    })()}
                   </div>
                   <button
                     type="button"
