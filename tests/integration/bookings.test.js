@@ -14,7 +14,7 @@ async function setupSalonAndClient() {
 }
 
 describe("salon bookings", () => {
-  it("creates a booking that always starts as تازه, even if the caller tries to inject a confirmed status", async () => {
+  it("creates a client booking as a pending درخواست, even if the caller tries to inject a confirmed status", async () => {
     const { bookerClient, salon, booker } = await setupSalonAndClient();
     const res = await bookerClient.post("/api/salon-bookings", {
       salonUserId: salon.user.id,
@@ -26,7 +26,7 @@ describe("salon bookings", () => {
       status: "تایید شده" // attempted injection -- must be ignored server-side
     });
     expect(res.ok).toBe(true);
-    expect(res.payload.data.booking.status).toBe("تازه");
+    expect(res.payload.data.booking.status).toBe("درخواست");
   });
 
   it("rejects a second booking that overlaps an already-booked slot", async () => {

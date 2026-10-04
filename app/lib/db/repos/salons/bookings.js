@@ -192,17 +192,21 @@ export async function listClientSalonBookings(user) {
     params.push(userId);
     conditions.push(`b.client_user_id = $${params.length}`);
   }
+  // Rows entered by the salon for a walk-in carry no account id: match those by phone, and by
+  // name only when they have no phone at all. Matching a bare name against everyone's bookings
+  // would show a client other people's bookings that merely share their name.
   if (phone) {
     // b.phone_normalized is a generated column (migrations/005_normalized_phone.sql)
     // that runs the same digit-normalization at write time, indexed --
     // unlike wrapping b.phone in REPLACE() on every read, this is sargable.
     params.push(phone);
-    conditions.push(`b.phone_normalized = $${params.length}`);
+    conditions.push(`(b.client_user_id IS NULL AND b.phone_normalized = $${params.length})`);
   }
   if (name) {
     params.push(name);
-    conditions.push(`b.client = $${params.length}`);
+    conditions.push(`(b.client_user_id IS NULL AND COALESCE(b.phone, '') = '' AND b.client = $${params.length})`);
   }
+  if (!conditions.length) return [];
   const rows = await all(db, `
     SELECT b.*, s.name AS salon_name, s.area AS salon_area, s.phone AS salon_phone, s.user_id AS source_salon_user_id, (u.avatar <> '') AS salon_avatar
     FROM salon_bookings b
@@ -500,6 +504,38 @@ export async function patchSalonBookingWithArtistSync(id, salonUserId, data) {
     }
     throw error;
   }
+}
+
+/**
+ * A staff artist confirming / declining the calendar entry the salon booked for them
+ * (an artist_bookings row with source_salon_user_id) must move the salon's own booking
+ * with it -- otherwise the salon and the client keep seeing the old status while the
+ * artist's side says "confirmed". Finds the salon_bookings row this mirror was created
+ * from (same salon, client, phone, service, day and clock time) and sets its status.
+ * Runs on the caller's transaction so both tables change together.
+ */
+export async function syncSalonBookingFromArtistMirror(artistBooking, status, runner = null) {
+  const salonUserId = Number(artistBooking?.source_salon_user_id || artistBooking?.sourceSalonUserId || 0);
+  if (!salonUserId || !["تایید شده", "لغو"].includes(status)) return null;
+  const db = runner || (await getDb());
+  const day = resolveRollingPersianDateKey(artistBooking.booking_date || artistBooking.bookingDate || "");
+  const time = normalizeBookingTimeLabel(artistBooking.time || "");
+  const rows = await all(db, `
+    SELECT * FROM salon_bookings
+    WHERE salon_user_id = $1 AND client = $2 AND phone = $3 AND service = $4 AND booking_date = $5
+      AND status NOT IN ('لغو', 'منقضی شده')
+    ORDER BY id DESC
+  `, [
+    salonUserId,
+    artistBooking.client_name ?? artistBooking.clientName ?? "",
+    artistBooking.client_phone ?? artistBooking.clientPhone ?? "",
+    artistBooking.service || "",
+    day
+  ]);
+  const match = rows.find((row) => normalizeBookingTimeLabel(row.time || "") === time);
+  if (!match) return null;
+  await run(db, "UPDATE salon_bookings SET status = $1 WHERE id = $2", [status, match.id]);
+  return get(db, "SELECT * FROM salon_bookings WHERE id = $1", [match.id]);
 }
 
 export async function cancelSalonBooking(id, salonUserId) {

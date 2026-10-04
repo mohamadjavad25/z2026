@@ -2466,7 +2466,7 @@ function getPassportMatch(post) {
                     const StatusIcon = booking.status === "تایید شده" ? Check : booking.status === "لغو" ? X : TimerOff;
                     const statusClass = booking.status === "تایید شده" ? "is-approve" : booking.status === "لغو" ? "is-decline" : "is-expiredNotice";
                     return (
-                      <article className={`reservationRequestCard ${statusClass}`} key={booking.id}>
+                      <article className={`reservationRequestCard ${statusClass}`} key={`${booking.bookingSource || "salon"}-${booking.id}`}>
                         <div className="requestCardMain">
                           <div className="requestCardWho">
                             <strong>{booking.salonName || booking.salon_name || "سالن"}</strong>

@@ -5,6 +5,7 @@ import { countFollowers } from "../../../lib/db/repos/users.js";
 import { sendPushToUser } from "../../../lib/push.js";
 import { notifyConnection } from "../../../lib/connectionNotify.js";
 import { checkRateLimit } from "../../../lib/rateLimit.js";
+import { withTransaction } from "../../../lib/db/connection.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -141,10 +142,28 @@ async function patchOwnArtistBooking(artistUserId, body) {
     return error("این بازه زمانی توسط نوبت دیگری اشغال شده است.", 409);
   }
 
-  const updatedRow = wantsCancel
-    ? await artists.cancelArtistBookingRow(bookingId)
-    : await artists.updateArtistBookingRow(bookingId, { status: nextStatus });
+  // A salon-assigned appointment (source_salon_user_id) is only a mirror of the salon's own
+  // booking: the answer has to land on the salon booking too, in the same transaction, or the
+  // salon and the client keep showing the old status.
+  let updatedRow = null;
+  let salonBooking = null;
+  await withTransaction(null, async (db) => {
+    updatedRow = wantsCancel
+      ? await artists.cancelArtistBookingRow(bookingId, db)
+      : await artists.updateArtistBookingRow(bookingId, { status: nextStatus }, db);
+    if (updatedRow && updatedRow.source_salon_user_id) {
+      salonBooking = await salons.syncSalonBookingFromArtistMirror(updatedRow, nextStatus, db);
+    }
+  });
   if (!updatedRow) return notFound();
+
+  const answerWord = nextStatus === "تایید شده" ? "تایید کرد" : "لغو کرد";
+  if (salonBooking && salonBooking.salon_user_id) {
+    void sendPushToUser(Number(salonBooking.salon_user_id), {
+      title: nextStatus === "تایید شده" ? "نوبت توسط آرتیست تایید شد" : "نوبت توسط آرتیست لغو شد",
+      body: `${current.client || "مشتری"} — ${current.service || "نوبت"}: آرتیست ${answerWord}.`
+    });
+  }
 
   if (current.clientUserId) {
     void sendPushToUser(Number(current.clientUserId), {

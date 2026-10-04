@@ -32,7 +32,7 @@ describe("ownership scoping (IDOR checks)", () => {
 
     const stillOwnedBySalonA = await salonAClient.get("/api/salon-bookings");
     const row = stillOwnedBySalonA.payload.data.bookings.find((b) => b.id === bookingId);
-    expect(row.status).toBe("تازه");
+    expect(row.status).toBe("درخواست");
   });
 
   it("a client cannot update another client's profile by sending a different user's data", async () => {
