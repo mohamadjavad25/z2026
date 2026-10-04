@@ -112,29 +112,30 @@ describe("posts", () => {
 });
 
 describe("post thumbnails", () => {
-  it("serves a small cached WebP for ?w=480 and the original otherwise", async () => {
-    const sharp = (await import("sharp")).default;
-    const big = await sharp({ create: { width: 1200, height: 1500, channels: 3, background: "#d06080" } }).jpeg({ quality: 92 }).toBuffer();
-    const image = `data:image/jpeg;base64,${big.toString("base64")}`;
+  // 1x1 WebP, standing in for the small copy the browser makes next to the full picture.
+  const WEBP = "data:image/webp;base64,UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEADsD+JaQAA3AAAAAA";
+
+  it("serves the small copy for ?w= and the full picture otherwise", async () => {
     const { client } = await artistWithPost();
-    const created = await client.post("/api/posts", { title: "بزرگ", tag: "ناخن", caption: "x", image });
+    const created = await client.post("/api/posts", { title: "کوچک", tag: "ناخن", caption: "x", image: PNG, thumb: WEBP });
     expect(created.ok).toBe(true);
     const url = created.payload.data.post.image;
     expect(url).toContain("?v=");
 
-    const thumb = await fetch(`${TEST_BASE_URL}${url}&w=480`);
-    expect(thumb.status).toBe(200);
-    expect(thumb.headers.get("content-type")).toBe("image/webp");
-    expect(thumb.headers.get("cache-control")).toContain("immutable");
-    const thumbBytes = Buffer.from(await thumb.arrayBuffer());
-    expect(thumbBytes.length).toBeLessThan(big.length);
-    expect((await sharp(thumbBytes).metadata()).width).toBe(480);
+    const small = await fetch(`${TEST_BASE_URL}${url}&w=480`);
+    expect(small.status).toBe(200);
+    expect(small.headers.get("content-type")).toBe("image/webp");
+    expect(small.headers.get("cache-control")).toContain("immutable");
 
-    // The second request comes from the stored thumbnail and is identical.
-    const again = Buffer.from(await (await fetch(`${TEST_BASE_URL}${url}&w=480`)).arrayBuffer());
-    expect(again.equals(thumbBytes)).toBe(true);
+    const full = await fetch(`${TEST_BASE_URL}${url}`);
+    expect(full.headers.get("content-type")).toBe("image/png");
+  });
 
-    const original = await fetch(`${TEST_BASE_URL}${url}`);
-    expect(original.headers.get("content-type")).toBe("image/jpeg");
+  it("ignores a thumb that is not an image, and falls back to the full picture", async () => {
+    const { client } = await artistWithPost();
+    const created = await client.post("/api/posts", { title: "بد", tag: "ناخن", caption: "x", image: PNG, thumb: "data:text/html;base64,PGI+eDwvYj4=" });
+    expect(created.ok).toBe(true);
+    const res = await fetch(`${TEST_BASE_URL}${created.payload.data.post.image}&w=480`);
+    expect(res.headers.get("content-type")).toBe("image/png");
   });
 });

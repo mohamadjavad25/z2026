@@ -372,7 +372,7 @@ export function useArtistWorkspace({
     setSelectedArtistHourDay("");
   }, []);
 
-  usePolling(refreshArtistBookingsOnly, 10000, createdProfile?.type === "artist");
+  usePolling(refreshArtistBookingsOnly, 20000, createdProfile?.type === "artist");
 
   useEffect(() => {
     if (!artistGalleryTags.includes(artistGalleryFilter)) {

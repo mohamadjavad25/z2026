@@ -117,6 +117,11 @@ export async function getClientArtistBookings() {
   return apiJson("/api/artist-bookings");
 }
 
+/** GET /api/client-bookings → { data: { salonBookings, artistBookings } } client session only (one request instead of two) */
+export async function getClientBookings() {
+  return apiJson("/api/client-bookings");
+}
+
 /** GET /api/artist-hours → { hours } owner-only */
 export async function getArtistHours() {
   return apiJson("/api/artist-hours");

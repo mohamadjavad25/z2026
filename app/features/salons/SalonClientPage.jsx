@@ -481,7 +481,7 @@ export function SalonClientPage({
             <SkeletonList rows={4} variant="card" label="در حال بارگذاری سالن‌ها" />
           ) : (
             <div className="emptySalonDirectory">
-              <img src="/salons-empty-illustration.png" alt="" aria-hidden="true" />
+              <img src="/salons-empty-illustration.webp" alt="" aria-hidden="true" />
               <div>
                 <b>سالن‌ها اینجا نمایش داده می‌شوند</b>
               </div>

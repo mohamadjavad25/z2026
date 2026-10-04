@@ -311,7 +311,7 @@ export function useSalonWorkspace({
         // keep current inbox / bookings
       }
     };
-  usePolling(pollSalonLive, 10000, createdProfile?.type === "salon");
+  usePolling(pollSalonLive, 20000, createdProfile?.type === "salon");
 
   useEffect(() => {
     const activeTool = salonWorkspace || (salonToolSheetOpen ? salonTool : null);

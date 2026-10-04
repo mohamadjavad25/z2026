@@ -5,7 +5,7 @@ import { ImagePlus, Lock, Pin } from "lucide-react";
 import { SkeletonList } from "../../components/Skeleton";
 import { ProfilePostComposer } from "./ProfilePostComposer";
 
-const EMPTY_COLLAGE_SRC = "/artist-gallery-empty-collage.png";
+const EMPTY_COLLAGE_SRC = "/artist-gallery-empty-collage.webp";
 
 /**
  * Shared profile portfolio gallery (artist + salon).

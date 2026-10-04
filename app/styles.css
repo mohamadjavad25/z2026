@@ -55,7 +55,7 @@
     height: 246px !important;
     background:
       linear-gradient(90deg, rgba(19, 19, 23, 0.95), rgba(6, 6, 13, 0.9)),
-      url("/salon-hero-doodle.png") center top / cover no-repeat !important;
+      url("/salon-hero-doodle.webp") center top / cover no-repeat !important;
     -webkit-mask-image: none !important;
     mask-image: none !important;
   }
@@ -140,7 +140,7 @@
     background:
       radial-gradient(circle at 73% 22%, rgba(111, 115, 128, 0.16), transparent 32%),
       linear-gradient(90deg, rgba(13, 13, 17, 0.96), rgba(23, 23, 27, 0.9) 56%, rgba(4, 5, 10, 0.96)),
-      url("/salon-hero-doodle.png") center top / cover no-repeat !important;
+      url("/salon-hero-doodle.webp") center top / cover no-repeat !important;
     filter: saturate(0.9) contrast(1.08);
   }
 
@@ -1188,7 +1188,7 @@ h1{
   z-index: -1;
   background:
     linear-gradient(90deg, rgba(191, 192, 209, 0.15), transparent 28%),
-    url("/salon-pearl-shell.png") left center / auto 118% no-repeat;
+    url("/salon-pearl-shell.webp") left center / auto 118% no-repeat;
   opacity: 0.34;
 }
 
@@ -2315,7 +2315,7 @@ h2{
   border-radius: 24px;
   background-image:
     linear-gradient(180deg, rgba(15, 45, 71, 0.18), rgba(15, 45, 71, 0.9)),
-    url("/salon-sidebar-hero.png");
+    url("/salon-sidebar-hero.webp");
   background-size: cover;
   background-position: center;
   color: #fff;
@@ -8189,7 +8189,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   padding: 8px;
   border-radius: 18px;
   color: #fff;
-  background-image: linear-gradient(180deg, rgba(12, 14, 16, 0.04) 0%, transparent 46%, rgba(12, 14, 16, 0.68) 100%), url("/explore-collage.png");
+  background-image: linear-gradient(180deg, rgba(12, 14, 16, 0.04) 0%, transparent 46%, rgba(12, 14, 16, 0.68) 100%), url("/explore-collage.webp");
   background-size: 300% 300%;
   box-shadow: 0 16px 34px rgba(28, 32, 44, 0.14);
 }
@@ -8198,7 +8198,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 .profilePostCard.model2,
 .profilePostCard.model3,
 .profilePostCard.model4{
-  background-image: url("/my-models-collage.png");
+  background-image: url("/my-models-collage.webp");
 }
 
 .profilePostCard.modelOnly{
@@ -8599,19 +8599,19 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .createdProfile.is-salon .salonQuickGrid button:nth-child(1)::after{
-  background-image: url("/salon-tool-booking.png");
+  background-image: url("/salon-tool-booking.webp");
 }
 
 .createdProfile.is-salon .salonQuickGrid button:nth-child(2)::after{
-  background-image: url("/salon-tool-staff.png");
+  background-image: url("/salon-tool-staff.webp");
 }
 
 .createdProfile.is-salon .salonQuickGrid button:nth-child(3)::after{
-  background-image: url("/salon-tool-services.png");
+  background-image: url("/salon-tool-services.webp");
 }
 
 .createdProfile.is-salon .salonQuickGrid button:nth-child(4)::after{
-  background-image: url("/salon-tool-portfolio.png");
+  background-image: url("/salon-tool-portfolio.webp");
 }
 
 .createdProfile.is-salon .salonQuickGrid button svg,
@@ -9616,7 +9616,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   padding: 12px;
   background-image:
     linear-gradient(90deg, rgba(28, 32, 44, 0.24), rgba(28, 32, 44, 0.62) 58%, rgba(28, 32, 44, 0.9)),
-    url("/salon-sidebar-hero.png");
+    url("/salon-sidebar-hero.webp");
   background-size: cover;
   background-position: center;
   color: #fff;
@@ -9799,14 +9799,14 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 .salonSidebarBanner.system{
   background-image:
     linear-gradient(90deg, rgba(28, 32, 44, 0.16), rgba(28, 32, 44, 0.66) 56%, rgba(28, 32, 44, 0.92)),
-    url("/salon-sidebar-system.png");
+    url("/salon-sidebar-system.webp");
 }
 
 .salonSidebarBanner.ai,
 .salonSidebarBanner.ops{
   background-image:
     linear-gradient(90deg, rgba(28, 32, 44, 0.12), rgba(28, 32, 44, 0.62) 54%, rgba(28, 32, 44, 0.92)),
-    url("/salon-sidebar-aiops.png");
+    url("/salon-sidebar-aiops.webp");
 }
 
 .salonSidebarBanner > *{
@@ -10013,7 +10013,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   border-radius: 16px;
   padding: 0;
   color: #fff;
-  background-image: url("/explore-collage.png");
+  background-image: url("/explore-collage.webp");
   background-size: 300% 300%;
   background-position: center;
   box-shadow: 0 14px 30px rgba(28, 32, 44, 0.12);
@@ -11672,7 +11672,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   background:
     radial-gradient(circle at 18% 10%, rgba(191, 192, 209, 0.24), transparent 36%),
     linear-gradient(120deg, rgba(20, 22, 29, 0.62), rgba(42, 42, 46, 0.58)),
-    url("/salon-sidebar-system.png");
+    url("/salon-sidebar-system.webp");
   background-size: cover;
   background-position: center;
   color: #fff;
@@ -13206,7 +13206,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 
 .modalVisual{
   height: 360px;
-  background-image: linear-gradient(180deg, transparent 48%, rgba(12, 14, 16, 0.54)), url("/explore-collage.png");
+  background-image: linear-gradient(180deg, transparent 48%, rgba(12, 14, 16, 0.54)), url("/explore-collage.webp");
   background-size: 300% 300%;
 }
 
@@ -14309,7 +14309,7 @@ body{
     border-radius: 22px;
     background-image:
       linear-gradient(180deg, rgba(15, 45, 71, 0.14), rgba(15, 45, 71, 0.92)),
-      url("/salon-sidebar-hero.png");
+      url("/salon-sidebar-hero.webp");
   }
 
   .salonDetailTopbar{
@@ -16913,7 +16913,7 @@ body{
     background:
       radial-gradient(circle at 68% 28%, rgba(111, 115, 128, 0.2), transparent 30%),
       linear-gradient(180deg, rgba(2, 3, 10, 0.1), rgba(5, 5, 13, 0.5) 72%, rgba(255, 255, 255, 0.96) 100%),
-      url("/salon-hero-doodle.png");
+      url("/salon-hero-doodle.webp");
     background-size: cover;
     background-position: center top;
   }
@@ -16926,7 +16926,7 @@ body{
     height: 246px;
     background:
       linear-gradient(90deg, rgba(19, 19, 23, 0.95), rgba(6, 6, 13, 0.9)),
-      url("/salon-hero-doodle.png") center top / cover no-repeat !important;
+      url("/salon-hero-doodle.webp") center top / cover no-repeat !important;
     opacity: 1;
     -webkit-mask-image: none !important;
     mask-image: none !important;
@@ -17390,7 +17390,7 @@ body{
     background:
       radial-gradient(circle at 74% 25%, rgba(111, 115, 128, 0.18), transparent 30%),
       linear-gradient(180deg, rgba(4, 5, 10, 0.02), rgba(4, 4, 10, 0.18) 68%, rgba(255, 255, 255, 0.72) 100%),
-      url("/salon-hero-doodle.png") center top / cover no-repeat !important;
+      url("/salon-hero-doodle.webp") center top / cover no-repeat !important;
     opacity: 1;
   }
 
@@ -17402,7 +17402,7 @@ body{
     border-radius: 0 0 14px 14px !important;
     background:
       linear-gradient(90deg, rgba(6, 7, 12, 0.98) 0%, rgba(27, 27, 31, 0.95) 50%, rgba(5, 6, 12, 0.98) 100%),
-      url("/salon-hero-doodle.png") center top / cover no-repeat !important;
+      url("/salon-hero-doodle.webp") center top / cover no-repeat !important;
     opacity: 1 !important;
     filter: contrast(1.04) saturate(0.9) brightness(0.86);
   }
@@ -19232,7 +19232,7 @@ body{
   border-radius: 22px !important;
   background:
     linear-gradient(135deg, rgba(11, 17, 46, 0.92) 0%, rgba(20, 22, 29, 0.86) 48%, rgba(111, 115, 128, 0.82) 100%),
-    url("/salon-hero-doodle.png") center / cover no-repeat !important;
+    url("/salon-hero-doodle.webp") center / cover no-repeat !important;
   color: #ffffff;
   box-shadow:
     0 16px 34px rgba(41, 41, 45, 0.22),
@@ -20057,7 +20057,7 @@ body{
   inset: 0;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 55%, rgba(255, 255, 255, 0.14) 100%),
-    url("/salon-public-hero.png") center / cover no-repeat;
+    url("/salon-public-hero.webp") center / cover no-repeat;
   transform: none;
 }
 
@@ -20611,7 +20611,7 @@ body{
 .salonPublicHeroImage {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.02) 58%, rgba(255, 255, 255, 0.14) 100%),
-    url("/salon-public-hero.png") 55% center / cover no-repeat !important;
+    url("/salon-public-hero.webp") 55% center / cover no-repeat !important;
 }
 
 .salonPublicStatusbar {
@@ -20849,7 +20849,7 @@ body{
 .salonPublicHeroImage {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0) 56%, rgba(255, 255, 255, 0.1) 100%),
-    url("/salon-public-hero.png") 58% center / cover no-repeat;
+    url("/salon-public-hero.webp") 58% center / cover no-repeat;
 }
 
 .salonPublicTopbar {
@@ -21570,7 +21570,7 @@ body{
 
 .profileHero.is-salon .salonHeroBanner {
   background:
-    url("/salon-hero-doodle.png") center / cover no-repeat !important;
+    url("/salon-hero-doodle.webp") center / cover no-repeat !important;
 }
 
 /* A user-uploaded poster paints as a real image on top of the decorative
@@ -22713,7 +22713,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   background-image:
     radial-gradient(circle at 88% 10%, rgba(20, 22, 29, 0.28), transparent 26%),
     radial-gradient(circle at 18% 5%, rgba(51, 51, 55, 0.34), transparent 34%),
-    url("/artist-hero-doodle.png");
+    url("/artist-hero-doodle.webp");
   background-size: cover;
   background-position: center;
   background-color: #18181c;

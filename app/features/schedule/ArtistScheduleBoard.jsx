@@ -51,7 +51,7 @@ export function ArtistScheduleBoard({
             />
           )) : (
             <div className="salonTodayEmpty">
-              <img src="/artist-bookings-empty.png" alt="" aria-hidden="true" />
+              <img src="/artist-bookings-empty.webp" alt="" aria-hidden="true" />
               <b>برای «{dayLabel}» رزروی ثبت نشده</b>
             </div>
           )}

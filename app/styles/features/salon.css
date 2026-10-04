@@ -2504,7 +2504,7 @@
   border-radius: 22px;
   background:
     linear-gradient(135deg, rgba(28, 32, 44, 0.86), rgba(20, 22, 29, 0.82)),
-    url("/salon-sidebar-system.png");
+    url("/salon-sidebar-system.webp");
   background-size: cover;
   background-position: center;
   color: #fff;
@@ -2548,7 +2548,7 @@
 .leadHeroPanel {
   background:
     linear-gradient(135deg, rgba(12, 46, 52, 0.78), rgba(20, 22, 29, 0.86)),
-    url("/salon-sidebar-aiops.png");
+    url("/salon-sidebar-aiops.webp");
   background-size: cover;
   background-position: center;
 }
@@ -2556,7 +2556,7 @@
 .opsHeroPanel {
   background:
     linear-gradient(135deg, rgba(20, 22, 29, 0.78), rgba(28, 32, 44, 0.88)),
-    url("/salon-sidebar-aiops.png");
+    url("/salon-sidebar-aiops.webp");
   background-size: cover;
   background-position: center;
 }

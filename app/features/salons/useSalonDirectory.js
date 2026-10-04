@@ -10,7 +10,7 @@ import {
   getSalons,
   toggleSalonFollow
 } from "../../shared/api/salons";
-import { getClientArtistBookings } from "../../shared/api/artists";
+import { getClientBookings } from "../../shared/api/artists";
 import { toggleSave } from "../../shared/api/saves";
 import { apiFetch } from "../../shared/api/client";
 import { notifyFromResponse } from "../../shared/lib/apiNotify";
@@ -178,18 +178,17 @@ export function useSalonDirectory({
     // salonName/salon_name (reused field, safe for existing rendering)
     // alongside their own artistUserId/bookingSource (kept distinct, used
     // by HomeApp's rebookFromBooking to route to the right profile type).
-    const [salonResult, artistResult] = await Promise.allSettled([
-      getSalonBookings(),
-      getClientArtistBookings()
-    ]);
-    const salonBookings = salonResult.status === "fulfilled" && salonResult.value.ok
-      ? (salonResult.value.data?.bookings || salonResult.value.payload?.bookings || [])
-      : null;
-    const artistBookings = artistResult.status === "fulfilled" && artistResult.value.ok
-      ? (artistResult.value.data?.bookings || artistResult.value.payload?.bookings || [])
-      : null; // null (not []) on failure — same guard shape as salonBookings above, so a
-               // transient failure of just this fetch can't erase previously-shown artist
-               // bookings from "فعالیت من" below.
+    let salonBookings = null;
+    let artistBookings = null; // null (not []) on failure so a hiccup can't erase what is already shown
+    try {
+      const result = await getClientBookings();
+      if (result.ok) {
+        salonBookings = result.data?.salonBookings || [];
+        artistBookings = result.data?.artistBookings || [];
+      }
+    } catch {
+      // keep the current list
+    }
     if (salonBookings === null && artistBookings === null) return; // both fetches failed: keep current list untouched
     setClientBookingList((previous) => {
       const previousList = previous || [];
@@ -285,7 +284,9 @@ export function useSalonDirectory({
     }
   }, [salonClientBooking.open, salonClientBooking.day, salonClientBooking.time, salonClientFreeTimes]);
 
-  usePolling(refreshClientBookings, 10000, createdProfile?.type === "client");
+  // Fast while a request is waiting for an answer, slow otherwise (every poll is a function call).
+  const hasWaitingBooking = clientBookingList.some((item) => item.status === "درخواست" || item.status === "تازه");
+  usePolling(refreshClientBookings, hasWaitingBooking ? 8000 : 45000, createdProfile?.type === "client");
 
   const toggleFollowSalon = useCallback(async (salon) => {
     const followKey = String(salon.id || salon.source_key || salon.name);
