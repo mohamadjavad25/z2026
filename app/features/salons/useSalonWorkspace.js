@@ -853,7 +853,7 @@ export function useSalonWorkspace({
       } else {
         await refreshSalonSystemData();
       }
-      setServiceArtistMenuId(null);
+      // The artist picker is a sheet that stays open so several artists can be ticked in a row.
       const artistName = saved?.staff_name || safeSalonStaffList.find((person) => String(person.id) === String(staffId))?.name;
       shellNotify(artistName ? `آرتیست «${artistName}» برای «${service.name}» انتخاب شد.` : `آرتیست خدمت «${service.name}» برداشته شد.`);
     } catch {

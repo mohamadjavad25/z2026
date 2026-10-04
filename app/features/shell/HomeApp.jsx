@@ -1350,17 +1350,6 @@ function getPassportMatch(post) {
   }, [createdProfile?.type]);
 
   useEffect(() => {
-    if (!serviceArtistMenuId) return undefined;
-    const onPointerDown = (event) => {
-      const openPick = document.querySelector(".is-pickingArtist .serviceArtistPick");
-      if (openPick && openPick.contains(event.target)) return;
-      setServiceArtistMenuId(null);
-    };
-    document.addEventListener("pointerdown", onPointerDown);
-    return () => document.removeEventListener("pointerdown", onPointerDown);
-  }, [serviceArtistMenuId]);
-
-  useEffect(() => {
     if (!appToast) return undefined;
     const timer = window.setTimeout(() => setAppToast(""), 3200);
     return () => window.clearTimeout(timer);
