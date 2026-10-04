@@ -561,3 +561,6 @@
     opacity: 0.6;
   }
 }
+
+/* Signup: phone and password each get a full-width row (side by side they were too narrow on a phone). */
+form.signupForm:not(.is-login) .formRow { grid-template-columns: 1fr !important; }

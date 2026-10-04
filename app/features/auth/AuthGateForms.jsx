@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ChevronLeft, Eye, EyeOff, ShieldCheck } from "lucide-react";
 import { beautySpecialtyOptions, profileRoles } from "../../shared/constants/roles";
+import { toLatinDigits } from "../../shared/lib/digits";
 import { ProfileRoleGrid } from "../profile/ProfileRoleGrid";
 import { SpecialtyMultiSelect } from "./SpecialtyMultiSelect";
 
@@ -23,7 +24,7 @@ function TermsAgreement() {
   );
 }
 
-function PasswordField({ name, placeholder, ariaLabel, required, minLength, onInput, defaultValue }) {
+function PasswordField({ name, placeholder, ariaLabel, required, minLength, onInput, defaultValue, autoComplete = "current-password" }) {
   const [visible, setVisible] = useState(false);
   return (
     <div className="authPasswordField">
@@ -32,6 +33,7 @@ function PasswordField({ name, placeholder, ariaLabel, required, minLength, onIn
         placeholder={placeholder}
         aria-label={ariaLabel}
         type={visible ? "text" : "password"}
+        autoComplete={autoComplete}
         required={required}
         minLength={minLength}
         onInput={onInput}
@@ -111,6 +113,8 @@ function PasswordRecoveryPanel({ onClose }) {
         aria-label="شماره تماس"
         inputMode="tel"
         dir="ltr"
+        autoComplete="tel"
+        onInput={(event) => { event.currentTarget.value = toLatinDigits(event.currentTarget.value); }}
         maxLength={11}
         pattern="09[0-9]{9}"
         title="شماره موبایل معتبر وارد کن (مثلا 09123456789)"
@@ -185,6 +189,8 @@ export function AuthGateForms({
             aria-label="شماره تماس"
             inputMode="tel"
             dir="ltr"
+            autoComplete="tel"
+            onInput={(event) => { event.currentTarget.value = toLatinDigits(event.currentTarget.value); }}
             maxLength={11}
             defaultValue={lastPhone}
             required
@@ -224,12 +230,14 @@ export function AuthGateForms({
               aria-label="شماره تماس"
               inputMode="tel"
               dir="ltr"
+              autoComplete="tel"
+              onInput={(event) => { event.currentTarget.value = toLatinDigits(event.currentTarget.value); }}
               maxLength={11}
               pattern="09[0-9]{9}"
               title="شماره موبایل معتبر وارد کن (مثلا 09123456789)"
               required
             />
-            <PasswordField name="password" placeholder="رمز کاربر" ariaLabel="رمز کاربر" required minLength={8} />
+            <PasswordField name="password" placeholder="رمز عبور (حداقل ۸ کاراکتر)" ariaLabel="رمز عبور" required minLength={8} autoComplete="new-password" />
           </div>
           <input name="email" placeholder="ایمیل (اختیاری)" aria-label="ایمیل اختیاری" type="email" />
           <TermsAgreement />
@@ -262,12 +270,14 @@ export function AuthGateForms({
               aria-label="شماره تماس"
               inputMode="tel"
               dir="ltr"
+              autoComplete="tel"
+              onInput={(event) => { event.currentTarget.value = toLatinDigits(event.currentTarget.value); }}
               maxLength={11}
               pattern="09[0-9]{9}"
               title="شماره موبایل معتبر وارد کن (مثلا 09123456789)"
               required
             />
-            <PasswordField name="password" placeholder="رمز کاربر" ariaLabel="رمز کاربر" required minLength={8} />
+            <PasswordField name="password" placeholder="رمز عبور (حداقل ۸ کاراکتر)" ariaLabel="رمز عبور" required minLength={8} autoComplete="new-password" />
           </div>
           <input name="email" placeholder="ایمیل (اختیاری)" aria-label="ایمیل اختیاری" type="email" />
           <TermsAgreement />
@@ -299,12 +309,14 @@ export function AuthGateForms({
               aria-label="شماره تماس"
               inputMode="tel"
               dir="ltr"
+              autoComplete="tel"
+              onInput={(event) => { event.currentTarget.value = toLatinDigits(event.currentTarget.value); }}
               maxLength={11}
               pattern="09[0-9]{9}"
               title="شماره موبایل معتبر وارد کن (مثلا 09123456789)"
               required
             />
-            <PasswordField name="password" placeholder="رمز کاربر" ariaLabel="رمز کاربر" required minLength={8} />
+            <PasswordField name="password" placeholder="رمز عبور (حداقل ۸ کاراکتر)" ariaLabel="رمز عبور" required minLength={8} autoComplete="new-password" />
           </div>
           <input name="email" placeholder="ایمیل (اختیاری)" aria-label="ایمیل اختیاری" type="email" />
           <TermsAgreement />
