@@ -283,7 +283,7 @@ export function SettingsPage({
   return (
     <div className={`settingsPagePanel mobilePage page-settings ${active ? "is-active" : ""}`} id="settings">
       <div className="settingsPageBody">
-        {!isArtist && !isSalon ? <h3 className="spSectionTitle">حساب من</h3> : null}
+        <h3 className="spSectionTitle">{isArtist || isSalon ? "پروفایل و برند" : "حساب من"}</h3>
         <ProfileLocationSettings
           profileType={profile?.type}
           value={profile?.data?.area || ""}
@@ -315,6 +315,8 @@ export function SettingsPage({
           accountDescription={accountDescription}
           onEditProfile={onEditProfile}
         />
+
+        {isArtist || isSalon ? <h3 className="spSectionTitle">کار و رزرو</h3> : null}
 
         {isArtist || isSalon ? (
           <div className="settingsRowCard">
@@ -373,7 +375,7 @@ export function SettingsPage({
           />
         ) : null}
 
-        {!isArtist && !isSalon ? <h3 className="spSectionTitle">ترجیحات و حساب</h3> : null}
+        <h3 className="spSectionTitle">ترجیحات و حساب</h3>
         <ProfileSettingsPanel
           profileType={profile.type}
           profileSettings={profileSettings}
