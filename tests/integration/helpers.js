@@ -1,4 +1,5 @@
 import { TEST_BASE_URL } from "../globalSetup.js";
+import { formatPersianDateKey, getPersianWeekday } from "../../app/shared/lib/persianCalendar.js";
 
 /** A tiny cookie-jar-aware HTTP client for driving the real running test
  *  server (see globalSetup.js) -- session auth is an httpOnly cookie, so
@@ -60,4 +61,15 @@ export async function registerUser(client, { type = "client", name = "Test User"
   const res = await client.post("/api/auth/register", { phone, password, type, name });
   if (!res.ok) throw new Error(`registerUser failed: ${JSON.stringify(res.payload)}`);
   return { phone, password, user: res.payload.data.user };
+}
+
+/** A Persian date key a few open (non-Friday) days from now, so booking tests never land on a past slot. */
+export function futureBookingDay(openDaysAhead = 2) {
+  const day = new Date();
+  let found = 0;
+  while (found < openDaysAhead) {
+    day.setDate(day.getDate() + 1);
+    if (getPersianWeekday(day) !== "جمعه") found += 1;
+  }
+  return formatPersianDateKey(day);
 }

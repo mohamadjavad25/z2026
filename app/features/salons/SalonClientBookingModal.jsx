@@ -1,8 +1,8 @@
 "use client";
 
-import { CalendarCheck, CheckCircle2, Phone, UserRound } from "lucide-react";
+import { CalendarCheck, Phone, UserRound } from "lucide-react";
 import { ServiceIcon } from "../../components/ServiceIcon";
-import { DateTimeWheelPicker } from "../../components/DateTimeWheelPicker";
+import { BookingSlotPicker } from "../../components/BookingSlotPicker";
 import { ProfileSheet } from "../profile/ProfileSheet";
 import { salonClientBookingDays } from "../artist/constants";
 
@@ -24,13 +24,7 @@ export function SalonClientBookingModal({
   const profileName = booking.client || "مشتری زیبابان";
   const hasPhone = Boolean(booking.phone);
   const profilePhone = booking.phone || "شماره تماس ثبت نشده";
-  const selectedDayIndex = Math.max(0, salonClientBookingDays.indexOf(booking.day));
   const canSubmit = Boolean(freeTimes.length && !busy && hasPhone);
-
-  function selectNextDay() {
-    const nextIndex = (selectedDayIndex + 1) % salonClientBookingDays.length;
-    onChange({ day: salonClientBookingDays[nextIndex] });
-  }
 
   return (
     <ProfileSheet
@@ -41,15 +35,10 @@ export function SalonClientBookingModal({
       onClose={onClose}
     >
         <div className="salonClientBookingHead">
-          <button
-            type="button"
-            className="salonClientBookingBadge"
-            onClick={selectNextDay}
-            aria-label={`تغییر تاریخ رزرو، تاریخ فعلی ${booking.day}`}
-          >
+          <span className="salonClientBookingBadge">
             <CalendarCheck size={14} />
             {booking.day}
-          </button>
+          </span>
           <ServiceIcon emoji={serviceEmoji} name={booking.service} size="md" />
           <div>
             <strong>{booking.service}</strong>
@@ -57,24 +46,20 @@ export function SalonClientBookingModal({
           </div>
         </div>
 
-        <DateTimeWheelPicker
+        <BookingSlotPicker
           dayOptions={salonClientBookingDays}
           dayValue={booking.day}
           onDayChange={(day) => onChange({ day })}
-          dayIdPrefix="salon-client-booking-day"
-          dayAriaLabel="انتخاب روز رزرو سالن"
           timeOptions={freeTimes}
           timeValue={booking.time}
           onTimeChange={(time) => onChange({ time })}
-          timeIdPrefix="salon-client-booking-time"
-          timeAriaLabel="انتخاب ساعت رزرو سالن"
-          emptyTimeMessage="برای این روز ساعتی آزاد نیست."
+          emptyTimeMessage="برای این روز ساعتی آزاد نیست. روز دیگری را انتخاب کن."
         />
 
         <div className="salonClientBookingProfile">
           <div className="salonClientBookingProfileHead">
-            <span>اطلاعات رزرو از پروفایل</span>
-            <small>قبل از ارسال، اطلاعاتت را تایید کن.</small>
+            <span>اطلاعات تماس</span>
+            <small>سالن با همین شماره برای تأیید با تو هماهنگ می‌کند.</small>
           </div>
           <div className="salonClientBookingProfileGrid">
             <span>
@@ -98,17 +83,6 @@ export function SalonClientBookingModal({
               ) : null}
             </p>
           ) : null}
-          <label className={`salonClientBookingConfirm ${booking.profileConfirmed ? "is-confirmed" : ""}`}>
-            <input
-              type="checkbox"
-              checked={Boolean(booking.profileConfirmed)}
-              onChange={(event) => onChange({ profileConfirmed: event.target.checked })}
-            />
-            <span aria-hidden="true">
-              <CheckCircle2 size={17} />
-            </span>
-            <b>اطلاعات پروفایل را تایید می‌کنم</b>
-          </label>
         </div>
 
         <button
@@ -118,7 +92,7 @@ export function SalonClientBookingModal({
           onClick={() => onConfirm({ profileConfirmed: true })}
         >
           <CalendarCheck size={17} />
-          {busy ? "در حال ثبت..." : booking.profileConfirmed ? "رزرو نوبت" : "تایید اطلاعات و رزرو"}
+          {busy ? "در حال ثبت..." : "ثبت درخواست نوبت"}
         </button>
     </ProfileSheet>
   );

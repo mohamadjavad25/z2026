@@ -1,8 +1,9 @@
 "use client";
 
+import { isSlotInPast } from "../../shared/lib/slots";
 import { playSound } from "../../shared/lib/sounds";
 import { usePolling } from "../../shared/lib/usePolling";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   createSalonBooking,
   getSalonBookings,
@@ -104,6 +105,7 @@ export function useSalonDirectory({
   const [salonClientBookingBusy, setSalonClientBookingBusy] = useState(false);
   const [salonClientUnavailableSlots, setSalonClientUnavailableSlots] = useState([]);
   const [clientBookingList, setClientBookingList] = useState([]);
+  const autoAdvanceDayRef = useRef(true);
 
   const savedSalonList = useMemo(() => {
     const source = [...salonDirectory];
@@ -132,6 +134,7 @@ export function useSalonDirectory({
     );
     const selectedDateKey = resolveRollingPersianDateKey(salonClientBooking.day);
     return baseSlots.filter((time) => {
+      if (isSlotInPast(salonClientBooking.day, time)) return false;
       const start = timeLabelToMinutes(time);
       const end = start + duration;
       return !salonClientUnavailableSlots.some((slot) => {
@@ -266,6 +269,15 @@ export function useSalonDirectory({
     };
   }, [salonClientBooking.open, selectedSalon?.id, selectedSalon?.source_key]);
 
+  // Opening the sheet late in the day (or on a closed / full day): move on to the first day that
+  // has a free hour, until the client picks a day themselves.
+  useEffect(() => {
+    if (!salonClientBooking.open || !autoAdvanceDayRef.current || salonClientFreeTimes.length) return;
+    const index = salonClientBookingDays.indexOf(salonClientBooking.day);
+    if (index < 0 || index >= salonClientBookingDays.length - 1) return;
+    setSalonClientBooking((current) => ({ ...current, day: salonClientBookingDays[index + 1] }));
+  }, [salonClientBooking.open, salonClientBooking.day, salonClientFreeTimes]);
+
   useEffect(() => {
     if (!salonClientBooking.open || !salonClientFreeTimes.length) return;
     if (!salonClientFreeTimes.includes(salonClientBooking.time)) {
@@ -397,6 +409,7 @@ export function useSalonDirectory({
       return;
     }
     setSalonClientTab("services");
+    autoAdvanceDayRef.current = true;
     setSalonClientBooking((current) => ({
       open: true,
       service: nextService,
@@ -413,6 +426,7 @@ export function useSalonDirectory({
   }, []);
 
   const patchSalonClientBooking = useCallback((patch) => {
+    if (patch && Object.prototype.hasOwnProperty.call(patch, "day")) autoAdvanceDayRef.current = false;
     setSalonClientBooking((current) => ({ ...current, ...patch }));
   }, []);
 

@@ -8,7 +8,6 @@ import {
   EyeOff,
   Bell,
   BellOff,
-  Sparkles,
   CalendarCheck,
   LogOut,
   Globe,
@@ -157,15 +156,6 @@ export function ProfileSettingsPanel({
         onLabel="روشن"
         offLabel="خاموش"
       />
-      {profileType === "client" ? null : (
-        <SettingsToggle
-          icon={Sparkles}
-          label={profileType === "artist" ? "پیشنهاد رشد پروفایل" : "پیشنهاد رشد سالن"}
-          description={profileType === "artist" ? "ایده نمونه‌کار، قیمت‌گذاری و جذب مشتری بهتر" : "بهبود خدمات، ظرفیت، قیمت و محتوای سالن"}
-          checked={profileSettings.smartSuggestions}
-          onChange={() => onToggle("smartSuggestions")}
-        />
-      )}
     </SettingsGroup>
   );
 
