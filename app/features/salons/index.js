@@ -1,7 +1,8 @@
 export { salonServiceCatalog } from "./constants";
 export { SalonClientBookingModal } from "./SalonClientBookingModal";
 export { SalonClientPage } from "./SalonClientPage";
-export { SalonCustomersPage, buildBookingCustomers } from "./SalonCustomersPage";
+export { SalonCustomersPage } from "./SalonCustomersPage";
+export { buildBookingCustomers } from "./customers";
 export { SalonNearbyInviteSheet } from "./SalonNearbyInviteSheet";
 export { SalonRulesSettings } from "./SalonRulesSettings";
 export { SalonServicesWorkspace } from "./SalonServicesWorkspace";

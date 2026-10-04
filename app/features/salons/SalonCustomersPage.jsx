@@ -3,67 +3,107 @@
 import { useMemo, useState } from "react";
 import { PageIcon } from "../../components/PageIcon";
 import { ServiceIcon } from "../../components/ServiceIcon";
-import { Phone, Search } from "lucide-react";
-import { toPersianDigits } from "../../shared/lib/digits";
+import { ArrowDownUp, CalendarCheck, Phone, Repeat2, Search, Users } from "lucide-react";
+import { ProfileSheet } from "../profile/ProfileSheet";
+import { bookingStatusLabel, bookingStatusTone } from "../client/bookingStatus";
+import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar";
+import { buildBookingCustomers } from "./customers";
 
-function customerKey(booking) {
+export { buildBookingCustomers };
+
+const FILTERS = [
+  { id: "all", label: "همه" },
+  { id: "upcoming", label: "نوبت پیش‌رو" },
+  { id: "repeat", label: "تکراری" }
+];
+
+const SORTS = [
+  { id: "recent", label: "آخرین رزرو" },
+  { id: "visits", label: "بیشترین رزرو" },
+  { id: "name", label: "نام" }
+];
+
+function Avatar({ customer, size = "" }) {
   return (
-    ((booking.client_user_id || booking.clientUserId) && `id:${booking.client_user_id || booking.clientUserId}`)
-    || (booking.phone && `phone:${String(booking.phone).replace(/\D/g, "")}`)
-    || (booking.client && `name:${booking.client.trim()}`)
-    || null
+    <span className={`cuAvatar ${size} ${customer.avatar ? "hasImage" : ""}`} aria-hidden="true">
+      {customer.avatar ? <img src={customer.avatar} alt="" /> : String(customer.name || "م").trim().slice(0, 1)}
+    </span>
+  );
+}
+
+function CustomerSheet({ customer, onClose }) {
+  if (!customer) return null;
+  return (
+    <ProfileSheet open kicker="مشتری" title={customer.name} panelClassName="cuSheet" onClose={onClose}>
+      <div className="cuSheetBody">
+        <div className="cuSheetTop">
+          <Avatar customer={customer} size="is-lg" />
+          <div>
+            <b>{customer.name}</b>
+            <span dir="ltr">{customer.phone ? toPersianDigits(customer.phone) : "شماره ثبت نشده"}</span>
+          </div>
+          {customer.phone ? (
+            <a className="cuCall" href={`tel:${toLatinDigits(customer.phone)}`} aria-label={`تماس با ${customer.name}`}>
+              <Phone size={16} /> تماس
+            </a>
+          ) : null}
+        </div>
+        <div className="cuStats">
+          <span><b>{toPersianDigits(customer.completed)}</b>انجام‌شده</span>
+          <span><b>{toPersianDigits(customer.upcoming)}</b>پیش‌رو</span>
+          <span><b>{toPersianDigits(customer.cancelled)}</b>لغو</span>
+        </div>
+        <h4 className="cuHistoryTitle">سابقه رزروها</h4>
+        <ul className="cuHistory">
+          {customer.bookings.map((booking, index) => {
+            const tone = bookingStatusTone(booking.status || "تازه");
+            const date = booking.booking_date || booking.date || "";
+            return (
+              <li key={booking.id || index}>
+                <ServiceIcon emoji={booking.service_emoji} name={booking.service} size="xs" />
+                <div>
+                  <b>{booking.service || "خدمت"}</b>
+                  <small>{date ? formatRelativeBookingDayLabel(date) : "—"}{booking.time ? ` · ${toPersianDigits(booking.time)}` : ""}</small>
+                </div>
+                <em className={`is-${tone}`}>{bookingStatusLabel(booking.status)}</em>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </ProfileSheet>
   );
 }
 
 /**
- * Groups an owner's real bookings (salonAppointmentList for a salon,
- * artistBookingList for an artist) into one row per real-world customer --
- * shared between this page and the owner's own booking-create form (its
- * name-lookup autocomplete), so a returning walk-in doesn't have to be
- * retyped from scratch every time the owner already has their number on
- * file from a past visit. Rows already arrive newest first (listSalonBookings
- * / the artist booking list both order by id DESC), so the first booking
- * seen per grouping key is that customer's most recent visit.
+ * Owner's own customer community page. See buildBookingCustomers for how a
+ * "customer" is derived from real bookings.
  */
-export function buildBookingCustomers(bookings = []) {
-  const byKey = new Map();
-  bookings.forEach((booking) => {
-    const key = customerKey(booking);
-    if (!key) return;
-    const existing = byKey.get(key);
-    if (existing) {
-      existing.visitCount += booking.status === "لغو" ? 0 : 1;
-      return;
-    }
-    byKey.set(key, {
-      key,
-      name: booking.client || "مشتری",
-      phone: booking.phone || "",
-      avatar: booking.client_avatar || booking.clientAvatar || "",
-      lastService: booking.service || "",
-      lastDate: booking.booking_date || booking.date || "",
-      visitCount: booking.status === "لغو" ? 0 : 1
-    });
-  });
-  return [...byKey.values()];
-}
-
-/**
- * Owner's own customer community page. See buildBookingCustomers above for
- * how a "customer" is derived from real bookings.
- */
-export function SalonCustomersPage({ active, bookings = [], onOpenBooking, ownerLabel = "سالن شما" }) {
+export function SalonCustomersPage({ active, bookings = [], ownerLabel = "سالن شما" }) {
   const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState("all");
+  const [sort, setSort] = useState("recent");
+  const [openKey, setOpenKey] = useState("");
 
   const customers = useMemo(() => buildBookingCustomers(bookings), [bookings]);
+  const repeatCount = useMemo(() => customers.filter((item) => item.visitCount >= 2).length, [customers]);
+  const upcomingCount = useMemo(() => customers.filter((item) => item.upcoming > 0).length, [customers]);
 
-  const normalizedQuery = query.trim();
-  const visibleCustomers = normalizedQuery
-    ? customers.filter((item) =>
-        [item.name, item.phone].filter(Boolean).some((field) => field.includes(normalizedQuery))
-      )
-    : customers;
+  const visibleCustomers = useMemo(() => {
+    const q = toLatinDigits(query.trim());
+    let list = customers.filter((item) => {
+      if (filter === "upcoming" && item.upcoming === 0) return false;
+      if (filter === "repeat" && item.visitCount < 2) return false;
+      if (!q) return true;
+      return item.name.includes(query.trim()) || toLatinDigits(item.phone).includes(q);
+    });
+    if (sort === "visits") list = [...list].sort((a, b) => b.visitCount - a.visitCount);
+    else if (sort === "name") list = [...list].sort((a, b) => a.name.localeCompare(b.name, "fa"));
+    return list;
+  }, [customers, query, filter, sort]);
+
+  const openCustomer = customers.find((item) => item.key === openKey) || null;
 
   return (
     <div className={`salonCustomersPage mobilePage page-customers ${active ? "is-active" : ""}`} id="customers">
@@ -75,18 +115,50 @@ export function SalonCustomersPage({ active, bookings = [], onOpenBooking, owner
             <strong>{ownerLabel}</strong>
           </div>
         </div>
-        <b>{toPersianDigits(visibleCustomers.length)} مشتری</b>
       </div>
-      <label className="salonCustomersSearch">
-        <Search size={16} />
-        <input
-          type="search"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder="جستجوی نام یا شماره..."
-          aria-label="جستجوی مشتریان"
-        />
-      </label>
+
+      {customers.length ? (
+        <>
+          <div className="cuTiles" aria-label="خلاصه مشتریان">
+            <span><Users size={16} /><b>{toPersianDigits(customers.length)}</b>مشتری</span>
+            <span><Repeat2 size={16} /><b>{toPersianDigits(repeatCount)}</b>تکراری</span>
+            <span><CalendarCheck size={16} /><b>{toPersianDigits(upcomingCount)}</b>نوبت پیش‌رو</span>
+          </div>
+          <label className="salonCustomersSearch">
+            <Search size={16} />
+            <input
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="جستجوی نام یا شماره..."
+              aria-label="جستجوی مشتریان"
+            />
+          </label>
+          <div className="cuToolbar">
+            <div className="cuChips" role="tablist" aria-label="فیلتر مشتریان">
+              {FILTERS.map((item) => (
+                <button
+                  type="button"
+                  role="tab"
+                  key={item.id}
+                  aria-selected={filter === item.id}
+                  className={filter === item.id ? "is-on" : ""}
+                  onClick={() => setFilter(item.id)}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+            <label className="cuSort">
+              <ArrowDownUp size={14} />
+              <select value={sort} onChange={(event) => setSort(event.target.value)} aria-label="مرتب‌سازی">
+                {SORTS.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
+              </select>
+            </label>
+          </div>
+        </>
+      ) : null}
+
       <div className="salonCustomersList">
         {customers.length === 0 ? (
           <div className="emptySalonDirectory is-lively">
@@ -98,36 +170,34 @@ export function SalonCustomersPage({ active, bookings = [], onOpenBooking, owner
           <div className="emptySalonDirectory">
             <Search size={22} />
             <b>نتیجه‌ای پیدا نشد</b>
-            <p>عبارت دیگری را امتحان کن.</p>
+            <p>فیلتر یا عبارت دیگری را امتحان کن.</p>
           </div>
         ) : null}
         {visibleCustomers.map((customer) => (
-          <article className="salonCustomerRow" key={customer.key} onClick={() => onOpenBooking?.(customer)}>
-            <img className="salonCustomerAvatar" src={customer.avatar || "/profile-icon.svg"} alt="" aria-hidden="true" />
-            <div className="salonCustomerInfo">
-              <b>{customer.name}</b>
-              <span dir="ltr">{customer.phone ? toPersianDigits(customer.phone) : "شماره ثبت نشده"}</span>
-              {customer.lastService ? (
-                <em className="salonCustomerService"><ServiceIcon name={customer.lastService} size="xs" />{customer.lastService}</em>
-              ) : null}
-              <small>
-                {toPersianDigits(customer.visitCount)} بار رزرو
-                {customer.lastDate ? ` · ${formatRelativeBookingDayLabel(customer.lastDate)}` : ""}
-              </small>
-            </div>
+          <article className="salonCustomerRow" key={customer.key}>
+            <button type="button" className="cuRowMain" onClick={() => setOpenKey(customer.key)} aria-label={`جزئیات ${customer.name}`}>
+              <Avatar customer={customer} />
+              <span className="salonCustomerInfo">
+                <b>{customer.name}</b>
+                <span dir="ltr">{customer.phone ? toPersianDigits(customer.phone) : "شماره ثبت نشده"}</span>
+                {customer.lastService ? (
+                  <em className="salonCustomerService"><ServiceIcon name={customer.lastService} size="xs" />{customer.lastService}</em>
+                ) : null}
+                <small>
+                  {toPersianDigits(customer.visitCount)} بار رزرو
+                  {customer.upcoming > 0 ? ` · ${toPersianDigits(customer.upcoming)} نوبت پیش‌رو` : customer.lastDate ? ` · ${formatRelativeBookingDayLabel(customer.lastDate)}` : ""}
+                </small>
+              </span>
+            </button>
             {customer.phone ? (
-              <a
-                className="salonCustomerCallBtn"
-                href={`tel:${customer.phone}`}
-                onClick={(event) => event.stopPropagation()}
-                aria-label={`تماس با ${customer.name}`}
-              >
+              <a className="salonCustomerCallBtn" href={`tel:${toLatinDigits(customer.phone)}`} aria-label={`تماس با ${customer.name}`}>
                 <Phone size={16} />
               </a>
             ) : null}
           </article>
         ))}
       </div>
+      <CustomerSheet customer={openCustomer} onClose={() => setOpenKey("")} />
     </div>
   );
 }
