@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Check, ChevronDown, Plus, Search } from "lucide-react";
+import { Button } from "../../components/ui";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { ProfileSheet } from "../profile/ProfileSheet";
 import { toPersianDigits } from "../../shared/lib/digits";
@@ -149,10 +150,9 @@ export function SpecialtyMultiSelect({ name, placeholder, options, required, def
         </div>
 
         <div className="specialtySheetBar">
-          <button type="button" className="specialtySheetDone" onClick={close}>
-            <Check size={16} aria-hidden="true" />
+          <Button block icon={Check} className="specialtySheetDone" onClick={close}>
             {selected.length ? `تأیید (${toPersianDigits(selected.length)} مورد)` : "بستن"}
-          </button>
+          </Button>
         </div>
       </ProfileSheet>
     </div>

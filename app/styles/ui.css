@@ -1,0 +1,23 @@
+/* Base UI kit (app/components/ui). Every rule is scoped to a ui-* class so it
+   never leaks into, or gets restyled by, the generic form rules of a modal. */
+.ui-btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); min-height: 44px; padding: 0 var(--space-5); border: 0; border-radius: var(--radius-pill); background: var(--night); color: #fff; font: inherit; font-size: var(--text-md); font-weight: 800; cursor: pointer; transition: transform var(--duration-fast) var(--ease-standard), opacity var(--duration-fast); }
+.ui-btn:active:not(:disabled) { transform: scale(0.97); }
+.ui-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.ui-btn.is-loading { cursor: progress; }
+.ui-btn.is-secondary { background: #fff; color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
+.ui-btn.is-ghost { background: transparent; color: var(--ink); }
+.ui-btn.is-danger { background: var(--danger-bg); color: var(--danger); }
+.ui-btn.is-sm { min-height: 36px; padding: 0 var(--space-4); font-size: var(--text-base); }
+.ui-btn.is-block { display: flex; width: 100%; }
+
+.ui-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 var(--space-4); border: 0; border-radius: var(--radius-pill); background: #fff; box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); font: inherit; font-size: var(--text-base); font-weight: 750; }
+button.ui-chip { cursor: pointer; }
+.ui-chip.is-selected { background: var(--night); color: #fff; box-shadow: none; }
+
+.ui-field { display: grid; gap: 6px; }
+.ui-field > label { color: var(--muted); font-size: var(--text-sm); font-weight: 800; }
+.ui-field :where(input, select, textarea) { width: 100%; min-height: 44px; padding: 0 var(--space-4); border: 0; border-radius: var(--radius-md); background: #fff; box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); font: inherit; font-size: var(--text-md); }
+.ui-field :where(input, select, textarea):focus-visible { outline: 2px solid var(--night); outline-offset: 1px; }
+.ui-field.has-error :where(input, select, textarea) { box-shadow: inset 0 0 0 1.5px var(--danger); }
+.ui-field-hint { color: var(--muted); font-size: var(--text-sm); }
+.ui-field-error { color: var(--danger); font-size: var(--text-sm); font-weight: 700; }

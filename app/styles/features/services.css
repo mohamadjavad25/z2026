@@ -291,8 +291,8 @@ button.svcCard:active { transform: scale(0.99); }
   backdrop-filter: blur(8px);
 }
 
-.svcSheetBackdrop { z-index: 220; }
-.svcPickerOverlay { z-index: 240; }
+.svcSheetBackdrop { z-index: var(--z-dialog); }
+.svcPickerOverlay { z-index: var(--z-picker); }
 
 .svcSheet,
 .svcPicker {
