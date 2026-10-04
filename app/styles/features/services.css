@@ -254,8 +254,10 @@ button.svcCard:active { transform: scale(0.99); }
   grid-template-columns: auto minmax(0, 1fr) auto;
 }
 
-.bookingSelectMenu button:has(> .serviceIcon) {
-  grid-template-columns: auto minmax(0, 1fr) auto;
+.bookingCreateForm .bookingSelectMenu button:has(> .serviceIcon) {
+  /* Must out-rank ".bookingCreateForm .bookingSelectMenu button" (2 columns),
+     otherwise the text is squeezed into the 18px check column and truncated. */
+  grid-template-columns: auto minmax(0, 1fr) 18px;
 }
 
 .svcInlineIcon { margin-inline-end: 6px; vertical-align: middle; }
