@@ -695,7 +695,7 @@
 .salonHeroSheetBackdrop {
   position: fixed;
   inset: 0;
-  z-index: 120;
+  z-index: var(--z-modal);
   display: flex;
   justify-content: flex-end;
   background: rgba(28, 32, 44, 0.32);
@@ -785,7 +785,7 @@
 .artistServiceModal {
   position: fixed;
   inset: 0;
-  z-index: 220;
+  z-index: var(--z-dialog);
   display: grid;
   place-items: center;
   padding: 18px;
@@ -1179,7 +1179,7 @@
 .settingsHoursModal {
   position: fixed;
   inset: 0;
-  z-index: 260;
+  z-index: var(--z-dialog-top);
   display: grid;
   place-items: center;
   align-content: center;

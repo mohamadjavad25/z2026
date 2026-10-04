@@ -81,11 +81,26 @@
   --duration-fast: 0.16s;
   --duration-base: 0.24s;
 
-  /* Z-index scale — keeps new overlay work from guessing a number that
-     collides with existing sheets/toasts/modals. */
-  --z-nav: 20;
-  --z-overlay: 40;
-  --z-sheet: 60;
-  --z-toast: 90;
-  --z-boot: 10000;
+  /* Z-index scale -- the single source of truth for stacking order.
+     Page-level layers (below 100) keep their local numbers; every layer
+     that sits above the page (bars, modals, sheets, toasts) is named here,
+     lowest to highest. A raw z-index of 100 or more outside this file is a
+     bug: tests/unit/zIndexScale.test.js fails the build. Values are the ones
+     the app already ran with, so naming them changed no stacking. */
+  --z-nav: 26;               /* bottom navigation */
+  --z-modal: 120;            /* profile edit modal + its sheet backdrop */
+  --z-sheet-over-modal: 140; /* sheets that open above the profile edit modal */
+  --z-modal-high: 160;
+  --z-dialog: 220;           /* service / profile dialogs */
+  --z-picker: 240;           /* pickers opened from a dialog */
+  --z-dialog-top: 260;
+  --z-work-modal: 400;
+  --z-viewer: 9000;          /* post viewer */
+  --z-lightbox: 999;
+  --z-boot: 10000;           /* auth boot screen */
+  --z-sheet-busy: 100000;
+  --z-sheet-close: 100001;   /* the pinned close button of any sheet */
+  --z-busy-bar: 100002;      /* thin network progress bar */
+  --z-top-sheet: 2147483000; /* QR sheet */
+  --z-toast: 2147483001;     /* toasts always win */
 }

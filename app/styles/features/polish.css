@@ -687,7 +687,7 @@
   right: auto !important;
   top: auto !important;
   bottom: max(16px, env(safe-area-inset-bottom)) !important;
-  z-index: 100001;
+  z-index: var(--z-sheet-close);
   display: grid;
   place-items: center;
   width: 52px;
@@ -709,7 +709,7 @@
 .sheetBusy {
   position: fixed;
   inset: 0;
-  z-index: 100000;
+  z-index: var(--z-sheet-busy);
   display: grid;
   justify-items: center;
   align-content: center;
@@ -734,7 +734,7 @@
 .sheetCloseSpacer { display: block; flex: 0 0 auto; width: 100%; height: 76px; pointer-events: none; }
 
 /* ---- Global in-flight indicator ---- */
-.networkBusyBar { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 100002; overflow: hidden; background: rgba(20, 22, 29, 0.08); pointer-events: none; }
+.networkBusyBar { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: var(--z-busy-bar); overflow: hidden; background: rgba(20, 22, 29, 0.08); pointer-events: none; }
 .networkBusyBar i { display: block; height: 100%; width: 40%; border-radius: 3px; background: #14161d; animation: networkBusySlide 1s ease-in-out infinite; }
 @keyframes networkBusySlide { 0% { transform: translateX(-100%); } 100% { transform: translateX(260%); } }
 @media (prefers-reduced-motion: reduce) { .networkBusyBar i { animation: none; width: 100%; opacity: 0.6; } }

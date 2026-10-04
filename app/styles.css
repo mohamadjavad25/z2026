@@ -1,4 +1,5 @@
 @import "./styles/tokens.css";
+@import "./styles/ui.css";
 @import "./styles/features/shell.css";
 @import "./styles/features/profile.css";
 @import "./styles/features/schedule.css";
@@ -2884,7 +2885,7 @@ h2{
 .salonGalleryDetailBackdrop{
   position: fixed;
   inset: 0;
-  z-index: 999;
+  z-index: var(--z-lightbox);
   display: grid;
   place-items: stretch center;
   overflow-y: auto;
@@ -5030,22 +5031,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 
 .specialtySheetAdd button:disabled{ opacity: 0.35; cursor: default; }
 
-.specialtySheetDone{
-  width: 100%;
-  min-height: 52px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  border: 0;
-  border-radius: 17px;
-  background: #14161d;
-  color: #fff;
-  font: inherit;
-  font-size: 0.9rem;
-  font-weight: 900;
-  cursor: pointer;
-}
+.specialtySheetDone{ min-height: 52px; border-radius: 17px; font-size: 0.9rem; font-weight: 900; }
 
 .roleKpiGrid{
   display: grid;
@@ -11193,7 +11179,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .artistWorkModal.profilePostComposer{
-  z-index: 400;
+  z-index: var(--z-work-modal);
 }
 
 .artistWorkSheet{
@@ -12167,7 +12153,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 .artistProfileModal{
   position: fixed;
   inset: 0;
-  z-index: 220;
+  z-index: var(--z-dialog);
   display: grid;
   align-items: center;
   justify-items: center;
@@ -16119,7 +16105,7 @@ body{
 }
 
 .salonHeroSheetBackdrop.bookingWeekHistorySheetBackdrop{
-  z-index: 140;
+  z-index: var(--z-sheet-over-modal);
   background: rgba(16, 18, 24, 0.55);
   backdrop-filter: blur(16px);
 }
@@ -21704,7 +21690,7 @@ body{
 .salonQrSheetOverlay {
   position: fixed;
   inset: 0;
-  z-index: 2147483000;
+  z-index: var(--z-top-sheet);
   display: grid;
   place-items: center;
   padding: calc(18px + env(safe-area-inset-top)) 18px calc(18px + env(safe-area-inset-bottom));
