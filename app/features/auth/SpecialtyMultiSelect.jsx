@@ -1,15 +1,21 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { Check, ChevronDown, Plus } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Check, ChevronDown, Plus, Search } from "lucide-react";
+import { ServiceIcon } from "../../components/ServiceIcon";
+import { ProfileSheet } from "../profile/ProfileSheet";
+import { toPersianDigits } from "../../shared/lib/digits";
 
 /**
- * Multi-select "specialty/service" dropdown for the salon/artist signup
- * forms. Renders a single text field to the backend (comma-joined, same
- * `service` column every other form field already writes to) via a plain
- * text input kept off-screen (not type="hidden" -- hidden inputs skip HTML5
- * constraint validation, and `required` needs to keep working here the same
- * way it did on the old single <select>).
+ * Multi-select "specialty/service" picker for the salon/artist signup and
+ * profile forms. The field itself is a compact trigger showing the chosen
+ * values as chips; tapping it opens a bottom sheet with a searchable grid of
+ * icon tiles, so the form never grows into a long inline list.
+ *
+ * It still writes one comma-joined text value (same `service` column as every
+ * other form field) through a plain text input kept off-screen (not
+ * type="hidden" -- hidden inputs skip HTML5 constraint validation, and
+ * `required` needs to keep working here).
  */
 export function SpecialtyMultiSelect({ name, placeholder, options, required, defaultValue = "" }) {
   const initial = String(defaultValue || "").split(/[،,]/).map((item) => item.trim()).filter(Boolean);
@@ -18,20 +24,13 @@ export function SpecialtyMultiSelect({ name, placeholder, options, required, def
   // Previously saved values that aren't in the preset list stay selectable.
   const [extraOptions, setExtraOptions] = useState(() => initial.filter((item) => !options.includes(item)));
   const [draft, setDraft] = useState("");
-  const containerRef = useRef(null);
+  const [query, setQuery] = useState("");
 
-  useEffect(() => {
-    if (!open) return;
-    function handleClickOutside(event) {
-      if (containerRef.current && !containerRef.current.contains(event.target)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [open]);
-
-  const allOptions = [...options, ...extraOptions];
+  const allOptions = useMemo(() => [...options, ...extraOptions], [options, extraOptions]);
+  const visible = useMemo(() => {
+    const q = query.trim();
+    return q ? allOptions.filter((option) => option.includes(q)) : allOptions;
+  }, [allOptions, query]);
 
   function toggleOption(option) {
     setSelected((prev) =>
@@ -49,15 +48,21 @@ export function SpecialtyMultiSelect({ name, placeholder, options, required, def
       setSelected((prev) => [...prev, value]);
     }
     setDraft("");
+    setQuery("");
+  }
+
+  function close() {
+    setOpen(false);
+    setQuery("");
   }
 
   return (
-    <div className="specialtySelect" ref={containerRef}>
+    <div className="specialtySelect" onClick={(event) => event.stopPropagation()}>
       <button
         type="button"
         className="specialtySelectTrigger"
-        onClick={() => setOpen((v) => !v)}
-        aria-haspopup="listbox"
+        onClick={() => setOpen(true)}
+        aria-haspopup="dialog"
         aria-expanded={open}
       >
         {selected.length ? (
@@ -67,8 +72,8 @@ export function SpecialtyMultiSelect({ name, placeholder, options, required, def
         ) : (
           <span className="is-placeholder">{placeholder}</span>
         )}
-        {selected.length ? <b className="specialtySelectCount">{selected.length.toLocaleString("fa-IR")}</b> : null}
-        <ChevronDown size={16} className="specialtySelectChevron" data-open={open} />
+        {selected.length ? <b className="specialtySelectCount">{toPersianDigits(selected.length)}</b> : null}
+        <ChevronDown size={16} className="specialtySelectChevron" />
       </button>
 
       {/* Off-screen but focusable/validatable -- keeps `required` working. */}
@@ -83,50 +88,73 @@ export function SpecialtyMultiSelect({ name, placeholder, options, required, def
         aria-hidden="true"
       />
 
-      {open ? (
-        <div className="specialtySelectPanel" role="listbox" aria-multiselectable="true">
-          <div className="specialtySelectGrid">
-            {allOptions.map((option) => {
-              const checked = selected.includes(option);
-              return (
-                <button
-                  type="button"
-                  key={option}
-                  role="option"
-                  aria-selected={checked}
-                  className="specialtySelectOption"
-                  data-checked={checked}
-                  onClick={() => toggleOption(option)}
-                >
-                  {checked ? <Check size={13} aria-hidden="true" /> : null}
-                  {option}
-                </button>
-              );
-            })}
-          </div>
-          <div className="specialtySelectAdd">
-            <input
-              type="text"
-              value={draft}
-              placeholder="افزودن مورد جدید…"
-              onChange={(event) => setDraft(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  event.preventDefault();
-                  addCustomOption();
-                }
-              }}
-            />
-            <button type="button" onClick={addCustomOption} aria-label="افزودن">
-              <Plus size={16} />
-            </button>
-          </div>
-          <button type="button" className="specialtySelectDone" onClick={() => setOpen(false)}>
-            <Check size={15} aria-hidden="true" />
-            تأیید انتخاب‌ها
+      <ProfileSheet
+        open={open}
+        kicker="انتخاب چندتایی"
+        title="حوزه فعالیت"
+        panelClassName="specialtySheet"
+        onClose={close}
+      >
+        <label className="specialtySheetSearch">
+          <Search size={16} aria-hidden="true" />
+          <input
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="جستجو… (مثلاً ناخن، لیزر)"
+            aria-label="جستجوی حوزه فعالیت"
+          />
+        </label>
+
+        <div className="specialtySheetGrid" role="listbox" aria-multiselectable="true">
+          {visible.map((option) => {
+            const checked = selected.includes(option);
+            return (
+              <button
+                type="button"
+                key={option}
+                role="option"
+                aria-selected={checked}
+                className="specialtyTile"
+                data-checked={checked}
+                onClick={() => toggleOption(option)}
+              >
+                <ServiceIcon name={option} size="sm" />
+                <span>{option}</span>
+                {checked ? <i className="specialtyTileCheck"><Check size={12} aria-hidden="true" /></i> : null}
+              </button>
+            );
+          })}
+          {visible.length === 0 ? (
+            <p className="specialtySheetEmpty">موردی پیدا نشد؛ می‌توانی پایین خودت اضافه‌اش کنی.</p>
+          ) : null}
+        </div>
+
+        <div className="specialtySheetAdd">
+          <input
+            type="text"
+            value={draft}
+            placeholder="مورد دلخواه خودت را اضافه کن…"
+            onChange={(event) => setDraft(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.preventDefault();
+                addCustomOption();
+              }
+            }}
+          />
+          <button type="button" onClick={addCustomOption} aria-label="افزودن" disabled={!draft.trim()}>
+            <Plus size={16} />
           </button>
         </div>
-      ) : null}
+
+        <div className="specialtySheetBar">
+          <button type="button" className="specialtySheetDone" onClick={close}>
+            <Check size={16} aria-hidden="true" />
+            {selected.length ? `تأیید (${toPersianDigits(selected.length)} مورد)` : "بستن"}
+          </button>
+        </div>
+      </ProfileSheet>
     </div>
   );
 }

@@ -678,12 +678,6 @@
 .profileEditSpecialty .specialtySelectTrigger { background: #fff; color: #14161d; border: 1px solid #dcdce4; box-shadow: none; }
 .profileEditSpecialty { --form-accent: #14161d; }
 .profileEditSpecialty .specialtySelectTrigger { min-height: 50px; height: auto; text-align: right; }
-.profileEditSpecialty .specialtySelectPanel { position: static; max-height: min(380px, 55vh); margin-top: 6px; box-shadow: none; border: 1px solid #ececf0; background: #fff; }
-.profileEditSpecialty .specialtySelectOption { background: #fff; border-color: #dcdce4; color: #14161d; min-height: 36px; width: auto; }
-.profileEditSpecialty .specialtySelectOption[data-checked="true"] { background: #14161d; border-color: #14161d; color: #fff; }
-/* The modal's generic ".profileEditFieldGrid input" rule would otherwise restyle the add-field. */
-.profileEditModal .profileEditSpecialty .specialtySelectAdd input { min-height: 40px; border-radius: 12px; background: #f8f9fd; border: 1px solid #e4e4ec; padding: 0 12px; }
-.profileEditSpecialty .specialtySelectAdd button, .profileEditSpecialty .specialtySelectDone { background: #14161d; }
 
 /* ---- Bottom-centered sheet close (SheetClose) ---- */
 .sheetClose {
