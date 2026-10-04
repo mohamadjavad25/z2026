@@ -1,8 +1,8 @@
 "use client";
 
-import { X } from "lucide-react";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
+import { SheetClose } from "../../components/SheetClose";
 
 const TYPE_LABELS = {
   client: "مشتری",
@@ -26,9 +26,6 @@ export function ClientProfileModal({ client, onClose }) {
       onClick={onClose}
     >
       <article className="clientProfileSheet" onClick={(event) => event.stopPropagation()}>
-        <button type="button" className="clientProfileClose" onClick={onClose} aria-label="بستن">
-          <X size={17} />
-        </button>
         <div className="clientProfileHero">
           <div className={`clientProfileAvatar ${client.avatar ? "hasImage" : ""}`}>
             {client.avatar ? (
@@ -99,6 +96,7 @@ export function ClientProfileModal({ client, onClose }) {
             </a>
           ) : null}
         </div>
+  <SheetClose onClick={onClose} />
       </article>
     </div>
   );

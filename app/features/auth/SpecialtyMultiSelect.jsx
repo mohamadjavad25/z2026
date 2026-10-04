@@ -11,10 +11,12 @@ import { Check, ChevronDown, Plus } from "lucide-react";
  * constraint validation, and `required` needs to keep working here the same
  * way it did on the old single <select>).
  */
-export function SpecialtyMultiSelect({ name, placeholder, options, required }) {
+export function SpecialtyMultiSelect({ name, placeholder, options, required, defaultValue = "" }) {
+  const initial = String(defaultValue || "").split(/[،,]/).map((item) => item.trim()).filter(Boolean);
   const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState([]);
-  const [extraOptions, setExtraOptions] = useState([]);
+  const [selected, setSelected] = useState(initial);
+  // Previously saved values that aren't in the preset list stay selectable.
+  const [extraOptions, setExtraOptions] = useState(() => initial.filter((item) => !options.includes(item)));
   const [draft, setDraft] = useState("");
   const containerRef = useRef(null);
 

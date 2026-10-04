@@ -1027,9 +1027,15 @@ export function useSalonWorkspace({
           shellNotify(payload.error || "ویرایش پست انجام نشد؛ دوباره امتحان کن.");
           return;
         }
-        await refreshSalonSystemData();
-        if (typeof onExploreRefresh === "function") await onExploreRefresh();
+        const savedItem = payload.data?.item;
+        if (savedItem) {
+          setSalonPortfolioList((items) => items.map((item) => (String(item.id) === String(savedItem.id) ? { ...item, ...savedItem } : item)));
+        }
         shellNotify(inExplore ? "پست به‌روزرسانی و در اکسپلور منتشر شد." : "پست سالن به‌روزرسانی شد.");
+        void Promise.all([
+          refreshSalonSystemData(),
+          typeof onExploreRefresh === "function" ? onExploreRefresh() : null
+        ]).catch(() => {});
       } else {
         const nextIndex = salonPortfolioList.length % 4;
         const tiles = ["tile1", "tile3", "tile4", "tile8"];
@@ -1046,11 +1052,15 @@ export function useSalonWorkspace({
           shellNotify(payload.error || "ذخیره نمونه‌کار انجام نشد؛ دوباره امتحان کن.");
           return;
         }
-        await refreshSalonSystemData();
-        if (typeof onExploreRefresh === "function") await onExploreRefresh();
-        const { data } = await getSalons();
-        syncSalonDirectory(data?.salons || []);
+        // Show the new post immediately from the API response; the heavy
+        // refreshes (workspace, explore, public directory) run in the background.
+        const createdItem = payload.data?.item;
+        if (createdItem) setSalonPortfolioList((items) => [createdItem, ...items]);
         shellNotify(inExplore ? "پست در اکسپلور منتشر شد." : "نمونه‌کار سالن ذخیره شد.");
+        void Promise.all([
+          refreshSalonSystemData(),
+          typeof onExploreRefresh === "function" ? onExploreRefresh() : null
+        ]).catch(() => {});
       }
       resetPortfolioComposer();
     } catch {
@@ -1069,10 +1079,13 @@ export function useSalonWorkspace({
         shellNotify(payload.error || "حذف پست انجام نشد؛ دوباره امتحان کن.");
         return;
       }
-      await refreshSalonSystemData();
-      if (typeof onExploreRefresh === "function") await onExploreRefresh();
+      setSalonPortfolioList((items) => items.filter((item) => String(item.id) !== String(id)));
       if (salonWorkDraft?.id === id) resetPortfolioComposer();
       shellNotify("پست سالن حذف شد.");
+      void Promise.all([
+        refreshSalonSystemData(),
+        typeof onExploreRefresh === "function" ? onExploreRefresh() : null
+      ]).catch(() => {});
     } catch {
       shellNotify("حذف پست انجام نشد؛ دوباره امتحان کن.");
     }

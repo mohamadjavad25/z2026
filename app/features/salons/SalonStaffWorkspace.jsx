@@ -123,7 +123,7 @@ export function SalonStaffWorkspace({
                 <div className="stfMain">
                   <b>{name}</b>
                   <span className="stfRole">
-                    <ServiceIcon name={role} size="xs" />
+                    <ServiceIcon name={String(role).split(/[،,]/)[0].trim()} size="xs" />
                     {role}
                   </span>
                   <span className="stfMeta">

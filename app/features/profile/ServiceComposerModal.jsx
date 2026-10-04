@@ -1,13 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Check, Plus, Search, Timer, X } from "lucide-react";
+import { Check, Plus, Search, Timer } from "lucide-react";
 import { ServiceEmoji } from "../../components/ServiceEmoji";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { ServiceEmojiPicker } from "../../components/ServiceEmojiPicker";
 import { EMOJI_CATEGORIES } from "../../shared/constants/beautyEmoji";
 import { categoriesForSpecialties } from "../../shared/constants/serviceCatalog";
 import { toPersianDigits } from "../../shared/lib/digits";
+import { SheetClose } from "../../components/SheetClose";
 
 const DURATION_CHIPS = ["۱۵ دقیقه", "۳۰ دقیقه", "۴۵ دقیقه", "۶۰ دقیقه", "۹۰ دقیقه", "۱۲۰ دقیقه", "۱۸۰ دقیقه"];
 
@@ -75,9 +76,6 @@ export function ServiceComposerModal({
             <span>خدمات</span>
             <h3>{editing ? "ویرایش خدمت" : "افزودن خدمت"}</h3>
           </div>
-          <button type="button" className="svcSheetClose" onClick={onClose} aria-label="بستن">
-            <X size={18} />
-          </button>
         </header>
 
         <div className="svcModeSwitch" role="tablist" aria-label="روش افزودن خدمت">
@@ -284,6 +282,7 @@ export function ServiceComposerModal({
             </button>
           </form>
         )}
+  <SheetClose onClick={onClose} />
       </article>
       <ServiceEmojiPicker
         open={pickerOpen}

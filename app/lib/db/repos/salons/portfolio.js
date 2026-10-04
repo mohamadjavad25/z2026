@@ -38,7 +38,7 @@ async function syncSalonPostCount(salonUserId, runner = null) {
   await run(db, "UPDATE salons SET post_count = $1 WHERE user_id = $2", [count, salonUserId]);
 }
 
-export async function addSalonPortfolio(salonUserId, data) {
+export async function addSalonPortfolio(salonUserId, data, options = {}) {
   const db = await getDb();
   const post = await postsRepo.createPost(salonUserId, {
     title: data.title || "",
@@ -47,7 +47,7 @@ export async function addSalonPortfolio(salonUserId, data) {
     caption: data.caption || "",
     inExplore: data.inExplore !== false,
     featured: Boolean(data.featured)
-  }, db);
+  }, db, options);
   await syncSalonPostCount(salonUserId, db);
   return {
     id: post.id,
@@ -63,7 +63,7 @@ export async function addSalonPortfolio(salonUserId, data) {
   };
 }
 
-export async function updateSalonPortfolio(id, salonUserId, data) {
+export async function updateSalonPortfolio(id, salonUserId, data, options = {}) {
   const db = await getDb();
   const updated = await postsRepo.updatePost(id, salonUserId, {
     title: data.title,
@@ -72,7 +72,7 @@ export async function updateSalonPortfolio(id, salonUserId, data) {
     caption: data.caption,
     inExplore: data.inExplore,
     featured: data.featured
-  }, db);
+  }, db, options);
   if (updated) {
     await syncSalonPostCount(salonUserId, db);
     return {

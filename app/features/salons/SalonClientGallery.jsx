@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { ImagePlus, UserRound, X } from "lucide-react";
+import { ImagePlus, UserRound } from "lucide-react";
+import { SheetClose } from "../../components/SheetClose";
 
 function getItemKey(item, index) {
   return String(item.id || item.image || item.title || index);
@@ -73,9 +74,6 @@ export function SalonClientGallery({ salon, items, getFallbackStyle }) {
       {selectedItem && (
         <div className="salonGalleryDetailBackdrop" role="dialog" aria-modal="true" aria-label="جزئیات نمونه‌کار" onClick={() => setSelectedItem(null)}>
           <article className="salonGalleryDetailPanel" onClick={(event) => event.stopPropagation()}>
-            <button type="button" className="salonGalleryDetailClose" onClick={() => setSelectedItem(null)} aria-label="بستن">
-              <X size={18} />
-            </button>
             <div
               className={`salonGalleryDetailImage ${selectedItem.image ? "hasImage" : ""}`}
               style={selectedItem.image ? { "--mosaic-image": `url("${selectedItem.image}")` } : getFallbackStyle(selectedItem)}
@@ -98,6 +96,7 @@ export function SalonClientGallery({ salon, items, getFallbackStyle }) {
                 </div>
               </div>
             </div>
+            <SheetClose onClick={() => setSelectedItem(null)} />
           </article>
         </div>
       )}

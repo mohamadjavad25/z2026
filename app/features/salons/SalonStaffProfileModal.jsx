@@ -6,18 +6,19 @@ import {
   CalendarDays,
   Check,
   Eye,
+  Lock,
   MapPin,
   Pencil,
   Percent,
   Phone,
   ShieldCheck,
   Timer,
-  UserRound,
-  X
+  UserRound
 } from "lucide-react";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { StaffPerformanceChart } from "./StaffPerformanceChart";
 import { ServiceIcon } from "../../components/ServiceIcon";
+import { SheetClose } from "../../components/SheetClose";
 
 /**
  * A fact row that becomes a small inline form on click — used only for
@@ -96,6 +97,7 @@ export function SalonStaffProfileModal({
 
   const staffName = staff.artist_name || staff.name || "";
   const staffRole = staff.role || staff.artist_service || roleOptions[0];
+  const staffRoles = String(staff.artist_service || staff.role || "").split(/[،,]/).map((item) => item.trim()).filter(Boolean);
   const staffState = staff.state || "فعال";
   const staffPhone = staff.artist_phone || staff.phone || "";
   const staffArea = staff.artist_area || "";
@@ -120,10 +122,6 @@ export function SalonStaffProfileModal({
       onClick={onClose}
     >
       <article className="artistProfileSheet is-staffProfile smdSheet" onClick={(event) => event.stopPropagation()}>
-        <button type="button" className="artistProfileClose" onClick={onClose} aria-label="بستن">
-          <X size={17} />
-        </button>
-
         <header className="smdHero">
           <div className="smdAvatar">
             <img src={staffAvatar || "/profile-icon.svg"} alt="" />
@@ -131,8 +129,8 @@ export function SalonStaffProfileModal({
           </div>
           <b className="smdName">{staffName}</b>
           <span className="smdRole">
-            <ServiceIcon name={staffRole} size="xs" />
-            {staffRole}
+            <ServiceIcon name={staffRoles[0] || staffRole} size="xs" />
+            {staffRoles.length ? staffRoles.join("، ") : staffRole}
           </span>
           <div className="smdMeta">
             <span className={`smdState ${isActive ? "is-active" : "is-idle"}`}>{staffState}</span>
@@ -236,24 +234,36 @@ export function SalonStaffProfileModal({
         ) : null}
 
         <section className="smdSection">
-          <h4>حوزه فعالیت <small>برای رزرو و منوی سالن</small></h4>
-          <div className="smdRoles" role="group" aria-label="حوزه فعالیت">
-            {roleOptions.map((role) => (
-              <button
-                type="button"
-                key={role}
-                className={staffRole === role ? "active" : ""}
-                aria-pressed={staffRole === role}
-                onClick={() => {
-                  if (staffRole === role) return;
-                  onUpdate?.(staff, { role }, `حوزه ${staffName} تغییر کرد.`);
-                }}
-              >
-                <ServiceIcon name={role} size="xs" />
-                {role}
-              </button>
-            ))}
-          </div>
+          <h4>حوزه فعالیت <small>{hasPublic ? "توسط خود آرتیست تعیین می‌شود" : "برای رزرو و منوی سالن"}</small></h4>
+          {hasPublic ? (
+            <div className="smdRoles is-locked">
+              {staffRoles.length ? staffRoles.map((role) => (
+                <span key={role} className="smdRoleChip">
+                  <ServiceIcon name={role} size="xs" />
+                  {role}
+                </span>
+              )) : <span className="smdRoleEmpty">آرتیست هنوز حوزه‌ای ثبت نکرده است.</span>}
+              <p className="smdLockNote"><Lock size={12} /> این بخش را فقط خود آرتیست از پروفایلش تغییر می‌دهد.</p>
+            </div>
+          ) : (
+            <div className="smdRoles" role="group" aria-label="حوزه فعالیت">
+              {roleOptions.map((role) => (
+                <button
+                  type="button"
+                  key={role}
+                  className={staffRole === role ? "active" : ""}
+                  aria-pressed={staffRole === role}
+                  onClick={() => {
+                    if (staffRole === role) return;
+                    onUpdate?.(staff, { role }, `حوزه ${staffName} تغییر کرد.`);
+                  }}
+                >
+                  <ServiceIcon name={role} size="xs" />
+                  {role}
+                </button>
+              ))}
+            </div>
+          )}
         </section>
 
         <footer className="smdFooter">
@@ -271,6 +281,7 @@ export function SalonStaffProfileModal({
             پایان همکاری
           </button>
         </footer>
+  <SheetClose onClick={onClose} />
       </article>
     </div>
   );

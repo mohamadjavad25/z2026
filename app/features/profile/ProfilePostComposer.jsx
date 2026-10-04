@@ -1,9 +1,10 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Camera, Check, ChevronDown, Crop, ImagePlus, Trash2, Upload, X } from "lucide-react";
+import { Camera, Check, ChevronDown, Crop, ImagePlus, Trash2, Upload } from "lucide-react";
 import { createPortal } from "react-dom";
 import { ImageCropper } from "../../components/ImageCropper";
+import { SheetClose } from "../../components/SheetClose";
 
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 // 4:5 is the card ratio used in explore and the galleries, so the framing
@@ -150,10 +151,6 @@ export function ProfilePostComposer({
             </div>
           </div>
         )}
-        <button type="button" className="artistWorkClose" onClick={onClose} aria-label="بستن" disabled={saving}>
-          <X size={17} />
-        </button>
-
         {cropSrc ? null : (
         <form className="artistWorkForm" onSubmit={onSubmit}>
           <div className="artistWorkRow">
@@ -253,6 +250,13 @@ export function ProfilePostComposer({
           )}
         </form>
         )}
+        <SheetClose onClick={onClose} disabled={saving} />
+        {saving ? (
+          <div className="sheetBusy" role="status" aria-live="polite">
+            <span className="sheetBusySpinner" aria-hidden="true" />
+            <b>{isNew ? "در حال انتشار نمونه‌کار…" : "در حال ذخیره تغییرات…"}</b>
+          </div>
+        ) : null}
       </article>
     </div>,
     document.body

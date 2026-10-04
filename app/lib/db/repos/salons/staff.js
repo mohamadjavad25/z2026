@@ -31,6 +31,8 @@ export async function listSalonStaff(salonUserId, runner = null) {
     return {
       ...row,
       artist_user_id: artist?.id || row.artist_user_id || null,
+      // The artist's own field of activity wins over whatever the salon typed in an invite.
+      role: artist?.service || row.role,
       avatar: staffAvatarUrl,
       staff_avatar: staffAvatarUrl,
       artist_name: artist?.name || row.name || "",
@@ -221,12 +223,16 @@ export async function updateSalonStaff(id, salonUserId, data) {
   const db = await getDb();
   const current = await get(db, "SELECT * FROM salon_staff WHERE id = $1 AND salon_user_id = $2", [id, salonUserId]);
   if (!current) return null;
+  // A member linked to a real artist account owns their own identity and field of
+  // activity (name, phone, bio, specialty come from the artist's profile); the salon
+  // may only change what is genuinely the salon's: state, access level, booking tally.
+  const linked = Boolean(current.artist_user_id);
   const nextDraft = {
-    artist_user_id: data.artistUserId ?? data.artist_user_id ?? current.artist_user_id,
-    name: data.name ?? current.name,
-    phone: data.phone ?? current.phone,
-    role: data.role ?? current.role,
-    bio: data.bio ?? current.bio,
+    artist_user_id: linked ? current.artist_user_id : (data.artistUserId ?? data.artist_user_id ?? current.artist_user_id),
+    name: linked ? current.name : (data.name ?? current.name),
+    phone: linked ? current.phone : (data.phone ?? current.phone),
+    role: linked ? current.role : (data.role ?? current.role),
+    bio: linked ? current.bio : (data.bio ?? current.bio),
     booked: data.booked ?? current.booked,
     state: data.state ?? current.state,
     access_level: data.accessLevel ?? data.access_level ?? current.access_level
@@ -253,6 +259,7 @@ export async function updateSalonStaff(id, salonUserId, data) {
   const artist = await resolveArtistUserForStaff(updated, db);
   return {
     ...updated,
+    role: artist?.service || updated.role,
     artist_user_id: artist?.id || updated.artist_user_id || null,
     avatar: artistAvatarUrl(artist),
     staff_avatar: artistAvatarUrl(artist),

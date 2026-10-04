@@ -892,9 +892,20 @@ export function useArtistWorkspace({
         notify(payload.error || "ذخیره نمونه‌کار انجام نشد.");
         return;
       }
-      await syncArtistWorkToExplore();
+      // The API already returned the saved post: put it in the gallery and close
+      // the sheet right away, then refresh explore / workspace in the background
+      // instead of making the user wait for those two extra round trips.
+      const saved = mapPortfolioItem(payload.data?.post);
+      if (saved) {
+        setArtistPortfolioItems((items) => (
+          items.some((item) => String(item.id) === String(saved.id))
+            ? items.map((item) => (String(item.id) === String(saved.id) ? saved : item))
+            : [saved, ...items]
+        ));
+      }
       setEditingArtistWork(null);
       notify("نمونه‌کار ذخیره شد.");
+      void syncArtistWorkToExplore().catch(() => {});
     } catch {
       notify("ذخیره نمونه‌کار انجام نشد.");
     } finally {
@@ -914,10 +925,11 @@ export function useArtistWorkspace({
         notify(payload.error || "حذف انجام نشد.");
         return;
       }
-      await syncArtistWorkToExplore();
+      setArtistPortfolioItems((items) => items.filter((item) => String(item.id) !== String(id)));
       setEditingArtistWork(null);
       setPreviewingArtistWorkId((prev) => (prev === id ? null : prev));
       notify("نمونه‌کار از گالری حذف شد.");
+      void syncArtistWorkToExplore().catch(() => {});
     } catch {
       notify("حذف انجام نشد.");
     }

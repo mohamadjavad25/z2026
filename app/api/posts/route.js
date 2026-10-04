@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { requireUser, withErrorHandling } from "../../lib/http.js";
 import { ensureDb } from "../../lib/db/connection.js";
 import * as posts from "../../lib/db/repos/posts.js";
@@ -27,7 +27,7 @@ async function _POST(request) {
   if (isImageDataUrlInvalidType(body.image)) {
     return NextResponse.json({ error: "فرمت عکس پشتیبانی نمی‌شود." }, { status: 400 });
   }
-  const post = await posts.createPost(auth.user.id, body);
+  const post = await posts.createPost(auth.user.id, body, null, { defer: (fn) => after(fn) });
   return NextResponse.json({ data: { post } }, { status: 201 });
 }
 

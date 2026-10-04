@@ -665,3 +665,75 @@
 .smdToggle, .smdEnd { min-height: 44px; border-radius: 14px; font: inherit; font-size: 0.8rem; font-weight: 900; cursor: pointer; }
 .smdToggle { border: 1px solid #ececf0; background: #fff; color: #14161d; }
 .smdEnd { border: 1px solid #f6d3d0; background: #fff5f4; color: #b42318; }
+
+.profileEditSpecialty { display: grid; gap: 6px; grid-column: 1 / -1; }
+.profileEditSpecialty > span { color: #3b3e49; font-size: 0.78rem; font-weight: 900; }
+.profileEditSpecialty > small { color: #8a8e9b; font-size: 0.68rem; font-weight: 700; line-height: 1.6; }
+
+.smdRoles.is-locked { align-items: center; }
+.smdRoleChip { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px 7px 10px; border-radius: 999px; background: #f1f1f5; color: #14161d; font-size: 0.76rem; font-weight: 850; }
+.smdRoleEmpty { color: #8a8e9b; font-size: 0.74rem; font-weight: 700; }
+.smdLockNote { display: flex; align-items: center; gap: 5px; flex-basis: 100%; margin: 4px 0 0; color: #8a8e9b; font-size: 0.68rem; font-weight: 700; }
+
+.profileEditSpecialty .specialtySelectTrigger { background: #fff; color: #14161d; border: 1px solid #dcdce4; box-shadow: none; }
+.profileEditSpecialty .specialtySelectPanel { position: static; max-height: 230px; overflow-y: auto; margin-top: 6px; box-shadow: none; border: 1px solid #ececf0; }
+
+/* ---- Bottom-centered sheet close (SheetClose) ---- */
+.sheetClose {
+  /* Fixed (not sticky): sticky is clamped to its grid area inside grid-based sheets. */
+  position: fixed !important;
+  left: 50% !important;
+  right: auto !important;
+  top: auto !important;
+  bottom: max(16px, env(safe-area-inset-bottom)) !important;
+  z-index: 100001;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #14161d !important;
+  color: #ffffff !important;
+  cursor: pointer;
+  box-shadow: 0 10px 26px rgba(20, 22, 29, 0.32);
+  transform: translateX(-50%) !important;
+}
+.sheetClose:active { transform: translateX(-50%) scale(0.94) !important; }
+.sheetClose:disabled { opacity: 0.5; }
+
+/* ---- Busy overlay for sheets (temporary look; a branded loader replaces it later) ---- */
+.sheetBusy {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(3px);
+  color: #14161d;
+  font-size: 0.86rem;
+}
+.sheetBusySpinner {
+  width: 38px;
+  height: 38px;
+  border: 3.5px solid #e4e4ea;
+  border-top-color: #14161d;
+  border-radius: 50%;
+  animation: sheetBusySpin 0.8s linear infinite;
+}
+@keyframes sheetBusySpin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .sheetBusySpinner { animation-duration: 2s; } }
+
+/* Keep the last content clear of the floating close button. */
+*:has(> .sheetClose) { padding-bottom: 84px !important; }
+
+/* ---- Global in-flight indicator ---- */
+.networkBusyBar { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 100002; overflow: hidden; background: rgba(20, 22, 29, 0.08); pointer-events: none; }
+.networkBusyBar i { display: block; height: 100%; width: 40%; border-radius: 3px; background: #14161d; animation: networkBusySlide 1s ease-in-out infinite; }
+@keyframes networkBusySlide { 0% { transform: translateX(-100%); } 100% { transform: translateX(260%); } }
+@media (prefers-reduced-motion: reduce) { .networkBusyBar i { animation: none; width: 100%; opacity: 0.6; } }

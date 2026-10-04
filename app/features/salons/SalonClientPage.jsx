@@ -30,6 +30,7 @@ import { ServiceIconStrip } from "../../components/ServiceIconStrip";
 import { SegmentClock } from "../../components/SegmentClock";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { SalonClientGallery } from "./SalonClientGallery";
+import { SheetClose } from "../../components/SheetClose";
 
 // Bug fix: this used to fall back to hardcoded fake services and a fake
 // portfolio gallery (identical stock images) whenever a real salon had none
@@ -202,9 +203,6 @@ export function SalonClientPage({
           {aboutOpen ? (
             <div className="salonPublicAboutOverlay" role="dialog" aria-modal="true" aria-label="درباره سالن" onClick={() => setAboutOpen(false)}>
               <article className="salonPublicAboutSheet" onClick={(event) => event.stopPropagation()}>
-                <button type="button" className="salonPublicAboutClose" onClick={() => setAboutOpen(false)} aria-label="بستن">
-                  <X size={18} />
-                </button>
                 <div className="salonPublicAboutHead">
                   <img
                     src={selectedSalon.avatar || "/profile-icon.svg"}
@@ -268,15 +266,13 @@ export function SalonClientPage({
                     <span><Clock3 size={16} /> در صورت تاخیر، زمان خدمات بر اساس ظرفیت روز تنظیم می‌شود</span>
                   </div>
                 </section>
+                <SheetClose onClick={() => setAboutOpen(false)} />
               </article>
             </div>
           ) : null}
           {publicSheet ? (
             <div className="salonPublicBrowseOverlay" role="dialog" aria-modal="true" aria-label={publicSheet === "services" ? "همه خدمات" : "همه نمونه‌کارها"} onClick={() => setPublicSheet("")}>
               <article className={`salonPublicBrowseSheet is-${publicSheet}`} onClick={(event) => event.stopPropagation()}>
-                <button type="button" className="salonPublicAboutClose" onClick={() => setPublicSheet("")} aria-label="بستن">
-                  <X size={18} />
-                </button>
                 <div className="salonPublicBrowseHead">
                   <span>{publicSheet === "services" ? "لیست خدمات" : "گالری سالن"}</span>
                   <h3>{publicSheet === "services" ? "همه خدمات سالن" : "همه نمونه‌کارها"}</h3>
@@ -321,6 +317,7 @@ export function SalonClientPage({
                     <b>هنوز نمونه‌کاری ثبت نشده</b>
                   </div>
                 )}
+                <SheetClose onClick={() => setPublicSheet("")} />
               </article>
             </div>
           ) : null}

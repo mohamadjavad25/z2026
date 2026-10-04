@@ -1,3 +1,4 @@
+import { after } from "next/server";
 import { error, json, notFound, requireUserRole, withErrorHandling } from "../../lib/http.js";
 import * as salons from "../../lib/db/repos/salons.js";
 import { isImageDataUrlTooLarge, isImageDataUrlInvalidType } from "../../lib/mediaLimits.js";
@@ -20,7 +21,7 @@ async function _POST(request) {
   if (isImageDataUrlInvalidType(body.tile) || isImageDataUrlInvalidType(body.image)) {
     return error("فرمت عکس پشتیبانی نمی‌شود.", 400);
   }
-  const item = await salons.addSalonPortfolio(auth.user.id, body);
+  const item = await salons.addSalonPortfolio(auth.user.id, body, { defer: (fn) => after(fn) });
   return json({ data: { item } }, { status: 201 });
 }
 
@@ -34,7 +35,7 @@ async function _PATCH(request) {
   if (isImageDataUrlInvalidType(body.tile) || isImageDataUrlInvalidType(body.image)) {
     return error("فرمت عکس پشتیبانی نمی‌شود.", 400);
   }
-  const item = await salons.updateSalonPortfolio(Number(body.id), auth.user.id, body);
+  const item = await salons.updateSalonPortfolio(Number(body.id), auth.user.id, body, { defer: (fn) => after(fn) });
   if (!item) return notFound();
   return json({ data: { item } });
 }
