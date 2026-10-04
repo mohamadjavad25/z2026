@@ -12,7 +12,12 @@ export const DEFAULT_SETTINGS = {
   orderAlerts: true,
   shippingReady: true,
   smartSuggestions: true,
-  showPrices: true
+  showPrices: true,
+  // Artist booking controls (profile settings > رزرو و ظرفیت کاری).
+  vacationMode: false,
+  directBooking: true,
+  autoConfirm: false,
+  reminders: true
 };
 
 const KNOWN_KEYS = new Set(Object.keys(DEFAULT_SETTINGS));
@@ -27,22 +32,21 @@ export async function getSettings(userId, runner = null) {
   return { ...DEFAULT_SETTINGS, ...stored };
 }
 
-/** Merges `patch` (only known keys, coerced to boolean) into the stored settings and returns the full result. */
+/** Merges `patch` (only known keys, coerced to boolean) into the stored settings and returns the full result.
+ *  The merge happens inside SQL (jsonb ||) so two toggles saved at nearly the same time
+ *  can't overwrite each other's keys with a stale read. */
 export async function saveSettings(userId, patch = {}) {
   const db = await getDb();
-  const current = await getSettings(userId, db);
-  const next = { ...current };
+  const clean = {};
   for (const key of Object.keys(patch)) {
-    if (KNOWN_KEYS.has(key)) {
-      next[key] = Boolean(patch[key]);
-    }
+    if (KNOWN_KEYS.has(key)) clean[key] = Boolean(patch[key]);
   }
   await run(db, `
     INSERT INTO user_settings (user_id, settings, updated_at)
-    VALUES ($1, $2, CURRENT_TIMESTAMP)
+    VALUES ($1, $2::jsonb, CURRENT_TIMESTAMP)
     ON CONFLICT(user_id) DO UPDATE SET
-      settings = excluded.settings,
+      settings = COALESCE(user_settings.settings, '{}'::jsonb) || excluded.settings,
       updated_at = excluded.updated_at
-  `, [Number(userId), JSON.stringify(next)]);
-  return next;
+  `, [Number(userId), JSON.stringify(clean)]);
+  return getSettings(userId, db);
 }

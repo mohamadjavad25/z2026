@@ -533,8 +533,6 @@ export function HomeApp() {
     artistCollabDraft,
     setArtistCollabDraft,
     setArtistBookingRailOpen,
-    artistBookingSettings,
-    setArtistBookingSettings,
     artistBookingSelectedDay,
     setArtistBookingSelectedDay,
     artistHoursList,
@@ -1825,8 +1823,6 @@ function getPassportMatch(post) {
             onCancelPosterUpload={cancelPosterUpload}
             profileSettings={profileSettings}
             onToggleSetting={toggleProfileSetting}
-            artistBookingSettings={artistBookingSettings}
-            onArtistBookingChange={setArtistBookingSettings}
             savedPostsCount={savedPosts.length}
             onOpenSaved={() => {
               if (createdProfile?.type === "salon") setSalonHeroSheet("saved");

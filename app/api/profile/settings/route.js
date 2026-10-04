@@ -23,7 +23,7 @@ async function _POST(request) {
     return NextResponse.json({ error: "درخواست نامعتبر است." }, { status: 400 });
   }
   const v = validateBody(settingsPatchSchema, rawPatch);
-  if (!v.ok) return v.response;
+  if (!v.ok) return NextResponse.json({ error: "مقدار تنظیمات نامعتبر است؛ دوباره امتحان کن." }, { status: 400 });
   const settings = await userSettings.saveSettings(auth.user.id, v.data);
   return NextResponse.json({ data: { settings } });
 }
