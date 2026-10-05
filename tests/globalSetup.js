@@ -21,6 +21,7 @@ import { execSync, spawn } from "node:child_process";
  * "test" script in package.json, which builds first.
  */
 const TEST_PORT = 3100;
+export const TEST_CRON_SECRET = "test-cron-secret";
 export const TEST_BASE_URL = `http://localhost:${TEST_PORT}`;
 
 let container;
@@ -65,7 +66,7 @@ export async function setup() {
   // detached puts this process in its own process group so teardown can
   // signal the whole group at once, in case `next start` itself forks.
   serverProcess = spawn("npx", ["next", "start", "-p", String(TEST_PORT)], {
-    env: { ...process.env, POSTGRES_URL: connectionString, NODE_ENV: "production" },
+    env: { ...process.env, POSTGRES_URL: connectionString, NODE_ENV: "production", CRON_SECRET: TEST_CRON_SECRET, ZIBABAN_REMINDER_TEST_CLOCK: "1" },
     stdio: ["ignore", "pipe", "pipe"],
     detached: true
   });

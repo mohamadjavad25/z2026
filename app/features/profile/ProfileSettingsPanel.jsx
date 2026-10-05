@@ -218,7 +218,7 @@ export function ProfileSettingsPanel({
       <SettingsToggle
         icon={Bell}
         label="یادآوری مشتری"
-        description="قبل از زمان نوبت برای مشتری یادآوری ارسال شود"
+        description="یک روز و دو ساعت قبل از هر نوبت تأییدشده، برای مشتری اعلان یادآوری می‌رود"
         checked={Boolean(profileSettings.reminders)}
         onChange={() => onToggle("reminders")}
       />
