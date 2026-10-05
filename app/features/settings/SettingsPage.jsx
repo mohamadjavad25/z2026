@@ -1,5 +1,6 @@
 "use client";
 
+import { defaultAvatarFor, isDefaultAvatar } from "../../shared/lib/defaultAvatar";
 import { useRef, useState } from "react";
 import { Bookmark, Camera, ChevronLeft, ImagePlus, Move, Pencil, Trash2 } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
@@ -140,7 +141,7 @@ function BrandCard({
               <img src={avatar} alt="" style={{ objectPosition: avatarPosition || "50% 50%" }} />
             </span>
             <ImageEditMenu
-              hasImage={Boolean(avatar) && !avatar.includes("/profile-icon.svg")}
+              hasImage={!isDefaultAvatar(avatar)}
               busy={logoSaving}
               title="لوگو"
               triggerClassName="brandCardAvatarEdit"
@@ -159,7 +160,7 @@ function BrandCard({
             <img src={avatar} alt="" style={{ objectPosition: avatarPosition || "50% 50%" }} />
           </span>
           <ImageEditMenu
-            hasImage={Boolean(avatar) && !avatar.includes("/profile-icon.svg")}
+            hasImage={!isDefaultAvatar(avatar)}
             busy={logoSaving}
             title="لوگو"
             triggerClassName="brandCardAvatarEdit"
@@ -277,7 +278,7 @@ export function SettingsPage({
     : isSalon
       ? "لوگو، نام سالن، شماره تماس و مسیر رزرو"
       : "عکس، نام، تماس، ایمیل و رمز عبور";
-  const accountAvatar = profile?.data?.avatar || profile?.avatar || "/profile-icon.svg";
+  const accountAvatar = profile?.data?.avatar || profile?.avatar || defaultAvatarFor(profile?.type);
 
   return (
     <div className={`settingsPagePanel mobilePage page-settings ${active ? "is-active" : ""}`} id="settings">

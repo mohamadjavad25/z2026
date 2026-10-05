@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-hidden="true">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="34%" r="78%">
+      <stop offset="0%" stop-color="#4a2a78"/>
+      <stop offset="55%" stop-color="#2a1450"/>
+      <stop offset="100%" stop-color="#120a22"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="30" y1="14" x2="100" y2="112" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#f7e2b0"/>
+      <stop offset="45%" stop-color="#d9a94f"/>
+      <stop offset="100%" stop-color="#9a6a24"/>
+    </linearGradient>
+    <linearGradient id="glass" x1="44" y1="26" x2="86" y2="92" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.34"/>
+      <stop offset="60%" stop-color="#d8c4ff" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.04"/>
+    </linearGradient>
+    <clipPath id="mirror"><ellipse cx="64" cy="56" rx="25" ry="33"/></clipPath>
+  </defs>
+
+  <rect width="128" height="128" fill="url(#bg)"/>
+  <circle cx="64" cy="64" r="58" fill="none" stroke="url(#gold)" stroke-width="2.5" opacity="0.9"/>
+
+  <!-- tall salon mirror -->
+  <ellipse cx="64" cy="56" rx="25" ry="33" fill="url(#glass)"/>
+  <g clip-path="url(#mirror)" stroke="#fff" stroke-linecap="round" opacity="0.5">
+    <path d="M44 78 L66 30" stroke-width="5" opacity="0.35"/>
+    <path d="M54 86 L74 42" stroke-width="2.4" opacity="0.4"/>
+  </g>
+  <ellipse cx="64" cy="56" rx="25" ry="33" fill="none" stroke="url(#gold)" stroke-width="4.5"/>
+
+  <!-- sparkle -->
+  <path d="M76 38 L78.2 44.4 L84.6 46.6 L78.2 48.8 L76 55.2 L73.8 48.8 L67.4 46.6 L73.8 44.4 Z" fill="#fff" opacity="0.95"/>
+  <circle cx="53" cy="67" r="1.6" fill="#fff" opacity="0.7"/>
+
+  <!-- stand -->
+  <path d="M64 89 V99" stroke="url(#gold)" stroke-width="4" stroke-linecap="round"/>
+  <path d="M46 105 Q64 94 82 105" fill="none" stroke="url(#gold)" stroke-width="4" stroke-linecap="round"/>
+</svg>

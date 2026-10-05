@@ -1,5 +1,6 @@
 "use client";
 
+import { DEFAULT_SALON_LOGO } from "../../shared/lib/defaultAvatar";
 import { SkeletonList } from "../../components/Skeleton";
 import { useEffect, useState } from "react";
 import {
@@ -146,7 +147,7 @@ export function SalonClientPage({
           <section className="scId">
             <span className="scAvatar">
               <img
-                src={selectedSalon.avatar || "/profile-icon.svg"}
+                src={selectedSalon.avatar || DEFAULT_SALON_LOGO}
                 alt=""
                 aria-hidden="true"
                 style={{ objectPosition: selectedSalon.avatarPosition || "50% 50%" }}
@@ -281,7 +282,7 @@ export function SalonClientPage({
               <article className="salonPublicAboutSheet" onClick={(event) => event.stopPropagation()}>
                 <div className="salonPublicAboutHead">
                   <img
-                    src={selectedSalon.avatar || "/profile-icon.svg"}
+                    src={selectedSalon.avatar || DEFAULT_SALON_LOGO}
                     alt=""
                     aria-hidden="true"
                     style={{ objectPosition: selectedSalon.avatarPosition || "50% 50%" }}
@@ -432,8 +433,8 @@ export function SalonClientPage({
                 }}
               >
                 <div className="sdrHead">
-                  <span className={`sdrLogo ${salon.avatar ? "hasImage" : ""}`} aria-hidden="true">
-                    {salon.avatar ? <img src={salon.avatar} alt="" style={{ objectPosition: salon.avatarPosition || "50% 50%" }} /> : <Store size={22} />}
+                  <span className="sdrLogo hasImage" aria-hidden="true">
+                    <img src={salon.avatar || DEFAULT_SALON_LOGO} alt="" style={{ objectPosition: salon.avatarPosition || "50% 50%" }} />
                   </span>
                   <div className="sdrTitle">
                     <h3>{salon.name}</h3>

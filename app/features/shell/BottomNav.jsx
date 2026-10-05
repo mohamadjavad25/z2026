@@ -1,5 +1,6 @@
 "use client";
 
+import { defaultAvatarFor } from "../../shared/lib/defaultAvatar";
 import { Plus } from "lucide-react";
 import { PageIcon } from "../../components/PageIcon";
 
@@ -33,7 +34,7 @@ export function BottomNav({ activeTab, createdProfile, onTabChange, showCreateBo
         >
           <img
             className="profileNavImage"
-            src={createdProfile?.data?.avatar || "/profile-icon.svg"}
+            src={createdProfile?.data?.avatar || defaultAvatarFor(createdProfile?.type)}
             alt=""
             aria-hidden="true"
             style={{ objectPosition: createdProfile?.data?.avatarPosition || "50% 50%" }}
