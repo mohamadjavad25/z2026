@@ -1,4 +1,3 @@
-/* eslint-env browser */
 /* global document */
 import { afterAll, describe, expect, it } from "vitest";
 import { TEST_BASE_URL } from "../globalSetup.js";
