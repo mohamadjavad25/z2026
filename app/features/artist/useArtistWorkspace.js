@@ -2,25 +2,9 @@
 
 import { usePolling } from "../../shared/lib/usePolling";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  createArtistMe,
-  deleteArtistMe,
-  getArtistHours,
-  getArtistMe,
-  respondArtistInvite,
-  getArtistTeams,
-  leaveArtistTeam,
-  updateArtistBooking,
-  updateArtistHours,
-  updateArtistMe
-} from "../../shared/api/artists";
-import { createPost, deletePost, getPosts, updatePost } from "../../shared/api/posts";
-import {
-  buildClockOptions,
-  getTodayPersianWeekday,
-  SALON_HOUR_TIME_OPTIONS,
-  timeLabelToMinutes
-} from "../../shared/lib/time";
+import { createArtistMe, deleteArtistMe, getArtistHours, getArtistMe, respondArtistInvite, getArtistTeams, leaveArtistTeam, updateArtistBooking, updateArtistMe } from "../../shared/api/artists";
+import { getPosts } from "../../shared/api/posts";
+import { buildClockOptions, getTodayPersianWeekday, timeLabelToMinutes } from "../../shared/lib/time";
 import { mapPortfolioItem } from "../posts/mappers";
 import {
   buildArtistBookingWeekTabs,
@@ -29,13 +13,10 @@ import {
   resolveBookingDateToWeekday,
   sortArtistBookingsNearest
 } from "./bookingUtils";
-import {
-  ARTIST_RAIL_DOCK_KEY,
-  clampRail,
-  getArtistRailFrame,
-  readArtistRailDock,
-  snapArtistRailDock
-} from "./railUtils";
+import { readArtistRailDock } from "./railUtils";
+import { useArtistWorkActions } from "./useArtistWorkActions";
+import { useArtistRailDrag } from "./useArtistRailDrag";
+import { useArtistHours } from "./useArtistHours";
 
 /**
  * Artist-owner workspace: portfolio, services, bookings, break, outbound collabs,
@@ -224,115 +205,24 @@ export function useArtistWorkspace({
       // keep current bookings
     }
   }, []);
+  const {
+    artistHoursPresets,
+    activeArtistHoursPreset,
+    activeArtistHoursPresetMeta,
+    activeArtistHours,
+    weeklyArtistCapacityTotal,
+    selectedArtistHour,
+    artistHourTimeOptions,
+    updateArtistHour,
+    updateArtistHoursPreset,
+    copyArtistHourToOpenDays
+  } = useArtistHours({
+    artistHoursList,
+    selectedArtistHourDay,
+    shellNotify,
+    setArtistHoursList
+  });
 
-  const artistHoursPresets = [
-    { id: "standard", label: "معمولی", detail: "شنبه تا چهارشنبه • ۱۰ تا ۲۰ • ظرفیت ۸" },
-    { id: "extended", label: "پرفشار", detail: "همه روزها باز • ۱۰ تا ۲۲ • ظرفیت ۱۲" },
-    { id: "weekend", label: "آخر هفته", detail: "پنجشنبه و جمعه • ۱۲ تا ۱۸ • ظرفیت ۵" }
-  ];
-
-  const activeArtistHoursPreset = useMemo(() => {
-    if (!artistHoursList.length) return null;
-    const weekendDays = new Set(["پنجشنبه", "جمعه"]);
-    const matches = (predicate) => artistHoursList.every(predicate);
-    if (matches((hour) => {
-      const isWeekend = weekendDays.has(hour.day);
-      return hour.open_time === "۱۰:۰۰" && hour.close_time === "۲۰:۰۰" && Number(hour.capacity) === 8 && Boolean(hour.active) === !isWeekend;
-    })) return "standard";
-    if (matches((hour) => hour.open_time === "۱۰:۰۰" && hour.close_time === "۲۲:۰۰" && Number(hour.capacity) === 12 && Boolean(hour.active))) return "extended";
-    if (matches((hour) => {
-      const isWeekend = weekendDays.has(hour.day);
-      return hour.open_time === "۱۲:۰۰" && hour.close_time === "۱۸:۰۰" && Number(hour.capacity) === 5 && Boolean(hour.active) === isWeekend;
-    })) return "weekend";
-    return null;
-  }, [artistHoursList]);
-  const activeArtistHoursPresetMeta = artistHoursPresets.find((preset) => preset.id === activeArtistHoursPreset) || null;
-  const activeArtistHours = useMemo(() => artistHoursList.filter((item) => item.active), [artistHoursList]);
-  const weeklyArtistCapacityTotal = activeArtistHours.reduce((total, item) => total + Number(item.capacity || 0), 0);
-  const selectedArtistHour = useMemo(() => {
-    if (!artistHoursList.length) return null;
-    return artistHoursList.find((hour) => hour.day === selectedArtistHourDay)
-      || artistHoursList.find((hour) => hour.active)
-      || artistHoursList[0]
-      || null;
-  }, [artistHoursList, selectedArtistHourDay]);
-  const artistHourTimeOptions = useMemo(() => {
-    const options = [...SALON_HOUR_TIME_OPTIONS];
-    [selectedArtistHour?.open_time, selectedArtistHour?.close_time].forEach((value) => {
-      if (value && !options.includes(value)) options.push(value);
-    });
-    return options;
-  }, [selectedArtistHour]);
-
-  const updateArtistHour = useCallback(async (hour, patch) => {
-    const nextHour = { ...hour, ...patch };
-    try {
-      const result = await updateArtistHours(nextHour);
-      if (!result.ok) {
-        shellNotify(result.payload?.error || "به‌روزرسانی ساعت کاری انجام نشد؛ دوباره امتحان کن.");
-        return;
-      }
-      setArtistHoursList(result.payload.data?.hours || []);
-    } catch {
-      shellNotify("به‌روزرسانی ساعت کاری انجام نشد؛ دوباره امتحان کن.");
-    }
-  }, [shellNotify]);
-
-  const updateArtistHoursPreset = useCallback(async (preset) => {
-    const weekendDays = new Set(["پنجشنبه", "جمعه"]);
-    const nextHours = artistHoursList.map((hour) => {
-      const isWeekend = weekendDays.has(hour.day);
-      if (preset === "standard") {
-        return { ...hour, open_time: "۱۰:۰۰", close_time: "۲۰:۰۰", capacity: 8, active: !isWeekend };
-      }
-      if (preset === "extended") {
-        return { ...hour, open_time: "۱۰:۰۰", close_time: "۲۲:۰۰", capacity: 12, active: true };
-      }
-      return { ...hour, open_time: "۱۲:۰۰", close_time: "۱۸:۰۰", capacity: 5, active: isWeekend };
-    });
-    try {
-      const results = await Promise.all(nextHours.map((hour) => updateArtistHours(hour)));
-      const failed = results.find((item) => !item.ok);
-      if (failed) {
-        shellNotify(failed.payload?.error || "ذخیره گزینه کلی ساعت کاری انجام نشد؛ دوباره امتحان کن.");
-        return;
-      }
-      const latestHours = results[results.length - 1]?.payload?.data?.hours || nextHours;
-      setArtistHoursList(latestHours);
-    } catch {
-      shellNotify("ذخیره گزینه کلی ساعت کاری انجام نشد؛ دوباره امتحان کن.");
-    }
-  }, [artistHoursList, shellNotify]);
-
-  /**
-   * Copies one day's open/close time + capacity onto every other open day —
-   * the "apply to the rest of the week" shortcut, so setting hours doesn't
-   * mean repeating the same start/end time pick for each day one at a time.
-   * Closed days are left alone.
-   */
-  const copyArtistHourToOpenDays = useCallback(async (sourceHour) => {
-    const targets = artistHoursList.filter((hour) => hour.active);
-    try {
-      // Sequential on purpose (not Promise.all): several concurrent
-      // authenticated PATCHes racing the session-touch poll (GET
-      // /api/artist/me, see presence heartbeat) could land out of order and
-      // make the client-side hours list flicker/reset mid-update.
-      let latestHours = artistHoursList;
-      for (const hour of targets) {
-        const nextHour = { ...hour, open_time: sourceHour.open_time, close_time: sourceHour.close_time, capacity: sourceHour.capacity };
-        const result = await updateArtistHours(nextHour);
-        if (!result.ok) {
-          shellNotify(result.payload?.error || "اعمال ساعت به بقیه روزها انجام نشد؛ دوباره امتحان کن.");
-          return;
-        }
-        latestHours = result.payload.data?.hours || latestHours;
-      }
-      setArtistHoursList(latestHours);
-      shellNotify("ساعت روی بقیه روزهای باز اعمال شد.");
-    } catch {
-      shellNotify("اعمال ساعت به بقیه روزها انجام نشد؛ دوباره امتحان کن.");
-    }
-  }, [artistHoursList, shellNotify]);
 
   /**
    * Called after a successful public booking (POST /api/artist/bookings).
@@ -397,135 +287,23 @@ export function useArtistWorkspace({
       setArtistRailDragPos(null);
     }
   }, [activeTab, createdProfile?.type]);
+  const {
+    clearArtistRailLongPress,
+    flushArtistRailDragPos,
+    beginArtistRailDrag,
+    onArtistRailHandlePointerDown,
+    onArtistRailHandlePointerMove,
+    onArtistRailHandlePointerUp
+  } = useArtistRailDrag({
+    artistRailDragRef,
+    setArtistRailDragPos,
+    artistRailRef,
+    setArtistRailDragging,
+    setArtistBookingRailOpen,
+    artistRailSize,
+    setArtistRailDock
+  });
 
-  function clearArtistRailLongPress() {
-    const drag = artistRailDragRef.current;
-    if (drag.longPressTimer) {
-      window.clearTimeout(drag.longPressTimer);
-      drag.longPressTimer = null;
-    }
-  }
-
-  function flushArtistRailDragPos() {
-    const drag = artistRailDragRef.current;
-    drag.raf = 0;
-    if (!drag.pending) return;
-    setArtistRailDragPos(drag.pending);
-    drag.pending = null;
-  }
-
-  function beginArtistRailDrag() {
-    const rail = artistRailRef.current;
-    const drag = artistRailDragRef.current;
-    if (!rail) return;
-    const rect = rail.getBoundingClientRect();
-    drag.dragging = true;
-    drag.armed = true;
-    drag.offsetX = drag.startX - rect.left;
-    drag.offsetY = drag.startY - rect.top;
-    setArtistRailDragging(true);
-    setArtistBookingRailOpen(false);
-    const frame = getArtistRailFrame();
-    setArtistRailDragPos({
-      x: clampRail(rect.left, frame.left + 8, frame.left + frame.width - rect.width - 8),
-      y: clampRail(rect.top, frame.top + 8, frame.top + frame.height - rect.height - 8)
-    });
-    if (drag.pointerId != null) {
-      try {
-        const handle = rail.querySelector(".artistBookingRailHandle");
-        (handle || rail).setPointerCapture(drag.pointerId);
-      } catch {
-        // ignore
-      }
-    }
-    if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {
-      navigator.vibrate(12);
-    }
-  }
-
-  function onArtistRailHandlePointerDown(event) {
-    if (event.button != null && event.button !== 0) return;
-    const drag = artistRailDragRef.current;
-    clearArtistRailLongPress();
-    drag.pointerId = event.pointerId;
-    drag.armed = false;
-    drag.dragging = false;
-    drag.moved = false;
-    drag.startX = event.clientX;
-    drag.startY = event.clientY;
-    drag.originX = event.clientX;
-    drag.originY = event.clientY;
-    beginArtistRailDrag();
-  }
-
-  function onArtistRailHandlePointerMove(event) {
-    const drag = artistRailDragRef.current;
-    if (drag.pointerId !== event.pointerId) return;
-
-    drag.startX = event.clientX;
-    drag.startY = event.clientY;
-
-    const deltaX = Math.abs(event.clientX - (drag.originX ?? event.clientX));
-    const deltaY = Math.abs(event.clientY - (drag.originY ?? event.clientY));
-    if (!drag.dragging && (deltaX > 8 || deltaY > 8)) {
-      clearArtistRailLongPress();
-    }
-
-    if (!drag.dragging) return;
-
-    const rail = artistRailRef.current;
-    const width = rail?.offsetWidth || artistRailSize.w;
-    const height = rail?.offsetHeight || artistRailSize.h;
-    const frame = getArtistRailFrame();
-    const nextX = clampRail(event.clientX - drag.offsetX, frame.left + 8, frame.left + frame.width - width - 8);
-    const nextY = clampRail(event.clientY - drag.offsetY, frame.top + 8, frame.top + frame.height - height - 8);
-    drag.moved = true;
-    drag.pending = { x: nextX, y: nextY };
-    if (!drag.raf) {
-      drag.raf = window.requestAnimationFrame(flushArtistRailDragPos);
-    }
-  }
-
-  function onArtistRailHandlePointerUp(event) {
-    const drag = artistRailDragRef.current;
-    if (drag.pointerId !== event.pointerId) return;
-    clearArtistRailLongPress();
-    if (drag.raf) {
-      window.cancelAnimationFrame(drag.raf);
-      flushArtistRailDragPos();
-    }
-
-    if (drag.dragging) {
-      const rail = artistRailRef.current;
-      const width = rail?.offsetWidth || artistRailSize.w;
-      const height = rail?.offsetHeight || artistRailSize.h;
-      const rect = rail?.getBoundingClientRect();
-      const centerX = rect ? rect.left + rect.width / 2 : event.clientX;
-      const centerY = rect ? rect.top + rect.height / 2 : event.clientY;
-      const dock = snapArtistRailDock(centerX, centerY, width, height);
-      setArtistRailDock(dock);
-      try {
-        window.localStorage.setItem(ARTIST_RAIL_DOCK_KEY, JSON.stringify(dock));
-      } catch {
-        // ignore
-      }
-      setArtistRailDragging(false);
-      setArtistRailDragPos(null);
-      drag.dragging = false;
-      drag.moved = true;
-      window.setTimeout(() => {
-        drag.moved = false;
-      }, 220);
-    }
-
-    drag.pointerId = null;
-    drag.armed = false;
-    try {
-      artistRailRef.current?.releasePointerCapture(event.pointerId);
-    } catch {
-      // ignore
-    }
-  }
 
   async function handleArtistBookingCreate(event) {
     event.preventDefault();
@@ -762,132 +540,29 @@ export function useArtistWorkspace({
       notify("حذف همکاری انجام نشد.");
     }
   }
+  const {
+    openArtistWorkPreview,
+    closeArtistWorkPreview,
+    openArtistWorkModal,
+    closeArtistWorkModal,
+    clearArtistWorkImage,
+    syncArtistPosts,
+    saveArtistWork,
+    deleteArtistWork
+  } = useArtistWorkActions({
+    setPreviewingArtistWorkId,
+    setArtistWorkTagMenuOpen,
+    setEditingArtistWork,
+    onPostsChanged,
+    createdProfile,
+    refreshArtistWorkspace,
+    editingArtistWork,
+    artistWorkSaving,
+    setArtistWorkSaving,
+    notify,
+    setArtistPortfolioItems
+  });
 
-  function openArtistWorkPreview(item) {
-    if (!item?.id) return;
-    setPreviewingArtistWorkId(item.id);
-  }
-
-  function closeArtistWorkPreview() {
-    setPreviewingArtistWorkId(null);
-  }
-
-  function openArtistWorkModal(item) {
-    if (!item) return;
-    setPreviewingArtistWorkId(null);
-    setArtistWorkTagMenuOpen(false);
-    setEditingArtistWork({
-      id: item.id,
-      title: item.title || "",
-      tag: item.tag || "",
-      caption: item.caption || "",
-      image: item.image || "",
-      saves: item.saves || "۰",
-      views: item.views || "۰",
-      isPublic: item.isPublic !== false,
-      featured: Boolean(item.featured)
-    });
-  }
-
-  function closeArtistWorkModal() {
-    setArtistWorkTagMenuOpen(false);
-    setEditingArtistWork(null);
-  }
-
-  function clearArtistWorkImage() {
-    setEditingArtistWork((prev) => (prev ? { ...prev, image: "" } : prev));
-  }
-
-  async function syncArtistPosts() {
-    if (typeof onPostsChanged === "function") {
-      await onPostsChanged();
-    }
-    if (createdProfile?.type === "artist") {
-      await refreshArtistWorkspace();
-    }
-  }
-
-  async function saveArtistWork(event) {
-    event.preventDefault();
-    if (!editingArtistWork) return;
-    const title = String(editingArtistWork.title || "").trim();
-    const tag = String(editingArtistWork.tag || "").trim();
-    const image = String(editingArtistWork.image || "").trim();
-    if (!title || !tag) {
-      notify("عنوان و دسته لازم است.");
-      return;
-    }
-    if (!image) {
-      notify("تصویر نمونه‌کار لازم است.");
-      return;
-    }
-    const body = {
-      title,
-      tag,
-      caption: String(editingArtistWork.caption || "").trim(),
-      // Only a freshly picked/cropped picture is sent. An unchanged one is just its media
-      // URL, and echoing that back used to overwrite the stored image.
-      ...(image.startsWith("data:") ? { image } : {}),
-      isPublic: editingArtistWork.isPublic !== false,
-      featured: Boolean(editingArtistWork.featured)
-    };
-    if (artistWorkSaving) return;
-    setArtistWorkSaving(true);
-    try {
-      const isNew = String(editingArtistWork.id).startsWith("new-") || editingArtistWork.id === "new";
-      const { ok, payload } = isNew
-        ? await createPost(body)
-        : await updatePost(editingArtistWork.id, body);
-      if (!ok) {
-        notify(payload.error || "ذخیره نمونه‌کار انجام نشد.");
-        return;
-      }
-      // The API already returned the saved post: put it in the gallery and close
-      // the sheet right away, then refresh the workspace in the background
-      // instead of making the user wait for those two extra round trips.
-      const saved = mapPortfolioItem(payload.data?.post);
-      if (saved) {
-        setArtistPortfolioItems((items) => (
-          items.some((item) => String(item.id) === String(saved.id))
-            ? items.map((item) => (String(item.id) === String(saved.id) ? saved : item))
-            : [saved, ...items]
-        ));
-      }
-      setEditingArtistWork(null);
-      notify("نمونه‌کار ذخیره شد.");
-      void syncArtistPosts().catch(() => {});
-    } catch {
-      notify("ذخیره نمونه‌کار انجام نشد.");
-    } finally {
-      setArtistWorkSaving(false);
-    }
-  }
-
-  async function deleteArtistWork() {
-    if (!editingArtistWork?.id) return;
-    if (typeof window !== "undefined" && !window.confirm("این پست از گالری نمونه‌کار حذف شود؟")) {
-      return;
-    }
-    if (artistWorkSaving) return;
-    const id = editingArtistWork.id;
-    setArtistWorkSaving(true);
-    try {
-      const { ok, payload } = await deletePost(id);
-      if (!ok) {
-        notify(payload.error || "حذف انجام نشد.");
-        return;
-      }
-      setArtistPortfolioItems((items) => items.filter((item) => String(item.id) !== String(id)));
-      setEditingArtistWork(null);
-      setPreviewingArtistWorkId((prev) => (prev === id ? null : prev));
-      notify("نمونه‌کار از گالری حذف شد.");
-      void syncArtistPosts().catch(() => {});
-    } catch {
-      notify("حذف انجام نشد.");
-    } finally {
-      setArtistWorkSaving(false);
-    }
-  }
 
   /**
    * Confirms a REAL pending direct artist_bookings row (status "تازه") via

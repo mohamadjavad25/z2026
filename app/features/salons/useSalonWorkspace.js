@@ -2,34 +2,13 @@
 
 import { usePolling } from "../../shared/lib/usePolling";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { getArtists } from "../../shared/api/artists";
-import {
-  createSalonBooking,
-  createSalonInvite,
-  createSalonPortfolio,
-  createSalonService as createSalonServiceApi,
-  deleteSalonInvite,
-  deleteSalonPortfolio as deleteSalonPortfolioApi,
-  deleteSalonService as deleteSalonServiceApi,
-  deleteSalonStaff,
-  getSalonBookings,
-  getSalonCollabs,
-  getSalonHours,
-  getSalonInvites,
-  getSalonPortfolio,
-  getSalonServices,
-  getSalonStaff,
-  getSalons,
-  updateSalonBooking,
-  updateSalonCollabs,
-  updateSalonHours,
-  updateSalonPortfolio,
-  updateSalonService as updateSalonServiceApi,
-  updateSalonStaff as updateSalonStaffApi
-} from "../../shared/api/salons";
-import { getApiErrorMessage, notifyFromResponse } from "../../shared/lib/apiNotify";
+import { createSalonBooking, getSalonBookings, getSalonCollabs, getSalonHours, getSalonInvites, getSalonPortfolio, getSalonServices, getSalonStaff, getSalons, updateSalonBooking } from "../../shared/api/salons";
+import { getApiErrorMessage } from "../../shared/lib/apiNotify";
 import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar";
 import { buildSalonStaffByName } from "../profile/ScheduleRow";
+import { useSalonPortfolioActions } from "./useSalonPortfolioActions";
+import { useSalonCatalogActions } from "./useSalonCatalogActions";
+import { useSalonInviteActions } from "./useSalonInviteActions";
 
 /**
  * Salon **owner** dashboard: bookings, reservation inbox, staff, artist invites/collabs,
@@ -520,626 +499,80 @@ export function useSalonWorkspace({
       setSalonRequestBusyId("");
     }
   }, [shellNotify, applySalonBookings, onLinkedArtistBooked]);
+  const {
+    updateSalonCollabRequest,
+    openNearbyArtistInvite,
+    inviteNearbyArtist,
+    cancelSalonArtistInvite
+  } = useSalonInviteActions({
+    shellNotify,
+    safeSalonStaffList,
+    createdProfile,
+    artistInviteBusyId,
+    salonRequestBusyIdRef,
+    setSalonRequestBusyId,
+    setSalonCollabRequestList,
+    setSalonStaffList,
+    setSelectedStaffName,
+    setArtistInviteOpen,
+    setNearbyArtistsLoading,
+    setSalonArtistInviteList,
+    setNearbyArtists,
+    setArtistInviteBusyId
+  });
 
-  const updateSalonCollabRequest = useCallback(async (id, status) => {
-    if (!id || salonRequestBusyIdRef.current) return;
-    const busyKey = `collab:${id}`;
-    salonRequestBusyIdRef.current = busyKey;
-    setSalonRequestBusyId(busyKey);
-    try {
-      const { ok, payload } = await updateSalonCollabs({ id, status });
-      if (!ok) {
-        shellNotify(getApiErrorMessage(payload, "به‌روزرسانی پیشنهاد همکاری انجام نشد."));
-        return;
-      }
-      setSalonCollabRequestList(payload.data?.collabs || []);
-      if (Array.isArray(payload.data?.staff)) {
-        setSalonStaffList(payload.data.staff);
-        setSelectedStaffName((current) => current || payload.data.staff[0]?.name || "");
-      }
-      shellNotify(status === "تایید شد"
-        ? (payload.data?.staffCreated ? "پیشنهاد تایید شد و آرتیست به پرسنل اضافه شد." : "پیشنهاد تایید شد؛ این آرتیست قبلا در پرسنل بود.")
-        : "پیشنهاد همکاری رد شد.");
-    } catch {
-      shellNotify("به‌روزرسانی پیشنهاد همکاری انجام نشد.");
-    } finally {
-      salonRequestBusyIdRef.current = "";
-      setSalonRequestBusyId("");
-    }
-  }, [shellNotify]);
+  const {
+    updateSalonStaff,
+    removeSalonStaff,
+    updateSalonHour,
+    updateSalonHoursPreset,
+    copySalonHourToOpenDays,
+    addSalonService,
+    assignSalonServiceArtist,
+    toggleSalonServiceArtist,
+    deleteSalonService
+  } = useSalonCatalogActions({
+    safeSalonStaffList,
+    shellNotify,
+    createdProfile,
+    onArtistCollabOffersPatch,
+    salonHoursList,
+    syncSalonDirectory,
+    syncSelectedSalon,
+    refreshSalonSystemData,
+    salonServiceList,
+    setSalonStaffList,
+    setSelectedStaffName,
+    setSalonHoursList,
+    setSalonServiceList,
+    serviceArtistConfirmedRef,
+    serviceArtistDesiredRef,
+    serviceArtistChainRef
+  });
 
-  const openNearbyArtistInvite = useCallback(async () => {
-    setArtistInviteOpen(true);
-    setNearbyArtistsLoading(true);
-    try {
-      const [artistsRes, invitesRes] = await Promise.all([getArtists(), getSalonInvites()]);
-      const invites = Array.isArray(invitesRes.data?.invites) ? invitesRes.data.invites : [];
-      setSalonArtistInviteList(invites);
-      const artists = Array.isArray(artistsRes.data?.artists) ? artistsRes.data.artists : [];
-      const staffIds = new Set(
-        safeSalonStaffList
-          .map((person) => Number(person.artist_user_id || person.artistUserId || 0))
-          .filter(Boolean)
-      );
-      const pendingInviteIds = new Set(
-        invites
-          .filter((item) => item.status === "در انتظار تایید")
-          .map((item) => Number(item.artistId || 0))
-          .filter(Boolean)
-      );
-      const staffNames = new Set(
-        safeSalonStaffList
-          .map((person) => String(person.artist_name || person.name || "").trim())
-          .filter(Boolean)
-      );
-      const salonArea = String(createdProfile?.data?.area || "").trim();
-      const filtered = artists
-        .filter((artist) => {
-          const id = Number(artist.id || 0);
-          const name = String(artist.name || "").trim();
-          if (id && staffIds.has(id)) return false;
-          if (id && pendingInviteIds.has(id)) return false;
-          if (name && staffNames.has(name)) return false;
-          // An artist with no bio/specialty set hasn't filled in anything
-          // a salon could actually invite them to collaborate on yet.
-          if (!artist.bio || !artist.service) return false;
-          return true;
-        })
-        .map((artist) => {
-          const area = String(artist.area || "").trim();
-          const sameArea = Boolean(salonArea && area && (area.includes(salonArea) || salonArea.includes(area)));
-          return { ...artist, isNearby: sameArea };
-        })
-        .sort((a, b) => Number(b.isNearby) - Number(a.isNearby) || String(a.name || "").localeCompare(String(b.name || ""), "fa"));
-      setNearbyArtists(filtered);
-    } catch {
-      setNearbyArtists([]);
-      shellNotify("لیست آرتیست‌ها دریافت نشد؛ دوباره امتحان کن.");
-    } finally {
-      setNearbyArtistsLoading(false);
-    }
-  }, [safeSalonStaffList, createdProfile?.data?.area, shellNotify]);
+  const {
+    resetPortfolioComposer,
+    openPortfolioComposer,
+    clearSalonWorkImage,
+    addSalonPortfolio,
+    deleteSalonPortfolio,
+    deleteSalonPortfolioFromComposer,
+    upsertSalonOwnerService
+  } = useSalonPortfolioActions({
+    salonServiceList,
+    portfolioSaving,
+    salonWorkDraft,
+    salonPortfolioList,
+    shellNotify,
+    refreshSalonSystemData,
+    onPostsChanged,
+    syncSalonDirectory,
+    setSalonWorkTagMenuOpen,
+    setSalonWorkDraft,
+    setPortfolioSaving,
+    setSalonPortfolioList
+  });
 
-  const inviteNearbyArtist = useCallback(async (artist, terms = {}) => {
-    if (!artist?.id || artistInviteBusyId) return;
-    setArtistInviteBusyId(String(artist.id));
-    try {
-      const { ok, payload } = await createSalonInvite({
-        artist_user_id: artist.id,
-        role: artist.service || "آرتیست",
-        bio: artist.bio || artist.area || "دعوت‌شده از آرتیست‌های نزدیک",
-        access_level: "همکار",
-        days: terms.days || "",
-        from: terms.from || "",
-        to: terms.to || "",
-        share: terms.share || "",
-        capacity: terms.capacity || ""
-      });
-      if (!ok) {
-        shellNotify(payload.error || "دعوت آرتیست انجام نشد.");
-        return;
-      }
-      setSalonArtistInviteList(Array.isArray(payload.data?.invites) ? payload.data.invites : []);
-      setNearbyArtists((current) => current.filter((item) => Number(item.id) !== Number(artist.id)));
-      shellNotify(`دعوت برای «${artist.name || "آرتیست"}» ارسال شد؛ تا تایید آرتیست نهایی نیست.`);
-    } catch {
-      shellNotify("دعوت آرتیست انجام نشد؛ دوباره امتحان کن.");
-    } finally {
-      setArtistInviteBusyId("");
-    }
-  }, [artistInviteBusyId, shellNotify]);
-
-  const cancelSalonArtistInvite = useCallback(async (inviteId) => {
-    try {
-      const { ok, payload } = await deleteSalonInvite(inviteId);
-      if (!ok) {
-        shellNotify(payload.error || "لغو دعوت انجام نشد.");
-        return;
-      }
-      setSalonArtistInviteList(Array.isArray(payload.data?.invites) ? payload.data.invites : []);
-      shellNotify("دعوت لغو شد.");
-    } catch {
-      shellNotify("لغو دعوت انجام نشد؛ دوباره امتحان کن.");
-    }
-  }, [shellNotify]);
-
-  const updateSalonStaff = useCallback(async (name, patch, notice) => {
-    const person = safeSalonStaffList.find((item) => item.name === name);
-    if (!person) return;
-    try {
-      const result = await updateSalonStaffApi({ ...person, ...patch });
-      if (!notifyFromResponse(shellNotify, result, { failure: "به‌روزرسانی پرسنل انجام نشد؛ دوباره امتحان کن." })) {
-        return;
-      }
-      const nextStaff = Array.isArray(result.payload.data?.staff) ? result.payload.data.staff : [];
-      setSalonStaffList(nextStaff);
-      setSelectedStaffName((current) => patch.name || current || nextStaff[0]?.name || "");
-      if (notice) shellNotify(notice);
-    } catch {
-      shellNotify("به‌روزرسانی پرسنل انجام نشد؛ دوباره امتحان کن.");
-    }
-  }, [safeSalonStaffList, shellNotify]);
-
-  const removeSalonStaff = useCallback(async (name) => {
-    const person = safeSalonStaffList.find((item) => item.name === name);
-    if (!person?.id) return;
-    if (typeof window !== "undefined" && !window.confirm(`«${person.name}» از پرسنل حذف شود؟ این کار قابل بازگشت نیست.`)) {
-      return;
-    }
-    try {
-      const { ok, payload } = await deleteSalonStaff(person.id);
-      if (!ok) {
-        shellNotify(payload.error || "حذف پرسنل انجام نشد؛ دوباره امتحان کن.");
-        return;
-      }
-      const nextStaff = Array.isArray(payload.data?.staff) ? payload.data.staff : [];
-      setSalonStaffList(nextStaff);
-      setSelectedStaffName(nextStaff[0]?.name || "");
-      if (payload.data?.artistNotified) {
-        if (typeof onArtistCollabOffersPatch === "function") {
-          onArtistCollabOffersPatch((items) => items.map((offer) => (
-            Number(offer.salonId) === Number(createdProfile?.id)
-            && Number(offer.artistId || 0) === Number(payload.data?.artistUserId || person.artist_user_id || 0)
-              ? { ...offer, status: "پایان یافت" }
-              : offer
-          )));
-        }
-        shellNotify(`همکاری با «${name}» پایان یافت و در پروفایل آرتیست اطلاع داده شد.`);
-      } else {
-        shellNotify(`همکاری با «${name}» پایان یافت و از پرسنل حذف شد.`);
-      }
-    } catch {
-      shellNotify("حذف پرسنل انجام نشد؛ دوباره امتحان کن.");
-    }
-  }, [safeSalonStaffList, createdProfile?.id, onArtistCollabOffersPatch, shellNotify]);
-
-  const updateSalonHour = useCallback(async (hour, patch) => {
-    const nextHour = { ...hour, ...patch };
-    try {
-      const result = await updateSalonHours(nextHour);
-      if (!notifyFromResponse(shellNotify, result, { failure: "به‌روزرسانی تقویم سالن انجام نشد؛ دوباره امتحان کن." })) {
-        return;
-      }
-      setSalonHoursList(result.payload.data?.hours || []);
-      shellNotify(`تقویم ${nextHour.day} در دیتابیس سالن ذخیره شد.`);
-    } catch {
-      shellNotify("به‌روزرسانی تقویم سالن انجام نشد؛ دوباره امتحان کن.");
-    }
-  }, [shellNotify]);
-
-  const updateSalonHoursPreset = useCallback(async (preset) => {
-    const weekendDays = new Set(["پنجشنبه", "جمعه"]);
-    const nextHours = salonHoursList.map((hour) => {
-      const isWeekend = weekendDays.has(hour.day);
-      if (preset === "standard") {
-        return { ...hour, open_time: "۱۰:۰۰", close_time: "۲۰:۰۰", capacity: 8, active: !isWeekend };
-      }
-      if (preset === "extended") {
-        return { ...hour, open_time: "۱۰:۰۰", close_time: "۲۲:۰۰", capacity: 12, active: true };
-      }
-      return { ...hour, open_time: "۱۲:۰۰", close_time: "۱۸:۰۰", capacity: 5, active: isWeekend };
-    });
-    try {
-      const results = await Promise.all(nextHours.map((hour) => updateSalonHours(hour)));
-      const failed = results.find((item) => !item.ok);
-      if (failed) {
-        shellNotify(getApiErrorMessage(failed.payload, "ذخیره گزینه کلی ساعت کاری انجام نشد؛ دوباره امتحان کن."));
-        return;
-      }
-      const latestHours = results[results.length - 1]?.payload?.data?.hours || nextHours;
-      setSalonHoursList(latestHours);
-      shellNotify("گزینه کلی ساعت کاری روی تقویم سالن اعمال شد.");
-    } catch {
-      shellNotify("ذخیره گزینه کلی ساعت کاری انجام نشد؛ دوباره امتحان کن.");
-    }
-  }, [salonHoursList, shellNotify]);
-
-  /**
-   * Copies one day's open/close time + capacity onto every other open day,
-   * in one batch — the tedious part of the hours editor was setting the
-   * same start/end time on each day one at a time; this is the "apply to
-   * the rest of the week" shortcut for that. Closed days are left alone.
-   */
-  const copySalonHourToOpenDays = useCallback(async (sourceHour) => {
-    const targets = salonHoursList.filter((hour) => hour.active);
-    try {
-      // Sequential on purpose (not Promise.all): several concurrent
-      // authenticated PATCHes racing the session-touch poll (GET
-      // /api/artist/me-equivalent presence heartbeat) could land out of
-      // order and make the client-side hours list flicker/reset mid-update.
-      let latestHours = salonHoursList;
-      for (const hour of targets) {
-        const nextHour = { ...hour, open_time: sourceHour.open_time, close_time: sourceHour.close_time, capacity: sourceHour.capacity };
-        const result = await updateSalonHours(nextHour);
-        if (!result.ok) {
-          shellNotify(getApiErrorMessage(result.payload, "اعمال ساعت به بقیه روزها انجام نشد؛ دوباره امتحان کن."));
-          return;
-        }
-        latestHours = result.payload.data?.hours || latestHours;
-      }
-      setSalonHoursList(latestHours);
-      shellNotify("ساعت روی بقیه روزهای باز اعمال شد.");
-    } catch {
-      shellNotify("اعمال ساعت به بقیه روزها انجام نشد؛ دوباره امتحان کن.");
-    }
-  }, [salonHoursList, shellNotify]);
-
-  /** Dedicated salon "add service" form (name/price/duration only, no hint/tone). */
-  const addSalonService = useCallback(async (event) => {
-    event.preventDefault();
-    const data = Object.fromEntries(new FormData(event.currentTarget).entries());
-    try {
-      const { ok, payload } = await createSalonServiceApi({
-        name: data.name || "خدمت جدید",
-        price: data.price || "",
-        duration: data.duration || ""
-      });
-      if (!ok) {
-        shellNotify(payload.error || "ذخیره خدمت انجام نشد؛ دوباره امتحان کن.");
-        return;
-      }
-      const savedService = payload.data?.service;
-      if (savedService?.name) {
-        setSalonServiceList((items) => (
-          items.some((item) => String(item.id) === String(savedService.id)) ? items : [...items, savedService]
-        ));
-        const ownSalonKey = String(createdProfile?.id || createdProfile?.data?.name || "");
-        syncSalonDirectory((items) => items.map((salon) => {
-          const isOwnSalon = String(salon.id || salon.source_key || salon.name) === ownSalonKey;
-          if (!isOwnSalon) return salon;
-          const services = Array.isArray(salon.services) ? salon.services : [];
-          return services.some((service) => String(service.id) === String(savedService.id))
-            ? salon
-            : { ...salon, services: [...services, savedService] };
-        }));
-        syncSelectedSalon((current) => {
-          if (!current) return current;
-          const isOwnSalon = String(current.id || current.source_key || current.name) === ownSalonKey;
-          if (!isOwnSalon) return current;
-          const services = Array.isArray(current.services) ? current.services : [];
-          return services.some((service) => String(service.id) === String(savedService.id))
-            ? current
-            : { ...current, services: [...services, savedService] };
-        });
-      }
-      await refreshSalonSystemData();
-      shellNotify("خدمت جدید در دیتابیس سالن ذخیره شد.");
-      event.currentTarget.reset();
-    } catch {
-      shellNotify("ذخیره خدمت انجام نشد؛ دوباره امتحان کن.");
-    }
-  }, [createdProfile?.id, createdProfile?.data?.name, syncSalonDirectory, syncSelectedSalon, refreshSalonSystemData, shellNotify]);
-
-  const assignSalonServiceArtist = useCallback(async (service, staffId) => {
-    if (!service?.id) return;
-    try {
-      const { ok, payload } = await updateSalonServiceApi({
-        id: service.id,
-        name: service.name,
-        price: service.price,
-        duration: service.duration,
-        staff_id: staffId,
-        staff_ids: staffId ? [String(staffId)] : []
-      });
-      if (!ok) {
-        shellNotify(payload.error || "انتخاب آرتیست انجام نشد؛ دوباره امتحان کن.");
-        return;
-      }
-      const saved = payload.data?.service;
-      if (saved) {
-        const selectedPeople = staffId ? safeSalonStaffList.filter((person) => String(person.id) === String(staffId)) : [];
-        const nextService = {
-          ...saved,
-          staff_id: staffId || null,
-          staff_ids: selectedPeople.map((person) => String(person.id)),
-          staff_members: selectedPeople,
-          staff_names: selectedPeople.map((person) => person.name).filter(Boolean).join("، ")
-        };
-        setSalonServiceList((items) => items.map((item) => (
-          String(item.id) === String(saved.id) ? { ...item, ...nextService } : item
-        )));
-        syncSalonDirectory((items) => items.map((salon) => {
-          const services = Array.isArray(salon.services) ? salon.services : [];
-          const hasService = services.some((item) => String(item.id) === String(saved.id));
-          if (!hasService) return salon;
-          return {
-            ...salon,
-            services: services.map((item) => String(item.id) === String(saved.id) ? { ...item, ...nextService } : item),
-            staff: Array.isArray(salon.staff) && salon.staff.length ? salon.staff : safeSalonStaffList
-          };
-        }));
-        syncSelectedSalon((current) => {
-          if (!current) return current;
-          const services = Array.isArray(current.services) ? current.services : [];
-          const hasService = services.some((item) => String(item.id) === String(saved.id));
-          if (!hasService) return current;
-          return {
-            ...current,
-            services: services.map((item) => String(item.id) === String(saved.id) ? { ...item, ...nextService } : item),
-            staff: Array.isArray(current.staff) && current.staff.length ? current.staff : safeSalonStaffList
-          };
-        });
-      } else {
-        await refreshSalonSystemData();
-      }
-      // The artist picker is a sheet that stays open so several artists can be ticked in a row.
-      const artistName = saved?.staff_name || safeSalonStaffList.find((person) => String(person.id) === String(staffId))?.name;
-      shellNotify(artistName ? `آرتیست «${artistName}» برای «${service.name}» انتخاب شد.` : `آرتیست خدمت «${service.name}» برداشته شد.`);
-    } catch {
-      shellNotify("انتخاب آرتیست انجام نشد؛ دوباره امتحان کن.");
-    }
-  }, [safeSalonStaffList, syncSalonDirectory, syncSelectedSalon, refreshSalonSystemData, shellNotify]);
-
-  // Artist ticks on a service: the screen updates the instant you tap, the server catches up in
-  // order. `desired` is the latest wanted list per service (so two quick taps on different artists
-  // both count even before the first save returns), `confirmed` the last list the server accepted
-  // (what we fall back to if a save fails).
-  const applyServiceArtists = useCallback((serviceId, nextIds, saved = null) => {
-    const selectedPeople = safeSalonStaffList.filter((person) => nextIds.includes(String(person.id)));
-    const patch = {
-      ...(saved || {}),
-      staff_id: nextIds[0] || null,
-      staff_ids: nextIds,
-      staff_members: selectedPeople,
-      staff_names: selectedPeople.map((person) => person.name).filter(Boolean).join("، "),
-      staff_name: selectedPeople[0]?.name || "",
-      staff_role: selectedPeople[0]?.role || ""
-    };
-    const merge = (items) => items.map((item) => (String(item.id) === String(serviceId) ? { ...item, ...patch } : item));
-    setSalonServiceList(merge);
-    syncSalonDirectory((items) => items.map((salon) => {
-      const services = Array.isArray(salon.services) ? salon.services : [];
-      if (!services.some((item) => String(item.id) === String(serviceId))) return salon;
-      return {
-        ...salon,
-        services: merge(services),
-        staff: Array.isArray(salon.staff) && salon.staff.length ? salon.staff : safeSalonStaffList
-      };
-    }));
-    syncSelectedSalon((current) => {
-      if (!current) return current;
-      const services = Array.isArray(current.services) ? current.services : [];
-      if (!services.some((item) => String(item.id) === String(serviceId))) return current;
-      return {
-        ...current,
-        services: merge(services),
-        staff: Array.isArray(current.staff) && current.staff.length ? current.staff : safeSalonStaffList
-      };
-    });
-  }, [safeSalonStaffList, syncSalonDirectory, syncSelectedSalon]);
-
-  const toggleSalonServiceArtist = useCallback((service, staffId) => {
-    if (!service?.id) return;
-    const key = String(service.id);
-    const fromService = Array.isArray(service.staff_ids)
-      ? service.staff_ids.map(String)
-      : String(service.staff_ids || "").trim()
-        ? String(service.staff_ids).split(",").map((id) => id.trim()).filter(Boolean)
-      : service.staff_id
-        ? [String(service.staff_id)]
-        : [];
-    if (!serviceArtistConfirmedRef.current.has(key)) serviceArtistConfirmedRef.current.set(key, fromService);
-    const currentIds = serviceArtistDesiredRef.current.get(key) ?? fromService;
-    const id = String(staffId);
-    const nextIds = currentIds.includes(id) ? currentIds.filter((item) => item !== id) : [...currentIds, id];
-    serviceArtistDesiredRef.current.set(key, nextIds);
-    applyServiceArtists(service.id, nextIds);
-
-    const previous = serviceArtistChainRef.current.get(key) || Promise.resolve();
-    const next = previous.then(async () => {
-      try {
-        const { ok, payload } = await updateSalonServiceApi({
-          id: service.id,
-          name: service.name,
-          price: service.price,
-          duration: service.duration,
-          staff_id: nextIds[0] || null,
-          staff_ids: nextIds
-        });
-        if (!ok) throw new Error(payload?.error || "");
-        serviceArtistConfirmedRef.current.set(key, nextIds);
-      } catch (error) {
-        const confirmed = serviceArtistConfirmedRef.current.get(key) || [];
-        serviceArtistDesiredRef.current.set(key, confirmed);
-        applyServiceArtists(service.id, confirmed);
-        shellNotify(error?.message || "انتخاب آرتیست ذخیره نشد؛ دوباره امتحان کن.");
-      }
-    });
-    serviceArtistChainRef.current.set(key, next);
-    // Once the queue for this service has drained, forget it so later changes start from fresh data.
-    // (kept a few seconds past the last save so a refresh that was already in flight cannot undo it)
-    next.then(() => {
-      window.setTimeout(() => {
-        if (serviceArtistChainRef.current.get(key) !== next) return;
-        serviceArtistChainRef.current.delete(key);
-        serviceArtistDesiredRef.current.delete(key);
-        serviceArtistConfirmedRef.current.delete(key);
-      }, 4000);
-    });
-  }, [applyServiceArtists, shellNotify]);
-
-  const deleteSalonService = useCallback(async (id) => {
-    const target = salonServiceList.find((item) => item.id === id);
-    const confirmed = typeof window === "undefined"
-      || window.confirm(target ? `«${target.name}» حذف شود؟ این کار قابل بازگشت نیست.` : "این خدمت حذف شود؟ این کار قابل بازگشت نیست.");
-    if (!confirmed) return;
-    try {
-      const result = await deleteSalonServiceApi(id);
-      if (!notifyFromResponse(shellNotify, result, { failure: "حذف خدمت انجام نشد؛ دوباره امتحان کن." })) {
-        return;
-      }
-      if (Array.isArray(result.payload.data?.services)) {
-        setSalonServiceList(result.payload.data.services);
-      }
-      await refreshSalonSystemData();
-      shellNotify("خدمت از دیتابیس حذف شد.");
-    } catch {
-      shellNotify("حذف خدمت انجام نشد؛ دوباره امتحان کن.");
-    }
-  }, [salonServiceList, refreshSalonSystemData, shellNotify]);
-
-  const resetPortfolioComposer = useCallback(() => {
-    setSalonWorkTagMenuOpen(false);
-    setSalonWorkDraft(null);
-    setPortfolioSaving(false);
-  }, []);
-
-  const openPortfolioComposer = useCallback((item = null) => {
-    setSalonWorkTagMenuOpen(false);
-    if (item) {
-      setSalonWorkDraft({
-        id: item.id,
-        title: item.title || "",
-        tag: item.tag || "",
-        caption: item.caption || "",
-        image: item.image || "",
-        isPublic: item.isPublic !== false,
-        featured: Boolean(item.featured)
-      });
-      return;
-    }
-    setSalonWorkDraft({
-      id: "new",
-      title: "",
-      tag: salonServiceList[0]?.name || "",
-      caption: "",
-      image: "",
-      isPublic: true,
-      featured: false
-    });
-  }, [salonServiceList]);
-
-  const clearSalonWorkImage = useCallback(() => {
-    setSalonWorkDraft((prev) => (prev ? { ...prev, image: "" } : prev));
-  }, []);
-
-  const addSalonPortfolio = useCallback(async (event) => {
-    event.preventDefault();
-    if (portfolioSaving || !salonWorkDraft) return;
-    const title = String(salonWorkDraft.title || "").trim();
-    const tag = String(salonWorkDraft.tag || "").trim();
-    const image = String(salonWorkDraft.image || "").trim();
-    const caption = String(salonWorkDraft.caption || "").trim();
-    const isPublic = salonWorkDraft.isPublic !== false;
-    const featured = Boolean(salonWorkDraft.featured);
-    if (!image) {
-      shellNotify("اول یک عکس برای پست انتخاب کن.");
-      return;
-    }
-    if (!title) {
-      shellNotify("عنوان پست را وارد کن.");
-      return;
-    }
-    if (!tag) {
-      shellNotify("دسته پست را از بین خدمات انتخاب کن.");
-      return;
-    }
-
-    const isNew = String(salonWorkDraft.id).startsWith("new-") || salonWorkDraft.id === "new";
-    setPortfolioSaving(true);
-    try {
-      if (!isNew) {
-        const { ok, payload } = await updateSalonPortfolio({
-          id: salonWorkDraft.id,
-          title,
-          tag,
-          ...(image.startsWith("data:") ? { image } : {}),
-          caption,
-          isPublic,
-          featured
-        });
-        if (!ok) {
-          shellNotify(payload.error || "ویرایش پست انجام نشد؛ دوباره امتحان کن.");
-          return;
-        }
-        const savedItem = payload.data?.item;
-        if (savedItem) {
-          setSalonPortfolioList((items) => items.map((item) => (String(item.id) === String(savedItem.id) ? { ...item, ...savedItem } : item)));
-        }
-        shellNotify(isPublic ? "پست به‌روزرسانی شد." : "پست به‌روزرسانی شد و فقط خودت می‌بینی.");
-        void Promise.all([
-          refreshSalonSystemData(),
-          typeof onPostsChanged === "function" ? onPostsChanged() : null
-        ]).catch(() => {});
-      } else {
-        const { ok, payload } = await createSalonPortfolio({
-          title,
-          tag,
-          image,
-          caption,
-          isPublic,
-          featured
-        });
-        if (!ok) {
-          shellNotify(payload.error || "ذخیره نمونه‌کار انجام نشد؛ دوباره امتحان کن.");
-          return;
-        }
-        // Show the new post immediately from the API response; the heavy
-        // refreshes (workspace, public directory) run in the background.
-        const createdItem = payload.data?.item;
-        if (createdItem) setSalonPortfolioList((items) => [createdItem, ...items]);
-        shellNotify(isPublic ? "پست منتشر شد." : "پست ذخیره شد و فقط خودت می‌بینی.");
-        void Promise.all([
-          refreshSalonSystemData(),
-          typeof onPostsChanged === "function" ? onPostsChanged() : null
-        ]).catch(() => {});
-      }
-      resetPortfolioComposer();
-    } catch {
-      shellNotify(isNew ? "ذخیره نمونه‌کار انجام نشد؛ دوباره امتحان کن." : "ویرایش پست انجام نشد؛ دوباره امتحان کن.");
-    } finally {
-      setPortfolioSaving(false);
-    }
-  }, [portfolioSaving, salonWorkDraft, salonPortfolioList.length, shellNotify, refreshSalonSystemData, onPostsChanged, syncSalonDirectory, resetPortfolioComposer]);
-
-  const deleteSalonPortfolio = useCallback(async (id) => {
-    if (!id) return;
-    if (typeof window !== "undefined" && !window.confirm("این پست حذف شود؟")) return;
-    try {
-      const { ok, payload } = await deleteSalonPortfolioApi(id);
-      if (!ok) {
-        shellNotify(payload.error || "حذف پست انجام نشد؛ دوباره امتحان کن.");
-        return;
-      }
-      setSalonPortfolioList((items) => items.filter((item) => String(item.id) !== String(id)));
-      if (salonWorkDraft?.id === id) resetPortfolioComposer();
-      shellNotify("پست سالن حذف شد.");
-      void Promise.all([
-        refreshSalonSystemData(),
-        typeof onPostsChanged === "function" ? onPostsChanged() : null
-      ]).catch(() => {});
-    } catch {
-      shellNotify("حذف پست انجام نشد؛ دوباره امتحان کن.");
-    }
-  }, [shellNotify, refreshSalonSystemData, onPostsChanged, salonWorkDraft, resetPortfolioComposer]);
-
-  const deleteSalonPortfolioFromComposer = useCallback(async () => {
-    if (!salonWorkDraft?.id) return;
-    const isNew = String(salonWorkDraft.id).startsWith("new-") || salonWorkDraft.id === "new";
-    if (isNew) {
-      resetPortfolioComposer();
-      return;
-    }
-    await deleteSalonPortfolio(salonWorkDraft.id);
-  }, [salonWorkDraft, resetPortfolioComposer, deleteSalonPortfolio]);
-
-  /** Shared service composer's salon branch (artistServiceCreateOpen/Mode/Draft stay in HomeApp). */
-  const upsertSalonOwnerService = useCallback(async (body, { editingId } = {}) => {
-    try {
-      const { ok, payload } = editingId
-        ? await updateSalonServiceApi({ id: editingId, ...body })
-        : await createSalonServiceApi(body);
-      if (!ok) {
-        shellNotify(payload.error || (editingId ? "ویرایش خدمت انجام نشد." : "افزودن خدمت انجام نشد."));
-        return false;
-      }
-      await refreshSalonSystemData();
-      return true;
-    } catch {
-      shellNotify(editingId ? "ویرایش خدمت انجام نشد." : "افزودن خدمت انجام نشد.");
-      return false;
-    }
-  }, [shellNotify, refreshSalonSystemData]);
 
   const resetSalonWorkspace = useCallback(() => {
     salonBookingsEpochRef.current += 1;
