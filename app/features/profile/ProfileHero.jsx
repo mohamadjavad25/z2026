@@ -1,5 +1,6 @@
 "use client";
 
+import { defaultAvatarFor } from "../../shared/lib/defaultAvatar";
 import { useState } from "react";
 import {
   BadgeCheck,
@@ -38,7 +39,7 @@ export function ProfileHero({
 }) {
   const type = profile?.type || "";
   const name = profile?.data?.name || "پروفایل زیبابان";
-  const avatar = profile?.data?.avatar || "/profile-icon.svg";
+  const avatar = profile?.data?.avatar || defaultAvatarFor(profile?.type);
   const poster = profile?.data?.poster || "";
   const avatarPosition = profile?.data?.avatarPosition || "50% 50%";
   const posterPosition = profile?.data?.posterPosition || "50% 50%";

@@ -1,5 +1,6 @@
 "use client";
 
+import { defaultAvatarFor } from "../../shared/lib/defaultAvatar";
 import { useEffect, useState } from "react";
 import { SpecialtyMultiSelect } from "../auth/SpecialtyMultiSelect";
 import { beautySpecialtyOptions } from "../../shared/constants/roles";
@@ -41,7 +42,7 @@ export function ProfileEditModal({
   const isSalon = profile.type === "salon";
   // Field of activity exists for artists and salons only; clients have none.
   const hasActivityField = profile.type === "artist" || isSalon;
-  const avatarSrc = avatarDraft || profile.data?.avatar || "/profile-icon.svg";
+  const avatarSrc = avatarDraft || profile.data?.avatar || defaultAvatarFor(profile.type);
   const rawExperienceYears = profile.data?.experienceYears ?? "";
   const experienceYears = /^\d{1,2}$/.test(String(rawExperienceYears)) ? rawExperienceYears : "";
   const managerName = profile.data?.managerName || "";
