@@ -419,7 +419,7 @@ export function SalonClientPage({
             const serviceCount = getVisibleServices(salon).length;
             const localStaffCount = salon.staff?.length || 0;
             return (
-              <article
+              <div
                 className="sdr"
                 key={salon.id || salon.name}
                 role="button"
@@ -473,7 +473,7 @@ export function SalonClientPage({
                     <span className="sdrBook is-soon">به‌زودی</span>
                   )}
                 </div>
-              </article>
+              </div>
             );
           }) : normalizedSalonQuery || onlyOpen ? (
             <div className="emptySalonDirectory">

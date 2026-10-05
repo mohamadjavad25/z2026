@@ -198,6 +198,7 @@ export function SegmentClock({
     <Tag
       className={`${classes}${hasText ? " has-text" : ""}`}
       dateTime={as === "time" ? parsed.label : undefined}
+      role="img"
       aria-label={parsed.label}
       style={{ "--segment-clock-bg": backgroundColor, "--segment-clock-color": color }}
     >
