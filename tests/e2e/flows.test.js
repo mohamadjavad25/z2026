@@ -222,3 +222,40 @@ describe("admin page (browser)", () => {
     await allowed.context.close();
   });
 });
+
+describe("SMS code at sign-up (browser)", () => {
+  it("asks for the texted code, then creates the account", async () => {
+    const { adminClient, uniquePhone } = await import("../integration/helpers.js");
+    const admin = await adminClient();
+    const phone = uniquePhone();
+    const { page, context, problems } = await newPage();
+    // Pretend sign-up requires a code (the shared test server leaves it optional).
+    await page.route("**/api/auth/otp/config", (route) => route.fulfill({ json: { data: { enabled: true, required: true, resendSeconds: 60 } } }));
+    await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
+    await page.getByText("بانو", { exact: true }).first().click();
+    await page.fill("[name=name]", "مشتری کدی");
+    await page.fill("[name=area]", "تهران");
+    await page.fill("[name=phone]", phone);
+    await page.fill("[name=password]", "testpass123");
+    await page.locator("[name=agreeTerms]").check();
+    await page.getByRole("button", { name: "ادامه و تأیید شماره" }).click();
+    await page.locator("[name=otpCode]").waitFor();
+    // wrong code first: Persian error, still on the code step
+    await page.fill("[name=otpCode]", "00000");
+    await page.getByRole("button", { name: "تأیید و ساخت حساب" }).click();
+    await page.getByRole("alert").filter({ hasText: persian }).first().waitFor();
+    // the real code
+    let code = null;
+    for (let i = 0; i < 20 && !code; i += 1) {
+      code = (await admin.get(`/api/admin/sms?phone=${phone}`)).payload.data.latestTestCode;
+      if (!code) await page.waitForTimeout(250);
+    }
+    await page.fill("[name=otpCode]", code);
+    await page.getByRole("button", { name: "تأیید و ساخت حساب" }).click();
+    await page.locator("nav.bottomNav").waitFor();
+    const me = await page.evaluate(async () => (await (await fetch("/api/auth/me")).json()).data.user?.phone);
+    expect(me).toBe(phone);
+    expect(problems).toEqual([]);
+    await context.close();
+  });
+});

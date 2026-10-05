@@ -75,11 +75,14 @@ export function futureBookingDay(openDaysAhead = 2) {
   return formatPersianDateKey(day);
 }
 
-/** Logged-in client for the configured admin phone (ZIBABAN_ADMIN_PHONES in the test server). The account may already exist from an earlier file/run, so log in first and register only if needed. */
+/** Logged-in client for the configured admin phone (ZIBABAN_ADMIN_PHONES in the test server). Cached per test file: logging in again for every test would trip the login rate limit. The account may already exist from an earlier file/run, so log in first and register only if needed. */
+let cachedAdmin;
 export async function adminClient() {
+  if (cachedAdmin) return cachedAdmin;
   const { TEST_ADMIN_PHONE } = await import("../globalSetup.js");
   const client = createClient();
   const login = await client.post("/api/auth/login", { phone: TEST_ADMIN_PHONE, password: "testpass123" });
   if (!login.ok) await registerUser(client, { type: "client", name: "Admin", phone: TEST_ADMIN_PHONE });
+  cachedAdmin = client;
   return client;
 }

@@ -13,6 +13,7 @@ import * as users from "../../../lib/db/repos/users.js";
 import { ensureSalonHours } from "../../../lib/db/repos/salons.js";
 import { checkRateLimit } from "../../../lib/rateLimit.js";
 import { withErrorHandling } from "../../../lib/http.js";
+import { otpConfig, verifyOtpProof } from "../../../lib/otp.js";
 
 export const runtime = "nodejs";
 
@@ -39,6 +40,12 @@ async function _POST(request) {
     }
     if (!isValidIranMobile(phone)) {
       return NextResponse.json({ error: "شماره تماس باید یک شماره موبایل معتبر ایران باشد (مثلا 09123456789)." }, { status: 400 });
+    }
+
+    // Phone verification: required once SMS is on and ZIBABAN_OTP_REQUIRED=1; a proof that is sent must always be valid.
+    const proof = String(body.otpProof || "");
+    if ((otpConfig().required || proof) && !verifyOtpProof(proof, phone, "register")) {
+      return NextResponse.json({ error: "شمارهٔ موبایلت هنوز با کد پیامکی تأیید نشده است.", code: "otp_required" }, { status: 400 });
     }
 
     const limited = await checkRateLimit(`register:${phone}`, REGISTER_ATTEMPT_LIMIT, REGISTER_WINDOW_MS);

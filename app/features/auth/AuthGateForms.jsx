@@ -1,7 +1,7 @@
 "use client";
 
 import { apiFetch } from "../../shared/api/client";
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { ChevronLeft, Eye, EyeOff, ShieldCheck } from "lucide-react";
 import { beautySpecialtyOptions, profileRoles } from "../../shared/constants/roles";
 import { toLatinDigits } from "../../shared/lib/digits";
@@ -9,6 +9,8 @@ import { Button, Field } from "../../components/ui";
 import { ProfileRoleGrid } from "../profile/ProfileRoleGrid";
 import { firstInvalidField, validateLogin, validateSignup } from "./formValidation";
 import { SpecialtyMultiSelect } from "./SpecialtyMultiSelect";
+import { OtpCodeStep } from "./OtpCodeStep";
+import { confirmReset, useOtpConfig, verifyCode } from "./otp";
 
 // target="_blank" (not next/link) deliberately -- this sits inside a
 // half-filled signup form; navigating away in the same tab would lose
@@ -58,8 +60,11 @@ function PasswordField({ name, placeholder, autoComplete = "current-password", c
 // password reset — it files a manual-recovery request the founder/support
 // follows up on by phone (see app/api/auth/password-reset-requests). Still
 // strictly better than the previous dead end (no recovery path at all).
-function PasswordRecoveryPanel({ onClose }) {
+function PasswordRecoveryPanel({ onClose, otp }) {
   const [phone, setPhone] = useState("");
+  const [codeStep, setCodeStep] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [resetDone, setResetDone] = useState(false);
   const [status, setStatus] = useState("idle"); // idle | sending | sent | error
   const [error, setError] = useState("");
 
@@ -69,6 +74,11 @@ function PasswordRecoveryPanel({ onClose }) {
     if (phoneError) {
       setError(phoneError);
       setStatus("error");
+      return;
+    }
+    if (otp?.enabled) {
+      setError("");
+      setCodeStep(true);
       return;
     }
     setStatus("sending");
@@ -88,6 +98,59 @@ function PasswordRecoveryPanel({ onClose }) {
       setError("ارتباط با سرور برقرار نشد.");
       setStatus("error");
     }
+  }
+
+  if (resetDone) {
+    return (
+      <div className="signupForm is-login is-recovery">
+        <div className="formTitle">
+          <span className="formTitleIcon"><ShieldCheck size={18} /></span>
+          <div>
+            <strong>رمز عبور عوض شد</strong>
+            <span>با رمز جدید وارد شو.</span>
+          </div>
+        </div>
+        <button type="button" className="profileSubmit" onClick={onClose}>رفتن به ورود</button>
+      </div>
+    );
+  }
+
+  if (codeStep) {
+    return (
+      <div className="signupForm is-login is-recovery">
+        <div className="formTitle">
+          <span className="formTitleIcon"><ShieldCheck size={18} /></span>
+          <div>
+            <strong>بازیابی رمز عبور</strong>
+            <span>کد پیامکی و رمز جدیدت را وارد کن.</span>
+          </div>
+        </div>
+        <OtpCodeStep
+          phone={phone}
+          purpose="reset"
+          resendSeconds={otp.resendSeconds}
+          submitLabel="تغییر رمز عبور"
+          onEditPhone={() => setCodeStep(false)}
+          onSubmit={async (code) => {
+            if (newPassword.length < 8) return "رمز جدید باید حداقل ۸ کاراکتر باشد.";
+            const { ok, payload } = await confirmReset({ phone, code, newPassword });
+            if (!ok) return payload.error || "تغییر رمز انجام نشد.";
+            setResetDone(true);
+            return "";
+          }}
+        >
+          <input
+            type="password"
+            name="newPassword"
+            aria-label="رمز عبور جدید"
+            placeholder="رمز عبور جدید (حداقل ۸ کاراکتر)"
+            autoComplete="new-password"
+            value={newPassword}
+            onChange={(event) => setNewPassword(event.target.value)}
+          />
+        </OtpCodeStep>
+      </div>
+    );
   }
 
   if (status === "sent") {
@@ -111,7 +174,7 @@ function PasswordRecoveryPanel({ onClose }) {
         <span className="formTitleIcon"><ShieldCheck size={18} /></span>
         <div>
           <strong>بازیابی رمز عبور</strong>
-          <span>شماره تماس حسابت را وارد کن تا پشتیبانی برای بازیابی تماس بگیرد.</span>
+          <span>{otp?.enabled ? "شماره‌ات را وارد کن تا کد پیامکی بفرستیم." : "شماره تماس حسابت را وارد کن تا پشتیبانی برای بازیابی تماس بگیرد."}</span>
         </div>
       </div>
       <input
@@ -129,7 +192,7 @@ function PasswordRecoveryPanel({ onClose }) {
       />
       {error ? <p className="authNotice" role="alert">{error}</p> : null}
       <button type="submit" className="profileSubmit" disabled={status === "sending"}>
-        {status === "sending" ? "در حال ارسال…" : "ثبت درخواست بازیابی"}
+        {status === "sending" ? "در حال ارسال…" : otp?.enabled ? "ارسال کد" : "ثبت درخواست بازیابی"}
       </button>
       <p className="authSwitchHint">
         <button type="button" onClick={onClose}>بازگشت به ورود</button>
@@ -237,13 +300,31 @@ function LoginForm({ authBusy, defaultPhone, onSubmit, onForgot }) {
   );
 }
 
-function SignupForm({ type, heroClass, authBusy, onBackToRole, onSwitchToLogin, onProfileSubmit }) {
+function SignupForm({ type, heroClass, authBusy, onBackToRole, onSwitchToLogin, onProfileSubmit, otp }) {
   const config = ROLE_FORMS[type] || ROLE_FORMS.client;
-  const form = useAuthForm((data) => validateSignup(type, data), (event) => onProfileSubmit(event, type));
+  const formRef = useRef(null);
+  const [codeStep, setCodeStep] = useState(false);
+  const [phone, setPhone] = useState("");
+  const [proof, setProof] = useState("");
+  const [verifying, setVerifying] = useState(false);
+  const form = useAuthForm((data) => validateSignup(type, data), (event) => {
+    // Once SMS is required, the first valid submit opens the code step; the second (after the code) creates the account.
+    if (otp?.required && !proof) {
+      setPhone(toLatinDigits(String(new FormData(event.currentTarget).get("phone") || "").trim()));
+      setCodeStep(true);
+      return;
+    }
+    onProfileSubmit(event, type);
+  });
   const serviceErrorId = useId();
+  // The code was right -> we hold a proof -> submit the real form again, now carrying it.
+  useEffect(() => {
+    if (proof) formRef.current?.requestSubmit();
+  }, [proof]);
   return (
     <form
-      className={`signupForm is-${type} ${heroClass || ""}`}
+      ref={formRef}
+      className={`signupForm is-${type} ${heroClass || ""} ${codeStep ? "is-otp" : ""}`}
       noValidate
       onSubmit={form.handleSubmit}
       onInput={form.onInput}
@@ -283,9 +364,28 @@ function SignupForm({ type, heroClass, authBusy, onBackToRole, onSwitchToLogin, 
         {(props) => <input name="email" type="email" placeholder="ایمیل (اختیاری)" dir="ltr" {...props} />}
       </Field>
       <TermsAgreement error={form.errors.agreeTerms} />
+      <input type="hidden" name="otpProof" value={proof} />
       <button type="submit" className="profileSubmit" disabled={authBusy}>
-        {authBusy ? "در حال ثبت…" : "تکمیل ثبت‌نام"}
+        {authBusy ? "در حال ثبت…" : otp?.required ? "ادامه و تأیید شماره" : "تکمیل ثبت‌نام"}
       </button>
+      {codeStep ? (
+        <OtpCodeStep
+          phone={phone}
+          purpose="register"
+          resendSeconds={otp.resendSeconds}
+          submitLabel="تأیید و ساخت حساب"
+          busy={verifying || authBusy}
+          onEditPhone={() => { setCodeStep(false); setProof(""); }}
+          onSubmit={async (code) => {
+            setVerifying(true);
+            const { ok, payload } = await verifyCode(phone, code);
+            setVerifying(false);
+            if (!ok) return payload.error || "تأیید کد انجام نشد.";
+            setProof(payload.data.proof);
+            return "";
+          }}
+        />
+      ) : null}
       <p className="authSwitchHint">
         قبلاً ثبت‌نام کردی؟{" "}
         <button type="button" onClick={onSwitchToLogin}>
@@ -317,6 +417,7 @@ export function AuthGateForms({
   const lastPhone =
     typeof window !== "undefined" ? window.localStorage.getItem("zibaban_last_phone") || "" : "";
   const [recoveryOpen, setRecoveryOpen] = useState(false);
+  const otp = useOtpConfig();
 
   return (
     <>
@@ -343,7 +444,7 @@ export function AuthGateForms({
 
       {authMode === "login" ? (
         recoveryOpen ? (
-          <PasswordRecoveryPanel onClose={() => setRecoveryOpen(false)} />
+          <PasswordRecoveryPanel onClose={() => setRecoveryOpen(false)} otp={otp} />
         ) : (
         <>
         <LoginForm authBusy={authBusy} defaultPhone={lastPhone} onSubmit={onLoginSubmit} onForgot={() => setRecoveryOpen(true)} />
@@ -363,6 +464,7 @@ export function AuthGateForms({
           onBackToRole={onBackToRole}
           onSwitchToLogin={onSwitchToLogin}
           onProfileSubmit={onProfileSubmit}
+          otp={otp}
         />
       )}
     </>
