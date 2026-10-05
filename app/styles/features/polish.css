@@ -881,3 +881,6 @@ html[data-cbt="1"] body { padding-bottom: 92px; }
 .neoSettingsLegalLinks a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 6px; }
 .sdrChips button, .cuChips button, .brandCardPosterEdit, .cpoEdit { min-height: 40px !important; }
 .requestActions button { min-height: 44px !important; }
+
+/* Salon banner: show the picture all the way down -- no white fade over its bottom edge. */
+.profileHero.is-salon .salonHeroBanner::after { content: none !important; display: none !important; }
