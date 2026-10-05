@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { normalizePhone, isValidIranMobile, verifyAdminToken } from "../../../lib/auth.js";
+import { normalizePhone, isValidIranMobile } from "../../../lib/auth.js";
+import { requireAdmin } from "../../../lib/admin.js";
 import { ensureDb } from "../../../lib/db/connection.js";
 import * as passwordResetRequests from "../../../lib/db/repos/passwordResetRequests.js";
 import { checkRateLimit } from "../../../lib/rateLimit.js";
@@ -48,7 +49,7 @@ async function _POST(request) {
 
 async function _GET(request) {
   await ensureDb();
-  if (!verifyAdminToken(request)) {
+  if (!(await requireAdmin(request)).ok) {
     return NextResponse.json({ error: "دسترسی مجاز نیست." }, { status: 401 });
   }
   const requests = await passwordResetRequests.listPendingRequests();

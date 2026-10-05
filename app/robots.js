@@ -21,7 +21,7 @@ export default function robots() {
         // management, etc.) lives behind client-side state on "/" itself
         // rather than its own crawlable URL, so there is currently no
         // separate internal/auth-gated route to disallow beyond /api/.
-        disallow: ["/api/"]
+        disallow: ["/api/", "/admin"]
       }
     ],
     sitemap: `${SITE_URL}/sitemap.xml`

@@ -200,3 +200,25 @@ describe("dialogs (browser)", () => {
     }
   }, 120_000);
 });
+
+describe("admin page (browser)", () => {
+  it("turns ordinary users away and shows the panel to an admin", async () => {
+    const { adminClient } = await import("../integration/helpers.js");
+    const normal = createClient();
+    await registerUser(normal, { type: "client", name: "عادی" });
+    const denied = await newPage({ cookie: normal.cookie() });
+    await denied.page.goto(`${TEST_BASE_URL}/admin`, { waitUntil: "networkidle" });
+    expect(await denied.page.locator("main").innerText()).toContain("دسترسی ندارید");
+    await denied.context.close();
+
+    const admin = await adminClient();
+    const allowed = await newPage({ width: 1100, cookie: admin.cookie() });
+    await allowed.page.goto(`${TEST_BASE_URL}/admin`, { waitUntil: "networkidle" });
+    await allowed.page.getByRole("tab", { name: "کاربران" }).click();
+    await allowed.page.locator(".admTable tbody tr").first().waitFor();
+    await allowed.page.getByRole("tab", { name: "نمای کلی" }).click();
+    expect(await allowed.page.locator(".admGrid").innerText()).toContain("کل کاربران");
+    expect(allowed.problems).toEqual([]);
+    await allowed.context.close();
+  });
+});
