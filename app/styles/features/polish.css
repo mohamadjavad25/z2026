@@ -884,3 +884,11 @@ html[data-cbt="1"] body { padding-bottom: 92px; }
 
 /* Salon banner: show the picture all the way down -- no white fade over its bottom edge. */
 .profileHero.is-salon .salonHeroBanner::after { content: none !important; display: none !important; }
+
+/* The sheet panel takes programmatic focus when it opens; it should not draw a ring around itself. */
+.salonHeroSheetPanel:focus { outline: none; }
+
+/* Contrast (WCAG AA): small secondary labels were 3:1 or lower. */
+.profileModeRail button:not(.is-active):not(.active) > span { color: #5a5b61; }
+:root .salonHeroWeekStrip .salonHeroWeekDays .salonHeroWeekDay small { color: #62636b !important; font-size: 0.64rem !important; }
+:root .salonHeroWeekStrip .salonHeroWeekDays .salonHeroWeekDay em { color: #167a53 !important; font-size: 0.64rem !important; }

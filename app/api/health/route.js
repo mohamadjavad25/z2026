@@ -17,7 +17,11 @@ async function _GET() {
   try {
     const db = await getDb();
     await db.query("SELECT 1");
-    return NextResponse.json({ ok: true, uptimeSeconds: Math.round(process.uptime()) });
+    return NextResponse.json({
+      ok: true,
+      uptimeSeconds: Math.round(process.uptime()),
+      version: (process.env.VERCEL_GIT_COMMIT_SHA || "dev").slice(0, 7)
+    });
   } catch {
     return NextResponse.json({ ok: false }, { status: 503 });
   }

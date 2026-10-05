@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { reportClientError } from "./shared/lib/reportClientError";
 
 // Catches a render/runtime error anywhere under the root layout (so
 // app/layout.jsx's <html>/<body>/CSS still apply here) and shows a
@@ -11,6 +12,7 @@ import { useEffect } from "react";
 export default function ErrorBoundary({ error, reset }) {
   useEffect(() => {
     console.error(error);
+    reportClientError(error, "error-boundary");
   }, [error]);
 
   return (

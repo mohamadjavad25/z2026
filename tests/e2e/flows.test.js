@@ -1,4 +1,4 @@
-/* global document */
+/* global document, axe */
 import { afterAll, describe, expect, it } from "vitest";
 import { TEST_BASE_URL } from "../globalSetup.js";
 import { createClient, registerUser } from "../integration/helpers.js";
@@ -56,7 +56,7 @@ describe("booking flow (browser)", () => {
     await cp.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
     await cp.locator("nav.bottomNav > button").nth(2).click();
     await cp.getByPlaceholder("جستجوی سالن یا محدوده...").fill(name);
-    await cp.locator("article").filter({ hasText: name }).first().click();
+    await cp.locator(".sdr").filter({ hasText: name }).first().click();
     await cp.locator(".spvBarBook").click();
     await cp.locator(".bspTime").first().click();
     expect(await cp.locator(".salonClientBookingSummary").innerText()).toContain("ساعت");
@@ -102,5 +102,46 @@ describe("mobile smoke (browser)", () => {
       expect(problems).toEqual([]);
       await context.close();
     }
+  });
+});
+
+describe("accessibility (browser)", () => {
+  it("has no serious or critical axe violations on the main screens of every role", async () => {
+    const axePath = new URL("../../node_modules/axe-core/axe.min.js", import.meta.url).pathname;
+    for (const type of ["client", "artist", "salon"]) {
+      const api = createClient();
+      await registerUser(api, { type, name: `نقش ${type}` });
+      const { page, context } = await newPage({ cookie: api.cookie() });
+      await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
+      const nav = page.locator("nav.bottomNav > button");
+      for (let i = 0; i < (await nav.count()); i++) {
+        await nav.nth(i).click();
+        await page.waitForTimeout(400);
+        await page.addScriptTag({ path: axePath });
+        const violations = await page.evaluate(async () => {
+          const result = await axe.run(document, { resultTypes: ["violations"] });
+          return result.violations.filter((v) => v.impact === "serious" || v.impact === "critical").map((v) => `${v.id}: ${v.nodes[0].html.slice(0, 80)}`);
+        });
+        expect(violations, `${type} tab ${i}`).toEqual([]);
+      }
+      await context.close();
+    }
+  }, 120_000);
+
+  it("keeps keyboard focus inside a sheet and returns it to the opener on Escape", async () => {
+    const { page, context } = await newPage();
+    await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
+    await page.getByText("سالن زیبایی", { exact: true }).first().click();
+    const trigger = page.locator(".specialtySelectTrigger");
+    await trigger.focus();
+    await trigger.press("Enter");
+    await page.locator(".specialtySheet").waitFor();
+    expect(await page.evaluate(() => !!document.activeElement?.closest(".specialtySheet"))).toBe(true);
+    for (let i = 0; i < 6; i++) await page.keyboard.press("Tab");
+    expect(await page.evaluate(() => !!document.activeElement?.closest(".specialtySheet"))).toBe(true);
+    await page.keyboard.press("Escape");
+    await page.locator(".specialtySheet").waitFor({ state: "detached" });
+    expect(await page.evaluate(() => document.activeElement?.className || "")).toContain("specialtySelectTrigger");
+    await context.close();
   });
 });

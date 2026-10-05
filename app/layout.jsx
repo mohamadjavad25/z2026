@@ -2,6 +2,7 @@ import "./styles.css";
 import Script from "next/script";
 import PbdqInspector from "./components/PbdqInspector.jsx";
 import { ViewportHeightFix } from "./components/ViewportHeightFix.jsx";
+import { ClientErrorReporter } from "./components/ClientErrorReporter.jsx";
 import { getSiteUrl } from "./lib/siteUrl.js";
 
 // NEXT_PUBLIC_SITE_URL is the single source of truth for the site's public
@@ -81,6 +82,7 @@ export default function RootLayout({ children }) {
       <body>
         <PbdqInspector />
         <ViewportHeightFix />
+        <ClientErrorReporter />
         {children}
         <Script id="sw-register" strategy="afterInteractive">
           {`if ("serviceWorker" in navigator) {

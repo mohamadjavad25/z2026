@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { reportClientError } from "./shared/lib/reportClientError";
 
 // Only fires when the ROOT layout itself (app/layout.jsx) throws -- Next.js
 // requires this to render its own complete <html>/<body>, since the layout
@@ -11,6 +12,7 @@ import { useEffect } from "react";
 export default function GlobalError({ error, reset }) {
   useEffect(() => {
     console.error(error);
+    reportClientError(error, "global-error");
   }, [error]);
 
   return (
