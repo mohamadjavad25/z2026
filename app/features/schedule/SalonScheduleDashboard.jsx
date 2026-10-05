@@ -133,7 +133,7 @@ export function SalonScheduleDashboard({
                     </small>
                   </div>
                   <div className="requestCardAside">
-                    <SegmentClock value={request.time} size="xs" as="span" />
+                    <b className="requestTime" dir="ltr">{toPersianDigits(String(request.time || ""))}</b>
                     <div className="requestCardWhen">
                       <em>{request.day}</em>
                       <span>{request.date}</span>

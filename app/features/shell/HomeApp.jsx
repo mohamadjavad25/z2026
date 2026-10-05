@@ -1131,6 +1131,7 @@ export function HomeApp() {
           clientBookingList={clientBookingList}
           savedPosts={savedPosts}
           openProfileEdit={openProfileEdit}
+          openSalonWorkspace={openSalonWorkspace}
           setClientBookingSettings={setClientBookingSettings}
           rebookFromBooking={rebookFromBooking}
           artistBreakTime={artistBreakTime}
