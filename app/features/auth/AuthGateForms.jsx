@@ -1,5 +1,6 @@
 "use client";
 
+import { apiFetch } from "../../shared/api/client";
 import { useId, useState } from "react";
 import { ChevronLeft, Eye, EyeOff, ShieldCheck } from "lucide-react";
 import { beautySpecialtyOptions, profileRoles } from "../../shared/constants/roles";
@@ -73,13 +74,11 @@ function PasswordRecoveryPanel({ onClose }) {
     setStatus("sending");
     setError("");
     try {
-      const response = await fetch("/api/auth/password-reset-requests", {
+      const { ok, payload } = await apiFetch("/api/auth/password-reset-requests", {
         method: "POST",
-        headers: { "content-type": "application/json" },
         body: JSON.stringify({ phone })
       });
-      const payload = await response.json().catch(() => ({}));
-      if (!response.ok) {
+      if (!ok) {
         setError(payload.error || "ثبت درخواست انجام نشد.");
         setStatus("error");
         return;

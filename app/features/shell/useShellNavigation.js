@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { apiFetch } from "../../shared/api/client";
 import { getSaves } from "../../shared/api/saves";
 import { ProfileSavedPosts } from "../profile/ProfileSavedPosts";
 
@@ -74,9 +75,8 @@ function getPassportMatch(post) {
 
   async function refreshFollows() {
     try {
-      const response = await fetch("/api/follows");
-      if (!response.ok) return;
-      const payload = await response.json();
+      const { ok, payload } = await apiFetch("/api/follows");
+      if (!ok) return;
       const ids = (payload.data?.followingIds || []).map(String);
       setFollowedArtists(ids);
       setFollowedSalons(ids);
@@ -321,9 +321,8 @@ function getPassportMatch(post) {
 
       if (!localSalon) {
         try {
-          const response = await fetch("/api/salons");
-          if (response.ok) {
-            const payload = await response.json();
+          const { ok, payload } = await apiFetch("/api/salons");
+          if (ok) {
             const list = payload.salons || payload.data?.salons || [];
             if (list.length) {
               setSalonDirectory(list);
@@ -338,9 +337,9 @@ function getPassportMatch(post) {
       // The list stays light; pull the full detail for the public page.
       if (nextSalon?.id) {
         try {
-          const detailResponse = await fetch("/api/salons/" + encodeURIComponent(nextSalon.id));
-          if (detailResponse.ok) {
-            const detailPayload = await detailResponse.json();
+          const detailResult = await apiFetch("/api/salons/" + encodeURIComponent(nextSalon.id));
+          if (detailResult.ok) {
+            const detailPayload = detailResult.payload;
             const detail = detailPayload.data?.salon || detailPayload.salon;
             if (detail && typeof detail === "object") {
               nextSalon = { ...nextSalon, ...detail };
@@ -505,9 +504,8 @@ function getPassportMatch(post) {
     setSalonClientTab("gallery");
     setSelectedSalon(salon);
     try {
-      const response = await fetch("/api/salons/" + encodeURIComponent(salon.id));
-      if (response.ok) {
-        const payload = await response.json();
+      const { ok, payload } = await apiFetch("/api/salons/" + encodeURIComponent(salon.id));
+      if (ok) {
         const detail = payload.data?.salon || payload.salon;
         if (detail && typeof detail === "object") {
           setSelectedSalon((current) => (

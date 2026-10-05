@@ -1,5 +1,6 @@
 "use client";
 
+import { apiFetch } from "../../shared/api/client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { deleteAccount as apiDeleteAccount, getAuthMe, login as apiLogin, logout as apiLogout, register as apiRegister } from "../../shared/api/auth";
 import { AUTH_SESSION_KEY, normalizeProfile, readAuthSession, writeAuthSession } from "./constants";
@@ -97,7 +98,7 @@ export function useAuthSession({
         // Same race window as HomeApp: /me + /salons in parallel, then public directories, then lock check.
         const [meResult, salonsPayload] = await Promise.all([
           getAuthMe(),
-          fetch("/api/salons").then((response) => response.json()).catch(() => ({}))
+          apiFetch("/api/salons").then(({ payload }) => payload).catch(() => ({}))
         ]);
         if (isStale()) return;
 

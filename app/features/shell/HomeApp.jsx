@@ -1,5 +1,6 @@
 "use client";
 
+import { apiFetch } from "../../shared/api/client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ShieldCheck } from "lucide-react";
@@ -118,13 +119,11 @@ export function HomeApp() {
       // ignore
     }
     try {
-      const response = await fetch("/api/artist/join-salon", {
+      const { ok, payload } = await apiFetch("/api/artist/join-salon", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ salonUserId: Number(pendingSalonId) })
       });
-      const payload = await response.json().catch(() => ({}));
-      if (response.ok) {
+      if (ok) {
         setAppToast(`به تیم «${payload?.data?.salon?.name || "سالن"}» پیوستی!`);
       } else if (payload?.code !== "ALREADY_STAFF") {
         setAppToast(payload?.error || "پیوستن به تیم سالن انجام نشد.");
@@ -181,16 +180,14 @@ export function HomeApp() {
           c.refreshSavedPosts?.(),
           c.refreshFollows?.(),
           c.refreshSaves?.(),
-          fetch("/api/beauty-passport")
-            .then((response) => (response.ok ? response.json() : {}))
-            .catch(() => ({}))
+          apiFetch("/api/beauty-passport").then(({ ok, payload }) => (ok ? payload : {})).catch(() => ({}))
         ]);
         setBeautyPassport(passportPayload.passport || passportPayload.data?.passport || null);
       } else if (source === "register") {
         await Promise.all([c.refreshSavedPosts?.(), c.refreshFollows?.(), c.refreshSaves?.()]);
       } else if (source === "boot") {
         const [passportPayload] = await Promise.all([
-          fetch("/api/beauty-passport").then((response) => (response.ok ? response.json() : {})).catch(() => ({})),
+          apiFetch("/api/beauty-passport").then(({ ok, payload }) => (ok ? payload : {})).catch(() => ({})),
           c.refreshFollows?.(),
           c.refreshSaves?.()
         ]);

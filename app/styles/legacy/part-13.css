@@ -1,0 +1,824 @@
+.artistPublicIdentityCard {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  gap: 14px;
+  width: 100% !important;
+  margin: -70px 0 0 !important;
+  padding: 50px 20px 16px !important;
+  border-radius: 28px 28px 0 0 !important;
+  background: #ffffff !important;
+}
+
+/* Avatar: circle sitting on the hero/card boundary, thin artist ring */
+.artistPublicAvatarWrap {
+  position: absolute !important;
+  top: -54px !important;
+  right: 24px !important;
+  left: auto !important;
+  width: 124px !important;
+  height: 124px !important;
+}
+
+.artistPublicAvatar {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  border-radius: 50% !important;
+  border: 1px solid rgba(233, 240, 255, 0.9) !important;
+  box-shadow:
+    0 0 0 0.5px rgba(226, 236, 255, 0.42),
+    0 0 7px rgba(111, 115, 128, 0.38),
+    0 0 13px rgba(17, 26, 60, 0.26),
+    0 10px 26px rgba(14, 14, 18, 0.22) !important;
+  overflow: hidden;
+  font-size: 2.3rem;
+  font-weight: 900;
+  color: #2c2f3e;
+  background-color: #ffffff !important;
+}
+
+.artistPublicAvatarImage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center;
+}
+
+.artistPublicTitle h2 {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 0;
+  color: #23242e;
+  font-size: 1.04rem;
+  font-weight: 900;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.artistPublicNameText {
+  min-width: 0;
+  max-width: 34vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.artistPublicVerifiedIcon {
+  flex: 0 0 auto;
+  color: #378add;
+}
+
+/* Actions: follow + message, salon button look, artist accent */
+.artistPublicActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.artistPublicFollow,
+.artistPublicMessage {
+  min-height: 50px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid rgba(28, 32, 44, 0.1);
+  border-radius: 17px;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 950;
+  cursor: pointer;
+  transition: transform 0.16s ease, background 0.16s ease;
+}
+
+.artistPublicFollow {
+  border-color: transparent;
+  background: linear-gradient(135deg, #14161d 0%, #14161d 100%);
+  color: #ffffff;
+}
+
+.artistPublicFollow.is-following {
+  background: rgba(20, 22, 29, 0.12);
+  color: #14161d;
+}
+
+.artistPublicMessage {
+  background: #ffffff;
+  color: #14161d;
+}
+
+.artistPublicFollow:active,
+.artistPublicMessage:active {
+  transform: scale(0.97);
+}
+
+.artistPublicPage {
+  background: #ffffff !important;
+}
+
+.artistPublicBody {
+  background: #ffffff !important;
+}
+
+/* Artist panel rail — background-colored + shadowless (any viewport) */
+.profilePanel.page-profile:has(.createdProfile.is-artist) > .profileModeRail.is-panelRail.is-artist-rail {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.profilePanel.page-profile:has(.createdProfile.is-artist) > .profileModeRail.is-panelRail.is-artist-rail button,
+.profilePanel.page-profile:has(.createdProfile.is-artist) > .profileModeRail.is-panelRail.is-artist-rail button.active {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.profilePanel.page-profile:has(.createdProfile.is-artist) > .profileModeRail.is-panelRail.is-artist-rail button.active {
+  color: #14161d !important;
+  box-shadow: inset 0 -3px 0 #14161d !important;
+}
+
+/* Extra top margin here compensates for .artistHeroStats now being
+   absolutely positioned (out of flow) — it no longer pushes this rail down
+   the way it did when it was a normal-flow sibling — but .profileHero.is-artist
+   now carries its own padding-bottom to keep the stats row from being
+   clipped, which already provides most of that clearance, so this only
+   needs a small top margin on top of that. */
+.profilePanel.page-profile:has(.createdProfile.is-artist) > .profileModeRail.is-panelRail.is-artist-rail {
+  margin: 8px -8px 12px !important;
+}
+
+/* Salon panel rail — sits inside the hero (between the name/meta and the
+   week strip) via ProfileHero's modeRail slot, not as a sibling of
+   .profilePanel like the artist rail — see the position:absolute rule
+   above for its actual placement. This just keeps the background flat. */
+.profileHero.is-salon .profileModeRail.is-panelRail.is-salon {
+  background: transparent !important;
+  box-shadow: none !important;
+  margin: 0 !important;
+}
+
+.profileHero.is-salon .profileModeRail.is-panelRail.is-salon button,
+.profileHero.is-salon .profileModeRail.is-panelRail.is-salon button.active {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.profileHero.is-salon .profileModeRail.is-panelRail.is-salon button.active {
+  color: #14161d !important;
+  box-shadow: inset 0 -3px 0 #14161d !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   Artist public page v2 — title beside logo, chip identity, direct services
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* Title: top of the card, beside the logo.
+   justify-items uses flow-relative start/end, and in this RTL page "end"
+   is the LEFT edge — "start" is what actually hugs the avatar on the right. */
+.artistPublicTitle {
+  display: grid;
+  gap: 4px;
+  justify-items: start;
+  text-align: right;
+  margin: -52px 140px 0 0 !important;
+  padding: 0 !important;
+  min-height: 44px;
+  align-content: center;
+}
+
+/* City: normal flow, directly under the name (matches the owner profile) */
+.artistPublicCityTag {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: 4px;
+  color: #8b8fa0;
+  font-size: 0.72rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.artistPublicCityTag svg {
+  flex: 0 0 auto;
+  color: inherit;
+}
+
+/* Stats row: plain, no card — matches the owner profile's .artistHeroStats
+   (bold dark number + small gray label, flat, no borders/background). */
+.artistPublicStatsRow {
+  position: static !important;
+  top: auto !important;
+  left: auto !important;
+  justify-self: stretch;
+  width: 100%;
+  margin: 14px 0 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+}
+
+.artistPublicStatsRow span {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  color: #9c99a6;
+  font-size: 0.66rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.artistPublicStatsRow b {
+  color: #1c202c;
+  font-size: 0.86rem;
+  font-weight: 950;
+}
+
+/* Stacked sections spacing */
+.artistPublicContent > section + section {
+  margin-top: 22px;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   Artist public v3 — minimal professional sections
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* Tighter section rhythm */
+.artistPublicContent > section + section {
+  margin-top: 18px !important;
+}
+
+/* Gallery: every image in the 2-column grid, compact tiles */
+.artistPublicGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+}
+
+.artistPublicGrid.is-single {
+  grid-template-columns: 1fr !important;
+}
+
+.artistPublicCard {
+  min-height: 0 !important;
+  border-radius: 12px !important;
+  aspect-ratio: 4 / 5;
+}
+
+.artistPublicCard img,
+.artistPublicCardFallback {
+  height: 100% !important;
+}
+
+.artistPublicCardCopy {
+  padding: 10px !important;
+  gap: 2px !important;
+}
+
+.artistPublicCardCopy h3 {
+  font-size: 0.78rem !important;
+}
+
+.artistPublicCardCopy small {
+  font-size: 0.62rem !important;
+}
+
+.artistPublicWorkTag {
+  min-height: 20px !important;
+  padding: 0 8px !important;
+  font-size: 0.58rem !important;
+}
+
+/* About: compact */
+.artistPublicAboutBio {
+  font-size: 0.82rem !important;
+  line-height: 1.7 !important;
+}
+
+.artistPublicAboutStats article {
+  padding: 10px 6px !important;
+  border-radius: 12px !important;
+}
+
+.artistPublicAboutStats b {
+  font-size: 0.95rem !important;
+}
+
+.artistPublicAboutList > div {
+  padding: 10px 0 !important;
+}
+
+/* ═══ Artist public services — one flat list, works for 1..N services ═══ */
+.artistPublicServiceList {
+  display: grid;
+  gap: 8px;
+}
+
+.artistPublicServiceCard {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid rgba(28, 32, 44, 0.08);
+  border-radius: 16px;
+  background: #ffffff;
+  text-align: right;
+  cursor: pointer;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.artistPublicServiceCard:hover {
+  border-color: rgba(20, 22, 29, 0.32);
+  box-shadow: 0 8px 20px rgba(20, 22, 29, 0.08);
+}
+
+.artistPublicServiceCard.is-selected {
+  border-color: #14161d;
+  background: rgba(20, 22, 29, 0.05);
+}
+
+.artistPublicServiceIcon {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: rgba(20, 22, 29, 0.1);
+  color: #14161d;
+}
+
+.artistPublicServiceInfo {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.artistPublicServiceTitle {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #23242e;
+  font-size: 0.86rem;
+  font-weight: 900;
+}
+
+.artistPublicServiceMetaLine {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #8b8fa0;
+  font-size: 0.66rem;
+  font-weight: 800;
+}
+
+.artistPublicServiceSide {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #14161d;
+}
+
+.artistPublicServiceSide b {
+  font-size: 0.76rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.artistPublicServiceSide svg {
+  color: #8b8fa0;
+}
+
+.artistPublicServiceEmpty {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 26px 16px;
+  border: 1px dashed rgba(28, 32, 44, 0.14);
+  border-radius: 16px;
+  background: rgba(246, 246, 251, 0.6);
+  color: #8b8fa0;
+  text-align: center;
+}
+
+.artistPublicServiceEmpty b {
+  color: #23242e;
+  font-size: 0.84rem;
+  font-weight: 900;
+}
+
+.artistPublicServiceEmpty span {
+  max-width: 260px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+@keyframes artistPopupIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ═══ Booking popup ═══ */
+/* Backdrop/sizing now come from the shared .salonHeroSheetPanel/
+   .salonHeroSheetBackdrop (ProfileSheet) -- this only adds this
+   popup's own inner spacing on top of that shared shell. */
+.artistBookingPopupSheet {
+  display: flex;
+  flex-direction: column;
+  padding: 6px 4px 18px;
+}
+
+.artistBookingPopupSheet .artistPublicBookingPanel {
+  display: grid;
+  gap: 12px;
+  padding-top: 6px;
+}
+
+.artistBookingPhoneWarning {
+  margin: 10px 0 0;
+  padding: 8px 10px;
+  border: 1px solid rgba(214, 79, 79, 0.22);
+  border-radius: 12px;
+  background: rgba(214, 79, 79, 0.07);
+  color: #a13c3c;
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1.6;
+}
+
+.artistBookingPhoneWarning button {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: #14161d;
+  font-size: inherit;
+  font-weight: 950;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.artistBookingPopupConfirm {
+  width: 100%;
+  min-height: 50px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 14px;
+  border: 0;
+  border-radius: 14px;
+  background: #14161d;
+  color: #ffffff;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 950;
+  cursor: pointer;
+  box-shadow: 0 12px 24px rgba(20, 22, 29, 0.18);
+  transition: transform 0.16s ease, opacity 0.16s ease;
+}
+
+.artistBookingPopupConfirm:active {
+  transform: scale(0.98);
+}
+
+.artistBookingPopupConfirm:disabled {
+  opacity: 0.65;
+  cursor: default;
+}
+
+/* ═══ Popups v2: column layout, floating close below the modal, slot scroll ═══ */
+
+.artistServicePopup {
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.artistServicePopupClose:hover {
+  background: #ffffff;
+}
+
+.artistServicePopupClose:active {
+  transform: scale(0.97);
+}
+
+
+/* Popup sheets polish */
+.artistServicePopupSheet {
+  border-radius: 26px !important;
+  box-shadow: 0 30px 70px rgba(14, 14, 18, 0.34) !important;
+}
+
+/* Day picker caption + polish */
+.artistPublicDayLabel {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.artistPublicDayLabel span {
+  color: #23242e;
+  font-size: 0.8rem;
+  font-weight: 900;
+}
+
+.artistPublicDayLabel small {
+  color: #8b8fa0;
+  font-size: 0.64rem;
+  font-weight: 750;
+}
+
+.artistBookingPopupSheet .breakTimeWheel.is-label .breakTimeWheelLabel {
+  font-size: 0.82rem;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+/* Full days in the wheel: clearly disabled */
+.artistBookingPopupSheet .breakTimeWheelItem.is-disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.artistBookingPopupSheet .breakTimeWheelItem.is-disabled .breakTimeWheelLabel {
+  text-decoration: line-through;
+}
+
+/* ═══ Artist public — About icon button in sticky bar + popup modal ═══ */
+.artistPublicBooking {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 10px !important;
+}
+
+.artistPublicAboutBtn {
+  flex: 0 0 auto;
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 18px;
+  border: 1px solid rgba(20, 22, 29, 0.22) !important;
+  border-radius: 999px !important;
+  background: #ffffff !important;
+  color: #14161d !important;
+  box-shadow: none !important;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 900;
+  cursor: pointer;
+  transition: border-color 0.16s ease, background 0.16s ease, transform 0.16s ease;
+}
+
+.artistPublicAboutBtn:hover {
+  border-color: rgba(20, 22, 29, 0.34) !important;
+  background: rgba(20, 22, 29, 0.05) !important;
+}
+
+.artistPublicAboutBtn:active {
+  transform: scale(0.97);
+}
+
+.artistAboutPopup {
+  position: fixed;
+  inset: 0;
+  z-index: 42;
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 20px;
+  background: rgba(15, 15, 19, 0.5);
+  backdrop-filter: blur(6px);
+  animation: artistPopupIn 0.22s ease both;
+}
+
+.artistAboutPopupSheet {
+  width: min(380px, 100%);
+  max-height: min(80dvh, 600px);
+  display: flex;
+  flex-direction: column;
+  padding: 22px 20px 20px;
+  border-radius: 26px;
+  background: #ffffff;
+  box-shadow: 0 30px 70px rgba(14, 14, 18, 0.34);
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.artistAboutPopupClose {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  color: #14161d;
+  font: inherit;
+  cursor: pointer;
+  box-shadow: 0 12px 28px rgba(14, 14, 18, 0.22);
+  transition: transform 0.16s ease, background 0.16s ease;
+}
+
+.artistAboutPopupClose:hover {
+  background: #ffffff;
+}
+
+.artistAboutPopupClose:active {
+  transform: scale(0.97);
+}
+
+.artistAboutPopupHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid rgba(28, 32, 44, 0.08);
+}
+
+.artistAboutPopupHeadIcon {
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(20, 22, 29, 0.1);
+  color: #14161d;
+}
+
+.artistAboutPopupHead h3 {
+  margin: 0;
+  color: #23242e;
+  font-size: 0.98rem;
+  font-weight: 950;
+}
+
+/* About content inside the popup — clean info cards */
+.artistAboutPopupSheet .artistPublicAbout {
+  display: grid;
+  gap: 10px !important;
+}
+
+.artistAboutPopupSheet .artistPublicAboutBio {
+  margin: 0;
+  color: #3a3d4c;
+  font-size: 0.84rem;
+  font-weight: 650;
+  line-height: 1.85;
+}
+
+.artistAboutPopupSheet .artistPublicAboutList > div {
+  display: flex !important;
+  align-items: center;
+  gap: 12px !important;
+  padding: 13px 14px !important;
+  border: 1px solid rgba(28, 32, 44, 0.08) !important;
+  border-bottom: 1px solid rgba(28, 32, 44, 0.08) !important;
+  border-radius: 16px !important;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfbfd 100%) !important;
+  box-shadow: 0 1px 0 rgba(28, 32, 44, 0.02);
+}
+
+.artistAboutPopupSheet .artistPublicAboutList svg {
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  padding: 10px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  background: rgba(20, 22, 29, 0.1);
+  color: #14161d !important;
+}
+
+.artistAboutPopupSheet .artistPublicAboutList b {
+  display: block;
+  margin-bottom: 2px;
+  color: #23242e;
+  font-size: 0.82rem;
+  font-weight: 950;
+}
+
+.artistAboutPopupSheet .artistPublicAboutList span {
+  color: #8b8fa0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Global clean — uniform solid-white page backgrounds (client app)
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* 1) body: replace the layered gray mother gradient with plain white */
+body {
+  background: #ffffff !important;
+}
+
+/* 2) decorative body layers (dot pattern / glows) — off for a clean page */
+body::before,
+body::after {
+  display: none !important;
+}
+
+/* 3) app frame and every page panel surface — plain white */
+/* Exclude the pre-login auth gate: it needs its dark video hero, not the
+ forced white panel background below. */
+.appShell:not(.is-auth-gate),
+.appShell:not(.is-auth-gate) .workspace,
+.appShell:not(.is-auth-gate) .contentGrid,
+.appShell:not(.is-auth-gate) .mobilePage,
+.appShell:not(.is-auth-gate) .feedPanel,
+.appShell:not(.is-auth-gate) .homeFeed,
+.appShell:not(.is-auth-gate) .explorePanel,
+.appShell:not(.is-auth-gate) .salonPanel,
+.appShell:not(.is-auth-gate) .salonsPanel,
+.appShell:not(.is-auth-gate) .profilePanel,
+.appShell:not(.is-auth-gate) .settingsPagePanel {
+  background: #ffffff !important;
+}
+
+/* 4) client profile page — remove the purple radial/gradient wash */
+.profilePanel.page-profile:has(.createdProfile.is-client) {
+  background: #ffffff !important;
+}
+
+/* 6) white-washed tinted cards (keep their borders) for a clean look */
+.explorePreviewComment,
+.explorePreviewModal .artistWorkPreviewCaption,
+.artistPublicServiceCard,
+.salonRow,
+.artistPublicReviewSummary,
+.artistAboutPopupSheet .artistPublicAboutList > div {
+  background: #ffffff !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Salon portfolio gallery — 3 cards across the width, wrap to next row
+   ═══════════════════════════════════════════════════════════════════════ */
+.salonPublicPortfolio .salonClientMosaicGallery {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  grid-auto-flow: row !important;
+  grid-auto-rows: auto !important;
+  gap: 8px !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  scroll-snap-type: none !important;
+}
+.salonPublicPortfolio .salonClientMosaicGallery::-webkit-scrollbar {
+  display: none !important;
+}
+
+.salonPublicPortfolio .salonClientMosaicTile,
+.salonPublicPortfolio .salonClientMosaicTile.is-featured,
+.salonPublicPortfolio .salonClientMosaicTile.is-wide,
+.salonPublicPortfolio .salonClientMosaicTile.is-landscape,
+.salonPublicPortfolio .salonClientMosaicTile.is-tall,
+.salonPublicPortfolio .salonClientMosaicTile.is-portrait,
+.salonPublicPortfolio .salonClientMosaicTile.is-square {
+  flex: none !important;
+  width: auto !important;
+  height: auto !important;
+  min-height: 0 !important;
+  grid-column: auto !important;
+  grid-row: auto !important;
+  aspect-ratio: 1 / 1 !important;
+  border-radius: 14px !important;
+  box-shadow: none !important;
+  align-self: stretch !important;
+  scroll-snap-align: none !important;
+}
+
+/* neutralize fixed heights the strip rules force on even / 3rd tiles */
+.salonPublicPortfolio .salonClientMosaicTile:nth-child(2n),
+.salonPublicPortfolio .salonClientMosaicTile:nth-child(3n) {
+  height: auto !important;
+  min-height: 0 !important;
+  align-self: stretch !important;
+}

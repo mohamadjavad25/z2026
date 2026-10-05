@@ -1,5 +1,6 @@
 "use client";
 
+import { apiFetch } from "../../shared/api/client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { normalizeProfile } from "../auth";
 import { compressImageToDataUrl } from "../../shared/lib/imageCompression";
@@ -70,9 +71,8 @@ export function useProfileEditor({
     let cancelled = false;
     (async () => {
       try {
-        const response = await fetch("/api/profile/settings");
-        if (!response.ok) return;
-        const payload = await response.json();
+        const { ok, payload } = await apiFetch("/api/profile/settings");
+        if (!ok) return;
         const settings = payload?.data?.settings;
         if (!cancelled && settings) {
           const merged = { ...settingsRef.current, ...settings };
@@ -120,9 +120,8 @@ export function useProfileEditor({
     profileSavingRef.current = true;
     setProfileSaving(true);
     try {
-      const response = await fetch("/api/profile", {
+      const { ok, payload } = await apiFetch("/api/profile", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           type: createdProfile.type,
           data: {
@@ -140,8 +139,7 @@ export function useProfileEditor({
           }
         })
       });
-      const payload = await response.json();
-      if (!response.ok) {
+      if (!ok) {
         notify(payload.error || "ویرایش ذخیره نشد.");
         return;
       }
@@ -177,15 +175,13 @@ export function useProfileEditor({
     }
     setProfileLocationSaving(true);
     try {
-      const response = await fetch("/api/profile", {
+      const { ok, payload } = await apiFetch("/api/profile", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           data: { area }
         })
       });
-      const payload = await response.json();
-      if (!response.ok) {
+      if (!ok) {
         notify(payload.error || "ذخیره لوکیشن انجام نشد.");
         return;
       }
@@ -257,13 +253,11 @@ export function useProfileEditor({
     setBusy?.(true);
     return (async () => {
       try {
-        const response = await fetch("/api/profile", {
+        const { ok, payload } = await apiFetch("/api/profile", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ data: fields })
         });
-        const payload = await response.json();
-        if (!response.ok) {
+        if (!ok) {
           notify(payload.error || "ذخیره انجام نشد.");
           return;
         }
@@ -380,13 +374,11 @@ export function useProfileEditor({
     const chain = settingsSaveChain.current;
     const run = (chain.get(key) || Promise.resolve()).then(async () => {
       try {
-        const response = await fetch("/api/profile/settings", {
+        const { ok, payload } = await apiFetch("/api/profile/settings", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ settings: { [key]: value } })
         });
-        if (response.ok) return;
-        const payload = await response.json().catch(() => ({}));
+        if (ok) return;
         throw new Error(/[\u0600-\u06FF]/.test(payload?.error || "") ? payload.error : "");
       } catch (err) {
         // Only roll back if no newer tap has changed this key since.
