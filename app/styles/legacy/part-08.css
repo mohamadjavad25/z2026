@@ -1,0 +1,3011 @@
+.portfolioTagField > span{
+  color: #263238;
+  font-size: 0.7rem;
+  font-weight: 900;
+}
+
+.portfolioTagChips{
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.portfolioTagChips button{
+  min-height: 38px;
+  border: 1px solid rgba(28, 32, 44, 0.1);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.portfolioTagChips button.active{
+  border-color: rgba(20, 22, 29, 0.35);
+  background: #14161d;
+  color: #fff;
+}
+
+
+
+
+
+
+
+
+
+.portfolioInsightStrip{
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.portfolioInsightStrip span{
+  min-height: 56px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 3px;
+  padding: 8px 6px;
+  border-radius: 15px;
+  background: rgba(20, 22, 29, 0.07);
+  color: rgba(28, 32, 44, 0.55);
+  font-size: 0.62rem;
+  font-weight: 850;
+  text-align: center;
+}
+
+.portfolioInsightStrip b{
+  display: block;
+  color: var(--ink);
+  font-size: 0.96rem;
+  font-weight: 950;
+}
+
+.portfolioListHead{
+  margin: 2px 0 0;
+}
+
+.portfolioEmptyState{
+  min-height: 200px;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 8px;
+  padding: 28px 18px;
+  border: 1px solid rgba(28, 32, 44, 0.07);
+  border-radius: 18px;
+  background: rgba(246, 246, 251, 0.9);
+  text-align: center;
+}
+
+.portfolioEmptyIcon{
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 2px;
+  border-radius: 16px;
+  background: rgba(20, 22, 29, 0.1);
+  color: #14161d;
+}
+
+.portfolioEmptyState b{
+  color: var(--ink);
+  font-size: 0.92rem;
+  font-weight: 950;
+}
+
+.portfolioEmptyState > span:not(.portfolioEmptyIcon){
+  max-width: 28ch;
+  color: rgba(28, 32, 44, 0.55);
+  font-size: 0.74rem;
+  font-weight: 750;
+  line-height: 1.55;
+}
+
+.portfolioEmptyState button{
+  margin-top: 6px;
+  min-height: 42px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 14px;
+  background: #14161d;
+  color: #fff;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 10px 22px rgba(20, 22, 29, 0.22);
+}
+
+
+
+.bookingToolHead{
+  min-height: 62px;
+  align-items: center;
+  padding: 7px 44px 7px 6px;
+  border-bottom: 1px solid rgba(28, 32, 44, 0.06);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.bookingToolHead b{
+  font-size: 1.16rem;
+  line-height: 1.35;
+}
+
+.bookingCreateForm{
+  grid-template-columns: 1fr;
+  gap: 10px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.bookingCreateForm fieldset{
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid rgba(28, 32, 44, 0.07);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 12px 24px rgba(7, 13, 18, 0.06);
+}
+
+.bookingCreateForm.is-step-client .bookingStepDetails,
+.bookingCreateForm.is-step-details .bookingStepClient{
+  display: none;
+}
+
+.bookingCreateForm legend{
+  padding: 0 8px;
+  color: var(--teal);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.bookingHalfField{
+  min-width: 0;
+  display: grid;
+}
+
+.bookingSelect{
+  position: relative;
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.bookingSelect.is-open{
+  z-index: 30;
+}
+
+.bookingSelectLabel{
+  color: #263238;
+  font-size: 0.7rem;
+  font-weight: 900;
+}
+
+.bookingCreateForm .bookingSelectTrigger{
+  grid-column: auto;
+  min-width: 0;
+  min-height: 52px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px 8px 12px;
+  border: 1px solid rgba(28, 32, 44, 0.1);
+  border-radius: 15px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.8rem;
+  text-align: right;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+}
+
+.bookingSelectTrigger svg{
+  flex: 0 0 auto;
+  color: #14161d;
+  transition: transform 0.18s ease;
+}
+
+.bookingSelectValue{
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.bookingSelectValue b{
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.8rem;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.bookingSelectValue small{
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: rgba(28, 32, 44, 0.48);
+  font-size: 0.66rem;
+  font-weight: 750;
+}
+
+.bookingCreateForm .bookingSelect.is-open .bookingSelectTrigger{
+  border-color: rgba(20, 22, 29, 0.42);
+  background: rgba(246, 246, 251, 0.98);
+  box-shadow: 0 0 0 3px rgba(20, 22, 29, 0.12);
+}
+
+.bookingCreateForm .bookingSelect.is-open .bookingSelectTrigger svg{
+  transform: rotate(180deg);
+}
+
+.bookingSelectMenu{
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  left: 0;
+  z-index: 30;
+  display: grid;
+  gap: 4px;
+  max-height: min(320px, 46vh);
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 8px;
+  border: 1px solid rgba(20, 22, 29, 0.14);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 18px 40px rgba(28, 32, 44, 0.16);
+  scrollbar-width: thin;
+}
+
+.bookingCreateForm .bookingSelectMenu button{
+  grid-column: auto;
+  min-height: 44px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 18px;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ink);
+  text-align: right;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.bookingSelectOptionText{
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.bookingSelectOptionText b{
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.bookingSelectOptionText small{
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: rgba(28, 32, 44, 0.48);
+  font-size: 0.64rem;
+  font-weight: 750;
+}
+
+.bookingCreateForm .bookingSelectMenu button:hover{
+  background: rgba(20, 22, 29, 0.06);
+}
+
+.bookingCreateForm .bookingSelectMenu button.active{
+  border-color: rgba(20, 22, 29, 0.18);
+  background: rgba(20, 22, 29, 0.12);
+  color: #14161d;
+}
+
+.bookingCreateForm .bookingSelectMenu button.active small{
+  color: rgba(15, 95, 93, 0.7);
+}
+
+.bookingCreateForm .bookingSelectMenu button i{
+  width: 14px;
+  height: 14px;
+}
+
+.bookingCreateForm .bookingSelectMenu button svg{
+  color: #14161d;
+}
+
+.bookingCreateForm label{
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #263238;
+  font-size: 0.7rem;
+}
+
+.bookingCreateForm input,
+.bookingCreateForm select{
+  min-height: 44px;
+  border-radius: 15px;
+  border: 1px solid rgba(28, 32, 44, 0.1);
+  background: #fff;
+  font-size: 0.8rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.bookingCreateForm > button{
+  grid-column: 1 / -1;
+  min-height: 54px;
+  border-radius: 17px;
+  background: #14161d;
+  font-size: 0.86rem;
+  box-shadow: 0 12px 24px rgba(20, 22, 29, 0.18);
+}
+
+.bookingStepActions{
+  display: grid;
+  grid-template-columns: 0.7fr 1fr;
+  gap: 8px;
+}
+
+.bookingStepActions button{
+  grid-column: auto;
+}
+
+.bookingStepActions button[type="button"]{
+  background: rgba(28, 32, 44, 0.07);
+  color: var(--ink);
+  box-shadow: none;
+}
+
+.bookingDeskPanel{
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid rgba(28, 32, 44, 0.07);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 12px 26px rgba(7, 13, 18, 0.06);
+}
+
+.bookingDeskStats,
+.portfolioDeskStats{
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.bookingDeskStats span,
+.portfolioDeskStats span{
+  min-height: 48px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 3px;
+  padding: 7px;
+  border-radius: 15px;
+  background: rgba(20, 22, 29, 0.07);
+  color: var(--teal);
+  font-size: 0.62rem;
+  font-weight: 900;
+  text-align: center;
+}
+
+.bookingDeskStats b,
+.portfolioDeskStats b{
+  display: block;
+  color: var(--ink);
+  font-size: 0.92rem;
+}
+
+.bookingDeskList{
+  display: grid;
+  gap: 7px;
+}
+
+.bookingDeskList article{
+  min-height: 56px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 16px;
+  background: rgba(246, 246, 251, 0.92);
+  box-shadow: inset 0 0 0 1px rgba(28, 32, 44, 0.05);
+}
+
+.bookingDeskList time{
+  min-width: 48px;
+  min-height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 13px;
+  background: linear-gradient(135deg, var(--night), var(--plum));
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.bookingDeskList b,
+.bookingDeskList span{
+  display: block;
+}
+
+.bookingDeskList b{
+  font-size: 0.78rem;
+}
+
+.bookingDeskList span{
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 0.64rem;
+}
+
+.bookingDeskList small{
+  padding: 5px 7px;
+  border-radius: 999px;
+  background: rgba(191, 192, 209, 0.22);
+  color: #6f5520;
+  font-size: 0.58rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.systemActionGrid{
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.systemActionGrid button{
+  min-height: 78px;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 4px;
+  border: 1px solid rgba(20, 22, 29, 0.1);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.74);
+  color: var(--teal);
+  font-family: inherit;
+  font-weight: 900;
+}
+
+.systemActionGrid b,
+.systemActionGrid span{
+  display: block;
+}
+
+.systemActionGrid b{
+  color: var(--ink);
+  font-size: 0.72rem;
+}
+
+.systemActionGrid span{
+  color: var(--muted);
+  font-size: 0.58rem;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.compactSystemForm{
+  grid-template-columns: 1fr;
+  margin-top: 7px;
+}
+
+.compactSystemHours{
+  margin-top: 7px;
+}
+
+.staffScheduleBoard{
+  display: grid;
+  gap: 8px;
+  padding: 9px;
+  border: 1px solid rgba(28, 32, 44, 0.06);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.postModalCard{
+  position: relative;
+  width: min(420px, 100%);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  border-radius: 24px;
+  background: var(--surface-solid);
+  box-shadow: 0 28px 80px rgba(15, 17, 20, 0.35);
+}
+
+.modalClose{
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.84);
+  color: var(--ink);
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.modalVisual{
+  height: 360px;
+  background-image: linear-gradient(180deg, transparent 48%, rgba(12, 14, 16, 0.54)), url("/explore-collage.webp");
+  background-size: 300% 300%;
+}
+
+.postModalCard.tile1 .modalVisual{ background-position: 0% 0%; }
+.postModalCard.tile2 .modalVisual{ background-position: 50% 0%; }
+.postModalCard.tile3 .modalVisual{ background-position: 100% 0%; }
+.postModalCard.tile4 .modalVisual{ background-position: 0% 50%; }
+.postModalCard.tile5 .modalVisual{ background-position: 50% 50%; }
+.postModalCard.tile6 .modalVisual{ background-position: 100% 50%; }
+.postModalCard.tile7 .modalVisual{ background-position: 0% 100%; }
+.postModalCard.tile8 .modalVisual{ background-position: 50% 100%; }
+.postModalCard.tile9 .modalVisual{ background-position: 100% 100%; }
+
+.modalBody{
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+}
+
+.modalBody span{
+  width: fit-content;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(20, 22, 29, 0.1);
+  color: var(--teal);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.modalBody h3{
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.modalBody p{
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.7;
+}
+
+.modalBody button{
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 0;
+  border-radius: 15px;
+  background: linear-gradient(135deg, var(--night), var(--plum));
+  color: #fff;
+  font-weight: 900;
+}
+
+@keyframes sheetRise{
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.sheetHandle{
+  width: 52px;
+  height: 5px;
+  margin: 0 auto 2px;
+  border-radius: 999px;
+  background: rgba(28, 32, 44, 0.16);
+}
+
+.sheetHead,
+.sheetUploadActions,
+.sheetActions{
+  display: flex;
+  align-items: center;
+}
+
+.sheetHead{
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sheetHead span{
+  color: var(--teal);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.sheetHead h3{
+  margin: 2px 0 0;
+  font-size: 1.2rem;
+}
+
+.sheetHead button{
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 13px;
+  background: rgba(28, 32, 44, 0.06);
+  color: var(--ink);
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.sheetUpload{
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+
+.sheetPreview{
+  min-height: 120px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(20, 22, 29, 0.12), rgba(20, 22, 29, 0.1)),
+    #fffaf4;
+  color: var(--muted);
+}
+
+.sheetPreview img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sheetUploadActions{
+  width: 86px;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sheetUploadActions label{
+  width: 100%;
+  min-height: 56px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 4px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--ink);
+  font-size: 0.68rem;
+  font-weight: 900;
+  box-shadow: inset 0 0 0 1px rgba(28, 32, 44, 0.08);
+}
+
+.sheetPrompt{
+  display: grid;
+  gap: 6px;
+  color: var(--ink);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.sheetPrompt textarea{
+  min-height: 74px;
+  resize: vertical;
+  border: 1px solid var(--line);
+  outline: 0;
+  border-radius: 16px;
+  padding: 10px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 0.78rem;
+  line-height: 1.65;
+}
+
+.sheetActions{
+  display: grid;
+  grid-template-columns: 1.3fr 0.7fr;
+  gap: 8px;
+}
+
+.sheetActions button{
+  min-height: 44px;
+  border: 0;
+  border-radius: 15px;
+  background: rgba(28, 32, 44, 0.07);
+  color: var(--ink);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.sheetActions .sheetCreate{
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 7px;
+  background: linear-gradient(135deg, var(--night), var(--plum));
+  color: #fff;
+}
+
+.sheetNote{
+  min-height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 13px;
+  background: rgba(20, 22, 29, 0.08);
+  color: var(--teal);
+  font-size: 0.7rem;
+  font-weight: 900;
+  text-align: center;
+}
+
+@media (max-width: 1120px) {
+.appShell{
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar{
+    display: none;
+  }
+
+  .mobileBrand{
+    display: flex;
+  }
+
+  .appHeader{
+    grid-template-columns: auto 1fr auto auto auto;
+  }
+
+  .heroApp,
+  .adShowcase,
+  .resultPanel,
+  .contentGrid,
+  .profilePanel{
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px){
+body{
+    background: var(--mother-bg-mobile);
+    background-attachment: scroll;
+  }
+
+  body::before{
+    background-size: 28px 28px;
+    opacity: 0.5;
+  }
+
+  body::after{
+    filter: blur(12px);
+    opacity: 0.78;
+  }
+
+  .appShell{
+    display: block;
+  }
+
+  .workspace{
+    padding: 0 8px calc(82px + env(safe-area-inset-bottom));
+    overflow: hidden;
+  }
+
+  .appShell.is-auth-gate .workspace{
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .workspace:has(.page-profile.is-active .createdProfile.is-artist),
+  .workspace:has(.page-profile.is-active .createdProfile.is-salon){
+    padding: 0 0 calc(82px + env(safe-area-inset-bottom));
+  }
+
+  .appHeader{
+    position: relative;
+    min-height: 104px;
+    margin: 0 0 10px;
+    padding: 7px;
+    grid-template-columns: 1fr auto auto;
+    gap: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.72);
+    border-radius: 24px;
+    background:
+      linear-gradient(135deg, rgba(246, 246, 251, 0.92), rgba(240, 229, 221, 0.72)),
+      radial-gradient(circle at 12% 0%, rgba(20, 22, 29, 0.18), transparent 35%),
+      radial-gradient(circle at 90% 18%, rgba(20, 22, 29, 0.16), transparent 30%);
+    backdrop-filter: blur(24px);
+    box-shadow: 0 18px 48px rgba(28, 32, 44, 0.12);
+  }
+
+  .appHeader::after{
+    content: "";
+    position: absolute;
+    right: 14px;
+    left: 14px;
+    bottom: 48px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.9), transparent);
+    pointer-events: none;
+  }
+
+  .appHeader.is-profile-hidden{
+    display: none;
+  }
+
+  .mobileBrand{
+    position: relative;
+    z-index: 1;
+    min-height: 40px;
+    align-items: center;
+    font-size: 0.94rem;
+    letter-spacing: 0;
+  }
+
+  .mobileBrand span{
+    width: 38px;
+    height: 38px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #14161d, #14161d);
+    box-shadow: 0 12px 26px rgba(20, 22, 29, 0.28);
+  }
+
+  .headerActions{
+    position: relative;
+    z-index: 1;
+    gap: 6px;
+  }
+
+  .headerActions button{
+    width: 40px;
+    height: 40px;
+    border: 0;
+    border-radius: 14px;
+    background: rgba(246, 246, 251, 0.78);
+    color: var(--ink);
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.68),
+      0 10px 22px rgba(28, 32, 44, 0.08);
+  }
+
+  .headerActions button:last-child{
+    display: none;
+  }
+
+  .globalSearch{
+    grid-column: 1 / -1;
+    order: 3;
+    position: relative;
+    z-index: 1;
+    min-height: 42px;
+    border: 0;
+    border-radius: 15px;
+    padding: 0 12px;
+    background: rgba(246, 246, 251, 0.86);
+    font-size: 0.84rem;
+    box-shadow:
+      inset 0 0 0 1px rgba(28, 32, 44, 0.07),
+      0 12px 26px rgba(28, 32, 44, 0.08);
+  }
+
+  .globalSearch svg{
+    color: var(--night);
+  }
+
+  .locationPill{
+    display: none;
+  }
+
+  .adShowcase{
+    padding: 12px;
+    border-radius: 22px;
+  }
+
+  h1{
+    font-size: clamp(1.46rem, 7.4vw, 2rem);
+    line-height: 1.16;
+    margin-bottom: 8px;
+  }
+
+  .heroCopy p:not(.kicker){
+    font-size: 0.86rem;
+    line-height: 1.72;
+    margin-bottom: 0;
+  }
+
+  .heroActions{
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .heroPrimary,
+  .heroSecondary{
+    justify-content: center;
+    min-height: 44px;
+    border-radius: 15px;
+    font-size: 0.88rem;
+  }
+
+  .heroPrimary{
+    display: none;
+  }
+
+  .quickStats{
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .quickStats span{
+    min-height: 54px;
+    padding: 8px 6px;
+    text-align: center;
+    font-size: 0.68rem;
+  }
+
+  .quickStats b{
+    font-size: 0.86rem;
+  }
+
+  .adSlider{
+    width: 100%;
+    margin-top: 0;
+    border-radius: 22px;
+  }
+
+  .homeFeed{
+    width: 100%;
+    gap: 14px;
+  }
+
+  .homeMotionPromo,
+  .homeClosingBanner,
+  .homeCategoryCard,
+  .homeAdTile{
+    border-radius: 18px;
+  }
+
+  .homeAdGrid{
+    gap: 8px;
+  }
+
+  .homeCategoryCard{
+    width: 118px;
+  }
+
+  .homeCategoryCard img{
+    height: 148px;
+  }
+
+  .homeClosingBanner{
+    padding: 18px 15px;
+  }
+
+  .adSliderTrack img{
+    aspect-ratio: 1.45 / 1;
+  }
+
+  .adSliderDots{
+    bottom: 8px;
+  }
+
+  .adShowcase{
+    gap: 14px;
+    margin-top: 10px;
+    background:
+      linear-gradient(155deg, rgba(28, 32, 44, 0.97), rgba(20, 22, 29, 0.92) 60%, rgba(20, 22, 29, 0.88)),
+      var(--night);
+  }
+
+  .adShowcase::before{
+    background-size: auto 95%;
+    opacity: 0.2;
+  }
+
+  .adShowcaseCopy h2{
+    font-size: 1.2rem;
+  }
+
+  .adShowcaseCopy > span{
+    font-size: 0.8rem;
+    line-height: 1.75;
+  }
+
+  .adShowcaseActions{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+  }
+
+  .adShowcaseActions button{
+    min-height: 40px;
+    justify-content: center;
+    border-radius: 13px;
+    padding: 0 8px;
+    font-size: 0.74rem;
+  }
+
+  .adProductRail{
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .adProductCard{
+    display: grid;
+    grid-template-columns: 104px 1fr;
+    border-radius: 17px;
+  }
+
+  .adProductVisual{
+    height: auto;
+    min-height: 132px;
+  }
+
+  .adProductVisual span{
+    width: 44px;
+    height: 92px;
+    margin-bottom: 15px;
+    border-radius: 14px 14px 8px 8px;
+  }
+
+  .adProductCard.product2 .adProductVisual span{
+    width: 52px;
+    height: 82px;
+  }
+
+  .adProductCard.product3 .adProductVisual span{
+    width: 76px;
+    height: 58px;
+  }
+
+  .adProductBody{
+    padding: 11px;
+  }
+
+  .adProductBody small{
+    margin-bottom: 6px;
+    font-size: 0.62rem;
+  }
+
+  .adProductBody h3{
+    font-size: 0.82rem;
+  }
+
+  .adProductBody p{
+    min-height: 0;
+    font-size: 0.7rem;
+  }
+
+  .adProductBody strong{
+    font-size: 0.92rem;
+  }
+
+  .glassProfile{
+    top: 18px;
+    left: 8px;
+    width: 94px;
+    padding: 8px;
+    border-radius: 14px;
+  }
+
+  .glassProfile strong{
+    font-size: 1.35rem;
+  }
+
+  .glassProfile span,
+  .glassProfile small{
+    font-size: 0.64rem;
+  }
+
+  .floatingInsight{
+    right: 8px;
+    bottom: 8px;
+    max-width: calc(100% - 16px);
+    padding: 9px;
+    border-radius: 14px;
+    font-size: 0.76rem;
+  }
+
+  .floatingInsight span{
+    font-size: 0.7rem;
+    line-height: 1.45;
+  }
+
+  .recommendations,
+  .businessMetrics{
+    grid-template-columns: 1fr;
+  }
+
+  .mobilePage{
+    display: none;
+  }
+
+  .mobilePage.is-active{
+    display: block;
+    animation: pageIn 0.22s ease both;
+  }
+
+  .homeFeed.mobilePage.is-active{
+    display: grid;
+  }
+
+  .adShowcase.mobilePage.is-active{
+    display: grid;
+  }
+
+  .journeyBar.mobilePage.is-active{
+    display: grid;
+  }
+
+  @keyframes pageIn{
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .journeyBar{
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+    margin: 8px 0 0;
+    padding: 7px;
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    border-radius: 17px;
+    background: rgba(246, 246, 251, 0.68);
+    box-shadow: var(--shadow-soft);
+  }
+
+  .journeyBar div{
+    min-width: 0;
+    min-height: 48px;
+    justify-content: center;
+    flex-direction: column;
+    gap: 4px;
+    padding: 6px 3px;
+    text-align: center;
+    border-radius: 13px;
+    background: rgba(246, 246, 251, 0.86);
+    box-shadow: none;
+  }
+
+  .journeyBar span{
+    width: 22px;
+    height: 22px;
+    font-size: 0.68rem;
+  }
+
+  .journeyBar b{
+    font-size: 0.66rem;
+    line-height: 1.25;
+  }
+
+  .feedPanel,
+  .salonPanel,
+  .profilePanel{
+    margin-top: 10px;
+    border-radius: 20px;
+  }
+
+  .salonPanel.page-salons:has(.salonClientPage){
+    --salon-banner-h: 228px;
+    margin-top: 0;
+    border-radius: 0;
+    background:
+      linear-gradient(180deg, #1c202c 0%, #1c202c 58%, rgba(28, 32, 44, 0.55) 78%, transparent 100%),
+      radial-gradient(circle at 78% 4%, rgba(191, 192, 209, 0.16), transparent 30%),
+      radial-gradient(circle at 8% 20%, rgba(255, 255, 255, 0.86), transparent 34%),
+      var(--mother-bg-mobile);
+    background-size:
+      100% var(--salon-banner-h),
+      cover,
+      cover,
+      cover;
+    background-position: top left, center 36%, center 36%, center 36%;
+    background-repeat: no-repeat;
+  }
+
+  .profilePanel.is-salon-profile{
+    margin-top: 0;
+    border-radius: 0;
+  }
+
+  .sectionTitle{
+    margin-bottom: 10px;
+  }
+
+  .sectionTitle p{
+    font-size: 0.78rem;
+    margin-bottom: 6px;
+  }
+
+  h2{
+    font-size: clamp(1.14rem, 5.8vw, 1.55rem);
+  }
+
+  .uploadPanel,
+  .resultPanel{
+    padding: 10px;
+    border-radius: 18px;
+  }
+
+  .resultPanel{
+    display: none;
+  }
+
+  .panelLabel{
+    margin-bottom: 8px;
+    font-size: 0.82rem;
+  }
+
+  .segmented{
+    display: none;
+  }
+
+  .dropZone{
+    min-height: 142px;
+    border: 0;
+    border-radius: 18px;
+    background: #f7eee8;
+    box-shadow: inset 0 0 0 1px rgba(28, 32, 44, 0.08);
+  }
+
+  .dropZone::after{
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(90deg, rgba(28, 32, 44, 0.58), rgba(28, 32, 44, 0.14) 52%, rgba(255, 255, 255, 0.02)),
+      linear-gradient(0deg, rgba(28, 32, 44, 0.3), transparent 54%);
+    pointer-events: none;
+  }
+
+  .placeholderPhoto{
+    transform: scale(1.02);
+  }
+
+  .dropZone span{
+    width: min(190px, 62%);
+    margin-right: auto;
+    padding: 11px;
+    border-radius: 15px;
+    background: rgba(246, 246, 251, 0.86);
+    backdrop-filter: blur(14px);
+    color: var(--ink);
+    font-size: 0.82rem;
+    box-shadow: 0 14px 30px rgba(28, 32, 44, 0.16);
+  }
+
+  .dropZone small{
+    font-size: 0.68rem;
+    color: var(--muted);
+  }
+
+  .uploadActions{
+    display: grid;
+    grid-template-columns: 1.25fr 0.75fr;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .uploadChoice{
+    min-height: 42px;
+    justify-content: center;
+    gap: 7px;
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.74);
+    color: var(--ink);
+    font-size: 0.82rem;
+    font-weight: 900;
+    box-shadow: inset 0 0 0 1px rgba(28, 32, 44, 0.08);
+  }
+
+  .uploadChoice.primary{
+    background: linear-gradient(135deg, var(--night), var(--plum));
+    color: #fff;
+    box-shadow: 0 12px 26px rgba(28, 32, 44, 0.18);
+  }
+
+  .photoTips{
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .photoTips span{
+    justify-content: center;
+    min-height: 30px;
+    font-size: 0.74rem;
+  }
+
+  .stylePrompt textarea{
+    min-height: 86px;
+    border-radius: 16px;
+    font-size: 0.82rem;
+    padding: 10px;
+  }
+
+  .primaryAction{
+    min-height: 46px;
+    border-radius: 16px;
+    font-size: 0.88rem;
+  }
+
+  .mobileAiSummary{
+    display: flex;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
+    margin-top: 8px;
+    padding: 10px;
+    border: 1px solid rgba(20, 22, 29, 0.14);
+    border-radius: 15px;
+    background: rgba(20, 22, 29, 0.08);
+    color: var(--ink);
+  }
+
+  .mobileAiSummary strong{
+    color: var(--teal);
+    font-size: 0.86rem;
+  }
+
+  .mobileAiSummary span{
+    color: var(--muted);
+    font-size: 0.78rem;
+    line-height: 1.55;
+  }
+
+  .deviceFrame{
+    min-height: 0;
+    border-radius: 24px;
+    padding: 10px;
+  }
+
+  .previewStage{
+    height: 214px;
+    border-radius: 18px;
+  }
+
+  .scoreCard{
+    border-radius: 16px;
+    padding: 10px;
+  }
+
+  .scoreCard strong{
+    font-size: 1.42rem;
+  }
+
+  .miniSignals span{
+    min-height: 30px;
+  font-size: 0.7rem;
+}
+
+.salonPortfolioMiniGrid{
+  columns: 2 150px;
+  column-gap: 10px;
+}
+
+.salonPortfolioMiniGrid.is-single{
+  columns: 1;
+}
+
+.salonPortfolioMiniGrid .emptyRequestState{
+  break-inside: avoid;
+}
+
+.salonPortfolioCard{
+  display: block;
+  position: relative;
+  overflow: hidden;
+  min-height: 0;
+  margin: 0 0 10px;
+  border-radius: 18px;
+  isolation: isolate;
+  background: var(--night);
+  box-shadow: 0 14px 28px rgba(28, 32, 44, 0.12);
+  animation: galleryCardIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  break-inside: avoid;
+  -webkit-column-break-inside: avoid;
+}
+
+.salonPortfolioCard:nth-child(2){
+  animation-delay: 0.05s;
+}
+
+.salonPortfolioCard:nth-child(3){
+  animation-delay: 0.1s;
+}
+
+.salonPortfolioCard.is-featured,
+.salonPortfolioCard.is-editing{
+  box-shadow: 0 16px 32px rgba(28, 32, 44, 0.16);
+}
+
+.salonPortfolioCard.is-editing{
+  outline: 2px solid rgba(20, 22, 29, 0.35);
+  outline-offset: 2px;
+}
+
+.salonPortfolioCard img,
+.salonPortfolioCardFallback{
+  width: 100%;
+  height: auto;
+  min-height: 170px;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.salonPortfolioCardFallback{
+  background-size: cover;
+  background-position: center;
+}
+
+.salonPortfolioCard:hover img,
+.salonPortfolioCard:hover .salonPortfolioCardFallback{
+  transform: scale(1.06);
+}
+
+.salonPortfolioCardShade{
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(12, 14, 16, 0.08) 0%, transparent 36%, rgba(12, 14, 16, 0.78) 100%);
+  pointer-events: none;
+}
+
+.salonPortfolioCardCopy{
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  display: grid;
+  gap: 5px;
+  padding: 12px;
+  color: #fff;
+  pointer-events: none;
+}
+
+.salonPortfolioCardCopy h3{
+  margin: 0;
+  font-size: 0.86rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1.35;
+  text-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.salonPortfolioCardActions{
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  display: flex;
+  gap: 6px;
+}
+
+.salonPortfolioCardActions button{
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #14161d;
+  box-shadow: 0 8px 18px rgba(28, 32, 44, 0.12);
+  cursor: pointer;
+}
+
+.salonPortfolioCardActions button.danger{
+  color: var(--rose);
+}
+
+  .aiReport{
+    padding: 4px;
+  }
+
+  .aiReport h3{
+    font-size: 1.08rem;
+    margin-bottom: 8px;
+  }
+
+  .aiReport p{
+    font-size: 0.82rem;
+    line-height: 1.65;
+  }
+
+  .recommendations span{
+    padding: 9px;
+    text-align: center;
+    font-size: 0.78rem;
+  }
+
+  .actionRow{
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .actionRow button{
+    min-height: 42px;
+    border-radius: 15px;
+    font-size: 0.82rem;
+  }
+
+  .contentGrid{
+    display: none;
+    margin-top: 0;
+  }
+
+  .contentGrid:has(.mobilePage.is-active){
+    display: block;
+  }
+
+  .feedPanel,
+  .salonPanel{
+    padding: 12px;
+  }
+
+  .panelHead{
+    margin-bottom: 8px;
+  }
+
+  .categoryRail{
+    margin: 0 -4px 12px;
+    padding: 0 4px 2px;
+    scroll-snap-type: x mandatory;
+  }
+
+  .categoryRail button{
+    scroll-snap-align: start;
+    min-width: 68px;
+    min-height: 36px;
+    font-size: 0.74rem;
+    background: rgba(246, 246, 251, 0.9);
+    box-shadow: inset 0 0 0 1px rgba(28, 32, 44, 0.06);
+  }
+
+  .categoryRail button.active{
+    background: var(--night);
+    color: #fff;
+    box-shadow: none;
+  }
+
+  .saveChip{
+    top: 7px;
+    left: 7px;
+    padding: 4px 7px;
+    font-size: 0.6rem;
+    background: rgba(28, 32, 44, 0.5);
+    backdrop-filter: blur(10px);
+  }
+
+  .saveChip svg{
+    width: 12px;
+    height: 12px;
+  }
+
+  .salonRow{
+    align-items: flex-start;
+    border-radius: 16px;
+    padding: 10px;
+    gap: 9px;
+  }
+
+  .salonIcon{
+    width: 40px;
+    height: 40px;
+    border-radius: 13px;
+  }
+
+  .salonRow h3{
+    font-size: 0.92rem;
+  }
+
+  .salonRow p,
+  .salonRow span{
+    font-size: 0.74rem;
+  }
+
+  .salonRow button{
+    min-width: 64px;
+    min-height: 34px;
+    font-size: 0.74rem;
+    border-radius: 12px;
+  }
+
+  .salonDetailPage{
+    gap: 10px;
+  }
+
+  .salonDetailHero{
+    min-height: 0;
+    padding: 12px;
+    border-radius: 22px;
+    background-image:
+      linear-gradient(180deg, rgba(15, 45, 71, 0.14), rgba(15, 45, 71, 0.92)),
+      url("/salon-sidebar-hero.webp");
+  }
+
+  .salonDetailTopbar{
+    align-items: center;
+    gap: 7px;
+  }
+
+  .salonDetailBack,
+  .salonFollowButton,
+  .salonDetailTrust{
+    min-height: 32px;
+    padding: 0 10px;
+    font-size: 0.72rem;
+  }
+
+  .salonDetailTrust{
+    max-width: 132px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .salonDetailLogo{
+    width: 54px;
+    height: 54px;
+    border-radius: 17px;
+  }
+
+  .salonDetailBrand{
+    gap: 10px;
+  }
+
+  .salonDetailBrand h2{
+    font-size: 1.32rem;
+  }
+
+  .salonDetailBrand span,
+  .salonDetailBrand p{
+    font-size: 0.7rem;
+  }
+
+  .salonDetailBrand .salonDetailBadge{
+    margin-bottom: 3px;
+    padding: 4px 8px;
+    font-size: 0.62rem;
+  }
+
+  .salonSocialSystem{
+    gap: 7px;
+    padding: 8px;
+    border-radius: 16px;
+  }
+
+  .salonSocialStats{
+    gap: 5px;
+  }
+
+  .salonSocialStats span{
+    min-height: 42px;
+    border-radius: 12px;
+    font-size: 0.56rem;
+  }
+
+  .salonSocialStats b{
+    font-size: 0.82rem;
+  }
+
+  .salonSocialActions{
+    gap: 6px;
+  }
+
+  .salonFollowButton,
+  .salonMessageButton{
+    min-height: 32px;
+    border-radius: 11px;
+    font-size: 0.68rem;
+    padding: 0 8px;
+  }
+
+  .salonDetailSignal{
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .salonDetailSignal span{
+    min-height: 38px;
+    padding: 0 6px;
+    font-size: 0.62rem;
+    border-radius: 13px;
+  }
+
+  .salonSummaryGrid{
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .salonSummaryGrid article{
+    min-height: 60px;
+    grid-template-columns: 28px 1fr;
+    align-items: center;
+    align-content: center;
+    column-gap: 8px;
+    padding: 9px;
+    border-radius: 14px;
+  }
+
+  .salonSummaryGrid svg{
+    grid-row: span 2;
+  }
+
+  .salonSummaryGrid b{
+    font-size: 0.72rem;
+  }
+
+  .salonSummaryGrid small{
+    font-size: 0.62rem;
+    line-height: 1.5;
+  }
+
+  .salonDetailMetrics{
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .salonDetailMetrics span{
+    min-height: 50px;
+    border-radius: 14px;
+    font-size: 0.56rem;
+  }
+
+  .salonDetailMetrics b{
+    font-size: 0.86rem;
+  }
+
+  .salonDetailGrid{
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .salonDetailSection{
+    padding: 11px;
+    border-radius: 17px;
+  }
+
+  .salonDetailSectionHead{
+    margin-bottom: 8px;
+  }
+
+  .salonDetailSectionHead span{
+    font-size: 0.66rem;
+  }
+
+  .salonDetailSectionHead b{
+    font-size: 0.82rem;
+  }
+
+  .salonServiceChips,
+  .salonSlotGrid{
+    gap: 6px;
+  }
+
+  .salonServiceChips button,
+  .salonSlotGrid button{
+    min-height: 36px;
+    border-radius: 13px;
+    font-size: 0.7rem;
+  }
+
+  .salonFullDataGrid{
+    gap: 6px;
+  }
+
+  .salonFullDataGrid span{
+    min-height: 50px;
+    border-radius: 13px;
+    padding: 7px 8px;
+  }
+
+  .salonFullDataGrid b{
+    font-size: 0.62rem;
+  }
+
+  .salonFullDataGrid small{
+    font-size: 0.68rem;
+  }
+
+  .salonDetailTeam{
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .salonDetailTeam article{
+    min-height: 98px;
+    padding: 7px;
+    border-radius: 15px;
+  }
+
+  .salonDetailTeam div{
+    width: 32px;
+    height: 32px;
+    border-radius: 12px;
+  }
+
+  .salonDetailTeam span{
+    font-size: 0.72rem;
+  }
+
+  .salonDetailTeam small,
+  .salonDetailTeam b{
+    font-size: 0.6rem;
+  }
+
+  .salonDetailPortfolio{
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .salonDetailPortfolio .profilePostCard{
+    min-height: 112px;
+  }
+
+  .salonDetailActions{
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+    bottom: 78px;
+  }
+
+  .salonDetailActions button{
+    min-height: 46px;
+    border-radius: 15px;
+    font-size: 0.76rem;
+  }
+
+  .profilePanel{
+    padding: 12px;
+  }
+
+  .profileAvatar,
+  .profileAvatarImage{
+    width: 66px;
+    height: 66px;
+    border-radius: 22px;
+  }
+
+  .avatarHair{
+    width: 38px;
+    height: 44px;
+    top: 13px;
+  }
+
+  .avatarFace{
+    width: 27px;
+    height: 32px;
+    top: 20px;
+  }
+
+  .avatarShine{
+    width: 16px;
+    height: 16px;
+    right: 11px;
+    top: 11px;
+  }
+
+  .salonHeroBack{
+    top: 12px;
+    left: 50%;
+    min-height: 36px;
+    font-size: 0.76rem;
+    padding: 0 14px 0 10px;
+    transform: translateX(-50%);
+  }
+
+  .profileModeRail{
+    gap: 4px;
+    padding: 3px;
+    border-radius: 999px;
+  }
+
+  .profileModeRail.is-panelRail.is-salon,
+  .profileModeRail.is-panelRail.is-artist-rail{
+    display: none !important;
+  }
+
+  .profileModeRail button{
+    min-height: 36px;
+    gap: 3px;
+    border-radius: 999px;
+    font-size: 0.62rem;
+  }
+
+  .profilePanel.is-salon-profile,
+  .profilePanel:has(.createdProfile.is-salon){
+    --salon-banner-h: 228px;
+    margin-top: 0;
+    background:
+      linear-gradient(180deg, #1c202c 0%, #1c202c 58%, rgba(28, 32, 44, 0.55) 78%, transparent 100%),
+      radial-gradient(circle at 78% 4%, rgba(191, 192, 209, 0.16), transparent 30%),
+      radial-gradient(circle at 8% 20%, rgba(255, 255, 255, 0.86), transparent 34%),
+      var(--mother-bg-mobile);
+    background-size:
+      100% var(--salon-banner-h),
+      cover,
+      cover,
+      cover;
+    background-position: top left, center 36%, center 36%, center 36%;
+    background-repeat: no-repeat;
+  }
+
+  .profilePanel.is-salon-profile > .profileModeRail,
+  .profilePanel:has(.createdProfile.is-salon) > .profileModeRail{
+    margin: 6px 8px 0;
+  }
+
+  .profileModeRail svg{
+    width: 14px;
+    height: 14px;
+  }
+
+  .profileModeRail.is-artist-rail{
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .profileModeRail.is-salon{
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .profileModeRail.is-artist-rail button{
+    font-size: 0.58rem;
+  }
+
+  .profileStartMap,
+  .salonFlowHint{
+    gap: 5px;
+  }
+
+  .profileStartMap span,
+  .salonFlowHint span{
+    min-height: 32px;
+    border-radius: 12px;
+    font-size: 0.62rem;
+  }
+
+  .profileStepBar{
+    padding: 14px 11px 13px;
+    border-radius: 20px;
+  }
+
+  .profileStepHead{
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+  }
+
+  .profileStepList{
+    grid-template-columns: minmax(0, 1fr) 18px minmax(0, 1fr) 18px minmax(0, 1fr);
+  }
+
+  .profileStepBridge{
+    padding-top: 15px;
+  }
+
+  .profileStepDot{
+    width: 32px;
+    height: 32px;
+    border-radius: 12px;
+  }
+
+  .profileStepCopy{
+    max-width: 104px;
+  }
+
+  .profileStepCopy strong{
+    font-size: 0.7rem;
+  }
+
+  .profileStepCopy small{
+    font-size: 0.58rem;
+  }
+
+  .profileRoleGrid{
+    gap: 8px;
+  }
+
+  .profileRoleCard{
+    min-height: 112px;
+    padding: 10px;
+    border-radius: 18px;
+    gap: 5px;
+  }
+
+  .profileRoleIcon{
+    width: 34px;
+    height: 34px;
+    border-radius: 12px;
+  }
+
+  .profileRoleCard strong{
+    font-size: 0.8rem;
+  }
+
+  .profileRoleCard small{
+    font-size: 0.64rem;
+    line-height: 1.45;
+  }
+
+  .profileRoleFeatures span{
+    font-size: 0.54rem;
+  }
+
+  .profileTypeGrid{
+    gap: 8px;
+  }
+
+  .profileTypeGrid button{
+    min-height: 82px;
+    border-radius: 16px;
+    padding: 9px;
+    gap: 4px;
+  }
+
+  .profileTypeGrid span{
+    font-size: 0.82rem;
+  }
+
+  .profileTypeGrid small{
+    font-size: 0.66rem;
+    line-height: 1.5;
+  }
+
+  .signupForm{
+    gap: var(--space-3);
+    padding: var(--space-5) var(--space-4);
+    border-radius: var(--radius-lg);
+  }
+
+  .formTitle span{
+    font-size: 0.72rem;
+  }
+
+  .formRow{
+    gap: var(--space-2);
+  }
+
+  .signupForm input,
+  .signupForm select,
+  .signupForm textarea,
+  .specialtySelectTrigger{
+    min-height: 44px;
+    padding: 10px 12px;
+    font-size: 0.82rem;
+  }
+
+  .signupForm textarea{
+    min-height: 58px;
+  }
+
+  .profileSubmit{
+    min-height: 46px;
+    font-size: 0.86rem;
+  }
+
+  .roleKpiGrid{
+    gap: 6px;
+  }
+
+  .roleKpiGrid article{
+    min-height: 64px;
+    padding: 8px;
+    border-radius: 14px;
+  }
+
+  .roleKpiGrid b{
+    font-size: 0.88rem;
+  }
+
+  .artistIdentityActions{
+    grid-template-columns: 1fr;
+  }
+
+
+  .artistPortfolioCard,
+  .artistPortfolioCard img{
+    min-height: 132px;
+    height: 132px;
+  }
+
+  .profileTrust{
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .profileTrust span{
+    min-height: 30px;
+    font-size: 0.7rem;
+  }
+
+  .shellHint{
+    min-height: 29px;
+    font-size: 0.7rem;
+  }
+
+  .shellPackages{
+    gap: 6px;
+  }
+
+  .shellPackages button{
+    min-height: 48px;
+    border-radius: 13px;
+    font-size: 0.72rem;
+  }
+
+  .shellPackages span{
+    font-size: 0.58rem;
+  }
+
+  .createdProfile{
+    gap: 8px;
+    padding: 11px;
+    border-radius: 18px;
+  }
+
+  .createdProfileTop img{
+    width: 48px;
+    height: 48px;
+    border-radius: 15px;
+  }
+
+  .createdProfileTop h3{
+    font-size: 1rem;
+  }
+
+  .createdProfileTop p,
+  .createdProfileTop span{
+    font-size: 0.72rem;
+  }
+
+  .profileReadyGrid{
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .profileReadyGrid span{
+    min-height: 46px;
+    border-radius: 13px;
+    font-size: 0.66rem;
+  }
+
+  .profileReadyGrid b{
+    font-size: 0.76rem;
+  }
+
+  .profileTools button,
+  .profileEdit{
+    min-height: 38px;
+    border-radius: 13px;
+    font-size: 0.74rem;
+  }
+
+  .profileTabs{
+    gap: 5px;
+    padding: 4px;
+    border-radius: 14px;
+  }
+
+  .profileTabs button{
+    min-height: 32px;
+    border-radius: 10px;
+    font-size: 0.72rem;
+  }
+
+  .boardHead strong{
+    font-size: 0.92rem;
+  }
+
+  .boardHead button,
+  .profileBackButton{
+    min-height: 32px;
+    border-radius: 12px;
+    font-size: 0.68rem;
+  }
+
+  .profilePostGrid{
+    grid-auto-rows: auto;
+    gap: 7px;
+  }
+
+  .profilePostCard{
+    border-radius: 15px;
+    padding: 6px;
+  }
+
+  .profilePostCard.modelOnly{
+    padding: 0;
+    border-radius: 16px;
+    min-height: 0;
+  }
+
+  .profilePostCard div{
+    padding: 7px;
+    border-radius: 12px;
+  }
+
+  .profilePostCard h3{
+    font-size: 0.76rem;
+  }
+
+  .profilePostCard p,
+  .profilePostCard span{
+    font-size: 0.6rem;
+  }
+
+  .savedModelStrip{
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .savedModelStrip span{
+    min-height: 34px;
+    font-size: 0.66rem;
+  }
+
+  .savedPostCard{
+    min-height: 0;
+    border-radius: 15px;
+  }
+
+  .savedPostList{
+    grid-auto-rows: 50px;
+  }
+
+  .salonQuickGrid{
+    gap: 6px;
+  }
+
+  .salonQuickGrid button{
+    min-height: 56px;
+    border-radius: 15px;
+    font-size: 0.6rem;
+  }
+
+  .createdProfile.is-salon .salonQuickGrid button{
+    min-height: 88px;
+    border-radius: 20px;
+    padding: 12px 12px 12px 44%;
+  }
+
+  
+
+  .bookingFormGrid{
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .staffCreateForm,
+  .serviceCreateForm{
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    padding: 7px;
+    border-radius: 15px;
+  }
+
+  .bookingFormGrid label,
+  .staffCreateForm label,
+  .serviceCreateForm label,
+  .hoursEditor label,
+  .portfolioUploader label{
+    font-size: 0.62rem;
+  }
+
+  .bookingFormGrid input,
+  .bookingFormGrid select,
+  .staffCreateForm input,
+  .staffCreateForm select,
+  .serviceCreateForm input,
+  .hoursEditor input,
+  .hoursEditor select,
+  .portfolioUploader input,
+  .portfolioUploader select{
+    min-height: 34px;
+    border-radius: 12px;
+    font-size: 0.68rem;
+  }
+
+  .hoursEditor label.hourEditorRow{
+    grid-template-columns: 0.8fr repeat(2, minmax(0, 1fr));
+  }
+
+  .hoursEditor label.hourEditorRow select,
+  .hoursEditor label.hourEditorRow input[type="number"]{
+    grid-column: span 1;
+  }
+
+  .staffCreateForm button,
+  .serviceCreateForm button{
+    min-height: 34px;
+    border-radius: 12px;
+    font-size: 0.66rem;
+  }
+
+  .portfolioUploader{
+    grid-template-columns: 1fr;
+  }
+
+  .portfolioUploader > div,
+  .portfolioUploader .portfolioImagePicker{
+    grid-row: auto;
+    min-height: 96px;
+  }
+
+  .salonPortfolioMiniGrid,
+  .profileGalleryGrid{
+    column-gap: 8px;
+  }
+
+  .salonPortfolioCard,
+  .profileGalleryCard{
+    margin-bottom: 8px;
+    border-radius: 16px;
+  }
+
+  .salonPortfolioCard img,
+  .salonPortfolioCardFallback,
+  .profileGalleryCard img,
+  .profileGalleryCardFallback{
+    max-height: none;
+    min-height: 0;
+  }
+
+  .artistGalleryGrid.is-single,
+  .profileGalleryGrid.is-single{
+    max-width: 240px;
+  }
+
+  .artistGalleryGrid.is-single .artistGalleryCard img,
+  .profileGalleryGrid.is-single .profileGalleryCard img,
+  .profileGalleryGrid.is-single .profileGalleryCardFallback{
+    max-height: none;
+    min-height: 0;
+  }
+
+  .salonKpiGrid{
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .salonKpiGrid article{
+    min-height: 64px;
+    border-radius: 15px;
+  }
+
+  .weekCapacity{
+    gap: 5px;
+  }
+
+  .weekCapacity article{
+    min-height: 102px;
+    border-radius: 14px;
+  }
+
+  .weekCapacity div{
+    width: 15px;
+    height: 54px;
+  }
+
+  .bookingTimeline article{
+    grid-template-columns: 44px 1fr auto;
+    gap: 6px;
+  }
+
+  .staffGrid{
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .staffGrid article{
+    min-height: 102px;
+    border-radius: 15px;
+    padding: 7px;
+  }
+
+  .twoColumnOps{
+    grid-template-columns: 1fr;
+  }
+
+  .profileProgress{
+    padding: 9px;
+    border-radius: 13px;
+  }
+
+  .profileProgress span,
+  .profileProgress small,
+  .activityHead span,
+  .profileActivity span{
+    font-size: 0.66rem;
+  }
+
+  .profileActivity{
+    gap: 6px;
+  }
+
+  .profileActivity article{
+    padding: 8px;
+    border-radius: 12px;
+  }
+
+  .profileActivity b{
+    font-size: 0.74rem;
+  }
+
+  .settingsHead{
+    padding: 8px;
+    border-radius: 13px;
+  }
+
+  .settingsList{
+    gap: 6px;
+  }
+
+  .settingsList button{
+    min-height: 50px;
+    border-radius: 13px;
+    padding: 8px;
+  }
+
+  .settingsList button.settingToggle{
+    padding-left: 58px;
+  }
+
+  .settingsList span{
+    font-size: 0.76rem;
+  }
+
+  .settingsList small{
+    font-size: 0.66rem;
+  }
+
+  .settingsList b{
+    left: 8px;
+    min-width: 44px;
+    min-height: 24px;
+    font-size: 0.6rem;
+  }
+
+  .postModal{
+    padding: 12px;
+  }
+
+  .postModalCard{
+    border-radius: 21px;
+  }
+
+  .modalVisual{
+    height: min(58vh, 430px);
+  }
+
+  .modalBody{
+    padding: 12px;
+  }
+
+  .businessMetrics span{
+    padding: 9px;
+    font-size: 0.78rem;
+  }
+
+  .floatingMobileCta .ctaIcon{
+    width: 36px;
+    height: 36px;
+    flex: 0 0 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.16);
+  }
+
+  .floatingMobileCta .ctaText{
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    padding: 0;
+    background: transparent;
+  }
+
+  .floatingMobileCta .ctaText b{
+    font-size: 0.8rem;
+    line-height: 1.15;
+    white-space: nowrap;
+  }
+
+  .floatingMobileCta .ctaText small{
+    color: inherit;
+    opacity: 0.72;
+    font-size: 0.62rem;
+    line-height: 1.15;
+    white-space: nowrap;
+  }
+
+  .floatingMobileCtaSplit .ctaManage .ctaIcon{
+    background: rgba(20, 22, 29, 0.12);
+    color: var(--plum);
+  }
+
+  .bottomNav{
+    display: flex;
+    position: fixed;
+    right: 8px;
+    left: 8px;
+    bottom: calc(8px + env(safe-area-inset-bottom));
+    z-index: 26;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 56px;
+    padding: 4px 12px 6px;
+    border: 0;
+    border-radius: 999px;
+    background: #fff;
+    backdrop-filter: none;
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.9) inset,
+      0 14px 36px rgba(28, 32, 44, 0.14);
+  }
+
+  .bottomNav button{
+    flex: 1;
+    min-width: 0;
+    min-height: 46px;
+    border: 0;
+    justify-content: center;
+    flex-direction: column;
+    gap: 3px;
+    border-radius: 999px;
+    background: transparent;
+    color: #2a2d36;
+    font-size: 0.64rem;
+    font-weight: 900;
+  }
+
+  .bottomNav button.active{
+    background: transparent;
+    color: var(--night);
+  }
+
+  .bottomNav .profileTab{
+    position: relative;
+    flex: 0 0 68px;
+    transform: translateY(-28px);
+    width: 68px;
+    min-height: 68px;
+    overflow: visible;
+    border-radius: 50%;
+    background: var(--night);
+    color: #fff;
+    box-shadow:
+      0 0 0 3px #fff,
+      0 0 0 5px rgba(201, 168, 76, 0.65),
+      0 14px 28px rgba(28, 32, 44, 0.28);
+  }
+
+  .bottomNav .profileTab.active{
+    background: var(--night);
+    box-shadow:
+      0 0 0 3px #fff,
+      0 0 0 5px rgba(201, 168, 76, 0.82),
+      0 16px 32px rgba(28, 32, 44, 0.3);
+  }
+
+  .profileNavImage{
+    position: absolute;
+    inset: 3px;
+    width: calc(100% - 6px);
+    height: calc(100% - 6px);
+    display: block;
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: center 42%;
+    box-shadow: none;
+    transform: none;
+  }
+
+  .bottomNav .profileTab::after{
+    content: "";
+    position: absolute;
+    inset: 3px;
+    z-index: 1;
+    border-radius: 50%;
+    background: linear-gradient(180deg, transparent 46%, rgba(28, 32, 44, 0.42) 100%);
+    pointer-events: none;
+  }
+
+  .bottomNav .profileTab span{
+    position: absolute;
+    left: 50%;
+    bottom: -16px;
+    z-index: 2;
+    width: max-content;
+    margin: 0;
+    transform: translateX(-50%);
+    color: #2a2d36;
+    font-size: 0.6rem;
+    font-weight: 900;
+    text-shadow: none;
+  }
+
+  
+
+  
+
+  .portfolioTagChips{
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .portfolioEmptyState{
+    min-height: 180px;
+    padding: 22px 14px;
+  }
+
+  
+
+  
+
+  .staffToolHead{
+    padding-left: 42px;
+  }
+
+  .staffHeroCard{
+    min-height: 0;
+    border-radius: 20px;
+    padding: 14px 12px;
+  }
+
+  .staffHeroCard b{
+    font-size: 1.08rem;
+  }
+
+  .staffHeroCard small{
+    font-size: 0.68rem;
+  }
+
+  .staffHeroCard strong{
+    width: 58px;
+  }
+
+  
+
+  
+
+  
+
+  .staffOverviewGrid{
+    gap: 6px;
+  }
+
+  .staffOverviewGrid span{
+    min-height: 52px;
+    border-radius: 15px;
+    font-size: 0.58rem;
+  }
+
+  .staffOverviewGrid b{
+    font-size: 0.82rem;
+  }
+
+  .staffCommandStrip{
+    gap: 6px;
+  }
+
+  .staffCommandStrip span{
+    min-height: 34px;
+    padding: 6px 4px;
+    font-size: 0.56rem;
+  }
+
+  .staffRosterGrid{
+    padding: 7px;
+  }
+
+  .staffRosterGrid button{
+    min-height: 62px;
+    grid-template-columns: auto 1fr auto;
+    gap: 7px;
+    padding: 8px;
+  }
+
+  .staffRosterAvatar{
+    width: 38px;
+    height: 38px;
+    border-radius: 15px;
+  }
+
+  .staffRosterMeta b{
+    font-size: 0.82rem;
+  }
+
+  .staffRosterMeta small,
+  .staffRosterState{
+    font-size: 0.56rem;
+  }
+
+  .staffIdentityCard{
+    grid-template-columns: auto 1fr;
+  }
+
+  .staffIdentityCard strong{
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .staffProfileStats{
+    gap: 6px;
+  }
+
+  .staffProfileStats span{
+    min-height: 52px;
+    font-size: 0.56rem;
+  }
+
+  .artistProfileForm{
+    gap: 7px;
+    padding: 0 8px 10px;
+  }
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  .artistProfileForm input,
+  .artistProfileForm select{
+    min-height: 42px;
+    font-size: 0.7rem;
+  }
+
+  
+
+  
+
+  
+
+  .artistStarAura{
+    min-width: 128px;
+    height: 50px;
+  }
+
+  .artistRatingStars .marbleRatingStar{
+    width: 24px;
+    height: 24px;
+  }
+
+  .bookingToolHead{
+    min-height: 60px;
+    padding-right: 40px;
+    padding-left: 38px;
+  }
+
+  .salonWorkspacePanel.is-booking{
+    gap: 10px;
+    padding: 12px 10px 14px;
+    border-radius: 22px;
+  }
+
+  .salonWorkspacePanel.is-booking .bookingToolHead{
+    min-height: 0;
+    padding: 0;
+  }
+
+  .salonWorkspacePanel.is-booking .bookingToolHead b{
+    font-size: 1.08rem;
+  }
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  .salonWorkspacePanel.is-booking .bookingCreateForm fieldset{
+    padding: 12px 10px 10px;
+    border-radius: 18px;
+  }
+
+  .salonWorkspacePanel.is-booking .bookingCreateForm input,
+  .salonWorkspacePanel.is-booking .bookingCreateForm select{
+    min-height: 48px;
+    border-radius: 15px;
+    font-size: 0.82rem;
+  }
+
+  .salonWorkspacePanel.is-booking .bookingPrimaryBtn,
+  .salonWorkspacePanel.is-booking .bookingSecondaryBtn{
+    min-height: 50px;
+    border-radius: 15px;
+    font-size: 0.82rem;
+  }
+
+  .bookingCreateForm{
+    grid-template-columns: 1fr;
+    gap: 9px;
+    padding: 0;
+  }
+
+  .bookingCreateForm fieldset{
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    padding: 11px;
+    border-radius: 19px;
+  }
+
+  .bookingStepClient{
+    grid-template-columns: 1fr !important;
+  }
+
+  .bookingCreateForm label{
+    padding: 0;
+    font-size: 0.68rem;
+  }
+
+  .bookingCreateForm input,
+  .bookingCreateForm select{
+    min-height: 46px;
+    border-radius: 15px;
+    font-size: 0.78rem;
+  }
+
+  .bookingCreateForm > button{
+    min-height: 54px;
+    border-radius: 17px;
+    font-size: 0.84rem;
+  }
+
+  .bookingDeskStats,
+  .portfolioDeskStats{
+    gap: 6px;
+  }
+
+  .bookingDeskStats span,
+  .portfolioDeskStats span{
+    min-height: 44px;
+    padding: 6px 4px;
+    font-size: 0.56rem;
+  }
+
+  .bookingDeskList article{
+    grid-template-columns: auto 1fr;
+  }
+
+  .bookingDeskList small{
+    grid-column: 2;
+    width: max-content;
+  }
+
+  .profilePanel.page-profile{
+    padding-bottom: calc(96px + env(safe-area-inset-bottom));
+  }
+
+  .profilePanel.page-profile.has-floating-cta{
+    padding-bottom: calc(178px + env(safe-area-inset-bottom));
+  }
+
+  .profilePanel.page-profile:has(.createdProfile.is-artist){
+    min-height: 100vh;
+    padding: 18px 8px calc(178px + env(safe-area-inset-bottom));
+  }
+
+  .profilePanel.page-profile:has(.createdProfile.is-client){
+    min-height: 100vh;
+    padding: 18px 8px calc(178px + env(safe-area-inset-bottom));
+  }
+
+  .profilePanel.page-profile.is-salon-profile,
+  .profilePanel.page-profile:has(.createdProfile.is-salon){
+    min-height: 100vh;
+    margin-top: 0 !important;
+    padding: 0 0 calc(178px + env(safe-area-inset-bottom)) !important;
+  }
+
+  .profilePanel.page-profile.is-salon-profile .createdProfile,
+  .profilePanel.page-profile:has(.createdProfile.is-salon) .createdProfile{
+    margin-top: 0;
+    padding: 0 0 12px;
+    width: 100%;
+  }
+
+  .profilePanel.page-profile.is-salon-profile .createdProfile > :first-child,
+  .profilePanel.page-profile:has(.createdProfile.is-salon) .createdProfile > :first-child{
+    border-radius: 0;
+    box-shadow: none;
+  }
+}

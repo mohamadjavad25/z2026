@@ -1,0 +1,1802 @@
+.staffPayrollPanel span{
+  min-height: 52px;
+  background:
+    linear-gradient(135deg, rgba(191, 192, 209, 0.16), rgba(255, 255, 255, 0.82)),
+    rgba(255, 255, 255, 0.78);
+}
+
+.staffMetricGrid b,
+.staffPayrollPanel b{
+  display: block;
+  color: var(--muted);
+  font-size: 0.58rem;
+}
+
+.staffSettingsGrid{
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.staffSettingsGrid label{
+  display: grid;
+  gap: 5px;
+  color: var(--ink);
+  font-size: 0.66rem;
+  font-weight: 900;
+}
+
+.staffSettingsGrid select{
+  min-height: 38px;
+  border: 1px solid rgba(28, 32, 44, 0.1);
+  border-radius: 13px;
+  padding: 0 8px;
+  background: rgba(255, 255, 255, 0.86);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 0.7rem;
+}
+
+.staffDetailList article{
+  min-height: 54px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 16px;
+  background: rgba(246, 246, 251, 0.86);
+}
+
+.staffDetailList b,
+.staffDetailList span,
+.staffDetailList small{
+  display: block;
+}
+
+.staffDetailList b{
+  font-size: 0.8rem;
+}
+
+.staffDetailList span{
+  color: var(--muted);
+  font-size: 0.68rem;
+}
+
+.staffDetailList small{
+  margin-top: 2px;
+  color: var(--teal);
+  font-size: 0.6rem;
+  font-weight: 900;
+}
+
+.staffDetailList button{
+  min-height: 32px;
+  border: 0;
+  border-radius: 12px;
+  padding: 0 9px;
+  background: rgba(20, 22, 29, 0.1);
+  color: var(--teal);
+  font-size: 0.62rem;
+  font-weight: 900;
+}
+
+.staffControlGrid{
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  padding-top: 3px;
+}
+
+.staffControlGrid button{
+  min-height: 36px;
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.74);
+  color: var(--ink);
+  font-size: 0.62rem;
+  font-weight: 900;
+  box-shadow: inset 0 0 0 1px rgba(28, 32, 44, 0.06);
+}
+
+.staffControlGrid button.danger{
+  background: rgba(20, 22, 29, 0.1);
+  color: var(--rose);
+}
+
+.hoursEditor,
+.portfolioUploader{
+  display: grid;
+  gap: 7px;
+}
+
+.hoursAdvanced{
+  border: 0;
+  border-top: 1px solid rgba(28, 32, 44, 0.08);
+  border-radius: 0;
+  background: transparent;
+  overflow: hidden;
+}
+
+.hoursAdvanced summary{
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  list-style: none;
+  padding: 4px 2px 0;
+  color: var(--teal);
+  font-size: 0.76rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.hoursAdvanced summary svg{
+  flex: 0 0 auto;
+  transition: transform 0.18s ease;
+}
+
+.hoursAdvanced[open] summary svg{
+  transform: rotate(180deg);
+}
+
+.hoursAdvanced summary::-webkit-details-marker{
+  display: none;
+}
+
+.hoursAdvanced .hoursEditor{
+  padding: 8px 0 2px;
+}
+
+.hoursEditor label{
+  grid-template-columns: 1fr 1.1fr;
+  align-items: center;
+  padding: 7px;
+  border-radius: 14px;
+  background: rgba(246, 246, 251, 0.76);
+}
+
+.hoursEditor label.hourEditorRow{
+  grid-template-columns: 0.9fr repeat(4, minmax(0, 1fr));
+}
+
+.hoursEditor select{
+  min-height: 38px;
+  width: 100%;
+  border: 1px solid rgba(28, 32, 44, 0.1);
+  outline: 0;
+  border-radius: 13px;
+  padding: 0 9px;
+  background: rgba(255, 255, 255, 0.86);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 0.72rem;
+}
+
+.portfolioUploader{
+  grid-template-columns: 0.9fr 1.1fr;
+}
+
+.portfolioUploader > div,
+.portfolioUploader .portfolioImagePicker{
+  grid-row: span 2;
+  min-height: 112px;
+  display: grid;
+  place-items: center;
+  gap: 5px;
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, rgba(20, 22, 29, 0.1), rgba(20, 22, 29, 0.1)),
+    rgba(255, 255, 255, 0.72);
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 900;
+}
+
+.portfolioUploader .portfolioImagePicker input{
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.salonKpiGrid{
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.salonKpiGrid article{
+  min-height: 78px;
+  display: grid;
+  align-content: center;
+  gap: 4px;
+  padding: 9px;
+  border-radius: 17px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(246, 246, 251, 0.64)),
+    #fff;
+  box-shadow: inset 0 0 0 1px rgba(28, 32, 44, 0.07);
+}
+
+.salonKpiGrid span,
+.salonKpiGrid small{
+  color: var(--muted);
+  font-size: 0.6rem;
+  line-height: 1.35;
+}
+
+.salonKpiGrid b{
+  color: var(--ink);
+  font-size: 0.98rem;
+}
+
+.salonOpsSection{
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid rgba(28, 32, 44, 0.08);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.opsHead{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.opsHead span{
+  color: var(--teal);
+  font-size: 0.7rem;
+  font-weight: 900;
+}
+
+.opsHead b{
+  font-size: 0.9rem;
+}
+
+.bookingTimeline{
+  display: grid;
+  gap: 7px;
+}
+
+.weekCapacity{
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.weekCapacity article{
+  min-height: 122px;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 5px;
+  justify-items: center;
+  padding: 7px 4px;
+  border-radius: 16px;
+  background: rgba(246, 246, 251, 0.82);
+}
+
+.weekCapacity span,
+.weekCapacity b{
+  font-size: 0.62rem;
+  font-weight: 900;
+}
+
+.weekCapacity div{
+  width: 18px;
+  height: 68px;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(28, 32, 44, 0.08);
+}
+
+.weekCapacity i{
+  width: 100%;
+  display: block;
+  border-radius: inherit;
+  background: linear-gradient(180deg, var(--rose), var(--gold));
+}
+
+.bookingTimeline article{
+  min-height: 56px;
+  display: grid;
+  grid-template-columns: 48px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 16px;
+  background: rgba(246, 246, 251, 0.86);
+}
+
+.bookingTimeline time,
+.bookingTimeline .segmentClock{
+  display: inline-flex;
+  place-items: center;
+  min-height: 0;
+  border-radius: 10px;
+  background: none;
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.bookingTimeline b,
+.bookingTimeline span{
+  display: block;
+}
+
+.bookingTimeline b{
+  font-size: 0.82rem;
+}
+
+.bookingTimeline span{
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 0.68rem;
+}
+
+.bookingTimeline small{
+  padding: 5px 7px;
+  border-radius: 999px;
+  background: rgba(20, 22, 29, 0.1);
+  color: var(--rose);
+  font-size: 0.62rem;
+  font-weight: 900;
+}
+
+.staffGrid{
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.staffGrid article{
+  min-height: 116px;
+  display: grid;
+  place-items: center;
+  gap: 3px;
+  padding: 9px;
+  border-radius: 17px;
+  background: rgba(246, 246, 251, 0.86);
+  text-align: center;
+}
+
+.staffAvatar{
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--rose), var(--plum));
+  color: #fff;
+  font-weight: 900;
+}
+
+.staffGrid b,
+.staffGrid span,
+.staffGrid small{
+  display: block;
+}
+
+.staffGrid b{
+  font-size: 0.78rem;
+}
+
+.staffGrid span,
+.staffGrid small{
+  color: var(--muted);
+  font-size: 0.62rem;
+  line-height: 1.45;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+.twoColumnOps{
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.workingHours,
+.serviceListMini,
+.inventoryList,
+.taskList{
+  display: grid;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.workingHours span,
+.serviceListMini span,
+.inventoryList span,
+.taskList span{
+  min-height: 42px;
+  display: grid;
+  gap: 2px;
+  padding: 8px;
+  border-radius: 13px;
+  background: rgba(246, 246, 251, 0.86);
+  color: var(--muted);
+  font-size: 0.66rem;
+  line-height: 1.4;
+}
+
+.workingHours b,
+.serviceListMini b,
+.inventoryList b{
+  color: var(--ink);
+  font-size: 0.72rem;
+}
+
+.miniManageActions,
+.portfolioManageActions{
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.miniManageActions button,
+.portfolioManageActions button{
+  min-height: 28px;
+  flex: 1;
+  border: 0;
+  border-radius: 10px;
+  background: rgba(20, 22, 29, 0.1);
+  color: var(--teal);
+  font-family: inherit;
+  font-size: 0.62rem;
+  font-weight: 900;
+}
+
+.miniManageActions button.danger,
+.portfolioManageActions button.danger{
+  background: rgba(20, 22, 29, 0.12);
+  color: var(--rose);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+.salonSidebarBackdrop{
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  display: flex;
+  justify-content: flex-end;
+  background: rgba(28, 32, 44, 0.32);
+  backdrop-filter: blur(10px);
+}
+
+.salonSidebar{
+  width: min(430px, calc(100vw - 22px));
+  height: 100%;
+  overflow-y: auto;
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding: 12px 12px calc(88px + env(safe-area-inset-bottom));
+  background:
+    linear-gradient(180deg, rgba(246, 246, 251, 0.97), rgba(246, 239, 233, 0.96)),
+    var(--surface-solid);
+  box-shadow: -24px 0 70px rgba(28, 32, 44, 0.2);
+}
+
+.salonSidebarTop,
+.salonSidebarBlock{
+  border: 1px solid rgba(28, 32, 44, 0.08);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.74);
+  box-shadow: 0 14px 34px rgba(28, 32, 44, 0.07);
+}
+
+.salonSidebarTop{
+  min-height: 116px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  background:
+    linear-gradient(135deg, rgba(28, 32, 44, 0.95), rgba(20, 22, 29, 0.9)),
+    var(--night);
+  color: #fff;
+}
+
+.salonSidebarTop button{
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.salonSidebarTop span,
+.salonSidebarTop p{
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.salonSidebarTop span{
+  display: block;
+  margin-bottom: 4px;
+  color: #bfc0d1;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.salonSidebarTop h3{
+  margin-bottom: 4px;
+  font-size: 1.26rem;
+}
+
+.salonSidebarTop p{
+  margin: 0;
+  font-size: 0.76rem;
+  line-height: 1.6;
+}
+
+.salonSidebarTop strong{
+  min-width: 62px;
+  min-height: 62px;
+  display: grid;
+  place-items: center;
+  border-radius: 19px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #bfc0d1;
+}
+
+.salonSidebarBlock{
+  display: grid;
+  gap: 9px;
+  padding: 10px;
+}
+
+.salonSidebarBlock.twoColumnOps{
+  display: grid;
+}
+
+.salonKpiGrid.compact{
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.weekCapacity.compact{
+  gap: 5px;
+}
+
+.weekCapacity.compact article{
+  min-height: 96px;
+}
+
+.staffGrid.compact{
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.staffGrid.compact article{
+  min-height: 108px;
+}
+
+.salonSidebarHero,
+.salonSidebarDropdown,
+.salonSidebarBanner{
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.48);
+  border-radius: 22px;
+  box-shadow: 0 16px 42px rgba(28, 32, 44, 0.12);
+}
+
+.salonSidebarHero{
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: start;
+  gap: 10px;
+  min-height: 238px;
+  padding: 12px;
+  background-image:
+    linear-gradient(90deg, rgba(28, 32, 44, 0.24), rgba(28, 32, 44, 0.62) 58%, rgba(28, 32, 44, 0.9)),
+    url("/salon-sidebar-hero.webp");
+  background-size: cover;
+  background-position: center;
+  color: #fff;
+}
+
+.salonSidebarHero::after,
+.salonSidebarBanner::after{
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), transparent 42%);
+}
+
+.salonSidebarHero > *{
+  position: relative;
+  z-index: 1;
+}
+
+.salonSidebarHero button{
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  backdrop-filter: blur(12px);
+}
+
+.salonSidebarHeroText span,
+.salonSidebarHeroText h3,
+.salonSidebarHeroText p{
+  display: block;
+}
+
+.salonSidebarHeroText span{
+  color: #bfc0d1;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.salonSidebarHeroText h3{
+  margin: 3px 0;
+  font-size: 1.36rem;
+}
+
+.salonSidebarHeroText p{
+  margin: 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.76rem;
+  line-height: 1.6;
+}
+
+.salonSidebarHero > strong{
+  min-width: 60px;
+  min-height: 60px;
+  display: grid;
+  place-items: center;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.13);
+  color: #bfc0d1;
+  backdrop-filter: blur(14px);
+}
+
+.salonSidebarHero .salonKpiGrid{
+  grid-column: 1 / -1;
+  align-self: end;
+  margin-top: 18px;
+}
+
+.salonSidebarHero .salonKpiGrid article{
+  min-height: 64px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(16px);
+}
+
+.salonSidebarHero .salonKpiGrid span,
+.salonSidebarHero .salonKpiGrid small{
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.salonSidebarHero .salonKpiGrid b{
+  color: #fff;
+}
+
+.salonSidebarDropdown{
+  display: grid;
+  gap: 9px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.salonSidebarDropdown summary{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 42px;
+  list-style: none;
+  cursor: pointer;
+}
+
+.salonSidebarDropdown summary::-webkit-details-marker{
+  display: none;
+}
+
+.salonSidebarDropdown summary::after{
+  content: "⌄";
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(20, 22, 29, 0.1);
+  color: var(--teal);
+  font-weight: 900;
+}
+
+.salonSidebarDropdown[open] summary::after{
+  content: "⌃";
+}
+
+.salonSidebarDropdown summary span,
+.salonSidebarDropdown summary b{
+  display: block;
+}
+
+.salonSidebarDropdown summary span{
+  color: var(--teal);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.salonSidebarDropdown summary b{
+  color: var(--ink);
+  font-size: 1rem;
+}
+
+.salonSidebarStaff{
+  background:
+    linear-gradient(135deg, rgba(232, 248, 246, 0.9), rgba(246, 246, 251, 0.86)),
+    #fff;
+}
+
+.sidebarStaffForm{
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 2px;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.sidebarStaffForm button{
+  grid-column: 1 / -1;
+}
+
+.sidebarStaffList{
+  margin-top: 2px;
+}
+
+.sidebarStaffList article{
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.salonSidebarBanner{
+  min-height: 112px;
+  display: grid;
+  align-content: center;
+  gap: 5px;
+  width: 100%;
+  border: 0;
+  padding: 16px;
+  text-align: right;
+  color: #fff;
+  background-size: cover;
+  background-position: center;
+}
+
+.salonSidebarBanner.system{
+  background-image:
+    linear-gradient(90deg, rgba(28, 32, 44, 0.16), rgba(28, 32, 44, 0.66) 56%, rgba(28, 32, 44, 0.92)),
+    url("/salon-sidebar-system.webp");
+}
+
+.salonSidebarBanner.ai,
+.salonSidebarBanner.ops{
+  background-image:
+    linear-gradient(90deg, rgba(28, 32, 44, 0.12), rgba(28, 32, 44, 0.62) 54%, rgba(28, 32, 44, 0.92)),
+    url("/salon-sidebar-aiops.webp");
+}
+
+.salonSidebarBanner > *{
+  position: relative;
+  z-index: 1;
+}
+
+.salonSidebarBanner span{
+  width: fit-content;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #bfc0d1;
+  font-size: 0.68rem;
+  font-weight: 900;
+  backdrop-filter: blur(12px);
+}
+
+.salonSidebarBanner b{
+  font-size: 1.04rem;
+}
+
+.salonSidebarBanner small{
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.72rem;
+}
+
+.savedProfileContent,
+.savedProfileGroup{
+  display: grid;
+  gap: 10px;
+}
+
+.savedProfileGroupHead{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--ink);
+}
+
+.savedProfileGroupHead span{
+  font-size: 0.82rem;
+  font-weight: 950;
+}
+
+.savedProfileGroupHead b{
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: rgba(20, 22, 29, 0.1);
+  color: var(--plum);
+  font-size: 0.66rem;
+  font-weight: 900;
+}
+
+.savedSalonList{
+  display: grid;
+  gap: 8px;
+}
+
+.savedSalonCard{
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 7px;
+  align-items: center;
+  padding: 8px;
+  border: 1px solid rgba(28, 32, 44, 0.08);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.76);
+  box-shadow: 0 14px 30px rgba(28, 32, 44, 0.08);
+  cursor: pointer;
+  transition: border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.savedSalonCard:hover,
+.savedSalonCard:focus-visible{
+  border-color: rgba(20, 22, 29, 0.3);
+  box-shadow: 0 16px 34px rgba(28, 32, 44, 0.11);
+  transform: translateY(-1px);
+  outline: none;
+}
+
+.savedSalonOpen{
+  min-width: 0;
+  min-height: 58px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 9px;
+  align-items: center;
+  color: inherit;
+  text-align: right;
+}
+
+.savedSalonLogo{
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--night);
+  color: #fff;
+  box-shadow: 0 10px 22px rgba(28, 32, 44, 0.14);
+}
+
+.savedSalonLogo img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.savedSalonBody{
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.savedSalonBody b,
+.savedSalonBody small,
+.savedSalonBody em{
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.savedSalonBody b{
+  color: var(--ink);
+  font-size: 0.86rem;
+  font-weight: 950;
+}
+
+.savedSalonBody small{
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.savedSalonBody em{
+  color: var(--plum);
+  font-style: normal;
+  font-size: 0.64rem;
+  font-weight: 900;
+}
+
+.savedSalonRemove{
+  width: 36px;
+  height: 36px;
+  min-height: 36px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 13px;
+  background: rgba(20, 22, 29, 0.09);
+  color: var(--plum);
+}
+
+.savedPostList{
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-auto-rows: 50px;
+  grid-auto-flow: dense;
+  gap: 7px;
+}
+
+.savedProfileHeader{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.savedProfileHeader h3{
+  margin: 0;
+  color: var(--ink);
+  font-size: 1.08rem;
+  font-weight: 950;
+  letter-spacing: -0.015em;
+}
+
+.savedProfileBack{
+  width: 38px;
+  height: 38px;
+  min-height: 38px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(28, 32, 44, 0.08);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--plum);
+  box-shadow: 0 10px 22px rgba(28, 32, 44, 0.06);
+}
+
+.savedPostCard{
+  position: relative;
+  min-height: 0;
+  display: block;
+  overflow: hidden;
+  border: 0;
+  border-radius: 16px;
+  padding: 0;
+  color: #fff;
+  background-image: url("/explore-collage.webp");
+  background-size: 300% 300%;
+  background-position: center;
+  box-shadow: 0 14px 30px rgba(28, 32, 44, 0.12);
+  cursor: pointer;
+}
+
+.savedPostCard.hasImage{
+  background-image: none;
+}
+
+.savedPostCard img{
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center;
+}
+
+.savedPostCard.is-featured,
+.savedPostCard.is-wide{
+  grid-column: span 4;
+  grid-row: span 3;
+}
+
+.savedPostCard.is-landscape{
+  grid-column: span 4;
+  grid-row: span 2;
+}
+
+.savedPostCard.is-tall{
+  grid-column: span 2;
+  grid-row: span 4;
+}
+
+.savedPostCard.is-portrait,
+.savedPostCard.is-square{
+  grid-column: span 3;
+  grid-row: span 3;
+}
+
+.savedPostCard.tile1{ background-position: 0% 0%; }
+.savedPostCard.tile2{ background-position: 50% 0%; }
+.savedPostCard.tile3{ background-position: 100% 0%; }
+.savedPostCard.tile4{ background-position: 0% 50%; }
+.savedPostCard.tile5{ background-position: 50% 50%; }
+.savedPostCard.tile6{ background-position: 100% 50%; }
+.savedPostCard.tile7{ background-position: 0% 100%; }
+.savedPostCard.tile8{ background-position: 50% 100%; }
+.savedPostCard.tile9{ background-position: 100% 100%; }
+
+.savedPostCard button{
+  position: absolute;
+  left: 7px;
+  top: 7px;
+  z-index: 2;
+  width: 30px;
+  height: 30px;
+  min-height: 0;
+  border: 0;
+  border-radius: 999px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--plum);
+  display: grid;
+  place-items: center;
+}
+
+.emptySavedState{
+  grid-column: 1 / -1;
+  min-height: 178px;
+  display: grid;
+  place-items: center;
+  gap: 6px;
+  padding: 18px;
+  border: 1px solid rgba(28, 32, 44, 0.08);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(20, 22, 29, 0.08), transparent 58%),
+    rgba(255, 255, 255, 0.66);
+  color: var(--muted);
+  text-align: center;
+}
+
+.emptySavedState svg{
+  color: rgba(20, 22, 29, 0.72);
+}
+
+.emptySavedState b{
+  color: var(--ink);
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+.profileProgress{
+  display: grid;
+  gap: 7px;
+  padding: 12px;
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, rgba(20, 22, 29, 0.1), rgba(191, 192, 209, 0.14)),
+    rgba(255, 255, 255, 0.58);
+}
+
+.profileProgress div:first-child{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.profileProgress span,
+.profileProgress small{
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 900;
+}
+
+.profileProgress strong{
+  color: var(--teal);
+}
+
+.progressTrack{
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(28, 32, 44, 0.08);
+}
+
+.progressTrack span{
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--teal), var(--gold));
+}
+
+.profileActivity{
+  display: grid;
+  gap: 7px;
+}
+
+.activityHead{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--ink);
+}
+
+.activityHead span{
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.profileActivity article{
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.profileActivity b,
+.profileActivity span{
+  display: block;
+}
+
+.profileActivity b{
+  margin-bottom: 3px;
+  color: var(--ink);
+  font-size: 0.82rem;
+}
+
+.profileActivity span{
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.6;
+}
+
+.settingsList{
+  display: grid;
+  gap: 8px;
+}
+
+.srOnly{
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* --- Neo-Tactile Settings Panel --- */
+
+.neoSettingsPanel{
+  display: grid;
+  gap: 8px;
+}
+
+.neoSettingsGroup{
+  border: 1px solid rgba(20, 22, 29, 0.1);
+  border-radius: 16px;
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.92), rgba(249, 249, 251, 0.88));
+  overflow: hidden;
+  transition: box-shadow 0.2s ease;
+}
+
+.neoSettingsGroup.is-open{
+  box-shadow: 0 4px 18px rgba(28, 32, 44, 0.04);
+}
+
+.neoSettingsGroupHead{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 42px;
+  padding: 0 14px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  text-align: right;
+}
+
+.neoSettingsGroupChev{
+  transition: transform 0.2s ease;
+  color: var(--muted);
+}
+
+.neoSettingsGroup.is-open .neoSettingsGroupChev{
+  transform: rotate(180deg);
+}
+
+.neoSettingsGroupBody{
+  display: grid;
+  gap: 2px;
+  padding: 0 6px 8px;
+}
+
+.neoSettingsToggle{
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 8px 10px;
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.neoSettingsToggle:hover{
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.neoSettingsToggleIcon{
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  background: linear-gradient(135deg, rgba(20, 22, 29, 0.08), rgba(20, 22, 29, 0.06));
+  color: var(--teal);
+}
+
+.neoSettingsToggleCopy{
+  display: grid;
+  gap: 2px;
+  text-align: right;
+}
+
+.neoSettingsToggleCopy b{
+  color: var(--ink);
+  font-size: 0.8rem;
+  font-weight: 850;
+}
+
+.neoSettingsToggleCopy small{
+  color: var(--muted);
+  font-size: 0.66rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.neoSettingsSwitch{
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
+.neoSettingsSwitch input{
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.neoSettingsSwitchTrack{
+  position: relative;
+  width: 42px;
+  height: 24px;
+  border-radius: 999px;
+  background: rgba(104, 113, 119, 0.18);
+  box-shadow:
+    inset 0 1px 3px rgba(28, 32, 44, 0.1),
+    0 0 0 1px rgba(28, 32, 44, 0.04);
+  transition: background 0.25s ease;
+  flex: 0 0 auto;
+}
+
+.neoSettingsSwitch[data-on="true"] .neoSettingsSwitchTrack{
+  background: linear-gradient(135deg, #6f7380, #14161d);
+  box-shadow:
+    inset 0 1px 2px rgba(20, 22, 29, 0.15),
+    0 4px 12px rgba(20, 22, 29, 0.2),
+    0 0 0 1px rgba(20, 22, 29, 0.08);
+}
+
+.neoSettingsSwitchKnob{
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(28, 32, 44, 0.18);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.neoSettingsSwitch[data-on="false"] .neoSettingsSwitchKnob{
+  transform: translateX(-18px);
+}
+
+.neoSettingsSwitchLabel{
+  color: var(--muted);
+  font-size: 0.62rem;
+  font-weight: 800;
+  min-width: 32px;
+  text-align: center;
+}
+
+.neoSettingsSwitch[data-on="true"] .neoSettingsSwitchLabel{
+  color: var(--teal);
+}
+
+.neoSettingsLegalLinks{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  min-height: 40px;
+  margin-bottom: 8px;
+}
+
+.neoSettingsLegalLinks a{
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.neoSettingsLegalLinks a:hover{
+  color: var(--ink);
+  text-decoration: underline;
+}
+
+.neoSettingsLogout{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  border: 1px solid rgba(155, 54, 80, 0.15);
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(155, 54, 80, 0.06), rgba(155, 54, 80, 0.03));
+  color: var(--rose, #9b3650);
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 900;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.neoSettingsLogout:hover{
+  background: linear-gradient(135deg, rgba(155, 54, 80, 0.12), rgba(155, 54, 80, 0.06));
+  border-color: rgba(155, 54, 80, 0.25);
+}
+
+/* Deliberately more muted than .neoSettingsLogout at rest — this is a much
+   heavier action and shouldn't visually compete with "خروج از حساب" for
+   attention; it earns a stronger red only in the confirm step below. */
+.neoSettingsDelete{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  margin-top: 6px;
+  border: 1px solid rgba(28, 32, 44, 0.1);
+  border-radius: 14px;
+  background: transparent;
+  color: var(--muted, #777b8d);
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 850;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.neoSettingsDelete:hover{
+  color: var(--rose, #9b3650);
+  border-color: rgba(155, 54, 80, 0.2);
+  background: rgba(155, 54, 80, 0.04);
+}
+
+.neoSettingsDeleteConfirm{
+  display: grid;
+  gap: 8px;
+  margin-top: 6px;
+  padding: 12px;
+  border: 1px solid rgba(155, 54, 80, 0.18);
+  border-radius: 14px;
+  background: rgba(155, 54, 80, 0.05);
+}
+
+.neoSettingsDeleteConfirmHead{
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--rose, #9b3650);
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.neoSettingsDeleteConfirm p{
+  margin: 0;
+  color: var(--muted, #777b8d);
+  font-size: 0.74rem;
+  font-weight: 750;
+  line-height: 1.7;
+}
+
+.neoSettingsDeleteConfirm input{
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid rgba(155, 54, 80, 0.2);
+  border-radius: 12px;
+  background: #ffffff;
+  color: var(--ink, #171827);
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.neoSettingsDeleteConfirmError{
+  margin: 0;
+  color: var(--rose, #9b3650);
+  font-size: 0.74rem;
+  font-weight: 800;
+  line-height: 1.6;
+}
+
+.neoSettingsDeleteConfirmActions{
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 8px;
+}
+
+.neoSettingsDeleteConfirmActions button{
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 0;
+  border-radius: 12px;
+  font-size: 0.78rem;
+  font-weight: 900;
+  background: rgba(28, 32, 44, 0.06);
+  color: var(--ink, #171827);
+}
+
+.neoSettingsDeleteConfirmActions button.is-danger{
+  background: var(--rose, #9b3650);
+  color: #ffffff;
+}
+
+.neoSettingsDeleteConfirmActions button:disabled{
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.settingsHead{
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px;
+  border-radius: 16px;
+  background: rgba(20, 22, 29, 0.08);
+}
+
+.settingsHead svg{
+  color: var(--teal);
+}
+
+.settingsHead strong,
+.settingsHead span{
+  display: block;
+}
+
+.settingsHead span{
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.profileLocationSettings,
+.settingsRowCard{
+  border: 1px solid rgba(20, 22, 29, 0.12);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.92);
+  text-align: right;
+  direction: rtl;
+  overflow: hidden;
+}
+
+.profileLocationSettings:has(.profileLocationMapPanel){
+  padding: 10px;
+}
+
+/* Single compact settings-row (icon + title/value + clear-or-chevron) —
+   replaces the old two-row layout (a header block always shown, plus a
+   separate chip row below it) with one clickable row, closer to how a
+   normal settings list item reads. */
+.profileLocationRow{
+  width: 100%;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 62px;
+  padding: 10px 12px;
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  text-align: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.profileLocationRowIcon{
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  background: rgba(20, 22, 29, 0.1);
+  color: var(--teal);
+}
+
+.profileLocationRowInfo{
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.profileLocationRowInfo strong{
+  color: var(--ink);
+  font-size: 0.84rem;
+  font-weight: 950;
+}
+
+.profileLocationRowInfo span{
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profileLocationRow:has(.profileLocationRowClear) .profileLocationRowInfo span{
+  color: var(--teal);
+  font-weight: 850;
+}
+
+.profileLocationRowClear{
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: rgba(28, 32, 44, 0.08);
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.profileLocationRowClear:hover{
+  background: rgba(155, 54, 80, 0.12);
+  color: var(--rose);
+}
+
+.profileLocationRowChevron{
+  flex: 0 0 auto;
+  color: var(--muted);
+}
+
+/* --- Map Panel --- */
+
+.profileLocationMapPanel{
+  border: 1px solid rgba(20, 22, 29, 0.15);
+  border-radius: 16px;
+  background: #fff;
+  overflow: hidden;
+  box-shadow: 0 8px 28px rgba(28, 32, 44, 0.08);
+  animation: profileLocationSlideIn 0.22s ease;
+}
+
+@keyframes profileLocationSlideIn{
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* City step */
+
+.profileLocationCityStep{
+  display: grid;
+  gap: 0;
+}
+
+.profileLocationPickerHead{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 12px;
+  border-bottom: 1px solid rgba(28, 32, 44, 0.06);
+  background: rgba(249, 249, 251, 0.6);
+}
+
+.profileLocationPickerHead svg:first-child{
+  color: var(--muted);
+  flex: 0 0 auto;
+}
+
+.profileLocationPickerHead input{
+  flex: 1;
+  min-height: 40px;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  outline: none;
+  text-align: right;
+}
+
+.profileLocationPickerHead input::placeholder{
+  color: rgba(28, 32, 44, 0.35);
+}
+
+.profileLocationSearchClear{
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(28, 32, 44, 0.06);
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0;
+  flex: 0 0 auto;
+}
+
+.profileLocationCloseBtn{
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(28, 32, 44, 0.06);
+  color: var(--ink);
+  cursor: pointer;
+  padding: 0;
+  flex: 0 0 auto;
+  margin-inline-start: 2px;
+}
+
+.profileLocationLocateMe{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 14px;
+  margin: 8px 10px 0;
+  border: 1px dashed rgba(20, 22, 29, 0.25);
+  border-radius: 12px;
+  background: rgba(20, 22, 29, 0.04);
+  color: var(--teal);
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.profileLocationLocateMe:hover{
+  background: rgba(20, 22, 29, 0.08);
+}
+
+.profileLocationLocateMe:disabled{
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.profileLocationCityList{
+  max-height: 200px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 8px;
+}
+
+.profileLocationPickerHint{
+  padding: 4px 8px 8px;
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 750;
+}
+
+.profileLocationPickerGrid{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.profileLocationOption{
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid rgba(28, 32, 44, 0.08);
+  border-radius: 11px;
+  background: rgba(249, 249, 251, 0.5);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 750;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.profileLocationOption:hover{
+  background: rgba(20, 22, 29, 0.08);
+  border-color: rgba(20, 22, 29, 0.2);
+}
+
+.profileLocationOption.is-active{
+  background: linear-gradient(135deg, #6f7380, #14161d);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(20, 22, 29, 0.2);
+}
+
+.profileLocationOption.is-active svg{
+  color: #fff;
+}

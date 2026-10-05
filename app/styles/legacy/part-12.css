@@ -1,0 +1,1801 @@
+.salonPublicTitle {
+  position: absolute !important;
+  top: 28px !important;
+  right: 124px !important;
+  left: 84px !important;
+  width: auto !important;
+  min-height: 48px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  transform: none !important;
+}
+
+.salonPublicTitle h2 {
+  font-size: 1.08rem !important;
+  line-height: 1.25 !important;
+}
+
+.salonPublicTitle h2 {
+  direction: rtl !important;
+  flex-direction: row !important;
+}
+
+.salonPublicTitle h2 .salonPublicVerifiedIcon {
+  order: 2 !important;
+  flex: 0 0 auto !important;
+  width: 18px !important;
+  height: 18px !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #14161d !important;
+  fill: #14161d !important;
+  stroke: #ffffff !important;
+  stroke-width: 2.8 !important;
+  filter: drop-shadow(0 4px 8px rgba(20, 22, 29, 0.18)) !important;
+}
+
+.salonPublicTitle span {
+  margin-top: 2px !important;
+  font-size: 0.68rem !important;
+}
+
+.salonPublicStats {
+  position: absolute !important;
+  top: 104px !important;
+  right: 124px !important;
+  left: 16px !important;
+  width: auto !important;
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: flex-start !important;
+  align-items: center !important;
+  gap: 16px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  direction: rtl !important;
+  text-align: right !important;
+}
+
+.salonPublicStats span {
+  direction: rtl !important;
+  text-align: right !important;
+  justify-content: flex-start !important;
+  font-size: 0.64rem !important;
+}
+
+.salonPublicStats svg {
+  order: -1;
+}
+
+.salonPublicActions {
+  margin-top: 62px !important;
+}
+
+@media (max-width: 430px) {
+  .salonPublicIdentityCard {
+    grid-template-rows: 52px 28px 50px !important;
+    min-height: 168px !important;
+    padding-top: 40px !important;
+  }
+
+  .salonPublicTitle {
+    top: 24px !important;
+    right: 116px !important;
+    left: 82px !important;
+  }
+
+  .salonPublicStats {
+    top: 98px !important;
+    right: 116px !important;
+    left: 14px !important;
+    gap: 12px !important;
+  }
+
+  .salonPublicStats span {
+    font-size: 0.6rem !important;
+  }
+
+  .salonPublicActions {
+    margin-top: 58px !important;
+  }
+}
+
+/* Bring the public profile header back to the reference order:
+   title, stats, actions, then the service cards. */
+.salonPublicIdentityCard {
+  display: grid !important;
+  grid-template-rows: 54px 30px 52px !important;
+  min-height: 176px !important;
+  padding: 38px 16px 16px !important;
+  gap: 10px !important;
+}
+
+.salonPublicTitle {
+  position: relative !important;
+  top: auto !important;
+  right: auto !important;
+  left: auto !important;
+  grid-row: 1 !important;
+  width: 174px !important;
+  min-height: 50px !important;
+  justify-self: center !important;
+  align-self: start !important;
+  margin: -26px auto 0 !important;
+  transform: none !important;
+}
+
+.salonPublicStats {
+  position: relative !important;
+  top: auto !important;
+  right: auto !important;
+  left: auto !important;
+  grid-row: 2 !important;
+  width: calc(100% - 86px) !important;
+  justify-self: stretch !important;
+  align-self: center !important;
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: 18px !important;
+  margin: 0 0 0 auto !important;
+  padding: 0 !important;
+  direction: rtl !important;
+  text-align: right !important;
+}
+
+.salonPublicStats span {
+  direction: rtl !important;
+  justify-content: flex-start !important;
+  text-align: right !important;
+}
+
+.salonPublicActions {
+  grid-row: 3 !important;
+  align-self: end !important;
+  margin-top: 0 !important;
+}
+
+@media (max-width: 430px) {
+  .salonPublicIdentityCard {
+    grid-template-rows: 52px 28px 50px !important;
+    min-height: 172px !important;
+    padding: 36px 14px 14px !important;
+  }
+
+  .salonPublicTitle {
+    width: 166px !important;
+    margin-top: -24px !important;
+  }
+
+  .salonPublicStats {
+    width: calc(100% - 72px) !important;
+    margin: 0 0 0 auto !important;
+    gap: 12px !important;
+  }
+}
+
+/* Match the public salon logo ring to the salon admin avatar treatment. */
+.salonPublicLogo {
+  box-sizing: border-box !important;
+  padding: 8px !important;
+  border: 4px solid #090911 !important;
+  background:
+    radial-gradient(circle at 30% 18%, rgba(255, 255, 255, 0.2), transparent 34%),
+    linear-gradient(135deg, #2f2f33 0%, #14161d 54%, #242428 100%) !important;
+  box-shadow:
+    0 0 0 3px #d9b44a,
+    0 0 0 6px rgba(153, 190, 255, 0.42),
+    0 0 26px rgba(125, 177, 255, 0.78),
+    0 18px 30px rgba(0, 0, 0, 0.24) !important;
+}
+
+.salonPublicLogo::before {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border-radius: 50%;
+  pointer-events: none;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -18px 28px rgba(14, 14, 18, 0.28);
+}
+
+.salonPublicLogo strong,
+.salonPublicLogo span {
+  position: relative;
+  z-index: 1;
+}
+
+.salonPublicLogo .profileAvatarImage {
+  position: relative !important;
+  z-index: 1;
+  inset: auto !important;
+  top: auto !important;
+  right: auto !important;
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  object-fit: contain !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Public page uses the real salon admin avatar element in a controlled slot. */
+.salonPublicLogoSlot {
+  position: absolute !important;
+  top: -52px !important;
+  right: 10px !important;
+  z-index: 9 !important;
+  width: 126px !important;
+  height: 126px !important;
+  overflow: visible !important;
+  pointer-events: auto;
+}
+
+.salonPublicAvatarHost.profileHero.is-salon {
+  position: relative !important;
+  width: 126px !important;
+  height: 126px !important;
+  min-height: 126px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.salonPublicAvatarHost.profileHero.is-salon::before,
+.salonPublicAvatarHost.profileHero.is-salon::after {
+  display: none !important;
+}
+
+.salonPublicAvatarHost.profileHero.is-salon .salonHeroAvatarFrame {
+  top: 0 !important;
+  right: 0 !important;
+  left: auto !important;
+}
+
+.salonPublicAvatarHost.profileHero.is-salon .salonHeroEditAvatar {
+  pointer-events: none !important;
+}
+
+.salonPublicIdentityCard > .salonHeroAvatarFrame.salonPublicLogo,
+.salonPublicIdentityCard > .salonPublicLogo {
+  display: none !important;
+}
+
+/* Use the same complete salon admin avatar element on the public profile. */
+.salonPublicIdentityCard .salonHeroAvatarFrame.salonPublicLogo {
+  position: absolute !important;
+  top: -78px !important;
+  right: 10px !important;
+  z-index: 8 !important;
+  width: 126px !important;
+  height: 126px !important;
+  display: grid !important;
+  place-items: center !important;
+  overflow: visible !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  padding: 4px !important;
+  background:
+    conic-gradient(from 214deg, #eefaff 0deg, #7fd0ff 44deg, #14161d 118deg, #16214d 190deg, #bfeaff 260deg, #eefaff 360deg) !important;
+  box-shadow:
+    0 0 0 1px rgba(238, 250, 255, 0.78),
+    0 0 18px rgba(121, 198, 255, 0.86),
+    0 0 34px rgba(20, 22, 29, 0.52),
+    0 18px 34px rgba(0, 0, 0, 0.3) !important;
+}
+
+.salonPublicIdentityCard .salonHeroAvatarFrame.salonPublicLogo::before {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  z-index: 0;
+  border-radius: 50%;
+  border: 3px solid #d9b244;
+  box-shadow:
+    0 0 0 2px rgba(5, 5, 11, 0.96),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  pointer-events: none;
+}
+
+.salonPublicIdentityCard .salonHeroAvatarFrame.salonPublicLogo .profileAvatarImage {
+  position: relative !important;
+  inset: auto !important;
+  top: auto !important;
+  right: auto !important;
+  left: auto !important;
+  z-index: 1 !important;
+  width: 108px !important;
+  height: 108px !important;
+  padding: 8px !important;
+  border: 0 !important;
+  outline: 0 !important;
+  outline-offset: 0 !important;
+  border-radius: 50% !important;
+  background: #05050b !important;
+  object-fit: contain !important;
+  box-shadow: none !important;
+}
+
+
+.profileHero.is-salon .salonHeroBanner {
+  background:
+    url("/artist-hero-doodle.webp") center / cover no-repeat !important;
+}
+
+/* A user-uploaded poster paints as a real image on top of the decorative
+   doodle background above (that background is set with !important across
+   several breakpoints, so overriding it directly is fragile — painting over
+   it is not). */
+.salonHeroBannerImage,
+.artistHeroPosterImage {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.salonHeroQrBtn {
+  position: absolute !important;
+  top: calc(26px + env(safe-area-inset-top));
+  left: auto;
+  right: 20px;
+  z-index: 9;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 50%;
+  background: rgba(10, 11, 18, 0.4);
+  color: rgba(255, 255, 255, 0.96);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 6px 16px rgba(0, 0, 0, 0.22);
+}
+
+.salonHeroQrBtn:disabled {
+  opacity: 0.5;
+}
+
+.salonQrSheetOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-top-sheet);
+  display: grid;
+  place-items: center;
+  padding: calc(18px + env(safe-area-inset-top)) 18px calc(18px + env(safe-area-inset-bottom));
+  overflow-y: auto;
+  background:
+    radial-gradient(circle at 50% 16%, rgba(111, 115, 128, 0.22), transparent 34%),
+    rgba(5, 6, 14, 0.74);
+  -webkit-backdrop-filter: blur(22px) saturate(1.1);
+  backdrop-filter: blur(22px) saturate(1.1);
+}
+
+body:has(.salonQrSheetOverlay) .bottomNav,
+body:has(.salonQrSheetOverlay) .floatingMobileCta,
+body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+.salonQrSheetCard {
+  position: relative;
+  width: min(320px, calc(100vw - 44px));
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 22px 18px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.86);
+  border-radius: 26px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(251, 251, 253, 0.96));
+  color: #171827;
+  box-shadow:
+    0 30px 80px rgba(4, 5, 12, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.86);
+  animation: sheetRise 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.salonQrSheetClose {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(17, 26, 60, 0.06);
+  color: #171827;
+}
+
+.salonQrSheetHead {
+  display: grid;
+  gap: 4px;
+  padding: 2px 34px 0 0;
+  text-align: right;
+}
+
+.salonQrSheetHead span {
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-self: end;
+  color: #14161d;
+  font-size: 0.66rem;
+  font-weight: 950;
+}
+
+.salonQrSheetHead h3 {
+  margin: 0;
+  color: #171827;
+  font-size: 1rem;
+  font-weight: 950;
+  line-height: 1.35;
+}
+
+.salonQrSheetImage {
+  width: 220px;
+  height: 220px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: inset 0 0 0 1px rgba(23, 24, 39, 0.08);
+}
+
+.salonQrSheetImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.salonQrSheetHint {
+  margin: 0;
+  color: rgba(23, 24, 39, 0.58);
+  font-size: 0.74rem;
+  font-weight: 800;
+  line-height: 1.7;
+  text-align: center;
+}
+
+.salonCustomersHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.salonCustomersHead span {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--teal);
+  font-size: 0.74rem;
+  font-weight: 900;
+}
+
+.salonCustomersHead strong {
+  display: block;
+  color: var(--ink);
+  font-size: 1.12rem;
+  font-weight: 900;
+  line-height: 1.35;
+}
+
+.salonCustomersHead b {
+  flex: 0 0 auto;
+  min-height: 32px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(20, 22, 29, 0.1);
+  color: var(--teal);
+  font-size: 0.7rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.salonCustomersSearch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  margin-bottom: 12px;
+  padding: 0 14px;
+  border-radius: 14px;
+  background: rgba(28, 32, 44, 0.05);
+  color: var(--muted);
+}
+
+.salonCustomersSearch svg {
+  flex: 0 0 auto;
+}
+
+.salonCustomersSearch input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.salonCustomersSearch input::placeholder {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.salonCustomersSearch input:focus {
+  outline: none;
+}
+
+.salonCustomersSearch input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+}
+
+.salonCustomersList {
+  display: grid;
+  gap: 8px;
+}
+
+.salonCustomerRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 16px;
+  background: rgba(28, 32, 44, 0.04);
+  cursor: pointer;
+}
+
+.salonCustomerAvatar {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  object-fit: cover;
+  background: rgba(28, 32, 44, 0.08);
+}
+
+.salonCustomerInfo {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.salonCustomerInfo b {
+  color: var(--ink);
+  font-size: 0.86rem;
+  font-weight: 900;
+}
+
+.salonCustomerInfo span {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.salonCustomerInfo small {
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.salonCustomerCallBtn {
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(20, 22, 29, 0.12);
+  color: var(--teal);
+}
+
+.salonPublicProfile .salonPublicServices {
+  margin: 12px 20px 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.salonPublicProfile .salonPublicBottomDock {
+  right: 50% !important;
+  left: auto !important;
+  bottom: calc(8px + env(safe-area-inset-bottom)) !important;
+  width: min(414px, calc(100vw - 16px)) !important;
+  height: auto !important;
+  min-height: 56px !important;
+  transform: translateX(50%) !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 0 !important;
+  padding: 4px 12px 6px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: #ffffff !important;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 14px 36px rgba(28, 32, 44, 0.14) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+.salonPublicProfile .salonPublicBottomDock button {
+  height: 46px !important;
+  min-height: 46px !important;
+  border-radius: 999px !important;
+  color: #8a8fa0 !important;
+}
+
+.salonPublicProfile .salonPublicBottomDock button.is-active {
+  color: var(--salon-public-accent) !important;
+  background: rgba(111, 115, 128, 0.12) !important;
+}
+
+.salonPublicProfile .salonPublicBottomDock button.is-primary {
+  width: 72px !important;
+  height: 52px !important;
+  min-height: 52px !important;
+  margin-top: -12px !important;
+  border-radius: 26px !important;
+  color: #ffffff !important;
+}
+
+.salonPublicProfile .salonPublicActions {
+  grid-template-columns: minmax(0, 1fr) !important;
+  direction: rtl !important;
+}
+
+.salonPublicProfile .salonPublicActions button {
+  grid-column: 1 !important;
+  grid-row: 1 !important;
+}
+
+.salonPublicAboutOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  align-items: end;
+  padding: 14px 14px calc(84px + env(safe-area-inset-bottom));
+  background: rgba(8, 9, 18, 0.28);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+.salonPublicAboutSheet {
+  position: relative;
+  width: min(414px, 100%);
+  max-height: min(680px, 78dvh);
+  margin: 0 auto;
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid rgba(111, 115, 128, 0.12);
+  border-radius: 26px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 24px 56px rgba(28, 32, 44, 0.22);
+}
+
+.salonPublicAboutClose {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: #f8f8fa;
+  color: #242735;
+}
+
+.salonPublicAboutHead {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-left: 42px;
+  text-align: right;
+}
+
+.salonPublicAboutHead img {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  padding: 4px;
+  background: #05050b;
+  object-fit: contain;
+  box-shadow: 0 0 0 3px rgba(111, 115, 128, 0.14);
+}
+
+.salonPublicAboutHead span,
+.salonPublicAboutHead small {
+  display: block;
+  color: #777b8c;
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.salonPublicAboutHead h3 {
+  margin: 2px 0;
+  color: #171827;
+  font-size: 1.05rem;
+  font-weight: 950;
+}
+
+.salonPublicAboutBio {
+  margin: 0;
+  padding: 12px;
+  border-radius: 16px;
+  background: #fbfbff;
+  color: #4f5364;
+  font-size: 0.78rem;
+  font-weight: 850;
+  line-height: 1.9;
+  text-align: right;
+}
+
+.salonPublicAboutBlock {
+  display: grid;
+  gap: 8px;
+}
+
+.salonPublicAboutBlock h4 {
+  margin: 0;
+  color: #171827;
+  font-size: 0.78rem;
+  font-weight: 950;
+  text-align: right;
+}
+
+.salonPublicAboutList {
+  display: grid;
+  gap: 7px;
+}
+
+.salonPublicAboutList span {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+  padding: 0 10px;
+  border-radius: 14px;
+  background: #fbfbfd;
+  color: #565b6d;
+  font-size: 0.66rem;
+  font-weight: 900;
+  text-align: right;
+}
+
+.salonPublicAboutChips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.salonPublicAboutChips span {
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 11px;
+  border-radius: 999px;
+  background: rgba(111, 115, 128, 0.1);
+  color: var(--salon-public-accent);
+  font-size: 0.66rem;
+  font-weight: 950;
+}
+
+.salonPublicAboutFacts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.salonPublicAboutFacts span,
+.salonPublicAboutContact span {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+  padding: 0 10px;
+  border-radius: 14px;
+  background: #fbfbfd;
+  color: #565b6d;
+  font-size: 0.66rem;
+  font-weight: 900;
+}
+
+.salonPublicAboutFacts svg,
+.salonPublicAboutContact svg,
+.salonPublicAboutList svg {
+  color: var(--salon-public-accent);
+  flex: 0 0 auto;
+}
+
+.salonPublicAboutContact {
+  display: grid;
+  gap: 7px;
+}
+
+.salonPublicBrowseOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  align-items: end;
+  padding: 14px 14px calc(84px + env(safe-area-inset-bottom));
+  background: rgba(8, 9, 18, 0.28);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+.salonPublicBrowseSheet {
+  position: relative;
+  width: min(414px, 100%);
+  max-height: min(680px, 76dvh);
+  margin: 0 auto;
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid rgba(111, 115, 128, 0.12);
+  border-radius: 26px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 24px 56px rgba(28, 32, 44, 0.22);
+  overflow: visible;
+}
+
+.salonPublicBrowseOverlay:has(.salonPublicBrowseSheet.is-portfolio),
+.salonPublicBrowseOverlay:has(.salonPublicBrowseSheet.is-services) {
+  align-items: center;
+  padding: 18px 18px 76px;
+}
+
+.salonPublicBrowseSheet.is-portfolio,
+.salonPublicBrowseSheet.is-services {
+  max-height: min(620px, 72dvh);
+  padding-bottom: 16px;
+  overflow: visible;
+}
+
+.salonPublicBrowseSheet.is-portfolio .salonPublicAboutClose,
+.salonPublicBrowseSheet.is-services .salonPublicAboutClose {
+  top: auto;
+  bottom: -56px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 42px;
+  height: 42px;
+  background: #f8f8fa;
+  color: var(--salon-public-accent);
+  box-shadow: 0 10px 24px rgba(28, 32, 44, 0.12);
+}
+
+.salonPublicBrowseHead {
+  display: grid;
+  gap: 3px;
+  padding-left: 42px;
+  text-align: right;
+}
+
+.salonPublicBrowseHead span {
+  color: var(--salon-public-accent);
+  font-size: 0.68rem;
+  font-weight: 950;
+}
+
+.salonPublicBrowseHead h3 {
+  margin: 0;
+  color: #171827;
+  font-size: 1.04rem;
+  font-weight: 950;
+}
+
+.salonPublicAllServices {
+  display: grid;
+  gap: 8px;
+}
+
+.salonPublicAllServices button {
+  min-height: 58px;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) 42px;
+  grid-template-rows: auto auto;
+  align-items: center;
+  gap: 2px 10px;
+  padding: 9px 10px;
+  border: 1px solid rgba(28, 32, 44, 0.06);
+  border-radius: 17px;
+  background: #fbfbff;
+  color: #171827;
+  font-family: inherit;
+  text-align: right;
+}
+
+.salonPublicAllServices button > span {
+  grid-row: 1 / 3;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #f8f8fa;
+  color: var(--salon-public-accent);
+}
+
+.salonPublicAllServices b,
+.salonPublicAllServices small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.salonPublicAllServices b {
+  font-size: 0.76rem;
+  font-weight: 950;
+}
+
+.salonPublicAllServices small {
+  color: #777b8c;
+  font-size: 0.62rem;
+  font-weight: 850;
+}
+
+.salonPublicAllServices button > svg {
+  grid-column: 3;
+  grid-row: 1 / 3;
+  justify-self: center;
+  color: var(--salon-public-accent);
+}
+
+.salonPublicAllPortfolio {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.salonPublicAllPortfolio figure {
+  margin: 0;
+  display: grid;
+  gap: 7px;
+}
+
+.salonPublicAllPortfolio img,
+.salonPublicAllPortfolio figure > span {
+  width: 100%;
+  aspect-ratio: 0.78;
+  display: block;
+  border-radius: 18px;
+  background: #f8f8fa;
+  object-fit: cover;
+}
+
+.salonPublicAllPortfolio figcaption {
+  overflow: hidden;
+  color: #343849;
+  font-size: 0.66rem;
+  font-weight: 900;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* ═══════════════════════════════════════════════════════════════════════
+   Step 2 — Phone-frame shell (layout-only overrides)
+   The whole app is constrained to a centered mobile-width container on
+   large screens; pages use the mobile (single-tab) layout everywhere.
+   No logic/state/API changes — CSS/Layout only.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* 1) Frame: centered 460px column; desktop sidebar disabled */
+.appShell {
+  max-width: 460px;
+  margin-inline: auto;
+  grid-template-columns: minmax(0, 1fr);
+  box-shadow:
+    0 0 0 1px rgba(28, 32, 44, 0.08),
+    0 30px 90px rgba(28, 32, 44, 0.22);
+}
+
+.sidebar {
+  display: none !important;
+}
+
+/* 2) Single-page (tabbed) behavior at every width — same as mobile */
+.mobilePage {
+  display: none !important;
+}
+
+.mobilePage.is-active {
+  display: block !important;
+  animation: pageIn 0.22s ease both;
+}
+
+.homeFeed.mobilePage.is-active,
+.adShowcase.mobilePage.is-active,
+.journeyBar.mobilePage.is-active {
+  display: grid !important;
+}
+
+.contentGrid {
+  display: none !important;
+  margin-top: 0;
+}
+
+.contentGrid:has(.mobilePage.is-active) {
+  display: block !important;
+}
+
+/* 3) Mobile paddings so every page fits the frame */
+.workspace {
+  padding: 0 8px calc(82px + env(safe-area-inset-bottom));
+  overflow: hidden;
+}
+
+.appShell.is-auth-gate .workspace {
+  padding: 0;
+}
+
+.workspace:has(.page-profile.is-active .createdProfile.is-artist),
+.workspace:has(.page-profile.is-active .createdProfile.is-salon) {
+  padding: 0 0 calc(82px + env(safe-area-inset-bottom));
+}
+
+.feedPanel,
+.salonPanel,
+.profilePanel,
+.salonCustomersPage,
+.settingsPagePanel {
+  margin-top: 10px;
+  border-radius: 20px;
+}
+
+.feedPanel,
+.salonPanel,
+.salonCustomersPage,
+.settingsPagePanel {
+  padding: 12px;
+}
+
+.profilePanel.page-profile {
+  padding-bottom: calc(96px + env(safe-area-inset-bottom));
+}
+
+.profilePanel.page-profile.has-floating-cta {
+  padding-bottom: calc(178px + env(safe-area-inset-bottom));
+}
+
+.profilePanel.page-profile:has(.createdProfile.is-artist),
+.profilePanel.page-profile:has(.createdProfile.is-client) {
+  min-height: 100vh;
+  padding: 18px 8px calc(178px + env(safe-area-inset-bottom));
+}
+
+.profilePanel.page-profile.is-salon-profile,
+.profilePanel.page-profile:has(.createdProfile.is-salon) {
+  min-height: 100vh;
+  margin-top: 0 !important;
+  padding: 0 0 calc(178px + env(safe-area-inset-bottom)) !important;
+}
+
+.profilePanel.page-profile.is-salon-profile .createdProfile,
+.profilePanel.page-profile:has(.createdProfile.is-salon) .createdProfile {
+  margin-top: 0;
+  padding: 0 0 12px;
+  width: 100%;
+}
+
+.profilePanel.page-profile.is-salon-profile .createdProfile > :first-child,
+.profilePanel.page-profile:has(.createdProfile.is-salon) .createdProfile > :first-child {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* 4) Bottom nav — always visible, fixed inside the frame */
+.bottomNav {
+  display: flex;
+  position: fixed;
+  right: max(8px, calc((100vw - 460px) / 2 + 8px));
+  left: max(8px, calc((100vw - 460px) / 2 + 8px));
+  bottom: calc(8px + env(safe-area-inset-bottom));
+  z-index: 26;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 56px;
+  padding: 4px 12px 6px;
+  border: 0;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 14px 36px rgba(28, 32, 44, 0.14);
+}
+
+.bottomNav button {
+  flex: 1;
+  min-width: 0;
+  min-height: 46px;
+  border: 0;
+  justify-content: center;
+  flex-direction: column;
+  gap: 3px;
+  border-radius: 999px;
+  background: transparent;
+  color: #2a2d36;
+  font-size: 0.64rem;
+  font-weight: 900;
+}
+
+.bottomNav button.active {
+  background: transparent;
+  color: var(--night);
+}
+
+.bottomNav .profileTab {
+  position: relative;
+  flex: 0 0 68px;
+  transform: translateY(-28px);
+  width: 68px;
+  min-height: 68px;
+  overflow: visible;
+  border-radius: 50%;
+  background: var(--night);
+  color: #fff;
+  box-shadow:
+    0 0 0 3px #fff,
+    0 0 0 5px rgba(201, 168, 76, 0.65),
+    0 14px 28px rgba(28, 32, 44, 0.28);
+}
+
+.bottomNav .profileTab.active {
+  background: var(--night);
+  box-shadow:
+    0 0 0 3px #fff,
+    0 0 0 5px rgba(201, 168, 76, 0.82),
+    0 16px 32px rgba(28, 32, 44, 0.3);
+}
+
+.bottomNav .profileTab.is-createBooking {
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 50% 24%, #14161d, #14161d);
+  color: #fff;
+}
+
+.bottomNav .profileTab.is-createBooking svg {
+  position: relative;
+  z-index: 2;
+}
+
+.profileNavImage {
+  position: absolute;
+  inset: 3px;
+  width: calc(100% - 6px);
+  height: calc(100% - 6px);
+  display: block;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center 42%;
+  box-shadow: none;
+  transform: none;
+}
+
+.bottomNav .profileTab::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  z-index: 1;
+  border-radius: 50%;
+  background: linear-gradient(180deg, transparent 46%, rgba(28, 32, 44, 0.42) 100%);
+  pointer-events: none;
+}
+
+.bottomNav .profileTab span {
+  position: absolute;
+  left: 50%;
+  bottom: -16px;
+  z-index: 2;
+  width: max-content;
+  margin: 0;
+  transform: translateX(-50%);
+  color: #2a2d36;
+  font-size: 0.6rem;
+  font-weight: 900;
+  text-shadow: none;
+}
+
+/* 5) Floating quick-action CTA — same as mobile */
+.floatingMobileCta {
+  display: none;
+  position: fixed;
+  right: max(8px, calc((100vw - 460px) / 2 + 8px));
+  left: max(8px, calc((100vw - 460px) / 2 + 8px));
+  bottom: calc(8px + env(safe-area-inset-bottom));
+  z-index: 24;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  min-height: 0;
+  padding: 12px 10px 68px;
+  border: 0;
+  border-radius: 30px 30px 36px 36px;
+  background: #6f7380;
+  color: #fff;
+  font-weight: 900;
+  font-size: 0.86rem;
+  box-shadow: 0 18px 44px rgba(28, 32, 44, 0.16);
+}
+
+.page-profile.is-active ~ .floatingMobileCta {
+  display: grid;
+}
+
+.floatingMobileCta.is-modeRail {
+  display: grid;
+  grid-template-columns: 1fr;
+  align-items: stretch;
+  padding: 8px 6px 62px;
+}
+
+/* Salon's week strip reuses this floating slot (see HomeApp's
+   salonWeekStripFloating) but is its own white card with its own
+   border/shadow — the purple dock chrome underneath it would just show
+   as a clashing border, so it's flattened away here. */
+.floatingMobileCta.is-modeRail:has(.salonHeroWeekStrip) {
+  padding: 0 0 72px;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.floatingMobileCta.is-modeRail .profileModeRail {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.floatingMobileCta.is-modeRail .profileModeRail button {
+  min-height: 48px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border-radius: 14px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 0.62rem;
+}
+
+.floatingMobileCta.is-modeRail .profileModeRail button svg {
+  width: 18px;
+  height: 18px;
+  color: inherit;
+}
+
+.floatingMobileCta.is-modeRail .profileModeRail button.active {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+  box-shadow: none;
+}
+
+/* The modeRail dock (above) is a hard-locked 4-button grid, so the
+   "create booking" action floats as its own round button just above it
+   instead of trying to become a 5th grid item. */
+.floatingCreateBookingBtn {
+  display: none;
+}
+
+.page-profile.is-active ~ .floatingCreateBookingBtn {
+  display: grid;
+  position: fixed;
+  place-items: center;
+  right: max(24px, calc((100vw - 460px) / 2 + 24px));
+  bottom: calc(144px + env(safe-area-inset-bottom));
+  z-index: 25;
+  width: 50px;
+  height: 50px;
+  border: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #14161d, #14161d);
+  color: #fff;
+  box-shadow: 0 14px 30px rgba(20, 22, 29, 0.34);
+}
+
+.floatingCreateBookingBtn.is-active {
+  background: linear-gradient(135deg, #14161d, #14161d);
+}
+
+/* 6) Full-screen overlays: keep inside the frame width */
+.salonGalleryDetailBackdrop,
+.salonSidebarBackdrop,
+.artistWorkModal,
+.postModal,
+.artistProfileModal,
+.salonQrSheetOverlay,
+.salonPublicAboutOverlay,
+.salonPublicBrowseOverlay,
+.scheduleBookingModal,
+.salonToolModal,
+.salonClientBookingModal,
+.salonHeroSheetBackdrop,
+.artistServiceModal,
+.settingsHoursModal,
+.explorePreviewModal,
+.exploreRatingModal,
+.clientBookingSettingsBackdrop,
+.artistWorkPreviewModal,
+.artistPublicModal,
+.authBootScreen {
+  left: max(0px, calc((100vw - 460px) / 2)) !important;
+  right: max(0px, calc((100vw - 460px) / 2)) !important;
+}
+
+/* 7) Bottom bars and sheets: centered inside the frame */
+.bottomNav,
+.floatingMobileCta,
+.salonClientSticky,
+.salonPublicBottomDock {
+  left: max(8px, calc((100vw - 460px) / 2 + 8px)) !important;
+  right: max(8px, calc((100vw - 460px) / 2 + 8px)) !important;
+}
+
+.salonToolWindow .modalClose {
+  left: max(12px, calc((100vw - 460px) / 2 + 12px));
+}
+
+/* 8) Salon public profile (and similar full-bleed views): keep inside the frame */
+.appShell:has(.salonPublicProfile),
+.appShell:has(.salonPublicProfile) main,
+.appShell:has(.salonPublicProfile) .workspace,
+.appShell:has(.salonPublicProfile) .contentGrid {
+  width: auto !important;
+  max-width: 460px !important;
+  margin-inline: auto !important;
+  min-height: 100dvh !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.appShell:has(.salonPublicProfile) .workspace {
+  padding: 0 0 calc(82px + env(safe-area-inset-bottom)) !important;
+}
+
+.publicStoryHeroImage {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* Artist profile hero: cover backdrop (mobile-first, all widths) */
+.profilePanel.page-profile:has(.createdProfile.is-artist) .profileHero.is-artist > .artistHeroPoster {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 0 !important;
+  background-size: cover;
+  background-position: center;
+  pointer-events: none;
+}
+
+.profilePanel.page-profile:has(.createdProfile.is-artist) .profileHero.is-artist > .artistHeroPoster::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(24, 24, 28, 0.42) 0%, rgba(24, 24, 28, 0.18) 38%, rgba(24, 24, 28, 0.78) 100%);
+}
+
+.profilePanel.page-profile:has(.createdProfile.is-artist) .profileHero.is-artist > :not(.artistHeroPoster, .profileHeroActions) {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+/* ═══ Artist hero: salon-style — poster band on top, identity below (tabs untouched) ═══ */
+.profilePanel.page-profile:has(.createdProfile.is-artist) .profileHero.is-artist {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  grid-template-columns: none !important;
+  column-gap: 0 !important;
+  row-gap: 0 !important;
+  min-height: 0 !important;
+  height: auto !important;
+  /* .artistHeroStats sits below the flow content at an absolute position;
+     without this the hero's auto-height (which absolutely positioned
+     children don't contribute to) ends right after .profileHeroCopy and
+     this container's own overflow:hidden (set elsewhere) clips the stats
+     row right off. */
+  padding-bottom: 36px !important;
+  padding-top: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  background: linear-gradient(180deg, #f9f9fb 0%, #fefeff 100%) !important;
+  box-shadow: none !important;
+}
+
+/* Poster band: always present — image when uploaded, purple gradient otherwise */
+.profilePanel.page-profile:has(.createdProfile.is-artist) .profileHero.is-artist > .artistHeroPoster {
+  position: relative !important;
+  inset: auto !important;
+  z-index: 0 !important;
+  flex: 0 0 auto !important;
+  width: 100% !important;
+  height: 248px !important;
+  min-height: 248px !important;
+  margin: 0 !important;
+  background-image:
+    radial-gradient(circle at 88% 10%, rgba(20, 22, 29, 0.28), transparent 26%),
+    radial-gradient(circle at 18% 5%, rgba(51, 51, 55, 0.34), transparent 34%),
+    url("/artist-hero-doodle.webp");
+  background-size: cover;
+  background-position: center;
+  background-color: #18181c;
+  pointer-events: none;
+}
+
+.profilePanel.page-profile:has(.createdProfile.is-artist) .profileHero.is-artist > .artistHeroPoster::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 80px;
+  background: linear-gradient(180deg, transparent, rgba(18, 18, 22, 0.5));
+  pointer-events: none;
+}
+
+/* White content sheet overlapping a small strip of the poster's bottom
+   edge, rounded on top — the poster itself stays a plain rectangle (no
+   rounding of its own); this overlay is what's rounded. */
+.profilePanel.page-profile:has(.createdProfile.is-artist) .profileHero.is-artist > .artistHeroPoster::before {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  inset: auto 0 0 0;
+  height: 28px;
+  border-radius: 24px 24px 0 0 !important;
+  background: linear-gradient(180deg, #f9f9fb 0%, #fefeff 100%);
+  pointer-events: none;
+}
+
+/* Avatar: sitting on the poster/content boundary (like salon) */
+.profilePanel.page-profile:has(.createdProfile.is-artist) .profileHero.is-artist .profileAvatarImage {
+  position: absolute !important;
+  top: -74px !important;
+  right: 18px !important;
+  z-index: 3 !important;
+  grid-column: auto !important;
+  width: 108px !important;
+  height: 108px !important;
+  border-radius: 50% !important;
+  border: 1px solid rgba(233, 240, 255, 0.9) !important;
+  box-shadow:
+    0 0 0 0.5px rgba(226, 236, 255, 0.42),
+    0 0 7px rgba(111, 115, 128, 0.38),
+    0 0 13px rgba(17, 26, 60, 0.26),
+    0 10px 26px rgba(14, 14, 18, 0.22) !important;
+}
+
+/* Name: below the poster, beside the avatar */
+.profilePanel.page-profile:has(.createdProfile.is-artist) .profileHero.is-artist .profileHeroCopy {
+  position: relative !important;
+  top: auto !important;
+  right: auto !important;
+  z-index: 1 !important;
+  grid-column: auto !important;
+  grid-row: auto !important;
+  justify-self: auto !important;
+  align-self: auto !important;
+  width: auto !important;
+  max-width: none !important;
+  margin: -14px 140px 0 16px !important;
+  display: grid !important;
+  gap: 6px !important;
+  padding-top: 0 !important;
+  text-align: right !important;
+}
+
+.profilePanel.page-profile:has(.createdProfile.is-artist) .profileHero.is-artist .profileHeroCopy h2 {
+  margin: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  color: #1c202c !important;
+  font-size: 1.3rem !important;
+  font-weight: 950 !important;
+  line-height: 1.15 !important;
+  white-space: normal !important;
+}
+
+.profilePanel.page-profile:has(.createdProfile.is-artist) .artistVerifiedTick {
+  flex: 0 0 auto !important;
+  color: #378add !important;
+}
+
+.profilePanel.page-profile:has(.createdProfile.is-artist) .artistHeroArea {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  max-width: 74px !important;
+  color: #85838f !important;
+  font-size: 0.78rem !important;
+  font-weight: 800 !important;
+}
+
+.profilePanel.page-profile:has(.createdProfile.is-artist) .artistHeroArea svg {
+  flex: 0 0 auto !important;
+}
+
+.profilePanel.page-profile:has(.createdProfile.is-artist) .artistHeroAreaText {
+  color: inherit !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  min-width: 0 !important;
+}
+
+/* Keeps the name from ever growing far enough left to collide with
+   .artistHeroStats (absolutely positioned on the opposite side) — long
+   names truncate instead of overlapping it. */
+.profilePanel.page-profile:has(.createdProfile.is-artist) .artistHeroNameText {
+  color: inherit !important;
+  display: inline-block !important;
+  max-width: 74px !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  vertical-align: bottom !important;
+}
+
+.profilePanel.page-profile:has(.createdProfile.is-artist) .profileHero.is-artist .artistHeroBadge {
+  grid-column: auto !important;
+  grid-row: auto !important;
+  min-height: 28px !important;
+  padding: 0 10px !important;
+  justify-self: start !important;
+  border: 1px solid rgba(20, 22, 29, 0.18) !important;
+  border-radius: 999px !important;
+  background: rgba(20, 22, 29, 0.1) !important;
+  color: #14161d !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+/* Stats: compact left-aligned stack, no card — just followers + bookings.
+   Positioned absolutely so it sits level with the name/city column on the
+   opposite (left) side, instead of stacking below it in flow. */
+.profilePanel.page-profile:has(.createdProfile.is-artist) .profileHero.is-artist .artistHeroStats {
+  position: absolute !important;
+  z-index: 5 !important;
+  top: 292px !important;
+  left: 16px !important;
+  right: auto !important;
+  bottom: auto !important;
+  grid-column: auto !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 14px !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.profilePanel.page-profile:has(.createdProfile.is-artist) .artistHeroStats span {
+  flex: none !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  display: flex !important;
+  align-items: baseline !important;
+  gap: 5px !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #9c99a6 !important;
+  font-size: 0.66rem !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  text-align: left !important;
+  white-space: nowrap !important;
+  box-shadow: none !important;
+}
+
+.profilePanel.page-profile:has(.createdProfile.is-artist) .artistHeroStats span + span {
+  border-right: 0 !important;
+}
+
+.profilePanel.page-profile:has(.createdProfile.is-artist) .artistHeroStats b {
+  color: #1c202c !important;
+  font-size: 0.86rem !important;
+  font-weight: 950 !important;
+  line-height: 1 !important;
+}
+
+/* Decorative ::before — hidden (poster band replaces it) */
+.profilePanel.page-profile:has(.createdProfile.is-artist) .profileHero.is-artist::before {
+  display: none !important;
+}
+
+/* Actions stay on top of the poster band */
+.profilePanel.page-profile:has(.createdProfile.is-artist) .profileHero.is-artist .profileHeroActions {
+  position: absolute !important;
+  left: 16px !important;
+  right: auto !important;
+  top: calc(18px + env(safe-area-inset-top)) !important;
+  z-index: 4 !important;
+  width: auto !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 8px !important;
+  pointer-events: none !important;
+}
+
+.profilePanel.page-profile:has(.createdProfile.is-artist) .profileHero.is-artist .profileHeroActions button {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 50% !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  background: rgba(23, 23, 27, 0.45) !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(12px) !important;
+  pointer-events: auto !important;
+}
+
+/* ═══ Owner salon hero avatar: always an interactive circle (any viewport) ═══ */
+.profilePanel.page-profile:has(.createdProfile.is-salon) .profileHero.is-salon .salonHeroAvatarFrame {
+  position: absolute !important;
+  top: calc(158px + env(safe-area-inset-top)) !important;
+  right: 25px !important;
+  z-index: 8 !important;
+  width: 112px !important;
+  height: 112px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 50% !important;
+  padding: 0.75px !important;
+  cursor: pointer;
+  background:
+    conic-gradient(from 228deg, #f3fbff 0deg, #cfd8ff 46deg, #6f7380 124deg, #111a3c 218deg, #dfe8ff 306deg, #f3fbff 360deg) !important;
+  box-shadow:
+    0 0 0 0.5px rgba(226, 236, 255, 0.42),
+    0 0 7px rgba(111, 115, 128, 0.38),
+    0 0 13px rgba(17, 26, 60, 0.26) !important;
+}
+
+.profilePanel.page-profile:has(.createdProfile.is-salon) .profileHero.is-salon .salonHeroAvatarFrame::before {
+  display: block !important;
+  content: "";
+  position: absolute;
+  inset: 1.5px;
+  z-index: 0;
+  border-radius: 50%;
+  background: #05050b;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.16),
+    inset 0 0 18px rgba(255, 255, 255, 0.08);
+  pointer-events: none;
+}
+
+.profilePanel.page-profile:has(.createdProfile.is-salon) .profileHero.is-salon .salonHeroAvatarFrame .profileAvatarImage {
+  position: relative !important;
+  inset: auto !important;
+  top: auto !important;
+  right: auto !important;
+  left: auto !important;
+  z-index: 1 !important;
+  width: 108px !important;
+  height: 108px !important;
+  padding: 5px !important;
+  border: 0 !important;
+  outline: 0 !important;
+  outline-offset: 0 !important;
+  border-radius: 50% !important;
+  background: #05050b !important;
+  object-fit: contain !important;
+  box-shadow: none !important;
+}
+
+.profilePanel.page-profile:has(.createdProfile.is-salon) .profileHero.is-salon .salonHeroAvatarFrame .salonHeroEditAvatar {
+  position: absolute !important;
+  left: -2px !important;
+  right: auto !important;
+  bottom: 13px !important;
+  top: auto !important;
+  z-index: 3 !important;
+  width: 31px !important;
+  height: 31px !important;
+  display: grid !important;
+  place-items: center !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background: #ffffff !important;
+  color: #14161d !important;
+  box-shadow:
+    0 0 0 4px rgba(5, 5, 11, 0.16),
+    0 10px 22px rgba(36, 36, 40, 0.24) !important;
+}
+
+.profilePanel.page-profile:has(.createdProfile.is-salon) .profileHero.is-salon > .profileAvatarImage,
+.profilePanel.page-profile:has(.createdProfile.is-salon) .profileHero.is-salon > .salonHeroEditAvatar {
+  display: none !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   Artist public page — salon-client layout, artist style
+   ══════════════════════════════════════════════════════════════════════ */
+
+.artistPublicCover {
+  min-height: 304px !important;
+  height: 304px !important;
+  background:
+    radial-gradient(circle at 88% 12%, rgba(20, 22, 29, 0.4), transparent 30%),
+    radial-gradient(circle at 14% 6%, rgba(20, 22, 29, 0.55), transparent 36%),
+    linear-gradient(155deg, #18181c 0%, #26262a 48%, #36363a 100%) !important;
+}
+
+.artistPublicHeroTop {
+  width: 100% !important;
+  margin-inline: 0 !important;
+  padding: calc(16px + env(safe-area-inset-top)) 16px 0 !important;
+}
+
+.artistPublicBack,
+.artistPublicHeroTopActions button {
+  width: 46px !important;
+  height: 46px !important;
+  border-radius: 50% !important;
+  background: rgba(255, 255, 255, 0.94) !important;
+  box-shadow: 0 10px 22px rgba(18, 18, 22, 0.2) !important;
+}

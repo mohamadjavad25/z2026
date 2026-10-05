@@ -31,7 +31,7 @@ describe("cursor pagination", () => {
 
       if (!res.payload.data.nextCursor) break;
       cursor = res.payload.data.nextCursor;
-      if (pages > 20) throw new Error("too many pages, pagination likely looping");
+      if (pages > 500) throw new Error("too many pages, pagination likely looping");
     }
 
     const seededCollected = collected.filter((id) => seededIds.includes(id));

@@ -1,0 +1,2006 @@
+@media (max-width: 390px){
+.workspace{
+    padding-inline: 7px;
+  }
+
+  h1{
+    font-size: 1.44rem;
+  }
+
+  .quickStats{
+    grid-template-columns: 1fr;
+  }
+
+  .bottomNav span{
+    font-size: 0.62rem;
+  }
+}
+
+/* ─── 7-segment digital clocks (react-7-segment-display) ─── */
+.segmentClock{
+  --segment-clock-bg: #ffffff;
+  --segment-clock-color: #1c202c;
+  display: inline-flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center;
+  justify-content: center;
+  width: fit-content !important;
+  max-width: 100%;
+  gap: 6px;
+  direction: ltr;
+  vertical-align: middle;
+  line-height: 1;
+}
+
+.segmentClockFace{
+  display: inline-flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center;
+  justify-content: center;
+  width: fit-content !important;
+  max-width: none !important;
+  gap: 3px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  background: var(--segment-clock-bg);
+  box-shadow: inset 0 0 0 1px rgba(28, 32, 44, 0.1);
+}
+
+.segmentClock .display,
+.segmentClock .display-digits{
+  display: inline-flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: transparent !important;
+  height: auto !important;
+  width: fit-content !important;
+  max-width: none !important;
+}
+
+.segmentClock .digit{
+  position: relative !important;
+  display: block !important;
+  flex: 0 0 auto !important;
+  padding: 0 !important;
+  filter: none;
+}
+
+/* سگمنت‌های خاموش کتابخانه خیلی کم‌رنگ شوند تا مزاحم خوانایی نباشند */
+.segmentClock .digit > div > div[style*="opacity(0.3)"],
+.segmentClock .digit > div > div[style*="opacity(0.3 "]{
+  filter: opacity(0.015) grayscale(1) !important;
+}
+
+.segmentClockColon{
+  display: grid !important;
+  gap: 6px;
+  align-content: center;
+  flex: 0 0 auto;
+  padding-inline: 3px;
+  width: auto !important;
+}
+
+.segmentClockColon i{
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--segment-clock-color);
+  box-shadow: none;
+}
+
+.segmentClock.is-xxs{
+  gap: 0 !important;
+}
+
+.segmentClock.is-xxs .segmentClockFace{
+  padding: 0 !important;
+  border-radius: 4px;
+  gap: 0 !important;
+  background: transparent;
+  box-shadow: none;
+}
+
+.segmentClock.is-xxs .segmentClockColon{
+  gap: 1.5px;
+  padding-inline: 0;
+}
+
+.segmentClock.is-xxs .segmentClockColon i{
+  width: 1.5px;
+  height: 1.5px;
+}
+
+.segmentClock.is-xxs .display,
+.segmentClock.is-xxs .display-digits{
+  padding: 0 !important;
+  gap: 0 !important;
+}
+
+.segmentClock.is-xs .segmentClockFace{
+  padding: 4px 6px;
+  border-radius: 9px;
+  gap: 2px;
+}
+
+.segmentClock.is-xs .segmentClockColon{
+  gap: 4px;
+  padding-inline: 2px;
+}
+
+.segmentClock.is-xs .segmentClockColon i{
+  width: 3px;
+  height: 3px;
+}
+
+.segmentClock.is-sm .segmentClockFace{
+  padding: 5px 8px;
+}
+
+.segmentClock.is-md .segmentClockFace{
+  padding: 7px 11px;
+}
+
+.segmentClock.is-lg .segmentClockFace{
+  padding: 8px 14px;
+  border-radius: 14px;
+}
+
+.segmentClock.has-text{
+  gap: 6px;
+}
+
+.segmentClockPrefix,
+.segmentClockSuffix{
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+  direction: rtl;
+}
+
+.segmentClockRange{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.segmentClockRange em{
+  color: var(--muted);
+  font-style: normal;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.withSegmentClock{
+  display: inline-flex !important;
+  flex-direction: row !important;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  width: fit-content !important;
+  max-width: 100%;
+  gap: 6px;
+}
+
+.salonSlotGrid button .segmentClock,
+.artistBookingRailTime .segmentClock{
+  pointer-events: none;
+}
+
+.artistBookingRailTimes .segmentClockFace{
+  width: fit-content;
+  max-width: 100%;
+  justify-content: center;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+.artistBookingRail.is-collapsed .artistBookingRailTime .segmentClock{
+  max-width: 100%;
+  --segment-clock-bg: transparent;
+}
+
+.artistBookingRail.is-collapsed .artistBookingRailTime .segmentClockFace{
+  padding: 0 !important;
+  gap: 1px;
+  border-radius: 0;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.artistBookingRail.is-collapsed .artistBookingRailTime .segmentClockColon{
+  gap: 3px;
+  padding-inline: 1px;
+}
+
+.artistBookingRail.is-collapsed .artistBookingRailTime .segmentClockColon i{
+  width: 2px;
+  height: 2px;
+}
+
+.artistBookingRail.is-collapsed .artistBookingRailTime .segmentClock.is-xs .segmentClockFace{
+  padding: 0 !important;
+}
+
+.salonSlotGrid button{
+  display: grid;
+  place-items: center;
+  background: #ffffff !important;
+  color: #1c202c !important;
+  box-shadow: inset 0 0 0 1px rgba(28, 32, 44, 0.1);
+}
+
+.salonSlotGrid button:first-child{
+  background: #ffffff !important;
+  box-shadow: inset 0 0 0 1px rgba(28, 32, 44, 0.16), 0 8px 18px rgba(28, 32, 44, 0.06);
+}
+
+.salonSlotGrid button .segmentClockFace{
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+}
+
+
+
+.artistBookingWeekRail{
+  grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+  grid-auto-flow: initial !important;
+  grid-auto-columns: initial !important;
+  gap: 4px !important;
+  overflow: hidden !important;
+  padding: 4px !important;
+  border-radius: 14px !important;
+}
+
+.artistBookingWeekRail button{
+  min-height: 54px !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  align-content: center !important;
+  justify-items: center !important;
+  gap: 1px !important;
+  padding: 5px 2px !important;
+  border-radius: 11px !important;
+  text-align: center !important;
+}
+
+.artistBookingWeekRail span{
+  grid-column: auto !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-size: 0.5rem !important;
+  line-height: 1.15 !important;
+}
+
+.artistBookingWeekRail strong{
+  grid-column: auto !important;
+  color: var(--teal) !important;
+  font-size: 0.92rem !important;
+  line-height: 1.1 !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  white-space: nowrap !important;
+}
+
+.artistBookingWeekRail b{
+  grid-column: auto !important;
+  grid-row: auto !important;
+  min-width: 0 !important;
+  height: auto !important;
+  display: block !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--muted) !important;
+  font-size: 0.48rem !important;
+  line-height: 1.1 !important;
+}
+
+
+/* mixed selectors left in monolith (J5) */
+.salonClientHero .salonHeroBanner{
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 0;
+  width: 100%;
+  height: var(--salon-banner-h);
+  pointer-events: none;
+}
+
+.salonClientHero > .salonHeroMeta.salonClientHeroGlass{
+  --salon-meta-glass-rise: 110px;
+  position: absolute;
+  top: calc(var(--salon-banner-h) - var(--salon-meta-glass-rise));
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+  display: block;
+  margin: 0;
+  padding: 0;
+  pointer-events: none;
+  isolation: isolate;
+}
+
+@media (max-width: 720px) {
+.salonClientHero > .salonHeroMeta.salonClientHeroGlass{
+    --salon-meta-glass-rise: 100px;
+  }
+}
+
+.profileHero:has(+ .createdProfile){
+  background:
+    linear-gradient(135deg, rgba(20, 22, 29, 0.14), rgba(20, 22, 29, 0.1)),
+    rgba(246, 246, 251, 0.86);
+  box-shadow: 0 16px 36px rgba(28, 32, 44, 0.08);
+}
+
+.profileHero.is-salon span:not(.profileAvatar):not(.avatarHair):not(.avatarFace):not(.avatarShine){
+  max-width: none;
+  color: rgba(26, 31, 36, 0.62);
+  font-size: 0.76rem;
+}
+
+.salonHeroSheetPanel.bookingSheet{
+  gap: 14px;
+}
+
+.profileHero span:not(.profileAvatar):not(.avatarHair):not(.avatarFace):not(.avatarShine){
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.profileHero.is-salon .profileModeRail.is-inHero{
+  align-self: stretch;
+  width: calc(100% + 56px);
+  margin: 8px -56px 0 0;
+  padding: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+  background: rgba(10, 18, 24, 0.38);
+  backdrop-filter: blur(14px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.profileHero.is-salon .profileModeRail.is-inHero button{
+  min-height: 40px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.74rem;
+}
+
+.profileHero.is-salon .profileModeRail.is-inHero button span{
+  max-width: none !important;
+  color: inherit !important;
+  font-size: inherit !important;
+  font-weight: 900 !important;
+}
+
+.profileHero.is-salon .profileModeRail.is-inHero button svg{
+  color: inherit;
+  flex: 0 0 auto;
+}
+
+.profileHero.is-salon .profileModeRail.is-inHero button.active{
+  background: rgba(255, 255, 255, 0.96);
+  color: #14161d;
+  box-shadow: 0 8px 20px rgba(8, 11, 14, 0.18);
+}
+
+.profileHero.is-salon .profileModeRail.is-inHero button.active span,
+.profileHero.is-salon .profileModeRail.is-inHero button.active svg{
+  color: #14161d !important;
+}
+
+.appShell.is-auth-gate .profileHero.is-salon{
+  margin-top: 0;
+}
+
+.salonHeroSheetBackdrop.bookingWeekHistorySheetBackdrop{
+  z-index: var(--z-sheet-over-modal);
+  background: rgba(16, 18, 24, 0.55);
+  backdrop-filter: blur(16px);
+}
+
+.salonHeroSheetPanel.bookingWeekHistorySheet{
+  gap: 14px;
+  padding: 14px 14px calc(28px + env(safe-area-inset-bottom));
+  background:
+    linear-gradient(180deg, #f7f8fb 0%, #eef1f6 48%, #f4f0ea 100%),
+    var(--surface-solid);
+}
+
+.profileHero.is-artist span:not(.profileAvatar):not(.avatarHair):not(.avatarFace):not(.avatarShine){
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.74rem;
+}
+
+@media (max-width: 760px) {
+.profileHero span:not(.profileAvatar):not(.avatarHair):not(.avatarFace):not(.avatarShine){
+    font-size: 0.74rem;
+    line-height: 1.6;
+  }
+}
+
+
+  .profilePanel.page-profile:has(.createdProfile.is-artist) {
+    padding: 0 8px calc(162px + env(safe-area-inset-bottom)) !important;
+    background: #fff !important;
+  }
+
+  .profilePanel.page-profile:has(.createdProfile.is-artist) .createdProfile.is-artist {
+    padding-top: 0 !important;
+  }
+
+  .profilePanel.page-profile:has(.createdProfile.is-artist) .profileHero.is-artist {
+    width: calc(100% + 16px) !important;
+    margin-inline: -8px !important;
+    margin-top: 0 !important;
+    min-height: 214px !important;
+    align-items: start !important;
+    grid-template-columns: 1fr minmax(0, 136px) auto !important;
+    column-gap: 10px !important;
+    row-gap: 14px !important;
+    padding: calc(18px + env(safe-area-inset-top)) 16px 34px !important;
+    border-radius: 0 !important;
+    overflow: hidden !important;
+    background:
+      radial-gradient(circle at 88% 10%, rgba(20, 22, 29, 0.28), transparent 26%),
+      radial-gradient(circle at 18% 5%, rgba(51, 51, 55, 0.34), transparent 34%),
+      linear-gradient(150deg, #18181c 0%, #202024 46%, #2f2f33 100%) !important;
+    box-shadow: 0 12px 30px rgba(13, 22, 48, 0.28) !important;
+  }
+
+  .profilePanel.page-profile:has(.createdProfile.is-artist) .profileHero.is-artist::before {
+    content: "" !important;
+    position: absolute !important;
+    inset: 0 !important;
+    z-index: 0 !important;
+    background:
+      repeating-radial-gradient(
+        ellipse 250px 92px at -32px 86px,
+        rgba(20, 22, 29, 0.28) 0 1px,
+        transparent 2px 6px
+      ),
+      repeating-radial-gradient(
+        ellipse 302px 112px at -18px 94px,
+        rgba(31, 59, 108, 0.16) 0 1px,
+        transparent 2px 8px
+      ) !important;
+    opacity: 0.7 !important;
+    filter: drop-shadow(0 8px 14px rgba(5, 17, 41, 0.28)) !important;
+    -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 42%, rgba(0, 0, 0, 0.52) 58%, transparent 78%) !important;
+    mask-image: linear-gradient(90deg, #000 0%, #000 42%, rgba(0, 0, 0, 0.52) 58%, transparent 78%) !important;
+    pointer-events: none !important;
+  }
+
+  .profilePanel.page-profile:has(.createdProfile.is-artist) > .profileModeRail.is-panelRail.is-artist-rail {
+    position: relative !important;
+    z-index: 3 !important;
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 4px !important;
+    margin: -24px -8px 12px !important;
+    padding: 12px 10px 8px !important;
+    border: 0 !important;
+    border-radius: 24px 24px 0 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .profilePanel.page-profile:has(.createdProfile.is-artist) > .profileModeRail.is-panelRail.is-artist-rail button {
+    min-height: 44px !important;
+    display: grid !important;
+    place-items: center !important;
+    gap: 4px !important;
+    border-radius: 14px !important;
+    color: rgba(42, 42, 46, 0.62) !important;
+    font-size: 0.62rem !important;
+    background: transparent !important;
+  }
+
+  .profilePanel.page-profile:has(.createdProfile.is-artist) > .profileModeRail.is-panelRail.is-artist-rail button.active {
+    color: #14161d !important;
+    box-shadow: inset 0 -3px 0 #14161d !important;
+  }
+
+  .profilePanel.page-profile:has(.createdProfile.is-artist) .artistDashboard {
+    gap: 18px !important;
+    margin-top: 8px !important;
+  }
+
+  .profileHero.is-salon .profileModeRail.is-panelRail.is-salon {
+    position: absolute !important;
+    top: calc(294px + env(safe-area-inset-top)) !important;
+    left: 18px !important;
+    right: 18px !important;
+    z-index: 6 !important;
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 4px !important;
+    margin: 0 !important;
+    padding: 4px !important;
+    border: 0 !important;
+    border-radius: 16px !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .profileHero.is-salon .profileModeRail.is-panelRail.is-salon button {
+    min-height: 44px !important;
+    display: grid !important;
+    place-items: center !important;
+    gap: 4px !important;
+    border-radius: 14px !important;
+    color: rgba(42, 42, 46, 0.62) !important;
+    font-size: 0.62rem !important;
+    background: transparent !important;
+  }
+
+  .profileHero.is-salon .profileModeRail.is-panelRail.is-salon button.active {
+    color: #14161d !important;
+    box-shadow: inset 0 -3px 0 #14161d !important;
+  }
+
+  .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGallery {
+    position: relative !important;
+    gap: 10px !important;
+    padding: 52px 0 0 !important;
+  }
+
+  .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGalleryHead {
+    position: absolute !important;
+    top: 0 !important;
+    right: calc(50% - 170px) !important;
+    bottom: auto !important;
+    z-index: 4 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 0 !important;
+  }
+
+  .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGalleryHead > button {
+    min-height: 40px !important;
+    padding: 0 14px !important;
+    border: 1px solid rgba(20, 22, 29, 0.16) !important;
+    border-radius: 16px !important;
+    background: #fff !important;
+    color: #14161d !important;
+    backdrop-filter: blur(16px) !important;
+    box-shadow: 0 12px 28px rgba(52, 52, 56, 0.1) !important;
+  }
+
+  .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGalleryHead > button.profileGalleryHeadTab {
+    color: rgba(42, 42, 46, 0.66) !important;
+  }
+
+  .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGalleryHead > button.profileGalleryHeadTab.active {
+    border-color: rgba(20, 22, 29, 0.28) !important;
+    background: #14161d !important;
+    color: #fff !important;
+    box-shadow: 0 12px 28px rgba(20, 22, 29, 0.18) !important;
+  }
+
+  .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGalleryGrid,
+  .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGalleryGrid.is-single {
+    display: grid !important;
+    columns: auto !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 14px !important;
+    gap: 10px !important;
+  }
+
+  .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGalleryGrid.is-single {
+    display: block !important;
+    padding: 0 !important;
+  }
+
+  .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGalleryGrid.is-pair,
+  .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGalleryGrid.is-mosaic {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGalleryCard {
+    display: block !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    border-radius: 22px !important;
+    aspect-ratio: 4 / 5 !important;
+    box-shadow: 0 16px 34px rgba(52, 52, 56, 0.12) !important;
+  }
+
+  .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGalleryGrid.is-single .profileGalleryCard {
+    width: min(100%, 340px) !important;
+    min-height: 300px !important;
+    margin: 0 auto !important;
+    aspect-ratio: 4 / 5 !important;
+    box-shadow: 0 20px 46px rgba(52, 52, 56, 0.16) !important;
+  }
+
+  .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGalleryGrid.is-pair .profileGalleryCard {
+    aspect-ratio: 1 / 1.18 !important;
+  }
+
+  .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGalleryGrid.is-mosaic .profileGalleryCard:first-child {
+    grid-column: span 2 !important;
+    aspect-ratio: 16 / 11 !important;
+  }
+
+  .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGalleryCard img,
+  .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGalleryCard .profileGalleryCardFallback {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    object-fit: cover !important;
+    object-position: center 40% !important;
+  }
+
+  .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGalleryGrid.is-single .profileGalleryCard img,
+  .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGalleryGrid.is-single .profileGalleryCard .profileGalleryCardFallback {
+    min-height: 300px !important;
+  }
+
+  .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGalleryCardShade {
+    background:
+      linear-gradient(180deg, rgba(11, 11, 15, 0.02) 0%, transparent 48%, rgba(11, 11, 15, 0.74) 100%) !important;
+  }
+
+  .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGalleryCardCopy {
+    padding: 16px !important;
+  }
+
+  .profilePanel.page-profile:has(.createdProfile.is-artist) .artistReviewBoard {
+    gap: 14px !important;
+    margin: 0 !important;
+    padding: 16px !important;
+    border: 1px solid rgba(255, 255, 255, 0.82) !important;
+    border-radius: 24px !important;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(250, 250, 252, 0.94)) !important;
+    box-shadow: 0 18px 40px rgba(52, 52, 56, 0.08) !important;
+  }
+
+  .profilePanel.page-profile:has(.createdProfile.is-artist) .artistReviewBoard .boardHead {
+    align-items: center !important;
+    padding: 0 !important;
+  }
+
+  .profilePanel.page-profile:has(.createdProfile.is-artist) .artistReviewBoard .boardHead strong {
+    color: #18181c !important;
+    font-size: 1rem !important;
+    font-weight: 950 !important;
+  }
+
+  .profilePanel.page-profile:has(.createdProfile.is-artist) .artistReviewBoard .boardHead b {
+    min-height: 30px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    padding: 0 10px !important;
+    border-radius: 999px !important;
+    background: rgba(20, 22, 29, 0.1) !important;
+    color: #14161d !important;
+    font-size: 0.78rem !important;
+    font-weight: 950 !important;
+  }
+
+  .profilePanel.page-profile:has(.createdProfile.is-artist) .artistReviewRail {
+    grid-auto-columns: minmax(238px, 82%) !important;
+    gap: 10px !important;
+    padding: 0 0 2px !important;
+    scrollbar-width: none !important;
+  }
+
+  .profilePanel.page-profile:has(.createdProfile.is-artist) .artistReviewRail::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .profilePanel.page-profile:has(.createdProfile.is-artist) .artistReviewRail article {
+    gap: 8px !important;
+    min-height: 104px !important;
+    padding: 12px !important;
+    border: 1px solid rgba(52, 52, 56, 0.06) !important;
+    border-radius: 18px !important;
+    background: rgba(255, 255, 255, 0.92) !important;
+    box-shadow: 0 10px 24px rgba(52, 52, 56, 0.06) !important;
+  }
+
+  .profilePanel.page-profile:has(.createdProfile.is-artist) .artistReviewRail p {
+    color: #2a2a2e !important;
+    font-size: 0.72rem !important;
+    line-height: 1.7 !important;
+  }
+
+  .page-profile.is-active ~ .floatingMobileCta.is-modeRail {
+    padding: 6px 6px 72px !important;
+    border-radius: 24px 24px 30px 30px !important;
+    background: #14161d !important;
+    box-shadow: 0 18px 42px rgba(20, 22, 29, 0.26) !important;
+  }
+
+  /* Salon's week strip floats as its own white card (see the base,
+     unqueried :has() rule below in the stylesheet) — this mobile-width
+     rule above is more specific (sibling combinator) and was winning with
+     !important, leaving the purple dock chrome behind the white card. */
+  .page-profile.is-active ~ .floatingMobileCta.is-modeRail:has(.salonHeroWeekStrip) {
+    padding: 0 0 72px !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .floatingMobileCta.is-modeRail .profileModeRail button {
+    min-height: 42px !important;
+    gap: 2px !important;
+    border-radius: 12px !important;
+  }
+
+  .floatingMobileCta.is-modeRail .profileModeRail button.active {
+    background: rgba(255, 255, 255, 0.24) !important;
+  }
+
+  .bottomNav {
+    min-height: 50px !important;
+    padding: 3px 10px 4px !important;
+    border-radius: 28px !important;
+  }
+
+  .bottomNav button {
+    min-height: 40px !important;
+    gap: 2px !important;
+  }
+
+  .bottomNav .profileTab {
+    flex-basis: 62px !important;
+    width: 62px !important;
+    min-height: 62px !important;
+    transform: translateY(-24px) !important;
+  }
+
+  .bottomNav .profileTab span {
+    bottom: -14px !important;
+  }
+
+@media (max-width: 760px) {
+  .salonHeroSheetPanel.is-artist-settings {
+    gap: 12px !important;
+    padding: max(14px, env(safe-area-inset-top)) 12px calc(92px + env(safe-area-inset-bottom)) !important;
+    background:
+      linear-gradient(180deg, #fafafc 0%, #fff 30%, #fff 100%) !important;
+    color: #202024 !important;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .salonHeroSheetHead {
+    min-height: 54px !important;
+    padding: 0 4px 6px !important;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .salonHeroSheetHead span {
+    color: #14161d !important;
+    font-size: 0.68rem !important;
+    font-weight: 950 !important;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .salonHeroSheetHead h3 {
+    margin: 2px 0 0 !important;
+    color: #19191d !important;
+    font-size: 1.18rem !important;
+    font-weight: 950 !important;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .salonHeroSheetHead button {
+    border: 1px solid rgba(42, 42, 46, 0.08) !important;
+    border-radius: 14px !important;
+    background: #fff !important;
+    color: #202024 !important;
+    box-shadow: 0 10px 24px rgba(52, 52, 56, 0.06) !important;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .settingsPanel {
+    gap: 10px !important;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .profileLocationSettings,
+  .salonHeroSheetPanel.is-artist-settings .settingsAccountCard,
+  .salonHeroSheetPanel.is-artist-settings .neoSettingsGroup {
+    border: 1px solid rgba(20, 22, 29, 0.09) !important;
+    border-radius: 22px !important;
+    background: #fff !important;
+    box-shadow: 0 14px 34px rgba(52, 52, 56, 0.06) !important;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .profileLocationSettings {
+    padding: 14px !important;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .profileLocationHead strong,
+  .salonHeroSheetPanel.is-artist-settings .settingsAccountCopy strong,
+  .salonHeroSheetPanel.is-artist-settings .neoSettingsToggleCopy b {
+    color: #202024 !important;
+    font-weight: 950 !important;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .profileLocationHead span,
+  .salonHeroSheetPanel.is-artist-settings .settingsAccountCopy small,
+  .salonHeroSheetPanel.is-artist-settings .neoSettingsToggleCopy small {
+    color: rgba(42, 42, 46, 0.58) !important;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .settingsAccountCard {
+    grid-template-columns: 64px minmax(0, 1fr) auto !important;
+    min-height: 94px !important;
+    padding: 12px !important;
+    text-align: right !important;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .settingsAccountAvatar {
+    width: 58px !important;
+    height: 58px !important;
+    border-radius: 18px !important;
+    background: #19191d !important;
+    box-shadow: 0 0 0 3px rgba(201, 157, 53, 0.45) !important;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .settingsAccountAvatar img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .settingsAccountAction {
+    min-height: 36px !important;
+    padding: 0 12px !important;
+    border-radius: 14px !important;
+    background: rgba(20, 22, 29, 0.1) !important;
+    color: #14161d !important;
+    font-weight: 950 !important;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .neoSettingsGroup {
+    overflow: hidden !important;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .neoSettingsGroupHead {
+    min-height: 46px !important;
+    padding: 0 14px !important;
+    color: #14161d !important;
+    font-size: 0.74rem !important;
+    font-weight: 950 !important;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .neoSettingsGroupBody {
+    gap: 4px !important;
+    padding: 0 8px 10px !important;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .neoSettingsToggle {
+    min-height: 64px !important;
+    grid-template-columns: 38px minmax(0, 1fr) auto !important;
+    padding: 10px !important;
+    border-radius: 16px !important;
+    background: #fafafc !important;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .neoSettingsToggleIcon {
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 14px !important;
+    background: #fff !important;
+    color: #14161d !important;
+    box-shadow: 0 8px 18px rgba(52, 52, 56, 0.06) !important;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .neoSettingsSwitchTrack {
+    background: rgba(42, 42, 46, 0.16) !important;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .neoSettingsSwitch[data-on="true"] .neoSettingsSwitchTrack {
+    background: linear-gradient(135deg, #252529, #14161d) !important;
+    box-shadow: 0 8px 18px rgba(20, 22, 29, 0.18) !important;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .neoSettingsSwitch[data-on="true"] .neoSettingsSwitchLabel {
+    color: #14161d !important;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .neoSettingsLogout {
+    min-height: 48px !important;
+    border-radius: 18px !important;
+    background: #fff !important;
+    box-shadow: 0 12px 28px rgba(155, 54, 80, 0.08) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .salonHeroSheetPanel.is-artist-settings {
+    padding: max(14px, env(safe-area-inset-top)) 12px calc(92px + env(safe-area-inset-bottom)) !important;
+    background: #ffffff !important;
+    border: 0 !important;
+    color: #171827 !important;
+    box-shadow: 0 -18px 42px rgba(18, 18, 28, 0.16) !important;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .salonHeroSheetHead {
+    align-items: flex-start !important;
+    min-height: auto !important;
+    padding: 0 4px 12px !important;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .salonHeroSheetHead span {
+    color: #14161d !important;
+    font-size: 12px !important;
+    font-weight: 900 !important;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .salonHeroSheetHead h3 {
+    margin: 2px 0 0 !important;
+    color: #171827 !important;
+    font-size: 22px !important;
+    font-weight: 950 !important;
+    letter-spacing: 0 !important;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .salonHeroSheetHead button {
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 16px !important;
+    border: 1px solid rgba(22, 24, 38, 0.08) !important;
+    background: #ffffff !important;
+    color: #171827 !important;
+    box-shadow: 0 10px 24px rgba(22, 24, 38, 0.08) !important;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .settingsPanel {
+    gap: 12px !important;
+    background: #ffffff !important;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .artistSettingsHeroCard {
+    position: relative;
+    overflow: hidden;
+    display: grid;
+    gap: 12px;
+    padding: 14px;
+    border-radius: 26px;
+    color: #ffffff;
+    background:
+      radial-gradient(circle at 16% 8%, rgba(255, 255, 255, 0.24), transparent 28%),
+      linear-gradient(145deg, #171827 0%, #323236 48%, #14161d 100%);
+    box-shadow: 0 18px 38px rgba(20, 22, 29, 0.22);
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .artistSettingsHeroGlow {
+    position: absolute;
+    inset: auto -18px -46px auto;
+    width: 170px;
+    height: 170px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.18);
+    filter: blur(18px);
+    pointer-events: none;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .artistSettingsHeroTop,
+  .salonHeroSheetPanel.is-artist-settings .artistSettingsHeroSignals,
+  .salonHeroSheetPanel.is-artist-settings .artistSettingsQuickGrid {
+    position: relative;
+    z-index: 1;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .artistSettingsHeroTop {
+    display: grid;
+    grid-template-columns: 58px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .artistSettingsHeroAvatar {
+    width: 58px;
+    height: 58px;
+    overflow: hidden;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.16);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.22);
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .artistSettingsHeroAvatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .artistSettingsHeroCopy {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .artistSettingsHeroCopy small,
+  .salonHeroSheetPanel.is-artist-settings .artistSettingsHeroCopy em {
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 11px;
+    font-style: normal;
+    line-height: 1.7;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .artistSettingsHeroCopy strong {
+    color: #ffffff;
+    font-size: 17px;
+    font-weight: 950;
+    line-height: 1.4;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .artistSettingsHeroBadge {
+    min-width: 48px;
+    height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 18px;
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    font-size: 13px;
+    font-weight: 950;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .artistSettingsMeter {
+    position: relative;
+    z-index: 1;
+    height: 7px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.16);
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .artistSettingsMeter span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #ffffff, #e6e6e8);
+    box-shadow: 0 0 18px rgba(255, 255, 255, 0.36);
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .artistSettingsQuickGrid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .artistSettingsQuickGrid button {
+    min-height: 58px;
+    display: grid;
+    place-items: center;
+    gap: 5px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 18px;
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.12);
+    font-size: 10px;
+    font-weight: 850;
+    backdrop-filter: blur(12px);
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .artistSettingsQuickGrid svg {
+    color: #ffffff;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .artistSettingsHeroSignals {
+    display: flex;
+    gap: 7px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .artistSettingsHeroSignals::-webkit-scrollbar {
+    display: none;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .artistSettingsHeroSignals span {
+    min-height: 30px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    flex: 0 0 auto;
+    padding: 0 10px;
+    border-radius: 999px;
+    color: rgba(255, 255, 255, 0.86);
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    font-size: 10px;
+    font-weight: 800;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .profileLocationSettings,
+  .salonHeroSheetPanel.is-artist-settings .settingsAccountCard,
+  .salonHeroSheetPanel.is-artist-settings .artistSettingsBookmarkCard,
+  .salonHeroSheetPanel.is-artist-settings .neoSettingsGroup {
+    border: 1px solid rgba(22, 24, 38, 0.08) !important;
+    border-radius: 22px !important;
+    background: #ffffff !important;
+    box-shadow: 0 12px 28px rgba(22, 24, 38, 0.06) !important;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .profileLocationSettings {
+    padding: 14px !important;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .profileLocationHead {
+    grid-template-columns: 42px minmax(0, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .profileLocationHead > svg,
+  .salonHeroSheetPanel.is-artist-settings .neoSettingsToggleIcon,
+  .salonHeroSheetPanel.is-artist-settings .artistSettingsBookmarkIcon {
+    color: #14161d !important;
+    background: rgba(20, 22, 29, 0.1) !important;
+    box-shadow: none !important;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .profileLocationHead strong,
+  .salonHeroSheetPanel.is-artist-settings .settingsAccountCopy strong,
+  .salonHeroSheetPanel.is-artist-settings .neoSettingsToggleCopy b,
+  .salonHeroSheetPanel.is-artist-settings .artistSettingsBookmarkCopy strong {
+    color: #171827 !important;
+    font-size: 14px !important;
+    font-weight: 950 !important;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .profileLocationHead span,
+  .salonHeroSheetPanel.is-artist-settings .settingsAccountCopy small,
+  .salonHeroSheetPanel.is-artist-settings .neoSettingsToggleCopy small,
+  .salonHeroSheetPanel.is-artist-settings .artistSettingsBookmarkCopy small {
+    color: #76798a !important;
+    font-size: 11px !important;
+    line-height: 1.8 !important;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .settingsAccountCard {
+    min-height: 88px !important;
+    grid-template-columns: 62px minmax(0, 1fr) auto !important;
+    gap: 12px !important;
+    padding: 12px !important;
+    background: linear-gradient(135deg, #ffffff 0%, #fcfcfe 100%) !important;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .settingsAccountAvatar {
+    width: 58px !important;
+    height: 58px !important;
+    border-radius: 19px !important;
+    background: #171827 !important;
+    box-shadow: 0 0 0 3px #ffffff, 0 0 0 4px rgba(20, 22, 29, 0.22), 0 12px 24px rgba(37, 37, 41, 0.16) !important;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .settingsAccountAction {
+    min-height: 36px !important;
+    padding: 0 12px !important;
+    border-radius: 14px !important;
+    border: 1px solid rgba(20, 22, 29, 0.16) !important;
+    background: rgba(20, 22, 29, 0.1) !important;
+    color: #14161d !important;
+    font-size: 12px !important;
+    font-weight: 950 !important;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .artistSettingsBookmarkCard {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    background: linear-gradient(135deg, #ffffff 0%, #fcfcfe 100%) !important;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .artistSettingsBookmarkCard button {
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border: 0;
+    border-radius: 14px;
+    padding: 0 12px;
+    color: #14161d;
+    background: rgba(20, 22, 29, 0.1);
+    font-size: 12px;
+    font-weight: 900;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .neoSettingsGroup {
+    overflow: hidden !important;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .neoSettingsGroupHead {
+    min-height: 48px !important;
+    padding: 0 14px !important;
+    color: #14161d !important;
+    font-size: 12px !important;
+    font-weight: 950 !important;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .neoSettingsGroupBody {
+    gap: 6px !important;
+    padding: 0 8px 10px !important;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .neoSettingsToggle {
+    min-height: 64px !important;
+    grid-template-columns: 38px minmax(0, 1fr) auto !important;
+    padding: 10px !important;
+    border-radius: 16px !important;
+    background: #fafafc !important;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .neoSettingsSwitchTrack {
+    background: rgba(22, 24, 38, 0.14) !important;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .neoSettingsSwitch[data-on="true"] .neoSettingsSwitchTrack {
+    background: linear-gradient(135deg, #14161d, #14161d) !important;
+    box-shadow: 0 8px 18px rgba(20, 22, 29, 0.18) !important;
+  }
+
+  .salonHeroSheetPanel.is-artist-settings .neoSettingsSwitch[data-on="true"] .neoSettingsSwitchLabel {
+    color: #14161d !important;
+  }
+}
+@media (max-width: 760px) {
+  .profilePanel.page-profile:has(.createdProfile.is-salon) {
+    background: #ffffff !important;
+  }
+
+  .profilePanel.page-profile:has(.createdProfile.is-salon) .createdProfile {
+    background: #ffffff !important;
+  }
+
+  .profileHero.is-salon {
+    --salon-hero-dark: #0a0a0e;
+    --salon-hero-purple: #26262a;
+    --salon-hero-violet: #14161d;
+    --salon-avatar-size: 104px;
+    position: relative;
+    min-height: 408px;
+    display: block;
+    margin: 0 !important;
+    padding: calc(20px + env(safe-area-inset-top)) 16px 16px !important;
+    overflow: hidden;
+    isolation: isolate;
+    border-radius: 0 0 26px 26px !important;
+    background:
+      linear-gradient(180deg, rgba(10, 10, 14, 0) 0 58%, #ffffff 58% 100%),
+      var(--salon-hero-dark) !important;
+    box-shadow: none !important;
+    color: #ffffff;
+  }
+
+  .profileHero.is-salon::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    z-index: 0;
+    height: 246px;
+    pointer-events: none;
+    background:
+      radial-gradient(circle at 68% 28%, rgba(111, 115, 128, 0.2), transparent 30%),
+      linear-gradient(180deg, rgba(2, 3, 10, 0.1), rgba(5, 5, 13, 0.5) 72%, rgba(255, 255, 255, 0.96) 100%),
+      url("/artist-hero-doodle.webp");
+    background-size: cover;
+    background-position: center top;
+  }
+
+  .profileHero.is-salon .salonHeroBanner {
+    position: absolute;
+    inset: 0 0 auto;
+    z-index: 0;
+    width: 100%;
+    height: 246px;
+    background:
+      linear-gradient(90deg, rgba(19, 19, 23, 0.95), rgba(6, 6, 13, 0.9)),
+      url("/artist-hero-doodle.webp") center top / cover no-repeat !important;
+    opacity: 1;
+    -webkit-mask-image: none !important;
+    mask-image: none !important;
+  }
+
+  .profileHero.is-salon .salonHeroBanner::after {
+    height: 62%;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0), #ffffff 92%) !important;
+  }
+
+  .profileHero.is-salon .profileHeroActions.is-salonTopActions {
+    position: absolute;
+    top: calc(22px + env(safe-area-inset-top)) !important;
+    left: 18px !important;
+    right: auto !important;
+    z-index: 7;
+    display: flex;
+    width: auto;
+    gap: 10px;
+    justify-content: flex-start;
+    pointer-events: auto;
+  }
+
+  .profileHero.is-salon .profileHeroActions.is-salonTopActions button {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.09);
+    color: #ffffff;
+    box-shadow: none;
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+  }
+
+  .profileHero.is-salon .profileAvatarImage {
+    position: absolute !important;
+    top: calc(28px + env(safe-area-inset-top)) !important;
+    right: 24px !important;
+    left: auto !important;
+    z-index: 6;
+    width: var(--salon-avatar-size) !important;
+    height: var(--salon-avatar-size) !important;
+    padding: 8px !important;
+    border-radius: 50% !important;
+    border: 3px solid #101018 !important;
+    background: #03040a !important;
+    object-fit: contain;
+    box-shadow:
+      0 0 0 3px #f0c759,
+      0 0 0 6px rgba(124, 173, 255, 0.42),
+      0 0 28px rgba(124, 173, 255, 0.72) !important;
+  }
+
+  .profileHero.is-salon .salonHeroEditAvatar {
+    position: absolute;
+    top: calc(122px + env(safe-area-inset-top));
+    right: 114px;
+    z-index: 8;
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: 50%;
+    background: #ffffff;
+    color: #14161d;
+    box-shadow: 0 8px 18px rgba(21, 21, 25, 0.2);
+  }
+
+  .profileHero.is-salon .salonHeroMeta {
+    position: relative !important;
+    z-index: 3;
+    width: auto !important;
+    min-height: 136px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 7px;
+    margin: 0 !important;
+    padding: 8px 128px 0 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .profileHero.is-salon .salonHeroMeta::before,
+  .profileHero.is-salon .salonHeroSocial {
+    display: none !important;
+  }
+
+  .profileHero.is-salon .profileHeroCopy {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto auto;
+    align-items: center;
+    justify-content: start;
+    gap: 4px 7px;
+    min-height: 0;
+    padding: 0 !important;
+    text-align: right;
+  }
+
+  .profileHero.is-salon .profileHeroCopy p {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    margin: 0 !important;
+    color: rgba(255, 255, 255, 0.68) !important;
+    font-size: 0.68rem !important;
+    font-weight: 800;
+    line-height: 1.4;
+  }
+
+  .profileHero.is-salon .profileHeroCopy h2 {
+    grid-column: 2;
+    grid-row: 1;
+    margin: 0 !important;
+    transform: none !important;
+    color: #ffffff !important;
+    font-size: 1.22rem !important;
+    font-weight: 950;
+    line-height: 1.15;
+    text-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+  }
+
+  .profileHero.is-salon .salonHeroVerified {
+    grid-column: 1;
+    grid-row: 1;
+    width: 16px;
+    height: 16px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6f7380, #14161d);
+    color: #ffffff !important;
+    font-size: 0.55rem !important;
+    line-height: 1;
+  }
+
+  .profileHero.is-salon .salonHeroRatingPill {
+    width: fit-content;
+    min-height: 30px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 999px;
+    background: rgba(14, 14, 18, 0.56);
+    color: #ffffff;
+    font-size: 0.72rem;
+    font-weight: 900;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+
+  .profileHero.is-salon .salonHeroRatingPill svg {
+    color: #f5c84b;
+  }
+
+  .profileHero.is-salon .salonHeroRatingPill span {
+    color: rgba(255, 255, 255, 0.78) !important;
+    font-size: 0.7rem !important;
+  }
+
+  .profileHero.is-salon .salonHeroFutureStats {
+    position: relative;
+    z-index: 4;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+    justify-content: center;
+    align-items: stretch;
+    min-height: 92px;
+    margin: 8px 0 0;
+    padding: 14px 10px;
+    border: 1px solid rgba(28, 32, 44, 0.07);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.97);
+    color: #1f2130;
+    box-shadow: 0 16px 30px rgba(21, 21, 25, 0.12);
+  }
+
+  .profileHero.is-salon .salonHeroFutureStats span {
+    min-width: 0;
+    display: grid !important;
+    justify-items: center;
+    align-content: center;
+    gap: 5px;
+    padding: 0 4px;
+    color: #1f2130 !important;
+    text-align: center;
+  }
+
+  .profileHero.is-salon .salonHeroFutureStats span + span {
+    border-right: 1px solid rgba(20, 22, 29, 0.14);
+  }
+
+  .profileHero.is-salon .salonHeroFutureStats b {
+    color: #242334;
+    font-size: 0.94rem;
+    font-weight: 950;
+    line-height: 1;
+  }
+
+  .profileHero.is-salon .salonHeroFutureStats small {
+    color: rgba(31, 33, 48, 0.62);
+    font-size: 0.55rem;
+    font-weight: 900;
+    line-height: 1.25;
+    white-space: nowrap;
+  }
+
+  .profileHero.is-salon .salonHeroFutureStats svg {
+    color: #14161d;
+  }
+
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekStrip {
+    position: relative;
+    z-index: 4;
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr);
+    align-items: center;
+    gap: 7px;
+    margin-top: 14px;
+    padding: 10px 10px;
+    border: 1px solid rgba(28, 32, 44, 0.07);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow: 0 14px 26px rgba(21, 21, 25, 0.08);
+  }
+
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekArrow {
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: 50%;
+    background: #f8f8fa;
+    color: #14161d;
+  }
+
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDays {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 4px;
+  }
+
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDay {
+    min-width: 0;
+    min-height: 70px;
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: 3px;
+    padding: 7px 2px;
+    border: 0;
+    border-radius: 14px;
+    background: transparent;
+    color: #262738;
+    text-align: center;
+  }
+
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDay span {
+    color: rgba(31, 33, 48, 0.84) !important;
+    font-size: 0.56rem !important;
+    font-weight: 950;
+    line-height: 1.15;
+  }
+
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDay small,
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDay em {
+    color: rgba(31, 33, 48, 0.48);
+    font-size: 0.48rem;
+    font-style: normal;
+    font-weight: 850;
+    line-height: 1.15;
+    white-space: nowrap;
+  }
+
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDay em {
+    color: #22a872;
+  }
+
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDay.is-off em {
+    color: #e1526d;
+  }
+
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDay.is-active {
+    background: #f5f5f7;
+    box-shadow: inset 0 0 0 1px rgba(20, 22, 29, 0.08);
+  }
+
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDay.is-active b {
+    width: 26px;
+    height: 26px;
+    display: grid;
+    place-items: center;
+    margin-top: 2px;
+    border-radius: 50%;
+    background: linear-gradient(180deg, #6f7380, #14161d);
+    color: #ffffff;
+    box-shadow: 0 8px 16px rgba(20, 22, 29, 0.3);
+  }
+}
+
+/* ProfileHeroWeekStrip, inside the artist's own "رزروها" tab
+   (ArtistScheduleBoard), replacing the old artistBookingWeekRail day-tabs
+   there. This is its only host on the artist side — the strip is not shown
+   on the artist profile hero itself, only in the bookings tab. Same card
+   look as the salon hero block above, just re-scoped to this container. */
+@media (max-width: 760px) {
+  .artistBookingsPage .salonHeroWeekStrip {
+    position: relative;
+    z-index: 4;
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr);
+    align-items: center;
+    gap: 7px;
+    margin-top: 0;
+    margin-bottom: 4px;
+    padding: 10px 10px;
+    border: 1px solid rgba(28, 32, 44, 0.07);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow: 0 14px 26px rgba(21, 21, 25, 0.08);
+  }
+
+  .artistBookingsPage .salonHeroWeekArrow {
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: 50%;
+    background: #f8f8fa;
+    color: #14161d;
+  }
+
+  .artistBookingsPage .salonHeroWeekDays {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 4px;
+  }
+
+  .artistBookingsPage .salonHeroWeekDay {
+    min-width: 0;
+    min-height: 70px;
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: 3px;
+    padding: 7px 2px;
+    border: 0;
+    border-radius: 14px;
+    background: transparent;
+    color: #262738;
+    text-align: center;
+  }
+
+  .artistBookingsPage .salonHeroWeekDay span {
+    color: rgba(31, 33, 48, 0.84) !important;
+    font-size: 0.56rem !important;
+    font-weight: 950;
+    line-height: 1.15;
+  }
+
+  .artistBookingsPage .salonHeroWeekDay small,
+  .artistBookingsPage .salonHeroWeekDay em {
+    color: rgba(31, 33, 48, 0.48);
+    font-size: 0.48rem;
+    font-style: normal;
+    font-weight: 850;
+    line-height: 1.15;
+    white-space: nowrap;
+  }
+
+  .artistBookingsPage .salonHeroWeekDay em {
+    color: #22a872;
+  }
+
+  .artistBookingsPage .salonHeroWeekDay.is-off em {
+    color: #e1526d;
+  }
+
+  .artistBookingsPage .salonHeroWeekDay.is-active {
+    background: #f5f5f7;
+    box-shadow: inset 0 0 0 1px rgba(20, 22, 29, 0.08);
+  }
+
+  .artistBookingsPage .salonHeroWeekDay.is-active b {
+    width: 26px;
+    height: 26px;
+    display: grid;
+    place-items: center;
+    margin-top: 2px;
+    border-radius: 50%;
+    background: linear-gradient(180deg, #6f7380, #14161d);
+    color: #ffffff;
+    box-shadow: 0 8px 16px rgba(20, 22, 29, 0.3);
+  }
+}
+
+.artistBookingsPage .salonHeroWeekDay b {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  margin-top: 2px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #6f7380, #14161d);
+  color: #ffffff;
+  box-shadow: 0 8px 16px rgba(20, 22, 29, 0.3);
+}
+
+.artistBookingsPage .salonHeroWeekDays {
+  display: flex !important;
+  grid-template-columns: none !important;
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  scroll-snap-type: x proximity !important;
+  -webkit-overflow-scrolling: touch !important;
+  scrollbar-width: none !important;
+  gap: 6px !important;
+  cursor: grab;
+}
+
+.artistBookingsPage .salonHeroWeekDays::-webkit-scrollbar {
+  display: none;
+  height: 0;
+}
+
+.artistBookingsPage .salonHeroWeekDay {
+  flex: 0 0 auto !important;
+  width: 66px !important;
+  scroll-snap-align: start !important;
+}
+
+.artistBookingsPage .salonHeroWeekDays:active {
+  cursor: grabbing;
+}
+
+/* Salon profile hero: tuned from the supplied mobile reference. */
+@media (max-width: 760px) {
+  .profileHero.is-salon {
+    --salon-avatar-size: 108px;
+    min-height: 416px !important;
+    padding: calc(22px + env(safe-area-inset-top)) 18px 16px !important;
+    border-radius: 0 !important;
+    background: #ffffff !important;
+    color: #ffffff;
+  }
+
+  .profileHero.is-salon::before {
+    display: block !important;
+    height: 216px !important;
+    left: 10px !important;
+    right: 10px !important;
+    width: auto !important;
+    border-radius: 0 0 14px 14px !important;
+    background:
+      radial-gradient(circle at 74% 25%, rgba(111, 115, 128, 0.18), transparent 30%),
+      linear-gradient(180deg, rgba(4, 5, 10, 0.02), rgba(4, 4, 10, 0.18) 68%, rgba(255, 255, 255, 0.72) 100%),
+      url("/artist-hero-doodle.webp") center top / cover no-repeat !important;
+    opacity: 1;
+  }
+
+  .profileHero.is-salon .salonHeroBanner {
+    height: 216px !important;
+    left: 10px !important;
+    right: 10px !important;
+    width: auto !important;
+    border-radius: 0 0 14px 14px !important;
+    background:
+      linear-gradient(90deg, rgba(6, 7, 12, 0.98) 0%, rgba(27, 27, 31, 0.95) 50%, rgba(5, 6, 12, 0.98) 100%),
+      url("/artist-hero-doodle.webp") center top / cover no-repeat !important;
+    opacity: 1 !important;
+    filter: contrast(1.04) saturate(0.9) brightness(0.86);
+  }
+
+  .profileHero.is-salon .salonHeroBanner::after {
+    height: 52% !important;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0) 0 48%, rgba(235, 238, 246, 0.18) 72%, rgba(255, 255, 255, 0.78) 100%) !important;
+  }
+
+  .profileHero.is-salon .profileHeroActions.is-salonTopActions {
+    top: calc(26px + env(safe-area-inset-top)) !important;
+    left: 20px !important;
+    z-index: 9 !important;
+    gap: 10px !important;
+  }
+
+  .profileHero.is-salon .profileHeroActions.is-salonTopActions button {
+    width: 40px !important;
+    height: 40px !important;
+    border: 1px solid rgba(255, 255, 255, 0.11) !important;
+    border-radius: 50% !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: rgba(255, 255, 255, 0.96) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+  }
+
+  .profileHero.is-salon .profileHeroActions.is-salonTopActions button:first-child {
+    position: relative;
+  }
+
+  .profileHero.is-salon .profileHeroActions.is-salonTopActions button:first-child::after {
+    content: none;
+  }
+
+  .profileHero.is-salon .profileHeroActions.is-salonTopActions button:first-child.has-notifications::after {
+    content: "";
+    position: absolute;
+    top: 6px;
+    right: 7px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #6f7380;
+    box-shadow: 0 0 0 2px rgba(10, 10, 14, 0.7);
+  }
+
+  .profileHero.is-salon .profileAvatarImage {
+    top: calc(30px + env(safe-area-inset-top)) !important;
+    right: 26px !important;
+    width: var(--salon-avatar-size) !important;
+    height: var(--salon-avatar-size) !important;
+    padding: 8px !important;
+    border: 3px solid #080911 !important;
+    border-radius: 50% !important;
+    background: #05050b !important;
+    box-shadow:
+      0 0 0 3px #d4ad45,
+      0 0 0 5px rgba(126, 172, 255, 0.42),
+      0 0 24px rgba(133, 185, 255, 0.86),
+      0 18px 34px rgba(0, 0, 0, 0.28) !important;
+  }
+
+  .profileHero.is-salon .salonHeroEditAvatar {
+    top: calc(122px + env(safe-area-inset-top)) !important;
+    right: 116px !important;
+    width: 31px !important;
+    height: 31px !important;
+    background: #ffffff !important;
+    color: #14161d !important;
+  }
+
+  .profileHero.is-salon .salonHeroMeta {
+    min-height: 132px !important;
+    padding: 13px 140px 0 0 !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+    gap: 8px !important;
+  }
+
+  .profileHero.is-salon .profileHeroCopy {
+    display: grid !important;
+    grid-template-columns: auto auto !important;
+    gap: 4px 7px !important;
+    align-items: center !important;
+  }
+
+  .profileHero.is-salon .profileHeroCopy h2 {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    color: #1c202c !important;
+    font-size: 1.24rem !important;
+    font-weight: 950 !important;
+    line-height: 1.15 !important;
+  }
+
+  .profileHero.is-salon .profileHeroCopy p {
+    grid-column: 1 / -1 !important;
+    grid-row: 2 !important;
+    color: rgba(28, 32, 44, 0.58) !important;
+    font-size: 0.66rem !important;
+    font-weight: 800 !important;
+  }
+
+  .profileHero.is-salon .salonHeroVerified {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    width: 15px !important;
+    height: 15px !important;
+    background: linear-gradient(135deg, #6f7380, #14161d) !important;
+  }
+
+  .profileHero.is-salon .salonHeroRatingPill {
+    min-height: 30px !important;
+    padding: 4px 12px !important;
+    gap: 6px !important;
+    border-color: rgba(255, 255, 255, 0.14) !important;
+    background: rgba(5, 5, 13, 0.58) !important;
+    color: #ffffff !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+  }
+
+  .profileHero.is-salon .salonHeroFutureStats {
+    min-height: 92px !important;
+    margin: 12px 0 0 !important;
+    padding: 14px 8px 13px !important;
+    border: 1px solid rgba(28, 32, 44, 0.07) !important;
+    border-radius: 16px !important;
+    background: #ffffff !important;
+    box-shadow:
+      0 14px 30px rgba(24, 24, 28, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+  }
+
+  .profileHero.is-salon .salonHeroFutureStats span {
+    gap: 6px !important;
+  }
+
+  .profileHero.is-salon .salonHeroFutureStats span + span {
+    border-right: 1px solid rgba(38, 39, 56, 0.1) !important;
+  }
+
+  .profileHero.is-salon .salonHeroFutureStats b {
+    color: #202132 !important;
+    font-size: 0.96rem !important;
+    font-weight: 950 !important;
+  }
+
+  .profileHero.is-salon .salonHeroFutureStats small {
+    color: rgba(32, 33, 50, 0.58) !important;
+    font-size: 0.52rem !important;
+    font-weight: 900 !important;
+  }
+
+  .profileHero.is-salon .salonHeroFutureStats svg {
+    color: #14161d !important;
+    stroke-width: 1.9;
+  }
+
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekStrip {
+    min-height: 96px !important;
+    margin-top: 15px !important;
+    padding: 10px 9px !important;
+    grid-template-columns: 30px minmax(0, 1fr) !important;
+    border: 1px solid rgba(28, 32, 44, 0.06) !important;
+    border-radius: 17px !important;
+    background: #ffffff !important;
+    box-shadow:
+      0 12px 28px rgba(24, 24, 28, 0.07),
+      inset 0 1px 0 rgba(255, 255, 255, 0.96) !important;
+  }
+
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekArrow {
+    width: 28px !important;
+    height: 28px !important;
+    background: #f9f9fb !important;
+    color: #14161d !important;
+  }
+
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDays {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: 3px !important;
+  }
+
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDay {
+    min-height: 74px !important;
+    padding: 7px 1px !important;
+    border-radius: 13px !important;
+  }
+
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDay span {
+    color: rgba(33, 34, 49, 0.8) !important;
+    font-size: 0.52rem !important;
+    font-weight: 950 !important;
+  }
+
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDay small,
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDay em {
+    font-size: 0.45rem !important;
+    font-weight: 850 !important;
+  }
+
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDay em {
+    color: #22a872 !important;
+  }
+
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDay.is-off em {
+    color: #f0445f !important;
+  }
+
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDay.is-active {
+    background: #f4f4f6 !important;
+  }
+
+  :is(.profileHero.is-salon, .floatingMobileCta) .salonHeroWeekDay.is-active b {
+    width: 27px !important;
+    height: 27px !important;
+    background: linear-gradient(180deg, #6f7380, #14161d) !important;
+    box-shadow: 0 9px 16px rgba(20, 22, 29, 0.28) !important;
+  }
+}
