@@ -6,18 +6,21 @@ import { PageIcon } from "../../../components/PageIcon";
 import { ServiceIcon } from "../../../components/ServiceIcon";
 import { SegmentClock } from "../../../components/SegmentClock";
 
-export function SalonNotificationsSheet({
-  createdProfile,
-  salonHeroSheet,
-  reservationRequestList,
-  pendingSalonCollabRequests,
-  salonAppointmentList,
-  recentlyExpiredSalonBookings,
-  setSalonHeroSheet,
-  salonRequestBusyId,
-  approveReservationRequest,
-  declineReservationRequest
-}) {
+import { useHome } from "../HomeContext";
+export function SalonNotificationsSheet() {
+  const {
+    createdProfile,
+    salonHeroSheet,
+    reservationRequestList,
+    pendingSalonCollabRequests,
+    salonAppointmentList,
+    recentlyExpiredSalonBookings,
+    setSalonHeroSheet,
+    salonRequestBusyId,
+    approveReservationRequest,
+    declineReservationRequest
+  } = useHome();
+
   return (
     (createdProfile?.type === "salon" && salonHeroSheet === "notifications" && (
           <ProfileSheet

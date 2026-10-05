@@ -1,10 +1,13 @@
 import { subscribeToPushNotifications } from "../homeAppHelpers";
 import { BellRing } from "lucide-react";
 
-export function PushSoftAsk({
-  pushSoftAskVisible,
-  setPushSoftAskVisible
-}) {
+import { useHome } from "../HomeContext";
+export function PushSoftAsk() {
+  const {
+    pushSoftAskVisible,
+    setPushSoftAskVisible
+  } = useHome();
+
   return (
     (pushSoftAskVisible && (
           <div className="pushSoftAsk" role="status" aria-live="polite">

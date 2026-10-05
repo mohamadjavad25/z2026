@@ -2,39 +2,42 @@ import { formatTomanNumber, parseTomanAmount } from "../../../shared/lib/money";
 import { BookingSheet } from "../../profile/BookingSheet";
 import { BookingCreateForm } from "../../profile/BookingCreateForm";
 
-export function OwnerBookingSheet({
-  bookingSheetOpen,
-  createdProfile,
-  closeBookingSheet,
-  bookingCustomerOptions,
-  artistServiceList,
-  bookingServiceOptions,
-  bookingServiceName,
-  selectedBookingService,
-  bookingSelectMenu,
-  setBookingServiceName,
-  bookingStaffOptions,
-  selectedBookingStaff,
-  setBookingStaffName,
-  artistBookingDayOptions,
-  salonScheduleWeekTabs,
-  artistBookingDateForSlots,
-  bookingDateForSlots,
-  setBookingDate,
-  artistBookingFreeSlots,
-  bookingFreeSlots,
-  bookingTime,
-  setBookingTime,
-  artistBookingSubmitting,
-  salonBookingSubmitting,
-  salonServiceList,
-  openArtistServiceCreate,
-  openSalonServiceCreate,
-  addSalonAppointment,
-  handleArtistBookingCreate,
-  setBookingSelectMenu,
-  salonHoursList
-}) {
+import { useHome } from "../HomeContext";
+export function OwnerBookingSheet() {
+  const {
+    bookingSheetOpen,
+    createdProfile,
+    closeBookingSheet,
+    bookingCustomerOptions,
+    artistServiceList,
+    bookingServiceOptions,
+    bookingServiceName,
+    selectedBookingService,
+    bookingSelectMenu,
+    setBookingServiceName,
+    bookingStaffOptions,
+    selectedBookingStaff,
+    setBookingStaffName,
+    artistBookingDayOptions,
+    salonScheduleWeekTabs,
+    artistBookingDateForSlots,
+    bookingDateForSlots,
+    setBookingDate,
+    artistBookingFreeSlots,
+    bookingFreeSlots,
+    bookingTime,
+    setBookingTime,
+    artistBookingSubmitting,
+    salonBookingSubmitting,
+    salonServiceList,
+    openArtistServiceCreate,
+    openSalonServiceCreate,
+    addSalonAppointment,
+    handleArtistBookingCreate,
+    setBookingSelectMenu,
+    salonHoursList
+  } = useHome();
+
   return (
     <BookingSheet
           open={bookingSheetOpen && (createdProfile?.type === "salon" || createdProfile?.type === "artist")}

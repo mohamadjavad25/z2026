@@ -10,10 +10,10 @@
 - **`app/components`**: کامپوننت‌های مشترک؛ `components/ui` کتابخانهٔ پایه (`Button`، `Chip`، `Field`).
 
 ## پوستهٔ اصلی (`features/shell`)
-`HomeApp.jsx` فقط سیم‌کشی است: hookهای دامنه را صدا می‌زند و کامپوننت‌ها را کنار هم می‌گذارد. منطق جدا شده:
-- hookها: `useShellNavigation` (باز کردن پروفایل‌ها/پست‌ها)، `useScheduleViews` (تب‌ها/برنامهٔ روز)، `useSalonDerived`، به‌اضافهٔ `useProfileEditor`، `useServiceComposer`، `useBookingCreateSheet`…
-- کامپوننت‌ها در `shell/home/`: `ProfilePanelBody`، شیت‌های اعلان، `OwnerBookingSheet`، `PushSoftAsk`.
-- `useSalonWorkspace` و `useArtistWorkspace` هم به hookهای زیرمجموعه (`useSalonCatalogActions`، `useSalonPortfolioActions`، `useSalonInviteActions`، `useArtistHours`، `useArtistRailDrag`، `useArtistWorkActions`) شکسته شده‌اند.
+`HomeApp.jsx` فقط ۱۵ خط است: `useHomeApp()` همهٔ حالت مشترک را می‌سازد و در `HomeContext` می‌گذارد؛ `HomeView` آن را نمایش می‌دهد. هر صفحه/شیت با `useHome()` فقط همان چیزی را که لازم دارد برمی‌دارد (دیگر پراپ‌دریلینگ با دهه‌ها پراپ نداریم).
+- `useHomeApp` (حالت پایه + نشست) ← `useHomeWorkspaces` (سالن/آرتیست/مشتری) ← `useHomeChrome` (مشتقات و برنامه‌ها)، به‌اضافهٔ `useShellNavigation`، `useScheduleViews`، `useSalonDerived`، `useProfileEditor`، `useServiceComposer`، `useBookingCreateSheet`.
+- کامپوننت‌های `shell/home/*`: `ContentPages`، `ProfilePanelBody`، شیت‌های اعلان، `OwnerBookingSheet`، `PublicArtistHost`، `ScheduleMenuHost`، `PushSoftAsk`.
+- `useSalonWorkspace` و `useArtistWorkspace` به hookهای زیرمجموعه (`useSalonCatalogActions`، `useSalonPortfolioActions`، `useSalonInviteActions`، `useArtistHours`، `useArtistRailDrag`، `useArtistWorkActions`) شکسته شده‌اند.
 
 ## استایل
 - `styles/tokens.css`: توکن‌ها (رنگ، فاصله، شعاع، متن، سایه، حرکت) و **مقیاس z-index**؛ عدد خام ≥۱۰۰ بیرون از این فایل تست را رد می‌کند.
