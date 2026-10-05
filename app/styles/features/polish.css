@@ -910,3 +910,15 @@ html[data-cbt="1"] body { padding-bottom: 92px; }
 
 /* Request card time: plain bold digits instead of the 7-segment display, which was hard to read. */
 .requestCardAside .requestTime { display: block; padding: 8px 12px; border-radius: 12px; background: #f1f1f5; color: #14161d; font-size: 1.15rem; font-weight: 950; letter-spacing: 0.02em; font-variant-numeric: tabular-nums; text-align: center; }
+
+/* Profile edit modal: the name field sat in half a row next to nothing; give it the full row like the specialty picker below it. */
+.profileEditModal .profileEditFieldGrid > label:first-child:has(+ .profileEditSpecialty) { grid-column: 1 / -1; }
+/* Small hints and tiles in dialogs: AA contrast. */
+.profileEditModal .profileEditSpecialty small { color: #565a68 !important; }
+.hoursDayChip small { color: #565a68 !important; font-size: 0.64rem !important; }
+.bookingSelectValue small { color: #565a68 !important; }
+.svcModeSwitch button { color: #565a68; }
+.svcModeSwitch button[aria-selected="true"] { color: inherit; }
+.artistWorkUploadEmpty span { color: #565a68 !important; }
+.artistWorkRow .artistWorkField > span, .artistWorkRow label.artistWorkField > span { color: #565a68; }
+.artistWorkForm .pcHint, .artistWorkForm .pcPin i { color: #565a68 !important; }
