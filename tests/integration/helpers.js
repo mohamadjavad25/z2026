@@ -27,6 +27,7 @@ export function createClient() {
     return { status: res.status, ok: res.ok, payload };
   }
   return {
+    cookie: () => cookie,
     get: (path, opts) => request(path, { ...opts, method: "GET" }),
     post: (path, body, opts) => request(path, { ...opts, method: "POST", body }),
     patch: (path, body, opts) => request(path, { ...opts, method: "PATCH", body }),

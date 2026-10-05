@@ -20,6 +20,9 @@ jobs:
 
       - run: npm run lint
 
+      # Browser for the end-to-end tests in tests/e2e (real Chromium against the built app).
+      - run: npx playwright install --with-deps chromium
+
       - run: npm run build
 
       # Runs against a real, disposable Postgres 16 container via
