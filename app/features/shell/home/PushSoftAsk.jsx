@@ -1,0 +1,39 @@
+import { subscribeToPushNotifications } from "../homeAppHelpers";
+import { BellRing } from "lucide-react";
+
+export function PushSoftAsk({
+  pushSoftAskVisible,
+  setPushSoftAskVisible
+}) {
+  return (
+    (pushSoftAskVisible && (
+          <div className="pushSoftAsk" role="status" aria-live="polite">
+            <BellRing size={17} />
+            <div>
+              <b>اعلان‌ها را فعال کن</b>
+              <small>تا از تایید، رد یا انقضای رزروهایت حتی وقتی اپ باز نیست باخبر شوی.</small>
+            </div>
+            <div className="pushSoftAskActions">
+              <button
+                type="button"
+                onClick={() => {
+                  setPushSoftAskVisible(false);
+                  void subscribeToPushNotifications();
+                }}
+              >
+                فعال کن
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setPushSoftAskVisible(false);
+                  window.localStorage.setItem("zibaban_push_soft_ask_dismissed", "1");
+                }}
+              >
+                بعداً
+              </button>
+            </div>
+          </div>
+        )) || null
+  );
+}
