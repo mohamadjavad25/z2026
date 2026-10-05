@@ -163,3 +163,40 @@ describe("profile completeness (browser)", () => {
   });
 });
 
+
+describe("dialogs (browser)", () => {
+  it("the main owner dialogs have no serious or critical axe violations", async () => {
+    const axePath = new URL("../../node_modules/axe-core/axe.min.js", import.meta.url).pathname;
+    const checks = [
+      ["artist", "رزرو دستی", (page) => page.locator("button.is-createBooking").click()],
+      ["artist", "افزودن خدمت", async (page) => {
+        await page.locator(".profileModeRail button", { hasText: "خدمات" }).click();
+        await page.getByRole("button", { name: /افزودن خدمت/ }).first().click();
+      }],
+      ["artist", "ایجاد پست", async (page) => {
+        await page.locator(".profileModeRail button", { hasText: "نمونه‌کار" }).click();
+        await page.getByRole("button", { name: /ایجاد پست/ }).first().click();
+      }],
+      ["salon", "ویرایش پروفایل", async (page) => {
+        await page.locator("nav.bottomNav > button").nth(0).click();
+        await page.locator("main button").filter({ hasText: "ویرایش برند سالن" }).first().click();
+      }]
+    ];
+    for (const [type, label, open] of checks) {
+      const api = createClient();
+      await registerUser(api, { type, name: `دیالوگ ${type}` });
+      const { page, context } = await newPage({ cookie: api.cookie() });
+      await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
+      await open(page);
+      await page.locator("[role=dialog]").last().waitFor();
+      await page.addScriptTag({ path: axePath });
+      const violations = await page.evaluate(async () => {
+        const dialogs = document.querySelectorAll("[role=dialog]");
+        const result = await axe.run(dialogs[dialogs.length - 1], { resultTypes: ["violations"] });
+        return result.violations.filter((v) => v.impact === "serious" || v.impact === "critical").map((v) => `${v.id}: ${v.nodes[0].html.slice(0, 80)}`);
+      });
+      expect(violations, `${type} ${label}`).toEqual([]);
+      await context.close();
+    }
+  }, 120_000);
+});
