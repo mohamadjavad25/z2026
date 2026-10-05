@@ -71,3 +71,20 @@ export async function listActions(limit = 50) {
     ORDER BY a.id DESC LIMIT $1
   `, [Math.min(Math.max(Number(limit) || 50, 1), 200)]);
 }
+
+/** SMS health for the overview card: is a provider set, and how did the last 24 hours go. */
+export async function getSmsStatus(provider) {
+  const db = await getDb();
+  const [counts, lastFailure] = await Promise.all([
+    all(db, "SELECT status, COUNT(*)::int AS count FROM sms_log WHERE created_at >= NOW() - INTERVAL '24 hours' GROUP BY status"),
+    get(db, "SELECT detail, created_at FROM sms_log WHERE status = 'failed' ORDER BY id DESC LIMIT 1")
+  ]);
+  const byStatus = Object.fromEntries(counts.map((row) => [row.status, row.count]));
+  return { provider: provider || "", sent24h: byStatus.sent || 0, failed24h: byStatus.failed || 0, lastFailure: lastFailure || null };
+}
+
+/** Test-provider only: the most recent code "sent" to a phone, so automated tests can finish the sign-up flow. */
+export async function latestTestSms(phone) {
+  const db = await getDb();
+  return get(db, "SELECT body, created_at FROM sms_log WHERE provider = 'test' AND phone = $1 ORDER BY id DESC LIMIT 1", [String(phone)]);
+}

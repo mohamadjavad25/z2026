@@ -586,3 +586,12 @@ form.signupForm:not(.is-login) .formRow { grid-template-columns: 1fr !important;
 .appShell.is-auth-gate .authTermsBlock { display: grid; gap: 4px; }
 
 .appShell.is-auth-gate .authGateHero ~ .authNotice { background: rgba(120, 24, 40, 0.86); color: #fff; font-weight: 700; padding: 12px 16px; }
+
+/* SMS code step: replaces the sign-up fields while the number is being verified. */
+.appShell.is-auth-gate .signupForm.is-otp > :not(.authOtp):not(input[type="hidden"]) { display: none; }
+.appShell.is-auth-gate .authOtp { display: grid; gap: 10px; }
+.appShell.is-auth-gate .authOtpText { margin: 0; color: #303344; font-size: 0.86rem; font-weight: 750; line-height: 1.9; text-align: center; }
+.appShell.is-auth-gate .authOtp input[name="otpCode"] { text-align: center; letter-spacing: 0.5em; font-size: 1.3rem; font-weight: 900; }
+.appShell.is-auth-gate .authOtpActions { display: flex; justify-content: space-between; gap: 8px; }
+.appShell.is-auth-gate .authOtpActions button { min-height: 40px; padding: 0 8px; border: 0; background: transparent; color: #303344; font: inherit; font-size: 0.8rem; font-weight: 800; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.appShell.is-auth-gate .authOtpActions button:disabled { color: #6a6e7b; text-decoration: none; cursor: default; }

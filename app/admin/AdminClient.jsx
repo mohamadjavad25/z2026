@@ -89,6 +89,7 @@ function Overview() {
         <Stat label="یادآوری ارسال‌شده (۷ روز)" value={num(data.remindersSentLast7Days)} />
         <Stat label="حساب‌های مسدود" value={num(data.users.suspended)} />
       </div>
+      <SmsCard />
       <section className="admCard">
         <h2>ثبت‌نام جدید در ۱۴ روز گذشته</h2>
         <div className="admBars" role="img" aria-label={`ثبت‌نام روزانه؛ بیشترین ${num(max)} نفر در روز`}>
@@ -111,6 +112,31 @@ function Overview() {
         ) : <p className="admMuted">رزروی ثبت نشده.</p>}
       </section>
     </>
+  );
+}
+
+function SmsCard() {
+  const [sms, setSms] = useState(null);
+  useEffect(() => {
+    apiFetch("/api/admin/sms").then(({ ok, payload }) => ok && setSms(payload.data));
+  }, []);
+  if (!sms) return null;
+  const on = Boolean(sms.provider);
+  return (
+    <section className="admCard">
+      <h2>پیامک و تأیید شماره</h2>
+      {on ? (
+        <ul className="admList">
+          <li><span>سرویس پیامک</span><b dir="ltr">{sms.provider}</b></li>
+          <li><span>تأیید شماره هنگام ثبت‌نام</span><b>{sms.config.required ? "اجباری" : "اختیاری"}</b></li>
+          <li><span>ارسال موفق در ۲۴ ساعت</span><b>{num(sms.sent24h)}</b></li>
+          <li><span>ارسال ناموفق در ۲۴ ساعت</span><b>{num(sms.failed24h)}</b></li>
+          {sms.lastFailure ? <li><span>آخرین خطا</span><small dir="ltr">{sms.lastFailure.detail}</small></li> : null}
+        </ul>
+      ) : (
+        <p className="admMuted">پیامک هنوز وصل نیست؛ ثبت‌نام بدون کد انجام می‌شود و بازیابی رمز دستی است. برای فعال‌سازی، متغیرهای <span dir="ltr">ZIBABAN_SMS_PROVIDER</span> و کلید سرویس را در محیط اپ بگذار (راهنما: docs/OPERATIONS.md).</p>
+      )}
+    </section>
   );
 }
 

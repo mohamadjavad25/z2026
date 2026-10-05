@@ -220,7 +220,7 @@ export function useAuthSession({
       return;
     }
     try {
-      const { ok, payload } = await apiRegister({ type, data, phone: data.phone, password: data.password });
+      const { ok, payload } = await apiRegister({ type, data, phone: data.phone, password: data.password, otpProof: data.otpProof || undefined });
       if (!ok) {
         setAuthNotice(payload.error || "ثبت‌نام انجام نشد؛ دوباره امتحان کن.");
         return;
