@@ -1,5 +1,6 @@
 import { AuthGateForms } from "../../auth";
 import { ProfileHero } from "../../profile/ProfileHero";
+import { ProfileCompleteness } from "../../profile/ProfileCompleteness";
 import { SalonStaffWorkspace, SalonServicesWorkspace } from "../../salons";
 import { ProfileGallery } from "../../profile/ProfileGallery";
 import { SalonScheduleDashboard, ArtistScheduleBoard } from "../../schedule";
@@ -95,6 +96,7 @@ export function ProfilePanelBody({
   clientBookingList,
   savedPosts,
   openProfileEdit,
+  openSalonWorkspace,
   setClientBookingSettings,
   rebookFromBooking,
   artistBreakTime,
@@ -209,6 +211,15 @@ export function ProfilePanelBody({
             />
 
             {createdProfile?.type !== "salon" && profileModeRail}
+
+            {(createdProfile?.type === "salon" || createdProfile?.type === "artist") && createdProfile.type === profileType && profileView === "overview" && !salonWorkspace ? (
+              <ProfileCompleteness
+                profile={createdProfile}
+                serviceCount={createdProfile.type === "salon" ? salonServiceList.length : artistServiceList.length}
+                onEditProfile={openProfileEdit}
+                onOpenServices={() => (createdProfile.type === "salon" ? openSalonWorkspace("services") : setProfileView("services"))}
+              />
+            ) : null}
 
           {createdProfile.type === profileType ? (
             <div className={`createdProfile ${activeRoleMeta.heroClass || ""}`}>

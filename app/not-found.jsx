@@ -8,6 +8,8 @@ export default function NotFound() {
   return (
     <main className="errorPage">
       <div className="errorPage__inner">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img className="errorPage__logo" src="/logo-mark.png" alt="" width="64" height="64" />
         <p className="errorPage__code">۴۰۴</p>
         <h1 className="errorPage__title">این صفحه پیدا نشد</h1>
         <p className="errorPage__desc">لینکی که دنبالش اومدی یا اشتباهه یا دیگه وجود نداره.</p>

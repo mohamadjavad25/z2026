@@ -145,3 +145,21 @@ describe("accessibility (browser)", () => {
     await context.close();
   });
 });
+
+describe("profile completeness (browser)", () => {
+  it("shows a new salon what is missing, and stays dismissed once closed", async () => {
+    const api = createClient();
+    await registerUser(api, { type: "salon", name: "سالن ناقص" });
+    const { page, context } = await newPage({ cookie: api.cookie() });
+    await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
+    const card = page.locator(".profileCompleteness");
+    await card.waitFor();
+    expect(await card.innerText()).toContain("اولین خدمت در منو");
+    await page.getByRole("button", { name: "بستن یادآوری تکمیل پروفایل" }).click();
+    await card.waitFor({ state: "detached" });
+    await page.reload({ waitUntil: "networkidle" });
+    expect(await page.locator(".profileCompleteness").count()).toBe(0);
+    await context.close();
+  });
+});
+
