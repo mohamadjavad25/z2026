@@ -64,6 +64,11 @@ async function _POST(request) {
     );
   }
 
+  // Said only after the password is right, so it can't be used to probe which numbers are suspended.
+  if (user.suspended_at) {
+    return NextResponse.json({ error: "این حساب مسدود شده است. با پشتیبانی زیبابان تماس بگیر.", code: "suspended" }, { status: 403 });
+  }
+
   const session = await createSessionForUser(user.id);
   const response = NextResponse.json({ data: { user: publicUser(user) } });
   setSessionCookie(response, session.token, session.expiresAt);

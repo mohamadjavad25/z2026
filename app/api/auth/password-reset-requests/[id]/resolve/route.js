@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
-import { hashPassword, normalizeDigits, verifyAdminToken } from "../../../../../lib/auth.js";
+import { hashPassword, normalizeDigits } from "../../../../../lib/auth.js";
+import { requireAdmin } from "../../../../../lib/admin.js";
+import * as adminRepo from "../../../../../lib/db/repos/admin.js";
 import { ensureDb } from "../../../../../lib/db/connection.js";
 import * as passwordResetRequests from "../../../../../lib/db/repos/passwordResetRequests.js";
 import * as users from "../../../../../lib/db/repos/users.js";
@@ -13,7 +15,8 @@ export const runtime = "nodejs";
 // route's comment on why (no SMS/OTP provider yet).
 async function _POST(request, { params }) {
   await ensureDb();
-  if (!verifyAdminToken(request)) {
+  const gate = await requireAdmin(request);
+  if (!gate.ok) {
     return NextResponse.json({ error: "دسترسی مجاز نیست." }, { status: 401 });
   }
 
@@ -36,6 +39,7 @@ async function _POST(request, { params }) {
 
   await users.updateUser(user.id, { password_hash: hashPassword(newPassword) });
   await passwordResetRequests.markResolved(id);
+  await adminRepo.logAction({ adminUserId: gate.admin.id, adminLabel: gate.admin.label, action: "resolve_password_reset", targetUserId: user.id });
 
   return NextResponse.json({ data: { ok: true } });
 }

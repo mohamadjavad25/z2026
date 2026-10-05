@@ -42,7 +42,7 @@ export async function getSessionUser(token) {
            u.last_seen_at, u.created_at, u.updated_at, u.avatar_url, u.poster_url
     FROM sessions s
     JOIN users u ON u.id = s.user_id
-    WHERE s.token = $1 AND s.expires_at > NOW()
+    WHERE s.token = $1 AND s.expires_at > NOW() AND u.suspended_at IS NULL
   `, [token]);
   return row || null;
 }

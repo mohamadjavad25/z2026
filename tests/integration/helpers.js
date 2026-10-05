@@ -57,8 +57,8 @@ export function uniquePhone() {
   }
 }
 
-export async function registerUser(client, { type = "client", name = "Test User", password = "testpass123" } = {}) {
-  const phone = uniquePhone();
+export async function registerUser(client, { type = "client", name = "Test User", password = "testpass123", phone: fixedPhone } = {}) {
+  const phone = fixedPhone || uniquePhone();
   const res = await client.post("/api/auth/register", { phone, password, type, name });
   if (!res.ok) throw new Error(`registerUser failed: ${JSON.stringify(res.payload)}`);
   return { phone, password, user: res.payload.data.user };
@@ -73,4 +73,13 @@ export function futureBookingDay(openDaysAhead = 2) {
     if (getPersianWeekday(day) !== "جمعه") found += 1;
   }
   return formatPersianDateKey(day);
+}
+
+/** Logged-in client for the configured admin phone (ZIBABAN_ADMIN_PHONES in the test server). The account may already exist from an earlier file/run, so log in first and register only if needed. */
+export async function adminClient() {
+  const { TEST_ADMIN_PHONE } = await import("../globalSetup.js");
+  const client = createClient();
+  const login = await client.post("/api/auth/login", { phone: TEST_ADMIN_PHONE, password: "testpass123" });
+  if (!login.ok) await registerUser(client, { type: "client", name: "Admin", phone: TEST_ADMIN_PHONE });
+  return client;
 }
