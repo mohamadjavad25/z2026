@@ -6,18 +6,21 @@ import { PageIcon } from "../../../components/PageIcon";
 import { ServiceIcon } from "../../../components/ServiceIcon";
 import { SegmentClock } from "../../../components/SegmentClock";
 
-export function ArtistNotificationsSheet({
-  createdProfile,
-  profileView,
-  pendingArtistBookingRequests,
-  pendingArtistSalonInvites,
-  artistBookingList,
-  recentlyExpiredArtistBookings,
-  setProfileView,
-  artistRequestBusyId,
-  confirmArtistBookingRequest,
-  declineArtistBookingRequest
-}) {
+import { useHome } from "../HomeContext";
+export function ArtistNotificationsSheet() {
+  const {
+    createdProfile,
+    profileView,
+    pendingArtistBookingRequests,
+    pendingArtistSalonInvites,
+    artistBookingList,
+    recentlyExpiredArtistBookings,
+    setProfileView,
+    artistRequestBusyId,
+    confirmArtistBookingRequest,
+    declineArtistBookingRequest
+  } = useHome();
+
   return (
     (createdProfile?.type === "artist" && profileView === "notifications" && (
           <ProfileSheet

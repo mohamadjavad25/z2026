@@ -3,12 +3,15 @@ import { Check, X, TimerOff, BellRing } from "lucide-react";
 import { ProfileSheet } from "../../profile/ProfileSheet";
 import { ServiceIcon } from "../../../components/ServiceIcon";
 
-export function ClientNotificationsSheet({
-  createdProfile,
-  profileView,
-  setProfileView,
-  clientBookingList
-}) {
+import { useHome } from "../HomeContext";
+export function ClientNotificationsSheet() {
+  const {
+    createdProfile,
+    profileView,
+    setProfileView,
+    clientBookingList
+  } = useHome();
+
   return (
     (createdProfile?.type === "client" && profileView === "notifications" && (
           <ProfileSheet
