@@ -136,6 +136,7 @@ describe("accessibility (browser)", () => {
     await trigger.focus();
     await trigger.press("Enter");
     await page.locator(".specialtySheet").waitFor();
+    await page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished.catch(() => {}))));
     expect(await page.evaluate(() => !!document.activeElement?.closest(".specialtySheet"))).toBe(true);
     for (let i = 0; i < 6; i++) await page.keyboard.press("Tab");
     expect(await page.evaluate(() => !!document.activeElement?.closest(".specialtySheet"))).toBe(true);
@@ -189,6 +190,8 @@ describe("dialogs (browser)", () => {
       await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
       await open(page);
       await page.locator("[role=dialog]").last().waitFor();
+      // axe reads colours as rendered: let the opening animation finish or it measures a half-faded dialog.
+      await page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished.catch(() => {}))));
       await page.addScriptTag({ path: axePath });
       const violations = await page.evaluate(async () => {
         const dialogs = document.querySelectorAll("[role=dialog]");
