@@ -15,6 +15,15 @@ export async function getUserLiteById(id, runner = null) {
   `, [id])) || null;
 }
 
+/** Public-profile fields: everything a profile page shows, avatar as a flag only. */
+export async function getUserProfileById(id, runner = null) {
+  const db = runner || (await getDb());
+  return (await get(db, `
+    SELECT id, name, phone, type, area, service, bio, experience_years, avatar_position, (avatar <> '') AS avatar
+    FROM users WHERE id = $1
+  `, [id])) || null;
+}
+
 export async function getUserByPhone(phone, runner = null) {
   const normalized = String(phone || "").trim();
   if (!normalized) return null;

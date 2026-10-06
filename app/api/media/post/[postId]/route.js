@@ -27,9 +27,16 @@ async function _GET(request, { params }) {
   const db = await getDb();
   const width = Number(new URL(request.url).searchParams.get("w"));
   const wantsThumb = width > 0 && width <= THUMB_MAX_WIDTH;
-  const row = await get(db, `
-    SELECT image, thumb, is_public, owner_user_id FROM posts WHERE id = $1`, [postId]);
+  // Only pull the bytes that will actually be sent: a grid card never needs the full-size
+  // column, which used to be read (and shipped out of Supabase) on every thumbnail request.
+  let row = await get(db, wantsThumb
+    ? "SELECT thumb AS data, is_public, owner_user_id FROM posts WHERE id = $1"
+    : "SELECT image AS data, is_public, owner_user_id FROM posts WHERE id = $1", [postId]);
   if (!row) return new Response(null, { status: 404 });
+  if (wantsThumb && !row.data) {
+    // Posts saved before thumbnails existed fall back to the full picture.
+    row = { ...row, ...(await get(db, "SELECT image AS data FROM posts WHERE id = $1", [postId])) };
+  }
 
   // A post its owner made private is served to the owner only, and never cached shared.
   const isPrivate = row.is_public === false;
@@ -38,9 +45,7 @@ async function _GET(request, { params }) {
     if (!viewer || Number(viewer.id) !== Number(row.owner_user_id)) return new Response(null, { status: 404 });
   }
 
-  // Small copy if there is one (posts saved before thumbnails existed fall back to the full picture).
-  const parsed = (wantsThumb && parseMediaDataUrl(row.thumb, ALLOWED_POSTER_TYPES))
-    || parseMediaDataUrl(row.image, ALLOWED_POSTER_TYPES);
+  const parsed = parseMediaDataUrl(row.data, ALLOWED_POSTER_TYPES);
   if (!parsed) return new Response(null, { status: 404 });
   const buffer = Buffer.from(parsed.base64, "base64");
 
@@ -54,7 +59,7 @@ async function _GET(request, { params }) {
       "Content-Length": String(buffer.length),
       "Cache-Control": isPrivate
         ? "private, no-store"
-        : versioned ? `public, max-age=${YEAR}, immutable` : "public, max-age=3600"
+        : versioned ? `public, max-age=${YEAR}, s-maxage=${YEAR}, immutable` : "public, max-age=3600"
     }
   });
 }
