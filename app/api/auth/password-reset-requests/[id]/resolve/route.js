@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { hashPassword, normalizeDigits } from "../../../../../lib/auth.js";
-import { requireAdmin } from "../../../../../lib/admin.js";
+import { requireAdmin, requireStepUp } from "../../../../../lib/admin.js";
 import * as adminRepo from "../../../../../lib/db/repos/admin.js";
 import { ensureDb } from "../../../../../lib/db/connection.js";
 import * as passwordResetRequests from "../../../../../lib/db/repos/passwordResetRequests.js";
@@ -18,6 +18,11 @@ async function _POST(request, { params }) {
   const gate = await requireAdmin(request);
   if (!gate.ok) {
     return NextResponse.json({ error: "دسترسی مجاز نیست." }, { status: 401 });
+  }
+  // Setting someone's password is a dangerous action: a logged-in admin must have re-typed their password recently (the legacy token path is exempt).
+  if (gate.admin.id !== null) {
+    const stepUp = requireStepUp(gate);
+    if (stepUp) return stepUp;
   }
 
   const { id } = await params;

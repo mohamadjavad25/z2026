@@ -5,8 +5,14 @@ import { apiFetch } from "../shared/api/client";
 import { toPersianDigits } from "../shared/lib/digits";
 import { Button, Chip, Field } from "../components/ui";
 import { AdminLogin } from "./AdminLogin";
+import { StepUpDialog } from "./StepUpDialog";
+import { UserDetail } from "./UserDetail";
+import { ContentTab } from "./ContentTab";
+import { BookingsTab } from "./BookingsTab";
+import { SecurityTab } from "./SecurityTab";
+import { adminFetch } from "./adminFetch";
+import { PAGE, TYPE_LABEL, fmtDate, num } from "./format";
 
-const TYPE_LABEL = { client: "مشتری", artist: "آرتیست", salon: "سالن" };
 const ACTION_LABEL = {
   suspend: "مسدود شد",
   unsuspend: "رفع مسدودی",
@@ -15,18 +21,26 @@ const ACTION_LABEL = {
   login_failed: "ورود ناموفق",
   login_blocked: "ورود مسدود (تلاش زیاد)",
   enroll: "راه‌اندازی Authenticator",
-  enroll_failed: "راه‌اندازی ناموفق"
+  enroll_failed: "راه‌اندازی ناموفق",
+  stepup: "تأیید دوباره",
+  stepup_failed: "تأیید دوباره ناموفق",
+  force_logout: "خروج اجباری کاربر",
+  delete_user: "حذف حساب",
+  post_hide: "پنهان‌کردن پست",
+  post_show: "نمایش دوبارهٔ پست",
+  post_delete: "حذف پست",
+  revoke_sessions: "پایان نشست مدیر"
 };
 const TABS = [
   { id: "overview", label: "نمای کلی" },
   { id: "users", label: "کاربران" },
+  { id: "content", label: "محتوا" },
+  { id: "bookings", label: "رزروها" },
   { id: "resets", label: "بازیابی رمز" },
+  { id: "security", label: "امنیت" },
   { id: "actions", label: "گزارش عملیات" }
 ];
-const PAGE = 25;
 
-const fmtDate = (value) => (value ? toPersianDigits(new Intl.DateTimeFormat("fa-IR-u-nu-latn", { dateStyle: "short", timeStyle: "short", timeZone: "Asia/Tehran" }).format(new Date(value))) : "—");
-const num = (value) => toPersianDigits(Number(value || 0).toLocaleString("en-US").replace(/,/g, "٬"));
 
 export function AdminClient() {
   const [me, setMe] = useState(null);
@@ -70,8 +84,12 @@ export function AdminClient() {
       </nav>
       {tab === "overview" ? <Overview /> : null}
       {tab === "users" ? <Users /> : null}
+      {tab === "content" ? <ContentTab /> : null}
+      {tab === "bookings" ? <BookingsTab /> : null}
       {tab === "resets" ? <Resets /> : null}
+      {tab === "security" ? <SecurityTab /> : null}
       {tab === "actions" ? <Actions /> : null}
+      <StepUpDialog />
     </main>
   );
 }
@@ -164,6 +182,7 @@ function Users() {
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState(null);
   const [message, setMessage] = useState("");
+  const [selected, setSelected] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -191,6 +210,8 @@ function Users() {
   const pages = Math.max(1, Math.ceil(data.total / PAGE));
   const page = Math.floor(offset / PAGE) + 1;
   return (
+    <>
+    {selected ? <UserDetail userId={selected} onClose={() => setSelected(null)} onChanged={load} /> : null}
     <section className="admCard">
       <div className="admFilters">
         <Field label="جستجوی نام یا شماره" hideLabel>
@@ -211,7 +232,7 @@ function Users() {
           <tbody>
             {data.users.map((user) => (
               <tr key={user.id} className={user.suspended_at ? "is-suspended" : ""}>
-                <td>{user.name || "—"}{user.suspended_at ? <em> • مسدود</em> : null}</td>
+                <td><button type="button" className="admLink" onClick={() => setSelected(user.id)}>{user.name || "—"}</button>{user.suspended_at ? <em> • مسدود</em> : null}</td>
                 <td>{TYPE_LABEL[user.type] || user.type}</td>
                 <td dir="ltr">{user.phone}</td>
                 <td>{fmtDate(user.created_at)}</td>
@@ -233,6 +254,7 @@ function Users() {
         <Button size="sm" variant="secondary" disabled={page >= pages} onClick={() => setOffset(offset + PAGE)}>بعدی</Button>
       </footer>
     </section>
+    </>
   );
 }
 
@@ -251,7 +273,7 @@ function Resets() {
     const newPassword = String(passwords[request.id] || "");
     if (newPassword.length < 8) { setMessage("رمز جدید باید حداقل ۸ کاراکتر باشد."); return; }
     setBusyId(request.id);
-    const { ok, payload } = await apiFetch(`/api/auth/password-reset-requests/${request.id}/resolve`, { method: "POST", body: JSON.stringify({ newPassword }) });
+    const { ok, payload } = await adminFetch(`/api/auth/password-reset-requests/${request.id}/resolve`, { method: "POST", body: JSON.stringify({ newPassword }) });
     setBusyId(null);
     setMessage(ok ? "رمز بازنشانی شد؛ رمز جدید را به کاربر بگو." : payload.error || "انجام نشد.");
     if (ok) load();

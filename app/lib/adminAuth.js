@@ -1,6 +1,6 @@
 import { createCipheriv, createDecipheriv, createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import QRCode from "qrcode";
-import { getDb, get, run } from "./db/connection.js";
+import { all, getDb, get, run } from "./db/connection.js";
 import * as users from "./db/repos/users.js";
 import * as adminRepo from "./db/repos/admin.js";
 import { DUMMY_PASSWORD_HASH, normalizeDigits, normalizePhone, verifyPassword } from "./auth.js";
@@ -46,6 +46,7 @@ function ensureAdminTables() {
       expires_at TIMESTAMPTZ NOT NULL
     )`);
     await run(db, "CREATE INDEX IF NOT EXISTS idx_admin_sessions_user ON admin_sessions (user_id)");
+    await run(db, "ALTER TABLE admin_sessions ADD COLUMN IF NOT EXISTS stepup_until TIMESTAMPTZ");
   })().catch((error) => {
     tablesReady = undefined; // retry on the next request instead of caching a failure
     throw error;
@@ -180,7 +181,7 @@ export async function getAdminFromRequest(request) {
   const db = await getDb();
   const hash = sha256(token);
   const row = await get(db, `
-    SELECT s.user_id, s.ua_hash, s.last_seen_at, s.expires_at, u.phone, u.name, u.suspended_at
+    SELECT s.user_id, s.ua_hash, s.last_seen_at, s.expires_at, s.stepup_until, u.phone, u.name, u.suspended_at
     FROM admin_sessions s JOIN users u ON u.id = s.user_id
     WHERE s.token_hash = $1 AND s.expires_at > NOW()
   `, [hash]);
@@ -191,7 +192,43 @@ export async function getAdminFromRequest(request) {
     return null;
   }
   if (now - new Date(row.last_seen_at).getTime() > TOUCH_EVERY_MS) await run(db, "UPDATE admin_sessions SET last_seen_at = NOW() WHERE token_hash = $1", [hash]);
-  return { id: row.user_id, phone: row.phone, name: row.name || "" };
+  return { id: row.user_id, phone: row.phone, name: row.name || "", stepUp: Boolean(row.stepup_until && new Date(row.stepup_until).getTime() > now) };
+}
+
+const STEPUP_MS = 5 * 60 * 1000;
+
+/** Re-checks the admin's password; on success the session may run dangerous actions for 5 minutes. */
+export async function adminStepUp(request, admin, password) {
+  await ensureAdminTables();
+  if (!(await allowed(request, admin.phone, "stepup", 6, 15))) return { ok: false, status: 429 };
+  const check = await checkCredentials(admin.phone, password);
+  if (!check.ok || check.user.id !== admin.id) {
+    await audit("stepup_failed", { user: { id: admin.id, phone: admin.phone }, request });
+    return { ok: false, status: 401 };
+  }
+  const token = request.cookies.get(ADMIN_COOKIE)?.value || "";
+  const db = await getDb();
+  await run(db, "UPDATE admin_sessions SET stepup_until = $2 WHERE token_hash = $1", [sha256(token), new Date(Date.now() + STEPUP_MS).toISOString()]);
+  await audit("stepup", { user: { id: admin.id, phone: admin.phone }, request });
+  return { ok: true };
+}
+
+/** Admin sessions that are still alive, for the security tab. Never returns tokens. */
+export async function listAdminSessions() {
+  await ensureAdminTables();
+  const db = await getDb();
+  return all(db, `
+    SELECT s.user_id, u.phone, u.name, s.created_at, s.last_seen_at, s.expires_at
+    FROM admin_sessions s JOIN users u ON u.id = s.user_id
+    WHERE s.expires_at > NOW() ORDER BY s.last_seen_at DESC
+  `);
+}
+
+/** Ends every live session of one admin (their next request lands on the login form). */
+export async function revokeAdminSessions(userId) {
+  await ensureAdminTables();
+  const db = await getDb();
+  await run(db, "DELETE FROM admin_sessions WHERE user_id = $1", [Number(userId)]);
 }
 
 function failure(status = 401) {

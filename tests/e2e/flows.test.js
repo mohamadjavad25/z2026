@@ -236,6 +236,16 @@ describe("admin page (browser)", () => {
     await page.getByRole("tab", { name: "نمای کلی" }).click();
     expect(await page.locator(".admGrid").innerText()).toContain("کل کاربران");
 
+    // The other panels open without errors.
+    for (const tabName of ["محتوا", "رزروها", "امنیت"]) {
+      await page.getByRole("tab", { name: tabName }).click();
+      await page.locator(".admCard").first().waitFor();
+    }
+    expect(await page.locator("main").innerText()).toContain("نشست‌های فعال مدیریت");
+    await page.getByRole("tab", { name: "کاربران" }).click();
+    await page.locator(".admTable tbody .admLink").first().click();
+    await page.getByRole("button", { name: "بستن" }).first().waitFor();
+
     // Logout, then a normal login with the next code.
     await page.getByRole("button", { name: "خروج" }).click();
     await page.getByRole("button", { name: "ورود", exact: true }).waitFor();
