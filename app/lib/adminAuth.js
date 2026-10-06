@@ -60,6 +60,9 @@ function adminSecret() {
   return value.length >= 32 ? value : "";
 }
 
+/** Whether first-time setup can work at all: ZIBABAN_ADMIN_SETUP_KEY must be set on the server and 16+ characters (the value itself is never exposed). */
+export const setupKeyConfigured = () => (process.env.ZIBABAN_ADMIN_SETUP_KEY || "").length >= 16;
+
 /** False until ZIBABAN_ADMIN_SECRET (32+ random characters) is set: the admin login then refuses everything (fails closed). */
 export const adminAuthConfigured = () => Boolean(adminSecret());
 
