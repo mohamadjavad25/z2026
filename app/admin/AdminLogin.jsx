@@ -70,7 +70,7 @@ export function AdminLogin({ configured, onDone }) {
             <p className="admMuted">فقط بار اول لازم است. شماره، رمز و «کلید راه‌اندازی» سرور را وارد کن؛ بعد یک QR می‌بینی که با Google Authenticator یا برنامهٔ مشابه اسکن می‌کنی.</p>
             <Field label="شمارهٔ موبایل">{(p) => <input {...p} {...ltr} inputMode="tel" autoComplete="username" value={form.phone} onChange={set("phone")} required />}</Field>
             <Field label="رمز عبور">{(p) => <input {...p} {...ltr} type="password" autoComplete="current-password" value={form.password} onChange={set("password")} required />}</Field>
-            <Field label="کلید راه‌اندازی (ZIBABAN_ADMIN_SETUP_KEY)">{(p) => <input {...p} {...ltr} type="password" value={form.setupKey} onChange={set("setupKey")} required />}</Field>
+            <Field label="کلید راه‌اندازی">{(p) => <input {...p} {...ltr} type="password" value={form.setupKey} onChange={set("setupKey")} required />}</Field>
             {error ? <p className="admError" role="alert">{error}</p> : null}
             <Button type="submit" disabled={busy}>{busy ? "در حال بررسی…" : "ادامه"}</Button>
             <button type="button" className="admLink" onClick={() => { setError(""); setMode("login"); }}>بازگشت به ورود</button>
