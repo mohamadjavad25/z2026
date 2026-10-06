@@ -36,8 +36,8 @@ export async function getSessionUser(token) {
   const db = await getDb();
   const row = await get(db, `
     SELECT u.id, u.phone, u.password_hash, u.type, u.name, u.area, u.service, u.email,
-           CASE WHEN u.avatar <> '' THEN '1' ELSE '' END AS avatar,
-           CASE WHEN u.poster <> '' THEN '1' ELSE '' END AS poster,
+           CASE WHEN u.avatar <> '' OR u.avatar_url IS NOT NULL THEN '1' ELSE '' END AS avatar,
+           CASE WHEN u.poster <> '' OR u.poster_url IS NOT NULL THEN '1' ELSE '' END AS poster,
            u.avatar_position, u.poster_position, u.bio, u.experience_years, u.manager_name,
            u.last_seen_at, u.created_at, u.updated_at, u.avatar_url, u.poster_url
     FROM sessions s

@@ -1,5 +1,6 @@
 import { getDb, all, get, run, withTransaction } from "../connection.js";
-import { uploadImageDataUrl } from "../../storage.js";
+import { uploadImageDataUrl, deleteStoredImage } from "../../storage.js";
+import { ensureMediaColumns } from "../mediaSchema.js";
 
 // Both image/ownerAvatar are stored as raw data:<type>;base64,<data> strings
 // in the DB but shipped here as media-endpoint URLs, never inline -- this
@@ -35,10 +36,10 @@ function mapPost(row) {
 
 const postSelect = `
   SELECT p.id, p.owner_user_id, p.title, p.tag, p.caption, p.is_public, p.featured, p.saves_count, p.views_count, p.created_at, p.updated_at, p.image_url,
-    (p.image <> '') AS image,
+    (p.image <> '' OR p.image_url IS NOT NULL) AS image,
     u.name AS owner_name,
     u.type AS owner_type,
-    (u.avatar <> '') AS owner_avatar,
+    (u.avatar <> '' OR u.avatar_url IS NOT NULL) AS owner_avatar,
     u.avatar_position AS owner_avatar_position,
     u.area AS owner_area,
     u.bio AS owner_bio,
@@ -46,6 +47,31 @@ const postSelect = `
   FROM posts p
   JOIN users u ON u.id = p.owner_user_id
 `;
+
+/**
+ * Moves a post's pictures to Storage and, only once they are there, empties the base64 copies so
+ * the database stops holding (and serving) them. Runs after the response (options.defer): until
+ * then the post is served from the row. Any failure leaves the row exactly as it was.
+ * `stamp` ties the write to the version that was uploaded, so a newer edit is never overwritten.
+ */
+async function moveImagesToStorage(db, postId, image, thumb, stamp) {
+  const [imageUrl, thumbUrl] = await Promise.all([
+    uploadImageDataUrl(image, { kind: "post", ownerId: postId }),
+    thumb ? uploadImageDataUrl(thumb, { kind: "post", ownerId: postId }) : null
+  ]);
+  if (!imageUrl) return;
+  // A grid picture that failed to upload keeps its base64 copy, so nothing is ever lost.
+  const done = await run(db, `
+    UPDATE posts SET
+      image_url = $1, image = '',
+      thumb_url = $2, thumb = CASE WHEN $2::text IS NOT NULL OR thumb = '' THEN '' ELSE thumb END
+    WHERE id = $3 AND updated_at::text = $4
+  `, [imageUrl, thumbUrl, postId, stamp]);
+  if (!done.rowCount) {
+    // The post changed or went away meanwhile; these copies are orphans.
+    await Promise.all([deleteStoredImage(imageUrl), deleteStoredImage(thumbUrl)]);
+  }
+}
 
 export const POST_LIMITS = Object.freeze({ title: 80, tag: 40, caption: 600, pinned: 3 });
 
@@ -135,7 +161,9 @@ export async function recordPostView(id, viewerKey, viewerUserId = null) {
  */
 export async function createPost(ownerUserId, data, runner = null, options = {}) {
   const db = runner || (await getDb());
+  await ensureMediaColumns();
   const image = asDataImage(data.image);
+  const thumb = image ? asThumb(data.thumb) : "";
   const pinned = Boolean(data.featured) && (await countPinned(db, ownerUserId)) < POST_LIMITS.pinned;
   const info = await run(db, `
     INSERT INTO posts (owner_user_id, title, tag, image, thumb, caption, is_public, featured)
@@ -146,21 +174,17 @@ export async function createPost(ownerUserId, data, runner = null, options = {})
     clip(data.title, POST_LIMITS.title),
     clip(data.tag, POST_LIMITS.tag),
     image,
-    image ? asThumb(data.thumb) : "",
+    thumb,
     clip(data.caption, POST_LIMITS.caption),
     data.isPublic !== false,
     pinned
   ]);
   const postId = Number(info.rows[0].id);
   await syncOwnerPostCount(db, ownerUserId);
-  // Best-effort dual-write to external storage (see app/lib/storage.js).
+  // Best-effort move to external storage (see app/lib/storage.js).
   if (image) {
-    const storeImage = async () => {
-      const imageUrl = await uploadImageDataUrl(image, { kind: "post", ownerId: postId });
-      if (imageUrl) {
-        await run(db, "UPDATE posts SET image_url = $1 WHERE id = $2", [imageUrl, postId]);
-      }
-    };
+    const stored = await get(db, "SELECT updated_at::text AS stamp FROM posts WHERE id = $1", [postId]);
+    const storeImage = () => moveImagesToStorage(db, postId, image, thumb, stored.stamp);
     if (options.defer) options.defer(storeImage);
     else await storeImage();
   }
@@ -169,13 +193,19 @@ export async function createPost(ownerUserId, data, runner = null, options = {})
 
 export async function updatePost(id, ownerUserId, data, runner = null, options = {}) {
   const db = runner || (await getDb());
-  const current = await get(db, "SELECT * FROM posts WHERE id = $1 AND owner_user_id = $2", [id, ownerUserId]);
+  await ensureMediaColumns();
+  const current = await get(db, `
+    SELECT id, title, tag, caption, is_public, featured, image_url, thumb_url
+    FROM posts WHERE id = $1 AND owner_user_id = $2
+  `, [id, ownerUserId]);
   if (!current) return null;
 
-  // A new picture only counts when it is a real data URL that differs from the stored one.
+  // A new picture only counts when the client sent a real data URL (an unchanged picture comes
+  // back as its media URL, which asDataImage drops).
   const nextImage = asDataImage(data.image);
-  const imageChanged = Boolean(nextImage) && nextImage !== current.image;
+  const imageChanged = Boolean(nextImage);
   const imageUrl = imageChanged ? null : current.image_url; // stale until the upload below lands
+  const thumbUrl = imageChanged ? null : current.thumb_url;
 
   const title = data.title === undefined ? current.title : clip(data.title, POST_LIMITS.title);
   const wantPinned = data.featured === undefined ? Boolean(current.featured) : Boolean(data.featured);
@@ -183,14 +213,14 @@ export async function updatePost(id, ownerUserId, data, runner = null, options =
 
   await run(db, `
     UPDATE posts SET
-      title = $1, tag = $2, image = $3, image_url = $4, caption = $5, is_public = $6, featured = $7,
+      title = $1, tag = $2, image = CASE WHEN $10 THEN $3 ELSE image END, image_url = $4, thumb_url = $12, caption = $5, is_public = $6, featured = $7,
       thumb = CASE WHEN $10 THEN $11 ELSE thumb END,
       updated_at = CURRENT_TIMESTAMP
     WHERE id = $8 AND owner_user_id = $9
   `, [
     title || current.title,
     data.tag === undefined ? current.tag : clip(data.tag, POST_LIMITS.tag),
-    imageChanged ? nextImage : current.image,
+    nextImage,
     imageUrl,
     data.caption === undefined ? current.caption : clip(data.caption, POST_LIMITS.caption),
     data.isPublic === undefined ? current.is_public : Boolean(data.isPublic),
@@ -198,16 +228,15 @@ export async function updatePost(id, ownerUserId, data, runner = null, options =
     id,
     ownerUserId,
     imageChanged,
-    imageChanged ? asThumb(data.thumb) : ""
+    imageChanged ? asThumb(data.thumb) : "",
+    thumbUrl
   ]);
   await syncOwnerPostCount(db, ownerUserId);
   if (imageChanged) {
-    const storeImage = async () => {
-      const uploaded = await uploadImageDataUrl(nextImage, { kind: "post", ownerId: id });
-      if (uploaded) {
-        await run(db, "UPDATE posts SET image_url = $1 WHERE id = $2 AND owner_user_id = $3", [uploaded, id, ownerUserId]);
-      }
-    };
+    // The replaced picture's Storage copies are no longer needed.
+    await Promise.all([deleteStoredImage(current.image_url), deleteStoredImage(current.thumb_url)]);
+    const stored = await get(db, "SELECT updated_at::text AS stamp FROM posts WHERE id = $1", [id]);
+    const storeImage = () => moveImagesToStorage(db, id, nextImage, asThumb(data.thumb), stored.stamp);
     if (options.defer) options.defer(storeImage);
     else await storeImage();
   }
@@ -216,8 +245,12 @@ export async function updatePost(id, ownerUserId, data, runner = null, options =
 
 export async function deletePost(id, ownerUserId, runner = null) {
   const db = runner || (await getDb());
-  const result = await run(db, "DELETE FROM posts WHERE id = $1 AND owner_user_id = $2", [id, ownerUserId]);
-  if (result.rowCount > 0) await syncOwnerPostCount(db, ownerUserId);
+  await ensureMediaColumns();
+  const result = await run(db, "DELETE FROM posts WHERE id = $1 AND owner_user_id = $2 RETURNING image_url, thumb_url", [id, ownerUserId]);
+  if (result.rowCount > 0) {
+    await syncOwnerPostCount(db, ownerUserId);
+    await Promise.all([deleteStoredImage(result.rows[0].image_url), deleteStoredImage(result.rows[0].thumb_url)]);
+  }
   return result.rowCount > 0;
 }
 

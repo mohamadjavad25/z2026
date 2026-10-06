@@ -1,16 +1,29 @@
 import { getDb, all, get, run } from "../connection.js";
-import { uploadImageDataUrl } from "../../storage.js";
+import { uploadImageDataUrl, deleteStoredImage } from "../../storage.js";
+
+/**
+ * Every column except the picture bytes. avatar/poster come back as a '1' / '' flag (a picture
+ * exists in the row or in Storage) -- the base64 itself used to ride along on every login and
+ * profile read, and it is what the media routes now fetch only when a browser really needs it.
+ */
+const USER_COLUMNS = `
+  id, phone, password_hash, type, name, area, service, email,
+  CASE WHEN avatar <> '' OR avatar_url IS NOT NULL THEN '1' ELSE '' END AS avatar,
+  CASE WHEN poster <> '' OR poster_url IS NOT NULL THEN '1' ELSE '' END AS poster,
+  avatar_position, poster_position, bio, experience_years, manager_name,
+  last_seen_at, created_at, updated_at, avatar_url, poster_url, suspended_at
+`;
 
 export async function getUserById(id, runner = null) {
   const db = runner || (await getDb());
-  return (await get(db, "SELECT * FROM users WHERE id = $1", [id])) || null;
+  return (await get(db, `SELECT ${USER_COLUMNS} FROM users WHERE id = $1`, [id])) || null;
 }
 
 /** Profile fields only -- avatar comes back as a present/absent flag, never the base64 bytes. */
 export async function getUserLiteById(id, runner = null) {
   const db = runner || (await getDb());
   return (await get(db, `
-    SELECT id, name, phone, type, area, bio, avatar_position, (avatar <> '') AS avatar
+    SELECT id, name, phone, type, area, bio, avatar_position, (avatar <> '' OR avatar_url IS NOT NULL) AS avatar
     FROM users WHERE id = $1
   `, [id])) || null;
 }
@@ -19,7 +32,7 @@ export async function getUserLiteById(id, runner = null) {
 export async function getUserProfileById(id, runner = null) {
   const db = runner || (await getDb());
   return (await get(db, `
-    SELECT id, name, phone, type, area, service, bio, experience_years, avatar_position, (avatar <> '') AS avatar
+    SELECT id, name, phone, type, area, service, bio, experience_years, avatar_position, (avatar <> '' OR avatar_url IS NOT NULL) AS avatar
     FROM users WHERE id = $1
   `, [id])) || null;
 }
@@ -28,7 +41,7 @@ export async function getUserByPhone(phone, runner = null) {
   const normalized = String(phone || "").trim();
   if (!normalized) return null;
   const db = runner || (await getDb());
-  return (await get(db, "SELECT * FROM users WHERE phone = $1", [normalized])) || null;
+  return (await get(db, `SELECT ${USER_COLUMNS} FROM users WHERE phone = $1`, [normalized])) || null;
 }
 
 export async function createUser({ phone, passwordHash, type, name, area, service, email, avatar, poster, bio, experienceYears, managerName }) {
@@ -71,12 +84,32 @@ export async function createUser({ phone, passwordHash, type, name, area, servic
       poster ? uploadImageDataUrl(poster, { kind: "poster", ownerId: userId }) : null
     ]);
     if (avatarUrl || posterUrl) {
+      // Storage has the picture now, so the base64 copy is emptied and the database stops carrying it.
       await run(db, `
-        UPDATE users SET avatar_url = COALESCE($1, avatar_url), poster_url = COALESCE($2, poster_url) WHERE id = $3
+        UPDATE users SET
+          avatar = CASE WHEN $1::text IS NOT NULL THEN '' ELSE avatar END,
+          poster = CASE WHEN $2::text IS NOT NULL THEN '' ELSE poster END,
+          avatar_url = COALESCE($1, avatar_url), poster_url = COALESCE($2, poster_url)
+        WHERE id = $3
       `, [avatarUrl, posterUrl, userId]);
     }
   }
   return getUserById(userId, db);
+}
+
+const isDataImage = (value) => typeof value === "string" && value.startsWith("data:image/");
+
+/**
+ * What to store for one picture field of a profile edit. undefined/null (or anything that is not a
+ * fresh data URL, e.g. a media URL echoed back) keeps what is there; "" removes it; a new data URL
+ * goes to Storage and, once it is there, only the URL is kept -- if Storage is off or fails, the
+ * base64 stays in the row exactly as before, so a save never loses a picture.
+ */
+async function planPicture(value, kind, ownerId) {
+  if (value == null || (value !== "" && !isDataImage(value))) return { change: false, blob: "", url: null };
+  if (value === "") return { change: true, blob: "", url: null };
+  const url = await uploadImageDataUrl(value, { kind, ownerId });
+  return url ? { change: true, blob: "", url } : { change: true, blob: value, url: null };
 }
 
 export async function updateUser(id, data) {
@@ -89,8 +122,6 @@ export async function updateUser(id, data) {
     area: data.area ?? current.area,
     service: data.service ?? current.service,
     email: data.email ?? current.email,
-    avatar: data.avatar ?? current.avatar,
-    poster: data.poster ?? current.poster,
     avatar_position: data.avatarPosition ?? data.avatar_position ?? current.avatar_position ?? "",
     poster_position: data.posterPosition ?? data.poster_position ?? current.poster_position ?? "",
     bio: data.bio ?? current.bio,
@@ -99,28 +130,29 @@ export async function updateUser(id, data) {
     password_hash: data.password_hash ?? current.password_hash
   };
 
-  // Dual-write to Supabase Storage (see app/lib/storage.js) -- only when
-  // avatar/poster is genuinely changing (a fresh "data:..." string, not
-  // the unchanged current value): re-uploading on every unrelated
-  // profile edit would be wasted work and would race the *_url column
-  // against nothing having actually changed. Removal (empty string)
-  // clears the URL too; leaving the field untouched (data.avatar
-  // undefined) leaves *_url untouched as well.
-  let avatarUrl = current.avatar_url;
-  if (data.avatar !== undefined && data.avatar !== current.avatar) {
-    avatarUrl = data.avatar ? await uploadImageDataUrl(data.avatar, { kind: "avatar", ownerId: id }) : null;
-  }
-  let posterUrl = current.poster_url;
-  if (data.poster !== undefined && data.poster !== current.poster) {
-    posterUrl = data.poster ? await uploadImageDataUrl(data.poster, { kind: "poster", ownerId: id }) : null;
-  }
+  const [avatar, poster] = await Promise.all([
+    planPicture(data.avatar, "avatar", id),
+    planPicture(data.poster, "poster", id)
+  ]);
 
   await run(db, `
     UPDATE users SET
-      phone = $1, name = $2, area = $3, service = $4, email = $5, avatar = $6, poster = $7, avatar_url = $8, poster_url = $9, avatar_position = $10, poster_position = $11, bio = $12, experience_years = $13, manager_name = $14, password_hash = $15,
+      phone = $1, name = $2, area = $3, service = $4, email = $5,
+      avatar = CASE WHEN $6 THEN $7 ELSE avatar END, avatar_url = CASE WHEN $6 THEN $8 ELSE avatar_url END,
+      poster = CASE WHEN $9 THEN $10 ELSE poster END, poster_url = CASE WHEN $9 THEN $11 ELSE poster_url END,
+      avatar_position = $12, poster_position = $13, bio = $14, experience_years = $15, manager_name = $16, password_hash = $17,
       updated_at = CURRENT_TIMESTAMP
-    WHERE id = $16
-  `, [next.phone, next.name, next.area, next.service, next.email, next.avatar, next.poster, avatarUrl, posterUrl, next.avatar_position, next.poster_position, next.bio, next.experience_years, next.manager_name, next.password_hash, id]);
+    WHERE id = $18
+  `, [
+    next.phone, next.name, next.area, next.service, next.email,
+    avatar.change, avatar.blob, avatar.url,
+    poster.change, poster.blob, poster.url,
+    next.avatar_position, next.poster_position, next.bio, next.experience_years, next.manager_name, next.password_hash, id
+  ]);
+
+  // The replaced/removed pictures no longer need their Storage copies.
+  if (avatar.change && current.avatar_url) await deleteStoredImage(current.avatar_url);
+  if (poster.change && current.poster_url) await deleteStoredImage(current.poster_url);
 
   if (current.type === "salon") {
     await run(db, `
@@ -133,7 +165,7 @@ export async function updateUser(id, data) {
 
 export async function listUsersByType(type) {
   const db = await getDb();
-  return all(db, "SELECT * FROM users WHERE type = $1 ORDER BY created_at DESC", [type]);
+  return all(db, `SELECT ${USER_COLUMNS} FROM users WHERE type = $1 ORDER BY created_at DESC`, [type]);
 }
 
 export async function countFollowers(userId, runner = null) {
