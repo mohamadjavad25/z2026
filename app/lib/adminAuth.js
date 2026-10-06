@@ -25,6 +25,34 @@ const WINDOW_MS = 15 * 60 * 1000;
 
 export const GENERIC_FAILURE = "اطلاعات ورود درست نیست.";
 
+let tablesReady;
+/** Creates the admin tables on first use (same DDL as migrations/021_admin_security.sql, idempotent), so no manual database step is needed. */
+function ensureAdminTables() {
+  tablesReady ??= (async () => {
+    const db = await getDb();
+    await run(db, `CREATE TABLE IF NOT EXISTS admin_totp (
+      user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+      secret_enc TEXT NOT NULL,
+      enabled_at TIMESTAMPTZ,
+      last_step BIGINT NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )`);
+    await run(db, `CREATE TABLE IF NOT EXISTS admin_sessions (
+      token_hash TEXT PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      ua_hash TEXT NOT NULL DEFAULT '',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      last_seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      expires_at TIMESTAMPTZ NOT NULL
+    )`);
+    await run(db, "CREATE INDEX IF NOT EXISTS idx_admin_sessions_user ON admin_sessions (user_id)");
+  })().catch((error) => {
+    tablesReady = undefined; // retry on the next request instead of caching a failure
+    throw error;
+  });
+  return tablesReady;
+}
+
 const sha256 = (value) => createHash("sha256").update(value).digest("hex");
 
 function adminSecret() {
@@ -145,6 +173,7 @@ export async function getAdminFromRequest(request) {
   if (!adminAuthConfigured()) return null;
   const token = request.cookies.get(ADMIN_COOKIE)?.value;
   if (!token) return null;
+  await ensureAdminTables();
   const db = await getDb();
   const hash = sha256(token);
   const row = await get(db, `
@@ -170,6 +199,7 @@ function failure(status = 401) {
 export async function adminLogin(request, { phone: phoneInput, password, code }) {
   const phone = normalizePhone(phoneInput);
   if (!adminAuthConfigured()) return failure();
+  await ensureAdminTables();
   if (!(await allowed(request, phone, "login", 8, 20))) {
     await audit("login_blocked", { phone, detail: "rate limited", request });
     return failure(429);
@@ -199,6 +229,7 @@ export async function adminEnrollStart(request, { phone: phoneInput, password, s
   const phone = normalizePhone(phoneInput);
   const expected = process.env.ZIBABAN_ADMIN_SETUP_KEY || "";
   if (!adminAuthConfigured() || expected.length < 16) return failure();
+  await ensureAdminTables();
   if (!(await allowed(request, phone, "enroll", 10, 15))) return failure(429);
   const check = await checkCredentials(phone, password);
   const keyOk = safeEqual(sha256(String(setupKey || "")), sha256(expected));
@@ -222,6 +253,7 @@ export async function adminEnrollConfirm(request, { phone: phoneInput, password,
   const phone = normalizePhone(phoneInput);
   const expected = process.env.ZIBABAN_ADMIN_SETUP_KEY || "";
   if (!adminAuthConfigured() || expected.length < 16) return failure();
+  await ensureAdminTables();
   if (!(await allowed(request, phone, "enroll", 10, 15))) return failure(429);
   const check = await checkCredentials(phone, password);
   const keyOk = safeEqual(sha256(String(setupKey || "")), sha256(expected));
