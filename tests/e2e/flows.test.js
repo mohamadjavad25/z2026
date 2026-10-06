@@ -202,25 +202,51 @@ describe("dialogs (browser)", () => {
 });
 
 describe("admin page (browser)", () => {
-  it("turns ordinary users away and shows the panel to an admin", async () => {
-    const { adminClient } = await import("../integration/helpers.js");
+  it("shows only a login form to anyone without an admin session, then walks the real setup and login flow", async () => {
+    const { TEST_ADMIN3_PHONE, TEST_ADMIN_PASSWORD, TEST_ADMIN_SETUP_KEY } = await import("../globalSetup.js");
+    const { totpCodeAt, totpStepAt } = await import("../../app/lib/totp.js");
+
+    // A normal user's login opens nothing: /admin shows the admin login form, never the panel.
     const normal = createClient();
     await registerUser(normal, { type: "client", name: "عادی" });
     const denied = await newPage({ cookie: normal.cookie() });
     await denied.page.goto(`${TEST_BASE_URL}/admin`, { waitUntil: "networkidle" });
-    expect(await denied.page.locator("main").innerText()).toContain("دسترسی ندارید");
+    expect(await denied.page.locator("main").innerText()).toContain("ورود مدیریت");
+    expect(await denied.page.locator(".admTabs").count()).toBe(0);
     await denied.context.close();
 
-    const admin = await adminClient();
-    const allowed = await newPage({ width: 1100, cookie: admin.cookie() });
-    await allowed.page.goto(`${TEST_BASE_URL}/admin`, { waitUntil: "networkidle" });
-    await allowed.page.getByRole("tab", { name: "کاربران" }).click();
-    await allowed.page.locator(".admTable tbody tr").first().waitFor();
-    await allowed.page.getByRole("tab", { name: "نمای کلی" }).click();
-    expect(await allowed.page.locator(".admGrid").innerText()).toContain("کل کاربران");
-    expect(allowed.problems).toEqual([]);
-    await allowed.context.close();
-  });
+    await registerUser(createClient(), { type: "client", name: "Admin Three", phone: TEST_ADMIN3_PHONE });
+    const { page, context, problems } = await newPage({ width: 1100 });
+    await page.goto(`${TEST_BASE_URL}/admin`, { waitUntil: "networkidle" });
+
+    // First-time setup: password + setup key -> QR/secret -> first code -> inside the panel.
+    await page.getByRole("button", { name: /راه‌اندازی اولیه/ }).click();
+    await page.getByLabel("شمارهٔ موبایل").fill(TEST_ADMIN3_PHONE);
+    await page.getByLabel("رمز عبور").fill(TEST_ADMIN_PASSWORD);
+    await page.getByLabel(/کلید راه‌اندازی/).fill(TEST_ADMIN_SETUP_KEY);
+    await page.getByRole("button", { name: "ادامه" }).click();
+    await page.locator(".admKey").waitFor();
+    const secret = (await page.locator(".admKey").innerText()).trim();
+    const usedStep = totpStepAt();
+    await page.getByLabel("کد ۶ رقمی").fill(totpCodeAt(secret, usedStep));
+    await page.getByRole("button", { name: "فعال‌سازی و ورود" }).click();
+    await page.getByRole("tab", { name: "کاربران" }).waitFor();
+    await page.getByRole("tab", { name: "کاربران" }).click();
+    await page.locator(".admTable tbody tr").first().waitFor();
+    await page.getByRole("tab", { name: "نمای کلی" }).click();
+    expect(await page.locator(".admGrid").innerText()).toContain("کل کاربران");
+
+    // Logout, then a normal login with the next code.
+    await page.getByRole("button", { name: "خروج" }).click();
+    await page.getByRole("button", { name: "ورود", exact: true }).waitFor();
+    await page.getByLabel("شمارهٔ موبایل").fill(TEST_ADMIN3_PHONE);
+    await page.getByLabel("رمز عبور").fill(TEST_ADMIN_PASSWORD);
+    await page.getByLabel(/کد ۶ رقمی/).fill(totpCodeAt(secret, usedStep + 1));
+    await page.getByRole("button", { name: "ورود", exact: true }).click();
+    await page.getByRole("tab", { name: "نمای کلی" }).waitFor();
+    expect(problems).toEqual([]);
+    await context.close();
+  }, 60_000);
 });
 
 describe("SMS code at sign-up (browser)", () => {

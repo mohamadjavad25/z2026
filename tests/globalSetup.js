@@ -1,5 +1,6 @@
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import { execSync, spawn } from "node:child_process";
+import { totpCodeAt, totpStepAt } from "../app/lib/totp.js";
 
 /**
  * Vitest globalSetup: runs once, before any test file. Starts a real
@@ -23,6 +24,12 @@ import { execSync, spawn } from "node:child_process";
 const TEST_PORT = 3100;
 export const TEST_CRON_SECRET = "test-cron-secret";
 export const TEST_ADMIN_PHONE = "09120000001";
+// Two more listed admins that the admin-login tests enroll themselves (see tests/integration/adminAuth.test.js and the browser flow).
+export const TEST_ADMIN2_PHONE = "09120000002";
+export const TEST_ADMIN3_PHONE = "09120000003";
+export const TEST_ADMIN_SECRET = "test-admin-secret-0123456789abcdef0123456789";
+export const TEST_ADMIN_SETUP_KEY = "test-admin-setup-key-0123456789";
+export const TEST_ADMIN_PASSWORD = "testpass123";
 export const TEST_BASE_URL = `http://localhost:${TEST_PORT}`;
 
 let container;
@@ -67,7 +74,7 @@ export async function setup() {
   // detached puts this process in its own process group so teardown can
   // signal the whole group at once, in case `next start` itself forks.
   serverProcess = spawn("npx", ["next", "start", "-p", String(TEST_PORT)], {
-    env: { ...process.env, POSTGRES_URL: connectionString, NODE_ENV: "production", CRON_SECRET: TEST_CRON_SECRET, ZIBABAN_ADMIN_PHONES: TEST_ADMIN_PHONE, ZIBABAN_SMS_PROVIDER: "test", ZIBABAN_REMINDER_TEST_CLOCK: "1" },
+    env: { ...process.env, POSTGRES_URL: connectionString, NODE_ENV: "production", CRON_SECRET: TEST_CRON_SECRET, ZIBABAN_ADMIN_PHONES: [TEST_ADMIN_PHONE, TEST_ADMIN2_PHONE, TEST_ADMIN3_PHONE].join(","), ZIBABAN_ADMIN_SECRET: TEST_ADMIN_SECRET, ZIBABAN_ADMIN_SETUP_KEY: TEST_ADMIN_SETUP_KEY, ZIBABAN_SMS_PROVIDER: "test", ZIBABAN_REMINDER_TEST_CLOCK: "1" },
     stdio: ["ignore", "pipe", "pipe"],
     detached: true
   });
@@ -86,6 +93,23 @@ export async function setup() {
   }
 
   process.env.TEST_BASE_URL = TEST_BASE_URL;
+  process.env.TEST_ADMIN_COOKIE = await createAdminSession();
+}
+
+/** Registers the main test admin, links an authenticator (the real setup flow) and returns the resulting admin session cookie, shared by every API test file. */
+async function createAdminSession() {
+  const post = async (path, body) => {
+    const res = await fetch(`${TEST_BASE_URL}${path}`, { method: "POST", headers: { "Content-Type": "application/json", "x-forwarded-for": "10.9.9.9" }, body: JSON.stringify(body) });
+    return { res, payload: await res.json().catch(() => ({})) };
+  };
+  const registered = await post("/api/auth/register", { phone: TEST_ADMIN_PHONE, password: TEST_ADMIN_PASSWORD, type: "client", name: "Admin" });
+  if (!registered.res.ok) throw new Error(`admin register failed: ${JSON.stringify(registered.payload)}`);
+  const credentials = { phone: TEST_ADMIN_PHONE, password: TEST_ADMIN_PASSWORD, setupKey: TEST_ADMIN_SETUP_KEY };
+  const started = await post("/api/admin/auth/enroll/start", credentials);
+  if (!started.res.ok) throw new Error(`admin enroll start failed: ${JSON.stringify(started.payload)}`);
+  const confirmed = await post("/api/admin/auth/enroll/confirm", { ...credentials, code: totpCodeAt(started.payload.data.secret, totpStepAt()) });
+  if (!confirmed.res.ok) throw new Error(`admin enroll confirm failed: ${JSON.stringify(confirmed.payload)}`);
+  return confirmed.res.headers.get("set-cookie").split(";")[0];
 }
 
 export async function teardown() {

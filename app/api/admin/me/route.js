@@ -1,16 +1,15 @@
 import { json, withErrorHandling } from "../../../lib/http.js";
-import { getUserFromRequest } from "../../../lib/auth.js";
 import { ensureDb } from "../../../lib/db/connection.js";
-import { isAdminPhone } from "../../../lib/admin.js";
+import { adminAuthConfigured, getAdminFromRequest } from "../../../lib/adminAuth.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/** Lets the /admin page decide what to show. Safe for anyone: reveals only whether *you* are an admin. */
+/** Lets the /admin page decide between the login form and the panel. Safe for anyone: reveals only whether *this browser* holds a live admin session. */
 async function _GET(request) {
   await ensureDb();
-  const user = await getUserFromRequest(request);
-  return json({ data: { loggedIn: Boolean(user), isAdmin: Boolean(user && isAdminPhone(user.phone)), name: user?.name || "" } });
+  const admin = await getAdminFromRequest(request);
+  return json({ data: { isAdmin: Boolean(admin), name: admin?.name || "", configured: adminAuthConfigured() } });
 }
 
 export const GET = withErrorHandling(_GET);
