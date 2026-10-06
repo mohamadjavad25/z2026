@@ -5,8 +5,8 @@ import { formatPersianDateKey, getPersianWeekday } from "../../app/shared/lib/pe
  *  server (see globalSetup.js) -- session auth is an httpOnly cookie, so
  *  a bare fetch() per call would silently be a fresh anonymous request
  *  every time. */
-export function createClient() {
-  let cookie = "";
+export function createClient(initialCookie = "") {
+  let cookie = initialCookie;
   async function request(path, { method = "GET", body, headers = {} } = {}) {
     const res = await fetch(`${TEST_BASE_URL}${path}`, {
       method,
@@ -75,14 +75,7 @@ export function futureBookingDay(openDaysAhead = 2) {
   return formatPersianDateKey(day);
 }
 
-/** Logged-in client for the configured admin phone (ZIBABAN_ADMIN_PHONES in the test server). Cached per test file: logging in again for every test would trip the login rate limit. The account may already exist from an earlier file/run, so log in first and register only if needed. */
-let cachedAdmin;
+/** Client holding the admin session globalSetup created (it linked an authenticator and logged in once). Reused by every file: a fresh login per file would need a new one-time code each time. */
 export async function adminClient() {
-  if (cachedAdmin) return cachedAdmin;
-  const { TEST_ADMIN_PHONE } = await import("../globalSetup.js");
-  const client = createClient();
-  const login = await client.post("/api/auth/login", { phone: TEST_ADMIN_PHONE, password: "testpass123" });
-  if (!login.ok) await registerUser(client, { type: "client", name: "Admin", phone: TEST_ADMIN_PHONE });
-  cachedAdmin = client;
-  return client;
+  return createClient(process.env.TEST_ADMIN_COOKIE);
 }

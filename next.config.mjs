@@ -74,6 +74,11 @@ const nextConfig = {
       {
         source: "/:path*",
         headers: securityHeaders
+      },
+      {
+        // Admin pages and API are never cached by browsers or proxies.
+        source: "/admin/:path*",
+        headers: [{ key: "Cache-Control", value: "no-store" }, { key: "X-Robots-Tag", value: "noindex, nofollow" }]
       }
     ];
   }

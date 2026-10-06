@@ -4,9 +4,19 @@ import { useCallback, useEffect, useState } from "react";
 import { apiFetch } from "../shared/api/client";
 import { toPersianDigits } from "../shared/lib/digits";
 import { Button, Chip, Field } from "../components/ui";
+import { AdminLogin } from "./AdminLogin";
 
 const TYPE_LABEL = { client: "مشتری", artist: "آرتیست", salon: "سالن" };
-const ACTION_LABEL = { suspend: "مسدود شد", unsuspend: "رفع مسدودی", resolve_password_reset: "رمز بازنشانی شد" };
+const ACTION_LABEL = {
+  suspend: "مسدود شد",
+  unsuspend: "رفع مسدودی",
+  resolve_password_reset: "رمز بازنشانی شد",
+  login: "ورود مدیر",
+  login_failed: "ورود ناموفق",
+  login_blocked: "ورود مسدود (تلاش زیاد)",
+  enroll: "راه‌اندازی Authenticator",
+  enroll_failed: "راه‌اندازی ناموفق"
+};
 const TABS = [
   { id: "overview", label: "نمای کلی" },
   { id: "users", label: "کاربران" },
@@ -22,28 +32,34 @@ export function AdminClient() {
   const [me, setMe] = useState(null);
   const [tab, setTab] = useState("overview");
 
+  const refresh = useCallback(() => apiFetch("/api/admin/me").then(({ payload }) => setMe(payload.data || { isAdmin: false })), []);
+
   useEffect(() => {
-    apiFetch("/api/admin/me").then(({ payload }) => setMe(payload.data || { isAdmin: false }));
-  }, []);
+    refresh();
+    // A session ends after 30 idle minutes: re-check when the tab comes back and once a minute, so the login form appears instead of silent errors.
+    const timer = setInterval(refresh, 60 * 1000);
+    const onVisible = () => document.visibilityState === "visible" && refresh();
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [refresh]);
+
+  async function logout() {
+    await apiFetch("/api/admin/auth/logout", { method: "POST" });
+    setMe({ isAdmin: false, configured: true });
+  }
 
   if (!me) return <main className="adm"><p className="admMuted">در حال بارگذاری…</p></main>;
-  if (!me.isAdmin) {
-    return (
-      <main className="adm">
-        <section className="admCard admDenied">
-          <h1>دسترسی ندارید</h1>
-          <p>{me.loggedIn ? "این حساب مدیر نیست." : "اول با حساب مدیر وارد زیبابان شو، بعد دوباره به این صفحه بیا."}</p>
-          <a className="ui-btn" href="/">رفتن به زیبابان</a>
-        </section>
-      </main>
-    );
-  }
+  if (!me.isAdmin) return <AdminLogin configured={me.configured !== false} onDone={refresh} />;
 
   return (
     <main className="adm">
       <header className="admHead">
         <h1>مدیریت زیبابان</h1>
         <span className="admMuted">{me.name}</span>
+        <button type="button" className="admLink" onClick={logout}>خروج</button>
       </header>
       <nav className="admTabs" role="tablist" aria-label="بخش‌های مدیریت">
         {TABS.map((item) => (

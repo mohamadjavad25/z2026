@@ -53,8 +53,8 @@ describe("admin panel API", () => {
 
   it("never lets an admin be suspended, and 404s on unknown users", async () => {
     const admin = await adminClient();
-    const me = await admin.get("/api/auth/me");
-    const adminId = me.payload.data.user.id;
+    const { TEST_ADMIN_PHONE } = await import("../globalSetup.js");
+    const adminId = (await admin.get(`/api/admin/users?q=${TEST_ADMIN_PHONE}`)).payload.data.users[0].id;
     expect((await admin.post(`/api/admin/users/${adminId}/suspend`, { suspended: true })).status).toBe(400);
     expect((await admin.post("/api/admin/users/999999999/suspend", { suspended: true })).status).toBe(404);
   });
