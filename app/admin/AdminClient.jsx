@@ -52,7 +52,7 @@ export function AdminClient() {
   }
 
   if (!me) return <main className="adm"><p className="admMuted">در حال بارگذاری…</p></main>;
-  if (!me.isAdmin) return <AdminLogin configured={me.configured !== false} onDone={refresh} />;
+  if (!me.isAdmin) return <AdminLogin configured={me.configured !== false} setupKeyConfigured={me.setupKeyConfigured !== false} onDone={refresh} />;
 
   return (
     <main className="adm">

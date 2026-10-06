@@ -52,3 +52,5 @@
 .admLink { justify-self: start; padding: 0; border: 0; background: none; color: #6b3fb0; font: inherit; font-size: var(--text-sm); font-weight: 800; text-decoration: underline; cursor: pointer; }
 .admQr { justify-self: center; border-radius: var(--radius-md); background: #fff; }
 .admKey { justify-self: center; padding: 6px 10px; border-radius: var(--radius-md); background: #f6f6f8; font-weight: 800; letter-spacing: 0.08em; word-break: break-all; }
+.admForm .admReveal { display: flex; align-items: center; gap: 8px; font-size: var(--text-sm); font-weight: 800; }
+.admForm .admReveal input { width: 20px; min-height: 20px; height: 20px; accent-color: #6b3fb0; }

@@ -7,12 +7,14 @@ import { Button, Field } from "../components/ui";
 const ltr = { dir: "ltr", autoComplete: "off", autoCapitalize: "off", spellCheck: false };
 
 /** Admin sign-in: phone + password + authenticator code. "First-time setup" links an authenticator app (needs the setup key from the server's env). */
-export function AdminLogin({ configured, onDone }) {
+export function AdminLogin({ configured, setupKeyConfigured = true, onDone }) {
   const [mode, setMode] = useState("login"); // login | setup | scan
   const [form, setForm] = useState({ phone: "", password: "", code: "", setupKey: "" });
   const [qr, setQr] = useState(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [reveal, setReveal] = useState(false);
+  const secretType = reveal ? "text" : "password";
   const set = (key) => (event) => setForm((prev) => ({ ...prev, [key]: event.target.value }));
 
   async function submit(path, body, next) {
@@ -58,7 +60,7 @@ export function AdminLogin({ configured, onDone }) {
         {mode === "login" ? (
           <form onSubmit={onLogin} className="admForm">
             <Field label="شمارهٔ موبایل">{(p) => <input {...p} {...ltr} inputMode="tel" autoComplete="username" value={form.phone} onChange={set("phone")} required />}</Field>
-            <Field label="رمز عبور">{(p) => <input {...p} {...ltr} type="password" autoComplete="current-password" value={form.password} onChange={set("password")} required />}</Field>
+            <Field label="رمز عبور">{(p) => <input {...p} {...ltr} type={secretType} autoComplete="current-password" value={form.password} onChange={set("password")} required />}</Field>
             <Field label="کد ۶ رقمی برنامهٔ Authenticator">{(p) => <input {...p} {...ltr} inputMode="numeric" autoComplete="one-time-code" maxLength={7} value={form.code} onChange={set("code")} required />}</Field>
             {error ? <p className="admError" role="alert">{error}</p> : null}
             <Button type="submit" disabled={busy}>{busy ? "در حال بررسی…" : "ورود"}</Button>
@@ -69,8 +71,10 @@ export function AdminLogin({ configured, onDone }) {
           <form onSubmit={onSetup} className="admForm">
             <p className="admMuted">فقط بار اول لازم است. شماره، رمز و «کلید راه‌اندازی» سرور را وارد کن؛ بعد یک QR می‌بینی که با Google Authenticator یا برنامهٔ مشابه اسکن می‌کنی.</p>
             <Field label="شمارهٔ موبایل">{(p) => <input {...p} {...ltr} inputMode="tel" autoComplete="username" value={form.phone} onChange={set("phone")} required />}</Field>
-            <Field label="رمز عبور">{(p) => <input {...p} {...ltr} type="password" autoComplete="current-password" value={form.password} onChange={set("password")} required />}</Field>
-            <Field label="کلید راه‌اندازی">{(p) => <input {...p} {...ltr} type="password" value={form.setupKey} onChange={set("setupKey")} required />}</Field>
+            <Field label="رمز عبور">{(p) => <input {...p} {...ltr} type={secretType} autoComplete="current-password" value={form.password} onChange={set("password")} required />}</Field>
+            <Field label="کلید راه‌اندازی">{(p) => <input {...p} {...ltr} type={secretType} value={form.setupKey} onChange={set("setupKey")} required />}</Field>
+            <label className="admReveal"><input type="checkbox" checked={reveal} onChange={(event) => setReveal(event.target.checked)} /> نمایش رمز و کلید هنگام تایپ</label>
+            {!setupKeyConfigured ? <p className="admError" role="alert">کلید راه‌اندازی روی سرور تنظیم نشده یا کمتر از ۱۶ نویسه است. در Vercel متغیر ZIBABAN_ADMIN_SETUP_KEY را (حداقل ۱۶ نویسه) بگذار و دوباره Redeploy کن؛ تا آن موقع راه‌اندازی هر ورودی را رد می‌کند.</p> : null}
             {error ? <p className="admError" role="alert">{error}</p> : null}
             <Button type="submit" disabled={busy}>{busy ? "در حال بررسی…" : "ادامه"}</Button>
             <button type="button" className="admLink" onClick={() => { setError(""); setMode("login"); }}>بازگشت به ورود</button>
