@@ -89,7 +89,7 @@ function mapArtistCollab(row) {
 export async function listArtistCollabs(userId) {
   const db = await getDb();
   const rows = await all(db, `
-    SELECT c.*, (u.avatar <> '') AS salon_avatar
+    SELECT c.*, (u.avatar <> '' OR u.avatar_url IS NOT NULL) AS salon_avatar
     FROM artist_collabs c
     LEFT JOIN users u ON u.id = c.salon_user_id
     WHERE c.artist_user_id = $1
@@ -104,7 +104,7 @@ export async function listSalonCollabRequests(salonUserId) {
     SELECT
       c.*,
       u.name AS artist_name,
-      (u.avatar <> '') AS artist_avatar,
+      (u.avatar <> '' OR u.avatar_url IS NOT NULL) AS artist_avatar,
       u.service AS artist_service,
       u.area AS artist_area
     FROM artist_collabs c
@@ -200,7 +200,7 @@ export async function addArtistCollab(userId, data) {
     COLLAB_PENDING
   ]);
   const row = await get(db, `
-    SELECT c.*, (u.avatar <> '') AS salon_avatar
+    SELECT c.*, (u.avatar <> '' OR u.avatar_url IS NOT NULL) AS salon_avatar
     FROM artist_collabs c
     LEFT JOIN users u ON u.id = c.salon_user_id
     WHERE c.id = $1
@@ -299,7 +299,7 @@ export async function listArtistBookings(artistUserId) {
     SELECT
       b.*,
       salon.name AS source_salon_name,
-      (salon.avatar <> '') AS source_salon_avatar,
+      (salon.avatar <> '' OR salon.avatar_url IS NOT NULL) AS source_salon_avatar,
       salon.area AS source_salon_area
     FROM artist_bookings b
     LEFT JOIN users salon ON salon.id = b.source_salon_user_id
@@ -415,7 +415,7 @@ export async function listClientArtistBookings(user) {
     conditions.push(`(b.client_user_id IS NULL AND COALESCE(b.client_phone, '') = '' AND b.client_name = $${params.length})`);
   }
   const rows = await all(db, `
-    SELECT b.*, u.name AS artist_name, u.area AS artist_area, (u.avatar <> '') AS artist_avatar, u.phone AS artist_phone
+    SELECT b.*, u.name AS artist_name, u.area AS artist_area, (u.avatar <> '' OR u.avatar_url IS NOT NULL) AS artist_avatar, u.phone AS artist_phone
     FROM artist_bookings b
     LEFT JOIN users u ON u.id = b.artist_user_id
     -- source_salon_user_id IS NOT NULL = the artist-calendar copy of a SALON booking; the client
@@ -834,7 +834,7 @@ export async function listArtists({ cursor, limit } = {}) {
     limitClause = `LIMIT $${params.length}`;
   }
   const rawRows = await all(db, `
-    SELECT id, name, area, service, (avatar <> '') AS avatar, bio, avatar_position FROM users WHERE ${where} ORDER BY id DESC ${limitClause}
+    SELECT id, name, area, service, (avatar <> '' OR avatar_url IS NOT NULL) AS avatar, bio, avatar_position FROM users WHERE ${where} ORDER BY id DESC ${limitClause}
   `, params);
   const hasMore = pageSize ? rawRows.length > pageSize : false;
   const rows = pageSize ? rawRows.slice(0, pageSize) : rawRows;
@@ -876,7 +876,7 @@ export async function listArtists({ cursor, limit } = {}) {
 export async function listSavedArtistsForUser(userId) {
   const db = await getDb();
   const rows = await all(db, `
-    SELECT u.id, u.name, u.service, u.area, u.bio, u.avatar_position, (u.avatar <> '') AS avatar FROM saved_profiles sp
+    SELECT u.id, u.name, u.service, u.area, u.bio, u.avatar_position, (u.avatar <> '' OR u.avatar_url IS NOT NULL) AS avatar FROM saved_profiles sp
     JOIN users u ON u.id = sp.target_user_id
     WHERE sp.user_id = $1 AND u.type = 'artist'
     ORDER BY sp.created_at DESC

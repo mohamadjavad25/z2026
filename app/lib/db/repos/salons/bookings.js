@@ -26,18 +26,18 @@ async function findBookingClient(row, runner) {
     // check is correct here and, unlike a REPLACE()-wrapped comparison,
     // can use the column's own UNIQUE index.
     const byNormalized = await get(runner, `
-      SELECT id, (avatar <> '') AS avatar, avatar_position FROM users WHERE phone = $1 LIMIT 1
+      SELECT id, (avatar <> '' OR avatar_url IS NOT NULL) AS avatar, avatar_position FROM users WHERE phone = $1 LIMIT 1
     `, [phone]);
     if (byNormalized) return byNormalized;
     const byRaw = await get(runner, `
-      SELECT id, (avatar <> '') AS avatar, avatar_position FROM users WHERE phone = $1 LIMIT 1
+      SELECT id, (avatar <> '' OR avatar_url IS NOT NULL) AS avatar, avatar_position FROM users WHERE phone = $1 LIMIT 1
     `, [rawPhone]);
     if (byRaw) return byRaw;
   }
   const clientName = String(row.client || "").trim();
   if (!clientName) return null;
   return get(runner, `
-    SELECT id, (avatar <> '') AS avatar, avatar_position FROM users WHERE type = 'client' AND name = $1 LIMIT 1
+    SELECT id, (avatar <> '' OR avatar_url IS NOT NULL) AS avatar, avatar_position FROM users WHERE type = 'client' AND name = $1 LIMIT 1
   `, [clientName]);
 }
 
@@ -208,7 +208,7 @@ export async function listClientSalonBookings(user) {
   }
   if (!conditions.length) return [];
   const rows = await all(db, `
-    SELECT b.*, s.name AS salon_name, s.area AS salon_area, s.phone AS salon_phone, s.user_id AS source_salon_user_id, (u.avatar <> '') AS salon_avatar
+    SELECT b.*, s.name AS salon_name, s.area AS salon_area, s.phone AS salon_phone, s.user_id AS source_salon_user_id, (u.avatar <> '' OR u.avatar_url IS NOT NULL) AS salon_avatar
     FROM salon_bookings b
     LEFT JOIN salons s ON s.user_id = b.salon_user_id
     LEFT JOIN users u ON u.id = b.salon_user_id

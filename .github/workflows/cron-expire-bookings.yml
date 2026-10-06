@@ -47,3 +47,16 @@ jobs:
           if [ "$status" -lt 200 ] || [ "$status" -ge 300 ]; then
             exit 1
           fi
+
+      # Moves any picture still stored in the database into Supabase Storage (a no-op once none are
+      # left, or while SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY are not set on the app).
+      - name: Call /api/cron/migrate-media
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$APP_URL" ] || [ -z "$CRON_SECRET" ]; then
+            exit 0
+          fi
+          curl -sS --max-time 90 -X POST "$APP_URL/api/cron/migrate-media" \
+            -H "Authorization: Bearer $CRON_SECRET" || true

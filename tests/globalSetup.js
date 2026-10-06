@@ -1,5 +1,6 @@
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import { execSync, spawn } from "node:child_process";
+import { startFakeStorage } from "./support/fakeStorage.js";
 import { totpCodeAt, totpStepAt } from "../app/lib/totp.js";
 
 /**
@@ -33,6 +34,8 @@ export const TEST_ADMIN_PASSWORD = "testpass123";
 export const TEST_BASE_URL = `http://localhost:${TEST_PORT}`;
 
 let container;
+let fakeStorage;
+const FAKE_STORAGE_PORT = 3199;
 let serverProcess;
 
 async function waitForServer(url, timeoutMs) {
@@ -50,7 +53,8 @@ async function waitForServer(url, timeoutMs) {
 }
 
 export async function setup() {
-  container = await new PostgreSqlContainer("postgres:16-alpine").start();
+  // TEST_DATABASE_URL lets a machine without Docker run the suite against its own Postgres.
+  if (!process.env.TEST_DATABASE_URL) container = await new PostgreSqlContainer("postgres:16-alpine").start();
   // Testcontainers' postgres:16-alpine has no TLS listener at all.
   // app/lib/db/connection.js defaults to `ssl: { rejectUnauthorized: false }`
   // (an *attempted* SSL handshake, not "SSL off") unless the connection
@@ -60,7 +64,7 @@ export async function setup() {
   // silently, which just looks like "the server never becomes healthy".
   // node-pg-migrate (invoked below) doesn't apply that same ssl override,
   // which is why migrations succeed even without this flag.
-  const connectionString = `${container.getConnectionUri()}?sslmode=disable`;
+  const connectionString = process.env.TEST_DATABASE_URL || `${container.getConnectionUri()}?sslmode=disable`;
 
   execSync("node scripts/migrate.mjs up", {
     env: { ...process.env, POSTGRES_URL: connectionString },
@@ -73,8 +77,13 @@ export async function setup() {
   // (visible as an orphaned next-server process after each run). Spawning
   // detached puts this process in its own process group so teardown can
   // signal the whole group at once, in case `next start` itself forks.
+  // Pictures go to a stand-in Supabase Storage, so the suite runs the real "stored in Storage" path
+  // (TEST_STORAGE=off leaves Storage unconfigured to check the database-only fallback instead).
+  fakeStorage = await startFakeStorage(FAKE_STORAGE_PORT);
+  process.env.TEST_POSTGRES_URL = connectionString;
+  process.env.TEST_STORAGE_URL = fakeStorage.url;
   serverProcess = spawn("npx", ["next", "start", "-p", String(TEST_PORT)], {
-    env: { ...process.env, POSTGRES_URL: connectionString, NODE_ENV: "production", CRON_SECRET: TEST_CRON_SECRET, ZIBABAN_ADMIN_PHONES: [TEST_ADMIN_PHONE, TEST_ADMIN2_PHONE, TEST_ADMIN3_PHONE].join(","), ZIBABAN_ADMIN_SECRET: TEST_ADMIN_SECRET, ZIBABAN_ADMIN_SETUP_KEY: TEST_ADMIN_SETUP_KEY, ZIBABAN_SMS_PROVIDER: "test", ZIBABAN_REMINDER_TEST_CLOCK: "1" },
+    env: { ...process.env, ...(process.env.TEST_STORAGE === "off" ? {} : { SUPABASE_URL: fakeStorage.url, SUPABASE_SERVICE_ROLE_KEY: "test-service-role-key" }), POSTGRES_URL: connectionString, NODE_ENV: "production", CRON_SECRET: TEST_CRON_SECRET, ZIBABAN_ADMIN_PHONES: [TEST_ADMIN_PHONE, TEST_ADMIN2_PHONE, TEST_ADMIN3_PHONE].join(","), ZIBABAN_ADMIN_SECRET: TEST_ADMIN_SECRET, ZIBABAN_ADMIN_SETUP_KEY: TEST_ADMIN_SETUP_KEY, ZIBABAN_SMS_PROVIDER: "test", ZIBABAN_REMINDER_TEST_CLOCK: "1" },
     stdio: ["ignore", "pipe", "pipe"],
     detached: true
   });
@@ -124,5 +133,6 @@ export async function teardown() {
       // already exited
     }
   }
+  await fakeStorage?.close();
   await container?.stop();
 }

@@ -14,7 +14,14 @@
 - `cron-booking-reminders.yml` (۱۰ دقیقه): یادآوری مشتری ۲۴ ساعت و ۲ ساعت قبل از رزرو تأییدشده (نیاز به کلیدهای VAPID برای ارسال واقعی).
 
 ## متغیرهای محیطی مهم
-`POSTGRES_URL`، `CRON_SECRET`، `NEXT_PUBLIC_VAPID_PUBLIC_KEY`، `ZIBABAN_VAPID_PRIVATE_KEY`، `ZIBABAN_VAPID_CONTACT`، (اختیاری) `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY`.
+`POSTGRES_URL`، `CRON_SECRET`، `NEXT_PUBLIC_VAPID_PUBLIC_KEY`، `ZIBABAN_VAPID_PRIVATE_KEY`، `ZIBABAN_VAPID_CONTACT`، `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` (برای ذخیرهٔ عکس‌ها در Storage؛ بدون آن‌ها عکس‌ها مثل قبل در دیتابیس می‌مانند).
+
+## عکس‌ها (Supabase Storage)
+- با تنظیم `SUPABASE_URL` و `SUPABASE_SERVICE_ROLE_KEY` (یکپارچه‌سازی Supabase در ورسل معمولاً هر دو را خودش می‌گذارد)، عکس‌های جدید (آواتار، بنر، پست و thumbnail) به Storage می‌روند و نسخهٔ base64 از دیتابیس پاک می‌شود. باکت `media` اولین بار خودکار و عمومی ساخته می‌شود.
+- عکس‌های قدیمی را `POST /api/cron/migrate-media` (با `Authorization: Bearer $CRON_SECRET`) دسته‌دسته منتقل می‌کند؛ مرحلهٔ دوم `cron-expire-bookings.yml` هر ۵ دقیقه آن را صدا می‌زند. `GET` همان آدرس می‌گوید چند عکس هنوز در دیتابیس مانده.
+- هر نسخهٔ base64 فقط بعد از آپلود و تأیید خواندن‌پذیری نسخهٔ Storage خالی می‌شود؛ اگر Storage خاموش یا خراب باشد، عکس‌ها مثل قبل از دیتابیس سرو می‌شوند.
+- مسیرهای `/api/media/*` عکس را از Storage می‌گیرند و با کش CDN ورسل پخش می‌کنند؛ پس بازدید تکراری به Supabase نمی‌رسد.
+- نکته: بعد از خالی شدن ستون‌ها، «Database Size» در داشبورد Supabase ممکن است تا اجرای VACUUM پایین نیاید؛ فضا برای نوشتن‌های بعدی دوباره استفاده می‌شود.
 
 ## بکاپ و بازیابی
 - پایگاه داده: بکاپ روزانهٔ ارائه‌دهندهٔ Postgres را فعال کن و **یک‌بار بازیابی را روی نمونهٔ جدا تمرین کن** (هنوز انجام نشده).
