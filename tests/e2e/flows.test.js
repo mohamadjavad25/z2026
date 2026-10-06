@@ -136,6 +136,7 @@ describe("accessibility (browser)", () => {
     await trigger.focus();
     await trigger.press("Enter");
     await page.locator(".specialtySheet").waitFor();
+    await settleAnimations(page);
     expect(await page.evaluate(() => !!document.activeElement?.closest(".specialtySheet"))).toBe(true);
     for (let i = 0; i < 6; i++) await page.keyboard.press("Tab");
     expect(await page.evaluate(() => !!document.activeElement?.closest(".specialtySheet"))).toBe(true);
@@ -164,6 +165,16 @@ describe("profile completeness (browser)", () => {
 });
 
 
+// Finite animations only (a looping one never finishes), capped so a stuck one cannot hang the test.
+async function settleAnimations(page) {
+  await page.evaluate(() => Promise.race([
+    Promise.all(document.getAnimations()
+      .filter((a) => a.effect?.getComputedTiming().iterations !== Infinity)
+      .map((a) => a.finished.catch(() => {}))),
+    new Promise((resolve) => setTimeout(resolve, 1500))
+  ]));
+}
+
 describe("dialogs (browser)", () => {
   it("the main owner dialogs have no serious or critical axe violations", async () => {
     const axePath = new URL("../../node_modules/axe-core/axe.min.js", import.meta.url).pathname;
@@ -189,6 +200,8 @@ describe("dialogs (browser)", () => {
       await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
       await open(page);
       await page.locator("[role=dialog]").last().waitFor();
+      // axe reads colours as rendered: let the opening animation finish or it measures a half-faded dialog.
+      await settleAnimations(page);
       await page.addScriptTag({ path: axePath });
       const violations = await page.evaluate(async () => {
         const dialogs = document.querySelectorAll("[role=dialog]");

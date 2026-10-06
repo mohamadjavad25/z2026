@@ -4,7 +4,7 @@ import { ensureDb } from "../../lib/db/connection.js";
 import * as social from "../../lib/db/repos/social.js";
 import * as salons from "../../lib/db/repos/salons.js";
 import * as artists from "../../lib/db/repos/artists.js";
-import { getUserById } from "../../lib/db/repos/users.js";
+import { getUserLiteById } from "../../lib/db/repos/users.js";
 
 export const runtime = "nodejs";
 
@@ -47,7 +47,7 @@ async function _POST(request) {
   const targetUserId = Number(body.targetUserId || body.userId);
   if (!targetUserId) return NextResponse.json({ error: "هدف لازم است." }, { status: 400 });
 
-  const target = await getUserById(targetUserId);
+  const target = await getUserLiteById(targetUserId);
   if (!target || (target.type !== "salon" && target.type !== "artist")) {
     return NextResponse.json({ error: "این پروفایل قابل ذخیره نیست." }, { status: 400 });
   }

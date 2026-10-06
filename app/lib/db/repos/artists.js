@@ -1,5 +1,5 @@
 import { getDb, withTransaction, all, get, run } from "../connection.js";
-import { countFollowers, countFollowCountsMany, getUserById, getUserLiteById, isFollowing } from "./users.js";
+import { countFollowers, countFollowCountsMany, getUserProfileById, getUserLiteById, isFollowing } from "./users.js";
 import { buildClientHistoryLookup } from "./clientHistory.js";
 import { listPostsByOwner } from "./posts.js";
 import { formatPersianDateKey, isPersianDateKey, resolveRollingPersianDateKey } from "../../../shared/lib/persianCalendar.js";
@@ -762,7 +762,7 @@ export async function getArtistBookingById(bookingId) {
 }
 
 export async function getPublicArtist(userId, viewerUserId = null) {
-  const user = await getUserById(userId);
+  const user = await getUserProfileById(userId);
   if (!user || user.type !== "artist") return null;
   const [
     posts,
