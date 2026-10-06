@@ -1,3 +1,4 @@
+import { NextResponse } from "next/server";
 import { verifyAdminToken, normalizePhone } from "./auth.js";
 import { getAdminFromRequest, sameOrigin } from "./adminAuth.js";
 
@@ -25,7 +26,17 @@ export function isAdminPhone(phone) {
 export async function requireAdmin(request) {
   if (!sameOrigin(request)) return { ok: false };
   const admin = await getAdminFromRequest(request);
-  if (admin) return { ok: true, admin: { id: admin.id, label: admin.phone } };
+  if (admin) return { ok: true, admin: { id: admin.id, label: admin.phone, stepUp: admin.stepUp } };
   if (verifyAdminToken(request)) return { ok: true, admin: { id: null, label: "token" } };
   return { ok: false };
+}
+
+/**
+ * Extra gate for dangerous actions (deleting accounts/posts, ...): the admin must have re-typed their password in the last
+ * 5 minutes (POST /api/admin/auth/stepup). Returns a ready 403 response when they have not, or null when all is well.
+ * The legacy token path never passes: it is not tied to a person who can re-authenticate.
+ */
+export function requireStepUp(gate) {
+  if (gate.admin?.stepUp) return null;
+  return NextResponse.json({ error: "برای این کار رمز عبورت را دوباره وارد کن.", code: "stepup_required" }, { status: 403, headers: { "Cache-Control": "no-store" } });
 }

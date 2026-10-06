@@ -54,3 +54,8 @@
 .admKey { justify-self: center; padding: 6px 10px; border-radius: var(--radius-md); background: #f6f6f8; font-weight: 800; letter-spacing: 0.08em; word-break: break-all; }
 .admForm .admReveal { display: flex; align-items: center; gap: 8px; font-size: var(--text-sm); font-weight: 800; }
 .admForm .admReveal input { width: 20px; min-height: 20px; height: 20px; accent-color: #6b3fb0; }
+
+/* Admin step-up dialog and row actions */
+.admModal { position: fixed; inset: 0; z-index: var(--z-dialog); display: grid; place-items: center; padding: var(--space-4); background: rgba(10, 12, 20, 0.55); }
+.admModal .admCard { width: min(420px, 100%); }
+.admRowActions { display: flex; gap: 6px; }
