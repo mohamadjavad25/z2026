@@ -13,14 +13,23 @@ import { fetchStoredImage } from "./storage.js";
 
 const NOSNIFF = { "X-Content-Type-Options": "nosniff" };
 
-/** Bytes + type for one picture: Storage first, base64 column as the fallback. Null if neither works. */
-export async function loadPicture({ url, readBlob }) {
-  if (url) {
-    const stored = await fetchStoredImage(url);
-    if (stored && ALLOWED_POSTER_TYPES.includes(stored.contentType.split(";")[0])) return stored;
-  }
+async function fromStorage(url) {
+  const stored = url ? await fetchStoredImage(url) : null;
+  return stored && ALLOWED_POSTER_TYPES.includes(stored.contentType.split(";")[0]) ? stored : null;
+}
+
+/**
+ * Bytes + type for one picture: Storage first, base64 column as the fallback. Null if neither works.
+ * `readUrl` re-reads the Storage URL: a picture can move to Storage (its base64 emptied) between
+ * the moment the route looked at the row and the moment it reads the column.
+ */
+export async function loadPicture({ url, readBlob, readUrl }) {
+  const stored = await fromStorage(url);
+  if (stored) return stored;
   const parsed = parseMediaDataUrl(await readBlob(), ALLOWED_POSTER_TYPES);
-  return parsed ? { buffer: Buffer.from(parsed.base64, "base64"), contentType: parsed.contentType } : null;
+  if (parsed) return { buffer: Buffer.from(parsed.base64, "base64"), contentType: parsed.contentType };
+  const moved = readUrl ? await readUrl() : null;
+  return moved && moved !== url ? fromStorage(moved) : null;
 }
 
 export function pictureResponse(picture, cacheControl, extra = {}) {
@@ -64,7 +73,8 @@ export async function serveUserPicture(request, userId, which) {
 
   const picture = await loadPicture({
     url: meta.url,
-    readBlob: async () => (await get(db, `SELECT ${col.blob} AS data FROM users WHERE id = $1`, [userId]))?.data
+    readBlob: async () => (await get(db, `SELECT ${col.blob} AS data FROM users WHERE id = $1`, [userId]))?.data,
+    readUrl: async () => (await get(db, `SELECT ${col.url} AS data FROM users WHERE id = $1`, [userId]))?.data
   });
   if (!picture) return new Response(null, { status: 404 });
   return pictureResponse(picture, cacheControl, { ETag: etag });

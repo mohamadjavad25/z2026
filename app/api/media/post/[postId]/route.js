@@ -42,12 +42,13 @@ async function _GET(request, { params }) {
   }
 
   const readColumn = (column) => async () => (await get(db, `SELECT ${column} AS data FROM posts WHERE id = $1`, [postId]))?.data;
+  const source = (blobColumn, urlColumn, url) => ({ url, readBlob: readColumn(blobColumn), readUrl: readColumn(urlColumn) });
   // Small copy if there is one (posts saved before thumbnails existed fall back to the full picture).
   const thumbSource = wantsThumb && (row.thumb_url || row.has_thumb_blob)
-    ? { url: row.thumb_url, readBlob: readColumn("thumb") }
+    ? source("thumb", "thumb_url", row.thumb_url)
     : null;
   const picture = (thumbSource && (await loadPicture(thumbSource)))
-    || (await loadPicture({ url: row.image_url, readBlob: readColumn("image") }));
+    || (await loadPicture(source("image", "image_url", row.image_url)));
   if (!picture) return new Response(null, { status: 404 });
 
   // The ?v= in every post URL changes whenever the picture does, so a versioned URL never goes stale.
