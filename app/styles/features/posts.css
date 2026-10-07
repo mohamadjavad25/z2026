@@ -73,3 +73,9 @@
 :root .profilePostComposer .artistWorkUploadEmpty span { color: #6f7380; }
 :root .profilePostComposer .artistWorkUploadActions label { background: #ffffff; color: #14161d; border: 1px solid #dcdce4; box-shadow: none; }
 .pvOverlay .pvSheet { padding-bottom: 0 !important; }
+
+/* Post composer: service picker as tap chips (no dropdown) */
+.pcTags { display: flex; flex-wrap: wrap; gap: 8px; max-height: 148px; overflow-y: auto; overscroll-behavior: contain; padding: 2px; }
+.pcTags button { min-height: 40px; padding: 0 14px; border: 1px solid #e4e4ea; border-radius: 999px; background: #fff; color: #4b4f5c; font: inherit; font-size: 0.78rem; font-weight: 900; cursor: pointer; }
+.pcTags button.is-on { border-color: #14161d; background: #14161d; color: #fff; }
+.pcTags button:disabled { opacity: 0.5; }

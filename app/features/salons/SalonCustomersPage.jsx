@@ -3,11 +3,11 @@
 import { useMemo, useState } from "react";
 import { PageIcon } from "../../components/PageIcon";
 import { ServiceIcon } from "../../components/ServiceIcon";
-import { ArrowDownUp, CalendarCheck, Phone, Repeat2, Search, Users } from "lucide-react";
+import { ArrowDownUp, CalendarCheck, MessageSquare, Phone, Repeat2, Search, Users } from "lucide-react";
 import { ProfileSheet } from "../profile/ProfileSheet";
 import { bookingStatusLabel, bookingStatusTone } from "../client/bookingStatus";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
-import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar";
+import { formatRelativeBookingDayLabel, resolveRollingPersianDate } from "../../shared/lib/persianCalendar";
 import { buildBookingCustomers } from "./customers";
 
 export { buildBookingCustomers };
@@ -15,8 +15,20 @@ export { buildBookingCustomers };
 const FILTERS = [
   { id: "all", label: "همه" },
   { id: "upcoming", label: "نوبت پیش‌رو" },
-  { id: "repeat", label: "تکراری" }
+  { id: "repeat", label: "تکراری" },
+  { id: "lapsed", label: "مدتی نیامده" }
 ];
+
+const LAPSED_DAYS = 30;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** Had a finished visit, nothing booked ahead, and not seen for a month: worth a friendly nudge. */
+function isLapsed(customer, todayTime) {
+  return customer.completed > 0
+    && customer.upcoming === 0
+    && customer.lastVisitTime > 0
+    && todayTime - customer.lastVisitTime > LAPSED_DAYS * DAY_MS;
+}
 
 const SORTS = [
   { id: "recent", label: "آخرین رزرو" },
@@ -43,12 +55,17 @@ function CustomerSheet({ customer, onClose }) {
             <b>{customer.name}</b>
             <span dir="ltr">{customer.phone ? toPersianDigits(customer.phone) : "شماره ثبت نشده"}</span>
           </div>
-          {customer.phone ? (
+        </div>
+        {customer.phone ? (
+          <div className="cuActions">
             <a className="cuCall" href={`tel:${toLatinDigits(customer.phone)}`} aria-label={`تماس با ${customer.name}`}>
               <Phone size={16} /> تماس
             </a>
-          ) : null}
-        </div>
+            <a className="cuCall is-soft" href={`sms:${toLatinDigits(customer.phone)}`} aria-label={`پیامک به ${customer.name}`}>
+              <MessageSquare size={16} /> پیامک
+            </a>
+          </div>
+        ) : null}
         <div className="cuStats">
           <span><b>{toPersianDigits(customer.completed)}</b>انجام‌شده</span>
           <span><b>{toPersianDigits(customer.upcoming)}</b>پیش‌رو</span>
@@ -89,19 +106,22 @@ export function SalonCustomersPage({ active, bookings = [], ownerLabel = "سال
   const customers = useMemo(() => buildBookingCustomers(bookings), [bookings]);
   const repeatCount = useMemo(() => customers.filter((item) => item.visitCount >= 2).length, [customers]);
   const upcomingCount = useMemo(() => customers.filter((item) => item.upcoming > 0).length, [customers]);
+  const todayTime = useMemo(() => resolveRollingPersianDate("امروز").getTime(), []);
+  const lapsedCount = useMemo(() => customers.filter((item) => isLapsed(item, todayTime)).length, [customers, todayTime]);
 
   const visibleCustomers = useMemo(() => {
     const q = toLatinDigits(query.trim());
     let list = customers.filter((item) => {
       if (filter === "upcoming" && item.upcoming === 0) return false;
       if (filter === "repeat" && item.visitCount < 2) return false;
+      if (filter === "lapsed" && !isLapsed(item, todayTime)) return false;
       if (!q) return true;
       return item.name.includes(query.trim()) || toLatinDigits(item.phone).includes(q);
     });
     if (sort === "visits") list = [...list].sort((a, b) => b.visitCount - a.visitCount);
     else if (sort === "name") list = [...list].sort((a, b) => a.name.localeCompare(b.name, "fa"));
     return list;
-  }, [customers, query, filter, sort]);
+  }, [customers, query, filter, sort, todayTime]);
 
   const openCustomer = customers.find((item) => item.key === openKey) || null;
 
@@ -146,6 +166,7 @@ export function SalonCustomersPage({ active, bookings = [], ownerLabel = "سال
                   onClick={() => setFilter(item.id)}
                 >
                   {item.label}
+                  {item.id === "lapsed" && lapsedCount ? <b className="cuChipCount">{toPersianDigits(lapsedCount)}</b> : null}
                 </button>
               ))}
             </div>

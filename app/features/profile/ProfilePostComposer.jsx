@@ -52,6 +52,16 @@ export function ProfilePostComposer({
     return () => document.removeEventListener("keydown", onKey);
   }, [isOpen, saving, cropSrc, onClose]);
 
+  // Only one service on the menu: pick it (and name the post after it) right away.
+  const onlyChoice = tagOptions.length === 1 ? String(tagOptions[0] || "").trim() : "";
+  const needsAutoPick = isOpen && Boolean(onlyChoice) && !String(value?.tag || "").trim();
+  useEffect(() => {
+    if (!needsAutoPick) return;
+    onChange?.((prev) => (prev && !String(prev.tag || "").trim()
+      ? { ...prev, tag: onlyChoice, title: String(prev.title || "").trim() ? prev.title : onlyChoice }
+      : prev));
+  }, [needsAutoPick, onlyChoice, onChange]);
+
   if (!value || typeof document === "undefined") return null;
 
   // Categories are exactly the services on the menu; no free typing.
@@ -172,6 +182,30 @@ export function ProfilePostComposer({
         )}
         {cropSrc ? null : (
         <form className="artistWorkForm" onSubmit={onSubmit}>
+          <div className="artistWorkField artistWorkCategoryField">
+            <span>این کار مربوط به کدام خدمت است؟</span>
+            {tagChoices.length ? (
+              <div className="pcTags" role="radiogroup" aria-label="انتخاب خدمت">
+                {tagChoices.map((tag) => (
+                  <button
+                    type="button"
+                    key={tag}
+                    role="radio"
+                    aria-checked={value.tag === tag}
+                    className={value.tag === tag ? "is-on" : ""}
+                    disabled={saving}
+                    // A blank title takes the service name, so one tap is enough to move on.
+                    onClick={() => patch(String(value.title || "").trim() ? { tag } : { tag, title: tag })}
+                  >
+                    {tag}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <small className="pcHint">اول یک خدمت به منوی خودت اضافه کن؛ بعد می‌توانی نمونه‌کار را به آن وصل کنی.</small>
+            )}
+          </div>
+
           <div className="artistWorkRow">
             <label className="artistWorkField">
               <span>عنوان</span>
@@ -184,43 +218,6 @@ export function ProfilePostComposer({
                 disabled={saving}
               />
             </label>
-            <div className="artistWorkField artistWorkCategoryField">
-              <span>دسته</span>
-              <div className={`artistWorkTagSelect ${tagMenuOpen ? "is-open" : ""}`}>
-                <button
-                  type="button"
-                  className="artistWorkTagTrigger"
-                  aria-haspopup="listbox"
-                  aria-expanded={tagMenuOpen}
-                  onClick={() => onTagMenuOpenChange?.(!tagMenuOpen)}
-                  disabled={saving || !tagChoices.length}
-                >
-                  <span className={value.tag ? "" : "is-placeholder"}>
-                    {value.tag || (tagChoices.length ? "انتخاب خدمت" : "اول خدمت تعریف کن")}
-                  </span>
-                  <ChevronDown size={16} aria-hidden="true" />
-                </button>
-                {tagMenuOpen && (
-                  <div className="artistWorkTagMenu" role="listbox" aria-label="انتخاب دسته">
-                    {tagChoices.map((tag) => (
-                      <button
-                        type="button"
-                        key={tag}
-                        role="option"
-                        aria-selected={value.tag === tag}
-                        className={value.tag === tag ? "active" : ""}
-                        onClick={() => {
-                          patch({ tag });
-                          onTagMenuOpenChange?.(false);
-                        }}
-                      >
-                        {tag}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
           </div>
 
           {showCaption ? (

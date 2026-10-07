@@ -980,3 +980,15 @@ html[data-cbt="1"] body { padding-bottom: 92px; }
 }
 
 .pccDone svg { flex: none; }
+
+/* ═══ Customers: sheet actions + "lapsed" count ═══ */
+.cuActions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.cuActions .cuCall { justify-content: center; min-height: 46px; border-radius: 15px; font-size: 0.84rem; }
+.cuCall.is-soft { background: #f1f1f5; color: #14161d; }
+.cuChipCount { margin-inline-start: 6px; min-width: 18px; padding: 1px 6px; border-radius: 999px; background: #e11d74; color: #fff; font-size: 0.64rem; font-weight: 950; }
+.cuChips button.is-on .cuChipCount { background: #fff; color: #14161d; }
+
+/* ═══ Staff invite: share + copy side by side ═══ */
+.artistInviteQrActions { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.artistInviteQrShare { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 16px; border: 0; border-radius: 999px; background: #14161d; color: #fff; font: inherit; font-size: 0.72rem; font-weight: 900; cursor: pointer; }
+.artistInviteQrActions .artistInviteQrCopy { justify-self: auto; }
