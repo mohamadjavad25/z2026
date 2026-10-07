@@ -70,9 +70,10 @@ export function ServiceComposerModal({
       .slice(0, 3);
   }, [catalog, addedNames, draft?.id, draft?.name]);
 
+  const swipeStart = useRef(null);
+
   if (!open || !draft) return null;
 
-  const swipeStart = useRef(null);
   const handleSwipeStart = (event) => { swipeStart.current = event.touches[0].clientY; };
   const handleSwipeEnd = (event) => {
     const start = swipeStart.current;
