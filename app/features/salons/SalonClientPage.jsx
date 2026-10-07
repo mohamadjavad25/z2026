@@ -96,7 +96,7 @@ export function SalonClientPage({
   const followerCount = toPersianDigits(followerCountValue);
   const staffCount = selectedSalon?.staff?.length || 0;
   const publicName = selectedSalon?.name || "سالن";
-  const publicTag = selectedSalon?.tag || "سالن زیبایی";
+  const publicTag = selectedSalon?.tag || "سالن";
   const managerName = selectedSalon?.managerName || selectedSalon?.manager_name || selectedSalon?.ownerName || selectedSalon?.owner_name || "مدیر سالن";
   const teamNames = (selectedSalon?.staff || [])
     .map((member) => member?.name || member?.fullName || member?.artist_name)

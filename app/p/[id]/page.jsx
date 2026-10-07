@@ -25,9 +25,9 @@ function ownerHref(post) {
 export async function generateMetadata({ params }) {
   const { id } = await params;
   const post = await loadPost(id);
-  if (!post) return { title: "نمونه‌کار پیدا نشد | زیبابان" };
-  const title = `${post.title} | ${post.salon || "زیبابان"}`;
-  const description = post.caption || `${post.title} — نمونه‌کار ${post.salon || ""} در زیبابان.`.trim();
+  if (!post) return { title: "نمونه‌کار پیدا نشد | فرفرو" };
+  const title = `${post.title} | ${post.salon || "فرفرو"}`;
+  const description = post.caption || `${post.title} — نمونه‌کار ${post.salon || ""} در فرفرو.`.trim();
   const url = `${SITE_URL}/p/${post.id}`;
   return {
     title,

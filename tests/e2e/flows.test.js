@@ -20,7 +20,7 @@ describe("auth forms (browser)", () => {
   it("shows Persian inline errors instead of the browser's own messages", async () => {
     const { page, context, problems } = await newPage();
     await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
-    await page.getByText("سالن زیبایی", { exact: true }).first().click();
+    await page.getByText("سالن", { exact: true }).first().click();
     await page.getByRole("button", { name: "تکمیل ثبت‌نام" }).click();
     const alerts = (await page.locator("[role=alert]").allInnerTexts()).filter(Boolean);
     // name, phone, password, terms: signup is intentionally short
@@ -327,7 +327,7 @@ describe("SMS code at sign-up (browser)", () => {
     // Pretend sign-up requires a code (the shared test server leaves it optional).
     await page.route("**/api/auth/otp/config", (route) => route.fulfill({ json: { data: { enabled: true, required: true, resendSeconds: 60 } } }));
     await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
-    await page.getByText("بانو", { exact: true }).first().click();
+    await page.getByText("مشتری", { exact: true }).first().click();
     await page.fill("[name=name]", "مشتری کدی");
     await page.fill("[name=area]", "تهران");
     await page.fill("[name=phone]", phone);

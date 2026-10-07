@@ -206,7 +206,7 @@ export function PublicArtistModal({
                 />
                 {guest ? (
                   <p className="artistBookingPhoneWarning is-info">
-                    برای ثبت نوبت باید وارد زیبابان شوی. بعد از ورود، رزرو را از پروفایل همین آرتیست ادامه بده.
+                    برای ثبت نوبت باید وارد فرفرو شوی. بعد از ورود، رزرو را از پروفایل همین آرتیست ادامه بده.
                   </p>
                 ) : !clientPhone ? (
                   <p className="artistBookingPhoneWarning">

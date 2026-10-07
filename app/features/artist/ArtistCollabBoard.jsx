@@ -226,7 +226,7 @@ export function ArtistCollabBoard({
                     <CollabRow
                       key={invite.id}
                       avatar={invite.salonAvatar}
-                      title={invite.salonName || "سالن زیبابان"}
+                      title={invite.salonName || "سالن فرفرو"}
                       subtitle={invite.role || invite.artistService || "همکار سالن"}
                       meta={invite.salonArea}
                       terms={<TermsChips days={invite.days} from={invite.from} to={invite.to} share={invite.share} capacity={invite.capacity} />}
@@ -260,7 +260,7 @@ export function ArtistCollabBoard({
                   <CollabRow
                     key={`handled-invite-${invite.id}`}
                     avatar={invite.salonAvatar}
-                    title={invite.salonName || "سالن زیبابان"}
+                    title={invite.salonName || "سالن فرفرو"}
                     subtitle={invite.role || "همکار"}
                     meta={invite.salonArea}
                     status={invite.status}

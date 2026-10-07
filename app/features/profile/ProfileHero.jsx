@@ -38,7 +38,7 @@ export function ProfileHero({
   modeRail = null
 }) {
   const type = profile?.type || "";
-  const name = profile?.data?.name || "پروفایل زیبابان";
+  const name = profile?.data?.name || "پروفایل فرفرو";
   const avatar = profile?.data?.avatar || defaultAvatarFor(profile?.type);
   const poster = profile?.data?.poster || "";
   const avatarPosition = profile?.data?.avatarPosition || "50% 50%";
@@ -124,7 +124,7 @@ export function ProfileHero({
             <img className="profileAvatarImage" src={avatar} alt="" aria-hidden="true" style={{ objectPosition: avatarPosition }} />
           </span>
           <div className="profileHeroCopy">
-            <p>{kicker || "پروفایل بانو"}</p>
+            <p>{kicker || "پروفایل مشتری"}</p>
             <h2>{name}</h2>
             <span>
               <MapPin size={15} aria-hidden="true" />

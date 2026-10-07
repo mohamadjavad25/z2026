@@ -3,7 +3,7 @@ import { Brush, Scissors, UserRound } from "lucide-react";
 export const profileRoles = [
   {
     id: "client",
-    label: "بانو",
+    label: "مشتری",
     hint: "کشف، تست و رزرو",
     icon: UserRound,
     image: "/role-client.png",
@@ -11,7 +11,7 @@ export const profileRoles = [
   },
   {
     id: "salon",
-    label: "سالن زیبایی",
+    label: "سالن",
     hint: "رزرو و تیم سالن",
     icon: Scissors,
     image: "/role-salon.png",
@@ -29,7 +29,7 @@ export const profileRoles = [
 
 export const profileRoleMeta = {
   client: {
-    kicker: "پروفایل بانو",
+    kicker: "پروفایل مشتری",
     desc: "رزرو نوبت از سالن‌ها و آرتیست‌ها",
     heroClass: "is-client",
     overviewLabel: "پروفایل",

@@ -82,7 +82,7 @@ export function SalonClientGallery({ salon, items, getFallbackStyle, postActions
       <PostViewer
         post={selectedItem}
         posts={browseList}
-        owner={selectedItem ? { name: salon?.name || "سالن", role: "سالن زیبایی", area: salon?.area || "", avatar: salon?.avatar || "" } : null}
+        owner={selectedItem ? { name: salon?.name || "سالن", role: "سالن", area: salon?.area || "", avatar: salon?.avatar || "" } : null}
         isSaved={selectedItem ? Boolean(postActions?.isSaved?.(selectedItem)) : false}
         onClose={() => setSelectedItem(null)}
         onNavigate={openItem}

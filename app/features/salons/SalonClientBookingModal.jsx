@@ -40,7 +40,7 @@ export function SalonClientBookingModal({
     price ? `${formatTomanNumber(price)} تومان` : ""
   ].filter(Boolean);
   const closedDays = getClosedDayLabels(salon.hours, salonClientBookingDays);
-  const profileName = booking.client || "مشتری زیبابان";
+  const profileName = booking.client || "مشتری فرفرو";
   const hasPhone = Boolean(booking.phone);
   const profilePhone = booking.phone ? toPersianDigits(toLatinDigits(booking.phone)) : "شماره تماس ثبت نشده";
   const canSubmit = Boolean(freeTimes.length && !busy && hasPhone);

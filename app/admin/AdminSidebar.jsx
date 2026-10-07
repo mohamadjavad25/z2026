@@ -58,7 +58,7 @@ export function AdminSidebar({ tabs, active, onSelect, name, onLogout, theme, on
           <button type="button" className="admSideToggle" aria-label={expanded ? "جمع‌کردن منو" : "باز‌کردن منو"} aria-expanded={expanded} onClick={toggle}>
             <PanelLeft size={20} aria-hidden="true" />
           </button>
-          <span className="admBrand admSideLabel">زیبابان</span>
+          <span className="admBrand admSideLabel">فرفرو</span>
           <button type="button" className="admSideClose" aria-label="پنهان‌کردن منو" onClick={() => setMobileOpen(false)}>
             <X size={20} aria-hidden="true" />
           </button>

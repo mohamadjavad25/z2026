@@ -14,7 +14,7 @@ export function ProfileSignupSteps({ step }) {
           </span>
           <span className="profileStepCopy">
             <strong>انتخاب نقش</strong>
-            <small>بانو، سالن یا آرتیست</small>
+            <small>مشتری، سالن یا آرتیست</small>
           </span>
         </li>
         <li className="profileStepBridge" aria-hidden="true">
@@ -34,7 +34,7 @@ export function ProfileSignupSteps({ step }) {
           <span className="profileStepDot" aria-hidden="true"><b>۳</b></span>
           <span className="profileStepCopy">
             <strong>پروفایل آماده</strong>
-            <small>ورود به دنیای زیبابان</small>
+            <small>ورود به دنیای فرفرو</small>
           </span>
         </li>
       </ol>
