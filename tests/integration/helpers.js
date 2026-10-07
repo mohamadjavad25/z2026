@@ -79,3 +79,21 @@ export function futureBookingDay(openDaysAhead = 2) {
 export async function adminClient() {
   return createClient(process.env.TEST_ADMIN_COOKIE);
 }
+
+let enrolledAdmins = {};
+/** A separate admin session for tests that need their own (e.g. the 5-minute password re-check must not leak into the shared one). Registers the account and links an authenticator the first time, then reuses the session. */
+export async function enrolledAdminClient(phone) {
+  if (enrolledAdmins[phone]) return createClient(enrolledAdmins[phone]);
+  const { TEST_ADMIN_PASSWORD, TEST_ADMIN_SETUP_KEY } = await import("../globalSetup.js");
+  const { totpCodeAt, totpStepAt } = await import("../../app/lib/totp.js");
+  await registerUser(createClient(), { type: "client", name: "Test Admin", phone }).catch(() => null);
+  const client = createClient();
+  const headers = { "x-forwarded-for": `10.8.${Math.floor(Math.random() * 250)}.${Math.floor(Math.random() * 250)}` };
+  const credentials = { phone, password: TEST_ADMIN_PASSWORD, setupKey: TEST_ADMIN_SETUP_KEY };
+  const started = await client.post("/api/admin/auth/enroll/start", credentials, { headers });
+  if (!started.ok) throw new Error(`admin enroll start failed: ${JSON.stringify(started.payload)}`);
+  const confirmed = await client.post("/api/admin/auth/enroll/confirm", { ...credentials, code: totpCodeAt(started.payload.data.secret, totpStepAt()) }, { headers });
+  if (!confirmed.ok) throw new Error(`admin enroll confirm failed: ${JSON.stringify(confirmed.payload)}`);
+  enrolledAdmins = { ...enrolledAdmins, [phone]: client.cookie() };
+  return client;
+}
