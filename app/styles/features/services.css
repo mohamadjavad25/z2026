@@ -968,3 +968,14 @@ button.svcCard:active { transform: scale(0.99); }
 
 /* profile checklist: logo chip is a label wrapping the hidden file input */
 .profileCompleteness li label.profileCompletenessPick { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 12px; border-radius: 999px; background: #14161d; color: #fff; font: inherit; font-size: 0.78rem; font-weight: 800; cursor: pointer; }
+
+/* quick area sheet (profile checklist) */
+.quickAreaLocate { min-height: 50px; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; border: 0; border-radius: 16px; background: #14161d; color: #fff; font: inherit; font-size: 0.86rem; font-weight: 900; cursor: pointer; }
+.quickAreaLocate:disabled { opacity: 0.6; }
+.quickAreaError { margin: 8px 2px 0; color: #b4232f; font-size: 0.74rem; font-weight: 800; line-height: 1.6; }
+.quickAreaList { display: grid; gap: 6px; margin-top: 10px; max-height: 48dvh; overflow-y: auto; overscroll-behavior: contain; }
+.quickAreaList button { min-height: 48px; display: flex; align-items: center; gap: 8px; padding: 0 14px; border: 1px solid #ececf0; border-radius: 14px; background: #fff; color: #14161d; font: inherit; cursor: pointer; text-align: right; }
+.quickAreaList button:active { background: #f6f6f8; }
+.quickAreaList b { font-size: 0.88rem; font-weight: 900; }
+.quickAreaList small { margin-inline-start: auto; color: #6f7380; font-size: 0.7rem; font-weight: 750; }
+.quickAreaEmpty { margin: 14px 0; text-align: center; color: #6f7380; font-size: 0.8rem; font-weight: 800; }

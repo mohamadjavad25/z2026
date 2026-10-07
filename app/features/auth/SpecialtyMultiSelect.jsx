@@ -18,9 +18,24 @@ import { toPersianDigits } from "../../shared/lib/digits";
  * type="hidden" -- hidden inputs skip HTML5 constraint validation, and
  * `required` needs to keep working here).
  */
-export function SpecialtyMultiSelect({ name, placeholder, options, required, defaultValue = "", onChange, invalid = false, describedBy }) {
+export function SpecialtyMultiSelect({
+  name,
+  placeholder,
+  options,
+  required,
+  defaultValue = "",
+  onChange,
+  invalid = false,
+  describedBy,
+  // Direct mode (profile checklist): no trigger field, the sheet is open on mount,
+  // `onDone(selected)` fires from the confirm button and `onDismiss` on any other close.
+  hideTrigger = false,
+  defaultOpen = false,
+  onDone,
+  onDismiss
+}) {
   const initial = String(defaultValue || "").split(/[،,]/).map((item) => item.trim()).filter(Boolean);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   const [selected, setSelected] = useState(initial);
   // Previously saved values that aren't in the preset list stay selectable.
   const [extraOptions, setExtraOptions] = useState(() => initial.filter((item) => !options.includes(item)));
@@ -58,11 +73,21 @@ export function SpecialtyMultiSelect({ name, placeholder, options, required, def
   function close() {
     setOpen(false);
     setQuery("");
+    onDismiss?.();
+  }
+
+  function confirm() {
+    if (onDone && selected.length) {
+      setOpen(false);
+      onDone(selected);
+      return;
+    }
+    close();
   }
 
   return (
     <div className="specialtySelect" onClick={(event) => event.stopPropagation()}>
-      <button
+      {hideTrigger ? null : <button
         type="button"
         className="specialtySelectTrigger"
         onClick={() => setOpen(true)}
@@ -80,10 +105,10 @@ export function SpecialtyMultiSelect({ name, placeholder, options, required, def
         )}
         {selected.length ? <b className="specialtySelectCount">{toPersianDigits(selected.length)}</b> : null}
         <ChevronDown size={16} className="specialtySelectChevron" />
-      </button>
+      </button>}
 
       {/* Off-screen but focusable/validatable -- keeps `required` working. */}
-      <input
+      {hideTrigger ? null : <input
         className="specialtySelectValue"
         type="text"
         name={name}
@@ -92,7 +117,7 @@ export function SpecialtyMultiSelect({ name, placeholder, options, required, def
         readOnly
         tabIndex={-1}
         aria-hidden="true"
-      />
+      />}
 
       <ProfileSheet
         open={open}
@@ -155,7 +180,7 @@ export function SpecialtyMultiSelect({ name, placeholder, options, required, def
         </div>
 
         <div className="specialtySheetBar">
-          <Button block icon={Check} className="specialtySheetDone" onClick={close}>
+          <Button block icon={Check} className="specialtySheetDone" onClick={confirm}>
             {selected.length ? `تأیید (${toPersianDigits(selected.length)} مورد)` : "بستن"}
           </Button>
         </div>

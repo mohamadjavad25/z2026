@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { ChevronDown, ChevronLeft, MapPin, Navigation, Search, X, Check, Locate } from "lucide-react";
 
-const PROVINCES = [
+export const PROVINCES = [
   {
     name: "تهران", lat: 35.6892, lng: 51.3890,
     cities: [
