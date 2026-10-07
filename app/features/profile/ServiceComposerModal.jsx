@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Check, Plus, Search, Timer } from "lucide-react";
 import { ServiceEmoji } from "../../components/ServiceEmoji";
 import { ServiceIcon } from "../../components/ServiceIcon";
@@ -70,7 +70,16 @@ export function ServiceComposerModal({
       .slice(0, 3);
   }, [catalog, addedNames, draft?.id, draft?.name]);
 
+  const swipeStart = useRef(null);
+
   if (!open || !draft) return null;
+
+  const handleSwipeStart = (event) => { swipeStart.current = event.touches[0].clientY; };
+  const handleSwipeEnd = (event) => {
+    const start = swipeStart.current;
+    swipeStart.current = null;
+    if (start != null && event.changedTouches[0].clientY - start > 60) onClose?.();
+  };
 
   const editing = Boolean(draft.id);
   const hasName = Boolean(draft.name.trim());
@@ -85,7 +94,7 @@ export function ServiceComposerModal({
       onClick={onClose}
     >
       <article className="svcSheet" onClick={(event) => event.stopPropagation()}>
-        <header className="svcSheetHead">
+        <header className="svcSheetHead" onTouchStart={handleSwipeStart} onTouchEnd={handleSwipeEnd}>
           <div>
             <span>
               {!editing && addedCount
