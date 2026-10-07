@@ -257,7 +257,7 @@ describe("admin page (browser)", () => {
     await page.getByRole("button", { name: "جمع‌کردن منو" }).click();
 
     // The other panels open without errors.
-    for (const tabName of ["محتوا", "رزروها", "امنیت"]) {
+    for (const tabName of ["محتوا", "رزروها", "پشتیبانی", "امنیت"]) {
       await page.getByRole("tab", { name: tabName }).click();
       await page.locator(".admCard").first().waitFor();
     }
@@ -277,6 +277,39 @@ describe("admin page (browser)", () => {
     expect(problems).toEqual([]);
     await context.close();
   }, 60_000);
+});
+
+describe("support (browser)", () => {
+  it("a user sends a message from Settings (accessible sheet) and it reaches the admin inbox", async () => {
+    const { adminClient } = await import("../integration/helpers.js");
+    const axePath = new URL("../../node_modules/axe-core/axe.min.js", import.meta.url).pathname;
+    const userApi = createClient();
+    await registerUser(userApi, { type: "client", name: "کاربر پشتیبانی" });
+    const { page, context, problems } = await newPage({ cookie: userApi.cookie() });
+
+    await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
+    await page.locator("nav.bottomNav > button").nth(0).click();
+    await page.getByRole("button", { name: "ارتباط با پشتیبانی" }).click();
+    const dialog = page.getByRole("dialog", { name: "ارتباط با پشتیبانی" });
+    await dialog.waitFor();
+    await settleAnimations(page);
+    await page.addScriptTag({ path: axePath });
+    const violations = await page.evaluate(async () => {
+      const result = await axe.run(document.querySelector(".supSheet"), { resultTypes: ["violations"] });
+      return result.violations.filter((v) => v.impact === "serious" || v.impact === "critical").map((v) => `${v.id}: ${v.nodes[0].html.slice(0, 80)}`);
+    });
+    expect(violations).toEqual([]);
+    await dialog.getByLabel("پیامت").fill("سلام، این یک پیام آزمایشی از مرورگر برای پشتیبانی است.");
+    await dialog.getByRole("button", { name: "ارسال پیام" }).click();
+    await page.getByText("پیامت رسید").waitFor();
+    await page.getByRole("button", { name: "باشه" }).click();
+    expect(problems).toEqual([]);
+    await context.close();
+
+    const admin = await adminClient();
+    const messages = (await admin.get("/api/admin/support?kind=support&q=" + encodeURIComponent("پیام آزمایشی از مرورگر"))).payload.data;
+    expect(messages.tickets.length).toBeGreaterThan(0);
+  }, 90_000);
 });
 
 describe("SMS code at sign-up (browser)", () => {

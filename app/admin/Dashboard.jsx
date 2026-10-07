@@ -5,7 +5,7 @@ import { Activity, CalendarCheck, CircleCheck, Image as ImageIcon, ShieldCheck, 
 import { apiFetch } from "../shared/api/client";
 import { toPersianDigits } from "../shared/lib/digits";
 import { Button, Chip } from "../components/ui";
-import { ACTION_LABEL, TYPE_LABEL, num } from "./format";
+import { ACTION_LABEL, TYPE_LABEL, ago, num } from "./format";
 
 const SERIES = [
   { key: "signups", label: "ثبت‌نام", color: "var(--a-s1)", dash: "" },
@@ -24,16 +24,6 @@ function greeting() {
   if (hour < 17) return "ظهر بخیر";
   if (hour < 20) return "عصر بخیر";
   return "شب بخیر";
-}
-
-function ago(value) {
-  const seconds = Math.round((new Date(value).getTime() - Date.now()) / 1000);
-  const rtf = new Intl.RelativeTimeFormat("fa", { numeric: "auto" });
-  const abs = Math.abs(seconds);
-  if (abs < 60) return "همین الان";
-  if (abs < 3600) return rtf.format(Math.round(seconds / 60), "minute");
-  if (abs < 86400) return rtf.format(Math.round(seconds / 3600), "hour");
-  return rtf.format(Math.round(seconds / 86400), "day");
 }
 
 /** Monotone cubic curve through the points (never overshoots below zero or above a peak). */
@@ -274,6 +264,7 @@ export function Dashboard({ onGo, name }) {
 
   const { kpis, totals, series, alerts, forecast } = data;
   const attention = [
+    { n: alerts.openTickets, text: "پیام یا گزارش پشتیبانی منتظر رسیدگی", go: "support" },
     { n: alerts.pendingResets, text: "درخواست بازیابی رمز منتظر پیگیری", go: "resets" },
     { n: alerts.adminFailedLogins, text: "تلاش ناموفق ورود به پنل در ۲۴ ساعت", go: "security" },
     { n: alerts.smsFailed, text: "پیامک ناموفق در ۲۴ ساعت", go: null },

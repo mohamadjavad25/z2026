@@ -10,6 +10,7 @@ import { UserDetail } from "./UserDetail";
 import { ContentTab } from "./ContentTab";
 import { BookingsTab } from "./BookingsTab";
 import { SecurityTab } from "./SecurityTab";
+import { SupportTab } from "./SupportTab";
 import { adminFetch } from "./adminFetch";
 import { Dashboard } from "./Dashboard";
 import { Avatar } from "./Avatar";
@@ -20,6 +21,7 @@ const TABS = [
   { id: "users", label: "کاربران" },
   { id: "content", label: "محتوا" },
   { id: "bookings", label: "رزروها" },
+  { id: "support", label: "پشتیبانی" },
   { id: "resets", label: "بازیابی رمز" },
   { id: "security", label: "امنیت" },
   { id: "actions", label: "گزارش عملیات" }
@@ -84,7 +86,7 @@ function AdminApp({ theme, onToggleTheme }) {
   const current = TABS.find((item) => item.id === tab) || TABS[0];
   return (
     <div className="admShell">
-      <AdminSidebar tabs={TABS} active={tab} onSelect={setTab} name={me.name} onLogout={logout} theme={theme} onToggleTheme={onToggleTheme} />
+      <AdminSidebar tabs={TABS} active={tab} onSelect={setTab} name={me.name} onLogout={logout} theme={theme} onToggleTheme={onToggleTheme} badges={{ support: me.openTickets || 0 }} />
       <main className="adm">
         {tab === "overview" ? null : (
           <header className="admHead">
@@ -98,6 +100,7 @@ function AdminApp({ theme, onToggleTheme }) {
         {tab === "users" ? <Users /> : null}
         {tab === "content" ? <ContentTab /> : null}
         {tab === "bookings" ? <BookingsTab /> : null}
+        {tab === "support" ? <SupportTab onChanged={refresh} /> : null}
         {tab === "resets" ? <Resets /> : null}
         {tab === "security" ? <SecurityTab /> : null}
         {tab === "actions" ? <Actions /> : null}

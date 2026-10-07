@@ -1,0 +1,31 @@
+/* Admin: support inbox (SupportTab.jsx) and the badge on the rail. Colours come from the .admRoot tokens. */
+.admSideIcon { position: relative; display: inline-flex; flex: 0 0 auto; }
+.admBadgeDot { position: absolute; top: -3px; inset-inline-end: -4px; width: 9px; height: 9px; border-radius: 50%; background: var(--a-accent); box-shadow: 0 0 0 2px var(--a-side), 0 0 10px var(--a-accent); }
+.admSide.is-open .admBadgeDot, .admSide.is-mobile-open .admBadgeDot { display: none; }
+.admBadge { margin-inline-start: auto; display: inline-grid; place-items: center; min-width: 24px; height: 22px; padding: 0 7px; border-radius: var(--radius-pill); background: var(--a-accent); color: #fff; font-size: 0.74rem; font-weight: 900; }
+.admSide.is-open .admBadge { width: auto; }
+
+.admInbox { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.admInbox li { border-radius: 16px; background: var(--a-card2); transition: background 0.15s ease; }
+.admInbox li:hover { background: var(--a-raise); }
+.admInbox li.is-closed { opacity: 0.62; }
+.admInbox button { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px; border: 0; border-radius: 16px; background: transparent; color: inherit; font: inherit; text-align: start; cursor: pointer; }
+.admInboxBody { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.admInboxBody b { font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.admInboxBody small { color: var(--a-muted); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.admInbox time { flex: 0 0 auto; color: var(--a-faint); font-size: var(--text-sm); font-weight: 650; }
+.admTicketIcon { flex: 0 0 auto; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 12px; background: color-mix(in srgb, var(--a-s1) 16%, transparent); color: var(--a-s1); }
+.admTicketIcon.is-report { background: color-mix(in srgb, var(--a-s2) 16%, transparent); color: var(--a-s2); }
+
+.admStatus.is-open { background: var(--a-warn-soft); color: var(--a-warn); box-shadow: none; }
+.admStatus.is-in_progress { background: color-mix(in srgb, var(--a-s1) 16%, transparent); color: var(--a-s1); box-shadow: none; }
+.admStatus.is-closed { background: var(--a-card); color: var(--a-faint); }
+
+.admTicket { display: grid; gap: var(--space-3); }
+.admTicket .admHead { align-items: center; }
+.admTicket h2 { margin: 0; }
+.admTicketMeta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.admTicketMeta small { color: var(--a-muted); font-weight: 650; }
+.admTicketBody { margin: 0; padding: 14px 16px; border-radius: 14px; background: var(--a-card2); line-height: 2; font-weight: 600; white-space: pre-wrap; overflow-wrap: anywhere; }
+.admRoot .ui-field textarea { padding: 12px var(--space-4); resize: vertical; line-height: 1.9; }
+@media (max-width: 560px) { .admInbox time { display: none; } }
