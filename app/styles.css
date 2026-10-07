@@ -2,6 +2,8 @@
 @import "./styles/ui.css";
 @import "./styles/features/admin.css";
 @import "./styles/features/admin-dashboard.css";
+@import "./styles/features/admin-support.css";
+@import "./styles/features/support.css";
 @import "./styles/features/shell.css";
 @import "./styles/features/profile.css";
 @import "./styles/features/schedule.css";

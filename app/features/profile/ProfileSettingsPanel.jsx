@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { useSoundPreference } from "../../shared/lib/useSoundPreference";
 import { playSound } from "../../shared/lib/sounds";
+import { SupportSheet } from "../support";
 
 const DELETE_CONFIRM_WORD = "حذف";
 
@@ -129,6 +130,7 @@ export function ProfileSettingsPanel({
   onDeleteAccount
 }) {
   const [soundOn, setSoundOn] = useSoundPreference();
+  const [supportOpen, setSupportOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [deleteError, setDeleteError] = useState("");
@@ -242,9 +244,11 @@ export function ProfileSettingsPanel({
       {artistBooking}
 
       <div className="neoSettingsLegalLinks">
+        <button type="button" onClick={() => setSupportOpen(true)}>ارتباط با پشتیبانی</button>
         <Link href="/terms">قوانین و مقررات</Link>
         <Link href="/privacy">حریم خصوصی</Link>
       </div>
+      {supportOpen ? <SupportSheet onClose={() => setSupportOpen(false)} /> : null}
 
       <button type="button" className="neoSettingsLogout" onClick={onLogout}>
         <LogOut size={16} />

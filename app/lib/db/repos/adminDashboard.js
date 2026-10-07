@@ -1,4 +1,5 @@
 import { getDb, all, get } from "../connection.js";
+import { countActive } from "./support.js";
 
 const TZ = "Asia/Tehran";
 const DAY = "INTERVAL '1 day'";
@@ -92,6 +93,7 @@ export async function getDashboard(rangeDays = 7) {
     `)
   ]);
 
+  const openTickets = await countActive().catch(() => 0);
   const signups = series.map((row) => row.signups);
   const bookings = series.map((row) => row.bookings);
   return {
@@ -108,6 +110,7 @@ export async function getDashboard(rangeDays = 7) {
     series,
     alerts: {
       pendingResets: alerts?.pending_resets || 0,
+      openTickets,
       smsFailed: alerts?.sms_failed || 0,
       adminFailedLogins: alerts?.admin_failed_logins || 0,
       suspended: totals?.suspended || 0,

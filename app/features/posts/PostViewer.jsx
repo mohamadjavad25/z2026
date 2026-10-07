@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Bookmark, Calendar, ChevronLeft, ChevronRight, Eye, Lock, Pencil, Pin, Share2 } from "lucide-react";
+import { Bookmark, Calendar, ChevronLeft, ChevronRight, Eye, Flag, Lock, Pencil, Pin, Share2 } from "lucide-react";
 import { SheetClose } from "../../components/SheetClose";
+import { ReportSheet } from "../support";
 import { formatPostAge, postCount } from "./postFormat";
 
 /**
@@ -31,6 +32,7 @@ export function PostViewer({
   const sheetRef = useRef(null);
   const returnFocusRef = useRef(null);
   const touchRef = useRef(null);
+  const [reporting, setReporting] = useState(false);
 
   const index = post ? posts.findIndex((item) => String(item.id) === String(post.id)) : -1;
   const prev = index > 0 ? posts[index - 1] : null;
@@ -157,6 +159,12 @@ export function PostViewer({
                 اشتراک‌گذاری
               </button>
             ) : null}
+            {!canEdit && post.id ? (
+              <button type="button" className="pvAction" onClick={() => setReporting(true)}>
+                <Flag size={16} />
+                گزارش
+              </button>
+            ) : null}
             {canEdit ? (
               <button type="button" className="pvAction is-primary" onClick={() => onEdit?.(post)}>
                 <Pencil size={16} />
@@ -166,6 +174,7 @@ export function PostViewer({
           </div>
         </div>
         <SheetClose onClick={onClose} />
+        {reporting ? <ReportSheet targetType="post" targetId={post.id} title={post.title} above onClose={() => setReporting(false)} /> : null}
       </article>
     </div>,
     document.body
