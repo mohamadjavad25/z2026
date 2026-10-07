@@ -5,6 +5,7 @@ import { apiFetch } from "../shared/api/client";
 import { toPersianDigits } from "../shared/lib/digits";
 import { Button, Chip, Field } from "../components/ui";
 import { AdminLogin } from "./AdminLogin";
+import { AdminSidebar } from "./AdminSidebar";
 import { StepUpDialog } from "./StepUpDialog";
 import { UserDetail } from "./UserDetail";
 import { ContentTab } from "./ContentTab";
@@ -68,29 +69,27 @@ export function AdminClient() {
   if (!me) return <main className="adm"><p className="admMuted">در حال بارگذاری…</p></main>;
   if (!me.isAdmin) return <AdminLogin configured={me.configured !== false} setupKeyConfigured={me.setupKeyConfigured !== false} onDone={refresh} />;
 
+  const current = TABS.find((item) => item.id === tab) || TABS[0];
   return (
-    <main className="adm">
-      <header className="admHead">
-        <h1>مدیریت زیبابان</h1>
-        <span className="admMuted">{me.name}</span>
-        <button type="button" className="admLink" onClick={logout}>خروج</button>
-      </header>
-      <nav className="admTabs" role="tablist" aria-label="بخش‌های مدیریت">
-        {TABS.map((item) => (
-          <button key={item.id} type="button" role="tab" aria-selected={tab === item.id} className={tab === item.id ? "is-on" : ""} onClick={() => setTab(item.id)}>
-            {item.label}
-          </button>
-        ))}
-      </nav>
-      {tab === "overview" ? <Overview /> : null}
-      {tab === "users" ? <Users /> : null}
-      {tab === "content" ? <ContentTab /> : null}
-      {tab === "bookings" ? <BookingsTab /> : null}
-      {tab === "resets" ? <Resets /> : null}
-      {tab === "security" ? <SecurityTab /> : null}
-      {tab === "actions" ? <Actions /> : null}
-      <StepUpDialog />
-    </main>
+    <div className="admShell">
+      <AdminSidebar tabs={TABS} active={tab} onSelect={setTab} name={me.name} onLogout={logout} />
+      <main className="adm">
+        <header className="admHead">
+          <div>
+            <h1>{current.label}</h1>
+            <p className="admMuted">مدیریت زیبابان</p>
+          </div>
+        </header>
+        {tab === "overview" ? <Overview /> : null}
+        {tab === "users" ? <Users /> : null}
+        {tab === "content" ? <ContentTab /> : null}
+        {tab === "bookings" ? <BookingsTab /> : null}
+        {tab === "resets" ? <Resets /> : null}
+        {tab === "security" ? <SecurityTab /> : null}
+        {tab === "actions" ? <Actions /> : null}
+        <StepUpDialog />
+      </main>
+    </div>
   );
 }
 

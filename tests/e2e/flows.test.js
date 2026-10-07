@@ -249,6 +249,13 @@ describe("admin page (browser)", () => {
     await page.getByRole("tab", { name: "نمای کلی" }).click();
     expect(await page.locator(".admGrid").innerText()).toContain("کل کاربران");
 
+    // The left rail starts as icons only, and opens/closes from its top button.
+    const rail = page.locator(".admSide");
+    expect(await rail.evaluate((el) => el.getBoundingClientRect().width)).toBeLessThan(100);
+    await page.getByRole("button", { name: "باز‌کردن منو" }).click();
+    await page.waitForFunction(() => document.querySelector(".admSide").getBoundingClientRect().width > 200);
+    await page.getByRole("button", { name: "جمع‌کردن منو" }).click();
+
     // The other panels open without errors.
     for (const tabName of ["محتوا", "رزروها", "امنیت"]) {
       await page.getByRole("tab", { name: tabName }).click();
