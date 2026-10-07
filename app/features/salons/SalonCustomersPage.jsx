@@ -129,11 +129,8 @@ export function SalonCustomersPage({ active, bookings = [], ownerLabel = "سال
     <div className={`salonCustomersPage mobilePage page-customers ${active ? "is-active" : ""}`} id="customers">
       <div className="salonCustomersHead">
         <div className="salonCustomersTitle">
-          <span className="pageHeadIcon" aria-hidden="true"><PageIcon name="customers" size={30} /></span>
-          <div>
-            <span>جامعه مشتریان</span>
-            <strong>{ownerLabel}</strong>
-          </div>
+          <span className="wavyTitle">جامعه مشتریان</span>
+          <strong>{ownerLabel}</strong>
         </div>
       </div>
 
