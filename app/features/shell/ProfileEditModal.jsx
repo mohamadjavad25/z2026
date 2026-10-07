@@ -1,13 +1,14 @@
 "use client";
 
-import { defaultAvatarFor } from "../../shared/lib/defaultAvatar";
 import { useEffect, useState } from "react";
-import { SpecialtyMultiSelect } from "../auth/SpecialtyMultiSelect";
+import { Camera, Check, ChevronDown, KeyRound, X } from "lucide-react";
+import { defaultAvatarFor } from "../../shared/lib/defaultAvatar";
 import { beautySpecialtyOptions } from "../../shared/constants/roles";
-import { Camera, Check, CheckCircle2, Mail, Phone, ShieldCheck, UserRound, X } from "lucide-react";
+import { SpecialtyMultiSelect } from "../auth/SpecialtyMultiSelect";
 
 /**
- * Registered profile edit modal.
+ * Registered profile edit sheet: one tidy scrolling page with three groups
+ * (basics, contact, password) and a single save button that stays in reach.
  * Presentational: open/avatar/profile + submit/upload callbacks from HomeApp.
  */
 export function ProfileEditModal({
@@ -19,244 +20,156 @@ export function ProfileEditModal({
   onSubmit,
   saving = false
 }) {
-  const [stepIndex, setStepIndex] = useState(0);
-  // The "بعدی" (next) button turns into the "ذخیره تغییرات" (save & close)
-  // submit button the moment the last step is reached, in the exact same
-  // spot — a habitual second tap right after landing there (very common
-  // on mobile) used to submit and close the whole modal before anyone got
-  // a chance to type a new password. A brief guard keeps that same tap
-  // from landing on the now-different button underneath it.
-  const [justArrived, setJustArrived] = useState(false);
+  // The password fields only exist while the section is open, so a closed
+  // section can never send (or autofill) anything by accident.
+  const [passwordOpen, setPasswordOpen] = useState(false);
 
   useEffect(() => {
-    if (open) setStepIndex(0);
+    if (open) setPasswordOpen(false);
   }, [open]);
 
-  useEffect(() => {
-    setJustArrived(true);
-    const timer = setTimeout(() => setJustArrived(false), 500);
-    return () => clearTimeout(timer);
-  }, [stepIndex]);
-
   if (!open || !profile) return null;
+
   const isSalon = profile.type === "salon";
   // Field of activity exists for artists and salons only; clients have none.
   const hasActivityField = profile.type === "artist" || isSalon;
   const avatarSrc = avatarDraft || profile.data?.avatar || defaultAvatarFor(profile.type);
   const rawExperienceYears = profile.data?.experienceYears ?? "";
   const experienceYears = /^\d{1,2}$/.test(String(rawExperienceYears)) ? rawExperienceYears : "";
-  const managerName = profile.data?.managerName || "";
-  const completionSteps = [
-    {
-      key: "identity",
-      label: isSalon ? "برند و مدیر" : "هویت",
-      done: Boolean(profile.data?.name && (!isSalon || managerName) && avatarSrc),
-      Icon: UserRound
-    },
-    {
-      key: "contact",
-      label: "تماس",
-      done: Boolean(profile.data?.phone && profile.data?.email),
-      Icon: Phone
-    },
-    {
-      key: "trust",
-      label: "امنیت",
-      done: true,
-      Icon: ShieldCheck
-    }
-  ];
-  const lastStepIndex = completionSteps.length - 1;
+  const title = isSalon ? "ویرایش اطلاعات سالن" : "ویرایش پروفایل";
 
   return (
-    <div
-      className="artistProfileModal profileEditModal"
-      role="dialog"
-      aria-modal="true"
-      aria-label="ویرایش پروفایل"
-      onClick={onClose}
-    >
-      <article className="artistProfileSheet artistCreateSheet profileEditSheet" onClick={(event) => event.stopPropagation()}>
-        <form className="artistProfileForm artistCreatePopupForm profileEditForm" onSubmit={onSubmit}>
-          <header className="profileEditHero">
-            <div className="profileEditAvatarBlock">
-              <label className="profileEditAvatarUpload" title="آپلود عکس پروفایل">
-                <span className="profileEditAvatarPreview">
-                  <img src={avatarSrc} alt="" />
-                </span>
-                <span className="profileEditAvatarIcon" aria-hidden="true">
-                  <Camera size={16} />
-                </span>
-                <input className="captureInput" type="file" accept="image/*" onChange={onAvatarUpload} />
-              </label>
-            </div>
-            <div className="profileEditHeroCopy">
-              <span>{isSalon ? "تکمیل پروفایل سالن" : "ویرایش پروفایل"}</span>
-              <strong>{completionSteps[stepIndex]?.label || "اطلاعات اصلی"}</strong>
-            </div>
-          </header>
-
-          <div
-            className="profileEditProgress"
-            aria-label="مراحل تکمیل پروفایل"
-            style={{ "--profile-edit-progress": String(stepIndex / Math.max(1, lastStepIndex)) }}
-          >
-            <div
-              className="profileEditProgressTrack"
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-                alignItems: "start",
-                width: "100%"
-              }}
-            >
-              <span
-                className={`profileEditProgressSegment is-first ${stepIndex >= 1 ? "is-active" : ""}`}
-                aria-hidden="true"
-              />
-              <span
-                className={`profileEditProgressSegment is-second ${stepIndex >= 2 ? "is-active" : ""}`}
-                aria-hidden="true"
-              />
-              {completionSteps.map(({ key, label, done, Icon }, index) => (
-                <button
-                  key={key}
-                  type="button"
-                  className={`${done ? "is-done" : ""} ${index === stepIndex ? "is-active" : ""}`}
-                  aria-label={label}
-                  title={label}
-                  style={{
-                    width: "100%",
-                    minWidth: 0,
-                    display: "grid",
-                    placeItems: "center"
-                  }}
-                  onClick={() => setStepIndex(index)}
-                >
-                  {done ? <CheckCircle2 size={15} /> : <Icon size={15} />}
-                  <span>{label}</span>
-                </button>
-              ))}
-            </div>
+    <div className="peBackdrop" role="dialog" aria-modal="true" aria-label="ویرایش پروفایل" onClick={onClose}>
+      <form className="peSheet" onSubmit={onSubmit} onClick={(event) => event.stopPropagation()}>
+        <header className="peHead">
+          <label className="peAvatar" title="تغییر عکس">
+            <img src={avatarSrc} alt="" />
+            <span className="peAvatarBadge" aria-hidden="true"><Camera size={14} /></span>
+            <input className="captureInput" type="file" accept="image/*" onChange={onAvatarUpload} />
+          </label>
+          <div className="peHeadCopy">
+            <h3>{title}</h3>
+            <span>برای تغییر {isSalon ? "لوگو" : "عکس"} روی تصویر بزن</span>
           </div>
+          <button type="button" className="peClose" onClick={onClose} aria-label="بستن">
+            <X size={18} />
+          </button>
+        </header>
 
-          <div className="profileEditFields">
-            <section className={`profileEditSection ${stepIndex === 0 ? "is-active" : ""}`} aria-hidden={stepIndex !== 0}>
-              <div className="profileEditSectionHead">
-                <UserRound size={18} />
-                <strong>{isSalon ? "برند سالن و مدیر" : "هویت اصلی"}</strong>
+        <div className="peBody">
+          <section className="peGroup" aria-labelledby="pe-basics">
+            <h4 id="pe-basics">{isSalon ? "برند سالن" : "اطلاعات پایه"}</h4>
+            <label className="peField">
+              <span>{isSalon ? "نام سالن" : "نام"}</span>
+              <input name="name" defaultValue={profile.data?.name || ""} autoComplete="name" required />
+            </label>
+            {hasActivityField ? (
+              <div className="peField">
+                <span>حوزه فعالیت</span>
+                <SpecialtyMultiSelect
+                  name="service"
+                  placeholder={isSalon ? "خدمات اصلی سالن را انتخاب کن" : "تخصص‌هایت را انتخاب کن"}
+                  options={beautySpecialtyOptions}
+                  defaultValue={profile.data?.service || ""}
+                  required
+                />
+                <small>
+                  {isSalon
+                    ? "این در معرفی سالن شما نمایش داده می‌شود."
+                    : "فقط خودت این را تعیین می‌کنی؛ سالن‌ها آن را در تیمشان می‌بینند."}
+                </small>
               </div>
-              <div className="profileEditFieldGrid">
-                <label>{isSalon ? "نام سالن" : "نام"}<input name="name" defaultValue={profile.data?.name || ""} /></label>
-                {hasActivityField ? (
-                  <div className="profileEditSpecialty">
-                    <span>حوزه فعالیت</span>
-                    <SpecialtyMultiSelect
-                      name="service"
-                      placeholder={isSalon ? "خدمات اصلی سالن را انتخاب کن" : "تخصص‌هایت را انتخاب کن"}
-                      options={beautySpecialtyOptions}
-                      defaultValue={profile.data?.service || ""}
-                      required
-                    />
-                    <small>
-                      {isSalon
-                        ? "این در معرفی سالن شما نمایش داده می‌شود."
-                        : "فقط خودت این را تعیین می‌کنی؛ سالن‌ها آن را در تیمشان می‌بینند ولی نمی‌توانند تغییرش دهند."}
-                    </small>
-                  </div>
-                ) : null}
-                {isSalon ? (
-                  <>
-                    <label>نام مدیر سالن<input name="managerName" defaultValue={managerName} placeholder="مثلاً مریم یوسفی" /></label>
-                    <label className="profileEditYearsField">
-                      تجربه کاری
-                      <span className="profileEditYearsControl">
-                        <input
-                          name="experienceYears"
-                          defaultValue={experienceYears}
-                          type="number"
-                          min="0"
-                          max="80"
-                          inputMode="numeric"
-                          placeholder="۴"
-                        />
-                        <small>سال</small>
-                      </span>
-                    </label>
-                  </>
-                ) : null}
+            ) : null}
+            {isSalon ? (
+              <div className="peRow">
+                <label className="peField">
+                  <span>نام مدیر سالن</span>
+                  <input name="managerName" defaultValue={profile.data?.managerName || ""} placeholder="مثلاً مریم یوسفی" />
+                </label>
+                <label className="peField peField--narrow">
+                  <span>تجربه (سال)</span>
+                  <input
+                    name="experienceYears"
+                    defaultValue={experienceYears}
+                    type="number"
+                    min="0"
+                    max="80"
+                    inputMode="numeric"
+                    placeholder="۴"
+                  />
+                </label>
               </div>
-            </section>
+            ) : null}
+          </section>
 
-            <section className={`profileEditSection ${stepIndex === 1 ? "is-active" : ""}`} aria-hidden={stepIndex !== 1}>
-              <div className="profileEditSectionHead">
-                <Mail size={18} />
-                <strong>اطلاعات تماس</strong>
-              </div>
-              <div className="profileEditFieldGrid">
-                <label>شماره تماس<input name="phone" defaultValue={profile.data?.phone || ""} inputMode="tel" dir="ltr" maxLength={11} /></label>
-                <label>ایمیل <small>اختیاری اما مهم</small><input name="email" defaultValue={profile.data?.email || ""} type="email" placeholder="برای اطلاع‌رسانی و بازیابی حساب" /></label>
-              </div>
-            </section>
+          <section className="peGroup" aria-labelledby="pe-contact">
+            <h4 id="pe-contact">تماس</h4>
+            <label className="peField">
+              <span>شماره موبایل</span>
+              <input
+                name="phone"
+                defaultValue={profile.data?.phone || ""}
+                inputMode="tel"
+                autoComplete="tel"
+                dir="ltr"
+                maxLength={11}
+                placeholder="09123456789"
+              />
+            </label>
+            <label className="peField">
+              <span>ایمیل <em>اختیاری، برای اطلاع‌رسانی و بازیابی حساب</em></span>
+              <input
+                name="email"
+                defaultValue={profile.data?.email || ""}
+                type="email"
+                autoComplete="email"
+                dir="ltr"
+                placeholder="name@example.com"
+              />
+            </label>
+          </section>
 
-            <section className={`profileEditSection ${stepIndex === 2 ? "is-active" : ""}`} aria-hidden={stepIndex !== 2}>
-              <div className="profileEditSectionHead">
-                <ShieldCheck size={18} />
-                <strong>امنیت حساب</strong>
-              </div>
-              <div className="profileEditFieldGrid">
-                <label className="profileEditPasswordWide">رمز فعلی<input name="currentPassword" placeholder="فقط اگر رمز را تغییر می‌دهی" type="password" autoComplete="current-password" /></label>
-                <label>رمز عبور جدید<input name="password" placeholder="خالی بگذار اگر تغییر نمی‌دهی" type="password" autoComplete="new-password" /></label>
-                <label>تکرار رمز جدید<input name="passwordConfirm" placeholder="تکرار رمز جدید" type="password" autoComplete="new-password" /></label>
-              </div>
-            </section>
-          </div>
-          <input type="hidden" name="area" value={profile.data?.area || ""} />
-          {hasActivityField ? null : <input type="hidden" name="service" value={profile.data?.service || ""} />}
-          <div
-            className="profileEditStepActions"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)",
-              alignItems: "stretch",
-              gap: 8
-            }}
-          >
-            {stepIndex < lastStepIndex ? (
-              <button
-                key="next"
-                type="button"
-                style={{ width: "100%", minWidth: 0 }}
-                onClick={() => setStepIndex((index) => Math.min(lastStepIndex, index + 1))}
-              >
-                بعدی
-              </button>
-            ) : (
-              <button
-                key="submit"
-                type="submit"
-                className="profileEditSaveBtn"
-                disabled={justArrived || saving}
-                style={{ width: "100%", minWidth: 0 }}
-              >
-                <Check size={16} /> {saving ? "در حال ذخیره…" : "ذخیره تغییرات"}
-              </button>
-            )}
+          <section className="peGroup" aria-labelledby="pe-security">
             <button
               type="button"
-              className="is-secondary"
-              style={{ width: "100%", minWidth: 0 }}
-              disabled={stepIndex === 0}
-              onClick={() => setStepIndex((index) => Math.max(0, index - 1))}
+              className="peToggle"
+              aria-expanded={passwordOpen}
+              onClick={() => setPasswordOpen((value) => !value)}
             >
-              قبلی
+              <KeyRound size={17} aria-hidden="true" />
+              <span id="pe-security">تغییر رمز عبور</span>
+              <ChevronDown size={17} aria-hidden="true" className="peToggleChevron" />
             </button>
-          </div>
-        </form>
-      </article>
-      <button type="button" className="profileEditClose" onClick={onClose} aria-label="بستن">
-        <X size={18} />
-      </button>
+            {passwordOpen ? (
+              <div className="peSecurity">
+                <label className="peField">
+                  <span>رمز فعلی</span>
+                  <input name="currentPassword" type="password" autoComplete="current-password" />
+                </label>
+                <div className="peRow">
+                  <label className="peField">
+                    <span>رمز جدید</span>
+                    <input name="password" type="password" autoComplete="new-password" placeholder="حداقل ۸ کاراکتر" />
+                  </label>
+                  <label className="peField">
+                    <span>تکرار رمز جدید</span>
+                    <input name="passwordConfirm" type="password" autoComplete="new-password" />
+                  </label>
+                </div>
+              </div>
+            ) : null}
+          </section>
+        </div>
+
+        {hasActivityField ? null : <input type="hidden" name="service" value={profile.data?.service || ""} />}
+
+        <footer className="peFoot">
+          <button type="submit" className="peSave" disabled={saving}>
+            <Check size={17} aria-hidden="true" />
+            {saving ? "در حال ذخیره…" : "ذخیره تغییرات"}
+          </button>
+        </footer>
+      </form>
     </div>
   );
 }

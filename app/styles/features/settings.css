@@ -518,3 +518,188 @@ button.artistWorkTagTrigger > svg{
   border-radius: 24px 24px 0 0;
   box-shadow: 0 -18px 50px rgba(28, 32, 44, 0.22);
 }
+
+/* ═══ Profile edit sheet (ProfileEditModal) ═══════════════════════════════ */
+.peBackdrop {
+  position: fixed;
+  inset: 0;
+  left: max(0px, calc((100vw - 460px) / 2));
+  right: max(0px, calc((100vw - 460px) / 2));
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(20, 22, 29, 0.45);
+  backdrop-filter: blur(8px);
+}
+
+.peSheet {
+  width: 100%;
+  max-height: min(94dvh, 820px);
+  display: flex;
+  flex-direction: column;
+  border-radius: 28px 28px 0 0;
+  background: #ffffff;
+  color: #14161d;
+  box-shadow: 0 -20px 60px rgba(20, 22, 29, 0.22);
+  overflow: hidden;
+  animation: svcSheetIn 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.peHead {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 18px 14px;
+  border-bottom: 1px solid #f0f0f4;
+}
+
+.peAvatar {
+  position: relative;
+  flex: none;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.peAvatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+  background: #f1f1f5;
+  box-shadow: 0 0 0 3px #fff, 0 0 0 4px #e4e4ea;
+}
+
+.peAvatarBadge {
+  position: absolute;
+  inset-block-end: -2px;
+  inset-inline-start: -2px;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: #14161d;
+  color: #fff;
+}
+
+.peHeadCopy { flex: 1 1 auto; min-width: 0; display: grid; gap: 3px; }
+.peHeadCopy h3 { margin: 0; font-size: 1.05rem; font-weight: 950; }
+.peHeadCopy span { color: #6f7380; font-size: 0.72rem; font-weight: 750; }
+
+.peClose {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 14px;
+  background: #f6f6f8;
+  color: #14161d;
+  cursor: pointer;
+}
+
+.peBody {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  align-content: start;
+  gap: 22px;
+  padding: 18px 18px 8px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.peGroup { display: grid; gap: 12px; }
+
+.peGroup h4 {
+  margin: 0;
+  color: #6f7380;
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.peRow { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
+.peRow:has(.peField--narrow) { grid-template-columns: minmax(0, 1fr) 112px; }
+
+.peField { display: grid; gap: 6px; min-width: 0; }
+.peField > span { color: #3f4350; font-size: 0.76rem; font-weight: 900; }
+.peField > span em { margin-inline-start: 6px; color: #8a8d9a; font-size: 0.66rem; font-style: normal; font-weight: 750; }
+.peField small { color: #6f7380; font-size: 0.68rem; font-weight: 700; line-height: 1.6; }
+
+.peField input {
+  width: 100%;
+  min-height: 50px;
+  padding: 0 14px;
+  border: 1px solid #e4e4ea;
+  border-radius: 15px;
+  background: #fff;
+  color: #14161d;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 750;
+  outline: 0;
+}
+
+.peField input::placeholder { color: #a3a6b3; font-weight: 650; }
+
+.peField input:focus {
+  border-color: #14161d;
+  box-shadow: 0 0 0 3px rgba(20, 22, 29, 0.08);
+}
+
+.peToggle {
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  border: 1px solid #e4e4ea;
+  border-radius: 15px;
+  background: #fafafc;
+  color: #14161d;
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.peToggle span { flex: 1 1 auto; text-align: right; }
+.peToggleChevron { transition: transform 0.2s ease; color: #6f7380; }
+.peToggle[aria-expanded="true"] .peToggleChevron { transform: rotate(180deg); }
+
+.peSecurity { display: grid; gap: 12px; }
+
+.peFoot {
+  flex: none;
+  padding: 12px 18px calc(14px + env(safe-area-inset-bottom));
+  border-top: 1px solid #f0f0f4;
+  background: #fff;
+}
+
+.peSave {
+  width: 100%;
+  min-height: 54px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 17px;
+  background: #14161d;
+  color: #fff;
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 950;
+  cursor: pointer;
+  box-shadow: 0 12px 24px rgba(20, 22, 29, 0.18);
+}
+
+.peSave:active { transform: scale(0.98); }
+.peSave:disabled { opacity: 0.55; cursor: progress; }
