@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CalendarCheck, Image as ImageIcon, KeyRound, LayoutDashboard, LogOut, Menu, PanelLeft, ScrollText, ShieldCheck, Users, X } from "lucide-react";
+import { CalendarCheck, Image as ImageIcon, KeyRound, LayoutDashboard, LogOut, Menu, Moon, PanelLeft, ScrollText, ShieldCheck, Sun, Users, X } from "lucide-react";
 
 const ICONS = {
   overview: LayoutDashboard,
@@ -18,7 +18,7 @@ const STORAGE_KEY = "zibaban_admin_nav";
  * Collapsible left rail: icons only by default, opens to show labels (state is remembered per browser).
  * On a phone it becomes a drawer that opens from the menu button.
  */
-export function AdminSidebar({ tabs, active, onSelect, name, onLogout }) {
+export function AdminSidebar({ tabs, active, onSelect, name, onLogout, theme, onToggleTheme }) {
   const [expanded, setExpanded] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -74,6 +74,10 @@ export function AdminSidebar({ tabs, active, onSelect, name, onLogout }) {
         </nav>
         <div className="admSideBottom">
           <span className="admSideUser admSideLabel" title={name}>{name || "مدیر"}</span>
+          <button type="button" aria-label={theme === "dark" ? "حالت روشن" : "حالت تیره"} title={theme === "dark" ? "حالت روشن" : "حالت تیره"} onClick={onToggleTheme}>
+            {theme === "dark" ? <Sun size={20} aria-hidden="true" /> : <Moon size={20} aria-hidden="true" />}
+            <span className="admSideLabel">{theme === "dark" ? "حالت روشن" : "حالت تیره"}</span>
+          </button>
           <button type="button" aria-label="خروج" title="خروج" onClick={onLogout}>
             <LogOut size={20} aria-hidden="true" />
             <span className="admSideLabel">خروج</span>

@@ -12,6 +12,7 @@ import { BookingsTab } from "./BookingsTab";
 import { SecurityTab } from "./SecurityTab";
 import { adminFetch } from "./adminFetch";
 import { Dashboard } from "./Dashboard";
+import { Avatar } from "./Avatar";
 import { ACTION_LABEL, PAGE, TYPE_LABEL, fmtDate, num } from "./format";
 
 const TABS = [
@@ -25,7 +26,36 @@ const TABS = [
 ];
 
 
+const THEME_KEY = "zibaban_admin_theme";
+
+/** Dark by default; the choice of light is remembered in this browser. */
 export function AdminClient() {
+  const [theme, setTheme] = useState("dark");
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(THEME_KEY);
+      if (saved === "light" || saved === "dark") setTheme(saved);
+    } catch {
+      // storage can be blocked; stay on the default
+    }
+  }, []);
+  function toggleTheme() {
+    const next = theme === "dark" ? "light" : "dark";
+    setTheme(next);
+    try {
+      window.localStorage.setItem(THEME_KEY, next);
+    } catch {
+      // not essential
+    }
+  }
+  return (
+    <div className="admRoot" data-theme={theme}>
+      <AdminApp theme={theme} onToggleTheme={toggleTheme} />
+    </div>
+  );
+}
+
+function AdminApp({ theme, onToggleTheme }) {
   const [me, setMe] = useState(null);
   const [tab, setTab] = useState("overview");
 
@@ -54,15 +84,17 @@ export function AdminClient() {
   const current = TABS.find((item) => item.id === tab) || TABS[0];
   return (
     <div className="admShell">
-      <AdminSidebar tabs={TABS} active={tab} onSelect={setTab} name={me.name} onLogout={logout} />
+      <AdminSidebar tabs={TABS} active={tab} onSelect={setTab} name={me.name} onLogout={logout} theme={theme} onToggleTheme={onToggleTheme} />
       <main className="adm">
-        <header className="admHead">
-          <div>
-            <h1>{current.label}</h1>
-            <p className="admMuted">مدیریت زیبابان</p>
-          </div>
-        </header>
-        {tab === "overview" ? <Overview onGo={setTab} /> : null}
+        {tab === "overview" ? null : (
+          <header className="admHead">
+            <div>
+              <h1>{current.label}</h1>
+              <p className="admMuted">مدیریت زیبابان</p>
+            </div>
+          </header>
+        )}
+        {tab === "overview" ? <Overview onGo={setTab} name={me.name} /> : null}
         {tab === "users" ? <Users /> : null}
         {tab === "content" ? <ContentTab /> : null}
         {tab === "bookings" ? <BookingsTab /> : null}
@@ -75,10 +107,10 @@ export function AdminClient() {
   );
 }
 
-function Overview({ onGo }) {
+function Overview({ onGo, name }) {
   return (
     <>
-      <Dashboard onGo={onGo} />
+      <Dashboard onGo={onGo} name={name} />
       <SmsCard />
     </>
   );
@@ -162,16 +194,24 @@ function Users() {
       <div className="admTableWrap">
         <table className="admTable">
           <thead>
-            <tr><th>نام</th><th>نوع</th><th>شماره</th><th>عضویت</th><th>آخرین بازدید</th><th /></tr>
+            <tr><th>کاربر</th><th>نوع</th><th>عضویت</th><th>آخرین بازدید</th><th>وضعیت</th><th /></tr>
           </thead>
           <tbody>
             {data.users.map((user) => (
               <tr key={user.id} className={user.suspended_at ? "is-suspended" : ""}>
-                <td><button type="button" className="admLink" onClick={() => setSelected(user.id)}>{user.name || "—"}</button>{user.suspended_at ? <em> • مسدود</em> : null}</td>
-                <td>{TYPE_LABEL[user.type] || user.type}</td>
-                <td dir="ltr">{user.phone}</td>
+                <td>
+                  <span className="admCellUser">
+                    <Avatar name={user.name} phone={user.phone} />
+                    <span>
+                      <button type="button" className="admLink" onClick={() => setSelected(user.id)}>{user.name || "—"}</button>
+                      <small dir="ltr">{user.phone}</small>
+                    </span>
+                  </span>
+                </td>
+                <td><span className={`admPill is-${user.type}`}>{TYPE_LABEL[user.type] || user.type}</span></td>
                 <td>{fmtDate(user.created_at)}</td>
                 <td>{fmtDate(user.last_seen_at)}</td>
+                <td><span className={`admDot${user.suspended_at ? " is-off" : ""}`}>{user.suspended_at ? "مسدود" : "فعال"}</span></td>
                 <td>
                   <Button size="sm" variant={user.suspended_at ? "secondary" : "danger"} loading={busyId === user.id} loadingLabel="…" onClick={() => toggleSuspend(user)}>
                     {user.suspended_at ? "رفع مسدودی" : "مسدود"}
