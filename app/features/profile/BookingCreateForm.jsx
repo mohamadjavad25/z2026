@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { CalendarCheck, Plus } from "lucide-react";
+import { CalendarCheck, Check, Plus, Sparkles } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { ServiceIcon } from "../../components/ServiceIcon";
 
@@ -44,6 +44,9 @@ export function BookingCreateForm({
   const showStaff = role === "salon" && staffOptions.length > 0;
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  // The first free time is chosen for you; until you tap a time yourself it is only a suggestion.
+  const [timePicked, setTimePicked] = useState(false);
+  const [tried, setTried] = useState(false);
   const dayFieldName = role === "salon" ? "booking_date" : "date";
   const isBusy = Boolean(submitting);
 
@@ -71,14 +74,28 @@ export function BookingCreateForm({
   const noServices = submitDisabled && !serviceOptions.length;
   const canSubmit = !submitDisabled && !isBusy && Boolean(selectedService) && Boolean(selectedTime) && Boolean(query);
 
-  let hint = "";
-  if (!isBusy) {
-    if (!query) hint = "اسم مشتری را بنویس یا از لیست بالا بزن.";
-    else if (!times.length) hint = "برای این روز نوبت آزادی نیست؛ روز دیگری را انتخاب کن.";
+  const missing = [];
+  if (!query) missing.push("نام مشتری");
+  if (!selectedService) missing.push("خدمت");
+  if (!selectedTime) missing.push(times.length ? "ساعت" : "ساعت آزاد (روز دیگری را بزن)");
+  const hint = !isBusy && tried && missing.length ? `برای ثبت لازم است: ${missing.join("، ")}` : "";
+
+  function handleSubmit(event) {
+    if (isBusy) {
+      event.preventDefault();
+      return;
+    }
+    if (!canSubmit) {
+      event.preventDefault();
+      setTried(true);
+      event.currentTarget.querySelector(!query ? 'input[name="client"]' : ".bcfTime, .bcfDay")?.focus();
+      return;
+    }
+    onSubmit?.(event);
   }
 
   return (
-    <form className="bcf" onSubmit={onSubmit}>
+    <form className="bcf" onSubmit={handleSubmit} noValidate>
       <section className="bcfGroup" aria-labelledby="bcf-customer">
         <h4 id="bcf-customer">مشتری</h4>
         <div className="bcfInputs">
@@ -140,7 +157,7 @@ export function BookingCreateForm({
                   role="radio"
                   aria-checked={selectedService?.value === item.value}
                   className={`bcfChip${selectedService?.value === item.value ? " is-on" : ""}`}
-                  onClick={() => onServiceChange?.(item.value)}
+                  onClick={() => { setTimePicked(false); onServiceChange?.(item.value); }}
                 >
                   {item.withIcon ? <ServiceIcon emoji={item.emoji} name={item.label} size="xs" /> : null}
                   {item.label}
@@ -185,12 +202,20 @@ export function BookingCreateForm({
               role="radio"
               aria-checked={activeDay.value === option.value}
               className={`bcfDay${activeDay.value === option.value ? " is-on" : ""}`}
-              onClick={() => onDayChange?.(option.value)}
+              onClick={() => { setTimePicked(false); onDayChange?.(option.value); }}
             >
               {option.label}
             </button>
           ))}
         </div>
+        {times.length && selectedTime ? (
+          <p className={`bcfPick${timePicked ? " is-picked" : ""}`} role="status">
+            {timePicked ? <Check size={15} aria-hidden="true" /> : <Sparkles size={15} aria-hidden="true" />}
+            {timePicked
+              ? <>ساعت انتخابی تو: <b>{toPersianDigits(selectedTime)}</b></>
+              : <>نزدیک‌ترین ساعت خالی را برایت گذاشتیم: <b>{toPersianDigits(selectedTime)}</b>. ساعت دیگری می‌خواهی؟ آن را بزن.</>}
+          </p>
+        ) : null}
         {times.length ? (
           <div className="bcfTimes" role="radiogroup" aria-label="انتخاب ساعت">
             {times.map((option) => (
@@ -200,8 +225,9 @@ export function BookingCreateForm({
                 role="radio"
                 aria-checked={selectedTime === option.value}
                 className={`bcfTime${selectedTime === option.value ? " is-on" : ""}`}
-                onClick={() => onTimeChange?.(option.value)}
+                onClick={() => { setTimePicked(true); onTimeChange?.(option.value); }}
               >
+                {selectedTime === option.value ? <Check size={14} aria-hidden="true" /> : null}
                 {toPersianDigits(option.label)}
               </button>
             ))}
@@ -212,8 +238,8 @@ export function BookingCreateForm({
       </section>
 
       <div className="bcfFoot">
-        {hint ? <p className="bcfHint">{hint}</p> : null}
-        <button type="submit" className="bcfSubmit" disabled={!canSubmit}>
+        {hint ? <p className="bcfHint" role="alert">{hint}</p> : null}
+        <button type="submit" className={`bcfSubmit${canSubmit ? "" : " is-incomplete"}`} disabled={isBusy}>
           <CalendarCheck size={18} aria-hidden="true" />
           {isBusy
             ? "در حال ثبت…"
