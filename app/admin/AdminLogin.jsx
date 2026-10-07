@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ShieldCheck } from "lucide-react";
 import { apiFetch } from "../shared/api/client";
 import { Button, Field } from "../components/ui";
 
@@ -56,6 +57,7 @@ export function AdminLogin({ configured, setupKeyConfigured = true, onDone }) {
   return (
     <main className="adm admLoginWrap">
       <section className="admCard admLogin">
+        <span className="admLogo"><ShieldCheck size={26} aria-hidden="true" /></span>
         <h1>ورود مدیریت</h1>
         {mode === "login" ? (
           <form onSubmit={onLogin} className="admForm">

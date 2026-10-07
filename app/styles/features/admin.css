@@ -1,78 +1,133 @@
-/* Admin panel (/admin). Desktop-friendly, but readable on a phone. */
-.adm { max-width: 980px; margin: 0 auto; padding: var(--space-5) var(--space-4) var(--space-8); display: grid; gap: var(--space-4); color: var(--ink); }
-.adm h1 { margin: 0; font-size: var(--text-xl); font-weight: 900; }
-.adm h2 { margin: 0 0 var(--space-3); font-size: var(--text-md); font-weight: 900; }
-.admHead { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); }
-.admMuted { color: #565a68; font-size: var(--text-sm); font-weight: 700; line-height: 1.8; margin: 0; }
-.admError, .admNote { margin: 0 0 var(--space-3); padding: 10px 14px; border-radius: var(--radius-md); background: #fff7e8; color: #7a4f00; font-size: var(--text-sm); font-weight: 800; }
-.admError { background: var(--danger-bg); color: #8f2b2b; }
-.admCard { padding: var(--space-4); border-radius: var(--radius-xl); background: #fff; box-shadow: var(--shadow-soft), inset 0 0 0 1px var(--line); }
+/*
+ * Admin panel (/admin). "Control room": deep graphite surfaces, hairline borders, one hot-pink accent, and data colors that were
+ * validated for contrast and colour-blind separation (teal / coral / ochre). Dark is the default; the light theme is warm paper.
+ * Everything is scoped under .admRoot so nothing leaks into the public app.
+ */
+.admRoot {
+  --a-bg: #0a0c11; --a-bg2: #10131a; --a-card: #141720; --a-card2: #1b1f2a; --a-raise: #222735;
+  --a-line: rgba(255, 255, 255, 0.075); --a-line2: rgba(255, 255, 255, 0.14);
+  --a-ink: #eef0f6; --a-muted: #a2a9bc; --a-faint: #6f768a;
+  --a-accent: #f0457f; --a-accent-ink: #ffffff; --a-accent-soft: rgba(240, 69, 127, 0.15);
+  --a-good: #3ddc97; --a-good-soft: rgba(61, 220, 151, 0.14); --a-bad: #ff7b8f; --a-bad-soft: rgba(255, 123, 143, 0.14); --a-warn: #f5b942; --a-warn-soft: rgba(245, 185, 66, 0.13);
+  --a-s1: #00a9b1; --a-s2: #d66f71; --a-s3: #a5931b;
+  --a-side: #07090d; --a-side-ink: #e7e9f1;
+  --a-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 18px 40px -22px rgba(0, 0, 0, 0.8);
+  --a-glow-1: rgba(240, 69, 127, 0.16); --a-glow-2: rgba(0, 169, 177, 0.12);
+  min-height: 100dvh; background: var(--a-bg); color: var(--a-ink); position: relative; isolation: isolate;
+  font-feature-settings: "tnum" 1; color-scheme: dark;
+}
+.admRoot[data-theme="light"] {
+  --a-bg: #f4f1ec; --a-bg2: #ebe7e0; --a-card: #ffffff; --a-card2: #f6f3ee; --a-raise: #ffffff;
+  --a-line: rgba(30, 28, 24, 0.09); --a-line2: rgba(30, 28, 24, 0.17);
+  --a-ink: #1a1c25; --a-muted: #5a5f70; --a-faint: #8a8f9e;
+  --a-accent: #d9185c; --a-accent-soft: rgba(217, 24, 92, 0.1);
+  --a-good: #137a45; --a-good-soft: rgba(19, 122, 69, 0.11); --a-bad: #b4233a; --a-bad-soft: rgba(180, 35, 58, 0.1); --a-warn: #8a5a00; --a-warn-soft: rgba(138, 90, 0, 0.1);
+  --a-s1: #00a2ae; --a-s2: #d7506e; --a-s3: #b47a00;
+  --a-side: #171a23;
+  --a-shadow: 0 1px 2px rgba(30, 28, 24, 0.06), 0 14px 32px -24px rgba(30, 28, 24, 0.5);
+  --a-glow-1: rgba(217, 24, 92, 0.08); --a-glow-2: rgba(0, 162, 174, 0.08);
+  color-scheme: light;
+}
+.admRoot::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background: radial-gradient(900px 520px at 85% -8%, var(--a-glow-1), transparent 60%), radial-gradient(760px 480px at 8% 108%, var(--a-glow-2), transparent 62%); }
+
+.adm { max-width: 1240px; margin: 0 auto; padding: var(--space-5) var(--space-5) var(--space-8); display: grid; gap: var(--space-4); color: var(--a-ink); }
+.adm > *, .admCard > * { min-width: 0; }
+.adm h1 { margin: 0; font-size: clamp(1.4rem, 2.2vw, 1.9rem); font-weight: 900; letter-spacing: -0.01em; line-height: 1.3; }
+.adm h2 { margin: 0 0 var(--space-3); font-size: var(--text-md); font-weight: 850; color: var(--a-ink); }
+.admHead { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--space-3); flex-wrap: wrap; }
+.admMuted { color: var(--a-muted); font-size: var(--text-sm); font-weight: 600; line-height: 1.9; margin: 0; }
+.admHello { display: grid; gap: 4px; }
+.admHello p { margin: 0; color: var(--a-muted); font-weight: 600; font-size: var(--text-base); }
+.admHello h1 em { font-style: normal; background: linear-gradient(100deg, var(--a-accent), #ff9bb8); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+.admError, .admNote { margin: 0 0 var(--space-3); padding: 10px 14px; border-radius: var(--radius-md); background: var(--a-warn-soft); color: var(--a-warn); font-size: var(--text-sm); font-weight: 750; line-height: 1.8; }
+.admError { background: var(--a-bad-soft); color: var(--a-bad); }
+.admCard { padding: var(--space-4) var(--space-5); border-radius: 20px; background: var(--a-card); box-shadow: var(--a-shadow), inset 0 0 0 1px var(--a-line); }
+.admCard h2 { display: flex; align-items: center; gap: 8px; }
 .admDenied { display: grid; justify-items: start; gap: var(--space-3); }
 .admDenied a { text-decoration: none; }
-.admGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: var(--space-3); }
-.admStat { display: grid; gap: 4px; padding: var(--space-4); border-radius: var(--radius-lg); background: #fff; box-shadow: inset 0 0 0 1px var(--line); }
-.admStat small { color: #565a68; font-size: var(--text-sm); font-weight: 800; }
-.admStat b { font-size: 1.7rem; font-weight: 950; line-height: 1.2; }
-.admStat em { color: #565a68; font-size: var(--text-sm); font-style: normal; font-weight: 700; }
-.admBars { display: flex; align-items: flex-end; gap: 6px; height: 120px; }
-.admBar { flex: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 4px; }
-.admBar i { width: 100%; border-radius: 6px 6px 2px 2px; background: linear-gradient(180deg, #6b3fb0, #e11d74); }
-.admBar small { color: #565a68; font-size: 0.64rem; font-weight: 800; }
+
+.admGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: var(--space-3); }
+.admStat { display: grid; gap: 6px; padding: var(--space-4); border-radius: 18px; background: var(--a-card); box-shadow: var(--a-shadow), inset 0 0 0 1px var(--a-line); }
+.admStat small { color: var(--a-muted); font-size: var(--text-sm); font-weight: 750; }
+.admStat b { font-size: 2rem; font-weight: 900; line-height: 1.15; letter-spacing: -0.02em; }
+.admStat em { color: var(--a-muted); font-size: var(--text-sm); font-style: normal; font-weight: 650; }
+
 .admList { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-.admList li { display: flex; justify-content: space-between; gap: var(--space-3); padding: 10px 12px; border-radius: var(--radius-md); background: #f6f6f8; font-size: var(--text-base); font-weight: 750; }
-.admList li small { color: #565a68; font-weight: 700; }
+.admList li { display: flex; justify-content: space-between; align-items: center; gap: var(--space-3); padding: 11px 14px; border-radius: 14px; background: var(--a-card2); font-size: var(--text-base); font-weight: 700; }
+.admList li small { color: var(--a-muted); font-weight: 600; }
+.admList li b { font-weight: 850; }
+
 .admFilters { display: grid; gap: var(--space-3); margin-bottom: var(--space-3); }
 .admChips { display: flex; gap: 8px; flex-wrap: wrap; }
-.admTableWrap { overflow-x: auto; }
-.admTable { width: 100%; border-collapse: collapse; font-size: var(--text-base); }
-.admTable th { padding: 8px 10px; color: #565a68; font-size: var(--text-sm); font-weight: 900; text-align: start; white-space: nowrap; }
-.admTable td { padding: 10px; border-top: 1px solid #ececf1; font-weight: 700; white-space: nowrap; }
-.admTable tr.is-suspended td { background: #fdf3f3; }
-.admTable em { color: #8f2b2b; font-style: normal; font-weight: 900; }
-.admPager { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin-top: var(--space-3); color: #565a68; font-size: var(--text-sm); font-weight: 800; }
+.admTableWrap { overflow-x: auto; max-width: 100%; border-radius: 14px; }
+.admTable { width: 100%; border-collapse: separate; border-spacing: 0; font-size: var(--text-base); }
+.admTable th { position: sticky; top: 0; padding: 10px 14px; background: var(--a-card2); color: var(--a-muted); font-size: var(--text-sm); font-weight: 800; text-align: start; white-space: nowrap; }
+.admTable th:first-child { border-start-start-radius: 12px; border-end-start-radius: 12px; }
+.admTable th:last-child { border-start-end-radius: 12px; border-end-end-radius: 12px; }
+.admTable td { padding: 12px 14px; border-bottom: 1px solid var(--a-line); font-weight: 650; white-space: nowrap; vertical-align: middle; }
+.admTable tbody tr { transition: background 0.15s ease; }
+.admTable tbody tr:hover td { background: color-mix(in srgb, var(--a-card2) 70%, transparent); }
+.admTable tr.is-suspended td { background: var(--a-bad-soft); }
+.admTable em { color: var(--a-bad); font-style: normal; font-weight: 850; }
+.admTable small { color: var(--a-muted); font-weight: 600; }
+.admCellUser { display: flex; align-items: center; gap: 12px; }
+.admCellUser > span:last-child { display: grid; line-height: 1.5; }
+.admPill { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: var(--radius-pill); background: var(--a-card2); color: var(--a-muted); font-size: var(--text-sm); font-weight: 800; box-shadow: inset 0 0 0 1px var(--a-line); }
+.admPill.is-artist { background: color-mix(in srgb, var(--a-s2) 16%, transparent); color: var(--a-s2); box-shadow: none; }
+.admPill.is-salon { background: color-mix(in srgb, var(--a-s3) 18%, transparent); color: var(--a-s3); box-shadow: none; }
+.admPill.is-client { background: color-mix(in srgb, var(--a-s1) 16%, transparent); color: var(--a-s1); box-shadow: none; }
+.admDot { display: inline-flex; align-items: center; gap: 7px; font-weight: 700; }
+.admDot::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--a-good); box-shadow: 0 0 0 3px var(--a-good-soft); }
+.admDot.is-off::before { background: var(--a-bad); box-shadow: 0 0 0 3px var(--a-bad-soft); }
+.admAvatar { flex: 0 0 auto; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 12px; font-weight: 900; font-size: var(--text-base); color: #fff; background: hsl(var(--h, 330) 55% 46%); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18); }
+.admPager { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin-top: var(--space-3); color: var(--a-muted); font-size: var(--text-sm); font-weight: 700; }
 .admReqs { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); }
-.admReqs li { display: grid; grid-template-columns: 1fr minmax(160px, 220px) auto; align-items: center; gap: var(--space-3); padding: var(--space-3); border-radius: var(--radius-md); background: #f6f6f8; }
+.admReqs li { display: grid; grid-template-columns: 1fr minmax(160px, 220px) auto; align-items: center; gap: var(--space-3); padding: var(--space-3); border-radius: 14px; background: var(--a-card2); }
 .admReqs li div { display: grid; gap: 2px; }
-.admReqs small { color: #565a68; font-weight: 700; }
-.admReqs input, .admFilters input { min-height: 44px; padding: 0 var(--space-4); border: 0; border-radius: var(--radius-md); background: #fff; box-shadow: inset 0 0 0 1px var(--line); font: inherit; width: 100%; }
+.admReqs small { color: var(--a-muted); font-weight: 600; }
 @media (max-width: 640px) { .admReqs li { grid-template-columns: 1fr; } }
-.adm > *, .admCard > * { min-width: 0; }
-.admTableWrap { max-width: 100%; }
 
-/* Admin login */
-.admLoginWrap { min-height: 100dvh; align-content: center; }
-.admLogin { max-width: 420px; width: 100%; margin: 0 auto; display: grid; gap: var(--space-3); }
+.admLink { padding: 0; border: 0; background: none; color: var(--a-accent); font: inherit; font-size: inherit; font-weight: 800; cursor: pointer; text-align: start; }
+.admLink:hover { text-decoration: underline; text-underline-offset: 3px; }
 .admForm { display: grid; gap: var(--space-3); }
-.admForm label { color: var(--ink); font-size: var(--text-base); font-weight: 800; }
-.admForm input { min-height: 52px; padding: 0 var(--space-4); border: 2px solid #6f7487; border-radius: var(--radius-md); background: #f1f2f6; color: var(--ink); font: inherit; font-size: 1.05rem; width: 100%; }
-.admForm input:focus { outline: 3px solid #6b3fb0; outline-offset: 1px; border-color: #6b3fb0; background: #fff; }
-.admLink { justify-self: start; padding: 0; border: 0; background: none; color: #6b3fb0; font: inherit; font-size: var(--text-sm); font-weight: 800; text-decoration: underline; cursor: pointer; }
-.admQr { justify-self: center; border-radius: var(--radius-md); background: #fff; }
-.admKey { justify-self: center; padding: 6px 10px; border-radius: var(--radius-md); background: #f6f6f8; font-weight: 800; letter-spacing: 0.08em; word-break: break-all; }
-.admForm .admReveal { display: flex; align-items: center; gap: 8px; font-size: var(--text-sm); font-weight: 800; }
-.admForm .admReveal input { width: 20px; min-height: 20px; height: 20px; accent-color: #6b3fb0; }
-
-/* Admin step-up dialog and row actions */
-.admModal { position: fixed; inset: 0; z-index: var(--z-dialog); display: grid; place-items: center; padding: var(--space-4); background: rgba(10, 12, 20, 0.55); }
-.admModal .admCard { width: min(420px, 100%); }
 .admRowActions { display: flex; gap: 6px; }
 
-/* Admin shell: collapsible rail on the physical left (the page itself is RTL, so the shell flips direction and the content flips it back). */
-.admShell { display: flex; direction: ltr; min-height: 100dvh; background: #f4f4f8; }
-.admShell > .adm { direction: rtl; flex: 1; min-width: 0; max-width: 1240px; width: 100%; align-content: start; }
-.admSide { position: sticky; top: 0; align-self: flex-start; height: 100dvh; width: 68px; flex: 0 0 auto; display: flex; flex-direction: column; gap: var(--space-3); padding: 12px 10px; background: var(--night); color: #e9eaf2; direction: rtl; z-index: var(--z-nav); transition: width 0.2s ease; overflow: hidden; }
-.admSide.is-open { width: 232px; }
-.admSideTop { display: flex; align-items: center; gap: 10px; min-height: 44px; }
-.admBrand { font-weight: 950; font-size: var(--text-md); letter-spacing: 0.02em; white-space: nowrap; }
+/* Shared controls, re-skinned inside the admin only. */
+.admRoot .ui-btn { background: var(--a-accent); color: var(--a-accent-ink); border-radius: 12px; font-weight: 800; box-shadow: 0 8px 20px -10px var(--a-accent); }
+.admRoot .ui-btn:hover:not(:disabled) { filter: brightness(1.08); }
+.admRoot .ui-btn.is-secondary { background: var(--a-card2); color: var(--a-ink); box-shadow: inset 0 0 0 1px var(--a-line2); }
+.admRoot .ui-btn.is-secondary:hover:not(:disabled) { background: var(--a-raise); }
+.admRoot .ui-btn.is-ghost { background: transparent; color: var(--a-ink); box-shadow: none; }
+.admRoot .ui-btn.is-danger { background: var(--a-bad-soft); color: var(--a-bad); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--a-bad) 30%, transparent); }
+.admRoot .ui-chip { background: var(--a-card2); color: var(--a-muted); border-radius: 12px; box-shadow: inset 0 0 0 1px var(--a-line); font-weight: 750; transition: background 0.15s ease, color 0.15s ease; }
+.admRoot button.ui-chip:hover { color: var(--a-ink); }
+.admRoot .ui-chip.is-selected { background: var(--a-accent-soft); color: var(--a-accent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--a-accent) 45%, transparent); }
+.admRoot .ui-field > label { color: var(--a-muted); font-weight: 750; }
+.admRoot .ui-field :where(input, select, textarea), .admRoot .admReqs input { min-height: 46px; border-radius: 12px; background: var(--a-bg2); color: var(--a-ink); box-shadow: inset 0 0 0 1px var(--a-line2); border: 0; }
+.admRoot .ui-field :where(input, select, textarea)::placeholder, .admRoot .admReqs input::placeholder { color: var(--a-faint); }
+.admRoot .ui-field :where(input, select, textarea):focus-visible, .admRoot .admReqs input:focus-visible { outline: 0; box-shadow: 0 0 0 2px var(--a-accent); background: var(--a-card); }
+.admRoot .admReqs input { padding: 0 var(--space-4); width: 100%; font: inherit; }
+.admRoot a:focus-visible, .admRoot button:focus-visible { outline: 2px solid var(--a-accent); outline-offset: 2px; }
+
+/* Shell: collapsible rail on the physical left (the page is RTL, so the shell flips direction and the content flips it back). */
+.admShell { display: flex; direction: ltr; min-height: 100dvh; }
+.admShell > .adm { direction: rtl; flex: 1; min-width: 0; width: 100%; align-content: start; }
+.admSide { position: sticky; top: 0; align-self: flex-start; height: 100dvh; width: 72px; flex: 0 0 auto; display: flex; flex-direction: column; gap: var(--space-3); padding: 14px 12px; background: var(--a-side); color: var(--a-side-ink); direction: rtl; z-index: var(--z-nav); transition: width 0.22s cubic-bezier(0.3, 0.7, 0.2, 1); overflow: hidden; border-inline-end: 1px solid rgba(255, 255, 255, 0.06); }
+.admSide.is-open { width: 244px; }
+.admSideTop { display: flex; align-items: center; gap: 10px; min-height: 46px; }
+.admBrand { font-weight: 950; font-size: var(--text-md); letter-spacing: 0.01em; white-space: nowrap; background: linear-gradient(100deg, #fff, #ffb3cb); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .admSideNav { display: grid; gap: 4px; align-content: start; flex: 1; overflow-y: auto; }
-.admSide button { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 44px; padding: 0 12px; border: 0; border-radius: var(--radius-md); background: transparent; color: inherit; font: inherit; font-size: var(--text-base); font-weight: 800; text-align: start; white-space: nowrap; cursor: pointer; }
+.admSide button { position: relative; display: flex; align-items: center; gap: 13px; width: 100%; min-height: 46px; padding: 0 14px; border: 0; border-radius: 14px; background: transparent; color: rgba(231, 233, 241, 0.72); font: inherit; font-size: var(--text-base); font-weight: 750; text-align: start; white-space: nowrap; cursor: pointer; transition: background 0.15s ease, color 0.15s ease; }
 .admSide button svg { flex: 0 0 auto; }
-.admSide button:hover { background: rgba(255, 255, 255, 0.09); }
-.admSide button:focus-visible { outline: 2px solid #c9b4ff; outline-offset: 1px; }
-.admSide button.is-on { background: rgba(255, 255, 255, 0.16); box-shadow: inset 3px 0 0 #e11d74; }
-.admSideToggle { width: 44px !important; padding: 0 !important; justify-content: center; flex: 0 0 auto; }
-.admSideBottom { display: grid; gap: 6px; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.14); }
-.admSideUser { padding: 0 12px; color: #b9bccd; font-size: var(--text-sm); font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.admSide button:hover { background: rgba(255, 255, 255, 0.07); color: #fff; }
+.admSide button:focus-visible { outline: 2px solid #ff9bb8; outline-offset: 1px; }
+.admSide button.is-on { background: linear-gradient(90deg, rgba(240, 69, 127, 0.22), rgba(240, 69, 127, 0.06)); color: #fff; }
+.admSide button.is-on::before { content: ""; position: absolute; inset-block: 10px; inset-inline-start: -12px; width: 4px; border-radius: 0 4px 4px 0; background: var(--a-accent); box-shadow: 0 0 14px var(--a-accent); }
+.admSideToggle { width: 46px !important; padding: 0 !important; justify-content: center; flex: 0 0 auto; }
+.admSideBottom { display: grid; gap: 6px; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.09); }
+.admSideUser { padding: 0 14px; color: rgba(231, 233, 241, 0.6); font-size: var(--text-sm); font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .admSideLabel { opacity: 0; width: 0; overflow: hidden; transition: opacity 0.15s ease; }
 .admSide.is-open .admSideLabel { opacity: 1; width: auto; }
 .admSide.is-open .admSideUser { display: block; }
@@ -80,16 +135,29 @@
 .admBurger, .admSide .admSideClose { display: none; }
 .admScrim { display: none; }
 @media (max-width: 760px) {
-  .admBurger { display: grid; place-items: center; position: fixed; top: 10px; left: 10px; width: 44px; height: 44px; border: 0; border-radius: var(--radius-pill); background: var(--night); color: #fff; z-index: var(--z-nav); cursor: pointer; box-shadow: var(--shadow-soft); }
-  .admSide { position: fixed; inset: 0 auto 0 0; width: 260px; transform: translateX(-105%); transition: transform 0.2s ease; z-index: calc(var(--z-nav) + 2); }
+  .admBurger { display: grid; place-items: center; position: fixed; top: 12px; left: 12px; width: 46px; height: 46px; border: 0; border-radius: 14px; background: var(--a-side); color: #fff; z-index: var(--z-nav); cursor: pointer; box-shadow: 0 10px 24px -10px rgba(0, 0, 0, 0.6); }
+  .admSide { position: fixed; inset: 0 auto 0 0; width: 272px; transform: translateX(-105%); transition: transform 0.22s ease; z-index: calc(var(--z-nav) + 2); }
   .admSide.is-mobile-open { transform: translateX(0); }
   .admSide .admSideLabel { opacity: 1; width: auto; }
   .admSide.is-mobile-open .admSideUser { display: block; }
   .admSideToggle { display: none !important; }
-  .admSide .admSideClose { display: flex; width: 44px; padding: 0; justify-content: center; margin-inline-start: auto; }
-  .admScrim { display: block; position: fixed; inset: 0; background: rgba(10, 12, 20, 0.5); z-index: calc(var(--z-nav) + 1); }
-  .admShell > .adm { padding-top: 64px; }
+  .admSide .admSideClose { display: flex; width: 46px; padding: 0; justify-content: center; margin-inline-start: auto; }
+  .admScrim { display: block; position: fixed; inset: 0; background: rgba(4, 6, 10, 0.6); backdrop-filter: blur(2px); z-index: calc(var(--z-nav) + 1); }
+  .admShell > .adm { padding: 70px var(--space-4) var(--space-8); }
 }
-@media (prefers-reduced-motion: reduce) {
-  .admSide, .admSideLabel { transition: none; }
-}
+@media (prefers-reduced-motion: reduce) { .admSide, .admSideLabel, .admTable tbody tr { transition: none; } }
+
+/* Login */
+.admLoginWrap { min-height: 100dvh; align-content: center; justify-items: center; }
+.admLogin { max-width: 440px; width: 100%; display: grid; gap: var(--space-3); padding: var(--space-6) var(--space-5); border-radius: 26px; box-shadow: var(--a-shadow), inset 0 0 0 1px var(--a-line2); backdrop-filter: blur(10px); }
+.admLogin h1 { text-align: center; }
+.admLogo { justify-self: center; display: grid; place-items: center; width: 54px; height: 54px; border-radius: 18px; color: #fff; background: linear-gradient(135deg, var(--a-accent), #7a2cff); box-shadow: 0 14px 30px -12px var(--a-accent); margin-bottom: 4px; }
+.admForm input[type="text"], .admForm input[type="password"], .admForm input:not([type]), .admForm input[type="search"], .admForm input[inputmode] { width: 100%; padding: 0 var(--space-4); font: inherit; font-size: 1.05rem; }
+.admQr { justify-self: center; border-radius: 16px; background: #fff; padding: 8px; }
+.admKey { justify-self: center; padding: 8px 12px; border-radius: 12px; background: var(--a-card2); color: var(--a-ink); font-weight: 800; letter-spacing: 0.08em; word-break: break-all; }
+.admForm .admReveal { display: flex; align-items: center; gap: 8px; font-size: var(--text-sm); font-weight: 700; color: var(--a-muted); }
+.admForm .admReveal input { width: 20px; min-height: 20px; height: 20px; accent-color: var(--a-accent); padding: 0; }
+.admFirstTime { display: grid; gap: 8px; padding-top: var(--space-3); border-top: 1px solid var(--a-line); }
+
+.admModal { position: fixed; inset: 0; z-index: var(--z-dialog); display: grid; place-items: center; padding: var(--space-4); background: rgba(4, 6, 10, 0.65); backdrop-filter: blur(3px); }
+.admModal .admCard { width: min(430px, 100%); box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.8), inset 0 0 0 1px var(--a-line2); }
