@@ -325,31 +325,6 @@ export function useProfileEditor({
     stageProfileImage(file, setPendingPosterUpload);
   }, [stageProfileImage]);
 
-  // One-step logo change (used by the profile checklist): pick -> compress ->
-  // save with a centered focal point. No edit form, no other field required.
-  const quickSetLogo = useCallback(async (event) => {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      notify("فقط فایل تصویری مجاز است.");
-      return;
-    }
-    if (file.size > 4 * 1024 * 1024) {
-      notify("حجم تصویر باید کمتر از ۴ مگابایت باشد.");
-      return;
-    }
-    const dataUrl = await compressImageToDataUrl(file);
-    if (!dataUrl) {
-      notify("خواندن تصویر انجام نشد؛ عکس دیگری امتحان کن.");
-      return;
-    }
-    await saveProfileFields(
-      { avatar: dataUrl, avatarPosition: "50% 50%" },
-      { setBusy: setLogoSaving, successMessage: "لوگو بروزرسانی شد." }
-    );
-  }, [saveProfileFields, notify]);
-
   const confirmAvatarUpload = useCallback((position, croppedImage) => {
     if (!pendingAvatarUpload) return;
     saveProfileFields(
@@ -436,7 +411,6 @@ export function useProfileEditor({
     logoSaving,
     posterSaving,
     saveProfileLogo,
-    quickSetLogo,
     quickSaveProfile: saveProfileFields,
     saveProfilePoster,
     removeProfileLogo,

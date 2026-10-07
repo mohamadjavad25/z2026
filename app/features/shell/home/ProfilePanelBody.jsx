@@ -99,7 +99,7 @@ export function ProfilePanelBody() {
     savedPosts,
     openProfileEdit,
     openSalonWorkspace,
-    quickSetLogo,
+    saveProfileLogo,
     quickSaveProfile,
     setClientBookingSettings,
     rebookFromBooking,
@@ -222,7 +222,7 @@ export function ProfilePanelBody() {
                 profile={createdProfile}
                 serviceCount={createdProfile.type === "salon" ? salonServiceList.length : artistServiceList.length}
                 onEditProfile={openProfileEdit}
-                onPickLogo={quickSetLogo}
+                onPickLogo={saveProfileLogo}
                 onQuickSave={quickSaveProfile}
                 onOpenServices={() => {
                   // Land on the services page and open the add-service sheet right away.

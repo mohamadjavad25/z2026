@@ -70,7 +70,7 @@ export function ProfileCompleteness({ profile, serviceCount = 0, onEditProfile, 
             {step.done ? (
               <span><CheckCircle2 size={16} aria-hidden="true" />{step.label}</span>
             ) : step.id === "avatar" && onPickLogo ? (
-              // Straight to the photo picker: no profile form in between.
+              // Same flow as Settings: pick a photo, then frame/zoom it in the crop editor.
               <label className="profileCompletenessPick">
                 <Circle size={16} aria-hidden="true" />
                 {step.label}
