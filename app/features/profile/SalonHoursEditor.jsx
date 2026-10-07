@@ -6,6 +6,14 @@ import { BreakTimeWheel } from "../../components/BreakTimeWheel";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { shortPersianWeekday, timeLabelToMinutes } from "../../shared/lib/time";
 
+// Common opening hours: one tap instead of two wheels (wheels stay for custom times).
+const QUICK_RANGES = [
+  ["۰۹:۰۰", "۱۷:۰۰"],
+  ["۰۹:۰۰", "۱۸:۰۰"],
+  ["۱۰:۰۰", "۲۰:۰۰"],
+  ["۱۲:۰۰", "۲۱:۰۰"]
+];
+
 /**
  * Salon hours editor nested inside the "تنظیمات" tab (SettingsPage).
  * Presentational: hours list/presets/selection owned by HomeApp / useSalonWorkspace.
@@ -37,6 +45,8 @@ export function SalonHoursEditor({
   const durationMinutes = Math.max(0, endMinutes - startMinutes);
   const isInvalidRange = selectedHour?.active && endMinutes <= startMinutes;
   const otherOpenDaysCount = hoursList.filter((item) => item.active && item.day !== selectedHour?.day).length;
+
+  const quickRanges = QUICK_RANGES.filter(([from, to]) => clockOptions.includes(from) && clockOptions.includes(to));
 
   const pickStart = (slot) => {
     if (!selectedHour) return;
@@ -150,6 +160,20 @@ export function SalonHoursEditor({
 
                 {selectedHour.active ? (
                   <>
+                    {quickRanges.length ? (
+                      <div className="qrChips" role="group" aria-label="ساعت‌های رایج">
+                        {quickRanges.map(([from, to]) => (
+                          <button
+                            type="button"
+                            key={`${from}-${to}`}
+                            className={`qrChip${startValue === from && endValue === to ? " is-on" : ""}`}
+                            onClick={() => onUpdateHour?.(selectedHour, { open_time: from, close_time: to })}
+                          >
+                            {toPersianDigits(from)} تا {toPersianDigits(to)}
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
                     <div className={`settingsHoursWheelRange ${isInvalidRange ? "is-invalid" : ""}`}>
                       <div>
                         <span>از ساعت</span>

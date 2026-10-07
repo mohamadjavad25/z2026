@@ -703,3 +703,9 @@ button.artistWorkTagTrigger > svg{
 
 .peSave:active { transform: scale(0.98); }
 .peSave:disabled { opacity: 0.55; cursor: progress; }
+
+/* Quick-pick time ranges (hours editor, break editor) */
+.qrChips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
+.qrChip { min-height: 40px; padding: 0 14px; border: 1px solid #e4e4ea; border-radius: 999px; background: #fff; color: #3f4350; font: inherit; font-size: 0.78rem; font-weight: 900; font-variant-numeric: tabular-nums; cursor: pointer; }
+.qrChip.is-on { border-color: #14161d; background: #14161d; color: #fff; }
+.qrChip:active { transform: scale(0.97); }
