@@ -12,6 +12,9 @@ function adminPhones() {
     .filter(Boolean);
 }
 
+/** The normalized phones listed in ZIBABAN_ADMIN_PHONES. */
+export const adminPhoneList = () => adminPhones();
+
 export function isAdminPhone(phone) {
   const normalized = normalizePhone(phone);
   return Boolean(normalized) && adminPhones().includes(normalized);

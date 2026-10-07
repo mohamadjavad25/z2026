@@ -90,7 +90,7 @@ export async function listSecurityEvents(limit = 60) {
   const db = await getDb();
   return all(db, `
     SELECT id, admin_label, action, detail, created_at FROM admin_actions
-    WHERE action IN ('login', 'login_failed', 'login_blocked', 'enroll', 'enroll_failed', 'stepup', 'stepup_failed', 'revoke_sessions')
+    WHERE action IN ('login', 'login_failed', 'login_blocked', 'enroll', 'enroll_failed', 'stepup', 'stepup_failed', 'revoke_sessions', 'reset_authenticator')
     ORDER BY id DESC LIMIT $1
   `, [clamp(limit, 1, 200, 60)]);
 }

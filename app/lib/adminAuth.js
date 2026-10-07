@@ -5,7 +5,7 @@ import * as users from "./db/repos/users.js";
 import * as adminRepo from "./db/repos/admin.js";
 import { DUMMY_PASSWORD_HASH, normalizeDigits, normalizePhone, verifyPassword } from "./auth.js";
 import { checkRateLimit } from "./rateLimit.js";
-import { isAdminPhone } from "./admin.js";
+import { adminPhoneList, isAdminPhone } from "./admin.js";
 import { generateTotpSecret, totpUri, verifyTotp } from "./totp.js";
 
 /**
@@ -222,6 +222,35 @@ export async function listAdminSessions() {
     FROM admin_sessions s JOIN users u ON u.id = s.user_id
     WHERE s.expires_at > NOW() ORDER BY s.last_seen_at DESC
   `);
+}
+
+/** Every phone listed in ZIBABAN_ADMIN_PHONES with its state: registered?, authenticator linked?, signed in right now? */
+export async function listAdminAccounts() {
+  await ensureAdminTables();
+  const phones = adminPhoneList();
+  if (!phones.length) return [];
+  const db = await getDb();
+  const rows = await all(db, `
+    SELECT u.id, u.phone, u.name, t.enabled_at,
+           EXISTS (SELECT 1 FROM admin_sessions s WHERE s.user_id = u.id AND s.expires_at > NOW()) AS online
+    FROM users u LEFT JOIN admin_totp t ON t.user_id = u.id
+    WHERE u.phone = ANY($1) ORDER BY u.id
+  `, [phones]);
+  const known = new Map(rows.map((row) => [row.phone, row]));
+  return phones.map((phone) => {
+    const row = known.get(phone);
+    return row
+      ? { id: row.id, phone, name: row.name || "", registered: true, authenticator: Boolean(row.enabled_at), online: row.online }
+      : { id: null, phone, name: "", registered: false, authenticator: false, online: false };
+  });
+}
+
+/** Forgets one admin's authenticator and ends their sessions, so they can run the first-time setup again. */
+export async function resetAdminAuthenticator(userId) {
+  await ensureAdminTables();
+  const db = await getDb();
+  await run(db, "DELETE FROM admin_totp WHERE user_id = $1", [Number(userId)]);
+  await run(db, "DELETE FROM admin_sessions WHERE user_id = $1", [Number(userId)]);
 }
 
 /** Ends every live session of one admin (their next request lands on the login form). */
