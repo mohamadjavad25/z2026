@@ -437,6 +437,7 @@ export function useProfileEditor({
     posterSaving,
     saveProfileLogo,
     quickSetLogo,
+    quickSaveProfile: saveProfileFields,
     saveProfilePoster,
     removeProfileLogo,
     removeProfilePoster,

@@ -4,6 +4,9 @@ import { useState } from "react";
 import { CheckCircle2, Circle, X } from "lucide-react";
 import { isDefaultAvatar } from "../../shared/lib/defaultAvatar";
 import { toPersianDigits } from "../../shared/lib/digits";
+import { beautySpecialtyOptions } from "../../shared/constants/roles";
+import { SpecialtyMultiSelect } from "../auth/SpecialtyMultiSelect";
+import { QuickAreaSheet } from "./QuickAreaSheet";
 
 /** What a salon / artist profile needs before clients can find and book it. Each step knows where to send the owner. */
 export function getProfileSteps(profile, serviceCount) {
@@ -19,7 +22,7 @@ export function getProfileSteps(profile, serviceCount) {
 
 const storageKey = (id) => `zibaban_completeness_dismissed_${id}`;
 
-export function ProfileCompleteness({ profile, serviceCount = 0, onEditProfile, onOpenServices, onPickLogo }) {
+export function ProfileCompleteness({ profile, serviceCount = 0, onEditProfile, onOpenServices, onPickLogo, onQuickSave }) {
   const [dismissed, setDismissed] = useState(() => {
     try {
       return window.localStorage.getItem(storageKey(profile?.id)) === "1";
@@ -27,6 +30,8 @@ export function ProfileCompleteness({ profile, serviceCount = 0, onEditProfile, 
       return false;
     }
   });
+  // Which one-tap sheet is open: "area" | "specialty" | null.
+  const [quick, setQuick] = useState(null);
   if (!profile || (profile.type !== "salon" && profile.type !== "artist")) return null;
   const steps = getProfileSteps(profile, serviceCount);
   const done = steps.filter((step) => step.done).length;
@@ -71,6 +76,11 @@ export function ProfileCompleteness({ profile, serviceCount = 0, onEditProfile, 
                 {step.label}
                 <input className="captureInput" type="file" accept="image/*" onChange={onPickLogo} />
               </label>
+            ) : onQuickSave && (step.id === "area" || step.id === "specialty") ? (
+              <button type="button" onClick={() => setQuick(step.id)}>
+                <Circle size={16} aria-hidden="true" />
+                {step.label}
+              </button>
             ) : (
               <button type="button" onClick={() => (step.target === "services" ? onOpenServices?.() : onEditProfile?.())}>
                 <Circle size={16} aria-hidden="true" />
@@ -80,6 +90,27 @@ export function ProfileCompleteness({ profile, serviceCount = 0, onEditProfile, 
           </li>
         ))}
       </ul>
+      <QuickAreaSheet
+        open={quick === "area"}
+        onClose={() => setQuick(null)}
+        onPick={(area) => {
+          setQuick(null);
+          onQuickSave?.({ area }, { successMessage: `محدوده فعالیت: ${area}` });
+        }}
+      />
+      {quick === "specialty" ? (
+        <SpecialtyMultiSelect
+          hideTrigger
+          defaultOpen
+          options={beautySpecialtyOptions}
+          defaultValue={profile.data?.service || ""}
+          onDismiss={() => setQuick(null)}
+          onDone={(selected) => {
+            setQuick(null);
+            onQuickSave?.({ service: selected.join("، ") }, { successMessage: "حوزه فعالیت ذخیره شد." });
+          }}
+        />
+      ) : null}
     </section>
   );
 }
