@@ -12,7 +12,7 @@ export function BookingSheet({
   return (
     <ProfileSheet
       open={open}
-      kicker="رزرو"
+      kicker=""
       title={title}
       label={title}
       panelClassName={`bookingSheet ${role === "artist" ? "is-artist" : "is-salon"}`}

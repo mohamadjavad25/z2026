@@ -66,7 +66,7 @@ export function ProfileSheet({ open, kicker = "پروفایل", title, label, pa
         {hideHeader ? null : (
           <div className="salonHeroSheetHead">
             <div>
-              <span>{kicker}</span>
+              {kicker ? <span>{kicker}</span> : null}
               <h3>{title}</h3>
             </div>
           </div>
