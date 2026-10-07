@@ -1,13 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CalendarCheck, Image as ImageIcon, KeyRound, LayoutDashboard, LogOut, Menu, Moon, PanelLeft, ScrollText, ShieldCheck, Sun, Users, X } from "lucide-react";
+import { toPersianDigits } from "../shared/lib/digits";
+import { CalendarCheck, Image as ImageIcon, KeyRound, LayoutDashboard, LifeBuoy, LogOut, Menu, Moon, PanelLeft, ScrollText, ShieldCheck, Sun, Users, X } from "lucide-react";
 
 const ICONS = {
   overview: LayoutDashboard,
   users: Users,
   content: ImageIcon,
   bookings: CalendarCheck,
+  support: LifeBuoy,
   resets: KeyRound,
   security: ShieldCheck,
   actions: ScrollText
@@ -18,7 +20,7 @@ const STORAGE_KEY = "zibaban_admin_nav";
  * Collapsible left rail: icons only by default, opens to show labels (state is remembered per browser).
  * On a phone it becomes a drawer that opens from the menu button.
  */
-export function AdminSidebar({ tabs, active, onSelect, name, onLogout, theme, onToggleTheme }) {
+export function AdminSidebar({ tabs, active, onSelect, name, onLogout, theme, onToggleTheme, badges = {} }) {
   const [expanded, setExpanded] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -64,10 +66,16 @@ export function AdminSidebar({ tabs, active, onSelect, name, onLogout, theme, on
         <nav className="admSideNav" role="tablist" aria-label="بخش‌های مدیریت" aria-orientation="vertical">
           {tabs.map((item) => {
             const Icon = ICONS[item.id] || LayoutDashboard;
+            const badge = Number(badges[item.id] || 0);
+            const label = badge > 0 ? `${item.label} (${toPersianDigits(badge)} مورد)` : item.label;
             return (
-              <button key={item.id} type="button" role="tab" aria-selected={active === item.id} aria-label={item.label} title={item.label} className={active === item.id ? "is-on" : ""} onClick={() => pick(item.id)}>
-                <Icon size={20} aria-hidden="true" />
+              <button key={item.id} type="button" role="tab" aria-selected={active === item.id} aria-label={label} title={label} className={active === item.id ? "is-on" : ""} onClick={() => pick(item.id)}>
+                <span className="admSideIcon">
+                  <Icon size={20} aria-hidden="true" />
+                  {badge > 0 ? <i className="admBadgeDot" aria-hidden="true" /> : null}
+                </span>
                 <span className="admSideLabel">{item.label}</span>
+                {badge > 0 ? <span className="admBadge admSideLabel" aria-hidden="true">{toPersianDigits(badge > 99 ? "99+" : badge)}</span> : null}
               </button>
             );
           })}
