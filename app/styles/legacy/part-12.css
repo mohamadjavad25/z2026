@@ -284,27 +284,17 @@
   overflow: visible !important;
   border: 0 !important;
   border-radius: 50% !important;
-  padding: 4px !important;
-  background:
-    conic-gradient(from 214deg, #eefaff 0deg, #7fd0ff 44deg, #14161d 118deg, #16214d 190deg, #bfeaff 260deg, #eefaff 360deg) !important;
+  padding: 0 !important;
+  background: transparent !important;
   box-shadow:
-    0 0 0 1px rgba(238, 250, 255, 0.78),
-    0 0 18px rgba(121, 198, 255, 0.86),
-    0 0 34px rgba(20, 22, 29, 0.52),
-    0 18px 34px rgba(0, 0, 0, 0.3) !important;
+    0 0 0 3px #ffffff,
+    0 0 0 4px rgba(190, 214, 255, 0.55),
+    0 8px 24px rgba(150, 190, 255, 0.34),
+    0 0 30px rgba(196, 224, 255, 0.4) !important;
 }
 
 .salonPublicIdentityCard .salonHeroAvatarFrame.salonPublicLogo::before {
-  content: "";
-  position: absolute;
-  inset: 7px;
-  z-index: 0;
-  border-radius: 50%;
-  border: 3px solid #d9b244;
-  box-shadow:
-    0 0 0 2px rgba(5, 5, 11, 0.96),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.18);
-  pointer-events: none;
+  display: none !important;
 }
 
 .salonPublicIdentityCard .salonHeroAvatarFrame.salonPublicLogo .profileAvatarImage {
@@ -314,15 +304,15 @@
   right: auto !important;
   left: auto !important;
   z-index: 1 !important;
-  width: 108px !important;
-  height: 108px !important;
-  padding: 8px !important;
+  width: 100% !important;
+  height: 100% !important;
+  padding: 0 !important;
   border: 0 !important;
   outline: 0 !important;
   outline-offset: 0 !important;
   border-radius: 50% !important;
-  background: #05050b !important;
-  object-fit: contain !important;
+  background: transparent !important;
+  object-fit: cover !important;
   box-shadow: none !important;
 }
 
@@ -1704,28 +1694,19 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   display: grid !important;
   place-items: center !important;
   border-radius: 50% !important;
-  padding: 0.75px !important;
+  padding: 0 !important;
   cursor: pointer;
-  background:
-    conic-gradient(from 228deg, #f3fbff 0deg, #cfd8ff 46deg, #6f7380 124deg, #111a3c 218deg, #dfe8ff 306deg, #f3fbff 360deg) !important;
+  background: transparent !important;
+  /* Logo fills the circle edge to edge: a clean white ring and a very soft icy glow outside. */
   box-shadow:
-    0 0 0 0.5px rgba(226, 236, 255, 0.42),
-    0 0 7px rgba(111, 115, 128, 0.38),
-    0 0 13px rgba(17, 26, 60, 0.26) !important;
+    0 0 0 3px #ffffff,
+    0 0 0 4px rgba(190, 214, 255, 0.55),
+    0 8px 24px rgba(150, 190, 255, 0.34),
+    0 0 30px rgba(196, 224, 255, 0.4) !important;
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-salon) .profileHero.is-salon .salonHeroAvatarFrame::before {
-  display: block !important;
-  content: "";
-  position: absolute;
-  inset: 1.5px;
-  z-index: 0;
-  border-radius: 50%;
-  background: #05050b;
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.16),
-    inset 0 0 18px rgba(255, 255, 255, 0.08);
-  pointer-events: none;
+  display: none !important;
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-salon) .profileHero.is-salon .salonHeroAvatarFrame .profileAvatarImage {
@@ -1735,15 +1716,15 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   right: auto !important;
   left: auto !important;
   z-index: 1 !important;
-  width: 108px !important;
-  height: 108px !important;
-  padding: 5px !important;
+  width: 100% !important;
+  height: 100% !important;
+  padding: 0 !important;
   border: 0 !important;
   outline: 0 !important;
   outline-offset: 0 !important;
   border-radius: 50% !important;
-  background: #05050b !important;
-  object-fit: contain !important;
+  background: transparent !important;
+  object-fit: cover !important;
   box-shadow: none !important;
 }
 

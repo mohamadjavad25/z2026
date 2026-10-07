@@ -224,23 +224,18 @@ export function ServiceComposerModal({
             </div>
             <div className="svcDoneBar">
               {addedCount ? (
-                <div className="svcDoneSummary" aria-live="polite">
-                  <span className="svcDoneStack" aria-hidden="true">
-                    {existingServices.slice(-3).map((item) => (
-                      <ServiceIcon key={item.id || item.name} emoji={item.emoji} name={item.name} size="sm" />
-                    ))}
-                  </span>
-                  <span className="svcDoneText">
-                    <b>{toPersianDigits(addedCount)} خدمت</b>
-                    <small>در منوی تو</small>
-                  </span>
+                <div className="svcAddedStrip" aria-label={`${toPersianDigits(addedCount)} خدمت در منو`} aria-live="polite">
+                  {[...existingServices].reverse().map((item) => (
+                    <span className="svcAddedChip" key={item.id || item.name}>
+                      <ServiceIcon emoji={item.emoji} name={item.name} size="xs" />
+                      {item.name}
+                    </span>
+                  ))}
                 </div>
-              ) : (
-                <span className="svcDoneHint">یک یا چند خدمت را با + اضافه کن</span>
-              )}
+              ) : null}
               <button type="button" className="svcDoneBtn" onClick={onClose}>
-                <Check size={17} />
-                {addedCount ? "تمام" : "بستن"}
+                <Check size={18} aria-hidden="true" />
+                {addedCount ? `تمام · ${toPersianDigits(addedCount)} خدمت در منو` : "بستن"}
               </button>
             </div>
           </div>
