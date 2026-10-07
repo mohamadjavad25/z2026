@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, ChevronDown, Copy, QrCode, Send } from "lucide-react";
+import { Check, ChevronDown, Copy, QrCode, Send, Share2 } from "lucide-react";
 import { ProfileSheet } from "../profile/ProfileSheet";
 import { useQrCode } from "../../shared/hooks/useQrCode";
 import { CAPACITY_PRESETS, DAY_PRESETS, HOUR_RANGE_PRESETS, PresetRow, SHARE_PRESETS } from "../collab/collabPresets";
@@ -122,6 +122,20 @@ export function SalonNearbyInviteSheet({
     }
   }
 
+  // One tap to send the join link through any installed messenger; falls back to copying it.
+  async function shareJoinLink() {
+    if (!joinUrl) return;
+    if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
+      try {
+        await navigator.share({ title: salonName, text: `برای پیوستن به تیم «${salonName}» در زیبابان این لینک را باز کن:`, url: joinUrl });
+        return;
+      } catch (error) {
+        if (error?.name === "AbortError") return;
+      }
+    }
+    copyJoinLink();
+  }
+
   return (
     <ProfileSheet
       open={open}
@@ -145,10 +159,16 @@ export function SalonNearbyInviteSheet({
           <div className="artistInviteQrImage">
             {qrDataUrl ? <img src={qrDataUrl} alt={`کد پیوستن به تیم ${salonName}`} /> : null}
           </div>
-          <button type="button" className="artistInviteQrCopy" onClick={copyJoinLink}>
-            {copied ? <Check size={14} aria-hidden="true" /> : <Copy size={14} aria-hidden="true" />}
-            {copied ? "لینک کپی شد" : "کپی لینک پیوستن"}
-          </button>
+          <div className="artistInviteQrActions">
+            <button type="button" className="artistInviteQrShare" onClick={shareJoinLink}>
+              <Share2 size={14} aria-hidden="true" />
+              ارسال لینک
+            </button>
+            <button type="button" className="artistInviteQrCopy" onClick={copyJoinLink}>
+              {copied ? <Check size={14} aria-hidden="true" /> : <Copy size={14} aria-hidden="true" />}
+              {copied ? "کپی شد" : "کپی لینک"}
+            </button>
+          </div>
         </section>
       ) : null}
 
