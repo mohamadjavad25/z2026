@@ -630,7 +630,7 @@ button.artistWorkTagTrigger > svg{
 
 .peField { display: grid; gap: 6px; min-width: 0; }
 .peField > span { color: #3f4350; font-size: 0.76rem; font-weight: 900; }
-.peField > span em { margin-inline-start: 6px; color: #8a8d9a; font-size: 0.66rem; font-style: normal; font-weight: 750; }
+.peField > span em { margin-inline-start: 6px; color: #565a68; font-size: 0.66rem; font-style: normal; font-weight: 750; }
 .peField small { color: #6f7380; font-size: 0.68rem; font-weight: 700; line-height: 1.6; }
 
 .peField input {
