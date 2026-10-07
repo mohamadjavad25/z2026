@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { CalendarCheck, Check, Plus, Sparkles } from "lucide-react";
+import { CalendarCheck, Check, ChevronDown, Plus } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { ServiceIcon } from "../../components/ServiceIcon";
+
+const SUGGESTED_TIMES = 6;
 
 const normalizeOption = (option) => (
   option && typeof option === "object"
@@ -44,8 +46,8 @@ export function BookingCreateForm({
   const showStaff = role === "salon" && staffOptions.length > 0;
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  // The first free time is chosen for you; until you tap a time yourself it is only a suggestion.
-  const [timePicked, setTimePicked] = useState(false);
+  // Only the nearest free times are shown first; the rest open on demand.
+  const [allTimes, setAllTimes] = useState(false);
   const [tried, setTried] = useState(false);
   const dayFieldName = role === "salon" ? "booking_date" : "date";
   const isBusy = Boolean(submitting);
@@ -58,6 +60,13 @@ export function BookingCreateForm({
   const times = useMemo(() => timeOptions.map(normalizeOption).filter((option) => option.value), [timeOptions]);
   const selectedService = serviceOptions.find((item) => item.value === serviceValue) || serviceOptions[0] || null;
   const selectedTime = times.find((option) => option.value === timeValue) ? timeValue : "";
+
+  // Collapsed view: the nearest few free times, plus the chosen one if it is further out.
+  const shownTimes = allTimes ? times : (() => {
+    const near = times.slice(0, SUGGESTED_TIMES);
+    const chosen = times.find((option) => option.value === selectedTime);
+    return chosen && !near.includes(chosen) ? [...near.slice(0, SUGGESTED_TIMES - 1), chosen] : near;
+  })();
 
   // Never leave the time on a slot that isn't free for this day/service: take the first free one.
   useEffect(() => {
@@ -157,7 +166,7 @@ export function BookingCreateForm({
                   role="radio"
                   aria-checked={selectedService?.value === item.value}
                   className={`bcfChip${selectedService?.value === item.value ? " is-on" : ""}`}
-                  onClick={() => { setTimePicked(false); onServiceChange?.(item.value); }}
+                  onClick={() => { onServiceChange?.(item.value); }}
                 >
                   {item.withIcon ? <ServiceIcon emoji={item.emoji} name={item.label} size="xs" /> : null}
                   {item.label}
@@ -202,36 +211,40 @@ export function BookingCreateForm({
               role="radio"
               aria-checked={activeDay.value === option.value}
               className={`bcfDay${activeDay.value === option.value ? " is-on" : ""}`}
-              onClick={() => { setTimePicked(false); onDayChange?.(option.value); }}
+              onClick={() => { onDayChange?.(option.value); }}
             >
               {option.label}
             </button>
           ))}
         </div>
-        {times.length && selectedTime ? (
-          <p className={`bcfPick${timePicked ? " is-picked" : ""}`} role="status">
-            {timePicked ? <Check size={15} aria-hidden="true" /> : <Sparkles size={15} aria-hidden="true" />}
-            {timePicked
-              ? <>ساعت انتخابی تو: <b>{toPersianDigits(selectedTime)}</b></>
-              : <>نزدیک‌ترین ساعت خالی را برایت گذاشتیم: <b>{toPersianDigits(selectedTime)}</b>. ساعت دیگری می‌خواهی؟ آن را بزن.</>}
-          </p>
-        ) : null}
         {times.length ? (
-          <div className="bcfTimes" role="radiogroup" aria-label="انتخاب ساعت">
-            {times.map((option) => (
-              <button
-                type="button"
-                key={option.value}
-                role="radio"
-                aria-checked={selectedTime === option.value}
-                className={`bcfTime${selectedTime === option.value ? " is-on" : ""}`}
-                onClick={() => { setTimePicked(true); onTimeChange?.(option.value); }}
-              >
-                {selectedTime === option.value ? <Check size={14} aria-hidden="true" /> : null}
-                {toPersianDigits(option.label)}
+          <>
+            <div className="bcfTimesHead">
+              <span>{allTimes ? "همهٔ ساعت‌های خالی" : "نزدیک‌ترین ساعت‌های خالی"}</span>
+              <small>{toPersianDigits(times.length)} ساعت خالی</small>
+            </div>
+            <div className={`bcfTimes${allTimes ? " is-all" : ""}`} role="radiogroup" aria-label="انتخاب ساعت">
+              {shownTimes.map((option) => (
+                <button
+                  type="button"
+                  key={option.value}
+                  role="radio"
+                  aria-checked={selectedTime === option.value}
+                  className={`bcfTime${selectedTime === option.value ? " is-on" : ""}`}
+                  onClick={() => onTimeChange?.(option.value)}
+                >
+                  {selectedTime === option.value ? <Check size={14} aria-hidden="true" /> : null}
+                  {toPersianDigits(option.label)}
+                </button>
+              ))}
+            </div>
+            {times.length > SUGGESTED_TIMES ? (
+              <button type="button" className="bcfMore" aria-expanded={allTimes} onClick={() => setAllTimes((open) => !open)}>
+                {allTimes ? "نمایش کمتر" : "ساعت‌های دیگر"}
+                <ChevronDown size={16} aria-hidden="true" className={allTimes ? "is-open" : ""} />
               </button>
-            ))}
-          </div>
+            ) : null}
+          </>
         ) : (
           <p className="bcfEmptyTimes">برای این روز نوبت آزادی نیست.</p>
         )}
