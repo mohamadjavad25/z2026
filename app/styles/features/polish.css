@@ -1055,3 +1055,36 @@ html[data-cbt="1"] body { padding-bottom: 92px; }
   height: 8px;
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='8' viewBox='0 0 20 8'%3E%3Cpath d='M0 4 Q5 0 10 4 T20 4' fill='none' stroke='%23b3b3b3' stroke-width='1.6'/%3E%3C/svg%3E") repeat-x center;
 }
+
+/* Service composer: grabber + centered wavy title; swipe the header down to close */
+.svcSheetHead { display: block !important; padding: 18px 4px 12px !important; position: relative; touch-action: none; }
+.svcSheetHead::before {
+  content: "";
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  width: 40px;
+  height: 4px;
+  margin-left: -20px;
+  border-radius: 4px;
+  background: #d3d4da;
+}
+.svcSheetHead > div { width: 100%; }
+.svcSheetHead span { display: none !important; }
+.svcSheetHead h3 {
+  display: flex !important;
+  align-items: center;
+  gap: 12px;
+  margin: 0 !important;
+  color: #565a68 !important;
+  font-size: 0.9rem !important;
+  font-weight: 800 !important;
+  white-space: nowrap;
+}
+.svcSheetHead h3::before,
+.svcSheetHead h3::after {
+  content: "";
+  flex: 1;
+  height: 8px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='8' viewBox='0 0 20 8'%3E%3Cpath d='M0 4 Q5 0 10 4 T20 4' fill='none' stroke='%23b3b3b3' stroke-width='1.6'/%3E%3C/svg%3E") repeat-x center;
+}
