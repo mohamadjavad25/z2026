@@ -1027,3 +1027,31 @@ html[data-cbt="1"] body { padding-bottom: 92px; }
 .profilePanel.page-profile:has(.createdProfile.is-salon) ~ .bottomNav .profileTab.is-createBooking::after {
   display: none !important;
 }
+
+/* Sheets (modals): centered title between two wavy rules, kicker hidden */
+.salonHeroSheetPanel .salonHeroSheetHead {
+  display: block !important;
+  min-height: 0 !important;
+  padding: 10px 4px 12px !important;
+  border-bottom: 0 !important;
+}
+.salonHeroSheetPanel .salonHeroSheetHead > div { width: 100%; }
+.salonHeroSheetPanel .salonHeroSheetHead span { display: none !important; }
+.salonHeroSheetPanel .salonHeroSheetHead h3 {
+  display: flex !important;
+  align-items: center;
+  gap: 12px;
+  margin: 0 !important;
+  color: #565a68 !important;
+  font-size: 0.9rem !important;
+  font-weight: 800 !important;
+  text-align: center;
+  white-space: nowrap;
+}
+.salonHeroSheetPanel .salonHeroSheetHead h3::before,
+.salonHeroSheetPanel .salonHeroSheetHead h3::after {
+  content: "";
+  flex: 1;
+  height: 8px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='8' viewBox='0 0 20 8'%3E%3Cpath d='M0 4 Q5 0 10 4 T20 4' fill='none' stroke='%23b3b3b3' stroke-width='1.6'/%3E%3C/svg%3E") repeat-x center;
+}
