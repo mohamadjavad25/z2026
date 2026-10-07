@@ -362,3 +362,26 @@
 .bcfNote { margin: 0; padding: 10px 12px; border-radius: 14px; background: #f6f6f8; color: #3f4350; font-size: 0.76rem; font-weight: 800; line-height: 1.7; }
 .bcfWho { margin: 0; color: #6f7380; font-size: 0.74rem; font-weight: 800; text-align: center; }
 .bcfWho b { color: #14161d; font-weight: 900; }
+
+/* ═══ Compact booking form: everything fits one screen, no cards, one title ═══ */
+.bcf { gap: 12px; padding-bottom: 0; counter-reset: none; }
+.bcfGroup { gap: 8px; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; }
+.bcfGroup h4 { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.bcfGroup h4::before { content: none; }
+.bcf input[name="client"], .bcf input[name="phone"] { min-height: 44px; border-radius: 14px; }
+.bcfChips { gap: 6px; }
+.bcfChips[role="group"], .bcfChips[role="radiogroup"] { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 -12px; padding: 2px 12px; }
+.bcfChips[role="group"]::-webkit-scrollbar, .bcfChips[role="radiogroup"]::-webkit-scrollbar { display: none; }
+.bcfChips[aria-label="انتخاب خدمت"] { display: flex; }
+.bcfChip, .bcfChips[aria-label="انتخاب خدمت"] .bcfChip { flex: none; min-height: 40px; border-radius: 999px; padding: 0 12px; font-size: 0.78rem; }
+.bcfChip.is-person { min-height: 32px; font-size: 0.72rem; }
+.bcfMeta { margin: 0 2px; font-size: 0.7rem; }
+.bcfDays { margin: 0 -12px; padding: 2px 12px; }
+.bcfDay { min-width: 72px; min-height: 42px; border-radius: 14px; padding: 0 12px; font-size: 0.74rem; }
+.bcfTimesHead { font-size: 0.74rem; }
+.bcfTimes { gap: 6px; }
+.bcfTime { min-height: 40px; border-radius: 12px; font-size: 0.82rem; }
+.bcfMore { min-height: 36px; border-radius: 12px; font-size: 0.76rem; }
+.bcfNote { padding: 8px 10px; font-size: 0.72rem; line-height: 1.6; }
+.bcfFoot { padding-top: 0; gap: 6px; margin-bottom: 84px; }
+.bcfSubmit { min-height: 52px; border-radius: 16px; }
