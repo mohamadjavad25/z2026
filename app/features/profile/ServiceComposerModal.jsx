@@ -58,9 +58,23 @@ export function ServiceComposerModal({
       .sort((a, b) => Number(addedNames.has(a.name)) - Number(addedNames.has(b.name)));
   }, [catalog, activeCategory, mine, query, addedNames]);
 
+  // Smart suggestions: while a new service is being named, offer matching
+  // catalog entries that fill price, duration, description and icon in one tap.
+  const suggestions = useMemo(() => {
+    const q = String(draft?.name || "").trim().toLowerCase();
+    if (draft?.id || q.length < 2) return [];
+    return catalog
+      .filter((item) => !addedNames.has(item.name)
+        && item.name.toLowerCase() !== q
+        && `${item.name} ${item.badge}`.toLowerCase().includes(q))
+      .slice(0, 3);
+  }, [catalog, addedNames, draft?.id, draft?.name]);
+
   if (!open || !draft) return null;
 
   const editing = Boolean(draft.id);
+  const hasName = Boolean(draft.name.trim());
+  const addedCount = addedNames.size;
 
   return (
     <div
@@ -73,7 +87,11 @@ export function ServiceComposerModal({
       <article className="svcSheet" onClick={(event) => event.stopPropagation()}>
         <header className="svcSheetHead">
           <div>
-            <span>خدمات</span>
+            <span>
+              {!editing && addedCount
+                ? `${toPersianDigits(addedCount)} خدمت در منوی تو`
+                : "خدمات"}
+            </span>
             <h3>{editing ? "ویرایش خدمت" : "افزودن خدمت"}</h3>
           </div>
         </header>
@@ -204,10 +222,12 @@ export function ServiceComposerModal({
                 );
               })}
             </div>
-            <button type="button" className="svcSubmit svcDone" onClick={onClose}>
-              <Check size={17} />
-              {addedNames.size ? "تمام" : "بستن"}
-            </button>
+            <div className="svcDoneBar">
+              <button type="button" className="svcSubmit svcDone" onClick={onClose}>
+                <Check size={17} />
+                {addedCount ? `تمام (${toPersianDigits(addedCount)} خدمت)` : "بستن"}
+              </button>
+            </div>
           </div>
         ) : (
           <form className="svcForm" onSubmit={onSubmitCustom}>
@@ -236,6 +256,31 @@ export function ServiceComposerModal({
                 />
               </label>
             </div>
+
+            {suggestions.length ? (
+              <div className="svcSuggest" role="group" aria-label="پیشنهاد از کاتالوگ">
+                <small>پیشنهاد؛ با یک ضربه قیمت و مدت پر می‌شود:</small>
+                <div>
+                  {suggestions.map((item) => (
+                    <button
+                      type="button"
+                      key={item.id}
+                      onClick={() => onDraftChange?.({
+                        name: item.name,
+                        price: item.price,
+                        duration: item.duration,
+                        hint: item.hint,
+                        emoji: item.emoji || "",
+                        badge: item.badge || ""
+                      })}
+                    >
+                      <ServiceIcon emoji={item.emoji} name={item.name} size="sm" />
+                      {item.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
 
             <div className="svcFieldRow">
               <label className="svcField">
@@ -280,7 +325,11 @@ export function ServiceComposerModal({
               />
             </label>
 
-            <button type="submit" className="svcSubmit">
+            {!draft.price.trim() ? (
+              <p className="svcFormNote">قیمت را خالی بگذاری، «توافقی» نمایش داده می‌شود.</p>
+            ) : null}
+
+            <button type="submit" className="svcSubmit" disabled={!hasName}>
               <Check size={17} />
               {editing ? "ذخیره تغییرات" : "افزودن به خدمات من"}
             </button>

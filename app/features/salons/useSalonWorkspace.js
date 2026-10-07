@@ -302,7 +302,10 @@ export function useSalonWorkspace({
     refreshSalonSystemData();
   }, [salonWorkspace, salonToolSheetOpen, salonTool, createdProfile?.type, refreshSalonSystemData]);
 
-  const openSalonWorkspace = useCallback((tool) => {
+  const openSalonWorkspace = useCallback((requested) => {
+    // The salon services manager lives under the "hours" key; accept the
+    // friendlier "services" alias so a mismatch can never render a blank panel.
+    const tool = requested === "services" ? "hours" : requested;
     setSalonToolSheetOpen(false);
     setSalonHeroSheet(null);
     setSalonTool(tool);
