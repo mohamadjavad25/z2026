@@ -11,9 +11,10 @@ const normalizeOption = (option) => (
   option && typeof option === "object"
     ? {
       value: String(option.value ?? option.day ?? option.label ?? ""),
-      label: String(option.label ?? option.day ?? option.value ?? "")
+      label: String(option.label ?? option.day ?? option.value ?? ""),
+      free: typeof option.free === "number" ? option.free : undefined
     }
-    : { value: String(option || ""), label: String(option || "") }
+    : { value: String(option || ""), label: String(option || ""), free: undefined }
 );
 
 /**
@@ -32,6 +33,7 @@ export function BookingCreateForm({
   onServiceChange,
   staffOptions = [],
   staffValue = "",
+  staffForTime,
   onStaffChange,
   dayOptions = [],
   dayValue = "",
@@ -59,6 +61,8 @@ export function BookingCreateForm({
     || { value: dayValue, label: dayValue };
   const times = useMemo(() => timeOptions.map(normalizeOption).filter((option) => option.value), [timeOptions]);
   const selectedService = serviceOptions.find((item) => item.value === serviceValue) || serviceOptions[0] || null;
+  const soleStaff = staffOptions.length === 1 ? staffOptions[0].value : "";
+  const pickedStaff = staffValue || soleStaff;
   const selectedTime = times.find((option) => option.value === timeValue) ? timeValue : "";
 
   // Collapsed view: the nearest few free times, plus the chosen one if it is further out.
@@ -67,6 +71,17 @@ export function BookingCreateForm({
     const chosen = times.find((option) => option.value === selectedTime);
     return chosen && !near.includes(chosen) ? [...near.slice(0, SUGGESTED_TIMES - 1), chosen] : near;
   })();
+
+  // Today is full or already over: hop to the nearest day that still has a free time.
+  const nextOpenDay = days.find((option) => option.free > 0);
+  useEffect(() => {
+    if (activeDay.free === 0 && nextOpenDay && nextOpenDay.value !== activeDay.value) onDayChange?.(nextOpenDay.value);
+  }, [activeDay.free, activeDay.value, nextOpenDay?.value, onDayChange]);
+  const autoStaff = showStaff && !pickedStaff && selectedTime
+    ? (staffOptions.find((person) => person.value === staffForTime?.(selectedTime))?.label || "")
+    : "";
+  const firstDay = days[0];
+  const skippedDays = firstDay && firstDay.free === 0 && nextOpenDay && activeDay.value === nextOpenDay.value;
 
   // Never leave the time on a slot that isn't free for this day/service: take the first free one.
   useEffect(() => {
@@ -180,16 +195,27 @@ export function BookingCreateForm({
 
       {showStaff ? (
         <section className="bcfGroup" aria-labelledby="bcf-staff">
-          <h4 id="bcf-staff">پرسنل</h4>
-          <input type="hidden" name="staff" value={staffValue || staffOptions[0]?.value || ""} />
-          <div className="bcfChips" role="radiogroup" aria-label="انتخاب پرسنل">
+          <h4 id="bcf-staff">آرتیست</h4>
+          <input type="hidden" name="staff" value={pickedStaff || staffForTime?.(selectedTime) || staffOptions[0]?.value || ""} />
+          <div className="bcfChips" role="radiogroup" aria-label="انتخاب آرتیست">
+            {staffOptions.length > 1 ? (
+              <button
+                type="button"
+                role="radio"
+                aria-checked={!pickedStaff}
+                className={`bcfChip${!pickedStaff ? " is-on" : ""}`}
+                onClick={() => onStaffChange?.("")}
+              >
+                هر آرتیستِ آزاد
+              </button>
+            ) : null}
             {staffOptions.map((person) => (
               <button
                 type="button"
                 key={person.value}
                 role="radio"
-                aria-checked={(staffValue || staffOptions[0]?.value) === person.value}
-                className={`bcfChip${(staffValue || staffOptions[0]?.value) === person.value ? " is-on" : ""}`}
+                aria-checked={pickedStaff === person.value}
+                className={`bcfChip${pickedStaff === person.value ? " is-on" : ""}`}
                 onClick={() => onStaffChange?.(person.value)}
               >
                 {person.label}
@@ -210,13 +236,18 @@ export function BookingCreateForm({
               key={option.value}
               role="radio"
               aria-checked={activeDay.value === option.value}
-              className={`bcfDay${activeDay.value === option.value ? " is-on" : ""}`}
-              onClick={() => { onDayChange?.(option.value); }}
+              aria-disabled={option.free === 0 || undefined}
+              className={`bcfDay${activeDay.value === option.value ? " is-on" : ""}${option.free === 0 ? " is-full" : ""}`}
+              onClick={() => { if (option.free !== 0) onDayChange?.(option.value); }}
             >
               {option.label}
+              {option.free === 0 ? <small>تکمیل</small> : null}
             </button>
           ))}
         </div>
+        {skippedDays ? (
+          <p className="bcfNote" role="status">{firstDay.label} ساعت خالی ندارد؛ نزدیک‌ترین روزِ آزاد را برایت باز کردیم.</p>
+        ) : null}
         {times.length ? (
           <>
             <div className="bcfTimesHead">
@@ -238,6 +269,9 @@ export function BookingCreateForm({
                 </button>
               ))}
             </div>
+            {showStaff && !pickedStaff && autoStaff ? (
+              <p className="bcfWho">آرتیست این ساعت: <b>{autoStaff}</b></p>
+            ) : null}
             {times.length > SUGGESTED_TIMES ? (
               <button type="button" className="bcfMore" aria-expanded={allTimes} onClick={() => setAllTimes((open) => !open)}>
                 {allTimes ? "نمایش کمتر" : "ساعت‌های دیگر"}
@@ -246,7 +280,7 @@ export function BookingCreateForm({
             ) : null}
           </>
         ) : (
-          <p className="bcfEmptyTimes">برای این روز نوبت آزادی نیست.</p>
+          <p className="bcfEmptyTimes">{nextOpenDay ? "برای این روز نوبت آزادی نیست." : "تا هفتهٔ آینده ساعت خالی نمانده؛ ساعت کاری یا رزروهای قبلی را بررسی کن."}</p>
         )}
       </section>
 
