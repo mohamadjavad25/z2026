@@ -286,11 +286,7 @@
   border-radius: 50% !important;
   padding: 0 !important;
   background: transparent !important;
-  box-shadow:
-    0 0 0 3px #ffffff,
-    0 0 0 4px rgba(190, 214, 255, 0.55),
-    0 8px 24px rgba(150, 190, 255, 0.34),
-    0 0 30px rgba(196, 224, 255, 0.4) !important;
+  box-shadow: var(--logo-glow) !important;
 }
 
 .salonPublicIdentityCard .salonHeroAvatarFrame.salonPublicLogo::before {
@@ -1502,12 +1498,8 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   width: 108px !important;
   height: 108px !important;
   border-radius: 50% !important;
-  border: 1px solid rgba(233, 240, 255, 0.9) !important;
-  box-shadow:
-    0 0 0 0.5px rgba(226, 236, 255, 0.42),
-    0 0 7px rgba(111, 115, 128, 0.38),
-    0 0 13px rgba(17, 26, 60, 0.26),
-    0 10px 26px rgba(14, 14, 18, 0.22) !important;
+  border: 0 !important;
+  box-shadow: var(--logo-glow) !important;
 }
 
 /* Name: below the poster, beside the avatar */
@@ -1697,12 +1689,8 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   padding: 0 !important;
   cursor: pointer;
   background: transparent !important;
-  /* Logo fills the circle edge to edge: a clean white ring and a very soft icy glow outside. */
-  box-shadow:
-    0 0 0 3px #ffffff,
-    0 0 0 4px rgba(190, 214, 255, 0.55),
-    0 8px 24px rgba(150, 190, 255, 0.34),
-    0 0 30px rgba(196, 224, 255, 0.4) !important;
+  /* Logo fills the circle edge to edge: no ring, only a very soft icy glow outside. */
+  box-shadow: var(--logo-glow) !important;
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-salon) .profileHero.is-salon .salonHeroAvatarFrame::before {
