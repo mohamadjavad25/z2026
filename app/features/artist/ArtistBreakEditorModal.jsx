@@ -5,6 +5,14 @@ import { toPersianDigits } from "../../shared/lib/digits";
 import { buildClockOptions, timeLabelToMinutes } from "../../shared/lib/time";
 import { SheetClose } from "../../components/SheetClose";
 
+// Typical lunch/rest windows: one tap, then save.
+const QUICK_BREAKS = [
+  ["۱۲:۰۰", "۱۳:۰۰"],
+  ["۱۳:۰۰", "۱۴:۰۰"],
+  ["۱۴:۰۰", "۱۵:۰۰"],
+  ["۱۵:۰۰", "۱۶:۰۰"]
+];
+
 /**
  * Artist owner — break time range editor modal.
  * Presentational: draft + save/clear/close callbacks (state stays in HomeApp / hook).
@@ -55,6 +63,18 @@ export function ArtistBreakEditorModal({
       <article className="artistServiceSheet artistBreakSheet" onClick={(event) => event.stopPropagation()}>
 
         <div className="artistBreakModalBody">
+          <div className="qrChips" role="group" aria-label="بازه‌های رایج">
+            {QUICK_BREAKS.filter(([from, to]) => clockOptions.includes(from) && clockOptions.includes(to)).map(([from, to]) => (
+              <button
+                type="button"
+                key={`${from}-${to}`}
+                className={`qrChip${draft.start === from && draft.end === to ? " is-on" : ""}`}
+                onClick={() => onDraftChange?.({ start: from, end: to })}
+              >
+                {toPersianDigits(from)} تا {toPersianDigits(to)}
+              </button>
+            ))}
+          </div>
           <div className={`artistBreakRange is-side ${isInvalid ? "is-invalid" : ""}`}>
             <div className="artistBreakRangeCol">
               <span className="artistBreakRangeLabel">از</span>
@@ -90,7 +110,6 @@ export function ArtistBreakEditorModal({
             {hasBreak ? (
               <button type="button" className="danger" onClick={onClear} disabled={saving}>حذف</button>
             ) : null}
-            <button type="button" className="ghost" onClick={onClose}>بستن</button>
           </div>
         </div>
   <SheetClose onClick={onClose} />
