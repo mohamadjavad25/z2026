@@ -130,7 +130,6 @@ export function SalonCustomersPage({ active, bookings = [], ownerLabel = "سال
       <div className="salonCustomersHead">
         <div className="salonCustomersTitle">
           <span className="wavyTitle">جامعه مشتریان</span>
-          <strong>{ownerLabel}</strong>
         </div>
       </div>
 
