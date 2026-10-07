@@ -23,7 +23,8 @@ describe("auth forms (browser)", () => {
     await page.getByText("سالن زیبایی", { exact: true }).first().click();
     await page.getByRole("button", { name: "تکمیل ثبت‌نام" }).click();
     const alerts = (await page.locator("[role=alert]").allInnerTexts()).filter(Boolean);
-    expect(alerts.length).toBeGreaterThanOrEqual(5);
+    // name, phone, password, terms: signup is intentionally short
+    expect(alerts.length).toBeGreaterThanOrEqual(4);
     for (const message of alerts) expect(message).toMatch(persian);
     expect(await page.evaluate(() => document.activeElement?.getAttribute("name"))).toBe("name");
     expect(problems).toEqual([]);
@@ -129,10 +130,15 @@ describe("accessibility (browser)", () => {
   }, 120_000);
 
   it("keeps keyboard focus inside a sheet and returns it to the opener on Escape", async () => {
-    const { page, context } = await newPage();
+    // The specialty picker lives in the profile edit sheet (signup no longer asks for it).
+    const api = createClient();
+    await registerUser(api, { type: "salon", name: "سالن فوکوس" });
+    const { page, context } = await newPage({ cookie: api.cookie() });
     await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
-    await page.getByText("سالن زیبایی", { exact: true }).first().click();
+    await page.locator("nav.bottomNav > button").nth(0).click();
+    await page.locator("main button").filter({ hasText: "ویرایش برند سالن" }).first().click();
     const trigger = page.locator(".specialtySelectTrigger");
+    await trigger.waitFor();
     await trigger.focus();
     await trigger.press("Enter");
     await page.locator(".specialtySheet").waitFor();

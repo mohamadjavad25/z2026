@@ -980,7 +980,7 @@ button.svcCard:active { transform: scale(0.99); }
 
 .svcSuggest button:active { transform: scale(0.97); }
 
-.svcFormNote { margin: -4px 0 0; color: #8a8d9a; font-size: 0.68rem; font-weight: 750; }
+.svcFormNote { margin: -4px 0 0; color: #565a68; font-size: 0.68rem; font-weight: 750; }
 
 .svcSubmit:disabled { opacity: 0.4; box-shadow: none; cursor: not-allowed; }
 

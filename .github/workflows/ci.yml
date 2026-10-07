@@ -1,13 +1,20 @@
 name: CI
 
+# Runs on every pull request and on pushes to main. Branch pushes are covered by their pull request,
+# so the same commit is not tested twice. A red run means: do not merge.
 on:
   push:
-    branches: ["**"]
+    branches: [main]
   pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
