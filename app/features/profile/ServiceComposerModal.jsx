@@ -223,9 +223,24 @@ export function ServiceComposerModal({
               })}
             </div>
             <div className="svcDoneBar">
-              <button type="button" className="svcSubmit svcDone" onClick={onClose}>
+              {addedCount ? (
+                <div className="svcDoneSummary" aria-live="polite">
+                  <span className="svcDoneStack" aria-hidden="true">
+                    {existingServices.slice(-3).map((item) => (
+                      <ServiceIcon key={item.id || item.name} emoji={item.emoji} name={item.name} size="sm" />
+                    ))}
+                  </span>
+                  <span className="svcDoneText">
+                    <b>{toPersianDigits(addedCount)} خدمت</b>
+                    <small>در منوی تو</small>
+                  </span>
+                </div>
+              ) : (
+                <span className="svcDoneHint">یک یا چند خدمت را با + اضافه کن</span>
+              )}
+              <button type="button" className="svcDoneBtn" onClick={onClose}>
                 <Check size={17} />
-                {addedCount ? `تمام (${toPersianDigits(addedCount)} خدمت)` : "بستن"}
+                {addedCount ? "تمام" : "بستن"}
               </button>
             </div>
           </div>
@@ -335,7 +350,7 @@ export function ServiceComposerModal({
             </button>
           </form>
         )}
-  <SheetClose onClick={onClose} />
+        {mode === "preset" ? null : <SheetClose onClick={onClose} />}
       </article>
       <ServiceEmojiPicker
         open={pickerOpen}
