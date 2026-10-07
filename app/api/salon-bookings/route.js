@@ -144,7 +144,7 @@ async function _POST(request) {
   if (auth.user.type === "client" && !phone) {
     return noStoreJson({ error: "برای ثبت رزرو، شماره تماس لازم است." }, { status: 400 });
   }
-  if (auth.user.type === "client" && isSlotInPast(bookingDateKey, time)) {
+  if (isSlotInPast(bookingDateKey, time)) {
     return noStoreJson({ error: "این ساعت گذشته است. ساعت دیگری انتخاب کن." }, { status: 409 });
   }
   const hour = findHourForBookingDay(await salons.listSalonHours(salonUserId), rawBookingDay, bookingDateKey);

@@ -16,6 +16,7 @@ export function OwnerBookingSheet() {
     bookingSelectMenu,
     setBookingServiceName,
     bookingStaffOptions,
+    bookingStaffName,
     selectedBookingStaff,
     setBookingStaffName,
     artistBookingDayOptions,
@@ -25,6 +26,8 @@ export function OwnerBookingSheet() {
     setBookingDate,
     artistBookingFreeSlots,
     bookingFreeSlots,
+    bookingStaffForTime,
+    bookingDayFreeCounts,
     bookingTime,
     setBookingTime,
     artistBookingSubmitting,
@@ -80,7 +83,8 @@ export function OwnerBookingSheet() {
               label: person.name,
               meta: person.role || ""
             }))}
-            staffValue={selectedBookingStaff}
+            staffValue={bookingStaffName}
+            staffForTime={bookingStaffForTime}
             staffMenuOpen={bookingSelectMenu === "staff"}
             onStaffMenuOpenChange={(next) => setBookingSelectMenu(next ? "staff" : "")}
             onStaffChange={setBookingStaffName}
@@ -100,7 +104,8 @@ export function OwnerBookingSheet() {
                   })
                   .map((tab) => ({
                     value: tab.dateKey,
-                    label: `${tab.label} ${tab.sub || ""}`.trim()
+                    label: `${tab.label} ${tab.sub || ""}`.trim(),
+                    free: bookingDayFreeCounts[tab.dateKey]
                   }))
             }
             dayValue={createdProfile?.type === "artist" ? artistBookingDateForSlots : bookingDateForSlots}

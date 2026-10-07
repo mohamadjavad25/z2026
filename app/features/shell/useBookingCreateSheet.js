@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { isSlotInPast } from "../../shared/lib/slots";
 import {
   buildExactBookingDateTabs,
   getBookingDateKey,
@@ -20,6 +21,11 @@ import {
 // walk-in/phone booking themselves isn't limited to "today/tomorrow/day
 // after" the way this sheet used to be.
 const ARTIST_BOOKING_DAY_TABS = buildExactBookingDateTabs(7);
+
+// A time that starts in the next few minutes can't really be served (the
+// customer isn't there yet, the artist is mid-job), so today's list starts a
+// little after "now" instead of at the current minute.
+const BOOKING_LEAD_MINUTES = 15;
 
 /**
  * The "create a booking" sheet: open/close, the staff/service/day/time
@@ -78,6 +84,15 @@ export function useBookingCreateSheet({
   const [bookingTime, setBookingTime] = useState("۱۸:۳۰");
   const [bookingSelectMenu, setBookingSelectMenu] = useState("");
 
+  // Re-evaluate "what is still in the future" while the sheet stays open.
+  const [, setClockTick] = useState(0);
+  useEffect(() => {
+    if (!bookingSheetOpen) return undefined;
+    const id = setInterval(() => setClockTick((value) => value + 1), 60_000);
+    return () => clearInterval(id);
+  }, [bookingSheetOpen]);
+  const soon = new Date(Date.now() + BOOKING_LEAD_MINUTES * 60_000);
+
   const isBookingSlotTaken = useCallback((staff, time, forDate = "امروز", durationMinutes = 60) => {
     const targetDateKey = getBookingDateKey(forDate);
     const start = timeLabelToMinutes(time);
@@ -94,20 +109,8 @@ export function useBookingCreateSheet({
     });
   }, [salonAppointmentList]);
 
-  const bookingStaffForSlots = bookingStaffName || safeSalonStaffList[0]?.name || "";
-  // Real services/staff only -- these used to fall back to fabricated
-  // options (generic specialty-category names with no real price/duration
-  // as a fake "service", "مدیر سالن"/"متخصص زیبایی" as fake "staff") the
-  // moment the real list was empty, which looked exactly like a real,
-  // selected service/staff member. That's actively misleading: the owner
-  // sees what looks like a normal dropdown selection while the submit
-  // button is disabled for a reason they can't see (no real service
-  // exists yet) -- BookingCreateForm's empty state (see its onAddService
-  // prop) is what should tell them that now, not fake data standing in
-  // for the real thing.
   const bookingServiceOptions = salonServiceList;
   const bookingStaffOptions = safeSalonStaffList;
-  const selectedBookingStaff = bookingStaffForSlots || bookingStaffOptions[0]?.name || "";
 
   const bookingDateForSlots = bookingDate
     || salonScheduleWeekTabs.find((tab) => {
@@ -123,19 +126,32 @@ export function useBookingCreateSheet({
     || activeSalonHours[0];
   const selectedBookingService = bookingServiceOptions.find((item) => item.name === bookingServiceName)
     || bookingServiceOptions[0];
+  const selectedBookingDuration = parseServiceDurationMinutes(selectedBookingService?.duration);
   const bookingDaySlots = buildDayBookingSlots(
     selectedBookingDayHour?.open_time,
     selectedBookingDayHour?.close_time,
-    parseServiceDurationMinutes(selectedBookingService?.duration)
+    selectedBookingDuration
   );
-  const bookingFreeSlots = bookingDaySlots.filter(
-    (slot) => !isBookingSlotTaken(
-      selectedBookingStaff,
-      slot,
-      bookingDateForSlots,
-      parseServiceDurationMinutes(selectedBookingService?.duration)
-    )
+
+  // Who can take a slot: the staff member picked explicitly, or -- when none is
+  // picked ("any free artist") -- everyone on the team. A slot is offered as
+  // long as at least one of them is free, and that free person is the one the
+  // booking is assigned to.
+  const staffNames = safeSalonStaffList.map((person) => person.name).filter(Boolean);
+  const staffPool = bookingStaffName ? [bookingStaffName] : (staffNames.length ? staffNames : [""]);
+  const freeStaffAt = (dateKey, slot) => staffPool.filter(
+    (name) => !isBookingSlotTaken(name, slot, dateKey, selectedBookingDuration)
   );
+  const salonFreeSlotsFor = (dateKey) => {
+    const tab = salonScheduleWeekTabs.find((item) => getBookingDateKey(item.dateKey) === getBookingDateKey(dateKey));
+    const hour = activeSalonHours.find((item) => item.day === tab?.day) || activeSalonHours[0];
+    if (hour && !hour.active) return [];
+    const slots = buildDayBookingSlots(hour?.open_time, hour?.close_time, selectedBookingDuration);
+    return slots.filter((slot) => !isSlotInPast(dateKey, slot, soon) && freeStaffAt(dateKey, slot).length > 0);
+  };
+  const bookingFreeSlots = salonFreeSlotsFor(bookingDateForSlots);
+  const bookingStaffForTime = (slot) => freeStaffAt(bookingDateForSlots, slot)[0] || "";
+  const selectedBookingStaff = bookingStaffForTime(bookingTime) || bookingStaffName || bookingStaffOptions[0]?.name || "";
 
   // Artist side of this same sheet: a real rolling week (not the old fixed
   // "امروز/فردا/پس‌فردا") and slots actually filtered against the artist's
@@ -160,12 +176,25 @@ export function useBookingCreateSheet({
       time: item.time,
       duration_minutes: item.durationMinutes
     }));
-  const artistBookingFreeSlots = artistBookingDaySlots.filter((slot) => !isPublicArtistSlotBlocked(
-    { breakTime: artistBreakTime, bookedSlots: artistBookedSlots },
-    artistBookingDateForSlots,
-    slot,
-    artistServiceDuration
+  const artistFreeSlotsFor = (dateKey) => artistBookingDaySlots.filter((slot) => (
+    !isSlotInPast(dateKey, slot, soon)
+    && !isPublicArtistSlotBlocked(
+      { breakTime: artistBreakTime, bookedSlots: artistBookedSlots },
+      dateKey,
+      slot,
+      artistServiceDuration
+    )
   ));
+  const artistBookingFreeSlots = artistFreeSlotsFor(artistBookingDateForSlots);
+
+  // How many free times each offered day still has, so the form can grey out
+  // full days and jump to the nearest day that has room.
+  const bookingDayFreeCounts = {};
+  if (createdProfile?.type === "artist") {
+    artistBookingDayOptions.forEach((tab) => { bookingDayFreeCounts[tab.value] = artistFreeSlotsFor(tab.value).length; });
+  } else {
+    salonScheduleWeekTabs.forEach((tab) => { bookingDayFreeCounts[tab.dateKey] = salonFreeSlotsFor(tab.dateKey).length; });
+  }
 
   const openBookingSheet = useCallback(() => {
     setActiveTab("profile");
@@ -247,6 +276,8 @@ export function useBookingCreateSheet({
     selectedBookingService,
     bookingDaySlots,
     bookingFreeSlots,
+    bookingStaffForTime,
+    bookingDayFreeCounts,
     artistBookingDayOptions,
     artistBookingDateForSlots,
     artistBookingFreeSlots,
