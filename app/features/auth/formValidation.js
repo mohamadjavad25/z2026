@@ -20,19 +20,12 @@ const NAME_MESSAGE = {
   artist: "نام هنری را وارد کن.",
   client: "نام خودت را وارد کن."
 };
-const AREA_MESSAGE = {
-  salon: "محدوده فعالیت سالن را وارد کن.",
-  artist: "محدوده یا سالن محل کار را وارد کن.",
-  client: "شهر و محدوده را وارد کن."
-};
 
 export function validateSignup(type, data) {
   const errors = validateLogin(data);
   if (!String(data.name || "").trim()) errors.name = NAME_MESSAGE[type] || NAME_MESSAGE.client;
-  if (!String(data.area || "").trim()) errors.area = AREA_MESSAGE[type] || AREA_MESSAGE.client;
-  if ((type === "salon" || type === "artist") && !String(data.service || "").trim()) {
-    errors.service = "حداقل یک مورد انتخاب کن.";
-  }
+  // Area and specialty are NOT asked at signup: owners fill them with one tap from the
+  // profile-completeness card, so creating an account stays name + phone + password.
   const password = String(data.password || "");
   if (password && password.trim().length < 8) errors.password = "رمز عبور باید حداقل ۸ کاراکتر باشد.";
   const email = String(data.email || "").trim();

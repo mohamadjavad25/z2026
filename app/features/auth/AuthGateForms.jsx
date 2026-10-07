@@ -3,12 +3,11 @@
 import { apiFetch } from "../../shared/api/client";
 import { useEffect, useId, useRef, useState } from "react";
 import { ChevronLeft, Eye, EyeOff, ShieldCheck } from "lucide-react";
-import { beautySpecialtyOptions, profileRoles } from "../../shared/constants/roles";
+import { profileRoles } from "../../shared/constants/roles";
 import { toLatinDigits } from "../../shared/lib/digits";
 import { Button, Field } from "../../components/ui";
 import { ProfileRoleGrid } from "../profile/ProfileRoleGrid";
 import { firstInvalidField, validateLogin, validateSignup } from "./formValidation";
-import { SpecialtyMultiSelect } from "./SpecialtyMultiSelect";
 import { OtpCodeStep } from "./OtpCodeStep";
 import { confirmReset, useOtpConfig, verifyCode } from "./otp";
 
@@ -204,22 +203,21 @@ function PasswordRecoveryPanel({ onClose, otp }) {
 const ROLE_FORMS = {
   salon: {
     title: "سالن زیبایی",
+    subtitle: "فقط چند ثانیه؛ بقیهٔ اطلاعات را بعداً با یک ضربه کامل می‌کنی.",
     name: { label: "نام سالن", placeholder: "نام سالن" },
-    area: { label: "محدوده فعالیت", placeholder: "محدوده فعالیت" },
-    service: { placeholder: "خدمات اصلی" },
-    order: ["name", "area", "service"]
+    order: ["name"]
   },
   artist: {
     title: "آرتیست",
+    subtitle: "فقط چند ثانیه؛ بقیهٔ اطلاعات را بعداً با یک ضربه کامل می‌کنی.",
     name: { label: "نام هنری", placeholder: "نام هنری" },
-    area: { label: "محدوده یا سالن محل کار", placeholder: "محدوده / سالن محل کار" },
-    service: { placeholder: "تخصص اصلی" },
-    order: ["name", "service", "area"]
+    order: ["name"]
   },
   client: {
     title: "بانو",
+    subtitle: "فقط چند ثانیه تا اولین رزرو.",
     name: { label: "نام یا نام نمایشی", placeholder: "نام یا نام نمایشی" },
-    area: { label: "شهر و محدوده", placeholder: "شهر و محدوده" },
+    area: { label: "شهر (اختیاری)", placeholder: "شهر (اختیاری)" },
     order: ["name", "area"]
   }
 };
@@ -316,7 +314,6 @@ function SignupForm({ type, heroClass, authBusy, onBackToRole, onSwitchToLogin, 
     }
     onProfileSubmit(event, type);
   });
-  const serviceErrorId = useId();
   // The code was right -> we hold a proof -> submit the real form again, now carrying it.
   useEffect(() => {
     if (proof) formRef.current?.requestSubmit();
@@ -335,24 +332,12 @@ function SignupForm({ type, heroClass, authBusy, onBackToRole, onSwitchToLogin, 
         تغییر نقش
       </button>
       <div className="formTitle">
-        <strong>{config.title}</strong>
+        <div>
+          <strong>{config.title}</strong>
+          {config.subtitle ? <span>{config.subtitle}</span> : null}
+        </div>
       </div>
       {config.order.map((field) => {
-        if (field === "service") {
-          return (
-            <div className="ui-field" key="service">
-              <SpecialtyMultiSelect
-                name="service"
-                placeholder={config.service.placeholder}
-                options={beautySpecialtyOptions}
-                invalid={Boolean(form.errors.service)}
-                describedBy={form.errors.service ? serviceErrorId : undefined}
-                onChange={() => form.clear("service")}
-              />
-              {form.errors.service ? <small id={serviceErrorId} className="ui-field-error" role="alert">{form.errors.service}</small> : null}
-            </div>
-          );
-        }
         return (
           <Field key={field} label={config[field].label} error={form.errors[field]} hideLabel>
             {(props) => <input name={field} placeholder={config[field].placeholder} {...props} />}
@@ -360,9 +345,6 @@ function SignupForm({ type, heroClass, authBusy, onBackToRole, onSwitchToLogin, 
         );
       })}
       <PhoneAndPassword errors={form.errors} newPassword />
-      <Field label="ایمیل (اختیاری)" error={form.errors.email} hideLabel>
-        {(props) => <input name="email" type="email" placeholder="ایمیل (اختیاری)" dir="ltr" {...props} />}
-      </Field>
       <TermsAgreement error={form.errors.agreeTerms} />
       <input type="hidden" name="otpProof" value={proof} />
       <button type="submit" className="profileSubmit" disabled={authBusy}>
