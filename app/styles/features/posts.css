@@ -39,7 +39,7 @@
 .pcPin { display: flex; align-items: center; gap: 10px; width: 100%; padding: 11px 13px; border: 1.5px solid #ececf0; border-radius: 16px; background: #ffffff; color: #14161d; font: inherit; text-align: right; cursor: pointer; }
 .pcPin > span { display: grid; flex: 1; gap: 2px; }
 .pcPin b { font-size: 0.82rem; font-weight: 900; }
-.pcPin small { color: #8a8e9b; font-size: 0.68rem; font-weight: 700; }
+.pcPin small { color: #565a68; font-size: 0.68rem; font-weight: 700; }
 .pcPin i { font-style: normal; padding: 3px 10px; border-radius: 999px; background: #f1f1f5; color: #6f7380; font-size: 0.68rem; font-weight: 900; }
 .pcPin.is-on { border-color: #14161d; }
 .pcPin.is-on i { background: #14161d; color: #fff; }
