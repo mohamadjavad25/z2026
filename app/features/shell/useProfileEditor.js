@@ -120,24 +120,30 @@ export function useProfileEditor({
     profileSavingRef.current = true;
     setProfileSaving(true);
     try {
+      // Only send what has a value: an empty password/phone/etc. used to be
+      // sent as "" and the server's validation rejected the whole save
+      // (password min length, phone format), so saving anything failed.
+      const text = (value) => String(value ?? "").trim();
+      const fields = {
+        name: text(data.name),
+        area: text(data.area),
+        service: text(data.service) || text(createdProfile.data.service),
+        phone: text(data.phone),
+        email: text(data.email),
+        bio: text(data.bio ?? createdProfile.data.bio),
+        experienceYears: text(data.experienceYears) || text(createdProfile.data.experienceYears),
+        managerName: text(data.managerName) || text(createdProfile.data.managerName),
+        password: nextPassword,
+        currentPassword
+      };
+      const body = { type: createdProfile.type, data: {} };
+      for (const [key, value] of Object.entries(fields)) {
+        if (value !== "" || key === "email") body.data[key] = value;
+      }
+      if (nextAvatar) body.data.avatar = nextAvatar;
       const { ok, payload } = await apiFetch("/api/profile", {
         method: "POST",
-        body: JSON.stringify({
-          type: createdProfile.type,
-          data: {
-            name: data.name,
-            area: data.area,
-            service: data.service || createdProfile.data.service || "",
-            phone: data.phone,
-            email: data.email,
-            bio: data.bio ?? createdProfile.data.bio ?? "",
-            experienceYears: data.experienceYears || createdProfile.data.experienceYears || "",
-            managerName: data.managerName || createdProfile.data.managerName || "",
-            password: nextPassword,
-            currentPassword,
-            ...(nextAvatar ? { avatar: nextAvatar } : {})
-          }
-        })
+        body: JSON.stringify(body)
       });
       if (!ok) {
         notify(payload.error || "ویرایش ذخیره نشد.");
@@ -319,6 +325,31 @@ export function useProfileEditor({
     stageProfileImage(file, setPendingPosterUpload);
   }, [stageProfileImage]);
 
+  // One-step logo change (used by the profile checklist): pick -> compress ->
+  // save with a centered focal point. No edit form, no other field required.
+  const quickSetLogo = useCallback(async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      notify("فقط فایل تصویری مجاز است.");
+      return;
+    }
+    if (file.size > 4 * 1024 * 1024) {
+      notify("حجم تصویر باید کمتر از ۴ مگابایت باشد.");
+      return;
+    }
+    const dataUrl = await compressImageToDataUrl(file);
+    if (!dataUrl) {
+      notify("خواندن تصویر انجام نشد؛ عکس دیگری امتحان کن.");
+      return;
+    }
+    await saveProfileFields(
+      { avatar: dataUrl, avatarPosition: "50% 50%" },
+      { setBusy: setLogoSaving, successMessage: "لوگو بروزرسانی شد." }
+    );
+  }, [saveProfileFields, notify]);
+
   const confirmAvatarUpload = useCallback((position, croppedImage) => {
     if (!pendingAvatarUpload) return;
     saveProfileFields(
@@ -405,6 +436,7 @@ export function useProfileEditor({
     logoSaving,
     posterSaving,
     saveProfileLogo,
+    quickSetLogo,
     saveProfilePoster,
     removeProfileLogo,
     removeProfilePoster,

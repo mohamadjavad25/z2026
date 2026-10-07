@@ -19,7 +19,7 @@ export function getProfileSteps(profile, serviceCount) {
 
 const storageKey = (id) => `zibaban_completeness_dismissed_${id}`;
 
-export function ProfileCompleteness({ profile, serviceCount = 0, onEditProfile, onOpenServices }) {
+export function ProfileCompleteness({ profile, serviceCount = 0, onEditProfile, onOpenServices, onPickLogo }) {
   const [dismissed, setDismissed] = useState(() => {
     try {
       return window.localStorage.getItem(storageKey(profile?.id)) === "1";
@@ -64,6 +64,13 @@ export function ProfileCompleteness({ profile, serviceCount = 0, onEditProfile, 
           <li key={step.id} className={step.done ? "is-done" : ""}>
             {step.done ? (
               <span><CheckCircle2 size={16} aria-hidden="true" />{step.label}</span>
+            ) : step.id === "avatar" && onPickLogo ? (
+              // Straight to the photo picker: no profile form in between.
+              <label className="profileCompletenessPick">
+                <Circle size={16} aria-hidden="true" />
+                {step.label}
+                <input className="captureInput" type="file" accept="image/*" onChange={onPickLogo} />
+              </label>
             ) : (
               <button type="button" onClick={() => (step.target === "services" ? onOpenServices?.() : onEditProfile?.())}>
                 <Circle size={16} aria-hidden="true" />
