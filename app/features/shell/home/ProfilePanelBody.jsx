@@ -220,7 +220,16 @@ export function ProfilePanelBody() {
                 profile={createdProfile}
                 serviceCount={createdProfile.type === "salon" ? salonServiceList.length : artistServiceList.length}
                 onEditProfile={openProfileEdit}
-                onOpenServices={() => (createdProfile.type === "salon" ? openSalonWorkspace("services") : setProfileView("services"))}
+                onOpenServices={() => {
+                  // Land on the services page and open the add-service sheet right away.
+                  if (createdProfile.type === "salon") {
+                    openSalonWorkspace("hours");
+                    openSalonServiceCreate();
+                  } else {
+                    setProfileView("services");
+                    openArtistServiceCreate();
+                  }
+                }}
               />
             ) : null}
 
