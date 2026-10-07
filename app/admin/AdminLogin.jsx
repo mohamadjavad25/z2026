@@ -64,7 +64,10 @@ export function AdminLogin({ configured, setupKeyConfigured = true, onDone }) {
             <Field label="کد ۶ رقمی برنامهٔ Authenticator">{(p) => <input {...p} {...ltr} inputMode="numeric" autoComplete="one-time-code" maxLength={7} value={form.code} onChange={set("code")} required />}</Field>
             {error ? <p className="admError" role="alert">{error}</p> : null}
             <Button type="submit" disabled={busy}>{busy ? "در حال بررسی…" : "ورود"}</Button>
-            <button type="button" className="admLink" onClick={() => { setError(""); setMode("setup"); }}>راه‌اندازی اولیه (اتصال برنامهٔ Authenticator)</button>
+            <div className="admFirstTime">
+              <p className="admMuted">اولین بار است؟ هنوز برنامهٔ Authenticator را وصل نکرده‌ای؟</p>
+              <Button type="button" variant="secondary" onClick={() => { setError(""); setMode("setup"); }}>راه‌اندازی اولیه (دریافت QR)</Button>
+            </div>
           </form>
         ) : null}
         {mode === "setup" ? (

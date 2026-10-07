@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { apiFetch } from "../shared/api/client";
-import { toPersianDigits } from "../shared/lib/digits";
 import { Button, Chip, Field } from "../components/ui";
 import { AdminLogin } from "./AdminLogin";
 import { AdminSidebar } from "./AdminSidebar";
@@ -12,26 +11,9 @@ import { ContentTab } from "./ContentTab";
 import { BookingsTab } from "./BookingsTab";
 import { SecurityTab } from "./SecurityTab";
 import { adminFetch } from "./adminFetch";
-import { PAGE, TYPE_LABEL, fmtDate, num } from "./format";
+import { Dashboard } from "./Dashboard";
+import { ACTION_LABEL, PAGE, TYPE_LABEL, fmtDate, num } from "./format";
 
-const ACTION_LABEL = {
-  suspend: "مسدود شد",
-  unsuspend: "رفع مسدودی",
-  resolve_password_reset: "رمز بازنشانی شد",
-  login: "ورود مدیر",
-  login_failed: "ورود ناموفق",
-  login_blocked: "ورود مسدود (تلاش زیاد)",
-  enroll: "راه‌اندازی Authenticator",
-  enroll_failed: "راه‌اندازی ناموفق",
-  stepup: "تأیید دوباره",
-  stepup_failed: "تأیید دوباره ناموفق",
-  force_logout: "خروج اجباری کاربر",
-  delete_user: "حذف حساب",
-  post_hide: "پنهان‌کردن پست",
-  post_show: "نمایش دوبارهٔ پست",
-  post_delete: "حذف پست",
-  revoke_sessions: "پایان نشست مدیر"
-};
 const TABS = [
   { id: "overview", label: "نمای کلی" },
   { id: "users", label: "کاربران" },
@@ -80,7 +62,7 @@ export function AdminClient() {
             <p className="admMuted">مدیریت زیبابان</p>
           </div>
         </header>
-        {tab === "overview" ? <Overview /> : null}
+        {tab === "overview" ? <Overview onGo={setTab} /> : null}
         {tab === "users" ? <Users /> : null}
         {tab === "content" ? <ContentTab /> : null}
         {tab === "bookings" ? <BookingsTab /> : null}
@@ -93,57 +75,11 @@ export function AdminClient() {
   );
 }
 
-function Stat({ label, value, hint }) {
-  return (
-    <div className="admStat">
-      <small>{label}</small>
-      <b>{value}</b>
-      {hint ? <em>{hint}</em> : null}
-    </div>
-  );
-}
-
-function Overview() {
-  const [data, setData] = useState(null);
-  const [failed, setFailed] = useState(false);
-  useEffect(() => {
-    apiFetch("/api/admin/stats").then(({ ok, payload }) => (ok ? setData(payload.data) : setFailed(true)));
-  }, []);
-  if (failed) return <p className="admError" role="alert">بارگذاری آمار انجام نشد.</p>;
-  if (!data) return <p className="admMuted">در حال بارگذاری…</p>;
-  const max = Math.max(1, ...data.signupsByDay.map((day) => day.count));
-  const statuses = Object.entries(data.bookingsLast30Days);
+function Overview({ onGo }) {
   return (
     <>
-      <div className="admGrid">
-        <Stat label="کل کاربران" value={num(data.users.total)} hint={`${num(data.users.byType.client || 0)} مشتری ، ${num(data.users.byType.artist || 0)} آرتیست ، ${num(data.users.byType.salon || 0)} سالن`} />
-        <Stat label="رزرو امروز" value={num(data.bookingsCreatedToday)} />
-        <Stat label="درخواست بازیابی رمز" value={num(data.pendingPasswordResets)} hint={data.pendingPasswordResets ? "منتظر پیگیری" : "چیزی منتظر نیست"} />
-        <Stat label="یادآوری ارسال‌شده (۷ روز)" value={num(data.remindersSentLast7Days)} />
-        <Stat label="حساب‌های مسدود" value={num(data.users.suspended)} />
-      </div>
+      <Dashboard onGo={onGo} />
       <SmsCard />
-      <section className="admCard">
-        <h2>ثبت‌نام جدید در ۱۴ روز گذشته</h2>
-        <div className="admBars" role="img" aria-label={`ثبت‌نام روزانه؛ بیشترین ${num(max)} نفر در روز`}>
-          {data.signupsByDay.map((day) => (
-            <div key={day.day} className="admBar" title={`${day.day}: ${day.count}`}>
-              <i style={{ height: `${Math.max(4, (day.count / max) * 100)}%` }} />
-              <small>{toPersianDigits(day.day.slice(8))}</small>
-            </div>
-          ))}
-        </div>
-      </section>
-      <section className="admCard">
-        <h2>وضعیت رزروها در ۳۰ روز گذشته</h2>
-        {statuses.length ? (
-          <ul className="admList">
-            {statuses.map(([status, count]) => (
-              <li key={status}><span>{status}</span><b>{num(count)}</b></li>
-            ))}
-          </ul>
-        ) : <p className="admMuted">رزروی ثبت نشده.</p>}
-      </section>
     </>
   );
 }
