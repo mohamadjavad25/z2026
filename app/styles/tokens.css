@@ -87,6 +87,7 @@
      lowest to highest. A raw z-index of 100 or more outside this file is a
      bug: tests/unit/zIndexScale.test.js fails the build. Values are the ones
      the app already ran with, so naming them changed no stacking. */
+  --logo-glow: 0 8px 24px rgba(150, 190, 255, 0.36), 0 0 28px rgba(196, 224, 255, 0.42); /* soft icy shadow around logo discs, no border */
   --z-nav: 26;               /* bottom navigation */
   --z-modal: 120;            /* profile edit modal + its sheet backdrop */
   --z-sheet-over-modal: 140; /* sheets that open above the profile edit modal */

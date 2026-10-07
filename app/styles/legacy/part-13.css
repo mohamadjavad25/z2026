@@ -822,3 +822,30 @@ body::after {
   min-height: 0 !important;
   align-self: stretch !important;
 }
+
+
+/* ═══ Bottom-nav profile logo: edge-to-edge image, no ring/border, only the soft icy glow ═══ */
+.bottomNav .profileTab:not(.is-createBooking),
+.bottomNav .profileTab.active:not(.is-createBooking),
+.profilePanel.page-profile.is-salon-profile ~ .bottomNav .profileTab:not(.is-createBooking),
+.profilePanel.page-profile:has(.createdProfile.is-salon) ~ .bottomNav .profileTab:not(.is-createBooking) {
+  background: transparent !important;
+  box-shadow: var(--logo-glow) !important;
+}
+
+.bottomNav .profileTab:not(.is-createBooking) .profileNavImage,
+.profilePanel.page-profile.is-salon-profile ~ .bottomNav .profileTab:not(.is-createBooking) .profileNavImage,
+.profilePanel.page-profile:has(.createdProfile.is-salon) ~ .bottomNav .profileTab:not(.is-createBooking) .profileNavImage {
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  padding: 0 !important;
+  background: transparent !important;
+  object-fit: cover !important;
+}
+
+.bottomNav .profileTab:not(.is-createBooking)::after,
+.profilePanel.page-profile.is-salon-profile ~ .bottomNav .profileTab:not(.is-createBooking)::after,
+.profilePanel.page-profile:has(.createdProfile.is-salon) ~ .bottomNav .profileTab:not(.is-createBooking)::after {
+  display: none !important;
+}
