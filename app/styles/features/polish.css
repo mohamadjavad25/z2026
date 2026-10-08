@@ -1389,3 +1389,57 @@ main.appShell.is-auth-gate .workspace { background: #fff !important; }
 .cpo .cpoNextWhen { border-top-color: #ececf1; }
 .cpo .cpoLink { padding: 14px 16px; border-radius: 24px; box-shadow: 0 8px 22px -14px rgba(20, 22, 29, 0.28); }
 .cpo .cpoLinkIcon { border-radius: 16px; background: #f4f4f7; }
+
+/* ── Customer activity + settings: same soft-card language ─────────────── */
+:root .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingFeatureCard {
+  padding: 18px;
+  border: 0;
+  border-radius: 28px;
+  background: #fff;
+  box-shadow: 0 1px 0 rgba(20, 22, 29, 0.04), 0 18px 40px -20px rgba(20, 22, 29, 0.28);
+}
+:root .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingFeatureGrid {
+  gap: 8px;
+}
+:root .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingFeatureGrid > span {
+  padding: 12px 8px;
+  border: 0;
+  border-radius: 18px;
+  background: #f6f6f9;
+}
+:root .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingActionPrimary {
+  min-height: 52px;
+  border: 0;
+  border-radius: 18px;
+  background: #14161d;
+  color: #fff;
+  box-shadow: 0 12px 24px -10px rgba(20, 22, 29, 0.5);
+}
+:root .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingMiniCard {
+  border: 0;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 8px 22px -14px rgba(20, 22, 29, 0.28);
+}
+:root .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingsEmpty {
+  border: 0;
+  border-radius: 28px;
+  background: #fff;
+  box-shadow: 0 8px 22px -14px rgba(20, 22, 29, 0.24);
+}
+
+.settingsPageBody { background: transparent; }
+.settingsPageBody .settingsRowCard,
+.settingsPageBody .brandCard,
+.settingsPageBody .neoSettingsPanel,
+.settingsPageBody .profileLocationRow {
+  border: 0;
+  border-radius: 26px;
+  background: #fff;
+  box-shadow: 0 8px 22px -14px rgba(20, 22, 29, 0.28);
+}
+.spSectionTitle { color: #6a6e7a; font-size: 0.78rem; font-weight: 800; letter-spacing: 0.02em; }
+.neoSettingsLogout, .neoSettingsDelete { border-radius: 20px; }
+
+/* Sheets share one calm canvas so white cards inside read as cards */
+.salonHeroSheetPanel { background: #f6f6f8; }
