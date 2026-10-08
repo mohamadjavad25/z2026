@@ -1167,3 +1167,14 @@ main.appShell.is-auth-gate .workspace { background: #fff !important; }
 }
 .authBootInner small { color: #6a6872; }
 .authBootSpinner { border-color: rgba(20, 22, 29, 0.14); border-top-color: #c9a46a; }
+
+/* Text wordmark on the 404 page (replaces the old image logo) */
+.errorPage__logo {
+  margin: 0 auto 10px;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 2.6rem;
+  font-weight: 600;
+  line-height: 1;
+  color: #14161d;
+  direction: ltr;
+}

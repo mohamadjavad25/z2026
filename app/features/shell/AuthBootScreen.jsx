@@ -7,7 +7,6 @@ export function AuthBootScreen() {
   return (
     <div className="authBootScreen" role="status" aria-live="polite" aria-label="در حال آماده‌سازی frfro">
       <div className="authBootInner">
-        <img className="authBootLogo" src="/logo-mark.png" alt="" aria-hidden="true" draggable={false} />
         <p className="authBootBrand">frfro</p>
         <span className="authBootSpinner" aria-hidden="true" />
         <small>در حال آماده‌سازی…</small>
