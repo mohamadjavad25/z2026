@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { updateSalonStaff as updateSalonStaffApi, deleteSalonStaff, updateSalonHours, createSalonService as createSalonServiceApi, updateSalonService as updateSalonServiceApi, deleteSalonService as deleteSalonServiceApi } from "../../shared/api/salons";
+import { updateSalonStaff as updateSalonStaffApi, deleteSalonStaff, joinSalonTeamAsOwner as joinSalonTeamAsOwnerApi, updateSalonHours, createSalonService as createSalonServiceApi, updateSalonService as updateSalonServiceApi, deleteSalonService as deleteSalonServiceApi } from "../../shared/api/salons";
 import { notifyFromResponse, getApiErrorMessage } from "../../shared/lib/apiNotify";
 
 export function useSalonCatalogActions({
@@ -32,16 +32,38 @@ export function useSalonCatalogActions({
       const nextStaff = Array.isArray(result.payload.data?.staff) ? result.payload.data.staff : [];
       setSalonStaffList(nextStaff);
       setSelectedStaffName((current) => patch.name || current || nextStaff[0]?.name || "");
+      // Renaming the manager's own row moves their bookings to the new name on the server.
+      if (patch.name && person.is_owner) refreshSalonSystemData();
       if (notice) shellNotify(notice);
     } catch {
       shellNotify("به‌روزرسانی پرسنل انجام نشد؛ دوباره امتحان کن.");
     }
-  }, [safeSalonStaffList, shellNotify]);
+  }, [safeSalonStaffList, shellNotify, refreshSalonSystemData]);
+
+  // The manager joins their own team, so they can be assigned to services and booked like anyone else.
+  const joinSalonTeamAsOwner = useCallback(async ({ name, role } = {}) => {
+    try {
+      const result = await joinSalonTeamAsOwnerApi({ name, role });
+      if (!notifyFromResponse(shellNotify, result, { failure: "اضافه شدن به تیم انجام نشد؛ دوباره امتحان کن." })) {
+        return false;
+      }
+      const nextStaff = Array.isArray(result.payload.data?.staff) ? result.payload.data.staff : [];
+      setSalonStaffList(nextStaff);
+      shellNotify("حالا خودت هم عضو تیمی؛ می‌توانی خدمات را به خودت بدهی و برای خودت رزرو ثبت کنی.");
+      return true;
+    } catch {
+      shellNotify("اضافه شدن به تیم انجام نشد؛ دوباره امتحان کن.");
+      return false;
+    }
+  }, [setSalonStaffList, shellNotify]);
 
   const removeSalonStaff = useCallback(async (name) => {
     const person = safeSalonStaffList.find((item) => item.name === name);
     if (!person?.id) return;
-    if (typeof window !== "undefined" && !window.confirm(`«${person.name}» از پرسنل حذف شود؟ این کار قابل بازگشت نیست.`)) {
+    const question = person.is_owner
+      ? "خودت از تیم خارج شوی؟ خدماتی که به خودت داده بودی بدون آرتیست می‌مانند؛ رزروهای قبلی سر جایشان می‌مانند."
+      : `«${person.name}» از پرسنل حذف شود؟ این کار قابل بازگشت نیست.`;
+    if (typeof window !== "undefined" && !window.confirm(question)) {
       return;
     }
     try {
@@ -363,6 +385,7 @@ export function useSalonCatalogActions({
   return {
     updateSalonStaff,
     removeSalonStaff,
+    joinSalonTeamAsOwner,
     updateSalonHour,
     updateSalonHoursPreset,
     copySalonHourToOpenDays,

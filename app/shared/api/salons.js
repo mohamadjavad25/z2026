@@ -130,6 +130,14 @@ export async function getSalonStaffCalendars() {
   return apiJson("/api/salon-staff/calendars");
 }
 
+/** POST /api/salon-staff/self { name, role } → { person, staff }: the manager joins their own team */
+export async function joinSalonTeamAsOwner(body) {
+  return apiFetch("/api/salon-staff/self", {
+    method: "POST",
+    body: JSON.stringify(body)
+  });
+}
+
 /** PATCH /api/salon-staff → { person, staff } */
 export async function updateSalonStaff(body) {
   return apiFetch("/api/salon-staff", {

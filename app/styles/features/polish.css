@@ -1450,3 +1450,23 @@ main.appShell.is-auth-gate .workspace { background: #fff !important; }
 .artistPublicPage,
 .salonClientPage { overscroll-behavior-y: contain; }
 html, body { overscroll-behavior-y: none; }
+
+/* Staff tab: the manager joins their own team ("خودم هم کار می‌کنم") */
+.stfInvite.is-self { background: #ffffff; color: #14161d; box-shadow: 0 8px 20px rgba(20, 22, 29, 0.08), inset 0 0 0 1px rgba(20, 22, 29, 0.1); }
+.stfInvite.is-self .stfInviteIcon { background: #14161d; color: #ffffff; }
+.stfInvite.is-self .stfInviteCopy small { color: #565a68; }
+.stfInvite.is-self .stfInviteGo { background: #f1f1f5; }
+.stfSelfForm { display: grid; gap: 12px; padding: 14px; border-radius: 22px; background: #ffffff; box-shadow: 0 8px 20px rgba(20, 22, 29, 0.08), inset 0 0 0 1px rgba(20, 22, 29, 0.1); }
+.stfSelfTitle { font-size: 0.95rem; font-weight: 950; color: #14161d; }
+.stfSelfField { display: grid; gap: 6px; }
+.stfSelfField > span { color: #4a4f5e; font-size: 0.74rem; font-weight: 800; }
+.stfSelfField input { min-height: 44px; padding: 0 14px; border: 0; border-radius: 14px; background: #f6f6f9; box-shadow: inset 0 0 0 1px rgba(20, 22, 29, 0.1); font: inherit; font-size: 0.92rem; color: #14161d; }
+.stfSelfRoles { display: flex; flex-wrap: wrap; gap: 6px; }
+.stfSelfRoles button { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 12px; border: 0; border-radius: 999px; background: #ffffff; box-shadow: inset 0 0 0 1px rgba(20, 22, 29, 0.14); color: #14161d; font: inherit; font-size: 0.78rem; font-weight: 800; cursor: pointer; }
+.stfSelfRoles button.is-on { background: #14161d; color: #ffffff; box-shadow: none; }
+.stfSelfActions { display: flex; gap: 8px; }
+.stfSelfSave { flex: 1; min-height: 46px; border: 0; border-radius: 999px; background: #14161d; color: #ffffff; font: inherit; font-weight: 900; cursor: pointer; }
+.stfSelfSave:disabled { opacity: 0.5; cursor: not-allowed; }
+.stfSelfCancel { min-height: 46px; padding: 0 16px; border: 0; border-radius: 999px; background: #f1f1f5; color: #14161d; font: inherit; font-weight: 800; cursor: pointer; }
+.stfOwnerBadge { margin-inline-start: 6px; padding: 1px 8px; border-radius: 999px; background: #f3ead2; color: #7a5a12; font-style: normal; font-size: 0.66rem; font-weight: 900; vertical-align: middle; }
+.smdSelfNote { margin: 0; color: #565a68; font-size: 0.74rem; font-weight: 700; line-height: 1.8; }

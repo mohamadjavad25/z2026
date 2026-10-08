@@ -107,6 +107,7 @@ export function SalonStaffProfileModal({
   const staffBooked = staff.booked || "";
   const isActive = staffState === "فعال";
   const hasPublic = Boolean(staff.has_artist_profile || staff.artist_user_id);
+  const isOwner = Boolean(staff.is_owner);
   const collabDays = staffBio.match(/روزها:\s*([^·]+)/)?.[1]?.trim() || "";
   const collabHours = staffBio.match(/ساعت:\s*([^·]+)/)?.[1]?.trim() || "";
   const collabShare = staffBio.match(/سهم آرتیست:\s*([^·]+)/)?.[1]?.trim() || "";
@@ -135,11 +136,12 @@ export function SalonStaffProfileModal({
           <div className="smdMeta">
             <span className={`smdState ${isActive ? "is-active" : "is-idle"}`}>{staffState}</span>
             {hasPublic ? <span className="smdLinked"><ShieldCheck size={12} />عضو frfro</span> : null}
+            {isOwner ? <span className="smdLinked"><ShieldCheck size={12} />خودم · مدیر سالن</span> : null}
             {staffArea ? <span><MapPin size={12} />{staffArea}</span> : null}
           </div>
         </header>
 
-        <div className="smdActions">
+        {isOwner ? null : <div className="smdActions">
           {staffPhone ? (
             <a className="smdBtn" href={`tel:${toLatinDigits(staffPhone)}`}>
               <Phone size={15} />
@@ -162,7 +164,11 @@ export function SalonStaffProfileModal({
               بدون پروفایل
             </button>
           )}
-        </div>
+        </div>}
+
+        {isOwner ? (
+          <p className="smdSelfNote">این ردیف خودت هستی. خدمات را از تب «خدمات» به خودت بده تا در رزروها به اسم خودت ثبت شود؛ اگر موقتاً کار نمی‌کنی «غیرفعال» کن تا رزرو جدید برایت گرفته نشود.</p>
+        ) : null}
 
         <StaffPerformanceChart stats={stats} />
 
@@ -191,7 +197,7 @@ export function SalonStaffProfileModal({
                   placeholder="نام پرسنل"
                   onSave={(name) => onUpdate?.(staff, { name }, "نام بروزرسانی شد.")}
                 />
-                <EditableFact
+                {isOwner ? null : <EditableFact
                   icon={Phone}
                   label="تماس"
                   value={staffPhone}
@@ -199,7 +205,7 @@ export function SalonStaffProfileModal({
                   dir="ltr"
                   formatValue={toPersianDigits}
                   onSave={(phone) => onUpdate?.(staff, { phone }, "شماره تماس بروزرسانی شد.")}
-                />
+                />}
               </>
             )}
             <div className="smdRow">
@@ -247,13 +253,21 @@ export function SalonStaffProfileModal({
             </div>
           ) : (
             <div className="smdRoles" role="group" aria-label="حوزه فعالیت">
-              {roleOptions.map((role) => (
+              {roleOptions.map((role) => {
+                // The manager often does several things: their row takes any number of fields.
+                const on = isOwner ? staffRoles.includes(role) : staffRole === role;
+                return (
                 <button
                   type="button"
                   key={role}
-                  className={staffRole === role ? "active" : ""}
-                  aria-pressed={staffRole === role}
+                  className={on ? "active" : ""}
+                  aria-pressed={on}
                   onClick={() => {
+                    if (isOwner) {
+                      const next = on ? staffRoles.filter((item) => item !== role) : [...staffRoles, role];
+                      onUpdate?.(staff, { role: next.join("، ") }, "حوزه کاری‌ات بروزرسانی شد.");
+                      return;
+                    }
                     if (staffRole === role) return;
                     onUpdate?.(staff, { role }, `حوزه ${staffName} تغییر کرد.`);
                   }}
@@ -261,7 +275,8 @@ export function SalonStaffProfileModal({
                   <ServiceIcon name={role} size="xs" />
                   {role}
                 </button>
-              ))}
+                );
+              })}
             </div>
           )}
         </section>
@@ -278,7 +293,7 @@ export function SalonStaffProfileModal({
             {isActive ? "غیرفعال کردن" : "فعال کردن مجدد"}
           </button>
           <button type="button" className="smdEnd" onClick={() => onRemove?.(staff)}>
-            پایان همکاری
+            {isOwner ? "خروج خودم از تیم" : "پایان همکاری"}
           </button>
         </footer>
   <SheetClose onClick={onClose} />

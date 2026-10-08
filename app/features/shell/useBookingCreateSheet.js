@@ -160,7 +160,8 @@ export function useBookingCreateSheet({
   }, [salonAppointmentList]);
 
   const bookingServiceOptions = salonServiceList;
-  const bookingStaffOptions = safeSalonStaffList;
+  // Members marked inactive or on leave (the manager included) don't take new bookings.
+  const bookingStaffOptions = safeSalonStaffList.filter((person) => !["غیرفعال", "مرخصی"].includes(String(person.state || "").trim()));
   const selectedBookingService = bookingServiceOptions.find((item) => item.name === bookingServiceName)
     || bookingServiceOptions[0];
   const selectedBookingDuration = parseServiceDurationMinutes(selectedBookingService?.duration);
@@ -169,7 +170,7 @@ export function useBookingCreateSheet({
   // picked ("any free artist") -- everyone on the team. A slot is offered as
   // long as at least one of them is free, and that free person is the one the
   // booking is assigned to.
-  const staffNames = safeSalonStaffList.map((person) => person.name).filter(Boolean);
+  const staffNames = bookingStaffOptions.map((person) => person.name).filter(Boolean);
   const staffPool = bookingStaffName ? [bookingStaffName] : (staffNames.length ? staffNames : [""]);
   const freeStaffAt = (dateKey, slot) => staffPool.filter((name) => {
     if (isBookingSlotTaken(name, slot, dateKey, selectedBookingDuration)) return false;
