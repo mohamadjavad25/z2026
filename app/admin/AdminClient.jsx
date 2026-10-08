@@ -2,31 +2,21 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { apiFetch } from "../shared/api/client";
-import { Button, Chip, Field } from "../components/ui";
+import { Button } from "../components/ui";
 import { AdminLogin } from "./AdminLogin";
 import { AdminSidebar } from "./AdminSidebar";
+import { AdminTopbar } from "./AdminTopbar";
 import { StepUpDialog } from "./StepUpDialog";
-import { UserDetail } from "./UserDetail";
+import { UsersTab } from "./UsersTab";
 import { ContentTab } from "./ContentTab";
 import { BookingsTab } from "./BookingsTab";
 import { SecurityTab } from "./SecurityTab";
 import { SupportTab } from "./SupportTab";
 import { adminFetch } from "./adminFetch";
 import { Dashboard } from "./Dashboard";
-import { Avatar } from "./Avatar";
-import { ACTION_LABEL, PAGE, TYPE_LABEL, fmtDate, num } from "./format";
-
-const TABS = [
-  { id: "overview", label: "نمای کلی" },
-  { id: "users", label: "کاربران" },
-  { id: "content", label: "محتوا" },
-  { id: "bookings", label: "رزروها" },
-  { id: "support", label: "پشتیبانی" },
-  { id: "resets", label: "بازیابی رمز" },
-  { id: "security", label: "امنیت" },
-  { id: "actions", label: "گزارش عملیات" }
-];
-
+import { PageHead } from "./PageHead";
+import { SECTIONS, tabInfo } from "./nav";
+import { ACTION_LABEL, fmtDate, num } from "./format";
 
 const THEME_KEY = "zibaban_admin_theme";
 
@@ -59,7 +49,9 @@ export function AdminClient() {
 
 function AdminApp({ theme, onToggleTheme }) {
   const [me, setMe] = useState(null);
-  const [tab, setTab] = useState("overview");
+  // Where we are and what was asked for there (e.g. "open this user"). `n` changes on every move so a page starts fresh.
+  const [nav, setNav] = useState({ tab: "overview", params: {}, n: 0 });
+  const go = useCallback((tab, params = {}) => setNav((prev) => ({ tab, params, n: prev.n + 1 })), []);
 
   const refresh = useCallback(() => apiFetch("/api/admin/me").then(({ payload }) => setMe(payload.data || { isAdmin: false })), []);
 
@@ -83,27 +75,22 @@ function AdminApp({ theme, onToggleTheme }) {
   if (!me) return <main className="adm"><p className="admMuted">در حال بارگذاری…</p></main>;
   if (!me.isAdmin) return <AdminLogin configured={me.configured !== false} setupKeyConfigured={me.setupKeyConfigured !== false} onDone={refresh} />;
 
-  const current = TABS.find((item) => item.id === tab) || TABS[0];
+  const { tab, params, n } = nav;
+  const info = tabInfo(tab);
   return (
     <div className="admShell">
-      <AdminSidebar tabs={TABS} active={tab} onSelect={setTab} name={me.name} onLogout={logout} theme={theme} onToggleTheme={onToggleTheme} badges={{ support: me.openTickets || 0 }} />
+      <AdminSidebar sections={SECTIONS} active={tab} onSelect={(id) => go(id)} name={me.name} onLogout={logout} theme={theme} onToggleTheme={onToggleTheme} badges={{ support: me.openTickets || 0 }} />
       <main className="adm">
-        {tab === "overview" ? null : (
-          <header className="admHead">
-            <div>
-              <h1>{current.label}</h1>
-              <p className="admMuted">مدیریت frfro</p>
-            </div>
-          </header>
-        )}
-        {tab === "overview" ? <Overview onGo={setTab} name={me.name} /> : null}
-        {tab === "users" ? <Users /> : null}
-        {tab === "content" ? <ContentTab /> : null}
-        {tab === "bookings" ? <BookingsTab /> : null}
-        {tab === "support" ? <SupportTab onChanged={refresh} /> : null}
-        {tab === "resets" ? <Resets /> : null}
-        {tab === "security" ? <SecurityTab /> : null}
-        {tab === "actions" ? <Actions /> : null}
+        <AdminTopbar onGo={go} />
+        {tab === "overview" ? <Overview key={n} onGo={go} name={me.name} /> : null}
+        {tab === "users" ? <UsersTab key={n} intent={params} onChanged={refresh} onGo={go} /> : null}
+        {tab === "support" ? <SupportTab key={n} intent={params} onChanged={refresh} onGo={go} /> : null}
+        {["content", "bookings", "resets", "security", "actions"].includes(tab) ? <PageHead title={info.label} desc={info.desc} /> : null}
+        {tab === "content" ? <ContentTab key={n} intent={params} /> : null}
+        {tab === "bookings" ? <BookingsTab key={n} /> : null}
+        {tab === "resets" ? <Resets key={n} /> : null}
+        {tab === "security" ? <SecurityTab key={n} /> : null}
+        {tab === "actions" ? <Actions key={n} /> : null}
         <StepUpDialog />
       </main>
     </div>
@@ -141,98 +128,6 @@ function SmsCard() {
         <p className="admMuted">پیامک هنوز وصل نیست؛ ثبت‌نام بدون کد انجام می‌شود و بازیابی رمز دستی است. برای فعال‌سازی، متغیرهای <span dir="ltr">ZIBABAN_SMS_PROVIDER</span> و کلید سرویس را در محیط اپ بگذار (راهنما: docs/OPERATIONS.md).</p>
       )}
     </section>
-  );
-}
-
-function Users() {
-  const [q, setQ] = useState("");
-  const [type, setType] = useState("");
-  const [offset, setOffset] = useState(0);
-  const [data, setData] = useState({ users: [], total: 0 });
-  const [loading, setLoading] = useState(true);
-  const [busyId, setBusyId] = useState(null);
-  const [message, setMessage] = useState("");
-  const [selected, setSelected] = useState(null);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    const qs = new URLSearchParams({ q, type, offset: String(offset), limit: String(PAGE) });
-    const { ok, payload } = await apiFetch(`/api/admin/users?${qs}`);
-    if (ok) setData(payload.data);
-    setLoading(false);
-  }, [q, type, offset]);
-
-  useEffect(() => {
-    const timer = setTimeout(load, 250);
-    return () => clearTimeout(timer);
-  }, [load]);
-
-  async function toggleSuspend(user) {
-    const suspend = !user.suspended_at;
-    if (suspend && !window.confirm(`حساب «${user.name || user.phone}» مسدود شود؟ بلافاصله از اپ خارج می‌شود.`)) return;
-    setBusyId(user.id);
-    const { ok, payload } = await apiFetch(`/api/admin/users/${user.id}/suspend`, { method: "POST", body: JSON.stringify({ suspended: suspend }) });
-    setBusyId(null);
-    setMessage(ok ? (suspend ? "حساب مسدود شد." : "مسدودی برداشته شد.") : payload.error || "انجام نشد.");
-    if (ok) load();
-  }
-
-  const pages = Math.max(1, Math.ceil(data.total / PAGE));
-  const page = Math.floor(offset / PAGE) + 1;
-  return (
-    <>
-    {selected ? <UserDetail userId={selected} onClose={() => setSelected(null)} onChanged={load} /> : null}
-    <section className="admCard">
-      <div className="admFilters">
-        <Field label="جستجوی نام یا شماره" hideLabel>
-          {(props) => <input {...props} type="search" placeholder="جستجوی نام یا شماره…" value={q} onChange={(event) => { setQ(event.target.value); setOffset(0); }} />}
-        </Field>
-        <div className="admChips" role="group" aria-label="نوع حساب">
-          {[["", "همه"], ["client", "مشتری"], ["artist", "آرتیست"], ["salon", "سالن"]].map(([value, label]) => (
-            <Chip key={value || "all"} selected={type === value} onClick={() => { setType(value); setOffset(0); }}>{label}</Chip>
-          ))}
-        </div>
-      </div>
-      {message ? <p className="admNote" role="status">{message}</p> : null}
-      <div className="admTableWrap">
-        <table className="admTable">
-          <thead>
-            <tr><th>کاربر</th><th>نوع</th><th>عضویت</th><th>آخرین بازدید</th><th>وضعیت</th><th /></tr>
-          </thead>
-          <tbody>
-            {data.users.map((user) => (
-              <tr key={user.id} className={user.suspended_at ? "is-suspended" : ""}>
-                <td>
-                  <span className="admCellUser">
-                    <Avatar name={user.name} phone={user.phone} />
-                    <span>
-                      <button type="button" className="admLink" onClick={() => setSelected(user.id)}>{user.name || "—"}</button>
-                      <small dir="ltr">{user.phone}</small>
-                    </span>
-                  </span>
-                </td>
-                <td><span className={`admPill is-${user.type}`}>{TYPE_LABEL[user.type] || user.type}</span></td>
-                <td>{fmtDate(user.created_at)}</td>
-                <td>{fmtDate(user.last_seen_at)}</td>
-                <td><span className={`admDot${user.suspended_at ? " is-off" : ""}`}>{user.suspended_at ? "مسدود" : "فعال"}</span></td>
-                <td>
-                  <Button size="sm" variant={user.suspended_at ? "secondary" : "danger"} loading={busyId === user.id} loadingLabel="…" onClick={() => toggleSuspend(user)}>
-                    {user.suspended_at ? "رفع مسدودی" : "مسدود"}
-                  </Button>
-                </td>
-              </tr>
-            ))}
-            {!data.users.length && !loading ? <tr><td colSpan={6} className="admMuted">کاربری پیدا نشد.</td></tr> : null}
-          </tbody>
-        </table>
-      </div>
-      <footer className="admPager">
-        <Button size="sm" variant="secondary" disabled={offset === 0} onClick={() => setOffset(Math.max(0, offset - PAGE))}>قبلی</Button>
-        <span>{num(data.total)} کاربر • صفحهٔ {num(page)} از {num(pages)}</span>
-        <Button size="sm" variant="secondary" disabled={page >= pages} onClick={() => setOffset(offset + PAGE)}>بعدی</Button>
-      </footer>
-    </section>
-    </>
   );
 }
 

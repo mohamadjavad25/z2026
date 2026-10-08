@@ -24,6 +24,7 @@ import { ShieldCheck } from "lucide-react";
 import { PushSoftAsk } from "./home/PushSoftAsk";
 import { ClientBookingTracker } from "../client/ClientBookingTracker";
 import { BottomNav } from "./BottomNav";
+import { SupportFab } from "../support";
 import { useHome } from "./HomeContext";
 import { PublicArtistHost } from "./home/PublicArtistHost";
 import { ScheduleMenuHost } from "./home/ScheduleMenuHost";
@@ -392,6 +393,7 @@ export function HomeView() {
             openBookingSheet();
           }}
         />
+        {createdProfile ? <SupportFab /> : null}
         <PublicArtistHost />
         <PostPreviewModal
           post={selectedPost}

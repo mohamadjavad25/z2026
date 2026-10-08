@@ -29,6 +29,7 @@ export const TEST_ADMIN_PHONE = "09120000001";
 export const TEST_ADMIN2_PHONE = "09120000002";
 export const TEST_ADMIN3_PHONE = "09120000003";
 export const TEST_ADMIN4_PHONE = "09120000004";
+export const TEST_ADMIN5_PHONE = "09120000005";
 export const TEST_ADMIN_SECRET = "test-admin-secret-0123456789abcdef0123456789";
 export const TEST_ADMIN_SETUP_KEY = "test-admin-setup-key-0123456789";
 export const TEST_ADMIN_PASSWORD = "testpass123";
@@ -84,7 +85,7 @@ export async function setup() {
   process.env.TEST_POSTGRES_URL = connectionString;
   process.env.TEST_STORAGE_URL = fakeStorage.url;
   serverProcess = spawn("npx", ["next", "start", "-p", String(TEST_PORT)], {
-    env: { ...process.env, ...(process.env.TEST_STORAGE === "off" ? {} : { SUPABASE_URL: fakeStorage.url, SUPABASE_SERVICE_ROLE_KEY: "test-service-role-key" }), POSTGRES_URL: connectionString, NODE_ENV: "production", CRON_SECRET: TEST_CRON_SECRET, ZIBABAN_ADMIN_PHONES: [TEST_ADMIN_PHONE, TEST_ADMIN2_PHONE, TEST_ADMIN3_PHONE, TEST_ADMIN4_PHONE].join(","), ZIBABAN_ADMIN_SECRET: TEST_ADMIN_SECRET, ZIBABAN_ADMIN_SETUP_KEY: TEST_ADMIN_SETUP_KEY, ZIBABAN_SMS_PROVIDER: "test", ZIBABAN_REMINDER_TEST_CLOCK: "1" },
+    env: { ...process.env, ...(process.env.TEST_STORAGE === "off" ? {} : { SUPABASE_URL: fakeStorage.url, SUPABASE_SERVICE_ROLE_KEY: "test-service-role-key" }), POSTGRES_URL: connectionString, NODE_ENV: "production", CRON_SECRET: TEST_CRON_SECRET, ZIBABAN_ADMIN_PHONES: [TEST_ADMIN_PHONE, TEST_ADMIN2_PHONE, TEST_ADMIN3_PHONE, TEST_ADMIN4_PHONE, TEST_ADMIN5_PHONE].join(","), ZIBABAN_ADMIN_SECRET: TEST_ADMIN_SECRET, ZIBABAN_ADMIN_SETUP_KEY: TEST_ADMIN_SETUP_KEY, ZIBABAN_SMS_PROVIDER: "test", ZIBABAN_REMINDER_TEST_CLOCK: "1" },
     stdio: ["ignore", "pipe", "pipe"],
     detached: true
   });

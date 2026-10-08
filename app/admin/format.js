@@ -21,7 +21,9 @@ export const ACTION_LABEL = {
   post_delete: "حذف پست",
   revoke_sessions: "پایان نشست مدیر",
   reset_authenticator: "ریست Authenticator مدیر",
-  support_update: "رسیدگی به پشتیبانی"
+  support_update: "رسیدگی به پشتیبانی",
+  edit_user: "ویرایش پروفایل کاربر",
+  set_password: "تعیین رمز جدید برای کاربر"
 };
 
 export const CATEGORY_LABEL = { question: "سؤال", bug: "مشکل فنی", complaint: "شکایت", account: "مشکل حساب", other: "سایر" };
