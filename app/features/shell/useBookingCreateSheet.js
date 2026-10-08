@@ -160,7 +160,6 @@ export function useBookingCreateSheet({
   }, [salonAppointmentList]);
 
   const bookingServiceOptions = salonServiceList;
-  // Members marked inactive or on leave (the manager included) don't take new bookings.
   const selectedBookingService = bookingServiceOptions.find((item) => item.name === bookingServiceName)
     || bookingServiceOptions[0];
   // Members marked inactive or on leave (the manager included) don't take new bookings, and only the
