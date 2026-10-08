@@ -29,6 +29,10 @@ export const LUXE_DEFS = `<defs>${[
   lin("brown", [[0, "#D9A27A"], [0.5, "#A8693F"], [1, "#5A311C"]]),
   lin("blond", [[0, "#FFF0C8"], [0.5, "#EDC27A"], [1, "#B9812F"]]),
   lin("glass", [[0, "#FFFFFF", 0.95], [1, "#FFFFFF", 0.35]]),
+  lin("nude", [[0, "#FFD6DE"], [0.55, "#F3A3B3"], [1, "#D97A8E"]]),
+  lin("polish", [[0, "#FF9DBD"], [0.5, "#F23D7A"], [1, "#B0124F"]]),
+  lin("ombre", [[0, "#C9A2FF"], [0.55, "#F06FA4"], [1, "#FFB3C9"]], 0.5, 0, 0.5, 1),
+  lin("skin", [[0, "#FFE9DC"], [0.5, "#F9C3A5"], [1, "#E79B78"]], 0, 0, 1, 0.3),
   lin("shine", [[0, "#FFFFFF", 0.85], [1, "#FFFFFF", 0]], 0, 0, 0, 1),
   lin("beam", [[0, "#C9A6FF", 0.95], [1, "#C9A6FF", 0]], 0, 0, 1, 0),
   rad("floor", [[0, "#2A1B28", 0.22], [1, "#2A1B28", 0]], 0.5, 0.5, 0.5),
@@ -51,6 +55,30 @@ const rot = (deg, cx, cy, inner) => `<g transform="rotate(${deg} ${cx} ${cy})">$
 const nailShape = (x, y, w, h, fill = "url(#rose)") => {
   const r = w / 2;
   return `<path d="M${x} ${y + h}V${y + r * 1.1}C${x} ${y - r * 0.25} ${x + w} ${y - r * 0.25} ${x + w} ${y + r * 1.1}V${y + h}Z" fill="${fill}"/>`;
+};
+
+// A slender finger with a glossy almond nail. (bx, by) is the base of the
+// finger, it rises `len` px at `angle` degrees; `close` makes a big close-up
+// nail; style "french" paints a crisp white smile-line tip.
+const finger = (bx, by, len, w, angle, nailFill, close = false, style = "") => {
+  const tw = w * 0.9;
+  const top = -len + tw / 2;
+  const nw = tw * (close ? 0.74 : 0.7);
+  const nl = close ? len * 0.48 : w * 1.25;
+  const yb = -len + nl * 0.72;
+  const yt = yb - nl;
+  const nail = `M${-nw / 2} ${yb}C${-nw / 2} ${yb - nl * 0.6} ${-nw * 0.2} ${yt + nl * 0.1} 0 ${yt}C${nw * 0.2} ${yt + nl * 0.1} ${nw / 2} ${yb - nl * 0.6} ${nw / 2} ${yb}C${nw * 0.3} ${yb + nw * 0.24} ${-nw * 0.3} ${yb + nw * 0.24} ${-nw / 2} ${yb}Z`;
+  const tipY = yt + nl * 0.42;
+  const french = style === "french"
+    ? `<path d="M${-nw * 0.44} ${tipY + nl * 0.06}C${-nw * 0.4} ${tipY - nl * 0.3} ${-nw * 0.18} ${yt + nl * 0.08} 0 ${yt}C${nw * 0.18} ${yt + nl * 0.08} ${nw * 0.4} ${tipY - nl * 0.3} ${nw * 0.44} ${tipY + nl * 0.06}C${nw * 0.22} ${tipY - nl * 0.12} ${-nw * 0.22} ${tipY - nl * 0.12} ${-nw * 0.44} ${tipY + nl * 0.06}Z" fill="url(#pearl)" stroke="#D9AEBE" stroke-width="2" stroke-linejoin="round"/>`
+    : "";
+  return `<g transform="translate(${bx} ${by}) rotate(${angle})">
+    <path d="M${-w / 2} 0L${-tw / 2} ${top}A${tw / 2} ${tw / 2} 0 0 1 ${tw / 2} ${top}L${w / 2} 0Z" fill="url(#skin)"/>
+    ${close ? `<path d="M${-w * 0.3} ${-len * 0.22}C${-w * 0.1} ${-len * 0.25} ${w * 0.1} ${-len * 0.25} ${w * 0.3} ${-len * 0.22}" fill="none" stroke="#E3967A" stroke-width="2" stroke-linecap="round" opacity="0.5"/>` : ""}
+    <path d="${nail}" fill="${nailFill}"/>${french}
+    <path d="M${-nw * 0.62} ${yb + 1}C${-nw * 0.3} ${yb + nw * 0.42} ${nw * 0.3} ${yb + nw * 0.42} ${nw * 0.62} ${yb + 1}" fill="none" stroke="#E3967A" stroke-width="${close ? 2 : 1.4}" stroke-linecap="round" opacity="0.6"/>
+    <path d="M${-nw * 0.28} ${yb - nl * 0.12}C${-nw * 0.3} ${yb - nl * 0.5} ${-nw * 0.16} ${yt + nl * 0.26} ${-nw * 0.04} ${yt + nl * 0.16}" fill="none" stroke="#fff" stroke-width="${close ? 3.4 : 2}" stroke-linecap="round" opacity="0.8"/>
+  </g>`;
 };
 
 const eyeOpen = (iris = "url(#plum)") => `
@@ -277,55 +305,69 @@ export default {
     ${star(108, 18, 8)}`,
 
   // ── nails ──────────────────────────────────────────────────────────────
-  manicure: `${floor(64, 36)}
-    <path d="M26 120V62C26 56 30 52 36 52C42 52 46 56 46 62V120Z" fill="url(#peach)"/>
-    <path d="M48 120V36C48 30 52 26 58 26C64 26 68 30 68 36V120Z" fill="url(#peach)"/>
-    <path d="M70 120V30C70 24 74 20 80 20C86 20 90 24 90 30V120Z" fill="url(#peach)"/>
-    <path d="M92 120V44C92 38 96 34 102 34C108 34 112 38 112 44V120Z" fill="url(#peach)"/>
-    ${nailShape(30, 55, 12, 18)}${nailShape(52, 29, 12, 20)}${nailShape(74, 23, 12, 20)}${nailShape(96, 37, 12, 18)}
-    ${[[33, 60], [55, 34], [77, 28], [99, 42]].map(([x, y]) => `<rect x="${x}" y="${y}" width="3" height="9" rx="1.5" fill="#fff" opacity="0.75"/>`).join("")}
-    ${star(18, 30, 8)}`,
+  manicure: `${floor(66, 30, 118)}
+    ${finger(46, 98, 34, 15, -58, "url(#polish)")}
+    ${finger(52, 74, 52, 15, -12, "url(#polish)")}
+    ${finger(64, 71, 58, 15.5, -2, "url(#polish)")}
+    ${finger(76, 73, 54, 15, 7, "url(#polish)")}
+    ${finger(87, 78, 44, 13, 16, "url(#polish)")}
+    <path d="M44 76C46 68 90 68 93 80L90 98C88 106 84 112 80 118H52C48 110 44 100 44 90Z" fill="url(#skin)"/>
+    ${stroke("M58 92C64 96 74 96 80 92", "#E3967A", 2.2, 'opacity="0.55"')}
+    <path d="M48 104C58 100 78 100 88 104L86 113C76 110 60 110 50 113Z" fill="url(#gold)"/>
+    ${shine("M54 104C62 102 72 102 80 103C72 104 62 105 56 107Z", 0.7)}
+    ${star(108, 24, 9)}${star(20, 40, 6, "url(#rose)")}${star(104, 52, 4.5, "url(#plum)")}`,
 
-  pedicure: `${floor(64, 40)}
-    <path d="M30 116C24 96 26 70 38 58C52 44 80 44 94 56C106 66 108 88 100 116Z" fill="url(#peach)"/>
-    ${[[34, 48, 11], [54, 36, 12], [74, 34, 11], [92, 40, 9.5], [106, 52, 8]].map(([x, y, r]) => `
-      <ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r * 1.2}" fill="url(#peach)"/>
-      <ellipse cx="${x}" cy="${y - r * 0.35}" rx="${r * 0.62}" ry="${r * 0.68}" fill="url(#rose)"/>
-      ${dot(x - r * 0.25, y - r * 0.6, r * 0.16, "#fff")}`).join("")}
-    ${shine("M40 70C46 62 56 58 66 58C58 64 50 72 46 84Z", 0.45)}`,
+  pedicure: `${floor(68, 32, 118)}
+    <path d="M42 56C40 42 60 36 78 38C94 40 104 48 104 60C104 74 96 84 92 96C88 108 82 116 72 116C60 116 54 108 52 98C50 86 44 74 42 56Z" fill="url(#skin)"/>
+    ${[[48, 38, 20, 28, -6], [66, 30, 14, 23, -2], [79, 32, 12.5, 20, 6], [90, 38, 11, 17, 14], [99, 47, 9.5, 14, 24]].map(([x, y, w, h, a]) => rot(a, x, y, `
+      <rect x="${x - w / 2}" y="${y - h / 2}" width="${w}" height="${h + 10}" rx="${w / 2}" fill="url(#skin)"/>
+      <path d="M${x - w * 0.33} ${y - h * 0.02}C${x - w * 0.33} ${y - h * 0.38} ${x - w * 0.18} ${y - h * 0.42} ${x} ${y - h * 0.42}C${x + w * 0.18} ${y - h * 0.42} ${x + w * 0.33} ${y - h * 0.38} ${x + w * 0.33} ${y - h * 0.02}C${x + w * 0.2} ${y + h * 0.08} ${x - w * 0.2} ${y + h * 0.08} ${x - w * 0.33} ${y - h * 0.02}Z" fill="url(#polish)"/>
+      <rect x="${x - w * 0.22}" y="${y - h * 0.34}" width="${Math.max(1.6, w * 0.12)}" height="${h * 0.22}" rx="1" fill="#fff" opacity="0.8"/>`)).join("")}
+    ${shine("M50 60C56 52 66 48 76 48C66 54 58 62 56 74Z", 0.4)}
+    ${stroke("M58 104C64 108 74 108 80 104", "#E3967A", 2.2, 'opacity="0.45"')}
+    <path d="M18 104C18 96 26 92 30 98C34 92 42 96 40 104C38 110 30 114 29 116C28 114 20 110 18 104Z" fill="url(#rose)"/>
+    ${dot(27, 100, 2.4, "#fff")}
+    ${star(112, 24, 8)}${star(24, 70, 5)}`,
 
-  nail_polish: `${floor(64, 28)}
-    <rect x="52" y="4" width="24" height="40" rx="6" fill="url(#ink)"/>
-    ${shine("M56 8h4v32h-4z", 0.3)}
-    <rect x="48" y="40" width="32" height="10" rx="3" fill="url(#gold)"/>
-    <path d="M34 66C34 56 42 50 52 50H76C86 50 94 56 94 66V100C94 108 88 112 80 112H48C40 112 34 108 34 100Z" fill="url(#rose)"/>
-    ${shine("M40 64C40 58 44 56 50 56V104H44C42 104 40 102 40 98Z", 0.55)}
-    <path d="M58 72C58 72 54 80 54 84C54 88 58 92 64 92C70 92 74 88 74 84C74 80 70 72 70 72Z" fill="#fff" opacity="0.35"/>
-    ${star(106, 30, 9)}${star(22, 44, 6)}`,
+  nail_polish: `${floor(64, 30)}
+    <path d="M14 30C34 18 54 22 60 34C48 34 32 38 18 46C10 50 6 36 14 30Z" fill="url(#polish)" opacity="0.9"/>
+    ${shine("M18 32C28 26 40 24 50 27C40 28 30 31 22 36Z", 0.55)}
+    <rect x="54" y="4" width="22" height="36" rx="7" fill="url(#ink)"/>
+    ${shine("M58 8h4v28h-4z", 0.3)}
+    <rect x="50" y="38" width="30" height="9" rx="3" fill="url(#gold)"/>
+    <path d="M38 62C38 52 46 46 56 46H74C84 46 92 52 92 62V100C92 108 86 113 78 113H52C44 113 38 108 38 100Z" fill="url(#pearl)" opacity="0.9"/>
+    <path d="M42 66C42 58 48 52 56 52H74C82 52 88 58 88 66V98C88 104 84 108 78 108H52C46 108 42 104 42 98Z" fill="url(#polish)"/>
+    ${shine("M46 64C46 60 48 57 52 56V102H48C46 102 46 100 46 98Z", 0.6)}
+    <path d="M72 58C80 58 84 62 84 70V76C82 68 78 62 72 58Z" fill="#fff" opacity="0.45"/>
+    ${star(108, 42, 9)}${star(104, 96, 5, "url(#rose)")}`,
 
-  gel_nails: `${floor(64, 44)}
-    <path d="M12 100C12 54 36 30 64 30C92 30 116 54 116 100Z" fill="url(#pearl)"/>
-    <path d="M28 100C28 66 44 48 64 48C84 48 100 66 100 100Z" fill="url(#plum)"/>
-    <path d="M30 100C32 80 42 64 64 62C86 64 96 80 98 100Z" fill="url(#glow)" opacity="0.9"/>
-    <rect x="8" y="98" width="112" height="12" rx="6" fill="url(#ink)"/>
-    <rect x="52" y="36" width="24" height="6" rx="3" fill="url(#plum)"/>
-    ${shine("M22 82C24 60 36 44 54 38C40 50 32 64 30 84Z", 0.7)}
-    ${nailShape(58, 74, 12, 24)}`,
+  gel_nails: `${floor(64, 46, 116)}
+    <path d="M8 104C8 60 32 34 64 34C96 34 120 60 120 104Z" fill="url(#pearl)"/>
+    <path d="M22 104C22 70 40 50 64 50C88 50 106 70 106 104Z" fill="url(#plum)"/>
+    <path d="M26 104C28 80 44 66 64 66C84 66 100 80 102 104Z" fill="url(#glow)" opacity="0.85"/>
+    ${[-40, -20, 0, 20, 40].map((a) => rot(a, 64, 54, `<path d="M62.5 58H65.5L64.8 72H63.2Z" fill="#fff" opacity="0.7"/>`)).join("")}
+    ${[[40, 92, -10], [54, 86, -3], [68, 85, 3], [82, 90, 10]].map(([x, y, a]) => rot(a, x, y + 10, `
+      <rect x="${x - 6.5}" y="${y}" width="13" height="24" rx="6.5" fill="url(#skin)"/>
+      <path d="M${x - 4.5} ${y + 9}C${x - 4.5} ${y + 2} ${x - 2} ${y - 3} ${x} ${y - 4}C${x + 2} ${y - 3} ${x + 4.5} ${y + 2} ${x + 4.5} ${y + 9}C${x + 2.5} ${y + 11} ${x - 2.5} ${y + 11} ${x - 4.5} ${y + 9}Z" fill="url(#polish)"/>
+      <rect x="${x - 2.6}" y="${y + 1}" width="1.6" height="5" rx="0.8" fill="#fff" opacity="0.85"/>`)).join("")}
+    <rect x="4" y="102" width="120" height="12" rx="6" fill="url(#ink)"/>
+    <rect x="48" y="40" width="32" height="7" rx="3.5" fill="url(#ink)"/>
+    ${dot(56, 43.5, 1.8, "#7CF5C8")}${dot(64, 43.5, 1.8, "#C9A6FF")}${dot(72, 43.5, 1.8, "#FFE7A3")}
+    ${shine("M16 86C18 64 32 46 52 40C38 52 28 66 26 88Z", 0.75)}`,
 
-  nail_art: `${floor(64, 30)}
-    <path d="M40 118V54C40 30 52 12 64 6C76 12 88 30 88 54V118Z" fill="url(#plum)"/>
-    <path d="M40 80C52 74 76 74 88 80V118H40Z" fill="url(#rose)"/>
-    ${stroke("M40 80C52 74 76 74 88 80", "url(#gold)", 4)}
-    ${star(64, 46, 11)}${dot(54, 26, 3, "url(#gold)")}${dot(76, 64, 3, "url(#gold)")}${dot(52, 96, 3.5, "#fff")}${dot(72, 102, 2.5, "#fff")}
-    ${shine("M46 52C46 38 52 26 58 20C54 30 52 42 52 56Z", 0.55)}
-    ${star(106, 30, 8)}${star(20, 56, 6, "url(#rose)")}`,
+  nail_art: `${floor(58, 28)}
+    ${finger(58, 122, 96, 34, -8, "url(#ombre)", true)}
+    ${rot(-8, 58, 122, `
+      ${star(58, 54, 8, "url(#gold)")}
+      ${dot(51, 42, 2.4, "url(#gold)")}${dot(66, 66, 2, "url(#gold)")}${dot(63, 40, 1.6, "#fff")}${dot(52, 64, 1.6, "#fff")}
+      <path d="M58 32L62 36L58 40L54 36Z" fill="url(#sky)"/>`)}
+    ${rot(38, 100, 70, `<rect x="96" y="30" width="8" height="58" rx="4" fill="url(#ink)"/><rect x="96" y="30" width="8" height="10" fill="url(#gold)"/><path d="M96 88H104L100.5 102H99.5Z" fill="url(#plum)"/>`)}
+    ${star(108, 24, 8)}${star(22, 30, 6, "url(#rose)")}`,
 
-  french_nails: `${floor(64, 30)}
-    <path d="M40 118V54C40 30 52 12 64 6C76 12 88 30 88 54V118Z" fill="url(#peach)"/>
-    <path d="M40 118V54C40 50 41 46 42 42C50 50 78 50 86 42C87 46 88 50 88 54V118Z" fill="url(#rose)" opacity="0.55"/>
-    <path d="M42 42C46 26 54 14 64 6C74 14 82 26 86 42C78 50 50 50 42 42Z" fill="url(#pearl)"/>
-    ${shine("M46 60C46 54 48 50 50 48V108H46Z", 0.5)}
-    ${star(106, 28, 9)}${star(22, 40, 6)}`,
+  french_nails: `${floor(64, 34)}
+    ${finger(44, 124, 82, 27, -10, "url(#nude)", true, "french")}
+    ${finger(80, 124, 90, 28, 6, "url(#nude)", true, "french")}
+    ${star(110, 26, 9)}${star(18, 36, 6, "url(#rose)")}`,
 
   // ── skin ───────────────────────────────────────────────────────────────
   facial: `${floor(64, 34)}
