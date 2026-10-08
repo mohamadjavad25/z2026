@@ -1,7 +1,7 @@
 "use client";
 
 import { memo, useCallback, useEffect, useRef, useState } from "react";
-import { Check, ChevronLeft } from "lucide-react";
+import { CalendarDays, Check } from "lucide-react";
 
 const WEEK_STRIP_SETTLE_MS = 140;
 
@@ -353,10 +353,10 @@ export function ProfileHeroWeekStrip({
       <button
         type="button"
         className="salonHeroWeekArrow"
-        aria-label="باز کردن تاریخچه"
+        aria-label="تقویم کامل و تاریخچه"
         onClick={onOpenHistory}
       >
-        <ChevronLeft size={17} />
+        <CalendarDays size={17} />
       </button>
       <div
         className="salonHeroWeekDays"

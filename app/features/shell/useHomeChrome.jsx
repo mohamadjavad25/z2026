@@ -2,6 +2,7 @@ import { useScheduleViews } from "./useScheduleViews";
 import { useShellNavigation } from "./useShellNavigation";
 import { ProfileModeRail } from "../profile/ProfileModeRail";
 import { ProfileHeroWeekStrip } from "../profile/ProfileHeroWeekStrip";
+import { SalonWeekStripDock } from "./SalonWeekStripDock";
 
 export function useHomeChrome({
   salonHoursList,
@@ -215,13 +216,15 @@ export function useHomeChrome({
   // by that element's page-transition transform and never reaches the real
   // viewport edge. See MobileFloatingCta.jsx.
   const salonWeekStripFloating = (
-    <ProfileHeroWeekStrip
-      items={salonHeroWeekTabs}
-      selectedDay={activeScheduleDateKey}
-      onSelectDay={setScheduleViewDay}
-      onOpenHistory={() => setSalonWeekHistoryOpen(true)}
-      ariaLabel="برنامه هفته سالن"
-    />
+    <SalonWeekStripDock items={salonHeroWeekTabs} selectedDay={activeScheduleDateKey}>
+      <ProfileHeroWeekStrip
+        items={salonHeroWeekTabs}
+        selectedDay={activeScheduleDateKey}
+        onSelectDay={setScheduleViewDay}
+        onOpenHistory={() => setSalonWeekHistoryOpen(true)}
+        ariaLabel="برنامه هفته سالن"
+      />
+    </SalonWeekStripDock>
   );
 
   return {

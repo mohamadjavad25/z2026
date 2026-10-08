@@ -393,7 +393,7 @@ export function HomeView() {
             openBookingSheet();
           }}
         />
-        {createdProfile ? <SupportFab /> : null}
+        {createdProfile && activeTab === "profile" && !selectedPublicArtist ? <SupportFab /> : null}
         <PublicArtistHost />
         <PostPreviewModal
           post={selectedPost}
