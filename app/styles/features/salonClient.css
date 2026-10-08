@@ -102,3 +102,7 @@
 .bspTimes { max-height: none; overflow: visible; }
 .bspDay.is-disabled { opacity: 0.5; }
 .salonClientBookingSummary { margin: 0; padding: 12px 14px; border-radius: 14px; background: #f1f5ff; color: #1f3a78; font-size: 0.82rem; font-weight: 850; line-height: 1.8; text-align: center; }
+/* Artist picker on a service: who was linked automatically from their skills */
+.sasAuto { margin-inline-start: 6px; padding: 1px 7px; border-radius: 999px; background: #e3f4ea; color: #1a6638; font-style: normal; font-size: 0.64rem; font-weight: 850; }
+.sasAuto.is-off { background: #f1f1f5; color: #6f7380; }
+.sasAuto.is-manual { background: #eceef4; color: #3d4252; }

@@ -61,6 +61,8 @@ export function SalonServicesWorkspace({
               ? visibleArtists.map((person) => person.name).join("، ")
               : "";
             const menuOpen = String(serviceArtistMenuId) === String(service.id);
+            // Linked automatically from their field of work (see serviceSkills.js).
+            const autoIds = (Array.isArray(service.staff_auto_ids) ? service.staff_auto_ids : []).map(String);
             return (
               <article
                 className={`svcCard is-manager${menuOpen ? " is-pickingArtist" : ""}`}
@@ -116,7 +118,7 @@ export function SalonServicesWorkspace({
                           <p className="sasEmpty">هنوز پرسنلی ثبت نشده. از بخش پرسنل یک آرتیست دعوت کن، یا اگر خودت این کار را انجام می‌دهی «خودم هم کار می‌کنم» را بزن.</p>
                         ) : (
                           <>
-                            <p className="sasHint">آرتیستی را که این خدمت را انجام می‌دهد انتخاب کن. می‌توانی چند نفر را انتخاب کنی.</p>
+                            <p className="sasHint">آرتیست‌هایی که تخصصشان به این خدمت می‌خورد خودکار وصل می‌شوند. هر کدام را نخواستی بردار، یا کس دیگری را اضافه کن؛ انتخابت حفظ می‌شود.</p>
                             {staffList.map((person) => {
                               const selected = selectedArtistIds.includes(String(person.id));
                               const avatar = person.avatar || person.staff_avatar || "";
@@ -134,7 +136,12 @@ export function SalonServicesWorkspace({
                                   </span>
                                   <span className="sasName">
                                     <b>{person.name}{person.is_owner ? " (خودم)" : ""}</b>
-                                    <small>{person.role || "آرتیست"}</small>
+                                    <small>
+                                      {person.role || person.artist_service || "آرتیست"}
+                                      {autoIds.includes(String(person.id)) ? (
+                                        <em className={`sasAuto${selected ? "" : " is-off"}`}>{selected ? "خودکار از تخصص" : "مرتبط؛ برداشته شده"}</em>
+                                      ) : selected ? <em className="sasAuto is-manual">دستی</em> : null}
+                                    </small>
                                   </span>
                                   <span className="sasCheck" aria-hidden="true">{selected ? <Check size={15} /> : null}</span>
                                 </button>
