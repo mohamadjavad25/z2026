@@ -173,14 +173,13 @@ export async function findSalonStaffForBooking(salonUserId, staffName, serviceNa
     `, [salonUserId, name])
     : null;
   if (!row && service) {
-    row = await get(db, `
-      SELECT st.*
-      FROM salon_services sv
-      JOIN salon_staff st
-        ON st.id = sv.staff_id AND st.salon_user_id = sv.salon_user_id
-      WHERE sv.salon_user_id = $1 AND sv.name = $2
-      LIMIT 1
-    `, [salonUserId, service]) || null;
+    // No artist named: the first one who actually does this service (skill match + hand picks).
+    const { listSalonServices } = await import("./services.js");
+    const match = (await listSalonServices(salonUserId, db)).find((item) => String(item.name || "").trim() === service);
+    const firstId = match?.staff_ids?.[0];
+    row = firstId
+      ? await get(db, "SELECT * FROM salon_staff WHERE id = $1 AND salon_user_id = $2", [Number(firstId), salonUserId]) || null
+      : null;
   }
   if (!row && service) {
     row = await get(db, `

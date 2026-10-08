@@ -161,9 +161,17 @@ export function useBookingCreateSheet({
 
   const bookingServiceOptions = salonServiceList;
   // Members marked inactive or on leave (the manager included) don't take new bookings.
-  const bookingStaffOptions = safeSalonStaffList.filter((person) => !["غیرفعال", "مرخصی"].includes(String(person.state || "").trim()));
   const selectedBookingService = bookingServiceOptions.find((item) => item.name === bookingServiceName)
     || bookingServiceOptions[0];
+  // Members marked inactive or on leave (the manager included) don't take new bookings, and only the
+  // artists who do the chosen service are offered (skill match + the salon's own picks). A service
+  // nobody is linked to yet stays bookable with the whole active team.
+  const activeStaff = safeSalonStaffList.filter((person) => !["غیرفعال", "مرخصی"].includes(String(person.state || "").trim()));
+  const serviceStaffIds = (Array.isArray(selectedBookingService?.staff_ids) ? selectedBookingService.staff_ids : []).map(String);
+  const serviceStaff = activeStaff.filter((person) => serviceStaffIds.includes(String(person.id)));
+  const bookingStaffOptions = serviceStaff.length ? serviceStaff : activeStaff;
+  // A pick made for another service doesn't carry over to one that artist doesn't do.
+  const pickedStaffName = bookingStaffOptions.some((person) => person.name === bookingStaffName) ? bookingStaffName : "";
   const selectedBookingDuration = parseServiceDurationMinutes(selectedBookingService?.duration);
 
   // Who can take a slot: the staff member picked explicitly, or -- when none is
@@ -171,7 +179,7 @@ export function useBookingCreateSheet({
   // long as at least one of them is free, and that free person is the one the
   // booking is assigned to.
   const staffNames = bookingStaffOptions.map((person) => person.name).filter(Boolean);
-  const staffPool = bookingStaffName ? [bookingStaffName] : (staffNames.length ? staffNames : [""]);
+  const staffPool = pickedStaffName ? [pickedStaffName] : (staffNames.length ? staffNames : [""]);
   const freeStaffAt = (dateKey, slot) => staffPool.filter((name) => {
     if (isBookingSlotTaken(name, slot, dateKey, selectedBookingDuration)) return false;
     const calendar = name ? staffCalendars[String(name).trim()] : null;
@@ -209,7 +217,7 @@ export function useBookingCreateSheet({
     || buildDayBookingSlots(salonDayWindow(selectedBookingDayHour).open, salonDayWindow(selectedBookingDayHour).close, selectedBookingDuration);
   const bookingFreeSlots = salonDayInfoByKey[bookingDateForSlots]?.free || salonFreeSlotsFor(bookingDateForSlots);
   const bookingStaffForTime = (slot) => freeStaffAt(bookingDateForSlots, slot)[0] || "";
-  const selectedBookingStaff = bookingStaffForTime(bookingTime) || bookingStaffName || bookingStaffOptions[0]?.name || "";
+  const selectedBookingStaff = bookingStaffForTime(bookingTime) || pickedStaffName || bookingStaffOptions[0]?.name || "";
 
   // Day chips for the salon form: closed days are left out, except today, which stays visible with
   // its reason so it never silently disappears.
@@ -338,7 +346,7 @@ export function useBookingCreateSheet({
   return {
     bookingSheetOpen,
     setBookingSheetOpen,
-    bookingStaffName,
+    bookingStaffName: pickedStaffName,
     setBookingStaffName,
     bookingServiceName,
     setBookingServiceName,
