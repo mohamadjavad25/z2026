@@ -20,14 +20,13 @@ export function OwnerBookingSheet() {
     selectedBookingStaff,
     setBookingStaffName,
     artistBookingDayOptions,
-    salonScheduleWeekTabs,
     artistBookingDateForSlots,
     bookingDateForSlots,
     setBookingDate,
     artistBookingFreeSlots,
     bookingFreeSlots,
     bookingStaffForTime,
-    bookingDayFreeCounts,
+    salonBookingDayOptions,
     bookingTime,
     setBookingTime,
     artistBookingSubmitting,
@@ -37,8 +36,7 @@ export function OwnerBookingSheet() {
     openSalonServiceCreate,
     addSalonAppointment,
     handleArtistBookingCreate,
-    setBookingSelectMenu,
-    salonHoursList
+    setBookingSelectMenu
   } = useHome();
 
   return (
@@ -88,26 +86,7 @@ export function OwnerBookingSheet() {
             staffMenuOpen={bookingSelectMenu === "staff"}
             onStaffMenuOpenChange={(next) => setBookingSelectMenu(next ? "staff" : "")}
             onStaffChange={setBookingStaffName}
-            dayOptions={
-              createdProfile?.type === "artist"
-                ? artistBookingDayOptions
-                : salonScheduleWeekTabs
-                  // A booking can only ever be created for today or later --
-                  // this same tab list is shared with the schedule-browsing
-                  // view (which legitimately looks a few days into the
-                  // past), so the past-date exclusion belongs here, not on
-                  // salonScheduleWeekTabs itself.
-                  .filter((tab) => (tab.offset ?? 0) >= 0)
-                  .filter((tab) => {
-                    const hour = salonHoursList.find((item) => item.day === tab.day);
-                    return hour ? Boolean(hour.active) : true;
-                  })
-                  .map((tab) => ({
-                    value: tab.dateKey,
-                    label: `${tab.label} ${tab.sub || ""}`.trim(),
-                    free: bookingDayFreeCounts[tab.dateKey]
-                  }))
-            }
+            dayOptions={createdProfile?.type === "artist" ? artistBookingDayOptions : salonBookingDayOptions}
             dayValue={createdProfile?.type === "artist" ? artistBookingDateForSlots : bookingDateForSlots}
             onDayChange={setBookingDate}
             timeOptions={createdProfile?.type === "artist" ? artistBookingFreeSlots : bookingFreeSlots}

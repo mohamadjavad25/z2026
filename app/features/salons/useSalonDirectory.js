@@ -15,6 +15,7 @@ import { toggleSave } from "../../shared/api/saves";
 import { apiFetch } from "../../shared/api/client";
 import { notifyFromResponse } from "../../shared/lib/apiNotify";
 import { resolveRollingPersianDateKey } from "../../shared/lib/persianCalendar";
+import { bookingIsOnDateKey, findSalonHourForDateKey, isSalonHourOpen, salonDayWindow } from "../../shared/lib/salonAvailability";
 import {
   buildDayBookingSlots,
   parseServiceDurationMinutes,
@@ -44,18 +45,8 @@ function getBookableSalonServiceItems(salon) {
   return visible.length ? visible : salonServiceCatalog;
 }
 
-function normalizeDayLabel(value) {
-  return String(value || "").replace(/\s/g, "");
-}
-
 function getSalonHourForDay(hours, day) {
-  if (!Array.isArray(hours) || !hours.length) return null;
-  const dayKey = resolveRollingPersianDateKey(day);
-  const dayLabel = normalizeDayLabel(day);
-  return hours.find((hour) => (
-    normalizeDayLabel(hour?.day) === dayLabel
-      || resolveRollingPersianDateKey(hour?.day || "") === dayKey
-  )) || null;
+  return findSalonHourForDateKey(hours, resolveRollingPersianDateKey(day));
 }
 
 /**
@@ -126,19 +117,16 @@ export function useSalonDirectory({
   const salonClientFreeTimes = useMemo(() => {
     const duration = parseServiceDurationMinutes(salonClientSelectedService?.duration);
     const hour = getSalonHourForDay(selectedSalon?.hours, salonClientBooking.day);
-    if (hour && !Number(hour.active)) return [];
-    const baseSlots = buildDayBookingSlots(
-      hour?.open_time || "۱۰:۰۰",
-      hour?.close_time || "۲۰:۰۰",
-      duration
-    );
+    if (!isSalonHourOpen(hour)) return [];
+    const dayWindow = salonDayWindow(hour);
+    const baseSlots = buildDayBookingSlots(dayWindow.open, dayWindow.close, duration);
     const selectedDateKey = resolveRollingPersianDateKey(salonClientBooking.day);
     return baseSlots.filter((time) => {
       if (isSlotInPast(salonClientBooking.day, time)) return false;
       const start = timeLabelToMinutes(time);
       const end = start + duration;
       return !salonClientUnavailableSlots.some((slot) => {
-        if (resolveRollingPersianDateKey(slot.booking_date || slot.date || "") !== selectedDateKey) return false;
+        if (!bookingIsOnDateKey(slot, selectedDateKey)) return false;
         const bookedStart = timeLabelToMinutes(slot.time || "");
         const bookedEnd = bookedStart + Math.max(15, Number(slot.duration_minutes || slot.durationMinutes) || 60);
         return rangesOverlap(start, end, bookedStart, bookedEnd);

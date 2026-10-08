@@ -12,9 +12,11 @@ const normalizeOption = (option) => (
     ? {
       value: String(option.value ?? option.day ?? option.label ?? ""),
       label: String(option.label ?? option.day ?? option.value ?? ""),
-      free: typeof option.free === "number" ? option.free : undefined
+      free: typeof option.free === "number" ? option.free : undefined,
+      tag: option.tag ? String(option.tag) : "",
+      note: option.note ? String(option.note) : ""
     }
-    : { value: String(option || ""), label: String(option || ""), free: undefined }
+    : { value: String(option || ""), label: String(option || ""), free: undefined, tag: "", note: "" }
 );
 
 /**
@@ -241,12 +243,12 @@ export function BookingCreateForm({
               onClick={() => { if (option.free !== 0) onDayChange?.(option.value); }}
             >
               {option.label}
-              {option.free === 0 ? <small>تکمیل</small> : null}
+              {option.free === 0 ? <small>{option.tag || "تکمیل"}</small> : null}
             </button>
           ))}
         </div>
         {skippedDays ? (
-          <p className="bcfNote" role="status">{firstDay.label} ساعت خالی ندارد؛ نزدیک‌ترین روزِ آزاد را برایت باز کردیم.</p>
+          <p className="bcfNote" role="status">{firstDay.note || `${firstDay.label} ساعت خالی ندارد.`} نزدیک‌ترین روزِ آزاد را برایت باز کردیم.</p>
         ) : null}
         {times.length ? (
           <>
