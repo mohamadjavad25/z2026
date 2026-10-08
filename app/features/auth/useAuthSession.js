@@ -2,7 +2,7 @@
 
 import { apiFetch } from "../../shared/api/client";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { deleteAccount as apiDeleteAccount, getAuthMe, login as apiLogin, logout as apiLogout, register as apiRegister } from "../../shared/api/auth";
+import { deleteAccount as apiDeleteAccount, login as apiLogin, logout as apiLogout, register as apiRegister } from "../../shared/api/auth";
 import { AUTH_SESSION_KEY, normalizeProfile, readAuthSession, writeAuthSession } from "./constants";
 
 /**
@@ -85,6 +85,23 @@ export function useAuthSession({
     onEnterTabRef.current?.("profile");
   }, []);
 
+  // GET /api/auth/me, retried a few times on a server error or dropped connection. Only a real answer
+  // (signed in, or 401 "not signed in") is final; `serverDown` marks a server that never answered.
+  async function loadMeWithRetry(isStale) {
+    const delays = [0, 1500, 4000];
+    for (let attempt = 0; attempt < delays.length; attempt += 1) {
+      if (delays[attempt]) await new Promise((resolve) => setTimeout(resolve, delays[attempt]));
+      if (isStale()) return { serverDown: true };
+      try {
+        const { ok, status, payload } = await apiFetch("/api/auth/me");
+        if (status < 500) return { ok, payload, data: payload?.data ?? payload };
+      } catch {
+        // network error: try again
+      }
+    }
+    return { serverDown: true };
+  }
+
   const lockSession = useCallback(() => {
     sessionLockedRef.current = true;
   }, []);
@@ -97,7 +114,7 @@ export function useAuthSession({
       try {
         // Same race window as HomeApp: /me + /salons in parallel, then public directories, then lock check.
         const [meResult, salonsPayload] = await Promise.all([
-          getAuthMe(),
+          loadMeWithRetry(isStale),
           apiFetch("/api/salons").then(({ payload }) => payload).catch(() => ({}))
         ]);
         if (isStale()) return;
@@ -106,6 +123,16 @@ export function useAuthSession({
         if (isStale()) return;
 
         if (sessionLockedRef.current) {
+          return;
+        }
+
+        // The server failed (5xx / network), it did not say "not signed in": keep the saved session
+        // (the cookie is still valid) and say so, instead of dropping the user onto the login form.
+        if (meResult.serverDown) {
+          onEnterTabRef.current?.("profile");
+          setAuthMode("login");
+          setAuthNotice("سرور الان پاسخ نمی‌دهد؛ حسابت سر جایش است. چند لحظه بعد صفحه را دوباره باز کن.");
+          onShellNoticeRef.current?.("سرور موقتاً در دسترس نیست؛ از حسابت خارج نشده‌ای.");
           return;
         }
 
