@@ -31,14 +31,6 @@ export function SalonStaffWorkspace({
 
   return (
     <div className="stfPage">
-      <div className="stfHead">
-        <span className="stfHeadIcon" aria-hidden="true"><PageIcon name="staff" size={32} /></span>
-        <div>
-          <span>پرسنل</span>
-          <b>آرتیست‌های سالن</b>
-        </div>
-      </div>
-
       <div className="stfStats" role="list" aria-label="خلاصه‌ی تیم">
         {stats.map((item) => (
           <div className={`stfStat is-${item.tone}`} role="listitem" key={item.key}>
