@@ -118,27 +118,25 @@ export function ProfileHero({
 
   if (type === "client") {
     return (
-      <div className={`profileHero ${heroClass} clientBeautyHero`}>
-        <div className="clientBeautyHeroIdentity">
-          <span className="clientBeautyAvatar">
-            <img className="profileAvatarImage" src={avatar} alt="" aria-hidden="true" style={{ objectPosition: avatarPosition }} />
-          </span>
-          <div className="profileHeroCopy">
-            <p>{kicker || "پروفایل مشتری"}</p>
-            <h2>{name}</h2>
-            <span>
-              <MapPin size={15} aria-hidden="true" />
-              {profile.data?.area || "آدرس ثبت نشده"}
-            </span>
-          </div>
-          <button
-            type="button"
-            className={`clientBeautyHeroBell ${activePanel === "notifications" ? "is-active" : ""} ${notificationCount > 0 ? "has-notifications" : ""}`.trim()}
-            onClick={onOpenNotifications}
-            aria-label="اعلان‌ها"
-          >
-            <Bell size={18} />
-          </button>
+      <div className={`profileHero ${heroClass} cphHero`}>
+        <div className="cphBanner" aria-hidden="true" />
+        <button
+          type="button"
+          className={`clientBeautyHeroBell cphBell ${activePanel === "notifications" ? "is-active" : ""} ${notificationCount > 0 ? "has-notifications" : ""}`.trim()}
+          onClick={onOpenNotifications}
+          aria-label="اعلان‌ها"
+        >
+          <Bell size={18} />
+        </button>
+        <span className="cphAvatar">
+          <img className="profileAvatarImage" src={avatar} alt="" aria-hidden="true" style={{ objectPosition: avatarPosition }} />
+        </span>
+        <div className="cphMeta">
+          <h2>{name}</h2>
+          <p>
+            <MapPin size={14} aria-hidden="true" />
+            {profile.data?.area || "شهر ثبت نشده"}
+          </p>
         </div>
       </div>
     );
