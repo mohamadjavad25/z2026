@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { isSlotInPast } from "../../shared/lib/slots";
+import { getSalonStaffCalendars } from "../../shared/api/salons";
 import {
   bookingHoldsSlot,
   bookingIsOnDateKey,
@@ -111,6 +112,26 @@ export function useBookingCreateSheet({
   const [bookingDate, setBookingDate] = useState("");
   const [bookingTime, setBookingTime] = useState("۱۸:۳۰");
   const [bookingSelectMenu, setBookingSelectMenu] = useState("");
+  // Linked artists' own calendars (break + bookings made anywhere), keyed by staff name. The server
+  // refuses a time that clashes with them, so the sheet must not offer it either.
+  const [staffCalendars, setStaffCalendars] = useState({});
+  const isSalonOwner = createdProfile?.type === "salon";
+  useEffect(() => {
+    if (!bookingSheetOpen || !isSalonOwner) return undefined;
+    let cancelled = false;
+    const load = () => getSalonStaffCalendars()
+      .then(({ ok, data }) => {
+        if (cancelled || !ok) return;
+        const next = {};
+        (data?.calendars || []).forEach((item) => { if (item?.staff) next[String(item.staff).trim()] = item; });
+        setStaffCalendars(next);
+      })
+      .catch(() => {});
+    load();
+    // Keep it fresh while the sheet stays open (the artist may take a booking elsewhere meanwhile).
+    const id = setInterval(load, 60_000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, [bookingSheetOpen, isSalonOwner, salonAppointmentList]);
 
   // Re-evaluate "what is still in the future" while the sheet stays open.
   const [, setClockTick] = useState(0);
@@ -150,9 +171,11 @@ export function useBookingCreateSheet({
   // booking is assigned to.
   const staffNames = safeSalonStaffList.map((person) => person.name).filter(Boolean);
   const staffPool = bookingStaffName ? [bookingStaffName] : (staffNames.length ? staffNames : [""]);
-  const freeStaffAt = (dateKey, slot) => staffPool.filter(
-    (name) => !isBookingSlotTaken(name, slot, dateKey, selectedBookingDuration)
-  );
+  const freeStaffAt = (dateKey, slot) => staffPool.filter((name) => {
+    if (isBookingSlotTaken(name, slot, dateKey, selectedBookingDuration)) return false;
+    const calendar = name ? staffCalendars[String(name).trim()] : null;
+    return !(calendar && isPublicArtistSlotBlocked(calendar, dateKey, slot, selectedBookingDuration));
+  });
 
   // Everything the sheet needs to know about one day: is it open, its hours, and which times are still
   // bookable. `reason` says why a day has nothing free, so the owner sees "closed" / "workday over" /

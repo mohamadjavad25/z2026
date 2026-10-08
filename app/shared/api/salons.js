@@ -125,6 +125,11 @@ export async function getSalonStaff() {
   return apiJson("/api/salon-staff");
 }
 
+/** GET /api/salon-staff/calendars → { calendars } owner-only: linked artists' break + busy times */
+export async function getSalonStaffCalendars() {
+  return apiJson("/api/salon-staff/calendars");
+}
+
 /** PATCH /api/salon-staff → { person, staff } */
 export async function updateSalonStaff(body) {
   return apiFetch("/api/salon-staff", {
