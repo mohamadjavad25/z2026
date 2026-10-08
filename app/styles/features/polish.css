@@ -1178,3 +1178,94 @@ main.appShell.is-auth-gate .workspace { background: #fff !important; }
   color: #14161d;
   direction: ltr;
 }
+
+/* ── Add-artist sheet (salon): scan card + nearby list ─────────────────── */
+.salonHeroSheetPanel.artistInviteSheet { background: #f6f6f8 !important; }
+
+.ivtHero {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 22px 18px 18px;
+  border-radius: 28px;
+  background: #fff;
+  box-shadow: 0 1px 0 rgba(20, 22, 29, 0.04), 0 18px 40px -18px rgba(20, 22, 29, 0.22);
+  text-align: center;
+}
+.ivtEyebrow {
+  margin: 0;
+  color: #b08a3e;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+.ivtTitle {
+  margin: 0;
+  color: #14161d;
+  font-size: 1.12rem;
+  font-weight: 900;
+  line-height: 1.5;
+  max-width: 17rem;
+}
+.ivtScan {
+  position: relative;
+  margin-top: 4px;
+  padding: 22px;
+}
+.ivtQr {
+  width: 188px;
+  height: 188px;
+  display: grid;
+  place-items: center;
+}
+.ivtQr img { width: 100%; height: 100%; display: block; image-rendering: pixelated; }
+.ivtQrWait { width: 44px; height: 44px; border-radius: 50%; border: 3px solid #e6e6ea; border-top-color: #14161d; animation: ivtSpin 0.8s linear infinite; }
+@keyframes ivtSpin { to { transform: rotate(360deg); } }
+.ivtCorner { position: absolute; width: 26px; height: 26px; border: 0 solid #14161d; }
+.ivtCorner.is-tl { top: 0; left: 0; border-top-width: 3px; border-left-width: 3px; border-top-left-radius: 14px; }
+.ivtCorner.is-tr { top: 0; right: 0; border-top-width: 3px; border-right-width: 3px; border-top-right-radius: 14px; }
+.ivtCorner.is-bl { bottom: 0; left: 0; border-bottom-width: 3px; border-left-width: 3px; border-bottom-left-radius: 14px; }
+.ivtCorner.is-br { bottom: 0; right: 0; border-bottom-width: 3px; border-right-width: 3px; border-bottom-right-radius: 14px; }
+.ivtHint { margin: 0; color: #5f6370; font-size: 0.82rem; font-weight: 600; line-height: 1.7; }
+.ivtActions { display: flex; gap: 10px; width: 100%; margin-top: 4px; }
+.ivtShare, .ivtCopyBtn {
+  min-height: 50px;
+  border-radius: 16px;
+  border: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+.ivtShare { flex: 1; background: #14161d; color: #fff; box-shadow: 0 10px 22px -8px rgba(20, 22, 29, 0.5); }
+.ivtCopyBtn { flex: 0 0 auto; padding: 0 20px; background: #f1f1f4; color: #14161d; }
+.ivtCopyBtn.is-done { background: #e3f4ea; color: #17633a; }
+.ivtShare:active, .ivtCopyBtn:active { transform: scale(0.97); }
+
+.ivtSectionHead { display: flex; align-items: center; gap: 8px; margin: 26px 4px 12px; }
+.ivtSectionHead h4 { margin: 0; color: #14161d; font-size: 0.98rem; font-weight: 900; }
+.ivtCount { min-width: 24px; height: 24px; padding: 0 7px; display: inline-grid; place-items: center; border-radius: 999px; background: #14161d; color: #fff; font-size: 0.74rem; font-weight: 800; }
+
+.ivtList { display: grid; gap: 10px; }
+.ivtEntry { border-radius: 22px; background: #fff; box-shadow: 0 8px 22px -14px rgba(20, 22, 29, 0.28); overflow: hidden; }
+.ivtRow { display: flex; align-items: center; gap: 12px; padding: 12px 14px 12px 12px; }
+.ivtAvatar { flex: none; width: 52px; height: 52px; border-radius: 50%; overflow: hidden; background: #ececf0; box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px rgba(201, 164, 106, 0.7); }
+.ivtAvatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ivtCopy { flex: 1; min-width: 0; display: grid; gap: 3px; justify-items: start; }
+.ivtCopy b { max-width: 100%; color: #14161d; font-size: 0.98rem; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ivtRole { display: inline-flex; align-items: center; gap: 5px; color: #5f6370; font-size: 0.78rem; font-weight: 600; }
+.ivtNear { display: inline-flex; align-items: center; gap: 3px; font-style: normal; color: #17633a; font-size: 0.72rem; font-weight: 700; }
+.ivtInvite { flex: none; min-height: 40px; padding: 0 22px; border: 0; border-radius: 999px; background: #14161d; color: #fff; font: inherit; font-size: 0.86rem; font-weight: 800; cursor: pointer; }
+.ivtInvite.is-open { background: #f1f1f4; color: #14161d; }
+.ivtInvite:disabled { opacity: 0.6; }
+.ivtEntry .artistInviteTermsPanel { margin: 0; padding: 14px; border-top: 1px solid #efeff2; background: #fafafb; border-radius: 0; }
+
+.ivtEmpty { display: grid; justify-items: center; gap: 8px; padding: 30px 20px; border-radius: 24px; background: #fff; box-shadow: 0 8px 22px -14px rgba(20, 22, 29, 0.2); text-align: center; }
+.ivtEmptyIcon { width: 52px; height: 52px; display: grid; place-items: center; border-radius: 50%; background: #f1f1f4; color: #14161d; }
+.ivtEmpty b { color: #14161d; font-size: 0.95rem; font-weight: 800; }
+.ivtEmpty > span:last-child { color: #6a6e7a; font-size: 0.8rem; font-weight: 600; line-height: 1.7; max-width: 17rem; }
