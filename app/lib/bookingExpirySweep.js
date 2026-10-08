@@ -143,7 +143,7 @@ export async function sweepExpiredBookingRequestsOnce() {
     // not a second, ad-hoc "just UPDATE the row" mechanism.
     const result = await salons.patchSalonBookingWithArtistSync(row.id, row.salon_user_id, {
       status: BOOKING_REQUEST_EXPIRED_STATUS
-    });
+    }, { allowPast: true });
     if (result.ok) {
       salonExpired += 1;
       try {
