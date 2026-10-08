@@ -25,6 +25,15 @@ describe("beauty icon pack", () => {
     for (const id of PERSISTED_IDS) expect(isBeautyEmojiId(id), id).toBe(true);
   });
 
+  it("hides the retired groups (men's grooming etc.) but still resolves their ids", () => {
+    const visible = new Set(BEAUTY_EMOJIS.map((item) => item.id));
+    for (const id of ["barber", "men_cut", "beard", "razor", "groom", "yoga", "tattoo"]) {
+      expect(visible.has(id), id).toBe(false);
+      expect(getBeautyEmoji(id)?.svg, id).toMatch(/^<svg/);
+    }
+    expect(EMOJI_CATEGORIES.some((item) => item.id === "men")).toBe(false);
+  });
+
   it("has unique ids, valid categories and well-formed svg for every icon", () => {
     const ids = BEAUTY_EMOJIS.map((item) => item.id);
     expect(new Set(ids).size).toBe(ids.length);
@@ -55,7 +64,7 @@ describe("service catalog", () => {
   it("only references existing icons and categories, with unique names", () => {
     const categories = new Set(EMOJI_CATEGORIES.map((item) => item.id));
     const names = new Set();
-    expect(SERVICE_CATALOG.length).toBeGreaterThan(100);
+    expect(SERVICE_CATALOG.length).toBeGreaterThan(50);
     for (const service of SERVICE_CATALOG) {
       expect(isBeautyEmojiId(service.emoji), service.name).toBe(true);
       expect(categories.has(service.category), service.name).toBe(true);
@@ -63,6 +72,15 @@ describe("service catalog", () => {
       expect(names.has(service.name), `duplicate ${service.name}`).toBe(false);
       names.add(service.name);
     }
+  });
+
+  it("has no men's grooming services", () => {
+    expect(SERVICE_CATALOG.some((item) => /آقایان|مردانه|داماد/.test(item.name))).toBe(false);
+  });
+
+  it("only uses icons that are offered in the picker", () => {
+    const visible = new Set(BEAUTY_EMOJIS.map((item) => item.id));
+    for (const service of SERVICE_CATALOG) expect(visible.has(service.emoji), service.name).toBe(true);
   });
 
   it("covers every category", () => {
@@ -76,5 +94,6 @@ describe("service catalog", () => {
       expect(categoriesForSpecialties(option).length, option).toBeGreaterThan(0);
     }
     expect(categoriesForSpecialties("")).toEqual([]);
+    expect(categoriesForSpecialties("آرایشگاه مردانه")).toEqual([]);
   });
 });

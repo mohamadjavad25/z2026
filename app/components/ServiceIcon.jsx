@@ -2,14 +2,15 @@ import { getBeautyEmoji, guessBeautyEmojiId } from "../shared/constants/beautyEm
 import { ServiceEmoji } from "./ServiceEmoji";
 
 /**
- * The one way a service's icon is shown anywhere in the app: the vector icon
- * on a soft category-tinted tile. Uses the service's chosen `emoji` id, else
+ * The one way a service's icon is shown anywhere in the app: the glossy vector
+ * icon on its own -- no tile or background behind it. Uses the service's chosen `emoji` id, else
  * guesses from the name, else a generic sparkle -- so every service always
  * has an icon, including bookings that only carry the service name.
  *
  * size: "xs" | "sm" | "md" | "lg" | "xl"
  */
-const SIZES = { xs: [28, 20], sm: [36, 26], md: [48, 34], lg: [60, 44], xl: [72, 54] };
+// [box, glyph] -- the drawings carry their own breathing room, so they fill the box.
+const SIZES = { xs: [28, 28], sm: [36, 36], md: [48, 48], lg: [60, 60], xl: [76, 76] };
 
 export function ServiceIcon({ emoji, name, size = "md", className = "", style }) {
   const id = getBeautyEmoji(emoji)

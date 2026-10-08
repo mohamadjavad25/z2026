@@ -5,34 +5,34 @@
    Palette: white surfaces, ink text, per-category pastel tile behind icons.
    ═══════════════════════════════════════════════════════════════════════ */
 
-/* ── Icon tile ────────────────────────────────────────────────────────── */
+/* ── Service icon ─────────────────────────────────────────────────────
+   The icon stands on its own: no tile, tint or ring behind it. The glossy
+   drawing carries its own soft floor shadow (beautyArt/luxe.js). */
 .serviceIcon {
-  --svc-tint: #f1f1f5;
-  --svc-ring: #e4e4ec;
   flex: none;
   width: var(--svc-tile, 48px);
   height: var(--svc-tile, 48px);
   display: inline-grid;
   place-items: center;
-  border-radius: 30%;
-  background: var(--svc-tint);
-  box-shadow: inset 0 0 0 1px var(--svc-ring);
+  background: none !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  border-radius: 0;
   vertical-align: middle;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.serviceIcon > .serviceEmoji { filter: drop-shadow(0 2px 3px rgba(20, 22, 29, 0.12)); }
+.serviceIcon > .serviceEmoji { width: 100%; height: 100%; }
 
-.serviceIcon.cat-hair      { --svc-tint: #fff1e3; --svc-ring: #fbdcbc; }
-.serviceIcon.cat-makeup    { --svc-tint: #ffeaf1; --svc-ring: #fbcddd; }
-.serviceIcon.cat-brow_lash { --svc-tint: #eef0f6; --svc-ring: #d9dcea; }
-.serviceIcon.cat-nails     { --svc-tint: #ffeef4; --svc-ring: #fbd0e0; }
-.serviceIcon.cat-skin      { --svc-tint: #e8f7f1; --svc-ring: #c4eadb; }
-.serviceIcon.cat-clinic    { --svc-tint: #e8f3fc; --svc-ring: #c6e0f6; }
-.serviceIcon.cat-body      { --svc-tint: #f0f7e6; --svc-ring: #d9ebbd; }
-.serviceIcon.cat-general   { --svc-tint: #fff7e0; --svc-ring: #f6e5a8; }
+@media (hover: hover) {
+  button:hover > .serviceIcon,
+  a:hover > .serviceIcon,
+  .svcCard:hover .serviceIcon { transform: translateY(-2px) scale(1.06); }
+}
 
-.serviceIcon.is-xs { border-radius: 9px; }
-.serviceIcon.is-sm { border-radius: 11px; }
+@media (prefers-reduced-motion: reduce) {
+  .serviceIcon { transition: none; }
+}
 
 /* Inline icon + text pairing used in booking rows, headers, selects */
 .svcInline {
@@ -270,12 +270,6 @@ button.svcCard:active { transform: scale(0.99); }
 /* Icon + text rows inside cards that set their own text colour */
 .requestCardWho .svcInline,
 .scheduleBookingDetail .svcInline { color: inherit; }
-
-/* ── Category tints for the extended icon pack ────────────────────────── */
-.serviceIcon.cat-men      { --svc-tint: #e8f0fb; --svc-ring: #c9dbf4; }
-.serviceIcon.cat-bridal   { --svc-tint: #fff0f5; --svc-ring: #fbd0e0; }
-.serviceIcon.cat-tattoo   { --svc-tint: #f3f3f5; --svc-ring: #6f7380; }
-.serviceIcon.cat-wellness { --svc-tint: #eaf8ef; --svc-ring: #c6ebd3; }
 
 /* ═══ Service composer (catalog + editor) ═══════════════════════════════ */
 .svcSheetBackdrop,
