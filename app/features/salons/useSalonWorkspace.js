@@ -122,6 +122,8 @@ export function useSalonWorkspace({
   const serviceArtistDesiredRef = useRef(new Map());
   const serviceArtistConfirmedRef = useRef(new Map());
   const serviceArtistChainRef = useRef(new Map());
+  // When the last queued save for a service was confirmed by the server (absent while a save is still pending).
+  const serviceArtistSavedAtRef = useRef(new Map());
   const [scheduleBookingBusy, setScheduleBookingBusy] = useState(false);
   const scheduleBookingBusyRef = useRef(false);
   const [salonRequestBusyId, setSalonRequestBusyId] = useState("");
@@ -199,6 +201,7 @@ export function useSalonWorkspace({
 
   const refreshSalonSystemData = useCallback(async () => {
     const epoch = ++salonBookingsEpochRef.current;
+    const startedAt = Date.now();
     try {
       // The public directory is the heaviest call and nothing in the owner's own
       // tools waits on it: start it now, but apply the owner data first and sync
@@ -222,14 +225,30 @@ export function useSalonWorkspace({
         getSalonInvites()
       ]);
 
-      // A service whose artist ticks are still being saved keeps its local list: this refresh may
-      // have been fetched before the save landed and would otherwise flip the ticks back.
-      const nextServices = (servicesRes.data?.services || []).map((item) => {
-        const wanted = serviceArtistDesiredRef.current.get(String(item.id));
-        return wanted ? { ...item, staff_ids: wanted, staff_id: wanted[0] || null } : item;
-      });
       const nextStaff = Array.isArray(staffRes.data?.staff) ? staffRes.data.staff : [];
       const nextHours = hoursRes.data?.hours || [];
+
+      // A service whose artist ticks are still being saved (or were saved after this refresh began) keeps
+      // its local list: this refresh may have been fetched before the save landed and would otherwise flip
+      // the ticks back. A refresh that began after the save was confirmed is trusted and ends the override.
+      const overlayServiceArtists = (items) => (Array.isArray(items) ? items : []).map((item) => {
+        const key = String(item.id);
+        const wanted = serviceArtistDesiredRef.current.get(key);
+        if (!wanted) return item;
+        const savedAt = serviceArtistSavedAtRef.current.get(key);
+        if (savedAt && startedAt > savedAt) return item;
+        const members = nextStaff.filter((person) => wanted.includes(String(person.id)));
+        return {
+          ...item,
+          staff_ids: wanted,
+          staff_id: wanted[0] || null,
+          staff_members: members,
+          staff_names: members.map((person) => person.name).filter(Boolean).join("، "),
+          staff_name: members[0]?.name || "",
+          staff_role: members[0]?.role || ""
+        };
+      });
+      const nextServices = overlayServiceArtists(servicesRes.data?.services);
 
       setSalonServiceList(nextServices);
       setSalonPortfolioList(portfolioRes.data?.portfolio || []);
@@ -251,7 +270,9 @@ export function useSalonWorkspace({
 
       const salonsRes = await salonsPromise;
       if (!salonsRes.ok) return;
-      const nextSalonDirectory = salonsRes.data?.salons || [];
+      const nextSalonDirectory = (salonsRes.data?.salons || []).map((salon) => (
+        Array.isArray(salon.services) ? { ...salon, services: overlayServiceArtists(salon.services) } : salon
+      ));
       syncSalonDirectory(nextSalonDirectory);
       syncSelectedSalon((current) => {
         if (!current) return current;
@@ -550,7 +571,8 @@ export function useSalonWorkspace({
     setSalonServiceList,
     serviceArtistConfirmedRef,
     serviceArtistDesiredRef,
-    serviceArtistChainRef
+    serviceArtistChainRef,
+    serviceArtistSavedAtRef
   });
 
   const {

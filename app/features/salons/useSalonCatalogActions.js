@@ -18,7 +18,8 @@ export function useSalonCatalogActions({
   setSalonServiceList,
   serviceArtistConfirmedRef,
   serviceArtistDesiredRef,
-  serviceArtistChainRef
+  serviceArtistChainRef,
+  serviceArtistSavedAtRef
 }) {
   const updateSalonStaff = useCallback(async (name, patch, notice) => {
     const person = safeSalonStaffList.find((item) => item.name === name);
@@ -300,6 +301,7 @@ export function useSalonCatalogActions({
     const id = String(staffId);
     const nextIds = currentIds.includes(id) ? currentIds.filter((item) => item !== id) : [...currentIds, id];
     serviceArtistDesiredRef.current.set(key, nextIds);
+    serviceArtistSavedAtRef.current.delete(key);
     applyServiceArtists(service.id, nextIds);
 
     const previous = serviceArtistChainRef.current.get(key) || Promise.resolve();
@@ -321,17 +323,20 @@ export function useSalonCatalogActions({
         applyServiceArtists(service.id, confirmed);
         shellNotify(error?.message || "انتخاب آرتیست ذخیره نشد؛ دوباره امتحان کن.");
       }
+      // Only the last save in the queue marks the service as settled; a refresh that starts after this
+      // moment sees the saved data, any earlier one is overridden by the local list.
+      if (serviceArtistChainRef.current.get(key) === next) serviceArtistSavedAtRef.current.set(key, Date.now());
     });
     serviceArtistChainRef.current.set(key, next);
-    // Once the queue for this service has drained, forget it so later changes start from fresh data.
-    // (kept a few seconds past the last save so a refresh that was already in flight cannot undo it)
+    // Safety net: forget the override long after the last save even if no refresh ever came by.
     next.then(() => {
       window.setTimeout(() => {
         if (serviceArtistChainRef.current.get(key) !== next) return;
         serviceArtistChainRef.current.delete(key);
         serviceArtistDesiredRef.current.delete(key);
         serviceArtistConfirmedRef.current.delete(key);
-      }, 4000);
+        serviceArtistSavedAtRef.current.delete(key);
+      }, 60000);
     });
   }, [applyServiceArtists, shellNotify]);
 
