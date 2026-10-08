@@ -144,7 +144,7 @@ export function HomeView() {
 
   return (
     <main className={`appShell ${!createdProfile ? "is-auth-gate" : ""} ${selectedSalon && activeTab === "salons" ? "is-salon-client" : ""} ${selectedPublicArtist ? "is-artist-public" : ""} ${!authChecked ? "is-auth-loading" : ""}`}>
-      <h1 className="srOnly">زیبابان</h1>
+      <h1 className="srOnly">فرفرو</h1>
       <NetworkBusyBar />
       {!authChecked ? <AuthBootScreen /> : null}
 
@@ -306,7 +306,7 @@ export function HomeView() {
           works={salonPortfolioList}
           owner={createdProfile?.type === "salon" ? {
             name: createdProfile.data?.name || "",
-            role: "سالن زیبایی",
+            role: "سالن",
             area: createdProfile.data?.area || "",
             avatar: createdProfile.data?.avatar || ""
           } : null}

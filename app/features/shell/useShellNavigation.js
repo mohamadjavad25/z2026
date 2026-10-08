@@ -214,7 +214,7 @@ function getPassportMatch(post) {
         id: createdProfile.id,
         name: createdProfile.data.name,
         area: createdProfile.data.area || post.area || "",
-        role: createdProfile.data.service || post.tag || (createdProfile.type === "salon" ? "سالن زیبایی" : "آرتیست"),
+        role: createdProfile.data.service || post.tag || (createdProfile.type === "salon" ? "سالن" : "آرتیست"),
         bio: createdProfile.data.bio || post.meta || "",
         source: createdProfile.type === "salon"
           ? (fromDirectory || null)
@@ -229,7 +229,7 @@ function getPassportMatch(post) {
         id: fromDirectory?.id || post.ownerUserId,
         name: fromDirectory?.name || post.salon || "سالن",
         area: fromDirectory?.area || post.area || "",
-        role: fromDirectory?.tag || post.tag || "سالن زیبایی",
+        role: fromDirectory?.tag || post.tag || "سالن",
         bio: fromDirectory?.bio || post.meta || "",
         source: fromDirectory || null,
         kind: "salon",
@@ -269,7 +269,7 @@ function getPassportMatch(post) {
       source_key: String(createdProfile.id),
       name: createdProfile.data?.name || "سالن",
       area: createdProfile.data?.area || "",
-      tag: createdProfile.data?.tag || createdProfile.data?.service || "سالن زیبایی",
+      tag: createdProfile.data?.tag || createdProfile.data?.service || "سالن",
       open: createdProfile.data?.open || "امروز",
       bio: createdProfile.data?.bio || "",
       avatar: createdProfile.data?.avatar || "",

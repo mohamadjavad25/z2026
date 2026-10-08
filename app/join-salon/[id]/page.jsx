@@ -22,10 +22,10 @@ async function loadSalonPreview(id) {
 export async function generateMetadata({ params }) {
   const { id } = await params;
   const salon = await loadSalonPreview(id);
-  if (!salon) return { title: "لینک نامعتبر | زیبابان" };
+  if (!salon) return { title: "لینک نامعتبر | فرفرو" };
   return {
-    title: `پیوستن به تیم ${salon.name} | زیبابان`,
-    description: `این لینک، تو رو به‌عنوان آرتیست به تیم «${salon.name}» در زیبابان اضافه می‌کند.`,
+    title: `پیوستن به تیم ${salon.name} | فرفرو`,
+    description: `این لینک، تو رو به‌عنوان آرتیست به تیم «${salon.name}» در فرفرو اضافه می‌کند.`,
     alternates: { canonical: `${SITE_URL}/join-salon/${salon.id}` },
     robots: { index: false, follow: false }
   };

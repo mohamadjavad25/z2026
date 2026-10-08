@@ -127,7 +127,7 @@ export function SalonNearbyInviteSheet({
     if (!joinUrl) return;
     if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
       try {
-        await navigator.share({ title: salonName, text: `برای پیوستن به تیم «${salonName}» در زیبابان این لینک را باز کن:`, url: joinUrl });
+        await navigator.share({ title: salonName, text: `برای پیوستن به تیم «${salonName}» در فرفرو این لینک را باز کن:`, url: joinUrl });
         return;
       } catch (error) {
         if (error?.name === "AbortError") return;
@@ -193,7 +193,7 @@ export function SalonNearbyInviteSheet({
                     <img src={artist.avatar || "/profile-icon.svg"} alt="" />
                   </span>
                   <div className="artistInviteCopy">
-                    <b>{artist.name || "آرتیست زیبابان"}</b>
+                    <b>{artist.name || "آرتیست فرفرو"}</b>
                     <span className="inviteRole">
                       <ServiceIcon name={artist.service} size="xs" />
                       {artist.service || "آرتیست"}

@@ -24,7 +24,7 @@ function TermsAgreement({ error, onChange }) {
         <a href="/terms" target="_blank" rel="noopener noreferrer">قوانین و مقررات</a>
         {" "}و{" "}
         <a href="/privacy" target="_blank" rel="noopener noreferrer">حریم خصوصی</a>
-        {" "}زیبابان رو خوندم و قبول دارم.
+        {" "}فرفرو رو خوندم و قبول دارم.
       </span>
     </label>
     {error ? <small id={errorId} className="ui-field-error" role="alert">{error}</small> : null}
@@ -202,7 +202,7 @@ function PasswordRecoveryPanel({ onClose, otp }) {
 
 const ROLE_FORMS = {
   salon: {
-    title: "سالن زیبایی",
+    title: "سالن",
     subtitle: "فقط چند ثانیه؛ بقیهٔ اطلاعات را بعداً با یک ضربه کامل می‌کنی.",
     name: { label: "نام سالن", placeholder: "نام سالن" },
     order: ["name"]
@@ -214,7 +214,7 @@ const ROLE_FORMS = {
     order: ["name"]
   },
   client: {
-    title: "بانو",
+    title: "مشتری",
     subtitle: "فقط چند ثانیه تا اولین رزرو.",
     name: { label: "نام یا نام نمایشی", placeholder: "نام یا نام نمایشی" },
     area: { label: "شهر (اختیاری)", placeholder: "شهر (اختیاری)" },
@@ -405,7 +405,7 @@ export function AuthGateForms({
     <>
       <div className="authGateHero" data-mode={authMode} data-step={signupStep}>
         <div className="authGateCopy">
-          <p className="authGateBrand">زیبابان</p>
+          <p className="authGateBrand">فرفرو</p>
           <p className="authGateTagline">رزرو نوبت سالن و آرتیست، در چند ثانیه</p>
         </div>
       </div>

@@ -380,7 +380,7 @@ export function useSalonDirectory({
 
   const shareSalonProfile = useCallback(async (nameHint) => {
     const name = nameHint || selectedSalon?.name || createdProfile?.data?.name || "سالن";
-    const shareText = `پروفایل سالن «${name}» در زیبابان`;
+    const shareText = `پروفایل سالن «${name}» در فرفرو`;
     const salonId = selectedSalon?.id ?? selectedSalon?.source_key;
     const shareUrl = typeof window !== "undefined"
       ? (salonId ? `${window.location.origin}/salons/${salonId}` : window.location.href)
@@ -458,7 +458,7 @@ export function useSalonDirectory({
       const durationMinutes = parseServiceDurationMinutes(salonClientSelectedService?.duration);
       const { ok, payload, status } = await createSalonBooking({
         salonUserId,
-        client: salonClientBooking.client || createdProfile?.data?.name || "مشتری زیبابان",
+        client: salonClientBooking.client || createdProfile?.data?.name || "مشتری فرفرو",
         phone: salonClientBooking.phone || createdProfile?.data?.phone || "",
         service: salonClientBooking.service,
         staff: "",

@@ -1,7 +1,7 @@
 import { AdminClient } from "./AdminClient";
 
 export const metadata = {
-  title: "مدیریت | زیبابان",
+  title: "مدیریت | فرفرو",
   robots: { index: false, follow: false }
 };
 
