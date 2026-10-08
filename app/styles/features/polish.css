@@ -1295,7 +1295,7 @@ main.appShell.is-auth-gate .workspace { background: #fff !important; }
 :is(.salonPublicProfile, .artistPublicPage) .scHero {
   height: 250px;
   background: #14102a;
-  border-radius: 0 0 34px 34px;
+  border-radius: 0 0 12px 12px;
 }
 .scHero .scHeroFallback {
   background:
@@ -1443,3 +1443,10 @@ main.appShell.is-auth-gate .workspace { background: #fff !important; }
 
 /* Sheets share one calm canvas so white cards inside read as cards */
 .salonHeroSheetPanel { background: #f6f6f8; }
+
+/* Inner scrollers (public salon/artist page) must not hand their scroll to the
+   document at the end — that pulled the whole page up and left a gap below. */
+.salonPublicProfile,
+.artistPublicPage,
+.salonClientPage { overscroll-behavior-y: contain; }
+html, body { overscroll-behavior-y: none; }
