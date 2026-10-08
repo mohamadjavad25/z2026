@@ -1,30 +1,23 @@
 // Beauty icon pack -- vector icons for services, shown with <ServiceIcon/>
 // (app/components/ServiceIcon.jsx) / <ServiceEmoji/>. Services and bookings
-// store only the icon `id`; the art lives in ./beautyArt/*.js (inner SVG of a
-// 128x128 canvas, flat shapes on a shared vivid palette) and is wrapped here.
-// Ids are persisted in the database -- never rename or remove one; add new ones.
+// store only the icon `id`; the art lives in ./beautyArt/luxe.js (inner SVG of
+// a 128x128 canvas, glossy gradient objects on no background) and is wrapped here.
+// Ids are persisted in the database -- never rename or remove one. Ids that are
+// no longer offered stay resolvable: they borrow a drawing via LUXE_ALIASES and
+// are hidden from the picker (see BEAUTY_EMOJIS vs getBeautyEmoji).
 
-import hair from "./beautyArt/hair.js";
-import style from "./beautyArt/style.js";
-import face from "./beautyArt/face.js";
-import clinic from "./beautyArt/clinic.js";
-import life from "./beautyArt/life.js";
-import nails from "./beautyArt/nails.js";
+import luxe, { LUXE_ALIASES, LUXE_DEFS } from "./beautyArt/luxe.js";
 
 // `icon` is the pack icon that represents the category in tabs and headers.
 export const EMOJI_CATEGORIES = [
   { id: "hair", fa: "مو", en: "Hair", icon: "haircut" },
-  { id: "men", fa: "آقایان", en: "Men's grooming", icon: "barber" },
   { id: "makeup", fa: "آرایش", en: "Makeup", icon: "lipstick" },
-  { id: "bridal", fa: "عروس و مراسم", en: "Bridal & events", icon: "bridal" },
-  { id: "brow_lash", fa: "ابرو و مژه", en: "Brows & lashes", icon: "eyebrow" },
-  { id: "nails", fa: "ناخن", en: "Nails", icon: "manicure" },
+  { id: "bridal", fa: "عروس", en: "Bridal", icon: "bridal" },
+  { id: "brow_lash", fa: "ابرو و مژه", en: "Brows & lashes", icon: "lash_lift" },
+  { id: "nails", fa: "ناخن", en: "Nails", icon: "nail_polish" },
   { id: "skin", fa: "پوست", en: "Skin", icon: "facial" },
   { id: "clinic", fa: "کلینیک", en: "Clinic", icon: "injection" },
-  { id: "body", fa: "بدن و اسپا", en: "Body & spa", icon: "massage" },
-  { id: "tattoo", fa: "تاتو و پیرسینگ", en: "Tattoo & piercing", icon: "tattoo" },
-  { id: "wellness", fa: "سلامت و تناسب", en: "Wellness", icon: "yoga" },
-  { id: "general", fa: "متفرقه", en: "General", icon: "sparkles" }
+  { id: "body", fa: "بدن و اسپا", en: "Body & spa", icon: "spa" }
 ];
 
 // [id, fa, en, category, search tags]
@@ -126,7 +119,7 @@ const META = [
   ["henna", "حنا و طراحی روی پوست", "Henna", "tattoo", "حنا نقاشی بدن henna"],
   ["piercing", "پیرسینگ", "Piercing", "tattoo", "پیرسینگ گوشواره سوراخ piercing"],
   ["tattoo_machine", "دستگاه تاتو", "Tattoo machine", "tattoo", "دستگاه تاتو machine"],
-  ["permanent_makeup", "تاتو لب و میکروپیگمنتیشن", "Permanent makeup", "tattoo", "تاتو لب میکروبلیدینگ میکروپیگمنتیشن microblading pmu"],
+  ["permanent_makeup", "میکروبلیدینگ و تاتو", "Permanent makeup", "brow_lash", "تاتو لب میکروبلیدینگ میکروپیگمنتیشن microblading pmu"],
   // wellness
   ["yoga", "یوگا", "Yoga", "wellness", "یوگا yoga"],
   ["pilates", "پیلاتس", "Pilates", "wellness", "پیلاتس توپ pilates"],
@@ -152,23 +145,29 @@ const META = [
   ["express", "سریع و فوری", "Express", "general", "سریع فوری اکسپرس express"]
 ];
 
-// later packs override earlier art for the same id (nails.js redraws the nail icons)
-const ART = { ...hair, ...style, ...face, ...clinic, ...life, ...nails };
+const CATEGORY_IDS = new Set(EMOJI_CATEGORIES.map((category) => category.id));
+const wrap = (inner) =>
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">${LUXE_DEFS}${inner}</svg>`;
 
-export const BEAUTY_EMOJIS = META.map(([id, fa, en, category, tags]) => {
-  const inner = ART[id];
+const ALL_EMOJIS = META.map(([id, fa, en, category, tags]) => {
+  const drawing = LUXE_ALIASES[id] || id;
+  const inner = luxe[drawing];
   if (!inner) throw new Error(`beautyEmoji: missing art for "${id}"`);
   return {
     id,
     fa,
     en,
     category,
+    hidden: Boolean(LUXE_ALIASES[id]) || !CATEGORY_IDS.has(category),
     tags: tags.split(/\s+/).filter(Boolean),
-    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">${inner}</svg>`
+    svg: wrap(inner)
   };
 });
 
-const BY_ID = new Map(BEAUTY_EMOJIS.map((item) => [item.id, item]));
+/** Icons offered in the picker -- the main categories only. */
+export const BEAUTY_EMOJIS = ALL_EMOJIS.filter((item) => !item.hidden);
+
+const BY_ID = new Map(ALL_EMOJIS.map((item) => [item.id, item]));
 
 export function getBeautyEmoji(id) {
   return BY_ID.get(String(id || "")) || null;
