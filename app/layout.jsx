@@ -10,7 +10,7 @@ import { getSiteUrl } from "./lib/siteUrl.js";
 // app/robots.js read the same variable, with the same placeholder fallback,
 // so canonical URLs / sitemap entries / robots.txt can never drift apart.
 const SITE_URL = getSiteUrl();
-const HOME_TITLE = "فرفرو | شبکه اجتماعی زیبایی بانوان";
+const HOME_TITLE = "frfro | شبکه اجتماعی زیبایی بانوان";
 const HOME_DESCRIPTION = "کشف آرایشگاه، نمونه‌کار واقعی، مشاوره زیبایی و رزرو برای بانوان.";
 
 // interactiveWidget: "resizes-content" tells the browser to resize the
@@ -58,7 +58,7 @@ export const metadata = {
     title: HOME_TITLE,
     description: HOME_DESCRIPTION,
     url: "/",
-    siteName: "فرفرو",
+    siteName: "frfro",
     locale: "fa_IR",
     type: "website"
   }
@@ -77,7 +77,7 @@ export default function RootLayout({ children }) {
         <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="فرفرو" />
+        <meta name="apple-mobile-web-app-title" content="frfro" />
       </head>
       <body>
         <PbdqInspector />

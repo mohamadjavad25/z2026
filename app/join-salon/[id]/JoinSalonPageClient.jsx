@@ -90,7 +90,7 @@ export function JoinSalonPageClient({ salon }) {
               با ورود یا ساخت حساب آرتیست، به تیم «{salon.name}» می‌پیوندی.
             </p>
             <button type="button" className="joinSalonAction" onClick={handleGuestContinue}>
-              ورود یا ثبت‌نام در فرفرو
+              ورود یا ثبت‌نام در frfro
             </button>
           </>
         ) : status === "wrong-role" ? (
@@ -99,7 +99,7 @@ export function JoinSalonPageClient({ salon }) {
               این لینک فقط برای پیوستن آرتیست‌هاست. با یک حساب آرتیست وارد شو.
             </p>
             <button type="button" className="joinSalonAction is-secondary" onClick={() => router.push("/")}>
-              رفتن به فرفرو
+              رفتن به frfro
             </button>
           </>
         ) : status === "joined" ? (
