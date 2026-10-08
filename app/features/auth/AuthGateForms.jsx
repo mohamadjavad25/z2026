@@ -378,6 +378,20 @@ function SignupForm({ type, heroClass, authBusy, onBackToRole, onSwitchToLogin, 
   );
 }
 
+const GATE_TAGLINES = {
+  default: "زیبایی، فقط یک نوبت فاصله دارد",
+  login: "خوش برگشتی؛ نوبت‌هات منتظرته",
+  client: "بهترین‌ها رو پیدا کن، نوبتت رو همین‌جا بگیر",
+  salon: "سالنت رو بساز؛ رزروها و تیمت رو یک‌جا مدیریت کن",
+  artist: "نمونه‌کارهات رو نشون بده، مشتری تازه جذب کن"
+};
+
+function gateTagline({ authMode, signupStep, profileType }) {
+  if (authMode === "login") return GATE_TAGLINES.login;
+  if (signupStep === "form") return GATE_TAGLINES[profileType] || GATE_TAGLINES.client;
+  return GATE_TAGLINES.default;
+}
+
 /**
  * Unauthenticated gate: hero copy, role grid, login + role signup forms.
  * Authenticated profile chrome stays in HomeApp.
@@ -406,7 +420,7 @@ export function AuthGateForms({
       <div className="authGateHero" data-mode={authMode} data-step={signupStep}>
         <div className="authGateCopy">
           <p className="authGateBrand">frfro</p>
-          <p className="authGateTagline">رزرو نوبت سالن و آرتیست، در چند ثانیه</p>
+          <p className="authGateTagline">{gateTagline({ authMode, signupStep, profileType })}</p>
         </div>
       </div>
 
