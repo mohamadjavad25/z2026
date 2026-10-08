@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Check, ChevronDown, Copy, QrCode, Send, Share2 } from "lucide-react";
+import { Check, Copy, MapPin, Send, Share2 } from "lucide-react";
+import { toPersianDigits } from "../../shared/lib/digits";
 import { ProfileSheet } from "../profile/ProfileSheet";
 import { useQrCode } from "../../shared/hooks/useQrCode";
 import { CAPACITY_PRESETS, DAY_PRESETS, HOUR_RANGE_PRESETS, PresetRow, SHARE_PRESETS } from "../collab/collabPresets";
 import { ServiceIcon } from "../../components/ServiceIcon";
-import { ServiceIconStrip } from "../../components/ServiceIconStrip";
 
 const DEFAULT_TERMS = {
   days: DAY_PRESETS[2].value,
@@ -146,69 +146,71 @@ export function SalonNearbyInviteSheet({
       onClose={onClose}
     >
       {salonId ? (
-        <section className="artistInviteQrCard" aria-label="پیوستن با کد QR">
-          <div className="artistInviteQrHead">
-            <span className="artistInviteQrIcon" aria-hidden="true">
-              <QrCode size={16} />
-            </span>
-            <div>
-              <b>سریع‌ترین راه</b>
-              <span>کد رو به آرتیست نشون بده تا با اسکن، مستقیم به تیم بپیونده</span>
+        <section className="ivtHero" aria-label="پیوستن با کد QR">
+          <p className="ivtEyebrow">سریع‌ترین راه</p>
+          <h4 className="ivtTitle">با یک اسکن، آرتیست وارد تیم می‌شود</h4>
+          <div className="ivtScan">
+            <span className="ivtCorner is-tl" aria-hidden="true" />
+            <span className="ivtCorner is-tr" aria-hidden="true" />
+            <span className="ivtCorner is-bl" aria-hidden="true" />
+            <span className="ivtCorner is-br" aria-hidden="true" />
+            <div className="ivtQr">
+              {qrDataUrl ? <img src={qrDataUrl} alt={`کد پیوستن به تیم ${salonName}`} /> : <span className="ivtQrWait" />}
             </div>
           </div>
-          <div className="artistInviteQrImage">
-            {qrDataUrl ? <img src={qrDataUrl} alt={`کد پیوستن به تیم ${salonName}`} /> : null}
-          </div>
-          <div className="artistInviteQrActions">
-            <button type="button" className="artistInviteQrShare" onClick={shareJoinLink}>
-              <Share2 size={14} aria-hidden="true" />
+          <p className="ivtHint">کد را به آرتیست نشان بده، یا لینک را برایش بفرست.</p>
+          <div className="ivtActions">
+            <button type="button" className="ivtShare" onClick={shareJoinLink}>
+              <Share2 size={17} aria-hidden="true" />
               ارسال لینک
             </button>
-            <button type="button" className="artistInviteQrCopy" onClick={copyJoinLink}>
-              {copied ? <Check size={14} aria-hidden="true" /> : <Copy size={14} aria-hidden="true" />}
-              {copied ? "کپی شد" : "کپی لینک"}
+            <button type="button" className={`ivtCopyBtn ${copied ? "is-done" : ""}`} onClick={copyJoinLink} aria-label={copied ? "کپی شد" : "کپی لینک"}>
+              {copied ? <Check size={18} aria-hidden="true" /> : <Copy size={18} aria-hidden="true" />}
+              <span>{copied ? "کپی شد" : "کپی"}</span>
             </button>
           </div>
         </section>
       ) : null}
 
-      <div className="artistInviteDivider">
-        <span />
-        <em>یا از بین آرتیست‌های نزدیک انتخاب کن</em>
-        <span />
+      <div className="ivtSectionHead">
+        <h4>آرتیست‌های نزدیک</h4>
+        {artists.length ? <span className="ivtCount">{toPersianDigits(artists.length)}</span> : null}
       </div>
 
       {loading ? (
-        <div className="artistInviteEmpty">در حال پیدا کردن آرتیست‌های نزدیک...</div>
+        <div className="ivtEmpty">
+          <span className="ivtEmptyIcon" aria-hidden="true"><MapPin size={22} /></span>
+          <b>در حال پیدا کردن آرتیست‌های اطراف…</b>
+        </div>
       ) : artists.length ? (
-        <div className="artistInviteList" aria-label="لیست آرتیست‌های نزدیک">
+        <div className="ivtList" aria-label="لیست آرتیست‌های نزدیک">
           {artists.map((artist) => {
             const busy = String(busyId) === String(artist.id);
             const id = String(artist.id || artist.name);
             const expanded = expandedId === id;
             return (
-              <div className="artistInviteEntry" key={id}>
-                <article className="artistInviteRow">
-                  <span className="artistInviteAvatar hasImage" aria-hidden="true">
+              <div className={`ivtEntry ${expanded ? "is-open" : ""}`} key={id}>
+                <article className="ivtRow">
+                  <span className="ivtAvatar" aria-hidden="true">
                     <img src={artist.avatar || "/profile-icon.svg"} alt="" />
                   </span>
-                  <div className="artistInviteCopy">
+                  <div className="ivtCopy">
                     <b>{artist.name || "آرتیست frfro"}</b>
-                    <span className="inviteRole">
+                    <span className="ivtRole">
                       <ServiceIcon name={artist.service} size="xs" />
                       {artist.service || "آرتیست"}
                       {artist.area ? ` • ${artist.area}` : ""}
                     </span>
-                    {artist.isNearby ? <em>نزدیک به محدوده سالن</em> : null}
+                    {artist.isNearby ? <em className="ivtNear"><MapPin size={11} aria-hidden="true" />نزدیک سالن</em> : null}
                   </div>
                   <button
                     type="button"
-                    className={`artistInviteSend ${expanded ? "is-open" : ""}`}
+                    className={`ivtInvite ${expanded ? "is-open" : ""}`}
                     disabled={busy}
+                    aria-expanded={expanded}
                     onClick={() => toggleTerms(artist)}
                   >
-                    {expanded ? <ChevronDown size={14} aria-hidden="true" /> : <Send size={14} aria-hidden="true" />}
-                    {busy ? "..." : expanded ? "بستن" : "دعوت"}
+                    {busy ? "…" : expanded ? "بستن" : "دعوت"}
                   </button>
                 </article>
                 {expanded ? (
@@ -225,10 +227,10 @@ export function SalonNearbyInviteSheet({
           })}
         </div>
       ) : (
-        <div className="artistInviteEmpty is-lively">
-          <ServiceIconStrip ids={["haircut", "manicure", "lipstick"]} size="md" />
-          <b>آرتیست آزادی نزدیکت پیدا نشد</b>
-          <span>کد QR بالا را برای آرتیست‌ها بفرست تا مستقیم به تیم بپیوندند.</span>
+        <div className="ivtEmpty">
+          <span className="ivtEmptyIcon" aria-hidden="true"><MapPin size={22} /></span>
+          <b>هنوز آرتیست آزادی نزدیکت نیست</b>
+          <span>لینک یا کد بالا را بفرست تا مستقیم به تیم بپیوندد.</span>
         </div>
       )}
     </ProfileSheet>
