@@ -548,6 +548,7 @@ export function useSalonWorkspace({
   const {
     updateSalonStaff,
     removeSalonStaff,
+    joinSalonTeamAsOwner,
     updateSalonHour,
     updateSalonHoursPreset,
     copySalonHourToOpenDays,
@@ -703,6 +704,7 @@ export function useSalonWorkspace({
     cancelSalonArtistInvite,
     updateSalonStaff,
     removeSalonStaff,
+    joinSalonTeamAsOwner,
     updateSalonHour,
     updateSalonHoursPreset,
     copySalonHourToOpenDays,

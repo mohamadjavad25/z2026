@@ -19,6 +19,7 @@ export async function listSalonStaff(salonUserId, runner = null) {
   // per row, so resolve (and self-heal artist_user_id) for every row
   // concurrently instead of one at a time.
   const result = await Promise.all(rows.map(async (row) => {
+    if (row.is_owner) return decorateOwnerStaff(row, db);
     const artist = await resolveArtistUserForStaff(row, db);
     if (artist?.id && !row.artist_user_id) {
       await run(db, `
@@ -47,7 +48,8 @@ export async function listSalonStaff(salonUserId, runner = null) {
 }
 
 async function resolveArtistUserForStaff(staff, runner = null) {
-  if (!staff) return null;
+  // The manager's own row is the salon account itself, never an artist found by phone/name.
+  if (!staff || staff.is_owner) return null;
   const db = runner || (await getDb());
 
   if (staff.artist_user_id) {
@@ -83,6 +85,80 @@ async function resolveArtistUserForStaff(staff, runner = null) {
     WHERE type = 'artist' AND name = $1
     LIMIT 1
   `, [name]);
+}
+
+let ownerColumnReady;
+/** The is_owner column (migration 027), also added on first use so the feature works before the migration is run. */
+function ensureOwnerColumn() {
+  ownerColumnReady ??= (async () => {
+    const db = await getDb();
+    await run(db, "ALTER TABLE salon_staff ADD COLUMN IF NOT EXISTS is_owner BOOLEAN NOT NULL DEFAULT FALSE");
+    await run(db, "CREATE UNIQUE INDEX IF NOT EXISTS salon_staff_one_owner ON salon_staff (salon_user_id) WHERE is_owner");
+  })().catch((error) => {
+    ownerColumnReady = undefined;
+    throw error;
+  });
+  return ownerColumnReady;
+}
+
+async function decorateOwnerStaff(row, db) {
+  const salon = await get(db, "SELECT id, (avatar <> '' OR avatar_url IS NOT NULL) AS avatar FROM users WHERE id = $1", [row.salon_user_id]);
+  const avatar = artistAvatarUrl(salon);
+  return {
+    ...row,
+    is_owner: true,
+    artist_user_id: null,
+    avatar,
+    staff_avatar: avatar,
+    artist_name: row.name || "",
+    artist_area: "",
+    artist_bio: row.bio || "",
+    artist_service: "",
+    artist_phone: row.phone || "",
+    has_artist_profile: false
+  };
+}
+
+/** The manager's own team row, or null when they don't work in the salon themselves. */
+export async function getSalonOwnerStaff(salonUserId, runner = null) {
+  await ensureOwnerColumn();
+  const db = runner || (await getDb());
+  const row = await get(db, "SELECT * FROM salon_staff WHERE salon_user_id = $1 AND is_owner LIMIT 1", [salonUserId]);
+  return row ? decorateOwnerStaff(row, db) : null;
+}
+
+/**
+ * Puts the manager on their own team (or updates that row). Names are how bookings point at a team
+ * member, so the name must not be taken by another member. Returns { ok, person } or { ok: false, error }.
+ */
+export async function upsertSalonOwnerStaff(salonUserId, { name, role } = {}) {
+  await ensureOwnerColumn();
+  const db = await getDb();
+  const nextName = String(name || "").trim();
+  if (!nextName) return { ok: false, error: "نامت را برای نمایش در تیم وارد کن." };
+  const current = await get(db, "SELECT * FROM salon_staff WHERE salon_user_id = $1 AND is_owner LIMIT 1", [salonUserId]);
+  const clash = await get(db, `
+    SELECT id FROM salon_staff WHERE salon_user_id = $1 AND name = $2 AND NOT is_owner LIMIT 1
+  `, [salonUserId, nextName]);
+  if (clash) return { ok: false, error: "یکی از اعضای تیم همین نام را دارد؛ نام دیگری انتخاب کن." };
+  const nextRole = role == null ? (current?.role || "") : String(role).trim();
+  if (current) {
+    await run(db, `
+      UPDATE salon_staff SET name = $1, role = $2, state = CASE WHEN state = '' THEN 'فعال' ELSE state END,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = $3
+    `, [nextName, nextRole, current.id]);
+    // Existing bookings point at the member by name: keep them on the renamed member.
+    if (current.name && current.name !== nextName) {
+      await run(db, "UPDATE salon_bookings SET staff = $1 WHERE salon_user_id = $2 AND staff = $3", [nextName, salonUserId, current.name]);
+    }
+  } else {
+    await run(db, `
+      INSERT INTO salon_staff (salon_user_id, artist_user_id, name, role, state, access_level, is_owner)
+      VALUES ($1, NULL, $2, $3, 'فعال', 'مدیر', TRUE)
+    `, [salonUserId, nextName, nextRole]);
+  }
+  return { ok: true, person: await getSalonOwnerStaff(salonUserId, db) };
 }
 
 export async function findSalonStaffForBooking(salonUserId, staffName, serviceName = "", runner = null) {
@@ -223,6 +299,19 @@ export async function updateSalonStaff(id, salonUserId, data) {
   const db = await getDb();
   const current = await get(db, "SELECT * FROM salon_staff WHERE id = $1 AND salon_user_id = $2", [id, salonUserId]);
   if (!current) return null;
+  if (current.is_owner) {
+    // The manager's own row: name/specialty go through the same checks as joining the team.
+    if (data.name != null || data.role != null) {
+      const result = await upsertSalonOwnerStaff(salonUserId, { name: data.name ?? current.name, role: data.role ?? current.role });
+      if (!result.ok) return { error: result.error };
+    }
+    if (data.state != null || data.phone != null) {
+      await run(db, `
+        UPDATE salon_staff SET state = $1, phone = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3
+      `, [data.state ?? current.state, data.phone ?? current.phone, current.id]);
+    }
+    return getSalonOwnerStaff(salonUserId, db);
+  }
   // A member linked to a real artist account owns their own identity and field of
   // activity (name, phone, bio, specialty come from the artist's profile); the salon
   // may only change what is genuinely the salon's: state, access level, booking tally.

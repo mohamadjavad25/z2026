@@ -113,7 +113,7 @@ export function SalonServicesWorkspace({
                     >
                       <div className="sasBody" role="listbox" aria-label="لیست آرتیست‌ها" aria-multiselectable="true">
                         {staffList.length === 0 ? (
-                          <p className="sasEmpty">هنوز پرسنلی ثبت نشده. اول از بخش پرسنل یک آرتیست اضافه کن.</p>
+                          <p className="sasEmpty">هنوز پرسنلی ثبت نشده. از بخش پرسنل یک آرتیست دعوت کن، یا اگر خودت این کار را انجام می‌دهی «خودم هم کار می‌کنم» را بزن.</p>
                         ) : (
                           <>
                             <p className="sasHint">آرتیستی را که این خدمت را انجام می‌دهد انتخاب کن. می‌توانی چند نفر را انتخاب کنی.</p>
@@ -133,7 +133,7 @@ export function SalonServicesWorkspace({
                                     {avatar ? <img src={avatar} alt="" /> : String(person.name || "آ").slice(0, 1)}
                                   </span>
                                   <span className="sasName">
-                                    <b>{person.name}</b>
+                                    <b>{person.name}{person.is_owner ? " (خودم)" : ""}</b>
                                     <small>{person.role || "آرتیست"}</small>
                                   </span>
                                   <span className="sasCheck" aria-hidden="true">{selected ? <Check size={15} /> : null}</span>

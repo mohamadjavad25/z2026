@@ -78,7 +78,7 @@ export function OwnerBookingSheet() {
             onServiceChange={setBookingServiceName}
             staffOptions={bookingStaffOptions.map((person) => ({
               value: person.name,
-              label: person.name,
+              label: person.is_owner ? `${person.name} (خودم)` : person.name,
               meta: person.role || ""
             }))}
             staffValue={bookingStaffName}

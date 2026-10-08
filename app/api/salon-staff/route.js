@@ -7,7 +7,8 @@ export const runtime = "nodejs";
 
 // There is deliberately no POST here: staff are never created by hand. A person joins
 // the team only through a real artist account (an accepted invite / collaboration, or
-// the salon QR join), so every member is a consenting, verifiable artist.
+// the salon QR join), so every member is a consenting, verifiable artist. The one
+// exception is the manager themself, added via /api/salon-staff/self.
 
 async function _GET(request) {
   const auth = await requireUserRole(request, "salon", "فقط سالن.");
@@ -21,6 +22,7 @@ async function _PATCH(request) {
   const body = await request.json();
   const person = await salons.updateSalonStaff(Number(body.id), auth.user.id, body);
   if (!person) return notFound();
+  if (person.error) return json({ error: person.error }, { status: 409 });
   return json({ data: { person, staff: await salons.listSalonStaff(auth.user.id) } });
 }
 

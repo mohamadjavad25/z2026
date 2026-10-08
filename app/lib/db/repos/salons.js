@@ -18,7 +18,9 @@ export {
   addSalonStaff,
   addSalonStaffFromCollab,
   updateSalonStaff,
-  deleteSalonStaff
+  deleteSalonStaff,
+  getSalonOwnerStaff,
+  upsertSalonOwnerStaff
 } from "./salons/staff.js";
 export {
   listSalonArtistInvites,
