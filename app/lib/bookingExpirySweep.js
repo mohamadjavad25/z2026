@@ -2,7 +2,7 @@ import { getDb, all } from "./db/connection.js";
 import * as salons from "./db/repos/salons.js";
 import * as artists from "./db/repos/artists.js";
 import { sendPushToUser } from "./push.js";
-import { formatPersianDateKey } from "../shared/lib/persianCalendar.js";
+import { isSlotInPast } from "../shared/lib/slots.js";
 
 /**
  * Auto-expiry sweep for booking REQUESTS a salon/artist never actively
@@ -60,9 +60,9 @@ function timeoutMinutes() {
   return Number.isFinite(override) && override > 0 ? override : DEFAULT_TIMEOUT_MINUTES;
 }
 
-/** Today's Persian date key (Tehran). A request whose day has already passed can't be answered any more. */
-function todayKey() {
-  return formatPersianDateKey(new Date());
+/** A pending request can no longer be answered once its response window ran out or its appointment time has started. */
+function keepUnanswerable(rows) {
+  return rows.filter((row) => row.timed_out || isSlotInPast(row.booking_date, row.time));
 }
 
 /** Every still-pending ("درخواست") salon_bookings row whose created_at is older than the
@@ -70,12 +70,11 @@ function todayKey() {
  *  Date.now() — so this is immune to any clock skew between the Node process and Postgres. */
 async function findExpiredSalonBookingRequests(db, minutes) {
   return all(db, `
-    SELECT id, salon_user_id, client_user_id, client, service
+    SELECT id, salon_user_id, client_user_id, client, service, booking_date, time,
+      (created_at <= (NOW() - ($1::double precision * INTERVAL '1 minute'))) AS timed_out
     FROM salon_bookings
     WHERE status = 'درخواست'
-      AND (created_at <= (NOW() - ($1::double precision * INTERVAL '1 minute'))
-        OR (booking_date ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' AND booking_date < $2))
-  `, [minutes, todayKey()]);
+  `, [minutes]).then(keepUnanswerable);
 }
 
 /** Every still-pending ("تازه") DIRECT artist_bookings row (source_salon_user_id
@@ -84,13 +83,12 @@ async function findExpiredSalonBookingRequests(db, minutes) {
  *  as findExpiredSalonBookingRequests above. */
 async function findExpiredDirectArtistBookingRequests(db, minutes) {
   return all(db, `
-    SELECT id, artist_user_id, client_user_id, client_name, service
+    SELECT id, artist_user_id, client_user_id, client_name, service, booking_date, time,
+      (created_at <= (NOW() - ($1::double precision * INTERVAL '1 minute'))) AS timed_out
     FROM artist_bookings
     WHERE status = 'تازه'
       AND source_salon_user_id IS NULL
-      AND (created_at <= (NOW() - ($1::double precision * INTERVAL '1 minute'))
-        OR (booking_date ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' AND booking_date < $2))
-  `, [minutes, todayKey()]);
+  `, [minutes]).then(keepUnanswerable);
 }
 
 /** Push notifications for both sides of an expired salon booking request. */
