@@ -92,7 +92,7 @@ function AdminApp({ theme, onToggleTheme }) {
           <header className="admHead">
             <div>
               <h1>{current.label}</h1>
-              <p className="admMuted">مدیریت فرفرو</p>
+              <p className="admMuted">مدیریت frfro</p>
             </div>
           </header>
         )}

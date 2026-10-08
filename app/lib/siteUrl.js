@@ -1,4 +1,4 @@
-const PLACEHOLDER_SITE_URL = "https://zibaban.example.com";
+const PLACEHOLDER_SITE_URL = "https://frfro.example.com";
 
 /**
  * Single source of truth for the site's public domain (canonical URLs,

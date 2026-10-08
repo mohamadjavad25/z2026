@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "صفحه پیدا نشد | فرفرو"
+  title: "صفحه پیدا نشد | frfro"
 };
 
 export default function NotFound() {
@@ -13,7 +13,7 @@ export default function NotFound() {
         <p className="errorPage__code">۴۰۴</p>
         <h1 className="errorPage__title">این صفحه پیدا نشد</h1>
         <p className="errorPage__desc">لینکی که دنبالش اومدی یا اشتباهه یا دیگه وجود نداره.</p>
-        <Link href="/" className="errorPage__back">بازگشت به فرفرو</Link>
+        <Link href="/" className="errorPage__back">بازگشت به frfro</Link>
       </div>
     </main>
   );

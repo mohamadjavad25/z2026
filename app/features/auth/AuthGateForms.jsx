@@ -24,7 +24,7 @@ function TermsAgreement({ error, onChange }) {
         <a href="/terms" target="_blank" rel="noopener noreferrer">قوانین و مقررات</a>
         {" "}و{" "}
         <a href="/privacy" target="_blank" rel="noopener noreferrer">حریم خصوصی</a>
-        {" "}فرفرو رو خوندم و قبول دارم.
+        {" "}frfro رو خوندم و قبول دارم.
       </span>
     </label>
     {error ? <small id={errorId} className="ui-field-error" role="alert">{error}</small> : null}
@@ -405,7 +405,7 @@ export function AuthGateForms({
     <>
       <div className="authGateHero" data-mode={authMode} data-step={signupStep}>
         <div className="authGateCopy">
-          <p className="authGateBrand">فرفرو</p>
+          <p className="authGateBrand">frfro</p>
           <p className="authGateTagline">رزرو نوبت سالن و آرتیست، در چند ثانیه</p>
         </div>
       </div>

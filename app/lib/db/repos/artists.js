@@ -115,7 +115,7 @@ export async function listSalonCollabRequests(salonUserId) {
   return rows.map((row) => ({
     ...mapArtistCollab(row),
     artistId: row.artist_user_id,
-    artistName: row.artist_name || "آرتیست فرفرو",
+    artistName: row.artist_name || "آرتیست frfro",
     artistAvatar: row.artist_avatar && row.artist_user_id ? `/api/media/avatar/${row.artist_user_id}` : "",
     artistService: row.artist_service || "",
     artistArea: row.artist_area || ""
