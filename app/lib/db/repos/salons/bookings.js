@@ -365,7 +365,7 @@ export async function updateSalonBooking(id, salonUserId, data) {
  * - Linked A → linked B → soft-cancel A, create on B (artist slot conflict rolls back both tables).
  * - Unlinked → linked B → create on B.
  */
-export async function patchSalonBookingWithArtistSync(id, salonUserId, data) {
+export async function patchSalonBookingWithArtistSync(id, salonUserId, data, { allowPast = false } = {}) {
   const pool = await getDb();
   const current = await get(pool, `
     SELECT * FROM salon_bookings WHERE id = $1 AND salon_user_id = $2
@@ -374,7 +374,8 @@ export async function patchSalonBookingWithArtistSync(id, salonUserId, data) {
 
   // Past bookings are review-only. Persian date keys (YYYY-MM-DD, zero
   // padded) sort lexicographically, so a plain string compare is enough.
-  if (isPersianDateKey(current.booking_date) && current.booking_date < formatPersianDateKey(new Date())) {
+  // The expiry sweep is the one caller allowed to close a request whose day went by unanswered.
+  if (!allowPast && isPersianDateKey(current.booking_date) && current.booking_date < formatPersianDateKey(new Date())) {
     return { ok: false, error: "past" };
   }
 

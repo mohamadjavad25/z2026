@@ -2,6 +2,7 @@ import { getDb, all } from "./db/connection.js";
 import * as salons from "./db/repos/salons.js";
 import * as artists from "./db/repos/artists.js";
 import { sendPushToUser } from "./push.js";
+import { isSlotInPast } from "../shared/lib/slots.js";
 
 /**
  * Auto-expiry sweep for booking REQUESTS a salon/artist never actively
@@ -59,16 +60,21 @@ function timeoutMinutes() {
   return Number.isFinite(override) && override > 0 ? override : DEFAULT_TIMEOUT_MINUTES;
 }
 
+/** A pending request can no longer be answered once its response window ran out or its appointment time has started. */
+function keepUnanswerable(rows) {
+  return rows.filter((row) => row.timed_out || isSlotInPast(row.booking_date, row.time));
+}
+
 /** Every still-pending ("درخواست") salon_bookings row whose created_at is older than the
  *  configured window, compared using the DB's own clock (NOW() - INTERVAL ...) — not JS
  *  Date.now() — so this is immune to any clock skew between the Node process and Postgres. */
 async function findExpiredSalonBookingRequests(db, minutes) {
   return all(db, `
-    SELECT id, salon_user_id, client_user_id, client, service
+    SELECT id, salon_user_id, client_user_id, client, service, booking_date, time,
+      (created_at <= (NOW() - ($1::double precision * INTERVAL '1 minute'))) AS timed_out
     FROM salon_bookings
     WHERE status = 'درخواست'
-      AND created_at <= (NOW() - ($1::double precision * INTERVAL '1 minute'))
-  `, [minutes]);
+  `, [minutes]).then(keepUnanswerable);
 }
 
 /** Every still-pending ("تازه") DIRECT artist_bookings row (source_salon_user_id
@@ -77,12 +83,12 @@ async function findExpiredSalonBookingRequests(db, minutes) {
  *  as findExpiredSalonBookingRequests above. */
 async function findExpiredDirectArtistBookingRequests(db, minutes) {
   return all(db, `
-    SELECT id, artist_user_id, client_user_id, client_name, service
+    SELECT id, artist_user_id, client_user_id, client_name, service, booking_date, time,
+      (created_at <= (NOW() - ($1::double precision * INTERVAL '1 minute'))) AS timed_out
     FROM artist_bookings
     WHERE status = 'تازه'
       AND source_salon_user_id IS NULL
-      AND created_at <= (NOW() - ($1::double precision * INTERVAL '1 minute'))
-  `, [minutes]);
+  `, [minutes]).then(keepUnanswerable);
 }
 
 /** Push notifications for both sides of an expired salon booking request. */
@@ -137,7 +143,7 @@ export async function sweepExpiredBookingRequestsOnce() {
     // not a second, ad-hoc "just UPDATE the row" mechanism.
     const result = await salons.patchSalonBookingWithArtistSync(row.id, row.salon_user_id, {
       status: BOOKING_REQUEST_EXPIRED_STATUS
-    });
+    }, { allowPast: true });
     if (result.ok) {
       salonExpired += 1;
       try {
@@ -177,6 +183,29 @@ export async function sweepExpiredBookingRequestsOnce() {
     salonExpired,
     artistExpired
   };
+}
+
+let lastLazySweepAt = 0;
+let lazySweepRunning = false;
+const LAZY_SWEEP_EVERY_MS = 60 * 1000;
+
+/**
+ * Sweep on demand, at most once a minute per server instance. Serverless instances can't keep a timer
+ * and no external scheduler is guaranteed, so the busy booking-list endpoints call this: a stale
+ * request is closed the next time anyone opens a bookings list. Never throws, never blocks long.
+ */
+export async function sweepExpiredBookingRequestsIfDue() {
+  const now = Date.now();
+  if (lazySweepRunning || now - lastLazySweepAt < LAZY_SWEEP_EVERY_MS) return;
+  lazySweepRunning = true;
+  lastLazySweepAt = now;
+  try {
+    await sweepExpiredBookingRequestsOnce();
+  } catch {
+    // Best-effort: the next call (or the cron endpoint) retries.
+  } finally {
+    lazySweepRunning = false;
+  }
 }
 
 // A self-starting setInterval used to live here (see git history) --

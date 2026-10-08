@@ -13,7 +13,7 @@ import { createBookingSchema } from "../../lib/validation/booking.js";
 // app/lib/rateLimit.js's sweep. This is this app's busiest salon-booking
 // entry point (polled every 8s by both the salon owner dashboard and the
 // client's own-bookings view), so it starts within seconds of real use.
-import "../../lib/bookingExpirySweep.js";
+import { sweepExpiredBookingRequestsIfDue } from "../../lib/bookingExpirySweep.js";
 import { resolveRollingPersianDateKey } from "../../shared/lib/persianCalendar.js";
 import { findSalonHourForDateKey, isSalonHourOpen, salonDayWindow } from "../../shared/lib/salonAvailability.js";
 import {
@@ -52,6 +52,7 @@ async function _GET(request) {
   await ensureDb();
   const auth = await requireUser(request);
   if (!auth.ok) return auth.response;
+  await sweepExpiredBookingRequestsIfDue();
   const { searchParams } = new URL(request.url);
   const requestedSalonId = searchParams.get("salonUserId");
   if (requestedSalonId) {

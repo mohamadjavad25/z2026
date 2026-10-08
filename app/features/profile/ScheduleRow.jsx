@@ -110,7 +110,7 @@ export function normalizeArtistScheduleBooking(booking, serviceList = []) {
 
 export function withScheduleTimeline(booking, { selectedDay, now }) {
   const phase = getBookingTimelinePhase(
-    { date: booking.date, time: booking.time },
+    { date: booking.date, dateKey: booking.source?.booking_date || booking.source?.date, time: booking.time },
     {
       selectedDay,
       now,
@@ -182,10 +182,13 @@ export const ScheduleRow = memo(function ScheduleRow({
   // tag with the real approval status in those 3 cases; leave confirmed
   // bookings showing the useful time-phase info as before.
   const rawStatus = booking.source?.status || "";
-  const statusTone = getBookingStatusTone(rawStatus, booking.ownerType);
+  let statusTone = getBookingStatusTone(rawStatus, booking.ownerType);
+  // A request nobody answered before its time is over, even if the server's sweep hasn't marked it yet.
+  const unansweredAndOver = statusTone === "pending" && (phase === "done" || phase === "live");
+  if (unansweredAndOver) statusTone = "expired";
   const showStatusTag = statusTone !== "done";
   const phaseTagClass = showStatusTag ? `is-status-${statusTone}` : `is-${phase}`;
-  const phaseTagLabel = showStatusTag ? (rawStatus || "درخواست") : phaseLabel;
+  const phaseTagLabel = unansweredAndOver ? "منقضی شد" : showStatusTag ? (rawStatus || "درخواست") : phaseLabel;
 
   const chipClass = showStatusTag ? `is-status-${statusTone}` : `is-${phase || "upcoming"}`;
 

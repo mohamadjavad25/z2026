@@ -200,12 +200,24 @@ export function getBookingTimelinePhase(booking, {
   durationMinutes = 60
 } = {}) {
   const date = String(booking?.date || booking?.booking_date || "").trim();
+  // An absolute date settles it exactly; weekday names repeat every week, so a past Monday would
+  // otherwise look like next Monday.
+  const exactKey = [booking?.dateKey, booking?.booking_date, date].find((value) => isPersianDateKey(String(value || "").trim()));
+  if (exactKey) {
+    const todayKey = formatPersianDateKey(now);
+    if (exactKey < todayKey) return "done";
+    if (exactKey > todayKey) return "upcoming";
+    return phaseForToday(booking, now, durationMinutes);
+  }
   const dayKey = selectedDay || date;
   const dayRank = getArtistBookingDayRank(dayKey);
 
   // Rolling week rail only has today (0) and future days (1..6)
   if (dayRank !== 0) return "upcoming";
+  return phaseForToday(booking, now, durationMinutes);
+}
 
+function phaseForToday(booking, now, durationMinutes) {
   const start = timeLabelToMinutes(booking?.time);
   if (!Number.isFinite(start) || start < 0) return "upcoming";
   const duration = Math.max(15, Number(durationMinutes) || 60);
