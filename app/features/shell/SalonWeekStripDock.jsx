@@ -28,10 +28,10 @@ export function SalonWeekStripDock({ items = [], selectedDay = "", children }) {
           className="weekDockPill"
           onClick={() => setOpen(true)}
           aria-expanded="false"
-          aria-label={`برنامه روزها، ${dayText}. برای دیدن رزروهای هر روز باز کن`}
+          aria-label={`برنامه روز: ${dayText}. برای دیدن رزروهای هر روز باز کن`}
         >
           <CalendarDays size={18} aria-hidden="true" />
-          <span><b>برنامه روزها</b><small>{dayText || "رزروهای هر روز"}</small></span>
+          <span>{dayText || "امروز"}</span>
           <ChevronUp size={16} aria-hidden="true" />
         </button>
       )}

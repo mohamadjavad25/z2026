@@ -5,19 +5,20 @@
 .bottomNav .profileTab.is-createBooking,
 .profilePanel.page-profile.is-salon-profile ~ .bottomNav .profileTab,
 .profilePanel.page-profile:has(.createdProfile.is-salon) ~ .bottomNav .profileTab {
-  flex: 0 0 44px !important;
-  width: 44px !important;
-  min-height: 44px !important;
-  height: 44px !important;
+  flex: 0 0 56px !important;
+  width: 56px !important;
+  min-height: 56px !important;
+  height: 56px !important;
   align-self: center;
   transform: none !important;
-  box-shadow: 0 0 0 2px rgba(201, 168, 76, 0.75), 0 4px 10px rgba(28, 32, 44, 0.2) !important;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px rgba(201, 168, 76, 0.7), 0 6px 14px rgba(28, 32, 44, 0.2) !important;
 }
+.bottomNav { min-height: 70px !important; }
 .bottomNav .profileTab span { display: none !important; }
 
 .floatingMobileCta.is-modeRail:has(.weekDock),
 .page-profile.is-active ~ .floatingMobileCta.is-modeRail:has(.weekDock) {
-  padding: 0 0 66px !important;
+  padding: 0 0 84px !important;
   border-radius: 0 !important;
   background: transparent !important;
   box-shadow: none !important;
@@ -26,8 +27,6 @@
 .weekDock { pointer-events: auto; display: grid; justify-items: center; gap: 6px; }
 .weekDock.is-open { justify-items: stretch; }
 .weekDockPill { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 4px 14px; border: 0; border-radius: 999px; background: #fff; color: var(--night); box-shadow: 0 6px 18px rgba(28, 32, 44, 0.16), inset 0 0 0 1px rgba(28, 32, 44, 0.08); font: inherit; cursor: pointer; }
-.weekDockPill span { display: grid; text-align: start; line-height: 1.35; }
-.weekDockPill b { font-size: 0.74rem; font-weight: 900; }
-.weekDockPill small { color: #565a68; font-size: 0.68rem; font-weight: 700; }
+.weekDockPill span { font-size: 0.82rem; font-weight: 900; }
 .weekDockClose { justify-self: center; display: grid; place-items: center; width: 44px; height: 24px; border: 0; border-radius: 999px; background: #fff; color: var(--night); box-shadow: 0 4px 12px rgba(28, 32, 44, 0.14); cursor: pointer; }
 .weekDock .salonHeroWeekStrip { margin-top: 0 !important; }

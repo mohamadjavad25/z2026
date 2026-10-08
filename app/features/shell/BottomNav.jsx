@@ -23,7 +23,7 @@ export function BottomNav({ activeTab, createdProfile, onTabChange, showCreateBo
           className="profileTab is-createBooking"
           aria-label="ایجاد رزرو جدید"
         >
-          <Plus size={22} />
+          <Plus size={26} />
         </button>
       ) : (
         <button
