@@ -15,6 +15,7 @@ import { createBookingSchema } from "../../lib/validation/booking.js";
 // client's own-bookings view), so it starts within seconds of real use.
 import "../../lib/bookingExpirySweep.js";
 import { resolveRollingPersianDateKey } from "../../shared/lib/persianCalendar.js";
+import { findSalonHourForDateKey, isSalonHourOpen, salonDayWindow } from "../../shared/lib/salonAvailability.js";
 import {
   buildDayBookingSlots,
   parseServiceDurationMinutes,
@@ -33,18 +34,6 @@ function noStoreJson(body, init = {}) {
 function requireSalon(user) {
   if (user.type !== "salon") return noStoreJson({ error: "فقط سالن." }, { status: 403 });
   return null;
-}
-
-function normalizeDayLabel(value) {
-  return String(value || "").replace(/\s/g, "");
-}
-
-function findHourForBookingDay(hours, rawDay, bookingDateKey) {
-  const normalizedDay = normalizeDayLabel(rawDay);
-  return hours.find((hour) => (
-    normalizeDayLabel(hour?.day) === normalizedDay
-      || resolveRollingPersianDateKey(hour?.day || "") === bookingDateKey
-  )) || null;
 }
 
 function resolveRequestedDuration(body, salon) {
@@ -147,15 +136,12 @@ async function _POST(request) {
   if (isSlotInPast(bookingDateKey, time)) {
     return noStoreJson({ error: "این ساعت گذشته است. ساعت دیگری انتخاب کن." }, { status: 409 });
   }
-  const hour = findHourForBookingDay(await salons.listSalonHours(salonUserId), rawBookingDay, bookingDateKey);
-  if (hour && !Number(hour.active)) {
+  const hour = findSalonHourForDateKey(await salons.listSalonHours(salonUserId), bookingDateKey);
+  if (!isSalonHourOpen(hour)) {
     return noStoreJson({ error: "سالن در این روز تعطیل است." }, { status: 409 });
   }
-  const allowedTimes = buildDayBookingSlots(
-    hour?.open_time || "۱۰:۰۰",
-    hour?.close_time || "۲۰:۰۰",
-    durationMinutes
-  );
+  const dayWindow = salonDayWindow(hour);
+  const allowedTimes = buildDayBookingSlots(dayWindow.open, dayWindow.close, durationMinutes);
   const requestedMinutes = timeLabelToMinutes(time);
   if (!allowedTimes.some((slot) => timeLabelToMinutes(slot) === requestedMinutes)) {
     return noStoreJson({ error: "این ساعت خارج از زمان کاری سالن است." }, { status: 409 });

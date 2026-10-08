@@ -3,6 +3,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { isSlotInPast } from "../../shared/lib/slots";
 import {
+  bookingHoldsSlot,
+  bookingIsOnDateKey,
+  findSalonHourForDateKey,
+  isSalonHourOpen,
+  salonDayWindow
+} from "../../shared/lib/salonAvailability";
+import {
   buildExactBookingDateTabs,
   getBookingDateKey,
   isPublicArtistSlotBlocked
@@ -27,6 +34,27 @@ const ARTIST_BOOKING_DAY_TABS = buildExactBookingDateTabs(7);
 // little after "now" instead of at the current minute.
 const BOOKING_LEAD_MINUTES = 15;
 
+// Short tag under a day chip and the sentence shown when the sheet skips that day.
+function describeFullDay(info, tab) {
+  if (!info?.reason) return {};
+  const dayName = tab?.label === "امروز" ? "امروز" : (tab?.label || "این روز");
+  if (info.reason === "closed") {
+    return { tag: "تعطیل", note: `${dayName} طبق ساعت کاری سالن تعطیل است.` };
+  }
+  if (info.reason === "over") {
+    return {
+      tag: "پایان کار",
+      note: info.close
+        ? `ساعت کاری ${dayName} تا ${info.close} است و دیگر وقتی برای این خدمت نمانده.`
+        : `وقت کاری ${dayName} تمام شده است.`
+    };
+  }
+  if (info.reason === "short") {
+    return { tag: "وقت کم", note: `ساعت کاری ${dayName} برای مدت این خدمت کافی نیست.` };
+  }
+  return { tag: "تکمیل", note: `همهٔ ساعت‌های ${dayName} رزرو شده است.` };
+}
+
 /**
  * The "create a booking" sheet: open/close, the staff/service/day/time
  * fields (and their derived option lists / free-slot calculation), for both
@@ -45,7 +73,7 @@ const BOOKING_LEAD_MINUTES = 15;
  *   artistServiceList?: Array<Record<string, unknown>>,
  *   salonAppointmentList?: Array<Record<string, unknown>>,
  *   salonScheduleWeekTabs?: Array<{ day: string, dateKey: string }>,
- *   activeSalonHours?: Array<Record<string, unknown>>,
+ *   salonHoursList?: Array<Record<string, unknown>>,
  *   salonWorkspace?: unknown,
  *   salonToolSheetOpen?: boolean,
  *   salonTool?: unknown,
@@ -64,7 +92,7 @@ export function useBookingCreateSheet({
   artistServiceList = [],
   salonAppointmentList = [],
   salonScheduleWeekTabs = [],
-  activeSalonHours = [],
+  salonHoursList = [],
   artistBookingList = [],
   artistBreakTime = null,
   salonWorkspace = null,
@@ -93,13 +121,14 @@ export function useBookingCreateSheet({
   }, [bookingSheetOpen]);
   const soon = new Date(Date.now() + BOOKING_LEAD_MINUTES * 60_000);
 
-  const isBookingSlotTaken = useCallback((staff, time, forDate = "امروز", durationMinutes = 60) => {
-    const targetDateKey = getBookingDateKey(forDate);
+  // Same rule as the server (findOverlapConflict): only bookings on that exact date that still hold
+  // their slot, and an assigned artist only collides with their own bookings.
+  const isBookingSlotTaken = useCallback((staff, time, dateKey, durationMinutes = 60) => {
     const start = timeLabelToMinutes(time);
     const end = start + Math.max(15, Number(durationMinutes) || 60);
     return salonAppointmentList.some((item) => {
-      if (item.status === "لغو") return false;
-      if (getBookingDateKey(item.booking_date || item.date || "امروز") !== targetDateKey) return false;
+      if (!bookingHoldsSlot(item)) return false;
+      if (!bookingIsOnDateKey(item, dateKey)) return false;
       const nextStaff = String(staff || "").trim();
       const bookedStaff = String(item.staff || "").trim();
       if (nextStaff && nextStaff !== bookedStaff) return false;
@@ -111,27 +140,9 @@ export function useBookingCreateSheet({
 
   const bookingServiceOptions = salonServiceList;
   const bookingStaffOptions = safeSalonStaffList;
-
-  const bookingDateForSlots = bookingDate
-    || salonScheduleWeekTabs.find((tab) => {
-      const hour = activeSalonHours.find((item) => item.day === tab.day);
-      return hour?.active;
-    })?.dateKey
-    || salonScheduleWeekTabs[0]?.dateKey
-    || "امروز";
-  const selectedBookingDateTab = salonScheduleWeekTabs.find((tab) => (
-    getBookingDateKey(tab.dateKey) === getBookingDateKey(bookingDateForSlots)
-  )) || salonScheduleWeekTabs[0];
-  const selectedBookingDayHour = activeSalonHours.find((hour) => hour.day === selectedBookingDateTab?.day)
-    || activeSalonHours[0];
   const selectedBookingService = bookingServiceOptions.find((item) => item.name === bookingServiceName)
     || bookingServiceOptions[0];
   const selectedBookingDuration = parseServiceDurationMinutes(selectedBookingService?.duration);
-  const bookingDaySlots = buildDayBookingSlots(
-    selectedBookingDayHour?.open_time,
-    selectedBookingDayHour?.close_time,
-    selectedBookingDuration
-  );
 
   // Who can take a slot: the staff member picked explicitly, or -- when none is
   // picked ("any free artist") -- everyone on the team. A slot is offered as
@@ -142,16 +153,53 @@ export function useBookingCreateSheet({
   const freeStaffAt = (dateKey, slot) => staffPool.filter(
     (name) => !isBookingSlotTaken(name, slot, dateKey, selectedBookingDuration)
   );
-  const salonFreeSlotsFor = (dateKey) => {
-    const tab = salonScheduleWeekTabs.find((item) => getBookingDateKey(item.dateKey) === getBookingDateKey(dateKey));
-    const hour = activeSalonHours.find((item) => item.day === tab?.day) || activeSalonHours[0];
-    if (hour && !hour.active) return [];
-    const slots = buildDayBookingSlots(hour?.open_time, hour?.close_time, selectedBookingDuration);
-    return slots.filter((slot) => !isSlotInPast(dateKey, slot, soon) && freeStaffAt(dateKey, slot).length > 0);
+
+  // Everything the sheet needs to know about one day: is it open, its hours, and which times are still
+  // bookable. `reason` says why a day has nothing free, so the owner sees "closed" / "workday over" /
+  // "fully booked" instead of a vague "no free time".
+  const salonDayInfo = (dateKey) => {
+    const hour = findSalonHourForDateKey(salonHoursList, dateKey);
+    const { open, close } = salonDayWindow(hour);
+    if (!isSalonHourOpen(hour)) return { open, close, closed: true, slots: [], free: [], reason: "closed" };
+    const slots = buildDayBookingSlots(open, close, selectedBookingDuration);
+    const upcoming = slots.filter((slot) => !isSlotInPast(dateKey, slot, soon));
+    const free = upcoming.filter((slot) => freeStaffAt(dateKey, slot).length > 0);
+    const reason = free.length ? "" : (!slots.length ? "short" : !upcoming.length ? "over" : "full");
+    return { open, close, closed: false, slots, free, reason };
   };
-  const bookingFreeSlots = salonFreeSlotsFor(bookingDateForSlots);
+  const salonFreeSlotsFor = (dateKey) => salonDayInfo(dateKey).free;
+
+  // Bookings are only ever made for today or later; the schedule tabs also hold a few past days.
+  const upcomingSalonTabs = salonScheduleWeekTabs.filter((tab) => (tab.offset ?? 0) >= 0);
+  const salonDayInfoByKey = {};
+  upcomingSalonTabs.forEach((tab) => { salonDayInfoByKey[tab.dateKey] = salonDayInfo(tab.dateKey); });
+  const pickedUpcoming = upcomingSalonTabs.some((tab) => tab.dateKey === bookingDate);
+  const bookingDateForSlots = pickedUpcoming
+    ? bookingDate
+    : (upcomingSalonTabs.find((tab) => salonDayInfoByKey[tab.dateKey]?.free.length)?.dateKey
+      || upcomingSalonTabs[0]?.dateKey
+      || bookingDate
+      || "امروز");
+  const selectedBookingDayHour = findSalonHourForDateKey(salonHoursList, bookingDateForSlots);
+  const bookingDaySlots = salonDayInfoByKey[bookingDateForSlots]?.slots
+    || buildDayBookingSlots(salonDayWindow(selectedBookingDayHour).open, salonDayWindow(selectedBookingDayHour).close, selectedBookingDuration);
+  const bookingFreeSlots = salonDayInfoByKey[bookingDateForSlots]?.free || salonFreeSlotsFor(bookingDateForSlots);
   const bookingStaffForTime = (slot) => freeStaffAt(bookingDateForSlots, slot)[0] || "";
   const selectedBookingStaff = bookingStaffForTime(bookingTime) || bookingStaffName || bookingStaffOptions[0]?.name || "";
+
+  // Day chips for the salon form: closed days are left out, except today, which stays visible with
+  // its reason so it never silently disappears.
+  const salonBookingDayOptions = upcomingSalonTabs
+    .filter((tab) => (tab.offset ?? 0) === 0 || !salonDayInfoByKey[tab.dateKey]?.closed)
+    .map((tab) => {
+      const info = salonDayInfoByKey[tab.dateKey];
+      return {
+        value: tab.dateKey,
+        label: `${tab.label} ${tab.sub || ""}`.trim(),
+        free: info.free.length,
+        ...describeFullDay(info, tab)
+      };
+    });
 
   // Artist side of this same sheet: a real rolling week (not the old fixed
   // "امروز/فردا/پس‌فردا") and slots actually filtered against the artist's
@@ -162,6 +210,7 @@ export function useBookingCreateSheet({
     value: tab.dateKey,
     label: `${tab.label} ${tab.sub || ""}`.trim()
   }));
+  const artistBookingDayLabel = (value) => ARTIST_BOOKING_DAY_TABS.find((tab) => tab.dateKey === value);
   const artistBookingDateForSlots = artistBookingDayOptions.some((tab) => tab.value === bookingDate)
     ? bookingDate
     : (artistBookingDayOptions[0]?.value || "امروز");
@@ -193,8 +242,14 @@ export function useBookingCreateSheet({
   if (createdProfile?.type === "artist") {
     artistBookingDayOptions.forEach((tab) => { bookingDayFreeCounts[tab.value] = artistFreeSlotsFor(tab.value).length; });
   } else {
-    salonScheduleWeekTabs.forEach((tab) => { bookingDayFreeCounts[tab.dateKey] = salonFreeSlotsFor(tab.dateKey).length; });
+    salonBookingDayOptions.forEach((option) => { bookingDayFreeCounts[option.value] = option.free; });
   }
+  const artistBookingDayOptionsWithFree = artistBookingDayOptions.map((option) => {
+    const free = artistFreeSlotsFor(option.value);
+    const anyUpcoming = artistBookingDaySlots.some((slot) => !isSlotInPast(option.value, slot, soon));
+    const reason = free.length ? "" : (anyUpcoming ? "full" : "over");
+    return { ...option, free: free.length, ...describeFullDay({ reason }, artistBookingDayLabel(option.value)) };
+  });
 
   const openBookingSheet = useCallback(() => {
     setActiveTab("profile");
@@ -278,7 +333,8 @@ export function useBookingCreateSheet({
     bookingFreeSlots,
     bookingStaffForTime,
     bookingDayFreeCounts,
-    artistBookingDayOptions,
+    salonBookingDayOptions,
+    artistBookingDayOptions: artistBookingDayOptionsWithFree,
     artistBookingDateForSlots,
     artistBookingFreeSlots,
     selectedArtistService,
