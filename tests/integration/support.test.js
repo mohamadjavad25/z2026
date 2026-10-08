@@ -170,3 +170,99 @@ describe("support inbox (admin)", () => {
     expect((await admin.get("/api/admin/dashboard")).payload.data.alerts.openTickets).toBe(me.openTickets);
   });
 });
+
+describe("conversations (user and admin talk in one thread)", () => {
+  it("a user sees only their own tickets and threads, and nobody else's", async () => {
+    const owner = createClient();
+    await registerUser(owner, { type: "client", name: "صاحب گفتگو" });
+    const stranger = createClient();
+    await registerUser(stranger, { type: "client", name: "غریبه" });
+    const { id } = (await owner.post("/api/support", { category: "question", subject: "موضوع من", message: LONG })).payload.data;
+
+    const mine = await owner.get("/api/support/tickets");
+    expect(mine.payload.data.tickets.map((ticket) => ticket.id)).toContain(id);
+    expect((await stranger.get("/api/support/tickets")).payload.data.tickets.map((ticket) => ticket.id)).not.toContain(id);
+
+    const thread = await owner.get(`/api/support/tickets/${id}`);
+    expect(thread.ok).toBe(true);
+    expect(thread.payload.data.messages).toHaveLength(1);
+    expect(thread.payload.data.messages[0]).toMatchObject({ author: "user", body: LONG });
+    expect((await stranger.get(`/api/support/tickets/${id}`)).status).toBe(404);
+    expect((await stranger.post(`/api/support/tickets/${id}`, { message: "نفوذ" })).status).toBe(404);
+    expect((await createClient().get("/api/support/tickets")).status).toBe(401);
+    expect((await createClient().get("/api/support/unread")).payload.data.unread).toBe(0);
+  });
+
+  it("the admin's reply reaches the user as an unread message; reading clears it; the user can answer back", async () => {
+    const admin = await adminClient();
+    const user = createClient();
+    await registerUser(user, { type: "artist", name: "پیگیری‌کننده" });
+    const { id } = (await user.post("/api/support", { category: "bug", message: LONG })).payload.data;
+    expect((await user.get("/api/support/unread")).payload.data.unread).toBe(0); // own message is never "unread"
+
+    expect((await admin.post(`/api/admin/support/${id}`, { reply: "سلام، بررسی کردیم و درست شد." })).ok).toBe(true);
+    expect((await user.get("/api/support/unread")).payload.data.unread).toBe(1);
+    const listed = (await user.get("/api/support/tickets")).payload.data.tickets.find((ticket) => ticket.id === id);
+    expect(listed.unread).toBe(true);
+    expect(listed.last_body).toContain("درست شد");
+    expect(listed.status).toBe("in_progress");
+
+    const opened = (await user.get(`/api/support/tickets/${id}`)).payload.data;
+    expect(opened.messages.map((message) => message.author)).toEqual(["user", "admin"]);
+    expect((await user.get("/api/support/unread")).payload.data.unread).toBe(0);
+
+    // The admin sees it as waiting for the user until the user writes again.
+    expect((await admin.get("/api/admin/support?awaiting=user")).payload.data.tickets.some((ticket) => ticket.id === id)).toBe(true);
+    expect((await user.post(`/api/support/tickets/${id}`, { message: "ممنون، یک سؤال دیگر دارم." })).status).toBe(201);
+    expect((await admin.get("/api/admin/support?awaiting=admin")).payload.data.tickets.some((ticket) => ticket.id === id)).toBe(true);
+    expect((await user.post(`/api/support/tickets/${id}`, { message: "   " })).status).toBe(400);
+    expect((await user.post(`/api/support/tickets/${id}`, { message: "ا".repeat(2001) })).status).toBe(400);
+  });
+
+  it("a reply can close the ticket, and the user's next message reopens it", async () => {
+    const admin = await adminClient();
+    const user = createClient();
+    await registerUser(user, { type: "client", name: "بسته‌شونده" });
+    const { id } = (await user.post("/api/support", { message: LONG })).payload.data;
+    expect((await admin.post(`/api/admin/support/${id}`, { reply: "مشکل حل شد.", status: "closed" })).ok).toBe(true);
+    const closed = (await admin.get(`/api/admin/support/${id}`)).payload.data;
+    expect(closed.ticket.status).toBe("closed");
+    expect(closed.ticket.resolution).toBe("answered");
+    expect(closed.messages).toHaveLength(2);
+
+    expect((await user.post(`/api/support/tickets/${id}`, { message: "هنوز درست نشده!" })).status).toBe(201);
+    expect((await admin.get(`/api/admin/support/${id}`)).payload.data.ticket.status).toBe("open");
+  });
+
+  it("the admin can start a conversation with a user; guests without an account can't be replied to in-app", async () => {
+    const admin = await adminClient();
+    const user = createClient();
+    const account = await registerUser(user, { type: "salon", name: "گیرندهٔ پیام" });
+    expect((await admin.post("/api/admin/support", { userId: account.user.id, message: "x" })).status).toBe(400);
+    expect((await admin.post("/api/admin/support", { userId: 999999999, message: "سلام از پشتیبانی" })).status).toBe(404);
+    const started = await admin.post("/api/admin/support", { userId: account.user.id, subject: "درباره پروفایل", message: "سلام، لطفاً لوگوی سالن را به‌روز کنید." });
+    expect(started.status).toBe(201);
+
+    expect((await user.get("/api/support/unread")).payload.data.unread).toBe(1);
+    const row = (await user.get("/api/support/tickets")).payload.data.tickets.find((ticket) => ticket.id === started.payload.data.id);
+    expect(row).toMatchObject({ from_admin: true, unread: true, subject: "درباره پروفایل" });
+    const thread = (await user.get(`/api/support/tickets/${started.payload.data.id}`)).payload.data;
+    expect(thread.messages[0]).toMatchObject({ author: "admin" });
+
+    const guestId = (await createClient().post("/api/support", { message: LONG, phone: uniquePhone() })).payload.data.id;
+    expect((await admin.post(`/api/admin/support/${guestId}`, { reply: "جواب" })).status).toBe(400);
+    expect((await createClient().post("/api/admin/support", { userId: account.user.id, message: "نفوذ" })).status).toBe(403);
+  });
+
+  it("the admin's quick search finds accounts, posts and tickets", async () => {
+    const admin = await adminClient();
+    const user = createClient();
+    const account = await registerUser(user, { type: "artist", name: "جستجوشدنی یکتا" });
+    await user.post("/api/support", { subject: "عنوان جستجوشدنی منحصربه‌فرد", message: LONG });
+    const found = (await admin.get(`/api/admin/search?q=${encodeURIComponent("جستجوشدنی")}`)).payload.data;
+    expect(found.users.some((row) => row.id === account.user.id)).toBe(true);
+    expect(found.tickets.some((row) => row.subject === "عنوان جستجوشدنی منحصربه‌فرد")).toBe(true);
+    expect((await admin.get("/api/admin/search?q=ab")).payload.data).toEqual({ users: [], posts: [], tickets: [] });
+    expect((await createClient().get("/api/admin/search?q=abcdef")).status).toBe(403);
+  });
+});

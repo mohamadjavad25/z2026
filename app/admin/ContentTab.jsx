@@ -7,8 +7,8 @@ import { Button, Chip, Field } from "../components/ui";
 import { PAGE, fmtDate, num } from "./format";
 
 /** Moderation: every post, hide (reversible) or delete (asks for the password again). */
-export function ContentTab() {
-  const [q, setQ] = useState("");
+export function ContentTab({ intent = {} }) {
+  const [q, setQ] = useState(intent.q || "");
   const [visibility, setVisibility] = useState("");
   const [offset, setOffset] = useState(0);
   const [data, setData] = useState({ posts: [], total: 0 });

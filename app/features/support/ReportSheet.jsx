@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { CircleCheck } from "lucide-react";
 import { apiFetch } from "../../shared/api/client";
-import { SupportShell } from "./SupportSheet";
+import { SupportShell } from "./SupportShell";
+import { openSupport } from "./supportEvents";
 
 const REASONS = [
   ["spam", "اسپم یا تبلیغ"],
@@ -19,7 +20,7 @@ export function ReportSheet({ targetType = "post", targetId, title = "", above =
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [sent, setSent] = useState(false);
+  const [sent, setSent] = useState(null); // the ticket id once sent
 
   async function submit(event) {
     event.preventDefault();
@@ -27,7 +28,7 @@ export function ReportSheet({ targetType = "post", targetId, title = "", above =
     setError("");
     const { ok, payload } = await apiFetch("/api/reports", { method: "POST", body: JSON.stringify({ targetType, targetId, reason, note }) });
     setBusy(false);
-    if (ok) setSent(true);
+    if (ok) setSent(payload.data?.id || true);
     else setError(payload.error || "ارسال نشد. دوباره امتحان کن.");
   }
 
@@ -37,8 +38,9 @@ export function ReportSheet({ targetType = "post", targetId, title = "", above =
         <div className="supDone" role="status">
           <CircleCheck size={36} aria-hidden="true" />
           <b>ممنون که گزارش دادی</b>
-          <p>گزارشت را بررسی می‌کنیم.</p>
+          <p>گزارشت را بررسی می‌کنیم. هر خبری باشد در بخش پشتیبانی برایت می‌نویسیم.</p>
           <button type="button" className="supBtn" onClick={onClose}>باشه</button>
+          {typeof sent === "number" ? <button type="button" className="supLink" onClick={() => { onClose(); openSupport({ ticketId: sent }); }}>دیدن در پشتیبانی</button> : null}
         </div>
       ) : (
         <form onSubmit={submit} className="supForm">

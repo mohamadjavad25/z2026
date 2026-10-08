@@ -270,7 +270,10 @@ describe("admin page (browser)", () => {
     expect(await page.locator("main").innerText()).toContain("نشست‌های فعال مدیریت");
     await page.getByRole("tab", { name: "کاربران" }).click();
     await page.locator(".admTable tbody .admLink").first().click();
-    await page.getByRole("button", { name: "بستن" }).first().waitFor();
+    await page.locator(".admDetail").waitFor();
+    // On a narrow screen the details cover the page; "back to list" closes them.
+    const back = page.locator(".admSplitBack");
+    if (await back.isVisible()) await back.click();
 
     // Logout, then a normal login with the next code.
     await page.getByRole("button", { name: "خروج" }).click();
@@ -286,35 +289,53 @@ describe("admin page (browser)", () => {
 });
 
 describe("support (browser)", () => {
-  it("a user sends a message from Settings (accessible sheet) and it reaches the admin inbox", async () => {
+  it("a user writes to support from the floating button, gets the admin's reply with an unread badge, and keeps talking", async () => {
     const { adminClient } = await import("../integration/helpers.js");
     const axePath = new URL("../../node_modules/axe-core/axe.min.js", import.meta.url).pathname;
     const userApi = createClient();
     await registerUser(userApi, { type: "client", name: "کاربر پشتیبانی" });
     const { page, context, problems } = await newPage({ cookie: userApi.cookie() });
 
+    // The floating button is there; open the centre and write a new message.
     await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
-    await page.locator("nav.bottomNav > button").nth(0).click();
-    await page.getByRole("button", { name: "ارتباط با پشتیبانی" }).click();
-    const dialog = page.getByRole("dialog", { name: "ارتباط با پشتیبانی" });
-    await dialog.waitFor();
+    await page.getByRole("button", { name: "پشتیبانی", exact: true }).click();
+    const center = page.getByRole("dialog", { name: "پشتیبانی" });
+    await center.waitFor();
     await settleAnimations(page);
     await page.addScriptTag({ path: axePath });
-    const violations = await page.evaluate(async () => {
-      const result = await axe.run(document.querySelector(".supSheet"), { resultTypes: ["violations"] });
+    const axeIssues = () => page.evaluate(async () => {
+      const result = await axe.run(document.querySelector(".scSheet"), { resultTypes: ["violations"] });
       return result.violations.filter((v) => v.impact === "serious" || v.impact === "critical").map((v) => `${v.id}: ${v.nodes[0].html.slice(0, 80)}`);
     });
-    expect(violations).toEqual([]);
-    await dialog.getByLabel("پیامت").fill("سلام، این یک پیام آزمایشی از مرورگر برای پشتیبانی است.");
-    await dialog.getByRole("button", { name: "ارسال پیام" }).click();
-    await page.getByText("پیامت رسید").waitFor();
-    await page.getByRole("button", { name: "باشه" }).click();
+    expect(await axeIssues()).toEqual([]);
+    await center.getByRole("button", { name: /پیام جدید به پشتیبانی/ }).click();
+    await center.getByLabel("پیامت").fill("سلام، این یک پیام آزمایشی از مرورگر برای پشتیبانی است.");
+    await center.getByRole("button", { name: "ارسال پیام" }).click();
+    await center.getByText("سلام، این یک پیام آزمایشی از مرورگر برای پشتیبانی است.").waitFor();
+    expect(await axeIssues()).toEqual([]);
+
+    // The admin answers; after a reload the button shows an unread badge and the reply is in the conversation.
+    const admin = await adminClient();
+    const inbox = (await admin.get("/api/admin/support?kind=support&q=" + encodeURIComponent("پیام آزمایشی از مرورگر"))).payload.data;
+    expect(inbox.tickets.length).toBeGreaterThan(0);
+    expect((await admin.post(`/api/admin/support/${inbox.tickets[0].id}`, { reply: "سلام! مشکل را بررسی کردیم." })).ok).toBe(true);
+    await page.reload({ waitUntil: "networkidle" });
+    await page.getByRole("button", { name: /پشتیبانی، 1 پاسخ جدید/ }).click();
+    await page.getByRole("dialog", { name: "پشتیبانی" }).getByText("پاسخ داده شد").first().waitFor();
+    await page.locator(".scList button").first().click();
+    await page.getByText("سلام! مشکل را بررسی کردیم.").waitFor();
+    await settleAnimations(page);
+    await page.addScriptTag({ path: axePath });
+    expect(await axeIssues()).toEqual([]);
+
+    // Keep the conversation going.
+    await page.getByLabel("پیام", { exact: true }).fill("ممنون، حل شد.");
+    await page.getByRole("button", { name: "ارسال", exact: true }).click();
+    await page.getByText("ممنون، حل شد.").waitFor();
     expect(problems).toEqual([]);
     await context.close();
-
-    const admin = await adminClient();
-    const messages = (await admin.get("/api/admin/support?kind=support&q=" + encodeURIComponent("پیام آزمایشی از مرورگر"))).payload.data;
-    expect(messages.tickets.length).toBeGreaterThan(0);
+    const after = (await admin.get(`/api/admin/support/${inbox.tickets[0].id}`)).payload.data;
+    expect(after.messages.map((message) => message.author)).toEqual(["user", "admin", "user"]);
   }, 90_000);
 });
 
