@@ -1,4 +1,5 @@
 import { error, json, notFound, requireUserRole, withErrorHandling } from "../../../lib/http.js";
+import { sweepExpiredBookingRequestsIfDue } from "../../../lib/bookingExpirySweep.js";
 import * as artists from "../../../lib/db/repos/artists.js";
 import * as salons from "../../../lib/db/repos/salons.js";
 import { countFollowers } from "../../../lib/db/repos/users.js";
@@ -14,6 +15,7 @@ async function _GET(request) {
   const auth = await requireUserRole(request, "artist", "فقط آرتیست.");
   if (!auth.ok) return auth.response;
   const userId = auth.user.id;
+  await sweepExpiredBookingRequestsIfDue();
   // The sync reconciles salon bookings into the artist's list, so it must finish
   // before the bookings are read; everything else is independent.
   const [followers] = await Promise.all([
