@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 220" role="img" aria-label="Farfaroo"><defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6d79e"/><stop offset="1" stop-color="#e0a95a"/></linearGradient>
+    <linearGradient id="rose" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e07a92"/><stop offset="1" stop-color="#b8466a"/></linearGradient>
+    <linearGradient id="plum" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8a5a82"/><stop offset="1" stop-color="#4a2e49"/></linearGradient>
+    <linearGradient id="teal" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#28a09c"/><stop offset="1" stop-color="#0f6462"/></linearGradient>
+  </defs><g transform="translate(30 20) scale(.45)"><g transform="translate(-56 -56)">
+  <!-- pinwheel (فرفره): four curved blades around a center -->
+  <g transform="translate(256 256)">
+    <path d="M0 0 C-10 -70 -20 -130 -70 -170 C20 -190 100 -140 110 -50 C112 -20 60 -5 0 0 Z" fill="url(#gold)"/>
+    <path d="M0 0 C-10 -70 -20 -130 -70 -170 C20 -190 100 -140 110 -50 C112 -20 60 -5 0 0 Z" transform="rotate(90)" fill="url(#rose)"/>
+    <path d="M0 0 C-10 -70 -20 -130 -70 -170 C20 -190 100 -140 110 -50 C112 -20 60 -5 0 0 Z" transform="rotate(180)" fill="url(#teal)"/>
+    <path d="M0 0 C-10 -70 -20 -130 -70 -170 C20 -190 100 -140 110 -50 C112 -20 60 -5 0 0 Z" transform="rotate(270)" fill="url(#plum)"/>
+    <circle r="26" fill="#1c202c"/>
+    <circle r="12" fill="#f6d79e"/>
+  </g>
+
+</g></g><text x="240" y="138" font-family="Vazirmatn, Inter, system-ui, sans-serif" font-size="96" font-weight="700" fill="#1c202c">Farfaroo</text></svg>
