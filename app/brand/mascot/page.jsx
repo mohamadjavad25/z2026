@@ -50,14 +50,14 @@ function Panel({ theme, title }) {
     <section className={`brandPanel is-${theme}`}>
       <h2>{title}</h2>
       <StateGrid />
-      {theme === "dark" ? (
+      {theme === "light" ? (
         <>
-          <h3>Tinted (light body, dark eyes) for surfaces where black would vanish</h3>
+          <h3>Mono (ink body and curl), for one-colour contexts</h3>
           <StateGrid className="brandTint" />
         </>
       ) : null}
       <h3>512px</h3>
-      <BigRow className={theme === "dark" ? "brandTint" : ""} />
+      <BigRow />
     </section>
   );
 }
@@ -67,7 +67,7 @@ export default function MascotContactSheet() {
     <main className="brandSheet">
       <header className="brandSheet__head">
         <h1>frfro mascot</h1>
-        <p>All six states at 24, 48, 96 and 512px on light and dark surfaces. Every state shares one body and one pair of eye anchors.</p>
+        <p>All six states at 24, 48, 96 and 512px on light and dark surfaces. Every state shares one body and one set of face anchors.</p>
       </header>
       <div className="brandSheet__panels">
         <Panel theme="light" title="Light surface" />
