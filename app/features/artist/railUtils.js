@@ -1,4 +1,4 @@
-export const ARTIST_RAIL_DOCK_KEY = "zibaban_artist_rail_dock";
+export const ARTIST_RAIL_DOCK_KEY = "farfaroo_artist_rail_dock";
 
 export function clampRail(value, min, max) {
   return Math.min(max, Math.max(min, value));

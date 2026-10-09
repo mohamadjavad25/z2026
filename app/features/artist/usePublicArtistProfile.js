@@ -375,7 +375,7 @@ export function usePublicArtistProfile({
   const shareArtistProfile = useCallback(async () => {
     if (!selectedPublicArtist) return;
     const name = selectedPublicArtist.name || "آرتیست";
-    const shareText = `پروفایل آرتیست «${name}» در frfro`;
+    const shareText = `پروفایل آرتیست «${name}» در Farfaroo`;
     const artistId = selectedPublicArtist.id;
     const shareUrl = typeof window !== "undefined"
       ? (artistId ? `${window.location.origin}/artists/${artistId}` : window.location.href)

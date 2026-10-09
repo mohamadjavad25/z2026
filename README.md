@@ -1,4 +1,4 @@
-# frfro (Zibaban)
+# Farfaroo
 
 A mobile-first beauty-services marketplace connecting clients with independent
 artists and salons in Iran — profile discovery, direct booking, and working-hours

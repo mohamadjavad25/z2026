@@ -59,7 +59,7 @@
 ### M4 — `HomeApp` auth boot با صفحه سفید (`opacity:0`) — **رفع‌شده** (۳ اوت ۲۰۲۶)
 
 - قبل: `.appShell.is-auth-loading { opacity: 0 }` تا چک سشن تمام شود.
-- رفع: `AuthBootScreen` (برند «زیبابان» + اسپینر RTL) به‌عنوان فرزند اول `appShell` وقتی `!authChecked`؛ CSS boot overlay در `shell.css`؛ `styles.css` دیگر محتوا را با opacity مخفی نمی‌کند بلکه visibility + overlay.
+- رفع: `AuthBootScreen` (برند «فرفرو» + اسپینر RTL) به‌عنوان فرزند اول `appShell` وقتی `!authChecked`؛ CSS boot overlay در `shell.css`؛ `styles.css` دیگر محتوا را با opacity مخفی نمی‌کند بلکه visibility + overlay.
 
 ### M3 — پرش ناگهانی محتوا بدون skeleton — **رفع‌شده** (۳ اوت ۲۰۲۶)
 

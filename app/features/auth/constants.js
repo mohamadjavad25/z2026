@@ -1,5 +1,5 @@
-export const AUTH_SESSION_KEY = "zibaban_session";
-export const ARTIST_RAIL_DOCK_KEY = "zibaban_artist_rail_dock";
+export const AUTH_SESSION_KEY = "farfaroo_session";
+export const ARTIST_RAIL_DOCK_KEY = "farfaroo_artist_rail_dock";
 
 export function readAuthSession() {
   try {

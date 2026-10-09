@@ -31,7 +31,7 @@ const STEP_META = {
 const RING_RADIUS = 24;
 const RING_LENGTH = 2 * Math.PI * RING_RADIUS;
 
-const storageKey = (id) => `zibaban_completeness_dismissed_${id}`;
+const storageKey = (id) => `farfaroo_completeness_dismissed_${id}`;
 
 export function ProfileCompleteness({ profile, serviceCount = 0, onEditProfile, onOpenServices, onPickLogo, onQuickSave }) {
   const [dismissed, setDismissed] = useState(() => {

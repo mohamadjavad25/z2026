@@ -10,14 +10,14 @@ import { generateTotpSecret, totpUri, verifyTotp } from "./totp.js";
 
 /**
  * Hardened admin login. Everything here is separate from the normal user login:
- *   1. the phone must be in ZIBABAN_ADMIN_PHONES,
+ *   1. the phone must be in FARFAROO_ADMIN_PHONES,
  *   2. the account password must be right,
  *   3. a fresh 6-digit code from the admin's authenticator app must be right (each code works once),
  * and the result is a dedicated admin session (own cookie, 30 min idle / 8 h absolute, bound to the browser, SameSite=Strict).
- * The first-time authenticator setup additionally needs ZIBABAN_ADMIN_SETUP_KEY, so knowing a password alone can never enroll anyone.
+ * The first-time authenticator setup additionally needs FARFAROO_ADMIN_SETUP_KEY, so knowing a password alone can never enroll anyone.
  * Every failure looks identical to the caller; the real reason goes only to the audit log.
  */
-export const ADMIN_COOKIE = process.env.NODE_ENV === "production" ? "__Host-zibaban_admin" : "zibaban_admin";
+export const ADMIN_COOKIE = process.env.NODE_ENV === "production" ? "__Host-farfaroo_admin" : "farfaroo_admin";
 const IDLE_MS = 30 * 60 * 1000;
 const ABSOLUTE_MS = 8 * 60 * 60 * 1000;
 const TOUCH_EVERY_MS = 60 * 1000;
@@ -57,18 +57,18 @@ function ensureAdminTables() {
 const sha256 = (value) => createHash("sha256").update(value).digest("hex");
 
 function adminSecret() {
-  const value = process.env.ZIBABAN_ADMIN_SECRET || "";
+  const value = process.env.FARFAROO_ADMIN_SECRET || "";
   return value.length >= 32 ? value : "";
 }
 
-/** Whether first-time setup can work at all: ZIBABAN_ADMIN_SETUP_KEY must be set on the server and 16+ characters (the value itself is never exposed). */
-export const setupKeyConfigured = () => (process.env.ZIBABAN_ADMIN_SETUP_KEY || "").length >= 16;
+/** Whether first-time setup can work at all: FARFAROO_ADMIN_SETUP_KEY must be set on the server and 16+ characters (the value itself is never exposed). */
+export const setupKeyConfigured = () => (process.env.FARFAROO_ADMIN_SETUP_KEY || "").length >= 16;
 
-/** False until ZIBABAN_ADMIN_SECRET (32+ random characters) is set: the admin login then refuses everything (fails closed). */
+/** False until FARFAROO_ADMIN_SECRET (32+ random characters) is set: the admin login then refuses everything (fails closed). */
 export const adminAuthConfigured = () => Boolean(adminSecret());
 
 function encryptionKey() {
-  return createHash("sha256").update(`zibaban-admin-totp|${adminSecret()}`).digest();
+  return createHash("sha256").update(`farfaroo-admin-totp|${adminSecret()}`).digest();
 }
 
 function encryptSecret(plain) {
@@ -224,7 +224,7 @@ export async function listAdminSessions() {
   `);
 }
 
-/** Every phone listed in ZIBABAN_ADMIN_PHONES with its state: registered?, authenticator linked?, signed in right now? */
+/** Every phone listed in FARFAROO_ADMIN_PHONES with its state: registered?, authenticator linked?, signed in right now? */
 export async function listAdminAccounts() {
   await ensureAdminTables();
   const phones = adminPhoneList();
@@ -296,7 +296,7 @@ export async function adminLogin(request, { phone: phoneInput, password, code })
 /** First-time setup, part 1: proves password + setup key, then hands out a fresh authenticator secret (QR + manual key). */
 export async function adminEnrollStart(request, { phone: phoneInput, password, setupKey }) {
   const phone = normalizePhone(phoneInput);
-  const expected = process.env.ZIBABAN_ADMIN_SETUP_KEY || "";
+  const expected = process.env.FARFAROO_ADMIN_SETUP_KEY || "";
   if (!adminAuthConfigured() || expected.length < 16) return failure();
   await ensureAdminTables();
   if (!(await allowed(request, phone, "enroll", 10, 15))) return failure(429);
@@ -320,7 +320,7 @@ export async function adminEnrollStart(request, { phone: phoneInput, password, s
 /** First-time setup, part 2: the admin types the first code from the app; if right, the authenticator is switched on and they are logged in. */
 export async function adminEnrollConfirm(request, { phone: phoneInput, password, setupKey, code }) {
   const phone = normalizePhone(phoneInput);
-  const expected = process.env.ZIBABAN_ADMIN_SETUP_KEY || "";
+  const expected = process.env.FARFAROO_ADMIN_SETUP_KEY || "";
   if (!adminAuthConfigured() || expected.length < 16) return failure();
   await ensureAdminTables();
   if (!(await allowed(request, phone, "enroll", 10, 15))) return failure(429);

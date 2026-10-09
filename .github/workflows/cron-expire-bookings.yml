@@ -8,7 +8,7 @@ name: Expire stale booking requests
 # long as APP_URL/CRON_SECRET repo secrets are set.
 #
 # Setup once a real deployment exists: repo Settings -> Secrets and
-# variables -> Actions, add APP_URL (e.g. https://zibaban.example.com,
+# variables -> Actions, add APP_URL (e.g. https://farfaroo.example.com,
 # no trailing slash) and CRON_SECRET (must match the app's own
 # CRON_SECRET env var -- see .env.example). Until those secrets are set,
 # every run below no-ops instead of failing loudly on every schedule tick.

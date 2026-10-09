@@ -24,7 +24,7 @@ function TermsAgreement({ error, onChange }) {
         <a href="/terms" target="_blank" rel="noopener noreferrer">قوانین و مقررات</a>
         {" "}و{" "}
         <a href="/privacy" target="_blank" rel="noopener noreferrer">حریم خصوصی</a>
-        {" "}frfro رو خوندم و قبول دارم.
+        {" "}Farfaroo رو خوندم و قبول دارم.
       </span>
     </label>
     {error ? <small id={errorId} className="ui-field-error" role="alert">{error}</small> : null}
@@ -411,7 +411,7 @@ export function AuthGateForms({
   onProfileSubmit
 }) {
   const lastPhone =
-    typeof window !== "undefined" ? window.localStorage.getItem("zibaban_last_phone") || "" : "";
+    typeof window !== "undefined" ? window.localStorage.getItem("farfaroo_last_phone") || "" : "";
   const [recoveryOpen, setRecoveryOpen] = useState(false);
   const otp = useOtpConfig();
 
@@ -419,7 +419,7 @@ export function AuthGateForms({
     <>
       <div className="authGateHero" data-mode={authMode} data-step={signupStep}>
         <div className="authGateCopy">
-          <p className="authGateBrand">frfro</p>
+          <p className="authGateBrand">Farfaroo</p>
           <p className="authGateTagline">{gateTagline({ authMode, signupStep, profileType })}</p>
         </div>
       </div>

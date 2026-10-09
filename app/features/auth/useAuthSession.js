@@ -61,7 +61,7 @@ export function useAuthSession({
     writeAuthSession(profile);
     if (profile?.data?.phone) {
       try {
-        window.localStorage.setItem("zibaban_last_phone", profile.data.phone);
+        window.localStorage.setItem("farfaroo_last_phone", profile.data.phone);
       } catch {
         // ignore
       }
@@ -201,7 +201,7 @@ export function useAuthSession({
         return;
       }
       try {
-        window.localStorage.setItem("zibaban_last_phone", String(data.phone || "").trim());
+        window.localStorage.setItem("farfaroo_last_phone", String(data.phone || "").trim());
       } catch {
         // ignore
       }

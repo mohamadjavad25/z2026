@@ -38,7 +38,7 @@ export function ProfileHero({
   modeRail = null
 }) {
   const type = profile?.type || "";
-  const name = profile?.data?.name || "پروفایل frfro";
+  const name = profile?.data?.name || "پروفایل Farfaroo";
   const avatar = profile?.data?.avatar || defaultAvatarFor(profile?.type);
   const poster = profile?.data?.poster || "";
   const avatarPosition = profile?.data?.avatarPosition || "50% 50%";

@@ -77,7 +77,7 @@ export function SalonScheduleDashboard({
                   </span>
                   <div>
                     <strong>{request.artistName}</strong>
-                    <small>{request.artistService || request.artistArea || "آرتیست frfro"}</small>
+                    <small>{request.artistService || request.artistArea || "آرتیست Farfaroo"}</small>
                   </div>
                 </div>
                 <div className="salonCollabDeal">
