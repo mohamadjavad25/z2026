@@ -61,3 +61,5 @@
 .errorPage__back { display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; }
 
 .errorPage__logo { display: block; margin: 0 auto 12px; border-radius: 18px; }
+
+.errorPage__mascot { display: block; margin: 0 auto 8px; height: auto; max-width: 70%; }
