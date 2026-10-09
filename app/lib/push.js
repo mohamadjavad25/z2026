@@ -14,8 +14,8 @@ let configured = false;
 function ensureConfigured() {
   if (configured) return true;
   const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-  const privateKey = process.env.FARFAROO_VAPID_PRIVATE_KEY;
-  const contact = process.env.FARFAROO_VAPID_CONTACT;
+  const privateKey = process.env.FRFRU_VAPID_PRIVATE_KEY;
+  const contact = process.env.FRFRU_VAPID_CONTACT;
   if (!publicKey || !privateKey || !contact) return false;
   webpush.setVapidDetails(contact, publicKey, privateKey);
   configured = true;

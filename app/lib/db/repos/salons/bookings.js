@@ -416,7 +416,7 @@ export async function patchSalonBookingWithArtistSync(id, salonUserId, data, { a
 
       // Isolated-test hook: simulate mid-flight failure after salon row write (must roll back both).
       if (
-        process.env.FARFAROO_BOOKING_PATCH_SYNC_TEST === "1"
+        process.env.FRFRU_BOOKING_PATCH_SYNC_TEST === "1"
         && data.__testForceFail === true
       ) {
         failArtist("TEST_FORCE_FAIL", "forced patch sync rollback");

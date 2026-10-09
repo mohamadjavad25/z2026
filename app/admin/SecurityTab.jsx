@@ -47,7 +47,7 @@ export function SecurityTab() {
     <>
       <section className="admCard">
         <h2>حساب‌های مدیر</h2>
-        <p className="admMuted">این شماره‌ها در <span dir="ltr">FARFAROO_ADMIN_PHONES</span> تعریف شده‌اند. اگر مدیری گوشی‌اش را گم کرد، Authenticatorش را اینجا پاک کن تا دوباره راه‌اندازی کند (به رمز حسابش و کلید راه‌اندازی نیاز دارد).</p>
+        <p className="admMuted">این شماره‌ها در <span dir="ltr">FRFRU_ADMIN_PHONES</span> تعریف شده‌اند. اگر مدیری گوشی‌اش را گم کرد، Authenticatorش را اینجا پاک کن تا دوباره راه‌اندازی کند (به رمز حسابش و کلید راه‌اندازی نیاز دارد).</p>
         <ul className="admList">
           {data.accounts.map((account) => (
             <li key={account.phone}>

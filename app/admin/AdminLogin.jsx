@@ -48,7 +48,7 @@ export function AdminLogin({ configured, setupKeyConfigured = true, onDone }) {
       <main className="adm admLoginWrap">
         <section className="admCard admLogin">
           <h1>ورود مدیریت</h1>
-          <p className="admError" role="alert">ورود مدیریت هنوز روی سرور فعال نشده است (متغیر FARFAROO_ADMIN_SECRET تنظیم نشده).</p>
+          <p className="admError" role="alert">ورود مدیریت هنوز روی سرور فعال نشده است (متغیر FRFRU_ADMIN_SECRET تنظیم نشده).</p>
         </section>
       </main>
     );
@@ -79,7 +79,7 @@ export function AdminLogin({ configured, setupKeyConfigured = true, onDone }) {
             <Field label="رمز عبور">{(p) => <input {...p} {...ltr} type={secretType} autoComplete="current-password" value={form.password} onChange={set("password")} required />}</Field>
             <Field label="کلید راه‌اندازی">{(p) => <input {...p} {...ltr} type={secretType} value={form.setupKey} onChange={set("setupKey")} required />}</Field>
             <label className="admReveal"><input type="checkbox" checked={reveal} onChange={(event) => setReveal(event.target.checked)} /> نمایش رمز و کلید هنگام تایپ</label>
-            {!setupKeyConfigured ? <p className="admError" role="alert">کلید راه‌اندازی روی سرور تنظیم نشده یا کمتر از ۱۶ نویسه است. در Vercel متغیر FARFAROO_ADMIN_SETUP_KEY را (حداقل ۱۶ نویسه) بگذار و دوباره Redeploy کن؛ تا آن موقع راه‌اندازی هر ورودی را رد می‌کند.</p> : null}
+            {!setupKeyConfigured ? <p className="admError" role="alert">کلید راه‌اندازی روی سرور تنظیم نشده یا کمتر از ۱۶ نویسه است. در Vercel متغیر FRFRU_ADMIN_SETUP_KEY را (حداقل ۱۶ نویسه) بگذار و دوباره Redeploy کن؛ تا آن موقع راه‌اندازی هر ورودی را رد می‌کند.</p> : null}
             {error ? <p className="admError" role="alert">{error}</p> : null}
             <Button type="submit" disabled={busy}>{busy ? "در حال بررسی…" : "ادامه"}</Button>
             <button type="button" className="admLink" onClick={() => { setError(""); setMode("login"); }}>بازگشت به ورود</button>

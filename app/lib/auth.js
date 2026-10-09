@@ -3,7 +3,7 @@ import { ensureDb } from "./db/connection.js";
 import * as users from "./db/repos/users.js";
 import * as sessions from "./db/repos/sessions.js";
 
-export const SESSION_COOKIE = "farfaroo_session";
+export const SESSION_COOKIE = "frfru_session";
 const SESSION_DAYS = 30;
 
 const PERSIAN_DIGITS = "۰۱۲۳۴۵۶۷۸۹";
@@ -87,7 +87,7 @@ function verifyHeaderSecret(request, headerName, expected) {
 
 /** Gates the manual password-reset admin queue. */
 export function verifyAdminToken(request) {
-  return verifyHeaderSecret(request, "x-admin-token", process.env.FARFAROO_ADMIN_TOKEN || "");
+  return verifyHeaderSecret(request, "x-admin-token", process.env.FRFRU_ADMIN_TOKEN || "");
 }
 
 /** Gates app/api/cron/* endpoints -- a scheduler (Supabase pg_cron via

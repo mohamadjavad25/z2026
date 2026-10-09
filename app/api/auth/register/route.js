@@ -42,7 +42,7 @@ async function _POST(request) {
       return NextResponse.json({ error: "شماره تماس باید یک شماره موبایل معتبر ایران باشد (مثلا 09123456789)." }, { status: 400 });
     }
 
-    // Phone verification: required once SMS is on and FARFAROO_OTP_REQUIRED=1; a proof that is sent must always be valid.
+    // Phone verification: required once SMS is on and FRFRU_OTP_REQUIRED=1; a proof that is sent must always be valid.
     const proof = String(body.otpProof || "");
     if ((otpConfig().required || proof) && !verifyOtpProof(proof, phone, "register")) {
       return NextResponse.json({ error: "شمارهٔ موبایلت هنوز با کد پیامکی تأیید نشده است.", code: "otp_required" }, { status: 400 });

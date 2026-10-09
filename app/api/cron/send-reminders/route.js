@@ -12,9 +12,9 @@ async function _POST(request) {
     return NextResponse.json({ error: "دسترسی مجاز نیست." }, { status: 401 });
   }
   await ensureDb();
-  // Test hook, same idea as FARFAROO_BOOKING_REQUEST_TIMEOUT_MINUTES: lets an isolated test pin the clock.
+  // Test hook, same idea as FRFRU_BOOKING_REQUEST_TIMEOUT_MINUTES: lets an isolated test pin the clock.
   let now = new Date();
-  if (process.env.FARFAROO_REMINDER_TEST_CLOCK === "1") {
+  if (process.env.FRFRU_REMINDER_TEST_CLOCK === "1") {
     const body = await request.json().catch(() => ({}));
     if (body?.now) now = new Date(body.now);
   }

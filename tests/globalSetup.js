@@ -85,7 +85,7 @@ export async function setup() {
   process.env.TEST_POSTGRES_URL = connectionString;
   process.env.TEST_STORAGE_URL = fakeStorage.url;
   serverProcess = spawn("npx", ["next", "start", "-p", String(TEST_PORT)], {
-    env: { ...process.env, ...(process.env.TEST_STORAGE === "off" ? {} : { SUPABASE_URL: fakeStorage.url, SUPABASE_SERVICE_ROLE_KEY: "test-service-role-key" }), POSTGRES_URL: connectionString, NODE_ENV: "production", CRON_SECRET: TEST_CRON_SECRET, FARFAROO_ADMIN_PHONES: [TEST_ADMIN_PHONE, TEST_ADMIN2_PHONE, TEST_ADMIN3_PHONE, TEST_ADMIN4_PHONE, TEST_ADMIN5_PHONE].join(","), FARFAROO_ADMIN_SECRET: TEST_ADMIN_SECRET, FARFAROO_ADMIN_SETUP_KEY: TEST_ADMIN_SETUP_KEY, FARFAROO_SMS_PROVIDER: "test", FARFAROO_REMINDER_TEST_CLOCK: "1" },
+    env: { ...process.env, ...(process.env.TEST_STORAGE === "off" ? {} : { SUPABASE_URL: fakeStorage.url, SUPABASE_SERVICE_ROLE_KEY: "test-service-role-key" }), POSTGRES_URL: connectionString, NODE_ENV: "production", CRON_SECRET: TEST_CRON_SECRET, FRFRU_ADMIN_PHONES: [TEST_ADMIN_PHONE, TEST_ADMIN2_PHONE, TEST_ADMIN3_PHONE, TEST_ADMIN4_PHONE, TEST_ADMIN5_PHONE].join(","), FRFRU_ADMIN_SECRET: TEST_ADMIN_SECRET, FRFRU_ADMIN_SETUP_KEY: TEST_ADMIN_SETUP_KEY, FRFRU_SMS_PROVIDER: "test", FRFRU_REMINDER_TEST_CLOCK: "1" },
     stdio: ["ignore", "pipe", "pipe"],
     detached: true
   });

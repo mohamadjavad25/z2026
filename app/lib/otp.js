@@ -9,13 +9,13 @@ const PROOF_TTL_MS = 15 * 60 * 1000;
 const RESEND_SECONDS = 60;
 
 function secret() {
-  return process.env.FARFAROO_OTP_SECRET || process.env.CRON_SECRET || "farfaroo-dev-otp-secret";
+  return process.env.FRFRU_OTP_SECRET || process.env.CRON_SECRET || "frfru-dev-otp-secret";
 }
 
-/** Whether the app can send codes, and whether sign-up demands one (set FARFAROO_OTP_REQUIRED=1 once SMS works). */
+/** Whether the app can send codes, and whether sign-up demands one (set FRFRU_OTP_REQUIRED=1 once SMS works). */
 export function otpConfig() {
   const enabled = smsEnabled();
-  return { enabled, required: enabled && process.env.FARFAROO_OTP_REQUIRED === "1", resendSeconds: RESEND_SECONDS };
+  return { enabled, required: enabled && process.env.FRFRU_OTP_REQUIRED === "1", resendSeconds: RESEND_SECONDS };
 }
 
 const hashCode = (phone, purpose, code) => createHmac("sha256", secret()).update(`${phone}|${purpose}|${code}`).digest("hex");

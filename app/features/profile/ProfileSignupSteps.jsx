@@ -34,7 +34,7 @@ export function ProfileSignupSteps({ step }) {
           <span className="profileStepDot" aria-hidden="true"><b>۳</b></span>
           <span className="profileStepCopy">
             <strong>پروفایل آماده</strong>
-            <small>ورود به دنیای Farfaroo</small>
+            <small>ورود به دنیای Frfru</small>
           </span>
         </li>
       </ol>
