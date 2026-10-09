@@ -6,6 +6,7 @@ import { ChevronLeft, Eye, EyeOff, ShieldCheck } from "lucide-react";
 import { profileRoles } from "../../shared/constants/roles";
 import { toLatinDigits } from "../../shared/lib/digits";
 import { Button, Field } from "../../components/ui";
+import { Mascot } from "../../components/Mascot";
 import { ProfileRoleGrid } from "../profile/ProfileRoleGrid";
 import { firstInvalidField, validateLogin, validateSignup } from "./formValidation";
 import { OtpCodeStep } from "./OtpCodeStep";
@@ -162,6 +163,7 @@ function PasswordRecoveryPanel({ onClose, otp }) {
             <span>تیم پشتیبانی طی ۲۴ ساعت با همین شماره تماس می‌گیرد.</span>
           </div>
         </div>
+        <Mascot pose="thumbsup" size={140} className="mascotEmpty" />
         <button type="button" className="profileSubmit" onClick={onClose}>بازگشت به ورود</button>
       </div>
     );

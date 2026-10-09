@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { CalendarDays, Clock3, FileText, History, Sparkles } from "lucide-react";
 import { ServiceIcon } from "../../components/ServiceIcon";
+import { Mascot } from "../../components/Mascot";
 import { SegmentClock } from "../../components/SegmentClock";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatRelativeBookingDayLabel, resolveRollingPersianDate } from "../../shared/lib/persianCalendar";
@@ -162,13 +163,7 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook })
           );
         })() : (
           <div className="clientBookingsEmpty">
-            <img
-              className="clientBookingsEmptyArt"
-              src="/client-bookings-empty.webp"
-              alt=""
-              aria-hidden="true"
-              draggable={false}
-            />
+            <Mascot pose="calendar" size={168} className="mascotEmpty" />
             <b>{bookings.length ? "نوبت فعالی نداری" : "هنوز رزروی ثبت نشده"}</b>
             <span>
               {bookings.length

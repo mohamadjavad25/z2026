@@ -2,6 +2,7 @@
 
 import { AlarmClock, Check, ChevronLeft, MoreHorizontal, X } from "lucide-react";
 import { ServiceIcon } from "../../components/ServiceIcon";
+import { Mascot } from "../../components/Mascot";
 import { SegmentClock } from "../../components/SegmentClock";
 import { SkeletonList } from "../../components/Skeleton";
 import { toPersianDigits } from "../../shared/lib/digits";
@@ -253,7 +254,7 @@ export function SalonScheduleDashboard({
             />
           )) : (
             <div className="salonTodayEmpty">
-              <img src="/salon-today-empty.webp" alt="" aria-hidden="true" />
+              <Mascot pose="hairdryer" size={140} />
               <b>برای «{emptyDayLabel}» رزروی ثبت نشده</b>
             </div>
           )}
