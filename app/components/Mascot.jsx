@@ -1,4 +1,4 @@
-// The frfro mascot: a round ball of woolly black fur with two white capsule
+// The frfro mascot: a round ball of woolly black fur with two white
 // eyes. Drawn on a 100-unit grid, flat colour only (no gradients, outlines or
 // shadows). The body is one union of circles, so every tuft ends in a soft
 // curve. Every state is derived from the same two eye anchors (EYE_X, EYE_Y),
@@ -17,8 +17,8 @@ const FUR = [
   [22.4, 26.9, 10.5], [32.0, 18.8, 12], [43.7, 14.5, 11]
 ];
 
-const EYE_X = [39.5, 60.5];
-const EYE_Y = 44;
+const EYE_X = [37, 63];
+const EYE_Y = 47;
 
 export const MASCOT_STATES = ["neutral", "happy", "sad", "sleepy", "loading", "empty"];
 
@@ -33,12 +33,11 @@ const STATE_LABELS = {
 
 function Capsule({ cx, cy = EYE_Y, w, h, tilt = 0 }) {
   return (
-    <rect
-      x={cx - w / 2}
-      y={cy - h / 2}
-      width={w}
-      height={h}
+    <ellipse
+      cx={cx}
+      cy={cy}
       rx={w / 2}
+      ry={h / 2}
       transform={tilt ? `rotate(${tilt} ${cx} ${cy})` : undefined}
     />
   );
@@ -63,13 +62,13 @@ function Eyes({ state }) {
       // Smaller, lowered, tilted so the inner ends sit higher.
       return (
         <>
-          <Capsule cx={left + 1} cy={EYE_Y + 5} w={9} h={20} tilt={14} />
-          <Capsule cx={right - 1} cy={EYE_Y + 5} w={9} h={20} tilt={-14} />
+          <Capsule cx={left + 1} cy={EYE_Y + 5} w={12} h={15} tilt={14} />
+          <Capsule cx={right - 1} cy={EYE_Y + 5} w={12} h={15} tilt={-14} />
         </>
       );
     case "sleepy":
       // Thin horizontal slits.
-      return EYE_X.map((cx) => <Capsule key={cx} cx={cx} cy={EYE_Y + 6} w={15} h={4.5} />);
+      return EYE_X.map((cx) => <Capsule key={cx} cx={cx} cy={EYE_Y + 6} w={16} h={5} />);
     case "loading":
       // A spinner arc in place of each eye; .mascot__spin rotates it (brand.css).
       return EYE_X.map((cx, i) => {
@@ -93,15 +92,15 @@ function Eyes({ state }) {
       // Slightly wider, a touch further apart.
       return (
         <>
-          <Capsule cx={left - 1} w={14} h={31} />
-          <Capsule cx={right + 1} w={14} h={31} />
+          <Capsule cx={left - 2} w={19} h={23} />
+          <Capsule cx={right + 2} w={19} h={23} />
         </>
       );
     default:
       return (
         <>
-          <Capsule cx={left} w={11} h={31} />
-          <Capsule cx={right} w={11} h={31} />
+          <Capsule cx={left} w={15} h={20} />
+          <Capsule cx={right} w={15} h={20} />
         </>
       );
   }
