@@ -22,7 +22,7 @@ export function useHomeApp() {
     const joinSalonId = new URLSearchParams(window.location.search).get("join");
     if (!joinSalonId) return;
     try {
-      window.localStorage.setItem("frfru_pending_join_salon", joinSalonId);
+      window.localStorage.setItem("frfro_pending_join_salon", joinSalonId);
     } catch {
       // ignore — join just won't auto-fire post-login
     }
@@ -55,13 +55,13 @@ export function useHomeApp() {
     if (profile?.type !== "artist" || typeof window === "undefined") return;
     let pendingSalonId = "";
     try {
-      pendingSalonId = window.localStorage.getItem("frfru_pending_join_salon") || "";
+      pendingSalonId = window.localStorage.getItem("frfro_pending_join_salon") || "";
     } catch {
       return;
     }
     if (!pendingSalonId) return;
     try {
-      window.localStorage.removeItem("frfru_pending_join_salon");
+      window.localStorage.removeItem("frfro_pending_join_salon");
     } catch {
       // ignore
     }
@@ -162,7 +162,7 @@ export function useHomeApp() {
         typeof Notification !== "undefined" &&
         Notification.permission === "default" &&
         pushNotificationsSupported() &&
-        !window.localStorage.getItem("frfru_push_soft_ask_dismissed")
+        !window.localStorage.getItem("frfro_push_soft_ask_dismissed")
       ) {
         setPushSoftAskVisible(true);
       }
@@ -248,7 +248,7 @@ export function useHomeApp() {
   // changed since I last opened the panel"), for the 3 statuses worth
   // surfacing a notification for (pending doesn't need one — it's expected).
   const clientSeenStorageKey = createdProfile?.type === "client" && createdProfile?.id
-    ? `frfru_client_seen_bookings_${createdProfile.id}`
+    ? `frfro_client_seen_bookings_${createdProfile.id}`
     : "";
   const unseenClientBookingCount = useMemo(() => {
     if (!clientSeenStorageKey || typeof window === "undefined") return 0;

@@ -1,8 +1,8 @@
 // App sounds, synthesised with Web Audio (no audio files to ship or cache).
 // Use playSound(name); the on/off switch is a per-device preference (see useSoundPreference).
 
-const STORAGE_KEY = "frfru_sound_enabled";
-const CHANGE_EVENT = "frfru:sound-pref";
+const STORAGE_KEY = "frfro_sound_enabled";
+const CHANGE_EVENT = "frfro:sound-pref";
 
 let ctx = null;
 let master = null;

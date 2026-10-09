@@ -8,7 +8,7 @@ export function LegalPage({ content }) {
     <main className="legalPage">
       <div className="legalPage__inner">
         <Link href="/" className="legalPage__back">
-          ← بازگشت به Frfru
+          ← بازگشت به frfro
         </Link>
         <h1 className="legalPage__title">{content.title}</h1>
         <p className="legalPage__updated">آخرین به‌روزرسانی: {content.lastUpdated}</p>

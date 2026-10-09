@@ -31,7 +31,7 @@ export async function generateMetadata({ params }) {
   const { id } = await params;
   const salon = await loadSalon(id);
   if (!salon) {
-    return { title: "سالن پیدا نشد | Frfru" };
+    return { title: "سالن پیدا نشد | frfro" };
   }
 
   const serviceCount = Array.isArray(salon.services) ? salon.services.length : 0;
@@ -40,10 +40,10 @@ export async function generateMetadata({ params }) {
   if (serviceCount > 0) facts.push(`${serviceCount} خدمت قابل رزرو`);
 
   const description = facts.length
-    ? `${salon.name} ${facts.join(" · ")} — رزرو آنلاین نوبت در Frfru.`
-    : `پروفایل و رزرو آنلاین نوبت ${salon.name} در Frfru.`;
+    ? `${salon.name} ${facts.join(" · ")} — رزرو آنلاین نوبت در frfro.`
+    : `پروفایل و رزرو آنلاین نوبت ${salon.name} در frfro.`;
 
-  const title = `${salon.name} | Frfru`;
+  const title = `${salon.name} | frfro`;
   const canonicalUrl = `${SITE_URL}/salons/${salon.id}`;
 
   return {

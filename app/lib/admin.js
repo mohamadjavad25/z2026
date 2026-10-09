@@ -2,17 +2,17 @@ import { NextResponse } from "next/server";
 import { verifyAdminToken, normalizePhone } from "./auth.js";
 import { getAdminFromRequest, sameOrigin } from "./adminAuth.js";
 
-/** Admins are ordinary accounts whose phone number is listed in FRFRU_ADMIN_PHONES (comma separated).
+/** Admins are ordinary accounts whose phone number is listed in FRFRO_ADMIN_PHONES (comma separated).
  *  Being listed is necessary but not enough: they also need a live admin session (see adminAuth.js: password + authenticator code).
  *  Remove the phone from the env var and the access is gone, even for an already-open session. */
 function adminPhones() {
-  return String(process.env.FRFRU_ADMIN_PHONES || "")
+  return String(process.env.FRFRO_ADMIN_PHONES || "")
     .split(/[,\s]+/)
     .map((phone) => normalizePhone(phone))
     .filter(Boolean);
 }
 
-/** The normalized phones listed in FRFRU_ADMIN_PHONES. */
+/** The normalized phones listed in FRFRO_ADMIN_PHONES. */
 export const adminPhoneList = () => adminPhones();
 
 export function isAdminPhone(phone) {

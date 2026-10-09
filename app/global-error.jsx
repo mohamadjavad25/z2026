@@ -32,7 +32,7 @@ export default function GlobalError({ error, reset }) {
           <p style={{ fontSize: "0.85rem", color: "#6b6f7a", margin: "0 0 8px" }}>خطا</p>
           <h1 style={{ fontSize: "1.3rem", fontWeight: 800, margin: "0 0 12px" }}>یه مشکلی پیش اومد</h1>
           <p style={{ fontSize: "0.9rem", lineHeight: 1.8, margin: "0 0 24px" }}>
-            Frfru با یه خطای غیرمنتظره مواجه شد. لطفاً صفحه رو دوباره بارگذاری کن.
+            frfro با یه خطای غیرمنتظره مواجه شد. لطفاً صفحه رو دوباره بارگذاری کن.
           </p>
           <button
             type="button"

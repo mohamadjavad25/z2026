@@ -1,7 +1,7 @@
 import { getDb, run } from "./db/connection.js";
 
 /**
- * SMS sending, provider-agnostic. Pick one with FRFRU_SMS_PROVIDER:
+ * SMS sending, provider-agnostic. Pick one with FRFRO_SMS_PROVIDER:
  *   - "kavenegar": real SMS (needs KAVENEGAR_API_KEY and KAVENEGAR_TEMPLATE, a verify-lookup template with %token)
  *   - "farazsms": real SMS via Faraz SMS (IPPanel edge API; needs FARAZSMS_API_KEY, FARAZSMS_PATTERN_CODE, FARAZSMS_SENDER; the pattern text must use %code%, or set FARAZSMS_PARAM)
  *   - "test": nothing is sent; the message is kept in sms_log so tests (and the admin panel in a test setup) can read it
@@ -9,7 +9,7 @@ import { getDb, run } from "./db/connection.js";
  * Every attempt is logged (phone masked) so the admin panel can show whether SMS is working.
  */
 export function smsProviderName() {
-  const name = String(process.env.FRFRU_SMS_PROVIDER || "").trim().toLowerCase();
+  const name = String(process.env.FRFRO_SMS_PROVIDER || "").trim().toLowerCase();
   return name === "kavenegar" || name === "farazsms" || name === "test" ? name : "";
 }
 

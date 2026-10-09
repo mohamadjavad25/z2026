@@ -7,8 +7,8 @@
 - **محل:** `app/lib/db/repos/wallet.js` + `app/lib/db/connection.js`
 - **علت قطعی:** `node:sqlite` / `DatabaseSync` متد `db.transaction()` ندارد (برخلاف better-sqlite3). فراخوانی `db.transaction(...)` → `TypeError: db.transaction is not a function` → HTTP 500.
 - **رفع:** helper صریح `withTransaction(db, fn)` با `BEGIN IMMEDIATE` / `COMMIT` / `ROLLBACK`؛ موجودی با `UPDATE ... SET x = x + ? WHERE ... AND x + ? >= 0` اتمیک؛ `CHECK (>= 0)` روی balances در schema v11؛ `PRAGMA journal_mode=WAL`.
-- **امنیت مالی مرتبط:** `demo_credit` در `NODE_ENV=production` → 403؛ `feePercent` فقط از ثابت سرور؛ برداشت همیشه `pending` تا `confirm_withdraw` با `FRFRU_WALLET_ADMIN_TOKEN`.
-- **تست:** `node scripts/seed-wallet-test.mjs` (DB ایزوله `frfru-wallet-test.sqlite`)
+- **امنیت مالی مرتبط:** `demo_credit` در `NODE_ENV=production` → 403؛ `feePercent` فقط از ثابت سرور؛ برداشت همیشه `pending` تا `confirm_withdraw` با `FRFRO_WALLET_ADMIN_TOKEN`.
+- **تست:** `node scripts/seed-wallet-test.mjs` (DB ایزوله `frfro-wallet-test.sqlite`)
 - **وضعیت:** رفع‌شده — ۳ اوت ۲۰۲۶
 
 ---
@@ -108,7 +108,7 @@
   - لینک A → لینک B → soft-cancel روی A + INSERT روی B (تداخل اسلات B کل تراکنش را rollback می‌کند)
   - بدون لینک → لینک B → INSERT روی B
 - **UI notify:** پاسخ PATCH شامل `linkedArtistId` / `linkedArtistIds`؛ `patchSalonAppointment` → `onLinkedArtistBooked` → `notifyArtistBookingCreated`.
-- **تست:** `seed-booking-patch-sync-test.mjs` — ۲۴/۲۴ PASS (`frfru-booking-patch-sync-test.sqlite` + `--cleanup`)
+- **تست:** `seed-booking-patch-sync-test.mjs` — ۲۴/۲۴ PASS (`frfro-booking-patch-sync-test.sqlite` + `--cleanup`)
 - **وضعیت:** رفع‌شده
 
 ---

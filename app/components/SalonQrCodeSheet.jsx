@@ -37,7 +37,7 @@ export function SalonQrCodeSheet({ open, url, name = "سالن", onOpenChange })
   return createPortal((
     <div className="salonQrSheetOverlay" role="dialog" aria-modal="true" aria-label={`کد QR پروفایل ${name}`} onClick={(event) => { event.stopPropagation(); onOpenChange?.(false); }}>
       <article className="salonQrSheetCard qrsCard" onClick={(event) => event.stopPropagation()}>
-        <p className="qrsBrand" aria-hidden="true">Frfru</p>
+        <p className="qrsBrand" aria-hidden="true">frfro</p>
         <h3 className="qrsName">{name}</h3>
         <div className="qrsScan">
           <span className="ivtCorner is-tl" aria-hidden="true" />

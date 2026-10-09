@@ -5,9 +5,9 @@
  */
 export function AuthBootScreen() {
   return (
-    <div className="authBootScreen" role="status" aria-live="polite" aria-label="در حال آماده‌سازی Frfru">
+    <div className="authBootScreen" role="status" aria-live="polite" aria-label="در حال آماده‌سازی frfro">
       <div className="authBootInner">
-        <p className="authBootBrand">Frfru</p>
+        <p className="authBootBrand">frfro</p>
         <span className="authBootSpinner" aria-hidden="true" />
         <small>در حال آماده‌سازی…</small>
       </div>

@@ -135,7 +135,7 @@ export function SalonStaffProfileModal({
           </span>
           <div className="smdMeta">
             <span className={`smdState ${isActive ? "is-active" : "is-idle"}`}>{staffState}</span>
-            {hasPublic ? <span className="smdLinked"><ShieldCheck size={12} />عضو Frfru</span> : null}
+            {hasPublic ? <span className="smdLinked"><ShieldCheck size={12} />عضو frfro</span> : null}
             {isOwner ? <span className="smdLinked"><ShieldCheck size={12} />خودم · مدیر سالن</span> : null}
             {staffArea ? <span><MapPin size={12} />{staffArea}</span> : null}
           </div>

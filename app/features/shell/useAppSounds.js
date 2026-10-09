@@ -6,7 +6,7 @@ import { toLatinDigits } from "../../shared/lib/digits";
 import { resolveRollingPersianDate } from "../../shared/lib/persianCalendar";
 
 const REMINDER_LEAD_MINUTES = 30;
-const REMINDER_STORAGE_KEY = "frfru_reminded_bookings";
+const REMINDER_STORAGE_KEY = "frfro_reminded_bookings";
 const ERROR_WORDS = /(نشد|خطا|مشکل|نامعتبر|اشغال|قطع)/;
 const DONE_WORDS = /شد/;
 
