@@ -50,14 +50,14 @@ function Panel({ theme, title }) {
     <section className={`brandPanel is-${theme}`}>
       <h2>{title}</h2>
       <StateGrid />
-      {theme === "dark" ? (
+      {theme === "light" ? (
         <>
-          <h3>Tinted (light body, dark eyes) for surfaces where black would vanish</h3>
+          <h3>Mono (ink body, white eyes), for one-colour contexts</h3>
           <StateGrid className="brandTint" />
         </>
       ) : null}
       <h3>512px</h3>
-      <BigRow className={theme === "dark" ? "brandTint" : ""} />
+      <BigRow />
     </section>
   );
 }

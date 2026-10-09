@@ -24,4 +24,4 @@
 .brandBig figcaption { font-size: var(--text-sm); font-weight: 800; opacity: 0.7; }
 .brandBig .mascot { max-width: 100%; height: auto; }
 
-.brandTint { --mascot-color: #f7f8fa; --mascot-eye-color: #14161d; }
+.brandTint { --mascot-color: #1c202c; --mascot-rim-color: #1c202c; --mascot-eye-color: #fff; }
