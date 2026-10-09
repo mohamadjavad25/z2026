@@ -1,5 +1,5 @@
-export const AUTH_SESSION_KEY = "farfaroo_session";
-export const ARTIST_RAIL_DOCK_KEY = "farfaroo_artist_rail_dock";
+export const AUTH_SESSION_KEY = "frfro_session";
+export const ARTIST_RAIL_DOCK_KEY = "frfro_artist_rail_dock";
 
 export function readAuthSession() {
   try {

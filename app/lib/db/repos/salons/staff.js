@@ -258,7 +258,7 @@ export async function addSalonStaff(salonUserId, data) {
 export async function addSalonStaffFromCollab(salonUserId, collab) {
   const db = await getDb();
   const artistId = Number(collab?.artistId || collab?.artist_user_id || 0) || null;
-  const artistName = collab?.artistName || collab?.artist_name || "آرتیست Farfaroo";
+  const artistName = collab?.artistName || collab?.artist_name || "آرتیست frfro";
   const role = collab?.service || collab?.artistService || "همکار سالن";
   const existing = artistId
     ? await get(db, "SELECT * FROM salon_staff WHERE salon_user_id = $1 AND artist_user_id = $2 LIMIT 1", [salonUserId, artistId])

@@ -1,6 +1,6 @@
 /** One global support center (opened by the floating button): anything can ask for it with openSupport(). */
-const OPEN_EVENT = "farfaroo:open-support";
-const READ_EVENT = "farfaroo:support-read";
+const OPEN_EVENT = "frfro:open-support";
+const READ_EVENT = "frfro:support-read";
 
 /** Opens the support center. { ticketId } jumps straight into that conversation; { view: "new" } opens the new-message form. */
 export function openSupport(detail = {}) {

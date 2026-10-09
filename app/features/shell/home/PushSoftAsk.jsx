@@ -30,7 +30,7 @@ export function PushSoftAsk() {
                 type="button"
                 onClick={() => {
                   setPushSoftAskVisible(false);
-                  window.localStorage.setItem("farfaroo_push_soft_ask_dismissed", "1");
+                  window.localStorage.setItem("frfro_push_soft_ask_dismissed", "1");
                 }}
               >
                 بعداً

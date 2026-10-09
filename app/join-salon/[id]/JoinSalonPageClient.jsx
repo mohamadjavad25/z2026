@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { CheckCircle2, Sparkles } from "lucide-react";
 import { getAuthMe } from "../../shared/api/auth";
 
-const PENDING_JOIN_KEY = "farfaroo_pending_join_salon";
+const PENDING_JOIN_KEY = "frfro_pending_join_salon";
 
 /**
  * QR/link landing page (app/join-salon/[id]) — standalone, auth-agnostic.
@@ -90,7 +90,7 @@ export function JoinSalonPageClient({ salon }) {
               با ورود یا ساخت حساب آرتیست، به تیم «{salon.name}» می‌پیوندی.
             </p>
             <button type="button" className="joinSalonAction" onClick={handleGuestContinue}>
-              ورود یا ثبت‌نام در Farfaroo
+              ورود یا ثبت‌نام در frfro
             </button>
           </>
         ) : status === "wrong-role" ? (
@@ -99,7 +99,7 @@ export function JoinSalonPageClient({ salon }) {
               این لینک فقط برای پیوستن آرتیست‌هاست. با یک حساب آرتیست وارد شو.
             </p>
             <button type="button" className="joinSalonAction is-secondary" onClick={() => router.push("/")}>
-              رفتن به Farfaroo
+              رفتن به frfro
             </button>
           </>
         ) : status === "joined" ? (

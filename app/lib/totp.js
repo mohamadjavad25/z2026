@@ -70,7 +70,7 @@ export function verifyTotp(secret, code, { now = Date.now(), afterStep = 0 } = {
   return matched;
 }
 
-export function totpUri({ secret, account, issuer = "Farfaroo" }) {
+export function totpUri({ secret, account, issuer = "frfro" }) {
   const label = encodeURIComponent(`${issuer}:${account}`);
   return `otpauth://totp/${label}?secret=${secret}&issuer=${encodeURIComponent(issuer)}&algorithm=SHA1&digits=6&period=${TOTP_PERIOD_SECONDS}`;
 }

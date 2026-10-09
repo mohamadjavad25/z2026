@@ -14,7 +14,7 @@ const ICONS = {
   security: ShieldCheck,
   actions: ScrollText
 };
-const STORAGE_KEY = "farfaroo_admin_nav";
+const STORAGE_KEY = "frfro_admin_nav";
 
 /**
  * Collapsible left rail: icons only by default, opens to show labels (state is remembered per browser).
@@ -58,7 +58,7 @@ export function AdminSidebar({ sections, active, onSelect, name, onLogout, theme
           <button type="button" className="admSideToggle" aria-label={expanded ? "جمع‌کردن منو" : "باز‌کردن منو"} aria-expanded={expanded} onClick={toggle}>
             <PanelLeft size={20} aria-hidden="true" />
           </button>
-          <span className="admBrand admSideLabel">Farfaroo</span>
+          <span className="admBrand admSideLabel">frfro</span>
           <button type="button" className="admSideClose" aria-label="پنهان‌کردن منو" onClick={() => setMobileOpen(false)}>
             <X size={20} aria-hidden="true" />
           </button>

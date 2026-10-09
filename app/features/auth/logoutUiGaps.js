@@ -1,6 +1,6 @@
 /**
  * Shell/UI logout gaps that were forgotten in domain resets.
- * Intentionally does NOT clear salonDirectory, reservationRequestList, or farfaroo_last_phone.
+ * Intentionally does NOT clear salonDirectory, reservationRequestList, or frfro_last_phone.
  */
 export function createLogoutUiGapResets(setters) {
   const {

@@ -31,7 +31,7 @@ export async function generateMetadata({ params }) {
   const { id } = await params;
   const artist = await loadArtist(id);
   if (!artist) {
-    return { title: "آرتیست پیدا نشد | Farfaroo" };
+    return { title: "آرتیست پیدا نشد | frfro" };
   }
 
   const serviceCount = Array.isArray(artist.services) ? artist.services.length : 0;
@@ -40,10 +40,10 @@ export async function generateMetadata({ params }) {
   if (serviceCount > 0) facts.push(`${serviceCount} خدمت قابل رزرو`);
 
   const description = facts.length
-    ? `${artist.name} ${facts.join(" · ")} — رزرو آنلاین نوبت در Farfaroo.`
-    : `پروفایل و رزرو آنلاین نوبت ${artist.name} در Farfaroo.`;
+    ? `${artist.name} ${facts.join(" · ")} — رزرو آنلاین نوبت در frfro.`
+    : `پروفایل و رزرو آنلاین نوبت ${artist.name} در frfro.`;
 
-  const title = `${artist.name} | Farfaroo`;
+  const title = `${artist.name} | frfro`;
   const canonicalUrl = `${SITE_URL}/artists/${artist.id}`;
 
   return {

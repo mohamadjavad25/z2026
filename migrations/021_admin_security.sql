@@ -1,6 +1,6 @@
 -- Up Migration
 -- Separate, hardened admin login: authenticator-app (TOTP) secret per admin and short-lived admin-only sessions.
--- admin_totp.secret_enc is AES-256-GCM encrypted with a key derived from FARFAROO_ADMIN_SECRET (never stored in plain text).
+-- admin_totp.secret_enc is AES-256-GCM encrypted with a key derived from FRFRO_ADMIN_SECRET (never stored in plain text).
 -- admin_sessions stores only a SHA-256 of the cookie token, so a database leak cannot be replayed as a login.
 CREATE TABLE IF NOT EXISTS admin_totp (
   user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
