@@ -2,8 +2,8 @@ import { LegalPage } from "../legal/LegalPage";
 import { privacyContent } from "../legal/content";
 
 export const metadata = {
-  title: "حریم خصوصی | frfro",
-  description: "سیاست حریم خصوصی frfro.",
+  title: "حریم خصوصی | Farfaroo",
+  description: "سیاست حریم خصوصی Farfaroo.",
   alternates: {
     canonical: "/privacy"
   }

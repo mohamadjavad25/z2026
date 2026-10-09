@@ -18,7 +18,7 @@ import { PageHead } from "./PageHead";
 import { SECTIONS, tabInfo } from "./nav";
 import { ACTION_LABEL, fmtDate, num } from "./format";
 
-const THEME_KEY = "zibaban_admin_theme";
+const THEME_KEY = "farfaroo_admin_theme";
 
 /** Dark by default; the choice of light is remembered in this browser. */
 export function AdminClient() {
@@ -125,7 +125,7 @@ function SmsCard() {
           {sms.lastFailure ? <li><span>آخرین خطا</span><small dir="ltr">{sms.lastFailure.detail}</small></li> : null}
         </ul>
       ) : (
-        <p className="admMuted">پیامک هنوز وصل نیست؛ ثبت‌نام بدون کد انجام می‌شود و بازیابی رمز دستی است. برای فعال‌سازی، متغیرهای <span dir="ltr">ZIBABAN_SMS_PROVIDER</span> و کلید سرویس را در محیط اپ بگذار (راهنما: docs/OPERATIONS.md).</p>
+        <p className="admMuted">پیامک هنوز وصل نیست؛ ثبت‌نام بدون کد انجام می‌شود و بازیابی رمز دستی است. برای فعال‌سازی، متغیرهای <span dir="ltr">FARFAROO_SMS_PROVIDER</span> و کلید سرویس را در محیط اپ بگذار (راهنما: docs/OPERATIONS.md).</p>
       )}
     </section>
   );

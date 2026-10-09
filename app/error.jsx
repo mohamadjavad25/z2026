@@ -23,7 +23,7 @@ export default function ErrorBoundary({ error, reset }) {
         <p className="errorPage__desc">این صفحه با خطا مواجه شد. می‌تونی دوباره امتحان کنی یا برگردی به صفحه‌ی اصلی.</p>
         <div className="errorPage__actions">
           <button type="button" className="errorPage__retry" onClick={reset}>تلاش دوباره</button>
-          <a href="/" className="errorPage__back">بازگشت به frfro</a>
+          <a href="/" className="errorPage__back">بازگشت به Farfaroo</a>
         </div>
       </div>
     </main>

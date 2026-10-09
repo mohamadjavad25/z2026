@@ -145,7 +145,7 @@ export function HomeView() {
 
   return (
     <main className={`appShell ${!createdProfile ? "is-auth-gate" : ""} ${selectedSalon && activeTab === "salons" ? "is-salon-client" : ""} ${selectedPublicArtist ? "is-artist-public" : ""} ${!authChecked ? "is-auth-loading" : ""}`}>
-      <h1 className="srOnly">frfro</h1>
+      <h1 className="srOnly">Farfaroo</h1>
       <NetworkBusyBar />
       {!authChecked ? <AuthBootScreen /> : null}
 
