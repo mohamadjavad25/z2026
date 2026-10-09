@@ -6,9 +6,9 @@
 // family stays consistent at any size.
 //
 // Colours, each a prop or a CSS variable:
-//   color    / --mascot-color      core          (default #f48ab8)
-//   rimColor / --mascot-rim-color  outer tufts   (default #fbbad6)
-//   eyeColor / --mascot-eye-color  eyes          (default #3b1630)
+//   color    / --mascot-color      core          (default #e9558f)
+//   rimColor / --mascot-rim-color  outer tufts   (default #f590b8)
+//   eyeColor / --mascot-eye-color  eyes          (default #fff)
 
 const CORE = "M79.0 50.0L78.8 60.1L78.4 65.5L77.6 69.8L76.5 73.3L75.1 76.4L73.4 79.0L71.3 81.2L68.8 82.9L65.9 84.3L62.5 85.2L58.1 85.8L50.0 86.0L41.9 85.8L37.5 85.2L34.1 84.3L31.2 82.9L28.7 81.2L26.6 79.0L24.9 76.4L23.5 73.3L22.4 69.8L21.6 65.5L21.2 60.1L21.0 50.0L21.2 39.9L21.6 34.5L22.4 30.2L23.5 26.7L24.9 23.6L26.6 21.0L28.7 18.8L31.2 17.1L34.1 15.7L37.5 14.8L41.9 14.2L50.0 14.0L58.1 14.2L62.5 14.8L65.9 15.7L68.8 17.1L71.3 18.8L73.4 21.0L75.1 23.6L76.5 26.7L77.6 30.2L78.4 34.5L78.8 39.9Z";
 
@@ -153,9 +153,9 @@ export function Mascot({ state = "neutral", size = 96, color, rimColor, eyeColor
       height={size}
       className={`mascot is-${known} ${className}`.trim()}
       style={{
-        color: color || "var(--mascot-color, #f48ab8)",
-        "--mascot-rim": rimColor || "var(--mascot-rim-color, #fbbad6)",
-        "--mascot-eye": eyeColor || "var(--mascot-eye-color, #3b1630)",
+        color: color || "var(--mascot-color, #e9558f)",
+        "--mascot-rim": rimColor || "var(--mascot-rim-color, #f590b8)",
+        "--mascot-eye": eyeColor || "var(--mascot-eye-color, #fff)",
         ...style
       }}
       role={label ? "img" : undefined}
