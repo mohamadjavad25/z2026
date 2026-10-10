@@ -52,6 +52,17 @@ export function ProfilePostComposer({
     return () => document.removeEventListener("keydown", onKey);
   }, [isOpen, saving, cropSrc, onClose]);
 
+  // While the sheet is open, the page behind it must not scroll: a swipe should move the form.
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const root = document.documentElement;
+    const previous = root.style.overflow;
+    root.style.overflow = "hidden";
+    return () => {
+      root.style.overflow = previous;
+    };
+  }, [isOpen]);
+
   // Only one service on the menu: pick it (and name the post after it) right away.
   const onlyChoice = tagOptions.length === 1 ? String(tagOptions[0] || "").trim() : "";
   const needsAutoPick = isOpen && Boolean(onlyChoice) && !String(value?.tag || "").trim();

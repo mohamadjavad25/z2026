@@ -65,7 +65,13 @@
 .ppOwner span { margin-top: 6px; font-size: 0.78rem; font-weight: 900; }
 
 /* ---- Composer: light, scrollable sheet ---- */
-:root .profilePostComposer .artistWorkSheet { display: block; overflow-y: auto; max-height: min(92dvh, 820px); padding-bottom: 0; }
+/* The sheet itself is the one scroll area: the whole form (down to save / delete) is reachable
+   on any screen height. The modal pads for the safe areas so the sheet never runs off-screen. */
+:root .artistWorkModal.profilePostComposer { padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom)); overscroll-behavior: contain; }
+:root .profilePostComposer .artistWorkSheet { display: block; position: relative; overflow-x: hidden; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; max-height: min(100%, 820px); padding-bottom: 0; }
+:root .profilePostComposer .artistWorkForm { overflow: visible; }
+/* Only the title lives in this row now: give it the full width. */
+:root .profilePostComposer .artistWorkRow { grid-template-columns: minmax(0, 1fr) !important; }
 :root .profilePostComposer .artistWorkHero:not(.has-image) { height: auto; min-height: 0; background: #f6f6f9; border-bottom: 1px solid #ececf0; }
 :root .profilePostComposer .artistWorkUploadEmpty { min-height: 0; padding: 24px 18px 18px; color: #14161d; }
 :root .profilePostComposer .artistWorkUploadEmpty svg { color: #14161d; }
@@ -75,7 +81,8 @@
 .pvOverlay .pvSheet { padding-bottom: 0 !important; }
 
 /* Post composer: service picker as tap chips (no dropdown) */
-.pcTags { display: flex; flex-wrap: wrap; gap: 8px; max-height: 148px; overflow-y: auto; overscroll-behavior: contain; padding: 2px; }
+/* No inner scroll box: a nested scroller here trapped the finger and the sheet would not scroll. */
+.pcTags { display: flex; flex-wrap: wrap; gap: 8px; padding: 2px; }
 .pcTags button { min-height: 40px; padding: 0 14px; border: 1px solid #e4e4ea; border-radius: 999px; background: #fff; color: #4b4f5c; font: inherit; font-size: 0.78rem; font-weight: 900; cursor: pointer; }
 .pcTags button.is-on { border-color: #14161d; background: #14161d; color: #fff; }
 .pcTags button:disabled { opacity: 0.5; }
