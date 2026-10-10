@@ -105,6 +105,15 @@
   overflow: hidden;
 }
 
+/* The mascot stands on the page itself: no card / frame around the empty gallery. */
+.profileGalleryEmpty{
+  padding: 12px 14px 20px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
 .artistGalleryEmptyVisual,
 .profileGalleryEmptyVisual{
   width: min(100%, 340px);
