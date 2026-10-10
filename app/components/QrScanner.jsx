@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { ImageUp, X } from "lucide-react";
+import { ImageUp, RefreshCw, X } from "lucide-react";
 
 const SCAN_INTERVAL_MS = 160;
 const MAX_FRAME_SIDE = 720;
@@ -11,6 +11,16 @@ let jsQrPromise = null;
 function loadJsQr() {
   if (!jsQrPromise) jsQrPromise = import("jsqr").then((module) => module.default || module);
   return jsQrPromise;
+}
+
+/** Back camera when there is one, any camera otherwise (laptops, some tablets). */
+async function openCamera() {
+  try {
+    return await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } }, audio: false });
+  } catch (error) {
+    if (error?.name !== "OverconstrainedError" && error?.name !== "NotFoundError") throw error;
+    return navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+  }
 }
 
 async function createNativeDetector() {
@@ -60,7 +70,8 @@ export function QrScanner({ title = "اسکن کن", hint = "کد QR را داخ
   const canvasRef = useRef(null);
   const pausedRef = useRef(paused);
   const onDetectedRef = useRef(onDetected);
-  const [cameraState, setCameraState] = useState("starting"); // starting | live | blocked | unsupported
+  const [cameraState, setCameraState] = useState("starting"); // starting | live | blocked | missing | unsupported
+  const [attempt, setAttempt] = useState(0); // bumped by "try again" to reopen the camera
   const [photoError, setPhotoError] = useState("");
 
   pausedRef.current = paused;
@@ -84,9 +95,9 @@ export function QrScanner({ title = "اسکن کن", hint = "کد QR را داخ
         return;
       }
       try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } }, audio: false });
-      } catch {
-        if (!stopped) setCameraState("blocked");
+        stream = await openCamera();
+      } catch (error) {
+        if (!stopped) setCameraState(error?.name === "NotFoundError" ? "missing" : "blocked");
         return;
       }
       if (stopped) {
@@ -116,13 +127,14 @@ export function QrScanner({ title = "اسکن کن", hint = "کد QR را داخ
       tick();
     }
 
+    setCameraState("starting");
     start();
     return () => {
       stopped = true;
       window.clearTimeout(timer);
       stream?.getTracks().forEach((track) => track.stop());
     };
-  }, [report]);
+  }, [report, attempt]);
 
   // Escape closes, like every other sheet.
   useEffect(() => {
@@ -153,11 +165,11 @@ export function QrScanner({ title = "اسکن کن", hint = "کد QR را داخ
 
   if (typeof document === "undefined") return null;
 
-  const cameraMessage = cameraState === "blocked"
-    ? "دسترسی دوربین داده نشد. از تنظیمات مرورگر اجازه بده، یا عکس کد را انتخاب کن."
-    : cameraState === "unsupported"
-      ? "این مرورگر به دوربین دسترسی ندارد؛ عکس کد را انتخاب کن."
-      : "";
+  const cameraMessage = {
+    blocked: "دسترسی دوربین داده نشد. از تنظیمات مرورگر برای این سایت اجازهٔ دوربین بده و «دوباره» را بزن، یا عکس کد را انتخاب کن.",
+    missing: "دوربینی پیدا نشد؛ عکس کد را انتخاب کن.",
+    unsupported: "این مرورگر به دوربین دسترسی ندارد؛ عکس کد را انتخاب کن."
+  }[cameraState] || "";
 
   return createPortal(
     <div className="qrScanner" role="dialog" aria-modal="true" aria-label={title}>
@@ -175,11 +187,19 @@ export function QrScanner({ title = "اسکن کن", hint = "کد QR را داخ
       <p className="qrScannerHint" role="status">{cameraMessage || photoError || hint}</p>
       <div className="qrScannerBottom">
         {footer || (
-          <label className="qrScannerPhoto">
-            <ImageUp size={18} aria-hidden="true" />
-            انتخاب عکس کد
-            <input type="file" accept="image/*" onChange={scanPhoto} />
-          </label>
+          <div className="qrScannerActions">
+            {cameraState === "blocked" ? (
+              <button type="button" className="qrScannerPhoto" onClick={() => setAttempt((value) => value + 1)}>
+                <RefreshCw size={18} aria-hidden="true" />
+                دوباره
+              </button>
+            ) : null}
+            <label className="qrScannerPhoto">
+              <ImageUp size={18} aria-hidden="true" />
+              انتخاب عکس کد
+              <input type="file" accept="image/*" onChange={scanPhoto} />
+            </label>
+          </div>
         )}
       </div>
     </div>,

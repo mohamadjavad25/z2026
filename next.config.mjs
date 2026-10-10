@@ -45,7 +45,9 @@ const securityHeaders = [
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   // geolocation=(self): the map-based location picker
   // (ProfileLocationSettings.jsx) uses navigator.geolocation.
-  { key: "Permissions-Policy", value: "geolocation=(self), camera=(), microphone=()" }
+  // camera=(self): the QR scanner (components/QrScanner.jsx) in «سالن و آرتیست من»
+  // and the customers page. With camera=() the browser refused without even asking.
+  { key: "Permissions-Policy", value: "geolocation=(self), camera=(self), microphone=()" }
 ];
 
 if (process.env.NODE_ENV === "production") {
