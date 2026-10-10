@@ -64,7 +64,8 @@ export function PublicArtistModal({
   const fromPrice = prices.length ? Math.min(...prices) : 0;
   // Today's working hours, worded like the salon page's chip.
   const weekHours = Array.isArray(artist.hours) ? artist.hours : [];
-  const todayHours = weekHours.find((row) => row.day === PERSIAN_WEEKDAYS[new Date().getDay()]);
+  const todayName = PERSIAN_WEEKDAYS[new Date().getDay()];
+  const todayHours = weekHours.find((row) => row.day === todayName);
   const openStatus = weekHours.length
     ? (todayHours?.active
         ? { open: true, text: `امروز کار می‌کند • ${toPersianDigits(todayHours.open_time || "")} تا ${toPersianDigits(todayHours.close_time || "")}` }
@@ -151,6 +152,24 @@ export function PublicArtistModal({
                   />
                 </>
             </div>
+
+            {/* Same weekly hours card the salon page shows under its posts. */}
+            {weekHours.length ? (
+              <section className="salonPublicCard spvHours">
+                <div className="salonPublicSectionHead">
+                  <span />
+                  <h3>ساعت کاری</h3>
+                </div>
+                <ul>
+                  {weekHours.map((row) => (
+                    <li key={row.day} className={row.day === todayName ? "is-today" : ""}>
+                      <b>{row.day}</b>
+                      <span>{row.active ? `${toPersianDigits(row.open_time || "")} تا ${toPersianDigits(row.close_time || "")}` : "تعطیل"}</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ) : null}
 
             <ServicesDropUp
               open={servicesOpen}
