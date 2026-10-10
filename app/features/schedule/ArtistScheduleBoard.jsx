@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ServiceIcon } from "../../components/ServiceIcon";
+import { Mascot } from "../../components/Mascot";
 import { ChevronLeft, Coffee, MoreHorizontal, Store } from "lucide-react";
 import { SegmentClock } from "../../components/SegmentClock";
 import { SkeletonList } from "../../components/Skeleton";
@@ -51,7 +52,7 @@ export function ArtistScheduleBoard({
             />
           )) : (
             <div className="salonTodayEmpty">
-              <img src="/artist-bookings-empty.webp" alt="" aria-hidden="true" />
+              <Mascot pose="scissors" size={150} />
               <b>برای «{dayLabel}» رزروی ثبت نشده</b>
             </div>
           )}

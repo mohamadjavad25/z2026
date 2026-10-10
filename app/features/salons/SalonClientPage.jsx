@@ -27,6 +27,7 @@ import {
   X
 } from "lucide-react";
 import { ServiceIcon } from "../../components/ServiceIcon";
+import { Mascot } from "../../components/Mascot";
 import { ServiceIconStrip } from "../../components/ServiceIconStrip";
 import { SegmentClock } from "../../components/SegmentClock";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
@@ -486,7 +487,7 @@ export function SalonClientPage({
             <SkeletonList rows={4} variant="card" label="در حال بارگذاری سالن‌ها" />
           ) : (
             <div className="emptySalonDirectory">
-              <img src="/salons-empty-illustration.webp" alt="" aria-hidden="true" />
+              <Mascot pose="search" size={150} />
               <div>
                 <b>سالن‌ها اینجا نمایش داده می‌شوند</b>
               </div>

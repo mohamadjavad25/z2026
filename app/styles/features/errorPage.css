@@ -63,3 +63,19 @@
 .errorPage__logo { display: block; margin: 0 auto 12px; border-radius: 18px; }
 
 .errorPage__mascot { display: block; margin: 0 auto 8px; height: auto; max-width: 70%; }
+
+/* Mascot inside empty/success states: override the photo-style img rules
+   (full-width cover, rounded corners, fixed max-height) of each container. */
+.mascotEmpty { display: block; width: auto; height: auto; max-height: 170px; margin: 8px auto 4px; object-fit: contain; }
+.salonTodayEmpty img.mascot,
+.emptySalonDirectory img.mascot,
+.profileEmptyState img.mascot,
+.artistPublicEmpty img.mascot {
+  width: auto;
+  max-width: 70%;
+  height: auto;
+  max-height: 150px;
+  border-radius: 0;
+  box-shadow: none;
+  object-fit: contain;
+}

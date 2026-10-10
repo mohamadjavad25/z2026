@@ -1,6 +1,7 @@
 "use client";
 
 import { thumbUrl } from "../../shared/lib/mediaUrl";
+import { Mascot } from "../../components/Mascot";
 
 export function PublicArtistGalleryPanel({
   tags,
@@ -86,7 +87,7 @@ export function PublicArtistGalleryPanel({
         </div>
       ) : (
         <div className="artistPublicEmpty">
-          <img className="artistPublicEmptyImg" src="/artist-gallery-public-empty.webp" alt="" draggable={false} />
+          <Mascot pose="makeup" size={150} />
           <b>هنوز نمونه‌کاری نیست</b>
           <span>به‌زودی کارهای این آرتیست اینجا می‌آید.</span>
         </div>

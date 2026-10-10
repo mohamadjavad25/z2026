@@ -4,6 +4,7 @@ import { useState } from "react";
 import { BookmarkX, MapPin, Store, UserRound } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { ProfileEmptyState } from "./ProfileEmptyState";
+import { Mascot } from "../../components/Mascot";
 
 function getSalonKey(salon) {
   return String(salon.id || salon.source_key || salon.name);
@@ -182,7 +183,7 @@ export function ProfileSavedPosts({
       {!hasSavedItems ? (
         <ProfileEmptyState
           className="emptySavedState"
-          image="/saved-empty.webp"
+          visual={<Mascot pose="mirror" size={150} />}
           title="هنوز چیزی ذخیره نشده"
           description="پست‌ها، مدل‌ها، سالن‌ها و آرتیست‌های ذخیره‌شده اینجا جمع می‌شوند."
         />
