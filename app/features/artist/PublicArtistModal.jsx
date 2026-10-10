@@ -1,11 +1,12 @@
 "use client";
 
-import { Bookmark, CalendarCheck, Check, ChevronLeft, ChevronUp, Heart, Info, Scissors, Share2 } from "lucide-react";
+import { Bookmark, CalendarCheck, Check, ChevronLeft, ChevronUp, Clock3, Heart, Info, Phone, Scissors, Share2 } from "lucide-react";
 import { PublicProfileHeader } from "../../components/PublicProfileHeader";
 import { ServicesDropUp } from "../../components/ServicesDropUp";
 import { bundleServices } from "../../shared/lib/serviceBundle";
 import { SheetClose } from "../../components/SheetClose";
 import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
+import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { DEFAULT_PERSON_AVATAR } from "../../shared/lib/defaultAvatar";
 import { isPublicArtistSlotBlocked } from "./bookingUtils";
 import { PublicArtistAboutPanel } from "./PublicArtistAboutPanel";
@@ -16,6 +17,8 @@ import { useState } from "react";
 
 // Same decorative cover the artist's own panel shows until a poster is uploaded.
 const DEFAULT_COVER = "/artist-hero-doodle.webp";
+// JS getDay(): 0 = Sunday ... 6 = Saturday; hours rows are keyed by the Persian weekday name.
+const PERSIAN_WEEKDAYS = ["یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنجشنبه", "جمعه", "شنبه"];
 
 export function PublicArtistModal({
   artist,
@@ -59,6 +62,14 @@ export function PublicArtistModal({
   const specialties = String(artist.service || "").split(/[،,]/).map((item) => item.trim()).filter(Boolean).slice(0, 4);
   const prices = (services || []).map((service) => parseTomanAmount(service.price)).filter(Boolean);
   const fromPrice = prices.length ? Math.min(...prices) : 0;
+  // Today's working hours, worded like the salon page's chip.
+  const weekHours = Array.isArray(artist.hours) ? artist.hours : [];
+  const todayHours = weekHours.find((row) => row.day === PERSIAN_WEEKDAYS[new Date().getDay()]);
+  const openStatus = weekHours.length
+    ? (todayHours?.active
+        ? { open: true, text: `امروز کار می‌کند • ${toPersianDigits(todayHours.open_time || "")} تا ${toPersianDigits(todayHours.close_time || "")}` }
+        : { open: false, text: "امروز تعطیل است" })
+    : null;
 
   return (
     <div
@@ -102,9 +113,14 @@ export function PublicArtistModal({
           />
 
           <section className="pphInfo" aria-label={`معرفی ${artist.name || "آرتیست"}`}>
-            {specialties.length ? (
+            {specialties.length || openStatus ? (
               <div className="pphChips">
                 {specialties.map((item) => <span className="pphChip" key={item}>{item}</span>)}
+                {openStatus ? (
+                  <span className={`pphChip ${openStatus.open ? "is-open" : "is-closed"}`}>
+                    <Clock3 size={14} /> {openStatus.text}
+                  </span>
+                ) : null}
               </div>
             ) : null}
             {artist.bio ? <p className="pphBio">{artist.bio}</p> : null}
@@ -113,6 +129,11 @@ export function PublicArtistModal({
                 {following ? <Check size={18} /> : <Heart size={18} />}
                 {following ? "دنبال می‌کنی" : "دنبال کردن"}
               </button>
+              {artist.phone ? (
+                <a className="pphCall" href={`tel:${toLatinDigits(artist.phone)}`} aria-label="تماس با آرتیست">
+                  <Phone size={18} /> تماس
+                </a>
+              ) : null}
             </div>
           </section>
 
