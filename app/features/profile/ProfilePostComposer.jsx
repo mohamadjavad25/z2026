@@ -205,8 +205,12 @@ export function ProfilePostComposer({
                     aria-checked={value.tag === tag}
                     className={value.tag === tag ? "is-on" : ""}
                     disabled={saving}
-                    // A blank title takes the service name, so one tap is enough to move on.
-                    onClick={() => patch(String(value.title || "").trim() ? { tag } : { tag, title: tag })}
+                    // The title follows the service while it is blank or still just a service
+                    // name; a title the user typed stays as it is.
+                    onClick={() => {
+                      const title = String(value.title || "").trim();
+                      patch(!title || tagChoices.includes(title) ? { tag, title: tag } : { tag });
+                    }}
                   >
                     {tag}
                   </button>

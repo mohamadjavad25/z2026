@@ -32,6 +32,12 @@ export function ProfileHeroActions({
   return (
     <div className="profileHeroActions">
       <div className="profileHeroActionsGroup">
+        {/* QR first: in RTL it lands on the right and the bell on the left, as on the salon hero. */}
+        {typeof onShowQr === "function" ? (
+          <button type="button" onClick={onShowQr} aria-label="کد QR و اسکن" title="کد QR و اسکن">
+            <QrCode size={17} />
+          </button>
+        ) : null}
         {(profileType === "artist" || profileType === "client") && (
           <button
             type="button"
@@ -42,11 +48,6 @@ export function ProfileHeroActions({
             <Bell size={17} />
           </button>
         )}
-        {typeof onShowQr === "function" ? (
-          <button type="button" onClick={onShowQr} aria-label="کد QR و اسکن" title="کد QR و اسکن">
-            <QrCode size={17} />
-          </button>
-        ) : null}
         {showShare ? (
           <button type="button" aria-label="اشتراک‌گذاری" onClick={onShare}>
             <Share2 size={17} />

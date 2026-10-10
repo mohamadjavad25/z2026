@@ -1768,3 +1768,23 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   background: rgba(255, 255, 255, 0.94) !important;
   box-shadow: 0 10px 22px rgba(18, 18, 22, 0.2) !important;
 }
+
+/* Artist hero icons sit like the salon's: QR on the right, bell on the left, same size. */
+.profilePanel.page-profile:has(.createdProfile.is-artist) .profileHero.is-artist .profileHeroActions {
+  left: 20px !important;
+  right: 20px !important;
+  top: calc(26px + env(safe-area-inset-top)) !important;
+}
+
+.profilePanel.page-profile:has(.createdProfile.is-artist) .profileHero.is-artist .profileHeroActionsGroup {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none; /* only the two buttons take taps, not the poster between them */
+}
+
+.profilePanel.page-profile:has(.createdProfile.is-artist) .profileHero.is-artist .profileHeroActions button {
+  width: 40px !important;
+  height: 40px !important;
+}
