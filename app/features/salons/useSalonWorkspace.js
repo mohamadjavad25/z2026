@@ -73,26 +73,37 @@ export function useSalonWorkspace({
   onSelectedSalonSync,
   onBookingDefaults,
 } = {}) {
+  // Callers pass fresh inline functions on every render. Read the latest ones through a ref so notify/sync/push
+  // keep one identity for the life of the hook: refreshSalonSystemData depends on them, and the effect below
+  // re-runs whenever it changes, which used to turn every render into another full reload of the workspace.
+  const callbacksRef = useRef({});
+  callbacksRef.current = { onNotice, onShellNotice, onSalonDirectorySync, onSelectedSalonSync, onBookingDefaults };
+
   const notify = useCallback((message) => {
-    if (typeof onNotice === "function" && message) onNotice(message);
-  }, [onNotice]);
+    const { onNotice: onNoticeNow } = callbacksRef.current;
+    if (typeof onNoticeNow === "function" && message) onNoticeNow(message);
+  }, []);
 
   const shellNotify = useCallback((message) => {
-    if (typeof onShellNotice === "function" && message) onShellNotice(message);
+    const { onShellNotice: onShellNoticeNow } = callbacksRef.current;
+    if (typeof onShellNoticeNow === "function" && message) onShellNoticeNow(message);
     else notify(message);
-  }, [onShellNotice, notify]);
+  }, [notify]);
 
   const syncSalonDirectory = useCallback((next) => {
-    if (typeof onSalonDirectorySync === "function") onSalonDirectorySync(next);
-  }, [onSalonDirectorySync]);
+    const { onSalonDirectorySync: onSalonDirectorySyncNow } = callbacksRef.current;
+    if (typeof onSalonDirectorySyncNow === "function") onSalonDirectorySyncNow(next);
+  }, []);
 
   const syncSelectedSalon = useCallback((next) => {
-    if (typeof onSelectedSalonSync === "function") onSelectedSalonSync(next);
-  }, [onSelectedSalonSync]);
+    const { onSelectedSalonSync: onSelectedSalonSyncNow } = callbacksRef.current;
+    if (typeof onSelectedSalonSyncNow === "function") onSelectedSalonSyncNow(next);
+  }, []);
 
   const pushBookingDefaults = useCallback((defaults) => {
-    if (typeof onBookingDefaults === "function") onBookingDefaults(defaults);
-  }, [onBookingDefaults]);
+    const { onBookingDefaults: onBookingDefaultsNow } = callbacksRef.current;
+    if (typeof onBookingDefaultsNow === "function") onBookingDefaultsNow(defaults);
+  }, []);
 
   const salonBookingsEpochRef = useRef(0);
 
@@ -224,6 +235,10 @@ export function useSalonWorkspace({
         getSalonCollabs(),
         getSalonInvites()
       ]);
+
+      // Signed out (cookie gone or expired): there is nothing to show and nothing to refresh. Applying the empty
+      // results below would re-render and could retrigger this refresh, hammering the API with 401s.
+      if ([servicesRes, portfolioRes, bookingsRes, staffRes, hoursRes, collabsRes, invitesRes].some((res) => res.status === 401)) return;
 
       const nextStaff = Array.isArray(staffRes.data?.staff) ? staffRes.data.staff : [];
       const nextHours = hoursRes.data?.hours || [];
