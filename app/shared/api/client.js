@@ -18,7 +18,8 @@ export async function apiFetch(path, options = {}) {
       ...options
     }), options.method);
   } catch (error) {
-    if (isGet) getBreaker.record(breakerKey, 0);
+    // A request the caller cancelled (e.g. a superseded search) is not a server failure.
+    if (isGet && error?.name !== "AbortError") getBreaker.record(breakerKey, 0);
     throw error;
   }
   if (isGet) getBreaker.record(breakerKey, response.status);

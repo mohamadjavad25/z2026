@@ -2,18 +2,20 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { connectTo, listConnections, searchConnections } from "../../shared/api/connections";
+import { completePhone, looksLikePhoneInput } from "../../shared/lib/phone";
 
 const SEARCH_DELAY_MS = 300;
 
 /**
  * State for «سالن و آرتیست من»: the client's connected salons/artists, a
  * debounced search (link, phone or name) and connecting to a result.
+ * A phone number is searched only once it is complete, not on every digit.
  */
 export function useConnections({ onNotify } = {}) {
   const [connections, setConnections] = useState([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
-  const [search, setSearch] = useState({ status: "idle", by: "none", results: [] }); // idle | searching | done | error
+  const [search, setSearch] = useState({ status: "idle", by: "none", results: [] }); // idle | typingPhone | searching | done | error
   const [connectingId, setConnectingId] = useState(null);
   const notifyRef = useRef(onNotify);
   notifyRef.current = onNotify;
@@ -28,10 +30,18 @@ export function useConnections({ onNotify } = {}) {
 
   // Debounced search; an older request never overwrites a newer one.
   useEffect(() => {
-    const text = query.trim();
+    let text = query.trim();
     if (!text) {
       setSearch({ status: "idle", by: "none", results: [] });
       return undefined;
+    }
+    if (looksLikePhoneInput(text)) {
+      const phone = completePhone(text);
+      if (!phone) {
+        setSearch({ status: "typingPhone", by: "phone", results: [] });
+        return undefined;
+      }
+      text = phone;
     }
     setSearch((prev) => ({ ...prev, status: "searching" }));
     const controller = new AbortController();

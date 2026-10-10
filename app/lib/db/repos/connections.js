@@ -1,6 +1,6 @@
 import { randomBytes, timingSafeEqual } from "node:crypto";
 import { getDb, all, get, run } from "../connection.js";
-import { toLatinDigits } from "../../../shared/lib/digits.js";
+import { canonicalPhone } from "../../../shared/lib/phone.js";
 import { parseProfileLink } from "../../../shared/lib/connectCodes.js";
 
 /**
@@ -36,17 +36,6 @@ const DIGITS_ONLY_SQL = (column) => `regexp_replace(translate(${column}, '۰۱۲
 const PERSIAN_LETTERS_SQL = (expr) => `translate(${expr}, 'يك', 'یک')`;
 const toPersianLetters = (text) => text.replace(/ي/g, "ی").replace(/ك/g, "ک");
 const escapeLike = (text) => text.replace(/[\\%_]/g, (char) => `\\${char}`);
-
-/** Iranian phone in canonical 0-prefixed form ("09161234567", "06133334444"), or "" if it is not a phone. */
-export function canonicalPhone(text) {
-  const raw = toLatinDigits(text).replace(/[٠-٩]/g, (digit) => String(digit.charCodeAt(0) - 0x660)).trim();
-  if (!/^\+?[\d\s\-()]{7,}$/.test(raw)) return "";
-  let digits = raw.replace(/\D/g, "");
-  if (digits.startsWith("0098")) digits = `0${digits.slice(4)}`;
-  else if (digits.startsWith("98") && digits.length === 12) digits = `0${digits.slice(2)}`;
-  else if (digits.startsWith("9") && digits.length === 10) digits = `0${digits}`;
-  return /^0\d{9,10}$/.test(digits) ? digits : "";
-}
 
 function toCard(row, hoursByUser, connectedIds = null) {
   return {

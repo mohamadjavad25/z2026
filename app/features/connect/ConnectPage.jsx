@@ -103,6 +103,7 @@ export function ConnectPage({ me = {}, onOpenProfile, onNotify }) {
       <div className="cnBody">
         {searching ? (
           <section aria-label="نتیجه جستجو" aria-live="polite" className="cnList">
+            {search.status === "typingPhone" ? <p className="cnNote">شماره را کامل بنویس (۱۱ رقم)؛ بعد خودش جستجو می‌کند.</p> : null}
             {search.status === "searching" ? <SkeletonList rows={2} variant="card" label="در حال جستجو" /> : null}
             {search.status === "error" ? <p className="cnNote" role="alert">{search.message || "جستجو انجام نشد؛ دوباره امتحان کن."}</p> : null}
             {search.status === "done" && search.results.length === 0 ? (
