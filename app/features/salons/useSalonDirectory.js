@@ -249,6 +249,33 @@ export function useSalonDirectory({
     }
   }, [notify]);
 
+  /** The client accepts or declines a new time the salon offered for their booking. */
+  const answerClientTimeOffer = useCallback(async (booking, accept) => {
+    if (!booking?.id) return false;
+    try {
+      const { ok, payload } = await apiFetch(`/api/salon-bookings/${booking.id}/answer`, {
+        method: "POST",
+        body: JSON.stringify({ accept })
+      });
+      if (!ok) {
+        notify(payload?.error || "جواب ثبت نشد.");
+        if (typeof refreshClientBookings === "function") refreshClientBookings();
+        return false;
+      }
+      const updated = payload?.data?.booking || {};
+      setClientBookingList((list) => list.map((item) => (
+        item.id === booking.id && item.bookingSource !== "artist" ? { ...item, ...updated, service: item.service } : item
+      )));
+      notify(accept
+        ? `نوبتت برای ساعت ${updated.time || booking.time} قطعی شد.`
+        : "درخواست لغو شد. می‌توانی ساعت دیگری بگیری.");
+      return true;
+    } catch {
+      notify("جواب ثبت نشد؛ دوباره امتحان کن.");
+      return false;
+    }
+  }, [notify, refreshClientBookings]);
+
   const resetSalonClient = useCallback(() => {
     setSelectedSalon(null);
     setFollowedSalons([]);
@@ -613,6 +640,7 @@ export function useSalonDirectory({
     refreshSalonDirectory,
     refreshClientBookings,
     cancelClientBooking,
+    answerClientTimeOffer,
     resetSalonClient,
     toggleFollowSalon,
     toggleSaveSalon,

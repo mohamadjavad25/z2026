@@ -92,7 +92,7 @@ export function SalonClientBookingModal({
 
         {visitCount ? (
           <p className="salonClientVisitNote">
-            {toPersianDigits(visitCount)} خدمت پشت سر هم انجام می‌شوند؛ فقط ساعت‌هایی آمده که برای همه‌شان آرتیست آزاد هست.
+            {toPersianDigits(visitCount)} خدمت پشت سر هم انجام می‌شوند؛ فقط ساعت‌هایی آمده که برای همه‌شان آرتیست آزاد هست. اگر سالن ساعت را عوض کند، اول از تو می‌پرسد.
           </p>
         ) : null}
 

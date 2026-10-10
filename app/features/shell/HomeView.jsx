@@ -82,6 +82,7 @@ export function HomeView() {
     renderSavedPosts,
     clientBookingSettings,
     cancelClientBooking,
+    answerClientTimeOffer,
     salonWeekStripFloating,
     salonToolSheetOpen,
     salonTool,
@@ -231,6 +232,7 @@ export function HomeView() {
           booking={clientBookingSettings}
           onClose={() => setClientBookingSettings(null)}
           onCancelBooking={cancelClientBooking}
+          onAnswerOffer={answerClientTimeOffer}
           onRebookSalon={(booking) => {
             setClientBookingSettings(null);
             rebookFromBooking(booking);

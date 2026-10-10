@@ -23,6 +23,7 @@ import {
 } from "../../shared/lib/time.js";
 import { summarizeBookingParts } from "../../shared/lib/bookingParts.js";
 import { salonVisitParts } from "../../lib/salonVisitParts.js";
+import { AWAITING_CLIENT } from "../../shared/lib/bookingOffer.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -258,7 +259,8 @@ async function _PATCH(request) {
     return noStoreJson({ error: "وضعیت نامعتبر است." }, { status: 400 });
   }
   const patch = wantsCancel ? { status: "لغو" } : body;
-  const result = await salons.patchSalonBookingWithArtistSync(id, auth.user.id, patch);
+  // A new day or time for a client's booking goes to the client to accept (withClientConsent).
+  const result = await salons.patchSalonBookingWithArtistSync(id, auth.user.id, patch, { askClient: true });
 
   if (!result.ok) {
     if (result.error === "missing") {
@@ -281,6 +283,9 @@ async function _PATCH(request) {
         data: { bookings: await salons.listSalonBookings(auth.user.id) }
       }, { status: 409 });
     }
+    if (result.error === "awaiting_client") {
+      return noStoreJson({ error: "مشتری هنوز به ساعت تازه جواب نداده؛ بعد از قبولش تایید می‌شود.", code: "AWAITING_CLIENT" }, { status: 409 });
+    }
     if (result.error === "parts") {
       return noStoreJson({ error: "فهرست خدمات این نوبت نامعتبر است." }, { status: 400 });
     }
@@ -302,6 +307,15 @@ async function _PATCH(request) {
         body: `${result.booking.service || "نوبت"} — ${result.booking.booking_date || ""} ${result.booking.time || ""}`.trim()
       });
     }
+  }
+
+  // The salon moved a client's booking: the client hears about the new time right away.
+  const moved = ["time", "booking_date", "bookingDate", "date"].some((key) => body[key] != null);
+  if (!wantsCancel && moved && result.booking.status === AWAITING_CLIENT && result.booking.client_user_id) {
+    void sendPushToUser(Number(result.booking.client_user_id), {
+      title: "ساعت تازه برای نوبتت",
+      body: `${auth.user.name || "سالن"} ساعت ${result.booking.time || ""} را برای ${result.booking.service || "نوبت"} پیشنهاد داده. قبول یا رد کن.`
+    });
   }
 
   return noStoreJson({

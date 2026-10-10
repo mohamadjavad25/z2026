@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CalendarCheck, Check, ChevronLeft, Hourglass, TimerOff, XCircle } from "lucide-react";
+import { CalendarCheck, CalendarClock, Check, ChevronLeft, Hourglass, TimerOff, XCircle } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar";
 import { formatRequestExpiryDeadline, toIsoLikeTimestamp } from "../../shared/lib/time";
 import { isBookingInPast } from "./bookingStatus";
+import { AWAITING_CLIENT } from "../../shared/lib/bookingOffer";
 
 const PENDING = new Set(["درخواست", "تازه"]);
 const WINDOW_MS = 60 * 60 * 1000; // a request is auto-cancelled after an hour (bookingExpirySweep)
@@ -26,6 +27,7 @@ function remainingShare(booking, now) {
  *   moving progress bar showing how much of the one-hour answer window is left).
  * - The moment it is answered (seen through the 10 s refresh): the chip flips to
  *   "confirmed" / "cancelled" / "expired" for a few seconds, then goes away.
+ * - A salon offered a new time and waits for the client's answer: that comes first, until answered.
  * Tapping opens the booking details.
  */
 export function ClientBookingTracker({ bookings = [], onOpen }) {
@@ -67,9 +69,13 @@ export function ClientBookingTracker({ bookings = [], onOpen }) {
       .sort((a, b) => String(b.created_at || "").localeCompare(String(a.created_at || "")))
   ), [bookings]);
 
+  const offers = useMemo(() => (
+    bookings.filter((booking) => booking.status === AWAITING_CLIENT && booking.bookingSource !== "artist" && !isBookingInPast(booking))
+  ), [bookings]);
+
   // Tell the page a chip is floating above the bottom bar so it can reserve room for it
   // (otherwise it covers the last card of whatever list is underneath).
-  const chipVisible = Boolean(flash) || pending.length > 0;
+  const chipVisible = Boolean(flash) || pending.length > 0 || offers.length > 0;
   useEffect(() => {
     if (!chipVisible) return undefined;
     document.documentElement.dataset.cbt = "1";
@@ -97,6 +103,22 @@ export function ClientBookingTracker({ bookings = [], onOpen }) {
           </small>
         </span>
         <ChevronLeft size={18} />
+      </button>
+    );
+  }
+
+  if (offers.length) {
+    const offer = offers[0];
+    return (
+      <button type="button" className="cbt is-offer" onClick={() => onOpen?.(offer)} aria-live="polite">
+        <span className="cbtIcon" aria-hidden="true"><CalendarClock size={19} /></span>
+        <span className="cbtText">
+          <b>سالن ساعت تازه پیشنهاد داده</b>
+          <small>
+            {offer.service || "نوبت"} — {placeOf(offer)} — {formatRelativeBookingDayLabel(offer.booking_date || "امروز")} {offer.time ? toPersianDigits(offer.time) : ""}
+          </small>
+        </span>
+        {offers.length > 1 ? <em className="cbtCount">{toPersianDigits(offers.length)}</em> : <ChevronLeft size={18} aria-hidden="true" />}
       </button>
     );
   }

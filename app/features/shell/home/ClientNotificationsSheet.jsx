@@ -1,5 +1,6 @@
 import { toIsoLikeTimestamp } from "../../../shared/lib/time";
-import { Check, X, TimerOff, BellRing } from "lucide-react";
+import { Check, X, TimerOff, BellRing, CalendarClock } from "lucide-react";
+import { AWAITING_CLIENT } from "../../../shared/lib/bookingOffer";
 import { ProfileSheet } from "../../profile/ProfileSheet";
 import { ServiceIcon } from "../../../components/ServiceIcon";
 
@@ -23,7 +24,7 @@ export function ClientNotificationsSheet() {
             onClose={() => setProfileView("overview")}
           >
             {(() => {
-              const notifiableStatuses = ["تایید شده", "لغو", "منقضی شده"];
+              const notifiableStatuses = ["تایید شده", "لغو", "منقضی شده", AWAITING_CLIENT];
               const recentBookingNotices = clientBookingList
                 .filter((booking) => notifiableStatuses.includes(booking.status || ""))
                 .sort((a, b) => new Date(toIsoLikeTimestamp(b.created_at)) - new Date(toIsoLikeTimestamp(a.created_at)))
@@ -31,7 +32,8 @@ export function ClientNotificationsSheet() {
               return recentBookingNotices.length ? (
                 <div className="reservationRequestList" aria-label="آخرین تغییرات رزروها">
                   {recentBookingNotices.map((booking) => {
-                    const StatusIcon = booking.status === "تایید شده" ? Check : booking.status === "لغو" ? X : TimerOff;
+                    const offer = booking.status === AWAITING_CLIENT;
+                    const StatusIcon = offer ? CalendarClock : booking.status === "تایید شده" ? Check : booking.status === "لغو" ? X : TimerOff;
                     const statusClass = booking.status === "تایید شده" ? "is-approve" : booking.status === "لغو" ? "is-decline" : "is-expiredNotice";
                     return (
                       <article className={`reservationRequestCard ${statusClass}`} key={`${booking.bookingSource || "salon"}-${booking.id}`}>
@@ -43,7 +45,7 @@ export function ClientNotificationsSheet() {
                           <div className="requestCardAside">
                             <span className="expiredNoticeTag">
                               <StatusIcon size={14} />
-                              {booking.status}
+                              {offer ? "ساعت تازه پیشنهاد شده" : booking.status}
                             </span>
                           </div>
                         </div>
