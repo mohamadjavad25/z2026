@@ -2,7 +2,7 @@
 
 import { thumbUrl } from "../../shared/lib/mediaUrl";
 import { useState } from "react";
-import { ImagePlus } from "lucide-react";
+import { Mascot } from "../../components/Mascot";
 import { PostViewer } from "../posts/PostViewer";
 
 function getItemKey(item, index) {
@@ -44,7 +44,7 @@ export function SalonClientGallery({ salon, items, getFallbackStyle, postActions
   if (!items?.length) {
     return (
       <div className="salonClientEmptyGallery">
-        <ImagePlus size={22} />
+        <Mascot pose="camera" size={130} />
         <b>هنوز نمونه‌کاری ثبت نشده</b>
       </div>
     );
