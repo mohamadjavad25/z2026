@@ -1,2 +1,3 @@
 export { ConnectPage } from "./ConnectPage";
-export { ScanCustomerAction } from "./ScanCustomerAction";
+export { OwnerScanButton } from "./OwnerScanButton";
+export { ScanFlow } from "./ScanFlow";

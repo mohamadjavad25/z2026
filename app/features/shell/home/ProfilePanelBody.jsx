@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { AuthGateForms } from "../../auth";
 import { ProfileHero } from "../../profile/ProfileHero";
 import { ProfileCompleteness } from "../../profile/ProfileCompleteness";
@@ -6,6 +7,7 @@ import { ProfileGallery } from "../../profile/ProfileGallery";
 import { SalonScheduleDashboard, ArtistScheduleBoard } from "../../schedule";
 import { ArtistOverviewReviews, ArtistServicesPanel, ArtistCollabBoard } from "../../artist";
 import { ClientProfileOverview, ClientBookingsPanel } from "../../client";
+import { ScanFlow } from "../../connect";
 
 import { useHome } from "../HomeContext";
 export function ProfilePanelBody() {
@@ -58,6 +60,8 @@ export function ProfilePanelBody() {
     addSalonPortfolio,
     deleteSalonPortfolioFromComposer,
     setAppToast,
+    refreshSalonSystemData,
+    refreshArtistWorkspace,
     clearSalonWorkImage,
     salonWorkTagOptions,
     salonWorkTagMenuOpen,
@@ -139,6 +143,8 @@ export function ProfilePanelBody() {
     openArtistWorkModal,
     setArtistCollabDraft
   } = useHome();
+  const [ownerScanOpen, setOwnerScanOpen] = useState(false);
+  const ownerType = createdProfile?.type === "salon" || createdProfile?.type === "artist" ? createdProfile.type : "";
 
   return (
     (!createdProfile ? (
@@ -201,9 +207,17 @@ export function ProfilePanelBody() {
               }
               onShare={shareSalonOwnerProfile}
               showShare={createdProfile?.type === "salon"}
-              onPreviewPublic={createdProfile?.type === "salon" || createdProfile?.type === "artist" ? openOwnPublicProfile : undefined}
+              onPreviewPublic={ownerType ? openOwnPublicProfile : undefined}
+              onScan={ownerType ? () => setOwnerScanOpen(true) : undefined}
               modeRail={createdProfile?.type === "salon" ? profileModeRail : null}
             />
+            {ownerScanOpen && ownerType ? (
+              <ScanFlow
+                viewerType={ownerType}
+                onChanged={() => (ownerType === "salon" ? refreshSalonSystemData?.() : refreshArtistWorkspace?.())}
+                onClose={() => setOwnerScanOpen(false)}
+              />
+            ) : null}
 
             {createdProfile?.type !== "salon" && profileModeRail}
 

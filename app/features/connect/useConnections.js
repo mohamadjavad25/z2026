@@ -54,8 +54,11 @@ export function useConnections({ onNotify } = {}) {
     };
   }, [query]);
 
-  /** Connects to a salon/artist card; resolves to the connected profile or null. */
-  const connect = useCallback(async (profile) => {
+  /**
+   * Connects to a salon/artist card; resolves to the connected profile or null.
+   * `silent` skips the success toast when the caller shows the result itself (the scanner).
+   */
+  const connect = useCallback(async (profile, { silent = false } = {}) => {
     if (!profile?.id) return null;
     setConnectingId(profile.id);
     try {
@@ -70,7 +73,7 @@ export function useConnections({ onNotify } = {}) {
         ...prev,
         results: prev.results.map((item) => (item.id === connected.id ? { ...item, connected: true } : item))
       }));
-      if (!payload.data.alreadyConnected) notifyRef.current?.(`${connected.name} به لیستت اضافه شد.`);
+      if (!payload.data.alreadyConnected && !silent) notifyRef.current?.(`${connected.name} به لیستت اضافه شد.`);
       return connected;
     } catch {
       notifyRef.current?.("وصل شدن انجام نشد؛ دوباره امتحان کن.");

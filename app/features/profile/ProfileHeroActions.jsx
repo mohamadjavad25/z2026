@@ -43,7 +43,7 @@ export function ProfileHeroActions({
           </button>
         )}
         {typeof onShowQr === "function" ? (
-          <button type="button" onClick={onShowQr} aria-label="کد QR پروفایل" title="کد QR پروفایل">
+          <button type="button" onClick={onShowQr} aria-label="کد QR و اسکن" title="کد QR و اسکن">
             <QrCode size={17} />
           </button>
         ) : null}

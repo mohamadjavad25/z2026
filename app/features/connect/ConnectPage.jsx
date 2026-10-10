@@ -7,7 +7,7 @@ import { SkeletonList } from "../../components/Skeleton";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { ConnectionCard } from "./ConnectionCard";
 import { MyCodeSheet } from "./MyCodeSheet";
-import { ScanToConnect } from "./ScanToConnect";
+import { ScanFlow } from "./ScanFlow";
 import { useConnections } from "./useConnections";
 
 const NOT_FOUND = {
@@ -142,7 +142,7 @@ export function ConnectPage({ me = {}, onOpenProfile, onNotify }) {
         )}
       </div>
 
-      {sheet === "scan" ? <ScanToConnect connect={connect} onOpen={onOpenProfile} onClose={() => setSheet("")} /> : null}
+      {sheet === "scan" ? <ScanFlow viewerType="client" connect={connect} onOpenProfile={onOpenProfile} onClose={() => setSheet("")} /> : null}
       {sheet === "code" ? <MyCodeSheet name={me.name} avatar={me.avatar} onClose={() => setSheet("")} /> : null}
     </section>
   );

@@ -199,6 +199,47 @@ export async function disconnect(clientUserId, targetUserId) {
   return { removed: Boolean(removed) };
 }
 
+// ---- What a scanned profile code means to the person who scanned it ----
+
+const INVITE_PENDING = "در انتظار تایید"; // salon_artist_invites.status, see repos/salons/invites.js
+
+/**
+ * The salon/artist behind a scanned link, plus how the viewer relates to it, so
+ * the scanner can offer the right action:
+ *   relation: "self" | "connected" | "none"        (viewer is a client, or anyone scanning themselves)
+ *           | "member" | "invited" | "none"          (salon <-> artist team)
+ *           | "unrelated"                           (salon scans salon, artist scans artist)
+ * A scanned code means the viewer already knows this business, so profiles
+ * hidden from public listings are still found.
+ * @returns {Promise<{ profile: object, relation: string } | null>}
+ */
+export async function lookupProfile(viewer, { type, id }) {
+  const db = await getDb();
+  const row = await get(db, `SELECT ${PROFILE_COLUMNS} ${PROFILE_FROM} WHERE u.id = $1 AND u.type = $2 AND u.suspended_at IS NULL`, [id, type]);
+  if (!row) return null;
+  const [profile] = await toCards(db, [row]);
+
+  let relation = "none";
+  if (row.id === viewer.id) {
+    relation = "self";
+  } else if (viewer.type === "client") {
+    const followed = await get(db, "SELECT 1 FROM follows WHERE follower_user_id = $1 AND target_user_id = $2", [viewer.id, row.id]);
+    relation = followed ? "connected" : "none";
+  } else if (viewer.type === row.type) {
+    relation = "unrelated";
+  } else {
+    const salonId = viewer.type === "salon" ? viewer.id : row.id;
+    const artistId = viewer.type === "artist" ? viewer.id : row.id;
+    const member = await get(db, "SELECT 1 FROM salon_staff WHERE salon_user_id = $1 AND artist_user_id = $2", [salonId, artistId]);
+    if (member) relation = "member";
+    else if (viewer.type === "salon") {
+      const invite = await get(db, "SELECT 1 FROM salon_artist_invites WHERE salon_user_id = $1 AND artist_user_id = $2 AND status = $3", [salonId, artistId, INVITE_PENDING]);
+      if (invite) relation = "invited";
+    }
+  }
+  return { profile, relation };
+}
+
 // ---- Client's personal code ("اسکن شو") ----
 //
 // The secret lives in the client's user_settings JSON (key `connectCode`) so no

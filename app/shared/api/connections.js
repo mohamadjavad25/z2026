@@ -29,3 +29,13 @@ export async function getMyConnectCode() {
 export async function connectScannedClient(code) {
   return apiFetch("/api/connections/scan", { method: "POST", body: JSON.stringify({ code }) });
 }
+
+/** GET /api/connections/lookup?code= (any role) → { profile, relation } for a scanned salon/artist code */
+export async function lookupScannedCode(code) {
+  return apiJson(`/api/connections/lookup?code=${encodeURIComponent(code)}`);
+}
+
+/** POST /api/artist/join-salon { salonUserId } (artist) → joins the salon's team; 201 */
+export async function joinSalonTeam(salonUserId) {
+  return apiFetch("/api/artist/join-salon", { method: "POST", body: JSON.stringify({ salonUserId }) });
+}

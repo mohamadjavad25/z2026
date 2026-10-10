@@ -2,15 +2,17 @@
 
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import { Check, Copy, Share2 } from "lucide-react";
+import { Check, Copy, ScanLine, Share2 } from "lucide-react";
 import { useQrCode } from "../shared/hooks/useQrCode";
 import { SheetClose } from "./SheetClose";
 
 /**
- * QR of a salon's or artist's public page. Clients scan it with «اسکن کن» in
- * «سالن و آرتیست من» to connect, or with any camera to open the page.
+ * «اسکن شو» for salons and artists: the QR of their public page. Scanned in
+ * frfro it connects a client, lets an artist join a salon's team, or lets a
+ * salon invite an artist (features/connect/ScanFlow); any other camera just
+ * opens the page. `onScan` adds an «اسکن کن» button for the other direction.
  */
-export function ProfileQrCodeSheet({ open, url, name = "پروفایل", onOpenChange }) {
+export function ProfileQrCodeSheet({ open, url, name = "پروفایل", hint = "مشتری‌ها با اسکن این کد در فرفرو به تو وصل می‌شوند.", onScan, onOpenChange }) {
   const dataUrl = useQrCode(url, open);
   const [copied, setCopied] = useState(false);
 
@@ -52,7 +54,7 @@ export function ProfileQrCodeSheet({ open, url, name = "پروفایل", onOpenC
             {dataUrl ? <img src={dataUrl} alt={`کد QR پروفایل عمومی ${name}`} /> : <span className="ivtQrWait" />}
           </div>
         </div>
-        <p className="qrsHint">مشتری‌ها با اسکن این کد در فرفرو به تو وصل می‌شوند.</p>
+        <p className="qrsHint">{hint}</p>
         <div className="ivtActions">
           <button type="button" className="ivtShare" onClick={shareLink}>
             <Share2 size={17} aria-hidden="true" />
@@ -63,6 +65,12 @@ export function ProfileQrCodeSheet({ open, url, name = "پروفایل", onOpenC
             <span>{copied ? "کپی شد" : "کپی"}</span>
           </button>
         </div>
+        {typeof onScan === "function" ? (
+          <button type="button" className="qrsScanBtn" onClick={onScan}>
+            <ScanLine size={18} aria-hidden="true" />
+            اسکن کن
+          </button>
+        ) : null}
         <SheetClose onClick={() => onOpenChange?.(false)} />
       </article>
     </div>

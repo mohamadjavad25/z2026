@@ -22,29 +22,36 @@ export function ConnectionAvatar({ profile, size = 50 }) {
 }
 
 /**
- * One salon/artist row: tapping the body opens the profile, the button on the
- * side does the main action (book, connect, ...).
+ * One salon/artist row: the side button does the main action (book, connect,
+ * invite...); when `onOpen` is given, tapping the body opens the profile.
  */
 export function ConnectionCard({ profile, onOpen, action }) {
   const status = todayStatus(profile.hours);
   const details = [status?.label, profile.area || profile.specialty].filter(Boolean).join(" · ");
+  const body = (
+    <>
+      <ConnectionAvatar profile={profile} />
+      <span className="cnCardText">
+        <span className="cnCardTitle">
+          <b>{profile.name}</b>
+          <em>{TYPE_LABEL[profile.type] || ""}</em>
+        </span>
+        {details ? (
+          <small>
+            {status ? <i className={`cnDot ${status.open ? "is-open" : ""}`} aria-hidden="true" /> : null}
+            {details}
+          </small>
+        ) : null}
+      </span>
+    </>
+  );
   return (
     <article className="cnCard">
-      <button type="button" className="cnCardMain" onClick={() => onOpen?.(profile)} aria-label={`باز کردن ${profile.name}`}>
-        <ConnectionAvatar profile={profile} />
-        <span className="cnCardText">
-          <span className="cnCardTitle">
-            <b>{profile.name}</b>
-            <em>{TYPE_LABEL[profile.type] || ""}</em>
-          </span>
-          {details ? (
-            <small>
-              {status ? <i className={`cnDot ${status.open ? "is-open" : ""}`} aria-hidden="true" /> : null}
-              {details}
-            </small>
-          ) : null}
-        </span>
-      </button>
+      {onOpen ? (
+        <button type="button" className="cnCardMain" onClick={() => onOpen(profile)} aria-label={`باز کردن ${profile.name}`}>{body}</button>
+      ) : (
+        <div className="cnCardMain">{body}</div>
+      )}
       {action}
     </article>
   );
