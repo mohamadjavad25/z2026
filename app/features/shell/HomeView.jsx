@@ -55,6 +55,7 @@ export function HomeView() {
     sharePost,
     salonClientBooking,
     salonClientFreeTimes,
+    salonClientTimesLoading,
     salonClientBookingBusy,
     closeSalonClientBooking,
     patchSalonClientBooking,
@@ -184,6 +185,7 @@ export function HomeView() {
             salon={selectedSalon}
             booking={salonClientBooking}
             freeTimes={salonClientFreeTimes}
+            timesLoading={salonClientTimesLoading}
             busy={salonClientBookingBusy}
             onClose={closeSalonClientBooking}
             onChange={patchSalonClientBooking}

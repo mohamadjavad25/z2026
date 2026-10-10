@@ -87,6 +87,36 @@ describe("booking flow (browser)", () => {
     await clientView.context.close();
     await salonView.context.close();
   });
+
+  it("client books two services in one visit and is offered times from the server", async () => {
+    const { name, client: salonClient, salon } = await seedSalon();
+    await salonClient.post("/api/salon-services", { name: "مانیکور", price: "200000", duration: "30 دقیقه" });
+    const clientApi = createClient();
+    await registerUser(clientApi, { type: "client", name: "مشتری دو خدمت" });
+    expect((await clientApi.post("/api/connections", { targetUserId: salon.user.id })).ok).toBe(true);
+
+    const clientView = await newPage({ cookie: clientApi.cookie() });
+    const cp = clientView.page;
+    await cp.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
+    await cp.locator("nav.bottomNav > button").nth(2).click();
+    await cp.locator(".cnCard").filter({ hasText: name }).first().getByRole("button", { name: `باز کردن ${name}` }).click();
+    await cp.locator(".spvBarBook").click();
+    await cp.locator(".sduItem").nth(0).click();
+    await cp.locator(".sduItem").nth(1).click();
+    const visitTimes = cp.waitForResponse((response) => response.url().includes("/api/salon-bookings/availability"));
+    await cp.locator(".sduConfirm").click();
+    expect((await visitTimes).ok()).toBe(true);
+    await cp.locator(".salonClientVisitNote").waitFor();
+    await cp.locator(".bspTime").first().click();
+    expect(await cp.locator(".salonClientBookingSummary").innerText()).toContain("تا حدود");
+    await cp.getByRole("button", { name: "ثبت درخواست نوبت" }).click();
+    await cp.locator(".cbt.is-wait").waitFor();
+    expect(clientView.problems).toEqual([]);
+
+    const booking = (await salonClient.get("/api/salon-bookings")).payload.data.bookings[0];
+    expect(JSON.parse(booking.parts).map((part) => part.service).sort()).toEqual(["مانیکور", "کوتاهی مو"].sort());
+    await clientView.context.close();
+  });
 });
 
 describe("mobile smoke (browser)", () => {

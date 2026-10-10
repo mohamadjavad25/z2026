@@ -161,25 +161,43 @@ async function findOverlapConflict(db, {
 }
 
 /**
- * Draft split for a new multi-service booking: each service without an artist goes to the
- * first artist who does that service (the salon's service → staff list) and is free for that
- * part of the visit -- free in this salon's bookings and in their own artist calendar.
- * A service nobody can take stays unassigned; the salon picks someone in the booking menu.
+ * Everything a visit plan needs for one salon day, loaded once: the salon's services (with who
+ * does each), its active bookings, and -- loaded as first needed -- each artist's own calendar.
  */
-async function draftPartStaff(db, salonUserId, bookingDate, time, parts) {
+async function loadVisitDay(db, salonUserId, bookingDate) {
   const services = await listSalonServices(salonUserId, db);
-  const held = (await listActiveDayBookings(db, salonUserId, bookingDate)).flatMap(bookingSegments);
+  const rows = await listActiveDayBookings(db, salonUserId, bookingDate);
+  return { db, bookingDate, services, rows, held: rows.flatMap(bookingSegments), artistBusy: new Map() };
+}
+
+async function artistBusyRanges(day, artistId) {
+  if (!day.artistBusy.has(artistId)) {
+    day.artistBusy.set(artistId, await artists.listArtistBusyRanges(artistId, day.bookingDate, {}, day.db));
+  }
+  return day.artistBusy.get(artistId);
+}
+
+function staffForService(day, serviceName) {
+  const service = day.services.find((item) => String(item.name || "").trim() === serviceName);
+  return (service?.staff_members || []).filter((person) => String(person.name || "").trim());
+}
+
+/**
+ * Draft split for a multi-service visit: each service without an artist goes to the first
+ * artist who does that service (the salon's service → staff list) and is free for that part
+ * of the visit -- free in this salon's bookings and in their own artist calendar.
+ * A service nobody can take stays unassigned.
+ */
+async function draftVisitParts(day, time, parts) {
   const drafted = [];
   for (const part of scheduleBookingParts(time, parts)) {
     let staff = part.staff;
     if (!staff) {
-      const service = services.find((item) => String(item.name || "").trim() === part.service);
-      for (const person of service?.staff_members || []) {
-        const name = String(person.name || "").trim();
-        if (!name) continue;
-        if (held.some((segment) => segment.staff === name && rangesOverlap(part.start, part.end, segment.start, segment.end))) continue;
+      for (const person of staffForService(day, part.service)) {
+        const name = String(person.name).trim();
+        if (day.held.some((segment) => segment.staff === name && rangesOverlap(part.start, part.end, segment.start, segment.end))) continue;
         const artistId = Number(person.artist_user_id || 0);
-        if (artistId && await artists.isArtistSlotBlocked(artistId, bookingDate, part.startLabel, part.minutes, null, db)) continue;
+        if (artistId && (await artistBusyRanges(day, artistId)).some((range) => rangesOverlap(part.start, part.end, range.start, range.end))) continue;
         staff = name;
         break;
       }
@@ -187,6 +205,37 @@ async function draftPartStaff(db, salonUserId, bookingDate, time, parts) {
     drafted.push({ service: part.service, minutes: part.minutes, staff });
   }
   return drafted;
+}
+
+/** The first service left without an artist although the salon has people who do it. */
+function findUnstaffedPart(day, parts) {
+  return parts.find((part) => !part.staff && staffForService(day, part.service).length) || null;
+}
+
+/** Same rule as findOverlapConflict, against an already loaded day. */
+function visitOverlaps(day, time, parts) {
+  const wanted = bookingSegments({ time, parts });
+  return day.held.some((held) => wanted.some((segment) => staffScopesConflict(segment.staff, held.staff)
+    && rangesOverlap(segment.start, segment.end, held.start, held.end)));
+}
+
+/**
+ * The start times (from `times`) at which a client can book these services back to back:
+ * every service someone at the salon does gets a free artist in the draft, and nothing
+ * overlaps the salon's other bookings. A request at any other time is refused (addSalonBooking
+ * with requireStaff), so the client only ever sees times that will go through.
+ */
+export async function listFeasibleVisitTimes(salonUserId, bookingDate, parts, times) {
+  await ensureBookingPartsColumns();
+  const list = parseBookingParts(parts).map((part) => ({ ...part, staff: "" }));
+  if (list.length < 2) return [];
+  const day = await loadVisitDay(await getDb(), salonUserId, bookingDate);
+  const feasible = [];
+  for (const time of times) {
+    const drafted = await draftVisitParts(day, time, list);
+    if (!findUnstaffedPart(day, drafted) && !visitOverlaps(day, time, drafted)) feasible.push(time);
+  }
+  return feasible;
 }
 
 /** Thrown inside a transaction to roll the whole booking back when an artist's calendar is taken. */
@@ -401,7 +450,7 @@ export async function addSalonBooking(salonUserId, data) {
 }
 
 /**
- * A booking with several services: the artists are drafted (draftPartStaff), every service's
+ * A booking with several services: the artists are drafted (draftVisitParts), every service's
  * range is checked against the salon's other bookings, and each artist's share goes into
  * their calendar -- all in one transaction, so a taken artist calendar rolls everything back.
  */
@@ -409,7 +458,14 @@ async function addMultiPartSalonBooking(salonUserId, data) {
   const staffList = await listSalonStaff(salonUserId);
   try {
     return await withTransaction(null, async (db) => {
-      const parts = await draftPartStaff(db, salonUserId, data.bookingDate, data.time, parseBookingParts(data.parts));
+      const day = await loadVisitDay(db, salonUserId, data.bookingDate);
+      const parts = await draftVisitParts(day, data.time, parseBookingParts(data.parts));
+      // A client's request must find an artist for every service someone at the salon does
+      // (the same rule listFeasibleVisitTimes shows them); the salon may leave one open.
+      const unstaffed = data.requireStaff ? findUnstaffedPart(day, parts) : null;
+      if (unstaffed) {
+        return { ok: false, error: "no_staff", message: `برای «${unstaffed.service}» در این ساعت آرتیست آزادی نیست.` };
+      }
       const { service, durationMinutes } = summarizeBookingParts(parts);
       const conflict = await findOverlapConflict(db, {
         salonUserId,

@@ -8,7 +8,7 @@ import { listSalonPortfolio } from "./salons/portfolio.js";
 import { listSalonServices } from "./salons/services.js";
 import { listSalonStaff } from "./salons/staff.js";
 
-export { cancelSalonBookingByClient, listSalonBookings, listClientSalonBookings, addSalonBooking, updateSalonBooking, cancelSalonBooking, patchSalonBookingWithArtistSync, syncSalonBookingFromArtistMirror } from "./salons/bookings.js";
+export { cancelSalonBookingByClient, listFeasibleVisitTimes, listSalonBookings, listClientSalonBookings, addSalonBooking, updateSalonBooking, cancelSalonBooking, patchSalonBookingWithArtistSync, syncSalonBookingFromArtistMirror } from "./salons/bookings.js";
 export { ensureSalonHours, listSalonHours, updateSalonHour } from "./salons/hours.js";
 export { listSalonPortfolio, addSalonPortfolio, updateSalonPortfolio, deleteSalonPortfolio } from "./salons/portfolio.js";
 export { listSalonServices, addSalonService, updateSalonService, deleteSalonService } from "./salons/services.js";

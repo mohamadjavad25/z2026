@@ -190,4 +190,46 @@ describe("multi-service salon booking", () => {
     });
     expect(free.ok).toBe(true);
   });
+
+  it("offers the client only start times at which every service has a free artist", async () => {
+    const ctx = await setup();
+    const day = futureBookingDay(7);
+    const latin = (times) => times.map((time) => time.replace(/[۰-۹]/g, (d) => "۰۱۲۳۴۵۶۷۸۹".indexOf(d)));
+    const visitTimes = async (services, onDay = day) => {
+      const query = new URLSearchParams({ salonUserId: String(ctx.salon.user.id), day: onDay });
+      services.forEach((service) => query.append("service", service));
+      return ctx.clientClient.get(`/api/salon-bookings/availability?${query}`);
+    };
+
+    const before = await visitTimes(["مانیکور ویزیت", "کوتاهی ویزیت"]);
+    expect(before.ok).toBe(true);
+    expect(before.payload.data.durationMinutes).toBe(75);
+    expect(latin(before.payload.data.times)).toContain("10:00");
+
+    // The only hair artist is busy 11:00–11:30, so a visit whose haircut would overlap it is not offered.
+    expect((await ctx.salonClient.post("/api/salon-bookings", {
+      service: "کوتاهی ویزیت", staff: ctx.hair.staff.name, bookingDate: day, time: "11:00", client: "حضوری", phone: "09120000081"
+    })).ok).toBe(true);
+    const after = latin((await visitTimes(["مانیکور ویزیت", "کوتاهی ویزیت"])).payload.data.times);
+    expect(after).not.toContain("10:00");
+    expect(after).not.toContain("10:30");
+    expect(after).toContain("11:30");
+    // In the other order the haircut comes first and 10:00 works again.
+    expect(latin((await visitTimes(["کوتاهی ویزیت", "مانیکور ویزیت"])).payload.data.times)).toContain("10:00");
+
+    // The server holds the same line: a request at a time that was not offered is refused.
+    const refused = await requestVisit(ctx, { bookingDate: day, time: "10:00" });
+    expect(refused.status).toBe(409);
+    expect(refused.payload.code).toBe("NO_FREE_ARTIST");
+    expect((await requestVisit(ctx, { bookingDate: day, time: "11:30" })).status).toBe(201);
+    expect(latin((await visitTimes(["مانیکور ویزیت", "کوتاهی ویزیت"])).payload.data.times)).not.toContain("11:30");
+
+    // A service nobody at the salon is linked to does not need an artist (it only needs the
+    // salon to be free, so it is checked on an empty day).
+    expect((await ctx.salonClient.post("/api/salon-services", { name: "ماساژ ویزیت", price: "200", duration: "۳۰ دقیقه" })).ok).toBe(true);
+    expect(latin((await visitTimes(["مانیکور ویزیت", "ماساژ ویزیت"], futureBookingDay(8))).payload.data.times)).toContain("10:00");
+
+    expect((await visitTimes(["مانیکور ویزیت"])).status).toBe(400);
+    expect((await visitTimes(["مانیکور ویزیت", "خدمت ناشناس"])).status).toBe(400);
+  });
 });

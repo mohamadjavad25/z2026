@@ -22,6 +22,7 @@ import {
   timeLabelToMinutes
 } from "../../shared/lib/time.js";
 import { summarizeBookingParts } from "../../shared/lib/bookingParts.js";
+import { salonVisitParts } from "../../lib/salonVisitParts.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -123,21 +124,8 @@ async function _POST(request) {
   }
   const client = String(body.client || auth.user.name || "").trim();
   const phone = String(body.phone || auth.user.phone || "").trim();
-  // Several services in one visit: each one's length comes from the salon's own service list
-  // (the request's value only for a service the salon no longer lists), and only the salon
-  // itself may name the artists -- a client's request is split by the server's draft.
-  const parts = (v.data.parts || []).map((part) => {
-    const listed = Array.isArray(salon?.services)
-      ? salon.services.find((item) => String(item?.name || "").trim() === part.service)
-      : null;
-    return {
-      service: part.service,
-      minutes: listed?.duration
-        ? parseServiceDurationMinutes(listed.duration)
-        : Math.max(15, Number(part.durationMinutes) || parseServiceDurationMinutes(part.duration)),
-      staff: auth.user.type === "salon" ? String(part.staff || "").trim() : ""
-    };
-  });
+  const parts = salonVisitParts(salon, v.data.parts, { allowStaff: auth.user.type === "salon" })
+    .map(({ service, minutes, staff }) => ({ service, minutes, staff }));
   const multiPart = parts.length >= 2;
   const service = multiPart ? summarizeBookingParts(parts).service : String(body.service || "").trim();
   const rawBookingDay = body.bookingDate || body.booking_date || body.date || "";
@@ -191,9 +179,13 @@ async function _POST(request) {
     time,
     durationMinutes,
     parts: multiPart ? parts : undefined,
+    requireStaff: auth.user.type === "client",
     clientUserId: auth.user.type === "client" ? auth.user.id : body.clientUserId || body.client_user_id || null
   });
   if (!result.ok) {
+    if (result.error === "no_staff") {
+      return noStoreJson({ error: result.message, code: "NO_FREE_ARTIST" }, { status: 409 });
+    }
     if (result.error === "artist_conflict") {
       return noStoreJson({ error: result.message || "این ساعت برای آرتیست قبلاً رزرو شده است.", code: result.code || "ARTIST_SLOT_TAKEN" }, { status: 409 });
     }
