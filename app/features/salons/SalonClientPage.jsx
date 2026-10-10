@@ -1,35 +1,22 @@
 "use client";
 
 import { DEFAULT_SALON_LOGO } from "../../shared/lib/defaultAvatar";
-import { SkeletonList } from "../../components/Skeleton";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
-  BadgeCheck,
   CalendarCheck,
   Check,
   ChevronLeft,
   Clock3,
-  Home,
   Heart,
   ImagePlus,
   MapPin,
-  Palette,
   Phone,
-  Plus,
   Scissors,
-  Search,
-  ShieldCheck,
   Share2,
-  Store,
   UserPlus,
-  UserRound,
-  WandSparkles,
-  X
+  UserRound
 } from "lucide-react";
 import { ServiceIcon } from "../../components/ServiceIcon";
-import { Mascot } from "../../components/Mascot";
-import { ServiceIconStrip } from "../../components/ServiceIconStrip";
-import { SegmentClock } from "../../components/SegmentClock";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
 import { SalonClientGallery } from "./SalonClientGallery";
@@ -47,28 +34,18 @@ import { SheetClose } from "../../components/SheetClose";
 // JS getDay(): 0 = Sunday ... 6 = Saturday; the salon's hours rows are keyed by the Persian weekday name.
 const PERSIAN_WEEKDAYS = ["یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنجشنبه", "جمعه", "شنبه"];
 
-function getTodayStatus(hours) {
-  if (!Array.isArray(hours) || !hours.length) return null;
-  const row = hours.find((item) => item.day === PERSIAN_WEEKDAYS[new Date().getDay()]);
-  return row?.active
-    ? { open: true, short: `امروز تا ${toPersianDigits(row.close_time || "")}` }
-    : { open: false, short: "امروز تعطیل" };
-}
-
-function getMinPrice(services) {
-  const prices = (services || []).map((service) => parseTomanAmount(service.price)).filter(Boolean);
-  return prices.length ? Math.min(...prices) : 0;
-}
-
 function getPrimaryBookingService(services) {
   return services[0]?.name || "رزرو وقت";
 }
 
+/**
+ * The salons tab: a salon's public page when one is selected, otherwise
+ * `homeContent` (the client's «سالن و آرتیست من», see features/connect).
+ */
 export function SalonClientPage({
   active,
   selectedSalon,
-  salons,
-  directoryLoading = false,
+  homeContent = null,
   isFollowing,
   isSaved,
   getVisibleServices,
@@ -78,19 +55,10 @@ export function SalonClientPage({
   onSave,
   onShare,
   postActions = null,
-  onOpenBooking,
-  onSelectSalon
+  onOpenBooking
 }) {
   const [aboutOpen, setAboutOpen] = useState(false);
   const [publicSheet, setPublicSheet] = useState("");
-  const [salonQuery, setSalonQuery] = useState("");
-  const [onlyOpen, setOnlyOpen] = useState(false);
-  const normalizedSalonQuery = salonQuery.trim();
-  const visibleSalons = salons.filter((salon) => {
-    if (onlyOpen && !getTodayStatus(salon.hours)?.open) return false;
-    if (!normalizedSalonQuery) return true;
-    return [salon.name, salon.area, salon.tag].filter(Boolean).some((field) => field.includes(normalizedSalonQuery));
-  });
   const services = selectedSalon ? getVisibleServices(selectedSalon) : [];
   const portfolioItems = Array.isArray(selectedSalon?.portfolio) ? selectedSalon.portfolio : [];
   const followerCountValue = Number(selectedSalon?.followerCount ?? selectedSalon?.follower_count ?? 0) || 0;
@@ -393,108 +361,7 @@ export function SalonClientPage({
           ) : null}
         </section>
       ) : (
-        <>
-          <div className="salonPromoHeader">
-            <ServiceIconStrip ids={["haircut", "manicure", "lipstick", "facial"]} size="sm" />
-            <div className="salonPromoHeaderBody">
-              <b>بهترین سالن‌های زیبایی شهر، آماده‌ی رزرو</b>
-              <span>سالن مورد علاقه‌ت رو پیدا کن و در چند ثانیه وقت بگیر.</span>
-            </div>
-          </div>
-          <label className="salonSearchBar">
-            <Search size={16} />
-            <input
-              type="search"
-              value={salonQuery}
-              onChange={(event) => setSalonQuery(event.target.value)}
-              placeholder="جستجوی سالن یا محدوده..."
-              aria-label="جستجوی سالن"
-            />
-          </label>
-          <div className="sdrChips" role="tablist" aria-label="فیلتر سالن‌ها">
-            <button type="button" role="tab" aria-selected={!onlyOpen} className={!onlyOpen ? "is-on" : ""} onClick={() => setOnlyOpen(false)}>همه سالن‌ها</button>
-            <button type="button" role="tab" aria-selected={onlyOpen} className={onlyOpen ? "is-on" : ""} onClick={() => setOnlyOpen(true)}>امروز باز است</button>
-          </div>
-          <div className="salonList sdrList">
-          {visibleSalons.length ? visibleSalons.map((salon) => {
-            const serviceCount = getVisibleServices(salon).length;
-            const localStaffCount = salon.staff?.length || 0;
-            return (
-              <div
-                className="sdr"
-                key={salon.id || salon.name}
-                role="button"
-                tabIndex={0}
-                onClick={() => onSelectSalon(salon)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" || event.key === " ") {
-                    event.preventDefault();
-                    onSelectSalon(salon);
-                  }
-                }}
-              >
-                <div className="sdrHead">
-                  <span className="sdrLogo hasImage" aria-hidden="true">
-                    <img src={salon.avatar || DEFAULT_SALON_LOGO} alt="" style={{ objectPosition: salon.avatarPosition || "50% 50%" }} />
-                  </span>
-                  <div className="sdrTitle">
-                    <h3>{salon.name}</h3>
-                    {[salon.area, salon.tag].filter(Boolean).length > 0 ? (
-                      <p><MapPin size={12} />{[salon.area, salon.tag].filter(Boolean).join(" • ")}</p>
-                    ) : null}
-                  </div>
-                  {(() => {
-                    const status = getTodayStatus(salon.hours);
-                    return status ? <span className={`sdrOpen ${status.open ? "is-open" : "is-closed"}`}>{status.open ? "باز" : "تعطیل"}</span> : null;
-                  })()}
-                </div>
-                {serviceCount > 0 ? (
-                  <div className="sdrServices" aria-label="خدمات سالن">
-                    {getVisibleServices(salon).slice(0, 5).map((service) => (
-                      <ServiceIcon key={service.id || service.name} emoji={service.emoji} name={service.name} size="sm" />
-                    ))}
-                    {serviceCount > 5 ? <span className="sdrMore">+{toPersianDigits(serviceCount - 5)}</span> : null}
-                  </div>
-                ) : null}
-                <div className="sdrFoot">
-                  <div className="sdrMeta">
-                    {(() => {
-                      const from = getMinPrice(getVisibleServices(salon));
-                      return from ? <b>از {formatTomanNumber(from)} تومان</b> : <b>{serviceCount > 0 ? `${toPersianDigits(serviceCount)} خدمت` : "هنوز خدمتی ثبت نشده"}</b>;
-                    })()}
-                    <small>
-                      {(salon.post_count || salon.portfolio?.length || 0) > 0 ? `${toPersianDigits(salon.post_count || salon.portfolio?.length || 0)} نمونه‌کار` : ""}
-                      {(salon.post_count || salon.portfolio?.length || 0) > 0 && localStaffCount > 0 ? " • " : ""}
-                      {localStaffCount > 0 ? `${toPersianDigits(localStaffCount)} آرتیست` : ""}
-                    </small>
-                  </div>
-                  {serviceCount > 0 ? (
-                    <span className="sdrBook"><CalendarCheck size={16} /> رزرو</span>
-                  ) : (
-                    <span className="sdrBook is-soon">به‌زودی</span>
-                  )}
-                </div>
-              </div>
-            );
-          }) : normalizedSalonQuery || onlyOpen ? (
-            <div className="emptySalonDirectory">
-              <Search size={22} />
-              <div>
-                <b>نتیجه‌ای پیدا نشد</b>
-              </div>
-            </div>
-) : directoryLoading ? (
-            <SkeletonList rows={4} variant="card" label="در حال بارگذاری سالن‌ها" />
-          ) : (
-            <div className="emptySalonDirectory">
-              <Mascot pose="search" size={150} />
-              <div>
-                <b>سالن‌ها اینجا نمایش داده می‌شوند</b>
-              </div>
-            </div>
-          )}
-          </div>
-        </>
+        homeContent
       )}
     </div>
   );

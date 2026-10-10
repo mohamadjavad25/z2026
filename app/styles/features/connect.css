@@ -1,0 +1,418 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   Connect: the client's «سالن و آرتیست من» page, the QR scanner and the
+   personal code sheet (features/connect, components/QrScanner).
+   Own cn* / qrScanner* class names only, so legacy rules cannot leak in.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.cnPage {
+  --cn-ink: #14161d;
+  --cn-muted: #5c606c;
+  --cn-line: #ebebef;
+  --cn-soft: #f3f3f6;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr); /* long names ellipsize instead of widening the page */
+  gap: 18px;
+  padding-bottom: 120px; /* clear of the bottom navigation */
+  color: var(--cn-ink);
+}
+
+/* ---- Header: title, search, scan buttons ---- */
+.cnHead {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  padding: 22px 18px 18px;
+  border-radius: 28px;
+  background: #ffffff;
+  box-shadow: 0 10px 30px rgba(20, 22, 29, 0.06);
+}
+.cnHeadText { display: grid; gap: 6px; }
+.cnHeadText h1 { margin: 0; font-size: 1.5rem; font-weight: 950; line-height: 1.3; }
+.cnHeadText p { margin: 0; color: var(--cn-muted); font-size: 0.86rem; font-weight: 600; line-height: 1.8; }
+
+.cnSearch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 54px;
+  padding: 0 14px;
+  border: 1px solid var(--cn-line);
+  border-radius: 18px;
+  background: var(--cn-soft);
+  color: var(--cn-muted);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.cnSearch:focus-within { border-color: var(--cn-ink); background: #ffffff; }
+.cnSearch svg { flex: none; }
+.cnSearch input {
+  flex: 1;
+  min-width: 0;
+  height: 52px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--cn-ink);
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  outline: none;
+  box-shadow: none;
+}
+.cnSearch input::placeholder { color: #8a8e9b; font-weight: 600; }
+.cnSearch input::-webkit-search-cancel-button { display: none; }
+.cnSearchClear {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--cn-line);
+  color: var(--cn-ink);
+  cursor: pointer;
+}
+
+.cnScanRow { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.cnScanBtn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 64px;
+  padding: 10px 12px;
+  border: 1px solid #e4e4ea;
+  border-radius: 18px;
+  background: #ffffff;
+  color: var(--cn-ink);
+  font: inherit;
+  text-align: right;
+  cursor: pointer;
+}
+.cnScanBtn > span:first-child {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--cn-soft);
+}
+.cnScanBtn > span:last-child { display: grid; gap: 1px; min-width: 0; }
+.cnScanBtn b { font-size: 0.95rem; font-weight: 900; }
+.cnScanBtn small { color: #6b6f7a; font-size: 0.72rem; font-weight: 600; line-height: 1.5; }
+.cnScanBtn.is-dark { border-color: var(--cn-ink); background: var(--cn-ink); color: #ffffff; }
+.cnScanBtn.is-dark > span:first-child { background: rgba(255, 255, 255, 0.12); }
+.cnScanBtn.is-dark small { color: #c9cad2; }
+.cnScanBtn:active { transform: scale(0.98); }
+
+/* ---- Lists ---- */
+.cnBody { padding: 0 2px; }
+.cnList { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+.cnListHead { display: flex; align-items: center; justify-content: space-between; padding: 0 4px; }
+.cnListHead h2 { margin: 0; font-size: 1.05rem; font-weight: 950; }
+.cnListHead span {
+  min-width: 28px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--cn-line);
+  color: #3b3e49;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-align: center;
+}
+.cnNote { margin: 0; padding: 0 4px; color: #b45309; font-size: 0.8rem; font-weight: 800; }
+
+.cnCard {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 12px 12px 14px;
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow: 0 2px 10px rgba(20, 22, 29, 0.05);
+}
+.cnCardMain {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: right;
+  cursor: pointer;
+}
+.cnCardText { flex: 1; min-width: 0; display: grid; gap: 4px; }
+.cnCardTitle { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.cnCardTitle b { font-size: 0.97rem; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cnCardTitle em {
+  flex: none;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: #f1f1f4;
+  color: #4b4f5c;
+  font-size: 0.68rem;
+  font-style: normal;
+  font-weight: 800;
+}
+.cnCardText small {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  color: var(--cn-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cnDot { flex: none; width: 7px; height: 7px; border-radius: 50%; background: #a0a3ad; }
+.cnDot.is-open { background: #2e9a5e; }
+
+.cnAvatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 15px;
+  background: #f4e6ec;
+  color: #8a3555;
+  font-size: 1.15rem;
+  font-weight: 900;
+  box-shadow: inset 0 0 0 1px rgba(20, 22, 29, 0.06);
+}
+.cnAvatar.is-round { border-radius: 50%; background: #ece8f6; color: #5b4794; }
+.cnAvatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.cnPrimaryBtn {
+  flex: none;
+  min-width: 72px;
+  height: 44px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 13px;
+  background: var(--cn-ink);
+  color: #ffffff;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+.cnPrimaryBtn:disabled { opacity: 0.55; cursor: default; }
+.cnPrimaryBtn:active:not(:disabled) { transform: scale(0.97); }
+
+.cnGhostBtn {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid #e4e4ea;
+  border-radius: 14px;
+  background: #ffffff;
+  color: var(--cn-ink);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.cnEmpty {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 18px 16px 8px;
+  text-align: center;
+}
+.cnEmpty img.mascot { width: auto; height: auto; max-height: 130px; }
+.cnEmpty b { font-size: 0.95rem; font-weight: 900; }
+.cnEmpty p { margin: 0; max-width: 32ch; color: var(--cn-muted); font-size: 0.8rem; font-weight: 600; line-height: 1.8; }
+.cnEmpty.is-compact { padding: 16px; border-radius: 20px; background: #ffffff; }
+.cnInviteBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  margin-top: 4px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--cn-ink);
+  color: #ffffff;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+/* ---- Owner: "اسکن مشتری" on the customers page ---- */
+.salonCustomersHead:has(.cnScanCustomerBtn) { flex-wrap: wrap; }
+.cnScanCustomerBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 48px;
+  border: 0;
+  border-radius: 16px;
+  background: #14161d;
+  color: #ffffff;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+/* ═══ Full-screen QR scanner ═══════════════════════════════════════════ */
+.qrScanner {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-top-sheet);
+  display: grid;
+  grid-template-rows: auto 1fr auto auto;
+  background: #0f1014;
+  color: #ffffff;
+  overflow: hidden;
+}
+.qrScannerVideo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.qrScannerTop,
+.qrScannerHint,
+.qrScannerBottom { position: relative; z-index: 2; } /* above the frame's dimming shadow */
+.qrScannerTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: max(16px, env(safe-area-inset-top)) 18px 12px;
+  font-size: 1.05rem;
+}
+.qrScannerClose {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.45);
+  color: #ffffff;
+  cursor: pointer;
+}
+/* The framing box; its huge shadow darkens everything around it. */
+.qrScannerFrame {
+  position: relative;
+  z-index: 1;
+  align-self: center;
+  justify-self: center;
+  width: min(72vw, 300px);
+  aspect-ratio: 1;
+  border-radius: 30px;
+  box-shadow: 0 0 0 100vmax rgba(10, 11, 14, 0.55);
+}
+.qrScannerFrame.is-idle { box-shadow: 0 0 0 100vmax rgba(10, 11, 14, 0.82); }
+.qrScannerFrame span { position: absolute; width: 46px; height: 46px; border: 0 solid #ffffff; }
+.qrScannerFrame .is-tl { top: 0; left: 0; border-top-width: 4px; border-left-width: 4px; border-top-left-radius: 30px; }
+.qrScannerFrame .is-tr { top: 0; right: 0; border-top-width: 4px; border-right-width: 4px; border-top-right-radius: 30px; }
+.qrScannerFrame .is-bl { bottom: 0; left: 0; border-bottom-width: 4px; border-left-width: 4px; border-bottom-left-radius: 30px; }
+.qrScannerFrame .is-br { bottom: 0; right: 0; border-bottom-width: 4px; border-right-width: 4px; border-bottom-right-radius: 30px; }
+.qrScannerHint {
+  margin: 0;
+  padding: 18px 32px 12px;
+  color: #e6e6ea;
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1.8;
+  text-align: center;
+}
+.qrScannerBottom {
+  display: grid;
+  justify-items: center;
+  padding: 8px 16px max(20px, env(safe-area-inset-bottom));
+}
+.qrScannerPhoto {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 20px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  font-size: 0.88rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+.qrScannerPhoto input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.qrScannerPhoto:focus-within { outline: 2px solid #ffffff; outline-offset: 2px; }
+
+.cnScanResult {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+  max-width: 420px;
+  padding: 12px;
+  border-radius: 24px;
+  background: #ffffff;
+  color: #14161d;
+}
+.cnScanResult > p { margin: 0; padding: 6px 4px; font-size: 0.88rem; font-weight: 700; line-height: 1.8; text-align: center; }
+.cnScanResult .cnCard { padding: 4px; box-shadow: none; }
+
+/* ═══ «اسکن شو»: personal code ══════════════════════════════════════════ */
+.cnCodeSheet {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-top-sheet);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  padding: max(16px, env(safe-area-inset-top)) 22px max(24px, env(safe-area-inset-bottom));
+  overflow-y: auto;
+  background: #14161d;
+  color: #ffffff;
+}
+.cnCodeTop { align-self: stretch; display: flex; align-items: center; justify-content: space-between; font-size: 1.05rem; }
+.cnCodeWho { display: grid; justify-items: center; gap: 8px; margin-top: 8px; }
+.cnCodeWho img,
+.cnCodeWho span {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: grid;
+  place-items: center;
+  background: #f4e6ec;
+  color: #8a3555;
+  font-size: 1.4rem;
+  font-weight: 900;
+}
+.cnCodeWho b { font-size: 1.15rem; font-weight: 900; }
+.cnCodeQr {
+  display: grid;
+  place-items: center;
+  width: min(74vw, 280px);
+  aspect-ratio: 1;
+  padding: 14px;
+  border-radius: 28px;
+  background: #ffffff;
+  color: #14161d;
+}
+.cnCodeQr img { width: 100%; height: 100%; display: block; }
+.cnCodeQr p { margin: 0; font-size: 0.85rem; font-weight: 800; text-align: center; }
+.cnCodeHint { margin: 0; max-width: 34ch; color: #d6d7dd; font-size: 0.86rem; font-weight: 600; line-height: 1.9; text-align: center; }
+.cnCodeSave {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 50px;
+  margin-top: auto;
+  padding: 0 22px;
+  border-radius: 16px;
+  background: #ffffff;
+  color: #14161d;
+  font-size: 0.9rem;
+  font-weight: 900;
+  text-decoration: none;
+}

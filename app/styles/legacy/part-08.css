@@ -28,14 +28,6 @@
   color: #fff;
 }
 
-
-
-
-
-
-
-
-
 .portfolioInsightStrip{
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -120,8 +112,6 @@
   cursor: pointer;
   box-shadow: 0 10px 22px rgba(20, 22, 29, 0.22);
 }
-
-
 
 .bookingToolHead{
   min-height: 62px;
@@ -477,26 +467,6 @@
   white-space: nowrap;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 .systemActionGrid{
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -531,28 +501,6 @@
   color: var(--muted);
   font-size: 0.58rem;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 .compactSystemForm{
   grid-template-columns: 1fr;
@@ -1663,33 +1611,10 @@ body{
     height: 12px;
   }
 
-  .salonRow{
-    align-items: flex-start;
-    border-radius: 16px;
-    padding: 10px;
-    gap: 9px;
-  }
-
   .salonIcon{
     width: 40px;
     height: 40px;
     border-radius: 13px;
-  }
-
-  .salonRow h3{
-    font-size: 0.92rem;
-  }
-
-  .salonRow p,
-  .salonRow span{
-    font-size: 0.74rem;
-  }
-
-  .salonRow button{
-    min-width: 64px;
-    min-height: 34px;
-    font-size: 0.74rem;
-    border-radius: 12px;
   }
 
   .salonDetailPage{
@@ -2180,7 +2105,6 @@ body{
     grid-template-columns: 1fr;
   }
 
-
   .artistPortfolioCard,
   .artistPortfolioCard img{
     min-height: 132px;
@@ -2345,8 +2269,6 @@ body{
     border-radius: 20px;
     padding: 12px 12px 12px 44%;
   }
-
-  
 
   .bookingFormGrid{
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2705,10 +2627,6 @@ body{
     text-shadow: none;
   }
 
-  
-
-  
-
   .portfolioTagChips{
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -2717,10 +2635,6 @@ body{
     min-height: 180px;
     padding: 22px 14px;
   }
-
-  
-
-  
 
   .staffToolHead{
     padding-left: 42px;
@@ -2743,12 +2657,6 @@ body{
   .staffHeroCard strong{
     width: 58px;
   }
-
-  
-
-  
-
-  
 
   .staffOverviewGrid{
     gap: 6px;
@@ -2823,31 +2731,11 @@ body{
     padding: 0 8px 10px;
   }
 
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
   .artistProfileForm input,
   .artistProfileForm select{
     min-height: 42px;
     font-size: 0.7rem;
   }
-
-  
-
-  
-
-  
 
   .artistStarAura{
     min-width: 128px;
@@ -2879,22 +2767,6 @@ body{
   .salonWorkspacePanel.is-booking .bookingToolHead b{
     font-size: 1.08rem;
   }
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
 
   .salonWorkspacePanel.is-booking .bookingCreateForm fieldset{
     padding: 12px 10px 10px;

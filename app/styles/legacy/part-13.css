@@ -518,7 +518,6 @@
   transform: scale(0.97);
 }
 
-
 /* Popup sheets polish */
 .artistServicePopupSheet {
   border-radius: 26px !important;
@@ -772,7 +771,6 @@ body::after {
 .explorePreviewComment,
 .explorePreviewModal .artistWorkPreviewCaption,
 .artistPublicServiceCard,
-.salonRow,
 .artistPublicReviewSummary,
 .artistAboutPopupSheet .artistPublicAboutList > div {
   background: #ffffff !important;
@@ -822,7 +820,6 @@ body::after {
   min-height: 0 !important;
   align-self: stretch !important;
 }
-
 
 /* ═══ Bottom-nav profile logo: edge-to-edge image, no ring/border, only the soft icy glow ═══ */
 .bottomNav .profileTab:not(.is-createBooking),

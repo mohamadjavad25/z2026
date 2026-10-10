@@ -327,10 +327,6 @@
   cursor: grabbing;
 }
 
-
-
-
-
 html{
   scroll-behavior: smooth;
 }
@@ -448,8 +444,6 @@ button{
 .uploadActions,
 .uploadChoice,
 .panelHead,
-.salonRow,
-.salonRow span,
 .scoreCard,
 .primaryAction,
 .reportBadge,
@@ -462,7 +456,7 @@ button{
 .mobileAiSummary,
 .exploreSpotlight,
 .postMeta,
-.postActions{
+.postActions {
   display: flex;
   align-items: center;
 }
@@ -716,8 +710,7 @@ h1{
 .heroCopy p:not(.kicker),
 .sectionTitle,
 .aiReport p,
-.salonRow p,
-.feedCard p{
+.feedCard p {
   color: var(--muted);
   line-height: 1.95;
 }
@@ -1472,8 +1465,7 @@ h2{
 
 .segmented button,
 .panelHead button,
-.categoryRail button,
-.salonRow button{
+.categoryRail button {
   border: 0;
   background: transparent;
   color: var(--ink);

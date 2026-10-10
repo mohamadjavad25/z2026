@@ -97,7 +97,7 @@ function CustomerSheet({ customer, onClose }) {
  * Owner's own customer community page. See buildBookingCustomers for how a
  * "customer" is derived from real bookings.
  */
-export function SalonCustomersPage({ active, bookings = [], ownerLabel = "سالن شما" }) {
+export function SalonCustomersPage({ active, bookings = [], ownerLabel = "سالن شما", headerAction = null }) {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
   const [sort, setSort] = useState("recent");
@@ -131,6 +131,7 @@ export function SalonCustomersPage({ active, bookings = [], ownerLabel = "سال
         <div className="salonCustomersTitle">
           <span className="wavyTitle">جامعه مشتریان</span>
         </div>
+        {headerAction}
       </div>
 
       {customers.length ? (

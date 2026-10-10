@@ -80,14 +80,9 @@ export function useSalonDirectory({
     if (typeof onShellNotice === "function" && message) onShellNotice(message);
   }, [onShellNotice]);
 
-  const [salonDirectory, setSalonDirectoryRaw] = useState([]);
-  // False until the first directory payload (even an empty one) has landed, so
-  // the UI can show a loading placeholder instead of the "no salons" empty state.
-  const [salonDirectoryLoaded, setSalonDirectoryLoaded] = useState(false);
-  const setSalonDirectory = useCallback((value) => {
-    setSalonDirectoryLoaded(true);
-    setSalonDirectoryRaw(value);
-  }, []);
+  // Every salon (public list); used to resolve salons opened from posts,
+  // bookings and saved items. Clients browse their own salons in features/connect.
+  const [salonDirectory, setSalonDirectory] = useState([]);
   const [selectedSalon, setSelectedSalon] = useState(null);
   const [followedSalons, setFollowedSalons] = useState([]);
   const [savedSalonKeys, setSavedSalonKeys] = useState([]);
@@ -537,7 +532,6 @@ export function useSalonDirectory({
   return {
     salonDirectory,
     setSalonDirectory,
-    salonDirectoryLoading: !salonDirectoryLoaded,
     selectedSalon,
     setSelectedSalon,
     followedSalons,

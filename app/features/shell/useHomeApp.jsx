@@ -206,7 +206,6 @@ export function useHomeApp() {
   const {
     salonDirectory,
     setSalonDirectory,
-    salonDirectoryLoading,
     selectedSalon,
     setSelectedSalon,
     followedSalons,
@@ -674,7 +673,6 @@ export function useHomeApp() {
     toggleSavedPost,
     sharePost,
     salonDirectory,
-    salonDirectoryLoading,
     selectedSalon,
     setSelectedSalon,
     salonClientTab,

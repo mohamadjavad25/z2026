@@ -1,4 +1,4 @@
-import { Bell, Share2 } from "lucide-react";
+import { Bell, QrCode, Share2 } from "lucide-react";
 
 // The gear/settings icon that used to live here was removed: "تنظیمات" is
 // now its own bottom-nav tab (see SettingsPage), so a second entry point
@@ -9,6 +9,7 @@ export function ProfileHeroActions({
   onOpenSaved,
   onOpenNotifications,
   onShare,
+  onShowQr,
   notificationCount = 0,
   showShare = false
 }) {
@@ -41,6 +42,11 @@ export function ProfileHeroActions({
             <Bell size={17} />
           </button>
         )}
+        {typeof onShowQr === "function" ? (
+          <button type="button" onClick={onShowQr} aria-label="کد QR پروفایل" title="کد QR پروفایل">
+            <QrCode size={17} />
+          </button>
+        ) : null}
         {showShare ? (
           <button type="button" aria-label="اشتراک‌گذاری" onClick={onShare}>
             <Share2 size={17} />

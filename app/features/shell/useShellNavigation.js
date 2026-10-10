@@ -427,15 +427,30 @@ function getPassportMatch(post) {
     }
   }
 
-  // Leaving a salon page: an owner previewing their own salon goes back to
-  // their profile, everyone else back to the salon list.
+  // Leaving a salon page: clients go back to «سالن و آرتیست من» (same tab);
+  // salons and artists have no such list, so they go back to their profile.
   function closeSelectedSalon() {
-    const isOwnSalon = createdProfile?.type === "salon"
-      && selectedSalon
-      && (String(selectedSalon.id) === String(createdProfile.id)
-        || String(selectedSalon.source_key || "") === String(createdProfile.id));
     setSelectedSalon(null);
-    if (isOwnSalon) goToTab("profile");
+    if (createdProfile?.type !== "client") goToTab("profile");
+  }
+
+  // Opens a salon/artist card from «سالن و آرتیست من» (features/connect).
+  function openConnectedProfile(profile) {
+    if (!profile?.id) return;
+    const card = { id: profile.id, name: profile.name || "", avatar: profile.avatar || "", area: profile.area || "" };
+    if (profile.type === "artist") {
+      openPublicArtistProfile(card);
+      return;
+    }
+    selectSalonWithDetail({
+      ...card,
+      source_key: String(profile.id),
+      tag: profile.specialty || "",
+      hours: profile.hours || [],
+      services: [],
+      portfolio: [],
+      staff: []
+    });
   }
 
   async function openPostOwnerProfile(post) {
@@ -565,6 +580,7 @@ function getPassportMatch(post) {
     openPostOwnerProfile,
     openOwnPublicProfile,
     closeSelectedSalon,
+    openConnectedProfile,
     openSalonStaffPublicProfile,
     shareSalonOwnerProfile,
     renderSavedPosts,
