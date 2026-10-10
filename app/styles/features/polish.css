@@ -1443,3 +1443,25 @@ html, body { overscroll-behavior-y: none; }
 .bkWhoStack .bkWhoAvatar { box-shadow: 0 0 0 2px #ffffff; }
 .bkWhoStack .bkWhoAvatar + .bkWhoAvatar { margin-inline-start: -6px; }
 .bkEnd { color: #6f7380; font-size: 0.64rem; font-weight: 850; white-space: nowrap; }
+
+/* ---- Artist collab tab: scan buttons, or the connected salon's card ---- */
+.clConnBoard { display: grid; gap: 12px; }
+.cnScanBtn:disabled { opacity: 0.5; cursor: default; }
+.clConnCard { display: grid; gap: 12px; padding: 16px; border: 1px solid #cdeedb; border-radius: 22px; background: linear-gradient(180deg, #ecf8f1 0%, #ffffff 72%); }
+.clConnTag { justify-self: start; display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; background: #ffffff; color: #12a150; font-size: 0.7rem; font-weight: 900; }
+.clConnTag::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.clConnTag.is-invite { color: #b26a00; }
+.clConnCard:has(.clConnTag.is-invite) { border-color: #f3e2bd; background: linear-gradient(180deg, #fff7e8 0%, #ffffff 72%); }
+.clConnWho { display: flex; align-items: center; gap: 12px; }
+.clConnWho .collabAvatar { width: 54px; height: 54px; border-radius: 18px; }
+.clConnWho > div { display: grid; gap: 2px; min-width: 0; }
+.clConnWho b { color: #14161d; font-size: 1rem; font-weight: 950; }
+.clConnWho span { display: inline-flex; align-items: center; gap: 4px; color: #6f7380; font-size: 0.74rem; font-weight: 750; }
+.clConnCard .clTermsChips { margin-top: 0; }
+.clConnCard .clTermsChips span { background: #ffffff; border: 1px solid #ececf0; }
+.clConnCard .clLeaveBtn { justify-self: start; }
+.clConnActions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.clConnActions button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; border: 0; border-radius: 14px; font: inherit; font-size: 0.85rem; font-weight: 900; cursor: pointer; }
+.clConnActions .is-accept { background: #14161d; color: #ffffff; }
+.clConnActions .is-decline { background: #f1f1f5; color: #3b3e49; }
+.clConnActions button:disabled { opacity: 0.5; }
