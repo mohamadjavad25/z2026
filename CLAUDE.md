@@ -30,3 +30,4 @@ Warnings to repeat when reminding:
 
 - The product name is **frfro**, always lowercase in English. The Persian form is «فرفرو». Never use "Farfaroo", "Frfru", "Zibaban" or «زیبابان».
 - Logo files live in `public/brand/`; app icons in `public/icons/`.
+- Future plans (ideas reviewed but not started) live in `docs/ROADMAP.md`. Add new ones there; never start building a plan until the user says so.
