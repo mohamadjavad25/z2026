@@ -19,6 +19,16 @@ export async function getSalonBookings(salonUserId) {
 }
 
 /**
+ * GET /api/salon-bookings/availability → { times, durationMinutes }
+ * Start times on `day` at which these services (back to back, in this order) can be requested.
+ */
+export async function getSalonVisitTimes(salonUserId, day, services) {
+  const query = new URLSearchParams({ salonUserId: String(salonUserId), day: String(day || "") });
+  for (const service of services) query.append("service", service);
+  return apiJson(`/api/salon-bookings/availability?${query}`);
+}
+
+/**
  * POST /api/salon-bookings → 201
  * { booking, bookings, artistBooking?, linkedArtistId? }
  * When staff resolves to artist_user_id, also inserts artist_bookings (or rolls back on failure).

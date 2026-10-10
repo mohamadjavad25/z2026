@@ -555,30 +555,36 @@ export async function listArtistBookedSlots(artistUserId, { excludeBookingId = n
   }));
 }
 
-export async function isArtistSlotBlocked(artistUserId, bookingDate, time, durationMinutes = 60, excludeBookingId = null, runner = null) {
-  if (!artistUserId || !bookingDate || !time) return false;
+/**
+ * What already holds an artist's day: their break and every active booking on that date, as
+ * minute ranges. Loaded once and checked many times when testing several start times.
+ */
+export async function listArtistBusyRanges(artistUserId, bookingDate, { excludeBookingId = null } = {}, runner = null) {
+  if (!artistUserId || !bookingDate) return [];
   const db = runner || (await getDb());
   const bookingDateKey = resolveRollingPersianDateKey(bookingDate);
-  const start = timeToMinutes(time);
-  const end = start + Math.max(15, Number(durationMinutes) || 60);
-
+  const ranges = [];
   const artistBreak = await getArtistBreak(artistUserId, db);
   if (artistBreak) {
     const breakStart = timeToMinutes(artistBreak.start);
     const breakEnd = timeToMinutes(artistBreak.end);
-    if (breakEnd > breakStart && rangesOverlap(start, end, breakStart, breakEnd)) {
-      return true;
-    }
+    if (breakEnd > breakStart) ranges.push({ start: breakStart, end: breakEnd });
   }
-
   const bookedSlots = await listArtistBookedSlots(artistUserId, { excludeBookingId }, db);
-  return bookedSlots
-    .filter((item) => resolveRollingPersianDateKey(item.booking_date) === bookingDateKey)
-    .some((item) => {
-      const bookedStart = timeToMinutes(item.time);
-      const bookedEnd = bookedStart + Math.max(15, Number(item.duration_minutes) || 60);
-      return rangesOverlap(start, end, bookedStart, bookedEnd);
-    });
+  for (const item of bookedSlots) {
+    if (resolveRollingPersianDateKey(item.booking_date) !== bookingDateKey) continue;
+    const bookedStart = timeToMinutes(item.time);
+    ranges.push({ start: bookedStart, end: bookedStart + Math.max(15, Number(item.duration_minutes) || 60) });
+  }
+  return ranges;
+}
+
+export async function isArtistSlotBlocked(artistUserId, bookingDate, time, durationMinutes = 60, excludeBookingId = null, runner = null) {
+  if (!artistUserId || !bookingDate || !time) return false;
+  const start = timeToMinutes(time);
+  const end = start + Math.max(15, Number(durationMinutes) || 60);
+  const ranges = await listArtistBusyRanges(artistUserId, bookingDate, { excludeBookingId }, runner);
+  return ranges.some((range) => rangesOverlap(start, end, range.start, range.end));
 }
 
 /**
