@@ -4,8 +4,8 @@ import { Check, Pencil, Plus, Trash2, UserRound } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
 import { ServiceIcon } from "../../components/ServiceIcon";
-import { ServiceIconStrip } from "../../components/ServiceIconStrip";
 import { ProfileEmptyState } from "../profile/ProfileEmptyState";
+import { Mascot } from "../../components/Mascot";
 import { ProfileSheet } from "../profile/ProfileSheet";
 
 /**
@@ -39,7 +39,7 @@ export function SalonServicesWorkspace({
         {services.length === 0 ? (
           <ProfileEmptyState
             className="artistServiceEmpty"
-            visual={<ServiceIconStrip />}
+            visual={<Mascot pose="hairstyle" size={140} />}
             title="هنوز خدمتی ثبت نشده"
             description="خدمت‌ها را تعریف کن تا مشتری بتواند روز، ساعت و آرتیست مناسب را انتخاب کند."
             actionLabel="افزودن اولین خدمت"

@@ -8,6 +8,7 @@ export const MASCOT_POSES = {
   mirror: { w: 497, h: 640 },
   makeup: { w: 581, h: 640 },
   hairstyle: { w: 642, h: 640 },
+  camera: { w: 437, h: 640 },
   party: { w: 443, h: 640 },
   nails: { w: 400, h: 640 },
   search: { w: 415, h: 640 },
