@@ -377,10 +377,12 @@
   place-items: center;
 }
 
+/* Explicit size: a % height does not resolve here, and the picture used to
+   render at its full 1080px, so only a zoomed-in corner showed. */
 .profilePostComposer .artistWorkHero.has-image img{
-  width: auto;
-  height: 100%;
-  aspect-ratio: 4 / 5;
+  width: 240px;
+  height: 300px;
+  max-width: 100%;
   object-fit: cover;
 }
 

@@ -601,9 +601,9 @@
     gap: 10px !important;
   }
 
+  /* One post sits in half the row, like the salon gallery — not a full-width poster. */
   .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGalleryGrid.is-single {
-    display: block !important;
-    padding: 0 !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 
   .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGalleryGrid.is-pair,
@@ -621,11 +621,8 @@
   }
 
   .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGalleryGrid.is-single .profileGalleryCard {
-    width: min(100%, 340px) !important;
-    min-height: 300px !important;
-    margin: 0 auto !important;
-    aspect-ratio: 4 / 5 !important;
-    box-shadow: 0 20px 46px rgba(52, 52, 56, 0.16) !important;
+    width: 100% !important;
+    aspect-ratio: 1 / 1.18 !important;
   }
 
   .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGalleryGrid.is-pair .profileGalleryCard {
@@ -644,11 +641,6 @@
     min-height: 0 !important;
     object-fit: cover !important;
     object-position: center 40% !important;
-  }
-
-  .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGalleryGrid.is-single .profileGalleryCard img,
-  .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGalleryGrid.is-single .profileGalleryCard .profileGalleryCardFallback {
-    min-height: 300px !important;
   }
 
   .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGalleryCardShade {

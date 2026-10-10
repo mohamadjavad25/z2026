@@ -147,8 +147,7 @@ export function ProfileGallery({
                   )}
                   <div className="profileGalleryCardShade" aria-hidden="true" />
                   <div className="profileGalleryCardCopy">
-                    {item.tag ? <span className="profileGalleryTag">{item.tag}</span> : null}
-                    {item.title ? <h3>{item.title}</h3> : null}
+                    {item.title || item.tag ? <h3>{item.title || item.tag}</h3> : null}
                   </div>
                   {item.featured || item.isPublic === false ? (
                     <div className="profileGalleryFlags">
