@@ -10,6 +10,7 @@ import { isArtistBookingOnExactDate } from "../artist";
 import { BookingHistoryCalendarSheet } from "../profile/BookingHistoryCalendarSheet";
 import { ProfileHeroWeekStrip } from "../profile/ProfileHeroWeekStrip";
 import { ScheduleRow } from "../profile/ScheduleRow";
+import { shortServiceLabel } from "../../shared/lib/serviceBundle";
 
 /**
  * Artist owner — bookings/schedule tab.
@@ -109,7 +110,7 @@ export function ArtistScheduleBoard({
                   <b>{booking.client}</b>
                   <span>
                     <ServiceIcon emoji={booking.service_emoji} name={booking.service} size="xs" className="svcInlineIcon" />
-                    {booking.service || "خدمت"}
+                    {shortServiceLabel(booking.service) || "خدمت"}
                     <i aria-hidden="true">•</i>
                     {booking.date || "امروز"}
                   </span>

@@ -16,6 +16,7 @@ import {
   isBookingActive,
   isBookingInPast
 } from "./bookingStatus";
+import { shortServiceLabel } from "../../shared/lib/serviceBundle";
 
 // "رزرو دوباره" only makes sense once this specific booking is settled — cancelled / expired
 // outright, or confirmed and its date has already passed. Not while it is still pending or upcoming.
@@ -107,7 +108,7 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook })
               <div className="clientBookingFeatureTop">
                 <ServiceIcon emoji={meta.serviceEmoji} name={meta.service} size="lg" className="clientBookingFeatureIcon" />
                 <div>
-                  <b>{meta.service}</b>
+                  <b>{shortServiceLabel(meta.service)}</b>
                   <span>{meta.salonName}</span>
                 </div>
                 <span className={`clientBookingFeatureLogo ${meta.avatar ? "hasImage" : ""}`} aria-hidden="true">
@@ -196,7 +197,7 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook })
                     {meta.avatar ? <img src={meta.avatar} alt="" /> : String(meta.salonName).slice(0, 1)}
                   </span>
                   <div>
-                    <b className="svcInline"><ServiceIcon emoji={meta.serviceEmoji} name={meta.service} size="xs" />{meta.service}</b>
+                    <b className="svcInline"><ServiceIcon emoji={meta.serviceEmoji} name={meta.service} size="xs" />{shortServiceLabel(meta.service)}</b>
                     <small>{meta.salonName} • {meta.date}</small>
                   </div>
                   <div className="clientBookingMiniState">

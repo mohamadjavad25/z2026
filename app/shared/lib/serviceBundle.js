@@ -14,6 +14,19 @@ export function joinServiceNames(names) {
     : `${list[0]} + ${toPersianDigits(list.length - 1)} خدمت دیگر`;
 }
 
+/**
+ * A booking's service text for one short line: several services joined with « + » become
+ * "first + N خدمت دیگر". One service comes back as is.
+ */
+export function shortServiceLabel(service) {
+  const text = String(service || "").trim();
+  const names = text.split(" + ").map((name) => name.trim()).filter(Boolean);
+  if (names.length < 2) return text;
+  // Already shortened by joinServiceNames when the full list was too long to store.
+  if (names.length === 2 && names[1].endsWith("خدمت دیگر")) return text;
+  return `${names[0]} + ${toPersianDigits(names.length - 1)} خدمت دیگر`;
+}
+
 export function serviceKey(service) {
   return String(service?.id ?? service?.name ?? "");
 }

@@ -7,6 +7,7 @@ import { ServiceIcon } from "../../../components/ServiceIcon";
 import { SegmentClock } from "../../../components/SegmentClock";
 
 import { useHome } from "../HomeContext";
+import { shortServiceLabel } from "../../../shared/lib/serviceBundle";
 export function SalonNotificationsSheet() {
   const {
     createdProfile,
@@ -76,7 +77,7 @@ export function SalonNotificationsSheet() {
                         <div className="requestCardMain">
                           <div className="requestCardWho">
                             <strong>{request.client}</strong>
-                            <span className="svcInline"><ServiceIcon emoji={request.service_emoji} name={request.service} size="xs" />{request.service}</span>
+                            <span className="svcInline"><ServiceIcon emoji={request.service_emoji} name={request.service} size="xs" />{shortServiceLabel(request.service)}</span>
                             <small>
                               <b>{request.staff}</b>
                               <em>مسئول</em>
@@ -132,7 +133,7 @@ export function SalonNotificationsSheet() {
                       <div className="requestCardMain">
                         <div className="requestCardWho">
                           <strong>{booking.client}</strong>
-                          <span className="svcInline"><ServiceIcon emoji={booking.service_emoji} name={booking.service} size="xs" />{booking.service}</span>
+                          <span className="svcInline"><ServiceIcon emoji={booking.service_emoji} name={booking.service} size="xs" />{shortServiceLabel(booking.service)}</span>
                         </div>
                         <div className="requestCardAside">
                           <span className="expiredNoticeTag">

@@ -5,6 +5,7 @@ import { ProfileSheet } from "../../profile/ProfileSheet";
 import { ServiceIcon } from "../../../components/ServiceIcon";
 
 import { useHome } from "../HomeContext";
+import { shortServiceLabel } from "../../../shared/lib/serviceBundle";
 export function ClientNotificationsSheet() {
   const {
     createdProfile,
@@ -40,7 +41,7 @@ export function ClientNotificationsSheet() {
                         <div className="requestCardMain">
                           <div className="requestCardWho">
                             <strong>{booking.salonName || booking.salon_name || "سالن"}</strong>
-                            <span className="svcInline"><ServiceIcon emoji={booking.service_emoji} name={booking.service} size="xs" />{booking.service}</span>
+                            <span className="svcInline"><ServiceIcon emoji={booking.service_emoji} name={booking.service} size="xs" />{shortServiceLabel(booking.service)}</span>
                           </div>
                           <div className="requestCardAside">
                             <span className="expiredNoticeTag">

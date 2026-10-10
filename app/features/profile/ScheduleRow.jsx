@@ -14,6 +14,7 @@ import {
   getBookingTimelinePhase,
   resolveBookingDurationMinutes
 } from "../artist/bookingUtils";
+import { shortServiceLabel } from "../../shared/lib/serviceBundle";
 
 // Status-tone mapping, ownerType-aware — NOT a plain copy of
 // ClientBookingSettingsModal.jsx's getBookingStatusTone, because "تازه"
@@ -191,7 +192,7 @@ export const ScheduleRow = memo(function ScheduleRow({
   const isClientBooking = variant === "client";
   const actionPayload = booking.source ? { ...booking.source, ...booking } : booking;
   const title = booking.displayTitle || client;
-  const meta = booking.displayMeta || service;
+  const meta = booking.displayMeta || shortServiceLabel(service);
 
   // The time-phase tag (upcoming/live/done) only means something for a
   // booking the salon/artist actually confirmed — for one still awaiting a

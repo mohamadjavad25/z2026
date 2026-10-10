@@ -115,16 +115,22 @@ export function useSalonDirectory({
       .find((service) => String(service?.name || "") === String(salonClientBooking.service || ""))
   ), [selectedSalon, salonClientBooking.service, salonClientBooking.bundle]);
 
-  const salonClientVisitServices = useMemo(() => (
-    salonClientBooking.bundle?.name === salonClientBooking.service
-      ? salonClientBooking.bundle.items.map((item) => String(item?.name || "")).filter(Boolean)
-      : []
-  ), [salonClientBooking.bundle, salonClientBooking.service]);
-  const salonClientVisitKey = salonClientVisitServices.length >= 2 && selectedSalon
-    ? [selectedSalon.id || selectedSalon.source_key, salonClientBooking.day, ...salonClientVisitServices].join("|")
+  // The services of this request (one, or several back to back) with their lengths: the free
+  // start times come from the server, which checks them exactly like the request itself.
+  const salonClientVisitServices = useMemo(() => {
+    const items = salonClientBooking.bundle?.name === salonClientBooking.service
+      ? salonClientBooking.bundle.items
+      : [salonClientSelectedService || { name: salonClientBooking.service }];
+    return items
+      .map((item) => ({ name: String(item?.name || ""), minutes: parseServiceDurationMinutes(item?.duration) }))
+      .filter((item) => item.name);
+  }, [salonClientBooking.bundle, salonClientBooking.service, salonClientSelectedService]);
+  const salonClientVisitKey = salonClientVisitServices.length && selectedSalon
+    ? [selectedSalon.id || selectedSalon.source_key, salonClientBooking.day, ...salonClientVisitServices.map((item) => `${item.name}:${item.minutes}`)].join("|")
     : "";
   const salonClientTimesLoading = Boolean(
-    salonClientVisitKey && (salonClientVisitTimes.key !== salonClientVisitKey || !salonClientVisitTimes.times)
+    salonClientVisitKey
+    && (salonClientVisitTimes.key !== salonClientVisitKey || (!salonClientVisitTimes.times && !salonClientVisitTimes.failed))
   );
 
   useEffect(() => {
@@ -133,10 +139,13 @@ export function useSalonDirectory({
     setSalonClientVisitTimes({ key: salonClientVisitKey, times: null });
     getSalonVisitTimes(selectedSalon.id || selectedSalon.source_key, salonClientBooking.day, salonClientVisitServices)
       .then(({ ok, data }) => {
-        if (!cancelled) setSalonClientVisitTimes({ key: salonClientVisitKey, times: ok && Array.isArray(data?.times) ? data.times : [] });
+        if (cancelled) return;
+        setSalonClientVisitTimes(ok && Array.isArray(data?.times)
+          ? { key: salonClientVisitKey, times: data.times }
+          : { key: salonClientVisitKey, times: null, failed: true });
       })
       .catch(() => {
-        if (!cancelled) setSalonClientVisitTimes({ key: salonClientVisitKey, times: [] });
+        if (!cancelled) setSalonClientVisitTimes({ key: salonClientVisitKey, times: null, failed: true });
       });
     return () => {
       cancelled = true;
@@ -146,9 +155,12 @@ export function useSalonDirectory({
   }, [salonClientBooking.open, salonClientVisitKey, visitTimesVersion]);
 
   const salonClientFreeTimes = useMemo(() => {
-    if (salonClientVisitKey) {
-      return salonClientVisitTimes.key === salonClientVisitKey && salonClientVisitTimes.times ? salonClientVisitTimes.times : [];
+    if (salonClientVisitKey && salonClientVisitTimes.key === salonClientVisitKey && salonClientVisitTimes.times) {
+      return salonClientVisitTimes.times;
     }
+    // Still loading: nothing to pick yet. The server could not answer: the salon's own bookings
+    // still rule out the taken times here (the request is checked again when it is sent).
+    if (salonClientVisitKey && !(salonClientVisitTimes.key === salonClientVisitKey && salonClientVisitTimes.failed)) return [];
     const duration = parseServiceDurationMinutes(salonClientSelectedService?.duration);
     const hour = getSalonHourForDay(selectedSalon?.hours, salonClientBooking.day);
     if (!isSalonHourOpen(hour)) return [];
@@ -528,7 +540,7 @@ export function useSalonDirectory({
       });
       if (!ok) {
         if (status === 409 && salonClientVisitKey) {
-          // A visit's times depend on every artist's calendar: ask the server again.
+          // Taken in the meantime: ask the server for the free times again.
           setVisitTimesVersion((version) => version + 1);
           shellMsg(payload?.error || "این ساعت دیگر آزاد نیست؛ ساعت دیگری انتخاب کن.");
         } else if (status === 409) {

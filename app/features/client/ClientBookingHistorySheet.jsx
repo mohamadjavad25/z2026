@@ -7,6 +7,7 @@ import { ServiceIcon } from "../../components/ServiceIcon";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatRelativeBookingDayLabel, resolveRollingPersianDate } from "../../shared/lib/persianCalendar";
 import { bookingStatusLabel, bookingStatusTone } from "./bookingStatus";
+import { shortServiceLabel } from "../../shared/lib/serviceBundle";
 
 const FILTERS = [
   { id: "all", label: "همه" },
@@ -78,7 +79,7 @@ export function ClientBookingHistorySheet({ open, onClose, bookings = [], onOpen
                       <button type="button" className="cbhRow" onClick={() => onOpenBooking?.(booking)}>
                         <ServiceIcon emoji={booking.service_emoji} name={booking.service} size="sm" />
                         <span className="cbhRowText">
-                          <b>{booking.service || "خدمت زیبایی"}</b>
+                          <b>{shortServiceLabel(booking.service) || "خدمت زیبایی"}</b>
                           <small>{place}{booking.time ? ` • ${toPersianDigits(booking.time)}` : ""}</small>
                         </span>
                         <em className={`is-${tone}`}>{bookingStatusLabel(booking.status)}</em>

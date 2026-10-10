@@ -7,6 +7,7 @@ import { ServiceIcon } from "../../../components/ServiceIcon";
 import { SegmentClock } from "../../../components/SegmentClock";
 
 import { useHome } from "../HomeContext";
+import { shortServiceLabel } from "../../../shared/lib/serviceBundle";
 export function ArtistNotificationsSheet() {
   const {
     createdProfile,
@@ -76,7 +77,7 @@ export function ArtistNotificationsSheet() {
                         <div className="requestCardMain">
                           <div className="requestCardWho">
                             <strong>{request.client || "مشتری"}</strong>
-                            <span className="svcInline"><ServiceIcon emoji={request.service_emoji} name={request.service} size="xs" />{request.service}</span>
+                            <span className="svcInline"><ServiceIcon emoji={request.service_emoji} name={request.service} size="xs" />{shortServiceLabel(request.service)}</span>
                             {request.phone ? <small dir="ltr">{request.phone}</small> : null}
                           </div>
                           <div className="requestCardAside">
@@ -128,7 +129,7 @@ export function ArtistNotificationsSheet() {
                       <div className="requestCardMain">
                         <div className="requestCardWho">
                           <strong>{request.client || "مشتری"}</strong>
-                          <span className="svcInline"><ServiceIcon emoji={request.service_emoji} name={request.service} size="xs" />{request.service}</span>
+                          <span className="svcInline"><ServiceIcon emoji={request.service_emoji} name={request.service} size="xs" />{shortServiceLabel(request.service)}</span>
                         </div>
                         <div className="requestCardAside">
                           <span className="expiredNoticeTag">

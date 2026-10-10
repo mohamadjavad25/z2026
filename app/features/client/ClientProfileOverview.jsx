@@ -6,6 +6,7 @@ import { ServiceIcon } from "../../components/ServiceIcon";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar";
 import { bookingStatusLabel, bookingStatusTone, isBookingActive, isBookingInPast, pickNextBooking } from "./bookingStatus";
+import { shortServiceLabel } from "../../shared/lib/serviceBundle";
 
 /**
  * Client role — the "پروفایل" tab. Identity + a live summary of the client's
@@ -60,7 +61,7 @@ export function ClientProfileOverview({
           <span className="cpoNextBody">
             <ServiceIcon emoji={next.service_emoji} name={next.service} size="md" />
             <div>
-              <b>{next.service || "خدمت زیبایی"}</b>
+              <b>{shortServiceLabel(next.service) || "خدمت زیبایی"}</b>
               <small>{next.salonName || next.salon_name || "سالن منتخب"}</small>
             </div>
             <em className={`is-${bookingStatusTone(next.status || "تازه")}`}>{bookingStatusLabel(next.status)}</em>

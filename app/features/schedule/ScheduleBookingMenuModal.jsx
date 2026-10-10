@@ -26,6 +26,7 @@ import { formatRequestExpiryDeadline, getRequestExpiryMinutesLeft } from "../../
 import { isMultiPartBooking, parseBookingParts } from "../../shared/lib/bookingParts";
 import { BookingPartsEditor } from "./BookingPartsEditor";
 import { AWAITING_CLIENT, bookingTimeOffer } from "../../shared/lib/bookingOffer";
+import { shortServiceLabel } from "../../shared/lib/serviceBundle";
 
 // Shown when a customer / staff member / source has no uploaded photo.
 const DEFAULT_AVATAR = "/profile-icon.svg";
@@ -178,7 +179,7 @@ export function ScheduleBookingMenuModal({
                 <div className="scheduleBookingDetail">
                   <Scissors size={15} aria-hidden="true" />
                   <span>خدمت</span>
-                  <b className="svcInline"><ServiceIcon emoji={booking.service_emoji} name={booking.service} size="xs" />{booking.service || "خدمت زیبایی"}</b>
+                  <b className="svcInline"><ServiceIcon emoji={booking.service_emoji} name={booking.service} size="xs" />{shortServiceLabel(booking.service) || "خدمت زیبایی"}</b>
                 </div>
                 {phone ? (
                   <div className="scheduleBookingDetail">

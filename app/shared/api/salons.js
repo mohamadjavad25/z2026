@@ -20,11 +20,16 @@ export async function getSalonBookings(salonUserId) {
 
 /**
  * GET /api/salon-bookings/availability → { times, durationMinutes }
- * Start times on `day` at which these services (back to back, in this order) can be requested.
+ * Start times on `day` at which these services (one, or several back to back in this order)
+ * can be requested. `services`: names, or { name, minutes } (minutes count only for a service
+ * the salon does not list).
  */
 export async function getSalonVisitTimes(salonUserId, day, services) {
   const query = new URLSearchParams({ salonUserId: String(salonUserId), day: String(day || "") });
-  for (const service of services) query.append("service", service);
+  for (const service of services) {
+    query.append("service", typeof service === "string" ? service : service.name);
+    if (service?.minutes) query.append("minutes", String(service.minutes));
+  }
   return apiJson(`/api/salon-bookings/availability?${query}`);
 }
 

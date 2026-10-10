@@ -9,6 +9,7 @@ import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { formatRequestExpiryDeadline, minutesToPersianTime, timeLabelToMinutes } from "../../shared/lib/time";
 import { bookingTimeOffer } from "../../shared/lib/bookingOffer";
 import { formatRelativeBookingDayLabel, resolveRollingPersianDate } from "../../shared/lib/persianCalendar";
+import { shortServiceLabel } from "../../shared/lib/serviceBundle";
 
 const BOOKING_STATUS_ICONS = {
   pending: Clock3,
@@ -120,7 +121,7 @@ export function ClientBookingSettingsModal({
             </span>
             <div>
               <small>جزئیات رزرو</small>
-              <b className="svcInline"><ServiceIcon emoji={booking.service_emoji} name={booking.service} size="xs" />{booking.service || "خدمت زیبایی"}</b>
+              <b className="svcInline"><ServiceIcon emoji={booking.service_emoji} name={booking.service} size="xs" />{shortServiceLabel(booking.service) || "خدمت زیبایی"}</b>
               <em>{salonName}</em>
             </div>
             <strong className={`clientBookingSettingsStatus is-${statusTone}`}>
