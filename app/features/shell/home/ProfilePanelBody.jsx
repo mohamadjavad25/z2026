@@ -50,7 +50,6 @@ export function ProfilePanelBody() {
     openSalonServiceCreate,
     toggleSalonServiceArtist,
     editArtistService,
-    deleteSalonService,
     salonPortfolioList,
     getPortfolioCardStyle,
     salonWorkDraft,
@@ -113,7 +112,6 @@ export function ProfilePanelBody() {
     activeArtistScheduleDayLabel,
     artistServiceList,
     openArtistServiceCreate,
-    deleteArtistService,
     salonDirectory,
     artistCollabOffers,
     artistSalonInviteList,
@@ -269,7 +267,6 @@ export function ProfilePanelBody() {
                           onToggleArtist={toggleSalonServiceArtist}
                           onClearArtists={(service) => assignSalonServiceArtist(service, null)}
                           onEdit={editArtistService}
-                          onDelete={deleteSalonService}
                         />
                       )}
 
@@ -401,7 +398,6 @@ export function ProfilePanelBody() {
                   services={artistServiceList}
                   onCreate={openArtistServiceCreate}
                   onEdit={editArtistService}
-                  onDelete={deleteArtistService}
                 />
               )}
 

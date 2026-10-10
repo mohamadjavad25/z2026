@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarCheck, Pencil, Plus, Timer, Trash2 } from "lucide-react";
+import { CalendarCheck, Plus, Timer } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
 import { ServiceIcon } from "../../components/ServiceIcon";
@@ -9,13 +9,13 @@ import { ProfileEmptyState } from "../profile/ProfileEmptyState";
 
 /**
  * Artist owner — services list tab.
- * Presentational: service rows + create/edit/delete callbacks from HomeApp / hook.
+ * Presentational: service rows + create/edit callbacks from HomeApp / hook.
+ * Tapping a card opens its editor; delete lives inside that editor.
  */
 export function ArtistServicesPanel({
   services = [],
   onCreate,
-  onEdit,
-  onDelete
+  onEdit
 }) {
   return (
     <section className="artistServiceBoard" aria-label="مدیریت خدمات آرتیست">
@@ -43,11 +43,17 @@ export function ArtistServicesPanel({
         ) : (
           services.map((service, index) => (
             <article
-              className="svcCard"
+              className="svcCard is-editable"
               key={service.id}
               style={{ "--service-delay": `${index * 55}ms` }}
             >
-              <ServiceIcon emoji={service.emoji} name={service.name} size="lg" />
+              <button
+                type="button"
+                className="svcCardOpen"
+                aria-label={`ویرایش ${service.name}`}
+                onClick={() => onEdit?.(service)}
+              />
+              <ServiceIcon emoji={service.emoji} name={service.name} size="xl" />
               <div className="svcCardBody">
                 <div className="svcCardTitle">
                   <strong>{service.name}</strong>
@@ -58,16 +64,6 @@ export function ArtistServicesPanel({
                   <span className="svcChip is-price">{service.price ? `${formatTomanNumber(parseTomanAmount(service.price))} تومان` : "توافقی"}</span>
                   <span className="svcChip"><Timer size={12} /> {service.duration}</span>
                   <span className="svcChip"><CalendarCheck size={12} /> قابل رزرو</span>
-                </div>
-              </div>
-              <div className="svcCardSide">
-                <div className="svcActions">
-                  <button type="button" aria-label="ویرایش" title="ویرایش" onClick={() => onEdit?.(service)}>
-                    <Pencil size={15} />
-                  </button>
-                  <button type="button" className="danger" aria-label="حذف" title="حذف" onClick={() => onDelete?.(service.id)}>
-                    <Trash2 size={15} />
-                  </button>
                 </div>
               </div>
             </article>

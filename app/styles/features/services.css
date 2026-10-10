@@ -989,3 +989,53 @@ button.svcCard:active { transform: scale(0.99); }
 .quickAreaList b { font-size: 0.88rem; font-weight: 900; }
 .quickAreaList small { margin-inline-start: auto; color: #6f7380; font-size: 0.7rem; font-weight: 750; }
 .quickAreaEmpty { margin: 14px 0; text-align: center; color: #6f7380; font-size: 0.8rem; font-weight: 800; }
+
+/* ═══ Owner service cards: tap the card to edit ═════════════════════════
+   No edit / delete buttons on the row any more: the whole card opens the
+   editor (delete lives there), which frees room for a bigger service icon. */
+.svcCard.is-editable,
+.svcCard.is-editable.is-manager { grid-template-columns: auto minmax(0, 1fr); cursor: pointer; }
+.svcCard.is-editable::after { pointer-events: none; }
+
+/* Invisible button stretched over the card; it is the card's tap target. */
+.svcCardOpen {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.svcCardOpen:focus-visible { outline: 2px solid #14161d; outline-offset: 2px; }
+.svcCard.is-editable:has(> .svcCardOpen:active) { transform: scale(0.99); }
+@media (hover: hover) {
+  .svcCard.is-editable:hover { border-color: #dcdce4; box-shadow: 0 10px 24px rgba(20, 22, 29, 0.09); }
+}
+
+/* The artist picker on salon cards stays tappable above the card's tap target. */
+.svcCard.is-editable .serviceArtistPick { position: relative; z-index: 2; }
+
+/* Delete, inside the service editor */
+.svcDeleteBtn {
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid #f3d6d6;
+  border-radius: 16px;
+  background: #fdf3f3;
+  color: #b23b3b;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+.svcDeleteBtn:active { transform: scale(0.98); }
+.svcDeleteBtn:disabled { opacity: 0.55; cursor: default; }

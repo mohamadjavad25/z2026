@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Pencil, Plus, Trash2, UserRound } from "lucide-react";
+import { Check, Plus, UserRound } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
 import { ServiceIcon } from "../../components/ServiceIcon";
@@ -10,7 +10,9 @@ import { ProfileSheet } from "../profile/ProfileSheet";
 
 /**
  * Salon owner — services manager (workspace key "hours" / label خدمات).
- * Presentational: service rows + artist assign + create/edit/delete callbacks.
+ * Presentational: service rows + artist assign + create/edit callbacks.
+ * Tapping a card opens its editor; delete lives inside that editor, so the card
+ * itself stays clean (no edit / delete buttons on the row).
  */
 export function SalonServicesWorkspace({
   services = [],
@@ -20,8 +22,7 @@ export function SalonServicesWorkspace({
   onCreate,
   onToggleArtist,
   onClearArtists,
-  onEdit,
-  onDelete
+  onEdit
 }) {
   return (
     <>
@@ -65,10 +66,17 @@ export function SalonServicesWorkspace({
             const autoIds = (Array.isArray(service.staff_auto_ids) ? service.staff_auto_ids : []).map(String);
             return (
               <article
-                className={`svcCard is-manager${menuOpen ? " is-pickingArtist" : ""}`}
+                className={`svcCard is-manager is-editable${menuOpen ? " is-pickingArtist" : ""}`}
                 key={service.id}
               >
-                <ServiceIcon emoji={service.emoji} name={service.name} size="lg" />
+                {/* Covers the whole card: one tap opens the editor. The artist picker sits above it. */}
+                <button
+                  type="button"
+                  className="svcCardOpen"
+                  aria-label={`ویرایش ${service.name}`}
+                  onClick={() => onEdit?.(service)}
+                />
+                <ServiceIcon emoji={service.emoji} name={service.name} size="xl" />
                 <div className="svcCardBody">
                   <div className="svcCardTitle"><strong>{service.name}</strong></div>
                   {service.hint ? <p className="svcCardHint">{service.hint}</p> : null}
@@ -156,16 +164,6 @@ export function SalonServicesWorkspace({
                         )}
                       </div>
                     </ProfileSheet>
-                  </div>
-                </div>
-                <div className="svcCardSide">
-                  <div className="svcActions">
-                    <button type="button" aria-label="ویرایش" title="ویرایش" onClick={() => onEdit?.(service)}>
-                      <Pencil size={15} />
-                    </button>
-                    <button type="button" className="danger" aria-label="حذف" title="حذف" onClick={() => onDelete?.(service.id)}>
-                      <Trash2 size={15} />
-                    </button>
                   </div>
                 </div>
               </article>
