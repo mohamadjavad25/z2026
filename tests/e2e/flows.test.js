@@ -51,13 +51,17 @@ describe("booking flow (browser)", () => {
     const clientApi = createClient();
     await registerUser(clientApi, { type: "client", name: "مشتری تست" });
 
-    // client: find the salon and request a slot
+    // client: find the salon in «سالن و آرتیست من», connect, open it and request a slot
     const clientView = await newPage({ cookie: clientApi.cookie() });
     const cp = clientView.page;
     await cp.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
     await cp.locator("nav.bottomNav > button").nth(2).click();
-    await cp.getByPlaceholder("جستجوی سالن یا محدوده...").fill(name);
-    await cp.locator(".sdr").filter({ hasText: name }).first().click();
+    await cp.getByPlaceholder("شماره، اسم یا لینک صفحه").fill(name);
+    const result = cp.locator(".cnCard").filter({ hasText: name }).first();
+    await result.getByRole("button", { name: "وصل شو" }).click();
+    await result.getByRole("button", { name: "رزرو" }).waitFor();
+    await cp.getByRole("button", { name: "پاک کردن جستجو" }).click();
+    await cp.locator(".cnCard").filter({ hasText: name }).first().getByRole("button", { name: `باز کردن ${name}` }).click();
     await cp.locator(".spvBarBook").click();
     await cp.locator(".bspTime").first().click();
     expect(await cp.locator(".salonClientBookingSummary").innerText()).toContain("ساعت");

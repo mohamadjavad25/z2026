@@ -35,7 +35,6 @@ export function SalonPublicPageClient({ salon }) {
     <SalonClientPage
       active
       selectedSalon={salon}
-      salons={[]}
       isFollowing={false}
       isSaved={false}
       getVisibleServices={getVisibleSalonServiceItems}
@@ -45,7 +44,6 @@ export function SalonPublicPageClient({ salon }) {
       onSave={goToApp}
       onShare={handleShare}
       onOpenBooking={goToApp}
-      onSelectSalon={goToApp}
     />
   );
 }

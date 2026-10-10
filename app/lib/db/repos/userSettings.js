@@ -29,7 +29,13 @@ export async function getSettings(userId, runner = null) {
   // object, no manual JSON.parse needed (or possible: row.settings is an
   // object here, not a JSON string).
   const stored = row?.settings && typeof row.settings === "object" ? row.settings : {};
-  return { ...DEFAULT_SETTINGS, ...stored };
+  // Only the known toggles: the same JSON also holds private values (e.g. the
+  // client's connect secret, see repos/connections.js) that must not reach the UI.
+  const settings = { ...DEFAULT_SETTINGS };
+  for (const key of KNOWN_KEYS) {
+    if (key in stored) settings[key] = stored[key];
+  }
+  return settings;
 }
 
 /** Merges `patch` (only known keys, coerced to boolean) into the stored settings and returns the full result.

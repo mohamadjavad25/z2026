@@ -15,7 +15,7 @@ import {
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatCount } from "../../shared/lib/counts";
 import { ProfileHeroActions } from "./ProfileHeroActions";
-import { SalonQrCodeSheet } from "../../components/SalonQrCodeSheet";
+import { ProfileQrCodeSheet } from "../../components/ProfileQrCodeSheet";
 
 /**
  * Role-aware profile hero (client / artist / salon).
@@ -62,6 +62,9 @@ export function ProfileHero({
   const posterPosition = profile?.data?.posterPosition || "50% 50%";
   const [qrSheetOpen, setQrSheetOpen] = useState(false);
   if (!profile) return null;
+  const artistPublicUrl = type === "artist" && profile.id && typeof window !== "undefined"
+    ? `${window.location.origin}/artists/${profile.id}`
+    : "";
 
   if (type === "salon") {
     const salonPublicUrl = typeof window !== "undefined" && profile.id
@@ -92,7 +95,7 @@ export function ProfileHero({
         >
           <QrCode size={18} />
         </button>
-        <SalonQrCodeSheet
+        <ProfileQrCodeSheet
           open={qrSheetOpen}
           url={salonPublicUrl}
           name={name}
@@ -198,12 +201,16 @@ export function ProfileHero({
         </div>
       )}
       <ProfileHeroActions
-          activePanel={activePanel}
-          profileType={type}
-          onOpenSaved={onOpenSaved}
-          onOpenNotifications={onOpenNotifications}
+        activePanel={activePanel}
+        profileType={type}
+        onOpenSaved={onOpenSaved}
+        onOpenNotifications={onOpenNotifications}
+        onShowQr={type === "artist" && artistPublicUrl ? () => setQrSheetOpen(true) : undefined}
         notificationCount={notificationCount}
       />
+      {type === "artist" ? (
+        <ProfileQrCodeSheet open={qrSheetOpen} url={artistPublicUrl} name={name} onOpenChange={setQrSheetOpen} />
+      ) : null}
     </div>
   );
 }

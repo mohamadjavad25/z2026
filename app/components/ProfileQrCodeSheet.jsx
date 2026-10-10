@@ -6,7 +6,11 @@ import { Check, Copy, Share2 } from "lucide-react";
 import { useQrCode } from "../shared/hooks/useQrCode";
 import { SheetClose } from "./SheetClose";
 
-export function SalonQrCodeSheet({ open, url, name = "سالن", onOpenChange }) {
+/**
+ * QR of a salon's or artist's public page. Clients scan it with «اسکن کن» in
+ * «سالن و آرتیست من» to connect, or with any camera to open the page.
+ */
+export function ProfileQrCodeSheet({ open, url, name = "پروفایل", onOpenChange }) {
   const dataUrl = useQrCode(url, open);
   const [copied, setCopied] = useState(false);
 
@@ -48,7 +52,7 @@ export function SalonQrCodeSheet({ open, url, name = "سالن", onOpenChange })
             {dataUrl ? <img src={dataUrl} alt={`کد QR پروفایل عمومی ${name}`} /> : <span className="ivtQrWait" />}
           </div>
         </div>
-        <p className="qrsHint">با اسکن این کد، پروفایل عمومی باز می‌شود.</p>
+        <p className="qrsHint">مشتری‌ها با اسکن این کد در فرفرو به تو وصل می‌شوند.</p>
         <div className="ivtActions">
           <button type="button" className="ivtShare" onClick={shareLink}>
             <Share2 size={17} aria-hidden="true" />

@@ -3,6 +3,7 @@
 import { getVisibleSalonServiceItems, SalonCustomersPage, SalonClientPage } from "../../salons";
 import { mapSharedPost } from "../../posts";
 import { SettingsPage } from "../../settings";
+import { ConnectPage, ScanCustomerAction } from "../../connect";
 import { useHome } from "../HomeContext";
 
 export function ContentPages() {
@@ -60,10 +61,8 @@ export function ContentPages() {
     salonAppointmentList,
     artistBookingList,
     selectedSalon,
-    salonDirectory,
     sharePost,
     recordPostView,
-    salonDirectoryLoading,
     salonClientTab,
     isFollowingSelectedSalon,
     isSavedSelectedSalon,
@@ -73,7 +72,7 @@ export function ContentPages() {
     shareSalonProfile,
     setSalonClientTab,
     openSalonClientBooking,
-    selectSalonWithDetail,
+    openConnectedProfile,
     setSalonHeroSheet,
     setProfileView,
     setSettingsHoursOpen,
@@ -134,6 +133,7 @@ export function ContentPages() {
             <SalonCustomersPage
               active={activeTab === "customers"}
               bookings={salonAppointmentList}
+              headerAction={<ScanCustomerAction onNotify={setAppToast} />}
             />
           )}
 
@@ -142,13 +142,20 @@ export function ContentPages() {
               active={activeTab === "customers"}
               bookings={artistBookingList}
               ownerLabel="شما"
+              headerAction={<ScanCustomerAction onNotify={setAppToast} />}
             />
           )}
 
           <SalonClientPage
             active={activeTab === "salons"}
             selectedSalon={selectedSalon}
-            salons={salonDirectory}
+            homeContent={createdProfile?.type === "client" ? (
+              <ConnectPage
+                me={{ name: createdProfile.data?.name || "", avatar: createdProfile.data?.avatar || "" }}
+                onOpenProfile={openConnectedProfile}
+                onNotify={setAppToast}
+              />
+            ) : null}
             postActions={{
               isSaved: (post) => savedPostTitles.includes(String(post.id)),
               toggleSave: (post) => toggleSavedPost(post.title, mapSharedPost({
@@ -160,7 +167,6 @@ export function ContentPages() {
               share: sharePost,
               view: recordPostView
             }}
-            directoryLoading={salonDirectoryLoading}
             tab={salonClientTab}
             isFollowing={isFollowingSelectedSalon}
             isSaved={isSavedSelectedSalon}
@@ -172,7 +178,6 @@ export function ContentPages() {
             onShare={shareSalonProfile}
             onTabChange={setSalonClientTab}
             onOpenBooking={openSalonClientBooking}
-            onSelectSalon={selectSalonWithDetail}
           />
         </section>
   );
