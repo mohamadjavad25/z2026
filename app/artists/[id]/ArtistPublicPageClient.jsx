@@ -47,10 +47,6 @@ export function ArtistPublicPageClient({ artist }) {
   const featuredWork = galleryItems[0] || null;
   const galleryRest = galleryItems.slice(1);
 
-  const heroImage = (portfolio.find((item) => item.featured) || portfolio[0])?.image
-    || artist?.avatar
-    || "";
-
   const handleShare = () => {
     if (typeof window === "undefined") return;
     const url = window.location.href;
@@ -64,7 +60,6 @@ export function ArtistPublicPageClient({ artist }) {
   return (
     <PublicArtistModal
       artist={artist}
-      heroImage={heroImage}
       view="gallery"
       portfolio={portfolio}
       services={services}
