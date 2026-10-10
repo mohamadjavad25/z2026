@@ -1,4 +1,4 @@
-import { Bell, Eye, Share2 } from "lucide-react";
+import { Bell, Share2 } from "lucide-react";
 
 // The gear/settings icon that used to live here was removed: "تنظیمات" is
 // now its own bottom-nav tab (see SettingsPage), so a second entry point
@@ -9,7 +9,6 @@ export function ProfileHeroActions({
   onOpenSaved,
   onOpenNotifications,
   onShare,
-  onPreviewPublic,
   notificationCount = 0,
   showShare = false
 }) {
@@ -40,17 +39,6 @@ export function ProfileHeroActions({
             aria-label="اعلان‌ها"
           >
             <Bell size={17} />
-          </button>
-        )}
-        {profileType === "artist" && (
-          <button
-            type="button"
-            className="profileHeroPreviewBtn"
-            onClick={onPreviewPublic}
-            aria-label="پیش‌نمایش پروفایل عمومی"
-            title="پیش‌نمایش پروفایل عمومی"
-          >
-            <Eye size={17} />
           </button>
         )}
         {showShare ? (

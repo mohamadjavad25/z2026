@@ -79,7 +79,7 @@ export function ContentPages() {
     setSettingsHoursOpen,
     savedPostTitles,
     toggleSavedPost,
-    setSelectedSalon
+    closeSelectedSalon
   } = useHome();
 
   return (
@@ -166,7 +166,7 @@ export function ContentPages() {
             isSaved={isSavedSelectedSalon}
             getVisibleServices={getVisibleSalonServiceItems}
             getPortfolioCardStyle={getPortfolioCardStyle}
-            onBack={() => setSelectedSalon(null)}
+            onBack={closeSelectedSalon}
             onFollow={toggleFollowSalon}
             onSave={toggleSaveSalon}
             onShare={shareSalonProfile}
