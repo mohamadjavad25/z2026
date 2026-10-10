@@ -6,6 +6,7 @@ import {
   CalendarCheck,
   Check,
   ChevronLeft,
+  ChevronUp,
   Clock3,
   Heart,
   ImagePlus,
@@ -16,7 +17,8 @@ import {
   UserPlus,
   UserRound
 } from "lucide-react";
-import { ServiceIcon } from "../../components/ServiceIcon";
+import { PublicProfileHeader } from "../../components/PublicProfileHeader";
+import { ServicesDropUp, serviceKey } from "../../components/ServicesDropUp";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
 import { SalonClientGallery } from "./SalonClientGallery";
@@ -34,9 +36,8 @@ import { SheetClose } from "../../components/SheetClose";
 // JS getDay(): 0 = Sunday ... 6 = Saturday; the salon's hours rows are keyed by the Persian weekday name.
 const PERSIAN_WEEKDAYS = ["یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنجشنبه", "جمعه", "شنبه"];
 
-function getPrimaryBookingService(services) {
-  return services[0]?.name || "رزرو وقت";
-}
+// Same decorative cover the salon's own panel shows until a poster is uploaded.
+const DEFAULT_COVER = "/artist-hero-doodle.webp";
 
 /**
  * The salons tab: a salon's public page when one is selected, otherwise
@@ -59,6 +60,8 @@ export function SalonClientPage({
 }) {
   const [aboutOpen, setAboutOpen] = useState(false);
   const [publicSheet, setPublicSheet] = useState("");
+  const [servicesOpen, setServicesOpen] = useState(false);
+  const [pickedService, setPickedService] = useState("");
   const services = selectedSalon ? getVisibleServices(selectedSalon) : [];
   const portfolioItems = Array.isArray(selectedSalon?.portfolio) ? selectedSalon.portfolio : [];
   const followerCountValue = Number(selectedSalon?.followerCount ?? selectedSalon?.follower_count ?? 0) || 0;
@@ -91,95 +94,46 @@ export function SalonClientPage({
           className="salonClientPage salonPublicProfile"
           aria-label={`صفحه مشتری ${selectedSalon.name}`}
         >
-          <header className="scHero">
-            {selectedSalon.poster ? (
-              <img
-                className="scHeroImage"
-                src={selectedSalon.poster}
-                alt=""
-                aria-hidden="true"
-                style={{ objectPosition: selectedSalon.posterPosition || "50% 50%" }}
-              />
-            ) : (
-              <div className="scHeroFallback" aria-hidden="true" />
+          <PublicProfileHeader
+            cover={selectedSalon.poster || DEFAULT_COVER}
+            coverPosition={selectedSalon.posterPosition || "50% 50%"}
+            avatar={selectedSalon.avatar || DEFAULT_SALON_LOGO}
+            avatarAlt={`لوگوی ${publicName}`}
+            avatarPosition={selectedSalon.avatarPosition || "50% 50%"}
+            name={publicName}
+            area={selectedSalon.area}
+            start={(
+              <button type="button" className="pphRound" onClick={onBack} aria-label="بازگشت به سالن‌ها">
+                <ChevronLeft size={19} />
+              </button>
             )}
-            <div className="scTopbar">
-              <button type="button" className="scRound" onClick={onBack} aria-label="بازگشت به سالن‌ها">
-                <ChevronLeft size={20} />
+            end={(
+              <button type="button" className="pphRound" onClick={() => onShare(selectedSalon.name)} aria-label="اشتراک‌گذاری">
+                <Share2 size={18} />
               </button>
-              <button type="button" className="scRound" onClick={() => onShare(selectedSalon.name)} aria-label="اشتراک‌گذاری">
-                <Share2 size={19} />
-              </button>
-            </div>
-          </header>
+            )}
+          />
 
-          <section className="scId">
-            <span className="scAvatar">
-              <img
-                src={selectedSalon.avatar || DEFAULT_SALON_LOGO}
-                alt=""
-                aria-hidden="true"
-                style={{ objectPosition: selectedSalon.avatarPosition || "50% 50%" }}
-              />
-            </span>
-            <h2>{publicName}</h2>
-            <p className="scTag">{publicTag}</p>
-            {selectedSalon.area ? <p className="scArea"><MapPin size={13} />{selectedSalon.area}</p> : null}
-            {openStatus ? (
-              <p className={`scOpen ${openStatus.open ? "is-open" : "is-closed"}`}>
-                <Clock3 size={13} /> {openStatus.text}
-              </p>
-            ) : null}
-            <div className="scStats">
-              <span><b>{toPersianDigits(staffCount)}</b>عضو تیم</span>
-              <span><b>{toPersianDigits(services.length)}</b>خدمت</span>
-              <span><b>{followerCount}</b>دنبال‌کننده</span>
+          <section className="pphInfo" aria-label={`معرفی ${publicName}`}>
+            <div className="pphChips">
+              <span className="pphChip">{publicTag}</span>
+              {openStatus ? (
+                <span className={`pphChip ${openStatus.open ? "is-open" : "is-closed"}`}>
+                  <Clock3 size={14} /> {openStatus.text}
+                </span>
+              ) : null}
             </div>
-            <div className="scActions">
-              <button type="button" className={isFollowing ? "is-following" : ""} onClick={() => onFollow(selectedSalon)}>
-                {isFollowing ? <Check size={17} /> : <UserPlus size={17} />}
+            <div className="pphActions">
+              <button type="button" className={`pphFollow${isFollowing ? " is-following" : ""}`} onClick={() => onFollow(selectedSalon)}>
+                {isFollowing ? <Check size={18} /> : <UserPlus size={18} />}
                 {isFollowing ? "دنبال می‌کنی" : "دنبال کردن"}
               </button>
               {selectedSalon.phone ? (
-                <a href={`tel:${toLatinDigits(selectedSalon.phone)}`} aria-label="تماس با سالن">
-                  <Phone size={17} /> تماس
+                <a className="pphCall" href={`tel:${toLatinDigits(selectedSalon.phone)}`} aria-label="تماس با سالن">
+                  <Phone size={18} /> تماس
                 </a>
               ) : null}
             </div>
-          </section>
-
-          <section className="salonPublicCard salonPublicServices">
-            <div className="salonPublicSectionHead">
-              {services.length > 5 ? <button type="button" onClick={() => setPublicSheet("services")}>مشاهده همه</button> : <span />}
-              <h3>خدمات و قیمت</h3>
-            </div>
-            {services.length ? (
-              <div className="spvServiceList">
-                {services.slice(0, 5).map((service) => (
-                  <button
-                    type="button"
-                    className="spvService"
-                    key={service.id || service.name}
-                    onClick={() => onOpenBooking(service.name)}
-                  >
-                    <ServiceIcon emoji={service.emoji} name={service.name} size="md" />
-                    <span className="spvServiceBody">
-                      <b>{service.name}</b>
-                      <small>{service.duration || "زمان متغیر"}</small>
-                    </span>
-                    <span className="spvServicePrice">
-                      {parseTomanAmount(service.price) ? <><b>{formatTomanNumber(parseTomanAmount(service.price))}</b><em>تومان</em></> : <em>قیمت توافقی</em>}
-                    </span>
-                    <span className="spvServiceGo">رزرو</span>
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <div className="salonClientEmptyGallery">
-                <Scissors size={22} />
-                <b>هنوز خدمتی ثبت نشده</b>
-              </div>
-            )}
           </section>
 
           {teamMembers.length ? (
@@ -233,6 +187,18 @@ export function SalonClientPage({
             </section>
           ) : null}
 
+          <ServicesDropUp
+            open={servicesOpen}
+            title={`خدمات ${publicName}`}
+            services={services}
+            selectedKey={pickedService}
+            onSelect={(service) => setPickedService(service ? serviceKey(service) : "")}
+            onConfirm={(service) => {
+              setServicesOpen(false);
+              onOpenBooking(service.name);
+            }}
+            onClose={() => setServicesOpen(false)}
+          />
           <nav className="spvBar" aria-label="رزرو و ذخیره">
             <button type="button" className={`spvBarIcon ${isSaved ? "is-on" : ""}`} onClick={() => onSave(selectedSalon)} aria-label={isSaved ? "حذف از ذخیره‌شده‌ها" : "ذخیره سالن"} aria-pressed={isSaved}>
               <Heart size={22} fill={isSaved ? "currentColor" : "none"} />
@@ -240,10 +206,17 @@ export function SalonClientPage({
             <button type="button" className="spvBarIcon" onClick={() => setAboutOpen(true)} aria-label="درباره سالن">
               <UserRound size={22} />
             </button>
-            <button type="button" className="spvBarBook" onClick={() => onOpenBooking(getPrimaryBookingService(services))} disabled={!services.length}>
-              <CalendarCheck size={19} />
-              رزرو نوبت
+            <button
+              type="button"
+              className="spvBarBook"
+              onClick={() => setServicesOpen((open) => !open)}
+              aria-expanded={servicesOpen}
+              aria-haspopup="dialog"
+            >
+              <Scissors size={19} />
+              خدمات
               {minPrice ? <small>از {formatTomanNumber(minPrice)} تومان</small> : null}
+              <ChevronUp size={18} className={`spvBarChevron${servicesOpen ? " is-open" : ""}`} aria-hidden="true" />
             </button>
           </nav>
           {aboutOpen ? (
@@ -309,38 +282,13 @@ export function SalonClientPage({
             </div>
           ) : null}
           {publicSheet ? (
-            <div className="salonPublicBrowseOverlay" role="dialog" aria-modal="true" aria-label={publicSheet === "services" ? "همه خدمات" : "همه نمونه‌کارها"} onClick={() => setPublicSheet("")}>
+            <div className="salonPublicBrowseOverlay" role="dialog" aria-modal="true" aria-label="همه نمونه‌کارها" onClick={() => setPublicSheet("")}>
               <article className={`salonPublicBrowseSheet is-${publicSheet}`} onClick={(event) => event.stopPropagation()}>
                 <div className="salonPublicBrowseHead">
-                  <span>{publicSheet === "services" ? "لیست خدمات" : "گالری سالن"}</span>
-                  <h3>{publicSheet === "services" ? "همه خدمات سالن" : "همه نمونه‌کارها"}</h3>
+                  <span>گالری سالن</span>
+                  <h3>همه نمونه‌کارها</h3>
                 </div>
-                {publicSheet === "services" ? (
-                  services.length ? (
-                    <div className="salonPublicAllServices">
-                      {services.map((service) => (
-                        <button
-                          type="button"
-                          key={service.id || service.name}
-                          onClick={() => {
-                            setPublicSheet("");
-                            onOpenBooking(service.name);
-                          }}
-                        >
-                          <ServiceIcon emoji={service.emoji} name={service.name} size="lg" />
-                          <b>{service.name}</b>
-                          <small>{service.price ? `${formatTomanNumber(parseTomanAmount(service.price))} تومان` : "قیمت توافقی"} • {service.duration || "زمان متغیر"}</small>
-                          <CalendarCheck size={17} />
-                        </button>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="salonClientEmptyGallery">
-                      <Scissors size={22} />
-                      <b>هنوز خدمتی ثبت نشده</b>
-                    </div>
-                  )
-                ) : portfolioItems.length ? (
+                {portfolioItems.length ? (
                   <div className="salonPublicAllPortfolio">
                     {portfolioItems.map((item) => (
                       <figure key={item.id || item.title}>

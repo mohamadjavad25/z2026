@@ -1,0 +1,93 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   Public salon / artist page: cover + logo header (components/PublicProfileHeader)
+   and the services drop-up (components/ServicesDropUp). Own pph* / sdu*
+   class names only, so legacy rules cannot leak in.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── Header: cover, logo on the right over its bottom edge, name beside it ── */
+.pphHero { --pph-cover: 214px; --pph-logo: 112px; position: relative; color: #14161d; }
+.pphCover { position: relative; height: var(--pph-cover); overflow: hidden; border-radius: 0 0 28px 28px; background: #14102a url("/artist-hero-doodle.webp") center / cover no-repeat; }
+.pphCoverImage { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.pphTopbar { position: absolute; z-index: 2; top: calc(22px + env(safe-area-inset-top)); right: 20px; left: 20px; display: flex; justify-content: space-between; }
+.pphTopActions { display: flex; gap: 8px; }
+.pphRound { width: 40px; height: 40px; display: grid; place-items: center; border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 50%; background: rgba(10, 11, 18, 0.4); color: rgba(255, 255, 255, 0.96); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 6px 16px rgba(0, 0, 0, 0.22); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); cursor: pointer; }
+.pphRound.is-saved { color: #ffb3c4; }
+.pphRound:focus-visible { outline: 3px solid #ffffff; outline-offset: 2px; }
+.pphAvatar { position: absolute; top: calc(var(--pph-cover) - var(--pph-logo) / 2); right: 25px; width: var(--pph-logo); height: var(--pph-logo); display: grid; place-items: center; overflow: hidden; border-radius: 50%; background: #ffffff; box-shadow: var(--logo-glow); }
+.pphAvatar img { width: 100%; height: 100%; object-fit: cover; }
+.pphAvatar b { font-size: 2.4rem; font-weight: 950; color: #14161d; }
+.pphMeta { min-height: calc(var(--pph-logo) / 2 + 4px); box-sizing: border-box; padding: 12px calc(25px + var(--pph-logo) + 16px) 0 20px; display: grid; align-content: start; gap: 2px; }
+.pphMeta h2 { margin: 0; overflow: hidden; color: #14161d; font-size: 1.38rem; font-weight: 850; line-height: 1.35; white-space: nowrap; text-overflow: ellipsis; }
+.pphMeta p { margin: 0; color: #6f7380; font-size: 0.94rem; font-weight: 700; }
+
+/* ── Under the header: chips, bio, follow / call (stays at the bottom) ── */
+.pphInfo { margin: 16px 20px 0; display: grid; gap: 14px; }
+.pphChips { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.pphChip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px; background: #f2f2f6; color: #3c3f49; font-size: 0.75rem; font-weight: 800; }
+.pphChip.is-open { background: #e3f6ea; color: #17703d; font-weight: 900; }
+.pphChip.is-closed { color: #6f7380; font-weight: 900; }
+.pphBio { margin: 0; color: #4b4f5c; font-size: 0.82rem; font-weight: 700; line-height: 1.9; }
+.pphActions { display: flex; gap: 10px; }
+.pphFollow, .pphCall { min-height: 50px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: 18px; font: inherit; font-size: 0.94rem; font-weight: 900; text-decoration: none; cursor: pointer; }
+.pphFollow { flex: 1.35; background: #14161d; color: #ffffff; box-shadow: 0 12px 24px -10px rgba(20, 22, 29, 0.5); }
+.pphFollow.is-following { background: #f2f2f6; color: #14161d; box-shadow: inset 0 0 0 1.5px #e3e3ea; }
+.pphCall { flex: 1; background: #ffffff; color: #14161d; box-shadow: inset 0 0 0 1.5px #e3e3ea; }
+.pphFollow:active, .pphCall:active { transform: scale(0.98); }
+.pphFollow:focus-visible, .pphCall:focus-visible { outline: 3px solid #14161d; outline-offset: 2px; }
+.artistPublicPage .pphInfo { margin-bottom: 8px; }
+
+/* ── Bottom bar «خدمات» chevron ── */
+.spvBarChevron { transition: transform 0.3s ease; }
+.spvBarChevron.is-open { transform: rotate(180deg); }
+
+/* ── Services drop-up: grows out of the bottom bar like a drop ── */
+.sduDim { position: fixed; inset: 0; z-index: 58; padding: 0; border: 0; background: rgba(20, 22, 29, 0.38); cursor: default; animation: sduDim 0.25s ease-out both; }
+.sduPanel { position: fixed; z-index: 59; right: 12px; left: 12px; bottom: calc(82px + env(safe-area-inset-bottom)); max-width: 520px; margin-inline: auto; overflow: hidden; border-radius: 28px; background: #ffffff; color: #14161d; box-shadow: 0 24px 60px -12px rgba(20, 22, 29, 0.45), 0 0 0 1px rgba(20, 22, 29, 0.04); transform-origin: 50% 100%; animation: sduDrop 0.62s cubic-bezier(0.2, 0.8, 0.25, 1) both; }
+.sduInner { display: flex; flex-direction: column; max-height: calc(100dvh - 82px - 96px - env(safe-area-inset-bottom) - env(safe-area-inset-top)); animation: sduFade 0.62s ease-out both; }
+.sduHead { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 18px 10px; }
+.sduHead > div { display: grid; gap: 1px; }
+.sduHead b { font-size: 1.05rem; font-weight: 900; }
+.sduHead small { color: #6f7380; font-size: 0.74rem; font-weight: 700; }
+.sduClose { width: 36px; height: 36px; flex: none; display: grid; place-items: center; border: 0; border-radius: 50%; background: #f2f2f6; color: #14161d; cursor: pointer; }
+.sduTabs { display: flex; gap: 8px; padding: 2px 18px 12px; overflow-x: auto; scrollbar-width: none; }
+.sduTabs::-webkit-scrollbar { display: none; }
+.sduTabs button { flex: none; height: 36px; padding: 0 14px; border: 0; border-radius: 999px; background: #f2f2f6; color: #3c3f49; font: inherit; font-size: 0.8rem; font-weight: 800; white-space: nowrap; cursor: pointer; }
+.sduTabs button.is-active { background: #14161d; color: #ffffff; }
+.sduList { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 0 12px 12px; display: grid; align-content: start; gap: 6px; border-top: 1px solid #f1f1f5; scrollbar-width: none; }
+.sduList::-webkit-scrollbar { display: none; }
+.sduGroup { display: grid; gap: 4px; padding-top: 10px; }
+.sduGroupHead { display: flex; align-items: center; gap: 8px; padding: 0 6px 2px; color: #6f7380; font-size: 0.74rem; font-weight: 900; }
+.sduGroupHead i { flex: 1; height: 1px; background: #f1f1f5; }
+.sduGroupHead small { font-size: inherit; font-weight: 700; }
+.sduItem { width: 100%; display: flex; align-items: center; gap: 12px; padding: 8px 10px; border: 0; border-radius: 18px; background: #ffffff; color: #14161d; font: inherit; text-align: right; cursor: pointer; transition: background-color 0.15s, box-shadow 0.15s; -webkit-tap-highlight-color: transparent; }
+.sduItem.is-selected { background: #f4f1fc; box-shadow: inset 0 0 0 1.5px #14161d; }
+.sduItemBody { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.sduItemBody b { font-size: 0.88rem; font-weight: 900; }
+.sduItemBody small { color: #6a6e7a; font-size: 0.74rem; font-weight: 700; }
+.sduItemPrice { font-size: 0.88rem; font-weight: 900; white-space: nowrap; }
+.sduItemPrice small { color: #6a6e7a; font-size: 0.68rem; font-weight: 700; }
+.sduRadio { width: 20px; height: 20px; flex: none; box-sizing: border-box; border: 2px solid #d4d5dc; border-radius: 50%; transition: border-width 0.15s, border-color 0.15s; }
+.sduItem.is-selected .sduRadio { border: 6px solid #14161d; }
+.sduFoot { padding: 12px 14px 14px; border-top: 1px solid #f1f1f5; }
+.sduConfirm { width: 100%; min-height: 52px; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 0 12px; border: 0; border-radius: 18px; background: #14161d; color: #ffffff; font: inherit; font-size: 0.92rem; font-weight: 900; cursor: pointer; box-shadow: 0 12px 24px -10px rgba(20, 22, 29, 0.5); }
+.sduConfirm small { padding-inline-start: 10px; border-inline-start: 1px solid rgba(255, 255, 255, 0.24); color: rgba(255, 255, 255, 0.8); font-size: 0.8rem; font-weight: 800; }
+.sduConfirm:disabled { background: #ececf1; color: #8a8e99; box-shadow: none; cursor: default; }
+.sduEmpty { display: grid; justify-items: center; gap: 6px; padding: 18px 18px 24px; text-align: center; }
+.sduEmpty b { font-size: 0.92rem; font-weight: 900; }
+.sduEmpty span { color: #6f7380; font-size: 0.78rem; font-weight: 700; line-height: 1.8; }
+.sduItem:focus-visible, .sduTabs button:focus-visible, .sduClose:focus-visible, .sduConfirm:focus-visible { outline: 3px solid #14161d; outline-offset: 2px; }
+
+@keyframes sduDrop {
+  0% { opacity: 0; transform: translateY(30px) scale(0.32, 0.14); border-radius: 40px; }
+  45% { opacity: 1; }
+  62% { transform: translateY(-8px) scale(1.03, 1.04); border-radius: 30px; }
+  80% { transform: translateY(2px) scale(0.99, 0.985); }
+  100% { transform: none; border-radius: 28px; }
+}
+@keyframes sduFade { 0%, 35% { opacity: 0; transform: translateY(8px); } 100% { opacity: 1; transform: none; } }
+@keyframes sduDim { from { opacity: 0; } to { opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .sduPanel, .sduInner, .sduDim { animation: none; }
+  .spvBarChevron { transition: none; }
+}

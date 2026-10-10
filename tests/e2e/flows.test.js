@@ -63,6 +63,8 @@ describe("booking flow (browser)", () => {
     await cp.getByRole("button", { name: "پاک کردن جستجو" }).click();
     await cp.locator(".cnCard").filter({ hasText: name }).first().getByRole("button", { name: `باز کردن ${name}` }).click();
     await cp.locator(".spvBarBook").click();
+    await cp.locator(".sduItem").first().click();
+    await cp.locator(".sduConfirm").click();
     await cp.locator(".bspTime").first().click();
     expect(await cp.locator(".salonClientBookingSummary").innerText()).toContain("ساعت");
     await cp.getByRole("button", { name: "ثبت درخواست نوبت" }).click();
