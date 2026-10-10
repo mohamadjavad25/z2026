@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, Plus, Search, Timer, Trash2 } from "lucide-react";
 import { ServiceEmoji } from "../../components/ServiceEmoji";
 import { ServiceIcon } from "../../components/ServiceIcon";
@@ -73,6 +73,19 @@ export function ServiceComposerModal({
   }, [catalog, addedNames, draft?.id, draft?.name]);
 
   const swipeStart = useRef(null);
+  const nameInputRef = useRef(null);
+
+  // Never pop the keyboard just because the editor opened. Focus the name only
+  // when there is something to type (a brand-new, still unnamed service) and the
+  // device has a real keyboard (mouse / trackpad). On phones the owner taps the
+  // field they actually want to change.
+  const shouldFocusName = Boolean(open && draft && mode === "custom" && !draft.id && !String(draft.name || "").trim());
+  useEffect(() => {
+    if (!shouldFocusName || typeof window === "undefined") return;
+    const hasRealKeyboard = window.matchMedia?.("(hover: hover) and (pointer: fine)")?.matches;
+    if (hasRealKeyboard) nameInputRef.current?.focus({ preventScroll: true });
+    // Run once per opening of an empty editor, not on every keystroke.
+  }, [open, mode, draft?.id]);
 
   if (!open || !draft) return null;
 
@@ -287,7 +300,7 @@ export function ServiceComposerModal({
                   onChange={(event) => onDraftChange?.({ name: event.target.value })}
                   placeholder="مثلاً شینیون کلاسیک"
                   required
-                  autoFocus
+                  ref={nameInputRef}
                 />
               </label>
             </div>

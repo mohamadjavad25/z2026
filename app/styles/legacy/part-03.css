@@ -13,7 +13,6 @@
   padding-inline: 0;
 }
 
-.salonWorkspacePanel.is-portfolio .profileGalleryEmpty,
 .salonWorkspacePanel.is-portfolio .portfolioEmptyState{
   min-height: 180px;
   padding: 20px 14px;
