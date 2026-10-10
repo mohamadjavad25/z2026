@@ -3,9 +3,9 @@
 import { thumbUrl } from "../../shared/lib/mediaUrl";
 import { ImagePlus, Lock, Pin } from "lucide-react";
 import { SkeletonList } from "../../components/Skeleton";
+import { Mascot } from "../../components/Mascot";
 import { ProfilePostComposer } from "./ProfilePostComposer";
 
-const EMPTY_COLLAGE_SRC = "/artist-gallery-empty-collage.webp";
 
 /**
  * Shared profile portfolio gallery (artist + salon).
@@ -163,9 +163,7 @@ export function ProfileGallery({
           </div>
         ) : !hideBody && !loading ? (
           <div className="profileGalleryEmpty">
-            <div className="profileGalleryEmptyVisual" aria-hidden="true">
-              <img src={EMPTY_COLLAGE_SRC} alt="" />
-            </div>
+            <Mascot pose="camera" size={150} />
             <b>{emptyTitle}</b>
             {emptyDescription ? <span>{emptyDescription}</span> : null}
             {onEmptyAction && emptyActionLabel ? (

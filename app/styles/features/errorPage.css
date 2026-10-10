@@ -71,6 +71,7 @@
 .emptySalonDirectory img.mascot,
 .profileEmptyState img.mascot,
 .salonClientEmptyGallery img.mascot,
+.profileGalleryEmpty img.mascot,
 .artistPublicEmpty img.mascot {
   width: auto;
   max-width: 70%;
