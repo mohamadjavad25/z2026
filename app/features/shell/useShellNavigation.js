@@ -409,6 +409,35 @@ function getPassportMatch(post) {
     rebookSalonFromBooking(booking);
   }
 
+  // Owner's eye button next to their name: show their own page exactly as a
+  // client sees it (salon -> public salon page, artist -> public artist page).
+  async function openOwnPublicProfile() {
+    if (createdProfile?.type === "salon") {
+      const ownSalon = buildOwnPublicSalon();
+      if (ownSalon) await openSalonProfile(ownSalon);
+      return;
+    }
+    if (createdProfile?.type === "artist" && createdProfile.id) {
+      await openPublicArtistProfile({
+        id: createdProfile.id,
+        name: createdProfile.data?.name || "",
+        avatar: createdProfile.data?.avatar || "",
+        area: createdProfile.data?.area || ""
+      });
+    }
+  }
+
+  // Leaving a salon page: an owner previewing their own salon goes back to
+  // their profile, everyone else back to the salon list.
+  function closeSelectedSalon() {
+    const isOwnSalon = createdProfile?.type === "salon"
+      && selectedSalon
+      && (String(selectedSalon.id) === String(createdProfile.id)
+        || String(selectedSalon.source_key || "") === String(createdProfile.id));
+    setSelectedSalon(null);
+    if (isOwnSalon) goToTab("profile");
+  }
+
   async function openPostOwnerProfile(post) {
     const artist = resolvePostOwner(post);
     setSelectedPost(null);
@@ -534,6 +563,8 @@ function getPassportMatch(post) {
     goToTab,
     rebookFromBooking,
     openPostOwnerProfile,
+    openOwnPublicProfile,
+    closeSelectedSalon,
     openSalonStaffPublicProfile,
     shareSalonOwnerProfile,
     renderSavedPosts,

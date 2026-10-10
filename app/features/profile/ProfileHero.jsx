@@ -5,6 +5,7 @@ import { useState } from "react";
 import {
   BadgeCheck,
   Bell,
+  Eye,
   Heart,
   ImagePlus,
   MapPin,
@@ -21,6 +22,22 @@ import { SalonQrCodeSheet } from "../../components/SalonQrCodeSheet";
  * Single component: one wrapper + salon layout fork; artist is an additive overlay.
  * State/panels stay in HomeApp — only callbacks + display stats are passed.
  */
+// Eye next to the owner's name: opens their page as clients see it.
+function PublicPreviewButton({ onClick }) {
+  if (typeof onClick !== "function") return null;
+  return (
+    <button
+      type="button"
+      className="profileHeroEyeBtn"
+      onClick={onClick}
+      aria-label="دیدن پروفایل عمومی"
+      title="دیدن پروفایل عمومی"
+    >
+      <Eye size={18} />
+    </button>
+  );
+}
+
 export function ProfileHero({
   profile,
   heroClass = "",
@@ -91,6 +108,7 @@ export function ProfileHero({
             <h2>{name}</h2>
             <span className="salonHeroVerified" aria-hidden="true">✹</span>
           </div>
+          <PublicPreviewButton onClick={onPreviewPublic} />
         </div>
         {modeRail}
         <div className="salonHeroSocial" aria-label="فالو سالن">
@@ -153,6 +171,7 @@ export function ProfileHero({
         <img className="profileAvatarImage" src={avatar} alt="" aria-hidden="true" style={{ objectPosition: avatarPosition }} />
       </div>
       <div className="profileHeroCopy">
+        {type === "artist" && <PublicPreviewButton onClick={onPreviewPublic} />}
         {type !== "artist" && <p>{kicker}</p>}
         <h2>
           {type === "artist" ? <span className="artistHeroNameText">{name}</span> : name}
@@ -183,7 +202,6 @@ export function ProfileHero({
           profileType={type}
           onOpenSaved={onOpenSaved}
           onOpenNotifications={onOpenNotifications}
-        onPreviewPublic={onPreviewPublic}
         notificationCount={notificationCount}
       />
     </div>

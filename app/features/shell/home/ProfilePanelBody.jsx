@@ -131,7 +131,7 @@ export function ProfilePanelBody() {
     setSalonHeroSheet,
     setProfileView,
     markClientBookingsSeen,
-    openPublicArtistProfile,
+    openOwnPublicProfile,
     assignSalonServiceArtist,
     openPortfolioComposer,
     setSalonPreviewWorkId,
@@ -201,16 +201,7 @@ export function ProfilePanelBody() {
               }
               onShare={shareSalonOwnerProfile}
               showShare={createdProfile?.type === "salon"}
-              onPreviewPublic={() => {
-                if (createdProfile?.type === "artist" && createdProfile.id) {
-                  openPublicArtistProfile({
-                    id: createdProfile.id,
-                    name: createdProfile.data?.name || "",
-                    avatar: createdProfile.data?.avatar || "",
-                    area: createdProfile.data?.area || ""
-                  });
-                }
-              }}
+              onPreviewPublic={createdProfile?.type === "salon" || createdProfile?.type === "artist" ? openOwnPublicProfile : undefined}
               modeRail={createdProfile?.type === "salon" ? profileModeRail : null}
             />
 
