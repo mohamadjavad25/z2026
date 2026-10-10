@@ -105,9 +105,10 @@ export function useSalonDirectory({
   }, [salonDirectory, savedSalonKeys, selectedSalon]);
 
   const salonClientSelectedService = useMemo(() => (
-    getBookableSalonServiceItems(selectedSalon)
+    (salonClientBooking.bundle?.name === salonClientBooking.service ? salonClientBooking.bundle : null)
+    || getBookableSalonServiceItems(selectedSalon)
       .find((service) => String(service?.name || "") === String(salonClientBooking.service || ""))
-  ), [selectedSalon, salonClientBooking.service]);
+  ), [selectedSalon, salonClientBooking.service, salonClientBooking.bundle]);
 
   const salonClientFreeTimes = useMemo(() => {
     const duration = parseServiceDurationMinutes(salonClientSelectedService?.duration);
@@ -384,10 +385,13 @@ export function useSalonDirectory({
     notify(`لینک پروفایل «${name}» آماده اشتراک‌گذاری است.`);
   }, [createdProfile, notify, selectedSalon]);
 
-  const openSalonClientBooking = useCallback((serviceName = "") => {
+  // `service`: a service name, or a service object — several services picked
+  // together arrive as one bundle (shared/lib/serviceBundle) with summed duration.
+  const openSalonClientBooking = useCallback((service = "") => {
     if (!selectedSalon) return;
+    const picked = service && typeof service === "object" ? service : null;
     const serviceItems = getBookableSalonServiceItems(selectedSalon);
-    const nextService = serviceName || serviceItems[0]?.name || "";
+    const nextService = picked?.name || (typeof service === "string" ? service : "") || serviceItems[0]?.name || "";
     if (!nextService) {
       shellMsg("این سالن هنوز خدمتی برای رزرو ثبت نکرده است.");
       return;
@@ -397,6 +401,7 @@ export function useSalonDirectory({
     setSalonClientBooking((current) => ({
       open: true,
       service: nextService,
+      bundle: picked?.items ? picked : null,
       day: current.day || salonClientBookingDays[0] || "",
         time: current.time || getSalonHourForDay(selectedSalon.hours, current.day)?.open_time || "۱۰:۰۰",
       client: current.client || createdProfile?.data?.name || "",

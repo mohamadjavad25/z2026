@@ -1,18 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { CalendarCheck, X } from "lucide-react";
+import { CalendarCheck, Check, X } from "lucide-react";
 import { ServiceIcon } from "./ServiceIcon";
 import { ServiceIconStrip } from "./ServiceIconStrip";
 import { EMOJI_CATEGORIES, getBeautyEmoji, guessBeautyEmojiId } from "../shared/constants/beautyEmoji";
 import { formatTomanNumber, parseTomanAmount } from "../shared/lib/money";
 import { toPersianDigits } from "../shared/lib/digits";
+import { bundleServices, serviceKey } from "../shared/lib/serviceBundle";
 
 const OTHER = { id: "other", fa: "سایر" };
-
-export function serviceKey(service) {
-  return String(service?.id ?? service?.name ?? "");
-}
 
 // Groups services by the category of their icon (the same categories as the
 // icon picker), in the picker's order; anything unmatched goes under «سایر».
@@ -32,13 +29,16 @@ function groupServices(services) {
 
 /**
  * The public salon/artist page's services menu: opens upward from the bottom
- * bar's «خدمات» button, services grouped by category; picking one and
- * confirming hands it to `onConfirm`. Render it next to the `.spvBar`.
+ * bar's «خدمات» button, services grouped by category. The client can pick
+ * several (e.g. nails and makeup in one visit); confirming hands them, in the
+ * order picked, to `onConfirm`. Render it next to the `.spvBar`.
  */
-export function ServicesDropUp({ open, title, services, selectedKey = "", onSelect, onConfirm, onClose }) {
+export function ServicesDropUp({ open, title, services, onConfirm, onClose }) {
   const list = Array.isArray(services) ? services : [];
   const groups = useMemo(() => groupServices(list), [list]);
   const [tab, setTab] = useState("all");
+  // Kept while the menu is closed, so reopening it shows the same picks.
+  const [pickedKeys, setPickedKeys] = useState([]);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -51,8 +51,10 @@ export function ServicesDropUp({ open, title, services, selectedKey = "", onSele
 
   const showTabs = groups.length > 2;
   const visible = showTabs && tab !== "all" ? groups.filter((group) => group.id === tab) : groups;
-  const picked = list.find((service) => serviceKey(service) === selectedKey) || null;
-  const pickedAmount = picked ? parseTomanAmount(picked.price) : 0;
+  const picked = pickedKeys.map((key) => list.find((service) => serviceKey(service) === key)).filter(Boolean);
+  const total = bundleServices(picked);
+  const totalAmount = total ? parseTomanAmount(total.price) : 0;
+  const toggle = (key) => setPickedKeys((keys) => (keys.includes(key) ? keys.filter((item) => item !== key) : [...keys, key]));
 
   return (
     <>
@@ -62,7 +64,7 @@ export function ServicesDropUp({ open, title, services, selectedKey = "", onSele
           <div className="sduHead">
             <div>
               <b>{title}</b>
-              {list.length ? <small>{toPersianDigits(list.length)} خدمت · خدمت مورد نظرت را انتخاب کن</small> : null}
+              {list.length ? <small>{toPersianDigits(list.length)} خدمت · می‌توانی چند خدمت را با هم انتخاب کنی</small> : null}
             </div>
             <button type="button" className="sduClose" aria-label="بستن" onClick={onClose}>
               <X size={16} strokeWidth={2.4} />
@@ -107,14 +109,14 @@ export function ServicesDropUp({ open, title, services, selectedKey = "", onSele
                     {group.items.map((service) => {
                       const key = serviceKey(service);
                       const amount = parseTomanAmount(service.price);
-                      const on = key === selectedKey;
+                      const on = pickedKeys.includes(key);
                       return (
                         <button
                           type="button"
                           key={key}
                           className={`sduItem${on ? " is-selected" : ""}`}
                           aria-pressed={on}
-                          onClick={() => onSelect(on ? null : service)}
+                          onClick={() => toggle(key)}
                         >
                           <ServiceIcon emoji={service.emoji} name={service.name} size="sm" />
                           <span className="sduItemBody">
@@ -124,7 +126,7 @@ export function ServicesDropUp({ open, title, services, selectedKey = "", onSele
                           <span className="sduItemPrice">
                             {amount ? <>{formatTomanNumber(amount)} <small>تومان</small></> : <small>قیمت توافقی</small>}
                           </span>
-                          <span className="sduRadio" aria-hidden="true" />
+                          <span className="sduCheck" aria-hidden="true"><Check size={14} strokeWidth={3} /></span>
                         </button>
                       );
                     })}
@@ -133,10 +135,18 @@ export function ServicesDropUp({ open, title, services, selectedKey = "", onSele
               </div>
 
               <div className="sduFoot">
-                <button type="button" className="sduConfirm" disabled={!picked} onClick={() => picked && onConfirm(picked)}>
+                {picked.length > 1 ? (
+                  <p className="sduSummary" aria-live="polite">
+                    <b>{toPersianDigits(picked.length)} خدمت در یک نوبت</b>
+                    <span>{total.duration}</span>
+                  </p>
+                ) : null}
+                <button type="button" className="sduConfirm" disabled={!picked.length} onClick={() => picked.length && onConfirm(picked)}>
                   <CalendarCheck size={18} />
-                  {picked ? `رزرو «${picked.name}»` : "یک خدمت انتخاب کن"}
-                  {pickedAmount ? <small>{formatTomanNumber(pickedAmount)} تومان</small> : null}
+                  {picked.length > 1
+                    ? `رزرو ${toPersianDigits(picked.length)} خدمت`
+                    : picked.length ? `رزرو «${picked[0].name}»` : "خدمت‌های مورد نظرت را انتخاب کن"}
+                  {totalAmount ? <small>{formatTomanNumber(totalAmount)} تومان</small> : null}
                 </button>
               </div>
             </>

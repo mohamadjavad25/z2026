@@ -30,7 +30,8 @@ export function SalonClientBookingModal({
 }) {
   if (!open || !salon) return null;
 
-  const serviceItem = (Array.isArray(salon.services) ? salon.services : []).find((item) => item.name === booking.service);
+  const serviceItem = (booking.bundle?.name === booking.service ? booking.bundle : null)
+    || (Array.isArray(salon.services) ? salon.services : []).find((item) => item.name === booking.service);
   const serviceEmoji = serviceItem?.emoji || "";
   const price = parseTomanAmount(serviceItem?.price);
   const summaryParts = [

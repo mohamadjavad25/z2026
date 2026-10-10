@@ -2,7 +2,8 @@
 
 import { Bookmark, CalendarCheck, Check, ChevronLeft, ChevronUp, Heart, Info, Scissors, Share2 } from "lucide-react";
 import { PublicProfileHeader } from "../../components/PublicProfileHeader";
-import { ServicesDropUp, serviceKey } from "../../components/ServicesDropUp";
+import { ServicesDropUp } from "../../components/ServicesDropUp";
+import { bundleServices } from "../../shared/lib/serviceBundle";
 import { SheetClose } from "../../components/SheetClose";
 import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
 import { isPublicArtistSlotBlocked } from "./bookingUtils";
@@ -51,7 +52,8 @@ export function PublicArtistModal({
   const [bookingPopup, setBookingPopup] = useState(false);
   const [aboutPopup, setAboutPopup] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(false);
-  const [pickedService, setPickedService] = useState("");
+  // Several services picked together: one service-shaped bundle (shared/lib/serviceBundle).
+  const [bundle, setBundle] = useState(null);
   if (!artist) return null;
 
   const specialties = String(artist.service || "").split(/[،,]/).map((item) => item.trim()).filter(Boolean).slice(0, 4);
@@ -132,11 +134,11 @@ export function PublicArtistModal({
               open={servicesOpen}
               title={`خدمات ${artist.name || "آرتیست"}`}
               services={services}
-              selectedKey={pickedService}
-              onSelect={(service) => setPickedService(service ? serviceKey(service) : "")}
-              onConfirm={(service) => {
+              onConfirm={(picked) => {
+                const service = bundleServices(picked);
                 setServicesOpen(false);
-                onSelectService(service.id);
+                setBundle(service.items ? service : null);
+                onSelectService(service.id, service);
                 setBookingPopup(true);
               }}
               onClose={() => setServicesOpen(false)}
@@ -169,7 +171,7 @@ export function PublicArtistModal({
           >
                 <PublicArtistBookingPanel
                   artist={artist}
-                  services={services}
+                  services={bundle ? [bundle, ...services] : services}
                   selectedServiceId={selectedServiceId}
                   bookingDay={bookingDay}
                   bookingSlot={bookingSlot}

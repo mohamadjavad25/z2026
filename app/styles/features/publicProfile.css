@@ -66,8 +66,10 @@
 .sduItemBody small { color: #6a6e7a; font-size: 0.74rem; font-weight: 700; }
 .sduItemPrice { font-size: 0.88rem; font-weight: 900; white-space: nowrap; }
 .sduItemPrice small { color: #6a6e7a; font-size: 0.68rem; font-weight: 700; }
-.sduRadio { width: 20px; height: 20px; flex: none; box-sizing: border-box; border: 2px solid #d4d5dc; border-radius: 50%; transition: border-width 0.15s, border-color 0.15s; }
-.sduItem.is-selected .sduRadio { border: 6px solid #14161d; }
+.sduCheck { width: 22px; height: 22px; flex: none; box-sizing: border-box; display: grid; place-items: center; border: 2px solid #d4d5dc; border-radius: 7px; color: transparent; transition: background-color 0.15s, border-color 0.15s, color 0.15s; }
+.sduItem.is-selected .sduCheck { border-color: #14161d; background: #14161d; color: #ffffff; }
+.sduSummary { margin: 0 4px 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px; color: #3c3f49; font-size: 0.78rem; font-weight: 800; }
+.sduSummary b { color: #14161d; font-weight: 900; }
 .sduFoot { padding: 12px 14px 14px; border-top: 1px solid #f1f1f5; }
 .sduConfirm { width: 100%; min-height: 52px; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 0 12px; border: 0; border-radius: 18px; background: #14161d; color: #ffffff; font: inherit; font-size: 0.92rem; font-weight: 900; cursor: pointer; box-shadow: 0 12px 24px -10px rgba(20, 22, 29, 0.5); }
 .sduConfirm small { padding-inline-start: 10px; border-inline-start: 1px solid rgba(255, 255, 255, 0.24); color: rgba(255, 255, 255, 0.8); font-size: 0.8rem; font-weight: 800; }
@@ -89,5 +91,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .sduPanel, .sduInner, .sduDim { animation: none; }
+  .sduCheck { transition: none; }
   .spvBarChevron { transition: none; }
 }

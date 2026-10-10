@@ -51,6 +51,7 @@ export function usePublicArtistProfile({
   const [publicArtistBookingDay, setPublicArtistBookingDay] = useState(salonClientBookingDays[0]);
   const [publicArtistBookingSlot, setPublicArtistBookingSlot] = useState("");
   const [publicArtistSelectedServiceId, setPublicArtistSelectedServiceId] = useState("");
+  const [publicArtistBundle, setPublicArtistBundle] = useState(null);
   const [publicArtistBookingBusy, setPublicArtistBookingBusy] = useState(false);
   const publicArtistBookingBusyRef = useRef(false);
 
@@ -193,7 +194,8 @@ export function usePublicArtistProfile({
   const confirmPublicArtistBooking = useCallback(async () => {
     if (!selectedPublicArtist) return;
     if (publicArtistBookingBusyRef.current) return;
-    const service = publicArtistServices.find((item) => item.id === publicArtistSelectedServiceId)
+    const service = (publicArtistBundle?.id === publicArtistSelectedServiceId ? publicArtistBundle : null)
+      || publicArtistServices.find((item) => item.id === publicArtistSelectedServiceId)
       || publicArtistServices[0];
     if (!service) {
       notify("خدمتی برای رزرو موجود نیست.");
@@ -302,6 +304,7 @@ export function usePublicArtistProfile({
   }, [
     selectedPublicArtist,
     publicArtistServices,
+    publicArtistBundle,
     publicArtistSelectedServiceId,
     publicArtistBookingSlot,
     publicArtistBookingDay,
@@ -403,7 +406,9 @@ export function usePublicArtistProfile({
     if (typeof onSelectPost === "function") onSelectPost(item);
   }, [closePublicArtistProfile, onSelectPost]);
 
-  const selectPublicArtistService = useCallback((serviceId) => {
+  // `bundle`: several services booked as one visit (shared/lib/serviceBundle), whose id is `serviceId`.
+  const selectPublicArtistService = useCallback((serviceId, bundle = null) => {
+    setPublicArtistBundle(bundle?.items ? bundle : null);
     setPublicArtistSelectedServiceId(serviceId);
     setPublicArtistBookingSlot("");
     setPublicArtistView("booking");
