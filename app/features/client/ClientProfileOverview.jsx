@@ -5,7 +5,7 @@ import { Bookmark, CalendarCheck, ChevronLeft, Clock3, Pencil, Phone } from "luc
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar";
-import { bookingStatusLabel, bookingStatusTone, isBookingInPast, pickNextBooking } from "./bookingStatus";
+import { bookingStatusLabel, bookingStatusTone, isBookingActive, isBookingInPast, pickNextBooking } from "./bookingStatus";
 
 /**
  * Client role — the "پروفایل" tab. Identity + a live summary of the client's
@@ -29,7 +29,7 @@ export function ClientProfileOverview({
     let done = 0;
     bookings.forEach((booking) => {
       if (booking.status === "تایید شده" && isBookingInPast(booking)) done += 1;
-      else if (["تازه", "درخواست", "تایید شده"].includes(booking.status || "تازه")) active += 1;
+      else if (isBookingActive(booking)) active += 1;
     });
     return { active, done };
   }, [bookings]);

@@ -1587,3 +1587,12 @@
 .bpeOption b{ font-size: 0.8rem; font-weight: 900; }
 .bpeOption small{ color: var(--muted); font-size: 0.66rem; font-weight: 700; }
 .bpeMove button:focus-visible, .bpeWho:focus-visible, .bpeList button:focus-visible, .bpeAll:focus-visible{ outline: 3px solid rgba(20, 22, 29, 0.25); outline-offset: 2px; }
+
+/* A new time sent to the client, waiting for their answer */
+.scheduleBookingReadOnlyNote.is-offer{
+  justify-content: flex-start;
+  background: #fff8ea;
+  color: #8a5a00;
+  line-height: 1.8;
+  text-align: start;
+}

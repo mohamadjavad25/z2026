@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CalendarDays, Clock3, FileText, History, Sparkles } from "lucide-react";
+import { CalendarClock, CalendarDays, Clock3, FileText, History, Sparkles } from "lucide-react";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { Mascot } from "../../components/Mascot";
 import { SegmentClock } from "../../components/SegmentClock";
@@ -9,6 +9,7 @@ import { toPersianDigits } from "../../shared/lib/digits";
 import { formatRelativeBookingDayLabel, resolveRollingPersianDate } from "../../shared/lib/persianCalendar";
 import { formatRequestExpiryDeadline } from "../../shared/lib/time";
 import { ClientBookingHistorySheet } from "./ClientBookingHistorySheet";
+import { AWAITING_CLIENT } from "../../shared/lib/bookingOffer";
 import {
   bookingStatusLabel,
   bookingStatusTone,
@@ -126,6 +127,12 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook })
                 </span>
               </div>
               <div className={`clientBookingStatusPill is-${meta.tone}`}>{meta.status}</div>
+              {nextBooking.status === AWAITING_CLIENT ? (
+                <p className="clientBookingPendingNote">
+                  <CalendarClock size={14} />
+                  سالن ساعت تازه‌ای پیشنهاد داده؛ برای قبول یا رد، کارت را باز کن
+                </p>
+              ) : null}
               {pendingDeadline ? (
                 <p className="clientBookingPendingNote">
                   <Clock3 size={14} />

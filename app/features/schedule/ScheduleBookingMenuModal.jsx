@@ -25,6 +25,7 @@ import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { formatRequestExpiryDeadline, getRequestExpiryMinutesLeft } from "../../shared/lib/time";
 import { isMultiPartBooking, parseBookingParts } from "../../shared/lib/bookingParts";
 import { BookingPartsEditor } from "./BookingPartsEditor";
+import { AWAITING_CLIENT, bookingTimeOffer } from "../../shared/lib/bookingOffer";
 
 // Shown when a customer / staff member / source has no uploaded photo.
 const DEFAULT_AVATAR = "/profile-icon.svg";
@@ -276,6 +277,13 @@ export function ScheduleBookingMenuModal({
                 </div>
               ) : null}
 
+              {isSalonOwner && !readOnly && bookingTimeOffer(booking) ? (
+                <p className="scheduleBookingReadOnlyNote is-offer">
+                  <Timer size={14} aria-hidden="true" />
+                  ساعت تازه برای مشتری فرستاده شد (قبلاً {toPersianDigits(bookingTimeOffer(booking).fromTime)})؛ تا قبول یا رد کند، «{AWAITING_CLIENT}» می‌ماند.
+                </p>
+              ) : null}
+
               {readOnly ? (
                 <p className="scheduleBookingReadOnlyNote">
                   <Eye size={14} aria-hidden="true" />
@@ -326,6 +334,9 @@ export function ScheduleBookingMenuModal({
               <button type="button" className="scheduleBookingBack" disabled={actionDisabled} onClick={() => onViewChange?.("menu")}>
                 بازگشت
               </button>
+              {isSalonOwner && (booking.client_user_id || booking.clientUserId) ? (
+                <p className="scheduleBookingReadOnlyNote is-offer">ساعت تازه برای مشتری فرستاده می‌شود تا قبول یا رد کند.</p>
+              ) : null}
               {slots.map((slot) => {
                 const active = slot === booking.time;
                 return (

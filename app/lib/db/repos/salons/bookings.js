@@ -20,17 +20,21 @@ import {
   serializeBookingParts,
   summarizeBookingParts
 } from "../../../../shared/lib/bookingParts.js";
+import { AWAITING_CLIENT } from "../../../../shared/lib/bookingOffer.js";
 
 let partsColumnsReady;
 /**
- * salon_bookings.parts and artist_bookings.salon_booking_id (migration 029), also added on
- * first use so multi-service bookings work before the migration is run.
+ * salon_bookings.parts and artist_bookings.salon_booking_id (migration 029) and the previous
+ * time of a booking waiting on its client (migration 030), also added on first use so the
+ * features work before the migrations are run.
  */
 export function ensureBookingPartsColumns() {
   partsColumnsReady ??= (async () => {
     const db = await getDb();
     await run(db, "ALTER TABLE salon_bookings ADD COLUMN IF NOT EXISTS parts TEXT NOT NULL DEFAULT ''");
     await run(db, "ALTER TABLE artist_bookings ADD COLUMN IF NOT EXISTS salon_booking_id INTEGER");
+    await run(db, "ALTER TABLE salon_bookings ADD COLUMN IF NOT EXISTS previous_booking_date TEXT NOT NULL DEFAULT ''");
+    await run(db, "ALTER TABLE salon_bookings ADD COLUMN IF NOT EXISTS previous_time TEXT NOT NULL DEFAULT ''");
   })().catch((error) => {
     partsColumnsReady = undefined;
     throw error;
@@ -49,6 +53,16 @@ function bookingSegments(row) {
   }
   const start = timeLabelToMinutes(row.time);
   return [{ staff: String(row.staff || "").trim(), start, end: start + Math.max(15, Number(row.duration_minutes) || 60) }];
+}
+
+/**
+ * The status an artist's calendar copy carries. While the client decides on a new time the
+ * copy keeps the status it had (a new copy waits as a request); the client's answer then
+ * reaches it like any approve or cancel.
+ */
+function mirrorStatus(status, previous = "") {
+  if (status === AWAITING_CLIENT) return previous || "درخواست";
+  return status || "تازه";
 }
 
 // Safety cap: a salon's dashboard never needs its entire lifetime of rows, and an
@@ -267,7 +281,7 @@ async function createPartMirrors(db, salonUserId, booking, staffList) {
       durationMinutes: group.minutes,
       sourceSalonUserId: salonUserId,
       salonBookingId: booking.id,
-      status: booking.status || "تازه"
+      status: mirrorStatus(booking.status)
     }, db);
     if (!created.ok) {
       throw artistConflictError(
@@ -596,6 +610,11 @@ async function updateSalonBookingInTx(db, id, salonUserId, current, data) {
   if (nextParts !== (current.parts || "")) {
     await run(db, "UPDATE salon_bookings SET parts = $1 WHERE id = $2 AND salon_user_id = $3", [nextParts, id, salonUserId]);
   }
+  if (data.previousSlot) {
+    await run(db, `
+      UPDATE salon_bookings SET previous_booking_date = $1, previous_time = $2 WHERE id = $3 AND salon_user_id = $4
+    `, [data.previousSlot.date || "", data.previousSlot.time || "", id, salonUserId]);
+  }
 
   return {
     ok: true,
@@ -615,6 +634,48 @@ export async function updateSalonBooking(id, salonUserId, data) {
 }
 
 /**
+ * A salon moving a client's booking to another day or time does not just move it: the booking
+ * waits for the client ('در انتظار مشتری') and remembers the time the client last agreed to,
+ * so they see what changed and accept or decline it (answerSalonTimeOffer). Bookings with no
+ * client account (walk-ins the salon entered) move as before.
+ */
+function withClientConsent(current, data) {
+  if (!current.client_user_id || data.status === "لغو") return data;
+  if (!["تازه", "درخواست", "تایید شده", AWAITING_CLIENT].includes(current.status)) return data;
+  const nextDate = resolveRollingPersianDateKey(data.booking_date ?? data.bookingDate ?? data.date ?? current.booking_date);
+  const nextTime = normalizeBookingTimeLabel(data.time ?? current.time);
+  if (nextDate === current.booking_date && nextTime === normalizeBookingTimeLabel(current.time || "")) return data;
+  const waiting = current.status === AWAITING_CLIENT;
+  return {
+    ...data,
+    status: AWAITING_CLIENT,
+    previousSlot: waiting
+      ? { date: current.previous_booking_date, time: current.previous_time }
+      : { date: current.booking_date, time: normalizeBookingTimeLabel(current.time || "") }
+  };
+}
+
+/**
+ * The client answering a new time the salon offered: accepting confirms the booking at that
+ * time, declining cancels it (they can then book another time). Either way the artists'
+ * calendar copies follow, through the same path as the salon's own approve / cancel.
+ */
+export async function answerSalonTimeOffer(id, clientUserId, accept) {
+  await ensureBookingPartsColumns();
+  const db = await getDb();
+  const current = await get(db, "SELECT * FROM salon_bookings WHERE id = $1 AND client_user_id = $2", [id, clientUserId]);
+  if (!current) return { ok: false, error: "missing" };
+  if (current.status !== AWAITING_CLIENT) return { ok: false, error: "inactive" };
+  const result = await patchSalonBookingWithArtistSync(
+    id,
+    current.salon_user_id,
+    { status: accept ? "تایید شده" : "لغو" },
+    { clientAnswer: true }
+  );
+  return result.ok ? { ...result, salonUserId: current.salon_user_id } : result;
+}
+
+/**
  * PATCH-path update: salon_bookings + linked artist_bookings in one atomic transaction.
  *
  * Staff-link policy:
@@ -624,7 +685,7 @@ export async function updateSalonBooking(id, salonUserId, data) {
  * - Linked A → linked B → soft-cancel A, create on B (artist slot conflict rolls back both tables).
  * - Unlinked → linked B → create on B.
  */
-export async function patchSalonBookingWithArtistSync(id, salonUserId, data, { allowPast = false } = {}) {
+export async function patchSalonBookingWithArtistSync(id, salonUserId, data, { allowPast = false, askClient = false, clientAnswer = false } = {}) {
   await ensureBookingPartsColumns();
   const pool = await getDb();
   const current = await get(pool, `
@@ -649,6 +710,11 @@ export async function patchSalonBookingWithArtistSync(id, salonUserId, data, { a
   if (current.status === "منقضی شده" && data.status === "تایید شده") {
     return { ok: false, error: "expired" };
   }
+  // A new time the salon offered is the client's to accept; the salon may still cancel or move it again.
+  if (current.status === AWAITING_CLIENT && data.status === "تایید شده" && !clientAnswer) {
+    return { ok: false, error: "awaiting_client" };
+  }
+  if (askClient) data = withClientConsent(current, data);
 
   if (isMultiPartBooking(current)) {
     return patchMultiPartBooking(id, salonUserId, current, data);
@@ -711,7 +777,7 @@ export async function patchSalonBookingWithArtistSync(id, salonUserId, data, { a
             booking_date: next.booking_date,
             time: next.time,
             duration_minutes: next.duration_minutes,
-            status: next.status || "تازه"
+            status: mirrorStatus(next.status, oldArtistBooking.status)
           }, db);
         } else {
           const created = await artists.addArtistBookingInTx(newArtistId, {
@@ -723,7 +789,7 @@ export async function patchSalonBookingWithArtistSync(id, salonUserId, data, { a
             time: next.time,
             durationMinutes: next.duration_minutes,
             sourceSalonUserId: salonUserId,
-            status: next.status || "تازه"
+            status: mirrorStatus(next.status)
           }, db);
           if (!created.ok) failArtist(created.code || "ARTIST_BOOKING_FAILED", created.error);
         }
@@ -743,7 +809,7 @@ export async function patchSalonBookingWithArtistSync(id, salonUserId, data, { a
             time: next.time,
             durationMinutes: next.duration_minutes,
             sourceSalonUserId: salonUserId,
-            status: next.status || "تازه"
+            status: mirrorStatus(next.status)
           }, db);
           if (!created.ok) failArtist(created.code || "ARTIST_BOOKING_FAILED", created.error);
           linkedArtistIds.push(newArtistId);
@@ -831,7 +897,8 @@ async function patchMultiPartBooking(id, salonUserId, current, data) {
 
       if (unchanged) {
         for (const row of mirrors) {
-          if (row.status !== status) await artists.updateArtistBookingRow(row.id, { status }, db);
+          const copyStatus = mirrorStatus(status, row.status);
+          if (row.status !== copyStatus) await artists.updateArtistBookingRow(row.id, { status: copyStatus }, db);
         }
         return { ok: true, booking: next, linkedArtistIds: [...new Set(linkedArtistIds)], linkedArtistId: linkedArtistIds[0] ?? null };
       }
@@ -885,6 +952,8 @@ export async function syncSalonBookingFromArtistMirror(artistBooking, status, ru
   ]);
   const match = rows.find((row) => normalizeBookingTimeLabel(row.time || "") === time);
   if (!match) return null;
+  // The visit waits on the client's answer to a new time; the artist agreeing does not settle it.
+  if (match.status === AWAITING_CLIENT && status === "تایید شده") return null;
   await run(db, "UPDATE salon_bookings SET status = $1 WHERE id = $2", [status, match.id]);
   return get(db, "SELECT * FROM salon_bookings WHERE id = $1", [match.id]);
 }
@@ -924,7 +993,7 @@ export async function cancelSalonBookingByClient(id, clientUserId) {
   const db = await getDb();
   const current = await get(db, "SELECT * FROM salon_bookings WHERE id = $1 AND client_user_id = $2", [id, clientUserId]);
   if (!current) return { ok: false, error: "missing" };
-  if (!["تازه", "درخواست", "تایید شده"].includes(current.status)) return { ok: false, error: "inactive" };
+  if (!["تازه", "درخواست", "تایید شده", AWAITING_CLIENT].includes(current.status)) return { ok: false, error: "inactive" };
   const result = await patchSalonBookingWithArtistSync(id, current.salon_user_id, { status: "لغو" });
   return result.ok ? { ok: true, booking: result.booking, salonUserId: current.salon_user_id } : result;
 }

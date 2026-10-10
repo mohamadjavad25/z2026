@@ -233,3 +233,86 @@ describe("multi-service salon booking", () => {
     expect((await visitTimes(["مانیکور ویزیت", "خدمت ناشناس"])).status).toBe(400);
   });
 });
+
+describe("salon offers a client a new time", () => {
+  const AWAITING = "در انتظار مشتری";
+  const clientRow = async (ctx, id) => (await ctx.clientClient.get("/api/salon-bookings")).payload.data.bookings.find((b) => b.id === id);
+  const answer = (client, id, accept) => client.post(`/api/salon-bookings/${id}/answer`, { accept });
+
+  it("moving a client's visit waits for the client; accepting confirms it for every artist", async () => {
+    const ctx = await setup();
+    const booking = (await requestVisit(ctx, { bookingDate: futureBookingDay(9) })).payload.data.booking;
+
+    const moved = await ctx.salonClient.patch("/api/salon-bookings", { id: booking.id, time: "12:00" });
+    expect(moved.ok).toBe(true);
+    expect(moved.payload.data.booking.status).toBe(AWAITING);
+    expect(moved.payload.data.booking.previous_time).toBe("10:00");
+    // Moved again before the client answered: the client still sees the time they agreed to.
+    expect((await ctx.salonClient.patch("/api/salon-bookings", { id: booking.id, time: "13:00" })).ok).toBe(true);
+    const seen = await clientRow(ctx, booking.id);
+    expect(seen.status).toBe(AWAITING);
+    expect(seen.previous_time).toBe("10:00");
+    expect(seen.time).toBe("13:00");
+
+    // The artists' copies moved with it and still wait.
+    const [nailShare] = await myVisitShare(ctx.nail, ctx);
+    expect(nailShare.time).toBe("13:00");
+    expect(nailShare.status).toBe("درخواست");
+
+    // Only the client can settle it.
+    const approved = await ctx.salonClient.patch("/api/salon-bookings", { id: booking.id, status: "تایید شده" });
+    expect(approved.status).toBe(409);
+    expect(approved.payload.code).toBe("AWAITING_CLIENT");
+    const stranger = createClient();
+    await registerUser(stranger, { type: "client", name: "Someone Else" });
+    expect((await answer(stranger, booking.id, true)).status).toBe(404);
+
+    const accepted = await answer(ctx.clientClient, booking.id, true);
+    expect(accepted.ok).toBe(true);
+    expect(accepted.payload.data.booking.status).toBe("تایید شده");
+    expect((await myVisitShare(ctx.nail, ctx)).map((b) => b.status)).toEqual(["تایید شده"]);
+    expect((await myVisitShare(ctx.hair, ctx)).map((b) => b.status)).toEqual(["تایید شده"]);
+    expect((await answer(ctx.clientClient, booking.id, true)).status).toBe(409);
+  });
+
+  it("declining the new time cancels the booking and frees the artists", async () => {
+    const ctx = await setup();
+    const booking = (await requestVisit(ctx, { bookingDate: futureBookingDay(10) })).payload.data.booking;
+    expect((await ctx.salonClient.patch("/api/salon-bookings", { id: booking.id, time: "12:00" })).ok).toBe(true);
+    const declined = await answer(ctx.clientClient, booking.id, false);
+    expect(declined.ok).toBe(true);
+    expect(declined.payload.data.booking.status).toBe("لغو");
+    expect(await myVisitShare(ctx.nail, ctx)).toHaveLength(0);
+    expect(await myVisitShare(ctx.hair, ctx)).toHaveLength(0);
+  });
+
+  it("a single-service request waits too, and the client may still cancel it", async () => {
+    const ctx = await setup();
+    const day = futureBookingDay(11);
+    const created = await ctx.clientClient.post("/api/salon-bookings", {
+      salonUserId: ctx.salon.user.id, service: "کوتاهی ویزیت", bookingDate: day, time: "10:00",
+      client: ctx.client.user.name, phone: ctx.client.phone
+    });
+    expect(created.status).toBe(201);
+    const id = created.payload.data.booking.id;
+    // Approved first, then moved: the confirmed time is what the client sees as before.
+    expect((await ctx.salonClient.patch("/api/salon-bookings", { id, status: "تایید شده" })).ok).toBe(true);
+    const moved = await ctx.salonClient.patch("/api/salon-bookings", { id, time: "11:00" });
+    expect(moved.payload.data.booking.status).toBe(AWAITING);
+    // A change that does not touch the time does not ask again.
+    expect((await ctx.salonClient.patch("/api/salon-bookings", { id, staff: "" })).payload.data.booking.status).toBe(AWAITING);
+    expect((await ctx.clientClient.post(`/api/salon-bookings/${id}/cancel`, {})).ok).toBe(true);
+    expect((await clientRow(ctx, id)).status).toBe("لغو");
+  });
+
+  it("a booking the salon entered for a walk-in just moves", async () => {
+    const ctx = await setup();
+    const day = futureBookingDay(12);
+    const created = await ctx.salonClient.post("/api/salon-bookings", {
+      service: "کوتاهی ویزیت", bookingDate: day, time: "10:00", client: "حضوری", phone: "09120000091"
+    });
+    const moved = await ctx.salonClient.patch("/api/salon-bookings", { id: created.payload.data.booking.id, time: "11:00" });
+    expect(moved.ok).toBe(true);
+    expect(moved.payload.data.booking.status).toBe("تازه");
+  });
+});
