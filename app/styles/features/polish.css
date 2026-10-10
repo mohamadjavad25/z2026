@@ -1418,3 +1418,28 @@ html, body { overscroll-behavior-y: none; }
 }
 .profileHero .profileHeroEyeBtn:active { transform: scale(0.94); }
 .profileHero .profileHeroEyeBtn:focus-visible { outline: 2px solid #14161d; outline-offset: 2px; }
+
+/* ═══ Booking rows: multi-service booking (count on the icon, several artists, end time) ═══ */
+.bkIconStack { position: relative; flex: none; display: inline-grid; }
+.bkCount {
+  position: absolute;
+  bottom: -2px;
+  inset-inline-end: -4px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 4px;
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: #14161d;
+  color: #ffffff;
+  font-size: 0.66rem;
+  font-weight: 950;
+  box-shadow: 0 0 0 2px #ffffff;
+}
+.bkWhoStack { display: inline-flex; flex: none; }
+.bkWho:has(.bkWhoStack) { white-space: nowrap; }
+.bkWhoStack .bkWhoAvatar { box-shadow: 0 0 0 2px #ffffff; }
+.bkWhoStack .bkWhoAvatar + .bkWhoAvatar { margin-inline-start: -6px; }
+.bkEnd { color: #6f7380; font-size: 0.64rem; font-weight: 850; white-space: nowrap; }

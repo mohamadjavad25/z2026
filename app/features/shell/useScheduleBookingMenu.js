@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { summarizeBookingParts } from "../../shared/lib/bookingParts";
 
 /**
  * The per-booking action menu opened from the salon/artist weekly schedule
@@ -90,6 +91,20 @@ export function useScheduleBookingMenu({
     if (ok) closeScheduleBookingMenu();
   }, [scheduleBookingMenu, patchSalonAppointment, closeScheduleBookingMenu]);
 
+  // A multi-service booking: new order and/or artist per service. The menu stays open so the
+  // salon can make several changes in a row.
+  const changeScheduleBookingParts = useCallback(async (parts) => {
+    if (!scheduleBookingMenu) return false;
+    const ok = await patchSalonAppointment(scheduleBookingMenu, { parts }, "تقسیم نوبت به‌روز شد.");
+    if (ok) {
+      const summary = summarizeBookingParts(parts);
+      setScheduleBookingMenu((current) => (current
+        ? { ...current, parts: JSON.stringify(parts), service: summary.service, duration_minutes: summary.durationMinutes }
+        : current));
+    }
+    return ok;
+  }, [scheduleBookingMenu, patchSalonAppointment]);
+
   const cancelScheduleBooking = useCallback(async () => {
     if (!scheduleBookingMenu) return;
     const ok = await patchSalonAppointment(scheduleBookingMenu, { status: "لغو", action: "cancel" }, "رزرو لغو شد.");
@@ -105,6 +120,7 @@ export function useScheduleBookingMenu({
     closeScheduleBookingMenu,
     changeScheduleBookingTime,
     changeScheduleBookingStaff,
+    changeScheduleBookingParts,
     cancelScheduleBooking
   };
 }

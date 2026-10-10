@@ -1553,3 +1553,37 @@
   opacity: 0.45;
   cursor: not-allowed;
 }
+
+/* ═══ Multi-service booking: «تقسیم بین آرتیست‌ها» in the booking menu (BookingPartsEditor) ═══ */
+.bpeBox{
+  display: grid;
+  border: 1px solid rgba(28, 32, 44, 0.07);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.9);
+  overflow: hidden;
+}
+.bpeHead{ display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px 6px; }
+.bpeHead > span{ display: grid; gap: 2px; min-width: 0; }
+.bpeHead b{ font-size: 0.86rem; font-weight: 900; color: var(--ink); }
+.bpeHead small{ color: var(--muted); font-size: 0.66rem; font-weight: 800; }
+.bpeAll{ flex: none; min-height: 32px; padding: 0 10px; border: 0; border-radius: 999px; background: #f2f2f6; color: var(--ink); font: inherit; font-size: 0.7rem; font-weight: 900; cursor: pointer; }
+.bpeRow{ display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 12px; border-top: 1px solid rgba(28, 32, 44, 0.06); }
+.bpeMove{ display: grid; gap: 2px; }
+.bpeMove button{ width: 24px; height: 20px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 6px; background: #f2f2f6; color: var(--ink); cursor: pointer; }
+.bpeMove button:disabled{ opacity: 0.3; cursor: default; }
+.bpeCopy{ flex: 1; min-width: 0; display: grid; gap: 1px; }
+.bpeCopy b{ font-size: 0.8rem; font-weight: 900; color: var(--ink); }
+.bpeCopy small{ color: var(--muted); font-size: 0.68rem; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.bpeWho{ flex: 0 1 auto; max-width: 44%; min-width: 0; display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 8px 0 6px; border: 0; border-radius: 999px; background: #f6f6f8; color: var(--ink); font: inherit; font-size: 0.74rem; font-weight: 900; cursor: pointer; }
+.bpeWho:disabled{ cursor: default; }
+.bpeWhoName{ min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bpeWho svg{ flex: none; }
+.bpeWho .scheduleStaffAvatar{ width: 26px; height: 26px; }
+.bpeRow.is-empty .bpeWho{ padding-inline-start: 12px; background: #fff5e8; color: #8a4a0c; box-shadow: inset 0 0 0 1px #f3d9b5; }
+.bpeList{ flex-basis: 100%; display: grid; gap: 6px; max-height: 220px; overflow: auto; padding: 6px 0 2px; }
+.bpeList button{ min-height: 48px; display: flex; align-items: center; gap: 10px; padding: 6px 10px; border: 1px solid rgba(28, 32, 44, 0.07); border-radius: 14px; background: #fff; color: var(--ink); font: inherit; text-align: start; cursor: pointer; }
+.bpeList button.is-selected{ border-color: rgba(20, 22, 29, 0.3); background: rgba(20, 22, 29, 0.08); }
+.bpeOption{ flex: 1; min-width: 0; display: grid; gap: 2px; }
+.bpeOption b{ font-size: 0.8rem; font-weight: 900; }
+.bpeOption small{ color: var(--muted); font-size: 0.66rem; font-weight: 700; }
+.bpeMove button:focus-visible, .bpeWho:focus-visible, .bpeList button:focus-visible, .bpeAll:focus-visible{ outline: 3px solid rgba(20, 22, 29, 0.25); outline-offset: 2px; }

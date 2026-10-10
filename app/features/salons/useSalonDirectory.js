@@ -453,6 +453,10 @@ export function useSalonDirectory({
         bookingDate: salonClientBooking.day,
         time: salonClientBooking.time,
         durationMinutes,
+        // Several services: sent one by one, so the salon can give each its own artist.
+        parts: salonClientBooking.bundle?.name === salonClientBooking.service
+          ? salonClientBooking.bundle.items.map((item) => ({ service: item.name, duration: item.duration || "" }))
+          : undefined,
         status: "درخواست"
       });
       if (!ok) {
@@ -473,12 +477,16 @@ export function useSalonDirectory({
       if (String(salonUserId) === String(createdProfile?.id) && typeof onOwnerBookingsSync === "function") {
         onOwnerBookingsSync(payload?.data?.bookings || []);
       }
-      const linkedArtistId = payload?.data?.linkedArtistId;
-      if (linkedArtistId && typeof onLinkedArtistBooked === "function") {
-        try {
-          await onLinkedArtistBooked(linkedArtistId);
-        } catch {
-          // artist refresh is best-effort; salon booking already succeeded
+      const linkedArtistIds = payload?.data?.linkedArtistIds?.length
+        ? payload.data.linkedArtistIds
+        : [payload?.data?.linkedArtistId].filter(Boolean);
+      if (typeof onLinkedArtistBooked === "function") {
+        for (const linkedArtistId of linkedArtistIds) {
+          try {
+            await onLinkedArtistBooked(linkedArtistId);
+          } catch {
+            // artist refresh is best-effort; salon booking already succeeded
+          }
         }
       }
       if (payload?.data?.booking) {

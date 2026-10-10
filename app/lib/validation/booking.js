@@ -31,7 +31,14 @@ export const createBookingSchema = z.object({
   time: z.string().optional(),
   duration: z.string().optional(),
   durationMinutes: z.union([z.string(), z.number()]).optional(),
-  duration_minutes: z.union([z.string(), z.number()]).optional()
+  duration_minutes: z.union([z.string(), z.number()]).optional(),
+  // Several services in one visit (salon bookings only): see app/shared/lib/bookingParts.js.
+  parts: z.array(z.object({
+    service: z.string().trim().min(1).max(120),
+    duration: z.string().max(40).optional(),
+    durationMinutes: z.union([z.string(), z.number()]).optional(),
+    staff: z.string().trim().max(120).optional()
+  })).max(8).optional()
 });
 
 /** Status values a caller is ever allowed to request through a PATCH --

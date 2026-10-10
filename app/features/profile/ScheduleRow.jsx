@@ -6,6 +6,7 @@ import { MoreHorizontal, Store } from "lucide-react";
 import { SegmentClock } from "../../components/SegmentClock";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar";
+import { scheduleBookingParts } from "../../shared/lib/bookingParts";
 import {
   getArtistClientVisits,
   getBookingTimelineLabel,
@@ -54,10 +55,23 @@ export function normalizeSalonScheduleBooking(item, staffByName, serviceList = [
   const rawDate = item?.booking_date || item?.date || "";
   const date = rawDate ? formatRelativeBookingDayLabel(rawDate) : "نامشخص";
   const visits = getArtistClientVisits(item);
+  // A multi-service booking: how many services, who does them, and when the visit ends.
+  const parts = scheduleBookingParts(item?.time, item?.parts);
+  const multiPart = parts.length >= 2;
+  const partStaff = multiPart
+    ? [...new Set(parts.map((part) => part.staff).filter(Boolean))].map((name) => {
+        const person = staffByName?.get?.(name) || null;
+        const label = person?.artist_name || name;
+        return { name, label, avatar: person?.avatar || person?.staff_avatar || "", initial: label.slice(0, 1) };
+      })
+    : [];
 
   return {
     id: item?.id ?? null,
     ownerType: "salon",
+    partCount: multiPart ? parts.length : 0,
+    partStaff,
+    endTime: multiPart ? parts[parts.length - 1].endLabel : "",
     client,
     clientInitial: (client || "م").slice(0, 1),
     clientAvatar: item?.clientAvatar || item?.client_avatar || "",
@@ -67,7 +81,9 @@ export function normalizeSalonScheduleBooking(item, staffByName, serviceList = [
     date,
     time: item?.time || "",
     staff: staffName,
-    staffLabel: staffPerson?.artist_name || staffName,
+    staffLabel: multiPart
+      ? (partStaff.length ? partStaff.map((person) => person.label).join(" و ") : "آرتیست ثبت نشده")
+      : staffPerson?.artist_name || staffName,
     staffAvatar: item?.staffAvatar || item?.staff_avatar || staffPerson?.avatar || staffPerson?.staff_avatar || "",
     staffInitial: String(staffPerson?.artist_name || staffName || "آ").trim().slice(0, 1) || "آ",
     visits,
@@ -143,6 +159,7 @@ function scheduleRowPropsAreEqual(prev, next) {
     && prev.variant === next.variant
     && prev.booking?.displayTitle === next.booking?.displayTitle
     && prev.booking?.displayMeta === next.booking?.displayMeta
+    && prev.booking?.source?.parts === next.booking?.source?.parts
   );
 }
 
@@ -208,7 +225,14 @@ export const ScheduleRow = memo(function ScheduleRow({
         }
       }}
     >
-      <ServiceIcon emoji={booking.serviceEmoji} name={service} size="md" className="bkIcon" />
+      {booking.partCount ? (
+        <span className="bkIconStack">
+          <ServiceIcon emoji={booking.serviceEmoji} name={service} size="md" className="bkIcon" />
+          <span className="bkCount" aria-label={`${toPersianDigits(booking.partCount)} خدمت`}>{toPersianDigits(booking.partCount)}</span>
+        </span>
+      ) : (
+        <ServiceIcon emoji={booking.serviceEmoji} name={service} size="md" className="bkIcon" />
+      )}
 
       <div className="bkBody">
         <div className="bkTitle">
@@ -226,15 +250,25 @@ export const ScheduleRow = memo(function ScheduleRow({
         {!isClientBooking ? (
           <div className="bkFoot">
             <span className="bkWho">
-              <span className={`bkWhoAvatar ${staffAvatar ? "hasImage" : ""}`} aria-hidden="true">
-                {staffAvatar ? (
-                  <img src={staffAvatar} alt="" />
+              {booking.partStaff?.length > 1 ? (
+                <span className="bkWhoStack" aria-hidden="true">
+                  {booking.partStaff.slice(0, 3).map((person) => (
+                    <span className={`bkWhoAvatar ${person.avatar ? "hasImage" : ""}`} key={person.name}>
+                      {person.avatar ? <img src={person.avatar} alt="" /> : person.initial}
+                    </span>
+                  ))}
+                </span>
+              ) : (
+              <span className={`bkWhoAvatar ${(booking.partStaff?.[0]?.avatar || staffAvatar) ? "hasImage" : ""}`} aria-hidden="true">
+                {(booking.partStaff?.[0]?.avatar || staffAvatar) ? (
+                  <img src={booking.partStaff?.[0]?.avatar || staffAvatar} alt="" />
                 ) : sourceSalon ? (
                   <Store size={12} />
                 ) : (
-                  staffInitial
+                  booking.partStaff?.[0]?.initial || staffInitial
                 )}
               </span>
+              )}
               {staffLabel}
             </span>
             <span className="bkVisits" aria-label={`${toPersianDigits(visitCount)} رزرو این مشتری`} title={`${toPersianDigits(visitCount)} از ۱۰`}>
@@ -250,6 +284,7 @@ export const ScheduleRow = memo(function ScheduleRow({
         <div className="bkTime">
           <SegmentClock value={time} size="xs" backgroundColor="transparent" />
         </div>
+        {booking.endTime ? <small className="bkEnd">تا {toPersianDigits(booking.endTime)}</small> : null}
         <span className="bkMore" aria-hidden="true">
           <MoreHorizontal size={18} />
         </span>
