@@ -7,7 +7,6 @@ import { useHome } from "../HomeContext";
 export function PublicArtistHost() {
   const {
     selectedPublicArtist,
-    publicArtistHeroImage,
     publicArtistView,
     publicArtistPortfolio,
     publicArtistServices,
@@ -40,7 +39,6 @@ export function PublicArtistHost() {
   return (
     <PublicArtistModal
           artist={selectedPublicArtist}
-          heroImage={publicArtistHeroImage}
           view={publicArtistView}
           portfolio={publicArtistPortfolio}
           services={publicArtistServices}

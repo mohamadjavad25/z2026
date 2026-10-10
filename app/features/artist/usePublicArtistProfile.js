@@ -133,11 +133,6 @@ export function usePublicArtistProfile({
     }
   }, [savedArtists, notify]);
 
-  const publicArtistHeroImage = useMemo(() => {
-    const cover = publicArtistPortfolio.find((item) => item.featured) || publicArtistPortfolio[0];
-    return cover?.image || selectedPublicArtist?.avatar || "/explore-post-hair-balayage.webp";
-  }, [selectedPublicArtist, publicArtistPortfolio]);
-
   useEffect(() => {
     if (!publicArtistGalleryTags.includes(publicArtistGalleryFilter)) {
       setPublicArtistGalleryFilter("همه");
@@ -441,7 +436,6 @@ export function usePublicArtistProfile({
     isSavedPublicArtist,
     savedArtists,
     setSavedArtists,
-    publicArtistHeroImage,
     openPublicArtistProfile,
     closePublicArtistProfile,
     confirmPublicArtistBooking,
