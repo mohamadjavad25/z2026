@@ -3,30 +3,6 @@
    (The client's salons tab itself is styles/features/connect.css.) */
 
 /* ── Public salon page ── */
-:is(.salonPublicProfile, .artistPublicPage) .scHero { position: relative; height: 210px; overflow: hidden; background: #f4e4ea; }
-.scHeroImage { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.scHeroFallback { position: absolute; inset: 0; background: radial-gradient(120% 90% at 20% 0%, #ffd9e6 0%, transparent 60%), radial-gradient(100% 80% at 90% 20%, #ffe9c9 0%, transparent 55%), linear-gradient(160deg, #fbe6ee, #f6efe7); }
-.scTopbar { position: absolute; top: 14px; left: 14px; right: 14px; display: flex; justify-content: space-between; z-index: 2; }
-.scRound { width: 42px; height: 42px; display: grid; place-items: center; border: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.92); color: #14161d; box-shadow: 0 6px 16px rgba(20, 22, 29, 0.14); }
-:is(.salonPublicProfile, .artistPublicPage) .scId { position: relative; z-index: 1; margin: -34px 20px 0; padding: 52px 16px 16px; display: grid; justify-items: center; gap: 4px; border-radius: 26px; background: #fff; box-shadow: inset 0 0 0 1px #ececf1, 0 12px 32px rgba(20, 22, 29, 0.08); text-align: center; }
-.scAvatar { position: absolute; top: -40px; left: 50%; transform: translateX(-50%); width: 80px; height: 80px; overflow: hidden; border-radius: 50%; background: #fff; box-shadow: 0 0 0 4px #fff, 0 10px 24px rgba(20, 22, 29, 0.16); }
-.scAvatar img { width: 100%; height: 100%; object-fit: cover; }
-:is(.salonPublicProfile, .artistPublicPage) .scId h2 { margin: 0; color: #14161d; font-size: 1.2rem; font-weight: 950; line-height: 1.4; }
-:is(.salonPublicProfile, .artistPublicPage) .scId p { margin: 0; }
-.scTag { color: #6f7380; font-size: 0.78rem; font-weight: 800; }
-.scArea { display: inline-flex; align-items: center; gap: 4px; color: #6f7380; font-size: 0.76rem; font-weight: 750; }
-.scOpen { display: inline-flex; align-items: center; gap: 5px; margin-top: 4px; padding: 5px 12px; border-radius: 999px; font-size: 0.72rem; font-weight: 900; }
-.scOpen.is-open { background: #e3f6ea; color: #1c7c45; }
-.scOpen.is-closed { background: #f1f1f5; color: #6f7380; }
-.scStats { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 10px; padding: 12px 0; border-block: 1px solid #f0f0f4; }
-.scStats span { display: grid; gap: 2px; color: #6f7380; font-size: 0.7rem; font-weight: 800; }
-.scStats span + span { border-inline-start: 1px solid #f0f0f4; }
-.scStats b { color: #14161d; font-size: 1.1rem; font-weight: 950; }
-.scActions { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
-.scActions:has(> :only-child) { grid-template-columns: 1fr; }
-.scActions button, .scActions a { min-height: 46px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; border: 0; border-radius: 14px; background: #14161d; color: #fff; font: inherit; font-size: 0.84rem; font-weight: 900; text-decoration: none; }
-.scActions button.is-following { background: #f1f1f5; color: #14161d; }
-.scActions a { background: #fff; color: #14161d; box-shadow: inset 0 0 0 1.5px #e4e4ea; }
 .salonPublicProfile { padding-bottom: 110px; }
 
 /* ── Salon services: pick the artists for a service (sas*) — a bottom sheet, so it can never be clipped by the card ── */
@@ -68,13 +44,7 @@
 .bspDay:focus-visible, .bspTime:focus-visible { outline: 3px solid #14161d; outline-offset: 2px; }
 @media (max-width: 360px) { .bspTimes { grid-template-columns: repeat(3, 1fr); } }
 @media (prefers-reduced-motion: reduce) { .bspDay, .bspTime { transition: none; } }
-.scTopActions { display: flex; gap: 8px; }
-.scRound.is-saved { color: #e11d48; }
-.scAvatarLetter { width: 100%; height: 100%; display: grid; place-items: center; font-size: 1.8rem; font-weight: 950; color: #14161d; background: #fff3f7; }
-.scBio { color: #4b4f5c; font-size: 0.8rem; font-weight: 700; line-height: 1.9; max-width: 34ch; }
 .artistBookingPhoneWarning.is-info { background: #f1f5ff; color: #2a4a8a; }
-.artistPublicPage .scId .spvSpecialties { justify-content: center; }
-.scStats { grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); }
 
 .bspTimes { max-height: none; overflow: visible; }
 .bspDay.is-disabled { opacity: 0.5; }

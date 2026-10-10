@@ -1,17 +1,19 @@
 "use client";
 
-import { Bookmark, CalendarCheck, Check, ChevronLeft, Heart, Info, MapPin, Share2 } from "lucide-react";
+import { Bookmark, CalendarCheck, Check, ChevronLeft, ChevronUp, Heart, Info, Scissors, Share2 } from "lucide-react";
+import { PublicProfileHeader } from "../../components/PublicProfileHeader";
+import { ServicesDropUp, serviceKey } from "../../components/ServicesDropUp";
 import { SheetClose } from "../../components/SheetClose";
-import { toPersianDigits } from "../../shared/lib/digits";
-import { formatCount } from "../../shared/lib/counts";
 import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
 import { isPublicArtistSlotBlocked } from "./bookingUtils";
 import { PublicArtistAboutPanel } from "./PublicArtistAboutPanel";
 import { PublicArtistBookingPanel } from "./PublicArtistBookingPanel";
 import { PublicArtistGalleryPanel } from "./PublicArtistGalleryPanel";
-import { PublicArtistServicesPanel } from "./PublicArtistServicesPanel";
 import { ProfileSheet } from "../profile/ProfileSheet";
 import { useState } from "react";
+
+// Same decorative cover the artist's own panel shows until a poster is uploaded.
+const DEFAULT_COVER = "/artist-hero-doodle.webp";
 
 export function PublicArtistModal({
   artist,
@@ -48,6 +50,8 @@ export function PublicArtistModal({
 }) {
   const [bookingPopup, setBookingPopup] = useState(false);
   const [aboutPopup, setAboutPopup] = useState(false);
+  const [servicesOpen, setServicesOpen] = useState(false);
+  const [pickedService, setPickedService] = useState("");
   if (!artist) return null;
 
   const specialties = String(artist.service || "").split(/[،,]/).map((item) => item.trim()).filter(Boolean).slice(0, 4);
@@ -63,73 +67,47 @@ export function PublicArtistModal({
     >
       <article className="artistPublicSheet">
         <section className="artistPublicPage" aria-label={`صفحه عمومی ${artist.name}`}>
-          <header className="scHero">
-            {heroImage ? (
-              // Real <img> (not a CSS background) so this — usually the single largest photo on the
-              // page — is indexable by Google Image Search and readable by screen readers.
-              <img
-                className="scHeroImage"
-                src={heroImage}
-                alt={artist.name ? `${artist.name} — تصویر کاور` : ""}
-              />
-            ) : (
-              <div className="scHeroFallback" aria-hidden="true" />
-            )}
-            <div className="scTopbar">
-              <button type="button" className="scRound" onClick={onClose} aria-label="بازگشت">
-                <ChevronLeft size={20} />
+          <PublicProfileHeader
+            cover={heroImage || DEFAULT_COVER}
+            coverAlt={heroImage && artist.name ? `${artist.name} — تصویر کاور` : ""}
+            avatar={artist.avatar || heroImage}
+            avatarAlt={artist.name ? `تصویر پروفایل ${artist.name}` : "تصویر پروفایل آرتیست"}
+            avatarPosition={artist.avatarPosition || "50% 50%"}
+            name={artist.name}
+            area={artist.area ? (String(artist.area).split("،")[0].replace(/^(شهر|روستای|دهستان)\s+/, "").trim() || String(artist.area).trim()) : ""}
+            start={(
+              <button type="button" className="pphRound" onClick={onClose} aria-label="بازگشت">
+                <ChevronLeft size={19} />
               </button>
-              <div className="scTopActions">
-                <button type="button" className="scRound" aria-label="اشتراک‌گذاری" onClick={onShare}>
+            )}
+            end={(
+              <>
+                <button type="button" className="pphRound" aria-label="اشتراک‌گذاری" onClick={onShare}>
                   <Share2 size={18} />
                 </button>
                 <button
                   type="button"
-                  className={`scRound${saved ? " is-saved" : ""}`}
+                  className={`pphRound${saved ? " is-saved" : ""}`}
                   aria-label={saved ? "حذف از ذخیره‌ها" : "ذخیره پروفایل"}
                   aria-pressed={Boolean(saved)}
                   onClick={onSave}
                 >
                   <Bookmark size={18} fill={saved ? "currentColor" : "none"} />
                 </button>
-              </div>
-            </div>
-          </header>
+              </>
+            )}
+          />
 
-          <section className="scId">
-            <span className="scAvatar">
-              {(artist.avatar || heroImage) ? (
-                // Real <img> so the profile photo is indexable and readable by screen readers.
-                <img
-                  src={artist.avatar || heroImage}
-                  alt={artist.name ? `تصویر پروفایل ${artist.name}` : "تصویر پروفایل آرتیست"}
-                  style={{ objectPosition: artist.avatarPosition || "50% 50%" }}
-                />
-              ) : (
-                <b className="scAvatarLetter">{String(artist.name || "آ").slice(0, 1)}</b>
-              )}
-            </span>
-            <h2>{artist.name}</h2>
+          <section className="pphInfo" aria-label={`معرفی ${artist.name || "آرتیست"}`}>
             {specialties.length ? (
-              <div className="spvSpecialties">
-                {specialties.map((item) => <span key={item}>{item}</span>)}
+              <div className="pphChips">
+                {specialties.map((item) => <span className="pphChip" key={item}>{item}</span>)}
               </div>
             ) : null}
-            {artist.area ? (
-              <p className="scArea">
-                <MapPin size={13} />
-                {String(artist.area).split("،")[0].replace(/^(شهر|روستای|دهستان)\s+/, "").trim() || String(artist.area).trim()}
-              </p>
-            ) : null}
-            {artist.bio ? <p className="scBio">{artist.bio}</p> : null}
-            <div className="scStats">
-              {Number(artist.experienceYears) > 0 ? <span><b>{toPersianDigits(artist.experienceYears)}</b>سال تجربه</span> : null}
-              <span><b>{formatCount(artist.followers)}</b>دنبال‌کننده</span>
-              <span><b>{toPersianDigits(portfolio?.length || 0)}</b>نمونه‌کار</span>
-            </div>
-            <div className="scActions">
-              <button type="button" className={following ? "is-following" : ""} onClick={onFollow}>
-                {following ? <Check size={17} /> : <Heart size={17} />}
+            {artist.bio ? <p className="pphBio">{artist.bio}</p> : null}
+            <div className="pphActions">
+              <button type="button" className={`pphFollow${following ? " is-following" : ""}`} onClick={onFollow}>
+                {following ? <Check size={18} /> : <Heart size={18} />}
                 {following ? "دنبال می‌کنی" : "دنبال کردن"}
               </button>
             </div>
@@ -138,12 +116,6 @@ export function PublicArtistModal({
           <div className="artistPublicBody">
             <div className="artistPublicContent" key={view}>
               <>
-                  <PublicArtistServicesPanel
-                    services={services}
-                    selectedServiceId={selectedServiceId}
-                    onServiceClick={(service) => { onSelectService(service.id); setBookingPopup(true); }}
-                    onSelectService={onSelectService}
-                  />
                   <PublicArtistGalleryPanel
                     tags={galleryTags}
                     activeTag={galleryFilter}
@@ -156,6 +128,19 @@ export function PublicArtistModal({
                 </>
             </div>
 
+            <ServicesDropUp
+              open={servicesOpen}
+              title={`خدمات ${artist.name || "آرتیست"}`}
+              services={services}
+              selectedKey={pickedService}
+              onSelect={(service) => setPickedService(service ? serviceKey(service) : "")}
+              onConfirm={(service) => {
+                setServicesOpen(false);
+                onSelectService(service.id);
+                setBookingPopup(true);
+              }}
+              onClose={() => setServicesOpen(false)}
+            />
             <nav className="spvBar" aria-label="رزرو و اطلاعات">
               <button type="button" className="spvBarIcon" onClick={() => setAboutPopup(true)} aria-label="درباره هنرمند" title="درباره هنرمند">
                 <Info size={22} />
@@ -163,17 +148,14 @@ export function PublicArtistModal({
               <button
                 type="button"
                 className="spvBarBook"
-                disabled={!services?.length}
-                onClick={() => {
-                  const service = services.find((item) => item.id === selectedServiceId) || services[0];
-                  if (!service) return;
-                  onSelectService(service.id);
-                  setBookingPopup(true);
-                }}
+                onClick={() => setServicesOpen((open) => !open)}
+                aria-expanded={servicesOpen}
+                aria-haspopup="dialog"
               >
-                <CalendarCheck size={19} />
-                {services?.length ? "رزرو نوبت" : "هنوز خدمتی برای رزرو نیست"}
+                <Scissors size={19} />
+                خدمات
                 {fromPrice ? <small>از {formatTomanNumber(fromPrice)} تومان</small> : null}
+                <ChevronUp size={18} className={`spvBarChevron${servicesOpen ? " is-open" : ""}`} aria-hidden="true" />
               </button>
             </nav>
           </div>
