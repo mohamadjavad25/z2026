@@ -18,7 +18,8 @@ import {
   UserRound
 } from "lucide-react";
 import { PublicProfileHeader } from "../../components/PublicProfileHeader";
-import { ServicesDropUp, serviceKey } from "../../components/ServicesDropUp";
+import { ServicesDropUp } from "../../components/ServicesDropUp";
+import { bundleServices } from "../../shared/lib/serviceBundle";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
 import { SalonClientGallery } from "./SalonClientGallery";
@@ -61,7 +62,6 @@ export function SalonClientPage({
   const [aboutOpen, setAboutOpen] = useState(false);
   const [publicSheet, setPublicSheet] = useState("");
   const [servicesOpen, setServicesOpen] = useState(false);
-  const [pickedService, setPickedService] = useState("");
   const services = selectedSalon ? getVisibleServices(selectedSalon) : [];
   const portfolioItems = Array.isArray(selectedSalon?.portfolio) ? selectedSalon.portfolio : [];
   const followerCountValue = Number(selectedSalon?.followerCount ?? selectedSalon?.follower_count ?? 0) || 0;
@@ -191,11 +191,9 @@ export function SalonClientPage({
             open={servicesOpen}
             title={`خدمات ${publicName}`}
             services={services}
-            selectedKey={pickedService}
-            onSelect={(service) => setPickedService(service ? serviceKey(service) : "")}
-            onConfirm={(service) => {
+            onConfirm={(picked) => {
               setServicesOpen(false);
-              onOpenBooking(service.name);
+              onOpenBooking(bundleServices(picked));
             }}
             onClose={() => setServicesOpen(false)}
           />
