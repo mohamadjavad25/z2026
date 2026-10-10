@@ -229,8 +229,39 @@ describe("multi-service salon booking", () => {
     expect((await ctx.salonClient.post("/api/salon-services", { name: "ماساژ ویزیت", price: "200", duration: "۳۰ دقیقه" })).ok).toBe(true);
     expect(latin((await visitTimes(["مانیکور ویزیت", "ماساژ ویزیت"], futureBookingDay(8))).payload.data.times)).toContain("10:00");
 
-    expect((await visitTimes(["مانیکور ویزیت"])).status).toBe(400);
     expect((await visitTimes(["مانیکور ویزیت", "خدمت ناشناس"])).status).toBe(400);
+  });
+
+  it("offers a single service only the times a request would get, around a visit already booked", async () => {
+    const ctx = await setup();
+    const day = futureBookingDay(13);
+    const latin = (times) => times.map((time) => time.replace(/[۰-۹]/g, (d) => "۰۱۲۳۴۵۶۷۸۹".indexOf(d)));
+    const singleTimes = async (service) => {
+      const query = new URLSearchParams({ salonUserId: String(ctx.salon.user.id), day, service });
+      const response = await ctx.clientClient.get(`/api/salon-bookings/availability?${query}`);
+      expect(response.ok).toBe(true);
+      return latin(response.payload.data.times);
+    };
+    // A visit 10:00–11:15 (manicure, then haircut).
+    expect((await requestVisit(ctx, { bookingDate: day, time: "10:00" })).status).toBe(201);
+    const times = await singleTimes("مانیکور ویزیت");
+    for (const taken of ["09:30", "10:00", "10:30", "11:00"]) expect(times).not.toContain(taken);
+    expect(times).toContain("11:30");
+
+    // Every time not offered is refused, every offered one goes through.
+    const book = (time, phone) => ctx.clientClient.post("/api/salon-bookings", {
+      salonUserId: ctx.salon.user.id, service: "مانیکور ویزیت", bookingDate: day, time,
+      client: ctx.client.user.name, phone
+    });
+    expect((await book("11:00", ctx.client.phone)).status).toBe(409);
+    expect((await book("11:30", ctx.client.phone)).status).toBe(201);
+    expect(await singleTimes("مانیکور ویزیت")).not.toContain("11:30");
+
+    // A service the salon does not list needs its length from the client.
+    const query = new URLSearchParams({ salonUserId: String(ctx.salon.user.id), day, service: "خدمت ناشناس" });
+    expect((await ctx.clientClient.get(`/api/salon-bookings/availability?${query}`)).status).toBe(400);
+    query.append("minutes", "30");
+    expect((await ctx.clientClient.get(`/api/salon-bookings/availability?${query}`)).ok).toBe(true);
   });
 });
 

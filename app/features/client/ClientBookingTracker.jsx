@@ -7,6 +7,7 @@ import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar"
 import { formatRequestExpiryDeadline, toIsoLikeTimestamp } from "../../shared/lib/time";
 import { isBookingInPast } from "./bookingStatus";
 import { AWAITING_CLIENT } from "../../shared/lib/bookingOffer";
+import { shortServiceLabel } from "../../shared/lib/serviceBundle";
 
 const PENDING = new Set(["درخواست", "تازه"]);
 const WINDOW_MS = 60 * 60 * 1000; // a request is auto-cancelled after an hour (bookingExpirySweep)
@@ -98,7 +99,7 @@ export function ClientBookingTracker({ bookings = [], onOpen }) {
         <span className="cbtText">
           <b>{title}</b>
           <small>
-            {booking.service || "نوبت"} • {placeOf(booking)}
+            {shortServiceLabel(booking.service) || "نوبت"} • {placeOf(booking)}
             {confirmed ? ` • ${formatRelativeBookingDayLabel(booking.booking_date || booking.date || "امروز")} ${booking.time ? toPersianDigits(booking.time) : ""}` : ""}
           </small>
         </span>
@@ -115,7 +116,7 @@ export function ClientBookingTracker({ bookings = [], onOpen }) {
         <span className="cbtText">
           <b>سالن ساعت تازه پیشنهاد داده</b>
           <small>
-            {offer.service || "نوبت"} — {placeOf(offer)} — {formatRelativeBookingDayLabel(offer.booking_date || "امروز")} {offer.time ? toPersianDigits(offer.time) : ""}
+            {shortServiceLabel(offer.service) || "نوبت"} — {placeOf(offer)} — {formatRelativeBookingDayLabel(offer.booking_date || "امروز")} {offer.time ? toPersianDigits(offer.time) : ""}
           </small>
         </span>
         {offers.length > 1 ? <em className="cbtCount">{toPersianDigits(offers.length)}</em> : <ChevronLeft size={18} aria-hidden="true" />}
@@ -138,7 +139,7 @@ export function ClientBookingTracker({ bookings = [], onOpen }) {
       <span className="cbtText">
         <b>منتظر تأیید {label}</b>
         <small>
-          {current.service || "نوبت"} — {placeOf(current)}
+          {shortServiceLabel(current.service) || "نوبت"} — {placeOf(current)}
           {deadline ? ` — حداکثر تا ${deadline}` : ""}
         </small>
       </span>

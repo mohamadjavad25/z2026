@@ -234,17 +234,35 @@ function visitOverlaps(day, time, parts) {
 }
 
 /**
- * The start times (from `times`) at which a client can book these services back to back:
- * every service someone at the salon does gets a free artist in the draft, and nothing
- * overlaps the salon's other bookings. A request at any other time is refused (addSalonBooking
- * with requireStaff), so the client only ever sees times that will go through.
+ * The start times (from `times`) at which a client's request for these services will go
+ * through -- the same checks POST /api/salon-bookings runs, so the client is never shown a
+ * time that is then refused:
+ * - several services, back to back: every service someone at the salon does gets a free
+ *   artist in the draft, and nothing overlaps the salon's other bookings (addSalonBooking
+ *   with requireStaff refuses any other time);
+ * - one service: nothing overlaps in the salon (a client's booking names no artist, so any
+ *   overlap counts), and the artist it is linked to is free in their own calendar.
  */
 export async function listFeasibleVisitTimes(salonUserId, bookingDate, parts, times) {
   await ensureBookingPartsColumns();
   const list = parseBookingParts(parts).map((part) => ({ ...part, staff: "" }));
-  if (list.length < 2) return [];
-  const day = await loadVisitDay(await getDb(), salonUserId, bookingDate);
+  if (!list.length) return [];
+  const db = await getDb();
+  const day = await loadVisitDay(db, salonUserId, bookingDate);
   const feasible = [];
+  if (list.length === 1) {
+    const [only] = list;
+    const linked = await findSalonStaffForBooking(salonUserId, "", only.service, db);
+    const artistRanges = linked?.artist_user_id ? await artistBusyRanges(day, Number(linked.artist_user_id)) : [];
+    for (const time of times) {
+      const start = timeLabelToMinutes(normalizeBookingTimeLabel(time));
+      const end = start + only.minutes;
+      const taken = day.held.some((held) => rangesOverlap(start, end, held.start, held.end))
+        || artistRanges.some((range) => rangesOverlap(start, end, range.start, range.end));
+      if (!taken) feasible.push(time);
+    }
+    return feasible;
+  }
   for (const time of times) {
     const drafted = await draftVisitParts(day, time, list);
     if (!findUnstaffedPart(day, drafted) && !visitOverlaps(day, time, drafted)) feasible.push(time);

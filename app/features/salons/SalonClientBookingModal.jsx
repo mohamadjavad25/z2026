@@ -68,12 +68,23 @@ export function SalonClientBookingModal({
             <CalendarCheck size={14} />
             {booking.day}
           </span>
-          <ServiceIcon emoji={serviceEmoji} name={booking.service} size="md" />
-          <div>
-            <strong>{booking.service}</strong>
+          <ServiceIcon emoji={serviceEmoji} name={visitCount ? booking.bundle.items[0]?.name : booking.service} size="md" />
+          <div className="salonClientBookingTitle">
+            <strong>{visitCount ? `${toPersianDigits(visitCount)} خدمت` : booking.service}</strong>
             <small>{salon.name}</small>
           </div>
         </div>
+
+        {visitCount ? (
+          <ul className="salonClientVisitChips" aria-label="خدمات این نوبت">
+            {booking.bundle.items.map((item) => (
+              <li key={item.id || item.name}>
+                <ServiceIcon emoji={item.emoji} name={item.name} size="xs" />
+                <span>{item.name}</span>
+              </li>
+            ))}
+          </ul>
+        ) : null}
 
         <BookingSlotPicker
           dayOptions={salonClientBookingDays}

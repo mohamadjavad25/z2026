@@ -19,10 +19,11 @@ function noStoreJson(body, init = {}) {
 }
 
 /**
- * GET /api/salon-bookings/availability?salonUserId=&day=&service=…&service=…
- * The start times on that day at which these services can be booked back to back, in this
- * order: the same check a client's POST goes through (every service gets a free artist, nothing
- * overlaps), so the client is only offered times that will be accepted.
+ * GET /api/salon-bookings/availability?salonUserId=&day=&service=…[&service=…][&minutes=…]
+ * The start times on that day at which one service, or several back to back in this order, can
+ * be requested: the same checks a client's POST goes through (listFeasibleVisitTimes), so the
+ * client is only offered times that will be accepted. `minutes` (one per service, same order)
+ * is used only for a service the salon does not list.
  */
 async function _GET(request) {
   await ensureDb();
@@ -35,13 +36,14 @@ async function _GET(request) {
   const bookingDateKey = resolveRollingPersianDateKey(day);
   if (!day || !bookingDateKey) return noStoreJson({ error: "روز رزرو مشخص نیست." }, { status: 400 });
   const names = searchParams.getAll("service").map((name) => name.trim()).filter(Boolean);
-  if (names.length < 2 || names.length > MAX_BOOKING_PARTS || names.some((name) => name.length > 120)) {
+  if (!names.length || names.length > MAX_BOOKING_PARTS || names.some((name) => name.length > 120)) {
     return noStoreJson({ error: "فهرست خدمات نامعتبر است." }, { status: 400 });
   }
   const salon = await salons.getSalon(salonUserId);
   if (!salon) return noStoreJson({ error: "سالن پیدا نشد." }, { status: 404 });
-  const parts = salonVisitParts(salon, names.map((service) => ({ service })));
-  const missing = parts.find((part) => !part.listed);
+  const minutes = searchParams.getAll("minutes").map(Number);
+  const parts = salonVisitParts(salon, names.map((service, index) => ({ service, durationMinutes: minutes[index] })));
+  const missing = parts.find((part, index) => !part.listed && !(minutes[index] > 0));
   if (missing) return noStoreJson({ error: `«${missing.service}» در خدمات این سالن نیست.` }, { status: 400 });
 
   const { durationMinutes } = summarizeBookingParts(parts);

@@ -157,6 +157,10 @@
 .salonClientBookingPanel {
   gap: 14px;
   padding: 14px;
+  /* Every row keeps its own height and the sheet scrolls: otherwise, when the content is taller
+     than the screen, the grid squeezes the header (overflow: hidden) down to a sliver. */
+  grid-auto-rows: max-content;
+  align-content: start;
 }
 
 .salonClientBookingPanel .salonClientBookingHead {

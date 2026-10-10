@@ -9,6 +9,7 @@ import { bookingStatusLabel, bookingStatusTone } from "../client/bookingStatus";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { formatRelativeBookingDayLabel, resolveRollingPersianDate } from "../../shared/lib/persianCalendar";
 import { buildBookingCustomers } from "./customers";
+import { shortServiceLabel } from "../../shared/lib/serviceBundle";
 
 export { buildBookingCustomers };
 
@@ -80,7 +81,7 @@ function CustomerSheet({ customer, onClose }) {
               <li key={booking.id || index}>
                 <ServiceIcon emoji={booking.service_emoji} name={booking.service} size="xs" />
                 <div>
-                  <b>{booking.service || "خدمت"}</b>
+                  <b>{shortServiceLabel(booking.service) || "خدمت"}</b>
                   <small>{date ? formatRelativeBookingDayLabel(date) : "—"}{booking.time ? ` • ${toPersianDigits(booking.time)}` : ""}</small>
                 </div>
                 <em className={`is-${tone}`}>{bookingStatusLabel(booking.status)}</em>

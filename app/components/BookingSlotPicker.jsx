@@ -24,9 +24,15 @@ export function BookingSlotPicker({
   const stripRef = useRef(null);
   const activeDayRef = useRef(null);
 
-  // Keep the selected day in view when the strip is wider than the screen.
+  // Keep the selected day in view when the strip is wider than the screen. Only the strip
+  // scrolls, sideways: scrollIntoView would also scroll the sheet and hide its header.
   useEffect(() => {
-    activeDayRef.current?.scrollIntoView?.({ block: "nearest", inline: "center" });
+    const strip = stripRef.current;
+    const day = activeDayRef.current;
+    if (!strip || !day || typeof strip.scrollBy !== "function") return;
+    const stripBox = strip.getBoundingClientRect();
+    const dayBox = day.getBoundingClientRect();
+    strip.scrollBy({ left: (dayBox.left + dayBox.width / 2) - (stripBox.left + stripBox.width / 2) });
   }, [dayValue]);
 
   return (
