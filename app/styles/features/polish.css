@@ -1468,3 +1468,4 @@ html, body { overscroll-behavior-y: none; }
 .clConnActions .is-accept { background: #14161d; color: #ffffff; }
 .clConnActions .is-decline { background: #f1f1f5; color: #3b3e49; }
 .clConnActions button:disabled { opacity: 0.5; }
+.clConnMascot { justify-self: center; margin-top: 18px; }

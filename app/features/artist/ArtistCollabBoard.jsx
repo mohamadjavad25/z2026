@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Check, LogOut, MapPin, QrCode, ScanLine, Store, X } from "lucide-react";
+import { Mascot } from "../../components/Mascot";
 import { ProfileQrCodeSheet } from "../../components/ProfileQrCodeSheet";
 import { usePolling } from "../../shared/lib/usePolling";
 import { TermsChips } from "../collab/TermsEditor";
@@ -130,6 +131,8 @@ export function ArtistCollabBoard({
           <span><b>اسکن شو</b><small>کدت را به سالن نشان بده</small></span>
         </button>
       </div>
+
+      <Mascot pose="party" size={190} className="clConnMascot" />
 
       {sheet === "scan" ? (
         <ScanFlow viewerType="artist" onChanged={() => onChanged?.()} onClose={() => setSheet("")} />
