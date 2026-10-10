@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { Check, Plus, Search, Timer } from "lucide-react";
+import { Check, Plus, Search, Timer, Trash2 } from "lucide-react";
 import { ServiceEmoji } from "../../components/ServiceEmoji";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { ServiceEmojiPicker } from "../../components/ServiceEmojiPicker";
@@ -32,9 +32,11 @@ export function ServiceComposerModal({
   onDraftChange,
   onSubmitCustom,
   onPickPreset,
-  onCustomizePreset
+  onCustomizePreset,
+  onDelete
 }) {
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("mine");
 
@@ -82,6 +84,20 @@ export function ServiceComposerModal({
   };
 
   const editing = Boolean(draft.id);
+  const canDelete = editing && typeof onDelete === "function";
+
+  // Delete lives here (not on the card). The handler asks for confirmation and
+  // reports whether the service was really removed; only then the sheet closes.
+  const handleDelete = async () => {
+    if (!canDelete || deleting) return;
+    setDeleting(true);
+    try {
+      const removed = await onDelete(draft.id);
+      if (removed) onClose?.();
+    } finally {
+      setDeleting(false);
+    }
+  };
   const hasName = Boolean(draft.name.trim());
   const addedCount = addedNames.size;
 
@@ -348,10 +364,17 @@ export function ServiceComposerModal({
               <p className="svcFormNote">قیمت را خالی بگذاری، «توافقی» نمایش داده می‌شود.</p>
             ) : null}
 
-            <button type="submit" className="svcSubmit" disabled={!hasName}>
+            <button type="submit" className="svcSubmit" disabled={!hasName || deleting}>
               <Check size={17} />
               {editing ? "ذخیره تغییرات" : "افزودن به خدمات من"}
             </button>
+
+            {canDelete ? (
+              <button type="button" className="svcDeleteBtn" onClick={handleDelete} disabled={deleting}>
+                <Trash2 size={16} />
+                {deleting ? "در حال حذف…" : "حذف این خدمت"}
+              </button>
+            ) : null}
           </form>
         )}
         {mode === "preset" ? null : <SheetClose onClick={onClose} />}

@@ -446,18 +446,20 @@ export function useArtistWorkspace({
   async function deleteArtistService(id) {
     const target = artistServiceList.find((item) => item.id === id);
     if (typeof window !== "undefined" && !window.confirm(target ? `«${target.name}» حذف شود؟ این کار قابل بازگشت نیست.` : "این خدمت حذف شود؟ این کار قابل بازگشت نیست.")) {
-      return;
+      return false;
     }
     try {
       const { ok, payload } = await deleteArtistMe({ id });
       if (!ok) {
         notify(payload.error || "حذف خدمت انجام نشد.");
-        return;
+        return false;
       }
       await refreshArtistWorkspace();
       notify("خدمت حذف شد.");
+      return true;
     } catch {
       notify("حذف خدمت انجام نشد.");
+      return false;
     }
   }
 

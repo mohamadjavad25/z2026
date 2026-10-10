@@ -119,6 +119,8 @@ export function HomeView() {
     addArtistService,
     addArtistServicePreset,
     customizeServicePreset,
+    deleteArtistService,
+    deleteSalonService,
     appToast,
     goToTab,
     selectedPost,
@@ -356,6 +358,7 @@ export function HomeView() {
           onSubmitCustom={addArtistService}
           onPickPreset={addArtistServicePreset}
           onCustomizePreset={customizeServicePreset}
+          onDelete={createdProfile?.type === "salon" ? deleteSalonService : deleteArtistService}
         />
         {appToast && typeof document !== "undefined" ? createPortal(
           // Portaled straight to <body> — this toast has an intentionally

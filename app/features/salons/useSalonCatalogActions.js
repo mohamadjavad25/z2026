@@ -366,19 +366,21 @@ export function useSalonCatalogActions({
     const target = salonServiceList.find((item) => item.id === id);
     const confirmed = typeof window === "undefined"
       || window.confirm(target ? `«${target.name}» حذف شود؟ این کار قابل بازگشت نیست.` : "این خدمت حذف شود؟ این کار قابل بازگشت نیست.");
-    if (!confirmed) return;
+    if (!confirmed) return false;
     try {
       const result = await deleteSalonServiceApi(id);
       if (!notifyFromResponse(shellNotify, result, { failure: "حذف خدمت انجام نشد؛ دوباره امتحان کن." })) {
-        return;
+        return false;
       }
       if (Array.isArray(result.payload.data?.services)) {
         setSalonServiceList(result.payload.data.services);
       }
       await refreshSalonSystemData();
-      shellNotify("خدمت از دیتابیس حذف شد.");
+      shellNotify("خدمت حذف شد.");
+      return true;
     } catch {
       shellNotify("حذف خدمت انجام نشد؛ دوباره امتحان کن.");
+      return false;
     }
   }, [salonServiceList, refreshSalonSystemData, shellNotify]);
 
