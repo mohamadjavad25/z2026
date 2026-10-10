@@ -28,11 +28,13 @@ export async function getUserLiteById(id, runner = null) {
   `, [id])) || null;
 }
 
-/** Public-profile fields: everything a profile page shows, avatar as a flag only. */
+/** Public-profile fields: everything a profile page shows, avatar/poster as present/absent flags only. */
 export async function getUserProfileById(id, runner = null) {
   const db = runner || (await getDb());
   return (await get(db, `
-    SELECT id, name, phone, type, area, service, bio, experience_years, avatar_position, (avatar <> '' OR avatar_url IS NOT NULL) AS avatar
+    SELECT id, name, phone, type, area, service, bio, experience_years, avatar_position, poster_position,
+      (avatar <> '' OR avatar_url IS NOT NULL) AS avatar,
+      (poster <> '' OR poster_url IS NOT NULL) AS poster
     FROM users WHERE id = $1
   `, [id])) || null;
 }

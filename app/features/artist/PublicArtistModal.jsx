@@ -6,6 +6,7 @@ import { ServicesDropUp } from "../../components/ServicesDropUp";
 import { bundleServices } from "../../shared/lib/serviceBundle";
 import { SheetClose } from "../../components/SheetClose";
 import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
+import { DEFAULT_PERSON_AVATAR } from "../../shared/lib/defaultAvatar";
 import { isPublicArtistSlotBlocked } from "./bookingUtils";
 import { PublicArtistAboutPanel } from "./PublicArtistAboutPanel";
 import { PublicArtistBookingPanel } from "./PublicArtistBookingPanel";
@@ -70,9 +71,10 @@ export function PublicArtistModal({
       <article className="artistPublicSheet">
         <section className="artistPublicPage" aria-label={`صفحه عمومی ${artist.name}`}>
           <PublicProfileHeader
-            cover={heroImage || DEFAULT_COVER}
-            coverAlt={heroImage && artist.name ? `${artist.name} — تصویر کاور` : ""}
-            avatar={artist.avatar || heroImage}
+            cover={artist.poster || heroImage || DEFAULT_COVER}
+            coverAlt={(artist.poster || heroImage) && artist.name ? `${artist.name} — تصویر کاور` : ""}
+            coverPosition={artist.posterPosition || "50% 50%"}
+            avatar={artist.avatar || heroImage || DEFAULT_PERSON_AVATAR}
             avatarAlt={artist.name ? `تصویر پروفایل ${artist.name}` : "تصویر پروفایل آرتیست"}
             avatarPosition={artist.avatarPosition || "50% 50%"}
             name={artist.name}

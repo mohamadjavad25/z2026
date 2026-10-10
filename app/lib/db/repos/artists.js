@@ -793,6 +793,12 @@ export async function getPublicArtist(userId, viewerUserId = null) {
     bio: user.bio,
     avatar: user.avatar ? `/api/media/avatar/${user.id}` : "",
     avatarPosition: user.avatar_position || "",
+    // Profile-hero banner, same two-step the salon page uses
+    // (salons.js getSalon): users.poster arrives from getUserById as a
+    // present/absent flag, and the bytes are streamed by
+    // /api/media/poster/[userId] instead of riding along in this payload.
+    poster: user.poster ? `/api/media/poster/${user.id}` : "",
+    posterPosition: user.poster_position || "",
     service: user.service,
     experienceYears: user.experience_years || "",
     followers,
