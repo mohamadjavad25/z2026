@@ -85,6 +85,15 @@ function decryptSecret(stored) {
   return Buffer.concat([decipher.update(data), decipher.final()]).toString("utf8");
 }
 
+/** Reads a stored authenticator secret, or null when it cannot be decrypted (e.g. FRFRO_ADMIN_SECRET was changed since it was saved). */
+function tryDecryptSecret(stored) {
+  try {
+    return decryptSecret(stored);
+  } catch {
+    return null;
+  }
+}
+
 function safeEqual(a, b) {
   const left = Buffer.from(String(a));
   const right = Buffer.from(String(b));
@@ -276,9 +285,10 @@ export async function adminLogin(request, { phone: phoneInput, password, code })
   const check = await checkCredentials(phone, password);
   const db = await getDb();
   const row = check.ok ? await get(db, "SELECT secret_enc, last_step FROM admin_totp WHERE user_id = $1 AND enabled_at IS NOT NULL", [check.user.id]) : null;
-  const step = row ? verifyTotp(decryptSecret(row.secret_enc), normalizeDigits(String(code || "")), { afterStep: Number(row.last_step) }) : null;
+  const secret = row ? tryDecryptSecret(row.secret_enc) : null;
+  const step = secret ? verifyTotp(secret, normalizeDigits(String(code || "")), { afterStep: Number(row.last_step) }) : null;
   if (!check.ok || !row || step === null) {
-    const reason = !check.ok ? "bad phone/password or not an admin" : !row ? "authenticator not set up" : "bad code";
+    const reason = !check.ok ? "bad phone/password or not an admin" : !row ? "authenticator not set up" : !secret ? "authenticator unreadable (admin secret changed), re-enroll needed" : "bad code";
     await audit("login_failed", { phone, detail: reason, request });
     return failure();
   }
@@ -303,16 +313,21 @@ export async function adminEnrollStart(request, { phone: phoneInput, password, s
   const check = await checkCredentials(phone, password);
   const keyOk = safeEqual(sha256(String(setupKey || "")), sha256(expected));
   const db = await getDb();
-  const existing = check.ok ? await get(db, "SELECT enabled_at FROM admin_totp WHERE user_id = $1", [check.user.id]) : null;
-  if (!check.ok || !keyOk || existing?.enabled_at) {
+  const existing = check.ok ? await get(db, "SELECT enabled_at, secret_enc FROM admin_totp WHERE user_id = $1", [check.user.id]) : null;
+  // An enabled authenticator whose secret can no longer be decrypted was saved under a different FRFRO_ADMIN_SECRET, so it can
+  // never sign anyone in again. Re-enrolling over it still needs the password and the server-side setup key, exactly like the first time.
+  const stale = Boolean(existing?.enabled_at) && tryDecryptSecret(existing.secret_enc) === null;
+  if (!check.ok || !keyOk || (existing?.enabled_at && !stale)) {
     await audit("enroll_failed", { phone, detail: !check.ok ? "bad phone/password or not an admin" : !keyOk ? "bad setup key" : "already enrolled", request });
     return failure();
   }
   const secret = generateTotpSecret();
   await run(db, `
     INSERT INTO admin_totp (user_id, secret_enc) VALUES ($1, $2)
-    ON CONFLICT (user_id) DO UPDATE SET secret_enc = EXCLUDED.secret_enc, last_step = 0, created_at = NOW()
-  `, [check.user.id, encryptSecret(secret)]);
+    ON CONFLICT (user_id) DO UPDATE SET secret_enc = EXCLUDED.secret_enc, last_step = 0, enabled_at = NULL, created_at = NOW()
+    WHERE admin_totp.enabled_at IS NULL OR admin_totp.secret_enc = $3
+  `, [check.user.id, encryptSecret(secret), existing?.secret_enc || ""]);
+  if (stale) await audit("enroll_reset_stale", { user: check.user, detail: "unreadable authenticator replaced", request });
   const uri = totpUri({ secret, account: check.user.phone });
   return { ok: true, secret, uri, qr: await QRCode.toDataURL(uri, { margin: 1, width: 240 }) };
 }
@@ -328,7 +343,8 @@ export async function adminEnrollConfirm(request, { phone: phoneInput, password,
   const keyOk = safeEqual(sha256(String(setupKey || "")), sha256(expected));
   const db = await getDb();
   const row = check.ok && keyOk ? await get(db, "SELECT secret_enc, enabled_at FROM admin_totp WHERE user_id = $1", [check.user.id]) : null;
-  const step = row && !row.enabled_at ? verifyTotp(decryptSecret(row.secret_enc), normalizeDigits(String(code || ""))) : null;
+  const secret = row && !row.enabled_at ? tryDecryptSecret(row.secret_enc) : null;
+  const step = secret ? verifyTotp(secret, normalizeDigits(String(code || ""))) : null;
   if (step === null) {
     await audit("enroll_failed", { phone, detail: "confirm failed", request });
     return failure();
