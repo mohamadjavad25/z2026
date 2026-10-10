@@ -52,6 +52,7 @@ export function ProfileHero({
   notificationCount = 0,
   showShare = false,
   onPreviewPublic,
+  onScan,
   modeRail = null
 }) {
   const type = profile?.type || "";
@@ -62,6 +63,8 @@ export function ProfileHero({
   const posterPosition = profile?.data?.posterPosition || "50% 50%";
   const [qrSheetOpen, setQrSheetOpen] = useState(false);
   if (!profile) return null;
+  // «اسکن شو» sheet -> «اسکن کن»: close the code and open the scanner.
+  const scanFromSheet = typeof onScan === "function" ? () => { setQrSheetOpen(false); onScan(); } : undefined;
   const artistPublicUrl = type === "artist" && profile.id && typeof window !== "undefined"
     ? `${window.location.origin}/artists/${profile.id}`
     : "";
@@ -90,8 +93,8 @@ export function ProfileHero({
           className="salonHeroQrBtn"
           onClick={() => setQrSheetOpen(true)}
           disabled={!salonPublicUrl}
-          aria-label="نمایش کد QR پروفایل عمومی"
-          title="نمایش کد QR پروفایل عمومی"
+          aria-label="کد QR و اسکن"
+          title="کد QR و اسکن"
         >
           <QrCode size={18} />
         </button>
@@ -99,6 +102,8 @@ export function ProfileHero({
           open={qrSheetOpen}
           url={salonPublicUrl}
           name={name}
+          hint="مشتری‌ها با اسکن این کد به تو وصل می‌شوند و آرتیست‌ها به تیمت می‌پیوندند."
+          onScan={scanFromSheet}
           onOpenChange={setQrSheetOpen}
         />
         <div className="salonHeroAvatarFrame">
@@ -209,7 +214,14 @@ export function ProfileHero({
         notificationCount={notificationCount}
       />
       {type === "artist" ? (
-        <ProfileQrCodeSheet open={qrSheetOpen} url={artistPublicUrl} name={name} onOpenChange={setQrSheetOpen} />
+        <ProfileQrCodeSheet
+          open={qrSheetOpen}
+          url={artistPublicUrl}
+          name={name}
+          hint="مشتری‌ها با اسکن این کد به تو وصل می‌شوند و سالن‌ها تو را به تیمشان دعوت می‌کنند."
+          onScan={scanFromSheet}
+          onOpenChange={setQrSheetOpen}
+        />
       ) : null}
     </div>
   );

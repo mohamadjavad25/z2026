@@ -4,9 +4,10 @@
  * owner scan API), so both sides read codes exactly the same way.
  *
  * Two kinds of code exist:
- *  - A salon / artist public page link (`…/salons/12`, `…/artists/34`): the
- *    QR on a salon's counter or an artist's profile. Scanning it lets a client
- *    find and connect to that profile.
+ *  - A salon / artist page link (`…/salons/12`, `…/artists/34`, or a salon's
+ *    team link `…/join-salon/12`): the QR on a salon's counter or a profile.
+ *    What scanning it does depends on who scans: a client connects, an artist
+ *    joins the salon's team, a salon invites the artist to its team.
  *  - A client's personal code (`FRFRO-C1:<userId>:<secret>`): shown by the
  *    client ("اسکن شو") so a salon or artist can add them. The secret proves
  *    the client chose to show it; a bare user id would let anyone add anyone.
@@ -14,7 +15,7 @@
 
 export const CLIENT_CODE_PREFIX = "FRFRO-C1";
 
-const PROFILE_PATH = /\/(salons|artists)\/(\d+)(?:[/?#]|$)/;
+const PROFILE_PATH = /\/(salons|artists|join-salon)\/(\d+)(?:[/?#]|$)/;
 const CLIENT_CODE = /^FRFRO-C1:(\d+):([A-Za-z0-9]{8,64})$/;
 
 export function buildClientCode(userId, secret) {
@@ -27,7 +28,7 @@ export function parseProfileLink(text) {
   if (!match) return null;
   const id = Number(match[2]);
   if (!Number.isSafeInteger(id) || id <= 0) return null;
-  return { type: match[1] === "salons" ? "salon" : "artist", id };
+  return { type: match[1] === "artists" ? "artist" : "salon", id };
 }
 
 /** `{ userId, secret }` for a client's personal code, else null. */

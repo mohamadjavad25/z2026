@@ -3,7 +3,7 @@
 import { getVisibleSalonServiceItems, SalonCustomersPage, SalonClientPage } from "../../salons";
 import { mapSharedPost } from "../../posts";
 import { SettingsPage } from "../../settings";
-import { ConnectPage, ScanCustomerAction } from "../../connect";
+import { ConnectPage, OwnerScanButton } from "../../connect";
 import { useHome } from "../HomeContext";
 
 export function ContentPages() {
@@ -20,6 +20,8 @@ export function ContentPages() {
     removeProfileLogo,
     removeProfilePoster,
     setAppToast,
+    refreshSalonSystemData,
+    refreshArtistWorkspace,
     saveAvatarPosition,
     savePosterPosition,
     pendingAvatarUpload,
@@ -133,7 +135,7 @@ export function ContentPages() {
             <SalonCustomersPage
               active={activeTab === "customers"}
               bookings={salonAppointmentList}
-              headerAction={<ScanCustomerAction onNotify={setAppToast} />}
+              headerAction={<OwnerScanButton viewerType="salon" onChanged={() => refreshSalonSystemData?.()} />}
             />
           )}
 
@@ -142,7 +144,7 @@ export function ContentPages() {
               active={activeTab === "customers"}
               bookings={artistBookingList}
               ownerLabel="شما"
-              headerAction={<ScanCustomerAction onNotify={setAppToast} />}
+              headerAction={<OwnerScanButton viewerType="artist" onChanged={() => refreshArtistWorkspace?.()} />}
             />
           )}
 

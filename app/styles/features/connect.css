@@ -445,3 +445,25 @@
   font-weight: 900;
   text-decoration: none;
 }
+
+/* Status line under a scanned profile (team member, invite sent, ...) */
+.cnScanNote { margin: 0; padding: 0 4px; color: var(--cn-muted); font-size: 0.82rem; font-weight: 700; line-height: 1.8; text-align: center; }
+
+/* «اسکن کن» inside a salon's/artist's «اسکن شو» sheet (components/ProfileQrCodeSheet) */
+.qrsScanBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 50px;
+  margin-top: 12px;
+  border: 0;
+  border-radius: 16px;
+  background: #14161d;
+  color: #ffffff;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 900;
+  cursor: pointer;
+}

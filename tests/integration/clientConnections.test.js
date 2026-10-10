@@ -104,3 +104,36 @@ describe("client connections", () => {
     expect(byClient.status).toBe(403);
   });
 });
+
+describe("scan lookup between salons, artists and clients", () => {
+  it("tells each viewer how they relate to a scanned profile", async () => {
+    const salon = await newProfile("salon", `سالن تیم ${Date.now()}`);
+    const artist = await newProfile("artist", `آرتیست تیم ${Date.now()}`);
+    const client = await newClient();
+    const lookup = (who, code) => who.api.get(`/api/connections/lookup?code=${encodeURIComponent(code)}`);
+
+    // salon scans the artist's profile QR: not related yet, then invited after the existing invite call
+    const before = await lookup(salon, `https://x.example/artists/${artist.user.id}`);
+    expect(before.ok).toBe(true);
+    expect(before.payload.data.profile.id).toBe(artist.user.id);
+    expect(before.payload.data.relation).toBe("none");
+    expect((await salon.api.post("/api/salon-invites", { artistUserId: artist.user.id })).status).toBe(201);
+    expect((await lookup(salon, `/artists/${artist.user.id}`)).payload.data.relation).toBe("invited");
+
+    // artist scans the salon's team link and joins: now a member from both sides
+    expect((await lookup(artist, `https://x.example/join-salon/${salon.user.id}`)).payload.data.relation).toBe("none");
+    expect((await artist.api.post("/api/artist/join-salon", { salonUserId: salon.user.id })).status).toBe(201);
+    expect((await lookup(artist, `/salons/${salon.user.id}`)).payload.data.relation).toBe("member");
+    expect((await lookup(salon, `/artists/${artist.user.id}`)).payload.data.relation).toBe("member");
+
+    // a client sees a plain connect relation; same-type scans and own code are flagged
+    expect((await lookup(client, `/salons/${salon.user.id}`)).payload.data.relation).toBe("none");
+    const otherSalon = await newProfile("salon", "سالن دیگر");
+    expect((await lookup(otherSalon, `/salons/${salon.user.id}`)).payload.data.relation).toBe("unrelated");
+    expect((await lookup(salon, `/salons/${salon.user.id}`)).payload.data.relation).toBe("self");
+
+    // junk and unknown ids
+    expect((await lookup(client, "hello")).status).toBe(400);
+    expect((await lookup(client, "/artists/99999999")).status).toBe(404);
+  });
+});
