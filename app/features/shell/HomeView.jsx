@@ -55,6 +55,7 @@ export function HomeView() {
     sharePost,
     salonClientBooking,
     salonClientFreeTimes,
+    salonClientTimesLoading,
     salonClientBookingBusy,
     closeSalonClientBooking,
     patchSalonClientBooking,
@@ -81,6 +82,7 @@ export function HomeView() {
     renderSavedPosts,
     clientBookingSettings,
     cancelClientBooking,
+    answerClientTimeOffer,
     salonWeekStripFloating,
     salonToolSheetOpen,
     salonTool,
@@ -184,6 +186,7 @@ export function HomeView() {
             salon={selectedSalon}
             booking={salonClientBooking}
             freeTimes={salonClientFreeTimes}
+            timesLoading={salonClientTimesLoading}
             busy={salonClientBookingBusy}
             onClose={closeSalonClientBooking}
             onChange={patchSalonClientBooking}
@@ -229,6 +232,7 @@ export function HomeView() {
           booking={clientBookingSettings}
           onClose={() => setClientBookingSettings(null)}
           onCancelBooking={cancelClientBooking}
+          onAnswerOffer={answerClientTimeOffer}
           onRebookSalon={(booking) => {
             setClientBookingSettings(null);
             rebookFromBooking(booking);

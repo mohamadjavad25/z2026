@@ -22,6 +22,8 @@ import {
   timeLabelToMinutes
 } from "../../shared/lib/time.js";
 import { summarizeBookingParts } from "../../shared/lib/bookingParts.js";
+import { salonVisitParts } from "../../lib/salonVisitParts.js";
+import { AWAITING_CLIENT } from "../../shared/lib/bookingOffer.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -123,21 +125,8 @@ async function _POST(request) {
   }
   const client = String(body.client || auth.user.name || "").trim();
   const phone = String(body.phone || auth.user.phone || "").trim();
-  // Several services in one visit: each one's length comes from the salon's own service list
-  // (the request's value only for a service the salon no longer lists), and only the salon
-  // itself may name the artists -- a client's request is split by the server's draft.
-  const parts = (v.data.parts || []).map((part) => {
-    const listed = Array.isArray(salon?.services)
-      ? salon.services.find((item) => String(item?.name || "").trim() === part.service)
-      : null;
-    return {
-      service: part.service,
-      minutes: listed?.duration
-        ? parseServiceDurationMinutes(listed.duration)
-        : Math.max(15, Number(part.durationMinutes) || parseServiceDurationMinutes(part.duration)),
-      staff: auth.user.type === "salon" ? String(part.staff || "").trim() : ""
-    };
-  });
+  const parts = salonVisitParts(salon, v.data.parts, { allowStaff: auth.user.type === "salon" })
+    .map(({ service, minutes, staff }) => ({ service, minutes, staff }));
   const multiPart = parts.length >= 2;
   const service = multiPart ? summarizeBookingParts(parts).service : String(body.service || "").trim();
   const rawBookingDay = body.bookingDate || body.booking_date || body.date || "";
@@ -191,9 +180,13 @@ async function _POST(request) {
     time,
     durationMinutes,
     parts: multiPart ? parts : undefined,
+    requireStaff: auth.user.type === "client",
     clientUserId: auth.user.type === "client" ? auth.user.id : body.clientUserId || body.client_user_id || null
   });
   if (!result.ok) {
+    if (result.error === "no_staff") {
+      return noStoreJson({ error: result.message, code: "NO_FREE_ARTIST" }, { status: 409 });
+    }
     if (result.error === "artist_conflict") {
       return noStoreJson({ error: result.message || "این ساعت برای آرتیست قبلاً رزرو شده است.", code: result.code || "ARTIST_SLOT_TAKEN" }, { status: 409 });
     }
@@ -266,7 +259,8 @@ async function _PATCH(request) {
     return noStoreJson({ error: "وضعیت نامعتبر است." }, { status: 400 });
   }
   const patch = wantsCancel ? { status: "لغو" } : body;
-  const result = await salons.patchSalonBookingWithArtistSync(id, auth.user.id, patch);
+  // A new day or time for a client's booking goes to the client to accept (withClientConsent).
+  const result = await salons.patchSalonBookingWithArtistSync(id, auth.user.id, patch, { askClient: true });
 
   if (!result.ok) {
     if (result.error === "missing") {
@@ -289,6 +283,9 @@ async function _PATCH(request) {
         data: { bookings: await salons.listSalonBookings(auth.user.id) }
       }, { status: 409 });
     }
+    if (result.error === "awaiting_client") {
+      return noStoreJson({ error: "مشتری هنوز به ساعت تازه جواب نداده؛ بعد از قبولش تایید می‌شود.", code: "AWAITING_CLIENT" }, { status: 409 });
+    }
     if (result.error === "parts") {
       return noStoreJson({ error: "فهرست خدمات این نوبت نامعتبر است." }, { status: 400 });
     }
@@ -310,6 +307,15 @@ async function _PATCH(request) {
         body: `${result.booking.service || "نوبت"} — ${result.booking.booking_date || ""} ${result.booking.time || ""}`.trim()
       });
     }
+  }
+
+  // The salon moved a client's booking: the client hears about the new time right away.
+  const moved = ["time", "booking_date", "bookingDate", "date"].some((key) => body[key] != null);
+  if (!wantsCancel && moved && result.booking.status === AWAITING_CLIENT && result.booking.client_user_id) {
+    void sendPushToUser(Number(result.booking.client_user_id), {
+      title: "ساعت تازه برای نوبتت",
+      body: `${auth.user.name || "سالن"} ساعت ${result.booking.time || ""} را برای ${result.booking.service || "نوبت"} پیشنهاد داده. قبول یا رد کن.`
+    });
   }
 
   return noStoreJson({

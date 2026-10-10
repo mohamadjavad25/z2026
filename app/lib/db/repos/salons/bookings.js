@@ -20,17 +20,21 @@ import {
   serializeBookingParts,
   summarizeBookingParts
 } from "../../../../shared/lib/bookingParts.js";
+import { AWAITING_CLIENT } from "../../../../shared/lib/bookingOffer.js";
 
 let partsColumnsReady;
 /**
- * salon_bookings.parts and artist_bookings.salon_booking_id (migration 029), also added on
- * first use so multi-service bookings work before the migration is run.
+ * salon_bookings.parts and artist_bookings.salon_booking_id (migration 029) and the previous
+ * time of a booking waiting on its client (migration 030), also added on first use so the
+ * features work before the migrations are run.
  */
 export function ensureBookingPartsColumns() {
   partsColumnsReady ??= (async () => {
     const db = await getDb();
     await run(db, "ALTER TABLE salon_bookings ADD COLUMN IF NOT EXISTS parts TEXT NOT NULL DEFAULT ''");
     await run(db, "ALTER TABLE artist_bookings ADD COLUMN IF NOT EXISTS salon_booking_id INTEGER");
+    await run(db, "ALTER TABLE salon_bookings ADD COLUMN IF NOT EXISTS previous_booking_date TEXT NOT NULL DEFAULT ''");
+    await run(db, "ALTER TABLE salon_bookings ADD COLUMN IF NOT EXISTS previous_time TEXT NOT NULL DEFAULT ''");
   })().catch((error) => {
     partsColumnsReady = undefined;
     throw error;
@@ -49,6 +53,16 @@ function bookingSegments(row) {
   }
   const start = timeLabelToMinutes(row.time);
   return [{ staff: String(row.staff || "").trim(), start, end: start + Math.max(15, Number(row.duration_minutes) || 60) }];
+}
+
+/**
+ * The status an artist's calendar copy carries. While the client decides on a new time the
+ * copy keeps the status it had (a new copy waits as a request); the client's answer then
+ * reaches it like any approve or cancel.
+ */
+function mirrorStatus(status, previous = "") {
+  if (status === AWAITING_CLIENT) return previous || "درخواست";
+  return status || "تازه";
 }
 
 // Safety cap: a salon's dashboard never needs its entire lifetime of rows, and an
@@ -161,25 +175,43 @@ async function findOverlapConflict(db, {
 }
 
 /**
- * Draft split for a new multi-service booking: each service without an artist goes to the
- * first artist who does that service (the salon's service → staff list) and is free for that
- * part of the visit -- free in this salon's bookings and in their own artist calendar.
- * A service nobody can take stays unassigned; the salon picks someone in the booking menu.
+ * Everything a visit plan needs for one salon day, loaded once: the salon's services (with who
+ * does each), its active bookings, and -- loaded as first needed -- each artist's own calendar.
  */
-async function draftPartStaff(db, salonUserId, bookingDate, time, parts) {
+async function loadVisitDay(db, salonUserId, bookingDate) {
   const services = await listSalonServices(salonUserId, db);
-  const held = (await listActiveDayBookings(db, salonUserId, bookingDate)).flatMap(bookingSegments);
+  const rows = await listActiveDayBookings(db, salonUserId, bookingDate);
+  return { db, bookingDate, services, rows, held: rows.flatMap(bookingSegments), artistBusy: new Map() };
+}
+
+async function artistBusyRanges(day, artistId) {
+  if (!day.artistBusy.has(artistId)) {
+    day.artistBusy.set(artistId, await artists.listArtistBusyRanges(artistId, day.bookingDate, {}, day.db));
+  }
+  return day.artistBusy.get(artistId);
+}
+
+function staffForService(day, serviceName) {
+  const service = day.services.find((item) => String(item.name || "").trim() === serviceName);
+  return (service?.staff_members || []).filter((person) => String(person.name || "").trim());
+}
+
+/**
+ * Draft split for a multi-service visit: each service without an artist goes to the first
+ * artist who does that service (the salon's service → staff list) and is free for that part
+ * of the visit -- free in this salon's bookings and in their own artist calendar.
+ * A service nobody can take stays unassigned.
+ */
+async function draftVisitParts(day, time, parts) {
   const drafted = [];
   for (const part of scheduleBookingParts(time, parts)) {
     let staff = part.staff;
     if (!staff) {
-      const service = services.find((item) => String(item.name || "").trim() === part.service);
-      for (const person of service?.staff_members || []) {
-        const name = String(person.name || "").trim();
-        if (!name) continue;
-        if (held.some((segment) => segment.staff === name && rangesOverlap(part.start, part.end, segment.start, segment.end))) continue;
+      for (const person of staffForService(day, part.service)) {
+        const name = String(person.name).trim();
+        if (day.held.some((segment) => segment.staff === name && rangesOverlap(part.start, part.end, segment.start, segment.end))) continue;
         const artistId = Number(person.artist_user_id || 0);
-        if (artistId && await artists.isArtistSlotBlocked(artistId, bookingDate, part.startLabel, part.minutes, null, db)) continue;
+        if (artistId && (await artistBusyRanges(day, artistId)).some((range) => rangesOverlap(part.start, part.end, range.start, range.end))) continue;
         staff = name;
         break;
       }
@@ -187,6 +219,37 @@ async function draftPartStaff(db, salonUserId, bookingDate, time, parts) {
     drafted.push({ service: part.service, minutes: part.minutes, staff });
   }
   return drafted;
+}
+
+/** The first service left without an artist although the salon has people who do it. */
+function findUnstaffedPart(day, parts) {
+  return parts.find((part) => !part.staff && staffForService(day, part.service).length) || null;
+}
+
+/** Same rule as findOverlapConflict, against an already loaded day. */
+function visitOverlaps(day, time, parts) {
+  const wanted = bookingSegments({ time, parts });
+  return day.held.some((held) => wanted.some((segment) => staffScopesConflict(segment.staff, held.staff)
+    && rangesOverlap(segment.start, segment.end, held.start, held.end)));
+}
+
+/**
+ * The start times (from `times`) at which a client can book these services back to back:
+ * every service someone at the salon does gets a free artist in the draft, and nothing
+ * overlaps the salon's other bookings. A request at any other time is refused (addSalonBooking
+ * with requireStaff), so the client only ever sees times that will go through.
+ */
+export async function listFeasibleVisitTimes(salonUserId, bookingDate, parts, times) {
+  await ensureBookingPartsColumns();
+  const list = parseBookingParts(parts).map((part) => ({ ...part, staff: "" }));
+  if (list.length < 2) return [];
+  const day = await loadVisitDay(await getDb(), salonUserId, bookingDate);
+  const feasible = [];
+  for (const time of times) {
+    const drafted = await draftVisitParts(day, time, list);
+    if (!findUnstaffedPart(day, drafted) && !visitOverlaps(day, time, drafted)) feasible.push(time);
+  }
+  return feasible;
 }
 
 /** Thrown inside a transaction to roll the whole booking back when an artist's calendar is taken. */
@@ -218,7 +281,7 @@ async function createPartMirrors(db, salonUserId, booking, staffList) {
       durationMinutes: group.minutes,
       sourceSalonUserId: salonUserId,
       salonBookingId: booking.id,
-      status: booking.status || "تازه"
+      status: mirrorStatus(booking.status)
     }, db);
     if (!created.ok) {
       throw artistConflictError(
@@ -401,7 +464,7 @@ export async function addSalonBooking(salonUserId, data) {
 }
 
 /**
- * A booking with several services: the artists are drafted (draftPartStaff), every service's
+ * A booking with several services: the artists are drafted (draftVisitParts), every service's
  * range is checked against the salon's other bookings, and each artist's share goes into
  * their calendar -- all in one transaction, so a taken artist calendar rolls everything back.
  */
@@ -409,7 +472,14 @@ async function addMultiPartSalonBooking(salonUserId, data) {
   const staffList = await listSalonStaff(salonUserId);
   try {
     return await withTransaction(null, async (db) => {
-      const parts = await draftPartStaff(db, salonUserId, data.bookingDate, data.time, parseBookingParts(data.parts));
+      const day = await loadVisitDay(db, salonUserId, data.bookingDate);
+      const parts = await draftVisitParts(day, data.time, parseBookingParts(data.parts));
+      // A client's request must find an artist for every service someone at the salon does
+      // (the same rule listFeasibleVisitTimes shows them); the salon may leave one open.
+      const unstaffed = data.requireStaff ? findUnstaffedPart(day, parts) : null;
+      if (unstaffed) {
+        return { ok: false, error: "no_staff", message: `برای «${unstaffed.service}» در این ساعت آرتیست آزادی نیست.` };
+      }
       const { service, durationMinutes } = summarizeBookingParts(parts);
       const conflict = await findOverlapConflict(db, {
         salonUserId,
@@ -540,6 +610,11 @@ async function updateSalonBookingInTx(db, id, salonUserId, current, data) {
   if (nextParts !== (current.parts || "")) {
     await run(db, "UPDATE salon_bookings SET parts = $1 WHERE id = $2 AND salon_user_id = $3", [nextParts, id, salonUserId]);
   }
+  if (data.previousSlot) {
+    await run(db, `
+      UPDATE salon_bookings SET previous_booking_date = $1, previous_time = $2 WHERE id = $3 AND salon_user_id = $4
+    `, [data.previousSlot.date || "", data.previousSlot.time || "", id, salonUserId]);
+  }
 
   return {
     ok: true,
@@ -559,6 +634,48 @@ export async function updateSalonBooking(id, salonUserId, data) {
 }
 
 /**
+ * A salon moving a client's booking to another day or time does not just move it: the booking
+ * waits for the client ('در انتظار مشتری') and remembers the time the client last agreed to,
+ * so they see what changed and accept or decline it (answerSalonTimeOffer). Bookings with no
+ * client account (walk-ins the salon entered) move as before.
+ */
+function withClientConsent(current, data) {
+  if (!current.client_user_id || data.status === "لغو") return data;
+  if (!["تازه", "درخواست", "تایید شده", AWAITING_CLIENT].includes(current.status)) return data;
+  const nextDate = resolveRollingPersianDateKey(data.booking_date ?? data.bookingDate ?? data.date ?? current.booking_date);
+  const nextTime = normalizeBookingTimeLabel(data.time ?? current.time);
+  if (nextDate === current.booking_date && nextTime === normalizeBookingTimeLabel(current.time || "")) return data;
+  const waiting = current.status === AWAITING_CLIENT;
+  return {
+    ...data,
+    status: AWAITING_CLIENT,
+    previousSlot: waiting
+      ? { date: current.previous_booking_date, time: current.previous_time }
+      : { date: current.booking_date, time: normalizeBookingTimeLabel(current.time || "") }
+  };
+}
+
+/**
+ * The client answering a new time the salon offered: accepting confirms the booking at that
+ * time, declining cancels it (they can then book another time). Either way the artists'
+ * calendar copies follow, through the same path as the salon's own approve / cancel.
+ */
+export async function answerSalonTimeOffer(id, clientUserId, accept) {
+  await ensureBookingPartsColumns();
+  const db = await getDb();
+  const current = await get(db, "SELECT * FROM salon_bookings WHERE id = $1 AND client_user_id = $2", [id, clientUserId]);
+  if (!current) return { ok: false, error: "missing" };
+  if (current.status !== AWAITING_CLIENT) return { ok: false, error: "inactive" };
+  const result = await patchSalonBookingWithArtistSync(
+    id,
+    current.salon_user_id,
+    { status: accept ? "تایید شده" : "لغو" },
+    { clientAnswer: true }
+  );
+  return result.ok ? { ...result, salonUserId: current.salon_user_id } : result;
+}
+
+/**
  * PATCH-path update: salon_bookings + linked artist_bookings in one atomic transaction.
  *
  * Staff-link policy:
@@ -568,7 +685,7 @@ export async function updateSalonBooking(id, salonUserId, data) {
  * - Linked A → linked B → soft-cancel A, create on B (artist slot conflict rolls back both tables).
  * - Unlinked → linked B → create on B.
  */
-export async function patchSalonBookingWithArtistSync(id, salonUserId, data, { allowPast = false } = {}) {
+export async function patchSalonBookingWithArtistSync(id, salonUserId, data, { allowPast = false, askClient = false, clientAnswer = false } = {}) {
   await ensureBookingPartsColumns();
   const pool = await getDb();
   const current = await get(pool, `
@@ -593,6 +710,11 @@ export async function patchSalonBookingWithArtistSync(id, salonUserId, data, { a
   if (current.status === "منقضی شده" && data.status === "تایید شده") {
     return { ok: false, error: "expired" };
   }
+  // A new time the salon offered is the client's to accept; the salon may still cancel or move it again.
+  if (current.status === AWAITING_CLIENT && data.status === "تایید شده" && !clientAnswer) {
+    return { ok: false, error: "awaiting_client" };
+  }
+  if (askClient) data = withClientConsent(current, data);
 
   if (isMultiPartBooking(current)) {
     return patchMultiPartBooking(id, salonUserId, current, data);
@@ -655,7 +777,7 @@ export async function patchSalonBookingWithArtistSync(id, salonUserId, data, { a
             booking_date: next.booking_date,
             time: next.time,
             duration_minutes: next.duration_minutes,
-            status: next.status || "تازه"
+            status: mirrorStatus(next.status, oldArtistBooking.status)
           }, db);
         } else {
           const created = await artists.addArtistBookingInTx(newArtistId, {
@@ -667,7 +789,7 @@ export async function patchSalonBookingWithArtistSync(id, salonUserId, data, { a
             time: next.time,
             durationMinutes: next.duration_minutes,
             sourceSalonUserId: salonUserId,
-            status: next.status || "تازه"
+            status: mirrorStatus(next.status)
           }, db);
           if (!created.ok) failArtist(created.code || "ARTIST_BOOKING_FAILED", created.error);
         }
@@ -687,7 +809,7 @@ export async function patchSalonBookingWithArtistSync(id, salonUserId, data, { a
             time: next.time,
             durationMinutes: next.duration_minutes,
             sourceSalonUserId: salonUserId,
-            status: next.status || "تازه"
+            status: mirrorStatus(next.status)
           }, db);
           if (!created.ok) failArtist(created.code || "ARTIST_BOOKING_FAILED", created.error);
           linkedArtistIds.push(newArtistId);
@@ -775,7 +897,8 @@ async function patchMultiPartBooking(id, salonUserId, current, data) {
 
       if (unchanged) {
         for (const row of mirrors) {
-          if (row.status !== status) await artists.updateArtistBookingRow(row.id, { status }, db);
+          const copyStatus = mirrorStatus(status, row.status);
+          if (row.status !== copyStatus) await artists.updateArtistBookingRow(row.id, { status: copyStatus }, db);
         }
         return { ok: true, booking: next, linkedArtistIds: [...new Set(linkedArtistIds)], linkedArtistId: linkedArtistIds[0] ?? null };
       }
@@ -829,6 +952,8 @@ export async function syncSalonBookingFromArtistMirror(artistBooking, status, ru
   ]);
   const match = rows.find((row) => normalizeBookingTimeLabel(row.time || "") === time);
   if (!match) return null;
+  // The visit waits on the client's answer to a new time; the artist agreeing does not settle it.
+  if (match.status === AWAITING_CLIENT && status === "تایید شده") return null;
   await run(db, "UPDATE salon_bookings SET status = $1 WHERE id = $2", [status, match.id]);
   return get(db, "SELECT * FROM salon_bookings WHERE id = $1", [match.id]);
 }
@@ -868,7 +993,7 @@ export async function cancelSalonBookingByClient(id, clientUserId) {
   const db = await getDb();
   const current = await get(db, "SELECT * FROM salon_bookings WHERE id = $1 AND client_user_id = $2", [id, clientUserId]);
   if (!current) return { ok: false, error: "missing" };
-  if (!["تازه", "درخواست", "تایید شده"].includes(current.status)) return { ok: false, error: "inactive" };
+  if (!["تازه", "درخواست", "تایید شده", AWAITING_CLIENT].includes(current.status)) return { ok: false, error: "inactive" };
   const result = await patchSalonBookingWithArtistSync(id, current.salon_user_id, { status: "لغو" });
   return result.ok ? { ok: true, booking: result.booking, salonUserId: current.salon_user_id } : result;
 }

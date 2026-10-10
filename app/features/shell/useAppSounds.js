@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { playSound, unlockSounds } from "../../shared/lib/sounds";
 import { toLatinDigits } from "../../shared/lib/digits";
+import { AWAITING_CLIENT } from "../../shared/lib/bookingOffer";
 import { resolveRollingPersianDate } from "../../shared/lib/persianCalendar";
 
 const REMINDER_LEAD_MINUTES = 30;
@@ -99,6 +100,7 @@ export function useAppSounds({
         const before = current.statuses.get(key);
         if (before === undefined || before === status) continue;
         if (type === "client" && status === "تایید شده") sound = "confirmed";
+        else if (type === "client" && status === AWAITING_CLIENT) sound = sound || "notify";
         else if (status === "لغو") sound = sound || "cancelled";
         else if (status === "منقضی شده") sound = sound || "expired";
       }

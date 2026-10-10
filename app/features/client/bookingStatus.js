@@ -1,10 +1,12 @@
 import { resolveRollingPersianDate } from "../../shared/lib/persianCalendar";
+import { AWAITING_CLIENT } from "../../shared/lib/bookingOffer";
 
 /** Plain-language status for a booking row (the stored values are internal: تازه / درخواست ...). */
 export function bookingStatusLabel(status = "") {
   if (status === "تایید شده") return "تأیید شد";
   if (status === "لغو") return "لغو شد";
   if (status === "منقضی شده") return "منقضی شد";
+  if (status === AWAITING_CLIENT) return "در انتظار تو";
   return "در انتظار تأیید";
 }
 
@@ -15,9 +17,9 @@ export function bookingStatusTone(status = "") {
   return "pending";
 }
 
-/** Active = still waiting for the salon, or confirmed. */
+/** Active = still waiting for the salon (or for the client's answer to a new time), or confirmed. */
 export function isBookingActive(booking) {
-  return ["تازه", "درخواست", "تایید شده"].includes(booking?.status || "تازه");
+  return ["تازه", "درخواست", "تایید شده", AWAITING_CLIENT].includes(booking?.status || "تازه");
 }
 
 export function isBookingInPast(booking) {

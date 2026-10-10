@@ -7,6 +7,7 @@ import { SegmentClock } from "../../components/SegmentClock";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar";
 import { scheduleBookingParts } from "../../shared/lib/bookingParts";
+import { AWAITING_CLIENT } from "../../shared/lib/bookingOffer";
 import {
   getArtistClientVisits,
   getBookingTimelineLabel,
@@ -205,7 +206,8 @@ export const ScheduleRow = memo(function ScheduleRow({
   if (unansweredAndOver) statusTone = "expired";
   const showStatusTag = statusTone !== "done";
   const phaseTagClass = showStatusTag ? `is-status-${statusTone}` : `is-${phase}`;
-  const phaseTagLabel = unansweredAndOver ? "منقضی شد" : showStatusTag ? (rawStatus || "درخواست") : phaseLabel;
+  const statusText = isClientBooking && rawStatus === AWAITING_CLIENT ? "در انتظار تو" : rawStatus;
+  const phaseTagLabel = unansweredAndOver ? "منقضی شد" : showStatusTag ? (statusText || "درخواست") : phaseLabel;
 
   const chipClass = showStatusTag ? `is-status-${statusTone}` : `is-${phase || "upcoming"}`;
 

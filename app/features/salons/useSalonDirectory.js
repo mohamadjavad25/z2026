@@ -8,6 +8,7 @@ import {
   createSalonBooking,
   getSalonBookings,
   getSalons,
+  getSalonVisitTimes,
   toggleSalonFollow
 } from "../../shared/api/salons";
 import { getClientBookings } from "../../shared/api/artists";
@@ -91,6 +92,10 @@ export function useSalonDirectory({
   const [salonClientBookingBusy, setSalonClientBookingBusy] = useState(false);
   const [salonClientUnavailableSlots, setSalonClientUnavailableSlots] = useState([]);
   const [clientBookingList, setClientBookingList] = useState([]);
+  // Several services in one visit: the free start times come from the server, which knows each
+  // artist's calendar ({ key, times }; times is null while loading).
+  const [salonClientVisitTimes, setSalonClientVisitTimes] = useState({ key: "", times: null });
+  const [visitTimesVersion, setVisitTimesVersion] = useState(0);
   const autoAdvanceDayRef = useRef(true);
 
   const savedSalonList = useMemo(() => {
@@ -110,7 +115,40 @@ export function useSalonDirectory({
       .find((service) => String(service?.name || "") === String(salonClientBooking.service || ""))
   ), [selectedSalon, salonClientBooking.service, salonClientBooking.bundle]);
 
+  const salonClientVisitServices = useMemo(() => (
+    salonClientBooking.bundle?.name === salonClientBooking.service
+      ? salonClientBooking.bundle.items.map((item) => String(item?.name || "")).filter(Boolean)
+      : []
+  ), [salonClientBooking.bundle, salonClientBooking.service]);
+  const salonClientVisitKey = salonClientVisitServices.length >= 2 && selectedSalon
+    ? [selectedSalon.id || selectedSalon.source_key, salonClientBooking.day, ...salonClientVisitServices].join("|")
+    : "";
+  const salonClientTimesLoading = Boolean(
+    salonClientVisitKey && (salonClientVisitTimes.key !== salonClientVisitKey || !salonClientVisitTimes.times)
+  );
+
+  useEffect(() => {
+    if (!salonClientBooking.open || !salonClientVisitKey) return undefined;
+    let cancelled = false;
+    setSalonClientVisitTimes({ key: salonClientVisitKey, times: null });
+    getSalonVisitTimes(selectedSalon.id || selectedSalon.source_key, salonClientBooking.day, salonClientVisitServices)
+      .then(({ ok, data }) => {
+        if (!cancelled) setSalonClientVisitTimes({ key: salonClientVisitKey, times: ok && Array.isArray(data?.times) ? data.times : [] });
+      })
+      .catch(() => {
+        if (!cancelled) setSalonClientVisitTimes({ key: salonClientVisitKey, times: [] });
+      });
+    return () => {
+      cancelled = true;
+    };
+    // salonClientVisitKey already covers the salon, the day and the services.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [salonClientBooking.open, salonClientVisitKey, visitTimesVersion]);
+
   const salonClientFreeTimes = useMemo(() => {
+    if (salonClientVisitKey) {
+      return salonClientVisitTimes.key === salonClientVisitKey && salonClientVisitTimes.times ? salonClientVisitTimes.times : [];
+    }
     const duration = parseServiceDurationMinutes(salonClientSelectedService?.duration);
     const hour = getSalonHourForDay(selectedSalon?.hours, salonClientBooking.day);
     if (!isSalonHourOpen(hour)) return [];
@@ -132,7 +170,9 @@ export function useSalonDirectory({
     selectedSalon,
     salonClientUnavailableSlots,
     salonClientBooking.day,
-    salonClientSelectedService
+    salonClientSelectedService,
+    salonClientVisitKey,
+    salonClientVisitTimes
   ]);
 
   const isFollowingSelectedSalon = selectedSalon
@@ -209,6 +249,33 @@ export function useSalonDirectory({
     }
   }, [notify]);
 
+  /** The client accepts or declines a new time the salon offered for their booking. */
+  const answerClientTimeOffer = useCallback(async (booking, accept) => {
+    if (!booking?.id) return false;
+    try {
+      const { ok, payload } = await apiFetch(`/api/salon-bookings/${booking.id}/answer`, {
+        method: "POST",
+        body: JSON.stringify({ accept })
+      });
+      if (!ok) {
+        notify(payload?.error || "جواب ثبت نشد.");
+        if (typeof refreshClientBookings === "function") refreshClientBookings();
+        return false;
+      }
+      const updated = payload?.data?.booking || {};
+      setClientBookingList((list) => list.map((item) => (
+        item.id === booking.id && item.bookingSource !== "artist" ? { ...item, ...updated, service: item.service } : item
+      )));
+      notify(accept
+        ? `نوبتت برای ساعت ${updated.time || booking.time} قطعی شد.`
+        : "درخواست لغو شد. می‌توانی ساعت دیگری بگیری.");
+      return true;
+    } catch {
+      notify("جواب ثبت نشد؛ دوباره امتحان کن.");
+      return false;
+    }
+  }, [notify, refreshClientBookings]);
+
   const resetSalonClient = useCallback(() => {
     setSelectedSalon(null);
     setFollowedSalons([]);
@@ -255,11 +322,11 @@ export function useSalonDirectory({
   // Opening the sheet late in the day (or on a closed / full day): move on to the first day that
   // has a free hour, until the client picks a day themselves.
   useEffect(() => {
-    if (!salonClientBooking.open || !autoAdvanceDayRef.current || salonClientFreeTimes.length) return;
+    if (!salonClientBooking.open || !autoAdvanceDayRef.current || salonClientTimesLoading || salonClientFreeTimes.length) return;
     const index = salonClientBookingDays.indexOf(salonClientBooking.day);
     if (index < 0 || index >= salonClientBookingDays.length - 1) return;
     setSalonClientBooking((current) => ({ ...current, day: salonClientBookingDays[index + 1] }));
-  }, [salonClientBooking.open, salonClientBooking.day, salonClientFreeTimes]);
+  }, [salonClientBooking.open, salonClientBooking.day, salonClientFreeTimes, salonClientTimesLoading]);
 
   useEffect(() => {
     if (!salonClientBooking.open || !salonClientFreeTimes.length) return;
@@ -460,7 +527,11 @@ export function useSalonDirectory({
         status: "درخواست"
       });
       if (!ok) {
-        if (status === 409) {
+        if (status === 409 && salonClientVisitKey) {
+          // A visit's times depend on every artist's calendar: ask the server again.
+          setVisitTimesVersion((version) => version + 1);
+          shellMsg(payload?.error || "این ساعت دیگر آزاد نیست؛ ساعت دیگری انتخاب کن.");
+        } else if (status === 409) {
           // Someone else took the slot between loading the list and tapping submit: drop it from
           // the grid so the client picks another instead of retrying the same dead time.
           setSalonClientUnavailableSlots((slots) => [
@@ -535,6 +606,7 @@ export function useSalonDirectory({
     salonClientBooking,
     salonClientFreeTimes,
     salonClientSelectedService,
+    salonClientVisitKey,
     createdProfile,
     onOwnerBookingsSync,
     onLinkedArtistBooked,
@@ -562,11 +634,13 @@ export function useSalonDirectory({
     setClientBookingList,
     savedSalonList,
     salonClientFreeTimes,
+    salonClientTimesLoading,
     isFollowingSelectedSalon,
     isSavedSelectedSalon,
     refreshSalonDirectory,
     refreshClientBookings,
     cancelClientBooking,
+    answerClientTimeOffer,
     resetSalonClient,
     toggleFollowSalon,
     toggleSaveSalon,

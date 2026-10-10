@@ -81,7 +81,13 @@ export function useScheduleBookingMenu({
 
   const changeScheduleBookingTime = useCallback(async (time) => {
     if (!scheduleBookingMenu) return;
-    const ok = await patchSalonAppointment(scheduleBookingMenu, { time }, `ساعت رزرو به ${time} تغییر کرد.`);
+    // A client's own booking does not just move: the new time goes to them to accept or decline.
+    const askedClient = Boolean(scheduleBookingMenu.client_user_id || scheduleBookingMenu.clientUserId);
+    const ok = await patchSalonAppointment(
+      scheduleBookingMenu,
+      { time },
+      askedClient ? `ساعت ${time} برای مشتری فرستاده شد؛ تا قبول کند «در انتظار مشتری» می‌ماند.` : `ساعت رزرو به ${time} تغییر کرد.`
+    );
     if (ok) closeScheduleBookingMenu();
   }, [scheduleBookingMenu, patchSalonAppointment, closeScheduleBookingMenu]);
 

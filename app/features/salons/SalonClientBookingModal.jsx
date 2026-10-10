@@ -7,6 +7,7 @@ import { ProfileSheet } from "../profile/ProfileSheet";
 import { salonClientBookingDays } from "../artist/constants";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
+import { minutesToPersianTime, parseServiceDurationMinutes, timeLabelToMinutes } from "../../shared/lib/time";
 
 // The salon's hours rows are keyed by the Persian weekday name; a day label looks like "یکشنبه ۱۲ مهر".
 function getClosedDayLabels(hours, dayLabels) {
@@ -22,6 +23,7 @@ export function SalonClientBookingModal({
   salon,
   booking,
   freeTimes,
+  timesLoading = false,
   busy,
   onClose,
   onChange,
@@ -34,9 +36,16 @@ export function SalonClientBookingModal({
     || (Array.isArray(salon.services) ? salon.services : []).find((item) => item.name === booking.service);
   const serviceEmoji = serviceItem?.emoji || "";
   const price = parseTomanAmount(serviceItem?.price);
+  // Several services in one visit, back to back: say until when, and how the times were picked.
+  const visitCount = booking.bundle?.name === booking.service ? booking.bundle.items.length : 0;
+  const visitEnd = visitCount && booking.time
+    ? minutesToPersianTime(timeLabelToMinutes(booking.time) + parseServiceDurationMinutes(serviceItem?.duration))
+    : "";
   const summaryParts = [
     booking.day,
-    booking.time ? `ساعت ${toPersianDigits(toLatinDigits(booking.time))}` : "",
+    booking.time
+      ? `ساعت ${toPersianDigits(toLatinDigits(booking.time))}${visitEnd ? ` تا حدود ${visitEnd}` : ""}`
+      : "",
     serviceItem?.duration ? toPersianDigits(serviceItem.duration) : "",
     price ? `${formatTomanNumber(price)} تومان` : ""
   ].filter(Boolean);
@@ -44,7 +53,7 @@ export function SalonClientBookingModal({
   const profileName = booking.client || "مشتری frfro";
   const hasPhone = Boolean(booking.phone);
   const profilePhone = booking.phone ? toPersianDigits(toLatinDigits(booking.phone)) : "شماره تماس ثبت نشده";
-  const canSubmit = Boolean(freeTimes.length && !busy && hasPhone);
+  const canSubmit = Boolean(freeTimes.length && !timesLoading && !busy && hasPhone);
 
   return (
     <ProfileSheet
@@ -74,8 +83,18 @@ export function SalonClientBookingModal({
           timeOptions={freeTimes}
           timeValue={booking.time}
           onTimeChange={(time) => onChange({ time })}
-          emptyTimeMessage="برای این روز ساعتی آزاد نیست. روز دیگری را انتخاب کن."
+          emptyTimeMessage={timesLoading
+            ? "در حال پیدا کردن ساعت‌های آزاد…"
+            : visitCount
+              ? "این روز ساعتی نیست که همهٔ این خدمات پشت سر هم جا شوند. روز دیگری را انتخاب کن."
+              : "برای این روز ساعتی آزاد نیست. روز دیگری را انتخاب کن."}
         />
+
+        {visitCount ? (
+          <p className="salonClientVisitNote">
+            {toPersianDigits(visitCount)} خدمت پشت سر هم انجام می‌شوند؛ فقط ساعت‌هایی آمده که برای همه‌شان آرتیست آزاد هست. اگر سالن ساعت را عوض کند، اول از تو می‌پرسد.
+          </p>
+        ) : null}
 
         {booking.time ? (
           <p className="salonClientBookingSummary" aria-live="polite">{summaryParts.join(" • ")}</p>

@@ -799,6 +799,9 @@
 .cbt.is-ok .cbtIcon { background: #1c9c55; color: #fff; animation: cbtPop 0.5s cubic-bezier(0.22, 1.6, 0.36, 1) both; }
 .cbt.is-bad { background: #fff7f7; box-shadow: 0 14px 34px rgba(20, 22, 29, 0.18), inset 0 0 0 1.5px #f2c1c1; padding-bottom: 11px; }
 .cbt.is-bad .cbtIcon { background: #fde8e8; color: #b42a2a; }
+/* A new time the salon offered, waiting for the client (ClientBookingTracker) */
+.cbt.is-offer { background: #fff8ea; box-shadow: 0 14px 34px rgba(168, 106, 0, 0.2), inset 0 0 0 1.5px #f5dfb3; padding-bottom: 11px; }
+.cbt.is-offer .cbtIcon { background: #a86a00; color: #fff; }
 @keyframes cbtIn { from { opacity: 0; transform: translateX(-50%) translateY(14px) scale(0.97); } to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); } }
 @keyframes cbtSpin { to { transform: rotate(360deg); } }
 @keyframes cbtTilt { 0%, 40% { transform: rotate(0); } 60%, 100% { transform: rotate(180deg); } }
