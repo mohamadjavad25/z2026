@@ -4,6 +4,7 @@ import { BadgeCheck, Bookmark, CalendarCheck, ChevronLeft, Heart, Info, MapPin, 
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatCount } from "../../shared/lib/counts";
 import { isPublicArtistSlotBlocked } from "./bookingUtils";
+import { PUBLIC_PROFILE_DEFAULT_HERO, PUBLIC_PROFILE_DEFAULT_LOGO } from "./constants";
 import { PublicArtistAboutPanel } from "./PublicArtistAboutPanel";
 import { PublicArtistBookingPanel } from "./PublicArtistBookingPanel";
 import { PublicArtistGalleryPanel } from "./PublicArtistGalleryPanel";
@@ -57,19 +58,17 @@ export function PublicArtistModal({
       <article className="artistPublicSheet">
         <section className="artistPublicPage" aria-label={`صفحه عمومی ${artist.name}`}>
           <header className="artistPublicCover">
-            {heroImage ? (
-              // Real <img> (not a CSS background) so this — usually the
-              // single largest, most prominent photo on the page — is
-              // indexable by Google Image Search and readable by screen
-              // readers.
-              <img
-                className="publicStoryHeroImage"
-                src={heroImage}
-                alt={artist.name ? `${artist.name} — تصویر کاور` : ""}
-              />
-            ) : (
-              <div className="publicStoryHeroImage" aria-hidden="true" />
-            )}
+            {/* Real <img> (not a CSS background) so this — usually the single
+                largest, most prominent photo on the page — is indexable by
+                Google Image Search and readable by screen readers. When the
+                artist has no poster we fall back to the same stock hero the
+                salon page uses, instead of rendering an empty grey band. */}
+            <img
+              className="publicStoryHeroImage"
+              src={heroImage || PUBLIC_PROFILE_DEFAULT_HERO}
+              alt={heroImage && artist.name ? `${artist.name} — تصویر کاور` : ""}
+              aria-hidden={heroImage ? undefined : true}
+            />
             <div className="artistPublicCoverShade" aria-hidden="true" />
             <div className="artistPublicHeroTop">
               <button type="button" className="artistPublicBack" onClick={onClose} aria-label="بازگشت">
@@ -97,20 +96,21 @@ export function PublicArtistModal({
 
           <section className="artistPublicIdentityCard">
             <div className="artistPublicAvatarWrap">
-              <div className={`artistPublicAvatar ${(artist.avatar || heroImage) ? "hasImage" : ""}`}>
-                {(artist.avatar || heroImage) ? (
-                  // Real <img> (not a CSS background) so the artist's profile
-                  // photo is indexable by Google Image Search and readable by
-                  // screen readers — it's real content, not decoration.
-                  <img
-                    className="artistPublicAvatarImage"
-                    src={artist.avatar || heroImage}
-                    alt={artist.name ? `تصویر پروفایل ${artist.name}` : "تصویر پروفایل آرتیست"}
-                    style={{ objectPosition: artist.avatarPosition || "50% 50%" }}
-                  />
-                ) : (
-                  String(artist.name || "آ").slice(0, 1)
-                )}
+              <div className="artistPublicAvatar hasImage">
+                {/* Always an image, exactly like the salon logo slot
+                    (features/salons/SalonClientPage.jsx): the artist's own
+                    avatar, else the cover photo, else the stock profile icon.
+                    The old bare-initial fallback left a text glyph in an
+                    otherwise image-only slot. */}
+                <img
+                  className="artistPublicAvatarImage"
+                  src={artist.avatar || heroImage || PUBLIC_PROFILE_DEFAULT_LOGO}
+                  alt={artist.avatar || heroImage
+                    ? (artist.name ? `تصویر پروفایل ${artist.name}` : "تصویر پروفایل آرتیست")
+                    : ""}
+                  aria-hidden={artist.avatar || heroImage ? undefined : true}
+                  style={{ objectPosition: artist.avatarPosition || "50% 50%" }}
+                />
               </div>
             </div>
 

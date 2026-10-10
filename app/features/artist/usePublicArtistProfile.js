@@ -143,7 +143,10 @@ export function usePublicArtistProfile({
 
   const publicArtistHeroImage = useMemo(() => {
     const cover = publicArtistPortfolio.find((item) => item.featured) || publicArtistPortfolio[0];
-    return cover?.image || selectedPublicArtist?.avatar || "/explore-post-hair-balayage.png";
+    // No fallback here on purpose: PublicArtistModal applies the shared stock
+    // hero, so the in-app profile and the standalone /artists/[id] page can't
+    // drift apart (this used to hardcode a single unrelated explore post).
+    return cover?.image || selectedPublicArtist?.avatar || "";
   }, [selectedPublicArtist, publicArtistPortfolio]);
 
   useEffect(() => {

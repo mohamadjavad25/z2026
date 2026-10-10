@@ -12,6 +12,14 @@ export const artistBookingHistoryFilters = [
 
 export const artistBookingHistoryRank = { day: 1, week: 2, month: 3 };
 
+// The public artist page falls back to the exact same stock assets the public
+// salon page uses (features/salons/SalonClientPage.jsx). Without them an artist
+// with no poster rendered an empty grey band, and an artist with no logo
+// rendered a bare letter — so a brand-new profile looked broken next to a
+// salon, which always shows an image in both slots.
+export const PUBLIC_PROFILE_DEFAULT_LOGO = "/profile-icon.svg";
+export const PUBLIC_PROFILE_DEFAULT_HERO = "/salon-public-hero.png";
+
 // Bug fix: this used to fall back to 3 hardcoded fake services (fake prices,
 // fake durations) whenever a real artist had none configured, so every
 // service-less artist showed identical made-up offerings indistinguishable

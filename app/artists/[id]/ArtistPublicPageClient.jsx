@@ -47,6 +47,9 @@ export function ArtistPublicPageClient({ artist }) {
   const featuredWork = galleryItems[0] || null;
   const galleryRest = galleryItems.slice(1);
 
+  // Left empty when the artist has neither a cover photo nor an avatar —
+  // PublicArtistModal owns the stock fallback so this page and the in-app
+  // profile can't drift apart.
   const heroImage = (portfolio.find((item) => item.featured) || portfolio[0])?.image
     || artist?.avatar
     || "";
