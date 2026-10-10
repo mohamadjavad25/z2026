@@ -5,6 +5,15 @@ import { parseServiceDurationMinutes } from "./time";
 // Bookings store the service as free text, at most this long (lib/validation/booking.js).
 const MAX_SERVICE_TEXT = 200;
 
+/** Several service names as one booking's service text, kept within the stored limit. */
+export function joinServiceNames(names) {
+  const list = (Array.isArray(names) ? names : []).map((name) => String(name || "").trim()).filter(Boolean);
+  const joined = list.join(" + ");
+  return joined.length <= MAX_SERVICE_TEXT || list.length < 2
+    ? joined
+    : `${list[0]} + ${toPersianDigits(list.length - 1)} خدمت دیگر`;
+}
+
 export function serviceKey(service) {
   return String(service?.id ?? service?.name ?? "");
 }
@@ -20,12 +29,9 @@ export function bundleServices(services) {
   if (list.length < 2) return list[0] || null;
   const minutes = list.reduce((sum, service) => sum + parseServiceDurationMinutes(service.duration), 0);
   const prices = list.map((service) => parseTomanAmount(service.price));
-  const joined = list.map((service) => service.name).join(" + ");
   return {
     id: `bundle:${list.map(serviceKey).join("+")}`,
-    name: joined.length <= MAX_SERVICE_TEXT
-      ? joined
-      : `${list[0].name} + ${toPersianDigits(list.length - 1)} خدمت دیگر`,
+    name: joinServiceNames(list.map((service) => service.name)),
     duration: `${toPersianDigits(minutes)} دقیقه`,
     // A price only when every service has one; otherwise it is agreed at the salon.
     price: prices.every(Boolean) ? String(prices.reduce((sum, price) => sum + price, 0)) : "",

@@ -722,6 +722,11 @@ export async function addArtistBookingInTx(artistUserId, data, runner = null) {
     durationMinutes,
     data.status || "تازه"
   ]);
+  // A share of a multi-service salon booking points straight at it (the column is made by
+  // salons/bookings.js ensureBookingPartsColumns before any caller passes this).
+  if (data.salonBookingId) {
+    await run(db, "UPDATE artist_bookings SET salon_booking_id = $1 WHERE id = $2", [Number(data.salonBookingId), Number(info.rows[0].id)]);
+  }
   return {
     ok: true,
     booking: await get(db, "SELECT * FROM artist_bookings WHERE id = $1", [Number(info.rows[0].id)])

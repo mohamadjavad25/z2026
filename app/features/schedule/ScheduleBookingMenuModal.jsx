@@ -23,6 +23,8 @@ import { isPersianDateKey } from "../../shared/lib/persianCalendar";
 import { SegmentClock } from "../../components/SegmentClock";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { formatRequestExpiryDeadline, getRequestExpiryMinutesLeft } from "../../shared/lib/time";
+import { isMultiPartBooking, parseBookingParts } from "../../shared/lib/bookingParts";
+import { BookingPartsEditor } from "./BookingPartsEditor";
 
 // Shown when a customer / staff member / source has no uploaded photo.
 const DEFAULT_AVATAR = "/profile-icon.svg";
@@ -82,6 +84,7 @@ export function ScheduleBookingMenuModal({
   onClose,
   onChangeTime,
   onChangeStaff,
+  onChangeParts,
   onCancel,
   onApprove,
   onDecline,
@@ -107,7 +110,11 @@ export function ScheduleBookingMenuModal({
   // Always show a logo: the uploaded photo when there is one, else the app's default profile icon.
   const avatar = booking.clientAvatar || booking.client_avatar || sourceSalon.avatar || DEFAULT_AVATAR;
   const title = booking.client || booking.salonName || sourceSalon.name || "رزرو";
-  const subtitle = isSalonOwner
+  const multiPart = isSalonOwner && isMultiPartBooking(booking);
+  const partStaff = multiPart ? [...new Set(parseBookingParts(booking.parts).map((part) => part.staff).filter(Boolean))] : [];
+  const subtitle = multiPart
+    ? `${toPersianDigits(parseBookingParts(booking.parts).length)} خدمت · ${partStaff.length ? partStaff.join(" و ") : "آرتیست ثبت نشده"}`
+    : isSalonOwner
     ? (booking.staff || "آرتیست ثبت نشده")
     : (sourceSalon.name || booking.staff || "رزرو شخصی");
   const phone = booking.phone || booking.clientPhone || booking.client_phone || "";
@@ -181,6 +188,14 @@ export function ScheduleBookingMenuModal({
                 ) : null}
               </div>
 
+              {multiPart ? (
+                <BookingPartsEditor
+                  booking={booking}
+                  staffOptions={staffOptions}
+                  disabled={!canManage || actionDisabled}
+                  onChange={onChangeParts}
+                />
+              ) : (
               <div className={`scheduleBookingArtist ${artistPickerOpen ? "is-open" : ""}`}>
                 <button
                   type="button"
@@ -234,6 +249,7 @@ export function ScheduleBookingMenuModal({
                   </div>
                 ) : null}
               </div>
+              )}
 
               {isPendingReview && !readOnly ? (
                 <div className="scheduleBookingReviewActions">

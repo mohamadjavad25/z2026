@@ -15,6 +15,7 @@ export function ScheduleMenuHost() {
     closeScheduleBookingMenu,
     changeScheduleBookingTime,
     changeScheduleBookingStaff,
+    changeScheduleBookingParts,
     cancelScheduleBooking,
     scheduleBookingBusy,
     approveReservationRequest,
@@ -37,6 +38,7 @@ export function ScheduleMenuHost() {
           onClose={closeScheduleBookingMenu}
           onChangeTime={changeScheduleBookingTime}
           onChangeStaff={changeScheduleBookingStaff}
+          onChangeParts={changeScheduleBookingParts}
           onCancel={cancelScheduleBooking}
           onApprove={async () => {
             if (!scheduleBookingMenu) return;

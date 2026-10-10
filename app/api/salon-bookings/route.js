@@ -21,6 +21,7 @@ import {
   parseServiceDurationMinutes,
   timeLabelToMinutes
 } from "../../shared/lib/time.js";
+import { summarizeBookingParts } from "../../shared/lib/bookingParts.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -122,11 +123,27 @@ async function _POST(request) {
   }
   const client = String(body.client || auth.user.name || "").trim();
   const phone = String(body.phone || auth.user.phone || "").trim();
-  const service = String(body.service || "").trim();
+  // Several services in one visit: each one's length comes from the salon's own service list
+  // (the request's value only for a service the salon no longer lists), and only the salon
+  // itself may name the artists -- a client's request is split by the server's draft.
+  const parts = (v.data.parts || []).map((part) => {
+    const listed = Array.isArray(salon?.services)
+      ? salon.services.find((item) => String(item?.name || "").trim() === part.service)
+      : null;
+    return {
+      service: part.service,
+      minutes: listed?.duration
+        ? parseServiceDurationMinutes(listed.duration)
+        : Math.max(15, Number(part.durationMinutes) || parseServiceDurationMinutes(part.duration)),
+      staff: auth.user.type === "salon" ? String(part.staff || "").trim() : ""
+    };
+  });
+  const multiPart = parts.length >= 2;
+  const service = multiPart ? summarizeBookingParts(parts).service : String(body.service || "").trim();
   const rawBookingDay = body.bookingDate || body.booking_date || body.date || "";
   const bookingDateKey = resolveRollingPersianDateKey(rawBookingDay);
   const time = String(body.time || "").trim();
-  const durationMinutes = resolveRequestedDuration(body, salon);
+  const durationMinutes = multiPart ? summarizeBookingParts(parts).durationMinutes : resolveRequestedDuration(body, salon);
   if (!service) return noStoreJson({ error: "خدمت رزرو مشخص نیست." }, { status: 400 });
   if (!rawBookingDay) return noStoreJson({ error: "روز رزرو مشخص نیست." }, { status: 400 });
   if (!time) return noStoreJson({ error: "ساعت رزرو مشخص نیست." }, { status: 400 });
@@ -147,7 +164,8 @@ async function _POST(request) {
   if (!allowedTimes.some((slot) => timeLabelToMinutes(slot) === requestedMinutes)) {
     return noStoreJson({ error: "این ساعت خارج از زمان کاری سالن است." }, { status: 409 });
   }
-  const linkedStaff = await salons.findSalonStaffForBooking(salonUserId, body.staff, body.service);
+  // A multi-service booking links its artists per service inside addSalonBooking.
+  const linkedStaff = multiPart ? null : await salons.findSalonStaffForBooking(salonUserId, body.staff, body.service);
   if (linkedStaff?.artist_user_id && await artists.isArtistSlotBlocked(
     Number(linkedStaff.artist_user_id),
     bookingDateKey,
@@ -172,9 +190,13 @@ async function _POST(request) {
     bookingDate: bookingDateKey,
     time,
     durationMinutes,
+    parts: multiPart ? parts : undefined,
     clientUserId: auth.user.type === "client" ? auth.user.id : body.clientUserId || body.client_user_id || null
   });
   if (!result.ok) {
+    if (result.error === "artist_conflict") {
+      return noStoreJson({ error: result.message || "این ساعت برای آرتیست قبلاً رزرو شده است.", code: result.code || "ARTIST_SLOT_TAKEN" }, { status: 409 });
+    }
     return noStoreJson({ error: "این زمان قبلاً رزرو شده است." }, { status: 409 });
   }
   let artistBooking = null;
@@ -216,7 +238,8 @@ async function _POST(request) {
       booking: result.booking,
       bookings: await salons.listSalonBookings(salonUserId),
       artistBooking,
-      linkedArtistId: linkedStaff?.artist_user_id || null
+      linkedArtistId: linkedStaff?.artist_user_id || result.linkedArtistIds?.[0] || null,
+      linkedArtistIds: result.linkedArtistIds || (linkedStaff?.artist_user_id ? [linkedStaff.artist_user_id] : [])
     }
   }, { status: 201 });
 }
@@ -266,8 +289,11 @@ async function _PATCH(request) {
         data: { bookings: await salons.listSalonBookings(auth.user.id) }
       }, { status: 409 });
     }
+    if (result.error === "parts") {
+      return noStoreJson({ error: "فهرست خدمات این نوبت نامعتبر است." }, { status: 400 });
+    }
     return noStoreJson({
-      error: "این زمان قابل رزرو نیست.",
+      error: result.message || "این زمان قابل رزرو نیست.",
       data: { bookings: await salons.listSalonBookings(auth.user.id) }
     }, { status: 409 });
   }
