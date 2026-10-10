@@ -408,18 +408,15 @@ export function ProfilePanelBody() {
 
               {profileView === "collabs" && profileType === "artist" && (
                 <ArtistCollabBoard
-                  salons={salonDirectory}
-                  offers={artistCollabOffers}
+                  artistId={createdProfile?.id}
+                  artistName={createdProfile?.data?.name || ""}
                   invites={artistSalonInviteList}
                   inviteRespondBusyId={artistInviteRespondBusyId}
                   teams={artistTeams}
                   teamBusyId={artistTeamBusyId}
                   onLeaveTeam={leaveArtistSalonTeam}
-                  draft={artistCollabDraft}
-                  onDraftChange={(patch) => setArtistCollabDraft((draft) => ({ ...draft, ...patch }))}
-                  onSubmit={addArtistCollabOffer}
-                  onDelete={deleteArtistCollabOffer}
                   onInviteRespond={respondArtistSalonInvite}
+                  onChanged={refreshArtistWorkspace}
                 />
               )}
 

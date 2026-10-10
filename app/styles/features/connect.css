@@ -25,7 +25,8 @@
    .cnPage, so they need the same variables. */
 .cnPage,
 .qrScanner,
-.cnCodeSheet {
+.cnCodeSheet,
+.clConnBoard {
   --cn-ink: #14161d;
   --cn-muted: #5c606c;
   --cn-line: #ebebef;
