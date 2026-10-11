@@ -38,7 +38,7 @@ export function ClientProfileOverview({ bookings = [], onOpenBookings }) {
       ) : (
         <button type="button" className="cpoNext is-empty" onClick={onOpenBookings}>
           <span className="cpoNextHead"><CalendarCheck size={15} /> نوبت بعدی من</span>
-          <small>نوبت فعالی نداری. از بخش «سالن» یک نوبت بگیر.</small>
+          <small>نوبت فعالی نداری. از بخش «رزرو» یک نوبت بگیر.</small>
         </button>
       )}
     </section>

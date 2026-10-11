@@ -383,11 +383,10 @@ export function HomeView() {
 
         <PushSoftAsk />
 
-        {createdProfile?.type === "client" ? (
-          <ClientBookingTracker bookings={clientBookingList} onOpen={setClientBookingSettings} />
-        ) : null}
-
         <BottomNav
+          status={createdProfile?.type === "client" ? (
+            <ClientBookingTracker bookings={clientBookingList} onOpen={setClientBookingSettings} />
+          ) : null}
           activeTab={activeTab}
           createdProfile={createdProfile}
           onTabChange={goToTab}

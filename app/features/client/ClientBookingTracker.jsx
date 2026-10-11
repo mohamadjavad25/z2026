@@ -13,6 +13,28 @@ const PENDING = new Set(["درخواست", "تازه"]);
 const WINDOW_MS = 60 * 60 * 1000; // a request is auto-cancelled after an hour (bookingExpirySweep)
 const FLASH_MS = 7000;
 
+// The strip docks into the bottom bar (see .cbt in polish.css). A div, not a button: the bar's own
+// button styles must not reach it.
+function Strip({ className, onClick, children, ...rest }) {
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      className={`cbt ${className}`}
+      onClick={onClick}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onClick?.();
+        }
+      }}
+      {...rest}
+    >
+      {children}
+    </div>
+  );
+}
+
 const keyOf = (booking) => `${booking.bookingSource === "artist" ? "a" : "s"}${booking.id}`;
 const placeOf = (booking) => booking.salonName || booking.salon_name || "سالن";
 
@@ -23,7 +45,7 @@ function remainingShare(booking, now) {
 }
 
 /**
- * A floating status chip above the bottom bar for the client's own booking requests.
+ * A status strip docked into the top of the bottom bar, for the client's own booking requests.
  * - While a request waits for the salon / artist: a live "processing" look (spinning ring,
  *   moving progress bar showing how much of the one-hour answer window is left).
  * - The moment it is answered (seen through the 10 s refresh): the chip flips to
@@ -74,8 +96,8 @@ export function ClientBookingTracker({ bookings = [], onOpen }) {
     bookings.filter((booking) => booking.status === AWAITING_CLIENT && booking.bookingSource !== "artist" && !isBookingInPast(booking))
   ), [bookings]);
 
-  // Tell the page a chip is floating above the bottom bar so it can reserve room for it
-  // (otherwise it covers the last card of whatever list is underneath).
+  // Tell the page the bar has grown a strip so it can reserve room for it
+  // (otherwise the bar covers the last card of whatever list is underneath).
   const chipVisible = Boolean(flash) || pending.length > 0 || offers.length > 0;
   useEffect(() => {
     if (!chipVisible) return undefined;
@@ -89,9 +111,8 @@ export function ClientBookingTracker({ bookings = [], onOpen }) {
     const Icon = confirmed ? Check : status === "لغو" ? XCircle : TimerOff;
     const title = confirmed ? "رزرو تأیید شد" : status === "لغو" ? "رزرو لغو شد" : "مهلت پاسخ تمام شد";
     return (
-      <button
-        type="button"
-        className={`cbt is-${confirmed ? "ok" : "bad"}`}
+      <Strip
+        className={`is-${confirmed ? "ok" : "bad"}`}
         onClick={() => { setFlash(null); onOpen?.(booking); }}
         aria-live="polite"
       >
@@ -104,14 +125,14 @@ export function ClientBookingTracker({ bookings = [], onOpen }) {
           </small>
         </span>
         <ChevronLeft size={18} />
-      </button>
+      </Strip>
     );
   }
 
   if (offers.length) {
     const offer = offers[0];
     return (
-      <button type="button" className="cbt is-offer" onClick={() => onOpen?.(offer)} aria-live="polite">
+      <Strip className="is-offer" onClick={() => onOpen?.(offer)} aria-live="polite">
         <span className="cbtIcon" aria-hidden="true"><CalendarClock size={19} /></span>
         <span className="cbtText">
           <b>سالن ساعت تازه پیشنهاد داده</b>
@@ -120,7 +141,7 @@ export function ClientBookingTracker({ bookings = [], onOpen }) {
           </small>
         </span>
         {offers.length > 1 ? <em className="cbtCount">{toPersianDigits(offers.length)}</em> : <ChevronLeft size={18} aria-hidden="true" />}
-      </button>
+      </Strip>
     );
   }
 
@@ -131,7 +152,7 @@ export function ClientBookingTracker({ bookings = [], onOpen }) {
   const label = current.bookingSource === "artist" ? "آرتیست" : "سالن";
 
   return (
-    <button type="button" className="cbt is-wait" onClick={() => onOpen?.(current)} aria-live="polite">
+    <Strip className="is-wait" onClick={() => onOpen?.(current)} aria-live="polite">
       <span className="cbtIcon is-spin" aria-hidden="true">
         <i />
         <Hourglass size={18} />
@@ -145,6 +166,6 @@ export function ClientBookingTracker({ bookings = [], onOpen }) {
       </span>
       {pending.length > 1 ? <em className="cbtCount">{toPersianDigits(pending.length)}</em> : <CalendarCheck size={18} aria-hidden="true" />}
       {share !== null ? <span className="cbtBar" aria-hidden="true"><i style={{ transform: `scaleX(${share})` }} /></span> : <span className="cbtBar is-indeterminate" aria-hidden="true"><i /></span>}
-    </button>
+    </Strip>
   );
 }
