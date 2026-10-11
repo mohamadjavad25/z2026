@@ -1,7 +1,8 @@
 "use client";
 
 import { memo } from "react";
-import { Store } from "lucide-react";
+import { Check, Store, X } from "lucide-react";
+import { RequestExpiryBadge } from "../schedule/RequestExpiryBadge";
 import { SegmentClock } from "../../components/SegmentClock";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar";
@@ -173,6 +174,7 @@ function scheduleRowPropsAreEqual(prev, next) {
     && prev.booking?.visitCount === next.booking?.visitCount
     && prev.booking?.source?.status === next.booking?.source?.status
     && prev.variant === next.variant
+    && prev.review === next.review
     && prev.booking?.displayTitle === next.booking?.displayTitle
     && prev.booking?.displayMeta === next.booking?.displayMeta
     && prev.booking?.source?.parts === next.booking?.source?.parts
@@ -184,7 +186,8 @@ export const ScheduleRow = memo(function ScheduleRow({
   booking,
   onOpenClient,
   onAction,
-  variant = "default"
+  variant = "default",
+  review = null
 }) {
   const {
     phase,
@@ -236,7 +239,7 @@ export const ScheduleRow = memo(function ScheduleRow({
 
   const chipClass = showStatusTag ? `is-status-${statusTone}` : `is-${phase || "upcoming"}`;
 
-  return (
+  const row = (
     <div
       className={`bkRow is-${phase || "upcoming"}${showStatusTag ? ` is-tone-${statusTone}` : ""}${isClientBooking ? " is-client" : ""}`}
       data-phase={phase}
@@ -306,6 +309,27 @@ export const ScheduleRow = memo(function ScheduleRow({
             <small className="bkDuration">{durationLabel}</small>
           </>
         ) : null}
+      </div>
+    </div>
+  );
+
+  // A request waiting on this owner: answer it right on the card; tapping the card still opens its details.
+  if (!review) return row;
+  return (
+    <div className="bkGroup">
+      {row}
+      <div className="bkReview">
+        <RequestExpiryBadge createdAt={review.createdAt} />
+        <div className="bkReviewActions">
+          <button type="button" className="is-approve" disabled={review.disabled || review.approveDisabled} onClick={review.onApprove}>
+            <Check size={15} aria-hidden="true" />
+            {review.busy ? "…" : "تایید"}
+          </button>
+          <button type="button" className="is-decline" disabled={review.disabled} onClick={review.onDecline}>
+            <X size={15} aria-hidden="true" />
+            رد
+          </button>
+        </div>
       </div>
     </div>
   );

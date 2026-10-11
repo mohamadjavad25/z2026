@@ -8,13 +8,13 @@ import { SkeletonList } from "../../components/Skeleton";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { getRequestExpiryMinutesLeft } from "../../shared/lib/time";
 import { getBookingDateKey, isArtistBookingOnExactDate } from "../artist";
-import { RequestExpiryBadge } from "./RequestExpiryBadge";
+import { PendingOtherDays } from "./PendingOtherDays";
 import { BookingWeekRail } from "../profile/BookingWeekRail";
 import { ScheduleRow } from "../profile/ScheduleRow";
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
 
 /**
- * Salon owner overview — collab inbox + reservation requests + day schedule.
+ * Salon owner overview — collab inbox + day schedule; a pending request is answered on its own card.
  * Presentational: lists + callbacks; schedule triad/memos stay in HomeApp.
  */
 export function SalonScheduleDashboard({
@@ -39,6 +39,20 @@ export function SalonScheduleDashboard({
   onHistoryOpenChange,
   requestBusyId = ""
 }) {
+  const requestsById = new Map(reservationRequests.map((request) => [String(request.id), request]));
+  const reviewFor = (item) => {
+    const request = item.id != null ? requestsById.get(String(item.id)) : null;
+    if (!request) return null;
+    return {
+      createdAt: request.createdAt,
+      busy: String(requestBusyId) === `reservation:${request.id}`,
+      disabled: Boolean(requestBusyId),
+      approveDisabled: (getRequestExpiryMinutesLeft(request.createdAt) ?? 1) <= 0,
+      onApprove: () => onApproveRequest?.(request.id, { bookingDateForSlots }),
+      onDecline: () => onDeclineRequest?.(request.id)
+    };
+  };
+
   return (
     <div className="salonDashboard">
       {pendingCollabRequests.length > 0 && (
@@ -80,63 +94,6 @@ export function SalonScheduleDashboard({
                     {busy ? "…" : "تایید"}
                   </button>
                   <button type="button" className="is-decline" disabled={anyBusy} onClick={() => onDeclineCollab?.(request.id)}>
-                    <X size={15} />
-                    رد
-                  </button>
-                </div>
-              </article>
-              );
-            })}
-          </div>
-        </section>
-      )}
-
-      {reservationRequests.length > 0 && (
-        <section className="salonRequestsBoard" aria-label="درخواست‌های آینده">
-          <div className="boardHead">
-            <div>
-              <span>درخواست‌های آینده</span>
-              <strong>نیاز به تایید شما</strong>
-            </div>
-            <b>{reservationRequests.length} درخواست</b>
-          </div>
-          <div className="reservationRequestList">
-            {reservationRequests.map((request) => {
-              const busy = String(requestBusyId) === `reservation:${request.id}`;
-              const anyBusy = Boolean(requestBusyId);
-              return (
-              <article className="reservationRequestCard" key={request.id}>
-                <div className="requestCardMain">
-                  <div className="requestCardWho">
-                    <strong>{request.client}</strong>
-                    <span className="svcInline"><ServiceIcon emoji={request.service_emoji} name={request.service} size="xs" />{shortServiceLabel(request.service)}</span>
-                    <small>
-                      <b>{request.staff}</b>
-                      <em>مسئول</em>
-                      <i aria-hidden="true" />
-                      {request.note}
-                    </small>
-                  </div>
-                  <div className="requestCardAside">
-                    <b className="requestTime" dir="ltr">{toPersianDigits(String(request.time || ""))}</b>
-                    <div className="requestCardWhen">
-                      <em>{request.day}</em>
-                      <span>{request.date}</span>
-                    </div>
-                  </div>
-                </div>
-                <RequestExpiryBadge createdAt={request.createdAt} />
-                <div className="requestActions">
-                  <button
-                    type="button"
-                    className="is-approve"
-                    disabled={anyBusy || (getRequestExpiryMinutesLeft(request.createdAt) ?? 1) <= 0}
-                    onClick={() => onApproveRequest?.(request.id, { bookingDateForSlots })}
-                  >
-                    <Check size={15} />
-                    {busy ? "…" : "تایید"}
-                  </button>
-                  <button type="button" className="is-decline" disabled={anyBusy} onClick={() => onDeclineRequest?.(request.id)}>
                     <X size={15} />
                     رد
                   </button>
@@ -226,6 +183,11 @@ export function SalonScheduleDashboard({
             );
           }}
         />
+        <PendingOtherDays
+          requests={reservationRequests.map((request) => ({ id: request.id, dateKey: getBookingDateKey(request.date) }))}
+          visibleIds={dayAppointments.map((item) => item.id)}
+          onSelectDay={onSelectDay}
+        />
         <div className="todayScheduleList">
           {loading ? (
             <SkeletonList rows={4} variant="row" className="salonScheduleSkeleton" label="در حال بارگذاری برنامه سالن" />
@@ -235,6 +197,7 @@ export function SalonScheduleDashboard({
               booking={item}
               onOpenClient={onOpenClient}
               onAction={onOpenBookingMenu}
+              review={reviewFor(item)}
             />
           )) : (
             <div className="salonTodayEmpty">

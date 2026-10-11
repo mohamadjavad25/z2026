@@ -1457,3 +1457,83 @@ html, body { overscroll-behavior-y: none; }
 .clConnActions .is-decline { background: #f1f1f5; color: #3b3e49; }
 .clConnActions button:disabled { opacity: 0.5; }
 .clConnMascot { justify-self: center; margin-top: 18px; }
+
+/* ═══ Booking rows: a request waiting on the owner gets «رد» / «تایید» under its own card ═══ */
+.bkGroup {
+  border: 1px solid #ececf0;
+  border-radius: 22px;
+  background: #ffffff;
+  box-shadow: 0 6px 18px rgba(20, 22, 29, 0.05);
+  overflow: hidden;
+}
+.bkGroup > .bkRow { border: 0; border-radius: 0; box-shadow: none; }
+.bkGroup > .bkRow[role="button"]:hover { box-shadow: none; }
+.bkGroup > .bkRow[role="button"]:active { transform: none; background: #fafafc; }
+.bkReview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 10px 10px;
+  border-top: 1px solid #ececf0;
+}
+.bkReview .requestExpiryBadge { margin: 0; }
+.bkReviewActions { display: flex; gap: 8px; margin-inline-start: auto; }
+.bkReviewActions button {
+  min-height: 38px;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  border-radius: 12px;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+.bkReviewActions .is-approve { background: #14161d; color: #ffffff; }
+.bkReviewActions .is-decline { background: #f4f4f7; color: #b13a3a; }
+.bkReviewActions button:disabled { opacity: 0.5; cursor: default; }
+.bkReviewActions button:focus-visible { outline: 3px solid rgba(20, 22, 29, 0.25); outline-offset: 2px; }
+
+/* Requests on other days: which days, one tap to go there */
+.pendingOtherDays {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  margin-block: 8px 2px;
+  padding: 8px 12px;
+  border-radius: 16px;
+  background: #fff7e6;
+  color: #8a5600;
+  font-size: 0.74rem;
+  font-weight: 850;
+}
+.pendingOtherDaysTitle { display: inline-flex; align-items: center; gap: 6px; }
+.pendingOtherDaysList { display: flex; flex-wrap: wrap; gap: 6px; }
+.pendingOtherDaysList button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid #f3dfb4;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #6b4300;
+  font: inherit;
+  cursor: pointer;
+}
+.pendingOtherDaysList b {
+  min-width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: #f0a020;
+  color: #ffffff;
+  font-size: 0.64rem;
+}

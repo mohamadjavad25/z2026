@@ -6,11 +6,11 @@ import { Mascot } from "../../components/Mascot";
 import { ChevronLeft, Coffee, MoreHorizontal, Store } from "lucide-react";
 import { SegmentClock } from "../../components/SegmentClock";
 import { SkeletonList } from "../../components/Skeleton";
-import { isArtistBookingOnExactDate } from "../artist";
+import { getBookingDateKey, isArtistBookingOnExactDate } from "../artist";
 import { BookingHistoryCalendarSheet } from "../profile/BookingHistoryCalendarSheet";
 import { ProfileHeroWeekStrip } from "../profile/ProfileHeroWeekStrip";
 import { ScheduleRow } from "../profile/ScheduleRow";
-import { ArtistRequestsBoard } from "./ArtistRequestsBoard";
+import { PendingOtherDays } from "./PendingOtherDays";
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
 
 /**
@@ -35,15 +35,21 @@ export function ArtistScheduleBoard({
   onDeclineRequest
 }) {
   const [historyOpen, setHistoryOpen] = useState(false);
+  const requestsById = new Map(requests.map((request) => [String(request.id), request]));
+  const reviewFor = (booking) => {
+    const request = booking.id != null ? requestsById.get(String(booking.id)) : null;
+    if (!request) return null;
+    return {
+      createdAt: request.createdAt,
+      busy: String(requestBusyId) === `booking:${request.id}`,
+      disabled: Boolean(requestBusyId),
+      onApprove: () => onApproveRequest?.(request.id),
+      onDecline: () => onDeclineRequest?.(request.id)
+    };
+  };
 
   return (
     <div className="artistBookingsPage">
-      <ArtistRequestsBoard
-        requests={requests}
-        busyId={requestBusyId}
-        onApprove={onApproveRequest}
-        onDecline={onDeclineRequest}
-      />
       <section className="salonTodaySchedule is-artistSchedule">
         <ProfileHeroWeekStrip
           items={weekTabs}
@@ -51,6 +57,11 @@ export function ArtistScheduleBoard({
           onSelectDay={onSelectDay}
           onOpenHistory={() => setHistoryOpen(true)}
           ariaLabel="انتخاب روز رزروها"
+        />
+        <PendingOtherDays
+          requests={requests.map((request) => ({ id: request.id, dateKey: getBookingDateKey(request.dateKey || request.date) }))}
+          visibleIds={dayRows.map((booking) => booking.id)}
+          onSelectDay={onSelectDay}
         />
         <div className="todayScheduleList">
           {loading ? (
@@ -61,6 +72,7 @@ export function ArtistScheduleBoard({
               booking={booking}
               onOpenClient={onOpenClient}
               onAction={onOpenBookingMenu}
+              review={reviewFor(booking)}
             />
           )) : (
             <div className="salonTodayEmpty">
