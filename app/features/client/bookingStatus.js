@@ -1,5 +1,7 @@
 import { resolveRollingPersianDate } from "../../shared/lib/persianCalendar";
 import { AWAITING_CLIENT } from "../../shared/lib/bookingOffer";
+import { scheduleBookingParts } from "../../shared/lib/bookingParts";
+import { normalizeBookingTimeLabel, timeLabelToMinutes } from "../../shared/lib/time";
 
 /** Plain-language status for a booking row (the stored values are internal: تازه / درخواست ...). */
 export function bookingStatusLabel(status = "") {
@@ -44,4 +46,14 @@ export function pickNextBooking(bookings = []) {
   return bookings
     .filter((booking) => isBookingActive(booking) && !isBookingInPast(booking))
     .sort((a, b) => toKey(a) - toKey(b))[0] || null;
+}
+
+/** When a booking ends ("21:15"), from its services or its length; "" when that isn't known. */
+export function bookingEndLabel(booking) {
+  const parts = scheduleBookingParts(booking?.time, booking?.parts);
+  if (parts.length >= 2) return parts[parts.length - 1].endLabel;
+  const minutes = Number(booking?.duration_minutes) || 0;
+  if (!minutes || !booking?.time) return "";
+  const end = timeLabelToMinutes(normalizeBookingTimeLabel(booking.time)) + minutes;
+  return `${String(Math.floor(end / 60) % 24).padStart(2, "0")}:${String(end % 60).padStart(2, "0")}`;
 }
