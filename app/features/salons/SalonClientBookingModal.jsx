@@ -34,7 +34,6 @@ export function SalonClientBookingModal({
 
   const serviceItem = (booking.bundle?.name === booking.service ? booking.bundle : null)
     || (Array.isArray(salon.services) ? salon.services : []).find((item) => item.name === booking.service);
-  const serviceEmoji = serviceItem?.emoji || "";
   const price = parseTomanAmount(serviceItem?.price);
   // Several services in one visit, back to back: say until when, and how the times were picked.
   const visitCount = booking.bundle?.name === booking.service ? booking.bundle.items.length : 0;
@@ -68,7 +67,11 @@ export function SalonClientBookingModal({
             <CalendarCheck size={14} />
             {booking.day}
           </span>
-          <ServiceIcon emoji={serviceEmoji} name={visitCount ? booking.bundle.items[0]?.name : booking.service} size="md" />
+          <span className={`salonClientBookingLogo ${salon.avatar ? "hasImage" : ""}`} aria-hidden="true">
+            {salon.avatar
+              ? <img src={salon.avatar} alt="" style={{ objectPosition: salon.avatarPosition || "50% 50%" }} />
+              : String(salon.name || "").slice(0, 1)}
+          </span>
           <div className="salonClientBookingTitle">
             <strong>{visitCount ? `${toPersianDigits(visitCount)} خدمت` : booking.service}</strong>
             <small>{salon.name}</small>
