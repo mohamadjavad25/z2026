@@ -17,6 +17,7 @@ import { readArtistRailDock } from "./railUtils";
 import { useArtistWorkActions } from "./useArtistWorkActions";
 import { useArtistRailDrag } from "./useArtistRailDrag";
 import { useArtistHours } from "./useArtistHours";
+import { bookingHoldsSlot } from "../../shared/lib/salonAvailability";
 
 /**
  * Artist-owner workspace: portfolio, services, bookings, break, outbound collabs,
@@ -319,7 +320,9 @@ export function useArtistWorkspace({
       notify("نام، خدمت و ساعت را کامل کن.");
       return;
     }
-    const taken = artistBookingList.some((item) => item.time === time && item.date === date);
+    const taken = artistBookingList.some((item) => (
+      bookingHoldsSlot(item) && item.time === time && item.date === date
+    ));
     if (taken) {
       notify("این ساعت در این روز قبلاً رزرو شده.");
       return;

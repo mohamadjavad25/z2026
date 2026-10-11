@@ -953,7 +953,7 @@
 }
 
 .scheduleBookingSettings .clientBookingSettingsHead {
-  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
 }
 
 .clientBookingChangePanel {
