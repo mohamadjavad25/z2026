@@ -33,12 +33,27 @@ function groupServices(services) {
  * several (e.g. nails and makeup in one visit); confirming hands them, in the
  * order picked, to `onConfirm`. Render it next to the `.spvBar`.
  */
-export function ServicesDropUp({ open, title, services, onConfirm, onClose }) {
+export function ServicesDropUp({ open, title, services, focusNames = null, focusLabel = "", onConfirm, onClose }) {
   const list = Array.isArray(services) ? services : [];
-  const groups = useMemo(() => groupServices(list), [list]);
+  // Services the client came for (a category tapped on «سالن و آرتیست من») are listed first, in a group of their own.
+  const focusKey = Array.isArray(focusNames) ? focusNames.join("|") : "";
+  const groups = useMemo(() => {
+    const wanted = new Set(focusKey ? focusKey.split("|") : []);
+    const focused = wanted.size ? list.filter((service) => wanted.has(String(service.name))) : [];
+    if (!focused.length) return groupServices(list);
+    const rest = list.filter((service) => !wanted.has(String(service.name)));
+    return [{ id: "focus", label: focusLabel || "پیشنهادی", items: focused }, ...groupServices(rest)];
+  }, [list, focusKey, focusLabel]);
   const [tab, setTab] = useState("all");
   // Kept while the menu is closed, so reopening it shows the same picks.
   const [pickedKeys, setPickedKeys] = useState([]);
+
+  // One matching service: it is already picked, so the client only confirms.
+  useEffect(() => {
+    if (!open) return;
+    const focused = groups.find((group) => group.id === "focus");
+    if (focused?.items.length === 1) setPickedKeys((keys) => (keys.length ? keys : [serviceKey(focused.items[0])]));
+  }, [open, groups]);
 
   useEffect(() => {
     if (!open) return undefined;

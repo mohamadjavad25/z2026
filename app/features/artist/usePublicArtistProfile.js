@@ -141,7 +141,10 @@ export function usePublicArtistProfile({
 
   const applyPublicArtistPayload = useCallback((full) => {
     if (!full) return;
-    setSelectedPublicArtist(full);
+    // The stub may carry what the client came for (focusServices); the full profile must not drop it.
+    setSelectedPublicArtist((current) => (
+      current?.focusServices && String(current.id) === String(full.id) ? { ...full, focusServices: current.focusServices } : full
+    ));
   }, []);
 
   const closePublicArtistProfile = useCallback(() => {

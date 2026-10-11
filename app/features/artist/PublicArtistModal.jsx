@@ -13,7 +13,7 @@ import { PublicArtistAboutPanel } from "./PublicArtistAboutPanel";
 import { PublicArtistBookingPanel } from "./PublicArtistBookingPanel";
 import { PublicArtistGalleryPanel } from "./PublicArtistGalleryPanel";
 import { ProfileSheet } from "../profile/ProfileSheet";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 // Same decorative cover the artist's own panel shows until a poster is uploaded.
 const DEFAULT_COVER = "/artist-hero-doodle.webp";
@@ -57,6 +57,12 @@ export function PublicArtistModal({
   const [servicesOpen, setServicesOpen] = useState(false);
   // Several services picked together: one service-shaped bundle (shared/lib/serviceBundle).
   const [bundle, setBundle] = useState(null);
+  // Opened from a category on «سالن و آرتیست من»: show the services menu as soon as the services have loaded.
+  const focus = artist?.focusServices || null;
+  const hasServices = Array.isArray(services) && services.length > 0;
+  useEffect(() => {
+    if (focus && hasServices) setServicesOpen(true);
+  }, [focus, hasServices]);
   if (!artist) return null;
 
   const specialties = String(artist.service || "").split(/[،,]/).map((item) => item.trim()).filter(Boolean).slice(0, 4);
@@ -175,6 +181,8 @@ export function PublicArtistModal({
               open={servicesOpen}
               title={`خدمات ${artist.name || "آرتیست"}`}
               services={services}
+              focusNames={focus?.names}
+              focusLabel={focus?.label ? `مناسب «${focus.label}»` : ""}
               onConfirm={(picked) => {
                 const service = bundleServices(picked);
                 setServicesOpen(false);

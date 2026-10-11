@@ -10,6 +10,11 @@ export async function searchConnections(query, { signal } = {}) {
   return apiJson(`/api/connections/search?q=${encodeURIComponent(query)}`, { signal });
 }
 
+/** GET /api/connections/by-category?category= → { category, matches } (my salons/artists that do it, with the matching services) */
+export async function listConnectionsForCategory(category) {
+  return apiJson(`/api/connections/by-category?category=${encodeURIComponent(category)}`);
+}
+
 /** POST /api/connections { targetUserId } → { profile, alreadyConnected } */
 export async function connectTo(targetUserId) {
   return apiFetch("/api/connections", { method: "POST", body: JSON.stringify({ targetUserId }) });

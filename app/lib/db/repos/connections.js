@@ -2,6 +2,7 @@ import { randomBytes, timingSafeEqual } from "node:crypto";
 import { getDb, all, get, run } from "../connection.js";
 import { toLatinDigits } from "../../../shared/lib/digits.js";
 import { parseProfileLink } from "../../../shared/lib/connectCodes.js";
+import { serviceInCategory } from "../../../shared/constants/clientCategories.js";
 
 /**
  * A client's "salons and artists" — the people they book with.
@@ -99,6 +100,36 @@ export async function listConnections(clientUserId) {
     ORDER BY f.created_at DESC
   `, [clientUserId]);
   return toCards(db, rows);
+}
+
+/**
+ * The client's connected salons and artists that offer something in a category («ناخن», «مو»…), each
+ * with the services that matched, the ones offering the most first. Empty when none of them does,
+ * which is when the client is asked to connect someone new.
+ */
+export async function listConnectionsForCategory(clientUserId, category) {
+  const cards = await listConnections(clientUserId);
+  if (!cards.length) return [];
+  const db = await getDb();
+  const salonIds = cards.filter((card) => card.type === "salon").map((card) => card.id);
+  const artistIds = cards.filter((card) => card.type === "artist").map((card) => card.id);
+  const [salonRows, artistRows] = await Promise.all([
+    salonIds.length ? all(db, "SELECT * FROM salon_services WHERE salon_user_id = ANY($1) ORDER BY id", [salonIds]) : [],
+    artistIds.length ? all(db, "SELECT * FROM artist_services WHERE user_id = ANY($1) ORDER BY id", [artistIds]) : []
+  ]);
+  const matched = new Map();
+  const collect = (ownerId, row) => {
+    if (!serviceInCategory({ name: row.name, emoji: row.emoji }, category)) return;
+    const list = matched.get(ownerId) || [];
+    list.push(row.name);
+    matched.set(ownerId, list);
+  };
+  salonRows.forEach((row) => collect(row.salon_user_id, row));
+  artistRows.forEach((row) => collect(row.user_id, row));
+  return cards
+    .filter((card) => matched.has(card.id))
+    .map((card) => ({ ...card, services: matched.get(card.id) }))
+    .sort((a, b) => b.services.length - a.services.length);
 }
 
 /**

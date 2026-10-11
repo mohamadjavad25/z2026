@@ -435,9 +435,11 @@ function getPassportMatch(post) {
   }
 
   // Opens a salon/artist card from «سالن و آرتیست من» (features/connect).
-  function openConnectedProfile(profile) {
+  // `focus` ({ services, label }): the client came for a kind of service, so the services menu opens on those.
+  function openConnectedProfile(profile, focus = null) {
     if (!profile?.id) return;
     const card = { id: profile.id, name: profile.name || "", avatar: profile.avatar || "", area: profile.area || "" };
+    if (focus?.label) card.focusServices = { names: focus.services || [], label: focus.label };
     if (profile.type === "artist") {
       openPublicArtistProfile(card);
       return;
