@@ -22,9 +22,10 @@ import { getBookingDateOffsetDays, getBookingTimelinePhase } from "../artist/boo
 import { formatRelativeBookingDayLabel, isPersianDateKey } from "../../shared/lib/persianCalendar";
 import { SegmentClock } from "../../components/SegmentClock";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
-import { formatRequestExpiryDeadline, getRequestExpiryMinutesLeft } from "../../shared/lib/time";
+import { formatRequestExpiryDeadline, getRequestExpiryMinutesLeft, normalizeBookingTimeLabel } from "../../shared/lib/time";
 import { isMultiPartBooking, parseBookingParts, scheduleBookingParts } from "../../shared/lib/bookingParts";
 import { BookingPartsEditor } from "./BookingPartsEditor";
+import { getSalonBookingMoveTimes } from "../../shared/api/salons";
 import { AWAITING_CLIENT, bookingTimeOffer } from "../../shared/lib/bookingOffer";
 
 // Shown when a customer / staff member / source has no uploaded photo.
@@ -71,6 +72,80 @@ const BOOKING_STATUS_ICONS = {
 };
 
 /**
+ * «تغییر ساعت»: only the times this booking really fits at, asked from the server with the same
+ * rules the move itself is checked by -- its services with their artists, nothing else in the
+ * way, ending by closing time. Times that run past closing come last, marked with how much
+ * longer the salon would stay, and are sent only as a deliberate choice.
+ */
+function MoveTimeList({ booking, disabled, onPick }) {
+  const [state, setState] = useState({ id: null, loading: true, times: [], close: "", closed: false, failed: false });
+  useEffect(() => {
+    let alive = true;
+    setState({ id: booking.id, loading: true, times: [], close: "", closed: false, failed: false });
+    getSalonBookingMoveTimes(booking.id).then(({ ok, data }) => {
+      if (!alive) return;
+      setState({ id: booking.id, loading: false, times: ok ? data.times || [] : [], close: data?.close || "", closed: Boolean(data?.closed), failed: !ok });
+    }).catch(() => {
+      if (alive) setState({ id: booking.id, loading: false, times: [], close: "", closed: false, failed: true });
+    });
+    return () => { alive = false; };
+  }, [booking.id, booking.time, booking.parts]);
+
+  const current = normalizeBookingTimeLabel(booking.time || "");
+  const inHours = state.times.filter((option) => !option.overtimeMinutes);
+  const late = state.times.filter((option) => option.overtimeMinutes > 0);
+  const others = inHours.filter((option) => option.time !== current);
+
+  if (state.loading) return <p className="sbmMoveNote">در حال پیدا کردن ساعت‌های آزاد…</p>;
+  if (state.failed) return <p className="sbmMoveNote is-warn">ساعت‌های آزاد گرفته نشد؛ دوباره امتحان کن.</p>;
+  if (state.closed) return <p className="sbmMoveNote is-warn">سالن در این روز تعطیل است.</p>;
+
+  const row = (option, overtime) => {
+    const active = option.time === current;
+    return (
+      <button
+        type="button"
+        key={option.time}
+        className={`${active ? "is-selected" : ""}${overtime ? " is-overtime" : ""}`}
+        disabled={disabled || active}
+        onClick={() => {
+          if (overtime && typeof window !== "undefined" && !window.confirm(
+            `این نوبت تا ${toPersianDigits(option.end)} طول می‌کشد؛ یعنی ${toPersianDigits(option.overtimeMinutes)} دقیقه بیشتر از ساعت کاری بمانید. فرستاده شود؟`
+          )) return;
+          onPick(option.time, overtime);
+        }}
+      >
+        <SegmentClock value={option.time} size="xs" as="span" />
+        <span className="sbmMoveCopy">
+          <b>تا {toPersianDigits(option.end)}</b>
+          {active ? <small>ساعت فعلی</small> : overtime ? <small>{toPersianDigits(option.overtimeMinutes)} دقیقه بیشتر بمانید</small> : null}
+        </span>
+        {active ? <Check size={16} /> : null}
+      </button>
+    );
+  };
+
+  return (
+    <div className="scheduleBookingPickList">
+      {others.length === 0 ? (
+        <p className="sbmMoveNote is-warn">
+          {late.length
+            ? `تا پایان ساعت کاری (${toPersianDigits(state.close)}) ساعت آزاد دیگری برای این نوبت نیست.`
+            : "این روز ساعت آزاد دیگری برای این نوبت نیست."}
+        </p>
+      ) : null}
+      {inHours.map((option) => row(option, false))}
+      {late.length ? (
+        <>
+          <p className="sbmMoveHead">با ماندن بعد از ساعت کاری (سالن تا {toPersianDigits(state.close)} باز است)</p>
+          {late.map((option) => row(option, true))}
+        </>
+      ) : null}
+    </div>
+  );
+}
+
+/**
  * Shared salon+artist schedule booking settings modal.
  * Presentational: booking/view + onChangeTime/Staff/Cancel/Close from HomeApp.
  * Does NOT own schedule triad state.
@@ -80,7 +155,6 @@ export function ScheduleBookingMenuModal({
   booking,
   view = "menu",
   onViewChange,
-  timeSlots = [],
   staffOptions = [],
   onClose,
   onChangeTime,
@@ -132,7 +206,6 @@ export function ScheduleBookingMenuModal({
   const dateValue = booking.booking_date || booking.date || "امروز";
   const dateLabel = isPersianDateKey(dateValue) ? toPersianDigits(formatRelativeBookingDayLabel(dateValue)) : dateValue;
   const currentArtistAvatar = booking.staffAvatar || staffOptions.find((person) => person.name === booking.staff)?.avatar || DEFAULT_AVATAR;
-  const slots = timeSlots.length ? timeSlots : [booking.time].filter(Boolean);
   const actionDisabled = Boolean(busy);
   // booking.ownerType isn't set on every path (e.g. raw history-sheet items
   // in ArtistScheduleBoard/SalonScheduleDashboard don't carry it) — reuse
@@ -359,29 +432,19 @@ export function ScheduleBookingMenuModal({
           ) : null}
 
           {view === "time" ? (
-            <div className="scheduleBookingPickList">
+            <>
               <button type="button" className="scheduleBookingBack" disabled={actionDisabled} onClick={() => onViewChange?.("menu")}>
                 بازگشت
               </button>
               {isSalonOwner && (booking.client_user_id || booking.clientUserId) ? (
                 <p className="scheduleBookingReadOnlyNote is-offer">ساعت تازه برای مشتری فرستاده می‌شود تا قبول یا رد کند.</p>
               ) : null}
-              {slots.map((slot) => {
-                const active = slot === booking.time;
-                return (
-                  <button
-                    type="button"
-                    key={slot}
-                    className={active ? "is-selected" : ""}
-                    disabled={actionDisabled}
-                    onClick={() => onChangeTime?.(slot)}
-                  >
-                    <SegmentClock value={slot} size="xs" as="span" />
-                    {active ? <Check size={16} /> : null}
-                  </button>
-                );
-              })}
-            </div>
+              <MoveTimeList
+                booking={booking}
+                disabled={actionDisabled}
+                onPick={(time, overtime) => onChangeTime?.(time, { overtime })}
+              />
+            </>
           ) : null}
 
         </div>

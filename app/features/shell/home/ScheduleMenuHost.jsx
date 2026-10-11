@@ -9,7 +9,6 @@ export function ScheduleMenuHost() {
     createdProfile,
     scheduleBookingView,
     setScheduleBookingView,
-    bookingDaySlots,
     safeSalonStaffList,
     bookingStaffOptions,
     closeScheduleBookingMenu,
@@ -33,7 +32,6 @@ export function ScheduleMenuHost() {
           booking={scheduleBookingMenu}
           view={scheduleBookingView}
           onViewChange={setScheduleBookingView}
-          timeSlots={bookingDaySlots}
           staffOptions={safeSalonStaffList.length ? safeSalonStaffList : bookingStaffOptions}
           onClose={closeScheduleBookingMenu}
           onChangeTime={changeScheduleBookingTime}

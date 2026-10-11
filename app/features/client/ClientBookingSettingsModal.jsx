@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowLeft, CalendarCheck, CheckCircle2, Clock3, MapPin, Phone, RotateCcw, TimerOff, XCircle } from "lucide-react";
 import { SheetClose } from "../../components/SheetClose";
 import { bookingStatusLabel, bookingStatusTone, canClientCancel } from "./bookingStatus";
@@ -8,6 +8,8 @@ import { ServiceIcon } from "../../components/ServiceIcon";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { formatRequestExpiryDeadline, minutesToPersianTime, timeLabelToMinutes } from "../../shared/lib/time";
 import { bookingTimeOffer } from "../../shared/lib/bookingOffer";
+import { parseBookingParts } from "../../shared/lib/bookingParts";
+import { getSalonVisitTimes } from "../../shared/api/salons";
 import { formatRelativeBookingDayLabel, resolveRollingPersianDate } from "../../shared/lib/persianCalendar";
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
 
@@ -43,8 +45,37 @@ function clockRange(time, minutes) {
  * The salon moved this booking to another time and is waiting for the client's answer:
  * the old and new times side by side, and accept / decline.
  */
+/**
+ * Other times that day the client could still book these same services (the salon's own rules,
+ * GET /api/salon-bookings/availability), so declining is described honestly: when there are none,
+ * declining means losing the visit that day, not "just pick another time".
+ */
+function useOtherFreeTimes(booking, offer) {
+  const [state, setState] = useState({ key: "", times: null });
+  const salonUserId = booking.salon_user_id || booking.salonUserId || booking.source_salon_user_id;
+  const parts = parseBookingParts(booking.parts);
+  const services = parts.length >= 2
+    ? parts.map((part) => ({ name: part.service, minutes: part.minutes }))
+    : [{ name: booking.service, minutes: Number(booking.duration_minutes) || 0 }];
+  const key = `${salonUserId}|${offer.toDate}|${offer.toTime}|${services.map((item) => item.name).join("+")}`;
+  useEffect(() => {
+    if (!salonUserId || !offer.toDate) return undefined;
+    let alive = true;
+    getSalonVisitTimes(salonUserId, offer.toDate, services).then(({ ok, data }) => {
+      if (alive) setState({ key, times: ok ? (data.times || []).filter((time) => timeLabelToMinutes(time) !== timeLabelToMinutes(offer.toTime)) : null });
+    }).catch(() => {
+      if (alive) setState({ key, times: null });
+    });
+    return () => { alive = false; };
+    // `key` covers everything the request depends on.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
+  return state.key === key ? state.times : null;
+}
+
 function TimeOfferBlock({ booking, offer, onAnswer }) {
   const [answering, setAnswering] = useState("");
+  const otherTimes = useOtherFreeTimes(booking, offer);
   const minutes = Number(booking.duration_minutes) || 0;
   const otherDay = offer.fromDate && offer.fromDate !== offer.toDate;
   const send = async (accept) => {
@@ -64,7 +95,13 @@ function TimeOfferBlock({ booking, offer, onAnswer }) {
           {otherDay ? `${formatRelativeBookingDayLabel(offer.toDate)} ` : ""}{clockRange(offer.toTime, minutes)}
         </strong>
       </div>
-      <p>اگر رد کنی، درخواستت لغو می‌شود و می‌توانی ساعت دیگری بگیری.</p>
+      <p>
+        {otherTimes === null
+          ? "اگر رد کنی، این نوبت لغو می‌شود."
+          : otherTimes.length
+            ? `اگر رد کنی، این نوبت لغو می‌شود. ساعت‌های آزاد دیگر این روز: ${otherTimes.slice(0, 4).map((time) => toPersianDigits(time)).join("، ")}${otherTimes.length > 4 ? " و …" : ""}`
+            : "این روز ساعت آزاد دیگری برای این خدمت‌ها ندارد؛ اگر رد کنی، این نوبت لغو می‌شود و باید روز دیگری بگیری."}
+      </p>
       <div className="cbOfferActions">
         <button type="button" className="is-accept" disabled={Boolean(answering)} onClick={() => send(true)}>
           {answering === "yes" ? "در حال ثبت…" : "قبول ساعت تازه"}
