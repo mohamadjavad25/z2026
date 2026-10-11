@@ -145,6 +145,28 @@ describe("booking flow (browser)", () => {
     expect(row.time).toBe("12:00");
     await clientView.context.close();
   });
+
+  it("an artist answers a new booking right on their bookings tab", async () => {
+    const artistApi = createClient();
+    const artist = await registerUser(artistApi, { type: "artist", name: "آرتیست تست" });
+    const clientApi = createClient();
+    await registerUser(clientApi, { type: "client", name: "مشتری مستقیم" });
+    const created = await clientApi.post("/api/artist/bookings", {
+      artistUserId: artist.user.id, service: "کوتاهی", bookingDate: futureBookingDay(2), time: "11:00", clientName: "مشتری مستقیم"
+    });
+    expect(created.payload.data.booking.status).toBe("تازه");
+
+    const { page, context, problems } = await newPage({ cookie: artistApi.cookie() });
+    await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
+    await page.locator(".profileModeRail button", { hasText: "رزروها" }).click();
+    const card = page.locator(".artistBookingsPage .reservationRequestCard").filter({ hasText: "مشتری مستقیم" });
+    await card.getByRole("button", { name: "تایید" }).click();
+    await card.waitFor({ state: "detached" });
+    expect(problems).toEqual([]);
+    const mine = (await artistApi.get("/api/artist/me")).payload.data.bookings;
+    expect(mine.find((b) => b.id === created.payload.data.booking.id).status).toBe("تایید شده");
+    await context.close();
+  });
 });
 
 describe("mobile smoke (browser)", () => {

@@ -1342,6 +1342,98 @@
     border-radius: 10px;
   }}
 
+/* Booking details modal header: client on one side, the people doing it (faces + names) on the
+   other. The status sits under the client's name as a small pill. */
+.scheduleBookingSettings .sbmWho{
+  min-width: 0;
+  display: grid;
+  justify-items: start;
+  gap: 2px;
+}
+
+.scheduleBookingSettings .sbmWho b{
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scheduleBookingSettings .sbmWho strong{
+  margin-top: 2px;
+  padding: 2px 7px;
+  font-size: 0.56rem;
+}
+
+.sbmTeam{
+  max-width: 132px;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding-inline-end: 2px;
+}
+
+.sbmTeamFaces{
+  display: flex;
+  align-items: center;
+  direction: ltr;
+}
+
+.sbmTeamFaces img,
+.sbmTeamFaces i,
+.sbmTeam.is-empty .sbmTeamFaces{
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  background: #eef0f4;
+  box-shadow: 0 3px 10px rgba(28, 32, 44, 0.14);
+  object-fit: cover;
+}
+
+.sbmTeamFaces img + img,
+.sbmTeamFaces img + i{
+  margin-left: -11px;
+}
+
+.sbmTeamFaces i{
+  display: grid;
+  place-items: center;
+  color: #1c202c;
+  font-size: 0.6rem;
+  font-style: normal;
+  font-weight: 950;
+}
+
+.sbmTeam.is-empty .sbmTeamFaces{
+  display: grid;
+  place-items: center;
+  color: #8a909c;
+  border-style: dashed;
+  border-color: rgba(28, 32, 44, 0.2);
+  box-shadow: none;
+}
+
+.clientBookingSettingsHead .sbmTeam small{
+  max-width: 100%;
+  overflow: hidden;
+  color: #1c202c;
+  font-size: 0.6rem;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sbmTeam.is-empty small{
+  color: #8a909c;
+}
+
+.scheduleBookingDetail .sbmCount{
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
 /* Booking details modal (shared salon + artist) */
 .scheduleBookingDetails{
   display: grid;
@@ -1574,11 +1666,12 @@
 .bpeCopy{ flex: 1; min-width: 0; display: grid; gap: 1px; }
 .bpeCopy b{ font-size: 0.8rem; font-weight: 900; color: var(--ink); }
 .bpeCopy small{ color: var(--muted); font-size: 0.68rem; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.bpeWho{ flex: 0 1 auto; max-width: 44%; min-width: 0; display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 8px 0 6px; border: 0; border-radius: 999px; background: #f6f6f8; color: var(--ink); font: inherit; font-size: 0.74rem; font-weight: 900; cursor: pointer; }
+.bpeWho{ flex: 0 1 auto; max-width: 46%; min-width: 0; display: inline-flex; align-items: center; gap: 5px; min-height: 38px; padding: 0 6px 0 5px; border: 0; border-radius: 999px; background: #f6f6f8; color: var(--ink); font: inherit; font-size: 0.74rem; font-weight: 900; cursor: pointer; }
 .bpeWho:disabled{ cursor: default; }
 .bpeWhoName{ min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .bpeWho svg{ flex: none; }
 .bpeWho .scheduleStaffAvatar{ width: 26px; height: 26px; }
+.bpeWhoName{ font-size: 0.7rem; }
 .bpeRow.is-empty .bpeWho{ padding-inline-start: 12px; background: #fff5e8; color: #8a4a0c; box-shadow: inset 0 0 0 1px #f3d9b5; }
 .bpeList{ flex-basis: 100%; display: grid; gap: 6px; max-height: 220px; overflow: auto; padding: 6px 0 2px; }
 .bpeList button{ min-height: 48px; display: flex; align-items: center; gap: 10px; padding: 6px 10px; border: 1px solid rgba(28, 32, 44, 0.07); border-radius: 14px; background: #fff; color: var(--ink); font: inherit; text-align: start; cursor: pointer; }

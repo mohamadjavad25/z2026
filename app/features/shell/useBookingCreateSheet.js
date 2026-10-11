@@ -249,8 +249,10 @@ export function useBookingCreateSheet({
     || artistServiceList[0];
   const artistServiceDuration = parseServiceDurationMinutes(selectedArtistService?.duration);
   const artistBookingDaySlots = buildPublicBookingSlots(artistServiceDuration);
+  // Everything that holds the artist's time: their own and their salons' bookings alike (the salon
+  // ones arrive as mirrors in the same list). Only cancelled or expired ones free the time.
   const artistBookedSlots = artistBookingList
-    .filter((item) => item.status !== "لغو")
+    .filter(bookingHoldsSlot)
     .map((item) => ({
       booking_date: item.date,
       time: item.time,

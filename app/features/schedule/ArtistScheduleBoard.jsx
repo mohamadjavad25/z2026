@@ -10,6 +10,7 @@ import { isArtistBookingOnExactDate } from "../artist";
 import { BookingHistoryCalendarSheet } from "../profile/BookingHistoryCalendarSheet";
 import { ProfileHeroWeekStrip } from "../profile/ProfileHeroWeekStrip";
 import { ScheduleRow } from "../profile/ScheduleRow";
+import { ArtistRequestsBoard } from "./ArtistRequestsBoard";
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
 
 /**
@@ -27,12 +28,22 @@ export function ArtistScheduleBoard({
   dayLabel = "",
   loading = false,
   onOpenClient,
-  onOpenBookingMenu
+  onOpenBookingMenu,
+  requests = [],
+  requestBusyId = "",
+  onApproveRequest,
+  onDeclineRequest
 }) {
   const [historyOpen, setHistoryOpen] = useState(false);
 
   return (
     <div className="artistBookingsPage">
+      <ArtistRequestsBoard
+        requests={requests}
+        busyId={requestBusyId}
+        onApprove={onApproveRequest}
+        onDecline={onDeclineRequest}
+      />
       <section className="salonTodaySchedule is-artistSchedule">
         <ProfileHeroWeekStrip
           items={weekTabs}

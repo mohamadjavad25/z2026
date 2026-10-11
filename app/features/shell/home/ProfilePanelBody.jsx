@@ -31,6 +31,9 @@ export function ProfilePanelBody() {
     salonUnreadNoticeCount,
     recentlyExpiredSalonBookings,
     pendingArtistBookingRequests,
+    artistRequestBusyId,
+    confirmArtistBookingRequest,
+    declineArtistBookingRequest,
     pendingArtistSalonInvites,
     recentlyExpiredArtistBookings,
     profileSettings,
@@ -395,6 +398,10 @@ export function ProfilePanelBody() {
                   loading={artistWorkspaceLoading}
                   onOpenClient={(booking) => openScheduleBookingMenu(booking, "artist")}
                   onOpenBookingMenu={(booking) => openScheduleBookingMenu(booking, "artist")}
+                  requests={pendingArtistBookingRequests}
+                  requestBusyId={artistRequestBusyId}
+                  onApproveRequest={confirmArtistBookingRequest}
+                  onDeclineRequest={declineArtistBookingRequest}
                 />
               )}
 

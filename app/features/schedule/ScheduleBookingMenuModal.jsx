@@ -19,14 +19,13 @@ import {
   XCircle
 } from "lucide-react";
 import { getBookingDateOffsetDays, getBookingTimelinePhase } from "../artist/bookingUtils";
-import { isPersianDateKey } from "../../shared/lib/persianCalendar";
+import { formatRelativeBookingDayLabel, isPersianDateKey } from "../../shared/lib/persianCalendar";
 import { SegmentClock } from "../../components/SegmentClock";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { formatRequestExpiryDeadline, getRequestExpiryMinutesLeft } from "../../shared/lib/time";
-import { isMultiPartBooking, parseBookingParts } from "../../shared/lib/bookingParts";
+import { isMultiPartBooking, parseBookingParts, scheduleBookingParts } from "../../shared/lib/bookingParts";
 import { BookingPartsEditor } from "./BookingPartsEditor";
 import { AWAITING_CLIENT, bookingTimeOffer } from "../../shared/lib/bookingOffer";
-import { shortServiceLabel } from "../../shared/lib/serviceBundle";
 
 // Shown when a customer / staff member / source has no uploaded photo.
 const DEFAULT_AVATAR = "/profile-icon.svg";
@@ -107,22 +106,32 @@ export function ScheduleBookingMenuModal({
   // an artist (a salon's own "تازه" walk-in entry is already settled). This
   // is the one entry point that previously had zero approve/decline action —
   // the client's booking might sit here forever without a next step visible.
-  const isPendingReview = booking.status === "درخواست" || (!isSalonOwner && booking.status === "تازه");
   const sourceSalon = booking.sourceSalon || {};
+  // An artist answers only their own (direct) bookings; one from a salon is the salon's to accept.
+  const isPendingReview = isSalonOwner
+    ? booking.status === "درخواست"
+    : !sourceSalon.name && (booking.status === "درخواست" || booking.status === "تازه");
   // Always show a logo: the uploaded photo when there is one, else the app's default profile icon.
   const avatar = booking.clientAvatar || booking.client_avatar || sourceSalon.avatar || DEFAULT_AVATAR;
   const title = booking.client || booking.salonName || sourceSalon.name || "رزرو";
   const multiPart = isSalonOwner && isMultiPartBooking(booking);
   const partStaff = multiPart ? [...new Set(parseBookingParts(booking.parts).map((part) => part.staff).filter(Boolean))] : [];
-  const subtitle = multiPart
-    ? `${toPersianDigits(parseBookingParts(booking.parts).length)} خدمت · ${partStaff.length ? partStaff.join(" و ") : "آرتیست ثبت نشده"}`
-    : isSalonOwner
-    ? (booking.staff || "آرتیست ثبت نشده")
-    : (sourceSalon.name || booking.staff || "رزرو شخصی");
   const phone = booking.phone || booking.clientPhone || booking.client_phone || "";
-  const currentArtistAvatar = isSalonOwner
-    ? (booking.staffAvatar || staffOptions.find((person) => person.name === booking.staff)?.avatar || DEFAULT_AVATAR)
-    : (sourceSalon.avatar || DEFAULT_AVATAR);
+  // Who is doing it, shown as faces on the header's far side: the salon's artists (one per
+  // service on a multi-service visit), or for an artist the salon the booking came from.
+  const team = isSalonOwner
+    ? (multiPart ? partStaff : [booking.staff].filter(Boolean)).map((name) => {
+      const person = staffOptions.find((item) => item.name === name);
+      return {
+        name,
+        avatar: (name === booking.staff && booking.staffAvatar) || person?.avatar || person?.staff_avatar || DEFAULT_AVATAR
+      };
+    })
+    : sourceSalon.name ? [{ name: sourceSalon.name, avatar: sourceSalon.avatar || DEFAULT_AVATAR }] : [];
+  const services = multiPart ? scheduleBookingParts(booking.time, booking.parts) : [];
+  const dateValue = booking.booking_date || booking.date || "امروز";
+  const dateLabel = isPersianDateKey(dateValue) ? toPersianDigits(formatRelativeBookingDayLabel(dateValue)) : dateValue;
+  const currentArtistAvatar = booking.staffAvatar || staffOptions.find((person) => person.name === booking.staff)?.avatar || DEFAULT_AVATAR;
   const slots = timeSlots.length ? timeSlots : [booking.time].filter(Boolean);
   const actionDisabled = Boolean(busy);
   // booking.ownerType isn't set on every path (e.g. raw history-sheet items
@@ -151,17 +160,32 @@ export function ScheduleBookingMenuModal({
             <span className="clientBookingSettingsAvatar hasImage" aria-hidden="true">
               <img src={avatar} alt="" />
             </span>
-            <div>
+            <div className="sbmWho">
               <small>
                 {view === "time" ? "تغییر ساعت" : readOnly ? "جزئیات رزرو • فقط مشاهده" : "جزئیات رزرو"}
               </small>
               <b>{title}</b>
-              <em>{subtitle}</em>
+              <strong className={`clientBookingSettingsStatus is-${statusTone}`}>
+                <StatusIcon size={11} />
+                {!isSalonOwner && sourceSalon.name && statusTone === "pending" ? "منتظر سالن" : (booking.status || "درخواست")}
+              </strong>
             </div>
-            <strong className={`clientBookingSettingsStatus is-${statusTone}`}>
-              <StatusIcon size={13} />
-              {booking.status || "درخواست"}
-            </strong>
+            {team.length ? (
+              <div className="sbmTeam" aria-label={`${isSalonOwner ? "آرتیست‌ها" : "سالن"}: ${team.map((person) => person.name).join("، ")}`}>
+                <span className="sbmTeamFaces" aria-hidden="true">
+                  {team.slice(0, 3).map((person) => (
+                    <img key={person.name} src={person.avatar} alt="" />
+                  ))}
+                  {team.length > 3 ? <i>+{toPersianDigits(team.length - 3)}</i> : null}
+                </span>
+                <small aria-hidden="true">{team.map((person) => person.name).join(" · ")}</small>
+              </div>
+            ) : (
+              <div className="sbmTeam is-empty">
+                <span className="sbmTeamFaces" aria-hidden="true"><UserRound size={16} /></span>
+                <small>{isSalonOwner ? "بدون آرتیست" : "رزرو شخصی"}</small>
+              </div>
+            )}
           </div>
 
           <div className="clientBookingSettingsTime">
@@ -174,20 +198,24 @@ export function ScheduleBookingMenuModal({
                 <div className="scheduleBookingDetail">
                   <CalendarCheck size={15} aria-hidden="true" />
                   <span>تاریخ</span>
-                  <b>{booking.booking_date || booking.date || "امروز"}</b>
+                  <b>{dateLabel}</b>
                 </div>
-                <div className="scheduleBookingDetail">
-                  <Scissors size={15} aria-hidden="true" />
-                  <span>خدمت</span>
-                  <b className="svcInline"><ServiceIcon emoji={booking.service_emoji} name={booking.service} size="xs" />{shortServiceLabel(booking.service) || "خدمت زیبایی"}</b>
-                </div>
-                {phone ? (
+                {multiPart ? (
                   <div className="scheduleBookingDetail">
-                    <Phone size={15} aria-hidden="true" />
-                    <span>تماس</span>
-                    <b dir="ltr">{toPersianDigits(phone)}</b>
+                    <Clock3 size={15} aria-hidden="true" />
+                    <span>زمان</span>
+                    <b>
+                      {toPersianDigits(services[0].startLabel)} تا {toPersianDigits(services[services.length - 1].endLabel)}
+                      <small className="sbmCount"> · {toPersianDigits(services.length)} خدمت</small>
+                    </b>
                   </div>
-                ) : null}
+                ) : (
+                  <div className="scheduleBookingDetail">
+                    <Scissors size={15} aria-hidden="true" />
+                    <span>خدمت</span>
+                    <b className="svcInline"><ServiceIcon emoji={booking.service_emoji} name={booking.service} size="xs" />{booking.service || "خدمت زیبایی"}</b>
+                  </div>
+                )}
               </div>
 
               {multiPart ? (
@@ -197,7 +225,7 @@ export function ScheduleBookingMenuModal({
                   disabled={!canManage || actionDisabled}
                   onChange={onChangeParts}
                 />
-              ) : (
+              ) : isSalonOwner ? (
               <div className={`scheduleBookingArtist ${artistPickerOpen ? "is-open" : ""}`}>
                 <button
                   type="button"
@@ -211,8 +239,8 @@ export function ScheduleBookingMenuModal({
                     <img src={currentArtistAvatar} alt="" />
                   </span>
                   <span className="scheduleBookingArtistCopy">
-                    <small>{isSalonOwner ? "آرتیست" : "منبع"}</small>
-                    <b>{subtitle}</b>
+                    <small>آرتیست</small>
+                    <b>{booking.staff || "آرتیست ثبت نشده"}</b>
                   </span>
                   {canManage ? <ChevronDown size={16} className="scheduleBookingArtistChevron" aria-hidden="true" /> : null}
                 </button>
@@ -251,7 +279,7 @@ export function ScheduleBookingMenuModal({
                   </div>
                 ) : null}
               </div>
-              )}
+              ) : null}
 
               {isPendingReview && !readOnly ? (
                 <div className="scheduleBookingReviewActions">
