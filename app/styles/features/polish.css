@@ -771,6 +771,26 @@
 /* A new time the salon offered, waiting for the client (ClientBookingTracker) */
 .bottomNav > .cbt.is-offer { background: #fff6e3; }
 .cbt.is-offer .cbtIcon { background: #a86a00; color: #fff; }
+/* A salon or artist page has its own bottom bar and hides the tabs: the strip then floats above that bar, on its own. */
+.appShell.is-salon-client .bottomNav:has(> .cbt),
+.appShell.is-artist-public .bottomNav:has(> .cbt) {
+  display: flex !important;
+  bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  min-height: 0 !important;
+  padding: 0 !important;
+  border-radius: 20px !important;
+  background: transparent;
+  box-shadow: none;
+}
+.appShell.is-salon-client .bottomNav:has(> .cbt) > button,
+.appShell.is-artist-public .bottomNav:has(> .cbt) > button { display: none !important; }
+.appShell.is-salon-client .bottomNav > .cbt,
+.appShell.is-artist-public .bottomNav > .cbt {
+  flex-basis: 100%;
+  margin: 0;
+  border-radius: 20px;
+  box-shadow: 0 14px 34px rgba(20, 22, 29, 0.2), inset 0 0 0 1px #ececf1;
+}
 @keyframes cbtIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes cbtSpin { to { transform: rotate(360deg); } }
 @keyframes cbtTilt { 0%, 40% { transform: rotate(0); } 60%, 100% { transform: rotate(180deg); } }
