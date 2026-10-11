@@ -1,5 +1,6 @@
 /* global document, axe */
 import { afterAll, describe, expect, it } from "vitest";
+import QRCode from "qrcode";
 import { TEST_BASE_URL } from "../globalSetup.js";
 import { createClient, futureBookingDay, registerUser } from "../integration/helpers.js";
 import { closeBrowser, newPage } from "./browser.js";
@@ -268,6 +269,57 @@ describe("client picks a salon from their contacts (browser)", () => {
     expect(list.payload.data.connections.map((c) => c.id)).toContain(salon.user.id);
     expect(known.problems).toEqual([]);
     await known.context.close();
+  });
+});
+
+describe("QR scanning (browser)", () => {
+  // The test stands in for the phone camera: a canvas stream showing `qrDataUrl`. The browser's own
+  // reader is the kind many Android phones have (present, but never finds a code), so this proves
+  // the scanner still reads codes when that reader is useless.
+  const withCamera = (qrDataUrl) => `
+    window.BarcodeDetector = class { static async getSupportedFormats() { return ["qr_code"]; } async detect() { return []; } };
+    const canvas = document.createElement("canvas");
+    canvas.width = 1280; canvas.height = 720;
+    const context = canvas.getContext("2d");
+    const image = new Image();
+    image.src = ${JSON.stringify(qrDataUrl)};
+    (function draw() {
+      context.fillStyle = "#808080"; context.fillRect(0, 0, canvas.width, canvas.height);
+      if (image.complete) context.drawImage(image, 520, 240, 240, 240);
+      requestAnimationFrame(draw);
+    })();
+    Object.defineProperty(navigator, "mediaDevices", { configurable: true, value: { getUserMedia: async () => canvas.captureStream(30) } });
+  `;
+
+  it("client scans a salon's code and connects; the salon scans the client's «کد من» and adds them", async () => {
+    const { name, client: salonClient, salon } = await seedSalon();
+    const clientApi = createClient();
+    await registerUser(clientApi, { type: "client", name: "مشتری اسکن" });
+
+    const clientView = await newPage({ cookie: clientApi.cookie() });
+    await clientView.context.addInitScript(withCamera(await QRCode.toDataURL(`${TEST_BASE_URL}/salons/${salon.user.id}`)));
+    const cp = clientView.page;
+    await cp.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
+    await cp.locator("nav.bottomNav > button").nth(2).click();
+    await cp.getByRole("button", { name: "اسکن QR" }).click();
+    const found = cp.locator(".cnScanResult").filter({ hasText: name });
+    await found.getByRole("button", { name: "وصل شو" }).click();
+    await found.getByRole("button", { name: "رزرو" }).waitFor();
+    expect((await clientApi.get("/api/connections")).payload.data.connections.map((c) => c.id)).toContain(salon.user.id);
+    expect(clientView.problems).toEqual([]);
+    await clientView.context.close();
+
+    const { code } = (await clientApi.get("/api/connections/code")).payload.data;
+    const salonView = await newPage({ cookie: salonClient.cookie() });
+    await salonView.context.addInitScript(withCamera(await QRCode.toDataURL(code)));
+    const sp = salonView.page;
+    await sp.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
+    await sp.getByRole("button", { name: "مشتریان" }).click();
+    await sp.locator(".cnScanCustomerBtn").first().click();
+    // the client is already connected (they scanned the salon above), and the scanner says so
+    await sp.locator(".cnScanResult").getByText("مشتری اسکن از قبل وصل بود.").waitFor();
+    expect(salonView.problems).toEqual([]);
+    await salonView.context.close();
   });
 });
 
