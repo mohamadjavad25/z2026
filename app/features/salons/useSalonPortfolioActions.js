@@ -67,7 +67,9 @@ export function useSalonPortfolioActions({
       shellNotify("عنوان پست را وارد کن.");
       return;
     }
-    if (!tag) {
+    // A category is asked for only when the menu has services to pick from.
+    const hasServices = salonServiceList.some((item) => String(item?.name || "").trim());
+    if (!tag && hasServices) {
       shellNotify("دسته پست را از بین خدمات انتخاب کن.");
       return;
     }
@@ -127,7 +129,7 @@ export function useSalonPortfolioActions({
     } finally {
       setPortfolioSaving(false);
     }
-  }, [portfolioSaving, salonWorkDraft, salonPortfolioList.length, shellNotify, refreshSalonSystemData, onPostsChanged, syncSalonDirectory, resetPortfolioComposer]);
+  }, [portfolioSaving, salonWorkDraft, salonServiceList, salonPortfolioList.length, shellNotify, refreshSalonSystemData, onPostsChanged, syncSalonDirectory, resetPortfolioComposer]);
 
   const deleteSalonPortfolio = useCallback(async (id) => {
     if (!id) return;

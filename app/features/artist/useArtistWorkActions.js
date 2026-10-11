@@ -12,7 +12,8 @@ export function useArtistWorkActions({
   artistWorkSaving,
   setArtistWorkSaving,
   notify,
-  setArtistPortfolioItems
+  setArtistPortfolioItems,
+  artistServiceList = []
 }) {
   function openArtistWorkPreview(item) {
     if (!item?.id) return;
@@ -64,8 +65,10 @@ export function useArtistWorkActions({
     const title = String(editingArtistWork.title || "").trim();
     const tag = String(editingArtistWork.tag || "").trim();
     const image = String(editingArtistWork.image || "").trim();
-    if (!title || !tag) {
-      notify("عنوان و دسته لازم است.");
+    // A category is asked for only when the menu has services to pick from.
+    const hasServices = artistServiceList.some((item) => String(item?.name || "").trim());
+    if (!title || (!tag && hasServices)) {
+      notify(title ? "دسته لازم است." : "عنوان لازم است.");
       return;
     }
     if (!image) {
