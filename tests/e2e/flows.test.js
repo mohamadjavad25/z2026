@@ -56,6 +56,7 @@ describe("booking flow (browser)", () => {
     const cp = clientView.page;
     await cp.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
     await cp.locator("nav.bottomNav > button").nth(2).click();
+    await cp.getByRole("button", { name: "جستجو", exact: true }).click();
     await cp.getByPlaceholder("شماره، اسم یا لینک صفحه").fill(name);
     const result = cp.locator(".cnCard").filter({ hasText: name }).first();
     await result.getByRole("button", { name: "وصل شو" }).click();
@@ -226,6 +227,47 @@ describe("client starts from what they want (browser)", () => {
     expect(list.payload.data.connections.map((c) => c.id)).toContain(salon.user.id);
     expect(problems).toEqual([]);
     await context.close();
+  });
+});
+
+describe("client picks a salon from their contacts (browser)", () => {
+  // Chrome on Android has a contact picker; the test stands in for it and returns one chosen contact.
+  const withContacts = (contact) => `
+    window.ContactsManager = function ContactsManager() {};
+    Object.defineProperty(navigator, "contacts", { configurable: true, value: { select: async () => [${JSON.stringify(contact)}] } });
+  `;
+
+  it("a contact that is on frfro: connect and open; one that is not gets a ready SMS invite", async () => {
+    const { client: salonClient, salon } = await seedSalon();
+    await salonClient.post("/api/salon-services", { name: "کاشت ناخن", price: "900000", duration: "120 دقیقه" });
+    const clientApi = createClient();
+    await registerUser(clientApi, { type: "client", name: "مشتری مخاطبین" });
+
+    // a contact whose number is not on frfro
+    const stranger = await newPage({ cookie: clientApi.cookie() });
+    await stranger.context.addInitScript(withContacts({ name: ["خانم ناشناس"], tel: ["0912 000 1122"] }));
+    await stranger.page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
+    await stranger.page.locator("nav.bottomNav > button").nth(2).click();
+    await stranger.page.getByRole("button", { name: "از مخاطبین" }).click();
+    const sheet = stranger.page.locator(".cnSheetRoot");
+    await sheet.getByText("خانم ناشناس هنوز در فرفرو نیست.").waitFor();
+    const href = await sheet.getByRole("link", { name: "پیامک دعوت" }).getAttribute("href");
+    expect(href).toMatch(/^sms:09120001122\?&body=/);
+    expect(stranger.problems).toEqual([]);
+    await stranger.context.close();
+
+    // a contact that is the salon: «وصل شو» connects and opens the salon page
+    const known = await newPage({ cookie: clientApi.cookie() });
+    await known.context.addInitScript(withContacts({ name: ["سالن من"], tel: ["021 5555 0000", salon.phone] }));
+    await known.page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
+    await known.page.locator("nav.bottomNav > button").nth(2).click();
+    await known.page.getByRole("button", { name: "از مخاطبین" }).click();
+    await known.page.locator(".cnSheetRoot").getByRole("button", { name: "وصل شو" }).click();
+    await known.page.locator(".spvBarBook").waitFor();
+    const list = await clientApi.get("/api/connections");
+    expect(list.payload.data.connections.map((c) => c.id)).toContain(salon.user.id);
+    expect(known.problems).toEqual([]);
+    await known.context.close();
   });
 });
 
