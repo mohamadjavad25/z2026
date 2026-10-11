@@ -46,4 +46,12 @@ describe("service skills", () => {
   it("drops hand-picked ids of members who left", () => {
     expect(resolveServiceStaff({ name: "مانیکور" }, [nails], { manual: ["9"], excluded: [] }).effective).toEqual(["1"]);
   });
+
+  it("knows tattoo and piercing, and keeps eyebrow tattoo with brows", () => {
+    expect(skillGroupsForService({ name: "تتو مینیمال" })).toEqual(["tattoo"]);
+    expect(skillGroupsForService({ name: "خالکوبی" })).toEqual(["tattoo"]);
+    expect(skillGroupsForService({ name: "پیرسینگ گوش" })).toEqual(["piercing"]);
+    expect(skillGroupsForService({ name: "تاتو ابرو" })).toEqual(["brow_lash"]);
+    expect(skillGroupsForStaff({ role: "تتو و پیرسینگ" }).sort()).toEqual(["piercing", "tattoo"]);
+  });
 });

@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
-import { ScanLine, Search, X } from "lucide-react";
+import { ContactRound, ScanLine, Search, X } from "lucide-react";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { SkeletonList } from "../../components/Skeleton";
 import { listConnectionsForCategory } from "../../shared/api/connections";
+import { contactPickerSupported, pickContact } from "../../shared/lib/contactPicker";
+import { ConnectSheet } from "./ConnectSheet";
 import { ConnectionAvatar, ConnectionCard } from "./ConnectionCard";
+import { ContactLookup } from "./ContactLookup";
 import { InviteToFrfro } from "./InviteToFrfro";
 import { useConnections } from "./useConnections";
 
@@ -32,17 +34,24 @@ const NOT_FOUND = {
  */
 export function CategorySheet({ category, matches = [], hasConnections = false, clientName = "", onOpen, onScan, onConnected, onNotify, onClose }) {
   const [finding, setFinding] = useState(matches.length === 0);
+  const [contacts, setContacts] = useState(false); // the contact picker exists on this phone
+  const [contact, setContact] = useState(null); // the picked contact
+  const [typing, setTyping] = useState(false); // searching by typing (the only way when there is no contact picker)
   // This sheet has its own search box and results; the page's own search is left alone.
   const { query, setQuery, search, connect, connectingId } = useConnections({ onNotify, load: false });
   const searching = query.trim().length > 0;
 
-  useEffect(() => {
-    const onKey = (event) => { if (event.key === "Escape") onClose?.(); };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  useEffect(() => { setContacts(contactPickerSupported()); }, []);
 
-  if (typeof document === "undefined") return null;
+  async function chooseContact() {
+    try {
+      const picked = await pickContact();
+      if (picked) setContact(picked);
+    } catch {
+      onNotify?.("دسترسی به مخاطبین ممکن نشد؛ شماره را خودت بزن.");
+      setTyping(true);
+    }
+  }
 
   const servicesOf = (profile) => matches.find((match) => match.id === profile.id)?.services || [];
 
@@ -67,22 +76,14 @@ export function CategorySheet({ category, matches = [], hasConnections = false, 
       ? "سالن و آرتیست‌هایی که داری این خدمت را ندارند."
       : "هنوز کسی را وصل نکرده‌ای.";
 
-  return createPortal(
-    <div className="cnSheetRoot" role="dialog" aria-modal="true" aria-label={category.label}>
-      <button type="button" className="cnSheetDim" aria-label="بستن" onClick={onClose} />
-      <div className="cnSheetPanel">
-        <span className="cnSheetGrab" aria-hidden="true" />
-        <div className="cnSheetHead">
-          <ServiceIcon emoji={category.icon} name={category.label} size="sm" />
-          <div>
-            <b>{category.label}</b>
-            <small>{subtitle}</small>
-          </div>
-          <button type="button" className="cnSheetClose" onClick={onClose} aria-label="بستن">
-            <X size={18} />
-          </button>
-        </div>
-
+  return (
+    <ConnectSheet
+      label={category.label}
+      icon={<ServiceIcon emoji={category.icon} name={category.label} size="sm" />}
+      title={category.label}
+      subtitle={subtitle}
+      onClose={onClose}
+    >
         {matches.length ? (
           <div className="cnPicks">
             {matches.map((profile) => (
@@ -109,64 +110,89 @@ export function CategorySheet({ category, matches = [], hasConnections = false, 
         {finding ? (
           <div className="cnFindBlock">
             <p className="cnFindHint">
-              {matches.length
-                ? "شماره، اسم یا لینک سالن یا آرتیست را بزن، یا QR او را اسکن کن."
+              {contacts
+                ? "سالن یا آرتیستی که همیشه پیشش می‌روی را از مخاطبین‌ات انتخاب کن، یا QR او را اسکن کن."
                 : "شمارهٔ سالن یا آرتیستی که می‌شناسی را بزن، یا QR او را اسکن کن."}
             </p>
-            <label className="cnSearch">
-              <Search size={20} aria-hidden="true" />
-              <span className="srOnly">جستجو با شماره، اسم یا لینک</span>
-              <input
-                type="search"
-                inputMode="search"
-                enterKeyHint="search"
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="شماره، اسم یا لینک صفحه"
-                autoComplete="off"
-              />
-              {searching ? (
-                <button type="button" className="cnSearchClear" onClick={() => setQuery("")} aria-label="پاک کردن جستجو">
-                  <X size={16} />
+            <div className="cnScanRow">
+              {contacts ? (
+                <button type="button" className="cnScanBtn is-dark" onClick={chooseContact}>
+                  <span aria-hidden="true"><ContactRound size={20} /></span>
+                  <span><b>از مخاطبین</b><small>یکی را انتخاب کن</small></span>
                 </button>
               ) : null}
-            </label>
+              <button type="button" className={`cnScanBtn${contacts ? "" : " is-dark"}`} onClick={onScan}>
+                <span aria-hidden="true"><ScanLine size={20} /></span>
+                <span><b>اسکن QR</b><small>کد سالن یا آرتیست</small></span>
+              </button>
+            </div>
 
-            {searching ? (
-              <section className="cnList" aria-live="polite" aria-label="نتیجه جستجو">
-                {search.status === "searching" ? <SkeletonList rows={1} variant="card" label="در حال جستجو" /> : null}
-                {search.status === "error" ? <p className="cnNote" role="alert">{search.message || "جستجو انجام نشد؛ دوباره امتحان کن."}</p> : null}
-                {search.status === "done" && search.results.length === 0 ? (
-                  <div className="cnEmpty is-compact">
-                    <b>{NOT_FOUND[search.by] || NOT_FOUND.name}</b>
-                    <p>اگر هنوز در فرفرو نیست، دعوتش کن؛ بعد از ثبت‌نام می‌توانی از او نوبت بگیری.</p>
-                    <InviteToFrfro phone={search.by === "phone" ? query : ""} clientName={clientName} category={category.label} />
-                  </div>
-                ) : null}
-                {search.status === "done" ? search.results.map((profile) => (
-                  <ConnectionCard
-                    key={profile.id}
-                    profile={profile}
-                    action={profile.connected ? (
-                      <button type="button" className="cnPrimaryBtn" onClick={() => onOpen?.(profile, servicesOf(profile))}>رزرو</button>
-                    ) : (
-                      <button type="button" className="cnPrimaryBtn" disabled={connectingId === profile.id} onClick={() => connectAndOpen(profile)}>
-                        {connectingId === profile.id ? "…" : "وصل شو"}
-                      </button>
-                    )}
-                  />
-                )) : null}
-              </section>
+            {contact ? (
+              <ContactLookup
+                contact={contact}
+                categoryLabel={category.label}
+                clientName={clientName}
+                connectingId={connectingId}
+                onConnect={connectAndOpen}
+                onOpen={(profile) => onOpen?.(profile, servicesOf(profile))}
+              />
             ) : null}
 
-            <button type="button" className="cnScanBtn is-dark" onClick={onScan}>
-              <span aria-hidden="true"><ScanLine size={20} /></span>
-              <span><b>اسکن QR</b><small>کد سالن یا آرتیست را بگیر</small></span>
-            </button>
+            {contacts && !typing ? (
+              <button type="button" className="cnSheetMore" onClick={() => setTyping(true)}>
+                با اسم، شماره یا لینک پیدا کن
+              </button>
+            ) : (
+              <>
+                <label className="cnSearch">
+                  <Search size={20} aria-hidden="true" />
+                  <span className="srOnly">جستجو با شماره، اسم یا لینک</span>
+                  <input
+                    type="search"
+                    inputMode="search"
+                    enterKeyHint="search"
+                    value={query}
+                    onChange={(event) => setQuery(event.target.value)}
+                    placeholder="شماره، اسم یا لینک صفحه"
+                    autoComplete="off"
+                  />
+                  {searching ? (
+                    <button type="button" className="cnSearchClear" onClick={() => setQuery("")} aria-label="پاک کردن جستجو">
+                      <X size={16} />
+                    </button>
+                  ) : null}
+                </label>
+
+                {searching ? (
+                  <section className="cnList" aria-live="polite" aria-label="نتیجه جستجو">
+                    {search.status === "searching" ? <SkeletonList rows={1} variant="card" label="در حال جستجو" /> : null}
+                    {search.status === "error" ? <p className="cnNote" role="alert">{search.message || "جستجو انجام نشد؛ دوباره امتحان کن."}</p> : null}
+                    {search.status === "done" && search.results.length === 0 ? (
+                      <div className="cnEmpty is-compact">
+                        <b>{NOT_FOUND[search.by] || NOT_FOUND.name}</b>
+                        <p>اگر هنوز در فرفرو نیست، دعوتش کن؛ بعد از ثبت‌نام می‌توانی از او نوبت بگیری.</p>
+                        <InviteToFrfro phone={search.by === "phone" ? query : ""} clientName={clientName} category={category.label} />
+                      </div>
+                    ) : null}
+                    {search.status === "done" ? search.results.map((profile) => (
+                      <ConnectionCard
+                        key={profile.id}
+                        profile={profile}
+                        action={profile.connected ? (
+                          <button type="button" className="cnPrimaryBtn" onClick={() => onOpen?.(profile, servicesOf(profile))}>رزرو</button>
+                        ) : (
+                          <button type="button" className="cnPrimaryBtn" disabled={connectingId === profile.id} onClick={() => connectAndOpen(profile)}>
+                            {connectingId === profile.id ? "…" : "وصل شو"}
+                          </button>
+                        )}
+                      />
+                    )) : null}
+                  </section>
+                ) : null}
+              </>
+            )}
           </div>
         ) : null}
-      </div>
-    </div>,
-    document.body
+    </ConnectSheet>
   );
 }

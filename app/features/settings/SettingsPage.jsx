@@ -273,11 +273,15 @@ export function SettingsPage({
   const isArtist = profile.type === "artist";
   const isSalon = profile.type === "salon";
   const accountTitle = isArtist ? "برند شخصی آرتیست" : isSalon ? "ویرایش برند سالن" : "ویرایش پروفایل";
+  const isClient = !isArtist && !isSalon;
+  const clientPhone = String(profile?.data?.phone || "").trim();
   const accountDescription = isArtist
     ? "عکس، نام هنری، تخصص، تماس و مسیر رزرو"
     : isSalon
       ? "لوگو، نام سالن، شماره تماس و مسیر رزرو"
-      : "عکس، نام، تماس، ایمیل و رمز عبور";
+      : clientPhone
+        ? <><span dir="ltr">{toPersianDigits(clientPhone)}</span>{" · عکس، نام، ایمیل و رمز عبور"}</>
+        : "عکس، نام، تماس، ایمیل و رمز عبور";
   const accountAvatar = profile?.data?.avatar || profile?.avatar || defaultAvatarFor(profile?.type);
 
   return (
@@ -315,6 +319,21 @@ export function SettingsPage({
           accountDescription={accountDescription}
           onEditProfile={onEditProfile}
         />
+
+        {isClient ? (
+          <div className="settingsRowCard">
+            <button type="button" className="profileLocationRow" onClick={onOpenSaved}>
+              <span className="profileLocationRowIcon" aria-hidden="true">
+                <Bookmark size={17} />
+              </span>
+              <span className="profileLocationRowInfo">
+                <strong>ذخیره‌شده‌ها</strong>
+                <span>{savedPostsCount ? `${toPersianDigits(savedPostsCount)} مورد ذخیره‌شده` : "مدل‌ها و نمونه‌کارهای ذخیره‌شده"}</span>
+              </span>
+              <ChevronLeft size={16} className="profileLocationRowChevron" aria-hidden="true" />
+            </button>
+          </div>
+        ) : null}
 
         {isArtist || isSalon ? <h3 className="spSectionTitle">کار و رزرو</h3> : null}
 

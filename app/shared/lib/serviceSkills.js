@@ -77,6 +77,20 @@ export const SKILL_GROUPS = [
     unless: ["بوتاکس مو"]
   },
   {
+    id: "tattoo",
+    label: "تتو",
+    icons: ["tattoo", "tattoo_machine", "henna"],
+    words: ["تتو", "تاتو", "خالکوبی", "طراحی روی پوست"],
+    // Eyebrow/lip tattoo is permanent makeup, which belongs with brows and lashes.
+    unless: ["ابرو", "مژه", "میکروبلیدینگ"]
+  },
+  {
+    id: "piercing",
+    label: "پیرسینگ",
+    icons: ["piercing"],
+    words: ["پیرسینگ", "سوراخ کردن"]
+  },
+  {
     id: "laser",
     label: "لیزر",
     icons: ["laser"],

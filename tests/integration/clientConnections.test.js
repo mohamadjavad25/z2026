@@ -151,6 +151,7 @@ describe("connections by category", () => {
     }
     expect((await mixedArtist.api.post("/api/artist/me", { name: "پدیکور", price: "200", duration: "45 دقیقه" })).ok).toBe(true);
     expect((await hairSalon.api.post("/api/salon-services", { name: "رنگ مو", price: "900", duration: "120 دقیقه" })).ok).toBe(true);
+    expect((await hairSalon.api.post("/api/salon-services", { name: "تتو مینیمال", price: "1500", duration: "60 دقیقه" })).ok).toBe(true);
     expect((await unconnected.api.post("/api/salon-services", { name: "کاشت ناخن", price: "300", duration: "60 دقیقه" })).ok).toBe(true);
 
     // nobody yet
@@ -169,6 +170,10 @@ describe("connections by category", () => {
 
     const hair = (await client.api.get("/api/connections/by-category?category=hair")).payload.data;
     expect(hair.matches.map((m) => m.id)).toEqual([hairSalon.user.id]);
+
+    const tattoo = (await client.api.get("/api/connections/by-category?category=tattoo")).payload.data;
+    expect(tattoo.matches.map((m) => m.id)).toEqual([hairSalon.user.id]);
+    expect(tattoo.matches[0].services).toEqual(["تتو مینیمال"]);
 
     const makeup = (await client.api.get("/api/connections/by-category?category=makeup")).payload.data;
     expect(makeup.matches).toEqual([]);

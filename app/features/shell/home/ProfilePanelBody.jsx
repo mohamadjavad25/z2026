@@ -103,7 +103,6 @@ export function ProfilePanelBody() {
     artistWorkTagMenuOpen,
     setArtistWorkTagMenuOpen,
     clientBookingList,
-    savedPosts,
     openProfileEdit,
     openSalonWorkspace,
     saveProfileLogo,
@@ -361,14 +360,7 @@ export function ProfilePanelBody() {
                     />
                   ) : profileType === "client" ? (
                     <ClientProfileOverview
-                      profile={createdProfile}
                       bookings={clientBookingList}
-                      savedCount={savedPosts.length}
-                      onEditProfile={openProfileEdit}
-                      onOpenSaved={() => {
-                        refreshSaves();
-                        setProfileView("saved");
-                      }}
                       onOpenBookings={() => setProfileView("bookings")}
                     />
                   ) : null}

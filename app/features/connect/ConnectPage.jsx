@@ -1,13 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import { QrCode, ScanLine, Search, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ContactRound, QrCode, ScanLine, Search, X } from "lucide-react";
 import { Mascot } from "../../components/Mascot";
 import { SkeletonList } from "../../components/Skeleton";
 import { listConnectionsForCategory } from "../../shared/api/connections";
+import { contactPickerSupported, pickContact } from "../../shared/lib/contactPicker";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { CategoryGrid } from "./CategoryGrid";
 import { CategorySheet } from "./CategorySheet";
+import { ConnectSheet } from "./ConnectSheet";
+import { ContactLookup } from "./ContactLookup";
 import { ConnectionCard } from "./ConnectionCard";
 import { InviteToFrfro } from "./InviteToFrfro";
 import { MyCodeSheet } from "./MyCodeSheet";
@@ -34,7 +37,24 @@ export function ConnectPage({ me = {}, onOpenProfile, onNotify }) {
   const [sheet, setSheet] = useState(""); // "" | "scan" | "code"
   const [categorySheet, setCategorySheet] = useState(null); // { category, matches } while the pick/connect sheet is open
   const [checkingCategory, setCheckingCategory] = useState("");
+  const [contacts, setContacts] = useState(false); // the phone has a contact picker
+  const [contact, setContact] = useState(null); // the contact picked for «از مخاطبین»
+  const [searchOpen, setSearchOpen] = useState(false);
   const searching = query.trim().length > 0;
+  const showSearch = searchOpen || searching;
+
+  useEffect(() => { setContacts(contactPickerSupported()); }, []);
+
+  // «از مخاطبین»: the system's own picker (it asks for access); only the chosen contact is looked up.
+  async function chooseContact() {
+    try {
+      const picked = await pickContact();
+      if (picked) setContact(picked);
+    } catch {
+      onNotify?.("دسترسی به مخاطبین ممکن نشد؛ شماره را در جستجو بزن.");
+      setSearchOpen(true);
+    }
+  }
 
   // «چه کاری می‌خواهی؟»: one of my salons/artists does it -> straight to them, on that service;
   // several -> pick; none -> connect someone.
@@ -75,42 +95,53 @@ export function ConnectPage({ me = {}, onOpenProfile, onNotify }) {
           <p>یکی را بزن. اگر سالن یا آرتیستش را داری، مستقیم می‌روی.</p>
         </div>
         <CategoryGrid busyId={checkingCategory} onPick={pickCategory} />
+
+        <div className="cnConnect">
+          <span className="cnConnectLabel">سالن یا آرتیستت را وصل کن</span>
+          <div className="cnChips">
+            {contacts ? (
+              <button type="button" className="cnChip is-primary" onClick={chooseContact}>
+                <ContactRound size={17} aria-hidden="true" />
+                از مخاطبین
+              </button>
+            ) : null}
+            <button type="button" className="cnChip" aria-expanded={showSearch} onClick={() => setSearchOpen((open) => !open)}>
+              <Search size={17} aria-hidden="true" />
+              جستجو
+            </button>
+            <button type="button" className={`cnChip${contacts ? "" : " is-primary"}`} onClick={() => setSheet("scan")}>
+              <ScanLine size={17} aria-hidden="true" />
+              اسکن QR
+            </button>
+            <button type="button" className="cnChip" onClick={() => setSheet("code")}>
+              <QrCode size={17} aria-hidden="true" />
+              کد من
+            </button>
+          </div>
+          {showSearch ? (
+            <label className="cnSearch">
+              <Search size={20} aria-hidden="true" />
+              <span className="srOnly">جستجو با شماره، اسم یا لینک</span>
+              <input
+                type="search"
+                inputMode="search"
+                enterKeyHint="search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="شماره، اسم یا لینک صفحه"
+                autoComplete="off"
+              />
+              {searching ? (
+                <button type="button" className="cnSearchClear" onClick={() => setQuery("")} aria-label="پاک کردن جستجو">
+                  <X size={16} />
+                </button>
+              ) : null}
+            </label>
+          ) : null}
+        </div>
       </header>
 
       <div className="cnBody">
-        <section className="cnFind" aria-label="پیدا کردن سالن یا آرتیست">
-          <h2>سالن یا آرتیستت را وصل کن</h2>
-          <label className="cnSearch">
-            <Search size={20} aria-hidden="true" />
-            <span className="srOnly">جستجو با شماره، اسم یا لینک</span>
-            <input
-              type="search"
-              inputMode="search"
-              enterKeyHint="search"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="شماره، اسم یا لینک صفحه"
-              autoComplete="off"
-            />
-            {searching ? (
-              <button type="button" className="cnSearchClear" onClick={() => setQuery("")} aria-label="پاک کردن جستجو">
-                <X size={16} />
-              </button>
-            ) : null}
-          </label>
-
-          <div className="cnScanRow">
-            <button type="button" className="cnScanBtn is-dark" onClick={() => setSheet("scan")}>
-              <span aria-hidden="true"><ScanLine size={20} /></span>
-              <span><b>اسکن کن</b><small>کد سالن یا آرتیست</small></span>
-            </button>
-            <button type="button" className="cnScanBtn" onClick={() => setSheet("code")}>
-              <span aria-hidden="true"><QrCode size={20} /></span>
-              <span><b>اسکن شو</b><small>کد خودت را نشان بده</small></span>
-            </button>
-          </div>
-        </section>
-
         {searching ? (
           <section aria-label="نتیجه جستجو" aria-live="polite" className="cnList">
             {search.status === "searching" ? <SkeletonList rows={2} variant="card" label="در حال جستجو" /> : null}
@@ -137,7 +168,7 @@ export function ConnectPage({ me = {}, onOpenProfile, onNotify }) {
               <div className="cnEmpty">
                 <Mascot pose="search" size={130} />
                 <b>هنوز به سالن یا آرتیستی وصل نشدی</b>
-                <p>شماره یا اسمش را بالا بنویس، یا کدش را اسکن کن.</p>
+                <p>بالا پیدایش کن: از مخاطبین، با جستجو یا با اسکن کد.</p>
               </div>
             ) : null}
             {connections.map((profile) => (
@@ -171,6 +202,25 @@ export function ConnectPage({ me = {}, onOpenProfile, onNotify }) {
           }}
           onClose={() => setCategorySheet(null)}
         />
+      ) : null}
+      {contact ? (
+        <ConnectSheet label="مخاطب انتخاب‌شده" title={contact.name || "مخاطب انتخاب‌شده"} subtitle="دنبال فرفرو می‌گردیم." onClose={() => setContact(null)}>
+          <ContactLookup
+            contact={contact}
+            clientName={me.name}
+            connectingId={connectingId}
+            onConnect={async (profile) => {
+              const connected = await connect(profile, { silent: true });
+              if (!connected) return;
+              setContact(null);
+              onOpenProfile?.(connected);
+            }}
+            onOpen={(profile) => {
+              setContact(null);
+              onOpenProfile?.(profile);
+            }}
+          />
+        </ConnectSheet>
       ) : null}
       {sheet === "scan" ? <ScanFlow viewerType="client" connect={connect} onOpenProfile={onOpenProfile} onClose={() => setSheet("")} /> : null}
       {sheet === "code" ? <MyCodeSheet name={me.name} avatar={me.avatar} onClose={() => setSheet("")} /> : null}

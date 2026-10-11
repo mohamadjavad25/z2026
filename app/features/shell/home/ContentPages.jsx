@@ -77,6 +77,7 @@ export function ContentPages() {
     openConnectedProfile,
     setSalonHeroSheet,
     setProfileView,
+    refreshSaves,
     setSettingsHoursOpen,
     savedPostTitles,
     toggleSavedPost,
@@ -110,6 +111,7 @@ export function ContentPages() {
             onToggleSetting={toggleProfileSetting}
             savedPostsCount={savedPosts.length}
             onOpenSaved={() => {
+              refreshSaves?.();
               if (createdProfile?.type === "salon") setSalonHeroSheet("saved");
               else setProfileView("saved");
             }}

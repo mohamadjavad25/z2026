@@ -827,3 +827,52 @@
 }
 .clientBookingSettings .clientBookingPendingNote { display: flex; align-items: flex-start; gap: 8px; margin: 0; padding: 10px 12px; border-radius: 14px; background: #fff7e8; color: #8a5a00; font-size: 0.78rem; font-weight: 800; line-height: 1.8; }
 .clientBookingSettings .clientBookingPendingNote svg { flex: 0 0 auto; margin-top: 4px; }
+
+/* ═══ «فعالیت من»: one card per upcoming visit, a time column on the end side ═══ */
+.cvList { display: grid; gap: 10px; }
+.cvCard {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 100px;
+  border: 1px solid #ececf0;
+  border-radius: 22px;
+  background: #ffffff;
+  color: #14161d;
+  box-shadow: 0 6px 18px rgba(20, 22, 29, 0.05);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+  -webkit-tap-highlight-color: transparent;
+  --cv-rail: #14161d;
+}
+.cvCard:active { transform: scale(0.99); }
+.cvCard:focus-visible { outline: 3px solid rgba(20, 22, 29, 0.25); outline-offset: 2px; }
+.cvCard.is-pending { --cv-rail: #f0a020; }
+.cvCard.is-offer { --cv-rail: #2b5fb8; }
+.cvCard.is-bad, .cvCard.is-expired { --cv-rail: #c14545; }
+.cvMain { display: grid; gap: 6px; align-content: center; justify-items: start; min-width: 0; padding: 14px; }
+.cvWho { display: flex; align-items: center; gap: 8px; min-width: 0; max-width: 100%; }
+.cvWho b { font-size: 0.98rem; font-weight: 950; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cvLogo { flex: none; width: 28px; height: 28px; display: grid; place-items: center; overflow: hidden; border-radius: 50%; background: #f4e6ec; color: #8a3555; font-size: 0.8rem; font-weight: 900; }
+.cvLogo img { width: 100%; height: 100%; object-fit: cover; }
+.cvService { color: #4b4f5c; font-size: 0.82rem; font-weight: 800; line-height: 1.6; }
+.cvState { display: inline-flex; align-items: center; min-height: 24px; padding: 0 10px; border-radius: 999px; background: #fff1d6; color: #a86a00; font-size: 0.7rem; font-weight: 900; }
+.cvState.is-done { background: #e2f7ef; color: #11805c; }
+.cvState.is-offer { background: #e8f0fb; color: #2b5fb8; }
+.cvState.is-bad, .cvState.is-expired { background: #fdecec; color: #b13a3a; }
+.cvNote { display: flex; align-items: flex-start; gap: 6px; margin: 0; color: #6f7380; font-size: 0.74rem; font-weight: 700; line-height: 1.7; }
+.cvNote svg { flex: none; margin-top: 4px; }
+.cvTime {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 12px 6px;
+  border-inline-start: 1px solid #ececf0;
+}
+.cvTime small { color: #6f7380; font-size: 0.7rem; font-weight: 850; }
+.cvTime .segmentClockFace { padding: 0; background: transparent; box-shadow: none; }
+.cvTime .cvEnd .segmentClockColon i { background: #6f7380; }
+.cvRail { width: 5px; height: 22px; border-radius: 3px; background: var(--cv-rail); }
+.cvCard.is-pending .cvTime { background: #fffaf0; }
+.cvCard.is-offer .cvTime { background: #f3f7fd; }

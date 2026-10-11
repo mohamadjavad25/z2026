@@ -10,9 +10,12 @@ export const CLIENT_CATEGORIES = [
   { id: "brows", label: "ابرو و مژه", icon: "eyebrow", groups: ["brow_lash"] },
   { id: "makeup", label: "میکاپ", icon: "lipstick", groups: ["makeup"] },
   { id: "bridal", label: "عروس", icon: "bridal", groups: ["bridal"] },
-  { id: "skin", label: "پوست", icon: "facial", groups: ["skin", "clinic"] },
-  { id: "removal", label: "لیزر و اپیلاسیون", icon: "waxing", groups: ["laser", "waxing"] },
-  { id: "spa", label: "ماساژ و اسپا", icon: "massage", groups: ["body_spa"] }
+  { id: "skin", label: "پوست", icon: "facial", groups: ["skin"] },
+  { id: "injection", label: "تزریق و فیلر", icon: "injection", groups: ["clinic"] },
+  { id: "removal", label: "لیزر و وکس", icon: "waxing", groups: ["laser", "waxing"] },
+  { id: "spa", label: "ماساژ و اسپا", icon: "massage", groups: ["body_spa"] },
+  { id: "tattoo", label: "تتو", icon: "tattoo", groups: ["tattoo"] },
+  { id: "piercing", label: "پیرسینگ", icon: "piercing", groups: ["piercing"] }
 ];
 
 export function findClientCategory(id) {
