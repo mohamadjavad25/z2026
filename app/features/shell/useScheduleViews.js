@@ -264,9 +264,10 @@ export function useScheduleViews({
   // sheet below. Unlike the salon panel's reservationRequestList (still
   // backed by shell/mockData — a separate, pre-existing issue, not fixed
   // here), this reads real artistBookingList. "تازه"/"درخواست" = not yet
-  // reviewed; "لغو" (cancelled) never counts as pending.
+  // reviewed; "لغو" (cancelled) never counts as pending. Only the artist's own (direct) bookings:
+  // one a salon gives them is the salon's to accept, and the artist just does it.
   const pendingArtistBookingRequests = useMemo(() => (
-    artistBookingList.filter((item) => item.status === "تازه" || item.status === "درخواست")
+    artistBookingList.filter((item) => !item.sourceSalon && (item.status === "تازه" || item.status === "درخواست"))
   ), [artistBookingList]);
 
   // Auto-expiry (see app/lib/bookingExpirySweep.js) silently flips a stale

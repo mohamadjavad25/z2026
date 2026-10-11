@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Store, X } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { SegmentClock } from "../../components/SegmentClock";
 import { toPersianDigits } from "../../shared/lib/digits";
@@ -9,7 +9,7 @@ import { shortServiceLabel } from "../../shared/lib/serviceBundle";
 import { RequestExpiryBadge } from "./RequestExpiryBadge";
 
 /**
- * The artist's bookings still waiting for an answer, with «تایید» / «رد» on each card -- the same
+ * The artist's own (direct) bookings still waiting for an answer, with «تایید» / «رد» on each card -- the same
  * board the salon has above its schedule. Shown on the bookings tab and in the notifications sheet.
  */
 export function ArtistRequestsBoard({ requests = [], busyId = "", onApprove, onDecline }) {
@@ -33,11 +33,7 @@ export function ArtistRequestsBoard({ requests = [], busyId = "", onApprove, onD
                 <div className="requestCardWho">
                   <strong>{request.client || "مشتری"}</strong>
                   <span className="svcInline"><ServiceIcon emoji={request.service_emoji} name={request.service} size="xs" />{shortServiceLabel(request.service)}</span>
-                  <small>
-                    {request.sourceSalon?.name ? (
-                      <><Store size={11} aria-hidden="true" /> از {request.sourceSalon.name}</>
-                    ) : "رزرو شخصی"}
-                  </small>
+                  <small>رزرو شخصی</small>
                 </div>
                 <div className="requestCardAside">
                   <SegmentClock value={request.time} size="xs" as="span" />

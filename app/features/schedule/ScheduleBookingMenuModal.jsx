@@ -106,8 +106,11 @@ export function ScheduleBookingMenuModal({
   // an artist (a salon's own "تازه" walk-in entry is already settled). This
   // is the one entry point that previously had zero approve/decline action —
   // the client's booking might sit here forever without a next step visible.
-  const isPendingReview = booking.status === "درخواست" || (!isSalonOwner && booking.status === "تازه");
   const sourceSalon = booking.sourceSalon || {};
+  // An artist answers only their own (direct) bookings; one from a salon is the salon's to accept.
+  const isPendingReview = isSalonOwner
+    ? booking.status === "درخواست"
+    : !sourceSalon.name && (booking.status === "درخواست" || booking.status === "تازه");
   // Always show a logo: the uploaded photo when there is one, else the app's default profile icon.
   const avatar = booking.clientAvatar || booking.client_avatar || sourceSalon.avatar || DEFAULT_AVATAR;
   const title = booking.client || booking.salonName || sourceSalon.name || "رزرو";
@@ -164,7 +167,7 @@ export function ScheduleBookingMenuModal({
               <b>{title}</b>
               <strong className={`clientBookingSettingsStatus is-${statusTone}`}>
                 <StatusIcon size={11} />
-                {booking.status || "درخواست"}
+                {!isSalonOwner && sourceSalon.name && statusTone === "pending" ? "منتظر سالن" : (booking.status || "درخواست")}
               </strong>
             </div>
             {team.length ? (

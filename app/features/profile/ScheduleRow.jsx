@@ -207,7 +207,11 @@ export const ScheduleRow = memo(function ScheduleRow({
   if (unansweredAndOver) statusTone = "expired";
   const showStatusTag = statusTone !== "done";
   const phaseTagClass = showStatusTag ? `is-status-${statusTone}` : `is-${phase}`;
-  const statusText = isClientBooking && rawStatus === AWAITING_CLIENT ? "در انتظار تو" : rawStatus;
+  // A salon's booking given to an artist waits on the salon, not on them.
+  const waitsOnSalon = booking.ownerType === "artist" && sourceSalon && statusTone === "pending";
+  const statusText = isClientBooking && rawStatus === AWAITING_CLIENT
+    ? "در انتظار تو"
+    : waitsOnSalon ? "منتظر سالن" : rawStatus;
   const phaseTagLabel = unansweredAndOver ? "منقضی شد" : showStatusTag ? (statusText || "درخواست") : phaseLabel;
 
   const chipClass = showStatusTag ? `is-status-${statusTone}` : `is-${phase || "upcoming"}`;
