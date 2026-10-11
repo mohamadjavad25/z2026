@@ -3,7 +3,7 @@ import { getDb, run } from "./db/connection.js";
 /**
  * SMS sending, provider-agnostic. Pick one with FRFRO_SMS_PROVIDER:
  *   - "kavenegar": real SMS (needs KAVENEGAR_API_KEY and KAVENEGAR_TEMPLATE, a verify-lookup template with %token)
- *   - "farazsms": real SMS via Faraz SMS (IPPanel edge API; needs FARAZSMS_API_KEY, FARAZSMS_PATTERN_CODE, FARAZSMS_SENDER; the pattern text must use %code%, or set FARAZSMS_PARAM)
+ *   - "farazsms": real SMS via Faraz SMS (IPPanel edge API; needs FARAZSMS_API_KEY, FARAZSMS_PATTERN_CODE, FARAZSMS_SENDER; optional FARAZSMS_PATTERN_CODE_RESET for a separate password-reset pattern; the pattern text must use %code%, or set FARAZSMS_PARAM)
  *   - "test": nothing is sent; the message is kept in sms_log so tests (and the admin panel in a test setup) can read it
  *   - unset: SMS is off -- the app behaves exactly as before and password recovery stays manual.
  * Every attempt is logged (phone masked) so the admin panel can show whether SMS is working.
@@ -36,9 +36,10 @@ async function sendKavenegar(phone, token) {
   return status === 200 ? { ok: true, detail: "" } : { ok: false, detail: String(payload?.return?.message || response.status).slice(0, 120) };
 }
 
-async function sendFarazSms(phone, token) {
+async function sendFarazSms(phone, token, purpose) {
   const key = process.env.FARAZSMS_API_KEY;
-  const pattern = process.env.FARAZSMS_PATTERN_CODE;
+  // Optional second pattern for password reset; falls back to the main one.
+  const pattern = (purpose === "reset" && process.env.FARAZSMS_PATTERN_CODE_RESET) || process.env.FARAZSMS_PATTERN_CODE;
   const sender = process.env.FARAZSMS_SENDER;
   if (!key || !pattern || !sender) return { ok: false, detail: "farazsms not configured" };
   const param = process.env.FARAZSMS_PARAM || "code";
@@ -66,7 +67,7 @@ export async function sendVerificationSms(phone, token, purpose) {
   let result = { ok: false, detail: "sms disabled" };
   try {
     if (provider === "kavenegar") result = await sendKavenegar(phone, token);
-    else if (provider === "farazsms") result = await sendFarazSms(phone, token);
+    else if (provider === "farazsms") result = await sendFarazSms(phone, token, purpose);
     else if (provider === "test") result = { ok: true, detail: "" };
   } catch (error) {
     result = { ok: false, detail: String(error?.message || error).slice(0, 120) };
