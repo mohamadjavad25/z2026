@@ -555,6 +555,7 @@ export function useArtistWorkspace({
     saveArtistWork,
     deleteArtistWork
   } = useArtistWorkActions({
+    artistServiceList,
     setPreviewingArtistWorkId,
     setArtistWorkTagMenuOpen,
     setEditingArtistWork,

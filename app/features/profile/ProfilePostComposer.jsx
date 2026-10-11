@@ -80,7 +80,9 @@ export function ProfilePostComposer({
   const missing = [
     !String(value.image || "").trim() ? "تصویر" : "",
     !String(value.title || "").trim() ? "عنوان" : "",
-    !String(value.tag || "").trim() ? "دسته" : ""
+    // A category can only be asked for when the menu has services to pick from; with an empty
+    // menu the post goes out without one instead of leaving the button stuck.
+    tagChoices.length && !String(value.tag || "").trim() ? "دسته" : ""
   ].filter(Boolean);
   const canSubmit = missing.length === 0;
   const isPrivate = value.isPublic === false;
@@ -217,7 +219,7 @@ export function ProfilePostComposer({
                 ))}
               </div>
             ) : (
-              <small className="pcHint">اول یک خدمت به منوی خودت اضافه کن؛ بعد می‌توانی نمونه‌کار را به آن وصل کنی.</small>
+              <small className="pcHint">هنوز خدمتی در منوی تو نیست؛ پست بدون دسته منتشر می‌شود. بعداً می‌توانی آن را به یک خدمت وصل کنی.</small>
             )}
           </div>
 
