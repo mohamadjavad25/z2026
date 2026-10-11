@@ -137,3 +137,43 @@ describe("scan lookup between salons, artists and clients", () => {
     expect((await lookup(client, "/artists/99999999")).status).toBe(404);
   });
 });
+
+describe("connections by category", () => {
+  it("lists only my salons and artists that do the category, most matching services first", async () => {
+    const client = await newClient();
+    const nailSalon = await newProfile("salon", `سالن ناخن ${Date.now()}`);
+    const mixedArtist = await newProfile("artist", `آرتیست ترکیبی ${Date.now()}`);
+    const hairSalon = await newProfile("salon", `سالن مو ${Date.now()}`);
+    const unconnected = await newProfile("salon", `سالن غریبه ${Date.now()}`);
+
+    for (const name of ["کاشت ناخن", "مانیکور", "ژلیش ناخن"]) {
+      expect((await nailSalon.api.post("/api/salon-services", { name, price: "300", duration: "60 دقیقه" })).ok).toBe(true);
+    }
+    expect((await mixedArtist.api.post("/api/artist/me", { name: "پدیکور", price: "200", duration: "45 دقیقه" })).ok).toBe(true);
+    expect((await hairSalon.api.post("/api/salon-services", { name: "رنگ مو", price: "900", duration: "120 دقیقه" })).ok).toBe(true);
+    expect((await unconnected.api.post("/api/salon-services", { name: "کاشت ناخن", price: "300", duration: "60 دقیقه" })).ok).toBe(true);
+
+    // nobody yet
+    const none = await client.api.get("/api/connections/by-category?category=nails");
+    expect(none.ok).toBe(true);
+    expect(none.payload.data.matches).toEqual([]);
+
+    for (const target of [nailSalon, mixedArtist, hairSalon]) {
+      await client.api.post("/api/connections", { targetUserId: target.user.id });
+    }
+
+    const nails = (await client.api.get("/api/connections/by-category?category=nails")).payload.data;
+    expect(nails.matches.map((m) => m.id)).toEqual([nailSalon.user.id, mixedArtist.user.id]);
+    expect(nails.matches[0].services).toEqual(["کاشت ناخن", "مانیکور", "ژلیش ناخن"]);
+    expect(nails.matches[1].services).toEqual(["پدیکور"]);
+
+    const hair = (await client.api.get("/api/connections/by-category?category=hair")).payload.data;
+    expect(hair.matches.map((m) => m.id)).toEqual([hairSalon.user.id]);
+
+    const makeup = (await client.api.get("/api/connections/by-category?category=makeup")).payload.data;
+    expect(makeup.matches).toEqual([]);
+
+    expect((await client.api.get("/api/connections/by-category?category=nope")).status).toBe(400);
+    expect((await nailSalon.api.get("/api/connections/by-category?category=nails")).status).toBe(403);
+  });
+});

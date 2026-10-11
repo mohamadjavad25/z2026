@@ -8,10 +8,11 @@ const SEARCH_DELAY_MS = 300;
 /**
  * State for «سالن و آرتیست من»: the client's connected salons/artists, a
  * debounced search (link, phone or name) and connecting to a result.
+ * `load: false` skips loading the list, for a second instance that only searches and connects.
  */
-export function useConnections({ onNotify } = {}) {
+export function useConnections({ onNotify, load = true } = {}) {
   const [connections, setConnections] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(load);
   const [query, setQuery] = useState("");
   const [search, setSearch] = useState({ status: "idle", by: "none", results: [] }); // idle | searching | done | error
   const [connectingId, setConnectingId] = useState(null);
@@ -24,7 +25,7 @@ export function useConnections({ onNotify } = {}) {
     setLoading(false);
   }, []);
 
-  useEffect(() => { refresh(); }, [refresh]);
+  useEffect(() => { if (load) refresh(); }, [refresh, load]);
 
   // Debounced search; an older request never overwrites a newer one.
   useEffect(() => {

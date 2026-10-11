@@ -1,11 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { QrCode, ScanLine, Search, Share2, X } from "lucide-react";
+import { QrCode, ScanLine, Search, X } from "lucide-react";
 import { Mascot } from "../../components/Mascot";
 import { SkeletonList } from "../../components/Skeleton";
+import { listConnectionsForCategory } from "../../shared/api/connections";
 import { toPersianDigits } from "../../shared/lib/digits";
+import { CategoryGrid } from "./CategoryGrid";
+import { CategorySheet } from "./CategorySheet";
 import { ConnectionCard } from "./ConnectionCard";
+import { InviteToFrfro } from "./InviteToFrfro";
 import { MyCodeSheet } from "./MyCodeSheet";
 import { ScanFlow } from "./ScanFlow";
 import { useConnections } from "./useConnections";
@@ -16,42 +20,44 @@ const NOT_FOUND = {
   name: "با این اسم سالن یا آرتیستی پیدا نشد."
 };
 
-/** Lets the client send their salon/artist a link to join, when the search found no one. */
-function InviteToFrfro() {
-  async function share() {
-    const url = typeof window === "undefined" ? "" : window.location.origin;
-    const text = "سلام، از این به بعد می‌خواهم از فرفرو نوبت بگیرم. اینجا ثبت‌نام کنید تا وصل شویم:";
-    try {
-      if (typeof navigator.share === "function") {
-        await navigator.share({ title: "فرفرو", text, url });
-        return;
-      }
-      await navigator.clipboard.writeText(`${text} ${url}`);
-    } catch {
-      // share sheet dismissed / clipboard blocked: nothing to undo
-    }
-  }
-  return (
-    <button type="button" className="cnInviteBtn" onClick={share}>
-      <Share2 size={16} aria-hidden="true" />
-      دعوتش کن به فرفرو
-    </button>
-  );
-}
-
 /**
  * «سالن و آرتیست من» (the client's salons tab): connect to the salons and
  * artists they already go to — by phone, name, link or QR — and book from here.
  *
  * Props:
  *  - me: { name, avatar } (for the personal code sheet)
- *  - onOpenProfile(profile): show a salon/artist page
+ *  - onOpenProfile(profile, focus?): show a salon/artist page; `focus` = { services, label } opens its services menu on those
  *  - onNotify(message)
  */
 export function ConnectPage({ me = {}, onOpenProfile, onNotify }) {
-  const { connections, loading, query, setQuery, search, connect, connectingId } = useConnections({ onNotify });
+  const { connections, loading, query, setQuery, search, connect, connectingId, refresh } = useConnections({ onNotify });
   const [sheet, setSheet] = useState(""); // "" | "scan" | "code"
+  const [categorySheet, setCategorySheet] = useState(null); // { category, matches } while the pick/connect sheet is open
+  const [checkingCategory, setCheckingCategory] = useState("");
   const searching = query.trim().length > 0;
+
+  // «چه کاری می‌خواهی؟»: one of my salons/artists does it -> straight to them, on that service;
+  // several -> pick; none -> connect someone.
+  async function pickCategory(category) {
+    setCheckingCategory(category.id);
+    try {
+      const { ok, data } = await listConnectionsForCategory(category.id);
+      if (!ok) {
+        onNotify?.("پیدا کردن انجام نشد؛ دوباره امتحان کن.");
+        return;
+      }
+      const matches = data?.matches || [];
+      if (matches.length === 1) {
+        onOpenProfile?.(matches[0], { services: matches[0].services, label: category.label });
+        return;
+      }
+      setCategorySheet({ category, matches });
+    } catch {
+      onNotify?.("پیدا کردن انجام نشد؛ دوباره امتحان کن.");
+    } finally {
+      setCheckingCategory("");
+    }
+  }
 
   const connectButton = (profile) => (profile.connected ? (
     <button type="button" className="cnPrimaryBtn" onClick={() => onOpenProfile?.(profile)}>رزرو</button>
@@ -65,42 +71,46 @@ export function ConnectPage({ me = {}, onOpenProfile, onNotify }) {
     <section className="cnPage" aria-labelledby="cn-title">
       <header className="cnHead">
         <div className="cnHeadText">
-          <h1 id="cn-title">سالن و آرتیست من</h1>
-          <p>کسی که همیشه پیشش می‌روی را پیدا کن و از همین‌جا وقت بگیر.</p>
+          <h1 id="cn-title">چه کاری می‌خواهی؟</h1>
+          <p>یکی را بزن. اگر سالن یا آرتیستش را داری، مستقیم می‌روی.</p>
         </div>
-
-        <label className="cnSearch">
-          <Search size={20} aria-hidden="true" />
-          <span className="srOnly">جستجو با شماره، اسم یا لینک</span>
-          <input
-            type="search"
-            inputMode="search"
-            enterKeyHint="search"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="شماره، اسم یا لینک صفحه"
-            autoComplete="off"
-          />
-          {searching ? (
-            <button type="button" className="cnSearchClear" onClick={() => setQuery("")} aria-label="پاک کردن جستجو">
-              <X size={16} />
-            </button>
-          ) : null}
-        </label>
-
-        <div className="cnScanRow">
-          <button type="button" className="cnScanBtn is-dark" onClick={() => setSheet("scan")}>
-            <span aria-hidden="true"><ScanLine size={20} /></span>
-            <span><b>اسکن کن</b><small>کد سالن یا آرتیست</small></span>
-          </button>
-          <button type="button" className="cnScanBtn" onClick={() => setSheet("code")}>
-            <span aria-hidden="true"><QrCode size={20} /></span>
-            <span><b>اسکن شو</b><small>کد خودت را نشان بده</small></span>
-          </button>
-        </div>
+        <CategoryGrid busyId={checkingCategory} onPick={pickCategory} />
       </header>
 
       <div className="cnBody">
+        <section className="cnFind" aria-label="پیدا کردن سالن یا آرتیست">
+          <h2>سالن یا آرتیستت را وصل کن</h2>
+          <label className="cnSearch">
+            <Search size={20} aria-hidden="true" />
+            <span className="srOnly">جستجو با شماره، اسم یا لینک</span>
+            <input
+              type="search"
+              inputMode="search"
+              enterKeyHint="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="شماره، اسم یا لینک صفحه"
+              autoComplete="off"
+            />
+            {searching ? (
+              <button type="button" className="cnSearchClear" onClick={() => setQuery("")} aria-label="پاک کردن جستجو">
+                <X size={16} />
+              </button>
+            ) : null}
+          </label>
+
+          <div className="cnScanRow">
+            <button type="button" className="cnScanBtn is-dark" onClick={() => setSheet("scan")}>
+              <span aria-hidden="true"><ScanLine size={20} /></span>
+              <span><b>اسکن کن</b><small>کد سالن یا آرتیست</small></span>
+            </button>
+            <button type="button" className="cnScanBtn" onClick={() => setSheet("code")}>
+              <span aria-hidden="true"><QrCode size={20} /></span>
+              <span><b>اسکن شو</b><small>کد خودت را نشان بده</small></span>
+            </button>
+          </div>
+        </section>
+
         {searching ? (
           <section aria-label="نتیجه جستجو" aria-live="polite" className="cnList">
             {search.status === "searching" ? <SkeletonList rows={2} variant="card" label="در حال جستجو" /> : null}
@@ -109,7 +119,7 @@ export function ConnectPage({ me = {}, onOpenProfile, onNotify }) {
               <div className="cnEmpty is-compact">
                 <b>{NOT_FOUND[search.by] || NOT_FOUND.name}</b>
                 <p>اگر هنوز در فرفرو نیست، دعوتش کن؛ بعد از ثبت‌نام همین‌جا پیدایش می‌کنی.</p>
-                <InviteToFrfro />
+                <InviteToFrfro phone={search.by === "phone" ? query : ""} clientName={me.name} />
               </div>
             ) : null}
             {search.status === "done" ? search.results.map((profile) => (
@@ -142,6 +152,26 @@ export function ConnectPage({ me = {}, onOpenProfile, onNotify }) {
         )}
       </div>
 
+      {categorySheet ? (
+        <CategorySheet
+          category={categorySheet.category}
+          matches={categorySheet.matches}
+          hasConnections={connections.length > 0}
+          clientName={me.name}
+          onNotify={onNotify}
+          onConnected={() => refresh()}
+          onOpen={(profile, services) => {
+            const category = categorySheet.category;
+            setCategorySheet(null);
+            onOpenProfile?.(profile, { services, label: category.label });
+          }}
+          onScan={() => {
+            setCategorySheet(null);
+            setSheet("scan");
+          }}
+          onClose={() => setCategorySheet(null)}
+        />
+      ) : null}
       {sheet === "scan" ? <ScanFlow viewerType="client" connect={connect} onOpenProfile={onOpenProfile} onClose={() => setSheet("")} /> : null}
       {sheet === "code" ? <MyCodeSheet name={me.name} avatar={me.avatar} onClose={() => setSheet("")} /> : null}
     </section>

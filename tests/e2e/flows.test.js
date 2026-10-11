@@ -174,6 +174,61 @@ describe("booking flow (browser)", () => {
   });
 });
 
+describe("client starts from what they want (browser)", () => {
+  it("one connected salon does it: straight to its services, the service already picked", async () => {
+    const { name, client: salonClient, salon } = await seedSalon();
+    await salonClient.post("/api/salon-services", { name: "کاشت ناخن", price: "900000", duration: "120 دقیقه" });
+    const clientApi = createClient();
+    await registerUser(clientApi, { type: "client", name: "مشتری دسته" });
+    expect((await clientApi.post("/api/connections", { targetUserId: salon.user.id })).ok).toBe(true);
+
+    const { page, context, problems } = await newPage({ cookie: clientApi.cookie() });
+    await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
+    await page.locator("nav.bottomNav > button").nth(2).click();
+    await page.locator(".cnCat", { hasText: "ناخن" }).click();
+    // the salon's page opens with its services menu, «کاشت ناخن» first and already picked
+    await page.locator(".sduPanel").waitFor();
+    expect(await page.locator(".sduPanel").innerText()).toContain(name);
+    await page.locator(".sduItem.is-selected", { hasText: "کاشت ناخن" }).waitFor();
+    expect(await page.locator(".sduItem.is-selected").count()).toBe(1);
+    expect(await page.locator(".sduGroup").first().getAttribute("aria-label")).toContain("ناخن");
+    expect(problems).toEqual([]);
+    await context.close();
+  });
+
+  it("nobody does it yet: connect by phone from the sheet; an unknown number gets a ready SMS invite", async () => {
+    const { client: salonClient, salon } = await seedSalon();
+    await salonClient.post("/api/salon-services", { name: "میکاپ ساده", price: "800000", duration: "60 دقیقه" });
+    const clientApi = createClient();
+    await registerUser(clientApi, { type: "client", name: "مشتری میکاپ" });
+
+    const { page, context, problems } = await newPage({ cookie: clientApi.cookie() });
+    await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
+    await page.locator("nav.bottomNav > button").nth(2).click();
+    await page.locator(".cnCat", { hasText: "میکاپ" }).click();
+    const sheet = page.locator(".cnSheetRoot");
+    await sheet.waitFor();
+    expect(await sheet.innerText()).toContain("هنوز کسی را وصل نکرده‌ای");
+
+    // a number that is not on frfro: the client's own messages app gets the invite, with the category in it
+    await sheet.getByPlaceholder("شماره، اسم یا لینک صفحه").fill("09129998877");
+    await sheet.getByText("این شماره هنوز در فرفرو نیست.").waitFor();
+    const href = await sheet.getByRole("link", { name: "پیامک دعوت" }).getAttribute("href");
+    expect(href).toMatch(/^sms:09129998877\?&body=/);
+    expect(decodeURIComponent(href)).toContain("برای «میکاپ»");
+
+    // the salon's own number: connect, and its page opens on the services that match
+    await sheet.getByPlaceholder("شماره، اسم یا لینک صفحه").fill(salon.phone);
+    await sheet.getByRole("button", { name: "وصل شو" }).click();
+    await page.locator(".sduPanel").waitFor();
+    await page.locator(".sduItem.is-selected", { hasText: "میکاپ ساده" }).waitFor();
+    const list = await clientApi.get("/api/connections");
+    expect(list.payload.data.connections.map((c) => c.id)).toContain(salon.user.id);
+    expect(problems).toEqual([]);
+    await context.close();
+  });
+});
+
 describe("mobile smoke (browser)", () => {
   it("every role renders at 360px with no horizontal scroll and no unnamed buttons", async () => {
     for (const type of ["client", "artist", "salon"]) {

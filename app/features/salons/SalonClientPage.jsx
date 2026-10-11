@@ -1,7 +1,7 @@
 "use client";
 
 import { DEFAULT_SALON_LOGO } from "../../shared/lib/defaultAvatar";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   CalendarCheck,
   Check,
@@ -63,6 +63,12 @@ export function SalonClientPage({
   const [publicSheet, setPublicSheet] = useState("");
   const [servicesOpen, setServicesOpen] = useState(false);
   const services = selectedSalon ? getVisibleServices(selectedSalon) : [];
+  // Opened from a category on «سالن و آرتیست من»: show the services menu as soon as the services have loaded.
+  const focus = selectedSalon?.focusServices || null;
+  const hasServices = services.length > 0;
+  useEffect(() => {
+    if (focus && hasServices) setServicesOpen(true);
+  }, [focus, hasServices]);
   const portfolioItems = Array.isArray(selectedSalon?.portfolio) ? selectedSalon.portfolio : [];
   const followerCountValue = Number(selectedSalon?.followerCount ?? selectedSalon?.follower_count ?? 0) || 0;
   const followerCount = toPersianDigits(followerCountValue);
@@ -191,6 +197,8 @@ export function SalonClientPage({
             open={servicesOpen}
             title={`خدمات ${publicName}`}
             services={services}
+            focusNames={focus?.names}
+            focusLabel={focus?.label ? `مناسب «${focus.label}»` : ""}
             onConfirm={(picked) => {
               setServicesOpen(false);
               onOpenBooking(bundleServices(picked));
