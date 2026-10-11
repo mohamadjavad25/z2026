@@ -710,18 +710,6 @@
 
 /* ── Client profile tab (cpo*) ─────────────────────────────────────────── */
 .cpo { display: grid; gap: 12px; padding: 12px 0 110px; }
-.cpoCard { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 14px; border-radius: 22px; background: #fff; box-shadow: inset 0 0 0 1px #ececf1, 0 8px 24px rgba(20, 22, 29, 0.05); }
-.cpoCardIcon { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 14px; background: #fff3f7; box-shadow: inset 0 0 0 1px #fbd0e0; color: #14161d; }
-.cpoCopy small { color: #6f7380; font-size: 0.7rem; font-weight: 800; }
-.cpoCopy { min-width: 0; display: grid; gap: 3px; }
-.cpoCopy strong { justify-self: start; unicode-bidi: plaintext; font-size: 0.95rem; font-weight: 950; color: #14161d; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.cpoCopy span { display: inline-flex; align-items: center; gap: 5px; color: #6f7380; font-size: 0.74rem; font-weight: 800; }
-.cpoCopy span[dir="ltr"] { justify-self: start; unicode-bidi: plaintext; }
-.cpoEdit { display: inline-flex; align-items: center; gap: 5px; min-height: 36px; padding: 0 12px; border: 0; border-radius: 999px; background: #14161d; color: #fff; font: inherit; font-size: 0.72rem; font-weight: 900; }
-.cpoStats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.cpoStats button { display: grid; justify-items: center; gap: 2px; padding: 12px 6px; border: 0; border-radius: 18px; background: #fff; box-shadow: inset 0 0 0 1px #ececf1; font: inherit; color: #6f7380; }
-.cpoStats b { color: #14161d; font-size: 1.25rem; font-weight: 950; }
-.cpoStats small { font-size: 0.68rem; font-weight: 800; }
 .cpoNext { display: grid; gap: 10px; padding: 14px; border: 0; border-radius: 22px; background: linear-gradient(135deg, #fff3f7, #fff8ee); box-shadow: inset 0 0 0 1px #fbd0e0; text-align: start; font: inherit; color: #14161d; }
 .cpoNext.is-empty { background: #fafafc; box-shadow: inset 0 0 0 1.5px #e4e4ea; }
 .cpoNext.is-empty small { color: #6f7380; font-size: 0.74rem; font-weight: 700; line-height: 1.7; }
@@ -733,11 +721,6 @@
 .cpoNextBody em { font-style: normal; font-size: 0.68rem; font-weight: 900; padding: 4px 10px; border-radius: 999px; background: #fff4d9; color: #8a5a00; }
 .cpoNextBody em.is-done { background: #e3f6ea; color: #1c7c45; }
 .cpoNextWhen { display: inline-flex; align-items: center; gap: 6px; padding-top: 10px; border-top: 1px dashed #f0c6d6; font-size: 0.78rem; font-weight: 900; }
-.cpoLink { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 0; border-radius: 20px; background: #fff; box-shadow: inset 0 0 0 1px #ececf1; font: inherit; color: #14161d; text-align: start; }
-.cpoLinkIcon { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 14px; background: #f1f1f5; }
-.cpoLinkCopy { flex: 1; display: grid; gap: 2px; }
-.cpoLinkCopy strong { font-size: 0.86rem; font-weight: 950; }
-.cpoLinkCopy small { color: #6f7380; font-size: 0.72rem; font-weight: 750; }
 .spSectionTitle { margin: 6px 4px -2px; color: #6f7380; font-size: 0.74rem; font-weight: 950; letter-spacing: 0; }
 
 /* Gallery cards: a pale placeholder while a picture loads (the old near-black flashed on every open). */
@@ -812,7 +795,7 @@ html[data-cbt="1"] body { padding-bottom: 92px; }
 .clientBeautyHeroBell::after { content: ""; position: absolute; inset: -10px; }
 .salonHeroWeekArrow, .profileHeroPreviewBtn, .clientBeautyHeroBell { position: relative; }
 .neoSettingsLegalLinks a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 6px; }
-.cuChips button, .brandCardPosterEdit, .cpoEdit { min-height: 40px !important; }
+.cuChips button, .brandCardPosterEdit { min-height: 40px !important; }
 .requestActions button { min-height: 44px !important; }
 
 /* Salon banner: show the picture all the way down -- no white fade over its bottom edge. */
@@ -1274,14 +1257,8 @@ main.appShell.is-auth-gate .workspace { background: #fff !important; }
 .cphMeta p { display: inline-flex; align-items: center; gap: 4px; margin: 0; color: #6a6e7a; font-size: 0.82rem; font-weight: 700; }
 
 .cpo { gap: 14px; }
-.cpo .cpoCard { padding: 16px; border-radius: 26px; box-shadow: 0 8px 22px -14px rgba(20, 22, 29, 0.28); }
-.cpo .cpoCardIcon { border-radius: 16px; background: #f4f4f7; box-shadow: none; }
-.cpo .cpoStats button { padding: 16px 6px; border: 0; border-radius: 22px; background: #fff; box-shadow: 0 8px 22px -14px rgba(20, 22, 29, 0.28); }
-.cpo .cpoStats b { font-size: 1.35rem; }
 .cpo .cpoNext { border-radius: 26px; background: #fff; box-shadow: 0 8px 22px -14px rgba(20, 22, 29, 0.28); }
 .cpo .cpoNextWhen { border-top-color: #ececf1; }
-.cpo .cpoLink { padding: 14px 16px; border-radius: 24px; box-shadow: 0 8px 22px -14px rgba(20, 22, 29, 0.28); }
-.cpo .cpoLinkIcon { border-radius: 16px; background: #f4f4f7; }
 
 /* ── Customer activity + settings: same soft-card language ─────────────── */
 :root .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingFeatureCard {
