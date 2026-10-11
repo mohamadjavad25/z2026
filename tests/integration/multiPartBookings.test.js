@@ -347,3 +347,35 @@ describe("salon offers a client a new time", () => {
     expect(moved.payload.data.booking.status).toBe("تازه");
   });
 });
+
+describe("«تغییر ساعت» offers only times the booking fits", () => {
+  const times = async (ctx, id) => (await ctx.salonClient.get(`/api/salon-bookings/${id}/times`)).payload.data;
+
+  it("leaves out taken times and marks the ones past closing; PATCH follows the same list", async () => {
+    const ctx = await setup();
+    const day = futureBookingDay(13);
+    // A 75-minute visit at 10:00 (nail 45 + hair 30), and the nail artist busy 14:00–15:00.
+    const booking = (await requestVisit(ctx, { bookingDate: day })).payload.data.booking;
+    expect((await ctx.salonClient.post("/api/salon-bookings", {
+      service: "مانیکور ویزیت", staff: ctx.nail.staff.name, bookingDate: day, time: "14:00", client: "حضوری", phone: "09120000092"
+    })).ok).toBe(true);
+
+    const data = await times(ctx, booking.id);
+    const list = data.times.map((item) => item.time);
+    expect(list).toContain("10:00"); // its own time stays (the booking itself is left out)
+    expect(list).toContain("12:00");
+    expect(list).not.toContain("13:30"); // nail part 13:30–14:15 hits 14:00
+    expect(list).not.toContain("14:00");
+    const inHours = data.times.filter((item) => !item.overtimeMinutes).map((item) => item.time);
+    expect(inHours.at(-1)).toBe("18:30"); // ends 19:45 by the 20:00 close
+    const late = data.times.find((item) => item.time === "19:30");
+    expect(late.overtimeMinutes).toBe(45);
+    expect(late.end).toBe("20:45");
+
+    expect((await ctx.salonClient.patch("/api/salon-bookings", { id: booking.id, time: "13:30" })).payload.code).toBe("MOVE_TIME_UNAVAILABLE");
+    expect((await ctx.salonClient.patch("/api/salon-bookings", { id: booking.id, time: "19:30" })).payload.code).toBe("NEEDS_OVERTIME");
+    const moved = await ctx.salonClient.patch("/api/salon-bookings", { id: booking.id, time: "19:30", overtime: true });
+    expect(moved.ok).toBe(true);
+    expect(moved.payload.data.booking.time).toBe("19:30");
+  });
+});

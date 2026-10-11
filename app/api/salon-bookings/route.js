@@ -18,11 +18,14 @@ import { resolveRollingPersianDateKey } from "../../shared/lib/persianCalendar.j
 import { findSalonHourForDateKey, isSalonHourOpen, salonDayWindow } from "../../shared/lib/salonAvailability.js";
 import {
   buildDayBookingSlots,
+  normalizeBookingTimeLabel,
   parseServiceDurationMinutes,
   timeLabelToMinutes
 } from "../../shared/lib/time.js";
 import { summarizeBookingParts } from "../../shared/lib/bookingParts.js";
 import { salonVisitParts } from "../../lib/salonVisitParts.js";
+import { bookingMoveOptions } from "../../lib/salonMoveTimes.js";
+import { toPersianDigits } from "../../shared/lib/digits.js";
 import { AWAITING_CLIENT } from "../../shared/lib/bookingOffer.js";
 
 export const runtime = "nodejs";
@@ -259,6 +262,32 @@ async function _PATCH(request) {
     return noStoreJson({ error: "وضعیت نامعتبر است." }, { status: 400 });
   }
   const patch = wantsCancel ? { status: "لغو" } : body;
+  // A new time (or day) must be one the «تغییر ساعت» list offers: its services fit with their
+  // artists, and it ends by closing time -- or past it only when the salon chose to stay longer.
+  const movesTo = ["time", "booking_date", "bookingDate", "date"].some((key) => body[key] != null);
+  if (!wantsCancel && movesTo && body.staff === undefined && body.parts === undefined) {
+    const current = await salons.getSalonBookingRow(id, auth.user.id);
+    if (!current) return noStoreJson({ error: "رزرو یافت نشد." }, { status: 404 });
+    const dateKey = resolveRollingPersianDateKey(body.booking_date ?? body.bookingDate ?? body.date ?? current.booking_date);
+    const time = normalizeBookingTimeLabel(String(body.time ?? current.time ?? ""));
+    const unchanged = dateKey === current.booking_date && time === normalizeBookingTimeLabel(current.time || "");
+    if (!unchanged) {
+      const options = await bookingMoveOptions(auth.user.id, id, dateKey);
+      const option = options.times?.find((item) => item.time === time);
+      if (!option) {
+        return noStoreJson({
+          error: options.closed ? "سالن در این روز تعطیل است." : "این ساعت برای این نوبت جا ندارد؛ یکی از ساعت‌های فهرست را انتخاب کن.",
+          code: "MOVE_TIME_UNAVAILABLE"
+        }, { status: 409 });
+      }
+      if (option.overtimeMinutes > 0 && body.overtime !== true) {
+        return noStoreJson({
+          error: `این ساعت تا ${toPersianDigits(option.end)} طول می‌کشد؛ ${toPersianDigits(option.overtimeMinutes)} دقیقه بعد از ساعت کاری.`,
+          code: "NEEDS_OVERTIME"
+        }, { status: 409 });
+      }
+    }
+  }
   // A new day or time for a client's booking goes to the client to accept (withClientConsent).
   const result = await salons.patchSalonBookingWithArtistSync(id, auth.user.id, patch, { askClient: true });
 

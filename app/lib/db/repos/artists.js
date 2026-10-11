@@ -529,13 +529,13 @@ function rangesOverlap(startA, endA, startB, endB) {
   return startA < endB && startB < endA;
 }
 
-export async function listArtistBookedSlots(artistUserId, { excludeBookingId = null } = {}, runner = null) {
+export async function listArtistBookedSlots(artistUserId, { excludeBookingId = null, excludeBookingIds = [] } = {}, runner = null) {
   const db = runner || (await getDb());
   const services = await listArtistServices(artistUserId, db);
   const serviceDurationMap = Object.fromEntries(
     services.map((service) => [service.name, parseDurationMinutes(service.duration)])
   );
-  const excludeId = excludeBookingId != null ? Number(excludeBookingId) : null;
+  const excluded = new Set([excludeBookingId, ...excludeBookingIds].filter((id) => id != null).map(Number));
   const rows = await all(db, `
     SELECT id, booking_date, time, status, service, duration_minutes
     FROM artist_bookings
@@ -543,7 +543,7 @@ export async function listArtistBookedSlots(artistUserId, { excludeBookingId = n
       AND status NOT IN ('لغو', 'لغو شده', 'cancelled', 'منقضی شده')
     ORDER BY id ASC
   `, [artistUserId]);
-  return rows.filter((row) => excludeId == null || Number(row.id) !== excludeId).map((row) => ({
+  return rows.filter((row) => !excluded.has(Number(row.id))).map((row) => ({
     id: row.id,
     booking_date: row.booking_date,
     time: row.time,
@@ -559,7 +559,7 @@ export async function listArtistBookedSlots(artistUserId, { excludeBookingId = n
  * What already holds an artist's day: their break and every active booking on that date, as
  * minute ranges. Loaded once and checked many times when testing several start times.
  */
-export async function listArtistBusyRanges(artistUserId, bookingDate, { excludeBookingId = null } = {}, runner = null) {
+export async function listArtistBusyRanges(artistUserId, bookingDate, { excludeBookingId = null, excludeBookingIds = [] } = {}, runner = null) {
   if (!artistUserId || !bookingDate) return [];
   const db = runner || (await getDb());
   const bookingDateKey = resolveRollingPersianDateKey(bookingDate);
@@ -570,7 +570,7 @@ export async function listArtistBusyRanges(artistUserId, bookingDate, { excludeB
     const breakEnd = timeToMinutes(artistBreak.end);
     if (breakEnd > breakStart) ranges.push({ start: breakStart, end: breakEnd });
   }
-  const bookedSlots = await listArtistBookedSlots(artistUserId, { excludeBookingId }, db);
+  const bookedSlots = await listArtistBookedSlots(artistUserId, { excludeBookingId, excludeBookingIds }, db);
   for (const item of bookedSlots) {
     if (resolveRollingPersianDateKey(item.booking_date) !== bookingDateKey) continue;
     const bookedStart = timeToMinutes(item.time);

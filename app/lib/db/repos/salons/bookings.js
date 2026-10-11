@@ -270,6 +270,68 @@ export async function listFeasibleVisitTimes(salonUserId, bookingDate, parts, ti
   return feasible;
 }
 
+/** One of the salon's own booking rows, or null. */
+export async function getSalonBookingRow(id, salonUserId) {
+  await ensureBookingPartsColumns();
+  return get(await getDb(), "SELECT * FROM salon_bookings WHERE id = $1 AND salon_user_id = $2", [id, salonUserId]);
+}
+
+/**
+ * Where the salon can move one of its bookings on `bookingDate`: of the `candidates` (start
+ * times), those at which every service of it -- with the artists it already has -- is free in
+ * the salon and in each artist's own calendar, the booking itself and its calendar copies left
+ * out. Each comes with its end and how many minutes it runs past `closeMinutes`, so the salon can
+ * see a time that only works if it stays longer. Null when the booking is not the salon's.
+ */
+export async function listBookingMoveTimes(id, salonUserId, bookingDate, candidates, closeMinutes) {
+  await ensureBookingPartsColumns();
+  const db = await getDb();
+  const current = await get(db, "SELECT * FROM salon_bookings WHERE id = $1 AND salon_user_id = $2", [id, salonUserId]);
+  if (!current) return null;
+  const multi = isMultiPartBooking(current);
+  const parts = multi
+    ? parseBookingParts(current.parts)
+    : [{ service: current.service || "", minutes: Number(current.duration_minutes) || 60, staff: String(current.staff || "").trim() }];
+  const held = (await listActiveDayBookings(db, salonUserId, bookingDate, id)).flatMap(bookingSegments);
+
+  // Each artist's own calendar for that day, without this booking's copies in it.
+  const busyByStaff = new Map();
+  if (multi) {
+    const staffList = await listSalonStaff(salonUserId, db);
+    const copies = (await listPartMirrors(db, id)).map((row) => Number(row.id));
+    for (const name of new Set(parts.map((part) => part.staff).filter(Boolean))) {
+      const person = staffList.find((item) => String(item.name || "").trim() === name);
+      const artistId = Number(person?.artist_user_id || 0);
+      if (artistId) busyByStaff.set(name, await artists.listArtistBusyRanges(artistId, bookingDate, { excludeBookingIds: copies }, db));
+    }
+  } else {
+    const linked = await findSalonStaffForBooking(salonUserId, current.staff, current.service, db);
+    const artistId = Number(linked?.artist_user_id || 0);
+    if (artistId) {
+      const copy = await artists.findLinkedSalonArtistBooking(artistId, salonUserId, current, db);
+      busyByStaff.set(parts[0].staff, await artists.listArtistBusyRanges(artistId, bookingDate, { excludeBookingId: copy?.id ?? null }, db));
+    }
+  }
+
+  const options = [];
+  for (const time of candidates) {
+    const segments = scheduleBookingParts(time, parts);
+    if (!segments.length) continue;
+    const taken = segments.some((segment) => (
+      held.some((other) => staffScopesConflict(segment.staff, other.staff) && rangesOverlap(segment.start, segment.end, other.start, other.end))
+      || (busyByStaff.get(segment.staff) || []).some((range) => rangesOverlap(segment.start, segment.end, range.start, range.end))
+    ));
+    if (taken) continue;
+    const last = segments[segments.length - 1];
+    options.push({
+      time: normalizeBookingTimeLabel(time),
+      end: last.endLabel,
+      overtimeMinutes: Math.max(0, last.end - closeMinutes)
+    });
+  }
+  return options;
+}
+
 /** Thrown inside a transaction to roll the whole booking back when an artist's calendar is taken. */
 function artistConflictError(code, message) {
   const err = new Error(message || code);

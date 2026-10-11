@@ -76,9 +76,12 @@ describe("booking flow (browser)", () => {
     const salonView = await newPage({ cookie: salonClient.cookie() });
     const sp = salonView.page;
     await sp.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
-    await sp.locator(".reservationRequestCard").first().waitFor();
-    await sp.getByRole("button", { name: "تایید" }).first().click();
-    await sp.locator(".reservationRequestCard").first().waitFor({ state: "detached" });
+    // the request is answered on its own booking card; if it is on another day, the notice jumps there
+    await sp.locator(".bkGroup, .pendingOtherDays").first().waitFor();
+    if (await sp.locator(".pendingOtherDays").count()) await sp.locator(".pendingOtherDays button").first().click();
+    const requestCard = sp.locator(".bkGroup").first();
+    await requestCard.getByRole("button", { name: "تایید" }).click();
+    await requestCard.waitFor({ state: "detached" });
 
     // the client's booking list now says confirmed
     const list = await clientApi.get("/api/client-bookings");
@@ -159,7 +162,9 @@ describe("booking flow (browser)", () => {
     const { page, context, problems } = await newPage({ cookie: artistApi.cookie() });
     await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
     await page.locator(".profileModeRail button", { hasText: "رزروها" }).click();
-    const card = page.locator(".artistBookingsPage .reservationRequestCard").filter({ hasText: "مشتری مستقیم" });
+    // the booking is two days ahead: the notice names that day, and the card there has the buttons
+    await page.locator(".artistBookingsPage .pendingOtherDays button").first().click();
+    const card = page.locator(".artistBookingsPage .bkGroup").filter({ hasText: "مشتری مستقیم" });
     await card.getByRole("button", { name: "تایید" }).click();
     await card.waitFor({ state: "detached" });
     expect(problems).toEqual([]);

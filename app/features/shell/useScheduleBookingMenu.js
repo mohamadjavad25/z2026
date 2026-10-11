@@ -79,13 +79,14 @@ export function useScheduleBookingMenu({
     setSelectedBookingClient(null);
   }, [setSelectedBookingClient]);
 
-  const changeScheduleBookingTime = useCallback(async (time) => {
+  // `overtime`: the salon chose a time that runs past closing (it stays longer).
+  const changeScheduleBookingTime = useCallback(async (time, { overtime = false } = {}) => {
     if (!scheduleBookingMenu) return;
     // A client's own booking does not just move: the new time goes to them to accept or decline.
     const askedClient = Boolean(scheduleBookingMenu.client_user_id || scheduleBookingMenu.clientUserId);
     const ok = await patchSalonAppointment(
       scheduleBookingMenu,
-      { time },
+      overtime ? { time, overtime: true } : { time },
       askedClient ? `ساعت ${time} برای مشتری فرستاده شد؛ تا قبول کند «در انتظار مشتری» می‌ماند.` : `ساعت رزرو به ${time} تغییر کرد.`
     );
     if (ok) closeScheduleBookingMenu();

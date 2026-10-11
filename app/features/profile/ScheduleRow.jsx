@@ -1,8 +1,8 @@
 "use client";
 
 import { memo } from "react";
-import { ServiceIcon } from "../../components/ServiceIcon";
-import { MoreHorizontal, Store } from "lucide-react";
+import { Check, Store, X } from "lucide-react";
+import { RequestExpiryBadge } from "../schedule/RequestExpiryBadge";
 import { SegmentClock } from "../../components/SegmentClock";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar";
@@ -142,6 +142,21 @@ export function withScheduleTimeline(booking, { selectedDay, now }) {
   };
 }
 
+function addMinutesToLabel(label, minutes) {
+  const match = String(label || "").match(/(\d{1,2}):(\d{2})/);
+  if (!match) return "";
+  const total = Number(match[1]) * 60 + Number(match[2]) + minutes;
+  return `${String(Math.floor(total / 60) % 24).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
+}
+
+function formatDurationShort(minutes) {
+  if (!minutes) return "";
+  if (minutes < 60) return `${toPersianDigits(minutes)} دقیقه`;
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  return rest ? `${toPersianDigits(hours)}:${toPersianDigits(String(rest).padStart(2, "0"))} ساعت` : `${toPersianDigits(hours)} ساعت`;
+}
+
 function scheduleRowPropsAreEqual(prev, next) {
   return (
     prev.booking?.id === next.booking?.id
@@ -159,9 +174,11 @@ function scheduleRowPropsAreEqual(prev, next) {
     && prev.booking?.visitCount === next.booking?.visitCount
     && prev.booking?.source?.status === next.booking?.source?.status
     && prev.variant === next.variant
+    && prev.review === next.review
     && prev.booking?.displayTitle === next.booking?.displayTitle
     && prev.booking?.displayMeta === next.booking?.displayMeta
     && prev.booking?.source?.parts === next.booking?.source?.parts
+    && prev.booking?.durationMinutes === next.booking?.durationMinutes
   );
 }
 
@@ -169,7 +186,8 @@ export const ScheduleRow = memo(function ScheduleRow({
   booking,
   onOpenClient,
   onAction,
-  variant = "default"
+  variant = "default",
+  review = null
 }) {
   const {
     phase,
@@ -184,9 +202,7 @@ export const ScheduleRow = memo(function ScheduleRow({
     staffLabel,
     staffAvatar,
     staffInitial,
-    sourceSalon,
-    visits,
-    visitCount
+    sourceSalon
   } = booking;
 
   const isClientBooking = variant === "client";
@@ -214,9 +230,16 @@ export const ScheduleRow = memo(function ScheduleRow({
     : waitsOnSalon ? "منتظر سالن" : rawStatus;
   const phaseTagLabel = unansweredAndOver ? "منقضی شد" : showStatusTag ? (statusText || "درخواست") : phaseLabel;
 
+  // The time column: start, a rail as long as the visit, end, and how long it takes.
+  const durationMinutes = Number(booking.durationMinutes) || 0;
+  const endTime = booking.endTime || (durationMinutes ? addMinutesToLabel(time, durationMinutes) : "");
+  const railHeight = Math.round(Math.min(44, Math.max(12, durationMinutes / 4)));
+  const durationLabel = formatDurationShort(durationMinutes);
+  const showDate = date && date !== "امروز";
+
   const chipClass = showStatusTag ? `is-status-${statusTone}` : `is-${phase || "upcoming"}`;
 
-  return (
+  const row = (
     <div
       className={`bkRow is-${phase || "upcoming"}${showStatusTag ? ` is-tone-${statusTone}` : ""}${isClientBooking ? " is-client" : ""}`}
       data-phase={phase}
@@ -232,15 +255,6 @@ export const ScheduleRow = memo(function ScheduleRow({
         }
       }}
     >
-      {booking.partCount ? (
-        <span className="bkIconStack">
-          <ServiceIcon emoji={booking.serviceEmoji} name={service} size="md" className="bkIcon" />
-          <span className="bkCount" aria-label={`${toPersianDigits(booking.partCount)} خدمت`}>{toPersianDigits(booking.partCount)}</span>
-        </span>
-      ) : (
-        <ServiceIcon emoji={booking.serviceEmoji} name={service} size="md" className="bkIcon" />
-      )}
-
       <div className="bkBody">
         <div className="bkTitle">
           {!isClientBooking ? (
@@ -251,8 +265,12 @@ export const ScheduleRow = memo(function ScheduleRow({
         </div>
         <div className="bkMeta">
           <span>{meta}</span>
-          <i aria-hidden="true" />
-          <span>{date}</span>
+          {showDate ? (
+            <>
+              <i aria-hidden="true" />
+              <span>{date}</span>
+            </>
+          ) : null}
         </div>
         {!isClientBooking ? (
           <div className="bkFoot">
@@ -278,23 +296,40 @@ export const ScheduleRow = memo(function ScheduleRow({
               )}
               {staffLabel}
             </span>
-            <span className="bkVisits" aria-label={`${toPersianDigits(visitCount)} رزرو این مشتری`} title={`${toPersianDigits(visitCount)} از ۱۰`}>
-              {visits.map((level, index) => (
-                <i key={`${booking.id ?? `${time}-${client}`}-visit-${index}`} className={`is-l${level}`} aria-hidden="true" />
-              ))}
-            </span>
           </div>
         ) : null}
       </div>
 
       <div className="bkSide">
-        <div className="bkTime">
-          <SegmentClock value={time} size="xs" backgroundColor="transparent" />
+        <SegmentClock value={time} size="xs" className="bkStart" backgroundColor="transparent" />
+        {endTime ? (
+          <>
+            <span className="bkRail" style={{ height: `${railHeight}px` }} aria-hidden="true" />
+            <SegmentClock value={endTime} size="xxs" className="bkEnd" color="#6f7380" backgroundColor="transparent" />
+            <small className="bkDuration">{durationLabel}</small>
+          </>
+        ) : null}
+      </div>
+    </div>
+  );
+
+  // A request waiting on this owner: answer it right on the card; tapping the card still opens its details.
+  if (!review) return row;
+  return (
+    <div className="bkGroup">
+      {row}
+      <div className="bkReview">
+        <RequestExpiryBadge createdAt={review.createdAt} />
+        <div className="bkReviewActions">
+          <button type="button" className="is-approve" disabled={review.disabled || review.approveDisabled} onClick={review.onApprove}>
+            <Check size={15} aria-hidden="true" />
+            {review.busy ? "…" : "تایید"}
+          </button>
+          <button type="button" className="is-decline" disabled={review.disabled} onClick={review.onDecline}>
+            <X size={15} aria-hidden="true" />
+            رد
+          </button>
         </div>
-        {booking.endTime ? <small className="bkEnd">تا {toPersianDigits(booking.endTime)}</small> : null}
-        <span className="bkMore" aria-hidden="true">
-          <MoreHorizontal size={18} />
-        </span>
       </div>
     </div>
   );

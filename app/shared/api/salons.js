@@ -33,6 +33,11 @@ export async function getSalonVisitTimes(salonUserId, day, services) {
   return apiJson(`/api/salon-bookings/availability?${query}`);
 }
 
+/** GET /api/salon-bookings/:id/times → { times: [{ time, end, overtimeMinutes }], close } salon-only «تغییر ساعت» list */
+export async function getSalonBookingMoveTimes(bookingId) {
+  return apiJson(`/api/salon-bookings/${encodeURIComponent(bookingId)}/times`);
+}
+
 /**
  * POST /api/salon-bookings → 201
  * { booking, bookings, artistBooking?, linkedArtistId? }

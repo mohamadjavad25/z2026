@@ -132,15 +132,12 @@
 .bkRow.is-tone-expired::before { background: #c14545; }
 
 .bkRow.is-done { background: #fafafc; }
-.bkRow.is-done .bkIcon { filter: saturate(0.5); opacity: 0.85; }
 .bkRow.is-done .bkTitle b { color: #6f7380; }
 
 .bkRow.is-live {
   border-color: #bfeadb;
   box-shadow: 0 0 0 3px rgba(31, 181, 131, 0.12), 0 6px 18px rgba(20, 22, 29, 0.05);
 }
-
-.bkIcon { flex: none; }
 
 .bkBody { flex: 1 1 auto; min-width: 0; display: grid; gap: 4px; }
 
@@ -207,34 +204,7 @@
 
 .bkWhoAvatar img { width: 100%; height: 100%; object-fit: cover; }
 
-.bkVisits { display: inline-flex; gap: 2px; direction: ltr; }
-.bkVisits i { width: 5px; height: 5px; border-radius: 2px; background: #e4e4ea; }
-.bkVisits i.is-l1 { background: #c9ccd6; }
-.bkVisits i.is-l2 { background: #8f93a3; }
-.bkVisits i.is-l3 { background: #14161d; }
-
 .bkSide { flex: none; display: grid; justify-items: center; gap: 4px; }
-
-.bkTime {
-  padding: 4px 6px;
-  border-radius: 12px;
-  background: #f6f6f8;
-}
-
-.bkMore {
-  width: 34px;
-  height: 28px;
-  display: grid;
-  place-items: center;
-  border: 0;
-  border-radius: 10px;
-  background: transparent;
-  color: #6f7380;
-  cursor: pointer;
-}
-
-.bkMore:hover,
-.bkMore:focus-visible { background: #f1f1f5; color: #14161d; }
 
 /* Client booking feature card: service icon leads, salon avatar trails. */
 :root .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingFeatureTop {
@@ -279,9 +249,6 @@
   background: #f1f1f5;
   box-shadow: 0 0 0 1.5px #ffffff, 0 0 0 2.5px #e4e4ea;
 }
-
-.bkMore { pointer-events: none; }
-.bkRow[role="button"]:hover .bkMore { background: #f1f1f5; color: #14161d; }
 
 /* Booking-details header: a real logo tile for the customer / source */
 .scheduleBookingSettings .clientBookingSettingsAvatar img,
@@ -1423,29 +1390,50 @@ html, body { overscroll-behavior-y: none; }
 .profileHero .profileHeroEyeBtn:focus-visible { outline: 2px solid #14161d; outline-offset: 2px; }
 
 /* ═══ Booking rows: multi-service booking (count on the icon, several artists, end time) ═══ */
-.bkIconStack { position: relative; flex: none; display: inline-grid; }
-.bkCount {
-  position: absolute;
-  bottom: -2px;
-  inset-inline-end: -4px;
-  min-width: 20px;
-  height: 20px;
-  padding: 0 4px;
-  box-sizing: border-box;
-  display: grid;
-  place-items: center;
-  border-radius: 999px;
-  background: #14161d;
-  color: #ffffff;
-  font-size: 0.66rem;
-  font-weight: 950;
-  box-shadow: 0 0 0 2px #ffffff;
-}
 .bkWhoStack { display: inline-flex; flex: none; }
 .bkWho:has(.bkWhoStack) { white-space: nowrap; }
 .bkWhoStack .bkWhoAvatar { box-shadow: 0 0 0 2px #ffffff; }
 .bkWhoStack .bkWhoAvatar + .bkWhoAvatar { margin-inline-start: -6px; }
-.bkEnd { color: #6f7380; font-size: 0.64rem; font-weight: 850; white-space: nowrap; }
+
+/* ═══ Booking rows: the time column (start clock, a rail as long as the visit, end clock, duration) ═══ */
+.bkRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 100px;
+  align-items: stretch;
+  gap: 0;
+  padding: 0;
+}
+.bkRow::before { content: none; }
+.bkBody { padding: 12px 14px; align-content: center; }
+.bkSide {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 12px 6px;
+  border-inline-start: 1px solid #ececf0;
+  --bk-rail: #14161d;
+}
+.bkSide .segmentClockFace { padding: 0; background: transparent; box-shadow: none; }
+.bkSide .bkEnd .segmentClockColon i { background: #6f7380; }
+.bkRail { width: 5px; border-radius: 3px; background: var(--bk-rail); }
+.bkDuration {
+  margin-top: 1px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: #f1f1f5;
+  color: #4b4f5c;
+  font-size: 0.6rem;
+  font-weight: 850;
+  white-space: nowrap;
+}
+.bkRow.is-live .bkSide { --bk-rail: #1fb583; }
+.bkRow.is-done .bkSide { --bk-rail: #c9ccd6; }
+.bkRow.is-tone-pending .bkSide { --bk-rail: #f0a020; background: #fffaf0; }
+.bkRow.is-tone-bad .bkSide,
+.bkRow.is-tone-expired .bkSide { --bk-rail: #c14545; }
+.bkRow.is-done .bkSide .segmentClock { opacity: 0.6; }
 
 /* ---- Artist collab tab: scan buttons, or the connected salon's card ---- */
 .clConnBoard { display: grid; gap: 12px; }
@@ -1469,3 +1457,83 @@ html, body { overscroll-behavior-y: none; }
 .clConnActions .is-decline { background: #f1f1f5; color: #3b3e49; }
 .clConnActions button:disabled { opacity: 0.5; }
 .clConnMascot { justify-self: center; margin-top: 18px; }
+
+/* ═══ Booking rows: a request waiting on the owner gets «رد» / «تایید» under its own card ═══ */
+.bkGroup {
+  border: 1px solid #ececf0;
+  border-radius: 22px;
+  background: #ffffff;
+  box-shadow: 0 6px 18px rgba(20, 22, 29, 0.05);
+  overflow: hidden;
+}
+.bkGroup > .bkRow { border: 0; border-radius: 0; box-shadow: none; }
+.bkGroup > .bkRow[role="button"]:hover { box-shadow: none; }
+.bkGroup > .bkRow[role="button"]:active { transform: none; background: #fafafc; }
+.bkReview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 10px 10px;
+  border-top: 1px solid #ececf0;
+}
+.bkReview .requestExpiryBadge { margin: 0; }
+.bkReviewActions { display: flex; gap: 8px; margin-inline-start: auto; }
+.bkReviewActions button {
+  min-height: 38px;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  border-radius: 12px;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+.bkReviewActions .is-approve { background: #14161d; color: #ffffff; }
+.bkReviewActions .is-decline { background: #f4f4f7; color: #b13a3a; }
+.bkReviewActions button:disabled { opacity: 0.5; cursor: default; }
+.bkReviewActions button:focus-visible { outline: 3px solid rgba(20, 22, 29, 0.25); outline-offset: 2px; }
+
+/* Requests on other days: which days, one tap to go there */
+.pendingOtherDays {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  margin-block: 8px 2px;
+  padding: 8px 12px;
+  border-radius: 16px;
+  background: #fff7e6;
+  color: #8a5600;
+  font-size: 0.74rem;
+  font-weight: 850;
+}
+.pendingOtherDaysTitle { display: inline-flex; align-items: center; gap: 6px; }
+.pendingOtherDaysList { display: flex; flex-wrap: wrap; gap: 6px; }
+.pendingOtherDaysList button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid #f3dfb4;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #6b4300;
+  font: inherit;
+  cursor: pointer;
+}
+.pendingOtherDaysList b {
+  min-width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: #f0a020;
+  color: #ffffff;
+  font-size: 0.64rem;
+}
