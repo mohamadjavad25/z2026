@@ -4,14 +4,16 @@ import { defaultAvatarFor } from "../../shared/lib/defaultAvatar";
 import { Plus } from "lucide-react";
 import { PageIcon } from "../../components/PageIcon";
 
-export function BottomNav({ activeTab, createdProfile, onTabChange, showCreateBooking = false, onCreateBooking }) {
+// `status`: something that docks into the bar above the tabs (the client's booking status strip).
+export function BottomNav({ activeTab, createdProfile, onTabChange, showCreateBooking = false, onCreateBooking, status = null }) {
   // Salon/artist owners already run their own business — browsing the
   // salon directory (a client-facing feature) isn't useful to them, so
   // their third tab opens their own customer community instead. See
-  // SalonCustomersPage.
+  // SalonCustomersPage. A client's third tab is where they start a booking.
   const isBusinessOwner = createdProfile?.type === "salon" || createdProfile?.type === "artist";
   return (
     <nav className="bottomNav" aria-label="ناوبری موبایل">
+      {status}
       <button type="button" onClick={() => onTabChange("settings")} className={activeTab === "settings" ? "active" : ""}>
         <PageIcon name="settings" size={24} />
         <span>تنظیمات</span>
@@ -48,8 +50,8 @@ export function BottomNav({ activeTab, createdProfile, onTabChange, showCreateBo
         </button>
       ) : (
         <button type="button" onClick={() => onTabChange("salons")} className={activeTab === "salons" ? "active" : ""}>
-          <PageIcon name="discover" size={24} />
-          <span>سالن</span>
+          <PageIcon name="booking-add" size={24} />
+          <span>رزرو</span>
         </button>
       )}
     </nav>

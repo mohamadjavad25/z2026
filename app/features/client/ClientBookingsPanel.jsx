@@ -150,7 +150,7 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook })
             <b>{bookings.length ? "نوبت فعالی نداری" : "هنوز رزروی ثبت نشده"}</b>
             <span>
               {bookings.length
-                ? "نوبت‌های قبلی‌ات در سابقه هستند. از بخش «سالن» نوبت تازه بگیر."
+                ? "نوبت‌های قبلی‌ات در سابقه هستند. از بخش «رزرو» نوبت تازه بگیر."
                 : "بعد از رزرو سالن، نوبت‌ها اینجا نمایش داده می‌شوند."}
             </span>
           </div>
