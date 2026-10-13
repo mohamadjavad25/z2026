@@ -27,6 +27,7 @@ import { isMultiPartBooking, parseBookingParts, scheduleBookingParts } from "../
 import { BookingPartsEditor } from "./BookingPartsEditor";
 import { getSalonBookingMoveTimes } from "../../shared/api/salons";
 import { AWAITING_CLIENT, bookingTimeOffer } from "../../shared/lib/bookingOffer";
+import { useBackHandler } from "../../shared/hooks/useBackHandler";
 
 // Shown when a customer / staff member / source has no uploaded photo.
 const DEFAULT_AVATAR = "/profile-icon.svg";
@@ -165,6 +166,7 @@ export function ScheduleBookingMenuModal({
   onDecline,
   busy = false
 }) {
+  useBackHandler(Boolean(open && booking), onClose);
   // The artist picker opens inline; reset per booking because this modal
   // instance is reused rather than remounted per booking.
   const [artistPickerOpen, setArtistPickerOpen] = useState(false);

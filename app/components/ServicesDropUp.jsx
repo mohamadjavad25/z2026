@@ -8,6 +8,7 @@ import { EMOJI_CATEGORIES, getBeautyEmoji, guessBeautyEmojiId } from "../shared/
 import { formatTomanNumber, parseTomanAmount } from "../shared/lib/money";
 import { toPersianDigits } from "../shared/lib/digits";
 import { bundleServices, serviceKey } from "../shared/lib/serviceBundle";
+import { useBackHandler } from "../shared/hooks/useBackHandler";
 
 const OTHER = { id: "other", fa: "سایر" };
 
@@ -34,6 +35,7 @@ function groupServices(services) {
  * order picked, to `onConfirm`. Render it next to the `.spvBar`.
  */
 export function ServicesDropUp({ open, title, services, focusNames = null, focusLabel = "", onConfirm, onClose }) {
+  useBackHandler(open, onClose);
   const list = Array.isArray(services) ? services : [];
   // Services the client came for (a category tapped on «سالن و آرتیست من») are listed first, in a group of their own.
   const focusKey = Array.isArray(focusNames) ? focusNames.join("|") : "";

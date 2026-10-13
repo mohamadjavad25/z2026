@@ -5,6 +5,7 @@ import { Camera, Check, ChevronDown, KeyRound, X } from "lucide-react";
 import { defaultAvatarFor } from "../../shared/lib/defaultAvatar";
 import { beautySpecialtyOptions } from "../../shared/constants/roles";
 import { SpecialtyMultiSelect } from "../auth/SpecialtyMultiSelect";
+import { useBackHandler } from "../../shared/hooks/useBackHandler";
 
 /**
  * Registered profile edit sheet: one tidy scrolling page with three groups
@@ -20,6 +21,7 @@ export function ProfileEditModal({
   onSubmit,
   saving = false
 }) {
+  useBackHandler(Boolean(open && profile), onClose);
   // The password fields only exist while the section is open, so a closed
   // section can never send (or autofill) anything by accident.
   const [passwordOpen, setPasswordOpen] = useState(false);

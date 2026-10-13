@@ -4,11 +4,15 @@
  * The home screen is one URL: tabs, profile views, salon/artist pages and every
  * sheet are React state, so the browser had no history to go back to and the
  * back button closed the whole app. Anything that "back" should close registers
- * a handler here while it is open (see useBackHandler). While at least one is
- * registered we keep one extra history entry on top; pressing back pops it, and
- * instead of leaving we run the top handler and put the entry back if something
- * is still open. When nothing is open the entry is removed, so back leaves the
- * app as usual.
+ * a handler here while it is open (see useBackHandler), and gets one history
+ * entry of its own. Pressing back pops that entry and runs the top handler
+ * instead of leaving; closing it any other way (its X, the backdrop) removes
+ * the entry again. When nothing is open, back leaves the app as usual.
+ *
+ * Entries are only ever added when something opens, i.e. right after the
+ * user's tap — never after a back press. Chrome on Android skips the page that
+ * added an entry without a fresh tap (its "history manipulation intervention"),
+ * so re-adding one after each back press made the second press leave the site.
  *
  * Priority: overlays (sheets) close before the page under them, and pages before
  * the tab. Same priority: the most recently opened wins.
@@ -23,7 +27,8 @@ export const BACK_PRIORITY = {
 
 const entries = [];
 let nextId = 1;
-let hasEntry = false;
+// History entries added by this module that are still there.
+let pushed = 0;
 let ignoredPops = 0;
 let syncQueued = false;
 let listening = false;
@@ -42,20 +47,23 @@ function removeEntry(id) {
 }
 
 // Deferred to the next task so a sheet closing and another opening in the same
-// render (e.g. post → its artist's page) don't pop and re-push the entry.
+// render (e.g. post → its artist's page) leave history untouched.
 function queueSync() {
   if (syncQueued) return;
   syncQueued = true;
   window.setTimeout(() => {
     syncQueued = false;
-    if (entries.length && !hasEntry) {
-      window.history.pushState({ ...(window.history.state || {}), frfroBack: true }, "");
-      hasEntry = true;
-    } else if (!entries.length && hasEntry) {
-      // Closed with its own button: drop the extra entry so the next back leaves.
-      hasEntry = false;
+    const diff = entries.length - pushed;
+    if (diff > 0) {
+      for (let i = 0; i < diff; i += 1) {
+        window.history.pushState({ ...(window.history.state || {}), frfroBack: true }, "");
+      }
+      pushed += diff;
+    } else if (diff < 0) {
+      // Closed with its own button: drop its entries so back doesn't land on them.
+      pushed += diff;
       ignoredPops += 1;
-      window.history.back();
+      window.history.go(diff);
     }
   }, 0);
 }
@@ -65,13 +73,12 @@ function handlePopState() {
     ignoredPops -= 1;
     return;
   }
-  if (!hasEntry) return;
-  hasEntry = false;
+  if (pushed === 0) return;
+  pushed -= 1;
   const entry = topEntry();
-  if (entry) {
-    // A handler returns false when it can't close right now (e.g. while saving).
-    if (entry.handler() !== false) removeEntry(entry.id);
-  }
+  // A handler returns false when it can't close right now (e.g. while saving);
+  // it keeps its place and gets its entry back.
+  if (entry && entry.handler() !== false) removeEntry(entry.id);
   queueSync();
 }
 
