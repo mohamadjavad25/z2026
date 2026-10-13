@@ -5,13 +5,13 @@ name: Expire stale booking requests
 # real Supabase project; Vercel Cron needs a real Vercel deployment --
 # neither existed yet when this was added, see docs/DEVLOG.md). A GitHub
 # Actions schedule works against whatever the app ends up deployed to, as
-# long as APP_URL/CRON_SECRET repo secrets are set.
+# long as the CRON_SECRET repo secret is set.
 #
-# Setup once a real deployment exists: repo Settings -> Secrets and
-# variables -> Actions, add APP_URL (e.g. https://frfro.example.com,
-# no trailing slash) and CRON_SECRET (must match the app's own
-# CRON_SECRET env var -- see .env.example). Until those secrets are set,
-# every run below no-ops instead of failing loudly on every schedule tick.
+# APP_URL is the site's public domain (https://frfro.ir), so it lives here
+# rather than in a secret. CRON_SECRET (repo Settings -> Secrets and
+# variables -> Actions) must match the app's own CRON_SECRET env var -- see
+# .env.example. Until it is set, every run below no-ops instead of failing
+# loudly on every schedule tick.
 #
 # 3 minutes (RECOMMENDED_SWEEP_INTERVAL_MS in app/lib/bookingExpirySweep.js)
 # is below GitHub's practical reliability floor for scheduled workflows
@@ -32,11 +32,11 @@ jobs:
     steps:
       - name: Call /api/cron/expire-bookings
         env:
-          APP_URL: ${{ secrets.APP_URL }}
+          APP_URL: https://frfro.ir
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
           if [ -z "$APP_URL" ] || [ -z "$CRON_SECRET" ]; then
-            echo "APP_URL/CRON_SECRET repo secrets not set yet -- skipping (see comment at the top of this workflow file)."
+            echo "CRON_SECRET repo secret not set yet -- skipping (see comment at the top of this workflow file)."
             exit 0
           fi
           status=$(curl -sS -o /tmp/response.json -w "%{http_code}" \
@@ -52,7 +52,7 @@ jobs:
       # left, or while SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY are not set on the app).
       - name: Call /api/cron/migrate-media
         env:
-          APP_URL: ${{ secrets.APP_URL }}
+          APP_URL: https://frfro.ir
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
           if [ -z "$APP_URL" ] || [ -z "$CRON_SECRET" ]; then
