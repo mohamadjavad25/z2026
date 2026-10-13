@@ -3,6 +3,8 @@ import { useShellNavigation } from "./useShellNavigation";
 import { ProfileModeRail } from "../profile/ProfileModeRail";
 import { ProfileHeroWeekStrip } from "../profile/ProfileHeroWeekStrip";
 import { SalonWeekStripDock } from "./SalonWeekStripDock";
+import { useBackHandler } from "../../shared/hooks/useBackHandler";
+import { BACK_PRIORITY } from "../../shared/lib/backStack";
 
 export function useHomeChrome({
   salonHoursList,
@@ -195,6 +197,22 @@ export function useHomeChrome({
     publicArtistPortfolio
   });
 
+
+  // The phone's back button walks back through the screens instead of closing
+  // the app (sheets register themselves through SheetClose): an open artist or
+  // salon page closes first, then a profile view goes back to the overview, then
+  // any other tab goes back to the profile tab, and only then does back leave.
+  useBackHandler(Boolean(selectedPublicArtist), closePublicArtistProfile, BACK_PRIORITY.page);
+  useBackHandler(Boolean(selectedSalon) && activeTab === "salons", closeSelectedSalon, BACK_PRIORITY.page);
+  useBackHandler(
+    Boolean(createdProfile) && activeTab === "profile" && (Boolean(salonWorkspace) || (profileView && profileView !== "overview")),
+    () => {
+      closeSalonWorkspace();
+      setProfileView("overview");
+    },
+    BACK_PRIORITY.view
+  );
+  useBackHandler(Boolean(createdProfile) && activeTab !== "profile", () => goToTab("profile"), BACK_PRIORITY.tab);
 
   const profileModeRail = (
     <ProfileModeRail

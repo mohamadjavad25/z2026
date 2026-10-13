@@ -71,6 +71,20 @@ const nextConfig = {
   // connection.js reads the DB CA at runtime via PGSSL_CA_PATH; make sure
   // the file is traced into every serverless function that touches the DB.
   outputFileTracingIncludes: { "/**": ["./certs/**"] },
+  // The site's own domain is frfro.ir; the old Vercel address sends visitors
+  // there so shared links and QR codes always carry frfro.ir. /api/ is left
+  // alone so anything still calling the old address (e.g. the GitHub Actions
+  // cron, whose APP_URL secret may still point at it) keeps working.
+  async redirects() {
+    return [
+      {
+        source: "/:path((?!api/).*)",
+        has: [{ type: "host", value: "z2026.vercel.app" }],
+        destination: "https://frfro.ir/:path",
+        permanent: true
+      }
+    ];
+  },
   async headers() {
     return [
       {
