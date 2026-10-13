@@ -1,4 +1,5 @@
 {
+  "name": "frfro",
   "type": "module",
   "engines": {
     "node": ">=22"

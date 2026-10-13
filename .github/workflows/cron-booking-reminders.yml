@@ -1,6 +1,6 @@
 name: Send booking reminders
 
-# Same pattern as cron-expire-bookings.yml: needs the APP_URL and CRON_SECRET repo secrets,
+# Same pattern as cron-expire-bookings.yml: needs the CRON_SECRET repo secret,
 # otherwise every run no-ops. 10 minutes is plenty: reminders are "about a day" / "about two hours" before.
 on:
   schedule:
@@ -13,11 +13,11 @@ jobs:
     steps:
       - name: Call /api/cron/send-reminders
         env:
-          APP_URL: ${{ secrets.APP_URL }}
+          APP_URL: https://frfro.ir
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
           if [ -z "$APP_URL" ] || [ -z "$CRON_SECRET" ]; then
-            echo "APP_URL/CRON_SECRET repo secrets not set yet -- skipping."
+            echo "CRON_SECRET repo secret not set yet -- skipping."
             exit 0
           fi
           status=$(curl -sS -o /tmp/response.json -w "%{http_code}" \

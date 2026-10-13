@@ -15,7 +15,7 @@
  * already established for the wallet/chat/shop removal.
  */
 
-const SUPPORT_EMAIL = "support@frfro.example.com";
+const SUPPORT_EMAIL = "support@frfro.ir";
 
 export const termsContent = {
   title: "قوانین و مقررات استفاده از frfro",
