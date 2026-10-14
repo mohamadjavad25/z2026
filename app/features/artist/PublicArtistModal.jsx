@@ -1,15 +1,14 @@
 "use client";
 
-import { Bookmark, CalendarCheck, Check, ChevronLeft, ChevronUp, Clock3, Heart, Info, Phone, Scissors, Share2 } from "lucide-react";
+import { Bookmark, CalendarCheck, Check, ChevronLeft, ChevronUp, Clock3, Heart, Info, MapPin, Phone, Scissors, Share2, Sparkles } from "lucide-react";
+import { PublicAboutSheet } from "../../components/PublicAboutSheet";
 import { PublicProfileHeader } from "../../components/PublicProfileHeader";
 import { ServicesDropUp } from "../../components/ServicesDropUp";
 import { bundleServices } from "../../shared/lib/serviceBundle";
-import { SheetClose } from "../../components/SheetClose";
 import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { DEFAULT_PERSON_AVATAR } from "../../shared/lib/defaultAvatar";
 import { isPublicArtistSlotBlocked } from "./bookingUtils";
-import { PublicArtistAboutPanel } from "./PublicArtistAboutPanel";
 import { PublicArtistBookingPanel } from "./PublicArtistBookingPanel";
 import { PublicArtistGalleryPanel } from "./PublicArtistGalleryPanel";
 import { ProfileSheet } from "../profile/ProfileSheet";
@@ -271,24 +270,33 @@ export function PublicArtistModal({
           </ProfileSheet>
 
           {aboutPopup ? (
-            <div
-              className="artistAboutPopup"
-              role="dialog"
-              aria-modal="true"
-              aria-label="درباره هنرمند"
-              onClick={() => setAboutPopup(false)}
+            <PublicAboutSheet
+              kicker="درباره آرتیست"
+              name={artist.name}
+              avatar={artist.avatar || DEFAULT_PERSON_AVATAR}
+              avatarPosition={artist.avatarPosition || "50% 50%"}
+              bio={artist.bio}
+              emptyBio="این آرتیست هنوز معرفی ننوشته است. نمونه‌کارها را ببین یا مستقیم رزرو کن."
+              rows={[
+                { icon: Sparkles, label: "تخصص‌ها", value: String(artist.service || "").split(/[،,]/).map((item) => item.trim()).filter(Boolean).join("، ") },
+                { icon: MapPin, label: "محدوده", value: artist.area }
+              ]}
+              onClose={() => setAboutPopup(false)}
             >
-              <article className="artistAboutPopupSheet" onClick={(event) => event.stopPropagation()}>
-                <div className="artistAboutPopupHead">
-                  <span className="artistAboutPopupHeadIcon">
-                    <Info size={18} />
-                  </span>
-                  <h3>درباره {artist.name}</h3>
-                </div>
-                <PublicArtistAboutPanel artist={artist} />
-              </article>
-              <SheetClose onClick={() => setAboutPopup(false)} />
-            </div>
+              {weekHours.length ? (
+                <section className="pasBlock">
+                  <h4>ساعات کاری</h4>
+                  <ul className="pasHours">
+                    {weekHours.map((row) => (
+                      <li key={row.day} className={row.day === todayName ? "is-today" : ""}>
+                        <span>{row.day}</span>
+                        <span>{row.active ? `${toPersianDigits(row.open_time || "")} تا ${toPersianDigits(row.close_time || "")}` : "تعطیل"}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ) : null}
+            </PublicAboutSheet>
           ) : null}
         </section>
       </article>
