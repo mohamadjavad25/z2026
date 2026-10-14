@@ -357,6 +357,40 @@
   cursor: pointer;
 }
 
+/* «اسکن کن» + «از مخاطبین» side by side */
+.salonCustomersHead:has(.cnOwnerActions) { flex-wrap: wrap; }
+.cnOwnerActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+}
+.cnScanCustomerBtn.is-contact {
+  background: #ffffff;
+  color: #14161d;
+  box-shadow: inset 0 0 0 1.5px #14161d;
+}
+.cnScanCustomerBtn:disabled { opacity: 0.6; cursor: default; }
+
+/* After booking a contact: text them the booking */
+.bookingSendBody {
+  display: grid;
+  gap: 12px;
+  padding: 4px 18px 22px;
+}
+.bookingSendBody p { margin: 0; color: #565a68; font-size: 0.9rem; line-height: 1.8; text-align: center; }
+.bookingSendBody a.cnScanCustomerBtn { text-decoration: none; }
+.bookingSendLater {
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  color: #565a68;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
 /* ═══ Full-screen QR scanner ═══════════════════════════════════════════ */
 .qrScanner {
   position: fixed;

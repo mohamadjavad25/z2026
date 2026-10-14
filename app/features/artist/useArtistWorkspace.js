@@ -375,6 +375,7 @@ export function useArtistWorkspace({
         // form may unmount with the sheet
       }
       await refreshArtistWorkspace();
+      return true;
     } catch {
       notify("ثبت نوبت انجام نشد.");
     } finally {

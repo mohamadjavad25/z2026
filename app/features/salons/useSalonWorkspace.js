@@ -415,6 +415,7 @@ export function useSalonWorkspace({
       }
       if (typeof onCloseBookingSheet === "function") onCloseBookingSheet();
       await refreshSalonBookingsLive(salonBookingsEpochRef.current);
+      return true;
     } catch {
       shellNotify("ثبت رزرو انجام نشد؛ دوباره امتحان کن.");
     } finally {

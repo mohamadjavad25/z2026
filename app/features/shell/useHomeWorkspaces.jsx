@@ -229,6 +229,7 @@ export function useHomeWorkspaces({
     artistBookingDateForSlots,
     artistBookingFreeSlots,
     selectedArtistService,
+    bookingPrefill,
     openBookingSheet,
     closeBookingSheet
   } = useBookingCreateSheet({
@@ -377,6 +378,7 @@ export function useHomeWorkspaces({
     artistBookingDayOptions,
     artistBookingDateForSlots,
     artistBookingFreeSlots,
+    bookingPrefill,
     openBookingSheet,
     closeBookingSheet,
     resetLogoutUiGaps

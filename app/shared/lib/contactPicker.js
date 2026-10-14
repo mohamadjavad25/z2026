@@ -31,3 +31,10 @@ export function isMobilePhone(text) {
 export function invitePhoneOf(phones = []) {
   return phones.find(isMobilePhone) || phones[0] || "";
 }
+
+/** A contact's number as a local mobile (09…) the booking form expects; other numbers come back as plain digits. */
+export function localMobile(text) {
+  const digits = toLatinDigits(String(text || "")).replace(/\D/g, "");
+  const match = digits.match(/^(?:0098|98|0)?(9\d{9})$/);
+  return match ? `0${match[1]}` : digits;
+}

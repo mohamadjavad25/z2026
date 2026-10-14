@@ -45,11 +45,14 @@ export function BookingCreateForm({
   onTimeChange,
   submitDisabled = false,
   submitting = false,
-  onAddService
+  onAddService,
+  initialName = "",
+  initialPhone = ""
 }) {
   const showStaff = role === "salon" && staffOptions.length > 0;
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
+  // A customer picked from the phone's contacts arrives already filled in (the sheet mounts the form fresh each time).
+  const [name, setName] = useState(initialName);
+  const [phone, setPhone] = useState(initialPhone);
   // Only the nearest free times are shown first; the rest open on demand.
   const [allTimes, setAllTimes] = useState(false);
   const [tried, setTried] = useState(false);
