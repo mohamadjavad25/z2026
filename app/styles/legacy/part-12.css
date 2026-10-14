@@ -1087,13 +1087,13 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
 
 .profilePanel.page-profile:has(.createdProfile.is-artist),
 .profilePanel.page-profile:has(.createdProfile.is-client) {
-  min-height: 100vh;
+  min-height: 100dvh;
   padding: 18px 8px calc(178px + env(safe-area-inset-bottom));
 }
 
 .profilePanel.page-profile.is-salon-profile,
 .profilePanel.page-profile:has(.createdProfile.is-salon) {
-  min-height: 100vh;
+  min-height: 100dvh;
   margin-top: 0 !important;
   padding: 0 0 calc(178px + env(safe-area-inset-bottom)) !important;
 }

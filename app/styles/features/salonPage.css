@@ -98,3 +98,15 @@
 .cbOfferActions button.is-accept { background: #14161d; border-color: #14161d; color: #fff; }
 .cbOfferActions button:disabled { opacity: 0.6; }
 .salonPublicAboutBio.is-empty { color: #8a8e9b; }
+
+/* Full-screen salon/artist pages scroll inside their own container. Keep the document itself
+   still (and exactly as tall as the screen) so the phone's address bar can't resize the page
+   and leave a blank strip under the bottom bar, and so a flick at the top or bottom of the
+   page doesn't drag the whole thing. `100vh` (the tall viewport) is gone from the page shell
+   for the same reason: it was taller than the screen while the address bar was showing. */
+:root:has(.salonPublicProfile),
+:root:has(.artistPublicPage),
+:root:has(.salonPublicProfile) body,
+:root:has(.artistPublicPage) body { height: 100dvh; overflow: hidden; }
+:root .salonPublicProfile,
+:root .artistPublicSheet { overscroll-behavior-y: contain; }
