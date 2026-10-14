@@ -1,7 +1,7 @@
 "use client";
 
 import { thumbUrl } from "../../shared/lib/mediaUrl";
-import { ImagePlus, Lock, Pin } from "lucide-react";
+import { ImagePlus, Lock, Pin, Plus } from "lucide-react";
 import { SkeletonList } from "../../components/Skeleton";
 import { Mascot } from "../../components/Mascot";
 import { ProfilePostComposer } from "./ProfilePostComposer";
@@ -51,6 +51,8 @@ export function ProfileGallery({
 }) {
   const showFilters = Array.isArray(filters) && filters.length > 2 && typeof onFilterChange === "function";
   const hasItems = items.length > 0;
+  // With posts present, "create post" is a tile in the grid (second slot), not a header button.
+  const addAsTile = Boolean(onAdd) && hasItems && !hideBody;
   const mosaicClass = items.length === 1 ? "is-single" : items.length === 2 ? "is-pair" : "is-mosaic";
 
   function handleAddKeyDown(event) {
@@ -61,10 +63,31 @@ export function ProfileGallery({
     }
   }
 
+  function renderAddTile() {
+    return (
+      <button
+        type="button"
+        className="galleryAddTile"
+        key="__add"
+        onClick={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          onAdd?.();
+        }}
+      >
+        <span className="galleryAddTileOrb" aria-hidden="true">
+          <Plus size={26} strokeWidth={2.6} />
+        </span>
+        <b>{addLabel}</b>
+        <small>نمونه‌کار تازه‌ات رو بذار</small>
+      </button>
+    );
+  }
+
   return (
     <>
-      <section className={`profileGallery ${className}`.trim()} aria-label={label}>
-        {onAdd ? (
+      <section className={`profileGallery ${addAsTile ? "has-add-tile" : ""} ${className}`.trim()} aria-label={label}>
+        {onAdd && !addAsTile ? (
           <div className="profileGalleryHead">
             <button
               type="button"
@@ -108,13 +131,13 @@ export function ProfileGallery({
             className={`profileGalleryGrid ${mosaicClass}`}
             aria-label={label}
           >
-            {items.map((item, index) => {
+            {items.flatMap((item, index) => {
               const key = item.id || item.title;
               const isEditing = editingId != null && editingId === item.id;
               const clickable = typeof onItemClick === "function";
               const actions = typeof renderActions === "function" ? renderActions(item) : null;
 
-              return (
+              const card = (
                 <article
                   className={`profileGalleryCard ${item.featured ? "is-featured" : ""} ${isEditing ? "is-editing" : ""} ${clickable ? "is-clickable" : ""}`}
                   key={key}
@@ -158,6 +181,7 @@ export function ProfileGallery({
                   {actions ? <div className="profileGalleryCardActions">{actions}</div> : null}
                 </article>
               );
+              return addAsTile && index === 0 ? [card, renderAddTile()] : [card];
             })}
           </div>
         ) : !hideBody && !loading ? (
