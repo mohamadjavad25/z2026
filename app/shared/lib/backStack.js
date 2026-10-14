@@ -90,3 +90,8 @@ export function registerBackHandler(handler, priority = BACK_PRIORITY.overlay) {
     queueSync();
   };
 }
+
+/** True while a sheet or other overlay is open (used by pull-to-refresh to stay out of the way). */
+export function hasOpenOverlay() {
+  return entries.some((entry) => entry.priority >= BACK_PRIORITY.overlay);
+}
