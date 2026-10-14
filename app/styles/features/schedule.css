@@ -1740,3 +1740,189 @@
   line-height: 1.8;
   text-align: start;
 }
+
+/* ═══ Booking screen (ScheduleBookingMenuModal): fills the app, answer + bar pinned at the bottom ═══ */
+.sbmScreen{
+  position: fixed;
+  inset: 0;
+  left: max(0px, calc((100vw - 460px) / 2));
+  right: max(0px, calc((100vw - 460px) / 2));
+  z-index: var(--z-modal-high);
+  display: flex;
+  flex-direction: column;
+  background: #f4f4f7;
+  animation: sbmIn var(--duration-base) var(--ease-standard) both;
+}
+
+.sbmScreen .sbmBody{
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  max-height: none;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  gap: 12px;
+  padding: calc(env(safe-area-inset-top, 0px) + 14px) 16px 20px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.sbmFoot{
+  flex: none;
+  display: grid;
+  gap: 10px;
+  padding: 12px 16px calc(env(safe-area-inset-bottom, 0px) + 12px);
+  border-top: 1px solid rgba(28, 32, 44, 0.08);
+  background: #fff;
+  box-shadow: 0 -12px 30px rgba(28, 32, 44, 0.06);
+}
+
+.sbmFoot .scheduleBookingReviewActions button{
+  min-height: 52px;
+  border-radius: 16px;
+  font-size: 0.9rem;
+}
+
+.sbmBar{
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+
+.sbmBar button{
+  min-height: 58px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 4px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 16px;
+  background: #f2f2f6;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.sbmBar button.is-active{
+  background: linear-gradient(135deg, var(--night), var(--plum));
+  color: #fff;
+}
+
+.sbmBar button:disabled{
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.sbmBar button:focus-visible,
+.sbmAuto button:focus-visible,
+.sbmCancel:focus-visible{
+  outline: 3px solid rgba(20, 22, 29, 0.25);
+  outline-offset: 2px;
+}
+
+.sbmPhone{
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.clientBookingSettingsStatus.is-live{
+  animation: sbmPulse 1.6s ease-in-out infinite;
+}
+
+/* «چیدن خودکار»: the system's split, or why there is none */
+.sbmAuto{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: rgba(20, 22, 29, 0.05);
+  color: var(--ink);
+}
+
+.sbmAuto > svg{ flex: none; }
+.sbmAuto span{ flex: 1; min-width: 0; display: grid; gap: 2px; }
+.sbmAuto b{ font-size: 0.8rem; font-weight: 900; }
+.sbmAuto small{ color: inherit; opacity: 0.75; font-size: 0.68rem; font-weight: 800; line-height: 1.7; }
+
+.sbmAuto button{
+  flex: none;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--night);
+  color: #fff;
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.sbmAuto button:disabled{ opacity: 0.5; cursor: not-allowed; }
+.sbmAuto.is-missing{ background: #fff5e8; color: #8a4a0c; box-shadow: inset 0 0 0 1px #f3d9b5; }
+.sbmAuto.is-stuck{ align-items: flex-start; background: var(--danger-bg); color: var(--danger); }
+.sbmAuto.is-stuck > svg{ margin-top: 3px; }
+
+.sbmCancel{
+  justify-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--danger);
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.sbmCancel:disabled{ opacity: 0.5; cursor: not-allowed; }
+
+.sbmBack{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Artist choices: who is free at that service's time, who does it, who is away */
+.sbmScreen .bpeList{ max-height: none; }
+.scheduleBookingArtist .bpeList{ padding: 0 8px 8px; }
+.scheduleBookingArtist.is-empty:not(.is-open){ border-color: #f3d9b5; background: #fff5e8; }
+.scheduleBookingArtist.is-empty .scheduleStaffAvatar{ display: grid; place-items: center; color: #8a4a0c; }
+.bpeList .scheduleStaffAvatar:not(.hasImage){ display: grid; place-items: center; background: #f2f2f6; color: var(--muted); }
+.bpeList button:disabled{ cursor: not-allowed; }
+.bpeList button.is-busy{ opacity: 0.55; }
+.bpeTags{ flex: 0 1 auto; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; max-width: 48%; }
+.bpeTags i{ padding: 2px 7px; border-radius: 999px; font-size: 0.6rem; font-style: normal; font-weight: 900; white-space: nowrap; }
+.bpeTags .is-free{ background: var(--success-bg); color: var(--success); }
+.bpeTags .is-busy{ background: var(--danger-bg); color: var(--danger); }
+.bpeTags .is-skill{ background: rgba(20, 22, 29, 0.07); color: var(--ink); }
+.bpeTags .is-away{ background: #fff5e8; color: #8a4a0c; }
+
+@keyframes sbmIn{
+  from{ opacity: 0; transform: translateY(18px); }
+  to{ opacity: 1; transform: none; }
+}
+
+@keyframes sbmPulse{
+  0%, 100%{ box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.35); }
+  50%{ box-shadow: 0 0 0 6px rgba(217, 119, 6, 0); }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .sbmScreen,
+  .clientBookingSettingsStatus.is-live{ animation: none; }
+}
