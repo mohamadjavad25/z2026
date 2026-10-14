@@ -106,3 +106,8 @@
   --z-top-sheet: 2147483000; /* QR sheet */
   --z-toast: 2147483001;     /* toasts always win */
 }
+
+/* No browser-default blue flash on tap/click. Keyboard focus rings stay (:focus-visible). */
+*, *::before, *::after { -webkit-tap-highlight-color: transparent; }
+a, button, summary, label, select, [role="button"], [role="tab"], [role="link"], [tabindex] { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+button:focus:not(:focus-visible), a:focus:not(:focus-visible), [tabindex]:focus:not(:focus-visible) { outline: none; }
