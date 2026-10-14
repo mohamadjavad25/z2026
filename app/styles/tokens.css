@@ -102,6 +102,7 @@
   --z-sheet-busy: 100000;
   --z-sheet-close: 100001;   /* the pinned close button of any sheet */
   --z-busy-bar: 100002;      /* thin network progress bar */
+  --z-pull-refresh: 100003;  /* pull-to-refresh indicator in the app */
   --z-top-sheet: 2147483000; /* QR sheet */
   --z-toast: 2147483001;     /* toasts always win */
 }

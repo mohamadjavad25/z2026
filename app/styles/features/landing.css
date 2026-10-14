@@ -274,7 +274,7 @@ html.native-app .webOnlyAppLink { display: none !important; }
   position: fixed;
   top: calc(env(safe-area-inset-top, 0px) - 44px);
   left: 50%;
-  z-index: 10000;
+  z-index: var(--z-pull-refresh);
   width: 40px;
   height: 40px;
   display: grid;
