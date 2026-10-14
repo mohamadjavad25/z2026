@@ -5,7 +5,14 @@
    ═══════════════════════════════════════════════════════════════════════ */
 
 /* ── Header: cover, logo on the right over its bottom edge, name beside it ── */
-.pphHero { --pph-cover: 214px; --pph-logo: 112px; position: relative; color: #14161d; }
+.pphHero { --pph-cover: 216px; --pph-logo: 112px; --pph-logo-top: 158px; --pph-logo-right: 25px; position: relative; color: #14161d; }
+/* Same cover + logo as the owner's own hero. Artist: full-width poster, dark fade at the foot, white sheet rounded on top. */
+.pphHero.is-salon .pphCover { margin: 0 10px; border-radius: 0 0 14px 14px; }
+.pphHero.is-artist { --pph-cover: 248px; --pph-logo: 108px; --pph-logo-top: 174px; --pph-logo-right: 18px; }
+.pphHero.is-artist .pphCover { border-radius: 0; }
+.pphHero.is-artist .pphCover::after { content: ""; position: absolute; z-index: 1; inset: auto 0 0; height: 80px; background: linear-gradient(180deg, transparent, rgba(18, 18, 22, 0.5)); pointer-events: none; }
+.pphHero.is-artist .pphCover::before { content: ""; position: absolute; z-index: 2; inset: auto 0 0; height: 28px; border-radius: 24px 24px 0 0; background: linear-gradient(180deg, #f9f9fb 0%, #fefeff 100%); pointer-events: none; }
+.pphHero.is-artist .pphTopbar { z-index: 3; }
 .pphCover { position: relative; height: var(--pph-cover); overflow: hidden; border-radius: 0 0 28px 28px; background: #14102a url("/artist-hero-doodle.webp") center / cover no-repeat; }
 .pphCoverImage { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .pphTopbar { position: absolute; z-index: 2; top: calc(22px + env(safe-area-inset-top)); right: 20px; left: 20px; display: flex; justify-content: space-between; }
@@ -13,10 +20,10 @@
 .pphRound { width: 40px; height: 40px; display: grid; place-items: center; border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 50%; background: rgba(10, 11, 18, 0.4); color: rgba(255, 255, 255, 0.96); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 6px 16px rgba(0, 0, 0, 0.22); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); cursor: pointer; }
 .pphRound.is-saved { color: #ffb3c4; }
 .pphRound:focus-visible { outline: 3px solid #ffffff; outline-offset: 2px; }
-.pphAvatar { position: absolute; top: calc(var(--pph-cover) - var(--pph-logo) / 2); right: 25px; width: var(--pph-logo); height: var(--pph-logo); display: grid; place-items: center; overflow: hidden; border-radius: 50%; background: #ffffff; box-shadow: var(--logo-glow); }
+.pphAvatar { position: absolute; z-index: 3; top: var(--pph-logo-top); right: var(--pph-logo-right); width: var(--pph-logo); height: var(--pph-logo); display: grid; place-items: center; overflow: hidden; border-radius: 50%; background: #ffffff; box-shadow: var(--logo-glow); }
 .pphAvatar img { width: 100%; height: 100%; object-fit: cover; }
 .pphAvatar b { font-size: 2.4rem; font-weight: 950; color: #14161d; }
-.pphMeta { min-height: calc(var(--pph-logo) / 2 + 4px); box-sizing: border-box; padding: 12px calc(25px + var(--pph-logo) + 16px) 0 20px; display: grid; align-content: start; gap: 2px; }
+.pphMeta { min-height: calc(var(--pph-logo-top) + var(--pph-logo) - var(--pph-cover) + 8px); box-sizing: border-box; padding: 12px calc(var(--pph-logo-right) + var(--pph-logo) + 16px) 0 20px; display: grid; align-content: start; gap: 2px; }
 .pphMeta h2 { margin: 0; overflow: hidden; color: #14161d; font-size: 1.38rem; font-weight: 850; line-height: 1.35; white-space: nowrap; text-overflow: ellipsis; }
 .pphMeta p { margin: 0; color: #6f7380; font-size: 0.94rem; font-weight: 700; }
 
