@@ -3,6 +3,7 @@ import Script from "next/script";
 import PbdqInspector from "./components/PbdqInspector.jsx";
 import { ViewportHeightFix } from "./components/ViewportHeightFix.jsx";
 import { ClientErrorReporter } from "./components/ClientErrorReporter.jsx";
+import { PullToRefresh } from "./components/PullToRefresh.jsx";
 import { getSiteUrl } from "./lib/siteUrl.js";
 import { AppLanding } from "./features/landing/AppLanding";
 import { LargeScreenGate } from "./features/landing/LargeScreenGate";
@@ -88,6 +89,7 @@ export default function RootLayout({ children }) {
         <PbdqInspector />
         <ViewportHeightFix />
         <ClientErrorReporter />
+        <PullToRefresh />
         <LargeScreenGate landing={<AppLanding />}>{children}</LargeScreenGate>
         <Script id="sw-register" strategy="afterInteractive">
           {`if ("serviceWorker" in navigator) {

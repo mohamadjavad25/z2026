@@ -3,6 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 import { getSavedPosts, setPostSaved, viewPost } from "../../shared/api/posts";
 import { mapSharedPost } from "./mappers";
+import { useAppRefresh } from "../../shared/lib/appRefresh";
 
 function postUrl(post) {
   if (typeof window === "undefined") return "";
@@ -52,6 +53,8 @@ export function usePostActivity({ onNotice } = {}) {
       // keep what we have
     }
   }, []);
+
+  useAppRefresh(refreshSavedPosts);
 
   const resetPostActivity = useCallback(() => {
     feedRequestRef.current += 1;

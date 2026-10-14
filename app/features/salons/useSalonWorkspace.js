@@ -1,6 +1,7 @@
 "use client";
 
 import { usePolling } from "../../shared/lib/usePolling";
+import { useAppRefresh } from "../../shared/lib/appRefresh";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createSalonBooking, getSalonBookings, getSalonCollabs, getSalonHours, getSalonInvites, getSalonPortfolio, getSalonServices, getSalonStaff, getSalons, updateSalonBooking } from "../../shared/api/salons";
 import { getApiErrorMessage } from "../../shared/lib/apiNotify";
@@ -327,6 +328,7 @@ export function useSalonWorkspace({
       }
     };
   usePolling(pollSalonLive, 20000, createdProfile?.type === "salon");
+  useAppRefresh(refreshSalonSystemData, createdProfile?.type === "salon");
 
   useEffect(() => {
     const activeTool = salonWorkspace || (salonToolSheetOpen ? salonTool : null);
