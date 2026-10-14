@@ -70,8 +70,7 @@ async function _POST(request) {
       area: data.area || "",
       service: data.service || "",
       email: data.email || "",
-      avatar: data.avatar || "",
-      bio: data.bio || ""
+      avatar: data.avatar || ""
     });
 
     if (type === "salon") await ensureSalonHours(user.id);

@@ -54,7 +54,6 @@ export function useScheduleBookingMenu({
       phone: booking.phone || "",
       avatar: booking.clientAvatar || booking.client_avatar || "",
       area: booking.clientArea || "",
-      bio: booking.clientBio || "",
       type: booking.clientType || "client",
       bookingCount: related.length || 1,
       bookings: related,

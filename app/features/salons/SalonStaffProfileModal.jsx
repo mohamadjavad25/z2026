@@ -111,8 +111,6 @@ export function SalonStaffProfileModal({
   const collabDays = staffBio.match(/روزها:\s*([^·]+)/)?.[1]?.trim() || "";
   const collabHours = staffBio.match(/ساعت:\s*([^·]+)/)?.[1]?.trim() || "";
   const collabShare = staffBio.match(/سهم آرتیست:\s*([^·]+)/)?.[1]?.trim() || "";
-  const isCollabBio = /پیشنهاد همکاری|سهم آرتیست|روزها:/.test(staffBio);
-  const plainBio = isCollabBio || /^پیوستن با اسکن کد QR/.test(staffBio) ? "" : staffBio;
 
   return (
     <div
@@ -231,11 +229,6 @@ export function SalonStaffProfileModal({
               {collabHours ? <span><Timer size={14} />{toPersianDigits(collabHours)}</span> : null}
               {collabShare ? <span><Percent size={14} />سهم آرتیست {toPersianDigits(collabShare)}</span> : null}
             </div>
-          </section>
-        ) : plainBio ? (
-          <section className="smdSection">
-            <h4>توضیحات</h4>
-            <p className="smdBio">{plainBio}</p>
           </section>
         ) : null}
 

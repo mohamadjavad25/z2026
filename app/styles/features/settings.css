@@ -494,15 +494,6 @@ button.artistWorkTagTrigger > svg{
   font-weight: 800;
 }
 
-.salonPublicAboutRules p{
-  margin: 0;
-  white-space: pre-line;
-  color: var(--ink);
-  font-size: 0.8rem;
-  font-weight: 700;
-  line-height: 1.95;
-}
-
 /* Image action sheet: compact bottom sheet instead of a full-screen panel */
 .salonHeroSheetBackdrop:has(.imageActionSheet){
   align-items: flex-end;

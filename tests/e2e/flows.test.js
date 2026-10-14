@@ -455,7 +455,7 @@ describe("accessibility (browser)", () => {
 });
 
 describe("profile completeness (browser)", () => {
-  it("shows a new salon what is missing, and stays dismissed once closed", async () => {
+  it("shows a new salon what is missing, and comes back after a refresh once closed", async () => {
     const api = createClient();
     await registerUser(api, { type: "salon", name: "سالن ناقص" });
     const { page, context } = await newPage({ cookie: api.cookie() });
@@ -466,7 +466,7 @@ describe("profile completeness (browser)", () => {
     await page.getByRole("button", { name: "بستن یادآوری تکمیل پروفایل" }).click();
     await card.waitFor({ state: "detached" });
     await page.reload({ waitUntil: "networkidle" });
-    expect(await page.locator(".profileCompleteness").count()).toBe(0);
+    await page.locator(".profileCompleteness").waitFor();
     await context.close();
   });
 });

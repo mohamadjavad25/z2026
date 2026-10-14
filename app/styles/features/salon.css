@@ -4061,8 +4061,7 @@
 
 
 
-.salonClientReviewsPanel,
-.salonClientAboutPanel{
+.salonClientReviewsPanel {
   gap: 12px;
 }
 
@@ -4135,62 +4134,6 @@
   color: var(--muted);
   font-size: 0.7rem;
   font-weight: 750;
-}
-
-
-
-.salonClientAboutBio{
-  margin: 0;
-  padding: 2px 0;
-  color: var(--ink);
-  font-size: 0.9rem;
-  font-weight: 700;
-  line-height: 1.8;
-}
-
-
-
-.salonClientAboutList{
-  display: grid;
-  gap: 10px;
-}
-
-
-
-.salonClientAboutList > div{
-  display: grid;
-  grid-template-columns: 34px minmax(0, 1fr);
-  gap: 10px;
-  align-items: start;
-  padding: 12px 12px;
-  border-radius: 16px;
-  background: rgba(243, 244, 245, 0.9);
-}
-
-
-
-.salonClientAboutList svg{
-  margin-top: 2px;
-  color: #14161d;
-  justify-self: center;
-}
-
-
-
-.salonClientAboutList b{
-  display: block;
-  margin-bottom: 2px;
-  font-size: 0.82rem;
-  font-weight: 900;
-}
-
-
-
-.salonClientAboutList span{
-  color: rgba(28, 32, 44, 0.55);
-  font-size: 0.74rem;
-  font-weight: 700;
-  line-height: 1.45;
 }
 
 

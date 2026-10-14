@@ -70,7 +70,6 @@ function buildArtistJsonLd(artist, canonicalUrl) {
     url: canonicalUrl
   };
   if (artist.avatar) jsonLd.image = artist.avatar;
-  if (artist.bio) jsonLd.description = artist.bio;
   if (artist.service) jsonLd.jobTitle = `آرتیست ${artist.service}`;
   if (artist.area) {
     jsonLd.address = {

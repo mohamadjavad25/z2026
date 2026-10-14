@@ -72,7 +72,6 @@ function buildSalonJsonLd(salon, canonicalUrl) {
     url: canonicalUrl
   };
   if (salon.avatar) jsonLd.image = salon.avatar;
-  if (salon.bio) jsonLd.description = salon.bio;
   // Deliberately NOT emitting telephone: salon.phone is the users.phone
   // column, which is this account's LOGIN credential (see getUserByPhone in
   // app/lib/db/repos/users.js) — not a business contact number the owner

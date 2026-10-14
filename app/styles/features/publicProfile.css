@@ -33,7 +33,6 @@
 .pphChip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px; background: #f2f2f6; color: #3c3f49; font-size: 0.75rem; font-weight: 800; }
 .pphChip.is-open { background: #e3f6ea; color: #17703d; font-weight: 900; }
 .pphChip.is-closed { color: #6f7380; font-weight: 900; }
-.pphBio { margin: 0; color: #4b4f5c; font-size: 0.82rem; font-weight: 700; line-height: 1.9; }
 .pphActions { display: flex; gap: 10px; }
 .pphFollow, .pphCall { min-height: 50px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: 18px; font: inherit; font-size: 0.94rem; font-weight: 900; text-decoration: none; cursor: pointer; }
 .pphFollow { flex: 1.35; background: #14161d; color: #ffffff; box-shadow: 0 12px 24px -10px rgba(20, 22, 29, 0.5); }

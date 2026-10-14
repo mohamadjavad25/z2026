@@ -28,7 +28,6 @@ function mapPost(row) {
     ownerAvatar: row.owner_avatar ? `/api/media/avatar/${row.owner_user_id}` : "",
     ownerAvatarPosition: row.owner_avatar_position || "",
     ownerArea: row.owner_area || "",
-    ownerBio: row.owner_bio || "",
     ownerService: row.owner_service || "",
     createdAt: row.created_at
   };
@@ -42,7 +41,6 @@ const postSelect = `
     (u.avatar <> '' OR u.avatar_url IS NOT NULL) AS owner_avatar,
     u.avatar_position AS owner_avatar_position,
     u.area AS owner_area,
-    u.bio AS owner_bio,
     u.service AS owner_service
   FROM posts p
   JOIN users u ON u.id = p.owner_user_id

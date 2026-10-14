@@ -38,7 +38,6 @@ export function normalizeProfile(profile) {
       poster: profile.poster || "",
       avatarPosition: profile.avatarPosition || "",
       posterPosition: profile.posterPosition || "",
-      bio: profile.bio || "",
       experienceYears: profile.experienceYears || profile.experience_years || "",
       managerName: profile.managerName || profile.manager_name || ""
     }

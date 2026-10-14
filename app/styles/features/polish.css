@@ -587,7 +587,6 @@
 .smdRow .smdEdit { color: #b3b6c1; }
 .smdTerms { display: flex; flex-wrap: wrap; gap: 7px; }
 .smdTerms span { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 14px; background: #f6f6f9; color: #14161d; font-size: 0.76rem; font-weight: 850; }
-.smdBio { margin: 0; padding: 12px 14px; border-radius: 16px; background: #f6f6f9; color: #3b3e49; font-size: 0.78rem; font-weight: 700; line-height: 1.8; }
 .smdRoles { display: flex; flex-wrap: wrap; gap: 7px; }
 .smdRoles button { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px 7px 10px; border: 1.5px solid #ececf0; border-radius: 999px; background: #fff; color: #3b3e49; font: inherit; font-size: 0.74rem; font-weight: 850; cursor: pointer; }
 .smdRoles button.active { border-color: #14161d; background: #14161d; color: #fff; }
@@ -879,11 +878,15 @@ html[data-cbt="1"] body { padding-bottom: 92px; }
 .profileCompletenessClose { position: relative; flex: none; width: 32px; height: 32px; display: grid; place-items: center; border: 0; border-radius: 50%; background: #f3f3f8; color: #6f7380; cursor: pointer; align-self: flex-start; }
 .profileCompletenessClose::after { content: ""; position: absolute; inset: -8px; }
 
+.pccSteps { display: flex; gap: 5px; }
+.pccSteps i { flex: 1 1 0; height: 5px; border-radius: 999px; background: #eceef5; transition: background 0.3s ease; }
+.pccSteps i.is-done { background: linear-gradient(90deg, #6b3fb0, #e11d74); }
+
 .pccList { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 
 .pccRow {
   width: 100%;
-  min-height: 62px;
+  min-height: 60px;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -905,22 +908,15 @@ html[data-cbt="1"] body { padding-bottom: 92px; }
 .pccText { flex: 1 1 auto; min-width: 0; display: grid; gap: 2px; }
 .pccText b { font-size: 0.86rem; font-weight: 950; }
 .pccText small { color: #6f7380; font-size: 0.7rem; font-weight: 750; line-height: 1.5; }
-.pccGo { flex: none; color: #9a9dab; }
+.pccGo { flex: none; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; background: #f3f3f8; color: #6f7380; }
 
-.pccDone {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 40px;
-  padding: 0 12px;
-  border-radius: 14px;
-  background: #f1faf5;
-  color: #1b6b43;
-  font-size: 0.78rem;
-  font-weight: 850;
-}
-
-.pccDone svg { flex: none; }
+/* The first open step is the one to do now: dark, with the pink accent. */
+.pccRow.is-next { min-height: 72px; border-color: transparent; background: #14161d; color: #fff; box-shadow: 0 12px 26px rgba(20, 22, 29, 0.22); }
+.pccRow.is-next:hover { border-color: transparent; box-shadow: 0 14px 30px rgba(20, 22, 29, 0.28); }
+.pccRow.is-next .pccIcon { background: linear-gradient(135deg, #6b3fb0, #e11d74); color: #fff; }
+.pccRow.is-next .pccText b { font-size: 0.94rem; }
+.pccRow.is-next .pccText small { color: #c9ccd8; font-size: 0.72rem; }
+.pccRow.is-next .pccGo { background: rgba(255, 255, 255, 0.14); color: #fff; }
 
 /* ═══ Customers: sheet actions + "lapsed" count ═══ */
 .cuActions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -1281,7 +1277,6 @@ main.appShell.is-auth-gate .workspace { background: #fff !important; }
 .cphMeta { display: grid; justify-items: center; gap: 4px; margin-top: 10px; text-align: center; }
 .cphMeta h2 { margin: 0; color: #14161d; font-size: 1.35rem; font-weight: 900; line-height: 1.4; }
 .cphMeta p { display: inline-flex; align-items: center; gap: 4px; margin: 0; color: #6a6e7a; font-size: 0.82rem; font-weight: 700; }
-
 
 /* ── Customer activity + settings: same soft-card language ─────────────── */
 :root .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingFeatureCard {

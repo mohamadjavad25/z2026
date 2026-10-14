@@ -36,9 +36,9 @@ async function _DELETE(request, { params }) {
   return json({ data: { ok: true } });
 }
 
-const FIELD_LIMITS = { name: 80, area: 80, service: 120, email: 120, bio: 600 };
+const FIELD_LIMITS = { name: 80, area: 80, service: 120, email: 120 };
 
-/** PATCH { name?, area?, service?, email?, bio? }: fix a profile on someone's behalf (e.g. an offensive name). Audited with the old values. */
+/** PATCH { name?, area?, service?, email? }: fix a profile on someone's behalf (e.g. an offensive name). Audited with the old values. */
 async function _PATCH(request, { params }) {
   await ensureDb();
   const gate = await requireAdmin(request);

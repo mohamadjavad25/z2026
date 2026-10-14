@@ -38,7 +38,7 @@ export async function listSalonStaff(salonUserId, runner = null) {
       staff_avatar: staffAvatarUrl,
       artist_name: artist?.name || row.name || "",
       artist_area: artist?.area || "",
-      artist_bio: artist?.bio || row.bio || "",
+      artist_bio: row.bio || "",
       artist_service: artist?.service || "",
       artist_phone: artist?.phone || row.phone || "",
       has_artist_profile: Boolean(artist?.id)
@@ -54,7 +54,7 @@ async function resolveArtistUserForStaff(staff, runner = null) {
 
   if (staff.artist_user_id) {
     const linked = await get(db, `
-      SELECT id, name, phone, area, service, (avatar <> '' OR avatar_url IS NOT NULL) AS avatar, bio, type
+      SELECT id, name, phone, area, service, (avatar <> '' OR avatar_url IS NOT NULL) AS avatar, type
       FROM users WHERE id = $1 AND type = 'artist'
       LIMIT 1
     `, [staff.artist_user_id]);
@@ -69,7 +69,7 @@ async function resolveArtistUserForStaff(staff, runner = null) {
     // check is correct here and, unlike a REPLACE()-wrapped comparison,
     // can use the column's own UNIQUE index.
     const byPhone = await get(db, `
-      SELECT id, name, phone, area, service, (avatar <> '' OR avatar_url IS NOT NULL) AS avatar, bio, type
+      SELECT id, name, phone, area, service, (avatar <> '' OR avatar_url IS NOT NULL) AS avatar, type
       FROM users
       WHERE type = 'artist' AND phone = $1
       LIMIT 1
@@ -80,7 +80,7 @@ async function resolveArtistUserForStaff(staff, runner = null) {
   const name = String(staff.name || "").trim();
   if (!name) return null;
   return get(db, `
-    SELECT id, name, phone, area, service, (avatar <> '' OR avatar_url IS NOT NULL) AS avatar, bio, type
+    SELECT id, name, phone, area, service, (avatar <> '' OR avatar_url IS NOT NULL) AS avatar, type
     FROM users
     WHERE type = 'artist' AND name = $1
     LIMIT 1
@@ -248,7 +248,7 @@ export async function addSalonStaff(salonUserId, data) {
     staff_avatar: artistAvatarUrl(artist),
     artist_name: artist?.name || created.name || "",
     artist_area: artist?.area || "",
-    artist_bio: artist?.bio || created.bio || "",
+    artist_bio: created.bio || "",
     artist_service: artist?.service || "",
     artist_phone: artist?.phone || created.phone || "",
     has_artist_profile: Boolean(artist?.id)
@@ -312,7 +312,7 @@ export async function updateSalonStaff(id, salonUserId, data) {
     return getSalonOwnerStaff(salonUserId, db);
   }
   // A member linked to a real artist account owns their own identity and field of
-  // activity (name, phone, bio, specialty come from the artist's profile); the salon
+  // activity (name, phone, specialty come from the artist's profile); the salon
   // may only change what is genuinely the salon's: state, access level, booking tally.
   const linked = Boolean(current.artist_user_id);
   const nextDraft = {
@@ -353,7 +353,7 @@ export async function updateSalonStaff(id, salonUserId, data) {
     staff_avatar: artistAvatarUrl(artist),
     artist_name: artist?.name || updated.name || "",
     artist_area: artist?.area || "",
-    artist_bio: artist?.bio || updated.bio || "",
+    artist_bio: updated.bio || "",
     artist_service: artist?.service || "",
     artist_phone: artist?.phone || updated.phone || "",
     has_artist_profile: Boolean(artist?.id)

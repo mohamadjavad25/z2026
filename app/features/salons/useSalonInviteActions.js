@@ -78,9 +78,9 @@ export function useSalonInviteActions({
           if (id && staffIds.has(id)) return false;
           if (id && pendingInviteIds.has(id)) return false;
           if (name && staffNames.has(name)) return false;
-          // An artist with no bio/specialty set hasn't filled in anything
+          // An artist with no specialty set hasn't filled in anything
           // a salon could actually invite them to collaborate on yet.
-          if (!artist.bio || !artist.service) return false;
+          if (!artist.service) return false;
           return true;
         })
         .map((artist) => {
@@ -105,7 +105,7 @@ export function useSalonInviteActions({
       const { ok, payload } = await createSalonInvite({
         artist_user_id: artist.id,
         role: artist.service || "آرتیست",
-        bio: artist.bio || artist.area || "دعوت‌شده از آرتیست‌های نزدیک",
+        bio: artist.area || "دعوت‌شده از آرتیست‌های نزدیک",
         access_level: "همکار",
         days: terms.days || "",
         from: terms.from || "",
