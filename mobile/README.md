@@ -25,15 +25,19 @@
 - `frfro-android-debug`: فایل APK برای نصب آزمایشی روی گوشی.
 - `frfro-android-release`: APK امضاشده (کافه‌بازار، مایکت، دانلود مستقیم) و AAB (گوگل‌پلی). فقط وقتی ساخته می‌شود که کلید امضا تنظیم شده باشد.
 
-### کلید امضا (یک بار، و هیچ‌وقت گمش نکن)
-اگر این کلید گم شود، دیگر نمی‌شود آپدیت اپ را در فروشگاه‌ها منتشر کرد.
-```bash
-keytool -genkeypair -v -keystore frfro.keystore -alias frfro -keyalg RSA -keysize 2048 -validity 10000
-base64 -w0 frfro.keystore   # خروجی را کپی کن
-```
-در GitHub → Settings → Secrets and variables → Actions این‌ها را بساز:
-`FRFRO_ANDROID_KEYSTORE_BASE64` (خروجی base64)، `FRFRO_ANDROID_KEYSTORE_PASSWORD`، `FRFRO_ANDROID_KEY_ALIAS` (`frfro`)، `FRFRO_ANDROID_KEY_PASSWORD`.
-فایل `frfro.keystore` را جای امن نگه دار و هرگز در مخزن نگذار.
+### کلید امضا (هیچ‌وقت گمش نکن)
+کلید اصلی فرفرو (`frfro-release.keystore`، alias `frfro`) در ۱۴ اکتبر ۲۰۲۶ ساخته شد و به صاحب محصول داده شد؛ در مخزن نیست و نباید باشد.
+اثر SHA-256 آن: `C9:B3:A3:A0:23:BA:ED:E8:6D:D2:D8:7E:BF:22:9A:FB:8D:66:55:A3:B6:99:AD:0A:B3:7B:C0:1C:A6:DC:DE:74` (همان که در `public/.well-known/assetlinks.json` است).
+اگر این کلید گم شود، نسخهٔ جدید روی نسخهٔ نصب‌شدهٔ کاربران نصب نمی‌شود و همه باید اپ را پاک کنند و دوباره بگیرند.
+
+برای این‌که GitHub خودش نسخهٔ امضاشده بسازد، در GitHub → Settings → Secrets and variables → Actions این‌ها را بساز:
+`FRFRO_ANDROID_KEYSTORE_BASE64` (خروجی `base64 -w0 frfro-release.keystore`)، `FRFRO_ANDROID_KEYSTORE_PASSWORD` و `FRFRO_ANDROID_KEY_PASSWORD` (هر دو همان رمز)، `FRFRO_ANDROID_KEY_ALIAS` (`frfro`).
+
+### انتشار نسخهٔ جدید در سایت
+فایل نصبی سایت در `public/download/frfro.apk` است (دکمه‌های صفحهٔ `/download` به آن اشاره می‌کنند).
+1. `versionCode` را یکی بالا ببر و `versionName` را در `android/app/build.gradle` عوض کن.
+2. نسخهٔ امضاشده را بساز (workflow «Android app» با کلید، یا روی کامپیوتر با `./gradlew assembleRelease`).
+3. فایل `app-release.apk` را جای `public/download/frfro.apk` بگذار و `ANDROID_APP_VERSION` را در `app/features/landing/constants.js` عوض کن.
 
 برای هر نسخهٔ جدید فروشگاه، `versionCode` (یکی بیشتر) و `versionName` را در `android/app/build.gradle` بالا ببر.
 
@@ -57,6 +61,11 @@ npx cap open ios       # در Xcode: Signing & Capabilities → Team را انت
 افزونه‌ها با Swift Package Manager نصب می‌شوند؛ CocoaPods لازم نیست.
 نکته: اپل اپ‌هایی را که فقط یک سایت را نشان می‌دهند گاهی رد می‌کند (قانون 4.2). قابلیت‌های بومی مثل اعلان (پایین) شانس تأیید را بالا می‌برند. راه دیگر برای کاربران ایرانی، فروشگاه‌های سیب‌اپ و انار‌دونی است.
 
+## صفحهٔ معرفی و دانلود
+- `frfro.ir/download`: صفحهٔ معرفی فرفرو با دکمهٔ دانلود اندروید و راهنمای آیفون (`app/features/landing/`). این لینک را برای معرفی بفرست.
+- `frfro.ir/` روی تبلت و کامپیوتر (صفحهٔ دست‌کم ۶۰۰×۶۰۰) همین صفحه را نشان می‌دهد، نه اپ را. روی گوشی و داخل اپ، همان اپ همیشگی.
+- لینک «دانلود اپلیکیشن» در صفحهٔ ورود و تنظیمات فقط در مرورگر دیده می‌شود، نه داخل اپ.
+
 ## عوض کردن آیکون و صفحهٔ شروع
 تصویرها در `assets/` هستند (`icon-only.png`، `icon-foreground.png`، `icon-background.png`، `splash.png`، `splash-dark.png`). بعد از عوض کردن:
 ```bash
@@ -64,16 +73,8 @@ npm run assets && npx cap sync
 ```
 
 ## لینک‌ها (باز شدن frfro.ir در اپ)
-اندروید از قبل آماده است؛ فقط باید سایت تأیید کند که این اپ مال خودش است. بعد از ساختن کلید امضا، اثر SHA-256 آن را بگیر:
-```bash
-keytool -list -v -keystore frfro.keystore -alias frfro | grep SHA256
-```
-و فایل `public/.well-known/assetlinks.json` را در سایت با همین مقدار بساز (اگر در گوگل‌پلی «Play App Signing» روشن است، اثر کلید گوگل را هم اضافه کن):
-```json
-[{ "relation": ["delegate_permission/common.handle_all_urls"],
-   "target": { "namespace": "android_app", "package_name": "ir.frfro.app",
-               "sha256_cert_fingerprints": ["AA:BB:..."] } }]
-```
+اندروید آماده است: `public/.well-known/assetlinks.json` اثر کلید فرفرو را دارد، پس لینک‌های frfro.ir در گوشی‌هایی که اپ دارند مستقیم اپ را باز می‌کنند.
+اگر بعداً در گوگل‌پلی «Play App Signing» روشن شد، اثر کلید گوگل را هم به همان فایل اضافه کن.
 برای آیفون (Universal Links) شناسهٔ تیم اپل لازم است و بعد از گرفتن حساب اپل اضافه می‌شود.
 
 ## قدم بعدی: اعلان (Push)

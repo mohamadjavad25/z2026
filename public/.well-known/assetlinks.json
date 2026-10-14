@@ -1,0 +1,10 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "ir.frfro.app",
+      "sha256_cert_fingerprints": ["C9:B3:A3:A0:23:BA:ED:E8:6D:D2:D8:7E:BF:22:9A:FB:8D:66:55:A3:B6:99:AD:0A:B3:7B:C0:1C:A6:DC:DE:74"]
+    }
+  }
+]

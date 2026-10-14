@@ -92,6 +92,16 @@ const nextConfig = {
         headers: securityHeaders
       },
       {
+        // The Android app (built from mobile/, see mobile/README.md). Short cache so a new
+        // version reaches people within minutes of being deployed.
+        source: "/download/frfro.apk",
+        headers: [
+          { key: "Content-Type", value: "application/vnd.android.package-archive" },
+          { key: "Content-Disposition", value: "attachment; filename=\"frfro.apk\"" },
+          { key: "Cache-Control", value: "public, max-age=300" }
+        ]
+      },
+      {
         // Admin pages and API are never cached by browsers or proxies.
         source: "/admin/:path*",
         headers: [{ key: "Cache-Control", value: "no-store" }, { key: "X-Robots-Tag", value: "noindex, nofollow" }]

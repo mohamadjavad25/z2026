@@ -1,0 +1,270 @@
+/* About/download page: /download, and / on tablets and desktops (see HomeGate.jsx). */
+
+/* Which of the two / shows. The query matches LARGE_SCREEN_QUERY in features/landing/constants.js. */
+.landingSlot { display: none; }
+@media (min-width: 600px) and (min-height: 600px) {
+  html:not(.native-app) .landingSlot { display: block; }
+  html:not(.native-app) .homeAppSlot { display: none; }
+}
+
+/* Download links inside the site: only in the browser, never in the Android/iOS app. */
+html.native-app .webOnlyAppLink { display: none !important; }
+
+.appLanding {
+  --landing-max: 1120px;
+  position: relative;
+  z-index: 1;
+  min-height: 100dvh;
+  background:
+    radial-gradient(circle at 85% -10%, rgba(255, 255, 255, 0.9), transparent 45%),
+    linear-gradient(180deg, #f3f4f7 0%, #e3e4ea 100%);
+  color: var(--ink);
+  font-family: Vazirmatn, Tahoma, sans-serif;
+  line-height: 1.9;
+  padding: 0 var(--space-4) var(--space-8);
+}
+
+.appLanding a { color: inherit; }
+
+.appLanding__nav {
+  max-width: var(--landing-max);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-5) 0;
+}
+
+.appLanding__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  text-decoration: none;
+  font-weight: 900;
+  font-size: 1.25rem;
+}
+
+.appLanding__brand img { border-radius: 12px; }
+
+.appLanding__nav nav { display: flex; gap: var(--space-5); font-size: 0.95rem; }
+.appLanding__nav nav a { text-decoration: none; color: var(--muted); font-weight: 700; }
+.appLanding__nav nav a:hover { color: var(--ink); }
+
+.appLanding__hero {
+  max-width: var(--landing-max);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  align-items: center;
+  gap: var(--space-8);
+  padding: var(--space-7) 0 var(--space-8);
+}
+
+.appLanding__eyebrow {
+  margin: 0 0 var(--space-2);
+  color: var(--muted);
+  font-weight: 800;
+  font-size: 0.95rem;
+}
+
+.appLanding__hero h1 {
+  margin: 0;
+  font-size: clamp(1.7rem, 3.4vw, 2.6rem);
+  line-height: 1.5;
+  font-weight: 900;
+}
+
+.appLanding__lead {
+  margin: var(--space-5) 0 var(--space-6);
+  font-size: 1.05rem;
+  color: #3d4150;
+  max-width: 34em;
+}
+
+.appLanding__buttons { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+
+.appLanding__store {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 56px;
+  padding: 8px 22px 8px 26px;
+  border-radius: 16px;
+  border: 1.5px solid var(--ink);
+  background: #fff;
+  color: var(--ink) !important;
+  text-decoration: none;
+  font-weight: 900;
+  font-size: 1.1rem;
+  line-height: 1.3;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.appLanding__store:hover { transform: translateY(-2px); box-shadow: var(--shadow-soft); }
+.appLanding__store:focus-visible { outline: 3px solid #8b90a8; outline-offset: 3px; }
+.appLanding__store span { display: flex; flex-direction: column; }
+.appLanding__store small { font-size: 0.72rem; font-weight: 700; opacity: 0.75; }
+.appLanding__store.is-primary { background: var(--ink); color: #fff !important; }
+.appLanding__store.is-small { min-height: 46px; font-size: 0.95rem; margin-top: var(--space-4); }
+
+.appLanding__storeIcon { width: 26px; height: 26px; flex: none; }
+
+.appLanding__note { margin: var(--space-4) 0 0; font-size: 0.85rem; color: var(--muted); }
+
+.appLanding__heroArt { position: relative; display: flex; justify-content: center; }
+
+.appLanding__phone {
+  width: min(300px, 100%);
+  aspect-ratio: 9 / 18.5;
+  border-radius: 40px;
+  border: 10px solid var(--ink);
+  background: var(--ink);
+  overflow: hidden;
+  box-shadow: 0 40px 90px rgba(28, 32, 44, 0.28);
+}
+
+.appLanding__phone img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 30px; }
+
+.appLanding__qr {
+  position: absolute;
+  inset-inline-start: -8px;
+  bottom: 28px;
+  width: 150px;
+  padding: var(--space-3);
+  border-radius: var(--radius-lg);
+  background: #fff;
+  box-shadow: var(--shadow);
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+.appLanding__qrCode svg { display: block; width: 100%; height: auto; margin-bottom: var(--space-2); }
+
+.appLanding__section {
+  max-width: var(--landing-max);
+  margin: 0 auto;
+  padding: var(--space-8) 0 var(--space-4);
+}
+
+.appLanding__section h2 {
+  margin: 0 0 var(--space-6);
+  font-size: clamp(1.35rem, 2.4vw, 1.8rem);
+  font-weight: 900;
+}
+
+.appLanding__cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-5); }
+
+.appLanding__card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-soft);
+}
+
+.appLanding__card > img { width: 72px; height: 72px; object-fit: contain; }
+
+.appLanding__card h3 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-3) 0 var(--space-3);
+  font-size: 1.15rem;
+  font-weight: 900;
+}
+
+.appLanding__card ul, .appLanding__card ol { margin: 0; padding-inline-start: 1.2em; color: #3d4150; }
+.appLanding__card ol { list-style: persian; }
+.appLanding__card li + li { margin-top: var(--space-2); }
+
+.appLanding__steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-5);
+  counter-reset: step;
+}
+
+.appLanding__steps li {
+  counter-increment: step;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5);
+}
+
+.appLanding__steps img { width: 64px; height: 64px; object-fit: contain; }
+.appLanding__steps h3 { margin: var(--space-2) 0 var(--space-1); font-size: 1.05rem; font-weight: 900; }
+.appLanding__steps h3::before { content: counter(step, persian) ". "; color: var(--muted); }
+.appLanding__steps p { margin: 0; color: #3d4150; font-size: 0.92rem; }
+
+.appLanding__install { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-5); }
+.appLanding__soon { margin: var(--space-4) 0 0; color: var(--muted); font-weight: 700; }
+
+.appLanding__faq { display: grid; gap: var(--space-3); }
+
+.appLanding__faq details {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4) var(--space-5);
+}
+
+.appLanding__faq summary { cursor: pointer; font-weight: 800; }
+.appLanding__faq p { margin: var(--space-3) 0 0; color: #3d4150; }
+
+.appLanding__footer {
+  max-width: var(--landing-max);
+  margin: var(--space-8) auto 0;
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-4);
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.appLanding__footer div { display: flex; flex-wrap: wrap; gap: var(--space-4); }
+.appLanding__footer strong { color: var(--ink); }
+.appLanding__footer nav { display: flex; gap: var(--space-4); }
+
+@media (max-width: 900px) {
+  .appLanding__cards { grid-template-columns: 1fr 1fr; }
+  .appLanding__steps { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 720px) {
+  .appLanding__nav nav { display: none; }
+  .appLanding__hero { grid-template-columns: 1fr; padding-top: var(--space-4); gap: var(--space-7); }
+  .appLanding__qr { display: none; }
+  .appLanding__phone { width: min(240px, 70%); }
+  .appLanding__cards, .appLanding__install { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 420px) {
+  .appLanding__steps { grid-template-columns: 1fr; }
+  .appLanding__store { flex: 1 1 100%; justify-content: center; }
+}
+
+/* Small "get the app" link inside the site (auth gate, settings). */
+.webAppDownloadLink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  margin: var(--space-4) auto 0;
+  font-size: var(--text-sm);
+  font-weight: 800;
+  color: inherit;
+  text-decoration: none;
+  opacity: 0.85;
+}
+
+.webAppDownloadLink:hover { opacity: 1; text-decoration: underline; }
