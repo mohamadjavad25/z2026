@@ -72,8 +72,17 @@ export default function RootLayout({ children }) {
     <html lang="fa" dir="rtl" suppressHydrationWarning>
       <head>
         {/* Before first paint: inside the Android/iOS app (mobile/) the user agent ends with
-            "frfro-app". CSS uses the class to always show the app there and hide download links. */}
-        <script dangerouslySetInnerHTML={{ __html: `if (navigator.userAgent.indexOf("frfro-app") !== -1) document.documentElement.classList.add("native-app");` }} />
+            "frfro-app". CSS uses the class to always show the app there and hide download links.
+            "skip-landing": the home page opens the app, not the about page (HOME_LANDING_SKIP_KEY
+            in features/landing/constants.js): in the app, from the home-screen icon, or once the
+            visitor tapped «ورود به فرفرو» on the about page. */}
+        <script dangerouslySetInnerHTML={{ __html: `(function () {
+var root = document.documentElement;
+if (navigator.userAgent.indexOf("frfro-app") !== -1) root.classList.add("native-app", "skip-landing");
+try {
+  if (window.matchMedia("(display-mode: standalone)").matches || navigator.standalone || localStorage.getItem("frfro-entered") === "1") root.classList.add("skip-landing");
+} catch (e) {}
+})();` }} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@500;700;800;900&family=Playfair+Display:wght@500;600&display=swap" rel="stylesheet" />

@@ -1,11 +1,12 @@
 import Link from "next/link";
 import QRCode from "qrcode";
 import { ANDROID_APK_URL, ANDROID_APP_VERSION, DOWNLOAD_PAGE_URL } from "./constants";
+import { EnterAppButton } from "./EnterAppButton";
 
 /**
- * The page about frfro with the app download links. Shown at /download, and
- * on large screens (tablet and desktop) in place of every page but /admin, /terms and
- * /privacy (see LargeScreenGate).
+ * The page about frfro with the app download links. Shown at /download, at "/" on phones
+ * until the visitor taps «ورود به فرفرو», and on large screens (tablet and desktop) in place
+ * of every page but /admin, /terms and /privacy (see LargeScreenGate).
  * Server component: plain content, no client state.
  */
 
@@ -112,7 +113,7 @@ function DownloadButtons() {
   );
 }
 
-export async function AppLanding({ showOpenSite = false }) {
+export async function AppLanding() {
   const qrSvg = await downloadQrSvg();
   return (
     <main className="appLanding" dir="rtl">
@@ -137,6 +138,7 @@ export async function AppLanding({ showOpenSite = false }) {
             فرفرو مشتری، سالن و آرتیست را در یک جا کنار هم می‌آورد: کشف با نمونه‌کار واقعی، رزرو مستقیم و برنامهٔ کاری مرتب. بدون تماس‌های پشت سر هم و بدون دفترچه.
           </p>
           <DownloadButtons />
+          <EnterAppButton className="appLanding__enter">ورود به فرفرو در مرورگر</EnterAppButton>
           <p className="appLanding__note">نسخهٔ اندروید {ANDROID_APP_VERSION} · رایگان · بدون پرداخت داخل برنامه</p>
         </div>
         <div className="appLanding__heroArt" aria-hidden="true">
@@ -229,7 +231,7 @@ export async function AppLanding({ showOpenSite = false }) {
         <nav>
           <Link href="/terms">قوانین و مقررات</Link>
           <Link href="/privacy">حریم خصوصی</Link>
-          {showOpenSite ? <Link href="/">ورود به فرفرو</Link> : null}
+          <EnterAppButton className="appLanding__enterLink">ورود به فرفرو</EnterAppButton>
         </nav>
       </footer>
     </main>

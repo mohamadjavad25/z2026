@@ -9,5 +9,5 @@ export const metadata = {
 };
 
 export default function DownloadPage() {
-  return <AppLanding showOpenSite />;
+  return <AppLanding />;
 }

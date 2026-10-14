@@ -2,7 +2,8 @@
 
 import { HomeApp } from "./features/shell";
 
-// On tablets and desktops the root layout shows the about/download page instead (LargeScreenGate).
+// The root layout shows the about/download page instead on tablets and desktops, and on phones
+// until the visitor taps «ورود به فرفرو» there (LargeScreenGate).
 export default function Home() {
   return <HomeApp />;
 }
