@@ -57,3 +57,8 @@ export function bookingEndLabel(booking) {
   const end = timeLabelToMinutes(normalizeBookingTimeLabel(booking.time)) + minutes;
   return `${String(Math.floor(end / 60) % 24).padStart(2, "0")}:${String(end % 60).padStart(2, "0")}`;
 }
+
+/** One booking across both tables (ids are per table): source + id. */
+export function clientBookingKey(booking) {
+  return `${booking?.bookingSource === "artist" ? "artist" : "salon"}-${booking?.id}`;
+}
