@@ -6,7 +6,7 @@ import { SalonStaffWorkspace, SalonServicesWorkspace } from "../../salons";
 import { ProfileGallery } from "../../profile/ProfileGallery";
 import { SalonScheduleDashboard, ArtistScheduleBoard } from "../../schedule";
 import { ArtistOverviewReviews, ArtistServicesPanel, ArtistCollabBoard } from "../../artist";
-import { ClientProfileOverview, ClientBookingsPanel } from "../../client";
+import { ClientHome } from "../../client";
 import { ScanFlow } from "../../connect";
 
 import { useHome } from "../HomeContext";
@@ -109,6 +109,9 @@ export function ProfilePanelBody() {
     quickSaveProfile,
     setClientBookingSettings,
     rebookFromBooking,
+    openPlaceFromHome,
+    goToTab,
+    freshBookingKey,
     artistBreakTime,
     openArtistBreakEditor,
     artistBookingsWeekTabs,
@@ -221,7 +224,8 @@ export function ProfilePanelBody() {
               />
             ) : null}
 
-            {createdProfile?.type !== "salon" && profileModeRail}
+            {/* A client's page is one page (ClientHome): no «پروفایل / فعالیت من» switch. */}
+            {createdProfile?.type === "artist" && profileModeRail}
 
             {(createdProfile?.type === "salon" || createdProfile?.type === "artist") && createdProfile.type === profileType && profileView === "overview" && !salonWorkspace ? (
               <ProfileCompleteness
@@ -358,23 +362,21 @@ export function ProfilePanelBody() {
                       composeTagMenuOpen={artistWorkTagMenuOpen}
                       onComposeTagMenuOpenChange={setArtistWorkTagMenuOpen}
                     />
-                  ) : profileType === "client" ? (
-                    <ClientProfileOverview
-                      bookings={clientBookingList}
-                      onOpenBookings={() => setProfileView("bookings")}
-                    />
                   ) : null}
                 </>
               )}
 
-              {profileView === "bookings" && profileType === "client" && (
-                <div className="clientActivityStack" aria-label="فعالیت من">
-                  <ClientBookingsPanel
-                    bookings={clientBookingList}
-                    onOpenSettings={setClientBookingSettings}
-                    onRebook={rebookFromBooking}
-                  />
-                </div>
+              {profileType === "client" && (profileView === "overview" || profileView === "bookings") && (
+                <ClientHome
+                  bookings={clientBookingList}
+                  clientName={createdProfile?.data?.name || ""}
+                  highlightKey={freshBookingKey}
+                  onOpenBooking={(booking) => setClientBookingSettings({ ...booking, clientBookingSheetMode: "details" })}
+                  onRebook={rebookFromBooking}
+                  onOpenPlace={openPlaceFromHome}
+                  onFindPlaces={() => goToTab("salons")}
+                  onNotify={setAppToast}
+                />
               )}
 
               {profileView === "bookings" && profileType === "artist" && (

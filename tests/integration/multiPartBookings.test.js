@@ -242,20 +242,26 @@ describe("multi-service salon booking", () => {
       expect(response.ok).toBe(true);
       return latin(response.payload.data.times);
     };
-    // A visit 10:00–11:15 (manicure, then haircut).
+    // A visit 10:00–11:15 (manicure with the nail artist, then haircut with the hair artist).
     expect((await requestVisit(ctx, { bookingDate: day, time: "10:00" })).status).toBe(201);
     const times = await singleTimes("مانیکور ویزیت");
-    for (const taken of ["09:30", "10:00", "10:30", "11:00"]) expect(times).not.toContain(taken);
-    expect(times).toContain("11:30");
+    for (const taken of ["09:30", "10:00", "10:30"]) expect(times).not.toContain(taken);
+    // The nail artist is free again at 10:45, while the hair artist works on the visit.
+    expect(times).toContain("11:00");
 
-    // Every time not offered is refused, every offered one goes through.
+    // Every time not offered is refused, every offered one goes through -- to the nail artist.
     const book = (time, phone) => ctx.clientClient.post("/api/salon-bookings", {
       salonUserId: ctx.salon.user.id, service: "مانیکور ویزیت", bookingDate: day, time,
       client: ctx.client.user.name, phone
     });
-    expect((await book("11:00", ctx.client.phone)).status).toBe(409);
-    expect((await book("11:30", ctx.client.phone)).status).toBe(201);
-    expect(await singleTimes("مانیکور ویزیت")).not.toContain("11:30");
+    expect((await book("10:30", ctx.client.phone)).status).toBe(409);
+    const booked = await book("11:00", ctx.client.phone);
+    expect(booked.status).toBe(201);
+    expect(booked.payload.data.booking.staff).toBe(ctx.nail.staff.name);
+    const after = await singleTimes("مانیکور ویزیت");
+    expect(after).not.toContain("11:00");
+    expect(after).not.toContain("11:30");
+    expect(after).toContain("12:00");
 
     // A service the salon does not list needs its length from the client.
     const query = new URLSearchParams({ salonUserId: String(ctx.salon.user.id), day, service: "خدمت ناشناس" });
@@ -353,7 +359,8 @@ describe("«تغییر ساعت» offers only times the booking fits", () => {
 
   it("leaves out taken times and marks the ones past closing; PATCH follows the same list", async () => {
     const ctx = await setup();
-    const day = futureBookingDay(13);
+    // Needs the 20:00 close, so not a Thursday (default 18:00).
+    const day = futureBookingDay(13, { notOn: ["پنجشنبه"] });
     // A 75-minute visit at 10:00 (nail 45 + hair 30), and the nail artist busy 14:00–15:00.
     const booking = (await requestVisit(ctx, { bookingDate: day })).payload.data.booking;
     expect((await ctx.salonClient.post("/api/salon-bookings", {
@@ -377,5 +384,145 @@ describe("«تغییر ساعت» offers only times the booking fits", () => {
     const moved = await ctx.salonClient.patch("/api/salon-bookings", { id: booking.id, time: "19:30", overtime: true });
     expect(moved.ok).toBe(true);
     expect(moved.payload.data.booking.time).toBe("19:30");
+  });
+});
+
+describe("the system shares the work between artists", () => {
+  // Two nail artists linked to the same service, plus the hair artist from setup().
+  async function setupTwoNail() {
+    const ctx = await setup();
+    const client = createClient();
+    const { user } = await registerUser(client, { type: "artist", name: "Second Nail Artist" });
+    expect((await client.post("/api/artist/join-salon", { salonUserId: ctx.salon.user.id })).ok).toBe(true);
+    const staff = (await ctx.salonClient.get("/api/salon-staff")).payload.data.staff;
+    const second = { client, user, staff: staff.find((person) => Number(person.artist_user_id) === Number(user.id)) };
+    const services = (await ctx.salonClient.get("/api/salon-services")).payload.data.services;
+    const manicure = services.find((item) => item.name === "مانیکور ویزیت");
+    expect((await ctx.salonClient.patch("/api/salon-services", {
+      id: manicure.id, name: manicure.name, staff_ids: [String(ctx.nail.staff.id), String(second.staff.id)]
+    })).ok).toBe(true);
+    return { ...ctx, second };
+  }
+
+  const bookManicure = (ctx, day, time, phone) => ctx.clientClient.post("/api/salon-bookings", {
+    salonUserId: ctx.salon.user.id, service: "مانیکور ویزیت", bookingDate: day, time, client: ctx.client.user.name, phone
+  });
+
+  it("gives a client's single-service request to a free artist, so two artists take two clients at once", async () => {
+    const ctx = await setupTwoNail();
+    const day = futureBookingDay(14);
+    const first = await bookManicure(ctx, day, "10:00", "09120000201");
+    expect(first.status).toBe(201);
+    const second = await bookManicure(ctx, day, "10:00", "09120000202");
+    expect(second.status).toBe(201);
+    expect([first.payload.data.booking.staff, second.payload.data.booking.staff].sort())
+      .toEqual([ctx.nail.staff.name, ctx.second.staff.name].sort());
+    // Each request went into that artist's own calendar.
+    expect((await myVisitShare(ctx.second, ctx)).map((b) => b.time)).toEqual(["10:00"]);
+
+    // Both nail artists are busy now: a third request at that time is refused, and not offered.
+    const third = await bookManicure(ctx, day, "10:00", "09120000203");
+    expect(third.status).toBe(409);
+    expect(third.payload.code).toBe("NO_FREE_ARTIST");
+    const query = new URLSearchParams({ salonUserId: String(ctx.salon.user.id), day, service: "مانیکور ویزیت" });
+    const times = (await ctx.clientClient.get(`/api/salon-bookings/availability?${query}`)).payload.data.times
+      .map((time) => time.replace(/[۰-۹]/g, (d) => "۰۱۲۳۴۵۶۷۸۹".indexOf(d)));
+    expect(times).not.toContain("10:00");
+    expect(times).toContain("11:00");
+  });
+
+  it("gives a service nobody is linked to a free team member, and spreads a visit over the team", async () => {
+    const ctx = await setupTwoNail();
+    expect((await ctx.salonClient.post("/api/salon-services", { name: "ماساژ ویزیت", price: "200", duration: "۳۰ دقیقه" })).ok).toBe(true);
+    const created = await ctx.clientClient.post("/api/salon-bookings", {
+      salonUserId: ctx.salon.user.id, service: "x", bookingDate: futureBookingDay(15), time: "10:00",
+      client: ctx.client.user.name, phone: ctx.client.phone,
+      parts: [{ service: "مانیکور ویزیت" }, { service: "ماساژ ویزیت" }, { service: "مانیکور ویزیت" }]
+    });
+    expect(created.status).toBe(201);
+    const staff = partsOf(created.payload.data.booking).map((part) => part.staff);
+    // Nothing is left without an artist, and both nail artists get a manicure.
+    expect(staff.every(Boolean)).toBe(true);
+    expect([staff[0], staff[2]].sort()).toEqual([ctx.nail.staff.name, ctx.second.staff.name].sort());
+  });
+
+  it("does not draft an artist on leave", async () => {
+    const ctx = await setupTwoNail();
+    expect((await ctx.salonClient.patch("/api/salon-staff", { id: ctx.nail.staff.id, state: "مرخصی" })).ok).toBe(true);
+    const day = futureBookingDay(16);
+    for (const phone of ["09120000211", "09120000212"]) {
+      const created = await bookManicure(ctx, day, "10:00", phone);
+      if (created.status === 201) expect(created.payload.data.booking.staff).toBe(ctx.second.staff.name);
+      else expect(created.payload.code).toBe("NO_FREE_ARTIST");
+    }
+    const rows = (await ctx.salonClient.get("/api/salon-bookings")).payload.data.bookings
+      .filter((b) => b.booking_date === day && b.status !== "لغو");
+    expect(rows.map((b) => b.staff)).toEqual([ctx.second.staff.name]);
+  });
+
+  it("tells the salon who is free for each service and re-splits a visit on request", async () => {
+    const ctx = await setupTwoNail();
+    const day = futureBookingDay(17);
+    const booking = (await requestVisit(ctx, { bookingDate: day })).payload.data.booking;
+    // The salon takes the nail artist off the manicure.
+    const cleared = await ctx.salonClient.patch("/api/salon-bookings", {
+      id: booking.id, parts: partsOf(booking).map((part, index) => (index === 0 ? { ...part, staff: "" } : part))
+    });
+    expect(cleared.ok).toBe(true);
+    // The second nail artist gets another appointment over the manicure's time.
+    expect((await ctx.salonClient.post("/api/salon-bookings", {
+      service: "مانیکور ویزیت", staff: ctx.second.staff.name, bookingDate: day, time: "10:00", client: "حضوری", phone: "09120000221"
+    })).ok).toBe(true);
+
+    const options = await ctx.salonClient.get(`/api/salon-bookings/${booking.id}/staff`);
+    expect(options.ok).toBe(true);
+    const [manicure, haircut] = options.payload.data.parts;
+    const info = (part, name) => part.options.find((option) => option.name === name);
+    expect(manicure.service).toBe("مانیکور ویزیت");
+    expect(manicure.staff).toBe("");
+    expect(info(manicure, ctx.nail.staff.name)).toMatchObject({ free: true, skilled: true });
+    expect(info(manicure, ctx.second.staff.name)).toMatchObject({ free: false, skilled: true });
+    // The booking's own haircut does not make the hair artist look busy.
+    expect(info(haircut, ctx.hair.staff.name)).toMatchObject({ free: true, skilled: true });
+    expect(options.payload.data.suggested).toEqual([ctx.nail.staff.name, ctx.hair.staff.name]);
+
+    const auto = await ctx.salonClient.patch("/api/salon-bookings", { id: booking.id, autoAssign: true });
+    expect(auto.ok).toBe(true);
+    expect(partsOf(auto.payload.data.booking).map((part) => part.staff)).toEqual([ctx.nail.staff.name, ctx.hair.staff.name]);
+    expect((await myVisitShare(ctx.nail, ctx)).map((b) => b.time)).toEqual(["10:00"]);
+
+    // Only the salon that owns the booking can see or change it.
+    const otherSalon = createClient();
+    await registerUser(otherSalon, { type: "salon", name: "Other Visit Salon" });
+    expect((await otherSalon.get(`/api/salon-bookings/${booking.id}/staff`)).status).toBe(404);
+    expect((await ctx.clientClient.get(`/api/salon-bookings/${booking.id}/staff`)).status).toBe(403);
+    expect((await otherSalon.patch("/api/salon-bookings", { id: booking.id, autoAssign: true })).status).toBe(404);
+  });
+
+  it("re-assigns a single-service booking and says so when nobody is free", async () => {
+    const ctx = await setupTwoNail();
+    const day = futureBookingDay(18);
+    // A walk-in the salon entered with no artist.
+    const walkIn = await ctx.salonClient.post("/api/salon-bookings", {
+      service: "کوتاهی ویزیت", bookingDate: day, time: "12:00", client: "حضوری", phone: "09120000231"
+    });
+    expect(walkIn.ok).toBe(true);
+    const id = walkIn.payload.data.booking.id;
+    const auto = await ctx.salonClient.patch("/api/salon-bookings", { id, autoAssign: true });
+    expect(auto.ok).toBe(true);
+    expect(auto.payload.data.booking.staff).toBe(ctx.hair.staff.name);
+
+    // A haircut the salon gave a nail artist at 16:00, then the only hair artist is booked then
+    // too: the system has nobody who does haircuts to offer.
+    const open = await ctx.salonClient.post("/api/salon-bookings", {
+      service: "کوتاهی ویزیت", staff: ctx.second.staff.name, bookingDate: day, time: "16:00", client: "حضوری ۲", phone: "09120000232"
+    });
+    expect(open.ok).toBe(true);
+    expect((await ctx.salonClient.post("/api/salon-bookings", {
+      service: "کوتاهی ویزیت", staff: ctx.hair.staff.name, bookingDate: day, time: "16:00", client: "حضوری ۳", phone: "09120000233"
+    })).ok).toBe(true);
+    const stuck = await ctx.salonClient.patch("/api/salon-bookings", { id: open.payload.data.booking.id, autoAssign: true });
+    expect(stuck.status).toBe(409);
+    expect(stuck.payload.code).toBe("NO_FREE_ARTIST");
   });
 });

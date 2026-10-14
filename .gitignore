@@ -11,3 +11,7 @@ data/*.db
 .env
 .env.local
 .env.*.local
+
+# Android signing keys never go in the repo (see mobile/README.md)
+*.keystore
+*.jks

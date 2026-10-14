@@ -92,11 +92,21 @@ export function useScheduleBookingMenu({
     if (ok) closeScheduleBookingMenu();
   }, [scheduleBookingMenu, patchSalonAppointment, closeScheduleBookingMenu]);
 
+  // The screen stays open (it follows the live list), so the salon can go on to approve it.
   const changeScheduleBookingStaff = useCallback(async (staffName) => {
-    if (!scheduleBookingMenu) return;
-    const ok = await patchSalonAppointment(scheduleBookingMenu, { staff: staffName }, `آرتیست رزرو به «${staffName}» تغییر کرد.`);
-    if (ok) closeScheduleBookingMenu();
-  }, [scheduleBookingMenu, patchSalonAppointment, closeScheduleBookingMenu]);
+    if (!scheduleBookingMenu) return false;
+    return patchSalonAppointment(
+      scheduleBookingMenu,
+      { staff: staffName },
+      staffName ? `آرتیست رزرو به «${staffName}» تغییر کرد.` : "آرتیست از این رزرو برداشته شد."
+    );
+  }, [scheduleBookingMenu, patchSalonAppointment]);
+
+  // «تقسیم خودکار»: the server gives each service to a free artist again, from scratch.
+  const autoAssignScheduleBooking = useCallback(async () => {
+    if (!scheduleBookingMenu) return false;
+    return patchSalonAppointment(scheduleBookingMenu, { autoAssign: true }, "آرتیست‌ها خودکار چیده شدند.");
+  }, [scheduleBookingMenu, patchSalonAppointment]);
 
   // A multi-service booking: new order and/or artist per service. The menu stays open so the
   // salon can make several changes in a row.
@@ -128,6 +138,7 @@ export function useScheduleBookingMenu({
     changeScheduleBookingTime,
     changeScheduleBookingStaff,
     changeScheduleBookingParts,
+    autoAssignScheduleBooking,
     cancelScheduleBooking
   };
 }

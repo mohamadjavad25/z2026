@@ -3,19 +3,20 @@
 import { DEFAULT_SALON_LOGO } from "../../shared/lib/defaultAvatar";
 import { useState, useEffect } from "react";
 import {
-  CalendarCheck,
+  Bookmark,
   Check,
   ChevronLeft,
   ChevronUp,
   Clock3,
-  Heart,
   ImagePlus,
+  Info,
   MapPin,
   Phone,
   Scissors,
   Share2,
   UserPlus,
-  UserRound
+  UserRound,
+  Users
 } from "lucide-react";
 import { PublicProfileHeader } from "../../components/PublicProfileHeader";
 import { ServicesDropUp } from "../../components/ServicesDropUp";
@@ -74,13 +75,11 @@ export function SalonClientPage({
   const followerCount = toPersianDigits(followerCountValue);
   const staffCount = selectedSalon?.staff?.length || 0;
   const publicName = selectedSalon?.name || "سالن";
-  const publicTag = selectedSalon?.tag || "سالن";
-  const managerName = selectedSalon?.managerName || selectedSalon?.manager_name || selectedSalon?.ownerName || selectedSalon?.owner_name || "مدیر سالن";
+  const managerName = selectedSalon?.managerName || selectedSalon?.manager_name || selectedSalon?.ownerName || selectedSalon?.owner_name || "";
   const teamNames = (selectedSalon?.staff || [])
     .map((member) => member?.name || member?.fullName || member?.artist_name)
     .filter(Boolean)
     .slice(0, 3);
-  const specialtyNames = services.slice(0, 4).map((service) => service.name).filter(Boolean);
   const teamMembers = (selectedSalon?.staff || []).filter((member) => member && (member.artist_name || member.name)).slice(0, 12);
   const weekHours = Array.isArray(selectedSalon?.hours) ? selectedSalon.hours : [];
   const todayName = PERSIAN_WEEKDAYS[new Date().getDay()];
@@ -114,21 +113,37 @@ export function SalonClientPage({
               </button>
             )}
             end={(
-              <button type="button" className="pphRound" onClick={() => onShare(selectedSalon.name)} aria-label="اشتراک‌گذاری">
-                <Share2 size={18} />
-              </button>
+              <>
+                <button type="button" className="pphRound" onClick={() => onShare(selectedSalon.name)} aria-label="اشتراک‌گذاری">
+                  <Share2 size={18} />
+                </button>
+                <button
+                  type="button"
+                  className={`pphRound${isSaved ? " is-saved" : ""}`}
+                  aria-label={isSaved ? "حذف از ذخیره‌ها" : "ذخیره سالن"}
+                  aria-pressed={Boolean(isSaved)}
+                  onClick={() => onSave(selectedSalon)}
+                >
+                  <Bookmark size={18} fill={isSaved ? "currentColor" : "none"} />
+                </button>
+              </>
             )}
           />
 
           <section className="pphInfo" aria-label={`معرفی ${publicName}`}>
-            <div className="pphChips">
-              <span className="pphChip">{publicTag}</span>
-              {openStatus ? (
+            {openStatus ? (
+              <div className="pphChips">
                 <span className={`pphChip ${openStatus.open ? "is-open" : "is-closed"}`}>
                   <Clock3 size={14} /> {openStatus.text}
                 </span>
-              ) : null}
-            </div>
+              </div>
+            ) : null}
+            {selectedSalon.bio ? (
+              <button type="button" className="pphBio pphBioMore" onClick={() => setAboutOpen(true)}>
+                {selectedSalon.bio}
+                <span>بیشتر</span>
+              </button>
+            ) : null}
             <div className="pphActions">
               <button type="button" className={`pphFollow${isFollowing ? " is-following" : ""}`} onClick={() => onFollow(selectedSalon)}>
                 {isFollowing ? <Check size={18} /> : <UserPlus size={18} />}
@@ -206,11 +221,9 @@ export function SalonClientPage({
             onClose={() => setServicesOpen(false)}
           />
           <nav className="spvBar" aria-label="رزرو و ذخیره">
-            <button type="button" className={`spvBarIcon ${isSaved ? "is-on" : ""}`} onClick={() => onSave(selectedSalon)} aria-label={isSaved ? "حذف از ذخیره‌شده‌ها" : "ذخیره سالن"} aria-pressed={isSaved}>
-              <Heart size={22} fill={isSaved ? "currentColor" : "none"} />
-            </button>
-            <button type="button" className="spvBarIcon" onClick={() => setAboutOpen(true)} aria-label="درباره سالن">
-              <UserRound size={22} />
+            <button type="button" className="spvBarAbout" onClick={() => setAboutOpen(true)} aria-label="درباره سالن">
+              <Info size={20} aria-hidden="true" />
+              درباره
             </button>
             <button
               type="button"
@@ -238,51 +251,37 @@ export function SalonClientPage({
                   <div>
                     <span>درباره سالن</span>
                     <h3>{publicName}</h3>
-                    <small>{publicTag}</small>
                   </div>
                 </div>
-                <p className="salonPublicAboutBio">
-                  {selectedSalon.bio || "این سالن هنوز توضیحی درباره خودش ثبت نکرده است."}
-                </p>
+                {selectedSalon.bio ? (
+                  <p className="salonPublicAboutBio">{selectedSalon.bio}</p>
+                ) : (
+                  <p className="salonPublicAboutBio is-empty">این سالن هنوز معرفی ننوشته است. برای اطلاعات بیشتر می‌توانی با سالن تماس بگیری.</p>
+                )}
+                <div className="salonPublicAboutFacts">
+                  <span><Users size={16} /> {toPersianDigits(staffCount)} عضو تیم</span>
+                  <span><Bookmark size={16} /> {followerCount} دنبال‌کننده</span>
+                </div>
+                <div className="salonPublicAboutContact">
+                  {selectedSalon.area ? <span><MapPin size={17} /> {selectedSalon.area}</span> : null}
+                  {selectedSalon.open ? <span><Clock3 size={17} /> {selectedSalon.open}</span> : null}
+                  {selectedSalon.phone ? <span><Phone size={17} /> <span dir="ltr">{toPersianDigits(selectedSalon.phone)}</span></span> : null}
+                </div>
+                {managerName || teamNames.length ? (
+                  <section className="salonPublicAboutBlock">
+                    <h4>مدیر و تیم</h4>
+                    <div className="salonPublicAboutList">
+                      {managerName ? <span><UserRound size={16} /> مدیریت: {managerName}</span> : null}
+                      {teamNames.length ? <span><UserPlus size={16} /> تیم: {teamNames.join("، ")}</span> : null}
+                    </div>
+                  </section>
+                ) : null}
                 {selectedSalon.rules ? (
                   <section className="salonPublicAboutBlock salonPublicAboutRules">
                     <h4>قوانین و شرایط سالن</h4>
                     <p>{selectedSalon.rules}</p>
                   </section>
                 ) : null}
-                <section className="salonPublicAboutBlock">
-                  <h4>مدیر و تیم سالن</h4>
-                  <div className="salonPublicAboutList">
-                    <span><UserRound size={16} /> مدیریت: {managerName}</span>
-                    <span><UserPlus size={16} /> تیم: {teamNames.length ? teamNames.join("، ") : "هنوز عضو تیمی ثبت نشده"}</span>
-                  </div>
-                </section>
-                <section className="salonPublicAboutBlock">
-                  <h4>تخصص‌ها</h4>
-                  <div className="salonPublicAboutChips">
-                    {specialtyNames.length ? (
-                      specialtyNames.map((item) => <span key={item}>{item}</span>)
-                    ) : (
-                      <span>هنوز تخصصی ثبت نشده</span>
-                    )}
-                  </div>
-                </section>
-                <div className="salonPublicAboutFacts">
-                  <span><UserRound size={16} /> {toPersianDigits(staffCount)} عضو تیم</span>
-                  <span><Heart size={16} /> {followerCount} دنبال‌کننده</span>
-                </div>
-                <div className="salonPublicAboutContact">
-                  <span><MapPin size={17} /> {selectedSalon.area || "آدرس ثبت نشده"}</span>
-                  <span><Clock3 size={17} /> {selectedSalon.open || "ساعت کاری ثبت نشده"}</span>
-                  <span><Phone size={17} /> {selectedSalon.phone ? <span dir="ltr">{toPersianDigits(selectedSalon.phone)}</span> : "شماره تماس ثبت نشده"}</span>
-                </div>
-                <section className="salonPublicAboutBlock">
-                  <h4>قوانین رزرو و لغو</h4>
-                  <div className="salonPublicAboutList">
-                    <span><CalendarCheck size={16} /> تغییر زمان رزرو با هماهنگی سالن انجام می‌شود</span>
-                    <span><Clock3 size={16} /> در صورت تاخیر، زمان خدمات بر اساس ظرفیت روز تنظیم می‌شود</span>
-                  </div>
-                </section>
                 <SheetClose onClick={() => setAboutOpen(false)} />
               </article>
             </div>

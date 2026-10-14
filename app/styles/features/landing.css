@@ -1,0 +1,703 @@
+/* About/download page: /download, "/" on phones until «ورود به فرفرو», and every page but /admin, /terms, /privacy on tablets and desktops (LargeScreenGate.jsx). */
+
+/* Which of the two shows. The query matches LARGE_SCREEN_QUERY in features/landing/constants.js. */
+.landingSlot { display: none; }
+@media (min-width: 600px) and (min-height: 600px) {
+  html:not(.native-app) .landingSlot { display: block; }
+  html:not(.native-app) .pageSlot { display: none; }
+  /* The web app is phone-only, so there is nothing to enter on a large screen. */
+  .appLanding__enter, .appLanding__enterLink { display: none !important; }
+}
+/* Home page on phones: the about page first, until «ورود به فرفرو» (or in the app / from the
+   home-screen icon). "skip-landing" is set by the root layout's head script. */
+html:not(.skip-landing) .landingSlot.is-home { display: block; }
+html:not(.skip-landing) .landingSlot.is-home + .pageSlot { display: none; }
+html.native-app .appLanding__enter, html.native-app .appLanding__enterLink { display: none !important; }
+
+/* Download links inside the site: only in the browser, never in the Android/iOS app. */
+html.native-app .webOnlyAppLink { display: none !important; }
+
+/* "Ink & fluff": the brand's ink with the mascot's pink fluff as the one accent.
+   Display type is Lalezar (Persian display face), body is Vazirmatn. */
+.appLanding {
+  --landing-max: 1160px;
+  --l-ink: #14161d;
+  --l-ink-2: #1f2230;
+  --l-paper: #f5f1ec;
+  --l-paper-2: #ece6df;
+  --l-fluff: #ff86b8;
+  --l-fluff-soft: #ffd3e5;
+  --l-fluff-deep: #b8205f; /* pink for text on paper (AA contrast) */
+  --l-text: #2b2e3a;
+  --l-muted: #6b6f7a;
+  --l-display: Lalezar, Vazirmatn, Tahoma, sans-serif;
+  position: relative;
+  z-index: 1;
+  min-height: 100dvh;
+  overflow-x: clip;
+  background: var(--l-paper);
+  color: var(--l-text);
+  font-family: Vazirmatn, Tahoma, sans-serif;
+  line-height: 1.9;
+}
+
+.appLanding a { color: inherit; }
+.appLanding img { max-width: 100%; }
+.appLanding :focus-visible { outline: 3px solid var(--l-fluff); outline-offset: 3px; border-radius: 6px; }
+
+/* ---------- Night: nav, hero, ribbon ---------- */
+.appLanding__night {
+  position: relative;
+  color: #f4f2f7;
+  background:
+    radial-gradient(60rem 36rem at 12% 8%, rgba(255, 134, 184, 0.16), transparent 60%),
+    radial-gradient(40rem 30rem at 95% 90%, rgba(150, 190, 255, 0.10), transparent 60%),
+    var(--l-ink);
+  padding: 0 var(--space-4);
+  isolation: isolate;
+}
+
+/* Film grain over the dark part. */
+.appLanding__night::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.18;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.35 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.appLanding__nav {
+  max-width: var(--landing-max);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  padding: var(--space-5) 0;
+}
+
+.appLanding__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  text-decoration: none;
+  font-family: var(--l-display);
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.appLanding__brand img { border-radius: 12px; box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.14); }
+
+.appLanding__nav nav { display: flex; gap: var(--space-6); margin-inline-start: auto; font-size: 0.95rem; }
+.appLanding__nav nav a { text-decoration: none; color: rgba(244, 242, 247, 0.66); font-weight: 700; transition: color var(--duration-fast) ease; }
+.appLanding__nav nav a:hover { color: #fff; }
+
+.appLanding__navCta {
+  padding: 8px 18px;
+  border-radius: var(--radius-pill);
+  background: var(--l-fluff);
+  color: var(--l-ink) !important;
+  font-weight: 900;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: transform var(--duration-fast) ease;
+}
+.appLanding__navCta:hover { transform: translateY(-1px); }
+
+.appLanding__hero {
+  max-width: var(--landing-max);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  align-items: center;
+  gap: var(--space-8);
+  padding: clamp(24px, 5vw, 72px) 0 clamp(48px, 7vw, 96px);
+}
+
+.appLanding__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-4);
+  padding: 4px 14px;
+  border: 1px solid rgba(255, 134, 184, 0.4);
+  border-radius: var(--radius-pill);
+  color: var(--l-fluff-soft);
+  font-weight: 800;
+  font-size: 0.85rem;
+}
+.appLanding__eyebrow span { color: var(--l-fluff); }
+
+.appLanding__hero h1 {
+  margin: 0;
+  font-family: var(--l-display);
+  font-weight: 400;
+  font-size: clamp(2.7rem, 6.6vw, 5.4rem);
+  line-height: 1.25;
+  letter-spacing: 0;
+  color: #fff;
+}
+
+.appLanding__hero h1 em {
+  font-style: normal;
+  color: var(--l-fluff);
+  position: relative;
+  white-space: nowrap;
+}
+
+/* Hand-drawn underline under «یک نوبت». */
+.appLanding__hero h1 em::after {
+  content: "";
+  position: absolute;
+  inset-inline: -4% -2%;
+  bottom: 0.02em;
+  height: 0.22em;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 20' preserveAspectRatio='none'%3E%3Cpath d='M3 14 C 50 4, 120 4, 197 11' fill='none' stroke='%23ff86b8' stroke-width='5' stroke-linecap='round' opacity='.55'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+}
+
+.appLanding__lead {
+  margin: var(--space-5) 0 var(--space-7);
+  font-size: clamp(1rem, 1.4vw, 1.12rem);
+  color: rgba(244, 242, 247, 0.74);
+  max-width: 32em;
+}
+
+.appLanding__buttons { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+
+.appLanding__store {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 58px;
+  padding: 8px 22px 8px 26px;
+  border-radius: 18px;
+  border: 1.5px solid currentColor;
+  background: transparent;
+  text-decoration: none;
+  font-weight: 900;
+  font-size: 1.1rem;
+  line-height: 1.3;
+  transition: transform var(--duration-fast) var(--ease-standard), box-shadow var(--duration-base) ease, background var(--duration-base) ease;
+}
+
+.appLanding__store:hover { transform: translateY(-2px); }
+.appLanding__store span { display: flex; flex-direction: column; }
+.appLanding__store small { font-size: 0.72rem; font-weight: 700; opacity: 0.75; }
+.appLanding__storeIcon { width: 26px; height: 26px; flex: none; }
+
+/* On the dark hero: pink primary, ghost secondary. */
+.appLanding__buttons.is-dark .appLanding__store { color: #fff; border-color: rgba(255, 255, 255, 0.35); }
+.appLanding__buttons.is-dark .appLanding__store:hover { background: rgba(255, 255, 255, 0.06); }
+.appLanding__buttons.is-dark .appLanding__store.is-primary {
+  background: var(--l-fluff);
+  border-color: var(--l-fluff);
+  color: var(--l-ink);
+  box-shadow: 0 10px 40px rgba(255, 134, 184, 0.35);
+}
+.appLanding__buttons.is-dark .appLanding__store.is-primary:hover { box-shadow: 0 14px 50px rgba(255, 134, 184, 0.5); }
+
+/* On light surfaces: ink primary. */
+.appLanding__buttons.is-light .appLanding__store, .appLanding__guide .appLanding__store { color: var(--l-ink); border-color: var(--l-ink); }
+.appLanding__buttons.is-light .appLanding__store.is-primary, .appLanding__guide .appLanding__store.is-primary { background: var(--l-ink); color: #fff; }
+.appLanding__store.is-small { min-height: 48px; font-size: 0.95rem; margin-top: var(--space-5); }
+
+.appLanding__enter {
+  display: inline-block;
+  margin-top: var(--space-5);
+  font-weight: 800;
+  text-decoration: underline;
+  text-decoration-color: var(--l-fluff);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 7px;
+}
+
+.appLanding__note { margin: var(--space-4) 0 0; font-size: 0.82rem; color: rgba(244, 242, 247, 0.5); }
+
+/* Hero art: phone on a fluff cloud, the mascot peeking, the QR card. */
+.appLanding__heroArt {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 520px;
+}
+
+.appLanding__heroFluff {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: min(520px, 118%);
+  color: var(--l-fluff);
+  opacity: 0.92;
+  animation: landingFloat 9s ease-in-out infinite alternate, landingSpin 60s linear infinite;
+}
+
+.appLanding__phone {
+  position: relative;
+  width: min(280px, 72%);
+  aspect-ratio: 9 / 18.5;
+  border-radius: 44px;
+  border: 9px solid #0b0c10;
+  background: #0b0c10;
+  overflow: hidden;
+  rotate: -4deg;
+  box-shadow: 0 50px 100px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.appLanding__phone::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  top: 10px;
+  left: 50%;
+  translate: -50% 0;
+  width: 34%;
+  height: 22px;
+  border-radius: 20px;
+  background: #0b0c10;
+}
+
+.appLanding__phone img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 35px; }
+
+.appLanding__heroMascot {
+  position: absolute;
+  width: clamp(110px, 13vw, 160px);
+  height: auto;
+  inset-inline-start: 2%;
+  bottom: 2%;
+  rotate: 8deg;
+  filter: drop-shadow(0 18px 30px rgba(0, 0, 0, 0.45));
+}
+
+.appLanding__qr {
+  position: absolute;
+  inset-inline-end: 0;
+  top: 12%;
+  width: 132px;
+  padding: var(--space-3);
+  border-radius: var(--radius-lg);
+  background: #fff;
+  color: var(--l-ink);
+  rotate: 5deg;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+  text-align: center;
+  font-size: 0.7rem;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.appLanding__qrCode svg { display: block; width: 100%; height: auto; margin-bottom: var(--space-2); }
+
+/* Category ribbon: slow infinite scroll. */
+.appLanding__ribbon {
+  margin: 0 calc(var(--space-4) * -1);
+  padding: var(--space-4) 0;
+  background: var(--l-fluff);
+  color: var(--l-ink);
+  overflow: hidden;
+  rotate: -1.2deg;
+  translate: 0 50%;
+  position: relative;
+  z-index: 2;
+  box-shadow: 0 20px 40px rgba(20, 22, 29, 0.18);
+}
+
+.appLanding__ribbonTrack { display: flex; width: max-content; animation: landingRibbon 38s linear infinite; }
+.appLanding__ribbon:hover .appLanding__ribbonTrack { animation-play-state: paused; }
+
+.appLanding__ribbonRow {
+  display: flex;
+  gap: var(--space-8);
+  margin: 0;
+  padding: 0 var(--space-4);
+  padding-inline-end: var(--space-8);
+  list-style: none;
+}
+
+.appLanding__ribbonRow li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-family: var(--l-display);
+  font-size: 1.5rem;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.appLanding__ribbonRow img { width: 40px; height: 40px; object-fit: contain; }
+
+/* ---------- Paper: everything below ---------- */
+.appLanding__paper {
+  padding: clamp(64px, 9vw, 120px) var(--space-4) var(--space-8);
+  background:
+    radial-gradient(50rem 30rem at 100% 30%, rgba(255, 211, 229, 0.45), transparent 60%),
+    var(--l-paper);
+}
+
+.appLanding__section {
+  max-width: var(--landing-max);
+  margin: 0 auto;
+  padding: clamp(40px, 6vw, 80px) 0 var(--space-4);
+}
+.appLanding__section.is-narrow { max-width: 820px; }
+
+.appLanding__head { max-width: 40em; margin-bottom: var(--space-7); }
+.appLanding__head p:not(.appLanding__kicker) { margin: var(--space-3) 0 0; color: var(--l-muted); font-size: 1.02rem; }
+
+.appLanding__kicker {
+  margin: 0 0 var(--space-2);
+  color: var(--l-fluff-deep);
+  font-weight: 900;
+  font-size: 0.9rem;
+}
+
+.appLanding__head h2, .appLanding__finale h2 {
+  margin: 0;
+  font-family: var(--l-display);
+  font-weight: 400;
+  font-size: clamp(1.9rem, 4vw, 3rem);
+  line-height: 1.35;
+  color: var(--l-ink);
+}
+
+/* Audience cards. */
+.appLanding__cards { display: grid; grid-template-columns: 1.15fr 1fr 1fr; gap: var(--space-5); align-items: start; }
+
+.appLanding__card {
+  background: #fff;
+  border: 1px solid rgba(20, 22, 29, 0.08);
+  border-radius: 28px;
+  padding: var(--space-6);
+  box-shadow: 0 1px 0 rgba(20, 22, 29, 0.04), 0 18px 40px rgba(20, 22, 29, 0.06);
+  transition: transform var(--duration-base) var(--ease-standard), box-shadow var(--duration-base) ease;
+}
+.appLanding__card:hover { transform: translateY(-4px); box-shadow: 0 24px 60px rgba(20, 22, 29, 0.1); }
+
+.appLanding__card.is-featured { background: var(--l-ink); color: rgba(244, 242, 247, 0.8); border-color: transparent; }
+.appLanding__card.is-featured h3 { color: #fff; }
+.appLanding__card.is-featured .appLanding__tag { background: var(--l-fluff); color: var(--l-ink); }
+.appLanding__card.is-featured li::marker { color: var(--l-fluff); }
+
+.appLanding__cardTop { display: flex; align-items: flex-start; justify-content: space-between; }
+.appLanding__cardTop img { width: 64px; height: 64px; object-fit: contain; }
+
+.appLanding__tag {
+  padding: 3px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--l-fluff-soft);
+  color: var(--l-fluff-deep);
+  font-size: 0.8rem;
+  font-weight: 900;
+}
+
+.appLanding__card h3 {
+  margin: var(--space-4) 0 var(--space-3);
+  font-family: var(--l-display);
+  font-weight: 400;
+  font-size: 1.6rem;
+  line-height: 1.4;
+  color: var(--l-ink);
+}
+
+.appLanding__card ul { margin: 0; padding-inline-start: 1.1em; }
+.appLanding__card li::marker { color: var(--l-fluff-deep); }
+.appLanding__card li + li { margin-top: var(--space-2); }
+
+/* Steps. */
+.appLanding__steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-6);
+  counter-reset: step;
+}
+
+.appLanding__steps li { counter-increment: step; position: relative; }
+
+.appLanding__stepArt {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 190px;
+  margin-bottom: var(--space-3);
+}
+
+.appLanding__stepFluff { position: absolute; width: 170px; color: var(--l-fluff-soft); transition: rotate 0.8s var(--ease-standard), color 0.4s ease; }
+.appLanding__steps li:hover .appLanding__stepFluff { rotate: 45deg; color: var(--l-fluff); }
+.appLanding__stepArt img { position: relative; height: 160px; width: auto; transition: translate var(--duration-base) var(--ease-standard); }
+.appLanding__steps li:hover .appLanding__stepArt img { translate: 0 -6px; }
+
+/* Big Persian numeral in the corner of each step. */
+.appLanding__stepArt::after {
+  content: counter(step, persian);
+  position: absolute;
+  top: 0;
+  inset-inline-start: 6px;
+  font-family: var(--l-display);
+  font-size: 3.2rem;
+  line-height: 1;
+  color: var(--l-ink);
+}
+
+.appLanding__steps h3 { margin: 0 0 var(--space-1); font-family: var(--l-display); font-weight: 400; font-size: 1.5rem; color: var(--l-ink); }
+.appLanding__steps p { margin: 0; color: var(--l-muted); font-size: 0.95rem; }
+
+/* Promises strip. */
+.appLanding__promises {
+  max-width: var(--landing-max);
+  margin: clamp(48px, 7vw, 96px) auto 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-block: 1.5px solid var(--l-ink);
+}
+
+.appLanding__promises div { padding: var(--space-6) var(--space-5); display: grid; gap: var(--space-1); }
+.appLanding__promises div + div { border-inline-start: 1.5px solid var(--l-ink); }
+.appLanding__promises strong { font-family: var(--l-display); font-weight: 400; font-size: 1.6rem; line-height: 1.3; color: var(--l-ink); }
+.appLanding__promises span { color: var(--l-muted); font-size: 0.92rem; }
+
+/* Install guides. */
+.appLanding__install { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-5); }
+
+.appLanding__guide {
+  background: #fff;
+  border-radius: 28px;
+  padding: var(--space-7) var(--space-6);
+  border: 1px solid rgba(20, 22, 29, 0.08);
+  scroll-margin-top: var(--space-6);
+}
+
+.appLanding__guide h3 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-4);
+  font-family: var(--l-display);
+  font-weight: 400;
+  font-size: 1.7rem;
+  color: var(--l-ink);
+}
+
+.appLanding__guide ol { margin: 0; padding: 0; list-style: none; counter-reset: guide; }
+.appLanding__guide li { counter-increment: guide; position: relative; padding-inline-start: 44px; }
+.appLanding__guide li + li { margin-top: var(--space-3); }
+.appLanding__guide li::before {
+  content: counter(guide, persian);
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0.15em;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--l-fluff-soft);
+  color: var(--l-fluff-deep);
+  font-weight: 900;
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+.appLanding__soon { margin: var(--space-5) 0 0; color: var(--l-fluff-deep); font-weight: 800; }
+
+/* FAQ. */
+.appLanding__faq { display: grid; border-top: 1.5px solid var(--l-ink); }
+
+.appLanding__faq details { border-bottom: 1px solid rgba(20, 22, 29, 0.14); }
+
+.appLanding__faq summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-5) 0;
+  cursor: pointer;
+  font-weight: 900;
+  font-size: 1.08rem;
+  color: var(--l-ink);
+}
+.appLanding__faq summary::-webkit-details-marker { display: none; }
+
+.appLanding__faq summary::after {
+  content: "+";
+  flex: none;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1.5px solid var(--l-ink);
+  font-size: 1.3rem;
+  line-height: 1;
+  transition: rotate var(--duration-base) var(--ease-standard), background var(--duration-base) ease;
+}
+.appLanding__faq details[open] summary::after { rotate: 45deg; background: var(--l-fluff); border-color: var(--l-fluff); }
+.appLanding__faq p { margin: 0; padding: 0 0 var(--space-5); color: var(--l-text); max-width: 46em; }
+
+/* Final call to action. */
+.appLanding__finale {
+  position: relative;
+  max-width: var(--landing-max);
+  margin: clamp(64px, 9vw, 120px) auto 0;
+  padding: clamp(32px, 5vw, 64px);
+  padding-inline-start: clamp(32px, 26vw, 320px);
+  border-radius: 36px;
+  background: var(--l-ink);
+  color: rgba(244, 242, 247, 0.74);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.appLanding__finale h2 { color: #fff; }
+.appLanding__finale p { margin: var(--space-2) 0 var(--space-6); }
+.appLanding__finale .appLanding__buttons.is-light .appLanding__store { color: #fff; border-color: rgba(255, 255, 255, 0.35); }
+.appLanding__finale .appLanding__buttons.is-light .appLanding__store.is-primary { background: var(--l-fluff); border-color: var(--l-fluff); color: var(--l-ink); }
+
+.appLanding__finaleFluff {
+  position: absolute;
+  z-index: -1;
+  width: 380px;
+  inset-inline-start: -90px;
+  bottom: -120px;
+  color: var(--l-fluff);
+  animation: landingSpin 80s linear infinite;
+}
+
+.appLanding__finaleMascot {
+  position: absolute;
+  z-index: -1;
+  width: clamp(130px, 17vw, 210px);
+  height: auto;
+  inset-inline-start: clamp(16px, 4vw, 60px);
+  bottom: -8px;
+}
+
+/* Footer. */
+.appLanding__footer {
+  max-width: var(--landing-max);
+  margin: var(--space-8) auto 0;
+  padding-top: var(--space-5);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-4);
+  font-size: 0.9rem;
+  color: var(--l-muted);
+}
+
+.appLanding__footer div { display: flex; flex-wrap: wrap; gap: var(--space-4); }
+.appLanding__footer strong { color: var(--l-ink); font-family: var(--l-display); font-weight: 400; font-size: 1.2rem; line-height: 1.5; }
+.appLanding__footer nav { display: flex; flex-wrap: wrap; gap: var(--space-4); }
+
+/* ---------- Motion ---------- */
+@keyframes landingRibbon { to { transform: translateX(50%); } }
+@keyframes landingSpin { to { rotate: 360deg; } }
+@keyframes landingFloat { from { translate: 0 -10px; } to { translate: 0 12px; } }
+@keyframes landingRise { from { opacity: 0; translate: 0 28px; } to { opacity: 1; translate: 0 0; } }
+@keyframes landingPop { from { opacity: 0; scale: 0.85; } to { opacity: 1; scale: 1; } }
+
+/* Page load: hero pieces come in one after another. */
+.appLanding__heroText > * { animation: landingRise 0.8s var(--ease-standard) both; }
+.appLanding__heroText > :nth-child(2) { animation-delay: 0.08s; }
+.appLanding__heroText > :nth-child(3) { animation-delay: 0.16s; }
+.appLanding__heroText > :nth-child(4) { animation-delay: 0.24s; }
+.appLanding__heroText > :nth-child(n + 5) { animation-delay: 0.32s; }
+.appLanding__phone { animation: landingPop 0.9s 0.15s var(--ease-standard) both; }
+.appLanding__heroMascot { animation: landingRise 0.9s 0.45s var(--ease-standard) both; }
+.appLanding__qr { animation: landingPop 0.7s 0.6s var(--ease-standard) both; }
+
+/* Scroll reveal where the browser supports scroll-driven animations; elsewhere it is simply shown. */
+@supports (animation-timeline: view()) {
+  .appLanding__reveal {
+    animation: landingRise linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 55%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .appLanding *, .appLanding *::before, .appLanding *::after { animation: none !important; transition: none !important; }
+}
+
+/* ---------- Smaller screens ---------- */
+@media (max-width: 960px) {
+  .appLanding__cards { grid-template-columns: 1fr 1fr; }
+  .appLanding__cards .is-featured { grid-column: 1 / -1; }
+  .appLanding__steps { grid-template-columns: 1fr 1fr; }
+  .appLanding__nav nav { display: none; }
+  .appLanding__navCta { margin-inline-start: auto; }
+}
+
+@media (max-width: 720px) {
+  .appLanding__hero { grid-template-columns: 1fr; gap: var(--space-4); padding-top: var(--space-3); }
+  .appLanding__heroArt { min-height: 380px; }
+  .appLanding__heroFluff { width: 340px; }
+  .appLanding__phone { width: 190px; border-radius: 34px; border-width: 7px; }
+  .appLanding__phone img { border-radius: 27px; }
+  .appLanding__qr { display: none; }
+  .appLanding__heroMascot { width: 104px; inset-inline-start: 6%; }
+  .appLanding__ribbonRow li { font-size: 1.25rem; }
+  .appLanding__ribbonRow img { width: 32px; height: 32px; }
+  .appLanding__cards, .appLanding__install, .appLanding__promises { grid-template-columns: 1fr; }
+  .appLanding__promises div + div { border-inline-start: 0; border-top: 1px solid rgba(20, 22, 29, 0.14); }
+  .appLanding__promises div { padding: var(--space-5) 0; }
+  .appLanding__guide { padding: var(--space-6) var(--space-5); }
+  .appLanding__finale { padding: var(--space-7) var(--space-5) 190px; border-radius: 28px; }
+  .appLanding__finaleMascot { inset-inline: 0; margin-inline: auto; width: 140px; }
+  .appLanding__finaleFluff { width: 300px; inset-inline: 0; margin-inline: auto; bottom: -150px; }
+}
+
+@media (max-width: 440px) {
+  .appLanding__steps { gap: var(--space-5) var(--space-4); }
+  .appLanding__stepArt { height: 130px; }
+  .appLanding__stepArt img { height: 112px; }
+  .appLanding__stepFluff { width: 118px; }
+  .appLanding__stepArt::after { font-size: 2.2rem; inset-inline-start: 0; }
+  .appLanding__steps h3 { font-size: 1.3rem; }
+  .appLanding__steps p { font-size: 0.86rem; }
+  .appLanding__store { flex: 1 1 100%; justify-content: center; }
+  .appLanding__navCta { padding: 6px 14px; }
+}
+
+/* Small "get the app" link inside the site (auth gate, settings). */
+.webAppDownloadLink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  margin: var(--space-4) auto 0;
+  font-size: var(--text-sm);
+  font-weight: 800;
+  color: inherit;
+  text-decoration: none;
+  opacity: 0.85;
+}
+
+.webAppDownloadLink:hover { opacity: 1; text-decoration: underline; }
+
+/* Pull-to-refresh in the app (components/PullToRefresh.jsx). */
+.pullRefresh {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) - 44px);
+  left: 50%;
+  z-index: var(--z-pull-refresh);
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--muted);
+  box-shadow: 0 6px 20px rgba(28, 32, 44, 0.18);
+  pointer-events: none;
+}
+
+.pullRefresh.is-ready, .pullRefresh.is-refreshing { color: var(--ink); }
+.pullRefresh.is-refreshing svg { animation: pullRefreshSpin 0.8s linear infinite; }
+@keyframes pullRefreshSpin { to { transform: rotate(360deg); } }
+
+/* Android's own overscroll stretch would fight the pull. */
+html.native-app, html.native-app body { overscroll-behavior-y: none; }

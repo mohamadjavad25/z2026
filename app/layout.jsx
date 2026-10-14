@@ -3,7 +3,10 @@ import Script from "next/script";
 import PbdqInspector from "./components/PbdqInspector.jsx";
 import { ViewportHeightFix } from "./components/ViewportHeightFix.jsx";
 import { ClientErrorReporter } from "./components/ClientErrorReporter.jsx";
+import { PullToRefresh } from "./components/PullToRefresh.jsx";
 import { getSiteUrl } from "./lib/siteUrl.js";
+import { AppLanding } from "./features/landing/AppLanding";
+import { LargeScreenGate } from "./features/landing/LargeScreenGate";
 
 // NEXT_PUBLIC_SITE_URL is the single source of truth for the site's public
 // domain (see .env.example at the repo root) — app/sitemap.js and
@@ -66,11 +69,23 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="fa" dir="rtl">
+    <html lang="fa" dir="rtl" suppressHydrationWarning>
       <head>
+        {/* Before first paint: inside the Android/iOS app (mobile/) the user agent ends with
+            "frfro-app". CSS uses the class to always show the app there and hide download links.
+            "skip-landing": the home page opens the app, not the about page (HOME_LANDING_SKIP_KEY
+            in features/landing/constants.js): in the app, from the home-screen icon, or once the
+            visitor tapped «ورود به فرفرو» on the about page. */}
+        <script dangerouslySetInnerHTML={{ __html: `(function () {
+var root = document.documentElement;
+if (navigator.userAgent.indexOf("frfro-app") !== -1) root.classList.add("native-app", "skip-landing");
+try {
+  if (window.matchMedia("(display-mode: standalone)").matches || navigator.standalone || localStorage.getItem("frfro-entered") === "1") root.classList.add("skip-landing");
+} catch (e) {}
+})();` }} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@500;700;800;900&family=Playfair+Display:wght@500;600&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@500;700;800;900&family=Lalezar&family=Playfair+Display:wght@500;600&display=swap" rel="stylesheet" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#1c202c" />
         <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
@@ -83,13 +98,31 @@ export default function RootLayout({ children }) {
         <PbdqInspector />
         <ViewportHeightFix />
         <ClientErrorReporter />
-        {children}
+        <PullToRefresh />
+        <LargeScreenGate landing={<AppLanding />}>{children}</LargeScreenGate>
         <Script id="sw-register" strategy="afterInteractive">
           {`if ("serviceWorker" in navigator) {
   window.addEventListener("load", function () {
     navigator.serviceWorker.register("/sw.js").catch(function () {});
   });
 }`}
+        </Script>
+        {/* Inside the Android/iOS app: a tapped frfro.ir link opens the app, so show that
+            page here. Capacitor injects window.Capacitor; on the web this does nothing. */}
+        <Script id="native-app" strategy="afterInteractive">
+          {`(function () {
+var cap = window.Capacitor;
+if (cap && cap.isNativePlatform && cap.isNativePlatform()) {
+  cap.addListener("App", "appUrlOpen", function (event) {
+    try {
+      var url = new URL(event.url);
+      if (url.hostname === "frfro.ir" || url.hostname.endsWith(".frfro.ir")) {
+        location.href = url.pathname + url.search + url.hash;
+      }
+    } catch (e) {}
+  });
+}
+})();`}
         </Script>
       </body>
     </html>

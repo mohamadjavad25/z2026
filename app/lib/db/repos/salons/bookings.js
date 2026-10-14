@@ -174,61 +174,110 @@ async function findOverlapConflict(db, {
   return null;
 }
 
+// A team member who has turned themselves off ("غیرفعال") or is on leave gets no new work drafted.
+const STAFF_AWAY_STATES = new Set(["غیرفعال", "مرخصی"]);
+
+function isStaffWorking(person) {
+  return !STAFF_AWAY_STATES.has(String(person?.state || "").trim());
+}
+
+const staffName = (person) => String(person?.name || "").trim();
+
 /**
  * Everything a visit plan needs for one salon day, loaded once: the salon's services (with who
- * does each), its active bookings, and -- loaded as first needed -- each artist's own calendar.
+ * does each), its team, its active bookings (and how many minutes each member already has that
+ * day), and -- loaded as first needed -- each artist's own calendar. `excludeId` /
+ * `excludeArtistBookingIds` leave one booking and its calendar copies out, for re-planning it.
  */
-async function loadVisitDay(db, salonUserId, bookingDate) {
+async function loadVisitDay(db, salonUserId, bookingDate, { excludeId = null, excludeArtistBookingIds = [] } = {}) {
   const services = await listSalonServices(salonUserId, db);
-  const rows = await listActiveDayBookings(db, salonUserId, bookingDate);
-  return { db, bookingDate, services, rows, held: rows.flatMap(bookingSegments), artistBusy: new Map() };
+  const team = (await listSalonStaff(salonUserId, db)).filter(staffName);
+  const rows = await listActiveDayBookings(db, salonUserId, bookingDate, excludeId);
+  const held = rows.flatMap(bookingSegments);
+  const load = new Map();
+  for (const segment of held) {
+    if (segment.staff) load.set(segment.staff, (load.get(segment.staff) || 0) + segment.end - segment.start);
+  }
+  return { db, bookingDate, services, team, rows, held, load, artistBusy: new Map(), excludeArtistBookingIds };
 }
 
 async function artistBusyRanges(day, artistId) {
   if (!day.artistBusy.has(artistId)) {
-    day.artistBusy.set(artistId, await artists.listArtistBusyRanges(artistId, day.bookingDate, {}, day.db));
+    day.artistBusy.set(artistId, await artists.listArtistBusyRanges(artistId, day.bookingDate, { excludeBookingIds: day.excludeArtistBookingIds || [] }, day.db));
   }
   return day.artistBusy.get(artistId);
 }
 
 function staffForService(day, serviceName) {
   const service = day.services.find((item) => String(item.name || "").trim() === serviceName);
-  return (service?.staff_members || []).filter((person) => String(person.name || "").trim());
+  return (service?.staff_members || []).filter(staffName);
 }
 
 /**
- * Draft split for a multi-service visit: each service without an artist goes to the first
- * artist who does that service (the salon's service → staff list) and is free for that part
- * of the visit -- free in this salon's bookings and in their own artist calendar.
- * A service nobody can take stays unassigned.
+ * Who may be drafted for a service: the working members linked to it, or -- when it has none
+ * (nobody linked, or all of them away) -- anyone on the team who is working. The salon can
+ * always hand it to someone else afterwards.
+ */
+function draftPool(day, serviceName) {
+  const linked = staffForService(day, serviceName).filter(isStaffWorking);
+  return linked.length ? linked : day.team.filter(isStaffWorking);
+}
+
+/** Free from `start` to `end`: nothing of theirs in this salon then, nor in their own artist calendar. */
+async function isStaffFree(day, person, start, end) {
+  const name = staffName(person);
+  if (day.held.some((segment) => segment.staff === name && rangesOverlap(start, end, segment.start, segment.end))) return false;
+  const artistId = Number(person.artist_user_id || 0);
+  if (artistId && (await artistBusyRanges(day, artistId)).some((range) => rangesOverlap(start, end, range.start, range.end))) return false;
+  return true;
+}
+
+function compareRanks(a, b) {
+  for (let index = 0; index < a.length; index += 1) {
+    if (a[index] !== b[index]) return a[index] - b[index];
+  }
+  return 0;
+}
+
+/**
+ * Draft split of a visit: each service without an artist goes to a free member of its pool
+ * (draftPool). Of those free, the work is spread: whoever has the fewest minutes of this visit
+ * so far, then whoever did the service right before (one hand-over fewer), then whoever has the
+ * least booked that day, then the salon's own order. A service nobody can take stays unassigned.
  */
 async function draftVisitParts(day, time, parts) {
   const drafted = [];
+  const visitMinutes = new Map();
+  let previous = "";
   for (const part of scheduleBookingParts(time, parts)) {
     let staff = part.staff;
     if (!staff) {
-      for (const person of staffForService(day, part.service)) {
-        const name = String(person.name).trim();
-        if (day.held.some((segment) => segment.staff === name && rangesOverlap(part.start, part.end, segment.start, segment.end))) continue;
-        const artistId = Number(person.artist_user_id || 0);
-        if (artistId && (await artistBusyRanges(day, artistId)).some((range) => rangesOverlap(part.start, part.end, range.start, range.end))) continue;
-        staff = name;
-        break;
+      let best = null;
+      const pool = draftPool(day, part.service);
+      for (let order = 0; order < pool.length; order += 1) {
+        const person = pool[order];
+        if (!(await isStaffFree(day, person, part.start, part.end))) continue;
+        const name = staffName(person);
+        const rank = [visitMinutes.get(name) || 0, name === previous ? 0 : 1, day.load.get(name) || 0, order];
+        if (!best || compareRanks(rank, best.rank) < 0) best = { name, rank };
       }
+      staff = best?.name || "";
     }
+    if (staff) visitMinutes.set(staff, (visitMinutes.get(staff) || 0) + part.minutes);
+    previous = staff;
     drafted.push({ service: part.service, minutes: part.minutes, staff });
   }
   return drafted;
 }
 
-/** The first service left without an artist although the salon has people who do it. */
+/** The first service left without an artist although someone at the salon could do it. */
 function findUnstaffedPart(day, parts) {
-  return parts.find((part) => !part.staff && staffForService(day, part.service).length) || null;
+  return parts.find((part) => !part.staff && draftPool(day, part.service).length) || null;
 }
 
-/** Same rule as findOverlapConflict, against an already loaded day. */
+/** Same rule as findOverlapConflict, against an already loaded day (each drafted part with its own artist). */
 function visitOverlaps(day, time, parts) {
-  const wanted = bookingSegments({ time, parts });
+  const wanted = scheduleBookingParts(time, parts).map((part) => ({ staff: part.staff, start: part.start, end: part.end }));
   return day.held.some((held) => wanted.some((segment) => staffScopesConflict(segment.staff, held.staff)
     && rangesOverlap(segment.start, segment.end, held.start, held.end)));
 }
@@ -236,38 +285,104 @@ function visitOverlaps(day, time, parts) {
 /**
  * The start times (from `times`) at which a client's request for these services will go
  * through -- the same checks POST /api/salon-bookings runs, so the client is never shown a
- * time that is then refused:
- * - several services, back to back: every service someone at the salon does gets a free
- *   artist in the draft, and nothing overlaps the salon's other bookings (addSalonBooking
- *   with requireStaff refuses any other time);
- * - one service: nothing overlaps in the salon (a client's booking names no artist, so any
- *   overlap counts), and the artist it is linked to is free in their own calendar.
+ * time that is then refused: in the draft (draftVisitParts) every service someone at the salon
+ * could do gets a free artist, and nothing overlaps the salon's other bookings. One service
+ * is just a visit of one part.
  */
 export async function listFeasibleVisitTimes(salonUserId, bookingDate, parts, times) {
   await ensureBookingPartsColumns();
   const list = parseBookingParts(parts).map((part) => ({ ...part, staff: "" }));
   if (!list.length) return [];
-  const db = await getDb();
-  const day = await loadVisitDay(db, salonUserId, bookingDate);
+  const day = await loadVisitDay(await getDb(), salonUserId, bookingDate);
   const feasible = [];
-  if (list.length === 1) {
-    const [only] = list;
-    const linked = await findSalonStaffForBooking(salonUserId, "", only.service, db);
-    const artistRanges = linked?.artist_user_id ? await artistBusyRanges(day, Number(linked.artist_user_id)) : [];
-    for (const time of times) {
-      const start = timeLabelToMinutes(normalizeBookingTimeLabel(time));
-      const end = start + only.minutes;
-      const taken = day.held.some((held) => rangesOverlap(start, end, held.start, held.end))
-        || artistRanges.some((range) => rangesOverlap(start, end, range.start, range.end));
-      if (!taken) feasible.push(time);
-    }
-    return feasible;
-  }
   for (const time of times) {
     const drafted = await draftVisitParts(day, time, list);
     if (!findUnstaffedPart(day, drafted) && !visitOverlaps(day, time, drafted)) feasible.push(time);
   }
   return feasible;
+}
+
+/**
+ * The artist a client's single-service request at `time` is drafted to (same rules as a visit's
+ * services), and whether it must be refused because nobody who could do it is free then.
+ */
+export async function draftSingleBookingStaff(salonUserId, bookingDate, time, service, minutes) {
+  await ensureBookingPartsColumns();
+  const day = await loadVisitDay(await getDb(), salonUserId, bookingDate);
+  const drafted = await draftVisitParts(day, time, [{ service, minutes, staff: "" }]);
+  return { staff: drafted[0]?.staff || "", unstaffed: Boolean(findUnstaffedPart(day, drafted)) };
+}
+
+/** The artist-calendar copies of one salon booking (the per-artist rows of a visit, or the single linked one). */
+async function bookingCalendarCopyIds(db, salonUserId, booking) {
+  if (isMultiPartBooking(booking)) return (await listPartMirrors(db, booking.id)).map((row) => Number(row.id));
+  const linked = await findSalonStaffForBooking(salonUserId, booking.staff, booking.service, db);
+  const artistId = Number(linked?.artist_user_id || 0);
+  if (!artistId) return [];
+  const copy = await artists.findLinkedSalonArtistBooking(artistId, salonUserId, booking, db);
+  return copy?.id ? [Number(copy.id)] : [];
+}
+
+/** A booking's services as plannable parts: its own parts, or the whole booking as one. */
+function bookingPlanParts(booking) {
+  if (isMultiPartBooking(booking)) return parseBookingParts(booking.parts);
+  return [{ service: String(booking.service || "").trim(), minutes: Math.max(15, Number(booking.duration_minutes) || 60), staff: String(booking.staff || "").trim() }];
+}
+
+async function loadBookingPlan(salonUserId, id) {
+  await ensureBookingPartsColumns();
+  const db = await getDb();
+  const booking = await get(db, "SELECT * FROM salon_bookings WHERE id = $1 AND salon_user_id = $2", [id, salonUserId]);
+  if (!booking) return null;
+  const day = await loadVisitDay(db, salonUserId, booking.booking_date, {
+    excludeId: booking.id,
+    excludeArtistBookingIds: await bookingCalendarCopyIds(db, salonUserId, booking)
+  });
+  return { booking, day, multi: isMultiPartBooking(booking) };
+}
+
+/**
+ * «تقسیم خودکار»: the split the system would make for one of the salon's bookings right now,
+ * from scratch (who has it now does not count, the booking itself is left out of everyone's day).
+ * → { parts } for a visit of several services, { staff } for a single one; null when not the salon's.
+ */
+export async function suggestBookingStaff(id, salonUserId) {
+  const plan = await loadBookingPlan(salonUserId, id);
+  if (!plan) return null;
+  const drafted = await draftVisitParts(
+    plan.day,
+    plan.booking.time,
+    bookingPlanParts(plan.booking).map((part) => ({ ...part, staff: "" }))
+  );
+  return plan.multi ? { parts: drafted } : { staff: drafted[0]?.staff || "" };
+}
+
+/**
+ * For the artist pickers in the booking menu: per service of the booking (in its order, at its
+ * own clock time), every team member with whether they are free then (`free`), linked to that
+ * service (`skilled`) and away (`away`: their state, when inactive or on leave), plus the
+ * split the system suggests. Null when the booking is not the salon's.
+ */
+export async function listBookingStaffOptions(id, salonUserId) {
+  const plan = await loadBookingPlan(salonUserId, id);
+  if (!plan) return null;
+  const { booking, day } = plan;
+  const parts = [];
+  for (const part of scheduleBookingParts(booking.time, bookingPlanParts(booking))) {
+    const skilled = new Set(staffForService(day, part.service).map(staffName));
+    const staff = [];
+    for (const person of day.team) {
+      staff.push({
+        name: staffName(person),
+        free: await isStaffFree(day, person, part.start, part.end),
+        skilled: skilled.has(staffName(person)),
+        away: isStaffWorking(person) ? "" : String(person.state || "").trim()
+      });
+    }
+    parts.push({ service: part.service, start: part.startLabel, end: part.endLabel, staff: part.staff, options: staff });
+  }
+  const suggested = await draftVisitParts(day, booking.time, bookingPlanParts(booking).map((part) => ({ ...part, staff: "" })));
+  return { parts, suggested: suggested.map((part) => part.staff) };
 }
 
 /** One of the salon's own booking rows, or null. */

@@ -6,6 +6,7 @@ import { useHome } from "../HomeContext";
 export function OwnerBookingSheet() {
   const {
     bookingSheetOpen,
+    bookingPrefill,
     createdProfile,
     closeBookingSheet,
     bookingCustomerOptions,
@@ -26,6 +27,7 @@ export function OwnerBookingSheet() {
     artistBookingFreeSlots,
     bookingFreeSlots,
     bookingStaffForTime,
+    bookingDayGrid,
     salonBookingDayOptions,
     bookingTime,
     setBookingTime,
@@ -49,6 +51,8 @@ export function OwnerBookingSheet() {
           <BookingCreateForm
             role={createdProfile?.type === "artist" ? "artist" : "salon"}
             customerOptions={bookingCustomerOptions}
+            initialClient={bookingPrefill?.client || ""}
+            initialPhone={bookingPrefill?.phone || ""}
             onAddService={() => {
               closeBookingSheet();
               if (createdProfile?.type === "artist") openArtistServiceCreate();
@@ -83,6 +87,7 @@ export function OwnerBookingSheet() {
             }))}
             staffValue={bookingStaffName}
             staffForTime={bookingStaffForTime}
+            dayGrid={bookingDayGrid}
             staffMenuOpen={bookingSelectMenu === "staff"}
             onStaffMenuOpenChange={(next) => setBookingSelectMenu(next ? "staff" : "")}
             onStaffChange={setBookingStaffName}

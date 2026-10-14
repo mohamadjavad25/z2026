@@ -15,7 +15,7 @@ export function phoneForSms(text) {
 export function buildInviteText({ name = "", category = "", url = "" } = {}) {
   const who = String(name || "").trim();
   const wants = category ? `برای «${category}» ` : "";
-  return `سلام${who ? `، من ${who} هستم` : ""} و می‌خواهم ${wants}از فرفرو نوبت بگیرم. اینجا ثبت‌نام کن تا وصل شویم: ${url}`.trim();
+  return `سلام${who ? `، من ${who} هستم` : ""} و می‌خواهم ${wants}از فرفرو نوبت بگیرم. اینجا ثبت‌نام کن تا رزروهایت را همین‌جا مدیریت کنی و وصل شویم: ${url}`.trim();
 }
 
 /** `sms:` link that opens the phone's messages app with the text filled in (the `?&` form works on both Android and iOS). */

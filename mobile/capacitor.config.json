@@ -1,0 +1,38 @@
+{
+  "appId": "ir.frfro.app",
+  "appName": "فرفرو",
+  "webDir": "www",
+  "server": {
+    "url": "https://frfro.ir",
+    "cleartext": false,
+    "allowNavigation": [
+      "frfro.ir",
+      "*.frfro.ir"
+    ],
+    "errorPath": "offline.html"
+  },
+  "appendUserAgent": "frfro-app",
+  "backgroundColor": "#1c202c",
+  "android": {
+    "allowMixedContent": false,
+    "webContentsDebuggingEnabled": false
+  },
+  "ios": {
+    "contentInset": "never",
+    "limitsNavigationsToAppBoundDomains": false
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1500,
+      "launchAutoHide": true,
+      "backgroundColor": "#1c202c",
+      "showSpinner": false,
+      "androidScaleType": "CENTER_CROP"
+    },
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#1c202c",
+      "overlaysWebView": false
+    }
+  }
+}

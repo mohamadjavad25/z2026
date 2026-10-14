@@ -17,6 +17,22 @@ async function seedSalon() {
   return { name, client, salon };
 }
 
+describe("about page first on phones (browser)", () => {
+  it("shows the about page at / to a first-time phone visitor, and «ورود» opens the app for good", async () => {
+    const { page, context, problems } = await newPage({ entered: false });
+    await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
+    expect(await page.locator(".landingSlot .appLanding").isVisible()).toBe(true);
+    expect(await page.locator(".landingSlot a[href='/download/frfro.apk']").count()).toBeGreaterThan(0);
+    await page.locator(".landingSlot .appLanding__hero .appLanding__enter").click();
+    await page.locator(".landingSlot .appLanding").waitFor({ state: "hidden" });
+    expect(await page.locator(".pageSlot").isVisible()).toBe(true);
+    await page.reload({ waitUntil: "networkidle" });
+    expect(await page.locator(".landingSlot .appLanding").isVisible()).toBe(false);
+    expect(problems).toEqual([]);
+    await context.close();
+  });
+});
+
 describe("auth forms (browser)", () => {
   it("shows Persian inline errors instead of the browser's own messages", async () => {
     const { page, context, problems } = await newPage();
@@ -70,20 +86,35 @@ describe("booking flow (browser)", () => {
     await cp.locator(".bspTime").first().click();
     expect(await cp.locator(".salonClientBookingSummary").innerText()).toContain("ساعت");
     await cp.getByRole("button", { name: "ثبت درخواست نوبت" }).click();
-    await cp.locator(".cbt.is-wait").waitFor();
+    // "now what?": a full screen says the request reached the salon and how long the answer can take
+    const receipt = cp.locator(".brScreen");
+    await receipt.waitFor();
+    expect(await receipt.innerText()).toContain(`درخواستت به ${name} رسید`);
+    expect(await receipt.locator(".brCount").innerText()).toContain("دقیقه تا پاسخ سالن");
+    await cp.locator(".cbt.is-wait").waitFor({ state: "attached" });
     expect(await cp.locator(".cbt").innerText()).toContain("منتظر تأیید");
+    // and takes the client home, where the new booking is the first card
+    await receipt.getByRole("button", { name: "دیدن در «نوبت‌های من»" }).click();
+    await receipt.waitFor({ state: "detached" });
+    await cp.locator(".clientHome .cvCard.is-fresh", { hasText: name }).waitFor();
     expect(clientView.problems).toEqual([]);
 
-    // salon: approve from the dashboard
+    // salon: the new request opens on its own as the full booking screen; approve it there
     const salonView = await newPage({ cookie: salonClient.cookie() });
     const sp = salonView.page;
     await sp.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
-    // the request is answered on its own booking card; if it is on another day, the notice jumps there
-    await sp.locator(".bkGroup, .pendingOtherDays").first().waitFor();
-    if (await sp.locator(".pendingOtherDays").count()) await sp.locator(".pendingOtherDays button").first().click();
-    const requestCard = sp.locator(".bkGroup").first();
-    await requestCard.getByRole("button", { name: "تایید" }).click();
-    await requestCard.waitFor({ state: "detached" });
+    const screen = sp.locator(".sbmScreen");
+    await screen.waitFor();
+    expect(await screen.innerText()).toContain("مشتری تست");
+    for (const label of ["تغییر ساعت", "تماس", "بستن"]) {
+      expect(await screen.locator(".sbmBar").getByRole("button", { name: label }).count()).toBe(1);
+    }
+    await screen.getByRole("button", { name: "تایید نوبت" }).click();
+    await screen.waitFor({ state: "detached" });
+    // answered once, it does not open again
+    await sp.reload({ waitUntil: "networkidle" });
+    expect(await sp.locator(".sbmScreen").count()).toBe(0);
+    expect(salonView.problems).toEqual([]);
 
     // the client's booking list now says confirmed
     const list = await clientApi.get("/api/client-bookings");
@@ -177,6 +208,36 @@ describe("booking flow (browser)", () => {
 });
 
 describe("client starts from what they want (browser)", () => {
+  it("books straight from the home page: the connected salon's service, a time, then the receipt", async () => {
+    const { name, salon } = await seedSalon();
+    const clientApi = createClient();
+    await registerUser(clientApi, { type: "client", name: "مشتری خانه" });
+    expect((await clientApi.post("/api/connections", { targetUserId: salon.user.id })).ok).toBe(true);
+
+    const { page, context, problems } = await newPage({ cookie: clientApi.cookie() });
+    await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
+    // one page under the header: no «پروفایل / فعالیت من» switch
+    expect(await page.locator(".profileModeRail").count()).toBe(0);
+    const place = page.locator(".chPlace");
+    await place.waitFor();
+    expect(await place.innerText()).toContain(name);
+    await place.locator(".chServices button", { hasText: "کوتاهی مو" }).click();
+    await page.locator(".sduItem.is-selected", { hasText: "کوتاهی مو" }).waitFor();
+    await page.locator(".sduConfirm").click();
+    await page.locator(".bspTime").first().click();
+    await page.getByRole("button", { name: "ثبت درخواست نوبت" }).click();
+    const receipt = page.locator(".brScreen");
+    await receipt.waitFor();
+    // closing the salon page from here goes back home, not to the «رزرو» tab
+    await receipt.getByRole("button", { name: "بستن" }).click();
+    await receipt.waitFor({ state: "detached" });
+    await page.getByRole("button", { name: "بازگشت به سالن‌ها" }).click();
+    await page.locator(".clientHome .cvCard", { hasText: name }).waitFor();
+    expect(problems).toEqual([]);
+    await context.close();
+  });
+
+
   it("one connected salon does it: straight to its services, the service already picked", async () => {
     const { name, client: salonClient, salon } = await seedSalon();
     await salonClient.post("/api/salon-services", { name: "کاشت ناخن", price: "900000", duration: "120 دقیقه" });

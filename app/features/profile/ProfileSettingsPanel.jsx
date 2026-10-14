@@ -246,6 +246,7 @@ export function ProfileSettingsPanel({
         <button type="button" onClick={() => openSupport()}>ارتباط با پشتیبانی</button>
         <Link href="/terms">قوانین و مقررات</Link>
         <Link href="/privacy">حریم خصوصی</Link>
+        <a className="webOnlyAppLink" href="/download">دانلود اپلیکیشن</a>
       </div>
 
       <button type="button" className="neoSettingsLogout" onClick={onLogout}>

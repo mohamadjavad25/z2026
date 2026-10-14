@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowLeft, CalendarCheck, CheckCircle2, Clock3, MapPin, Phone, RotateCcw, TimerOff, XCircle } from "lucide-react";
+import { ArrowLeft, CalendarCheck, CheckCircle2, Clock3, MapPin, Phone, RotateCcw, Store, TimerOff, UserPlus, XCircle } from "lucide-react";
+import { connectTo, listConnections } from "../../shared/api/connections";
 import { SheetClose } from "../../components/SheetClose";
 import { bookingStatusLabel, bookingStatusTone, canClientCancel } from "./bookingStatus";
 import { ServiceIcon } from "../../components/ServiceIcon";
@@ -114,6 +115,51 @@ function TimeOfferBlock({ booking, offer, onAnswer }) {
   );
 }
 
+/** The salon or artist a booking belongs to, as a connection id. */
+function placeIdOf(booking) {
+  return String(booking?.bookingSource === "artist"
+    ? booking.artistUserId || booking.sourceArtistUserId || ""
+    : booking?.salon_user_id || booking?.sourceSalonUserId || booking?.salonUserId || "");
+}
+
+/**
+ * Whether the client follows (is connected to) this place: null while unknown, then true/false.
+ * A booking can outlive the follow (history re-booking never follows), so the sheet offers it here.
+ */
+function useFollowing(placeId, onNotice) {
+  const [state, setState] = useState({ id: "", following: null });
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    if (!placeId) return undefined;
+    let alive = true;
+    listConnections().then(({ ok, data }) => {
+      if (!alive || !ok) return;
+      const list = Array.isArray(data?.connections) ? data.connections : [];
+      setState({ id: placeId, following: list.some((item) => String(item.id) === placeId) });
+    }).catch(() => {});
+    return () => { alive = false; };
+  }, [placeId]);
+
+  const follow = async () => {
+    setBusy(true);
+    try {
+      const { ok, payload } = await connectTo(placeId);
+      if (ok) {
+        setState({ id: placeId, following: true });
+        const name = payload?.data?.profile?.name;
+        onNotice?.(name ? `${name} به لیستت اضافه شد.` : "به لیستت اضافه شد.");
+      } else {
+        onNotice?.(payload?.error || "دنبال کردن انجام نشد؛ دوباره امتحان کن.");
+      }
+    } catch {
+      onNotice?.("دنبال کردن انجام نشد؛ دوباره امتحان کن.");
+    } finally {
+      setBusy(false);
+    }
+  };
+  return { following: state.id === placeId ? state.following : null, busy, follow };
+}
+
 /**
  * Client role — booking details / quick actions sheet.
  * Presentational: selected booking + call/close callbacks.
@@ -123,11 +169,15 @@ export function ClientBookingSettingsModal({
   onClose,
   onCallSalon,
   onRebookSalon,
+  onOpenPlace,
+  onNotice,
   onCancelBooking,
   onAnswerOffer
 }) {
   const [confirming, setConfirming] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const placeId = placeIdOf(booking);
+  const { following, busy: followBusy, follow } = useFollowing(placeId, onNotice);
   if (!booking) return null;
 
   const avatar = booking.salonAvatar || booking.salon_avatar || "";
@@ -227,6 +277,20 @@ export function ClientBookingSettingsModal({
               </button>
             ) : null}
           </div>
+          {placeId && onOpenPlace ? (
+            <div className="cbPlace">
+              <button type="button" className="cbPlaceOpen" onClick={() => onOpenPlace(booking)}>
+                <Store size={16} aria-hidden="true" />
+                {booking.bookingSource === "artist" ? "رفتن به صفحهٔ آرتیست" : "رفتن به صفحهٔ سالن"}
+              </button>
+              {following === false ? (
+                <button type="button" className="cbPlaceFollow" disabled={followBusy} onClick={follow}>
+                  <UserPlus size={16} aria-hidden="true" />
+                  {followBusy ? "در حال افزودن…" : "دنبال کردن"}
+                </button>
+              ) : null}
+            </div>
+          ) : null}
           {canClientCancel(booking) && onCancelBooking && !offer ? (
             confirming ? (
               <div className="cbCancelConfirm" role="alertdialog" aria-label="تأیید لغو رزرو">

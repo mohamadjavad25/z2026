@@ -21,6 +21,7 @@ export function useHomeWorkspaces({
   setFollowedSalons,
   openPost,
   notifyArtistBookingCreated,
+  onClientBooked,
   artistServiceList,
   salonServiceList,
   upsertArtistOwnerService,
@@ -135,7 +136,8 @@ export function useHomeWorkspaces({
       setSelectedArtistProfile(null);
       setSelectedSalon(null);
     },
-    onArtistBookingCreated: notifyArtistBookingCreated
+    onArtistBookingCreated: notifyArtistBookingCreated,
+    onClientBooked
   });
 
   const {
@@ -171,6 +173,7 @@ export function useHomeWorkspaces({
     changeScheduleBookingTime,
     changeScheduleBookingStaff,
     changeScheduleBookingParts,
+    autoAssignScheduleBooking,
     cancelScheduleBooking
   } = useScheduleBookingMenu({
     artistBookingList,
@@ -205,6 +208,7 @@ export function useHomeWorkspaces({
   const {
     bookingSheetOpen,
     setBookingSheetOpen,
+    bookingPrefill,
     bookingStaffName,
     setBookingStaffName,
     bookingServiceName,
@@ -223,6 +227,7 @@ export function useHomeWorkspaces({
     bookingDaySlots,
     bookingFreeSlots,
     bookingStaffForTime,
+    bookingDayGrid,
     bookingDayFreeCounts,
     salonBookingDayOptions,
     artistBookingDayOptions,
@@ -344,6 +349,7 @@ export function useHomeWorkspaces({
     changeScheduleBookingTime,
     changeScheduleBookingStaff,
     changeScheduleBookingParts,
+    autoAssignScheduleBooking,
     cancelScheduleBooking,
     activeRoleMeta,
     activeCreatedMeta,
@@ -355,6 +361,7 @@ export function useHomeWorkspaces({
     activeSalonHours,
     bookingSheetOpen,
     setBookingSheetOpen,
+    bookingPrefill,
     bookingStaffName,
     setBookingStaffName,
     bookingServiceName,
@@ -372,6 +379,7 @@ export function useHomeWorkspaces({
     bookingDaySlots,
     bookingFreeSlots,
     bookingStaffForTime,
+    bookingDayGrid,
     bookingDayFreeCounts,
     salonBookingDayOptions,
     artistBookingDayOptions,

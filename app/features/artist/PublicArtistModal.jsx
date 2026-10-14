@@ -65,7 +65,6 @@ export function PublicArtistModal({
   }, [focus, hasServices]);
   if (!artist) return null;
 
-  const specialties = String(artist.service || "").split(/[،,]/).map((item) => item.trim()).filter(Boolean).slice(0, 4);
   const prices = (services || []).map((service) => parseTomanAmount(service.price)).filter(Boolean);
   const fromPrice = prices.length ? Math.min(...prices) : 0;
   // Today's working hours, worded like the salon page's chip.
@@ -88,6 +87,7 @@ export function PublicArtistModal({
       <article className="artistPublicSheet">
         <section className="artistPublicPage" aria-label={`صفحه عمومی ${artist.name}`}>
           <PublicProfileHeader
+            variant="artist"
             cover={artist.poster || DEFAULT_COVER}
             coverAlt={artist.poster && artist.name ? `${artist.name} — تصویر کاور` : ""}
             coverPosition={artist.posterPosition || "50% 50%"}
@@ -120,9 +120,8 @@ export function PublicArtistModal({
           />
 
           <section className="pphInfo" aria-label={`معرفی ${artist.name || "آرتیست"}`}>
-            {specialties.length || openStatus ? (
+            {openStatus ? (
               <div className="pphChips">
-                {specialties.map((item) => <span className="pphChip" key={item}>{item}</span>)}
                 {openStatus ? (
                   <span className={`pphChip ${openStatus.open ? "is-open" : "is-closed"}`}>
                     <Clock3 size={14} /> {openStatus.text}
@@ -130,7 +129,12 @@ export function PublicArtistModal({
                 ) : null}
               </div>
             ) : null}
-            {artist.bio ? <p className="pphBio">{artist.bio}</p> : null}
+            {artist.bio ? (
+              <button type="button" className="pphBio pphBioMore" onClick={() => setAboutPopup(true)}>
+                {artist.bio}
+                <span>بیشتر</span>
+              </button>
+            ) : null}
             <div className="pphActions">
               <button type="button" className={`pphFollow${following ? " is-following" : ""}`} onClick={onFollow}>
                 {following ? <Check size={18} /> : <Heart size={18} />}
@@ -193,8 +197,9 @@ export function PublicArtistModal({
               onClose={() => setServicesOpen(false)}
             />
             <nav className="spvBar" aria-label="رزرو و اطلاعات">
-              <button type="button" className="spvBarIcon" onClick={() => setAboutPopup(true)} aria-label="درباره هنرمند" title="درباره هنرمند">
-                <Info size={22} />
+              <button type="button" className="spvBarAbout" onClick={() => setAboutPopup(true)} aria-label="درباره هنرمند">
+                <Info size={20} aria-hidden="true" />
+                درباره
               </button>
               <button
                 type="button"

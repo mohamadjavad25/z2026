@@ -30,6 +30,12 @@ export default async function sitemap() {
       lastModified: new Date(),
       changeFrequency: "daily",
       priority: 1
+    },
+    {
+      url: `${SITE_URL}/download`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.8
     }
   ];
 

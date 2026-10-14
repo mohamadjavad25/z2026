@@ -1,6 +1,7 @@
 "use client";
 
 import { usePolling } from "../../shared/lib/usePolling";
+import { useAppRefresh } from "../../shared/lib/appRefresh";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createArtistMe, deleteArtistMe, getArtistHours, getArtistMe, respondArtistInvite, getArtistTeams, leaveArtistTeam, updateArtistBooking, updateArtistMe } from "../../shared/api/artists";
 import { getPosts } from "../../shared/api/posts";
@@ -258,6 +259,7 @@ export function useArtistWorkspace({
   }, []);
 
   usePolling(refreshArtistBookingsOnly, 20000, createdProfile?.type === "artist");
+  useAppRefresh(refreshArtistWorkspace, createdProfile?.type === "artist");
 
   useEffect(() => {
     if (!artistGalleryTags.includes(artistGalleryFilter)) {

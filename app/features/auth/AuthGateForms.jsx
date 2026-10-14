@@ -2,7 +2,7 @@
 
 import { apiFetch } from "../../shared/api/client";
 import { useEffect, useId, useRef, useState } from "react";
-import { ChevronLeft, Eye, EyeOff, ShieldCheck } from "lucide-react";
+import { ChevronLeft, Download, Eye, EyeOff, ShieldCheck } from "lucide-react";
 import { profileRoles } from "../../shared/constants/roles";
 import { toLatinDigits } from "../../shared/lib/digits";
 import { Button, Field } from "../../components/ui";
@@ -437,6 +437,10 @@ export function AuthGateForms({
               ورود
             </button>
           </p>
+          <a className="webAppDownloadLink webOnlyAppLink" href="/download">
+            <Download size={15} aria-hidden="true" />
+            دانلود اپلیکیشن فرفرو
+          </a>
         </div>
       )}
 

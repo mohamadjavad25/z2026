@@ -3,6 +3,7 @@
 import { isSlotInPast } from "../../shared/lib/slots";
 import { playSound } from "../../shared/lib/sounds";
 import { usePolling } from "../../shared/lib/usePolling";
+import { useAppRefresh } from "../../shared/lib/appRefresh";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   createSalonBooking,
@@ -71,7 +72,8 @@ export function useSalonDirectory({
   onNotice,
   onShellNotice,
   onOwnerBookingsSync,
-  onLinkedArtistBooked
+  onLinkedArtistBooked,
+  onClientBooked
 } = {}) {
   const notify = useCallback((message) => {
     if (typeof onNotice === "function" && message) onNotice(message);
@@ -350,6 +352,7 @@ export function useSalonDirectory({
   // Fast while a request is waiting for an answer, slow otherwise (every poll is a function call).
   const hasWaitingBooking = clientBookingList.some((item) => item.status === "درخواست" || item.status === "تازه");
   usePolling(refreshClientBookings, hasWaitingBooking ? 8000 : 45000, createdProfile?.type === "client");
+  useAppRefresh(refreshSalonDirectory);
 
   const toggleFollowSalon = useCallback(async (salon) => {
     const followKey = String(salon.id || salon.source_key || salon.name);
@@ -572,6 +575,7 @@ export function useSalonDirectory({
           }
         }
       }
+      let bookedRow = null;
       if (payload?.data?.booking) {
         const createdBooking = payload.data.booking;
         setSalonClientUnavailableSlots((slots) => [
@@ -582,20 +586,18 @@ export function useSalonDirectory({
             duration_minutes: createdBooking.duration_minutes || durationMinutes
           }
         ]);
-        setClientBookingList((items) => [
-          {
-            ...createdBooking,
-            salonName: selectedSalon.name,
-            salonArea: selectedSalon.area,
-            salonPhone: selectedSalon.phone,
-            salonAvatar: selectedSalon.avatar,
-            service: salonClientBooking.service,
-            booking_date: createdBooking.booking_date || salonClientBooking.day,
-            time: createdBooking.time || salonClientBooking.time,
-            status: createdBooking.status || "درخواست"
-          },
-          ...items
-        ]);
+        bookedRow = {
+          ...createdBooking,
+          salonName: selectedSalon.name,
+          salonArea: selectedSalon.area,
+          salonPhone: selectedSalon.phone,
+          salonAvatar: selectedSalon.avatar,
+          service: salonClientBooking.service,
+          booking_date: createdBooking.booking_date || salonClientBooking.day,
+          time: createdBooking.time || salonClientBooking.time,
+          status: createdBooking.status || "درخواست"
+        };
+        setClientBookingList((items) => [bookedRow, ...items]);
       }
       setSalonClientBooking((current) => ({ ...current, open: false }));
       // Deliberately says "awaiting confirmation", not "ثبت شد" (done/booked) —
@@ -604,8 +606,16 @@ export function useSalonDirectory({
       // "successfully registered" wording read as a done deal and gave no hint
       // a clock had started, which is exactly the "does the client understand
       // they're waiting" gap this line exists to close.
-      shellMsg("درخواست رزرو ثبت شد؛ در انتظار تایید سالن.");
-      notify(`رزرو ${salonClientBooking.service} برای ${salonClientBooking.day} ساعت ${salonClientBooking.time} ثبت شد و در انتظار تایید سالن است.`);
+      if (bookedRow && typeof onClientBooked === "function") {
+        // The client gets the full «درخواستت رسید» screen instead of a passing toast.
+        const price = salonClientBooking.bundle?.name === salonClientBooking.service
+          ? salonClientBooking.bundle.price
+          : salonClientSelectedService?.price;
+        onClientBooked(bookedRow, { price: price || "" });
+      } else {
+        shellMsg("درخواست رزرو ثبت شد؛ در انتظار تایید سالن.");
+        notify(`رزرو ${salonClientBooking.service} برای ${salonClientBooking.day} ساعت ${salonClientBooking.time} ثبت شد و در انتظار تایید سالن است.`);
+      }
       return { ok: true, payload };
     } catch {
       shellMsg("ثبت رزرو انجام نشد؛ دوباره امتحان کن.");
@@ -622,6 +632,7 @@ export function useSalonDirectory({
     createdProfile,
     onOwnerBookingsSync,
     onLinkedArtistBooked,
+    onClientBooked,
     shellMsg,
     notify
   ]);

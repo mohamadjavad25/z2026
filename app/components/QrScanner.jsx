@@ -138,6 +138,9 @@ function buzz() {
  *  - footer: node shown at the bottom (result card, errors)
  *  - onClose
  */
+// 1×1 transparent GIF.
+const BLANK_POSTER = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+
 export function QrScanner({ title = "اسکن کن", hint = "کد QR را داخل کادر بگیر", onDetected, paused = false, footer = null, onClose }) {
   useBackHandler(true, onClose);
   const videoRef = useRef(null);
@@ -269,7 +272,16 @@ export function QrScanner({ title = "اسکن کن", hint = "کد QR را داخ
 
   return createPortal(
     <div className="qrScanner" role="dialog" aria-modal="true" aria-label={title}>
-      <video ref={videoRef} className="qrScannerVideo" playsInline muted aria-hidden="true" />
+      {/* Android's WebView paints a grey "play" placeholder on a video with no frame yet: a blank
+          poster replaces it, and the video only shows once the camera is live. */}
+      <video
+        ref={videoRef}
+        className={`qrScannerVideo${cameraState === "live" ? " is-live" : ""}`}
+        poster={BLANK_POSTER}
+        playsInline
+        muted
+        aria-hidden="true"
+      />
       <canvas ref={canvasRef} hidden />
       <div className="qrScannerTop">
         <b>{title}</b>

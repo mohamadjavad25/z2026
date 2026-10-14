@@ -13,7 +13,7 @@ import { SalonNotificationsSheet } from "./home/SalonNotificationsSheet";
 import { ArtistNotificationsSheet } from "./home/ArtistNotificationsSheet";
 import { ClientNotificationsSheet } from "./home/ClientNotificationsSheet";
 import { ProfileSheet } from "../profile/ProfileSheet";
-import { ClientBookingSettingsModal } from "../client";
+import { BookingReceipt, ClientBookingSettingsModal } from "../client";
 import { MobileFloatingCta } from "./MobileFloatingCta";
 import { ClientProfileModal } from "./ClientProfileModal";
 import { OwnerBookingSheet } from "./home/OwnerBookingSheet";
@@ -72,6 +72,10 @@ export function HomeView() {
     clientBookingList,
     setClientBookingSettings,
     rebookFromBooking,
+    bookingReceipt,
+    setBookingReceipt,
+    closeSelectedSalon,
+    closePublicArtistProfile,
     artistBreakTime,
     setSalonHeroSheet,
     setProfileView,
@@ -233,8 +237,35 @@ export function HomeView() {
           onClose={() => setClientBookingSettings(null)}
           onCancelBooking={cancelClientBooking}
           onAnswerOffer={answerClientTimeOffer}
+          onNotice={setAppToast}
+          onOpenPlace={(booking) => {
+            setClientBookingSettings(null);
+            rebookFromBooking(booking);
+          }}
           onRebookSalon={(booking) => {
             setClientBookingSettings(null);
+            rebookFromBooking(booking);
+          }}
+        />
+
+        <BookingReceipt
+          receipt={bookingReceipt}
+          bookings={clientBookingList}
+          onClose={() => setBookingReceipt(null)}
+          onViewBookings={() => {
+            setBookingReceipt(null);
+            if (selectedSalon) closeSelectedSalon();
+            if (selectedPublicArtist) closePublicArtistProfile();
+            setProfileView("overview");
+            goToTab("profile");
+            requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "smooth" }));
+          }}
+          onOpenDetails={(booking) => {
+            setBookingReceipt(null);
+            setClientBookingSettings({ ...booking, clientBookingSheetMode: "details" });
+          }}
+          onRebook={(booking) => {
+            setBookingReceipt(null);
             rebookFromBooking(booking);
           }}
         />

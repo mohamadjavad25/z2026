@@ -1,6 +1,6 @@
 "use client";
 
-import { MapPin, Timer } from "lucide-react";
+import { MapPin, Sparkles, Timer } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
 
 const PERSIAN_WEEKDAYS = ["یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنجشنبه", "جمعه", "شنبه"];
@@ -9,15 +9,25 @@ const PERSIAN_WEEKDAYS = ["یکشنبه", "دوشنبه", "سه‌شنبه", "چ
 export function PublicArtistAboutPanel({ artist }) {
   if (!artist) return null;
   const hours = Array.isArray(artist.hours) ? artist.hours : [];
+  const specialties = String(artist.service || "").split(/[،,]/).map((item) => item.trim()).filter(Boolean);
   const today = PERSIAN_WEEKDAYS[new Date().getDay()];
 
   return (
     <section className="artistPublicAbout" aria-label="درباره آرتیست">
       {artist.bio ? <p className="artistPublicAboutBio">{artist.bio}</p> : (
-        <p className="artistPublicAboutBio is-empty">این آرتیست هنوز توضیحی دربارهٔ خودش ننوشته است.</p>
+        <p className="artistPublicAboutBio is-empty">این آرتیست هنوز معرفی ننوشته است. نمونه‌کارها را ببین یا مستقیم رزرو کن.</p>
       )}
 
       <div className="artistPublicAboutList">
+        {specialties.length ? (
+          <div>
+            <Sparkles size={16} />
+            <div>
+              <b>تخصص‌ها</b>
+              <span>{specialties.join("، ")}</span>
+            </div>
+          </div>
+        ) : null}
         {artist.area ? (
           <div>
             <MapPin size={16} />

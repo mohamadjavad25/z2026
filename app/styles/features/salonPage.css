@@ -58,6 +58,12 @@
 :root .artistPublicFollow.is-following { background: #f1f1f5 !important; }
 
 /* ---- Client booking cancel ---- */
+/* Go to the booking's salon/artist page, and follow it when the booking outlived the follow */
+.cbPlace { display: grid; grid-template-columns: 1.4fr 1fr; gap: 8px; margin-top: 10px; }
+.cbPlace:has(.cbPlaceOpen:only-child) { grid-template-columns: 1fr; }
+.cbPlace button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 46px; border: 1px solid #ececf0; border-radius: 14px; background: #fff; color: #14161d; font: inherit; font-size: 0.8rem; font-weight: 900; cursor: pointer; }
+.cbPlace .cbPlaceFollow { border-color: #ff86b8; background: #fff0f6; color: #b0114f; }
+.cbPlace button:disabled { opacity: 0.6; }
 .cbCancelBtn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; width: 100%; min-height: 46px; margin-top: 10px; border: 1px solid #f6d3d0; border-radius: 14px; background: #fff5f4; color: #b42318; font: inherit; font-size: 0.84rem; font-weight: 900; cursor: pointer; }
 .cbCancelConfirm { display: grid; gap: 10px; margin-top: 10px; padding: 12px; border: 1px solid #f6d3d0; border-radius: 16px; background: #fff5f4; }
 .cbCancelConfirm p { margin: 0; color: #7a271a; font-size: 0.8rem; font-weight: 800; line-height: 1.7; }
@@ -76,3 +82,4 @@
 .cbOfferActions button { min-height: 44px; border: 1px solid #ececf0; border-radius: 12px; background: #fff; color: #14161d; font: inherit; font-size: 0.82rem; font-weight: 900; cursor: pointer; }
 .cbOfferActions button.is-accept { background: #14161d; border-color: #14161d; color: #fff; }
 .cbOfferActions button:disabled { opacity: 0.6; }
+.salonPublicAboutBio.is-empty { color: #8a8e9b; }

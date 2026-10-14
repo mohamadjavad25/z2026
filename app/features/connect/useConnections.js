@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { connectTo, listConnections, searchConnections } from "../../shared/api/connections";
+import { useAppRefresh } from "../../shared/lib/appRefresh";
 
 const SEARCH_DELAY_MS = 300;
 
@@ -26,6 +27,7 @@ export function useConnections({ onNotify, load = true } = {}) {
   }, []);
 
   useEffect(() => { if (load) refresh(); }, [refresh, load]);
+  useAppRefresh(refresh, load);
 
   // Debounced search; an older request never overwrites a newer one.
   useEffect(() => {
