@@ -156,8 +156,22 @@ async function _POST(request) {
   if (!allowedTimes.some((slot) => timeLabelToMinutes(slot) === requestedMinutes)) {
     return noStoreJson({ error: "این ساعت خارج از زمان کاری سالن است." }, { status: 409 });
   }
-  // A multi-service booking links its artists per service inside addSalonBooking.
-  const linkedStaff = multiPart ? null : await salons.findSalonStaffForBooking(salonUserId, body.staff, body.service);
+  // A client's single-service request with no artist named gets one the way a visit's services
+  // do (a free artist who does it, the work spread over the team); refused when nobody who could
+  // do it is free -- the availability list never offers such a time.
+  let staffName = String(body.staff || "").trim();
+  if (!multiPart && auth.user.type === "client" && !staffName) {
+    const draft = await salons.draftSingleBookingStaff(salonUserId, bookingDateKey, time, service, durationMinutes);
+    if (draft.unstaffed) {
+      return noStoreJson({ error: `برای «${service}» در این ساعت آرتیست آزادی نیست.`, code: "NO_FREE_ARTIST" }, { status: 409 });
+    }
+    staffName = draft.staff;
+  }
+  // A multi-service booking links its artists per service inside addSalonBooking. A client's
+  // request with no artist free (and nobody who could do it) stays unlinked.
+  const linkedStaff = multiPart || (auth.user.type === "client" && !staffName)
+    ? null
+    : await salons.findSalonStaffForBooking(salonUserId, staffName, body.service);
   if (linkedStaff?.artist_user_id && await artists.isArtistSlotBlocked(
     Number(linkedStaff.artist_user_id),
     bookingDateKey,
@@ -175,6 +189,7 @@ async function _POST(request) {
   // ("تازه"). The status is decided here, never read from the body.
   const result = await salons.addSalonBooking(salonUserId, {
     ...v.data,
+    staff: multiPart ? "" : staffName,
     status: auth.user.type === "client" ? "درخواست" : "تازه",
     client,
     phone,
@@ -261,7 +276,18 @@ async function _PATCH(request) {
   if (!wantsCancel && body.status != null && body.status !== "" && body.status !== "تایید شده") {
     return noStoreJson({ error: "وضعیت نامعتبر است." }, { status: 400 });
   }
-  const patch = wantsCancel ? { status: "لغو" } : body;
+  let patch = wantsCancel ? { status: "لغو" } : body;
+  // «تقسیم خودکار»: the server re-drafts who does what (suggestBookingStaff) and saves it like
+  // any other artist change -- each artist checked free, their calendars updated.
+  if (!wantsCancel && body.autoAssign === true) {
+    const suggestion = await salons.suggestBookingStaff(id, auth.user.id);
+    if (!suggestion) return noStoreJson({ error: "رزرو یافت نشد." }, { status: 404 });
+    const anyone = suggestion.parts ? suggestion.parts.some((part) => part.staff) : Boolean(suggestion.staff);
+    if (!anyone) {
+      return noStoreJson({ error: "در این ساعت آرتیست آزادی برای این نوبت نیست.", code: "NO_FREE_ARTIST" }, { status: 409 });
+    }
+    patch = suggestion.parts ? { parts: suggestion.parts } : { staff: suggestion.staff };
+  }
   // A new time (or day) must be one the «تغییر ساعت» list offers: its services fit with their
   // artists, and it ends by closing time -- or past it only when the salon chose to stay longer.
   const movesTo = ["time", "booking_date", "bookingDate", "date"].some((key) => body[key] != null);
