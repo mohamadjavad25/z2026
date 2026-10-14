@@ -635,7 +635,8 @@ button.artistWorkTagTrigger > svg{
 .peField > span em { margin-inline-start: 6px; color: #565a68; font-size: 0.66rem; font-style: normal; font-weight: 750; }
 .peField small { color: #6f7380; font-size: 0.68rem; font-weight: 700; line-height: 1.6; }
 
-.peField input {
+.peField input,
+.peField textarea {
   width: 100%;
   min-height: 50px;
   padding: 0 14px;
@@ -649,9 +650,11 @@ button.artistWorkTagTrigger > svg{
   outline: 0;
 }
 
-.peField input::placeholder { color: #a3a6b3; font-weight: 650; }
+.peField textarea { padding: 12px 14px; resize: vertical; line-height: 1.9; }
+.peField input::placeholder, .peField textarea::placeholder { color: #a3a6b3; font-weight: 650; }
 
-.peField input:focus {
+.peField input:focus,
+.peField textarea:focus {
   border-color: #14161d;
   box-shadow: 0 0 0 3px rgba(20, 22, 29, 0.08);
 }

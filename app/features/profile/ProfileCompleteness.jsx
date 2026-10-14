@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { CheckCircle2, ChevronLeft, ImagePlus, ListPlus, MapPin, Sparkles, X } from "lucide-react";
+import { CheckCircle2, ChevronLeft, FileText, ImagePlus, ListPlus, MapPin, Sparkles, X } from "lucide-react";
 import { isDefaultAvatar } from "../../shared/lib/defaultAvatar";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { beautySpecialtyOptions } from "../../shared/constants/roles";
 import { SpecialtyMultiSelect } from "../auth/SpecialtyMultiSelect";
 import { QuickAreaSheet } from "./QuickAreaSheet";
+import { QuickBioSheet } from "./QuickBioSheet";
 
 /** What a salon / artist profile needs before clients can find and book it. Each step knows where to send the owner. */
 export function getProfileSteps(profile, serviceCount) {
@@ -16,6 +17,7 @@ export function getProfileSteps(profile, serviceCount) {
     { id: "avatar", label: isSalon ? "لوگوی سالن" : "عکس پروفایل", done: !isDefaultAvatar(data.avatar), target: "edit" },
     { id: "area", label: "محدوده فعالیت", done: Boolean(String(data.area || "").trim()), target: "edit" },
     { id: "specialty", label: isSalon ? "خدمات اصلی" : "تخصص", done: Boolean(String(data.service || "").trim()), target: "edit" },
+    { id: "bio", label: isSalon ? "درباره سالن" : "درباره من", done: String(data.bio || "").trim().length >= 10, target: "edit" },
     { id: "services", label: "اولین خدمت در منو", done: serviceCount > 0, target: "services" }
   ];
 }
@@ -25,13 +27,14 @@ const STEP_META = {
   avatar: { Icon: ImagePlus, hint: "با لوگو، مشتری زودتر اعتماد می‌کند" },
   area: { Icon: MapPin, hint: "تا در جستجوی شهرت پیدا شوی" },
   specialty: { Icon: Sparkles, hint: "مشتری بداند چه کاری انجام می‌دهی" },
+  bio: { Icon: FileText, hint: "مشتری در صفحهٔ «درباره» می‌خواند تو کی هستی" },
   services: { Icon: ListPlus, hint: "قیمت و رزرو مستقیم برای مشتری" }
 };
 
 const RING_RADIUS = 24;
 const RING_LENGTH = 2 * Math.PI * RING_RADIUS;
 
-const storageKey = (id) => `frfro_completeness_dismissed_${id}`;
+const storageKey = (id) => `frfro_completeness_dismissed_v2_${id}`;
 
 export function ProfileCompleteness({ profile, serviceCount = 0, onEditProfile, onOpenServices, onPickLogo, onQuickSave }) {
   const [dismissed, setDismissed] = useState(() => {
@@ -55,7 +58,7 @@ export function ProfileCompleteness({ profile, serviceCount = 0, onEditProfile, 
 
   function rowAction(step) {
     if (step.id === "avatar" && onPickLogo) return { kind: "file" };
-    if (onQuickSave && (step.id === "area" || step.id === "specialty")) return { kind: "click", run: () => setQuick(step.id) };
+    if (onQuickSave && (step.id === "area" || step.id === "specialty" || step.id === "bio")) return { kind: "click", run: () => setQuick(step.id) };
     return { kind: "click", run: () => (step.target === "services" ? onOpenServices?.() : onEditProfile?.()) };
   }
 
@@ -84,7 +87,7 @@ export function ProfileCompleteness({ profile, serviceCount = 0, onEditProfile, 
         </div>
         <div className="pccCopy">
           <strong>{remaining === 1 ? "فقط یک قدم مانده" : `${toPersianDigits(remaining)} قدم تا پروفایل کامل`}</strong>
-          <small>پروفایل کامل‌تر، پیدا شدن و رزرو بیشتر.</small>
+          <small>پروفایل کامل‌تر، دیده شدن و رزرو بیشتر. مشتری‌ها فقط پروفایل‌های پر را جدی می‌گیرند.</small>
         </div>
         <button
           type="button"
@@ -144,6 +147,17 @@ export function ProfileCompleteness({ profile, serviceCount = 0, onEditProfile, 
         onPick={(area) => {
           setQuick(null);
           onQuickSave?.({ area }, { successMessage: `محدوده فعالیت: ${area}` });
+        }}
+      />
+      <QuickBioSheet
+        key={quick === "bio" ? "open" : "closed"}
+        open={quick === "bio"}
+        isSalon={profile.type === "salon"}
+        initial={profile.data?.bio || ""}
+        onClose={() => setQuick(null)}
+        onSave={(bio) => {
+          setQuick(null);
+          onQuickSave?.({ bio }, { successMessage: "معرفی ذخیره شد؛ حالا در صفحهٔ «درباره» دیده می‌شود." });
         }}
       />
       {quick === "specialty" ? (
