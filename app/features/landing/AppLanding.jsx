@@ -1,6 +1,7 @@
 import Link from "next/link";
 import QRCode from "qrcode";
-import { ANDROID_APK_URL, ANDROID_APP_VERSION, DOWNLOAD_PAGE_URL } from "./constants";
+import { ShoppingBag } from "lucide-react";
+import { ANDROID_APK_URL, ANDROID_APP_VERSION, BAZAAR_URL, DOWNLOAD_PAGE_URL, MYKET_URL } from "./constants";
 
 /**
  * The page about frfro with the app download links. Shown at /download, and
@@ -48,10 +49,15 @@ const STEPS = [
   { image: "/brand/mascot/thumbsup.webp", title: "دنبال کن", text: "سالن و آرتیست محبوبت را دنبال کن تا نمونه‌کارهای تازه‌شان را از دست ندهی." }
 ];
 
+const STORES = [
+  { url: BAZAAR_URL, name: "کافه‌بازار" },
+  { url: MYKET_URL, name: "مایکت" }
+].filter((store) => store.url);
+
 const FAQ = [
   {
     q: "چرا گوشی موقع نصب هشدار می‌دهد؟",
-    a: "اندروید برای هر برنامه‌ای که از خارج از فروشگاه (مثل گوگل‌پلی یا کافه‌بازار) نصب شود هشدار نشان می‌دهد؛ این هشدار دربارهٔ خود فرفرو نیست. فایل نصبی فرفرو با کلید امضای مخصوص فرفرو امضا شده و فقط از همین سایت (frfro.ir) دانلودش کن."
+    a: (STORES.length ? `اگر از ${STORES.map((store) => store.name).join(" یا ")} نصب کنی، هشداری نمی‌بینی. ` : "") + "اندروید برای هر برنامه‌ای که از خارج از فروشگاه (مثل گوگل‌پلی یا کافه‌بازار) نصب شود هشدار نشان می‌دهد؛ این هشدار دربارهٔ خود فرفرو نیست. فایل نصبی فرفرو با کلید امضای مخصوص فرفرو امضا شده و فقط از همین سایت (frfro.ir) دانلودش کن."
   },
   {
     q: "اپ به چه چیزهایی دسترسی دارد؟",
@@ -91,9 +97,24 @@ function AppleIcon() {
   );
 }
 
+function StoreButtons() {
+  return STORES.map((store) => (
+    <a key={store.url} className="appLanding__store" href={store.url} target="_blank" rel="noopener noreferrer">
+      <ShoppingBag className="appLanding__storeIcon" aria-hidden="true" />
+      <span>
+        <small>دریافت از</small>
+        {store.name}
+      </span>
+    </a>
+  ));
+}
+
+/* The buttons are for the browser: inside the app (html.native-app) they are hidden,
+   and store builds must not offer an APK download from outside the store. */
 function DownloadButtons() {
   return (
-    <div className="appLanding__buttons">
+    <div className="appLanding__buttons webOnlyAppLink">
+      <StoreButtons />
       <a className="appLanding__store is-primary" href={ANDROID_APK_URL} download="frfro.apk">
         <AndroidIcon />
         <span>
@@ -185,13 +206,16 @@ export async function AppLanding({ showOpenSite = false }) {
         <div className="appLanding__install">
           <article className="appLanding__card">
             <h3><AndroidIcon /> اندروید</h3>
+            {STORES.length ? (
+              <p>ساده‌ترین راه: فرفرو را از {STORES.map((store) => store.name).join(" یا ")} بگیر. برای نصب مستقیم:</p>
+            ) : null}
             <ol>
               <li>دکمهٔ «دانلود مستقیم برای اندروید» را بزن.</li>
               <li>بعد از دانلود، فایل <bdi>frfro.apk</bdi> را از اعلان دانلود یا برنامهٔ «فایل‌ها» باز کن.</li>
               <li>اگر گوشی پرسید، اجازهٔ «نصب برنامه‌های ناشناس» را برای همان برنامه بده و دوباره فایل را باز کن.</li>
               <li>«نصب» را بزن. اگر Play Protect پرسید، «جزئیات بیشتر» و بعد «در هر صورت نصب شود».</li>
             </ol>
-            <a className="appLanding__store is-primary is-small" href={ANDROID_APK_URL} download="frfro.apk">
+            <a className="appLanding__store is-primary is-small webOnlyAppLink" href={ANDROID_APK_URL} download="frfro.apk">
               <AndroidIcon />
               <span>دانلود فایل نصبی</span>
             </a>

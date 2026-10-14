@@ -1,6 +1,12 @@
 /** Where the Android app is downloaded from. The APK is built from mobile/ (see mobile/README.md). */
 export const ANDROID_APK_URL = "/download/frfro.apk";
 export const ANDROID_APP_VERSION = "1.0.0";
+/**
+ * Store pages, set once the app is live there (see mobile/store/README.md). Empty: no store button.
+ * Cafe Bazaar: "https://cafebazaar.ir/app/ir.frfro.app"; Myket: "https://myket.ir/app/ir.frfro.app".
+ */
+export const BAZAAR_URL = "";
+export const MYKET_URL = "";
 export const DOWNLOAD_PAGE_URL = "https://frfro.ir/download";
 
 /** Screens at least this big (tablet and desktop) see the about/download page instead of the phone pages (LargeScreenGate). */

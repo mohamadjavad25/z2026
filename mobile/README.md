@@ -39,6 +39,9 @@
 2. نسخهٔ امضاشده را بساز (workflow «Android app» با کلید، یا روی کامپیوتر با `./gradlew assembleRelease`).
 3. فایل `app-release.apk` را جای `public/download/frfro.apk` بگذار و `ANDROID_APP_VERSION` را در `app/features/landing/constants.js` عوض کن.
 
+### کافه‌بازار و مایکت
+فایل‌ها، متن صفحهٔ برنامه و قدم‌های انتشار در [`store/README.md`](store/README.md) آماده است.
+
 برای هر نسخهٔ جدید فروشگاه، `versionCode` (یکی بیشتر) و `versionName` را در `android/app/build.gradle` بالا ببر.
 
 ### ساخت روی کامپیوتر خودت
