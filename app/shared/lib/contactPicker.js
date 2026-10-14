@@ -5,16 +5,28 @@ import { toLatinDigits } from "./digits.js";
  * Chrome on Android's. Both show the system's own list, so frfro only ever sees the one contact the
  * person picks. Elsewhere (iPhone, desktop) it doesn't exist.
  */
-function nativeContactPicker() {
+function nativeApp() {
   if (typeof window === "undefined") return null;
   const cap = window.Capacitor;
-  const has = cap?.isNativePlatform?.()
+  return cap?.isNativePlatform?.() ? cap : null;
+}
+
+function nativeContactPicker() {
+  const cap = nativeApp();
+  const has = cap
     && typeof cap.nativePromise === "function"
     && (cap.PluginHeaders || []).some((plugin) => plugin?.name === "ContactPicker");
   return has ? cap : null;
 }
 
+/** Inside the frfro app, but a version from before the contact picker: it has to be updated first. */
+export function contactPickerNeedsAppUpdate() {
+  return Boolean(nativeApp()) && !nativeContactPicker();
+}
+
 function webContactPickerSupported() {
+  // Android's WebView exposes navigator.contacts too, but select() never opens anything there.
+  if (nativeApp()) return false;
   return typeof navigator !== "undefined"
     && typeof window !== "undefined"
     && "contacts" in navigator

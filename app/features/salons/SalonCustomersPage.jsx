@@ -9,7 +9,7 @@ import { bookingStatusLabel, bookingStatusTone } from "../client/bookingStatus";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { formatRelativeBookingDayLabel, resolveRollingPersianDate } from "../../shared/lib/persianCalendar";
 import { buildBookingCustomers, phoneKey } from "./customers";
-import { contactPickerSupported, localPhoneOf, pickContact } from "../../shared/lib/contactPicker";
+import { contactPickerNeedsAppUpdate, contactPickerSupported, localPhoneOf, pickContact } from "../../shared/lib/contactPicker";
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
 
 export { buildBookingCustomers };
@@ -104,8 +104,8 @@ function CustomerSheet({ customer, onBook, onClose }) {
  * Owner's own customer community page. See buildBookingCustomers for how a
  * "customer" is derived from real bookings.
  *
- * «مخاطبین» (next to the scan button, only where the phone has a contact picker) picks one contact
- * from the phone: someone already a customer opens their card, anyone else opens the new-booking
+ * «مخاطبین» (next to the scan button, where the phone has a contact picker, or in an older app that
+ * must be updated first, which it says) picks one contact from the phone: someone already a customer opens their card, anyone else opens the new-booking
  * form with their name and number filled in (`onBookCustomer({ client, phone })`).
  */
 export function SalonCustomersPage({ active, bookings = [], ownerLabel = "سالن شما", headerAction = null, onBookCustomer }) {
@@ -114,7 +114,10 @@ export function SalonCustomersPage({ active, bookings = [], ownerLabel = "سال
   const [sort, setSort] = useState("recent");
   const [openKey, setOpenKey] = useState("");
   const [canPickContact, setCanPickContact] = useState(false);
-  useEffect(() => { setCanPickContact(Boolean(onBookCustomer) && contactPickerSupported()); }, [onBookCustomer]);
+  const [contactNotice, setContactNotice] = useState(""); // "update" | "failed"
+  useEffect(() => {
+    setCanPickContact(Boolean(onBookCustomer) && (contactPickerSupported() || contactPickerNeedsAppUpdate()));
+  }, [onBookCustomer]);
 
   const customers = useMemo(() => buildBookingCustomers(bookings), [bookings]);
   const repeatCount = useMemo(() => customers.filter((item) => item.visitCount >= 2).length, [customers]);
@@ -139,11 +142,16 @@ export function SalonCustomersPage({ active, bookings = [], ownerLabel = "سال
   const openCustomer = customers.find((item) => item.key === openKey) || null;
 
   async function chooseContact() {
+    if (contactPickerNeedsAppUpdate()) {
+      setContactNotice("update");
+      return;
+    }
     let contact = null;
     try {
       contact = await pickContact();
     } catch {
-      return; // picker refused or unavailable: nothing to do
+      setContactNotice("failed");
+      return;
     }
     if (!contact) return;
     const keys = new Set(contact.phones.map(phoneKey).filter((key) => key.length >= 10));
@@ -253,6 +261,20 @@ export function SalonCustomersPage({ active, bookings = [], ownerLabel = "سال
           </article>
         ))}
       </div>
+      {contactNotice ? (
+        <ProfileSheet open kicker="مخاطبین" title={contactNotice === "update" ? "اپ را به‌روز کن" : "مخاطبین باز نشد"} onClose={() => setContactNotice("")}>
+          <div className="cuSheetBody">
+            {contactNotice === "update" ? (
+              <>
+                <p className="cuNotice">برای انتخاب از مخاطبین گوشی، نسخهٔ جدید اپ فرفرو را نصب کن.</p>
+                <a className="cuBookBtn" href="/download">دریافت نسخهٔ جدید</a>
+              </>
+            ) : (
+              <p className="cuNotice">فهرست مخاطبین گوشی باز نشد. دوباره امتحان کن.</p>
+            )}
+          </div>
+        </ProfileSheet>
+      ) : null}
       <CustomerSheet
         customer={openCustomer}
         onBook={onBookCustomer ? (customer) => {
