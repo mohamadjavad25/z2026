@@ -23,15 +23,30 @@
 .spvServicePrice em { color: #8a8e9b; font-size: 0.66rem; font-style: normal; font-weight: 800; }
 .spvServiceGo { padding: 7px 13px; border-radius: 12px; background: #14161d; color: #fff; font-size: 0.74rem; font-weight: 900; }
 
-.spvTeamRail { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
-.spvTeamRail::-webkit-scrollbar { display: none; }
-.spvMember { display: grid; justify-items: center; gap: 3px; min-width: 76px; text-align: center; }
-.spvMember img { width: 62px; height: 62px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; box-shadow: 0 4px 14px rgba(20, 22, 29, 0.16); background: #ececf0; }
-.spvMember b { font-size: 0.78rem; font-weight: 900; }
-.spvMember small { color: #8a8e9b; font-size: 0.66rem; font-weight: 700; }
+/* Calm sections of the public page: no card, just a heading and the content. */
+:root .salonPublicProfile .spvSection { margin: 18px 20px 0; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; }
+.spvHead { margin: 0 0 10px; color: #14161d; font-size: 0.95rem; font-weight: 900; }
+.spvHeadRow { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.spvHeadRow .spvHead { margin: 0; }
+.spvSeeAll { min-height: 32px; padding: 0 4px; border: 0; background: none; color: #14161d; font: inherit; font-size: 0.78rem; font-weight: 900; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }
 
-.spvHours ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
-.spvHours li { display: flex; justify-content: space-between; padding: 9px 12px; border-radius: 12px; color: #3b3e49; font-size: 0.8rem; font-weight: 800; }
+.spvTeamRail { display: flex; gap: 16px; overflow-x: auto; padding: 2px 0 4px; scrollbar-width: none; }
+.spvTeamRail::-webkit-scrollbar { display: none; }
+.spvMember { display: grid; justify-items: center; gap: 2px; min-width: 64px; max-width: 80px; text-align: center; }
+.spvMember img { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; background: #ececf0; }
+.spvMember b { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 4px; font-size: 0.76rem; font-weight: 900; }
+.spvMember small { color: #8a8e9b; font-size: 0.64rem; font-weight: 700; }
+
+:root .salonPublicProfile .salonPublicPortfolio .salonClientMosaicGallery { gap: 3px !important; }
+:root .salonPublicProfile .salonPublicPortfolio .salonClientMosaicTile { border-radius: 6px !important; }
+
+.spvHoursToggle { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 46px; padding: 0 2px; border: 0; border-top: 1px solid #ececf0; border-bottom: 1px solid #ececf0; background: none; color: #14161d; font: inherit; font-size: 0.84rem; cursor: pointer; }
+.spvHoursToggle b { font-weight: 900; }
+.spvHoursToggle span { margin-inline-start: auto; color: #6f7380; font-size: 0.78rem; font-weight: 800; }
+.spvHoursChevron { flex: none; color: #8a8e9b; transition: transform 0.2s; }
+.spvHoursChevron.is-open { transform: rotate(180deg); }
+.spvHours ul { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 2px; }
+.spvHours li { display: flex; justify-content: space-between; padding: 8px 10px; border-radius: 10px; color: #3b3e49; font-size: 0.8rem; font-weight: 800; }
 .spvHours li.is-today { background: #f1f1f5; color: #14161d; }
 .spvHours li b { font-weight: 900; }
 

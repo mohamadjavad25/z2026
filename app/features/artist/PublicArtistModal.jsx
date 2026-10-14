@@ -3,6 +3,7 @@
 import { Bookmark, CalendarCheck, Check, ChevronLeft, ChevronUp, Clock3, Heart, Phone, Scissors, Share2 } from "lucide-react";
 import { PublicProfileHeader } from "../../components/PublicProfileHeader";
 import { ServicesDropUp } from "../../components/ServicesDropUp";
+import { WeeklyHours } from "../../components/WeeklyHours";
 import { bundleServices } from "../../shared/lib/serviceBundle";
 import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
@@ -143,6 +144,9 @@ export function PublicArtistModal({
           </section>
 
           <div className="artistPublicBody">
+            {/* Hours sit above the posts so a long gallery never buries them. */}
+            <WeeklyHours rows={weekHours} todayName={todayName} />
+
             <div className="artistPublicContent" key={view}>
               <>
                   <PublicArtistGalleryPanel
@@ -156,24 +160,6 @@ export function PublicArtistModal({
                   />
                 </>
             </div>
-
-            {/* Same weekly hours card the salon page shows under its posts. */}
-            {weekHours.length ? (
-              <section className="salonPublicCard spvHours">
-                <div className="salonPublicSectionHead">
-                  <span />
-                  <h3>ساعت کاری</h3>
-                </div>
-                <ul>
-                  {weekHours.map((row) => (
-                    <li key={row.day} className={row.day === todayName ? "is-today" : ""}>
-                      <b>{row.day}</b>
-                      <span>{row.active ? `${toPersianDigits(row.open_time || "")} تا ${toPersianDigits(row.close_time || "")}` : "تعطیل"}</span>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            ) : null}
 
             <ServicesDropUp
               open={servicesOpen}
