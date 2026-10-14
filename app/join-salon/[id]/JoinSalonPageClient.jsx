@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, Sparkles } from "lucide-react";
+import { SalonRulesNote } from "../../features/salons/SalonRulesNote";
 import { getAuthMe } from "../../shared/api/auth";
 
 const PENDING_JOIN_KEY = "frfro_pending_join_salon";
@@ -117,9 +118,10 @@ export function JoinSalonPageClient({ salon }) {
               <li>سالن بلافاصله از پیوستن تو باخبر می‌شود</li>
               <li>هر زمان خواستی از بخش «همکاری» می‌توانی تیم را ترک کنی</li>
             </ul>
+            <SalonRulesNote rules={salon.rules} open />
             {errorText ? <p className="joinSalonHint is-warning">{errorText}</p> : null}
             <button type="button" className="joinSalonAction" disabled={status === "joining"} onClick={handleJoin}>
-              {status === "joining" ? "در حال پیوستن..." : `پیوستن به تیم ${salon.name}`}
+              {status === "joining" ? "در حال پیوستن..." : salon.rules ? "قبول قوانین و پیوستن" : `پیوستن به تیم ${salon.name}`}
             </button>
           </>
         )}

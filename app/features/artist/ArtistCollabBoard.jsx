@@ -5,6 +5,7 @@ import { Check, LogOut, MapPin, QrCode, ScanLine, Store, X } from "lucide-react"
 import { Mascot } from "../../components/Mascot";
 import { ProfileQrCodeSheet } from "../../components/ProfileQrCodeSheet";
 import { usePolling } from "../../shared/lib/usePolling";
+import { SalonRulesNote } from "../salons/SalonRulesNote";
 import { TermsChips } from "../collab/TermsEditor";
 import { ScanFlow } from "../connect/ScanFlow";
 
@@ -17,7 +18,7 @@ function SalonAvatar({ src }) {
 }
 
 /** The one card shown for a salon the artist is (or is invited to be) part of. */
-function SalonCard({ avatar, name, area, role, terms, tag, children }) {
+function SalonCard({ avatar, name, area, role, terms, tag, rules = "", children }) {
   return (
     <article className="clConnCard">
       <span className={`clConnTag ${tag === "invite" ? "is-invite" : ""}`}>
@@ -32,6 +33,8 @@ function SalonCard({ avatar, name, area, role, terms, tag, children }) {
         </div>
       </div>
       <TermsChips days={terms.days} from={terms.from} to={terms.to} share={terms.share} capacity={terms.capacity} />
+      <SalonRulesNote rules={rules} open={tag === "invite"} />
+      {rules && tag === "invite" ? <p className="salonRulesAgree">با قبول کردن، قوانین سالن را می‌پذیری.</p> : null}
       {children}
     </article>
   );
@@ -77,6 +80,7 @@ export function ArtistCollabBoard({
             area={team.salonArea}
             role={team.role || "همکار سالن"}
             terms={team}
+            rules={team.salonRules}
           >
             <button
               type="button"
@@ -106,6 +110,7 @@ export function ArtistCollabBoard({
             area={invite.salonArea}
             role={invite.role || invite.artistService || "همکار سالن"}
             terms={invite}
+            rules={invite.salonRules}
           >
             <div className="clConnActions">
               <button type="button" className="is-decline" disabled={busy} onClick={() => onInviteRespond?.(invite.id, "رد شد")}>

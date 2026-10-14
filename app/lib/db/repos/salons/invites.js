@@ -14,6 +14,7 @@ function mapSalonInvite(row) {
     salonName: row.salon_name || "",
     salonAvatar: row.salon_avatar && row.salon_user_id ? `/api/media/avatar/${row.salon_user_id}` : "",
     salonArea: row.salon_area || "",
+    salonRules: row.salon_rules || "",
     artistId: row.artist_user_id,
     artistName: row.artist_name || "آرتیست frfro",
     artistAvatar: row.artist_avatar && row.artist_user_id ? `/api/media/avatar/${row.artist_user_id}` : "",
@@ -47,7 +48,8 @@ export async function listSalonArtistInvites(salonUserId, { status } = {}) {
           u.phone AS artist_phone,
           s.name AS salon_name,
           (salon_user.avatar <> '' OR salon_user.avatar_url IS NOT NULL) AS salon_avatar,
-          s.area AS salon_area
+          s.area AS salon_area,
+          s.rules AS salon_rules
         FROM salon_artist_invites i
         JOIN users u ON u.id = i.artist_user_id
         LEFT JOIN salons s ON s.user_id = i.salon_user_id
@@ -65,7 +67,8 @@ export async function listSalonArtistInvites(salonUserId, { status } = {}) {
           u.phone AS artist_phone,
           s.name AS salon_name,
           (salon_user.avatar <> '' OR salon_user.avatar_url IS NOT NULL) AS salon_avatar,
-          s.area AS salon_area
+          s.area AS salon_area,
+          s.rules AS salon_rules
         FROM salon_artist_invites i
         JOIN users u ON u.id = i.artist_user_id
         LEFT JOIN salons s ON s.user_id = i.salon_user_id
@@ -89,7 +92,8 @@ export async function listArtistSalonInvites(artistUserId, { status } = {}) {
           u.phone AS artist_phone,
           s.name AS salon_name,
           (salon_user.avatar <> '' OR salon_user.avatar_url IS NOT NULL) AS salon_avatar,
-          s.area AS salon_area
+          s.area AS salon_area,
+          s.rules AS salon_rules
         FROM salon_artist_invites i
         JOIN users u ON u.id = i.artist_user_id
         LEFT JOIN salons s ON s.user_id = i.salon_user_id
@@ -107,7 +111,8 @@ export async function listArtistSalonInvites(artistUserId, { status } = {}) {
           u.phone AS artist_phone,
           s.name AS salon_name,
           (salon_user.avatar <> '' OR salon_user.avatar_url IS NOT NULL) AS salon_avatar,
-          s.area AS salon_area
+          s.area AS salon_area,
+          s.rules AS salon_rules
         FROM salon_artist_invites i
         JOIN users u ON u.id = i.artist_user_id
         LEFT JOIN salons s ON s.user_id = i.salon_user_id
@@ -140,7 +145,8 @@ async function getInviteRow(id, runner = null) {
       u.phone AS artist_phone,
       s.name AS salon_name,
       (salon_user.avatar <> '' OR salon_user.avatar_url IS NOT NULL) AS salon_avatar,
-      s.area AS salon_area
+      s.area AS salon_area,
+          s.rules AS salon_rules
     FROM salon_artist_invites i
     JOIN users u ON u.id = i.artist_user_id
     LEFT JOIN salons s ON s.user_id = i.salon_user_id
@@ -336,7 +342,7 @@ export async function joinSalonByArtist(salonUserId, artistUserId) {
 export async function getSalonJoinPreview(salonUserId) {
   const db = await getDb();
   const row = await get(db, `
-    SELECT s.user_id, s.name, s.area, (u.avatar <> '' OR u.avatar_url IS NOT NULL) AS avatar
+    SELECT s.user_id, s.name, s.area, s.rules, (u.avatar <> '' OR u.avatar_url IS NOT NULL) AS avatar
     FROM salons s JOIN users u ON u.id = s.user_id
     WHERE s.user_id = $1
   `, [salonUserId]);
@@ -345,6 +351,7 @@ export async function getSalonJoinPreview(salonUserId) {
     id: row.user_id,
     name: row.name || "سالن",
     area: row.area || "",
+    rules: row.rules || "",
     avatar: row.avatar ? `/api/media/avatar/${row.user_id}` : ""
   };
 }
@@ -465,6 +472,7 @@ export async function listArtistTeams(artistUserId) {
       st.created_at,
       COALESCE(NULLIF(s.name, ''), su.name) AS salon_name,
       COALESCE(s.area, '') AS salon_area,
+      COALESCE(s.rules, '') AS salon_rules,
       (su.avatar <> '' OR su.avatar_url IS NOT NULL) AS salon_avatar,
       COALESCE(i.days, c.days, '') AS days,
       COALESCE(i.from_time, c.from_time, '') AS from_time,
@@ -489,6 +497,7 @@ export async function listArtistTeams(artistUserId) {
     salonId: row.salon_user_id,
     salonName: row.salon_name || "سالن",
     salonArea: row.salon_area || "",
+    salonRules: row.salon_rules || "",
     salonAvatar: row.salon_avatar ? `/api/media/avatar/${row.salon_user_id}` : "",
     role: row.role || "",
     state: row.state || "فعال",

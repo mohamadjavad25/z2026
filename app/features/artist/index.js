@@ -3,7 +3,6 @@ export { ArtistCollabBoard } from "./ArtistCollabBoard";
 export { ArtistOverviewReviews } from "./ArtistOverviewReviews";
 export { ArtistServicesPanel } from "./ArtistServicesPanel";
 export { ArtistWorkPreviewModal } from "./ArtistWorkPreviewModal";
-export { PublicArtistAboutPanel } from "./PublicArtistAboutPanel";
 export {
   artistAvailableSlots,
   buildArtistBookingWeekTabs,

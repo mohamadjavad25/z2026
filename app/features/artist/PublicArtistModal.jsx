@@ -1,15 +1,13 @@
 "use client";
 
-import { Bookmark, CalendarCheck, Check, ChevronLeft, ChevronUp, Clock3, Heart, Info, Phone, Scissors, Share2 } from "lucide-react";
+import { Bookmark, CalendarCheck, Check, ChevronLeft, ChevronUp, Clock3, Heart, Phone, Scissors, Share2 } from "lucide-react";
 import { PublicProfileHeader } from "../../components/PublicProfileHeader";
 import { ServicesDropUp } from "../../components/ServicesDropUp";
 import { bundleServices } from "../../shared/lib/serviceBundle";
-import { SheetClose } from "../../components/SheetClose";
 import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { DEFAULT_PERSON_AVATAR } from "../../shared/lib/defaultAvatar";
 import { isPublicArtistSlotBlocked } from "./bookingUtils";
-import { PublicArtistAboutPanel } from "./PublicArtistAboutPanel";
 import { PublicArtistBookingPanel } from "./PublicArtistBookingPanel";
 import { PublicArtistGalleryPanel } from "./PublicArtistGalleryPanel";
 import { ProfileSheet } from "../profile/ProfileSheet";
@@ -53,7 +51,6 @@ export function PublicArtistModal({
   onEditProfile
 }) {
   const [bookingPopup, setBookingPopup] = useState(false);
-  const [aboutPopup, setAboutPopup] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(false);
   // Several services picked together: one service-shaped bundle (shared/lib/serviceBundle).
   const [bundle, setBundle] = useState(null);
@@ -130,10 +127,7 @@ export function PublicArtistModal({
               </div>
             ) : null}
             {artist.bio ? (
-              <button type="button" className="pphBio pphBioMore" onClick={() => setAboutPopup(true)}>
-                {artist.bio}
-                <span>بیشتر</span>
-              </button>
+              <p className="pphBio">{artist.bio}</p>
             ) : null}
             <div className="pphActions">
               <button type="button" className={`pphFollow${following ? " is-following" : ""}`} onClick={onFollow}>
@@ -197,10 +191,6 @@ export function PublicArtistModal({
               onClose={() => setServicesOpen(false)}
             />
             <nav className="spvBar" aria-label="رزرو و اطلاعات">
-              <button type="button" className="spvBarAbout" onClick={() => setAboutPopup(true)} aria-label="درباره هنرمند">
-                <Info size={20} aria-hidden="true" />
-                درباره
-              </button>
               <button
                 type="button"
                 className="spvBarBook"
@@ -271,26 +261,6 @@ export function PublicArtistModal({
                 </button>
           </ProfileSheet>
 
-          {aboutPopup ? (
-            <div
-              className="artistAboutPopup"
-              role="dialog"
-              aria-modal="true"
-              aria-label="درباره هنرمند"
-              onClick={() => setAboutPopup(false)}
-            >
-              <article className="artistAboutPopupSheet" onClick={(event) => event.stopPropagation()}>
-                <div className="artistAboutPopupHead">
-                  <span className="artistAboutPopupHeadIcon">
-                    <Info size={18} />
-                  </span>
-                  <h3>درباره {artist.name}</h3>
-                </div>
-                <PublicArtistAboutPanel artist={artist} />
-              </article>
-              <SheetClose onClick={() => setAboutPopup(false)} />
-            </div>
-          ) : null}
         </section>
       </article>
     </div>

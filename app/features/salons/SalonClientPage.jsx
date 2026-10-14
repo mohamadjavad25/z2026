@@ -9,14 +9,10 @@ import {
   ChevronUp,
   Clock3,
   ImagePlus,
-  Info,
-  MapPin,
   Phone,
   Scissors,
   Share2,
-  UserPlus,
-  UserRound,
-  Users
+  UserPlus
 } from "lucide-react";
 import { PublicProfileHeader } from "../../components/PublicProfileHeader";
 import { ServicesDropUp } from "../../components/ServicesDropUp";
@@ -60,7 +56,6 @@ export function SalonClientPage({
   postActions = null,
   onOpenBooking
 }) {
-  const [aboutOpen, setAboutOpen] = useState(false);
   const [publicSheet, setPublicSheet] = useState("");
   const [servicesOpen, setServicesOpen] = useState(false);
   const services = selectedSalon ? getVisibleServices(selectedSalon) : [];
@@ -71,15 +66,7 @@ export function SalonClientPage({
     if (focus && hasServices) setServicesOpen(true);
   }, [focus, hasServices]);
   const portfolioItems = Array.isArray(selectedSalon?.portfolio) ? selectedSalon.portfolio : [];
-  const followerCountValue = Number(selectedSalon?.followerCount ?? selectedSalon?.follower_count ?? 0) || 0;
-  const followerCount = toPersianDigits(followerCountValue);
-  const staffCount = selectedSalon?.staff?.length || 0;
   const publicName = selectedSalon?.name || "سالن";
-  const managerName = selectedSalon?.managerName || selectedSalon?.manager_name || selectedSalon?.ownerName || selectedSalon?.owner_name || "";
-  const teamNames = (selectedSalon?.staff || [])
-    .map((member) => member?.name || member?.fullName || member?.artist_name)
-    .filter(Boolean)
-    .slice(0, 3);
   const teamMembers = (selectedSalon?.staff || []).filter((member) => member && (member.artist_name || member.name)).slice(0, 12);
   const weekHours = Array.isArray(selectedSalon?.hours) ? selectedSalon.hours : [];
   const todayName = PERSIAN_WEEKDAYS[new Date().getDay()];
@@ -139,10 +126,7 @@ export function SalonClientPage({
               </div>
             ) : null}
             {selectedSalon.bio ? (
-              <button type="button" className="pphBio pphBioMore" onClick={() => setAboutOpen(true)}>
-                {selectedSalon.bio}
-                <span>بیشتر</span>
-              </button>
+              <p className="pphBio">{selectedSalon.bio}</p>
             ) : null}
             <div className="pphActions">
               <button type="button" className={`pphFollow${isFollowing ? " is-following" : ""}`} onClick={() => onFollow(selectedSalon)}>
@@ -221,10 +205,6 @@ export function SalonClientPage({
             onClose={() => setServicesOpen(false)}
           />
           <nav className="spvBar" aria-label="رزرو و ذخیره">
-            <button type="button" className="spvBarAbout" onClick={() => setAboutOpen(true)} aria-label="درباره سالن">
-              <Info size={20} aria-hidden="true" />
-              درباره
-            </button>
             <button
               type="button"
               className="spvBarBook"
@@ -238,54 +218,6 @@ export function SalonClientPage({
               <ChevronUp size={18} className={`spvBarChevron${servicesOpen ? " is-open" : ""}`} aria-hidden="true" />
             </button>
           </nav>
-          {aboutOpen ? (
-            <div className="salonPublicAboutOverlay" role="dialog" aria-modal="true" aria-label="درباره سالن" onClick={() => setAboutOpen(false)}>
-              <article className="salonPublicAboutSheet" onClick={(event) => event.stopPropagation()}>
-                <div className="salonPublicAboutHead">
-                  <img
-                    src={selectedSalon.avatar || DEFAULT_SALON_LOGO}
-                    alt=""
-                    aria-hidden="true"
-                    style={{ objectPosition: selectedSalon.avatarPosition || "50% 50%" }}
-                  />
-                  <div>
-                    <span>درباره سالن</span>
-                    <h3>{publicName}</h3>
-                  </div>
-                </div>
-                {selectedSalon.bio ? (
-                  <p className="salonPublicAboutBio">{selectedSalon.bio}</p>
-                ) : (
-                  <p className="salonPublicAboutBio is-empty">این سالن هنوز معرفی ننوشته است. برای اطلاعات بیشتر می‌توانی با سالن تماس بگیری.</p>
-                )}
-                <div className="salonPublicAboutFacts">
-                  <span><Users size={16} /> {toPersianDigits(staffCount)} عضو تیم</span>
-                  <span><Bookmark size={16} /> {followerCount} دنبال‌کننده</span>
-                </div>
-                <div className="salonPublicAboutContact">
-                  {selectedSalon.area ? <span><MapPin size={17} /> {selectedSalon.area}</span> : null}
-                  {selectedSalon.open ? <span><Clock3 size={17} /> {selectedSalon.open}</span> : null}
-                  {selectedSalon.phone ? <span><Phone size={17} /> <span dir="ltr">{toPersianDigits(selectedSalon.phone)}</span></span> : null}
-                </div>
-                {managerName || teamNames.length ? (
-                  <section className="salonPublicAboutBlock">
-                    <h4>مدیر و تیم</h4>
-                    <div className="salonPublicAboutList">
-                      {managerName ? <span><UserRound size={16} /> مدیریت: {managerName}</span> : null}
-                      {teamNames.length ? <span><UserPlus size={16} /> تیم: {teamNames.join("، ")}</span> : null}
-                    </div>
-                  </section>
-                ) : null}
-                {selectedSalon.rules ? (
-                  <section className="salonPublicAboutBlock salonPublicAboutRules">
-                    <h4>قوانین و شرایط سالن</h4>
-                    <p>{selectedSalon.rules}</p>
-                  </section>
-                ) : null}
-                <SheetClose onClick={() => setAboutOpen(false)} />
-              </article>
-            </div>
-          ) : null}
           {publicSheet ? (
             <div className="salonPublicBrowseOverlay" role="dialog" aria-modal="true" aria-label="همه نمونه‌کارها" onClick={() => setPublicSheet("")}>
               <article className={`salonPublicBrowseSheet is-${publicSheet}`} onClick={(event) => event.stopPropagation()}>
