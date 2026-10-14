@@ -130,7 +130,6 @@ export function useProfileEditor({
         service: text(data.service) || text(createdProfile.data.service),
         phone: text(data.phone),
         email: text(data.email),
-        bio: text(data.bio ?? createdProfile.data.bio),
         experienceYears: text(data.experienceYears) || text(createdProfile.data.experienceYears),
         managerName: text(data.managerName) || text(createdProfile.data.managerName),
         password: nextPassword,

@@ -163,7 +163,7 @@ export async function createSalonArtistInvite(salonUserId, data) {
   }
 
   const artist = await get(db, `
-    SELECT id, name, phone, area, service, avatar, bio, type
+    SELECT id, name, phone, area, service, avatar, type
     FROM users WHERE id = $1 AND type = 'artist' LIMIT 1
   `, [artistUserId]);
   if (!artist) {
@@ -194,7 +194,7 @@ export async function createSalonArtistInvite(salonUserId, data) {
   }
 
   const role = data.role || artist.service || "آرتیست";
-  const bio = data.bio || artist.bio || artist.area || "دعوت‌شده از آرتیست‌های نزدیک";
+  const bio = data.bio || artist.area || "دعوت‌شده از آرتیست‌های نزدیک";
   const accessLevel = data.accessLevel || data.access_level || "همکار";
   const days = data.days || "";
   const fromTime = data.from || data.fromTime || data.from_time || "";
@@ -275,7 +275,7 @@ export async function joinSalonByArtist(salonUserId, artistUserId) {
   }
 
   const artist = await get(db, `
-    SELECT id, name, phone, area, service, bio FROM users WHERE id = $1 AND type = 'artist' LIMIT 1
+    SELECT id, name, phone, area, service FROM users WHERE id = $1 AND type = 'artist' LIMIT 1
   `, [artistUserId]);
   if (!artist) {
     return { ok: false, error: "آرتیست پیدا نشد.", code: "ARTIST_NOT_FOUND" };
@@ -289,7 +289,7 @@ export async function joinSalonByArtist(salonUserId, artistUserId) {
   }
 
   const role = artist.service || "آرتیست";
-  const bio = artist.bio || "پیوستن با اسکن کد QR سالن";
+  const bio = "پیوستن با اسکن کد QR سالن";
 
   const existingInvite = await get(db, `
     SELECT id FROM salon_artist_invites WHERE salon_user_id = $1 AND artist_user_id = $2 LIMIT 1

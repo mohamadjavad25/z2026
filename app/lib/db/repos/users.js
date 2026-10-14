@@ -10,7 +10,7 @@ const USER_COLUMNS = `
   id, phone, password_hash, type, name, area, service, email,
   CASE WHEN avatar <> '' OR avatar_url IS NOT NULL THEN '1' ELSE '' END AS avatar,
   CASE WHEN poster <> '' OR poster_url IS NOT NULL THEN '1' ELSE '' END AS poster,
-  avatar_position, poster_position, bio, experience_years, manager_name,
+  avatar_position, poster_position, experience_years, manager_name,
   last_seen_at, created_at, updated_at, avatar_url, poster_url, suspended_at
 `;
 
@@ -23,7 +23,7 @@ export async function getUserById(id, runner = null) {
 export async function getUserLiteById(id, runner = null) {
   const db = runner || (await getDb());
   return (await get(db, `
-    SELECT id, name, phone, type, area, bio, avatar_position, (avatar <> '' OR avatar_url IS NOT NULL) AS avatar
+    SELECT id, name, phone, type, area, avatar_position, (avatar <> '' OR avatar_url IS NOT NULL) AS avatar
     FROM users WHERE id = $1
   `, [id])) || null;
 }
@@ -32,7 +32,7 @@ export async function getUserLiteById(id, runner = null) {
 export async function getUserProfileById(id, runner = null) {
   const db = runner || (await getDb());
   return (await get(db, `
-    SELECT id, name, phone, type, area, service, bio, experience_years, avatar_position, poster_position,
+    SELECT id, name, phone, type, area, service, experience_years, avatar_position, poster_position,
       (avatar <> '' OR avatar_url IS NOT NULL) AS avatar,
       (poster <> '' OR poster_url IS NOT NULL) AS poster
     FROM users WHERE id = $1
@@ -46,11 +46,11 @@ export async function getUserByPhone(phone, runner = null) {
   return (await get(db, `SELECT ${USER_COLUMNS} FROM users WHERE phone = $1`, [normalized])) || null;
 }
 
-export async function createUser({ phone, passwordHash, type, name, area, service, email, avatar, poster, bio, experienceYears, managerName }) {
+export async function createUser({ phone, passwordHash, type, name, area, service, email, avatar, poster, experienceYears, managerName }) {
   const db = await getDb();
   const info = await run(db, `
-    INSERT INTO users (phone, password_hash, type, name, area, service, email, avatar, poster, bio, experience_years, manager_name)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+    INSERT INTO users (phone, password_hash, type, name, area, service, email, avatar, poster, experience_years, manager_name)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
     RETURNING id
   `, [
     String(phone || "").trim(),
@@ -62,7 +62,6 @@ export async function createUser({ phone, passwordHash, type, name, area, servic
     email || "",
     avatar || "",
     poster || "",
-    bio || "",
     experienceYears || "",
     managerName || ""
   ]);
@@ -126,7 +125,6 @@ export async function updateUser(id, data) {
     email: data.email ?? current.email,
     avatar_position: data.avatarPosition ?? data.avatar_position ?? current.avatar_position ?? "",
     poster_position: data.posterPosition ?? data.poster_position ?? current.poster_position ?? "",
-    bio: data.bio ?? current.bio,
     experience_years: data.experienceYears ?? data.experience_years ?? current.experience_years ?? "",
     manager_name: data.managerName ?? data.manager_name ?? current.manager_name ?? "",
     password_hash: data.password_hash ?? current.password_hash
@@ -142,14 +140,14 @@ export async function updateUser(id, data) {
       phone = $1, name = $2, area = $3, service = $4, email = $5,
       avatar = CASE WHEN $6 THEN $7 ELSE avatar END, avatar_url = CASE WHEN $6 THEN $8 ELSE avatar_url END,
       poster = CASE WHEN $9 THEN $10 ELSE poster END, poster_url = CASE WHEN $9 THEN $11 ELSE poster_url END,
-      avatar_position = $12, poster_position = $13, bio = $14, experience_years = $15, manager_name = $16, password_hash = $17,
+      avatar_position = $12, poster_position = $13, experience_years = $14, manager_name = $15, password_hash = $16,
       updated_at = CURRENT_TIMESTAMP
-    WHERE id = $18
+    WHERE id = $17
   `, [
     next.phone, next.name, next.area, next.service, next.email,
     avatar.change, avatar.blob, avatar.url,
     poster.change, poster.blob, poster.url,
-    next.avatar_position, next.poster_position, next.bio, next.experience_years, next.manager_name, next.password_hash, id
+    next.avatar_position, next.poster_position, next.experience_years, next.manager_name, next.password_hash, id
   ]);
 
   // The replaced/removed pictures no longer need their Storage copies.

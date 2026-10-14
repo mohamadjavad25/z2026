@@ -16,7 +16,6 @@ export const profileUpdateSchema = z.object({
   poster: z.string().optional(),
   avatarPosition: z.string().max(50).optional(),
   posterPosition: z.string().max(50).optional(),
-  bio: z.string().trim().max(2000).optional(),
   experienceYears: z.union([z.string(), z.number()]).transform((v) => String(v)).pipe(z.string().max(20)).optional(),
   managerName: z.string().trim().max(120).optional(),
   // "" means "not changing it" (the route ignores a falsy password).

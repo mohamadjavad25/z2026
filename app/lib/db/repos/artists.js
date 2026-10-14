@@ -357,7 +357,6 @@ export async function listArtistBookings(artistUserId) {
             phone: client.phone || row.client_phone || "",
             area: client.area || "",
             avatar: client.avatar ? `/api/media/avatar/${client.id}` : "",
-            bio: client.bio || "",
             type: client.type || "client"
           }
         : {
@@ -366,7 +365,6 @@ export async function listArtistBookings(artistUserId) {
             phone: row.client_phone || "",
             area: "",
             avatar: "",
-            bio: "",
             type: "client"
           }
     };
@@ -801,7 +799,6 @@ export async function getPublicArtist(userId, viewerUserId = null) {
     name: user.name,
     role: user.service ? `آرتیست ${user.service}` : "آرتیست",
     area: user.area,
-    bio: user.bio,
     // The public page's «تماس» button, same as the salon page (salons.js getSalon).
     phone: user.phone || "",
     avatar: user.avatar ? `/api/media/avatar/${user.id}` : "",
@@ -853,7 +850,7 @@ export async function listArtists({ cursor, limit } = {}) {
     limitClause = `LIMIT $${params.length}`;
   }
   const rawRows = await all(db, `
-    SELECT id, name, area, service, (avatar <> '' OR avatar_url IS NOT NULL) AS avatar, bio, avatar_position FROM users WHERE ${where} ORDER BY id DESC ${limitClause}
+    SELECT id, name, area, service, (avatar <> '' OR avatar_url IS NOT NULL) AS avatar, avatar_position FROM users WHERE ${where} ORDER BY id DESC ${limitClause}
   `, params);
   const hasMore = pageSize ? rawRows.length > pageSize : false;
   const rows = pageSize ? rawRows.slice(0, pageSize) : rawRows;
@@ -895,7 +892,7 @@ export async function listArtists({ cursor, limit } = {}) {
 export async function listSavedArtistsForUser(userId) {
   const db = await getDb();
   const rows = await all(db, `
-    SELECT u.id, u.name, u.service, u.area, u.bio, u.avatar_position, (u.avatar <> '' OR u.avatar_url IS NOT NULL) AS avatar FROM saved_profiles sp
+    SELECT u.id, u.name, u.service, u.area, u.avatar_position, (u.avatar <> '' OR u.avatar_url IS NOT NULL) AS avatar FROM saved_profiles sp
     JOIN users u ON u.id = sp.target_user_id
     WHERE sp.user_id = $1 AND u.type = 'artist'
     ORDER BY sp.created_at DESC
@@ -906,7 +903,6 @@ export async function listSavedArtistsForUser(userId) {
     name: user.name,
     role: user.service ? `آرتیست ${user.service}` : "آرتیست",
     area: user.area,
-    bio: user.bio,
     avatar: user.avatar ? `/api/media/avatar/${user.id}` : "",
     avatarPosition: user.avatar_position || "",
     service: user.service,

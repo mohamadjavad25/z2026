@@ -132,7 +132,6 @@ export function publicUser(row) {
     poster: row.poster ? `/api/media/poster/${row.id}?v=${encodeURIComponent(row.updated_at?.toISOString?.() || row.updated_at || "")}` : "",
     avatarPosition: row.avatar_position || "",
     posterPosition: row.poster_position || "",
-    bio: row.bio || "",
     experienceYears: row.experience_years || "",
     managerName: row.manager_name || ""
   };

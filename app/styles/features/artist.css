@@ -2215,10 +2215,7 @@
 
 
 
-.artistPublicGallery,
-.artistPublicServices,
-.artistPublicBookingPanel,
-.artistPublicAbout{
+.artistPublicGallery, .artistPublicServices, .artistPublicBookingPanel {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 12px;
@@ -2742,75 +2739,6 @@
   line-height: 1.55;
   text-align: center;
 }
-
-
-
-.artistPublicAboutBio{
-  margin: 0;
-  padding: 4px 2px;
-  color: var(--ink);
-  font-size: 0.9rem;
-  font-weight: 700;
-  line-height: 1.8;
-}
-
-
-
-.artistPublicAboutStats{
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-}
-
-
-
-.artistPublicAboutStats article{
-  display: grid;
-  gap: 3px;
-  justify-items: center;
-  padding: 14px 8px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.86);
-  text-align: center;
-  box-shadow: 0 8px 18px rgba(28, 32, 44, 0.04);
-}
-
-
-
-.artistPublicAboutStats b{ font-size: 1.1rem; font-weight: 900; }
-
-
-.artistPublicAboutStats span{ color: var(--muted); font-size: 0.68rem; font-weight: 800; }
-
-
-
-.artistPublicAboutList{
-  display: grid;
-  gap: 0;
-}
-
-
-
-.artistPublicAboutList > div{
-  display: grid;
-  grid-template-columns: 36px 1fr;
-  gap: 10px;
-  align-items: center;
-  padding: 14px 0;
-  border-radius: 0;
-  background: transparent;
-  border-bottom: 1px solid rgba(28, 32, 44, 0.08);
-}
-
-
-
-.artistPublicAboutList svg{ color: #14161d; justify-self: center; }
-
-
-.artistPublicAboutList b{ display: block; margin-bottom: 2px; font-size: 0.82rem; font-weight: 900; }
-
-
-.artistPublicAboutList span{ color: rgba(28, 32, 44, 0.55); font-size: 0.74rem; font-weight: 700; line-height: 1.45; }
 
 
 
@@ -3445,10 +3373,7 @@
 
 
 
-  .artistPublicHeroStats,
-  .artistPublicAboutStats,
-  .artistPublicDayRail,
-  .artistPublicSlotGrid{
+  .artistPublicHeroStats, .artistPublicDayRail, .artistPublicSlotGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 

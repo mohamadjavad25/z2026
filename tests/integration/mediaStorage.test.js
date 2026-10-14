@@ -57,7 +57,7 @@ describe.skipIf(process.env.TEST_STORAGE === "off")("pictures live in Storage", 
     expect((await fetch(stored.avatar_url)).status).toBe(404);
 
     // Editing something else leaves the picture alone; removing it removes it.
-    await client.post("/api/profile", { bio: "سلام" });
+    await client.post("/api/profile", { area: "اهواز" });
     expect((await media(`/api/media/avatar/${user.id}`)).status).toBe(200);
     await client.post("/api/profile", { avatar: "" });
     expect((await media(`/api/media/avatar/${user.id}`)).status).toBe(404);

@@ -129,9 +129,6 @@ export function SalonClientPage({
                 </span>
               </div>
             ) : null}
-            {selectedSalon.bio ? (
-              <p className="pphBio">{selectedSalon.bio}</p>
-            ) : null}
             <div className="pphActions">
               <button type="button" className={`pphFollow${isFollowing ? " is-following" : ""}`} onClick={() => onFollow(selectedSalon)}>
                 {isFollowing ? <Check size={18} /> : <UserPlus size={18} />}

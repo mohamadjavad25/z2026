@@ -127,9 +127,6 @@ export function PublicArtistModal({
                 ) : null}
               </div>
             ) : null}
-            {artist.bio ? (
-              <p className="pphBio">{artist.bio}</p>
-            ) : null}
             <div className="pphActions">
               <button type="button" className={`pphFollow${following ? " is-following" : ""}`} onClick={onFollow}>
                 {following ? <Check size={18} /> : <Heart size={18} />}

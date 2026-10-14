@@ -299,7 +299,6 @@ export function mapArtistBooking(row) {
     clientUserId: profile?.id || row.client_user_id || null,
     clientAvatar: profile?.avatar || "",
     clientArea: profile?.area || "",
-    clientBio: profile?.bio || "",
     clientType: profile?.type || "client",
     sourceSalon: row.sourceSalon || row.source_salon || null,
     phone: profile?.phone || row.client_phone || row.phone || "",

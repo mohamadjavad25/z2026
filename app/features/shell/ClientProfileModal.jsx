@@ -69,10 +69,6 @@ export function ClientProfileModal({ client, onClose }) {
             <b>منطقه</b>
             {client.area || "ثبت نشده"}
           </span>
-          <span className="wide">
-            <b>درباره</b>
-            {client.bio || "توضیحی ثبت نشده"}
-          </span>
         </div>
 
         {client.bookings?.length ? (

@@ -217,7 +217,6 @@ function getPassportMatch(post) {
         name: createdProfile.data.name,
         area: createdProfile.data.area || post.area || "",
         role: createdProfile.data.service || post.tag || (createdProfile.type === "salon" ? "سالن" : "آرتیست"),
-        bio: createdProfile.data.bio || post.meta || "",
         source: createdProfile.type === "salon"
           ? (fromDirectory || null)
           : createdProfile,
@@ -232,7 +231,6 @@ function getPassportMatch(post) {
         name: fromDirectory?.name || post.salon || "سالن",
         area: fromDirectory?.area || post.area || "",
         role: fromDirectory?.tag || post.tag || "سالن",
-        bio: fromDirectory?.bio || post.meta || "",
         source: fromDirectory || null,
         kind: "salon",
         entityType: "salon"
@@ -244,7 +242,6 @@ function getPassportMatch(post) {
       name: post.salon || "آرتیست",
       area: post.area || "",
       role: post.ownerService ? `آرتیست ${post.ownerService}` : (post.tag || "آرتیست"),
-      bio: post.ownerBio || post.meta || "",
       source: null,
       kind: "artist",
       entityType: "artist"
@@ -273,7 +270,6 @@ function getPassportMatch(post) {
       area: createdProfile.data?.area || "",
       tag: createdProfile.data?.tag || createdProfile.data?.service || "سالن",
       open: createdProfile.data?.open || "امروز",
-      bio: createdProfile.data?.bio || "",
       avatar: createdProfile.data?.avatar || "",
       post_count: salonPortfolioList.length,
       follower_count: Number(createdProfile.data?.follower_count || 0),
@@ -304,7 +300,6 @@ function getPassportMatch(post) {
         area: salonLike.area,
         tag: salonLike.role || salonLike.tag,
         open: salonLike.open || "امروز",
-        bio: salonLike.bio || "",
         avatar: salonLike.avatar || "",
         post_count: salonLike.post_count || 0,
         follower_count: salonLike.follower_count || 0,
@@ -520,7 +515,6 @@ function getPassportMatch(post) {
       name: person.artist_name || person.name,
       area: person.artist_area || "",
       role: person.role || person.artist_service || "آرتیست",
-      bio: person.artist_bio || person.bio || "",
       avatar: person.avatar || person.staff_avatar || "",
       phone: person.artist_phone || person.phone || "",
       kind: "artist",

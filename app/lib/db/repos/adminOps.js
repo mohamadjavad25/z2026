@@ -11,7 +11,7 @@ const likeOf = (term) => {
 export async function getUserDetail(id) {
   const db = await getDb();
   const user = await get(db, `
-    SELECT id, name, phone, email, type, area, service, bio, manager_name, experience_years, created_at, updated_at, last_seen_at, suspended_at,
+    SELECT id, name, phone, email, type, area, service, manager_name, experience_years, created_at, updated_at, last_seen_at, suspended_at,
            (avatar <> '' OR COALESCE(avatar_url, '') <> '') AS has_avatar
     FROM users WHERE id = $1
   `, [Number(id)]);

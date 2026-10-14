@@ -70,7 +70,7 @@ export async function listSalons({ cursor, limit } = {}) {
     limitClause = `LIMIT $${params.length}`;
   }
   const rawRows = await all(db, `
-    SELECT s.*, (u.avatar <> '' OR u.avatar_url IS NOT NULL) AS avatar, u.bio, u.avatar_position
+    SELECT s.*, (u.avatar <> '' OR u.avatar_url IS NOT NULL) AS avatar, u.avatar_position
     FROM salons s JOIN users u ON u.id = s.user_id
     ${where}
     ORDER BY s.user_id DESC
@@ -170,7 +170,6 @@ export async function listSalons({ cursor, limit } = {}) {
       // (getSalon() below) does, for its "call the salon" contact block.
       avatar: row.avatar ? `/api/media/avatar/${row.user_id}` : "",
       avatarPosition: row.avatar_position || "",
-      bio: row.bio || "",
       postCount: row.post_count,
       followerCount,
       followingCount,
@@ -199,7 +198,7 @@ export async function listSalons({ cursor, limit } = {}) {
 export async function listSavedSalonsForUser(userId) {
   const db = await getDb();
   const rows = await all(db, `
-    SELECT s.*, (u.avatar <> '' OR u.avatar_url IS NOT NULL) AS avatar, u.bio, u.avatar_position
+    SELECT s.*, (u.avatar <> '' OR u.avatar_url IS NOT NULL) AS avatar, u.avatar_position
     FROM saved_profiles sp
     JOIN salons s ON s.user_id = sp.target_user_id
     JOIN users u ON u.id = s.user_id
@@ -222,7 +221,6 @@ export async function listSavedSalonsForUser(userId) {
       match: row.match_score,
       avatar: row.avatar ? `/api/media/avatar/${row.user_id}` : "",
       avatarPosition: row.avatar_position || "",
-      bio: row.bio || "",
       postCount: row.post_count,
       post_count: row.post_count,
       followerCount,
@@ -237,7 +235,7 @@ export async function listSavedSalonsForUser(userId) {
 export async function getSalon(userId, viewerUserId = null) {
   const db = await getDb();
   const row = await get(db, `
-    SELECT s.*, (u.avatar <> '' OR u.avatar_url IS NOT NULL) AS avatar, (u.poster <> '' OR u.poster_url IS NOT NULL) AS has_poster, u.bio, u.avatar_position, u.poster_position, u.updated_at AS user_updated_at
+    SELECT s.*, (u.avatar <> '' OR u.avatar_url IS NOT NULL) AS avatar, (u.poster <> '' OR u.poster_url IS NOT NULL) AS has_poster, u.avatar_position, u.poster_position, u.updated_at AS user_updated_at
     FROM salons s JOIN users u ON u.id = s.user_id
     WHERE s.user_id = $1
   `, [userId]);
@@ -285,7 +283,6 @@ export async function getSalon(userId, viewerUserId = null) {
     avatarPosition: row.avatar_position || "",
     poster: row.has_poster ? `/api/media/poster/${row.user_id}?v=${row.user_updated_at ? new Date(row.user_updated_at).getTime() : 0}` : "",
     posterPosition: row.poster_position || "",
-    bio: row.bio || "",
     rules: row.rules || "",
     postCount: row.post_count,
     post_count: row.post_count,

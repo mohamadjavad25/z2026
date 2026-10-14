@@ -52,7 +52,6 @@ async function _POST(request) {
       poster: data.poster,
       avatarPosition: data.avatarPosition,
       posterPosition: data.posterPosition,
-      bio: data.bio,
       experienceYears: data.experienceYears,
       managerName: data.managerName
     };

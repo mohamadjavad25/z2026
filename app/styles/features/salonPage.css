@@ -59,13 +59,6 @@
 :root .salonPublicProfile { padding-bottom: 96px; }
 .spvChip.is-open { background: #f0fbf4 !important; color: #15803d !important; }
 .spvChip.is-closed { background: #f1f1f5 !important; color: #6f7380 !important; }
-
-/* ---- Public artist page ---- */
-.spvBioLine { margin: 0; text-align: center; color: #3b3e49; font-size: 0.82rem; font-weight: 700; line-height: 1.9; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.artistPublicAboutBio.is-empty { color: #8a8e9b; }
-.spvAboutHours { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 2px; }
-.spvAboutHours li { display: flex; justify-content: space-between; gap: 18px; padding: 5px 8px; border-radius: 9px; font-size: 0.78rem; font-weight: 800; color: #3b3e49; }
-.spvAboutHours li.is-today { background: #f1f1f5; color: #14161d; }
 :root .artistPublicPage { padding-bottom: 96px; }
 .spvService.is-selected { border-color: #14161d; }
 :root .artistPublicActions { display: grid !important; margin: 0 !important; }
@@ -97,7 +90,6 @@
 .cbOfferActions button { min-height: 44px; border: 1px solid #ececf0; border-radius: 12px; background: #fff; color: #14161d; font: inherit; font-size: 0.82rem; font-weight: 900; cursor: pointer; }
 .cbOfferActions button.is-accept { background: #14161d; border-color: #14161d; color: #fff; }
 .cbOfferActions button:disabled { opacity: 0.6; }
-.salonPublicAboutBio.is-empty { color: #8a8e9b; }
 
 /* Full-screen salon/artist pages scroll inside their own container. Keep the document itself
    still (and exactly as tall as the screen) so the phone's address bar can't resize the page

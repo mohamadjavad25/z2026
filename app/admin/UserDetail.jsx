@@ -36,7 +36,7 @@ export function UserDetail({ userId, onChanged, onGo }) {
     if (!ok) return setDetail({ error: payload.error || "بارگذاری نشد." });
     setDetail(payload.data);
     const { user } = payload.data;
-    setForm({ name: user.name || "", area: user.area || "", service: user.service || "", email: user.email || "", bio: user.bio || "" });
+    setForm({ name: user.name || "", area: user.area || "", service: user.service || "", email: user.email || "" });
     setNote(payload.data.note?.note || "");
   }, [userId]);
   useEffect(() => {
@@ -154,7 +154,6 @@ export function UserDetail({ userId, onChanged, onGo }) {
           {[["name", "نام"], ["area", "منطقه"], ["service", "تخصص / خدمت"], ["email", "ایمیل"]].map(([key, label]) => (
             <Field key={key} label={label}>{(props) => <input {...props} type="text" dir={key === "email" ? "ltr" : undefined} value={form[key] ?? ""} onChange={(event) => setForm({ ...form, [key]: event.target.value })} />}</Field>
           ))}
-          <Field label="دربارهٔ او">{(props) => <textarea {...props} rows={4} maxLength={600} value={form.bio ?? ""} onChange={(event) => setForm({ ...form, bio: event.target.value })} />}</Field>
           <Button type="submit" disabled={busy}>ذخیرهٔ تغییرات</Button>
         </form>
       ) : null}
