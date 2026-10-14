@@ -1,5 +1,5 @@
 import { afterEach, describe, it, expect, vi } from "vitest";
-import { contactPickerSupported, localPhoneOf, pickContact } from "../../app/shared/lib/contactPicker.js";
+import { contactPickerNeedsAppUpdate, contactPickerSupported, localPhoneOf, pickContact } from "../../app/shared/lib/contactPicker.js";
 
 afterEach(() => { vi.unstubAllGlobals(); });
 
@@ -19,6 +19,13 @@ describe("contact picker", () => {
     vi.stubGlobal("navigator", {});
     vi.stubGlobal("window", { Capacitor: { isNativePlatform: () => true, nativePromise: () => null, PluginHeaders: [{ name: "App" }] } });
     expect(contactPickerSupported()).toBe(false);
+  });
+
+  it("ignores the WebView's dead navigator.contacts inside an older app", () => {
+    vi.stubGlobal("navigator", { contacts: { select: async () => [] } });
+    vi.stubGlobal("window", { ContactsManager: function ContactsManager() {}, Capacitor: { isNativePlatform: () => true, nativePromise: () => null, PluginHeaders: [{ name: "App" }] } });
+    expect(contactPickerSupported()).toBe(false);
+    expect(contactPickerNeedsAppUpdate()).toBe(true);
   });
 
   it("uses the Android app's own picker", async () => {
