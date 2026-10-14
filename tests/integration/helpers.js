@@ -65,13 +65,15 @@ export async function registerUser(client, { type = "client", name = "Test User"
 }
 
 /** A Persian date key a few open (non-Friday) days from now, so booking tests never land on a past slot. */
-export function futureBookingDay(openDaysAhead = 2) {
+export function futureBookingDay(openDaysAhead = 2, { notOn = [] } = {}) {
   const day = new Date();
   let found = 0;
   while (found < openDaysAhead) {
     day.setDate(day.getDate() + 1);
     if (getPersianWeekday(day) !== "جمعه") found += 1;
   }
+  // A test that depends on a full-length day can skip the short ones (Thursday closes at 18:00 by default).
+  while (getPersianWeekday(day) === "جمعه" || notOn.includes(getPersianWeekday(day))) day.setDate(day.getDate() + 1);
   return formatPersianDateKey(day);
 }
 

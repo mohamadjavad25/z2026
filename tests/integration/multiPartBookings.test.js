@@ -353,7 +353,8 @@ describe("«تغییر ساعت» offers only times the booking fits", () => {
 
   it("leaves out taken times and marks the ones past closing; PATCH follows the same list", async () => {
     const ctx = await setup();
-    const day = futureBookingDay(13);
+    // Needs the 20:00 close, so not a Thursday (default 18:00).
+    const day = futureBookingDay(13, { notOn: ["پنجشنبه"] });
     // A 75-minute visit at 10:00 (nail 45 + hair 30), and the nail artist busy 14:00–15:00.
     const booking = (await requestVisit(ctx, { bookingDate: day })).payload.data.booking;
     expect((await ctx.salonClient.post("/api/salon-bookings", {
