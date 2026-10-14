@@ -22,6 +22,7 @@ export function ContentPages() {
     setAppToast,
     refreshSalonSystemData,
     refreshArtistWorkspace,
+    openBookingSheet,
     saveAvatarPosition,
     savePosterPosition,
     pendingAvatarUpload,
@@ -138,6 +139,7 @@ export function ContentPages() {
               active={activeTab === "customers"}
               bookings={salonAppointmentList}
               headerAction={<OwnerScanButton viewerType="salon" onChanged={() => refreshSalonSystemData?.()} />}
+              onBookCustomer={openBookingSheet}
             />
           )}
 
@@ -147,6 +149,7 @@ export function ContentPages() {
               bookings={artistBookingList}
               ownerLabel="شما"
               headerAction={<OwnerScanButton viewerType="artist" onChanged={() => refreshArtistWorkspace?.()} />}
+              onBookCustomer={openBookingSheet}
             />
           )}
 

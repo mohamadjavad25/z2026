@@ -356,6 +356,41 @@
   font-weight: 900;
   cursor: pointer;
 }
+/* «مخاطبین» beside it: pick a contact from the phone (SalonCustomersPage). */
+.cuHeadActions { display: flex; gap: 10px; width: 100%; }
+.cuHeadActions .cnScanCustomerBtn { flex: 1; width: auto; min-width: 0; }
+.cuContactBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  flex: none;
+  min-height: 48px;
+  padding: 0 18px;
+  border: 1.5px solid #14161d;
+  border-radius: 16px;
+  background: #ffffff;
+  color: #14161d;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+.cuBookBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 46px;
+  border: 0;
+  border-radius: 15px;
+  background: #e11d74;
+  color: #ffffff;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 900;
+  cursor: pointer;
+}
 
 /* ═══ Full-screen QR scanner ═══════════════════════════════════════════ */
 .qrScanner {

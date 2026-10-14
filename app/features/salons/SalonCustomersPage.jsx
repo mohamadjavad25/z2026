@@ -1,14 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PageIcon } from "../../components/PageIcon";
 import { ServiceIcon } from "../../components/ServiceIcon";
-import { ArrowDownUp, CalendarCheck, MessageSquare, Phone, Repeat2, Search, Users } from "lucide-react";
+import { ArrowDownUp, CalendarCheck, CalendarPlus, ContactRound, MessageSquare, Phone, Repeat2, Search, Users } from "lucide-react";
 import { ProfileSheet } from "../profile/ProfileSheet";
 import { bookingStatusLabel, bookingStatusTone } from "../client/bookingStatus";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { formatRelativeBookingDayLabel, resolveRollingPersianDate } from "../../shared/lib/persianCalendar";
-import { buildBookingCustomers } from "./customers";
+import { buildBookingCustomers, phoneKey } from "./customers";
+import { contactPickerSupported, localPhoneOf, pickContact } from "../../shared/lib/contactPicker";
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
 
 export { buildBookingCustomers };
@@ -45,7 +46,7 @@ function Avatar({ customer, size = "" }) {
   );
 }
 
-function CustomerSheet({ customer, onClose }) {
+function CustomerSheet({ customer, onBook, onClose }) {
   if (!customer) return null;
   return (
     <ProfileSheet open kicker="مشتری" title={customer.name} panelClassName="cuSheet" onClose={onClose}>
@@ -66,6 +67,11 @@ function CustomerSheet({ customer, onClose }) {
               <MessageSquare size={16} /> پیامک
             </a>
           </div>
+        ) : null}
+        {onBook ? (
+          <button type="button" className="cuBookBtn" onClick={() => onBook(customer)}>
+            <CalendarPlus size={16} aria-hidden="true" /> نوبت جدید
+          </button>
         ) : null}
         <div className="cuStats">
           <span><b>{toPersianDigits(customer.completed)}</b>انجام‌شده</span>
@@ -97,12 +103,18 @@ function CustomerSheet({ customer, onClose }) {
 /**
  * Owner's own customer community page. See buildBookingCustomers for how a
  * "customer" is derived from real bookings.
+ *
+ * «مخاطبین» (next to the scan button, only where the phone has a contact picker) picks one contact
+ * from the phone: someone already a customer opens their card, anyone else opens the new-booking
+ * form with their name and number filled in (`onBookCustomer({ client, phone })`).
  */
-export function SalonCustomersPage({ active, bookings = [], ownerLabel = "سالن شما", headerAction = null }) {
+export function SalonCustomersPage({ active, bookings = [], ownerLabel = "سالن شما", headerAction = null, onBookCustomer }) {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
   const [sort, setSort] = useState("recent");
   const [openKey, setOpenKey] = useState("");
+  const [canPickContact, setCanPickContact] = useState(false);
+  useEffect(() => { setCanPickContact(Boolean(onBookCustomer) && contactPickerSupported()); }, [onBookCustomer]);
 
   const customers = useMemo(() => buildBookingCustomers(bookings), [bookings]);
   const repeatCount = useMemo(() => customers.filter((item) => item.visitCount >= 2).length, [customers]);
@@ -126,13 +138,38 @@ export function SalonCustomersPage({ active, bookings = [], ownerLabel = "سال
 
   const openCustomer = customers.find((item) => item.key === openKey) || null;
 
+  async function chooseContact() {
+    let contact = null;
+    try {
+      contact = await pickContact();
+    } catch {
+      return; // picker refused or unavailable: nothing to do
+    }
+    if (!contact) return;
+    const keys = new Set(contact.phones.map(phoneKey).filter((key) => key.length >= 10));
+    const known = customers.find((item) => keys.has(phoneKey(item.phone)));
+    if (known) {
+      setOpenKey(known.key);
+      return;
+    }
+    onBookCustomer?.({ client: contact.name, phone: localPhoneOf(contact.phones) });
+  }
+
   return (
     <div className={`salonCustomersPage mobilePage page-customers ${active ? "is-active" : ""}`} id="customers">
       <div className="salonCustomersHead">
         <div className="salonCustomersTitle">
           <span className="wavyTitle">جامعه مشتریان</span>
         </div>
-        {headerAction}
+        {canPickContact ? (
+          <div className="cuHeadActions">
+            {headerAction}
+            <button type="button" className="cuContactBtn" onClick={chooseContact} aria-label="انتخاب از مخاطبین گوشی">
+              <ContactRound size={17} aria-hidden="true" />
+              مخاطبین
+            </button>
+          </div>
+        ) : headerAction}
       </div>
 
       {customers.length ? (
@@ -216,7 +253,14 @@ export function SalonCustomersPage({ active, bookings = [], ownerLabel = "سال
           </article>
         ))}
       </div>
-      <CustomerSheet customer={openCustomer} onClose={() => setOpenKey("")} />
+      <CustomerSheet
+        customer={openCustomer}
+        onBook={onBookCustomer ? (customer) => {
+          setOpenKey("");
+          onBookCustomer({ client: customer.name, phone: customer.phone });
+        } : undefined}
+        onClose={() => setOpenKey("")}
+      />
     </div>
   );
 }

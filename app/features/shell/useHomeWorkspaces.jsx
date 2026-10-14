@@ -205,6 +205,7 @@ export function useHomeWorkspaces({
   const {
     bookingSheetOpen,
     setBookingSheetOpen,
+    bookingPrefill,
     bookingStaffName,
     setBookingStaffName,
     bookingServiceName,
@@ -356,6 +357,7 @@ export function useHomeWorkspaces({
     activeSalonHours,
     bookingSheetOpen,
     setBookingSheetOpen,
+    bookingPrefill,
     bookingStaffName,
     setBookingStaffName,
     bookingServiceName,
