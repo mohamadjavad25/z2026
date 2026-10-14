@@ -1,11 +1,18 @@
-/* About/download page: /download, and every page but /admin, /terms, /privacy on tablets and desktops (LargeScreenGate.jsx). */
+/* About/download page: /download, "/" on phones until «ورود به فرفرو», and every page but /admin, /terms, /privacy on tablets and desktops (LargeScreenGate.jsx). */
 
 /* Which of the two shows. The query matches LARGE_SCREEN_QUERY in features/landing/constants.js. */
 .landingSlot { display: none; }
 @media (min-width: 600px) and (min-height: 600px) {
   html:not(.native-app) .landingSlot { display: block; }
   html:not(.native-app) .pageSlot { display: none; }
+  /* The web app is phone-only, so there is nothing to enter on a large screen. */
+  .appLanding__enter, .appLanding__enterLink { display: none !important; }
 }
+/* Home page on phones: the about page first, until «ورود به فرفرو» (or in the app / from the
+   home-screen icon). "skip-landing" is set by the root layout's head script. */
+html:not(.skip-landing) .landingSlot.is-home { display: block; }
+html:not(.skip-landing) .landingSlot.is-home + .pageSlot { display: none; }
+html.native-app .appLanding__enter, html.native-app .appLanding__enterLink { display: none !important; }
 
 /* Download links inside the site: only in the browser, never in the Android/iOS app. */
 html.native-app .webOnlyAppLink { display: none !important; }
@@ -109,6 +116,14 @@ html.native-app .webOnlyAppLink { display: none !important; }
 .appLanding__store.is-small { min-height: 46px; font-size: 0.95rem; margin-top: var(--space-4); }
 
 .appLanding__storeIcon { width: 26px; height: 26px; flex: none; }
+
+.appLanding__enter {
+  display: inline-block;
+  margin-top: var(--space-4);
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 6px;
+}
 
 .appLanding__note { margin: var(--space-4) 0 0; font-size: 0.85rem; color: var(--muted); }
 
