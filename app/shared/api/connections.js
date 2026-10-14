@@ -1,8 +1,8 @@
 import { apiFetch, apiJson } from "./client";
 
 /** GET /api/connections → { connections } (the client's salons and artists) */
-export async function listConnections() {
-  return apiJson("/api/connections");
+export async function listConnections({ withServices = false } = {}) {
+  return apiJson(withServices ? "/api/connections?services=1" : "/api/connections");
 }
 
 /** GET /api/connections/search?q= → { by: "link" | "phone" | "name" | "none", results } */

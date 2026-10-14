@@ -21,6 +21,7 @@ export function useHomeWorkspaces({
   setFollowedSalons,
   openPost,
   notifyArtistBookingCreated,
+  onClientBooked,
   artistServiceList,
   salonServiceList,
   upsertArtistOwnerService,
@@ -135,7 +136,8 @@ export function useHomeWorkspaces({
       setSelectedArtistProfile(null);
       setSelectedSalon(null);
     },
-    onArtistBookingCreated: notifyArtistBookingCreated
+    onArtistBookingCreated: notifyArtistBookingCreated,
+    onClientBooked
   });
 
   const {

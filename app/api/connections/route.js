@@ -5,7 +5,7 @@ import * as connections from "../../lib/db/repos/connections.js";
 export const runtime = "nodejs";
 
 // The client's own salons and artists ("سالن و آرتیست من").
-//   GET    -> the list
+//   GET    -> the list (?services=1: each card also carries its first services, for the client's home)
 //   POST   { targetUserId } -> connect (idempotent)
 //   DELETE { targetUserId } -> remove from the list
 
@@ -13,7 +13,8 @@ async function _GET(request) {
   await ensureDb();
   const auth = await requireUserRole(request, "client", "فقط مشتری‌ها لیست سالن و آرتیست دارند.");
   if (!auth.ok) return auth.response;
-  return json({ data: { connections: await connections.listConnections(auth.user.id) } });
+  const withServices = new URL(request.url).searchParams.get("services") === "1";
+  return json({ data: { connections: await connections.listConnections(auth.user.id, { withServices }) } });
 }
 
 async function _POST(request) {

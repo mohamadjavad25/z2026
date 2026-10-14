@@ -13,6 +13,7 @@ import {
   bookingEndLabel,
   bookingStatusLabel,
   bookingStatusTone,
+  clientBookingKey,
   isBookingActive,
   isBookingInPast
 } from "./bookingStatus";
@@ -50,7 +51,11 @@ function metaOf(booking) {
  * time-column card as the salon's schedule; tapping it opens the details); everything that is over, cancelled or expired lives behind the history
  * button. No day strip: a client has a handful of bookings, not a schedule to page through.
  */
-export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook }) {
+/**
+ * `compactEmpty`: the client home already invites a booking above, so "nothing ahead" is one line here.
+ * `highlightKey`: the booking just made glows for a moment, so the client sees where it went.
+ */
+export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook, compactEmpty = false, highlightKey = "" }) {
   const [historyOpen, setHistoryOpen] = useState(false);
 
   const { upcoming, past } = useMemo(() => {
@@ -68,8 +73,8 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook })
       <section className="clientBookingsBoard" aria-label="رزروهای مشتری">
         <div className="boardHead cbpHead">
           <div>
-            <span>رزروهای من</span>
-            <strong>{upcoming.length ? "نوبت‌های پیش‌رو" : "نوبت پیش‌رویی نداری"}</strong>
+            <span>نوبت‌های من</span>
+            <strong>{upcoming.length ? "وضعیت نوبت‌هایت" : "نوبت پیش‌رویی نداری"}</strong>
           </div>
           <button
             type="button"
@@ -94,7 +99,7 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook })
               const open = () => onOpenSettings?.({ ...booking, clientBookingSheetMode: "details" });
               return (
                 <article
-                  className={`cvCard is-${awaitingClient ? "offer" : meta.tone}`}
+                  className={`cvCard is-${awaitingClient ? "offer" : meta.tone} ${highlightKey && highlightKey === clientBookingKey(booking) ? "is-fresh" : ""}`}
                   key={`${booking.bookingSource || "salon"}-${booking.id || index}`}
                   role="button"
                   tabIndex={0}
@@ -126,7 +131,7 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook })
                     {pendingDeadline ? (
                       <p className="cvNote">
                         <Clock3 size={14} aria-hidden="true" />
-                        سالن تا ساعت {pendingDeadline} جواب می‌دهد؛ وگرنه لغو می‌شود.
+                        {booking.bookingSource === "artist" ? "آرتیست" : "سالن"} تا ساعت {pendingDeadline} جواب می‌دهد؛ وگرنه لغو می‌شود.
                       </p>
                     ) : null}
                   </div>
@@ -144,6 +149,10 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook })
               );
             })}
           </div>
+        ) : compactEmpty ? (
+          <p className="cbpEmptyLine">
+            {past.length ? "نوبت فعالی نداری؛ نوبت‌های قبلی در «سابقه» هستند." : "هنوز نوبتی نگرفتی. نوبت بعدی‌ات اینجا دیده می‌شود."}
+          </p>
         ) : (
           <div className="clientBookingsEmpty">
             <Mascot pose="calendar" size={168} className="mascotEmpty" />

@@ -39,7 +39,8 @@ export function usePublicArtistProfile({
   onNotice,
   onSelectPost,
   onBeforeOpen,
-  onArtistBookingCreated
+  onArtistBookingCreated,
+  onClientBooked
 } = {}) {
   const notify = useCallback((message) => {
     if (typeof onNotice === "function" && message) onNotice(message);
@@ -281,9 +282,28 @@ export function usePublicArtistProfile({
       // bookingExpirySweep.js), same fix as the salon booking confirmation
       // toast in useSalonDirectory.js for the identical reason: "ثبت شد"
       // alone reads as a done deal and hides that a clock just started.
-      notify(
-        `رزرو «${service.name}» • ${publicArtistBookingDay} ساعت ${publicArtistBookingSlot} برای «${selectedPublicArtist.name}» ثبت شد و در انتظار تایید آرتیست است.`
-      );
+      const created = payload?.data?.booking;
+      if (created?.id && createdProfile?.type === "client" && typeof onClientBooked === "function") {
+        // The client gets the full «درخواستت رسید» screen instead of a passing toast.
+        onClientBooked({
+          ...created,
+          bookingSource: "artist",
+          artistUserId: selectedPublicArtist.id,
+          sourceArtistUserId: selectedPublicArtist.id,
+          salonName: selectedPublicArtist.name,
+          salonAvatar: selectedPublicArtist.avatar || "",
+          salonPhone: selectedPublicArtist.phone || "",
+          service: created.service || service.name,
+          service_emoji: created.service_emoji || service.emoji || "",
+          booking_date: created.booking_date || publicArtistBookingDay,
+          time: created.time || publicArtistBookingSlot,
+          status: created.status || "تازه"
+        }, { price: service.price || "" });
+      } else {
+        notify(
+          `رزرو «${service.name}» • ${publicArtistBookingDay} ساعت ${publicArtistBookingSlot} برای «${selectedPublicArtist.name}» ثبت شد و در انتظار تایید آرتیست است.`
+        );
+      }
       setPublicArtistBookingSlot("");
       setPublicArtistView("services");
       if (typeof onArtistBookingCreated === "function") {
@@ -307,6 +327,7 @@ export function usePublicArtistProfile({
     publicArtistBookingSlot,
     publicArtistBookingDay,
     createdProfile,
+    onClientBooked,
     notify,
     onArtistBookingCreated
   ]);
