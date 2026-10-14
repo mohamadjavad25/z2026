@@ -1,10 +1,10 @@
-/* About/download page: /download, and / on tablets and desktops (see HomeGate.jsx). */
+/* About/download page: /download, and every page but /admin, /terms, /privacy on tablets and desktops (LargeScreenGate.jsx). */
 
-/* Which of the two / shows. The query matches LARGE_SCREEN_QUERY in features/landing/constants.js. */
+/* Which of the two shows. The query matches LARGE_SCREEN_QUERY in features/landing/constants.js. */
 .landingSlot { display: none; }
 @media (min-width: 600px) and (min-height: 600px) {
   html:not(.native-app) .landingSlot { display: block; }
-  html:not(.native-app) .homeAppSlot { display: none; }
+  html:not(.native-app) .pageSlot { display: none; }
 }
 
 /* Download links inside the site: only in the browser, never in the Android/iOS app. */

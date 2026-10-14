@@ -1,14 +1,8 @@
-import { AppLanding } from "./features/landing/AppLanding";
-import { HomeGate } from "./features/landing/HomeGate";
+"use client";
 
-// Phones get the app; tablets and desktops get the about/download page (landing.css).
+import { HomeApp } from "./features/shell";
+
+// On tablets and desktops the root layout shows the about/download page instead (LargeScreenGate).
 export default function Home() {
-  return (
-    <>
-      <div className="landingSlot">
-        <AppLanding />
-      </div>
-      <HomeGate />
-    </>
-  );
+  return <HomeApp />;
 }

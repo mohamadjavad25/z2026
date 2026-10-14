@@ -3,8 +3,9 @@ import QRCode from "qrcode";
 import { ANDROID_APK_URL, ANDROID_APP_VERSION, DOWNLOAD_PAGE_URL } from "./constants";
 
 /**
- * The page about frfro with the app download links. Shown at /download, and at /
- * on large screens (tablet and desktop, see HomeGate) instead of the phone app.
+ * The page about frfro with the app download links. Shown at /download, and
+ * on large screens (tablet and desktop) in place of every page but /admin, /terms and
+ * /privacy (see LargeScreenGate).
  * Server component: plain content, no client state.
  */
 

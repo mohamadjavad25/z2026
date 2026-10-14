@@ -1,3 +1,3 @@
 export { AppLanding } from "./AppLanding";
-export { HomeGate } from "./HomeGate";
+export { LargeScreenGate } from "./LargeScreenGate";
 export { ANDROID_APK_URL } from "./constants";

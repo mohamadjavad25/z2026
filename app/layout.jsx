@@ -4,6 +4,8 @@ import PbdqInspector from "./components/PbdqInspector.jsx";
 import { ViewportHeightFix } from "./components/ViewportHeightFix.jsx";
 import { ClientErrorReporter } from "./components/ClientErrorReporter.jsx";
 import { getSiteUrl } from "./lib/siteUrl.js";
+import { AppLanding } from "./features/landing/AppLanding";
+import { LargeScreenGate } from "./features/landing/LargeScreenGate";
 
 // NEXT_PUBLIC_SITE_URL is the single source of truth for the site's public
 // domain (see .env.example at the repo root) — app/sitemap.js and
@@ -86,7 +88,7 @@ export default function RootLayout({ children }) {
         <PbdqInspector />
         <ViewportHeightFix />
         <ClientErrorReporter />
-        {children}
+        <LargeScreenGate landing={<AppLanding />}>{children}</LargeScreenGate>
         <Script id="sw-register" strategy="afterInteractive">
           {`if ("serviceWorker" in navigator) {
   window.addEventListener("load", function () {
