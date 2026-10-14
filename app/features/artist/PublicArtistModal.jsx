@@ -1,7 +1,6 @@
 "use client";
 
-import { Bookmark, CalendarCheck, Check, ChevronLeft, ChevronUp, Clock3, Heart, Info, MapPin, Phone, Scissors, Share2, Sparkles } from "lucide-react";
-import { PublicAboutSheet } from "../../components/PublicAboutSheet";
+import { Bookmark, CalendarCheck, Check, ChevronLeft, ChevronUp, Clock3, Heart, Phone, Scissors, Share2 } from "lucide-react";
 import { PublicProfileHeader } from "../../components/PublicProfileHeader";
 import { ServicesDropUp } from "../../components/ServicesDropUp";
 import { bundleServices } from "../../shared/lib/serviceBundle";
@@ -52,7 +51,6 @@ export function PublicArtistModal({
   onEditProfile
 }) {
   const [bookingPopup, setBookingPopup] = useState(false);
-  const [aboutPopup, setAboutPopup] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(false);
   // Several services picked together: one service-shaped bundle (shared/lib/serviceBundle).
   const [bundle, setBundle] = useState(null);
@@ -128,10 +126,7 @@ export function PublicArtistModal({
               </div>
             ) : null}
             {artist.bio ? (
-              <button type="button" className="pphBio pphBioMore" onClick={() => setAboutPopup(true)}>
-                {artist.bio}
-                <span>بیشتر</span>
-              </button>
+              <p className="pphBio">{artist.bio}</p>
             ) : null}
             <div className="pphActions">
               <button type="button" className={`pphFollow${following ? " is-following" : ""}`} onClick={onFollow}>
@@ -195,10 +190,6 @@ export function PublicArtistModal({
               onClose={() => setServicesOpen(false)}
             />
             <nav className="spvBar" aria-label="رزرو و اطلاعات">
-              <button type="button" className="spvBarAbout" onClick={() => setAboutPopup(true)} aria-label="درباره هنرمند">
-                <Info size={20} aria-hidden="true" />
-                درباره
-              </button>
               <button
                 type="button"
                 className="spvBarBook"
@@ -269,35 +260,6 @@ export function PublicArtistModal({
                 </button>
           </ProfileSheet>
 
-          {aboutPopup ? (
-            <PublicAboutSheet
-              kicker="درباره آرتیست"
-              name={artist.name}
-              avatar={artist.avatar || DEFAULT_PERSON_AVATAR}
-              avatarPosition={artist.avatarPosition || "50% 50%"}
-              bio={artist.bio}
-              emptyBio="این آرتیست هنوز معرفی ننوشته است. نمونه‌کارها را ببین یا مستقیم رزرو کن."
-              rows={[
-                { icon: Sparkles, label: "تخصص‌ها", value: String(artist.service || "").split(/[،,]/).map((item) => item.trim()).filter(Boolean).join("، ") },
-                { icon: MapPin, label: "محدوده", value: artist.area }
-              ]}
-              onClose={() => setAboutPopup(false)}
-            >
-              {weekHours.length ? (
-                <section className="pasBlock">
-                  <h4>ساعات کاری</h4>
-                  <ul className="pasHours">
-                    {weekHours.map((row) => (
-                      <li key={row.day} className={row.day === todayName ? "is-today" : ""}>
-                        <span>{row.day}</span>
-                        <span>{row.active ? `${toPersianDigits(row.open_time || "")} تا ${toPersianDigits(row.close_time || "")}` : "تعطیل"}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              ) : null}
-            </PublicAboutSheet>
-          ) : null}
         </section>
       </article>
     </div>

@@ -9,15 +9,11 @@ import {
   ChevronUp,
   Clock3,
   ImagePlus,
-  Info,
-  MapPin,
   Phone,
   Scissors,
   Share2,
-  UserPlus,
-  UserRound
+  UserPlus
 } from "lucide-react";
-import { PublicAboutSheet } from "../../components/PublicAboutSheet";
 import { PublicProfileHeader } from "../../components/PublicProfileHeader";
 import { ServicesDropUp } from "../../components/ServicesDropUp";
 import { bundleServices } from "../../shared/lib/serviceBundle";
@@ -60,7 +56,6 @@ export function SalonClientPage({
   postActions = null,
   onOpenBooking
 }) {
-  const [aboutOpen, setAboutOpen] = useState(false);
   const [publicSheet, setPublicSheet] = useState("");
   const [servicesOpen, setServicesOpen] = useState(false);
   const services = selectedSalon ? getVisibleServices(selectedSalon) : [];
@@ -71,15 +66,7 @@ export function SalonClientPage({
     if (focus && hasServices) setServicesOpen(true);
   }, [focus, hasServices]);
   const portfolioItems = Array.isArray(selectedSalon?.portfolio) ? selectedSalon.portfolio : [];
-  const followerCountValue = Number(selectedSalon?.followerCount ?? selectedSalon?.follower_count ?? 0) || 0;
-  const followerCount = toPersianDigits(followerCountValue);
-  const staffCount = selectedSalon?.staff?.length || 0;
   const publicName = selectedSalon?.name || "سالن";
-  const managerName = selectedSalon?.managerName || selectedSalon?.manager_name || selectedSalon?.ownerName || selectedSalon?.owner_name || "";
-  const teamNames = (selectedSalon?.staff || [])
-    .map((member) => member?.name || member?.fullName || member?.artist_name)
-    .filter(Boolean)
-    .slice(0, 3);
   const teamMembers = (selectedSalon?.staff || []).filter((member) => member && (member.artist_name || member.name)).slice(0, 12);
   const weekHours = Array.isArray(selectedSalon?.hours) ? selectedSalon.hours : [];
   const todayName = PERSIAN_WEEKDAYS[new Date().getDay()];
@@ -139,10 +126,7 @@ export function SalonClientPage({
               </div>
             ) : null}
             {selectedSalon.bio ? (
-              <button type="button" className="pphBio pphBioMore" onClick={() => setAboutOpen(true)}>
-                {selectedSalon.bio}
-                <span>بیشتر</span>
-              </button>
+              <p className="pphBio">{selectedSalon.bio}</p>
             ) : null}
             <div className="pphActions">
               <button type="button" className={`pphFollow${isFollowing ? " is-following" : ""}`} onClick={() => onFollow(selectedSalon)}>
@@ -191,6 +175,16 @@ export function SalonClientPage({
           </section>
           ) : null}
 
+          {selectedSalon.rules ? (
+            <section className="salonPublicCard spvRules">
+              <div className="salonPublicSectionHead">
+                <span />
+                <h3>قوانین سالن</h3>
+              </div>
+              <p>{selectedSalon.rules}</p>
+            </section>
+          ) : null}
+
           {weekHours.length ? (
             <section className="salonPublicCard spvHours">
               <div className="salonPublicSectionHead">
@@ -221,10 +215,6 @@ export function SalonClientPage({
             onClose={() => setServicesOpen(false)}
           />
           <nav className="spvBar" aria-label="رزرو و ذخیره">
-            <button type="button" className="spvBarAbout" onClick={() => setAboutOpen(true)} aria-label="درباره سالن">
-              <Info size={20} aria-hidden="true" />
-              درباره
-            </button>
             <button
               type="button"
               className="spvBarBook"
@@ -238,35 +228,6 @@ export function SalonClientPage({
               <ChevronUp size={18} className={`spvBarChevron${servicesOpen ? " is-open" : ""}`} aria-hidden="true" />
             </button>
           </nav>
-          {aboutOpen ? (
-            <PublicAboutSheet
-              kicker="درباره سالن"
-              name={publicName}
-              avatar={selectedSalon.avatar || DEFAULT_SALON_LOGO}
-              avatarPosition={selectedSalon.avatarPosition || "50% 50%"}
-              bio={selectedSalon.bio}
-              emptyBio="این سالن هنوز معرفی ننوشته است. برای اطلاعات بیشتر می‌توانی با سالن تماس بگیری."
-              stats={[
-                { value: toPersianDigits(staffCount), label: "عضو تیم" },
-                { value: followerCount, label: "دنبال‌کننده" }
-              ]}
-              rows={[
-                { icon: MapPin, label: "آدرس", value: selectedSalon.area },
-                { icon: Clock3, label: "ساعت کاری", value: selectedSalon.open },
-                { icon: Phone, label: "تلفن", value: selectedSalon.phone ? toPersianDigits(selectedSalon.phone) : "", ltr: true },
-                { icon: UserRound, label: "مدیریت", value: managerName },
-                { icon: UserPlus, label: "تیم", value: teamNames.join("، ") }
-              ]}
-              onClose={() => setAboutOpen(false)}
-            >
-              {selectedSalon.rules ? (
-                <section className="pasBlock">
-                  <h4>قوانین و شرایط سالن</h4>
-                  <p>{selectedSalon.rules}</p>
-                </section>
-              ) : null}
-            </PublicAboutSheet>
-          ) : null}
           {publicSheet ? (
             <div className="salonPublicBrowseOverlay" role="dialog" aria-modal="true" aria-label="همه نمونه‌کارها" onClick={() => setPublicSheet("")}>
               <article className={`salonPublicBrowseSheet is-${publicSheet}`} onClick={(event) => event.stopPropagation()}>
