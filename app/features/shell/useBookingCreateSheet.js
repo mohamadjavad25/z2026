@@ -35,6 +35,9 @@ const ARTIST_BOOKING_DAY_TABS = buildExactBookingDateTabs(7);
 // little after "now" instead of at the current minute.
 const BOOKING_LEAD_MINUTES = 15;
 
+// One row of the day calendar in the booking sheet.
+const GRID_STEP_MINUTES = 30;
+
 // Short tag under a day chip and the sentence shown when the sheet skips that day.
 function describeFullDay(info, tab) {
   if (!info?.reason) return {};
@@ -218,6 +221,33 @@ export function useBookingCreateSheet({
   const bookingStaffForTime = (slot) => freeStaffAt(bookingDateForSlots, slot)[0] || "";
   const selectedBookingStaff = bookingStaffForTime(bookingTime) || pickedStaffName || bookingStaffOptions[0]?.name || "";
 
+  // Day calendar for the salon form: one column per artist who does this service, one row per
+  // half hour the salon is open. A cell is "busy" when anything holds that half hour (a booking here,
+  // the artist's break or a booking they took elsewhere); a row is a valid start only when that
+  // artist is free for the whole service.
+  const isStaffBusyAt = (name, dateKey, slot, minutes) => {
+    if (isBookingSlotTaken(name, slot, dateKey, minutes)) return true;
+    const calendar = name ? staffCalendars[String(name).trim()] : null;
+    return Boolean(calendar && isPublicArtistSlotBlocked(calendar, dateKey, slot, minutes));
+  };
+  const salonGridInfo = salonDayInfoByKey[bookingDateForSlots];
+  const salonGridRows = salonGridInfo && !salonGridInfo.closed
+    ? buildDayBookingSlots(salonGridInfo.open, salonGridInfo.close, GRID_STEP_MINUTES)
+    : [];
+  const salonDayGrid = {
+    rows: salonGridRows,
+    duration: selectedBookingDuration,
+    columns: (staffNames.length ? bookingStaffOptions.filter((person) => person.name) : [{ name: "" }]).map((person) => ({
+      value: person.name,
+      busy: salonGridRows.filter((slot) => isStaffBusyAt(person.name, bookingDateForSlots, slot, GRID_STEP_MINUTES)),
+      past: salonGridRows.filter((slot) => isSlotInPast(bookingDateForSlots, slot, soon)),
+      free: (salonGridInfo?.slots || []).filter((slot) => (
+        !isSlotInPast(bookingDateForSlots, slot, soon)
+        && !isStaffBusyAt(person.name, bookingDateForSlots, slot, selectedBookingDuration)
+      ))
+    }))
+  };
+
   // Day chips for the salon form: closed days are left out, except today, which stays visible with
   // its reason so it never silently disappears.
   const salonBookingDayOptions = upcomingSalonTabs
@@ -268,6 +298,23 @@ export function useBookingCreateSheet({
     )
   ));
   const artistBookingFreeSlots = artistFreeSlotsFor(artistBookingDateForSlots);
+  // The artist's own day calendar: a single column (themselves).
+  const artistGridRows = buildPublicBookingSlots(GRID_STEP_MINUTES);
+  const artistDayGrid = {
+    rows: artistGridRows,
+    duration: artistServiceDuration,
+    columns: [{
+      value: "",
+      busy: artistGridRows.filter((slot) => isPublicArtistSlotBlocked(
+        { breakTime: artistBreakTime, bookedSlots: artistBookedSlots },
+        artistBookingDateForSlots,
+        slot,
+        GRID_STEP_MINUTES
+      )),
+      past: artistGridRows.filter((slot) => isSlotInPast(artistBookingDateForSlots, slot, soon)),
+      free: artistBookingFreeSlots
+    }]
+  };
 
   // How many free times each offered day still has, so the form can grey out
   // full days and jump to the nearest day that has room.
@@ -365,6 +412,7 @@ export function useBookingCreateSheet({
     bookingDaySlots,
     bookingFreeSlots,
     bookingStaffForTime,
+    bookingDayGrid: createdProfile?.type === "artist" ? artistDayGrid : salonDayGrid,
     bookingDayFreeCounts,
     salonBookingDayOptions,
     artistBookingDayOptions: artistBookingDayOptionsWithFree,
