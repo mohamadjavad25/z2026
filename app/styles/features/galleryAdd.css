@@ -1,0 +1,69 @@
+/* "Create post" tile: sits in the second slot of the profile gallery, sized like a post.
+   Ink card, a dashed pink frame and a glowing pink plus: frfro's "ink & fluff" look. */
+.galleryAddTile {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 170px;
+  aspect-ratio: 1 / 1.18;
+  padding: 16px 12px;
+  border: 0;
+  border-radius: 22px;
+  background:
+    radial-gradient(120% 70% at 50% 0%, rgba(255, 134, 184, 0.22), transparent 62%),
+    radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.08) 1px, transparent 0) 0 0 / 14px 14px,
+    linear-gradient(160deg, #262a36 0%, #14161d 70%);
+  color: #fff;
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: 0 16px 34px rgba(20, 22, 29, 0.28);
+}
+.galleryAddTile::before {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  z-index: -1;
+  border: 1.5px dashed rgba(255, 134, 184, 0.55);
+  border-radius: 16px;
+  pointer-events: none;
+}
+.galleryAddTileOrb {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: #ff86b8;
+  color: #14161d;
+  box-shadow: 0 10px 24px -6px rgba(255, 134, 184, 0.75);
+}
+.galleryAddTileOrb::after {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 134, 184, 0.5);
+  animation: galleryAddPulse 2.4s ease-out infinite;
+}
+.galleryAddTile b { font-size: 0.95rem; font-weight: 900; letter-spacing: 0.01em; }
+.galleryAddTile small { color: rgba(255, 255, 255, 0.62); font-size: 0.7rem; font-weight: 700; line-height: 1.5; }
+.galleryAddTile:focus-visible { outline: 3px solid #ff86b8; outline-offset: 2px; }
+@keyframes galleryAddPulse {
+  0% { transform: scale(0.9); opacity: 0.9; }
+  100% { transform: scale(1.35); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .galleryAddTileOrb::after { animation: none; opacity: 0.5; }
+}
+
+/* The artist gallery reserves room above the grid for the old header button; the tile needs none. */
+@media (max-width: 760px) {
+  .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGallery.has-add-tile { padding-top: 14px !important; }
+}
