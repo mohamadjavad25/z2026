@@ -237,6 +237,11 @@ export function HomeView() {
           onClose={() => setClientBookingSettings(null)}
           onCancelBooking={cancelClientBooking}
           onAnswerOffer={answerClientTimeOffer}
+          onNotice={setAppToast}
+          onOpenPlace={(booking) => {
+            setClientBookingSettings(null);
+            rebookFromBooking(booking);
+          }}
           onRebookSalon={(booking) => {
             setClientBookingSettings(null);
             rebookFromBooking(booking);
