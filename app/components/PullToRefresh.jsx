@@ -1,12 +1,18 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { RotateCw } from "lucide-react";
+import { refreshApp } from "../shared/lib/appRefresh";
 import { hasOpenOverlay } from "../shared/lib/backStack";
 
-// Pull distance (after damping) that triggers a reload, and the most the indicator travels.
+// Pull distance (after damping) that triggers a refresh, and the most the indicator travels.
 const TRIGGER = 72;
 const MAX_PULL = 110;
+// The spinner stays at least this long so a fast refresh still reads as "done".
+const MIN_SPIN_MS = 600;
+// A slow network never leaves the spinner up; the loaders keep going and apply when they land.
+const MAX_SPIN_MS = 8000;
 
 // Gestures that start here belong to something else (typing, maps, pickers, drawing).
 const IGNORE_SELECTOR = "input, textarea, select, [contenteditable='true'], .leaflet-container, canvas, [data-no-pull-refresh]";
@@ -27,22 +33,28 @@ function atTop(target) {
 }
 
 /**
- * Pull down from the top of the page to reload it, like a browser. Only in the
+ * Pull down from the top of the page to refresh what is on screen. Only in the
  * Android/iOS app and in the home-screen web app (a normal browser has its own).
- * Data normally stays fresh on its own (usePolling); this is the manual fallback.
+ * The page is not reloaded: every data hook re-fetches (appRefresh) and server
+ * pages re-render (router.refresh), so the user stays on the same tab, sheet and
+ * step. Data normally stays fresh on its own (usePolling); this is the manual fallback.
  */
 export function PullToRefresh() {
   const [pull, setPull] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const gesture = useRef(null);
   const pullRef = useRef(0);
+  const refreshingRef = useRef(false);
+  const router = useRouter();
+  const routerRef = useRef(router);
+  routerRef.current = router;
 
   useEffect(() => {
     if (!isAppMode()) return undefined;
 
     const onStart = (event) => {
       gesture.current = null;
-      if (event.touches.length !== 1 || hasOpenOverlay() || document.querySelector("[aria-modal='true']")) return;
+      if (refreshingRef.current || event.touches.length !== 1 || hasOpenOverlay() || document.querySelector("[aria-modal='true']")) return;
       const target = event.target instanceof Element ? event.target : null;
       if (!target || target.closest(IGNORE_SELECTOR) || !atTop(target)) return;
       const touch = event.touches[0];
@@ -72,14 +84,23 @@ export function PullToRefresh() {
       const g = gesture.current;
       gesture.current = null;
       if (!g?.active) return;
-      if (pullRef.current >= TRIGGER) {
-        setPull(TRIGGER);
-        setRefreshing(true);
-        window.location.reload();
-      } else {
-        setPull(0);
-      }
+      const triggered = pullRef.current >= TRIGGER;
       pullRef.current = 0;
+      if (!triggered) {
+        setPull(0);
+        return;
+      }
+      setPull(TRIGGER);
+      setRefreshing(true);
+      refreshingRef.current = true;
+      routerRef.current.refresh();
+      const minSpin = new Promise((resolve) => window.setTimeout(resolve, MIN_SPIN_MS));
+      const maxSpin = new Promise((resolve) => window.setTimeout(resolve, MAX_SPIN_MS));
+      Promise.race([Promise.all([refreshApp(), minSpin]), maxSpin]).finally(() => {
+        refreshingRef.current = false;
+        setRefreshing(false);
+        setPull(0);
+      });
     };
 
     document.addEventListener("touchstart", onStart, { passive: true });

@@ -3,6 +3,7 @@
 import { isSlotInPast } from "../../shared/lib/slots";
 import { playSound } from "../../shared/lib/sounds";
 import { usePolling } from "../../shared/lib/usePolling";
+import { useAppRefresh } from "../../shared/lib/appRefresh";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   createSalonBooking,
@@ -350,6 +351,7 @@ export function useSalonDirectory({
   // Fast while a request is waiting for an answer, slow otherwise (every poll is a function call).
   const hasWaitingBooking = clientBookingList.some((item) => item.status === "درخواست" || item.status === "تازه");
   usePolling(refreshClientBookings, hasWaitingBooking ? 8000 : 45000, createdProfile?.type === "client");
+  useAppRefresh(refreshSalonDirectory);
 
   const toggleFollowSalon = useCallback(async (salon) => {
     const followKey = String(salon.id || salon.source_key || salon.name);

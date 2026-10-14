@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { onAppRefresh } from "./appRefresh";
 
 /**
  * Run `task` now and then every `intervalMs` -- but only while the tab is
  * visible, never overlapping a run that is still in flight, and with an
- * immediate catch-up when the user comes back to the tab. Hidden tabs used to
+ * immediate catch-up when the user comes back to the tab or pulls to refresh. Hidden tabs used to
  * keep hammering the API every 8s, which is wasted load that scales with users.
  */
 export function usePolling(task, intervalMs, enabled = true) {
@@ -32,7 +33,9 @@ export function usePolling(task, intervalMs, enabled = true) {
       if (document.visibilityState === "visible") run();
     };
     document.addEventListener("visibilitychange", onVisible);
+    const offRefresh = onAppRefresh(run);
     return () => {
+      offRefresh();
       window.clearInterval(timer);
       document.removeEventListener("visibilitychange", onVisible);
     };
