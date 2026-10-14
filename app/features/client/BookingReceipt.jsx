@@ -8,7 +8,7 @@ import { useBackHandler } from "../../shared/hooks/useBackHandler";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
 import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar";
-import { formatRequestExpiryDeadline, toIsoLikeTimestamp } from "../../shared/lib/time";
+import { toIsoLikeTimestamp } from "../../shared/lib/time";
 import { AWAITING_CLIENT } from "../../shared/lib/bookingOffer";
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
 import { pushNotificationsSupported, subscribeToPushNotifications } from "../shell/homeAppHelpers";
@@ -77,36 +77,17 @@ export function BookingReceipt({ receipt, bookings = [], onClose, onViewBookings
   const time = live.time ? toPersianDigits(live.time) : "";
   const end = bookingEndLabel(live);
   const price = parseTomanAmount(receipt.price);
-  const deadline = formatRequestExpiryDeadline(live.created_at || live.createdAt);
   const left = stage === "wait" ? minutesLeft(live, now) : null;
   const phone = live.salonPhone || live.salon_phone || "";
 
   const hero = {
-    wait: { icon: Send, title: `درخواستت به ${place} رسید`, text: `نوبت هنوز قطعی نیست. وقتی ${who} تأیید کند، همین‌جا و با اعلان خبرت می‌کنیم.` },
-    ok: { icon: Check, title: "نوبتت قطعی شد", text: `${place} درخواستت را تأیید کرد. ${day} ساعت ${time} منتظرت هستند.` },
-    offer: { icon: CalendarClock, title: `${place} ساعت دیگری پیشنهاد داده`, text: "ساعتی که خواستی آزاد نبود. ساعت پیشنهادی را ببین و قبول یا رد کن." },
-    bad: { icon: XCircle, title: "این ساعت قبول نشد", text: `${place} این ساعت را نتوانست قبول کند. یک ساعت دیگر انتخاب کن.` },
-    expired: { icon: TimerOff, title: `${place} به‌موقع جواب نداد`, text: "درخواست خودش لغو شد. می‌توانی همین حالا دوباره بفرستی." }
+    wait: { icon: Send, title: `درخواستت به ${place} رسید`, text: `منتظر تأیید ${who} باش.` },
+    ok: { icon: Check, title: "نوبتت قطعی شد", text: `${day} ساعت ${time}` },
+    offer: { icon: CalendarClock, title: `${place} ساعت دیگری پیشنهاد داده`, text: "ساعت پیشنهادی را قبول یا رد کن." },
+    bad: { icon: XCircle, title: "این ساعت قبول نشد", text: "یک ساعت دیگر انتخاب کن." },
+    expired: { icon: TimerOff, title: `${place} به‌موقع جواب نداد`, text: "می‌توانی دوباره بفرستی." }
   }[stage];
   const HeroIcon = hero.icon;
-
-  const steps = [
-    { state: "done", title: "درخواست فرستاده شد", text: `به ${place}` },
-    stage === "wait"
-      ? { state: "now", title: `${who} درخواستت را بررسی می‌کند`, text: deadline ? `معمولاً زودتر؛ حداکثر تا ساعت ${deadline}` : "معمولاً در کمتر از یک ساعت" }
-      : stage === "expired"
-        ? { state: "late", title: "جوابی نیامد", text: "مهلت یک‌ساعته تمام شد" }
-        : { state: "done", title: `${who} جواب داد`, text: "" },
-    stage === "ok"
-      ? { state: "done", title: "نوبت قطعی شد", text: `${day} ساعت ${time}` }
-      : stage === "offer"
-        ? { state: "now", title: "منتظر جواب توست", text: "ساعت پیشنهادی را قبول یا رد کن" }
-        : stage === "bad"
-          ? { state: "fail", title: "این ساعت قبول نشد", text: "ساعت دیگری انتخاب کن" }
-          : stage === "expired"
-            ? { state: "late", title: "درخواست لغو شد", text: "می‌توانی دوباره بفرستی" }
-            : { state: "next", title: "نوبت قطعی می‌شود", text: "با تأیید، خبرت می‌کنیم" }
-  ];
 
   const enableAlerts = async () => {
     await subscribeToPushNotifications();
@@ -134,7 +115,7 @@ export function BookingReceipt({ receipt, bookings = [], onClose, onViewBookings
           <div className="brCount">
             <div>
               <strong>{toPersianDigits(left)}</strong>
-              <span>دقیقه تا مهلت جواب {who}{deadline ? ` (تا ساعت ${deadline})` : ""}. اگر جواب ندهد، درخواست خودش لغو می‌شود.</span>
+              <span>دقیقه تا پاسخ {who}</span>
             </div>
             <span className="brBar" aria-hidden="true"><i style={{ transform: `scaleX(${left / WINDOW_MIN})` }} /></span>
           </div>
@@ -155,29 +136,15 @@ export function BookingReceipt({ receipt, bookings = [], onClose, onViewBookings
           </div>
         </div>
 
-        <ol className="brCard brSteps" aria-label="مراحل نوبت">
-          {steps.map((step, index) => (
-            <li key={step.title} className={`is-${step.state}`}>
-              <span className="brDot" aria-hidden="true">
-                {step.state === "done" ? <Check size={13} strokeWidth={3} /> : step.state === "fail" ? <X size={13} strokeWidth={3} /> : step.state === "late" ? "!" : toPersianDigits(index + 1)}
-              </span>
-              <span>
-                <b>{step.title}</b>
-                {step.text ? <small>{step.text}</small> : null}
-              </span>
-            </li>
-          ))}
-        </ol>
-
         <div className="brActions">
           {stage === "wait" && alerts === "default" ? (
             <button type="button" className="brBtn is-accent" onClick={enableAlerts}>
               <BellRing size={18} aria-hidden="true" />
-              اعلان را روشن کن تا جواب را از دست ندهی
+              اعلان را روشن کن
             </button>
           ) : null}
           {stage === "wait" && alerts === "granted" ? (
-            <p className="brOk"><BellRing size={16} aria-hidden="true" /> اعلان روشن است؛ جواب را خبرت می‌کنیم.</p>
+            <p className="brOk"><BellRing size={16} aria-hidden="true" /> اعلان روشن است.</p>
           ) : null}
 
           {stage === "offer" ? (
@@ -204,18 +171,8 @@ export function BookingReceipt({ receipt, bookings = [], onClose, onViewBookings
               تماس با {place}
             </a>
           ) : null}
-          {stage === "wait" ? (
-            <button type="button" className="brBtn is-soft" onClick={onClose}>
-              برگشت به صفحهٔ {place}
-            </button>
-          ) : null}
         </div>
 
-        {stage === "wait" ? (
-          <p className="brTip">
-            لازم نیست این صفحه باز بماند. جواب {who} روی نوار پایین صفحه و در «نوبت‌های من» (دکمهٔ عکس خودت، وسط پایین) دیده می‌شود.
-          </p>
-        ) : null}
       </div>
     </div>,
     document.body
