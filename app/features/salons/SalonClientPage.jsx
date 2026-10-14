@@ -21,6 +21,7 @@ import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
 import { SalonClientGallery } from "./SalonClientGallery";
 import { SheetClose } from "../../components/SheetClose";
+import { WeeklyHours } from "../../components/WeeklyHours";
 
 // Bug fix: this used to fall back to hardcoded fake services and a fake
 // portfolio gallery (identical stock images) whenever a real salon had none
@@ -33,6 +34,9 @@ import { SheetClose } from "../../components/SheetClose";
 
 // JS getDay(): 0 = Sunday ... 6 = Saturday; the salon's hours rows are keyed by the Persian weekday name.
 const PERSIAN_WEEKDAYS = ["یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنجشنبه", "جمعه", "شنبه"];
+
+// Posts shown on the page itself; the rest sit behind «مشاهده همه».
+const PORTFOLIO_PREVIEW = 6;
 
 // Same decorative cover the salon's own panel shows until a poster is uploaded.
 const DEFAULT_COVER = "/artist-hero-doodle.webp";
@@ -141,12 +145,11 @@ export function SalonClientPage({
             </div>
           </section>
 
+          <WeeklyHours rows={weekHours} todayName={todayName} />
+
           {teamMembers.length ? (
-            <section className="salonPublicCard spvTeam">
-              <div className="salonPublicSectionHead">
-                <span />
-                <h3>تیم سالن</h3>
-              </div>
+            <section className="spvSection spvTeam" aria-label="تیم سالن">
+              <h3 className="spvHead">تیم سالن</h3>
               <div className="spvTeamRail">
                 {teamMembers.map((member) => (
                   <div className="spvMember" key={member.id || member.name}>
@@ -160,36 +163,23 @@ export function SalonClientPage({
           ) : null}
 
           {portfolioItems.length ? (
-          <section className="salonPublicCard salonPublicPortfolio">
-            <div className="salonPublicSectionHead">
-              {portfolioItems.length > 5 ? <button type="button" onClick={() => setPublicSheet("portfolio")}>مشاهده همه</button> : <span />}
-              <h3>نمونه‌کارها</h3>
+          <section className="spvSection salonPublicPortfolio" aria-label="نمونه‌کارها">
+            <div className="spvHeadRow">
+              <h3 className="spvHead">نمونه‌کارها</h3>
+              {portfolioItems.length > PORTFOLIO_PREVIEW ? (
+                <button type="button" className="spvSeeAll" onClick={() => setPublicSheet("portfolio")}>
+                  مشاهده همه ({toPersianDigits(portfolioItems.length)})
+                </button>
+              ) : null}
             </div>
             <SalonClientGallery
               salon={selectedSalon}
-              items={portfolioItems.slice(0, 5)}
+              items={portfolioItems.slice(0, PORTFOLIO_PREVIEW)}
               allItems={portfolioItems}
               getFallbackStyle={getPortfolioCardStyle}
               postActions={postActions}
             />
           </section>
-          ) : null}
-
-          {weekHours.length ? (
-            <section className="salonPublicCard spvHours">
-              <div className="salonPublicSectionHead">
-                <span />
-                <h3>ساعت کاری</h3>
-              </div>
-              <ul>
-                {weekHours.map((row) => (
-                  <li key={row.day} className={row.day === todayName ? "is-today" : ""}>
-                    <b>{row.day}</b>
-                    <span>{row.active ? `${toPersianDigits(row.open_time || "")} تا ${toPersianDigits(row.close_time || "")}` : "تعطیل"}</span>
-                  </li>
-                ))}
-              </ul>
-            </section>
           ) : null}
 
           <ServicesDropUp
