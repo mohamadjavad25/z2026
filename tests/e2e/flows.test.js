@@ -90,7 +90,7 @@ describe("booking flow (browser)", () => {
     const receipt = cp.locator(".brScreen");
     await receipt.waitFor();
     expect(await receipt.innerText()).toContain(`درخواستت به ${name} رسید`);
-    expect(await receipt.locator(".brCount").innerText()).toContain("دقیقه تا مهلت جواب");
+    expect(await receipt.locator(".brCount").innerText()).toContain("دقیقه تا پاسخ سالن");
     await cp.locator(".cbt.is-wait").waitFor({ state: "attached" });
     expect(await cp.locator(".cbt").innerText()).toContain("منتظر تأیید");
     // and takes the client home, where the new booking is the first card
@@ -229,7 +229,7 @@ describe("client starts from what they want (browser)", () => {
     const receipt = page.locator(".brScreen");
     await receipt.waitFor();
     // closing the salon page from here goes back home, not to the «رزرو» tab
-    await receipt.getByRole("button", { name: `برگشت به صفحهٔ ${name}` }).click();
+    await receipt.getByRole("button", { name: "بستن" }).click();
     await receipt.waitFor({ state: "detached" });
     await page.getByRole("button", { name: "بازگشت به سالن‌ها" }).click();
     await page.locator(".clientHome .cvCard", { hasText: name }).waitFor();
