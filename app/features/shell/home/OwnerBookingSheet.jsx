@@ -26,6 +26,7 @@ export function OwnerBookingSheet() {
     artistBookingFreeSlots,
     bookingFreeSlots,
     bookingStaffForTime,
+    bookingDayGrid,
     salonBookingDayOptions,
     bookingTime,
     setBookingTime,
@@ -83,6 +84,7 @@ export function OwnerBookingSheet() {
             }))}
             staffValue={bookingStaffName}
             staffForTime={bookingStaffForTime}
+            dayGrid={bookingDayGrid}
             staffMenuOpen={bookingSelectMenu === "staff"}
             onStaffMenuOpenChange={(next) => setBookingSelectMenu(next ? "staff" : "")}
             onStaffChange={setBookingStaffName}
