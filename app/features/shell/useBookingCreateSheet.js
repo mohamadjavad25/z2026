@@ -115,6 +115,8 @@ export function useBookingCreateSheet({
   const [bookingDate, setBookingDate] = useState("");
   const [bookingTime, setBookingTime] = useState("۱۸:۳۰");
   const [bookingSelectMenu, setBookingSelectMenu] = useState("");
+  // Name and phone to start the form with (a contact picked on the customers page).
+  const [bookingPrefill, setBookingPrefill] = useState(null);
   // Linked artists' own calendars (break + bookings made anywhere), keyed by staff name. The server
   // refuses a time that clashes with them, so the sheet must not offer it either.
   const [staffCalendars, setStaffCalendars] = useState({});
@@ -331,8 +333,12 @@ export function useBookingCreateSheet({
     return { ...option, free: free.length, ...describeFullDay({ reason }, artistBookingDayLabel(option.value)) };
   });
 
-  const openBookingSheet = useCallback(() => {
-    setActiveTab("profile");
+  // `prefill` ({ client, phone }) comes from «مخاطبین» on the customers page; the owner stays on
+  // that page instead of being sent to the profile tab.
+  const openBookingSheet = useCallback((prefill = null) => {
+    const customer = prefill && typeof prefill === "object" && !("nativeEvent" in prefill) ? prefill : null;
+    setBookingPrefill(customer ? { client: String(customer.client || ""), phone: String(customer.phone || "") } : null);
+    if (!customer) setActiveTab("profile");
     setArtistBookingRailOpen(false);
     setArtistBookingCreateOpen(false);
     setSalonHeroSheet(null);
@@ -394,6 +400,7 @@ export function useBookingCreateSheet({
   return {
     bookingSheetOpen,
     setBookingSheetOpen,
+    bookingPrefill,
     bookingStaffName: pickedStaffName,
     setBookingStaffName,
     bookingServiceName,

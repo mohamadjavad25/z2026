@@ -6,6 +6,7 @@ import { useHome } from "../HomeContext";
 export function OwnerBookingSheet() {
   const {
     bookingSheetOpen,
+    bookingPrefill,
     createdProfile,
     closeBookingSheet,
     bookingCustomerOptions,
@@ -50,6 +51,8 @@ export function OwnerBookingSheet() {
           <BookingCreateForm
             role={createdProfile?.type === "artist" ? "artist" : "salon"}
             customerOptions={bookingCustomerOptions}
+            initialClient={bookingPrefill?.client || ""}
+            initialPhone={bookingPrefill?.phone || ""}
             onAddService={() => {
               closeBookingSheet();
               if (createdProfile?.type === "artist") openArtistServiceCreate();

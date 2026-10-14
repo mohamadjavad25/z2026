@@ -52,11 +52,13 @@ export function BookingCreateForm({
   onTimeChange,
   submitDisabled = false,
   submitting = false,
-  onAddService
+  onAddService,
+  initialClient = "",
+  initialPhone = ""
 }) {
   const showStaff = role === "salon" && staffOptions.length > 0;
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
+  const [name, setName] = useState(initialClient);
+  const [phone, setPhone] = useState(initialPhone);
   // Only the nearest free times are shown first; the rest open on demand.
   const [allTimes, setAllTimes] = useState(false);
   const [tried, setTried] = useState(false);
