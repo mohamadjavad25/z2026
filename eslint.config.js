@@ -17,7 +17,7 @@ import globals from "globals";
  */
 export default [
   {
-    ignores: ["node_modules/**", ".next/**", "app/features/**", "app/components/**", "app/**/*.jsx", "public/**"]
+    ignores: ["node_modules/**", ".next/**", "app/features/**", "app/components/**", "app/**/*.jsx", "public/**", "mobile/**"]
   },
   {
     files: ["app/api/**/*.js", "app/lib/**/*.js", "scripts/**/*.js", "scripts/**/*.mjs", "tests/**/*.js", "*.config.js", "*.mjs"],

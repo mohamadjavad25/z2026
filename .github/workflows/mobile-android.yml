@@ -1,0 +1,76 @@
+name: Android app
+
+# Builds the Android app shell in mobile/ (it opens https://frfro.ir).
+# Download the result from the run page, under "Artifacts".
+#  - frfro-android-debug: an APK to install on a phone for testing.
+#  - frfro-android-release: a signed APK (Cafe Bazaar / Myket / direct download) and AAB (Google Play),
+#    built only when the FRFRO_ANDROID_* secrets are set (see mobile/README.md).
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "mobile/**"
+      - ".github/workflows/mobile-android.yml"
+
+concurrency:
+  group: mobile-android-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: mobile/package-lock.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+          cache: "gradle"
+
+      - run: npm ci
+
+      - run: npx cap sync android
+
+      - run: ./gradlew assembleDebug
+        working-directory: mobile/android
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: frfro-android-debug
+          path: mobile/android/app/build/outputs/apk/debug/*.apk
+
+      - name: Build signed release
+        env:
+          KEYSTORE_BASE64: ${{ secrets.FRFRO_ANDROID_KEYSTORE_BASE64 }}
+          FRFRO_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.FRFRO_ANDROID_KEYSTORE_PASSWORD }}
+          FRFRO_ANDROID_KEY_ALIAS: ${{ secrets.FRFRO_ANDROID_KEY_ALIAS }}
+          FRFRO_ANDROID_KEY_PASSWORD: ${{ secrets.FRFRO_ANDROID_KEY_PASSWORD }}
+        working-directory: mobile/android
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "No signing secrets; skipping the release build."
+            exit 0
+          fi
+          export FRFRO_ANDROID_KEYSTORE="$RUNNER_TEMP/frfro.keystore"
+          echo "$KEYSTORE_BASE64" | base64 -d > "$FRFRO_ANDROID_KEYSTORE"
+          ./gradlew assembleRelease bundleRelease
+          rm -f "$FRFRO_ANDROID_KEYSTORE"
+
+      - uses: actions/upload-artifact@v4
+        if: hashFiles('mobile/android/app/build/outputs/bundle/release/*.aab') != ''
+        with:
+          name: frfro-android-release
+          path: |
+            mobile/android/app/build/outputs/apk/release/*.apk
+            mobile/android/app/build/outputs/bundle/release/*.aab

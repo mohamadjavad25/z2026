@@ -91,6 +91,24 @@ export default function RootLayout({ children }) {
   });
 }`}
         </Script>
+        {/* Inside the Android/iOS app (mobile/): a tapped frfro.ir link opens the app, so
+            show that page here. Capacitor injects window.Capacitor; on the web this does nothing. */}
+        <Script id="native-app" strategy="afterInteractive">
+          {`(function () {
+var cap = window.Capacitor;
+if (cap && cap.isNativePlatform && cap.isNativePlatform()) {
+  document.documentElement.classList.add("native-app");
+  cap.addListener("App", "appUrlOpen", function (event) {
+    try {
+      var url = new URL(event.url);
+      if (url.hostname === "frfro.ir" || url.hostname.endsWith(".frfro.ir")) {
+        location.href = url.pathname + url.search + url.hash;
+      }
+    } catch (e) {}
+  });
+}
+})();`}
+        </Script>
       </body>
     </html>
   );
