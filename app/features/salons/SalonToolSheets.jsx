@@ -1,6 +1,7 @@
 "use client";
 
 import { ShieldCheck } from "lucide-react";
+import { useBackHandler } from "../../shared/hooks/useBackHandler";
 
 /**
  * Salon owner — mock ops tool sheet.
@@ -14,6 +15,7 @@ export function SalonToolSheets({
   onClose,
   onNotice
 }) {
+  useBackHandler(Boolean(open) && tool === "ops", onClose);
   if (!open || tool !== "ops") return null;
 
   return (

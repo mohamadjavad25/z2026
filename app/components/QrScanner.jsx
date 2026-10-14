@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ImageUp, RefreshCw, X } from "lucide-react";
+import { useBackHandler } from "../shared/hooks/useBackHandler";
 
 const SCAN_INTERVAL_MS = 120;
 const CAMERA_FRAME_SIDE = 720; // whole camera frame, scaled down
@@ -141,6 +142,7 @@ function buzz() {
 const BLANK_POSTER = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 
 export function QrScanner({ title = "اسکن کن", hint = "کد QR را داخل کادر بگیر", onDetected, paused = false, footer = null, onClose }) {
+  useBackHandler(true, onClose);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const pausedRef = useRef(paused);

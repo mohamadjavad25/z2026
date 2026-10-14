@@ -5,12 +5,14 @@ import { createPortal } from "react-dom";
 import { Download, X } from "lucide-react";
 import { getMyConnectCode } from "../../shared/api/connections";
 import { useQrCode } from "../../shared/hooks/useQrCode";
+import { useBackHandler } from "../../shared/hooks/useBackHandler";
 
 /**
  * «اسکن شو»: the client's personal QR. A salon or artist scans it (from their
  * customers page) to add the client; both then appear in each other's lists.
  */
 export function MyCodeSheet({ name = "", avatar = "", onClose }) {
+  useBackHandler(true, onClose);
   const [code, setCode] = useState("");
   const [failed, setFailed] = useState(false);
   const qr = useQrCode(code, Boolean(code));

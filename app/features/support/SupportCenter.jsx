@@ -6,6 +6,7 @@ import { ChevronRight, Flag, MessageSquarePlus, Send, X } from "lucide-react";
 import { apiFetch } from "../../shared/api/client";
 import { SupportIcon } from "./SupportIcon";
 import { notifySupportRead } from "./supportEvents";
+import { useBackHandler } from "../../shared/hooks/useBackHandler";
 
 const CATEGORIES = [
   ["question", "سؤال"],
@@ -235,6 +236,7 @@ function NewTicket({ onCreated }) {
  * and a new message. `initial` can jump straight to a conversation ({ ticketId }) or the new-message form ({ view: "new" }).
  */
 export function SupportCenter({ initial = {}, onClose }) {
+  useBackHandler(true, onClose);
   const [view, setView] = useState(initial.ticketId ? { name: "thread", id: initial.ticketId } : initial.view === "new" ? { name: "new" } : { name: "list" });
   const sheetRef = useRef(null);
   const closeRef = useRef(onClose);

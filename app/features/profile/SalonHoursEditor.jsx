@@ -5,6 +5,7 @@ import { ChevronDown, CopyCheck, Minus, Plus, Timer, X } from "lucide-react";
 import { BreakTimeWheel } from "../../components/BreakTimeWheel";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { shortPersianWeekday, timeLabelToMinutes } from "../../shared/lib/time";
+import { useBackHandler } from "../../shared/hooks/useBackHandler";
 
 // Common opening hours: one tap instead of two wheels (wheels stay for custom times).
 const QUICK_RANGES = [
@@ -35,6 +36,7 @@ export function SalonHoursEditor({
   onUpdateHour,
   onCopyToOpenDays
 }) {
+  useBackHandler(Boolean(open), onToggleOpen);
   const clockOptions = timeOptions.length ? timeOptions : [];
   const startOptions = clockOptions.slice(0, -1);
   const startValue = selectedHour?.open_time || startOptions[0] || "۱۰:۰۰";

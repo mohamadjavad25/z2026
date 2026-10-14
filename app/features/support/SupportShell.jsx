@@ -3,9 +3,11 @@
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
+import { useBackHandler } from "../../shared/hooks/useBackHandler";
 
 /** Small bottom sheet used by the report form: portal, Escape, backdrop click, focus on open. */
 export function SupportShell({ title, label, above = false, onClose, children }) {
+  useBackHandler(true, onClose);
   const ref = useRef(null);
   const closeRef = useRef(onClose);
   useEffect(() => {
