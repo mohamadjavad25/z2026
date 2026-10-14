@@ -4,6 +4,8 @@ import PbdqInspector from "./components/PbdqInspector.jsx";
 import { ViewportHeightFix } from "./components/ViewportHeightFix.jsx";
 import { ClientErrorReporter } from "./components/ClientErrorReporter.jsx";
 import { getSiteUrl } from "./lib/siteUrl.js";
+import { AppLanding } from "./features/landing/AppLanding";
+import { LargeScreenGate } from "./features/landing/LargeScreenGate";
 
 // NEXT_PUBLIC_SITE_URL is the single source of truth for the site's public
 // domain (see .env.example at the repo root) — app/sitemap.js and
@@ -66,8 +68,11 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="fa" dir="rtl">
+    <html lang="fa" dir="rtl" suppressHydrationWarning>
       <head>
+        {/* Before first paint: inside the Android/iOS app (mobile/) the user agent ends with
+            "frfro-app". CSS uses the class to always show the app there and hide download links. */}
+        <script dangerouslySetInnerHTML={{ __html: `if (navigator.userAgent.indexOf("frfro-app") !== -1) document.documentElement.classList.add("native-app");` }} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@500;700;800;900&family=Playfair+Display:wght@500;600&display=swap" rel="stylesheet" />
@@ -83,13 +88,30 @@ export default function RootLayout({ children }) {
         <PbdqInspector />
         <ViewportHeightFix />
         <ClientErrorReporter />
-        {children}
+        <LargeScreenGate landing={<AppLanding />}>{children}</LargeScreenGate>
         <Script id="sw-register" strategy="afterInteractive">
           {`if ("serviceWorker" in navigator) {
   window.addEventListener("load", function () {
     navigator.serviceWorker.register("/sw.js").catch(function () {});
   });
 }`}
+        </Script>
+        {/* Inside the Android/iOS app: a tapped frfro.ir link opens the app, so show that
+            page here. Capacitor injects window.Capacitor; on the web this does nothing. */}
+        <Script id="native-app" strategy="afterInteractive">
+          {`(function () {
+var cap = window.Capacitor;
+if (cap && cap.isNativePlatform && cap.isNativePlatform()) {
+  cap.addListener("App", "appUrlOpen", function (event) {
+    try {
+      var url = new URL(event.url);
+      if (url.hostname === "frfro.ir" || url.hostname.endsWith(".frfro.ir")) {
+        location.href = url.pathname + url.search + url.hash;
+      }
+    } catch (e) {}
+  });
+}
+})();`}
         </Script>
       </body>
     </html>

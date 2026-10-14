@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>فرفرو</title>
+<style>
+  :root { color-scheme: light; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+    padding: 24px; box-sizing: border-box; text-align: center;
+    background: #d8d9df; color: #1c202c;
+    font-family: Vazirmatn, Tahoma, system-ui, sans-serif;
+  }
+  img { width: 96px; height: 96px; border-radius: 24px; }
+  h1 { font-size: 20px; margin: 0; }
+  p { margin: 0; line-height: 1.8; opacity: .8; }
+  button {
+    margin-top: 8px; padding: 12px 28px; border: 0; border-radius: 999px;
+    background: #1c202c; color: #fff; font: inherit; font-size: 16px;
+  }
+</style>
+</head>
+<body>
+  <img src="icon.png" alt="">
+  <h1>اتصال به اینترنت برقرار نیست</h1>
+  <p>اینترنت گوشی را بررسی کن و دوباره امتحان کن.</p>
+  <button type="button" onclick="location.href='https://frfro.ir'">تلاش دوباره</button>
+  <script>window.addEventListener("online", function () { location.href = "https://frfro.ir"; });</script>
+</body>
+</html>

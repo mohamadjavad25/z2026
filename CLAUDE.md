@@ -11,3 +11,4 @@
 - The product name is **frfro**, always lowercase in English. The Persian form is «فرفرو». Never use "Farfaroo", "Frfru", "Zibaban" or «زیبابان».
 - Logo files live in `public/brand/`; app icons in `public/icons/`.
 - Future plans (ideas reviewed but not started) live in `docs/ROADMAP.md`. Add new ones there; never start building a plan until the user says so.
+- The Android/iOS app shell lives in `mobile/` (Capacitor, opens https://frfro.ir); see `mobile/README.md`. The Android release signing key (`frfro-release.keystore`) is held by the user and is never committed. The APK served by the site is `public/download/frfro.apk`; `/download` is the about/download page, and on tablets and desktops every page except `/admin`, `/terms` and `/privacy` shows that page instead (`LargeScreenGate`, user's decision 2026-10-14).

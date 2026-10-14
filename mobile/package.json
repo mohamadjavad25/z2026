@@ -1,0 +1,23 @@
+{
+  "name": "frfro-mobile",
+  "private": true,
+  "description": "Native app shell (Android and iOS) that opens https://frfro.ir",
+  "scripts": {
+    "sync": "cap sync",
+    "assets": "capacitor-assets generate --iconBackgroundColor '#1c202c' --iconBackgroundColorDark '#1c202c' --splashBackgroundColor '#1c202c' --splashBackgroundColorDark '#1c202c'",
+    "android": "cap open android",
+    "ios": "cap open ios"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/core": "^8.5.3",
+    "@capacitor/ios": "^8.5.3",
+    "@capacitor/splash-screen": "^8.0.2",
+    "@capacitor/status-bar": "^8.0.4"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^8.5.3"
+  }
+}
