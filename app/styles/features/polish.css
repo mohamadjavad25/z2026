@@ -1326,6 +1326,9 @@ main.appShell.is-auth-gate .workspace { background: #fff !important; }
   background: #fff;
   box-shadow: 0 8px 22px -14px rgba(20, 22, 29, 0.28);
 }
+/* A row inside a card must not carry its own shadow: the card already has one, and the nested
+   shadow rendered as a dark vertical slab above/below the card on Android Chrome. */
+.settingsPageBody .settingsRowCard > .profileLocationRow { background: transparent; box-shadow: none; }
 .spSectionTitle { color: #6a6e7a; font-size: 0.78rem; font-weight: 800; letter-spacing: 0.02em; }
 .neoSettingsLogout, .neoSettingsDelete { border-radius: 20px; }
 
