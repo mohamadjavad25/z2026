@@ -369,11 +369,13 @@ export function ProfilePanelBody() {
               {profileType === "client" && (profileView === "overview" || profileView === "bookings") && (
                 <ClientHome
                   bookings={clientBookingList}
+                  clientName={createdProfile?.data?.name || ""}
                   highlightKey={freshBookingKey}
                   onOpenBooking={(booking) => setClientBookingSettings({ ...booking, clientBookingSheetMode: "details" })}
                   onRebook={rebookFromBooking}
                   onOpenPlace={openPlaceFromHome}
                   onFindPlaces={() => goToTab("salons")}
+                  onNotify={setAppToast}
                 />
               )}
 

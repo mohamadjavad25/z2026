@@ -1,7 +1,7 @@
 /**
- * Cover + logo header of the public salon and artist pages. Same look as the
- * salon's own panel hero: full-width cover, the logo on the right half over
- * the cover's bottom edge, name and city beside it.
+ * Cover + logo header of the public salon and artist pages. The cover and the logo
+ * look exactly like the owner's own panel hero: `variant` "salon" (inset cover with
+ * rounded bottom) or "artist" (full-width poster under a rounded white sheet).
  * `start` / `end` are the round buttons on the cover (back / share, save).
  */
 export function PublicProfileHeader({
@@ -14,10 +14,11 @@ export function PublicProfileHeader({
   name = "",
   area = "",
   start = null,
-  end = null
+  end = null,
+  variant = "salon"
 }) {
   return (
-    <header className="pphHero">
+    <header className={`pphHero is-${variant === "artist" ? "artist" : "salon"}`}>
       <div className="pphCover">
         {cover ? (
           <img className="pphCoverImage" src={cover} alt={coverAlt} aria-hidden={coverAlt ? undefined : "true"} style={{ objectPosition: coverPosition }} />

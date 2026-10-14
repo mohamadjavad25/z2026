@@ -87,6 +87,7 @@ export function PublicArtistModal({
       <article className="artistPublicSheet">
         <section className="artistPublicPage" aria-label={`صفحه عمومی ${artist.name}`}>
           <PublicProfileHeader
+            variant="artist"
             cover={artist.poster || DEFAULT_COVER}
             coverAlt={artist.poster && artist.name ? `${artist.name} — تصویر کاور` : ""}
             coverPosition={artist.posterPosition || "50% 50%"}
