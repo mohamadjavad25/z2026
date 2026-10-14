@@ -918,22 +918,6 @@ html[data-cbt="1"] body { padding-bottom: 92px; }
 .pccRow.is-next .pccText small { color: #c9ccd8; font-size: 0.72rem; }
 .pccRow.is-next .pccGo { background: rgba(255, 255, 255, 0.14); color: #fff; }
 
-.pccDoneList { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
-.pccDone {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 30px;
-  padding: 0 11px 0 12px;
-  border-radius: 999px;
-  background: #f1faf5;
-  color: #1b6b43;
-  font-size: 0.72rem;
-  font-weight: 850;
-}
-
-.pccDone svg { flex: none; }
-
 /* ═══ Customers: sheet actions + "lapsed" count ═══ */
 .cuActions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .cuActions .cuCall { justify-content: center; min-height: 46px; border-radius: 15px; font-size: 0.84rem; }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft, Check, ImagePlus, ListPlus, MapPin, Sparkles, X } from "lucide-react";
+import { ArrowLeft, ImagePlus, ListPlus, MapPin, Sparkles, X } from "lucide-react";
 import { isDefaultAvatar } from "../../shared/lib/defaultAvatar";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { beautySpecialtyOptions } from "../../shared/constants/roles";
@@ -43,7 +43,6 @@ export function ProfileCompleteness({ profile, serviceCount = 0, onEditProfile, 
   const percent = Math.round((done / steps.length) * 100);
 
   const pending = steps.filter((step) => !step.done);
-  const finished = steps.filter((step) => step.done);
   const remaining = pending.length;
 
   function rowAction(step) {
@@ -120,17 +119,6 @@ export function ProfileCompleteness({ profile, serviceCount = 0, onEditProfile, 
           );
         })}
       </ul>
-
-      {finished.length ? (
-        <ul className="pccDoneList" aria-label="مرحله‌های انجام‌شده">
-          {finished.map((step) => (
-            <li key={step.id} className="pccDone">
-              <Check size={13} strokeWidth={3} aria-hidden="true" />
-              {step.label}
-            </li>
-          ))}
-        </ul>
-      ) : null}
 
       <QuickAreaSheet
         open={quick === "area"}
