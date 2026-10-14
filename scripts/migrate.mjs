@@ -18,16 +18,50 @@ import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
-// MIGRATE_DATABASE_URL wins over everything: Vercel's Supabase integration
-// manages POSTGRES_URL_NON_POOLING itself (read-only, and it points at the
-// IPv6-only direct host, unreachable from Vercel's IPv4 builders), so a
-// session-mode pooler URL for migrations goes in this separate variable.
-const rawConnectionString =
-  process.env.MIGRATE_DATABASE_URL ||
-  process.env.POSTGRES_URL_NON_POOLING ||
-  process.env.POSTGRES_URL ||
-  process.env.DATABASE_URL ||
-  "";
+// Source order:
+//  1. MIGRATE_DATABASE_URL -- explicit override.
+//  2. POSTGRES_URL when it is a Supabase pooler on port 6543 (transaction
+//     mode): the same credentials on port 5432 are session mode, which DDL
+//     needs. Vercel's Supabase integration manages POSTGRES_URL_NON_POOLING
+//     itself and it points at the IPv6-only direct host, unreachable from
+//     Vercel's IPv4 builders, so this is preferred over it.
+//  3. POSTGRES_URL_NON_POOLING, 4. POSTGRES_URL, 5. DATABASE_URL.
+function supabaseSessionPoolerUrl(connString) {
+  try {
+    const url = new URL(connString);
+    if (url.hostname.endsWith(".pooler.supabase.com") && url.port === "6543") {
+      url.port = "5432";
+      return url.toString();
+    }
+  } catch {
+    // not a parseable URL; fall through to the other sources
+  }
+  return "";
+}
+
+const sources = [
+  ["MIGRATE_DATABASE_URL", process.env.MIGRATE_DATABASE_URL || ""],
+  [
+    "POSTGRES_URL (Supabase pooler, port 6543 -> 5432)",
+    supabaseSessionPoolerUrl(process.env.POSTGRES_URL || "")
+  ],
+  ["POSTGRES_URL_NON_POOLING", process.env.POSTGRES_URL_NON_POOLING || ""],
+  ["POSTGRES_URL", process.env.POSTGRES_URL || ""],
+  ["DATABASE_URL", process.env.DATABASE_URL || ""]
+];
+const [sourceName, rawConnectionString] = sources.find(([, value]) => value) || ["", ""];
+
+if (rawConnectionString) {
+  // Never print the password -- only enough to tell which database is used.
+  try {
+    const u = new URL(rawConnectionString);
+    console.log(
+      `migrate: using ${sourceName} (user=${decodeURIComponent(u.username)}, host=${u.hostname}, port=${u.port || "5432"})`
+    );
+  } catch {
+    console.log(`migrate: using ${sourceName}`);
+  }
+}
 
 if (!rawConnectionString) {
   console.error(
