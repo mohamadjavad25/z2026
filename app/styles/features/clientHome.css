@@ -82,6 +82,22 @@
 .chEmptyMascot { margin-bottom: 2px; }
 .chEmpty b { font-size: 1rem; font-weight: 950; }
 .chEmpty > span { max-width: 32ch; color: #6f7380; font-size: 0.8rem; font-weight: 750; line-height: 1.9; }
+
+/* The ways to add a salon/artist: two big buttons (contacts, scan) and one quiet link to «رزرو». */
+.chAdd { display: grid; gap: 6px; width: 100%; }
+.chAddBtns { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-top: 8px; }
+.chAddBtn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 54px; padding: 0 14px;
+  border: 0; border-radius: 16px; background: #f2f2f5; color: #14161d; font: inherit; font-size: 0.92rem; font-weight: 950; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.chAddBtn.is-primary { background: #14161d; color: #fff; box-shadow: 0 12px 24px -12px rgba(20, 22, 29, 0.6); }
+.chAddBtn:active { transform: scale(0.97); }
+.chAddLink {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0 10px;
+  border: 0; background: none; color: #6f7380; font: inherit; font-size: 0.78rem; font-weight: 850; cursor: pointer;
+}
+.chAddLink:active { color: #14161d; }
 .chPrimary {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 52px; margin-top: 8px;
   border: 0; border-radius: 16px; background: #14161d; color: #fff; font: inherit; font-size: 0.9rem; font-weight: 950; cursor: pointer;

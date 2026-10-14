@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ChevronLeft, LayoutGrid, RotateCcw, Search, Store, UserRound } from "lucide-react";
+import { ChevronLeft, LayoutGrid, Plus, RotateCcw, Store, UserRound } from "lucide-react";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { Mascot } from "../../components/Mascot";
 import { listConnections } from "../../shared/api/connections";
@@ -10,6 +10,8 @@ import { toPersianDigits } from "../../shared/lib/digits";
 import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
 import { formatRelativeBookingDayLabel, getPersianWeekday } from "../../shared/lib/persianCalendar";
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
+import { ConnectSheet } from "../connect/ConnectSheet";
+import { AddPlaceActions } from "./AddPlaceActions";
 import { ClientBookingsPanel } from "./ClientBookingsPanel";
 import { isBookingActive, isBookingInPast } from "./bookingStatus";
 
@@ -63,9 +65,10 @@ function Avatar({ place, size = "md" }) {
  *     starts here in one tap — «دوباره همان خدمت» or any service — without the «رزرو» tab.
  * Saved posts, notifications and settings stay in the header and the bottom bar.
  */
-export function ClientHome({ bookings = [], highlightKey = "", onOpenBooking, onRebook, onOpenPlace, onFindPlaces }) {
+export function ClientHome({ bookings = [], clientName = "", highlightKey = "", onOpenBooking, onRebook, onOpenPlace, onFindPlaces, onNotify }) {
   const [places, setPlaces] = useState(null); // null = loading
   const [activeId, setActiveId] = useState("");
+  const [adding, setAdding] = useState(false); // the «افزودن» sheet, once there is already a place
 
   const load = useCallback(async () => {
     const { ok, data } = await listConnections({ withServices: true });
@@ -131,8 +134,8 @@ export function ClientHome({ bookings = [], highlightKey = "", onOpenBooking, on
             <strong>{active ? "از همین‌جا نوبت بگیر" : "نوبت گرفتن از اینجا شروع می‌شود"}</strong>
           </div>
           {ordered.length ? (
-            <button type="button" className="chHeadBtn" onClick={onFindPlaces}>
-              <Search size={16} aria-hidden="true" />
+            <button type="button" className="chHeadBtn" onClick={() => setAdding(true)}>
+              <Plus size={16} aria-hidden="true" />
               <span>افزودن</span>
             </button>
           ) : null}
@@ -146,13 +149,15 @@ export function ClientHome({ bookings = [], highlightKey = "", onOpenBooking, on
           </div>
         ) : !active ? (
           <div className="chCard chEmpty">
-            <Mascot pose="search" size={120} className="chEmptyMascot" />
-            <b>سالن یا آرتیستت را اضافه کن</b>
-            <span>یک بار پیدایش کن؛ از این به بعد خدماتش همین‌جاست و با دو لمس نوبت می‌گیری.</span>
-            <button type="button" className="chPrimary" onClick={onFindPlaces}>
-              <Search size={18} aria-hidden="true" />
-              پیدا کردن سالن یا آرتیست
-            </button>
+            <Mascot pose="search" size={96} className="chEmptyMascot" />
+            <b>سالن یا آرتیستت را وصل کن</b>
+            <AddPlaceActions
+              clientName={clientName}
+              onConnected={load}
+              onOpenPlace={onOpenPlace}
+              onFindPlaces={onFindPlaces}
+              onNotify={onNotify}
+            />
           </div>
         ) : (
           <>
@@ -185,6 +190,19 @@ export function ClientHome({ bookings = [], highlightKey = "", onOpenBooking, on
           </>
         )}
       </section>
+
+      {adding ? (
+        <ConnectSheet label="افزودن سالن یا آرتیست" title="سالن یا آرتیستت را وصل کن" onClose={() => setAdding(false)}>
+          <AddPlaceActions
+            clientName={clientName}
+            onConnected={load}
+            onOpenPlace={onOpenPlace}
+            onFindPlaces={onFindPlaces}
+            onNotify={onNotify}
+            onDone={() => setAdding(false)}
+          />
+        </ConnectSheet>
+      ) : null}
 
       {hasUpcoming ? null : bookingsPanel}
     </div>
