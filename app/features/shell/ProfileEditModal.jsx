@@ -102,6 +102,24 @@ export function ProfileEditModal({
             ) : null}
           </section>
 
+          {hasActivityField ? (
+            <section className="peGroup" aria-labelledby="pe-about">
+              <h4 id="pe-about">درباره {isSalon ? "سالن" : "من"}</h4>
+              <label className="peField">
+                <span>معرفی کوتاه <em>مشتری این را در صفحهٔ «درباره» می‌بیند</em></span>
+                <textarea
+                  name="bio"
+                  rows={4}
+                  maxLength={600}
+                  defaultValue={profile.data?.bio || ""}
+                  placeholder={isSalon
+                    ? "مثلاً: سالن ما از ۱۳۹۸ با تیمی حرفه‌ای در خدمت شماست. کار با مواد اصل و رزرو دقیق."
+                    : "مثلاً: ۶ سال سابقه در رنگ و مش. عاشق کار تمیز و نتیجه‌ای هستم که خودت دوست داشته باشی."}
+                />
+              </label>
+            </section>
+          ) : null}
+
           <section className="peGroup" aria-labelledby="pe-contact">
             <h4 id="pe-contact">تماس</h4>
             <label className="peField">
