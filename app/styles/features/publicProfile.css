@@ -27,6 +27,8 @@
 .pphChip.is-open { background: #e3f6ea; color: #17703d; font-weight: 900; }
 .pphChip.is-closed { color: #6f7380; font-weight: 900; }
 .pphBio { margin: 0; color: #4b4f5c; font-size: 0.82rem; font-weight: 700; line-height: 1.9; }
+.pphBioMore { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; width: 100%; padding: 0; border: 0; background: none; font: inherit; font-size: 0.82rem; font-weight: 700; line-height: 1.9; text-align: right; cursor: pointer; }
+.pphBioMore span { color: #14161d; font-weight: 900; margin-inline-start: 6px; }
 .pphActions { display: flex; gap: 10px; }
 .pphFollow, .pphCall { min-height: 50px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: 18px; font: inherit; font-size: 0.94rem; font-weight: 900; text-decoration: none; cursor: pointer; }
 .pphFollow { flex: 1.35; background: #14161d; color: #ffffff; box-shadow: 0 12px 24px -10px rgba(20, 22, 29, 0.5); }
@@ -35,6 +37,10 @@
 .pphFollow:active, .pphCall:active { transform: scale(0.98); }
 .pphFollow:focus-visible, .pphCall:focus-visible { outline: 3px solid #14161d; outline-offset: 2px; }
 .artistPublicPage .pphInfo { margin-bottom: 8px; }
+
+/* ── Bottom bar: labelled «درباره» button beside «خدمات» ── */
+.spvBarAbout { flex: none; min-height: 50px; display: inline-flex; align-items: center; gap: 6px; padding: 0 16px; border: 1px solid #ececf0; border-radius: 16px; background: #fff; color: #14161d; font: inherit; font-size: 0.88rem; font-weight: 900; cursor: pointer; }
+.spvBarAbout:focus-visible { outline: 3px solid #14161d; outline-offset: 2px; }
 
 /* ── Bottom bar «خدمات» chevron ── */
 .spvBarChevron { transition: transform 0.3s ease; }

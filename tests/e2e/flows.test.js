@@ -17,6 +17,22 @@ async function seedSalon() {
   return { name, client, salon };
 }
 
+describe("about page first on phones (browser)", () => {
+  it("shows the about page at / to a first-time phone visitor, and «ورود» opens the app for good", async () => {
+    const { page, context, problems } = await newPage({ entered: false });
+    await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
+    expect(await page.locator(".landingSlot .appLanding").isVisible()).toBe(true);
+    expect(await page.locator(".landingSlot a[href='/download/frfro.apk']").count()).toBeGreaterThan(0);
+    await page.locator(".landingSlot .appLanding__hero .appLanding__enter").click();
+    await page.locator(".landingSlot .appLanding").waitFor({ state: "hidden" });
+    expect(await page.locator(".pageSlot").isVisible()).toBe(true);
+    await page.reload({ waitUntil: "networkidle" });
+    expect(await page.locator(".landingSlot .appLanding").isVisible()).toBe(false);
+    expect(problems).toEqual([]);
+    await context.close();
+  });
+});
+
 describe("auth forms (browser)", () => {
   it("shows Persian inline errors instead of the browser's own messages", async () => {
     const { page, context, problems } = await newPage();

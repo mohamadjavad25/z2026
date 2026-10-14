@@ -76,3 +76,4 @@
 .cbOfferActions button { min-height: 44px; border: 1px solid #ececf0; border-radius: 12px; background: #fff; color: #14161d; font: inherit; font-size: 0.82rem; font-weight: 900; cursor: pointer; }
 .cbOfferActions button.is-accept { background: #14161d; border-color: #14161d; color: #fff; }
 .cbOfferActions button:disabled { opacity: 0.6; }
+.salonPublicAboutBio.is-empty { color: #8a8e9b; }
