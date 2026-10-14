@@ -171,6 +171,7 @@ export function useHomeWorkspaces({
     changeScheduleBookingTime,
     changeScheduleBookingStaff,
     changeScheduleBookingParts,
+    autoAssignScheduleBooking,
     cancelScheduleBooking
   } = useScheduleBookingMenu({
     artistBookingList,
@@ -346,6 +347,7 @@ export function useHomeWorkspaces({
     changeScheduleBookingTime,
     changeScheduleBookingStaff,
     changeScheduleBookingParts,
+    autoAssignScheduleBooking,
     cancelScheduleBooking,
     activeRoleMeta,
     activeCreatedMeta,

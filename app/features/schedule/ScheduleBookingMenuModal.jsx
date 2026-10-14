@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import {
+  ArrowRight,
   CalendarCheck,
   Check,
   CheckCircle2,
@@ -11,6 +12,7 @@ import {
   Eye,
   Phone,
   Scissors,
+  Sparkles,
   Timer,
   TimerOff,
   Trash2,
@@ -24,8 +26,9 @@ import { SegmentClock } from "../../components/SegmentClock";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { formatRequestExpiryDeadline, getRequestExpiryMinutesLeft, normalizeBookingTimeLabel } from "../../shared/lib/time";
 import { isMultiPartBooking, parseBookingParts, scheduleBookingParts } from "../../shared/lib/bookingParts";
-import { BookingPartsEditor } from "./BookingPartsEditor";
-import { getSalonBookingMoveTimes } from "../../shared/api/salons";
+import { ArtistOptionList, BookingPartsEditor } from "./BookingPartsEditor";
+import { getSalonBookingMoveTimes, getSalonBookingStaffOptions } from "../../shared/api/salons";
+import { useBackHandler } from "../../shared/hooks/useBackHandler";
 import { AWAITING_CLIENT, bookingTimeOffer } from "../../shared/lib/bookingOffer";
 
 // Shown when a customer / staff member / source has no uploaded photo.
@@ -146,9 +149,76 @@ function MoveTimeList({ booking, disabled, onPick }) {
 }
 
 /**
- * Shared salon+artist schedule booking settings modal.
- * Presentational: booking/view + onChangeTime/Staff/Cancel/Close from HomeApp.
- * Does NOT own schedule triad state.
+ * Who on the team is free for each service of this booking (salon, editable bookings only),
+ * fetched again whenever its day, time, split or status changes.
+ * → { ready, availability: [Map(name → { free, skilled, away })] per service, suggested: [name] }
+ */
+function useStaffAvailability(booking, enabled) {
+  const id = booking?.id;
+  const key = enabled && id != null
+    ? [id, booking.booking_date || "", booking.time || "", booking.parts || "", booking.staff || "", booking.status || ""].join("|")
+    : "";
+  const [state, setState] = useState({ key: "", parts: [], suggested: [] });
+  useEffect(() => {
+    if (!key) return undefined;
+    let alive = true;
+    const settle = (parts = [], suggested = []) => {
+      if (alive) setState({ key, parts, suggested });
+    };
+    getSalonBookingStaffOptions(id)
+      .then(({ ok, data }) => (ok ? settle(data?.parts || [], data?.suggested || []) : settle()))
+      .catch(() => settle());
+    return () => { alive = false; };
+  }, [key, id]);
+  return useMemo(() => {
+    if (!key || state.key !== key) return { ready: false, availability: [], suggested: [] };
+    return {
+      ready: state.parts.length > 0,
+      availability: state.parts.map((part) => new Map((part.options || []).map((option) => [option.name, option]))),
+      suggested: state.suggested
+    };
+  }, [key, state]);
+}
+
+/**
+ * «چیدن خودکار»: what the system would do with this booking's artists. Offered when its split
+ * differs from the current one; when a service has nobody and nobody is free, says so instead.
+ */
+function AutoAssignCard({ current, suggested, services, disabled, onAutoAssign }) {
+  const missing = current.filter((name) => !name).length;
+  const differs = suggested.some((name, index) => name !== (current[index] || ""));
+  const offers = suggested.some(Boolean) && differs;
+  if (!offers && !missing) return null;
+  if (!offers) {
+    return (
+      <p className="sbmAuto is-stuck">
+        <UserRound size={15} aria-hidden="true" />
+        <span>
+          <b>{services > 1 ? `${toPersianDigits(missing)} خدمت بدون آرتیست` : "این رزرو آرتیست ندارد"}</b>
+          <small>در این ساعت آرتیست آزادی نیست؛ ساعت را عوض کن یا خودت یکی را انتخاب کن.</small>
+        </span>
+      </p>
+    );
+  }
+  const names = [...new Set(suggested.filter(Boolean))];
+  return (
+    <div className={`sbmAuto ${missing ? "is-missing" : ""}`}>
+      <Sparkles size={16} aria-hidden="true" />
+      <span>
+        <b>{missing ? (services > 1 ? `${toPersianDigits(missing)} خدمت بدون آرتیست` : "این رزرو آرتیست ندارد") : "پیشنهاد سیستم"}</b>
+        <small>{`آزادترین آرتیست‌ها: ${names.join("، ")}`}</small>
+      </span>
+      <button type="button" disabled={disabled} onClick={onAutoAssign}>چیدن خودکار</button>
+    </div>
+  );
+}
+
+/**
+ * The salon/artist booking screen: opened from a schedule row, and opened on its own the moment
+ * a client's request arrives (ScheduleMenuHost). It fills the whole app: details and artists
+ * scroll, the answer (approve / decline) and the bar (change time / call / close) stay at the
+ * bottom. Presentational: booking/view + callbacks from the shell; the phone's back button goes
+ * back from «تغییر ساعت», then closes.
  */
 export function ScheduleBookingMenuModal({
   open,
@@ -160,26 +230,41 @@ export function ScheduleBookingMenuModal({
   onChangeTime,
   onChangeStaff,
   onChangeParts,
+  onAutoAssign,
   onCancel,
   onApprove,
   onDecline,
   busy = false
 }) {
-  // The artist picker opens inline; reset per booking because this modal
+  // The artist picker opens inline; reset per booking because this screen
   // instance is reused rather than remounted per booking.
   const [artistPickerOpen, setArtistPickerOpen] = useState(false);
   useEffect(() => {
     setArtistPickerOpen(false);
   }, [booking?.id]);
 
-  if (!open || !booking) return null;
+  const visible = Boolean(open && booking);
+  const isSalonOwner = booking?.ownerType === "salon";
+  const isPast = visible ? isBookingInPast(booking) : false;
+  const isCancelled = booking?.status === "لغو" || booking?.status === "منقضی شده";
+  // Past or settled bookings can be reviewed, never edited.
+  const readOnly = isPast || isCancelled;
+  const canManage = visible && isSalonOwner && !readOnly;
+  const staffState = useStaffAvailability(booking, canManage);
 
-  const isSalonOwner = booking.ownerType === "salon";
+  useBackHandler(visible, () => {
+    if (view !== "menu") {
+      onViewChange?.("menu");
+      return;
+    }
+    onClose?.();
+  });
+
+  if (!visible) return null;
+
   // Same "not yet reviewed" definition ScheduleRow.jsx/getBookingStatusTone
   // above use — "درخواست" for either role, "تازه" only counts as pending for
-  // an artist (a salon's own "تازه" walk-in entry is already settled). This
-  // is the one entry point that previously had zero approve/decline action —
-  // the client's booking might sit here forever without a next step visible.
+  // an artist (a salon's own "تازه" walk-in entry is already settled).
   const sourceSalon = booking.sourceSalon || {};
   // An artist answers only their own (direct) bookings; one from a salon is the salon's to accept.
   const isPendingReview = isSalonOwner
@@ -189,7 +274,8 @@ export function ScheduleBookingMenuModal({
   const avatar = booking.clientAvatar || booking.client_avatar || sourceSalon.avatar || DEFAULT_AVATAR;
   const title = booking.client || booking.salonName || sourceSalon.name || "رزرو";
   const multiPart = isSalonOwner && isMultiPartBooking(booking);
-  const partStaff = multiPart ? [...new Set(parseBookingParts(booking.parts).map((part) => part.staff).filter(Boolean))] : [];
+  const parsedParts = multiPart ? parseBookingParts(booking.parts) : [];
+  const partStaff = [...new Set(parsedParts.map((part) => part.staff).filter(Boolean))];
   const phone = booking.phone || booking.clientPhone || booking.client_phone || "";
   // Who is doing it, shown as faces on the header's far side: the salon's artists (one per
   // service on a multi-service visit), or for an artist the salon the booking came from.
@@ -205,253 +291,243 @@ export function ScheduleBookingMenuModal({
   const services = multiPart ? scheduleBookingParts(booking.time, booking.parts) : [];
   const dateValue = booking.booking_date || booking.date || "امروز";
   const dateLabel = isPersianDateKey(dateValue) ? toPersianDigits(formatRelativeBookingDayLabel(dateValue)) : dateValue;
-  const currentArtistAvatar = booking.staffAvatar || staffOptions.find((person) => person.name === booking.staff)?.avatar || DEFAULT_AVATAR;
+  const currentArtist = staffOptions.find((person) => person.name === booking.staff);
+  const currentArtistAvatar = booking.staffAvatar || currentArtist?.avatar || DEFAULT_AVATAR;
   const actionDisabled = Boolean(busy);
-  // booking.ownerType isn't set on every path (e.g. raw history-sheet items
-  // in ArtistScheduleBoard/SalonScheduleDashboard don't carry it) — reuse
-  // isSalonOwner, the same fallback this component already relies on
-  // everywhere else, instead of trusting the raw field directly.
-  const isPast = isBookingInPast(booking);
-  const isCancelled = booking.status === "لغو" || booking.status === "منقضی شده";
-  // Past or settled bookings can be reviewed, never edited.
-  const readOnly = isPast || isCancelled;
-  const canManage = isSalonOwner && !readOnly;
   const statusTone = getBookingStatusTone(booking.status || "درخواست", isSalonOwner ? "salon" : "artist");
   const StatusIcon = BOOKING_STATUS_ICONS[statusTone];
+  const currentStaff = multiPart ? parsedParts.map((part) => part.staff) : [String(booking.staff || "").trim()];
+  const createdAt = booking.createdAt || booking.created_at || "";
+  const minutesLeft = getRequestExpiryMinutesLeft(createdAt);
+  const deadline = formatRequestExpiryDeadline(createdAt);
+  const showReview = isPendingReview && !readOnly;
+  const timeView = view === "time";
 
   return (
-    <div
-      className="clientBookingSettingsBackdrop"
-      role="dialog"
-      aria-modal="true"
-      aria-label="تنظیمات رزرو"
-      onClick={onClose}
-    >
-      <div className="clientBookingSettingsWrap" onClick={(event) => event.stopPropagation()}>
-        <div className="clientBookingSettings scheduleBookingSettings">
-          <div className="clientBookingSettingsHead">
-            <span className="clientBookingSettingsAvatar hasImage" aria-hidden="true">
-              <img src={avatar} alt="" />
-            </span>
-            <div className="sbmWho">
-              <small>
-                {view === "time" ? "تغییر ساعت" : readOnly ? "جزئیات رزرو • فقط مشاهده" : "جزئیات رزرو"}
-              </small>
-              <b>{title}</b>
-              <strong className={`clientBookingSettingsStatus is-${statusTone}`}>
-                <StatusIcon size={11} />
-                {!isSalonOwner && sourceSalon.name && statusTone === "pending" ? "منتظر سالن" : (booking.status || "درخواست")}
-              </strong>
+    <div className="sbmScreen" role="dialog" aria-modal="true" aria-label={`رزرو ${title}`}>
+      <div className="clientBookingSettings scheduleBookingSettings sbmBody">
+        <div className="clientBookingSettingsHead">
+          <span className="clientBookingSettingsAvatar hasImage" aria-hidden="true">
+            <img src={avatar} alt="" />
+          </span>
+          <div className="sbmWho">
+            <small>
+              {timeView ? "تغییر ساعت" : readOnly ? "جزئیات رزرو • فقط مشاهده" : showReview ? "درخواست رزرو تازه" : "جزئیات رزرو"}
+            </small>
+            <b>{title}</b>
+            <strong className={`clientBookingSettingsStatus is-${statusTone}${showReview ? " is-live" : ""}`}>
+              <StatusIcon size={11} />
+              {!isSalonOwner && sourceSalon.name && statusTone === "pending" ? "منتظر سالن" : (booking.status || "درخواست")}
+            </strong>
+          </div>
+          {team.length ? (
+            <div className="sbmTeam" aria-label={`${isSalonOwner ? "آرتیست‌ها" : "سالن"}: ${team.map((person) => person.name).join("، ")}`}>
+              <span className="sbmTeamFaces" aria-hidden="true">
+                {team.slice(0, 3).map((person) => (
+                  <img key={person.name} src={person.avatar} alt="" />
+                ))}
+                {team.length > 3 ? <i>+{toPersianDigits(team.length - 3)}</i> : null}
+              </span>
+              <small aria-hidden="true">{team.map((person) => person.name).join(" · ")}</small>
             </div>
-            {team.length ? (
-              <div className="sbmTeam" aria-label={`${isSalonOwner ? "آرتیست‌ها" : "سالن"}: ${team.map((person) => person.name).join("، ")}`}>
-                <span className="sbmTeamFaces" aria-hidden="true">
-                  {team.slice(0, 3).map((person) => (
-                    <img key={person.name} src={person.avatar} alt="" />
-                  ))}
-                  {team.length > 3 ? <i>+{toPersianDigits(team.length - 3)}</i> : null}
-                </span>
-                <small aria-hidden="true">{team.map((person) => person.name).join(" · ")}</small>
-              </div>
-            ) : (
-              <div className="sbmTeam is-empty">
-                <span className="sbmTeamFaces" aria-hidden="true"><UserRound size={16} /></span>
-                <small>{isSalonOwner ? "بدون آرتیست" : "رزرو شخصی"}</small>
-              </div>
-            )}
-          </div>
+          ) : (
+            <div className="sbmTeam is-empty">
+              <span className="sbmTeamFaces" aria-hidden="true"><UserRound size={16} /></span>
+              <small>{isSalonOwner ? "بدون آرتیست" : "رزرو شخصی"}</small>
+            </div>
+          )}
+        </div>
 
-          <div className="clientBookingSettingsTime">
-            <SegmentClock value={booking.time || "زمان"} size="sm" as="span" backgroundColor="transparent" />
-          </div>
+        <div className="clientBookingSettingsTime">
+          <SegmentClock value={booking.time || "زمان"} size="sm" as="span" backgroundColor="transparent" />
+        </div>
 
-          {view === "menu" ? (
-            <>
-              <div className="scheduleBookingDetails">
-                <div className="scheduleBookingDetail">
-                  <CalendarCheck size={15} aria-hidden="true" />
-                  <span>تاریخ</span>
-                  <b>{dateLabel}</b>
-                </div>
-                {multiPart ? (
-                  <div className="scheduleBookingDetail">
-                    <Clock3 size={15} aria-hidden="true" />
-                    <span>زمان</span>
-                    <b>
-                      {toPersianDigits(services[0].startLabel)} تا {toPersianDigits(services[services.length - 1].endLabel)}
-                      <small className="sbmCount"> · {toPersianDigits(services.length)} خدمت</small>
-                    </b>
-                  </div>
-                ) : (
-                  <div className="scheduleBookingDetail">
-                    <Scissors size={15} aria-hidden="true" />
-                    <span>خدمت</span>
-                    <b className="svcInline"><ServiceIcon emoji={booking.service_emoji} name={booking.service} size="xs" />{booking.service || "خدمت زیبایی"}</b>
-                  </div>
-                )}
+        {!timeView ? (
+          <>
+            <div className="scheduleBookingDetails">
+              <div className="scheduleBookingDetail">
+                <CalendarCheck size={15} aria-hidden="true" />
+                <span>تاریخ</span>
+                <b>{dateLabel}</b>
               </div>
-
               {multiPart ? (
-                <BookingPartsEditor
-                  booking={booking}
-                  staffOptions={staffOptions}
-                  disabled={!canManage || actionDisabled}
-                  onChange={onChangeParts}
-                />
-              ) : isSalonOwner ? (
-              <div className={`scheduleBookingArtist ${artistPickerOpen ? "is-open" : ""}`}>
+                <div className="scheduleBookingDetail">
+                  <Clock3 size={15} aria-hidden="true" />
+                  <span>زمان</span>
+                  <b>
+                    {toPersianDigits(services[0].startLabel)} تا {toPersianDigits(services[services.length - 1].endLabel)}
+                    <small className="sbmCount"> · {toPersianDigits(services.length)} خدمت</small>
+                  </b>
+                </div>
+              ) : (
+                <div className="scheduleBookingDetail">
+                  <Scissors size={15} aria-hidden="true" />
+                  <span>خدمت</span>
+                  <b className="svcInline"><ServiceIcon emoji={booking.service_emoji} name={booking.service} size="xs" />{booking.service || "خدمت زیبایی"}</b>
+                </div>
+              )}
+              {phone ? (
+                <div className="scheduleBookingDetail">
+                  <Phone size={15} aria-hidden="true" />
+                  <span>تلفن</span>
+                  <b dir="ltr" className="sbmPhone">{toPersianDigits(phone)}</b>
+                </div>
+              ) : null}
+            </div>
+
+            {canManage && staffState.ready ? (
+              <AutoAssignCard
+                current={currentStaff}
+                suggested={staffState.suggested}
+                services={multiPart ? parsedParts.length : 1}
+                disabled={actionDisabled}
+                onAutoAssign={onAutoAssign}
+              />
+            ) : null}
+
+            {multiPart ? (
+              <BookingPartsEditor
+                booking={booking}
+                staffOptions={staffOptions}
+                availability={staffState.availability}
+                disabled={!canManage || actionDisabled}
+                onChange={onChangeParts}
+              />
+            ) : isSalonOwner ? (
+              <div className={`scheduleBookingArtist ${artistPickerOpen ? "is-open" : ""}${booking.staff ? "" : " is-empty"}`}>
                 <button
                   type="button"
                   className="scheduleBookingArtistCurrent"
                   disabled={!canManage || actionDisabled}
                   aria-expanded={canManage ? artistPickerOpen : undefined}
                   aria-haspopup={canManage ? "listbox" : undefined}
-                  onClick={() => canManage && setArtistPickerOpen((open) => !open)}
+                  onClick={() => canManage && setArtistPickerOpen((value) => !value)}
                 >
                   <span className="scheduleStaffAvatar hasImage" aria-hidden="true">
-                    <img src={currentArtistAvatar} alt="" />
+                    {booking.staff ? <img src={currentArtistAvatar} alt="" /> : <UserRound size={16} />}
                   </span>
                   <span className="scheduleBookingArtistCopy">
                     <small>آرتیست</small>
-                    <b>{booking.staff || "آرتیست ثبت نشده"}</b>
+                    <b>{booking.staff ? currentArtist?.artist_name || booking.staff : canManage ? "انتخاب آرتیست" : "آرتیست ثبت نشده"}</b>
                   </span>
                   {canManage ? <ChevronDown size={16} className="scheduleBookingArtistChevron" aria-hidden="true" /> : null}
                 </button>
                 {canManage && artistPickerOpen ? (
-                  <div className="scheduleBookingArtistList" role="listbox" aria-label="انتخاب آرتیست">
-                    {staffOptions.map((person) => {
-                      const personAvatar = person.avatar || person.staff_avatar || "";
-                      const active = person.name === booking.staff;
-                      return (
-                        <button
-                          type="button"
-                          role="option"
-                          aria-selected={active}
-                          key={person.id || person.name}
-                          className={active ? "is-selected" : ""}
-                          disabled={actionDisabled}
-                          onClick={() => {
-                            if (active) {
-                              setArtistPickerOpen(false);
-                              return;
-                            }
-                            onChangeStaff?.(person.name);
-                          }}
-                        >
-                          <span className={`scheduleStaffAvatar ${personAvatar ? "hasImage" : ""}`} aria-hidden="true">
-                            {personAvatar ? <img src={personAvatar} alt="" /> : String(person.artist_name || person.name || "آ").slice(0, 1)}
-                          </span>
-                          <span className="scheduleBookingStaffCopy">
-                            <b>{person.artist_name || person.name}</b>
-                            <small>{person.role || person.artist_service || "آرتیست"}{person.artist_area ? ` • ${person.artist_area}` : ""}</small>
-                          </span>
-                          {active ? <Check size={16} /> : null}
-                        </button>
-                      );
-                    })}
-                  </div>
-                ) : null}
-              </div>
-              ) : null}
-
-              {isPendingReview && !readOnly ? (
-                <div className="scheduleBookingReviewActions">
-                  {(() => {
-                    const createdAt = booking.createdAt || booking.created_at || "";
-                    const minutesLeft = getRequestExpiryMinutesLeft(createdAt);
-                    const deadline = formatRequestExpiryDeadline(createdAt);
-                    if (minutesLeft === null || !deadline) return null;
-                    return (
-                      <span className={`requestExpiryBadge ${minutesLeft <= 15 ? "is-urgent" : ""}`}>
-                        <Timer size={12} aria-hidden="true" />
-                        {minutesLeft > 0 ? `تا ساعت ${deadline} تایید کن` : "زمان تایید تمام شده"}
-                      </span>
-                    );
-                  })()}
-                  <button type="button" className="is-approve" disabled={actionDisabled} onClick={onApprove}>
-                    <Check size={16} />
-                    {busy ? "در حال…" : "تایید نوبت"}
-                  </button>
-                  <button type="button" className="is-decline" disabled={actionDisabled} onClick={onDecline}>
-                    <X size={16} />
-                    رد کردن
-                  </button>
-                </div>
-              ) : null}
-
-              {isSalonOwner && !readOnly && bookingTimeOffer(booking) ? (
-                <p className="scheduleBookingReadOnlyNote is-offer">
-                  <Timer size={14} aria-hidden="true" />
-                  ساعت تازه برای مشتری فرستاده شد (قبلاً {toPersianDigits(bookingTimeOffer(booking).fromTime)})؛ تا قبول یا رد کند، «{AWAITING_CLIENT}» می‌ماند.
-                </p>
-              ) : null}
-
-              {readOnly ? (
-                <p className="scheduleBookingReadOnlyNote">
-                  <Eye size={14} aria-hidden="true" />
-                  این رزرو گذشته است و فقط قابل مشاهده است.
-                </p>
-              ) : null}
-
-              <div className="scheduleBookingActionRow">
-                {canManage ? (
-                  <button type="button" className="is-time" disabled={actionDisabled} onClick={() => onViewChange?.("time")}>
-                    <Timer size={16} />
-                    تغییر ساعت
-                  </button>
-                ) : null}
-                <button
-                  type="button"
-                  className="is-icon"
-                  disabled={!phone}
-                  aria-label="تماس با مشتری"
-                  title="تماس"
-                  onClick={() => {
-                    if (phone) window.location.href = `tel:${toLatinDigits(phone)}`;
-                  }}
-                >
-                  <Phone size={17} />
-                </button>
-                {canManage ? (
-                  <button
-                    type="button"
-                    className="is-icon is-danger"
+                  <ArtistOptionList
+                    staffOptions={staffOptions}
+                    current={booking.staff || ""}
+                    availability={staffState.availability[0] || null}
+                    label="انتخاب آرتیست"
                     disabled={actionDisabled}
-                    aria-label="حذف رزرو"
-                    title="حذف رزرو"
-                    onClick={() => {
-                      if (typeof window !== "undefined" && !window.confirm("این رزرو لغو شود؟")) return;
-                      onCancel?.();
+                    onPick={async (name, active) => {
+                      if (active) {
+                        setArtistPickerOpen(false);
+                        return;
+                      }
+                      const ok = await onChangeStaff?.(name);
+                      if (ok !== false) setArtistPickerOpen(false);
                     }}
-                  >
-                    <Trash2 size={17} />
-                  </button>
+                  />
                 ) : null}
               </div>
-            </>
-          ) : null}
+            ) : null}
 
-          {view === "time" ? (
-            <>
-              <button type="button" className="scheduleBookingBack" disabled={actionDisabled} onClick={() => onViewChange?.("menu")}>
-                بازگشت
-              </button>
-              {isSalonOwner && (booking.client_user_id || booking.clientUserId) ? (
-                <p className="scheduleBookingReadOnlyNote is-offer">ساعت تازه برای مشتری فرستاده می‌شود تا قبول یا رد کند.</p>
-              ) : null}
-              <MoveTimeList
-                booking={booking}
+            {isSalonOwner && !readOnly && bookingTimeOffer(booking) ? (
+              <p className="scheduleBookingReadOnlyNote is-offer">
+                <Timer size={14} aria-hidden="true" />
+                ساعت تازه برای مشتری فرستاده شد (قبلاً {toPersianDigits(bookingTimeOffer(booking).fromTime)})؛ تا قبول یا رد کند، «{AWAITING_CLIENT}» می‌ماند.
+              </p>
+            ) : null}
+
+            {readOnly ? (
+              <p className="scheduleBookingReadOnlyNote">
+                <Eye size={14} aria-hidden="true" />
+                {isCancelled ? "این رزرو بسته شده و فقط قابل مشاهده است." : "این رزرو گذشته است و فقط قابل مشاهده است."}
+              </p>
+            ) : null}
+
+            {canManage && !isPendingReview ? (
+              <button
+                type="button"
+                className="sbmCancel"
                 disabled={actionDisabled}
-                onPick={(time, overtime) => onChangeTime?.(time, { overtime })}
-              />
-            </>
-          ) : null}
-
-        </div>
-        <button type="button" className="clientBookingSettingsClose" onClick={onClose} aria-label="بستن تنظیمات رزرو">
-          <X size={18} />
-        </button>
+                onClick={() => {
+                  if (typeof window !== "undefined" && !window.confirm("این رزرو لغو شود؟")) return;
+                  onCancel?.();
+                }}
+              >
+                <Trash2 size={15} aria-hidden="true" />
+                لغو این رزرو
+              </button>
+            ) : null}
+          </>
+        ) : (
+          <>
+            <button type="button" className="scheduleBookingBack sbmBack" disabled={actionDisabled} onClick={() => onViewChange?.("menu")}>
+              <ArrowRight size={15} aria-hidden="true" />
+              بازگشت به جزئیات
+            </button>
+            {isSalonOwner && (booking.client_user_id || booking.clientUserId) ? (
+              <p className="scheduleBookingReadOnlyNote is-offer">ساعت تازه برای مشتری فرستاده می‌شود تا قبول یا رد کند.</p>
+            ) : null}
+            <MoveTimeList
+              booking={booking}
+              disabled={actionDisabled}
+              onPick={(time, overtime) => onChangeTime?.(time, { overtime })}
+            />
+          </>
+        )}
       </div>
+
+      <footer className="sbmFoot">
+        {showReview && !timeView ? (
+          <div className="scheduleBookingReviewActions">
+            {minutesLeft !== null && deadline ? (
+              <span className={`requestExpiryBadge ${minutesLeft <= 15 ? "is-urgent" : ""}`}>
+                <Timer size={12} aria-hidden="true" />
+                {minutesLeft > 0 ? `تا ساعت ${deadline} تایید کن` : "زمان تایید تمام شده"}
+              </span>
+            ) : null}
+            <button type="button" className="is-approve" disabled={actionDisabled || (minutesLeft !== null && minutesLeft <= 0)} onClick={onApprove}>
+              <Check size={17} />
+              {busy ? "در حال…" : "تایید نوبت"}
+            </button>
+            <button type="button" className="is-decline" disabled={actionDisabled} onClick={onDecline}>
+              <X size={17} />
+              رد کردن
+            </button>
+          </div>
+        ) : null}
+        <nav className="sbmBar" aria-label="کارهای رزرو">
+          {canManage ? (
+            <button
+              type="button"
+              className={timeView ? "is-active" : ""}
+              aria-pressed={timeView}
+              disabled={actionDisabled}
+              onClick={() => onViewChange?.(timeView ? "menu" : "time")}
+            >
+              <Timer size={19} aria-hidden="true" />
+              <span>تغییر ساعت</span>
+            </button>
+          ) : null}
+          <button
+            type="button"
+            disabled={!phone}
+            aria-label={phone ? `تماس با ${title}` : "شماره‌ای ثبت نشده"}
+            onClick={() => {
+              if (phone) window.location.href = `tel:${toLatinDigits(phone)}`;
+            }}
+          >
+            <Phone size={19} aria-hidden="true" />
+            <span>تماس</span>
+          </button>
+          <button type="button" className="is-close" onClick={onClose}>
+            <X size={19} aria-hidden="true" />
+            <span>بستن</span>
+          </button>
+        </nav>
+      </footer>
     </div>
   );
 }

@@ -74,16 +74,22 @@ describe("booking flow (browser)", () => {
     expect(await cp.locator(".cbt").innerText()).toContain("منتظر تأیید");
     expect(clientView.problems).toEqual([]);
 
-    // salon: approve from the dashboard
+    // salon: the new request opens on its own as the full booking screen; approve it there
     const salonView = await newPage({ cookie: salonClient.cookie() });
     const sp = salonView.page;
     await sp.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
-    // the request is answered on its own booking card; if it is on another day, the notice jumps there
-    await sp.locator(".bkGroup, .pendingOtherDays").first().waitFor();
-    if (await sp.locator(".pendingOtherDays").count()) await sp.locator(".pendingOtherDays button").first().click();
-    const requestCard = sp.locator(".bkGroup").first();
-    await requestCard.getByRole("button", { name: "تایید" }).click();
-    await requestCard.waitFor({ state: "detached" });
+    const screen = sp.locator(".sbmScreen");
+    await screen.waitFor();
+    expect(await screen.innerText()).toContain("مشتری تست");
+    for (const label of ["تغییر ساعت", "تماس", "بستن"]) {
+      expect(await screen.locator(".sbmBar").getByRole("button", { name: label }).count()).toBe(1);
+    }
+    await screen.getByRole("button", { name: "تایید نوبت" }).click();
+    await screen.waitFor({ state: "detached" });
+    // answered once, it does not open again
+    await sp.reload({ waitUntil: "networkidle" });
+    expect(await sp.locator(".sbmScreen").count()).toBe(0);
+    expect(salonView.problems).toEqual([]);
 
     // the client's booking list now says confirmed
     const list = await clientApi.get("/api/client-bookings");

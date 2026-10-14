@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, ChevronDown, ChevronUp } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, UserRound } from "lucide-react";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { scheduleBookingParts } from "../../shared/lib/bookingParts";
@@ -13,12 +13,75 @@ function staffLabel(person) {
 }
 
 /**
- * «تقسیم بین آرتیست‌ها» in the booking menu of a multi-service booking: one row per service with
+ * The team as choices for one service of a booking. `availability` (from
+ * GET /api/salon-bookings/:id/staff, by name) marks who is free at that service's time, who does
+ * that service, and who is away; free people who do it come first, people with another
+ * appointment then cannot be picked (the server would refuse them anyway). Without availability
+ * (still loading, or it failed) everyone is listed as before and the server has the last word.
+ */
+export function ArtistOptionList({ staffOptions = [], current = "", availability = null, label, disabled = false, onPick, onClear, clearLabel }) {
+  const infoOf = (person) => availability?.get(String(person.name || "").trim()) || null;
+  const rank = (person) => {
+    const info = infoOf(person);
+    if (!info) return 1;
+    if (!info.free) return 4;
+    if (info.away) return 3;
+    return info.skilled ? 0 : 2;
+  };
+  const people = [...staffOptions].sort((a, b) => rank(a) - rank(b));
+
+  return (
+    <div className="bpeList" role="listbox" aria-label={label}>
+      {people.map((option) => {
+        const active = option.name === current;
+        const info = infoOf(option);
+        const busy = Boolean(info && !info.free) && !active;
+        return (
+          <button
+            type="button"
+            role="option"
+            aria-selected={active}
+            key={option.id || option.name}
+            className={`${active ? "is-selected" : ""}${busy ? " is-busy" : ""}`}
+            disabled={disabled || busy}
+            onClick={() => onPick?.(option.name, active)}
+          >
+            <span className="scheduleStaffAvatar hasImage" aria-hidden="true">
+              <img src={option.avatar || option.staff_avatar || DEFAULT_AVATAR} alt="" />
+            </span>
+            <span className="bpeOption">
+              <b>{staffLabel(option)}</b>
+              <small>{option.role || option.artist_service || "آرتیست"}</small>
+            </span>
+            {info ? (
+              <span className="bpeTags">
+                {info.skilled ? <i className="is-skill">کار همین خدمت</i> : null}
+                {info.away ? <i className="is-away">{info.away}</i> : null}
+                {active ? null : info.free ? <i className="is-free">آزاد</i> : <i className="is-busy">نوبت دارد</i>}
+              </span>
+            ) : null}
+            {active ? <Check size={16} /> : null}
+          </button>
+        );
+      })}
+      {onClear ? (
+        <button type="button" role="option" aria-selected={false} disabled={disabled} onClick={onClear}>
+          <span className="scheduleStaffAvatar" aria-hidden="true"><UserRound size={15} /></span>
+          <span className="bpeOption"><b>بدون آرتیست</b><small>{clearLabel || "سالن خودش انجام می‌دهد"}</small></span>
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * «تقسیم بین آرتیست‌ها» in the booking screen of a multi-service booking: one row per service with
  * its clock range (back to back from the booking's start, in this order), its artist, and arrows
  * to reorder. Every change is sent straight away as the whole new list (`onChange(parts)`); the
- * server checks each artist is free and refuses the change otherwise.
+ * server checks each artist is free and refuses the change otherwise. `availability[index]` is
+ * the team's free/busy map for that row (ArtistOptionList).
  */
-export function BookingPartsEditor({ booking, staffOptions = [], disabled = false, onChange }) {
+export function BookingPartsEditor({ booking, staffOptions = [], availability = [], disabled = false, onChange }) {
   const [openIndex, setOpenIndex] = useState(-1);
   const parts = scheduleBookingParts(booking.time, booking.parts);
   if (!parts.length) return null;
@@ -36,6 +99,11 @@ export function BookingPartsEditor({ booking, staffOptions = [], disabled = fals
   const giveAllTo = (staff) => send(parts.map((part) => ({ ...part, staff })));
   const firstStaff = parts.find((part) => part.staff)?.staff || "";
   const allSame = parts.every((part) => part.staff === firstStaff);
+  // «همه با …» only when that artist is free for every service (or availability is unknown).
+  const canGiveAll = firstStaff && !allSame && parts.every((part, index) => {
+    const info = availability[index]?.get(firstStaff);
+    return !info || info.free || part.staff === firstStaff;
+  });
 
   return (
     <div className="bpeBox">
@@ -44,7 +112,7 @@ export function BookingPartsEditor({ booking, staffOptions = [], disabled = fals
           <b>تقسیم بین آرتیست‌ها</b>
           <small>ساعت هر خدمت پشت سر هم از {toPersianDigits(parts[0].startLabel)} حساب می‌شود.</small>
         </span>
-        {!disabled && firstStaff && !allSame ? (
+        {!disabled && canGiveAll ? (
           <button type="button" className="bpeAll" onClick={() => giveAllTo(firstStaff)}>همه با {firstStaff}</button>
         ) : null}
       </div>
@@ -82,39 +150,18 @@ export function BookingPartsEditor({ booking, staffOptions = [], disabled = fals
                   <img src={person?.avatar || person?.staff_avatar || DEFAULT_AVATAR} alt="" />
                 </span>
               ) : null}
-              <span className="bpeWhoName">{part.staff ? staffLabel(person) || part.staff : "بدون آرتیست"}</span>
+              <span className="bpeWhoName">{part.staff ? staffLabel(person) || part.staff : "انتخاب آرتیست"}</span>
               {!disabled ? <ChevronDown size={14} aria-hidden="true" /> : null}
             </button>
             {open ? (
-              <div className="bpeList" role="listbox" aria-label={`انتخاب آرتیست ${part.service}`}>
-                {staffOptions.map((option) => {
-                  const active = option.name === part.staff;
-                  return (
-                    <button
-                      type="button"
-                      role="option"
-                      aria-selected={active}
-                      key={option.id || option.name}
-                      className={active ? "is-selected" : ""}
-                      onClick={() => (active ? setOpenIndex(-1) : assign(index, option.name))}
-                    >
-                      <span className="scheduleStaffAvatar hasImage" aria-hidden="true">
-                        <img src={option.avatar || option.staff_avatar || DEFAULT_AVATAR} alt="" />
-                      </span>
-                      <span className="bpeOption">
-                        <b>{staffLabel(option)}</b>
-                        <small>{option.role || option.artist_service || "آرتیست"}</small>
-                      </span>
-                      {active ? <Check size={16} /> : null}
-                    </button>
-                  );
-                })}
-                {part.staff ? (
-                  <button type="button" role="option" aria-selected={false} onClick={() => assign(index, "")}>
-                    <span className="bpeOption"><b>بدون آرتیست</b><small>سالن خودش انجام می‌دهد</small></span>
-                  </button>
-                ) : null}
-              </div>
+              <ArtistOptionList
+                staffOptions={staffOptions}
+                current={part.staff}
+                availability={availability[index] || null}
+                label={`انتخاب آرتیست ${part.service}`}
+                onPick={(name, active) => (active ? setOpenIndex(-1) : assign(index, name))}
+                onClear={part.staff ? () => assign(index, "") : null}
+              />
             ) : null}
           </div>
         );

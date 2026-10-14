@@ -39,6 +39,14 @@ export async function getSalonBookingMoveTimes(bookingId) {
 }
 
 /**
+ * GET /api/salon-bookings/:id/staff → { parts: [{ service, start, end, staff, options: [{ name, free, skilled, away }] }], suggested }
+ * salon-only: who on the team is free for each service of the booking, and the automatic split.
+ */
+export async function getSalonBookingStaffOptions(bookingId) {
+  return apiJson(`/api/salon-bookings/${encodeURIComponent(bookingId)}/staff`);
+}
+
+/**
  * POST /api/salon-bookings → 201
  * { booking, bookings, artistBooking?, linkedArtistId? }
  * When staff resolves to artist_user_id, also inserts artist_bookings (or rolls back on failure).
