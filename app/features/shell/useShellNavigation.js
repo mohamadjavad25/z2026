@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { apiFetch } from "../../shared/api/client";
 import { getSaves } from "../../shared/api/saves";
 import { ProfileSavedPosts } from "../profile/ProfileSavedPosts";
@@ -52,6 +52,8 @@ export function useShellNavigation({
   toggleSavedPost,
   publicArtistPortfolio
 }) {
+  // Where closing a salon page returns a client to ("profile" when it was opened from their home).
+  const salonReturnTabRef = useRef("");
 function getPassportMatch(post) {
     if (!beautyPassport?.active) return null;
     const scores = {
@@ -402,6 +404,8 @@ function getPassportMatch(post) {
   // ClientBookingSettingsModal (presentational; no data-shape branching there).
   function rebookFromBooking(booking) {
     if (!booking) return;
+    // From the client's home: closing the salon page comes back home, not to the «رزرو» tab.
+    salonReturnTabRef.current = activeTab === "profile" ? "profile" : "";
     if (booking.bookingSource === "artist") {
       rebookArtistFromBooking(booking);
       return;
@@ -429,9 +433,12 @@ function getPassportMatch(post) {
 
   // Leaving a salon page: clients go back to «سالن و آرتیست من» (same tab);
   // salons and artists have no such list, so they go back to their profile.
+  // A client who opened it from their home goes back home.
   function closeSelectedSalon() {
     setSelectedSalon(null);
-    if (createdProfile?.type !== "client") goToTab("profile");
+    const back = salonReturnTabRef.current;
+    salonReturnTabRef.current = "";
+    if (createdProfile?.type !== "client" || back === "profile") goToTab("profile");
   }
 
   // Opens a salon/artist card from «سالن و آرتیست من» (features/connect).
@@ -453,6 +460,17 @@ function getPassportMatch(post) {
       portfolio: [],
       staff: []
     });
+  }
+
+  // The client's home («سالن و آرتیست من» on the first page): same as above, but the salon page
+  // lives on the «رزرو» tab, so go there first and come back home when it is closed.
+  function openPlaceFromHome(profile, focus = null) {
+    if (!profile?.id) return;
+    if (profile.type !== "artist") {
+      salonReturnTabRef.current = "profile";
+      goToTab("salons");
+    }
+    openConnectedProfile(profile, focus);
   }
 
   async function openPostOwnerProfile(post) {
@@ -583,6 +601,7 @@ function getPassportMatch(post) {
     openOwnPublicProfile,
     closeSelectedSalon,
     openConnectedProfile,
+    openPlaceFromHome,
     openSalonStaffPublicProfile,
     shareSalonOwnerProfile,
     renderSavedPosts,

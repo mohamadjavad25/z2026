@@ -41,6 +41,24 @@ describe("client connections", () => {
     expect(after.payload.data.results[0].connected).toBe(true);
   });
 
+  it("lists each connection's services for the client's home only when asked", async () => {
+    const client = await newClient();
+    const salon = await newProfile("salon", `سالن خانه ${Date.now()}`);
+    await salon.api.get("/api/salon-hours");
+    await salon.api.post("/api/salon-services", { name: "کوتاهی مو", price: "300000", duration: "45 دقیقه" });
+    await salon.api.post("/api/salon-services", { name: "مانیکور", price: "200000", duration: "30 دقیقه" });
+    await client.api.post("/api/connections", { targetUserId: salon.user.id });
+
+    const plain = await client.api.get("/api/connections");
+    expect(plain.payload.data.connections[0].services).toBeUndefined();
+
+    const withServices = await client.api.get("/api/connections?services=1");
+    const card = withServices.payload.data.connections[0];
+    expect(card.serviceCount).toBe(2);
+    expect(card.services.map((service) => service.name)).toEqual(["کوتاهی مو", "مانیکور"]);
+    expect(card.services[0]).toMatchObject({ price: "300000", duration: "45 دقیقه" });
+  });
+
   it("finds by public page link and by name, and can disconnect", async () => {
     const client = await newClient();
     const artist = await newProfile("artist", `آرتیست یكتا ${Date.now()}`);

@@ -86,8 +86,17 @@ describe("booking flow (browser)", () => {
     await cp.locator(".bspTime").first().click();
     expect(await cp.locator(".salonClientBookingSummary").innerText()).toContain("ساعت");
     await cp.getByRole("button", { name: "ثبت درخواست نوبت" }).click();
-    await cp.locator(".cbt.is-wait").waitFor();
+    // "now what?": a full screen says the request reached the salon and how long the answer can take
+    const receipt = cp.locator(".brScreen");
+    await receipt.waitFor();
+    expect(await receipt.innerText()).toContain(`درخواستت به ${name} رسید`);
+    expect(await receipt.locator(".brCount").innerText()).toContain("دقیقه تا مهلت جواب");
+    await cp.locator(".cbt.is-wait").waitFor({ state: "attached" });
     expect(await cp.locator(".cbt").innerText()).toContain("منتظر تأیید");
+    // and takes the client home, where the new booking is the first card
+    await receipt.getByRole("button", { name: "دیدن در «نوبت‌های من»" }).click();
+    await receipt.waitFor({ state: "detached" });
+    await cp.locator(".clientHome .cvCard.is-fresh", { hasText: name }).waitFor();
     expect(clientView.problems).toEqual([]);
 
     // salon: the new request opens on its own as the full booking screen; approve it there
@@ -199,6 +208,36 @@ describe("booking flow (browser)", () => {
 });
 
 describe("client starts from what they want (browser)", () => {
+  it("books straight from the home page: the connected salon's service, a time, then the receipt", async () => {
+    const { name, salon } = await seedSalon();
+    const clientApi = createClient();
+    await registerUser(clientApi, { type: "client", name: "مشتری خانه" });
+    expect((await clientApi.post("/api/connections", { targetUserId: salon.user.id })).ok).toBe(true);
+
+    const { page, context, problems } = await newPage({ cookie: clientApi.cookie() });
+    await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
+    // one page under the header: no «پروفایل / فعالیت من» switch
+    expect(await page.locator(".profileModeRail").count()).toBe(0);
+    const place = page.locator(".chPlace");
+    await place.waitFor();
+    expect(await place.innerText()).toContain(name);
+    await place.locator(".chServices button", { hasText: "کوتاهی مو" }).click();
+    await page.locator(".sduItem.is-selected", { hasText: "کوتاهی مو" }).waitFor();
+    await page.locator(".sduConfirm").click();
+    await page.locator(".bspTime").first().click();
+    await page.getByRole("button", { name: "ثبت درخواست نوبت" }).click();
+    const receipt = page.locator(".brScreen");
+    await receipt.waitFor();
+    // closing the salon page from here goes back home, not to the «رزرو» tab
+    await receipt.getByRole("button", { name: `برگشت به صفحهٔ ${name}` }).click();
+    await receipt.waitFor({ state: "detached" });
+    await page.getByRole("button", { name: "بازگشت به سالن‌ها" }).click();
+    await page.locator(".clientHome .cvCard", { hasText: name }).waitFor();
+    expect(problems).toEqual([]);
+    await context.close();
+  });
+
+
   it("one connected salon does it: straight to its services, the service already picked", async () => {
     const { name, client: salonClient, salon } = await seedSalon();
     await salonClient.post("/api/salon-services", { name: "کاشت ناخن", price: "900000", duration: "120 دقیقه" });

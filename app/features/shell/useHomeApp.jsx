@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { clientBookingKey } from "../client/bookingStatus";
 import { useAuthSession } from "../auth";
 import { usePostActivity } from "../posts";
 import { useSalonDirectory, useSalonWorkspace } from "../salons";
@@ -36,6 +37,12 @@ export function useHomeApp() {
   const [appToast, setAppToast] = useState("");
   const [pushSoftAskVisible, setPushSoftAskVisible] = useState(false);
   const [clientBookingSettings, setClientBookingSettings] = useState(null);
+  // Right after a client books: the «درخواستت رسید» screen (features/client/BookingReceipt) and, on
+  // their home, the booking that glows so they see where it went.
+  const [bookingReceipt, setBookingReceipt] = useState(null);
+  const [freshBookingKey, setFreshBookingKey] = useState("");
+  const onClientBookedRef = useRef(null);
+  const onClientBooked = useCallback((booking, extra) => onClientBookedRef.current?.(booking, extra), []);
   const [beautyPassport, setBeautyPassport] = useState(null);
   const [followedArtists, setFollowedArtists] = useState([]);
   // Full card data for the "ذخیره‌شده‌ها" (saved) profile tab — from
@@ -238,8 +245,22 @@ export function useHomeApp() {
     onNotice: setAppToast,
     onShellNotice: setAppToast,
     onOwnerBookingsSync: (bookings) => applySalonBookingsRef.current?.(bookings, { bump: true }),
-    onLinkedArtistBooked: (id) => notifyArtistBookingCreatedRef.current?.(id)
+    onLinkedArtistBooked: (id) => notifyArtistBookingCreatedRef.current?.(id),
+    onClientBooked
   });
+  onClientBookedRef.current = (booking, { price = "" } = {}) => {
+    if (createdProfile?.type !== "client" || !booking?.id) return;
+    const key = clientBookingKey(booking);
+    setBookingReceipt({ key, booking, price });
+    setFreshBookingKey(key);
+    if (booking.bookingSource === "artist") void refreshClientBookings();
+  };
+  // The new booking glows on the home page once, then it is an ordinary card.
+  useEffect(() => {
+    if (!freshBookingKey || bookingReceipt || activeTab !== "profile") return undefined;
+    const timer = window.setTimeout(() => setFreshBookingKey(""), 6000);
+    return () => window.clearTimeout(timer);
+  }, [freshBookingKey, bookingReceipt, activeTab]);
 
   // Clients don't have a real-time "seen" flag from the server, so we track
   // which booking statuses the client has already looked at locally: a
@@ -506,6 +527,7 @@ export function useHomeApp() {
     setFollowedSalons,
     openPost,
     notifyArtistBookingCreated,
+    onClientBooked,
     artistServiceList,
     salonServiceList,
     upsertArtistOwnerService,
@@ -644,6 +666,10 @@ export function useHomeApp() {
     setPushSoftAskVisible,
     clientBookingSettings,
     setClientBookingSettings,
+    bookingReceipt,
+    setBookingReceipt,
+    freshBookingKey,
+    setFreshBookingKey,
     beautyPassport,
     setScheduleViewDay,
     salonWeekHistoryOpen,

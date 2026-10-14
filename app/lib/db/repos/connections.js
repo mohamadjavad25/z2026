@@ -88,8 +88,11 @@ async function toCards(db, rows, connectedIds = null) {
   return rows.map((row) => toCard(row, hours, connectedIds));
 }
 
-/** The client's connected salons and artists, newest first. */
-export async function listConnections(clientUserId) {
+// How many services each card carries for the client's home («سالن و آرتیست من» on the first page).
+const HOME_SERVICE_LIMIT = 6;
+
+/** The client's connected salons and artists, newest first. `withServices`: each card also lists its first services. */
+export async function listConnections(clientUserId, { withServices = false } = {}) {
   const db = await getDb();
   const rows = await all(db, `
     SELECT ${PROFILE_COLUMNS}
@@ -99,7 +102,29 @@ export async function listConnections(clientUserId) {
     WHERE f.follower_user_id = $1 AND ${IS_ACTIVE_PROFILE}
     ORDER BY f.created_at DESC
   `, [clientUserId]);
-  return toCards(db, rows);
+  const cards = await toCards(db, rows);
+  return withServices ? attachServices(db, cards) : cards;
+}
+
+/** Adds `services` ({ name, price, duration, emoji }, the salon's or artist's own order) and `serviceCount` to each card. */
+async function attachServices(db, cards) {
+  if (!cards.length) return cards;
+  const salonIds = cards.filter((card) => card.type === "salon").map((card) => card.id);
+  const artistIds = cards.filter((card) => card.type === "artist").map((card) => card.id);
+  const [salonRows, artistRows] = await Promise.all([
+    salonIds.length ? all(db, "SELECT salon_user_id AS owner_id, name, price, duration, emoji FROM salon_services WHERE salon_user_id = ANY($1) ORDER BY id", [salonIds]) : [],
+    artistIds.length ? all(db, "SELECT user_id AS owner_id, name, price, duration, emoji FROM artist_services WHERE user_id = ANY($1) ORDER BY id", [artistIds]) : []
+  ]);
+  const byOwner = new Map();
+  for (const row of [...salonRows, ...artistRows]) {
+    const list = byOwner.get(row.owner_id) || [];
+    list.push({ name: row.name || "", price: row.price || "", duration: row.duration || "", emoji: row.emoji || "" });
+    byOwner.set(row.owner_id, list);
+  }
+  return cards.map((card) => {
+    const list = byOwner.get(card.id) || [];
+    return { ...card, services: list.slice(0, HOME_SERVICE_LIMIT), serviceCount: list.length };
+  });
 }
 
 /**
