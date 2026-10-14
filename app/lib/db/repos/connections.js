@@ -249,6 +249,11 @@ export async function lookupProfile(viewer, { type, id }) {
   const row = await get(db, `SELECT ${PROFILE_COLUMNS} ${PROFILE_FROM} WHERE u.id = $1 AND u.type = $2 AND u.suspended_at IS NULL`, [id, type]);
   if (!row) return null;
   const [profile] = await toCards(db, [row]);
+  // A salon's rules are what an artist agrees to when joining its team.
+  if (row.type === "salon" && viewer.type === "artist") {
+    const salon = await get(db, "SELECT rules FROM salons WHERE user_id = $1", [row.id]);
+    profile.rules = salon?.rules || "";
+  }
 
   let relation = "none";
   if (row.id === viewer.id) {

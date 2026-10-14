@@ -1046,3 +1046,10 @@ button.svcCard:active { transform: scale(0.99); }
 .quickBioInput:focus { border-color: #14161d; box-shadow: 0 0 0 3px rgba(20, 22, 29, 0.08); }
 .quickBioSave { margin-top: 12px; width: 100%; min-height: 50px; border: 0; border-radius: 16px; background: #14161d; color: #fff; font: inherit; font-size: 0.9rem; font-weight: 900; cursor: pointer; }
 .quickBioSave:disabled { background: #ececf1; color: #8a8e99; cursor: default; }
+
+/* Salon rules shown to an artist joining the team */
+.salonRulesNote { border-radius: 14px; background: #f6f6f9; text-align: right; }
+.salonRulesNote summary { min-height: 44px; display: flex; align-items: center; gap: 8px; padding: 0 12px; color: #14161d; font-size: 0.82rem; font-weight: 900; cursor: pointer; list-style: none; }
+.salonRulesNote summary::-webkit-details-marker { display: none; }
+.salonRulesNote p { margin: 0; padding: 0 12px 12px; color: #3a3d4c; font-size: 0.8rem; font-weight: 650; line-height: 1.9; white-space: pre-line; }
+.salonRulesAgree { margin: 0; color: #6a6e7a; font-size: 0.72rem; font-weight: 750; line-height: 1.7; text-align: center; }

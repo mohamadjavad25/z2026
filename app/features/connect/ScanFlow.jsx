@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { QrScanner } from "../../components/QrScanner";
 import { connectScannedClient, connectTo, joinSalonTeam, lookupScannedCode } from "../../shared/api/connections";
+import { SalonRulesNote } from "../salons/SalonRulesNote";
 import { createSalonInvite } from "../../shared/api/salons";
 import { readScannedCode } from "../../shared/lib/connectCodes";
 import { ConnectionCard } from "./ConnectionCard";
@@ -34,7 +35,11 @@ function profileAction(viewerType, profile, relation) {
     return { note: "آرتیست بعد از دیدن دعوت تأیید می‌کند.", label: "دعوت به تیم", kind: "invite" };
   }
   if (relation === "member") return { note: "عضو تیم این سالن هستی." };
-  return { note: "با پیوستن، در پرسنل این سالن قرار می‌گیری.", label: "پیوستن به تیم", kind: "join" };
+  return {
+    note: profile.rules ? "با پیوستن، قوانین سالن را می‌پذیری." : "با پیوستن، در پرسنل این سالن قرار می‌گیری.",
+    label: profile.rules ? "قبول قوانین و پیوستن" : "پیوستن به تیم",
+    kind: "join"
+  };
 }
 
 /**
@@ -152,6 +157,7 @@ export function ScanFlow({ viewerType, connect, onOpenProfile, onChanged, onClos
             </button>
           ) : null}
         />
+        {viewerType === "artist" && profile.type === "salon" && relation !== "member" ? <SalonRulesNote rules={profile.rules} open /> : null}
         {action.note ? <p className="cnScanNote" role="status">{action.note}</p> : null}
         {scanAgain}
       </div>

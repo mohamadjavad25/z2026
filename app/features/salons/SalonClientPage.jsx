@@ -175,16 +175,6 @@ export function SalonClientPage({
           </section>
           ) : null}
 
-          {selectedSalon.rules ? (
-            <section className="salonPublicCard spvRules">
-              <div className="salonPublicSectionHead">
-                <span />
-                <h3>قوانین سالن</h3>
-              </div>
-              <p>{selectedSalon.rules}</p>
-            </section>
-          ) : null}
-
           {weekHours.length ? (
             <section className="salonPublicCard spvHours">
               <div className="salonPublicSectionHead">

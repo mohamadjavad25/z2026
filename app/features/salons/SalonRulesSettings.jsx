@@ -10,14 +10,14 @@ const MAX_LENGTH = 2000;
 
 const PLACEHOLDER = [
   "مثال:",
-  "• لغو نوبت تا ۲۴ ساعت قبل بدون هزینه است.",
-  "• تاخیر بیش از ۱۵ دقیقه ممکن است باعث لغو نوبت شود.",
-  "• پیش‌پرداخت برای خدمات بلند الزامی است."
+  "• حضور آرتیست ۱۵ دقیقه قبل از شروع شیفت.",
+  "• پوشش و ظاهر مرتب در سالن.",
+  "• هماهنگی هر مرخصی یا تغییر شیفت با مدیر، حداقل ۲۴ ساعت قبل."
 ].join("\n");
 
 /**
  * Settings row + editor sheet where the salon writes its rules & terms.
- * Saved text is shown to clients on the public salon page ("درباره سالن").
+ * Saved text is shown to an artist when they join the salon or are invited to its team.
  */
 export function SalonRulesSettings({ onNotify }) {
   const [open, setOpen] = useState(false);
@@ -92,7 +92,7 @@ export function SalonRulesSettings({ onNotify }) {
         onClose={() => (saving ? null : setOpen(false))}
       >
         <p className="salonRulesHint">
-          هر بند را در یک خط بنویس. این متن در صفحه عمومی سالن به مشتری‌ها نمایش داده می‌شود.
+          هر بند را در یک خط بنویس. آرتیست‌ها این قوانین را موقع پیوستن به سالن یا قبول دعوت می‌بینند و باید طبق آن‌ها کار کنند.
         </p>
         <textarea
           className="salonRulesInput"
