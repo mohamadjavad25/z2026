@@ -1,0 +1,467 @@
+/* «آموزش» on the about page (features/landing/LearnSection.jsx, TutorialScreen.jsx).
+   A dark stage with a mock phone that plays a tutorial like a silent screen recording, video-style
+   controls under it, and the list of tutorials with their steps beside it. The phone shows the app
+   in its day look in both themes (like a recording), so its colours are fixed; everything around it
+   uses the page tokens from landing.css. Client tutorials use the pink accent, salon and artist the
+   violet one, as in the app (docs/DESIGN_SYSTEM.md). */
+
+.learn {
+  --pw: 300px; /* phone width; everything on the phone is sized in em from it */
+  --m-bg: #ffffff;
+  --m-ink: #0c0d12;
+  --m-text: #2b2e3a;
+  --m-muted: #6b6f7d;
+  --m-fill: #f2f2f7;
+  --m-line: rgba(12, 13, 18, 0.09);
+  --m-accent: #8b6cff;
+  --m-on-accent: #ffffff;
+  --m-accent-soft: #ece8ff;
+  --m-accent-deep: #5b3fd6;
+  --learn-glow-a: rgba(139, 108, 255, 0.5);
+  --learn-glow-b: rgba(255, 134, 184, 0.32);
+}
+.learn.is-client {
+  --m-accent: #ff86b8;
+  --m-on-accent: #0c0d12;
+  --m-accent-soft: #ffe3ef;
+  --m-accent-deep: #c42a74;
+  --learn-glow-a: rgba(255, 134, 184, 0.48);
+  --learn-glow-b: rgba(139, 108, 255, 0.34);
+}
+
+/* ---------- Role switch ---------- */
+.learn__roles {
+  display: inline-flex;
+  gap: 6px;
+  margin-bottom: var(--space-6);
+  padding: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--l-card);
+  border: 1px solid var(--l-line);
+}
+.learn__roles button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 10px 20px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--l-muted);
+  font: inherit;
+  font-weight: 900;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: background var(--duration-base) ease, color var(--duration-base) ease;
+}
+.learn__roles button:hover { color: var(--l-fg); }
+.learn__roles button.is-on { background: var(--l-fill); color: var(--l-on-fill); }
+
+.learn__side, .learn__player { min-width: 0; }
+.learn__layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-6); align-items: start; }
+
+/* ---------- Stage ---------- */
+.learn__stage {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  padding: clamp(28px, 4vw, 44px) var(--space-4) var(--space-5);
+  border-radius: 32px;
+  background: var(--l-ink);
+  overflow: hidden;
+}
+.learn__glow {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(22rem 18rem at 85% 18%, var(--learn-glow-a), transparent 65%),
+    radial-gradient(20rem 16rem at 10% 90%, var(--learn-glow-b), transparent 65%);
+  animation: landingDrift 12s ease-in-out infinite alternate;
+}
+
+.learn__phone {
+  position: relative;
+  width: var(--pw);
+  aspect-ratio: 9 / 19;
+  border: 8px solid #000;
+  border-radius: 42px;
+  background: var(--m-bg);
+  overflow: hidden;
+  font-size: calc(var(--pw) / 21);
+  line-height: 1.55;
+  color: var(--m-text);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.18), 0 40px 80px rgba(0, 0, 0, 0.45);
+  user-select: none;
+}
+
+.lsStatusBar {
+  position: relative;
+  height: 2.4em;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.7em;
+  font-size: 0.82em;
+  font-weight: 900;
+  color: var(--m-ink);
+}
+.lsStatusBar::before {
+  content: "";
+  position: absolute;
+  top: 0.45em;
+  left: 50%;
+  translate: -50% 0;
+  width: 32%;
+  height: 1.6em;
+  border-radius: 1em;
+  background: #000;
+}
+.lsStatusBar i { width: 1.9em; height: 0.85em; border-radius: 0.25em; border: 0.14em solid var(--m-ink); position: relative; }
+.lsStatusBar i::after { content: ""; position: absolute; inset: 0.1em; inset-inline-start: 0.4em; border-radius: 0.1em; background: var(--m-ink); }
+
+.lsScreen { position: absolute; inset: 2em 0 0; overflow: hidden; background: var(--m-bg); }
+.lsScreenSlide { position: absolute; inset: 0; animation: learnScreenIn 0.45s var(--ease-standard) both; }
+.lsScreenInner { height: 100%; display: flex; flex-direction: column; }
+.lsBody { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 0.7em; padding: 0.8em 1em 0.6em; overflow: hidden; }
+
+/* ---------- Mock app elements ---------- */
+.lsTitle { display: grid; gap: 0.15em; padding-top: 0.4em; }
+.lsTitle strong { font-size: 1.4em; font-weight: 900; color: var(--m-ink); line-height: 1.4; }
+.lsTitle span { font-size: 0.78em; color: var(--m-muted); font-weight: 700; }
+
+.lsBar { display: flex; align-items: center; gap: 0.4em; min-height: 2em; }
+.lsBar strong { font-size: 1.12em; font-weight: 900; color: var(--m-ink); }
+.lsBarBack { order: 2; margin-inline-start: auto; width: 1.4em; height: 1.4em; color: var(--m-ink); }
+
+.lsTabs { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; padding: 0.25em; border-radius: 99em; background: var(--m-fill); }
+.lsTabs span { padding: 0.45em 0.3em; border-radius: 99em; text-align: center; font-size: 0.78em; font-weight: 800; color: var(--m-muted); white-space: nowrap; }
+.lsTabs span.is-on { background: var(--m-bg); color: var(--m-ink); box-shadow: 0 0.15em 0.6em rgba(12, 13, 18, 0.1); }
+
+.lsRail { display: flex; gap: 0.35em; }
+.lsRail span { flex: 1; padding: 0.4em 0.2em; border-radius: 99em; background: var(--m-fill); text-align: center; font-size: 0.74em; font-weight: 800; color: var(--m-text); }
+.lsRail span.is-on { background: var(--m-ink); color: #fff; }
+
+.lsSearch, .lsField { display: flex; align-items: center; gap: 0.5em; min-height: 2.8em; padding: 0 0.9em; border-radius: 0.95em; background: var(--m-fill); font-size: 0.86em; color: var(--m-ink); font-weight: 700; }
+.lsSearch svg { width: 1.15em; height: 1.15em; flex: none; color: var(--m-muted); }
+.lsField.is-focus, .lsSearch.is-filled { background: var(--m-bg); box-shadow: 0 0 0 0.12em var(--m-accent); }
+.lsPlaceholder { color: var(--m-muted); font-weight: 600; }
+.lsFieldWrap { display: grid; gap: 0.25em; }
+.lsLabel { font-size: 0.72em; font-weight: 800; color: var(--m-muted); }
+
+.lsType { display: inline-block; white-space: nowrap; animation: learnType calc(var(--n) * 75ms + 150ms) steps(var(--n), end) var(--type-delay, 0.3s) both; }
+.lsType.is-ltr { animation-name: learnTypeLtr; }
+
+.lsCheck { display: flex; align-items: center; gap: 0.55em; font-size: 0.78em; font-weight: 700; color: var(--m-text); padding: 0.2em 0; }
+.lsCheckBox { width: 1.4em; height: 1.4em; flex: none; display: grid; place-items: center; border-radius: 0.4em; border: 0.13em solid var(--m-muted); }
+.lsCheck.is-on .lsCheckBox { background: var(--m-accent); border-color: var(--m-accent); color: var(--m-on-accent); }
+.lsCheckBox svg { width: 1em; height: 1em; stroke-width: 3.5; }
+
+.lsRoles { display: grid; gap: 0.6em; }
+.lsRole { display: grid; gap: 0.1em; padding: 0.85em 1em; border-radius: 1.1em; border: 0.12em solid var(--m-line); background: var(--m-bg); }
+.lsRole strong { font-size: 1.02em; font-weight: 900; color: var(--m-ink); }
+.lsRole span { font-size: 0.72em; color: var(--m-muted); font-weight: 700; }
+.lsRole.is-on { border-color: var(--m-accent); background: var(--m-accent-soft); }
+
+.lsHead { display: grid; }
+.lsHead strong { font-size: 0.9em; font-weight: 900; color: var(--m-ink); }
+.lsHead span { font-size: 0.7em; color: var(--m-muted); font-weight: 700; }
+.lsNote { margin: 0; padding: 0.7em; border: 0.1em dashed rgba(12, 13, 18, 0.2); border-radius: 0.9em; text-align: center; font-size: 0.74em; font-weight: 700; color: var(--m-muted); }
+.lsSummary { align-self: flex-start; margin: 0; padding: 0.4em 0.85em; border-radius: 99em; background: var(--m-fill); font-size: 0.74em; font-weight: 800; color: var(--m-text); }
+
+.lsChips { display: flex; flex-wrap: wrap; gap: 0.4em; }
+.lsChips.is-grid { display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); }
+.lsChip { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 2.5em; padding: 0.35em 0.7em; border-radius: 0.85em; background: var(--m-fill); font-size: 0.76em; font-weight: 800; color: var(--m-ink); line-height: 1.35; text-align: center; transition: background 0.25s ease, color 0.25s ease; }
+.lsChip small { font-size: 0.82em; font-weight: 700; color: var(--m-muted); }
+.lsChip.is-on { background: var(--m-accent); color: var(--m-on-accent); }
+.lsChip.is-on small { color: inherit; opacity: 0.8; }
+
+.lsCard { display: flex; align-items: center; gap: 0.6em; padding: 0.65em 0.75em; border-radius: 1.1em; background: var(--m-bg); border: 0.08em solid var(--m-line); box-shadow: 0 0.3em 1em rgba(12, 13, 18, 0.06); }
+.lsAvatar { width: 2.6em; height: 2.6em; flex: none; display: grid; place-items: center; border-radius: 50%; background: linear-gradient(135deg, #ff86b8, #8b6cff); color: #fff; font-size: 1em; font-weight: 900; }
+.lsAvatar.is-small { width: 2.1em; height: 2.1em; font-size: 0.85em; }
+.lsPlaceText { flex: 1; min-width: 0; display: grid; line-height: 1.45; }
+.lsPlaceText strong { font-size: 0.86em; font-weight: 900; color: var(--m-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lsPlaceText span { font-size: 0.68em; font-weight: 700; color: var(--m-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lsPlaceText b { font-size: 0.72em; font-weight: 900; color: var(--m-ink); margin-top: 0.2em; }
+.lsMini { flex: none; padding: 0.4em 0.95em; border-radius: 99em; background: var(--m-ink); color: #fff; font-size: 0.72em; font-weight: 900; }
+
+.lsService { display: flex; align-items: center; gap: 0.6em; padding: 0.4em 0.1em; border-bottom: 0.08em solid var(--m-line); }
+.lsIcon { width: 2.5em; height: 2.5em; flex: none; padding: 0.25em; border-radius: 0.75em; background: var(--m-fill); object-fit: contain; }
+
+.lsBtn { display: grid; place-items: center; min-height: 2.9em; padding: 0 1em; border-radius: 1em; background: var(--m-ink); color: #fff; font-size: 0.86em; font-weight: 900; text-align: center; }
+.lsBtn.is-ghost { background: transparent; color: var(--m-ink); box-shadow: inset 0 0 0 0.12em rgba(12, 13, 18, 0.18); }
+.lsBtns { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5em; }
+
+.lsEmpty { display: grid; justify-items: center; gap: 0.25em; padding: 0.9em 0.8em 1em; border-radius: 1.2em; background: var(--m-fill); text-align: center; }
+.lsEmpty img { height: 5.6em; width: auto; }
+.lsEmpty strong { font-size: 0.92em; font-weight: 900; color: var(--m-ink); }
+.lsEmpty span { font-size: 0.72em; font-weight: 700; color: var(--m-muted); }
+
+.lsStatus { display: flex; align-items: center; gap: 0.7em; padding: 0.9em; border-radius: 1.2em; background: var(--m-fill); animation: learnPop 0.5s var(--ease-standard) 0.1s both; }
+.lsStatus.is-ok { background: var(--m-ink); }
+.lsStatus.is-ok .lsPlaceText strong, .lsStatus.is-ok .lsPlaceText b { color: #fff; }
+.lsStatus.is-ok .lsPlaceText span { color: rgba(255, 255, 255, 0.7); }
+.lsStatusIcon { width: 2.5em; height: 2.5em; flex: none; display: grid; place-items: center; border-radius: 50%; background: var(--m-accent-soft); color: var(--m-accent-deep); }
+.lsStatus.is-ok .lsStatusIcon { background: linear-gradient(135deg, #ff86b8, #8b6cff); color: #fff; }
+.lsStatusIcon svg { width: 1.25em; height: 1.25em; stroke-width: 2.6; }
+
+.lsRequest.is-new { box-shadow: 0 0 0 0.12em var(--m-accent), 0 0.4em 1.2em rgba(12, 13, 18, 0.08); }
+.lsBadge { flex: none; padding: 0.25em 0.7em; border-radius: 99em; font-size: 0.64em; font-weight: 900; white-space: nowrap; }
+.lsBadge.is-new { background: var(--m-accent); color: var(--m-on-accent); }
+.lsBadge.is-ok { background: var(--m-ink); color: #fff; }
+
+.lsRows { display: grid; border-radius: 1.1em; background: var(--m-bg); border: 0.08em solid var(--m-line); overflow: hidden; }
+.lsRow { display: flex; align-items: center; gap: 0.5em; padding: 0.55em 0.85em; }
+.lsRow + .lsRow { border-top: 0.08em solid var(--m-line); }
+.lsRow .lsPlaceText strong { font-size: 0.8em; }
+.lsChevron { width: 1.05em; height: 1.05em; flex: none; color: var(--m-muted); }
+.lsToggle { position: relative; width: 2.3em; height: 1.35em; flex: none; border-radius: 99em; background: #d3d4de; transition: background 0.3s ease; }
+.lsToggle::after { content: ""; position: absolute; top: 0.15em; inset-inline-start: 0.15em; width: 1.05em; height: 1.05em; border-radius: 50%; background: #fff; box-shadow: 0 0.1em 0.3em rgba(0, 0, 0, 0.2); transition: inset-inline-start 0.3s var(--ease-standard); }
+.lsToggle.is-on { background: var(--m-accent); }
+.lsToggle.is-on::after { inset-inline-start: 1.1em; }
+
+.lsQr { display: grid; justify-items: center; gap: 0.5em; padding-top: 0.8em; text-align: center; }
+.lsQrCode { width: 11em; padding: 1em; border-radius: 1.4em; background: #fff; color: var(--m-ink); box-shadow: 0 0 0 0.08em var(--m-line), 0 0.8em 2em rgba(91, 63, 214, 0.2); animation: learnPop 0.5s var(--ease-standard) 0.15s both; }
+.lsQrCode svg, .lsScanFrame svg { display: block; width: 100%; height: auto; fill: currentColor; }
+.lsQr strong { font-size: 1.1em; font-weight: 900; color: var(--m-ink); }
+.lsQr > span { max-width: 17em; font-size: 0.76em; font-weight: 700; color: var(--m-muted); }
+
+.lsScan { display: grid; gap: 0.7em; }
+.lsScan p { margin: 0; text-align: center; font-size: 0.74em; font-weight: 700; color: var(--m-muted); }
+.lsScanView { position: relative; display: grid; place-items: center; aspect-ratio: 1; border-radius: 1.4em; background: radial-gradient(circle at 30% 20%, #4a4e5c, #1a1c26 70%); overflow: hidden; }
+.lsScanFrame { width: 52%; padding: 0.6em; border-radius: 0.6em; background: #fff; color: var(--m-ink); box-shadow: 0 0 0 0.35em rgba(255, 255, 255, 0.25), 0 0 0 0.5em var(--m-accent); }
+.lsScanLine { position: absolute; inset-inline: 18%; top: 22%; height: 0.2em; border-radius: 1em; background: var(--m-accent); box-shadow: 0 0 1em var(--m-accent); animation: learnScanLine 1.4s ease-in-out infinite alternate; }
+.lsFound { animation: learnPop 0.5s var(--ease-standard) 0.5s both; }
+
+.lsGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.45em; }
+.lsGrid > span { display: grid; justify-items: center; gap: 0.15em; padding: 0.5em 0.2em; border-radius: 1em; background: var(--m-fill); font-size: 0.72em; font-weight: 800; color: var(--m-ink); }
+.lsGrid .lsIcon { width: 3em; height: 3em; background: transparent; padding: 0; }
+
+.lsGallery { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.3em; }
+.lsTile { display: grid; place-items: center; aspect-ratio: 1; border-radius: 0.7em; background: linear-gradient(140deg, #ffe3ef, #efeaff); }
+.lsTile .lsIcon { width: 70%; height: 70%; background: transparent; }
+.lsTile.is-add { background: var(--m-fill); box-shadow: inset 0 0 0 0.1em rgba(12, 13, 18, 0.18); color: var(--m-muted); }
+.lsTile.is-add svg { width: 1.6em; height: 1.6em; }
+.lsTile.is-fresh { box-shadow: 0 0 0 0.15em var(--m-accent); animation: learnPop 0.6s var(--ease-standard) 0.35s both; }
+
+.lsPhoto { display: grid; place-items: center; align-content: center; gap: 0.35em; aspect-ratio: 4 / 3; border-radius: 1.2em; background: var(--m-fill); box-shadow: inset 0 0 0 0.1em rgba(12, 13, 18, 0.18); color: var(--m-muted); text-align: center; }
+.lsPhoto svg { width: 2em; height: 2em; }
+.lsPhoto > span { font-size: 0.74em; font-weight: 800; }
+.lsPhoto.is-filled { background: linear-gradient(140deg, #ffc4dd, #d6ccff); box-shadow: none; animation: learnPop 0.5s var(--ease-standard) both; }
+.lsPhoto.is-filled .lsIcon { width: 55%; height: auto; aspect-ratio: 1; background: transparent; }
+
+.lsHero { position: relative; display: grid; justify-items: center; padding-top: 1.9em; text-align: center; line-height: 1.45; }
+.lsHeroCover { position: absolute; top: 0; inset-inline: 0; height: 3.2em; border-radius: 1.1em; background: linear-gradient(120deg, #ffc4dd, #d6ccff); }
+.lsHero .lsAvatar { position: relative; width: 3em; height: 3em; font-size: 1.1em; box-shadow: 0 0 0 0.18em #fff; }
+.lsHero > strong { margin-top: 0.25em; font-size: 0.98em; font-weight: 900; color: var(--m-ink); }
+.lsHero > span { font-size: 0.7em; font-weight: 700; color: var(--m-muted); }
+.lsHeroActions { display: flex; gap: 0.5em; margin-top: 0.45em; }
+.lsHeroActions span { width: 2.3em; height: 2.3em; display: grid; place-items: center; border-radius: 50%; background: var(--m-fill); color: var(--m-ink); }
+.lsHeroActions svg { width: 1.1em; height: 1.1em; }
+
+.lsNav { flex: none; display: grid; grid-template-columns: 1fr 1fr 1fr; align-items: center; height: 4.4em; padding-bottom: 0.6em; border-top: 0.08em solid var(--m-line); background: var(--m-bg); }
+.lsNav > span { display: grid; justify-items: center; gap: 0.1em; font-size: 0.66em; font-weight: 800; color: var(--m-muted); }
+.lsNav > span.is-on { color: var(--m-ink); }
+.lsNav svg { width: 1.9em; height: 1.9em; }
+.lsNav > .lsNavMe { justify-self: center; width: 3.9em; height: 3.9em; border-radius: 50%; background: linear-gradient(135deg, #ff86b8, #8b6cff); box-shadow: 0 0 0 0.2em var(--m-bg), 0 0 0 0.35em var(--m-accent); }
+
+/* Bottom sheet over the screen. */
+.lsScrim { position: absolute; inset: 0; background: rgba(12, 13, 18, 0.4); animation: learnFade 0.3s ease both; }
+.lsSheet { position: absolute; inset-inline: 0; bottom: 0; display: flex; flex-direction: column; gap: 0.65em; padding: 0.5em 1em 1.3em; border-radius: 1.6em 1.6em 0 0; background: var(--m-bg); box-shadow: 0 -1em 3em rgba(12, 13, 18, 0.25); animation: learnSheetIn 0.45s var(--ease-standard) both; }
+.lsSheetGrip { align-self: center; width: 2.8em; height: 0.3em; border-radius: 1em; background: #d3d4de; }
+.lsSheetTitle { font-size: 1em; font-weight: 900; color: var(--m-ink); }
+
+.lsToast { position: absolute; z-index: 4; top: 0.7em; left: 50%; display: flex; align-items: center; gap: 0.45em; padding: 0.5em 1em 0.5em 0.8em; border-radius: 99em; background: var(--m-ink); color: #fff; font-size: 0.76em; font-weight: 800; white-space: nowrap; box-shadow: 0 0.6em 1.6em rgba(12, 13, 18, 0.3); translate: -50% 0; animation: learnToast 0.5s var(--ease-standard) 0.35s both; }
+.lsToast span { width: 1.5em; height: 1.5em; display: grid; place-items: center; border-radius: 50%; background: linear-gradient(135deg, #ff86b8, #8b6cff); font-size: 0.85em; }
+
+/* The finger: a "show touches" dot that glides to the target, then presses it. */
+.lsTouch {
+  position: absolute;
+  z-index: 5;
+  top: 0;
+  left: 0;
+  width: 2.6em;
+  height: 2.6em;
+  margin: -1.3em 0 0 -1.3em;
+  transform: translate(var(--tx), var(--ty));
+  transition: transform 0.75s cubic-bezier(0.3, 0.7, 0.2, 1), opacity 0.3s ease;
+  pointer-events: none;
+}
+.lsTouch.is-hidden { opacity: 0; }
+.lsTouch i {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(40, 40, 54, 0.3);
+  border: 0.14em solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 0.2em 0.8em rgba(0, 0, 0, 0.3);
+  animation: learnTap 0.36s ease var(--press, 0.95s) both;
+}
+.lsTouch i::after { content: ""; position: absolute; inset: -0.28em; border-radius: 50%; border: 0.14em solid var(--m-accent); opacity: 0; animation: learnRipple 0.6s ease-out var(--press, 0.95s) both; }
+.lsScreen .is-target { animation: learnTarget 0.36s ease var(--press, 0.95s) both; }
+
+/* Paused: everything on the phone holds still (the scene timer is paused in LearnSection). */
+.learn__stage.is-paused *, .learn__stage.is-paused *::before, .learn__stage.is-paused *::after { animation-play-state: paused !important; }
+
+.learn__caption {
+  min-height: 3.2em;
+  max-width: 26em;
+  margin: 0;
+  display: grid;
+  place-items: center;
+  padding: 6px 16px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-weight: 900;
+  font-size: 1rem;
+  line-height: 1.6;
+  text-align: center;
+  animation: learnCaption 0.4s var(--ease-standard) both;
+}
+
+.learn__end {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  background: rgba(12, 13, 18, 0.8);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  color: #fff;
+  text-align: center;
+  animation: learnFade 0.3s ease both;
+}
+.learn__end strong { font-size: 1.2rem; font-weight: 900; }
+.learn__end div { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-2); }
+.learn__endBtn { display: inline-flex; align-items: center; gap: var(--space-2); padding: 10px 20px; border: 0; border-radius: var(--radius-pill); background: #fff; color: var(--l-ink); font: inherit; font-weight: 900; font-size: 0.92rem; cursor: pointer; }
+.learn__endBtn.is-ghost { background: transparent; color: #fff; box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.4); }
+
+/* ---------- Video controls ---------- */
+.learn__controls { display: flex; align-items: center; gap: var(--space-3); margin-top: var(--space-3); padding: 0 var(--space-1); }
+.learn__play { width: 44px; height: 44px; flex: none; display: grid; place-items: center; border: 0; border-radius: 50%; background: var(--l-fill); color: var(--l-on-fill); cursor: pointer; transition: transform var(--duration-fast) ease; }
+.learn__play:hover { transform: scale(1.06); }
+.learn__bar { flex: 1; display: flex; gap: 4px; }
+.learn__bar span { flex: 1; height: 5px; border-radius: 4px; background: var(--l-line); overflow: hidden; }
+.learn__bar span.is-done { background: var(--l-fg); }
+.learn__bar i { display: block; width: 0; height: 100%; background: var(--l-fg); animation: learnFill linear forwards; }
+.learn__bar i.is-paused { animation-play-state: paused; }
+.learn__time { flex: none; font-size: 0.82rem; font-weight: 800; color: var(--l-muted); font-variant-numeric: tabular-nums; }
+
+/* ---------- Tutorial list and steps ---------- */
+.learn__list { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.learn__list button {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 14px 16px;
+  border: 1px solid var(--l-line);
+  border-radius: 20px;
+  background: var(--l-card);
+  color: var(--l-text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: box-shadow var(--duration-base) ease, transform var(--duration-fast) ease;
+}
+.learn__list button:hover { transform: translateY(-1px); }
+.learn__list button.is-on { box-shadow: 0 0 0 1.5px var(--l-fg), 0 14px 34px rgba(12, 13, 18, 0.08); }
+.learn__num { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; background: var(--l-violet-soft); color: var(--l-violet-deep); font-weight: 900; font-size: 0.92rem; }
+.learn__list button.is-on .learn__num { background: var(--l-fill); color: var(--l-on-fill); }
+.learn__listText { display: grid; line-height: 1.6; }
+.learn__listText strong { font-weight: 900; font-size: 1rem; color: var(--l-fg); }
+.learn__listText small { font-size: 0.84rem; color: var(--l-muted); }
+.learn__dur { font-size: 0.76rem; font-weight: 800; color: var(--l-muted); white-space: nowrap; }
+
+.learn__steps { margin-top: var(--space-4); padding: var(--space-5); border-radius: 24px; background: var(--l-card); border: 1px solid var(--l-line); }
+.learn__stepsHead { margin: 0 0 var(--space-3); font-size: 0.9rem; color: var(--l-muted); }
+.learn__stepsHead strong { color: var(--l-fg); font-weight: 900; }
+.learn__steps ol { margin: 0; padding: 0; list-style: none; counter-reset: learnStep; display: grid; gap: 2px; }
+.learn__steps li { counter-increment: learnStep; }
+.learn__steps li button {
+  position: relative;
+  width: 100%;
+  padding: 7px 8px;
+  padding-inline-start: 40px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--l-muted);
+  font: inherit;
+  font-size: 0.92rem;
+  line-height: 1.7;
+  text-align: start;
+  cursor: pointer;
+  transition: background var(--duration-fast) ease, color var(--duration-fast) ease;
+}
+.learn__steps li button::before {
+  content: counter(learnStep, persian);
+  position: absolute;
+  inset-inline-start: 6px;
+  top: 8px;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--l-mist);
+  color: var(--l-muted);
+  font-weight: 900;
+  font-size: 0.78rem;
+  line-height: 1;
+}
+.learn__steps li button:hover { background: var(--l-mist); color: var(--l-fg); }
+.learn__steps li button.is-done { color: var(--l-text); }
+.learn__steps li button.is-done::before { background: var(--l-violet-soft); color: var(--l-violet-deep); }
+.learn__steps li button.is-on { color: var(--l-fg); font-weight: 900; background: var(--l-mist); }
+.learn__steps li button.is-on::before { background: var(--l-fill); color: var(--l-on-fill); }
+
+/* ---------- Motion ---------- */
+@keyframes learnScreenIn { from { opacity: 0; transform: translateX(-14%); } to { opacity: 1; transform: none; } }
+@keyframes learnSheetIn { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes learnFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes learnPop { from { opacity: 0; scale: 0.9; } to { opacity: 1; scale: 1; } }
+@keyframes learnToast { from { opacity: 0; translate: -50% -140%; } to { opacity: 1; translate: -50% 0; } }
+@keyframes learnType { from { clip-path: inset(0 0 0 100%); } to { clip-path: inset(0 0 0 0); } }
+@keyframes learnTypeLtr { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes learnRipple { 0% { opacity: 0.95; scale: 1; } 100% { opacity: 0; scale: 2.3; } }
+@keyframes learnTap { 0%, 100% { scale: 1; } 45% { scale: 0.78; } }
+@keyframes learnTarget { 0%, 100% { scale: 1; } 45% { scale: 0.95; filter: brightness(0.94); } }
+@keyframes learnScanLine { from { top: 22%; } to { top: 76%; } }
+@keyframes learnCaption { from { opacity: 0; translate: 0 6px; } to { opacity: 1; translate: 0 0; } }
+@keyframes learnFill { from { width: 0; } to { width: 100%; } }
+
+/* ---------- Smaller screens ---------- */
+@media (max-width: 960px) {
+  .learn__layout { grid-template-columns: minmax(0, 1fr); }
+  .learn__player { max-width: 560px; width: 100%; margin-inline: auto; }
+}
+
+@media (max-width: 720px) {
+  .learn { --pw: 244px; }
+  .learn__roles { display: grid; grid-template-columns: repeat(3, 1fr); width: 100%; }
+  .learn__roles button { justify-content: center; padding: 10px 6px; font-size: 0.86rem; }
+  .learn__roles button svg { display: none; }
+  .learn__stage { border-radius: 26px; }
+  .learn__caption { font-size: 0.92rem; }
+  /* The tutorial list scrolls sideways so the player stays near the top. */
+  .learn__list { display: flex; gap: var(--space-2); margin-inline: calc(-1 * var(--space-4)); padding: 2px var(--space-4) var(--space-2); overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
+  .learn__list::-webkit-scrollbar { display: none; }
+  .learn__list li { flex: 0 0 min(78%, 280px); scroll-snap-align: start; }
+  .learn__list button { height: 100%; }
+  .learn__steps { margin-top: var(--space-3); padding: var(--space-4); }
+}
+
+@media (max-width: 380px) {
+  .learn { --pw: 224px; }
+}

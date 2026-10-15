@@ -42,6 +42,7 @@
 @import "./styles/features/connect.css";
 @import "./styles/features/publicProfile.css";
 @import "./styles/features/landing.css";
+@import "./styles/features/landingLearn.css";
 @import "./styles/features/clientHome.css";
 @import "./styles/features/theme.css";
 @import "./styles/islands.css";
