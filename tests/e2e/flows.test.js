@@ -482,6 +482,8 @@ async function settleAnimations(page) {
   ]));
 }
 
+const ONE_PX_PNG = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
+
 describe("dialogs (browser)", () => {
   it("the main owner dialogs have no serious or critical axe violations", async () => {
     const axePath = new URL("../../node_modules/axe-core/axe.min.js", import.meta.url).pathname;
@@ -493,7 +495,15 @@ describe("dialogs (browser)", () => {
       }],
       ["artist", "ایجاد پست", async (page) => {
         await page.locator(".profileModeRail button", { hasText: "نمونه‌کار" }).click();
-        await page.getByRole("button", { name: /ایجاد پست/ }).first().click();
+        // "Create post" opens the device gallery first; the picked photo goes to the crop step.
+        const [chooser] = await Promise.all([
+          page.waitForEvent("filechooser"),
+          page.getByRole("button", { name: /ایجاد پست/ }).first().click()
+        ]);
+        await chooser.setFiles({ name: "post.png", mimeType: "image/png", buffer: Buffer.from(ONE_PX_PNG, "base64") });
+        // Leave the crop step so the details form is what gets checked.
+        await page.locator("[role=dialog]").last().getByRole("button", { name: "انصراف" }).click();
+        await page.locator(".artistWorkForm").waitFor();
       }],
       ["salon", "ویرایش پروفایل", async (page) => {
         await page.locator("nav.bottomNav > button").nth(0).click();
