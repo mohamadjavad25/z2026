@@ -242,8 +242,9 @@ export function ProfilePostComposer({
                     >
                       <Crop size={15} />
                     </button>
-                    <label className="artistWorkUploadBtn" aria-label="تعویض تصویر" title="تعویض تصویر">
+                    <label className="artistWorkUploadBtn" title="تعویض تصویر">
                       <ImagePlus size={15} />
+                      <span className="srOnly">تعویض تصویر</span>
                       <input className="captureInput" type="file" accept="image/*" onChange={handleFile} disabled={saving} />
                     </label>
                     <button type="button" onClick={onImageClear} disabled={saving} aria-label="حذف تصویر" title="حذف تصویر">
