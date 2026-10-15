@@ -10,7 +10,6 @@ import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
 import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar";
 import { toIsoLikeTimestamp } from "../../shared/lib/time";
 import { AWAITING_CLIENT } from "../../shared/lib/bookingOffer";
-import { shortServiceLabel } from "../../shared/lib/serviceBundle";
 import { pushNotificationsSupported, subscribeToPushNotifications } from "../shell/homeAppHelpers";
 import { bookingEndLabel, clientBookingKey } from "./bookingStatus";
 
@@ -72,7 +71,27 @@ export function BookingReceipt({ receipt, bookings = [], onClose, onViewBookings
   const who = isArtist ? "آرتیست" : "سالن";
   const place = live.salonName || live.salon_name || who;
   const stage = stageOf(live.status);
-  const service = shortServiceLabel(live.service) || "نوبت";
+  // Every service on its own line. The picked services come with the receipt; a booking opened
+  // later only has the joined text (« + »), which is split back into names.
+  const lines = (() => {
+    const picked = (Array.isArray(receipt.items) ? receipt.items : []).filter((item) => item?.name);
+    if (picked.length) {
+      return picked.map((item) => ({
+        name: item.name,
+        emoji: item.emoji || "",
+        duration: item.duration || "",
+        price: parseTomanAmount(item.price)
+      }));
+    }
+    const names = String(live.service || "").split(" + ").map((name) => name.trim()).filter(Boolean);
+    if (!names.length) return [{ name: "نوبت", emoji: live.service_emoji, duration: "", price: 0 }];
+    return names.map((name, index) => ({
+      name,
+      emoji: index === 0 ? live.service_emoji : "",
+      duration: "",
+      price: names.length === 1 ? parseTomanAmount(receipt.price) : 0
+    }));
+  })();
   const day = formatRelativeBookingDayLabel(live.booking_date || live.date || "امروز");
   const time = live.time ? toPersianDigits(live.time) : "";
   const end = bookingEndLabel(live);
@@ -122,14 +141,25 @@ export function BookingReceipt({ receipt, bookings = [], onClose, onViewBookings
         ) : null}
 
         <div className="brCard brSummary">
-          <div className="brSvc">
-            <ServiceIcon emoji={live.service_emoji} name={live.service} size="sm" />
-            <span>
-              <b>{service}</b>
-              <small>{place}</small>
-            </span>
-            {price ? <em>{formatTomanNumber(price)} <small>تومان</small></em> : null}
-          </div>
+          <p className="brPlace">{place}</p>
+          <ul className="brLines" aria-label="خدمات این نوبت">
+            {lines.map((line, index) => (
+              <li key={`${line.name}-${index}`} className="brSvc">
+                <ServiceIcon emoji={line.emoji} name={line.name} size="sm" />
+                <span>
+                  <b>{line.name}</b>
+                  {line.duration ? <small>{toPersianDigits(line.duration)}</small> : null}
+                </span>
+                {line.price ? <em>{formatTomanNumber(line.price)} <small>تومان</small></em> : null}
+              </li>
+            ))}
+          </ul>
+          {lines.length > 1 && price ? (
+            <div className="brTotal">
+              <span>جمع</span>
+              <em>{formatTomanNumber(price)} <small>تومان</small></em>
+            </div>
+          ) : null}
           <div className="brRow">
             <span><Clock3 size={15} aria-hidden="true" /> زمان</span>
             <b>{day}{time ? ` · ${time}` : ""}{end ? ` تا ${toPersianDigits(end)}` : ""}</b>

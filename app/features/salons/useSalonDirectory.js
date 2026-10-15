@@ -608,10 +608,13 @@ export function useSalonDirectory({
       // they're waiting" gap this line exists to close.
       if (bookedRow && typeof onClientBooked === "function") {
         // The client gets the full «درخواستت رسید» screen instead of a passing toast.
-        const price = salonClientBooking.bundle?.name === salonClientBooking.service
-          ? salonClientBooking.bundle.price
-          : salonClientSelectedService?.price;
-        onClientBooked(bookedRow, { price: price || "" });
+        const isBundle = salonClientBooking.bundle?.name === salonClientBooking.service;
+        const price = isBundle ? salonClientBooking.bundle.price : salonClientSelectedService?.price;
+        // Every service on its own line, like an invoice (the booking row stores only joined text).
+        const items = isBundle
+          ? salonClientBooking.bundle.items
+          : (salonClientSelectedService ? [salonClientSelectedService] : []);
+        onClientBooked(bookedRow, { price: price || "", items });
       } else {
         shellMsg("درخواست رزرو ثبت شد؛ در انتظار تایید سالن.");
         notify(`رزرو ${salonClientBooking.service} برای ${salonClientBooking.day} ساعت ${salonClientBooking.time} ثبت شد و در انتظار تایید سالن است.`);
