@@ -2,9 +2,9 @@
 
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { SheetClose } from "../../components/SheetClose";
+import { SheetBackHandler, SheetClose } from "../../components/SheetClose";
 
-export function ProfileSheet({ open, kicker = "پروفایل", title, label, panelClassName = "", hideHeader = false, onClose, children }) {
+export function ProfileSheet({ open, kicker = "پروفایل", title, label, panelClassName = "", hideHeader = false, hideClose = false, onClose, children }) {
   // Every sheet in the app shares this shell, so Escape-to-close only
   // needs to live in one place to cover all of them.
   const panelRef = useRef(null);
@@ -72,7 +72,7 @@ export function ProfileSheet({ open, kicker = "پروفایل", title, label, pa
           </div>
         )}
         {children}
-        <SheetClose onClick={onClose} label={`بستن ${title || ""}`.trim()} />
+        {hideClose ? <SheetBackHandler onClose={onClose} /> : <SheetClose onClick={onClose} label={`بستن ${title || ""}`.trim()} />}
       </aside>
     </div>,
     document.body

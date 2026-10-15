@@ -352,8 +352,6 @@
 .bcfTime.is-on { border-color: #14161d; background: #14161d; color: #fff; }
 .bcfEmptyTimes { margin: 0; padding: 14px; border-radius: 14px; background: #f6f6f8; color: #6f7380; font-size: 0.78rem; font-weight: 800; text-align: center; }
 
-/* extra room below so the fixed close (X) button never sits on the save button */
-.bcfFoot { display: grid; gap: 8px; padding-top: 2px; margin-bottom: 96px; }
 .bcfHint { margin: 0; color: #b4232a; font-size: 0.72rem; font-weight: 800; text-align: center; }
 .bcfSubmit { width: 100%; min-height: 56px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: 18px; background: #14161d; color: #fff; font: inherit; font-size: 0.92rem; font-weight: 950; cursor: pointer; box-shadow: 0 12px 24px rgba(20, 22, 29, 0.18); }
 .bcfSubmit:active { transform: scale(0.98); }
@@ -387,40 +385,89 @@
 .bcfTime { min-height: 40px; border-radius: 12px; font-size: 0.82rem; }
 .bcfMore { min-height: 36px; border-radius: 12px; font-size: 0.76rem; }
 .bcfNote { padding: 8px 10px; font-size: 0.72rem; line-height: 1.6; }
-.bcfFoot { padding-top: 0; gap: 6px; margin-bottom: 84px; }
 .bcfSubmit { min-height: 52px; border-radius: 16px; }
 
-/* ═══ Day calendar in the booking form: artist tabs on top, one tall column of half hours below ═══
-   Built for a salon of ten artists: the tabs scroll sideways and the list never gets wider than the
-   screen. Every state has its own solid colour and a word, nothing is faded out. */
-.bcfGrid { display: grid; gap: 8px; }
-.bcfGridHint { margin: 0; color: #4b4f5c; font-size: 0.74rem; font-weight: 800; }
-.bcfStaffStrip { display: flex; gap: 8px; margin-inline: -4px; padding: 2px 4px 6px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x proximity; scrollbar-width: none; }
+/* ═══ One-screen booking sheet ═══════════════════════════════════════════════════════════
+   No page scroll: the sheet is exactly one screen tall, the customer / service / day rows keep their
+   natural height and the day calendar takes all the rest and scrolls on its own. There is no close
+   button (the phone's back button closes it); the save button floats at the bottom instead.
+   Pink (#ff86b8, the brand accent) marks every "chosen" state; everything else stays plain grey. */
+.salonHeroSheetBackdrop .salonHeroSheetPanel.bookingSheet {
+  --bcf-pink: #ff86b8;
+  --bcf-fill: #f4f4f7;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+  padding: max(6px, env(safe-area-inset-top)) 12px 0;
+}
+.bookingSheet .salonHeroSheetHead { padding: 2px 4px 0 !important; }
+.bookingSheet .salonHeroSheetHead h3 { justify-content: center; font-size: 0.84rem !important; }
+.salonHeroSheetPanel.bookingSheet .salonHeroSheetHead h3::before,
+.salonHeroSheetPanel.bookingSheet .salonHeroSheetHead h3::after { content: none; }
+.bookingSheet .bookingSheetBody { flex: 1; display: flex; flex-direction: column; gap: 0; min-height: 0; }
+.bookingSheet .bcf { flex: 1; display: flex; flex-direction: column; gap: 8px; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+.bookingSheet .bcf::-webkit-scrollbar { display: none; }
+.bookingSheet .bcfGroup { flex: none; gap: 6px; }
+.bookingSheet .bcfGroup.is-grid { flex: 1; min-height: 190px; }
+
+/* Customer */
+.bcf input[name="client"], .bcf input[name="phone"] { min-height: 42px; border: 1.5px solid transparent; border-radius: 14px; background: var(--bcf-fill, #f4f4f7); font-size: 0.86rem; }
+.bcf input[name="client"]::placeholder, .bcf input[name="phone"]::placeholder { color: #8a8e99; font-weight: 700; }
+.bcf input[name="client"]:focus, .bcf input[name="phone"]:focus { border-color: #ff86b8; background: #fff; box-shadow: none; }
+.bcfInputs { gap: 6px; }
+.bcfChip.is-person { min-height: 30px; padding: 0 12px; border: 0; background: var(--bcf-fill, #f4f4f7); color: #4b4f5c; font-size: 0.72rem; font-weight: 800; }
+
+/* Service + day chips: plain grey, pink when chosen */
+.bcfChip, .bcfDay { border: 0; background: var(--bcf-fill, #f4f4f7); color: #3f4350; }
+.bcfChip, .bcfChips[aria-label="انتخاب خدمت"] .bcfChip { min-height: 36px; padding: 0 14px; font-size: 0.78rem; }
+.bcfChip.is-on, .bcfDay.is-on { background: #ff86b8; color: #14161d; }
+.bcfChip.is-person.is-on { background: #ff86b8; }
+.bcfDay { min-width: 64px; min-height: 38px; padding: 0 12px; border-radius: 12px; font-size: 0.74rem; }
+.bcfDay.is-full { background: var(--bcf-fill, #f4f4f7); color: #9a9eaa; }
+.bcfMeta { margin: 0 2px; color: #6f7380; font-size: 0.68rem; line-height: 1.2; }
+.bcfNote { padding: 6px 10px; font-size: 0.7rem; line-height: 1.5; }
+
+/* Calendar: artist tabs on top (they scroll sideways, so ten artists fit), one column of half hours */
+.bcfGrid { flex: 1; display: flex; flex-direction: column; gap: 6px; min-height: 0; }
+.bcfGridHint { margin: 0; color: #6f7380; font-size: 0.7rem; font-weight: 800; }
+.bcfStaffStrip { flex: none; display: flex; gap: 6px; margin-inline: -12px; padding: 0 12px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x proximity; scrollbar-width: none; }
 .bcfStaffStrip::-webkit-scrollbar { display: none; }
-.bcfStaffTab { flex: none; display: grid; gap: 1px; min-width: 88px; max-width: 150px; padding: 8px 14px; border: 1.5px solid #dcdee5; border-radius: 16px; background: #fff; color: #14161d; font: inherit; text-align: center; scroll-snap-align: center; cursor: pointer; }
-.bcfStaffTab b { overflow: hidden; font-size: 0.82rem; font-weight: 900; text-overflow: ellipsis; white-space: nowrap; }
-.bcfStaffTab small { color: #1f7a4d; font-size: 0.68rem; font-weight: 800; }
-.bcfStaffTab.is-full small { color: #6f7380; }
-.bcfStaffTab.is-on { border-color: #14161d; background-color: #14161d; color: #fff; }
-.bcfStaffTab.is-on small { color: #ffd3e6; }
-.bcfStaffTab.has-pick:not(.is-on) { border-color: #c2185b; }
-.bcfStaffTab:focus-visible { outline: 2px solid #c2185b; outline-offset: 2px; }
-.bcfDayList { max-height: min(52vh, 420px); overflow-y: auto; border: 1px solid #dcdee5; border-radius: 18px; background: #fff; overscroll-behavior: contain; }
-.bcfSlot { display: flex; align-items: stretch; border-top: 1px solid #eceef2; }
+.bcfStaffTab { flex: none; display: grid; gap: 0; min-width: 78px; max-width: 140px; padding: 5px 12px; border: 1.5px solid transparent; border-radius: 13px; background: var(--bcf-fill, #f4f4f7); color: #14161d; font: inherit; text-align: center; scroll-snap-align: center; cursor: pointer; }
+.bcfStaffTab b { overflow: hidden; font-size: 0.78rem; font-weight: 900; line-height: 1.5; text-overflow: ellipsis; white-space: nowrap; }
+.bcfStaffTab small { color: #1f7a4d; font-size: 0.64rem; font-weight: 800; line-height: 1.3; }
+.bcfStaffTab.is-full small { color: #8a8e99; }
+.bcfStaffTab.is-on { background: #ff86b8; color: #14161d; }
+.bcfStaffTab.is-on small { color: #14161d; }
+.bcfStaffTab.has-pick:not(.is-on) { border-color: #ff86b8; }
+.bcfStaffTab:focus-visible { outline: 2px solid #14161d; outline-offset: 2px; }
+
+.bcfDayList { flex: 1; min-height: 0; overflow-y: auto; border: 1px solid #e6e8ee; border-radius: 16px; background: #fff; overscroll-behavior: contain; }
+.bcfDayList::after { content: ""; display: block; height: 84px; }
+.bcfSlot { display: flex; align-items: stretch; border-top: 1px solid #eef0f4; }
 .bcfSlot:first-child { border-top: 0; }
-.bcfSlot.is-hour { border-top-color: #cfd2da; }
+.bcfSlot.is-hour { border-top-color: #d5d8e0; }
 .bcfSlot.is-hour:first-child { border-top: 0; }
-.bcfSlotTime { flex: none; width: 56px; padding-top: 12px; color: #6f7380; font-size: 0.72rem; font-weight: 800; text-align: center; font-variant-numeric: tabular-nums; }
+.bcfSlotTime { flex: none; width: 54px; padding-top: 12px; color: #6f7380; font-size: 0.7rem; font-weight: 800; text-align: center; font-variant-numeric: tabular-nums; }
 .bcfSlot.is-hour .bcfSlotTime { color: #14161d; font-weight: 900; }
-.bcfSlotCell { flex: 1; min-height: 44px; overflow: hidden; padding: 0 12px; border: 0; border-inline-start: 1px solid #eceef2; border-radius: 0; background-color: #fff; color: #1f7a4d; font: inherit; font-size: 0.76rem; font-weight: 800; text-align: start; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
-.bcfSlotCell.is-free:hover { background-color: #f1faf5; }
+.bcfSlotCell { flex: 1; min-height: 42px; overflow: hidden; padding: 0 12px; border: 0; border-inline-start: 1px solid #eef0f4; border-radius: 0; background-color: #fff; color: #1f7a4d; font: inherit; font-size: 0.74rem; font-weight: 700; text-align: start; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+.bcfSlotCell.is-free:hover { background-color: #fff3f8; }
 .bcfSlotCell:focus-visible { outline: 2px solid #14161d; outline-offset: -2px; }
 .bcfSlotCell:disabled { cursor: default; }
-.bcfSlotCell.is-short { background-color: #fafafc; color: #8a8e99; font-size: 0.7rem; }
+.bcfSlotCell.is-short { background-color: #fafafc; color: #8a8e99; font-size: 0.68rem; }
 .bcfSlotCell.is-past { background-color: #f1f2f5; }
 .bcfSlotCell.is-busy { background: repeating-linear-gradient(-45deg, #e9ebf0 0 6px, #dfe2e8 6px 12px); color: #3f4350; font-weight: 900; }
-.bcfSlotCell.is-pick, .bcfSlotCell.is-head { background-color: #14161d; color: #fff; font-weight: 900; box-shadow: inset 4px 0 0 #ff86b8; }
-.bcfSlotCell.is-pick, .bcfSlotCell.is-head { border-inline-start-color: #14161d; }
+.bcfSlotCell.is-pick, .bcfSlotCell.is-head { background-color: #ff86b8; color: #14161d; font-weight: 900; border-inline-start-color: #ff86b8; }
 /* The page-wide tap "press" animation (tokens.css) scales buttons down on :active; inside a scrolling
    list that left cells without their fill on some mobile browsers, and the cells already show state. */
 .bcfSlotCell:active { scale: 1; }
+
+/* Floating save button (portaled to <body>, sits where the old close button was) */
+.bcfFab { position: fixed; left: 50%; bottom: max(16px, env(safe-area-inset-bottom)); z-index: var(--z-sheet-close); display: grid; gap: 6px; justify-items: center; width: max-content; max-width: calc(100vw - 32px); transform: translateX(-50%); pointer-events: none; }
+.bcfFab > * { pointer-events: auto; }
+.bcfFab .bcfHint { padding: 4px 12px; border-radius: 999px; background: #fff; box-shadow: 0 4px 14px rgba(20, 22, 29, 0.12); }
+.bcfFab .bcfSubmit { width: auto; min-height: 52px; padding: 0 26px; border-radius: 999px; background: #ff86b8; color: #14161d; font-size: 0.9rem; box-shadow: 0 10px 26px rgba(255, 134, 184, 0.55), 0 2px 8px rgba(20, 22, 29, 0.14); }
+.bcfFab .bcfSubmit.is-incomplete { background: #f8c3da; box-shadow: 0 6px 18px rgba(255, 134, 184, 0.3); }
+.bcfFab .bcfSubmit:active { transform: scale(0.96); }
