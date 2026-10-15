@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createClient, registerUser, futureBookingDay } from "./helpers.js";
+import { createClient, joinSalonAsArtist, registerUser, futureBookingDay } from "./helpers.js";
 
 async function setup() {
   const salonClient = createClient();
@@ -7,7 +7,7 @@ async function setup() {
   await salonClient.get("/api/salon-hours");
   const artistClient = createClient();
   const artist = await registerUser(artistClient, { type: "artist", name: "Rojan Staff" });
-  const join = await artistClient.post("/api/artist/join-salon", { salonUserId: salon.user.id });
+  const join = await joinSalonAsArtist(artistClient, salonClient, salon.user.id);
   expect(join.ok).toBe(true);
   const clientClient = createClient();
   const client = await registerUser(clientClient, { type: "client", name: "Sync Client" });

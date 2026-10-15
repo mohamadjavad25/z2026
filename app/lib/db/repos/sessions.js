@@ -1,10 +1,21 @@
+import { createHash } from "node:crypto";
 import { getDb, get, run } from "../connection.js";
+
+// The cookie carries the real, high-entropy token; only its sha256 ever touches the
+// database -- same reasoning admin_sessions already applies (app/lib/adminAuth.js
+// token_hash) so a leaked DB snapshot/backup can't be replayed as a live session.
+// This is a one-way, un-keyed hash purely to avoid storing the bearer token verbatim,
+// not a password hash: the token itself is already a large random value (see
+// createSessionForUser in app/lib/auth.js), so a fast hash is the right tool here.
+function hashToken(token) {
+  return createHash("sha256").update(String(token || "")).digest("hex");
+}
 
 export async function createSession(token, userId, expiresAt) {
   const db = await getDb();
   await run(db, `
     INSERT INTO sessions (token, user_id, expires_at) VALUES ($1, $2, $3)
-  `, [token, userId, new Date(expiresAt).toISOString()]);
+  `, [hashToken(token), userId, new Date(expiresAt).toISOString()]);
 }
 
 export async function getValidSession(token) {
@@ -12,13 +23,13 @@ export async function getValidSession(token) {
   const row = await get(db, `
     SELECT * FROM sessions
     WHERE token = $1 AND expires_at > NOW()
-  `, [token]);
+  `, [hashToken(token)]);
   return row || null;
 }
 
 export async function deleteSession(token) {
   const db = await getDb();
-  await run(db, "DELETE FROM sessions WHERE token = $1", [token]);
+  await run(db, "DELETE FROM sessions WHERE token = $1", [hashToken(token)]);
 }
 
 export async function deleteUserSessions(userId) {
@@ -43,6 +54,6 @@ export async function getSessionUser(token) {
     FROM sessions s
     JOIN users u ON u.id = s.user_id
     WHERE s.token = $1 AND s.expires_at > NOW() AND u.suspended_at IS NULL
-  `, [token]);
+  `, [hashToken(token)]);
   return row || null;
 }

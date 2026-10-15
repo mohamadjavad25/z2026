@@ -19,7 +19,7 @@ const HINTS = {
  * What the viewer can do with a scanned salon/artist, given how they relate.
  * Returns { label, run } for a button, { note } for a plain status line, or both.
  */
-function profileAction(viewerType, profile, relation) {
+function profileAction(viewerType, profile, relation, joinCode) {
   if (relation === "self") return { note: "این کد خودت است." };
   if (viewerType === "client") {
     return relation === "connected"
@@ -35,6 +35,11 @@ function profileAction(viewerType, profile, relation) {
     return { note: "آرتیست بعد از دیدن دعوت تأیید می‌کند.", label: "دعوت به تیم", kind: "invite" };
   }
   if (relation === "member") return { note: "عضو تیم این سالن هستی." };
+  // A plain salon profile code proves nothing about who showed it -- only the
+  // salon's own dedicated QR/link (with a secret) can join the team instantly.
+  if (!joinCode) {
+    return { note: "این فقط پروفایل عمومی سالنه. برای پیوستن به تیم، از سالن بخواه کد QR مخصوص «افزودن آرتیست» رو نشونت بده." };
+  }
   return {
     note: profile.rules ? "با پیوستن، قوانین سالن را می‌پذیری." : "با پیوستن، در پرسنل این سالن قرار می‌گیری.",
     label: profile.rules ? "قبول قوانین و پیوستن" : "پیوستن به تیم",
@@ -97,13 +102,13 @@ export function ScanFlow({ viewerType, connect, onOpenProfile, onChanged, onClos
         setStep({ state: "message", text: payload?.error || "این سالن یا آرتیست پیدا نشد." });
         return;
       }
-      setStep({ state: "profile", profile: data.profile, relation: data.relation });
+      setStep({ state: "profile", profile: data.profile, relation: data.relation, joinCode: code.joinCode || "" });
     } catch {
       setStep({ state: "message", text: "اتصال برقرار نشد؛ دوباره امتحان کن." });
     }
   }
 
-  async function runAction(kind, profile) {
+  async function runAction(kind, profile, joinCode) {
     if (kind === "open") {
       onClose?.();
       onOpenProfile?.(profile);
@@ -120,7 +125,7 @@ export function ScanFlow({ viewerType, connect, onOpenProfile, onChanged, onClos
       }
       const { ok, payload } = kind === "invite"
         ? await createSalonInvite({ artistUserId: profile.id })
-        : await joinSalonTeam(profile.id);
+        : await joinSalonTeam(profile.id, joinCode);
       if (!ok) {
         setStep({ state: "message", text: payload?.error || "انجام نشد؛ دوباره امتحان کن." });
         return;
@@ -144,15 +149,15 @@ export function ScanFlow({ viewerType, connect, onOpenProfile, onChanged, onClos
   } else if (step.state === "message") {
     footer = <div className="cnScanResult"><p role="status">{step.text}</p>{scanAgain}</div>;
   } else if (step.state === "profile") {
-    const { profile, relation } = step;
-    const action = profileAction(viewerType, profile, relation);
+    const { profile, relation, joinCode } = step;
+    const action = profileAction(viewerType, profile, relation, joinCode);
     footer = (
       <div className="cnScanResult">
         <ConnectionCard
           profile={profile}
           onOpen={viewerType === "client" ? () => runAction("open", profile) : undefined}
           action={action.label ? (
-            <button type="button" className="cnPrimaryBtn" disabled={acting} onClick={() => runAction(action.kind, profile)}>
+            <button type="button" className="cnPrimaryBtn" disabled={acting} onClick={() => runAction(action.kind, profile, joinCode)}>
               {acting ? "…" : action.label}
             </button>
           ) : null}

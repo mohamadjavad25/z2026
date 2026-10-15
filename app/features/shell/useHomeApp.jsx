@@ -20,10 +20,11 @@ export function useHomeApp() {
   // this same key once a session exists (login/register/already-booted).
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const joinSalonId = new URLSearchParams(window.location.search).get("join");
+    const params = new URLSearchParams(window.location.search);
+    const joinSalonId = params.get("join");
     if (!joinSalonId) return;
     try {
-      window.localStorage.setItem("frfro_pending_join_salon", joinSalonId);
+      window.localStorage.setItem("frfro_pending_join_salon", JSON.stringify({ id: joinSalonId, code: params.get("k") || "" }));
     } catch {
       // ignore — join just won't auto-fire post-login
     }
@@ -60,22 +61,34 @@ export function useHomeApp() {
   // /join-salon/[id] link too, not just the guest→signup round trip).
   async function tryJoinPendingSalon(profile) {
     if (profile?.type !== "artist" || typeof window === "undefined") return;
-    let pendingSalonId = "";
+    let pendingRaw = "";
     try {
-      pendingSalonId = window.localStorage.getItem("frfro_pending_join_salon") || "";
+      pendingRaw = window.localStorage.getItem("frfro_pending_join_salon") || "";
     } catch {
       return;
     }
-    if (!pendingSalonId) return;
+    if (!pendingRaw) return;
     try {
       window.localStorage.removeItem("frfro_pending_join_salon");
     } catch {
       // ignore
     }
+    // Older links (before the join code existed) stored a bare salon id string;
+    // such a pending join has no code to offer and is simply dropped.
+    let pendingSalonId = 0;
+    let pendingCode = "";
+    try {
+      const parsed = JSON.parse(pendingRaw);
+      pendingSalonId = Number(parsed?.id) || 0;
+      pendingCode = String(parsed?.code || "");
+    } catch {
+      return;
+    }
+    if (!pendingSalonId) return;
     try {
       const { ok, payload } = await apiFetch("/api/artist/join-salon", {
         method: "POST",
-        body: JSON.stringify({ salonUserId: Number(pendingSalonId) })
+        body: JSON.stringify({ salonUserId: pendingSalonId, code: pendingCode })
       });
       if (ok) {
         setAppToast(`به تیم «${payload?.data?.salon?.name || "سالن"}» پیوستی!`);

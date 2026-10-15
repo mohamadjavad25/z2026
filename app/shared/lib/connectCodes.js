@@ -22,13 +22,25 @@ export function buildClientCode(userId, secret) {
   return `${CLIENT_CODE_PREFIX}:${Number(userId)}:${secret}`;
 }
 
-/** `{ type: "salon" | "artist", id }` for a public profile link, else null. */
+/**
+ * `{ type: "salon" | "artist", id, joinCode }` for a public profile link, else null.
+ * `joinCode` is the `?k=` secret when the link is a salon's dedicated join link
+ * (app/join-salon/[id]) — "" for a plain profile link, which proves nothing
+ * (see app/lib/db/repos/salons/invites.js for why that distinction matters).
+ */
 export function parseProfileLink(text) {
-  const match = String(text || "").trim().match(PROFILE_PATH);
+  const trimmed = String(text || "").trim();
+  const match = trimmed.match(PROFILE_PATH);
   if (!match) return null;
   const id = Number(match[2]);
   if (!Number.isSafeInteger(id) || id <= 0) return null;
-  return { type: match[1] === "artists" ? "artist" : "salon", id };
+  let joinCode = "";
+  try {
+    joinCode = new URL(trimmed, "https://frfro.ir").searchParams.get("k") || "";
+  } catch {
+    joinCode = "";
+  }
+  return { type: match[1] === "artists" ? "artist" : "salon", id, joinCode };
 }
 
 /** `{ userId, secret }` for a client's personal code, else null. */

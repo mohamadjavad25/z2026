@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createClient, registerUser } from "./helpers.js";
+import { createClient, joinSalonAsArtist, registerUser } from "./helpers.js";
 
 async function setup() {
   const salonClient = createClient();
@@ -91,16 +91,27 @@ describe("salon <-> artist connection", () => {
   it("QR path: joining makes the artist staff right away and answers a pending proposal", async () => {
     const { salonClient, salon, artistClient, artist } = await setup();
     await artistClient.post("/api/artist/me", { kind: "collab", salonId: salon.user.id, ...TERMS });
-    const joined = await artistClient.post("/api/artist/join-salon", { salonUserId: salon.user.id });
+    const joined = await joinSalonAsArtist(artistClient, salonClient, salon.user.id);
     expect(joined.status).toBe(201);
     expect((await staffOf(salonClient)).map((p) => p.artist_user_id)).toContain(artist.user.id);
 
     const collabs = await salonClient.get("/api/salon-collabs");
     expect(collabs.payload.data.collabs[0].status).toBe("تایید شد");
 
-    const again = await artistClient.post("/api/artist/join-salon", { salonUserId: salon.user.id });
+    const again = await joinSalonAsArtist(artistClient, salonClient, salon.user.id);
     expect(again.ok).toBe(false);
     expect(again.payload.code).toBe("ALREADY_STAFF");
+  });
+
+  it("QR path: the salon's own id is not enough -- a missing or wrong join code is refused", async () => {
+    const { salon, artistClient } = await setup();
+    const bare = await artistClient.post("/api/artist/join-salon", { salonUserId: salon.user.id });
+    expect(bare.ok).toBe(false);
+    expect(bare.payload.code).toBe("INVALID_CODE");
+
+    const wrong = await artistClient.post("/api/artist/join-salon", { salonUserId: salon.user.id, code: "not-the-real-code" });
+    expect(wrong.ok).toBe(false);
+    expect(wrong.payload.code).toBe("INVALID_CODE");
   });
 
   it("clients cannot use the salon/artist connection endpoints", async () => {

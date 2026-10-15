@@ -778,19 +778,25 @@
     box-shadow: 0 12px 28px rgba(22, 24, 38, 0.06) !important;
   }
 
-  .salonWorkspacePanel.is-portfolio .profileGalleryGrid.is-single {
+  /* Every row, whatever the post count: three equal cards (the create-post tile counts as one),
+     matching the artist panel -- see app/styles/legacy/part-09.css. */
+  .salonWorkspacePanel.is-portfolio .profileGalleryGrid.is-single,
+  .salonWorkspacePanel.is-portfolio .profileGalleryGrid.is-pair,
+  .salonWorkspacePanel.is-portfolio .profileGalleryGrid.is-mosaic {
     width: 100% !important;
     max-width: none !important;
     display: grid !important;
     direction: ltr !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
     gap: 10px !important;
     justify-content: stretch !important;
     align-items: start !important;
     padding-inline: 12px !important;
   }
 
-  .salonWorkspacePanel.is-portfolio .profileGalleryGrid.is-single .profileGalleryCard {
+  .salonWorkspacePanel.is-portfolio .profileGalleryGrid.is-single .profileGalleryCard,
+  .salonWorkspacePanel.is-portfolio .profileGalleryGrid.is-pair .profileGalleryCard,
+  .salonWorkspacePanel.is-portfolio .profileGalleryGrid.is-mosaic .profileGalleryCard {
     width: 100% !important;
     max-width: none !important;
     justify-self: start !important;

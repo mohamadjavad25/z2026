@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createClient, registerUser, futureBookingDay } from "./helpers.js";
+import { createClient, joinSalonAsArtist, registerUser, futureBookingDay } from "./helpers.js";
 
 // An artist who works in a salon has one calendar: a salon booking with them and a booking made
 // straight with them (their personal page, or one they enter themselves) must never overlap.
@@ -9,7 +9,7 @@ async function setup() {
   await salonClient.get("/api/salon-hours");
   const artistClient = createClient();
   const artist = await registerUser(artistClient, { type: "artist", name: "Overlap Artist" });
-  expect((await artistClient.post("/api/artist/join-salon", { salonUserId: salon.user.id })).ok).toBe(true);
+  expect((await joinSalonAsArtist(artistClient, salonClient, salon.user.id)).ok).toBe(true);
   const staff = (await salonClient.get("/api/salon-staff")).payload.data.staff
     .find((person) => Number(person.artist_user_id) === Number(artist.user.id));
   const clientClient = createClient();

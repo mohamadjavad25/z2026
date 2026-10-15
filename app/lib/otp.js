@@ -8,8 +8,14 @@ const MAX_ATTEMPTS = 5;
 const PROOF_TTL_MS = 15 * 60 * 1000;
 const RESEND_SECONDS = 60;
 
+// Fails closed like verifyCronSecret (app/lib/auth.js) rather than falling back to a
+// string sitting in the public source tree: with no real secret configured, anyone
+// could compute the same HMAC and forge a valid otpProof for any phone number,
+// skipping SMS verification entirely (app/api/auth/register reads `otpProof` as proof
+// the number was already confirmed). docs/OPERATIONS.md already tells operators to
+// set FRFRO_OTP_SECRET; this just makes that required in practice, not only on paper.
 function secret() {
-  return process.env.FRFRO_OTP_SECRET || process.env.CRON_SECRET || "frfro-dev-otp-secret";
+  return process.env.FRFRO_OTP_SECRET || process.env.CRON_SECRET || "";
 }
 
 /** Whether the app can send codes, and whether sign-up demands one (set FRFRO_OTP_REQUIRED=1 once SMS works). */
@@ -26,11 +32,13 @@ function sign(payload) {
 
 /** A signed, short-lived "this phone proved it owns the number" token, handed back after a correct code. */
 export function createOtpProof(phone, purpose, now = Date.now()) {
+  if (!secret()) return ""; // no real secret configured -- never issue a proof nobody can trust
   const payload = `${phone}|${purpose}|${now + PROOF_TTL_MS}`;
   return `${Buffer.from(payload).toString("base64url")}.${sign(payload)}`;
 }
 
 export function verifyOtpProof(proof, phone, purpose, now = Date.now()) {
+  if (!secret()) return false; // fail closed -- a known/guessable key would make every proof forgeable
   const [encoded, signature] = String(proof || "").split(".");
   if (!encoded || !signature) return false;
   const payload = Buffer.from(encoded, "base64url").toString();

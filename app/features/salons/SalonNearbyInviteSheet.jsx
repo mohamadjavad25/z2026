@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Check, Copy, MapPin, Send, Share2 } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { ProfileSheet } from "../profile/ProfileSheet";
 import { useQrCode } from "../../shared/hooks/useQrCode";
 import { CAPACITY_PRESETS, DAY_PRESETS, HOUR_RANGE_PRESETS, PresetRow, SHARE_PRESETS } from "../collab/collabPresets";
 import { ServiceIcon } from "../../components/ServiceIcon";
+import { getSalonJoinCode } from "../../shared/api/salons";
 
 const DEFAULT_TERMS = {
   days: DAY_PRESETS[2].value,
@@ -91,8 +92,23 @@ export function SalonNearbyInviteSheet({
   const [copied, setCopied] = useState(false);
   const [expandedId, setExpandedId] = useState("");
   const [terms, setTerms] = useState(DEFAULT_TERMS);
-  const joinUrl = open && salonId && typeof window !== "undefined"
-    ? `${window.location.origin}/join-salon/${salonId}`
+  // The link only works carrying this secret (see app/lib/db/repos/salons/invites.js) — without
+  // it the sheet shows no link at all rather than one that would 400 when scanned.
+  const [joinCode, setJoinCode] = useState("");
+  useEffect(() => {
+    if (!open) return undefined;
+    let cancelled = false;
+    getSalonJoinCode()
+      .then(({ ok, data }) => {
+        if (!cancelled && ok) setJoinCode(String(data?.code || ""));
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [open]);
+  const joinUrl = open && salonId && joinCode && typeof window !== "undefined"
+    ? `${window.location.origin}/join-salon/${salonId}?k=${encodeURIComponent(joinCode)}`
     : "";
   const qrDataUrl = useQrCode(joinUrl, open);
 

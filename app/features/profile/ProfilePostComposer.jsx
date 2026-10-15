@@ -10,6 +10,56 @@ const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 // 4:5 is the card ratio used in the galleries, so the framing
 // chosen here is exactly what every card shows.
 const POST_ASPECT = 4 / 5;
+// Phone photos can be huge; the crop step never needs more than this on its long side.
+const MAX_SOURCE_SIDE = 2400;
+
+// The gallery tile picks the photo before the composer exists. The file is parked here (not in
+// React state) so it survives however the gallery re-renders while the sheet opens.
+let queuedFile = null;
+let queuedAt = 0;
+export function queuePostFile(file) {
+  queuedFile = file || null;
+  queuedAt = Date.now();
+}
+function peekQueuedPostFile() {
+  return queuedFile && Date.now() - queuedAt < 10000 ? queuedFile : null;
+}
+function takeQueuedPostFile() {
+  const file = peekQueuedPostFile();
+  queuedFile = null;
+  return file;
+}
+
+function readAsDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+}
+
+// Shrinks a big photo (and applies its EXIF rotation) before cropping; falls back to the raw file.
+async function prepareSource(file) {
+  try {
+    if (typeof createImageBitmap !== "function") return await readAsDataUrl(file);
+    const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+    const scale = Math.min(1, MAX_SOURCE_SIDE / Math.max(bitmap.width, bitmap.height));
+    if (scale === 1 && file.size <= MAX_IMAGE_BYTES) {
+      bitmap.close?.();
+      return await readAsDataUrl(file);
+    }
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+    canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+    canvas.getContext("2d").drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    bitmap.close?.();
+    return canvas.toDataURL("image/jpeg", 0.92);
+  } catch {
+    if (file.size > MAX_IMAGE_BYTES) throw new Error("too-big");
+    return readAsDataUrl(file);
+  }
+}
 
 /**
  * Shared post / portfolio composer (artist + salon).
@@ -34,44 +84,54 @@ export function ProfilePostComposer({
   showPin = true,
   pinnedCount = 0,
   pinLimit = 3,
-  submitLabel = "ذخیره",
-  // A file the visitor already picked from the gallery tile: go straight to the crop step.
-  initialFile = null,
-  onInitialFileHandled
+  submitLabel = "ذخیره"
 }) {
   const cropperRef = useRef(null);
   const [cropSrc, setCropSrc] = useState("");
   const isOpen = Boolean(value);
 
-  function acceptFile(file) {
+  // Starts true when a picked photo is waiting, so the sheet never flashes the upload form first.
+  const [preparing, setPreparing] = useState(() => Boolean(peekQueuedPostFile()));
+  // True when the photo was picked before the sheet opened: backing out of the crop then closes
+  // the sheet instead of leaving an empty "upload a photo" form.
+  const startedFromPicker = useRef(false);
+
+  async function acceptFile(file) {
     if (!file) return;
     if (!file.type.startsWith("image/")) {
       onNotify?.("فقط فایل تصویری مجاز است.");
+      if (startedFromPicker.current) onClose?.();
       return;
     }
-    if (file.size > MAX_IMAGE_BYTES) {
+    setPreparing(true);
+    try {
+      setCropSrc(await prepareSource(file));
+    } catch {
       onNotify?.("حجم تصویر باید کمتر از ۸ مگابایت باشد.");
-      return;
+      if (startedFromPicker.current) onClose?.();
+    } finally {
+      setPreparing(false);
     }
-    const reader = new FileReader();
-    reader.onload = () => setCropSrc(String(reader.result || ""));
-    reader.readAsDataURL(file);
   }
 
   useEffect(() => {
-    if (!isOpen || !initialFile) return;
-    acceptFile(initialFile);
-    onInitialFileHandled?.();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once per picked file
-  }, [isOpen, initialFile]);
+    if (!isOpen) return;
+    const file = takeQueuedPostFile();
+    if (!file) return;
+    startedFromPicker.current = true;
+    acceptFile(file);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per opening
+  }, [isOpen]);
 
   // Escape closes the composer (or just the crop step), never mid-save.
   useEffect(() => {
     if (!isOpen) return undefined;
     const onKey = (event) => {
       if (event.key !== "Escape" || saving) return;
-      if (cropSrc) setCropSrc("");
-      else onClose?.();
+      if (cropSrc) {
+        setCropSrc("");
+        if (startedFromPicker.current && !value?.image) onClose?.();
+      } else onClose?.();
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
@@ -125,6 +185,7 @@ export function ProfilePostComposer({
     if (!cropped) return;
     patch({ image: cropped });
     setCropSrc("");
+    startedFromPicker.current = false;
   }
 
   function patch(next) {
@@ -151,7 +212,14 @@ export function ProfilePostComposer({
                   outputWidth={1080}
                 />
                 <div className="artistWorkCropActions">
-                  <button type="button" className="artistWorkCropCancel" onClick={() => setCropSrc("")}>
+                  <button
+                    type="button"
+                    className="artistWorkCropCancel"
+                    onClick={() => {
+                      setCropSrc("");
+                      if (startedFromPicker.current && !value.image) onClose?.();
+                    }}
+                  >
                     انصراف
                   </button>
                   <button type="button" className="artistWorkCropConfirm" onClick={confirmCrop}>
@@ -174,8 +242,9 @@ export function ProfilePostComposer({
                     >
                       <Crop size={15} />
                     </button>
-                    <label className="artistWorkUploadBtn" aria-label="تعویض تصویر" title="تعویض تصویر">
+                    <label className="artistWorkUploadBtn" title="تعویض تصویر">
                       <ImagePlus size={15} />
+                      <span className="srOnly">تعویض تصویر</span>
                       <input className="captureInput" type="file" accept="image/*" onChange={handleFile} disabled={saving} />
                     </label>
                     <button type="button" onClick={onImageClear} disabled={saving} aria-label="حذف تصویر" title="حذف تصویر">
@@ -185,6 +254,12 @@ export function ProfilePostComposer({
                 </div>
               </div>
             )}
+          </div>
+        ) : preparing ? (
+          <div className="artistWorkHero">
+            <div className="artistWorkUploadEmpty" role="status">
+              <b>در حال آماده‌سازی عکس…</b>
+            </div>
           </div>
         ) : (
           <div className="artistWorkHero">

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createClient, registerUser, futureBookingDay } from "./helpers.js";
+import { createClient, joinSalonAsArtist, registerUser, futureBookingDay } from "./helpers.js";
 
 describe("salon manager working on their own team", () => {
   it("joins as a member, gets services and bookings, and is never linked to a same-named artist", async () => {
@@ -54,7 +54,7 @@ describe("salon manager working on their own team", () => {
     const salon = await registerUser(salonClient, { type: "salon", name: "Clash Salon" });
     const artistClient = createClient();
     await registerUser(artistClient, { type: "artist", name: "Taken Name" });
-    expect((await artistClient.post("/api/artist/join-salon", { salonUserId: salon.user.id })).ok).toBe(true);
+    expect((await joinSalonAsArtist(artistClient, salonClient, salon.user.id)).ok).toBe(true);
     const memberName = (await salonClient.get("/api/salon-staff")).payload.data.staff[0].name;
     const clash = await salonClient.post("/api/salon-staff/self", { name: memberName });
     expect(clash.status).toBe(409);

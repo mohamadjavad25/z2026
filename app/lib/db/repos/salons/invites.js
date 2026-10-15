@@ -1,3 +1,4 @@
+import { randomBytes, timingSafeEqual } from "node:crypto";
 import { getDb, all, get, run } from "../../connection.js";
 import { addSalonStaff } from "./staff.js";
 
@@ -260,18 +261,28 @@ export async function createSalonArtistInvite(salonUserId, data) {
  * Self-service join via the salon's QR/link (app/join-salon/[id]) — the
  * artist is the one acting (scanned the code themselves), so unlike
  * createSalonArtistInvite this skips the PENDING step entirely and lands
- * straight on ACCEPTED + a real salon_staff row. Physically showing/scanning
- * the code is the trust signal a search-based invite doesn't have; the
- * salon can still remove the person from پرسنل afterward like any other
- * staff row if this was a mistake.
+ * straight on ACCEPTED + a real salon_staff row. The trust signal is `code`:
+ * a per-salon secret embedded in the QR/link's URL (see
+ * getOrCreateSalonJoinSecret), checked in constant time below — the salon's
+ * user id alone is a small, public, sequential number (same /salons/<id> as
+ * its public profile) and proves nothing on its own. The salon can still
+ * remove the person from پرسنل afterward like any other staff row if this
+ * was a mistake, and can invalidate the link for good by regenerating its
+ * join code from the invite sheet.
  */
-export async function joinSalonByArtist(salonUserId, artistUserId) {
+export async function joinSalonByArtist(salonUserId, artistUserId, code) {
   const db = await getDb();
   const salon = await get(db, `
-    SELECT s.name, s.area FROM salons s WHERE s.user_id = $1
+    SELECT s.name, s.area, us.settings ->> 'salonJoinCode' AS join_secret
+    FROM salons s
+    LEFT JOIN user_settings us ON us.user_id = s.user_id
+    WHERE s.user_id = $1
   `, [salonUserId]);
   if (!salon) {
     return { ok: false, error: "سالن پیدا نشد.", code: "SALON_NOT_FOUND" };
+  }
+  if (!secretsMatch(salon.join_secret, code)) {
+    return { ok: false, error: "این لینک معتبر نیست؛ از سالن بخواه کد را دوباره نشانت بدهد.", code: "INVALID_CODE" };
   }
 
   const artist = await get(db, `
@@ -332,6 +343,36 @@ export async function joinSalonByArtist(salonUserId, artistUserId) {
     staffPerson,
     salon: { id: salonUserId, name: salon.name || "سالن", area: salon.area || "" }
   };
+}
+
+// Same shape as the client's personal connect secret (app/lib/db/repos/connections.js):
+// stored in user_settings JSON under its own key, so no schema change is needed, created
+// on first use (race-safe: the first writer wins), and compared in constant time so its
+// length/content can't be inferred by timing a guess.
+function newSecret() {
+  return randomBytes(9).toString("base64url").replace(/[^A-Za-z0-9]/g, "").padEnd(12, "0").slice(0, 12);
+}
+
+function secretsMatch(expected, given) {
+  const a = Buffer.from(String(expected || ""));
+  const b = Buffer.from(String(given || ""));
+  return a.length > 0 && a.length === b.length && timingSafeEqual(a, b);
+}
+
+/** The salon's own join-link secret (app/join-salon/[id]?k=<secret>), created on first use. */
+export async function getOrCreateSalonJoinSecret(salonUserId) {
+  const db = await getDb();
+  const row = await get(db, `
+    INSERT INTO user_settings (user_id, settings, updated_at)
+    VALUES ($1, jsonb_build_object('salonJoinCode', $2::text), CURRENT_TIMESTAMP)
+    ON CONFLICT (user_id) DO UPDATE SET
+      settings = CASE
+        WHEN user_settings.settings ? 'salonJoinCode' THEN user_settings.settings
+        ELSE COALESCE(user_settings.settings, '{}'::jsonb) || jsonb_build_object('salonJoinCode', $2::text)
+      END
+    RETURNING settings ->> 'salonJoinCode' AS secret
+  `, [salonUserId, newSecret()]);
+  return row.secret;
 }
 
 /** Minimal public preview for the QR-join landing page — no auth, so it
