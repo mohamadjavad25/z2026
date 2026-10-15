@@ -3,16 +3,14 @@ import QRCode from "qrcode";
 import { Check, Palette, Search, Store } from "lucide-react";
 import { ANDROID_APK_URL, ANDROID_APP_VERSION, DOWNLOAD_PAGE_URL } from "./constants";
 import { EnterAppButton } from "./EnterAppButton";
-import { LearnSection } from "./LearnSection";
-import { TUTORIAL_ICONS } from "./tutorials";
-import { beautyEmojiSrc } from "../../shared/constants/beautyEmoji";
+import { HeroFilm } from "./HeroFilm";
 
 /**
  * The page about frfro with the app download links. Shown at /download, at "/" on phones
  * until the visitor taps «ورود به فرفرو», and on large screens (tablet and desktop) in place
  * of every page but /admin, /terms and /privacy (see LargeScreenGate).
- * Server component: plain content; the only client part is the tutorials player (LearnSection).
- * Motion is CSS (landing.css, landingLearn.css).
+ * Server component: plain content; the only client part is the hero film (HeroFilm). Motion is CSS (landing.css).
+ * The «آموزش» tutorials player (LearnSection) is built but hidden for now (user's decision 2026-10-15).
  * Look: white and ink with pink and violet blended in (see the tokens at the top of landing.css).
  */
 
@@ -94,9 +92,6 @@ const FAQ = [
   }
 ];
 
-// Service icons for the tutorial screens, made here so their drawings stay out of the page's script.
-const TUTORIAL_ICON_SRC = Object.fromEntries(TUTORIAL_ICONS.map((id) => [id, beautyEmojiSrc(id)]));
-
 async function downloadQrSvg() {
   try {
     return await QRCode.toString(DOWNLOAD_PAGE_URL, { type: "svg", margin: 0, color: { dark: "#0c0d12ff", light: "#ffffff00" } });
@@ -175,7 +170,6 @@ export async function AppLanding() {
         <nav aria-label="بخش‌های صفحه">
           <a href="#about">فرفرو چیست</a>
           <a href="#how">چطور کار می‌کند</a>
-          <a href="#learn">آموزش</a>
           <a href="#install">نصب</a>
           <a href="#faq">سؤال‌ها</a>
         </nav>
@@ -200,22 +194,8 @@ export async function AppLanding() {
             <p className="appLanding__note">نسخهٔ اندروید {ANDROID_APP_VERSION} · رایگان · بدون پرداخت داخل برنامه</p>
           </div>
 
-          <div className="appLanding__heroArt" aria-hidden="true">
-            <div className="appLanding__phone">
-              <img src="/explore-collage.webp" alt="" />
-            </div>
-            <div className="appLanding__float is-confirm">
-              <span className="appLanding__floatIcon"><Check size={18} strokeWidth={3} /></span>
-              <span>
-                <strong>نوبتت تأیید شد</strong>
-                <small>فردا · ساعت ۱۶:۳۰</small>
-              </span>
-            </div>
-            <div className="appLanding__float is-times">
-              <strong>ساعت‌های آزاد امروز</strong>
-              <span className="appLanding__times"><b>۱۴:۰۰</b><b>۱۵:۳۰</b><b>۱۷:۰۰</b></span>
-            </div>
-            <img className="appLanding__heroMascot" src="/brand/mascot/search.webp" alt="" width="415" height="640" />
+          <div className="appLanding__heroArt">
+            <HeroFilm />
             {qrSvg ? (
               <div className="appLanding__qr">
                 <div className="appLanding__qrCode" dangerouslySetInnerHTML={{ __html: qrSvg }} />
@@ -269,17 +249,6 @@ export async function AppLanding() {
               </li>
             ))}
           </ol>
-        </div>
-      </section>
-
-      <section id="learn" className="appLanding__light is-mist">
-        <div className="appLanding__section">
-          <header className="appLanding__head appLanding__reveal">
-            <p className="appLanding__kicker">آموزش</p>
-            <h2>هر کار را یک بار <em>ببین</em>، بعد خودت انجام بده</h2>
-            <p>ویدیوهای کوتاه و بی‌صدا که نشان می‌دهند هر کار در فرفرو دقیقاً با کدام دکمه انجام می‌شود. برای مشتری، سالن و آرتیست.</p>
-          </header>
-          <LearnSection icons={TUTORIAL_ICON_SRC} />
         </div>
       </section>
 
