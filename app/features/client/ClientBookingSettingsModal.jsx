@@ -7,7 +7,8 @@ import { SheetClose } from "../../components/SheetClose";
 import { bookingStatusLabel, bookingStatusTone, canClientCancel } from "./bookingStatus";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
-import { formatRequestExpiryDeadline, minutesToPersianTime, timeLabelToMinutes } from "../../shared/lib/time";
+import { minutesToPersianTime, timeLabelToMinutes } from "../../shared/lib/time";
+import { requestDeadlineLabel } from "../../shared/lib/bookingWindow";
 import { bookingTimeOffer } from "../../shared/lib/bookingOffer";
 import { parseBookingParts } from "../../shared/lib/bookingParts";
 import { getSalonVisitTimes } from "../../shared/api/salons";
@@ -190,7 +191,7 @@ export function ClientBookingSettingsModal({
   const area = booking.salonArea || booking.salon_area || "";
   const duration = Number(booking.duration_minutes) || 0;
   const offer = booking.bookingSource === "artist" ? null : bookingTimeOffer(booking);
-  const pendingDeadline = statusTone === "pending" && !offer ? formatRequestExpiryDeadline(booking.created_at || booking.createdAt) : "";
+  const pendingDeadline = statusTone === "pending" && !offer ? requestDeadlineLabel(booking.created_at || booking.createdAt, rawDate, booking.time) : "";
 
   return (
     <div

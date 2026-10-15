@@ -1,4 +1,5 @@
 import { isSlotInPast } from "../../shared/lib/slots.js";
+import { BOOKING_REQUEST_LEAD_MINUTES, isTooSoonToRequest } from "../../shared/lib/bookingWindow.js";
 import { NextResponse } from "next/server";
 import { requireUser, validateBody, withErrorHandling } from "../../lib/http.js";
 import { ensureDb } from "../../lib/db/connection.js";
@@ -145,6 +146,14 @@ async function _POST(request) {
   }
   if (isSlotInPast(bookingDateKey, time)) {
     return noStoreJson({ error: "این ساعت گذشته است. ساعت دیگری انتخاب کن." }, { status: 409 });
+  }
+  // A client's request needs an answer from the salon first, so it can't start in the next few
+  // minutes (the salon would have no time to see it). The salon's own entries are exempt.
+  if (auth.user.type === "client" && isTooSoonToRequest(bookingDateKey, time)) {
+    return noStoreJson({
+      error: `برای رزرو باید حداقل ${toPersianDigits(BOOKING_REQUEST_LEAD_MINUTES)} دقیقه تا شروع نوبت مانده باشد تا سالن فرصت پاسخ داشته باشد. ساعت دیگری انتخاب کن.`,
+      code: "TOO_SOON"
+    }, { status: 409 });
   }
   const hour = findSalonHourForDateKey(await salons.listSalonHours(salonUserId), bookingDateKey);
   if (!isSalonHourOpen(hour)) {

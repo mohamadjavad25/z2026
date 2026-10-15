@@ -11,7 +11,7 @@ import {
   isPublicArtistSlotBlocked
 } from "./bookingUtils";
 import { salonClientBookingDays } from "./constants";
-import { isSlotInPast } from "../../shared/lib/slots";
+import { isTooSoonToRequest } from "../../shared/lib/bookingWindow";
 import { getTehranClockMinutes, timeLabelToMinutes } from "../../shared/lib/time";
 
 export function PublicArtistBookingPanel({
@@ -30,7 +30,7 @@ export function PublicArtistBookingPanel({
   const durationMinutes = parseDuration(activeService?.duration);
   const slots = buildPublicBookingSlots(durationMinutes);
   const freeSlots = slots.filter(
-    (slot) => !isSlotInPast(bookingDay, slot) && !isPublicArtistSlotBlocked(
+    (slot) => !isTooSoonToRequest(bookingDay, slot) && !isPublicArtistSlotBlocked(
       artist,
       bookingDay,
       slot,
@@ -40,7 +40,7 @@ export function PublicArtistBookingPanel({
 
   // Rule: a day with NO free slot is full — shown disabled and not selectable.
   const fullDays = salonClientBookingDays.filter((day) => (
-    !slots.some((slot) => !isSlotInPast(day, slot) && !isPublicArtistSlotBlocked(artist, day, slot, durationMinutes))
+    !slots.some((slot) => !isTooSoonToRequest(day, slot) && !isPublicArtistSlotBlocked(artist, day, slot, durationMinutes))
   ));
 
   // Open on the first day that still has a free hour (today is often already over), until the

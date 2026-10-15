@@ -42,7 +42,7 @@ export function ArtistRequestsBoard({ requests = [], busyId = "", onApprove, onD
                   </div>
                 </div>
               </div>
-              <RequestExpiryBadge createdAt={request.createdAt} />
+              <RequestExpiryBadge createdAt={request.createdAt} day={request.dateKey || request.date} time={request.time} />
               <div className="requestActions">
                 <button type="button" className="is-approve" disabled={anyBusy} onClick={() => onApprove?.(request.id)}>
                   <Check size={15} />

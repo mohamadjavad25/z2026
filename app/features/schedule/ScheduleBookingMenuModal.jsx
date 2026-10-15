@@ -24,7 +24,8 @@ import { getBookingDateOffsetDays, getBookingTimelinePhase } from "../artist/boo
 import { formatRelativeBookingDayLabel, isPersianDateKey } from "../../shared/lib/persianCalendar";
 import { SegmentClock } from "../../components/SegmentClock";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
-import { formatRequestExpiryDeadline, getRequestExpiryMinutesLeft, normalizeBookingTimeLabel } from "../../shared/lib/time";
+import { normalizeBookingTimeLabel } from "../../shared/lib/time";
+import { requestDeadlineLabel, requestMinutesLeft } from "../../shared/lib/bookingWindow";
 import { isMultiPartBooking, parseBookingParts, scheduleBookingParts } from "../../shared/lib/bookingParts";
 import { ArtistOptionList, BookingPartsEditor } from "./BookingPartsEditor";
 import { getSalonBookingMoveTimes, getSalonBookingStaffOptions } from "../../shared/api/salons";
@@ -298,8 +299,8 @@ export function ScheduleBookingMenuModal({
   const StatusIcon = BOOKING_STATUS_ICONS[statusTone];
   const currentStaff = multiPart ? parsedParts.map((part) => part.staff) : [String(booking.staff || "").trim()];
   const createdAt = booking.createdAt || booking.created_at || "";
-  const minutesLeft = getRequestExpiryMinutesLeft(createdAt);
-  const deadline = formatRequestExpiryDeadline(createdAt);
+  const minutesLeft = requestMinutesLeft(createdAt, dateValue, booking.time);
+  const deadline = requestDeadlineLabel(createdAt, dateValue, booking.time);
   const showReview = isPendingReview && !readOnly;
   const timeView = view === "time";
 

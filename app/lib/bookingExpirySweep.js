@@ -3,6 +3,8 @@ import * as salons from "./db/repos/salons.js";
 import * as artists from "./db/repos/artists.js";
 import { sendPushToUser } from "./push.js";
 import { isSlotInPast } from "../shared/lib/slots.js";
+import { AWAITING_CLIENT } from "../shared/lib/bookingOffer.js";
+import { BOOKING_REQUEST_WINDOW_MINUTES } from "../shared/lib/bookingWindow.js";
 
 /**
  * Auto-expiry sweep for booking REQUESTS a salon/artist never actively
@@ -44,7 +46,7 @@ import { isSlotInPast } from "../shared/lib/slots.js";
  */
 export const BOOKING_REQUEST_EXPIRED_STATUS = "منقضی شده";
 
-const DEFAULT_TIMEOUT_MINUTES = 60;
+const DEFAULT_TIMEOUT_MINUTES = BOOKING_REQUEST_WINDOW_MINUTES;
 
 // Recommended external-scheduler interval for app/api/cron/expire-bookings
 // (see vercel.json) -- timeout precision doesn't need to be tighter than
@@ -60,7 +62,8 @@ function timeoutMinutes() {
   return Number.isFinite(override) && override > 0 ? override : DEFAULT_TIMEOUT_MINUTES;
 }
 
-/** A pending request can no longer be answered once its response window ran out or its appointment time has started. */
+/** A pending request can no longer be answered once its response window ran out or its appointment time has started
+ *  (the same rule the screens show -- see requestMinutesLeft in shared/lib/bookingWindow.js). */
 function keepUnanswerable(rows) {
   return rows.filter((row) => row.timed_out || isSlotInPast(row.booking_date, row.time));
 }
@@ -89,6 +92,18 @@ async function findExpiredDirectArtistBookingRequests(db, minutes) {
     WHERE status = 'تازه'
       AND source_salon_user_id IS NULL
   `, [minutes]).then(keepUnanswerable);
+}
+
+/** A new time the salon offered that the client never answered, and whose appointment time has now started:
+ *  it can't be accepted any more, so it is closed like any other unanswered request (it has no hour window
+ *  of its own -- the salon moved it on purpose, and the client may take until it starts). */
+async function findStartedSalonOffers(db) {
+  const rows = await all(db, `
+    SELECT id, salon_user_id, client_user_id, client, service, booking_date, time, FALSE AS timed_out
+    FROM salon_bookings
+    WHERE status = $1
+  `, [AWAITING_CLIENT]);
+  return rows.filter((row) => isSlotInPast(row.booking_date, row.time));
 }
 
 /** Push notifications for both sides of an expired salon booking request. */
@@ -135,7 +150,10 @@ export async function sweepExpiredBookingRequestsOnce() {
   const db = await getDb();
   const minutes = timeoutMinutes();
 
-  const staleSalon = await findExpiredSalonBookingRequests(db, minutes);
+  const staleSalon = [
+    ...await findExpiredSalonBookingRequests(db, minutes),
+    ...await findStartedSalonOffers(db)
+  ];
   let salonExpired = 0;
   for (const row of staleSalon) {
     // Reuse the exact same atomic salon+linked-artist status-sync path the

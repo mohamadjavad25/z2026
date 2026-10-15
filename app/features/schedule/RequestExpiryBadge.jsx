@@ -1,16 +1,15 @@
 "use client";
 
 import { AlarmClock } from "lucide-react";
-import { formatRequestExpiryDeadline, getRequestExpiryMinutesLeft } from "../../shared/lib/time";
+import { requestDeadlineLabel, requestMinutesLeft } from "../../shared/lib/bookingWindow";
 
-/** A pending request the owner hasn't answered yet has, at most, 60 minutes
- *  before the auto-expiry sweep drops it -- previously nothing on this
- *  card said so, and the only trace was a read-only "expired" line seen
- *  after the fact. */
-export function RequestExpiryBadge({ createdAt }) {
-  const minutesLeft = getRequestExpiryMinutesLeft(createdAt);
+/** A pending request the owner hasn't answered yet has, at most, 60 minutes -- and never past
+ *  the appointment's own start -- before the auto-expiry sweep drops it. `day`/`time` are the
+ *  appointment's, so this label matches what the sweep really does. */
+export function RequestExpiryBadge({ createdAt, day, time }) {
+  const minutesLeft = requestMinutesLeft(createdAt, day, time);
   if (minutesLeft === null) return null;
-  const deadline = formatRequestExpiryDeadline(createdAt);
+  const deadline = requestDeadlineLabel(createdAt, day, time);
   if (!deadline) return null;
   const urgent = minutesLeft <= 15;
   return (

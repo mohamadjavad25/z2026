@@ -4,6 +4,7 @@ import { ensureDb } from "../../../lib/db/connection.js";
 import * as salons from "../../../lib/db/repos/salons.js";
 import { salonVisitParts } from "../../../lib/salonVisitParts.js";
 import { isSlotInPast } from "../../../shared/lib/slots.js";
+import { isTooSoonToRequest } from "../../../shared/lib/bookingWindow.js";
 import { MAX_BOOKING_PARTS, summarizeBookingParts } from "../../../shared/lib/bookingParts.js";
 import { resolveRollingPersianDateKey } from "../../../shared/lib/persianCalendar.js";
 import { findSalonHourForDateKey, isSalonHourOpen, salonDayWindow } from "../../../shared/lib/salonAvailability.js";
@@ -52,7 +53,9 @@ async function _GET(request) {
   if (isSalonHourOpen(hour)) {
     const window = salonDayWindow(hour);
     const candidates = buildDayBookingSlots(window.open, window.close, durationMinutes)
-      .filter((time) => !isSlotInPast(bookingDateKey, time));
+      .filter((time) => !isSlotInPast(bookingDateKey, time))
+      // Same rule POST enforces for a client: the salon needs time to answer.
+      .filter((time) => auth.user.type !== "client" || !isTooSoonToRequest(bookingDateKey, time));
     times = await salons.listFeasibleVisitTimes(salonUserId, bookingDateKey, parts, candidates);
   }
   return noStoreJson({ data: { times, durationMinutes } });

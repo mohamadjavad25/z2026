@@ -6,7 +6,7 @@ import { Mascot } from "../../components/Mascot";
 import { SegmentClock } from "../../components/SegmentClock";
 import { SkeletonList } from "../../components/Skeleton";
 import { toPersianDigits } from "../../shared/lib/digits";
-import { getRequestExpiryMinutesLeft } from "../../shared/lib/time";
+import { requestMinutesLeft } from "../../shared/lib/bookingWindow";
 import { getBookingDateKey, isArtistBookingOnExactDate } from "../artist";
 import { PendingOtherDays } from "./PendingOtherDays";
 import { BookingWeekRail } from "../profile/BookingWeekRail";
@@ -45,9 +45,11 @@ export function SalonScheduleDashboard({
     if (!request) return null;
     return {
       createdAt: request.createdAt,
+      day: request.date,
+      time: request.time,
       busy: String(requestBusyId) === `reservation:${request.id}`,
       disabled: Boolean(requestBusyId),
-      approveDisabled: (getRequestExpiryMinutesLeft(request.createdAt) ?? 1) <= 0,
+      approveDisabled: (requestMinutesLeft(request.createdAt, request.date, request.time) ?? 1) <= 0,
       onApprove: () => onApproveRequest?.(request.id, { bookingDateForSlots }),
       onDecline: () => onDeclineRequest?.(request.id)
     };

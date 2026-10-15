@@ -1,4 +1,6 @@
 import { isSlotInPast } from "../../../shared/lib/slots.js";
+import { BOOKING_REQUEST_LEAD_MINUTES, isTooSoonToRequest } from "../../../shared/lib/bookingWindow.js";
+import { toPersianDigits } from "../../../shared/lib/digits.js";
 import { getUserFromRequest } from "../../../lib/auth.js";
 import { ensureDb } from "../../../lib/db/connection.js";
 import { error, json, validateBody, withErrorHandling } from "../../../lib/http.js";
@@ -50,6 +52,10 @@ async function _POST(request) {
   }
   const artistSettings = await userSettings.getSettings(artistUserId);
   const isOwner = viewer?.id === artistUserId;
+  // Anyone but the artist is sending a request the artist must answer: it can't start within the next few minutes.
+  if (!isOwner && isTooSoonToRequest(v.data.bookingDate || v.data.booking_date || v.data.date || "", v.data.time || "")) {
+    return error(`برای رزرو باید حداقل ${toPersianDigits(BOOKING_REQUEST_LEAD_MINUTES)} دقیقه تا شروع نوبت مانده باشد تا آرتیست فرصت پاسخ داشته باشد. ساعت دیگری انتخاب کن.`, 409);
+  }
   if (!isOwner && (artistSettings.vacationMode || artistSettings.directBooking === false)) {
     return error(
       artistSettings.vacationMode
@@ -60,6 +66,8 @@ async function _POST(request) {
   }
   const result = await artists.addArtistBooking(artistUserId, {
     ...v.data,
+    // The artist's own entry is settled; a client's waits for the artist (see POST /api/artist/me).
+    ...(isOwner ? { status: "تایید" } : {}),
     ...(!isOwner && viewer?.id && artistSettings.autoConfirm ? { status: "تایید شده" } : {}),
     clientUserId: viewer?.id || null,
     clientName: body.clientName || viewer?.name || "",
