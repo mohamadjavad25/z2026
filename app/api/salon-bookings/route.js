@@ -345,6 +345,13 @@ async function _PATCH(request) {
     if (result.error === "awaiting_client") {
       return noStoreJson({ error: "مشتری هنوز به ساعت تازه جواب نداده؛ بعد از قبولش تایید می‌شود.", code: "AWAITING_CLIENT" }, { status: 409 });
     }
+    if (result.error === "inactive" || result.error === "stale") {
+      return noStoreJson({
+        error: "این رزرو همین الان تغییر کرد؛ فهرست را تازه کردیم، دوباره نگاه کن.",
+        code: "BOOKING_CHANGED",
+        data: { bookings: await salons.listSalonBookings(auth.user.id) }
+      }, { status: 409 });
+    }
     if (result.error === "parts") {
       return noStoreJson({ error: "فهرست خدمات این نوبت نامعتبر است." }, { status: 400 });
     }

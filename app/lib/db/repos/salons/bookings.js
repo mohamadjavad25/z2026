@@ -807,6 +807,16 @@ function buildSalonBookingNext(current, data) {
 async function updateSalonBookingInTx(db, id, salonUserId, current, data) {
   const next = buildSalonBookingNext(current, data);
   await lockSalonDay(db, salonUserId, next.booking_date);
+  // `current` was read before this transaction began. Someone else (the client cancelling, the
+  // salon approving, the expiry sweep) may have changed the row since; look again, holding the
+  // row, and refuse rather than act on a stale picture (e.g. approve a request that just expired).
+  const locked = await get(db, "SELECT status FROM salon_bookings WHERE id = $1 AND salon_user_id = $2 FOR UPDATE", [id, salonUserId]);
+  if (!locked) return { ok: false, error: "missing" };
+  if (locked.status !== current.status) {
+    if (locked.status === "منقضی شده") return { ok: false, error: "expired" };
+    if (locked.status === "لغو") return { ok: false, error: "inactive" };
+    return { ok: false, error: "stale" };
+  }
   // Re-snapshot the icon only when the service itself changed.
   if (String(next.service || "") !== String(current.service || "")) {
     next.service_emoji = await resolveBookingServiceEmoji(db, {
@@ -971,6 +981,14 @@ export async function patchSalonBookingWithArtistSync(id, salonUserId, data, { a
   // A new time the salon offered is the client's to accept; the salon may still cancel or move it again.
   if (current.status === AWAITING_CLIENT && data.status === "تایید شده" && !clientAnswer) {
     return { ok: false, error: "awaiting_client" };
+  }
+  // A cancelled booking stays cancelled (to book again, make a new one).
+  if (current.status === "لغو" && data.status && data.status !== "لغو" && data.status !== "منقضی شده") {
+    return { ok: false, error: "inactive" };
+  }
+  // Only a request still waiting can time out; an approved or cancelled booking never expires.
+  if (data.status === "منقضی شده" && !["درخواست", AWAITING_CLIENT].includes(current.status)) {
+    return { ok: false, error: "inactive" };
   }
   if (askClient) data = withClientConsent(current, data);
 

@@ -6,7 +6,8 @@ import { countFollowers } from "../../../lib/db/repos/users.js";
 import { sendPushToUser } from "../../../lib/push.js";
 import { notifyConnection } from "../../../lib/connectionNotify.js";
 import { checkRateLimit } from "../../../lib/rateLimit.js";
-import { withTransaction } from "../../../lib/db/connection.js";
+import { get, withTransaction } from "../../../lib/db/connection.js";
+import { lockArtistDays, lockSalonDay } from "../../../lib/db/locks.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -133,25 +134,36 @@ async function patchOwnArtistBooking(artistUserId, body) {
     return error("این درخواست به‌دلیل عدم پاسخ به‌موقع منقضی شده و دیگر قابل تایید یا رد نیست.", 409);
   }
 
-  // Confirming a STALE (but not-yet-swept) row must not silently create a
-  // double booking: re-check the slot against every other active booking for
-  // this artist, excluding this row itself, right before flipping it to
-  // "تایید شده". This is the exact check patchSalonBookingWithArtistSync
-  // already runs for its salon-linked mirror row (via isArtistSlotBlocked) —
-  // the direct-artist-booking confirm path was the one place skipping it.
-  if (
-    nextStatus === "تایید شده"
-    && await artists.isArtistSlotBlocked(artistUserId, current.bookingDate, current.time, current.durationMinutes, bookingId)
-  ) {
-    return error("این بازه زمانی توسط نوبت دیگری اشغال شده است.", 409);
-  }
-
-  // A salon-assigned appointment (source_salon_user_id) is only a mirror of the salon's own
-  // booking: the answer has to land on the salon booking too, in the same transaction, or the
-  // salon and the client keep showing the old status.
+  // The answer is applied under the same locks the booking paths use (salon's day first, then the
+  // artist's day), re-reading the row first: the sweep, the client or the salon may have changed it
+  // since it was read above, and confirming an expired or cancelled request would bring it back to
+  // life. Confirming also re-checks the slot, so a stale-but-not-yet-swept row can never double-book.
   let updatedRow = null;
   let salonBooking = null;
+  let refusal = null;
   await withTransaction(null, async (db) => {
+    if (current.sourceSalonUserId) await lockSalonDay(db, current.sourceSalonUserId, current.bookingDate);
+    await lockArtistDays(db, [artistUserId], current.bookingDate);
+    const locked = await get(db, "SELECT status FROM artist_bookings WHERE id = $1 FOR UPDATE", [bookingId]);
+    if (!locked) return;
+    if (locked.status === "منقضی شده") {
+      refusal = error("این درخواست به‌دلیل عدم پاسخ به‌موقع منقضی شده و دیگر قابل تایید یا رد نیست.", 409);
+      return;
+    }
+    if (locked.status === "لغو" && nextStatus === "تایید شده") {
+      refusal = error("این نوبت لغو شده و دیگر قابل تایید نیست.", 409);
+      return;
+    }
+    if (
+      nextStatus === "تایید شده"
+      && await artists.isArtistSlotBlocked(artistUserId, current.bookingDate, current.time, current.durationMinutes, bookingId, db)
+    ) {
+      refusal = error("این بازه زمانی توسط نوبت دیگری اشغال شده است.", 409);
+      return;
+    }
+    // A salon-assigned appointment (source_salon_user_id) is only a mirror of the salon's own
+    // booking: the answer has to land on the salon booking too, in the same transaction, or the
+    // salon and the client keep showing the old status.
     updatedRow = wantsCancel
       ? await artists.cancelArtistBookingRow(bookingId, db)
       : await artists.updateArtistBookingRow(bookingId, { status: nextStatus }, db);
@@ -159,6 +171,7 @@ async function patchOwnArtistBooking(artistUserId, body) {
       salonBooking = await salons.syncSalonBookingFromArtistMirror(updatedRow, nextStatus, db);
     }
   });
+  if (refusal) return refusal;
   if (!updatedRow) return notFound();
 
   const answerWord = nextStatus === "تایید شده" ? "تایید کرد" : "لغو کرد";

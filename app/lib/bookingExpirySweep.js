@@ -1,6 +1,5 @@
-import { getDb, all } from "./db/connection.js";
+import { getDb, all, run } from "./db/connection.js";
 import * as salons from "./db/repos/salons.js";
-import * as artists from "./db/repos/artists.js";
 import { sendPushToUser } from "./push.js";
 import { isSlotInPast } from "../shared/lib/slots.js";
 import { AWAITING_CLIENT } from "../shared/lib/bookingOffer.js";
@@ -183,8 +182,12 @@ export async function sweepExpiredBookingRequestsOnce() {
     // its own — unlike the salon case there's no linked mirror row to keep in
     // sync here (this query already excludes salon-linked rows), so no
     // withTransaction wrapper is needed.
-    const updated = await artists.updateArtistBookingRow(row.id, { status: BOOKING_REQUEST_EXPIRED_STATUS });
-    if (updated) {
+    // Conditional on the status still being pending: the artist may have answered since the list was read.
+    const updated = await run(db, `
+      UPDATE artist_bookings SET status = $1, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $2 AND status = 'تازه' AND source_salon_user_id IS NULL
+    `, [BOOKING_REQUEST_EXPIRED_STATUS, row.id]);
+    if (updated.rowCount > 0) {
       artistExpired += 1;
       try {
         notifyClientOfArtistBookingExpiry(row);
