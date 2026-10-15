@@ -256,6 +256,9 @@ function VisitBookerForm({ role, title, subtitle, services, days, initial, custo
         {state.time ? (
           <section className="vbSection vbPlanSection" aria-label="برنامهٔ نوبت" aria-live="polite">
             <PlanList role={role} state={state} onStaff={(index, name) => controller.setStaff(index, name)} onRetry={() => controller.retryPlan()} />
+            {role === "client" && state.plan.status === "ok" && state.plan.parts.length > 1 ? (
+              <p className="vbPlanNote">آرتیست‌ها پیشنهاد سالن‌اند و ممکن است سالن عوضشان کند. اگر ساعت را عوض کند، اول از تو می‌پرسد.</p>
+            ) : null}
           </section>
         ) : null}
       </div>

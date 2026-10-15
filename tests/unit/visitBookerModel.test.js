@@ -172,6 +172,20 @@ describe("buildSubmitBody", () => {
       { service: "کوتاهی", duration: "30 دقیقه", staff: "آرتیست" }
     ]);
   });
+  it("the salon sends the artist it was shown for every service, so a single service is not saved unassigned", () => {
+    const shown = [{ staff: "مهسا" }, { staff: "حدیث" }];
+    const several = buildSubmitBody("salon", { ...state, staff: { 1: "نمکی" } }, bySlug("مانیکور", "کوتاهی"), shown);
+    expect(several.parts.map((p) => p.staff)).toEqual(["مهسا", "نمکی"]);
+    const single = buildSubmitBody("salon", { ...state, staff: {} }, bySlug("مانیکور"), shown);
+    expect(single.staff).toBe("مهسا");
+    expect(single.parts).toBeUndefined();
+    // nothing to send when the system found nobody
+    expect(buildSubmitBody("salon", { ...state, staff: {} }, bySlug("مانیکور"), [{ staff: "" }]).staff).toBeUndefined();
+    // a client and an artist never send an artist, whatever the plan says
+    expect(buildSubmitBody("client", { ...state, staff: {} }, bySlug("مانیکور"), shown).staff).toBeUndefined();
+    expect(buildSubmitBody("client", state, bySlug("مانیکور", "کوتاهی"), shown).parts.every((p) => !("staff" in p))).toBe(true);
+    expect(buildSubmitBody("artist", state, bySlug("مانیکور"), shown)).not.toHaveProperty("staff");
+  });
   it("one service is a plain booking, with the salon's artist when named", () => {
     const one = buildSubmitBody("salon", { ...state, staff: { 0: "آرتیست" } }, bySlug("مانیکور"));
     expect(one).toMatchObject({ service: "مانیکور", durationMinutes: 45, staff: "آرتیست" });

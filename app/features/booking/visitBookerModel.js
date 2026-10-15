@@ -13,7 +13,6 @@ import { parseServiceDurationMinutes, minutesToPersianTime, timeLabelToMinutes }
  * "artist" (an independent artist enters their own customer).
  */
 export const MAX_VISIT_SERVICES = MAX_BOOKING_PARTS;
-export const ROLES = ["client", "salon", "artist"];
 
 /** The salon's or artist's own service list as the form's services: one per name, with a length (same parser the server uses). */
 export function normalizeServices(raw) {
@@ -132,8 +131,15 @@ export function readiness(role, state, list, plan = { status: "ok" }) {
 /** "برای ثبت لازم است: خدمت، ساعت" */
 export const missingText = (missing) => (missing.length ? `برای ثبت لازم است: ${missing.join("، ")}` : "");
 
-/** The body of the booking request; the caller adds who is booking (the salon's id). */
-export function buildSubmitBody(role, state, list) {
+/**
+ * The body of the booking request; the caller adds who is booking (the salon's id).
+ * `planParts` is the plan the person was shown. The salon sends the artist shown for every service
+ * (the one it named, else the system's pick), so what is saved is exactly what was on screen: a
+ * single service sent with no artist would otherwise be saved unassigned. A client names nobody;
+ * the server drafts the same split for them.
+ */
+export function buildSubmitBody(role, state, list, planParts = []) {
+  const staffFor = (index) => (role === "salon" ? (state.staff[index] || String(planParts[index]?.staff || "").trim()) : "");
   const totals = visitTotals(list);
   const base = {
     time: state.time,
@@ -151,10 +157,10 @@ export function buildSubmitBody(role, state, list) {
     body.parts = list.map((service, index) => ({
       service: service.name,
       duration: service.duration || `${service.minutes} دقیقه`,
-      ...(role === "salon" && state.staff[index] ? { staff: state.staff[index] } : {})
+      ...(staffFor(index) ? { staff: staffFor(index) } : {})
     }));
-  } else if (role === "salon" && state.staff[0]) {
-    body.staff = state.staff[0];
+  } else if (staffFor(0)) {
+    body.staff = staffFor(0);
   }
   return body;
 }

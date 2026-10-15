@@ -43,7 +43,7 @@ describe("starting", () => {
     controller.start();
     expect(state().times.status).toBe("loading");
     await flush();
-    expect(source.calls.times).toEqual([{ day: "d1", services: [{ name: "مانیکور", minutes: 45 }, { name: "کوتاهی", minutes: 30 }] }]);
+    expect(source.calls.times).toEqual([{ day: "d1", fresh: false, services: [{ name: "مانیکور", minutes: 45 }, { name: "کوتاهی", minutes: 30 }] }]);
     expect(state().times).toMatchObject({ status: "ready", list: ["۱۰:۰۰", "۱۰:۳۰"] });
     expect(state().time).toBe("۱۰:۰۰");
     expect(source.calls.plan).toHaveLength(1);
@@ -439,9 +439,10 @@ describe("sending", () => {
     await flush();
     controller.setPhone("0912");
     await controller.submit();
+    // the artist the salon named for the second, and the one shown for the first (the fake source puts "ا" on every row)
     expect(submit).toHaveBeenCalledWith({
       time: "۱۰:۰۰", client: "مریم", phone: "0912", service: "مانیکور + کوتاهی", durationMinutes: 75, bookingDate: "d1",
-      parts: [{ service: "مانیکور", duration: "۴۵ دقیقه" }, { service: "کوتاهی", duration: "۳۰ دقیقه", staff: "ب" }]
+      parts: [{ service: "مانیکور", duration: "۴۵ دقیقه", staff: "ا" }, { service: "کوتاهی", duration: "۳۰ دقیقه", staff: "ب" }]
     });
   });
 
@@ -493,6 +494,37 @@ describe("sending", () => {
     expect(state().staff).toEqual({});
     gate.resolve();
     await pending;
+  });
+});
+
+describe("asking for the times again", () => {
+  const freshFlags = (source) => source.loadTimes.mock.calls.map(([query]) => Boolean(query.fresh));
+  it("asks plainly for a new day or new services, and 'fresh' after a refused booking, a failed load or a refused plan", async () => {
+    const submit = vi.fn().mockResolvedValue({ ok: false, status: 409, payload: {} });
+    const source = fakeSource();
+    const { controller } = make({ source, submit });
+    controller.start();
+    await flush();
+    controller.setDay("d2");
+    await flush();
+    controller.toggleService("3");
+    await flush();
+    expect(freshFlags(source)).toEqual([false, false, false]);
+    await controller.submit();
+    await flush();
+    expect(freshFlags(source).at(-1)).toBe(true);
+    controller.retryTimes();
+    await flush();
+    expect(freshFlags(source).at(-1)).toBe(true);
+  });
+
+  it("asks fresh when the plan for a time is refused because the slot is gone", async () => {
+    let first = true;
+    const source = fakeSource({ plan: () => { if (first) { first = false; return { ok: true, data: { ok: false, code: "CONFLICT", message: "پر", partIndex: -1, parts: [] } }; } return okPlan([{ service: "مانیکور", staff: "ا" }]); } });
+    const { controller } = make({ source });
+    controller.start();
+    await flush();
+    expect(freshFlags(source)).toEqual([false, true]);
   });
 });
 

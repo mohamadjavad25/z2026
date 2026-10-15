@@ -120,6 +120,27 @@ describe("VisitBooker for the salon (browser)", () => {
     await context.close();
   });
 
+  it("books a single service with the artist shown on screen, not unassigned, and holds that artist for its own length", async () => {
+    const team = await seedTeam();
+    const { page, context, problems } = await openSalon(team);
+    await openBookingSheet(page);
+    await page.locator("#vb-name").fill("تک‌خدمتی");
+    await pickService(page, H);
+    await pickDay(page, DAY2);
+    await pickTime(page, "10:00");
+    await page.locator(".vbPlanRow").first().waitFor();
+    expect(await page.locator(".vbPlanRow").first().innerText()).toContain("آرتیست مو");
+    await page.locator(".vbSubmit").click();
+    await page.locator(".visitBookerSheet").waitFor({ state: "detached" });
+    expect(problems).toEqual([]);
+    const [booking] = await bookingsOf(team);
+    expect(booking.staff).toBe(team.hair.staff.name);
+    expect(Number(booking.duration_minutes)).toBe(30);
+    const mine = (await team.hair.client.get("/api/artist/me")).payload.data.bookings.filter((b) => b.client_name === "تک‌خدمتی");
+    expect(mine.map((b) => [b.time, Number(b.duration_minutes)])).toEqual([["10:00", 30]]);
+    await context.close();
+  });
+
   it("lets the salon give one service to another artist, and saves exactly that", async () => {
     const team = await seedTeam();
     const { page, context, problems } = await openSalon(team);
@@ -425,6 +446,36 @@ describe("VisitBooker for an independent artist (browser)", () => {
     expect(mine[0].booking_date).toBe(dayKeyAhead(DAY2));
     expect(mine[0].status).toBe("تایید");
     expect(artist.user.id).toBeTruthy();
+    await context.close();
+  });
+
+  it("tells the artist a time was taken in the meantime, with fresh times from their own calendar", async () => {
+    const artistApi = createClient();
+    const artist = await registerUser(artistApi, { type: "artist", name: "آرتیست شلوغ" });
+    expect((await artistApi.post("/api/artist/me", { name: "ابرو شلوغ", price: "100", duration: "۳۰ دقیقه" })).ok).toBe(true);
+    const { page, context, problems } = await newPage({ cookie: artistApi.cookie() });
+    await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
+    await openBookingSheet(page);
+    await page.locator("#vb-name").fill("دیرتر");
+    await pickService(page, "ابرو شلوغ");
+    await pickDay(page, DAY2);
+    await pickTime(page, "10:00");
+    // a client takes 10:00 straight from the artist's page while the form is open
+    const clientApi = createClient();
+    const customer = await registerUser(clientApi, { type: "client", name: "مشتری زودتر" });
+    expect((await clientApi.post("/api/artist/bookings", { artistUserId: artist.user.id, service: "ابرو شلوغ", bookingDate: dayKeyAhead(DAY2), time: "10:00", durationMinutes: 30, clientName: customer.user.name, phone: customer.phone })).ok).toBe(true);
+    await page.locator(".vbSubmit").click();
+    await page.locator(".vbHint").waitFor();
+    expect(await page.locator(".vbHint").innerText()).toMatch(/[؀-ۿ]/);
+    // the artist's own list was asked for again: 10:00 is gone, another time is chosen, and saving that works
+    await page.getByRole("button", { name: "۱۰:۰۰", exact: true }).waitFor({ state: "detached" });
+    await page.locator(".vbTime.is-on").waitFor();
+    await page.locator(".vbSubmit").click();
+    await page.locator(".visitBookerSheet").waitFor({ state: "detached" });
+    const mine = (await artistApi.get("/api/artist/me")).payload.data.bookings.filter((b) => b.client_name === "دیرتر");
+    expect(mine).toHaveLength(1);
+    expect(mine[0].time).not.toBe("10:00");
+    expect(problems.filter((line) => !line.includes("409"))).toEqual([]);
     await context.close();
   });
 

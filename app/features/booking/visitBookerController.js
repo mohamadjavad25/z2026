@@ -8,7 +8,9 @@ import {
  * on its own: asking the server for free times and for the plan, throwing away answers that are
  * already out of date, moving to the nearest open day, and sending the booking once.
  *
- * `source.loadTimes({ day, services })` → { ok, times: string[] }
+ * `source.loadTimes({ day, services, fresh })` → { ok, times: string[] }; `fresh` is true when the
+ *    list is being asked for again after something went wrong, so a source that keeps its own copy
+ *    of the calendar should look again instead of trusting it
  * `source.loadPlan({ day, time, services, staff })` → { ok, data } (data: the preview endpoint's answer);
  *    leave it out and the plan is the services one after another (the independent artist's case).
  * `submit(body)` → { ok, status, payload }
@@ -78,12 +80,12 @@ export function createVisitBookerController({
   };
   build();
 
-  async function loadTimesFor(day, picked) {
+  async function loadTimesFor(day, picked, fresh = false) {
     const request = ++timesRequest;
     const query = visitQuery(model, picked);
     let answer;
     try {
-      answer = await source.loadTimes({ day, services: query.services });
+      answer = await source.loadTimes({ day, services: query.services, fresh });
     } catch {
       answer = { ok: false };
     }
@@ -92,7 +94,7 @@ export function createVisitBookerController({
   }
 
   /** Free times for the current day and services; picks the first when the chosen one is not among them. */
-  async function refreshTimes({ keepNote = false } = {}) {
+  async function refreshTimes({ keepNote = false, fresh = false } = {}) {
     const picked = list();
     if (!picked.length || !model.day) {
       timesRequest += 1;
@@ -105,7 +107,7 @@ export function createVisitBookerController({
     const startDay = model.day;
     times = { status: "loading", list: [], note: keepNote ? times.note : "" };
     emit();
-    let result = await loadTimesFor(startDay, picked);
+    let result = await loadTimesFor(startDay, picked, fresh);
     if (result === null) return;
     if (result === false) {
       times = { status: "error", list: [], note: "" };
@@ -118,7 +120,7 @@ export function createVisitBookerController({
     if (!result.length && autoAdvance && !dayTouched) {
       const later = days.filter((day) => !day.closed && days.findIndex((item) => item.value === day.value) > days.findIndex((item) => item.value === startDay));
       for (const day of later) {
-        const next = await loadTimesFor(day.value, picked);
+        const next = await loadTimesFor(day.value, picked, fresh);
         if (next === null) return;
         if (next === false) break;
         if (next.length) {
@@ -177,7 +179,7 @@ export function createVisitBookerController({
     // The slot itself is no longer fine (someone booked it, the hour went by): ask for fresh times once.
     if (plan.status === "problem" && ["NO_FREE_ARTIST", "CONFLICT", "SLOT_PAST", "TOO_SOON", "OUTSIDE_HOURS"].includes(plan.code) && !reloadedFor.has(`${model.day}|${model.time}`)) {
       reloadedFor.add(`${model.day}|${model.time}`);
-      void refreshTimes();
+      void refreshTimes({ fresh: true });
     }
   }
   const reloadedFor = new Set();
@@ -244,7 +246,7 @@ export function createVisitBookerController({
       void refreshPlan();
     },
     retryTimes() {
-      void refreshTimes();
+      void refreshTimes({ fresh: true });
     },
     retryPlan() {
       void refreshPlan();
@@ -264,7 +266,7 @@ export function createVisitBookerController({
       emit();
       let result;
       try {
-        result = await submit(buildSubmitBody(role, model, state.picked));
+        result = await submit(buildSubmitBody(role, model, state.picked, state.plan.parts));
       } catch {
         result = { ok: false, status: 0, payload: {} };
       }
@@ -278,7 +280,7 @@ export function createVisitBookerController({
       const failure = submitFailure(result || {});
       error = failure.message;
       emit();
-      if (failure.reloadTimes) void refreshTimes();
+      if (failure.reloadTimes) void refreshTimes({ fresh: true });
       return { ok: false, reason: "refused", message: failure.message };
     }
   };

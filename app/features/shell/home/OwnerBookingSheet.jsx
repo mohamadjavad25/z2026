@@ -3,7 +3,8 @@
 import { useMemo } from "react";
 import { VisitBooker } from "../../booking/VisitBooker";
 import { artistVisitTimes } from "../../booking/artistVisitTimes";
-import { buildExactBookingDateTabs } from "../../artist/bookingUtils";
+import { buildExactBookingDateTabs, mapArtistBooking } from "../../artist/bookingUtils";
+import { getArtistMe } from "../../../shared/api/artists";
 import { getSalonVisitPreview, getSalonVisitTimes } from "../../../shared/api/salons";
 import { findSalonHourForDateKey, isSalonHourOpen } from "../../../shared/lib/salonAvailability";
 import { normalizeServices } from "../../booking/visitBookerModel";
@@ -48,16 +49,18 @@ export function OwnerBookingSheet() {
   const salonUserId = createdProfile?.id;
   const source = role === "artist"
     ? {
-      // The artist's own calendar, as it is when asked (a fresh look after a clash).
-      loadTimes: async ({ day, services: picked }) => ({
-        ok: true,
-        times: artistVisitTimes({
-          day,
-          minutes: picked.reduce((sum, item) => sum + item.minutes, 0),
-          bookings: artistBookingList,
-          breakTime: artistBreakTime
-        })
-      })
+      // The artist's own calendar: the app's copy, or -- after a clash or a failed try -- a fresh look at the server's.
+      loadTimes: async ({ day, services: picked, fresh }) => {
+        let bookings = artistBookingList;
+        let breakTime = artistBreakTime;
+        if (fresh) {
+          const { ok, data } = await getArtistMe();
+          if (!ok) return { ok: false };
+          bookings = (data?.bookings || []).map(mapArtistBooking).filter(Boolean);
+          breakTime = data?.breakTime || null;
+        }
+        return { ok: true, times: artistVisitTimes({ day, minutes: picked.reduce((sum, item) => sum + item.minutes, 0), bookings, breakTime }) };
+      }
     }
     : {
       loadTimes: async ({ day, services: picked }) => {
@@ -73,6 +76,8 @@ export function OwnerBookingSheet() {
   if (!open) return null;
   return (
     <VisitBooker
+      // The lists are taken when the sheet opens; if the services were still loading then, start again once they are there.
+      key={`${role}-${services.length ? "ready" : "loading"}`}
       open
       role={role}
       title="ایجاد رزرو"

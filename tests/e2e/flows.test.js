@@ -91,7 +91,9 @@ describe("booking flow (browser)", () => {
     await cp.locator(".sduConfirm").click();
     // the booking form opens with the first free time already chosen; the button says which
     await cp.locator(".vbTime.is-on").waitFor();
-    expect(await cp.locator(".vbSubmit").innerText()).toContain("ارسال درخواست");
+    // the button says "checking" until the server has confirmed who does what at that time
+    await cp.locator(".vbPlanRow").first().waitFor();
+    await cp.getByRole("button", { name: /ارسال درخواست/ }).waitFor();
     await cp.locator(".vbSubmit").click();
     // "now what?": a full screen says the request reached the salon and how long the answer can take
     const receipt = cp.locator(".brScreen");
@@ -153,6 +155,7 @@ describe("booking flow (browser)", () => {
     await cp.locator(".vbPlanRow").nth(1).waitFor();
     expect(await cp.locator(".vbPlanRow").count()).toBe(2);
     await cp.locator(".vbTime.is-on").waitFor();
+    await cp.getByRole("button", { name: /ارسال درخواست/ }).waitFor();
     await cp.locator(".vbSubmit").click();
     await cp.locator(".cbt.is-wait").waitFor();
     expect(clientView.problems).toEqual([]);
@@ -236,6 +239,7 @@ describe("client starts from what they want (browser)", () => {
     await page.locator(".sduItem.is-selected", { hasText: "کوتاهی مو" }).waitFor();
     await page.locator(".sduConfirm").click();
     await page.locator(".vbTime.is-on").waitFor();
+    await page.getByRole("button", { name: /ارسال درخواست/ }).waitFor();
     await page.locator(".vbSubmit").click();
     const receipt = page.locator(".brScreen");
     await receipt.waitFor();

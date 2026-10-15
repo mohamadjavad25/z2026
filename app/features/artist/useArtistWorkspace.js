@@ -317,7 +317,7 @@ export function useArtistWorkspace({
     try {
       const { ok, status, payload } = await createArtistMe(body);
       if (!ok) {
-        if (status === 409) await refreshArtistWorkspace();
+        if (status === 409) void refreshArtistWorkspace();
         return { ok: false, status, payload };
       }
       const created = mapArtistBooking(payload.data?.booking) || {
