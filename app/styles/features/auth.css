@@ -4,7 +4,7 @@
   --auth-ink: var(--n-950);
   --auth-soft: var(--n-100);
   --auth-blush: var(--accent);
-  --auth-gold: var(--signal-warn);
+  --auth-gold: var(--brand-pink);
   --auth-teal: var(--info);
   --auth-input-border: var(--n-900);
   font-family: "Vazirmatn", Tahoma, sans-serif;
@@ -51,9 +51,9 @@
   inset: 0;
   overflow: hidden;
   background:
-    linear-gradient(180deg, rgb(var(--ink-rgb) / 0) 0%, rgb(var(--ink-rgb) / 0.08) 38%, rgb(12 13 18 / 0.62) 58%, var(--n-950) 72%),
+    linear-gradient(180deg, rgb(12 13 18 / 0) 0%, rgb(12 13 18 / 0.08) 38%, rgb(12 13 18 / 0.62) 58%, var(--brand-ink) 72%),
     url("/auth-gate-bg.webp") top center / cover no-repeat;
-  background-color: var(--n-950);
+  background-color: var(--brand-ink);
   animation: authAuroraIn 1s ease both;
 }
 

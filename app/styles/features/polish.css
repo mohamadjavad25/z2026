@@ -34,7 +34,7 @@
 
 .appShell.is-auth-gate .authTermsAgreement input[type="checkbox"]:checked {
   border-color: var(--n-900);
-  background: var(--n-900) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'><path d='M5 12.5l4.5 4.5L19 7'/></svg>") center / 78% no-repeat;
+  background: var(--brand-ink) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'><path d='M5 12.5l4.5 4.5L19 7'/></svg>") center / 78% no-repeat;
 }
 
 .appShell.is-auth-gate .authTermsAgreement input[type="checkbox"]:focus-visible {
@@ -1041,9 +1041,19 @@ html[data-cbt="1"] body { padding-bottom: 92px; }
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='8' viewBox='0 0 20 8'%3E%3Cpath d='M0 4 Q5 0 10 4 T20 4' fill='none' stroke='%23b3b3b3' stroke-width='1.6'/%3E%3C/svg%3E") repeat-x center;
 }
 
-/* ── Entry screen: pure white, with a statement wordmark ───────────────── */
+/* ── Entry screen: clean canvas, a statement wordmark, and a slow pink / violet aurora behind it ───── */
 main.appShell.is-auth-gate .workspace { background: var(--n-0) !important; }
-.appShell.is-auth-gate .authGateBg { display: none; }
+.appShell.is-auth-gate .authGateAurora { background: none; }
+.appShell.is-auth-gate .authGateScrim { display: none; }
+.appShell.is-auth-gate .authAuroraBlob { mix-blend-mode: normal; opacity: 0.4; }
+.appShell.is-auth-gate .authAuroraBlob--gold { background: radial-gradient(circle, var(--brand-pink) 0%, rgb(255 134 184 / 0) 72%); }
+.appShell.is-auth-gate .authAuroraBlob--blush { background: radial-gradient(circle, var(--brand-violet) 0%, rgb(139 108 255 / 0) 70%); }
+.appShell.is-auth-gate .authAuroraBlob--teal { background: radial-gradient(circle, var(--brand-pink) 0%, rgb(255 134 184 / 0) 72%); opacity: 0.3; }
+.appShell.is-auth-gate .authAuroraSparkle { background: var(--brand-pink); box-shadow: 0 0 6px 1px rgb(255 134 184 / 0.8); }
+:root[data-theme="dark"] .appShell.is-auth-gate .authAuroraBlob { mix-blend-mode: screen; opacity: 0.34; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .appShell.is-auth-gate .authAuroraBlob { mix-blend-mode: screen; opacity: 0.34; }
+}
 
 .appShell.is-auth-gate .authGateHero { color: var(--auth-ink); }
 .appShell.is-auth-gate .authGateHero[data-mode="signup"][data-step="role"] {
@@ -1074,7 +1084,8 @@ main.appShell.is-auth-gate .workspace { background: var(--n-0) !important; }
   width: 44px;
   height: 2px;
   border-radius: 2px;
-  background: linear-gradient(90deg, transparent, var(--signal-warn), transparent);
+  background: var(--brand-blend);
+  height: 3px;
   width: 96px;
 }
 

@@ -621,7 +621,7 @@
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(180deg, rgb(var(--paper-rgb) / 0.08) 0%, rgb(var(--paper-rgb) / 0) 55%, rgb(var(--paper-rgb) / 0.14) 100%),
+    linear-gradient(180deg, rgb(255 255 255 / 0.08) 0%, rgb(255 255 255 / 0) 55%, rgb(255 255 255 / 0.14) 100%),
     url("/salon-public-hero.webp") center / cover no-repeat;
   transform: none;
 }
@@ -1175,7 +1175,7 @@
 
 .salonPublicHeroImage {
   background:
-    linear-gradient(180deg, rgb(var(--paper-rgb) / 0.18) 0%, rgb(var(--paper-rgb) / 0.02) 58%, rgb(var(--paper-rgb) / 0.14) 100%),
+    linear-gradient(180deg, rgb(255 255 255 / 0.18) 0%, rgb(255 255 255 / 0.02) 58%, rgb(255 255 255 / 0.14) 100%),
     url("/salon-public-hero.webp") 55% center / cover no-repeat !important;
 }
 
@@ -1413,7 +1413,7 @@
 
 .salonPublicHeroImage {
   background:
-    linear-gradient(180deg, rgb(var(--paper-rgb) / 0.14) 0%, rgb(var(--paper-rgb) / 0) 56%, rgb(var(--paper-rgb) / 0.1) 100%),
+    linear-gradient(180deg, rgb(255 255 255 / 0.14) 0%, rgb(255 255 255 / 0) 56%, rgb(255 255 255 / 0.1) 100%),
     url("/salon-public-hero.webp") 58% center / cover no-repeat;
 }
 

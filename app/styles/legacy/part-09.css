@@ -1279,7 +1279,7 @@
     pointer-events: none;
     background:
       radial-gradient(circle at 68% 28%, color-mix(in srgb, var(--n-600) 20%, transparent), transparent 30%),
-      linear-gradient(180deg, rgba(2, 3, 10, 0.1), rgb(12 13 18 / 0.5) 72%, rgb(var(--paper-rgb) / 0.96) 100%),
+      linear-gradient(180deg, rgba(2, 3, 10, 0.1), rgb(12 13 18 / 0.5) 72%, rgb(255 255 255 / 0.96) 100%),
       url("/artist-hero-doodle.webp");
     background-size: cover;
     background-position: center top;
@@ -1756,7 +1756,7 @@
     border-radius: 0 0 14px 14px !important;
     background:
       radial-gradient(circle at 74% 25%, color-mix(in srgb, var(--n-600) 18%, transparent), transparent 30%),
-      linear-gradient(180deg, rgb(var(--ink-rgb) / 0.02), rgba(4, 4, 10, 0.18) 68%, rgb(var(--paper-rgb) / 0.72) 100%),
+      linear-gradient(180deg, rgb(12 13 18 / 0.02), rgba(4, 4, 10, 0.18) 68%, rgb(255 255 255 / 0.72) 100%),
       url("/artist-hero-doodle.webp") center top / cover no-repeat !important;
     opacity: 1;
   }
