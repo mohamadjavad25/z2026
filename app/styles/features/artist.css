@@ -2171,6 +2171,13 @@
 
 
 
+/* The services menu, its dim layer and the bottom bar live inside the body's own stacking layer
+   (z 2), below the cover's avatar and top buttons (z 3). While the menu is open the whole body
+   rises above them, so the menu opens over the logo instead of sliding under it. */
+.artistPublicBody.is-servicesOpen{
+  z-index: 4;
+}
+
 .artistPublicModeSticky{
   position: sticky;
   top: 0;

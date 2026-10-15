@@ -140,7 +140,7 @@ export function PublicArtistModal({
             </div>
           </section>
 
-          <div className="artistPublicBody">
+          <div className={`artistPublicBody${servicesOpen ? " is-servicesOpen" : ""}`}>
             {/* Hours sit above the posts so a long gallery never buries them. */}
             <WeeklyHours rows={weekHours} todayName={todayName} />
 

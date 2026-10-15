@@ -972,7 +972,7 @@ html[data-cbt="1"] body { padding-bottom: 92px; }
 .profilePanel.page-profile.is-salon-profile ~ .bottomNav .profileTab.is-createBooking,
 .profilePanel.page-profile:has(.createdProfile.is-salon) ~ .bottomNav .profileTab.is-createBooking {
   background: var(--fill-strong) !important;
-  box-shadow: 0 0 0 3px var(--n-0), 0 0 0 5px rgb(255 134 184 / 0.65), 0 14px 28px rgb(var(--shadow-rgb) / 0.28) !important;
+  box-shadow: 0 0 0 3px var(--n-0), 0 0 0 5px rgb(var(--brand-pink-rgb) / 0.65), var(--nav-lift) !important;
 }
 .bottomNav .profileTab.is-createBooking::after,
 .profilePanel.page-profile.is-salon-profile ~ .bottomNav .profileTab.is-createBooking::after,
@@ -1217,7 +1217,7 @@ main.appShell.is-auth-gate .workspace { background: var(--n-0) !important; }
 .ivtList { display: grid; gap: 10px; }
 .ivtEntry { border-radius: 22px; background: var(--n-0); box-shadow: 0 8px 22px -14px rgb(var(--shadow-rgb) / 0.28); overflow: hidden; }
 .ivtRow { display: flex; align-items: center; gap: 12px; padding: 12px 14px 12px 12px; }
-.ivtAvatar { flex: none; width: 52px; height: 52px; border-radius: 50%; overflow: hidden; background: var(--n-100); box-shadow: 0 0 0 2px var(--n-0), 0 0 0 3.5px rgb(255 134 184 / 0.7); }
+.ivtAvatar { flex: none; width: 52px; height: 52px; border-radius: 50%; overflow: hidden; background: var(--n-100); box-shadow: 0 0 0 2px var(--n-0), 0 0 0 3.5px rgb(var(--brand-pink-rgb) / 0.7); }
 .ivtAvatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .ivtCopy { flex: 1; min-width: 0; display: grid; gap: 3px; justify-items: start; }
 .ivtCopy b { max-width: 100%; color: var(--n-900); font-size: 0.98rem; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

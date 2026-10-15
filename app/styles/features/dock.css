@@ -11,7 +11,7 @@
   height: 56px !important;
   align-self: center;
   transform: none !important;
-  box-shadow: 0 0 0 2px var(--n-0), 0 0 0 4px rgb(255 134 184 / 0.7), 0 6px 14px rgb(var(--shadow-rgb) / 0.2) !important;
+  box-shadow: 0 0 0 2px var(--n-0), 0 0 0 4px rgb(var(--brand-pink-rgb) / 0.7), var(--nav-lift) !important;
 }
 .bottomNav { min-height: 70px !important; }
 .bottomNav .profileTab span { display: none !important; }

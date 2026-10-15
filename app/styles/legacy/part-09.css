@@ -412,6 +412,11 @@
 }
 
 .salonHeroSheetPanel.bookingWeekHistorySheet{
+  /* Rows are as tall as their content. The panel is a grid with a fixed height and the body has
+     min-height: 0, so with the default auto rows the grid squeezed the body into the space left
+     above the close-button spacer and the booking list spilled over it: the floating X then sat
+     on the last booking. */
+  grid-auto-rows: max-content;
   gap: 14px;
   padding: 14px 14px calc(28px + env(safe-area-inset-bottom));
   background:

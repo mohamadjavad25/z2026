@@ -419,11 +419,13 @@ export function usePublicArtistProfile({
     notify(`لینک پروفایل «${name}» آماده اشتراک‌گذاری است.`);
   }, [selectedPublicArtist, notify]);
 
+  // The post opens over the artist's page and the page stays open underneath, so closing the post
+  // lands back on the same profile (it used to close the page first and drop the visitor on the
+  // search screen).
   const openPublicArtistWork = useCallback((item) => {
     if (!item) return;
-    closePublicArtistProfile();
     if (typeof onSelectPost === "function") onSelectPost(item);
-  }, [closePublicArtistProfile, onSelectPost]);
+  }, [onSelectPost]);
 
   // `bundle`: several services booked as one visit (shared/lib/serviceBundle), whose id is `serviceId`.
   const selectPublicArtistService = useCallback((serviceId, bundle = null) => {

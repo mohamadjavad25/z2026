@@ -461,6 +461,9 @@ function getPassportMatch(post) {
     const artist = resolvePostOwner(post);
     setSelectedPost(null);
     if (!artist) return;
+    // The post was opened from this artist's own page, which is still open underneath: closing the
+    // post is all that's needed (reopening would reset the page's tab and refetch it).
+    if (artist.entityType !== "salon" && selectedPublicArtist && String(artist.id) === String(selectedPublicArtist.id)) return;
 
     if (artist.kind === "self" && artist.entityType === "salon") {
       const ownSalon = artist.source || buildOwnPublicSalon();
