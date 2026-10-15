@@ -52,7 +52,7 @@ export function ProfileGallery({
 }) {
   const showFilters = Array.isArray(filters) && filters.length > 2 && typeof onFilterChange === "function";
   const hasItems = items.length > 0;
-  // With posts present, "create post" is a tile in the grid (second slot), not a header button.
+  // With posts present, "create post" is a tile in the grid (first slot), not a header button.
   const addAsTile = Boolean(onAdd) && hasItems && !hideBody;
   const mosaicClass = items.length === 1 ? "is-single" : items.length === 2 ? "is-pair" : "is-mosaic";
 
@@ -143,13 +143,17 @@ export function ProfileGallery({
             className={`profileGalleryGrid ${mosaicClass}`}
             aria-label={label}
           >
-            {items.flatMap((item, index) => {
+            {/* First in source order (keeps it first for a screen reader too); CSS pushes it to
+                whichever visual edge the gallery's own grid direction calls for — see .galleryAddTile
+                order overrides in app/styles/legacy/part-10.css for the salon panel's left-to-right grid. */}
+            {addAsTile ? renderAddTile() : null}
+            {items.map((item, index) => {
               const key = item.id || item.title;
               const isEditing = editingId != null && editingId === item.id;
               const clickable = typeof onItemClick === "function";
               const actions = typeof renderActions === "function" ? renderActions(item) : null;
 
-              const card = (
+              return (
                 <article
                   className={`profileGalleryCard ${item.featured ? "is-featured" : ""} ${isEditing ? "is-editing" : ""} ${clickable ? "is-clickable" : ""}`}
                   key={key}
@@ -193,7 +197,6 @@ export function ProfileGallery({
                   {actions ? <div className="profileGalleryCardActions">{actions}</div> : null}
                 </article>
               );
-              return addAsTile && index === 0 ? [card, renderAddTile()] : [card];
             })}
           </div>
         ) : !hideBody && !loading ? (

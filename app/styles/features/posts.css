@@ -1,27 +1,25 @@
 /* ---- Post viewer (pv*) ---- */
 .pvOverlay { position: fixed; inset: 0; z-index: var(--z-viewer); display: grid; place-items: center; padding: 16px 16px 84px; background: rgba(15, 17, 20, 0.62); backdrop-filter: blur(6px); overflow-y: auto; }
-/* The card itself never scrolls and never exceeds the screen: it's capped to the viewport height,
-   laid out as a column where the image, title and action buttons each keep their natural size and
-   only the caption (the one part whose length isn't under our control) grows into the space left
-   over and scrolls internally when it doesn't fit -- see .pvCaption below. */
-.pvSheet { position: relative; width: min(420px, 100%); max-height: min(92dvh, 760px); display: flex; flex-direction: column; overflow: hidden; border-radius: 28px; background: #ffffff; color: #14161d; box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4); outline: none; animation: pvIn 240ms cubic-bezier(0.22, 1, 0.36, 1); }
+/* The card sizes itself to its own content (image + text), never cropping the photo and never
+   leaving blank space below a short caption. It only scrolls as a last resort -- a genuinely short
+   viewport plus a very long caption -- since .pvCaption below caps and scrolls itself well before
+   that becomes necessary. */
+.pvSheet { position: relative; width: min(420px, 100%); max-height: min(92dvh, 760px); overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; display: flex; flex-direction: column; border-radius: 28px; background: #ffffff; color: #14161d; box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4); outline: none; animation: pvIn 240ms cubic-bezier(0.22, 1, 0.36, 1); }
 @keyframes pvIn { from { opacity: 0; transform: translateY(16px) scale(0.98); } to { opacity: 1; transform: none; } }
-/* Capped by viewport height instead of a fixed aspect-ratio, so the image can never push the rest
-   of the card (caption, actions) off-screen on a short viewport; object-fit:cover keeps it filling
-   this box cleanly whatever the source photo's own ratio is. */
-.pvMedia { position: relative; flex: 0 0 auto; height: clamp(170px, 38dvh, 400px); background: #ececf0; overflow: hidden; }
-.pvMedia img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.pvMediaEmpty { width: 100%; height: 100%; background: linear-gradient(160deg, #e9e9ef, #d4d4de); }
+/* No forced height/crop: the image keeps its own ratio, scaled down only far enough to fit the
+   card's width and a generous height cap -- the whole photo is always visible. */
+.pvMedia { position: relative; flex: 0 0 auto; display: flex; align-items: center; justify-content: center; background: #ececf0; overflow: hidden; }
+.pvMedia img { display: block; width: auto; height: auto; max-width: 100%; max-height: 55dvh; object-fit: contain; }
+.pvMediaEmpty { width: 100%; min-height: 220px; background: linear-gradient(160deg, #e9e9ef, #d4d4de); }
 .pvCounter { position: absolute; top: 12px; right: 12px; padding: 4px 10px; border-radius: 999px; background: rgba(20, 22, 29, 0.6); color: #fff; font-size: 0.68rem; font-weight: 850; backdrop-filter: blur(6px); }
 .pvNav { position: absolute; top: 50%; width: 38px; height: 38px; margin-top: -19px; display: grid; place-items: center; border: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.88); color: #14161d; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2); cursor: pointer; }
 .pvNav.is-prev { right: 10px; }
 .pvNav.is-next { left: 10px; }
 .pvBadges { position: absolute; bottom: 12px; right: 12px; display: flex; gap: 6px; }
 .pvBadges span { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 999px; background: rgba(20, 22, 29, 0.72); color: #fff; font-size: 0.68rem; font-weight: 850; }
-/* flex:1 + min-height:0 is what lets this column be shorter than its content without scrolling the
-   page: the fixed-size rows below (owner, title, stats, actions) claim their own height first, and
-   whatever's left goes to .pvCaption, the one child that's allowed to scroll. */
-.pvBody { display: flex; flex-direction: column; gap: 12px; padding: 16px 16px 6px; flex: 1 1 auto; min-height: 0; overflow: hidden; }
+/* No flex-grow here: the body takes exactly the height its rows need, so a short caption never
+   leaves a blank gap above the action buttons the way stretching to fill leftover space would. */
+.pvBody { display: flex; flex-direction: column; gap: 12px; padding: 16px 16px 6px; }
 .pvOwner { flex: 0 0 auto; display: flex; align-items: center; gap: 10px; width: 100%; padding: 0; border: 0; background: transparent; font: inherit; text-align: right; cursor: pointer; color: inherit; }
 .pvOwner:disabled { cursor: default; }
 .pvOwnerAvatar { width: 40px; height: 40px; flex: none; display: grid; place-items: center; overflow: hidden; border-radius: 50%; background: #14161d; color: #fff; font-weight: 900; }
@@ -32,9 +30,9 @@
 .pvTitleRow { flex: 0 0 auto; display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
 .pvTitleRow h3 { margin: 0; font-size: 1.05rem; font-weight: 950; line-height: 1.5; }
 .pvTag { flex: none; padding: 4px 11px; border-radius: 999px; background: #f1f1f5; color: #3b3e49; font-size: 0.7rem; font-weight: 850; }
-/* The only scrollable part of the card: grows into whatever room the fixed rows around it leave,
-   and scrolls its own text instead of the caption dragging the image/actions off-screen with it. */
-.pvCaption { flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; margin: 0; padding-left: 2px; color: #3b3e49; font-size: 0.84rem; font-weight: 700; line-height: 1.9; white-space: pre-wrap; overflow-wrap: anywhere; }
+/* Sits at its own natural height for a short caption (no stretch, no blank space below it); a long
+   one is capped here and scrolls on its own, so the image and the action buttons never have to move. */
+.pvCaption { flex: 0 0 auto; max-height: min(30dvh, 230px); overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; margin: 0; padding-left: 2px; color: #3b3e49; font-size: 0.84rem; font-weight: 700; line-height: 1.9; white-space: pre-wrap; overflow-wrap: anywhere; }
 .pvStats { flex: 0 0 auto; display: flex; flex-wrap: wrap; gap: 6px 14px; color: #6f7380; font-size: 0.72rem; font-weight: 800; }
 .pvStats span { display: inline-flex; align-items: center; gap: 5px; }
 .pvActions { flex: 0 0 auto; display: flex; gap: 8px; padding-bottom: 6px; }
