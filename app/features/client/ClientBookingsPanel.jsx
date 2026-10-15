@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CalendarClock, Clock3, History } from "lucide-react";
+import { Ban, CalendarClock, CheckCircle2, Clock3, History, TimerOff } from "lucide-react";
 import { Mascot } from "../../components/Mascot";
 import { SegmentClock } from "../../components/SegmentClock";
 import { toPersianDigits } from "../../shared/lib/digits";
@@ -14,7 +14,7 @@ import {
   bookingStatusLabel,
   bookingStatusTone,
   clientBookingKey,
-  isBookingActive,
+  isBookingAhead,
   isBookingInPast
 } from "./bookingStatus";
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
@@ -29,6 +29,20 @@ function compareUpcoming(a, b) {
   const db = dayOf(b) ? resolveRollingPersianDate(dayOf(b)).getTime() : 0;
   if (da !== db) return da - db;
   return String(a.time || "").localeCompare(String(b.time || ""));
+}
+
+const NOTES_SHOWN = 3;
+
+/** One line for a booking that is over, cancelled or expired: what happened, and when it was. */
+function noteOf(booking) {
+  const tone = bookingStatusTone(booking.status || "تازه");
+  const place = booking.salonName || booking.salon_name || (booking.bookingSource === "artist" ? "آرتیست" : "سالن");
+  const service = shortServiceLabel(booking.service) || "خدمت زیبایی";
+  const day = dayOf(booking) ? formatRelativeBookingDayLabel(dayOf(booking)) : "امروز";
+  const when = booking.time ? `${day} • ${toPersianDigits(booking.time)}` : day;
+  if (tone === "bad") return { Icon: Ban, tone, text: `رزرو ${service} در ${place} لغو شد`, when };
+  if (tone === "expired") return { Icon: TimerOff, tone, text: `${place} به رزرو ${service} جواب نداد؛ منقضی شد`, when };
+  return { Icon: CheckCircle2, tone: "done", text: `نوبت ${service} در ${place} تمام شد`, when };
 }
 
 function metaOf(booking) {
@@ -58,14 +72,16 @@ function metaOf(booking) {
 export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook, compactEmpty = false, highlightKey = "" }) {
   const [historyOpen, setHistoryOpen] = useState(false);
 
-  const { upcoming, past } = useMemo(() => {
+  const { upcoming, past, notes } = useMemo(() => {
     const ahead = [];
     const behind = [];
     bookings.forEach((booking) => {
-      if (isBookingActive(booking) && !isBookingInPast(booking)) ahead.push(booking);
+      if (isBookingAhead(booking)) ahead.push(booking);
       else behind.push(booking);
     });
-    return { upcoming: ahead.sort(compareUpcoming), past: behind };
+    // Over, cancelled or expired, but still today or later: a one-line note, not a card. Older ones are history only.
+    const recent = behind.filter((booking) => !isBookingInPast(booking)).sort((a, b) => compareUpcoming(b, a));
+    return { upcoming: ahead.sort(compareUpcoming), past: behind, notes: recent };
   }, [bookings]);
 
   return (
@@ -149,7 +165,29 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook, c
               );
             })}
           </div>
-        ) : compactEmpty ? (
+        ) : null}
+
+        {notes.length ? (
+          <ul className="cvNotes" aria-label="تازه‌ترین تغییرها">
+            {notes.slice(0, NOTES_SHOWN).map((booking, index) => {
+              const { Icon, tone, text, when } = noteOf(booking);
+              return (
+                <li key={`${booking.bookingSource || "salon"}-${booking.id || index}`}>
+                  <button type="button" className={`cvMsg is-${tone}`} onClick={() => onOpenSettings?.({ ...booking, clientBookingSheetMode: "details" })}>
+                    <Icon size={15} aria-hidden="true" />
+                    <span>{text}</span>
+                    <time>{when}</time>
+                  </button>
+                </li>
+              );
+            })}
+            {notes.length > NOTES_SHOWN ? (
+              <li><button type="button" className="cvNotesMore" onClick={() => setHistoryOpen(true)}>{toPersianDigits(notes.length - NOTES_SHOWN)} مورد دیگر در سابقه</button></li>
+            ) : null}
+          </ul>
+        ) : null}
+
+        {upcoming.length ? null : compactEmpty ? (
           <p className="cbpEmptyLine">
             {past.length ? "نوبت فعالی نداری؛ نوبت‌های قبلی در «سابقه» هستند." : "هنوز نوبتی نگرفتی. نوبت بعدی‌ات اینجا دیده می‌شود."}
           </p>

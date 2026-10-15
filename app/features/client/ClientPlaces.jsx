@@ -12,7 +12,7 @@ import { formatRelativeBookingDayLabel, getPersianWeekday } from "../../shared/l
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
 import { ConnectSheet } from "../connect/ConnectSheet";
 import { AddPlaceActions } from "./AddPlaceActions";
-import { isBookingActive, isBookingInPast } from "./bookingStatus";
+import { isBookingAhead } from "./bookingStatus";
 
 const SHOWN_SERVICES = 4;
 
@@ -89,7 +89,7 @@ export function ClientPlaces({ bookings = [], clientName = "", onOpenPlace, onFi
     const map = new Map();
     [...bookings].sort(newestFirst).forEach((booking) => {
       const id = placeIdOf(booking);
-      const ahead = isBookingActive(booking) && !isBookingInPast(booking);
+      const ahead = isBookingAhead(booking);
       if (id && !ahead && !map.has(id)) map.set(id, booking);
     });
     return map;

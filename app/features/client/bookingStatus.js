@@ -2,7 +2,7 @@ import { resolveRollingPersianDate } from "../../shared/lib/persianCalendar";
 import { AWAITING_CLIENT } from "../../shared/lib/bookingOffer";
 import { minutesUntilSlotStart } from "../../shared/lib/bookingWindow";
 import { scheduleBookingParts } from "../../shared/lib/bookingParts";
-import { normalizeBookingTimeLabel, timeLabelToMinutes } from "../../shared/lib/time";
+import { getTehranClockMinutes, normalizeBookingTimeLabel, timeLabelToMinutes } from "../../shared/lib/time";
 
 /** Plain-language status for a booking row (the stored values are internal: تازه / درخواست ...). */
 export function bookingStatusLabel(status = "") {
@@ -38,6 +38,22 @@ export function hasBookingStarted(booking, now = new Date()) {
   return until !== null && until <= 0;
 }
 
+/** The appointment is over: its end time has passed (a booking in progress is not over). */
+export function hasBookingEnded(booking, now = new Date()) {
+  if (isBookingInPast(booking)) return true;
+  const until = minutesUntilSlotStart(booking?.booking_date || booking?.date, booking?.time, now);
+  if (until === null || until === Infinity) return false;
+  const end = bookingEndLabel(booking);
+  const start = timeLabelToMinutes(normalizeBookingTimeLabel(booking.time));
+  const endMinutes = end ? timeLabelToMinutes(end) : start;
+  return (endMinutes >= start ? endMinutes : start) <= getTehranClockMinutes(now);
+}
+
+/** Still to come or under way: active, and not over yet. These are the full cards; the rest are one-line notes. */
+export function isBookingAhead(booking, now = new Date()) {
+  return isBookingActive(booking) && !hasBookingEnded(booking, now);
+}
+
 /** The client can cancel their own booking while it is active and has not started yet. */
 export function canClientCancel(booking) {
   return isBookingActive(booking) && !hasBookingStarted(booking);
@@ -52,7 +68,7 @@ export function pickNextBooking(bookings = []) {
     return day * 10000 + Number(clock || 0);
   };
   return bookings
-    .filter((booking) => isBookingActive(booking) && !isBookingInPast(booking))
+    .filter((booking) => isBookingAhead(booking))
     .sort((a, b) => toKey(a) - toKey(b))[0] || null;
 }
 
