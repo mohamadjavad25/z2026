@@ -15,6 +15,7 @@ import { checkRateLimit } from "../../../lib/rateLimit.js";
 import { withErrorHandling } from "../../../lib/http.js";
 import { otpConfig, verifyOtpProof } from "../../../lib/otp.js";
 import { isImageDataUrlInvalidType, isImageDataUrlTooLarge } from "../../../lib/mediaLimits.js";
+import { getSetting } from "../../../lib/db/repos/adminControl.js";
 
 export const runtime = "nodejs";
 
@@ -58,6 +59,14 @@ async function _POST(request) {
     }
     if (!["client", "artist", "salon"].includes(type)) {
       return NextResponse.json({ error: "نقش نامعتبر است." }, { status: 400 });
+    }
+    // The operator can pause new accounts per role from the admin panel (Settings). A failed read keeps sign-up open.
+    const signups = await getSetting("signups").catch(() => null);
+    if (signups && signups[type] === false) {
+      return NextResponse.json(
+        { error: signups.message || "ثبت‌نام جدید فعلاً بسته است. کمی بعد دوباره سر بزن.", code: "signups_closed" },
+        { status: 403 }
+      );
     }
     if (await users.getUserByPhone(phone)) {
       return NextResponse.json({ error: "این شماره قبلاً ثبت شده است." }, { status: 409 });

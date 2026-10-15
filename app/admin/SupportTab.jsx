@@ -1,13 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Flag, MessageSquare, Phone, Send } from "lucide-react";
-import { apiFetch } from "../shared/api/client";
-import { Button, Chip, Field } from "../components/ui";
-import { CATEGORY_LABEL, PAGE, REASON_LABEL, RESOLUTION_LABEL, STATUS_LABEL, ago, fmtDate, num } from "./format";
+import { Flag, LifeBuoy, MessageSquare, Phone, Search, Send } from "lucide-react";
+import { Button, Field } from "../components/ui";
+import { api } from "./adminFetch";
+import { CannedReplies } from "./CannedReplies";
+import { CATEGORY_LABEL, PAGE, REASON_LABEL, RESOLUTION_LABEL, ago, fmtDate } from "./format";
 import { PageHead } from "./PageHead";
 import { SplitView } from "./SplitView";
-import { tabInfo } from "./nav";
+import { EmptyState, ErrorNote, Loading, Pager, Segmented, Skeleton, confirmAction, toast, useAdminData, withQuery } from "./ui";
 
 const labelOf = (ticket) => (ticket.kind === "report" ? REASON_LABEL[ticket.category] : CATEGORY_LABEL[ticket.category]) || ticket.category;
 const clock = (value) => new Intl.DateTimeFormat("fa-IR", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Tehran" }).format(new Date(value));
@@ -28,12 +29,11 @@ function TicketDetail({ id, onChanged, onGo }) {
   const [found, setFound] = useState(null);
   const [reply, setReply] = useState("");
   const [note, setNote] = useState("");
-  const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const endRef = useRef(null);
 
   const load = useCallback(async () => {
-    const { ok, payload } = await apiFetch(`/api/admin/support/${id}`);
+    const { ok, payload } = await api.get(`/api/admin/support/${id}`);
     if (ok) {
       setFound(payload.data);
       setNote(payload.data.ticket.admin_note || "");
@@ -42,7 +42,6 @@ function TicketDetail({ id, onChanged, onGo }) {
   useEffect(() => {
     setFound(null);
     setReply("");
-    setMessage("");
     load();
   }, [load]);
   const count = found?.messages?.length || 0;
@@ -52,10 +51,9 @@ function TicketDetail({ id, onChanged, onGo }) {
 
   async function send(body, done, after) {
     setBusy(true);
-    setMessage("");
-    const { ok, payload } = await apiFetch(`/api/admin/support/${id}`, { method: "POST", body: JSON.stringify(body) });
+    const { ok, payload } = await api.post(`/api/admin/support/${id}`, body);
     setBusy(false);
-    setMessage(ok ? done : payload.error || "انجام نشد.");
+    toast(ok ? done : payload.error || "انجام نشد.", ok ? "success" : "error");
     if (ok) {
       after?.();
       await load();
@@ -63,8 +61,8 @@ function TicketDetail({ id, onChanged, onGo }) {
     }
   }
 
-  if (!found) return <p className="admMuted">در حال بارگذاری…</p>;
-  if (found.error) return <p className="admError" role="alert">{found.error}</p>;
+  if (!found) return <Loading />;
+  if (found.error) return <ErrorNote error={found.error} onRetry={load} />;
   const { ticket, messages, target } = found;
   const isReport = ticket.kind === "report";
   const phone = ticket.contact_phone || ticket.user_phone;
@@ -80,12 +78,11 @@ function TicketDetail({ id, onChanged, onGo }) {
         </div>
         <TurnPill ticket={ticket} />
       </header>
-      {message ? <p className="admNote" role="status">{message}</p> : null}
 
       <ul className="admFacts">
         <li>
           <span>فرستنده</span>
-          {ticket.user_id ? <button type="button" className="admLink" onClick={() => onGo("users", { userId: ticket.user_id })}>{ticket.user_name || "بدون نام"} ←</button> : <b>مهمان (بدون حساب)</b>}
+          {ticket.user_id ? <button type="button" className="admLink" onClick={() => onGo("users", { id: ticket.user_id })}>{ticket.user_name || "بدون نام"} ←</button> : <b>مهمان (بدون حساب)</b>}
         </li>
         {phone ? <li><span>شمارهٔ تماس</span><a className="admLink" href={`tel:${phone}`} dir="ltr"><Phone size={14} aria-hidden="true" /> {phone}</a></li> : null}
         {closed && ticket.resolution ? <li><span>نتیجه</span><b>{RESOLUTION_LABEL[ticket.resolution] || ticket.resolution}</b></li> : null}
@@ -99,17 +96,17 @@ function TicketDetail({ id, onChanged, onGo }) {
               {ticket.target_type === "post" ? (
                 <>
                   <li><span>پست</span><b>{target.title}{target.is_public ? "" : " • پنهان"}</b></li>
-                  <li><span>صاحب پست</span><button type="button" className="admLink" onClick={() => onGo("users", { userId: target.owner_id })}>{target.owner_name} ←</button></li>
+                  <li><span>صاحب پست</span><button type="button" className="admLink" onClick={() => onGo("users", { id: target.owner_id })}>{target.owner_name} ←</button></li>
                 </>
               ) : (
-                <li><span>حساب</span><button type="button" className="admLink" onClick={() => onGo("users", { userId: target.id })}>{target.name || "بدون نام"} ←</button></li>
+                <li><span>حساب</span><button type="button" className="admLink" onClick={() => onGo("users", { id: target.id })}>{target.name || "بدون نام"} ←</button></li>
               )}
             </ul>
           ) : <p className="admMuted">دیگر وجود ندارد (احتمالاً حذف شده).</p>}
           {!closed && target ? (
             <div className="admRowActions">
               {ticket.target_type === "post" && target.is_public ? <Button size="sm" variant="secondary" disabled={busy} onClick={() => send({ action: "hide_post", note }, "پست پنهان شد و گزارش بسته شد.")}>پنهان‌کردن پست</Button> : null}
-              <Button size="sm" variant="danger" disabled={busy} onClick={() => window.confirm("حساب مربوط مسدود شود؟ بلافاصله از اپ خارج می‌شود.") && send({ action: "suspend_user", note }, "حساب مسدود شد و گزارش بسته شد.")}>مسدودکردن حساب</Button>
+              <Button size="sm" variant="danger" disabled={busy} onClick={async () => (await confirmAction({ title: "حساب مربوط مسدود شود؟", body: "بلافاصله از اپ خارج می‌شود و گزارش بسته می‌شود.", danger: true, confirmLabel: "مسدود شود" })).ok && send({ action: "suspend_user", note }, "حساب مسدود شد و گزارش بسته شد.")}>مسدودکردن حساب</Button>
               <Button size="sm" variant="ghost" disabled={busy} onClick={() => send({ action: "dismiss", note }, "گزارش بدون اقدام بسته شد.")}>ایرادی نبود</Button>
             </div>
           ) : null}
@@ -130,8 +127,24 @@ function TicketDetail({ id, onChanged, onGo }) {
         </div>
         {canReply ? (
           <form className="admReply" onSubmit={(event) => { event.preventDefault(); send({ reply }, "پاسخ فرستاده شد.", () => setReply("")); }}>
+            <CannedReplies onPick={(body) => setReply((prev) => (prev ? `${prev}\n${body}` : body))} />
             <Field label="پاسخ به کاربر" hideLabel>
-              {(props) => <textarea {...props} rows={3} maxLength={2000} value={reply} placeholder="پاسخت را بنویس؛ کاربر در پشتیبانیِ خودش می‌بیند…" onChange={(event) => setReply(event.target.value)} />}
+              {(props) => (
+                <textarea
+                  {...props}
+                  rows={3}
+                  maxLength={2000}
+                  value={reply}
+                  placeholder="پاسخت را بنویس؛ کاربر در پشتیبانیِ خودش می‌بیند… (Ctrl+Enter برای ارسال)"
+                  onChange={(event) => setReply(event.target.value)}
+                  onKeyDown={(event) => {
+                    if ((event.ctrlKey || event.metaKey) && event.key === "Enter" && reply.trim() && !busy) {
+                      event.preventDefault();
+                      send({ reply }, "پاسخ فرستاده شد.", () => setReply(""));
+                    }
+                  }}
+                />
+              )}
             </Field>
             <div className="admRowActions">
               <Button type="submit" size="sm" disabled={busy || !reply.trim()}><Send size={15} aria-hidden="true" /> ارسال پاسخ</Button>
@@ -169,80 +182,75 @@ const VIEWS = [
 ];
 
 /** The support inbox: who is waiting for you, a conversation on the side, and the tools to deal with reports. */
-export function SupportTab({ intent = {}, onChanged, onGo }) {
-  const [view, setView] = useState("admin");
+export function SupportTab({ intent = {}, onChanged, onGo, setParam }) {
+  const [view, setView] = useState(intent.id || intent.q ? "all" : "admin");
   const [kind, setKind] = useState("");
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(intent.q || "");
   const [offset, setOffset] = useState(0);
-  const [data, setData] = useState({ tickets: [], total: 0, counts: {} });
-  const [selected, setSelected] = useState(intent.ticketId || null);
+  const [selected, setSelected] = useState(Number(intent.id) || null);
 
-  const load = useCallback(async () => {
-    const params = { kind, q, offset: String(offset), limit: String(PAGE) };
-    if (view === "admin" || view === "user") params.awaiting = view;
-    if (view === "closed") params.status = "closed";
-    const { ok, payload } = await apiFetch(`/api/admin/support?${new URLSearchParams(params)}`);
-    if (ok) setData(payload.data);
-  }, [view, kind, q, offset]);
+  const params = { kind, q: q.trim(), offset, limit: PAGE };
+  if (view === "admin" || view === "user") params.awaiting = view;
+  if (view === "closed") params.status = "closed";
+  const { data, error, loading, reload } = useAdminData(withQuery("/api/admin/support", params), { debounce: q ? 250 : 0, every: 45 * 1000 });
   useEffect(() => {
-    const timer = setTimeout(load, 250);
-    return () => clearTimeout(timer);
-  }, [load]);
+    setParam?.("id", selected);
+  }, [selected, setParam]);
 
   const changed = () => {
-    load();
+    reload();
     onChanged?.();
   };
-  const pages = Math.max(1, Math.ceil(data.total / PAGE));
-  const page = Math.floor(offset / PAGE) + 1;
-  const count = (key) => num(data.counts?.[key] || 0);
-  const info = tabInfo("support");
+  const reset = (fn) => (value) => {
+    fn(value);
+    setOffset(0);
+  };
+  const counts = data?.counts || {};
+  const tickets = data?.tickets || [];
 
   const list = (
-    <section className="admCard">
-      <div className="admFilters">
-        <Field label="جستجو در پیام‌ها" hideLabel>
-          {(props) => <input {...props} type="search" placeholder="موضوع، متن، نام یا شماره…" value={q} onChange={(event) => { setQ(event.target.value); setOffset(0); }} />}
-        </Field>
-        <div className="admChips" role="group" aria-label="نمای صندوق">
-          {VIEWS.map(([value, label]) => {
-            const n = value === "admin" ? count("awaiting_admin") : value === "user" ? count("awaiting_user") : value === "closed" ? count("closed") : "";
-            return <Chip key={value} selected={view === value} onClick={() => { setView(value); setOffset(0); }}>{label}{n !== "" ? ` (${n})` : ""}</Chip>;
-          })}
-        </div>
-        <div className="admChips" role="group" aria-label="نوع">
-          {[["", "همه"], ["support", "پیام‌ها"], ["report", "گزارش‌ها"]].map(([value, label]) => (
-            <Chip key={value || "all"} selected={kind === value} onClick={() => { setKind(value); setOffset(0); }}>{label}</Chip>
-          ))}
-        </div>
+    <section className="admCard admListCard">
+      <div className="admToolbar">
+        <label className="admInlineSearch">
+          <Search size={17} aria-hidden="true" />
+          <input type="search" value={q} placeholder="موضوع، متن، نام یا شماره…" aria-label="جست‌وجو در پیام‌ها" onChange={(event) => reset(setQ)(event.target.value)} />
+        </label>
+        <Segmented label="نوع" size="sm" value={kind} onChange={reset(setKind)} options={[{ value: "", label: "همه" }, { value: "support", label: "پیام‌ها" }, { value: "report", label: "گزارش‌ها", icon: Flag }]} />
       </div>
-      {data.tickets.length ? (
-        <ul className="admInbox">
-          {data.tickets.map((ticket) => (
-            <li key={ticket.id} className={`${ticket.status === "closed" ? "is-closed" : ""}${selected === ticket.id ? " is-selected" : ""}`}>
-              <button type="button" onClick={() => setSelected(ticket.id)} aria-label={`${ticket.subject || "بدون موضوع"} — ${ticket.user_name || ticket.phone || "مهمان"}`}>
-                <span className={`admTicketIcon is-${ticket.kind}`}>{ticket.kind === "report" ? <Flag size={16} aria-hidden="true" /> : <MessageSquare size={16} aria-hidden="true" />}</span>
-                <span className="admInboxBody">
-                  <b>{ticket.subject || (ticket.last_body || "").slice(0, 60) || "بدون موضوع"}</b>
-                  <small>{ticket.user_name || "مهمان"} • {labelOf(ticket)}{ticket.last_body ? ` • ${ticket.last_body.slice(0, 40)}` : ""}</small>
-                </span>
-                <span className="admInboxMeta"><TurnPill ticket={ticket} /><time dateTime={ticket.last_message_at}>{ago(ticket.last_message_at)}</time></span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      ) : <p className="admMuted admEmptyNote">{view === "admin" ? "همهٔ پیام‌ها پاسخ داده شده‌اند 🎉" : "موردی نیست."}</p>}
-      <footer className="admPager">
-        <Button size="sm" variant="secondary" disabled={offset === 0} onClick={() => setOffset(Math.max(0, offset - PAGE))}>قبلی</Button>
-        <span>{num(data.total)} مورد • صفحهٔ {num(page)} از {num(pages)}</span>
-        <Button size="sm" variant="secondary" disabled={page >= pages} onClick={() => setOffset(offset + PAGE)}>بعدی</Button>
-      </footer>
+      <Segmented
+        label="نمای صندوق"
+        size="sm"
+        value={view}
+        onChange={reset(setView)}
+        options={VIEWS.map(([value, label]) => ({ value, label, count: value === "admin" ? counts.awaiting_admin : value === "user" ? counts.awaiting_user : value === "closed" ? counts.closed : undefined }))}
+      />
+      <ErrorNote error={error} onRetry={reload} />
+      {!data && loading ? <Skeleton rows={6} /> : null}
+      {data ? (
+        tickets.length ? (
+          <ul className={`admInbox${loading ? " is-stale" : ""}`}>
+            {tickets.map((ticket) => (
+              <li key={ticket.id} className={`${ticket.status === "closed" ? "is-closed" : ""}${selected === ticket.id ? " is-selected" : ""}`}>
+                <button type="button" onClick={() => setSelected(ticket.id)} aria-label={`${ticket.subject || "بدون موضوع"} — ${ticket.user_name || ticket.phone || "مهمان"}`}>
+                  <span className={`admTicketIcon is-${ticket.kind}`}>{ticket.kind === "report" ? <Flag size={16} aria-hidden="true" /> : <MessageSquare size={16} aria-hidden="true" />}</span>
+                  <span className="admInboxBody">
+                    <b>{ticket.subject || (ticket.last_body || "").slice(0, 60) || "بدون موضوع"}</b>
+                    <small>{ticket.user_name || "مهمان"} • {labelOf(ticket)}{ticket.last_body ? ` • ${ticket.last_body.slice(0, 40)}` : ""}</small>
+                  </span>
+                  <span className="admInboxMeta"><TurnPill ticket={ticket} /><time dateTime={ticket.last_message_at}>{ago(ticket.last_message_at)}</time></span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : view === "admin" ? <EmptyState icon={LifeBuoy} title="همهٔ پیام‌ها پاسخ داده شده‌اند">پیام تازه که بیاید، اینجا و روی زنگ بالای صفحه می‌بینی.</EmptyState> : <EmptyState icon={LifeBuoy} title="موردی نیست" />
+      ) : null}
+      {data ? <Pager total={data.total} offset={offset} limit={PAGE} onChange={setOffset} noun="مورد" /> : null}
     </section>
   );
 
   return (
     <>
-      <PageHead title={info.label} desc={info.desc} />
+      <PageHead tab="support" />
       <SplitView
         list={list}
         open={Boolean(selected)}

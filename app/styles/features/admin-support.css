@@ -2,7 +2,7 @@
 .admSideIcon { position: relative; display: inline-flex; flex: 0 0 auto; }
 .admBadgeDot { position: absolute; top: -3px; inset-inline-end: -4px; width: 9px; height: 9px; border-radius: 50%; background: var(--a-accent); box-shadow: 0 0 0 2px var(--a-side), 0 0 10px var(--a-accent); }
 .admSide.is-open .admBadgeDot, .admSide.is-mobile-open .admBadgeDot { display: none; }
-.admBadge { margin-inline-start: auto; display: inline-grid; place-items: center; min-width: 24px; height: 22px; padding: 0 7px; border-radius: var(--radius-pill); background: var(--a-accent); color: #fff; font-size: 0.74rem; font-weight: 900; }
+.admBadge { margin-inline-start: auto; display: inline-grid; place-items: center; min-width: 24px; height: 22px; padding: 0 7px; border-radius: var(--radius-pill); background: var(--a-accent); color: var(--a-accent-ink); font-size: 0.74rem; font-weight: 900; }
 .admSide.is-open .admBadge { width: auto; }
 
 .admInbox { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }

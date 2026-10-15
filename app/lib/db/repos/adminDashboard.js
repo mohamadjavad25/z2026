@@ -1,5 +1,6 @@
 import { getDb, all, get } from "../connection.js";
 import { countActive } from "./support.js";
+import { ensureControlTables } from "./adminControl.js";
 
 const TZ = "Asia/Tehran";
 const DAY = "INTERVAL '1 day'";
@@ -26,6 +27,7 @@ const pctChange = (current, previous) => {
 /** Everything the admin home page shows, in one call. `rangeDays` is 7 or 30. */
 export async function getDashboard(rangeDays = 7) {
   const days = Number(rangeDays) === 30 ? 30 : 7;
+  await ensureControlTables();
   const db = await getDb();
 
   const [series, windows, totals, byType, statuses, alerts, feed] = await Promise.all([
@@ -76,7 +78,11 @@ export async function getDashboard(rangeDays = 7) {
       SELECT
         (SELECT COUNT(*)::int FROM password_reset_requests WHERE status = 'pending') AS pending_resets,
         (SELECT COUNT(*)::int FROM sms_log WHERE status = 'failed' AND created_at >= NOW() - INTERVAL '24 hours') AS sms_failed,
-        (SELECT COUNT(*)::int FROM admin_actions WHERE action IN ('login_failed', 'login_blocked', 'enroll_failed', 'stepup_failed') AND created_at >= NOW() - INTERVAL '24 hours') AS admin_failed_logins
+        (SELECT COUNT(*)::int FROM admin_actions WHERE action IN ('login_failed', 'login_blocked', 'enroll_failed', 'stepup_failed') AND created_at >= NOW() - INTERVAL '24 hours') AS admin_failed_logins,
+        (SELECT COUNT(*)::int FROM client_errors WHERE created_at >= NOW() - INTERVAL '24 hours') AS client_errors,
+        (SELECT COUNT(*)::int FROM users WHERE last_seen_at >= NOW() - INTERVAL '5 minutes') AS online,
+        (SELECT COUNT(*)::int FROM users WHERE created_at >= NOW() - INTERVAL '24 hours') AS signups_today,
+        (SELECT COUNT(*)::int FROM salon_bookings WHERE status IN ('تازه', 'درخواست')) + (SELECT COUNT(*)::int FROM artist_bookings WHERE source_salon_user_id IS NULL AND status IN ('تازه', 'درخواست')) AS waiting_bookings
     `),
     all(db, `
       SELECT kind, title, detail, at FROM (
@@ -114,8 +120,10 @@ export async function getDashboard(rangeDays = 7) {
       smsFailed: alerts?.sms_failed || 0,
       adminFailedLogins: alerts?.admin_failed_logins || 0,
       suspended: totals?.suspended || 0,
-      hiddenPosts: totals?.hidden_posts || 0
+      hiddenPosts: totals?.hidden_posts || 0,
+      clientErrors: alerts?.client_errors || 0
     },
+    live: { online: alerts?.online || 0, signupsToday: alerts?.signups_today || 0, waitingBookings: alerts?.waiting_bookings || 0 },
     forecast: {
       signups: forecastNext(signups, 7),
       bookings: forecastNext(bookings, 7),
