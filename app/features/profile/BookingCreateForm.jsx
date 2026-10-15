@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { CalendarCheck, Check, ChevronDown, Plus } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { minutesToPersianTime, timeLabelToMinutes } from "../../shared/lib/time";
@@ -56,6 +57,7 @@ export function BookingCreateForm({
   initialClient = "",
   initialPhone = ""
 }) {
+  const formId = useId();
   const showStaff = role === "salon" && staffOptions.length > 0;
   const [name, setName] = useState(initialClient);
   const [phone, setPhone] = useState(initialPhone);
@@ -132,7 +134,7 @@ export function BookingCreateForm({
   }
 
   return (
-    <form className="bcf" onSubmit={handleSubmit} noValidate>
+    <form id={formId} className="bcf" onSubmit={handleSubmit} noValidate>
       <section className="bcfGroup" aria-labelledby="bcf-customer">
         <h4 id="bcf-customer">مشتری</h4>
         <div className="bcfInputs">
@@ -238,7 +240,7 @@ export function BookingCreateForm({
         </section>
       ) : null}
 
-      <section className="bcfGroup" aria-labelledby="bcf-when">
+      <section className={`bcfGroup${useGrid ? " is-grid" : ""}`} aria-labelledby="bcf-when">
         <h4 id="bcf-when">زمان</h4>
         <input type="hidden" name={dayFieldName} value={activeDay.value} />
         <input type="hidden" name="time" value={selectedTime} />
@@ -313,23 +315,22 @@ export function BookingCreateForm({
         )}
       </section>
 
-      <div className="bcfFoot">
-        {useGrid && selectedTime && selectedService ? (
-          <p className="bcfWho">
-            <b>{toPersianDigits(selectedTime)} تا {minutesToPersianTime(timeLabelToMinutes(selectedTime) + (dayGrid.duration || 60))}</b>
-            {gridStaff ? ` · ${staffOptions.find((person) => person.value === gridStaff)?.label || gridStaff}` : ""}
-          </p>
-        ) : null}
-        {hint ? <p className="bcfHint" role="alert">{hint}</p> : null}
-        <button type="submit" className={`bcfSubmit${canSubmit ? "" : " is-incomplete"}`} disabled={isBusy}>
-          <CalendarCheck size={18} aria-hidden="true" />
-          {isBusy
-            ? "در حال ثبت…"
-            : canSubmit
-              ? `ثبت رزرو · ${activeDay.label} ${toPersianDigits(selectedTime)}`
-              : "ثبت رزرو"}
-        </button>
-      </div>
+      {/* Floating save button, portaled to <body> like the old close button so it stays pinned to the
+          screen; `form` ties it back to this form (Enter in the name field still submits). */}
+      {typeof document === "undefined" ? null : createPortal(
+        <div className="bcfFab">
+          {hint ? <p className="bcfHint" role="alert">{hint}</p> : null}
+          <button type="submit" form={formId} className={`bcfSubmit${canSubmit ? "" : " is-incomplete"}`} disabled={isBusy}>
+            <CalendarCheck size={18} aria-hidden="true" />
+            {isBusy
+              ? "در حال ثبت…"
+              : canSubmit
+                ? `ثبت رزرو · ${activeDay.label} ${toPersianDigits(selectedTime)}`
+                : "ثبت رزرو"}
+          </button>
+        </div>,
+        document.body
+      )}
     </form>
   );
 }
@@ -380,7 +381,7 @@ function BookingDayGrid({ grid, staffOptions, activeStaff, selectedTime, custome
   return (
     <div className="bcfGrid">
       <p className="bcfGridHint">
-        {multi ? `${toPersianDigits(columns.length)} آرتیست · اول آرتیست را بزن، بعد ساعت خالی را` : "جای خالی را روی تقویم بزن"}
+        {multi ? "آرتیست را انتخاب کن، بعد ساعت خالی را بزن" : "ساعت خالی را بزن"}
       </p>
       {multi ? (
         <div className="bcfStaffStrip" role="tablist" aria-label="آرتیست" ref={tabsRef}>

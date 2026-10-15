@@ -16,6 +16,7 @@ export function BookingSheet({
       title={title}
       label={title}
       panelClassName={`bookingSheet ${role === "artist" ? "is-artist" : "is-salon"}`}
+      hideClose
       onClose={onClose}
     >
       <div className="bookingSheetBody">
