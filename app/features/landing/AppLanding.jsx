@@ -3,12 +3,16 @@ import QRCode from "qrcode";
 import { Check, Palette, Search, Store } from "lucide-react";
 import { ANDROID_APK_URL, ANDROID_APP_VERSION, DOWNLOAD_PAGE_URL } from "./constants";
 import { EnterAppButton } from "./EnterAppButton";
+import { LearnSection } from "./LearnSection";
+import { TUTORIAL_ICONS } from "./tutorials";
+import { beautyEmojiSrc } from "../../shared/constants/beautyEmoji";
 
 /**
  * The page about frfro with the app download links. Shown at /download, at "/" on phones
  * until the visitor taps «ورود به فرفرو», and on large screens (tablet and desktop) in place
  * of every page but /admin, /terms and /privacy (see LargeScreenGate).
- * Server component: plain content, no client state. Motion is CSS only (landing.css).
+ * Server component: plain content; the only client part is the tutorials player (LearnSection).
+ * Motion is CSS (landing.css, landingLearn.css).
  * Look: white and ink with pink and violet blended in (see the tokens at the top of landing.css).
  */
 
@@ -90,6 +94,9 @@ const FAQ = [
   }
 ];
 
+// Service icons for the tutorial screens, made here so their drawings stay out of the page's script.
+const TUTORIAL_ICON_SRC = Object.fromEntries(TUTORIAL_ICONS.map((id) => [id, beautyEmojiSrc(id)]));
+
 async function downloadQrSvg() {
   try {
     return await QRCode.toString(DOWNLOAD_PAGE_URL, { type: "svg", margin: 0, color: { dark: "#0c0d12ff", light: "#ffffff00" } });
@@ -168,6 +175,7 @@ export async function AppLanding() {
         <nav aria-label="بخش‌های صفحه">
           <a href="#about">فرفرو چیست</a>
           <a href="#how">چطور کار می‌کند</a>
+          <a href="#learn">آموزش</a>
           <a href="#install">نصب</a>
           <a href="#faq">سؤال‌ها</a>
         </nav>
@@ -261,6 +269,17 @@ export async function AppLanding() {
               </li>
             ))}
           </ol>
+        </div>
+      </section>
+
+      <section id="learn" className="appLanding__light is-mist">
+        <div className="appLanding__section">
+          <header className="appLanding__head appLanding__reveal">
+            <p className="appLanding__kicker">آموزش</p>
+            <h2>هر کار را یک بار <em>ببین</em>، بعد خودت انجام بده</h2>
+            <p>ویدیوهای کوتاه و بی‌صدا که نشان می‌دهند هر کار در فرفرو دقیقاً با کدام دکمه انجام می‌شود. برای مشتری، سالن و آرتیست.</p>
+          </header>
+          <LearnSection icons={TUTORIAL_ICON_SRC} />
         </div>
       </section>
 

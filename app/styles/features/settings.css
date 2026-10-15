@@ -2,7 +2,54 @@
 
 .settingsPageBody{
   display: grid;
-  gap: 14px;
+  gap: 22px;
+}
+
+/* Sticky header: the page title and the account type stay on top while the
+   sections scroll underneath. Solid background so content never shows through. */
+.spHeader{
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 52px;
+  padding: 8px 4px;
+  background: var(--n-0);
+  border-bottom: 1px solid rgb(var(--ink-rgb) / 0.08);
+}
+
+.spHeaderTitle{
+  margin: 0;
+  color: var(--ink);
+  font-size: 1.05rem;
+  font-weight: 950;
+}
+
+.spHeaderRole{
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--ink);
+  font-size: 0.7rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+/* One section = a heading and the cards that belong to it. */
+.spSection{
+  display: grid;
+  gap: 10px;
+}
+
+/* The sticky header only sticks when the page scrolls with the window. The shell's
+   .workspace clips with overflow:hidden, which makes it a scroll box of its own that
+   never scrolls, so the header would stay put. Only while this tab is open, switch it to
+   overflow:clip: same clipping, but no scroll box. Other tabs keep their rule. */
+.appShell:has(#settings.is-active) .workspace{
+  overflow: clip;
 }
 
 /* Brand card: poster + logo + name/specialty edit entry, merged into one

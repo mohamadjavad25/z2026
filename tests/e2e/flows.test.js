@@ -39,6 +39,34 @@ describe("about page first on phones (browser)", () => {
   });
 });
 
+describe("tutorials on the about page (browser)", () => {
+  it("keeps the mock screens out of the page until the player is seen (they would hijack text lookups on app pages)", async () => {
+    const { page, context } = await newPage();
+    await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
+    expect(await page.locator(".landingSlot .lsScreenInner").count()).toBe(0);
+    expect(await page.getByText("سالن", { exact: true }).first().isVisible()).toBe(true);
+    await context.close();
+  });
+
+  it("switches between client, salon and artist tutorials and jumps to a step", async () => {
+    const { page, context, problems } = await newPage();
+    await page.goto(`${TEST_BASE_URL}/download`, { waitUntil: "networkidle" });
+    const learn = page.locator("#learn .learn");
+    await learn.scrollIntoViewIfNeeded();
+    expect(await learn.locator(".learn__list button").first().innerText()).toContain("ساختن حساب");
+    await learn.getByRole("tab", { name: "برای سالن" }).click();
+    expect(await learn.locator(".learn__list").innerText()).toContain("چیدن منوی خدمات");
+    await learn.getByRole("tab", { name: "برای آرتیست" }).click();
+    await learn.locator(".learn__list button").filter({ hasText: "همکاری با سالن" }).click();
+    const step = learn.locator(".learn__steps li button").nth(2);
+    await step.click();
+    expect(await step.getAttribute("class")).toContain("is-on");
+    expect(await learn.locator(".learn__caption").innerText()).toBe(await step.innerText());
+    expect(problems).toEqual([]);
+    await context.close();
+  });
+});
+
 describe("auth forms (browser)", () => {
   it("shows Persian inline errors instead of the browser's own messages", async () => {
     const { page, context, problems } = await newPage();
