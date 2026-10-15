@@ -6,8 +6,8 @@
    ═══════════════════════════════════════════════════════════════════════ */
 
 /* ── Service icon ─────────────────────────────────────────────────────
-   The icon stands on its own: no tile, tint or ring behind it. The glossy
-   drawing carries its own soft floor shadow (beautyArt/luxe.js). */
+   The icon stands on its own: no tile, tint or ring behind it. The drawing
+   (beautyArt/inkLight.js) is made to read on day and night cards alike. */
 .serviceIcon {
   flex: none;
   width: var(--svc-tile, 48px);
