@@ -1,12 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import { getVisibleSalonServiceItems, SalonCustomersPage, SalonClientPage } from "../../salons";
 import { mapSharedPost } from "../../posts";
 import { SettingsPage } from "../../settings";
 import { ConnectPage, OwnerScanButton } from "../../connect";
+import { ClientBookTabs } from "../../client";
 import { useHome } from "../HomeContext";
 
 export function ContentPages() {
+  const [clientBookTab, setClientBookTab] = useState("mine"); // «رزرو» for a client: «سالن و آرتیست من» | «پیدا کردن»
   const {
     activeTab,
     createdProfile,
@@ -76,6 +79,7 @@ export function ContentPages() {
     setSalonClientTab,
     openSalonClientBooking,
     openConnectedProfile,
+    clientBookingList,
     setSalonHeroSheet,
     setProfileView,
     refreshSaves,
@@ -157,10 +161,20 @@ export function ContentPages() {
             active={activeTab === "salons"}
             selectedSalon={selectedSalon}
             homeContent={createdProfile?.type === "client" ? (
-              <ConnectPage
-                me={{ name: createdProfile.data?.name || "", avatar: createdProfile.data?.avatar || "" }}
-                onOpenProfile={openConnectedProfile}
+              <ClientBookTabs
+                tab={clientBookTab}
+                onTabChange={setClientBookTab}
+                bookings={clientBookingList}
+                clientName={createdProfile.data?.name || ""}
+                onOpenPlace={openConnectedProfile}
                 onNotify={setAppToast}
+                explore={(
+                  <ConnectPage
+                    me={{ name: createdProfile.data?.name || "", avatar: createdProfile.data?.avatar || "" }}
+                    onOpenProfile={openConnectedProfile}
+                    onNotify={setAppToast}
+                  />
+                )}
               />
             ) : null}
             postActions={{
