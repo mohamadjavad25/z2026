@@ -3,20 +3,20 @@
    ink background, translucent white borders) keeps working at night.
    To add one: put its selector in the :is() list below. Nothing else is needed. */
 :root {
-  --l-n-0: var(--n-0);
-  --l-n-25: var(--n-25);
-  --l-n-50: var(--n-50);
-  --l-n-100: var(--n-100);
-  --l-n-150: var(--n-150);
-  --l-n-200: var(--n-200);
-  --l-n-300: var(--n-300);
-  --l-n-400: var(--n-400);
-  --l-n-500: var(--n-500);
-  --l-n-600: var(--n-600);
-  --l-n-700: var(--n-700);
-  --l-n-800: var(--n-800);
-  --l-n-900: var(--n-900);
-  --l-n-950: var(--n-950);
+  --l-n-0: #ffffff;
+  --l-n-25: #fafafc;
+  --l-n-50: #f5f5f9;
+  --l-n-100: #efeff4;
+  --l-n-150: #e8e8ee;
+  --l-n-200: #e1e1e9;
+  --l-n-300: #d3d4de;
+  --l-n-400: #b9bbcb;
+  --l-n-500: #8c909e;
+  --l-n-600: #666a78;
+  --l-n-700: #4a4e5c;
+  --l-n-800: #2d303c;
+  --l-n-900: #1a1c26;
+  --l-n-950: #0c0d12;
 }
 :is(
   /* dark panels */

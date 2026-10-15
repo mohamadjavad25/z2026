@@ -407,7 +407,7 @@
 
 .salonHeroSheetBackdrop.bookingWeekHistorySheetBackdrop{
   z-index: var(--z-sheet-over-modal);
-  background: rgba(16, 18, 24, 0.55);
+  background: rgb(var(--shadow-rgb) / 0.55);
   backdrop-filter: blur(16px);
 }
 

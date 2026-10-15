@@ -484,7 +484,7 @@
   z-index: 55;
   display: flex;
   justify-content: flex-end;
-  background: rgba(28, 32, 44, 0.32);
+  background: rgb(var(--shadow-rgb) / 0.32);
   backdrop-filter: blur(10px);
 }
 

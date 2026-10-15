@@ -2,7 +2,7 @@
 /* No overflow here: the overlay itself never scrolls -- the sheet below is always capped short of
    the viewport (leaving room for the floating close button), so centering it never leaves a
    draggable gap of empty overlay below an already fully-visible card. */
-.pvOverlay { position: fixed; inset: 0; z-index: var(--z-viewer); display: grid; place-items: center; padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)); background: rgba(15, 17, 20, 0.62); backdrop-filter: blur(6px); }
+.pvOverlay { position: fixed; inset: 0; z-index: var(--z-viewer); display: grid; place-items: center; padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)); background: rgb(var(--shadow-rgb) / 0.62); backdrop-filter: blur(6px); }
 /* The card sizes itself to its own content (image + text), never cropping the photo and never
    leaving blank space below a short caption. The height cap always leaves room for the floating
    close button below it, and shrinks automatically with the viewport (dvh units) on short

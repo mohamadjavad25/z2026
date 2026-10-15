@@ -498,7 +498,7 @@ button.artistWorkTagTrigger > svg{
 .salonHeroSheetBackdrop:has(.imageActionSheet){
   align-items: flex-end;
   justify-content: center;
-  background: rgba(28, 32, 44, 0.4);
+  background: rgb(var(--shadow-rgb) / 0.4);
   backdrop-filter: blur(8px);
 }
 
@@ -522,7 +522,7 @@ button.artistWorkTagTrigger > svg{
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  background: rgba(20, 22, 29, 0.45);
+  background: rgb(var(--shadow-rgb) / 0.45);
   backdrop-filter: blur(8px);
 }
 

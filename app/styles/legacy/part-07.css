@@ -410,7 +410,7 @@
   justify-content: space-between;
   gap: 8px;
   padding: 12px;
-  background: linear-gradient(180deg, transparent, rgba(28, 32, 44, 0.82));
+  background: linear-gradient(180deg, transparent, rgb(var(--shadow-rgb) / 0.82));
   color: #fff;
 }
 

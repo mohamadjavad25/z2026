@@ -698,7 +698,7 @@
   z-index: var(--z-modal);
   display: flex;
   justify-content: flex-end;
-  background: rgba(28, 32, 44, 0.32);
+  background: rgb(var(--shadow-rgb) / 0.32);
   backdrop-filter: blur(10px);
 }
 
@@ -2268,7 +2268,7 @@
   position: fixed;
   inset: 0;
   z-index: 23;
-  background: rgba(18, 20, 23, 0.28);
+  background: rgb(var(--shadow-rgb) / 0.28);
   backdrop-filter: blur(8px);
 }
 
