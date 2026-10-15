@@ -395,9 +395,12 @@
 .bcfGridHint { margin: 0; color: #6f7380; font-size: 0.72rem; font-weight: 800; }
 .bcfGridBox { max-height: min(52vh, 420px); overflow: auto; border: 1px solid #ececf1; border-radius: 18px; background: #fff; overscroll-behavior: contain; }
 .bcfGridRow { display: flex; align-items: stretch; min-width: fit-content; }
-.bcfGridRow.is-head { position: sticky; top: 0; z-index: 1; height: 36px; align-items: center; border-bottom: 1px solid #e4e4ea; background: #fff; }
-.bcfGridTime { flex: none; width: 48px; border-top: 1px solid #f0f1f4; color: #6f7380; font-size: 0.68rem; font-weight: 800; line-height: 32px; text-align: center; font-variant-numeric: tabular-nums; }
-.bcfGridRow.is-head .bcfGridTime { border-top: 0; }
+.bcfGridRow.is-head { position: sticky; top: 0; z-index: 2; height: 36px; align-items: center; border-bottom: 1px solid #e4e4ea; background: #fff; }
+/* Sticky on the inline-start (the right edge in this RTL page) so the time-of-day column stays in
+   view once there are more artist columns than fit on screen and the grid scrolls sideways --
+   without it, scrolling right to reach artist #4+ loses all sense of which row/time you're on. */
+.bcfGridTime { position: sticky; inset-inline-start: 0; z-index: 1; flex: none; width: 48px; border-top: 1px solid #f0f1f4; background: #fff; color: #6f7380; font-size: 0.68rem; font-weight: 800; line-height: 32px; text-align: center; font-variant-numeric: tabular-nums; }
+.bcfGridRow.is-head .bcfGridTime { z-index: 3; border-top: 0; }
 .bcfGridName { flex: 1 0 84px; overflow: hidden; padding: 0 6px; color: #3f4350; font-size: 0.74rem; font-weight: 900; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
 .bcfGridName.is-on { color: #c2185b; }
 .bcfCell { flex: 1 0 84px; height: 32px; overflow: hidden; padding: 0 6px; border: 0; border-top: 1px solid #f0f1f4; border-inline-start: 1px solid #f0f1f4; border-radius: 0; background: #fff; color: #6f7380; font: inherit; font-size: 0.68rem; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
@@ -409,3 +412,10 @@
 .bcfCell.is-busy { background: repeating-linear-gradient(-45deg, #eef0f3 0 6px, #e6e8ec 6px 12px); color: #5b6070; }
 .bcfCell.is-pick { border-top-color: #c2185b; background: #c2185b; }
 .bcfCell.is-head { border-top-color: #c2185b; background: #c2185b; color: #fff; font-weight: 900; }
+/* The page-wide tap "press" animation (tokens.css) scales buttons down on :active. Inside this
+   densely-packed, two-directionally-scrollable grid that transform occasionally left a cell with
+   no background at all after a tap -- the gradient/solid-color fill it carries doesn't always
+   survive being scaled on a layer that's also mid-scroll on some mobile browsers. These cells
+   already show their own state through background color, so the press-scale buys nothing here
+   and isn't worth that risk. */
+.bcfCell:active { scale: 1; }

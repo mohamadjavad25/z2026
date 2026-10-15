@@ -109,9 +109,16 @@ export function SalonServicesWorkspace({
                             <UserRound size={14} />
                           </span>
                         )}
-                        <span className="serviceArtistAvatar is-icon is-plus">
-                          <Plus size={14} />
-                        </span>
+                        {/* Beyond the first 2 avatars, show how many more are picked instead of a plain
+                            "+" that never changed -- that static icon made it look like a 3rd (or 4th...)
+                            selection was never registered, when it always was (see toggleSalonServiceArtist). */}
+                        {visibleArtists.length > 2 ? (
+                          <em>+{toPersianDigits(visibleArtists.length - 2)}</em>
+                        ) : (
+                          <span className="serviceArtistAvatar is-icon is-plus">
+                            <Plus size={14} />
+                          </span>
+                        )}
                       </span>
                     </button>
                     <ProfileSheet
