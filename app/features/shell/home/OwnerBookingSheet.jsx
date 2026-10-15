@@ -1,8 +1,21 @@
-import { formatTomanNumber, parseTomanAmount } from "../../../shared/lib/money";
-import { BookingSheet } from "../../profile/BookingSheet";
-import { BookingCreateForm } from "../../profile/BookingCreateForm";
+"use client";
 
+import { useMemo } from "react";
+import { VisitBooker } from "../../booking/VisitBooker";
+import { artistVisitTimes } from "../../booking/artistVisitTimes";
+import { buildExactBookingDateTabs } from "../../artist/bookingUtils";
+import { getSalonVisitPreview, getSalonVisitTimes } from "../../../shared/api/salons";
+import { findSalonHourForDateKey, isSalonHourOpen } from "../../../shared/lib/salonAvailability";
+import { normalizeServices } from "../../booking/visitBookerModel";
 import { useHome } from "../HomeContext";
+
+const VISIT_DAYS = 7;
+
+/**
+ * «ایجاد رزرو» for a salon or an independent artist: VisitBooker with the owner's own data. The
+ * salon asks the server for free times and the plan (who does what); the artist's times come from
+ * their own calendar. Opened once per use, so what it was given at that moment stays put.
+ */
 export function OwnerBookingSheet() {
   const {
     bookingSheetOpen,
@@ -10,104 +23,72 @@ export function OwnerBookingSheet() {
     createdProfile,
     closeBookingSheet,
     bookingCustomerOptions,
-    artistServiceList,
-    bookingServiceOptions,
-    bookingServiceName,
-    selectedBookingService,
-    bookingSelectMenu,
-    setBookingServiceName,
-    bookingStaffOptions,
-    bookingStaffName,
-    selectedBookingStaff,
-    setBookingStaffName,
-    artistBookingDayOptions,
-    artistBookingDateForSlots,
-    bookingDateForSlots,
-    setBookingDate,
-    artistBookingFreeSlots,
-    bookingFreeSlots,
-    bookingStaffForTime,
-    bookingDayGrid,
-    salonBookingDayOptions,
-    bookingTime,
-    setBookingTime,
-    artistBookingSubmitting,
-    salonBookingSubmitting,
     salonServiceList,
+    artistServiceList,
+    salonHoursList,
+    artistBookingList,
+    artistBreakTime,
     openArtistServiceCreate,
     openSalonServiceCreate,
-    addSalonAppointment,
-    handleArtistBookingCreate,
-    setBookingSelectMenu
+    submitSalonVisit,
+    submitArtistVisit
   } = useHome();
+  const type = createdProfile?.type;
+  const role = type === "artist" ? "artist" : "salon";
+  const open = Boolean(bookingSheetOpen) && (type === "salon" || type === "artist");
 
+  const services = useMemo(() => normalizeServices(role === "artist" ? artistServiceList : salonServiceList), [role, artistServiceList, salonServiceList]);
+  // The next seven days. The salon's closed days are shown but cannot be picked.
+  const days = useMemo(() => buildExactBookingDateTabs(VISIT_DAYS).map((tab) => ({
+    value: tab.dateKey,
+    label: `${tab.label} ${tab.sub || ""}`.trim(),
+    closed: role === "salon" && !isSalonHourOpen(findSalonHourForDateKey(salonHoursList, tab.dateKey))
+  })), [role, salonHoursList]);
+
+  const salonUserId = createdProfile?.id;
+  const source = role === "artist"
+    ? {
+      // The artist's own calendar, as it is when asked (a fresh look after a clash).
+      loadTimes: async ({ day, services: picked }) => ({
+        ok: true,
+        times: artistVisitTimes({
+          day,
+          minutes: picked.reduce((sum, item) => sum + item.minutes, 0),
+          bookings: artistBookingList,
+          breakTime: artistBreakTime
+        })
+      })
+    }
+    : {
+      loadTimes: async ({ day, services: picked }) => {
+        const { ok, data } = await getSalonVisitTimes(salonUserId, day, picked);
+        return { ok, times: data?.times };
+      },
+      loadPlan: async ({ day, time, services: picked, staff }) => {
+        const { ok, data } = await getSalonVisitPreview(salonUserId, day, time, picked, staff);
+        return { ok, data };
+      }
+    };
+
+  if (!open) return null;
   return (
-    <BookingSheet
-          open={bookingSheetOpen && (createdProfile?.type === "salon" || createdProfile?.type === "artist")}
-          role={createdProfile?.type === "artist" ? "artist" : "salon"}
-          title="ایجاد رزرو"
-          onClose={closeBookingSheet}
-        >
-          <BookingCreateForm
-            role={createdProfile?.type === "artist" ? "artist" : "salon"}
-            customerOptions={bookingCustomerOptions}
-            initialClient={bookingPrefill?.client || ""}
-            initialPhone={bookingPrefill?.phone || ""}
-            onAddService={() => {
-              closeBookingSheet();
-              if (createdProfile?.type === "artist") openArtistServiceCreate();
-              else openSalonServiceCreate();
-            }}
-            onSubmit={(event) => {
-              if (createdProfile?.type === "artist") {
-                handleArtistBookingCreate(event);
-                return;
-              }
-              addSalonAppointment(event, { bookingDateForSlots, selectedBookingStaff });
-            }}
-            serviceOptions={(createdProfile?.type === "artist" ? artistServiceList : bookingServiceOptions).map((item) => ({
-              value: item.name,
-              label: item.name,
-              emoji: item.emoji,
-              withIcon: true,
-              meta: [item.price ? `${formatTomanNumber(parseTomanAmount(item.price))} تومان` : "", item.duration].filter(Boolean).join(" • ")
-            }))}
-            serviceValue={
-              createdProfile?.type === "artist"
-                ? (bookingServiceName || artistServiceList[0]?.name || "")
-                : (selectedBookingService?.name || "")
-            }
-            serviceMenuOpen={bookingSelectMenu === "service"}
-            onServiceMenuOpenChange={(next) => setBookingSelectMenu(next ? "service" : "")}
-            onServiceChange={setBookingServiceName}
-            staffOptions={bookingStaffOptions.map((person) => ({
-              value: person.name,
-              label: person.is_owner ? `${person.name} (خودم)` : person.name,
-              meta: person.role || ""
-            }))}
-            staffValue={bookingStaffName}
-            staffForTime={bookingStaffForTime}
-            dayGrid={bookingDayGrid}
-            staffMenuOpen={bookingSelectMenu === "staff"}
-            onStaffMenuOpenChange={(next) => setBookingSelectMenu(next ? "staff" : "")}
-            onStaffChange={setBookingStaffName}
-            dayOptions={createdProfile?.type === "artist" ? artistBookingDayOptions : salonBookingDayOptions}
-            dayValue={createdProfile?.type === "artist" ? artistBookingDateForSlots : bookingDateForSlots}
-            onDayChange={setBookingDate}
-            timeOptions={createdProfile?.type === "artist" ? artistBookingFreeSlots : bookingFreeSlots}
-            timeValue={bookingTime}
-            onTimeChange={setBookingTime}
-            submitting={
-              createdProfile?.type === "artist"
-                ? artistBookingSubmitting
-                : salonBookingSubmitting
-            }
-            submitDisabled={
-              createdProfile?.type === "artist"
-                ? !artistServiceList.length
-                : !salonServiceList.length
-            }
-          />
-        </BookingSheet>
+    <VisitBooker
+      open
+      role={role}
+      title="ایجاد رزرو"
+      services={services}
+      days={days}
+      initial={{ name: bookingPrefill?.client || "", phone: bookingPrefill?.phone || "" }}
+      customers={bookingCustomerOptions}
+      source={source}
+      onSubmit={role === "artist" ? submitArtistVisit : submitSalonVisit}
+      onDone={closeBookingSheet}
+      onClose={closeBookingSheet}
+      onAddService={() => {
+        closeBookingSheet();
+        if (role === "artist") openArtistServiceCreate();
+        else openSalonServiceCreate();
+      }}
+    />
   );
 }

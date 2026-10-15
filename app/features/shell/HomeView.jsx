@@ -54,12 +54,8 @@ export function HomeView() {
     setAppToast,
     sharePost,
     salonClientBooking,
-    salonClientFreeTimes,
-    salonClientTimesLoading,
-    salonClientBookingBusy,
     closeSalonClientBooking,
-    patchSalonClientBooking,
-    confirmSalonClientBooking,
+    submitSalonClientVisit,
     profileType,
     activeCreatedMeta,
     salonHeroSheet,
@@ -189,12 +185,8 @@ export function HomeView() {
             open={Boolean(selectedSalon && salonClientBooking.open)}
             salon={selectedSalon}
             booking={salonClientBooking}
-            freeTimes={salonClientFreeTimes}
-            timesLoading={salonClientTimesLoading}
-            busy={salonClientBookingBusy}
             onClose={closeSalonClientBooking}
-            onChange={patchSalonClientBooking}
-            onConfirm={confirmSalonClientBooking}
+            onSubmit={submitSalonClientVisit}
             onEditProfile={openProfileEdit}
           />
         )}

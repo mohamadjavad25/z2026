@@ -235,10 +235,7 @@ export function useHomeApp() {
     salonClientTab,
     setSalonClientTab,
     salonClientBooking,
-    salonClientBookingBusy,
     clientBookingList,
-    salonClientFreeTimes,
-    salonClientTimesLoading,
     isFollowingSelectedSalon,
     isSavedSelectedSalon,
     refreshSalonDirectory,
@@ -251,8 +248,7 @@ export function useHomeApp() {
     shareSalonProfile,
     openSalonClientBooking,
     closeSalonClientBooking,
-    patchSalonClientBooking,
-    confirmSalonClientBooking
+    submitSalonClientVisit
   } = useSalonDirectory({
     createdProfile,
     onNotice: setAppToast,
@@ -321,7 +317,6 @@ export function useHomeApp() {
     artistTeams,
     artistTeamBusyId,
     leaveArtistSalonTeam,
-    artistBookingSubmitting,
     artistRequestBusyId,
     confirmArtistBookingRequest,
     declineArtistBookingRequest,
@@ -381,7 +376,7 @@ export function useHomeApp() {
     refreshArtistWorkspace,
     notifyArtistBookingCreated,
     resetArtistWorkspace,
-    handleArtistBookingCreate,
+    submitArtistVisit,
     openArtistBreakEditor,
     closeArtistBreakEditor,
     saveArtistBreakTime,
@@ -407,10 +402,7 @@ export function useHomeApp() {
     onNotice: setAppToast,
     onShellNotice: setAppToast,
     onPostsChanged: () => refreshSavedPostsRef.current?.(),
-    onCloseBookingSheet: () => {
-      setBookingSheetOpen(false);
-      setBookingSelectMenu("");
-    }
+    onCloseBookingSheet: () => setBookingSheetOpen(false)
   });
   refreshArtistWorkspaceRef.current = refreshArtistWorkspace;
   notifyArtistBookingCreatedRef.current = notifyArtistBookingCreated;
@@ -456,7 +448,6 @@ export function useHomeApp() {
     nearbyArtistsLoading,
     artistInviteBusyId,
     setArtistInviteBusyId,
-    salonBookingSubmitting,
     scheduleBookingBusy,
     salonRequestBusyId,
     salonWorkDraft,
@@ -478,7 +469,7 @@ export function useHomeApp() {
     openSalonWorkspace: openSalonWorkspaceFromHook,
     closeSalonWorkspace,
     closeSalonToolSheet,
-    addSalonAppointment,
+    submitSalonVisit,
     patchSalonAppointment,
     approveReservationRequest,
     declineReservationRequest,
@@ -511,19 +502,11 @@ export function useHomeApp() {
     onShellNotice: setAppToast,
     onPostsChanged: () => refreshSavedPostsRef.current?.(),
     onScheduleViewDay: setScheduleViewDay,
-    onCloseBookingSheet: () => {
-      setBookingSheetOpen(false);
-      setBookingSelectMenu("");
-    },
+    onCloseBookingSheet: () => setBookingSheetOpen(false),
     onLinkedArtistBooked: (id) => notifyArtistBookingCreatedRef.current?.(id),
     onArtistCollabOffersPatch: setArtistCollabOffers,
     onSalonDirectorySync: setSalonDirectory,
-    onSelectedSalonSync: setSelectedSalon,
-    onBookingDefaults: ({ staffName, serviceName, date }) => {
-      if (staffName) setBookingStaffName((current) => current || staffName);
-      if (serviceName) setBookingServiceName((current) => current || serviceName);
-      if (date) setBookingDate((current) => current || date);
-    }
+    onSelectedSalonSync: setSelectedSalon
   });
   applySalonBookingsRef.current = applySalonBookings;
   const homeWorkspacesState = useHomeWorkspaces({
@@ -556,10 +539,6 @@ export function useHomeApp() {
     salonDirectory,
     salonPortfolioList,
     salonHoursList,
-    artistBreakTime,
-    salonWorkspace,
-    salonToolSheetOpen,
-    salonTool,
     setArtistBookingRailOpen,
     setArtistBookingCreateOpen,
     setSalonHeroSheet,
@@ -586,10 +565,6 @@ export function useHomeApp() {
     salonScheduleWeekTabs,
     activeSalonHours,
     setBookingSheetOpen,
-    setBookingStaffName,
-    setBookingServiceName,
-    setBookingDate,
-    setBookingSelectMenu,
     resetLogoutUiGaps
   } = homeWorkspacesState;
 
@@ -719,10 +694,7 @@ export function useHomeApp() {
     salonClientTab,
     setSalonClientTab,
     salonClientBooking,
-    salonClientBookingBusy,
     clientBookingList,
-    salonClientFreeTimes,
-    salonClientTimesLoading,
     isFollowingSelectedSalon,
     isSavedSelectedSalon,
     cancelClientBooking,
@@ -732,8 +704,7 @@ export function useHomeApp() {
     shareSalonProfile,
     openSalonClientBooking,
     closeSalonClientBooking,
-    patchSalonClientBooking,
-    confirmSalonClientBooking,
+    submitSalonClientVisit,
     unseenClientBookingCount,
     markClientBookingsSeen,
     artistSocialStats,
@@ -743,7 +714,6 @@ export function useHomeApp() {
     artistTeams,
     artistTeamBusyId,
     leaveArtistSalonTeam,
-    artistBookingSubmitting,
     artistRequestBusyId,
     confirmArtistBookingRequest,
     declineArtistBookingRequest,
@@ -783,7 +753,7 @@ export function useHomeApp() {
     previewingArtistWork,
     artistWorkTagOptions,
     pendingArtistSalonInvites,
-    handleArtistBookingCreate,
+    submitArtistVisit,
     openArtistBreakEditor,
     closeArtistBreakEditor,
     saveArtistBreakTime,
@@ -823,7 +793,6 @@ export function useHomeApp() {
     nearbyArtistsLoading,
     artistInviteBusyId,
     setArtistInviteBusyId,
-    salonBookingSubmitting,
     scheduleBookingBusy,
     salonRequestBusyId,
     salonWorkDraft,
@@ -838,7 +807,7 @@ export function useHomeApp() {
     pendingSalonCollabRequests,
     salonUnreadNoticeCount,
     closeSalonToolSheet,
-    addSalonAppointment,
+    submitSalonVisit,
     approveReservationRequest,
     declineReservationRequest,
     updateSalonCollabRequest,
