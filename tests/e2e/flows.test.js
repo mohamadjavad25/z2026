@@ -17,6 +17,12 @@ async function seedSalon() {
   return { name, client, salon };
 }
 
+// A client's «رزرو» tab opens on «سالن و آرتیست من»; the connect/search page is the «پیدا کردن» tab.
+async function openExploreTab(page) {
+  await page.locator("nav.bottomNav > button").nth(2).click();
+  await page.getByRole("tab", { name: "پیدا کردن" }).click();
+}
+
 describe("about page first on phones (browser)", () => {
   it("shows the about page at / to a first-time phone visitor, and «ورود» opens the app for good", async () => {
     const { page, context, problems } = await newPage({ entered: false });
@@ -72,7 +78,7 @@ describe("booking flow (browser)", () => {
     const clientView = await newPage({ cookie: clientApi.cookie() });
     const cp = clientView.page;
     await cp.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
-    await cp.locator("nav.bottomNav > button").nth(2).click();
+    await openExploreTab(cp);
     await cp.getByRole("button", { name: "جستجو", exact: true }).click();
     await cp.getByPlaceholder("شماره، اسم یا لینک صفحه").fill(name);
     const result = cp.locator(".cnCard").filter({ hasText: name }).first();
@@ -134,7 +140,7 @@ describe("booking flow (browser)", () => {
     const clientView = await newPage({ cookie: clientApi.cookie() });
     const cp = clientView.page;
     await cp.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
-    await cp.locator("nav.bottomNav > button").nth(2).click();
+    await openExploreTab(cp);
     await cp.locator(".cnCard").filter({ hasText: name }).first().getByRole("button", { name: `باز کردن ${name}` }).click();
     await cp.locator(".spvBarBook").click();
     await cp.locator(".sduItem").nth(0).click();
@@ -208,7 +214,7 @@ describe("booking flow (browser)", () => {
 });
 
 describe("client starts from what they want (browser)", () => {
-  it("books straight from the home page: the connected salon's service, a time, then the receipt", async () => {
+  it("books straight from the «رزرو» tab: the followed salon's service, a time, then the receipt", async () => {
     const { name, salon } = await seedSalon();
     const clientApi = createClient();
     await registerUser(clientApi, { type: "client", name: "مشتری خانه" });
@@ -216,8 +222,11 @@ describe("client starts from what they want (browser)", () => {
 
     const { page, context, problems } = await newPage({ cookie: clientApi.cookie() });
     await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
-    // one page under the header: no «پروفایل / فعالیت من» switch
+    // the profile page is one page under the header (no «پروفایل / فعالیت من» switch) and no longer lists places
     expect(await page.locator(".profileModeRail").count()).toBe(0);
+    expect(await page.locator(".chPlace").count()).toBe(0);
+    // «رزرو» opens on «سالن و آرتیست من»
+    await page.locator("nav.bottomNav > button").nth(2).click();
     const place = page.locator(".chPlace");
     await place.waitFor();
     expect(await place.innerText()).toContain(name);
@@ -228,10 +237,12 @@ describe("client starts from what they want (browser)", () => {
     await page.getByRole("button", { name: "ثبت درخواست نوبت" }).click();
     const receipt = page.locator(".brScreen");
     await receipt.waitFor();
-    // closing the salon page from here goes back home, not to the «رزرو» tab
+    // closing the salon page goes back to «سالن و آرتیست من»; the booking is under «نوبت‌های من» on the profile
     await receipt.getByRole("button", { name: "بستن" }).click();
     await receipt.waitFor({ state: "detached" });
     await page.getByRole("button", { name: "بازگشت به سالن‌ها" }).click();
+    await page.locator(".chPlace").waitFor();
+    await page.locator("nav.bottomNav > button").nth(1).click();
     await page.locator(".clientHome .cvCard", { hasText: name }).waitFor();
     expect(problems).toEqual([]);
     await context.close();
@@ -247,7 +258,7 @@ describe("client starts from what they want (browser)", () => {
 
     const { page, context, problems } = await newPage({ cookie: clientApi.cookie() });
     await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
-    await page.locator("nav.bottomNav > button").nth(2).click();
+    await openExploreTab(page);
     await page.locator(".cnCat", { hasText: "ناخن" }).click();
     // the salon's page opens with its services menu, «کاشت ناخن» first and already picked
     await page.locator(".sduPanel").waitFor();
@@ -267,7 +278,11 @@ describe("client starts from what they want (browser)", () => {
 
     const { page, context, problems } = await newPage({ cookie: clientApi.cookie() });
     await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
+    // nobody followed yet: «سالن و آرتیست من» invites, and its link leads to «پیدا کردن»
     await page.locator("nav.bottomNav > button").nth(2).click();
+    await page.locator(".chEmpty").waitFor();
+    await page.locator(".chAddLink").click();
+    await page.locator(".cnCat", { hasText: "میکاپ" }).waitFor();
     await page.locator(".cnCat", { hasText: "میکاپ" }).click();
     const sheet = page.locator(".cnSheetRoot");
     await sheet.waitFor();
@@ -309,7 +324,7 @@ describe("client picks a salon from their contacts (browser)", () => {
     const stranger = await newPage({ cookie: clientApi.cookie() });
     await stranger.context.addInitScript(withContacts({ name: ["خانم ناشناس"], tel: ["0912 000 1122"] }));
     await stranger.page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
-    await stranger.page.locator("nav.bottomNav > button").nth(2).click();
+    await openExploreTab(stranger.page);
     await stranger.page.getByRole("button", { name: "از مخاطبین" }).click();
     const sheet = stranger.page.locator(".cnSheetRoot");
     await sheet.getByText("خانم ناشناس هنوز در فرفرو نیست.").waitFor();
@@ -322,7 +337,7 @@ describe("client picks a salon from their contacts (browser)", () => {
     const known = await newPage({ cookie: clientApi.cookie() });
     await known.context.addInitScript(withContacts({ name: ["سالن من"], tel: ["021 5555 0000", salon.phone] }));
     await known.page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
-    await known.page.locator("nav.bottomNav > button").nth(2).click();
+    await openExploreTab(known.page);
     await known.page.getByRole("button", { name: "از مخاطبین" }).click();
     await known.page.locator(".cnSheetRoot").getByRole("button", { name: "وصل شو" }).click();
     await known.page.locator(".spvBarBook").waitFor();
@@ -361,7 +376,7 @@ describe("QR scanning (browser)", () => {
     await clientView.context.addInitScript(withCamera(await QRCode.toDataURL(`${TEST_BASE_URL}/salons/${salon.user.id}`)));
     const cp = clientView.page;
     await cp.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
-    await cp.locator("nav.bottomNav > button").nth(2).click();
+    await openExploreTab(cp);
     await cp.getByRole("button", { name: "اسکن QR" }).click();
     const found = cp.locator(".cnScanResult").filter({ hasText: name });
     await found.getByRole("button", { name: "وصل شو" }).click();
