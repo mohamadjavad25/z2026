@@ -3,12 +3,13 @@ import QRCode from "qrcode";
 import { Check, Palette, Search, Store } from "lucide-react";
 import { ANDROID_APK_URL, ANDROID_APP_VERSION, DOWNLOAD_PAGE_URL } from "./constants";
 import { EnterAppButton } from "./EnterAppButton";
+import { HeroFilm } from "./HeroFilm";
 
 /**
  * The page about frfro with the app download links. Shown at /download, at "/" on phones
  * until the visitor taps «ورود به فرفرو», and on large screens (tablet and desktop) in place
  * of every page but /admin, /terms and /privacy (see LargeScreenGate).
- * Server component: plain content. Motion is CSS (landing.css).
+ * Server component: plain content; the only client part is the hero film (HeroFilm). Motion is CSS (landing.css).
  * The «آموزش» tutorials player (LearnSection) is built but hidden for now (user's decision 2026-10-15).
  * Look: white and ink with pink and violet blended in (see the tokens at the top of landing.css).
  */
@@ -193,22 +194,8 @@ export async function AppLanding() {
             <p className="appLanding__note">نسخهٔ اندروید {ANDROID_APP_VERSION} · رایگان · بدون پرداخت داخل برنامه</p>
           </div>
 
-          <div className="appLanding__heroArt" aria-hidden="true">
-            <div className="appLanding__phone">
-              <img src="/explore-collage.webp" alt="" />
-            </div>
-            <div className="appLanding__float is-confirm">
-              <span className="appLanding__floatIcon"><Check size={18} strokeWidth={3} /></span>
-              <span>
-                <strong>نوبتت تأیید شد</strong>
-                <small>فردا · ساعت ۱۶:۳۰</small>
-              </span>
-            </div>
-            <div className="appLanding__float is-times">
-              <strong>ساعت‌های آزاد امروز</strong>
-              <span className="appLanding__times"><b>۱۴:۰۰</b><b>۱۵:۳۰</b><b>۱۷:۰۰</b></span>
-            </div>
-            <img className="appLanding__heroMascot" src="/brand/mascot/search.webp" alt="" width="415" height="640" />
+          <div className="appLanding__heroArt">
+            <HeroFilm />
             {qrSvg ? (
               <div className="appLanding__qr">
                 <div className="appLanding__qrCode" dangerouslySetInnerHTML={{ __html: qrSvg }} />
