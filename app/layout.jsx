@@ -5,6 +5,7 @@ import { ViewportHeightFix } from "./components/ViewportHeightFix.jsx";
 import { ClientErrorReporter } from "./components/ClientErrorReporter.jsx";
 import { PullToRefresh } from "./components/PullToRefresh.jsx";
 import { getSiteUrl } from "./lib/siteUrl.js";
+import { THEME_BOOT_SCRIPT } from "./shared/lib/theme.js";
 import { AppLanding } from "./features/landing/AppLanding";
 import { LargeScreenGate } from "./features/landing/LargeScreenGate";
 
@@ -30,20 +31,15 @@ export const viewport = {
   width: "device-width",
   initialScale: 1,
   interactiveWidget: "resizes-content",
-  // The whole UI is hand-designed for a single light palette -- no
-  // prefers-color-scheme:dark rules exist anywhere in the app. Without this,
-  // a browser/OS that has its own "auto-darken web content" heuristic on
-  // (Chrome's "Auto dark theme for web contents" on Android, active by
-  // default in many regions whenever the system is in dark mode -- and the
-  // same heuristic also fires in desktop Chrome once its theme is set to
-  // Auto/Dark) has no signal that this page already has an intentional
-  // color scheme, so it force-inverts/recolors it: light, near-transparent
-  // fills (e.g. the booking wheel's ~10%-opacity purple focus box) get
-  // pushed toward dark, solid ones, while the page's own CSS -- and the
-  // DOM's own computed styles -- still read back exactly as authored. This
-  // one flag is what tells that heuristic "this page already chose its
-  // colors, leave it alone."
-  colorScheme: "light"
+  // The UI ships its own day and night palettes (styles/tokens.css, switched by
+  // shared/lib/theme.js). Declaring both schemes is what tells a browser's
+  // "auto-darken web content" heuristic (Chrome's "Auto dark theme for web
+  // contents" on Android, and the same heuristic in desktop Chrome with an
+  // Auto/Dark theme) that this page already chose its colours, so it must not
+  // force-invert them: that used to push light, near-transparent fills (e.g. the
+  // booking wheel's ~10%-opacity purple focus box) toward dark, solid ones. The
+  // actual scheme in use is set per theme by `color-scheme` in tokens.css.
+  colorScheme: "light dark"
 };
 
 export const metadata = {
@@ -71,6 +67,8 @@ export default function RootLayout({ children }) {
   return (
     <html lang="fa" dir="rtl" suppressHydrationWarning>
       <head>
+        {/* Before first paint: the saved day/night choice and the role accent (shared/lib/theme.js), so nothing flashes. */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
         {/* Before first paint: inside the Android/iOS app (mobile/) the user agent ends with
             "frfro-app". CSS uses the class to always show the app there and hide download links.
             "skip-landing": the home page opens the app, not the about page (HOME_LANDING_SKIP_KEY
@@ -87,7 +85,7 @@ try {
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@500;700;800;900&family=Lalezar&family=Playfair+Display:wght@500;600&display=swap" rel="stylesheet" />
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#1c202c" />
+        <meta name="theme-color" content="#f3f2f8" />
         <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
         <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />

@@ -12,7 +12,9 @@ import {
   LogOut,
   Globe,
   Lock,
+  Monitor,
   Moon,
+  Sun,
   Tag,
   Briefcase,
   Trash2,
@@ -21,6 +23,7 @@ import {
   X
 } from "lucide-react";
 import { useSoundPreference } from "../../shared/lib/useSoundPreference";
+import { useThemePreference } from "../../shared/lib/useThemePreference";
 import { playSound } from "../../shared/lib/sounds";
 import { openSupport } from "../support";
 
@@ -101,6 +104,34 @@ function SettingsToggle({ icon: Icon, label, description, checked, onChange, onL
         </span>
       </span>
     </label>
+  );
+}
+
+const THEME_CHOICES = [
+  { value: "auto", label: "خودکار", icon: Monitor },
+  { value: "light", label: "روز", icon: Sun },
+  { value: "dark", label: "شب", icon: Moon }
+];
+
+/** Day / night / follow-the-device, saved on this device only. */
+function ThemePicker() {
+  const [preference, setPreference] = useThemePreference();
+  return (
+    <div className="neoThemePick" role="radiogroup" aria-label="ظاهر برنامه">
+      {THEME_CHOICES.map(({ value, label, icon: Icon }) => (
+        <button
+          key={value}
+          type="button"
+          role="radio"
+          aria-checked={preference === value}
+          className={preference === value ? "is-on" : ""}
+          onClick={() => setPreference(value)}
+        >
+          <Icon size={18} aria-hidden="true" />
+          <span>{label}</span>
+        </button>
+      ))}
+    </div>
   );
 }
 
@@ -228,6 +259,10 @@ export function ProfileSettingsPanel({
 
   return (
     <div className="neoSettingsPanel">
+      <SettingsGroup title="ظاهر برنامه">
+        <ThemePicker />
+      </SettingsGroup>
+
       {commonToggles}
 
       {profileTypeToggle ? (

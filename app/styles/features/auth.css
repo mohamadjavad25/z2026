@@ -1,12 +1,12 @@
 /* ── Auth gate redesign ───────────────────────────────────────── */
 
 .appShell.is-auth-gate {
-  --auth-ink: #16141a;
-  --auth-soft: #f3ece6;
-  --auth-blush: #c45b6a;
-  --auth-gold: #c9a46a;
-  --auth-teal: #2f6f6c;
-  --auth-input-border: #14161d;
+  --auth-ink: var(--n-950);
+  --auth-soft: var(--n-100);
+  --auth-blush: var(--accent);
+  --auth-gold: var(--signal-warn);
+  --auth-teal: var(--info);
+  --auth-input-border: var(--n-900);
   font-family: "Vazirmatn", Tahoma, sans-serif;
 }
 
@@ -19,7 +19,7 @@
   min-height: 100vh;
   min-height: 100dvh;
   overflow: hidden;
-  background: #141016;
+  background: var(--fill-strong);
 }
 
 .appShell.is-auth-gate .profilePanel,
@@ -51,9 +51,9 @@
   inset: 0;
   overflow: hidden;
   background:
-    linear-gradient(180deg, rgba(13, 11, 15, 0) 0%, rgba(13, 11, 15, 0.08) 38%, rgba(13, 11, 15, 0.62) 58%, #0d0b0f 72%),
+    linear-gradient(180deg, rgb(var(--ink-rgb) / 0) 0%, rgb(var(--ink-rgb) / 0.08) 38%, rgb(12 13 18 / 0.62) 58%, var(--n-950) 72%),
     url("/auth-gate-bg.webp") top center / cover no-repeat;
-  background-color: #0d0b0f;
+  background-color: var(--n-950);
   animation: authAuroraIn 1s ease both;
 }
 
@@ -73,7 +73,7 @@
   max-height: 340px;
   top: -14%;
   left: -10%;
-  background: radial-gradient(circle, var(--auth-gold) 0%, rgba(201, 164, 106, 0) 72%);
+  background: radial-gradient(circle, var(--auth-gold) 0%, color-mix(in srgb, var(--warning) 0%, transparent) 72%);
   animation: auroraDriftA 22s ease-in-out infinite;
 }
 
@@ -84,7 +84,7 @@
   max-height: 380px;
   top: 18%;
   right: -18%;
-  background: radial-gradient(circle, var(--auth-blush) 0%, rgba(196, 91, 106, 0) 70%);
+  background: radial-gradient(circle, var(--auth-blush) 0%, color-mix(in srgb, var(--accent) 0%, transparent) 70%);
   animation: auroraDriftB 26s ease-in-out infinite;
 }
 
@@ -95,14 +95,14 @@
   max-height: 320px;
   bottom: -12%;
   left: 6%;
-  background: radial-gradient(circle, var(--auth-teal) 0%, rgba(47, 111, 108, 0) 72%);
+  background: radial-gradient(circle, var(--auth-teal) 0%, color-mix(in srgb, var(--info) 0%, transparent) 72%);
   animation: auroraDriftC 30s ease-in-out infinite;
 }
 
 .authAuroraSparkle {
   position: absolute;
   border-radius: 50%;
-  background: #fff;
+  background: var(--n-0);
   opacity: 0;
   box-shadow: 0 0 6px 1px rgba(255, 255, 255, 0.8);
   animation: sparkleTwinkle 4.5s ease-in-out infinite;
@@ -173,7 +173,7 @@
   display: grid;
   align-content: start;
   padding: calc(18px + env(safe-area-inset-top, 0px)) 22px 12px;
-  color: #f7f1ea;
+  color: var(--n-100);
   overflow: visible;
   background: transparent;
   animation: authHeroIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -200,14 +200,14 @@
   font-weight: 900;
   letter-spacing: -0.045em;
   line-height: 0.95;
-  color: #fff;
+  color: var(--n-0);
   text-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
   animation: authCopyIn 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
 }
 
 .authGateTagline {
   margin: 8px 0 0;
-  color: rgba(247, 241, 234, 0.88);
+  color: color-mix(in srgb, var(--n-100) 88%, transparent);
   font-size: 1rem;
   font-weight: 700;
   line-height: 1.6;
@@ -221,13 +221,13 @@
   font-weight: 800;
   letter-spacing: -0.02em;
   line-height: 1.45;
-  color: rgba(247, 241, 234, 0.94);
+  color: color-mix(in srgb, var(--n-100) 94%, transparent);
   animation: authCopyIn 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
 }
 
 .authGateCopy > span {
   display: block;
-  color: rgba(247, 241, 234, 0.68);
+  color: color-mix(in srgb, var(--n-100) 68%, transparent);
   font-size: 0.88rem;
   font-weight: 600;
   line-height: 1.55;
@@ -249,7 +249,7 @@
   margin-top: auto;
   margin-bottom: 0;
   border-radius: 14px;
-  background: rgba(196, 91, 106, 0.18);
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
   color: #ffd0d8;
   border: 0;
   backdrop-filter: blur(8px);
@@ -310,9 +310,9 @@
   row-gap: 0;
   align-items: center;
   padding: 14px 14px 14px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.28);
+  border: 1px solid rgb(var(--paper-rgb) / 0.28);
   border-radius: 18px;
-  background: rgba(255, 252, 249, 0.86);
+  background: color-mix(in srgb, var(--n-25) 86%, transparent);
   color: var(--auth-ink);
   text-align: right;
   overflow: visible;
@@ -336,15 +336,15 @@
 }
 
 .appShell.is-auth-gate .profileRoleCard.roleArtist {
-  --role-accent: #8b5a7a;
+  --role-accent: var(--violet-deep);
 }
 
 .appShell.is-auth-gate .profileRoleCard:hover,
 .appShell.is-auth-gate .profileRoleCard:focus-visible {
   outline: none;
   transform: translateY(-2px);
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 14px 32px rgba(22, 20, 26, 0.1);
+  background: rgb(var(--paper-rgb) / 0.92);
+  box-shadow: 0 14px 32px rgb(var(--shadow-rgb) / 0.1);
   border-color: transparent;
 }
 
@@ -387,7 +387,7 @@
 .appShell.is-auth-gate .profileRoleCard small {
   grid-column: auto;
   max-width: none;
-  color: rgba(22, 20, 26, 0.68);
+  color: rgb(var(--ink-rgb) / 0.68);
   font-size: 0.78rem;
   font-weight: 600;
   line-height: 1.4;
@@ -398,20 +398,20 @@
   height: 32px;
   border-radius: 999px;
   background: transparent;
-  color: rgba(22, 20, 26, 0.35);
+  color: rgb(var(--ink-rgb) / 0.35);
   transition: transform 0.22s ease, color 0.22s ease, background 0.22s ease;
 }
 
 .appShell.is-auth-gate .profileRoleCard:hover .profileRoleGo {
   transform: translateX(-3px);
   background: var(--auth-ink);
-  color: #fff;
+  color: var(--n-0);
 }
 
 .authGateLoginCue {
   margin: 4px 0 0;
   text-align: center;
-  color: rgba(247, 241, 234, 0.85);
+  color: color-mix(in srgb, var(--n-100) 85%, transparent);
   font-size: 0.92rem;
   font-weight: 650;
   animation: authCopyIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.35s both;
@@ -422,7 +422,7 @@
   padding: 0 6px !important;
   border: 0;
   background: transparent;
-  color: #fff;
+  color: var(--n-0);
   font: inherit;
   font-weight: 850;
   cursor: pointer;
@@ -441,17 +441,17 @@
   margin-top: auto;
   margin-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
   padding: 26px 20px;
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  border: 1px solid rgb(var(--paper-rgb) / 0.5);
   border-radius: 26px;
-  background: rgba(255, 252, 249, 0.92);
-  box-shadow: 0 20px 50px -14px rgba(9, 9, 13, 0.35);
+  background: color-mix(in srgb, var(--n-25) 92%, transparent);
+  box-shadow: 0 20px 50px -14px rgb(var(--shadow-rgb) / 0.35);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   animation: authCopyIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .appShell.is-auth-gate .signupForm .formTitle {
-  border-bottom-color: rgba(22, 20, 26, 0.08);
+  border-bottom-color: rgb(var(--ink-rgb) / 0.08);
 }
 
 .appShell.is-auth-gate .signupForm .formTitle strong {
@@ -462,7 +462,7 @@
 
 .appShell.is-auth-gate .signupForm .formTitle span {
   font-size: 0.8rem;
-  color: rgba(22, 20, 26, 0.56);
+  color: rgb(var(--ink-rgb) / 0.56);
 }
 
 .appShell.is-auth-gate .signupForm input,
@@ -484,7 +484,7 @@
   border: 0;
   background: none;
   padding: 0;
-  color: rgba(22, 20, 26, 0.5);
+  color: rgb(var(--ink-rgb) / 0.5);
   font-weight: 700;
   font-size: 0.8rem;
   transition: color 0.18s ease;
@@ -500,7 +500,7 @@
   gap: 8px;
   font-size: 0.74rem;
   line-height: 1.6;
-  color: rgba(22, 20, 26, 0.6);
+  color: rgb(var(--ink-rgb) / 0.6);
   cursor: pointer;
 }
 
@@ -515,7 +515,7 @@
 }
 
 .appShell.is-auth-gate .authSwitchHint {
-  color: rgba(22, 20, 26, 0.5);
+  color: rgb(var(--ink-rgb) / 0.5);
 }
 
 .appShell.is-auth-gate .authSwitchHint button {
@@ -523,11 +523,11 @@
 }
 
 .appShell.is-auth-gate .authSwitchHint.is-pageFooter {
-  color: rgba(247, 241, 234, 0.75);
+  color: color-mix(in srgb, var(--n-100) 75%, transparent);
 }
 
 .appShell.is-auth-gate .authSwitchHint.is-pageFooter button {
-  color: #fff;
+  color: var(--n-0);
 }
 
 /* Hide legacy chrome on gate */
@@ -580,18 +580,18 @@ form.signupForm:not(.is-login) .formRow { grid-template-columns: 1fr !important;
 
 /* Inline field errors on the light auth cards. */
 .appShell.is-auth-gate .ui-field { gap: 4px; }
-.appShell.is-auth-gate .ui-field-error { padding-inline: 6px; color: #b42a2a; }
+.appShell.is-auth-gate .ui-field-error { padding-inline: 6px; color: var(--danger); }
 .appShell.is-auth-gate .ui-field.has-error input,
 .appShell.is-auth-gate .ui-field.has-error .specialtySelectTrigger { box-shadow: inset 0 0 0 1.5px #d94a4a; }
 .appShell.is-auth-gate .authTermsBlock { display: grid; gap: 4px; }
 
-.appShell.is-auth-gate .authGateHero ~ .authNotice { background: rgba(120, 24, 40, 0.86); color: #fff; font-weight: 700; padding: 12px 16px; }
+.appShell.is-auth-gate .authGateHero ~ .authNotice { background: color-mix(in srgb, var(--accent) 86%, transparent); color: var(--n-0); font-weight: 700; padding: 12px 16px; }
 
 /* SMS code step: replaces the sign-up fields while the number is being verified. */
 .appShell.is-auth-gate .signupForm.is-otp > :not(.authOtp):not(input[type="hidden"]) { display: none; }
 .appShell.is-auth-gate .authOtp { display: grid; gap: 10px; }
-.appShell.is-auth-gate .authOtpText { margin: 0; color: #303344; font-size: 0.86rem; font-weight: 750; line-height: 1.9; text-align: center; }
+.appShell.is-auth-gate .authOtpText { margin: 0; color: var(--n-800); font-size: 0.86rem; font-weight: 750; line-height: 1.9; text-align: center; }
 .appShell.is-auth-gate .authOtp input[name="otpCode"] { text-align: center; letter-spacing: 0.5em; font-size: 1.3rem; font-weight: 900; }
 .appShell.is-auth-gate .authOtpActions { display: flex; justify-content: space-between; gap: 8px; }
-.appShell.is-auth-gate .authOtpActions button { min-height: 40px; padding: 0 8px; border: 0; background: transparent; color: #303344; font: inherit; font-size: 0.8rem; font-weight: 800; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
-.appShell.is-auth-gate .authOtpActions button:disabled { color: #6a6e7b; text-decoration: none; cursor: default; }
+.appShell.is-auth-gate .authOtpActions button { min-height: 40px; padding: 0 8px; border: 0; background: transparent; color: var(--n-800); font: inherit; font-size: 0.8rem; font-weight: 800; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.appShell.is-auth-gate .authOtpActions button:disabled { color: var(--n-600); text-decoration: none; cursor: default; }

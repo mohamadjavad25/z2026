@@ -305,7 +305,7 @@ export const ScheduleRow = memo(function ScheduleRow({
         {endTime ? (
           <>
             <span className="bkRail" style={{ height: `${railHeight}px` }} aria-hidden="true" />
-            <SegmentClock value={endTime} size="xxs" className="bkEnd" color="#6f7380" backgroundColor="transparent" />
+            <SegmentClock value={endTime} size="xxs" className="bkEnd" color="var(--n-600)" backgroundColor="transparent" />
             <small className="bkDuration">{durationLabel}</small>
           </>
         ) : null}

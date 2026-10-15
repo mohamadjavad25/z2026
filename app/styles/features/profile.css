@@ -8,8 +8,8 @@
   padding: 18px;
   border-radius: 24px;
   background:
-    linear-gradient(135deg, rgba(20, 22, 29, 0.16), rgba(20, 22, 29, 0.1)),
-    rgba(246, 246, 251, 0.76);
+    linear-gradient(135deg, rgb(var(--ink-rgb) / 0.16), rgb(var(--ink-rgb) / 0.1)),
+    color-mix(in srgb, var(--n-50) 76%, transparent);
 }
 
 .profileHero.is-salon {
@@ -74,9 +74,9 @@
   pointer-events: none;
   background: linear-gradient(
     180deg,
-    rgba(216, 217, 223, 0) 0%,
-    rgba(216, 217, 223, 0.35) 48%,
-    rgba(216, 217, 223, 0.82) 78%,
+    color-mix(in srgb, var(--n-300) 0%, transparent) 0%,
+    color-mix(in srgb, var(--n-300) 35%, transparent) 48%,
+    color-mix(in srgb, var(--n-300) 82%, transparent) 78%,
     var(--bg) 100%
   );
 }
@@ -91,14 +91,14 @@
   height: var(--salon-avatar-size);
   padding: 8px;
   border-radius: 24px;
-  border: 3px solid #f7f4f0;
-  background: #1c202c;
+  border: 3px solid var(--n-50);
+  background: var(--n-900);
   object-fit: contain;
   object-position: center;
   opacity: 1;
   box-shadow:
-    0 0 0 3px rgba(18, 207, 255, 0.28),
-    0 12px 28px rgba(28, 32, 44, 0.22);
+    0 0 0 3px rgb(139 108 255 / 0.28),
+    0 12px 28px rgb(var(--shadow-rgb) / 0.22);
 }
 
 .salonHeroMeta {
@@ -127,12 +127,12 @@
   pointer-events: none;
   background: linear-gradient(
     180deg,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(247, 248, 250, 0.14) 28%,
-    rgba(236, 237, 242, 0.42) 52%,
-    rgba(232, 233, 238, 0.72) 74%,
-    rgba(216, 217, 223, 0.55) 90%,
-    rgba(216, 217, 223, 0) 100%
+    rgb(var(--paper-rgb) / 0) 0%,
+    color-mix(in srgb, var(--n-25) 14%, transparent) 28%,
+    color-mix(in srgb, var(--n-100) 42%, transparent) 52%,
+    color-mix(in srgb, var(--n-150) 72%, transparent) 74%,
+    color-mix(in srgb, var(--n-300) 55%, transparent) 90%,
+    color-mix(in srgb, var(--n-300) 0%, transparent) 100%
   );
   -webkit-backdrop-filter: blur(22px) saturate(1.2);
   backdrop-filter: blur(22px) saturate(1.2);
@@ -188,11 +188,11 @@
 }
 
 .profileHero.is-salon .profileHeroActions button {
-  background: rgba(255, 255, 255, 0.84);
+  background: rgb(var(--paper-rgb) / 0.84);
   color: var(--ink);
   backdrop-filter: blur(12px);
-  border-color: rgba(28, 32, 44, 0.08);
-  box-shadow: 0 8px 18px rgba(28, 32, 44, 0.08);
+  border-color: rgb(var(--ink-rgb) / 0.08);
+  box-shadow: 0 8px 18px rgb(var(--shadow-rgb) / 0.08);
 }
 
 .profileHero.is-salon .profileHeroCopy {
@@ -266,7 +266,7 @@
   padding: 6px 7px;
   border-radius: 0;
   background: transparent;
-  color: rgba(26, 31, 36, 0.58) !important;
+  color: rgb(var(--ink-rgb) / 0.58) !important;
   font-size: 0.52rem !important;
   font-weight: 900;
   line-height: 1.15;
@@ -276,13 +276,13 @@
 }
 
 .salonHeroFollowStats span + span {
-  border-right: 1px solid rgba(28, 32, 44, 0.1);
+  border-right: 1px solid rgb(var(--ink-rgb) / 0.1);
 }
 
 .salonHeroFollowStats svg {
   width: 12px;
   height: 12px;
-  color: #14161d;
+  color: var(--n-900);
 }
 
 .salonHeroFollowStats b {
@@ -293,7 +293,7 @@
 }
 
 .salonHeroFollowStats small {
-  color: rgba(26, 31, 36, 0.58);
+  color: rgb(var(--ink-rgb) / 0.58);
   font-size: 0.52rem;
   font-weight: 900;
   line-height: 1.15;
@@ -304,7 +304,7 @@
   display: block;
   object-fit: cover;
   object-position: center 40%;
-  background: linear-gradient(135deg, #2b222f, #14161d 58%, #bfc0d1);
+  background: linear-gradient(135deg, var(--n-900), var(--n-900) 58%, var(--n-400));
 }
 
 .profileHero p {
@@ -334,16 +334,16 @@
   height: 38px;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.64);
+  border: 1px solid rgb(var(--paper-rgb) / 0.64);
   border-radius: 14px;
-  background: rgba(246, 246, 251, 0.82);
+  background: color-mix(in srgb, var(--n-50) 82%, transparent);
   color: var(--ink);
-  box-shadow: 0 12px 26px rgba(28, 32, 44, 0.08);
+  box-shadow: 0 12px 26px rgb(var(--shadow-rgb) / 0.08);
 }
 
 .profileHero.is-salon .profileHeroActions button.is-active {
-  background: rgba(255, 255, 255, 0.28);
-  border-color: rgba(255, 255, 255, 0.35);
+  background: rgb(var(--paper-rgb) / 0.28);
+  border-color: rgb(var(--paper-rgb) / 0.35);
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.18);
 }
 
@@ -359,7 +359,7 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #e6484f;
+  background: var(--signal-bad);
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9);
 }
 
@@ -370,34 +370,34 @@
   gap: 12px;
   min-height: 168px;
   background:
-    linear-gradient(135deg, rgba(20, 22, 29, 0.92), rgba(120, 72, 108, 0.78)),
-    radial-gradient(circle at 88% 18%, rgba(191, 192, 209, 0.28), transparent 34%);
-  color: #fff;
-  box-shadow: 0 18px 42px rgba(20, 22, 29, 0.22);
+    linear-gradient(135deg, rgb(12 13 18 / 0.92), color-mix(in srgb, var(--info) 78%, transparent)),
+    radial-gradient(circle at 88% 18%, color-mix(in srgb, var(--n-400) 28%, transparent), transparent 34%);
+  color: var(--on-photo);
+  box-shadow: 0 18px 42px rgb(var(--shadow-rgb) / 0.22);
 }
 
 .profileHero.is-artist .profileAvatarImage {
   width: 68px;
   height: 68px;
   border-radius: 22px;
-  border: 2px solid rgba(255, 255, 255, 0.5);
+  border: 2px solid rgb(var(--paper-rgb) / 0.5);
   box-shadow: 0 0 0 4px rgba(191, 192, 209, 0.28);
 }
 
 .profileHero.is-artist p {
-  color: #bfc0d1;
+  color: var(--n-400);
   font-size: 0.72rem;
 }
 
 .profileHero.is-artist h2 {
-  color: #fff;
+  color: var(--n-0);
   margin-bottom: 4px;
 }
 
 .profileHero.is-artist .profileHeroActions button {
-  background: rgba(255, 255, 255, 0.14);
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.12);
+  background: rgb(var(--paper-rgb) / 0.14);
+  color: var(--n-0);
+  border-color: rgb(var(--paper-rgb) / 0.12);
   backdrop-filter: blur(12px);
 }
 
@@ -416,8 +416,8 @@
   gap: 6px;
   padding: 0 10px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.14);
-  color: #fff;
+  background: rgb(var(--paper-rgb) / 0.14);
+  color: var(--n-0);
   font-size: 0.68rem;
   font-weight: 900;
 }
@@ -435,22 +435,22 @@
   place-items: center;
   gap: 2px;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.12);
-  color: rgba(255, 255, 255, 0.78) !important;
+  background: rgb(var(--paper-rgb) / 0.12);
+  color: rgb(var(--paper-rgb) / 0.78) !important;
   font-size: 0.62rem !important;
   font-weight: 800;
   text-align: center;
 }
 
 .artistHeroStats b {
-  color: #fff;
+  color: var(--n-0);
   font-size: 0.92rem;
 }
 
 .profileHero.is-client {
   background:
-    linear-gradient(135deg, rgba(20, 22, 29, 0.14), rgba(191, 192, 209, 0.1)),
-    rgba(246, 246, 251, 0.76);
+    linear-gradient(135deg, rgb(var(--ink-rgb) / 0.14), color-mix(in srgb, var(--n-400) 10%, transparent)),
+    color-mix(in srgb, var(--n-50) 76%, transparent);
 }
 
 .profileHero.is-client .profileHeroActions {
@@ -477,11 +477,11 @@
   height: 38px;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.64);
+  border: 1px solid rgb(var(--paper-rgb) / 0.64);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.5);
+  background: rgb(var(--paper-rgb) / 0.5);
   color: var(--ink);
-  box-shadow: 0 12px 26px rgba(28, 32, 44, 0.08);
+  box-shadow: 0 12px 26px rgb(var(--shadow-rgb) / 0.08);
 }
 
 .clientBeautyHeroBell.has-notifications::after {
@@ -492,7 +492,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #e6484f;
+  background: var(--signal-bad);
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9);
 }
 
@@ -511,7 +511,7 @@
   border: 1px solid transparent;
   border-radius: 14px;
   padding: 6px 2px;
-  background: rgba(28, 32, 44, 0.04);
+  background: rgb(var(--ink-rgb) / 0.04);
   color: var(--muted);
   font-family: inherit;
   cursor: pointer;
@@ -531,19 +531,19 @@
 }
 
 .hoursDayChip.is-open {
-  background: rgba(20, 22, 29, 0.1);
+  background: rgb(var(--ink-rgb) / 0.1);
   color: var(--teal);
 }
 
 .hoursDayChip.is-closed {
-  color: rgba(104, 113, 119, 0.72);
+  color: color-mix(in srgb, var(--n-600) 72%, transparent);
 }
 
 .hoursDayChip.is-selected {
-  border-color: rgba(20, 22, 29, 0.35);
-  background: #fff;
+  border-color: rgb(var(--ink-rgb) / 0.35);
+  background: var(--n-0);
   color: var(--ink);
-  box-shadow: 0 8px 18px rgba(22, 70, 72, 0.1);
+  box-shadow: 0 8px 18px rgb(139 108 255 / 0.1);
 }
 
 .hoursDayChip.is-selected.is-open {
@@ -555,7 +555,7 @@
   gap: 12px;
   padding: 12px;
   border-radius: 16px;
-  background: rgba(20, 22, 29, 0.06);
+  background: rgb(var(--ink-rgb) / 0.06);
 }
 
 .hoursOpenToggle {
@@ -579,10 +579,10 @@
 
 .hoursDayRange select {
   min-height: 42px;
-  border: 1px solid rgba(28, 32, 44, 0.08);
+  border: 1px solid rgb(var(--ink-rgb) / 0.08);
   border-radius: 12px;
   padding: 0 10px;
-  background: #fff;
+  background: var(--n-0);
   color: var(--ink);
   font-family: inherit;
   font-size: 0.86rem;
@@ -596,7 +596,7 @@
   justify-content: center;
   gap: 6px;
   padding: 0 10px;
-  border: 1px dashed rgba(20, 22, 29, 0.28);
+  border: 1px dashed rgb(var(--ink-rgb) / 0.28);
   border-radius: 12px;
   background: transparent;
   color: var(--teal);
@@ -619,7 +619,7 @@
   min-height: 44px;
   padding: 6px 8px 6px 12px;
   border-radius: 12px;
-  background: #fff;
+  background: var(--n-0);
 }
 
 .hoursCapacityControl > span {
@@ -642,7 +642,7 @@
   justify-content: center;
   border: 0;
   border-radius: 10px;
-  background: rgba(20, 22, 29, 0.1);
+  background: rgb(var(--ink-rgb) / 0.1);
   color: var(--teal);
   cursor: pointer;
 }
@@ -711,9 +711,9 @@
   gap: 12px;
   padding: 12px 12px calc(88px + env(safe-area-inset-bottom));
   background:
-    linear-gradient(180deg, rgba(246, 246, 251, 0.97), rgba(246, 239, 233, 0.96)),
+    linear-gradient(180deg, color-mix(in srgb, var(--n-50) 97%, transparent), color-mix(in srgb, var(--n-100) 96%, transparent)),
     var(--surface-solid);
-  box-shadow: -24px 0 70px rgba(28, 32, 44, 0.2);
+  box-shadow: -24px 0 70px rgb(var(--shadow-rgb) / 0.2);
 }
 
 @media (max-width: 760px) {
@@ -758,9 +758,9 @@
   height: 38px;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(28, 32, 44, 0.08);
+  border: 1px solid rgb(var(--ink-rgb) / 0.08);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.82);
+  background: rgb(var(--paper-rgb) / 0.82);
   color: var(--ink);
 }
 
@@ -773,9 +773,9 @@
   display: grid;
   gap: 11px;
   padding: 12px;
-  border: 1px solid rgba(20, 22, 29, 0.12);
+  border: 1px solid rgb(var(--ink-rgb) / 0.12);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.92);
+  background: rgb(var(--paper-rgb) / 0.92);
 }
 
 .artistServiceCreateSheet {
@@ -789,7 +789,7 @@
   display: grid;
   place-items: center;
   padding: 18px;
-  background: rgba(18, 20, 23, 0.5);
+  background: rgb(var(--ink-rgb) / 0.5);
   backdrop-filter: blur(14px);
 }
 
@@ -801,9 +801,9 @@
   overflow: hidden;
   border: 0;
   border-radius: 24px;
-  background: #fff;
+  background: var(--n-0);
   color: var(--ink);
-  box-shadow: 0 28px 70px rgba(15, 17, 20, 0.28);
+  box-shadow: 0 28px 70px rgb(var(--shadow-rgb) / 0.28);
 }
 
 .artistServiceHead {
@@ -821,7 +821,7 @@
 }
 
 .artistServiceHead span {
-  color: #14161d;
+  color: var(--n-900);
   font-size: 0.68rem;
   font-weight: 900;
 }
@@ -836,7 +836,7 @@
 
 .artistServiceHead p {
   margin: 0;
-  color: rgba(28, 32, 44, 0.55);
+  color: rgb(var(--ink-rgb) / 0.55);
   font-size: 0.74rem;
   font-weight: 700;
   line-height: 1.55;
@@ -850,7 +850,7 @@
   place-items: center;
   border: 0;
   border-radius: 12px;
-  background: #f1f3f4;
+  background: var(--n-50);
   color: var(--ink);
   font-family: inherit;
   cursor: pointer;
@@ -1042,7 +1042,7 @@
   gap: 4px;
   padding: 4px;
   border-radius: 14px;
-  background: rgba(28, 32, 44, 0.05);
+  background: rgb(var(--ink-rgb) / 0.05);
 }
 
 .hoursPresetGrid button {
@@ -1064,13 +1064,13 @@
 
 .hoursPresetGrid button:hover {
   color: var(--ink);
-  background: rgba(255, 255, 255, 0.55);
+  background: rgb(var(--paper-rgb) / 0.55);
 }
 
 .hoursPresetGrid button.is-active {
-  background: #fff;
+  background: var(--n-0);
   color: var(--teal);
-  box-shadow: 0 1px 2px rgba(28, 32, 44, 0.06), 0 8px 18px rgba(20, 22, 29, 0.1);
+  box-shadow: 0 1px 2px rgb(var(--shadow-rgb) / 0.06), 0 8px 18px rgb(var(--shadow-rgb) / 0.1);
 }
 
 .hoursPresetHint {
@@ -1140,7 +1140,7 @@
   padding: 3px;
   border-radius: 0;
   background: transparent;
-  color: #6f7380;
+  color: var(--n-600);
   stroke-width: 1.85;
 }
 
@@ -1168,8 +1168,8 @@
   grid-row: 1;
   padding: 7px 10px;
   border-radius: 999px;
-  background: rgba(20, 22, 29, 0.1);
-  color: #14161d;
+  background: rgb(var(--ink-rgb) / 0.1);
+  color: var(--n-900);
   font-size: 0.68rem;
   font-style: normal;
   font-weight: 900;
@@ -1185,7 +1185,7 @@
   align-content: center;
   gap: 18px;
   padding: 18px;
-  background: rgba(12, 13, 21, 0.52);
+  background: rgb(var(--ink-rgb) / 0.52);
   -webkit-backdrop-filter: blur(18px);
   backdrop-filter: blur(18px);
 }
@@ -1199,9 +1199,9 @@
   overflow-y: auto;
   padding: 14px;
   border-radius: 26px;
-  background: #ffffff;
+  background: var(--n-0);
   color: var(--ink);
-  box-shadow: 0 28px 80px rgba(10, 10, 18, 0.34);
+  box-shadow: 0 28px 80px rgb(var(--shadow-rgb) / 0.34);
 }
 
 .settingsHoursClose {
@@ -1211,9 +1211,9 @@
   place-items: center;
   border: 0;
   border-radius: 50%;
-  background: #ffffff;
+  background: var(--n-0);
   color: var(--ink);
-  box-shadow: 0 16px 34px rgba(15, 17, 20, 0.24);
+  box-shadow: 0 16px 34px rgb(var(--shadow-rgb) / 0.24);
 }
 
 .settingsHoursHero {
@@ -1224,15 +1224,15 @@
   padding: 8px 10px;
   border-radius: 16px;
   background:
-    radial-gradient(circle at 0 0, rgba(20, 22, 29, 0.18), transparent 44%),
-    linear-gradient(135deg, rgba(20, 22, 29, 0.08), rgba(255, 255, 255, 0.98)),
-    #ffffff;
+    radial-gradient(circle at 0 0, rgb(var(--ink-rgb) / 0.18), transparent 44%),
+    linear-gradient(135deg, rgb(var(--ink-rgb) / 0.08), rgb(var(--paper-rgb) / 0.98)),
+    var(--n-0);
 }
 
 .settingsHoursHero > svg {
   width: 26px;
   height: 26px;
-  color: #6f7380;
+  color: var(--n-600);
   stroke-width: 1.75;
 }
 
@@ -1243,7 +1243,7 @@
 }
 
 .settingsHoursHero span {
-  color: #6f7380;
+  color: var(--n-600);
   font-size: 0.6rem;
   font-weight: 900;
 }
@@ -1257,22 +1257,22 @@
 .settingsHoursHero em {
   padding: 6px 9px;
   border-radius: 999px;
-  background: #ffffff;
-  color: #14161d;
+  background: var(--n-0);
+  color: var(--n-900);
   font-size: 0.62rem;
   font-style: normal;
   font-weight: 900;
-  box-shadow: inset 0 0 0 1px rgba(20, 22, 29, 0.1);
+  box-shadow: inset 0 0 0 1px rgb(var(--shadow-rgb) / 0.1);
 }
 
 .settingsHoursPresetGrid {
-  background: #f6f6f8;
+  background: var(--n-50);
 }
 
 .settingsHoursPresetGrid button.is-active {
-  color: #ffffff;
-  background: linear-gradient(135deg, #6f7380, #14161d);
-  box-shadow: 0 12px 24px rgba(20, 22, 29, 0.18);
+  color: var(--n-0);
+  background: var(--fill-strong-grad);
+  box-shadow: 0 12px 24px rgb(var(--shadow-rgb) / 0.18);
 }
 
 .settingsHoursPresetHint {
@@ -1298,16 +1298,16 @@
 }
 
 .settingsHoursWeekStrip .hoursDayChip.is-selected {
-  border-color: rgba(20, 22, 29, 0.28);
-  color: #14161d;
-  box-shadow: 0 12px 26px rgba(20, 22, 29, 0.12);
+  border-color: rgb(var(--ink-rgb) / 0.28);
+  color: var(--n-900);
+  box-shadow: 0 12px 26px rgb(var(--shadow-rgb) / 0.12);
 }
 
 .settingsHoursDayEditor {
   gap: 14px;
   border-radius: 20px;
-  background: #ffffff;
-  box-shadow: inset 0 0 0 1px rgba(28, 32, 44, 0.06);
+  background: var(--n-0);
+  box-shadow: inset 0 0 0 1px rgb(var(--shadow-rgb) / 0.06);
 }
 
 .settingsHoursWheelRange {
@@ -1317,8 +1317,8 @@
   gap: 8px;
   padding: 10px;
   border-radius: 18px;
-  background: #ffffff;
-  box-shadow: inset 0 0 0 1px rgba(20, 22, 29, 0.1);
+  background: var(--n-0);
+  box-shadow: inset 0 0 0 1px rgb(var(--shadow-rgb) / 0.1);
 }
 
 /* Day+time pickers (DateTimeWheelPicker) -- two wheels, no duration badge
@@ -1345,8 +1345,8 @@
   align-self: center;
   padding: 7px 8px;
   border-radius: 999px;
-  background: rgba(20, 22, 29, 0.1);
-  color: #14161d;
+  background: rgb(var(--ink-rgb) / 0.1);
+  color: var(--n-900);
   font-size: 0.66rem;
   font-style: normal;
   font-weight: 900;
@@ -1354,8 +1354,8 @@
 }
 
 .settingsHoursWheelRange.is-invalid > em {
-  background: rgba(221, 70, 94, 0.1);
-  color: #b92743;
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--accent);
 }
 
 .settingsHoursWheelRange .breakTimeWheel {
@@ -1363,21 +1363,21 @@
 }
 
 .settingsHoursWheelRange .breakTimeWheelFocus {
-  background: rgba(20, 22, 29, 0.1);
-  border-color: rgba(20, 22, 29, 0.2);
+  background: rgb(var(--ink-rgb) / 0.1);
+  border-color: rgb(var(--ink-rgb) / 0.2);
 }
 
 .settingsHoursWheelRange .breakTimeWheelMaskTop {
-  background: linear-gradient(180deg, #ffffff 18%, rgba(255, 255, 255, 0));
+  background: linear-gradient(180deg, var(--n-0) 18%, rgb(var(--paper-rgb) / 0));
 }
 
 .settingsHoursWheelRange .breakTimeWheelMaskBottom {
-  background: linear-gradient(0deg, #ffffff 18%, rgba(255, 255, 255, 0));
+  background: linear-gradient(0deg, var(--n-0) 18%, rgb(var(--paper-rgb) / 0));
 }
 
 .settingsHoursCapacityControl {
   border-radius: 16px;
-  box-shadow: inset 0 0 0 1px rgba(28, 32, 44, 0.04);
+  box-shadow: inset 0 0 0 1px rgb(var(--shadow-rgb) / 0.04);
 }
 
 .settingsHoursSummaryStrip {
@@ -1388,7 +1388,7 @@
 
 
 .profileEdit{
-  background: rgba(28, 32, 44, 0.06);
+  background: rgb(var(--ink-rgb) / 0.06);
   color: var(--ink);
 }
 
@@ -1398,21 +1398,21 @@
   max-height: min(86dvh, 720px);
   gap: 14px;
   padding: 18px;
-  border: 1px solid rgba(28, 32, 44, 0.08);
+  border: 1px solid rgb(var(--ink-rgb) / 0.08);
   border-radius: 24px;
   background:
-    linear-gradient(165deg, rgba(255, 255, 255, 0.98), rgba(248, 244, 239, 0.96));
+    linear-gradient(165deg, rgb(var(--paper-rgb) / 0.98), color-mix(in srgb, var(--n-50) 96%, transparent));
   color: var(--ink);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.95),
-    0 24px 50px rgba(28, 32, 44, 0.18);
+    0 24px 50px rgb(var(--shadow-rgb) / 0.18);
   backdrop-filter: none;
 }
 
 
 
 .profileEditModal{
-  background: rgba(28, 32, 44, 0.42);
+  background: rgb(var(--ink-rgb) / 0.42);
   backdrop-filter: blur(10px);
   display: grid;
   place-items: center;
@@ -1446,12 +1446,12 @@
   height: 48px;
   border: 0;
   border-radius: 50%;
-  background: #ffffff;
+  background: var(--n-0);
   color: var(--ink);
   font-family: inherit;
   line-height: 1;
   cursor: pointer;
-  box-shadow: 0 16px 34px rgba(15, 17, 20, 0.24);
+  box-shadow: 0 16px 34px rgb(var(--shadow-rgb) / 0.24);
 }
 
 
@@ -1498,9 +1498,9 @@
   padding: 12px;
   border-radius: 20px;
   background:
-    radial-gradient(circle at 100% 0, rgba(20, 22, 29, 0.16), transparent 44%),
-    linear-gradient(135deg, rgba(20, 22, 29, 0.08), rgba(255, 255, 255, 0.96));
-  box-shadow: inset 0 0 0 1px rgba(20, 22, 29, 0.09);
+    radial-gradient(circle at 100% 0, rgb(var(--ink-rgb) / 0.16), transparent 44%),
+    linear-gradient(135deg, rgb(var(--ink-rgb) / 0.08), rgb(var(--paper-rgb) / 0.96));
+  box-shadow: inset 0 0 0 1px rgb(var(--shadow-rgb) / 0.09);
 }
 
 .profileEditHeroCopy {
@@ -1510,7 +1510,7 @@
 }
 
 .profileEditHeroCopy span {
-  color: #6f7380;
+  color: var(--n-600);
   font-size: 0.68rem;
   font-weight: 900;
 }
@@ -1542,7 +1542,7 @@
   top: 50%;
   height: 4px;
   border-radius: 999px;
-  background: #ececee;
+  background: var(--n-100);
   transform: translateY(-50%);
 }
 
@@ -1554,7 +1554,7 @@
   width: calc((66.666% - 36px) * var(--profile-edit-progress, 0));
   height: 4px;
   border-radius: 999px;
-  background: linear-gradient(90deg, #6f7380, #14161d);
+  background: var(--fill-strong-grad);
   transform: translateY(-50%);
   transition: width 0.22s ease;
 }
@@ -1571,13 +1571,13 @@
   justify-content: center;
   border: 0;
   border-radius: 50%;
-  background: #ffffff;
-  color: #737386;
+  background: var(--n-0);
+  color: var(--n-600);
   font-family: inherit;
   cursor: pointer;
   box-shadow:
-    0 0 0 4px #f8f8fb,
-    inset 0 0 0 1px rgba(20, 22, 29, 0.16);
+    0 0 0 4px var(--n-25),
+    inset 0 0 0 1px rgb(var(--shadow-rgb) / 0.16);
   transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
 }
 
@@ -1588,20 +1588,20 @@
 }
 
 .profileEditProgress button.is-done {
-  background: #ffffff;
-  color: #14161d;
+  background: var(--n-0);
+  color: var(--n-900);
   box-shadow:
-    0 0 0 4px #f8f8fb,
-    inset 0 0 0 2px rgba(20, 22, 29, 0.42);
+    0 0 0 4px var(--n-25),
+    inset 0 0 0 2px rgb(var(--shadow-rgb) / 0.42);
 }
 
 .profileEditProgress button.is-active {
-  background: linear-gradient(135deg, #6f7380, #14161d);
-  color: #ffffff;
+  background: var(--fill-strong-grad);
+  color: var(--n-0);
   transform: scale(1.12);
   box-shadow:
-    0 0 0 5px #f8f8fb,
-    0 10px 20px rgba(20, 22, 29, 0.22);
+    0 0 0 5px var(--n-25),
+    0 10px 20px rgb(var(--shadow-rgb) / 0.22);
 }
 
 .profileEditSection {
@@ -1609,8 +1609,8 @@
   gap: 10px;
   padding: 12px;
   border-radius: 18px;
-  background: #ffffff;
-  box-shadow: inset 0 0 0 1px rgba(28, 32, 44, 0.07);
+  background: var(--n-0);
+  box-shadow: inset 0 0 0 1px rgb(var(--shadow-rgb) / 0.07);
 }
 
 .profileEditSection.is-active {
@@ -1621,7 +1621,7 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  color: #14161d;
+  color: var(--n-900);
 }
 
 .profileEditSectionHead strong {
@@ -1656,7 +1656,7 @@
 }
 
 .profileEditForm label small {
-  color: #6f7380;
+  color: var(--n-600);
   font-size: 0.62rem;
   font-weight: 850;
 }
@@ -1666,9 +1666,9 @@
 .profileEditForm input{
   min-height: 44px;
   padding: 0 12px;
-  border: 1px solid rgba(28, 32, 44, 0.1);
+  border: 1px solid rgb(var(--ink-rgb) / 0.1);
   border-radius: 12px;
-  background: #fff;
+  background: var(--n-0);
   color: var(--ink);
   box-shadow: none;
   backdrop-filter: none;
@@ -1680,7 +1680,7 @@
 
 
 .profileEditForm input::placeholder{
-  color: rgba(28, 32, 44, 0.38);
+  color: rgb(var(--ink-rgb) / 0.38);
   font-weight: 700;
 }
 
@@ -1688,8 +1688,8 @@
 
 .profileEditForm input:focus{
   outline: none;
-  border-color: rgba(20, 22, 29, 0.4);
-  box-shadow: 0 0 0 3px rgba(20, 22, 29, 0.12);
+  border-color: rgb(var(--ink-rgb) / 0.4);
+  box-shadow: 0 0 0 3px rgb(var(--shadow-rgb) / 0.12);
 }
 
 
@@ -1728,8 +1728,8 @@
   height: 72px;
   overflow: hidden;
   border-radius: 50%;
-  border: 1px solid rgba(28, 32, 44, 0.1);
-  background: #fff;
+  border: 1px solid rgb(var(--ink-rgb) / 0.1);
+  background: var(--n-0);
   display: block;
 }
 
@@ -1753,9 +1753,9 @@
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: #14161d;
-  color: #fff;
-  box-shadow: 0 4px 10px rgba(20, 22, 29, 0.28);
+  background: var(--fill-strong);
+  color: var(--n-0);
+  box-shadow: 0 4px 10px rgb(var(--shadow-rgb) / 0.28);
   pointer-events: none;
 }
 
@@ -1774,8 +1774,8 @@
   padding: 0 10px;
   border: 0;
   border-radius: 999px;
-  background: rgba(20, 22, 29, 0.12);
-  color: #14161d;
+  background: rgb(var(--ink-rgb) / 0.12);
+  color: var(--n-900);
   font-size: 0.7rem;
   font-weight: 850;
   cursor: pointer;
@@ -1798,19 +1798,19 @@
   gap: 7px;
   border: 0;
   border-radius: 14px;
-  background: linear-gradient(135deg, #6f7380, #14161d);
-  color: #fff;
+  background: var(--fill-strong-grad);
+  color: var(--n-0);
   font-family: inherit;
   font-size: 0.88rem;
   font-weight: 900;
   cursor: pointer;
-  box-shadow: 0 10px 22px rgba(20, 22, 29, 0.22);
+  box-shadow: 0 10px 22px rgb(var(--shadow-rgb) / 0.22);
 }
 
 .profileEditStepActions button.is-secondary {
-  background: #ffffff;
-  color: #14161d;
-  box-shadow: inset 0 0 0 1px rgba(20, 22, 29, 0.16);
+  background: var(--n-0);
+  color: var(--n-900);
+  box-shadow: inset 0 0 0 1px rgb(var(--shadow-rgb) / 0.16);
 }
 
 .profileEditStepActions button:disabled {
@@ -1822,11 +1822,11 @@
 
 .profileEditStepActions button:not(:disabled):hover,
 .profileEditForm > button[type="submit"]:hover{
-  background: #14161d;
+  background: var(--fill-strong);
 }
 
 .profileEditStepActions button.is-secondary:not(:disabled):hover {
-  background: #f6f6f8;
+  background: var(--n-50);
 }
 
 
@@ -1841,10 +1841,10 @@
   padding: 14px;
   border: 0;
   border-radius: 26px;
-  background: #f8f8fb;
+  background: var(--n-25);
   color: var(--ink);
   box-shadow:
-    0 28px 80px rgba(10, 10, 18, 0.34);
+    0 28px 80px rgb(var(--shadow-rgb) / 0.34);
   backdrop-filter: none;
 }
 
@@ -1888,8 +1888,8 @@
 
 
 .profileEditModal .profileEditForm input{
-  border: 1px solid rgba(28, 32, 44, 0.1);
-  background: #f8f9fb;
+  border: 1px solid rgb(var(--ink-rgb) / 0.1);
+  background: var(--n-25);
   color: var(--ink);
   box-shadow: none;
   backdrop-filter: none;
@@ -1898,15 +1898,15 @@
 
 
 .profileEditModal .profileEditForm > button[type="submit"]{
-  background: linear-gradient(135deg, #6f7380, #14161d);
-  color: #fff;
-  box-shadow: 0 10px 22px rgba(20, 22, 29, 0.22);
+  background: var(--fill-strong-grad);
+  color: var(--n-0);
+  box-shadow: 0 10px 22px rgb(var(--shadow-rgb) / 0.22);
 }
 
 .profileEditModal .profileEditStepActions button:not(.is-secondary) {
-  background: linear-gradient(135deg, #6f7380, #14161d);
-  color: #fff;
-  box-shadow: 0 10px 22px rgba(20, 22, 29, 0.22);
+  background: var(--fill-strong-grad);
+  color: var(--n-0);
+  box-shadow: 0 10px 22px rgb(var(--shadow-rgb) / 0.22);
 }
 
 .profileEditModal .profileEditSheet.profileEditSheet {
@@ -1915,7 +1915,7 @@
   padding: 10px;
   border-radius: 28px;
   background:
-    linear-gradient(180deg, #ffffff 0%, #f7f7fb 100%);
+    linear-gradient(180deg, var(--n-0) 0%, var(--n-50) 100%);
   overflow-y: auto;
   scrollbar-width: none;
 }
@@ -1943,11 +1943,11 @@
   padding: 12px;
   border-radius: 22px;
   background:
-    linear-gradient(135deg, rgba(246, 247, 255, 0.96), rgba(255, 255, 255, 0.98)),
-    #ffffff;
+    linear-gradient(135deg, color-mix(in srgb, var(--n-50) 96%, transparent), rgb(var(--paper-rgb) / 0.98)),
+    var(--n-0);
   box-shadow:
-    inset 0 0 0 1px rgba(20, 22, 29, 0.11),
-    0 14px 30px rgba(20, 22, 29, 0.08);
+    inset 0 0 0 1px rgb(var(--shadow-rgb) / 0.11),
+    0 14px 30px rgb(var(--shadow-rgb) / 0.08);
 }
 
 .profileEditModal .profileEditHeroCopy {
@@ -1956,13 +1956,13 @@
 }
 
 .profileEditModal .profileEditHeroCopy span {
-  color: #14161d;
+  color: var(--n-900);
   font-size: 0.68rem;
   font-weight: 950;
 }
 
 .profileEditModal .profileEditHeroCopy strong {
-  color: #171827;
+  color: var(--n-900);
   font-size: 1.14rem;
   line-height: 1.35;
   white-space: nowrap;
@@ -1975,11 +1975,11 @@
 }
 
 .profileEditModal .profileEditAvatarPreview {
-  border: 2px solid rgba(255, 255, 255, 0.96);
-  background: #11131e;
+  border: 2px solid rgb(var(--paper-rgb) / 0.96);
+  background: var(--fill-strong);
   box-shadow:
-    0 0 0 1px rgba(20, 22, 29, 0.18),
-    0 12px 24px rgba(27, 27, 31, 0.16);
+    0 0 0 1px rgb(var(--shadow-rgb) / 0.18),
+    0 12px 24px rgb(var(--shadow-rgb) / 0.16);
 }
 
 .profileEditModal .profileEditAvatarPreview img {
@@ -1992,10 +1992,10 @@
   bottom: -3px;
   width: 28px;
   height: 28px;
-  background: linear-gradient(135deg, #6f7380, #14161d);
+  background: var(--fill-strong-grad);
   box-shadow:
-    0 0 0 3px #ffffff,
-    0 8px 16px rgba(20, 22, 29, 0.28);
+    0 0 0 3px var(--n-0),
+    0 8px 16px rgb(var(--shadow-rgb) / 0.28);
 }
 
 .profileEditModal .profileEditAvatarClear,
@@ -2013,15 +2013,15 @@
 }
 
 .profileEditModal .profileEditAvatarClear {
-  border: 1px solid rgba(20, 22, 29, 0.16);
-  background: #ffffff;
-  color: #14161d;
-  box-shadow: 0 8px 18px rgba(20, 22, 29, 0.08);
+  border: 1px solid rgb(var(--ink-rgb) / 0.16);
+  background: var(--n-0);
+  color: var(--n-900);
+  box-shadow: 0 8px 18px rgb(var(--shadow-rgb) / 0.08);
 }
 
 .profileEditModal .profileEditAvatarHint {
-  color: #6d7282;
-  background: rgba(28, 32, 44, 0.05);
+  color: var(--n-600);
+  background: rgb(var(--ink-rgb) / 0.05);
 }
 
 .profileEditModal .profileEditProgress {
@@ -2035,14 +2035,14 @@
   right: calc(16.666% + 20px);
   top: 24px;
   height: 3px;
-  background: #ebebed;
+  background: var(--n-150);
 }
 
 .profileEditModal .profileEditProgress::after {
   right: calc(16.666% + 20px);
   top: 24px;
   height: 3px;
-  background: linear-gradient(90deg, #14161d, #6f7380);
+  background: var(--fill-strong-grad);
 }
 
 .profileEditModal .profileEditProgress button {
@@ -2054,7 +2054,7 @@
   gap: 3px;
   border-radius: 0;
   background: transparent;
-  color: #74788a;
+  color: var(--n-600);
   box-shadow: none;
   transform: none;
 }
@@ -2064,10 +2064,10 @@
   height: 34px;
   padding: 8px;
   border-radius: 15px;
-  background: #ffffff;
+  background: var(--n-0);
   box-shadow:
-    0 0 0 4px #f7f7fb,
-    inset 0 0 0 1px rgba(20, 22, 29, 0.15);
+    0 0 0 4px var(--n-50),
+    inset 0 0 0 1px rgb(var(--shadow-rgb) / 0.15);
 }
 
 .profileEditModal .profileEditProgress button span {
@@ -2082,48 +2082,48 @@
 }
 
 .profileEditModal .profileEditProgress button.is-done {
-  color: #14161d;
+  color: var(--n-900);
   box-shadow: none;
 }
 
 .profileEditModal .profileEditProgress button.is-done svg {
   box-shadow:
-    0 0 0 4px #f7f7fb,
-    inset 0 0 0 2px rgba(20, 22, 29, 0.36);
+    0 0 0 4px var(--n-50),
+    inset 0 0 0 2px rgb(var(--shadow-rgb) / 0.36);
 }
 
 .profileEditModal .profileEditProgress button.is-active {
-  color: #14161d;
+  color: var(--n-900);
   transform: none;
   box-shadow: none;
 }
 
 .profileEditModal .profileEditProgress button.is-active svg {
-  background: linear-gradient(135deg, #6f7380, #14161d);
-  color: #ffffff;
+  background: var(--fill-strong-grad);
+  color: var(--n-0);
   box-shadow:
-    0 0 0 5px #f7f7fb,
-    0 12px 22px rgba(20, 22, 29, 0.2);
+    0 0 0 5px var(--n-50),
+    0 12px 22px rgb(var(--shadow-rgb) / 0.2);
 }
 
 .profileEditModal .profileEditSection {
   gap: 12px;
   padding: 13px;
   border-radius: 22px;
-  background: #ffffff;
+  background: var(--n-0);
   box-shadow:
-    inset 0 0 0 1px rgba(28, 32, 44, 0.07),
-    0 12px 28px rgba(28, 32, 44, 0.06);
+    inset 0 0 0 1px rgb(var(--shadow-rgb) / 0.07),
+    0 12px 28px rgb(var(--shadow-rgb) / 0.06);
 }
 
 .profileEditModal .profileEditSectionHead {
   justify-content: flex-start;
   gap: 7px;
-  color: #14161d;
+  color: var(--n-900);
 }
 
 .profileEditModal .profileEditSectionHead strong {
-  color: #171827;
+  color: var(--n-900);
   font-size: 0.86rem;
 }
 
@@ -2134,7 +2134,7 @@
 
 .profileEditModal .profileEditFieldGrid label {
   min-width: 0;
-  color: #303344;
+  color: var(--n-800);
   font-size: 0.68rem;
   font-weight: 950;
   text-align: right;
@@ -2150,8 +2150,8 @@
   width: 100%;
   min-height: 46px;
   border-radius: 15px;
-  background: #f8f9fd;
-  color: #171827;
+  background: var(--n-25);
+  color: var(--n-900);
   font-size: 0.82rem;
   font-weight: 850;
   text-align: right;
@@ -2164,7 +2164,7 @@
   gap: 8px;
   margin: 0 -2px;
   padding: 8px 2px 2px;
-  background: linear-gradient(180deg, rgba(247, 247, 251, 0), #f7f7fb 28%);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--n-50) 0%, transparent), var(--n-50) 28%);
 }
 
 .profileEditModal .profileEditStepActions button {
@@ -2176,11 +2176,11 @@
 }
 
 .profileEditModal .profileEditStepActions button.is-secondary {
-  background: #ffffff;
-  color: #14161d;
+  background: var(--n-0);
+  color: var(--n-900);
   box-shadow:
-    inset 0 0 0 1px rgba(20, 22, 29, 0.15),
-    0 8px 18px rgba(28, 32, 44, 0.05);
+    inset 0 0 0 1px rgb(var(--shadow-rgb) / 0.15),
+    0 8px 18px rgb(var(--shadow-rgb) / 0.05);
 }
 
 @media (max-width: 420px) {
@@ -2212,7 +2212,7 @@
   .profileEditModal .profileEditAvatarClear {
     width: 34px;
     padding: 0;
-    color: #14161d;
+    color: var(--n-900);
   }
 
   .profileEditModal .profileEditAvatarClear svg {
@@ -2237,8 +2237,8 @@
   padding: 10px;
   border-radius: 15px;
   background:
-    linear-gradient(135deg, rgba(20, 22, 29, 0.12), rgba(191, 192, 209, 0.18)),
-    rgba(255, 255, 255, 0.74);
+    linear-gradient(135deg, rgb(var(--ink-rgb) / 0.12), color-mix(in srgb, var(--n-400) 18%, transparent)),
+    rgb(var(--paper-rgb) / 0.74);
 }
 
 
@@ -2284,12 +2284,12 @@
   max-height: min(74vh, 640px);
   overflow-y: auto;
   padding: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.66);
+  border: 1px solid rgb(var(--paper-rgb) / 0.66);
   border-radius: 24px 24px 8px 8px;
   background:
-    linear-gradient(180deg, rgba(246, 246, 251, 0.98), rgba(247, 248, 250, 0.96)),
+    linear-gradient(180deg, color-mix(in srgb, var(--n-50) 98%, transparent), color-mix(in srgb, var(--n-25) 96%, transparent)),
     var(--surface-solid);
-  box-shadow: 0 28px 80px rgba(28, 32, 44, 0.28);
+  box-shadow: 0 28px 80px rgb(var(--shadow-rgb) / 0.28);
   animation: sheetRise 0.22s ease both;
 }
 
@@ -2306,7 +2306,7 @@
 
 
 .passportIntro{
-  background: rgba(28, 32, 44, 0.06);
+  background: rgb(var(--ink-rgb) / 0.06);
 }
 
 
@@ -2339,8 +2339,8 @@
 
 .passportCard{
   background:
-    linear-gradient(135deg, rgba(20, 22, 29, 0.12), rgba(20, 22, 29, 0.1)),
-    rgba(255, 255, 255, 0.7);
+    linear-gradient(135deg, rgb(var(--ink-rgb) / 0.12), rgb(var(--ink-rgb) / 0.1)),
+    rgb(var(--paper-rgb) / 0.7);
 }
 
 
@@ -2452,9 +2452,9 @@
 }
 
 .profileEditModal .profileEditProgressTrack > button {
-  --profile-step-ring: #ebebed;
-  --profile-step-ring-shadow: rgba(20, 22, 29, 0);
-  color: #73788a !important;
+  --profile-step-ring: var(--n-150);
+  --profile-step-ring-shadow: rgb(var(--shadow-rgb) / 0);
+  color: var(--n-600) !important;
   position: relative !important;
   isolation: isolate;
 }
@@ -2465,7 +2465,7 @@
   top: 19px;
   height: 3px;
   border-radius: 999px;
-  background: #ebebed;
+  background: var(--n-150);
   transition: background 0.22s ease, box-shadow 0.22s ease;
   pointer-events: none;
 }
@@ -2481,8 +2481,8 @@
 }
 
 .profileEditModal .profileEditProgressSegment.is-active {
-  background: linear-gradient(90deg, #14161d, #6f7380);
-  box-shadow: 0 4px 12px rgba(20, 22, 29, 0.18);
+  background: var(--fill-strong-grad);
+  box-shadow: 0 4px 12px rgb(var(--shadow-rgb) / 0.18);
 }
 
 .profileEditModal .profileEditFieldGrid .profileEditYearsField {
@@ -2496,9 +2496,9 @@
   align-items: center;
   gap: 8px;
   padding: 0 12px;
-  border: 1px solid rgba(20, 22, 29, 0.18);
+  border: 1px solid rgb(var(--ink-rgb) / 0.18);
   border-radius: 15px;
-  background: #f8f9fd;
+  background: var(--n-25);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.7);
 }
 
@@ -2514,7 +2514,7 @@
 }
 
 .profileEditModal .profileEditYearsControl small {
-  color: #6f7380;
+  color: var(--n-600);
   font-size: 0.72rem;
   font-weight: 950;
   white-space: nowrap;
@@ -2537,7 +2537,7 @@
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  background: conic-gradient(from -90deg, var(--profile-step-ring) 0 100%, #ebebed 0);
+  background: conic-gradient(from -90deg, var(--profile-step-ring) 0 100%, var(--n-150) 0);
   transform: translateX(-50%);
   box-shadow: 0 8px 16px var(--profile-step-ring-shadow);
   -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 0);
@@ -2547,13 +2547,13 @@
 
 .profileEditModal .profileEditProgressTrack > button.is-done,
 .profileEditModal .profileEditProgressTrack > button.is-active {
-  --profile-step-ring: #6f7380;
-  --profile-step-ring-shadow: rgba(20, 22, 29, 0.2);
-  color: #14161d !important;
+  --profile-step-ring: var(--n-600);
+  --profile-step-ring-shadow: rgb(var(--shadow-rgb) / 0.2);
+  color: var(--n-900) !important;
 }
 
 .profileEditModal .profileEditProgressTrack > button.is-active {
-  --profile-step-ring: #6f7380;
+  --profile-step-ring: var(--n-600);
 }
 
 .profileEditModal .profileEditProgress.profileEditProgress button svg {

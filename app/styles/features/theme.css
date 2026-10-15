@@ -1,0 +1,36 @@
+/* Day / night picker in settings (ProfileSettingsPanel → ThemePicker). */
+.neoThemePick {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  padding: 5px;
+  border-radius: 18px;
+  background: var(--n-100);
+  border: 1px solid var(--line);
+}
+.neoThemePick button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-height: 56px;
+  justify-content: center;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background var(--duration-fast) ease, color var(--duration-fast) ease;
+}
+.neoThemePick button.is-on {
+  background: var(--primary);
+  color: var(--on-primary);
+  box-shadow: 0 6px 18px rgb(var(--shadow-rgb) / 0.18);
+}
+.neoThemePick button:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
+
+/* Mascot: plain by day, white sticker outline at night (filter comes from tokens.css). */
+.mascot { filter: var(--mascot-filter, none); }

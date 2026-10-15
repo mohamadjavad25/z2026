@@ -1,0 +1,61 @@
+/* Dark islands: surfaces that are dark by design in BOTH themes (dark panels with light text, logo discs, picture overlays).
+   Inside them the neutral ramp is pinned to its day values, so every rule written for the day look (white text,
+   ink background, translucent white borders) keeps working at night.
+   To add one: put its selector in the :is() list below. Nothing else is needed. */
+:root {
+  --l-n-0: var(--n-0);
+  --l-n-25: var(--n-25);
+  --l-n-50: var(--n-50);
+  --l-n-100: var(--n-100);
+  --l-n-150: var(--n-150);
+  --l-n-200: var(--n-200);
+  --l-n-300: var(--n-300);
+  --l-n-400: var(--n-400);
+  --l-n-500: var(--n-500);
+  --l-n-600: var(--n-600);
+  --l-n-700: var(--n-700);
+  --l-n-800: var(--n-800);
+  --l-n-900: var(--n-900);
+  --l-n-950: var(--n-950);
+}
+:is(
+  /* dark panels */
+  .stfInvite:not(.is-self),
+  .brandCardPoster,
+  .heroPrimary,
+  .salonPublicLogo,
+  .galleryAddTile,
+  .sidebar,
+  .deviceFrame,
+  .artistSettingsHeroCard,
+  /* glass controls and chips that sit on top of pictures */
+  .pphRound,
+  .pvCounter,
+  .pvBadges span,
+  .profileGalleryFlags span,
+  .brandCardPosterEdit,
+  .feedCard .saveChip,
+  .postMeta .matchChip,
+  .profileHero.is-salon .salonHeroRatingPill,
+  .profilePostCard.clientBeautyModelCard > span,
+  .salonHeroQrBtn,
+  .profileHero.is-artist .profileHeroActions
+) {
+  --n-0: var(--l-n-0);
+  --n-25: var(--l-n-25);
+  --n-50: var(--l-n-50);
+  --n-100: var(--l-n-100);
+  --n-150: var(--l-n-150);
+  --n-200: var(--l-n-200);
+  --n-300: var(--l-n-300);
+  --n-400: var(--l-n-400);
+  --n-500: var(--l-n-500);
+  --n-600: var(--l-n-600);
+  --n-700: var(--l-n-700);
+  --n-800: var(--l-n-800);
+  --n-900: var(--l-n-900);
+  --n-950: var(--l-n-950);
+  --ink-rgb: 12 13 18;
+  --paper-rgb: 255 255 255;
+  --shadow-rgb: 12 13 18;
+}

@@ -178,8 +178,8 @@ export function SegmentClock({
   value,
   size = "md",
   className = "",
-  color = "#111318",
-  backgroundColor = "#ffffff",
+  color = "var(--n-950)",
+  backgroundColor = "var(--n-0)",
   skew = true,
   as = "time"
 }) {

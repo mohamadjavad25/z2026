@@ -1,32 +1,88 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   frfro colour system (2026-10-15)
+   Four brand colours: ink, pink, violet, white. Everything else is derived.
+
+   Layer 1  BRAND      constants, the same in day and night.
+   Layer 2  NEUTRALS   --n-0 … --n-950, a 14-step ramp. Day runs white → ink;
+                       night runs the same steps in reverse (card → near-white),
+                       so any rule written with the ramp works in both themes.
+   Layer 3  ROLES      --bg, --ink, --muted, --line, --accent, --primary …
+                       what components should reach for first.
+
+   Theme: <html data-theme="light|dark"> forces one; with neither, the OS decides.
+   Role:  <html data-role="client|pro"> picks the accent. Clients get pink (warm),
+          salons and artists get violet (precise). Same product, two moods.
+   Rules: pink never carries small text on white (use --pink-deep); text on pink
+   is always ink; white text on violet only with --violet-deep.
+   ═══════════════════════════════════════════════════════════════════════════ */
 :root {
-  --ink: #1c202c;
-  --muted: #6b6f7a;
-  --bg: #d8d9df;
-  --surface: rgba(247, 248, 250, 0.9);
-  --surface-solid: #f7f8fa;
-  --rose: #14161d;
-  --teal: #31323e;
-  --gold: #bfc0d1;
-  --plum: #14161d;
-  --night: #1c202c;
-  --line: rgba(28, 32, 44, 0.11);
-  --soft-line: rgba(255, 255, 255, 0.2);
-  --shadow: 0 26px 80px rgba(28, 32, 44, 0.16);
-  --shadow-soft: 0 14px 40px rgba(28, 32, 44, 0.08);
+  color-scheme: light;
+
+  /* 1 · brand */
+  --brand-ink: #0c0d12;
+  --brand-pink: #ff86b8;
+  --brand-violet: #8b6cff;
+  --brand-white: #ffffff;
+  --pink-deep: #c42a74;      /* pink as text or border on white (AA) */
+  --violet-deep: #5b3fd6;    /* violet as text, or as a button behind white text (AA) */
+  --pink-soft: #ffe3ef;
+  --violet-soft: #efeaff;
+  --brand-blend: linear-gradient(120deg, #ff86b8 0%, #b58cff 52%, #7c5cff 100%);
+  --brand-blend-deep: linear-gradient(120deg, #e8267f 0%, #9a4fe0 55%, #5b3fd6 100%);
+
+  /* 2 · neutral ramp (day) */
+  --n-0: #ffffff;
+  --n-25: #fafafc;
+  --n-50: #f5f5f9;
+  --n-100: #efeff4;
+  --n-150: #e8e8ee;
+  --n-200: #e1e1e9;
+  --n-300: #d3d4de;
+  --n-400: #b9bbcb;
+  --n-500: #8c909e;
+  --n-600: #666a78;
+  --n-700: #4a4e5c;
+  --n-800: #2d303c;
+  --n-900: #1a1c26;
+  --n-950: #0c0d12;
+  --ink-rgb: 12 13 18;       /* text-coloured translucent layers: rgb(var(--ink-rgb) / .1) */
+  --paper-rgb: 255 255 255;  /* surface-coloured translucent layers */
+  --shadow-rgb: 12 13 18;    /* shadows stay dark in both themes */
+
+  /* 3 · roles */
+  --bg: #f3f2f8;
+  --ink: var(--n-950);
+  --muted: var(--n-600);
+  --surface-solid: var(--n-0);
+  --surface: rgb(var(--paper-rgb) / 0.92);
+  --line: rgb(var(--ink-rgb) / 0.1);
+  --soft-line: rgb(var(--paper-rgb) / 0.2);
+  --primary: var(--brand-ink);          /* main button fill */
+  --on-primary: #ffffff;
+  --accent: var(--pink-deep);           /* role accent for text, links, outlines */
+  --accent-fill: var(--brand-pink);     /* role accent for fills (badges, today, dots) */
+  --on-accent-fill: var(--brand-ink);
+  --accent-soft: var(--pink-soft);
+  --focus-ring: var(--brand-violet);
+  --scrim: rgba(12, 13, 18, 0.55);      /* behind sheets and dialogs, dark in both themes */
+  --on-photo: #ffffff;                  /* text on pictures and dark scrims */
+  --mascot-filter: none;                /* night gives the mascot a white sticker outline, see below */
+
+  /* names the app already used; they now follow the ramp */
+  --rose: var(--n-950);
+  --teal: var(--n-800);
+  --gold: var(--n-400);
+  --plum: var(--n-950);
+  --night: var(--n-900);
+  --shadow: 0 26px 80px rgb(var(--shadow-rgb) / 0.16);
+  --shadow-soft: 0 14px 40px rgb(var(--shadow-rgb) / 0.08);
   --mother-bg:
-    linear-gradient(180deg, rgba(248, 249, 251, 0.9) 0%, rgba(216, 217, 223, 0.96) 46%, rgba(232, 233, 238, 0.92) 100%),
-    conic-gradient(from 225deg at 58% -8%, rgba(20, 22, 29, 0.08), rgba(255, 255, 255, 0.28), rgba(49, 50, 62, 0.1), rgba(198, 200, 209, 0.3), rgba(20, 22, 29, 0.08)),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.38), transparent 36%),
-    linear-gradient(315deg, rgba(28, 32, 44, 0.1), transparent 44%),
+    radial-gradient(70% 38% at 100% 0%, rgba(255, 134, 184, 0.16), rgba(255, 134, 184, 0) 70%),
+    radial-gradient(62% 36% at 0% 4%, rgba(139, 108, 255, 0.14), rgba(139, 108, 255, 0) 72%),
     var(--bg);
-  --mother-bg-mobile:
-    linear-gradient(180deg, rgba(248, 249, 251, 0.92) 0%, rgba(216, 217, 223, 0.98) 48%, rgba(232, 233, 238, 0.94) 100%),
-    conic-gradient(from 215deg at 54% -6%, rgba(20, 22, 29, 0.1), rgba(255, 255, 255, 0.24), rgba(49, 50, 62, 0.12), rgba(198, 200, 209, 0.28), rgba(20, 22, 29, 0.1)),
-    linear-gradient(150deg, rgba(255, 255, 255, 0.34), transparent 48%),
-    linear-gradient(330deg, rgba(28, 32, 44, 0.09), transparent 46%),
-    var(--bg);
-  --page-glass: rgba(247, 248, 250, 0.62);
-  --page-glass-strong: rgba(247, 248, 250, 0.78);
+  --mother-bg-mobile: var(--mother-bg);
+  --page-glass: rgb(var(--paper-rgb) / 0.62);
+  --page-glass-strong: rgb(var(--paper-rgb) / 0.78);
 
   /* ── Design-system foundation (added 2026-09, additive only) ──────────
      Nothing above this comment was changed or renamed — every existing
@@ -63,18 +119,18 @@
 
   /* Semantic feedback colors (success / warning / danger / info) —
      previously each feature picked its own ad hoc color for these. */
-  --success: #2f9e5c;
-  --success-bg: rgba(47, 158, 92, 0.12);
-  --warning: #b8862c;
-  --warning-bg: rgba(184, 134, 44, 0.12);
-  --danger: #c14545;
-  --danger-bg: rgba(193, 69, 69, 0.12);
-  --info: var(--plum);
-  --info-bg: rgba(20, 22, 29, 0.12);
+  --success: #1a8a4e;
+  --success-bg: rgba(26, 138, 78, 0.12);
+  --warning: #a86a00;
+  --warning-bg: rgba(201, 138, 20, 0.14);
+  --danger: #c23a3a;
+  --danger-bg: rgba(194, 58, 58, 0.11);
+  --info: var(--violet-deep);
+  --info-bg: rgba(139, 108, 255, 0.13);
 
   /* Elevation / shadow scale, on top of the existing --shadow / --shadow-soft */
-  --shadow-xs: 0 4px 14px rgba(28, 32, 44, 0.06);
-  --shadow-lg: 0 32px 90px rgba(28, 32, 44, 0.2);
+  --shadow-xs: 0 4px 14px rgb(var(--shadow-rgb) / 0.06);
+  --shadow-lg: 0 32px 90px rgb(var(--shadow-rgb) / 0.2);
 
   /* Motion */
   --ease-standard: cubic-bezier(0.22, 0.61, 0.36, 1);
@@ -87,7 +143,7 @@
      lowest to highest. A raw z-index of 100 or more outside this file is a
      bug: tests/unit/zIndexScale.test.js fails the build. Values are the ones
      the app already ran with, so naming them changed no stacking. */
-  --logo-glow: 0 8px 24px rgba(150, 190, 255, 0.36), 0 0 28px rgba(196, 224, 255, 0.42); /* soft icy shadow around logo discs, no border */
+  --logo-glow: 0 8px 24px rgba(255, 134, 184, 0.34), 0 0 28px rgba(139, 108, 255, 0.3); /* soft pink-violet glow around logo discs, no border */
   --z-nav: 26;               /* bottom navigation */
   --z-modal: 120;            /* profile edit modal + its sheet backdrop */
   --z-sheet-over-modal: 140; /* sheets that open above the profile edit modal */
@@ -119,4 +175,167 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), [tabindex]:focus:
 @media (prefers-reduced-motion: reduce) {
   :where(button, [role="button"], [role="tab"], summary, a[class]) { transition: none; }
   :where(button, [role="button"], [role="tab"], summary, a[class]):active { scale: 1; }
+}
+
+/* Night. Same names, reversed ramp. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --n-0: #15171f;
+  --n-25: #191b25;
+  --n-50: #1d202b;
+  --n-100: #232632;
+  --n-150: #2a2d3b;
+  --n-200: #323646;
+  --n-300: #414559;
+  --n-400: #5b6078;
+  --n-500: #858a9e;
+  --n-600: #a0a4b6;
+  --n-700: #c0c3d0;
+  --n-800: #dcdde7;
+  --n-900: #eeeff6;
+  --n-950: #f7f7fb;
+  --ink-rgb: 247 247 251;
+  --paper-rgb: 21 23 31;
+  --shadow-rgb: 0 0 0;
+  --bg: #0c0d12;
+  --primary: var(--brand-pink);
+  --on-primary: var(--brand-ink);
+  --accent: #ff9cc6;
+  --accent-soft: rgba(255, 134, 184, 0.16);
+  --focus-ring: #b9a6ff;
+  --scrim: rgba(0, 0, 0, 0.66);
+  --success: #5fd6a0;
+  --success-bg: rgba(95, 214, 160, 0.14);
+  --warning: #f2b84b;
+  --warning-bg: rgba(242, 184, 75, 0.15);
+  --danger: #ff8d8d;
+  --danger-bg: rgba(255, 141, 141, 0.15);
+  --info: #b9a6ff;
+  --info-bg: rgba(139, 108, 255, 0.2);
+  --mother-bg:
+    radial-gradient(70% 38% at 100% 0%, rgba(255, 134, 184, 0.13), rgba(255, 134, 184, 0) 70%),
+    radial-gradient(62% 40% at 0% 6%, rgba(139, 108, 255, 0.2), rgba(139, 108, 255, 0) 72%),
+    var(--bg);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --n-0: #15171f;
+    --n-25: #191b25;
+    --n-50: #1d202b;
+    --n-100: #232632;
+    --n-150: #2a2d3b;
+    --n-200: #323646;
+    --n-300: #414559;
+    --n-400: #5b6078;
+    --n-500: #858a9e;
+    --n-600: #a0a4b6;
+    --n-700: #c0c3d0;
+    --n-800: #dcdde7;
+    --n-900: #eeeff6;
+    --n-950: #f7f7fb;
+    --ink-rgb: 247 247 251;
+    --paper-rgb: 21 23 31;
+    --shadow-rgb: 0 0 0;
+    --bg: #0c0d12;
+    --primary: var(--brand-pink);
+    --on-primary: var(--brand-ink);
+    --accent: #ff9cc6;
+    --accent-soft: rgba(255, 134, 184, 0.16);
+    --focus-ring: #b9a6ff;
+    --scrim: rgba(0, 0, 0, 0.66);
+    --success: #5fd6a0;
+    --success-bg: rgba(95, 214, 160, 0.14);
+    --warning: #f2b84b;
+    --warning-bg: rgba(242, 184, 75, 0.15);
+    --danger: #ff8d8d;
+    --danger-bg: rgba(255, 141, 141, 0.15);
+    --info: #b9a6ff;
+    --info-bg: rgba(139, 108, 255, 0.2);
+    --mother-bg:
+      radial-gradient(70% 38% at 100% 0%, rgba(255, 134, 184, 0.13), rgba(255, 134, 184, 0) 70%),
+      radial-gradient(62% 40% at 0% 6%, rgba(139, 108, 255, 0.2), rgba(139, 108, 255, 0) 72%),
+      var(--bg);
+  }
+}
+
+/* Role accent: salons and artists work in violet, clients in pink. */
+:root[data-role="pro"] {
+  --accent: var(--violet-deep);
+  --accent-fill: var(--brand-violet);
+  --on-accent-fill: var(--brand-ink);
+  --accent-soft: var(--violet-soft);
+}
+:root[data-role="pro"][data-theme="dark"] {
+  --accent: #b9a6ff;
+  --accent-soft: rgba(139, 108, 255, 0.22);
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-role="pro"]:not([data-theme="light"]) {
+    --accent: #b9a6ff;
+    --accent-soft: rgba(139, 108, 255, 0.22);
+  }
+}
+
+/* Strong fills: the filled "main action" look (primary buttons, active chips, selected tabs, the + button).
+   Day: ink. Night: pink, the one moment of colour in the dark UI. Text on them uses --n-0, which is white by day
+   and near-black by night, so contrast holds both ways. */
+:root {
+  --fill-strong: var(--brand-ink);
+  --fill-strong-grad: linear-gradient(135deg, #2b2e3b 0%, #0c0d12 100%);
+}
+:root[data-theme="dark"] {
+  --fill-strong: var(--brand-pink);
+  --fill-strong-grad: linear-gradient(135deg, #ff9cc6 0%, #ff86b8 55%, #f26fa6 100%);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --fill-strong: var(--brand-pink);
+    --fill-strong-grad: linear-gradient(135deg, #ff9cc6 0%, #ff86b8 55%, #f26fa6 100%);
+  }
+}
+
+/* Signal colours: dots, rails, progress bars, small fills. Bright in both themes.
+   Fills that carry text use --success / --warning / --danger / --fill-hot / --fill-violet instead. */
+:root {
+  --signal-ok: #22b573;
+  --signal-warn: #f0a020;
+  --signal-bad: #e6484f;
+  --signal-hot: #e11d74;
+  --fill-hot: #d81b6f;
+  --fill-violet: #5b3fd6;
+}
+:root[data-theme="dark"] {
+  --signal-hot: #ff6fa9;
+  --fill-hot: #ff86b8;
+  --fill-violet: #8b6cff;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --signal-hot: #ff6fa9;
+    --fill-hot: #ff86b8;
+    --fill-violet: #8b6cff;
+  }
+}
+
+/* Salons and artists work in violet: their night-time strong fills are violet, not pink. */
+:root[data-theme="dark"][data-role="pro"] {
+  --fill-strong: #b3a0ff;
+  --fill-strong-grad: linear-gradient(135deg, #cdbfff 0%, #b3a0ff 55%, #9f86ff 100%);
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-role="pro"]:not([data-theme="light"]) {
+    --fill-strong: var(--brand-violet);
+    --fill-strong-grad: linear-gradient(135deg, #a68cff 0%, #8b6cff 55%, #7656f0 100%);
+  }
+}
+
+/* The mascot's body is black, so at night it gets a thin white sticker outline to stay readable. */
+:root[data-theme="dark"] {
+  --mascot-filter: drop-shadow(1.5px 0 0 #fff) drop-shadow(-1.5px 0 0 #fff) drop-shadow(0 1.5px 0 #fff) drop-shadow(0 -1.5px 0 #fff);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --mascot-filter: drop-shadow(1.5px 0 0 #fff) drop-shadow(-1.5px 0 0 #fff) drop-shadow(0 1.5px 0 #fff) drop-shadow(0 -1.5px 0 #fff);
+  }
 }

@@ -7,54 +7,54 @@
 
 /* ── Salon services: pick the artists for a service (sas*) — a bottom sheet, so it can never be clipped by the card ── */
 .sasBody { display: grid; gap: 8px; padding: 4px 2px 8px; }
-.sasHint { margin: 0 0 4px; color: #6f7380; font-size: 0.76rem; font-weight: 750; line-height: 1.8; }
-.sasEmpty { margin: 12px 0; padding: 18px 14px; border-radius: 16px; background: #fafafc; box-shadow: inset 0 0 0 1.5px #e4e4ea; color: #6f7380; font-size: 0.8rem; font-weight: 750; line-height: 1.8; text-align: center; }
-.sasRow { transition: background-color 0.12s, box-shadow 0.12s, transform 0.08s; -webkit-tap-highlight-color: transparent; display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 12px; border: 0; border-radius: 18px; background: #fff; box-shadow: inset 0 0 0 1px #ececf1; font: inherit; color: #14161d; text-align: start; cursor: pointer; }
-.sasRow.is-selected { background: #f4fbf6; box-shadow: inset 0 0 0 1.5px #86d3a0; }
-.sasAvatar { flex: 0 0 auto; width: 46px; height: 46px; display: grid; place-items: center; overflow: hidden; border-radius: 50%; background: #fff3f7; box-shadow: inset 0 0 0 1px #fbd0e0; font-weight: 950; }
+.sasHint { margin: 0 0 4px; color: var(--n-600); font-size: 0.76rem; font-weight: 750; line-height: 1.8; }
+.sasEmpty { margin: 12px 0; padding: 18px 14px; border-radius: 16px; background: var(--n-25); box-shadow: inset 0 0 0 1.5px var(--n-200); color: var(--n-600); font-size: 0.8rem; font-weight: 750; line-height: 1.8; text-align: center; }
+.sasRow { transition: background-color 0.12s, box-shadow 0.12s, transform 0.08s; -webkit-tap-highlight-color: transparent; display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 12px; border: 0; border-radius: 18px; background: var(--n-0); box-shadow: inset 0 0 0 1px var(--n-100); font: inherit; color: var(--n-900); text-align: start; cursor: pointer; }
+.sasRow.is-selected { background: var(--n-25); box-shadow: inset 0 0 0 1.5px var(--signal-ok); }
+.sasAvatar { flex: 0 0 auto; width: 46px; height: 46px; display: grid; place-items: center; overflow: hidden; border-radius: 50%; background: var(--n-50); box-shadow: inset 0 0 0 1px var(--pink-soft); font-weight: 950; }
 .sasAvatar img { width: 100%; height: 100%; object-fit: cover; }
 .sasName { flex: 1; min-width: 0; display: grid; gap: 2px; }
 .sasName b { font-size: 0.9rem; font-weight: 950; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.sasName small { color: #6f7380; font-size: 0.72rem; font-weight: 750; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.sasCheck { flex: 0 0 auto; width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%; box-shadow: inset 0 0 0 1.5px #d4d4dc; color: #fff; }
-.sasRow.is-selected .sasCheck { background: #1c9c55; box-shadow: none; }
-.sasClear { margin-top: 4px; min-height: 44px; border: 0; border-radius: 14px; background: #fff1f1; color: #b42a2a; font: inherit; font-size: 0.8rem; font-weight: 900; }
+.sasName small { color: var(--n-600); font-size: 0.72rem; font-weight: 750; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sasCheck { flex: 0 0 auto; width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--n-300); color: var(--n-0); }
+.sasRow.is-selected .sasCheck { background: var(--signal-ok); box-shadow: none; }
+.sasClear { margin-top: 4px; min-height: 44px; border: 0; border-radius: 14px; background: var(--n-50); color: var(--danger); font: inherit; font-size: 0.8rem; font-weight: 900; }
 .sasRow:active { transform: scale(0.985); }
 .sasCheck { transition: background-color 0.12s, box-shadow 0.12s; }
 @media (prefers-reduced-motion: reduce) { .sasRow, .sasCheck { transition: none; } }
 
 /* ── Booking day / time picker (bsp*) ── */
-.bsp { display: grid; gap: 10px; padding: 14px; border-radius: 22px; background: #fff; box-shadow: inset 0 0 0 1px #ececf1; }
-.bspLabel { color: #6f7380; font-size: 0.74rem; font-weight: 900; }
+.bsp { display: grid; gap: 10px; padding: 14px; border-radius: 22px; background: var(--n-0); box-shadow: inset 0 0 0 1px var(--n-100); }
+.bspLabel { color: var(--n-600); font-size: 0.74rem; font-weight: 900; }
 .bspDays { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; scroll-snap-type: x proximity; }
 .bspDays::-webkit-scrollbar { display: none; }
-.bspDay { flex: 0 0 auto; width: 66px; display: grid; justify-items: center; gap: 1px; padding: 9px 4px; border: 0; border-radius: 18px; background: #f6f5f8; color: #14161d; font: inherit; scroll-snap-align: center; cursor: pointer; transition: background-color 0.12s, transform 0.08s; }
-.bspDay small { color: #6f7380; font-size: 0.68rem; font-weight: 850; }
+.bspDay { flex: 0 0 auto; width: 66px; display: grid; justify-items: center; gap: 1px; padding: 9px 4px; border: 0; border-radius: 18px; background: var(--n-50); color: var(--n-900); font: inherit; scroll-snap-align: center; cursor: pointer; transition: background-color 0.12s, transform 0.08s; }
+.bspDay small { color: var(--n-600); font-size: 0.68rem; font-weight: 850; }
 .bspDay b { font-size: 1.25rem; font-weight: 950; line-height: 1.3; }
-.bspDay em { font-style: normal; color: #6f7380; font-size: 0.66rem; font-weight: 800; }
+.bspDay em { font-style: normal; color: var(--n-600); font-size: 0.66rem; font-weight: 800; }
 .bspDay:active { transform: scale(0.96); }
-.bspDay.is-selected { background: #14161d; color: #fff; }
-.bspDay.is-selected small, .bspDay.is-selected em { color: rgba(255, 255, 255, 0.75); }
+.bspDay.is-selected { background: var(--fill-strong); color: var(--n-0); }
+.bspDay.is-selected small, .bspDay.is-selected em { color: rgb(var(--paper-rgb) / 0.75); }
 .bspDay.is-disabled { opacity: 0.45; cursor: not-allowed; }
 .bspTimes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; max-height: 228px; overflow-y: auto; padding: 2px; }
-.bspTime { min-height: 44px; border: 0; border-radius: 14px; background: #f6f5f8; color: #14161d; font: inherit; font-size: 0.9rem; font-weight: 900; font-variant-numeric: tabular-nums; cursor: pointer; transition: background-color 0.12s, transform 0.08s; }
+.bspTime { min-height: 44px; border: 0; border-radius: 14px; background: var(--n-50); color: var(--n-900); font: inherit; font-size: 0.9rem; font-weight: 900; font-variant-numeric: tabular-nums; cursor: pointer; transition: background-color 0.12s, transform 0.08s; }
 .bspTime:active { transform: scale(0.96); }
-.bspTime.is-selected { background: #14161d; color: #fff; box-shadow: 0 8px 18px rgba(20, 22, 29, 0.22); }
-.bspEmpty { margin: 0; padding: 18px 12px; border-radius: 14px; background: #fafafc; box-shadow: inset 0 0 0 1.5px #e4e4ea; color: #6f7380; font-size: 0.8rem; font-weight: 750; text-align: center; line-height: 1.8; }
-.bspDay:focus-visible, .bspTime:focus-visible { outline: 3px solid #14161d; outline-offset: 2px; }
+.bspTime.is-selected { background: var(--fill-strong); color: var(--n-0); box-shadow: 0 8px 18px rgb(var(--shadow-rgb) / 0.22); }
+.bspEmpty { margin: 0; padding: 18px 12px; border-radius: 14px; background: var(--n-25); box-shadow: inset 0 0 0 1.5px var(--n-200); color: var(--n-600); font-size: 0.8rem; font-weight: 750; text-align: center; line-height: 1.8; }
+.bspDay:focus-visible, .bspTime:focus-visible { outline: 3px solid var(--n-900); outline-offset: 2px; }
 @media (max-width: 360px) { .bspTimes { grid-template-columns: repeat(3, 1fr); } }
 @media (prefers-reduced-motion: reduce) { .bspDay, .bspTime { transition: none; } }
-.artistBookingPhoneWarning.is-info { background: #f1f5ff; color: #2a4a8a; }
+.artistBookingPhoneWarning.is-info { background: var(--n-50); color: var(--info); }
 
 .bspTimes { max-height: none; overflow: visible; }
 .bspDay.is-disabled { opacity: 0.5; }
-.salonClientBookingSummary { margin: 0; padding: 12px 14px; border-radius: 14px; background: #f1f5ff; color: #1f3a78; font-size: 0.82rem; font-weight: 850; line-height: 1.8; text-align: center; }
+.salonClientBookingSummary { margin: 0; padding: 12px 14px; border-radius: 14px; background: var(--n-50); color: var(--info); font-size: 0.82rem; font-weight: 850; line-height: 1.8; text-align: center; }
 /* Several services in one visit: how the offered start times were picked */
-.salonClientVisitNote { margin: 0; padding: 10px 12px; border-radius: 12px; background: #f7f7fa; color: #4a4f5e; font-size: 0.76rem; font-weight: 700; line-height: 1.9; }
+.salonClientVisitNote { margin: 0; padding: 10px 12px; border-radius: 12px; background: var(--n-50); color: var(--n-700); font-size: 0.76rem; font-weight: 700; line-height: 1.9; }
 /* Artist picker on a service: who was linked automatically from their skills */
-.sasAuto { margin-inline-start: 6px; padding: 1px 7px; border-radius: 999px; background: #e3f4ea; color: #1a6638; font-style: normal; font-size: 0.64rem; font-weight: 850; }
-.sasAuto.is-off { background: #f1f1f5; color: #6f7380; }
-.sasAuto.is-manual { background: #eceef4; color: #3d4252; }
+.sasAuto { margin-inline-start: 6px; padding: 1px 7px; border-radius: 999px; background: var(--n-100); color: var(--success); font-style: normal; font-size: 0.64rem; font-weight: 850; }
+.sasAuto.is-off { background: var(--n-100); color: var(--n-600); }
+.sasAuto.is-manual { background: var(--n-100); color: var(--n-700); }
 /* Booking sheet header: one short line each, however long the service name */
 .salonClientBookingHead .salonClientBookingTitle { flex: 1 1 auto; min-width: 0; }
 .salonClientBookingHead .salonClientBookingTitle strong,
@@ -62,8 +62,8 @@
 .salonClientBookingHead .salonClientBookingTitle strong { font-size: 0.95rem; }
 /* Several services in one visit: the services as small pills under the header */
 .salonClientVisitChips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
-.salonClientVisitChips li { display: inline-flex; align-items: center; gap: 5px; max-width: 100%; min-width: 0; padding: 4px 9px 4px 6px; border-radius: 999px; background: #f4f4f7; box-shadow: inset 0 0 0 1px #e8e8ee; color: #2a2e3a; font-size: 0.72rem; font-weight: 850; }
+.salonClientVisitChips li { display: inline-flex; align-items: center; gap: 5px; max-width: 100%; min-width: 0; padding: 4px 9px 4px 6px; border-radius: 999px; background: var(--n-50); box-shadow: inset 0 0 0 1px var(--n-150); color: var(--n-800); font-size: 0.72rem; font-weight: 850; }
 .salonClientVisitChips li span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .salonClientVisitChips li .serviceIcon { flex: none; }
-.salonClientBookingHead .salonClientBookingLogo { flex: none; width: 48px; height: 48px; display: grid; place-items: center; overflow: hidden; border-radius: 50%; background: #f4e6ec; color: #8a3555; font-size: 1.1rem; font-weight: 900; box-shadow: 0 0 0 2px #fff, 0 4px 12px rgba(24, 24, 38, 0.1); }
+.salonClientBookingHead .salonClientBookingLogo { flex: none; width: 48px; height: 48px; display: grid; place-items: center; overflow: hidden; border-radius: 50%; background: var(--n-150); color: var(--accent); font-size: 1.1rem; font-weight: 900; box-shadow: 0 0 0 2px var(--n-0), 0 4px 12px rgb(var(--shadow-rgb) / 0.1); }
 .salonClientBookingHead .salonClientBookingLogo img { width: 100%; height: 100%; object-fit: cover; }

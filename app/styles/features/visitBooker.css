@@ -4,11 +4,11 @@
    whatever height is left. Pink (#ff86b8, the brand accent) is only ever "chosen"; the rest is
    plain grey. */
 .salonHeroSheetBackdrop .salonHeroSheetPanel.visitBookerSheet {
-  --vb-pink: #ff86b8;
-  --vb-ink: #14161d;
-  --vb-fill: #f4f4f7;
-  --vb-line: #e6e8ee;
-  --vb-muted: #626675;
+  --vb-pink: var(--brand-pink);
+  --vb-ink: var(--n-900);
+  --vb-fill: var(--n-50);
+  --vb-line: var(--n-150);
+  --vb-muted: var(--n-600);
   display: flex;
   flex-direction: column;
   gap: 0;
@@ -16,7 +16,7 @@
   min-height: 0;
   padding: 0;
   overflow: hidden;
-  background: #fff;
+  background: var(--n-0);
   color: var(--vb-ink);
 }
 .vb { flex: 1; min-height: 0; display: flex; flex-direction: column; }
@@ -32,8 +32,8 @@
 /* customer */
 .vbWho { flex: none; display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 6px; }
 .vbWho input { width: 100%; min-height: 42px; padding: 0 12px; border: 1.5px solid transparent; border-radius: 14px; background: var(--vb-fill); color: var(--vb-ink); font: inherit; font-size: 0.86rem; font-weight: 700; }
-.vbWho input::placeholder { color: #7d818e; font-weight: 700; }
-.vbWho input:focus { outline: 0; border-color: var(--vb-pink); background: #fff; }
+.vbWho input::placeholder { color: var(--n-500); font-weight: 700; }
+.vbWho input:focus { outline: 0; border-color: var(--vb-pink); background: var(--n-0); }
 .vbWho.is-readonly { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); padding: 8px 12px; border-radius: 14px; background: var(--vb-fill); }
 .vbWho.is-readonly span { display: grid; min-width: 0; }
 .vbWho.is-readonly small { color: var(--vb-muted); font-size: 0.68rem; font-weight: 700; }
@@ -42,37 +42,37 @@
 
 /* earlier customers: one tap fills the name and number */
 .vbSuggest { margin-top: -4px; }
-.vbPerson { flex: none; min-height: 30px; padding: 0 12px; border: 0; border-radius: 999px; background: var(--vb-fill); color: #4b4f5c; font: inherit; font-size: 0.72rem; font-weight: 800; cursor: pointer; }
+.vbPerson { flex: none; min-height: 30px; padding: 0 12px; border: 0; border-radius: 999px; background: var(--vb-fill); color: var(--n-700); font: inherit; font-size: 0.72rem; font-weight: 800; cursor: pointer; }
 
 /* chips: services, days */
 .vbChips { display: flex; gap: 6px; padding: 1px 0; overflow-x: auto; scrollbar-width: none; }
 .vbChips::-webkit-scrollbar { display: none; }
 .vbService span { max-width: 52vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.vbService, .vbDay { flex: none; min-height: 38px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; border: 0; border-radius: 12px; background: var(--vb-fill); color: #3f4350; font: inherit; font-size: 0.78rem; font-weight: 800; cursor: pointer; }
+.vbService, .vbDay { flex: none; min-height: 38px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; border: 0; border-radius: 12px; background: var(--vb-fill); color: var(--n-700); font: inherit; font-size: 0.78rem; font-weight: 800; cursor: pointer; }
 .vbDay { flex-direction: column; justify-content: center; gap: 0; min-width: 64px; line-height: 1.35; }
 .vbDay small { color: var(--vb-muted); font-size: 0.62rem; font-weight: 700; }
-.vbService.is-on, .vbDay.is-on { background: var(--vb-pink); color: var(--vb-ink); }
-.vbDay.is-on small { color: var(--vb-ink); }
-.vbDay.is-closed { color: #8a8e99; cursor: not-allowed; }
-.vbService i { display: inline-grid; place-items: center; min-width: 18px; height: 18px; border-radius: 999px; background: var(--vb-ink); color: #fff; font-size: 0.64rem; font-style: normal; font-weight: 900; }
+.vbService.is-on, .vbDay.is-on { background: var(--vb-pink); color: var(--brand-ink); }
+.vbDay.is-on small { color: var(--brand-ink); }
+.vbDay.is-closed { color: var(--n-500); cursor: not-allowed; }
+.vbService i { display: inline-grid; place-items: center; min-width: 18px; height: 18px; border-radius: 999px; background: var(--vb-ink); color: var(--n-0); font-size: 0.64rem; font-style: normal; font-weight: 900; }
 .vbSummary { margin: 0; color: var(--vb-muted); font-size: 0.72rem; font-weight: 800; }
-.vbEmpty { min-height: 52px; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px dashed #b9bbc8; border-radius: 16px; background: #fafafc; color: var(--vb-ink); font: inherit; font-size: 0.82rem; font-weight: 900; cursor: pointer; }
+.vbEmpty { min-height: 52px; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px dashed var(--n-400); border-radius: 16px; background: var(--n-25); color: var(--vb-ink); font: inherit; font-size: 0.82rem; font-weight: 900; cursor: pointer; }
 
 /* times */
 .vbTimes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
 .vbTime { min-height: 40px; border: 0; border-radius: 12px; background: var(--vb-fill); color: var(--vb-ink); font: inherit; font-size: 0.82rem; font-weight: 800; font-variant-numeric: tabular-nums; cursor: pointer; }
 .vbTime.is-on { background: var(--vb-pink); }
-.vbInfo { margin: 0; padding: 12px; border-radius: 14px; background: var(--vb-fill); color: #4b4f5c; font-size: 0.78rem; font-weight: 800; line-height: 1.7; text-align: center; }
-.vbInfo.is-error { background: #fff3f3; color: #b4232a; }
+.vbInfo { margin: 0; padding: 12px; border-radius: 14px; background: var(--vb-fill); color: var(--n-700); font-size: 0.78rem; font-weight: 800; line-height: 1.7; text-align: center; }
+.vbInfo.is-error { background: var(--n-50); color: var(--danger); }
 .vbInfo .vbLink { margin-inline-start: 8px; }
-.vbNote { margin: 0; padding: 6px 10px; border-radius: 12px; background: var(--vb-fill); color: #3f4350; font-size: 0.72rem; font-weight: 800; line-height: 1.6; }
-.vbLink { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; padding: 0 4px; border: 0; background: none; color: #b3195a; font: inherit; font-size: 0.78rem; font-weight: 900; cursor: pointer; }
+.vbNote { margin: 0; padding: 6px 10px; border-radius: 12px; background: var(--vb-fill); color: var(--n-700); font-size: 0.72rem; font-weight: 800; line-height: 1.6; }
+.vbLink { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; padding: 0 4px; border: 0; background: none; color: var(--accent); font: inherit; font-size: 0.78rem; font-weight: 900; cursor: pointer; }
 
 /* plan: who does what */
 .vbPlanSection { padding: 8px 12px; border: 1px solid var(--vb-line); border-radius: 16px; }
 .vbPlan { margin: 0; padding: 0; list-style: none; display: grid; }
 .vbPlan.is-loading { opacity: 0.55; }
-.vbPlanRow { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 2px 10px; padding: 6px 0; border-top: 1px solid #eef0f4; font-size: 0.8rem; }
+.vbPlanRow { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 2px 10px; padding: 6px 0; border-top: 1px solid var(--n-100); font-size: 0.8rem; }
 .vbPlanRow:first-child { border-top: 0; }
 .vbPlanTime { color: var(--vb-muted); font-size: 0.74rem; font-weight: 800; font-variant-numeric: tabular-nums; }
 .vbPlanService { overflow: hidden; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
@@ -85,16 +85,16 @@ button.vbWho2[aria-expanded="true"] svg { transform: rotate(180deg); }
 .vbStaff small { color: var(--vb-muted); font-size: 0.62rem; font-weight: 700; line-height: 1.2; }
 .vbStaff.is-on { background: var(--vb-pink); }
 .vbStaff.is-on small { color: var(--vb-ink); }
-.vbStaff.is-off { color: #8a8e99; cursor: not-allowed; }
+.vbStaff.is-off { color: var(--n-500); cursor: not-allowed; }
 .vbPlanNote { margin: 6px 0 0; color: var(--vb-muted); font-size: 0.7rem; font-weight: 700; line-height: 1.6; }
-.vbPlanProblem { grid-column: 1 / -1; margin: 0; color: #b4232a; font-size: 0.74rem; font-weight: 800; }
-.vbPlanRow.has-problem .vbWho2 { background: #fff3f3; color: #b4232a; }
+.vbPlanProblem { grid-column: 1 / -1; margin: 0; color: var(--danger); font-size: 0.74rem; font-weight: 800; }
+.vbPlanRow.has-problem .vbWho2 { background: var(--n-50); color: var(--danger); }
 
 /* the save button, always at the bottom */
-.vbFoot { flex: none; display: grid; gap: 6px; justify-items: center; padding: 8px 16px calc(12px + env(safe-area-inset-bottom)); background: linear-gradient(to top, #fff 70%, rgba(255, 255, 255, 0)); }
-.vbHint { max-width: 100%; margin: 0; padding: 4px 12px; border-radius: 999px; background: #fff3f3; color: #b4232a; font-size: 0.74rem; font-weight: 800; text-align: center; line-height: 1.6; }
-.vbSubmit { width: 100%; max-width: 420px; min-height: 52px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 22px; border: 0; border-radius: 999px; background: var(--vb-pink); color: var(--vb-ink); font: inherit; font-size: 0.9rem; font-weight: 900; box-shadow: 0 10px 26px rgba(255, 134, 184, 0.5), 0 2px 8px rgba(20, 22, 29, 0.12); cursor: pointer; }
-.vbSubmit.is-incomplete { background: #f8c3da; box-shadow: 0 6px 18px rgba(255, 134, 184, 0.28); }
+.vbFoot { flex: none; display: grid; gap: 6px; justify-items: center; padding: 8px 16px calc(12px + env(safe-area-inset-bottom)); background: linear-gradient(to top, var(--n-0) 70%, rgb(var(--paper-rgb) / 0)); }
+.vbHint { max-width: 100%; margin: 0; padding: 4px 12px; border-radius: 999px; background: var(--n-50); color: var(--danger); font-size: 0.74rem; font-weight: 800; text-align: center; line-height: 1.6; }
+.vbSubmit { width: 100%; max-width: 420px; min-height: 52px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 22px; border: 0; border-radius: 999px; background: var(--vb-pink); color: var(--brand-ink); font: inherit; font-size: 0.9rem; font-weight: 900; box-shadow: 0 10px 26px rgba(255, 134, 184, 0.5), 0 2px 8px rgb(var(--shadow-rgb) / 0.12); cursor: pointer; }
+.vbSubmit.is-incomplete { background: color-mix(in srgb, var(--accent) 14%, transparent); box-shadow: 0 6px 18px rgba(255, 134, 184, 0.28); }
 .vbSubmit:disabled { cursor: progress; opacity: 0.8; }
 .vbSubmit:active:not(:disabled) { transform: scale(0.98); }
 .visitBookerSheet :focus-visible { outline: 2px solid var(--vb-ink); outline-offset: 2px; }

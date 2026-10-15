@@ -1,5 +1,5 @@
 .portfolioTagField > span{
-  color: #263238;
+  color: var(--n-800);
   font-size: 0.7rem;
   font-weight: 900;
 }
@@ -12,9 +12,9 @@
 
 .portfolioTagChips button{
   min-height: 38px;
-  border: 1px solid rgba(28, 32, 44, 0.1);
+  border: 1px solid rgb(var(--ink-rgb) / 0.1);
   border-radius: 12px;
-  background: #fff;
+  background: var(--n-0);
   color: var(--ink);
   font: inherit;
   font-size: 0.72rem;
@@ -23,9 +23,9 @@
 }
 
 .portfolioTagChips button.active{
-  border-color: rgba(20, 22, 29, 0.35);
-  background: #14161d;
-  color: #fff;
+  border-color: rgb(var(--ink-rgb) / 0.35);
+  background: var(--fill-strong);
+  color: var(--n-0);
 }
 
 .portfolioInsightStrip{
@@ -42,8 +42,8 @@
   gap: 3px;
   padding: 8px 6px;
   border-radius: 15px;
-  background: rgba(20, 22, 29, 0.07);
-  color: rgba(28, 32, 44, 0.55);
+  background: rgb(var(--ink-rgb) / 0.07);
+  color: rgb(var(--ink-rgb) / 0.55);
   font-size: 0.62rem;
   font-weight: 850;
   text-align: center;
@@ -67,9 +67,9 @@
   align-content: center;
   gap: 8px;
   padding: 28px 18px;
-  border: 1px solid rgba(28, 32, 44, 0.07);
+  border: 1px solid rgb(var(--ink-rgb) / 0.07);
   border-radius: 18px;
-  background: rgba(246, 246, 251, 0.9);
+  background: color-mix(in srgb, var(--n-50) 90%, transparent);
   text-align: center;
 }
 
@@ -80,8 +80,8 @@
   place-items: center;
   margin-bottom: 2px;
   border-radius: 16px;
-  background: rgba(20, 22, 29, 0.1);
-  color: #14161d;
+  background: rgb(var(--ink-rgb) / 0.1);
+  color: var(--n-900);
 }
 
 .portfolioEmptyState b{
@@ -92,7 +92,7 @@
 
 .portfolioEmptyState > span:not(.portfolioEmptyIcon){
   max-width: 28ch;
-  color: rgba(28, 32, 44, 0.55);
+  color: rgb(var(--ink-rgb) / 0.55);
   font-size: 0.74rem;
   font-weight: 750;
   line-height: 1.55;
@@ -104,20 +104,20 @@
   padding: 0 16px;
   border: 0;
   border-radius: 14px;
-  background: #14161d;
-  color: #fff;
+  background: var(--fill-strong);
+  color: var(--n-0);
   font: inherit;
   font-size: 0.8rem;
   font-weight: 900;
   cursor: pointer;
-  box-shadow: 0 10px 22px rgba(20, 22, 29, 0.22);
+  box-shadow: 0 10px 22px rgb(var(--shadow-rgb) / 0.22);
 }
 
 .bookingToolHead{
   min-height: 62px;
   align-items: center;
   padding: 7px 44px 7px 6px;
-  border-bottom: 1px solid rgba(28, 32, 44, 0.06);
+  border-bottom: 1px solid rgb(var(--ink-rgb) / 0.06);
   border-radius: 0;
   background: transparent;
   box-shadow: none;
@@ -145,10 +145,10 @@
   gap: 8px;
   margin: 0;
   padding: 12px;
-  border: 1px solid rgba(28, 32, 44, 0.07);
+  border: 1px solid rgb(var(--ink-rgb) / 0.07);
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 12px 24px rgba(7, 13, 18, 0.06);
+  background: rgb(var(--paper-rgb) / 0.9);
+  box-shadow: 0 12px 24px rgb(var(--shadow-rgb) / 0.06);
 }
 
 .bookingCreateForm.is-step-client .bookingStepDetails,
@@ -180,7 +180,7 @@
 }
 
 .bookingSelectLabel{
-  color: #263238;
+  color: var(--n-800);
   font-size: 0.7rem;
   font-weight: 900;
 }
@@ -194,9 +194,9 @@
   align-items: center;
   gap: 8px;
   padding: 8px 10px 8px 12px;
-  border: 1px solid rgba(28, 32, 44, 0.1);
+  border: 1px solid rgb(var(--ink-rgb) / 0.1);
   border-radius: 15px;
-  background: #fff;
+  background: var(--n-0);
   color: var(--ink);
   font: inherit;
   font-size: 0.8rem;
@@ -208,7 +208,7 @@
 
 .bookingSelectTrigger svg{
   flex: 0 0 auto;
-  color: #14161d;
+  color: var(--n-900);
   transition: transform 0.18s ease;
 }
 
@@ -231,15 +231,15 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: rgba(28, 32, 44, 0.48);
+  color: rgb(var(--ink-rgb) / 0.48);
   font-size: 0.66rem;
   font-weight: 750;
 }
 
 .bookingCreateForm .bookingSelect.is-open .bookingSelectTrigger{
-  border-color: rgba(20, 22, 29, 0.42);
-  background: rgba(246, 246, 251, 0.98);
-  box-shadow: 0 0 0 3px rgba(20, 22, 29, 0.12);
+  border-color: rgb(var(--ink-rgb) / 0.42);
+  background: color-mix(in srgb, var(--n-50) 98%, transparent);
+  box-shadow: 0 0 0 3px rgb(var(--shadow-rgb) / 0.12);
 }
 
 .bookingCreateForm .bookingSelect.is-open .bookingSelectTrigger svg{
@@ -258,10 +258,10 @@
   overflow: auto;
   overscroll-behavior: contain;
   padding: 8px;
-  border: 1px solid rgba(20, 22, 29, 0.14);
+  border: 1px solid rgb(var(--ink-rgb) / 0.14);
   border-radius: 16px;
-  background: #fff;
-  box-shadow: 0 18px 40px rgba(28, 32, 44, 0.16);
+  background: var(--n-0);
+  box-shadow: 0 18px 40px rgb(var(--shadow-rgb) / 0.16);
   scrollbar-width: thin;
 }
 
@@ -300,23 +300,23 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: rgba(28, 32, 44, 0.48);
+  color: rgb(var(--ink-rgb) / 0.48);
   font-size: 0.64rem;
   font-weight: 750;
 }
 
 .bookingCreateForm .bookingSelectMenu button:hover{
-  background: rgba(20, 22, 29, 0.06);
+  background: rgb(var(--ink-rgb) / 0.06);
 }
 
 .bookingCreateForm .bookingSelectMenu button.active{
-  border-color: rgba(20, 22, 29, 0.18);
-  background: rgba(20, 22, 29, 0.12);
-  color: #14161d;
+  border-color: rgb(var(--ink-rgb) / 0.18);
+  background: rgb(var(--ink-rgb) / 0.12);
+  color: var(--n-900);
 }
 
 .bookingCreateForm .bookingSelectMenu button.active small{
-  color: rgba(15, 95, 93, 0.7);
+  color: color-mix(in srgb, var(--info) 70%, transparent);
 }
 
 .bookingCreateForm .bookingSelectMenu button i{
@@ -325,7 +325,7 @@
 }
 
 .bookingCreateForm .bookingSelectMenu button svg{
-  color: #14161d;
+  color: var(--n-900);
 }
 
 .bookingCreateForm label{
@@ -334,7 +334,7 @@
   border-radius: 0;
   background: transparent;
   box-shadow: none;
-  color: #263238;
+  color: var(--n-800);
   font-size: 0.7rem;
 }
 
@@ -342,8 +342,8 @@
 .bookingCreateForm select{
   min-height: 44px;
   border-radius: 15px;
-  border: 1px solid rgba(28, 32, 44, 0.1);
-  background: #fff;
+  border: 1px solid rgb(var(--ink-rgb) / 0.1);
+  background: var(--n-0);
   font-size: 0.8rem;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
@@ -352,9 +352,9 @@
   grid-column: 1 / -1;
   min-height: 54px;
   border-radius: 17px;
-  background: #14161d;
+  background: var(--fill-strong);
   font-size: 0.86rem;
-  box-shadow: 0 12px 24px rgba(20, 22, 29, 0.18);
+  box-shadow: 0 12px 24px rgb(var(--shadow-rgb) / 0.18);
 }
 
 .bookingStepActions{
@@ -368,7 +368,7 @@
 }
 
 .bookingStepActions button[type="button"]{
-  background: rgba(28, 32, 44, 0.07);
+  background: rgb(var(--ink-rgb) / 0.07);
   color: var(--ink);
   box-shadow: none;
 }
@@ -377,10 +377,10 @@
   display: grid;
   gap: 8px;
   padding: 10px;
-  border: 1px solid rgba(28, 32, 44, 0.07);
+  border: 1px solid rgb(var(--ink-rgb) / 0.07);
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 12px 26px rgba(7, 13, 18, 0.06);
+  background: rgb(var(--paper-rgb) / 0.9);
+  box-shadow: 0 12px 26px rgb(var(--shadow-rgb) / 0.06);
 }
 
 .bookingDeskStats,
@@ -399,7 +399,7 @@
   gap: 3px;
   padding: 7px;
   border-radius: 15px;
-  background: rgba(20, 22, 29, 0.07);
+  background: rgb(var(--ink-rgb) / 0.07);
   color: var(--teal);
   font-size: 0.62rem;
   font-weight: 900;
@@ -426,8 +426,8 @@
   gap: 8px;
   padding: 8px;
   border-radius: 16px;
-  background: rgba(246, 246, 251, 0.92);
-  box-shadow: inset 0 0 0 1px rgba(28, 32, 44, 0.05);
+  background: color-mix(in srgb, var(--n-50) 92%, transparent);
+  box-shadow: inset 0 0 0 1px rgb(var(--shadow-rgb) / 0.05);
 }
 
 .bookingDeskList time{
@@ -436,8 +436,8 @@
   display: grid;
   place-items: center;
   border-radius: 13px;
-  background: linear-gradient(135deg, var(--night), var(--plum));
-  color: #fff;
+  background: var(--fill-strong-grad);
+  color: var(--n-0);
   font-size: 0.72rem;
   font-weight: 900;
 }
@@ -460,8 +460,8 @@
 .bookingDeskList small{
   padding: 5px 7px;
   border-radius: 999px;
-  background: rgba(191, 192, 209, 0.22);
-  color: #6f5520;
+  background: color-mix(in srgb, var(--n-400) 22%, transparent);
+  color: var(--warning);
   font-size: 0.58rem;
   font-weight: 900;
   white-space: nowrap;
@@ -479,9 +479,9 @@
   justify-items: center;
   align-content: center;
   gap: 4px;
-  border: 1px solid rgba(20, 22, 29, 0.1);
+  border: 1px solid rgb(var(--ink-rgb) / 0.1);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.74);
+  background: rgb(var(--paper-rgb) / 0.74);
   color: var(--teal);
   font-family: inherit;
   font-weight: 900;
@@ -515,19 +515,19 @@
   display: grid;
   gap: 8px;
   padding: 9px;
-  border: 1px solid rgba(28, 32, 44, 0.06);
+  border: 1px solid rgb(var(--ink-rgb) / 0.06);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.58);
+  background: rgb(var(--paper-rgb) / 0.58);
 }
 
 .postModalCard{
   position: relative;
   width: min(420px, 100%);
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.42);
+  border: 1px solid rgb(var(--paper-rgb) / 0.42);
   border-radius: 24px;
   background: var(--surface-solid);
-  box-shadow: 0 28px 80px rgba(15, 17, 20, 0.35);
+  box-shadow: 0 28px 80px rgb(var(--shadow-rgb) / 0.35);
 }
 
 .modalClose{
@@ -539,7 +539,7 @@
   height: 36px;
   border: 0;
   border-radius: 13px;
-  background: rgba(255, 255, 255, 0.84);
+  background: rgb(var(--paper-rgb) / 0.84);
   color: var(--ink);
   font-size: 1.35rem;
   line-height: 1;
@@ -547,7 +547,7 @@
 
 .modalVisual{
   height: 360px;
-  background-image: linear-gradient(180deg, transparent 48%, rgba(12, 14, 16, 0.54)), url("/explore-collage.webp");
+  background-image: linear-gradient(180deg, transparent 48%, rgb(12 13 18 / 0.54)), url("/explore-collage.webp");
   background-size: 300% 300%;
 }
 
@@ -571,7 +571,7 @@
   width: fit-content;
   padding: 4px 8px;
   border-radius: 999px;
-  background: rgba(20, 22, 29, 0.1);
+  background: rgb(var(--ink-rgb) / 0.1);
   color: var(--teal);
   font-size: 0.72rem;
   font-weight: 900;
@@ -597,8 +597,8 @@
   gap: 7px;
   border: 0;
   border-radius: 15px;
-  background: linear-gradient(135deg, var(--night), var(--plum));
-  color: #fff;
+  background: var(--fill-strong-grad);
+  color: var(--n-0);
   font-weight: 900;
 }
 
@@ -618,7 +618,7 @@
   height: 5px;
   margin: 0 auto 2px;
   border-radius: 999px;
-  background: rgba(28, 32, 44, 0.16);
+  background: rgb(var(--ink-rgb) / 0.16);
 }
 
 .sheetHead,
@@ -649,7 +649,7 @@
   height: 36px;
   border: 0;
   border-radius: 13px;
-  background: rgba(28, 32, 44, 0.06);
+  background: rgb(var(--ink-rgb) / 0.06);
   color: var(--ink);
   font-size: 1.35rem;
   line-height: 1;
@@ -668,8 +668,8 @@
   overflow: hidden;
   border-radius: 18px;
   background:
-    linear-gradient(135deg, rgba(20, 22, 29, 0.12), rgba(20, 22, 29, 0.1)),
-    #fffaf4;
+    linear-gradient(135deg, rgb(var(--ink-rgb) / 0.12), rgb(var(--ink-rgb) / 0.1)),
+    var(--n-25);
   color: var(--muted);
 }
 
@@ -694,11 +694,11 @@
   flex-direction: column;
   gap: 4px;
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.72);
+  background: rgb(var(--paper-rgb) / 0.72);
   color: var(--ink);
   font-size: 0.68rem;
   font-weight: 900;
-  box-shadow: inset 0 0 0 1px rgba(28, 32, 44, 0.08);
+  box-shadow: inset 0 0 0 1px rgb(var(--shadow-rgb) / 0.08);
 }
 
 .sheetPrompt{
@@ -716,7 +716,7 @@
   outline: 0;
   border-radius: 16px;
   padding: 10px;
-  background: #fff;
+  background: var(--n-0);
   color: var(--ink);
   font-size: 0.78rem;
   line-height: 1.65;
@@ -732,7 +732,7 @@
   min-height: 44px;
   border: 0;
   border-radius: 15px;
-  background: rgba(28, 32, 44, 0.07);
+  background: rgb(var(--ink-rgb) / 0.07);
   color: var(--ink);
   font-size: 0.78rem;
   font-weight: 900;
@@ -743,8 +743,8 @@
   justify-content: center;
   align-items: center;
   gap: 7px;
-  background: linear-gradient(135deg, var(--night), var(--plum));
-  color: #fff;
+  background: var(--fill-strong-grad);
+  color: var(--n-0);
 }
 
 .sheetNote{
@@ -752,7 +752,7 @@
   display: grid;
   place-items: center;
   border-radius: 13px;
-  background: rgba(20, 22, 29, 0.08);
+  background: rgb(var(--ink-rgb) / 0.08);
   color: var(--teal);
   font-size: 0.7rem;
   font-weight: 900;
@@ -828,14 +828,14 @@ body{
     grid-template-columns: 1fr auto auto;
     gap: 8px;
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.72);
+    border: 1px solid rgb(var(--paper-rgb) / 0.72);
     border-radius: 24px;
     background:
-      linear-gradient(135deg, rgba(246, 246, 251, 0.92), rgba(240, 229, 221, 0.72)),
-      radial-gradient(circle at 12% 0%, rgba(20, 22, 29, 0.18), transparent 35%),
-      radial-gradient(circle at 90% 18%, rgba(20, 22, 29, 0.16), transparent 30%);
+      linear-gradient(135deg, color-mix(in srgb, var(--n-50) 92%, transparent), color-mix(in srgb, var(--n-150) 72%, transparent)),
+      radial-gradient(circle at 12% 0%, rgb(var(--ink-rgb) / 0.18), transparent 35%),
+      radial-gradient(circle at 90% 18%, rgb(var(--ink-rgb) / 0.16), transparent 30%);
     backdrop-filter: blur(24px);
-    box-shadow: 0 18px 48px rgba(28, 32, 44, 0.12);
+    box-shadow: 0 18px 48px rgb(var(--shadow-rgb) / 0.12);
   }
 
   .appHeader::after{
@@ -845,7 +845,7 @@ body{
     left: 14px;
     bottom: 48px;
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.9), transparent);
+    background: linear-gradient(90deg, transparent, rgb(var(--paper-rgb) / 0.9), transparent);
     pointer-events: none;
   }
 
@@ -866,8 +866,8 @@ body{
     width: 38px;
     height: 38px;
     border-radius: 14px;
-    background: linear-gradient(135deg, #14161d, #14161d);
-    box-shadow: 0 12px 26px rgba(20, 22, 29, 0.28);
+    background: var(--fill-strong-grad);
+    box-shadow: 0 12px 26px rgb(var(--shadow-rgb) / 0.28);
   }
 
   .headerActions{
@@ -881,11 +881,11 @@ body{
     height: 40px;
     border: 0;
     border-radius: 14px;
-    background: rgba(246, 246, 251, 0.78);
+    background: color-mix(in srgb, var(--n-50) 78%, transparent);
     color: var(--ink);
     box-shadow:
       inset 0 0 0 1px rgba(255, 255, 255, 0.68),
-      0 10px 22px rgba(28, 32, 44, 0.08);
+      0 10px 22px rgb(var(--shadow-rgb) / 0.08);
   }
 
   .headerActions button:last-child{
@@ -901,11 +901,11 @@ body{
     border: 0;
     border-radius: 15px;
     padding: 0 12px;
-    background: rgba(246, 246, 251, 0.86);
+    background: color-mix(in srgb, var(--n-50) 86%, transparent);
     font-size: 0.84rem;
     box-shadow:
-      inset 0 0 0 1px rgba(28, 32, 44, 0.07),
-      0 12px 26px rgba(28, 32, 44, 0.08);
+      inset 0 0 0 1px rgb(var(--shadow-rgb) / 0.07),
+      0 12px 26px rgb(var(--shadow-rgb) / 0.08);
   }
 
   .globalSearch svg{
@@ -1016,7 +1016,7 @@ body{
     gap: 14px;
     margin-top: 10px;
     background:
-      linear-gradient(155deg, rgba(28, 32, 44, 0.97), rgba(20, 22, 29, 0.92) 60%, rgba(20, 22, 29, 0.88)),
+      linear-gradient(155deg, rgb(12 13 18 / 0.97), rgb(12 13 18 / 0.92) 60%, rgb(12 13 18 / 0.88)),
       var(--night);
   }
 
@@ -1178,9 +1178,9 @@ body{
     gap: 6px;
     margin: 8px 0 0;
     padding: 7px;
-    border: 1px solid rgba(255, 255, 255, 0.55);
+    border: 1px solid rgb(var(--paper-rgb) / 0.55);
     border-radius: 17px;
-    background: rgba(246, 246, 251, 0.68);
+    background: color-mix(in srgb, var(--n-50) 68%, transparent);
     box-shadow: var(--shadow-soft);
   }
 
@@ -1193,7 +1193,7 @@ body{
     padding: 6px 3px;
     text-align: center;
     border-radius: 13px;
-    background: rgba(246, 246, 251, 0.86);
+    background: color-mix(in srgb, var(--n-50) 86%, transparent);
     box-shadow: none;
   }
 
@@ -1220,9 +1220,9 @@ body{
     margin-top: 0;
     border-radius: 0;
     background:
-      linear-gradient(180deg, #1c202c 0%, #1c202c 58%, rgba(28, 32, 44, 0.55) 78%, transparent 100%),
-      radial-gradient(circle at 78% 4%, rgba(191, 192, 209, 0.16), transparent 30%),
-      radial-gradient(circle at 8% 20%, rgba(255, 255, 255, 0.86), transparent 34%),
+      linear-gradient(180deg, var(--n-900) 0%, var(--n-900) 58%, rgb(12 13 18 / 0.55) 78%, transparent 100%),
+      radial-gradient(circle at 78% 4%, color-mix(in srgb, var(--n-400) 16%, transparent), transparent 30%),
+      radial-gradient(circle at 8% 20%, rgb(var(--paper-rgb) / 0.86), transparent 34%),
       var(--mother-bg-mobile);
     background-size:
       100% var(--salon-banner-h),
@@ -1274,8 +1274,8 @@ body{
     min-height: 142px;
     border: 0;
     border-radius: 18px;
-    background: #f7eee8;
-    box-shadow: inset 0 0 0 1px rgba(28, 32, 44, 0.08);
+    background: var(--n-100);
+    box-shadow: inset 0 0 0 1px rgb(var(--shadow-rgb) / 0.08);
   }
 
   .dropZone::after{
@@ -1283,8 +1283,8 @@ body{
     position: absolute;
     inset: 0;
     background:
-      linear-gradient(90deg, rgba(28, 32, 44, 0.58), rgba(28, 32, 44, 0.14) 52%, rgba(255, 255, 255, 0.02)),
-      linear-gradient(0deg, rgba(28, 32, 44, 0.3), transparent 54%);
+      linear-gradient(90deg, rgb(12 13 18 / 0.58), rgb(var(--ink-rgb) / 0.14) 52%, rgb(var(--paper-rgb) / 0.02)),
+      linear-gradient(0deg, rgb(12 13 18 / 0.3), transparent 54%);
     pointer-events: none;
   }
 
@@ -1297,11 +1297,11 @@ body{
     margin-right: auto;
     padding: 11px;
     border-radius: 15px;
-    background: rgba(246, 246, 251, 0.86);
+    background: color-mix(in srgb, var(--n-50) 86%, transparent);
     backdrop-filter: blur(14px);
     color: var(--ink);
     font-size: 0.82rem;
-    box-shadow: 0 14px 30px rgba(28, 32, 44, 0.16);
+    box-shadow: 0 14px 30px rgb(var(--shadow-rgb) / 0.16);
   }
 
   .dropZone small{
@@ -1321,17 +1321,17 @@ body{
     justify-content: center;
     gap: 7px;
     border-radius: 15px;
-    background: rgba(255, 255, 255, 0.74);
+    background: rgb(var(--paper-rgb) / 0.74);
     color: var(--ink);
     font-size: 0.82rem;
     font-weight: 900;
-    box-shadow: inset 0 0 0 1px rgba(28, 32, 44, 0.08);
+    box-shadow: inset 0 0 0 1px rgb(var(--shadow-rgb) / 0.08);
   }
 
   .uploadChoice.primary{
-    background: linear-gradient(135deg, var(--night), var(--plum));
-    color: #fff;
-    box-shadow: 0 12px 26px rgba(28, 32, 44, 0.18);
+    background: var(--fill-strong-grad);
+    color: var(--n-0);
+    box-shadow: 0 12px 26px rgb(var(--shadow-rgb) / 0.18);
   }
 
   .photoTips{
@@ -1365,9 +1365,9 @@ body{
     gap: 5px;
     margin-top: 8px;
     padding: 10px;
-    border: 1px solid rgba(20, 22, 29, 0.14);
+    border: 1px solid rgb(var(--ink-rgb) / 0.14);
     border-radius: 15px;
-    background: rgba(20, 22, 29, 0.08);
+    background: rgb(var(--ink-rgb) / 0.08);
     color: var(--ink);
   }
 
@@ -1428,8 +1428,8 @@ body{
   margin: 0 0 10px;
   border-radius: 18px;
   isolation: isolate;
-  background: var(--night);
-  box-shadow: 0 14px 28px rgba(28, 32, 44, 0.12);
+  background: var(--fill-strong);
+  box-shadow: 0 14px 28px rgb(var(--shadow-rgb) / 0.12);
   animation: galleryCardIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
   break-inside: avoid;
   -webkit-column-break-inside: avoid;
@@ -1445,11 +1445,11 @@ body{
 
 .salonPortfolioCard.is-featured,
 .salonPortfolioCard.is-editing{
-  box-shadow: 0 16px 32px rgba(28, 32, 44, 0.16);
+  box-shadow: 0 16px 32px rgb(var(--shadow-rgb) / 0.16);
 }
 
 .salonPortfolioCard.is-editing{
-  outline: 2px solid rgba(20, 22, 29, 0.35);
+  outline: 2px solid rgb(var(--ink-rgb) / 0.35);
   outline-offset: 2px;
 }
 
@@ -1477,7 +1477,7 @@ body{
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(180deg, rgba(12, 14, 16, 0.08) 0%, transparent 36%, rgba(12, 14, 16, 0.78) 100%);
+    linear-gradient(180deg, rgb(var(--ink-rgb) / 0.08) 0%, transparent 36%, rgb(12 13 18 / 0.78) 100%);
   pointer-events: none;
 }
 
@@ -1488,7 +1488,7 @@ body{
   display: grid;
   gap: 5px;
   padding: 12px;
-  color: #fff;
+  color: var(--n-0);
   pointer-events: none;
 }
 
@@ -1517,9 +1517,9 @@ body{
   place-items: center;
   border: 0;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.92);
-  color: #14161d;
-  box-shadow: 0 8px 18px rgba(28, 32, 44, 0.12);
+  background: rgb(var(--paper-rgb) / 0.92);
+  color: var(--n-900);
+  box-shadow: 0 8px 18px rgb(var(--shadow-rgb) / 0.12);
   cursor: pointer;
 }
 
@@ -1587,13 +1587,13 @@ body{
     min-width: 68px;
     min-height: 36px;
     font-size: 0.74rem;
-    background: rgba(246, 246, 251, 0.9);
-    box-shadow: inset 0 0 0 1px rgba(28, 32, 44, 0.06);
+    background: color-mix(in srgb, var(--n-50) 90%, transparent);
+    box-shadow: inset 0 0 0 1px rgb(var(--shadow-rgb) / 0.06);
   }
 
   .categoryRail button.active{
-    background: var(--night);
-    color: #fff;
+    background: var(--fill-strong);
+    color: var(--n-0);
     box-shadow: none;
   }
 
@@ -1602,7 +1602,7 @@ body{
     left: 7px;
     padding: 4px 7px;
     font-size: 0.6rem;
-    background: rgba(28, 32, 44, 0.5);
+    background: rgb(var(--ink-rgb) / 0.5);
     backdrop-filter: blur(10px);
   }
 
@@ -1626,7 +1626,7 @@ body{
     padding: 12px;
     border-radius: 22px;
     background-image:
-      linear-gradient(180deg, rgba(15, 45, 71, 0.14), rgba(15, 45, 71, 0.92)),
+      linear-gradient(180deg, color-mix(in srgb, var(--info) 14%, transparent), color-mix(in srgb, var(--info) 92%, transparent)),
       url("/salon-sidebar-hero.webp");
   }
 
@@ -1922,9 +1922,9 @@ body{
     --salon-banner-h: 228px;
     margin-top: 0;
     background:
-      linear-gradient(180deg, #1c202c 0%, #1c202c 58%, rgba(28, 32, 44, 0.55) 78%, transparent 100%),
-      radial-gradient(circle at 78% 4%, rgba(191, 192, 209, 0.16), transparent 30%),
-      radial-gradient(circle at 8% 20%, rgba(255, 255, 255, 0.86), transparent 34%),
+      linear-gradient(180deg, var(--n-900) 0%, var(--n-900) 58%, rgb(12 13 18 / 0.55) 78%, transparent 100%),
+      radial-gradient(circle at 78% 4%, color-mix(in srgb, var(--n-400) 16%, transparent), transparent 30%),
+      radial-gradient(circle at 8% 20%, rgb(var(--paper-rgb) / 0.86), transparent 34%),
       var(--mother-bg-mobile);
     background-size:
       100% var(--salon-banner-h),
@@ -2494,7 +2494,7 @@ body{
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.16);
+    background: rgb(var(--paper-rgb) / 0.16);
   }
 
   .floatingMobileCta .ctaText{
@@ -2522,7 +2522,7 @@ body{
   }
 
   .floatingMobileCtaSplit .ctaManage .ctaIcon{
-    background: rgba(20, 22, 29, 0.12);
+    background: rgb(var(--ink-rgb) / 0.12);
     color: var(--plum);
   }
 
@@ -2539,11 +2539,11 @@ body{
     padding: 4px 12px 6px;
     border: 0;
     border-radius: 999px;
-    background: #fff;
+    background: var(--n-0);
     backdrop-filter: none;
     box-shadow:
       0 1px 0 rgba(255, 255, 255, 0.9) inset,
-      0 14px 36px rgba(28, 32, 44, 0.14);
+      0 14px 36px rgb(var(--shadow-rgb) / 0.14);
   }
 
   .bottomNav button{
@@ -2556,7 +2556,7 @@ body{
     gap: 3px;
     border-radius: 999px;
     background: transparent;
-    color: #2a2d36;
+    color: var(--n-800);
     font-size: 0.64rem;
     font-weight: 900;
   }
@@ -2574,20 +2574,20 @@ body{
     min-height: 68px;
     overflow: visible;
     border-radius: 50%;
-    background: var(--night);
-    color: #fff;
+    background: var(--fill-strong);
+    color: var(--n-0);
     box-shadow:
-      0 0 0 3px #fff,
-      0 0 0 5px rgba(201, 168, 76, 0.65),
-      0 14px 28px rgba(28, 32, 44, 0.28);
+      0 0 0 3px var(--n-0),
+      0 0 0 5px rgb(255 134 184 / 0.65),
+      0 14px 28px rgb(var(--shadow-rgb) / 0.28);
   }
 
   .bottomNav .profileTab.active{
-    background: var(--night);
+    background: var(--fill-strong);
     box-shadow:
-      0 0 0 3px #fff,
-      0 0 0 5px rgba(201, 168, 76, 0.82),
-      0 16px 32px rgba(28, 32, 44, 0.3);
+      0 0 0 3px var(--n-0),
+      0 0 0 5px rgb(255 134 184 / 0.82),
+      0 16px 32px rgb(var(--shadow-rgb) / 0.3);
   }
 
   .profileNavImage{
@@ -2609,7 +2609,7 @@ body{
     inset: 3px;
     z-index: 1;
     border-radius: 50%;
-    background: linear-gradient(180deg, transparent 46%, rgba(28, 32, 44, 0.42) 100%);
+    background: linear-gradient(180deg, transparent 46%, rgb(12 13 18 / 0.42) 100%);
     pointer-events: none;
   }
 
@@ -2621,7 +2621,7 @@ body{
     width: max-content;
     margin: 0;
     transform: translateX(-50%);
-    color: #2a2d36;
+    color: var(--n-800);
     font-size: 0.6rem;
     font-weight: 900;
     text-shadow: none;

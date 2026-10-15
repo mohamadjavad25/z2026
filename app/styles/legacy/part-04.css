@@ -11,11 +11,11 @@
 .artistGalleryCard.is-featured,
 .profileGalleryCard.is-featured,
 .profileGalleryCard.is-editing{
-  box-shadow: 0 16px 32px rgba(28, 32, 44, 0.16);
+  box-shadow: 0 16px 32px rgb(var(--shadow-rgb) / 0.16);
 }
 
 .profileGalleryCard.is-editing{
-  outline: 2px solid rgba(20, 22, 29, 0.35);
+  outline: 2px solid rgb(var(--ink-rgb) / 0.35);
   outline-offset: 2px;
 }
 
@@ -79,9 +79,9 @@
   place-items: center;
   border: 0;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.92);
-  color: #14161d;
-  box-shadow: 0 8px 18px rgba(28, 32, 44, 0.12);
+  background: rgb(var(--paper-rgb) / 0.92);
+  color: var(--n-900);
+  box-shadow: 0 8px 18px rgb(var(--shadow-rgb) / 0.12);
   cursor: pointer;
 }
 
@@ -95,11 +95,11 @@
   justify-items: center;
   gap: 10px;
   padding: 16px 14px 22px;
-  border: 1px solid rgba(28, 32, 44, 0.08);
+  border: 1px solid rgb(var(--ink-rgb) / 0.08);
   border-radius: 20px;
   background:
-    radial-gradient(120% 80% at 50% 0%, rgba(20, 22, 29, 0.08), transparent 55%),
-    rgba(255, 255, 255, 0.72);
+    radial-gradient(120% 80% at 50% 0%, rgb(var(--ink-rgb) / 0.08), transparent 55%),
+    rgb(var(--paper-rgb) / 0.72);
   text-align: center;
   color: var(--muted);
   overflow: hidden;
@@ -120,8 +120,8 @@
   aspect-ratio: 16 / 9;
   border-radius: 16px;
   overflow: hidden;
-  background: #1c1f24;
-  box-shadow: 0 14px 28px rgba(18, 20, 24, 0.16);
+  background: var(--fill-strong);
+  box-shadow: 0 14px 28px rgb(var(--shadow-rgb) / 0.16);
 }
 
 .artistGalleryEmptyVisual img,
@@ -139,8 +139,8 @@
   place-items: center;
   margin-bottom: 2px;
   border-radius: 16px;
-  background: rgba(20, 22, 29, 0.1);
-  color: #14161d;
+  background: rgb(var(--ink-rgb) / 0.1);
+  color: var(--n-900);
 }
 
 .artistGalleryEmpty b,
@@ -164,8 +164,8 @@
   padding: 0 16px;
   border: 0;
   border-radius: 14px;
-  background: linear-gradient(145deg, #1c2328, #14161d);
-  color: #fff;
+  background: var(--fill-strong-grad);
+  color: var(--n-0);
   font-size: 0.76rem;
   font-weight: 900;
   cursor: pointer;
@@ -193,7 +193,7 @@
   overflow: hidden;
   border-radius: 16px;
   min-height: 150px;
-  background: var(--night);
+  background: var(--fill-strong);
 }
 
 .artistPortfolioCard img{
@@ -210,8 +210,8 @@
   display: grid;
   gap: 2px;
   padding: 10px;
-  background: linear-gradient(180deg, transparent, rgba(18, 18, 22, 0.82));
-  color: #fff;
+  background: linear-gradient(180deg, transparent, rgb(12 13 18 / 0.82));
+  color: var(--on-photo);
 }
 
 .artistPortfolioCard span,
@@ -310,10 +310,10 @@
   align-items: center;
   gap: 5px;
   padding: 0 11px;
-  border: 1px solid rgba(28, 32, 44, 0.06);
+  border: 1px solid rgb(var(--ink-rgb) / 0.06);
   border-bottom: 0;
   border-radius: 12px 12px 0 0;
-  background: rgba(28, 32, 44, 0.04);
+  background: rgb(var(--ink-rgb) / 0.04);
   color: var(--teal);
   font-family: inherit;
   font-size: 0.68rem;
@@ -336,12 +336,12 @@
   display: grid;
   gap: 12px;
   padding: 14px;
-  border: 1px solid rgba(28, 32, 44, 0.06);
+  border: 1px solid rgb(var(--ink-rgb) / 0.06);
   border-radius: 22px;
   background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(243, 246, 250, 0.9)),
-    #fff;
-  box-shadow: 0 18px 40px rgba(28, 32, 44, 0.08);
+    linear-gradient(145deg, rgb(var(--paper-rgb) / 0.96), color-mix(in srgb, var(--n-50) 90%, transparent)),
+    var(--n-0);
+  box-shadow: 0 18px 40px rgb(var(--shadow-rgb) / 0.08);
 }
 
 .bookingWeekHistoryDateHero{
@@ -371,7 +371,7 @@
 }
 
 .bookingWeekHistoryDateHeroCopy em{
-  color: #7a8490;
+  color: var(--n-500);
   font-size: 0.78rem;
   font-style: normal;
   font-weight: 800;
@@ -385,9 +385,9 @@
   gap: 2px;
   padding: 10px 12px;
   border-radius: 18px;
-  background: linear-gradient(160deg, rgba(28, 32, 44, 0.92), rgba(20, 22, 29, 0.9));
-  color: #fff;
-  box-shadow: 0 12px 24px rgba(28, 32, 44, 0.18);
+  background: linear-gradient(160deg, rgb(12 13 18 / 0.92), rgb(12 13 18 / 0.9));
+  color: var(--on-photo);
+  box-shadow: 0 12px 24px rgb(var(--shadow-rgb) / 0.18);
 }
 
 .bookingWeekHistoryDateHeroStat svg{
@@ -401,7 +401,7 @@
 }
 
 .bookingWeekHistoryDateHeroStat small{
-  color: rgba(255, 255, 255, 0.72);
+  color: rgb(var(--paper-rgb) / 0.72);
   font-size: 0.62rem;
   font-weight: 900;
 }
@@ -425,9 +425,9 @@
   height: 36px;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(28, 32, 44, 0.08);
+  border: 1px solid rgb(var(--ink-rgb) / 0.08);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.88);
+  background: rgb(var(--paper-rgb) / 0.88);
   color: var(--ink);
   cursor: pointer;
 }
@@ -465,7 +465,7 @@
   padding: 6px 2px;
   border: 1px solid transparent;
   border-radius: 14px;
-  background: rgba(28, 32, 44, 0.035);
+  background: rgb(var(--ink-rgb) / 0.035);
   color: var(--muted);
   font: inherit;
   cursor: pointer;
@@ -486,7 +486,7 @@
   place-items: center;
   padding: 0 4px;
   border-radius: 999px;
-  background: rgba(20, 22, 29, 0.12);
+  background: rgb(var(--ink-rgb) / 0.12);
   color: var(--teal);
   font-size: 0.58rem;
   font-style: normal;
@@ -501,19 +501,19 @@
 }
 
 .bookingWeekHistoryCalDay.is-today:not(.is-active){
-  border-color: rgba(20, 22, 29, 0.18);
-  background: rgba(20, 22, 29, 0.06);
+  border-color: rgb(var(--ink-rgb) / 0.18);
+  background: rgb(var(--ink-rgb) / 0.06);
 }
 
 .bookingWeekHistoryCalDay.has-bookings i{
-  background: rgba(20, 22, 29, 0.4);
+  background: rgb(var(--ink-rgb) / 0.4);
 }
 
 .bookingWeekHistoryCalDay.is-active{
-  border-color: rgba(20, 22, 29, 0.22);
-  background: #fff;
+  border-color: rgb(var(--ink-rgb) / 0.22);
+  background: var(--n-0);
   color: var(--teal);
-  box-shadow: 0 10px 22px rgba(28, 32, 44, 0.08);
+  box-shadow: 0 10px 22px rgb(var(--shadow-rgb) / 0.08);
   transform: translateY(-1px);
 }
 
@@ -522,7 +522,7 @@
 }
 
 .bookingWeekHistoryCalDay.is-active em{
-  background: rgba(20, 22, 29, 0.16);
+  background: rgb(var(--ink-rgb) / 0.16);
 }
 
 .bookingWeekHistoryDateMeta{
@@ -574,7 +574,7 @@
   min-height: 30px;
   padding: 0 10px;
   border-radius: 999px;
-  background: rgba(20, 22, 29, 0.1);
+  background: rgb(var(--ink-rgb) / 0.1);
   color: var(--teal);
   font-size: 0.72rem;
   font-style: normal;
@@ -587,7 +587,7 @@
 }
 
 .bookingWeekHistoryItem{
-  border-bottom: 1px solid rgba(28, 32, 44, 0.12);
+  border-bottom: 1px solid rgb(var(--ink-rgb) / 0.12);
 }
 
 .bookingWeekHistoryItem:last-child{
@@ -610,7 +610,7 @@
 }
 
 .bookingWeekHistoryList > .bookingWeekHistoryRow{
-  border-bottom: 1px solid rgba(28, 32, 44, 0.12);
+  border-bottom: 1px solid rgb(var(--ink-rgb) / 0.12);
 }
 
 .bookingWeekHistoryList > .bookingWeekHistoryRow:last-child{
@@ -642,8 +642,8 @@
   place-items: center;
   padding: 36px 16px;
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.7);
-  border: 1px dashed rgba(28, 32, 44, 0.1);
+  background: rgb(var(--paper-rgb) / 0.7);
+  border: 1px dashed rgb(var(--ink-rgb) / 0.1);
   text-align: center;
   color: var(--muted);
 }
@@ -666,9 +666,9 @@
   gap: 7px;
   overflow-x: auto;
   padding: 5px;
-  border: 1px solid rgba(28, 32, 44, 0.06);
+  border: 1px solid rgb(var(--ink-rgb) / 0.06);
   border-radius: 16px;
-  background: rgba(28, 32, 44, 0.04);
+  background: rgb(var(--ink-rgb) / 0.04);
   scrollbar-width: none;
 }
 
@@ -692,9 +692,9 @@
 }
 
 .artistBookingWeekRail button.active{
-  background: rgba(255, 255, 255, 0.94);
+  background: rgb(var(--paper-rgb) / 0.94);
   color: var(--teal);
-  box-shadow: 0 8px 18px rgba(28, 32, 44, 0.07);
+  box-shadow: 0 8px 18px rgb(var(--shadow-rgb) / 0.07);
 }
 
 .artistBookingWeekRail span{
@@ -722,7 +722,7 @@
   display: inline-grid;
   place-items: center;
   border-radius: 999px;
-  background: rgba(20, 22, 29, 0.09);
+  background: rgb(var(--ink-rgb) / 0.09);
   color: var(--teal);
   font-size: 0.68rem;
   font-weight: 950;
@@ -730,10 +730,10 @@
 
 .artistBookingList.full{
   gap: 0;
-  border: 1px solid rgba(28, 32, 44, 0.06);
+  border: 1px solid rgb(var(--ink-rgb) / 0.06);
   border-radius: 16px;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.72);
+  background: rgb(var(--paper-rgb) / 0.72);
 }
 
 .artistBookingPageStatus{
@@ -751,15 +751,15 @@
 }
 
 .artistBookingPageStatus.is-ok{
-  background: #14161d;
+  background: var(--fill-strong);
 }
 
 .artistBookingPageStatus.is-wait{
-  background: #d4a017;
+  background: var(--signal-warn);
 }
 
 .artistBookingPageStatus.is-vip{
-  background: #78486c;
+  background: var(--violet-deep);
 }
 
 .artistBookingPageMain{
@@ -774,11 +774,11 @@
   gap: 8px;
   align-items: center;
   padding: 7px 8px;
-  border: 1px solid rgba(20, 22, 29, 0.1);
+  border: 1px solid rgb(var(--ink-rgb) / 0.1);
   border-radius: 14px;
   background:
-    radial-gradient(circle at 100% 0%, rgba(20, 22, 29, 0.1), transparent 44%),
-    rgba(245, 253, 252, 0.88);
+    radial-gradient(circle at 100% 0%, rgb(var(--ink-rgb) / 0.1), transparent 44%),
+    color-mix(in srgb, var(--n-25) 88%, transparent);
 }
 
 .artistBookingSalonHeaderLogo{
@@ -787,7 +787,7 @@
   display: grid;
   place-items: center;
   border-radius: 13px;
-  background: linear-gradient(135deg, rgba(20, 22, 29, 0.14), rgba(20, 22, 29, 0.12));
+  background: linear-gradient(135deg, rgb(var(--ink-rgb) / 0.14), rgb(var(--ink-rgb) / 0.12));
   color: var(--teal);
   overflow: hidden;
 }
@@ -855,7 +855,7 @@
 .artistBookingPageInfo:hover,
 .artistBookingPageInfo:focus-visible{
   outline: none;
-  background: rgba(20, 22, 29, 0.06);
+  background: rgb(var(--ink-rgb) / 0.06);
 }
 
 .artistBookingClientAvatar{
@@ -864,8 +864,8 @@
   display: grid;
   place-items: center;
   border-radius: 12px;
-  background: rgba(20, 22, 29, 0.12);
-  color: #14161d;
+  background: rgb(var(--ink-rgb) / 0.12);
+  color: var(--n-900);
   font-size: 0.85rem;
   font-weight: 900;
   overflow: hidden;
@@ -873,7 +873,7 @@
 }
 
 .artistBookingClientAvatar.hasImage{
-  background: #e8eaec center / cover no-repeat;
+  background: var(--n-150) center / cover no-repeat;
 }
 
 .artistBookingClientAvatar img{
@@ -908,7 +908,7 @@
   max-width: 100%;
   padding: 0 7px 0 4px;
   border-radius: 999px;
-  background: rgba(20, 22, 29, 0.09);
+  background: rgb(var(--ink-rgb) / 0.09);
   color: var(--teal);
   font-size: 0.58rem;
   font-weight: 950;
@@ -922,7 +922,7 @@
   display: inline-grid;
   place-items: center;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.82);
+  background: rgb(var(--paper-rgb) / 0.82);
   color: var(--teal);
   overflow: hidden;
 }
@@ -946,13 +946,13 @@
 }
 
 .artistBookingClientOpen{
-  color: rgba(28, 32, 44, 0.35);
+  color: rgb(var(--ink-rgb) / 0.35);
   flex: 0 0 auto;
 }
 
 .artistBookingPageInfo:hover .artistBookingClientOpen,
 .artistBookingPageInfo:focus-visible .artistBookingClientOpen{
-  color: #14161d;
+  color: var(--n-900);
 }
 
 .artistBookingPagePhone{
@@ -977,7 +977,7 @@
   height: 34px;
   border: 0;
   border-radius: 12px;
-  background: rgba(20, 22, 29, 0.1);
+  background: rgb(var(--ink-rgb) / 0.1);
   color: var(--teal);
   cursor: pointer;
   flex-shrink: 0;
@@ -985,7 +985,7 @@
 }
 
 .artistBookingPageMsg:hover{
-  background: rgba(20, 22, 29, 0.18);
+  background: rgb(var(--ink-rgb) / 0.18);
   transform: translateY(-1px);
 }
 
@@ -1014,15 +1014,15 @@
   width: 8px;
   height: 8px;
   border-radius: 2px;
-  background: rgba(28, 32, 44, 0.08);
+  background: rgb(var(--ink-rgb) / 0.08);
 }
 
 .artistVisitGrid i.is-l1{
-  background: rgba(20, 22, 29, 0.38);
+  background: rgb(var(--ink-rgb) / 0.38);
 }
 
 .artistVisitGrid i.is-l2{
-  background: #14161d;
+  background: var(--fill-strong);
 }
 
 .artistBookingList article{
@@ -1034,7 +1034,7 @@
   padding: 10px 12px;
   border: 0;
   border-radius: 0;
-  border-bottom: 1px solid rgba(28, 32, 44, 0.06);
+  border-bottom: 1px solid rgb(var(--ink-rgb) / 0.06);
   background: transparent;
   box-shadow: none;
 }
@@ -1102,18 +1102,18 @@
 }
 
 .artistBookingStatus.is-ok{
-  background: rgba(20, 22, 29, 0.12);
+  background: rgb(var(--ink-rgb) / 0.12);
   color: var(--teal);
 }
 
 .artistBookingStatus.is-wait{
-  background: rgba(191, 192, 209, 0.24);
-  color: #8a6a1d;
+  background: color-mix(in srgb, var(--n-400) 24%, transparent);
+  color: var(--warning);
 }
 
 .artistBookingStatus.is-vip{
-  background: rgba(120, 72, 108, 0.14);
-  color: #78486c;
+  background: color-mix(in srgb, var(--info) 14%, transparent);
+  color: var(--info);
 }
 
 .artistBookingHistory{
@@ -1122,7 +1122,7 @@
   gap: 6px;
   padding: 5px;
   border-radius: 14px;
-  background: rgba(28, 32, 44, 0.06);
+  background: rgb(var(--ink-rgb) / 0.06);
 }
 
 .artistBookingHistory button{
@@ -1138,9 +1138,9 @@
 }
 
 .artistBookingHistory button.active{
-  background: #fff;
+  background: var(--n-0);
   color: var(--teal);
-  box-shadow: 0 4px 12px rgba(28, 32, 44, 0.08);
+  box-shadow: 0 4px 12px rgb(var(--shadow-rgb) / 0.08);
   transform: translateY(-1px);
 }
 
@@ -1149,11 +1149,11 @@
   justify-items: center;
   gap: 8px;
   padding: 10px 10px 18px;
-  border: 1px solid rgba(28, 32, 44, 0.08);
+  border: 1px solid rgb(var(--ink-rgb) / 0.08);
   border-radius: 18px;
   background:
-    radial-gradient(circle at 50% 0%, rgba(20, 22, 29, 0.08), transparent 58%),
-    rgba(255, 255, 255, 0.68);
+    radial-gradient(circle at 50% 0%, rgb(var(--ink-rgb) / 0.08), transparent 58%),
+    rgb(var(--paper-rgb) / 0.68);
   text-align: center;
   color: var(--muted);
   overflow: hidden;
@@ -1165,7 +1165,7 @@
   display: block;
   border-radius: 15px;
   object-fit: cover;
-  box-shadow: 0 14px 30px rgba(28, 32, 44, 0.1);
+  box-shadow: 0 14px 30px rgb(var(--shadow-rgb) / 0.1);
 }
 
 .artistBookingHistoryEmpty b{
@@ -1193,8 +1193,8 @@
   min-height: 40px;
   padding: 0 12px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(28, 32, 44, 0.08);
+  background: rgb(var(--paper-rgb) / 0.92);
+  border: 1px solid rgb(var(--ink-rgb) / 0.08);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
@@ -1233,7 +1233,7 @@
   gap: 10px;
   padding: 12px;
   border-radius: 16px;
-  background: linear-gradient(135deg, rgba(120, 72, 108, 0.12), rgba(20, 22, 29, 0.08));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--info) 12%, transparent), rgb(var(--ink-rgb) / 0.08));
   color: var(--ink);
 }
 
@@ -1254,7 +1254,7 @@
 }
 
 .artistBookingHint svg{
-  color: #78486c;
+  color: var(--info);
   flex: 0 0 auto;
 }
 
@@ -1264,8 +1264,8 @@
   padding: 12px;
   border-radius: 16px;
   background:
-    linear-gradient(165deg, rgba(255, 255, 255, 0.94), rgba(248, 244, 239, 0.88));
-  border: 1px solid rgba(28, 32, 44, 0.06);
+    linear-gradient(165deg, rgb(var(--paper-rgb) / 0.94), color-mix(in srgb, var(--n-50) 88%, transparent));
+  border: 1px solid rgb(var(--ink-rgb) / 0.06);
 }
 
 .artistBookingSettingsHead{
@@ -1274,7 +1274,7 @@
   gap: 10px;
   margin-bottom: 8px;
   padding-bottom: 10px;
-  border-bottom: 1px solid rgba(28, 32, 44, 0.06);
+  border-bottom: 1px solid rgb(var(--ink-rgb) / 0.06);
 }
 
 .artistBookingSettingsHead svg{
@@ -1307,7 +1307,7 @@
 }
 
 .artistBookingSwitch + .artistBookingSwitch{
-  border-top: 1px solid rgba(28, 32, 44, 0.05);
+  border-top: 1px solid rgb(var(--ink-rgb) / 0.05);
 }
 
 .artistBookingSwitch b{
@@ -1333,7 +1333,7 @@
   margin: 0;
   border: 0;
   border-radius: 999px;
-  background: rgba(28, 32, 44, 0.14);
+  background: rgb(var(--ink-rgb) / 0.14);
   position: relative;
   flex: 0 0 auto;
   cursor: pointer;
@@ -1348,13 +1348,13 @@
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 2px 6px rgba(28, 32, 44, 0.18);
+  background: var(--n-0);
+  box-shadow: 0 2px 6px rgb(var(--shadow-rgb) / 0.18);
   transition: transform 0.2s ease;
 }
 
 .artistBookingSwitch input:checked{
-  background: #14161d;
+  background: var(--fill-strong);
 }
 
 .artistBookingSwitch input:checked::after{
@@ -1367,9 +1367,9 @@
 
 .createdProfile.is-artist,
 .createdProfile.is-client{
-  border-color: rgba(255, 255, 255, 0.72);
+  border-color: rgb(var(--paper-rgb) / 0.72);
   background:
-    linear-gradient(180deg, rgba(246, 246, 251, 0.94), rgba(246, 246, 251, 0.88)),
+    linear-gradient(180deg, color-mix(in srgb, var(--n-50) 94%, transparent), color-mix(in srgb, var(--n-50) 88%, transparent)),
     var(--surface-solid);
 }
 
@@ -1399,13 +1399,13 @@
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingsBoard .boardHead span {
-  color: #14161d;
+  color: var(--n-900);
   font-size: 11px;
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingsBoard .boardHead strong {
   margin: 0;
-  color: #171827;
+  color: var(--n-900);
   font-size: 15px;
   font-weight: 900;
   line-height: 1.25;
@@ -1416,7 +1416,7 @@
   padding: 0;
   border: 0;
   border-radius: 0;
-  color: #14161d;
+  color: var(--n-900);
   background: transparent;
   box-shadow: none;
   font-size: 12px;
@@ -1444,10 +1444,10 @@
   display: grid;
   place-items: center;
   gap: 3px;
-  border: 1px solid rgba(20, 22, 29, 0.12);
+  border: 1px solid rgb(var(--ink-rgb) / 0.12);
   border-radius: 16px;
-  color: #14161d;
-  background: rgba(255, 255, 255, 0.72);
+  color: var(--n-900);
+  background: rgb(var(--paper-rgb) / 0.72);
   box-shadow: none;
 }
 
@@ -1459,13 +1459,13 @@
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingList .artistBookingWeekRail {
   min-width: 0;
   grid-auto-columns: minmax(72px, 1fr);
-  border-color: rgba(20, 22, 29, 0.12);
-  background: rgba(255, 255, 255, 0.34);
+  border-color: rgb(var(--ink-rgb) / 0.12);
+  background: rgb(var(--paper-rgb) / 0.34);
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingList .artistBookingWeekRail button.active {
-  color: #14161d;
-  box-shadow: 0 10px 22px rgba(20, 22, 29, 0.1);
+  color: var(--n-900);
+  box-shadow: 0 10px 22px rgb(var(--shadow-rgb) / 0.1);
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingList > .salonHeroWeekStrip {
@@ -1477,10 +1477,10 @@
   gap: 7px;
   margin: 0;
   padding: 10px;
-  border: 1px solid rgba(28, 32, 44, 0.07);
+  border: 1px solid rgb(var(--ink-rgb) / 0.07);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.98);
-  box-shadow: 0 14px 26px rgba(21, 21, 25, 0.08);
+  background: rgb(var(--paper-rgb) / 0.98);
+  box-shadow: 0 14px 26px rgb(var(--shadow-rgb) / 0.08);
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingList > .salonHeroWeekStrip .salonHeroWeekArrow {
@@ -1490,8 +1490,8 @@
   place-items: center;
   border: 0;
   border-radius: 50%;
-  background: #f8f8fa;
-  color: #14161d;
+  background: var(--n-25);
+  color: var(--n-900);
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingList > .salonHeroWeekStrip .salonHeroWeekDays {
@@ -1511,12 +1511,12 @@
   border: 0;
   border-radius: 14px;
   background: transparent;
-  color: #262738;
+  color: var(--n-800);
   text-align: center;
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingList > .salonHeroWeekStrip .salonHeroWeekDay span {
-  color: rgba(31, 33, 48, 0.84) !important;
+  color: rgb(var(--ink-rgb) / 0.84) !important;
   font-size: 0.56rem !important;
   font-weight: 950;
   line-height: 1.15;
@@ -1524,7 +1524,7 @@
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingList > .salonHeroWeekStrip .salonHeroWeekDay small,
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingList > .salonHeroWeekStrip .salonHeroWeekDay em {
-  color: rgba(31, 33, 48, 0.48);
+  color: rgb(var(--ink-rgb) / 0.48);
   font-size: 0.48rem;
   font-style: normal;
   font-weight: 850;
@@ -1533,12 +1533,12 @@
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingList > .salonHeroWeekStrip .salonHeroWeekDay em {
-  color: #22a872;
+  color: var(--success);
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingList > .salonHeroWeekStrip .salonHeroWeekDay.is-active {
-  background: #f5f5f7;
-  box-shadow: inset 0 0 0 1px rgba(20, 22, 29, 0.08);
+  background: var(--n-50);
+  box-shadow: inset 0 0 0 1px rgb(var(--shadow-rgb) / 0.08);
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingList > .salonHeroWeekStrip .salonHeroWeekDay.is-active b {
@@ -1548,21 +1548,21 @@
   place-items: center;
   margin-top: 2px;
   border-radius: 50%;
-  background: linear-gradient(180deg, #6f7380, #14161d);
-  color: #ffffff;
-  box-shadow: 0 8px 16px rgba(20, 22, 29, 0.3);
+  background: var(--fill-strong-grad);
+  color: var(--n-0);
+  box-shadow: 0 8px 16px rgb(var(--shadow-rgb) / 0.3);
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingFeatureCard {
   display: grid;
   gap: 12px;
   padding: 14px;
-  border: 1px solid rgba(20, 22, 29, 0.16);
+  border: 1px solid rgb(var(--ink-rgb) / 0.16);
   border-radius: 20px;
   background:
-    radial-gradient(circle at 10% 10%, rgba(20, 22, 29, 0.08), transparent 34%),
-    rgba(255, 255, 255, 0.86);
-  box-shadow: 0 16px 32px rgba(38, 38, 42, 0.08);
+    radial-gradient(circle at 10% 10%, rgb(var(--ink-rgb) / 0.08), transparent 34%),
+    rgb(var(--paper-rgb) / 0.86);
+  box-shadow: 0 16px 32px rgb(var(--shadow-rgb) / 0.08);
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingFeatureTop {
@@ -1580,9 +1580,9 @@
   place-items: center;
   overflow: hidden;
   border-radius: 999px;
-  color: #14161d;
-  background: rgba(20, 22, 29, 0.08);
-  border: 1px solid rgba(20, 22, 29, 0.14);
+  color: var(--n-900);
+  background: rgb(var(--ink-rgb) / 0.08);
+  border: 1px solid rgb(var(--ink-rgb) / 0.14);
   font-weight: 950;
 }
 
@@ -1601,7 +1601,7 @@
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingFeatureTop b {
   display: block;
-  color: #171827;
+  color: var(--n-900);
   font-size: 15px;
   font-weight: 900;
   line-height: 1.3;
@@ -1610,7 +1610,7 @@
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingFeatureTop span:not(.clientBookingFeatureLogo) {
   display: block;
   margin-top: 4px;
-  color: #7f8190;
+  color: var(--n-500);
   font-size: 11.5px;
   font-weight: 800;
 }
@@ -1620,8 +1620,8 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0;
   padding: 12px 0;
-  border-top: 1px solid rgba(35, 36, 52, 0.07);
-  border-bottom: 1px solid rgba(35, 36, 52, 0.07);
+  border-top: 1px solid rgb(var(--ink-rgb) / 0.07);
+  border-bottom: 1px solid rgb(var(--ink-rgb) / 0.07);
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingFeatureGrid > span {
@@ -1629,16 +1629,16 @@
   justify-items: center;
   gap: 4px;
   min-width: 0;
-  color: #8b8d9a;
+  color: var(--n-500);
   text-align: center;
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingFeatureGrid > span + span {
-  border-right: 1px solid rgba(35, 36, 52, 0.08);
+  border-right: 1px solid rgb(var(--ink-rgb) / 0.08);
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingFeatureGrid svg {
-  color: #858796;
+  color: var(--n-500);
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingFeatureGrid small {
@@ -1647,7 +1647,7 @@
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingFeatureGrid b {
-  color: #171827;
+  color: var(--n-900);
   font-size: 13px;
   font-weight: 850;
   line-height: 1.25;
@@ -1675,28 +1675,28 @@
   border-radius: 999px;
   /* default/pending tone ("درخواست" — waiting on the salon); see
      .is-done/.is-bad/.is-expired below for the other 3 real statuses. */
-  color: #b45309;
-  background: rgba(245, 158, 11, 0.14);
+  color: var(--warning);
+  background: color-mix(in srgb, var(--warning) 14%, transparent);
   font-size: 12px;
   font-weight: 900;
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingStatusPill.is-done {
-  color: #16a34a;
-  background: rgba(34, 197, 94, 0.14);
+  color: var(--success);
+  background: color-mix(in srgb, var(--success) 14%, transparent);
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingStatusPill.is-bad {
-  color: #d64545;
-  background: rgba(214, 69, 69, 0.12);
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingStatusPill.is-expired {
   /* deliberately NOT the same red as .is-bad: expired means "nobody
      answered in time", not "the salon said no" — keep those visually
      distinct so the client can tell them apart at a glance. */
-  color: #9a5b52;
-  background: rgba(154, 91, 82, 0.14);
+  color: var(--signal-bad);
+  background: color-mix(in srgb, var(--danger) 14%, transparent);
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingPendingNote {
@@ -1706,8 +1706,8 @@
   margin: 0;
   padding: 8px 12px;
   border-radius: 12px;
-  background: rgba(245, 158, 11, 0.08);
-  color: #b45309;
+  background: color-mix(in srgb, var(--warning) 8%, transparent);
+  color: var(--warning);
   font-size: 11px;
   font-weight: 750;
   line-height: 1.6;
@@ -1735,17 +1735,17 @@
   gap: 7px;
   border: 0;
   border-radius: 13px;
-  background: linear-gradient(180deg, #6f7380, #14161d);
-  color: #ffffff;
+  background: var(--fill-strong-grad);
+  color: var(--n-0);
   font-size: 12.5px;
   font-weight: 900;
-  box-shadow: 0 10px 20px rgba(20, 22, 29, 0.22);
+  box-shadow: 0 10px 20px rgb(var(--shadow-rgb) / 0.22);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingActionPrimary:active {
   transform: scale(0.97);
-  box-shadow: 0 6px 14px rgba(20, 22, 29, 0.2);
+  box-shadow: 0 6px 14px rgb(var(--shadow-rgb) / 0.2);
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingActionSecondary {
@@ -1755,16 +1755,16 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(20, 22, 29, 0.16);
+  border: 1px solid rgb(var(--ink-rgb) / 0.16);
   border-radius: 13px;
-  background: rgba(20, 22, 29, 0.07);
-  color: #14161d;
+  background: rgb(var(--ink-rgb) / 0.07);
+  color: var(--n-900);
   transition: transform 0.15s ease, background 0.15s ease;
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingActionSecondary:active {
   transform: scale(0.94);
-  background: rgba(20, 22, 29, 0.14);
+  background: rgb(var(--ink-rgb) / 0.14);
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingOtherList {
@@ -1774,7 +1774,7 @@
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingOtherList > span {
   justify-self: end;
-  color: #8a8b98;
+  color: var(--n-500);
   font-size: 12px;
   font-weight: 900;
 }
@@ -1786,10 +1786,10 @@
   align-items: center;
   gap: 10px;
   direction: rtl;
-  border: 1px solid rgba(35, 36, 52, 0.07);
+  border: 1px solid rgb(var(--ink-rgb) / 0.07);
   border-radius: 16px;
   padding: 8px 10px;
-  background: rgba(255, 255, 255, 0.66);
+  background: rgb(var(--paper-rgb) / 0.66);
   color: inherit;
   text-align: right;
 }
@@ -1806,7 +1806,7 @@
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingMiniCard b {
   display: block;
-  color: #171827;
+  color: var(--n-900);
   font-size: 12.5px;
   font-weight: 900;
   overflow: hidden;

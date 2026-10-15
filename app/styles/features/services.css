@@ -65,13 +65,13 @@
   align-items: center;
   gap: 14px;
   padding: 14px;
-  border: 1px solid #ececf0;
+  border: 1px solid var(--n-100);
   border-radius: 20px;
-  background: #ffffff;
-  color: #14161d;
+  background: var(--n-0);
+  color: var(--n-900);
   font: inherit;
   text-align: right;
-  box-shadow: 0 6px 18px rgba(20, 22, 29, 0.05);
+  box-shadow: 0 6px 18px rgb(var(--shadow-rgb) / 0.05);
   animation: serviceCardIn 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
   animation-delay: var(--service-delay);
   transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
@@ -82,15 +82,15 @@ button.svcCard { cursor: pointer; }
 button.svcCard:hover,
 button.svcCard:focus-visible {
   transform: translateY(-1px);
-  border-color: #dcdce4;
-  box-shadow: 0 10px 24px rgba(20, 22, 29, 0.09);
+  border-color: var(--n-200);
+  box-shadow: 0 10px 24px rgb(var(--shadow-rgb) / 0.09);
 }
 
 button.svcCard:active { transform: scale(0.99); }
 
 .svcCard.is-selected {
-  border-color: #14161d;
-  box-shadow: 0 0 0 1px #14161d, 0 10px 24px rgba(20, 22, 29, 0.1);
+  border-color: var(--n-900);
+  box-shadow: 0 0 0 1px rgb(var(--shadow-rgb)), 0 10px 24px rgb(var(--shadow-rgb) / 0.1);
 }
 
 .svcCardBody {
@@ -107,7 +107,7 @@ button.svcCard:active { transform: scale(0.99); }
 }
 
 .svcCardTitle strong {
-  color: #14161d;
+  color: var(--n-900);
   font-size: 0.98rem;
   font-weight: 950;
   line-height: 1.3;
@@ -119,8 +119,8 @@ button.svcCard:active { transform: scale(0.99); }
   align-items: center;
   padding: 0 9px;
   border-radius: 999px;
-  background: #f1f1f5;
-  color: #4b4f5c;
+  background: var(--n-100);
+  color: var(--n-700);
   font-size: 0.62rem;
   font-style: normal;
   font-weight: 900;
@@ -128,7 +128,7 @@ button.svcCard:active { transform: scale(0.99); }
 
 .svcCardHint {
   margin: 0;
-  color: #6f7380;
+  color: var(--n-600);
   font-size: 0.76rem;
   font-weight: 700;
   line-height: 1.6;
@@ -148,8 +148,8 @@ button.svcCard:active { transform: scale(0.99); }
   gap: 4px;
   padding: 0 9px;
   border-radius: 999px;
-  background: #f6f6f8;
-  color: #4b4f5c;
+  background: var(--n-50);
+  color: var(--n-700);
   font-size: 0.68rem;
   font-weight: 850;
 }
@@ -161,13 +161,13 @@ button.svcCard:active { transform: scale(0.99); }
 }
 
 .svcPrice {
-  color: #14161d;
+  color: var(--n-900);
   font-size: 0.92rem;
   font-weight: 950;
   white-space: nowrap;
 }
 
-.svcCardChevron { color: #9a9dab; }
+.svcCardChevron { color: var(--n-500); }
 
 .svcActions {
   display: flex;
@@ -181,14 +181,14 @@ button.svcCard:active { transform: scale(0.99); }
   place-items: center;
   border: 0;
   border-radius: 11px;
-  background: #f6f6f8;
-  color: #14161d;
+  background: var(--n-50);
+  color: var(--n-900);
   cursor: pointer;
   transition: background 0.15s ease, transform 0.15s ease;
 }
 
 .svcActions button:active { transform: scale(0.94); }
-.svcActions button.danger { color: #c14545; background: #fdf0f0; }
+.svcActions button.danger { color: var(--danger); background: var(--n-50); }
 
 /* ── Owner toolbar ───────────────────────────────────────────────────── */
 .svcToolbar {
@@ -200,8 +200,8 @@ button.svcCard:active { transform: scale(0.99); }
 }
 
 .svcToolbar > div { display: grid; gap: 2px; }
-.svcToolbar span { color: #6f7380; font-size: 0.72rem; font-weight: 800; }
-.svcToolbar b { color: #14161d; font-size: 1.02rem; font-weight: 950; }
+.svcToolbar span { color: var(--n-600); font-size: 0.72rem; font-weight: 800; }
+.svcToolbar b { color: var(--n-900); font-size: 1.02rem; font-weight: 950; }
 
 .svcAddBtn {
   min-height: 42px;
@@ -211,12 +211,12 @@ button.svcCard:active { transform: scale(0.99); }
   padding: 0 16px;
   border: 0;
   border-radius: 14px;
-  background: #14161d;
-  color: #ffffff;
+  background: var(--fill-strong);
+  color: var(--n-0);
   font: inherit;
   font-size: 0.8rem;
   font-weight: 950;
-  box-shadow: 0 8px 18px rgba(20, 22, 29, 0.16);
+  box-shadow: 0 8px 18px rgb(var(--shadow-rgb) / 0.16);
   cursor: pointer;
 }
 
@@ -224,7 +224,7 @@ button.svcCard:active { transform: scale(0.99); }
 .svcCard.is-manager { grid-template-columns: auto minmax(0, 1fr) auto; }
 .svcCard.is-manager .serviceArtistPick { justify-self: start; }
 .svcStaffRow { grid-column: 2 / -1; display: flex; align-items: center; gap: 8px; }
-.svcStaffRow small { color: #6f7380; font-size: 0.68rem; font-weight: 800; }
+.svcStaffRow small { color: var(--n-600); font-size: 0.68rem; font-weight: 800; }
 
 /* ── Public salon rails / sheet (SalonClientPage) ────────────────────── */
 .salonPublicServiceRail > button > span:has(> .serviceIcon),
@@ -297,9 +297,9 @@ button.svcCard:active { transform: scale(0.99); }
   gap: 12px;
   padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
   border-radius: 28px 28px 0 0;
-  background: #ffffff;
-  color: #14161d;
-  box-shadow: 0 -20px 60px rgba(20, 22, 29, 0.22);
+  background: var(--n-0);
+  color: var(--n-900);
+  box-shadow: 0 -20px 60px rgb(var(--shadow-rgb) / 0.22);
   overflow-y: auto;
   overscroll-behavior: contain;
   animation: svcSheetIn 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -318,8 +318,8 @@ button.svcCard:active { transform: scale(0.99); }
   gap: 12px;
 }
 
-.svcSheetHead span { display: block; color: #6f7380; font-size: 0.72rem; font-weight: 800; }
-.svcSheetHead h3 { margin: 2px 0 0; color: #14161d; font-size: 1.15rem; font-weight: 950; }
+.svcSheetHead span { display: block; color: var(--n-600); font-size: 0.72rem; font-weight: 800; }
+.svcSheetHead h3 { margin: 2px 0 0; color: var(--n-900); font-size: 1.15rem; font-weight: 950; }
 .svcPickerHead strong { font-size: 1.05rem; font-weight: 950; }
 
 .svcSheetClose,
@@ -330,8 +330,8 @@ button.svcCard:active { transform: scale(0.99); }
   place-items: center;
   border: 0;
   border-radius: 14px;
-  background: #f6f6f8;
-  color: #14161d;
+  background: var(--n-50);
+  color: var(--n-900);
   cursor: pointer;
 }
 
@@ -342,7 +342,7 @@ button.svcCard:active { transform: scale(0.99); }
   gap: 4px;
   padding: 4px;
   border-radius: 16px;
-  background: #f6f6f8;
+  background: var(--n-50);
 }
 
 .svcModeSwitch button {
@@ -354,7 +354,7 @@ button.svcCard:active { transform: scale(0.99); }
   border: 0;
   border-radius: 12px;
   background: transparent;
-  color: #6f7380;
+  color: var(--n-600);
   font: inherit;
   font-size: 0.82rem;
   font-weight: 900;
@@ -363,9 +363,9 @@ button.svcCard:active { transform: scale(0.99); }
 }
 
 .svcModeSwitch button.on {
-  background: #ffffff;
-  color: #14161d;
-  box-shadow: 0 4px 12px rgba(20, 22, 29, 0.08);
+  background: var(--n-0);
+  color: var(--n-900);
+  box-shadow: 0 4px 12px rgb(var(--shadow-rgb) / 0.08);
 }
 
 .svcModeSwitch button:disabled { opacity: 0.45; cursor: not-allowed; }
@@ -378,8 +378,8 @@ button.svcCard:active { transform: scale(0.99); }
   gap: 8px;
   padding: 0 14px;
   border-radius: 15px;
-  background: #f6f6f8;
-  color: #6f7380;
+  background: var(--n-50);
+  color: var(--n-600);
 }
 
 .svcSearch input {
@@ -388,13 +388,13 @@ button.svcCard:active { transform: scale(0.99); }
   border: 0;
   outline: 0;
   background: transparent;
-  color: #14161d;
+  color: var(--n-900);
   font: inherit;
   font-size: 0.86rem;
   font-weight: 700;
 }
 
-.svcSearch:focus-within { box-shadow: 0 0 0 2px rgba(20, 22, 29, 0.14); }
+.svcSearch:focus-within { box-shadow: 0 0 0 2px rgb(var(--shadow-rgb) / 0.14); }
 
 /* category tabs */
 .svcTabs {
@@ -415,10 +415,10 @@ button.svcCard:active { transform: scale(0.99); }
   align-items: center;
   gap: 6px;
   padding: 0 14px 0 12px;
-  border: 1px solid #ececf0;
+  border: 1px solid var(--n-100);
   border-radius: 999px;
-  background: #ffffff;
-  color: #4b4f5c;
+  background: var(--n-0);
+  color: var(--n-700);
   font: inherit;
   font-size: 0.76rem;
   font-weight: 900;
@@ -427,14 +427,14 @@ button.svcCard:active { transform: scale(0.99); }
 }
 
 .svcTabs button.on {
-  border-color: #14161d;
-  background: #14161d;
-  color: #ffffff;
+  border-color: var(--n-900);
+  background: var(--fill-strong);
+  color: var(--n-0);
 }
 
 .svcCatalogHint {
   margin: 0;
-  color: #6f7380;
+  color: var(--n-600);
   font-size: 0.72rem;
   font-weight: 750;
   line-height: 1.6;
@@ -462,29 +462,29 @@ button.svcCard:active { transform: scale(0.99); }
   align-content: start;
   gap: 6px;
   padding: 12px;
-  border: 1px solid #ececf0;
+  border: 1px solid var(--n-100);
   border-radius: 20px;
-  background: #ffffff;
-  color: #14161d;
+  background: var(--n-0);
+  color: var(--n-900);
   font: inherit;
   text-align: right;
   cursor: pointer;
-  box-shadow: 0 6px 16px rgba(20, 22, 29, 0.04);
+  box-shadow: 0 6px 16px rgb(var(--shadow-rgb) / 0.04);
   transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
 }
 
 .svcPresetMain:hover,
 .svcPresetMain:focus-visible {
   transform: translateY(-1px);
-  border-color: #dcdce4;
-  box-shadow: 0 10px 22px rgba(20, 22, 29, 0.09);
+  border-color: var(--n-200);
+  box-shadow: 0 10px 22px rgb(var(--shadow-rgb) / 0.09);
 }
 
 .svcPresetMain:active { transform: scale(0.98); }
 .svcPresetMain strong { font-size: 0.88rem; font-weight: 950; line-height: 1.35; }
 
 .svcPresetMain small {
-  color: #6f7380;
+  color: var(--n-600);
   font-size: 0.68rem;
   font-weight: 700;
   line-height: 1.55;
@@ -508,13 +508,13 @@ button.svcCard:active { transform: scale(0.99); }
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  color: #6f7380;
+  color: var(--n-600);
   font-size: 0.66rem;
   font-style: normal;
   font-weight: 800;
 }
 
-.svcPresetMeta b { color: #14161d; font-size: 0.7rem; font-weight: 950; }
+.svcPresetMeta b { color: var(--n-900); font-size: 0.7rem; font-weight: 950; }
 
 .svcPresetQuick {
   position: absolute;
@@ -526,10 +526,10 @@ button.svcCard:active { transform: scale(0.99); }
   place-items: center;
   border: 0;
   border-radius: 11px;
-  background: #14161d;
-  color: #ffffff;
+  background: var(--fill-strong);
+  color: var(--n-0);
   cursor: pointer;
-  box-shadow: 0 6px 14px rgba(20, 22, 29, 0.2);
+  box-shadow: 0 6px 14px rgb(var(--shadow-rgb) / 0.2);
 }
 
 .svcPresetQuick:active { transform: scale(0.92); }
@@ -546,8 +546,8 @@ button.svcCard:active { transform: scale(0.99); }
   min-height: 24px;
   padding: 0 8px;
   border-radius: 999px;
-  background: #e8f7f1;
-  color: #1f8f64;
+  background: var(--n-50);
+  color: var(--success);
   font-size: 0.62rem;
   font-weight: 900;
 }
@@ -562,7 +562,7 @@ button.svcCard:active { transform: scale(0.99); }
 }
 
 .svcEmptyState b { font-size: 0.95rem; font-weight: 950; }
-.svcEmptyState span { color: #6f7380; font-size: 0.76rem; font-weight: 700; }
+.svcEmptyState span { color: var(--n-600); font-size: 0.76rem; font-weight: 700; }
 
 .svcEmptyState button {
   min-height: 42px;
@@ -572,15 +572,15 @@ button.svcCard:active { transform: scale(0.99); }
   padding: 0 16px;
   border: 0;
   border-radius: 14px;
-  background: #14161d;
-  color: #ffffff;
+  background: var(--fill-strong);
+  color: var(--n-0);
   font: inherit;
   font-size: 0.8rem;
   font-weight: 950;
   cursor: pointer;
 }
 
-.svcEmpty { grid-column: 1 / -1; margin: 0; padding: 18px; color: #6f7380; text-align: center; font-size: 0.8rem; font-weight: 800; }
+.svcEmpty { grid-column: 1 / -1; margin: 0; padding: 18px; color: var(--n-600); text-align: center; font-size: 0.8rem; font-weight: 800; }
 
 /* editor form */
 .svcForm { display: grid; gap: 12px; }
@@ -604,31 +604,31 @@ button.svcCard:active { transform: scale(0.99); }
   cursor: pointer;
 }
 
-.svcIconSlot small { color: #6f7380; font-size: 0.64rem; font-weight: 850; }
+.svcIconSlot small { color: var(--n-600); font-size: 0.64rem; font-weight: 850; }
 
 .svcIconSlotEmpty {
   width: 72px;
   height: 72px;
   display: grid;
   place-items: center;
-  border: 2px dashed #cfd1da;
+  border: 2px dashed var(--n-300);
   border-radius: 24px;
-  background: #f6f6f8;
-  color: #4b4f5c;
+  background: var(--n-50);
+  color: var(--n-700);
 }
 
 .svcField { display: grid; gap: 6px; min-width: 0; }
-.svcField span { color: #4b4f5c; font-size: 0.72rem; font-weight: 900; }
+.svcField span { color: var(--n-700); font-size: 0.72rem; font-weight: 900; }
 
 .svcField input,
 .svcField textarea {
   width: 100%;
   min-height: 48px;
   padding: 0 14px;
-  border: 1px solid #e4e4ea;
+  border: 1px solid var(--n-200);
   border-radius: 15px;
-  background: #ffffff;
-  color: #14161d;
+  background: var(--n-0);
+  color: var(--n-900);
   font: inherit;
   font-size: 0.88rem;
   font-weight: 750;
@@ -639,8 +639,8 @@ button.svcCard:active { transform: scale(0.99); }
 
 .svcField input:focus,
 .svcField textarea:focus {
-  border-color: #14161d;
-  box-shadow: 0 0 0 3px rgba(20, 22, 29, 0.08);
+  border-color: var(--n-900);
+  box-shadow: 0 0 0 3px rgb(var(--shadow-rgb) / 0.08);
 }
 
 .svcFieldRow { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -650,17 +650,17 @@ button.svcCard:active { transform: scale(0.99); }
 .svcChips button {
   min-height: 34px;
   padding: 0 13px;
-  border: 1px solid #ececf0;
+  border: 1px solid var(--n-100);
   border-radius: 999px;
-  background: #f6f6f8;
-  color: #4b4f5c;
+  background: var(--n-50);
+  color: var(--n-700);
   font: inherit;
   font-size: 0.74rem;
   font-weight: 900;
   cursor: pointer;
 }
 
-.svcChips button.on { border-color: #14161d; background: #14161d; color: #ffffff; }
+.svcChips button.on { border-color: var(--n-900); background: var(--fill-strong); color: var(--n-0); }
 
 .svcSubmit {
   min-height: 54px;
@@ -670,13 +670,13 @@ button.svcCard:active { transform: scale(0.99); }
   gap: 8px;
   border: 0;
   border-radius: 17px;
-  background: #14161d;
-  color: #ffffff;
+  background: var(--fill-strong);
+  color: var(--n-0);
   font: inherit;
   font-size: 0.9rem;
   font-weight: 950;
   cursor: pointer;
-  box-shadow: 0 12px 24px rgba(20, 22, 29, 0.18);
+  box-shadow: 0 12px 24px rgb(var(--shadow-rgb) / 0.18);
 }
 
 .svcSubmit:active { transform: scale(0.98); }
@@ -695,22 +695,22 @@ button.svcCard:active { transform: scale(0.99); }
   padding: 10px 6px;
   border: 2px solid transparent;
   border-radius: 18px;
-  background: #ffffff;
-  color: #4b4f5c;
+  background: var(--n-0);
+  color: var(--n-700);
   font: inherit;
   cursor: pointer;
 }
 
 .svcPickerGrid button span { font-size: 0.68rem; font-weight: 850; line-height: 1.35; text-align: center; }
-.svcPickerGrid button:hover { background: #f6f6f8; }
-.svcPickerGrid button.on { border-color: #14161d; background: #f6f6f8; color: #14161d; }
+.svcPickerGrid button:hover { background: var(--n-50); }
+.svcPickerGrid button.on { border-color: var(--n-900); background: var(--n-50); color: var(--n-900); }
 
 .svcPickerClear {
   min-height: 44px;
   border: 0;
   border-radius: 14px;
-  background: #f6f6f8;
-  color: #c14545;
+  background: var(--n-50);
+  color: var(--danger);
   font: inherit;
   font-size: 0.8rem;
   font-weight: 900;
@@ -748,7 +748,7 @@ button.svcCard:active { transform: scale(0.99); }
 }
 
 /* Owner cards: price sits in the chip row, actions stack on the side. */
-.svcChip.is-price { background: #14161d; color: #ffffff; font-weight: 950; }
+.svcChip.is-price { background: var(--fill-strong); color: var(--n-0); font-weight: 950; }
 .svcCardSide .svcActions { flex-direction: column; }
 
 /* ═══ Page / section icons (PageIcon) ═══════════════════════════════════ */
@@ -770,11 +770,11 @@ button.svcCard:active { transform: scale(0.99); }
 
 /* Active rail chips are light surfaces: draw the outlines in ink. */
 .profileModeRail button.active .pageIcon,
-.bottomNav button.active .pageIcon { --pi-ink: #14161d; }
+.bottomNav button.active .pageIcon { --pi-ink: var(--n-900); }
 
 /* On the dark floating dock the outlines stay light; its active chip is a
    translucent white wash, so keep them white there. */
-.floatingMobileCta.is-modeRail .profileModeRail button .pageIcon { --pi-ink: #ffffff; }
+.floatingMobileCta.is-modeRail .profileModeRail button .pageIcon { --pi-ink: var(--n-0); }
 
 .profileModeRail button .pageIcon { width: 20px; height: 20px; }
 .bottomNav button .pageIcon { width: 24px; height: 24px; }
@@ -788,15 +788,15 @@ button.svcCard:active { transform: scale(0.99); }
    than the many per-role rules in styles.css, which load after this file). */
 :root .profileModeRail.profileModeRail button.active,
 :root .profileModeRail.profileModeRail button.active span {
-  color: #14161d !important;
+  color: var(--n-900) !important;
 }
 
 :root:root:root .profileModeRail.profileModeRail.profileModeRail.is-panelRail:not(.is-client) button.active {
-  box-shadow: inset 0 -3px 0 #14161d !important;
+  box-shadow: inset 0 -3px 0 rgb(var(--shadow-rgb)) !important;
 }
 
 :root .profileModeRail.profileModeRail.is-client.is-panelRail button.active {
-  color: #14161d !important;
+  color: var(--n-900) !important;
 }
 
 /* ═══ Collaboration page ═════════════════════════════════════════════════ */
@@ -805,23 +805,23 @@ button.svcCard:active { transform: scale(0.99); }
   justify-items: center;
   gap: 10px;
   padding: 18px 16px 16px;
-  border: 1px solid #ececf0;
+  border: 1px solid var(--n-100);
   border-radius: 26px;
   background:
-    radial-gradient(120% 90% at 50% 0%, #fff4ea 0%, rgba(255, 244, 234, 0) 62%),
-    #ffffff;
+    radial-gradient(120% 90% at 50% 0%, var(--n-50) 0%, color-mix(in srgb, var(--n-50) 0%, transparent) 62%),
+    var(--n-0);
   text-align: center;
-  box-shadow: 0 10px 28px rgba(20, 22, 29, 0.06);
+  box-shadow: 0 10px 28px rgb(var(--shadow-rgb) / 0.06);
 }
 
 .collabIllustration { width: min(100%, 320px); height: auto; overflow: visible; }
 
-.collabHero h3 { margin: 4px 0 0; color: #14161d; font-size: 1.18rem; font-weight: 950; }
+.collabHero h3 { margin: 4px 0 0; color: var(--n-900); font-size: 1.18rem; font-weight: 950; }
 
 .collabHero p {
   margin: 0;
   max-width: 30ch;
-  color: #6f7380;
+  color: var(--n-600);
   font-size: 0.8rem;
   font-weight: 750;
   line-height: 1.75;
@@ -844,7 +844,7 @@ button.svcCard:active { transform: scale(0.99); }
   gap: 6px;
   padding: 10px 6px;
   border-radius: 16px;
-  background: #f6f6f8;
+  background: var(--n-50);
 }
 
 .collabSteps b {
@@ -853,16 +853,16 @@ button.svcCard:active { transform: scale(0.99); }
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: #14161d;
-  color: #ffffff;
+  background: var(--fill-strong);
+  color: var(--n-0);
   font-size: 0.72rem;
   font-weight: 950;
 }
 
-.collabSteps span { color: #4b4f5c; font-size: 0.68rem; font-weight: 850; line-height: 1.5; }
+.collabSteps span { color: var(--n-700); font-size: 0.68rem; font-weight: 850; line-height: 1.5; }
 
 .collabBoard .collabSectionLabel {
-  color: #14161d;
+  color: var(--n-900);
   font-size: 0.82rem;
   font-weight: 950;
 }
@@ -870,13 +870,13 @@ button.svcCard:active { transform: scale(0.99); }
 .collabEmpty.is-lively {
   gap: 8px;
   padding: 22px 16px;
-  border: 1.5px dashed #dcdce4;
+  border: 1.5px dashed var(--n-200);
   border-radius: 22px;
-  background: #fafafc;
+  background: var(--n-25);
 }
 
 .collabEmpty.is-lively svg { opacity: 1; }
-.collabEmpty.is-lively b { color: #14161d; font-size: 0.9rem; font-weight: 950; }
+.collabEmpty.is-lively b { color: var(--n-900); font-size: 0.9rem; font-weight: 950; }
 .collabEmpty.is-lively span { max-width: 32ch; line-height: 1.7; }
 
 /* "Done" bar under the catalog: stays visible while scrolling so the owner can pick many, then leave. */
@@ -897,7 +897,7 @@ button.svcCard:active { transform: scale(0.99); }
   gap: 10px;
   margin: 0 -16px calc(-16px - env(safe-area-inset-bottom));
   padding: 12px 16px calc(14px + env(safe-area-inset-bottom));
-  background: linear-gradient(to top, #ffffff 82%, rgba(255, 255, 255, 0));
+  background: linear-gradient(to top, var(--n-0) 82%, rgb(var(--paper-rgb) / 0));
 }
 
 /* Added services: one tidy scrolling row of chips, never stacked or overlapping. */
@@ -921,8 +921,8 @@ button.svcCard:active { transform: scale(0.99); }
   gap: 7px;
   padding: 0 12px 0 8px;
   border-radius: 999px;
-  background: #f1f1f5;
-  color: #14161d;
+  background: var(--n-100);
+  color: var(--n-900);
   font-size: 0.74rem;
   font-weight: 900;
   white-space: nowrap;
@@ -940,20 +940,20 @@ button.svcCard:active { transform: scale(0.99); }
   padding: 0 20px;
   border: 0;
   border-radius: 17px;
-  background: #14161d;
-  color: #fff;
+  background: var(--fill-strong);
+  color: var(--n-0);
   font: inherit;
   font-size: 0.92rem;
   font-weight: 950;
   white-space: nowrap;
   cursor: pointer;
-  box-shadow: 0 12px 24px rgba(20, 22, 29, 0.18);
+  box-shadow: 0 12px 24px rgb(var(--shadow-rgb) / 0.18);
 }
 
 .svcDoneBtn:active { transform: scale(0.98); }
 
 .svcSuggest { display: grid; gap: 6px; }
-.svcSuggest small { color: #6f7380; font-size: 0.68rem; font-weight: 800; }
+.svcSuggest small { color: var(--n-600); font-size: 0.68rem; font-weight: 800; }
 .svcSuggest > div { display: flex; flex-wrap: wrap; gap: 6px; }
 
 .svcSuggest button {
@@ -962,10 +962,10 @@ button.svcCard:active { transform: scale(0.99); }
   align-items: center;
   gap: 6px;
   padding: 0 12px 0 10px;
-  border: 1px dashed #b9bbc8;
+  border: 1px dashed var(--n-400);
   border-radius: 999px;
-  background: #fafafc;
-  color: #14161d;
+  background: var(--n-25);
+  color: var(--n-900);
   font: inherit;
   font-size: 0.76rem;
   font-weight: 900;
@@ -974,21 +974,21 @@ button.svcCard:active { transform: scale(0.99); }
 
 .svcSuggest button:active { transform: scale(0.97); }
 
-.svcFormNote { margin: -4px 0 0; color: #565a68; font-size: 0.68rem; font-weight: 750; }
+.svcFormNote { margin: -4px 0 0; color: var(--n-700); font-size: 0.68rem; font-weight: 750; }
 
 .svcSubmit:disabled { opacity: 0.4; box-shadow: none; cursor: not-allowed; }
 
 
 /* quick area sheet (profile checklist) */
-.quickAreaLocate { min-height: 50px; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; border: 0; border-radius: 16px; background: #14161d; color: #fff; font: inherit; font-size: 0.86rem; font-weight: 900; cursor: pointer; }
+.quickAreaLocate { min-height: 50px; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; border: 0; border-radius: 16px; background: var(--fill-strong); color: var(--n-0); font: inherit; font-size: 0.86rem; font-weight: 900; cursor: pointer; }
 .quickAreaLocate:disabled { opacity: 0.6; }
-.quickAreaError { margin: 8px 2px 0; color: #b4232f; font-size: 0.74rem; font-weight: 800; line-height: 1.6; }
+.quickAreaError { margin: 8px 2px 0; color: var(--danger); font-size: 0.74rem; font-weight: 800; line-height: 1.6; }
 .quickAreaList { display: grid; gap: 6px; margin-top: 10px; max-height: 48dvh; overflow-y: auto; overscroll-behavior: contain; }
-.quickAreaList button { min-height: 48px; display: flex; align-items: center; gap: 8px; padding: 0 14px; border: 1px solid #ececf0; border-radius: 14px; background: #fff; color: #14161d; font: inherit; cursor: pointer; text-align: right; }
-.quickAreaList button:active { background: #f6f6f8; }
+.quickAreaList button { min-height: 48px; display: flex; align-items: center; gap: 8px; padding: 0 14px; border: 1px solid var(--n-100); border-radius: 14px; background: var(--n-0); color: var(--n-900); font: inherit; cursor: pointer; text-align: right; }
+.quickAreaList button:active { background: var(--n-50); }
 .quickAreaList b { font-size: 0.88rem; font-weight: 900; }
-.quickAreaList small { margin-inline-start: auto; color: #6f7380; font-size: 0.7rem; font-weight: 750; }
-.quickAreaEmpty { margin: 14px 0; text-align: center; color: #6f7380; font-size: 0.8rem; font-weight: 800; }
+.quickAreaList small { margin-inline-start: auto; color: var(--n-600); font-size: 0.7rem; font-weight: 750; }
+.quickAreaEmpty { margin: 14px 0; text-align: center; color: var(--n-600); font-size: 0.8rem; font-weight: 800; }
 
 /* ═══ Owner service cards: tap the card to edit ═════════════════════════
    No edit / delete buttons on the row any more: the whole card opens the
@@ -1012,10 +1012,10 @@ button.svcCard:active { transform: scale(0.99); }
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
-.svcCardOpen:focus-visible { outline: 2px solid #14161d; outline-offset: 2px; }
+.svcCardOpen:focus-visible { outline: 2px solid var(--n-900); outline-offset: 2px; }
 .svcCard.is-editable:has(> .svcCardOpen:active) { transform: scale(0.99); }
 @media (hover: hover) {
-  .svcCard.is-editable:hover { border-color: #dcdce4; box-shadow: 0 10px 24px rgba(20, 22, 29, 0.09); }
+  .svcCard.is-editable:hover { border-color: var(--n-200); box-shadow: 0 10px 24px rgb(var(--shadow-rgb) / 0.09); }
 }
 
 /* The artist picker on salon cards stays tappable above the card's tap target. */
@@ -1028,10 +1028,10 @@ button.svcCard:active { transform: scale(0.99); }
   align-items: center;
   justify-content: center;
   gap: 8px;
-  border: 1px solid #f3d6d6;
+  border: 1px solid var(--n-200);
   border-radius: 16px;
-  background: #fdf3f3;
-  color: #b23b3b;
+  background: var(--n-50);
+  color: var(--danger);
   font: inherit;
   font-size: 0.84rem;
   font-weight: 900;
@@ -1041,8 +1041,8 @@ button.svcCard:active { transform: scale(0.99); }
 .svcDeleteBtn:disabled { opacity: 0.55; cursor: default; }
 
 /* Salon rules shown to an artist joining the team */
-.salonRulesNote { border-radius: 14px; background: #f6f6f9; text-align: right; }
-.salonRulesNote summary { min-height: 44px; display: flex; align-items: center; gap: 8px; padding: 0 12px; color: #14161d; font-size: 0.82rem; font-weight: 900; cursor: pointer; list-style: none; }
+.salonRulesNote { border-radius: 14px; background: var(--n-50); text-align: right; }
+.salonRulesNote summary { min-height: 44px; display: flex; align-items: center; gap: 8px; padding: 0 12px; color: var(--n-900); font-size: 0.82rem; font-weight: 900; cursor: pointer; list-style: none; }
 .salonRulesNote summary::-webkit-details-marker { display: none; }
-.salonRulesNote p { margin: 0; padding: 0 12px 12px; color: #3a3d4c; font-size: 0.8rem; font-weight: 650; line-height: 1.9; white-space: pre-line; }
-.salonRulesAgree { margin: 0; color: #6a6e7a; font-size: 0.72rem; font-weight: 750; line-height: 1.7; text-align: center; }
+.salonRulesNote p { margin: 0; padding: 0 12px 12px; color: var(--n-800); font-size: 0.8rem; font-weight: 650; line-height: 1.9; white-space: pre-line; }
+.salonRulesAgree { margin: 0; color: var(--n-600); font-size: 0.72rem; font-weight: 750; line-height: 1.7; text-align: center; }

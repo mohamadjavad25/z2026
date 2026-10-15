@@ -141,7 +141,7 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook, c
                     {meta.end ? (
                       <>
                         <span className="cvRail" aria-hidden="true" />
-                        <SegmentClock value={meta.end} size="xxs" className="cvEnd" color="#6f7380" backgroundColor="transparent" />
+                        <SegmentClock value={meta.end} size="xxs" className="cvEnd" color="var(--n-600)" backgroundColor="transparent" />
                       </>
                     ) : null}
                   </div>

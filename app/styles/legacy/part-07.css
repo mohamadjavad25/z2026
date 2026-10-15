@@ -4,7 +4,7 @@
   display: inline-grid;
   place-items: center;
   border-radius: 7px;
-  background: rgba(20, 22, 29, 0.1);
+  background: rgb(var(--ink-rgb) / 0.1);
   color: var(--muted);
   font-size: 0.62rem;
   font-weight: 900;
@@ -12,8 +12,8 @@
 }
 
 .profileLocationOption.is-active .profileLocationOptionCount{
-  background: rgba(255, 255, 255, 0.25);
-  color: #fff;
+  background: rgb(var(--paper-rgb) / 0.25);
+  color: var(--n-0);
 }
 
 .profileLocationStepBar{
@@ -21,8 +21,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 8px 12px;
-  border-bottom: 1px solid rgba(28, 32, 44, 0.06);
-  background: rgba(20, 22, 29, 0.04);
+  border-bottom: 1px solid rgb(var(--ink-rgb) / 0.06);
+  background: rgb(var(--ink-rgb) / 0.04);
 }
 
 .profileLocationBreadcrumb{
@@ -31,7 +31,7 @@
   gap: 4px;
   padding: 3px 10px;
   border-radius: 10px;
-  background: rgba(20, 22, 29, 0.1);
+  background: rgb(var(--ink-rgb) / 0.1);
   color: var(--teal);
   font-size: 0.72rem;
   font-weight: 850;
@@ -43,7 +43,7 @@
   min-height: 64px;
   padding: 18px 12px;
   border-radius: 16px;
-  background: rgba(28, 32, 44, 0.04);
+  background: rgb(var(--ink-rgb) / 0.04);
   text-align: center;
   color: var(--muted);
   font-size: 0.78rem;
@@ -63,8 +63,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 8px 12px;
-  border-bottom: 1px solid rgba(28, 32, 44, 0.06);
-  background: rgba(249, 249, 251, 0.85);
+  border-bottom: 1px solid rgb(var(--ink-rgb) / 0.06);
+  background: color-mix(in srgb, var(--n-25) 85%, transparent);
   z-index: 2;
 }
 
@@ -74,7 +74,7 @@
   gap: 4px;
   border: 0;
   background: transparent;
-  color: #14161d;
+  color: var(--n-900);
   font-family: inherit;
   font-size: 0.72rem;
   font-weight: 850;
@@ -92,7 +92,7 @@
   gap: 5px;
   padding: 3px 10px;
   border-radius: 10px;
-  background: rgba(20, 22, 29, 0.1);
+  background: rgb(var(--ink-rgb) / 0.1);
   color: var(--teal);
   font-size: 0.74rem;
   font-weight: 850;
@@ -119,8 +119,8 @@
   display: grid;
   gap: 8px;
   padding: 10px 12px;
-  border-top: 1px solid rgba(28, 32, 44, 0.06);
-  background: rgba(255, 255, 255, 0.96);
+  border-top: 1px solid rgb(var(--ink-rgb) / 0.06);
+  background: rgb(var(--paper-rgb) / 0.96);
   z-index: 2;
 }
 
@@ -149,18 +149,18 @@
   min-height: 44px;
   border: 0;
   border-radius: 14px;
-  background: linear-gradient(135deg, #14161d, #14161d);
-  color: #fff;
+  background: var(--fill-strong-grad);
+  color: var(--n-0);
   font-family: inherit;
   font-size: 0.84rem;
   font-weight: 900;
   cursor: pointer;
-  box-shadow: 0 8px 22px rgba(20, 22, 29, 0.25);
+  box-shadow: 0 8px 22px rgb(var(--shadow-rgb) / 0.25);
   transition: background 0.2s ease;
 }
 
 .profileLocationConfirm:hover{
-  background: linear-gradient(135deg, #126764, #0e5552);
+  background: linear-gradient(135deg, var(--violet-deep), var(--violet-deep));
 }
 
 .profileLocationConfirm:disabled{
@@ -173,7 +173,7 @@
   min-height: 58px;
   border: 1px solid var(--line);
   border-radius: 15px;
-  background: rgba(255, 255, 255, 0.74);
+  background: rgb(var(--paper-rgb) / 0.74);
   color: var(--ink);
   text-align: right;
   padding: 10px;
@@ -222,12 +222,12 @@
   height: 30px;
   display: block;
   border-radius: 999px;
-  background: rgba(104, 113, 119, 0.18);
+  background: color-mix(in srgb, var(--n-600) 18%, transparent);
   color: transparent;
   font-size: 0;
   box-shadow:
-    inset 0 0 0 1px rgba(28, 32, 44, 0.06),
-    0 8px 18px rgba(28, 32, 44, 0.06);
+    inset 0 0 0 1px rgb(var(--shadow-rgb) / 0.06),
+    0 8px 18px rgb(var(--shadow-rgb) / 0.06);
   transition: background 0.2s ease;
 }
 
@@ -239,13 +239,13 @@
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 5px 14px rgba(28, 32, 44, 0.18);
+  background: var(--n-0);
+  box-shadow: 0 5px 14px rgb(var(--shadow-rgb) / 0.18);
   transition: transform 0.2s ease;
 }
 
 .settingsList b.is-on{
-  background: linear-gradient(135deg, #6f7380, #14161d);
+  background: var(--fill-strong-grad);
 }
 
 .settingsList b.is-off::after{
@@ -253,8 +253,8 @@
 }
 
 .settingsList button.logoutButton{
-  border-color: rgba(20, 22, 29, 0.24);
-  background: linear-gradient(135deg, rgba(20, 22, 29, 0.12), rgba(20, 22, 29, 0.08));
+  border-color: rgb(var(--ink-rgb) / 0.24);
+  background: linear-gradient(135deg, rgb(var(--ink-rgb) / 0.12), rgb(var(--ink-rgb) / 0.08));
 }
 
 .settingsList button.logoutButton span{
@@ -298,7 +298,7 @@
   display: grid;
   place-items: center;
   padding: 18px;
-  background: rgba(18, 20, 23, 0.5);
+  background: rgb(var(--ink-rgb) / 0.5);
   backdrop-filter: blur(14px);
 }
 
@@ -314,9 +314,9 @@
   overflow: hidden;
   border: 0;
   border-radius: 24px;
-  background: #fff;
+  background: var(--n-0);
   color: var(--ink);
-  box-shadow: 0 28px 70px rgba(15, 17, 20, 0.28);
+  box-shadow: 0 28px 70px rgb(var(--shadow-rgb) / 0.28);
 }
 
 .artistWorkHero{
@@ -324,11 +324,11 @@
   min-height: 240px;
   height: 240px;
   overflow: hidden;
-  background: #1a1d21;
+  background: var(--n-900);
 }
 
 .artistWorkHero.has-image{
-  background: #111417;
+  background: var(--n-950);
 }
 
 .artistWorkHero img{
@@ -343,7 +343,7 @@
   position: absolute;
   inset: auto 0 0;
   height: 48%;
-  background: linear-gradient(180deg, transparent, rgba(12, 14, 16, 0.35));
+  background: linear-gradient(180deg, transparent, rgb(12 13 18 / 0.35));
   pointer-events: none;
 }
 
@@ -355,21 +355,21 @@
   gap: 6px;
   padding: 28px 18px 20px;
   text-align: center;
-  color: #fff;
+  color: var(--n-0);
 }
 
 .artistWorkUploadEmpty svg{
-  color: #7fd4d1;
+  color: var(--info);
 }
 
 .artistWorkUploadEmpty b{
-  color: #fff;
+  color: var(--n-0);
   font-size: 0.92rem;
 }
 
 .artistWorkUploadEmpty span{
   max-width: 250px;
-  color: rgba(255, 255, 255, 0.62);
+  color: rgb(var(--paper-rgb) / 0.62);
   font-size: 0.7rem;
   line-height: 1.55;
   font-weight: 700;
@@ -393,12 +393,12 @@
   gap: 6px;
   padding: 0 12px;
   border-radius: 14px;
-  background: #14161d;
-  color: #fff;
+  background: var(--fill-strong);
+  color: var(--n-0);
   font-size: 0.74rem;
   font-weight: 900;
   cursor: pointer;
-  box-shadow: 0 10px 22px rgba(20, 22, 29, 0.28);
+  box-shadow: 0 10px 22px rgb(var(--shadow-rgb) / 0.28);
 }
 
 .artistWorkUploadOverlay{
@@ -429,8 +429,8 @@
   padding: 0 12px;
   border: 0;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.16);
-  color: #fff;
+  background: rgb(var(--paper-rgb) / 0.16);
+  color: var(--n-0);
   font-family: inherit;
   font-size: 0.72rem;
   font-weight: 800;
@@ -444,7 +444,7 @@
   gap: 12px;
   padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px));
   overflow: auto;
-  background: #fff;
+  background: var(--n-0);
 }
 
 .artistWorkRow{
@@ -460,7 +460,7 @@
 }
 
 .artistWorkField > span{
-  color: rgba(28, 32, 44, 0.55);
+  color: rgb(var(--ink-rgb) / 0.55);
   font-size: 0.7rem;
   font-weight: 800;
   line-height: 1.2;
@@ -470,9 +470,9 @@
 .artistWorkForm select,
 .artistWorkForm textarea{
   width: 100%;
-  border: 1px solid rgba(28, 32, 44, 0.1);
+  border: 1px solid rgb(var(--ink-rgb) / 0.1);
   border-radius: 12px;
-  background-color: #f6f7f8;
+  background-color: var(--n-50);
   color: var(--ink);
   box-shadow: none;
   font-family: inherit;
@@ -510,7 +510,7 @@
 
 .artistWorkForm input::placeholder,
 .artistWorkForm textarea::placeholder{
-  color: rgba(28, 32, 44, 0.35);
+  color: rgb(var(--ink-rgb) / 0.35);
   font-weight: 700;
 }
 
@@ -518,9 +518,9 @@
 .artistWorkForm select:focus,
 .artistWorkForm textarea:focus{
   outline: none;
-  background-color: #fff;
-  border-color: rgba(20, 22, 29, 0.45);
-  box-shadow: 0 0 0 3px rgba(20, 22, 29, 0.12);
+  background-color: var(--n-0);
+  border-color: rgb(var(--ink-rgb) / 0.45);
+  box-shadow: 0 0 0 3px rgb(var(--shadow-rgb) / 0.12);
 }
 
 .artistWorkForm select:focus{
@@ -545,9 +545,9 @@
   justify-content: space-between;
   gap: 8px;
   padding: 0 12px;
-  border: 1px solid rgba(28, 32, 44, 0.1);
+  border: 1px solid rgb(var(--ink-rgb) / 0.1);
   border-radius: 12px;
-  background: #f6f7f8;
+  background: var(--n-50);
   color: var(--ink);
   font-family: inherit;
   font-size: 0.84rem;
@@ -575,7 +575,7 @@
 }
 
 .artistWorkTagTrigger input::placeholder{
-  color: rgba(28, 32, 44, 0.36);
+  color: rgb(var(--ink-rgb) / 0.36);
 }
 
 .artistWorkTagTrigger button{
@@ -586,8 +586,8 @@
   place-items: center;
   border: 0;
   border-radius: 9px;
-  background: rgba(20, 22, 29, 0.08);
-  color: #14161d;
+  background: rgb(var(--ink-rgb) / 0.08);
+  color: var(--n-900);
   cursor: pointer;
 }
 
@@ -597,9 +597,9 @@
 }
 
 .artistWorkTagSelect.is-open .artistWorkTagTrigger{
-  background: #fff;
-  border-color: rgba(20, 22, 29, 0.45);
-  box-shadow: 0 0 0 3px rgba(20, 22, 29, 0.12);
+  background: var(--n-0);
+  border-color: rgb(var(--ink-rgb) / 0.45);
+  box-shadow: 0 0 0 3px rgb(var(--shadow-rgb) / 0.12);
 }
 
 .artistWorkTagSelect.is-open .artistWorkTagTrigger button svg{
@@ -616,17 +616,17 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 6px;
   padding: 8px;
-  border: 1px solid rgba(28, 32, 44, 0.1);
+  border: 1px solid rgb(var(--ink-rgb) / 0.1);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.98);
-  box-shadow: 0 18px 40px rgba(28, 32, 44, 0.16);
+  background: rgb(var(--paper-rgb) / 0.98);
+  box-shadow: 0 18px 40px rgb(var(--shadow-rgb) / 0.16);
 }
 
 .artistWorkTagMenu button{
   min-height: 34px;
-  border: 1px solid rgba(28, 32, 44, 0.08);
+  border: 1px solid rgb(var(--ink-rgb) / 0.08);
   border-radius: 10px;
-  background: #fff;
+  background: var(--n-0);
   color: var(--ink);
   font-family: inherit;
   font-size: 0.72rem;
@@ -636,8 +636,8 @@
 
 .artistWorkTagMenu button.active{
   border-color: transparent;
-  background: #14161d;
-  color: #fff;
+  background: var(--fill-strong);
+  color: var(--n-0);
 }
 
 .artistWorkSwitches{
@@ -654,9 +654,9 @@
   min-width: 0;
   min-height: 58px;
   padding: 10px 10px 10px 58px;
-  border: 1px solid rgba(28, 32, 44, 0.08);
+  border: 1px solid rgb(var(--ink-rgb) / 0.08);
   border-radius: 14px;
-  background: #f7f8f9;
+  background: var(--n-25);
   text-align: right;
   direction: rtl;
   cursor: pointer;
@@ -674,7 +674,7 @@
 
 .artistWorkSwitch small{
   display: block;
-  color: rgba(28, 32, 44, 0.5);
+  color: rgb(var(--ink-rgb) / 0.5);
   font-size: 0.62rem;
   font-weight: 700;
   line-height: 1.35;
@@ -690,12 +690,12 @@
   height: 26px;
   display: block;
   border-radius: 999px;
-  background: rgba(104, 113, 119, 0.18);
+  background: color-mix(in srgb, var(--n-600) 18%, transparent);
   color: transparent;
   font-size: 0;
   box-shadow:
-    inset 0 0 0 1px rgba(28, 32, 44, 0.06),
-    0 6px 14px rgba(28, 32, 44, 0.06);
+    inset 0 0 0 1px rgb(var(--shadow-rgb) / 0.06),
+    0 6px 14px rgb(var(--shadow-rgb) / 0.06);
   transition: background 0.2s ease;
 }
 
@@ -707,13 +707,13 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 4px 12px rgba(28, 32, 44, 0.16);
+  background: var(--n-0);
+  box-shadow: 0 4px 12px rgb(var(--shadow-rgb) / 0.16);
   transition: transform 0.2s ease;
 }
 
 .artistWorkSwitch b.is-on{
-  background: linear-gradient(135deg, #6f7380, #14161d);
+  background: var(--fill-strong-grad);
 }
 
 .artistWorkSwitch b.is-off::after{
@@ -745,15 +745,15 @@
 }
 
 .artistWorkSave{
-  background: #14161d;
-  color: #fff;
+  background: var(--fill-strong);
+  color: var(--n-0);
   font-size: 0.84rem;
-  box-shadow: 0 10px 24px rgba(20, 22, 29, 0.22);
+  box-shadow: 0 10px 24px rgb(var(--shadow-rgb) / 0.22);
 }
 
 .artistWorkDelete{
-  background: rgba(196, 92, 118, 0.1);
-  color: #c45c76;
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--accent);
   font-size: 0.8rem;
 }
 
@@ -785,11 +785,11 @@
 }
 
 .profilePostComposer .artistWorkUploadBtn {
-  background: rgba(20, 22, 29, 0.88);
+  background: rgb(var(--ink-rgb) / 0.88);
 }
 
 .profilePostComposer .artistWorkUploadOverlay button {
-  background: rgba(196, 92, 118, 0.28);
+  background: color-mix(in srgb, var(--accent) 28%, transparent);
 }
 
 @media (max-width: 420px) {
@@ -813,7 +813,7 @@
   display: grid;
   place-items: center;
   padding: 18px;
-  background: rgba(18, 20, 23, 0.56);
+  background: rgb(var(--ink-rgb) / 0.56);
   backdrop-filter: blur(14px);
 }
 
@@ -848,13 +848,13 @@
 
 .staffToolHead b{
   font-size: 1.24rem;
-  color: rgba(255, 255, 255, 0.9);
-  text-shadow: 0 10px 24px rgba(7, 13, 18, 0.2);
+  color: rgb(var(--paper-rgb) / 0.9);
+  text-shadow: 0 10px 24px rgb(var(--shadow-rgb) / 0.2);
 }
 
 .staffToolHead span,
 .staffToolHead small{
-  color: rgba(191, 192, 209, 0.92);
+  color: color-mix(in srgb, var(--n-400) 92%, transparent);
 }
 
 .staffHeroCard{
@@ -865,18 +865,18 @@
   gap: 0;
   padding: 16px 14px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.24);
+  border: 1px solid rgb(var(--paper-rgb) / 0.24);
   border-radius: 22px;
   background:
-    radial-gradient(circle at 18% 10%, rgba(191, 192, 209, 0.24), transparent 36%),
-    linear-gradient(120deg, rgba(20, 22, 29, 0.62), rgba(42, 42, 46, 0.58)),
+    radial-gradient(circle at 18% 10%, color-mix(in srgb, var(--n-400) 24%, transparent), transparent 36%),
+    linear-gradient(120deg, rgb(12 13 18 / 0.62), rgba(42, 42, 46, 0.58)),
     url("/salon-sidebar-system.webp");
   background-size: cover;
   background-position: center;
-  color: #fff;
+  color: var(--on-photo);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    0 18px 40px rgba(28, 32, 44, 0.14);
+    0 18px 40px rgb(var(--shadow-rgb) / 0.14);
   backdrop-filter: blur(16px);
 }
 
@@ -887,7 +887,7 @@
 }
 
 .staffHeroCard span{
-  color: #bfc0d1;
+  color: var(--n-400);
   font-size: 0.7rem;
   font-weight: 900;
 }
@@ -902,7 +902,7 @@
 .staffHeroCard small{
   margin-top: 6px;
   max-width: 34ch;
-  color: rgba(255, 255, 255, 0.78);
+  color: rgb(var(--paper-rgb) / 0.78);
   font-size: 0.72rem;
   line-height: 1.55;
   font-weight: 700;
@@ -914,8 +914,8 @@
   display: grid;
   place-items: center;
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.16);
-  color: #bfc0d1;
+  background: rgb(var(--paper-rgb) / 0.16);
+  color: var(--n-400);
   font-size: 1.1rem;
   backdrop-filter: blur(14px);
 }
@@ -939,17 +939,17 @@
   gap: 3px;
   padding: 7px 8px;
   border-radius: 15px;
-  border: 1px solid rgba(255, 255, 255, 0.28);
+  border: 1px solid rgb(var(--paper-rgb) / 0.28);
   background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.5), rgba(223, 239, 247, 0.24)),
-    rgba(255, 255, 255, 0.18);
-  color: rgba(14, 31, 38, 0.7);
+    linear-gradient(145deg, rgb(var(--paper-rgb) / 0.5), color-mix(in srgb, var(--n-100) 24%, transparent)),
+    rgb(var(--paper-rgb) / 0.18);
+  color: rgb(var(--ink-rgb) / 0.7);
   font-size: 0.62rem;
   font-weight: 900;
   text-align: center;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.48),
-    0 8px 20px rgba(28, 32, 44, 0.04);
+    0 8px 20px rgb(var(--shadow-rgb) / 0.04);
   backdrop-filter: blur(16px);
 }
 
@@ -973,12 +973,12 @@
   gap: 5px;
   padding: 7px 6px;
   border-radius: 15px;
-  background: rgba(20, 22, 29, 0.08);
+  background: rgb(var(--ink-rgb) / 0.08);
   color: var(--teal);
   font-size: 0.62rem;
   font-weight: 900;
   text-align: center;
-  box-shadow: inset 0 0 0 1px rgba(20, 22, 29, 0.08);
+  box-shadow: inset 0 0 0 1px rgb(var(--shadow-rgb) / 0.08);
 }
 
 .staffRosterGrid{
@@ -986,8 +986,8 @@
   gap: 8px;
   padding: 8px;
   border-radius: 22px;
-  background: rgba(255, 255, 255, 0.7);
-  box-shadow: inset 0 0 0 1px rgba(28, 32, 44, 0.06);
+  background: rgb(var(--paper-rgb) / 0.7);
+  box-shadow: inset 0 0 0 1px rgb(var(--shadow-rgb) / 0.06);
 }
 
 .staffRosterGrid button{
@@ -998,19 +998,19 @@
   align-items: center;
   gap: 9px;
   padding: 9px;
-  border: 1px solid rgba(28, 32, 44, 0.06);
+  border: 1px solid rgb(var(--ink-rgb) / 0.06);
   border-radius: 18px;
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(248, 243, 239, 0.82));
+    linear-gradient(135deg, rgb(var(--paper-rgb) / 0.94), color-mix(in srgb, var(--n-50) 82%, transparent));
   color: var(--ink);
   text-align: right;
 }
 
 .staffRosterGrid button.active{
-  border-color: rgba(20, 22, 29, 0.36);
+  border-color: rgb(var(--ink-rgb) / 0.36);
   background:
-    linear-gradient(135deg, rgba(236, 249, 247, 0.96), rgba(255, 255, 255, 0.92));
-  box-shadow: 0 12px 26px rgba(20, 22, 29, 0.12);
+    linear-gradient(135deg, color-mix(in srgb, var(--n-50) 96%, transparent), rgb(var(--paper-rgb) / 0.92));
+  box-shadow: 0 12px 26px rgb(var(--shadow-rgb) / 0.12);
 }
 
 .staffRosterAvatar,
@@ -1019,9 +1019,9 @@
   place-items: center;
   border-radius: 18px;
   background:
-    radial-gradient(circle at 30% 20%, rgba(191, 192, 209, 0.34), transparent 42%),
-    linear-gradient(135deg, rgba(20, 22, 29, 0.92), rgba(20, 22, 29, 0.82));
-  color: #fff;
+    radial-gradient(circle at 30% 20%, color-mix(in srgb, var(--n-400) 34%, transparent), transparent 42%),
+    linear-gradient(135deg, rgb(12 13 18 / 0.92), rgb(12 13 18 / 0.82));
+  color: var(--on-photo);
   font-weight: 950;
 }
 
@@ -1056,7 +1056,7 @@
   max-width: 88px;
   padding: 5px 8px;
   border-radius: 999px;
-  background: rgba(20, 22, 29, 0.09);
+  background: rgb(var(--ink-rgb) / 0.09);
   color: var(--teal);
   font-size: 0.6rem;
   font-style: normal;
@@ -1118,9 +1118,9 @@
 .artistProfileForm select{
   width: 100%;
   min-height: 44px;
-  border: 1px solid rgba(20, 22, 29, 0.1);
+  border: 1px solid rgb(var(--ink-rgb) / 0.1);
   border-radius: 15px;
-  background: rgba(255, 255, 255, 0.94);
+  background: rgb(var(--paper-rgb) / 0.94);
   color: var(--ink);
   font: inherit;
   font-size: 0.76rem;
@@ -1136,8 +1136,8 @@
   gap: 7px;
   border: 0;
   border-radius: 16px;
-  background: linear-gradient(135deg, var(--night), var(--plum));
-  color: #fff;
+  background: var(--fill-strong-grad);
+  color: var(--n-0);
   font-family: inherit;
   font-weight: 950;
 }
@@ -1149,10 +1149,10 @@
   place-items: center;
   border: 0;
   border-radius: 50%;
-  background: rgba(20, 22, 29, 0.08);
+  background: rgb(var(--ink-rgb) / 0.08);
   color: var(--teal);
   font-family: inherit;
-  box-shadow: inset 0 0 0 1px rgba(28, 32, 44, 0.08);
+  box-shadow: inset 0 0 0 1px rgb(var(--shadow-rgb) / 0.08);
   cursor: pointer;
 }
 
@@ -1191,10 +1191,10 @@
   overflow: visible;
   flex: 0 0 auto;
   filter:
-    drop-shadow(0 1px 1px rgba(28, 32, 44, 0.18))
+    drop-shadow(0 1px 1px rgb(var(--shadow-rgb) / 0.18))
     drop-shadow(0 0 3px rgba(255, 255, 255, 0.84))
     drop-shadow(0 0 8px rgba(235, 72, 153, 0.36))
-    drop-shadow(0 0 12px rgba(61, 177, 255, 0.28));
+    drop-shadow(0 0 12px rgb(139 108 255 / 0.28));
 }
 
 .marbleStarShape{
@@ -1211,39 +1211,39 @@
 }
 
 .marbleRibbon.pink{
-  stroke: #ff4fb5;
+  stroke: var(--accent);
   stroke-width: 13;
 }
 
 .marbleRibbon.cyan{
-  stroke: #28d7ff;
+  stroke: var(--info);
   stroke-width: 12;
 }
 
 .marbleRibbon.yellow{
-  stroke: #ffd92e;
+  stroke: var(--warning);
   stroke-width: 15;
 }
 
 .marbleRibbon.orange{
-  stroke: #ff7d12;
+  stroke: var(--warning);
   stroke-width: 12;
 }
 
 .marbleRibbon.blue{
-  stroke: #315bff;
+  stroke: var(--info);
   stroke-width: 9;
   opacity: 0.78;
 }
 
 .marbleRibbon.white{
-  stroke: rgba(255, 255, 255, 0.9);
+  stroke: rgb(var(--paper-rgb) / 0.9);
   stroke-width: 5;
   opacity: 0.8;
 }
 
 .marbleRibbon.violet{
-  stroke: #6f7380;
+  stroke: var(--n-600);
   stroke-width: 11;
   opacity: 0.82;
 }
@@ -1283,9 +1283,9 @@
   justify-items: center;
   padding: 18px 14px;
   background:
-    radial-gradient(circle at 16% 72%, rgba(20, 22, 29, 0.18), transparent 32%),
-    radial-gradient(circle at 84% 18%, rgba(191, 192, 209, 0.14), transparent 28%),
-    rgba(12, 15, 18, 0.48);
+    radial-gradient(circle at 16% 72%, rgb(var(--ink-rgb) / 0.18), transparent 32%),
+    radial-gradient(circle at 84% 18%, color-mix(in srgb, var(--n-400) 14%, transparent), transparent 28%),
+    rgb(12 13 18 / 0.48);
   backdrop-filter: blur(18px) saturate(0.72);
 }
 
@@ -1297,19 +1297,19 @@
   gap: 12px;
   padding: 14px;
   overflow: hidden auto;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 1px solid rgb(var(--paper-rgb) / 0.18);
   border-radius: 26px 26px 20px 20px;
   background:
-    radial-gradient(circle at 12% 0%, rgba(191, 192, 209, 0.44), transparent 34%),
-    radial-gradient(circle at 90% 14%, rgba(191, 192, 209, 0.2), transparent 26%),
-    radial-gradient(circle at 22% 92%, rgba(20, 22, 29, 0.34), transparent 34%),
-    linear-gradient(145deg, rgba(16, 53, 62, 0.88), rgba(37, 44, 61, 0.86) 46%, rgba(246, 246, 251, 0.72));
-  color: #fff;
+    radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--n-400) 44%, transparent), transparent 34%),
+    radial-gradient(circle at 90% 14%, color-mix(in srgb, var(--n-400) 20%, transparent), transparent 26%),
+    radial-gradient(circle at 22% 92%, rgb(12 13 18 / 0.34), transparent 34%),
+    linear-gradient(145deg, color-mix(in srgb, var(--info) 88%, transparent), rgba(37, 44, 61, 0.86) 46%, color-mix(in srgb, var(--n-50) 72%, transparent));
+  color: var(--on-photo);
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.08),
-    0 0 34px rgba(118, 224, 220, 0.16),
-    0 24px 58px rgba(8, 11, 14, 0.3),
-    0 44px 96px rgba(8, 11, 14, 0.28),
+    0 0 34px rgb(139 108 255 / 0.16),
+    0 24px 58px rgb(var(--shadow-rgb) / 0.3),
+    0 44px 96px rgb(var(--shadow-rgb) / 0.28),
     inset 0 1px 0 rgba(255, 255, 255, 0.2),
     inset 0 -1px 0 rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(26px) saturate(1.15);
@@ -1325,11 +1325,11 @@
 
 .artistProfileSheet::before{
   background:
-    radial-gradient(circle at 18% 26%, rgba(255, 255, 255, 0.72) 0 1px, transparent 2px),
-    radial-gradient(circle at 31% 62%, rgba(255, 255, 255, 0.48) 0 1px, transparent 2px),
-    radial-gradient(circle at 68% 20%, rgba(255, 255, 255, 0.56) 0 1px, transparent 2px),
-    radial-gradient(circle at 82% 72%, rgba(255, 255, 255, 0.42) 0 1px, transparent 2px),
-    linear-gradient(118deg, transparent 16%, rgba(255, 255, 255, 0.2) 44%, transparent 68%);
+    radial-gradient(circle at 18% 26%, rgb(var(--paper-rgb) / 0.72) 0 1px, transparent 2px),
+    radial-gradient(circle at 31% 62%, rgb(var(--paper-rgb) / 0.48) 0 1px, transparent 2px),
+    radial-gradient(circle at 68% 20%, rgb(var(--paper-rgb) / 0.56) 0 1px, transparent 2px),
+    radial-gradient(circle at 82% 72%, rgb(var(--paper-rgb) / 0.42) 0 1px, transparent 2px),
+    linear-gradient(118deg, transparent 16%, rgb(var(--paper-rgb) / 0.2) 44%, transparent 68%);
   opacity: 0.66;
   mix-blend-mode: screen;
 }
@@ -1338,9 +1338,9 @@
   inset: -1px;
   border-radius: 27px 27px 21px 21px;
   background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.26), transparent 18%, transparent 82%, rgba(255, 255, 255, 0.14)),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.22), transparent 30%),
-    radial-gradient(ellipse at 50% 110%, rgba(255, 255, 255, 0.44), transparent 46%);
+    linear-gradient(90deg, rgb(var(--paper-rgb) / 0.26), transparent 18%, transparent 82%, rgb(var(--paper-rgb) / 0.14)),
+    linear-gradient(180deg, rgb(var(--paper-rgb) / 0.22), transparent 30%),
+    radial-gradient(ellipse at 50% 110%, rgb(var(--paper-rgb) / 0.44), transparent 46%);
   filter: blur(0.6px);
 }
 
@@ -1359,8 +1359,8 @@
   place-items: center;
   border: 0;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.14);
-  color: #17363f;
+  background: rgb(var(--paper-rgb) / 0.14);
+  color: var(--info);
   font-family: inherit;
   cursor: pointer;
   backdrop-filter: blur(14px);
@@ -1376,12 +1376,12 @@
   padding: 16px 14px;
   border-radius: 22px;
   background:
-    radial-gradient(circle at 16% 18%, rgba(255, 255, 255, 0.18), transparent 34%),
-    linear-gradient(135deg, rgba(18, 113, 123, 0.56), rgba(32, 37, 54, 0.48));
-  color: #fff;
+    radial-gradient(circle at 16% 18%, rgb(var(--paper-rgb) / 0.18), transparent 34%),
+    linear-gradient(135deg, color-mix(in srgb, var(--info) 56%, transparent), rgb(12 13 18 / 0.48));
+  color: var(--on-photo);
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.14),
-    0 18px 36px rgba(7, 13, 18, 0.16);
+    0 18px 36px rgb(var(--shadow-rgb) / 0.16);
   backdrop-filter: blur(20px);
 }
 
@@ -1392,8 +1392,8 @@
   place-items: center;
   align-self: stretch;
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.16);
-  color: #bfc0d1;
+  background: rgb(var(--paper-rgb) / 0.16);
+  color: var(--n-400);
   font-size: 1.44rem;
   font-weight: 950;
   backdrop-filter: blur(12px);
@@ -1401,7 +1401,7 @@
 }
 
 .artistProfileAvatar.hasImage{
-  background: #e8eaec center / cover no-repeat;
+  background: var(--n-150) center / cover no-repeat;
   color: transparent;
 }
 
@@ -1418,7 +1418,7 @@
 }
 
 .artistProfileHero span{
-  color: #bfc0d1;
+  color: var(--n-400);
   font-size: 0.66rem;
   font-weight: 950;
 }
@@ -1431,7 +1431,7 @@
 
 .artistProfileHero small{
   margin-top: 5px;
-  color: rgba(255, 255, 255, 0.72);
+  color: rgb(var(--paper-rgb) / 0.72);
   font-size: 0.72rem;
   font-weight: 850;
 }
@@ -1449,17 +1449,17 @@
   gap: 4px;
   padding: 9px;
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.32);
+  border: 1px solid rgb(var(--paper-rgb) / 0.32);
   background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.5), rgba(223, 239, 247, 0.28)),
-    rgba(255, 255, 255, 0.18);
-  color: rgba(14, 31, 38, 0.76);
+    linear-gradient(145deg, rgb(var(--paper-rgb) / 0.5), color-mix(in srgb, var(--n-100) 28%, transparent)),
+    rgb(var(--paper-rgb) / 0.18);
+  color: rgb(var(--ink-rgb) / 0.76);
   font-size: 0.66rem;
   font-weight: 850;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.48),
     inset 0 -1px 0 rgba(255, 255, 255, 0.14),
-    0 12px 26px rgba(7, 13, 18, 0.08);
+    0 12px 26px rgb(var(--shadow-rgb) / 0.08);
   backdrop-filter: blur(18px) saturate(1.08);
 }
 
@@ -1471,7 +1471,7 @@
 .artistProfileField{
   display: grid;
   gap: 7px;
-  color: rgba(28, 32, 44, 0.86);
+  color: rgb(var(--ink-rgb) / 0.86);
   font-size: 0.68rem;
   font-weight: 950;
 }
@@ -1479,18 +1479,18 @@
 .artistProfileField select{
   width: 100%;
   min-height: 46px;
-  border: 1px solid rgba(255, 255, 255, 0.34);
+  border: 1px solid rgb(var(--paper-rgb) / 0.34);
   border-radius: 15px;
   background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.52), rgba(224, 238, 246, 0.3)),
-    rgba(255, 255, 255, 0.2);
+    linear-gradient(145deg, rgb(var(--paper-rgb) / 0.52), color-mix(in srgb, var(--n-150) 30%, transparent)),
+    rgb(var(--paper-rgb) / 0.2);
   color: var(--ink);
   font: inherit;
   font-weight: 850;
   padding: 0 11px;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.5),
-    0 12px 26px rgba(7, 13, 18, 0.07);
+    0 12px 26px rgb(var(--shadow-rgb) / 0.07);
   backdrop-filter: blur(18px) saturate(1.08);
 }
 
@@ -1504,7 +1504,7 @@
   min-height: 46px;
   border: 0;
   border-radius: 15px;
-  background: rgba(255, 255, 255, 0.36);
+  background: rgb(var(--paper-rgb) / 0.36);
   color: var(--teal);
   font-family: inherit;
   font-size: 0.74rem;
@@ -1514,7 +1514,7 @@
 }
 
 .artistProfileActions button.danger{
-  background: rgba(194, 74, 108, 0.1);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
   color: var(--rose);
 }
 
@@ -1526,8 +1526,8 @@
   padding: 12px;
   gap: 10px;
   background:
-    radial-gradient(circle at 8% 0%, rgba(191, 192, 209, 0.2), transparent 34%),
-    linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(239, 248, 246, 0.9));
+    radial-gradient(circle at 8% 0%, color-mix(in srgb, var(--n-400) 20%, transparent), transparent 34%),
+    linear-gradient(145deg, rgb(var(--paper-rgb) / 0.95), color-mix(in srgb, var(--n-50) 90%, transparent));
 }
 
 .staffIdentityCard{
@@ -1537,8 +1537,8 @@
   gap: 10px;
   padding: 10px;
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.76);
-  box-shadow: inset 0 0 0 1px rgba(28, 32, 44, 0.06);
+  background: rgb(var(--paper-rgb) / 0.76);
+  box-shadow: inset 0 0 0 1px rgb(var(--shadow-rgb) / 0.06);
 }
 
 .staffIdentityCard .staffAvatar{
@@ -1574,7 +1574,7 @@
   min-width: 58px;
   padding: 8px 9px;
   border-radius: 16px;
-  background: rgba(20, 22, 29, 0.1);
+  background: rgb(var(--ink-rgb) / 0.1);
   color: var(--plum);
   font-size: 0.7rem;
   text-align: center;
@@ -1593,7 +1593,7 @@
   gap: 4px;
   padding: 8px;
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.78);
+  background: rgb(var(--paper-rgb) / 0.78);
   color: var(--muted);
   font-size: 0.6rem;
   font-weight: 900;
@@ -1618,9 +1618,9 @@
   align-content: center;
   gap: 4px;
   padding: 8px 6px;
-  border: 1px solid rgba(28, 32, 44, 0.07);
+  border: 1px solid rgb(var(--ink-rgb) / 0.07);
   border-radius: 17px;
-  background: rgba(255, 255, 255, 0.72);
+  background: rgb(var(--paper-rgb) / 0.72);
   color: var(--muted);
   font-family: inherit;
   font-weight: 900;
@@ -1628,11 +1628,11 @@
 }
 
 .staffAccessPanel button.active{
-  border-color: rgba(20, 22, 29, 0.34);
+  border-color: rgb(var(--ink-rgb) / 0.34);
   background:
-    linear-gradient(135deg, rgba(20, 22, 29, 0.14), rgba(255, 255, 255, 0.9));
+    linear-gradient(135deg, rgb(var(--ink-rgb) / 0.14), rgb(var(--paper-rgb) / 0.9));
   color: var(--teal);
-  box-shadow: 0 12px 24px rgba(20, 22, 29, 0.12);
+  box-shadow: 0 12px 24px rgb(var(--shadow-rgb) / 0.12);
 }
 
 .staffAccessPanel b,
@@ -1664,7 +1664,7 @@
   padding: 18px;
   border-radius: 20px;
   background:
-    linear-gradient(135deg, rgba(20, 22, 29, 0.08), rgba(191, 192, 209, 0.1));
+    linear-gradient(135deg, rgb(var(--ink-rgb) / 0.08), color-mix(in srgb, var(--n-400) 10%, transparent));
   color: var(--muted);
   text-align: center;
   font-size: 0.72rem;
@@ -1699,7 +1699,7 @@
 }
 
 .portfolioToolHead span{
-  color: #14161d;
+  color: var(--n-900);
   font-size: 0.7rem;
   font-weight: 900;
 }
@@ -1711,7 +1711,7 @@
 }
 
 .portfolioToolHead small{
-  color: rgba(28, 32, 44, 0.55);
+  color: rgb(var(--ink-rgb) / 0.55);
   font-size: 0.72rem;
   font-weight: 750;
   line-height: 1.45;
@@ -1725,19 +1725,19 @@
   justify-content: center;
   gap: 8px;
   padding: 0 16px;
-  border: 1px solid rgba(20, 22, 29, 0.16);
+  border: 1px solid rgb(var(--ink-rgb) / 0.16);
   border-radius: 16px;
-  background: #fff;
-  color: #14161d;
+  background: var(--n-0);
+  color: var(--n-900);
   font: inherit;
   font-size: 0.86rem;
   font-weight: 950;
-  box-shadow: 0 10px 22px rgba(20, 22, 29, 0.08);
+  box-shadow: 0 10px 22px rgb(var(--shadow-rgb) / 0.08);
   cursor: pointer;
 }
 
 .portfolioCreateCard svg{
-  color: #14161d;
+  color: var(--n-900);
 }
 
 .portfolioCreateForm{
@@ -1745,10 +1745,10 @@
   grid-template-columns: 1fr;
   gap: 10px;
   padding: 12px;
-  border: 1px solid rgba(28, 32, 44, 0.08);
+  border: 1px solid rgb(var(--ink-rgb) / 0.08);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 12px 24px rgba(7, 13, 18, 0.06);
+  background: rgb(var(--paper-rgb) / 0.94);
+  box-shadow: 0 12px 24px rgb(var(--shadow-rgb) / 0.06);
 }
 
 .portfolioCreateFormHead{
@@ -1769,7 +1769,7 @@
   padding: 0 10px;
   border: 0;
   border-radius: 10px;
-  background: rgba(28, 32, 44, 0.06);
+  background: rgb(var(--ink-rgb) / 0.06);
   color: var(--ink);
   font: inherit;
   font-size: 0.72rem;
