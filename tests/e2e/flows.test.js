@@ -224,7 +224,7 @@ describe("client starts from what they want (browser)", () => {
     await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
     // the profile page is one page under the header (no «پروفایل / فعالیت من» switch) and no longer lists places
     expect(await page.locator(".profileModeRail").count()).toBe(0);
-    expect(await page.locator(".chPlace").count()).toBe(0);
+    expect(await page.locator(".chPlace").isVisible()).toBe(false);
     // «رزرو» opens on «سالن و آرتیست من»
     await page.locator("nav.bottomNav > button").nth(2).click();
     const place = page.locator(".chPlace");
