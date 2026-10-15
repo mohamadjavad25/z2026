@@ -28,11 +28,11 @@
   padding: 0 !important;
   border-radius: 0 !important;
   background: transparent !important;
-  color: #14161d !important;
-  fill: #14161d !important;
-  stroke: #ffffff !important;
+  color: var(--n-900) !important;
+  fill: var(--n-900) !important;
+  stroke: var(--n-0) !important;
   stroke-width: 2.8 !important;
-  filter: drop-shadow(0 4px 8px rgba(20, 22, 29, 0.18)) !important;
+  filter: drop-shadow(0 4px 8px rgb(var(--shadow-rgb) / 0.18)) !important;
 }
 
 .salonPublicTitle span {
@@ -180,14 +180,14 @@
 .salonPublicLogo {
   box-sizing: border-box !important;
   padding: 8px !important;
-  border: 4px solid #090911 !important;
+  border: 4px solid var(--n-950) !important;
   background:
-    radial-gradient(circle at 30% 18%, rgba(255, 255, 255, 0.2), transparent 34%),
-    linear-gradient(135deg, #2f2f33 0%, #14161d 54%, #242428 100%) !important;
+    radial-gradient(circle at 30% 18%, rgb(var(--paper-rgb) / 0.2), transparent 34%),
+    linear-gradient(135deg, var(--n-800) 0%, var(--n-900) 54%, var(--n-900) 100%) !important;
   box-shadow:
-    0 0 0 3px #d9b44a,
-    0 0 0 6px rgba(153, 190, 255, 0.42),
-    0 0 26px rgba(125, 177, 255, 0.78),
+    0 0 0 3px rgb(255 134 184),
+    0 0 0 6px rgb(139 108 255 / 0.42),
+    0 0 26px rgb(139 108 255 / 0.78),
     0 18px 30px rgba(0, 0, 0, 0.24) !important;
 }
 
@@ -199,7 +199,7 @@
   pointer-events: none;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.18),
-    inset 0 -18px 28px rgba(14, 14, 18, 0.28);
+    inset 0 -18px 28px rgb(var(--shadow-rgb) / 0.28);
 }
 
 .salonPublicLogo strong,
@@ -342,10 +342,10 @@
   height: 40px;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  border: 1px solid rgb(var(--paper-rgb) / 0.16);
   border-radius: 50%;
-  background: rgba(10, 11, 18, 0.4);
-  color: rgba(255, 255, 255, 0.96);
+  background: rgb(var(--ink-rgb) / 0.4);
+  color: rgb(var(--paper-rgb) / 0.96);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 6px 16px rgba(0, 0, 0, 0.22);
 }
 
@@ -383,13 +383,13 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   justify-items: center;
   gap: 12px;
   padding: 22px 18px 20px;
-  border: 1px solid rgba(255, 255, 255, 0.86);
+  border: 1px solid rgb(var(--paper-rgb) / 0.86);
   border-radius: 26px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(251, 251, 253, 0.96));
-  color: #171827;
+    linear-gradient(180deg, rgb(var(--paper-rgb) / 0.98), rgb(var(--n-25-rgb) / 0.96));
+  color: var(--n-900);
   box-shadow:
-    0 30px 80px rgba(4, 5, 12, 0.42),
+    0 30px 80px rgb(var(--shadow-rgb) / 0.42),
     inset 0 1px 0 rgba(255, 255, 255, 0.86);
   animation: sheetRise 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -404,8 +404,8 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   place-items: center;
   border: 0;
   border-radius: 50%;
-  background: rgba(17, 26, 60, 0.06);
-  color: #171827;
+  background: rgb(var(--info-rgb) / 0.06);
+  color: var(--n-900);
 }
 
 .salonQrSheetHead {
@@ -421,14 +421,14 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   align-items: center;
   gap: 6px;
   justify-self: end;
-  color: #14161d;
+  color: var(--n-900);
   font-size: 0.66rem;
   font-weight: 950;
 }
 
 .salonQrSheetHead h3 {
   margin: 0;
-  color: #171827;
+  color: var(--n-900);
   font-size: 1rem;
   font-weight: 950;
   line-height: 1.35;
@@ -441,8 +441,8 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   place-items: center;
   overflow: hidden;
   border-radius: 18px;
-  background: #ffffff;
-  box-shadow: inset 0 0 0 1px rgba(23, 24, 39, 0.08);
+  background: var(--n-0);
+  box-shadow: inset 0 0 0 1px rgb(var(--shadow-rgb) / 0.08);
 }
 
 .salonQrSheetImage img {
@@ -453,7 +453,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
 
 .salonQrSheetHint {
   margin: 0;
-  color: rgba(23, 24, 39, 0.58);
+  color: rgb(var(--ink-rgb) / 0.58);
   font-size: 0.74rem;
   font-weight: 800;
   line-height: 1.7;
@@ -491,7 +491,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   place-items: center;
   padding: 0 12px;
   border-radius: 999px;
-  background: rgba(20, 22, 29, 0.1);
+  background: rgb(var(--ink-rgb) / 0.1);
   color: var(--teal);
   font-size: 0.7rem;
   font-weight: 900;
@@ -506,7 +506,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   margin-bottom: 12px;
   padding: 0 14px;
   border-radius: 14px;
-  background: rgba(28, 32, 44, 0.05);
+  background: rgb(var(--ink-rgb) / 0.05);
   color: var(--muted);
 }
 
@@ -548,7 +548,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   gap: 10px;
   padding: 10px;
   border-radius: 16px;
-  background: rgba(28, 32, 44, 0.04);
+  background: rgb(var(--ink-rgb) / 0.04);
   cursor: pointer;
 }
 
@@ -558,7 +558,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   height: 44px;
   border-radius: 14px;
   object-fit: cover;
-  background: rgba(28, 32, 44, 0.08);
+  background: rgb(var(--ink-rgb) / 0.08);
 }
 
 .salonCustomerInfo {
@@ -594,7 +594,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: rgba(20, 22, 29, 0.12);
+  background: rgb(var(--ink-rgb) / 0.12);
   color: var(--teal);
 }
 
@@ -620,10 +620,10 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   padding: 4px 12px 6px !important;
   border: 0 !important;
   border-radius: 999px !important;
-  background: #ffffff !important;
+  background: var(--n-0) !important;
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.9) inset,
-    0 14px 36px rgba(28, 32, 44, 0.14) !important;
+    0 14px 36px rgb(var(--shadow-rgb) / 0.14) !important;
   -webkit-backdrop-filter: none !important;
   backdrop-filter: none !important;
 }
@@ -632,12 +632,12 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   height: 46px !important;
   min-height: 46px !important;
   border-radius: 999px !important;
-  color: #8a8fa0 !important;
+  color: var(--n-500) !important;
 }
 
 .salonPublicProfile .salonPublicBottomDock button.is-active {
   color: var(--salon-public-accent) !important;
-  background: rgba(111, 115, 128, 0.12) !important;
+  background: rgb(var(--n-600-rgb) / 0.12) !important;
 }
 
 .salonPublicProfile .salonPublicBottomDock button.is-primary {
@@ -646,7 +646,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   min-height: 52px !important;
   margin-top: -12px !important;
   border-radius: 26px !important;
-  color: #ffffff !important;
+  color: var(--n-0) !important;
 }
 
 .salonPublicProfile .salonPublicActions {
@@ -681,12 +681,12 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   padding: 16px;
   overflow-y: auto;
   overscroll-behavior: contain;
-  border: 1px solid rgba(111, 115, 128, 0.12);
+  border: 1px solid rgb(var(--n-600-rgb) / 0.12);
   border-radius: 26px;
-  background: rgba(255, 255, 255, 0.96);
+  background: rgb(var(--paper-rgb) / 0.96);
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.9) inset,
-    0 24px 56px rgba(28, 32, 44, 0.22);
+    0 24px 56px rgb(var(--shadow-rgb) / 0.22);
   overflow: visible;
 }
 
@@ -718,7 +718,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
 
 .salonPublicBrowseHead h3 {
   margin: 0;
-  color: #171827;
+  color: var(--n-900);
   font-size: 1.04rem;
   font-weight: 950;
 }
@@ -736,10 +736,10 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   align-items: center;
   gap: 2px 10px;
   padding: 9px 10px;
-  border: 1px solid rgba(28, 32, 44, 0.06);
+  border: 1px solid rgb(var(--ink-rgb) / 0.06);
   border-radius: 17px;
-  background: #fbfbff;
-  color: #171827;
+  background: var(--n-25);
+  color: var(--n-900);
   font-family: inherit;
   text-align: right;
 }
@@ -751,7 +751,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: #f8f8fa;
+  background: var(--n-25);
   color: var(--salon-public-accent);
 }
 
@@ -769,7 +769,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
 }
 
 .salonPublicAllServices small {
-  color: #777b8c;
+  color: var(--n-600);
   font-size: 0.62rem;
   font-weight: 850;
 }
@@ -799,13 +799,13 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   aspect-ratio: 0.78;
   display: block;
   border-radius: 18px;
-  background: #f8f8fa;
+  background: var(--n-25);
   object-fit: cover;
 }
 
 .salonPublicAllPortfolio figcaption {
   overflow: hidden;
-  color: #343849;
+  color: var(--n-800);
   font-size: 0.66rem;
   font-weight: 900;
   text-align: right;
@@ -825,8 +825,8 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   margin-inline: auto;
   grid-template-columns: minmax(0, 1fr);
   box-shadow:
-    0 0 0 1px rgba(28, 32, 44, 0.08),
-    0 30px 90px rgba(28, 32, 44, 0.22);
+    0 0 0 1px rgb(var(--shadow-rgb) / 0.08),
+    0 30px 90px rgb(var(--shadow-rgb) / 0.22);
 }
 
 .sidebar {
@@ -937,10 +937,10 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   padding: 4px 12px 6px;
   border: 0;
   border-radius: 999px;
-  background: #fff;
+  background: var(--n-0);
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.9) inset,
-    0 14px 36px rgba(28, 32, 44, 0.14);
+    0 14px 36px rgb(var(--shadow-rgb) / 0.14);
 }
 
 .bottomNav button {
@@ -953,7 +953,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   gap: 3px;
   border-radius: 999px;
   background: transparent;
-  color: #2a2d36;
+  color: var(--n-800);
   font-size: 0.64rem;
   font-weight: 900;
 }
@@ -971,27 +971,27 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   min-height: 68px;
   overflow: visible;
   border-radius: 50%;
-  background: var(--night);
-  color: #fff;
+  background: var(--fill-strong);
+  color: var(--n-0);
   box-shadow:
-    0 0 0 3px #fff,
-    0 0 0 5px rgba(201, 168, 76, 0.65),
-    0 14px 28px rgba(28, 32, 44, 0.28);
+    0 0 0 3px var(--n-0),
+    0 0 0 5px rgb(255 134 184 / 0.65),
+    0 14px 28px rgb(var(--shadow-rgb) / 0.28);
 }
 
 .bottomNav .profileTab.active {
-  background: var(--night);
+  background: var(--fill-strong);
   box-shadow:
-    0 0 0 3px #fff,
-    0 0 0 5px rgba(201, 168, 76, 0.82),
-    0 16px 32px rgba(28, 32, 44, 0.3);
+    0 0 0 3px var(--n-0),
+    0 0 0 5px rgb(255 134 184 / 0.82),
+    0 16px 32px rgb(var(--shadow-rgb) / 0.3);
 }
 
 .bottomNav .profileTab.is-createBooking {
   display: grid;
   place-items: center;
-  background: radial-gradient(circle at 50% 24%, #14161d, #14161d);
-  color: #fff;
+  background: var(--fill-strong-grad);
+  color: var(--n-0);
 }
 
 .bottomNav .profileTab.is-createBooking svg {
@@ -1018,7 +1018,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   inset: 3px;
   z-index: 1;
   border-radius: 50%;
-  background: linear-gradient(180deg, transparent 46%, rgba(28, 32, 44, 0.42) 100%);
+  background: linear-gradient(180deg, transparent 46%, rgb(12 13 18 / 0.42) 100%);
   pointer-events: none;
 }
 
@@ -1030,7 +1030,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   width: max-content;
   margin: 0;
   transform: translateX(-50%);
-  color: #2a2d36;
+  color: var(--n-800);
   font-size: 0.6rem;
   font-weight: 900;
   text-shadow: none;
@@ -1051,11 +1051,11 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   padding: 12px 10px 68px;
   border: 0;
   border-radius: 30px 30px 36px 36px;
-  background: #6f7380;
-  color: #fff;
+  background: var(--n-600);
+  color: var(--n-0);
   font-weight: 900;
   font-size: 0.86rem;
-  box-shadow: 0 18px 44px rgba(28, 32, 44, 0.16);
+  box-shadow: 0 18px 44px rgb(var(--shadow-rgb) / 0.16);
 }
 
 .page-profile.is-active ~ .floatingMobileCta {
@@ -1100,7 +1100,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   gap: 3px;
   border-radius: 14px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.92);
+  color: rgb(var(--paper-rgb) / 0.92);
   font-size: 0.62rem;
 }
 
@@ -1111,8 +1111,8 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
 }
 
 .floatingMobileCta.is-modeRail .profileModeRail button.active {
-  background: rgba(255, 255, 255, 0.22);
-  color: #fff;
+  background: rgb(var(--paper-rgb) / 0.22);
+  color: var(--n-0);
   box-shadow: none;
 }
 
@@ -1134,13 +1134,13 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   height: 50px;
   border: 0;
   border-radius: 50%;
-  background: linear-gradient(135deg, #14161d, #14161d);
-  color: #fff;
-  box-shadow: 0 14px 30px rgba(20, 22, 29, 0.34);
+  background: var(--fill-strong-grad);
+  color: var(--n-0);
+  box-shadow: 0 14px 30px rgb(var(--shadow-rgb) / 0.34);
 }
 
 .floatingCreateBookingBtn.is-active {
-  background: linear-gradient(135deg, #14161d, #14161d);
+  background: var(--fill-strong-grad);
 }
 
 /* 6) Full-screen overlays: keep inside the frame width */
@@ -1207,7 +1207,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(24, 24, 28, 0.42) 0%, rgba(24, 24, 28, 0.18) 38%, rgba(24, 24, 28, 0.78) 100%);
+  background: linear-gradient(180deg, rgb(12 13 18 / 0.42) 0%, rgb(var(--ink-rgb) / 0.18) 38%, rgb(12 13 18 / 0.78) 100%);
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-artist) .profileHero.is-artist > :not(.artistHeroPoster, .profileHeroActions) {
@@ -1234,7 +1234,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   padding-top: 0 !important;
   padding-left: 0 !important;
   padding-right: 0 !important;
-  background: linear-gradient(180deg, #f9f9fb 0%, #fefeff 100%) !important;
+  background: linear-gradient(180deg, var(--n-25) 0%, var(--n-0) 100%) !important;
   box-shadow: none !important;
 }
 
@@ -1249,12 +1249,12 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   min-height: 248px !important;
   margin: 0 !important;
   background-image:
-    radial-gradient(circle at 88% 10%, rgba(20, 22, 29, 0.28), transparent 26%),
+    radial-gradient(circle at 88% 10%, rgb(12 13 18 / 0.28), transparent 26%),
     radial-gradient(circle at 18% 5%, rgba(51, 51, 55, 0.34), transparent 34%),
     url("/artist-hero-doodle.webp");
   background-size: cover;
   background-position: center;
-  background-color: #18181c;
+  background-color: var(--brand-ink);
   pointer-events: none;
 }
 
@@ -1263,7 +1263,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   position: absolute;
   inset: auto 0 0 0;
   height: 80px;
-  background: linear-gradient(180deg, transparent, rgba(18, 18, 22, 0.5));
+  background: linear-gradient(180deg, transparent, rgb(12 13 18 / 0.5));
   pointer-events: none;
 }
 
@@ -1277,7 +1277,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   inset: auto 0 0 0;
   height: 28px;
   border-radius: 24px 24px 0 0 !important;
-  background: linear-gradient(180deg, #f9f9fb 0%, #fefeff 100%);
+  background: linear-gradient(180deg, var(--n-25) 0%, var(--n-0) 100%);
   pointer-events: none;
 }
 
@@ -1319,7 +1319,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   display: inline-flex !important;
   align-items: center !important;
   gap: 5px !important;
-  color: #1c202c !important;
+  color: var(--n-900) !important;
   font-size: 1.3rem !important;
   font-weight: 950 !important;
   line-height: 1.15 !important;
@@ -1328,7 +1328,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
 
 .profilePanel.page-profile:has(.createdProfile.is-artist) .artistVerifiedTick {
   flex: 0 0 auto !important;
-  color: #378add !important;
+  color: var(--info) !important;
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-artist) .artistHeroArea {
@@ -1336,7 +1336,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   align-items: center !important;
   gap: 4px !important;
   max-width: 74px !important;
-  color: #85838f !important;
+  color: var(--n-500) !important;
   font-size: 0.78rem !important;
   font-weight: 800 !important;
 }
@@ -1372,10 +1372,10 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   min-height: 28px !important;
   padding: 0 10px !important;
   justify-self: start !important;
-  border: 1px solid rgba(20, 22, 29, 0.18) !important;
+  border: 1px solid rgb(var(--ink-rgb) / 0.18) !important;
   border-radius: 999px !important;
-  background: rgba(20, 22, 29, 0.1) !important;
-  color: #14161d !important;
+  background: rgb(var(--ink-rgb) / 0.1) !important;
+  color: var(--n-900) !important;
   box-shadow: none !important;
   backdrop-filter: none !important;
 }
@@ -1416,7 +1416,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   padding: 0 !important;
   border-radius: 0 !important;
   background: transparent !important;
-  color: #9c99a6 !important;
+  color: var(--n-500) !important;
   font-size: 0.66rem !important;
   font-weight: 800 !important;
   line-height: 1 !important;
@@ -1430,7 +1430,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-artist) .artistHeroStats b {
-  color: #1c202c !important;
+  color: var(--n-900) !important;
   font-size: 0.86rem !important;
   font-weight: 950 !important;
   line-height: 1 !important;
@@ -1460,9 +1460,9 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   width: 32px !important;
   height: 32px !important;
   border-radius: 50% !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-  background: rgba(23, 23, 27, 0.45) !important;
-  color: rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid rgb(var(--paper-rgb) / 0.2) !important;
+  background: rgb(var(--ink-rgb) / 0.45) !important;
+  color: rgb(var(--paper-rgb) / 0.9) !important;
   box-shadow: none !important;
   backdrop-filter: blur(12px) !important;
   pointer-events: auto !important;
@@ -1522,11 +1522,11 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   place-items: center !important;
   border: 0 !important;
   border-radius: 50% !important;
-  background: #ffffff !important;
-  color: #14161d !important;
+  background: var(--n-0) !important;
+  color: var(--n-900) !important;
   box-shadow:
-    0 0 0 4px rgba(5, 5, 11, 0.16),
-    0 10px 22px rgba(36, 36, 40, 0.24) !important;
+    0 0 0 4px rgb(var(--shadow-rgb) / 0.16),
+    0 10px 22px rgb(var(--shadow-rgb) / 0.24) !important;
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-salon) .profileHero.is-salon > .profileAvatarImage,
@@ -1542,9 +1542,9 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   min-height: 304px !important;
   height: 304px !important;
   background:
-    radial-gradient(circle at 88% 12%, rgba(20, 22, 29, 0.4), transparent 30%),
-    radial-gradient(circle at 14% 6%, rgba(20, 22, 29, 0.55), transparent 36%),
-    linear-gradient(155deg, #18181c 0%, #26262a 48%, #36363a 100%) !important;
+    radial-gradient(circle at 88% 12%, rgb(12 13 18 / 0.4), transparent 30%),
+    radial-gradient(circle at 14% 6%, rgb(12 13 18 / 0.55), transparent 36%),
+    linear-gradient(155deg, var(--n-900) 0%, var(--n-800) 48%, var(--n-800) 100%) !important;
 }
 
 .artistPublicHeroTop {
@@ -1558,8 +1558,8 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   width: 46px !important;
   height: 46px !important;
   border-radius: 50% !important;
-  background: rgba(255, 255, 255, 0.94) !important;
-  box-shadow: 0 10px 22px rgba(18, 18, 22, 0.2) !important;
+  background: rgb(var(--paper-rgb) / 0.94) !important;
+  box-shadow: 0 10px 22px rgb(var(--shadow-rgb) / 0.2) !important;
 }
 
 /* Artist hero icons sit like the salon's: QR on the right, bell on the left, same size. */

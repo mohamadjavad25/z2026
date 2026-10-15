@@ -7,21 +7,21 @@
   align-content: center;
   gap: 10px;
   padding: 24px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.62);
+  border: 1px solid rgb(var(--paper-rgb) / 0.62);
   border-radius: 20px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(246, 246, 251, 0.68)),
-    radial-gradient(circle at 50% 0%, rgba(20, 22, 29, 0.12), transparent 48%);
+    linear-gradient(180deg, rgb(var(--paper-rgb) / 0.82), rgb(var(--n-50-rgb) / 0.68)),
+    radial-gradient(circle at 50% 0%, rgb(var(--ink-rgb) / 0.12), transparent 48%);
   color: var(--ink);
   text-align: center;
-  box-shadow: 0 16px 42px rgba(28, 32, 44, 0.08);
+  box-shadow: 0 16px 42px rgb(var(--shadow-rgb) / 0.08);
 }
 
 .profileEmptyState img {
   width: min(176px, 78%);
   max-height: 124px;
   object-fit: contain;
-  filter: drop-shadow(0 16px 22px rgba(28, 32, 44, 0.1));
+  filter: drop-shadow(0 16px 22px rgb(var(--shadow-rgb) / 0.1));
 }
 
 .profileEmptyIcon {
@@ -30,9 +30,9 @@
   display: grid;
   place-items: center;
   border-radius: 17px;
-  background: rgba(20, 22, 29, 0.1);
+  background: rgb(var(--ink-rgb) / 0.1);
   color: var(--plum);
-  box-shadow: inset 0 0 0 1px rgba(20, 22, 29, 0.08);
+  box-shadow: inset 0 0 0 1px rgb(var(--shadow-rgb) / 0.08);
 }
 
 .profileEmptyState b {
@@ -54,10 +54,10 @@
   border: 0;
   border-radius: 14px;
   padding: 0 15px;
-  background: linear-gradient(135deg, var(--night), var(--plum));
-  color: #fff;
+  background: var(--fill-strong-grad);
+  color: var(--n-0);
   font-weight: 900;
-  box-shadow: 0 12px 26px rgba(28, 32, 44, 0.16);
+  box-shadow: 0 12px 26px rgb(var(--shadow-rgb) / 0.16);
 }
 
 .profileEmptyState.emptySavedState {
@@ -199,21 +199,21 @@
   justify-content: center;
   gap: 8px;
   padding: 10px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.72);
+  border: 1px solid rgb(var(--paper-rgb) / 0.72);
   border-radius: 999px;
   background:
-    linear-gradient(135deg, rgba(20, 22, 29, 0.94), rgba(42, 42, 46, 0.94));
-  color: #fff;
+    linear-gradient(135deg, rgb(12 13 18 / 0.94), rgba(42, 42, 46, 0.94));
+  color: var(--on-photo);
   font-size: 0.82rem;
   font-weight: 950;
-  box-shadow: 0 18px 44px rgba(28, 32, 44, 0.22);
+  box-shadow: 0 18px 44px rgb(var(--shadow-rgb) / 0.22);
   backdrop-filter: blur(18px);
 }
 
 
 
 .appToast svg{
-  color: #bfc0d1;
+  color: var(--n-400);
   flex: 0 0 auto;
 }
 
@@ -232,17 +232,17 @@
   align-items: start;
   gap: 8px 10px;
   padding: 12px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.72);
+  border: 1px solid rgb(var(--paper-rgb) / 0.72);
   border-radius: 20px;
-  background: linear-gradient(135deg, rgba(20, 22, 29, 0.96), rgba(42, 42, 46, 0.96));
-  color: #fff;
-  box-shadow: 0 18px 44px rgba(28, 32, 44, 0.24);
+  background: linear-gradient(135deg, rgb(12 13 18 / 0.96), rgba(42, 42, 46, 0.96));
+  color: var(--on-photo);
+  box-shadow: 0 18px 44px rgb(var(--shadow-rgb) / 0.24);
   backdrop-filter: blur(18px);
 }
 
 .pushSoftAsk > svg{
   margin-top: 2px;
-  color: #bfc0d1;
+  color: var(--n-400);
   flex: 0 0 auto;
 }
 
@@ -257,7 +257,7 @@
 }
 
 .pushSoftAsk small{
-  color: rgba(255, 255, 255, 0.72);
+  color: rgb(var(--paper-rgb) / 0.72);
   font-size: 0.7rem;
   font-weight: 700;
   line-height: 1.5;
@@ -281,28 +281,28 @@
 }
 
 .pushSoftAskActions button:first-child{
-  background: #fff;
-  color: #1c202c;
+  background: var(--n-0);
+  color: var(--n-900);
 }
 
 .pushSoftAskActions button:last-child{
-  background: rgba(255, 255, 255, 0.12);
-  color: #fff;
+  background: rgb(var(--paper-rgb) / 0.12);
+  color: var(--n-0);
 }
 
 /* --- J7 extracted from styles.css --- */
 
 
 .salonClientSticky .ctaGenerate{
-  background: #1c202c;
-  color: #fff;
+  background: var(--fill-strong);
+  color: var(--n-0);
 }
 
 
 
 .salonClientSticky .ctaManage{
-  background: #dceff0;
-  color: #14161d;
+  background: var(--n-150);
+  color: var(--n-900);
 }
 
 @media (max-width: 720px){
@@ -338,12 +338,12 @@
     padding: 12px 10px 68px;
     border: 0;
     border-radius: 30px 30px 36px 36px;
-    background: #6f7380;
-    color: #fff;
+    background: var(--n-600);
+    color: var(--n-0);
     font-weight: 900;
     font-size: 0.86rem;
     backdrop-filter: none;
-    box-shadow: 0 18px 44px rgba(28, 32, 44, 0.16);
+    box-shadow: 0 18px 44px rgb(var(--shadow-rgb) / 0.16);
   }
 
 
@@ -365,8 +365,8 @@
 
   .floatingMobileCta.is-open{
     border-color: transparent;
-    background: #14161d;
-    box-shadow: 0 22px 54px rgba(28, 32, 44, 0.22);
+    background: var(--fill-strong);
+    box-shadow: 0 22px 54px rgb(var(--shadow-rgb) / 0.22);
   }
 
 
@@ -400,9 +400,9 @@
 
   .floatingMobileCtaSplit .ctaGenerate{
     padding: 0 10px;
-    background: linear-gradient(135deg, #1c202c, #14161d);
-    color: #fff;
-    box-shadow: 0 10px 22px rgba(28, 32, 44, 0.22);
+    background: var(--fill-strong-grad);
+    color: var(--n-0);
+    box-shadow: 0 10px 22px rgb(var(--shadow-rgb) / 0.22);
   }
 
 
@@ -410,19 +410,19 @@
   .floatingMobileCtaSplit .ctaManage{
     padding: 0 10px;
     border: 0;
-    background: rgba(247, 247, 250, 0.96);
+    background: rgb(var(--n-50-rgb) / 0.96);
     color: var(--ink);
-    box-shadow: 0 8px 18px rgba(28, 32, 44, 0.1);
+    box-shadow: 0 8px 18px rgb(var(--shadow-rgb) / 0.1);
   }
 
 
 
   .floatingMobileCtaSplit .ctaManage.is-active{
     border-color: transparent;
-    background: #fff;
+    background: var(--n-0);
     box-shadow:
       0 0 0 2px rgba(255, 255, 255, 0.55),
-      0 10px 22px rgba(28, 32, 44, 0.14);
+      0 10px 22px rgb(var(--shadow-rgb) / 0.14);
   }
 }
 
@@ -483,7 +483,7 @@
     gap: 3px;
     border-radius: 14px;
     background: transparent;
-    color: rgba(255, 255, 255, 0.92);
+    color: rgb(var(--paper-rgb) / 0.92);
     font-size: 0.62rem;
   }
 
@@ -498,8 +498,8 @@
 
 
   .floatingMobileCta.is-modeRail .profileModeRail button.active{
-    background: rgba(255, 255, 255, 0.22);
-    color: #fff;
+    background: rgb(var(--paper-rgb) / 0.22);
+    color: var(--n-0);
     box-shadow: none;
   }
 }
@@ -522,9 +522,9 @@
     background:
       linear-gradient(
         180deg,
-        rgba(216, 217, 223, 0) 0%,
-        rgba(216, 217, 223, 0.72) 42%,
-        rgba(216, 217, 223, 0.94) 100%
+        rgb(var(--n-300-rgb) / 0) 0%,
+        rgb(var(--n-300-rgb) / 0.72) 42%,
+        rgb(var(--n-300-rgb) / 0.94) 100%
       );
     backdrop-filter: blur(10px);
     box-shadow: none;
@@ -536,25 +536,25 @@
   .salonClientSticky.floatingMobileCtaSplit.is-salonClientDock .ctaSegment{
     justify-content: center;
     min-height: 48px;
-    border: 1px solid rgba(255, 255, 255, 0.55);
+    border: 1px solid rgb(var(--paper-rgb) / 0.55);
     border-radius: 16px;
     backdrop-filter: blur(14px);
-    box-shadow: 0 8px 20px rgba(28, 32, 44, 0.1);
+    box-shadow: 0 8px 20px rgb(var(--shadow-rgb) / 0.1);
   }
 
 
 
   .page-salons.is-active .salonClientSticky.floatingMobileCtaSplit .ctaGenerate,
   .salonClientSticky.floatingMobileCtaSplit.is-salonClientDock .ctaGenerate{
-    background: linear-gradient(135deg, rgba(28, 32, 44, 0.96), rgba(54, 67, 116, 0.94));
+    background: linear-gradient(135deg, rgb(12 13 18 / 0.96), rgb(var(--info-rgb) / 0.94));
   }
 
 
 
   .page-salons.is-active .salonClientSticky.floatingMobileCtaSplit .ctaManage,
   .salonClientSticky.floatingMobileCtaSplit.is-salonClientDock .ctaManage{
-    background: rgba(247, 248, 250, 0.88);
-    color: #1c202c;
+    background: rgb(var(--n-25-rgb) / 0.88);
+    color: var(--n-900);
   }
 }
 
@@ -567,10 +567,10 @@
   display: grid;
   place-items: center;
   background:
-    radial-gradient(circle at 30% 20%, rgba(201, 164, 106, 0.18), transparent 42%),
-    radial-gradient(circle at 70% 80%, rgba(47, 111, 108, 0.16), transparent 46%),
-    linear-gradient(160deg, #141016 0%, #1c1820 48%, #15131a 100%);
-  color: #f7f1ea;
+    radial-gradient(circle at 30% 20%, rgb(var(--accent-rgb) / 0.18), transparent 42%),
+    radial-gradient(circle at 70% 80%, rgb(var(--info-rgb) / 0.16), transparent 46%),
+    linear-gradient(160deg, var(--n-950) 0%, var(--n-900) 48%, var(--n-950) 100%);
+  color: var(--n-100);
   font-family: "Vazirmatn", Tahoma, sans-serif;
 }
 
@@ -593,21 +593,21 @@
   font-size: clamp(1.8rem, 6vw, 2.4rem);
   font-weight: 900;
   letter-spacing: -0.02em;
-  color: #f7f1ea;
+  color: var(--n-100);
 }
 
 .authBootSpinner {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  border: 2px solid rgba(247, 241, 234, 0.22);
-  border-top-color: #c9a46a;
+  border: 2px solid rgb(var(--n-100-rgb) / 0.22);
+  border-top-color: var(--accent);
   animation: authBootSpin 0.7s linear infinite;
 }
 
 .authBootInner small {
   font-size: 0.82rem;
-  color: rgba(247, 241, 234, 0.72);
+  color: rgb(var(--n-100-rgb) / 0.72);
 }
 
 @keyframes authBootSpin {
@@ -625,8 +625,8 @@
   gap: 10px;
   padding: 12px;
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.55);
-  border: 1px solid rgba(28, 32, 44, 0.06);
+  background: rgb(var(--paper-rgb) / 0.55);
+  border: 1px solid rgb(var(--ink-rgb) / 0.06);
 }
 
 .uxSkeletonList.is-card .uxSkeletonItem,
@@ -653,9 +653,9 @@
   border-radius: 10px;
   background: linear-gradient(
     90deg,
-    rgba(28, 32, 44, 0.06) 0%,
-    rgba(28, 32, 44, 0.12) 42%,
-    rgba(28, 32, 44, 0.06) 84%
+    rgb(var(--ink-rgb) / 0.06) 0%,
+    rgb(var(--ink-rgb) / 0.12) 42%,
+    rgb(var(--ink-rgb) / 0.06) 84%
   );
   background-size: 200% 100%;
   animation: uxSkeletonShimmer 1.15s ease-in-out infinite;

@@ -46,8 +46,8 @@
   font-size: var(--text-base);
   font-weight: 900;
   font-family: inherit;
-  color: #fff;
-  background: linear-gradient(135deg, var(--plum), #14161d);
+  color: var(--n-0);
+  background: var(--fill-strong-grad);
   cursor: pointer;
 }
 

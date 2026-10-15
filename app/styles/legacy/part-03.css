@@ -30,7 +30,7 @@
   border: 0;
   border-radius: 12px;
   padding: 0 12px;
-  background: rgba(20, 22, 29, 0.12);
+  background: rgb(var(--ink-rgb) / 0.12);
   color: var(--teal);
   font: inherit;
   font-size: 0.72rem;
@@ -46,8 +46,8 @@
   display: grid;
   place-items: center;
   border-radius: 26px;
-  background: linear-gradient(135deg, #2b222f, #14161d 58%, #bfc0d1);
-  box-shadow: 0 18px 40px rgba(20, 22, 29, 0.22);
+  background: linear-gradient(135deg, var(--n-900), var(--n-900) 58%, var(--n-400));
+  box-shadow: 0 18px 40px rgb(var(--shadow-rgb) / 0.22);
   overflow: hidden;
 }
 
@@ -65,7 +65,7 @@
   width: 44px;
   height: 50px;
   border-radius: 28px 28px 24px 24px;
-  background: linear-gradient(145deg, #202024, #14161d);
+  background: var(--fill-strong-grad);
   top: 16px;
 }
 
@@ -73,7 +73,7 @@
   width: 31px;
   height: 36px;
   border-radius: 50% 50% 45% 45%;
-  background: linear-gradient(180deg, #ffe2d3, #d99c91);
+  background: linear-gradient(180deg, rgb(var(--accent-rgb) / 0.14), var(--brand-pink));
   top: 24px;
 }
 
@@ -83,7 +83,7 @@
   right: 14px;
   top: 14px;
   border-radius: 50%;
-  background: radial-gradient(circle, #fff 0 22%, #bfc0d1 24% 42%, transparent 44%);
+  background: radial-gradient(circle, var(--n-0) 0 22%, var(--n-400) 24% 42%, transparent 44%);
 }
 
 .profileModeRail,
@@ -98,7 +98,7 @@
   grid-template-columns: repeat(4, minmax(0, 1fr));
   padding: 4px;
   border-radius: 999px;
-  background: rgba(28, 32, 44, 0.06);
+  background: rgb(var(--ink-rgb) / 0.06);
 }
 
 .profileModeRail.is-salon{
@@ -123,9 +123,9 @@
 }
 
 .profileModeRail button.active{
-  background: #fff;
+  background: var(--n-0);
   color: var(--teal);
-  box-shadow: 0 8px 18px rgba(28, 32, 44, 0.08);
+  box-shadow: 0 8px 18px rgb(var(--shadow-rgb) / 0.08);
 }
 
 .profileStartMap,
@@ -141,7 +141,7 @@
   justify-content: center;
   gap: 6px;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.62);
+  background: rgb(var(--paper-rgb) / 0.62);
   color: var(--muted);
   font-size: 0.72rem;
   font-weight: 900;
@@ -165,7 +165,7 @@
   place-items: center;
   border: 1px solid var(--line);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.68);
+  background: rgb(var(--paper-rgb) / 0.68);
   color: var(--muted);
   font-size: 0.82rem;
   font-weight: 900;
@@ -194,28 +194,28 @@
   z-index: 4;
   margin: 8px 12px 0;
   padding: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.55);
-  background: rgba(236, 236, 240, 0.92);
+  border: 1px solid rgb(var(--paper-rgb) / 0.55);
+  background: rgb(var(--n-100-rgb) / 0.92);
   backdrop-filter: blur(12px);
-  box-shadow: 0 10px 24px rgba(28, 32, 44, 0.1);
+  box-shadow: 0 10px 24px rgb(var(--shadow-rgb) / 0.1);
 }
 
 .profileStepBar{
-  --step-ink: #1a1f24;
-  --step-soft: rgba(26, 31, 36, 0.08);
-  --step-line: rgba(26, 31, 36, 0.1);
+  --step-ink: var(--n-900);
+  --step-soft: rgb(var(--ink-rgb) / 0.08);
+  --step-line: rgb(var(--ink-rgb) / 0.1);
   position: relative;
   margin-top: 14px;
   padding: 16px 14px 15px;
-  border: 1px solid rgba(255, 255, 255, 0.7);
+  border: 1px solid rgb(var(--paper-rgb) / 0.7);
   border-radius: 24px;
   background:
-    radial-gradient(circle at 12% 0%, rgba(20, 22, 29, 0.1), transparent 42%),
-    radial-gradient(circle at 92% 8%, rgba(20, 22, 29, 0.1), transparent 36%),
-    linear-gradient(165deg, rgba(255, 255, 255, 0.97), rgba(248, 244, 239, 0.92));
+    radial-gradient(circle at 12% 0%, rgb(var(--ink-rgb) / 0.1), transparent 42%),
+    radial-gradient(circle at 92% 8%, rgb(var(--ink-rgb) / 0.1), transparent 36%),
+    linear-gradient(165deg, rgb(var(--paper-rgb) / 0.97), rgb(var(--n-50-rgb) / 0.92));
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.98),
-    0 18px 40px rgba(28, 32, 44, 0.08);
+    0 18px 40px rgb(var(--shadow-rgb) / 0.08);
   overflow: hidden;
   animation: stepBarIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -225,7 +225,7 @@
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(115deg, transparent 0%, rgba(255, 255, 255, 0.35) 42%, transparent 68%);
+    linear-gradient(115deg, transparent 0%, rgb(var(--paper-rgb) / 0.35) 42%, transparent 68%);
   pointer-events: none;
 }
 
@@ -249,7 +249,7 @@
   gap: 12px;
   margin-bottom: 14px;
   padding-bottom: 12px;
-  border-bottom: 1px solid rgba(28, 32, 44, 0.06);
+  border-bottom: 1px solid rgb(var(--ink-rgb) / 0.06);
 }
 
 .profileStepKicker{
@@ -265,7 +265,7 @@
   min-height: 28px;
   padding: 0 11px;
   border-radius: 999px;
-  background: rgba(20, 22, 29, 0.1);
+  background: rgb(var(--ink-rgb) / 0.1);
   color: var(--teal);
   font-size: 0.72rem;
   font-weight: 900;
@@ -315,7 +315,7 @@
   width: 0%;
   margin-inline-end: auto;
   border-radius: inherit;
-  background: linear-gradient(90deg, #1a8f8c, var(--teal) 55%, #b86b7d);
+  background: linear-gradient(90deg, var(--brand-violet), var(--teal) 55%, var(--signal-hot));
   transition: width 0.45s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -331,12 +331,12 @@
   place-items: center;
   border-radius: 14px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(244, 240, 235, 0.92));
-  border: 1px solid rgba(28, 32, 44, 0.08);
-  color: #7a848b;
+    linear-gradient(180deg, rgb(var(--paper-rgb) / 0.95), rgb(var(--n-100-rgb) / 0.92));
+  border: 1px solid rgb(var(--ink-rgb) / 0.08);
+  color: var(--n-500);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.95),
-    0 8px 16px rgba(28, 32, 44, 0.05);
+    0 8px 16px rgb(var(--shadow-rgb) / 0.05);
   transition:
     background 0.3s ease,
     color 0.3s ease,
@@ -372,7 +372,7 @@
 }
 
 .profileStepCopy small{
-  color: rgba(104, 113, 119, 0.92);
+  color: rgb(var(--n-600-rgb) / 0.92);
   font-size: 0.64rem;
   font-weight: 700;
   line-height: 1.45;
@@ -384,12 +384,11 @@
 }
 
 .profileStepList > li.is-active .profileStepDot{
-  background:
-    linear-gradient(150deg, #171c20 0%, #243036 46%, #4a3347 125%);
+  background: var(--fill-strong-grad);
   border-color: transparent;
-  color: #fff;
+  color: var(--n-0);
   box-shadow:
-    0 14px 28px rgba(28, 32, 44, 0.28),
+    0 14px 28px rgb(var(--shadow-rgb) / 0.28),
     inset 0 1px 0 rgba(255, 255, 255, 0.18);
   transform: scale(1.07);
 }
@@ -399,7 +398,7 @@
   position: absolute;
   inset: -5px;
   border-radius: 17px;
-  border: 1px solid rgba(20, 22, 29, 0.22);
+  border: 1px solid rgb(var(--ink-rgb) / 0.22);
   animation: stepPulse 1.8s ease-out infinite;
   pointer-events: none;
 }
@@ -416,7 +415,7 @@
 }
 
 .profileStepList > li.is-active .profileStepCopy small{
-  color: rgba(26, 31, 36, 0.62);
+  color: rgb(var(--ink-rgb) / 0.62);
 }
 
 .profileStepList > li.is-done{
@@ -425,16 +424,16 @@
 
 .profileStepList > li.is-done .profileStepDot{
   background:
-    linear-gradient(180deg, rgba(20, 22, 29, 0.16), rgba(20, 22, 29, 0.1));
-  border-color: rgba(20, 22, 29, 0.22);
+    linear-gradient(180deg, rgb(var(--ink-rgb) / 0.16), rgb(var(--ink-rgb) / 0.1));
+  border-color: rgb(var(--ink-rgb) / 0.22);
   color: var(--teal);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.55),
-    0 10px 18px rgba(20, 22, 29, 0.12);
+    0 10px 18px rgb(var(--shadow-rgb) / 0.12);
 }
 
 .profileStepList > li.is-done .profileStepCopy small{
-  color: rgba(20, 22, 29, 0.78);
+  color: rgb(var(--ink-rgb) / 0.78);
 }
 
 .profileRoleGrid{
@@ -446,8 +445,9 @@
 
 .profileRoleCard{
   --role-accent: var(--rose);
-  --role-wash: rgba(20, 22, 29, 0.14);
-  --role-deep: rgba(20, 22, 29, 0.22);
+  --role-accent-rgb: var(--n-950-rgb);
+  --role-wash: rgb(var(--ink-rgb) / 0.14);
+  --role-deep: rgb(var(--ink-rgb) / 0.22);
   position: relative;
   isolation: isolate;
   min-height: 112px;
@@ -458,15 +458,15 @@
   row-gap: 6px;
   align-items: center;
   padding: 18px 18px 18px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.7);
+  border: 1px solid rgb(var(--paper-rgb) / 0.7);
   border-radius: 26px;
   background:
     linear-gradient(135deg, var(--role-wash), transparent 42%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 250, 246, 0.88));
+    linear-gradient(180deg, rgb(var(--paper-rgb) / 0.92), rgb(var(--n-25-rgb) / 0.88));
   color: var(--ink);
   text-align: right;
   overflow: hidden;
-  box-shadow: 0 10px 28px rgba(28, 32, 44, 0.06);
+  box-shadow: 0 10px 28px rgb(var(--shadow-rgb) / 0.06);
   font-family: "Vazirmatn", Tahoma, sans-serif;
   cursor: pointer;
   opacity: 0;
@@ -478,22 +478,24 @@
 
 .profileRoleCard.roleSalon{
   --role-accent: var(--teal);
-  --role-wash: rgba(20, 22, 29, 0.14);
-  --role-deep: rgba(20, 22, 29, 0.2);
+  --role-accent-rgb: var(--n-800-rgb);
+  --role-wash: rgb(var(--ink-rgb) / 0.14);
+  --role-deep: rgb(var(--ink-rgb) / 0.2);
 }
 
 .profileRoleCard.roleArtist{
   --role-accent: var(--plum);
-  --role-wash: rgba(20, 22, 29, 0.12);
-  --role-deep: rgba(20, 22, 29, 0.2);
+  --role-accent-rgb: var(--n-950-rgb);
+  --role-wash: rgb(var(--ink-rgb) / 0.12);
+  --role-deep: rgb(var(--ink-rgb) / 0.2);
 }
 
 .profileRoleCard:hover,
 .profileRoleCard:focus-visible{
   outline: none;
   transform: translateY(-3px) scale(1.01);
-  border-color: color-mix(in srgb, var(--role-accent) 28%, white);
-  box-shadow: 0 18px 36px rgba(28, 32, 44, 0.12);
+  border-color: rgb(var(--role-accent-rgb) / 0.28);
+  box-shadow: 0 18px 36px rgb(var(--shadow-rgb) / 0.12);
 }
 
 .profileRoleCard:active{
@@ -535,11 +537,11 @@
   place-items: center;
   border-radius: 18px;
   background:
-    linear-gradient(160deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.55)),
+    linear-gradient(160deg, rgb(var(--paper-rgb) / 0.95), rgb(var(--paper-rgb) / 0.55)),
     var(--role-wash);
   color: var(--role-accent);
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  box-shadow: 0 8px 18px color-mix(in srgb, var(--role-accent) 16%, transparent);
+  border: 1px solid rgb(var(--paper-rgb) / 0.85);
+  box-shadow: 0 8px 18px rgb(var(--role-accent-rgb) / 0.16);
 }
 
 .profileRoleIcon img{
@@ -554,7 +556,7 @@
   display: grid;
   place-items: center;
   border-radius: 14px;
-  background: rgba(28, 32, 44, 0.05);
+  background: rgb(var(--ink-rgb) / 0.05);
   color: var(--role-accent);
   transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), background 0.28s ease, color 0.28s ease;
 }
@@ -562,7 +564,7 @@
 .profileRoleCard:hover .profileRoleGo{
   transform: translateX(-4px);
   background: var(--role-accent);
-  color: #fff;
+  color: var(--n-0);
 }
 
 .profileRoleCard strong{
@@ -636,16 +638,16 @@
   border: 1px solid var(--line);
   border-radius: 20px;
   padding: 13px;
-  background: rgba(255, 255, 255, 0.7);
+  background: rgb(var(--paper-rgb) / 0.7);
   color: var(--ink);
   text-align: right;
   font-weight: 900;
 }
 
 .profileTypeGrid button.selected{
-  border-color: rgba(20, 22, 29, 0.34);
-  background: linear-gradient(135deg, rgba(20, 22, 29, 0.14), rgba(191, 192, 209, 0.14));
-  box-shadow: 0 14px 32px rgba(20, 22, 29, 0.12);
+  border-color: rgb(var(--ink-rgb) / 0.34);
+  background: linear-gradient(135deg, rgb(var(--ink-rgb) / 0.14), rgb(var(--n-400-rgb) / 0.14));
+  box-shadow: 0 14px 32px rgb(var(--shadow-rgb) / 0.12);
 }
 
 .profileTypeGrid svg{
@@ -661,6 +663,7 @@
 
 .signupForm{
   --form-accent: var(--plum);
+  --form-accent-rgb: var(--n-950-rgb);
   display: grid;
   grid-template-columns: 1fr;
   gap: var(--space-4);
@@ -674,14 +677,17 @@
 
 .signupForm.is-salon{
   --form-accent: var(--teal);
+  --form-accent-rgb: var(--n-800-rgb);
 }
 
 .signupForm.is-artist{
-  --form-accent: #78486c;
+  --form-accent: var(--violet-deep);
+  --form-accent-rgb: var(--violet-deep-rgb);
 }
 
 .signupForm.is-client{
   --form-accent: var(--rose);
+  --form-accent-rgb: var(--n-950-rgb);
 }
 
 .authModeSwitch{
@@ -693,11 +699,11 @@
   padding: 5px;
   border-radius: 22px;
   background:
-    linear-gradient(165deg, rgba(255, 255, 255, 0.94), rgba(246, 241, 236, 0.9));
-  border: 1px solid rgba(28, 32, 44, 0.08);
+    linear-gradient(165deg, rgb(var(--paper-rgb) / 0.94), rgb(var(--n-100-rgb) / 0.9));
+  border: 1px solid rgb(var(--ink-rgb) / 0.08);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.95),
-    0 14px 30px rgba(28, 32, 44, 0.07);
+    0 14px 30px rgb(var(--shadow-rgb) / 0.07);
   isolation: isolate;
 }
 
@@ -709,10 +715,9 @@
   inset-inline-start: 5px;
   width: calc(50% - 5px);
   border-radius: 17px;
-  background:
-    linear-gradient(145deg, #1c2328 0%, #243036 48%, #14161d 130%);
+  background: var(--fill-strong-grad);
   box-shadow:
-    0 12px 26px rgba(28, 32, 44, 0.28),
+    0 12px 26px rgb(var(--shadow-rgb) / 0.28),
     inset 0 1px 0 rgba(255, 255, 255, 0.14);
   transition: transform 0.34s cubic-bezier(0.22, 1, 0.36, 1);
   pointer-events: none;
@@ -753,13 +758,13 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .authModeSwitch button:focus-visible{
-  outline: 2px solid rgba(20, 22, 29, 0.45);
+  outline: 2px solid rgb(var(--ink-rgb) / 0.45);
   outline-offset: 2px;
 }
 
 .authModeSwitch button.active{
   background: transparent;
-  color: #fff;
+  color: var(--n-0);
   box-shadow: none;
 }
 
@@ -769,12 +774,12 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   width: 34px;
   height: 34px;
   border-radius: 12px;
-  background: rgba(28, 32, 44, 0.05);
+  background: rgb(var(--ink-rgb) / 0.05);
   transition: background 0.22s ease, transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .authModeSwitch button.active .authModeIcon{
-  background: rgba(255, 255, 255, 0.14);
+  background: rgb(var(--paper-rgb) / 0.14);
   transform: scale(1.04);
 }
 
@@ -805,15 +810,15 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 
 .authModeSwitch button.active .authModeCopy small{
   opacity: 0.78;
-  color: rgba(255, 255, 255, 0.82);
+  color: rgb(var(--paper-rgb) / 0.82);
 }
 
 .authNotice{
   margin: 10px 0 0;
   padding: 10px 12px;
   border-radius: 14px;
-  background: rgba(20, 22, 29, 0.1);
-  color: #9b3650;
+  background: rgb(var(--ink-rgb) / 0.1);
+  color: var(--accent);
   font-size: 0.84rem;
   font-weight: 800;
   line-height: 1.6;
@@ -881,7 +886,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   margin: 0 auto;
   padding: 0;
   overflow: hidden;
-  background: #141016;
+  background: var(--fill-strong);
 }
 
 .appShell.is-auth-gate .profilePanel,
@@ -936,7 +941,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   width: 38px;
   height: 38px;
   border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--form-accent, var(--teal)) 14%, white);
+  background: rgb(var(--form-accent-rgb, var(--n-800-rgb)) / 0.14);
   color: var(--form-accent, var(--teal));
 }
 
@@ -1016,11 +1021,11 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 .authSwitchHint.is-pageFooter{
   margin: auto 0 0;
   padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px));
-  color: rgba(247, 241, 234, 0.75);
+  color: rgb(var(--n-100-rgb) / 0.75);
 }
 
 .authSwitchHint.is-pageFooter button{
-  color: #fff;
+  color: var(--n-0);
 }
 
 .signupForm input,
@@ -1029,7 +1034,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   width: 100%;
   /* Same fill as the card around it -- the only thing that reads as an
      input is the thin indigo-plum hairline, not a fill-color change. */
-  border: 1px solid var(--auth-input-border, color-mix(in srgb, var(--plum) 55%, var(--night) 45%));
+  border: 1px solid var(--auth-input-border, var(--n-900));
   outline: 0;
   border-radius: var(--radius-md);
   background: transparent;
@@ -1053,14 +1058,14 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 .signupForm input:hover,
 .signupForm select:hover,
 .signupForm textarea:hover{
-  border-color: color-mix(in srgb, var(--form-accent, var(--teal)) 35%, var(--line));
+  border-color: rgb(var(--form-accent-rgb, var(--n-800-rgb)) / 0.4);
 }
 
 .signupForm input:focus,
 .signupForm select:focus,
 .signupForm textarea:focus{
   border-color: var(--form-accent, var(--teal));
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--form-accent, var(--teal)) 16%, transparent);
+  box-shadow: 0 0 0 3px rgb(var(--form-accent-rgb, var(--n-800-rgb)) / 0.16);
 }
 
 .signupForm textarea{
@@ -1096,7 +1101,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 
 .authPasswordToggle:hover{
   color: var(--ink);
-  background: color-mix(in srgb, var(--ink) 6%, transparent);
+  background: rgb(var(--ink-rgb) / 0.06);
 }
 
 .profileSubmit{
@@ -1105,17 +1110,17 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   border: 0;
   border-radius: var(--radius-md);
   background: var(--form-accent, var(--night));
-  color: #fff;
+  color: var(--n-0);
   font-size: var(--text-base);
   font-weight: 800;
   letter-spacing: -0.01em;
-  box-shadow: 0 10px 24px -8px color-mix(in srgb, var(--form-accent, var(--night)) 65%, transparent);
+  box-shadow: 0 10px 24px -8px rgb(var(--form-accent-rgb, var(--n-900-rgb)) / 0.65);
   transition: transform var(--duration-fast) ease, box-shadow var(--duration-fast) ease, filter var(--duration-fast) ease;
 }
 
 .profileSubmit:hover:not(:disabled){
   filter: brightness(1.06);
-  box-shadow: 0 14px 30px -8px color-mix(in srgb, var(--form-accent, var(--night)) 70%, transparent);
+  box-shadow: 0 14px 30px -8px rgb(var(--form-accent-rgb, var(--n-900-rgb)) / 0.7);
 }
 
 .profileSubmit:active:not(:disabled){
@@ -1145,7 +1150,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   align-items: center;
   justify-content: space-between;
   gap: var(--space-2);
-  border: 1px solid var(--auth-input-border, color-mix(in srgb, var(--plum) 55%, var(--night) 45%));
+  border: 1px solid var(--auth-input-border, var(--n-900));
   border-radius: var(--radius-md);
   background: transparent;
   color: var(--ink);
@@ -1168,7 +1173,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .specialtySelectTrigger:hover{
-  border-color: color-mix(in srgb, var(--form-accent, var(--teal)) 40%, var(--auth-input-border, var(--line)));
+  border-color: rgb(var(--form-accent-rgb, var(--n-800-rgb)) / 0.4);
 }
 
 .specialtySelectChevron{
@@ -1206,7 +1211,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   font-weight: 800;
   padding: 3px 10px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--form-accent, var(--teal)) 12%, transparent);
+  background: rgb(var(--form-accent-rgb, var(--n-800-rgb)) / 0.12);
   color: var(--ink);
 }
 
@@ -1219,7 +1224,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   place-items: center;
   border-radius: 999px;
   background: var(--form-accent, var(--teal));
-  color: #fff;
+  color: var(--n-0);
   font-size: 0.7rem;
 }
 
@@ -1244,10 +1249,10 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   gap: 8px;
   min-height: 46px;
   padding: 0 14px;
-  border: 1px solid #e1e1ea;
+  border: 1px solid var(--n-200);
   border-radius: 15px;
-  background: #f6f6fa;
-  color: #6b6f7e;
+  background: var(--n-50);
+  color: var(--n-600);
 }
 
 .specialtySheetSearch input{
@@ -1258,7 +1263,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   border: 0;
   background: transparent;
   box-shadow: none;
-  color: #14161d;
+  color: var(--n-900);
   font: inherit;
   font-size: 0.86rem;
   font-weight: 700;
@@ -1290,10 +1295,10 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   align-items: center;
   gap: 9px;
   padding: 8px 10px;
-  border: 1.5px solid #e4e4ec;
+  border: 1.5px solid var(--n-200);
   border-radius: 16px;
-  background: #fff;
-  color: #14161d;
+  background: var(--n-0);
+  color: var(--n-900);
   font: inherit;
   font-size: 0.8rem;
   font-weight: 850;
@@ -1306,9 +1311,9 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 .specialtyTile:active{ transform: scale(0.97); }
 
 .specialtyTile[data-checked="true"]{
-  border-color: #14161d;
-  background: #f3f3f8;
-  box-shadow: 0 0 0 1px #14161d inset;
+  border-color: var(--n-900);
+  background: var(--n-50);
+  box-shadow: 0 0 0 1px rgb(var(--shadow-rgb)) inset;
 }
 
 .specialtyTileCheck{
@@ -1320,15 +1325,15 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: #14161d;
-  color: #fff;
+  background: var(--fill-strong);
+  color: var(--n-0);
 }
 
 .specialtySheetEmpty{
   grid-column: 1 / -1;
   margin: 8px 0;
   text-align: center;
-  color: #8a8e9b;
+  color: var(--n-500);
   font-size: 0.76rem;
   font-weight: 700;
 }
@@ -1344,10 +1349,10 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   min-width: 0;
   min-height: 46px;
   padding: 0 14px;
-  border: 1px solid #e1e1ea;
+  border: 1px solid var(--n-200);
   border-radius: 15px;
-  background: #fff;
-  color: #14161d;
+  background: var(--n-0);
+  color: var(--n-900);
   font: inherit;
   font-size: 0.82rem;
   font-weight: 700;
@@ -1361,8 +1366,8 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   place-items: center;
   border: 0;
   border-radius: 15px;
-  background: #14161d;
-  color: #fff;
+  background: var(--fill-strong);
+  color: var(--n-0);
   cursor: pointer;
 }
 
@@ -1383,9 +1388,9 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   gap: 4px;
   align-content: center;
   padding: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.72);
+  border: 1px solid rgb(var(--paper-rgb) / 0.72);
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.72);
+  background: rgb(var(--paper-rgb) / 0.72);
   text-align: center;
 }
 
@@ -1411,11 +1416,11 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   display: grid;
   gap: 12px;
   padding: 14px;
-  border: 1px solid rgba(120, 72, 108, 0.16);
+  border: 1px solid rgb(var(--info-rgb) / 0.16);
   border-radius: 22px;
   background:
-    linear-gradient(145deg, rgba(120, 72, 108, 0.1), rgba(20, 22, 29, 0.08)),
-    rgba(246, 246, 251, 0.94);
+    linear-gradient(145deg, rgb(var(--info-rgb) / 0.1), rgb(var(--ink-rgb) / 0.08)),
+    rgb(var(--n-50-rgb) / 0.94);
 }
 
 .artistIdentityMain{
@@ -1431,17 +1436,17 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   display: grid;
   place-items: center;
   border-radius: 22px;
-  background: linear-gradient(135deg, #51344d, #78486c);
-  color: #fff;
+  background: linear-gradient(135deg, var(--n-800), var(--fill-violet));
+  color: var(--n-0);
   font-size: 1.35rem;
   font-weight: 900;
-  box-shadow: 0 14px 30px rgba(20, 22, 29, 0.24);
+  box-shadow: 0 14px 30px rgb(var(--shadow-rgb) / 0.24);
 }
 
 .artistIdentityKicker{
   display: block;
   margin-bottom: 4px;
-  color: #78486c;
+  color: var(--info);
   font-size: 0.68rem;
   font-weight: 900;
 }
@@ -1474,14 +1479,14 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   gap: 6px;
   border: 0;
   border-radius: 14px;
-  background: linear-gradient(135deg, #51344d, #78486c);
-  color: #fff;
+  background: var(--fill-strong-grad);
+  color: var(--n-0);
   font-size: 0.74rem;
   font-weight: 900;
 }
 
 .artistIdentityActions button.ghost{
-  background: rgba(255, 255, 255, 0.78);
+  background: rgb(var(--paper-rgb) / 0.78);
   color: var(--ink);
   box-shadow: inset 0 0 0 1px rgba(120, 72, 108, 0.14);
 }
@@ -1499,7 +1504,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   gap: 5px;
   padding: 0 10px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.78);
+  background: rgb(var(--paper-rgb) / 0.78);
   color: var(--ink);
   font-size: 0.66rem;
   font-weight: 800;
@@ -1513,13 +1518,13 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   display: grid;
   gap: 12px;
   padding: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.78);
+  border: 1px solid rgb(var(--paper-rgb) / 0.78);
   border-radius: 24px;
   background:
-    linear-gradient(165deg, rgba(255, 255, 255, 0.94), rgba(250, 246, 242, 0.9));
+    linear-gradient(165deg, rgb(var(--paper-rgb) / 0.94), rgb(var(--n-50-rgb) / 0.9));
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.95),
-    0 16px 34px rgba(28, 32, 44, 0.06);
+    0 16px 34px rgb(var(--shadow-rgb) / 0.06);
 }
 
 .artistGallery,
@@ -1544,7 +1549,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 .artistGalleryKicker{
   display: block;
   margin-bottom: 4px;
-  color: #8a4d63;
+  color: var(--accent);
   font-size: 0.7rem;
   font-weight: 900;
   letter-spacing: 0.02em;
@@ -1575,11 +1580,11 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   padding: 0 14px;
   border: 0;
   border-radius: 14px;
-  background: linear-gradient(145deg, #1c2328 0%, #2a3338 55%, #14161d 130%);
-  color: #fff;
+  background: var(--fill-strong-grad);
+  color: var(--n-0);
   font-size: 0.74rem;
   font-weight: 900;
-  box-shadow: 0 12px 24px rgba(28, 32, 44, 0.2);
+  box-shadow: 0 12px 24px rgb(var(--shadow-rgb) / 0.2);
 }
 
 .artistGalleryFilters,
@@ -1602,9 +1607,9 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   flex: 0 0 auto;
   min-height: 34px;
   padding: 0 13px;
-  border: 1px solid rgba(28, 32, 44, 0.08);
+  border: 1px solid rgb(var(--ink-rgb) / 0.08);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.78);
+  background: rgb(var(--paper-rgb) / 0.78);
   color: var(--muted);
   font-size: 0.72rem;
   font-weight: 800;
@@ -1614,8 +1619,8 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 
 .artistGalleryFilters button.active,
 .profileGalleryFilters button.active{
-  background: rgba(20, 22, 29, 0.12);
-  border-color: rgba(20, 22, 29, 0.22);
+  background: rgb(var(--ink-rgb) / 0.12);
+  border-color: rgb(var(--ink-rgb) / 0.22);
   color: var(--teal);
   transform: translateY(-1px);
 }
@@ -1626,7 +1631,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   min-height: 240px;
   border-radius: 22px;
   isolation: isolate;
-  box-shadow: 0 18px 40px rgba(28, 32, 44, 0.16);
+  box-shadow: 0 18px 40px rgb(var(--shadow-rgb) / 0.16);
   animation: galleryCardIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
   cursor: pointer;
 }
@@ -1653,7 +1658,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(180deg, rgba(12, 14, 16, 0.08) 0%, transparent 36%, rgba(12, 14, 16, 0.78) 100%);
+    linear-gradient(180deg, rgb(var(--ink-rgb) / 0.08) 0%, transparent 36%, rgb(12 13 18 / 0.78) 100%);
   pointer-events: none;
 }
 
@@ -1666,7 +1671,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   display: grid;
   gap: 6px;
   padding: 16px;
-  color: #fff;
+  color: var(--n-0);
   pointer-events: none;
 }
 
@@ -1678,8 +1683,8 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   align-items: center;
   padding: 0 10px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.16);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgb(var(--paper-rgb) / 0.16);
+  border: 1px solid rgb(var(--paper-rgb) / 0.18);
   backdrop-filter: blur(8px);
   font-size: 0.66rem;
   font-weight: 800;
@@ -1718,7 +1723,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   font-style: normal;
   font-size: 0.68rem;
   font-weight: 800;
-  color: rgba(255, 255, 255, 0.78);
+  color: rgb(var(--paper-rgb) / 0.78);
 }
 
 .artistGalleryFeaturedBadge,
@@ -1728,7 +1733,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   font-style: normal;
   font-size: 0.62rem;
   font-weight: 800;
-  color: rgba(255, 255, 255, 0.82);
+  color: rgb(var(--paper-rgb) / 0.82);
 }
 
 .artistGalleryGrid,
@@ -1774,8 +1779,8 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
   margin: 0 0 10px;
   border-radius: 18px;
   isolation: isolate;
-  background: var(--night);
-  box-shadow: 0 14px 28px rgba(28, 32, 44, 0.12);
+  background: var(--fill-strong);
+  box-shadow: 0 14px 28px rgb(var(--shadow-rgb) / 0.12);
   animation: galleryCardIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
   break-inside: avoid;
   -webkit-column-break-inside: avoid;

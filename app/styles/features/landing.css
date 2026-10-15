@@ -22,20 +22,27 @@ html.native-app .webOnlyAppLink { display: none !important; }
    pink→violet is used for emphasis words, glows and the final card. Type is Vazirmatn throughout. */
 .appLanding {
   --landing-max: 1160px;
+  /* Fixed in both themes: the ink of dark panels and the phone frame, and the two brand colours. */
   --l-ink: #0c0d12;
   --l-ink-2: #171923;
-  --l-white: #ffffff;
-  --l-mist: #f5f5fa;
-  --l-line: rgba(12, 13, 18, 0.1);
   --l-pink: #ff86b8;
-  --l-pink-deep: #c42a74; /* pink for text on white (AA contrast) */
   --l-violet: #8b6cff;
-  --l-violet-deep: #5b3fd6; /* violet for text on white (AA contrast) */
-  --l-violet-soft: #ece8ff;
   --l-blend: linear-gradient(120deg, #ff86b8 0%, #b58cff 52%, #7c5cff 100%);
-  --l-blend-text: linear-gradient(120deg, #e8267f 0%, #9a4fe0 55%, #5b3fd6 100%);
+  /* Follow the theme (night values are set below). */
+  --l-white: #ffffff;       /* page and light sections */
+  --l-mist: #f5f5fa;        /* alternate light sections, chips, closed FAQ rows */
+  --l-card: #ffffff;        /* raised cards on a light section */
+  --l-glass: rgba(255, 255, 255, 0.78);
+  --l-line: rgba(12, 13, 18, 0.1);
+  --l-fg: #0c0d12;          /* headings and strong text on light sections */
   --l-text: #2b2e3a;
   --l-muted: #666a78;
+  --l-fill: #0c0d12;        /* main buttons and number dots; pink at night */
+  --l-on-fill: #ffffff;
+  --l-pink-deep: #c42a74;   /* pink for text on white (AA contrast) */
+  --l-violet-deep: #5b3fd6; /* violet for text on white (AA contrast) */
+  --l-violet-soft: #ece8ff;
+  --l-blend-text: linear-gradient(120deg, #e8267f 0%, #9a4fe0 55%, #5b3fd6 100%);
   position: relative;
   z-index: 1;
   min-height: 100dvh;
@@ -44,6 +51,42 @@ html.native-app .webOnlyAppLink { display: none !important; }
   color: var(--l-text);
   font-family: Vazirmatn, Tahoma, sans-serif;
   line-height: 1.9;
+}
+
+/* Night: light sections turn into dark ones (the ink panels stay darker still), buttons turn pink like in the app. */
+:root[data-theme="dark"] .appLanding {
+  --l-white: #12131b;
+  --l-mist: #191b26;
+  --l-card: #1f212e;
+  --l-glass: rgba(24, 25, 35, 0.78);
+  --l-line: rgba(255, 255, 255, 0.12);
+  --l-fg: #f7f7fb;
+  --l-text: #d3d6e2;
+  --l-muted: #a3a7ba;
+  --l-fill: #ff86b8;
+  --l-on-fill: #0c0d12;
+  --l-pink-deep: #ff9cc6;
+  --l-violet-deep: #cfc4ff;
+  --l-violet-soft: rgba(139, 108, 255, 0.22);
+  --l-blend-text: var(--l-blend);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .appLanding {
+    --l-white: #12131b;
+    --l-mist: #191b26;
+    --l-card: #1f212e;
+    --l-glass: rgba(24, 25, 35, 0.78);
+    --l-line: rgba(255, 255, 255, 0.12);
+    --l-fg: #f7f7fb;
+    --l-text: #d3d6e2;
+    --l-muted: #a3a7ba;
+    --l-fill: #ff86b8;
+    --l-on-fill: #0c0d12;
+    --l-pink-deep: #ff9cc6;
+    --l-violet-deep: #cfc4ff;
+    --l-violet-soft: rgba(139, 108, 255, 0.22);
+    --l-blend-text: var(--l-blend);
+  }
 }
 
 .appLanding a { color: inherit; }
@@ -74,7 +117,7 @@ html.native-app .webOnlyAppLink { display: none !important; }
   gap: var(--space-6);
   padding: 8px 10px 8px 12px;
   border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.78);
+  background: var(--l-glass);
   border: 1px solid var(--l-line);
   box-shadow: 0 10px 40px rgba(12, 13, 18, 0.08);
   -webkit-backdrop-filter: blur(16px) saturate(1.4);
@@ -90,19 +133,19 @@ html.native-app .webOnlyAppLink { display: none !important; }
   font-weight: 900;
   font-size: 1.3rem;
   line-height: 1;
-  color: var(--l-ink);
+  color: var(--l-fg);
 }
 .appLanding__brand img { border-radius: 11px; }
 
 .appLanding__nav nav { display: flex; gap: var(--space-6); margin-inline-start: auto; font-size: 0.92rem; }
 .appLanding__nav nav a { text-decoration: none; color: var(--l-muted); font-weight: 800; transition: color var(--duration-fast) ease; }
-.appLanding__nav nav a:hover { color: var(--l-ink); }
+.appLanding__nav nav a:hover { color: var(--l-fg); }
 
 .appLanding__navCta {
   padding: 8px 20px;
   border-radius: var(--radius-pill);
-  background: var(--l-ink);
-  color: #fff !important;
+  background: var(--l-fill);
+  color: var(--l-on-fill) !important;
   font-weight: 900;
   font-size: 0.88rem;
   text-decoration: none;
@@ -116,7 +159,7 @@ html.native-app .webOnlyAppLink { display: none !important; }
   isolation: isolate;
   margin-top: -64px;
   padding: 64px var(--space-4) 0;
-  background: linear-gradient(180deg, #fff 0%, var(--l-mist) 100%);
+  background: linear-gradient(180deg, var(--l-white) 0%, var(--l-mist) 100%);
   overflow: hidden;
 }
 
@@ -150,8 +193,8 @@ html.native-app .webOnlyAppLink { display: none !important; }
   padding: 5px 14px;
   border: 1px solid var(--l-line);
   border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.8);
-  color: var(--l-ink);
+  background: var(--l-glass);
+  color: var(--l-fg);
   font-weight: 800;
   font-size: 0.84rem;
 }
@@ -163,7 +206,7 @@ html.native-app .webOnlyAppLink { display: none !important; }
   font-size: clamp(2.4rem, 5vw, 4.2rem);
   line-height: 1.25;
   letter-spacing: 0;
-  color: var(--l-ink);
+  color: var(--l-fg);
 }
 
 .appLanding__lead {
@@ -197,9 +240,9 @@ html.native-app .webOnlyAppLink { display: none !important; }
 .appLanding__storeIcon { width: 26px; height: 26px; flex: none; }
 
 /* On light surfaces: ink primary, ghost secondary. */
-.appLanding__buttons.is-light .appLanding__store, .appLanding__guide .appLanding__store { color: var(--l-ink); border-color: var(--l-ink); }
-.appLanding__buttons.is-light .appLanding__store:hover { background: rgba(12, 13, 18, 0.05); }
-.appLanding__buttons.is-light .appLanding__store.is-primary, .appLanding__guide .appLanding__store.is-primary { background: var(--l-ink); color: #fff; }
+.appLanding__buttons.is-light .appLanding__store, .appLanding__guide .appLanding__store { color: var(--l-fg); border-color: var(--l-fg); }
+.appLanding__buttons.is-light .appLanding__store:hover { background: rgb(var(--ink-rgb) / 0.06); }
+.appLanding__buttons.is-light .appLanding__store.is-primary, .appLanding__guide .appLanding__store.is-primary { background: var(--l-fill); border-color: var(--l-fill); color: var(--l-on-fill); }
 .appLanding__buttons.is-light .appLanding__store.is-primary:hover, .appLanding__guide .appLanding__store.is-primary:hover { box-shadow: 0 14px 36px rgba(91, 63, 214, 0.35); }
 .appLanding__store.is-small { min-height: 48px; font-size: 0.95rem; margin-top: var(--space-5); }
 
@@ -262,12 +305,12 @@ html.native-app .webOnlyAppLink { display: none !important; }
   gap: var(--space-3);
   padding: 10px 16px 10px 14px;
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.82);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--l-glass);
+  border: 1px solid var(--l-line);
   box-shadow: 0 18px 50px rgba(12, 13, 18, 0.16);
   -webkit-backdrop-filter: blur(14px);
   backdrop-filter: blur(14px);
-  color: var(--l-ink);
+  color: var(--l-fg);
   line-height: 1.5;
   font-size: 0.82rem;
 }
@@ -290,7 +333,7 @@ html.native-app .webOnlyAppLink { display: none !important; }
 
 .appLanding__times { display: flex; gap: 6px; }
 .appLanding__times b { padding: 2px 10px; border-radius: var(--radius-pill); background: var(--l-violet-soft); color: var(--l-violet-deep); font-weight: 900; font-size: 0.78rem; }
-.appLanding__times b:first-child { background: var(--l-ink); color: #fff; }
+.appLanding__times b:first-child { background: var(--l-fill); color: var(--l-on-fill); }
 
 .appLanding__heroMascot {
   position: absolute;
@@ -318,6 +361,15 @@ html.native-app .webOnlyAppLink { display: none !important; }
 }
 
 .appLanding__qrCode svg { display: block; width: 100%; height: auto; margin-bottom: var(--space-2); }
+
+/* At night the phone frame gets a hairline so it does not melt into the page. */
+:root[data-theme="dark"] .appLanding__phone { box-shadow: 0 50px 90px rgba(139, 108, 255, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.2); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .appLanding__phone { box-shadow: 0 50px 90px rgba(139, 108, 255, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.2); } }
+
+/* Mascots: sticker outline at night (the finale panel is dark in both themes, so it always has one). */
+.appLanding img[src*="/brand/mascot/"] { filter: var(--mascot-filter, none); }
+.appLanding__heroMascot { filter: var(--mascot-filter, none) drop-shadow(0 16px 24px rgba(12, 13, 18, 0.25)) !important; }
+.appLanding__finaleMascot { filter: var(--mascot-outline) drop-shadow(0 18px 30px rgba(12, 13, 18, 0.4)) !important; }
 
 /* ---------- Category ribbon: calm, slow, straight ---------- */
 .appLanding__ribbon {
@@ -350,7 +402,7 @@ html.native-app .webOnlyAppLink { display: none !important; }
   background: var(--l-mist);
   font-weight: 900;
   font-size: 0.98rem;
-  color: var(--l-ink);
+  color: var(--l-fg);
   white-space: nowrap;
 }
 
@@ -386,7 +438,7 @@ html.native-app .webOnlyAppLink { display: none !important; }
   font-weight: 900;
   font-size: clamp(1.8rem, 3.8vw, 2.9rem);
   line-height: 1.4;
-  color: var(--l-ink);
+  color: var(--l-fg);
 }
 
 /* ---------- The dark section: three audiences ---------- */
@@ -418,11 +470,12 @@ html.native-app .webOnlyAppLink { display: none !important; }
 .appLanding__card:hover { transform: translateY(-4px); }
 
 /* Client: white. Salon: violet blended into pink. Artist: ink with a pink edge. */
-.appLanding__card.is-0 { background: #fff; color: var(--l-text); border-color: transparent; }
+/* The client card is white in both themes, so its colours are fixed. */
+.appLanding__card.is-0 { background: #fff; color: #2b2e3a; border-color: transparent; }
 .appLanding__card.is-0 h3 { color: var(--l-ink); }
-.appLanding__card.is-0 .appLanding__tag { background: var(--l-violet-soft); color: var(--l-violet-deep); }
+.appLanding__card.is-0 .appLanding__tag { background: #ece8ff; color: #5b3fd6; }
 .appLanding__card.is-0 .appLanding__cardIcon { background: var(--l-ink); color: #fff; }
-.appLanding__card.is-0 li::marker { color: var(--l-violet-deep); }
+.appLanding__card.is-0 li::marker { color: #5b3fd6; }
 .appLanding__card.is-0:hover { box-shadow: 0 24px 70px rgba(139, 108, 255, 0.35); }
 
 .appLanding__card.is-1 {
@@ -474,7 +527,7 @@ html.native-app .webOnlyAppLink { display: none !important; }
   overflow: hidden;
   transition: transform var(--duration-base) var(--ease-standard), box-shadow var(--duration-base) ease, background var(--duration-base) ease;
 }
-.appLanding__steps li:hover { transform: translateY(-4px); background: #fff; box-shadow: 0 0 0 1.5px var(--l-ink), 0 20px 50px rgba(12, 13, 18, 0.1); }
+.appLanding__steps li:hover { transform: translateY(-4px); background: var(--l-card); box-shadow: 0 0 0 1.5px var(--l-fg), 0 20px 50px rgba(12, 13, 18, 0.1); }
 
 .appLanding__stepArt { display: grid; place-items: center; height: 170px; margin-bottom: var(--space-3); position: relative; }
 .appLanding__stepArt::before {
@@ -502,14 +555,14 @@ html.native-app .webOnlyAppLink { display: none !important; }
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: var(--l-ink);
-  color: #fff;
+  background: var(--l-fill);
+  color: var(--l-on-fill);
   font-weight: 900;
   font-size: 0.95rem;
   line-height: 1;
 }
 
-.appLanding__steps h3 { margin: 0 0 var(--space-1); font-weight: 900; font-size: 1.25rem; color: var(--l-ink); }
+.appLanding__steps h3 { margin: 0 0 var(--space-1); font-weight: 900; font-size: 1.25rem; color: var(--l-fg); }
 .appLanding__steps p { margin: 0; color: var(--l-muted); font-size: 0.93rem; }
 
 /* ---------- Promises: a black band ---------- */
@@ -538,7 +591,7 @@ html.native-app .webOnlyAppLink { display: none !important; }
 .appLanding__install { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
 
 .appLanding__guide {
-  background: #fff;
+  background: var(--l-card);
   border-radius: 28px;
   padding: var(--space-7) var(--space-6);
   border: 1px solid var(--l-line);
@@ -552,7 +605,7 @@ html.native-app .webOnlyAppLink { display: none !important; }
   margin: 0 0 var(--space-4);
   font-weight: 900;
   font-size: 1.5rem;
-  color: var(--l-ink);
+  color: var(--l-fg);
 }
 
 .appLanding__guide ol { margin: 0; padding: 0; list-style: none; counter-reset: guide; }
@@ -581,7 +634,7 @@ html.native-app .webOnlyAppLink { display: none !important; }
 .appLanding__faq { display: grid; gap: var(--space-2); }
 
 .appLanding__faq details { border-radius: 20px; background: var(--l-mist); transition: background var(--duration-base) ease; }
-.appLanding__faq details[open] { background: #fff; box-shadow: 0 0 0 1.5px var(--l-ink); }
+.appLanding__faq details[open] { background: var(--l-card); box-shadow: 0 0 0 1.5px var(--l-fg); }
 
 .appLanding__faq summary {
   list-style: none;
@@ -593,7 +646,7 @@ html.native-app .webOnlyAppLink { display: none !important; }
   cursor: pointer;
   font-weight: 900;
   font-size: 1.04rem;
-  color: var(--l-ink);
+  color: var(--l-fg);
 }
 .appLanding__faq summary::-webkit-details-marker { display: none; }
 
@@ -605,8 +658,8 @@ html.native-app .webOnlyAppLink { display: none !important; }
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: var(--l-ink);
-  color: #fff;
+  background: var(--l-fill);
+  color: var(--l-on-fill);
   font-size: 1.3rem;
   line-height: 1;
   transition: rotate var(--duration-base) var(--ease-standard), background var(--duration-base) ease;
@@ -761,7 +814,7 @@ html.native-app .webOnlyAppLink { display: none !important; }
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: #fff;
+  background: var(--n-0);
   color: var(--muted);
   box-shadow: 0 6px 20px rgba(28, 32, 44, 0.18);
   pointer-events: none;

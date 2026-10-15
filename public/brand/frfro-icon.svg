@@ -1,4 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="frfro">
-<rect width="512" height="512" fill="#1c202c"/>
+<rect width="512" height="512" fill="#0c0d12"/>
 <text x="256.0" y="256.0" text-anchor="middle" dominant-baseline="central" font-family="Inter, Vazirmatn, system-ui, sans-serif" font-size="115" font-weight="800" letter-spacing="-1" fill="#ffffff">frfro</text>
+<rect x="205" y="326" width="102" height="6" rx="3" fill="url(#b)"/>
+<defs><linearGradient id="b" x1="0" x2="1"><stop offset="0" stop-color="#ff86b8"/><stop offset="1" stop-color="#8b6cff"/></linearGradient></defs>
 </svg>

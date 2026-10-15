@@ -7,17 +7,17 @@
    ═══════════════════════════════════════════════════════════════════════ */
 
 .salonHeroSheetPanel.artistBookingPopupSheet {
-  --bk-ink: #14161d;
-  --bk-muted: #6f7380;
-  --bk-line: #ececf0;
-  --bk-soft: #f6f6f8;
-  background: #ffffff;
+  --bk-ink: var(--n-900);
+  --bk-muted: var(--n-600);
+  --bk-line: var(--n-100);
+  --bk-soft: var(--n-50);
+  background: var(--n-0);
   color: var(--bk-ink);
 }
 
 @media (max-width: 760px) {
   .salonHeroSheetBackdrop:has(> .artistBookingPopupSheet) {
-    background: #ffffff;
+    background: var(--n-0);
   }
 }
 
@@ -50,8 +50,8 @@
   padding: 14px;
   border: 1px solid var(--bk-line);
   border-radius: 18px;
-  background: #ffffff;
-  box-shadow: 0 6px 18px rgba(20, 22, 29, 0.04);
+  background: var(--n-0);
+  box-shadow: 0 6px 18px rgb(var(--shadow-rgb) / 0.04);
 }
 
 .artistBookingPopupSheet .artistPublicBookingService span {
@@ -80,8 +80,8 @@
 .artistBookingPopupSheet .settingsHoursWheelRange {
   padding: 14px 10px;
   border-radius: 20px;
-  background: #ffffff;
-  box-shadow: inset 0 0 0 1px var(--bk-line), 0 8px 24px rgba(20, 22, 29, 0.05);
+  background: var(--n-0);
+  box-shadow: inset 0 0 0 1px var(--bk-line), 0 8px 24px rgb(var(--shadow-rgb) / 0.05);
 }
 
 .artistBookingPopupSheet .settingsHoursWheelRange > div > span {
@@ -92,17 +92,17 @@
 
 .artistBookingPopupSheet .breakTimeWheelFocus {
   background: var(--bk-soft);
-  border: 1px solid #e4e4ea;
+  border: 1px solid var(--n-200);
   box-shadow: none;
 }
 
 .artistBookingPopupSheet .breakTimeWheelItem,
 .artistBookingPopupSheet .breakTimeWheel.is-label .breakTimeWheelItem {
-  color: rgba(20, 22, 29, 0.34);
+  color: rgb(var(--ink-rgb) / 0.34);
 }
 
 .artistBookingPopupSheet .breakTimeWheelLabel {
-  color: rgba(20, 22, 29, 0.38);
+  color: rgb(var(--ink-rgb) / 0.38);
 }
 
 .artistBookingPopupSheet .breakTimeWheelItem.is-active,
@@ -125,15 +125,15 @@
 .artistBookingPopupSheet .artistBookingPopupConfirm {
   min-height: 52px;
   border-radius: 16px;
-  background: #14161d;
-  color: #ffffff;
+  background: var(--fill-strong);
+  color: var(--n-0);
   font-size: 0.88rem;
-  box-shadow: 0 10px 22px rgba(20, 22, 29, 0.18);
+  box-shadow: 0 10px 22px rgb(var(--shadow-rgb) / 0.18);
 }
 
 .artistBookingPopupSheet .artistBookingPopupConfirm:disabled {
-  background: #d9dae0;
-  color: #8b8e99;
+  background: var(--n-300);
+  color: var(--n-500);
   opacity: 1;
   box-shadow: none;
 }

@@ -48,7 +48,7 @@
     overflow: visible !important;
     text-overflow: clip !important;
     white-space: normal !important;
-    color: #1c202c !important;
+    color: var(--n-900) !important;
     font-size: 0.92rem !important;
     font-weight: 950 !important;
     line-height: 1.25 !important;
@@ -73,7 +73,7 @@
     overflow: hidden !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
-    color: rgba(28, 32, 44, 0.58) !important;
+    color: rgb(var(--ink-rgb) / 0.58) !important;
     font-size: 0.62rem !important;
     font-weight: 800 !important;
     line-height: 1.25 !important;
@@ -90,9 +90,9 @@
     gap: 6px !important;
     padding: 4px 10px !important;
     border-radius: 999px !important;
-    border: 1px solid rgba(255, 255, 255, 0.13) !important;
-    background: rgba(5, 5, 12, 0.64) !important;
-    color: #ffffff !important;
+    border: 1px solid rgb(var(--paper-rgb) / 0.13) !important;
+    background: rgb(var(--ink-rgb) / 0.64) !important;
+    color: var(--n-0) !important;
     font-size: 0.66rem !important;
     font-weight: 900 !important;
     line-height: 1 !important;
@@ -106,17 +106,17 @@
     width: 3px;
     height: 3px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.54);
+    background: rgb(var(--paper-rgb) / 0.54);
   }
 
   .profileHero.is-salon .salonHeroRatingPill b {
-    color: #ffffff !important;
+    color: var(--n-0) !important;
     font-size: 0.68rem !important;
     font-weight: 950 !important;
   }
 
   .profileHero.is-salon .salonHeroRatingPill span {
-    color: rgba(255, 255, 255, 0.78) !important;
+    color: rgb(var(--paper-rgb) / 0.78) !important;
     font-size: 0.64rem !important;
     font-weight: 850 !important;
   }
@@ -124,21 +124,21 @@
   .profileHero.is-salon .salonHeroRatingPill svg {
     width: 12px !important;
     height: 12px !important;
-    color: #f5c84b !important;
+    color: var(--warning) !important;
   }
 
   .profileHero.is-salon .profileAvatarImage {
-    border: 3px solid rgba(236, 246, 255, 0.98) !important;
-    outline: 2px solid rgba(36, 47, 95, 0.96) !important;
+    border: 3px solid rgb(var(--n-50-rgb) / 0.98) !important;
+    outline: 2px solid rgb(var(--info-rgb) / 0.96) !important;
     outline-offset: 3px !important;
     background:
-      linear-gradient(#05050b, #05050b) padding-box,
-      conic-gradient(from 220deg, #eaf7ff 0deg, #24305f 52deg, #14161d 126deg, #111a3f 202deg, #b9dcff 282deg, #eaf7ff 360deg) border-box !important;
+      linear-gradient(var(--n-950), var(--n-950)) padding-box,
+      conic-gradient(from 220deg, var(--n-50) 0deg, var(--n-800) 52deg, var(--n-900) 126deg, var(--n-900) 202deg, rgb(var(--info-rgb) / 0.14) 282deg, var(--n-50) 360deg) border-box !important;
     box-shadow:
-      0 0 0 5px rgba(26, 32, 70, 0.42),
-      0 0 0 7px rgba(20, 22, 29, 0.26),
-      0 0 18px rgba(197, 228, 255, 0.62),
-      0 0 34px rgba(20, 22, 29, 0.44),
+      0 0 0 5px rgb(139 108 255 / 0.42),
+      0 0 0 7px rgb(var(--shadow-rgb) / 0.26),
+      0 0 18px rgb(139 108 255 / 0.62),
+      0 0 34px rgb(var(--shadow-rgb) / 0.44),
       0 18px 34px rgba(0, 0, 0, 0.28) !important;
   }
 
@@ -147,8 +147,8 @@
     right: 102px !important;
     z-index: 10 !important;
     box-shadow:
-      0 0 0 4px rgba(8, 9, 17, 0.22),
-      0 10px 22px rgba(36, 36, 40, 0.24) !important;
+      0 0 0 4px rgb(var(--shadow-rgb) / 0.22),
+      0 10px 22px rgb(var(--shadow-rgb) / 0.24) !important;
   }
 }
 
@@ -165,11 +165,11 @@
     border-radius: 50% !important;
     padding: 4px !important;
     background:
-      conic-gradient(from 214deg, #eefaff 0deg, #7fd0ff 44deg, #14161d 118deg, #16214d 190deg, #bfeaff 260deg, #eefaff 360deg) !important;
+      conic-gradient(from 214deg, var(--n-25) 0deg, var(--brand-violet) 44deg, var(--n-900) 118deg, var(--n-900) 190deg, rgb(var(--info-rgb) / 0.14) 260deg, var(--n-25) 360deg) !important;
     box-shadow:
       0 0 0 1px rgba(238, 250, 255, 0.78),
-      0 0 18px rgba(121, 198, 255, 0.86),
-      0 0 34px rgba(20, 22, 29, 0.52),
+      0 0 18px rgb(139 108 255 / 0.86),
+      0 0 34px rgb(var(--shadow-rgb) / 0.52),
       0 18px 34px rgba(0, 0, 0, 0.3) !important;
   }
 
@@ -179,9 +179,9 @@
     inset: 7px;
     z-index: 0;
     border-radius: 50%;
-    border: 3px solid #d9b244;
+    border: 3px solid var(--accent);
     box-shadow:
-      0 0 0 2px rgba(5, 5, 11, 0.96),
+      0 0 0 2px rgb(var(--shadow-rgb) / 0.96),
       inset 0 0 0 1px rgba(255, 255, 255, 0.18);
     pointer-events: none;
   }
@@ -200,7 +200,7 @@
     outline: 0 !important;
     outline-offset: 0 !important;
     border-radius: 50% !important;
-    background: #05050b !important;
+    background: var(--n-950) !important;
     object-fit: contain !important;
     box-shadow: none !important;
   }
@@ -218,11 +218,11 @@
     place-items: center !important;
     border: 0 !important;
     border-radius: 50% !important;
-    background: #ffffff !important;
-    color: #14161d !important;
+    background: var(--n-0) !important;
+    color: var(--n-900) !important;
     box-shadow:
-      0 0 0 4px rgba(5, 5, 11, 0.16),
-      0 10px 22px rgba(36, 36, 40, 0.24) !important;
+      0 0 0 4px rgb(var(--shadow-rgb) / 0.16),
+      0 10px 22px rgb(var(--shadow-rgb) / 0.24) !important;
   }
 
   .profileHero.is-salon > .profileAvatarImage,
@@ -234,8 +234,8 @@
 @media (max-width: 760px) {
   .appShell:has(.createdProfile.is-salon) .artistServiceModal {
     background:
-      radial-gradient(circle at 50% 100%, rgba(20, 22, 29, 0.42), transparent 34%),
-      rgba(4, 5, 12, 0.68) !important;
+      radial-gradient(circle at 50% 100%, rgb(12 13 18 / 0.42), transparent 34%),
+      rgb(12 13 18 / 0.68) !important;
     -webkit-backdrop-filter: blur(18px) saturate(1.08) !important;
     backdrop-filter: blur(18px) saturate(1.08) !important;
   }
@@ -243,12 +243,12 @@
   .appShell:has(.createdProfile.is-salon) .artistServiceSheet {
     width: min(372px, calc(100vw - 36px)) !important;
     max-height: min(74dvh, 650px) !important;
-    border: 1px solid rgba(226, 236, 255, 0.38) !important;
+    border: 1px solid rgb(var(--n-150-rgb) / 0.38) !important;
     border-radius: 22px !important;
-    background: #ffffff !important;
+    background: var(--n-0) !important;
     box-shadow:
       0 0 0 1px rgba(111, 115, 128, 0.14),
-      0 28px 70px rgba(4, 5, 12, 0.34) !important;
+      0 28px 70px rgb(var(--shadow-rgb) / 0.34) !important;
   }
 
   .appShell:has(.createdProfile.is-salon) .artistServiceHead {
@@ -257,12 +257,12 @@
   }
 
   .appShell:has(.createdProfile.is-salon) .artistServiceHead span {
-    color: #14161d !important;
+    color: var(--n-900) !important;
     font-size: 0.68rem !important;
   }
 
   .appShell:has(.createdProfile.is-salon) .artistServiceHead h3 {
-    color: #171a2f !important;
+    color: var(--n-900) !important;
     font-size: 1.18rem !important;
   }
 
@@ -270,7 +270,7 @@
     display: block !important;
     max-width: 240px !important;
     margin: 4px 0 0 !important;
-    color: rgba(23, 26, 47, 0.5) !important;
+    color: rgb(var(--ink-rgb) / 0.5) !important;
     font-size: 0.7rem !important;
     font-weight: 750 !important;
     line-height: 1.45 !important;
@@ -278,8 +278,8 @@
 
   .appShell:has(.createdProfile.is-salon) .artistServiceClose {
     border-radius: 13px !important;
-    background: rgba(17, 26, 60, 0.07) !important;
-    color: #111a3c !important;
+    background: rgb(var(--info-rgb) / 0.07) !important;
+    color: var(--info) !important;
   }
 
   
@@ -334,11 +334,11 @@
   }
 
   .salonWorkspacePanel.is-hours > .hoursWorkspaceHead span {
-    color: rgba(28, 32, 44, 0.56) !important;
+    color: rgb(var(--ink-rgb) / 0.56) !important;
   }
 
   .salonWorkspacePanel.is-hours > .hoursWorkspaceHead b {
-    color: #1c202c !important;
+    color: var(--n-900) !important;
     font-size: 1.08rem !important;
   }
 
@@ -346,8 +346,8 @@
     min-width: 78px !important;
     min-height: 40px !important;
     border-radius: 13px !important;
-    background: linear-gradient(135deg, #14161d, #14161d) !important;
-    box-shadow: 0 10px 22px rgba(20, 22, 29, 0.18) !important;
+    background: var(--fill-strong-grad) !important;
+    box-shadow: 0 10px 22px rgb(var(--shadow-rgb) / 0.18) !important;
   }
 
   .salonWorkspacePanel.is-hours .salonServiceManagerList {
@@ -368,8 +368,8 @@
     padding: 14px 14px 12px !important;
     overflow: visible !important;
     border-radius: 22px !important;
-    background: #ffffff !important;
-    box-shadow: inset 0 0 0 1px rgba(28, 32, 44, 0.1) !important;
+    background: var(--n-0) !important;
+    box-shadow: inset 0 0 0 1px rgb(var(--shadow-rgb) / 0.1) !important;
   }
 
   .salonWorkspacePanel.is-hours .salonServiceManagerList .salonClientServiceCard.is-manager.is-pickingArtist {
@@ -383,8 +383,8 @@
     width: 38px !important;
     height: 38px !important;
     border-radius: 14px !important;
-    background: rgba(20, 22, 29, 0.12) !important;
-    color: #14161d !important;
+    background: rgb(var(--ink-rgb) / 0.12) !important;
+    color: var(--n-900) !important;
   }
 
   .salonWorkspacePanel.is-hours .salonServiceManagerList .salonClientServiceBody {
@@ -397,7 +397,7 @@
   .salonWorkspacePanel.is-hours .salonServiceManagerList .salonClientServiceBody strong {
     display: block;
     overflow: hidden;
-    color: #1c202c;
+    color: var(--n-900);
     font-size: 0.86rem;
     font-weight: 950;
     text-overflow: ellipsis;
@@ -418,8 +418,8 @@
     align-items: center;
     padding: 5px 9px;
     border-radius: 999px;
-    background: rgba(28, 32, 44, 0.05);
-    color: rgba(28, 32, 44, 0.72);
+    background: rgb(var(--ink-rgb) / 0.05);
+    color: rgb(var(--ink-rgb) / 0.72);
     font-size: 0.64rem;
     font-weight: 850;
   }
@@ -453,8 +453,8 @@
     width: min(238px, calc(100vw - 56px)) !important;
     padding: 8px !important;
     border-radius: 16px !important;
-    background: rgba(248, 248, 252, 0.98) !important;
-    box-shadow: 0 20px 44px rgba(28, 32, 44, 0.18) !important;
+    background: rgb(var(--n-25-rgb) / 0.98) !important;
+    box-shadow: 0 20px 44px rgb(var(--shadow-rgb) / 0.18) !important;
     -webkit-backdrop-filter: blur(16px) !important;
     backdrop-filter: blur(16px) !important;
   }
@@ -481,7 +481,7 @@
 
   .profileHero.is-salon .salonHeroFutureStats {
     box-shadow:
-      0 10px 22px rgba(28, 32, 44, 0.07),
+      0 10px 22px rgb(var(--shadow-rgb) / 0.07),
       inset 0 1px 0 rgba(255, 255, 255, 0.96) !important;
   }
 
@@ -594,14 +594,14 @@
   .profilePanel.page-profile.is-salon-profile ~ .bottomNav .profileTab,
   .profilePanel.page-profile:has(.createdProfile.is-salon) ~ .bottomNav .profileTab {
     background:
-      radial-gradient(circle at 22% 24%, #f3fbff 0%, rgba(243, 251, 255, 0) 46%),
-      radial-gradient(circle at 78% 24%, #f3fbff 0%, rgba(243, 251, 255, 0) 46%),
-      linear-gradient(180deg, #6f7380 0%, #111a3c 100%) !important;
+      radial-gradient(circle at 22% 24%, var(--n-25) 0%, rgb(var(--n-25-rgb) / 0) 46%),
+      radial-gradient(circle at 78% 24%, var(--n-25) 0%, rgb(var(--n-25-rgb) / 0) 46%),
+      linear-gradient(180deg, var(--n-600) 0%, var(--n-900) 100%) !important;
     box-shadow:
       0 0 0 0.5px rgba(226, 236, 255, 0.42),
       0 0 7px rgba(111, 115, 128, 0.38),
-      0 0 13px rgba(17, 26, 60, 0.26),
-      0 14px 28px rgba(28, 32, 44, 0.28) !important;
+      0 0 13px rgb(139 108 255 / 0.26),
+      0 14px 28px rgb(var(--shadow-rgb) / 0.28) !important;
   }
 
   .profilePanel.page-profile.is-salon-profile ~ .bottomNav .profileTab .profileNavImage,
@@ -610,7 +610,7 @@
     width: calc(100% - 4px) !important;
     height: calc(100% - 4px) !important;
     padding: 4px !important;
-    background: #05050b !important;
+    background: var(--fill-strong) !important;
     object-fit: contain !important;
   }
 
@@ -618,7 +618,7 @@
   .profilePanel.page-profile:has(.createdProfile.is-salon) ~ .bottomNav .profileTab::after {
     inset: 2px !important;
     background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 38%, rgba(5, 5, 12, 0.32) 100%) !important;
+      linear-gradient(180deg, rgb(var(--paper-rgb) / 0.08), transparent 38%, rgb(12 13 18 / 0.32) 100%) !important;
   }
 
   .createdProfile.is-salon .salonTodaySchedule > .bookingWeekRailShell {
@@ -628,11 +628,11 @@
   .profileHero.is-salon .salonHeroAvatarFrame {
     padding: 0.75px !important;
     background:
-      conic-gradient(from 228deg, #f3fbff 0deg, #cfd8ff 46deg, #6f7380 124deg, #111a3c 218deg, #dfe8ff 306deg, #f3fbff 360deg) !important;
+      conic-gradient(from 228deg, var(--n-25) 0deg, rgb(var(--info-rgb) / 0.14) 46deg, var(--n-600) 124deg, var(--n-900) 218deg, var(--n-150) 306deg, var(--n-25) 360deg) !important;
     box-shadow:
       0 0 0 0.5px rgba(226, 236, 255, 0.42),
       0 0 7px rgba(111, 115, 128, 0.38),
-      0 0 13px rgba(17, 26, 60, 0.26) !important;
+      0 0 13px rgb(139 108 255 / 0.26) !important;
   }
 
   .profileHero.is-salon .salonHeroAvatarFrame::before {
@@ -642,7 +642,7 @@
     inset: 1.5px;
     z-index: 0;
     border-radius: 50%;
-    background: #05050b;
+    background: var(--n-950);
     box-shadow:
       inset 0 0 0 1px rgba(255, 255, 255, 0.16),
       inset 0 0 18px rgba(255, 255, 255, 0.08);
@@ -655,7 +655,7 @@
     padding: 5px !important;
     border: 0 !important;
     outline: 0 !important;
-    background: #05050b !important;
+    background: var(--n-950) !important;
     box-shadow: none !important;
   }
 
@@ -664,9 +664,9 @@
     bottom: 16px !important;
     width: 28px !important;
     height: 28px !important;
-    background: #ffffff !important;
-    color: #14161d !important;
-    box-shadow: 0 8px 18px rgba(25, 25, 29, 0.24) !important;
+    background: var(--n-0) !important;
+    color: var(--n-900) !important;
+    box-shadow: 0 8px 18px rgb(var(--shadow-rgb) / 0.24) !important;
   }
 }
 
@@ -726,10 +726,10 @@
 
 @media (max-width: 760px) {
   .salonWorkspacePanel.is-portfolio .profileGalleryHead button {
-    background: linear-gradient(135deg, #6f7380, #14161d) !important;
-    color: #ffffff !important;
+    background: var(--fill-strong-grad) !important;
+    color: var(--n-0) !important;
     border-color: transparent !important;
-    box-shadow: 0 12px 24px rgba(20, 22, 29, 0.22) !important;
+    box-shadow: 0 12px 24px rgb(var(--shadow-rgb) / 0.22) !important;
   }
 
   .salonWorkspacePanel.is-portfolio .profileGalleryGrid.is-single {
@@ -745,9 +745,9 @@
 
 @media (max-width: 760px) {
   .salonHeroSheetPanel.is-salon-settings {
-    background: #ffffff !important;
+    background: var(--n-0) !important;
     border: 0 !important;
-    box-shadow: 0 -18px 42px rgba(18, 18, 28, 0.16) !important;
+    box-shadow: 0 -18px 42px rgb(var(--shadow-rgb) / 0.16) !important;
   }
 
   .salonHeroSheetPanel.is-salon-settings .salonHeroSheetHead {
@@ -756,26 +756,26 @@
   }
 
   .salonHeroSheetPanel.is-salon-settings .salonHeroSheetHead span {
-    color: #14161d !important;
+    color: var(--n-900) !important;
     font-weight: 800 !important;
   }
 
   .salonHeroSheetPanel.is-salon-settings .salonHeroSheetHead h3 {
-    color: #171827 !important;
+    color: var(--n-900) !important;
     font-size: 22px !important;
   }
 
   .salonHeroSheetPanel.is-salon-settings .settingsPanel {
     gap: 12px !important;
-    background: #ffffff !important;
+    background: var(--n-0) !important;
   }
 
   .salonHeroSheetPanel.is-salon-settings .settingsAccountCard,
   .salonHeroSheetPanel.is-salon-settings .locationSettingsCard,
   .salonHeroSheetPanel.is-salon-settings .neoSettingsGroup {
-    background: #ffffff !important;
-    border: 1px solid rgba(22, 24, 38, 0.08) !important;
-    box-shadow: 0 12px 28px rgba(22, 24, 38, 0.06) !important;
+    background: var(--n-0) !important;
+    border: 1px solid rgb(var(--ink-rgb) / 0.08) !important;
+    box-shadow: 0 12px 28px rgb(var(--shadow-rgb) / 0.06) !important;
   }
 
   /* Every row, whatever the post count: three equal cards (the create-post tile counts as one),
@@ -829,8 +829,8 @@
   gap: 10px;
   padding: 12px;
   border-radius: 18px;
-  background: rgba(246, 247, 250, 0.92);
-  border: 1px solid rgba(28, 32, 44, 0.08);
+  background: rgb(var(--n-50-rgb) / 0.92);
+  border: 1px solid rgb(var(--ink-rgb) / 0.08);
 }
 
 .scheduleBookingClientHead {
@@ -849,7 +849,7 @@
 }
 
 .scheduleBookingClientChevron {
-  color: rgba(28, 32, 44, 0.4);
+  color: rgb(var(--ink-rgb) / 0.4);
   transition: transform 180ms ease;
 }
 
@@ -869,8 +869,8 @@
   place-items: center;
   overflow: hidden;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6f7380, #263056);
-  color: #fff;
+  background: var(--fill-strong-grad);
+  color: var(--n-0);
   font-weight: 900;
 }
 
@@ -894,14 +894,14 @@
 .scheduleBookingClientStats em,
 .scheduleBookingClientRail span,
 .scheduleBookingClientRail em {
-  color: rgba(28, 32, 44, 0.58);
+  color: rgb(var(--ink-rgb) / 0.58);
   font-size: 0.68rem;
   font-style: normal;
   font-weight: 800;
 }
 
 .scheduleBookingClientHead b {
-  color: #171827;
+  color: var(--n-900);
   font-size: 0.95rem;
   font-weight: 950;
 }
@@ -925,14 +925,14 @@
   align-content: center;
   padding: 8px;
   border-radius: 14px;
-  background: #fff;
+  background: var(--n-0);
 }
 
 .scheduleBookingClientStats b,
 .scheduleBookingClientInfo em {
   min-width: 0;
   overflow: hidden;
-  color: #171827;
+  color: var(--n-900);
   font-size: 0.78rem;
   font-style: normal;
   font-weight: 900;
@@ -952,12 +952,12 @@
   align-items: center;
   padding: 8px 10px;
   border-radius: 14px;
-  background: #fff;
+  background: var(--n-0);
 }
 
 .scheduleBookingClientRail article b {
   min-width: 0;
-  color: #171827;
+  color: var(--n-900);
   font-size: 0.76rem;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -973,8 +973,8 @@
   grid-row: 1 / span 2;
   padding: 4px 8px;
   border-radius: 999px;
-  background: rgba(20, 22, 29, 0.1);
-  color: #14161d;
+  background: rgb(var(--ink-rgb) / 0.1);
+  color: var(--n-900);
 }
 
 .scheduleBookingSettings .clientBookingSettingsHead {
@@ -994,8 +994,8 @@
   align-items: center;
   padding: 12px;
   border-radius: 17px;
-  background: rgba(20, 22, 29, 0.08);
-  color: #14161d;
+  background: rgb(var(--ink-rgb) / 0.08);
+  color: var(--n-900);
   text-align: right;
 }
 
@@ -1005,17 +1005,17 @@
   height: 34px;
   padding: 8px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.74);
+  background: rgb(var(--paper-rgb) / 0.74);
 }
 
 .clientBookingChangePanel b {
-  color: #171827;
+  color: var(--n-900);
   font-size: 0.82rem;
   font-weight: 950;
 }
 
 .clientBookingChangePanel em {
-  color: rgba(28, 32, 44, 0.62);
+  color: rgb(var(--ink-rgb) / 0.62);
   font-size: 0.68rem;
   font-style: normal;
   font-weight: 800;
@@ -1023,8 +1023,8 @@
 }
 
 .clientBookingChangePanel span.is-warning {
-  background: rgba(245, 158, 11, 0.09);
-  color: #b45309;
+  background: rgb(var(--warning-rgb) / 0.09);
+  color: var(--warning);
 }
 
 .clientBookingSettingsActions {
@@ -1040,10 +1040,10 @@
   justify-content: center;
   gap: 5px;
   padding: 0 6px;
-  border: 1px solid rgba(20, 22, 29, 0.14);
+  border: 1px solid rgb(var(--ink-rgb) / 0.14);
   border-radius: 13px;
-  background: rgba(20, 22, 29, 0.08);
-  color: #14161d;
+  background: rgb(var(--ink-rgb) / 0.08);
+  color: var(--n-900);
   font-size: 12px;
   font-weight: 900;
   line-height: 1.3;
@@ -1056,8 +1056,8 @@
 }
 
 .clientBookingSettingsActions button.primary {
-  color: #ffffff;
-  background: linear-gradient(180deg, #6f7380, #14161d);
+  color: var(--n-0);
+  background: var(--fill-strong-grad);
   border-color: transparent;
 }
 
@@ -1066,9 +1066,9 @@
 }
 
 .clientBookingSettingsActions .danger {
-  color: #b42318;
-  background: rgba(244, 63, 94, 0.09);
-  border-color: rgba(244, 63, 94, 0.14);
+  color: var(--danger);
+  background: rgb(var(--accent-rgb) / 0.09);
+  border-color: rgb(var(--accent-rgb) / 0.14);
 }
 
 .scheduleBookingHistoryIcon {
@@ -1078,14 +1078,14 @@
   place-items: center;
   border: 0;
   border-radius: 12px;
-  background: rgba(20, 22, 29, 0.1);
-  color: #14161d;
-  box-shadow: inset 0 0 0 1px rgba(20, 22, 29, 0.12);
+  background: rgb(var(--ink-rgb) / 0.1);
+  color: var(--n-900);
+  box-shadow: inset 0 0 0 1px rgb(var(--shadow-rgb) / 0.12);
 }
 
 .scheduleBookingHistoryIcon.is-active {
-  background: #14161d;
-  color: #fff;
+  background: var(--fill-strong);
+  color: var(--n-0);
   box-shadow: none;
 }
 
@@ -1110,30 +1110,30 @@
   justify-content: center;
   gap: 6px;
   padding: 0 6px;
-  border: 1px solid rgba(20, 22, 29, 0.14);
+  border: 1px solid rgb(var(--ink-rgb) / 0.14);
   border-radius: 13px;
-  background: rgba(20, 22, 29, 0.08);
-  color: #14161d;
+  background: rgb(var(--ink-rgb) / 0.08);
+  color: var(--n-900);
   font-size: 12px;
   font-weight: 900;
 }
 
 .scheduleBookingMiniActions button.is-danger {
-  color: #b42318;
-  background: rgba(244, 63, 94, 0.09);
-  border-color: rgba(244, 63, 94, 0.14);
+  color: var(--danger);
+  background: rgb(var(--accent-rgb) / 0.09);
+  border-color: rgb(var(--accent-rgb) / 0.14);
 }
 
 .scheduleBookingReviewActions button.is-approve {
-  color: #16a34a;
-  background: rgba(34, 197, 94, 0.12);
-  border-color: rgba(34, 197, 94, 0.16);
+  color: var(--success);
+  background: rgb(var(--success-rgb) / 0.12);
+  border-color: rgb(var(--success-rgb) / 0.16);
 }
 
 .scheduleBookingReviewActions button.is-decline {
-  color: #d64545;
-  background: rgba(214, 69, 69, 0.1);
-  border-color: rgba(214, 69, 69, 0.14);
+  color: var(--danger);
+  background: rgb(var(--danger-rgb) / 0.1);
+  border-color: rgb(var(--danger-rgb) / 0.14);
 }
 
 .scheduleBookingMiniActions button:disabled,
@@ -1143,7 +1143,7 @@
 }
 
 .artistCreateModal {
-  background: rgba(12, 14, 20, 0.52);
+  background: rgb(var(--ink-rgb) / 0.52);
   backdrop-filter: blur(18px);
   padding-bottom: 94px;
 }
@@ -1155,9 +1155,9 @@
   padding: 14px;
   border: 0;
   border-radius: 24px;
-  background: #ffffff;
-  color: #171827;
-  box-shadow: 0 28px 80px rgba(10, 10, 18, 0.34);
+  background: var(--n-0);
+  color: var(--n-900);
+  box-shadow: 0 28px 80px rgb(var(--shadow-rgb) / 0.34);
   overflow: visible;
 }
 
@@ -1176,9 +1176,9 @@
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: #ffffff;
-  color: #171827;
-  box-shadow: 0 16px 34px rgba(15, 17, 20, 0.24);
+  background: var(--n-0);
+  color: var(--n-900);
+  box-shadow: 0 16px 34px rgb(var(--shadow-rgb) / 0.24);
 }
 
 .artistCreateSheet .artistCreateHero {
@@ -1189,10 +1189,10 @@
   padding: 14px;
   border-radius: 20px;
   background:
-    linear-gradient(135deg, rgba(20, 22, 29, 0.1), rgba(255, 255, 255, 0.96)),
-    #f8f8fc;
-  color: #171827;
-  box-shadow: inset 0 0 0 1px rgba(28, 32, 44, 0.06);
+    linear-gradient(135deg, rgb(var(--ink-rgb) / 0.1), rgb(var(--paper-rgb) / 0.96)),
+    var(--n-25);
+  color: var(--n-900);
+  box-shadow: inset 0 0 0 1px rgb(var(--shadow-rgb) / 0.06);
 }
 
 .artistCreateSheet .artistCreateHero .artistProfileAvatar {
@@ -1201,8 +1201,8 @@
   width: 58px;
   height: 58px;
   border-radius: 18px;
-  background: rgba(20, 22, 29, 0.12);
-  color: #14161d;
+  background: rgb(var(--ink-rgb) / 0.12);
+  color: var(--n-900);
 }
 
 .artistCreateSheet .artistCreateHero > div:last-child {
@@ -1212,11 +1212,11 @@
 }
 
 .artistCreateSheet .artistCreateHero span {
-  color: #14161d;
+  color: var(--n-900);
 }
 
 .artistCreateSheet .artistCreateHero b {
-  color: #171827;
+  color: var(--n-900);
   font-size: 1.18rem;
 }
 
@@ -1235,7 +1235,7 @@
   position: relative;
   display: grid;
   gap: 6px;
-  color: #303344;
+  color: var(--n-800);
   font-size: 0.7rem;
   font-weight: 900;
 }
@@ -1248,10 +1248,10 @@
 .artistCreateSheet .artistCreatePopupForm select,
 .artistCreateSheet .artistCreatePopupForm textarea {
   min-height: 44px;
-  border: 1px solid rgba(28, 32, 44, 0.1);
+  border: 1px solid rgb(var(--ink-rgb) / 0.1);
   border-radius: 14px;
-  background: #f8f9fb;
-  color: #171827;
+  background: var(--n-25);
+  color: var(--n-900);
   font: inherit;
   padding: 0 12px;
 }
@@ -1264,7 +1264,7 @@
 
 .artistCreateSheet .artistCreatePopupForm .profileEditBioField small {
   font-weight: 700;
-  color: #8a8fa3;
+  color: var(--n-500);
 }
 
 .artistCreateSheet .artistCreateInputIcon {
@@ -1273,7 +1273,7 @@
   bottom: 13px;
   display: inline-grid;
   place-items: center;
-  color: #777b8d;
+  color: var(--n-600);
 }
 
 .artistCreateSheet .artistCreateChipGrid {
@@ -1285,10 +1285,10 @@
 .artistCreateSheet .artistCreateChipGrid button,
 .artistCreateSheet .artistCreateStatusRail button {
   min-height: 42px;
-  border: 1px solid rgba(28, 32, 44, 0.1);
+  border: 1px solid rgb(var(--ink-rgb) / 0.1);
   border-radius: 14px;
-  background: #ffffff;
-  color: #303344;
+  background: var(--n-0);
+  color: var(--n-800);
   font-family: inherit;
   font-weight: 900;
 }
@@ -1296,9 +1296,9 @@
 .artistCreateSheet .artistCreateChipGrid button.active,
 .artistCreateSheet .artistCreateStatusRail button.active {
   border-color: transparent;
-  background: linear-gradient(135deg, #6f7380, #14161d);
-  color: #ffffff;
-  box-shadow: 0 12px 24px rgba(20, 22, 29, 0.18);
+  background: var(--fill-strong-grad);
+  color: var(--n-0);
+  box-shadow: 0 12px 24px rgb(var(--shadow-rgb) / 0.18);
 }
 
 .artistCreateSheet .artistCreateStatusRail {
@@ -1307,13 +1307,13 @@
   gap: 6px;
   padding: 4px;
   border-radius: 16px;
-  background: #f0f1f6;
+  background: var(--n-100);
 }
 
 .artistCreateSheet .artistCreateStatusRail button {
   border: 0;
   background: transparent;
-  color: #777b8d;
+  color: var(--n-600);
 }
 
 .artistCreateSheet .artistCreatePopupForm > button[type="submit"] {
@@ -1325,12 +1325,12 @@
   gap: 8px;
   border: 0;
   border-radius: 16px;
-  background: linear-gradient(135deg, #6f7380, #14161d);
-  color: #ffffff;
+  background: var(--fill-strong-grad);
+  color: var(--n-0);
   font-family: inherit;
   font-size: 0.9rem;
   font-weight: 950;
-  box-shadow: 0 16px 32px rgba(20, 22, 29, 0.24);
+  box-shadow: 0 16px 32px rgb(var(--shadow-rgb) / 0.24);
 }
 
 .salonNotificationsPanel {
@@ -1345,9 +1345,9 @@
   gap: 10px;
   padding: 12px;
   border-radius: 18px;
-  background: #ffffff;
-  border: 1px solid rgba(28, 32, 44, 0.08);
-  box-shadow: 0 12px 26px rgba(28, 32, 44, 0.06);
+  background: var(--n-0);
+  border: 1px solid rgb(var(--ink-rgb) / 0.08);
+  box-shadow: 0 12px 26px rgb(var(--shadow-rgb) / 0.06);
 }
 
 .salonNotificationsPanel article > span {
@@ -1356,8 +1356,8 @@
   display: grid;
   place-items: center;
   border-radius: 15px;
-  background: rgba(20, 22, 29, 0.1);
-  color: #14161d;
+  background: rgb(var(--ink-rgb) / 0.1);
+  color: var(--n-900);
 }
 
 .salonNotificationsPanel article div {
@@ -1367,13 +1367,13 @@
 }
 
 .salonNotificationsPanel b {
-  color: #171827;
+  color: var(--n-900);
   font-size: 0.88rem;
   font-weight: 950;
 }
 
 .salonNotificationsPanel small {
-  color: #777b8d;
+  color: var(--n-600);
   font-size: 0.72rem;
   font-weight: 800;
   line-height: 1.8;
@@ -1385,8 +1385,8 @@
   display: grid;
   place-items: center;
   border-radius: 999px;
-  background: #f8f8fa;
-  color: #14161d;
+  background: var(--n-25);
+  color: var(--n-900);
   font-style: normal;
   font-weight: 950;
 }
@@ -1412,9 +1412,9 @@
   gap: 10px;
   padding: 12px;
   border-radius: 18px;
-  background: #ffffff;
-  border: 1px solid rgba(28, 32, 44, 0.08);
-  box-shadow: 0 12px 26px rgba(28, 32, 44, 0.06);
+  background: var(--n-0);
+  border: 1px solid rgb(var(--ink-rgb) / 0.08);
+  box-shadow: 0 12px 26px rgb(var(--shadow-rgb) / 0.06);
 }
 
 .requestExpiryBadge {
@@ -1455,13 +1455,13 @@
 }
 
 .requestCardWho strong {
-  color: #171827;
+  color: var(--n-900);
   font-size: 0.86rem;
   font-weight: 950;
 }
 
 .requestCardWho span {
-  color: #14161d;
+  color: var(--n-900);
   font-size: 0.74rem;
   font-weight: 800;
 }
@@ -1470,7 +1470,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  color: #777b8d;
+  color: var(--n-600);
   font-size: 0.7rem;
   font-weight: 700;
 }
@@ -1493,14 +1493,14 @@
 .requestCardWhen {
   display: grid;
   justify-items: end;
-  color: #777b8d;
+  color: var(--n-600);
   font-size: 0.68rem;
   font-weight: 800;
 }
 
 .requestCardWhen em {
   font-style: normal;
-  color: #171827;
+  color: var(--n-900);
 }
 
 .requestActions {
@@ -1522,13 +1522,13 @@
 }
 
 .requestActions .is-approve {
-  background: rgba(34, 197, 94, 0.12);
-  color: #16a34a;
+  background: rgb(var(--success-rgb) / 0.12);
+  color: var(--success);
 }
 
 .requestActions .is-decline {
-  background: rgba(214, 69, 69, 0.1);
-  color: #d64545;
+  background: rgb(var(--danger-rgb) / 0.1);
+  color: var(--danger);
 }
 
 .requestActions button:disabled {
@@ -1541,7 +1541,7 @@
    request card. See recentlyExpiredSalonBookings/recentlyExpiredArtistBookings
    in HomeApp.jsx. */
 .reservationRequestCard.is-expiredNotice {
-  background: rgba(28, 32, 44, 0.03);
+  background: rgb(var(--ink-rgb) / 0.03);
   box-shadow: none;
 }
 
@@ -1551,8 +1551,8 @@
   gap: 4px;
   padding: 3px 8px;
   border-radius: 999px;
-  background: rgba(154, 91, 82, 0.12);
-  color: #9a5b52;
+  background: rgb(var(--danger-rgb) / 0.12);
+  color: var(--danger);
   font-size: 0.68rem;
   font-weight: 900;
   white-space: nowrap;
@@ -1566,9 +1566,9 @@
   border: 0 !important;
   border-radius: 22px !important;
   background:
-    linear-gradient(135deg, rgba(11, 17, 46, 0.92) 0%, rgba(20, 22, 29, 0.86) 48%, rgba(111, 115, 128, 0.82) 100%),
+    linear-gradient(135deg, rgba(11, 17, 46, 0.92) 0%, rgb(12 13 18 / 0.86) 48%, rgb(var(--n-600-rgb) / 0.82) 100%),
     url("/artist-hero-doodle.webp") center / cover no-repeat !important;
-  color: #ffffff;
+  color: var(--on-photo);
   box-shadow:
     0 16px 34px rgba(41, 41, 45, 0.22),
     inset 0 1px 0 rgba(255, 255, 255, 0.22) !important;
@@ -1579,8 +1579,8 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 10% 10%, rgba(255, 255, 255, 0.5), transparent 20%),
-    linear-gradient(110deg, rgba(255, 255, 255, 0.24) 0 1px, transparent 18%, rgba(255, 255, 255, 0.12) 42%, transparent 62%);
+    radial-gradient(circle at 10% 10%, rgb(var(--paper-rgb) / 0.5), transparent 20%),
+    linear-gradient(110deg, rgb(var(--paper-rgb) / 0.24) 0 1px, transparent 18%, rgb(var(--paper-rgb) / 0.12) 42%, transparent 62%);
   opacity: 0.5;
   pointer-events: none;
 }
@@ -1603,20 +1603,20 @@
   height: 46px;
   padding: 12px;
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.18);
-  color: #ffffff;
+  background: rgb(var(--paper-rgb) / 0.18);
+  color: var(--n-0);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
 }
 
 .salonHeroSheetPanel.is-salon-settings .profileLocationHead strong {
-  color: #ffffff !important;
+  color: var(--n-0) !important;
   font-size: 1rem;
   font-weight: 950;
 }
 
 .salonHeroSheetPanel.is-salon-settings .profileLocationHead span {
   margin-top: 1px;
-  color: rgba(255, 255, 255, 0.78) !important;
+  color: rgb(var(--paper-rgb) / 0.78) !important;
   font-size: 0.68rem;
   line-height: 1.45;
 }
@@ -1629,15 +1629,15 @@
   width: 100%;
   min-height: 44px;
   justify-content: flex-start;
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  border: 1px solid rgb(var(--paper-rgb) / 0.22);
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.94);
-  color: #171827;
-  box-shadow: 0 10px 22px rgba(27, 27, 31, 0.16);
+  background: rgb(var(--paper-rgb) / 0.94);
+  color: var(--n-900);
+  box-shadow: 0 10px 22px rgb(var(--shadow-rgb) / 0.16);
 }
 
 .salonHeroSheetPanel.is-salon-settings .profileLocationChip > svg:first-child {
-  color: #14161d !important;
+  color: var(--n-900) !important;
 }
 
 .salonHeroSheetPanel.is-salon-settings .profileLocationChip span:not(.profileLocationChipClear) {
@@ -1648,13 +1648,13 @@
 
 .salonHeroSheetPanel.is-salon-settings .profileLocationChipClear {
   margin-right: auto;
-  background: rgba(28, 32, 44, 0.08);
-  color: #5d6274;
+  background: rgb(var(--ink-rgb) / 0.08);
+  color: var(--n-600);
 }
 
 .salonHeroSheetPanel.is-salon-settings .profileLocationChip.is-empty {
-  background: rgba(255, 255, 255, 0.18);
-  color: #ffffff;
+  background: rgb(var(--paper-rgb) / 0.18);
+  color: var(--n-0);
 }
 
 .salonHeroSheetPanel.is-salon-settings .settingsAccountCard {
@@ -1663,11 +1663,11 @@
   align-items: center !important;
   gap: 12px !important;
   padding: 12px !important;
-  border: 1px solid rgba(20, 22, 29, 0.18) !important;
+  border: 1px solid rgb(var(--ink-rgb) / 0.18) !important;
   border-radius: 20px !important;
   background:
-    linear-gradient(135deg, rgba(20, 22, 29, 0.1), rgba(255, 255, 255, 0.98)) !important;
-  box-shadow: 0 14px 30px rgba(20, 22, 29, 0.1) !important;
+    linear-gradient(135deg, rgb(var(--ink-rgb) / 0.1), rgb(var(--paper-rgb) / 0.98)) !important;
+  box-shadow: 0 14px 30px rgb(var(--shadow-rgb) / 0.1) !important;
 }
 
 .salonHeroSheetPanel.is-salon-settings .salonHeroSheetHead span:empty {
@@ -1682,10 +1682,10 @@
   width: 58px !important;
   height: 58px !important;
   border-radius: 50% !important;
-  background: #0d0e17 !important;
+  background: var(--n-950) !important;
   box-shadow:
-    0 0 0 2px rgba(20, 22, 29, 0.22),
-    0 12px 24px rgba(27, 27, 31, 0.16) !important;
+    0 0 0 2px rgb(var(--shadow-rgb) / 0.22),
+    0 12px 24px rgb(var(--shadow-rgb) / 0.16) !important;
 }
 
 .salonHeroSheetPanel.is-salon-settings .settingsAccountAvatar img {
@@ -1697,13 +1697,13 @@
 }
 
 .salonHeroSheetPanel.is-salon-settings .settingsAccountCopy strong {
-  color: #171827 !important;
+  color: var(--n-900) !important;
   font-size: 0.95rem !important;
   font-weight: 950 !important;
 }
 
 .salonHeroSheetPanel.is-salon-settings .settingsAccountCopy small {
-  color: #686d7e !important;
+  color: var(--n-600) !important;
   font-size: 0.72rem !important;
   line-height: 1.7 !important;
 }
@@ -1715,11 +1715,11 @@
   gap: 6px !important;
   padding: 0 12px !important;
   border-radius: 16px !important;
-  background: linear-gradient(135deg, #6f7380, #14161d) !important;
-  color: #ffffff !important;
+  background: var(--fill-strong-grad) !important;
+  color: var(--n-0) !important;
   font-style: normal !important;
   font-weight: 950 !important;
-  box-shadow: 0 12px 22px rgba(20, 22, 29, 0.24) !important;
+  box-shadow: 0 12px 22px rgb(var(--shadow-rgb) / 0.24) !important;
 }
 
 .salonHeroSheetPanel.is-salon-settings .salonSettingsBookmarkCard button {
@@ -1735,7 +1735,7 @@
   height: 44px;
   border-radius: 0;
   background: transparent;
-  color: #6f7380;
+  color: var(--n-600);
 }
 
 .salonHeroSheetPanel.is-salon-settings .salonSettingsBookmarkIcon svg {
@@ -1757,7 +1757,7 @@
   gap: 10px !important;
   padding: 8px 10px !important;
   border-radius: 13px !important;
-  background: rgba(255, 255, 255, 0.7) !important;
+  background: rgb(var(--paper-rgb) / 0.7) !important;
 }
 
 .salonHeroSheetPanel.is-artist-settings.is-salon-settings .neoSettingsToggleIcon {
@@ -1765,5 +1765,5 @@
   height: 34px !important;
   border-radius: 11px !important;
   color: var(--teal) !important;
-  background: linear-gradient(135deg, rgba(20, 22, 29, 0.08), rgba(20, 22, 29, 0.06)) !important;
+  background: linear-gradient(135deg, rgb(var(--ink-rgb) / 0.08), rgb(var(--ink-rgb) / 0.06)) !important;
 }
