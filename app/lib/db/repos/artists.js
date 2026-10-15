@@ -688,12 +688,13 @@ export async function addArtistBookingInTx(artistUserId, data, runner = null) {
   const db = runner || (await getDb());
   const bookingDate = resolveRollingPersianDateKey(data.bookingDate || data.booking_date || data.date || "");
   const time = normalizeBookingTimeLabel(data.time || "");
-  const durationMinutes = Math.max(
+  // Never shorter than 15 minutes nor longer than half a day, whatever the caller sent.
+  const durationMinutes = Math.min(720, Math.max(
     15,
     Number(data.durationMinutes || data.duration_minutes)
       || parseDurationMinutes(data.duration)
       || 60
-  );
+  ));
   if (!bookingDate || !time) {
     return { ok: false, error: "روز و ساعت لازم است.", code: "MISSING_SLOT" };
   }
@@ -924,6 +925,11 @@ export async function cancelArtistBookingByClient(id, clientUserId) {
   if (isPersianDateKey(current.booking_date) && current.booking_date < formatPersianDateKey(new Date())) {
     return { ok: false, error: "past" };
   }
-  await run(db, "UPDATE artist_bookings SET status = 'لغو', updated_at = CURRENT_TIMESTAMP WHERE id = $1", [id]);
+  // Conditional on it still being active: the sweep or the artist may have closed it since the read above.
+  const changed = await run(db, `
+    UPDATE artist_bookings SET status = 'لغو', updated_at = CURRENT_TIMESTAMP
+    WHERE id = $1 AND status IN ('تازه', 'درخواست', 'تایید شده')
+  `, [id]);
+  if (!changed.rowCount) return { ok: false, error: "inactive" };
   return { ok: true, booking: { ...current, status: "لغو" }, artistUserId: current.artist_user_id };
 }

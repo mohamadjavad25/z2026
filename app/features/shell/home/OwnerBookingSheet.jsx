@@ -44,7 +44,9 @@ export function OwnerBookingSheet() {
     value: tab.dateKey,
     label: `${tab.label} ${tab.sub || ""}`.trim(),
     closed: role === "salon" && !isSalonHourOpen(findSalonHourForDateKey(salonHoursList, tab.dateKey))
-  })), [role, salonHoursList]);
+  // Worked out again each time the sheet opens, so a screen left open past midnight is not a day behind.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  })), [role, salonHoursList, open]);
 
   const salonUserId = createdProfile?.id;
   const source = role === "artist"

@@ -5,17 +5,9 @@ import { VisitBooker } from "../booking/VisitBooker";
 import { normalizeServices } from "../booking/visitBookerModel";
 import { getSalonVisitPreview, getSalonVisitTimes } from "../../shared/api/salons";
 import { serviceKey } from "../../shared/lib/serviceBundle";
-import { salonClientBookingDays } from "../artist/constants";
+import { buildExactBookingDateTabs } from "../artist/bookingUtils";
+import { findSalonHourForDateKey, isSalonHourOpen } from "../../shared/lib/salonAvailability";
 import { getBookableSalonServiceItems } from "./useSalonDirectory";
-
-// The salon's hours rows are keyed by the Persian weekday name; a day label looks like "یکشنبه ۱۲ مهر".
-function getClosedDayLabels(hours, dayLabels) {
-  if (!Array.isArray(hours) || !hours.length) return new Set();
-  return new Set(dayLabels.filter((label) => {
-    const row = hours.find((item) => item.day === String(label).split(" ")[0]);
-    return row && !row.active;
-  }));
-}
 
 /**
  * A client's booking request at a salon: VisitBooker with the services they picked (one, or several
@@ -24,10 +16,14 @@ function getClosedDayLabels(hours, dayLabels) {
  */
 export function SalonClientBookingModal({ open, salon, booking, onClose, onSubmit, onEditProfile }) {
   const services = useMemo(() => normalizeServices(getBookableSalonServiceItems(salon)), [salon]);
-  const days = useMemo(() => {
-    const closed = getClosedDayLabels(salon?.hours, salonClientBookingDays);
-    return salonClientBookingDays.map((label) => ({ value: label, label, closed: closed.has(label) }));
-  }, [salon]);
+  // The next seven days as real dates (never a bare weekday name, which a server would have to guess a
+  // date for), worked out each time the sheet opens so a screen left open past midnight is not a day behind.
+  const days = useMemo(() => buildExactBookingDateTabs(7).map((tab) => ({
+    value: tab.dateKey,
+    label: `${tab.label} ${tab.sub || ""}`.trim(),
+    closed: Array.isArray(salon?.hours) && salon.hours.length > 0 && !isSalonHourOpen(findSalonHourForDateKey(salon.hours, tab.dateKey))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  })), [salon, open]);
 
   if (!open || !salon) return null;
   const salonUserId = salon.id || salon.source_key;

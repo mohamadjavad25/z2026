@@ -17,7 +17,7 @@ export function salonVisitParts(salon, parts, { allowStaff = false } = {}) {
       listed: Boolean(listed),
       minutes: listed?.duration
         ? parseServiceDurationMinutes(listed.duration)
-        : Math.max(15, Number(part?.durationMinutes) || parseServiceDurationMinutes(part?.duration)),
+        : Math.min(720, Math.max(15, Number(part?.durationMinutes) || parseServiceDurationMinutes(part?.duration))),
       staff: allowStaff ? String(part?.staff || "").trim() : ""
     };
   });
