@@ -13,7 +13,7 @@ const PENDING_JOIN_KEY = "frfro_pending_join_salon";
  * Salon shows this as a QR code (see SalonNearbyInviteSheet's artistInviteQrCard);
  * an artist scanning it lands here and joins the team in one tap.
  */
-export function JoinSalonPageClient({ salon }) {
+export function JoinSalonPageClient({ salon, joinCode = "" }) {
   const router = useRouter();
   const [status, setStatus] = useState("checking");
   const [errorText, setErrorText] = useState("");
@@ -49,7 +49,7 @@ export function JoinSalonPageClient({ salon }) {
       const response = await fetch("/api/artist/join-salon", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ salonUserId: salon.id })
+        body: JSON.stringify({ salonUserId: salon.id, code: joinCode })
       });
       const payload = await response.json().catch(() => ({}));
       if (response.ok || payload?.code === "ALREADY_STAFF") {
@@ -66,11 +66,11 @@ export function JoinSalonPageClient({ salon }) {
 
   function handleGuestContinue() {
     try {
-      window.localStorage.setItem(PENDING_JOIN_KEY, String(salon.id));
+      window.localStorage.setItem(PENDING_JOIN_KEY, JSON.stringify({ id: salon.id, code: joinCode }));
     } catch {
       // ignore — the join simply won't auto-fire after login
     }
-    router.push(`/?join=${salon.id}`);
+    router.push(`/?join=${salon.id}&k=${encodeURIComponent(joinCode)}`);
   }
 
   return (

@@ -4,18 +4,22 @@ import { notifyConnection } from "../../../lib/connectionNotify.js";
 
 export const runtime = "nodejs";
 
-/** POST /api/artist/join-salon — body: { salonUserId }. The artist-initiated
+/** POST /api/artist/join-salon — body: { salonUserId, code }. The artist-initiated
  *  counterpart of POST /api/salon-invites (salon → artist): scanning the
- *  salon's QR/link lands here and joins the team immediately. */
+ *  salon's QR/link lands here and joins the team immediately. `code` is the
+ *  secret embedded in that link (see getOrCreateSalonJoinSecret) — without
+ *  it, salonUserId alone is just the salon's small public id and proves
+ *  nothing. */
 async function _POST(request) {
   const auth = await requireUserRole(request, "artist", "فقط آرتیست.");
   if (!auth.ok) return auth.response;
   const body = await request.json();
   const salonUserId = Number(body.salonUserId || body.salon_user_id || 0);
+  const code = String(body.code || "").trim();
   if (!salonUserId) {
     return json({ error: "سالن نامعتبر است.", code: "INVALID_SALON" }, { status: 400 });
   }
-  const result = await salons.joinSalonByArtist(salonUserId, auth.user.id);
+  const result = await salons.joinSalonByArtist(salonUserId, auth.user.id, code);
   if (!result.ok) {
     if (result.code === "SALON_NOT_FOUND") return notFound(result.error);
     return json({ error: result.error, code: result.code }, { status: 400 });

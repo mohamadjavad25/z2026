@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createClient, registerUser } from "./helpers.js";
+import { createClient, joinSalonAsArtist, registerUser } from "./helpers.js";
 
 // Client <-> salon/artist "connect" (the client's «سالن و آرتیست من» list).
 
@@ -140,7 +140,7 @@ describe("scan lookup between salons, artists and clients", () => {
 
     // artist scans the salon's team link and joins: now a member from both sides
     expect((await lookup(artist, `https://x.example/join-salon/${salon.user.id}`)).payload.data.relation).toBe("none");
-    expect((await artist.api.post("/api/artist/join-salon", { salonUserId: salon.user.id })).status).toBe(201);
+    expect((await joinSalonAsArtist(artist.api, salon.api, salon.user.id)).status).toBe(201);
     expect((await lookup(artist, `/salons/${salon.user.id}`)).payload.data.relation).toBe("member");
     expect((await lookup(salon, `/artists/${artist.user.id}`)).payload.data.relation).toBe("member");
 

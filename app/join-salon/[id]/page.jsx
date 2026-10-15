@@ -31,9 +31,10 @@ export async function generateMetadata({ params }) {
   };
 }
 
-export default async function JoinSalonPage({ params }) {
+export default async function JoinSalonPage({ params, searchParams }) {
   const { id } = await params;
+  const { k } = await searchParams;
   const salon = await loadSalonPreview(id);
   if (!salon) notFound();
-  return <JoinSalonPageClient salon={salon} />;
+  return <JoinSalonPageClient salon={salon} joinCode={String(k || "")} />;
 }

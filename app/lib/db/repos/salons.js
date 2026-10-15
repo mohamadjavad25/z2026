@@ -32,6 +32,7 @@ export {
   listArtistTeams,
   leaveSalonTeam,
   joinSalonByArtist,
+  getOrCreateSalonJoinSecret,
   getSalonJoinPreview
 } from "./salons/invites.js";
 

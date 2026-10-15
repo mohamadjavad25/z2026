@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createClient, registerUser, futureBookingDay } from "./helpers.js";
+import { createClient, joinSalonAsArtist, registerUser, futureBookingDay } from "./helpers.js";
 
 // A salon with a nail artist and a hair artist, each linked by hand to one service, and a client.
 async function setup() {
@@ -10,7 +10,7 @@ async function setup() {
   const joinAs = async (name) => {
     const client = createClient();
     const { user } = await registerUser(client, { type: "artist", name });
-    expect((await client.post("/api/artist/join-salon", { salonUserId: salon.user.id })).ok).toBe(true);
+    expect((await joinSalonAsArtist(client, salonClient, salon.user.id)).ok).toBe(true);
     return { client, user };
   };
   const nail = await joinAs("Visit Nail Artist");
@@ -393,7 +393,7 @@ describe("the system shares the work between artists", () => {
     const ctx = await setup();
     const client = createClient();
     const { user } = await registerUser(client, { type: "artist", name: "Second Nail Artist" });
-    expect((await client.post("/api/artist/join-salon", { salonUserId: ctx.salon.user.id })).ok).toBe(true);
+    expect((await joinSalonAsArtist(client, ctx.salonClient, ctx.salon.user.id)).ok).toBe(true);
     const staff = (await ctx.salonClient.get("/api/salon-staff")).payload.data.staff;
     const second = { client, user, staff: staff.find((person) => Number(person.artist_user_id) === Number(user.id)) };
     const services = (await ctx.salonClient.get("/api/salon-services")).payload.data.services;

@@ -14,6 +14,7 @@ import { ensureSalonHours } from "../../../lib/db/repos/salons.js";
 import { checkRateLimit } from "../../../lib/rateLimit.js";
 import { withErrorHandling } from "../../../lib/http.js";
 import { otpConfig, verifyOtpProof } from "../../../lib/otp.js";
+import { isImageDataUrlInvalidType, isImageDataUrlTooLarge } from "../../../lib/mediaLimits.js";
 
 export const runtime = "nodejs";
 
@@ -60,6 +61,14 @@ async function _POST(request) {
     }
     if (await users.getUserByPhone(phone)) {
       return NextResponse.json({ error: "این شماره قبلاً ثبت شده است." }, { status: 409 });
+    }
+    // Same server-side checks /api/profile already applies to an avatar update --
+    // an unauthenticated signup shouldn't be the one upload path without them.
+    if (isImageDataUrlTooLarge(data.avatar)) {
+      return NextResponse.json({ error: "حجم عکس بیش از حد مجاز (۵ مگابایت) است." }, { status: 413 });
+    }
+    if (isImageDataUrlInvalidType(data.avatar)) {
+      return NextResponse.json({ error: "فرمت عکس پشتیبانی نمی‌شود." }, { status: 400 });
     }
 
     const user = await users.createUser({

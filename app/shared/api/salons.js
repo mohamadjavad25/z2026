@@ -220,6 +220,11 @@ export async function deleteSalonInvite(id) {
   });
 }
 
+/** GET /api/salon-invites/join-code → { code } — the secret in the salon's own QR/join link */
+export async function getSalonJoinCode() {
+  return apiJson("/api/salon-invites/join-code");
+}
+
 /** GET /api/salon-rules → { data: { rules } } (salon owner) */
 export async function getSalonRules() {
   return apiJson("/api/salon-rules");

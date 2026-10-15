@@ -64,6 +64,15 @@ export async function registerUser(client, { type = "client", name = "Test User"
   return { phone, password, user: res.payload.data.user };
 }
 
+/** POST /api/artist/join-salon on the artist's behalf, fetching the salon's own join
+ *  code first (as the real "artist scans the salon's QR" flow does) -- the endpoint
+ *  rejects a bare salonUserId with no code (see app/lib/db/repos/salons/invites.js). */
+export async function joinSalonAsArtist(artistClient, salonClient, salonUserId) {
+  const code = await salonClient.get("/api/salon-invites/join-code");
+  if (!code.ok) throw new Error(`fetching salon join code failed: ${JSON.stringify(code.payload)}`);
+  return artistClient.post("/api/artist/join-salon", { salonUserId, code: code.payload.data.code });
+}
+
 /** A Persian date key a few open (non-Friday) days from now, so booking tests never land on a past slot. */
 export function futureBookingDay(openDaysAhead = 2, { notOn = [] } = {}) {
   const day = new Date();

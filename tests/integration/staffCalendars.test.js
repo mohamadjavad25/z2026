@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createClient, registerUser, futureBookingDay } from "./helpers.js";
+import { createClient, joinSalonAsArtist, registerUser, futureBookingDay } from "./helpers.js";
 import { timeLabelToMinutes } from "../../app/shared/lib/time.js";
 
 describe("salon staff calendars", () => {
@@ -9,7 +9,7 @@ describe("salon staff calendars", () => {
     await salonClient.get("/api/salon-hours");
     const artistClient = createClient();
     await registerUser(artistClient, { type: "artist", name: "Calendar Artist" });
-    expect((await artistClient.post("/api/artist/join-salon", { salonUserId: salon.user.id })).ok).toBe(true);
+    expect((await joinSalonAsArtist(artistClient, salonClient, salon.user.id)).ok).toBe(true);
 
     const day = futureBookingDay(2);
     expect((await artistClient.post("/api/artist/me", { kind: "break", startTime: "۱۳:۰۰", endTime: "۱۴:۰۰" })).ok).toBe(true);

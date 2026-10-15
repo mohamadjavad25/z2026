@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createClient, registerUser } from "./helpers.js";
+import { createClient, joinSalonAsArtist, registerUser } from "./helpers.js";
 
 describe("salon staff", () => {
   it("cannot be created by hand: there is no POST /api/salon-staff", async () => {
@@ -27,7 +27,7 @@ describe("salon staff", () => {
     const artistClient = createClient();
     await registerUser(artistClient, { type: "artist", name: "Field Artist" });
 
-    const join = await artistClient.post("/api/artist/join-salon", { salonUserId: salon.user.id });
+    const join = await joinSalonAsArtist(artistClient, salonClient, salon.user.id);
     expect(join.ok).toBe(true);
 
     const set = await artistClient.post("/api/profile", { data: { service: "ناخن‌کار، میکاپ آرتیست" } });
