@@ -139,6 +139,21 @@
   box-shadow: 0 0 0 3px rgba(31, 181, 131, 0.12), 0 6px 18px rgba(20, 22, 29, 0.05);
 }
 
+/* A row still carries its time-phase class (is-live/is-done) even when a tone overrides its tag --
+   e.g. an expired, unanswered request that happened to fall in today's live time window. Without
+   this, such a row kept the green "in progress" ring from .is-live while showing a red/amber tag,
+   looking like a live appointment that is actually over, declined, or still pending. The tone ring
+   always wins once a tone class is present. */
+.bkRow.is-tone-pending {
+  border-color: #fbe3b3;
+  box-shadow: 0 0 0 3px rgba(240, 160, 32, 0.12), 0 6px 18px rgba(20, 22, 29, 0.05);
+}
+.bkRow.is-tone-bad,
+.bkRow.is-tone-expired {
+  border-color: #f3c7c7;
+  box-shadow: 0 0 0 3px rgba(193, 69, 69, 0.1), 0 6px 18px rgba(20, 22, 29, 0.05);
+}
+
 .bkBody { flex: 1 1 auto; min-width: 0; display: grid; gap: 4px; }
 
 .bkTitle { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 8px; }
