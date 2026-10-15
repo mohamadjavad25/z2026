@@ -939,7 +939,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   border-radius: 999px;
   background: var(--n-0);
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 1px 0 rgb(var(--paper-rgb) / 0.9) inset,
     0 14px 36px rgb(var(--shadow-rgb) / 0.14);
 }
 

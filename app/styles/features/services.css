@@ -751,35 +751,60 @@ button.svcCard:active { transform: scale(0.99); }
 .svcChip.is-price { background: var(--fill-strong); color: var(--n-0); font-weight: 950; }
 .svcCardSide .svcActions { flex-direction: column; }
 
-/* ═══ Page / section icons (PageIcon) ═══════════════════════════════════ */
-.pageIcon { flex: none; display: block; color: inherit; }
-.pageIcon .pi-s { stroke: var(--pi-ink, currentColor); }
+/* ═══ Page / section icons (PageIcon) ═══════════════════════════════════
+   One family (art in components/pageIconArt.js): a round ink outline plus
+   pink / violet fills and a "paper" fill. Everything is a variable, so the same
+   art works in light and dark mode. Tabs are outline-only while idle and light
+   up when active. */
+.pageIcon {
+  --pi-ink: var(--n-900);
+  --pi-a: var(--brand-pink);
+  --pi-b: var(--brand-violet);
+  --pi-paper: var(--n-0);
+  flex: none;
+  display: block;
+  color: inherit;
+}
+.pageIcon .pi-s { fill: none; stroke: var(--pi-ink); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.pageIcon .pi-a { fill: var(--pi-a); }
+.pageIcon .pi-b { fill: var(--pi-b); }
+.pageIcon .pi-p { fill: var(--pi-paper); }
+.pageIcon * { transition: fill 0.22s ease, stroke 0.22s ease; }
 
-/* Inactive tabs are muted; the active one shows its full colour. */
+/* Idle tab: outline only, muted ink. Active tab: full colour, strong ink. */
 .bottomNav button:not(.active) .pageIcon,
 .profileModeRail button:not(.active) .pageIcon {
-  filter: saturate(0.55) opacity(0.9);
-  transition: filter 0.2s ease, transform 0.2s ease;
+  --pi-ink: var(--n-600);
+  --pi-a: transparent;
+  --pi-b: transparent;
+  --pi-paper: transparent;
 }
+
+/* Labels follow their icon: muted while idle, strong when active. */
+:root .bottomNav button:not(.profileTab) { color: var(--n-600); }
+:root .bottomNav button.active:not(.profileTab) { color: var(--n-900); }
 
 .bottomNav button.active .pageIcon,
 .profileModeRail button.active .pageIcon {
-  filter: none;
+  --pi-ink: var(--n-900);
+  transition: transform 0.2s ease;
   transform: translateY(-1px) scale(1.06);
 }
 
-/* Active rail chips are light surfaces: draw the outlines in ink. */
-.profileModeRail button.active .pageIcon,
-.bottomNav button.active .pageIcon { --pi-ink: var(--n-900); }
+/* The floating dock is a dark surface in both modes: keep outlines light and
+   let the accent fills do the talking. */
+.floatingMobileCta.is-modeRail .profileModeRail button .pageIcon { --pi-ink: rgb(var(--paper-rgb) / 0.66); }
+.floatingMobileCta.is-modeRail .profileModeRail button.active .pageIcon { --pi-ink: rgb(var(--paper-rgb)); --pi-paper: rgb(var(--paper-rgb) / 0.14); }
 
-/* On the dark floating dock the outlines stay light; its active chip is a
-   translucent white wash, so keep them white there. */
-.floatingMobileCta.is-modeRail .profileModeRail button .pageIcon { --pi-ink: var(--n-0); }
+/* The collaboration illustration sits the icons on fixed pastel chips, so keep
+   them ink-on-white there in both modes. */
+.collabIllustration .pageIcon { --pi-ink: var(--brand-ink); --pi-paper: var(--brand-white); }
 
-.profileModeRail button .pageIcon { width: 20px; height: 20px; }
-.bottomNav button .pageIcon { width: 24px; height: 24px; }
+.profileModeRail button .pageIcon { width: 22px; height: 22px; }
+.bottomNav button .pageIcon { width: 26px; height: 26px; }
 
 @media (prefers-reduced-motion: reduce) {
+  .pageIcon * { transition: none; }
   .bottomNav button.active .pageIcon,
   .profileModeRail button.active .pageIcon { transform: none; }
 }

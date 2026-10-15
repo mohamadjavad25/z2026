@@ -13,15 +13,15 @@ export function CollabIllustration() {
 
       <g>
         <rect x="20" y="38" width="88" height="88" rx="28" fill="#FFE9F2" stroke="var(--n-900)" strokeWidth="2.4" />
-        <g transform="translate(28 46) scale(2.1)" dangerouslySetInnerHTML={{ __html: PAGE_ICON_ART.salon }} />
+        <g className="pageIcon" transform="translate(28 46) scale(2.1)" dangerouslySetInnerHTML={{ __html: PAGE_ICON_ART.salon }} />
       </g>
       <g>
         <rect x="212" y="38" width="88" height="88" rx="28" fill="#EFEAFF" stroke="var(--n-900)" strokeWidth="2.4" />
-        <g transform="translate(220 46) scale(2.1)" dangerouslySetInnerHTML={{ __html: PAGE_ICON_ART.me }} />
+        <g className="pageIcon" transform="translate(220 46) scale(2.1)" dangerouslySetInnerHTML={{ __html: PAGE_ICON_ART.me }} />
       </g>
 
       <circle cx="160" cy="80" r="38" fill="var(--n-0)" stroke="var(--n-900)" strokeWidth="2.6" />
-      <g transform="translate(131 51) scale(1.8)" dangerouslySetInnerHTML={{ __html: PAGE_ICON_ART.collab }} />
+      <g className="pageIcon" transform="translate(131 51) scale(1.8)" dangerouslySetInnerHTML={{ __html: PAGE_ICON_ART.collab }} />
 
       <path d="M160 6 l4 10 10 4-10 4-4 10-4-10-10-4 10-4z" fill="#B9A6FF" />
       <path d="M52 14 l2.6 6.4 6.4 2.6-6.4 2.6-2.6 6.4-2.6-6.4-6.4-2.6 6.4-2.6z" fill="#8B6CFF" />
