@@ -1,5 +1,6 @@
 import { resolveRollingPersianDate } from "../../shared/lib/persianCalendar";
 import { AWAITING_CLIENT } from "../../shared/lib/bookingOffer";
+import { minutesUntilSlotStart } from "../../shared/lib/bookingWindow";
 import { scheduleBookingParts } from "../../shared/lib/bookingParts";
 import { normalizeBookingTimeLabel, timeLabelToMinutes } from "../../shared/lib/time";
 
@@ -30,9 +31,16 @@ export function isBookingInPast(booking) {
   return resolveRollingPersianDate(rawDate).getTime() < resolveRollingPersianDate("امروز").getTime();
 }
 
-/** The client can cancel their own booking while it is active and not already past. */
+/** The appointment's start time has passed (today's 10:00 booking at 14:29), not just its day. */
+export function hasBookingStarted(booking, now = new Date()) {
+  if (isBookingInPast(booking)) return true;
+  const until = minutesUntilSlotStart(booking?.booking_date || booking?.date, booking?.time, now);
+  return until !== null && until <= 0;
+}
+
+/** The client can cancel their own booking while it is active and has not started yet. */
 export function canClientCancel(booking) {
-  return isBookingActive(booking) && !isBookingInPast(booking);
+  return isBookingActive(booking) && !hasBookingStarted(booking);
 }
 
 /** The soonest still-active booking that hasn't passed yet (date, then clock time). */

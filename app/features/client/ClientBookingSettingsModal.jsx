@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, CalendarCheck, CheckCircle2, Clock3, MapPin, Phone, RotateCcw, Store, TimerOff, UserPlus, XCircle } from "lucide-react";
 import { connectTo, listConnections } from "../../shared/api/connections";
 import { SheetClose } from "../../components/SheetClose";
-import { bookingStatusLabel, bookingStatusTone, canClientCancel } from "./bookingStatus";
+import { bookingStatusLabel, bookingStatusTone, canClientCancel, hasBookingStarted } from "./bookingStatus";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { minutesToPersianTime, timeLabelToMinutes } from "../../shared/lib/time";
@@ -12,7 +12,7 @@ import { requestDeadlineLabel } from "../../shared/lib/bookingWindow";
 import { bookingTimeOffer } from "../../shared/lib/bookingOffer";
 import { parseBookingParts } from "../../shared/lib/bookingParts";
 import { getSalonVisitTimes } from "../../shared/api/salons";
-import { formatRelativeBookingDayLabel, resolveRollingPersianDate } from "../../shared/lib/persianCalendar";
+import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar";
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
 
 const BOOKING_STATUS_ICONS = {
@@ -23,19 +23,14 @@ const BOOKING_STATUS_ICONS = {
 };
 
 // "رزرو دوباره" only makes sense once this specific booking is settled —
-// cancelled/expired outright, or confirmed and its date has already passed
-// (the service actually happened). While it's still pending or confirmed
+// cancelled/expired outright, or confirmed and its start time has already
+// passed (the service actually happened). While it's still pending or confirmed
 // for a future date, the client already has an active booking; offering
 // "book again" there reads as if nothing was booked at all.
 function isBookingSettled(booking) {
   const status = booking?.status || "";
   if (status === "لغو" || status === "منقضی شده") return true;
-  if (status !== "تایید شده") return false;
-  const rawDate = booking?.booking_date || booking?.date || "";
-  if (!rawDate) return false;
-  const bookingDate = resolveRollingPersianDate(rawDate);
-  const today = resolveRollingPersianDate("امروز");
-  return bookingDate.getTime() <= today.getTime();
+  return status === "تایید شده" && hasBookingStarted(booking);
 }
 
 function clockRange(time, minutes) {
@@ -214,7 +209,7 @@ export function ClientBookingSettingsModal({
             </div>
             <strong className={`clientBookingSettingsStatus is-${statusTone}`}>
               <StatusIcon size={13} />
-              {bookingStatusLabel(booking.status)}
+              {booking.status === "تایید شده" && hasBookingStarted(booking) ? "گذشته" : bookingStatusLabel(booking.status)}
             </strong>
           </div>
           <div className="clientBookingSettingsGrid">
