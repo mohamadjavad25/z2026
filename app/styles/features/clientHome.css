@@ -150,6 +150,13 @@
 
 .brCard { margin: 0; padding: 14px; border-radius: 22px; background: #fff; box-shadow: 0 8px 22px -16px rgba(20, 22, 29, 0.3); }
 .brSummary { display: grid; gap: 12px; }
+.brPlace { margin: 0; color: #6f7380; font-size: 0.78rem; font-weight: 800; }
+.brLines { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.brLines .brSvc + .brSvc { padding-top: 12px; border-top: 1px dashed #e6e6eb; }
+.brTotal { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border-radius: 14px; background: #fff0f6; font-weight: 950; }
+.brTotal span { font-size: 0.86rem; }
+.brTotal em { font-style: normal; font-size: 1rem; font-variant-numeric: tabular-nums; }
+.brTotal em small { font-size: 0.7rem; font-weight: 800; }
 .brSvc { display: flex; align-items: center; gap: 10px; }
 .brSvc > span:not(.serviceIcon) { flex: 1; min-width: 0; display: grid; gap: 1px; }
 .brSvc b { font-size: 0.95rem; font-weight: 950; }
@@ -191,3 +198,7 @@
 @media (prefers-reduced-motion: reduce) {
   .brScreen, .brRing, .brRing::before, .chSkel, .cvCard.is-fresh { animation: none !important; }
 }
+
+/* Once a client has booked, adding a place is a quiet one-line button, not a big card. */
+.chQuietAdd { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; margin: 14px 0 0; padding: 12px 14px; border: 1px dashed #d9dae1; border-radius: 16px; background: transparent; color: #6f7380; font: inherit; font-size: 0.84rem; font-weight: 850; cursor: pointer; }
+.chQuietAdd:active { transform: scale(0.98); }

@@ -123,10 +123,21 @@ export function ClientHome({ bookings = [], clientName = "", highlightKey = "", 
     />
   );
 
+  // The big «سالن یا آرتیستت را وصل کن» card is only for a client who has not done anything yet.
+  // Once there is a booking, it is clutter: a small «افزودن» button is enough.
+  const firstTime = places !== null && !active && bookings.length === 0;
+  const quietAdd = places !== null && !active && bookings.length > 0;
+
   return (
     <div className="clientHome">
       {hasUpcoming ? bookingsPanel : null}
 
+      {quietAdd ? (
+        <button type="button" className="chQuietAdd" onClick={() => setAdding(true)}>
+          <Plus size={16} aria-hidden="true" />
+          <span>سالن یا آرتیست خودت را وصل کن</span>
+        </button>
+      ) : (
       <section className="chPlaces" aria-label="سالن و آرتیست من">
         <div className="chHead">
           <div>
@@ -147,7 +158,7 @@ export function ClientHome({ bookings = [], clientName = "", highlightKey = "", 
             <span className="chSkel" />
             <span className="chSkel" />
           </div>
-        ) : !active ? (
+        ) : firstTime ? (
           <div className="chCard chEmpty">
             <Mascot pose="search" size={96} className="chEmptyMascot" />
             <b>سالن یا آرتیستت را وصل کن</b>
@@ -190,6 +201,7 @@ export function ClientHome({ bookings = [], clientName = "", highlightKey = "", 
           </>
         )}
       </section>
+      )}
 
       {adding ? (
         <ConnectSheet label="افزودن سالن یا آرتیست" title="سالن یا آرتیستت را وصل کن" onClose={() => setAdding(false)}>

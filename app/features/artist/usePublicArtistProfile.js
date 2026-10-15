@@ -298,7 +298,7 @@ export function usePublicArtistProfile({
           booking_date: created.booking_date || publicArtistBookingDay,
           time: created.time || publicArtistBookingSlot,
           status: created.status || "تازه"
-        }, { price: service.price || "" });
+        }, { price: service.price || "", items: Array.isArray(service.items) ? service.items : [service] });
       } else {
         notify(
           `رزرو «${service.name}» • ${publicArtistBookingDay} ساعت ${publicArtistBookingSlot} برای «${selectedPublicArtist.name}» ثبت شد و در انتظار تایید آرتیست است.`

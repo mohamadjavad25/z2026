@@ -261,10 +261,10 @@ export function useHomeApp() {
     onLinkedArtistBooked: (id) => notifyArtistBookingCreatedRef.current?.(id),
     onClientBooked
   });
-  onClientBookedRef.current = (booking, { price = "" } = {}) => {
+  onClientBookedRef.current = (booking, { price = "", items = [] } = {}) => {
     if (createdProfile?.type !== "client" || !booking?.id) return;
     const key = clientBookingKey(booking);
-    setBookingReceipt({ key, booking, price });
+    setBookingReceipt({ key, booking, price, items });
     setFreshBookingKey(key);
     if (booking.bookingSource === "artist") void refreshClientBookings();
   };
