@@ -1,6 +1,7 @@
 import { isSlotInPast } from "../../../shared/lib/slots.js";
 import { BOOKING_REQUEST_LEAD_MINUTES, isTooSoonToRequest } from "../../../shared/lib/bookingWindow.js";
 import { toPersianDigits } from "../../../shared/lib/digits.js";
+import { parseServiceDurationMinutes } from "../../../shared/lib/time.js";
 import { getUserFromRequest } from "../../../lib/auth.js";
 import { ensureDb } from "../../../lib/db/connection.js";
 import { error, json, validateBody, withErrorHandling } from "../../../lib/http.js";
@@ -64,8 +65,21 @@ async function _POST(request) {
       403
     );
   }
+  // Someone booking the artist never chooses how long a listed service takes: that is the artist's own
+  // number. (The artist's entry for their own customer may set it; either way it stays within a day.)
+  let durationMinutes = Number(v.data.durationMinutes || v.data.duration_minutes) || 0;
+  if (!isOwner) {
+    const listed = (await artists.listArtistServices(artistUserId))
+      .find((item) => String(item.name || "").trim() === String(v.data.service || "").trim());
+    if (listed?.duration) durationMinutes = parseServiceDurationMinutes(listed.duration);
+  }
+  durationMinutes = durationMinutes > 0 ? Math.min(720, Math.max(15, durationMinutes)) : undefined;
   const result = await artists.addArtistBooking(artistUserId, {
     ...v.data,
+    durationMinutes,
+    duration_minutes: undefined,
+    // `duration` (text) would be read when no number is given; the number above is the only length.
+    duration: durationMinutes ? undefined : v.data.duration,
     // The artist's own entry is settled; a client's waits for the artist (see POST /api/artist/me).
     ...(isOwner ? { status: "تایید" } : {}),
     ...(!isOwner && viewer?.id && artistSettings.autoConfirm ? { status: "تایید شده" } : {}),

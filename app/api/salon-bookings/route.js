@@ -36,15 +36,20 @@ function requireSalon(user) {
   return null;
 }
 
-function resolveRequestedDuration(body, salon) {
-  const explicit = Number(body.durationMinutes || body.duration_minutes);
-  if (Number.isFinite(explicit) && explicit > 0) return Math.max(15, explicit);
-  if (body.duration) return parseServiceDurationMinutes(body.duration);
+// No single entry is longer than this, whoever sends it.
+const MAX_BOOKING_MINUTES = 720;
+
+function resolveRequestedDuration(body, salon, { isClient = false } = {}) {
   const serviceName = String(body.service || "").trim();
-  const service = Array.isArray(salon?.services)
+  const listed = Array.isArray(salon?.services)
     ? salon.services.find((item) => String(item?.name || "").trim() === serviceName)
     : null;
-  if (service?.duration) return parseServiceDurationMinutes(service.duration);
+  // A client never chooses how long a service the salon lists takes: that is the salon's own number.
+  if (isClient && listed?.duration) return parseServiceDurationMinutes(listed.duration);
+  const explicit = Number(body.durationMinutes || body.duration_minutes);
+  if (Number.isFinite(explicit) && explicit > 0) return Math.min(MAX_BOOKING_MINUTES, Math.max(15, explicit));
+  if (body.duration) return Math.min(MAX_BOOKING_MINUTES, parseServiceDurationMinutes(body.duration));
+  if (listed?.duration) return parseServiceDurationMinutes(listed.duration);
   return 60;
 }
 
@@ -129,7 +134,7 @@ async function _POST(request) {
   const rawBookingDay = body.bookingDate || body.booking_date || body.date || "";
   const bookingDateKey = resolveRollingPersianDateKey(rawBookingDay);
   const time = String(body.time || "").trim();
-  const durationMinutes = multiPart ? summarizeBookingParts(parts).durationMinutes : resolveRequestedDuration(body, salon);
+  const durationMinutes = multiPart ? summarizeBookingParts(parts).durationMinutes : resolveRequestedDuration(body, salon, { isClient: auth.user.type === "client" });
   if (!service) return noStoreJson({ error: "خدمت رزرو مشخص نیست." }, { status: 400 });
   if (!rawBookingDay) return noStoreJson({ error: "روز رزرو مشخص نیست." }, { status: 400 });
   if (!time) return noStoreJson({ error: "ساعت رزرو مشخص نیست." }, { status: 400 });
@@ -153,7 +158,8 @@ async function _POST(request) {
   // A client's single-service request with no artist named gets one the way a visit's services
   // do (a free artist who does it, the work spread over the team); refused when nobody who could
   // do it is free -- the availability list never offers such a time.
-  let staffName = String(body.staff || "").trim();
+  // Only the salon names an artist; a client's request is split by the draft below.
+  let staffName = auth.user.type === "salon" ? String(body.staff || "").trim() : "";
   if (!multiPart && auth.user.type === "client" && !staffName) {
     const draft = await salons.draftSingleBookingStaff(salonUserId, bookingDateKey, time, service, durationMinutes);
     if (draft.unstaffed) {
@@ -193,7 +199,9 @@ async function _POST(request) {
     durationMinutes,
     parts: multiPart ? parts : undefined,
     requireStaff: auth.user.type === "client",
-    clientUserId: auth.user.type === "client" ? auth.user.id : body.clientUserId || body.client_user_id || null
+    // A booking is only ever tied to an account by that account itself (the salon's own entries stay
+    // with the name and number it typed), so nobody can put a booking into another person's list.
+    clientUserId: auth.user.type === "client" ? auth.user.id : null
   });
   if (!result.ok) {
     if (result.error === "no_staff") {

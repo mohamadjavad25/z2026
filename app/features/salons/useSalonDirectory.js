@@ -429,7 +429,7 @@ export function useSalonDirectory({
         onClientBooked(bookedRow, { price: price || "", items });
       } else {
         shellMsg("درخواست رزرو ثبت شد؛ در انتظار تایید سالن.");
-        notify(`رزرو ${body.service} برای ${body.bookingDate} ساعت ${body.time} ثبت شد و در انتظار تایید سالن است.`);
+        notify(`رزرو ${body.service} ساعت ${body.time} ثبت شد و در انتظار تایید سالن است.`);
       }
       return { ok: true, status, payload };
     } catch {
