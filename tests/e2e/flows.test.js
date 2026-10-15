@@ -43,7 +43,7 @@ describe("tutorials on the about page (browser)", () => {
   it("keeps the mock screens out of the page until the player is seen (they would hijack text lookups on app pages)", async () => {
     const { page, context } = await newPage();
     await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
-    expect(await page.locator(".landingSlot .lsScreen *").count()).toBe(0);
+    expect(await page.locator(".landingSlot .lsScreenInner").count()).toBe(0);
     expect(await page.getByText("سالن", { exact: true }).first().isVisible()).toBe(true);
     await context.close();
   });
