@@ -1,4 +1,5 @@
 import { getDb, withTransaction, all, get, run } from "../connection.js";
+import { lockArtistDays } from "../locks.js";
 import { countFollowers, countFollowCountsMany, getUserProfileById, getUserLiteById, isFollowing } from "./users.js";
 import { buildClientHistoryLookup } from "./clientHistory.js";
 import { listPostsByOwner } from "./posts.js";
@@ -501,6 +502,7 @@ export async function syncSalonBookingsForArtist(artistUserId) {
       serviceEmoji: booking.service_emoji,
       bookingDate: booking.booking_date,
       time: booking.time,
+      durationMinutes: booking.duration_minutes,
       sourceSalonUserId: booking.salon_user_id,
       status: booking.status || "تازه"
     });
@@ -695,6 +697,8 @@ export async function addArtistBookingInTx(artistUserId, data, runner = null) {
   if (!bookingDate || !time) {
     return { ok: false, error: "روز و ساعت لازم است.", code: "MISSING_SLOT" };
   }
+  // Held until the surrounding transaction ends, so two requests for this artist's day are checked one after the other.
+  await lockArtistDays(db, [artistUserId], bookingDate);
   if (await isArtistSlotBlocked(artistUserId, bookingDate, time, durationMinutes, data.excludeBookingId ?? null, db)) {
     return { ok: false, error: "این بازه زمانی با نوبت دیگری تداخل دارد.", code: "SLOT_TAKEN" };
   }

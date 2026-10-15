@@ -33,6 +33,23 @@ export async function getSalonVisitTimes(salonUserId, day, services) {
   return apiJson(`/api/salon-bookings/availability?${query}`);
 }
 
+/**
+ * GET /api/salon-bookings/preview → { ok, code?, message?, partIndex?, durationMinutes, end, parts: [{ service, minutes, start, end, staff }] }
+ * Who would do what, and when, if this visit were booked at `time` (the same checks the booking itself
+ * runs). `services`: { name, minutes }, in order; `staff`: the salon's own pick per service, same order
+ * ("" = the system's), used only for the salon's own session. For the salon each part also has `free`
+ * and `options`. A plan the salon cannot take is `ok: false` with the reason, not an error.
+ */
+export async function getSalonVisitPreview(salonUserId, day, time, services, staff = []) {
+  const query = new URLSearchParams({ salonUserId: String(salonUserId), day: String(day || ""), time: String(time || "") });
+  for (const service of services) {
+    query.append("service", typeof service === "string" ? service : service.name);
+    if (service?.minutes) query.append("minutes", String(service.minutes));
+  }
+  if (staff.some(Boolean)) for (const name of staff) query.append("staff", name || "");
+  return apiJson(`/api/salon-bookings/preview?${query}`);
+}
+
 /** GET /api/salon-bookings/:id/times → { times: [{ time, end, overtimeMinutes }], close } salon-only «تغییر ساعت» list */
 export async function getSalonBookingMoveTimes(bookingId) {
   return apiJson(`/api/salon-bookings/${encodeURIComponent(bookingId)}/times`);

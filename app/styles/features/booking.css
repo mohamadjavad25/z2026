@@ -1,13 +1,12 @@
 /* ═══════════════════════════════════════════════════════════════════════
-   Booking flows (artist popup + salon sheet) -- clean white look.
-   Loaded last on purpose and scoped to the two booking sheets, so the
+   Booking flows (the artist's public booking popup) -- clean white look.
+   Loaded last on purpose and scoped to that sheet, so the
    shared wheel/sheet shells keep their look everywhere else (e.g. the
    working-hours editor). Palette: white surfaces, ink text, soft gray
    hairlines, ink-black as the single accent -- no purple.
    ═══════════════════════════════════════════════════════════════════════ */
 
-.salonHeroSheetPanel.artistBookingPopupSheet,
-.salonHeroSheetPanel.salonClientBookingPanel {
+.salonHeroSheetPanel.artistBookingPopupSheet {
   --bk-ink: #14161d;
   --bk-muted: #6f7380;
   --bk-line: #ececf0;
@@ -17,8 +16,7 @@
 }
 
 @media (max-width: 760px) {
-  .salonHeroSheetBackdrop:has(> .artistBookingPopupSheet),
-  .salonHeroSheetBackdrop:has(> .salonClientBookingPanel) {
+  .salonHeroSheetBackdrop:has(> .artistBookingPopupSheet) {
     background: #ffffff;
   }
 }
@@ -79,64 +77,52 @@
 }
 
 /* ── Day / time wheel card ───────────────────────────────────────────── */
-.artistBookingPopupSheet .settingsHoursWheelRange,
-.salonClientBookingPanel .settingsHoursWheelRange {
+.artistBookingPopupSheet .settingsHoursWheelRange {
   padding: 14px 10px;
   border-radius: 20px;
   background: #ffffff;
   box-shadow: inset 0 0 0 1px var(--bk-line), 0 8px 24px rgba(20, 22, 29, 0.05);
 }
 
-.artistBookingPopupSheet .settingsHoursWheelRange > div > span,
-.salonClientBookingPanel .settingsHoursWheelRange > div > span {
+.artistBookingPopupSheet .settingsHoursWheelRange > div > span {
   color: var(--bk-muted);
   font-size: 0.72rem;
   font-weight: 900;
 }
 
-.artistBookingPopupSheet .breakTimeWheelFocus,
-.salonClientBookingPanel .breakTimeWheelFocus {
+.artistBookingPopupSheet .breakTimeWheelFocus {
   background: var(--bk-soft);
   border: 1px solid #e4e4ea;
   box-shadow: none;
 }
 
 .artistBookingPopupSheet .breakTimeWheelItem,
-.salonClientBookingPanel .breakTimeWheelItem,
-.artistBookingPopupSheet .breakTimeWheel.is-label .breakTimeWheelItem,
-.salonClientBookingPanel .breakTimeWheel.is-label .breakTimeWheelItem {
+.artistBookingPopupSheet .breakTimeWheel.is-label .breakTimeWheelItem {
   color: rgba(20, 22, 29, 0.34);
 }
 
-.artistBookingPopupSheet .breakTimeWheelLabel,
-.salonClientBookingPanel .breakTimeWheelLabel {
+.artistBookingPopupSheet .breakTimeWheelLabel {
   color: rgba(20, 22, 29, 0.38);
 }
 
 .artistBookingPopupSheet .breakTimeWheelItem.is-active,
-.salonClientBookingPanel .breakTimeWheelItem.is-active,
 .artistBookingPopupSheet .breakTimeWheel.is-label .breakTimeWheelItem.is-active,
-.salonClientBookingPanel .breakTimeWheel.is-label .breakTimeWheelItem.is-active,
-.artistBookingPopupSheet .breakTimeWheelItem.is-active .breakTimeWheelLabel,
-.salonClientBookingPanel .breakTimeWheelItem.is-active .breakTimeWheelLabel {
+.artistBookingPopupSheet .breakTimeWheelItem.is-active .breakTimeWheelLabel {
   color: var(--bk-ink);
 }
 
-.artistBookingPopupSheet .artistPublicSlotEmpty,
-.salonClientBookingPanel .artistPublicSlotEmpty {
+.artistBookingPopupSheet .artistPublicSlotEmpty {
   background: var(--bk-soft);
   color: var(--bk-muted);
 }
 
 /* ── Phone warning ───────────────────────────────────────────────────── */
-.artistBookingPopupSheet .artistBookingPhoneWarning button,
-.salonClientBookingPanel .salonClientBookingPhoneWarning button {
+.artistBookingPopupSheet .artistBookingPhoneWarning button {
   color: var(--bk-ink);
 }
 
 /* ── Primary action: solid ink, no purple gradient ───────────────────── */
-.artistBookingPopupSheet .artistBookingPopupConfirm,
-.salonClientBookingPanel .salonClientBookingSubmit {
+.artistBookingPopupSheet .artistBookingPopupConfirm {
   min-height: 52px;
   border-radius: 16px;
   background: #14161d;
@@ -145,329 +131,9 @@
   box-shadow: 0 10px 22px rgba(20, 22, 29, 0.18);
 }
 
-.artistBookingPopupSheet .artistBookingPopupConfirm:disabled,
-.salonClientBookingPanel .salonClientBookingSubmit:disabled {
+.artistBookingPopupSheet .artistBookingPopupConfirm:disabled {
   background: #d9dae0;
   color: #8b8e99;
   opacity: 1;
   box-shadow: none;
 }
-
-/* ── Salon booking sheet ─────────────────────────────────────────────── */
-.salonClientBookingPanel {
-  gap: 14px;
-  padding: 14px;
-  /* Every row keeps its own height and the sheet scrolls: otherwise, when the content is taller
-     than the screen, the grid squeezes the header (overflow: hidden) down to a sliver. */
-  grid-auto-rows: max-content;
-  align-content: start;
-}
-
-.salonClientBookingPanel .salonClientBookingHead {
-  background: var(--bk-soft);
-  box-shadow: inset 0 0 0 1px var(--bk-line);
-}
-
-.salonClientBookingPanel .salonClientBookingBadge {
-  background: #ffffff;
-  color: var(--bk-ink);
-  box-shadow: inset 0 0 0 1px #e4e4ea;
-}
-
-.salonClientBookingPanel .salonClientBookingBadge:hover,
-.salonClientBookingPanel .salonClientBookingBadge:focus-visible {
-  background: #ececf0;
-}
-
-.salonClientBookingPanel .salonClientBookingHead strong {
-  color: var(--bk-ink);
-}
-
-.salonClientBookingPanel .salonClientBookingHead small,
-.salonClientBookingPanel .salonClientBookingProfileHead small,
-.salonClientBookingPanel .salonClientBookingProfileGrid small {
-  color: var(--bk-muted);
-}
-
-.salonClientBookingPanel .salonClientBookingHead .salonClientBookingClose {
-  background: #ffffff;
-  box-shadow: inset 0 0 0 1px #e4e4ea;
-}
-
-.salonClientBookingPanel .salonClientBookingProfile {
-  border: 1px solid var(--bk-line);
-  background: #ffffff;
-}
-
-.salonClientBookingPanel .salonClientBookingProfileGrid > span {
-  border: 1px solid var(--bk-line);
-  background: var(--bk-soft);
-}
-
-.salonClientBookingPanel .salonClientBookingProfileGrid svg {
-  color: var(--bk-ink);
-}
-
-.salonClientBookingPanel .salonClientBookingConfirm {
-  border: 1px solid var(--bk-line);
-  background: var(--bk-soft);
-}
-
-.salonClientBookingPanel .salonClientBookingConfirm > span {
-  background: #ffffff;
-}
-
-/* ═══ "ایجاد رزرو" sheet (BookingSheet + BookingCreateForm) ═══════════════
-   Root cause of the old purple blobs: generic ".bookingCreateForm button"
-   / ".bookingFormGrid button" rules styled EVERY button in the form --
-   including the wheel items -- like the big primary button, and out-ranked
-   the wheel's own classes. Those rules are now direct-child only (see
-   styles.css); the wheel is also made full-width here. */
-.salonHeroSheetPanel.bookingSheet {
-  --bk-ink: #14161d;
-  --bk-muted: #6f7380;
-  --bk-line: #ececf0;
-  --bk-soft: #f6f6f8;
-  background: #ffffff;
-}
-
-@media (max-width: 760px) {
-  .salonHeroSheetBackdrop:has(> .bookingSheet) {
-    background: #ffffff;
-  }
-}
-
-.bookingSheet .salonHeroSheetHead span { color: var(--bk-muted); }
-.bookingSheet .salonHeroSheetHead h3 { color: var(--bk-ink); font-weight: 950; }
-.bookingSheet .salonHeroSheetHead button {
-  border: 0;
-  background: var(--bk-soft);
-  color: var(--bk-ink);
-}
-
-.bookingCreateForm .settingsHoursWheelRange {
-  grid-column: 1 / -1;
-  padding: 14px 10px;
-  border-radius: 20px;
-  background: #ffffff;
-  box-shadow: inset 0 0 0 1px var(--bk-line), 0 8px 24px rgba(20, 22, 29, 0.05);
-}
-
-.bookingCreateForm .settingsHoursWheelRange > div > span {
-  color: var(--bk-muted);
-  font-size: 0.72rem;
-  font-weight: 900;
-}
-
-.bookingCreateForm .breakTimeWheelFocus {
-  background: var(--bk-soft);
-  border: 1px solid #e4e4ea;
-  box-shadow: none;
-}
-
-.bookingCreateForm .breakTimeWheelItem,
-.bookingCreateForm .breakTimeWheelLabel {
-  color: rgba(20, 22, 29, 0.36);
-}
-
-.bookingCreateForm .breakTimeWheelItem.is-active,
-.bookingCreateForm .breakTimeWheelItem.is-active .breakTimeWheelLabel,
-.bookingCreateForm .breakTimeWheel.is-label .breakTimeWheelItem.is-active {
-  color: var(--bk-ink);
-}
-
-.bookingCreateForm input:focus,
-.bookingCreateForm .bookingSelectTrigger:focus-visible {
-  border-color: rgba(20, 22, 29, 0.35);
-  box-shadow: 0 0 0 3px rgba(20, 22, 29, 0.07);
-}
-
-.bookingCreateForm .bookingSelectTrigger svg { color: var(--bk-ink); }
-.bookingCreateForm > .bookingPrimaryBtn:disabled {
-  background: #d9dae0;
-  color: #8b8e99;
-  box-shadow: none;
-  opacity: 1;
-}
-
-/* ═══ New-booking form (BookingCreateForm): all taps, nothing hidden in dropdowns ═══ */
-.bcf { display: grid; gap: 14px; padding-bottom: 4px; counter-reset: bcfStep; }
-.bcfGroup { display: grid; gap: 12px; min-width: 0; padding: 14px; border: 1px solid #ececf1; border-radius: 22px; background: #fff; box-shadow: 0 6px 18px rgba(20, 22, 29, 0.04); }
-.bcfGroup h4 { display: flex; align-items: center; gap: 8px; margin: 0; color: #14161d; font-size: 0.86rem; font-weight: 950; counter-increment: bcfStep; }
-.bcfGroup h4::before { content: counter(bcfStep, persian); display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: #14161d; color: #fff; font-size: 0.7rem; font-weight: 900; }
-
-.bcfInputs { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 8px; }
-.bcf input[name="client"], .bcf input[name="phone"] {
-  width: 100%;
-  min-height: 50px;
-  padding: 0 14px;
-  border: 1px solid #e4e4ea;
-  border-radius: 15px;
-  background: #fff;
-  color: #14161d;
-  font: inherit;
-  font-size: 0.9rem;
-  font-weight: 750;
-  outline: 0;
-}
-.bcf input[name="client"]:focus, .bcf input[name="phone"]:focus { border-color: #14161d; box-shadow: 0 0 0 3px rgba(20, 22, 29, 0.08); }
-
-.bcfChips { display: flex; flex-wrap: wrap; gap: 8px; }
-.bcfChips[aria-label="انتخاب خدمت"] { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.bcfChips[aria-label="انتخاب خدمت"] .bcfChip { justify-content: flex-start; min-height: 52px; border-radius: 16px; padding: 0 10px; font-size: 0.78rem; line-height: 1.3; text-align: right; }
-.bcfChip {
-  min-height: 42px;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 0 14px;
-  border: 1px solid #e4e4ea;
-  border-radius: 999px;
-  background: #fff;
-  color: #3f4350;
-  font: inherit;
-  font-size: 0.8rem;
-  font-weight: 900;
-  cursor: pointer;
-}
-.bcfChip.is-on { border-color: #14161d; background: #14161d; color: #fff; }
-.bcfChip.is-person { min-height: 36px; border-style: dashed; background: #fafafc; font-size: 0.76rem; }
-.bcfMeta { margin: -2px 2px 0; color: #6f7380; font-size: 0.72rem; font-weight: 800; }
-
-.bcfEmpty { min-height: 52px; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px dashed #b9bbc8; border-radius: 16px; background: #fafafc; color: #14161d; font: inherit; font-size: 0.82rem; font-weight: 900; cursor: pointer; }
-
-.bcfDays { display: flex; gap: 8px; margin: 0 -14px; padding: 2px 14px 4px; overflow-x: auto; scrollbar-width: none; }
-.bcfDays::-webkit-scrollbar { display: none; }
-.bcfDay { flex: none; min-width: 78px; min-height: 48px; padding: 0 14px; border: 1px solid #e4e4ea; border-radius: 16px; background: #fff; color: #3f4350; font: inherit; font-size: 0.78rem; font-weight: 900; line-height: 1.3; cursor: pointer; }
-.bcfDay.is-on { border-color: #14161d; background: #14161d; color: #fff; }
-
-.bcfTimesHead { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; color: #14161d; font-size: 0.78rem; font-weight: 900; }
-.bcfTimesHead small { color: #6f7380; font-size: 0.7rem; font-weight: 800; }
-.bcfTimes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.bcfTimes.is-all { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-.bcfMore { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; border: 1px solid #e4e4ea; border-radius: 14px; background: #fafafc; color: #3f4350; font: inherit; font-size: 0.8rem; font-weight: 900; cursor: pointer; }
-.bcfMore svg { transition: transform 0.2s ease; }
-.bcfMore svg.is-open { transform: rotate(180deg); }
-.bcfTime { min-height: 44px; border: 1px solid #e4e4ea; border-radius: 13px; background: #fff; color: #14161d; font: inherit; font-size: 0.84rem; font-weight: 900; font-variant-numeric: tabular-nums; cursor: pointer; }
-.bcfTime.is-on { border-color: #14161d; background: #14161d; color: #fff; }
-.bcfEmptyTimes { margin: 0; padding: 14px; border-radius: 14px; background: #f6f6f8; color: #6f7380; font-size: 0.78rem; font-weight: 800; text-align: center; }
-
-.bcfHint { margin: 0; color: #b4232a; font-size: 0.72rem; font-weight: 800; text-align: center; }
-.bcfSubmit { width: 100%; min-height: 56px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: 18px; background: #14161d; color: #fff; font: inherit; font-size: 0.92rem; font-weight: 950; cursor: pointer; box-shadow: 0 12px 24px rgba(20, 22, 29, 0.18); }
-.bcfSubmit:active { transform: scale(0.98); }
-.bcfSubmit:disabled { opacity: 0.7; cursor: progress; }
-.bcfSubmit.is-incomplete { box-shadow: 0 8px 18px rgba(20, 22, 29, 0.14); }
-.bcfTime { display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
-
-.bcfDay small { display: block; color: #6f7380; font-size: 0.64rem; font-weight: 800; }
-.bcfDay.is-full { background: #f6f6f8; color: #6f7380; cursor: not-allowed; }
-.bcfNote { margin: 0; padding: 10px 12px; border-radius: 14px; background: #f6f6f8; color: #3f4350; font-size: 0.76rem; font-weight: 800; line-height: 1.7; }
-.bcfWho { margin: 0; color: #6f7380; font-size: 0.74rem; font-weight: 800; text-align: center; }
-.bcfWho b { color: #14161d; font-weight: 900; }
-
-/* ═══ Compact booking form: everything fits one screen, no cards, one title ═══ */
-.bcf { gap: 12px; padding-bottom: 0; counter-reset: none; }
-.bcfGroup { gap: 8px; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; }
-.bcfGroup h4 { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-.bcfGroup h4::before { content: none; }
-.bcf input[name="client"], .bcf input[name="phone"] { min-height: 44px; border-radius: 14px; }
-.bcfChips { gap: 6px; }
-.bcfChips[role="group"], .bcfChips[role="radiogroup"] { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 -12px; padding: 2px 12px; }
-.bcfChips[role="group"]::-webkit-scrollbar, .bcfChips[role="radiogroup"]::-webkit-scrollbar { display: none; }
-.bcfChips[aria-label="انتخاب خدمت"] { display: flex; }
-.bcfChip, .bcfChips[aria-label="انتخاب خدمت"] .bcfChip { flex: none; min-height: 40px; border-radius: 999px; padding: 0 12px; font-size: 0.78rem; }
-.bcfChip.is-person { min-height: 32px; font-size: 0.72rem; }
-.bcfMeta { margin: 0 2px; font-size: 0.7rem; }
-.bcfDays { margin: 0 -12px; padding: 2px 12px; }
-.bcfDay { min-width: 72px; min-height: 42px; border-radius: 14px; padding: 0 12px; font-size: 0.74rem; }
-.bcfTimesHead { font-size: 0.74rem; }
-.bcfTimes { gap: 6px; }
-.bcfTime { min-height: 40px; border-radius: 12px; font-size: 0.82rem; }
-.bcfMore { min-height: 36px; border-radius: 12px; font-size: 0.76rem; }
-.bcfNote { padding: 8px 10px; font-size: 0.72rem; line-height: 1.6; }
-.bcfSubmit { min-height: 52px; border-radius: 16px; }
-
-/* ═══ One-screen booking sheet ═══════════════════════════════════════════════════════════
-   No page scroll: the sheet is exactly one screen tall, the customer / service / day rows keep their
-   natural height and the day calendar takes all the rest and scrolls on its own. There is no close
-   button (the phone's back button closes it); the save button floats at the bottom instead.
-   Pink (#ff86b8, the brand accent) marks every "chosen" state; everything else stays plain grey. */
-.salonHeroSheetBackdrop .salonHeroSheetPanel.bookingSheet {
-  --bcf-pink: #ff86b8;
-  --bcf-fill: #f4f4f7;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  height: 100dvh;
-  min-height: 0;
-  overflow: hidden;
-  padding: max(6px, env(safe-area-inset-top)) 12px 0;
-}
-.bookingSheet .salonHeroSheetHead { padding: 2px 4px 0 !important; }
-.bookingSheet .salonHeroSheetHead h3 { justify-content: center; font-size: 0.84rem !important; }
-.salonHeroSheetPanel.bookingSheet .salonHeroSheetHead h3::before,
-.salonHeroSheetPanel.bookingSheet .salonHeroSheetHead h3::after { content: none; }
-.bookingSheet .bookingSheetBody { flex: 1; display: flex; flex-direction: column; gap: 0; min-height: 0; }
-.bookingSheet .bcf { flex: 1; display: flex; flex-direction: column; gap: 8px; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
-.bookingSheet .bcf::-webkit-scrollbar { display: none; }
-.bookingSheet .bcfGroup { flex: none; gap: 6px; }
-.bookingSheet .bcfGroup.is-grid { flex: 1; min-height: 190px; }
-
-/* Customer */
-.bcf input[name="client"], .bcf input[name="phone"] { min-height: 42px; border: 1.5px solid transparent; border-radius: 14px; background: var(--bcf-fill, #f4f4f7); font-size: 0.86rem; }
-.bcf input[name="client"]::placeholder, .bcf input[name="phone"]::placeholder { color: #8a8e99; font-weight: 700; }
-.bcf input[name="client"]:focus, .bcf input[name="phone"]:focus { border-color: #ff86b8; background: #fff; box-shadow: none; }
-.bcfInputs { gap: 6px; }
-.bcfChip.is-person { min-height: 30px; padding: 0 12px; border: 0; background: var(--bcf-fill, #f4f4f7); color: #4b4f5c; font-size: 0.72rem; font-weight: 800; }
-
-/* Service + day chips: plain grey, pink when chosen */
-.bcfChip, .bcfDay { border: 0; background: var(--bcf-fill, #f4f4f7); color: #3f4350; }
-.bcfChip, .bcfChips[aria-label="انتخاب خدمت"] .bcfChip { min-height: 36px; padding: 0 14px; font-size: 0.78rem; }
-.bcfChip.is-on, .bcfDay.is-on { background: #ff86b8; color: #14161d; }
-.bcfChip.is-person.is-on { background: #ff86b8; }
-.bcfDay { min-width: 64px; min-height: 38px; padding: 0 12px; border-radius: 12px; font-size: 0.74rem; }
-.bcfDay.is-full { background: var(--bcf-fill, #f4f4f7); color: #9a9eaa; }
-.bcfMeta { margin: 0 2px; color: #6f7380; font-size: 0.68rem; line-height: 1.2; }
-.bcfNote { padding: 6px 10px; font-size: 0.7rem; line-height: 1.5; }
-
-/* Calendar: artist tabs on top (they scroll sideways, so ten artists fit), one column of half hours */
-.bcfGrid { flex: 1; display: flex; flex-direction: column; gap: 6px; min-height: 0; }
-.bcfGridHint { margin: 0; color: #6f7380; font-size: 0.7rem; font-weight: 800; }
-.bcfStaffStrip { flex: none; display: flex; gap: 6px; margin-inline: -12px; padding: 0 12px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x proximity; scrollbar-width: none; }
-.bcfStaffStrip::-webkit-scrollbar { display: none; }
-.bcfStaffTab { flex: none; display: grid; gap: 0; min-width: 78px; max-width: 140px; padding: 5px 12px; border: 1.5px solid transparent; border-radius: 13px; background: var(--bcf-fill, #f4f4f7); color: #14161d; font: inherit; text-align: center; scroll-snap-align: center; cursor: pointer; }
-.bcfStaffTab b { overflow: hidden; font-size: 0.78rem; font-weight: 900; line-height: 1.5; text-overflow: ellipsis; white-space: nowrap; }
-.bcfStaffTab small { color: #1f7a4d; font-size: 0.64rem; font-weight: 800; line-height: 1.3; }
-.bcfStaffTab.is-full small { color: #8a8e99; }
-.bcfStaffTab.is-on { background: #ff86b8; color: #14161d; }
-.bcfStaffTab.is-on small { color: #14161d; }
-.bcfStaffTab.has-pick:not(.is-on) { border-color: #ff86b8; }
-.bcfStaffTab:focus-visible { outline: 2px solid #14161d; outline-offset: 2px; }
-
-.bcfDayList { flex: 1; min-height: 0; overflow-y: auto; border: 1px solid #e6e8ee; border-radius: 16px; background: #fff; overscroll-behavior: contain; }
-.bcfDayList::after { content: ""; display: block; height: 84px; }
-.bcfSlot { display: flex; align-items: stretch; border-top: 1px solid #eef0f4; }
-.bcfSlot:first-child { border-top: 0; }
-.bcfSlot.is-hour { border-top-color: #d5d8e0; }
-.bcfSlot.is-hour:first-child { border-top: 0; }
-.bcfSlotTime { flex: none; width: 54px; padding-top: 12px; color: #6f7380; font-size: 0.7rem; font-weight: 800; text-align: center; font-variant-numeric: tabular-nums; }
-.bcfSlot.is-hour .bcfSlotTime { color: #14161d; font-weight: 900; }
-.bcfSlotCell { flex: 1; min-height: 42px; overflow: hidden; padding: 0 12px; border: 0; border-inline-start: 1px solid #eef0f4; border-radius: 0; background-color: #fff; color: #1f7a4d; font: inherit; font-size: 0.74rem; font-weight: 700; text-align: start; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
-.bcfSlotCell.is-free:hover { background-color: #fff3f8; }
-.bcfSlotCell:focus-visible { outline: 2px solid #14161d; outline-offset: -2px; }
-.bcfSlotCell:disabled { cursor: default; }
-.bcfSlotCell.is-short { background-color: #fafafc; color: #8a8e99; font-size: 0.68rem; }
-.bcfSlotCell.is-past { background-color: #f1f2f5; }
-.bcfSlotCell.is-busy { background: repeating-linear-gradient(-45deg, #e9ebf0 0 6px, #dfe2e8 6px 12px); color: #3f4350; font-weight: 900; }
-.bcfSlotCell.is-pick, .bcfSlotCell.is-head { background-color: #ff86b8; color: #14161d; font-weight: 900; border-inline-start-color: #ff86b8; }
-/* The page-wide tap "press" animation (tokens.css) scales buttons down on :active; inside a scrolling
-   list that left cells without their fill on some mobile browsers, and the cells already show state. */
-.bcfSlotCell:active { scale: 1; }
-
-/* Floating save button (portaled to <body>, sits where the old close button was) */
-.bcfFab { position: fixed; left: 50%; bottom: max(16px, env(safe-area-inset-bottom)); z-index: var(--z-sheet-close); display: grid; gap: 6px; justify-items: center; width: max-content; max-width: calc(100vw - 32px); transform: translateX(-50%); pointer-events: none; }
-.bcfFab > * { pointer-events: auto; }
-.bcfFab .bcfHint { padding: 4px 12px; border-radius: 999px; background: #fff; box-shadow: 0 4px 14px rgba(20, 22, 29, 0.12); }
-.bcfFab .bcfSubmit { width: auto; min-height: 52px; padding: 0 26px; border-radius: 999px; background: #ff86b8; color: #14161d; font-size: 0.9rem; box-shadow: 0 10px 26px rgba(255, 134, 184, 0.55), 0 2px 8px rgba(20, 22, 29, 0.14); }
-.bcfFab .bcfSubmit.is-incomplete { background: #f8c3da; box-shadow: 0 6px 18px rgba(255, 134, 184, 0.3); }
-.bcfFab .bcfSubmit:active { transform: scale(0.96); }

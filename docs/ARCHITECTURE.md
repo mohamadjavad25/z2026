@@ -5,7 +5,7 @@
 - **`app/api/**`**: route handlerها. همه با `withErrorHandling`، اعتبارسنجی با zod (`validateBody`: پیام کاربر فقط فارسی)، نرخ‌محدودی روی دیتابیس، سشن با کوکی httpOnly.
 - **`app/lib/db/repos/**`**: تنها جایی که SQL می‌نویسد. route‌ها فقط repo صدا می‌زنند.
 - **`app/lib/*Sweep.js` / `bookingReminders.js`**: کارهای زمان‌بندی‌شده؛ با endpointهای `app/api/cron/*` و workflowهای GitHub Actions اجرا می‌شوند (نه تایمر درون‌پروسه، چون سرورلس است).
-- **`app/features/<دامنه>`**: رابط به تفکیک دامنه (auth، profile، salons، artist، client، schedule، settings، shell). هر دامنه hook(های) داده + کامپوننت‌های ارائه‌ای دارد.
+- **`app/features/<دامنه>`**: رابط به تفکیک دامنه (auth، profile، salons، artist، client، schedule، settings، shell، booking). `booking` فرم رزرو چندخدمتی است که مشتری، آرتیست و سالن هر سه با آن رزرو می‌کنند (`docs/VISIT_BOOKER.md`). هر دامنه hook(های) داده + کامپوننت‌های ارائه‌ای دارد.
 - **`app/shared`**: کدی که چند دامنه می‌خواهند: `api/` (کلاینت `apiFetch` با نوار busy شبکه و خطای یکدست)، `lib/` (تاریخ شمسی، پول، رقم، زمان‌بندی یادآوری، آواتار پیش‌فرض…).
 - **`app/components`**: کامپوننت‌های مشترک؛ `components/ui` کتابخانهٔ پایه (`Button`، `Chip`، `Field`).
 

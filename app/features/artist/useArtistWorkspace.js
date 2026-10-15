@@ -18,7 +18,6 @@ import { readArtistRailDock } from "./railUtils";
 import { useArtistWorkActions } from "./useArtistWorkActions";
 import { useArtistRailDrag } from "./useArtistRailDrag";
 import { useArtistHours } from "./useArtistHours";
-import { bookingHoldsSlot } from "../../shared/lib/salonAvailability";
 
 /**
  * Artist-owner workspace: portfolio, services, bookings, break, outbound collabs,
@@ -83,7 +82,6 @@ export function useArtistWorkspace({
   const [artistTeamBusyId, setArtistTeamBusyId] = useState("");
   const [artistWorkSaving, setArtistWorkSaving] = useState(false);
   const [artistInviteRespondBusyId, setArtistInviteRespondBusyId] = useState("");
-  const [artistBookingSubmitting, setArtistBookingSubmitting] = useState(false);
   const artistBookingSubmittingRef = useRef(false);
   const [artistBreakSaving, setArtistBreakSaving] = useState(false);
   const [artistRequestBusyId, setArtistRequestBusyId] = useState("");
@@ -308,52 +306,29 @@ export function useArtistWorkspace({
   });
 
 
-  async function handleArtistBookingCreate(event) {
-    event.preventDefault();
-    if (artistBookingSubmittingRef.current) return;
-    const form = event.currentTarget;
-    const data = Object.fromEntries(new FormData(form).entries());
-    const client = String(data.client || "").trim();
-    const phone = String(data.phone || "").trim();
-    const service = String(data.service || "").trim();
-    const time = String(data.time || "").trim();
-    const date = String(data.date || "امروز").trim();
-    if (!client || !service || !time) {
-      notify("نام، خدمت و ساعت را کامل کن.");
-      return;
-    }
-    const taken = artistBookingList.some((item) => (
-      bookingHoldsSlot(item) && item.time === time && item.date === date
-    ));
-    if (taken) {
-      notify("این ساعت در این روز قبلاً رزرو شده.");
-      return;
-    }
+  /**
+   * The artist's own booking from the booking form (VisitBooker): one entry as long as all the services
+   * together. Resolves { ok, status, payload } so the form can say what went wrong; a clash with another
+   * booking is answered by a fresh look at the calendar, so the form's list of free times is current.
+   */
+  async function submitArtistVisit(body) {
+    if (artistBookingSubmittingRef.current) return { ok: false, status: 0, payload: { error: "ثبت قبلی هنوز تمام نشده." } };
     artistBookingSubmittingRef.current = true;
-    setArtistBookingSubmitting(true);
     try {
-      const { ok, payload } = await createArtistMe({
-        kind: "booking",
-        client,
-        phone,
-        service,
-        time,
-        date,
-        status: "تایید"
-      });
+      const { ok, status, payload } = await createArtistMe(body);
       if (!ok) {
-        notify(payload.error || "ثبت نوبت انجام نشد.");
-        return;
+        if (status === 409) void refreshArtistWorkspace();
+        return { ok: false, status, payload };
       }
       const created = mapArtistBooking(payload.data?.booking) || {
         id: payload.data?.booking?.id || `local-${Date.now()}`,
-        time,
-        date,
-        client,
-        phone,
-        service,
+        time: body.time,
+        date: body.date,
+        client: body.client,
+        phone: body.phone,
+        service: body.service,
         status: "تایید",
-        durationMinutes: 60,
+        durationMinutes: body.durationMinutes,
         history: "day",
         visits: Array.from({ length: 10 }, () => 0)
       };
@@ -366,22 +341,17 @@ export function useArtistWorkspace({
           return [created, ...list];
         });
       }
-      setArtistBookingSelectedDay(resolveBookingDateToWeekday(created.date || date));
+      setArtistBookingSelectedDay(resolveBookingDateToWeekday(created.date || body.date));
       setArtistBookingCreateOpen(false);
       setArtistBookingRailOpen(true);
       if (typeof onCloseBookingSheet === "function") onCloseBookingSheet();
-      notify(`نوبت ${time} برای ${client} ثبت شد.`);
-      try {
-        form.reset();
-      } catch {
-        // form may unmount with the sheet
-      }
-      await refreshArtistWorkspace();
+      notify(`نوبت ${body.time} برای ${body.client} ثبت شد.`);
+      void refreshArtistWorkspace();
+      return { ok: true, status, payload };
     } catch {
-      notify("ثبت نوبت انجام نشد.");
+      return { ok: false, status: 0, payload: {} };
     } finally {
       artistBookingSubmittingRef.current = false;
-      setArtistBookingSubmitting(false);
     }
   }
 
@@ -682,7 +652,6 @@ export function useArtistWorkspace({
     artistSalonInviteList,
     setArtistSalonInviteList,
     artistInviteRespondBusyId,
-    artistBookingSubmitting,
     artistRequestBusyId,
     confirmArtistBookingRequest,
     declineArtistBookingRequest,
@@ -760,7 +729,7 @@ export function useArtistWorkspace({
     onArtistRailHandlePointerDown,
     onArtistRailHandlePointerMove,
     onArtistRailHandlePointerUp,
-    handleArtistBookingCreate,
+    submitArtistVisit,
     openArtistBreakEditor,
     closeArtistBreakEditor,
     saveArtistBreakTime,

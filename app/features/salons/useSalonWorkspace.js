@@ -21,17 +21,9 @@ import { useSalonInviteActions } from "./useSalonInviteActions";
  *   push a computed weekday back to HomeApp after a booking is created/approved, and call
  *   `patchSalonAppointment` from thin HomeApp wrappers (changeScheduleBookingTime/Staff,
  *   cancelScheduleBooking) that close the schedule menu themselves on success.
- * - The booking-create sheet pair (bookingSheetOpen, bookingSelectMenu) and
- *   the booking form defaults (bookingStaffName, bookingServiceName, bookingDate) stay in
- *   HomeApp. `onCloseBookingSheet` is reused wherever the original HomeApp code reset any of
- *   that pair (it is safe/idempotent to call even when only a subset actually changed).
- *   `onBookingDefaults` is only invoked from `refreshSalonSystemData`, mirroring the original
- *   `setBookingStaffName((current) => current || …)` fallback pattern — HomeApp should apply it
- *   with the same "keep current if already set" functional update. Other mutations that used to
- *   force-sync bookingStaffName (addSalonStaff, updateSalonCollabRequest, updateSalonStaff,
- *   removeSalonStaff) and bookingDate (updateSalonHour, updateSalonHoursPreset) no longer do so
- *   from here; HomeApp can instead keep those in sync reactively via a `useEffect` keyed on the
- *   returned `salonStaffList` / `salonHoursList`.
+ * - Whether the booking sheet is open (bookingSheetOpen) stays in HomeApp. `onCloseBookingSheet`
+ *   is reused wherever the original HomeApp code closed it (safe to call when it is already closed).
+ *   The sheet itself (VisitBooker) holds its own picks and reads the lists this hook returns.
  * - Salon **client** directory (browse/follow/save/book as a client) lives in `useSalonDirectory`.
  *   This hook only reaches into that world through `onSalonDirectorySync` / `onSelectedSalonSync`
  *   (pass HomeApp's `setSalonDirectory` / `setSelectedSalon` directly — both accept either a
@@ -58,7 +50,6 @@ import { useSalonInviteActions } from "./useSalonInviteActions";
  *   onArtistCollabOffersPatch?: (updater: (items: any[]) => any[]) => void,
  *   onSalonDirectorySync?: (salons: any[] | ((items: any[]) => any[])) => void,
  *   onSelectedSalonSync?: (updater: any | ((current: any) => any)) => void,
- *   onBookingDefaults?: (defaults: { staffName?: string, serviceName?: string, date?: string }) => void,
  * }} options
  */
 export function useSalonWorkspace({
@@ -71,14 +62,13 @@ export function useSalonWorkspace({
   onLinkedArtistBooked,
   onArtistCollabOffersPatch,
   onSalonDirectorySync,
-  onSelectedSalonSync,
-  onBookingDefaults,
+  onSelectedSalonSync
 } = {}) {
   // Callers pass fresh inline functions on every render. Read the latest ones through a ref so notify/sync/push
   // keep one identity for the life of the hook: refreshSalonSystemData depends on them, and the effect below
   // re-runs whenever it changes, which used to turn every render into another full reload of the workspace.
   const callbacksRef = useRef({});
-  callbacksRef.current = { onNotice, onShellNotice, onSalonDirectorySync, onSelectedSalonSync, onBookingDefaults };
+  callbacksRef.current = { onNotice, onShellNotice, onSalonDirectorySync, onSelectedSalonSync };
 
   const notify = useCallback((message) => {
     const { onNotice: onNoticeNow } = callbacksRef.current;
@@ -99,11 +89,6 @@ export function useSalonWorkspace({
   const syncSelectedSalon = useCallback((next) => {
     const { onSelectedSalonSync: onSelectedSalonSyncNow } = callbacksRef.current;
     if (typeof onSelectedSalonSyncNow === "function") onSelectedSalonSyncNow(next);
-  }, []);
-
-  const pushBookingDefaults = useCallback((defaults) => {
-    const { onBookingDefaults: onBookingDefaultsNow } = callbacksRef.current;
-    if (typeof onBookingDefaultsNow === "function") onBookingDefaultsNow(defaults);
   }, []);
 
   const salonBookingsEpochRef = useRef(0);
@@ -128,7 +113,6 @@ export function useSalonWorkspace({
   const [nearbyArtists, setNearbyArtists] = useState([]);
   const [nearbyArtistsLoading, setNearbyArtistsLoading] = useState(false);
   const [artistInviteBusyId, setArtistInviteBusyId] = useState("");
-  const [salonBookingSubmitting, setSalonBookingSubmitting] = useState(false);
   const salonBookingSubmittingRef = useRef(false);
   // Artist ticks on a service (see toggleSalonServiceArtist): latest wanted list, last server-accepted list, save queue.
   const serviceArtistDesiredRef = useRef(new Map());
@@ -277,11 +261,6 @@ export function useSalonWorkspace({
       setSalonArtistInviteList(invitesRes.data?.invites || []);
       setSelectedStaffName((current) => current || nextStaff[0]?.name || "");
 
-      pushBookingDefaults({
-        staffName: nextStaff[0]?.name || "",
-        serviceName: nextServices[0]?.name || "",
-        date: nextHours.find((hour) => hour.active)?.day || "امروز"
-      });
       setSalonWorkspaceLoading(false);
 
       const salonsRes = await salonsPromise;
@@ -303,7 +282,7 @@ export function useSalonWorkspace({
     } finally {
       setSalonWorkspaceLoading(false);
     }
-  }, [pushBookingDefaults, syncSalonDirectory, syncSelectedSalon]);
+  }, [syncSalonDirectory, syncSelectedSalon]);
 
   const refreshSalonCollabRequests = useCallback(async () => {
     if (createdProfile?.type !== "salon") return;
@@ -363,32 +342,19 @@ export function useSalonWorkspace({
     if (typeof onCloseBookingSheet === "function") onCloseBookingSheet();
   }, [onCloseBookingSheet]);
 
-  const addSalonAppointment = useCallback(async (event, { bookingDateForSlots = "امروز", selectedBookingStaff = "" } = {}) => {
-    event.preventDefault();
-    if (salonBookingSubmittingRef.current) return;
-    const form = event.currentTarget;
-    const data = Object.fromEntries(new FormData(form).entries());
-    if (!data.service) {
-      shellNotify("اول یک خدمت واقعی در منوی خدمات سالن ثبت کن.");
-      return;
-    }
-    const bookingDate = data.booking_date || bookingDateForSlots;
+  /**
+   * The salon's own booking from the booking form (VisitBooker): one service or several back to back,
+   * with an artist per service when the salon named them. Resolves { ok, status, payload } so the form
+   * can say what went wrong; nothing here toasts a failure (the form shows it where the person is looking).
+   */
+  const submitSalonVisit = useCallback(async (body) => {
+    if (salonBookingSubmittingRef.current) return { ok: false, status: 0, payload: { error: "ثبت قبلی هنوز تمام نشده." } };
     salonBookingSubmittingRef.current = true;
-    setSalonBookingSubmitting(true);
     try {
-      const { ok, payload } = await createSalonBooking({
-        time: data.time || "۱۸:۳۰",
-        booking_date: bookingDate,
-        client: data.client || "مشتری جدید",
-        phone: data.phone || "",
-        service: data.service,
-        staff: data.staff || selectedBookingStaff,
-        status: "تازه"
-      });
+      const { ok, status, payload } = await createSalonBooking({ ...body, status: "تازه" });
       if (!ok) {
-        applySalonBookings(payload.data?.bookings, { bump: true });
-        shellNotify(getApiErrorMessage(payload, "این زمان قابل رزرو نیست."));
-        return;
+        applySalonBookings(payload?.data?.bookings, { bump: true });
+        return { ok: false, status, payload };
       }
       salonBookingsEpochRef.current += 1;
       const nextBookings = Array.isArray(payload.data?.bookings) ? payload.data.bookings : null;
@@ -400,28 +366,32 @@ export function useSalonWorkspace({
         ));
       }
       if (typeof onScheduleViewDay === "function") {
-        onScheduleViewDay(payload.data?.booking?.booking_date || bookingDate);
+        onScheduleViewDay(payload.data?.booking?.booking_date || body.bookingDate);
       }
-      shellNotify(payload.data?.artistBooking
+      const linkedArtistIds = payload.data?.linkedArtistIds?.length
+        ? payload.data.linkedArtistIds
+        : [payload.data?.linkedArtistId].filter(Boolean);
+      shellNotify(linkedArtistIds.length
         ? "رزرو در سالن ثبت شد و برای آرتیست هم ارسال شد."
         : "رزرو در سالن ثبت شد؛ این پرسنل به پروفایل آرتیست وصل نیست.");
       notify("رزرو با موفقیت ثبت شد.");
       setSalonToolSheetOpen(false);
-      if (payload.data?.linkedArtistId && typeof onLinkedArtistBooked === "function") {
-        onLinkedArtistBooked(payload.data.linkedArtistId);
-      }
-      try {
-        form.reset();
-      } catch {
-        // form may unmount with the sheet
+      if (typeof onLinkedArtistBooked === "function") {
+        for (const linkedArtistId of linkedArtistIds) {
+          try {
+            await onLinkedArtistBooked(linkedArtistId);
+          } catch {
+            // the artist's refresh is best effort; the salon booking is already in
+          }
+        }
       }
       if (typeof onCloseBookingSheet === "function") onCloseBookingSheet();
-      await refreshSalonBookingsLive(salonBookingsEpochRef.current);
+      void refreshSalonBookingsLive(salonBookingsEpochRef.current);
+      return { ok: true, status, payload };
     } catch {
-      shellNotify("ثبت رزرو انجام نشد؛ دوباره امتحان کن.");
+      return { ok: false, status: 0, payload: {} };
     } finally {
       salonBookingSubmittingRef.current = false;
-      setSalonBookingSubmitting(false);
     }
   }, [shellNotify, notify, onScheduleViewDay, onLinkedArtistBooked, onCloseBookingSheet, applySalonBookings, refreshSalonBookingsLive]);
 
@@ -688,7 +658,6 @@ export function useSalonWorkspace({
     nearbyArtistsLoading,
     artistInviteBusyId,
     setArtistInviteBusyId,
-    salonBookingSubmitting,
     scheduleBookingBusy,
     salonRequestBusyId,
     salonWorkspaceLoading,
@@ -711,7 +680,7 @@ export function useSalonWorkspace({
     openSalonWorkspace,
     closeSalonWorkspace,
     closeSalonToolSheet,
-    addSalonAppointment,
+    submitSalonVisit,
     patchSalonAppointment,
     approveReservationRequest,
     declineReservationRequest,

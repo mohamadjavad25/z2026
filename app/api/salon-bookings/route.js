@@ -1,5 +1,3 @@
-import { isSlotInPast } from "../../shared/lib/slots.js";
-import { BOOKING_REQUEST_LEAD_MINUTES, isTooSoonToRequest } from "../../shared/lib/bookingWindow.js";
 import { NextResponse } from "next/server";
 import { requireUser, validateBody, withErrorHandling } from "../../lib/http.js";
 import { ensureDb } from "../../lib/db/connection.js";
@@ -16,13 +14,8 @@ import { createBookingSchema } from "../../lib/validation/booking.js";
 // client's own-bookings view), so it starts within seconds of real use.
 import { sweepExpiredBookingRequestsIfDue } from "../../lib/bookingExpirySweep.js";
 import { resolveRollingPersianDateKey } from "../../shared/lib/persianCalendar.js";
-import { findSalonHourForDateKey, isSalonHourOpen, salonDayWindow } from "../../shared/lib/salonAvailability.js";
-import {
-  buildDayBookingSlots,
-  normalizeBookingTimeLabel,
-  parseServiceDurationMinutes,
-  timeLabelToMinutes
-} from "../../shared/lib/time.js";
+import { visitSlotProblem } from "../../lib/visitSlotRules.js";
+import { normalizeBookingTimeLabel, parseServiceDurationMinutes } from "../../shared/lib/time.js";
 import { summarizeBookingParts } from "../../shared/lib/bookingParts.js";
 import { salonVisitParts } from "../../lib/salonVisitParts.js";
 import { bookingMoveOptions } from "../../lib/salonMoveTimes.js";
@@ -144,26 +137,18 @@ async function _POST(request) {
   if (auth.user.type === "client" && !phone) {
     return noStoreJson({ error: "برای ثبت رزرو، شماره تماس لازم است." }, { status: 400 });
   }
-  if (isSlotInPast(bookingDateKey, time)) {
-    return noStoreJson({ error: "این ساعت گذشته است. ساعت دیگری انتخاب کن." }, { status: 409 });
-  }
-  // A client's request needs an answer from the salon first, so it can't start in the next few
-  // minutes (the salon would have no time to see it). The salon's own entries are exempt.
-  if (auth.user.type === "client" && isTooSoonToRequest(bookingDateKey, time)) {
-    return noStoreJson({
-      error: `برای رزرو باید حداقل ${toPersianDigits(BOOKING_REQUEST_LEAD_MINUTES)} دقیقه تا شروع نوبت مانده باشد تا سالن فرصت پاسخ داشته باشد. ساعت دیگری انتخاب کن.`,
-      code: "TOO_SOON"
-    }, { status: 409 });
-  }
-  const hour = findSalonHourForDateKey(await salons.listSalonHours(salonUserId), bookingDateKey);
-  if (!isSalonHourOpen(hour)) {
-    return noStoreJson({ error: "سالن در این روز تعطیل است." }, { status: 409 });
-  }
-  const dayWindow = salonDayWindow(hour);
-  const allowedTimes = buildDayBookingSlots(dayWindow.open, dayWindow.close, durationMinutes);
-  const requestedMinutes = timeLabelToMinutes(time);
-  if (!allowedTimes.some((slot) => timeLabelToMinutes(slot) === requestedMinutes)) {
-    return noStoreJson({ error: "این ساعت خارج از زمان کاری سالن است." }, { status: 409 });
+  const slotProblem = visitSlotProblem({
+    hours: await salons.listSalonHours(salonUserId),
+    bookingDateKey,
+    time,
+    durationMinutes,
+    isClient: auth.user.type === "client"
+  });
+  if (slotProblem) {
+    return noStoreJson(
+      slotProblem.code === "TOO_SOON" ? { error: slotProblem.error, code: slotProblem.code } : { error: slotProblem.error },
+      { status: slotProblem.status }
+    );
   }
   // A client's single-service request with no artist named gets one the way a visit's services
   // do (a free artist who does it, the work spread over the team); refused when nobody who could
@@ -228,6 +213,8 @@ async function _POST(request) {
       serviceEmoji: result.booking.service_emoji,
       bookingDate: result.booking.booking_date,
       time: result.booking.time,
+      // The artist's calendar holds the service for its own length (it used to fall back to an hour).
+      durationMinutes: result.booking.duration_minutes,
       sourceSalonUserId: salonUserId,
       status: result.booking.status || "تازه"
     });

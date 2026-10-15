@@ -10,12 +10,7 @@ export function createLogoutUiGapResets(setters) {
     setClientBookingSettings,
     setArtistServiceCreateOpen,
     setArtistServiceCreateMode,
-    setArtistServiceDraft,
-    setBookingStaffName,
-    setBookingServiceName,
-    setBookingDate,
-    setBookingTime,
-    setBookingSelectMenu
+    setArtistServiceDraft
   } = setters;
 
   return function resetLogoutUiGaps() {
@@ -32,11 +27,6 @@ export function createLogoutUiGapResets(setters) {
       duration: "۶۰ دقیقه",
       hint: ""
     });
-    setBookingStaffName?.("");
-    setBookingServiceName?.("");
-    setBookingDate?.("");
-    setBookingTime?.("۱۸:۳۰");
-    setBookingSelectMenu?.("");
   };
 }
 
@@ -55,11 +45,6 @@ export const LOGOUT_UI_GAP_DEFAULTS = {
     duration: "۶۰ دقیقه",
     hint: ""
   },
-  bookingStaffName: "",
-  bookingServiceName: "",
-  bookingDate: "",
-  bookingTime: "۱۸:۳۰",
-  bookingSelectMenu: "",
   profileType: "client",
   authNotice: ""
 };

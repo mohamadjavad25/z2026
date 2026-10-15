@@ -89,9 +89,12 @@ describe("booking flow (browser)", () => {
     await cp.locator(".spvBarBook").click();
     await cp.locator(".sduItem").first().click();
     await cp.locator(".sduConfirm").click();
-    await cp.locator(".bspTime").first().click();
-    expect(await cp.locator(".salonClientBookingSummary").innerText()).toContain("ساعت");
-    await cp.getByRole("button", { name: "ثبت درخواست نوبت" }).click();
+    // the booking form opens with the first free time already chosen; the button says which
+    await cp.locator(".vbTime.is-on").waitFor();
+    // the button says "checking" until the server has confirmed who does what at that time
+    await cp.locator(".vbPlanRow").first().waitFor();
+    await cp.getByRole("button", { name: /ارسال درخواست/ }).waitFor();
+    await cp.locator(".vbSubmit").click();
     // "now what?": a full screen says the request reached the salon and how long the answer can take
     const receipt = cp.locator(".brScreen");
     await receipt.waitFor();
@@ -148,10 +151,12 @@ describe("booking flow (browser)", () => {
     const visitTimes = cp.waitForResponse((response) => response.url().includes("/api/salon-bookings/availability"));
     await cp.locator(".sduConfirm").click();
     expect((await visitTimes).ok()).toBe(true);
-    await cp.locator(".salonClientVisitNote").waitFor();
-    await cp.locator(".bspTime").first().click();
-    expect(await cp.locator(".salonClientBookingSummary").innerText()).toContain("تا حدود");
-    await cp.getByRole("button", { name: "ثبت درخواست نوبت" }).click();
+    // both services are listed with their own time, and who does each
+    await cp.locator(".vbPlanRow").nth(1).waitFor();
+    expect(await cp.locator(".vbPlanRow").count()).toBe(2);
+    await cp.locator(".vbTime.is-on").waitFor();
+    await cp.getByRole("button", { name: /ارسال درخواست/ }).waitFor();
+    await cp.locator(".vbSubmit").click();
     await cp.locator(".cbt.is-wait").waitFor();
     expect(clientView.problems).toEqual([]);
 
@@ -233,8 +238,9 @@ describe("client starts from what they want (browser)", () => {
     await place.locator(".chServices button", { hasText: "کوتاهی مو" }).click();
     await page.locator(".sduItem.is-selected", { hasText: "کوتاهی مو" }).waitFor();
     await page.locator(".sduConfirm").click();
-    await page.locator(".bspTime").first().click();
-    await page.getByRole("button", { name: "ثبت درخواست نوبت" }).click();
+    await page.locator(".vbTime.is-on").waitFor();
+    await page.getByRole("button", { name: /ارسال درخواست/ }).waitFor();
+    await page.locator(".vbSubmit").click();
     const receipt = page.locator(".brScreen");
     await receipt.waitFor();
     // closing the salon page goes back to «سالن و آرتیست من»; the booking is under «نوبت‌های من» on the profile
