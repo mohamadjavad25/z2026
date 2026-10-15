@@ -9,7 +9,9 @@ export const dynamic = "force-dynamic";
 async function _GET() {
   await ensureDb();
   const notice = await getPublicNotice().catch(() => null);
-  return json({ data: { notice } }, { headers: { "Cache-Control": "public, max-age=0, s-maxage=30, stale-while-revalidate=60" } });
+  // Not cached: switching the notice off must take effect at once, and a stale-while-revalidate copy kept a background
+  // request open in the browser. One small query per app start.
+  return json({ data: { notice } });
 }
 
 export const GET = withErrorHandling(_GET);
