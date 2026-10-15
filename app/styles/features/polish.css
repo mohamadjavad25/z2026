@@ -135,7 +135,7 @@
 .bkRow.is-done .bkTitle b { color: var(--n-600); }
 
 .bkRow.is-live {
-  border-color: color-mix(in srgb, var(--success) 30%, transparent);
+  border-color: rgb(var(--success-rgb) / 0.3);
   box-shadow: 0 0 0 3px rgba(31, 181, 131, 0.12), 0 6px 18px rgb(var(--shadow-rgb) / 0.05);
 }
 
@@ -145,12 +145,12 @@
    looking like a live appointment that is actually over, declined, or still pending. The tone ring
    always wins once a tone class is present. */
 .bkRow.is-tone-pending {
-  border-color: color-mix(in srgb, var(--warning) 30%, transparent);
+  border-color: rgb(var(--warning-rgb) / 0.3);
   box-shadow: 0 0 0 3px rgb(255 134 184 / 0.12), 0 6px 18px rgb(var(--shadow-rgb) / 0.05);
 }
 .bkRow.is-tone-bad,
 .bkRow.is-tone-expired {
-  border-color: color-mix(in srgb, var(--danger) 30%, transparent);
+  border-color: rgb(var(--danger-rgb) / 0.3);
   box-shadow: 0 0 0 3px rgba(193, 69, 69, 0.1), 0 6px 18px rgb(var(--shadow-rgb) / 0.05);
 }
 
@@ -175,7 +175,7 @@
 .bkChip.is-upcoming { background: var(--n-100); color: var(--info); }
 .bkChip.is-live { background: var(--n-100); color: var(--success); }
 .bkChip.is-done { background: var(--n-100); color: var(--n-600); }
-.bkChip.is-status-pending { background: color-mix(in srgb, var(--warning) 14%, transparent); color: var(--warning); }
+.bkChip.is-status-pending { background: rgb(var(--warning-rgb) / 0.14); color: var(--warning); }
 .bkChip.is-status-bad,
 .bkChip.is-status-expired { background: var(--n-100); color: var(--danger); }
 
@@ -388,7 +388,7 @@
 .stfCard[role="button"]:focus-visible { outline: 3px solid rgb(var(--ink-rgb) / 0.25); outline-offset: 2px; }
 .stfCard.is-idle { background: var(--n-25); }
 .stfCard.is-idle .stfAvatar { filter: grayscale(0.6); opacity: 0.8; }
-.stfCard.is-pending { border-style: dashed; border-color: color-mix(in srgb, var(--warning) 30%, transparent); background: var(--n-25); }
+.stfCard.is-pending { border-style: dashed; border-color: rgb(var(--warning-rgb) / 0.3); background: var(--n-25); }
 
 .stfAvatarWrap { position: relative; flex: none; display: block; }
 
@@ -454,8 +454,8 @@
 
 .stfState i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 .stfState.is-active { background: var(--n-100); color: var(--success); }
-.stfState.is-idle { background: color-mix(in srgb, var(--warning) 14%, transparent); color: var(--warning); }
-.stfState.is-pending { background: color-mix(in srgb, var(--warning) 14%, transparent); color: var(--warning); width: fit-content; }
+.stfState.is-idle { background: rgb(var(--warning-rgb) / 0.14); color: var(--warning); }
+.stfState.is-pending { background: rgb(var(--warning-rgb) / 0.14); color: var(--warning); width: fit-content; }
 
 .stfIconBtn {
   flex: none;
@@ -582,7 +582,7 @@
 .smdRole { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px 5px 10px; border-radius: 999px; background: var(--n-100); color: var(--n-800); font-size: 0.78rem; font-weight: 850; }
 .smdMeta { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
 .smdMeta span { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--n-100); background: var(--n-0); color: var(--n-600); font-size: 0.7rem; font-weight: 800; }
-.smdMeta .smdState.is-active { color: var(--success); border-color: color-mix(in srgb, var(--success) 30%, transparent); background: var(--n-25); }
+.smdMeta .smdState.is-active { color: var(--success); border-color: rgb(var(--success-rgb) / 0.3); background: var(--n-25); }
 .smdMeta .smdState.is-idle { color: var(--n-600); }
 .smdActions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 6px 16px 14px; }
 .smdBtn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 44px; border: 1px solid var(--n-100); border-radius: 14px; background: var(--n-0); color: var(--n-900); font: inherit; font-size: 0.82rem; font-weight: 900; text-decoration: none; cursor: pointer; }
@@ -608,7 +608,7 @@
 .smdFooter { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px 16px 14px; }
 .smdToggle, .smdEnd { min-height: 44px; border-radius: 14px; font: inherit; font-size: 0.8rem; font-weight: 900; cursor: pointer; }
 .smdToggle { border: 1px solid var(--n-100); background: var(--n-0); color: var(--n-900); }
-.smdEnd { border: 1px solid color-mix(in srgb, var(--danger) 30%, transparent); background: var(--n-50); color: var(--danger); }
+.smdEnd { border: 1px solid rgb(var(--danger-rgb) / 0.3); background: var(--n-50); color: var(--danger); }
 
 .profileEditSpecialty { display: grid; gap: 6px; grid-column: 1 / -1; }
 .profileEditSpecialty > span { color: var(--n-800); font-size: 0.78rem; font-weight: 900; }
@@ -620,7 +620,7 @@
 .smdLockNote { display: flex; align-items: center; gap: 5px; flex-basis: 100%; margin: 4px 0 0; color: var(--n-500); font-size: 0.68rem; font-weight: 700; }
 
 .profileEditSpecialty .specialtySelectTrigger { background: var(--n-0); color: var(--n-900); border: 1px solid var(--n-200); box-shadow: none; }
-.profileEditSpecialty { --form-accent: var(--n-900); }
+.profileEditSpecialty { --form-accent: var(--n-900); --form-accent-rgb: var(--n-900-rgb); }
 .profileEditSpecialty .specialtySelectTrigger { min-height: 50px; height: auto; text-align: right; }
 
 /* ---- Bottom-centered sheet close (SheetClose) ---- */
@@ -717,7 +717,7 @@
 .cuHistory em { font-style: normal; font-size: 0.68rem; font-weight: 900; padding: 4px 9px; border-radius: 999px; background: var(--n-100); color: var(--n-700); }
 .cuHistory em.is-done { background: var(--n-100); color: var(--success); }
 .cuHistory em.is-bad, .cuHistory em.is-expired { background: var(--n-100); color: var(--danger); }
-.cuHistory em.is-pending { background: color-mix(in srgb, var(--warning) 14%, transparent); color: var(--warning); }
+.cuHistory em.is-pending { background: rgb(var(--warning-rgb) / 0.14); color: var(--warning); }
 .cuRowMain .salonCustomerInfo { text-align: start; justify-items: start; }
 .cuRowMain .salonCustomerInfo span[dir="ltr"] { justify-self: start; unicode-bidi: plaintext; }
 .cuSheetTop span[dir="ltr"] { justify-self: start; }
@@ -755,7 +755,7 @@
 }
 .bottomNav > .cbt:focus-visible { outline: 3px solid rgb(var(--ink-rgb) / 0.28); outline-offset: -3px; }
 .cbtIcon { position: relative; flex: 0 0 auto; width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; background: var(--n-0); color: var(--n-900); }
-.cbtIcon i { position: absolute; inset: -2px; border-radius: 50%; border: 3px solid transparent; border-top-color: var(--accent); border-right-color: color-mix(in srgb, var(--accent) 30%, transparent); animation: cbtSpin 1s linear infinite; }
+.cbtIcon i { position: absolute; inset: -2px; border-radius: 50%; border: 3px solid transparent; border-top-color: var(--accent); border-right-color: rgb(var(--accent-rgb) / 0.3); animation: cbtSpin 1s linear infinite; }
 .cbtIcon svg { animation: cbtTilt 2.4s ease-in-out infinite; }
 .cbtText { flex: 1; min-width: 0; display: grid; gap: 2px; }
 .cbtText b { font-size: 0.86rem; font-weight: 950; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -1466,7 +1466,7 @@ html, body { overscroll-behavior-y: none; }
 .clConnTag { justify-self: start; display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; background: var(--n-0); color: var(--success); font-size: 0.7rem; font-weight: 900; }
 .clConnTag::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
 .clConnTag.is-invite { color: var(--warning); }
-.clConnCard:has(.clConnTag.is-invite) { border-color: color-mix(in srgb, var(--warning) 30%, transparent); background: linear-gradient(180deg, var(--n-50) 0%, var(--n-0) 72%); }
+.clConnCard:has(.clConnTag.is-invite) { border-color: rgb(var(--warning-rgb) / 0.3); background: linear-gradient(180deg, var(--n-50) 0%, var(--n-0) 72%); }
 .clConnWho { display: flex; align-items: center; gap: 12px; }
 .clConnWho .collabAvatar { width: 54px; height: 54px; border-radius: 18px; }
 .clConnWho > div { display: grid; gap: 2px; min-width: 0; }
@@ -1544,7 +1544,7 @@ html, body { overscroll-behavior-y: none; }
   gap: 6px;
   min-height: 30px;
   padding: 0 10px;
-  border: 1px solid color-mix(in srgb, var(--warning) 30%, transparent);
+  border: 1px solid rgb(var(--warning-rgb) / 0.3);
   border-radius: 999px;
   background: var(--n-0);
   color: var(--warning);

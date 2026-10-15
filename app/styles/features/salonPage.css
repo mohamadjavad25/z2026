@@ -52,7 +52,7 @@
 
 .spvBar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; display: flex; align-items: center; gap: 8px; padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); background: rgb(var(--paper-rgb) / 0.94); backdrop-filter: blur(14px); border-top: 1px solid var(--n-100); }
 .spvBarIcon { width: 50px; height: 50px; flex: none; display: grid; place-items: center; border: 1px solid var(--n-100); border-radius: 16px; background: var(--n-0); color: var(--n-900); cursor: pointer; }
-.spvBarIcon.is-on { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 30%, transparent); background: var(--n-50); }
+.spvBarIcon.is-on { color: var(--accent); border-color: rgb(var(--accent-rgb) / 0.3); background: var(--n-50); }
 .spvBarBook { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 50px; border: 0; border-radius: 16px; background: var(--fill-strong); color: var(--n-0); font: inherit; font-size: 0.95rem; font-weight: 950; cursor: pointer; box-shadow: 0 10px 24px rgb(var(--shadow-rgb) / 0.28); }
 .spvBarBook small { margin-inline-start: 4px; color: rgb(var(--paper-rgb) / 0.72); font-size: 0.68rem; font-weight: 800; }
 .spvBarBook:disabled { opacity: 0.5; }
@@ -70,20 +70,20 @@
 .cbPlace { display: grid; grid-template-columns: 1.4fr 1fr; gap: 8px; margin-top: 10px; }
 .cbPlace:has(.cbPlaceOpen:only-child) { grid-template-columns: 1fr; }
 .cbPlace button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 46px; border: 1px solid var(--n-100); border-radius: 14px; background: var(--n-0); color: var(--n-900); font: inherit; font-size: 0.8rem; font-weight: 900; cursor: pointer; }
-.cbPlace .cbPlaceFollow { border-color: color-mix(in srgb, var(--accent) 30%, transparent); background: var(--n-50); color: var(--accent); }
+.cbPlace .cbPlaceFollow { border-color: rgb(var(--accent-rgb) / 0.3); background: var(--n-50); color: var(--accent); }
 .cbPlace button:disabled { opacity: 0.6; }
-.cbCancelBtn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; width: 100%; min-height: 46px; margin-top: 10px; border: 1px solid color-mix(in srgb, var(--danger) 30%, transparent); border-radius: 14px; background: var(--n-50); color: var(--danger); font: inherit; font-size: 0.84rem; font-weight: 900; cursor: pointer; }
-.cbCancelConfirm { display: grid; gap: 10px; margin-top: 10px; padding: 12px; border: 1px solid color-mix(in srgb, var(--danger) 30%, transparent); border-radius: 16px; background: var(--n-50); }
+.cbCancelBtn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; width: 100%; min-height: 46px; margin-top: 10px; border: 1px solid rgb(var(--danger-rgb) / 0.3); border-radius: 14px; background: var(--n-50); color: var(--danger); font: inherit; font-size: 0.84rem; font-weight: 900; cursor: pointer; }
+.cbCancelConfirm { display: grid; gap: 10px; margin-top: 10px; padding: 12px; border: 1px solid rgb(var(--danger-rgb) / 0.3); border-radius: 16px; background: var(--n-50); }
 .cbCancelConfirm p { margin: 0; color: var(--danger); font-size: 0.8rem; font-weight: 800; line-height: 1.7; }
 .cbCancelConfirm > div { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .cbCancelConfirm button { min-height: 42px; border: 1px solid var(--n-100); border-radius: 12px; background: var(--n-0); color: var(--n-900); font: inherit; font-size: 0.8rem; font-weight: 900; cursor: pointer; }
 .cbCancelConfirm button.is-danger { background: var(--danger); border-color: var(--danger); color: var(--n-0); }
 .cbCancelConfirm button:disabled { opacity: 0.6; }
 /* A new time the salon offered, waiting for the client (ClientBookingSettingsModal) */
-.cbOffer { display: grid; gap: 10px; margin-top: 10px; padding: 14px; border: 1px solid color-mix(in srgb, var(--warning) 30%, transparent); border-radius: 16px; background: var(--n-25); }
+.cbOffer { display: grid; gap: 10px; margin-top: 10px; padding: 14px; border: 1px solid rgb(var(--warning-rgb) / 0.3); border-radius: 16px; background: var(--n-25); }
 .cbOffer > b { color: var(--warning); font-size: 0.86rem; font-weight: 950; }
 .cbOfferTimes { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: var(--warning); font-size: 0.86rem; font-weight: 800; }
-.cbOfferTimes s { text-decoration-thickness: 1px; text-decoration-color: color-mix(in srgb, var(--warning) 70%, transparent); }
+.cbOfferTimes s { text-decoration-thickness: 1px; text-decoration-color: rgb(var(--warning-rgb) / 0.7); }
 .cbOfferTimes strong { padding: 4px 10px; border-radius: 10px; background: var(--n-0); color: var(--n-900); font-weight: 950; }
 .cbOffer p { margin: 0; color: var(--warning); font-size: 0.76rem; font-weight: 750; line-height: 1.8; }
 .cbOfferActions { display: grid; grid-template-columns: 1.6fr 1fr; gap: 8px; }

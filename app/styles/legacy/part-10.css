@@ -128,12 +128,12 @@
   }
 
   .profileHero.is-salon .profileAvatarImage {
-    border: 3px solid color-mix(in srgb, var(--n-50) 98%, transparent) !important;
-    outline: 2px solid color-mix(in srgb, var(--info) 96%, transparent) !important;
+    border: 3px solid rgb(var(--n-50-rgb) / 0.98) !important;
+    outline: 2px solid rgb(var(--info-rgb) / 0.96) !important;
     outline-offset: 3px !important;
     background:
       linear-gradient(var(--n-950), var(--n-950)) padding-box,
-      conic-gradient(from 220deg, var(--n-50) 0deg, var(--n-800) 52deg, var(--n-900) 126deg, var(--n-900) 202deg, color-mix(in srgb, var(--info) 14%, transparent) 282deg, var(--n-50) 360deg) border-box !important;
+      conic-gradient(from 220deg, var(--n-50) 0deg, var(--n-800) 52deg, var(--n-900) 126deg, var(--n-900) 202deg, rgb(var(--info-rgb) / 0.14) 282deg, var(--n-50) 360deg) border-box !important;
     box-shadow:
       0 0 0 5px rgb(139 108 255 / 0.42),
       0 0 0 7px rgb(var(--shadow-rgb) / 0.26),
@@ -165,7 +165,7 @@
     border-radius: 50% !important;
     padding: 4px !important;
     background:
-      conic-gradient(from 214deg, var(--n-25) 0deg, var(--brand-violet) 44deg, var(--n-900) 118deg, var(--n-900) 190deg, color-mix(in srgb, var(--info) 14%, transparent) 260deg, var(--n-25) 360deg) !important;
+      conic-gradient(from 214deg, var(--n-25) 0deg, var(--brand-violet) 44deg, var(--n-900) 118deg, var(--n-900) 190deg, rgb(var(--info-rgb) / 0.14) 260deg, var(--n-25) 360deg) !important;
     box-shadow:
       0 0 0 1px rgba(238, 250, 255, 0.78),
       0 0 18px rgb(139 108 255 / 0.86),
@@ -243,7 +243,7 @@
   .appShell:has(.createdProfile.is-salon) .artistServiceSheet {
     width: min(372px, calc(100vw - 36px)) !important;
     max-height: min(74dvh, 650px) !important;
-    border: 1px solid color-mix(in srgb, var(--n-150) 38%, transparent) !important;
+    border: 1px solid rgb(var(--n-150-rgb) / 0.38) !important;
     border-radius: 22px !important;
     background: var(--n-0) !important;
     box-shadow:
@@ -278,7 +278,7 @@
 
   .appShell:has(.createdProfile.is-salon) .artistServiceClose {
     border-radius: 13px !important;
-    background: color-mix(in srgb, var(--info) 7%, transparent) !important;
+    background: rgb(var(--info-rgb) / 0.07) !important;
     color: var(--info) !important;
   }
 
@@ -453,7 +453,7 @@
     width: min(238px, calc(100vw - 56px)) !important;
     padding: 8px !important;
     border-radius: 16px !important;
-    background: color-mix(in srgb, var(--n-25) 98%, transparent) !important;
+    background: rgb(var(--n-25-rgb) / 0.98) !important;
     box-shadow: 0 20px 44px rgb(var(--shadow-rgb) / 0.18) !important;
     -webkit-backdrop-filter: blur(16px) !important;
     backdrop-filter: blur(16px) !important;
@@ -594,8 +594,8 @@
   .profilePanel.page-profile.is-salon-profile ~ .bottomNav .profileTab,
   .profilePanel.page-profile:has(.createdProfile.is-salon) ~ .bottomNav .profileTab {
     background:
-      radial-gradient(circle at 22% 24%, var(--n-25) 0%, color-mix(in srgb, var(--n-25) 0%, transparent) 46%),
-      radial-gradient(circle at 78% 24%, var(--n-25) 0%, color-mix(in srgb, var(--n-25) 0%, transparent) 46%),
+      radial-gradient(circle at 22% 24%, var(--n-25) 0%, rgb(var(--n-25-rgb) / 0) 46%),
+      radial-gradient(circle at 78% 24%, var(--n-25) 0%, rgb(var(--n-25-rgb) / 0) 46%),
       linear-gradient(180deg, var(--n-600) 0%, var(--n-900) 100%) !important;
     box-shadow:
       0 0 0 0.5px rgba(226, 236, 255, 0.42),
@@ -628,7 +628,7 @@
   .profileHero.is-salon .salonHeroAvatarFrame {
     padding: 0.75px !important;
     background:
-      conic-gradient(from 228deg, var(--n-25) 0deg, color-mix(in srgb, var(--info) 14%, transparent) 46deg, var(--n-600) 124deg, var(--n-900) 218deg, var(--n-150) 306deg, var(--n-25) 360deg) !important;
+      conic-gradient(from 228deg, var(--n-25) 0deg, rgb(var(--info-rgb) / 0.14) 46deg, var(--n-600) 124deg, var(--n-900) 218deg, var(--n-150) 306deg, var(--n-25) 360deg) !important;
     box-shadow:
       0 0 0 0.5px rgba(226, 236, 255, 0.42),
       0 0 7px rgba(111, 115, 128, 0.38),
@@ -829,7 +829,7 @@
   gap: 10px;
   padding: 12px;
   border-radius: 18px;
-  background: color-mix(in srgb, var(--n-50) 92%, transparent);
+  background: rgb(var(--n-50-rgb) / 0.92);
   border: 1px solid rgb(var(--ink-rgb) / 0.08);
 }
 
@@ -1023,7 +1023,7 @@
 }
 
 .clientBookingChangePanel span.is-warning {
-  background: color-mix(in srgb, var(--warning) 9%, transparent);
+  background: rgb(var(--warning-rgb) / 0.09);
   color: var(--warning);
 }
 
@@ -1067,8 +1067,8 @@
 
 .clientBookingSettingsActions .danger {
   color: var(--danger);
-  background: color-mix(in srgb, var(--accent) 9%, transparent);
-  border-color: color-mix(in srgb, var(--accent) 14%, transparent);
+  background: rgb(var(--accent-rgb) / 0.09);
+  border-color: rgb(var(--accent-rgb) / 0.14);
 }
 
 .scheduleBookingHistoryIcon {
@@ -1120,20 +1120,20 @@
 
 .scheduleBookingMiniActions button.is-danger {
   color: var(--danger);
-  background: color-mix(in srgb, var(--accent) 9%, transparent);
-  border-color: color-mix(in srgb, var(--accent) 14%, transparent);
+  background: rgb(var(--accent-rgb) / 0.09);
+  border-color: rgb(var(--accent-rgb) / 0.14);
 }
 
 .scheduleBookingReviewActions button.is-approve {
   color: var(--success);
-  background: color-mix(in srgb, var(--success) 12%, transparent);
-  border-color: color-mix(in srgb, var(--success) 16%, transparent);
+  background: rgb(var(--success-rgb) / 0.12);
+  border-color: rgb(var(--success-rgb) / 0.16);
 }
 
 .scheduleBookingReviewActions button.is-decline {
   color: var(--danger);
-  background: color-mix(in srgb, var(--danger) 10%, transparent);
-  border-color: color-mix(in srgb, var(--danger) 14%, transparent);
+  background: rgb(var(--danger-rgb) / 0.1);
+  border-color: rgb(var(--danger-rgb) / 0.14);
 }
 
 .scheduleBookingMiniActions button:disabled,
@@ -1522,12 +1522,12 @@
 }
 
 .requestActions .is-approve {
-  background: color-mix(in srgb, var(--success) 12%, transparent);
+  background: rgb(var(--success-rgb) / 0.12);
   color: var(--success);
 }
 
 .requestActions .is-decline {
-  background: color-mix(in srgb, var(--danger) 10%, transparent);
+  background: rgb(var(--danger-rgb) / 0.1);
   color: var(--danger);
 }
 
@@ -1551,7 +1551,7 @@
   gap: 4px;
   padding: 3px 8px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  background: rgb(var(--danger-rgb) / 0.12);
   color: var(--danger);
   font-size: 0.68rem;
   font-weight: 900;
@@ -1566,7 +1566,7 @@
   border: 0 !important;
   border-radius: 22px !important;
   background:
-    linear-gradient(135deg, rgba(11, 17, 46, 0.92) 0%, rgb(12 13 18 / 0.86) 48%, color-mix(in srgb, var(--n-600) 82%, transparent) 100%),
+    linear-gradient(135deg, rgba(11, 17, 46, 0.92) 0%, rgb(12 13 18 / 0.86) 48%, rgb(var(--n-600-rgb) / 0.82) 100%),
     url("/artist-hero-doodle.webp") center / cover no-repeat !important;
   color: var(--on-photo);
   box-shadow:

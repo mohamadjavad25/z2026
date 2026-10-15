@@ -24,7 +24,7 @@
   /* default/pending tone ("درخواست"); mirrors .clientBookingStatusPill's
      tone convention above. */
   color: var(--warning);
-  background: color-mix(in srgb, var(--warning) 12%, transparent);
+  background: rgb(var(--warning-rgb) / 0.12);
   font-size: 10px;
   font-weight: 900;
   white-space: nowrap;
@@ -32,17 +32,17 @@
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingMiniState strong.is-done {
   color: var(--success);
-  background: color-mix(in srgb, var(--success) 12%, transparent);
+  background: rgb(var(--success-rgb) / 0.12);
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingMiniState strong.is-bad {
   color: var(--danger);
-  background: color-mix(in srgb, var(--danger) 10%, transparent);
+  background: rgb(var(--danger-rgb) / 0.1);
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingMiniState strong.is-expired {
   color: var(--danger);
-  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  background: rgb(var(--danger-rgb) / 0.12);
 }
 
 .profilePanel.page-profile:has(.createdProfile.is-client) .clientBookingMiniCard em {
@@ -138,7 +138,7 @@
   padding: 0 8px;
   border-radius: 999px;
   color: var(--warning);
-  background: color-mix(in srgb, var(--warning) 12%, transparent);
+  background: rgb(var(--warning-rgb) / 0.12);
   font-size: 10px;
   font-weight: 900;
   white-space: nowrap;
@@ -146,17 +146,17 @@
 
 .salonHeroSheetPanel.bookingWeekHistorySheet .clientBookingMiniState strong.is-done {
   color: var(--success);
-  background: color-mix(in srgb, var(--success) 12%, transparent);
+  background: rgb(var(--success-rgb) / 0.12);
 }
 
 .salonHeroSheetPanel.bookingWeekHistorySheet .clientBookingMiniState strong.is-bad {
   color: var(--danger);
-  background: color-mix(in srgb, var(--danger) 10%, transparent);
+  background: rgb(var(--danger-rgb) / 0.1);
 }
 
 .salonHeroSheetPanel.bookingWeekHistorySheet .clientBookingMiniState strong.is-expired {
   color: var(--danger);
-  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  background: rgb(var(--danger-rgb) / 0.12);
 }
 
 .salonHeroSheetPanel.bookingWeekHistorySheet .clientBookingMiniCard em {
@@ -653,9 +653,9 @@
 }
 
 .createdProfile.is-artist{
-  border-color: color-mix(in srgb, var(--info) 12%, transparent);
+  border-color: rgb(var(--info-rgb) / 0.12);
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--n-25) 96%, transparent), color-mix(in srgb, var(--n-100) 92%, transparent)),
+    linear-gradient(180deg, rgb(var(--n-25-rgb) / 0.96), rgb(var(--n-100-rgb) / 0.92)),
     var(--surface-solid);
 }
 
@@ -665,7 +665,7 @@
   border-radius: 0;
   background:
     radial-gradient(circle at 50% 0%, rgb(var(--ink-rgb) / 0.18), transparent 34%),
-    linear-gradient(180deg, color-mix(in srgb, var(--n-50) 94%, transparent), color-mix(in srgb, var(--n-400) 98%, transparent)),
+    linear-gradient(180deg, rgb(var(--n-50-rgb) / 0.94), rgb(var(--n-400-rgb) / 0.98)),
     var(--bg);
   box-shadow: none;
   backdrop-filter: none;
@@ -677,7 +677,7 @@
   border-radius: 0;
   background:
     radial-gradient(circle at 50% 0%, rgb(var(--ink-rgb) / 0.1), transparent 34%),
-    linear-gradient(180deg, color-mix(in srgb, var(--n-50) 96%, transparent), color-mix(in srgb, var(--n-100) 98%, transparent)),
+    linear-gradient(180deg, rgb(var(--n-50-rgb) / 0.96), rgb(var(--n-100-rgb) / 0.98)),
     var(--bg);
   box-shadow: none;
   backdrop-filter: none;
@@ -721,7 +721,7 @@
   border-radius: 22px;
   background:
     linear-gradient(135deg, rgb(var(--ink-rgb) / 0.1), rgb(var(--ink-rgb) / 0.1)),
-    color-mix(in srgb, var(--n-50) 86%, transparent);
+    rgb(var(--n-50-rgb) / 0.86);
   box-shadow: 0 16px 36px rgb(var(--shadow-rgb) / 0.08);
 }
 
@@ -972,7 +972,7 @@
   align-items: center;
   gap: 6px;
   border: 1px solid rgb(var(--paper-rgb) / 0.64);
-  background: color-mix(in srgb, var(--n-50) 82%, transparent);
+  background: rgb(var(--n-50-rgb) / 0.82);
   color: var(--plum);
   box-shadow: 0 12px 26px rgb(var(--shadow-rgb) / 0.08);
 }
@@ -1186,7 +1186,7 @@
   box-sizing: border-box;
   padding: 8px;
   border-radius: 14px;
-  background: color-mix(in srgb, var(--n-500) 12%, transparent);
+  background: rgb(var(--n-500-rgb) / 0.12);
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -1207,7 +1207,7 @@
   padding: 0;
   border: 0;
   border-radius: 8px;
-  background: color-mix(in srgb, var(--n-500) 34%, transparent);
+  background: rgb(var(--n-500-rgb) / 0.34);
   color: rgb(var(--ink-rgb) / 0.72);
   font-size: 0.72rem;
   font-weight: 900;
@@ -1226,7 +1226,7 @@
 
 .scheduleDayDots button:hover,
 .scheduleDayDots button:focus-visible{
-  background: color-mix(in srgb, var(--n-400) 72%, transparent);
+  background: rgb(var(--n-400-rgb) / 0.72);
   color: var(--n-800);
 }
 
@@ -1300,17 +1300,17 @@
    awaiting confirmation, declined, or auto-expired doesn't silently read as
    a normal "upcoming/live/done" appointment on the owner's own schedule. */
 .schedulePhaseTag.is-status-pending{
-  background: color-mix(in srgb, var(--warning) 14%, transparent);
+  background: rgb(var(--warning-rgb) / 0.14);
   color: var(--warning);
 }
 
 .schedulePhaseTag.is-status-bad{
-  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  background: rgb(var(--danger-rgb) / 0.12);
   color: var(--danger);
 }
 
 .schedulePhaseTag.is-status-expired{
-  background: color-mix(in srgb, var(--danger) 14%, transparent);
+  background: rgb(var(--danger-rgb) / 0.14);
   color: var(--danger);
 }
 
@@ -1344,7 +1344,7 @@
 }
 
 .salonQuickGrid button.active{
-  background: linear-gradient(135deg, rgb(var(--ink-rgb) / 0.18), color-mix(in srgb, var(--n-400) 16%, transparent));
+  background: linear-gradient(135deg, rgb(var(--ink-rgb) / 0.18), rgb(var(--n-400-rgb) / 0.16));
   color: var(--teal);
   box-shadow:
     inset 0 0 0 1px rgb(var(--shadow-rgb) / 0.2),
@@ -1369,7 +1369,7 @@
   text-align: right;
   background:
     radial-gradient(circle at 16% 14%, rgb(var(--ink-rgb) / 0.12), transparent 34%),
-    linear-gradient(135deg, rgb(var(--paper-rgb) / 0.78), color-mix(in srgb, var(--n-100) 62%, transparent));
+    linear-gradient(135deg, rgb(var(--paper-rgb) / 0.78), rgb(var(--n-100-rgb) / 0.62));
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.74),
     0 14px 30px rgb(var(--shadow-rgb) / 0.07);
@@ -1381,8 +1381,8 @@
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(180deg, rgb(var(--paper-rgb) / 0.1), color-mix(in srgb, var(--n-50) 78%, transparent)),
-    radial-gradient(circle at 82% 18%, color-mix(in srgb, var(--n-400) 18%, transparent), transparent 34%);
+    linear-gradient(180deg, rgb(var(--paper-rgb) / 0.1), rgb(var(--n-50-rgb) / 0.78)),
+    radial-gradient(circle at 82% 18%, rgb(var(--n-400-rgb) / 0.18), transparent 34%);
   pointer-events: none;
 }
 
@@ -1428,7 +1428,7 @@
   height: 30px;
   padding: 7px;
   border-radius: 12px;
-  background: color-mix(in srgb, var(--n-50) 72%, transparent);
+  background: rgb(var(--n-50-rgb) / 0.72);
   color: var(--teal);
   box-shadow: 0 10px 22px rgb(var(--shadow-rgb) / 0.08);
 }
@@ -1438,7 +1438,7 @@
   margin-top: 6px;
   padding: 5px 8px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--n-50) 78%, transparent);
+  background: rgb(var(--n-50-rgb) / 0.78);
   font-size: 0.78rem;
   color: var(--plum);
   box-shadow: 0 10px 20px rgb(var(--shadow-rgb) / 0.08);
@@ -1453,12 +1453,12 @@
 
 .createdProfile.is-salon .salonQuickGrid button.active::before{
   background:
-    linear-gradient(180deg, rgb(var(--paper-rgb) / 0.06), color-mix(in srgb, var(--n-50) 78%, transparent)),
+    linear-gradient(180deg, rgb(var(--paper-rgb) / 0.06), rgb(var(--n-50-rgb) / 0.78)),
     radial-gradient(circle at 78% 18%, rgb(var(--ink-rgb) / 0.18), transparent 34%);
 }
 
 .createdProfile.is-salon .salonQuickGrid button.active span{
-  background: color-mix(in srgb, var(--n-50) 86%, transparent);
+  background: rgb(var(--n-50-rgb) / 0.86);
   color: var(--teal);
 }
 
@@ -1608,7 +1608,7 @@
   border: 1px solid rgb(var(--ink-rgb) / 0.12);
   border-radius: 18px;
   background:
-    linear-gradient(135deg, rgb(var(--ink-rgb) / 0.08), color-mix(in srgb, var(--n-400) 12%, transparent)),
+    linear-gradient(135deg, rgb(var(--ink-rgb) / 0.08), rgb(var(--n-400-rgb) / 0.12)),
     rgb(var(--paper-rgb) / 0.72);
   overflow: hidden;
 }
@@ -1642,7 +1642,7 @@
   border: 1px solid rgb(var(--ink-rgb) / 0.08);
   border-radius: 20px;
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--n-50) 98%, transparent), color-mix(in srgb, var(--n-50) 90%, transparent)),
+    linear-gradient(180deg, rgb(var(--n-50-rgb) / 0.98), rgb(var(--n-50-rgb) / 0.9)),
     var(--surface-solid);
   backdrop-filter: blur(14px);
   box-shadow: 0 12px 26px rgb(var(--shadow-rgb) / 0.08);
@@ -1663,7 +1663,7 @@
   border-radius: 18px;
   padding: 9px;
   background:
-    radial-gradient(circle at 10% 8%, color-mix(in srgb, var(--n-400) 20%, transparent), transparent 36%),
+    radial-gradient(circle at 10% 8%, rgb(var(--n-400-rgb) / 0.2), transparent 36%),
     rgb(var(--paper-rgb) / 0.82);
   color: var(--ink);
   font-family: inherit;
@@ -1731,8 +1731,8 @@
   border: 1px solid rgb(var(--ink-rgb) / 0.12);
   border-radius: 22px;
   background:
-    radial-gradient(circle at 12% 8%, color-mix(in srgb, var(--n-400) 18%, transparent), transparent 30%),
-    linear-gradient(135deg, rgb(var(--paper-rgb) / 0.9), color-mix(in srgb, var(--n-50) 78%, transparent)),
+    radial-gradient(circle at 12% 8%, rgb(var(--n-400-rgb) / 0.18), transparent 30%),
+    linear-gradient(135deg, rgb(var(--paper-rgb) / 0.9), rgb(var(--n-50-rgb) / 0.78)),
     var(--n-0);
   box-shadow: 0 18px 36px rgb(var(--shadow-rgb) / 0.09);
 }

@@ -241,7 +241,7 @@ html.native-app .webOnlyAppLink { display: none !important; }
 
 /* On light surfaces: ink primary, ghost secondary. */
 .appLanding__buttons.is-light .appLanding__store, .appLanding__guide .appLanding__store { color: var(--l-fg); border-color: var(--l-fg); }
-.appLanding__buttons.is-light .appLanding__store:hover { background: color-mix(in srgb, var(--l-fg) 6%, transparent); }
+.appLanding__buttons.is-light .appLanding__store:hover { background: rgb(var(--ink-rgb) / 0.06); }
 .appLanding__buttons.is-light .appLanding__store.is-primary, .appLanding__guide .appLanding__store.is-primary { background: var(--l-fill); border-color: var(--l-fill); color: var(--l-on-fill); }
 .appLanding__buttons.is-light .appLanding__store.is-primary:hover, .appLanding__guide .appLanding__store.is-primary:hover { box-shadow: 0 14px 36px rgba(91, 63, 214, 0.35); }
 .appLanding__store.is-small { min-height: 48px; font-size: 0.95rem; margin-top: var(--space-5); }

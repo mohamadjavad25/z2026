@@ -11,7 +11,7 @@
 }
 
 .salonHeroSheetPanel.is-artist-settings.is-salon-settings .neoSettingsSwitchTrack {
-  background: color-mix(in srgb, var(--n-600) 18%, transparent) !important;
+  background: rgb(var(--n-600-rgb) / 0.18) !important;
 }
 
 .salonHeroSheetPanel.is-artist-settings.is-salon-settings .neoSettingsSwitch[data-on="true"] .neoSettingsSwitchTrack {
@@ -871,7 +871,7 @@
 }
 
 .salonPublicActions button.is-following {
-  background: color-mix(in srgb, var(--n-600) 12%, transparent);
+  background: rgb(var(--n-600-rgb) / 0.12);
   color: var(--n-900);
 }
 
@@ -1058,7 +1058,7 @@
   align-items: center;
   gap: 6px;
   padding: 6px 12px;
-  border: 1px solid color-mix(in srgb, var(--n-600) 16%, transparent);
+  border: 1px solid rgb(var(--n-600-rgb) / 0.16);
   border-radius: 999px;
   background: rgb(var(--paper-rgb) / 0.96);
   box-shadow:
@@ -1083,7 +1083,7 @@
 
 .salonPublicBottomDock button.is-active {
   color: var(--salon-public-accent);
-  background: color-mix(in srgb, var(--n-600) 12%, transparent);
+  background: rgb(var(--n-600-rgb) / 0.12);
 }
 
 .salonPublicBottomDock button.is-primary {

@@ -71,7 +71,7 @@
 /* .clientBookingAvatar:not(.hasImage) */
 .clientBookingAvatar:not(.hasImage) {
   background:
-    linear-gradient(135deg, color-mix(in srgb, var(--n-150) 95%, transparent), rgb(var(--ink-rgb) / 0.12));
+    linear-gradient(135deg, rgb(var(--n-150-rgb) / 0.95), rgb(var(--ink-rgb) / 0.12));
 }
 
 /* .clientBookingAvatar img */
@@ -306,8 +306,8 @@
   padding: 8px;
   border-radius: 15px;
   background:
-    linear-gradient(135deg, rgb(var(--ink-rgb) / 0.1), color-mix(in srgb, var(--n-150) 48%, transparent)),
-    color-mix(in srgb, var(--n-50) 88%, transparent);
+    linear-gradient(135deg, rgb(var(--ink-rgb) / 0.1), rgb(var(--n-150-rgb) / 0.48)),
+    rgb(var(--n-50-rgb) / 0.88);
 }
 
 /* .clientBookingSettingsAvatar */
@@ -364,7 +364,7 @@
   width: fit-content;
   padding: 4px 9px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--success) 10%, transparent);
+  background: rgb(var(--success-rgb) / 0.1);
   color: var(--success);
   font-size: 0.6rem;
   font-weight: 950;
@@ -381,22 +381,22 @@
 }
 
 .clientBookingSettingsStatus.is-pending {
-  background: color-mix(in srgb, var(--warning) 14%, transparent);
+  background: rgb(var(--warning-rgb) / 0.14);
   color: var(--warning);
 }
 
 .clientBookingSettingsStatus.is-done {
-  background: color-mix(in srgb, var(--success) 14%, transparent);
+  background: rgb(var(--success-rgb) / 0.14);
   color: var(--success);
 }
 
 .clientBookingSettingsStatus.is-bad {
-  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  background: rgb(var(--danger-rgb) / 0.12);
   color: var(--danger);
 }
 
 .clientBookingSettingsStatus.is-expired {
-  background: color-mix(in srgb, var(--danger) 14%, transparent);
+  background: rgb(var(--danger-rgb) / 0.14);
   color: var(--danger);
 }
 
@@ -855,7 +855,7 @@
 .cvLogo { flex: none; width: 28px; height: 28px; display: grid; place-items: center; overflow: hidden; border-radius: 50%; background: var(--n-150); color: var(--accent); font-size: 0.8rem; font-weight: 900; }
 .cvLogo img { width: 100%; height: 100%; object-fit: cover; }
 .cvService { color: var(--n-700); font-size: 0.82rem; font-weight: 800; line-height: 1.6; }
-.cvState { display: inline-flex; align-items: center; min-height: 24px; padding: 0 10px; border-radius: 999px; background: color-mix(in srgb, var(--warning) 14%, transparent); color: var(--warning); font-size: 0.7rem; font-weight: 900; }
+.cvState { display: inline-flex; align-items: center; min-height: 24px; padding: 0 10px; border-radius: 999px; background: rgb(var(--warning-rgb) / 0.14); color: var(--warning); font-size: 0.7rem; font-weight: 900; }
 .cvState.is-done { background: var(--n-100); color: var(--success); }
 .cvState.is-offer { background: var(--n-100); color: var(--info); }
 .cvState.is-bad, .cvState.is-expired { background: var(--n-100); color: var(--danger); }

@@ -10,7 +10,7 @@
   border: 1px solid rgb(var(--paper-rgb) / 0.62);
   border-radius: 20px;
   background:
-    linear-gradient(180deg, rgb(var(--paper-rgb) / 0.82), color-mix(in srgb, var(--n-50) 68%, transparent)),
+    linear-gradient(180deg, rgb(var(--paper-rgb) / 0.82), rgb(var(--n-50-rgb) / 0.68)),
     radial-gradient(circle at 50% 0%, rgb(var(--ink-rgb) / 0.12), transparent 48%);
   color: var(--ink);
   text-align: center;
@@ -410,7 +410,7 @@
   .floatingMobileCtaSplit .ctaManage{
     padding: 0 10px;
     border: 0;
-    background: color-mix(in srgb, var(--n-50) 96%, transparent);
+    background: rgb(var(--n-50-rgb) / 0.96);
     color: var(--ink);
     box-shadow: 0 8px 18px rgb(var(--shadow-rgb) / 0.1);
   }
@@ -522,9 +522,9 @@
     background:
       linear-gradient(
         180deg,
-        color-mix(in srgb, var(--n-300) 0%, transparent) 0%,
-        color-mix(in srgb, var(--n-300) 72%, transparent) 42%,
-        color-mix(in srgb, var(--n-300) 94%, transparent) 100%
+        rgb(var(--n-300-rgb) / 0) 0%,
+        rgb(var(--n-300-rgb) / 0.72) 42%,
+        rgb(var(--n-300-rgb) / 0.94) 100%
       );
     backdrop-filter: blur(10px);
     box-shadow: none;
@@ -546,14 +546,14 @@
 
   .page-salons.is-active .salonClientSticky.floatingMobileCtaSplit .ctaGenerate,
   .salonClientSticky.floatingMobileCtaSplit.is-salonClientDock .ctaGenerate{
-    background: linear-gradient(135deg, rgb(12 13 18 / 0.96), color-mix(in srgb, var(--info) 94%, transparent));
+    background: linear-gradient(135deg, rgb(12 13 18 / 0.96), rgb(var(--info-rgb) / 0.94));
   }
 
 
 
   .page-salons.is-active .salonClientSticky.floatingMobileCtaSplit .ctaManage,
   .salonClientSticky.floatingMobileCtaSplit.is-salonClientDock .ctaManage{
-    background: color-mix(in srgb, var(--n-25) 88%, transparent);
+    background: rgb(var(--n-25-rgb) / 0.88);
     color: var(--n-900);
   }
 }
@@ -567,8 +567,8 @@
   display: grid;
   place-items: center;
   background:
-    radial-gradient(circle at 30% 20%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 42%),
-    radial-gradient(circle at 70% 80%, color-mix(in srgb, var(--info) 16%, transparent), transparent 46%),
+    radial-gradient(circle at 30% 20%, rgb(var(--accent-rgb) / 0.18), transparent 42%),
+    radial-gradient(circle at 70% 80%, rgb(var(--info-rgb) / 0.16), transparent 46%),
     linear-gradient(160deg, var(--n-950) 0%, var(--n-900) 48%, var(--n-950) 100%);
   color: var(--n-100);
   font-family: "Vazirmatn", Tahoma, sans-serif;
@@ -600,14 +600,14 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  border: 2px solid color-mix(in srgb, var(--n-100) 22%, transparent);
+  border: 2px solid rgb(var(--n-100-rgb) / 0.22);
   border-top-color: var(--accent);
   animation: authBootSpin 0.7s linear infinite;
 }
 
 .authBootInner small {
   font-size: 0.82rem;
-  color: color-mix(in srgb, var(--n-100) 72%, transparent);
+  color: rgb(var(--n-100-rgb) / 0.72);
 }
 
 @keyframes authBootSpin {

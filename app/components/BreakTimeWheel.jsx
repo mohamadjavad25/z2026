@@ -26,8 +26,8 @@ export function BreakTimeWheel({
   // visually different pickers depending on where you ran into it. Now
   // it's one look, defined once, here.
   activeColor = "var(--n-950)",
-  inactiveColor = "color-mix(in srgb, var(--n-950) 26%, transparent)",
-  disabledColor = "color-mix(in srgb, var(--n-950) 12%, transparent)",
+  inactiveColor = "rgb(var(--n-950-rgb) / 0.26)",
+  disabledColor = "rgb(var(--n-950-rgb) / 0.12)",
   itemSize = BREAK_WHEEL_ITEM,
   clockSize = "xs"
 }) {

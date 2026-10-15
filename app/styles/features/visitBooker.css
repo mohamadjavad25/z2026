@@ -94,7 +94,7 @@ button.vbWho2[aria-expanded="true"] svg { transform: rotate(180deg); }
 .vbFoot { flex: none; display: grid; gap: 6px; justify-items: center; padding: 8px 16px calc(12px + env(safe-area-inset-bottom)); background: linear-gradient(to top, var(--n-0) 70%, rgb(var(--paper-rgb) / 0)); }
 .vbHint { max-width: 100%; margin: 0; padding: 4px 12px; border-radius: 999px; background: var(--n-50); color: var(--danger); font-size: 0.74rem; font-weight: 800; text-align: center; line-height: 1.6; }
 .vbSubmit { width: 100%; max-width: 420px; min-height: 52px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 22px; border: 0; border-radius: 999px; background: var(--vb-pink); color: var(--brand-ink); font: inherit; font-size: 0.9rem; font-weight: 900; box-shadow: 0 10px 26px rgba(255, 134, 184, 0.5), 0 2px 8px rgb(var(--shadow-rgb) / 0.12); cursor: pointer; }
-.vbSubmit.is-incomplete { background: color-mix(in srgb, var(--accent) 14%, transparent); box-shadow: 0 6px 18px rgba(255, 134, 184, 0.28); }
+.vbSubmit.is-incomplete { background: rgb(var(--accent-rgb) / 0.14); box-shadow: 0 6px 18px rgba(255, 134, 184, 0.28); }
 .vbSubmit:disabled { cursor: progress; opacity: 0.8; }
 .vbSubmit:active:not(:disabled) { transform: scale(0.98); }
 .visitBookerSheet :focus-visible { outline: 2px solid var(--vb-ink); outline-offset: 2px; }

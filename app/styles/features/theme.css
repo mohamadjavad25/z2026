@@ -36,6 +36,6 @@
 .mascot { filter: var(--mascot-filter, none); }
 
 /* Brand touches that apply everywhere. :where() keeps specificity at zero, so any component can still override them. */
-::selection { background: color-mix(in srgb, var(--brand-pink) 45%, transparent); color: inherit; }
+::selection { background: rgb(var(--brand-pink-rgb) / 0.45); color: inherit; }
 :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
 :root { accent-color: var(--accent); }

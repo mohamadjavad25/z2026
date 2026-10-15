@@ -164,7 +164,7 @@
 }
 
 .imageActionList button.is-danger span{
-  background: color-mix(in srgb, var(--danger) 10%, transparent);
+  background: rgb(var(--danger-rgb) / 0.1);
   color: var(--danger);
 }
 

@@ -808,7 +808,7 @@ button.svcCard:active { transform: scale(0.99); }
   border: 1px solid var(--n-100);
   border-radius: 26px;
   background:
-    radial-gradient(120% 90% at 50% 0%, var(--n-50) 0%, color-mix(in srgb, var(--n-50) 0%, transparent) 62%),
+    radial-gradient(120% 90% at 50% 0%, var(--n-50) 0%, rgb(var(--n-50-rgb) / 0) 62%),
     var(--n-0);
   text-align: center;
   box-shadow: 0 10px 28px rgb(var(--shadow-rgb) / 0.06);

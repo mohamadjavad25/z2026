@@ -931,7 +931,7 @@
   padding: 12px 14px;
   border: 1px solid rgb(var(--ink-rgb) / 0.12);
   border-radius: 16px;
-  background: linear-gradient(135deg, rgb(var(--ink-rgb) / 0.1), color-mix(in srgb, var(--n-400) 14%, transparent)), rgb(var(--paper-rgb) / 0.8);
+  background: linear-gradient(135deg, rgb(var(--ink-rgb) / 0.1), rgb(var(--n-400-rgb) / 0.14)), rgb(var(--paper-rgb) / 0.8);
 }
 
 

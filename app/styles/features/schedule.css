@@ -140,7 +140,7 @@
 }
 
 .scheduleBookingPickList button.is-overtime{
-  border-color: color-mix(in srgb, var(--warning) 28%, transparent);
+  border-color: rgb(var(--warning-rgb) / 0.28);
   background: var(--n-25);
 }
 
@@ -204,7 +204,7 @@
 }
 
 .scheduleBookingMiniActions button.is-danger{
-  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  background: rgb(var(--accent-rgb) / 0.08);
   color: var(--accent);
 }
 
@@ -222,7 +222,7 @@
   border: 1px solid rgb(var(--paper-rgb) / 0.72);
   border-radius: 24px;
   background:
-    linear-gradient(180deg, rgb(var(--paper-rgb) / 0.82), color-mix(in srgb, var(--n-50) 66%, transparent));
+    linear-gradient(180deg, rgb(var(--paper-rgb) / 0.82), rgb(var(--n-50-rgb) / 0.66));
   box-shadow: 0 16px 34px rgb(var(--shadow-rgb) / 0.07);
   backdrop-filter: blur(14px);
 }
@@ -230,7 +230,7 @@
 .salonRequestsBoard{
   background:
     radial-gradient(circle at 100% 0%, rgb(var(--ink-rgb) / 0.1), transparent 42%),
-    linear-gradient(180deg, rgb(var(--paper-rgb) / 0.86), color-mix(in srgb, var(--n-25) 72%, transparent));
+    linear-gradient(180deg, rgb(var(--paper-rgb) / 0.86), rgb(var(--n-25-rgb) / 0.72));
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.9),
     0 16px 34px rgb(var(--shadow-rgb) / 0.07);
@@ -238,8 +238,8 @@
 
 .salonTodaySchedule{
   background:
-    radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--n-400) 16%, transparent), transparent 38%),
-    linear-gradient(180deg, rgb(var(--paper-rgb) / 0.84), color-mix(in srgb, var(--n-50) 68%, transparent));
+    radial-gradient(circle at 0% 0%, rgb(var(--n-400-rgb) / 0.16), transparent 38%),
+    linear-gradient(180deg, rgb(var(--paper-rgb) / 0.84), rgb(var(--n-50-rgb) / 0.68));
   overflow: hidden;
 }
 
@@ -376,7 +376,7 @@
   border-radius: 18px;
   background:
     radial-gradient(circle at 100% 0%, rgb(var(--ink-rgb) / 0.12), transparent 34%),
-    linear-gradient(165deg, rgb(var(--paper-rgb) / 0.96), color-mix(in srgb, var(--n-50) 92%, transparent));
+    linear-gradient(165deg, rgb(var(--paper-rgb) / 0.96), rgb(var(--n-50-rgb) / 0.92));
   box-shadow: 0 12px 26px rgb(var(--shadow-rgb) / 0.06);
 }
 
@@ -537,7 +537,7 @@
   border: 1px solid rgb(var(--ink-rgb) / 0.07);
   border-radius: 14px;
   background:
-    linear-gradient(165deg, rgb(var(--paper-rgb) / 0.98), color-mix(in srgb, var(--n-25) 94%, transparent));
+    linear-gradient(165deg, rgb(var(--paper-rgb) / 0.98), rgb(var(--n-25-rgb) / 0.94));
   box-shadow: 0 6px 14px rgb(var(--shadow-rgb) / 0.04);
 }
 
@@ -858,7 +858,7 @@
   place-items: center;
   border-radius: 14px;
   border: 0;
-  background: color-mix(in srgb, var(--n-500) 16%, transparent);
+  background: rgb(var(--n-500-rgb) / 0.16);
   color: var(--n-700);
   font-size: 0.96rem;
   font-weight: 900;
@@ -1056,7 +1056,7 @@
   padding: 16px;
   border-radius: 22px;
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--n-50) 98%, transparent), color-mix(in srgb, var(--n-100) 98%, transparent)),
+    linear-gradient(180deg, rgb(var(--n-50-rgb) / 0.98), rgb(var(--n-100-rgb) / 0.98)),
     var(--surface-solid);
   box-shadow: 0 24px 60px rgb(var(--shadow-rgb) / 0.22);
   animation: sheetRise 0.28s ease both;
@@ -1150,7 +1150,7 @@
 }
 
 .scheduleBookingActions button.is-danger small{
-  color: color-mix(in srgb, var(--accent) 72%, transparent);
+  color: rgb(var(--accent-rgb) / 0.72);
 }
 
 .scheduleBookingBack{
@@ -1592,7 +1592,7 @@
   overflow: auto;
   padding: 8px;
   border-top: 1px solid rgb(var(--ink-rgb) / 0.07);
-  background: color-mix(in srgb, var(--n-50) 70%, transparent);
+  background: rgb(var(--n-50-rgb) / 0.7);
 }
 
 .scheduleBookingArtistList button{
@@ -1688,7 +1688,7 @@
 }
 
 .scheduleBookingActionRow button.is-danger{
-  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  background: rgb(var(--accent-rgb) / 0.08);
   color: var(--accent);
 }
 
@@ -1900,7 +1900,7 @@
 /* Artist choices: who is free at that service's time, who does it, who is away */
 .sbmScreen .bpeList{ max-height: none; }
 .scheduleBookingArtist .bpeList{ padding: 0 8px 8px; }
-.scheduleBookingArtist.is-empty:not(.is-open){ border-color: color-mix(in srgb, var(--warning) 30%, transparent); background: var(--n-50); }
+.scheduleBookingArtist.is-empty:not(.is-open){ border-color: rgb(var(--warning-rgb) / 0.3); background: var(--n-50); }
 .scheduleBookingArtist.is-empty .scheduleStaffAvatar{ display: grid; place-items: center; color: var(--warning); }
 .bpeList .scheduleStaffAvatar:not(.hasImage){ display: grid; place-items: center; background: var(--n-100); color: var(--muted); }
 .bpeList button:disabled{ cursor: not-allowed; }

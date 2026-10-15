@@ -386,7 +386,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   border: 1px solid rgb(var(--paper-rgb) / 0.86);
   border-radius: 26px;
   background:
-    linear-gradient(180deg, rgb(var(--paper-rgb) / 0.98), color-mix(in srgb, var(--n-25) 96%, transparent));
+    linear-gradient(180deg, rgb(var(--paper-rgb) / 0.98), rgb(var(--n-25-rgb) / 0.96));
   color: var(--n-900);
   box-shadow:
     0 30px 80px rgb(var(--shadow-rgb) / 0.42),
@@ -404,7 +404,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   place-items: center;
   border: 0;
   border-radius: 50%;
-  background: color-mix(in srgb, var(--info) 6%, transparent);
+  background: rgb(var(--info-rgb) / 0.06);
   color: var(--n-900);
 }
 
@@ -637,7 +637,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
 
 .salonPublicProfile .salonPublicBottomDock button.is-active {
   color: var(--salon-public-accent) !important;
-  background: color-mix(in srgb, var(--n-600) 12%, transparent) !important;
+  background: rgb(var(--n-600-rgb) / 0.12) !important;
 }
 
 .salonPublicProfile .salonPublicBottomDock button.is-primary {
@@ -681,7 +681,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   padding: 16px;
   overflow-y: auto;
   overscroll-behavior: contain;
-  border: 1px solid color-mix(in srgb, var(--n-600) 12%, transparent);
+  border: 1px solid rgb(var(--n-600-rgb) / 0.12);
   border-radius: 26px;
   background: rgb(var(--paper-rgb) / 0.96);
   box-shadow:

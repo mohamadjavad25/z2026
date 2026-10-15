@@ -1,7 +1,7 @@
 .staffPayrollPanel span{
   min-height: 52px;
   background:
-    linear-gradient(135deg, color-mix(in srgb, var(--n-400) 16%, transparent), rgb(var(--paper-rgb) / 0.82)),
+    linear-gradient(135deg, rgb(var(--n-400-rgb) / 0.16), rgb(var(--paper-rgb) / 0.82)),
     rgb(var(--paper-rgb) / 0.78);
 }
 
@@ -43,7 +43,7 @@
   gap: 8px;
   padding: 8px;
   border-radius: 16px;
-  background: color-mix(in srgb, var(--n-50) 86%, transparent);
+  background: rgb(var(--n-50-rgb) / 0.86);
 }
 
 .staffDetailList b,
@@ -152,7 +152,7 @@
   align-items: center;
   padding: 7px;
   border-radius: 14px;
-  background: color-mix(in srgb, var(--n-50) 76%, transparent);
+  background: rgb(var(--n-50-rgb) / 0.76);
 }
 
 .hoursEditor label.hourEditorRow{
@@ -213,7 +213,7 @@
   padding: 9px;
   border-radius: 17px;
   background:
-    linear-gradient(180deg, rgb(var(--paper-rgb) / 0.8), color-mix(in srgb, var(--n-50) 64%, transparent)),
+    linear-gradient(180deg, rgb(var(--paper-rgb) / 0.8), rgb(var(--n-50-rgb) / 0.64)),
     var(--n-0);
   box-shadow: inset 0 0 0 1px rgb(var(--shadow-rgb) / 0.07);
 }
@@ -275,7 +275,7 @@
   justify-items: center;
   padding: 7px 4px;
   border-radius: 16px;
-  background: color-mix(in srgb, var(--n-50) 82%, transparent);
+  background: rgb(var(--n-50-rgb) / 0.82);
 }
 
 .weekCapacity span,
@@ -309,7 +309,7 @@
   gap: 8px;
   padding: 8px;
   border-radius: 16px;
-  background: color-mix(in srgb, var(--n-50) 86%, transparent);
+  background: rgb(var(--n-50-rgb) / 0.86);
 }
 
 .bookingTimeline time,
@@ -361,7 +361,7 @@
   gap: 3px;
   padding: 9px;
   border-radius: 17px;
-  background: color-mix(in srgb, var(--n-50) 86%, transparent);
+  background: rgb(var(--n-50-rgb) / 0.86);
   text-align: center;
 }
 
@@ -427,7 +427,7 @@
   gap: 2px;
   padding: 8px;
   border-radius: 13px;
-  background: color-mix(in srgb, var(--n-50) 86%, transparent);
+  background: rgb(var(--n-50-rgb) / 0.86);
   color: var(--muted);
   font-size: 0.66rem;
   line-height: 1.4;
@@ -497,7 +497,7 @@
   gap: 10px;
   padding: 12px 12px calc(88px + env(safe-area-inset-bottom));
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--n-50) 97%, transparent), color-mix(in srgb, var(--n-100) 96%, transparent)),
+    linear-gradient(180deg, rgb(var(--n-50-rgb) / 0.97), rgb(var(--n-100-rgb) / 0.96)),
     var(--surface-solid);
   box-shadow: -24px 0 70px rgb(var(--shadow-rgb) / 0.2);
 }
@@ -761,7 +761,7 @@
 
 .salonSidebarStaff{
   background:
-    linear-gradient(135deg, color-mix(in srgb, var(--n-50) 90%, transparent), color-mix(in srgb, var(--n-50) 86%, transparent)),
+    linear-gradient(135deg, rgb(var(--n-50-rgb) / 0.9), rgb(var(--n-50-rgb) / 0.86)),
     var(--n-0);
 }
 
@@ -1114,7 +1114,7 @@
   padding: 12px;
   border-radius: 16px;
   background:
-    linear-gradient(135deg, rgb(var(--ink-rgb) / 0.1), color-mix(in srgb, var(--n-400) 14%, transparent)),
+    linear-gradient(135deg, rgb(var(--ink-rgb) / 0.1), rgb(var(--n-400-rgb) / 0.14)),
     rgb(var(--paper-rgb) / 0.58);
 }
 
@@ -1219,7 +1219,7 @@
 .neoSettingsGroup{
   border: 1px solid rgb(var(--ink-rgb) / 0.1);
   border-radius: 16px;
-  background: linear-gradient(165deg, rgb(var(--paper-rgb) / 0.92), color-mix(in srgb, var(--n-25) 88%, transparent));
+  background: linear-gradient(165deg, rgb(var(--paper-rgb) / 0.92), rgb(var(--n-25-rgb) / 0.88));
   overflow: hidden;
   transition: box-shadow 0.2s ease;
 }
@@ -1327,7 +1327,7 @@
   width: 42px;
   height: 24px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--n-600) 18%, transparent);
+  background: rgb(var(--n-600-rgb) / 0.18);
   box-shadow:
     inset 0 1px 3px rgb(var(--shadow-rgb) / 0.1),
     0 0 0 1px rgb(var(--shadow-rgb) / 0.04);
@@ -1399,9 +1399,9 @@
   justify-content: center;
   gap: 8px;
   min-height: 46px;
-  border: 1px solid color-mix(in srgb, var(--accent) 15%, transparent);
+  border: 1px solid rgb(var(--accent-rgb) / 0.15);
   border-radius: 14px;
-  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 6%, transparent), color-mix(in srgb, var(--accent) 3%, transparent));
+  background: linear-gradient(135deg, rgb(var(--accent-rgb) / 0.06), rgb(var(--accent-rgb) / 0.03));
   color: var(--rose, var(--accent));
   font-family: inherit;
   font-size: 0.82rem;
@@ -1411,8 +1411,8 @@
 }
 
 .neoSettingsLogout:hover{
-  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 12%, transparent), color-mix(in srgb, var(--accent) 6%, transparent));
-  border-color: color-mix(in srgb, var(--accent) 25%, transparent);
+  background: linear-gradient(135deg, rgb(var(--accent-rgb) / 0.12), rgb(var(--accent-rgb) / 0.06));
+  border-color: rgb(var(--accent-rgb) / 0.25);
 }
 
 /* Deliberately more muted than .neoSettingsLogout at rest — this is a much
@@ -1438,8 +1438,8 @@
 
 .neoSettingsDelete:hover{
   color: var(--rose, var(--accent));
-  border-color: color-mix(in srgb, var(--accent) 20%, transparent);
-  background: color-mix(in srgb, var(--accent) 4%, transparent);
+  border-color: rgb(var(--accent-rgb) / 0.2);
+  background: rgb(var(--accent-rgb) / 0.04);
 }
 
 .neoSettingsDeleteConfirm{
@@ -1447,9 +1447,9 @@
   gap: 8px;
   margin-top: 6px;
   padding: 12px;
-  border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+  border: 1px solid rgb(var(--accent-rgb) / 0.18);
   border-radius: 14px;
-  background: color-mix(in srgb, var(--accent) 5%, transparent);
+  background: rgb(var(--accent-rgb) / 0.05);
 }
 
 .neoSettingsDeleteConfirmHead{
@@ -1472,7 +1472,7 @@
 .neoSettingsDeleteConfirm input{
   min-height: 42px;
   padding: 0 12px;
-  border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
+  border: 1px solid rgb(var(--accent-rgb) / 0.2);
   border-radius: 12px;
   background: var(--n-0);
   color: var(--ink, var(--n-900));
@@ -1628,7 +1628,7 @@
 }
 
 .profileLocationRowClear:hover{
-  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  background: rgb(var(--accent-rgb) / 0.12);
   color: var(--rose);
 }
 
@@ -1667,7 +1667,7 @@
   min-height: 44px;
   padding: 0 12px;
   border-bottom: 1px solid rgb(var(--ink-rgb) / 0.06);
-  background: color-mix(in srgb, var(--n-25) 60%, transparent);
+  background: rgb(var(--n-25-rgb) / 0.6);
 }
 
 .profileLocationPickerHead svg:first-child{
@@ -1776,7 +1776,7 @@
   padding: 0 12px;
   border: 1px solid rgb(var(--ink-rgb) / 0.08);
   border-radius: 11px;
-  background: color-mix(in srgb, var(--n-25) 50%, transparent);
+  background: rgb(var(--n-25-rgb) / 0.5);
   color: var(--ink);
   font-family: inherit;
   font-size: 0.78rem;
