@@ -39,6 +39,9 @@ export function LearnSection({ icons = {} }) {
   const [sceneIndex, setSceneIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [ended, setEnded] = useState(false);
+  // The mock screens are drawn only once the player has been on screen. The about page is mounted
+  // (hidden) on every phone page, and its mock texts («سالن», «ورود» ...) must not sit in the DOM there.
+  const [armed, setArmed] = useState(false);
   const [run, setRun] = useState(0); // bumps on every scene start so a replayed scene animates again
   const [epoch, setEpoch] = useState(0); // bumps when a tutorial (re)starts, so its first screen slides in again
   const [touch, setTouch] = useState(null);
@@ -92,9 +95,14 @@ export function LearnSection({ icons = {} }) {
   useEffect(() => {
     calm.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const stage = stageRef.current;
-    if (!stage || typeof IntersectionObserver === "undefined") return undefined;
+    if (!stage) return undefined;
+    if (typeof IntersectionObserver === "undefined") {
+      setArmed(true);
+      return undefined;
+    }
     const observer = new IntersectionObserver(([entry]) => {
       visible.current = entry.isIntersecting;
+      if (entry.isIntersecting) setArmed(true);
       if (!entry.isIntersecting) setPlaying(false);
       else if (!userPaused.current && !calm.current && !endedRef.current) setPlaying(true);
     }, { threshold: 0.5 });
@@ -117,7 +125,7 @@ export function LearnSection({ icons = {} }) {
     const node = root.querySelector(`[data-tap="${scene.tap}"]`);
     const point = node ? offsetWithin(node, root) : null;
     setTouch(point ? { ...point, hidden: false } : null);
-  }, [sceneKey, scene.tap]);
+  }, [sceneKey, scene.tap, armed]);
 
   function startTutorial(nextRole, nextIndex, autoplay = true) {
     const nextTutorial = nextRole.tutorials[nextIndex];
@@ -183,15 +191,15 @@ export function LearnSection({ icons = {} }) {
               <div className="lsStatusBar"><span>۹:۴۱</span><i /></div>
               <div ref={screenRef} className="lsScreen" style={timing}>
                 <div key={`${tutorial.id}:${scene.screen}:${epoch}`} className="lsScreenSlide">
-                  <TutorialScreen scene={scene} icons={icons} />
+                  {armed ? <TutorialScreen scene={scene} icons={icons} /> : null}
                 </div>
-                {scene.sheet ? (
+                {armed && scene.sheet ? (
                   <>
                     <div className="lsScrim" />
                     <TutorialSheet key={`${tutorial.id}:${scene.sheet.title}`} sheet={scene.sheet} tap={scene.tap} icons={icons} />
                   </>
                 ) : null}
-                {scene.toast ? (
+                {armed && scene.toast ? (
                   <div key={`toast-${sceneKey}`} className="lsToast"><span>✓</span>{scene.toast}</div>
                 ) : null}
                 {touch ? (
@@ -202,7 +210,7 @@ export function LearnSection({ icons = {} }) {
               </div>
             </div>
 
-            <p key={`say-${sceneKey}`} className="learn__caption" aria-hidden="true">{scene.say}</p>
+            <p key={`say-${sceneKey}`} className="learn__caption" aria-hidden="true">{armed ? scene.say : ""}</p>
 
             {ended ? (
               <div className="learn__end">

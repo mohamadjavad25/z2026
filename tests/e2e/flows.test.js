@@ -40,6 +40,14 @@ describe("about page first on phones (browser)", () => {
 });
 
 describe("tutorials on the about page (browser)", () => {
+  it("keeps the mock screens out of the page until the player is seen (they would hijack text lookups on app pages)", async () => {
+    const { page, context } = await newPage();
+    await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
+    expect(await page.locator(".landingSlot .lsScreen *").count()).toBe(0);
+    expect(await page.getByText("سالن", { exact: true }).first().isVisible()).toBe(true);
+    await context.close();
+  });
+
   it("switches between client, salon and artist tutorials and jumps to a step", async () => {
     const { page, context, problems } = await newPage();
     await page.goto(`${TEST_BASE_URL}/download`, { waitUntil: "networkidle" });
