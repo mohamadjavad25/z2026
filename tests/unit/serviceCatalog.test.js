@@ -6,6 +6,7 @@ import {
   guessBeautyEmojiId,
   isBeautyEmojiId
 } from "../../app/shared/constants/beautyEmoji.js";
+import icons, { ICON_ALIASES, PALETTE } from "../../app/shared/constants/beautyArt/inkLight.js";
 import { SERVICE_CATALOG, categoriesForSpecialties } from "../../app/shared/constants/serviceCatalog.js";
 import { beautySpecialtyOptions } from "../../app/shared/constants/roles.js";
 
@@ -50,6 +51,59 @@ describe("beauty icon pack", () => {
     for (const category of EMOJI_CATEGORIES) {
       expect(getBeautyEmoji(category.icon), category.id).not.toBeNull();
     }
+  });
+
+  it("draws every icon with the brand palette only, and every gradient it uses exists", () => {
+    const allowed = new Set(Object.values(PALETTE).map((hex) => hex.toLowerCase()));
+    for (const id of PERSISTED_IDS.concat(BEAUTY_EMOJIS.map((item) => item.id))) {
+      const svg = getBeautyEmoji(id).svg;
+      for (const hex of svg.match(/#[0-9a-f]{3,8}\b/gi) || []) expect(allowed.has(hex.toLowerCase()), `${id} ${hex}`).toBe(true);
+      const defined = new Set([...svg.matchAll(/id="([^"]+)"/g)].map((match) => match[1]));
+      for (const [, ref] of svg.matchAll(/url\(#([^)]+)\)/g)) expect(defined.has(ref), `${id} url(#${ref})`).toBe(true);
+    }
+  });
+
+  it("only aliases to drawings that exist, and never chains aliases", () => {
+    for (const [id, target] of Object.entries(ICON_ALIASES)) {
+      expect(icons[target], `${id} -> ${target}`).toBeTruthy();
+      expect(ICON_ALIASES[target], `${id} -> ${target}`).toBeUndefined();
+      expect(isBeautyEmojiId(id), id).toBe(true);
+    }
+  });
+
+  it("guesses the fitting icon from common service names", () => {
+    const cases = {
+      "کوتاهی مو": "haircut",
+      "کوتاهی و مدل مو": "haircut",
+      "مش و لایت": "highlights",
+      "رنگ ریشه": "root_touch",
+      "حالت‌دهی و فر": "hair_styling",
+      "اکستنشن مو": "hair_extension",
+      "اکستنشن مژه": "lash_ext",
+      "شستشو و ماسک مو": "hair_wash",
+      "بوتاکس مو": "hair_botox",
+      "بوتاکس": "injection",
+      "فیلر لب": "filler",
+      "آرایش لب": "lips",
+      "لیزر پوست": "laser",
+      "حذف موهای زائد": "waxing",
+      "تتو ابرو": "permanent_makeup",
+      "تاتو": "tattoo",
+      "اصلاح صورت": "threading",
+      "لمینت و لیفت ابرو": "brow_lamination",
+      "لیفت و لمینت مژه": "lash_lift",
+      "رنگ ابرو": "brow_tint",
+      "کلاس میکاپ": "makeup_lesson",
+      "هیدرا فیشیال": "hydrafacial",
+      "لايه برداري": "peeling",
+      "آرايش عروس": "bridal",
+      "درمان آکنه و جوش": "acne",
+      "ژلیش ناخن": "nail_polish",
+      "ناخن کوتاه": "manicure",
+      "مشاوره مراقبت پوست": "skincare"
+    };
+    for (const [name, id] of Object.entries(cases)) expect(guessBeautyEmojiId(name), name).toBe(id);
+    expect(guessBeautyEmojiId("مشاوره")).toBe("consult");
   });
 
   it("guesses a valid icon for every keyword rule target", () => {

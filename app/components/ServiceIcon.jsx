@@ -2,8 +2,8 @@ import { getBeautyEmoji, guessBeautyEmojiId } from "../shared/constants/beautyEm
 import { ServiceEmoji } from "./ServiceEmoji";
 
 /**
- * The one way a service's icon is shown anywhere in the app: the glossy vector
- * icon on its own -- no tile or background behind it. Uses the service's chosen `emoji` id, else
+ * The one way a service's icon is shown anywhere in the app: the vector icon
+ * (beautyArt/inkLight.js) on its own -- no tile or background behind it. Uses the service's chosen `emoji` id, else
  * guesses from the name, else a generic sparkle -- so every service always
  * has an icon, including bookings that only carry the service name.
  *

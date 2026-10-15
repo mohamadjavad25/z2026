@@ -153,7 +153,7 @@ export function ServiceComposerModal({
             className={mode === "custom" ? "on" : ""}
             onClick={() => onModeChange?.("custom")}
           >
-            <ServiceEmoji id="makeup_lesson" size={20} />
+            <ServiceEmoji id="makeup_brush" size={20} />
             {editing ? "ویرایش" : "ساخت خدمت"}
           </button>
         </div>
