@@ -8,16 +8,15 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  /* Fill the grid cell: full column width, and the height of the post next to it (row stretch). */
+  gap: 5px;
+  /* Same size rule as every post card in this grid (see .profileGalleryCard overrides):
+     full column width, same aspect-ratio -- so the row lines up to the pixel at 3-up. */
   width: 100%;
-  min-height: 170px;
-  align-self: stretch;
-  justify-self: stretch;
+  aspect-ratio: 4 / 5;
   margin: 0;
-  padding: 16px 12px;
+  padding: 10px 8px;
   border: 0;
-  border-radius: 22px;
+  border-radius: 18px;
   background:
     radial-gradient(120% 70% at 50% 0%, rgba(255, 134, 184, 0.22), transparent 62%),
     radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.08) 1px, transparent 0) 0 0 / 14px 14px,
@@ -31,18 +30,18 @@
 .galleryAddTile::before {
   content: "";
   position: absolute;
-  inset: 8px;
+  inset: 6px;
   z-index: -1;
   border: 1.5px dashed rgba(255, 134, 184, 0.55);
-  border-radius: 16px;
+  border-radius: 13px;
   pointer-events: none;
 }
 .galleryAddTileOrb {
   position: relative;
   display: grid;
   place-items: center;
-  width: 58px;
-  height: 58px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: #ff86b8;
   color: #14161d;
@@ -51,13 +50,14 @@
 .galleryAddTileOrb::after {
   content: "";
   position: absolute;
-  inset: -7px;
+  inset: -6px;
   border-radius: 50%;
   border: 1.5px solid rgba(255, 134, 184, 0.5);
   animation: galleryAddPulse 2.4s ease-out infinite;
 }
-.galleryAddTile b { font-size: 0.95rem; font-weight: 900; letter-spacing: 0.01em; }
-.galleryAddTile small { color: rgba(255, 255, 255, 0.62); font-size: 0.7rem; font-weight: 700; line-height: 1.5; }
+.galleryAddTile b { font-size: 0.68rem; font-weight: 900; letter-spacing: 0.01em; line-height: 1.3; }
+/* The "نمونه‌کار تازه‌ات رو بذار" hint only fits a wide (2-up) tile; a 3-up cell keeps just the label. */
+.galleryAddTile small { display: none; color: rgba(255, 255, 255, 0.62); font-size: 0.62rem; font-weight: 700; line-height: 1.5; }
 .galleryAddTile:focus-visible { outline: 3px solid #ff86b8; outline-offset: 2px; }
 @keyframes galleryAddPulse {
   0% { transform: scale(0.9); opacity: 0.9; }

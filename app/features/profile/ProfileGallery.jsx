@@ -85,7 +85,7 @@ export function ProfileGallery({
         }}
       >
         <span className="galleryAddTileOrb" aria-hidden="true">
-          <Plus size={26} strokeWidth={2.6} />
+          <Plus size={18} strokeWidth={2.6} />
         </span>
         <b>{addLabel}</b>
         <small>نمونه‌کار تازه‌ات رو بذار</small>

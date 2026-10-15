@@ -601,37 +601,21 @@
     gap: 10px !important;
   }
 
-  /* One post sits in half the row, like the salon gallery — not a full-width poster. */
-  .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGalleryGrid.is-single {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  }
-
+  /* Every row, whatever the post count: three equal cards (the create-post tile counts as one). */
+  .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGalleryGrid.is-single,
   .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGalleryGrid.is-pair,
   .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGalleryGrid.is-mosaic {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
   }
 
   .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGalleryCard {
     display: block !important;
     min-height: 0 !important;
+    width: 100% !important;
     margin: 0 !important;
-    border-radius: 22px !important;
+    border-radius: 18px !important;
     aspect-ratio: 4 / 5 !important;
     box-shadow: 0 16px 34px rgba(52, 52, 56, 0.12) !important;
-  }
-
-  .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGalleryGrid.is-single .profileGalleryCard {
-    width: 100% !important;
-    aspect-ratio: 1 / 1.18 !important;
-  }
-
-  .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGalleryGrid.is-pair .profileGalleryCard {
-    aspect-ratio: 1 / 1.18 !important;
-  }
-
-  .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGalleryGrid.is-mosaic .profileGalleryCard:first-child {
-    grid-column: span 2 !important;
-    aspect-ratio: 16 / 11 !important;
   }
 
   .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGalleryCard img,

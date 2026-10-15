@@ -1740,7 +1740,7 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 
 .profileGalleryGrid{
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
   columns: auto;
 }
@@ -1758,11 +1758,11 @@ html:not([dir="rtl"]) .authModeSwitch.is-login .authModeThumb{
 }
 
 .profileGalleryGrid.is-pair{
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .profileGalleryGrid.is-mosaic{
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .artistGalleryCard,
