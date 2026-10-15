@@ -153,20 +153,25 @@ function SettingsGroup({ title, children, defaultOpen = true }) {
   );
 }
 
-export function ProfileSettingsPanel({
-  profileType,
-  profileSettings,
-  onToggle,
-  onLogout,
-  onDeleteAccount
-}) {
-  const [soundOn, setSoundOn] = useSoundPreference();
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [deleteBusy, setDeleteBusy] = useState(false);
-  const [deleteError, setDeleteError] = useState("");
+/*
+ * The settings page (features/settings/SettingsPage.jsx) places each of these
+ * in its own section, so they are exported separately instead of as one panel.
+ */
 
-  const commonToggles = (
-    <SettingsGroup title={profileType === "artist" ? "کنترل تجربه مشتری" : profileType === "client" ? "اعلان‌ها" : "عمومی"}>
+/** Day / night / auto theme picker. */
+export function AppearanceSettings() {
+  return (
+    <SettingsGroup title="ظاهر برنامه">
+      <ThemePicker />
+    </SettingsGroup>
+  );
+}
+
+/** Reservation alerts and notification sound. Every account type has these. */
+export function NotificationSettings({ profileType, profileSettings, onToggle }) {
+  const [soundOn, setSoundOn] = useSoundPreference();
+  return (
+    <SettingsGroup title="اعلان‌ها">
       <SettingsToggle
         icon={profileSettings.reservationAlerts ? Bell : BellOff}
         label={profileType === "artist" ? "اعلان رزرو" : profileType === "salon" ? "اعلان رزرو و تیم" : "اعلان رزرو"}
@@ -188,41 +193,43 @@ export function ProfileSettingsPanel({
       />
     </SettingsGroup>
   );
+}
 
-  const profileTypeToggle = profileType === "artist" ? (
-    <>
+/**
+ * What customers can see of an artist or salon. Clients have no public
+ * profile, so for them this renders nothing.
+ */
+export function ProfileVisibilitySettings({ profileType, profileSettings, onToggle }) {
+  if (profileType !== "artist" && profileType !== "salon") return null;
+  return (
+    <SettingsGroup title="نمایش برای مشتری‌ها">
       <SettingsToggle
         icon={profileSettings.publicPortfolio ? Globe : Lock}
-        label="ویترین عمومی آرتیست"
-        description="نمونه‌کار، خدمات و مسیر رزرو برای مشتری‌ها"
+        label={profileType === "artist" ? "ویترین عمومی آرتیست" : "پروفایل عمومی سالن"}
+        description={profileType === "artist" ? "نمونه‌کار، خدمات و مسیر رزرو برای مشتری‌ها" : "خدمات، نمونه‌کارها، تیم و ظرفیت رزرو برای مشتری‌ها"}
         checked={profileSettings.publicPortfolio}
         onChange={() => onToggle("publicPortfolio")}
         onLabel="عمومی"
         offLabel="خصوصی"
       />
-      <SettingsToggle
-        icon={Tag}
-        label="نمایش قیمت‌ها"
-        description="قیمت خدمات در پروفایل عمومی نشان داده شود، وگرنه «تماس بگیرید»"
-        checked={Boolean(profileSettings.showPrices)}
-        onChange={() => onToggle("showPrices")}
-        onLabel="نمایش"
-        offLabel="مخفی"
-      />
-    </>
-  ) : profileType === "salon" ? (
-    <SettingsToggle
-      icon={profileSettings.publicPortfolio ? Globe : Lock}
-      label="پروفایل عمومی سالن"
-      description="خدمات، نمونه‌کارها، تیم و ظرفیت رزرو برای مشتری‌ها"
-      checked={profileSettings.publicPortfolio}
-      onChange={() => onToggle("publicPortfolio")}
-      onLabel="عمومی"
-      offLabel="خصوصی"
-    />
-  ) : null;
+      {profileType === "artist" ? (
+        <SettingsToggle
+          icon={Tag}
+          label="نمایش قیمت‌ها"
+          description="قیمت خدمات در پروفایل عمومی نشان داده شود، وگرنه «تماس بگیرید»"
+          checked={Boolean(profileSettings.showPrices)}
+          onChange={() => onToggle("showPrices")}
+          onLabel="نمایش"
+          offLabel="مخفی"
+        />
+      ) : null}
+    </SettingsGroup>
+  );
+}
 
-  const artistBooking = profileType === "artist" ? (
+/** Artist booking capacity: vacation mode, direct booking, instant confirm and reminders. */
+export function ArtistBookingSettings({ profileSettings, onToggle }) {
+  return (
     <SettingsGroup title="رزرو و ظرفیت کاری">
       <SettingsToggle
         icon={Moon}
@@ -255,28 +262,17 @@ export function ProfileSettingsPanel({
         onChange={() => onToggle("reminders")}
       />
     </SettingsGroup>
-  ) : null;
+  );
+}
+
+/** Support, legal pages, sign-out and account deletion. Always the last section. */
+export function AccountSettings({ onLogout, onDeleteAccount }) {
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleteBusy, setDeleteBusy] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   return (
-    <div className="neoSettingsPanel">
-      <SettingsGroup title="ظاهر برنامه">
-        <ThemePicker />
-      </SettingsGroup>
-
-      {commonToggles}
-
-      {profileTypeToggle ? (
-        <SettingsGroup title={
-          profileType === "artist" ? "پروفایل آرتیست"
-          : profileType === "salon" ? "سالن"
-          : "ترجیحات"
-        }>
-          {profileTypeToggle}
-        </SettingsGroup>
-      ) : null}
-
-      {artistBooking}
-
+    <>
       <div className="neoSettingsLegalLinks">
         <button type="button" onClick={() => openSupport()}>ارتباط با پشتیبانی</button>
         <Link href="/terms">قوانین و مقررات</Link>
@@ -315,6 +311,6 @@ export function ProfileSettingsPanel({
           </button>
         )
       ) : null}
-    </div>
+    </>
   );
 }
