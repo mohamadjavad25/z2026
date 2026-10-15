@@ -1,19 +1,20 @@
-// Beauty icon pack -- vector icons for services, shown with <ServiceIcon/>
+// Service icon pack -- vector icons for services, shown with <ServiceIcon/>
 // (app/components/ServiceIcon.jsx) / <ServiceEmoji/>. Services and bookings
-// store only the icon `id`; the art lives in ./beautyArt/luxe.js (inner SVG of
-// a 128x128 canvas, glossy gradient objects on no background) and is wrapped here.
-// Ids are persisted in the database -- never rename or remove one. Ids that are
-// no longer offered stay resolvable: they borrow a drawing via LUXE_ALIASES and
-// are hidden from the picker (see BEAUTY_EMOJIS vs getBeautyEmoji).
+// store only the icon `id`; the art lives in ./beautyArt/inkLight.js (inner SVG
+// of a 128x128 canvas on the brand palette) and is wrapped here.
+// Ids are persisted in the database -- never rename or remove one. An id can
+// borrow a drawing with the same meaning through ICON_ALIASES; aliased ids,
+// ids outside the main categories and NOT_OFFERED ids still resolve but are
+// left out of the picker (see BEAUTY_EMOJIS vs getBeautyEmoji).
 
-import luxe, { LUXE_ALIASES, LUXE_DEFS } from "./beautyArt/luxe.js";
+import icons, { ICON_ALIASES, ICON_DEFS } from "./beautyArt/inkLight.js";
 
 // `icon` is the pack icon that represents the category in tabs and headers.
 export const EMOJI_CATEGORIES = [
   { id: "hair", fa: "مو", en: "Hair", icon: "haircut" },
   { id: "makeup", fa: "آرایش", en: "Makeup", icon: "lipstick" },
   { id: "bridal", fa: "عروس", en: "Bridal", icon: "bridal" },
-  { id: "brow_lash", fa: "ابرو و مژه", en: "Brows & lashes", icon: "lash_lift" },
+  { id: "brow_lash", fa: "ابرو و مژه", en: "Brows & lashes", icon: "lash_ext" },
   { id: "nails", fa: "ناخن", en: "Nails", icon: "nail_polish" },
   { id: "skin", fa: "پوست", en: "Skin", icon: "facial" },
   { id: "clinic", fa: "کلینیک", en: "Clinic", icon: "injection" },
@@ -145,20 +146,23 @@ const META = [
   ["express", "سریع و فوری", "Express", "general", "سریع فوری اکسپرس express"]
 ];
 
+// Drawn, but not something a salon or artist offers as a service here.
+const NOT_OFFERED = new Set(["comb", "party", "teeth", "perfume"]);
+
 const CATEGORY_IDS = new Set(EMOJI_CATEGORIES.map((category) => category.id));
 const wrap = (inner) =>
-  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">${LUXE_DEFS}${inner}</svg>`;
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">${ICON_DEFS}${inner}</svg>`;
 
 const ALL_EMOJIS = META.map(([id, fa, en, category, tags]) => {
-  const drawing = LUXE_ALIASES[id] || id;
-  const inner = luxe[drawing];
+  const drawing = ICON_ALIASES[id] || id;
+  const inner = icons[drawing];
   if (!inner) throw new Error(`beautyEmoji: missing art for "${id}"`);
   return {
     id,
     fa,
     en,
     category,
-    hidden: Boolean(LUXE_ALIASES[id]) || !CATEGORY_IDS.has(category),
+    hidden: Boolean(ICON_ALIASES[id]) || NOT_OFFERED.has(id) || !CATEGORY_IDS.has(category),
     tags: tags.split(/\s+/).filter(Boolean),
     svg: wrap(inner)
   };
@@ -185,82 +189,96 @@ export function beautyEmojiSrc(id) {
 
 /**
  * Best-guess icon for a service that has no explicit emoji (older rows,
- * free-text names). Matches Persian keywords against the service name; the
- * first rule that matches wins, so specific phrases come before general ones.
+ * free-text names, bookings that only carry the name). Matches Persian
+ * keywords against the service name; the first rule that matches wins, so
+ * phrases come first, then each field's own words, and the broad words
+ * («رنگ», «مو») last. A word written with spaces around it (" مش ") only
+ * matches as a whole word.
  */
 const KEYWORD_RULES = [
+  // phrases a broader word below would otherwise catch
   ["hair_transplant", ["کاشت مو", "پیوند مو"]],
   ["hair_loss", ["ریزش مو"]],
   ["hair_botox", ["بوتاکس مو"]],
-  ["bridal", ["عروس"]],
+  ["scalp_care", ["پوست سر", "شوره"]],
+  ["permanent_makeup", ["میکروبلیدینگ", "بلیدینگ", "میکروپیگمنتیشن", "فیبروز", "تتو ابرو", "تاتو ابرو", "تتو لب", "تاتو لب", "تتو خط چشم", "تاتو خط چشم", "microblading"]],
+  ["filler", ["فیلر"]],
+  ["injection", ["بوتاکس", "تزریق"]],
+  ["laser", ["لیزر"]],
+  ["lash_lift", ["لیفت مژه", "لمینت مژه"]],
+  ["lash_tint", ["رنگ مژه"]],
+  ["brow_lamination", ["لمینت ابرو", "لیفت ابرو"]],
+  ["brow_tint", ["رنگ ابرو", "حنا ابرو"]],
+  ["threading", ["نخ ابرو", "با نخ", "بند انداختن", "اصلاح صورت", " بند "]],
+  ["teeth", ["بلیچینگ", "لمینت دندان", "دندان"]],
+  ["thread_lift", ["لیفت نخ", "کوک"]],
+  ["hifu", ["هایفو", "لیفت صورت"]],
+  ["nail_spa", ["پارافین", "اسپای دست"]],
+  ["foot_massage", ["رفلکسولوژی", "ماساژ پا"]],
+  ["stone_massage", ["سنگ داغ"]],
+  ["makeup_lesson", ["آموزش آرایش", "کلاس آرایش", "آموزش میکاپ", "کلاس میکاپ", "خودآرایی"]],
+  ["kids_haircut", ["کوتاهی کودک", "کوتاهی بچه"]],
+  // bridal
   ["groom", ["داماد"]],
+  ["bridal", ["عروس"]],
+  ["ring", ["عقد", "نامزدی", "حلقه"]],
+  // hair
   ["root_touch", ["رنگ ریشه", "ریشه"]],
   ["hair_color", ["رنگ مو", "دکلره", "رنگ و"]],
-  ["highlights", ["لایت", "هایلایت", "بالیاژ", "آمبره"]],
+  ["highlights", ["لایت", "هایلایت", "بالیاژ", "آمبره", "امبره", " مش "]],
   ["keratin", ["کراتین", "احیا", "پروتئین"]],
   ["hair_straight", ["صافی", "بروساژ", "اتو مو"]],
   ["hair_perm", ["فر دائمی", "پرم"]],
   ["hair_extension", ["اکستنشن مو", "کلیپ"]],
-  ["braid", ["بافت", "میکروبراید"]],
-  ["updo", ["شینیون"]],
+  ["braid", ["بافت", "میکروبراید", "براید"]],
+  ["haircut", ["کوتاهی"]],
+  ["updo", ["شینیون", "مدل مو"]],
   ["blowdry", ["براشینگ", "سشوار"]],
-  ["hair_styling", ["فر ", "حالت"]],
-  ["scalp_care", ["پوست سر", "شوره"]],
-  ["hair_wash", ["شستشو", "ماسک مو"]],
-  ["kids_haircut", ["کوتاهی کودک", "کوتاهی بچه"]],
+  ["hair_styling", ["فر ", "ویو", "حالت", "بیگودی"]],
+  ["hair_wash", ["شستشو", "شست و شو", "ماسک مو", "شامپو"]],
   ["beard", ["ریش"]],
   ["razor", ["تیغ"]],
-  ["barber", ["آرایشگاه مردانه", "اصلاح آقایان"]],
+  ["barber", ["آرایشگاه مردانه", "اصلاح آقایان", "باربر"]],
   ["men_cut", ["آقایان", "مردانه"]],
-  ["haircut", ["کوتاه"]],
-  ["lash_lift", ["لیفت مژه", "لمینت مژه"]],
-  ["lash_tint", ["رنگ مژه"]],
+  // lashes and brows
   ["lash_ext", ["مژه"]],
-  ["brow_lamination", ["لمینت ابرو"]],
-  ["brow_tint", ["رنگ ابرو", "حنا ابرو"]],
-  ["threading", ["نخ ابرو", "بند انداختن"]],
   ["eyebrow", ["ابرو"]],
-  ["permanent_makeup", ["میکروبلیدینگ", "بلیدینگ", "میکروپیگمنتیشن", "تاتو لب", "microblading"]],
+  // tattoo and piercing
   ["tattoo_machine", ["دستگاه تاتو"]],
   ["tattoo", ["تاتو", "تتو", "خالکوبی"]],
   ["henna", ["حنا"]],
-  ["piercing", ["پیرسینگ"]],
+  ["piercing", ["پیرسینگ", "سوراخ"]],
+  // makeup
   ["eyeliner", ["خط چشم"]],
-  ["eyeshadow", ["سایه"]],
-  ["makeup_lesson", ["آموزش آرایش", "کلاس آرایش"]],
-  ["party_makeup", ["مجلسی", "پارتی"]],
+  ["eyeshadow", ["سایه", "آرایش چشم"]],
+  ["party_makeup", ["مجلسی", "پارتی", "مهمانی"]],
   ["makeup_brush", ["گریم", "کانتور"]],
-  ["lips", ["فیلر لب", "لب"]],
+  ["lips", ["آرایش لب", "رژ لب", "خط لب", " لب ", " لبها "]],
   ["lipstick", ["میکاپ", "آرایش"]],
-  ["nail_spa", ["پارافین"]],
+  // nails
   ["french_nails", ["فرنچ"]],
-  ["nail_art", ["طراحی ناخن", "نیل آرت"]],
-  ["gel_nails", ["کاشت ناخن", "کاشت", "پودر"]],
+  ["nail_art", ["طراحی ناخن", "نیل آرت", "نیلآرت"]],
+  ["gel_nails", ["کاشت", "ترمیم ناخن", "پودر"]],
   ["nail_polish", ["ژلیش", "لاک"]],
   ["pedicure", ["پدیکور"]],
   ["manicure", ["مانیکور", "ناخن"]],
+  // skin
   ["microneedling", ["میکرونیدلینگ", "درمافن", "دورماپن"]],
-  ["hydrafacial", ["هیدرافیشیال", "آبرسانی"]],
-  ["peeling", ["لایه‌برداری پوست", "پیلینگ", "لایه"]],
+  ["hydrafacial", ["هیدرافیشیال", "هیدرا", "آبرسانی"]],
+  ["peeling", ["لایهبرداری", "پیلینگ", "لایه"]],
   ["face_mask", ["ماسک صورت", "ماسک"]],
   ["acne", ["آکنه", "جوش"]],
   ["oxygen_facial", ["اکسیژن"]],
-  ["led_therapy", ["نوردرمانی", "ال ای دی", "led"]],
+  ["led_therapy", ["نوردرمانی", "نور درمانی", "ال ای دی", "led"]],
   ["serum", ["سرم", "مزوتراپی"]],
   ["prp", ["پی آر پی", "پلاسما", "prp"]],
+  ["rejuvenation", ["جوانسازی"]],
   ["facial", ["فیشیال", "پاکسازی"]],
   ["skincare", ["پوست"]],
-  ["filler", ["فیلر"]],
-  ["injection", ["بوتاکس", "تزریق"]],
-  ["hifu", ["هایفو"]],
-  ["thread_lift", ["لیفت نخ", "کوک"]],
-  ["laser", ["لیزر"]],
-  ["teeth", ["بلیچینگ", "لمینت", "دندان"]],
   ["doctor", ["ویزیت", "پزشک"]],
-  ["waxing", ["وکس", "اپیلاسیون", "موبری"]],
+  // body and spa
+  ["waxing", ["وکس", "اپیلاسیون", "موبری", "موم", "موهای زائد", "موی زائد"]],
   ["hijama", ["حجامت"]],
-  ["stone_massage", ["سنگ داغ"]],
-  ["foot_massage", ["رفلکسولوژی", "ماساژ پا"]],
   ["massage", ["ماساژ"]],
   ["aroma", ["آروما"]],
   ["sauna", ["سونا", "بخار"]],
@@ -268,34 +286,55 @@ const KEYWORD_RULES = [
   ["body_scrub", ["اسکراب"]],
   ["spa", ["اسپا", "جکوزی"]],
   ["tanning", ["برنزه", "سولاریوم"]],
-  ["body_contour", ["لاغری", "فرم‌دهی بدن", "کویتیشن"]],
+  ["body_contour", ["لاغری", "فرمدهی بدن", "فرم دهی بدن", "کویتیشن", "سلولیت"]],
   ["perfume", ["عطر"]],
+  // wellness
   ["yoga", ["یوگا"]],
   ["pilates", ["پیلاتس"]],
   ["fitness", ["بدنسازی", "تناسب اندام", "ورزش"]],
   ["meditation", ["مدیتیشن"]],
   ["nutrition", ["رژیم", "تغذیه"]],
   ["physio", ["فیزیوتراپی"]],
-  ["counseling", ["روان", "مشاوره روانشناسی"]],
+  ["counseling", ["روان"]],
+  // general
   ["photoshoot", ["عکاسی", "آتلیه", "فیلمبرداری"]],
   ["training", ["آموزش", "کلاس", "دوره"]],
   ["home_service", ["در محل", "منزل"]],
   ["discount", ["تخفیف"]],
   ["kids_care", ["کودک", "بچه"]],
   ["bouquet", ["دسته گل"]],
-  ["ring", ["حلقه", "نامزدی"]],
   ["party", ["مراسم", "جشن"]],
-  ["rejuvenation", ["جوان"]],
   ["consult", ["مشاوره"]],
   ["gift", ["هدیه", "پکیج"]],
   ["vip", ["vip", "ویژه"]],
-  ["haircut", ["مو"]]
+  // broad hair words last
+  ["hair_extension", ["اکستنشن"]],
+  ["hair_color", ["رنگ"]],
+  ["haircut", ["کوتاه", " مو ", " موی ", " موها"]]
 ];
 
+/** One comparable form: Arabic ی/ک, half-spaces and punctuation don't matter; padded with spaces. */
+function normalizeName(value) {
+  const text = String(value || "")
+    .toLowerCase()
+    .replace(/[يى]/g, "ی")
+    .replace(/ك/g, "ک")
+    .replace(/[\u200c\u200e\u200f]/g, "")
+    .replace(/[\s\-_،,.:;()/]+/g, " ")
+    .trim();
+  return text ? ` ${text} ` : "";
+}
+
+const RULES = KEYWORD_RULES.map(([id, words]) => [id, words.map((word) => {
+  const norm = normalizeName(word);
+  // keep the spaces written around a whole-word rule, trim the padding of the rest
+  return word.startsWith(" ") || word.endsWith(" ") ? `${word.startsWith(" ") ? " " : ""}${norm.trim()}${word.endsWith(" ") ? " " : ""}` : norm.trim();
+})]);
+
 export function guessBeautyEmojiId(name) {
-  const text = String(name || "").toLowerCase();
+  const text = normalizeName(name);
   if (!text) return "";
-  for (const [id, words] of KEYWORD_RULES) {
+  for (const [id, words] of RULES) {
     if (words.some((word) => text.includes(word))) return id;
   }
   return "";

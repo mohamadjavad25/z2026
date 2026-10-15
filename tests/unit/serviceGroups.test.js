@@ -23,6 +23,17 @@ describe("groupServicesByCategory", () => {
     expect(groups[1].fa).toBe("سایر");
   });
 
+  it("never drops a service whose icon is outside the main categories", () => {
+    const groups = groupServicesByCategory([
+      svc(1, "تاتو", "tattoo"),
+      svc(2, "کارت هدیه", "gift"),
+      svc(3, "پکیج ویژه مانیکور", "vip"),
+      svc(4, "کوتاهی مو", "haircut")
+    ]);
+    expect(groups.flatMap((g) => g.items.map((s) => s.id)).sort()).toEqual([1, 2, 3, 4]);
+    expect(groups.map((g) => g.id)).toEqual(["hair", "nails", "other"]);
+  });
+
   it("copes with nothing", () => {
     expect(groupServicesByCategory(undefined)).toEqual([]);
     expect(groupServicesByCategory([])).toEqual([]);
