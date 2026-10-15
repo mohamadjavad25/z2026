@@ -371,8 +371,8 @@
   justify-self: start;
   padding: 2px 8px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--warning) 12%, transparent);
-  color: var(--warning);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
   font-size: 0.6rem;
   font-style: normal;
   font-weight: 850;

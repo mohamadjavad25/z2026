@@ -1129,7 +1129,7 @@ main.appShell.is-auth-gate .workspace { background: var(--n-0) !important; }
   font-size: clamp(2.6rem, 12vw, 3.4rem);
 }
 .authBootInner small { color: var(--n-600); }
-.authBootSpinner { border-color: rgb(var(--ink-rgb) / 0.14); border-top-color: var(--warning); }
+.authBootSpinner { border-color: rgb(var(--ink-rgb) / 0.14); border-top-color: var(--accent); }
 
 /* Text wordmark on the 404 page (replaces the old image logo) */
 .errorPage__logo {
@@ -1157,7 +1157,7 @@ main.appShell.is-auth-gate .workspace { background: var(--n-0) !important; }
 }
 .ivtEyebrow {
   margin: 0;
-  color: var(--warning);
+  color: var(--accent);
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.04em;
@@ -1246,7 +1246,7 @@ main.appShell.is-auth-gate .workspace { background: var(--n-0) !important; }
   text-align: center;
 }
 .qrsBrand { margin: 0; font-family: "Playfair Display", Georgia, serif; font-size: 1.5rem; font-weight: 600; color: var(--n-900); direction: ltr; line-height: 1; }
-.qrsBrand::after { content: ""; display: block; width: 44px; height: 2px; margin: 10px auto 0; background: linear-gradient(90deg, transparent, var(--signal-warn), transparent); }
+.qrsBrand::after { content: ""; display: block; width: 44px; height: 2px; margin: 10px auto 0; background: linear-gradient(90deg, transparent, var(--brand-pink), transparent); }
 .qrsName { margin: 6px 0 0; color: var(--n-900); font-size: 1.1rem; font-weight: 900; line-height: 1.5; }
 .qrsScan { position: relative; padding: 20px; margin-top: 2px; }
 .qrsImage { width: 176px; height: 176px; display: grid; place-items: center; }
@@ -1385,7 +1385,7 @@ html, body { overscroll-behavior-y: none; }
 .stfSelfSave { flex: 1; min-height: 46px; border: 0; border-radius: 999px; background: var(--fill-strong); color: var(--n-0); font: inherit; font-weight: 900; cursor: pointer; }
 .stfSelfSave:disabled { opacity: 0.5; cursor: not-allowed; }
 .stfSelfCancel { min-height: 46px; padding: 0 16px; border: 0; border-radius: 999px; background: var(--n-100); color: var(--n-900); font: inherit; font-weight: 800; cursor: pointer; }
-.stfOwnerBadge { margin-inline-start: 6px; padding: 1px 8px; border-radius: 999px; background: var(--n-150); color: var(--warning); font-style: normal; font-size: 0.66rem; font-weight: 900; vertical-align: middle; }
+.stfOwnerBadge { margin-inline-start: 6px; padding: 1px 8px; border-radius: 999px; background: var(--n-150); color: var(--accent); font-style: normal; font-size: 0.66rem; font-weight: 900; vertical-align: middle; }
 .smdSelfNote { margin: 0; color: var(--n-700); font-size: 0.74rem; font-weight: 700; line-height: 1.8; }
 
 /* ---- Owner hero: eye next to the name -> view own public profile ----

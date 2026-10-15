@@ -73,7 +73,7 @@
   max-height: 340px;
   top: -14%;
   left: -10%;
-  background: radial-gradient(circle, var(--auth-gold) 0%, color-mix(in srgb, var(--warning) 0%, transparent) 72%);
+  background: radial-gradient(circle, var(--auth-gold) 0%, color-mix(in srgb, var(--accent) 0%, transparent) 72%);
   animation: auroraDriftA 22s ease-in-out infinite;
 }
 

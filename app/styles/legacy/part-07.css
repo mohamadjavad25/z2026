@@ -1221,12 +1221,12 @@
 }
 
 .marbleRibbon.yellow{
-  stroke: var(--warning);
+  stroke: var(--accent);
   stroke-width: 15;
 }
 
 .marbleRibbon.orange{
-  stroke: var(--warning);
+  stroke: var(--accent);
   stroke-width: 12;
 }
 

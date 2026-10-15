@@ -418,7 +418,7 @@
 /* .artistServiceBadge.is-vip */
 .artistServiceBadge.is-vip {
   background: rgb(var(--ink-rgb) / 0.16);
-  color: var(--warning);
+  color: var(--accent);
 }
 
 /* .artistServiceBadge.is-soft */
@@ -3342,7 +3342,7 @@
 .artistPublicServiceBadge.is-hot{ background: rgb(var(--ink-rgb) / 0.14); color: var(--accent); }
 
 
-.artistPublicServiceBadge.is-vip{ background: rgb(var(--ink-rgb) / 0.16); color: var(--warning); }
+.artistPublicServiceBadge.is-vip{ background: rgb(var(--ink-rgb) / 0.16); color: var(--accent); }
 
 
 

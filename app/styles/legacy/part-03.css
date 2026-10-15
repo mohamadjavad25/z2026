@@ -73,7 +73,7 @@
   width: 31px;
   height: 36px;
   border-radius: 50% 50% 45% 45%;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--warning) 14%, transparent), var(--signal-warn));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 14%, transparent), var(--brand-pink));
   top: 24px;
 }
 

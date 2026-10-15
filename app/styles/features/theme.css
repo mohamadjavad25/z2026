@@ -34,3 +34,8 @@
 
 /* Mascot: plain by day, white sticker outline at night (filter comes from tokens.css). */
 .mascot { filter: var(--mascot-filter, none); }
+
+/* Brand touches that apply everywhere. :where() keeps specificity at zero, so any component can still override them. */
+::selection { background: color-mix(in srgb, var(--brand-pink) 45%, transparent); color: inherit; }
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+:root { accent-color: var(--accent); }

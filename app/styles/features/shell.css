@@ -567,7 +567,7 @@
   display: grid;
   place-items: center;
   background:
-    radial-gradient(circle at 30% 20%, color-mix(in srgb, var(--warning) 18%, transparent), transparent 42%),
+    radial-gradient(circle at 30% 20%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 42%),
     radial-gradient(circle at 70% 80%, color-mix(in srgb, var(--info) 16%, transparent), transparent 46%),
     linear-gradient(160deg, var(--n-950) 0%, var(--n-900) 48%, var(--n-950) 100%);
   color: var(--n-100);
@@ -601,7 +601,7 @@
   height: 28px;
   border-radius: 50%;
   border: 2px solid color-mix(in srgb, var(--n-100) 22%, transparent);
-  border-top-color: var(--warning);
+  border-top-color: var(--accent);
   animation: authBootSpin 0.7s linear infinite;
 }
 
