@@ -4,7 +4,6 @@ import { formatPersianDateKey, getPersianWeekday } from "../../app/shared/lib/pe
 
 const M = "مانیکور پیش‌نمایش"; // 45 min, only the nail artist
 const H = "کوتاهی پیش‌نمایش"; // 30 min, only the hair artist
-const latin = (value) => String(value).replace(/[۰-۹]/g, (d) => "۰۱۲۳۴۵۶۷۸۹".indexOf(d));
 
 // A salon with a nail artist and a hair artist (each linked to one service) and a few clients.
 async function setup({ clients = 1 } = {}) {

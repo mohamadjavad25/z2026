@@ -32,7 +32,8 @@ function fakeSource({ timesByDay = { d1: ["۱۰:۰۰", "۱۰:۳۰"], d2: ["۱۱:
 const make = (over = {}) => {
   const source = over.source || fakeSource();
   const submit = over.submit || vi.fn(async () => ({ ok: true, status: 201, payload: {} }));
-  const controller = createVisitBookerController({ role: "salon", services, days, source, submit, initial: { selected: ["1", "2"], name: "مریم" }, ...over, source, submit });
+  const { source: _source, submit: _submit, ...options } = over;
+  const controller = createVisitBookerController({ role: "salon", services, days, source, submit, initial: { selected: ["1", "2"], name: "مریم" }, ...options });
   return { controller, source, submit, state: () => controller.getState() };
 };
 
@@ -83,7 +84,7 @@ describe("answers that arrive late", () => {
     const slow = deferred();
     let call = 0;
     const source = fakeSource();
-    source.loadTimes = vi.fn(async (query) => {
+    source.loadTimes = vi.fn(async () => {
       call += 1;
       if (call === 1) { await slow.promise; return { ok: true, times: ["۰۹:۰۰"] }; }
       return { ok: true, times: ["۱۵:۰۰"] };
@@ -104,7 +105,7 @@ describe("answers that arrive late", () => {
     const slow = deferred();
     let call = 0;
     const source = fakeSource();
-    source.loadPlan = vi.fn(async (query) => {
+    source.loadPlan = vi.fn(async () => {
       call += 1;
       if (call === 1) { await slow.promise; return { ok: true, data: { ok: false, code: "STAFF_BUSY", message: "قدیمی", parts: [] } }; }
       return okPlan([{ service: "مانیکور", staff: "جدید" }]);

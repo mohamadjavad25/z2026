@@ -1,4 +1,4 @@
-/* global document, axe */
+/* global document, window, axe */
 import { afterAll, describe, expect, it } from "vitest";
 import { TEST_BASE_URL } from "../globalSetup.js";
 import { createClient, joinSalonAsArtist, registerUser } from "../integration/helpers.js";
