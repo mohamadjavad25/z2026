@@ -799,9 +799,28 @@
   .salonWorkspacePanel.is-portfolio .profileGalleryGrid.is-mosaic .profileGalleryCard {
     width: 100% !important;
     max-width: none !important;
+    /* The base rule's min-height: 170px (sized for the old, wider 2-up card) was winning over
+       aspect-ratio at this column's width, stretching every card far taller than 4:5. */
+    min-height: 0 !important;
+    aspect-ratio: 4 / 5 !important;
     justify-self: start !important;
     margin: 0 !important;
     direction: rtl !important;
+  }
+
+  /* The title text/padding were sized for the old, much wider card. */
+  .salonWorkspacePanel.is-portfolio .profileGalleryCardCopy {
+    padding: 10px !important;
+    gap: 2px !important;
+  }
+
+  .salonWorkspacePanel.is-portfolio .profileGalleryCardCopy h3 {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    font-size: 0.68rem !important;
+    line-height: 1.35 !important;
   }
 }
 

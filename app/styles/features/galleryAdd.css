@@ -71,3 +71,12 @@
 @media (max-width: 760px) {
   .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGallery.has-add-tile { padding-top: 14px !important; }
 }
+
+/* The tile is first in source order (see ProfileGallery.jsx); where it lands on screen depends on
+   the gallery's own grid direction. The artist grid flows in the page's natural RTL, where the
+   first item already lands in the rightmost column -- nothing to do there. The salon grid forces
+   `direction: ltr` on itself instead (see app/styles/legacy/part-10.css), where the first item
+   lands leftmost, so it needs pushing to the end of placement order to land on the right instead. */
+@media (max-width: 760px) {
+  .salonWorkspacePanel.is-portfolio .galleryAddTile { order: 999; }
+}
