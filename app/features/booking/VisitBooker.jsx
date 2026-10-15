@@ -147,13 +147,15 @@ function VisitBookerForm({ role, title, subtitle, services, days, initial, custo
 
       <div className="vbBody">
         {role === "client" ? (
-          <section className="vbWho is-readonly" aria-label="اطلاعات تماس">
-            <span><small>نام</small><b>{state.name || "مشتری frfro"}</b></span>
-            <span><small>شماره تماس</small><b dir="ltr">{phoneMissing ? "ثبت نشده" : toPersianDigits(toLatinDigits(state.phone))}</b></span>
-            {phoneMissing && typeof onEditProfile === "function" ? (
-              <button type="button" className="vbLink" onClick={onEditProfile}>ثبت شماره تماس</button>
-            ) : null}
-          </section>
+          // The client's own name and number are already known; the card shows only to ask for a missing number.
+          phoneMissing ? (
+            <section className="vbWho is-readonly" aria-label="اطلاعات تماس">
+              <span><small>شماره تماس</small><b dir="ltr">ثبت نشده</b></span>
+              {typeof onEditProfile === "function" ? (
+                <button type="button" className="vbLink" onClick={onEditProfile}>ثبت شماره تماس</button>
+              ) : null}
+            </section>
+          ) : null
         ) : (
           <section className="vbWho" aria-label="مشتری">
             <input

@@ -1046,3 +1046,20 @@ button.svcCard:active { transform: scale(0.99); }
 .salonRulesNote summary::-webkit-details-marker { display: none; }
 .salonRulesNote p { margin: 0; padding: 0 12px 12px; color: var(--n-800); font-size: 0.8rem; font-weight: 650; line-height: 1.9; white-space: pre-line; }
 .salonRulesAgree { margin: 0; color: var(--n-600); font-size: 0.72rem; font-weight: 750; line-height: 1.7; text-align: center; }
+
+/* ── Category groups in owner lists ──────────────────────────────────── */
+.svcGroup { display: grid; gap: 10px; }
+.svcGroup + .svcGroup { margin-top: 10px; }
+.svcGroupHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 0 4px;
+  color: var(--n-600);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+.svcGroupHead span { color: var(--n-900); }
+.svcGroupHead i { flex: 1; height: 1px; background: var(--n-150); }
+.svcGroupHead small { font-size: 0.72rem; font-weight: 800; color: var(--n-500); }

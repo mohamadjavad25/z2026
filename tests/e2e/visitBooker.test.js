@@ -513,7 +513,8 @@ describe("VisitBooker for a client (browser)", () => {
     // the services they picked are already on, and the customer's own details are read-only
     expect(await cp.locator(".vbService.is-on").count()).toBe(2);
     expect(await cp.locator("#vb-name").count()).toBe(0);
-    expect(await cp.locator(".vbWho").innerText()).toContain("مشتری ویزیت");
+    // their name and number are already known, so no contact card is shown
+    expect(await cp.locator(".vbWho").count()).toBe(0);
     await cp.locator(".vbPlanRow").nth(1).waitFor();
     const rows = await cp.locator(".vbPlanRow").allInnerTexts();
     expect(rows[0]).toContain("آرتیست ناخن");

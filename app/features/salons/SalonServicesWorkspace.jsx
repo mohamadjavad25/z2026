@@ -4,6 +4,7 @@ import { Check, Plus, UserRound } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
 import { ServiceIcon } from "../../components/ServiceIcon";
+import { ServiceGroups } from "../../components/ServiceGroups";
 import { ProfileEmptyState } from "../profile/ProfileEmptyState";
 import { Mascot } from "../../components/Mascot";
 import { ProfileSheet } from "../profile/ProfileSheet";
@@ -47,7 +48,7 @@ export function SalonServicesWorkspace({
             onAction={onCreate}
           />
         ) : (
-          services.map((service) => {
+          <ServiceGroups services={services}>{(service) => {
             const selectedArtistIds = Array.isArray(service.staff_ids)
               ? service.staff_ids.map(String)
               : String(service.staff_ids || "").trim()
@@ -175,7 +176,7 @@ export function SalonServicesWorkspace({
                 </div>
               </article>
             );
-          })
+          }}</ServiceGroups>
         )}
       </div>
     </>

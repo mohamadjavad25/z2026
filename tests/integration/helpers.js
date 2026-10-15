@@ -46,8 +46,9 @@ const usedPhones = new Set();
  *  whenever two files drew the same 3-digit salt (~2% of runs, surfacing as
  *  "این شماره قبلاً ثبت شده است" in whichever file ran second). Drawing a
  *  fresh random 7-digit suffix per call makes a clash across the whole run
- *  vanishingly unlikely (tens of phones in a 10^7 space), and the in-module
- *  set rules out repeats within one file. */
+ *  unlikely but not impossible (hundreds of phones in a 10^7 space), so
+ *  registerUser retries on a clash; the in-module set rules out repeats within
+ *  one file. */
 export function uniquePhone() {
   for (;;) {
     const suffix = String(Math.floor(Math.random() * 1e7)).padStart(7, "0");
@@ -58,10 +59,15 @@ export function uniquePhone() {
 }
 
 export async function registerUser(client, { type = "client", name = "Test User", password = "testpass123", phone: fixedPhone } = {}) {
-  const phone = fixedPhone || uniquePhone();
-  const res = await client.post("/api/auth/register", { phone, password, type, name });
-  if (!res.ok) throw new Error(`registerUser failed: ${JSON.stringify(res.payload)}`);
-  return { phone, password, user: res.payload.data.user };
+  // Files run in separate module registries, so two of them can draw the same random
+  // number; a generated phone that is already taken is retried with a fresh one.
+  for (let attempt = 0; ; attempt += 1) {
+    const phone = fixedPhone || uniquePhone();
+    const res = await client.post("/api/auth/register", { phone, password, type, name });
+    if (res.ok) return { phone, password, user: res.payload.data.user };
+    const taken = res.status === 409 || /قبلاً ثبت شده/.test(res.payload?.error || "");
+    if (fixedPhone || !taken || attempt >= 8) throw new Error(`registerUser failed: ${JSON.stringify(res.payload)}`);
+  }
 }
 
 /** POST /api/artist/join-salon on the artist's behalf, fetching the salon's own join
