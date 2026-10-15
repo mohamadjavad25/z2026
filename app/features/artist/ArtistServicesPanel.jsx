@@ -4,6 +4,7 @@ import { CalendarCheck, Plus, Timer } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
 import { ServiceIcon } from "../../components/ServiceIcon";
+import { ServiceGroups } from "../../components/ServiceGroups";
 import { ServiceIconStrip } from "../../components/ServiceIconStrip";
 import { ProfileEmptyState } from "../profile/ProfileEmptyState";
 
@@ -41,7 +42,7 @@ export function ArtistServicesPanel({
             onAction={onCreate}
           />
         ) : (
-          services.map((service, index) => (
+          <ServiceGroups services={services}>{(service, index) => (
             <article
               className="svcCard is-editable"
               key={service.id}
@@ -67,7 +68,7 @@ export function ArtistServicesPanel({
                 </div>
               </div>
             </article>
-          ))
+          )}</ServiceGroups>
         )}
       </div>
     </section>
