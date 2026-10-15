@@ -34,11 +34,36 @@ export function ProfilePostComposer({
   showPin = true,
   pinnedCount = 0,
   pinLimit = 3,
-  submitLabel = "ذخیره"
+  submitLabel = "ذخیره",
+  // A file the visitor already picked from the gallery tile: go straight to the crop step.
+  initialFile = null,
+  onInitialFileHandled
 }) {
   const cropperRef = useRef(null);
   const [cropSrc, setCropSrc] = useState("");
   const isOpen = Boolean(value);
+
+  function acceptFile(file) {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      onNotify?.("فقط فایل تصویری مجاز است.");
+      return;
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      onNotify?.("حجم تصویر باید کمتر از ۸ مگابایت باشد.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setCropSrc(String(reader.result || ""));
+    reader.readAsDataURL(file);
+  }
+
+  useEffect(() => {
+    if (!isOpen || !initialFile) return;
+    acceptFile(initialFile);
+    onInitialFileHandled?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once per picked file
+  }, [isOpen, initialFile]);
 
   // Escape closes the composer (or just the crop step), never mid-save.
   useEffect(() => {
@@ -92,18 +117,7 @@ export function ProfilePostComposer({
   function handleFile(event) {
     const file = event.target.files?.[0];
     event.target.value = "";
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      onNotify?.("فقط فایل تصویری مجاز است.");
-      return;
-    }
-    if (file.size > MAX_IMAGE_BYTES) {
-      onNotify?.("حجم تصویر باید کمتر از ۸ مگابایت باشد.");
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => setCropSrc(String(reader.result || ""));
-    reader.readAsDataURL(file);
+    acceptFile(file);
   }
 
   function confirmCrop() {

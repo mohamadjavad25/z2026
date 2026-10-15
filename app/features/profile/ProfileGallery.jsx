@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef, useState } from "react";
 import { thumbUrl } from "../../shared/lib/mediaUrl";
 import { ImagePlus, Lock, Pin, Plus } from "lucide-react";
 import { SkeletonList } from "../../components/Skeleton";
@@ -55,12 +56,21 @@ export function ProfileGallery({
   const addAsTile = Boolean(onAdd) && hasItems && !hideBody;
   const mosaicClass = items.length === 1 ? "is-single" : items.length === 2 ? "is-pair" : "is-mosaic";
 
-  function handleAddKeyDown(event) {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      event.stopPropagation();
-      onAdd?.();
-    }
+  // "Create post" starts with the device gallery: the picked photo goes to the composer's crop
+  // step, and the details (title, service, caption) are written there afterwards.
+  const pickerRef = useRef(null);
+  const [pendingFile, setPendingFile] = useState(null);
+
+  function openPicker() {
+    pickerRef.current?.click();
+  }
+
+  function handlePicked(event) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    setPendingFile(file);
+    onAdd?.();
   }
 
   function renderAddTile() {
@@ -72,7 +82,7 @@ export function ProfileGallery({
         onClick={(event) => {
           event.preventDefault();
           event.stopPropagation();
-          onAdd?.();
+          openPicker();
         }}
       >
         <span className="galleryAddTileOrb" aria-hidden="true">
@@ -87,6 +97,10 @@ export function ProfileGallery({
   return (
     <>
       <section className={`profileGallery ${addAsTile ? "has-add-tile" : ""} ${className}`.trim()} aria-label={label}>
+        {onAdd ? (
+          <input ref={pickerRef} className="captureInput" type="file" accept="image/*" tabIndex={-1} aria-hidden="true" onChange={handlePicked} />
+        ) : null}
+
         {onAdd && !addAsTile ? (
           <div className="profileGalleryHead">
             <button
@@ -94,9 +108,8 @@ export function ProfileGallery({
               onClick={(event) => {
                 event.preventDefault();
                 event.stopPropagation();
-                onAdd?.();
+                openPicker();
               }}
-              onKeyDown={handleAddKeyDown}
             >
               <ImagePlus size={16} />
               {addLabel}
@@ -217,6 +230,8 @@ export function ProfileGallery({
           showPin={composeShowPin}
           pinnedCount={items.filter((item) => item.featured && String(item.id) !== String(composeValue.id)).length}
           submitLabel={composeSubmitLabel}
+          initialFile={pendingFile}
+          onInitialFileHandled={() => setPendingFile(null)}
         />
       ) : null}
     </>
