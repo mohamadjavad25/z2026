@@ -892,3 +892,4 @@
 .cvMsg:active { transform: scale(0.99); }
 .cvMsg:focus-visible, .cvNotesMore:focus-visible { outline: 3px solid rgba(20, 22, 29, 0.25); outline-offset: 2px; }
 .cvNotesMore { border: 0; background: none; padding: 4px 12px; color: #6f7380; font: inherit; font-size: 0.72rem; font-weight: 900; text-align: start; cursor: pointer; }
+.todayScheduleList > .cvMsg { margin: 4px 0; }
