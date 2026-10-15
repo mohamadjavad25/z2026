@@ -374,7 +374,15 @@ function BookingDayGrid({ grid, staffOptions, activeStaff, selectedTime, custome
     box.scrollTo({ top: Math.max(0, target.offsetTop - box.clientHeight / 3), behavior: "smooth" });
   }, [selectedTime, column?.value, grid.rows]);
   useEffect(() => {
-    tabsRef.current?.querySelector(".bcfStaffTab.is-on")?.scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
+    // Scroll only the tab strip itself. scrollIntoView also scrolls every ancestor (the sheet and the
+    // page), which made the whole screen wobble sideways when switching artists.
+    const strip = tabsRef.current;
+    const tab = strip?.querySelector(".bcfStaffTab.is-on");
+    if (!strip || !tab) return;
+    const stripBox = strip.getBoundingClientRect();
+    const tabBox = tab.getBoundingClientRect();
+    const shift = (tabBox.left + tabBox.width / 2) - (stripBox.left + stripBox.width / 2);
+    if (Math.abs(shift) > 1) strip.scrollBy({ left: shift, behavior: "smooth" });
   }, [column?.value]);
 
   if (!column) return null;
