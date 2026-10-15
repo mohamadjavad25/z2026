@@ -335,74 +335,106 @@ export function BookingCreateForm({
 }
 
 /**
- * Day calendar: rows are half hours, columns are artists (one column on the
- * artist's own form). Busy half hours are hatched; a cell is tappable only when
- * that artist is free for the whole service from there.
+ * Day calendar for one artist at a time. A strip of artist tabs on top (it scrolls sideways, so a
+ * salon with ten artists fits, and each tab says how many free times that artist has), then a single
+ * tall column of half hours below it. Every state is spelled out in words (free / full / too short)
+ * and the chosen time is one solid block as long as the service. Tapping a free row sets both the
+ * artist and the start time.
  */
 function BookingDayGrid({ grid, staffOptions, activeStaff, selectedTime, customerName, onPick }) {
-  const boxRef = useRef(null);
-  const span = Math.max(1, Math.ceil((grid.duration || 60) / GRID_STEP_MINUTES));
+  const listRef = useRef(null);
+  const tabsRef = useRef(null);
+  const duration = grid.duration || 60;
+  const span = Math.max(1, Math.ceil(duration / GRID_STEP_MINUTES));
   const startIndex = selectedTime ? grid.rows.indexOf(selectedTime) : -1;
-  const showHead = grid.columns.length > 1 || Boolean(grid.columns[0]?.value);
-  const columns = grid.columns.map((column) => ({
+  const columns = useMemo(() => grid.columns.map((column) => ({
     ...column,
     label: staffOptions.find((person) => person.value === column.value)?.label || column.value || "خودم",
     busySet: new Set(column.busy),
     pastSet: new Set(column.past),
     freeSet: new Set(column.free)
-  }));
+  })), [grid.columns, staffOptions]);
+  const multi = columns.length > 1;
 
-  // Keep the chosen time in view inside the calendar box (without moving the sheet itself).
+  // Which artist's day is on screen: follows the chosen artist, otherwise whoever has room first.
+  const [viewed, setViewed] = useState(activeStaff);
+  useEffect(() => { if (activeStaff) setViewed(activeStaff); }, [activeStaff]);
+  const column = columns.find((item) => item.value === viewed)
+    || columns.find((item) => item.value === activeStaff)
+    || columns.find((item) => item.freeSet.size)
+    || columns[0];
+  const pickHere = Boolean(column) && column.value === activeStaff;
+
+  // Keep the chosen time (or the first free one) in view inside the list, without moving the sheet.
   useEffect(() => {
-    const box = boxRef.current;
-    const head = box?.querySelector(".bcfCell.is-head");
-    if (!box || !head) return;
-    const top = head.offsetTop - box.clientHeight / 3;
-    box.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
-  }, [selectedTime, activeStaff, grid.rows]);
+    const box = listRef.current;
+    const target = box?.querySelector(".bcfSlotCell.is-head") || box?.querySelector(".bcfSlotCell.is-free");
+    if (!box || !target) return;
+    box.scrollTo({ top: Math.max(0, target.offsetTop - box.clientHeight / 3), behavior: "smooth" });
+  }, [selectedTime, column?.value, grid.rows]);
+  useEffect(() => {
+    tabsRef.current?.querySelector(".bcfStaffTab.is-on")?.scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
+  }, [column?.value]);
 
+  if (!column) return null;
   return (
     <div className="bcfGrid">
-      <p className="bcfGridHint">جای خالی را روی تقویم بزن</p>
-      <div className="bcfGridBox" ref={boxRef} role="grid" aria-label="تقویم روز">
-        {showHead ? (
-          <div className="bcfGridRow is-head" role="row">
-            <span className="bcfGridTime" aria-hidden="true" />
-            {columns.map((column) => (
-              <span key={column.value || "_"} role="columnheader" className={`bcfGridName${column.value === activeStaff ? " is-on" : ""}`}>
-                {column.label}
-              </span>
-            ))}
-          </div>
-        ) : null}
-        {grid.rows.map((slot, rowIndex) => (
-          <div className="bcfGridRow" role="row" key={slot}>
-            <span className="bcfGridTime" role="rowheader">{slot.endsWith(":۰۰") ? slot : ""}</span>
-            {columns.map((column) => {
-              const busy = column.busySet.has(slot);
-              const past = column.pastSet.has(slot);
-              const canStart = column.freeSet.has(slot);
-              const inPick = startIndex >= 0 && column.value === activeStaff && rowIndex >= startIndex && rowIndex < startIndex + span;
-              const isHead = inPick && rowIndex === startIndex;
-              const busyStart = busy && !past && (rowIndex === 0 || !column.busySet.has(grid.rows[rowIndex - 1]));
-              const state = isHead ? " is-head" : inPick ? " is-pick" : busy ? " is-busy" : past ? " is-past" : canStart ? "" : " is-short";
-              return (
-                <button
-                  type="button"
-                  role="gridcell"
-                  key={column.value || "_"}
-                  className={`bcfCell${state}`}
-                  disabled={!canStart}
-                  aria-selected={isHead || undefined}
-                  aria-label={`${column.label} ساعت ${slot}${inPick ? "، انتخاب شده" : busy ? "، پر" : past ? "، گذشته" : canStart ? "" : "، وقت کافی نیست"}`}
-                  onClick={() => { if (canStart) onPick(column.value, slot); }}
-                >
-                  {isHead ? `${slot}${customerName ? ` · ${customerName}` : ""}` : busyStart ? "پر" : ""}
-                </button>
-              );
-            })}
-          </div>
-        ))}
+      <p className="bcfGridHint">
+        {multi ? `${toPersianDigits(columns.length)} آرتیست · اول آرتیست را بزن، بعد ساعت خالی را` : "جای خالی را روی تقویم بزن"}
+      </p>
+      {multi ? (
+        <div className="bcfStaffStrip" role="tablist" aria-label="آرتیست" ref={tabsRef}>
+          {columns.map((item) => {
+            const free = item.freeSet.size;
+            return (
+              <button
+                type="button"
+                role="tab"
+                key={item.value || "_"}
+                aria-selected={item.value === column.value}
+                className={`bcfStaffTab${item.value === column.value ? " is-on" : ""}${free ? "" : " is-full"}${item.value === activeStaff && selectedTime ? " has-pick" : ""}`}
+                onClick={() => setViewed(item.value)}
+              >
+                <b>{item.label}</b>
+                <small>{free ? `${toPersianDigits(free)} ساعت آزاد` : "پر"}</small>
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+      <div className="bcfDayList" ref={listRef} role="grid" aria-label={`تقویم روز ${column.label}`}>
+        {grid.rows.map((slot, rowIndex) => {
+          const busy = column.busySet.has(slot);
+          const past = column.pastSet.has(slot);
+          const canStart = column.freeSet.has(slot);
+          const inPick = pickHere && startIndex >= 0 && rowIndex >= startIndex && rowIndex < startIndex + span;
+          const isHead = inPick && rowIndex === startIndex;
+          const isEnd = inPick && (rowIndex === startIndex + span - 1 || rowIndex === grid.rows.length - 1);
+          const busyStart = busy && !past && (rowIndex === 0 || !column.busySet.has(grid.rows[rowIndex - 1]));
+          const state = isHead ? " is-head" : inPick ? " is-pick" : busy ? " is-busy" : past ? " is-past" : canStart ? " is-free" : " is-short";
+          const text = isHead
+            ? `${customerName || "رزرو جدید"} · تا ${minutesToPersianTime(timeLabelToMinutes(slot) + duration)}`
+            : inPick ? ""
+              : busy ? (busyStart ? "پر" : "")
+                : past ? ""
+                  : canStart ? "آزاد" : "وقت کافی نیست";
+          return (
+            <div className={`bcfSlot${slot.endsWith(":۰۰") ? " is-hour" : ""}`} role="row" key={slot}>
+              <span className="bcfSlotTime" role="rowheader">{slot}</span>
+              <button
+                type="button"
+                role="gridcell"
+                className={`bcfSlotCell${state}${isEnd ? " is-end" : ""}`}
+                disabled={!canStart}
+                aria-selected={isHead || undefined}
+                aria-label={`${column.label} ساعت ${slot}${inPick ? "، انتخاب شده" : busy ? "، پر" : past ? "، گذشته" : canStart ? "" : "، وقت کافی نیست"}`}
+                onClick={() => { if (canStart) onPick(column.value, slot); }}
+              >
+                {text}
+              </button>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
