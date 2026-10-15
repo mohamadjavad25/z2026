@@ -522,8 +522,7 @@ button.artistWorkTagTrigger > svg{
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  background: rgb(var(--shadow-rgb) / 0.45);
-  backdrop-filter: blur(8px);
+  background: rgb(var(--shadow-rgb) / 0.55);
 }
 
 .peSheet {
@@ -536,7 +535,7 @@ button.artistWorkTagTrigger > svg{
   color: var(--n-900);
   box-shadow: 0 -20px 60px rgb(var(--shadow-rgb) / 0.22);
   overflow: hidden;
-  animation: svcSheetIn 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: svcSheetIn 0.32s cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 
 .peHead {
