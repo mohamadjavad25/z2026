@@ -22,6 +22,7 @@ import { ArtistWorkPreviewModal, ArtistBreakEditorModal } from "../artist";
 import { ServiceComposerModal } from "../profile/ServiceComposerModal";
 import { ShieldCheck } from "lucide-react";
 import { PushSoftAsk } from "./home/PushSoftAsk";
+import { SiteNotice } from "./home/SiteNotice";
 import { ClientBookingTracker } from "../client/ClientBookingTracker";
 import { BottomNav } from "./BottomNav";
 import { SupportFab } from "../support";
@@ -405,6 +406,7 @@ export function HomeView() {
         ) : null}
 
         <PushSoftAsk />
+        {authChecked ? <SiteNotice role={createdProfile?.type || ""} /> : null}
 
         <BottomNav
           status={createdProfile?.type === "client" ? (

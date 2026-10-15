@@ -1,80 +1,199 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { apiFetch } from "../shared/api/client";
-import { adminFetch } from "./adminFetch";
-import { Button, Chip, Field } from "../components/ui";
-import { PAGE, fmtDate, num } from "./format";
+import { useEffect, useState } from "react";
+import { Eye, EyeOff, Flag, Image as ImageIcon, ImageOff, LayoutGrid, Rows3, Search, Trash2, X } from "lucide-react";
+import { Button } from "../components/ui";
+import { api } from "./adminFetch";
+import { TYPE_LABEL, ago, fmtDate, num } from "./format";
+import { PageHead } from "./PageHead";
+import { EmptyState, ErrorNote, Pager, Segmented, Skeleton, confirmAction, toastResult, useAdminData, withQuery } from "./ui";
 
-/** Moderation: every post, hide (reversible) or delete (asks for the password again). */
-export function ContentTab({ intent = {} }) {
-  const [q, setQ] = useState(intent.q || "");
-  const [visibility, setVisibility] = useState("");
-  const [offset, setOffset] = useState(0);
-  const [data, setData] = useState({ posts: [], total: 0 });
-  const [busyId, setBusyId] = useState(null);
-  const [message, setMessage] = useState("");
+const PAGE_SIZE = 24;
+const VIEW_KEY = "frfro_admin_content_view";
+const imageOf = (post, full = false) => `/api/admin/posts/${post.id}/image?v=${encodeURIComponent(post.updated_at || post.created_at)}${full ? "&full=1" : ""}`;
 
-  const load = useCallback(async () => {
-    const qs = new URLSearchParams({ q, visibility, offset: String(offset), limit: String(PAGE) });
-    const { ok, payload } = await apiFetch(`/api/admin/posts?${qs}`);
-    if (ok) setData(payload.data);
-  }, [q, visibility, offset]);
+function Thumb({ post, full = false }) {
+  const [broken, setBroken] = useState(false);
+  if (!post.has_image || broken) return <span className="admThumbEmpty"><ImageOff size={22} aria-hidden="true" /></span>;
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={imageOf(post, full)} alt="" loading="lazy" decoding="async" onError={() => setBroken(true)} />;
+}
 
+/** A post up close: the full picture, its text, who posted it, how many reports, and the actions. */
+function PostPreview({ post, onClose, onAct, onGo }) {
   useEffect(() => {
-    const timer = setTimeout(load, 250);
-    return () => clearTimeout(timer);
-  }, [load]);
+    const onKey = (event) => event.key === "Escape" && onClose();
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+  return (
+    <div className="admModal" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
+      <section className="admCard admPreview" role="dialog" aria-modal="true" aria-label={post.title}>
+        <button type="button" className="admIconBtn admPreviewClose" aria-label="بستن" onClick={onClose} autoFocus><X size={18} aria-hidden="true" /></button>
+        <div className="admPreviewImage"><Thumb post={post} full /></div>
+        <div className="admPreviewBody">
+          <h2>{post.title}</h2>
+          <p className="admMuted">{post.tag ? `${post.tag} • ` : ""}{fmtDate(post.created_at)}</p>
+          {post.caption ? <p className="admPreviewCaption">{post.caption}</p> : null}
+          <ul className="admFacts">
+            <li><span>صاحب پست</span><button type="button" className="admRowLink" onClick={() => { onClose(); onGo("users", { id: post.owner_id }); }}>{post.owner_name || "بدون نام"} ←</button></li>
+            <li><span>نوع حساب</span><b>{TYPE_LABEL[post.owner_type] || "—"}</b></li>
+            <li><span>بازدید / ذخیره</span><b>{num(post.views_count)} / {num(post.saves_count)}</b></li>
+            <li><span>گزارش</span><b className={post.reports ? "admBadText" : ""}>{post.reports ? `${num(post.reports)} گزارش` : "ندارد"}</b></li>
+            <li><span>وضعیت</span><b>{post.is_public ? "نمایان" : "پنهان"}</b></li>
+          </ul>
+          <div className="admRowActions">
+            {post.is_public
+              ? <Button size="sm" variant="secondary" onClick={() => onAct([post], "hide")}><EyeOff size={15} aria-hidden="true" /> پنهان‌کردن</Button>
+              : <Button size="sm" variant="secondary" onClick={() => onAct([post], "show")}><Eye size={15} aria-hidden="true" /> نمایش دوباره</Button>}
+            <Button size="sm" variant="danger" onClick={() => onAct([post], "delete")}><Trash2 size={15} aria-hidden="true" /> حذف</Button>
+            {post.reports ? <Button size="sm" variant="ghost" onClick={() => { onClose(); onGo("support", { q: post.title }); }}><Flag size={15} aria-hidden="true" /> دیدن گزارش‌ها</Button> : null}
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
 
-  async function act(post, action) {
-    if (action === "delete" && !window.confirm(`پست «${post.title}» برای همیشه حذف شود؟`)) return;
-    setBusyId(post.id);
-    const { ok, payload } = await adminFetch(`/api/admin/posts/${post.id}`, { method: "POST", body: JSON.stringify({ action }) });
-    setBusyId(null);
-    setMessage(ok ? { hide: "پست پنهان شد.", show: "پست دوباره نمایش داده می‌شود.", delete: "پست حذف شد." }[action] : payload.error || "انجام نشد.");
-    if (ok) load();
+/** Moderation: every post with its picture. Reported ones are one tap away; hide (reversible) or delete (asks for the password again), one or many. */
+export function ContentTab({ intent = {}, onGo }) {
+  const [q, setQ] = useState(intent.q || "");
+  const [visibility, setVisibility] = useState(intent.filter || "");
+  const [offset, setOffset] = useState(0);
+  const [picked, setPicked] = useState(() => new Set());
+  const [open, setOpen] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [view, setView] = useState("grid");
+  useEffect(() => {
+    try {
+      if (window.localStorage.getItem(VIEW_KEY) === "list") setView("list");
+    } catch {
+      // not essential
+    }
+  }, []);
+  function changeView(next) {
+    setView(next);
+    try {
+      window.localStorage.setItem(VIEW_KEY, next);
+    } catch {
+      // not essential
+    }
   }
 
-  const pages = Math.max(1, Math.ceil(data.total / PAGE));
-  const page = Math.floor(offset / PAGE) + 1;
+  const path = withQuery("/api/admin/posts", { q: q.trim(), visibility, offset, limit: PAGE_SIZE });
+  const { data, error, loading, reload } = useAdminData(path, { debounce: q ? 250 : 0 });
+  const posts = data?.posts || [];
+  const reset = (fn) => (value) => {
+    fn(value);
+    setOffset(0);
+    setPicked(new Set());
+  };
+
+  async function act(targets, action) {
+    if (action === "delete") {
+      const answer = await confirmAction({
+        title: targets.length === 1 ? `پست «${targets[0].title}» حذف شود؟` : `${num(targets.length)} پست حذف شود؟`,
+        body: "پست و تصویرش برای همیشه پاک می‌شود. اگر مطمئن نیستی، «پنهان‌کردن» برگشت‌پذیر است.",
+        danger: true,
+        confirmLabel: "حذف برای همیشه"
+      });
+      if (!answer.ok) return;
+    }
+    setBusy(true);
+    const result = targets.length === 1
+      ? await api.post(`/api/admin/posts/${targets[0].id}`, { action })
+      : await api.post("/api/admin/posts/bulk", { ids: targets.map((post) => post.id), action });
+    setBusy(false);
+    const words = { hide: "پنهان شد", show: "دوباره نمایش داده می‌شود", delete: "حذف شد" };
+    if (toastResult(result, targets.length === 1 ? `پست ${words[action]}.` : `${num(result.payload?.data?.changed ?? targets.length)} پست ${words[action]}.`)) {
+      setPicked(new Set());
+      setOpen(null);
+      reload();
+    }
+  }
+
+  function togglePick(id) {
+    setPicked((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+  const pickedPosts = posts.filter((post) => picked.has(post.id));
+
   return (
-    <section className="admCard">
-      <div className="admFilters">
-        <Field label="جستجو در پست‌ها" hideLabel>
-          {(props) => <input {...props} type="search" placeholder="عنوان، توضیح، نام یا شمارهٔ صاحب پست…" value={q} onChange={(event) => { setQ(event.target.value); setOffset(0); }} />}
-        </Field>
-        <div className="admChips" role="group" aria-label="وضعیت نمایش">
-          {[["", "همه"], ["public", "نمایان"], ["hidden", "پنهان"]].map(([value, label]) => (
-            <Chip key={value || "all"} selected={visibility === value} onClick={() => { setVisibility(value); setOffset(0); }}>{label}</Chip>
-          ))}
+    <>
+      <PageHead tab="content" />
+      <section className="admCard admListCard">
+        <div className="admToolbar">
+          <label className="admInlineSearch">
+            <Search size={17} aria-hidden="true" />
+            <input type="search" value={q} placeholder="عنوان، متن، نام یا شمارهٔ صاحب پست…" aria-label="جست‌وجو در پست‌ها" onChange={(event) => reset(setQ)(event.target.value)} />
+          </label>
+          <Segmented label="وضعیت" size="sm" value={visibility} onChange={reset(setVisibility)} options={[{ value: "", label: "همه" }, { value: "reported", label: "گزارش‌شده", icon: Flag }, { value: "public", label: "نمایان" }, { value: "hidden", label: "پنهان" }]} />
+          <Segmented label="نمایش" size="sm" value={view} onChange={changeView} options={[{ value: "grid", label: "", icon: LayoutGrid }, { value: "list", label: "", icon: Rows3 }]} />
         </div>
-      </div>
-      {message ? <p className="admNote" role="status">{message}</p> : null}
-      <div className="admTableWrap">
-        <table className="admTable">
-          <thead><tr><th>عنوان</th><th>صاحب</th><th>بازدید / ذخیره</th><th>تاریخ</th><th /></tr></thead>
-          <tbody>
-            {data.posts.map((post) => (
-              <tr key={post.id} className={post.is_public ? "" : "is-suspended"}>
-                <td>{post.title}{post.is_public ? null : <em> • پنهان</em>}</td>
-                <td>{post.owner_name || "—"} <small dir="ltr">{post.owner_phone}</small></td>
-                <td>{num(post.views_count)} / {num(post.saves_count)}</td>
-                <td>{fmtDate(post.created_at)}</td>
-                <td className="admRowActions">
-                  <Button size="sm" variant="secondary" loading={busyId === post.id} loadingLabel="…" onClick={() => act(post, post.is_public ? "hide" : "show")}>{post.is_public ? "پنهان" : "نمایش"}</Button>
-                  <Button size="sm" variant="danger" disabled={busyId === post.id} onClick={() => act(post, "delete")}>حذف</Button>
-                </td>
-              </tr>
+
+        {picked.size ? (
+          <div className="admBulkBar" role="region" aria-label="کار گروهی">
+            <b>{num(picked.size)} پست انتخاب شده</b>
+            <Button size="sm" variant="secondary" disabled={busy} onClick={() => act(pickedPosts, "hide")}><EyeOff size={15} aria-hidden="true" /> پنهان</Button>
+            <Button size="sm" variant="secondary" disabled={busy} onClick={() => act(pickedPosts, "show")}><Eye size={15} aria-hidden="true" /> نمایش</Button>
+            <Button size="sm" variant="danger" disabled={busy} onClick={() => act(pickedPosts, "delete")}><Trash2 size={15} aria-hidden="true" /> حذف</Button>
+            <button type="button" className="admIconBtn" aria-label="لغو انتخاب" onClick={() => setPicked(new Set())}><X size={16} aria-hidden="true" /></button>
+          </div>
+        ) : null}
+
+        <ErrorNote error={error} onRetry={reload} />
+        {!data && loading ? <Skeleton rows={6} /> : null}
+        {data && !posts.length ? <EmptyState icon={ImageIcon} title={visibility === "reported" ? "پست گزارش‌شده‌ای منتظر نیست" : "پستی پیدا نشد"}>{visibility === "reported" ? "هر گزارشی که بیاید اینجا هم دیده می‌شود." : "فیلترها را تغییر بده."}</EmptyState> : null}
+
+        {posts.length && view === "grid" ? (
+          <ul className={`admPostGrid${loading ? " is-stale" : ""}`}>
+            {posts.map((post) => (
+              <li key={post.id} className={`${post.is_public ? "" : "is-hidden"}${picked.has(post.id) ? " is-picked" : ""}`}>
+                <button type="button" className="admPostOpen" onClick={() => setOpen(post)} aria-label={`باز کردن پست ${post.title}`}>
+                  <span className="admPostImage"><Thumb post={post} /></span>
+                  <span className="admPostMeta">
+                    <b>{post.title}</b>
+                    <small>{post.owner_name || "—"} • {ago(post.created_at)}</small>
+                  </span>
+                </button>
+                <span className="admPostFlags">
+                  {post.reports ? <span className="admTone is-bad"><Flag size={12} aria-hidden="true" /> {num(post.reports)}</span> : null}
+                  {post.is_public ? null : <span className="admTone is-muted">پنهان</span>}
+                </span>
+                <label className="admPostPick">
+                  <input type="checkbox" checked={picked.has(post.id)} onChange={() => togglePick(post.id)} aria-label={`انتخاب ${post.title}`} />
+                </label>
+              </li>
             ))}
-            {!data.posts.length ? <tr><td colSpan={5} className="admMuted">پستی پیدا نشد.</td></tr> : null}
-          </tbody>
-        </table>
-      </div>
-      <footer className="admPager">
-        <Button size="sm" variant="secondary" disabled={offset === 0} onClick={() => setOffset(Math.max(0, offset - PAGE))}>قبلی</Button>
-        <span>{num(data.total)} پست • صفحهٔ {num(page)} از {num(pages)}</span>
-        <Button size="sm" variant="secondary" disabled={page >= pages} onClick={() => setOffset(offset + PAGE)}>بعدی</Button>
-      </footer>
-    </section>
+          </ul>
+        ) : null}
+
+        {posts.length && view === "list" ? (
+          <div className={`admTableWrap${loading ? " is-stale" : ""}`}>
+            <table className="admTable is-clickable">
+              <thead><tr><th className="admCheckCol" /><th>پست</th><th>صاحب</th><th className="admHideNarrow">بازدید / ذخیره</th><th>گزارش</th><th>تاریخ</th></tr></thead>
+              <tbody>
+                {posts.map((post) => (
+                  <tr key={post.id} className={post.is_public ? "" : "is-suspended"} onClick={() => setOpen(post)}>
+                    <td className="admCheckCol" onClick={(event) => event.stopPropagation()}><input type="checkbox" checked={picked.has(post.id)} onChange={() => togglePick(post.id)} aria-label={`انتخاب ${post.title}`} /></td>
+                    <td><span className="admCellUser"><span className="admMiniThumb"><Thumb post={post} /></span><span>{post.title}{post.is_public ? null : <em> • پنهان</em>}</span></span></td>
+                    <td>{post.owner_name || "—"} <small dir="ltr">{post.owner_phone}</small></td>
+                    <td className="admHideNarrow">{num(post.views_count)} / {num(post.saves_count)}</td>
+                    <td>{post.reports ? <span className="admTone is-bad">{num(post.reports)}</span> : "—"}</td>
+                    <td>{fmtDate(post.created_at)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : null}
+        {data ? <Pager total={data.total} offset={offset} limit={PAGE_SIZE} onChange={setOffset} noun="پست" /> : null}
+      </section>
+      {open ? <PostPreview post={open} onClose={() => setOpen(null)} onAct={act} onGo={onGo} /> : null}
+    </>
   );
 }

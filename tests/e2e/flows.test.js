@@ -581,40 +581,44 @@ describe("admin page (browser)", () => {
     const usedStep = totpStepAt();
     await page.getByLabel("کد ۶ رقمی").fill(totpCodeAt(secret, usedStep));
     await page.getByRole("button", { name: "فعال‌سازی و ورود" }).click();
-    await page.getByRole("tab", { name: "کاربران" }).waitFor();
-    await page.getByRole("tab", { name: "کاربران" }).click();
+    // The rail is the page menu: one button per page (a waiting count may follow the name).
+    const nav = (name) => page.locator(".admSideNav").getByRole("button", { name: new RegExp(`^${name}`) });
+    await nav("کاربران").waitFor();
+    await nav("کاربران").click();
     await page.locator(".admTable tbody tr").first().waitFor();
-    await page.getByRole("tab", { name: "نمای کلی" }).click();
-    expect(await page.locator(".admGrid").innerText()).toContain("کل کاربران");
+    expect(page.url()).toContain("p=users");
+    await nav("نمای کلی").click();
+    await page.locator(".admLiveStrip").waitFor();
+    expect(await page.locator(".admDash").innerText()).toContain("کل کاربران");
 
-    // The left rail starts as icons only, and opens/closes from its top button.
+    // The left rail starts open with labels, and closes to icons only from its top button.
     const rail = page.locator(".admSide");
-    expect(await rail.evaluate((el) => el.getBoundingClientRect().width)).toBeLessThan(100);
-    await page.getByRole("button", { name: "باز‌کردن منو" }).click();
-    await page.waitForFunction(() => document.querySelector(".admSide").getBoundingClientRect().width > 200);
+    expect(await rail.evaluate((el) => el.getBoundingClientRect().width)).toBeGreaterThan(200);
     await page.getByRole("button", { name: "جمع‌کردن منو" }).click();
+    await page.waitForFunction(() => document.querySelector(".admSide").getBoundingClientRect().width < 100);
+    await page.getByRole("button", { name: "باز‌کردن منو" }).click();
 
-    // The other panels open without errors.
-    for (const tabName of ["محتوا", "رزروها", "پشتیبانی", "امنیت"]) {
-      await page.getByRole("tab", { name: tabName }).click();
+    // The other pages open without errors.
+    for (const name of ["محتوا", "رزروها", "پشتیبانی", "پیام همگانی", "گزارش‌ها", "سلامت سامانه", "تنظیمات", "امنیت و دسترسی"]) {
+      await nav(name).click();
       await page.locator(".admCard").first().waitFor();
     }
-    expect(await page.locator("main").innerText()).toContain("نشست‌های فعال مدیریت");
-    await page.getByRole("tab", { name: "کاربران" }).click();
-    await page.locator(".admTable tbody .admLink").first().click();
+    expect(await page.locator("main").innerText()).toContain("نشست‌های فعال پنل");
+    await nav("کاربران").click();
+    await page.locator(".admTable tbody .admRowLink").first().click();
     await page.locator(".admDetail").waitFor();
     // On a narrow screen the details cover the page; "back to list" closes them.
     const back = page.locator(".admSplitBack");
     if (await back.isVisible()) await back.click();
 
     // Logout, then a normal login with the next code.
-    await page.getByRole("button", { name: "خروج" }).click();
+    await page.getByRole("button", { name: "خروج", exact: true }).click();
     await page.getByRole("button", { name: "ورود", exact: true }).waitFor();
     await page.getByLabel("شمارهٔ موبایل").fill(TEST_ADMIN3_PHONE);
     await page.getByLabel("رمز عبور").fill(TEST_ADMIN_PASSWORD);
     await page.getByLabel(/کد ۶ رقمی/).fill(totpCodeAt(secret, usedStep + 1));
     await page.getByRole("button", { name: "ورود", exact: true }).click();
-    await page.getByRole("tab", { name: "نمای کلی" }).waitFor();
+    await page.locator(".admSideNav").getByRole("button", { name: "نمای کلی" }).waitFor();
     expect(problems).toEqual([]);
     await context.close();
   }, 60_000);
@@ -663,11 +667,12 @@ describe("support (browser)", () => {
     // Keep the conversation going.
     await page.getByLabel("پیام", { exact: true }).fill("ممنون، حل شد.");
     await page.getByRole("button", { name: "ارسال", exact: true }).click();
-    await page.getByText("ممنون، حل شد.").waitFor();
+    // Wait for the sent bubble, not just the text: a typed textarea also carries its value as text, so getByText
+    // could match the box itself while the message is still on its way (and closing the page would drop it).
+    await page.locator(".scMsg.is-user", { hasText: "ممنون، حل شد." }).waitFor();
     expect(problems).toEqual([]);
     await context.close();
-    const after = (await admin.get(`/api/admin/support/${inbox.tickets[0].id}`)).payload.data;
-    expect(after.messages.map((message) => message.author)).toEqual(["user", "admin", "user"]);
+    await expect.poll(async () => (await admin.get(`/api/admin/support/${inbox.tickets[0].id}`)).payload.data.messages.map((message) => message.author)).toEqual(["user", "admin", "user"]);
   }, 90_000);
 });
 

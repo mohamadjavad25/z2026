@@ -1,31 +1,38 @@
 /*
- * Admin panel (/admin). "Control room": deep graphite surfaces, hairline borders, one hot-pink accent, and data colors that were
- * validated for contrast and colour-blind separation (teal / coral / ochre). Dark is the default; the light theme is warm paper.
- * Everything is scoped under .admRoot so nothing leaks into the public app.
+ * Admin panel (/admin): "control room" on the brand palette. Ink surfaces with hairline borders, the brand pink as the
+ * one action colour, violet for structure, and the pink-violet blend for emphasis (the same four colours as the app,
+ * see docs/DESIGN_SYSTEM.md). Data colours are violet / pink / teal, distinct for colour-blind eyes too. Dark is the
+ * default; the light theme is the app's soft lilac paper. Everything is scoped under .admRoot so nothing leaks out.
  */
 .admRoot {
-  --a-bg: #0a0c11; --a-bg2: #10131a; --a-card: #141720; --a-card2: #1b1f2a; --a-raise: #222735;
-  --a-line: rgba(255, 255, 255, 0.075); --a-line2: rgba(255, 255, 255, 0.14);
-  --a-ink: #eef0f6; --a-muted: #a2a9bc; --a-faint: #6f768a;
-  --a-accent: #f0457f; --a-accent-ink: #ffffff; --a-accent-soft: rgba(240, 69, 127, 0.15);
+  --a-bg: #0b0c11; --a-bg2: #101118; --a-card: #14151d; --a-card2: #1b1c26; --a-raise: #23242f;
+  --a-line: rgba(255, 255, 255, 0.07); --a-line2: rgba(255, 255, 255, 0.13);
+  --a-ink: #f1f0f6; --a-muted: #a7a7ba; --a-faint: #707186;
+  --a-accent: #ff86b8; --a-accent-ink: #0c0d12; --a-accent-soft: rgba(255, 134, 184, 0.14);
+  --a-violet: #a48bff; --a-violet-soft: rgba(139, 108, 255, 0.16);
+  --a-blend: linear-gradient(120deg, #ff86b8 0%, #b58cff 52%, #7c5cff 100%);
   --a-good: #3ddc97; --a-good-soft: rgba(61, 220, 151, 0.14); --a-bad: #ff7b8f; --a-bad-soft: rgba(255, 123, 143, 0.14); --a-warn: #f5b942; --a-warn-soft: rgba(245, 185, 66, 0.13);
-  --a-s1: #00a9b1; --a-s2: #d66f71; --a-s3: #a5931b;
-  --a-side: #07090d; --a-side-ink: #e7e9f1;
+  --a-s1: #9b82ff; --a-s2: #ff86b8; --a-s3: #2ec4b6;
+  --a-side: #08090d; --a-side-ink: #ecebf3;
   --a-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 18px 40px -22px rgba(0, 0, 0, 0.8);
-  --a-glow-1: rgba(240, 69, 127, 0.16); --a-glow-2: rgba(0, 169, 177, 0.12);
+  --a-pop: 0 28px 70px -24px rgba(0, 0, 0, 0.85), inset 0 0 0 1px var(--a-line2);
+  --a-glow-1: rgba(255, 134, 184, 0.13); --a-glow-2: rgba(139, 108, 255, 0.13);
   min-height: 100dvh; background: var(--a-bg); color: var(--a-ink); position: relative; isolation: isolate;
   font-feature-settings: "tnum" 1; color-scheme: dark;
 }
 .admRoot[data-theme="light"] {
-  --a-bg: #f4f1ec; --a-bg2: #ebe7e0; --a-card: #ffffff; --a-card2: #f6f3ee; --a-raise: #ffffff;
-  --a-line: rgba(30, 28, 24, 0.09); --a-line2: rgba(30, 28, 24, 0.17);
-  --a-ink: #1a1c25; --a-muted: #5a5f70; --a-faint: #8a8f9e;
-  --a-accent: #d9185c; --a-accent-soft: rgba(217, 24, 92, 0.1);
+  --a-bg: #f3f2f8; --a-bg2: #ebeaf3; --a-card: #ffffff; --a-card2: #f6f5fa; --a-raise: #ffffff;
+  --a-line: rgba(12, 13, 18, 0.08); --a-line2: rgba(12, 13, 18, 0.15);
+  --a-ink: #0c0d12; --a-muted: #5c5f6e; --a-faint: #8c8f9e;
+  --a-accent: #c42a74; --a-accent-ink: #ffffff; --a-accent-soft: rgba(196, 42, 116, 0.1);
+  --a-violet: #5b3fd6; --a-violet-soft: rgba(91, 63, 214, 0.1);
+  --a-blend: linear-gradient(120deg, #e8267f 0%, #9a4fe0 55%, #5b3fd6 100%);
   --a-good: #137a45; --a-good-soft: rgba(19, 122, 69, 0.11); --a-bad: #b4233a; --a-bad-soft: rgba(180, 35, 58, 0.1); --a-warn: #8a5a00; --a-warn-soft: rgba(138, 90, 0, 0.1);
-  --a-s1: #00a2ae; --a-s2: #d7506e; --a-s3: #b47a00;
-  --a-side: #171a23;
-  --a-shadow: 0 1px 2px rgba(30, 28, 24, 0.06), 0 14px 32px -24px rgba(30, 28, 24, 0.5);
-  --a-glow-1: rgba(217, 24, 92, 0.08); --a-glow-2: rgba(0, 162, 174, 0.08);
+  --a-s1: #5b3fd6; --a-s2: #d63a83; --a-s3: #0f8a80;
+  --a-side: #0c0d12;
+  --a-shadow: 0 1px 2px rgba(12, 13, 18, 0.05), 0 14px 32px -24px rgba(12, 13, 18, 0.45);
+  --a-pop: 0 28px 70px -24px rgba(12, 13, 18, 0.4), inset 0 0 0 1px var(--a-line2);
+  --a-glow-1: rgba(255, 134, 184, 0.14); --a-glow-2: rgba(139, 108, 255, 0.12);
   color-scheme: light;
 }
 .admRoot::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
@@ -39,7 +46,7 @@
 .admMuted { color: var(--a-muted); font-size: var(--text-sm); font-weight: 600; line-height: 1.9; margin: 0; }
 .admHello { display: grid; gap: 4px; }
 .admHello p { margin: 0; color: var(--a-muted); font-weight: 600; font-size: var(--text-base); }
-.admHello h1 em { font-style: normal; background: linear-gradient(100deg, var(--a-accent), #ff9bb8); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.admHello h1 em { font-style: normal; background: var(--a-blend); -webkit-background-clip: text; background-clip: text; color: transparent; }
 
 .admError, .admNote { margin: 0 0 var(--space-3); padding: 10px 14px; border-radius: var(--radius-md); background: var(--a-warn-soft); color: var(--a-warn); font-size: var(--text-sm); font-weight: 750; line-height: 1.8; }
 .admError { background: var(--a-bad-soft); color: var(--a-bad); }
@@ -95,7 +102,7 @@
 .admRowActions { display: flex; gap: 6px; }
 
 /* Shared controls, re-skinned inside the admin only. */
-.admRoot .ui-btn { background: var(--a-accent); color: var(--a-accent-ink); border-radius: 12px; font-weight: 800; box-shadow: 0 8px 20px -10px var(--a-accent); }
+.admRoot .ui-btn { background: var(--a-accent); color: var(--a-accent-ink); border-radius: 12px; font-weight: 850; box-shadow: 0 8px 22px -12px var(--a-accent); }
 .admRoot .ui-btn:hover:not(:disabled) { filter: brightness(1.08); }
 .admRoot .ui-btn.is-secondary { background: var(--a-card2); color: var(--a-ink); box-shadow: inset 0 0 0 1px var(--a-line2); }
 .admRoot .ui-btn.is-secondary:hover:not(:disabled) { background: var(--a-raise); }
@@ -117,14 +124,15 @@
 .admSide { position: sticky; top: 0; align-self: flex-start; height: 100dvh; width: 72px; flex: 0 0 auto; display: flex; flex-direction: column; gap: var(--space-3); padding: 14px 12px; background: var(--a-side); color: var(--a-side-ink); direction: rtl; z-index: var(--z-nav); transition: width 0.22s cubic-bezier(0.3, 0.7, 0.2, 1); overflow: hidden; border-inline-end: 1px solid rgba(255, 255, 255, 0.06); }
 .admSide.is-open { width: 244px; }
 .admSideTop { display: flex; align-items: center; gap: 10px; min-height: 46px; }
-.admBrand { font-weight: 950; font-size: var(--text-md); letter-spacing: 0.01em; white-space: nowrap; background: linear-gradient(100deg, #fff, #ffb3cb); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.admBrand { display: grid; line-height: 1.15; font-weight: 950; font-size: 1.15rem; letter-spacing: 0.01em; white-space: nowrap; }
+.admBrand small { font-size: 0.68rem; font-weight: 750; color: rgba(236, 235, 243, 0.5); letter-spacing: 0; }
 .admSideNav { display: grid; gap: 4px; align-content: start; flex: 1; overflow-y: auto; }
 .admSide button { position: relative; display: flex; align-items: center; gap: 13px; width: 100%; min-height: 46px; padding: 0 14px; border: 0; border-radius: 14px; background: transparent; color: rgba(231, 233, 241, 0.72); font: inherit; font-size: var(--text-base); font-weight: 750; text-align: start; white-space: nowrap; cursor: pointer; transition: background 0.15s ease, color 0.15s ease; }
 .admSide button svg { flex: 0 0 auto; }
 .admSide button:hover { background: rgba(255, 255, 255, 0.07); color: #fff; }
-.admSide button:focus-visible { outline: 2px solid #ff9bb8; outline-offset: 1px; }
-.admSide button.is-on { background: linear-gradient(90deg, rgba(240, 69, 127, 0.22), rgba(240, 69, 127, 0.06)); color: #fff; }
-.admSide button.is-on::before { content: ""; position: absolute; inset-block: 10px; inset-inline-start: -12px; width: 4px; border-radius: 0 4px 4px 0; background: var(--a-accent); box-shadow: 0 0 14px var(--a-accent); }
+.admSide button:focus-visible { outline: 2px solid #ff86b8; outline-offset: 1px; }
+.admSide button.is-on { background: linear-gradient(90deg, rgba(139, 108, 255, 0.24), rgba(255, 134, 184, 0.1)); color: #fff; }
+.admSide button.is-on::before { content: ""; position: absolute; inset-block: 10px; inset-inline-start: -12px; width: 4px; border-radius: 0 4px 4px 0; background: linear-gradient(180deg, #ff86b8, #8b6cff); box-shadow: 0 0 14px rgba(255, 134, 184, 0.7); }
 .admSideToggle { width: 46px !important; padding: 0 !important; justify-content: center; flex: 0 0 auto; }
 .admSideBottom { display: grid; gap: 6px; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.09); }
 .admSideUser { padding: 0 14px; color: rgba(231, 233, 241, 0.6); font-size: var(--text-sm); font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -151,7 +159,7 @@
 .admLoginWrap { min-height: 100dvh; align-content: center; justify-items: center; }
 .admLogin { max-width: 440px; width: 100%; display: grid; gap: var(--space-3); padding: var(--space-6) var(--space-5); border-radius: 26px; box-shadow: var(--a-shadow), inset 0 0 0 1px var(--a-line2); backdrop-filter: blur(10px); }
 .admLogin h1 { text-align: center; }
-.admLogo { justify-self: center; display: grid; place-items: center; width: 54px; height: 54px; border-radius: 18px; color: #fff; background: linear-gradient(135deg, var(--a-accent), #7a2cff); box-shadow: 0 14px 30px -12px var(--a-accent); margin-bottom: 4px; }
+.admLogo { justify-self: center; display: grid; place-items: center; width: 54px; height: 54px; border-radius: 18px; color: #0c0d12; background: linear-gradient(120deg, #ff86b8 0%, #b58cff 52%, #7c5cff 100%); box-shadow: 0 14px 30px -12px rgba(255, 134, 184, 0.7); margin-bottom: 4px; }
 .admForm input[type="text"], .admForm input[type="password"], .admForm input:not([type]), .admForm input[type="search"], .admForm input[inputmode] { width: 100%; padding: 0 var(--space-4); font: inherit; font-size: 1.05rem; }
 .admQr { justify-self: center; border-radius: 16px; background: #fff; padding: 8px; }
 .admKey { justify-self: center; padding: 8px 12px; border-radius: 12px; background: var(--a-card2); color: var(--a-ink); font-weight: 800; letter-spacing: 0.08em; word-break: break-all; }
