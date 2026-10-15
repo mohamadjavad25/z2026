@@ -1,4 +1,5 @@
 import { getDb, withTransaction, all, get, run } from "../../connection.js";
+import { lockSalonDay, lockVisitDay } from "../../locks.js";
 import * as artists from "../artists.js";
 import { formatPersianDateKey, isPersianDateKey, resolveRollingPersianDateKey } from "../../../../shared/lib/persianCalendar.js";
 import {
@@ -300,6 +301,63 @@ export async function listFeasibleVisitTimes(salonUserId, bookingDate, parts, ti
     if (!findUnstaffedPart(day, drafted) && !visitOverlaps(day, time, drafted)) feasible.push(time);
   }
   return feasible;
+}
+
+/**
+ * One visit at one start time as a screen shows it before booking: every service with its clock
+ * time and artist -- the artist the salon named, else the draft (draftVisitParts, the same split the
+ * booking itself gets) -- and the first thing that would make the booking be refused (`problem`).
+ * `unstaffed` is the index of the first service nobody could be drafted for although someone at the
+ * salon does it (-1 for none): a client's request is refused for it, the salon's own entry is not.
+ * With `withOptions` each service also lists every team member with `free` (nothing of theirs in the
+ * salon or their own calendar then), `skilled` (linked to the service) and `away` (their state when
+ * inactive or on leave): the salon's artist picker. Null when there is no service.
+ */
+export async function previewVisit(salonUserId, bookingDate, time, parts, { withOptions = false } = {}) {
+  await ensureBookingPartsColumns();
+  const list = parseBookingParts(parts);
+  if (!list.length) return null;
+  const day = await loadVisitDay(await getDb(), salonUserId, bookingDate);
+  const drafted = await draftVisitParts(day, time, list);
+  const teamByName = new Map(day.team.map((person) => [staffName(person), person]));
+  const planned = [];
+  for (const part of scheduleBookingParts(time, drafted)) {
+    const person = teamByName.get(part.staff);
+    const entry = {
+      service: part.service,
+      minutes: part.minutes,
+      start: part.startLabel,
+      end: part.endLabel,
+      staff: part.staff,
+      unknownStaff: Boolean(part.staff && !person),
+      free: part.staff && person ? await isStaffFree(day, person, part.start, part.end) : null
+    };
+    if (withOptions) {
+      const skilled = new Set(staffForService(day, part.service).map(staffName));
+      entry.options = [];
+      for (const member of day.team) {
+        entry.options.push({
+          name: staffName(member),
+          free: await isStaffFree(day, member, part.start, part.end),
+          skilled: skilled.has(staffName(member)),
+          away: isStaffWorking(member) ? "" : String(member.state || "").trim()
+        });
+      }
+    }
+    planned.push(entry);
+  }
+  let problem = null;
+  const unknown = planned.findIndex((part) => part.unknownStaff);
+  const busy = planned.findIndex((part) => part.staff && part.free === false);
+  if (unknown >= 0) {
+    problem = { code: "UNKNOWN_STAFF", partIndex: unknown, message: `«${planned[unknown].staff}» در تیم سالن نیست.` };
+  } else if (busy >= 0) {
+    problem = { code: "STAFF_BUSY", partIndex: busy, message: `${planned[busy].staff} از ${planned[busy].start} تا ${planned[busy].end} نوبت دیگری دارد.` };
+  } else if (visitOverlaps(day, time, drafted)) {
+    problem = { code: "CONFLICT", partIndex: -1, message: "این زمان قبلاً رزرو شده است." };
+  }
+  const missing = findUnstaffedPart(day, drafted);
+  return { parts: planned, unstaffed: missing ? drafted.indexOf(missing) : -1, problem };
 }
 
 /**
@@ -618,6 +676,7 @@ export async function addSalonBooking(salonUserId, data) {
   const durationMinutes = await resolveSalonBookingDuration(salonUserId, data, await getDb());
 
   return withTransaction(null, async (db) => {
+    await lockSalonDay(db, salonUserId, bookingDate);
     const conflict = await findOverlapConflict(db, {
       salonUserId,
       bookingDate,
@@ -667,6 +726,9 @@ async function addMultiPartSalonBooking(salonUserId, data) {
   const staffList = await listSalonStaff(salonUserId);
   try {
     return await withTransaction(null, async (db) => {
+      // Everyone who might do a service has their day held until this visit is in, so two requests
+      // for the same time can't both be told "free".
+      await lockVisitDay(db, salonUserId, data.bookingDate, staffList.map((person) => person.artist_user_id));
       const day = await loadVisitDay(db, salonUserId, data.bookingDate);
       const parts = await draftVisitParts(day, data.time, parseBookingParts(data.parts));
       // A client's request must find an artist for every service someone at the salon does
@@ -744,6 +806,7 @@ function buildSalonBookingNext(current, data) {
 /** Salon-row update inside an open transaction (no BEGIN/COMMIT of its own). */
 async function updateSalonBookingInTx(db, id, salonUserId, current, data) {
   const next = buildSalonBookingNext(current, data);
+  await lockSalonDay(db, salonUserId, next.booking_date);
   // Re-snapshot the icon only when the service itself changed.
   if (String(next.service || "") !== String(current.service || "")) {
     next.service_emoji = await resolveBookingServiceEmoji(db, {
@@ -1062,6 +1125,7 @@ async function patchMultiPartBooking(id, salonUserId, current, data) {
 
   try {
     return await withTransaction(null, async (db) => {
+      await lockVisitDay(db, salonUserId, buildSalonBookingNext(current, data).booking_date, staffList.map((person) => person.artist_user_id));
       const salonResult = await updateSalonBookingInTx(db, id, salonUserId, current, { ...data, staff: "", parts: nextParts });
       if (!salonResult.ok) return salonResult;
       const next = salonResult.booking;
