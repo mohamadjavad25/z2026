@@ -1,0 +1,38 @@
+name: Deploy to Iranian server
+
+# Manual only: Actions tab -> "Deploy to Iranian server" -> Run workflow. Nothing here runs on push, and it
+# never touches the Vercel deployment. The build is made here and shipped over SSH, so the server itself
+# never has to reach GitHub or npm (see deploy/README.md).
+#
+# Repo secrets needed (Settings -> Secrets and variables -> Actions):
+#   DEPLOY_HOST         server IP or name
+#   DEPLOY_SSH_KEY      private key whose public half was given to setup-server.sh as DEPLOY_PUBKEY
+on:
+  workflow_dispatch: {}
+
+concurrency:
+  group: deploy-iran
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+      - run: npm ci
+      - name: SSH key
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+      - name: Build and deploy
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+        run: bash deploy/deploy.sh

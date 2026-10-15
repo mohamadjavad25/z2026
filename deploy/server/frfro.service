@@ -1,0 +1,21 @@
+[Unit]
+Description=frfro (Next.js)
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=simple
+User=frfro
+Group=frfro
+WorkingDirectory=/opt/frfro/current
+EnvironmentFile=/etc/frfro/env
+ExecStart=/opt/frfro/current/bin/node /opt/frfro/current/server.js
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+ProtectSystem=full
+PrivateTmp=true
+MemoryMax=2500M
+
+[Install]
+WantedBy=multi-user.target
