@@ -975,16 +975,16 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   color: var(--n-0);
   box-shadow:
     0 0 0 3px var(--n-0),
-    0 0 0 5px rgb(255 134 184 / 0.65),
-    0 14px 28px rgb(var(--shadow-rgb) / 0.28);
+    0 0 0 5px rgb(var(--brand-pink-rgb) / 0.65),
+    var(--nav-lift);
 }
 
 .bottomNav .profileTab.active {
   background: var(--fill-strong);
   box-shadow:
     0 0 0 3px var(--n-0),
-    0 0 0 5px rgb(255 134 184 / 0.82),
-    0 16px 32px rgb(var(--shadow-rgb) / 0.3);
+    0 0 0 5px rgb(var(--brand-pink-rgb) / 0.82),
+    var(--nav-lift);
 }
 
 .bottomNav .profileTab.is-createBooking {

@@ -599,9 +599,8 @@
       linear-gradient(180deg, var(--n-600) 0%, var(--n-900) 100%) !important;
     box-shadow:
       0 0 0 0.5px rgba(226, 236, 255, 0.42),
-      0 0 7px rgba(111, 115, 128, 0.38),
-      0 0 13px rgb(139 108 255 / 0.26),
-      0 14px 28px rgb(var(--shadow-rgb) / 0.28) !important;
+      0 0 8px rgb(var(--brand-violet-rgb) / 0.14),
+      var(--nav-lift) !important;
   }
 
   .profilePanel.page-profile.is-salon-profile ~ .bottomNav .profileTab .profileNavImage,
