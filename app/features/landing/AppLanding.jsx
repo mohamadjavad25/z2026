@@ -1,5 +1,6 @@
 import Link from "next/link";
 import QRCode from "qrcode";
+import { Check, Palette, Search, Store } from "lucide-react";
 import { ANDROID_APK_URL, ANDROID_APP_VERSION, DOWNLOAD_PAGE_URL } from "./constants";
 import { EnterAppButton } from "./EnterAppButton";
 
@@ -8,6 +9,7 @@ import { EnterAppButton } from "./EnterAppButton";
  * until the visitor taps «ورود به فرفرو», and on large screens (tablet and desktop) in place
  * of every page but /admin, /terms and /privacy (see LargeScreenGate).
  * Server component: plain content, no client state. Motion is CSS only (landing.css).
+ * Look: white and ink with pink and violet blended in (see the tokens at the top of landing.css).
  */
 
 const CATEGORIES = [
@@ -23,7 +25,7 @@ const CATEGORIES = [
 
 const AUDIENCES = [
   {
-    image: "/role-client.png",
+    Icon: Search,
     tag: "مشتری",
     title: "دنبال سالن خوبی؟",
     points: [
@@ -34,7 +36,7 @@ const AUDIENCES = [
     ]
   },
   {
-    image: "/role-salon.png",
+    Icon: Store,
     tag: "سالن",
     title: "سالن داری؟",
     points: [
@@ -45,7 +47,7 @@ const AUDIENCES = [
     ]
   },
   {
-    image: "/role-artist.png",
+    Icon: Palette,
     tag: "آرتیست",
     title: "آرتیست هستی؟",
     points: [
@@ -90,7 +92,7 @@ const FAQ = [
 
 async function downloadQrSvg() {
   try {
-    return await QRCode.toString(DOWNLOAD_PAGE_URL, { type: "svg", margin: 0, color: { dark: "#14161dff", light: "#ffffff00" } });
+    return await QRCode.toString(DOWNLOAD_PAGE_URL, { type: "svg", margin: 0, color: { dark: "#0c0d12ff", light: "#ffffff00" } });
   } catch {
     return "";
   }
@@ -112,24 +114,7 @@ function AppleIcon() {
   );
 }
 
-/** The scalloped "fluff" shape of the mascot's ears, used as a soft backdrop. */
-function Fluff({ className }) {
-  return (
-    <svg viewBox="0 0 200 200" aria-hidden="true" className={className}>
-      <g fill="currentColor">
-        <circle cx="100" cy="100" r="62" />
-        <circle cx="100" cy="40" r="36" />
-        <circle cx="152" cy="68" r="36" />
-        <circle cx="152" cy="132" r="36" />
-        <circle cx="100" cy="160" r="36" />
-        <circle cx="48" cy="132" r="36" />
-        <circle cx="48" cy="68" r="36" />
-      </g>
-    </svg>
-  );
-}
-
-function DownloadButtons({ tone = "dark" }) {
+function DownloadButtons({ tone = "light" }) {
   return (
     <div className={`appLanding__buttons is-${tone}`}>
       <a className="appLanding__store is-primary" href={ANDROID_APK_URL} download="frfro.apk">
@@ -175,24 +160,25 @@ export async function AppLanding() {
   const qrSvg = await downloadQrSvg();
   return (
     <main className="appLanding" dir="rtl">
-      <div className="appLanding__night">
-        <header className="appLanding__nav">
-          <Link href="/download" className="appLanding__brand" aria-label="frfro">
-            <img src="/icons/icon-192.png" alt="" width="40" height="40" />
-            <span>فرفرو</span>
-          </Link>
-          <nav aria-label="بخش‌های صفحه">
-            <a href="#about">فرفرو چیست</a>
-            <a href="#how">چطور کار می‌کند</a>
-            <a href="#install">نصب</a>
-            <a href="#faq">سؤال‌ها</a>
-          </nav>
-          <a className="appLanding__navCta" href={ANDROID_APK_URL} download="frfro.apk">دانلود اپ</a>
-        </header>
+      <header className="appLanding__nav">
+        <Link href="/download" className="appLanding__brand" aria-label="frfro">
+          <img src="/icons/icon-192.png" alt="" width="36" height="36" />
+          <span>فرفرو</span>
+        </Link>
+        <nav aria-label="بخش‌های صفحه">
+          <a href="#about">فرفرو چیست</a>
+          <a href="#how">چطور کار می‌کند</a>
+          <a href="#install">نصب</a>
+          <a href="#faq">سؤال‌ها</a>
+        </nav>
+        <a className="appLanding__navCta" href={ANDROID_APK_URL} download="frfro.apk">دانلود اپ</a>
+      </header>
 
-        <section className="appLanding__hero">
+      <section className="appLanding__hero">
+        <div className="appLanding__aurora" aria-hidden="true" />
+        <div className="appLanding__heroInner">
           <div className="appLanding__heroText">
-            <p className="appLanding__eyebrow"><span aria-hidden="true">✦</span> شبکهٔ اجتماعی زیبایی بانوان</p>
+            <p className="appLanding__eyebrow"><span aria-hidden="true" /> شبکهٔ اجتماعی زیبایی بانوان</p>
             <h1>
               زیبایی‌ات،
               <br />
@@ -207,9 +193,19 @@ export async function AppLanding() {
           </div>
 
           <div className="appLanding__heroArt" aria-hidden="true">
-            <Fluff className="appLanding__heroFluff" />
             <div className="appLanding__phone">
               <img src="/explore-collage.webp" alt="" />
+            </div>
+            <div className="appLanding__float is-confirm">
+              <span className="appLanding__floatIcon"><Check size={18} strokeWidth={3} /></span>
+              <span>
+                <strong>نوبتت تأیید شد</strong>
+                <small>فردا · ساعت ۱۶:۳۰</small>
+              </span>
+            </div>
+            <div className="appLanding__float is-times">
+              <strong>ساعت‌های آزاد امروز</strong>
+              <span className="appLanding__times"><b>۱۴:۰۰</b><b>۱۵:۳۰</b><b>۱۷:۰۰</b></span>
             </div>
             <img className="appLanding__heroMascot" src="/brand/mascot/search.webp" alt="" width="415" height="640" />
             {qrSvg ? (
@@ -219,24 +215,24 @@ export async function AppLanding() {
               </div>
             ) : null}
           </div>
-        </section>
+        </div>
+      </section>
 
-        <CategoryRibbon />
-      </div>
+      <CategoryRibbon />
 
-      <div className="appLanding__paper">
-        <section id="about" className="appLanding__section">
+      <section id="about" className="appLanding__dark">
+        <div className="appLanding__section">
           <header className="appLanding__head appLanding__reveal">
             <p className="appLanding__kicker">فرفرو چیست</p>
-            <h2>یک اپ، برای هر سه طرف</h2>
+            <h2>یک اپ، برای <em>هر سه طرف</em></h2>
             <p>فرفرو مشتری، سالن و آرتیست را در یک جا کنار هم می‌آورد: کشف با نمونه‌کار واقعی، رزرو مستقیم و برنامهٔ کاری مرتب.</p>
           </header>
           <div className="appLanding__cards">
             {AUDIENCES.map((audience, index) => (
-              <article key={audience.tag} className={`appLanding__card appLanding__reveal${index === 0 ? " is-featured" : ""}`}>
+              <article key={audience.tag} className={`appLanding__card is-${index} appLanding__reveal`}>
                 <div className="appLanding__cardTop">
                   <span className="appLanding__tag">برای {audience.tag}</span>
-                  <img src={audience.image} alt="" width="64" height="64" loading="lazy" />
+                  <span className="appLanding__cardIcon"><audience.Icon size={26} strokeWidth={2} aria-hidden="true" /></span>
                 </div>
                 <h3>{audience.title}</h3>
                 <ul>
@@ -245,18 +241,19 @@ export async function AppLanding() {
               </article>
             ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section id="how" className="appLanding__section">
+      <section id="how" className="appLanding__light">
+        <div className="appLanding__section">
           <header className="appLanding__head appLanding__reveal">
             <p className="appLanding__kicker">چطور کار می‌کند</p>
-            <h2>از دیدن تا نشستن روی صندلی سالن، در چهار قدم</h2>
+            <h2>از دیدن تا نشستن روی صندلی سالن، در <em>چهار قدم</em></h2>
           </header>
           <ol className="appLanding__steps">
             {STEPS.map((step) => (
               <li key={step.title} className="appLanding__reveal">
                 <div className="appLanding__stepArt">
-                  <Fluff className="appLanding__stepFluff" />
                   <img src={step.image} alt="" width="415" height="640" loading="lazy" />
                 </div>
                 <h3>{step.title}</h3>
@@ -264,18 +261,21 @@ export async function AppLanding() {
               </li>
             ))}
           </ol>
-        </section>
+        </div>
+      </section>
 
-        <section className="appLanding__promises appLanding__reveal" aria-label="قول‌های فرفرو">
-          {PROMISES.map((promise) => (
-            <div key={promise.title}>
-              <strong>{promise.title}</strong>
-              <span>{promise.text}</span>
-            </div>
-          ))}
-        </section>
+      <section className="appLanding__promises appLanding__reveal" aria-label="قول‌های فرفرو">
+        {PROMISES.map((promise) => (
+          <div key={promise.title}>
+            <span className="appLanding__promiseIcon"><Check size={18} strokeWidth={3} aria-hidden="true" /></span>
+            <strong>{promise.title}</strong>
+            <span>{promise.text}</span>
+          </div>
+        ))}
+      </section>
 
-        <section id="install" className="appLanding__section">
+      <section id="install" className="appLanding__light is-mist">
+        <div className="appLanding__section">
           <header className="appLanding__head appLanding__reveal">
             <p className="appLanding__kicker">نصب</p>
             <h2>فرفرو را روی گوشی‌ات بیاور</h2>
@@ -305,9 +305,11 @@ export async function AppLanding() {
               <p className="appLanding__soon">نسخهٔ App Store به‌زودی.</p>
             </article>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section id="faq" className="appLanding__section is-narrow">
+      <section id="faq" className="appLanding__light">
+        <div className="appLanding__section is-narrow">
           <header className="appLanding__head appLanding__reveal">
             <p className="appLanding__kicker">سؤال‌ها</p>
             <h2>سؤال‌های رایج</h2>
@@ -320,20 +322,23 @@ export async function AppLanding() {
               </details>
             ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section className="appLanding__finale appLanding__reveal">
-          <Fluff className="appLanding__finaleFluff" />
+      <section className="appLanding__finaleWrap">
+        <div className="appLanding__finale appLanding__reveal">
           <img className="appLanding__finaleMascot" src="/brand/mascot/thumbsup.webp" alt="" width="460" height="640" loading="lazy" />
           <div>
             <h2>نوبت بعدی‌ات را با فرفرو بگیر.</h2>
             <p>رایگان، سبک و بدون پرداخت داخل برنامه.</p>
-            <DownloadButtons tone="light" />
+            <DownloadButtons tone="dark" />
             <EnterAppButton className="appLanding__enter">یا ورود به فرفرو در مرورگر ←</EnterAppButton>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <footer className="appLanding__footer">
+      <footer className="appLanding__footer">
+        <div className="appLanding__footerInner">
           <div>
             <strong>فرفرو</strong>
             <span>پشتیبانی: <a href="mailto:support@frfro.ir">support@frfro.ir</a></span>
@@ -343,8 +348,8 @@ export async function AppLanding() {
             <Link href="/privacy">حریم خصوصی</Link>
             <EnterAppButton className="appLanding__enterLink">ورود به فرفرو</EnterAppButton>
           </nav>
-        </footer>
-      </div>
+        </div>
+      </footer>
     </main>
   );
 }
