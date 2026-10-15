@@ -667,11 +667,12 @@ describe("support (browser)", () => {
     // Keep the conversation going.
     await page.getByLabel("پیام", { exact: true }).fill("ممنون، حل شد.");
     await page.getByRole("button", { name: "ارسال", exact: true }).click();
-    await page.getByText("ممنون، حل شد.").waitFor();
+    // Wait for the sent bubble, not just the text: a typed textarea also carries its value as text, so getByText
+    // could match the box itself while the message is still on its way (and closing the page would drop it).
+    await page.locator(".scMsg.is-user", { hasText: "ممنون، حل شد." }).waitFor();
     expect(problems).toEqual([]);
     await context.close();
-    const after = (await admin.get(`/api/admin/support/${inbox.tickets[0].id}`)).payload.data;
-    expect(after.messages.map((message) => message.author)).toEqual(["user", "admin", "user"]);
+    await expect.poll(async () => (await admin.get(`/api/admin/support/${inbox.tickets[0].id}`)).payload.data.messages.map((message) => message.author)).toEqual(["user", "admin", "user"]);
   }, 90_000);
 });
 
