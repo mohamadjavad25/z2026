@@ -457,17 +457,6 @@ function getPassportMatch(post) {
     });
   }
 
-  // The client's home («سالن و آرتیست من» on the first page): same as above, but the salon page
-  // lives on the «رزرو» tab, so go there first and come back home when it is closed.
-  function openPlaceFromHome(profile, focus = null) {
-    if (!profile?.id) return;
-    if (profile.type !== "artist") {
-      salonReturnTabRef.current = "profile";
-      goToTab("salons");
-    }
-    openConnectedProfile(profile, focus);
-  }
-
   async function openPostOwnerProfile(post) {
     const artist = resolvePostOwner(post);
     setSelectedPost(null);
@@ -595,7 +584,6 @@ function getPassportMatch(post) {
     openOwnPublicProfile,
     closeSelectedSalon,
     openConnectedProfile,
-    openPlaceFromHome,
     openSalonStaffPublicProfile,
     shareSalonOwnerProfile,
     renderSavedPosts,

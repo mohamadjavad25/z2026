@@ -202,3 +202,9 @@
 /* Once a client has booked, adding a place is a quiet one-line button, not a big card. */
 .chQuietAdd { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; margin: 14px 0 0; padding: 12px 14px; border: 1px dashed #d9dae1; border-radius: 16px; background: transparent; color: #6f7380; font: inherit; font-size: 0.84rem; font-weight: 850; cursor: pointer; }
 .chQuietAdd:active { transform: scale(0.98); }
+
+/* «رزرو» for a client: two tabs, «سالن و آرتیست من» (default) and «پیدا کردن». */
+.cbtTabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin: 12px 0 0; padding: 4px; border-radius: 999px; background: #f2f2f5; }
+.cbtTabs button { min-height: 40px; padding: 0 12px; border: 0; border-radius: 999px; background: transparent; color: #6f7380; font: inherit; font-size: 0.86rem; font-weight: 900; cursor: pointer; transition: background 0.18s, color 0.18s; }
+.cbtTabs button.is-on { background: #14161d; color: #fff; box-shadow: 0 8px 18px -10px rgba(20, 22, 29, 0.55); }
+.clientHome.is-places { padding-top: 14px; }
