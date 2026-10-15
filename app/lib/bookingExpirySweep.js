@@ -3,6 +3,7 @@ import * as salons from "./db/repos/salons.js";
 import * as artists from "./db/repos/artists.js";
 import { sendPushToUser } from "./push.js";
 import { isSlotInPast } from "../shared/lib/slots.js";
+import { AWAITING_CLIENT } from "../shared/lib/bookingOffer.js";
 import { BOOKING_REQUEST_WINDOW_MINUTES } from "../shared/lib/bookingWindow.js";
 
 /**
@@ -93,6 +94,18 @@ async function findExpiredDirectArtistBookingRequests(db, minutes) {
   `, [minutes]).then(keepUnanswerable);
 }
 
+/** A new time the salon offered that the client never answered, and whose appointment time has now started:
+ *  it can't be accepted any more, so it is closed like any other unanswered request (it has no hour window
+ *  of its own -- the salon moved it on purpose, and the client may take until it starts). */
+async function findStartedSalonOffers(db) {
+  const rows = await all(db, `
+    SELECT id, salon_user_id, client_user_id, client, service, booking_date, time, FALSE AS timed_out
+    FROM salon_bookings
+    WHERE status = $1
+  `, [AWAITING_CLIENT]);
+  return rows.filter((row) => isSlotInPast(row.booking_date, row.time));
+}
+
 /** Push notifications for both sides of an expired salon booking request. */
 function notifyClientOfExpiry(booking) {
   const clientUserId = Number(booking.client_user_id || 0);
@@ -137,7 +150,10 @@ export async function sweepExpiredBookingRequestsOnce() {
   const db = await getDb();
   const minutes = timeoutMinutes();
 
-  const staleSalon = await findExpiredSalonBookingRequests(db, minutes);
+  const staleSalon = [
+    ...await findExpiredSalonBookingRequests(db, minutes),
+    ...await findStartedSalonOffers(db)
+  ];
   let salonExpired = 0;
   for (const row of staleSalon) {
     // Reuse the exact same atomic salon+linked-artist status-sync path the

@@ -3,6 +3,7 @@ import { requireUser, withErrorHandling } from "../../lib/http.js";
 import { ensureDb } from "../../lib/db/connection.js";
 import * as salons from "../../lib/db/repos/salons.js";
 import * as artists from "../../lib/db/repos/artists.js";
+import { sweepExpiredBookingRequestsIfDue } from "../../lib/bookingExpirySweep.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -21,6 +22,9 @@ async function _GET(request) {
   if (auth.user.type !== "client") {
     return NextResponse.json({ error: "فقط مشتری." }, { status: 403 });
   }
+  // No scheduler is guaranteed, so a client who is still waiting on a request that ran out of time
+  // must not depend on an owner opening their app to see it close.
+  await sweepExpiredBookingRequestsIfDue();
   const [salonBookings, artistBookings] = await Promise.all([
     salons.listClientSalonBookings(auth.user),
     artists.listClientArtistBookings(auth.user)

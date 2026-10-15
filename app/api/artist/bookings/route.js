@@ -66,6 +66,8 @@ async function _POST(request) {
   }
   const result = await artists.addArtistBooking(artistUserId, {
     ...v.data,
+    // The artist's own entry is settled; a client's waits for the artist (see POST /api/artist/me).
+    ...(isOwner ? { status: "تایید" } : {}),
     ...(!isOwner && viewer?.id && artistSettings.autoConfirm ? { status: "تایید شده" } : {}),
     clientUserId: viewer?.id || null,
     clientName: body.clientName || viewer?.name || "",

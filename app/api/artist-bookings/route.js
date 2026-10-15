@@ -1,6 +1,7 @@
 import { json, requireUser, withErrorHandling } from "../../lib/http.js";
 import { ensureDb } from "../../lib/db/connection.js";
 import * as artists from "../../lib/db/repos/artists.js";
+import { sweepExpiredBookingRequestsIfDue } from "../../lib/bookingExpirySweep.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,6 +27,7 @@ async function _GET(request) {
   if (auth.user.type !== "client") {
     return json({ error: "فقط مشتری." }, { status: 403 });
   }
+  await sweepExpiredBookingRequestsIfDue();
   return json({ data: { bookings: await artists.listClientArtistBookings(auth.user) } });
 }
 

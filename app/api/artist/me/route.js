@@ -40,7 +40,9 @@ async function _POST(request) {
   if (!auth.ok) return auth.response;
   const body = await request.json();
   if (body.kind === "booking") {
-    const result = await artists.addArtistBooking(auth.user.id, body);
+    // An entry the artist makes in their own calendar is already settled. Left as "تازه" (a client's
+    // pending request) the expiry sweep would cancel it an hour later, as if nobody had answered.
+    const result = await artists.addArtistBooking(auth.user.id, { ...body, status: "تایید" });
     if (!result.ok) {
       return json({ error: result.error, code: result.code }, { status: result.code === "SLOT_TAKEN" ? 409 : 400 });
     }
