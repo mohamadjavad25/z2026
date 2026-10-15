@@ -4,13 +4,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { CalendarCheck, CalendarClock, Check, ChevronLeft, Hourglass, TimerOff, XCircle } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar";
-import { formatRequestExpiryDeadline, toIsoLikeTimestamp } from "../../shared/lib/time";
+import { requestDeadlineLabel, requestRemainingShare } from "../../shared/lib/bookingWindow";
 import { isBookingInPast } from "./bookingStatus";
 import { AWAITING_CLIENT } from "../../shared/lib/bookingOffer";
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
 
 const PENDING = new Set(["درخواست", "تازه"]);
-const WINDOW_MS = 60 * 60 * 1000; // a request is auto-cancelled after an hour (bookingExpirySweep)
 const FLASH_MS = 7000;
 
 // The strip docks into the bottom bar (see .cbt in polish.css). A div, not a button: the bar's own
@@ -39,9 +38,7 @@ const keyOf = (booking) => `${booking.bookingSource === "artist" ? "a" : "s"}${b
 const placeOf = (booking) => booking.salonName || booking.salon_name || "سالن";
 
 function remainingShare(booking, now) {
-  const created = new Date(toIsoLikeTimestamp(booking.created_at || booking.createdAt) || "").getTime();
-  if (!Number.isFinite(created)) return null;
-  return Math.max(0, Math.min(1, (created + WINDOW_MS - now) / WINDOW_MS));
+  return requestRemainingShare(booking.created_at || booking.createdAt, booking.booking_date || booking.date, booking.time, { now: new Date(now) });
 }
 
 /**
@@ -148,7 +145,7 @@ export function ClientBookingTracker({ bookings = [], onOpen }) {
   if (!pending.length) return null;
   const current = pending[0];
   const share = remainingShare(current, now);
-  const deadline = formatRequestExpiryDeadline(current.created_at || current.createdAt);
+  const deadline = requestDeadlineLabel(current.created_at || current.createdAt, current.booking_date || current.date, current.time);
   const label = current.bookingSource === "artist" ? "آرتیست" : "سالن";
 
   return (

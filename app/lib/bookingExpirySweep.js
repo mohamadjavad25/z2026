@@ -3,6 +3,7 @@ import * as salons from "./db/repos/salons.js";
 import * as artists from "./db/repos/artists.js";
 import { sendPushToUser } from "./push.js";
 import { isSlotInPast } from "../shared/lib/slots.js";
+import { BOOKING_REQUEST_WINDOW_MINUTES } from "../shared/lib/bookingWindow.js";
 
 /**
  * Auto-expiry sweep for booking REQUESTS a salon/artist never actively
@@ -44,7 +45,7 @@ import { isSlotInPast } from "../shared/lib/slots.js";
  */
 export const BOOKING_REQUEST_EXPIRED_STATUS = "منقضی شده";
 
-const DEFAULT_TIMEOUT_MINUTES = 60;
+const DEFAULT_TIMEOUT_MINUTES = BOOKING_REQUEST_WINDOW_MINUTES;
 
 // Recommended external-scheduler interval for app/api/cron/expire-bookings
 // (see vercel.json) -- timeout precision doesn't need to be tighter than
@@ -60,7 +61,8 @@ function timeoutMinutes() {
   return Number.isFinite(override) && override > 0 ? override : DEFAULT_TIMEOUT_MINUTES;
 }
 
-/** A pending request can no longer be answered once its response window ran out or its appointment time has started. */
+/** A pending request can no longer be answered once its response window ran out or its appointment time has started
+ *  (the same rule the screens show -- see requestMinutesLeft in shared/lib/bookingWindow.js). */
 function keepUnanswerable(rows) {
   return rows.filter((row) => row.timed_out || isSlotInPast(row.booking_date, row.time));
 }

@@ -8,12 +8,11 @@ import { useBackHandler } from "../../shared/hooks/useBackHandler";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
 import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar";
-import { toIsoLikeTimestamp } from "../../shared/lib/time";
+import { requestMinutesLeft, requestRemainingShare } from "../../shared/lib/bookingWindow";
 import { AWAITING_CLIENT } from "../../shared/lib/bookingOffer";
 import { pushNotificationsSupported, subscribeToPushNotifications } from "../shell/homeAppHelpers";
 import { bookingEndLabel, clientBookingKey } from "./bookingStatus";
 
-const WINDOW_MIN = 60; // a request is auto-cancelled after an hour (bookingExpirySweep), same as the status strip
 
 function stageOf(status = "") {
   if (status === "تایید شده") return "ok";
@@ -23,10 +22,10 @@ function stageOf(status = "") {
   return "wait";
 }
 
+// A request waits an hour at most, and never past its own start (bookingExpirySweep), same as the status strip.
 function minutesLeft(booking, now) {
-  const created = new Date(toIsoLikeTimestamp(booking?.created_at || booking?.createdAt) || "").getTime();
-  if (!Number.isFinite(created)) return null;
-  return Math.min(WINDOW_MIN, Math.max(0, Math.ceil((created + WINDOW_MIN * 60000 - now) / 60000)));
+  const left = requestMinutesLeft(booking?.created_at || booking?.createdAt, booking?.booking_date || booking?.date, booking?.time, { now: new Date(now) });
+  return left === null ? null : Math.max(0, left);
 }
 
 function alertState() {
@@ -136,7 +135,7 @@ export function BookingReceipt({ receipt, bookings = [], onClose, onViewBookings
               <strong>{toPersianDigits(left)}</strong>
               <span>دقیقه تا پاسخ {who}</span>
             </div>
-            <span className="brBar" aria-hidden="true"><i style={{ transform: `scaleX(${left / WINDOW_MIN})` }} /></span>
+            <span className="brBar" aria-hidden="true"><i style={{ transform: `scaleX(${requestRemainingShare(live?.created_at || live?.createdAt, live?.booking_date || live?.date, live?.time, { now: new Date(now) }) ?? 0})` }} /></span>
           </div>
         ) : null}
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { isSlotInPast } from "../../shared/lib/slots";
+import { isTooSoonToRequest } from "../../shared/lib/bookingWindow";
 import { playSound } from "../../shared/lib/sounds";
 import { usePolling } from "../../shared/lib/usePolling";
 import { useAppRefresh } from "../../shared/lib/appRefresh";
@@ -170,7 +170,7 @@ export function useSalonDirectory({
     const baseSlots = buildDayBookingSlots(dayWindow.open, dayWindow.close, duration);
     const selectedDateKey = resolveRollingPersianDateKey(salonClientBooking.day);
     return baseSlots.filter((time) => {
-      if (isSlotInPast(salonClientBooking.day, time)) return false;
+      if (isTooSoonToRequest(salonClientBooking.day, time)) return false;
       const start = timeLabelToMinutes(time);
       const end = start + duration;
       return !salonClientUnavailableSlots.some((slot) => {

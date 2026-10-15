@@ -6,7 +6,7 @@ import { Mascot } from "../../components/Mascot";
 import { SegmentClock } from "../../components/SegmentClock";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatRelativeBookingDayLabel, resolveRollingPersianDate } from "../../shared/lib/persianCalendar";
-import { formatRequestExpiryDeadline } from "../../shared/lib/time";
+import { requestDeadlineLabel } from "../../shared/lib/bookingWindow";
 import { ClientBookingHistorySheet } from "./ClientBookingHistorySheet";
 import { AWAITING_CLIENT } from "../../shared/lib/bookingOffer";
 import {
@@ -94,7 +94,7 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook, c
               const meta = metaOf(booking);
               const awaitingClient = booking.status === AWAITING_CLIENT;
               const pendingDeadline = (booking.status === "درخواست" || booking.status === "تازه")
-                ? formatRequestExpiryDeadline(booking.created_at)
+                ? requestDeadlineLabel(booking.created_at, booking.booking_date || booking.date, booking.time)
                 : "";
               const open = () => onOpenSettings?.({ ...booking, clientBookingSheetMode: "details" });
               return (
