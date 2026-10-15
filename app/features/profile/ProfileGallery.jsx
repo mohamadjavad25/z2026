@@ -1,11 +1,11 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { thumbUrl } from "../../shared/lib/mediaUrl";
 import { ImagePlus, Lock, Pin, Plus } from "lucide-react";
 import { SkeletonList } from "../../components/Skeleton";
 import { Mascot } from "../../components/Mascot";
-import { ProfilePostComposer } from "./ProfilePostComposer";
+import { ProfilePostComposer, queuePostFile } from "./ProfilePostComposer";
 
 
 /**
@@ -59,7 +59,6 @@ export function ProfileGallery({
   // "Create post" starts with the device gallery: the picked photo goes to the composer's crop
   // step, and the details (title, service, caption) are written there afterwards.
   const pickerRef = useRef(null);
-  const [pendingFile, setPendingFile] = useState(null);
 
   function openPicker() {
     pickerRef.current?.click();
@@ -69,7 +68,7 @@ export function ProfileGallery({
     const file = event.target.files?.[0];
     event.target.value = "";
     if (!file) return;
-    setPendingFile(file);
+    queuePostFile(file);
     onAdd?.();
   }
 
@@ -230,8 +229,6 @@ export function ProfileGallery({
           showPin={composeShowPin}
           pinnedCount={items.filter((item) => item.featured && String(item.id) !== String(composeValue.id)).length}
           submitLabel={composeSubmitLabel}
-          initialFile={pendingFile}
-          onInitialFileHandled={() => setPendingFile(null)}
         />
       ) : null}
     </>
