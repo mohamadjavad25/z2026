@@ -6,14 +6,11 @@ import {
   BadgeCheck,
   Bell,
   Eye,
-  Heart,
   ImagePlus,
   MapPin,
-  QrCode,
-  UserPlus
+  QrCode
 } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
-import { formatCount } from "../../shared/lib/counts";
 import { ProfileHeroActions } from "./ProfileHeroActions";
 import { ProfileQrCodeSheet } from "../../components/ProfileQrCodeSheet";
 
@@ -119,18 +116,8 @@ export function ProfileHero({
           <PublicPreviewButton onClick={onPreviewPublic} />
         </div>
         {modeRail}
-        <div className="salonHeroSocial" aria-label="فالو سالن">
+        <div className="salonHeroSocial" aria-label="آمار سالن">
           <div className="salonHeroFollowStats">
-            <span>
-              <Heart size={14} />
-              <b>{formatCount(salonStats?.followers)}</b>
-              <small>دنبال‌کننده</small>
-            </span>
-            <span>
-              <UserPlus size={14} />
-              <b>{formatCount(salonStats?.following)}</b>
-              <small>دنبال‌شونده</small>
-            </span>
             <span>
               <ImagePlus size={14} />
               <b>{toPersianDigits(salonStats?.posts)}</b>
@@ -201,7 +188,6 @@ export function ProfileHero({
       </div>
       {type === "artist" && (
         <div className="artistHeroStats" aria-label="آمار آرتیست">
-          <span><b>{formatCount(artistStats?.followers)}</b> دنبال‌کننده</span>
           <span><b>{artistStats?.bookingCount ?? 0}</b> رزرو فعال</span>
         </div>
       )}

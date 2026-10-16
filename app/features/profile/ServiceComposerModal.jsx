@@ -122,7 +122,7 @@ export function ServiceComposerModal({
       aria-label={editing ? "ویرایش خدمت" : "افزودن خدمت"}
       onClick={onClose}
     >
-      <article className="svcSheet" onClick={(event) => event.stopPropagation()}>
+      <article className={`svcSheet${mode === "preset" ? " is-catalog" : ""}`} onClick={(event) => event.stopPropagation()}>
         <header className="svcSheetHead" onTouchStart={handleSwipeStart} onTouchEnd={handleSwipeEnd}>
           <div>
             <span>
@@ -160,105 +160,107 @@ export function ServiceComposerModal({
 
         {mode === "preset" ? (
           <div className="svcCatalog">
-            <label className="svcSearch">
-              <Search size={16} aria-hidden="true" />
-              <input
-                type="search"
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="جستجوی خدمت… (مثلاً ژلیش، لیزر، شینیون)"
-                aria-label="جستجوی خدمت"
-              />
-            </label>
-            <div className="svcTabs" role="tablist" aria-label="دسته‌بندی خدمات">
-              {mine.length ? (
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={activeCategory === "mine"}
-                  className={activeCategory === "mine" ? "on" : ""}
-                  onClick={() => setCategory("mine")}
-                >
-                  <ServiceEmoji id="heart" size={20} />
-                  تخصص من
-                </button>
-              ) : null}
-              <button
-                type="button"
-                role="tab"
-                aria-selected={activeCategory === "all"}
-                className={activeCategory === "all" ? "on" : ""}
-                onClick={() => setCategory("all")}
-              >
-                <ServiceEmoji id="sparkles" size={20} />
-                همه
-              </button>
-              {orderedCategories.map((item) => (
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={activeCategory === item.id}
-                  className={activeCategory === item.id ? "on" : ""}
-                  key={item.id}
-                  onClick={() => setCategory(item.id)}
-                >
-                  <ServiceEmoji id={item.icon} size={20} />
-                  {item.fa}
-                </button>
-              ))}
-            </div>
-
-            <p className="svcCatalogHint">
-              روی خدمت بزن تا نام و قیمتش را ویرایش کنی، یا با + سریع اضافه‌اش کن. می‌توانی چند خدمت پشت‌سرهم انتخاب کنی.
-            </p>
-
-            <div className="svcPresetGrid" role="list">
-              {visible.length === 0 ? (
-                <div className="svcEmptyState" role="status">
-                  <ServiceIcon emoji="mirror" size="xl" />
-                  <b>خدمتی پیدا نشد</b>
-                  <span>می‌توانی خدمت دلخواهت را خودت بسازی.</span>
-                  <button type="button" onClick={() => onModeChange?.("custom")}>
-                    <Plus size={15} />
-                    ساخت خدمت جدید
+            <div className="svcCatalogScroll">
+              <label className="svcSearch">
+                <Search size={16} aria-hidden="true" />
+                <input
+                  type="search"
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="جستجوی خدمت… (مثلاً ژلیش، لیزر، شینیون)"
+                  aria-label="جستجوی خدمت"
+                />
+              </label>
+              <div className="svcTabs" role="tablist" aria-label="دسته‌بندی خدمات">
+                {mine.length ? (
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={activeCategory === "mine"}
+                    className={activeCategory === "mine" ? "on" : ""}
+                    onClick={() => setCategory("mine")}
+                  >
+                    <ServiceEmoji id="heart" size={20} />
+                    تخصص من
                   </button>
-                </div>
-              ) : null}
-              {visible.map((service) => {
-                const added = addedNames.has(service.name);
-                return (
-                  <div className={`svcPreset${added ? " is-added" : ""}`} role="listitem" key={service.id}>
-                    <button
-                      type="button"
-                      className="svcPresetMain"
-                      disabled={added}
-                      onClick={() => onCustomizePreset?.(service)}
-                      aria-label={`${service.name}، ${service.price}، ${service.duration}`}
-                    >
-                      <ServiceIcon emoji={service.emoji} name={service.name} size="lg" />
-                      <strong>{service.name}</strong>
-                      <small>{service.hint}</small>
-                      <span className="svcPresetMeta">
-                        <em><Timer size={12} /> {toPersianDigits(service.duration)}</em>
-                        <b>{service.price}</b>
-                      </span>
+                ) : null}
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={activeCategory === "all"}
+                  className={activeCategory === "all" ? "on" : ""}
+                  onClick={() => setCategory("all")}
+                >
+                  <ServiceEmoji id="sparkles" size={20} />
+                  همه
+                </button>
+                {orderedCategories.map((item) => (
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={activeCategory === item.id}
+                    className={activeCategory === item.id ? "on" : ""}
+                    key={item.id}
+                    onClick={() => setCategory(item.id)}
+                  >
+                    <ServiceEmoji id={item.icon} size={20} />
+                    {item.fa}
+                  </button>
+                ))}
+              </div>
+
+              <p className="svcCatalogHint">
+                روی خدمت بزن تا نام و قیمتش را ویرایش کنی، یا با + سریع اضافه‌اش کن. می‌توانی چند خدمت پشت‌سرهم انتخاب کنی.
+              </p>
+
+              <div className="svcPresetGrid" role="list">
+                {visible.length === 0 ? (
+                  <div className="svcEmptyState" role="status">
+                    <ServiceIcon emoji="mirror" size="xl" />
+                    <b>خدمتی پیدا نشد</b>
+                    <span>می‌توانی خدمت دلخواهت را خودت بسازی.</span>
+                    <button type="button" onClick={() => onModeChange?.("custom")}>
+                      <Plus size={15} />
+                      ساخت خدمت جدید
                     </button>
-                    {added ? (
-                      <span className="svcPresetDone"><Check size={14} /> اضافه شده</span>
-                    ) : (
+                  </div>
+                ) : null}
+                {visible.map((service) => {
+                  const added = addedNames.has(service.name);
+                  return (
+                    <div className={`svcPreset${added ? " is-added" : ""}`} role="listitem" key={service.id}>
                       <button
                         type="button"
-                        className="svcPresetQuick"
-                        aria-label={`افزودن سریع ${service.name}`}
-                        title="افزودن سریع"
-                        onClick={() => onPickPreset?.(service)}
+                        className="svcPresetMain"
+                        disabled={added}
+                        onClick={() => onCustomizePreset?.(service)}
+                        aria-label={`${service.name}، ${service.price}، ${service.duration}`}
                       >
-                        <Plus size={16} />
+                        <ServiceIcon emoji={service.emoji} name={service.name} size="lg" />
+                        <strong>{service.name}</strong>
+                        <small>{service.hint}</small>
+                        <span className="svcPresetMeta">
+                          <em><Timer size={12} /> {toPersianDigits(service.duration)}</em>
+                          <b>{service.price}</b>
+                        </span>
                       </button>
-                    )}
-                  </div>
-                );
-              })}
+                      {added ? (
+                        <span className="svcPresetDone"><Check size={14} /> اضافه شده</span>
+                      ) : (
+                        <button
+                          type="button"
+                          className="svcPresetQuick"
+                          aria-label={`افزودن سریع ${service.name}`}
+                          title="افزودن سریع"
+                          onClick={() => onPickPreset?.(service)}
+                        >
+                          <Plus size={16} />
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
             <div className="svcDoneBar">
               {addedCount ? (
