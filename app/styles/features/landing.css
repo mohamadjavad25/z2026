@@ -372,7 +372,7 @@ html.native-app .webOnlyAppLink { display: none !important; }
 .appLanding__light.is-mist { background: var(--l-mist); }
 
 .appLanding__head { max-width: 40em; margin-bottom: var(--space-7); }
-.appLanding__head p:not(.appLanding__kicker) { margin: var(--space-3) 0 0; color: var(--l-muted); font-size: 1.02rem; }
+.appLanding__head p:not(.appLanding__kicker) { margin: var(--space-3) 0 0; color: var(--l-muted); font-size: clamp(0.92rem, 1.3vw, 1.02rem); }
 
 .appLanding__kicker {
   display: inline-block;
@@ -454,9 +454,9 @@ html.native-app .webOnlyAppLink { display: none !important; }
 
 .appLanding__tag { padding: 3px 12px; border-radius: var(--radius-pill); font-size: 0.8rem; font-weight: 900; }
 
-.appLanding__card h3 { margin: var(--space-5) 0 var(--space-3); font-weight: 900; font-size: 1.5rem; line-height: 1.5; }
+.appLanding__card h3 { margin: var(--space-5) 0 var(--space-3); font-weight: 900; font-size: clamp(1.25rem, 2vw, 1.5rem); line-height: 1.5; }
 
-.appLanding__card ul { margin: 0; padding-inline-start: 1.1em; }
+.appLanding__card ul { margin: 0; padding-inline-start: 1.1em; font-size: clamp(0.88rem, 1.2vw, 0.95rem); }
 .appLanding__card li + li { margin-top: var(--space-2); }
 
 /* ---------- Steps ---------- */
@@ -514,8 +514,8 @@ html.native-app .webOnlyAppLink { display: none !important; }
   line-height: 1;
 }
 
-.appLanding__steps h3 { margin: 0 0 var(--space-1); font-weight: 900; font-size: 1.25rem; color: var(--l-fg); }
-.appLanding__steps p { margin: 0; color: var(--l-muted); font-size: 0.93rem; }
+.appLanding__steps h3 { margin: 0 0 var(--space-1); font-weight: 900; font-size: clamp(1.1rem, 1.6vw, 1.25rem); color: var(--l-fg); }
+.appLanding__steps p { margin: 0; color: var(--l-muted); font-size: clamp(0.82rem, 1.1vw, 0.93rem); }
 
 /* ---------- Promises: a black band ---------- */
 .appLanding__promises {
@@ -526,8 +526,8 @@ html.native-app .webOnlyAppLink { display: none !important; }
   color: rgba(255, 255, 255, 0.7);
 }
 .appLanding__promises div { display: grid; justify-items: start; gap: var(--space-1); padding: var(--space-7) var(--space-6); }
-.appLanding__promises strong { font-weight: 900; font-size: 1.4rem; line-height: 1.4; color: #fff; }
-.appLanding__promises div > span:last-child { font-size: 0.92rem; }
+.appLanding__promises strong { font-weight: 900; font-size: clamp(1.2rem, 1.8vw, 1.4rem); line-height: 1.4; color: #fff; }
+.appLanding__promises div > span:last-child { font-size: clamp(0.82rem, 1.1vw, 0.92rem); }
 .appLanding__promiseIcon {
   width: 32px;
   height: 32px;
@@ -556,11 +556,11 @@ html.native-app .webOnlyAppLink { display: none !important; }
   gap: var(--space-2);
   margin: 0 0 var(--space-4);
   font-weight: 900;
-  font-size: 1.5rem;
+  font-size: clamp(1.25rem, 2vw, 1.5rem);
   color: var(--l-fg);
 }
 
-.appLanding__guide ol { margin: 0; padding: 0; list-style: none; counter-reset: guide; }
+.appLanding__guide ol { margin: 0; padding: 0; list-style: none; counter-reset: guide; font-size: clamp(0.88rem, 1.2vw, 0.95rem); }
 .appLanding__guide li { counter-increment: guide; position: relative; padding-inline-start: 44px; }
 .appLanding__guide li + li { margin-top: var(--space-3); }
 .appLanding__guide li::before {
@@ -597,7 +597,7 @@ html.native-app .webOnlyAppLink { display: none !important; }
   padding: var(--space-4) var(--space-5);
   cursor: pointer;
   font-weight: 900;
-  font-size: 1.04rem;
+  font-size: clamp(0.95rem, 1.3vw, 1.04rem);
   color: var(--l-fg);
 }
 .appLanding__faq summary::-webkit-details-marker { display: none; }
@@ -617,7 +617,7 @@ html.native-app .webOnlyAppLink { display: none !important; }
   transition: rotate var(--duration-base) var(--ease-standard), background var(--duration-base) ease;
 }
 .appLanding__faq details[open] summary::after { rotate: 45deg; background: var(--l-blend); color: var(--l-ink); }
-.appLanding__faq p { margin: 0; padding: 0 var(--space-5) var(--space-5); color: var(--l-text); max-width: 46em; }
+.appLanding__faq p { margin: 0; padding: 0 var(--space-5) var(--space-5); color: var(--l-text); max-width: 46em; font-size: clamp(0.88rem, 1.2vw, 0.95rem); }
 
 /* ---------- Final call to action: ink with a pink and violet glow ---------- */
 .appLanding__finaleWrap { padding: 0 var(--space-4); background: var(--l-white); }
@@ -639,7 +639,7 @@ html.native-app .webOnlyAppLink { display: none !important; }
 }
 
 .appLanding__finale h2 { color: #fff; }
-.appLanding__finale p { margin: var(--space-2) 0 var(--space-6); }
+.appLanding__finale p { margin: var(--space-2) 0 var(--space-6); font-size: clamp(0.92rem, 1.3vw, 1.02rem); }
 
 .appLanding__finaleMascot {
   position: absolute;
