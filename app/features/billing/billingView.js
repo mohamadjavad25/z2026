@@ -30,7 +30,9 @@ export function accountView(overview) {
     };
   }
   if (account.state === "active") {
-    const total = Number(overview.lastPayment?.days) || 0;
+    // The meter runs from the last payment to the end of access (which can include free days left when it was bought).
+    const paidAt = overview.lastPayment?.paidAt ? new Date(overview.lastPayment.paidAt).getTime() : 0;
+    const total = paidAt ? Math.max(account.daysLeft, Math.ceil((new Date(account.accessEndsAt).getTime() - paidAt) / 86_400_000)) : 0;
     return {
       tone: "active",
       badge: "فعال",

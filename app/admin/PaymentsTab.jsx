@@ -64,6 +64,9 @@ function SetupCard({ data, onSaved }) {
         </li>
       </ul>
 
+      {/* Once billing runs, the controls fold away so the ledger below is one scroll closer. */}
+      <details className="admBillMore" open={!data.settings.enabled || dirty}>
+        <summary>تغییر تنظیمات</summary>
       <div className="admForm">
         <Toggle checked={value.enabled} disabled={busy} onChange={(enabled) => setValue({ ...value, enabled })} label="اشتراک سالن و آرتیست" hint="روشن: پرداخت ممکن است و یادآوری‌ها می‌روند" />
         <Toggle checked={value.salonCoversArtists} disabled={busy} onChange={(salonCoversArtists) => setValue({ ...value, salonCoversArtists })} label="آرتیست‌های عضو سالن رایگان" hint="تا وقتی سالنشان اشتراک دارد، لازم نیست جدا پرداخت کنند" />
@@ -76,6 +79,7 @@ function SetupCard({ data, onSaved }) {
           {dirty ? <Button variant="ghost" onClick={() => setValue(data.settings)}>برگرداندن</Button> : null}
         </div>
       </div>
+      </details>
 
       <details className="admBillMore">
         <summary>قیمت‌ها و پیامک‌ها</summary>
@@ -261,7 +265,7 @@ export function PaymentsTab({ intent = {}, onGo, setParam, onChanged }) {
       {payments.length ? (
         <div className={`admTableWrap${loading ? " is-stale" : ""}`}>
           <table className="admTable is-clickable">
-            <thead><tr><th>حساب</th><th>پلن</th><th>مبلغ</th><th>زمان</th><th>وضعیت</th></tr></thead>
+            <thead><tr><th>حساب</th><th>پلن و زمان</th><th>مبلغ</th><th>وضعیت</th></tr></thead>
             <tbody>
               {payments.map((payment) => (
                 <tr key={payment.id} className={selected === payment.id ? "is-selected" : ""} onClick={() => setSelected(payment.id)}>
@@ -269,9 +273,8 @@ export function PaymentsTab({ intent = {}, onGo, setParam, onChanged }) {
                     <button type="button" className="admRowLink" onClick={(event) => { event.stopPropagation(); setSelected(payment.id); }}>{payment.userName || "—"}</button>
                     <small>{TYPE_LABEL[payment.userType] || ""} • <span dir="ltr">{payment.userPhone}</span></small>
                   </td>
-                  <td>{payment.title}{payment.sandbox ? <small>آزمایشی</small> : null}</td>
+                  <td>{payment.title}<small>{fmtDate(payment.paidAt || payment.createdAt)}{payment.sandbox ? " • آزمایشی" : ""}</small></td>
                   <td>{payment.amountToman ? toman(payment.amountToman) : "هدیه"}</td>
-                  <td>{fmtDate(payment.paidAt || payment.createdAt)}</td>
                   <td><PaymentStatusTag status={payment.status} /></td>
                 </tr>
               ))}

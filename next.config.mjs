@@ -16,6 +16,16 @@
 // Once the Supabase Storage cutover (see app/lib/storage.js, DEVLOG) ever
 // switches image reads from /api/media/* (same-origin) to Storage's own
 // public URLs, img-src will need that Storage domain added too.
+// A bank gateway that needs a posted form (most redirect with a GET and need nothing here) lists its bank's origin
+// in FRFRO_PAYMENT_FORM_HOSTS (comma separated, https only): the browser may then post the payment form to it.
+// See app/lib/payments/index.js.
+function paymentFormHosts() {
+  return String(process.env.FRFRO_PAYMENT_FORM_HOSTS || "")
+    .split(",")
+    .map((host) => host.trim())
+    .filter((host) => /^https:\/\/[a-z0-9.-]+(:\d+)?$/i.test(host));
+}
+
 function buildCsp() {
   const directives = {
     "default-src": ["'self'"],
@@ -28,7 +38,7 @@ function buildCsp() {
     "manifest-src": ["'self'"],
     "object-src": ["'none'"],
     "base-uri": ["'self'"],
-    "form-action": ["'self'"],
+    "form-action": ["'self'", ...paymentFormHosts()],
     "frame-ancestors": ["'none'"]
   };
   return Object.entries(directives)

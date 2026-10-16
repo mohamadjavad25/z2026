@@ -95,10 +95,14 @@ export async function billingOverview(user, now = new Date()) {
   const state = await billing.getAccountState(user.id, now);
   if (!state) return { visible: false };
   const gateway = activeGateway();
-  const [history, pending] = await Promise.all([billing.listUserPayments(user.id, 1), billing.latestPendingPayment(user.id)]);
+  const [history, pending] = await Promise.all([billing.listUserPayments(user.id, 20), billing.latestPendingPayment(user.id)]);
+  const lastPaid = history.find((row) => row.status === "paid") || null;
   const { settings, access } = state;
   const plans = plansFor(user.type).map((plan) => {
     const period = nextPeriod({ now, accessEndsAt: access.accessEndsAt, days: plan.days });
+    // Per month, shown rounded to the thousand («ماهی حدود ۴۱۷٬۰۰۰»); the amount charged is never rounded.
+    const exactMonthly = rialToToman(plan.amountRial) / plan.months;
+    const monthlyToman = Math.round(exactMonthly / 1000) * 1000;
     return {
       id: plan.id,
       label: plan.label,
@@ -106,7 +110,8 @@ export async function billingOverview(user, now = new Date()) {
       months: plan.months,
       days: plan.days,
       amountToman: rialToToman(plan.amountRial),
-      monthlyToman: rialToToman(plan.monthlyRial),
+      monthlyToman,
+      monthlyApprox: monthlyToman !== exactMonthly,
       savingToman: rialToToman(plan.savingRial),
       giftMonths: plan.giftMonths,
       best: plan.months === BEST_MONTHS,
@@ -127,7 +132,7 @@ export async function billingOverview(user, now = new Date()) {
     account: presentAccount(state),
     plans,
     pending: presentPayment(pending),
-    lastPayment: presentPayment(history[0] || null)
+    lastPayment: presentPayment(lastPaid)
   };
 }
 

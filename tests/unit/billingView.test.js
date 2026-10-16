@@ -29,6 +29,13 @@ describe("subscription card and reminder bar", () => {
     expect(accountView(overview({ state: "trial", daysLeft: 4 })).action.emphasis).toBe("primary");
   });
 
+  it("runs the active meter from the last payment to the end of access", () => {
+    const paidAt = new Date(Date.now() - 30 * 86_400_000).toISOString();
+    const view = accountView(overview({ state: "active", daysLeft: 150, accessEndsAt: iso(150) }, { lastPayment: { title: "اشتراک شش‌ماهه سالن", days: 180, paidAt } }));
+    expect(view.meter).toBeCloseTo(150 / 180, 2);
+    expect(view.sub).toContain("اشتراک شش‌ماهه سالن");
+  });
+
   it("warns in grace and alarms when closed", () => {
     expect(accountView(overview({ state: "grace", graceDaysLeft: 2 })).tone).toBe("warn");
     expect(accountView(overview({ state: "expired", open: false })).tone).toBe("danger");

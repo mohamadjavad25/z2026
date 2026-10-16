@@ -92,7 +92,7 @@ export function PlanSheet({ open, overview, onClose }) {
             </span>
             <span className="billPlanPrice">
               <b>{formatTomanNumber(item.amountToman)}<small> تومان</small></b>
-              <small>{item.months > 1 ? `ماهی ${formatTomanNumber(item.monthlyToman)}` : "ماهانه"}</small>
+              <small>{item.months > 1 ? `ماهی ${item.monthlyApprox ? "حدود " : ""}${formatTomanNumber(item.monthlyToman)}` : "ماهانه"}</small>
             </span>
           </label>
         ))}

@@ -69,7 +69,7 @@ const STEPS = [
 
 const PROMISES = [
   { title: "رایگان", text: "نصب و استفاده برای مشتری هزینه‌ای ندارد." },
-  { title: "بدون پرداخت در اپ", text: "هیچ پولی داخل اپ جابه‌جا نمی‌شود؛ هزینه را در خود سالن می‌دهی." },
+  { title: "بدون پرداخت در اپ", text: "مشتری داخل اپ هیچ پولی نمی‌دهد؛ هزینهٔ خدمت را در خود سالن می‌دهی." },
   { title: "دسترسی کم", text: "نه مخاطبین، نه پیامک، نه فایل‌ها. دوربین و موقعیت فقط اگر خودت بخواهی." }
 ];
 
@@ -84,7 +84,7 @@ const FAQ = [
   },
   {
     q: "پرداخت داخل اپ هست؟",
-    a: "نه. فرفرو فقط برای پیدا کردن و رزرو نوبت است و هیچ پولی داخل اپ جابه‌جا نمی‌شود؛ هزینه را مثل همیشه در خود سالن می‌دهی."
+    a: "برای مشتری نه. فرفرو برای پیدا کردن و رزرو نوبت است و تو داخل اپ هیچ پولی نمی‌دهی؛ هزینهٔ خدمت را مثل همیشه در خود سالن می‌دهی."
   },
   {
     q: "آیفون چه می‌شود؟",
@@ -191,7 +191,7 @@ export async function AppLanding() {
             </p>
             <DownloadButtons />
             <EnterAppButton className="appLanding__enter">یا ورود به فرفرو در مرورگر ←</EnterAppButton>
-            <p className="appLanding__note">نسخهٔ اندروید {ANDROID_APP_VERSION} · رایگان · بدون پرداخت داخل برنامه</p>
+            <p className="appLanding__note">نسخهٔ اندروید {ANDROID_APP_VERSION} · رایگان برای مشتری · بدون پرداخت داخل برنامه</p>
           </div>
 
           <div className="appLanding__heroArt">
@@ -318,7 +318,7 @@ export async function AppLanding() {
           <img className="appLanding__finaleMascot" src="/brand/mascot/thumbsup.webp" alt="" width="460" height="640" loading="lazy" />
           <div>
             <h2>نوبت بعدی‌ات را با فرفرو بگیر.</h2>
-            <p>رایگان، سبک و بدون پرداخت داخل برنامه.</p>
+            <p>برای مشتری رایگان، سبک و بدون پرداخت داخل برنامه.</p>
             <DownloadButtons tone="dark" />
             <EnterAppButton className="appLanding__enter">یا ورود به فرفرو در مرورگر ←</EnterAppButton>
           </div>
