@@ -202,32 +202,35 @@ export async function updatePost(id, ownerUserId, data, runner = null, options =
   // back as its media URL, which asDataImage drops).
   const nextImage = asDataImage(data.image);
   const imageChanged = Boolean(nextImage);
-  const imageUrl = imageChanged ? null : current.image_url; // stale until the upload below lands
-  const thumbUrl = imageChanged ? null : current.thumb_url;
 
   const title = data.title === undefined ? current.title : clip(data.title, POST_LIMITS.title);
   const wantPinned = data.featured === undefined ? Boolean(current.featured) : Boolean(data.featured);
   const pinned = wantPinned && (current.featured || (await countPinned(db, ownerUserId, id)) < POST_LIMITS.pinned);
 
+  // The Storage URLs are only cleared (or replaced) by a new picture, and are read here in SQL, not
+  // from the snapshot above: a picture uploaded just before this edit (see createPost's deferred
+  // move) would otherwise be wiped by a title-only edit that wrote back the stale NULL.
   await run(db, `
     UPDATE posts SET
-      title = $1, tag = $2, image = CASE WHEN $10 THEN $3 ELSE image END, image_url = $4, thumb_url = $12, caption = $5, is_public = $6, featured = $7,
-      thumb = CASE WHEN $10 THEN $11 ELSE thumb END,
+      title = $1, tag = $2,
+      image = CASE WHEN $9 THEN $3 ELSE image END,
+      thumb = CASE WHEN $9 THEN $10 ELSE thumb END,
+      image_url = CASE WHEN $9 THEN NULL ELSE image_url END,
+      thumb_url = CASE WHEN $9 THEN NULL ELSE thumb_url END,
+      caption = $4, is_public = $5, featured = $6,
       updated_at = CURRENT_TIMESTAMP
-    WHERE id = $8 AND owner_user_id = $9
+    WHERE id = $7 AND owner_user_id = $8
   `, [
     title || current.title,
     data.tag === undefined ? current.tag : clip(data.tag, POST_LIMITS.tag),
     nextImage,
-    imageUrl,
     data.caption === undefined ? current.caption : clip(data.caption, POST_LIMITS.caption),
     data.isPublic === undefined ? current.is_public : Boolean(data.isPublic),
     pinned,
     id,
     ownerUserId,
     imageChanged,
-    imageChanged ? asThumb(data.thumb) : "",
-    thumbUrl
+    imageChanged ? asThumb(data.thumb) : ""
   ]);
   await syncOwnerPostCount(db, ownerUserId);
   if (imageChanged) {
