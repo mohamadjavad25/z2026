@@ -28,7 +28,6 @@ export function useScheduleViews({
   pendingSalonCollabRequests,
   pendingArtistSalonInvites,
   profileSettings,
-  appToast,
   clientBookingList,
   setAppToast,
   salonStaffByName,
@@ -309,7 +308,6 @@ export function useScheduleViews({
   useAppSounds({
     profile: createdProfile,
     alertsOn: profileSettings.reservationAlerts !== false,
-    toast: appToast,
     clientBookings: clientBookingList,
     salonBookings: salonAppointmentList,
     artistBookings: artistBookingList,

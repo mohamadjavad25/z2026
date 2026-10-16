@@ -5,6 +5,7 @@ import { usePostActivity } from "../posts";
 import { useSalonDirectory, useSalonWorkspace } from "../salons";
 import { useArtistWorkspace } from "../artist";
 import { apiFetch } from "../../shared/api/client";
+import { notify } from "../../shared/notice/noticeStore";
 import { pushNotificationsSupported, subscribeToPushNotifications } from "./homeAppHelpers";
 import { useHomeChrome } from "./useHomeChrome";
 import { useHomeWorkspaces } from "./useHomeWorkspaces";
@@ -35,7 +36,8 @@ export function useHomeApp() {
   const notifyArtistBookingCreatedRef = useRef(null);
   const applySalonBookingsRef = useRef(null);
   const authCascadeRef = useRef({});
-  const [appToast, setAppToast] = useState("");
+  // Every top-of-screen notice goes through the shared store (app/shared/notice). Callers may still pass a string.
+  const setAppToast = notify;
   const [pushSoftAskVisible, setPushSoftAskVisible] = useState(false);
   const [clientBookingSettings, setClientBookingSettings] = useState(null);
   // Right after a client books: the «درخواستت رسید» screen (features/client/BookingReceipt) and, on
@@ -587,7 +589,6 @@ export function useHomeApp() {
     pendingSalonCollabRequests,
     pendingArtistSalonInvites,
     profileSettings,
-    appToast,
     clientBookingList,
     setAppToast,
     salonStaffByName,
@@ -648,7 +649,6 @@ export function useHomeApp() {
     ...homeChromeState,
     ...homeWorkspacesState,
     activeTab,
-    appToast,
     setAppToast,
     pushSoftAskVisible,
     setPushSoftAskVisible,
