@@ -1,0 +1,57 @@
+/**
+ * Pattern (template) SMS beyond the verification code. Iranian providers only send ready-approved patterns for
+ * service messages, so each message here is a pattern the operator creates once in the provider's panel and names in
+ * an env var. A message whose pattern is not set is simply not sent (the push notification still goes).
+ *
+ * For each template:
+ *   env        -> KAVENEGAR_TEMPLATE_<env> (Kavenegar verify/lookup template) or FARAZSMS_PATTERN_<env> (Faraz pattern code)
+ *   kavenegar  -> the lookup tokens. token, token2, token3 may not contain spaces; token10 may (up to 5 spaces).
+ *   faraz      -> the pattern's variables, by name (write the pattern with exactly these names, e.g. %amount%).
+ *   preview    -> the text as the operator should write it in the panel; also what the "test" provider logs.
+ * Full setup steps: docs/OPERATIONS.md («پیامک اشتراک»).
+ */
+export const SMS_TEMPLATES = {
+  billing_receipt: {
+    label: "رسید پرداخت اشتراک",
+    env: "BILLING_RECEIPT",
+    kavenegar: (v) => ({ token: v.receipt, token2: v.amount, token3: v.until }),
+    faraz: (v) => ({ receipt: v.receipt, amount: v.amount, until: v.until }),
+    preview: (v) => `فرفرو: اشتراکت فعال شد تا ${v.until}. مبلغ ${v.amount} تومان، شمارهٔ رسید ${v.receipt}.`
+  },
+  billing_reminder: {
+    label: "یادآوری پایان اشتراک",
+    env: "BILLING_REMINDER",
+    kavenegar: (v) => ({ token: v.days, token2: v.until }),
+    faraz: (v) => ({ days: v.days, until: v.until }),
+    preview: (v) => `فرفرو: اشتراکت ${v.days} روز دیگر (${v.until}) تمام می‌شود. برای تمدید: تنظیمات، اشتراک من.`
+  },
+  billing_ended: {
+    label: "پایان اشتراک (شروع مهلت)",
+    env: "BILLING_ENDED",
+    kavenegar: (v) => ({ token: v.days }),
+    faraz: (v) => ({ days: v.days }),
+    preview: (v) => `فرفرو: اشتراکت تمام شد. ${v.days} روز فرصت داری تمدید کنی تا از جست‌وجو کنار نروی.`
+  },
+  billing_closed: {
+    label: "غیرفعال شدن حساب",
+    env: "BILLING_CLOSED",
+    kavenegar: (v) => ({ token: v.since }),
+    faraz: (v) => ({ since: v.since }),
+    preview: (v) => `فرفرو: از ${v.since} در جست‌وجو دیده نمی‌شوی و نوبت آنلاین نمی‌گیری. با تمدید اشتراک همه‌چیز برمی‌گردد.`
+  },
+  billing_admin: {
+    label: "خبر پرداخت برای مدیر",
+    env: "BILLING_ADMIN",
+    kavenegar: (v) => ({ token: v.amount, token2: v.receipt, token10: v.who }),
+    faraz: (v) => ({ amount: v.amount, receipt: v.receipt, who: v.who }),
+    preview: (v) => `فرفرو، پرداخت تازه: ${v.who}، ${v.amount} تومان، رسید ${v.receipt}.`
+  }
+};
+
+/** Kavenegar rejects spaces in token, token2 and token3: replace them so a value never breaks a send. */
+export function kavenegarSafe(tokens) {
+  return Object.fromEntries(Object.entries(tokens).map(([key, value]) => {
+    const text = String(value ?? "").trim() || "-";
+    return [key, key === "token10" || key === "token20" ? text : text.replace(/\s+/g, "_")];
+  }));
+}

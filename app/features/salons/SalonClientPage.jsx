@@ -15,6 +15,7 @@ import {
   UserPlus
 } from "lucide-react";
 import { PublicProfileHeader } from "../../components/PublicProfileHeader";
+import { BookingPausedNote } from "../../components/BookingPausedNote";
 import { ServicesDropUp } from "../../components/ServicesDropUp";
 import { bundleServices } from "../../shared/lib/serviceBundle";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
@@ -140,6 +141,7 @@ export function SalonClientPage({
                 </a>
               ) : null}
             </div>
+            {selectedSalon.onlineBookingPaused ? <BookingPausedNote hasPhone={Boolean(selectedSalon.phone)} /> : null}
           </section>
 
           <WeeklyHours rows={weekHours} todayName={todayName} />

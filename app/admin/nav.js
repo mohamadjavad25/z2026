@@ -1,5 +1,5 @@
 import {
-  Activity, BarChart3, CalendarCheck, Image as ImageIcon, KeyRound, LayoutDashboard, LifeBuoy, Megaphone, ScrollText, Settings2, ShieldCheck, Users
+  Activity, BarChart3, CalendarCheck, CreditCard, Image as ImageIcon, KeyRound, LayoutDashboard, LifeBuoy, Megaphone, ScrollText, Settings2, ShieldCheck, Users
 } from "lucide-react";
 
 /**
@@ -14,6 +14,7 @@ export const SECTIONS = [
     items: [
       { id: "users", label: "کاربران", desc: "همهٔ حساب‌ها: جست‌وجو، فیلتر، ویرایش، پیام، مسدودکردن، کارهای گروهی", icon: Users, key: "u" },
       { id: "bookings", label: "رزروها", desc: "همهٔ رزروهای سالن‌ها و آرتیست‌ها؛ جزئیات هر رزرو و لغو در صورت شکایت", icon: CalendarCheck, key: "b" },
+      { id: "payments", label: "پرداخت‌ها", desc: "اشتراک سالن‌ها و آرتیست‌ها: روشن و خاموش، درگاه، درآمد، همهٔ پرداخت‌ها و افزودن روز", icon: CreditCard, key: "f" },
       { id: "content", label: "محتوا", desc: "پست‌های نمونه‌کار با تصویر: بررسی گزارش‌ها، پنهان‌کردن و حذف", icon: ImageIcon, key: "c" }
     ]
   },

@@ -1,0 +1,164 @@
+/* Subscriptions for salons and artists: the card in Settings, the plan/result/history sheets, the reminder bar on the
+   home page (features/billing) and the pages around the bank (app/pay). Tokens only, so day and night follow the
+   theme, and salons and artists get their violet accent through --accent. */
+
+/* ───────── card in Settings ───────── */
+.billCard {
+  position: relative;
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border-radius: var(--radius-xl);
+  background: var(--surface-solid);
+  box-shadow: inset 0 0 0 1px var(--line), var(--shadow-xs);
+}
+.billCard.is-trial { background: linear-gradient(135deg, rgb(var(--brand-pink-rgb) / 0.13), rgb(var(--brand-violet-rgb) / 0.17)), var(--surface-solid); }
+.billCard.is-active { box-shadow: inset 0 0 0 1px rgb(var(--success-rgb) / 0.34), var(--shadow-xs); }
+.billCard.is-warn { background: linear-gradient(var(--warning-bg), var(--warning-bg)), var(--surface-solid); box-shadow: inset 0 0 0 1px rgb(var(--warning-rgb) / 0.34); }
+.billCard.is-danger { background: linear-gradient(var(--danger-bg), var(--danger-bg)), var(--surface-solid); box-shadow: inset 0 0 0 1px rgb(var(--danger-rgb) / 0.3); }
+.billCard.is-covered { background: linear-gradient(var(--info-bg), var(--info-bg)), var(--surface-solid); }
+
+.billCardHead { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.billBadge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: var(--radius-pill); background: var(--accent-soft); color: var(--accent); font-size: var(--text-xs); font-weight: 900; }
+.billCard.is-active .billBadge:first-child { background: var(--success-bg); color: var(--success); }
+.billCard.is-warn .billBadge:first-child { background: rgb(var(--warning-rgb) / 0.2); color: var(--warning); }
+.billCard.is-danger .billBadge:first-child { background: rgb(var(--danger-rgb) / 0.16); color: var(--danger); }
+.billCard.is-soon .billBadge:first-child { background: var(--n-100); color: var(--n-700); }
+.billBadge.is-test { background: var(--n-100); color: var(--n-700); }
+
+.billCardTitle { color: var(--ink); font-size: var(--text-lg); font-weight: 900; line-height: 1.6; text-wrap: balance; }
+.billCardSub,
+.billCardNote { margin: 0; color: var(--muted); font-size: var(--text-base); font-weight: 650; line-height: 1.9; }
+.billCardNote { color: var(--ink); font-weight: 750; }
+
+.billMeter { height: 8px; margin-block: 2px; border-radius: var(--radius-pill); background: rgb(var(--ink-rgb) / 0.08); overflow: hidden; }
+.billMeter i { display: block; height: 100%; border-radius: inherit; background: var(--brand-blend); transition: width var(--duration-base) var(--ease-standard); }
+
+.billPendingRow { display: flex; align-items: center; gap: var(--space-2); width: 100%; min-height: 44px; padding: 0 var(--space-3); border: 0; border-radius: var(--radius-md); background: var(--info-bg); color: var(--ink); font: inherit; font-size: var(--text-base); font-weight: 800; text-align: start; cursor: pointer; }
+.billPendingRow span { flex: 1; }
+.billPendingRow svg { color: var(--info); }
+
+.billCardActions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); margin-top: var(--space-1); }
+.billGhostBtn { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 var(--space-3); border: 0; border-radius: var(--radius-pill); background: transparent; color: var(--accent); font: inherit; font-size: var(--text-base); font-weight: 850; cursor: pointer; }
+.billGhostBtn:hover { background: var(--accent-soft); }
+
+/* ───────── sheets ───────── */
+.billSheetLead { margin: 0; color: var(--muted); font-size: var(--text-base); font-weight: 650; line-height: 1.9; }
+
+.billPlans { display: grid; gap: 10px; min-width: 0; margin: 0; padding: 0; border: 0; }
+.billPlan { position: relative; display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; align-items: center; gap: var(--space-3); padding: 14px; border-radius: var(--radius-lg); background: var(--surface-solid); box-shadow: inset 0 0 0 1px var(--line); cursor: pointer; transition: box-shadow var(--duration-fast) var(--ease-standard), background var(--duration-fast) var(--ease-standard); }
+.billPlan input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.billPlanDot { width: 20px; height: 20px; border-radius: 50%; box-shadow: inset 0 0 0 2px var(--n-400); transition: box-shadow var(--duration-fast) var(--ease-standard); }
+.billPlan.is-selected { background: linear-gradient(rgb(var(--accent-rgb) / 0.07), rgb(var(--accent-rgb) / 0.07)), var(--surface-solid); box-shadow: inset 0 0 0 2px var(--accent-fill), var(--shadow-xs); }
+.billPlan.is-selected .billPlanDot { box-shadow: inset 0 0 0 6px var(--accent-fill); }
+.billPlan input:focus-visible ~ .billPlanDot { outline: 2px solid var(--focus-ring); outline-offset: 3px; }
+.billPlans:disabled .billPlan { cursor: progress; opacity: 0.6; }
+.billPlanMain { display: grid; gap: 3px; min-width: 0; }
+.billPlanMain b { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; color: var(--ink); font-size: var(--text-md); font-weight: 900; }
+.billPlanMain small { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; color: var(--muted); font-size: var(--text-sm); font-weight: 700; }
+.billGift { color: var(--success); font-weight: 900; }
+.billPlanFlag { padding: 1px 8px; border-radius: var(--radius-pill); background: var(--brand-blend); color: var(--brand-ink); font-size: var(--text-xs); font-style: normal; font-weight: 900; }
+.billPlanPrice { display: grid; justify-items: end; gap: 2px; text-align: left; }
+.billPlanPrice b { color: var(--ink); font-size: var(--text-md); font-weight: 900; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.billPlanPrice b small { color: var(--muted); font-size: var(--text-xs); font-weight: 750; }
+.billPlanPrice > small { color: var(--muted); font-size: var(--text-xs); font-weight: 700; white-space: nowrap; }
+
+.billSummary,
+.billReceipt { display: grid; margin: 0; padding: 2px 14px; border-radius: var(--radius-lg); }
+.billSummary { background: rgb(var(--ink-rgb) / 0.04); }
+.billReceipt { background: var(--surface-solid); box-shadow: inset 0 0 0 1px var(--line); }
+.billSummary > div,
+.billReceipt > div { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding: 10px 0; border-bottom: 1px dashed var(--line); font-size: var(--text-base); }
+.billSummary > div:last-child,
+.billReceipt > div:last-child { border-bottom: 0; }
+.billSummary dt,
+.billReceipt dt { flex: 0 0 auto; color: var(--muted); font-weight: 700; }
+.billSummary dd,
+.billReceipt dd { min-width: 0; margin: 0; color: var(--ink); font-weight: 850; text-align: left; overflow-wrap: anywhere; }
+.billSummary .is-total dd { font-size: var(--text-lg); font-weight: 900; }
+.billSummary dd.is-gain { color: var(--success); }
+
+.billTestNote { display: flex; align-items: center; gap: 6px; margin: 0; padding: 8px 12px; border-radius: var(--radius-md); background: var(--warning-bg); color: var(--ink); font-size: var(--text-sm); font-weight: 800; }
+.billTestNote svg { flex: 0 0 auto; color: var(--warning); }
+.billError { margin: 0; padding: 10px 12px; border-radius: var(--radius-md); background: var(--danger-bg); color: var(--danger); font-size: var(--text-base); font-weight: 800; line-height: 1.8; }
+.billFine { margin: 0; color: var(--muted); font-size: var(--text-xs); font-weight: 650; line-height: 2; text-align: center; }
+.billFine a { color: var(--accent); font-weight: 850; text-decoration: underline; text-underline-offset: 3px; }
+
+.billResult { display: grid; justify-items: center; gap: var(--space-2); padding: var(--space-5) var(--space-2) var(--space-2); text-align: center; }
+.billResultIcon { width: 64px; height: 64px; display: grid; place-items: center; border-radius: 50%; background: var(--info-bg); color: var(--info); }
+.billResult.is-ok .billResultIcon { background: var(--success-bg); color: var(--success); }
+.billResult.is-bad .billResultIcon { background: var(--danger-bg); color: var(--danger); }
+.billResult b { color: var(--ink); font-size: var(--text-xl); font-weight: 900; }
+.billResult p { max-width: 36ch; margin: 0; color: var(--muted); font-size: var(--text-base); font-weight: 650; line-height: 1.9; }
+
+.billSheetActions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.billSheetActions .ui-btn { flex: 1 1 140px; }
+
+.billChip { display: inline-flex; align-items: center; padding: 2px 9px; border-radius: var(--radius-pill); font-size: var(--text-xs); font-weight: 900; white-space: nowrap; }
+.billChip.is-ok { background: var(--success-bg); color: var(--success); }
+.billChip.is-wait { background: var(--warning-bg); color: var(--warning); }
+.billChip.is-bad { background: var(--danger-bg); color: var(--danger); }
+
+.billHistory { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.billHistory button { width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) auto 16px; align-items: center; gap: 10px; min-height: 64px; padding: 10px 14px; border: 0; border-radius: var(--radius-lg); background: var(--surface-solid); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); font: inherit; text-align: start; cursor: pointer; }
+.billHistoryMain { display: grid; gap: 3px; min-width: 0; }
+.billHistoryMain b { overflow: hidden; font-size: var(--text-base); font-weight: 900; text-overflow: ellipsis; white-space: nowrap; }
+.billHistoryMain small { color: var(--muted); font-size: var(--text-xs); font-weight: 700; }
+.billHistorySide { display: grid; justify-items: end; gap: 4px; }
+.billHistorySide b { font-size: var(--text-sm); font-weight: 900; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.billHistoryChevron { color: var(--n-500); }
+.billBackLink { justify-self: start; display: inline-flex; align-items: center; gap: 4px; min-height: 40px; padding: 0 var(--space-2); border: 0; border-radius: var(--radius-pill); background: transparent; color: var(--accent); font: inherit; font-size: var(--text-base); font-weight: 850; cursor: pointer; }
+.billEmpty { display: grid; justify-items: center; gap: 6px; padding: var(--space-7) var(--space-3); color: var(--muted); text-align: center; }
+.billEmpty b { color: var(--ink); font-size: var(--text-md); font-weight: 900; }
+.billEmpty p { margin: 0; font-size: var(--text-sm); }
+.billSkeleton { display: grid; gap: var(--space-2); }
+.billSkeleton span { height: 64px; border-radius: var(--radius-lg); background: rgb(var(--ink-rgb) / 0.06); animation: billPulse 1.2s ease-in-out infinite alternate; }
+
+/* ───────── reminder bar on the home page ───────── */
+.billBanner { display: flex; align-items: center; gap: 10px; margin: 14px 14px 0; padding: 10px 8px 10px 12px; border-radius: var(--radius-lg); background: linear-gradient(var(--info-bg), var(--info-bg)), var(--surface-solid); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); }
+.billBanner.is-warn { background: linear-gradient(var(--warning-bg), var(--warning-bg)), var(--surface-solid); }
+.billBanner.is-danger { background: linear-gradient(var(--danger-bg), var(--danger-bg)), var(--surface-solid); }
+.billBannerIcon { flex: 0 0 auto; color: var(--info); }
+.billBanner.is-warn .billBannerIcon { color: var(--warning); }
+.billBanner.is-danger .billBannerIcon { color: var(--danger); }
+.billBanner p { flex: 1; min-width: 0; margin: 0; font-size: var(--text-sm); font-weight: 800; line-height: 1.8; }
+.billBannerAction { flex: 0 0 auto; min-height: 36px; padding: 0 14px; border: 0; border-radius: var(--radius-pill); background: var(--fill-strong); color: var(--n-0); font: inherit; font-size: var(--text-sm); font-weight: 900; cursor: pointer; }
+.billBannerClose { position: relative; flex: 0 0 auto; display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--muted); cursor: pointer; }
+.billBannerClose::after { content: ""; position: absolute; inset: -6px; }
+
+/* ───────── pages around the bank (app/pay) ───────── */
+.payPage { min-height: 100dvh; display: flex; align-items: center; justify-content: center; padding: var(--space-6) var(--space-4); background: var(--mother-bg-mobile); }
+.payCard { width: 100%; max-width: 380px; display: grid; justify-items: center; gap: var(--space-3); padding: var(--space-7) var(--space-6) var(--space-6); border-radius: var(--radius-xl); background: var(--surface-solid); box-shadow: var(--shadow-lg), inset 0 0 0 1px var(--line); text-align: center; }
+.payMark { background: var(--brand-blend-deep); -webkit-background-clip: text; background-clip: text; color: transparent; font-size: var(--text-lg); font-weight: 950; letter-spacing: 0.02em; }
+.payIcon { width: 72px; height: 72px; display: grid; place-items: center; border-radius: 50%; background: var(--info-bg); color: var(--info); }
+.payCard.is-paid .payIcon { background: var(--success-bg); color: var(--success); }
+.payCard.is-failed .payIcon,
+.payCard.is-missing .payIcon,
+.payCard.is-offline .payIcon { background: var(--danger-bg); color: var(--danger); }
+.payCard h1 { margin: 0; color: var(--ink); font-size: var(--text-xl); font-weight: 950; }
+.payCard p { margin: 0; color: var(--muted); font-size: var(--text-base); font-weight: 650; line-height: 1.9; }
+.payCard p b { color: var(--ink); }
+.payFacts { width: 100%; display: grid; margin: 0; padding: 2px 14px; border-radius: var(--radius-lg); background: rgb(var(--ink-rgb) / 0.04); }
+.payFacts > div { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding: 10px 0; border-bottom: 1px dashed var(--line); font-size: var(--text-base); }
+.payFacts > div:last-child { border-bottom: 0; }
+.payFacts dt { color: var(--muted); font-weight: 700; }
+.payFacts dd { margin: 0; color: var(--ink); font-weight: 850; overflow-wrap: anywhere; }
+.payButtons { width: 100%; display: grid; gap: 10px; }
+.payAction { width: 100%; min-height: 48px; display: grid; place-items: center; border: 0; border-radius: var(--radius-pill); background: var(--fill-strong); color: var(--n-0); font: inherit; font-size: var(--text-md); font-weight: 900; text-decoration: none; cursor: pointer; }
+.payAction.is-secondary { background: var(--surface-solid); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
+.payAction:disabled { cursor: progress; opacity: 0.5; }
+.payCard .payHint { font-size: var(--text-xs); }
+.payCard .payTest { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: var(--radius-md); background: var(--warning-bg); color: var(--ink); font-size: var(--text-xs); font-weight: 800; line-height: 1.7; }
+.payTest svg { flex: 0 0 auto; color: var(--warning); }
+.payCard .payError { color: var(--danger); font-weight: 800; }
+
+/* ───────── motion ───────── */
+.billSpin { animation: billSpin 0.9s linear infinite; }
+.billSpinSlow { animation: billTurn 2.4s var(--ease-standard) infinite; }
+@keyframes billSpin { to { transform: rotate(360deg); } }
+@keyframes billTurn { 0%, 40% { transform: rotate(0); } 60%, 100% { transform: rotate(180deg); } }
+@keyframes billPulse { from { opacity: 0.55; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .billSpin, .billSpinSlow, .billSkeleton span { animation: none; }
+  .billMeter i, .billPlan, .billPlanDot { transition: none; }
+}

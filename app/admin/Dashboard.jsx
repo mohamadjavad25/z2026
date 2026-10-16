@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { Activity, BarChart3, CalendarCheck, CircleCheck, Download, Image as ImageIcon, Megaphone, RefreshCw, ShieldCheck, ToggleRight, TriangleAlert, UserPlus, Users } from "lucide-react";
+import { Activity, BarChart3, CalendarCheck, CircleCheck, CreditCard, Download, Image as ImageIcon, Megaphone, RefreshCw, ShieldCheck, ToggleRight, TriangleAlert, UserPlus, Users } from "lucide-react";
 import { toPersianDigits } from "../shared/lib/digits";
 import { Button } from "../components/ui";
 import { ACTION_LABEL, BOOKING_TONE, TYPE_LABEL, ago, num } from "./format";
@@ -204,6 +204,7 @@ const FEED = {
   signup: { Icon: UserPlus, label: "ثبت‌نام جدید" },
   booking: { Icon: CalendarCheck, label: "رزرو جدید" },
   post: { Icon: ImageIcon, label: "پست جدید" },
+  payment: { Icon: CreditCard, label: "پرداخت اشتراک" },
   admin: { Icon: ShieldCheck, label: "عملیات مدیریتی" }
 };
 

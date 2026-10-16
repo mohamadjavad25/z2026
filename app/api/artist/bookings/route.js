@@ -10,6 +10,7 @@ import { checkRateLimit } from "../../../lib/rateLimit.js";
 import { sendPushToUser } from "../../../lib/push.js";
 import * as userSettings from "../../../lib/db/repos/userSettings.js";
 import { createBookingSchema } from "../../../lib/validation/booking.js";
+import { onlineBookingBlock } from "../../../lib/billing/access.js";
 // Side-effect import: starts the once-per-process 1-hour booking-request
 // auto-expiry sweep (see that file's docstring) the first time this route
 // module loads — same self-starting-on-import convention as
@@ -56,6 +57,11 @@ async function _POST(request) {
   // Anyone but the artist is sending a request the artist must answer: it can't start within the next few minutes.
   if (!isOwner && isTooSoonToRequest(v.data.bookingDate || v.data.booking_date || v.data.date || "", v.data.time || "")) {
     return error(`برای رزرو باید حداقل ${toPersianDigits(BOOKING_REQUEST_LEAD_MINUTES)} دقیقه تا شروع نوبت مانده باشد تا آرتیست فرصت پاسخ داشته باشد. ساعت دیگری انتخاب کن.`, 409);
+  }
+  // An artist whose subscription has closed (and no salon of theirs covers them) takes no new online requests.
+  if (!isOwner) {
+    const blocked = await onlineBookingBlock(artistUserId, "artist");
+    if (blocked) return json({ error: blocked.error, code: blocked.code }, { status: blocked.status });
   }
   if (!isOwner && (artistSettings.vacationMode || artistSettings.directBooking === false)) {
     return error(

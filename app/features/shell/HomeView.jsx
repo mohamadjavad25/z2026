@@ -23,6 +23,7 @@ import { ServiceComposerModal } from "../profile/ServiceComposerModal";
 import { ShieldCheck } from "lucide-react";
 import { PushSoftAsk } from "./home/PushSoftAsk";
 import { SiteNotice } from "./home/SiteNotice";
+import { BillingHost } from "../billing";
 import { ClientBookingTracker } from "../client/ClientBookingTracker";
 import { BottomNav } from "./BottomNav";
 import { SupportFab } from "../support";
@@ -407,6 +408,7 @@ export function HomeView() {
 
         <PushSoftAsk />
         {authChecked ? <SiteNotice role={createdProfile?.type || ""} /> : null}
+        <BillingHost />
 
         <BottomNav
           status={createdProfile?.type === "client" ? (

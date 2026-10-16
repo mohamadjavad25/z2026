@@ -3,6 +3,7 @@ import { getDb, all, get, run } from "../connection.js";
 import { toLatinDigits } from "../../../shared/lib/digits.js";
 import { parseProfileLink } from "../../../shared/lib/connectCodes.js";
 import { serviceInCategory } from "../../../shared/constants/clientCategories.js";
+import { withoutHiddenProviders } from "../../billing/access.js";
 
 /**
  * A client's "salons and artists" — the people they book with.
@@ -163,7 +164,7 @@ export async function listConnectionsForCategory(clientUserId, category) {
  *
  * A link or an exact phone means the client already knows this business, so
  * it is found even when the profile is hidden from public listings. A name
- * search only returns public profiles.
+ * search only returns public profiles (and none whose subscription has closed).
  */
 export async function searchProfiles(query, clientUserId) {
   const text = String(query || "").trim().slice(0, 120);
@@ -203,6 +204,8 @@ export async function searchProfiles(query, clientUserId) {
       ORDER BY (${nameSql} ILIKE $2) DESC, u.id DESC
       LIMIT ${SEARCH_LIMIT}
     `, [`%${needle}%`, `${needle}%`]);
+    // A salon or artist whose subscription has closed is out of name search (a link or their phone still finds them).
+    rows = await withoutHiddenProviders(rows, (row) => row.id);
   }
 
   const connectedRows = rows.length

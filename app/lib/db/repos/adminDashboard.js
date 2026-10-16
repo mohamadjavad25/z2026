@@ -1,6 +1,7 @@
 import { getDb, all, get } from "../connection.js";
 import { countActive } from "./support.js";
 import { ensureControlTables } from "./adminControl.js";
+import { ensureBillingTables } from "./billing.js";
 
 const TZ = "Asia/Tehran";
 const DAY = "INTERVAL '1 day'";
@@ -27,7 +28,7 @@ const pctChange = (current, previous) => {
 /** Everything the admin home page shows, in one call. `rangeDays` is 7 or 30. */
 export async function getDashboard(rangeDays = 7) {
   const days = Number(rangeDays) === 30 ? 30 : 7;
-  await ensureControlTables();
+  await Promise.all([ensureControlTables(), ensureBillingTables()]);
   const db = await getDb();
 
   const [series, windows, totals, byType, statuses, alerts, feed] = await Promise.all([
@@ -93,6 +94,8 @@ export async function getDashboard(rangeDays = 7) {
         (SELECT 'booking', COALESCE(NULLIF(service, ''), 'رزرو'), COALESCE(NULLIF(client_name, ''), client_phone) || ' • ' || status, created_at FROM artist_bookings WHERE source_salon_user_id IS NULL ORDER BY created_at DESC LIMIT 12)
         UNION ALL
         (SELECT 'post', title, tag, created_at FROM posts ORDER BY created_at DESC LIMIT 12)
+        UNION ALL
+        (SELECT 'payment', COALESCE(NULLIF(user_name, ''), user_phone), plan_title || CASE WHEN gateway = 'sandbox' THEN ' • آزمایشی' ELSE '' END, paid_at FROM payments WHERE status = 'paid' AND source = 'gateway' ORDER BY paid_at DESC LIMIT 12)
         UNION ALL
         (SELECT 'admin', action, COALESCE(NULLIF(admin_label, ''), '') || ' ' || detail, created_at FROM admin_actions ORDER BY id DESC LIMIT 12)
       ) x ORDER BY at DESC LIMIT 20

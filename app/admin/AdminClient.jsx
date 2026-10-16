@@ -12,6 +12,7 @@ import { ConfirmHost, Toaster } from "./ui";
 import { Dashboard } from "./Dashboard";
 import { UsersTab } from "./UsersTab";
 import { BookingsTab } from "./BookingsTab";
+import { PaymentsTab } from "./PaymentsTab";
 import { ContentTab } from "./ContentTab";
 import { SupportTab } from "./SupportTab";
 import { BroadcastTab } from "./BroadcastTab";
@@ -96,6 +97,7 @@ const PAGES = {
   overview: Dashboard,
   users: UsersTab,
   bookings: BookingsTab,
+  payments: PaymentsTab,
   content: ContentTab,
   support: SupportTab,
   broadcast: BroadcastTab,
@@ -146,7 +148,7 @@ function AdminApp({ theme, onToggleTheme }) {
   if (!signedIn) return <AdminLogin configured={me.configured !== false} setupKeyConfigured={me.setupKeyConfigured !== false} onDone={refresh} />;
 
   const Page = PAGES[tab] || Dashboard;
-  const badges = { support: me.openTickets || 0, resets: me.pendingResets || 0, health: me.clientErrors || 0 };
+  const badges = { support: me.openTickets || 0, resets: me.pendingResets || 0, health: me.clientErrors || 0, payments: me.paidToday || 0 };
   return (
     <div className="admShell">
       <AdminSidebar sections={SECTIONS} active={tab} onSelect={(id) => go(id)} name={me.name} onLogout={logout} theme={theme} onToggleTheme={onToggleTheme} badges={badges} />

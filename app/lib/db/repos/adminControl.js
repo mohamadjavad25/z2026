@@ -60,7 +60,11 @@ export const SETTING_DEFAULTS = {
   // New accounts. Closing one role (e.g. salons) keeps the others open.
   signups: { client: true, artist: true, salon: true, message: "" },
   // Saved answers the operator drops into a support reply with one click.
-  replies: { items: [] }
+  replies: { items: [] },
+  // Subscriptions for salons and artists (repos/billing.js). Changed only through /api/admin/billing/settings (password
+  // re-check). `launchedAt` is stamped the first time billing is switched on and never moves: accounts that existed
+  // before it get their free month from that day.
+  billing: { enabled: false, launchedAt: null, graceDays: 3, salonCoversArtists: true }
 };
 
 function merge(key, value) {
@@ -85,8 +89,8 @@ export async function getSetting(key) {
   if (!SETTING_DEFAULTS[key]) return null;
   await ensureControlTables();
   const db = await getDb();
-  const row = await get(db, "SELECT value, updated_at FROM app_settings WHERE key = $1", [key]);
-  return { ...merge(key, row?.value), updatedAt: row?.updated_at || null };
+  const row = await get(db, "SELECT value, updated_at, updated_by FROM app_settings WHERE key = $1", [key]);
+  return { ...merge(key, row?.value), updatedAt: row?.updated_at || null, updatedBy: row?.updated_by || "" };
 }
 
 export async function saveSetting(key, value, label = "") {

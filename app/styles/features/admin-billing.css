@@ -1,0 +1,28 @@
+/* Admin «پرداخت‌ها» page and the subscription pane of a user (app/admin/PaymentsTab.jsx, BillingAdmin.jsx). Admin tokens (--a-*). */
+.admBillChecks { list-style: none; margin: 0 0 var(--space-3); padding: 0; display: grid; gap: 6px; }
+.admBillChecks li { display: grid; gap: 2px; padding: 10px 14px; padding-inline-start: 30px; position: relative; border-radius: 14px; background: var(--a-card2); }
+.admBillChecks li::before { content: ""; position: absolute; top: 17px; inset-inline-start: 12px; width: 9px; height: 9px; border-radius: 50%; background: var(--a-faint); }
+.admBillChecks li.is-ok::before { background: var(--a-good); box-shadow: 0 0 0 3px var(--a-good-soft); }
+.admBillChecks li.is-warn { background: var(--a-warn-soft); }
+.admBillChecks li.is-warn::before { background: var(--a-warn); }
+.admBillChecks li.is-missing { background: var(--a-bad-soft); }
+.admBillChecks li.is-missing::before { background: var(--a-bad); }
+.admBillChecks b { font-weight: 850; }
+.admBillChecks span { color: var(--a-muted); font-size: var(--text-sm); font-weight: 650; line-height: 1.8; }
+
+.admBillMore { margin-top: var(--space-3); border-top: 1px solid var(--a-line); padding-top: var(--space-3); }
+.admBillMore summary { cursor: pointer; font-weight: 850; color: var(--a-muted); }
+.admBillMore[open] summary { margin-bottom: var(--space-3); color: var(--a-ink); }
+.admBillMore h3 { display: flex; align-items: center; gap: 6px; margin: var(--space-3) 0 var(--space-2); font-size: var(--text-md); }
+.admBillMore .admFacts small { margin-inline-start: 6px; color: var(--a-faint); font-size: 0.72rem; }
+.admBillPrices { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-3); }
+.admBillPrices h3 { margin-top: 0; }
+
+.admBillStats { margin-block: var(--space-4) var(--space-3); }
+.admBillStats .admStat b { font-size: 1.4rem; font-variant-numeric: tabular-nums; }
+
+.admBillState { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: var(--space-2); }
+.admBillAction { padding: var(--space-3); border-radius: 16px; background: var(--a-warn-soft); }
+.admBillAction h3 { margin-top: 0; color: var(--a-warn); }
+
+.admFeedIcon.is-payment { --tint: var(--a-good); }
