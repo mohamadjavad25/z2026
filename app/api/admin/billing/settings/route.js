@@ -9,7 +9,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
- * PUT { enabled, graceDays, salonCoversArtists }. Switching billing on is the step that starts every account's free
+ * PUT { enabled, graceDays }. Switching billing on is the step that starts every account's free
  * month and, once a gateway is ready, closes accounts that do not pay: it asks for the password again and is logged.
  */
 async function _PUT(request) {
@@ -25,7 +25,6 @@ async function _PUT(request) {
   const parts = [
     `اشتراک: ${saved.enabled ? "روشن" : "خاموش"}`,
     `مهلت: ${saved.graceDays} روز`,
-    `پوشش آرتیست‌های سالن: ${saved.salonCoversArtists ? "بله" : "نه"}`,
     !before.launchedAt && saved.launchedAt ? "شروع ماه رایگان همه" : ""
   ].filter(Boolean);
   await admin.logAction({ adminUserId: gate.admin.id, adminLabel: gate.admin.label, action: "billing_settings", detail: parts.join(" • ") });

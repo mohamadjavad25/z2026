@@ -93,7 +93,7 @@ export const ACTION_GROUPS = {
   accounts: ["suspend", "unsuspend", "force_logout", "delete_user", "edit_user", "set_password", "resolve_password_reset", "bulk_users"],
   content: ["post_hide", "post_show", "post_delete", "bulk_posts"],
   bookings: ["booking_cancel"],
-  billing: ["billing_settings", "billing_grant", "billing_reverify"],
+  billing: ["billing_settings", "billing_grant", "billing_reverify", "billing_refund"],
   support: ["support_update", "broadcast"],
   system: ["settings_update", "export", "cleanup", "clear_errors"],
   security: ["login", "login_failed", "login_blocked", "enroll", "enroll_failed", "stepup", "stepup_failed", "revoke_sessions", "reset_authenticator"]

@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { getDb, all, get, run, withTransaction } from "../connection.js";
 import { getSetting, saveSetting } from "./adminControl.js";
-import { computeAccess, nextPeriod, receiptNumber } from "../../billing/period.js";
+import { DAY_MS, computeAccess, nextPeriod, receiptNumber } from "../../billing/period.js";
 import { DEFAULT_GRACE_DAYS, isBilledRole, rialToToman } from "../../billing/plans.js";
 
 /**
@@ -13,7 +13,8 @@ import { DEFAULT_GRACE_DAYS, isBilledRole, rialToToman } from "../../billing/pla
  *  - A pending payment becomes "paid" in exactly one transaction that locks the payment row and then the account's
  *    subscription row, so two callbacks, a callback and the cron, or two payments of the same account settle one at
  *    a time and a payment can never extend a subscription twice.
- *  - Status only moves forward: pending -> paid or pending -> failed. A paid or failed row is never changed again.
+ *  - Status only moves forward: pending -> paid or pending -> failed. A paid or failed row is never changed again,
+ *    except that a paid one can get a refund recorded on it, once (recordRefund).
  */
 
 export const BILLING_DDL = [
@@ -64,10 +65,19 @@ export const BILLING_DDL = [
   period_end TIMESTAMPTZ NOT NULL,
   sent_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   PRIMARY KEY (user_id, kind, period_end)
-);`
+);`,
+  // migrations/034_billing_payer_refund.sql: a salon paying a team artist's subscription, and recorded refunds.
+  "ALTER TABLE payments ADD COLUMN IF NOT EXISTS payer_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL;",
+  "ALTER TABLE payments ADD COLUMN IF NOT EXISTS payer_name TEXT NOT NULL DEFAULT '';",
+  "CREATE INDEX IF NOT EXISTS idx_payments_payer ON payments (payer_user_id, id DESC) WHERE payer_user_id IS NOT NULL;",
+  "ALTER TABLE payments ADD COLUMN IF NOT EXISTS refunded_at TIMESTAMPTZ;",
+  "ALTER TABLE payments ADD COLUMN IF NOT EXISTS refund_rial BIGINT NOT NULL DEFAULT 0 CHECK (refund_rial >= 0);",
+  "ALTER TABLE payments ADD COLUMN IF NOT EXISTS refund_days INTEGER NOT NULL DEFAULT 0 CHECK (refund_days >= 0);",
+  "ALTER TABLE payments ADD COLUMN IF NOT EXISTS refund_note TEXT NOT NULL DEFAULT '';",
+  "ALTER TABLE payments ADD COLUMN IF NOT EXISTS refund_admin TEXT NOT NULL DEFAULT '';"
 ];
 
-/** Creates the tables on first use (same DDL as migrations/033_billing.sql, checked by tests/unit/billingSchema.test.js). */
+/** Creates the tables on first use (same DDL as migrations 033 and 034, checked by tests/unit/billingSchema.test.js). */
 let ready;
 export function ensureBillingTables() {
   ready ??= (async () => {
@@ -99,7 +109,6 @@ export async function getBillingSettings({ fresh = false } = {}) {
     enabled: saved?.enabled === true,
     launchedAt: saved?.launchedAt || null,
     graceDays: clampGrace(saved?.graceDays ?? DEFAULT_GRACE_DAYS),
-    salonCoversArtists: saved?.salonCoversArtists !== false,
     updatedAt: saved?.updatedAt || null,
     updatedBy: saved?.updatedBy || ""
   };
@@ -108,10 +117,10 @@ export async function getBillingSettings({ fresh = false } = {}) {
 }
 
 /** `launchedAt` is set the first time billing is switched on and is kept from then on, even if billing is switched off and on again. */
-export async function saveBillingSettings({ enabled, graceDays, salonCoversArtists }, label = "") {
+export async function saveBillingSettings({ enabled, graceDays }, label = "") {
   const current = await getBillingSettings({ fresh: true });
   const launchedAt = current.launchedAt || (enabled ? new Date().toISOString() : null);
-  await saveSetting("billing", { enabled: Boolean(enabled), graceDays: clampGrace(graceDays), salonCoversArtists: Boolean(salonCoversArtists), launchedAt }, label);
+  await saveSetting("billing", { enabled: Boolean(enabled), graceDays: clampGrace(graceDays), launchedAt }, label);
   settingsCache = null;
   return getBillingSettings({ fresh: true });
 }
@@ -120,30 +129,6 @@ export async function saveBillingSettings({ enabled, graceDays, salonCoversArtis
 
 function accessOf(user, paidUntil, settings, now) {
   return computeAccess({ now, createdAt: user.created_at, launchedAt: settings.launchedAt, paidUntil, graceDays: settings.graceDays });
-}
-
-/**
- * For artists: the salons whose subscription covers them (they are on the salon's team and the salon's access is
- * open). Returns Map(artistId -> { salonId, salonName }), first covering salon only.
- */
-async function salonCover(db, artistIds, settings, now) {
-  const cover = new Map();
-  if (!artistIds.length || !settings.salonCoversArtists) return cover;
-  const rows = await all(db, `
-    SELECT st.artist_user_id, u.id AS salon_id, COALESCE(NULLIF(sa.name, ''), NULLIF(u.name, ''), 'سالن') AS salon_name,
-           u.created_at, sub.paid_until
-    FROM salon_staff st
-    JOIN users u ON u.id = st.salon_user_id AND u.type = 'salon'
-    LEFT JOIN salons sa ON sa.user_id = u.id
-    LEFT JOIN subscriptions sub ON sub.user_id = u.id
-    WHERE st.artist_user_id = ANY($1::int[])
-    ORDER BY st.id
-  `, [artistIds]);
-  for (const row of rows) {
-    if (cover.has(row.artist_user_id)) continue;
-    if (accessOf(row, row.paid_until, settings, now).open) cover.set(row.artist_user_id, { salonId: row.salon_id, salonName: row.salon_name });
-  }
-  return cover;
 }
 
 /** The subscription picture for one salon or artist account, or null for anyone else (clients never pay). */
@@ -157,11 +142,46 @@ export async function getAccountState(userId, now = new Date()) {
     get(db, "SELECT paid_until FROM subscriptions WHERE user_id = $1", [user.id])
   ]);
   const access = accessOf(user, sub?.paid_until || null, settings, now);
-  const coveredBy = user.type === "artist" ? (await salonCover(db, [user.id], settings, now)).get(user.id) || null : null;
-  return { user, settings, access, coveredBy, open: access.open || Boolean(coveredBy) };
+  return { user, settings, access, open: access.open };
 }
 
-/** Of `userIds`, the salon and artist accounts whose access is closed (not covered by a salon either). One batch, for directory lists. */
+/**
+ * The artists on a salon's team that have their own artist account (the salon may pay their subscription), each
+ * with where their subscription stands. Staff rows without an account behind them (the owner's own row, people
+ * added by name only) are not billed.
+ */
+export async function listTeamArtists(salonUserId, now = new Date()) {
+  await ensureBillingTables();
+  const db = await getDb();
+  const [settings, rows] = await Promise.all([
+    getBillingSettings(),
+    all(db, `
+      SELECT * FROM (
+        SELECT DISTINCT ON (u.id) u.id, u.type, u.created_at, COALESCE(NULLIF(u.name, ''), NULLIF(st.name, ''), 'آرتیست') AS name,
+               (u.avatar <> '' OR u.avatar_url IS NOT NULL) AS has_avatar, sub.paid_until, st.id AS staff_id
+        FROM salon_staff st
+        JOIN users u ON u.id = st.artist_user_id AND u.type = 'artist'
+        LEFT JOIN subscriptions sub ON sub.user_id = u.id
+        WHERE st.salon_user_id = $1
+        ORDER BY u.id, st.id
+      ) team ORDER BY staff_id
+    `, [Number(salonUserId)])
+  ]);
+  return rows.map((row) => ({ ...row, access: accessOf(row, row.paid_until, settings, now) }));
+}
+
+/** Whether `artistUserId` is an artist account on `salonUserId`'s team (the only artists a salon may pay for). */
+export async function isTeamArtist(salonUserId, artistUserId) {
+  await ensureBillingTables();
+  const db = await getDb();
+  const row = await get(db, `
+    SELECT 1 FROM salon_staff st JOIN users u ON u.id = st.artist_user_id AND u.type = 'artist'
+    WHERE st.salon_user_id = $1 AND st.artist_user_id = $2 LIMIT 1
+  `, [Number(salonUserId), Number(artistUserId)]);
+  return Boolean(row);
+}
+
+/** Of `userIds`, the salon and artist accounts whose access is closed. One batch, for directory lists. */
 export async function closedAccountIds(userIds, now = new Date()) {
   const ids = [...new Set(userIds.map(Number).filter(Boolean))];
   if (!ids.length) return new Set();
@@ -175,25 +195,30 @@ export async function closedAccountIds(userIds, now = new Date()) {
       WHERE u.id = ANY($1::int[]) AND u.type IN ('salon', 'artist')
     `, [ids])
   ]);
-  const closed = rows.filter((row) => !accessOf(row, row.paid_until, settings, now).open);
-  const artists = closed.filter((row) => row.type === "artist").map((row) => row.id);
-  const cover = await salonCover(db, artists, settings, now);
-  return new Set(closed.filter((row) => !cover.has(row.id)).map((row) => row.id));
+  return new Set(rows.filter((row) => !accessOf(row, row.paid_until, settings, now).open).map((row) => row.id));
 }
 
 /* ───────────────────────── payments ───────────────────────── */
 
 const newToken = () => randomBytes(24).toString("base64url");
 
-/** A checkout attempt: pending, no gateway token yet. The plan's amount and length are copied here and never re-read. */
-export async function createPayment({ user, plan, gateway }) {
+/**
+ * A checkout attempt: pending, no gateway token yet. The plan's amount and length are copied here and never re-read.
+ * `user` is the account whose subscription is extended; `payer` is set only when someone else pays for it (a salon
+ * paying for a team artist).
+ */
+export async function createPayment({ user, plan, gateway, payer = null }) {
   await ensureBillingTables();
   const db = await getDb();
   return get(db, `
-    INSERT INTO payments (user_id, user_type, user_name, user_phone, plan, plan_title, days, amount_rial, gateway, return_token)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+    INSERT INTO payments (user_id, user_type, user_name, user_phone, plan, plan_title, days, amount_rial, gateway, return_token,
+                          payer_user_id, payer_name)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
     RETURNING *
-  `, [user.id, user.type, String(user.name || "").slice(0, 120), String(user.phone || ""), plan.id, plan.title, plan.days, plan.amountRial, gateway, newToken()]);
+  `, [
+    user.id, user.type, String(user.name || "").slice(0, 120), String(user.phone || ""), plan.id, plan.title, plan.days, plan.amountRial,
+    gateway, newToken(), payer ? payer.id : null, payer ? String(payer.name || "").slice(0, 120) : ""
+  ]);
 }
 
 /** Stores the gateway's token for this checkout (once), plus anything the gateway needs to remember about it. */
@@ -345,18 +370,59 @@ export async function grantDays({ userId, days, amountRial = 0, note = "", admin
   });
 }
 
+/** Who may see a payment's receipt: the account it is for and the one who paid it. */
+export const canSeePayment = (payment, userId) =>
+  Boolean(payment) && (Number(payment.user_id) === Number(userId) || Number(payment.payer_user_id) === Number(userId));
+
+/** «پرداخت‌های من»: payments for this account (whoever paid) and payments this account made for others. */
+/**
+ * Records a refund the admin made through the gateway's own panel (terms, section 4): `amountRial` back to the payer,
+ * `days` taken off the account's paid time. Once per payment, never more than was paid or bought. Same locks as
+ * settlePayment (payment row, then the subscription row).
+ */
+export async function recordRefund({ paymentId, amountRial, days, note = "", adminLabel = "", now = new Date() }) {
+  await ensureBillingTables();
+  return withTransaction(null, async (client) => {
+    const payment = await get(client, "SELECT * FROM payments WHERE id = $1 FOR UPDATE", [Number(paymentId)]);
+    if (!payment) return { ok: false, status: 404, error: "این پرداخت پیدا نشد." };
+    if (payment.status !== "paid") return { ok: false, status: 409, error: "فقط پرداخت موفق بازپرداخت دارد." };
+    if (payment.refunded_at) return { ok: false, status: 409, error: "بازپرداخت این پرداخت قبلاً ثبت شده است." };
+    if (Number(payment.amount_rial) <= 0) return { ok: false, status: 409, error: "این مورد هدیه بوده و مبلغی برای بازپرداخت ندارد." };
+    const refundRial = Math.round(Number(amountRial));
+    const refundDays = Math.round(Number(days));
+    if (!(refundRial > 0) || refundRial > Number(payment.amount_rial)) return { ok: false, status: 400, error: "مبلغ بازپرداخت باید بیشتر از صفر و حداکثر به اندازهٔ مبلغ پرداخت باشد." };
+    if (!(refundDays >= 0) || refundDays > Number(payment.days)) return { ok: false, status: 400, error: "روزهای کم‌شده نمی‌تواند بیشتر از روزهای همین پلن باشد." };
+    if (payment.user_id && refundDays > 0) {
+      const sub = await get(client, "SELECT paid_until FROM subscriptions WHERE user_id = $1 FOR UPDATE", [payment.user_id]);
+      if (sub?.paid_until) {
+        const end = new Date(new Date(sub.paid_until).getTime() - refundDays * DAY_MS);
+        await run(client, "UPDATE subscriptions SET paid_until = $2, updated_at = NOW() WHERE user_id = $1", [payment.user_id, end]);
+      }
+    }
+    const updated = await get(client, `
+      UPDATE payments SET refunded_at = $2, refund_rial = $3, refund_days = $4, refund_note = $5, refund_admin = $6, updated_at = NOW()
+      WHERE id = $1 RETURNING *
+    `, [payment.id, now, refundRial, refundDays, String(note || "").slice(0, 300), String(adminLabel || "").slice(0, 40)]);
+    return { ok: true, payment: updated };
+  });
+}
+
 export async function listUserPayments(userId, limit = 50) {
   await ensureBillingTables();
   const db = await getDb();
-  return all(db, "SELECT * FROM payments WHERE user_id = $1 ORDER BY id DESC LIMIT $2", [Number(userId), Math.min(Math.max(Number(limit) || 50, 1), 100)]);
+  return all(db, "SELECT * FROM payments WHERE user_id = $1 OR payer_user_id = $1 ORDER BY id DESC LIMIT $2", [Number(userId), Math.min(Math.max(Number(limit) || 50, 1), 100)]);
 }
 
-/** The newest still-open checkout of this account (within `maxMinutes`), if any: the app shows «در حال بررسی» for it. */
+/**
+ * The newest still-open checkout this account started (within `maxMinutes`), if any: the app shows «در حال بررسی»
+ * for it. A salon's checkout for an artist shows to the salon, not to the artist, who did not start it.
+ */
 export async function latestPendingPayment(userId, maxMinutes = 120) {
   await ensureBillingTables();
   const db = await getDb();
   return get(db, `
-    SELECT * FROM payments WHERE user_id = $1 AND status = 'pending' AND authority IS NOT NULL
+    SELECT * FROM payments
+    WHERE (payer_user_id = $1 OR (user_id = $1 AND payer_user_id IS NULL)) AND status = 'pending' AND authority IS NOT NULL
       AND created_at >= NOW() - ($2::int * INTERVAL '1 minute')
     ORDER BY id DESC LIMIT 1
   `, [Number(userId), Number(maxMinutes)]);
@@ -413,7 +479,7 @@ export async function claimNotice(userId, kind, periodEnd) {
   return Boolean(row);
 }
 
-export { accessOf, salonCover };
+export { accessOf };
 
 /* ───────────────────────── admin ───────────────────────── */
 
@@ -435,12 +501,12 @@ export async function listPayments({ status = "", source = "", q = "", userId = 
   }
   if (userId) {
     params.push(Number(userId));
-    where.push(`user_id = $${params.length}`);
+    where.push(`(user_id = $${params.length} OR payer_user_id = $${params.length})`);
   }
   const text = String(q || "").trim().slice(0, 60);
   if (text) {
     params.push(`%${text.replace(/[%_\\]/g, "\\$&")}%`);
-    where.push(`(user_name ILIKE $${params.length} OR user_phone ILIKE $${params.length} OR receipt_no ILIKE $${params.length} OR ref_id ILIKE $${params.length})`);
+    where.push(`(user_name ILIKE $${params.length} OR user_phone ILIKE $${params.length} OR payer_name ILIKE $${params.length} OR receipt_no ILIKE $${params.length} OR ref_id ILIKE $${params.length})`);
   }
   const clause = where.length ? `WHERE ${where.join(" AND ")}` : "";
   const size = Math.min(Math.max(Number(limit) || 30, 1), 100);
@@ -455,7 +521,7 @@ export async function listPayments({ status = "", source = "", q = "", userId = 
 
 /**
  * Money and accounts at a glance. Revenue counts real money only: paid rows that are not from the test gateway
- * (admin-recorded payments with an amount are real money taken outside the app, so they count).
+ * (admin-recorded payments with an amount are real money taken outside the app, so they count), less refunds.
  */
 export async function billingStats(now = new Date()) {
   await ensureBillingTables();
@@ -464,9 +530,9 @@ export async function billingStats(now = new Date()) {
   const [money, accounts] = await Promise.all([
     get(db, `
       SELECT
-        COALESCE(SUM(amount_rial) FILTER (WHERE paid_at >= $1::timestamptz - INTERVAL '1 day'), 0)::bigint AS day_rial,
-        COALESCE(SUM(amount_rial) FILTER (WHERE paid_at >= $1::timestamptz - INTERVAL '30 days'), 0)::bigint AS month_rial,
-        COALESCE(SUM(amount_rial), 0)::bigint AS all_rial,
+        COALESCE(SUM(amount_rial - refund_rial) FILTER (WHERE paid_at >= $1::timestamptz - INTERVAL '1 day'), 0)::bigint AS day_rial,
+        COALESCE(SUM(amount_rial - refund_rial) FILTER (WHERE paid_at >= $1::timestamptz - INTERVAL '30 days'), 0)::bigint AS month_rial,
+        COALESCE(SUM(amount_rial - refund_rial), 0)::bigint AS all_rial,
         COUNT(*) FILTER (WHERE paid_at >= $1::timestamptz - INTERVAL '1 day' AND amount_rial > 0)::int AS day_count,
         COUNT(*) FILTER (WHERE paid_at >= $1::timestamptz - INTERVAL '30 days' AND amount_rial > 0)::int AS month_count
       FROM payments WHERE status = 'paid' AND gateway <> 'sandbox'
@@ -474,13 +540,7 @@ export async function billingStats(now = new Date()) {
     listBilledAccounts()
   ]);
   const states = { trial: 0, active: 0, grace: 0, expired: 0 };
-  const closedArtists = [];
-  for (const row of accounts) {
-    const { state } = accessOf(row, row.paid_until, settings, now);
-    states[state] += 1;
-    if (state === "expired" && row.type === "artist") closedArtists.push(row.id);
-  }
-  const covered = (await salonCover(db, closedArtists, settings, now)).size;
+  for (const row of accounts) states[accessOf(row, row.paid_until, settings, now).state] += 1;
   const pending = await get(db, "SELECT COUNT(*)::int AS n FROM payments WHERE status = 'pending' AND authority IS NOT NULL AND created_at <= $1::timestamptz - INTERVAL '10 minutes' AND created_at >= $1::timestamptz - INTERVAL '3 days'", [now]);
   const toToman = (rial) => rialToToman(Number(rial || 0));
   return {
@@ -491,7 +551,7 @@ export async function billingStats(now = new Date()) {
       dayCount: money?.day_count || 0,
       monthCount: money?.month_count || 0
     },
-    accounts: { ...states, coveredBySalon: covered, total: accounts.length },
+    accounts: { ...states, total: accounts.length },
     stuckPending: pending?.n || 0
   };
 }

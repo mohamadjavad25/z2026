@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect } from "react";
-import { ChevronLeft, FlaskConical, LoaderCircle, ReceiptText } from "lucide-react";
+import { ChevronLeft, FlaskConical, LoaderCircle, ReceiptText, UsersRound } from "lucide-react";
 import { Button } from "../../components/ui";
 import { toPersianDigits } from "../../shared/lib/digits";
-import { accountView } from "./billingView";
+import { accountView, teamMemberView } from "./billingView";
 import { openPaymentHistory, openPaymentResult, openPlans, refreshBilling, useBilling } from "./billingStore";
 
 /**
@@ -50,6 +50,45 @@ export function SubscriptionCard() {
           </button>
         </div>
       </div>
+      {overview.role === "salon" && overview.team?.length ? <TeamSubscriptions overview={overview} /> : null}
     </section>
+  );
+}
+
+/**
+ * For salons: the artists on the team with an account of their own. Paying for them is optional; an artist the salon
+ * does not pay for buys their own subscription, like any artist.
+ */
+function TeamSubscriptions({ overview }) {
+  const ready = Boolean(overview.checkoutReady);
+  return (
+    <div className="billTeam">
+      <div className="billTeamHead">
+        <UsersRound size={18} aria-hidden="true" />
+        <div>
+          <b>اشتراک آرتیست‌های تیم</b>
+          <p>اختیاری است: اگر بخواهی اشتراک آرتیستی را تو پرداخت می‌کنی؛ وگرنه هر آرتیست خودش پرداخت می‌کند.</p>
+        </div>
+      </div>
+      <ul className="billTeamList">
+        {overview.team.map((member) => {
+          const view = teamMemberView(member, overview);
+          return (
+            <li key={member.id} className={`is-${view.tone}`}>
+              <span className="billTeamAvatar" aria-hidden="true">
+                {member.avatarUrl ? <img src={member.avatarUrl} alt="" loading="lazy" /> : (member.name || "؟").trim().charAt(0)}
+              </span>
+              <span className="billTeamMain">
+                <b>{member.name}</b>
+                <small><i aria-hidden="true" />{view.status}</small>
+              </span>
+              <Button size="sm" variant={view.urgent ? "primary" : "secondary"} disabled={!ready} onClick={() => openPlans(member.id)} aria-label={`پرداخت اشتراک ${member.name}`}>
+                پرداخت
+              </Button>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }

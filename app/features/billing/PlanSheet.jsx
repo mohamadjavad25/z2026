@@ -10,8 +10,13 @@ import { toPersianDigits } from "../../shared/lib/digits";
 import { formatToman, formatTomanNumber } from "../../shared/lib/money";
 import { goToGateway, rememberPendingPayment } from "./billingStore";
 
-function leadText(account) {
+function leadText(account, name = "") {
   const until = formatPersianLongDate(account?.accessEndsAt);
+  if (name) {
+    if (account?.state === "trial") return `ماه رایگان ${name} تا ${until} ادامه دارد. پلنی که الان بخری از همان روز شروع می‌شود.`;
+    if (account?.state === "active") return `پلن تازه به آخر اشتراک فعلی ${name} (${until}) اضافه می‌شود.`;
+    return "پلن از همین امروز شروع می‌شود.";
+  }
   if (account?.state === "trial") return `ماه رایگانت تا ${until} ادامه دارد. پلنی که الان بخری از همان روز شروع می‌شود.`;
   if (account?.state === "active") return `پلن تازه به آخر اشتراک فعلی‌ات (${until}) اضافه می‌شود.`;
   return "پلن از همین امروز شروع می‌شود.";
@@ -20,9 +25,10 @@ function leadText(account) {
 /**
  * Three plans, one button, straight to the bank. The middle plan is picked first; the summary under the plans shows
  * exactly which dates the chosen plan covers and what is charged. The amount is decided on the server, never here.
+ * forMember: a salon paying for an artist on its team (the artist's plans, dates and name instead of the salon's).
  */
-export function PlanSheet({ open, overview, onClose }) {
-  const plans = overview?.plans || [];
+export function PlanSheet({ open, overview, forMember = null, onClose }) {
+  const plans = (forMember ? forMember.plans : overview?.plans) || [];
   const preselected = (plans.find((plan) => plan.preselected) || plans[0])?.id || "";
   const [selected, setSelected] = useState(preselected);
   const [busy, setBusy] = useState(false);
@@ -44,7 +50,7 @@ export function PlanSheet({ open, overview, onClose }) {
 
   const plan = plans.find((item) => item.id === selected) || null;
   const ready = Boolean(overview?.checkoutReady);
-  const roleLabel = overview?.role === "artist" ? "آرتیست" : "سالن";
+  const roleLabel = forMember || overview?.role === "artist" ? "آرتیست" : "سالن";
 
   async function pay() {
     if (!plan || busy) return;
@@ -52,7 +58,7 @@ export function PlanSheet({ open, overview, onClose }) {
     setError("");
     let result;
     try {
-      result = await startBillingCheckout(plan.id);
+      result = await startBillingCheckout(plan.id, forMember?.id || null);
     } catch {
       result = { ok: false, payload: { error: "اتصال برقرار نشد؛ اینترنت را بررسی کن و دوباره بزن." } };
     }
@@ -70,12 +76,13 @@ export function PlanSheet({ open, overview, onClose }) {
     <ProfileSheet
       open={open}
       kicker={`اشتراک ${roleLabel}`}
-      title="انتخاب پلن"
-      label="انتخاب پلن اشتراک"
+      title={forMember ? `پرداخت برای ${forMember.name}` : "انتخاب پلن"}
+      label={forMember ? `پرداخت اشتراک ${forMember.name}` : "انتخاب پلن اشتراک"}
       panelClassName="billSheet"
       onClose={busy ? () => {} : onClose}
     >
-      <p className="billSheetLead">{leadText(overview?.account)}</p>
+      <p className="billSheetLead">{forMember ? leadText(forMember.account, forMember.name) : leadText(overview?.account)}</p>
+      {forMember ? <p className="billTeamNote">اشتراک {forMember.name} تمدید می‌شود و رسید پیش تو می‌ماند. پرداخت برای آرتیست‌ها اختیاری است.</p> : null}
 
       <fieldset className="billPlans" disabled={busy}>
         <legend className="srOnly">پلن اشتراک</legend>

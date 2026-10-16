@@ -6,7 +6,7 @@ import { ProfileSheet } from "../profile/ProfileSheet";
 import { listBillingPayments } from "../../shared/api/billing";
 import { formatPersianLongDate } from "../../shared/lib/billingFormat";
 import { formatToman } from "../../shared/lib/money";
-import { CopyReceiptButton, PaymentStatusChip, ReceiptDetails } from "./ReceiptDetails";
+import { CopyReceiptButton, PaymentStatusChip, ReceiptDetails, chipStatus } from "./ReceiptDetails";
 
 /** «پرداخت‌های من»: every payment, newest first; one tap opens its full receipt. */
 export function PaymentsSheet({ open, onClose }) {
@@ -66,11 +66,14 @@ export function PaymentsSheet({ open, onClose }) {
                   <button type="button" onClick={() => setSelected(payment)}>
                     <span className="billHistoryMain">
                       <b>{payment.title}</b>
-                      <small>{formatPersianLongDate(payment.paidAt || payment.createdAt)}{payment.sandbox ? " • آزمایشی" : ""}</small>
+                      <small>
+                        {payment.paidFor ? `برای ${payment.paidFor} • ` : payment.paidBy ? `پرداخت ${payment.paidBy} • ` : ""}
+                        {formatPersianLongDate(payment.paidAt || payment.createdAt)}{payment.sandbox ? " • آزمایشی" : ""}
+                      </small>
                     </span>
                     <span className="billHistorySide">
                       <b>{payment.amountToman ? formatToman(payment.amountToman) : "هدیه"}</b>
-                      <PaymentStatusChip status={payment.status} />
+                      <PaymentStatusChip status={chipStatus(payment)} />
                     </span>
                     <ChevronLeft size={16} aria-hidden="true" className="billHistoryChevron" />
                   </button>

@@ -1,11 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { CalendarPlus, CreditCard, Gift } from "lucide-react";
+import { CalendarPlus, CreditCard, Gift, Undo2 } from "lucide-react";
 import { Button } from "../components/ui";
 import { api } from "./adminFetch";
 import { ACCOUNT_STATE, PAYMENT_STATUS, fmtDate, fmtDay, num, toman } from "./format";
 import { ErrorNote, Loading, toastResult } from "./ui";
+
+/** Pass the payment's status, or "refunded" for a paid payment with a refund recorded on it. */
+export const paymentTagStatus = (payment) => (payment?.refundedAt ? "refunded" : payment?.status);
 
 export function PaymentStatusTag({ status }) {
   const meta = PAYMENT_STATUS[status] || PAYMENT_STATUS.pending;
@@ -19,7 +22,6 @@ export function AccountStateLine({ account }) {
   return (
     <div className="admBillState">
       <span className={`admTone is-${meta.tone}`}>{meta.label}</span>
-      {account.coveredBy ? <span className="admTone is-info">زیر پوشش {account.coveredBy.salonName}</span> : null}
       <span className="admMuted">
         {account.state === "trial" || account.state === "active"
           ? `تا ${fmtDay(account.accessEndsAt)} • ${num(account.daysLeft)} روز مانده`
@@ -37,6 +39,70 @@ const QUICK_DAYS = [7, 30, 180, 365];
  * Adds days to an account: a gift (amount 0) or a payment taken outside the app (card-to-card, cash). The server asks
  * for the password again (the step-up dialog opens by itself) and logs it with the reason.
  */
+/**
+ * «ثبت بازپرداخت»: after the money went back in the gateway's own panel, records it on the payment and takes the
+ * unused days off the subscription. Starts from the policy's numbers (terms, section 4: unused days at the plan's own
+ * daily price, the whole amount if the period has not started); the admin can change both.
+ */
+export function RefundDialog({ payment, onClose, onDone }) {
+  const quote = payment.refundQuote || { days: 0, amountToman: 0 };
+  const [amount, setAmount] = useState(quote.amountToman);
+  const [days, setDays] = useState(quote.days);
+  const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    const onKey = (event) => event.key === "Escape" && !busy && onClose();
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [busy, onClose]);
+  const valid = Number.isInteger(amount) && amount >= 1 && amount <= payment.amountToman
+    && Number.isInteger(days) && days >= 0 && days <= payment.days && note.trim().length >= 3;
+  const since = Math.max(0, Math.floor((Date.now() - new Date(payment.paidAt).getTime()) / 86_400_000));
+
+  async function submit(event) {
+    event.preventDefault();
+    if (!valid || busy) return;
+    setBusy(true);
+    const result = await api.post(`/api/admin/billing/payments/${payment.id}`, { action: "refund", amountToman: amount, days, note: note.trim() });
+    setBusy(false);
+    if (toastResult(result, "بازپرداخت ثبت شد.")) onDone?.(result.payload.data);
+  }
+
+  return (
+    <div className="admModal" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && !busy && onClose()}>
+      <form className="admCard admForm admDialog" role="dialog" aria-modal="true" aria-labelledby="admRefundTitle" onSubmit={submit}>
+        <div className="admDialogIcon"><Undo2 size={22} aria-hidden="true" /></div>
+        <h2 id="admRefundTitle">ثبت بازپرداخت {payment.receiptNo ? <span dir="ltr">{payment.receiptNo}</span> : null}</h2>
+        <p className="admMuted">
+          اول پول را از پنل درگاه به همان کارت برگردان؛ اینجا فقط ثبت می‌شود و روزها از اشتراک کم می‌شود. این کار برگشت ندارد.
+          {" "}{num(since)} روز از پرداخت گذشته (انصراف بدون دلیل تا ۷ روز کاری است).
+        </p>
+        <ul className="admFacts">
+          <li><span>پرداخت‌شده</span><b>{toman(payment.amountToman)} • {num(payment.days)} روز</b></li>
+          <li><span>طبق قوانین (روزهای استفاده‌نشده)</span><b>{toman(quote.amountToman)} • {num(quote.days)} روز</b></li>
+        </ul>
+        <label className="admLabel">
+          <span>مبلغ برگشتی (تومان)</span>
+          <input type="number" inputMode="numeric" min={1} max={payment.amountToman} value={Number.isFinite(amount) ? amount : ""} onChange={(event) => setAmount(Math.max(0, Math.round(Number(event.target.value) || 0)))} autoFocus />
+        </label>
+        <label className="admLabel">
+          <span>روزهایی که از اشتراک کم می‌شود</span>
+          <input type="number" inputMode="numeric" min={0} max={payment.days} value={Number.isFinite(days) ? days : ""} onChange={(event) => setDays(Math.max(0, Math.round(Number(event.target.value) || 0)))} />
+          <small className="admMuted">برای پرداخت دوباره (دو بار کم شدن پول) صفر بگذار.</small>
+        </label>
+        <label className="admLabel">
+          <span>دلیل و کد پیگیری بازگشت وجه</span>
+          <textarea rows={2} maxLength={300} value={note} placeholder="مثلاً: انصراف در ۷ روز، پیگیری بازگشت ۹۸۷۶۵" onChange={(event) => setNote(event.target.value)} />
+        </label>
+        <div className="admDialogActions">
+          <Button type="button" variant="secondary" disabled={busy} onClick={onClose}>انصراف</Button>
+          <Button type="submit" variant="danger" disabled={!valid} loading={busy} loadingLabel="…" icon={Undo2}>ثبت بازپرداخت</Button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
 export function GrantDialog({ userId, name, onClose, onDone }) {
   const [days, setDays] = useState(30);
   const [amount, setAmount] = useState(0);
@@ -131,7 +197,7 @@ export function AccountBilling({ userId, name, onGo }) {
               <li key={payment.id}>
                 <button type="button" onClick={() => onGo?.("payments", { id: payment.id })}>
                   <span>{payment.title}<small>{payment.amountToman ? toman(payment.amountToman) : "هدیه"} • {fmtDate(payment.paidAt || payment.createdAt)}</small></span>
-                  <PaymentStatusTag status={payment.status} />
+                  <PaymentStatusTag status={paymentTagStatus(payment)} />
                 </button>
               </li>
             ))}

@@ -64,7 +64,7 @@ export const SETTING_DEFAULTS = {
   // Subscriptions for salons and artists (repos/billing.js). Changed only through /api/admin/billing/settings (password
   // re-check). `launchedAt` is stamped the first time billing is switched on and never moves: accounts that existed
   // before it get their free month from that day.
-  billing: { enabled: false, launchedAt: null, graceDays: 3, salonCoversArtists: true }
+  billing: { enabled: false, launchedAt: null, graceDays: 3 }
 };
 
 function merge(key, value) {

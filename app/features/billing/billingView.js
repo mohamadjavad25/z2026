@@ -5,7 +5,7 @@ import { toPersianDigits } from "../../shared/lib/digits.js";
  * What the subscription card (Settings) and the reminder bar (home) say, from GET /api/billing. Pure, so every state
  * is unit-tested (tests/unit/billingView.test.js).
  *
- * tone: trial | active | warn | danger | covered | soon. While billing is on but no gateway can take a payment yet
+ * tone: trial | active | warn | danger | soon. While billing is on but no gateway can take a payment yet
  * ("not enforced"), nothing is closed, so an ended free month reads calm ("soon"), never alarming.
  */
 const TRIAL_DAYS_FALLBACK = 30;
@@ -14,7 +14,6 @@ export function accountView(overview) {
   if (!overview?.visible || !overview.account) return null;
   const account = overview.account;
   const until = formatPersianLongDate(account.accessEndsAt);
-  const cover = account.coveredBy;
   const ready = Boolean(overview.checkoutReady);
   const cta = (label, emphasis = "primary") => ({ label: ready ? label : "پرداخت به‌زودی فعال می‌شود", emphasis, disabled: !ready });
 
@@ -24,7 +23,7 @@ export function accountView(overview) {
       badge: "ماه رایگان",
       title: `${formatDaysLeft(account.daysLeft)} از ماه رایگانت مانده`,
       sub: `تا ${until}. هر پلنی بخری از همان روز شروع می‌شود و روزی از ماه رایگانت از دست نمی‌رود.`,
-      note: cover ? `عضو ${cover.salonName} هستی؛ بعد از ماه رایگان هم از طرف سالن فعال می‌مانی.` : "",
+      note: "",
       meter: Math.min(1, Math.max(0, account.daysLeft / (overview.trialDays || TRIAL_DAYS_FALLBACK))),
       action: cta("خرید اشتراک", account.daysLeft <= 5 ? "primary" : "secondary")
     };
@@ -41,17 +40,6 @@ export function accountView(overview) {
       note: "",
       meter: total ? Math.min(1, Math.max(0, account.daysLeft / total)) : null,
       action: cta("تمدید اشتراک", account.daysLeft <= 5 ? "primary" : "secondary")
-    };
-  }
-  if (cover) {
-    return {
-      tone: "covered",
-      badge: "از طرف سالن",
-      title: `اشتراکت از طرف ${cover.salonName} فعال است`,
-      sub: "تا وقتی عضو این سالن هستی، لازم نیست جدا پرداخت کنی. اگر جدا هم کار می‌کنی، اشتراک شخصی بخر.",
-      note: "",
-      meter: null,
-      action: cta("خرید اشتراک شخصی", "secondary")
     };
   }
   if (!overview.enforced) {
@@ -97,8 +85,8 @@ export function bannerView(overview) {
     return { key: `pending-${overview.pending.id}`, tone: "info", text: "پرداختت در حال بررسی است.", action: "دیدن نتیجه", kind: "result", paymentId: overview.pending.id };
   }
   const account = overview.account;
-  // Nothing to warn about while nobody can pay yet, or when a salon's subscription covers this artist.
-  if (!overview.enforced || account.coveredBy) return null;
+  // Nothing to warn about while nobody can pay yet.
+  if (!overview.enforced) return null;
   const key = `${account.state}-${account.accessEndsAt}`;
   if (account.state === "trial" || account.state === "active") {
     if (account.daysLeft > 5) return null;
@@ -119,12 +107,27 @@ export function bannerView(overview) {
   return { key, tone: "danger", text: "در جست‌وجو دیده نمی‌شوی و نوبت آنلاین نمی‌گیری.", action: "خرید اشتراک", kind: "plans" };
 }
 
+/**
+ * One artist in the salon's «اشتراک آرتیست‌های تیم» list: a short status line and its tone. Paying for them is the
+ * salon's choice; an artist the salon does not pay for pays for themselves.
+ */
+export function teamMemberView(member, overview) {
+  const account = member?.account || {};
+  if (account.state === "trial") return { tone: "trial", status: `ماه رایگان • ${formatDaysLeft(account.daysLeft)} مانده`, urgent: account.daysLeft <= 5 };
+  if (account.state === "active") return { tone: "active", status: `فعال تا ${formatPersianLongDate(account.accessEndsAt)}`, urgent: account.daysLeft <= 5 };
+  if (!overview?.enforced) return { tone: "soon", status: "ماه رایگان تمام شد", urgent: false };
+  if (account.state === "grace") return { tone: "warn", status: `تمام شده • ${formatDaysLeft(account.graceDaysLeft)} مهلت`, urgent: true };
+  return { tone: "danger", status: "غیرفعال؛ در جست‌وجو دیده نمی‌شود", urgent: true };
+}
+
 /** «رسید پرداخت فرفرو …», the text the «کپی رسید» button copies. */
 export function receiptText(payment) {
   const lines = [
     "رسید پرداخت فرفرو",
     payment.receiptNo ? `شمارهٔ رسید: ${payment.receiptNo}` : "",
     `پلن: ${payment.title}`,
+    payment.paidFor ? `برای: ${payment.paidFor}` : "",
+    payment.paidBy ? `پرداخت توسط: ${payment.paidBy}` : "",
     `مبلغ: ${toPersianDigits(Number(payment.amountToman || 0).toLocaleString("en-US").replace(/,/g, "٬"))} تومان`,
     payment.refId ? `کد پیگیری بانک: ${toPersianDigits(payment.refId)}` : "",
     payment.paidAt ? `تاریخ پرداخت: ${formatPersianLongDate(payment.paidAt)}` : "",

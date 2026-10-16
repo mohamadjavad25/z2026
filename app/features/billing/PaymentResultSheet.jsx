@@ -17,6 +17,7 @@ const POLL_LIMIT = 40; // about two minutes
  * server asks the gateway); after about two minutes the page stops asking on its own and offers a button instead.
  */
 export function PaymentResultSheet({ open, paymentId, onClose, onRetry }) {
+  // onRetry reopens the same plans: for the same team artist when the salon was paying for one.
   const [payment, setPayment] = useState(null);
   const [error, setError] = useState("");
   const [waitedOut, setWaitedOut] = useState(false);
@@ -97,7 +98,7 @@ export function PaymentResultSheet({ open, paymentId, onClose, onRetry }) {
           <b>{waitedOut ? "نتیجه هنوز از بانک نیامده" : "در حال تأیید پرداخت…"}</b>
           <p>
             {waitedOut
-              ? "اگر پرداخت را کامل کردی و پولی کم شده، نگران نباش: به‌محض اینکه بانک تأیید کند، اشتراکت خودکار فعال می‌شود. اگر پرداخت را نیمه‌کاره رها کردی، این صفحه را ببند؛ چیزی از حسابت کم نشده."
+              ? "اگر پرداخت را کامل کردی و پولی کم شده، نگران نباش: به‌محض اینکه بانک تأیید کند، اشتراک خودکار فعال می‌شود. اگر پرداخت را نیمه‌کاره رها کردی، این صفحه را ببند؛ چیزی از حسابت کم نشده."
               : "چند ثانیه صبر کن؛ نتیجه از بانک پرسیده می‌شود. اگر پرداخت را کامل نکردی، می‌توانی این صفحه را ببندی."}
           </p>
           {waitedOut ? <Button variant="secondary" icon={RefreshCw} onClick={checkAgain}>دوباره بررسی کن</Button> : null}
@@ -108,7 +109,7 @@ export function PaymentResultSheet({ open, paymentId, onClose, onRetry }) {
         <>
           <div className="billResult is-ok" role="status">
             <span className="billResultIcon"><CircleCheck size={30} aria-hidden="true" /></span>
-            <b>اشتراکت فعال شد</b>
+            <b>{payment.paidFor ? `اشتراک ${payment.paidFor} فعال شد` : "اشتراکت فعال شد"}</b>
             <p>تا {formatPersianLongDate(payment.periodEnd)}. رسید در «پرداخت‌های من» هم می‌ماند.</p>
           </div>
           <ReceiptDetails payment={payment} />
@@ -128,7 +129,7 @@ export function PaymentResultSheet({ open, paymentId, onClose, onRetry }) {
           </div>
           <div className="billSheetActions">
             <Button variant="secondary" onClick={onClose}>بستن</Button>
-            <Button onClick={onRetry}>دوباره امتحان کن</Button>
+            <Button onClick={() => onRetry(payment.paidForUserId || null)}>دوباره امتحان کن</Button>
           </div>
         </>
       ) : null}

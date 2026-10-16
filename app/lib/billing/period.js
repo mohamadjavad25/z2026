@@ -64,6 +64,21 @@ export function nextPeriod({ now = new Date(), accessEndsAt, days }) {
   return { start: new Date(start), end: new Date(start + Number(days) * DAY_MS) };
 }
 
+/**
+ * What a refund of one paid period comes to (terms, section 4): the days of it not used yet, and the same share of
+ * what was paid (the plan's own daily price, so gift months in longer plans are priced fairly). A period that has not
+ * started yet (bought ahead) comes back whole. A started day counts as used.
+ */
+export function refundQuote({ amountRial, days, periodStart, periodEnd, now = new Date() }) {
+  const total = Math.max(0, Math.round(Number(days) || 0));
+  const amount = Math.max(0, Number(amountRial) || 0);
+  if (!total || !toMs(periodEnd)) return { days: 0, amountRial: 0 };
+  const from = Math.max(toMs(now), toMs(periodStart));
+  const unused = Math.min(total, Math.max(0, Math.floor((toMs(periodEnd) - from) / DAY_MS)));
+  // Whole toman: the gateways refund in toman steps.
+  return { days: unused, amountRial: Math.round((amount * unused) / total / 10) * 10 };
+}
+
 /** «FR-1405-000042»: the Persian year it was paid in, then the payment id. Unique because the id is. */
 export function receiptNumber(paymentId, paidAt = new Date()) {
   const { year } = getPersianDateParts(paidAt instanceof Date ? paidAt : new Date(paidAt));

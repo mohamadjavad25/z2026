@@ -1,13 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { CalendarPlus, CircleCheck, CreditCard, FlaskConical, MessageSquareText, RefreshCw, Search, Settings2, Store, TriangleAlert, UserRound } from "lucide-react";
+import { CalendarPlus, CircleCheck, Undo2, CreditCard, FlaskConical, MessageSquareText, RefreshCw, Search, Settings2, Store, TriangleAlert, UserRound } from "lucide-react";
 import { Button } from "../components/ui";
 import { api } from "./adminFetch";
 import { TYPE_LABEL, ago, fmtDate, fmtDay, num, toman } from "./format";
 import { PageHead } from "./PageHead";
 import { SplitView } from "./SplitView";
-import { AccountStateLine, GrantDialog, PaymentStatusTag } from "./BillingAdmin";
+import { AccountStateLine, GrantDialog, PaymentStatusTag, RefundDialog, paymentTagStatus } from "./BillingAdmin";
 import { Card, EmptyState, ErrorNote, Loading, Pager, Segmented, Skeleton, Toggle, confirmAction, toastResult, useAdminData, withQuery } from "./ui";
 
 const PAGE_SIZE = 30;
@@ -21,7 +21,7 @@ function SetupCard({ data, onSaved }) {
   const [busy, setBusy] = useState(false);
   useEffect(() => setValue(data.settings), [data.settings]);
   const { gateway, sms } = data;
-  const dirty = ["enabled", "graceDays", "salonCoversArtists"].some((key) => value[key] !== data.settings[key]);
+  const dirty = ["enabled", "graceDays"].some((key) => value[key] !== data.settings[key]);
   const enforced = data.settings.enabled && gateway.ready;
 
   async function save() {
@@ -38,7 +38,7 @@ function SetupCard({ data, onSaved }) {
       if (!answer.ok) return;
     }
     setBusy(true);
-    const result = await api.put("/api/admin/billing/settings", { enabled: value.enabled, graceDays: value.graceDays, salonCoversArtists: value.salonCoversArtists });
+    const result = await api.put("/api/admin/billing/settings", { enabled: value.enabled, graceDays: value.graceDays });
     setBusy(false);
     if (toastResult(result, "تنظیمات اشتراک ذخیره شد.")) onSaved();
   }
@@ -69,7 +69,6 @@ function SetupCard({ data, onSaved }) {
         <summary>تغییر تنظیمات</summary>
       <div className="admForm">
         <Toggle checked={value.enabled} disabled={busy} onChange={(enabled) => setValue({ ...value, enabled })} label="اشتراک سالن و آرتیست" hint="روشن: پرداخت ممکن است و یادآوری‌ها می‌روند" />
-        <Toggle checked={value.salonCoversArtists} disabled={busy} onChange={(salonCoversArtists) => setValue({ ...value, salonCoversArtists })} label="آرتیست‌های عضو سالن رایگان" hint="تا وقتی سالنشان اشتراک دارد، لازم نیست جدا پرداخت کنند" />
         <div className="admLabel">
           <span>مهلت بعد از پایان اشتراک</span>
           <Segmented label="مهلت" size="sm" value={value.graceDays} onChange={(graceDays) => setValue({ ...value, graceDays })} options={GRACE} />
@@ -113,6 +112,7 @@ function PaymentDetail({ id, onGo, onSelect, onChanged }) {
   const [found, setFound] = useState(null);
   const [busy, setBusy] = useState(false);
   const [granting, setGranting] = useState(false);
+  const [refunding, setRefunding] = useState(false);
   const load = useCallback(async () => {
     const result = await api.get(`/api/admin/billing/payments/${id}`);
     setFound(result.ok ? result.payload.data : { error: result.payload?.error || "بارگذاری نشد." });
@@ -146,7 +146,7 @@ function PaymentDetail({ id, onGo, onSelect, onChanged }) {
           <h2>{payment.title}</h2>
           <p className="admMuted">{payment.receiptNo ? <span dir="ltr">{payment.receiptNo}</span> : `پرداخت ${num(payment.id)}`} • {payment.gatewayLabel}</p>
         </div>
-        <PaymentStatusTag status={payment.status} />
+        <PaymentStatusTag status={paymentTagStatus(payment)} />
       </header>
       {payment.sandbox ? <p className="admNote admBanner"><FlaskConical size={16} aria-hidden="true" /> پرداخت آزمایشی؛ پولی جابه‌جا نشده و در درآمد حساب نمی‌شود.</p> : null}
 
@@ -164,6 +164,15 @@ function PaymentDetail({ id, onGo, onSelect, onChanged }) {
           <span className="admMuted" dir="ltr">{payment.userPhone}</span>
         </div>
       </div>
+      {payment.payerName ? (
+        <div className="admPerson">
+          <span className="admPersonIcon"><Store size={17} aria-hidden="true" /></span>
+          <div>
+            <small>پرداخت توسط سالن</small>
+            {payment.payerUserId ? <button type="button" className="admRowLink" onClick={() => onGo("users", { id: payment.payerUserId })}>{payment.payerName} ←</button> : <b>{payment.payerName} (حساب حذف شده)</b>}
+          </div>
+        </div>
+      ) : null}
 
       <ul className="admFacts">
         <li><span>شروع پرداخت</span><b>{fmtDate(payment.createdAt)} ({ago(payment.createdAt)})</b></li>
@@ -177,7 +186,17 @@ function PaymentDetail({ id, onGo, onSelect, onChanged }) {
         {payment.failure ? <li><span>دلیل ناموفق</span><b>{payment.failure}</b></li> : null}
         {payment.source === "gateway" ? <li><span>پرسش از درگاه</span><b>{num(payment.verifyAttempts)} بار{payment.lastVerifyAt ? ` • آخرین ${ago(payment.lastVerifyAt)}` : ""}</b></li> : null}
         {payment.detail ? <li><span>پاسخ فنی درگاه</span><b dir="ltr">{payment.detail}</b></li> : null}
+        {payment.refundedAt ? <li><span>بازپرداخت</span><b>{toman(payment.refundToman)} • {num(payment.refundDays)} روز کم شد • {fmtDate(payment.refundedAt)}</b></li> : null}
+        {payment.refundedAt ? <li><span>دلیل بازپرداخت</span><b>{payment.refundNote || "—"} <small className="admMuted" dir="ltr">{payment.refundAdmin}</small></b></li> : null}
       </ul>
+
+      {payment.refundQuote ? (
+        <section className="admBillAction">
+          <h3><Undo2 size={15} aria-hidden="true" /> بازپرداخت</h3>
+          <p className="admMuted">اگر پرداخت‌کننده انصراف داد یا پول دو بار کم شد، پول را از پنل درگاه برگردان و اینجا ثبت کن.</p>
+          <Button size="sm" variant="secondary" icon={Undo2} onClick={() => setRefunding(true)}>ثبت بازپرداخت</Button>
+        </section>
+      ) : null}
 
       {payment.status === "pending" && payment.authority ? (
         <section className="admBillAction">
@@ -203,7 +222,7 @@ function PaymentDetail({ id, onGo, onSelect, onChanged }) {
               <li key={row.id}>
                 <button type="button" onClick={() => onSelect(row.id)}>
                   <span>{row.title}<small>{row.amountToman ? toman(row.amountToman) : "هدیه"} • {fmtDate(row.paidAt || row.createdAt)}</small></span>
-                  <PaymentStatusTag status={row.status} />
+                  <PaymentStatusTag status={paymentTagStatus(row)} />
                 </button>
               </li>
             ))}
@@ -211,6 +230,9 @@ function PaymentDetail({ id, onGo, onSelect, onChanged }) {
         </section>
       ) : null}
 
+      {refunding ? (
+        <RefundDialog payment={payment} onClose={() => setRefunding(false)} onDone={(data) => { setRefunding(false); setFound(data); onChanged?.(); }} />
+      ) : null}
       {granting ? (
         <GrantDialog userId={payment.userId} name={payment.userName} onClose={() => setGranting(false)} onDone={() => { setGranting(false); load(); onChanged?.(); }} />
       ) : null}
@@ -271,11 +293,11 @@ export function PaymentsTab({ intent = {}, onGo, setParam, onChanged }) {
                 <tr key={payment.id} className={selected === payment.id ? "is-selected" : ""} onClick={() => setSelected(payment.id)}>
                   <td>
                     <button type="button" className="admRowLink" onClick={(event) => { event.stopPropagation(); setSelected(payment.id); }}>{payment.userName || "—"}</button>
-                    <small>{TYPE_LABEL[payment.userType] || ""} • <span dir="ltr">{payment.userPhone}</span></small>
+                    <small>{TYPE_LABEL[payment.userType] || ""}{payment.payerName ? ` • پرداخت: ${payment.payerName}` : ""} • <span dir="ltr">{payment.userPhone}</span></small>
                   </td>
                   <td>{payment.title}<small>{fmtDate(payment.paidAt || payment.createdAt)}{payment.sandbox ? " • آزمایشی" : ""}</small></td>
                   <td>{payment.amountToman ? toman(payment.amountToman) : "هدیه"}</td>
-                  <td><PaymentStatusTag status={payment.status} /></td>
+                  <td><PaymentStatusTag status={paymentTagStatus(payment)} /></td>
                 </tr>
               ))}
             </tbody>
@@ -298,7 +320,7 @@ export function PaymentsTab({ intent = {}, onGo, setParam, onChanged }) {
         <Stat label="درآمد ۲۴ ساعت" value={toman(stats.revenue.dayToman)} hint={`${num(stats.revenue.dayCount)} پرداخت`} />
         <Stat label="درآمد ۳۰ روز" value={toman(stats.revenue.monthToman)} hint={`${num(stats.revenue.monthCount)} پرداخت • کل ${toman(stats.revenue.allToman)}`} />
         <Stat label="اشتراک فعال" value={num(stats.accounts.active)} hint={`${num(stats.accounts.trial)} در ماه رایگان`} />
-        <Stat label="نیاز به تمدید" value={num(stats.accounts.grace + stats.accounts.expired)} hint={`${num(stats.accounts.grace)} در مهلت • ${num(stats.accounts.expired)} غیرفعال${stats.accounts.coveredBySalon ? ` (${num(stats.accounts.coveredBySalon)} زیر پوشش سالن)` : ""}`} bad={stats.accounts.expired > 0 && data.settings.enabled} />
+        <Stat label="نیاز به تمدید" value={num(stats.accounts.grace + stats.accounts.expired)} hint={`${num(stats.accounts.grace)} در مهلت • ${num(stats.accounts.expired)} غیرفعال`} bad={stats.accounts.expired > 0 && data.settings.enabled} />
       </div>
       {stats.stuckPending ? (
         <p className="admNote admBanner"><TriangleAlert size={16} aria-hidden="true" /> {num(stats.stuckPending)} پرداخت بیش از ۱۰ دقیقه است در انتظار مانده. فیلتر «در انتظار» را بزن و از درگاه دوباره بپرس.</p>

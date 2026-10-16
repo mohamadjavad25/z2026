@@ -3,7 +3,7 @@ import * as billing from "../db/repos/billing.js";
 import { getDb, all } from "../db/connection.js";
 import { activeGateway, gatewayById, gatewayLabel } from "../payments/index.js";
 import { BEST_MONTHS, PRESELECTED_MONTHS, TRIAL_DAYS, getPlan, plansFor, rialToToman } from "./plans.js";
-import { nextPeriod } from "./period.js";
+import { nextPeriod, refundQuote } from "./period.js";
 import { reminderKind, reminderMessage } from "./reminders.js";
 import { sendPushToUser } from "../push.js";
 import { sendTemplateSms, smsProviderName } from "../sms.js";
@@ -38,8 +38,12 @@ export function publicOrigin(request) {
 
 /* ───────────────────────── shaping ───────────────────────── */
 
-/** A payment as the app (or, with admin, the admin panel) sees it. Amounts in toman; no gateway internals for the app. */
-export function presentPayment(row, { admin = false } = {}) {
+/**
+ * A payment as the app (or, with admin, the admin panel) sees it. Amounts in toman; no gateway internals for the app.
+ * When a salon paid for an artist, `viewerId` decides which side is shown: the artist sees «پرداخت توسط <salon>»
+ * (paidBy), the salon sees «برای <artist>» (paidFor).
+ */
+export function presentPayment(row, { admin = false, viewerId = null } = {}) {
   if (!row) return null;
   const base = {
     id: row.id,
@@ -58,7 +62,13 @@ export function presentPayment(row, { admin = false } = {}) {
     paidAt: row.paid_at,
     failure: row.failure || "",
     sandbox: row.gateway === "sandbox",
-    gatewayLabel: gatewayLabel(row.gateway)
+    gatewayLabel: gatewayLabel(row.gateway),
+    paidBy: row.payer_user_id && viewerId && Number(row.payer_user_id) !== Number(viewerId) ? row.payer_name || "سالن" : "",
+    paidFor: row.payer_user_id && viewerId && Number(row.payer_user_id) === Number(viewerId) ? row.user_name || "آرتیست" : "",
+    paidForUserId: row.payer_user_id && viewerId && Number(row.payer_user_id) === Number(viewerId) ? row.user_id : null,
+    refundedAt: row.refunded_at || null,
+    refundToman: rialToToman(row.refund_rial || 0),
+    refundDays: Number(row.refund_days || 0)
   };
   if (!admin) return base;
   return {
@@ -68,6 +78,8 @@ export function presentPayment(row, { admin = false } = {}) {
     userType: row.user_type,
     userName: row.user_name,
     userPhone: row.user_phone,
+    payerUserId: row.payer_user_id || null,
+    payerName: row.payer_name || "",
     gateway: row.gateway,
     authority: row.authority || "",
     note: row.note || "",
@@ -75,31 +87,25 @@ export function presentPayment(row, { admin = false } = {}) {
     verifyAttempts: row.verify_attempts,
     lastVerifyAt: row.last_verify_at,
     detail: String(row.gateway_payload?.detail || ""),
+    refundNote: row.refund_note || "",
+    refundAdmin: row.refund_admin || "",
+    // What a refund would come to today (terms, section 4); the admin dialog starts from it.
+    refundQuote: row.status === "paid" && !row.refunded_at && Number(row.amount_rial) > 0
+      ? (({ days, amountRial }) => ({ days, amountToman: rialToToman(amountRial) }))(refundQuote({ amountRial: Number(row.amount_rial), days: row.days, periodStart: row.period_start, periodEnd: row.period_end }))
+      : null,
     updatedAt: row.updated_at
   };
 }
 
 export function presentAccount(state) {
   if (!state) return null;
-  const { access, coveredBy, open } = state;
-  return { ...access, open, coveredBy };
+  return { ...state.access, open: state.open };
 }
 
-/* ───────────────────────── app overview ───────────────────────── */
-
-/**
- * GET /api/billing for a salon or artist: whether billing shows at all, where the account stands, and the three
- * plans with the dates each one would cover if bought now.
- */
-export async function billingOverview(user, now = new Date()) {
-  const state = await billing.getAccountState(user.id, now);
-  if (!state) return { visible: false };
-  const gateway = activeGateway();
-  const [history, pending] = await Promise.all([billing.listUserPayments(user.id, 20), billing.latestPendingPayment(user.id)]);
-  const lastPaid = history.find((row) => row.status === "paid") || null;
-  const { settings, access } = state;
-  const plans = plansFor(user.type).map((plan) => {
-    const period = nextPeriod({ now, accessEndsAt: access.accessEndsAt, days: plan.days });
+/** The plans of one role with the dates each would cover if bought now for an account whose access ends at `accessEndsAt`. */
+function plansWithDates(role, accessEndsAt, now) {
+  return plansFor(role).map((plan) => {
+    const period = nextPeriod({ now, accessEndsAt, days: plan.days });
     // Per month, shown rounded to the thousand («ماهی حدود ۴۱۷٬۰۰۰»); the amount charged is never rounded.
     const exactMonthly = rialToToman(plan.amountRial) / plan.months;
     const monthlyToman = Math.round(exactMonthly / 1000) * 1000;
@@ -120,6 +126,32 @@ export async function billingOverview(user, now = new Date()) {
       endsAt: period.end.toISOString()
     };
   });
+}
+
+/* ───────────────────────── app overview ───────────────────────── */
+
+/**
+ * GET /api/billing for a salon or artist: whether billing shows at all, where the account stands, and the three
+ * plans with the dates each one would cover if bought now. For a salon also `team`: the artists on its team with an
+ * account of their own, each with their state and the artist plans for them (a salon may pay for them; optional).
+ */
+export async function billingOverview(user, now = new Date()) {
+  const state = await billing.getAccountState(user.id, now);
+  if (!state) return { visible: false };
+  const gateway = activeGateway();
+  const [history, pending] = await Promise.all([billing.listUserPayments(user.id, 20), billing.latestPendingPayment(user.id)]);
+  // The account's own subscription: a receipt a salon holds for an artist's plan is not the salon's last payment.
+  const lastPaid = history.find((row) => row.status === "paid" && Number(row.user_id) === Number(user.id)) || null;
+  const { settings, access } = state;
+  const team = user.type === "salon"
+    ? (await billing.listTeamArtists(user.id, now)).map((artist) => ({
+        id: artist.id,
+        name: artist.name,
+        avatarUrl: artist.has_avatar ? `/api/media/avatar/${artist.id}` : "",
+        account: { ...artist.access },
+        plans: plansWithDates("artist", artist.access.accessEndsAt, now)
+      }))
+    : [];
   return {
     visible: settings.enabled || history.length > 0,
     enabled: settings.enabled,
@@ -130,9 +162,10 @@ export async function billingOverview(user, now = new Date()) {
     trialDays: TRIAL_DAYS,
     role: user.type,
     account: presentAccount(state),
-    plans,
-    pending: presentPayment(pending),
-    lastPayment: presentPayment(lastPaid)
+    plans: plansWithDates(user.type, access.accessEndsAt, now),
+    team,
+    pending: presentPayment(pending, { viewerId: user.id }),
+    lastPayment: presentPayment(lastPaid, { viewerId: user.id })
   };
 }
 
@@ -150,18 +183,33 @@ function safeRedirect(redirect, origin) {
   return { method, url, ...(fields ? { fields } : {}) };
 }
 
-/** Creates a pending payment for `planId`, asks the gateway to start it and returns where to send the payer. */
-export async function startCheckout({ user, planId, origin }) {
+/**
+ * Creates a pending payment for `planId`, asks the gateway to start it and returns where to send the payer.
+ * `forUserId`: a salon paying for an artist on its own team (optional for the salon; otherwise artists pay for
+ * themselves). The plan must then be an artist plan; the artist's subscription is extended and the salon is the payer.
+ */
+export async function startCheckout({ user, planId, origin, forUserId = null }) {
+  let account = user;
+  let payer = null;
+  if (forUserId && Number(forUserId) !== Number(user.id)) {
+    if (user.type !== "salon") return fail(403, "فقط سالن می‌تواند برای آرتیست‌های تیمش پرداخت کند.", "NOT_SALON");
+    if (!(await billing.isTeamArtist(user.id, forUserId))) return fail(403, "این آرتیست عضو تیم سالنت نیست.", "NOT_TEAM");
+    const state = await billing.getAccountState(forUserId);
+    if (!state) return fail(404, "حساب این آرتیست پیدا نشد.", "NO_ACCOUNT");
+    account = state.user;
+    payer = user;
+  }
   const plan = getPlan(planId);
-  if (!plan || plan.role !== user.type) return fail(400, "این پلن برای حساب تو نیست.", "BAD_PLAN");
+  if (!plan || plan.role !== account.type) return fail(400, payer ? "این پلن برای آرتیست نیست." : "این پلن برای حساب تو نیست.", "BAD_PLAN");
   const [settings, gateway] = [await billing.getBillingSettings(), activeGateway()];
   if (!settings.enabled || !gateway) return fail(409, "پرداخت اشتراک هنوز راه‌اندازی نشده است.", "BILLING_OFF");
 
-  const payment = await billing.createPayment({ user, plan, gateway: gateway.id });
+  const payment = await billing.createPayment({ user: account, plan, gateway: gateway.id, payer });
   const callbackUrl = `${origin}/api/billing/callback/${gateway.id}?pid=${payment.id}`;
+  const description = payer ? `${plan.title} برای ${String(account.name || "").slice(0, 40)} در فرفرو` : `${plan.title} در فرفرو`;
   let started;
   try {
-    started = await gateway.request({ payment, callbackUrl, description: `${plan.title} در فرفرو`, mobile: user.phone, origin });
+    started = await gateway.request({ payment, callbackUrl, description, mobile: user.phone, origin });
   } catch (error) {
     started = { ok: false, detail: String(error?.message || error) };
   }
@@ -254,23 +302,47 @@ async function adminUserIds() {
 /** Sandbox payments never cost a real SMS (only the "test" provider, which sends nothing, records them). */
 const smsAllowedFor = (payment) => payment.gateway !== "sandbox" || smsProviderName() === "test";
 
-/** Receipt to the payer (push + SMS) and a "new payment" notice to every admin (push + SMS). */
+/**
+ * Receipt to the payer (push + SMS) and a "new payment" notice to every admin (push + SMS). When a salon paid for an
+ * artist, the salon gets the receipt and the artist a push saying the salon renewed their subscription.
+ */
 export async function notifyPaid(payment) {
   const amount = formatTomanNumber(rialToToman(payment.amount_rial));
   const receipt = payment.receipt_no || "";
   const test = payment.gateway === "sandbox" ? " (آزمایشی)" : "";
+  const until = formatPersianLongDate(payment.period_end);
   const tasks = [];
-  if (payment.user_id) {
+  let receiptPhone = payment.user_phone;
+  if (payment.payer_user_id) {
+    const db = await getDb();
+    const [payer] = await all(db, "SELECT id, phone FROM users WHERE id = $1", [payment.payer_user_id]);
+    receiptPhone = payer?.phone || "";
+    if (payer) {
+      tasks.push(sendPushToUser(payer.id, {
+        title: `اشتراک ${payment.user_name || "آرتیست"} فعال شد`,
+        body: `${payment.plan_title}${test}، تا ${until}. شمارهٔ رسید ${receipt}.`,
+        url: `/?billing=${payment.id}`
+      }));
+    }
+    if (payment.user_id) {
+      tasks.push(sendPushToUser(payment.user_id, {
+        title: `${payment.payer_name || "سالنت"} اشتراکت را پرداخت کرد`,
+        body: `${payment.plan_title}${test}؛ اشتراکت تا ${until} فعال است.`,
+        url: "/?billing=history"
+      }));
+    }
+  } else if (payment.user_id) {
     tasks.push(sendPushToUser(payment.user_id, {
       title: "اشتراکت فعال شد",
-      body: `${payment.plan_title}${test}، تا ${formatPersianLongDate(payment.period_end)}. شمارهٔ رسید ${receipt}.`,
+      body: `${payment.plan_title}${test}، تا ${until}. شمارهٔ رسید ${receipt}.`,
       url: `/?billing=${payment.id}`
     }));
   }
-  if (payment.user_phone && smsAllowedFor(payment)) {
-    tasks.push(sendTemplateSms(payment.user_phone, "billing_receipt", { receipt, amount, until: formatPersianShortDate(payment.period_end) }));
+  if (receiptPhone && smsAllowedFor(payment)) {
+    tasks.push(sendTemplateSms(receiptPhone, "billing_receipt", { receipt, amount, until: formatPersianShortDate(payment.period_end) }));
   }
-  const who = `${payment.user_type === "salon" ? "سالن" : "آرتیست"} ${payment.user_name || ""}`.trim();
+  const account = `${payment.user_type === "salon" ? "سالن" : "آرتیست"} ${payment.user_name || ""}`.trim();
+  const who = payment.payer_user_id ? `${payment.payer_name || "سالن"} برای ${account}` : account;
   for (const admin of await adminUserIds()) {
     tasks.push(sendPushToUser(admin.id, {
       title: `پرداخت تازه${test}`,
@@ -292,6 +364,19 @@ export async function notifyGranted(payment) {
   }).catch(() => {});
 }
 
+/** After an admin records a refund: a short push to whoever paid. */
+export async function notifyRefunded(payment) {
+  const to = payment?.payer_user_id || payment?.user_id;
+  if (!to) return;
+  const amount = formatTomanNumber(rialToToman(payment.refund_rial));
+  const days = Number(payment.refund_days) ? ` و ${toPersianDigits(payment.refund_days)} روز از اشتراک کم شد` : "";
+  await sendPushToUser(to, {
+    title: "بازپرداخت ثبت شد",
+    body: `${amount} تومان از رسید ${payment.receipt_no || ""} به کارتت برمی‌گردد${days}.`,
+    url: "/?billing=history"
+  }).catch(() => {});
+}
+
 /* ───────────────────────── hourly sweep ───────────────────────── */
 
 async function sendReminders(now, settings) {
@@ -302,11 +387,8 @@ async function sendReminders(now, settings) {
     if (kind) due.push({ row, access, kind });
   }
   if (!due.length) return 0;
-  const db = await getDb();
-  const covered = await billing.salonCover(db, due.filter((item) => item.row.type === "artist").map((item) => item.row.id), settings, now);
   let sent = 0;
   for (const { row, access, kind } of due) {
-    if (covered.has(row.id)) continue;
     if (!(await billing.claimNotice(row.id, kind, access.accessEndsAt))) continue;
     const message = reminderMessage(kind, access, { graceDays: settings.graceDays });
     await Promise.allSettled([

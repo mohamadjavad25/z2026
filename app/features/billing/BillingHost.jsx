@@ -8,6 +8,7 @@ import { PaymentsSheet } from "./PaymentsSheet";
 import {
   closeBillingSheet,
   markPendingShown,
+  openPaymentHistory,
   openPaymentResult,
   openPlans,
   readPendingPayment,
@@ -20,6 +21,7 @@ import {
  * The subscription sheets, mounted once in the home shell for salons and artists, plus the ways back from the bank:
  *   - /?billing=<id>    the result page's «بازگشت به فرفرو» link and the receipt push notification
  *   - /?billing=plans   a reminder push notification: straight to the plans
+ *   - /?billing=history the push an artist gets when their salon paid for them: their receipts
  *   - a checkout this browser started (in the Android app the bank opens in the phone's browser): when the app is
  *     shown again, the result opens by itself, once.
  */
@@ -41,6 +43,7 @@ export function BillingHost() {
     if (!value) return;
     if (/^\d+$/.test(value)) openPaymentResult(value);
     else if (value === "plans") openPlans();
+    else if (value === "history") openPaymentHistory();
     params.delete("billing");
     const rest = params.toString();
     window.history.replaceState(window.history.state, "", `${window.location.pathname}${rest ? `?${rest}` : ""}${window.location.hash}`);
@@ -67,9 +70,12 @@ export function BillingHost() {
   }, [isPro]);
 
   if (!isPro) return null;
+  // Paying for a team artist: that artist's plans and dates; gone from the team meanwhile → nothing to show.
+  const forMember = sheet?.kind === "plans" && sheet.forUserId ? overview?.team?.find((member) => member.id === sheet.forUserId) || null : null;
+  const planSheetOpen = sheet?.kind === "plans" && (sheet.forUserId ? Boolean(forMember?.plans?.length) : Boolean(overview?.plans?.length));
   return (
     <>
-      <PlanSheet open={sheet?.kind === "plans" && Boolean(overview?.plans?.length)} overview={overview} onClose={closeBillingSheet} />
+      <PlanSheet open={planSheetOpen} overview={overview} forMember={forMember} onClose={closeBillingSheet} />
       <PaymentResultSheet open={sheet?.kind === "result"} paymentId={sheet?.paymentId} onClose={closeBillingSheet} onRetry={openPlans} />
       <PaymentsSheet open={sheet?.kind === "history"} onClose={closeBillingSheet} />
     </>

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { accountView, bannerView, receiptText } from "../../app/features/billing/billingView.js";
+import { accountView, bannerView, receiptText, teamMemberView } from "../../app/features/billing/billingView.js";
 
 const iso = (days) => new Date(Date.now() + days * 86_400_000).toISOString();
 const overview = (account, extra = {}) => ({
@@ -10,7 +10,7 @@ const overview = (account, extra = {}) => ({
   trialDays: 30,
   pending: null,
   lastPayment: null,
-  account: { open: true, coveredBy: null, daysLeft: 0, graceDaysLeft: 0, accessEndsAt: iso(0), graceEndsAt: iso(3), ...account },
+  account: { open: true, daysLeft: 0, graceDaysLeft: 0, accessEndsAt: iso(0), graceEndsAt: iso(3), ...account },
   ...extra
 });
 
@@ -48,10 +48,20 @@ describe("subscription card and reminder bar", () => {
     expect(bannerView(overview({ state: "expired", open: false }, { enforced: false }))).toBeNull();
   });
 
-  it("tells an artist their salon covers them", () => {
-    const covered = { state: "expired", open: true, coveredBy: { salonId: 1, salonName: "سالن رز" } };
-    expect(accountView(overview(covered)).title).toContain("سالن رز");
-    expect(bannerView(overview(covered))).toBeNull();
+  it("treats an artist on a salon's team like any other artist", () => {
+    // Being on a team no longer exempts anyone: only a payment (theirs or the salon's) keeps them open.
+    const artist = overview({ state: "expired", open: false }, { role: "artist" });
+    expect(accountView(artist).tone).toBe("danger");
+    expect(bannerView(artist).tone).toBe("danger");
+  });
+
+  it("describes each artist on the salon's team", () => {
+    const enforced = { enforced: true };
+    expect(teamMemberView({ account: { state: "trial", daysLeft: 12 } }, enforced)).toMatchObject({ tone: "trial", urgent: false });
+    expect(teamMemberView({ account: { state: "active", daysLeft: 3, accessEndsAt: iso(3) } }, enforced)).toMatchObject({ tone: "active", urgent: true });
+    expect(teamMemberView({ account: { state: "grace", graceDaysLeft: 2 } }, enforced).tone).toBe("warn");
+    expect(teamMemberView({ account: { state: "expired" } }, enforced).tone).toBe("danger");
+    expect(teamMemberView({ account: { state: "expired" } }, { enforced: false }).tone).toBe("soon");
   });
 
   it("raises the bar only when it matters", () => {
@@ -68,5 +78,6 @@ describe("subscription card and reminder bar", () => {
     expect(text).toContain("FR-1405-000042");
     expect(text).toContain("۲٬۵۰۰٬۰۰۰ تومان");
     expect(text).toContain("کد پیگیری بانک: ۱۲۳");
+    expect(receiptText({ title: "اشتراک ماهانه آرتیست", amountToman: 300_000, paidFor: "نیلوفر" })).toContain("برای: نیلوفر");
   });
 });

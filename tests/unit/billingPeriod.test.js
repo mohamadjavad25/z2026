@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { DAY_MS, computeAccess, daysUntil, nextPeriod, receiptNumber, trialEndsAt } from "../../app/lib/billing/period.js";
+import { DAY_MS, computeAccess, daysUntil, nextPeriod, receiptNumber, refundQuote, trialEndsAt } from "../../app/lib/billing/period.js";
 
 const NOW = new Date("2026-11-15T09:00:00Z");
 const daysAgo = (n) => new Date(NOW.getTime() - n * DAY_MS);
@@ -54,5 +54,22 @@ describe("subscription periods", () => {
   it("numbers receipts by Persian year and payment id", () => {
     expect(receiptNumber(42, new Date("2026-11-15T09:00:00Z"))).toBe("FR-1405-000042");
     expect(receiptNumber(1234567, new Date("2027-04-01T09:00:00Z"))).toBe("FR-1406-1234567");
+  });
+
+  describe("refund quote (terms, section 4)", () => {
+    const paid = { amountRial: 25_000_000, days: 180 };
+    it("gives everything back for a period that has not started", () => {
+      expect(refundQuote({ ...paid, periodStart: new Date(NOW.getTime() + 10 * DAY_MS), periodEnd: new Date(NOW.getTime() + 190 * DAY_MS), now: NOW }))
+        .toEqual({ days: 180, amountRial: 25_000_000 });
+    });
+    it("gives back the unused days at the plan's own daily price, a started day counted as used", () => {
+      const quote = refundQuote({ ...paid, periodStart: daysAgo(2.5), periodEnd: new Date(daysAgo(2.5).getTime() + 180 * DAY_MS), now: NOW });
+      expect(quote.days).toBe(177);
+      expect(quote.amountRial).toBe(Math.round((25_000_000 * 177) / 180 / 10) * 10);
+      expect(quote.amountRial % 10).toBe(0);
+    });
+    it("gives nothing back for a period that has ended", () => {
+      expect(refundQuote({ ...paid, periodStart: daysAgo(200), periodEnd: daysAgo(20), now: NOW })).toEqual({ days: 0, amountRial: 0 });
+    });
   });
 });

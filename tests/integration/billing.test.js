@@ -31,7 +31,7 @@ const setStepUp = async (on) => {
 async function setBilling(enabled, extra = {}) {
   const admin = await adminClient();
   await setStepUp(true);
-  const saved = await put(admin, "/api/admin/billing/settings", { enabled, graceDays: 3, salonCoversArtists: true, ...extra });
+  const saved = await put(admin, "/api/admin/billing/settings", { enabled, graceDays: 3, ...extra });
   expect(saved.ok).toBe(true);
   return saved.payload.data.settings;
 }
@@ -43,8 +43,8 @@ async function provider(type, name) {
 }
 
 /** Checkout -> the pretend bank answers `action` -> the bank sends the payer back. Returns what the payer sees. */
-async function payWithSandbox(client, plan, action = "pay") {
-  const start = await client.post("/api/billing/checkout", { plan });
+async function payWithSandbox(client, plan, action = "pay", extra = {}) {
+  const start = await client.post("/api/billing/checkout", { plan, ...extra });
   expect(start.status).toBe(201);
   const { paymentId, redirect } = start.payload.data;
   expect(redirect.method).toBe("GET");
@@ -89,7 +89,7 @@ beforeAll(async () => {
   await db.query(`
     INSERT INTO app_settings (key, value) VALUES ('billing', $1::jsonb)
     ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value
-  `, [JSON.stringify({ enabled: false, launchedAt, graceDays: 3, salonCoversArtists: true })]);
+  `, [JSON.stringify({ enabled: false, launchedAt, graceDays: 3 })]);
 });
 
 afterAll(async () => {
@@ -124,7 +124,7 @@ describe("subscriptions: off by default", () => {
   it("asks the admin for the password again before switching billing or adding days", async () => {
     const admin = await adminClient();
     await setStepUp(false);
-    const res = await put(admin, "/api/admin/billing/settings", { enabled: true, graceDays: 3, salonCoversArtists: true });
+    const res = await put(admin, "/api/admin/billing/settings", { enabled: true, graceDays: 3 });
     expect(res.status).toBe(403);
     expect(res.payload.code).toBe("stepup_required");
     const grant = await admin.post("/api/admin/billing/grant", { userId: 1, days: 1, amountToman: 0, note: "هدیه" });
@@ -202,6 +202,31 @@ describe("subscriptions: buying a plan", () => {
     const { result } = await payWithSandbox(salon.client, "salon_1m");
     expect(result.status).toBe("paid");
     expect(new Date(result.periodEnd).getTime()).toBe(new Date(before.accessEndsAt).getTime() + 30 * DAY);
+  });
+
+  it("lets the admin record a refund once, taking the unused days off", async () => {
+    const before = (await salon.client.get("/api/billing")).payload.data.account;
+    const { paymentId, result } = await payWithSandbox(salon.client, "salon_1m");
+    const admin = await adminClient();
+    const detail = (await admin.get(`/api/admin/billing/payments/${paymentId}`)).payload.data.payment;
+    // Bought ahead (the earlier plans still run), so the policy gives everything back.
+    expect(detail.refundQuote).toEqual({ days: 30, amountToman: 500_000 });
+
+    await setStepUp(false);
+    const body = { action: "refund", amountToman: 500_000, days: 30, note: "انصراف در ۷ روز" };
+    expect((await admin.post(`/api/admin/billing/payments/${paymentId}`, body)).payload.code).toBe("stepup_required");
+    await setStepUp(true);
+    expect((await admin.post(`/api/admin/billing/payments/${paymentId}`, { ...body, amountToman: 600_000 })).status).toBe(400);
+    const done = await admin.post(`/api/admin/billing/payments/${paymentId}`, body);
+    expect(done.ok).toBe(true);
+    expect(done.payload.data.payment).toMatchObject({ refundToman: 500_000, refundDays: 30, refundQuote: null });
+    expect((await admin.post(`/api/admin/billing/payments/${paymentId}`, body)).status).toBe(409);
+
+    // The days are gone again, and the payer's receipt says so.
+    expect((await salon.client.get("/api/billing")).payload.data.account.accessEndsAt).toBe(before.accessEndsAt);
+    const receipt = (await salon.client.get(`/api/billing/payments/${paymentId}`)).payload.data.payment;
+    expect(receipt).toMatchObject({ status: "paid", refundToman: 500_000, refundDays: 30 });
+    expect(result.receiptNo).toBe(receipt.receiptNo);
   });
 
   it("records a cancelled payment as failed, without extending anything", async () => {
@@ -301,15 +326,59 @@ describe("subscriptions: what a closed account loses", () => {
     expect(booked.payload.code).not.toBe("PROVIDER_INACTIVE");
   });
 
-  it("lets an artist on a paying salon's team work without a plan of their own", async () => {
+  it("does not exempt an artist for being on a paying salon's team; the salon may pay for them", async () => {
     const artist = await provider("artist", "Team Artist");
     await age(artist.user.id, 40);
-    expect((await artist.client.get("/api/billing")).payload.data.account).toMatchObject({ state: "expired", open: false, coveredBy: null });
     expect((await joinSalonAsArtist(artist.client, salon.client, salon.user.id)).ok).toBe(true);
-    const covered = (await artist.client.get("/api/billing")).payload.data.account;
-    expect(covered.open).toBe(true);
-    expect(covered.coveredBy.salonName).toBeTruthy();
+    // Joining a salon that pays changes nothing for the artist.
+    expect((await artist.client.get("/api/billing")).payload.data.account).toMatchObject({ state: "expired", open: false });
+    expect((await createClient().get(`/api/artists/${artist.user.id}`)).payload.data.artist.onlineBookingPaused).toBe(true);
+
+    // The salon sees its team with the artist plans for each artist.
+    const overview = (await salon.client.get("/api/billing")).payload.data;
+    const member = overview.team.find((item) => Number(item.id) === Number(artist.user.id));
+    expect(member.account.state).toBe("expired");
+    expect(member.plans.map((plan) => plan.id)).toEqual(["artist_1m", "artist_6m", "artist_12m"]);
+
+    // Only for an artist on its own team, only with an artist plan, and only a salon can pay for someone else.
+    const stranger = await provider("artist", "Stranger Artist");
+    const notTeam = await salon.client.post("/api/billing/checkout", { plan: "artist_1m", forUserId: stranger.user.id });
+    expect([notTeam.status, notTeam.payload.code]).toEqual([403, "NOT_TEAM"]);
+    const wrongPlan = await salon.client.post("/api/billing/checkout", { plan: "salon_1m", forUserId: artist.user.id });
+    expect([wrongPlan.status, wrongPlan.payload.code]).toEqual([400, "BAD_PLAN"]);
+    const notSalon = await stranger.client.post("/api/billing/checkout", { plan: "artist_1m", forUserId: artist.user.id });
+    expect([notSalon.status, notSalon.payload.code]).toEqual([403, "NOT_SALON"]);
+
+    const salonEndBefore = (await salon.client.get("/api/billing")).payload.data.account.accessEndsAt;
+    const { paymentId, result } = await payWithSandbox(salon.client, "artist_1m", "pay", { forUserId: artist.user.id });
+    expect(result.status).toBe("paid");
+    expect(result.amountToman).toBe(300_000);
+
+    // The artist is open again; the salon's own subscription did not move.
+    expect((await artist.client.get("/api/billing")).payload.data.account).toMatchObject({ state: "active", open: true });
     expect((await createClient().get(`/api/artists/${artist.user.id}`)).payload.data.artist.onlineBookingPaused).toBe(false);
+    const salonAfter = (await salon.client.get("/api/billing")).payload.data;
+    expect(salonAfter.account.accessEndsAt).toBe(salonEndBefore);
+    expect(salonAfter.lastPayment.plan).toBe("salon_1m");
+
+    // Both see the receipt, each from their side; nobody else does.
+    const forSalon = (await salon.client.get(`/api/billing/payments/${paymentId}`)).payload.data.payment;
+    expect(forSalon.paidFor).toBe(artist.user.name);
+    expect(forSalon.paidBy).toBe("");
+    const forArtist = (await artist.client.get(`/api/billing/payments/${paymentId}`)).payload.data.payment;
+    expect(forArtist.paidBy).toBeTruthy();
+    expect(forArtist.paidFor).toBe("");
+    expect((await artist.client.get("/api/billing/payments")).payload.data.payments.some((item) => item.id === paymentId)).toBe(true);
+    expect((await stranger.client.get(`/api/billing/payments/${paymentId}`)).status).toBe(404);
+
+    // The receipt SMS goes to the one who paid.
+    expect((await smsFor(salon.phone, "billing_receipt")).some((row) => row.body.includes(result.receiptNo))).toBe(true);
+    expect(await smsFor(artist.phone, "billing_receipt", 500)).toEqual([]);
+
+    // The admin ledger names both.
+    const admin = await adminClient();
+    const detail = (await admin.get(`/api/admin/billing/payments/${paymentId}`)).payload.data.payment;
+    expect(detail).toMatchObject({ userId: artist.user.id, payerUserId: salon.user.id });
   });
 
   it("closes an independent artist the same way", async () => {

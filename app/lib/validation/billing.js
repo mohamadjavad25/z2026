@@ -1,16 +1,24 @@
 import { z } from "zod";
 import { PLANS } from "../billing/plans.js";
 
-/** POST /api/billing/checkout */
+/** POST /api/billing/checkout. forUserId: a salon paying for an artist on its team (optional). */
 export const checkoutSchema = z.object({
-  plan: z.enum(PLANS.map((plan) => plan.id), { message: "پلن انتخاب‌شده معتبر نیست." })
+  plan: z.enum(PLANS.map((plan) => plan.id), { message: "پلن انتخاب‌شده معتبر نیست." }),
+  forUserId: z.number().int().positive("آرتیست انتخاب‌شده معتبر نیست.").optional()
 });
 
 /** PUT /api/admin/billing/settings */
 export const billingSettingsSchema = z.object({
   enabled: z.boolean(),
-  graceDays: z.number().int("مهلت باید عدد صحیح باشد.").min(0, "مهلت نمی‌تواند منفی باشد.").max(14, "مهلت حداکثر ۱۴ روز است."),
-  salonCoversArtists: z.boolean()
+  graceDays: z.number().int("مهلت باید عدد صحیح باشد.").min(0, "مهلت نمی‌تواند منفی باشد.").max(14, "مهلت حداکثر ۱۴ روز است.")
+});
+
+/** POST /api/admin/billing/payments/:id { action: "refund" }: what went back to the payer and the days taken off. */
+export const refundSchema = z.object({
+  action: z.literal("refund"),
+  amountToman: z.number().int("مبلغ باید عدد صحیح باشد.").min(1, "مبلغ بازپرداخت را بنویس.").max(1_000_000_000, "مبلغ بیش از حد است."),
+  days: z.number().int("تعداد روز باید عدد صحیح باشد.").min(0, "روزها نمی‌تواند منفی باشد.").max(730, "حداکثر ۷۳۰ روز."),
+  note: z.string().trim().min(3, "دلیل یا شمارهٔ پیگیری بازپرداخت را بنویس (حداقل ۳ حرف).").max(300, "توضیح حداکثر ۳۰۰ حرف است.")
 });
 
 /** POST /api/admin/billing/grant: days to add, and the toman taken outside the app (0 for a gift). */
