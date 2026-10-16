@@ -45,6 +45,14 @@ export function PostViewer({
     return () => returnFocusRef.current?.focus?.();
   }, [Boolean(post)]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // The viewer is full screen: the page underneath must not scroll while it is open.
+  useEffect(() => {
+    if (!post) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = previousOverflow; };
+  }, [Boolean(post)]); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     if (!post) return undefined;
     const onKey = (event) => {

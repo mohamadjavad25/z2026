@@ -17,7 +17,6 @@ export function useShellNavigation({
   resetSalonWorkspace,
   setSavedArtists,
   createdProfile,
-  appToast,
   activeTab,
   profileView,
   salonTool,
@@ -151,14 +150,6 @@ function getPassportMatch(post) {
     const timer = window.setInterval(() => setScheduleNow(new Date()), 30000);
     return () => window.clearInterval(timer);
   }, [createdProfile?.type]);
-
-  useEffect(() => {
-    if (!appToast) return undefined;
-    const timer = window.setTimeout(() => setAppToast(""), 3200);
-    return () => window.clearTimeout(timer);
-  }, [appToast]);
-
-
 
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
