@@ -1,17 +1,17 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Check, CircleCheck, CircleX, Copy, Info, TriangleAlert, X } from "lucide-react";
+import { Check, Copy, Info, TriangleAlert, X } from "lucide-react";
 import { Button } from "../components/ui";
 import { api } from "./adminFetch";
+import { notify } from "../shared/notice/noticeStore";
 import { num } from "./format";
 
-/* ───────────── toasts: short feedback that never pushes the page around ───────────── */
+/* ───────────── toasts: short feedback, shown by the shared top-of-screen stack (app/shared/notice) ───────────── */
 
-let pushToast = null;
 /** toast("ذخیره شد") or toast("انجام نشد", "error"). Tones: success | error | info. */
 export function toast(text, tone = "success") {
-  pushToast?.({ id: Math.random().toString(36).slice(2), text, tone });
+  notify({ title: text, tone });
 }
 /** Shows a result's message: the success text when it worked, the server's error otherwise. Returns ok. */
 export function toastResult(result, success) {
@@ -20,34 +20,8 @@ export function toastResult(result, success) {
   return result.ok;
 }
 
-const TOAST_ICON = { success: CircleCheck, error: CircleX, info: Info };
-
-export function Toaster() {
-  const [items, setItems] = useState([]);
-  useEffect(() => {
-    pushToast = (item) => {
-      setItems((list) => [...list.slice(-3), item]);
-      setTimeout(() => setItems((list) => list.filter((entry) => entry.id !== item.id)), item.tone === "error" ? 6500 : 3800);
-    };
-    return () => {
-      pushToast = null;
-    };
-  }, []);
-  return (
-    <div className="admToasts" role="status" aria-live="polite">
-      {items.map((item) => {
-        const Icon = TOAST_ICON[item.tone] || Info;
-        return (
-          <div key={item.id} className={`admToast is-${item.tone}`}>
-            <Icon size={18} aria-hidden="true" />
-            <span>{item.text}</span>
-            <button type="button" aria-label="بستن" onClick={() => setItems((list) => list.filter((entry) => entry.id !== item.id))}><X size={16} aria-hidden="true" /></button>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
+/** Mounted once in AdminClient. Renders the shared notice stack. */
+export { NoticeHost as Toaster } from "../shared/notice/NoticeHost";
 
 /* ───────────── confirm: one dialog for every "are you sure", with an optional reason or typed check ───────────── */
 
