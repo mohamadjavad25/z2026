@@ -2,6 +2,7 @@ import { useState } from "react";
 import { AuthGateForms } from "../../auth";
 import { ProfileHero } from "../../profile/ProfileHero";
 import { ProfileCompleteness } from "../../profile/ProfileCompleteness";
+import { BillingBanner } from "../../billing";
 import { SalonStaffWorkspace, SalonServicesWorkspace } from "../../salons";
 import { ProfileGallery } from "../../profile/ProfileGallery";
 import { SalonScheduleDashboard, ArtistScheduleBoard } from "../../schedule";
@@ -225,6 +226,10 @@ export function ProfilePanelBody() {
 
             {/* A client's page is one page (ClientHome): no «پروفایل / فعالیت من» switch. */}
             {createdProfile?.type === "artist" && profileModeRail}
+
+            {(createdProfile?.type === "salon" || createdProfile?.type === "artist") && createdProfile.type === profileType && profileView === "overview" && !salonWorkspace ? (
+              <BillingBanner />
+            ) : null}
 
             {(createdProfile?.type === "salon" || createdProfile?.type === "artist") && createdProfile.type === profileType && profileView === "overview" && !salonWorkspace ? (
               <ProfileCompleteness

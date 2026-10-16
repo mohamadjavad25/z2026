@@ -33,6 +33,10 @@
 .pphChip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px; background: var(--n-100); color: var(--n-700); font-size: 0.75rem; font-weight: 800; }
 .pphChip.is-open { background: var(--n-100); color: var(--success); font-weight: 900; }
 .pphChip.is-closed { color: var(--n-600); font-weight: 900; }
+/* «فعلاً نوبت آنلاین نمی‌گیرد» (components/BookingPausedNote.jsx): the salon's or artist's subscription has closed. */
+.pphPausedNote { display: flex; align-items: flex-start; gap: 8px; margin: 0; padding: 10px 12px; border-radius: var(--radius-md); background: var(--warning-bg); color: var(--ink); font-size: var(--text-sm); font-weight: 700; line-height: 1.9; }
+.pphPausedNote svg { flex: 0 0 auto; margin-top: 3px; color: var(--warning); }
+.pphPausedNote b { font-weight: 900; }
 .pphActions { display: flex; gap: 10px; }
 .pphFollow, .pphCall { min-height: 50px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: 18px; font: inherit; font-size: 0.94rem; font-weight: 900; text-decoration: none; cursor: pointer; }
 .pphFollow { flex: 1.35; background: var(--fill-strong); color: var(--n-0); box-shadow: 0 12px 24px -10px rgb(var(--shadow-rgb) / 0.5); }

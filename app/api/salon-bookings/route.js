@@ -21,6 +21,7 @@ import { salonVisitParts } from "../../lib/salonVisitParts.js";
 import { bookingMoveOptions } from "../../lib/salonMoveTimes.js";
 import { toPersianDigits } from "../../shared/lib/digits.js";
 import { AWAITING_CLIENT } from "../../shared/lib/bookingOffer.js";
+import { onlineBookingBlock } from "../../lib/billing/access.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -124,6 +125,11 @@ async function _POST(request) {
   if (!salon) return noStoreJson({ error: "سالن پیدا نشد." }, { status: 404 });
   if (auth.user.type === "salon" && salonUserId !== auth.user.id) {
     return noStoreJson({ error: "دسترسی غیرمجاز." }, { status: 403 });
+  }
+  // A salon whose subscription has closed takes no new online requests; its own entries for walk-in customers go on.
+  if (auth.user.type === "client") {
+    const blocked = await onlineBookingBlock(salonUserId, "salon");
+    if (blocked) return noStoreJson({ error: blocked.error, code: blocked.code }, { status: blocked.status });
   }
   const client = String(body.client || auth.user.name || "").trim();
   const phone = String(body.phone || auth.user.phone || "").trim();

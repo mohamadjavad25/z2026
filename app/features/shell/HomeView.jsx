@@ -21,6 +21,7 @@ import { ArtistWorkPreviewModal, ArtistBreakEditorModal } from "../artist";
 import { ServiceComposerModal } from "../profile/ServiceComposerModal";
 import { PushSoftAsk } from "./home/PushSoftAsk";
 import { SiteNotice } from "./home/SiteNotice";
+import { BillingHost } from "../billing";
 import { NoticeHost } from "../../shared/notice/NoticeHost";
 import { ClientBookingTracker } from "../client/ClientBookingTracker";
 import { BottomNav } from "./BottomNav";
@@ -390,6 +391,7 @@ export function HomeView() {
 
         <PushSoftAsk />
         {authChecked ? <SiteNotice role={createdProfile?.type || ""} /> : null}
+        <BillingHost />
 
         <BottomNav
           status={createdProfile?.type === "client" ? (

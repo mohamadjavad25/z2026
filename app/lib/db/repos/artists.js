@@ -10,6 +10,7 @@ import { isProfileSaved } from "./social.js";
 import { normalizeServiceEmoji, resolveBookingServiceEmoji } from "./serviceEmoji.js";
 import { getSettings, DEFAULT_SETTINGS } from "./userSettings.js";
 import { listArtistHoursPublic } from "./artists/hours.js";
+import { onlineBookingBlock, withoutHiddenProviders } from "../../billing/access.js";
 
 export { ensureArtistHours, listArtistHours, updateArtistHour } from "./artists/hours.js";
 
@@ -787,7 +788,8 @@ export async function getPublicArtist(userId, viewerUserId = null) {
     isSaved,
     bookedSlots,
     breakTime,
-    hours
+    hours,
+    bookingBlock
   ] = await Promise.all([
     listPostsByOwner(userId, null, { publicOnly: Number(viewerUserId || 0) !== Number(userId) }),
     listArtistServices(userId),
@@ -797,7 +799,8 @@ export async function getPublicArtist(userId, viewerUserId = null) {
     viewerUserId ? isProfileSaved(viewerUserId, user.id) : false,
     listArtistBookedSlots(userId),
     getArtistBreak(userId),
-    listArtistHoursPublic(userId)
+    listArtistHoursPublic(userId),
+    onlineBookingBlock(userId, "artist")
   ]);
   return {
     id: user.id,
@@ -823,6 +826,8 @@ export async function getPublicArtist(userId, viewerUserId = null) {
     // gate based on this flag lives in the caller (GET /api/artists/[id]
     // route + the SSR /artists/[id] page), same split salons.js uses.
     isPublic: settings.publicPortfolio !== false,
+    // Subscription closed: the page says so up front instead of the booking form failing at the end.
+    onlineBookingPaused: Boolean(bookingBlock),
     isFollowing: isFollowingViewer,
     isSaved,
     posts,
@@ -884,7 +889,9 @@ export async function listArtists({ cursor, limit } = {}) {
     avatar: row.avatar ? `/api/media/avatar/${row.id}` : "",
     avatarPosition: row.avatar_position || ""
   }));
-  return pageSize ? { artists: mapped, nextCursor } : mapped;
+  // An artist whose subscription ran out (and no salon of theirs covers them) is left out until it renews.
+  const listed = await withoutHiddenProviders(mapped, (artist) => artist.id);
+  return pageSize ? { artists: listed, nextCursor } : listed;
 }
 
 /**

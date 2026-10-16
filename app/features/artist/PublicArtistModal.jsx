@@ -2,6 +2,7 @@
 
 import { Bookmark, CalendarCheck, Check, ChevronLeft, ChevronUp, Clock3, Heart, Phone, Scissors, Share2 } from "lucide-react";
 import { PublicProfileHeader } from "../../components/PublicProfileHeader";
+import { BookingPausedNote } from "../../components/BookingPausedNote";
 import { ServicesDropUp } from "../../components/ServicesDropUp";
 import { WeeklyHours } from "../../components/WeeklyHours";
 import { bundleServices } from "../../shared/lib/serviceBundle";
@@ -138,6 +139,7 @@ export function PublicArtistModal({
                 </a>
               ) : null}
             </div>
+            {artist.onlineBookingPaused ? <BookingPausedNote hasPhone={Boolean(artist.phone)} /> : null}
           </section>
 
           <div className={`artistPublicBody${servicesOpen ? " is-servicesOpen" : ""}`}>

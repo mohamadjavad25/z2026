@@ -16,6 +16,7 @@ import {
 import { SalonHoursEditor } from "../profile/SalonHoursEditor";
 import { ImagePositionEditor } from "./ImagePositionEditor";
 import { SalonRulesSettings } from "../salons/SalonRulesSettings";
+import { SubscriptionCard } from "../billing";
 
 /**
  * The camera-icon trigger over an existing avatar/poster opens a bottom
@@ -306,6 +307,9 @@ export function SettingsPage({
           <h2 className="spHeaderTitle">تنظیمات</h2>
           <span className="spHeaderRole">{roleLabel}</span>
         </header>
+
+        {/* 0. Subscription (salons and artists): where the account stands and the one button. Hidden until billing is on. */}
+        {isArtist || isSalon ? <SubscriptionCard /> : null}
 
         {/* 1. Identity: who you are, where you work, and what customers see of it. */}
         <section className="spSection" aria-labelledby="spSection-profile">

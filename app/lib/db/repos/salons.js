@@ -7,6 +7,7 @@ import { listSalonHours } from "./salons/hours.js";
 import { listSalonPortfolio } from "./salons/portfolio.js";
 import { listSalonServices } from "./salons/services.js";
 import { listSalonStaff } from "./salons/staff.js";
+import { onlineBookingBlock, withoutHiddenProviders } from "../../billing/access.js";
 
 export { answerSalonTimeOffer, cancelSalonBookingByClient, draftSingleBookingStaff, getSalonBookingRow, listBookingMoveTimes, listBookingStaffOptions, listFeasibleVisitTimes, previewVisit, suggestBookingStaff, listSalonBookings, listClientSalonBookings, addSalonBooking, updateSalonBooking, cancelSalonBooking, patchSalonBookingWithArtistSync, syncSalonBookingFromArtistMirror } from "./salons/bookings.js";
 export { ensureSalonHours, listSalonHours, updateSalonHour } from "./salons/hours.js";
@@ -183,7 +184,8 @@ export async function listSalons({ cursor, limit } = {}) {
       staff: []
     };
   });
-  const visible = built.filter(Boolean);
+  // A salon whose subscription (and grace days) ran out is left out of the directory until it renews.
+  const visible = await withoutHiddenProviders(built.filter(Boolean), (salon) => salon.id);
   return pageSize ? { salons: visible, nextCursor } : visible;
 }
 
@@ -249,7 +251,8 @@ export async function getSalon(userId, viewerUserId = null) {
     services,
     portfolio,
     staff,
-    hours
+    hours,
+    bookingBlock
   ] = await Promise.all([
     countFollowers(row.user_id, db),
     countFollowing(row.user_id, db),
@@ -258,7 +261,8 @@ export async function getSalon(userId, viewerUserId = null) {
     listSalonServices(userId, db),
     listSalonPortfolio(userId, db, { publicOnly: Number(viewerUserId || 0) !== Number(userId) }),
     listSalonStaff(userId, db),
-    listSalonHours(userId, db)
+    listSalonHours(userId, db),
+    onlineBookingBlock(row.user_id, "salon")
   ]);
   return {
     id: row.user_id,
@@ -285,6 +289,8 @@ export async function getSalon(userId, viewerUserId = null) {
     poster: row.has_poster ? `/api/media/poster/${row.user_id}?v=${row.user_updated_at ? new Date(row.user_updated_at).getTime() : 0}` : "",
     posterPosition: row.poster_position || "",
     rules: row.rules || "",
+    // Subscription closed: the page says so up front instead of the booking form failing at the end.
+    onlineBookingPaused: Boolean(bookingBlock),
     postCount: row.post_count,
     post_count: row.post_count,
     followerCount,

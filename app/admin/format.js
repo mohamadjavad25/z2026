@@ -29,11 +29,15 @@ export const ACTION_LABEL = {
   settings_update: "تغییر تنظیمات",
   export: "خروجی اکسل",
   cleanup: "پاک‌سازی سامانه",
-  clear_errors: "پاک‌کردن خطاهای اپ"
+  clear_errors: "پاک‌کردن خطاهای اپ",
+  billing_settings: "تغییر تنظیمات اشتراک",
+  billing_grant: "افزودن روز به اشتراک",
+  billing_reverify: "بررسی دوبارهٔ پرداخت",
+  billing_refund: "ثبت بازپرداخت"
 };
 
 /** Filters for the audit log (the same groups as ACTION_GROUPS on the server). */
-export const ACTION_GROUP_LABEL = { accounts: "حساب‌ها", content: "محتوا", bookings: "رزروها", support: "پشتیبانی و پیام", system: "تنظیمات و خروجی", security: "ورود و امنیت" };
+export const ACTION_GROUP_LABEL = { accounts: "حساب‌ها", content: "محتوا", bookings: "رزروها", billing: "اشتراک و پرداخت", support: "پشتیبانی و پیام", system: "تنظیمات و خروجی", security: "ورود و امنیت" };
 
 /** Booking statuses are stored in Persian already; this only says how loud each one should look. */
 export const BOOKING_TONE = { "تازه": "warn", "درخواست": "warn", "در انتظار مشتری": "info", "تایید شده": "good", "لغو": "bad", "منقضی شده": "muted" };
@@ -80,3 +84,15 @@ export const bytes = (value) => {
   return `${toPersianDigits((n / 1024 ** 3).toFixed(2))} گیگابایت`;
 };
 export const num = (value) => toPersianDigits(Number(value || 0).toLocaleString("en-US").replace(/,/g, "٬"));
+
+/** Subscription payments (repos/billing.js): status words and how loud each looks. */
+export const PAYMENT_STATUS = { paid: { label: "پرداخت‌شده", tone: "good" }, pending: { label: "در انتظار", tone: "warn" }, failed: { label: "ناموفق", tone: "bad" }, refunded: { label: "بازپرداخت‌شده", tone: "warn" } };
+/** Where a salon or artist stands (app/lib/billing/period.js). */
+export const ACCOUNT_STATE = {
+  trial: { label: "ماه رایگان", tone: "info" },
+  active: { label: "اشتراک فعال", tone: "good" },
+  grace: { label: "مهلت تمدید", tone: "warn" },
+  expired: { label: "غیرفعال", tone: "bad" }
+};
+/** "۲٬۵۰۰٬۰۰۰ تومان" */
+export const toman = (value) => `${num(value)} تومان`;

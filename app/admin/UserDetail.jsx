@@ -8,10 +8,12 @@ import { Avatar } from "./Avatar";
 import { ACTION_LABEL, BOOKING_TONE, STATUS_LABEL, TYPE_LABEL, ago, fmtDate, fmtKey, fmtTime, num } from "./format";
 import { CopyButton, ErrorNote, Loading, confirmAction, toastResult } from "./ui";
 import { CannedReplies } from "./CannedReplies";
+import { AccountBilling } from "./BillingAdmin";
 
 const PANES = [
   ["overview", "نمای کلی"],
   ["history", "سابقه"],
+  ["billing", "اشتراک"],
   ["edit", "ویرایش"],
   ["message", "پیام"],
   ["actions", "اقدام‌ها"]
@@ -26,8 +28,9 @@ export function makePassword() {
 }
 
 /**
- * One account, in five panes: overview (facts, set-up, activity, private note), history (everything admins did to it),
- * edit (fix the profile), message (talk to them in their support inbox) and actions (suspend, sign out, password, delete).
+ * One account, in panes: overview (facts, set-up, activity, private note), history (everything admins did to it),
+ * subscription (salons and artists: state, payments, add days), edit (fix the profile), message (talk to them in their
+ * support inbox) and actions (suspend, sign out, password, delete).
  */
 export function UserDetail({ userId, onChanged, onGo, onClose }) {
   const [detail, setDetail] = useState(null);
@@ -131,7 +134,7 @@ export function UserDetail({ userId, onChanged, onGo, onClose }) {
       ) : null}
 
       <div className="admPanes" role="tablist" aria-label="بخش‌های این کاربر">
-        {PANES.map(([id, label]) => (
+        {PANES.filter(([id]) => id !== "billing" || user.type !== "client").map(([id, label]) => (
           <button key={id} type="button" role="tab" aria-selected={pane === id} className={pane === id ? "is-on" : ""} onClick={() => setPane(id)}>{label}</button>
         ))}
       </div>
@@ -221,6 +224,8 @@ export function UserDetail({ userId, onChanged, onGo, onClose }) {
           </section>
         </>
       ) : null}
+
+      {pane === "billing" && user.type !== "client" ? <AccountBilling userId={user.id} name={user.name} onGo={onGo} /> : null}
 
       {pane === "history" ? (
         detail.history.length ? (
