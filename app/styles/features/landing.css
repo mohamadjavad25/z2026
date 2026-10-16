@@ -274,8 +274,8 @@ html.native-app .webOnlyAppLink { display: none !important; }
 
 .appLanding__film {
   position: relative;
-  width: 100%;
-  aspect-ratio: 16 / 9;
+  width: min(100%, 380px);
+  aspect-ratio: 9 / 16;
   border-radius: 28px;
   overflow: hidden;
   background: var(--l-ink);
@@ -709,7 +709,7 @@ html.native-app .webOnlyAppLink { display: none !important; }
 
 @media (max-width: 720px) {
   .appLanding__heroInner { grid-template-columns: 1fr; gap: var(--space-4); padding-top: var(--space-5); }
-  .appLanding__film { border-radius: 20px; }
+  .appLanding__film { border-radius: 20px; width: min(100%, 320px); }
   .appLanding__qr { display: none; }
   .appLanding__cards, .appLanding__install, .appLanding__promises { grid-template-columns: 1fr; }
   .appLanding__promises div { padding: var(--space-5) var(--space-5); max-width: none; }
