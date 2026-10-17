@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { ArrowLeft, CalendarCheck, Check, ChevronRight } from "lucide-react";
+import { ArrowLeft, CalendarCheck, CalendarX, Check, ChevronRight, Info } from "lucide-react";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { PlanList, TimesList } from "./visitBookerParts";
@@ -10,7 +10,7 @@ import { MAX_VISIT_SERVICES, clockText, visitSummaryText } from "./visitBookerMo
 const STEPS = ["who", "services", "day", "time", "confirm"];
 
 const COPY = {
-  who: { title: "مشتری کیست؟", hint: "فقط نام کافی است؛ شمارهٔ موبایل اختیاری است." },
+  who: { title: "مشتری کیست؟", hint: "" },
   services: { title: "چه خدمتی انجام می‌شود؟", hint: "یک یا چند خدمت؛ به همان ترتیبی که انتخاب می‌کنی انجام می‌شوند." },
   day: { title: "کدام روز؟", hint: "" },
   time: { title: "ساعت چند؟", hint: "" },
@@ -39,6 +39,9 @@ export function VisitWizard({ role, title, state, controller, services, days, cu
   const index = STEPS.indexOf(current);
   const day = days.find((item) => item.value === state.day);
   const hasName = Boolean(state.name.trim());
+  // The chosen day has no free hour for these services: say so, and offer the way out right there.
+  const noTimes = current === "time" && state.times.status === "ready" && !state.times.list.length;
+  const question = noTimes ? "ساعت خالی نیست" : COPY[current].title;
 
   const typed = state.name.trim();
   const suggestions = (Array.isArray(customers) ? customers : [])
@@ -114,7 +117,7 @@ export function VisitWizard({ role, title, state, controller, services, days, cu
         ) : null}
 
         <section className="vbStage" key={current} aria-labelledby="vb-question">
-          <h3 id="vb-question" className="vbQuestion">{COPY[current].title}</h3>
+          <h3 id="vb-question" className="vbQuestion">{question}</h3>
           {COPY[current].hint ? <p className="vbQuestionHint">{COPY[current].hint}</p> : null}
 
           {current === "who" ? (
@@ -153,6 +156,7 @@ export function VisitWizard({ role, title, state, controller, services, days, cu
                 dir="ltr"
                 maxLength={13}
               />
+              <p className="vbPhoneNote"><Info size={15} aria-hidden="true" /><span>شمارهٔ مشتری مهم است. رزرو با همین شماره برایش ثبت می‌شود و اطلاع‌رسانی نوبت به‌صورت خودکار انجام می‌شود؛ دیگر لازم نیست خودت پیام بدهی.</span></p>
               {suggestions.length ? (
                 <div className="vbChips vbSuggest" role="group" aria-label="مشتریان قبلی">
                   {suggestions.map((item) => (
@@ -225,12 +229,30 @@ export function VisitWizard({ role, title, state, controller, services, days, cu
 
           {current === "time" ? (
             <div className="vbAsk">
-              <TimesList
-                state={state}
-                role={role}
-                onPick={(time) => { controller.setTime(time); go("confirm"); }}
-                onRetry={() => controller.retryTimes()}
-              />
+              {noTimes ? (
+                <div className="vbNoTimes">
+                  <span className="vbNoTimesIcon"><CalendarX size={26} aria-hidden="true" /></span>
+                  <p>
+                    {day ? `${day.label}` : "این روز"} برای {state.picked.length > 1 ? "این چند خدمتِ پشت‌سرهم" : "این خدمت"} ساعت خالی ندارد.
+                  </p>
+                  <button type="button" className="vbSubmit" onClick={() => go("day")}>
+                    انتخاب روز دیگر
+                  </button>
+                  <button type="button" className="vbLink" onClick={() => go("services")}>
+                    {state.picked.length > 1 ? "کمتر کردن یا عوض کردن خدمت‌ها" : "عوض کردن خدمت"}
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <TimesList
+                    state={state}
+                    role={role}
+                    onPick={(time) => { controller.setTime(time); go("confirm"); }}
+                    onRetry={() => controller.retryTimes()}
+                  />
+                  <button type="button" className="vbLink vbOtherDay" onClick={() => go("day")}>ساعت مناسب نیست؟ روز دیگری را انتخاب کن</button>
+                </>
+              )}
             </div>
           ) : null}
 

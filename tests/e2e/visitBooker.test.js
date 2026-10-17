@@ -275,6 +275,23 @@ describe("VisitBooker for the salon (browser)", () => {
     await context.close();
   });
 
+  it("offers another day right on the screen when the chosen day has no free hour", async () => {
+    const team = await seedTeam();
+    const { page, context } = await openSalon(team);
+    await openBookingSheet(page);
+    await fillWho(page, "روز پر");
+    await pickService(page, H);
+    await goOn(page);
+    // an hour is open: there is always a way to another day
+    await pickDay(page, DAY2);
+    await page.locator(".vbOtherDay").click();
+    expect(await page.locator(".vbDay").count()).toBeGreaterThan(0);
+    // and the phone number is explained
+    await page.locator(".vbDoneChip").first().click();
+    expect(await page.locator(".vbPhoneNote").innerText()).toContain("شمارهٔ مشتری مهم است");
+    await context.close();
+  });
+
   it("does not let a closed day be picked", async () => {
     const team = await seedTeam();
     const { page, context } = await openSalon(team);
