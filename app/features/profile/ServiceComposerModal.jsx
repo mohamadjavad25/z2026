@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Check, Plus, Search, Timer, Trash2 } from "lucide-react";
+import { ArrowRight, Check, Plus, Search, Timer, Trash2 } from "lucide-react";
 import { ServiceEmoji } from "../../components/ServiceEmoji";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { ServiceEmojiPicker } from "../../components/ServiceEmojiPicker";
 import { EMOJI_CATEGORIES } from "../../shared/constants/beautyEmoji";
 import { categoriesForSpecialties } from "../../shared/constants/serviceCatalog";
 import { toPersianDigits } from "../../shared/lib/digits";
-import { SheetClose } from "../../components/SheetClose";
+import { useBackHandler } from "../../shared/hooks/useBackHandler";
 
 // The catalog is shown a page at a time: ~30 gradient SVG icons in one scroll box exhausted tile memory
 // on some Android phones and left static/clipped bands (see docs/DEVLOG.md), so only a few are mounted.
@@ -17,7 +17,11 @@ const CATALOG_PAGE = 8;
 const DURATION_CHIPS = ["۱۵ دقیقه", "۳۰ دقیقه", "۴۵ دقیقه", "۶۰ دقیقه", "۹۰ دقیقه", "۱۲۰ دقیقه", "۱۸۰ دقیقه"];
 
 /**
- * Shared artist + salon service create/edit modal.
+ * Shared artist + salon service create/edit page.
+ *
+ * A full-screen page, not a floating sheet: the sheet's own layers (entry animation, dim backdrop,
+ * rounded clip, inner scroll box) were what left static/clipped bands on some Android phones (see
+ * docs/DEVLOG.md). It appears instantly, and the phone's back button closes it like any page.
  *
  * Two tabs: a searchable catalog of ready-made services (tap one to open it
  * pre-filled in the editor, or hit + to add it as-is) and the editor itself,
@@ -81,7 +85,6 @@ export function ServiceComposerModal({
       .slice(0, 3);
   }, [catalog, addedNames, draft?.id, draft?.name]);
 
-  const swipeStart = useRef(null);
   const nameInputRef = useRef(null);
 
   // Never pop the keyboard just because the editor opened. Focus the name only
@@ -96,14 +99,10 @@ export function ServiceComposerModal({
     // Run once per opening of an empty editor, not on every keystroke.
   }, [open, mode, draft?.id]);
 
-  if (!open || !draft) return null;
+  // The phone's back button closes the page and returns to where the owner was.
+  useBackHandler(Boolean(open && draft), onClose);
 
-  const handleSwipeStart = (event) => { swipeStart.current = event.touches[0].clientY; };
-  const handleSwipeEnd = (event) => {
-    const start = swipeStart.current;
-    swipeStart.current = null;
-    if (start != null && event.changedTouches[0].clientY - start > 60) onClose?.();
-  };
+  if (!open || !draft) return null;
 
   const editing = Boolean(draft.id);
   const canDelete = editing && typeof onDelete === "function";
@@ -125,14 +124,16 @@ export function ServiceComposerModal({
 
   return (
     <div
-      className="svcSheetBackdrop"
+      className="svcPage"
       role="dialog"
       aria-modal="true"
       aria-label={editing ? "ویرایش خدمت" : "افزودن خدمت"}
-      onClick={onClose}
     >
-      <article className={`svcSheet${mode === "preset" ? " is-catalog" : ""}`} onClick={(event) => event.stopPropagation()}>
-        <header className="svcSheetHead" onTouchStart={handleSwipeStart} onTouchEnd={handleSwipeEnd}>
+      <article className={`svcSheet${mode === "preset" ? " is-catalog" : ""}`}>
+        <header className="svcSheetHead">
+          <button type="button" className="svcPageBack" onClick={onClose} aria-label="بازگشت">
+            <ArrowRight size={20} aria-hidden="true" />
+          </button>
           <div>
             <span>
               {!editing && addedCount
@@ -406,7 +407,6 @@ export function ServiceComposerModal({
             ) : null}
           </form>
         )}
-        {mode === "preset" ? null : <SheetClose onClick={onClose} />}
       </article>
       <ServiceEmojiPicker
         open={pickerOpen}
