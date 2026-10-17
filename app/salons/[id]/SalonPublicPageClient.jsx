@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { SalonClientPage } from "../../features/salons/SalonClientPage";
 import { getVisibleSalonServiceItems } from "../../features/salons/useSalonDirectory";
+import { FollowSheet, useFollowGate } from "../../features/follow";
 
 // Standalone, unauthenticated rendering of a single salon's public profile.
 // This is the pilot Next.js route for SEO/shareable salon links — it reuses
@@ -11,6 +12,9 @@ import { getVisibleSalonServiceItems } from "../../features/salons/useSalonDirec
 // logged-in session or the app's socket/booking state to act on. Rather than
 // half-implement those without auth, we send the visitor into the SPA shell
 // to actually log in and use them. See backend report for the tradeoff note.
+// Follow is the exception: it works right here (sign up or log in in a sheet,
+// follow, thank-you), because a follow is the start of the relationship and a
+// visitor from a QR code must not be sent away to finish it.
 function getPortfolioCardStyle(item) {
   return item?.image
     ? { backgroundImage: `linear-gradient(180deg, rgba(12, 14, 16, 0.04) 0%, transparent 46%, rgba(12, 14, 16, 0.68) 100%), url("${item.image}")` }
@@ -20,6 +24,7 @@ function getPortfolioCardStyle(item) {
 export function SalonPublicPageClient({ salon }) {
   const router = useRouter();
   const goToApp = () => router.push("/");
+  const followGate = useFollowGate({ targetId: salon.id, targetName: salon.name });
 
   const handleShare = () => {
     if (typeof window === "undefined") return;
@@ -32,18 +37,21 @@ export function SalonPublicPageClient({ salon }) {
   };
 
   return (
+    <>
     <SalonClientPage
       active
       selectedSalon={salon}
-      isFollowing={false}
+      isFollowing={followGate.following}
       isSaved={false}
       getVisibleServices={getVisibleSalonServiceItems}
       getPortfolioCardStyle={getPortfolioCardStyle}
       onBack={goToApp}
-      onFollow={goToApp}
+      onFollow={followGate.onFollowClick}
       onSave={goToApp}
       onShare={handleShare}
       onOpenBooking={goToApp}
     />
+    <FollowSheet gate={followGate} />
+    </>
   );
 }

@@ -1,6 +1,6 @@
 import { getDb, all, get, run } from "../connection.js";
 import { countFollowers, countFollowCountsMany } from "./users.js";
-import { isProfileSaved } from "./social.js";
+import { isProfileSaved, insertFollow, notifyNewFollower } from "./social.js";
 import { getSettings, DEFAULT_SETTINGS } from "./userSettings.js";
 import { countFollowing, defaultHours } from "./salons/common.js";
 import { listSalonHours } from "./salons/hours.js";
@@ -314,17 +314,16 @@ export async function getSalon(userId, viewerUserId = null) {
 
 export async function setSalonFollow(salonUserId, followerUserId, follow = true) {
   const db = await getDb();
+  let created = false;
   if (follow) {
-    await run(db, `
-      INSERT INTO follows (follower_user_id, target_user_id) VALUES ($1, $2)
-      ON CONFLICT (follower_user_id, target_user_id) DO NOTHING
-    `, [followerUserId, salonUserId]);
+    created = await insertFollow(db, followerUserId, salonUserId);
   } else {
     await run(db, "DELETE FROM follows WHERE follower_user_id = $1 AND target_user_id = $2", [followerUserId, salonUserId]);
   }
   const count = await get(db, "SELECT COUNT(*) AS c FROM follows WHERE target_user_id = $1", [salonUserId]);
   const followerCount = Number(count?.c || 0);
   await run(db, "UPDATE salons SET follower_count = $1 WHERE user_id = $2", [followerCount, salonUserId]);
+  if (created) notifyNewFollower(followerUserId, salonUserId);
   return {
     following: follow,
     followerCount,

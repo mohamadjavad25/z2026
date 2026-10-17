@@ -66,6 +66,7 @@ export function ContentPages() {
     updateSalonHour,
     salonAppointmentList,
     artistBookingList,
+    ownerFollowers,
     selectedSalon,
     sharePost,
     recordPostView,
@@ -142,6 +143,7 @@ export function ContentPages() {
             <SalonCustomersPage
               active={activeTab === "customers"}
               bookings={salonAppointmentList}
+              followers={ownerFollowers}
               headerAction={<OwnerScanButton viewerType="salon" onChanged={() => refreshSalonSystemData?.()} />}
               onBookCustomer={openBookingSheet}
             />
@@ -151,6 +153,7 @@ export function ContentPages() {
             <SalonCustomersPage
               active={activeTab === "customers"}
               bookings={artistBookingList}
+              followers={ownerFollowers}
               ownerLabel="شما"
               headerAction={<OwnerScanButton viewerType="artist" onChanged={() => refreshArtistWorkspace?.()} />}
               onBookCustomer={openBookingSheet}

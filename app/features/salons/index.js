@@ -3,6 +3,7 @@ export { SalonClientBookingModal } from "./SalonClientBookingModal";
 export { SalonClientPage } from "./SalonClientPage";
 export { SalonCustomersPage } from "./SalonCustomersPage";
 export { buildBookingCustomers } from "./customers";
+export { useOwnerFollowers } from "./useOwnerFollowers";
 export { SalonNearbyInviteSheet } from "./SalonNearbyInviteSheet";
 export { SalonRulesSettings } from "./SalonRulesSettings";
 export { SalonServicesWorkspace } from "./SalonServicesWorkspace";

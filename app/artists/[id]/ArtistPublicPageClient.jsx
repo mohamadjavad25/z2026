@@ -6,6 +6,7 @@ import { PublicArtistModal } from "../../features/artist/PublicArtistModal";
 import { getPublicArtistServices, salonClientBookingDays } from "../../features/artist/constants";
 import { mapSharedPost } from "../../features/posts/mappers";
 import { parseServiceDurationMinutes } from "../../shared/lib/time";
+import { FollowSheet, useFollowGate } from "../../features/follow";
 
 // Standalone, unauthenticated rendering of a single artist's public profile.
 // This is the artist counterpart of app/salons/[id]/SalonPublicPageClient.jsx —
@@ -13,7 +14,8 @@ import { parseServiceDurationMinutes } from "../../shared/lib/time";
 // artist flow uses, but none of the interactive actions here (follow/save/
 // message/book) have a logged-in session or the app's socket/booking state to
 // act on. Rather than half-implement those without auth, we send the visitor
-// into the SPA shell to actually log in and use them.
+// into the SPA shell to actually log in and use them. Follow works right here
+// (sheet: sign up or log in, follow, thank-you) -- see SalonPublicPageClient.
 function getPortfolioCardStyle(item) {
   return item?.image
     ? { backgroundImage: `linear-gradient(180deg, rgba(12, 14, 16, 0.04) 0%, transparent 46%, rgba(12, 14, 16, 0.68) 100%), url("${item.image}")` }
@@ -23,6 +25,7 @@ function getPortfolioCardStyle(item) {
 export function ArtistPublicPageClient({ artist }) {
   const router = useRouter();
   const goToApp = () => router.push("/");
+  const followGate = useFollowGate({ targetId: artist.id, targetName: artist.name });
 
   const [galleryFilter, setGalleryFilter] = useState("همه");
   const [selectedServiceId, setSelectedServiceId] = useState("");
@@ -58,12 +61,13 @@ export function ArtistPublicPageClient({ artist }) {
   };
 
   return (
+    <>
     <PublicArtistModal
       artist={artist}
       view="gallery"
       portfolio={portfolio}
       services={services}
-      following={false}
+      following={followGate.following}
       galleryTags={galleryTags}
       galleryFilter={galleryFilter}
       featuredWork={featuredWork}
@@ -76,7 +80,7 @@ export function ArtistPublicPageClient({ artist }) {
       onClose={goToApp}
       onShare={handleShare}
       onSave={goToApp}
-      onFollow={goToApp}
+      onFollow={followGate.onFollowClick}
       onViewChange={() => {}}
       onGalleryFilterChange={setGalleryFilter}
       onOpenWork={goToApp}
@@ -86,5 +90,7 @@ export function ArtistPublicPageClient({ artist }) {
       onConfirmBooking={goToApp}
       guest
     />
+    <FollowSheet gate={followGate} />
+    </>
   );
 }

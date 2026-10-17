@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { clientBookingKey } from "../client/bookingStatus";
 import { useAuthSession } from "../auth";
 import { usePostActivity } from "../posts";
-import { useSalonDirectory, useSalonWorkspace } from "../salons";
+import { useOwnerFollowers, useSalonDirectory, useSalonWorkspace } from "../salons";
 import { useArtistWorkspace } from "../artist";
 import { apiFetch } from "../../shared/api/client";
 import { notify } from "../../shared/notice/noticeStore";
@@ -644,8 +644,15 @@ export function useHomeApp() {
     setSalonWeekHistoryOpen
   });
 
+  // Followers are contacts: the customers page lists them and its nav button shows a dot while new.
+  const { followers: ownerFollowers, unseenCount: unseenFollowerCount } = useOwnerFollowers({
+    enabled: createdProfile?.type === "salon" || createdProfile?.type === "artist",
+    pageOpen: activeTab === "customers"
+  });
 
   return {
+    ownerFollowers,
+    unseenFollowerCount,
     ...homeChromeState,
     ...homeWorkspacesState,
     activeTab,
