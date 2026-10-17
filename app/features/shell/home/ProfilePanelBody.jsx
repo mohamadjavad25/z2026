@@ -111,6 +111,7 @@ export function ProfilePanelBody() {
     setClientBookingSettings,
     rebookFromBooking,
     goToTab,
+    openConnectedProfile,
     freshBookingKey,
     artistBreakTime,
     openArtistBreakEditor,
@@ -376,6 +377,10 @@ export function ProfilePanelBody() {
                   highlightKey={freshBookingKey}
                   onOpenBooking={(booking) => setClientBookingSettings({ ...booking, clientBookingSheetMode: "details" })}
                   onRebook={rebookFromBooking}
+                  clientName={createdProfile?.data?.name || ""}
+                  onOpenPlace={openConnectedProfile}
+                  onFindPlaces={() => goToTab("salons")}
+                  onNotify={setAppToast}
                 />
               )}
 
