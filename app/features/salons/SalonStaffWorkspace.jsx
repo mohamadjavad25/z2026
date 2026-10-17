@@ -1,10 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Send, Settings, UserRoundPlus, X } from "lucide-react";
+import { Check, Plus, Send, Settings, UserRoundPlus, X } from "lucide-react";
 import { salonArtistRoleOptions } from "../../shared/constants/roles";
 import { toPersianDigits } from "../../shared/lib/digits";
-import { PageIcon } from "../../components/PageIcon";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { ServiceIconStrip } from "../../components/ServiceIconStrip";
 
@@ -50,12 +49,12 @@ export function SalonStaffWorkspace({
       ) : null}
 
       <button type="button" className="stfInvite" onClick={onInviteNearby}>
-        <span className="stfInviteIcon" aria-hidden="true"><PageIcon name="discover" size={34} /></span>
+        <span className="stfInviteIcon" aria-hidden="true"><Plus size={38} strokeWidth={2.6} /></span>
         <span className="stfInviteCopy">
           <b>دعوت آرتیست</b>
           <small>از بین آرتیست‌های نزدیک، همکار تیمت را پیدا کن</small>
         </span>
-        <span className="stfInviteGo" aria-hidden="true"><Send size={16} /></span>
+        <span className="stfInviteGo" aria-hidden="true">دعوت</span>
       </button>
 
       {pendingInvites.length ? (
