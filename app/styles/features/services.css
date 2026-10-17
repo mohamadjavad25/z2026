@@ -936,6 +936,46 @@ button.svcCard:active { transform: scale(0.99); }
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
 }
+/* GPU-light catalog (third "static bands" report, 2026-10-17: the band now sat mid-list while
+   scrolling, on a phone with many tabs open, i.e. Android tile-memory corruption). Earlier fixes
+   changed the layout; this one cuts what the GPU has to hold while the list scrolls:
+   - ~30 blurred card shadows, hover/active transforms and the heavy sheet shadow are gone, so no
+     card or icon is promoted to its own compositor layer (sticky :hover on touch did that);
+   - off-screen cards are not painted at all (content-visibility), so only a screenful of SVG icons
+     is rasterised at a time;
+   - the scroll box is isolated with `contain: paint` and the sheet entry fades only. */
+.svcSheet.is-catalog {
+  box-shadow: 0 -8px 24px rgb(var(--shadow-rgb) / 0.16);
+  animation-name: svcSheetFade;
+}
+@keyframes svcSheetFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.svcCatalogScroll { contain: paint; }
+.svcCatalogScroll .svcPreset {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 196px;
+}
+.svcCatalogScroll .svcPresetMain,
+.svcCatalogScroll .svcPresetMain:hover,
+.svcCatalogScroll .svcPresetMain:focus-visible,
+.svcCatalogScroll .svcPresetMain:active {
+  box-shadow: none;
+  transform: none;
+  transition: border-color 0.16s ease;
+}
+.svcCatalogScroll .serviceIcon,
+.svcCatalogScroll button:hover > .serviceIcon {
+  transform: none;
+  transition: none;
+}
+.svcCatalogScroll .svcPresetQuick,
+.svcCatalogScroll .svcPresetQuick:active {
+  box-shadow: none;
+  transform: none;
+}
+
 .svcDoneBar {
   flex: 0 0 auto;
   display: grid;
