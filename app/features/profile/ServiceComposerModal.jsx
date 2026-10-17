@@ -10,6 +10,10 @@ import { categoriesForSpecialties } from "../../shared/constants/serviceCatalog"
 import { toPersianDigits } from "../../shared/lib/digits";
 import { SheetClose } from "../../components/SheetClose";
 
+// The catalog is shown a page at a time: ~30 gradient SVG icons in one scroll box exhausted tile memory
+// on some Android phones and left static/clipped bands (see docs/DEVLOG.md), so only a few are mounted.
+const CATALOG_PAGE = 8;
+
 const DURATION_CHIPS = ["۱۵ دقیقه", "۳۰ دقیقه", "۴۵ دقیقه", "۶۰ دقیقه", "۹۰ دقیقه", "۱۲۰ دقیقه", "۱۸۰ دقیقه"];
 
 /**
@@ -59,6 +63,11 @@ export function ServiceComposerModal({
         && (!q || `${item.name} ${item.hint} ${item.badge}`.toLowerCase().includes(q)))
       .sort((a, b) => Number(addedNames.has(a.name)) - Number(addedNames.has(b.name)));
   }, [catalog, activeCategory, mine, query, addedNames]);
+
+  const [shown, setShown] = useState(CATALOG_PAGE);
+  useEffect(() => { setShown(CATALOG_PAGE); }, [activeCategory, query]);
+  const page = visible.slice(0, shown);
+  const hiddenCount = visible.length - page.length;
 
   // Smart suggestions: while a new service is being named, offer matching
   // catalog entries that fill price, duration, description and icon in one tap.
@@ -225,7 +234,7 @@ export function ServiceComposerModal({
                     </button>
                   </div>
                 ) : null}
-                {visible.map((service) => {
+                {page.map((service) => {
                   const added = addedNames.has(service.name);
                   return (
                     <div className={`svcPreset${added ? " is-added" : ""}`} role="listitem" key={service.id}>
@@ -261,6 +270,11 @@ export function ServiceComposerModal({
                   );
                 })}
               </div>
+              {hiddenCount > 0 ? (
+                <button type="button" className="svcMoreBtn" onClick={() => setShown((count) => count + CATALOG_PAGE)}>
+                  نمایش بیشتر ({toPersianDigits(hiddenCount)} خدمت دیگر)
+                </button>
+              ) : null}
             </div>
             <div className="svcDoneBar">
               {addedCount ? (

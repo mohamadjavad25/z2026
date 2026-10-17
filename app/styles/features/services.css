@@ -941,9 +941,10 @@ button.svcCard:active { transform: scale(0.99); }
    changed the layout; this one cuts what the GPU has to hold while the list scrolls:
    - ~30 blurred card shadows, hover/active transforms and the heavy sheet shadow are gone, so no
      card or icon is promoted to its own compositor layer (sticky :hover on touch did that);
-   - off-screen cards are not painted at all (content-visibility), so only a screenful of SVG icons
-     is rasterised at a time;
-   - the scroll box is isolated with `contain: paint` and the sheet entry fades only. */
+   - the sheet entry fades only.
+   content-visibility / contain: paint were tried on 2026-10-17 and made it worse (cards clipped,
+   content unpainted), so do not use them here. The real fix is in ServiceComposerModal.jsx: the
+   list is shown a page at a time (CATALOG_PAGE), so only a few SVG icons exist at once. */
 .svcSheet.is-catalog {
   box-shadow: 0 -8px 24px rgb(var(--shadow-rgb) / 0.16);
   animation-name: svcSheetFade;
@@ -952,10 +953,17 @@ button.svcCard:active { transform: scale(0.99); }
   from { opacity: 0; }
   to { opacity: 1; }
 }
-.svcCatalogScroll { contain: paint; }
-.svcCatalogScroll .svcPreset {
-  content-visibility: auto;
-  contain-intrinsic-size: auto 196px;
+.svcMoreBtn {
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid var(--n-200);
+  border-radius: 16px;
+  background: var(--n-0);
+  color: var(--n-900);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 900;
+  cursor: pointer;
 }
 .svcCatalogScroll .svcPresetMain,
 .svcCatalogScroll .svcPresetMain:hover,
