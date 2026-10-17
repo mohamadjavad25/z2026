@@ -32,7 +32,10 @@ export function SpecialtyMultiSelect({
   hideTrigger = false,
   defaultOpen = false,
   onDone,
-  onDismiss
+  onDismiss,
+  // Inline mode (guided profile flow): the picker renders in place instead of in a sheet.
+  inline = false,
+  disabled = false
 }) {
   const initial = String(defaultValue || "").split(/[،,]/).map((item) => item.trim()).filter(Boolean);
   const [open, setOpen] = useState(defaultOpen);
@@ -85,47 +88,8 @@ export function SpecialtyMultiSelect({
     close();
   }
 
-  return (
-    <div className="specialtySelect" onClick={(event) => event.stopPropagation()}>
-      {hideTrigger ? null : <button
-        type="button"
-        className="specialtySelectTrigger"
-        onClick={() => setOpen(true)}
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        aria-invalid={invalid || undefined}
-        aria-describedby={describedBy}
-      >
-        {selected.length ? (
-          <span className="specialtySelectChips">
-            {selected.map((item) => <em key={item}>{item}</em>)}
-          </span>
-        ) : (
-          <span className="is-placeholder">{placeholder}</span>
-        )}
-        {selected.length ? <b className="specialtySelectCount">{toPersianDigits(selected.length)}</b> : null}
-        <ChevronDown size={16} className="specialtySelectChevron" />
-      </button>}
-
-      {/* Off-screen but focusable/validatable -- keeps `required` working. */}
-      {hideTrigger ? null : <input
-        className="specialtySelectValue"
-        type="text"
-        name={name}
-        value={selected.join("، ")}
-        required={required}
-        readOnly
-        tabIndex={-1}
-        aria-hidden="true"
-      />}
-
-      <ProfileSheet
-        open={open}
-        kicker="انتخاب چندتایی"
-        title="حوزه فعالیت"
-        panelClassName="specialtySheet"
-        onClose={close}
-      >
+  const pickerBody = (
+    <>
         <label className="specialtySheetSearch">
           <Search size={16} aria-hidden="true" />
           <input
@@ -180,11 +144,54 @@ export function SpecialtyMultiSelect({
         </div>
 
         <div className="specialtySheetBar">
-          <Button block icon={Check} className="specialtySheetDone" onClick={confirm}>
-            {selected.length ? `تأیید (${toPersianDigits(selected.length)} مورد)` : "بستن"}
+          <Button block icon={Check} className="specialtySheetDone" onClick={confirm} disabled={disabled || (inline && !selected.length)}>
+            {selected.length ? `تأیید (${toPersianDigits(selected.length)} مورد)` : inline ? "یک مورد انتخاب کن" : "بستن"}
           </Button>
         </div>
-      </ProfileSheet>
+    </>
+  );
+
+  return (
+    <div className="specialtySelect" onClick={(event) => event.stopPropagation()}>
+      {hideTrigger || inline ? null : <button
+        type="button"
+        className="specialtySelectTrigger"
+        onClick={() => setOpen(true)}
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        aria-invalid={invalid || undefined}
+        aria-describedby={describedBy}
+      >
+        {selected.length ? (
+          <span className="specialtySelectChips">
+            {selected.map((item) => <em key={item}>{item}</em>)}
+          </span>
+        ) : (
+          <span className="is-placeholder">{placeholder}</span>
+        )}
+        {selected.length ? <b className="specialtySelectCount">{toPersianDigits(selected.length)}</b> : null}
+        <ChevronDown size={16} className="specialtySelectChevron" />
+      </button>}
+
+      {/* Off-screen but focusable/validatable -- keeps `required` working. */}
+      {hideTrigger || inline ? null : <input
+        className="specialtySelectValue"
+        type="text"
+        name={name}
+        value={selected.join("، ")}
+        required={required}
+        readOnly
+        tabIndex={-1}
+        aria-hidden="true"
+      />}
+
+      {inline ? (
+        <div className="specialtyInline">{pickerBody}</div>
+      ) : (
+        <ProfileSheet open={open} kicker="انتخاب چندتایی" title="حوزه فعالیت" panelClassName="specialtySheet" onClose={close}>
+          {pickerBody}
+        </ProfileSheet>
+      )}
     </div>
   );
 }

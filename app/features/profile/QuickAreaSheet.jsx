@@ -11,8 +11,10 @@ const ALL_CITIES = PROVINCES.flatMap((province) => province.cities.map((city) =>
  * One-tap "activity area" picker for the profile checklist: search a city, or
  * use the phone's location, and the area is saved straight away. The detailed
  * map pin stays available in Settings for owners who want it.
+ * `QuickAreaPicker` is the bare body (used inline by the guided flow);
+ * `QuickAreaSheet` wraps it in a sheet for the single-step shortcut.
  */
-export function QuickAreaSheet({ open, onClose, onPick }) {
+export function QuickAreaPicker({ onPick, disabled = false }) {
   const [query, setQuery] = useState("");
   const [locating, setLocating] = useState(false);
   const [error, setError] = useState("");
@@ -52,8 +54,8 @@ export function QuickAreaSheet({ open, onClose, onPick }) {
   }
 
   return (
-    <ProfileSheet open={open} kicker="یک قدم تا تکمیل" title="محدوده فعالیت" panelClassName="quickAreaSheet" onClose={onClose}>
-      <button type="button" className="quickAreaLocate" onClick={locateMe} disabled={locating}>
+    <>
+      <button type="button" className="quickAreaLocate" onClick={locateMe} disabled={locating || disabled}>
         <Locate size={17} aria-hidden="true" />
         {locating ? "در حال پیدا کردن شهر…" : "همین‌جا هستم؛ موقعیت فعلی من"}
       </button>
@@ -70,7 +72,7 @@ export function QuickAreaSheet({ open, onClose, onPick }) {
       </label>
       <div className="quickAreaList" role="listbox" aria-label="شهرها">
         {visible.map((city) => (
-          <button type="button" role="option" aria-selected="false" key={`${city.province}-${city.name}`} onClick={() => onPick?.(city.name)}>
+          <button type="button" role="option" aria-selected="false" key={`${city.province}-${city.name}`} disabled={disabled} onClick={() => onPick?.(city.name)}>
             <MapPin size={15} aria-hidden="true" />
             <b>{city.name}</b>
             <small>{city.province}</small>
@@ -78,6 +80,14 @@ export function QuickAreaSheet({ open, onClose, onPick }) {
         ))}
         {visible.length === 0 ? <p className="quickAreaEmpty">شهری پیدا نشد؛ املای دیگری امتحان کن.</p> : null}
       </div>
+    </>
+  );
+}
+
+export function QuickAreaSheet({ open, onClose, onPick }) {
+  return (
+    <ProfileSheet open={open} kicker="یک قدم تا تکمیل" title="محدوده فعالیت" panelClassName="quickAreaSheet" onClose={onClose}>
+      <QuickAreaPicker onPick={onPick} />
     </ProfileSheet>
   );
 }

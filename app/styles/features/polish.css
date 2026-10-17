@@ -897,10 +897,6 @@ html[data-cbt="1"] body { padding-bottom: 92px; }
 .profileCompletenessClose { position: relative; flex: none; width: 32px; height: 32px; display: grid; place-items: center; border: 0; border-radius: 50%; background: var(--n-50); color: var(--n-600); cursor: pointer; align-self: flex-start; }
 .profileCompletenessClose::after { content: ""; position: absolute; inset: -8px; }
 
-.pccSteps { display: flex; gap: 5px; }
-.pccSteps i { flex: 1 1 0; height: 5px; border-radius: 999px; background: var(--n-100); transition: background 0.3s ease; }
-.pccSteps i.is-done { background: linear-gradient(90deg, var(--violet-deep), var(--signal-hot)); }
-
 .pccList { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 
 .pccRow {
@@ -929,13 +925,96 @@ html[data-cbt="1"] body { padding-bottom: 92px; }
 .pccText small { color: var(--n-600); font-size: 0.7rem; font-weight: 750; line-height: 1.5; }
 .pccGo { flex: none; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; background: var(--n-50); color: var(--n-600); }
 
-/* The first open step is the one to do now: dark, with the pink accent. */
-.pccRow.is-next { min-height: 72px; border-color: transparent; background: var(--fill-strong); color: var(--n-0); box-shadow: 0 12px 26px rgb(var(--shadow-rgb) / 0.22); }
-.pccRow.is-next:hover { border-color: transparent; box-shadow: 0 14px 30px rgb(var(--shadow-rgb) / 0.28); }
-.pccRow.is-next .pccIcon { background: linear-gradient(135deg, var(--fill-violet), var(--fill-hot)); color: var(--n-0); }
-.pccRow.is-next .pccText b { font-size: 0.94rem; }
-.pccRow.is-next .pccText small { color: var(--n-300); font-size: 0.72rem; }
-.pccRow.is-next .pccGo { background: rgb(var(--paper-rgb) / 0.14); color: var(--n-0); }
+/* The whole card is tappable (it starts the guided flow); the rows keep their own single-step jobs. */
+.profileCompleteness { cursor: pointer; -webkit-tap-highlight-color: transparent; transition: transform 0.14s ease; }
+.profileCompleteness:active { transform: scale(0.992); }
+.profileCompleteness button, .profileCompleteness label { cursor: pointer; }
+
+/* Step checklist: done steps get a tick, so the owner sees what is already finished. */
+.pccChecks { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.pccChecks li { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px 5px 8px; border-radius: 999px; background: var(--n-50); color: var(--n-700); font-size: 0.72rem; font-weight: 850; }
+.pccChecks i { width: 16px; height: 16px; display: grid; place-items: center; border-radius: 50%; border: 1.5px solid var(--n-300); color: var(--n-0); }
+.pccChecks li.is-done { color: var(--n-600); }
+.pccChecks li.is-done i { border-color: transparent; background: linear-gradient(135deg, var(--fill-violet), var(--fill-hot)); }
+
+.pccStart {
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 18px;
+  background: var(--fill-strong);
+  color: var(--n-0);
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 950;
+  box-shadow: 0 12px 26px rgb(var(--shadow-rgb) / 0.22);
+  transition: transform 0.14s ease;
+}
+.pccStart:active { transform: scale(0.98); }
+
+/* ═══ Guided profile flow (one sheet, one step at a time) ═══════════════════ */
+.salonHeroSheetPanel.pcfSheet {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 14px 16px calc(16px + env(safe-area-inset-bottom));
+  overflow-y: auto;
+}
+.pcfTop { display: flex; align-items: center; justify-content: space-between; }
+.pcfCount { color: var(--n-600); font-size: 0.78rem; font-weight: 900; }
+.pcfClose { width: 40px; height: 40px; display: grid; place-items: center; border: 0; border-radius: 50%; background: var(--n-100); color: var(--n-700); cursor: pointer; }
+
+.pcfDots { list-style: none; margin: 0; padding: 0; display: flex; gap: 6px; }
+.pcfDots li { flex: 1 1 0; height: 6px; display: grid; place-items: center; border-radius: 999px; background: var(--n-100); color: var(--n-0); transition: background 0.3s ease; }
+.pcfDots li svg { display: none; }
+.pcfDots li.is-done { background: linear-gradient(90deg, var(--violet-deep), var(--signal-hot)); }
+.pcfDots li.is-current { background: var(--n-300); }
+
+.pcfStep { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 16px; animation: pcfIn 0.28s ease both; }
+@keyframes pcfIn { from { opacity: 0; transform: translateX(-14px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .pcfStep { animation: none; } }
+
+.pcfHero { display: grid; gap: 8px; justify-items: start; }
+.pcfHeroIcon { width: 52px; height: 52px; display: grid; place-items: center; border-radius: 18px; background: linear-gradient(135deg, var(--fill-violet), var(--fill-hot)); color: var(--n-0); box-shadow: 0 10px 22px rgb(var(--shadow-rgb) / 0.2); }
+.pcfHero h3 { margin: 4px 0 0; color: var(--n-900); font-size: 1.3rem; font-weight: 950; line-height: 1.4; }
+.pcfHero p { margin: 0; color: var(--n-600); font-size: 0.82rem; font-weight: 750; line-height: 1.8; }
+
+.pcfBody { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 10px; }
+.pcfArea { display: flex; flex-direction: column; min-height: 0; }
+.pcfArea .quickAreaList { max-height: 42dvh; }
+.pcfBody .specialtyInline { display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+.pcfBody .specialtyInline .specialtySheetGrid { max-height: 36dvh; overflow-y: auto; overscroll-behavior: contain; align-content: start; padding: 2px; }
+
+.pcfPick {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 28px 16px;
+  border: 2px dashed var(--n-300);
+  border-radius: 24px;
+  background: var(--n-50);
+  color: var(--n-900);
+  text-align: center;
+  cursor: pointer;
+}
+.pcfPick:active { background: var(--n-100); }
+.pcfPickDisc { width: 84px; height: 84px; display: grid; place-items: center; margin-bottom: 4px; border-radius: 50%; background: linear-gradient(135deg, var(--fill-violet), var(--fill-hot)); color: var(--n-0); }
+.pcfPick b { font-size: 0.94rem; font-weight: 950; }
+.pcfPick small { color: var(--n-600); font-size: 0.72rem; font-weight: 750; }
+
+.pcfFooter { display: grid; gap: 8px; margin-top: auto; }
+.pcfSkip { min-height: 46px; border: 0; border-radius: 14px; background: transparent; color: var(--n-600); font: inherit; font-size: 0.82rem; font-weight: 850; cursor: pointer; }
+.pcfSkip:disabled { opacity: 0.5; }
+
+.pcfFinale { align-items: center; justify-content: center; text-align: center; }
+.pcfFinaleBadge { width: 96px; height: 96px; display: grid; place-items: center; margin-top: 8vh; border-radius: 50%; background: linear-gradient(135deg, var(--fill-violet), var(--fill-hot)); color: var(--n-0); box-shadow: 0 16px 36px rgb(var(--shadow-rgb) / 0.25); }
+.pcfFinale h3 { margin: 0; color: var(--n-900); font-size: 1.4rem; font-weight: 950; }
+.pcfFinale p { margin: 0; max-width: 28ch; color: var(--n-600); font-size: 0.84rem; font-weight: 750; line-height: 1.8; }
+.pcfFinale .pcfFooter { width: 100%; }
 
 /* ═══ Customers: sheet actions + "lapsed" count ═══ */
 .cuActions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
