@@ -403,6 +403,8 @@ button.svcCard:active { transform: scale(0.99); }
   gap: 8px;
   margin: 0 -16px;
   padding: 2px 16px 4px;
+  min-height: 46px;
+  flex-shrink: 0;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -924,6 +926,10 @@ button.svcCard:active { transform: scale(0.99); }
   flex: 1 1 auto;
   min-height: 0;
   display: grid;
+  /* rows keep their full content height; otherwise the scrolling tab bar (overflow-x: auto) is squashed
+     and the hint text paints over it */
+  grid-auto-rows: max-content;
+  align-content: start;
   gap: 12px;
   padding: 2px;
   overflow-y: auto;
