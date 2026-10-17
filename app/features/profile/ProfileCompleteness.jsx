@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ArrowLeft, X } from "lucide-react";
 import { isDefaultAvatar } from "../../shared/lib/defaultAvatar";
 import { toPersianDigits } from "../../shared/lib/digits";
@@ -28,20 +28,13 @@ const RING_LENGTH = 2 * Math.PI * RING_RADIUS;
 export function ProfileCompleteness({ profile, serviceCount = 0, logoEditing = false, onOpenServices, onPickLogo, onQuickSave }) {
   // Closing only hides the card for this visit; it is not remembered, so every refresh brings it back until the profile is complete.
   const [dismissed, setDismissed] = useState(false);
-  // The guided flow. `skipped` only lasts for the current run.
+  // The guided flow.
   const [flowOpen, setFlowOpen] = useState(false);
-  const [skipped, setSkipped] = useState([]);
 
   const isOwner = Boolean(profile) && (profile.type === "salon" || profile.type === "artist");
   const steps = isOwner ? getProfileSteps(profile, serviceCount) : [];
   const done = steps.filter((step) => step.done).length;
   const allDone = isOwner && done === steps.length;
-  const nothingLeft = isOwner && !allDone && steps.every((step) => step.done || skipped.includes(step.id));
-
-  // Every open step was skipped: the run is over, back to the card.
-  useEffect(() => {
-    if (flowOpen && nothingLeft) setFlowOpen(false);
-  }, [flowOpen, nothingLeft]);
 
   if (!isOwner) return null;
 
@@ -50,11 +43,9 @@ export function ProfileCompleteness({ profile, serviceCount = 0, logoEditing = f
       open={flowOpen}
       isSalon={profile.type === "salon"}
       steps={steps}
-      skipped={skipped}
       profile={profile}
       logoEditing={logoEditing}
       onClose={() => setFlowOpen(false)}
-      onSkip={(id) => setSkipped((prev) => [...prev, id])}
       onPickLogo={onPickLogo}
       onQuickSave={onQuickSave}
       onOpenServices={onOpenServices}
@@ -69,7 +60,6 @@ export function ProfileCompleteness({ profile, serviceCount = 0, logoEditing = f
   const remaining = steps.length - done;
 
   function startFlow() {
-    setSkipped([]);
     setFlowOpen(true);
   }
 

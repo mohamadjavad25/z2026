@@ -4,6 +4,7 @@ import { Check, Palette, Search, Store } from "lucide-react";
 import { ANDROID_APK_URL, ANDROID_APP_VERSION, DOWNLOAD_PAGE_URL } from "./constants";
 import { EnterAppButton } from "./EnterAppButton";
 import { HeroFilm } from "./HeroFilm";
+import { ScanToOpen } from "./ScanToOpen";
 
 /**
  * The page about frfro with the app download links. Shown at /download, at "/" on phones
@@ -189,6 +190,7 @@ export async function AppLanding() {
             <p className="appLanding__lead">
               سالن و آرتیست زیبایی را پیدا کن، نمونه‌کار واقعی ببین و همان‌جا نوبت بگیر؛ بدون تماس و بدون دفترچه.
             </p>
+            <ScanToOpen />
             <DownloadButtons />
             <EnterAppButton className="appLanding__enter">یا ورود به فرفرو در مرورگر ←</EnterAppButton>
             <p className="appLanding__note">نسخهٔ اندروید {ANDROID_APP_VERSION} · رایگان برای مشتری · بدون پرداخت داخل برنامه</p>
