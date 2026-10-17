@@ -196,14 +196,14 @@ export function SalonClientPage({
           <nav className="spvBar" aria-label="رزرو و ذخیره">
             <button
               type="button"
-              className="spvBarBook"
+              className={`spvBarBook${servicesOpen ? " is-open" : ""}`}
               onClick={() => setServicesOpen((open) => !open)}
               aria-expanded={servicesOpen}
               aria-haspopup="dialog"
             >
               <Scissors size={19} />
-              خدمات
-              {minPrice ? <small>از {formatTomanNumber(minPrice)} تومان</small> : null}
+              {servicesOpen ? "بستن" : "خدمات"}
+              {minPrice && !servicesOpen ? <small>از {formatTomanNumber(minPrice)} تومان</small> : null}
               <ChevronUp size={18} className={`spvBarChevron${servicesOpen ? " is-open" : ""}`} aria-hidden="true" />
             </button>
           </nav>

@@ -47,6 +47,7 @@
 .artistPublicPage .pphInfo { margin-bottom: 8px; }
 
 /* ── Bottom bar «خدمات» chevron ── */
+.spvBarBook.is-open { background: var(--n-0); color: var(--n-900); box-shadow: inset 0 0 0 1px var(--n-900); }
 .spvBarChevron { transition: transform 0.3s ease; }
 .spvBarChevron.is-open { transform: rotate(180deg); }
 
