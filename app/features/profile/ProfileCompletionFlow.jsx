@@ -33,18 +33,16 @@ const STEP_COPY = {
 /**
  * Guided "finish your profile" flow. One open step at a time, in order, inside a single sheet:
  * the owner never has to leave and come back for the next one. The current step is *derived*
- * from the profile (first step not done and not skipped), so it advances by itself the moment a
+ * from the profile (first step not done), so it advances by itself the moment a
  * save lands -- including the logo, whose crop editor lives elsewhere.
  */
 export function ProfileCompletionFlow({
   open,
   isSalon,
   steps,
-  skipped,
   profile,
   logoEditing = false,
   onClose,
-  onSkip,
   onPickLogo,
   onQuickSave,
   onOpenServices
@@ -62,7 +60,7 @@ export function ProfileCompletionFlow({
 
   if (!open) return null;
 
-  const current = steps.find((step) => !step.done && !skipped.includes(step.id));
+  const current = steps.find((step) => !step.done);
   const allDone = steps.every((step) => step.done);
   const index = current ? steps.findIndex((step) => step.id === current.id) : steps.length;
   const Icon = current ? STEP_ICONS[current.id] : null;
@@ -143,12 +141,6 @@ export function ProfileCompletionFlow({
             {current.id === "services" ? (
               <Button block icon={ArrowLeft} onClick={openServices}>افزودن اولین خدمت</Button>
             ) : null}
-          </div>
-
-          <div className="pcfFooter">
-            <button type="button" className="pcfSkip" disabled={saving} onClick={() => onSkip(current.id)}>
-              الان نه، بعداً
-            </button>
           </div>
         </div>
       ) : null}
