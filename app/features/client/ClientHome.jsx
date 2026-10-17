@@ -33,7 +33,7 @@ export function ClientHome({ bookings = [], highlightKey = "", clientName = "", 
         onRebook={onRebook}
       />
       {showConnect ? (
-      <section className="chCard chEmpty" aria-label="وصل کردن سالن یا آرتیست">
+      <section className="chCard chStart" aria-label="وصل کردن سالن یا آرتیست">
         <Mascot pose="search" size={84} className="chEmptyMascot" />
         <b>سالن یا آرتیستت را وصل کن</b>
         <span>از مخاطبین انتخابش کن یا کد QR او را اسکن کن.</span>

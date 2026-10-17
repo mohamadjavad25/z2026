@@ -286,8 +286,8 @@ describe("client starts from what they want (browser)", () => {
     await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
     // nobody followed yet: «سالن و آرتیست من» invites, and its link leads to «پیدا کردن»
     await page.locator("nav.bottomNav > button").nth(2).click();
-    await page.locator(".chEmpty").waitFor();
-    await page.locator(".chAddLink").click();
+    await page.locator("#cbt-panel .chEmpty").waitFor();
+    await page.locator("#cbt-panel .chAddLink").click();
     await page.locator(".cnCat", { hasText: "میکاپ" }).waitFor();
     await page.locator(".cnCat", { hasText: "میکاپ" }).click();
     const sheet = page.locator(".cnSheetRoot");

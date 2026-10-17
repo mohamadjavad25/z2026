@@ -78,10 +78,10 @@
 .chAll span { flex: 1; text-align: start; }
 
 /* Nobody connected yet: the one thing to do. */
-.chEmpty { justify-items: center; gap: 8px; padding: 20px 18px 18px; text-align: center; }
-.chEmptyMascot { margin-bottom: 2px; }
-.chEmpty b { font-size: 1rem; font-weight: 950; }
-.chEmpty > span { max-width: 32ch; color: var(--n-600); font-size: 0.8rem; font-weight: 750; line-height: 1.9; }
+.chEmpty, .chStart { justify-items: center; gap: 8px; padding: 20px 18px 18px; text-align: center; }
+.chEmptyMascot, .chStart .chEmptyMascot { margin-bottom: 2px; }
+.chEmpty b, .chStart b { font-size: 1rem; font-weight: 950; }
+.chEmpty > span, .chStart > span { max-width: 32ch; color: var(--n-600); font-size: 0.8rem; font-weight: 750; line-height: 1.9; }
 
 /* The ways to add a salon/artist: two big buttons (contacts, scan) and one quiet link to «رزرو». */
 .chAdd { display: grid; gap: 6px; width: 100%; }
