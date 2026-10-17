@@ -46,6 +46,7 @@ export function ProfilePanelBody() {
     pendingSalonArtistInvites,
     safeSalonStaffList,
     joinSalonTeamAsOwner,
+    removeSalonStaff,
     openNearbyArtistInvite,
     cancelSalonArtistInvite,
     openSalonStaffPublicProfile,
@@ -270,6 +271,7 @@ export function ProfilePanelBody() {
                           onManageStaff={setSelectedArtistProfile}
                           managerName={createdProfile?.data?.managerName || ""}
                           onJoinAsOwner={joinSalonTeamAsOwner}
+                          onLeaveAsOwner={removeSalonStaff}
                         />
                       )}
 

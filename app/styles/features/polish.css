@@ -1417,11 +1417,22 @@ main.appShell.is-auth-gate .workspace { background: var(--n-0) !important; }
 html, body { overscroll-behavior-y: none; }
 
 /* Staff tab: the manager joins their own team ("خودم هم کار می‌کنم") */
-.stfInvite.is-self { background: var(--n-0); color: var(--n-900); box-shadow: 0 8px 20px rgb(var(--shadow-rgb) / 0.08), inset 0 0 0 1px rgb(var(--shadow-rgb) / 0.1); }
-.stfInvite.is-self .stfInviteIcon { background: var(--fill-strong); color: var(--n-0); }
-.stfInvite.is-self .stfInviteCopy small { color: var(--n-700); }
-.stfInvite.is-self .stfInviteGo { background: var(--n-100); }
-.stfSelfForm { display: grid; gap: 12px; padding: 14px; border-radius: 22px; background: var(--n-0); box-shadow: 0 8px 20px rgb(var(--shadow-rgb) / 0.08), inset 0 0 0 1px rgb(var(--shadow-rgb) / 0.1); }
+/* The manager's on/off card: always the first thing under the stats, never scrolls away into the list. */
+.stfSelf { display: grid; gap: 12px; padding: 14px; border-radius: 24px; background: var(--n-0); box-shadow: 0 8px 20px rgb(var(--shadow-rgb) / 0.08), inset 0 0 0 1px rgb(var(--shadow-rgb) / 0.1); transition: box-shadow 0.25s ease, background 0.25s ease; }
+.stfSelf.is-on { background: linear-gradient(135deg, rgb(var(--accent-rgb, 139 108 255) / 0.14), var(--n-0) 70%); box-shadow: 0 10px 26px rgb(var(--accent-rgb, 139 108 255) / 0.18), inset 0 0 0 1.5px rgb(var(--accent-rgb, 139 108 255) / 0.55); }
+.stfSelfHead { display: flex; align-items: center; gap: 12px; }
+.stfSelfIcon { flex: none; width: 60px; height: 60px; display: grid; place-items: center; border-radius: 20px; background: var(--n-100); color: var(--n-700); transition: background 0.25s ease, color 0.25s ease; }
+.stfSelf.is-on .stfSelfIcon { background: var(--fill-strong); color: var(--n-0); }
+.stfSelfCopy { flex: 1 1 auto; display: grid; gap: 3px; min-width: 0; }
+.stfSelfCopy b { color: var(--n-900); font-size: 0.98rem; font-weight: 950; }
+.stfSelfCopy small { color: var(--n-700); font-size: 0.72rem; font-weight: 700; line-height: 1.6; }
+.stfSwitch { flex: none; position: relative; width: 56px; height: 32px; padding: 0; border: 0; border-radius: 999px; background: var(--n-300); cursor: pointer; transition: background 0.25s ease; }
+.stfSwitch i { position: absolute; top: 3px; inset-inline-start: 3px; width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%; background: var(--n-0); color: var(--n-900); box-shadow: 0 2px 6px rgb(var(--shadow-rgb) / 0.3); transition: inset-inline-start 0.25s cubic-bezier(0.3, 1.4, 0.5, 1); }
+.stfSwitch[aria-checked="true"] { background: var(--fill-strong); }
+.stfSwitch[aria-checked="true"] i { inset-inline-start: 27px; }
+.stfSwitch:disabled { opacity: 0.6; cursor: progress; }
+.stfSwitch:focus-visible { outline: 2px solid var(--fill-strong); outline-offset: 3px; }
+.stfSelfForm { display: grid; gap: 12px; padding-top: 12px; border-top: 1px solid rgb(var(--shadow-rgb) / 0.1); }
 .stfSelfTitle { font-size: 0.95rem; font-weight: 950; color: var(--n-900); }
 .stfSelfField { display: grid; gap: 6px; }
 .stfSelfField > span { color: var(--n-700); font-size: 0.74rem; font-weight: 800; }
