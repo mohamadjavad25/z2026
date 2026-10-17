@@ -8,7 +8,10 @@
   background: var(--n-0);
   box-shadow: 0 8px 22px -14px rgb(var(--shadow-rgb) / 0.2);
   text-align: center;
-  overflow: hidden;
+  /* clip, not hidden: a grid/flex parent may shrink an overflow:hidden child to ~0 height */
+  overflow: clip;
+  flex: 0 0 auto;
+  min-height: min-content;
 }
 .csoonStage {
   position: relative;
