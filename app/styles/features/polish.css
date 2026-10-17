@@ -974,8 +974,6 @@ html[data-cbt="1"] body { padding-bottom: 92px; }
 .pcfPick small { color: var(--n-600); font-size: 0.72rem; font-weight: 750; }
 
 .pcfFooter { display: grid; gap: 8px; margin-top: auto; }
-.pcfSkip { min-height: 46px; border: 0; border-radius: 14px; background: transparent; color: var(--n-600); font: inherit; font-size: 0.82rem; font-weight: 850; cursor: pointer; }
-.pcfSkip:disabled { opacity: 0.5; }
 
 .pcfFinale { align-items: center; justify-content: center; text-align: center; }
 .pcfFinaleBadge { width: 96px; height: 96px; display: grid; place-items: center; margin-top: 8vh; border-radius: 50%; background: linear-gradient(135deg, var(--fill-violet), var(--fill-hot)); color: var(--n-0); box-shadow: 0 16px 36px rgb(var(--shadow-rgb) / 0.25); }
