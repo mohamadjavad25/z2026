@@ -98,3 +98,60 @@ button.vbWho2[aria-expanded="true"] svg { transform: rotate(180deg); }
 .vbSubmit:disabled { cursor: progress; opacity: 0.8; }
 .vbSubmit:active:not(:disabled) { transform: scale(0.98); }
 .visitBookerSheet :focus-visible { outline: 2px solid var(--vb-ink); outline-offset: 2px; }
+
+/* ═══ The wizard (salon and artist): one question at a time ═══
+   The question sits in the middle of the screen. Once answered it shrinks to a chip at the top
+   (tap it to change it) and the next question comes up in the middle. */
+.vbWizardHead { position: relative; display: grid; grid-template-columns: 40px minmax(0, 1fr) 40px; align-items: center; row-gap: 6px; padding-bottom: 8px; }
+.vbWizardHead h2 { grid-column: 2; }
+.vbBack { grid-column: 1; grid-row: 1; width: 40px; height: 40px; display: grid; place-items: center; border: 0; border-radius: 999px; background: none; color: var(--vb-ink); cursor: pointer; }
+.vbBack:active { background: var(--vb-fill); }
+.vbSteps { grid-column: 1 / -1; grid-row: 2; display: flex; gap: 5px; justify-content: center; margin: 0; padding: 0; list-style: none; }
+.vbSteps li { width: 22px; height: 4px; border-radius: 999px; background: var(--n-150); transition: background 0.25s ease, width 0.25s ease; }
+.vbSteps li.is-done { background: var(--n-400); }
+.vbSteps li.is-now { width: 34px; background: var(--vb-pink); }
+
+.vbBody.is-wizard { gap: 14px; padding-top: 8px; }
+.vbDoneRow { flex: none; display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.vbDoneChip { max-width: 100%; min-height: 38px; display: inline-flex; align-items: baseline; gap: 6px; padding: 6px 12px; border: 0; border-radius: 12px; background: var(--vb-fill); color: var(--vb-ink); font: inherit; cursor: pointer; animation: vbChipIn 0.28s ease both; }
+.vbDoneChip small { flex: none; color: var(--vb-muted); font-size: 0.64rem; font-weight: 700; }
+.vbDoneChip b { min-width: 0; overflow: hidden; font-size: 0.78rem; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+.vbDoneChip:active { transform: scale(0.97); }
+
+/* margin-block: auto centres the question, and lets a long answer list scroll from the top */
+.vbStage { flex: none; width: 100%; max-width: 420px; margin: auto; display: grid; gap: 14px; justify-items: center; min-width: 0; animation: vbStageIn 0.34s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.vbQuestion { margin: 0; font-size: 1.25rem; font-weight: 900; line-height: 1.5; text-align: center; }
+.vbQuestionHint { margin: -8px 0 0; color: var(--vb-muted); font-size: 0.78rem; font-weight: 700; line-height: 1.7; text-align: center; }
+.vbAsk { width: 100%; display: grid; gap: 10px; min-width: 0; }
+.vbBig { width: 100%; min-height: 54px; padding: 0 16px; border: 1.5px solid transparent; border-radius: 16px; background: var(--vb-fill); color: var(--vb-ink); font: inherit; font-size: 1rem; font-weight: 800; text-align: center; }
+.vbBig::placeholder { color: var(--n-500); font-weight: 700; }
+.vbBig:focus { outline: 0; border-color: var(--vb-pink); background: var(--n-0); }
+.vbWizard .vbSuggest { margin: 0; justify-content: center; flex-wrap: wrap; }
+.vbWizard .vbHint { justify-self: center; }
+
+.vbPick { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.vbPick.is-days { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.vbBigChoice { min-height: 48px; padding: 0 16px; border-radius: 14px; font-size: 0.86rem; }
+.vbPick.is-days .vbBigChoice { min-height: 52px; justify-content: center; }
+.vbPick.is-days .vbDay { flex-direction: row; gap: 6px; }
+.vbBigChoice span { max-width: 62vw; }
+.vbSummary.is-center { text-align: center; }
+.vbWizard .vbSummary { text-align: center; min-height: 1.4em; }
+.vbWizard .vbTimes { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.vbWizard .vbTime { min-height: 48px; font-size: 0.95rem; }
+.vbWizard .vbPlanSection { width: 100%; }
+.vbWizard .vbAsk > .vbPlanSection { padding: 8px 14px; }
+.vbWizard .vbSubmit .vbNextIcon { margin: 0; }
+
+/* no services yet */
+.vbNoService { align-items: center; justify-content: center; gap: 12px; padding: 24px 24px calc(24px + env(safe-area-inset-bottom)); text-align: center; animation: vbStageIn 0.34s ease both; }
+.vbNoService h2 { margin: 6px 0 0; font-size: 1.2rem; font-weight: 900; }
+.vbNoService p { max-width: 320px; margin: 0 0 8px; color: var(--vb-muted); font-size: 0.82rem; font-weight: 700; line-height: 1.9; }
+.vbNoServiceIcon { width: 68px; height: 68px; display: grid; place-items: center; border-radius: 22px; background: rgb(var(--accent-rgb) / 0.14); color: var(--vb-ink); }
+
+@keyframes vbStageIn { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+@keyframes vbChipIn { from { opacity: 0; transform: translateY(-8px) scale(0.96); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .vbStage, .vbDoneChip, .vbNoService { animation: none; }
+  .vbSteps li { transition: none; }
+}
