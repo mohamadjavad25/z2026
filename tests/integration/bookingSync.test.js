@@ -114,3 +114,41 @@ describe("GET /api/client-bookings", () => {
     expect((await ctx.salonClient.get("/api/client-bookings")).status).toBe(403);
   });
 });
+
+describe("a booking the salon entered for a client who has an account", () => {
+  async function enterWalkIn(ctx, bookingDate, time) {
+    const created = await ctx.salonClient.post("/api/salon-bookings", {
+      service: "کوتاهی مو", bookingDate, time, client: ctx.client.user.name, phone: ctx.client.phone
+    });
+    expect(created.ok).toBe(true);
+    return created.payload.data.booking;
+  }
+
+  it("reaches the client as a settled booking, not as a request waiting for the salon", async () => {
+    const ctx = await setup();
+    const booking = await enterWalkIn(ctx, futureBookingDay(2), "۱۴:۰۰");
+    expect(booking.status).toBe("تازه");
+    const mine = (await ctx.clientClient.get("/api/client-bookings")).payload.data.salonBookings;
+    expect(mine.find((b) => b.id === booking.id).status).toBe("تایید شده");
+  });
+
+  it("can be cancelled by that client, and the salon sees it cancelled", async () => {
+    const ctx = await setup();
+    const booking = await enterWalkIn(ctx, futureBookingDay(3), "۱۵:۰۰");
+    const cancelled = await ctx.clientClient.post(`/api/salon-bookings/${booking.id}/cancel`, {});
+    expect(cancelled.ok).toBe(true);
+    const salonList = (await ctx.salonClient.get("/api/salon-bookings")).payload.data.bookings;
+    expect(salonList.find((b) => b.id === booking.id).status).toBe("لغو");
+  });
+
+  it("is never cancellable by a different client who merely shares the name", async () => {
+    const ctx = await setup();
+    const booking = await enterWalkIn(ctx, futureBookingDay(2), "۱۶:۰۰");
+    const otherClient = createClient();
+    await registerUser(otherClient, { type: "client", name: ctx.client.user.name });
+    const attempt = await otherClient.post(`/api/salon-bookings/${booking.id}/cancel`, {});
+    expect(attempt.status).toBe(404);
+    const salonList = (await ctx.salonClient.get("/api/salon-bookings")).payload.data.bookings;
+    expect(salonList.find((b) => b.id === booking.id).status).toBe("تازه");
+  });
+});

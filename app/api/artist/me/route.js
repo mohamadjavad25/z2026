@@ -8,6 +8,7 @@ import { notifyConnection } from "../../../lib/connectionNotify.js";
 import { checkRateLimit } from "../../../lib/rateLimit.js";
 import { get, withTransaction } from "../../../lib/db/connection.js";
 import { lockArtistDays, lockSalonDay } from "../../../lib/db/locks.js";
+import { AWAITING_CLIENT } from "../../../shared/lib/bookingOffer.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -144,8 +145,19 @@ async function patchOwnArtistBooking(artistUserId, body) {
   await withTransaction(null, async (db) => {
     if (current.sourceSalonUserId) await lockSalonDay(db, current.sourceSalonUserId, current.bookingDate);
     await lockArtistDays(db, [artistUserId], current.bookingDate);
-    const locked = await get(db, "SELECT status FROM artist_bookings WHERE id = $1 FOR UPDATE", [bookingId]);
+    const locked = await get(db, "SELECT * FROM artist_bookings WHERE id = $1 FOR UPDATE", [bookingId]);
     if (!locked) return;
+    // One artist's share of a multi-service visit: the visit is approved by the salon, and the
+    // shares follow it. Confirming a share alone used to mark it confirmed here while the salon
+    // booking -- and so the client -- stayed "waiting", the two sides disagreeing for good.
+    // (A visit the salon entered itself is already settled, so its shares may be confirmed.)
+    if (nextStatus === "تایید شده" && locked.salon_booking_id) {
+      const visit = await get(db, "SELECT status FROM salon_bookings WHERE id = $1", [locked.salon_booking_id]);
+      if (visit && ["درخواست", AWAITING_CLIENT].includes(visit.status)) {
+        refusal = error("این نوبت بخشی از رزرو چندخدمتی است؛ تأیید نهایی‌اش را سالن می‌دهد.", 409);
+        return;
+      }
+    }
     if (locked.status === "منقضی شده") {
       refusal = error("این درخواست به‌دلیل عدم پاسخ به‌موقع منقضی شده و دیگر قابل تایید یا رد نیست.", 409);
       return;

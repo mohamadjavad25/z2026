@@ -6,7 +6,7 @@ import { getTehranClockMinutes, normalizeBookingTimeLabel, timeLabelToMinutes } 
 
 /** Plain-language status for a booking row (the stored values are internal: تازه / درخواست ...). */
 export function bookingStatusLabel(status = "") {
-  if (status === "تایید شده") return "تأیید شد";
+  if (status === "تایید شده" || status === "تایید") return "تأیید شد";
   if (status === "لغو") return "لغو شد";
   if (status === "منقضی شده") return "منقضی شد";
   if (status === AWAITING_CLIENT) return "در انتظار تو";
@@ -14,7 +14,7 @@ export function bookingStatusLabel(status = "") {
 }
 
 export function bookingStatusTone(status = "") {
-  if (status === "تایید شده") return "done";
+  if (status === "تایید شده" || status === "تایید") return "done";
   if (status === "لغو") return "bad";
   if (status === "منقضی شده") return "expired";
   return "pending";
@@ -22,7 +22,7 @@ export function bookingStatusTone(status = "") {
 
 /** Active = still waiting for the salon (or for the client's answer to a new time), or confirmed. */
 export function isBookingActive(booking) {
-  return ["تازه", "درخواست", "تایید شده", AWAITING_CLIENT].includes(booking?.status || "تازه");
+  return ["تازه", "درخواست", "تایید", "تایید شده", AWAITING_CLIENT].includes(booking?.status || "تازه");
 }
 
 export function isBookingInPast(booking) {

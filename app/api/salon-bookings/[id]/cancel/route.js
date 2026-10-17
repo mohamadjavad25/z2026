@@ -14,7 +14,7 @@ async function _POST(request, { params }) {
   const limited = await checkRateLimit(`booking-cancel:${auth.user.id}`, 20, 60 * 60 * 1000);
   if (!limited.ok) return error("تعداد درخواست‌ها زیاد است؛ کمی بعد دوباره امتحان کن.", 429);
 
-  const result = await salons.cancelSalonBookingByClient(id, auth.user.id);
+  const result = await salons.cancelSalonBookingByClient(id, auth.user);
   if (!result.ok) {
     if (result.error === "missing") return notFound("رزرو یافت نشد.");
     if (result.error === "inactive") return error("این رزرو دیگر فعال نیست.", 409);

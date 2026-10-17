@@ -16,6 +16,7 @@ import { apiFetch } from "../../shared/api/client";
 import { notifyFromResponse } from "../../shared/lib/apiNotify";
 import { bundleServices } from "../../shared/lib/serviceBundle";
 import { salonServiceCatalog } from "./constants";
+import { isBookingAhead } from "../client/bookingStatus";
 
 const initialBooking = {
   open: false,
@@ -226,9 +227,11 @@ export function useSalonDirectory({
     };
   }, [salonClientBooking.open, selectedSalon?.id, selectedSalon?.source_key]);
 
-  // Fast while a request is waiting for an answer, slow otherwise (every poll is a function call).
+  // Fast while a request is waiting for an answer, steady while a booking is still to come (the salon
+  // may cancel or move it), slow when nothing is active (every poll is a function call).
   const hasWaitingBooking = clientBookingList.some((item) => item.status === "درخواست" || item.status === "تازه");
-  usePolling(refreshClientBookings, hasWaitingBooking ? 8000 : 45000, createdProfile?.type === "client");
+  const hasActiveBooking = clientBookingList.some((item) => isBookingAhead(item));
+  usePolling(refreshClientBookings, hasWaitingBooking ? 8000 : hasActiveBooking ? 15000 : 45000, createdProfile?.type === "client");
   useAppRefresh(refreshSalonDirectory);
 
   const toggleFollowSalon = useCallback(async (salon) => {

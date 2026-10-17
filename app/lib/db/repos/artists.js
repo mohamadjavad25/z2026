@@ -6,7 +6,7 @@ import { listPostsByOwner } from "./posts.js";
 import { formatPersianDateKey, isPersianDateKey, resolveRollingPersianDateKey } from "../../../shared/lib/persianCalendar.js";
 import { minutesUntilSlotStart } from "../../../shared/lib/bookingWindow.js";
 import { normalizeBookingTimeLabel } from "../../../shared/lib/time.js";
-import { normalizePhone } from "./salons/common.js";
+import { clientBookingMatch, clientVisibleStatus } from "../clientMatch.js";
 import { isProfileSaved } from "./social.js";
 import { normalizeServiceEmoji, resolveBookingServiceEmoji } from "./serviceEmoji.js";
 import { getSettings, DEFAULT_SETTINGS } from "./userSettings.js";
@@ -392,29 +392,8 @@ export async function listArtistBookings(artistUserId) {
  */
 export async function listClientArtistBookings(user) {
   const db = await getDb();
-  const userId = Number(user?.id || 0);
-  const phone = normalizePhone(user?.phone || "");
-  const name = String(user?.name || "").trim();
-  if (!userId && !phone && !name) return [];
-  const conditions = [];
-  const params = [];
-  if (userId) {
-    params.push(userId);
-    conditions.push(`b.client_user_id = $${params.length}`);
-  }
-  // Same matching rule as listClientSalonBookings: rows with no account id match by phone, or by
-  // name only when they have no phone at all (never a bare name against everyone's rows).
-  if (phone) {
-    // b.phone_normalized is a generated column (migrations/005_normalized_phone.sql)
-    // that runs the same digit-normalization at write time, indexed --
-    // unlike wrapping b.client_phone in REPLACE() on every read, this is sargable.
-    params.push(phone);
-    conditions.push(`(b.client_user_id IS NULL AND b.phone_normalized = $${params.length})`);
-  }
-  if (name) {
-    params.push(name);
-    conditions.push(`(b.client_user_id IS NULL AND COALESCE(b.client_phone, '') = '' AND b.client_name = $${params.length})`);
-  }
+  const match = clientBookingMatch(user, { phoneCol: "client_phone", nameCol: "client_name" });
+  if (!match.sql) return [];
   const rows = await all(db, `
     SELECT b.*, u.name AS artist_name, u.area AS artist_area, (u.avatar <> '' OR u.avatar_url IS NOT NULL) AS artist_avatar, u.phone AS artist_phone
     FROM artist_bookings b
@@ -422,11 +401,12 @@ export async function listClientArtistBookings(user) {
     -- source_salon_user_id IS NOT NULL = the artist-calendar copy of a SALON booking; the client
     -- already has that booking from listClientSalonBookings, so listing it again showed every
     -- salon-with-staff booking twice, once per table, each with its own (diverging) status.
-    WHERE b.source_salon_user_id IS NULL AND (${conditions.join(" OR ")})
+    WHERE b.source_salon_user_id IS NULL AND ${match.sql}
     ORDER BY b.id DESC
-  `, params);
+  `, match.params);
   return rows.map((row) => ({
     ...row,
+    status: clientVisibleStatus(row.status, "artist"),
     client: row.client_name || "",
     // NOTE: unlike salon bookings' `phone` column (the booking client's own
     // number), artist_bookings has no such plain `phone` column — reuse it
@@ -925,11 +905,16 @@ export async function listSavedArtistsForUser(userId) {
 }
 
 /** A client cancels their OWN direct artist booking (active and not in the past only). */
-export async function cancelArtistBookingByClient(id, clientUserId) {
+export async function cancelArtistBookingByClient(id, client) {
   const db = await getDb();
-  const current = await get(db, "SELECT * FROM artist_bookings WHERE id = $1 AND client_user_id = $2", [id, clientUserId]);
+  // Found by the rule the client's own list uses, so a booking they can see is one they can cancel.
+  const user = typeof client === "object" && client ? client : { id: client };
+  const match = clientBookingMatch(user, { alias: "b", phoneCol: "client_phone", nameCol: "client_name", startAt: 2 });
+  const current = match.sql
+    ? await get(db, `SELECT b.* FROM artist_bookings b WHERE b.id = $1 AND b.source_salon_user_id IS NULL AND ${match.sql}`, [id, ...match.params])
+    : null;
   if (!current) return { ok: false, error: "missing" };
-  if (!["تازه", "درخواست", "تایید شده"].includes(current.status)) return { ok: false, error: "inactive" };
+  if (!["تازه", "درخواست", "تایید", "تایید شده"].includes(current.status)) return { ok: false, error: "inactive" };
   if (isPersianDateKey(current.booking_date) && current.booking_date < formatPersianDateKey(new Date())) {
     return { ok: false, error: "past" };
   }
@@ -938,7 +923,7 @@ export async function cancelArtistBookingByClient(id, clientUserId) {
   // Conditional on it still being active: the sweep or the artist may have closed it since the read above.
   const changed = await run(db, `
     UPDATE artist_bookings SET status = 'لغو', updated_at = CURRENT_TIMESTAMP
-    WHERE id = $1 AND status IN ('تازه', 'درخواست', 'تایید شده')
+    WHERE id = $1 AND status IN ('تازه', 'درخواست', 'تایید', 'تایید شده')
   `, [id]);
   if (!changed.rowCount) return { ok: false, error: "inactive" };
   return { ok: true, booking: { ...current, status: "لغو" }, artistUserId: current.artist_user_id };
