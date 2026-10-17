@@ -208,14 +208,14 @@ describe("VisitBooker for the salon (browser)", () => {
     const team = await seedTeam();
     const { page, context } = await openSalon(team);
     await openBookingSheet(page);
-    // the name is asked first, and the form does not move on without it
-    await page.locator(".vbSubmit").click();
+    // the name is asked first, and the form does not move on without it (the button is aria-disabled, so force the click)
+    await page.locator(".vbSubmit").click({ force: true });
     expect(await page.locator(".vbHint").innerText()).toBe("نام مشتری را بنویس.");
     expect(await page.evaluate(() => document.activeElement?.id)).toBe("vb-name");
     expect(await page.locator(".vbService").count()).toBe(0);
     // the services cannot be skipped either
     await fillWho(page, "ناقص");
-    await goOn(page);
+    await page.locator(".vbSubmit").click({ force: true });
     expect(await page.locator(".vbDay").count()).toBe(0);
     expect(await bookingsOf(team)).toHaveLength(0);
     await context.close();
@@ -246,7 +246,7 @@ describe("VisitBooker for the salon (browser)", () => {
     await page.locator("#vb-name").press("Enter"); // on to the number
     await page.locator("#vb-phone").press("Enter"); // and on to the services
     await pickService(page, H);
-    await page.locator(".vbService.is-on").press("Enter");
+    await goOn(page);
     await pickDay(page, DAY2);
     await takeTime(page);
     await page.locator(".vbPlanRow").first().waitFor();
@@ -510,10 +510,11 @@ describe("VisitBooker for an independent artist (browser)", () => {
     await page.locator(".vbSubmit").click();
     await page.locator(".vbHint").waitFor();
     expect(await page.locator(".vbHint").innerText()).toMatch(/[؀-ۿ]/);
-    // the artist's own list was asked for again: 10:00 is gone, another time is chosen, and saving that works
+    // the artist's own list was asked for again: back to the hour question, 10:00 is gone and another is chosen
+    await page.locator(".vbDoneChip").nth(3).click();
     await page.getByRole("button", { name: "۱۰:۰۰", exact: true }).waitFor({ state: "detached" });
-    await page.locator(".vbTime.is-on").waitFor();
-    await page.locator(".vbSubmit").click();
+    await takeTime(page);
+    await page.locator(".vbSubmit:not([aria-disabled])").click();
     await page.locator(".visitBookerSheet").waitFor({ state: "detached" });
     const mine = (await artistApi.get("/api/artist/me")).payload.data.bookings.filter((b) => b.client_name === "دیرتر");
     expect(mine).toHaveLength(1);
