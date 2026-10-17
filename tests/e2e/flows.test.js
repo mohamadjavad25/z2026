@@ -89,9 +89,12 @@ describe("booking flow (browser)", () => {
     await cp.locator(".spvBarBook").click();
     await cp.locator(".sduItem").first().click();
     await cp.locator(".sduConfirm").click();
-    await cp.locator(".bspTime").first().click();
-    expect(await cp.locator(".salonClientBookingSummary").innerText()).toContain("ساعت");
-    await cp.getByRole("button", { name: "ثبت درخواست نوبت" }).click();
+    // the booking form opens with the first free time already chosen; the button says which
+    await cp.locator(".vbTime.is-on").waitFor();
+    // the button says "checking" until the server has confirmed who does what at that time
+    await cp.locator(".vbPlanRow").first().waitFor();
+    await cp.getByRole("button", { name: /ارسال درخواست/ }).waitFor();
+    await cp.locator(".vbSubmit").click();
     // "now what?": a full screen says the request reached the salon and how long the answer can take
     const receipt = cp.locator(".brScreen");
     await receipt.waitFor();
@@ -148,10 +151,12 @@ describe("booking flow (browser)", () => {
     const visitTimes = cp.waitForResponse((response) => response.url().includes("/api/salon-bookings/availability"));
     await cp.locator(".sduConfirm").click();
     expect((await visitTimes).ok()).toBe(true);
-    await cp.locator(".salonClientVisitNote").waitFor();
-    await cp.locator(".bspTime").first().click();
-    expect(await cp.locator(".salonClientBookingSummary").innerText()).toContain("تا حدود");
-    await cp.getByRole("button", { name: "ثبت درخواست نوبت" }).click();
+    // both services are listed with their own time, and who does each
+    await cp.locator(".vbPlanRow").nth(1).waitFor();
+    expect(await cp.locator(".vbPlanRow").count()).toBe(2);
+    await cp.locator(".vbTime.is-on").waitFor();
+    await cp.getByRole("button", { name: /ارسال درخواست/ }).waitFor();
+    await cp.locator(".vbSubmit").click();
     await cp.locator(".cbt.is-wait").waitFor();
     expect(clientView.problems).toEqual([]);
 
@@ -233,8 +238,9 @@ describe("client starts from what they want (browser)", () => {
     await place.locator(".chServices button", { hasText: "کوتاهی مو" }).click();
     await page.locator(".sduItem.is-selected", { hasText: "کوتاهی مو" }).waitFor();
     await page.locator(".sduConfirm").click();
-    await page.locator(".bspTime").first().click();
-    await page.getByRole("button", { name: "ثبت درخواست نوبت" }).click();
+    await page.locator(".vbTime.is-on").waitFor();
+    await page.getByRole("button", { name: /ارسال درخواست/ }).waitFor();
+    await page.locator(".vbSubmit").click();
     const receipt = page.locator(".brScreen");
     await receipt.waitFor();
     // closing the salon page goes back to «سالن و آرتیست من»; the booking is under «نوبت‌های من» on the profile
@@ -575,40 +581,44 @@ describe("admin page (browser)", () => {
     const usedStep = totpStepAt();
     await page.getByLabel("کد ۶ رقمی").fill(totpCodeAt(secret, usedStep));
     await page.getByRole("button", { name: "فعال‌سازی و ورود" }).click();
-    await page.getByRole("tab", { name: "کاربران" }).waitFor();
-    await page.getByRole("tab", { name: "کاربران" }).click();
+    // The rail is the page menu: one button per page (a waiting count may follow the name).
+    const nav = (name) => page.locator(".admSideNav").getByRole("button", { name: new RegExp(`^${name}`) });
+    await nav("کاربران").waitFor();
+    await nav("کاربران").click();
     await page.locator(".admTable tbody tr").first().waitFor();
-    await page.getByRole("tab", { name: "نمای کلی" }).click();
-    expect(await page.locator(".admGrid").innerText()).toContain("کل کاربران");
+    expect(page.url()).toContain("p=users");
+    await nav("نمای کلی").click();
+    await page.locator(".admLiveStrip").waitFor();
+    expect(await page.locator(".admDash").innerText()).toContain("کل کاربران");
 
-    // The left rail starts as icons only, and opens/closes from its top button.
+    // The left rail starts open with labels, and closes to icons only from its top button.
     const rail = page.locator(".admSide");
-    expect(await rail.evaluate((el) => el.getBoundingClientRect().width)).toBeLessThan(100);
-    await page.getByRole("button", { name: "باز‌کردن منو" }).click();
-    await page.waitForFunction(() => document.querySelector(".admSide").getBoundingClientRect().width > 200);
+    expect(await rail.evaluate((el) => el.getBoundingClientRect().width)).toBeGreaterThan(200);
     await page.getByRole("button", { name: "جمع‌کردن منو" }).click();
+    await page.waitForFunction(() => document.querySelector(".admSide").getBoundingClientRect().width < 100);
+    await page.getByRole("button", { name: "باز‌کردن منو" }).click();
 
-    // The other panels open without errors.
-    for (const tabName of ["محتوا", "رزروها", "پشتیبانی", "امنیت"]) {
-      await page.getByRole("tab", { name: tabName }).click();
+    // The other pages open without errors.
+    for (const name of ["محتوا", "رزروها", "پشتیبانی", "پیام همگانی", "گزارش‌ها", "سلامت سامانه", "تنظیمات", "امنیت و دسترسی"]) {
+      await nav(name).click();
       await page.locator(".admCard").first().waitFor();
     }
-    expect(await page.locator("main").innerText()).toContain("نشست‌های فعال مدیریت");
-    await page.getByRole("tab", { name: "کاربران" }).click();
-    await page.locator(".admTable tbody .admLink").first().click();
+    expect(await page.locator("main").innerText()).toContain("نشست‌های فعال پنل");
+    await nav("کاربران").click();
+    await page.locator(".admTable tbody .admRowLink").first().click();
     await page.locator(".admDetail").waitFor();
     // On a narrow screen the details cover the page; "back to list" closes them.
     const back = page.locator(".admSplitBack");
     if (await back.isVisible()) await back.click();
 
     // Logout, then a normal login with the next code.
-    await page.getByRole("button", { name: "خروج" }).click();
+    await page.getByRole("button", { name: "خروج", exact: true }).click();
     await page.getByRole("button", { name: "ورود", exact: true }).waitFor();
     await page.getByLabel("شمارهٔ موبایل").fill(TEST_ADMIN3_PHONE);
     await page.getByLabel("رمز عبور").fill(TEST_ADMIN_PASSWORD);
     await page.getByLabel(/کد ۶ رقمی/).fill(totpCodeAt(secret, usedStep + 1));
     await page.getByRole("button", { name: "ورود", exact: true }).click();
-    await page.getByRole("tab", { name: "نمای کلی" }).waitFor();
+    await page.locator(".admSideNav").getByRole("button", { name: "نمای کلی" }).waitFor();
     expect(problems).toEqual([]);
     await context.close();
   }, 60_000);
@@ -657,11 +667,12 @@ describe("support (browser)", () => {
     // Keep the conversation going.
     await page.getByLabel("پیام", { exact: true }).fill("ممنون، حل شد.");
     await page.getByRole("button", { name: "ارسال", exact: true }).click();
-    await page.getByText("ممنون، حل شد.").waitFor();
+    // Wait for the sent bubble, not just the text: a typed textarea also carries its value as text, so getByText
+    // could match the box itself while the message is still on its way (and closing the page would drop it).
+    await page.locator(".scMsg.is-user", { hasText: "ممنون، حل شد." }).waitFor();
     expect(problems).toEqual([]);
     await context.close();
-    const after = (await admin.get(`/api/admin/support/${inbox.tickets[0].id}`)).payload.data;
-    expect(after.messages.map((message) => message.author)).toEqual(["user", "admin", "user"]);
+    await expect.poll(async () => (await admin.get(`/api/admin/support/${inbox.tickets[0].id}`)).payload.data.messages.map((message) => message.author)).toEqual(["user", "admin", "user"]);
   }, 90_000);
 });
 

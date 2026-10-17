@@ -58,8 +58,8 @@ export function ProfileCompleteness({ profile, serviceCount = 0, onEditProfile, 
           <svg viewBox="0 0 56 56" aria-hidden="true">
             <defs>
               <linearGradient id="pccGrad" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor="#6b3fb0" />
-                <stop offset="100%" stopColor="#e11d74" />
+                <stop offset="0%" stopColor="#8b6cff" />
+                <stop offset="100%" stopColor="#ff86b8" />
               </linearGradient>
             </defs>
             <circle className="pccRingTrack" cx="28" cy="28" r={RING_RADIUS} />

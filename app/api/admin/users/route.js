@@ -6,6 +6,7 @@ import * as admin from "../../../lib/db/repos/admin.js";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+/** GET ?q=&type=&status=&sort=&offset=&limit=: the accounts list with counts for the status chips. */
 async function _GET(request) {
   await ensureDb();
   const gate = await requireAdmin(request);
@@ -14,6 +15,8 @@ async function _GET(request) {
   const result = await admin.listUsers({
     q: params.get("q") || "",
     type: params.get("type") || "",
+    status: params.get("status") || "",
+    sort: params.get("sort") || "new",
     limit: params.get("limit") || 25,
     offset: params.get("offset") || 0
   });

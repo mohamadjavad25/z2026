@@ -11,21 +11,22 @@
   .admSide .admSideGroupLabel { display: block; }
 }
 
-/* ---- top bar + quick search ---- */
-.admTopbar { position: sticky; top: 0; z-index: 5; margin: calc(var(--space-5) * -1) calc(var(--space-5) * -1) 0; padding: 12px var(--space-5); background: color-mix(in srgb, var(--a-bg) 82%, transparent); backdrop-filter: blur(12px); border-bottom: 1px solid var(--a-line); }
-.admSearch { display: flex; align-items: center; gap: 10px; max-width: 640px; min-height: 46px; padding: 0 14px; border-radius: 14px; background: var(--a-card); color: var(--a-muted); box-shadow: inset 0 0 0 1px var(--a-line2); transition: box-shadow 0.15s ease; }
-.admSearch:focus-within { box-shadow: 0 0 0 2px var(--a-accent); color: var(--a-ink); }
-.admSearch input { flex: 1; min-width: 0; height: 44px; border: 0; outline: 0; background: transparent; color: var(--a-ink); font: inherit; font-size: var(--text-base); }
-.admSearch input::placeholder { color: var(--a-faint); }
-.admSearch kbd { padding: 2px 7px; border-radius: 7px; background: var(--a-card2); color: var(--a-faint); font: 700 0.7rem/1.6 system-ui, sans-serif; box-shadow: inset 0 0 0 1px var(--a-line); }
-.admResults { position: absolute; z-index: 6; margin-top: 8px; width: min(640px, calc(100% - var(--space-5) * 2)); max-height: 70dvh; overflow-y: auto; padding: 8px; border-radius: 16px; background: var(--a-raise); box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.7), inset 0 0 0 1px var(--a-line2); }
-.admResultsGroup { margin: 8px 10px 4px; color: var(--a-faint); font-size: 0.72rem; font-weight: 850; }
-.admResults button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; border: 0; border-radius: 12px; background: transparent; color: var(--a-ink); font: inherit; text-align: start; cursor: pointer; }
-.admResults button:hover, .admResults button:focus-visible { background: var(--a-card2); }
-.admResults button svg { flex: 0 0 auto; color: var(--a-faint); }
-.admResults button small { color: var(--a-muted); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.admResults button em { margin-inline-start: auto; color: var(--a-bad); font-style: normal; font-size: 0.72rem; font-weight: 850; }
-@media (max-width: 760px) { .admTopbar { margin: -70px calc(var(--space-4) * -1) 0; padding: 12px var(--space-4) 12px 70px; } .admSearch kbd { display: none; } }
+/* ---- top bar: where you are, one search for everything, what is waiting ---- */
+.admTopbar { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: var(--space-3); margin: calc(var(--space-5) * -1) calc(var(--space-5) * -1) 0; padding: 10px var(--space-5); background: color-mix(in srgb, var(--a-bg) 84%, transparent); backdrop-filter: blur(14px); border-bottom: 1px solid var(--a-line); }
+.admCrumb { display: grid; line-height: 1.3; min-width: 0; flex: 0 1 auto; }
+.admCrumb span { color: var(--a-faint); font-size: 0.72rem; font-weight: 750; white-space: nowrap; }
+.admCrumb b { font-size: var(--text-md); font-weight: 900; white-space: nowrap; }
+.admSearch { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; max-width: 560px; min-height: 44px; margin-inline: auto; padding: 0 14px; border: 0; border-radius: 14px; background: var(--a-card); color: var(--a-faint); font: inherit; font-size: var(--text-base); font-weight: 650; text-align: start; cursor: pointer; box-shadow: inset 0 0 0 1px var(--a-line2); transition: box-shadow 0.15s ease, color 0.15s ease; }
+.admSearch:hover { color: var(--a-muted); box-shadow: inset 0 0 0 1px var(--a-violet); }
+.admSearch > span:first-of-type { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.admSearchKeys { display: inline-flex; gap: 4px; direction: ltr; }
+.admTopActions { display: flex; gap: 6px; flex: 0 0 auto; }
+.admTopCount { position: absolute; top: 4px; inset-inline-end: 3px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: var(--a-accent); color: var(--a-accent-ink); font-size: 0.66rem; font-weight: 900; line-height: 18px; text-align: center; }
+@media (max-width: 760px) {
+  .admTopbar { margin: -70px calc(var(--space-4) * -1) 0; padding: 10px var(--space-4) 10px 70px; min-height: 66px; }
+  .admCrumb, .admSearchKeys, .admHideNarrow { display: none !important; }
+  .admSearch { margin: 0; }
+}
 
 /* ---- page header ---- */
 .admPageHead { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--space-3); flex-wrap: wrap; padding-top: var(--space-2); }

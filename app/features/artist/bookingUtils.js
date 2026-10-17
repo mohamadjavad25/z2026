@@ -17,6 +17,8 @@ import {
 } from "../../shared/lib/time";
 import { artistBookingDays, artistBookingHistoryRank } from "./constants";
 
+const DAY_MS = 86400000;
+
 export { buildPublicBookingSlots };
 
 export const artistAvailableSlots = buildPublicBookingSlots(60);
@@ -68,10 +70,12 @@ export function buildArtistBookingWeekTabs() {
 }
 
 export function buildExactBookingDateTabs(count = 7) {
-  const today = new Date();
+  const now = Date.now();
   return Array.from({ length: count }, (_, index) => {
-    const date = new Date(today);
-    date.setDate(today.getDate() + index);
+    // Whole days of milliseconds, not setDate(): the dates are Tehran's (no daylight saving), and
+    // adding a calendar day in the phone's own zone drifts an hour across its clock change, which
+    // near Tehran midnight repeats or skips a day.
+    const date = new Date(now + index * DAY_MS);
     const title = formatPersianDayTitle(date);
     return {
       day: title.weekday,
@@ -94,12 +98,11 @@ export function buildExactBookingDateTabs(count = 7) {
  * single week they're only meaningful as display text, not as an identity.
  */
 export function buildExactBookingDateTabsCentered(daysBefore = 3, daysAfter = 3) {
-  const today = new Date();
+  const now = Date.now();
   const length = daysBefore + daysAfter + 1;
   return Array.from({ length }, (_, index) => {
     const offset = index - daysBefore;
-    const date = new Date(today);
-    date.setDate(today.getDate() + offset);
+    const date = new Date(now + offset * DAY_MS);
     const title = formatPersianDayTitle(date);
     return {
       day: title.weekday,

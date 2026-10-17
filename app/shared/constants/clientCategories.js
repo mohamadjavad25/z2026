@@ -5,7 +5,7 @@ import { skillGroupsForService } from "../lib/serviceSkills.js";
  * skill groups in serviceSkills.js, so «مو» means any hair service. `icon` is a beautyEmoji id.
  */
 export const CLIENT_CATEGORIES = [
-  { id: "nails", label: "ناخن", icon: "gel_nails", groups: ["nails"] },
+  { id: "nails", label: "ناخن", icon: "nail_polish", groups: ["nails"] },
   { id: "hair", label: "مو", icon: "haircut", groups: ["hair_cut_style", "hair_color", "hair_treatment", "hair_extension"] },
   { id: "brows", label: "ابرو و مژه", icon: "eyebrow", groups: ["brow_lash"] },
   { id: "makeup", label: "میکاپ", icon: "lipstick", groups: ["makeup"] },

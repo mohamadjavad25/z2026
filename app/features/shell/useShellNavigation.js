@@ -17,7 +17,6 @@ export function useShellNavigation({
   resetSalonWorkspace,
   setSavedArtists,
   createdProfile,
-  appToast,
   activeTab,
   profileView,
   salonTool,
@@ -151,14 +150,6 @@ function getPassportMatch(post) {
     const timer = window.setInterval(() => setScheduleNow(new Date()), 30000);
     return () => window.clearInterval(timer);
   }, [createdProfile?.type]);
-
-  useEffect(() => {
-    if (!appToast) return undefined;
-    const timer = window.setTimeout(() => setAppToast(""), 3200);
-    return () => window.clearTimeout(timer);
-  }, [appToast]);
-
-
 
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
@@ -461,6 +452,9 @@ function getPassportMatch(post) {
     const artist = resolvePostOwner(post);
     setSelectedPost(null);
     if (!artist) return;
+    // The post was opened from this artist's own page, which is still open underneath: closing the
+    // post is all that's needed (reopening would reset the page's tab and refetch it).
+    if (artist.entityType !== "salon" && selectedPublicArtist && String(artist.id) === String(selectedPublicArtist.id)) return;
 
     if (artist.kind === "self" && artist.entityType === "salon") {
       const ownSalon = artist.source || buildOwnPublicSalon();

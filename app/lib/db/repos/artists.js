@@ -1,4 +1,5 @@
 import { getDb, withTransaction, all, get, run } from "../connection.js";
+import { lockArtistDays } from "../locks.js";
 import { countFollowers, countFollowCountsMany, getUserProfileById, getUserLiteById, isFollowing } from "./users.js";
 import { buildClientHistoryLookup } from "./clientHistory.js";
 import { listPostsByOwner } from "./posts.js";
@@ -10,6 +11,7 @@ import { isProfileSaved } from "./social.js";
 import { normalizeServiceEmoji, resolveBookingServiceEmoji } from "./serviceEmoji.js";
 import { getSettings, DEFAULT_SETTINGS } from "./userSettings.js";
 import { listArtistHoursPublic } from "./artists/hours.js";
+import { onlineBookingBlock, withoutHiddenProviders } from "../../billing/access.js";
 
 export { ensureArtistHours, listArtistHours, updateArtistHour } from "./artists/hours.js";
 
@@ -502,6 +504,7 @@ export async function syncSalonBookingsForArtist(artistUserId) {
       serviceEmoji: booking.service_emoji,
       bookingDate: booking.booking_date,
       time: booking.time,
+      durationMinutes: booking.duration_minutes,
       sourceSalonUserId: booking.salon_user_id,
       status: booking.status || "تازه"
     });
@@ -687,15 +690,18 @@ export async function addArtistBookingInTx(artistUserId, data, runner = null) {
   const db = runner || (await getDb());
   const bookingDate = resolveRollingPersianDateKey(data.bookingDate || data.booking_date || data.date || "");
   const time = normalizeBookingTimeLabel(data.time || "");
-  const durationMinutes = Math.max(
+  // Never shorter than 15 minutes nor longer than half a day, whatever the caller sent.
+  const durationMinutes = Math.min(720, Math.max(
     15,
     Number(data.durationMinutes || data.duration_minutes)
       || parseDurationMinutes(data.duration)
       || 60
-  );
+  ));
   if (!bookingDate || !time) {
     return { ok: false, error: "روز و ساعت لازم است.", code: "MISSING_SLOT" };
   }
+  // Held until the surrounding transaction ends, so two requests for this artist's day are checked one after the other.
+  await lockArtistDays(db, [artistUserId], bookingDate);
   if (await isArtistSlotBlocked(artistUserId, bookingDate, time, durationMinutes, data.excludeBookingId ?? null, db)) {
     return { ok: false, error: "این بازه زمانی با نوبت دیگری تداخل دارد.", code: "SLOT_TAKEN" };
   }
@@ -783,7 +789,8 @@ export async function getPublicArtist(userId, viewerUserId = null) {
     isSaved,
     bookedSlots,
     breakTime,
-    hours
+    hours,
+    bookingBlock
   ] = await Promise.all([
     listPostsByOwner(userId, null, { publicOnly: Number(viewerUserId || 0) !== Number(userId) }),
     listArtistServices(userId),
@@ -793,7 +800,8 @@ export async function getPublicArtist(userId, viewerUserId = null) {
     viewerUserId ? isProfileSaved(viewerUserId, user.id) : false,
     listArtistBookedSlots(userId),
     getArtistBreak(userId),
-    listArtistHoursPublic(userId)
+    listArtistHoursPublic(userId),
+    onlineBookingBlock(userId, "artist")
   ]);
   return {
     id: user.id,
@@ -819,6 +827,8 @@ export async function getPublicArtist(userId, viewerUserId = null) {
     // gate based on this flag lives in the caller (GET /api/artists/[id]
     // route + the SSR /artists/[id] page), same split salons.js uses.
     isPublic: settings.publicPortfolio !== false,
+    // Subscription closed: the page says so up front instead of the booking form failing at the end.
+    onlineBookingPaused: Boolean(bookingBlock),
     isFollowing: isFollowingViewer,
     isSaved,
     posts,
@@ -880,7 +890,9 @@ export async function listArtists({ cursor, limit } = {}) {
     avatar: row.avatar ? `/api/media/avatar/${row.id}` : "",
     avatarPosition: row.avatar_position || ""
   }));
-  return pageSize ? { artists: mapped, nextCursor } : mapped;
+  // An artist whose subscription ran out (and no salon of theirs covers them) is left out until it renews.
+  const listed = await withoutHiddenProviders(mapped, (artist) => artist.id);
+  return pageSize ? { artists: listed, nextCursor } : listed;
 }
 
 /**
@@ -923,6 +935,11 @@ export async function cancelArtistBookingByClient(id, clientUserId) {
   }
   const until = minutesUntilSlotStart(current.booking_date, current.time);
   if (until !== null && until <= 0) return { ok: false, error: "past" };
-  await run(db, "UPDATE artist_bookings SET status = 'لغو', updated_at = CURRENT_TIMESTAMP WHERE id = $1", [id]);
+  // Conditional on it still being active: the sweep or the artist may have closed it since the read above.
+  const changed = await run(db, `
+    UPDATE artist_bookings SET status = 'لغو', updated_at = CURRENT_TIMESTAMP
+    WHERE id = $1 AND status IN ('تازه', 'درخواست', 'تایید شده')
+  `, [id]);
+  if (!changed.rowCount) return { ok: false, error: "inactive" };
   return { ok: true, booking: { ...current, status: "لغو" }, artistUserId: current.artist_user_id };
 }

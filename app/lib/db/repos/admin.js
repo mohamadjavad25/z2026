@@ -31,20 +31,45 @@ export async function getOverview() {
   };
 }
 
-export async function listUsers({ q = "", type = "", limit = 25, offset = 0 } = {}) {
+const USER_STATUS = {
+  active: "u.suspended_at IS NULL",
+  suspended: "u.suspended_at IS NOT NULL",
+  new: "u.created_at >= NOW() - INTERVAL '7 days'",
+  online: "u.last_seen_at >= NOW() - INTERVAL '15 minutes'",
+  inactive: "(u.last_seen_at IS NULL OR u.last_seen_at < NOW() - INTERVAL '30 days')"
+};
+const USER_SORT = {
+  new: "u.id DESC",
+  old: "u.id ASC",
+  seen: "u.last_seen_at DESC NULLS LAST, u.id DESC",
+  name: "NULLIF(u.name, '') ASC NULLS LAST, u.id DESC"
+};
+
+/**
+ * The accounts list. `status` narrows it (active, suspended, new this week, online now, away for 30 days),
+ * `sort` orders it; `counts` feeds the filter chips (for the current search and type, before the status filter).
+ */
+export async function listUsers({ q = "", type = "", status = "", sort = "new", limit = 25, offset = 0 } = {}) {
   const db = await getDb();
   const term = String(q || "").trim();
   const like = term ? `%${term.replace(/[%_\\]/g, "\\$&")}%` : "";
-  const filters = [like ? "(name ILIKE $1 OR phone LIKE $1)" : "$1 = ''", "($2 = '' OR type = $2)"];
+  const base = "($1 = '' OR u.name ILIKE $1 OR u.phone LIKE $1 OR u.email ILIKE $1 OR u.area ILIKE $1) AND ($2 = '' OR u.type = $2)";
   const params = [like, ["client", "artist", "salon"].includes(type) ? type : ""];
-  const where = filters.join(" AND ");
-  const total = await get(db, `SELECT COUNT(*)::int AS count FROM users WHERE ${where}`, params);
-  const rows = await all(db, `
-    SELECT id, name, phone, type, area, created_at, last_seen_at, suspended_at
-    FROM users WHERE ${where}
-    ORDER BY id DESC LIMIT $3 OFFSET $4
-  `, [...params, Math.min(Math.max(Number(limit) || 25, 1), 100), Math.max(Number(offset) || 0, 0)]);
-  return { total: total?.count || 0, users: rows };
+  const where = USER_STATUS[status] ? `${base} AND ${USER_STATUS[status]}` : base;
+  const [total, rows, counts] = await Promise.all([
+    get(db, `SELECT COUNT(*)::int AS count FROM users u WHERE ${where}`, params),
+    all(db, `
+      SELECT u.id, u.name, u.phone, u.type, u.area, u.created_at, u.last_seen_at, u.suspended_at,
+             (u.avatar <> '' OR COALESCE(u.avatar_url, '') <> '') AS has_avatar
+      FROM users u WHERE ${where}
+      ORDER BY ${USER_SORT[sort] || USER_SORT.new} LIMIT $3 OFFSET $4
+    `, [...params, Math.min(Math.max(Number(limit) || 25, 1), 200), Math.max(Number(offset) || 0, 0)]),
+    get(db, `
+      SELECT COUNT(*)::int AS all, ${Object.entries(USER_STATUS).map(([key, sql]) => `COUNT(*) FILTER (WHERE ${sql})::int AS ${key}`).join(", ")}
+      FROM users u WHERE ${base}
+    `, params)
+  ]);
+  return { total: total?.count || 0, users: rows, counts: counts || {} };
 }
 
 export async function setSuspended(userId, suspended) {
@@ -63,13 +88,36 @@ export async function logAction({ adminUserId = null, adminLabel = "", action, t
   `, [adminUserId, String(adminLabel).slice(0, 40), action, targetUserId, String(detail).slice(0, 300)]);
 }
 
-export async function listActions(limit = 50) {
+/** Action groups the audit log can be narrowed to (each is a list of `admin_actions.action` values). */
+export const ACTION_GROUPS = {
+  accounts: ["suspend", "unsuspend", "force_logout", "delete_user", "edit_user", "set_password", "resolve_password_reset", "bulk_users"],
+  content: ["post_hide", "post_show", "post_delete", "bulk_posts"],
+  bookings: ["booking_cancel"],
+  billing: ["billing_settings", "billing_grant", "billing_reverify", "billing_refund"],
+  support: ["support_update", "broadcast"],
+  system: ["settings_update", "export", "cleanup", "clear_errors"],
+  security: ["login", "login_failed", "login_blocked", "enroll", "enroll_failed", "stepup", "stepup_failed", "revoke_sessions", "reset_authenticator"]
+};
+
+/** The audit log, newest first: filter by group, by admin, by the account it touched, or by text. */
+export async function listActions({ group = "", admin = "", q = "", targetUserId = null, limit = 50, offset = 0 } = {}) {
   const db = await getDb();
-  return all(db, `
-    SELECT a.id, a.admin_label, a.action, a.target_user_id, a.detail, a.created_at, u.name AS target_name, u.phone AS target_phone
-    FROM admin_actions a LEFT JOIN users u ON u.id = a.target_user_id
-    ORDER BY a.id DESC LIMIT $1
-  `, [Math.min(Math.max(Number(limit) || 50, 1), 200)]);
+  const actions = ACTION_GROUPS[group] || [];
+  const term = String(q || "").trim();
+  const like = term ? `%${term.replace(/[%_\\]/g, "\\$&")}%` : "";
+  const where = `(cardinality($1::text[]) = 0 OR a.action = ANY($1)) AND ($2 = '' OR a.admin_label = $2)
+    AND ($3 = '' OR a.detail ILIKE $3 OR u.name ILIKE $3 OR u.phone LIKE $3) AND ($4::int IS NULL OR a.target_user_id = $4)`;
+  const params = [actions, String(admin || "").slice(0, 40), like, targetUserId ? Number(targetUserId) : null];
+  const [total, rows, admins] = await Promise.all([
+    get(db, `SELECT COUNT(*)::int AS count FROM admin_actions a LEFT JOIN users u ON u.id = a.target_user_id WHERE ${where}`, params),
+    all(db, `
+      SELECT a.id, a.admin_label, a.action, a.target_user_id, a.detail, a.created_at, u.name AS target_name, u.phone AS target_phone
+      FROM admin_actions a LEFT JOIN users u ON u.id = a.target_user_id
+      WHERE ${where} ORDER BY a.id DESC LIMIT $5 OFFSET $6
+    `, [...params, Math.min(Math.max(Number(limit) || 50, 1), 500), Math.max(Number(offset) || 0, 0)]),
+    all(db, "SELECT admin_label AS label, COUNT(*)::int AS count FROM admin_actions WHERE admin_label <> '' GROUP BY admin_label ORDER BY count DESC LIMIT 20")
+  ]);
+  return { total: total?.count || 0, actions: rows, admins };
 }
 
 /** SMS health for the overview card: is a provider set, and how did the last 24 hours go. */

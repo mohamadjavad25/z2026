@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { Activity, CalendarCheck, CircleCheck, Image as ImageIcon, ShieldCheck, TriangleAlert, UserPlus, Users } from "lucide-react";
-import { apiFetch } from "../shared/api/client";
+import { Activity, BarChart3, CalendarCheck, CircleCheck, CreditCard, Download, Image as ImageIcon, Megaphone, RefreshCw, ShieldCheck, ToggleRight, TriangleAlert, UserPlus, Users } from "lucide-react";
 import { toPersianDigits } from "../shared/lib/digits";
-import { Button, Chip } from "../components/ui";
-import { ACTION_LABEL, TYPE_LABEL, ago, num } from "./format";
+import { Button } from "../components/ui";
+import { ACTION_LABEL, BOOKING_TONE, TYPE_LABEL, ago, num } from "./format";
+import { ErrorNote, Loading, Segmented, exportCsv, useAdminData } from "./ui";
 
 const SERIES = [
   { key: "signups", label: "ثبت‌نام", color: "var(--a-s1)", dash: "" },
@@ -204,45 +204,62 @@ const FEED = {
   signup: { Icon: UserPlus, label: "ثبت‌نام جدید" },
   booking: { Icon: CalendarCheck, label: "رزرو جدید" },
   post: { Icon: ImageIcon, label: "پست جدید" },
+  payment: { Icon: CreditCard, label: "پرداخت اشتراک" },
   admin: { Icon: ShieldCheck, label: "عملیات مدیریتی" }
 };
 
-function Bars({ rows, labelOf, colorOf }) {
+const TONE_COLOR = { good: "var(--a-good)", warn: "var(--a-warn)", bad: "var(--a-bad)", info: "var(--a-s1)", muted: "var(--a-faint)" };
+
+/** Horizontal share bars; with `onPick` each bar opens the matching filtered list. */
+export function Bars({ rows, labelOf, colorOf, onPick }) {
   const max = Math.max(1, ...rows.map((row) => row.count));
   if (!rows.length) return <p className="admMuted">داده‌ای نیست.</p>;
   return (
     <ul className="admBarsH">
-      {rows.map((row) => (
-        <li key={row.type || row.status} style={{ "--bar": colorOf(row) }}>
-          <i style={{ width: `${Math.max(6, (row.count / max) * 100)}%` }} aria-hidden="true" />
-          <span>{labelOf(row)}</span>
-          <b>{num(row.count)}</b>
-        </li>
-      ))}
+      {rows.map((row) => {
+        const inner = (
+          <>
+            <i style={{ width: `${Math.max(6, (row.count / max) * 100)}%` }} aria-hidden="true" />
+            <span>{labelOf(row)}</span>
+            <b>{num(row.count)}</b>
+          </>
+        );
+        return (
+          <li key={row.type || row.status || labelOf(row)} style={{ "--bar": colorOf(row) }}>
+            {onPick ? <button type="button" onClick={() => onPick(row)}>{inner}</button> : inner}
+          </li>
+        );
+      })}
     </ul>
   );
 }
 
-/** The admin home: a greeting, things that need attention, numbers vs the previous period, trend, a 7-day forecast and recent activity. */
+/** Seconds since `at`, re-rendered every few seconds so "updated 20 seconds ago" stays true. */
+function useSince(at) {
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const timer = setInterval(() => setTick((value) => value + 1), 10 * 1000);
+    return () => clearInterval(timer);
+  }, []);
+  return at ? Math.max(0, Math.round((Date.now() - at) / 1000)) : null;
+}
+
+const QUICK = [
+  { id: "broadcast", label: "پیام همگانی", icon: Megaphone, go: ["broadcast"] },
+  { id: "notice", label: "اعلان بالای اپ", icon: ToggleRight, go: ["settings", { focus: "notice" }] },
+  { id: "reports", label: "گزارش‌ها", icon: BarChart3, go: ["reports"] },
+  { id: "export", label: "خروجی کاربران", icon: Download, run: () => exportCsv("users") }
+];
+
+/**
+ * The admin home: a greeting, a live strip (who is online, what is waiting), things that need attention, numbers vs the
+ * previous period, trend, a 7-day forecast and recent activity. Refreshes itself every minute while the tab is open.
+ */
 export function Dashboard({ onGo, name }) {
   const [days, setDays] = useState(7);
-  const [data, setData] = useState(null);
-  const [failed, setFailed] = useState(false);
   const [tableView, setTableView] = useState(false);
-
-  useEffect(() => {
-    let live = true;
-    apiFetch(`/api/admin/dashboard?days=${days}`).then(({ ok, payload }) => {
-      if (!live) return;
-      if (ok) {
-        setData(payload.data);
-        setFailed(false);
-      } else setFailed(true);
-    });
-    return () => {
-      live = false;
-    };
-  }, [days]);
+  const { data, error, loading, reload, at } = useAdminData(`/api/admin/dashboard?days=${days}`, { every: 60 * 1000 });
+  const since = useSince(at);
 
   const first = String(name || "").trim().split(/\s+/)[0];
   const hello = (
@@ -251,50 +268,67 @@ export function Dashboard({ onGo, name }) {
         <p>{longDate()}</p>
         <h1>{greeting()}{first ? <>، <em>{first}</em></> : null}</h1>
       </div>
-      <div className="admChips" role="group" aria-label="بازهٔ زمانی">
-        {[7, 30].map((value) => (
-          <Chip key={value} selected={days === value} onClick={() => setDays(value)}>{toPersianDigits(value)} روز گذشته</Chip>
-        ))}
+      <div className="admHeadSide">
+        <button type="button" className="admLive" onClick={reload} title="به‌روزرسانی">
+          <span className={`admLiveDot${loading ? " is-busy" : ""}`} aria-hidden="true" />
+          {since === null ? "زنده" : since < 15 ? "همین الان به‌روز شد" : `${toPersianDigits(since < 60 ? since : Math.round(since / 60))} ${since < 60 ? "ثانیه" : "دقیقه"} پیش`}
+          <RefreshCw size={14} aria-hidden="true" />
+        </button>
+        <Segmented label="بازهٔ زمانی" value={days} onChange={setDays} options={[{ value: 7, label: "۷ روز" }, { value: 30, label: "۳۰ روز" }]} />
       </div>
     </header>
   );
 
-  if (failed) return <div className="admDash">{hello}<p className="admError" role="alert">بارگذاری داشبورد انجام نشد.</p></div>;
-  if (!data) return <div className="admDash">{hello}<p className="admMuted">در حال بارگذاری…</p></div>;
+  if (!data) return <div className="admDash">{hello}{error ? <ErrorNote error={error} onRetry={reload} /> : <Loading />}</div>;
 
-  const { kpis, totals, series, alerts, forecast } = data;
+  const { kpis, totals, series, alerts, forecast, live = {} } = data;
   const attention = [
-    { n: alerts.openTickets, text: "پیام یا گزارش پشتیبانی منتظر رسیدگی", go: "support" },
-    { n: alerts.pendingResets, text: "درخواست بازیابی رمز منتظر پیگیری", go: "resets" },
-    { n: alerts.adminFailedLogins, text: "تلاش ناموفق ورود به پنل در ۲۴ ساعت", go: "security" },
-    { n: alerts.smsFailed, text: "پیامک ناموفق در ۲۴ ساعت", go: null },
-    { n: alerts.suspended, text: "حساب مسدود", go: "users" },
-    { n: alerts.hiddenPosts, text: "پست پنهان‌شده", go: "content" }
+    { n: alerts.openTickets, text: "پیام یا گزارش پشتیبانی منتظر پاسخ توست", go: "support", tone: "warn" },
+    { n: live.waitingBookings, text: "درخواست رزرو هنوز جواب سالن یا آرتیست را نگرفته", go: ["bookings", { status: "درخواست" }], tone: "info" },
+    { n: alerts.pendingResets, text: "درخواست بازیابی رمز منتظر پیگیری", go: "resets", tone: "warn" },
+    { n: alerts.clientErrors, text: "خطای اپ روی گوشی کاربران در ۲۴ ساعت", go: "health", tone: "bad" },
+    { n: alerts.adminFailedLogins, text: "تلاش ناموفق ورود به پنل در ۲۴ ساعت", go: "security", tone: "bad" },
+    { n: alerts.smsFailed, text: "پیامک ناموفق در ۲۴ ساعت", go: "health", tone: "bad" }
   ].filter((item) => item.n > 0);
   const col = (key) => series.map((row) => row[key]);
+  const open = (target) => (Array.isArray(target) ? onGo(...target) : onGo(target));
 
   return (
     <div className="admDash">
       {hello}
 
+      <div className="admLiveStrip">
+        <div><span className="admLiveDot" aria-hidden="true" /><b>{num(live.online)}</b><small>الان آنلاین</small></div>
+        <div><b>{num(live.signupsToday)}</b><small>ثبت‌نام در ۲۴ ساعت</small></div>
+        <div><b>{num(totals.users)}</b><small>کل کاربران</small></div>
+        <div><b>{num(alerts.suspended)}</b><small>حساب مسدود</small></div>
+        <div className="admQuick">
+          {QUICK.map((item) => (
+            <button key={item.id} type="button" onClick={() => (item.run ? item.run() : onGo(...item.go))}>
+              <item.icon size={16} aria-hidden="true" /> {item.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {attention.length ? (
         <section className="admCard admAttention" aria-label="نیازمند توجه">
-          <h2><TriangleAlert size={18} aria-hidden="true" /> نیازمند توجه</h2>
+          <h2><TriangleAlert size={18} aria-hidden="true" /> منتظر تو</h2>
           <ul>
             {attention.map((item) => (
-              <li key={item.text}>
-                <b>{num(item.n)}</b> {item.text}
-                {item.go ? <button type="button" className="admLink" onClick={() => onGo(item.go)}>بررسی ←</button> : null}
+              <li key={item.text} className={`is-${item.tone}`}>
+                <b>{num(item.n)}</b> <span>{item.text}</span>
+                <button type="button" className="admLink" onClick={() => open(item.go)}>رسیدگی ←</button>
               </li>
             ))}
           </ul>
         </section>
       ) : (
-        <p className="admNote admOk" role="status"><CircleCheck size={18} aria-hidden="true" /> همه‌چیز عادی است؛ موردی نیازمند توجه نیست.</p>
+        <p className="admNote admOk" role="status"><CircleCheck size={18} aria-hidden="true" /> همه‌چیز عادی است؛ چیزی منتظر تو نیست.</p>
       )}
 
       <div className="admGrid">
-        <Kpi label="کل کاربران" value={totals.users} hint={`${num(kpis.signups.value)} جدید`} change={kpis.signups.change} values={col("signups")} tint="var(--a-s1)" Icon={Users} />
+        <Kpi label="ثبت‌نام جدید" value={kpis.signups.value} hint={`از ${num(totals.users)} کاربر`} change={kpis.signups.change} values={col("signups")} tint="var(--a-s1)" Icon={Users} />
         <Kpi label="رزروها" value={kpis.bookings.value} hint={`از ${num(totals.bookings)} کل`} change={kpis.bookings.change} values={col("bookings")} tint="var(--a-s2)" Icon={CalendarCheck} />
         <Kpi label="پست‌های جدید" value={kpis.posts.value} hint={`از ${num(totals.posts)} کل`} change={kpis.posts.change} values={col("posts")} tint="var(--a-s3)" Icon={ImageIcon} />
         <Kpi label="کاربران فعال" value={kpis.active.value} hint={`در ${toPersianDigits(days)} روز`} tint="var(--a-accent)" Icon={Activity} />
@@ -358,11 +392,11 @@ export function Dashboard({ onGo, name }) {
         <div className="admStack">
           <section className="admCard">
             <h2>کاربران بر اساس نوع</h2>
-            <Bars rows={data.byType} labelOf={(row) => TYPE_LABEL[row.type] || row.type} colorOf={(row) => TYPE_COLOR[row.type] || "var(--a-faint)"} />
+            <Bars rows={data.byType} labelOf={(row) => TYPE_LABEL[row.type] || row.type} colorOf={(row) => TYPE_COLOR[row.type] || "var(--a-faint)"} onPick={(row) => onGo("users", { type: row.type })} />
           </section>
           <section className="admCard">
             <h2>وضعیت رزروها (۳۰ روز)</h2>
-            <Bars rows={data.statuses} labelOf={(row) => row.status} colorOf={() => "var(--a-accent)"} />
+            <Bars rows={data.statuses} labelOf={(row) => row.status} colorOf={(row) => TONE_COLOR[BOOKING_TONE[row.status]] || "var(--a-accent)"} onPick={(row) => onGo("bookings", { status: row.status })} />
           </section>
         </div>
       </div>

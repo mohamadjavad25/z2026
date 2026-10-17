@@ -11,7 +11,7 @@
   height: 56px !important;
   align-self: center;
   transform: none !important;
-  box-shadow: 0 0 0 2px #fff, 0 0 0 4px rgba(201, 168, 76, 0.7), 0 6px 14px rgba(28, 32, 44, 0.2) !important;
+  box-shadow: 0 0 0 2px var(--n-0), 0 0 0 4px rgb(var(--brand-pink-rgb) / 0.7), var(--nav-lift) !important;
 }
 .bottomNav { min-height: 70px !important; }
 .bottomNav .profileTab span { display: none !important; }
@@ -26,7 +26,7 @@
 }
 .weekDock { pointer-events: auto; display: grid; justify-items: center; gap: 6px; }
 .weekDock.is-open { justify-items: stretch; }
-.weekDockPill { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 4px 14px; border: 0; border-radius: 999px; background: #fff; color: var(--night); box-shadow: 0 6px 18px rgba(28, 32, 44, 0.16), inset 0 0 0 1px rgba(28, 32, 44, 0.08); font: inherit; cursor: pointer; }
+.weekDockPill { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 4px 14px; border: 0; border-radius: 999px; background: var(--n-0); color: var(--night); box-shadow: 0 6px 18px rgb(var(--shadow-rgb) / 0.16), inset 0 0 0 1px rgb(var(--shadow-rgb) / 0.08); font: inherit; cursor: pointer; }
 .weekDockPill span { font-size: 0.82rem; font-weight: 900; }
-.weekDockClose { justify-self: center; display: grid; place-items: center; width: 44px; height: 24px; border: 0; border-radius: 999px; background: #fff; color: var(--night); box-shadow: 0 4px 12px rgba(28, 32, 44, 0.14); cursor: pointer; }
+.weekDockClose { justify-self: center; display: grid; place-items: center; width: 44px; height: 24px; border: 0; border-radius: 999px; background: var(--n-0); color: var(--night); box-shadow: 0 4px 12px rgb(var(--shadow-rgb) / 0.14); cursor: pointer; }
 .weekDock .salonHeroWeekStrip { margin-top: 0 !important; }

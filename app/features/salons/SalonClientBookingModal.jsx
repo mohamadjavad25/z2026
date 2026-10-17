@@ -1,157 +1,58 @@
 "use client";
 
-import { CalendarCheck, Phone, UserRound } from "lucide-react";
-import { ServiceIcon } from "../../components/ServiceIcon";
-import { BookingSlotPicker } from "../../components/BookingSlotPicker";
-import { ProfileSheet } from "../profile/ProfileSheet";
-import { salonClientBookingDays } from "../artist/constants";
-import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
-import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
-import { minutesToPersianTime, parseServiceDurationMinutes, timeLabelToMinutes } from "../../shared/lib/time";
+import { useMemo } from "react";
+import { VisitBooker } from "../booking/VisitBooker";
+import { normalizeServices } from "../booking/visitBookerModel";
+import { getSalonVisitPreview, getSalonVisitTimes } from "../../shared/api/salons";
+import { serviceKey } from "../../shared/lib/serviceBundle";
+import { buildExactBookingDateTabs } from "../artist/bookingUtils";
+import { findSalonHourForDateKey, isSalonHourOpen } from "../../shared/lib/salonAvailability";
+import { getBookableSalonServiceItems } from "./useSalonDirectory";
 
-// The salon's hours rows are keyed by the Persian weekday name; a day label looks like "یکشنبه ۱۲ مهر".
-function getClosedDayLabels(hours, dayLabels) {
-  if (!Array.isArray(hours) || !hours.length) return [];
-  return dayLabels.filter((label) => {
-    const row = hours.find((item) => item.day === String(label).split(" ")[0]);
-    return row && !row.active;
-  });
-}
+/**
+ * A client's booking request at a salon: VisitBooker with the services they picked (one, or several
+ * back to back), the salon's free times and who would do what, both asked of the server. The request
+ * goes out through `onSubmit` (useSalonDirectory submitSalonClientVisit).
+ */
+export function SalonClientBookingModal({ open, salon, booking, onClose, onSubmit, onEditProfile }) {
+  const services = useMemo(() => normalizeServices(getBookableSalonServiceItems(salon)), [salon]);
+  // The next seven days as real dates (never a bare weekday name, which a server would have to guess a
+  // date for), worked out each time the sheet opens so a screen left open past midnight is not a day behind.
+  const days = useMemo(() => buildExactBookingDateTabs(7).map((tab) => ({
+    value: tab.dateKey,
+    label: `${tab.label} ${tab.sub || ""}`.trim(),
+    closed: Array.isArray(salon?.hours) && salon.hours.length > 0 && !isSalonHourOpen(findSalonHourForDateKey(salon.hours, tab.dateKey))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  })), [salon, open]);
 
-export function SalonClientBookingModal({
-  open,
-  salon,
-  booking,
-  freeTimes,
-  timesLoading = false,
-  busy,
-  onClose,
-  onChange,
-  onConfirm,
-  onEditProfile
-}) {
   if (!open || !salon) return null;
-
-  const serviceItem = (booking.bundle?.name === booking.service ? booking.bundle : null)
-    || (Array.isArray(salon.services) ? salon.services : []).find((item) => item.name === booking.service);
-  const price = parseTomanAmount(serviceItem?.price);
-  // Several services in one visit, back to back: say until when, and how the times were picked.
-  const visitCount = booking.bundle?.name === booking.service ? booking.bundle.items.length : 0;
-  const visitEnd = visitCount && booking.time
-    ? minutesToPersianTime(timeLabelToMinutes(booking.time) + parseServiceDurationMinutes(serviceItem?.duration))
-    : "";
-  const summaryParts = [
-    booking.day,
-    booking.time
-      ? `ساعت ${toPersianDigits(toLatinDigits(booking.time))}${visitEnd ? ` تا حدود ${visitEnd}` : ""}`
-      : "",
-    serviceItem?.duration ? toPersianDigits(serviceItem.duration) : "",
-    price ? `${formatTomanNumber(price)} تومان` : ""
-  ].filter(Boolean);
-  const closedDays = getClosedDayLabels(salon.hours, salonClientBookingDays);
-  const profileName = booking.client || "مشتری frfro";
-  const hasPhone = Boolean(booking.phone);
-  const profilePhone = booking.phone ? toPersianDigits(toLatinDigits(booking.phone)) : "شماره تماس ثبت نشده";
-  const canSubmit = Boolean(freeTimes.length && !timesLoading && !busy && hasPhone);
-
+  const salonUserId = salon.id || salon.source_key;
+  const picked = booking.bundle?.name === booking.service && Array.isArray(booking.bundle.items)
+    ? booking.bundle.items.map(serviceKey)
+    : [services.find((service) => service.name === booking.service)?.key].filter(Boolean);
+  const source = {
+    loadTimes: async ({ day, services: list }) => {
+      const { ok, data } = await getSalonVisitTimes(salonUserId, day, list);
+      return { ok, times: data?.times };
+    },
+    loadPlan: async ({ day, time, services: list }) => {
+      const { ok, data } = await getSalonVisitPreview(salonUserId, day, time, list);
+      return { ok, data };
+    }
+  };
   return (
-    <ProfileSheet
-      open={open}
-      label="ثبت رزرو سالن"
-      panelClassName="salonClientBookingPanel"
-      hideHeader
+    <VisitBooker
+      open
+      role="client"
+      title={`رزرو در ${salon.name || "سالن"}`}
+      services={services}
+      days={days}
+      initial={{ selected: picked, name: booking.client, phone: booking.phone }}
+      source={source}
+      onSubmit={onSubmit}
+      onDone={() => {}}
       onClose={onClose}
-    >
-        <div className="salonClientBookingHead">
-          <span className="salonClientBookingBadge">
-            <CalendarCheck size={14} />
-            {booking.day}
-          </span>
-          <span className={`salonClientBookingLogo ${salon.avatar ? "hasImage" : ""}`} aria-hidden="true">
-            {salon.avatar
-              ? <img src={salon.avatar} alt="" style={{ objectPosition: salon.avatarPosition || "50% 50%" }} />
-              : String(salon.name || "").slice(0, 1)}
-          </span>
-          <div className="salonClientBookingTitle">
-            <strong>{visitCount ? `${toPersianDigits(visitCount)} خدمت` : booking.service}</strong>
-            <small>{salon.name}</small>
-          </div>
-        </div>
-
-        {visitCount ? (
-          <ul className="salonClientVisitChips" aria-label="خدمات این نوبت">
-            {booking.bundle.items.map((item) => (
-              <li key={item.id || item.name}>
-                <ServiceIcon emoji={item.emoji} name={item.name} size="xs" />
-                <span>{item.name}</span>
-              </li>
-            ))}
-          </ul>
-        ) : null}
-
-        <BookingSlotPicker
-          dayOptions={salonClientBookingDays}
-          closedDays={closedDays}
-          dayValue={booking.day}
-          onDayChange={(day) => onChange({ day })}
-          timeOptions={freeTimes}
-          timeValue={booking.time}
-          onTimeChange={(time) => onChange({ time })}
-          emptyTimeMessage={timesLoading
-            ? "در حال پیدا کردن ساعت‌های آزاد…"
-            : visitCount
-              ? "این روز ساعتی نیست که همهٔ این خدمات پشت سر هم جا شوند. روز دیگری را انتخاب کن."
-              : "برای این روز ساعتی آزاد نیست. روز دیگری را انتخاب کن."}
-        />
-
-        {visitCount ? (
-          <p className="salonClientVisitNote">
-            {toPersianDigits(visitCount)} خدمت پشت سر هم انجام می‌شوند؛ فقط ساعت‌هایی آمده که برای همه‌شان آرتیست آزاد هست. اگر سالن ساعت را عوض کند، اول از تو می‌پرسد.
-          </p>
-        ) : null}
-
-        {booking.time ? (
-          <p className="salonClientBookingSummary" aria-live="polite">{summaryParts.join(" • ")}</p>
-        ) : null}
-
-        <div className="salonClientBookingProfile">
-          <div className="salonClientBookingProfileHead">
-            <span>اطلاعات تماس</span>
-            <small>سالن با همین شماره برای تأیید با تو هماهنگ می‌کند.</small>
-          </div>
-          <div className="salonClientBookingProfileGrid">
-            <span>
-              <UserRound size={15} />
-              <small>نام</small>
-              <b>{profileName}</b>
-            </span>
-            <span>
-              <Phone size={15} />
-              <small>شماره تماس</small>
-              <b dir="ltr">{profilePhone}</b>
-            </span>
-          </div>
-          {!hasPhone ? (
-            <p className="salonClientBookingPhoneWarning">
-              برای رزرو، شماره تماس را در پروفایلت ثبت کن.{" "}
-              {typeof onEditProfile === "function" ? (
-                <button type="button" onClick={onEditProfile}>
-                  ثبت شماره تماس
-                </button>
-              ) : null}
-            </p>
-          ) : null}
-        </div>
-
-        <button
-          type="button"
-          className="salonClientBookingSubmit"
-          disabled={!canSubmit}
-          onClick={() => onConfirm({ profileConfirmed: true })}
-        >
-          <CalendarCheck size={17} />
-          {busy ? "در حال ثبت..." : "ثبت درخواست نوبت"}
-        </button>
-    </ProfileSheet>
+      onEditProfile={onEditProfile}
+    />
   );
 }

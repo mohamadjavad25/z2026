@@ -34,3 +34,12 @@ export function SheetClose({ onClick, disabled = false, label = "بستن" }) {
     </>
   );
 }
+
+/**
+ * For sheets that have no on-screen close button (the phone's back button closes them). Same back
+ * handling as SheetClose, nothing rendered.
+ */
+export function SheetBackHandler({ onClose }) {
+  useBackHandler(true, () => { onClose?.(); });
+  return null;
+}

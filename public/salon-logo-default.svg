@@ -1,14 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-hidden="true">
   <defs>
     <radialGradient id="bg" cx="50%" cy="34%" r="78%">
-      <stop offset="0%" stop-color="#4a2a78"/>
-      <stop offset="55%" stop-color="#2a1450"/>
-      <stop offset="100%" stop-color="#120a22"/>
+      <stop offset="0%" stop-color="#4a3a9a"/>
+      <stop offset="55%" stop-color="#1d1546"/>
+      <stop offset="100%" stop-color="#0c0d12"/>
     </radialGradient>
     <linearGradient id="gold" x1="30" y1="14" x2="100" y2="112" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#f7e2b0"/>
-      <stop offset="45%" stop-color="#d9a94f"/>
-      <stop offset="100%" stop-color="#9a6a24"/>
+      <stop offset="0%" stop-color="#ffd3e6"/>
+      <stop offset="45%" stop-color="#ff86b8"/>
+      <stop offset="100%" stop-color="#8b6cff"/>
     </linearGradient>
     <linearGradient id="glass" x1="44" y1="26" x2="86" y2="92" gradientUnits="userSpaceOnUse">
       <stop offset="0%" stop-color="#ffffff" stop-opacity="0.34"/>

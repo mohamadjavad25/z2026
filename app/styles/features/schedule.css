@@ -46,7 +46,7 @@
   padding: 12px 12px 12px 14px;
   border: 0;
   border-radius: 0;
-  border-bottom: 1px solid rgba(28, 32, 44, 0.06);
+  border-bottom: 1px solid rgb(var(--ink-rgb) / 0.06);
   background: transparent;
   box-shadow: none;
   overflow: hidden;
@@ -95,9 +95,9 @@
   align-items: center;
   gap: 6px;
   padding: 0 13px;
-  border: 1px solid rgba(20, 22, 29, 0.18);
+  border: 1px solid rgb(var(--ink-rgb) / 0.18);
   border-radius: 12px;
-  background: rgba(20, 22, 29, 0.1);
+  background: rgb(var(--ink-rgb) / 0.1);
   color: var(--teal);
   font-size: 0.72rem;
   font-weight: 900;
@@ -140,12 +140,12 @@
 }
 
 .scheduleBookingPickList button.is-overtime{
-  border-color: rgba(217, 119, 6, 0.28);
-  background: #fffaf0;
+  border-color: rgb(var(--warning-rgb) / 0.28);
+  background: var(--n-25);
 }
 
 .scheduleBookingPickList button.is-overtime small{
-  color: #b45309;
+  color: var(--warning);
   font-weight: 850;
 }
 
@@ -159,7 +159,7 @@
   margin: 0;
   padding: 10px 12px;
   border-radius: 14px;
-  background: rgba(28, 32, 44, 0.05);
+  background: rgb(var(--ink-rgb) / 0.05);
   color: var(--muted);
   font-size: 0.72rem;
   font-weight: 800;
@@ -167,14 +167,14 @@
 }
 
 .sbmMoveNote.is-warn{
-  background: #fff7ea;
-  color: #8a4a0c;
+  background: var(--n-25);
+  color: var(--warning);
 }
 
 .sbmMoveHead{
   padding: 6px 4px 0;
   background: none;
-  color: #b45309;
+  color: var(--warning);
 }
 
 .scheduleBookingSettingsGrid span{
@@ -196,16 +196,16 @@
   border: 0;
   border-radius: 12px;
   padding: 0 6px;
-  background: rgba(28, 32, 44, 0.06);
-  color: #405969;
+  background: rgb(var(--ink-rgb) / 0.06);
+  color: var(--info);
   font-size: 0.66rem;
   font-weight: 950;
   white-space: nowrap;
 }
 
 .scheduleBookingMiniActions button.is-danger{
-  background: rgba(155, 54, 80, 0.08);
-  color: #9b3650;
+  background: rgb(var(--accent-rgb) / 0.08);
+  color: var(--accent);
 }
 
 .salonDashboard{
@@ -219,27 +219,27 @@
   display: grid;
   gap: 12px;
   padding: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.72);
+  border: 1px solid rgb(var(--paper-rgb) / 0.72);
   border-radius: 24px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(246, 246, 251, 0.66));
-  box-shadow: 0 16px 34px rgba(28, 32, 44, 0.07);
+    linear-gradient(180deg, rgb(var(--paper-rgb) / 0.82), rgb(var(--n-50-rgb) / 0.66));
+  box-shadow: 0 16px 34px rgb(var(--shadow-rgb) / 0.07);
   backdrop-filter: blur(14px);
 }
 
 .salonRequestsBoard{
   background:
-    radial-gradient(circle at 100% 0%, rgba(20, 22, 29, 0.1), transparent 42%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(248, 250, 249, 0.72));
+    radial-gradient(circle at 100% 0%, rgb(var(--ink-rgb) / 0.1), transparent 42%),
+    linear-gradient(180deg, rgb(var(--paper-rgb) / 0.86), rgb(var(--n-25-rgb) / 0.72));
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    0 16px 34px rgba(28, 32, 44, 0.07);
+    0 16px 34px rgb(var(--shadow-rgb) / 0.07);
 }
 
 .salonTodaySchedule{
   background:
-    radial-gradient(circle at 0% 0%, rgba(191, 192, 209, 0.16), transparent 38%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(246, 246, 251, 0.68));
+    radial-gradient(circle at 0% 0%, rgb(var(--n-400-rgb) / 0.16), transparent 38%),
+    linear-gradient(180deg, rgb(var(--paper-rgb) / 0.84), rgb(var(--n-50-rgb) / 0.68));
   overflow: hidden;
 }
 
@@ -254,7 +254,7 @@
   display: inline-grid;
   place-items: center;
   border-radius: 999px;
-  background: rgba(20, 22, 29, 0.1);
+  background: rgb(var(--ink-rgb) / 0.1);
   color: var(--teal);
   font-size: 0.68rem;
   font-weight: 900;
@@ -312,7 +312,7 @@
 
 .createdProfile.is-artist .salonTodaySchedule.is-artistSchedule .todayScheduleRow{
   padding-block: 14px;
-  border-bottom: 1px solid rgba(28, 32, 44, 0.12);
+  border-bottom: 1px solid rgb(var(--ink-rgb) / 0.12);
 }
 
 .createdProfile.is-artist .salonTodaySchedule.is-artistSchedule .todayScheduleRow:last-child{
@@ -361,7 +361,7 @@
   display: inline-grid;
   place-items: center;
   border-radius: 999px;
-  background: rgba(20, 22, 29, 0.12);
+  background: rgb(var(--ink-rgb) / 0.12);
   color: var(--teal);
   font-size: 0.7rem;
   font-weight: 900;
@@ -372,12 +372,12 @@
   display: grid;
   gap: 9px;
   padding: 12px;
-  border: 1px solid rgba(20, 22, 29, 0.12);
+  border: 1px solid rgb(var(--ink-rgb) / 0.12);
   border-radius: 18px;
   background:
-    radial-gradient(circle at 100% 0%, rgba(20, 22, 29, 0.12), transparent 34%),
-    linear-gradient(165deg, rgba(255, 255, 255, 0.96), rgba(242, 249, 248, 0.92));
-  box-shadow: 0 12px 26px rgba(28, 32, 44, 0.06);
+    radial-gradient(circle at 100% 0%, rgb(var(--ink-rgb) / 0.12), transparent 34%),
+    linear-gradient(165deg, rgb(var(--paper-rgb) / 0.96), rgb(var(--n-50-rgb) / 0.92));
+  box-shadow: 0 12px 26px rgb(var(--shadow-rgb) / 0.06);
 }
 
 .salonCollabInbox .boardHead{
@@ -405,7 +405,7 @@
   display: inline-grid;
   place-items: center;
   border-radius: 999px;
-  background: rgba(20, 22, 29, 0.1);
+  background: rgb(var(--ink-rgb) / 0.1);
   color: var(--rose);
   font-size: 0.66rem;
   font-weight: 950;
@@ -422,10 +422,10 @@
   gap: 8px;
   align-items: center;
   padding: 9px;
-  border: 1px solid rgba(28, 32, 44, 0.07);
+  border: 1px solid rgb(var(--ink-rgb) / 0.07);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 6px 14px rgba(28, 32, 44, 0.04);
+  background: rgb(var(--paper-rgb) / 0.9);
+  box-shadow: 0 6px 14px rgb(var(--shadow-rgb) / 0.04);
 }
 
 .salonCollabInboxCard.is-handled{
@@ -446,7 +446,7 @@
   display: grid;
   place-items: center;
   border-radius: 13px;
-  background: linear-gradient(135deg, rgba(20, 22, 29, 0.16), rgba(20, 22, 29, 0.16));
+  background: linear-gradient(135deg, rgb(var(--ink-rgb) / 0.16), rgb(var(--ink-rgb) / 0.16));
   color: var(--teal);
   font-size: 0.9rem;
   font-weight: 950;
@@ -498,7 +498,7 @@
   place-items: center;
   padding: 5px 8px;
   border-radius: 13px;
-  background: rgba(20, 22, 29, 0.1);
+  background: rgb(var(--ink-rgb) / 0.1);
   color: var(--teal);
   text-align: center;
 }
@@ -519,7 +519,7 @@
   align-items: center;
   padding: 0 10px;
   border-radius: 999px;
-  background: rgba(28, 32, 44, 0.06);
+  background: rgb(var(--ink-rgb) / 0.06);
   color: var(--muted);
   font-size: 0.64rem;
   font-weight: 950;
@@ -534,11 +534,11 @@
   display: grid;
   gap: 6px;
   padding: 8px 10px;
-  border: 1px solid rgba(28, 32, 44, 0.07);
+  border: 1px solid rgb(var(--ink-rgb) / 0.07);
   border-radius: 14px;
   background:
-    linear-gradient(165deg, rgba(255, 255, 255, 0.98), rgba(246, 249, 248, 0.94));
-  box-shadow: 0 6px 14px rgba(28, 32, 44, 0.04);
+    linear-gradient(165deg, rgb(var(--paper-rgb) / 0.98), rgb(var(--n-25-rgb) / 0.94));
+  box-shadow: 0 6px 14px rgb(var(--shadow-rgb) / 0.04);
 }
 
 .requestCardMain{
@@ -601,7 +601,7 @@
   width: 3px;
   height: 3px;
   border-radius: 50%;
-  background: rgba(28, 32, 44, 0.28);
+  background: rgb(var(--ink-rgb) / 0.28);
 }
 
 .requestCardAside{
@@ -634,7 +634,7 @@
   min-height: 20px;
   padding: 0 8px;
   border-radius: 999px;
-  background: rgba(20, 22, 29, 0.1);
+  background: rgb(var(--ink-rgb) / 0.1);
   color: var(--teal);
   font-size: 0.6rem;
   font-style: normal;
@@ -673,13 +673,13 @@
 }
 
 .requestActions .is-approve{
-  background: linear-gradient(135deg, var(--teal), #1f6f6d);
-  color: #fff;
-  box-shadow: 0 6px 12px rgba(20, 22, 29, 0.16);
+  background: var(--fill-strong-grad);
+  color: var(--n-0);
+  box-shadow: 0 6px 12px rgb(var(--shadow-rgb) / 0.16);
 }
 
 .requestActions .is-decline{
-  background: rgba(20, 22, 29, 0.1);
+  background: rgb(var(--ink-rgb) / 0.1);
   color: var(--rose);
 }
 
@@ -729,7 +729,7 @@
   padding: 10px 2px;
   border: 0;
   border-radius: 0;
-  border-bottom: 1px solid rgba(28, 32, 44, 0.06);
+  border-bottom: 1px solid rgb(var(--ink-rgb) / 0.06);
   background: transparent;
   box-shadow: none;
   transition: opacity 0.2s ease, background 0.2s ease;
@@ -753,7 +753,7 @@
   border-radius: 16px;
   border-bottom-color: transparent;
   background:
-    linear-gradient(90deg, rgba(20, 22, 29, 0.1), rgba(20, 22, 29, 0.03) 55%, transparent);
+    linear-gradient(90deg, rgb(var(--ink-rgb) / 0.1), rgb(var(--ink-rgb) / 0.03) 55%, transparent);
   box-shadow: inset 3px 0 0 var(--teal);
 }
 
@@ -858,8 +858,8 @@
   place-items: center;
   border-radius: 14px;
   border: 0;
-  background: rgba(120, 140, 155, 0.16);
-  color: #4b5563;
+  background: rgb(var(--n-500-rgb) / 0.16);
+  color: var(--n-700);
   font-size: 0.96rem;
   font-weight: 900;
   overflow: hidden;
@@ -867,7 +867,7 @@
 }
 
 .todayScheduleList .scheduleClientAvatar.hasImage{
-  background: #e8eaec center / cover no-repeat;
+  background: var(--n-150) center / cover no-repeat;
 }
 
 .todayScheduleList .scheduleClientAvatar img{
@@ -905,7 +905,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: #8b929a;
+  color: var(--n-500);
   font-size: 0.7rem;
   font-weight: 700;
   line-height: 1.3;
@@ -982,16 +982,16 @@
   display: grid;
   place-items: center;
   border-radius: 12px;
-  border: 1px solid rgba(20, 22, 29, 0.16);
-  background: rgba(20, 22, 29, 0.1);
-  color: #14161d;
+  border: 1px solid rgb(var(--ink-rgb) / 0.16);
+  background: rgb(var(--ink-rgb) / 0.1);
+  color: var(--n-900);
   font-size: 0.78rem;
   font-weight: 900;
   overflow: hidden;
 }
 
 .scheduleStaffAvatar.hasImage{
-  background: #e8eaec center / cover no-repeat;
+  background: var(--n-150) center / cover no-repeat;
 }
 
 .scheduleStaffAvatar img{
@@ -1015,24 +1015,24 @@
   display: inline-grid;
   place-items: center;
   padding: 0;
-  border: 1px solid rgba(28, 32, 44, 0.08);
+  border: 1px solid rgb(var(--ink-rgb) / 0.08);
   border-radius: 11px;
-  background: rgba(255, 255, 255, 0.88);
+  background: rgb(var(--paper-rgb) / 0.88);
   color: var(--ink);
   cursor: pointer;
 }
 
 .todayScheduleList .scheduleBookingMore:hover,
 .todayScheduleList .scheduleBookingMore:focus-visible{
-  border-color: rgba(28, 32, 44, 0.1);
-  background: rgba(28, 32, 44, 0.05);
+  border-color: rgb(var(--ink-rgb) / 0.1);
+  background: rgb(var(--ink-rgb) / 0.05);
   color: var(--ink);
 }
 
 .scheduleBookingMore:hover,
 .scheduleBookingMore:focus-visible{
-  border-color: rgba(20, 22, 29, 0.22);
-  background: rgba(20, 22, 29, 0.08);
+  border-color: rgb(var(--ink-rgb) / 0.22);
+  background: rgb(var(--ink-rgb) / 0.08);
   color: var(--teal);
 }
 
@@ -1043,7 +1043,7 @@
   display: grid;
   place-items: center;
   padding: 18px;
-  background: rgba(18, 20, 23, 0.42);
+  background: rgb(var(--ink-rgb) / 0.42);
   backdrop-filter: blur(12px);
 }
 
@@ -1056,9 +1056,9 @@
   padding: 16px;
   border-radius: 22px;
   background:
-    linear-gradient(180deg, rgba(246, 246, 251, 0.98), rgba(246, 241, 236, 0.98)),
+    linear-gradient(180deg, rgb(var(--n-50-rgb) / 0.98), rgb(var(--n-100-rgb) / 0.98)),
     var(--surface-solid);
-  box-shadow: 0 24px 60px rgba(28, 32, 44, 0.22);
+  box-shadow: 0 24px 60px rgb(var(--shadow-rgb) / 0.22);
   animation: sheetRise 0.28s ease both;
 }
 
@@ -1095,9 +1095,9 @@
   height: 36px;
   display: inline-grid;
   place-items: center;
-  border: 1px solid rgba(28, 32, 44, 0.08);
+  border: 1px solid rgb(var(--ink-rgb) / 0.08);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgb(var(--paper-rgb) / 0.9);
   color: var(--ink);
   cursor: pointer;
 }
@@ -1115,9 +1115,9 @@
   align-items: center;
   gap: 12px;
   padding: 10px 12px;
-  border: 1px solid rgba(28, 32, 44, 0.07);
+  border: 1px solid rgb(var(--ink-rgb) / 0.07);
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgb(var(--paper-rgb) / 0.9);
   color: var(--ink);
   font: inherit;
   text-align: right;
@@ -1144,13 +1144,13 @@
 }
 
 .scheduleBookingActions button.is-danger{
-  border-color: rgba(20, 22, 29, 0.18);
-  background: rgba(20, 22, 29, 0.08);
-  color: #9b3650;
+  border-color: rgb(var(--ink-rgb) / 0.18);
+  background: rgb(var(--ink-rgb) / 0.08);
+  color: var(--accent);
 }
 
 .scheduleBookingActions button.is-danger small{
-  color: rgba(155, 54, 80, 0.72);
+  color: rgb(var(--accent-rgb) / 0.72);
 }
 
 .scheduleBookingBack{
@@ -1161,8 +1161,8 @@
 }
 
 .scheduleBookingPickList button.is-selected{
-  border-color: rgba(20, 22, 29, 0.28);
-  background: rgba(20, 22, 29, 0.1);
+  border-color: rgb(var(--ink-rgb) / 0.28);
+  background: rgb(var(--ink-rgb) / 0.1);
 }
 
 .scheduleBookingPickList.is-staff .scheduleBookingStaffCopy{
@@ -1181,21 +1181,21 @@
   padding: 14px;
   border-radius: 22px;
   background:
-    linear-gradient(135deg, rgba(28, 32, 44, 0.94), rgba(20, 22, 29, 0.9)),
+    linear-gradient(135deg, rgb(12 13 18 / 0.94), rgb(12 13 18 / 0.9)),
     var(--night);
-  color: #fff;
-  box-shadow: 0 18px 42px rgba(28, 32, 44, 0.18);
+  color: var(--on-photo);
+  box-shadow: 0 18px 42px rgb(var(--shadow-rgb) / 0.18);
 }
 
 .salonTodayCard span,
 .salonTodayCard p{
-  color: rgba(255, 255, 255, 0.68);
+  color: rgb(var(--paper-rgb) / 0.68);
 }
 
 .salonTodayCard span{
   display: block;
   margin-bottom: 5px;
-  color: #bfc0d1;
+  color: var(--n-400);
   font-size: 0.72rem;
   font-weight: 900;
 }
@@ -1217,8 +1217,8 @@
   display: grid;
   place-items: center;
   border-radius: 22px;
-  background: rgba(255, 255, 255, 0.1);
-  color: #bfc0d1;
+  background: rgb(var(--paper-rgb) / 0.1);
+  color: var(--n-400);
   font-size: 1.4rem;
 }
 
@@ -1436,9 +1436,9 @@
   height: 34px;
   flex: none;
   border-radius: 50%;
-  border: 2px solid #fff;
-  background: #eef0f4;
-  box-shadow: 0 3px 10px rgba(28, 32, 44, 0.14);
+  border: 2px solid var(--n-0);
+  background: var(--n-100);
+  box-shadow: 0 3px 10px rgb(var(--shadow-rgb) / 0.14);
   object-fit: cover;
 }
 
@@ -1450,7 +1450,7 @@
 .sbmTeamFaces i{
   display: grid;
   place-items: center;
-  color: #1c202c;
+  color: var(--n-900);
   font-size: 0.6rem;
   font-style: normal;
   font-weight: 950;
@@ -1459,16 +1459,16 @@
 .sbmTeam.is-empty .sbmTeamFaces{
   display: grid;
   place-items: center;
-  color: #8a909c;
+  color: var(--n-500);
   border-style: dashed;
-  border-color: rgba(28, 32, 44, 0.2);
+  border-color: rgb(var(--ink-rgb) / 0.2);
   box-shadow: none;
 }
 
 .clientBookingSettingsHead .sbmTeam small{
   max-width: 100%;
   overflow: hidden;
-  color: #1c202c;
+  color: var(--n-900);
   font-size: 0.6rem;
   font-weight: 900;
   text-overflow: ellipsis;
@@ -1476,7 +1476,7 @@
 }
 
 .sbmTeam.is-empty small{
-  color: #8a909c;
+  color: var(--n-500);
 }
 
 .scheduleBookingDetail .sbmCount{
@@ -1488,9 +1488,9 @@
 /* Booking details modal (shared salon + artist) */
 .scheduleBookingDetails{
   display: grid;
-  border: 1px solid rgba(28, 32, 44, 0.07);
+  border: 1px solid rgb(var(--ink-rgb) / 0.07);
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgb(var(--paper-rgb) / 0.9);
   overflow: hidden;
 }
 
@@ -1505,7 +1505,7 @@
 }
 
 .scheduleBookingDetail + .scheduleBookingDetail{
-  border-top: 1px solid rgba(28, 32, 44, 0.06);
+  border-top: 1px solid rgb(var(--ink-rgb) / 0.06);
 }
 
 .scheduleBookingDetail span{
@@ -1525,14 +1525,14 @@
 
 .scheduleBookingArtist{
   display: grid;
-  border: 1px solid rgba(28, 32, 44, 0.07);
+  border: 1px solid rgb(var(--ink-rgb) / 0.07);
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgb(var(--paper-rgb) / 0.9);
   overflow: hidden;
 }
 
 .scheduleBookingArtist.is-open{
-  border-color: rgba(20, 22, 29, 0.3);
+  border-color: rgb(var(--ink-rgb) / 0.3);
 }
 
 .scheduleBookingArtistCurrent{
@@ -1591,8 +1591,8 @@
   max-height: 220px;
   overflow: auto;
   padding: 8px;
-  border-top: 1px solid rgba(28, 32, 44, 0.07);
-  background: rgba(246, 246, 251, 0.7);
+  border-top: 1px solid rgb(var(--ink-rgb) / 0.07);
+  background: rgb(var(--n-50-rgb) / 0.7);
 }
 
 .scheduleBookingArtistList button{
@@ -1601,9 +1601,9 @@
   align-items: center;
   gap: 12px;
   padding: 8px 10px;
-  border: 1px solid rgba(28, 32, 44, 0.07);
+  border: 1px solid rgb(var(--ink-rgb) / 0.07);
   border-radius: 14px;
-  background: #fff;
+  background: var(--n-0);
   color: var(--ink);
   font: inherit;
   text-align: start;
@@ -1611,8 +1611,8 @@
 }
 
 .scheduleBookingArtistList button.is-selected{
-  border-color: rgba(20, 22, 29, 0.3);
-  background: rgba(20, 22, 29, 0.1);
+  border-color: rgb(var(--ink-rgb) / 0.3);
+  background: rgb(var(--ink-rgb) / 0.1);
 }
 
 .scheduleBookingArtistList .scheduleBookingStaffCopy{
@@ -1641,7 +1641,7 @@
   margin: 0;
   padding: 9px 12px;
   border-radius: 12px;
-  background: rgba(28, 32, 44, 0.05);
+  background: rgb(var(--ink-rgb) / 0.05);
   color: var(--muted);
   font-size: 0.72rem;
   font-weight: 800;
@@ -1661,8 +1661,8 @@
   gap: 6px;
   border: 0;
   border-radius: 14px;
-  background: rgba(28, 32, 44, 0.06);
-  color: #405969;
+  background: rgb(var(--ink-rgb) / 0.06);
+  color: var(--info);
   font: inherit;
   font-size: 0.78rem;
   font-weight: 950;
@@ -1672,8 +1672,8 @@
 
 .scheduleBookingActionRow button.is-time{
   flex: 1;
-  background: linear-gradient(135deg, var(--night), var(--plum));
-  color: #fff;
+  background: var(--fill-strong-grad);
+  color: var(--n-0);
 }
 
 .scheduleBookingActionRow button.is-icon{
@@ -1688,8 +1688,8 @@
 }
 
 .scheduleBookingActionRow button.is-danger{
-  background: rgba(155, 54, 80, 0.08);
-  color: #9b3650;
+  background: rgb(var(--accent-rgb) / 0.08);
+  color: var(--accent);
 }
 
 .scheduleBookingActionRow button:disabled{
@@ -1700,43 +1700,43 @@
 /* ═══ Multi-service booking: «تقسیم بین آرتیست‌ها» in the booking menu (BookingPartsEditor) ═══ */
 .bpeBox{
   display: grid;
-  border: 1px solid rgba(28, 32, 44, 0.07);
+  border: 1px solid rgb(var(--ink-rgb) / 0.07);
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgb(var(--paper-rgb) / 0.9);
   overflow: hidden;
 }
 .bpeHead{ display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px 6px; }
 .bpeHead > span{ display: grid; gap: 2px; min-width: 0; }
 .bpeHead b{ font-size: 0.86rem; font-weight: 900; color: var(--ink); }
 .bpeHead small{ color: var(--muted); font-size: 0.66rem; font-weight: 800; }
-.bpeAll{ flex: none; min-height: 32px; padding: 0 10px; border: 0; border-radius: 999px; background: #f2f2f6; color: var(--ink); font: inherit; font-size: 0.7rem; font-weight: 900; cursor: pointer; }
-.bpeRow{ display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 12px; border-top: 1px solid rgba(28, 32, 44, 0.06); }
+.bpeAll{ flex: none; min-height: 32px; padding: 0 10px; border: 0; border-radius: 999px; background: var(--n-100); color: var(--ink); font: inherit; font-size: 0.7rem; font-weight: 900; cursor: pointer; }
+.bpeRow{ display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 12px; border-top: 1px solid rgb(var(--ink-rgb) / 0.06); }
 .bpeMove{ display: grid; gap: 2px; }
-.bpeMove button{ width: 24px; height: 20px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 6px; background: #f2f2f6; color: var(--ink); cursor: pointer; }
+.bpeMove button{ width: 24px; height: 20px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 6px; background: var(--n-100); color: var(--ink); cursor: pointer; }
 .bpeMove button:disabled{ opacity: 0.3; cursor: default; }
 .bpeCopy{ flex: 1; min-width: 0; display: grid; gap: 1px; }
 .bpeCopy b{ font-size: 0.8rem; font-weight: 900; color: var(--ink); }
 .bpeCopy small{ color: var(--muted); font-size: 0.68rem; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.bpeWho{ flex: 0 1 auto; max-width: 46%; min-width: 0; display: inline-flex; align-items: center; gap: 5px; min-height: 38px; padding: 0 6px 0 5px; border: 0; border-radius: 999px; background: #f6f6f8; color: var(--ink); font: inherit; font-size: 0.74rem; font-weight: 900; cursor: pointer; }
+.bpeWho{ flex: 0 1 auto; max-width: 46%; min-width: 0; display: inline-flex; align-items: center; gap: 5px; min-height: 38px; padding: 0 6px 0 5px; border: 0; border-radius: 999px; background: var(--n-50); color: var(--ink); font: inherit; font-size: 0.74rem; font-weight: 900; cursor: pointer; }
 .bpeWho:disabled{ cursor: default; }
 .bpeWhoName{ min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .bpeWho svg{ flex: none; }
 .bpeWho .scheduleStaffAvatar{ width: 26px; height: 26px; }
 .bpeWhoName{ font-size: 0.7rem; }
-.bpeRow.is-empty .bpeWho{ padding-inline-start: 12px; background: #fff5e8; color: #8a4a0c; box-shadow: inset 0 0 0 1px #f3d9b5; }
+.bpeRow.is-empty .bpeWho{ padding-inline-start: 12px; background: var(--n-50); color: var(--warning); box-shadow: inset 0 0 0 1px rgb(255 134 184); }
 .bpeList{ flex-basis: 100%; display: grid; gap: 6px; max-height: 220px; overflow: auto; padding: 6px 0 2px; }
-.bpeList button{ min-height: 48px; display: flex; align-items: center; gap: 10px; padding: 6px 10px; border: 1px solid rgba(28, 32, 44, 0.07); border-radius: 14px; background: #fff; color: var(--ink); font: inherit; text-align: start; cursor: pointer; }
-.bpeList button.is-selected{ border-color: rgba(20, 22, 29, 0.3); background: rgba(20, 22, 29, 0.08); }
+.bpeList button{ min-height: 48px; display: flex; align-items: center; gap: 10px; padding: 6px 10px; border: 1px solid rgb(var(--ink-rgb) / 0.07); border-radius: 14px; background: var(--n-0); color: var(--ink); font: inherit; text-align: start; cursor: pointer; }
+.bpeList button.is-selected{ border-color: rgb(var(--ink-rgb) / 0.3); background: rgb(var(--ink-rgb) / 0.08); }
 .bpeOption{ flex: 1; min-width: 0; display: grid; gap: 2px; }
 .bpeOption b{ font-size: 0.8rem; font-weight: 900; }
 .bpeOption small{ color: var(--muted); font-size: 0.66rem; font-weight: 700; }
-.bpeMove button:focus-visible, .bpeWho:focus-visible, .bpeList button:focus-visible, .bpeAll:focus-visible{ outline: 3px solid rgba(20, 22, 29, 0.25); outline-offset: 2px; }
+.bpeMove button:focus-visible, .bpeWho:focus-visible, .bpeList button:focus-visible, .bpeAll:focus-visible{ outline: 3px solid rgb(var(--ink-rgb) / 0.25); outline-offset: 2px; }
 
 /* A new time sent to the client, waiting for their answer */
 .scheduleBookingReadOnlyNote.is-offer{
   justify-content: flex-start;
-  background: #fff8ea;
-  color: #8a5a00;
+  background: var(--n-25);
+  color: var(--warning);
   line-height: 1.8;
   text-align: start;
 }
@@ -1750,7 +1750,7 @@
   z-index: var(--z-modal-high);
   display: flex;
   flex-direction: column;
-  background: #f4f4f7;
+  background: var(--n-50);
   animation: sbmIn var(--duration-base) var(--ease-standard) both;
 }
 
@@ -1775,9 +1775,9 @@
   display: grid;
   gap: 10px;
   padding: 12px 16px calc(env(safe-area-inset-bottom, 0px) + 12px);
-  border-top: 1px solid rgba(28, 32, 44, 0.08);
-  background: #fff;
-  box-shadow: 0 -12px 30px rgba(28, 32, 44, 0.06);
+  border-top: 1px solid rgb(var(--ink-rgb) / 0.08);
+  background: var(--n-0);
+  box-shadow: 0 -12px 30px rgb(var(--shadow-rgb) / 0.06);
 }
 
 .sbmFoot .scheduleBookingReviewActions button{
@@ -1802,7 +1802,7 @@
   padding: 0 6px;
   border: 0;
   border-radius: 16px;
-  background: #f2f2f6;
+  background: var(--n-100);
   color: var(--ink);
   font: inherit;
   font-size: 0.74rem;
@@ -1811,8 +1811,8 @@
 }
 
 .sbmBar button.is-active{
-  background: linear-gradient(135deg, var(--night), var(--plum));
-  color: #fff;
+  background: var(--fill-strong-grad);
+  color: var(--n-0);
 }
 
 .sbmBar button:disabled{
@@ -1823,7 +1823,7 @@
 .sbmBar button:focus-visible,
 .sbmAuto button:focus-visible,
 .sbmCancel:focus-visible{
-  outline: 3px solid rgba(20, 22, 29, 0.25);
+  outline: 3px solid rgb(var(--ink-rgb) / 0.25);
   outline-offset: 2px;
 }
 
@@ -1844,7 +1844,7 @@
   margin: 0;
   padding: 10px 12px;
   border-radius: 16px;
-  background: rgba(20, 22, 29, 0.05);
+  background: rgb(var(--ink-rgb) / 0.05);
   color: var(--ink);
 }
 
@@ -1859,8 +1859,8 @@
   padding: 0 14px;
   border: 0;
   border-radius: 999px;
-  background: var(--night);
-  color: #fff;
+  background: var(--fill-strong);
+  color: var(--n-0);
   font: inherit;
   font-size: 0.74rem;
   font-weight: 900;
@@ -1868,7 +1868,7 @@
 }
 
 .sbmAuto button:disabled{ opacity: 0.5; cursor: not-allowed; }
-.sbmAuto.is-missing{ background: #fff5e8; color: #8a4a0c; box-shadow: inset 0 0 0 1px #f3d9b5; }
+.sbmAuto.is-missing{ background: var(--n-50); color: var(--warning); box-shadow: inset 0 0 0 1px rgb(255 134 184); }
 .sbmAuto.is-stuck{ align-items: flex-start; background: var(--danger-bg); color: var(--danger); }
 .sbmAuto.is-stuck > svg{ margin-top: 3px; }
 
@@ -1900,17 +1900,17 @@
 /* Artist choices: who is free at that service's time, who does it, who is away */
 .sbmScreen .bpeList{ max-height: none; }
 .scheduleBookingArtist .bpeList{ padding: 0 8px 8px; }
-.scheduleBookingArtist.is-empty:not(.is-open){ border-color: #f3d9b5; background: #fff5e8; }
-.scheduleBookingArtist.is-empty .scheduleStaffAvatar{ display: grid; place-items: center; color: #8a4a0c; }
-.bpeList .scheduleStaffAvatar:not(.hasImage){ display: grid; place-items: center; background: #f2f2f6; color: var(--muted); }
+.scheduleBookingArtist.is-empty:not(.is-open){ border-color: rgb(var(--warning-rgb) / 0.3); background: var(--n-50); }
+.scheduleBookingArtist.is-empty .scheduleStaffAvatar{ display: grid; place-items: center; color: var(--warning); }
+.bpeList .scheduleStaffAvatar:not(.hasImage){ display: grid; place-items: center; background: var(--n-100); color: var(--muted); }
 .bpeList button:disabled{ cursor: not-allowed; }
 .bpeList button.is-busy{ opacity: 0.55; }
 .bpeTags{ flex: 0 1 auto; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; max-width: 48%; }
 .bpeTags i{ padding: 2px 7px; border-radius: 999px; font-size: 0.6rem; font-style: normal; font-weight: 900; white-space: nowrap; }
 .bpeTags .is-free{ background: var(--success-bg); color: var(--success); }
 .bpeTags .is-busy{ background: var(--danger-bg); color: var(--danger); }
-.bpeTags .is-skill{ background: rgba(20, 22, 29, 0.07); color: var(--ink); }
-.bpeTags .is-away{ background: #fff5e8; color: #8a4a0c; }
+.bpeTags .is-skill{ background: rgb(var(--ink-rgb) / 0.07); color: var(--ink); }
+.bpeTags .is-away{ background: var(--n-50); color: var(--warning); }
 
 @keyframes sbmIn{
   from{ opacity: 0; transform: translateY(18px); }
@@ -1918,8 +1918,8 @@
 }
 
 @keyframes sbmPulse{
-  0%, 100%{ box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.35); }
-  50%{ box-shadow: 0 0 0 6px rgba(217, 119, 6, 0); }
+  0%, 100%{ box-shadow: 0 0 0 0 rgb(255 134 184 / 0.35); }
+  50%{ box-shadow: 0 0 0 6px rgb(255 134 184 / 0); }
 }
 
 @media (prefers-reduced-motion: reduce){

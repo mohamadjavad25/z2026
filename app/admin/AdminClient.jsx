@@ -2,21 +2,27 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { apiFetch } from "../shared/api/client";
-import { Button } from "../components/ui";
 import { AdminLogin } from "./AdminLogin";
 import { AdminSidebar } from "./AdminSidebar";
 import { AdminTopbar } from "./AdminTopbar";
+import { CommandPalette } from "./CommandPalette";
+import { ShortcutsHelp, useShortcuts } from "./shortcuts";
 import { StepUpDialog } from "./StepUpDialog";
-import { UsersTab } from "./UsersTab";
-import { ContentTab } from "./ContentTab";
-import { BookingsTab } from "./BookingsTab";
-import { SecurityTab } from "./SecurityTab";
-import { SupportTab } from "./SupportTab";
-import { adminFetch } from "./adminFetch";
+import { ConfirmHost, Toaster } from "./ui";
 import { Dashboard } from "./Dashboard";
-import { PageHead } from "./PageHead";
-import { SECTIONS, tabInfo } from "./nav";
-import { ACTION_LABEL, fmtDate, num } from "./format";
+import { UsersTab } from "./UsersTab";
+import { BookingsTab } from "./BookingsTab";
+import { PaymentsTab } from "./PaymentsTab";
+import { ContentTab } from "./ContentTab";
+import { SupportTab } from "./SupportTab";
+import { BroadcastTab } from "./BroadcastTab";
+import { ResetsTab } from "./ResetsTab";
+import { ReportsTab } from "./ReportsTab";
+import { HealthTab } from "./HealthTab";
+import { SettingsTab } from "./SettingsTab";
+import { SecurityTab } from "./SecurityTab";
+import { ActionsTab } from "./ActionsTab";
+import { SECTIONS, isTab } from "./nav";
 
 const THEME_KEY = "frfro_admin_theme";
 
@@ -31,15 +37,17 @@ export function AdminClient() {
       // storage can be blocked; stay on the default
     }
   }, []);
-  function toggleTheme() {
-    const next = theme === "dark" ? "light" : "dark";
-    setTheme(next);
-    try {
-      window.localStorage.setItem(THEME_KEY, next);
-    } catch {
-      // not essential
-    }
-  }
+  const toggleTheme = useCallback(() => {
+    setTheme((current) => {
+      const next = current === "dark" ? "light" : "dark";
+      try {
+        window.localStorage.setItem(THEME_KEY, next);
+      } catch {
+        // not essential
+      }
+      return next;
+    });
+  }, []);
   return (
     <div className="admRoot" data-theme={theme}>
       <AdminApp theme={theme} onToggleTheme={toggleTheme} />
@@ -47,13 +55,74 @@ export function AdminClient() {
   );
 }
 
+/**
+ * Where the admin is lives in the address bar (/admin?p=users&id=12), so reload, back/forward and a bookmarked or
+ * shared link all land on the same page and item. `n` changes on every move so a page starts fresh.
+ */
+function readLocation() {
+  if (typeof window === "undefined") return { tab: "overview", params: {} };
+  const query = new URLSearchParams(window.location.search);
+  const tab = isTab(query.get("p")) ? query.get("p") : "overview";
+  const params = Object.fromEntries([...query.entries()].filter(([key]) => key !== "p"));
+  return { tab, params };
+}
+
+function useAdminRoute() {
+  const [nav, setNav] = useState({ tab: "overview", params: {}, n: 0 });
+  useEffect(() => {
+    setNav((prev) => ({ ...readLocation(), n: prev.n + 1 }));
+    const onPop = () => setNav((prev) => ({ ...readLocation(), n: prev.n + 1 }));
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+  const go = useCallback((tab, params = {}) => {
+    const clean = Object.fromEntries(Object.entries(params).filter(([, value]) => value !== undefined && value !== null && value !== ""));
+    const query = new URLSearchParams({ ...(tab === "overview" ? {} : { p: tab }), ...clean }).toString();
+    window.history.pushState(null, "", query ? `/admin?${query}` : "/admin");
+    setNav((prev) => ({ tab, params: clean, n: prev.n + 1 }));
+    window.scrollTo({ top: 0 });
+  }, []);
+  /** Changes the item in the address bar without starting the page over (e.g. selecting a row in a list). */
+  const setParam = useCallback((key, value) => {
+    const query = new URLSearchParams(window.location.search);
+    if (value === null || value === undefined || value === "") query.delete(key);
+    else query.set(key, String(value));
+    const text = query.toString();
+    window.history.replaceState(null, "", text ? `/admin?${text}` : "/admin");
+  }, []);
+  return { ...nav, go, setParam };
+}
+
+const PAGES = {
+  overview: Dashboard,
+  users: UsersTab,
+  bookings: BookingsTab,
+  payments: PaymentsTab,
+  content: ContentTab,
+  support: SupportTab,
+  broadcast: BroadcastTab,
+  resets: ResetsTab,
+  reports: ReportsTab,
+  health: HealthTab,
+  settings: SettingsTab,
+  security: SecurityTab,
+  actions: ActionsTab
+};
+
 function AdminApp({ theme, onToggleTheme }) {
   const [me, setMe] = useState(null);
-  // Where we are and what was asked for there (e.g. "open this user"). `n` changes on every move so a page starts fresh.
-  const [nav, setNav] = useState({ tab: "overview", params: {}, n: 0 });
-  const go = useCallback((tab, params = {}) => setNav((prev) => ({ tab, params, n: prev.n + 1 })), []);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const { tab, params, n, go, setParam } = useAdminRoute();
 
-  const refresh = useCallback(() => apiFetch("/api/admin/me").then(({ payload }) => setMe(payload.data || { isAdmin: false })), []);
+  const refresh = useCallback(async () => {
+    try {
+      const { payload } = await apiFetch("/api/admin/me");
+      setMe(payload.data || { isAdmin: false });
+    } catch {
+      // offline for a moment: keep what is on screen
+    }
+  }, []);
 
   useEffect(() => {
     refresh();
@@ -68,130 +137,30 @@ function AdminApp({ theme, onToggleTheme }) {
   }, [refresh]);
 
   async function logout() {
-    await apiFetch("/api/admin/auth/logout", { method: "POST" });
+    await apiFetch("/api/admin/auth/logout", { method: "POST" }).catch(() => null);
     setMe({ isAdmin: false, configured: true });
   }
 
-  if (!me) return <main className="adm"><p className="admMuted">در حال بارگذاری…</p></main>;
-  if (!me.isAdmin) return <AdminLogin configured={me.configured !== false} setupKeyConfigured={me.setupKeyConfigured !== false} onDone={refresh} />;
+  const signedIn = Boolean(me?.isAdmin);
+  useShortcuts({ enabled: signedIn && !paletteOpen && !helpOpen, go, openPalette: () => setPaletteOpen(true), openHelp: () => setHelpOpen(true), toggleTheme: onToggleTheme });
 
-  const { tab, params, n } = nav;
-  const info = tabInfo(tab);
+  if (!me) return <main className="adm admBoot" aria-busy="true"><span className="admBootMark">frfro</span></main>;
+  if (!signedIn) return <AdminLogin configured={me.configured !== false} setupKeyConfigured={me.setupKeyConfigured !== false} onDone={refresh} />;
+
+  const Page = PAGES[tab] || Dashboard;
+  const badges = { support: me.openTickets || 0, resets: me.pendingResets || 0, health: me.clientErrors || 0, payments: me.paidToday || 0 };
   return (
     <div className="admShell">
-      <AdminSidebar sections={SECTIONS} active={tab} onSelect={(id) => go(id)} name={me.name} onLogout={logout} theme={theme} onToggleTheme={onToggleTheme} badges={{ support: me.openTickets || 0 }} />
-      <main className="adm">
-        <AdminTopbar onGo={go} />
-        {tab === "overview" ? <Overview key={n} onGo={go} name={me.name} /> : null}
-        {tab === "users" ? <UsersTab key={n} intent={params} onChanged={refresh} onGo={go} /> : null}
-        {tab === "support" ? <SupportTab key={n} intent={params} onChanged={refresh} onGo={go} /> : null}
-        {["content", "bookings", "resets", "security", "actions"].includes(tab) ? <PageHead title={info.label} desc={info.desc} /> : null}
-        {tab === "content" ? <ContentTab key={n} intent={params} /> : null}
-        {tab === "bookings" ? <BookingsTab key={n} /> : null}
-        {tab === "resets" ? <Resets key={n} /> : null}
-        {tab === "security" ? <SecurityTab key={n} /> : null}
-        {tab === "actions" ? <Actions key={n} /> : null}
-        <StepUpDialog />
+      <AdminSidebar sections={SECTIONS} active={tab} onSelect={(id) => go(id)} name={me.name} onLogout={logout} theme={theme} onToggleTheme={onToggleTheme} badges={badges} />
+      <main className="adm" id="admMain">
+        <AdminTopbar tab={tab} name={me.name} onOpenPalette={() => setPaletteOpen(true)} onOpenHelp={() => setHelpOpen(true)} onGo={go} badges={badges} />
+        <Page key={n} intent={params} onGo={go} setParam={setParam} onChanged={refresh} name={me.name} />
       </main>
+      {paletteOpen ? <CommandPalette onClose={() => setPaletteOpen(false)} onGo={go} onToggleTheme={onToggleTheme} onLogout={logout} onOpenHelp={() => setHelpOpen(true)} /> : null}
+      {helpOpen ? <ShortcutsHelp onClose={() => setHelpOpen(false)} /> : null}
+      <StepUpDialog />
+      <ConfirmHost />
+      <Toaster />
     </div>
-  );
-}
-
-function Overview({ onGo, name }) {
-  return (
-    <>
-      <Dashboard onGo={onGo} name={name} />
-      <SmsCard />
-    </>
-  );
-}
-
-function SmsCard() {
-  const [sms, setSms] = useState(null);
-  useEffect(() => {
-    apiFetch("/api/admin/sms").then(({ ok, payload }) => ok && setSms(payload.data));
-  }, []);
-  if (!sms) return null;
-  const on = Boolean(sms.provider);
-  return (
-    <section className="admCard">
-      <h2>پیامک و تأیید شماره</h2>
-      {on ? (
-        <ul className="admList">
-          <li><span>سرویس پیامک</span><b dir="ltr">{sms.provider}</b></li>
-          <li><span>تأیید شماره هنگام ثبت‌نام</span><b>{sms.config.required ? "اجباری" : "اختیاری"}</b></li>
-          <li><span>ارسال موفق در ۲۴ ساعت</span><b>{num(sms.sent24h)}</b></li>
-          <li><span>ارسال ناموفق در ۲۴ ساعت</span><b>{num(sms.failed24h)}</b></li>
-          {sms.lastFailure ? <li><span>آخرین خطا</span><small dir="ltr">{sms.lastFailure.detail}</small></li> : null}
-        </ul>
-      ) : (
-        <p className="admMuted">پیامک هنوز وصل نیست؛ ثبت‌نام بدون کد انجام می‌شود و بازیابی رمز دستی است. برای فعال‌سازی، متغیرهای <span dir="ltr">FRFRO_SMS_PROVIDER</span> و کلید سرویس را در محیط اپ بگذار (راهنما: docs/OPERATIONS.md).</p>
-      )}
-    </section>
-  );
-}
-
-function Resets() {
-  const [requests, setRequests] = useState(null);
-  const [passwords, setPasswords] = useState({});
-  const [busyId, setBusyId] = useState(null);
-  const [message, setMessage] = useState("");
-  const load = useCallback(async () => {
-    const { ok, payload } = await apiFetch("/api/auth/password-reset-requests");
-    setRequests(ok ? payload.data.requests : []);
-  }, []);
-  useEffect(() => { load(); }, [load]);
-
-  async function resolve(request) {
-    const newPassword = String(passwords[request.id] || "");
-    if (newPassword.length < 8) { setMessage("رمز جدید باید حداقل ۸ کاراکتر باشد."); return; }
-    setBusyId(request.id);
-    const { ok, payload } = await adminFetch(`/api/auth/password-reset-requests/${request.id}/resolve`, { method: "POST", body: JSON.stringify({ newPassword }) });
-    setBusyId(null);
-    setMessage(ok ? "رمز بازنشانی شد؛ رمز جدید را به کاربر بگو." : payload.error || "انجام نشد.");
-    if (ok) load();
-  }
-
-  if (!requests) return <p className="admMuted">در حال بارگذاری…</p>;
-  return (
-    <section className="admCard">
-      <h2>درخواست‌های بازیابی رمز</h2>
-      <p className="admMuted">با شمارهٔ کاربر تماس بگیر و هویتش را تأیید کن، بعد رمز جدید را اینجا بگذار. (بازیابی خودکار با پیامک، در مرحلهٔ بعد.)</p>
-      {message ? <p className="admNote" role="status">{message}</p> : null}
-      {requests.length ? (
-        <ul className="admReqs">
-          {requests.map((request) => (
-            <li key={request.id}>
-              <div><b dir="ltr">{request.phone}</b><small>{fmtDate(request.created_at)}{request.note ? ` • ${request.note}` : ""}</small></div>
-              <input aria-label={`رمز جدید برای ${request.phone}`} type="text" dir="ltr" placeholder="رمز جدید (حداقل ۸)" value={passwords[request.id] || ""} onChange={(event) => setPasswords({ ...passwords, [request.id]: event.target.value })} />
-              <Button size="sm" loading={busyId === request.id} loadingLabel="…" onClick={() => resolve(request)}>بازنشانی</Button>
-            </li>
-          ))}
-        </ul>
-      ) : <p className="admMuted">درخواستی منتظر نیست.</p>}
-    </section>
-  );
-}
-
-function Actions() {
-  const [actions, setActions] = useState(null);
-  useEffect(() => {
-    apiFetch("/api/admin/actions").then(({ ok, payload }) => setActions(ok ? payload.data.actions : []));
-  }, []);
-  if (!actions) return <p className="admMuted">در حال بارگذاری…</p>;
-  return (
-    <section className="admCard">
-      <h2>آخرین عملیات مدیریتی</h2>
-      {actions.length ? (
-        <ul className="admList">
-          {actions.map((item) => (
-            <li key={item.id}>
-              <span>{ACTION_LABEL[item.action] || item.action} — {item.target_name || item.target_phone || `#${item.target_user_id}`}</span>
-              <small>{fmtDate(item.created_at)} • {item.admin_label}</small>
-            </li>
-          ))}
-        </ul>
-      ) : <p className="admMuted">هنوز عملیاتی ثبت نشده.</p>}
-    </section>
   );
 }

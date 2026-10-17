@@ -4,7 +4,6 @@ import { SalonClientBookingModal, SalonToolSheets, SalonStaffProfileModal, Salon
 import { salonInventory, salonTasks } from "./mockData";
 import { salonArtistRoleOptions } from "../../shared/constants/roles";
 import { SERVICE_CATALOG } from "../../shared/constants/serviceCatalog";
-import { createPortal } from "react-dom";
 import { PostPreviewModal } from "../posts";
 import { NetworkBusyBar } from "../../components/NetworkBusyBar";
 import { AuthBootScreen } from "./AuthBootScreen";
@@ -20,8 +19,10 @@ import { OwnerBookingSheet } from "./home/OwnerBookingSheet";
 import { ProfileEditModal } from "./ProfileEditModal";
 import { ArtistWorkPreviewModal, ArtistBreakEditorModal } from "../artist";
 import { ServiceComposerModal } from "../profile/ServiceComposerModal";
-import { ShieldCheck } from "lucide-react";
 import { PushSoftAsk } from "./home/PushSoftAsk";
+import { SiteNotice } from "./home/SiteNotice";
+import { BillingHost } from "../billing";
+import { NoticeHost } from "../../shared/notice/NoticeHost";
 import { ClientBookingTracker } from "../client/ClientBookingTracker";
 import { BottomNav } from "./BottomNav";
 import { SupportFab } from "../support";
@@ -54,12 +55,8 @@ export function HomeView() {
     setAppToast,
     sharePost,
     salonClientBooking,
-    salonClientFreeTimes,
-    salonClientTimesLoading,
-    salonClientBookingBusy,
     closeSalonClientBooking,
-    patchSalonClientBooking,
-    confirmSalonClientBooking,
+    submitSalonClientVisit,
     profileType,
     activeCreatedMeta,
     salonHeroSheet,
@@ -127,7 +124,6 @@ export function HomeView() {
     customizeServicePreset,
     deleteArtistService,
     deleteSalonService,
-    appToast,
     goToTab,
     selectedPost,
     selectedPostSiblings,
@@ -189,12 +185,8 @@ export function HomeView() {
             open={Boolean(selectedSalon && salonClientBooking.open)}
             salon={selectedSalon}
             booking={salonClientBooking}
-            freeTimes={salonClientFreeTimes}
-            timesLoading={salonClientTimesLoading}
-            busy={salonClientBookingBusy}
             onClose={closeSalonClientBooking}
-            onChange={patchSalonClientBooking}
-            onConfirm={confirmSalonClientBooking}
+            onSubmit={submitSalonClientVisit}
             onEditProfile={openProfileEdit}
           />
         )}
@@ -395,24 +387,11 @@ export function HomeView() {
           onCustomizePreset={customizeServicePreset}
           onDelete={createdProfile?.type === "salon" ? deleteSalonService : deleteArtistService}
         />
-        {appToast && typeof document !== "undefined" ? createPortal(
-          // Portaled straight to <body> — this toast has an intentionally
-          // enormous z-index (see .appToast) to float above every sheet/
-          // modal in the app, but that only works against siblings in the
-          // same stacking context. Any modal rendered inline (not portaled)
-          // sits inside .mobilePage.is-active, whose page-in animation
-          // leaves a `transform` on it, which pins a NEW stacking context —
-          // trapping this toast behind portaled overlays (like
-          // ScheduleBookingMenuModal, SalonHoursEditor) no matter how high
-          // its own z-index is set.
-          <div className="appToast" role="status" aria-live="polite">
-            <ShieldCheck size={17} />
-            <span>{appToast}</span>
-          </div>,
-          document.body
-        ) : null}
+        <NoticeHost />
 
         <PushSoftAsk />
+        {authChecked ? <SiteNotice role={createdProfile?.type || ""} /> : null}
+        <BillingHost />
 
         <BottomNav
           status={createdProfile?.type === "client" ? (

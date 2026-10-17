@@ -6,7 +6,7 @@ import * as users from "../../../../../lib/db/repos/users.js";
 
 export const runtime = "nodejs";
 
-/** POST { suspended: boolean }. A suspended account can't log in and its sessions are deleted at once. */
+/** POST { suspended: boolean, reason? }. A suspended account can't log in and its sessions are deleted at once. The reason goes to the audit log. */
 async function _POST(request, { params }) {
   await ensureDb();
   const gate = await requireAdmin(request);
@@ -22,7 +22,8 @@ async function _POST(request, { params }) {
     adminUserId: gate.admin.id,
     adminLabel: gate.admin.label,
     action: suspended ? "suspend" : "unsuspend",
-    targetUserId: target.id
+    targetUserId: target.id,
+    detail: String(body.reason || "").trim().slice(0, 200)
   });
   return json({ data: { user: updated } });
 }

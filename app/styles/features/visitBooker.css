@@ -1,0 +1,100 @@
+/* ═══ VisitBooker: the one multi-service booking form (client, salon, artist) ═══
+   A full-screen sheet with no close button (the phone's back button closes it). The head and the
+   save button stay put; the middle is the only thing that can scroll, and the free times take
+   whatever height is left. Pink (#ff86b8, the brand accent) is only ever "chosen"; the rest is
+   plain grey. */
+.salonHeroSheetBackdrop .salonHeroSheetPanel.visitBookerSheet {
+  --vb-pink: var(--brand-pink);
+  --vb-ink: var(--n-900);
+  --vb-fill: var(--n-50);
+  --vb-line: var(--n-150);
+  --vb-muted: var(--n-600);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  height: 100dvh;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+  background: var(--n-0);
+  color: var(--vb-ink);
+}
+.vb { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.vbHead { flex: none; padding: max(10px, env(safe-area-inset-top)) 16px 4px; text-align: center; }
+.vbHead h2 { margin: 0; font-size: 0.95rem; font-weight: 900; }
+.vbHead small { display: block; color: var(--vb-muted); font-size: 0.72rem; font-weight: 700; }
+.vbBody { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; padding: 6px 16px 12px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+.vbBody::-webkit-scrollbar { display: none; }
+.vbSection { flex: none; display: grid; gap: 6px; min-width: 0; }
+.vbTimesSection { flex: 1 1 120px; min-height: 96px; overflow-y: auto; align-content: start; scrollbar-width: none; }
+.vbTimesSection::-webkit-scrollbar { display: none; }
+
+/* customer */
+.vbWho { flex: none; display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 6px; }
+.vbWho input { width: 100%; min-height: 42px; padding: 0 12px; border: 1.5px solid transparent; border-radius: 14px; background: var(--vb-fill); color: var(--vb-ink); font: inherit; font-size: 0.86rem; font-weight: 700; }
+.vbWho input::placeholder { color: var(--n-500); font-weight: 700; }
+.vbWho input:focus { outline: 0; border-color: var(--vb-pink); background: var(--n-0); }
+.vbWho.is-readonly { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); padding: 8px 12px; border-radius: 14px; background: var(--vb-fill); }
+.vbWho.is-readonly span { display: grid; min-width: 0; }
+.vbWho.is-readonly small { color: var(--vb-muted); font-size: 0.68rem; font-weight: 700; }
+.vbWho.is-readonly b { overflow: hidden; font-size: 0.84rem; text-overflow: ellipsis; white-space: nowrap; }
+.vbWho.is-readonly .vbLink { grid-column: 1 / -1; justify-self: start; }
+
+/* earlier customers: one tap fills the name and number */
+.vbSuggest { margin-top: -4px; }
+.vbPerson { flex: none; min-height: 30px; padding: 0 12px; border: 0; border-radius: 999px; background: var(--vb-fill); color: var(--n-700); font: inherit; font-size: 0.72rem; font-weight: 800; cursor: pointer; }
+
+/* chips: services, days */
+.vbChips { display: flex; gap: 6px; padding: 1px 0; overflow-x: auto; scrollbar-width: none; }
+.vbChips::-webkit-scrollbar { display: none; }
+.vbService span { max-width: 52vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vbService, .vbDay { flex: none; min-height: 38px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; border: 0; border-radius: 12px; background: var(--vb-fill); color: var(--n-700); font: inherit; font-size: 0.78rem; font-weight: 800; cursor: pointer; }
+.vbDay { flex-direction: column; justify-content: center; gap: 0; min-width: 64px; line-height: 1.35; }
+.vbDay small { color: var(--vb-muted); font-size: 0.62rem; font-weight: 700; }
+.vbService.is-on, .vbDay.is-on { background: var(--vb-pink); color: var(--brand-ink); }
+.vbDay.is-on small { color: var(--brand-ink); }
+.vbDay.is-closed { color: var(--n-500); cursor: not-allowed; }
+.vbService i { display: inline-grid; place-items: center; min-width: 18px; height: 18px; border-radius: 999px; background: var(--vb-ink); color: var(--n-0); font-size: 0.64rem; font-style: normal; font-weight: 900; }
+.vbSummary { margin: 0; color: var(--vb-muted); font-size: 0.72rem; font-weight: 800; }
+.vbEmpty { min-height: 52px; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px dashed var(--n-400); border-radius: 16px; background: var(--n-25); color: var(--vb-ink); font: inherit; font-size: 0.82rem; font-weight: 900; cursor: pointer; }
+
+/* times */
+.vbTimes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.vbTime { min-height: 40px; border: 0; border-radius: 12px; background: var(--vb-fill); color: var(--vb-ink); font: inherit; font-size: 0.82rem; font-weight: 800; font-variant-numeric: tabular-nums; cursor: pointer; }
+.vbTime.is-on { background: var(--vb-pink); }
+.vbInfo { margin: 0; padding: 12px; border-radius: 14px; background: var(--vb-fill); color: var(--n-700); font-size: 0.78rem; font-weight: 800; line-height: 1.7; text-align: center; }
+.vbInfo.is-error { background: var(--n-50); color: var(--danger); }
+.vbInfo .vbLink { margin-inline-start: 8px; }
+.vbNote { margin: 0; padding: 6px 10px; border-radius: 12px; background: var(--vb-fill); color: var(--n-700); font-size: 0.72rem; font-weight: 800; line-height: 1.6; }
+.vbLink { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; padding: 0 4px; border: 0; background: none; color: var(--accent); font: inherit; font-size: 0.78rem; font-weight: 900; cursor: pointer; }
+
+/* plan: who does what */
+.vbPlanSection { padding: 8px 12px; border: 1px solid var(--vb-line); border-radius: 16px; }
+.vbPlan { margin: 0; padding: 0; list-style: none; display: grid; }
+.vbPlan.is-loading { opacity: 0.55; }
+.vbPlanRow { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 2px 10px; padding: 6px 0; border-top: 1px solid var(--n-100); font-size: 0.8rem; }
+.vbPlanRow:first-child { border-top: 0; }
+.vbPlanTime { color: var(--vb-muted); font-size: 0.74rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.vbPlanService { overflow: hidden; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+.vbWho2 { max-width: 40vw; overflow: hidden; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; min-height: 32px; padding: 0 10px; border: 0; border-radius: 999px; background: var(--vb-fill); color: var(--vb-ink); font: inherit; font-size: 0.76rem; font-weight: 800; }
+.vbWho2.is-static { background: none; padding: 0; }
+button.vbWho2 { cursor: pointer; }
+button.vbWho2[aria-expanded="true"] svg { transform: rotate(180deg); }
+.vbStaffList { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 0 2px; }
+.vbStaff { display: inline-flex; flex-direction: column; align-items: center; min-height: 36px; padding: 2px 12px; border: 0; border-radius: 12px; background: var(--vb-fill); color: var(--vb-ink); font: inherit; font-size: 0.76rem; font-weight: 800; cursor: pointer; }
+.vbStaff small { color: var(--vb-muted); font-size: 0.62rem; font-weight: 700; line-height: 1.2; }
+.vbStaff.is-on { background: var(--vb-pink); }
+.vbStaff.is-on small { color: var(--vb-ink); }
+.vbStaff.is-off { color: var(--n-500); cursor: not-allowed; }
+.vbPlanNote { margin: 6px 0 0; color: var(--vb-muted); font-size: 0.7rem; font-weight: 700; line-height: 1.6; }
+.vbPlanProblem { grid-column: 1 / -1; margin: 0; color: var(--danger); font-size: 0.74rem; font-weight: 800; }
+.vbPlanRow.has-problem .vbWho2 { background: var(--n-50); color: var(--danger); }
+
+/* the save button, always at the bottom */
+.vbFoot { flex: none; display: grid; gap: 6px; justify-items: center; padding: 8px 16px calc(12px + env(safe-area-inset-bottom)); background: linear-gradient(to top, var(--n-0) 70%, rgb(var(--paper-rgb) / 0)); }
+.vbHint { max-width: 100%; margin: 0; padding: 4px 12px; border-radius: 999px; background: var(--n-50); color: var(--danger); font-size: 0.74rem; font-weight: 800; text-align: center; line-height: 1.6; }
+.vbSubmit { width: 100%; max-width: 420px; min-height: 52px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 22px; border: 0; border-radius: 999px; background: var(--vb-pink); color: var(--brand-ink); font: inherit; font-size: 0.9rem; font-weight: 900; box-shadow: 0 10px 26px rgba(255, 134, 184, 0.5), 0 2px 8px rgb(var(--shadow-rgb) / 0.12); cursor: pointer; }
+.vbSubmit.is-incomplete { background: rgb(var(--accent-rgb) / 0.14); box-shadow: 0 6px 18px rgba(255, 134, 184, 0.28); }
+.vbSubmit:disabled { cursor: progress; opacity: 0.8; }
+.vbSubmit:active:not(:disabled) { transform: scale(0.98); }
+.visitBookerSheet :focus-visible { outline: 2px solid var(--vb-ink); outline-offset: 2px; }

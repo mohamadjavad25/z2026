@@ -1,25 +1,23 @@
 /* ═══════════════════════════════════════════════════════════════════════
-   Booking flows (artist popup + salon sheet) -- clean white look.
-   Loaded last on purpose and scoped to the two booking sheets, so the
+   Booking flows (the artist's public booking popup) -- clean white look.
+   Loaded last on purpose and scoped to that sheet, so the
    shared wheel/sheet shells keep their look everywhere else (e.g. the
    working-hours editor). Palette: white surfaces, ink text, soft gray
    hairlines, ink-black as the single accent -- no purple.
    ═══════════════════════════════════════════════════════════════════════ */
 
-.salonHeroSheetPanel.artistBookingPopupSheet,
-.salonHeroSheetPanel.salonClientBookingPanel {
-  --bk-ink: #14161d;
-  --bk-muted: #6f7380;
-  --bk-line: #ececf0;
-  --bk-soft: #f6f6f8;
-  background: #ffffff;
+.salonHeroSheetPanel.artistBookingPopupSheet {
+  --bk-ink: var(--n-900);
+  --bk-muted: var(--n-600);
+  --bk-line: var(--n-100);
+  --bk-soft: var(--n-50);
+  background: var(--n-0);
   color: var(--bk-ink);
 }
 
 @media (max-width: 760px) {
-  .salonHeroSheetBackdrop:has(> .artistBookingPopupSheet),
-  .salonHeroSheetBackdrop:has(> .salonClientBookingPanel) {
-    background: #ffffff;
+  .salonHeroSheetBackdrop:has(> .artistBookingPopupSheet) {
+    background: var(--n-0);
   }
 }
 
@@ -52,8 +50,8 @@
   padding: 14px;
   border: 1px solid var(--bk-line);
   border-radius: 18px;
-  background: #ffffff;
-  box-shadow: 0 6px 18px rgba(20, 22, 29, 0.04);
+  background: var(--n-0);
+  box-shadow: 0 6px 18px rgb(var(--shadow-rgb) / 0.04);
 }
 
 .artistBookingPopupSheet .artistPublicBookingService span {
@@ -79,343 +77,63 @@
 }
 
 /* ── Day / time wheel card ───────────────────────────────────────────── */
-.artistBookingPopupSheet .settingsHoursWheelRange,
-.salonClientBookingPanel .settingsHoursWheelRange {
+.artistBookingPopupSheet .settingsHoursWheelRange {
   padding: 14px 10px;
   border-radius: 20px;
-  background: #ffffff;
-  box-shadow: inset 0 0 0 1px var(--bk-line), 0 8px 24px rgba(20, 22, 29, 0.05);
+  background: var(--n-0);
+  box-shadow: inset 0 0 0 1px var(--bk-line), 0 8px 24px rgb(var(--shadow-rgb) / 0.05);
 }
 
-.artistBookingPopupSheet .settingsHoursWheelRange > div > span,
-.salonClientBookingPanel .settingsHoursWheelRange > div > span {
+.artistBookingPopupSheet .settingsHoursWheelRange > div > span {
   color: var(--bk-muted);
   font-size: 0.72rem;
   font-weight: 900;
 }
 
-.artistBookingPopupSheet .breakTimeWheelFocus,
-.salonClientBookingPanel .breakTimeWheelFocus {
+.artistBookingPopupSheet .breakTimeWheelFocus {
   background: var(--bk-soft);
-  border: 1px solid #e4e4ea;
+  border: 1px solid var(--n-200);
   box-shadow: none;
 }
 
 .artistBookingPopupSheet .breakTimeWheelItem,
-.salonClientBookingPanel .breakTimeWheelItem,
-.artistBookingPopupSheet .breakTimeWheel.is-label .breakTimeWheelItem,
-.salonClientBookingPanel .breakTimeWheel.is-label .breakTimeWheelItem {
-  color: rgba(20, 22, 29, 0.34);
+.artistBookingPopupSheet .breakTimeWheel.is-label .breakTimeWheelItem {
+  color: rgb(var(--ink-rgb) / 0.34);
 }
 
-.artistBookingPopupSheet .breakTimeWheelLabel,
-.salonClientBookingPanel .breakTimeWheelLabel {
-  color: rgba(20, 22, 29, 0.38);
+.artistBookingPopupSheet .breakTimeWheelLabel {
+  color: rgb(var(--ink-rgb) / 0.38);
 }
 
 .artistBookingPopupSheet .breakTimeWheelItem.is-active,
-.salonClientBookingPanel .breakTimeWheelItem.is-active,
 .artistBookingPopupSheet .breakTimeWheel.is-label .breakTimeWheelItem.is-active,
-.salonClientBookingPanel .breakTimeWheel.is-label .breakTimeWheelItem.is-active,
-.artistBookingPopupSheet .breakTimeWheelItem.is-active .breakTimeWheelLabel,
-.salonClientBookingPanel .breakTimeWheelItem.is-active .breakTimeWheelLabel {
+.artistBookingPopupSheet .breakTimeWheelItem.is-active .breakTimeWheelLabel {
   color: var(--bk-ink);
 }
 
-.artistBookingPopupSheet .artistPublicSlotEmpty,
-.salonClientBookingPanel .artistPublicSlotEmpty {
+.artistBookingPopupSheet .artistPublicSlotEmpty {
   background: var(--bk-soft);
   color: var(--bk-muted);
 }
 
 /* ── Phone warning ───────────────────────────────────────────────────── */
-.artistBookingPopupSheet .artistBookingPhoneWarning button,
-.salonClientBookingPanel .salonClientBookingPhoneWarning button {
+.artistBookingPopupSheet .artistBookingPhoneWarning button {
   color: var(--bk-ink);
 }
 
 /* ── Primary action: solid ink, no purple gradient ───────────────────── */
-.artistBookingPopupSheet .artistBookingPopupConfirm,
-.salonClientBookingPanel .salonClientBookingSubmit {
+.artistBookingPopupSheet .artistBookingPopupConfirm {
   min-height: 52px;
   border-radius: 16px;
-  background: #14161d;
-  color: #ffffff;
+  background: var(--fill-strong);
+  color: var(--n-0);
   font-size: 0.88rem;
-  box-shadow: 0 10px 22px rgba(20, 22, 29, 0.18);
+  box-shadow: 0 10px 22px rgb(var(--shadow-rgb) / 0.18);
 }
 
-.artistBookingPopupSheet .artistBookingPopupConfirm:disabled,
-.salonClientBookingPanel .salonClientBookingSubmit:disabled {
-  background: #d9dae0;
-  color: #8b8e99;
+.artistBookingPopupSheet .artistBookingPopupConfirm:disabled {
+  background: var(--n-300);
+  color: var(--n-500);
   opacity: 1;
   box-shadow: none;
 }
-
-/* ── Salon booking sheet ─────────────────────────────────────────────── */
-.salonClientBookingPanel {
-  gap: 14px;
-  padding: 14px;
-  /* Every row keeps its own height and the sheet scrolls: otherwise, when the content is taller
-     than the screen, the grid squeezes the header (overflow: hidden) down to a sliver. */
-  grid-auto-rows: max-content;
-  align-content: start;
-}
-
-.salonClientBookingPanel .salonClientBookingHead {
-  background: var(--bk-soft);
-  box-shadow: inset 0 0 0 1px var(--bk-line);
-}
-
-.salonClientBookingPanel .salonClientBookingBadge {
-  background: #ffffff;
-  color: var(--bk-ink);
-  box-shadow: inset 0 0 0 1px #e4e4ea;
-}
-
-.salonClientBookingPanel .salonClientBookingBadge:hover,
-.salonClientBookingPanel .salonClientBookingBadge:focus-visible {
-  background: #ececf0;
-}
-
-.salonClientBookingPanel .salonClientBookingHead strong {
-  color: var(--bk-ink);
-}
-
-.salonClientBookingPanel .salonClientBookingHead small,
-.salonClientBookingPanel .salonClientBookingProfileHead small,
-.salonClientBookingPanel .salonClientBookingProfileGrid small {
-  color: var(--bk-muted);
-}
-
-.salonClientBookingPanel .salonClientBookingHead .salonClientBookingClose {
-  background: #ffffff;
-  box-shadow: inset 0 0 0 1px #e4e4ea;
-}
-
-.salonClientBookingPanel .salonClientBookingProfile {
-  border: 1px solid var(--bk-line);
-  background: #ffffff;
-}
-
-.salonClientBookingPanel .salonClientBookingProfileGrid > span {
-  border: 1px solid var(--bk-line);
-  background: var(--bk-soft);
-}
-
-.salonClientBookingPanel .salonClientBookingProfileGrid svg {
-  color: var(--bk-ink);
-}
-
-.salonClientBookingPanel .salonClientBookingConfirm {
-  border: 1px solid var(--bk-line);
-  background: var(--bk-soft);
-}
-
-.salonClientBookingPanel .salonClientBookingConfirm > span {
-  background: #ffffff;
-}
-
-/* ═══ "ایجاد رزرو" sheet (BookingSheet + BookingCreateForm) ═══════════════
-   Root cause of the old purple blobs: generic ".bookingCreateForm button"
-   / ".bookingFormGrid button" rules styled EVERY button in the form --
-   including the wheel items -- like the big primary button, and out-ranked
-   the wheel's own classes. Those rules are now direct-child only (see
-   styles.css); the wheel is also made full-width here. */
-.salonHeroSheetPanel.bookingSheet {
-  --bk-ink: #14161d;
-  --bk-muted: #6f7380;
-  --bk-line: #ececf0;
-  --bk-soft: #f6f6f8;
-  background: #ffffff;
-}
-
-@media (max-width: 760px) {
-  .salonHeroSheetBackdrop:has(> .bookingSheet) {
-    background: #ffffff;
-  }
-}
-
-.bookingSheet .salonHeroSheetHead span { color: var(--bk-muted); }
-.bookingSheet .salonHeroSheetHead h3 { color: var(--bk-ink); font-weight: 950; }
-.bookingSheet .salonHeroSheetHead button {
-  border: 0;
-  background: var(--bk-soft);
-  color: var(--bk-ink);
-}
-
-.bookingCreateForm .settingsHoursWheelRange {
-  grid-column: 1 / -1;
-  padding: 14px 10px;
-  border-radius: 20px;
-  background: #ffffff;
-  box-shadow: inset 0 0 0 1px var(--bk-line), 0 8px 24px rgba(20, 22, 29, 0.05);
-}
-
-.bookingCreateForm .settingsHoursWheelRange > div > span {
-  color: var(--bk-muted);
-  font-size: 0.72rem;
-  font-weight: 900;
-}
-
-.bookingCreateForm .breakTimeWheelFocus {
-  background: var(--bk-soft);
-  border: 1px solid #e4e4ea;
-  box-shadow: none;
-}
-
-.bookingCreateForm .breakTimeWheelItem,
-.bookingCreateForm .breakTimeWheelLabel {
-  color: rgba(20, 22, 29, 0.36);
-}
-
-.bookingCreateForm .breakTimeWheelItem.is-active,
-.bookingCreateForm .breakTimeWheelItem.is-active .breakTimeWheelLabel,
-.bookingCreateForm .breakTimeWheel.is-label .breakTimeWheelItem.is-active {
-  color: var(--bk-ink);
-}
-
-.bookingCreateForm input:focus,
-.bookingCreateForm .bookingSelectTrigger:focus-visible {
-  border-color: rgba(20, 22, 29, 0.35);
-  box-shadow: 0 0 0 3px rgba(20, 22, 29, 0.07);
-}
-
-.bookingCreateForm .bookingSelectTrigger svg { color: var(--bk-ink); }
-.bookingCreateForm > .bookingPrimaryBtn:disabled {
-  background: #d9dae0;
-  color: #8b8e99;
-  box-shadow: none;
-  opacity: 1;
-}
-
-/* ═══ New-booking form (BookingCreateForm): all taps, nothing hidden in dropdowns ═══ */
-.bcf { display: grid; gap: 14px; padding-bottom: 4px; counter-reset: bcfStep; }
-.bcfGroup { display: grid; gap: 12px; min-width: 0; padding: 14px; border: 1px solid #ececf1; border-radius: 22px; background: #fff; box-shadow: 0 6px 18px rgba(20, 22, 29, 0.04); }
-.bcfGroup h4 { display: flex; align-items: center; gap: 8px; margin: 0; color: #14161d; font-size: 0.86rem; font-weight: 950; counter-increment: bcfStep; }
-.bcfGroup h4::before { content: counter(bcfStep, persian); display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: #14161d; color: #fff; font-size: 0.7rem; font-weight: 900; }
-
-.bcfInputs { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 8px; }
-.bcf input[name="client"], .bcf input[name="phone"] {
-  width: 100%;
-  min-height: 50px;
-  padding: 0 14px;
-  border: 1px solid #e4e4ea;
-  border-radius: 15px;
-  background: #fff;
-  color: #14161d;
-  font: inherit;
-  font-size: 0.9rem;
-  font-weight: 750;
-  outline: 0;
-}
-.bcf input[name="client"]:focus, .bcf input[name="phone"]:focus { border-color: #14161d; box-shadow: 0 0 0 3px rgba(20, 22, 29, 0.08); }
-
-.bcfChips { display: flex; flex-wrap: wrap; gap: 8px; }
-.bcfChips[aria-label="انتخاب خدمت"] { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.bcfChips[aria-label="انتخاب خدمت"] .bcfChip { justify-content: flex-start; min-height: 52px; border-radius: 16px; padding: 0 10px; font-size: 0.78rem; line-height: 1.3; text-align: right; }
-.bcfChip {
-  min-height: 42px;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 0 14px;
-  border: 1px solid #e4e4ea;
-  border-radius: 999px;
-  background: #fff;
-  color: #3f4350;
-  font: inherit;
-  font-size: 0.8rem;
-  font-weight: 900;
-  cursor: pointer;
-}
-.bcfChip.is-on { border-color: #14161d; background: #14161d; color: #fff; }
-.bcfChip.is-person { min-height: 36px; border-style: dashed; background: #fafafc; font-size: 0.76rem; }
-.bcfMeta { margin: -2px 2px 0; color: #6f7380; font-size: 0.72rem; font-weight: 800; }
-
-.bcfEmpty { min-height: 52px; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px dashed #b9bbc8; border-radius: 16px; background: #fafafc; color: #14161d; font: inherit; font-size: 0.82rem; font-weight: 900; cursor: pointer; }
-
-.bcfDays { display: flex; gap: 8px; margin: 0 -14px; padding: 2px 14px 4px; overflow-x: auto; scrollbar-width: none; }
-.bcfDays::-webkit-scrollbar { display: none; }
-.bcfDay { flex: none; min-width: 78px; min-height: 48px; padding: 0 14px; border: 1px solid #e4e4ea; border-radius: 16px; background: #fff; color: #3f4350; font: inherit; font-size: 0.78rem; font-weight: 900; line-height: 1.3; cursor: pointer; }
-.bcfDay.is-on { border-color: #14161d; background: #14161d; color: #fff; }
-
-.bcfTimesHead { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; color: #14161d; font-size: 0.78rem; font-weight: 900; }
-.bcfTimesHead small { color: #6f7380; font-size: 0.7rem; font-weight: 800; }
-.bcfTimes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.bcfTimes.is-all { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-.bcfMore { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; border: 1px solid #e4e4ea; border-radius: 14px; background: #fafafc; color: #3f4350; font: inherit; font-size: 0.8rem; font-weight: 900; cursor: pointer; }
-.bcfMore svg { transition: transform 0.2s ease; }
-.bcfMore svg.is-open { transform: rotate(180deg); }
-.bcfTime { min-height: 44px; border: 1px solid #e4e4ea; border-radius: 13px; background: #fff; color: #14161d; font: inherit; font-size: 0.84rem; font-weight: 900; font-variant-numeric: tabular-nums; cursor: pointer; }
-.bcfTime.is-on { border-color: #14161d; background: #14161d; color: #fff; }
-.bcfEmptyTimes { margin: 0; padding: 14px; border-radius: 14px; background: #f6f6f8; color: #6f7380; font-size: 0.78rem; font-weight: 800; text-align: center; }
-
-/* extra room below so the fixed close (X) button never sits on the save button */
-.bcfFoot { display: grid; gap: 8px; padding-top: 2px; margin-bottom: 96px; }
-.bcfHint { margin: 0; color: #b4232a; font-size: 0.72rem; font-weight: 800; text-align: center; }
-.bcfSubmit { width: 100%; min-height: 56px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: 18px; background: #14161d; color: #fff; font: inherit; font-size: 0.92rem; font-weight: 950; cursor: pointer; box-shadow: 0 12px 24px rgba(20, 22, 29, 0.18); }
-.bcfSubmit:active { transform: scale(0.98); }
-.bcfSubmit:disabled { opacity: 0.7; cursor: progress; }
-.bcfSubmit.is-incomplete { box-shadow: 0 8px 18px rgba(20, 22, 29, 0.14); }
-.bcfTime { display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
-
-.bcfDay small { display: block; color: #6f7380; font-size: 0.64rem; font-weight: 800; }
-.bcfDay.is-full { background: #f6f6f8; color: #6f7380; cursor: not-allowed; }
-.bcfNote { margin: 0; padding: 10px 12px; border-radius: 14px; background: #f6f6f8; color: #3f4350; font-size: 0.76rem; font-weight: 800; line-height: 1.7; }
-.bcfWho { margin: 0; color: #6f7380; font-size: 0.74rem; font-weight: 800; text-align: center; }
-.bcfWho b { color: #14161d; font-weight: 900; }
-
-/* ═══ Compact booking form: everything fits one screen, no cards, one title ═══ */
-.bcf { gap: 12px; padding-bottom: 0; counter-reset: none; }
-.bcfGroup { gap: 8px; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; }
-.bcfGroup h4 { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-.bcfGroup h4::before { content: none; }
-.bcf input[name="client"], .bcf input[name="phone"] { min-height: 44px; border-radius: 14px; }
-.bcfChips { gap: 6px; }
-.bcfChips[role="group"], .bcfChips[role="radiogroup"] { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 -12px; padding: 2px 12px; }
-.bcfChips[role="group"]::-webkit-scrollbar, .bcfChips[role="radiogroup"]::-webkit-scrollbar { display: none; }
-.bcfChips[aria-label="انتخاب خدمت"] { display: flex; }
-.bcfChip, .bcfChips[aria-label="انتخاب خدمت"] .bcfChip { flex: none; min-height: 40px; border-radius: 999px; padding: 0 12px; font-size: 0.78rem; }
-.bcfChip.is-person { min-height: 32px; font-size: 0.72rem; }
-.bcfMeta { margin: 0 2px; font-size: 0.7rem; }
-.bcfDays { margin: 0 -12px; padding: 2px 12px; }
-.bcfDay { min-width: 72px; min-height: 42px; border-radius: 14px; padding: 0 12px; font-size: 0.74rem; }
-.bcfTimesHead { font-size: 0.74rem; }
-.bcfTimes { gap: 6px; }
-.bcfTime { min-height: 40px; border-radius: 12px; font-size: 0.82rem; }
-.bcfMore { min-height: 36px; border-radius: 12px; font-size: 0.76rem; }
-.bcfNote { padding: 8px 10px; font-size: 0.72rem; line-height: 1.6; }
-.bcfFoot { padding-top: 0; gap: 6px; margin-bottom: 84px; }
-.bcfSubmit { min-height: 52px; border-radius: 16px; }
-
-/* ═══ Day calendar in the booking form: one column per artist, half-hour rows ═══ */
-.bcfGrid { display: grid; gap: 6px; }
-.bcfGridHint { margin: 0; color: #6f7380; font-size: 0.72rem; font-weight: 800; }
-.bcfGridBox { max-height: min(52vh, 420px); overflow: auto; border: 1px solid #ececf1; border-radius: 18px; background: #fff; overscroll-behavior: contain; }
-.bcfGridRow { display: flex; align-items: stretch; min-width: fit-content; }
-.bcfGridRow.is-head { position: sticky; top: 0; z-index: 2; height: 36px; align-items: center; border-bottom: 1px solid #e4e4ea; background: #fff; }
-/* Sticky on the inline-start (the right edge in this RTL page) so the time-of-day column stays in
-   view once there are more artist columns than fit on screen and the grid scrolls sideways --
-   without it, scrolling right to reach artist #4+ loses all sense of which row/time you're on. */
-.bcfGridTime { position: sticky; inset-inline-start: 0; z-index: 1; flex: none; width: 48px; border-top: 1px solid #f0f1f4; background: #fff; color: #6f7380; font-size: 0.68rem; font-weight: 800; line-height: 32px; text-align: center; font-variant-numeric: tabular-nums; }
-.bcfGridRow.is-head .bcfGridTime { z-index: 3; border-top: 0; }
-.bcfGridName { flex: 1 0 84px; overflow: hidden; padding: 0 6px; color: #3f4350; font-size: 0.74rem; font-weight: 900; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
-.bcfGridName.is-on { color: #c2185b; }
-.bcfCell { flex: 1 0 84px; height: 32px; overflow: hidden; padding: 0 6px; border: 0; border-top: 1px solid #f0f1f4; border-inline-start: 1px solid #f0f1f4; border-radius: 0; background: #fff; color: #6f7380; font: inherit; font-size: 0.68rem; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
-.bcfCell:not(:disabled):hover { background: #f6f2f4; }
-.bcfCell:focus-visible { outline: 2px solid #14161d; outline-offset: -2px; }
-.bcfCell:disabled { cursor: default; }
-.bcfCell.is-short { background: #fafafc; }
-.bcfCell.is-past { background: #f6f6f8; }
-.bcfCell.is-busy { background: repeating-linear-gradient(-45deg, #eef0f3 0 6px, #e6e8ec 6px 12px); color: #5b6070; }
-.bcfCell.is-pick { border-top-color: #c2185b; background: #c2185b; }
-.bcfCell.is-head { border-top-color: #c2185b; background: #c2185b; color: #fff; font-weight: 900; }
-/* The page-wide tap "press" animation (tokens.css) scales buttons down on :active. Inside this
-   densely-packed, two-directionally-scrollable grid that transform occasionally left a cell with
-   no background at all after a tap -- the gradient/solid-color fill it carries doesn't always
-   survive being scaled on a layer that's also mid-scroll on some mobile browsers. These cells
-   already show their own state through background color, so the press-scale buys nothing here
-   and isn't worth that risk. */
-.bcfCell:active { scale: 1; }

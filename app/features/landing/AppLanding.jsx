@@ -1,13 +1,17 @@
 import Link from "next/link";
 import QRCode from "qrcode";
+import { Check, Palette, Search, Store } from "lucide-react";
 import { ANDROID_APK_URL, ANDROID_APP_VERSION, DOWNLOAD_PAGE_URL } from "./constants";
 import { EnterAppButton } from "./EnterAppButton";
+import { HeroFilm } from "./HeroFilm";
 
 /**
  * The page about frfro with the app download links. Shown at /download, at "/" on phones
  * until the visitor taps «ورود به فرفرو», and on large screens (tablet and desktop) in place
  * of every page but /admin, /terms and /privacy (see LargeScreenGate).
- * Server component: plain content, no client state. Motion is CSS only (landing.css).
+ * Server component: plain content; the only client part is the hero film (HeroFilm). Motion is CSS (landing.css).
+ * The «آموزش» tutorials player (LearnSection) is built but hidden for now (user's decision 2026-10-15).
+ * Look: white and ink with pink and violet blended in (see the tokens at the top of landing.css).
  */
 
 const CATEGORIES = [
@@ -23,74 +27,74 @@ const CATEGORIES = [
 
 const AUDIENCES = [
   {
-    image: "/role-client.png",
+    Icon: Search,
     tag: "مشتری",
     title: "دنبال سالن خوبی؟",
     points: [
-      "سالن‌ها و آرتیست‌های اطراف را با نمونه‌کار واقعی ببین.",
-      "از دسته‌ها شروع کن: ناخن، مو، ابرو و مژه، میکاپ، پوست و …",
-      "روز و ساعت آزاد را انتخاب کن و نوبتت را بگیر.",
-      "سالن خودت را با شماره یا کد QR پیدا کن و دنبالش کن."
+      "سالن‌ها و آرتیست‌ها را با نمونه‌کار واقعی ببین.",
+      "از دسته‌ها شروع کن: ناخن، مو، ابرو و مژه، میکاپ، پوست…",
+      "ساعت آزاد را انتخاب کن و نوبت بگیر.",
+      "سالن را با شماره یا کد QR پیدا کن و دنبال کن."
     ]
   },
   {
-    image: "/role-salon.png",
+    Icon: Store,
     tag: "سالن",
     title: "سالن داری؟",
     points: [
-      "تقویم نوبت‌ها، تأیید و جابه‌جایی نوبت در یک صفحه.",
-      "خدمات، قیمت‌ها و آرتیست‌های سالن را مرتب نگه دار.",
-      "نمونه‌کارها را منتشر کن تا مشتری تازه پیدایت کند.",
-      "کد QR سالن را روی میز بگذار تا مشتری‌ها با یک اسکن وصل شوند."
+      "تقویم نوبت‌ها و تأیید و جابه‌جایی در یک صفحه.",
+      "خدمات، قیمت و آرتیست‌ها را مرتب نگه دار.",
+      "نمونه‌کار منتشر کن تا مشتری تازه پیدا کنی.",
+      "کد QR را روی میز بگذار؛ مشتری با یک اسکن وصل می‌شود."
     ]
   },
   {
-    image: "/role-artist.png",
+    Icon: Palette,
     tag: "آرتیست",
     title: "آرتیست هستی؟",
     points: [
-      "صفحهٔ نمونه‌کار شخصی، با لینکی که می‌شود همه‌جا گذاشت.",
-      "ساعت کاری خودت را بچین و نوبت مستقیم بگیر.",
-      "با سالن‌ها همکاری کن و نوبت‌های سالن هم به تو برسد."
+      "صفحهٔ نمونه‌کار شخصی با لینک قابل اشتراک.",
+      "ساعت کاری بچین و نوبت مستقیم بگیر.",
+      "با سالن‌ها همکاری کن و نوبت سالن هم بگیر."
     ]
   }
 ];
 
 const STEPS = [
-  { image: "/brand/mascot/search.webp", title: "پیدا کن", text: "از دسته‌ها یا جست‌وجو، سالن و آرتیست مناسب را پیدا کن." },
-  { image: "/brand/mascot/camera.webp", title: "ببین", text: "نمونه‌کارهای واقعی، خدمات و قیمت‌ها را قبل از رفتن ببین." },
-  { image: "/brand/mascot/calendar.webp", title: "رزرو کن", text: "ساعت آزاد را انتخاب کن؛ سالن تأیید می‌کند و یادآوری می‌گیری." },
-  { image: "/brand/mascot/thumbsup.webp", title: "دنبال کن", text: "سالن و آرتیست محبوبت را دنبال کن تا نمونه‌کارهای تازه‌شان را از دست ندهی." }
+  { image: "/brand/mascot/search.webp", title: "پیدا کن", text: "از دسته‌ها یا جست‌وجو سالن و آرتیست پیدا کن." },
+  { image: "/brand/mascot/camera.webp", title: "ببین", text: "نمونه‌کار، خدمات و قیمت‌ها را قبل از رفتن ببین." },
+  { image: "/brand/mascot/calendar.webp", title: "رزرو کن", text: "ساعت آزاد انتخاب کن؛ سالن تأیید می‌کند و یادآوری می‌گیری." },
+  { image: "/brand/mascot/thumbsup.webp", title: "دنبال کن", text: "سالن و آرتیست محبوبت را دنبال کن تا نمونه‌کار تازه‌شان را از دست ندهی." }
 ];
 
 const PROMISES = [
-  { title: "رایگان", text: "نصب و استفاده برای مشتری هزینه‌ای ندارد." },
-  { title: "بدون پرداخت در اپ", text: "هیچ پولی داخل اپ جابه‌جا نمی‌شود؛ هزینه را در خود سالن می‌دهی." },
-  { title: "دسترسی کم", text: "نه مخاطبین، نه پیامک، نه فایل‌ها. دوربین و موقعیت فقط اگر خودت بخواهی." }
+  { title: "رایگان", text: "نصب و استفاده برای مشتری رایگان است." },
+  { title: "بدون پرداخت در اپ", text: "در اپ پولی نمی‌دهد؛ هزینه خدمت را در سالن می‌دهی." },
+  { title: "دسترسی کم", text: "نه مخاطبین، نه پیامک، نه فایل‌ها. دوربین و موقعیت فقط با اجازه تو." }
 ];
 
 const FAQ = [
   {
     q: "چرا گوشی موقع نصب هشدار می‌دهد؟",
-    a: "اندروید برای هر برنامه‌ای که از خارج از فروشگاه (مثل گوگل‌پلی یا کافه‌بازار) نصب شود هشدار نشان می‌دهد؛ این هشدار دربارهٔ خود فرفرو نیست. فایل نصبی فرفرو با کلید امضای مخصوص فرفرو امضا شده و فقط از همین سایت (frfro.ir) دانلودش کن."
+    a: "اندروید برای نصب از خارج از فروشگاه هشدار می‌دهد؛ این هشدار مربوط به فرفرو نیست. فایل با امضای فرفرو امضا شده و فقط از frfro.ir دانلودش کن."
   },
   {
     q: "اپ به چه چیزهایی دسترسی دارد؟",
-    a: "فقط اینترنت، و اگر خودت بخواهی: دوربین (برای اسکن کد QR سالن و عکس نمونه‌کار) و موقعیت مکانی (برای پیدا کردن سالن‌های نزدیک). به مخاطبین، پیامک، تماس‌ها و فایل‌های گوشی دسترسی ندارد."
+    a: "فقط اینترنت، و با اجازه تو: دوربین (اسکن QR و عکس نمونه‌کار) و موقعیت (برای پیدا کردن سالن نزدیک). به مخاطبین، پیامک، تماس و فایل‌ها دسترسی ندارد."
   },
   {
     q: "پرداخت داخل اپ هست؟",
-    a: "نه. فرفرو فقط برای پیدا کردن و رزرو نوبت است و هیچ پولی داخل اپ جابه‌جا نمی‌شود؛ هزینه را مثل همیشه در خود سالن می‌دهی."
+    a: "برای مشتری نه. فرفرو فقط برای پیدا کردن و رزرو نوبت است؛ هزینه خدمت را در سالن می‌دهی."
   },
   {
     q: "آیفون چه می‌شود؟",
-    a: "نسخهٔ App Store در راه است. تا آن موقع در آیفون، سایت frfro.ir را در Safari باز کن و آن را به صفحهٔ اصلی اضافه کن؛ مثل یک اپ با آیکون خودش باز می‌شود."
+    a: "نسخهٔ App Store در راه است. فعلاً در Safari باز کن، «افزودن به صفحهٔ اصلی» را بزن؛ مثل یک اپ کامل باز می‌شود."
   }
 ];
 
 async function downloadQrSvg() {
   try {
-    return await QRCode.toString(DOWNLOAD_PAGE_URL, { type: "svg", margin: 0, color: { dark: "#14161dff", light: "#ffffff00" } });
+    return await QRCode.toString(DOWNLOAD_PAGE_URL, { type: "svg", margin: 0, color: { dark: "#0c0d12ff", light: "#ffffff00" } });
   } catch {
     return "";
   }
@@ -112,24 +116,7 @@ function AppleIcon() {
   );
 }
 
-/** The scalloped "fluff" shape of the mascot's ears, used as a soft backdrop. */
-function Fluff({ className }) {
-  return (
-    <svg viewBox="0 0 200 200" aria-hidden="true" className={className}>
-      <g fill="currentColor">
-        <circle cx="100" cy="100" r="62" />
-        <circle cx="100" cy="40" r="36" />
-        <circle cx="152" cy="68" r="36" />
-        <circle cx="152" cy="132" r="36" />
-        <circle cx="100" cy="160" r="36" />
-        <circle cx="48" cy="132" r="36" />
-        <circle cx="48" cy="68" r="36" />
-      </g>
-    </svg>
-  );
-}
-
-function DownloadButtons({ tone = "dark" }) {
+function DownloadButtons({ tone = "light" }) {
   return (
     <div className={`appLanding__buttons is-${tone}`}>
       <a className="appLanding__store is-primary" href={ANDROID_APK_URL} download="frfro.apk">
@@ -175,43 +162,40 @@ export async function AppLanding() {
   const qrSvg = await downloadQrSvg();
   return (
     <main className="appLanding" dir="rtl">
-      <div className="appLanding__night">
-        <header className="appLanding__nav">
-          <Link href="/download" className="appLanding__brand" aria-label="frfro">
-            <img src="/icons/icon-192.png" alt="" width="40" height="40" />
-            <span>فرفرو</span>
-          </Link>
-          <nav aria-label="بخش‌های صفحه">
-            <a href="#about">فرفرو چیست</a>
-            <a href="#how">چطور کار می‌کند</a>
-            <a href="#install">نصب</a>
-            <a href="#faq">سؤال‌ها</a>
-          </nav>
-          <a className="appLanding__navCta" href={ANDROID_APK_URL} download="frfro.apk">دانلود اپ</a>
-        </header>
+      <header className="appLanding__nav">
+        <Link href="/download" className="appLanding__brand" aria-label="frfro">
+          <img src="/icons/icon-192.png" alt="" width="36" height="36" />
+          <span>فرفرو</span>
+        </Link>
+        <nav aria-label="بخش‌های صفحه">
+          <a href="#about">فرفرو چیست</a>
+          <a href="#how">چطور کار می‌کند</a>
+          <a href="#install">نصب</a>
+          <a href="#faq">سؤال‌ها</a>
+        </nav>
+        <a className="appLanding__navCta" href={ANDROID_APK_URL} download="frfro.apk">دانلود اپ</a>
+      </header>
 
-        <section className="appLanding__hero">
+      <section className="appLanding__hero">
+        <div className="appLanding__aurora" aria-hidden="true" />
+        <div className="appLanding__heroInner">
           <div className="appLanding__heroText">
-            <p className="appLanding__eyebrow"><span aria-hidden="true">✦</span> شبکهٔ اجتماعی زیبایی بانوان</p>
+            <p className="appLanding__eyebrow"><span aria-hidden="true" /> شبکهٔ اجتماعی زیبایی بانوان</p>
             <h1>
-              زیبایی‌ات،
+              رزرو کن،
               <br />
-              <em>یک نوبت</em> فاصله دارد.
+              <em>بدرخش</em>
             </h1>
             <p className="appLanding__lead">
-              سالن و آرتیست زیبایی‌ات را پیدا کن، نمونه‌کار واقعی ببین و همان‌جا نوبت بگیر. بدون تماس‌های پشت سر هم و بدون دفترچه.
+              سالن و آرتیست زیبایی را پیدا کن، نمونه‌کار واقعی ببین و همان‌جا نوبت بگیر؛ بدون تماس و بدون دفترچه.
             </p>
             <DownloadButtons />
             <EnterAppButton className="appLanding__enter">یا ورود به فرفرو در مرورگر ←</EnterAppButton>
-            <p className="appLanding__note">نسخهٔ اندروید {ANDROID_APP_VERSION} · رایگان · بدون پرداخت داخل برنامه</p>
+            <p className="appLanding__note">نسخهٔ اندروید {ANDROID_APP_VERSION} · رایگان برای مشتری · بدون پرداخت داخل برنامه</p>
           </div>
 
-          <div className="appLanding__heroArt" aria-hidden="true">
-            <Fluff className="appLanding__heroFluff" />
-            <div className="appLanding__phone">
-              <img src="/explore-collage.webp" alt="" />
-            </div>
-            <img className="appLanding__heroMascot" src="/brand/mascot/search.webp" alt="" width="415" height="640" />
+          <div className="appLanding__heroArt">
+            <HeroFilm />
             {qrSvg ? (
               <div className="appLanding__qr">
                 <div className="appLanding__qrCode" dangerouslySetInnerHTML={{ __html: qrSvg }} />
@@ -219,24 +203,24 @@ export async function AppLanding() {
               </div>
             ) : null}
           </div>
-        </section>
+        </div>
+      </section>
 
-        <CategoryRibbon />
-      </div>
+      <CategoryRibbon />
 
-      <div className="appLanding__paper">
-        <section id="about" className="appLanding__section">
+      <section id="about" className="appLanding__dark">
+        <div className="appLanding__section">
           <header className="appLanding__head appLanding__reveal">
             <p className="appLanding__kicker">فرفرو چیست</p>
-            <h2>یک اپ، برای هر سه طرف</h2>
-            <p>فرفرو مشتری، سالن و آرتیست را در یک جا کنار هم می‌آورد: کشف با نمونه‌کار واقعی، رزرو مستقیم و برنامهٔ کاری مرتب.</p>
+            <h2>یک اپ، برای <em>هر سه طرف</em></h2>
+            <p>فرفرو مشتری، سالن و آرتیست را کنار هم می‌آورد: کشف با نمونه‌کار، رزرو مستقیم و برنامهٔ کاری مرتب.</p>
           </header>
           <div className="appLanding__cards">
             {AUDIENCES.map((audience, index) => (
-              <article key={audience.tag} className={`appLanding__card appLanding__reveal${index === 0 ? " is-featured" : ""}`}>
+              <article key={audience.tag} className={`appLanding__card is-${index} appLanding__reveal`}>
                 <div className="appLanding__cardTop">
                   <span className="appLanding__tag">برای {audience.tag}</span>
-                  <img src={audience.image} alt="" width="64" height="64" loading="lazy" />
+                  <span className="appLanding__cardIcon"><audience.Icon size={26} strokeWidth={2} aria-hidden="true" /></span>
                 </div>
                 <h3>{audience.title}</h3>
                 <ul>
@@ -245,18 +229,19 @@ export async function AppLanding() {
               </article>
             ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section id="how" className="appLanding__section">
+      <section id="how" className="appLanding__light">
+        <div className="appLanding__section">
           <header className="appLanding__head appLanding__reveal">
             <p className="appLanding__kicker">چطور کار می‌کند</p>
-            <h2>از دیدن تا نشستن روی صندلی سالن، در چهار قدم</h2>
+            <h2>از دیدن تا نشستن روی صندلی سالن، در <em>چهار قدم</em></h2>
           </header>
           <ol className="appLanding__steps">
             {STEPS.map((step) => (
               <li key={step.title} className="appLanding__reveal">
                 <div className="appLanding__stepArt">
-                  <Fluff className="appLanding__stepFluff" />
                   <img src={step.image} alt="" width="415" height="640" loading="lazy" />
                 </div>
                 <h3>{step.title}</h3>
@@ -264,18 +249,21 @@ export async function AppLanding() {
               </li>
             ))}
           </ol>
-        </section>
+        </div>
+      </section>
 
-        <section className="appLanding__promises appLanding__reveal" aria-label="قول‌های فرفرو">
-          {PROMISES.map((promise) => (
-            <div key={promise.title}>
-              <strong>{promise.title}</strong>
-              <span>{promise.text}</span>
-            </div>
-          ))}
-        </section>
+      <section className="appLanding__promises appLanding__reveal" aria-label="قول‌های فرفرو">
+        {PROMISES.map((promise) => (
+          <div key={promise.title}>
+            <span className="appLanding__promiseIcon"><Check size={18} strokeWidth={3} aria-hidden="true" /></span>
+            <strong>{promise.title}</strong>
+            <span>{promise.text}</span>
+          </div>
+        ))}
+      </section>
 
-        <section id="install" className="appLanding__section">
+      <section id="install" className="appLanding__light is-mist">
+        <div className="appLanding__section">
           <header className="appLanding__head appLanding__reveal">
             <p className="appLanding__kicker">نصب</p>
             <h2>فرفرو را روی گوشی‌ات بیاور</h2>
@@ -284,10 +272,10 @@ export async function AppLanding() {
             <article className="appLanding__guide appLanding__reveal">
               <h3><AndroidIcon /> اندروید</h3>
               <ol>
-                <li>دکمهٔ «دانلود مستقیم برای اندروید» را بزن.</li>
-                <li>بعد از دانلود، فایل <bdi>frfro.apk</bdi> را از اعلان دانلود یا برنامهٔ «فایل‌ها» باز کن.</li>
-                <li>اگر گوشی پرسید، اجازهٔ «نصب برنامه‌های ناشناس» را برای همان برنامه بده و دوباره فایل را باز کن.</li>
-                <li>«نصب» را بزن. اگر Play Protect پرسید، «جزئیات بیشتر» و بعد «در هر صورت نصب شود».</li>
+                <li>دکمهٔ دانلود اندروید را بزن.</li>
+                <li>فایل <bdi>frfro.apk</bdi> را از اعلان دانلود یا فایل‌ها باز کن.</li>
+                <li>اجازهٔ «نصب برنامه‌های ناشناس» را بده و دوباره فایل را باز کن.</li>
+                <li>«نصب» را بزن. اگر Play Protect پرسید، «در هر صورت نصب شود» را بزن.</li>
               </ol>
               <a className="appLanding__store is-primary is-small" href={ANDROID_APK_URL} download="frfro.apk">
                 <AndroidIcon />
@@ -297,17 +285,19 @@ export async function AppLanding() {
             <article id="iphone" className="appLanding__guide appLanding__reveal">
               <h3><AppleIcon /> آیفون</h3>
               <ol>
-                <li>سایت <bdi>frfro.ir</bdi> را در مرورگر Safari باز کن.</li>
-                <li>دکمهٔ اشتراک‌گذاری (مربع با فلش رو به بالا) را بزن.</li>
-                <li>«Add to Home Screen» یا «افزودن به صفحهٔ اصلی» را انتخاب کن.</li>
-                <li>از این به بعد فرفرو با آیکون خودش، تمام‌صفحه و مثل یک اپ باز می‌شود.</li>
+                <li><bdi>frfro.ir</bdi> را در Safari باز کن.</li>
+                <li>دکمهٔ اشتراک‌گذاری را بزن.</li>
+                <li>«افزودن به صفحهٔ اصلی» را انتخاب کن.</li>
+                <li>حالا فرفرو مثل یک اپ تمام‌صفحه باز می‌شود.</li>
               </ol>
               <p className="appLanding__soon">نسخهٔ App Store به‌زودی.</p>
             </article>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section id="faq" className="appLanding__section is-narrow">
+      <section id="faq" className="appLanding__light">
+        <div className="appLanding__section is-narrow">
           <header className="appLanding__head appLanding__reveal">
             <p className="appLanding__kicker">سؤال‌ها</p>
             <h2>سؤال‌های رایج</h2>
@@ -320,20 +310,23 @@ export async function AppLanding() {
               </details>
             ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section className="appLanding__finale appLanding__reveal">
-          <Fluff className="appLanding__finaleFluff" />
+      <section className="appLanding__finaleWrap">
+        <div className="appLanding__finale appLanding__reveal">
           <img className="appLanding__finaleMascot" src="/brand/mascot/thumbsup.webp" alt="" width="460" height="640" loading="lazy" />
           <div>
             <h2>نوبت بعدی‌ات را با فرفرو بگیر.</h2>
             <p>رایگان، سبک و بدون پرداخت داخل برنامه.</p>
-            <DownloadButtons tone="light" />
+            <DownloadButtons tone="dark" />
             <EnterAppButton className="appLanding__enter">یا ورود به فرفرو در مرورگر ←</EnterAppButton>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <footer className="appLanding__footer">
+      <footer className="appLanding__footer">
+        <div className="appLanding__footerInner">
           <div>
             <strong>فرفرو</strong>
             <span>پشتیبانی: <a href="mailto:support@frfro.ir">support@frfro.ir</a></span>
@@ -343,8 +336,8 @@ export async function AppLanding() {
             <Link href="/privacy">حریم خصوصی</Link>
             <EnterAppButton className="appLanding__enterLink">ورود به فرفرو</EnterAppButton>
           </nav>
-        </footer>
-      </div>
+        </div>
+      </footer>
     </main>
   );
 }

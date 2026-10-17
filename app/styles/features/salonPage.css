@@ -1,94 +1,94 @@
 /* ---- Public salon page (spv*) ---- */
-.spvHeroFallback { position: absolute; inset: 0; background: linear-gradient(160deg, #2b2d3a, #14161d 60%, #3b3e49); }
-.spvHeroFallback::after { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.14), transparent 55%); }
-.spvArea { display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; color: #6f7380; font-size: 0.74rem; font-weight: 800; }
-.spvStats { margin: 0 !important; display: flex; justify-content: center; gap: 18px; padding: 4px 0; color: #6f7380; font-size: 0.74rem; font-weight: 800; }
+.spvHeroFallback { position: absolute; inset: 0; background: linear-gradient(160deg, var(--n-800), var(--n-900) 60%, var(--n-800)); }
+.spvHeroFallback::after { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 80% 20%, rgb(var(--paper-rgb) / 0.14), transparent 55%); }
+.spvArea { display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; color: var(--n-600); font-size: 0.74rem; font-weight: 800; }
+.spvStats { margin: 0 !important; display: flex; justify-content: center; gap: 18px; padding: 4px 0; color: var(--n-600); font-size: 0.74rem; font-weight: 800; }
 .spvStats span { display: grid; justify-items: center; gap: 1px; }
-.spvStats b { color: #14161d; font-size: 1rem; font-weight: 950; }
+.spvStats b { color: var(--n-900); font-size: 1rem; font-weight: 950; }
 .spvActions { display: grid !important; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0 !important; direction: rtl; }
-.spvActions button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 46px; border: 1px solid #ececf0; border-radius: 16px; background: #fff; color: #14161d; font: inherit; font-size: 0.84rem; font-weight: 900; cursor: pointer; }
-.spvActions button.is-following { background: #f1f1f5; }
-.spvCall { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 46px; border: 1px solid #ececf0; border-radius: 16px; background: #fff; color: #14161d; font-size: 0.84rem; font-weight: 900; text-decoration: none; }
+.spvActions button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 46px; border: 1px solid var(--n-100); border-radius: 16px; background: var(--n-0); color: var(--n-900); font: inherit; font-size: 0.84rem; font-weight: 900; cursor: pointer; }
+.spvActions button.is-following { background: var(--n-100); }
+.spvCall { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 46px; border: 1px solid var(--n-100); border-radius: 16px; background: var(--n-0); color: var(--n-900); font-size: 0.84rem; font-weight: 900; text-decoration: none; }
 .spvOpen { display: inline-flex; align-items: center; justify-content: center; gap: 6px; margin: 2px auto 0; padding: 6px 14px; border-radius: 999px; font-size: 0.74rem; font-weight: 850; }
-.spvOpen.is-open { background: #f0fbf4; color: #15803d; }
-.spvOpen.is-closed { background: #f1f1f5; color: #6f7380; }
+.spvOpen.is-open { background: var(--n-25); color: var(--success); }
+.spvOpen.is-closed { background: var(--n-100); color: var(--n-600); }
 
 .spvServiceList { display: grid; gap: 8px; }
-.spvService { display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; border: 1px solid #ececf0; border-radius: 18px; background: #fff; color: #14161d; font: inherit; text-align: right; cursor: pointer; }
+.spvService { display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; border: 1px solid var(--n-100); border-radius: 18px; background: var(--n-0); color: var(--n-900); font: inherit; text-align: right; cursor: pointer; }
 .spvServiceBody { display: grid; gap: 2px; min-width: 0; }
 .spvServiceBody b { font-size: 0.88rem; font-weight: 900; }
-.spvServiceBody small { color: #8a8e9b; font-size: 0.7rem; font-weight: 700; }
+.spvServiceBody small { color: var(--n-500); font-size: 0.7rem; font-weight: 700; }
 .spvServicePrice { display: grid; justify-items: end; line-height: 1.3; }
 .spvServicePrice b { font-size: 0.86rem; font-weight: 950; }
-.spvServicePrice em { color: #8a8e9b; font-size: 0.66rem; font-style: normal; font-weight: 800; }
-.spvServiceGo { padding: 7px 13px; border-radius: 12px; background: #14161d; color: #fff; font-size: 0.74rem; font-weight: 900; }
+.spvServicePrice em { color: var(--n-500); font-size: 0.66rem; font-style: normal; font-weight: 800; }
+.spvServiceGo { padding: 7px 13px; border-radius: 12px; background: var(--fill-strong); color: var(--n-0); font-size: 0.74rem; font-weight: 900; }
 
 /* Calm sections of the public page: no card, just a heading and the content. */
 :root .salonPublicProfile .spvSection { margin: 18px 20px 0; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; }
-.spvHead { margin: 0 0 10px; color: #14161d; font-size: 0.95rem; font-weight: 900; }
+.spvHead { margin: 0 0 10px; color: var(--n-900); font-size: 0.95rem; font-weight: 900; }
 .spvHeadRow { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
 .spvHeadRow .spvHead { margin: 0; }
-.spvSeeAll { min-height: 32px; padding: 0 4px; border: 0; background: none; color: #14161d; font: inherit; font-size: 0.78rem; font-weight: 900; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }
+.spvSeeAll { min-height: 32px; padding: 0 4px; border: 0; background: none; color: var(--n-900); font: inherit; font-size: 0.78rem; font-weight: 900; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }
 
 .spvTeamRail { display: flex; gap: 16px; overflow-x: auto; padding: 2px 0 4px; scrollbar-width: none; }
 .spvTeamRail::-webkit-scrollbar { display: none; }
 .spvMember { display: grid; justify-items: center; gap: 2px; min-width: 64px; max-width: 80px; text-align: center; }
-.spvMember img { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; background: #ececf0; }
+.spvMember img { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; background: var(--n-100); }
 .spvMember b { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 4px; font-size: 0.76rem; font-weight: 900; }
-.spvMember small { color: #8a8e9b; font-size: 0.64rem; font-weight: 700; }
+.spvMember small { color: var(--n-500); font-size: 0.64rem; font-weight: 700; }
 
 :root .salonPublicProfile .salonPublicPortfolio .salonClientMosaicGallery { gap: 3px !important; }
 :root .salonPublicProfile .salonPublicPortfolio .salonClientMosaicTile { border-radius: 6px !important; }
 
-.spvHoursToggle { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 46px; padding: 0 2px; border: 0; border-top: 1px solid #ececf0; border-bottom: 1px solid #ececf0; background: none; color: #14161d; font: inherit; font-size: 0.84rem; cursor: pointer; }
+.spvHoursToggle { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 46px; padding: 0 2px; border: 0; border-top: 1px solid var(--n-100); border-bottom: 1px solid var(--n-100); background: none; color: var(--n-900); font: inherit; font-size: 0.84rem; cursor: pointer; }
 .spvHoursToggle b { font-weight: 900; }
-.spvHoursToggle span { margin-inline-start: auto; color: #6f7380; font-size: 0.78rem; font-weight: 800; }
-.spvHoursChevron { flex: none; color: #8a8e9b; transition: transform 0.2s; }
+.spvHoursToggle span { margin-inline-start: auto; color: var(--n-600); font-size: 0.78rem; font-weight: 800; }
+.spvHoursChevron { flex: none; color: var(--n-500); transition: transform 0.2s; }
 .spvHoursChevron.is-open { transform: rotate(180deg); }
 .spvHours ul { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 2px; }
-.spvHours li { display: flex; justify-content: space-between; padding: 8px 10px; border-radius: 10px; color: #3b3e49; font-size: 0.8rem; font-weight: 800; }
-.spvHours li.is-today { background: #f1f1f5; color: #14161d; }
+.spvHours li { display: flex; justify-content: space-between; padding: 8px 10px; border-radius: 10px; color: var(--n-800); font-size: 0.8rem; font-weight: 800; }
+.spvHours li.is-today { background: var(--n-100); color: var(--n-900); }
 .spvHours li b { font-weight: 900; }
 
-.spvBar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; display: flex; align-items: center; gap: 8px; padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); background: rgba(255, 255, 255, 0.94); backdrop-filter: blur(14px); border-top: 1px solid #ececf0; }
-.spvBarIcon { width: 50px; height: 50px; flex: none; display: grid; place-items: center; border: 1px solid #ececf0; border-radius: 16px; background: #fff; color: #14161d; cursor: pointer; }
-.spvBarIcon.is-on { color: #e11d48; border-color: #fecdd3; background: #fff1f2; }
-.spvBarBook { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 50px; border: 0; border-radius: 16px; background: #14161d; color: #fff; font: inherit; font-size: 0.95rem; font-weight: 950; cursor: pointer; box-shadow: 0 10px 24px rgba(20, 22, 29, 0.28); }
-.spvBarBook small { margin-inline-start: 4px; color: rgba(255, 255, 255, 0.72); font-size: 0.68rem; font-weight: 800; }
+.spvBar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; display: flex; align-items: center; gap: 8px; padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); background: rgb(var(--paper-rgb) / 0.94); backdrop-filter: blur(14px); border-top: 1px solid var(--n-100); }
+.spvBarIcon { width: 50px; height: 50px; flex: none; display: grid; place-items: center; border: 1px solid var(--n-100); border-radius: 16px; background: var(--n-0); color: var(--n-900); cursor: pointer; }
+.spvBarIcon.is-on { color: var(--accent); border-color: rgb(var(--accent-rgb) / 0.3); background: var(--n-50); }
+.spvBarBook { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 50px; border: 0; border-radius: 16px; background: var(--fill-strong); color: var(--n-0); font: inherit; font-size: 0.95rem; font-weight: 950; cursor: pointer; box-shadow: 0 10px 24px rgb(var(--shadow-rgb) / 0.28); }
+.spvBarBook small { margin-inline-start: 4px; color: rgb(var(--paper-rgb) / 0.72); font-size: 0.68rem; font-weight: 800; }
 .spvBarBook:disabled { opacity: 0.5; }
 :root .salonPublicProfile { padding-bottom: 96px; }
-.spvChip.is-open { background: #f0fbf4 !important; color: #15803d !important; }
-.spvChip.is-closed { background: #f1f1f5 !important; color: #6f7380 !important; }
+.spvChip.is-open { background: var(--n-25) !important; color: var(--success) !important; }
+.spvChip.is-closed { background: var(--n-100) !important; color: var(--n-600) !important; }
 :root .artistPublicPage { padding-bottom: 96px; }
-.spvService.is-selected { border-color: #14161d; }
+.spvService.is-selected { border-color: var(--n-900); }
 :root .artistPublicActions { display: grid !important; margin: 0 !important; }
-:root .artistPublicFollow { width: 100% !important; margin: 0 !important; background: #fff !important; color: #14161d !important; border: 1px solid #dcdce4 !important; box-shadow: none !important; }
-:root .artistPublicFollow.is-following { background: #f1f1f5 !important; }
+:root .artistPublicFollow { width: 100% !important; margin: 0 !important; background: var(--n-0) !important; color: var(--n-900) !important; border: 1px solid var(--n-200) !important; box-shadow: none !important; }
+:root .artistPublicFollow.is-following { background: var(--n-100) !important; }
 
 /* ---- Client booking cancel ---- */
 /* Go to the booking's salon/artist page, and follow it when the booking outlived the follow */
 .cbPlace { display: grid; grid-template-columns: 1.4fr 1fr; gap: 8px; margin-top: 10px; }
 .cbPlace:has(.cbPlaceOpen:only-child) { grid-template-columns: 1fr; }
-.cbPlace button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 46px; border: 1px solid #ececf0; border-radius: 14px; background: #fff; color: #14161d; font: inherit; font-size: 0.8rem; font-weight: 900; cursor: pointer; }
-.cbPlace .cbPlaceFollow { border-color: #ff86b8; background: #fff0f6; color: #b0114f; }
+.cbPlace button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 46px; border: 1px solid var(--n-100); border-radius: 14px; background: var(--n-0); color: var(--n-900); font: inherit; font-size: 0.8rem; font-weight: 900; cursor: pointer; }
+.cbPlace .cbPlaceFollow { border-color: rgb(var(--accent-rgb) / 0.3); background: var(--n-50); color: var(--accent); }
 .cbPlace button:disabled { opacity: 0.6; }
-.cbCancelBtn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; width: 100%; min-height: 46px; margin-top: 10px; border: 1px solid #f6d3d0; border-radius: 14px; background: #fff5f4; color: #b42318; font: inherit; font-size: 0.84rem; font-weight: 900; cursor: pointer; }
-.cbCancelConfirm { display: grid; gap: 10px; margin-top: 10px; padding: 12px; border: 1px solid #f6d3d0; border-radius: 16px; background: #fff5f4; }
-.cbCancelConfirm p { margin: 0; color: #7a271a; font-size: 0.8rem; font-weight: 800; line-height: 1.7; }
+.cbCancelBtn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; width: 100%; min-height: 46px; margin-top: 10px; border: 1px solid rgb(var(--danger-rgb) / 0.3); border-radius: 14px; background: var(--n-50); color: var(--danger); font: inherit; font-size: 0.84rem; font-weight: 900; cursor: pointer; }
+.cbCancelConfirm { display: grid; gap: 10px; margin-top: 10px; padding: 12px; border: 1px solid rgb(var(--danger-rgb) / 0.3); border-radius: 16px; background: var(--n-50); }
+.cbCancelConfirm p { margin: 0; color: var(--danger); font-size: 0.8rem; font-weight: 800; line-height: 1.7; }
 .cbCancelConfirm > div { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.cbCancelConfirm button { min-height: 42px; border: 1px solid #ececf0; border-radius: 12px; background: #fff; color: #14161d; font: inherit; font-size: 0.8rem; font-weight: 900; cursor: pointer; }
-.cbCancelConfirm button.is-danger { background: #b42318; border-color: #b42318; color: #fff; }
+.cbCancelConfirm button { min-height: 42px; border: 1px solid var(--n-100); border-radius: 12px; background: var(--n-0); color: var(--n-900); font: inherit; font-size: 0.8rem; font-weight: 900; cursor: pointer; }
+.cbCancelConfirm button.is-danger { background: var(--danger); border-color: var(--danger); color: var(--n-0); }
 .cbCancelConfirm button:disabled { opacity: 0.6; }
 /* A new time the salon offered, waiting for the client (ClientBookingSettingsModal) */
-.cbOffer { display: grid; gap: 10px; margin-top: 10px; padding: 14px; border: 1px solid #f5dfb3; border-radius: 16px; background: #fff8ea; }
-.cbOffer > b { color: #7a4b00; font-size: 0.86rem; font-weight: 950; }
-.cbOfferTimes { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: #8a6a3a; font-size: 0.86rem; font-weight: 800; }
-.cbOfferTimes s { text-decoration-thickness: 1px; text-decoration-color: rgba(138, 106, 58, 0.7); }
-.cbOfferTimes strong { padding: 4px 10px; border-radius: 10px; background: #fff; color: #14161d; font-weight: 950; }
-.cbOffer p { margin: 0; color: #8a6a3a; font-size: 0.76rem; font-weight: 750; line-height: 1.8; }
+.cbOffer { display: grid; gap: 10px; margin-top: 10px; padding: 14px; border: 1px solid rgb(var(--warning-rgb) / 0.3); border-radius: 16px; background: var(--n-25); }
+.cbOffer > b { color: var(--warning); font-size: 0.86rem; font-weight: 950; }
+.cbOfferTimes { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: var(--warning); font-size: 0.86rem; font-weight: 800; }
+.cbOfferTimes s { text-decoration-thickness: 1px; text-decoration-color: rgb(var(--warning-rgb) / 0.7); }
+.cbOfferTimes strong { padding: 4px 10px; border-radius: 10px; background: var(--n-0); color: var(--n-900); font-weight: 950; }
+.cbOffer p { margin: 0; color: var(--warning); font-size: 0.76rem; font-weight: 750; line-height: 1.8; }
 .cbOfferActions { display: grid; grid-template-columns: 1.6fr 1fr; gap: 8px; }
-.cbOfferActions button { min-height: 44px; border: 1px solid #ececf0; border-radius: 12px; background: #fff; color: #14161d; font: inherit; font-size: 0.82rem; font-weight: 900; cursor: pointer; }
-.cbOfferActions button.is-accept { background: #14161d; border-color: #14161d; color: #fff; }
+.cbOfferActions button { min-height: 44px; border: 1px solid var(--n-100); border-radius: 12px; background: var(--n-0); color: var(--n-900); font: inherit; font-size: 0.82rem; font-weight: 900; cursor: pointer; }
+.cbOfferActions button.is-accept { background: var(--fill-strong); border-color: var(--n-900); color: var(--n-0); }
 .cbOfferActions button:disabled { opacity: 0.6; }
 
 /* Full-screen salon/artist pages scroll inside their own container. Keep the document itself

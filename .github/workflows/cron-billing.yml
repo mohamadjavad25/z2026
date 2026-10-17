@@ -1,0 +1,31 @@
+name: Subscription sweep
+
+# Same pattern as cron-booking-reminders.yml: needs the CRON_SECRET repo secret, otherwise every run no-ops.
+# Hourly is plenty: it re-checks payments whose payer never came back from the bank, closes abandoned checkouts and
+# sends the subscription reminders (5 days left, last day, ended, closed), each at most once.
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch: {}
+
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call /api/cron/billing
+        env:
+          APP_URL: https://frfro.ir
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$APP_URL" ] || [ -z "$CRON_SECRET" ]; then
+            echo "CRON_SECRET repo secret not set yet -- skipping."
+            exit 0
+          fi
+          status=$(curl -sS -o /tmp/response.json -w "%{http_code}" \
+            -X POST "$APP_URL/api/cron/billing" \
+            -H "Authorization: Bearer $CRON_SECRET")
+          echo "HTTP $status"
+          cat /tmp/response.json
+          if [ "$status" -lt 200 ] || [ "$status" -ge 300 ]; then
+            exit 1
+          fi

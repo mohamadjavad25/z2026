@@ -1,6 +1,5 @@
 "use client";
 
-import { isTooSoonToRequest } from "../../shared/lib/bookingWindow";
 import { playSound } from "../../shared/lib/sounds";
 import { usePolling } from "../../shared/lib/usePolling";
 import { useAppRefresh } from "../../shared/lib/appRefresh";
@@ -9,32 +8,21 @@ import {
   createSalonBooking,
   getSalonBookings,
   getSalons,
-  getSalonVisitTimes,
   toggleSalonFollow
 } from "../../shared/api/salons";
 import { getClientBookings } from "../../shared/api/artists";
 import { toggleSave } from "../../shared/api/saves";
 import { apiFetch } from "../../shared/api/client";
 import { notifyFromResponse } from "../../shared/lib/apiNotify";
-import { resolveRollingPersianDateKey } from "../../shared/lib/persianCalendar";
-import { bookingIsOnDateKey, findSalonHourForDateKey, isSalonHourOpen, salonDayWindow } from "../../shared/lib/salonAvailability";
-import {
-  buildDayBookingSlots,
-  parseServiceDurationMinutes,
-  rangesOverlap,
-  timeLabelToMinutes
-} from "../../shared/lib/time";
-import { salonClientBookingDays } from "../artist/constants";
+import { bundleServices } from "../../shared/lib/serviceBundle";
 import { salonServiceCatalog } from "./constants";
 
 const initialBooking = {
   open: false,
   service: "",
-  day: salonClientBookingDays[0] || "",
-  time: "۱۰:۰۰",
+  bundle: null,
   client: "",
-  phone: "",
-  profileConfirmed: false
+  phone: ""
 };
 
 export function getVisibleSalonServiceItems(salon) {
@@ -42,13 +30,9 @@ export function getVisibleSalonServiceItems(salon) {
   return [];
 }
 
-function getBookableSalonServiceItems(salon) {
+export function getBookableSalonServiceItems(salon) {
   const visible = getVisibleSalonServiceItems(salon);
   return visible.length ? visible : salonServiceCatalog;
-}
-
-function getSalonHourForDay(hours, day) {
-  return findSalonHourForDateKey(hours, resolveRollingPersianDateKey(day));
 }
 
 /**
@@ -91,15 +75,7 @@ export function useSalonDirectory({
   const [savedSalonKeys, setSavedSalonKeys] = useState([]);
   const [salonClientTab, setSalonClientTab] = useState("services");
   const [salonClientBooking, setSalonClientBooking] = useState(initialBooking);
-  const [salonClientBookingBusy, setSalonClientBookingBusy] = useState(false);
-  const [salonClientUnavailableSlots, setSalonClientUnavailableSlots] = useState([]);
   const [clientBookingList, setClientBookingList] = useState([]);
-  // Several services in one visit: the free start times come from the server, which knows each
-  // artist's calendar ({ key, times }; times is null while loading).
-  const [salonClientVisitTimes, setSalonClientVisitTimes] = useState({ key: "", times: null });
-  const [visitTimesVersion, setVisitTimesVersion] = useState(0);
-  const autoAdvanceDayRef = useRef(true);
-
   const savedSalonList = useMemo(() => {
     const source = [...salonDirectory];
     if (selectedSalon) {
@@ -110,84 +86,6 @@ export function useSalonDirectory({
     }
     return source.filter((salon) => savedSalonKeys.includes(String(salon.id || salon.source_key || salon.name)));
   }, [salonDirectory, savedSalonKeys, selectedSalon]);
-
-  const salonClientSelectedService = useMemo(() => (
-    (salonClientBooking.bundle?.name === salonClientBooking.service ? salonClientBooking.bundle : null)
-    || getBookableSalonServiceItems(selectedSalon)
-      .find((service) => String(service?.name || "") === String(salonClientBooking.service || ""))
-  ), [selectedSalon, salonClientBooking.service, salonClientBooking.bundle]);
-
-  // The services of this request (one, or several back to back) with their lengths: the free
-  // start times come from the server, which checks them exactly like the request itself.
-  const salonClientVisitServices = useMemo(() => {
-    const items = salonClientBooking.bundle?.name === salonClientBooking.service
-      ? salonClientBooking.bundle.items
-      : [salonClientSelectedService || { name: salonClientBooking.service }];
-    return items
-      .map((item) => ({ name: String(item?.name || ""), minutes: parseServiceDurationMinutes(item?.duration) }))
-      .filter((item) => item.name);
-  }, [salonClientBooking.bundle, salonClientBooking.service, salonClientSelectedService]);
-  const salonClientVisitKey = salonClientVisitServices.length && selectedSalon
-    ? [selectedSalon.id || selectedSalon.source_key, salonClientBooking.day, ...salonClientVisitServices.map((item) => `${item.name}:${item.minutes}`)].join("|")
-    : "";
-  const salonClientTimesLoading = Boolean(
-    salonClientVisitKey
-    && (salonClientVisitTimes.key !== salonClientVisitKey || (!salonClientVisitTimes.times && !salonClientVisitTimes.failed))
-  );
-
-  useEffect(() => {
-    if (!salonClientBooking.open || !salonClientVisitKey) return undefined;
-    let cancelled = false;
-    setSalonClientVisitTimes({ key: salonClientVisitKey, times: null });
-    getSalonVisitTimes(selectedSalon.id || selectedSalon.source_key, salonClientBooking.day, salonClientVisitServices)
-      .then(({ ok, data }) => {
-        if (cancelled) return;
-        setSalonClientVisitTimes(ok && Array.isArray(data?.times)
-          ? { key: salonClientVisitKey, times: data.times }
-          : { key: salonClientVisitKey, times: null, failed: true });
-      })
-      .catch(() => {
-        if (!cancelled) setSalonClientVisitTimes({ key: salonClientVisitKey, times: null, failed: true });
-      });
-    return () => {
-      cancelled = true;
-    };
-    // salonClientVisitKey already covers the salon, the day and the services.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [salonClientBooking.open, salonClientVisitKey, visitTimesVersion]);
-
-  const salonClientFreeTimes = useMemo(() => {
-    if (salonClientVisitKey && salonClientVisitTimes.key === salonClientVisitKey && salonClientVisitTimes.times) {
-      return salonClientVisitTimes.times;
-    }
-    // Still loading: nothing to pick yet. The server could not answer: the salon's own bookings
-    // still rule out the taken times here (the request is checked again when it is sent).
-    if (salonClientVisitKey && !(salonClientVisitTimes.key === salonClientVisitKey && salonClientVisitTimes.failed)) return [];
-    const duration = parseServiceDurationMinutes(salonClientSelectedService?.duration);
-    const hour = getSalonHourForDay(selectedSalon?.hours, salonClientBooking.day);
-    if (!isSalonHourOpen(hour)) return [];
-    const dayWindow = salonDayWindow(hour);
-    const baseSlots = buildDayBookingSlots(dayWindow.open, dayWindow.close, duration);
-    const selectedDateKey = resolveRollingPersianDateKey(salonClientBooking.day);
-    return baseSlots.filter((time) => {
-      if (isTooSoonToRequest(salonClientBooking.day, time)) return false;
-      const start = timeLabelToMinutes(time);
-      const end = start + duration;
-      return !salonClientUnavailableSlots.some((slot) => {
-        if (!bookingIsOnDateKey(slot, selectedDateKey)) return false;
-        const bookedStart = timeLabelToMinutes(slot.time || "");
-        const bookedEnd = bookedStart + Math.max(15, Number(slot.duration_minutes || slot.durationMinutes) || 60);
-        return rangesOverlap(start, end, bookedStart, bookedEnd);
-      });
-    });
-  }, [
-    selectedSalon,
-    salonClientUnavailableSlots,
-    salonClientBooking.day,
-    salonClientSelectedService,
-    salonClientVisitKey,
-    salonClientVisitTimes
-  ]);
 
   const isFollowingSelectedSalon = selectedSalon
     ? followedSalons.includes(String(selectedSalon.id || selectedSalon.source_key || selectedSalon.name))
@@ -296,8 +194,6 @@ export function useSalonDirectory({
     setSavedSalonKeys([]);
     setSalonClientTab("services");
     setSalonClientBooking(initialBooking);
-    setSalonClientBookingBusy(false);
-    setSalonClientUnavailableSlots([]);
     setClientBookingList([]);
   }, []);
 
@@ -306,6 +202,7 @@ export function useSalonDirectory({
     setSalonClientTab("services");
   }, [selectedSalon?.id, selectedSalon?.source_key]);
 
+  // The salon's weekly hours, so the booking form can show the closed days as closed.
   useEffect(() => {
     if (!salonClientBooking.open || !selectedSalon) return undefined;
     const salonUserId = selectedSalon.id || selectedSalon.source_key;
@@ -313,41 +210,21 @@ export function useSalonDirectory({
     let cancelled = false;
     getSalonBookings(salonUserId)
       .then(({ data, payload }) => {
-        if (!cancelled) {
-          setSalonClientUnavailableSlots(data?.unavailableSlots || payload?.unavailableSlots || []);
-          const hours = data?.hours || payload?.hours;
-          if (Array.isArray(hours) && hours.length) {
-            setSelectedSalon((current) => (
-              current && String(current.id || current.source_key) === String(salonUserId)
-                ? { ...current, hours }
-                : current
-            ));
-          }
+        if (cancelled) return;
+        const hours = data?.hours || payload?.hours;
+        if (Array.isArray(hours) && hours.length) {
+          setSelectedSalon((current) => (
+            current && String(current.id || current.source_key) === String(salonUserId)
+              ? { ...current, hours }
+              : current
+          ));
         }
       })
-      .catch(() => {
-        if (!cancelled) setSalonClientUnavailableSlots([]);
-      });
+      .catch(() => {});
     return () => {
       cancelled = true;
     };
   }, [salonClientBooking.open, selectedSalon?.id, selectedSalon?.source_key]);
-
-  // Opening the sheet late in the day (or on a closed / full day): move on to the first day that
-  // has a free hour, until the client picks a day themselves.
-  useEffect(() => {
-    if (!salonClientBooking.open || !autoAdvanceDayRef.current || salonClientTimesLoading || salonClientFreeTimes.length) return;
-    const index = salonClientBookingDays.indexOf(salonClientBooking.day);
-    if (index < 0 || index >= salonClientBookingDays.length - 1) return;
-    setSalonClientBooking((current) => ({ ...current, day: salonClientBookingDays[index + 1] }));
-  }, [salonClientBooking.open, salonClientBooking.day, salonClientFreeTimes, salonClientTimesLoading]);
-
-  useEffect(() => {
-    if (!salonClientBooking.open || !salonClientFreeTimes.length) return;
-    if (!salonClientFreeTimes.includes(salonClientBooking.time)) {
-      setSalonClientBooking((current) => ({ ...current, time: salonClientFreeTimes[0] }));
-    }
-  }, [salonClientBooking.open, salonClientBooking.day, salonClientBooking.time, salonClientFreeTimes]);
 
   // Fast while a request is waiting for an answer, slow otherwise (every poll is a function call).
   const hasWaitingBooking = clientBookingList.some((item) => item.status === "درخواست" || item.status === "تازه");
@@ -479,16 +356,12 @@ export function useSalonDirectory({
       return;
     }
     setSalonClientTab("services");
-    autoAdvanceDayRef.current = true;
     setSalonClientBooking((current) => ({
       open: true,
       service: nextService,
       bundle: picked?.items ? picked : null,
-      day: current.day || salonClientBookingDays[0] || "",
-        time: current.time || getSalonHourForDay(selectedSalon.hours, current.day)?.open_time || "۱۰:۰۰",
       client: current.client || createdProfile?.data?.name || "",
-      phone: current.phone || createdProfile?.data?.phone || "",
-      profileConfirmed: false
+      phone: current.phone || createdProfile?.data?.phone || ""
     }));
   }, [selectedSalon, createdProfile, shellMsg]);
 
@@ -496,69 +369,20 @@ export function useSalonDirectory({
     setSalonClientBooking((current) => ({ ...current, open: false }));
   }, []);
 
-  const patchSalonClientBooking = useCallback((patch) => {
-    if (patch && Object.prototype.hasOwnProperty.call(patch, "day")) autoAdvanceDayRef.current = false;
-    setSalonClientBooking((current) => ({ ...current, ...patch }));
-  }, []);
-
-  const confirmSalonClientBooking = useCallback(async (options = {}) => {
-    if (!selectedSalon || !salonClientBooking.service) {
-      shellMsg("اول یک خدمت را انتخاب کن.");
-      return;
-    }
-    const salonUserId = selectedSalon.id || selectedSalon.source_key;
-    if (!salonUserId) {
-      shellMsg("شناسه سالن برای ثبت رزرو پیدا نشد.");
-      return;
-    }
-    if (!salonClientFreeTimes.includes(salonClientBooking.time)) {
-      shellMsg("این ساعت دیگر آزاد نیست؛ یک ساعت دیگر انتخاب کن.");
-      return;
-    }
-    const profileConfirmed = Boolean(options.profileConfirmed || salonClientBooking.profileConfirmed);
-    if (!profileConfirmed) {
-      shellMsg("برای ثبت رزرو، اول اطلاعات پروفایل را تایید کن.");
-      return;
-    }
-    if (options.profileConfirmed && !salonClientBooking.profileConfirmed) {
-      setSalonClientBooking((current) => ({ ...current, profileConfirmed: true }));
-    }
-    setSalonClientBookingBusy(true);
+  const clientVisitBusyRef = useRef(false);
+  /**
+   * The client's request from the booking form (VisitBooker): one service or several back to back.
+   * Resolves { ok, status, payload } so the form can say what went wrong in place; on success the
+   * client gets the «درخواستت رسید» receipt. Nothing here toasts a failure.
+   */
+  const submitSalonClientVisit = useCallback(async (body) => {
+    const salonUserId = selectedSalon?.id || selectedSalon?.source_key;
+    if (!salonUserId) return { ok: false, status: 0, payload: { error: "شناسه سالن برای ثبت رزرو پیدا نشد." } };
+    if (clientVisitBusyRef.current) return { ok: false, status: 0, payload: { error: "ثبت قبلی هنوز تمام نشده." } };
+    clientVisitBusyRef.current = true;
     try {
-      const durationMinutes = parseServiceDurationMinutes(salonClientSelectedService?.duration);
-      const { ok, payload, status } = await createSalonBooking({
-        salonUserId,
-        client: salonClientBooking.client || createdProfile?.data?.name || "مشتری frfro",
-        phone: salonClientBooking.phone || createdProfile?.data?.phone || "",
-        service: salonClientBooking.service,
-        staff: "",
-        bookingDate: salonClientBooking.day,
-        time: salonClientBooking.time,
-        durationMinutes,
-        // Several services: sent one by one, so the salon can give each its own artist.
-        parts: salonClientBooking.bundle?.name === salonClientBooking.service
-          ? salonClientBooking.bundle.items.map((item) => ({ service: item.name, duration: item.duration || "" }))
-          : undefined,
-        status: "درخواست"
-      });
-      if (!ok) {
-        if (status === 409 && salonClientVisitKey) {
-          // Taken in the meantime: ask the server for the free times again.
-          setVisitTimesVersion((version) => version + 1);
-          shellMsg(payload?.error || "این ساعت دیگر آزاد نیست؛ ساعت دیگری انتخاب کن.");
-        } else if (status === 409) {
-          // Someone else took the slot between loading the list and tapping submit: drop it from
-          // the grid so the client picks another instead of retrying the same dead time.
-          setSalonClientUnavailableSlots((slots) => [
-            ...slots,
-            { booking_date: salonClientBooking.day, time: salonClientBooking.time, duration_minutes: durationMinutes }
-          ]);
-          shellMsg("این ساعت همین الان رزرو شد؛ ساعت دیگری انتخاب کن.");
-        } else {
-          shellMsg(payload?.error || "این زمان قابل رزرو نیست.");
-        }
-        return { ok: false, status, payload };
-      }
+      const { ok, payload, status } = await createSalonBooking({ ...body, salonUserId, status: "درخواست" });
+      if (!ok) return { ok: false, status, payload };
       playSound("submit");
       if (String(salonUserId) === String(createdProfile?.id) && typeof onOwnerBookingsSync === "function") {
         onOwnerBookingsSync(payload?.data?.bookings || []);
@@ -575,70 +399,45 @@ export function useSalonDirectory({
           }
         }
       }
+      // Every service on its own line, like an invoice (the booking row stores only joined text).
+      const listed = getBookableSalonServiceItems(selectedSalon);
+      const names = body.parts?.length ? body.parts.map((part) => part.service) : [body.service];
+      const items = names
+        .map((name) => listed.find((item) => String(item?.name || "") === name))
+        .filter(Boolean);
+      const price = items.length > 1 ? bundleServices(items)?.price : items[0]?.price;
+      const created = payload?.data?.booking;
       let bookedRow = null;
-      if (payload?.data?.booking) {
-        const createdBooking = payload.data.booking;
-        setSalonClientUnavailableSlots((slots) => [
-          ...slots,
-          {
-            booking_date: createdBooking.booking_date,
-            time: createdBooking.time,
-            duration_minutes: createdBooking.duration_minutes || durationMinutes
-          }
-        ]);
+      if (created) {
         bookedRow = {
-          ...createdBooking,
+          ...created,
           salonName: selectedSalon.name,
           salonArea: selectedSalon.area,
           salonPhone: selectedSalon.phone,
           salonAvatar: selectedSalon.avatar,
-          service: salonClientBooking.service,
-          booking_date: createdBooking.booking_date || salonClientBooking.day,
-          time: createdBooking.time || salonClientBooking.time,
-          status: createdBooking.status || "درخواست"
+          service: created.service || body.service,
+          booking_date: created.booking_date || body.bookingDate,
+          time: created.time || body.time,
+          status: created.status || "درخواست"
         };
-        setClientBookingList((items) => [bookedRow, ...items]);
+        setClientBookingList((list) => [bookedRow, ...list]);
       }
       setSalonClientBooking((current) => ({ ...current, open: false }));
-      // Deliberately says "awaiting confirmation", not "ثبت شد" (done/booked) —
-      // the real status right after this call is "درخواست" (pending), and the
-      // salon has up to an hour to respond (bookingExpirySweep.js). The old
-      // "successfully registered" wording read as a done deal and gave no hint
-      // a clock had started, which is exactly the "does the client understand
-      // they're waiting" gap this line exists to close.
+      // Says "awaiting confirmation", not "booked": the real status right now is "درخواست" and the
+      // salon has up to an hour to answer (see bookingExpirySweep.js).
       if (bookedRow && typeof onClientBooked === "function") {
-        // The client gets the full «درخواستت رسید» screen instead of a passing toast.
-        const isBundle = salonClientBooking.bundle?.name === salonClientBooking.service;
-        const price = isBundle ? salonClientBooking.bundle.price : salonClientSelectedService?.price;
-        // Every service on its own line, like an invoice (the booking row stores only joined text).
-        const items = isBundle
-          ? salonClientBooking.bundle.items
-          : (salonClientSelectedService ? [salonClientSelectedService] : []);
         onClientBooked(bookedRow, { price: price || "", items });
       } else {
         shellMsg("درخواست رزرو ثبت شد؛ در انتظار تایید سالن.");
-        notify(`رزرو ${salonClientBooking.service} برای ${salonClientBooking.day} ساعت ${salonClientBooking.time} ثبت شد و در انتظار تایید سالن است.`);
+        notify(`رزرو ${body.service} ساعت ${body.time} ثبت شد و در انتظار تایید سالن است.`);
       }
-      return { ok: true, payload };
+      return { ok: true, status, payload };
     } catch {
-      shellMsg("ثبت رزرو انجام نشد؛ دوباره امتحان کن.");
-      return { ok: false };
+      return { ok: false, status: 0, payload: {} };
     } finally {
-      setSalonClientBookingBusy(false);
+      clientVisitBusyRef.current = false;
     }
-  }, [
-    selectedSalon,
-    salonClientBooking,
-    salonClientFreeTimes,
-    salonClientSelectedService,
-    salonClientVisitKey,
-    createdProfile,
-    onOwnerBookingsSync,
-    onLinkedArtistBooked,
-    onClientBooked,
-    shellMsg,
-    notify
-  ]);
+  }, [selectedSalon, createdProfile, onOwnerBookingsSync, onLinkedArtistBooked, onClientBooked, shellMsg, notify]);
 
   return {
     salonDirectory,
@@ -653,14 +452,9 @@ export function useSalonDirectory({
     setSalonClientTab,
     salonClientBooking,
     setSalonClientBooking,
-    salonClientBookingBusy,
-    salonClientUnavailableSlots,
-    setSalonClientUnavailableSlots,
     clientBookingList,
     setClientBookingList,
     savedSalonList,
-    salonClientFreeTimes,
-    salonClientTimesLoading,
     isFollowingSelectedSalon,
     isSavedSelectedSalon,
     refreshSalonDirectory,
@@ -673,8 +467,7 @@ export function useSalonDirectory({
     shareSalonProfile,
     openSalonClientBooking,
     closeSalonClientBooking,
-    patchSalonClientBooking,
-    confirmSalonClientBooking,
+    submitSalonClientVisit,
     getVisibleSalonServiceItems
   };
 }

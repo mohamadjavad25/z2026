@@ -1,90 +1,83 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { apiFetch } from "../shared/api/client";
-import { adminFetch } from "./adminFetch";
+import { KeyRound, LogOut, ShieldCheck, ShieldAlert, Smartphone } from "lucide-react";
 import { Button } from "../components/ui";
-import { fmtDate } from "./format";
+import { api } from "./adminFetch";
+import { ACTION_LABEL, ago, fmtDate, num } from "./format";
+import { PageHead } from "./PageHead";
+import { Card, ErrorNote, Loading, confirmAction, toastResult, useAdminData } from "./ui";
 
-const EVENT_LABEL = {
-  login: "ورود موفق",
-  login_failed: "ورود ناموفق",
-  login_blocked: "ورود مسدود (تلاش زیاد)",
-  enroll: "راه‌اندازی Authenticator",
-  enroll_failed: "راه‌اندازی ناموفق",
-  stepup: "تأیید دوباره موفق",
-  stepup_failed: "تأیید دوباره ناموفق",
-  revoke_sessions: "پایان نشست‌ها",
-  reset_authenticator: "ریست Authenticator"
-};
+const BAD = new Set(["login_failed", "login_blocked", "enroll_failed", "stepup_failed"]);
 
-/** Who is signed in to the admin panel right now, and every recent sign-in attempt (with IP). */
+/** Who can sign in to the panel, who is signed in right now, and every recent sign-in attempt (with IP). */
 export function SecurityTab() {
-  const [data, setData] = useState(null);
-  const [message, setMessage] = useState("");
-  const load = useCallback(async () => {
-    const { ok, payload } = await apiFetch("/api/admin/security");
-    if (ok) setData(payload.data);
-  }, []);
-  useEffect(() => { load(); }, [load]);
+  const { data, error, reload } = useAdminData("/api/admin/security");
 
   async function revoke(session) {
-    if (!window.confirm(`همهٔ نشست‌های ${session.phone} بسته شود؟`)) return;
-    const { ok, payload } = await adminFetch("/api/admin/security/revoke", { method: "POST", body: JSON.stringify({ userId: session.user_id }) });
-    setMessage(ok ? "نشست‌ها بسته شد." : payload.error || "انجام نشد.");
-    if (ok) load();
+    const answer = await confirmAction({ title: `همهٔ نشست‌های ${session.phone} بسته شود؟`, body: session.user_id === data.me ? "خودت هم از پنل خارج می‌شوی." : "باید دوباره با رمز و کد Authenticator وارد شود.", danger: true, confirmLabel: "بستن نشست" });
+    if (!answer.ok) return;
+    if (toastResult(await api.post("/api/admin/security/revoke", { userId: session.user_id }), "نشست‌ها بسته شد.")) reload();
   }
 
   async function resetAuthenticator(account) {
-    if (!window.confirm(`Authenticator ${account.phone} پاک شود؟ همین الان از پنل خارج می‌شود و باید دوباره «راه‌اندازی اولیه» را انجام دهد.`)) return;
-    const { ok, payload } = await adminFetch("/api/admin/security/reset-authenticator", { method: "POST", body: JSON.stringify({ userId: account.id }) });
-    setMessage(ok ? "Authenticator پاک شد؛ حالا می‌تواند دوباره راه‌اندازی کند." : payload.error || "انجام نشد.");
-    if (ok) load();
+    const answer = await confirmAction({
+      title: `Authenticator ${account.phone} پاک شود؟`,
+      body: "همین الان از پنل خارج می‌شود و باید دوباره «راه‌اندازی اولیه» را انجام دهد (به رمز حسابش و کلید راه‌اندازی نیاز دارد).",
+      danger: true,
+      confirmLabel: "پاک شود"
+    });
+    if (!answer.ok) return;
+    if (toastResult(await api.post("/api/admin/security/reset-authenticator", { userId: account.id }), "Authenticator پاک شد؛ حالا می‌تواند دوباره راه‌اندازی کند.")) reload();
   }
 
-  if (!data) return <p className="admMuted">در حال بارگذاری…</p>;
+  if (!data) return <><PageHead tab="security" />{error ? <ErrorNote error={error} onRetry={reload} /> : <Loading />}</>;
+  const failed24h = data.events.filter((event) => BAD.has(event.action) && Date.now() - new Date(event.created_at).getTime() < 24 * 3600 * 1000).length;
   return (
     <>
-      <section className="admCard">
-        <h2>حساب‌های مدیر</h2>
-        <p className="admMuted">این شماره‌ها در <span dir="ltr">FRFRO_ADMIN_PHONES</span> تعریف شده‌اند. اگر مدیری گوشی‌اش را گم کرد، Authenticatorش را اینجا پاک کن تا دوباره راه‌اندازی کند (به رمز حسابش و کلید راه‌اندازی نیاز دارد).</p>
+      <PageHead tab="security" />
+      <div className="admGrid is-three">
+        <div className="admStat"><small>مدیر تعریف‌شده</small><b>{num(data.accounts.length)}</b><em>در FRFRO_ADMIN_PHONES</em></div>
+        <div className="admStat"><small>نشست فعال پنل</small><b>{num(data.sessions.length)}</b><em>هر مدیر حداکثر یکی</em></div>
+        <div className={`admStat${failed24h ? " is-bad" : ""}`}><small>ورود ناموفق (۲۴ ساعت)</small><b>{num(failed24h)}</b><em>{failed24h ? "بررسی کن" : "همه‌چیز آرام است"}</em></div>
+      </div>
+      <Card title="حساب‌های مدیر" icon={ShieldCheck}>
+        <p className="admMuted">این شماره‌ها در <span dir="ltr">FRFRO_ADMIN_PHONES</span> تعریف شده‌اند. اگر مدیری گوشی‌اش را گم کرد، Authenticatorش را اینجا پاک کن تا دوباره راه‌اندازی کند.</p>
         <ul className="admList">
           {data.accounts.map((account) => (
             <li key={account.phone}>
               <span>
-                <b dir="ltr">{account.phone}</b> {account.id === data.me ? "(تو)" : ""}
+                <b dir="ltr">{account.phone}</b> {account.id === data.me ? <span className="admTone is-info">تو</span> : null}
                 <br />
                 <small>{!account.registered ? "هنوز در سایت ثبت‌نام نکرده" : account.authenticator ? `Authenticator فعال${account.online ? " • الان وارد است" : ""}` : "Authenticator هنوز راه‌اندازی نشده"}</small>
               </span>
-              {account.registered && account.id !== data.me && account.authenticator ? <Button size="sm" variant="danger" onClick={() => resetAuthenticator(account)}>ریست Authenticator</Button> : null}
+              {account.registered && account.id !== data.me && account.authenticator ? <Button size="sm" variant="danger" onClick={() => resetAuthenticator(account)}><KeyRound size={15} aria-hidden="true" /> ریست Authenticator</Button> : null}
             </li>
           ))}
         </ul>
-      </section>
-      <section className="admCard">
-        <h2>نشست‌های فعال مدیریت</h2>
-        {message ? <p className="admNote" role="status">{message}</p> : null}
+      </Card>
+      <Card title="نشست‌های فعال پنل" icon={Smartphone}>
         <ul className="admList">
           {data.sessions.map((session) => (
             <li key={session.user_id}>
-              <span><b dir="ltr">{session.phone}</b> {session.user_id === data.me ? "(تو)" : ""}<br /><small>ورود: {fmtDate(session.created_at)} • آخرین فعالیت: {fmtDate(session.last_seen_at)}</small></span>
-              <Button size="sm" variant="danger" onClick={() => revoke(session)}>بستن نشست</Button>
+              <span><b dir="ltr">{session.phone}</b> {session.user_id === data.me ? <span className="admTone is-info">تو</span> : null}<br /><small>ورود: {fmtDate(session.created_at)} • آخرین فعالیت: {ago(session.last_seen_at)}</small></span>
+              <Button size="sm" variant="danger" onClick={() => revoke(session)}><LogOut size={15} aria-hidden="true" /> بستن نشست</Button>
             </li>
           ))}
         </ul>
-      </section>
-      <section className="admCard">
-        <h2>رویدادهای ورود</h2>
-        <ul className="admList">
-          {data.events.map((event) => (
-            <li key={event.id}>
-              <span>{EVENT_LABEL[event.action] || event.action} — <span dir="ltr">{event.admin_label || "—"}</span><br /><small dir="ltr">{event.detail}</small></span>
-              <small>{fmtDate(event.created_at)}</small>
-            </li>
-          ))}
-          {!data.events.length ? <li className="admMuted">رویدادی نیست.</li> : null}
-        </ul>
-      </section>
+      </Card>
+      <Card title="رویدادهای ورود" icon={ShieldAlert}>
+        {data.events.length ? (
+          <ul className="admLog">
+            {data.events.map((event) => (
+              <li key={event.id}>
+                <span className={`admLogDot is-${BAD.has(event.action) ? "bad" : "good"}`} aria-hidden="true" />
+                <div className="admLogBody"><b>{ACTION_LABEL[event.action] || event.action}</b>{event.detail ? <p dir="ltr">{event.detail}</p> : null}</div>
+                <div className="admLogMeta"><time dateTime={event.created_at} title={fmtDate(event.created_at)}>{ago(event.created_at)}</time><small dir="ltr">{event.admin_label || "—"}</small></div>
+              </li>
+            ))}
+          </ul>
+        ) : <p className="admMuted">رویدادی نیست.</p>}
+      </Card>
     </>
   );
 }

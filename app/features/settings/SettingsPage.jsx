@@ -6,10 +6,17 @@ import { Bookmark, Camera, ChevronLeft, ImagePlus, Move, Pencil, Trash2 } from "
 import { toPersianDigits } from "../../shared/lib/digits";
 import { ProfileSheet } from "../profile/ProfileSheet";
 import { ProfileLocationSettings } from "../profile/ProfileLocationSettings";
-import { ProfileSettingsPanel } from "../profile/ProfileSettingsPanel";
+import {
+  AccountSettings,
+  AppearanceSettings,
+  ArtistBookingSettings,
+  NotificationSettings,
+  ProfileVisibilitySettings
+} from "../profile/ProfileSettingsPanel";
 import { SalonHoursEditor } from "../profile/SalonHoursEditor";
 import { ImagePositionEditor } from "./ImagePositionEditor";
 import { SalonRulesSettings } from "../salons/SalonRulesSettings";
+import { SubscriptionCard } from "../billing";
 
 /**
  * The camera-icon trigger over an existing avatar/poster opens a bottom
@@ -283,125 +290,128 @@ export function SettingsPage({
         ? <><span dir="ltr">{toPersianDigits(clientPhone)}</span>{" · عکس، نام، ایمیل و رمز عبور"}</>
         : "عکس، نام، تماس، ایمیل و رمز عبور";
   const accountAvatar = profile?.data?.avatar || profile?.avatar || defaultAvatarFor(profile?.type);
+  const roleLabel = isArtist ? "حساب آرتیست" : isSalon ? "حساب سالن" : "حساب من";
+  const savedTitle = isArtist ? "بوکمارک‌های آرتیست" : isSalon ? "بوکمارک‌های سالن" : "ذخیره‌شده‌ها";
+  const savedDescription = isArtist
+    ? `${toPersianDigits(savedPostsCount || 0)} نمونه ذخیره‌شده`
+    : isSalon
+      ? "مشاهده لیست ذخیره‌شده‌ها"
+      : savedPostsCount
+        ? `${toPersianDigits(savedPostsCount)} مورد ذخیره‌شده`
+        : "مدل‌ها و نمونه‌کارهای ذخیره‌شده";
 
   return (
     <div className={`settingsPagePanel mobilePage page-settings ${active ? "is-active" : ""}`} id="settings">
       <div className="settingsPageBody">
-        <h3 className="spSectionTitle">{isArtist || isSalon ? "پروفایل و برند" : "حساب من"}</h3>
-        <ProfileLocationSettings
-          profileType={profile?.type}
-          value={profile?.data?.area || ""}
-          saving={locationSaving}
-          onSave={onSaveLocation}
-        />
+        <header className="spHeader">
+          <h2 className="spHeaderTitle">تنظیمات</h2>
+          <span className="spHeaderRole">{roleLabel}</span>
+        </header>
 
-        <BrandCard
-          hasPoster={isArtist || isSalon}
-          poster={profile?.data?.poster || ""}
-          posterPosition={profile?.data?.posterPosition || ""}
-          avatar={accountAvatar}
-          avatarPosition={profile?.data?.avatarPosition || ""}
-          logoSaving={logoSaving}
-          posterSaving={posterSaving}
-          onSaveLogo={onSaveLogo}
-          onSavePoster={onSavePoster}
-          onRemoveLogo={onRemoveLogo}
-          onRemovePoster={onRemovePoster}
-          onSaveAvatarPosition={onSaveAvatarPosition}
-          onSavePosterPosition={onSavePosterPosition}
-          pendingAvatarUpload={pendingAvatarUpload}
-          pendingPosterUpload={pendingPosterUpload}
-          onConfirmAvatarUpload={onConfirmAvatarUpload}
-          onConfirmPosterUpload={onConfirmPosterUpload}
-          onCancelAvatarUpload={onCancelAvatarUpload}
-          onCancelPosterUpload={onCancelPosterUpload}
-          accountTitle={accountTitle}
-          accountDescription={accountDescription}
-          onEditProfile={onEditProfile}
-        />
+        {/* 0. Subscription (salons and artists): where the account stands and the one button. Hidden until billing is on. */}
+        {isArtist || isSalon ? <SubscriptionCard /> : null}
 
-        {isClient ? (
+        {/* 1. Identity: who you are, where you work, and what customers see of it. */}
+        <section className="spSection" aria-labelledby="spSection-profile">
+          <h3 className="spSectionTitle" id="spSection-profile">{isClient ? "پروفایل من" : "پروفایل و برند"}</h3>
+          <BrandCard
+            hasPoster={isArtist || isSalon}
+            poster={profile?.data?.poster || ""}
+            posterPosition={profile?.data?.posterPosition || ""}
+            avatar={accountAvatar}
+            avatarPosition={profile?.data?.avatarPosition || ""}
+            logoSaving={logoSaving}
+            posterSaving={posterSaving}
+            onSaveLogo={onSaveLogo}
+            onSavePoster={onSavePoster}
+            onRemoveLogo={onRemoveLogo}
+            onRemovePoster={onRemovePoster}
+            onSaveAvatarPosition={onSaveAvatarPosition}
+            onSavePosterPosition={onSavePosterPosition}
+            pendingAvatarUpload={pendingAvatarUpload}
+            pendingPosterUpload={pendingPosterUpload}
+            onConfirmAvatarUpload={onConfirmAvatarUpload}
+            onConfirmPosterUpload={onConfirmPosterUpload}
+            onCancelAvatarUpload={onCancelAvatarUpload}
+            onCancelPosterUpload={onCancelPosterUpload}
+            accountTitle={accountTitle}
+            accountDescription={accountDescription}
+            onEditProfile={onEditProfile}
+          />
+
+          <ProfileLocationSettings
+            profileType={profile?.type}
+            value={profile?.data?.area || ""}
+            saving={locationSaving}
+            onSave={onSaveLocation}
+          />
+
           <div className="settingsRowCard">
             <button type="button" className="profileLocationRow" onClick={onOpenSaved}>
               <span className="profileLocationRowIcon" aria-hidden="true">
                 <Bookmark size={17} />
               </span>
               <span className="profileLocationRowInfo">
-                <strong>ذخیره‌شده‌ها</strong>
-                <span>{savedPostsCount ? `${toPersianDigits(savedPostsCount)} مورد ذخیره‌شده` : "مدل‌ها و نمونه‌کارهای ذخیره‌شده"}</span>
+                <strong>{savedTitle}</strong>
+                <span>{savedDescription}</span>
               </span>
               <ChevronLeft size={16} className="profileLocationRowChevron" aria-hidden="true" />
             </button>
           </div>
-        ) : null}
 
-        {isArtist || isSalon ? <h3 className="spSectionTitle">کار و رزرو</h3> : null}
+          {isArtist || isSalon ? (
+            <div className="neoSettingsPanel">
+              <ProfileVisibilitySettings profileType={profile.type} profileSettings={profileSettings} onToggle={onToggleSetting} />
+            </div>
+          ) : null}
+        </section>
 
+        {/* 2. Work and bookings: hours first, then the rules or booking switches that go with them. */}
         {isArtist || isSalon ? (
-          <div className="settingsRowCard">
-            <button type="button" className="profileLocationRow" onClick={onOpenSaved}>
-              <span className="profileLocationRowIcon" aria-hidden="true">
-                <Bookmark size={17} />
-              </span>
-              <span className="profileLocationRowInfo">
-                <strong>{isArtist ? "بوکمارک‌های آرتیست" : "بوکمارک‌های سالن"}</strong>
-                <span>{isArtist ? `${toPersianDigits(savedPostsCount || 0)} نمونه ذخیره‌شده` : "مشاهده لیست ذخیره‌شده‌ها"}</span>
-              </span>
-              <ChevronLeft size={16} className="profileLocationRowChevron" aria-hidden="true" />
-            </button>
+          <section className="spSection" aria-labelledby="spSection-work">
+            <h3 className="spSectionTitle" id="spSection-work">کار و رزرو</h3>
+            <SalonHoursEditor
+              kicker={isArtist ? "تنظیمات آرتیست" : "تنظیمات سالن"}
+              open={hoursOpen}
+              onToggleOpen={onToggleHoursOpen}
+              presets={hoursPresets}
+              activePresetId={activeHoursPresetId}
+              activePresetMeta={activeHoursPresetMeta}
+              hoursList={hoursList}
+              selectedHour={selectedHour}
+              timeOptions={hourTimeOptions}
+              openDaysCount={openDaysCount}
+              weeklyCapacityTotal={weeklyCapacityTotal}
+              onSelectPreset={onSelectHoursPreset}
+              onSelectDay={onSelectHourDay}
+              onUpdateHour={onUpdateHour}
+              onCopyToOpenDays={onCopyHourToOpenDays}
+            />
+            {isArtist ? (
+              <div className="neoSettingsPanel">
+                <ArtistBookingSettings profileSettings={profileSettings} onToggle={onToggleSetting} />
+              </div>
+            ) : null}
+            {isSalon ? <SalonRulesSettings onNotify={onNotify} /> : null}
+          </section>
+        ) : null}
+
+        {/* 3. Notifications and appearance: how the app talks to you on this device. */}
+        <section className="spSection" aria-labelledby="spSection-prefs">
+          <h3 className="spSectionTitle" id="spSection-prefs">اعلان‌ها و ظاهر</h3>
+          <div className="neoSettingsPanel">
+            <NotificationSettings profileType={profile.type} profileSettings={profileSettings} onToggle={onToggleSetting} />
+            <AppearanceSettings />
           </div>
-        ) : null}
+        </section>
 
-        {isSalon ? <SalonRulesSettings onNotify={onNotify} /> : null}
-
-        {isSalon ? (
-          <SalonHoursEditor
-            kicker="تنظیمات سالن"
-            open={hoursOpen}
-            onToggleOpen={onToggleHoursOpen}
-            presets={hoursPresets}
-            activePresetId={activeHoursPresetId}
-            activePresetMeta={activeHoursPresetMeta}
-            hoursList={hoursList}
-            selectedHour={selectedHour}
-            timeOptions={hourTimeOptions}
-            openDaysCount={openDaysCount}
-            weeklyCapacityTotal={weeklyCapacityTotal}
-            onSelectPreset={onSelectHoursPreset}
-            onSelectDay={onSelectHourDay}
-            onUpdateHour={onUpdateHour}
-            onCopyToOpenDays={onCopyHourToOpenDays}
-          />
-        ) : null}
-
-        {isArtist ? (
-          <SalonHoursEditor
-            kicker="تنظیمات آرتیست"
-            open={hoursOpen}
-            onToggleOpen={onToggleHoursOpen}
-            presets={hoursPresets}
-            activePresetId={activeHoursPresetId}
-            activePresetMeta={activeHoursPresetMeta}
-            hoursList={hoursList}
-            selectedHour={selectedHour}
-            timeOptions={hourTimeOptions}
-            openDaysCount={openDaysCount}
-            weeklyCapacityTotal={weeklyCapacityTotal}
-            onSelectPreset={onSelectHoursPreset}
-            onSelectDay={onSelectHourDay}
-            onUpdateHour={onUpdateHour}
-            onCopyToOpenDays={onCopyHourToOpenDays}
-          />
-        ) : null}
-
-        <h3 className="spSectionTitle">ترجیحات و حساب</h3>
-        <ProfileSettingsPanel
-          profileType={profile.type}
-          profileSettings={profileSettings}
-          onToggle={onToggleSetting}
-          onLogout={onLogout}
-          onDeleteAccount={onDeleteAccount}
-        />
+        {/* 4. Account: always last, so sign-out and deletion are never in the way of the settings above. */}
+        <section className="spSection" aria-labelledby="spSection-account">
+          <h3 className="spSectionTitle" id="spSection-account">حساب و پشتیبانی</h3>
+          <div className="neoSettingsPanel">
+            <AccountSettings onLogout={onLogout} onDeleteAccount={onDeleteAccount} />
+          </div>
+        </section>
       </div>
     </div>
   );
