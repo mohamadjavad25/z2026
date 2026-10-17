@@ -104,7 +104,6 @@ export function ProfilePanelBody() {
     artistWorkTagMenuOpen,
     setArtistWorkTagMenuOpen,
     clientBookingList,
-    openProfileEdit,
     openSalonWorkspace,
     saveProfileLogo,
     pendingAvatarUpload,
@@ -237,7 +236,6 @@ export function ProfilePanelBody() {
               <ProfileCompleteness
                 profile={createdProfile}
                 serviceCount={createdProfile.type === "salon" ? salonServiceList.length : artistServiceList.length}
-                onEditProfile={openProfileEdit}
                 onPickLogo={saveProfileLogo}
                 logoEditing={Boolean(pendingAvatarUpload)}
                 onQuickSave={quickSaveProfile}

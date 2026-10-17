@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { ArrowLeft, Check, ImagePlus, ListPlus, MapPin, Sparkles, X } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { beautySpecialtyOptions } from "../../shared/constants/roles";
@@ -9,15 +9,8 @@ import { Button } from "../../components/ui/Button";
 import { ProfileSheet } from "./ProfileSheet";
 import { QuickAreaPicker } from "./QuickAreaSheet";
 
-// Icon + one-line "why it matters" per step: owners see the benefit, not just a task name.
-export const STEP_META = {
-  avatar: { Icon: ImagePlus, hint: "با لوگو، مشتری زودتر اعتماد می‌کند" },
-  area: { Icon: MapPin, hint: "تا در جستجوی شهرت پیدا شوی" },
-  specialty: { Icon: Sparkles, hint: "مشتری بداند چه کاری انجام می‌دهی" },
-  services: { Icon: ListPlus, hint: "قیمت و رزرو مستقیم برای مشتری" }
-};
+const STEP_ICONS = { avatar: ImagePlus, area: MapPin, specialty: Sparkles, services: ListPlus };
 
-// What the guided screen says for each step (the checklist card only needs the label + hint above).
 const STEP_COPY = {
   avatar: (isSalon) => ({
     title: isSalon ? "لوگوی سالنت را بگذار" : "عکس پروفایلت را بگذار",
@@ -57,11 +50,23 @@ export function ProfileCompletionFlow({
   onOpenServices
 }) {
   const [saving, setSaving] = useState(false);
+
+  // ProfileSheet re-binds its keyboard handling whenever `onClose` changes identity (and hands
+  // focus back each time), so the handler given to it must stay the same across renders.
+  const live = useRef({ onClose, logoEditing });
+  live.current = { onClose, logoEditing };
+  // While the logo crop editor is open on top, Escape / the back button belong to that editor only.
+  const handleClose = useCallback(() => {
+    if (!live.current.logoEditing) live.current.onClose();
+  }, []);
+
   if (!open) return null;
 
   const current = steps.find((step) => !step.done && !skipped.includes(step.id));
   const allDone = steps.every((step) => step.done);
   const index = current ? steps.findIndex((step) => step.id === current.id) : steps.length;
+  const Icon = current ? STEP_ICONS[current.id] : null;
+  const copy = current ? STEP_COPY[current.id](isSalon) : null;
 
   async function save(fields, successMessage) {
     setSaving(true);
@@ -77,12 +82,8 @@ export function ProfileCompletionFlow({
     onOpenServices?.();
   }
 
-  const meta = current ? STEP_META[current.id] || STEP_META.services : null;
-  const copy = current ? (STEP_COPY[current.id] || STEP_COPY.services)(isSalon) : null;
-
   return (
-    // While the logo crop editor is open on top, Escape / back must close only that editor.
-    <ProfileSheet open hideHeader hideClose label="تکمیل پروفایل" panelClassName="pcfSheet" onClose={logoEditing ? () => {} : onClose}>
+    <ProfileSheet open hideHeader hideClose label="تکمیل پروفایل" panelClassName="pcfSheet" onClose={handleClose}>
       <div className="pcfTop">
         <span className="pcfCount">
           {allDone ? "تمام شد" : `قدم ${toPersianDigits(Math.min(index + 1, steps.length))} از ${toPersianDigits(steps.length)}`}
@@ -94,9 +95,7 @@ export function ProfileCompletionFlow({
 
       <ol className="pcfDots" aria-hidden="true">
         {steps.map((step, i) => (
-          <li key={step.id} className={step.done ? "is-done" : !allDone && i === index ? "is-current" : ""}>
-            {step.done ? <Check size={11} /> : null}
-          </li>
+          <li key={step.id} className={step.done ? "is-done" : !allDone && i === index ? "is-current" : ""} />
         ))}
       </ol>
 
@@ -112,7 +111,7 @@ export function ProfileCompletionFlow({
       ) : current ? (
         <div className="pcfStep" key={current.id}>
           <header className="pcfHero">
-            <span className="pcfHeroIcon" aria-hidden="true"><meta.Icon size={26} /></span>
+            <span className="pcfHeroIcon" aria-hidden="true"><Icon size={26} /></span>
             <h3>{copy.title}</h3>
             <p>{copy.lead}</p>
           </header>
@@ -128,9 +127,7 @@ export function ProfileCompletionFlow({
             ) : null}
 
             {current.id === "area" ? (
-              <div className="pcfArea">
-                <QuickAreaPicker disabled={saving} onPick={(area) => save({ area }, `محدوده فعالیت: ${area}`)} />
-              </div>
+              <QuickAreaPicker disabled={saving} onPick={(area) => save({ area }, `محدوده فعالیت: ${area}`)} />
             ) : null}
 
             {current.id === "specialty" ? (
