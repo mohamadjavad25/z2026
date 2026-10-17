@@ -296,7 +296,7 @@ export async function listSecurityEvents(limit = 60) {
 /** One search box for everything: accounts (name / phone), posts (title / caption) and support tickets (subject / text / phone), a handful of each. */
 export async function searchAll(q) {
   const like = likeOf(q);
-  if (like.length < 3) return { users: [], posts: [], tickets: [] };
+  if (String(q || "").trim().length < 3) return { users: [], posts: [], tickets: [] };
   await ensureSupportTables();
   const db = await getDb();
   const [people, posts, tickets] = await Promise.all([
