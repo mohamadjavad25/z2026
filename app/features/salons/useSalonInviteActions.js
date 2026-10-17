@@ -3,6 +3,10 @@ import { updateSalonCollabs, getSalonInvites, createSalonInvite, deleteSalonInvi
 import { getApiErrorMessage } from "../../shared/lib/apiNotify";
 import { getArtists } from "../../shared/api/artists";
 
+// The nearby/all-artists list in the add-artist sheet is off for now (not enough artists on frfro yet);
+// the sheet shows «به زودی» instead. Flip this to bring the list back.
+const NEARBY_ARTISTS_ENABLED = false;
+
 export function useSalonInviteActions({
   shellNotify,
   safeSalonStaffList,
@@ -48,11 +52,18 @@ export function useSalonInviteActions({
 
   const openNearbyArtistInvite = useCallback(async () => {
     setArtistInviteOpen(true);
-    setNearbyArtistsLoading(true);
+    setNearbyArtistsLoading(NEARBY_ARTISTS_ENABLED);
     try {
-      const [artistsRes, invitesRes] = await Promise.all([getArtists(), getSalonInvites()]);
+      const [artistsRes, invitesRes] = await Promise.all([
+        NEARBY_ARTISTS_ENABLED ? getArtists() : Promise.resolve({}),
+        getSalonInvites()
+      ]);
       const invites = Array.isArray(invitesRes.data?.invites) ? invitesRes.data.invites : [];
       setSalonArtistInviteList(invites);
+      if (!NEARBY_ARTISTS_ENABLED) {
+        setNearbyArtists([]);
+        return;
+      }
       const artists = Array.isArray(artistsRes.data?.artists) ? artistsRes.data.artists : [];
       const staffIds = new Set(
         safeSalonStaffList

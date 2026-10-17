@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ContactRound, QrCode, ScanLine, Search, X } from "lucide-react";
+import { ComingSoon } from "../../components/ComingSoon";
 import { Mascot } from "../../components/Mascot";
 import { SkeletonList } from "../../components/Skeleton";
 import { listConnectionsForCategory } from "../../shared/api/connections";
@@ -179,6 +180,11 @@ export function ConnectPage({ me = {}, onOpenProfile, onNotify }) {
                 action={<button type="button" className="cnPrimaryBtn" onClick={() => onOpenProfile?.(profile)}>رزرو</button>}
               />
             ))}
+            <ComingSoon
+              className="is-compact"
+              title="پیشنهاد سالن و آرتیست از فرفرو"
+              text="به‌زودی بهترین‌های اطرافت را اینجا پیشنهاد می‌دهیم. فعلا سالن و آرتیست خودت را وصل کن."
+            />
           </section>
         )}
       </div>
