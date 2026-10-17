@@ -81,7 +81,6 @@ export function ServicesDropUp({ open, title, services, focusNames = null, focus
           <div className="sduHead">
             <div>
               <b>{title}</b>
-              {list.length ? <small>{toPersianDigits(list.length)} خدمت · می‌توانی چند خدمت را با هم انتخاب کنی</small> : null}
             </div>
             <button type="button" className="sduClose" aria-label="بستن" onClick={onClose}>
               <X size={16} strokeWidth={2.4} />

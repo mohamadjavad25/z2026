@@ -178,14 +178,14 @@ export function PublicArtistModal({
             <nav className="spvBar" aria-label="رزرو و اطلاعات">
               <button
                 type="button"
-                className="spvBarBook"
+                className={`spvBarBook${servicesOpen ? " is-open" : ""}`}
                 onClick={() => setServicesOpen((open) => !open)}
                 aria-expanded={servicesOpen}
                 aria-haspopup="dialog"
               >
                 <Scissors size={19} />
-                خدمات
-                {fromPrice ? <small>از {formatTomanNumber(fromPrice)} تومان</small> : null}
+                {servicesOpen ? "بستن" : "خدمات"}
+                {fromPrice && !servicesOpen ? <small>از {formatTomanNumber(fromPrice)} تومان</small> : null}
                 <ChevronUp size={18} className={`spvBarChevron${servicesOpen ? " is-open" : ""}`} aria-hidden="true" />
               </button>
             </nav>
