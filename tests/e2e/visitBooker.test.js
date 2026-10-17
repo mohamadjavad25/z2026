@@ -79,6 +79,16 @@ async function pickService(page, name) {
   await page.locator(".vbService", { hasText: name }).click();
 }
 
+/** The wizard asks one thing at a time: the name, then the services (each needs «ادامه»), then the day and the hour (a tap moves on). */
+async function fillWho(page, name) {
+  await page.locator("#vb-name").fill(name);
+  await page.locator(".vbSubmit").click();
+  await page.locator(".vbService").first().waitFor();
+}
+const goOn = (page) => page.locator(".vbSubmit").click();
+/** Taps the hour the form picked by itself: on to the last step. */
+const takeTime = (page) => page.locator(".vbTime.is-on").click();
+
 const pickTime = (page, hhmm) => page.getByRole("button", { name: persianDigits(hhmm), exact: true }).click();
 const bookingsOf = async (team) => (await team.salonClient.get("/api/salon-bookings")).payload.data.bookings;
 const partsOf = (booking) => JSON.parse(booking.parts || "[]");
@@ -88,9 +98,10 @@ describe("VisitBooker for the salon (browser)", () => {
     const team = await seedTeam();
     const { page, context, problems } = await openSalon(team);
     await openBookingSheet(page);
-    await page.locator("#vb-name").fill("مریم");
+    await fillWho(page, "مریم");
     await pickService(page, M);
     await pickService(page, H);
+    await goOn(page);
     await pickDay(page, DAY2);
     await pickTime(page, "10:00");
     // who does what is shown before saving, with each service's own clock time
@@ -124,8 +135,9 @@ describe("VisitBooker for the salon (browser)", () => {
     const team = await seedTeam();
     const { page, context, problems } = await openSalon(team);
     await openBookingSheet(page);
-    await page.locator("#vb-name").fill("تک‌خدمتی");
+    await fillWho(page, "تک‌خدمتی");
     await pickService(page, H);
+    await goOn(page);
     await pickDay(page, DAY2);
     await pickTime(page, "10:00");
     await page.locator(".vbPlanRow").first().waitFor();
@@ -145,9 +157,10 @@ describe("VisitBooker for the salon (browser)", () => {
     const team = await seedTeam();
     const { page, context, problems } = await openSalon(team);
     await openBookingSheet(page);
-    await page.locator("#vb-name").fill("نرگس");
+    await fillWho(page, "نرگس");
     await pickService(page, M);
     await pickService(page, H);
+    await goOn(page);
     await pickDay(page, DAY2);
     await pickTime(page, "11:00");
     await page.locator(".vbPlanRow").nth(1).waitFor();
@@ -175,8 +188,9 @@ describe("VisitBooker for the salon (browser)", () => {
     expect((await team.salonClient.post("/api/salon-bookings", { service: H, staff: team.hair.staff.name, bookingDate: day, time: "10:00", client: "حضوری", phone: "09120004001" })).ok).toBe(true);
     const { page, context, problems } = await openSalon(team);
     await openBookingSheet(page);
-    await page.locator("#vb-name").fill("سارا");
+    await fillWho(page, "سارا");
     await pickService(page, M);
+    await goOn(page);
     await pickDay(page, DAY3);
     await pickTime(page, "10:00");
     await page.locator(".vbPlanRow").first().locator("button.vbWho2").click();
@@ -194,17 +208,16 @@ describe("VisitBooker for the salon (browser)", () => {
     const team = await seedTeam();
     const { page, context } = await openSalon(team);
     await openBookingSheet(page);
-    await pickService(page, H);
-    await pickDay(page, DAY2);
-    await page.locator(".vbTime.is-on").waitFor();
+    // the name is asked first, and the form does not move on without it (the button is aria-disabled, so force the click)
     await page.locator(".vbSubmit").click({ force: true });
-    expect(await page.locator(".vbHint").innerText()).toBe("برای ثبت لازم است: نام مشتری");
+    expect(await page.locator(".vbHint").innerText()).toBe("نام مشتری را بنویس.");
     expect(await page.evaluate(() => document.activeElement?.id)).toBe("vb-name");
-    expect(await bookingsOf(team)).toHaveLength(0);
-    // with nothing chosen at all, the hint lists everything in reading order
-    await page.locator(".vbService", { hasText: H }).click();
+    expect(await page.locator(".vbService").count()).toBe(0);
+    // the services cannot be skipped either
+    await fillWho(page, "ناقص");
     await page.locator(".vbSubmit").click({ force: true });
-    expect(await page.locator(".vbHint").innerText()).toBe("برای ثبت لازم است: خدمت، نام مشتری، ساعت");
+    expect(await page.locator(".vbDay").count()).toBe(0);
+    expect(await bookingsOf(team)).toHaveLength(0);
     await context.close();
   });
 
@@ -212,10 +225,11 @@ describe("VisitBooker for the salon (browser)", () => {
     const team = await seedTeam();
     const { page, context, problems } = await openSalon(team);
     await openBookingSheet(page);
-    await page.locator("#vb-name").fill("دوبار");
+    await fillWho(page, "دوبار");
     await pickService(page, H);
+    await goOn(page);
     await pickDay(page, DAY2);
-    await page.locator(".vbTime.is-on").waitFor();
+    await takeTime(page);
     await page.locator(".vbPlanRow").first().waitFor();
     await page.locator(".vbSubmit").dblclick();
     await page.locator(".visitBookerSheet").waitFor({ state: "detached" });
@@ -228,11 +242,16 @@ describe("VisitBooker for the salon (browser)", () => {
     const team = await seedTeam();
     const { page, context } = await openSalon(team);
     await openBookingSheet(page);
-    await pickService(page, H);
-    await pickDay(page, DAY2);
-    await page.locator(".vbPlanRow").first().waitFor();
     await page.locator("#vb-name").fill("با کیبورد");
-    await page.locator("#vb-name").press("Enter");
+    await page.locator("#vb-name").press("Enter"); // on to the number
+    await page.locator("#vb-phone").press("Enter"); // and on to the services
+    await pickService(page, H);
+    await goOn(page);
+    await pickDay(page, DAY2);
+    await takeTime(page);
+    await page.locator(".vbPlanRow").first().waitFor();
+    await page.locator(".vbSubmit").focus();
+    await page.keyboard.press("Enter");
     await page.locator(".visitBookerSheet").waitFor({ state: "detached" });
     expect((await bookingsOf(team)).filter((b) => b.client === "با کیبورد")).toHaveLength(1);
     await context.close();
@@ -260,12 +279,17 @@ describe("VisitBooker for the salon (browser)", () => {
     const team = await seedTeam();
     const { page, context } = await openSalon(team);
     await openBookingSheet(page);
+    await fillWho(page, "تعطیل");
+    await pickService(page, H);
+    await goOn(page);
     const days = page.locator(".vbDay");
     const closed = days.filter({ hasText: "تعطیل" });
     expect(await closed.count()).toBeGreaterThan(0);
     const before = await page.locator(".vbDay.is-on").innerText();
     await closed.first().click({ force: true });
     expect(await closed.first().getAttribute("aria-disabled")).toBe("true");
+    // still asking for the day: a closed one does not move on
+    expect(await page.locator(".vbTime").count()).toBe(0);
     expect(await page.locator(".vbDay.is-on").innerText()).toBe(before);
     await context.close();
   });
@@ -275,8 +299,9 @@ describe("VisitBooker for the salon (browser)", () => {
     const day = dayKeyAhead(DAY2);
     const { page, context, problems } = await openSalon(team);
     await openBookingSheet(page);
-    await page.locator("#vb-name").fill("دیرتر");
+    await fillWho(page, "دیرتر");
     await pickService(page, H);
+    await goOn(page);
     await pickDay(page, DAY2);
     await pickTime(page, "10:00");
     await page.locator(".vbPlanRow").first().waitFor();
@@ -287,8 +312,7 @@ describe("VisitBooker for the salon (browser)", () => {
     expect(await page.locator(".vbHint").innerText()).toMatch(/[؀-ۿ]/);
     expect((await bookingsOf(team)).filter((b) => b.client === "دیرتر")).toHaveLength(0);
     // the list was asked for again: 10:00 is gone and another time is chosen and fine
-    await page.getByRole("button", { name: "۱۰:۰۰", exact: true }).waitFor({ state: "detached" });
-    await page.locator(".vbTime.is-on").waitFor();
+    await page.waitForFunction(() => document.querySelector(".vbPlanTime") && !document.querySelector(".vbPlanTime").textContent.startsWith("۱۰:۰۰"));
     await page.locator(".vbPlanRow").first().waitFor();
     await page.locator(".vbSubmit").click();
     await page.locator(".visitBookerSheet").waitFor({ state: "detached" });
@@ -302,14 +326,15 @@ describe("VisitBooker for the salon (browser)", () => {
     const { page, context } = await openSalon(team);
     await page.route("**/api/salon-bookings/availability*", (route) => route.fulfill({ status: 500, contentType: "application/json", body: "{}" }));
     await openBookingSheet(page);
+    await fillWho(page, "اینترنت");
     await pickService(page, H);
+    await goOn(page);
     await pickDay(page, DAY2);
     const failure = page.locator(".vbInfo.is-error");
     await failure.waitFor();
     expect(await failure.innerText()).toContain("ساعت‌های آزاد بارگیری نشد");
-    // nothing can be saved meanwhile
-    await page.locator("#vb-name").fill("اینترنت");
-    await page.locator(".vbSubmit").click({ force: true });
+    // nothing can be saved meanwhile: the form has not even reached the last step
+    expect(await page.locator(".vbSubmit").count()).toBe(0);
     expect(await bookingsOf(team)).toHaveLength(0);
     await page.unroute("**/api/salon-bookings/availability*");
     await failure.getByRole("button", { name: /دوباره امتحان/ }).click();
@@ -322,9 +347,11 @@ describe("VisitBooker for the salon (browser)", () => {
     const { page, context } = await openSalon(team);
     await page.route("**/api/salon-bookings/preview*", (route) => route.abort());
     await openBookingSheet(page);
-    await page.locator("#vb-name").fill("نامطمئن");
+    await fillWho(page, "نامطمئن");
     await pickService(page, H);
+    await goOn(page);
     await pickDay(page, DAY2);
+    await takeTime(page);
     const failure = page.locator(".vbPlanSection .vbInfo.is-error");
     await failure.waitFor();
     await page.locator(".vbSubmit").click({ force: true });
@@ -342,12 +369,20 @@ describe("VisitBooker for the salon (browser)", () => {
     const team = await seedTeam();
     const { page, context } = await openSalon(team);
     await openBookingSheet(page);
+    await fillWho(page, "تغییر");
     await pickService(page, M);
     await pickService(page, H);
+    await goOn(page);
     await pickDay(page, DAY2);
+    await takeTime(page);
     await page.locator(".vbPlanRow").nth(1).waitFor();
     expect(await page.locator(".vbSummary").innerText()).toContain("۲ خدمت · ۷۵ دقیقه");
+    // tap the services chip, take one off, and walk the day and the hour again
+    await page.locator(".vbDoneChip").nth(1).click();
     await pickService(page, H);
+    await goOn(page);
+    await pickDay(page, DAY2);
+    await takeTime(page);
     await page.waitForFunction(() => document.querySelectorAll(".vbPlanRow").length === 1);
     expect(await page.locator(".vbSummary").innerText()).toContain("۱ خدمت · ۴۵ دقیقه");
     expect(await page.locator(".vbPlanRow").first().innerText()).toContain(M);
@@ -359,6 +394,7 @@ describe("VisitBooker for the salon (browser)", () => {
     for (let i = 1; i <= 8; i += 1) await team.salonClient.post("/api/salon-services", { name: `خدمت اضافه ${i}`, price: "100", duration: "۱۵ دقیقه" });
     const { page, context } = await openSalon(team);
     await openBookingSheet(page);
+    await fillWho(page, "هشت");
     const chips = page.locator(".vbService");
     expect(await chips.count()).toBe(10);
     for (let i = 0; i < 9; i += 1) await chips.nth(i).click();
@@ -373,7 +409,7 @@ describe("VisitBooker for the salon (browser)", () => {
     const { page, context } = await newPage({ cookie: salonClient.cookie() });
     await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
     await openBookingSheet(page);
-    await page.locator(".vbEmpty").click();
+    await page.locator(".vbNoService .vbSubmit").click();
     await page.locator(".visitBookerSheet").waitFor({ state: "detached" });
     await context.close();
   });
@@ -388,8 +424,10 @@ describe("VisitBooker opened from the customers page (browser)", () => {
     await page.getByRole("button", { name: "جزئیات مشتری قدیمی" }).click();
     await page.locator(".cuBookBtn").click();
     await page.locator(".visitBookerSheet").waitFor();
-    expect(await page.locator("#vb-name").inputValue()).toBe("مشتری قدیمی");
-    expect(await page.locator("#vb-phone").inputValue()).toBe("09123334455");
+    // the customer is already known, so the form starts at the services, with the customer as a chip
+    await page.locator(".vbService").first().waitFor();
+    expect(await page.locator(".vbDoneChip").first().innerText()).toContain("مشتری قدیمی");
+    expect(await page.locator(".vbDoneChip").first().innerText()).toContain("09123334455");
     // closing it with back leaves the customers page as it was
     await page.goBack();
     await page.locator(".visitBookerSheet").waitFor({ state: "detached" });
@@ -403,14 +441,17 @@ describe("VisitBooker opened from the customers page (browser)", () => {
     expect((await team.salonClient.post("/api/salon-bookings", { service: H, staff: team.hair.staff.name, bookingDate: dayKeyAhead(DAY3), time: "12:00", client: "نرگس قدیمی", phone: "09125556677" })).ok).toBe(true);
     const { page, context } = await openSalon(team);
     await openBookingSheet(page);
-    await page.locator(".vbPerson", { hasText: "نرگس قدیمی" }).click();
-    expect(await page.locator("#vb-name").inputValue()).toBe("نرگس قدیمی");
-    expect(await page.locator("#vb-phone").inputValue()).toBe("09125556677");
     // typing narrows them; a full match is not offered again
     await page.locator("#vb-name").fill("نر");
     expect(await page.locator(".vbPerson").count()).toBe(1);
     await page.locator("#vb-name").fill("نرگس قدیمی");
     expect(await page.locator(".vbPerson").count()).toBe(0);
+    await page.locator("#vb-name").fill("نر");
+    // one tap fills in the name and number and moves on to the services
+    await page.locator(".vbPerson", { hasText: "نرگس قدیمی" }).click();
+    await page.locator(".vbService").first().waitFor();
+    expect(await page.locator(".vbDoneChip").first().innerText()).toContain("نرگس قدیمی");
+    expect(await page.locator(".vbDoneChip").first().innerText()).toContain("09125556677");
     await context.close();
   });
 });
@@ -424,9 +465,10 @@ describe("VisitBooker for an independent artist (browser)", () => {
     const { page, context, problems } = await newPage({ cookie: artistApi.cookie() });
     await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
     await openBookingSheet(page);
-    await page.locator("#vb-name").fill("مشتری حضوری");
+    await fillWho(page, "مشتری حضوری");
     await pickService(page, "ابرو ویزیت");
     await pickService(page, "ناخن ویزیت");
+    await goOn(page);
     await pickDay(page, DAY2);
     await pickTime(page, "10:00");
     // one artist: the services are listed one after another, with no artist to pick
@@ -456,8 +498,9 @@ describe("VisitBooker for an independent artist (browser)", () => {
     const { page, context, problems } = await newPage({ cookie: artistApi.cookie() });
     await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
     await openBookingSheet(page);
-    await page.locator("#vb-name").fill("دیرتر");
+    await fillWho(page, "دیرتر");
     await pickService(page, "ابرو شلوغ");
+    await goOn(page);
     await pickDay(page, DAY2);
     await pickTime(page, "10:00");
     // a client takes 10:00 straight from the artist's page while the form is open
@@ -467,10 +510,11 @@ describe("VisitBooker for an independent artist (browser)", () => {
     await page.locator(".vbSubmit").click();
     await page.locator(".vbHint").waitFor();
     expect(await page.locator(".vbHint").innerText()).toMatch(/[؀-ۿ]/);
-    // the artist's own list was asked for again: 10:00 is gone, another time is chosen, and saving that works
+    // the artist's own list was asked for again: back to the hour question, 10:00 is gone and another is chosen
+    await page.locator(".vbDoneChip").nth(3).click();
     await page.getByRole("button", { name: "۱۰:۰۰", exact: true }).waitFor({ state: "detached" });
-    await page.locator(".vbTime.is-on").waitFor();
-    await page.locator(".vbSubmit").click();
+    await takeTime(page);
+    await page.locator(".vbSubmit:not([aria-disabled])").click();
     await page.locator(".visitBookerSheet").waitFor({ state: "detached" });
     const mine = (await artistApi.get("/api/artist/me")).payload.data.bookings.filter((b) => b.client_name === "دیرتر");
     expect(mine).toHaveLength(1);
@@ -486,8 +530,9 @@ describe("VisitBooker for an independent artist (browser)", () => {
     const { page, context } = await newPage({ cookie: artistApi.cookie() });
     await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
     await openBookingSheet(page);
-    await page.locator("#vb-name").fill("نیم‌ساعته");
+    await fillWho(page, "نیم‌ساعته");
     await pickService(page, "ابرو کوتاه");
+    await goOn(page);
     await pickDay(page, DAY2);
     await pickTime(page, "10:00");
     await page.locator(".vbSubmit").click();
@@ -540,10 +585,12 @@ describe("VisitBooker layout and accessibility (browser)", () => {
       await page.setViewportSize({ width, height });
       await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
       await openBookingSheet(page);
-      await page.locator("#vb-name").fill("اندازه");
+      await fillWho(page, "اندازه");
       await pickService(page, M);
       await pickService(page, H);
+      await goOn(page);
       await pickDay(page, DAY2);
+      await takeTime(page);
       await page.locator(".vbPlanRow").nth(1).waitFor();
       const metrics = await page.evaluate(() => {
         const sheet = document.querySelector(".visitBookerSheet");
@@ -572,8 +619,8 @@ describe("VisitBooker layout and accessibility (browser)", () => {
     await registerUser(artistApi, { type: "artist", name: "آرتیست محور" });
     await artistApi.post("/api/artist/me", { name: "خدمت محور", price: "100", duration: "۳۰ دقیقه" });
     const scenarios = [
-      ["salon", team.salonClient, async (page) => { await openBookingSheet(page); await pickService(page, M); await pickService(page, H); await pickDay(page, DAY2); await page.locator(".vbPlanRow").nth(1).waitFor(); await page.locator(".vbPlanRow").first().locator("button.vbWho2").click(); }],
-      ["artist", artistApi, async (page) => { await openBookingSheet(page); await pickService(page, "خدمت محور"); await pickDay(page, DAY2); await page.locator(".vbPlanRow").first().waitFor(); }],
+      ["salon", team.salonClient, async (page) => { await openBookingSheet(page); await fillWho(page, "محور"); await pickService(page, M); await pickService(page, H); await goOn(page); await pickDay(page, DAY2); await takeTime(page); await page.locator(".vbPlanRow").nth(1).waitFor(); await page.locator(".vbPlanRow").first().locator("button.vbWho2").click(); }],
+      ["artist", artistApi, async (page) => { await openBookingSheet(page); await fillWho(page, "محور"); await pickService(page, "خدمت محور"); await goOn(page); await pickDay(page, DAY2); await takeTime(page); await page.locator(".vbPlanRow").first().waitFor(); }],
       ["client", team.clientApi, async (page) => {
         await page.locator("nav.bottomNav > button").nth(2).click();
         await page.locator(".chPlace .chServices button", { hasText: M }).click();

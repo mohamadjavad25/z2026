@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
-import { CalendarCheck, Check, ChevronDown, Plus, RotateCw } from "lucide-react";
+import { CalendarCheck, Check, Plus, Scissors } from "lucide-react";
 import { ProfileSheet } from "../profile/ProfileSheet";
 import { ServiceIcon } from "../../components/ServiceIcon";
-import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
+import { toPersianDigits } from "../../shared/lib/digits";
 import { createVisitBookerController } from "./visitBookerController";
+import { VisitWizard } from "./VisitWizard";
+import { PlanList, TimesList } from "./visitBookerParts";
 import { MAX_VISIT_SERVICES, clockText, missingText, visitSummaryText } from "./visitBookerModel";
 
 const ROLE_COPY = {
@@ -62,12 +64,13 @@ export function VisitBooker({
         onDone={onDone}
         onAddService={onAddService}
         onEditProfile={onEditProfile}
+        onClose={onClose}
       />
     </ProfileSheet>
   );
 }
 
-function VisitBookerForm({ role, title, subtitle, services, days, initial, customers, source, onSubmit, onDone, onAddService, onEditProfile }) {
+function VisitBookerForm({ role, title, subtitle, services, days, initial, customers, source, onSubmit, onDone, onAddService, onEditProfile, onClose }) {
   // The controller lives as long as the sheet is open; what the parent passes later (fresh lists,
   // new closures) is read through refs so it never has to be recreated.
   const latest = useRef({});
@@ -110,12 +113,6 @@ function VisitBookerForm({ role, title, subtitle, services, days, initial, custo
   const { readiness } = state;
   const checking = readiness.reason === "checking";
   const phoneMissing = role === "client" && !String(state.phone || "").trim();
-  // Earlier customers matching what is typed, one tap to fill in name and number (salon and artist only).
-  const typed = state.name.trim();
-  const suggestions = role === "client" ? [] : (Array.isArray(customers) ? customers : [])
-    .filter((item) => item?.name && (!typed || (item.name.includes(typed) && item.name !== typed)))
-    .slice(0, 4);
-
   // What to say above the button, most important first.
   let hint = "";
   if (state.error) hint = state.error;
@@ -138,6 +135,42 @@ function VisitBookerForm({ role, title, subtitle, services, days, initial, custo
   else if (checking) label = "در حال بررسی…";
   else if (readiness.ok && day) label = `${copy.submit} · ${day.label} ${clockText(state.time)}`;
 
+  // A salon or artist with no services cannot book anything yet: say so, and take them to add one.
+  if (role !== "client" && !frozenServices.length) {
+    return (
+      <div className="vb vbNoService" role="group" aria-label={title}>
+        <span className="vbNoServiceIcon"><Scissors size={30} aria-hidden="true" /></span>
+        <h2>اول خدمت‌هایت را اضافه کن</h2>
+        <p>برای ثبت رزرو باید حداقل یک خدمت داشته باشی تا مدت نوبت و ساعت‌های خالی حساب شود. فقط یک‌بار لازم است.</p>
+        <button type="button" className="vbSubmit" onClick={onAddService}>
+          <Plus size={18} aria-hidden="true" />
+          افزودن خدمت
+        </button>
+        <button type="button" className="vbLink" onClick={onClose}>بعداً</button>
+      </div>
+    );
+  }
+
+  // Salon and artist: one question at a time. The client keeps the single page below.
+  if (role !== "client") {
+    return (
+      <VisitWizard
+        role={role}
+        title={title}
+        state={state}
+        controller={controller}
+        services={frozenServices}
+        days={frozenDays}
+        customers={customers}
+        copy={copy}
+        hint={hint}
+        label={label}
+        onClose={onClose}
+        onSave={handleSubmit}
+      />
+    );
+  }
+
   return (
     <form className={`vb is-${role}`} onSubmit={handleSubmit} noValidate aria-label={title}>
       <header className="vbHead">
@@ -146,54 +179,14 @@ function VisitBookerForm({ role, title, subtitle, services, days, initial, custo
       </header>
 
       <div className="vbBody">
-        {role === "client" ? (
-          // The client's own name and number are already known; the card shows only to ask for a missing number.
-          phoneMissing ? (
-            <section className="vbWho is-readonly" aria-label="اطلاعات تماس">
-              <span><small>شماره تماس</small><b dir="ltr">ثبت نشده</b></span>
-              {typeof onEditProfile === "function" ? (
-                <button type="button" className="vbLink" onClick={onEditProfile}>ثبت شماره تماس</button>
-              ) : null}
-            </section>
-          ) : null
-        ) : (
-          <section className="vbWho" aria-label="مشتری">
-            <input
-              id="vb-name"
-              value={state.name}
-              onChange={(event) => controller.setName(event.target.value)}
-              placeholder="نام مشتری"
-              aria-label="نام مشتری"
-              autoComplete="off"
-              maxLength={120}
-              required
-            />
-            <input
-              id="vb-phone"
-              value={state.phone}
-              onChange={(event) => controller.setPhone(toLatinDigits(event.target.value).replace(/[^\d+]/g, ""))}
-              placeholder="موبایل (اختیاری)"
-              aria-label="شماره تماس"
-              inputMode="tel"
-              autoComplete="off"
-              dir="ltr"
-              maxLength={13}
-            />
+        {/* The client's own name and number are already known; the card shows only to ask for a missing number. */}
+        {phoneMissing ? (
+          <section className="vbWho is-readonly" aria-label="اطلاعات تماس">
+            <span><small>شماره تماس</small><b dir="ltr">ثبت نشده</b></span>
+            {typeof onEditProfile === "function" ? (
+              <button type="button" className="vbLink" onClick={onEditProfile}>ثبت شماره تماس</button>
+            ) : null}
           </section>
-        )}
-        {suggestions.length ? (
-          <div className="vbChips vbSuggest" role="group" aria-label="مشتریان قبلی">
-            {suggestions.map((item) => (
-              <button
-                type="button"
-                key={item.key || `${item.name}-${item.phone}`}
-                className="vbPerson"
-                onClick={() => { controller.setName(item.name); controller.setPhone(toLatinDigits(item.phone || "")); }}
-              >
-                {item.name}
-              </button>
-            ))}
-          </div>
         ) : null}
 
         <section className="vbSection" aria-label="خدمت‌ها">
@@ -278,128 +271,5 @@ function VisitBookerForm({ role, title, subtitle, services, days, initial, custo
         </button>
       </footer>
     </form>
-  );
-}
-
-function TimesList({ state, role, onPick, onRetry }) {
-  const { times } = state;
-  if (!state.picked.length) return <p className="vbInfo">اول خدمت را انتخاب کن تا ساعت‌های خالی را ببینی.</p>;
-  if (times.status === "loading" || times.status === "idle") return <p className="vbInfo" role="status">در حال پیدا کردن ساعت‌های آزاد…</p>;
-  if (times.status === "error") {
-    return (
-      <div className="vbInfo is-error" role="alert">
-        ساعت‌های آزاد بارگیری نشد.
-        <button type="button" className="vbLink" onClick={onRetry}><RotateCw size={14} aria-hidden="true" /> دوباره امتحان کن</button>
-      </div>
-    );
-  }
-  if (!times.list.length) {
-    return (
-      <p className="vbInfo" role="status">
-        {state.picked.length > 1
-          ? "این روز ساعتی نیست که همهٔ این خدمت‌ها پشت‌سرهم جا شوند. روز دیگری را انتخاب کن."
-          : role === "artist" ? "برای این روز ساعت آزادی با این مدت‌زمان نیست." : "برای این روز ساعتی آزاد نیست. روز دیگری را انتخاب کن."}
-      </p>
-    );
-  }
-  return (
-    <>
-      {times.note === "advanced" ? <p className="vbNote" role="status">روزِ قبلی ساعت خالی نداشت؛ نزدیک‌ترین روزِ آزاد را باز کردیم.</p> : null}
-      <div className="vbTimes" role="group" aria-label="ساعت شروع">
-        {times.list.map((time) => {
-          const on = state.time && toLatinDigits(time) === toLatinDigits(state.time);
-          return (
-            <button type="button" key={time} aria-pressed={Boolean(on)} className={`vbTime${on ? " is-on" : ""}`} onClick={() => onPick(time)}>
-              {clockText(time)}
-            </button>
-          );
-        })}
-      </div>
-    </>
-  );
-}
-
-function PlanList({ role, state, onStaff, onRetry }) {
-  const { plan } = state;
-  const [openIndex, setOpenIndex] = useState(-1);
-  // A new time or other services is a new plan: any open artist list is for the old one.
-  const planKey = `${state.time}|${state.selected.join(",")}`;
-  const [seenKey, setSeenKey] = useState(planKey);
-  if (seenKey !== planKey) {
-    setSeenKey(planKey);
-    setOpenIndex(-1);
-  }
-  const parts = plan.parts || [];
-  if (plan.status === "error") {
-    return (
-      <div className="vbInfo is-error" role="alert">
-        نتوانستیم این ساعت را بررسی کنیم.
-        <button type="button" className="vbLink" onClick={onRetry}><RotateCw size={14} aria-hidden="true" /> دوباره امتحان کن</button>
-      </div>
-    );
-  }
-  if (!parts.length) {
-    return plan.status === "loading" ? <p className="vbInfo" role="status">در حال بررسی…</p> : null;
-  }
-  const canPick = role === "salon";
-  return (
-    <ol className={`vbPlan${plan.status === "loading" ? " is-loading" : ""}`}>
-      {parts.map((part, index) => {
-        const options = Array.isArray(part.options) ? part.options : [];
-        const pickable = canPick && options.length > 0;
-        const expanded = pickable && openIndex === index;
-        const problem = plan.status === "problem" && plan.partIndex === index;
-        return (
-          <li key={`${part.service}-${index}`} className={`vbPlanRow${problem ? " has-problem" : ""}`}>
-            <span className="vbPlanTime">{clockText(part.start)}–{clockText(part.end)}</span>
-            <span className="vbPlanService">{part.service}</span>
-            {role === "artist" ? null : pickable ? (
-              <button
-                type="button"
-                className="vbWho2"
-                aria-expanded={expanded}
-                aria-label={`آرتیست ${part.service}: ${part.staff || "تعیین نشده"}. تغییر`}
-                onClick={() => setOpenIndex(expanded ? -1 : index)}
-              >
-                {part.staff || "تعیین نشده"}
-                <ChevronDown size={14} aria-hidden="true" />
-              </button>
-            ) : (
-              <span className="vbWho2 is-static">{part.staff || "—"}</span>
-            )}
-            {expanded ? (
-              <div className="vbStaffList" role="group" aria-label={`آرتیست ${part.service}`}>
-                <button
-                  type="button"
-                  aria-pressed={!state.staff[index]}
-                  className={`vbStaff${!state.staff[index] ? " is-on" : ""}`}
-                  onClick={() => { onStaff(index, ""); setOpenIndex(-1); }}
-                >
-                  انتخاب خودکار
-                </button>
-                {options.map((option) => {
-                  const unavailable = Boolean(option.away) || !option.free;
-                  const on = state.staff[index] === option.name;
-                  return (
-                    <button
-                      type="button"
-                      key={option.name}
-                      aria-pressed={on}
-                      aria-disabled={unavailable || undefined}
-                      className={`vbStaff${on ? " is-on" : ""}${unavailable ? " is-off" : ""}`}
-                      onClick={() => { if (unavailable) return; onStaff(index, option.name); setOpenIndex(-1); }}
-                    >
-                      {option.name}
-                      <small>{option.away || (!option.free ? "مشغول" : option.skilled ? "" : "تخصص دیگر")}</small>
-                    </button>
-                  );
-                })}
-              </div>
-            ) : null}
-            {problem && plan.message ? <p className="vbPlanProblem">{plan.message}</p> : null}
-          </li>
-        );
-      })}
-    </ol>
   );
 }
