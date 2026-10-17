@@ -1,0 +1,208 @@
+/* Followers are contacts (2026-10-17).
+   1. «مشتریان» nav button: a small badge while new followers have not been looked at.
+   2. Customers page: the «تازه به جمعتان پیوستند» section and the «هنوز رزرو نکرده» tags.
+   3. Public salon/artist page: the follow sheet (account in place, then the follow, then the thanks).
+   Colours come from the tokens only (role accent: violet for salons and artists, pink for clients). */
+
+/* 1 · nav badge */
+.bottomNavIcon { position: relative; display: inline-flex; }
+.bottomNavBadge {
+  position: absolute;
+  top: -5px;
+  inset-inline-end: -9px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--accent-fill);
+  color: var(--on-accent-fill);
+  box-shadow: 0 0 0 2px var(--n-0);
+  font-style: normal;
+  font-size: 0.62rem;
+  font-weight: 950;
+  line-height: 1;
+  animation: bottomNavBadgePulse 2.4s ease-in-out infinite;
+}
+@keyframes bottomNavBadgePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.14); }
+}
+@media (prefers-reduced-motion: reduce) { .bottomNavBadge { animation: none; } }
+
+/* 2 · customers page */
+.cuFresh {
+  position: relative;
+  display: grid;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 14px 12px 12px;
+  border-radius: 22px;
+  background: var(--n-0);
+  box-shadow: inset 0 0 0 1px var(--line), var(--shadow-soft);
+  overflow: hidden;
+}
+.cuFresh::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 4px;
+  background: var(--brand-blend);
+}
+.cuFreshHead { display: flex; align-items: center; gap: 10px; }
+.cuFreshHead div { display: grid; gap: 1px; min-width: 0; }
+.cuFreshHead b { font-size: 0.92rem; font-weight: 950; color: var(--n-900); }
+.cuFreshHead small { color: var(--n-600); font-size: 0.72rem; font-weight: 800; line-height: 1.6; }
+.cuFreshSpark {
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 13px;
+  background: var(--brand-blend);
+  color: var(--brand-ink);
+}
+.cuFreshList { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.cuFreshItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-inline-end: 6px;
+  border-radius: 16px;
+  background: var(--n-25);
+  box-shadow: inset 0 0 0 1px var(--n-100);
+}
+.cuFreshItem.is-new { background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent-fill); }
+.cuFreshMain {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 10px 10px 6px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.cuFreshInfo { flex: 1; min-width: 0; display: grid; gap: 2px; justify-items: start; }
+.cuFreshInfo b { display: flex; align-items: center; gap: 6px; max-width: 100%; font-size: 0.86rem; font-weight: 950; color: var(--n-900); }
+.cuFreshInfo > span[dir="ltr"] { justify-self: start; unicode-bidi: plaintext; color: var(--n-600); font-size: 0.74rem; font-weight: 800; }
+.cuFreshMeta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; color: var(--n-600); font-size: 0.7rem; font-weight: 800; }
+.cuFreshMeta i { padding: 2px 8px; border-radius: 999px; font-style: normal; font-size: 0.66rem; font-weight: 900; white-space: nowrap; }
+.cuFreshMeta i.is-waiting { background: var(--warning-bg); color: var(--warning); }
+.cuFreshMeta i.is-booked { background: var(--success-bg); color: var(--success); }
+.cuWaitTag { font-style: normal; font-weight: 900; color: var(--warning); }
+.cuNewTag {
+  flex: 0 0 auto;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--accent-fill);
+  color: var(--on-accent-fill);
+  font-style: normal;
+  font-size: 0.62rem;
+  font-weight: 950;
+}
+.cuFreshActions { flex: 0 0 auto; display: flex; gap: 4px; }
+.cuFreshActions a, .cuFreshActions button {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: var(--n-0);
+  box-shadow: inset 0 0 0 1px var(--n-200);
+  color: var(--n-900);
+  cursor: pointer;
+}
+.cuFreshActions a:focus-visible, .cuFreshActions button:focus-visible, .cuFreshMain:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
+.cuFreshHint { margin: 2px 0 0; color: var(--n-700); font-size: 0.72rem; font-weight: 800; line-height: 1.8; }
+.cuFollowNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--accent-soft);
+  color: var(--n-900);
+  font-size: 0.76rem;
+  font-weight: 850;
+  line-height: 1.8;
+}
+.cuFollowNote svg { flex: 0 0 auto; margin-top: 4px; }
+.cuFollowNote.is-waiting { background: var(--warning-bg); }
+
+/* 3 · follow sheet on the public salon / artist page */
+.fsBody { display: grid; gap: 14px; padding: 4px 4px 28px; }
+.fsLead { margin: 0; color: var(--n-700); font-size: 0.82rem; font-weight: 800; line-height: 1.9; }
+.fsConsent { margin: 0; padding: 10px 12px; border-radius: 14px; background: var(--n-0); box-shadow: inset 0 0 0 1px var(--n-150); color: var(--n-700); font-size: 0.72rem; font-weight: 800; line-height: 1.9; }
+/* the sign-up pieces below are scoped to the auth gate elsewhere; the sheet carries its own copy */
+.fsForm .authTermsBlock { display: grid; gap: 4px; }
+.fsForm .authTermsAgreement { display: flex; align-items: flex-start; gap: 8px; font-size: 0.76rem; font-weight: 750; line-height: 1.8; color: var(--n-700); cursor: pointer; }
+.fsForm .authTermsAgreement input[type="checkbox"] { margin-top: 5px; flex-shrink: 0; }
+.fsForm .authTermsAgreement a { color: var(--n-900); text-decoration: underline; }
+.fsForm.is-otp > :not(.authOtp) { display: none; }
+.fsForm .authOtp { display: grid; gap: 10px; }
+.fsForm .authOtpText { margin: 0; color: var(--n-800); font-size: 0.86rem; font-weight: 750; line-height: 1.9; text-align: center; }
+.fsForm .authOtp input[name="otpCode"] { text-align: center; letter-spacing: 0.5em; font-size: 1.3rem; font-weight: 900; }
+.fsForm .authOtpActions { display: flex; justify-content: space-between; gap: 8px; }
+.fsForm .authOtpActions button { min-height: 40px; padding: 0 8px; border: 0; background: transparent; color: var(--n-800); font: inherit; font-size: 0.8rem; font-weight: 800; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.fsForm .authOtpActions button:disabled { color: var(--n-600); text-decoration: none; cursor: default; }
+.fsModes { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: 999px; background: var(--n-100); }
+.fsModes button { min-height: 38px; border: 0; border-radius: 999px; background: transparent; color: var(--n-700); font: inherit; font-size: 0.8rem; font-weight: 900; cursor: pointer; }
+.fsModes button.is-on { background: var(--n-0); color: var(--n-900); box-shadow: 0 1px 6px rgb(var(--shadow-rgb) / 0.12); }
+.fsForm { display: grid; gap: 12px; }
+.fsError { margin: 0; color: var(--danger); font-size: 0.78rem; font-weight: 850; }
+.fsSubmit {
+  min-height: 50px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 950;
+  cursor: pointer;
+}
+.fsSubmit:disabled { opacity: 0.6; cursor: progress; }
+.fsDone { display: grid; justify-items: center; gap: 10px; padding: 8px 4px 10px; text-align: center; }
+.fsDoneMark {
+  width: 74px;
+  height: 74px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--brand-blend);
+  color: var(--brand-ink);
+  animation: fsPop 420ms cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+@keyframes fsPop { from { transform: scale(0.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .fsDoneMark { animation: none; } }
+.fsDone h3 { margin: 0; font-size: 1.05rem; font-weight: 950; color: var(--n-900); }
+.fsDone p { margin: 0; color: var(--n-700); font-size: 0.82rem; font-weight: 800; line-height: 1.9; }
+.fsDoneActions { display: grid; gap: 8px; width: 100%; margin-top: 6px; }
+.fsGhost { min-height: 46px; border: 0; border-radius: 16px; background: var(--n-100); color: var(--n-900); font: inherit; font-size: 0.84rem; font-weight: 900; cursor: pointer; text-decoration: none; display: grid; place-items: center; }
+.pphFollow.is-busy { opacity: 0.7; pointer-events: none; }
+.fsToast {
+  position: fixed;
+  inset-inline: 16px;
+  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  z-index: 90;
+  margin: 0 auto;
+  width: fit-content;
+  max-width: calc(100% - 32px);
+  padding: 12px 18px;
+  border-radius: 16px;
+  background: var(--n-950);
+  color: var(--n-0);
+  box-shadow: var(--shadow);
+  font-size: 0.82rem;
+  font-weight: 900;
+  text-align: center;
+}

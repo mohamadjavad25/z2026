@@ -3,9 +3,11 @@
 import { defaultAvatarFor } from "../../shared/lib/defaultAvatar";
 import { Plus } from "lucide-react";
 import { PageIcon } from "../../components/PageIcon";
+import { toPersianDigits } from "../../shared/lib/digits";
 
 // `status`: something that docks into the bar above the tabs (the client's booking status strip).
-export function BottomNav({ activeTab, createdProfile, onTabChange, showCreateBooking = false, onCreateBooking, status = null }) {
+// `customersBadge`: how many new followers the owner has not looked at yet (shown on «مشتریان»).
+export function BottomNav({ activeTab, createdProfile, onTabChange, showCreateBooking = false, onCreateBooking, status = null, customersBadge = 0 }) {
   // Salon/artist owners already run their own business — browsing the
   // salon directory (a client-facing feature) isn't useful to them, so
   // their third tab opens their own customer community instead. See
@@ -44,8 +46,18 @@ export function BottomNav({ activeTab, createdProfile, onTabChange, showCreateBo
         </button>
       )}
       {isBusinessOwner ? (
-        <button type="button" onClick={() => onTabChange("customers")} className={activeTab === "customers" ? "active" : ""}>
-          <PageIcon name="customers" size={24} />
+        <button
+          type="button"
+          onClick={() => onTabChange("customers")}
+          className={activeTab === "customers" ? "active" : ""}
+          aria-label={customersBadge > 0 ? `مشتریان؛ ${toPersianDigits(customersBadge)} مشتری تازه` : undefined}
+        >
+          <span className="bottomNavIcon">
+            <PageIcon name="customers" size={24} />
+            {customersBadge > 0 ? (
+              <i className="bottomNavBadge" aria-hidden="true">{customersBadge > 9 ? "۹+" : toPersianDigits(customersBadge)}</i>
+            ) : null}
+          </span>
           <span>مشتریان</span>
         </button>
       ) : (

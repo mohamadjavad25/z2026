@@ -3,12 +3,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { PageIcon } from "../../components/PageIcon";
 import { ServiceIcon } from "../../components/ServiceIcon";
-import { ArrowDownUp, CalendarCheck, CalendarPlus, ContactRound, MessageSquare, Phone, Repeat2, Search, Users } from "lucide-react";
+import { ArrowDownUp, CalendarCheck, CalendarPlus, ContactRound, MessageSquare, Phone, Repeat2, Search, Sparkles, UserPlus, Users } from "lucide-react";
 import { ProfileSheet } from "../profile/ProfileSheet";
 import { bookingStatusLabel, bookingStatusTone } from "../client/bookingStatus";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { formatRelativeBookingDayLabel, resolveRollingPersianDate } from "../../shared/lib/persianCalendar";
-import { buildBookingCustomers, phoneKey } from "./customers";
+import { buildBookingCustomers, describeFollowTime, pickFreshFollowers, phoneKey } from "./customers";
 import { contactPickerNeedsAppUpdate, contactPickerSupported, localPhoneOf, pickContact } from "../../shared/lib/contactPicker";
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
 
@@ -18,7 +18,8 @@ const FILTERS = [
   { id: "all", label: "همه" },
   { id: "upcoming", label: "نوبت پیش‌رو" },
   { id: "repeat", label: "تکراری" },
-  { id: "lapsed", label: "مدتی نیامده" }
+  { id: "lapsed", label: "مدتی نیامده" },
+  { id: "nobooking", label: "هنوز رزرو نکرده" }
 ];
 
 const LAPSED_DAYS = 30;
@@ -58,6 +59,15 @@ function CustomerSheet({ customer, onBook, onClose }) {
             <span dir="ltr">{customer.phone ? toPersianDigits(customer.phone) : "شماره ثبت نشده"}</span>
           </div>
         </div>
+        {customer.isFollower ? (
+          <p className={`cuFollowNote${customer.noBookingYet ? " is-waiting" : ""}`}>
+            <UserPlus size={15} aria-hidden="true" />
+            <span>
+              {describeFollowTime(customer.followedAt)} شما را دنبال کرد.
+              {customer.noBookingYet ? " هنوز نوبتی نگرفته؛ یک تماس یا پیامک می‌تواند اولین نوبتش را بسازد." : ""}
+            </span>
+          </p>
+        ) : null}
         {customer.phone ? (
           <div className="cuActions">
             <a className="cuCall" href={`tel:${toLatinDigits(customer.phone)}`} aria-label={`تماس با ${customer.name}`}>
@@ -78,7 +88,7 @@ function CustomerSheet({ customer, onBook, onClose }) {
           <span><b>{toPersianDigits(customer.upcoming)}</b>پیش‌رو</span>
           <span><b>{toPersianDigits(customer.cancelled)}</b>لغو</span>
         </div>
-        <h4 className="cuHistoryTitle">سابقه رزروها</h4>
+        {customer.bookings.length ? <h4 className="cuHistoryTitle">سابقه رزروها</h4> : null}
         <ul className="cuHistory">
           {customer.bookings.map((booking, index) => {
             const tone = bookingStatusTone(booking.status || "تازه");
@@ -108,7 +118,7 @@ function CustomerSheet({ customer, onBook, onClose }) {
  * must be updated first, which it says) picks one contact from the phone: someone already a customer opens their card, anyone else opens the new-booking
  * form with their name and number filled in (`onBookCustomer({ client, phone })`).
  */
-export function SalonCustomersPage({ active, bookings = [], ownerLabel = "سالن شما", headerAction = null, onBookCustomer }) {
+export function SalonCustomersPage({ active, bookings = [], followers = [], ownerLabel = "سالن شما", headerAction = null, onBookCustomer }) {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
   const [sort, setSort] = useState("recent");
@@ -119,7 +129,9 @@ export function SalonCustomersPage({ active, bookings = [], ownerLabel = "سال
     setCanPickContact(Boolean(onBookCustomer) && (contactPickerSupported() || contactPickerNeedsAppUpdate()));
   }, [onBookCustomer]);
 
-  const customers = useMemo(() => buildBookingCustomers(bookings), [bookings]);
+  const customers = useMemo(() => buildBookingCustomers(bookings, followers), [bookings, followers]);
+  const freshFollowers = useMemo(() => pickFreshFollowers(customers), [customers]);
+  const waitingCount = useMemo(() => customers.filter((item) => item.noBookingYet).length, [customers]);
   const repeatCount = useMemo(() => customers.filter((item) => item.visitCount >= 2).length, [customers]);
   const upcomingCount = useMemo(() => customers.filter((item) => item.upcoming > 0).length, [customers]);
   const todayTime = useMemo(() => resolveRollingPersianDate("امروز").getTime(), []);
@@ -131,6 +143,7 @@ export function SalonCustomersPage({ active, bookings = [], ownerLabel = "سال
       if (filter === "upcoming" && item.upcoming === 0) return false;
       if (filter === "repeat" && item.visitCount < 2) return false;
       if (filter === "lapsed" && !isLapsed(item, todayTime)) return false;
+      if (filter === "nobooking" && !item.noBookingYet) return false;
       if (!q) return true;
       return item.name.includes(query.trim()) || toLatinDigits(item.phone).includes(q);
     });
@@ -180,6 +193,60 @@ export function SalonCustomersPage({ active, bookings = [], ownerLabel = "سال
         ) : headerAction}
       </div>
 
+      {freshFollowers.length ? (
+        <section className="cuFresh" aria-label="مشتری‌های تازه">
+          <header className="cuFreshHead">
+            <span className="cuFreshSpark" aria-hidden="true"><Sparkles size={18} /></span>
+            <div>
+              <b>تازه به جمعتان پیوستند</b>
+              <small>
+                {toPersianDigits(freshFollowers.length)} نفر شما را دنبال کردند و حالا جزو مشتریان‌تان هستند.
+              </small>
+            </div>
+          </header>
+          <ul className="cuFreshList">
+            {freshFollowers.map((customer) => (
+              <li className={`cuFreshItem${customer.isNewFollower ? " is-new" : ""}`} key={customer.key}>
+                <button type="button" className="cuFreshMain" onClick={() => setOpenKey(customer.key)} aria-label={`جزئیات ${customer.name}`}>
+                  <Avatar customer={customer} />
+                  <span className="cuFreshInfo">
+                    <b>
+                      {customer.name}
+                      {customer.isNewFollower ? <em className="cuNewTag">جدید</em> : null}
+                    </b>
+                    <span dir="ltr">{customer.phone ? toPersianDigits(customer.phone) : "شماره ثبت نشده"}</span>
+                    <small className="cuFreshMeta">
+                      <span>{describeFollowTime(customer.followedAt)}</span>
+                      <i className={customer.noBookingYet ? "is-waiting" : "is-booked"}>
+                        {customer.noBookingYet ? "هنوز رزرو نکرده" : "قبلاً رزرو داشته"}
+                      </i>
+                    </small>
+                  </span>
+                </button>
+                <span className="cuFreshActions">
+                  {customer.phone ? (
+                    <a href={`sms:${toLatinDigits(customer.phone)}`} aria-label={`پیامک به ${customer.name}`}><MessageSquare size={16} /></a>
+                  ) : null}
+                  {customer.phone ? (
+                    <a href={`tel:${toLatinDigits(customer.phone)}`} aria-label={`تماس با ${customer.name}`}><Phone size={16} /></a>
+                  ) : null}
+                  {onBookCustomer ? (
+                    <button type="button" onClick={() => onBookCustomer({ client: customer.name, phone: customer.phone })} aria-label={`نوبت جدید برای ${customer.name}`}>
+                      <CalendarPlus size={16} />
+                    </button>
+                  ) : null}
+                </span>
+              </li>
+            ))}
+          </ul>
+          {freshFollowers.some((customer) => customer.noBookingYet) ? (
+            <p className="cuFreshHint">
+              کسانی که هنوز رزرو نکرده‌اند آماده‌ترین مشتری‌ها هستند؛ با یک تماس، پیامک یا پیشنهاد، اولین نوبتشان را بگیر.
+            </p>
+          ) : null}
+        </section>
+      ) : null}
+
       {customers.length ? (
         <>
           <div className="cuTiles" aria-label="خلاصه مشتریان">
@@ -210,6 +277,7 @@ export function SalonCustomersPage({ active, bookings = [], ownerLabel = "سال
                 >
                   {item.label}
                   {item.id === "lapsed" && lapsedCount ? <b className="cuChipCount">{toPersianDigits(lapsedCount)}</b> : null}
+                  {item.id === "nobooking" && waitingCount ? <b className="cuChipCount">{toPersianDigits(waitingCount)}</b> : null}
                 </button>
               ))}
             </div>
@@ -228,7 +296,7 @@ export function SalonCustomersPage({ active, bookings = [], ownerLabel = "سال
           <div className="emptySalonDirectory is-lively">
             <PageIcon name="customers" size={64} />
             <b>هنوز مشتری‌ای ثبت نشده</b>
-            <p>با اولین رزرو، مشتری‌هایت اینجا جمع می‌شوند و می‌توانی با یک ضربه تماس بگیری.</p>
+            <p>با اولین رزرو یا اولین دنبال‌کننده، مشتری‌هایت اینجا جمع می‌شوند و می‌توانی با یک ضربه تماس بگیری.</p>
           </div>
         ) : visibleCustomers.length === 0 ? (
           <div className="emptySalonDirectory">
@@ -247,10 +315,18 @@ export function SalonCustomersPage({ active, bookings = [], ownerLabel = "سال
                 {customer.lastService ? (
                   <em className="salonCustomerService"><ServiceIcon name={customer.lastService} size="xs" />{customer.lastService}</em>
                 ) : null}
-                <small>
-                  {toPersianDigits(customer.visitCount)} بار رزرو
-                  {customer.upcoming > 0 ? ` • ${toPersianDigits(customer.upcoming)} نوبت پیش‌رو` : customer.lastDate ? ` • ${formatRelativeBookingDayLabel(customer.lastDate)}` : ""}
-                </small>
+                {customer.noBookingYet ? (
+                  <small>
+                    <i className="cuWaitTag">دنبال‌کننده • هنوز رزرو نکرده</i>
+                    {` • ${describeFollowTime(customer.followedAt)}`}
+                  </small>
+                ) : (
+                  <small>
+                    {toPersianDigits(customer.visitCount)} بار رزرو
+                    {customer.upcoming > 0 ? ` • ${toPersianDigits(customer.upcoming)} نوبت پیش‌رو` : customer.lastDate ? ` • ${formatRelativeBookingDayLabel(customer.lastDate)}` : ""}
+                    {customer.isFollower ? " • دنبال‌کننده" : ""}
+                  </small>
+                )}
               </span>
             </button>
             {customer.phone ? (

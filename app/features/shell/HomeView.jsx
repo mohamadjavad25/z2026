@@ -47,6 +47,7 @@ const AUTH_GATE_SPARKLES = [
 export function HomeView() {
   const {
     createdProfile,
+    unseenFollowerCount,
     selectedSalon,
     activeTab,
     selectedPublicArtist,
@@ -399,6 +400,7 @@ export function HomeView() {
           ) : null}
           activeTab={activeTab}
           createdProfile={createdProfile}
+          customersBadge={unseenFollowerCount}
           onTabChange={goToTab}
           showCreateBooking={(createdProfile?.type === "artist" || createdProfile?.type === "salon") && activeTab === "profile"}
           onCreateBooking={() => {
