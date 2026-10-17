@@ -329,12 +329,13 @@
 
 .stfInviteIcon {
   flex: none;
-  width: 52px;
-  height: 52px;
+  width: 68px;
+  height: 68px;
   display: grid;
   place-items: center;
-  border-radius: 17px;
+  border-radius: 22px;
   background: var(--n-0);
+  color: var(--n-900);
 }
 
 .stfInviteCopy { flex: 1 1 auto; display: grid; gap: 3px; min-width: 0; }
@@ -343,12 +344,15 @@
 
 .stfInviteGo {
   flex: none;
-  width: 36px;
-  height: 36px;
+  min-width: 68px;
+  min-height: 48px;
+  padding: 0 16px;
   display: grid;
   place-items: center;
-  border-radius: 12px;
-  background: rgb(var(--paper-rgb) / 0.16);
+  border-radius: 999px;
+  background: rgb(var(--paper-rgb) / 0.2);
+  font-size: 0.92rem;
+  font-weight: 950;
 }
 
 .stfSection { display: grid; gap: 10px; }
