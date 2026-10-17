@@ -65,7 +65,7 @@
 
 .brandCardPoster{
   position: relative;
-  height: 96px;
+  height: 124px;
   display: grid;
   place-items: center;
   color: rgb(var(--paper-rgb) / 0.75);
@@ -84,19 +84,24 @@
 
 .brandCardPosterEdit{
   position: absolute;
-  top: 10px;
-  inset-inline-start: 10px;
-  min-height: 30px;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: var(--n-0);
+}
+
+.brandCardPosterPill{
+  min-height: 40px;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 0 11px;
-  border: 0;
+  gap: 7px;
+  padding: 0 16px;
   border-radius: 999px;
-  background: rgb(var(--ink-rgb) / 0.5);
+  background: rgb(var(--ink-rgb) / 0.55);
   backdrop-filter: blur(6px);
-  color: var(--n-0);
-  font-size: 0.64rem;
+  font-size: 0.78rem;
   font-weight: 900;
   white-space: nowrap;
 }
@@ -107,8 +112,8 @@
 
 .brandCardAvatarWrap{
   position: absolute;
-  bottom: -22px;
-  inset-inline-end: 14px;
+  bottom: -44px;
+  inset-inline-end: 16px;
   z-index: 1;
 }
 
@@ -119,11 +124,11 @@
 }
 
 .brandCardAvatar{
-  width: 60px;
-  height: 60px;
+  width: 88px;
+  height: 88px;
   display: block;
   overflow: hidden;
-  border-radius: 18px;
+  border-radius: 50%;
   border: 3px solid var(--n-0);
   background: rgb(var(--ink-rgb) / 0.1);
   box-shadow: 0 8px 18px rgb(var(--shadow-rgb) / 0.12);
@@ -138,10 +143,10 @@
 
 .brandCardAvatarEdit{
   position: absolute;
-  bottom: -3px;
-  inset-inline-end: -3px;
-  width: 24px;
-  height: 24px;
+  bottom: 0;
+  inset-inline-end: 0;
+  width: 32px;
+  height: 32px;
   display: grid;
   place-items: center;
   border: 2px solid var(--n-0);
@@ -276,7 +281,7 @@
 }
 
 .brandCardFooter.has-overlap{
-  padding-top: 30px;
+  padding-top: 54px;
 }
 
 .brandCardFooterCopy{
