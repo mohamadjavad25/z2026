@@ -2,7 +2,7 @@
 
 import { defaultAvatarFor, isDefaultAvatar } from "../../shared/lib/defaultAvatar";
 import { useRef, useState } from "react";
-import { Bookmark, Camera, ChevronLeft, ImagePlus, Move, Pencil, Trash2 } from "lucide-react";
+import { Bookmark, Camera, ChevronLeft, ImagePlus, Move, Pencil, Plus, Trash2 } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { ProfileSheet } from "../profile/ProfileSheet";
 import { ProfileLocationSettings } from "../profile/ProfileLocationSettings";
@@ -129,14 +129,20 @@ function BrandCard({
     <section className="brandCard" aria-label="برند و ظاهر پروفایل">
       {hasPoster ? (
         <div className="brandCardPoster">
-          {poster ? <img src={poster} alt="" style={{ objectPosition: posterPosition || "50% 50%" }} /> : <ImagePlus size={20} />}
+          {poster ? <img src={poster} alt="" style={{ objectPosition: posterPosition || "50% 50%" }} /> : null}
           <ImageEditMenu
             hasImage={Boolean(poster)}
             busy={posterSaving}
-            title="پوستر"
+            title={poster ? "تغییر پوستر" : "افزودن پوستر"}
             triggerClassName="brandCardPosterEdit"
-            triggerLabel={poster ? "تغییر پوستر" : "افزودن پوستر"}
-            triggerIcon={<Camera size={12} aria-hidden="true" />}
+            triggerLabel=""
+            triggerIcon={
+              <span className="brandCardPosterPill">
+                {poster ? <Camera size={15} aria-hidden="true" /> : <ImagePlus size={17} aria-hidden="true" />}
+                {poster ? "تغییر پوستر" : "افزودن پوستر"}
+                {poster ? null : <Plus size={15} strokeWidth={3} aria-hidden="true" />}
+              </span>
+            }
             onPickFile={() => posterInputRef.current?.click()}
             onReposition={() => setPositionEditor("poster")}
             onRemove={onRemovePoster}
@@ -153,7 +159,7 @@ function BrandCard({
               title="لوگو"
               triggerClassName="brandCardAvatarEdit"
               triggerLabel=""
-              triggerIcon={<Camera size={11} aria-hidden="true" />}
+              triggerIcon={isDefaultAvatar(avatar) ? <Plus size={16} strokeWidth={3} aria-hidden="true" /> : <Camera size={14} aria-hidden="true" />}
               onPickFile={() => logoInputRef.current?.click()}
               onReposition={() => setPositionEditor("avatar")}
               onRemove={onRemoveLogo}
@@ -172,7 +178,7 @@ function BrandCard({
             title="لوگو"
             triggerClassName="brandCardAvatarEdit"
             triggerLabel=""
-            triggerIcon={<Camera size={11} aria-hidden="true" />}
+            triggerIcon={isDefaultAvatar(avatar) ? <Plus size={16} strokeWidth={3} aria-hidden="true" /> : <Camera size={14} aria-hidden="true" />}
             onPickFile={() => logoInputRef.current?.click()}
             onReposition={() => setPositionEditor("avatar")}
             onRemove={onRemoveLogo}

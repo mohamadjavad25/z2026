@@ -835,7 +835,7 @@ html[data-cbt="1"] body { padding-bottom: 92px; }
 .clientBeautyHeroBell::after { content: ""; position: absolute; inset: -10px; }
 .salonHeroWeekArrow, .profileHeroPreviewBtn, .clientBeautyHeroBell { position: relative; }
 .neoSettingsLegalLinks a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 6px; }
-.cuChips button, .brandCardPosterEdit { min-height: 40px !important; }
+.cuChips button { min-height: 40px !important; }
 .requestActions button { min-height: 44px !important; }
 
 /* Salon banner: show the picture all the way down -- no white fade over its bottom edge. */
