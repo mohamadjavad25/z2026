@@ -19,7 +19,7 @@ async function _POST(request, { params }) {
   const body = await readJson(request);
   if (typeof body?.accept !== "boolean") return error("جواب مشخص نیست.");
 
-  const result = await salons.answerSalonTimeOffer(id, auth.user.id, body.accept);
+  const result = await salons.answerSalonTimeOffer(id, auth.user, body.accept);
   if (!result.ok) {
     if (result.error === "missing") return notFound("رزرو یافت نشد.");
     if (result.error === "inactive") return error("این رزرو دیگر منتظر جواب تو نیست.", 409);

@@ -146,6 +146,23 @@ describe("multi-service salon booking", () => {
     expect(row.status).toBe("لغو");
   });
 
+  it("an artist cannot confirm their share of a visit the salon has not approved (it would leave salon and client waiting)", async () => {
+    const ctx = await setup();
+    const booking = (await requestVisit(ctx, { bookingDate: futureBookingDay(5) })).payload.data.booking;
+    const [nailShare] = await myVisitShare(ctx.nail, ctx);
+    const refused = await ctx.nail.client.patch("/api/artist/me", { kind: "booking", id: nailShare.id, status: "تایید شده" });
+    expect(refused.status).toBe(409);
+    // Nothing diverged: the share, the salon booking and the client all still say "waiting".
+    expect((await myVisitShare(ctx.nail, ctx))[0].status).toBe("درخواست");
+    const mine = (await ctx.clientClient.get("/api/client-bookings")).payload.data.salonBookings;
+    expect(mine.find((b) => b.id === booking.id).status).toBe("درخواست");
+    // Once the salon approves, the client sees it, and so does the artist.
+    expect((await ctx.salonClient.patch("/api/salon-bookings", { id: booking.id, status: "تایید شده" })).ok).toBe(true);
+    const after = (await ctx.clientClient.get("/api/client-bookings")).payload.data.salonBookings;
+    expect(after.find((b) => b.id === booking.id).status).toBe("تایید شده");
+    expect((await myVisitShare(ctx.nail, ctx))[0].status).toBe("تایید شده");
+  });
+
   it("does not let another booking take a drafted artist's time", async () => {
     const ctx = await setup();
     const day = futureBookingDay(5);

@@ -10,6 +10,7 @@ import {
   timeLabelToMinutes
 } from "../../../../shared/lib/time.js";
 import { normalizePhone } from "./common.js";
+import { clientBookingMatch, clientVisibleStatus } from "../../clientMatch.js";
 import { buildClientHistoryLookup } from "../clientHistory.js";
 import { listSalonServices } from "./services.js";
 import { resolveBookingServiceEmoji } from "../serviceEmoji.js";
@@ -618,41 +619,19 @@ export async function listSalonBookings(salonUserId) {
 
 export async function listClientSalonBookings(user) {
   const db = await getDb();
-  const userId = Number(user?.id || 0);
-  const phone = normalizePhone(user?.phone || "");
-  const name = String(user?.name || "").trim();
-  if (!userId && !phone && !name) return [];
-  const conditions = [];
-  const params = [];
-  if (userId) {
-    params.push(userId);
-    conditions.push(`b.client_user_id = $${params.length}`);
-  }
-  // Rows entered by the salon for a walk-in carry no account id: match those by phone, and by
-  // name only when they have no phone at all. Matching a bare name against everyone's bookings
-  // would show a client other people's bookings that merely share their name.
-  if (phone) {
-    // b.phone_normalized is a generated column (migrations/005_normalized_phone.sql)
-    // that runs the same digit-normalization at write time, indexed --
-    // unlike wrapping b.phone in REPLACE() on every read, this is sargable.
-    params.push(phone);
-    conditions.push(`(b.client_user_id IS NULL AND b.phone_normalized = $${params.length})`);
-  }
-  if (name) {
-    params.push(name);
-    conditions.push(`(b.client_user_id IS NULL AND COALESCE(b.phone, '') = '' AND b.client = $${params.length})`);
-  }
-  if (!conditions.length) return [];
+  const match = clientBookingMatch(user, { phoneCol: "phone", nameCol: "client" });
+  if (!match.sql) return [];
   const rows = await all(db, `
     SELECT b.*, s.name AS salon_name, s.area AS salon_area, s.phone AS salon_phone, s.user_id AS source_salon_user_id, (u.avatar <> '' OR u.avatar_url IS NOT NULL) AS salon_avatar
     FROM salon_bookings b
     LEFT JOIN salons s ON s.user_id = b.salon_user_id
     LEFT JOIN users u ON u.id = b.salon_user_id
-    WHERE ${conditions.join(" OR ")}
+    WHERE ${match.sql}
     ORDER BY b.id DESC
-  `, params);
+  `, match.params);
   return rows.map((row) => ({
     ...row,
+    status: clientVisibleStatus(row.status, "salon"),
     // salon_user_id is now nullable (see migration v34 — deleting a salon
     // account no longer destroys the client's own booking history with it),
     // so a booking can legitimately outlive its salon. Distinguish that from
@@ -925,14 +904,25 @@ function withClientConsent(current, data) {
 }
 
 /**
+ * A salon booking that is this client's, by the same rule their list uses (clientBookingMatch):
+ * a booking the salon typed in for them, with no account id, is theirs too.
+ */
+async function findClientOwnBooking(db, id, client) {
+  const user = typeof client === "object" && client ? client : { id: client };
+  const match = clientBookingMatch(user, { alias: "b", phoneCol: "phone", nameCol: "client", startAt: 2 });
+  if (!match.sql) return null;
+  return get(db, `SELECT b.* FROM salon_bookings b WHERE b.id = $1 AND ${match.sql}`, [id, ...match.params]);
+}
+
+/**
  * The client answering a new time the salon offered: accepting confirms the booking at that
  * time, declining cancels it (they can then book another time). Either way the artists'
  * calendar copies follow, through the same path as the salon's own approve / cancel.
  */
-export async function answerSalonTimeOffer(id, clientUserId, accept) {
+export async function answerSalonTimeOffer(id, client, accept) {
   await ensureBookingPartsColumns();
   const db = await getDb();
-  const current = await get(db, "SELECT * FROM salon_bookings WHERE id = $1 AND client_user_id = $2", [id, clientUserId]);
+  const current = await findClientOwnBooking(db, id, client);
   if (!current) return { ok: false, error: "missing" };
   if (current.status !== AWAITING_CLIENT) return { ok: false, error: "inactive" };
   const result = await patchSalonBookingWithArtistSync(
@@ -1267,9 +1257,9 @@ export async function cancelSalonBooking(id, salonUserId) {
  * is still active (waiting or confirmed) and not in the past; everything else -- the artist
  * calendar sync, slot release -- goes through the same path as the salon cancelling.
  */
-export async function cancelSalonBookingByClient(id, clientUserId) {
+export async function cancelSalonBookingByClient(id, client) {
   const db = await getDb();
-  const current = await get(db, "SELECT * FROM salon_bookings WHERE id = $1 AND client_user_id = $2", [id, clientUserId]);
+  const current = await findClientOwnBooking(db, id, client);
   if (!current) return { ok: false, error: "missing" };
   if (!["تازه", "درخواست", "تایید شده", AWAITING_CLIENT].includes(current.status)) return { ok: false, error: "inactive" };
   // Once the appointment has started (today's 10:00 at 14:29) it can't be cancelled any more.
