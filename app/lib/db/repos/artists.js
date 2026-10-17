@@ -4,6 +4,7 @@ import { countFollowers, countFollowCountsMany, getUserProfileById, getUserLiteB
 import { buildClientHistoryLookup } from "./clientHistory.js";
 import { listPostsByOwner } from "./posts.js";
 import { formatPersianDateKey, isPersianDateKey, resolveRollingPersianDateKey } from "../../../shared/lib/persianCalendar.js";
+import { minutesUntilSlotStart } from "../../../shared/lib/bookingWindow.js";
 import { normalizeBookingTimeLabel } from "../../../shared/lib/time.js";
 import { normalizePhone } from "./salons/common.js";
 import { isProfileSaved } from "./social.js";
@@ -932,6 +933,8 @@ export async function cancelArtistBookingByClient(id, clientUserId) {
   if (isPersianDateKey(current.booking_date) && current.booking_date < formatPersianDateKey(new Date())) {
     return { ok: false, error: "past" };
   }
+  const until = minutesUntilSlotStart(current.booking_date, current.time);
+  if (until !== null && until <= 0) return { ok: false, error: "past" };
   // Conditional on it still being active: the sweep or the artist may have closed it since the read above.
   const changed = await run(db, `
     UPDATE artist_bookings SET status = 'لغو', updated_at = CURRENT_TIMESTAMP

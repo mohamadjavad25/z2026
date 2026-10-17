@@ -876,3 +876,20 @@
 .cvRail { width: 5px; height: 22px; border-radius: 3px; background: var(--cv-rail); }
 .cvCard.is-pending .cvTime { background: var(--n-25); }
 .cvCard.is-offer .cvTime { background: var(--n-50); }
+
+/* One-line notes for bookings that are over, cancelled or expired — a message, not a card. */
+.cvNotes { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 6px; }
+.cvMsg {
+  width: 100%; display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 8px 12px;
+  border: 0; border-radius: 14px; background: rgb(var(--ink-rgb) / 0.045); color: var(--n-700);
+  font: inherit; font-size: 0.76rem; font-weight: 800; text-align: start; cursor: pointer;
+}
+.cvMsg svg { flex: none; color: var(--n-500); }
+.cvMsg span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cvMsg time { flex: none; color: var(--n-500); font-size: 0.7rem; font-weight: 800; }
+.cvMsg.is-bad svg, .cvMsg.is-expired svg { color: var(--danger); }
+.cvMsg.is-done svg { color: var(--success); }
+.cvMsg:active { transform: scale(0.99); }
+.cvMsg:focus-visible, .cvNotesMore:focus-visible { outline: 3px solid rgb(var(--ink-rgb) / 0.25); outline-offset: 2px; }
+.cvNotesMore { border: 0; background: none; padding: 4px 12px; color: var(--muted); font: inherit; font-size: 0.72rem; font-weight: 900; text-align: start; cursor: pointer; }
+.todayScheduleList > .cvMsg { margin: 4px 0; }

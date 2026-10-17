@@ -2,6 +2,7 @@ import { getDb, withTransaction, all, get, run } from "../../connection.js";
 import { lockSalonDay, lockVisitDay } from "../../locks.js";
 import * as artists from "../artists.js";
 import { formatPersianDateKey, isPersianDateKey, resolveRollingPersianDateKey } from "../../../../shared/lib/persianCalendar.js";
+import { minutesUntilSlotStart } from "../../../../shared/lib/bookingWindow.js";
 import {
   normalizeBookingTimeLabel,
   parseServiceDurationMinutes,
@@ -1271,6 +1272,9 @@ export async function cancelSalonBookingByClient(id, clientUserId) {
   const current = await get(db, "SELECT * FROM salon_bookings WHERE id = $1 AND client_user_id = $2", [id, clientUserId]);
   if (!current) return { ok: false, error: "missing" };
   if (!["تازه", "درخواست", "تایید شده", AWAITING_CLIENT].includes(current.status)) return { ok: false, error: "inactive" };
+  // Once the appointment has started (today's 10:00 at 14:29) it can't be cancelled any more.
+  const until = minutesUntilSlotStart(current.booking_date, current.time);
+  if (until !== null && until <= 0) return { ok: false, error: "past" };
   const result = await patchSalonBookingWithArtistSync(id, current.salon_user_id, { status: "لغو" });
   return result.ok ? { ok: true, booking: result.booking, salonUserId: current.salon_user_id } : result;
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import { Check, Store, X } from "lucide-react";
+import { Ban, Check, CheckCircle2, Store, TimerOff, X } from "lucide-react";
 import { RequestExpiryBadge } from "../schedule/RequestExpiryBadge";
 import { SegmentClock } from "../../components/SegmentClock";
 import { toPersianDigits } from "../../shared/lib/digits";
@@ -238,6 +238,32 @@ export const ScheduleRow = memo(function ScheduleRow({
   const showDate = date && date !== "امروز";
 
   const chipClass = showStatusTag ? `is-status-${statusTone}` : `is-${phase || "upcoming"}`;
+
+  // Cancelled, expired or finished: not a card, just a one-line message with its time.
+  // (A request still waiting on this owner keeps its full card so it can be answered.)
+  const finished = statusTone === "done" && phase === "done";
+  if (!review && (statusTone === "bad" || statusTone === "expired" || finished)) {
+    const who = title || "مشتری";
+    const what = shortServiceLabel(service);
+    const NoteIcon = statusTone === "bad" ? Ban : statusTone === "expired" ? TimerOff : CheckCircle2;
+    const text = statusTone === "bad"
+      ? `رزرو ${who} لغو شد`
+      : statusTone === "expired"
+        ? `رزرو ${who} منقضی شد`
+        : `نوبت ${who} تمام شد`;
+    return (
+      <button
+        type="button"
+        className={`cvMsg is-${finished ? "done" : statusTone}`}
+        aria-label={`${text}، ${meta}، ${date}، ${time}`}
+        onClick={() => onAction?.(actionPayload)}
+      >
+        <NoteIcon size={15} aria-hidden="true" />
+        <span>{text}{what ? ` • ${what}` : ""}</span>
+        <time>{showDate ? `${date} • ` : ""}{toPersianDigits(String(time || ""))}</time>
+      </button>
+    );
+  }
 
   const row = (
     <div
