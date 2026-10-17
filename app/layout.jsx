@@ -2,6 +2,7 @@ import "./styles.css";
 import Script from "next/script";
 import PbdqInspector from "./components/PbdqInspector.jsx";
 import { ViewportHeightFix } from "./components/ViewportHeightFix.jsx";
+import { PortraitLock } from "./components/PortraitLock.jsx";
 import { ClientErrorReporter } from "./components/ClientErrorReporter.jsx";
 import { PullToRefresh } from "./components/PullToRefresh.jsx";
 import { getSiteUrl } from "./lib/siteUrl.js";
@@ -95,6 +96,7 @@ try {
       <body>
         <PbdqInspector />
         <ViewportHeightFix />
+        <PortraitLock />
         <ClientErrorReporter />
         <PullToRefresh />
         <LargeScreenGate landing={<AppLanding />}>{children}</LargeScreenGate>
