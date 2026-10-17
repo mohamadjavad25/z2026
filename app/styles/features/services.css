@@ -984,6 +984,41 @@ button.svcCard:active { transform: scale(0.99); }
   transform: none;
 }
 
+/* Full-screen page (replaces the floating sheet): opaque, no entry animation, no backdrop, no shadow,
+   no rounded clip, so nothing but the plain list is painted. Shown instantly. */
+.svcPage {
+  position: fixed;
+  inset: 0;
+  left: max(0px, calc((100vw - 460px) / 2));
+  right: max(0px, calc((100vw - 460px) / 2));
+  z-index: var(--z-dialog);
+  display: flex;
+  background: var(--n-0);
+}
+.svcPage > .svcSheet {
+  flex: 1 1 auto;
+  max-height: none;
+  height: 100%;
+  border-radius: 0;
+  box-shadow: none;
+  animation: none;
+  padding: calc(12px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));
+}
+.svcPage > .svcSheet:not(.is-catalog) { overflow-y: auto; }
+.svcPage .svcSheetHead { justify-content: flex-start; }
+.svcPageBack {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 14px;
+  background: var(--n-50);
+  color: var(--n-900);
+  cursor: pointer;
+}
+
 .svcDoneBar {
   flex: 0 0 auto;
   display: grid;
