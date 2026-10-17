@@ -359,23 +359,21 @@ export const LEARN_ROLES = [
         text: "آرتیست‌ها را دعوت کن تا نوبت‌ها به اسم خودشان ثبت شود.",
         scenes: [
           { screen: "profile", els: [salonHero(), salonRail(1), { t: "summary", text: "نوبت‌های امروز: ۳" }, navBiz(1)], tap: "rail.2", say: "در پروفایل سالن، «پرسنل» را بزن." },
-          { screen: "staff", els: [salonHero(), salonRail(2), { t: "empty", img: "/brand/mascot/thumbsup.webp", title: "هنوز آرتیستی در تیم نیست", text: "از بین آرتیست‌های نزدیک، همکار تیمت را پیدا کن." }, { t: "btn", id: "invite", text: "دعوت آرتیست" }, navBiz(1)], tap: "invite", say: "«دعوت آرتیست» را بزن." },
+          { screen: "staff", els: [salonHero(), salonRail(2), { t: "empty", img: "/brand/mascot/thumbsup.webp", title: "هنوز آرتیستی در تیم نیست", text: "آرتیستی که می‌شناسی را با کد یا لینک به تیم اضافه کن." }, { t: "btn", id: "invite", text: "دعوت آرتیست" }, navBiz(1)], tap: "invite", say: "«دعوت آرتیست» را بزن." },
           {
             screen: "staff",
             els: [salonHero(), salonRail(2), navBiz(1)],
             sheet: {
-              title: "آرتیست‌های نزدیک",
+              title: "افزودن آرتیست",
               els: [
-                { t: "place", id: "a0", name: ARTIST, sub: "ناخن · ۱ کیلومتر", letter: "ن", btn: "دعوت" },
-                { t: "place", id: "a1", name: "ترانه", sub: "مو و براشینگ · ۲ کیلومتر", letter: "ت", btn: "دعوت" },
-                { t: "place", id: "a2", name: "شیدا", sub: "ابرو و مژه · ۳ کیلومتر", letter: "ش", btn: "دعوت" }
+                { t: "qr", name: SALON, text: "کد را به آرتیست نشان بده، یا لینک را برایش بفرست." },
+                { t: "btn", id: "send", text: "ارسال لینک" }
               ]
             },
-            tap: "a0",
-            say: "آرتیست را پیدا کن و «دعوت» را بزن."
+            tap: "send",
+            say: "کد را نشان بده یا «ارسال لینک» را بزن."
           },
-          { screen: "staff", els: [salonHero(), salonRail(2), { t: "head", text: "دعوت‌های در انتظار" }, { t: "rows", id: "pending", items: [{ a: ARTIST, b: "ناخن", badge: "در انتظار تایید" }] }, navBiz(1)], say: "دعوت رفت؛ آرتیست آن را در اپ خودش می‌بیند." },
-          { screen: "staff", els: [salonHero(), salonRail(2), { t: "head", text: "اعضای تیم" }, { t: "rows", id: "team", items: [{ a: ARTIST, b: "ناخن", badge: "فعال" }] }, navBiz(1)], toast: `${ARTIST} به تیم پیوست`, say: "قبول که کرد، عضو تیم است و نوبت‌های سالن به اسم او هم ثبت می‌شود.", ms: 3600 }
+          { screen: "staff", els: [salonHero(), salonRail(2), { t: "head", text: "اعضای تیم" }, { t: "rows", id: "team", items: [{ a: ARTIST, b: "ناخن", badge: "فعال" }] }, navBiz(1)], toast: `${ARTIST} به تیم پیوست`, say: "آرتیست لینک را باز می‌کند و می‌پیوندد؛ نوبت‌های سالن به اسم او هم ثبت می‌شود.", ms: 3600 }
         ]
       }
     ]

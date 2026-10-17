@@ -1,0 +1,102 @@
+/* ── «به زودی» card with a looping radar/orbit animation (ComingSoon.jsx) ── */
+.csoon {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 22px 20px 24px;
+  border-radius: 24px;
+  background: var(--n-0);
+  box-shadow: 0 8px 22px -14px rgb(var(--shadow-rgb) / 0.2);
+  text-align: center;
+  overflow: hidden;
+}
+.csoonStage {
+  position: relative;
+  width: 168px;
+  height: 168px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 4px;
+}
+.csoonRing {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: 64px;
+  height: 64px;
+  margin: -32px 0 0 -32px;
+  border-radius: 50%;
+  border: 2px solid var(--brand-violet);
+  opacity: 0;
+  animation: csoonPulse 3.6s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
+}
+.csoonRing.is-b { border-color: var(--brand-pink); animation-delay: 1.2s; }
+.csoonRing.is-c { animation-delay: 2.4s; }
+.csoonCore {
+  position: relative;
+  z-index: 1;
+  width: 64px;
+  height: 64px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--brand-blend);
+  color: var(--brand-ink);
+  box-shadow: 0 10px 26px -8px rgb(var(--shadow-rgb) / 0.45);
+  animation: csoonFloat 3s ease-in-out infinite;
+}
+.csoonCore svg { animation: csoonSpark 3s ease-in-out infinite; }
+.csoonOrbit {
+  position: absolute;
+  inset: 0;
+  animation: csoonSpin 9s linear infinite;
+}
+.csoonOrbit.is-two { animation-duration: 12s; animation-direction: reverse; animation-delay: -4s; }
+.csoonOrbit.is-three { animation-duration: 15s; animation-delay: -10s; }
+.csoonOrbit i {
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  width: 28px;
+  height: 28px;
+  margin-left: -14px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--n-0);
+  color: var(--violet-deep);
+  box-shadow: 0 4px 12px -3px rgb(var(--shadow-rgb) / 0.35);
+  font-style: normal;
+  animation: csoonCounter 9s linear infinite;
+}
+.csoonOrbit.is-two i { color: var(--pink-deep); animation-duration: 12s; animation-direction: reverse; animation-delay: -4s; }
+.csoonOrbit.is-three i { animation-duration: 15s; animation-delay: -10s; }
+.csoonPill {
+  padding: 4px 14px;
+  border-radius: 999px;
+  background: var(--brand-blend);
+  background-size: 200% 100%;
+  color: var(--brand-ink);
+  font-size: 0.78rem;
+  font-weight: 900;
+  animation: csoonShimmer 3.2s ease-in-out infinite;
+}
+.csoonTitle { color: var(--n-900); font-size: 0.98rem; font-weight: 900; }
+.csoonText { max-width: 19rem; color: var(--n-600); font-size: 0.8rem; font-weight: 600; line-height: 1.8; }
+.csoon.is-compact { padding: 14px 16px 18px; }
+.csoon.is-compact .csoonStage { width: 132px; height: 132px; transform: scale(0.8); margin: -10px 0 -6px; }
+
+@keyframes csoonPulse {
+  0% { transform: scale(0.9); opacity: 0.55; }
+  100% { transform: scale(2.6); opacity: 0; }
+}
+@keyframes csoonFloat { 0%, 100% { transform: translateY(-3px); } 50% { transform: translateY(3px); } }
+@keyframes csoonSpark { 0%, 100% { transform: rotate(-12deg) scale(0.92); } 50% { transform: rotate(12deg) scale(1.1); } }
+@keyframes csoonSpin { to { transform: rotate(360deg); } }
+@keyframes csoonCounter { to { transform: rotate(-360deg); } }
+@keyframes csoonShimmer { 0%, 100% { background-position: 0 0; } 50% { background-position: 100% 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .csoon * { animation: none !important; }
+  .csoonRing.is-a { opacity: 0.35; transform: scale(1.6); }
+}
+.ivtSoon { margin-top: 22px; }

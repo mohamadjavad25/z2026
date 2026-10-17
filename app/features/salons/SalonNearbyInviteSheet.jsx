@@ -8,6 +8,7 @@ import { useQrCode } from "../../shared/hooks/useQrCode";
 import { CAPACITY_PRESETS, DAY_PRESETS, HOUR_RANGE_PRESETS, PresetRow, SHARE_PRESETS } from "../collab/collabPresets";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { getSalonJoinCode } from "../../shared/api/salons";
+import { ComingSoon } from "../../components/ComingSoon";
 
 const DEFAULT_TERMS = {
   days: DAY_PRESETS[2].value,
@@ -76,8 +77,9 @@ function InviteTermsPanel({ terms, onChange, onConfirm, onCancel, busy }) {
 /**
  * Salon owner — add-artist sheet: QR/link join (fast, in-person — the artist
  * scans and lands on /join-salon/[id] already knowing who they're joining)
- * plus the search-based nearby-artist invite list as a fallback for artists
- * who aren't standing in front of the owner.
+ * plus the nearby-artist invite list for artists who aren't standing in front of
+ * the owner. The list is switched off for now (NEARBY_ARTISTS_ENABLED in
+ * useSalonInviteActions.js): with no artists passed in, «به زودی» shows instead.
  */
 export function SalonNearbyInviteSheet({
   open,
@@ -188,10 +190,12 @@ export function SalonNearbyInviteSheet({
         </section>
       ) : null}
 
-      <div className="ivtSectionHead">
-        <h4>آرتیست‌های نزدیک</h4>
-        {artists.length ? <span className="ivtCount">{toPersianDigits(artists.length)}</span> : null}
-      </div>
+      {loading || artists.length ? (
+        <div className="ivtSectionHead">
+          <h4>آرتیست‌های نزدیک</h4>
+          {artists.length ? <span className="ivtCount">{toPersianDigits(artists.length)}</span> : null}
+        </div>
+      ) : null}
 
       {loading ? (
         <div className="ivtEmpty">
@@ -243,11 +247,11 @@ export function SalonNearbyInviteSheet({
           })}
         </div>
       ) : (
-        <div className="ivtEmpty">
-          <span className="ivtEmptyIcon" aria-hidden="true"><MapPin size={22} /></span>
-          <b>هنوز آرتیست آزادی نزدیکت نیست</b>
-          <span>لینک یا کد بالا را بفرست تا مستقیم به تیم بپیوندد.</span>
-        </div>
+        <ComingSoon
+          className="ivtSoon"
+          title="پیشنهاد آرتیست‌های نزدیک"
+          text="به‌زودی آرتیست‌های مناسب اطراف سالنت را اینجا می‌بینی. تا آن موقع، کد یا لینک بالا را برای آرتیستی که می‌شناسی بفرست."
+        />
       )}
     </ProfileSheet>
   );
