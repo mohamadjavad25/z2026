@@ -10,6 +10,15 @@ export const profileUpdateSchema = z.object({
   name: z.string().trim().max(120).optional(),
   phone: z.string().refine(isValidIranMobile, "شماره موبایل نامعتبر است.").optional(),
   area: z.string().trim().max(120).optional(),
+  // The map pin of «ثبت لوکیشن»: null removes it. Plate / floor / unit go in addressDetail.
+  geo: z.union([
+    z.null(),
+    z.object({
+      lat: z.number().finite().min(-90).max(90),
+      lng: z.number().finite().min(-180).max(180)
+    })
+  ]).optional(),
+  addressDetail: z.string().trim().max(160).optional(),
   service: z.string().trim().max(120).optional(),
   email: z.string().trim().max(200).optional(),
   avatar: z.string().optional(),
