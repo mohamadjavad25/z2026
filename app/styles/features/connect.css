@@ -630,6 +630,7 @@
 .cnPickMain { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: right; cursor: pointer; }
 .cnPickText { flex: 1; min-width: 0; display: grid; gap: 3px; }
 .cnPickText b { font-size: 0.95rem; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cnPickTag { display: inline-block; margin-inline-start: 6px; padding: 1px 7px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: 0.68rem; font-style: normal; font-weight: 800; vertical-align: 2px; }
 .cnPickText small { color: var(--cn-muted); font-size: 0.76rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cnSheetMore {
   min-height: 46px;

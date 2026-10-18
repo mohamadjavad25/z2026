@@ -130,8 +130,9 @@ async function attachServices(db, cards) {
 
 /**
  * The client's connected salons and artists that offer something in a category («ناخن», «مو»…), each
- * with the services that matched, the ones offering the most first. Empty when none of them does,
- * which is when the client is asked to connect someone new.
+ * with the services that matched. The one the client last booked this kind of service with comes
+ * first (`lastUsed`), then the ones they booked it with most (`visits`), then the ones offering the
+ * most. Empty when none of them does, which is when the client is asked to connect someone new.
  */
 export async function listConnectionsForCategory(clientUserId, category) {
   const cards = await listConnections(clientUserId);
@@ -152,10 +153,50 @@ export async function listConnectionsForCategory(clientUserId, category) {
   };
   salonRows.forEach((row) => collect(row.salon_user_id, row));
   artistRows.forEach((row) => collect(row.user_id, row));
+  if (!matched.size) return [];
+  const history = await categoryHistory(db, clientUserId, [...matched.keys()], category);
+  let lastAt = 0;
+  let lastOwner = null;
+  for (const [ownerId, entry] of history) {
+    if (entry.lastAt > lastAt) {
+      lastAt = entry.lastAt;
+      lastOwner = ownerId;
+    }
+  }
+  const order = (card) => history.get(card.id) || { visits: 0 };
   return cards
     .filter((card) => matched.has(card.id))
-    .map((card) => ({ ...card, services: matched.get(card.id) }))
-    .sort((a, b) => b.services.length - a.services.length);
+    .map((card) => ({ ...card, services: matched.get(card.id), visits: order(card).visits, lastUsed: card.id === lastOwner }))
+    .sort((a, b) => Number(b.lastUsed) - Number(a.lastUsed)
+      || b.visits - a.visits
+      || b.services.length - a.services.length);
+}
+
+/**
+ * How often, and how lately, the client booked a category's services with each of these salons/artists
+ * (cancelled ones left out). A salon visit that was copied onto a team artist's calendar counts for the
+ * salon only. Returns Map ownerId -> { visits, lastAt } (lastAt: ms of the latest such booking's creation).
+ */
+async function categoryHistory(db, clientUserId, ownerIds, category) {
+  const rows = await all(db, `
+    SELECT salon_user_id AS owner_id, created_at, service, service_emoji
+    FROM salon_bookings
+    WHERE client_user_id = $1 AND salon_user_id = ANY($2) AND status NOT IN ('لغو', 'لغو شده', 'cancelled')
+    UNION ALL
+    SELECT artist_user_id AS owner_id, created_at, service, service_emoji
+    FROM artist_bookings
+    WHERE client_user_id = $1 AND artist_user_id = ANY($2) AND source_salon_user_id IS NULL
+      AND status NOT IN ('لغو', 'لغو شده', 'cancelled')
+  `, [clientUserId, ownerIds]);
+  const history = new Map();
+  for (const row of rows) {
+    if (!serviceInCategory({ name: row.service, emoji: row.service_emoji }, category)) continue;
+    const entry = history.get(row.owner_id) || { visits: 0, lastAt: 0 };
+    entry.visits += 1;
+    entry.lastAt = Math.max(entry.lastAt, new Date(row.created_at).getTime() || 0);
+    history.set(row.owner_id, entry);
+  }
+  return history;
 }
 
 /**
