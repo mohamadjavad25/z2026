@@ -916,95 +916,43 @@ button.svcCard:active { transform: scale(0.99); }
   box-shadow: 0 -10px 18px -8px rgba(255, 255, 255, 0.95);
 }
 
-/* Catalog layout: the sheet itself never scrolls. The list scrolls in its own box and the done bar
-   is an opaque footer beneath it. The old version made the whole sheet scroll with a sticky,
-   half-transparent footer on top; on Android the scrolled list then showed through as stale
-   "static" bands (see docs/DEVLOG.md). Nothing overlaps now, so there is nothing to ghost. */
-.svcSheet.is-catalog { overflow: hidden; }
-.svcSheet.is-catalog > .svcCatalog { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 12px; }
-.svcCatalog > .svcCatalogScroll {
-  flex: 1 1 auto;
-  min-height: 0;
-  display: grid;
-  /* rows keep their full content height; otherwise the scrolling tab bar (overflow-x: auto) is squashed
-     and the hint text paints over it */
-  grid-auto-rows: max-content;
-  align-content: start;
-  gap: 12px;
-  padding: 2px;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-}
-/* GPU-light catalog (third "static bands" report, 2026-10-17: the band now sat mid-list while
-   scrolling, on a phone with many tabs open, i.e. Android tile-memory corruption). Earlier fixes
-   changed the layout; this one cuts what the GPU has to hold while the list scrolls:
-   - ~30 blurred card shadows, hover/active transforms and the heavy sheet shadow are gone, so no
-     card or icon is promoted to its own compositor layer (sticky :hover on touch did that);
-   - the sheet entry fades only.
-   content-visibility / contain: paint were tried on 2026-10-17 and made it worse (cards clipped,
-   content unpainted), so do not use them here. The real fix is in ServiceComposerModal.jsx: the
-   list is shown a page at a time (CATALOG_PAGE), so only a few SVG icons exist at once. */
-.svcSheet.is-catalog {
-  box-shadow: 0 -8px 24px rgb(var(--shadow-rgb) / 0.16);
-  animation-name: svcSheetFade;
-}
-@keyframes svcSheetFade {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-.svcMoreBtn {
-  width: 100%;
-  min-height: 46px;
-  border: 1px solid var(--n-200);
-  border-radius: 16px;
+/* ═══ Add / edit service page ═══════════════════════════════════════════
+   History: six reports of "static" bands (پارازیت) over the catalog on Android Chrome, see
+   docs/DEVLOG.md. Each earlier fix trimmed the overlay itself (blur, sticky footer, shadows,
+   paging, full-screen), but the page was still a position: fixed layer with its own scroll box
+   on top of the whole live app: the profile page, every service card, the blurred bottom bar
+   and the support button stayed composited underneath (about 20 GPU layers, measured with the
+   Chrome layer tree), plus a sliding toast and press-scale layers on each tap.
+   Now it is an ordinary page: while it is open the app is not drawn at all
+   (html.has-svc-page hides main.appShell, see ServiceComposerModal.jsx), the page sits in normal
+   flow and the window scrolls it, like any website. Nothing is under it, nothing slides over it,
+   nothing in it is half-transparent or animated. Keep it that way:
+   - no position: fixed / overflow scroll box for the list, no backdrop-filter, no box-shadow,
+     no opacity below 1, no transform, transition or animation inside .svcPage;
+   - content-visibility / contain: paint were tried on 2026-10-17 and clipped the cards. */
+html.has-svc-page main.appShell { display: none !important; }
+
+.svcPage {
+  position: relative;
+  max-width: 460px;
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
   background: var(--n-0);
   color: var(--n-900);
-  font: inherit;
-  font-size: 0.82rem;
-  font-weight: 900;
-  cursor: pointer;
-}
-.svcCatalogScroll .svcPresetMain,
-.svcCatalogScroll .svcPresetMain:hover,
-.svcCatalogScroll .svcPresetMain:focus-visible,
-.svcCatalogScroll .svcPresetMain:active {
-  box-shadow: none;
-  transform: none;
-  transition: border-color 0.16s ease;
-}
-.svcCatalogScroll .serviceIcon,
-.svcCatalogScroll button:hover > .serviceIcon {
-  transform: none;
-  transition: none;
-}
-.svcCatalogScroll .svcPresetQuick,
-.svcCatalogScroll .svcPresetQuick:active {
-  box-shadow: none;
-  transform: none;
-}
-
-/* Full-screen page (replaces the floating sheet): opaque, no entry animation, no backdrop, no shadow,
-   no rounded clip, so nothing but the plain list is painted. Shown instantly. */
-.svcPage {
-  position: fixed;
-  inset: 0;
-  left: max(0px, calc((100vw - 460px) / 2));
-  right: max(0px, calc((100vw - 460px) / 2));
-  z-index: var(--z-dialog);
-  display: flex;
-  background: var(--n-0);
 }
 .svcPage > .svcSheet {
-  flex: 1 1 auto;
+  flex: 1 0 auto;
   max-height: none;
-  height: 100%;
+  overflow: visible;
   border-radius: 0;
   box-shadow: none;
   animation: none;
   padding: calc(12px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));
 }
-.svcPage > .svcSheet:not(.is-catalog) { overflow-y: auto; }
+.svcPage > .svcSheet.is-catalog { padding-bottom: 0; }
 .svcPage .svcSheetHead { justify-content: flex-start; }
 .svcPageBack {
   flex: none;
@@ -1018,12 +966,75 @@ button.svcCard:active { transform: scale(0.99); }
   color: var(--n-900);
   cursor: pointer;
 }
+.svcPage .svcModeSwitch button.on { box-shadow: inset 0 0 0 1px var(--n-150); }
+
+/* Catalog: one column in normal flow; the done bar closes the page and stays at the bottom of
+   the screen (opaque, sticky in the window's own scroll, no shadow, nothing behind it). */
+.svcPage .svcCatalog {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.svcPage .svcCatalogScroll {
+  flex: 1 0 auto;
+  display: grid;
+  /* rows keep their full content height, so the scrolling tab bar is never squashed under the hint */
+  grid-auto-rows: max-content;
+  align-content: start;
+  gap: 12px;
+}
+.svcMoreBtn {
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid var(--n-200);
+  border-radius: 16px;
+  background: var(--n-0);
+  color: var(--n-900);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+/* Flat cards: no shadow, no lift or squeeze, and an added card is muted with colours, not opacity. */
+.svcPage .svcPresetMain,
+.svcPage .svcPresetMain:hover,
+.svcPage .svcPresetMain:focus-visible,
+.svcPage .svcPresetMain:active,
+.svcPage .svcPresetQuick,
+.svcPage .svcPresetQuick:active,
+.svcPage .svcDoneBtn,
+.svcPage .svcDoneBtn:active,
+.svcPage .svcSubmit {
+  box-shadow: none;
+  transform: none;
+}
+.svcPage .svcPresetMain:active,
+.svcPage .svcPresetMain:focus-visible { border-color: var(--n-300); }
+.svcPage .svcPreset.is-added .svcPresetMain { opacity: 1; background: var(--n-25); }
+.svcPage .svcPreset.is-added .svcPresetMain strong,
+.svcPage .svcPreset.is-added .svcPresetMeta b { color: var(--n-600); }
+.svcPage .svcPreset.is-added .svcPresetMain small,
+.svcPage .svcPreset.is-added .svcPresetMeta em { color: var(--n-500); }
+/* the app-wide press squeeze (tokens.css) and every hover lift stay out of this page */
+.svcPage *,
+.svcPage *:active {
+  scale: none !important;
+  transition: none !important;
+  animation: none !important;
+}
+.svcPage .serviceIcon,
+.svcPage button:hover > .serviceIcon { transform: none; }
 
 .svcDoneBar {
-  flex: 0 0 auto;
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
   display: grid;
   gap: 10px;
-  padding: 12px 0 0;
+  margin: 0 -16px;
+  padding: 12px 16px calc(16px + env(safe-area-inset-bottom));
   border-top: 1px solid var(--n-100);
   background: var(--n-0);
 }

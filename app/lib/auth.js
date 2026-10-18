@@ -2,8 +2,11 @@ import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import { ensureDb } from "./db/connection.js";
 import * as users from "./db/repos/users.js";
 import * as sessions from "./db/repos/sessions.js";
+import { publicLocation } from "./location.js";
 
 export const SESSION_COOKIE = "frfro_session";
+/** Shortest password sign-up and reset accept (the forms say the same). */
+export const MIN_PASSWORD_LENGTH = 8;
 const SESSION_DAYS = 30;
 
 const PERSIAN_DIGITS = "۰۱۲۳۴۵۶۷۸۹";
@@ -133,7 +136,8 @@ export function publicUser(row) {
     avatarPosition: row.avatar_position || "",
     posterPosition: row.poster_position || "",
     experienceYears: row.experience_years || "",
-    managerName: row.manager_name || ""
+    managerName: row.manager_name || "",
+    location: publicLocation(row)
   };
 }
 

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { logger } from "../../lib/logger.js";
-import { checkRateLimit } from "../../lib/rateLimit.js";
+import { checkIpRateLimit, checkRateLimit } from "../../lib/rateLimit.js";
 import { withErrorHandling } from "../../lib/http.js";
 import { recordClientError } from "../../lib/db/repos/adminControl.js";
 
@@ -12,7 +12,9 @@ export const runtime = "nodejs";
 // unauthenticated on purpose -- a crash can happen before login -- so it is
 // size-capped and throttled globally, and only ever writes a log line plus a
 // capped row for the admin health page.
-const MAX_PER_MINUTE = 60;
+const MAX_PER_MINUTE = 300;
+// One address can no longer use up the shared budget and hide everyone else's crashes.
+const MAX_PER_MINUTE_PER_IP = 20;
 
 const schema = z.object({
   message: z.string().max(500),
@@ -23,7 +25,8 @@ const schema = z.object({
 });
 
 async function _POST(request) {
-  const limited = await checkRateLimit("client-errors", MAX_PER_MINUTE, 60 * 1000);
+  const perIp = await checkIpRateLimit(request, "client-errors", MAX_PER_MINUTE_PER_IP, 60 * 1000);
+  const limited = perIp.ok ? await checkRateLimit("client-errors", MAX_PER_MINUTE, 60 * 1000) : perIp;
   if (!limited.ok) return NextResponse.json({ ok: false }, { status: 429 });
   let body;
   try {

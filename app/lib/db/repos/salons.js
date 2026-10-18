@@ -8,8 +8,9 @@ import { listSalonPortfolio } from "./salons/portfolio.js";
 import { listSalonServices } from "./salons/services.js";
 import { listSalonStaff } from "./salons/staff.js";
 import { onlineBookingBlock, withoutHiddenProviders } from "../../billing/access.js";
+import { publicLocation } from "../../location.js";
 
-export { answerSalonTimeOffer, cancelSalonBookingByClient, draftSingleBookingStaff, getSalonBookingRow, listBookingMoveTimes, listBookingStaffOptions, listFeasibleVisitTimes, previewVisit, suggestBookingStaff, listSalonBookings, listClientSalonBookings, addSalonBooking, updateSalonBooking, cancelSalonBooking, patchSalonBookingWithArtistSync, syncSalonBookingFromArtistMirror } from "./salons/bookings.js";
+export { ensureBookingPartsColumns as ensureBookingColumns, answerSalonTimeOffer, cancelSalonBookingByClient, draftSingleBookingStaff, getSalonBookingRow, listBookingMoveTimes, listBookingStaffOptions, listFeasibleVisitTimes, previewVisit, suggestBookingStaff, listSalonBookings, listClientSalonBookings, addSalonBooking, updateSalonBooking, cancelSalonBooking, patchSalonBookingWithArtistSync, syncSalonBookingFromArtistMirror } from "./salons/bookings.js";
 export { ensureSalonHours, listSalonHours, updateSalonHour } from "./salons/hours.js";
 export { listSalonPortfolio, addSalonPortfolio, updateSalonPortfolio, deleteSalonPortfolio } from "./salons/portfolio.js";
 export { listSalonServices, addSalonService, updateSalonService, deleteSalonService } from "./salons/services.js";
@@ -21,7 +22,9 @@ export {
   updateSalonStaff,
   deleteSalonStaff,
   getSalonOwnerStaff,
-  upsertSalonOwnerStaff
+  upsertSalonOwnerStaff,
+  getSalonOwnerProfile,
+  getSalonOwnerPhoto
 } from "./salons/staff.js";
 export {
   listSalonArtistInvites,
@@ -238,7 +241,8 @@ export async function listSavedSalonsForUser(userId) {
 export async function getSalon(userId, viewerUserId = null) {
   const db = await getDb();
   const row = await get(db, `
-    SELECT s.*, (u.avatar <> '' OR u.avatar_url IS NOT NULL) AS avatar, (u.poster <> '' OR u.poster_url IS NOT NULL) AS has_poster, u.avatar_position, u.poster_position, u.updated_at AS user_updated_at
+    SELECT s.*, (u.avatar <> '' OR u.avatar_url IS NOT NULL) AS avatar, (u.poster <> '' OR u.poster_url IS NOT NULL) AS has_poster, u.avatar_position, u.poster_position, u.updated_at AS user_updated_at,
+      u.geo_lat, u.geo_lng, u.address_detail
     FROM salons s JOIN users u ON u.id = s.user_id
     WHERE s.user_id = $1
   `, [userId]);
@@ -270,6 +274,7 @@ export async function getSalon(userId, viewerUserId = null) {
     source_key: String(row.user_id),
     name: row.name,
     area: row.area,
+    location: publicLocation(row),
     tag: row.tag,
     price: row.price,
     open: row.open,

@@ -5,6 +5,7 @@ import * as admin from "../../../../lib/db/repos/admin.js";
 import * as ops from "../../../../lib/db/repos/adminOps.js";
 import * as support from "../../../../lib/db/repos/support.js";
 import { sendPushToUser } from "../../../../lib/push.js";
+import { attachmentSummary, parseAttachments } from "../../../../lib/supportMedia.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,7 +21,8 @@ async function _GET(request, { params }) {
 }
 
 /**
- * POST { status?, note?, action? }
+ * POST { reply?, attachments?, status?, note?, action? }
+ * - reply / attachments: an answer to the user (text, up to four pictures or one voice note).
  * - status: open | in_progress | closed; note: internal note (never shown to the user).
  * - action (reports only): "hide_post" (hides the reported post), "suspend_user" (suspends the reported account / the post's owner),
  *   "dismiss" (nothing to do). Each one closes the ticket and records what was done. Deleting for good stays in the Content/Users tabs
@@ -40,15 +42,17 @@ async function _POST(request, { params }) {
 
   // A reply goes to the user (they see it in their support center and get a push if they allowed it). It can close the ticket in the same go.
   const reply = String(body.reply || "").trim();
-  if (reply) {
+  const files = parseAttachments(body.attachments);
+  if (!files.ok) return error(files.error, 400);
+  if (reply || files.items.length) {
     if (reply.length > 2000) return error("پاسخ خیلی بلند است (حداکثر ۲۰۰۰ حرف).", 400);
     if (!ticket.user_id) return error("این پیام از مهمان بدون حساب است؛ با شمارهٔ تماسش جواب بده.", 400);
-    await support.addMessage({ ticketId: ticket.id, author: "admin", authorUserId: gate.admin.id, body: reply });
+    await support.addMessage({ ticketId: ticket.id, author: "admin", authorUserId: gate.admin.id, body: reply, attachments: files.items });
     if (body.status === "closed") await support.updateTicket(ticket.id, { status: "closed", resolution: ticket.resolution || "answered" });
     if (body.note !== undefined) await support.updateTicket(ticket.id, { adminNote: body.note });
     await log("support_update", body.status === "closed" ? "پاسخ و بستن" : "پاسخ");
     // Best-effort: a push failure must never fail the reply.
-    sendPushToUser(ticket.user_id, { title: "پاسخ پشتیبانی فرفرو", body: reply.slice(0, 120), url: "/" }).catch(() => {});
+    sendPushToUser(ticket.user_id, { title: "پاسخ پشتیبانی فرفرو", body: (reply || attachmentSummary(files.items)).slice(0, 120), url: "/" }).catch(() => {});
     return json({ data: { ok: true } });
   }
 

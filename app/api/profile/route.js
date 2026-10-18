@@ -46,6 +46,8 @@ async function _POST(request) {
       name: data.name,
       phone: data.phone,
       area: data.area,
+      geo: data.geo,
+      addressDetail: data.addressDetail,
       service: data.service,
       email: data.email,
       avatar: data.avatar,

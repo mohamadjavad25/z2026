@@ -421,13 +421,14 @@ export function useSalonDirectory({
           service: created.service || body.service,
           booking_date: created.booking_date || body.bookingDate,
           time: created.time || body.time,
-          status: created.status || "درخواست"
+          status: created.status || "درخواست",
+          fallback_name: created.fallback_salon_user_id ? body.fallbackName || "" : ""
         };
         setClientBookingList((list) => [bookedRow, ...list]);
       }
       setSalonClientBooking((current) => ({ ...current, open: false }));
       // Says "awaiting confirmation", not "booked": the real status right now is "درخواست" and the
-      // salon has up to an hour to answer (see bookingExpirySweep.js).
+      // salon has as long as the client chose to answer (see bookingExpirySweep.js).
       if (bookedRow && typeof onClientBooked === "function") {
         onClientBooked(bookedRow, { price: price || "", items });
       } else {

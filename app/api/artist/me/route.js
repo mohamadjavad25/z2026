@@ -9,6 +9,7 @@ import { checkRateLimit } from "../../../lib/rateLimit.js";
 import { get, withTransaction } from "../../../lib/db/connection.js";
 import { lockArtistDays, lockSalonDay } from "../../../lib/db/locks.js";
 import { AWAITING_CLIENT } from "../../../shared/lib/bookingOffer.js";
+import { smsBookingAnswer } from "../../../lib/bookingSms.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -89,7 +90,7 @@ async function _PATCH(request) {
   if (!auth.ok) return auth.response;
   const body = await request.json();
   if (body.kind === "booking") {
-    return patchOwnArtistBooking(auth.user.id, body);
+    return patchOwnArtistBooking(auth.user.id, body, auth.user.name);
   }
   const service = await artists.updateArtistService(Number(body.id), auth.user.id, body);
   if (!service) return notFound();
@@ -114,7 +115,7 @@ async function _PATCH(request) {
  * neither has its own ownership check (by this codebase's low-level-row-
  * function convention), so the artist_user_id match below is load-bearing.
  */
-async function patchOwnArtistBooking(artistUserId, body) {
+async function patchOwnArtistBooking(artistUserId, body, artistName = "") {
   const bookingId = Number(body.id);
   if (!bookingId) return error("شناسه نوبت نامعتبر است.", 400);
   const current = await artists.getArtistBookingById(bookingId);
@@ -198,6 +199,12 @@ async function patchOwnArtistBooking(artistUserId, body) {
     void sendPushToUser(Number(current.clientUserId), {
       title: nextStatus === "تایید شده" ? "نوبت شما تایید شد" : "نوبت شما لغو شد",
       body: `${current.service || "نوبت"} — ${current.bookingDate || ""} ${current.time || ""}`.trim()
+    });
+    smsBookingAnswer(Number(current.clientUserId), {
+      providerName: artistName,
+      bookingDate: current.bookingDate,
+      time: current.time,
+      confirmed: nextStatus === "تایید شده"
     });
   }
 

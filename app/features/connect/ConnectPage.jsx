@@ -158,7 +158,7 @@ export function ConnectPage({ me = {}, onOpenProfile, onNotify }) {
         ) : (
           <section aria-labelledby="cn-list-title" className="cnList">
             <div className="cnListHead">
-              <h2 id="cn-list-title">وصل‌شده‌ها</h2>
+              <h2 id="cn-list-title">سرویس‌دهنده‌های وصل‌شده</h2>
               {connections.length ? <span>{toPersianDigits(connections.length)}</span> : null}
             </div>
             {loading ? <SkeletonList rows={3} variant="card" label="در حال بارگذاری" /> : null}

@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { ChevronDown, ChevronLeft, MapPin, Navigation, Search, X, Check, Locate } from "lucide-react";
+// Bundled with the app instead of fetched from unpkg, so the map never depends on a CDN being reachable.
+import "leaflet/dist/leaflet.css";
 
 export const PROVINCES = [
   {
@@ -451,9 +453,15 @@ const IRAN_CENTER = { lat: 32.4279, lng: 53.6880 };
 const CITY_ZOOM = 13;
 const PIN_ZOOM = 16;
 
+/**
+ * «ثبت لوکیشن»: province → city → a pin on the map, plus plate / floor / unit. Saves
+ * { area, geo: { lat, lng }, addressDetail }; clients see it behind the pin next to the
+ * name on the public page (components/LocationButton). onSave({ area: "" }) removes it.
+ */
 export function ProfileLocationSettings({
   profileType,
   value,
+  location = null,
   saving = false,
   onSave
 }) {
@@ -462,6 +470,7 @@ export function ProfileLocationSettings({
   const [selectedCity, setSelectedCity] = useState(null);
   const [pinPosition, setPinPosition] = useState(null);
   const [address, setAddress] = useState("");
+  const [detail, setDetail] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [step, setStep] = useState("province"); // province | city | pin
   const [locating, setLocating] = useState(false);
@@ -475,6 +484,14 @@ export function ProfileLocationSettings({
   useEffect(() => {
     if (value) setAddress(String(value));
   }, [value]);
+
+  useEffect(() => {
+    setDetail(location?.detail || "");
+  }, [location?.detail]);
+
+  const savedPin = Number.isFinite(location?.lat) && Number.isFinite(location?.lng)
+    ? { lat: location.lat, lng: location.lng }
+    : null;
 
   const filteredProvinces = useMemo(() => {
     if (!searchQuery.trim()) return PROVINCES;
@@ -495,15 +512,6 @@ export function ProfileLocationSettings({
     if (!mapContainerRef.current || mapInstanceRef.current) return;
 
     import("leaflet").then((L) => {
-      const linkId = "leaflet-css-link";
-      if (!document.getElementById(linkId)) {
-        const link = document.createElement("link");
-        link.id = linkId;
-        link.rel = "stylesheet";
-        link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
-        document.head.appendChild(link);
-      }
-
       const center = selectedCity
         ? [selectedCity.lat, selectedCity.lng]
         : [IRAN_CENTER.lat, IRAN_CENTER.lng];
@@ -620,8 +628,14 @@ export function ProfileLocationSettings({
 
   function openMap() {
     setMapOpen(true);
-    setStep("province");
     setSearchQuery("");
+    // Already pinned: straight to the map at that pin, to move it or fix the plate / floor.
+    if (savedPin) {
+      setPinPosition(savedPin);
+      setStep("pin");
+    } else {
+      setStep("province");
+    }
   }
 
   function closeMap() {
@@ -632,8 +646,15 @@ export function ProfileLocationSettings({
   }
 
   function confirmLocation() {
-    if (address) onSave?.(address);
+    if (address) onSave?.({ area: address, geo: pinPosition, addressDetail: detail.trim() });
     closeMap();
+  }
+
+  function clearLocation() {
+    setAddress("");
+    setDetail("");
+    setPinPosition(null);
+    onSave?.({ area: "" });
   }
 
   function handleLocateMe() {
@@ -678,17 +699,20 @@ export function ProfileLocationSettings({
             <strong>ثبت لوکیشن</strong>
             <span>
               {hasAddress
-                ? address
+                ? [address, location?.detail].filter(Boolean).join("، ")
                 : profileType === "salon" ? "روی نقشه محل سالن را مشخص کن" : "روی نقشه محل کارت رو مشخص کن"}
             </span>
+            {hasAddress && !savedPin && profileType !== "client" ? (
+              <small className="profileLocationNoPin">پین روی نقشه نداری؛ بزن و پین بگذار تا مشتری راحت پیدایت کند.</small>
+            ) : null}
           </span>
           {hasAddress ? (
             <span
               role="button"
               tabIndex={0}
               className="profileLocationRowClear"
-              onClick={(e) => { e.stopPropagation(); setAddress(""); onSave?.(""); }}
-              onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); setAddress(""); onSave?.(""); } }}
+              onClick={(e) => { e.stopPropagation(); clearLocation(); }}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); clearLocation(); } }}
               aria-label="حذف لوکیشن"
             >
               <X size={13} />
@@ -810,7 +834,7 @@ export function ProfileLocationSettings({
           {step === "pin" && (
             <div className="profileLocationPinStep">
               <div className="profileLocationMapBar">
-                <button type="button" className="profileLocationBack" onClick={() => { setStep("city"); destroyMap(); }}>
+                <button type="button" className="profileLocationBack" onClick={() => { setStep(selectedProvince ? "city" : "province"); destroyMap(); }}>
                   <ChevronDown size={14} className="profileLocationBackIcon" />
                   تغییر شهر
                 </button>
@@ -827,6 +851,18 @@ export function ProfileLocationSettings({
                   <MapPin size={14} />
                   <span>{reverseLoading ? "در حال شناسایی آدرس..." : address || "روی نقشه بزن تا آدرس مشخص بشه"}</span>
                 </div>
+                {profileType !== "client" ? (
+                  <label className="profileLocationDetail">
+                    <span>پلاک، طبقه، واحد</span>
+                    <input
+                      value={detail}
+                      onChange={(e) => setDetail(e.target.value)}
+                      placeholder="مثلاً پلاک ۸، طبقه ۲، زنگ رز"
+                      maxLength={160}
+                      autoComplete="off"
+                    />
+                  </label>
+                ) : null}
                 <button
                   type="button"
                   className="profileLocationConfirm"

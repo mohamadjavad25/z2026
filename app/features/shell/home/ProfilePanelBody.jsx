@@ -235,7 +235,9 @@ export function ProfilePanelBody() {
               <BillingBanner />
             ) : null}
 
-            {(createdProfile?.type === "salon" || createdProfile?.type === "artist") && createdProfile.type === profileType && profileView === "overview" && !salonWorkspace ? (
+            {/* Wait for the workspace to load: until then the service count reads 0 and a complete profile would flash the card. */}
+            {(createdProfile?.type === "salon" || createdProfile?.type === "artist") && createdProfile.type === profileType && profileView === "overview" && !salonWorkspace
+              && !(createdProfile.type === "salon" ? salonWorkspaceLoading : artistWorkspaceLoading) ? (
               <ProfileCompleteness
                 profile={createdProfile}
                 serviceCount={createdProfile.type === "salon" ? salonServiceList.length : artistServiceList.length}

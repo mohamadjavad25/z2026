@@ -34,6 +34,17 @@ export async function getSalonVisitTimes(salonUserId, day, services) {
 }
 
 /**
+ * GET /api/salon-bookings/fallbacks → { salons: [{ id, name, area, avatar }] }
+ * Salons the client follows that do every one of these services and are free at that day and time:
+ * the backup choices for a request that gets only an hour. `services`: names or { name }.
+ */
+export async function getSalonFallbacks(salonUserId, day, time, services) {
+  const query = new URLSearchParams({ salonUserId: String(salonUserId), day: String(day || ""), time: String(time || "") });
+  for (const service of services) query.append("service", typeof service === "string" ? service : service.name);
+  return apiJson(`/api/salon-bookings/fallbacks?${query}`);
+}
+
+/**
  * GET /api/salon-bookings/preview → { ok, code?, message?, partIndex?, durationMinutes, end, parts: [{ service, minutes, start, end, staff }] }
  * Who would do what, and when, if this visit were booked at `time` (the same checks the booking itself
  * runs). `services`: { name, minutes }, in order; `staff`: the salon's own pick per service, same order
@@ -175,7 +186,12 @@ export async function getSalonStaffCalendars() {
   return apiJson("/api/salon-staff/calendars");
 }
 
-/** POST /api/salon-staff/self { name, role } → { person, staff }: the manager joins their own team */
+/** GET /api/salon-staff/self → { profile }: what the manager entered for their own team card (kept after leaving) */
+export async function getSalonOwnerProfile() {
+  return apiJson("/api/salon-staff/self");
+}
+
+/** POST /api/salon-staff/self { name?, role?, photo? } → { person, staff, profile }: the manager joins (or edits) their own team card */
 export async function joinSalonTeamAsOwner(body) {
   return apiFetch("/api/salon-staff/self", {
     method: "POST",

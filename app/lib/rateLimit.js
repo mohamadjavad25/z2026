@@ -48,3 +48,32 @@ export async function checkRateLimit(key, limit, windowMs) {
   }
   return { ok: true };
 }
+
+/**
+ * The caller's address, as the proxy in front of the app saw it. Vercel and a normal nginx setup
+ * (`proxy_set_header X-Real-IP $remote_addr`, see docs/DEPLOY_SERVER.md) both set X-Real-IP
+ * themselves, so a value the caller sent can't win. Without it, the LAST X-Forwarded-For entry is the
+ * one the nearest proxy added; the first entry is whatever the caller typed and must never be trusted
+ * for throttling. "unknown" when neither header is there (a direct call to the app's port).
+ */
+export function clientIp(request) {
+  const real = String(request.headers.get("x-real-ip") || "").trim();
+  if (real) return real.slice(0, 64);
+  const forwarded = String(request.headers.get("x-forwarded-for") || "").split(",").map((part) => part.trim()).filter(Boolean);
+  return (forwarded[forwarded.length - 1] || "unknown").slice(0, 64);
+}
+
+const LOOPBACK = /^(127\.|::1$|::ffff:127\.)/;
+
+/**
+ * Per-address throttle for routes anyone can call before signing in (login, sign-up, SMS codes):
+ * the per-phone limits there stop guessing one account, this stops one address from going through
+ * many phones, or using up a limit shared by everyone. Skipped for this machine itself (Next.js puts
+ * the socket's address in X-Forwarded-For when no proxy did): only the server's own scripts and tests
+ * reach the app that way, because every visitor comes through the proxy, which sets X-Real-IP.
+ */
+export async function checkIpRateLimit(request, scope, limit, windowMs) {
+  const ip = clientIp(request);
+  if (ip === "unknown" || LOOPBACK.test(ip)) return { ok: true };
+  return checkRateLimit(`${scope}-ip:${ip}`, limit, windowMs);
+}

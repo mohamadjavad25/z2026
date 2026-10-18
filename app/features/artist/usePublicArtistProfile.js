@@ -190,7 +190,9 @@ export function usePublicArtistProfile({
     }
   }, [applyPublicArtistPayload, setFollowedArtists, onBeforeOpen]);
 
-  const confirmPublicArtistBooking = useCallback(async () => {
+  // `waitMinutes`: how long the request waits for the artist (60, or null = until the appointment);
+  // `fallbackArtistUserId`: with the hour, the followed artist it goes to if unanswered.
+  const confirmPublicArtistBooking = useCallback(async ({ waitMinutes, fallbackArtistUserId, fallbackName = "" } = {}) => {
     if (!selectedPublicArtist) return;
     if (publicArtistBookingBusyRef.current) return;
     const service = (publicArtistBundle?.id === publicArtistSelectedServiceId ? publicArtistBundle : null)
@@ -235,7 +237,9 @@ export function usePublicArtistProfile({
         time: publicArtistBookingSlot,
         durationMinutes,
         clientName: createdProfile?.data?.name || "",
-        clientPhone: createdProfile?.data?.phone || ""
+        clientPhone: createdProfile?.data?.phone || "",
+        ...(waitMinutes !== undefined ? { waitMinutes } : {}),
+        ...(fallbackArtistUserId ? { fallbackArtistUserId } : {})
       });
       if (!ok) {
         if (payload?.code === "SLOT_TAKEN" || status === 409) {
@@ -297,7 +301,8 @@ export function usePublicArtistProfile({
           service_emoji: created.service_emoji || service.emoji || "",
           booking_date: created.booking_date || publicArtistBookingDay,
           time: created.time || publicArtistBookingSlot,
-          status: created.status || "تازه"
+          status: created.status || "تازه",
+          fallback_name: created.fallback_artist_user_id ? fallbackName : ""
         }, { price: service.price || "", items: Array.isArray(service.items) ? service.items : [service] });
       } else {
         notify(

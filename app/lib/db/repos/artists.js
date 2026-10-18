@@ -10,6 +10,7 @@ import { clientBookingMatch, clientVisibleStatus } from "../clientMatch.js";
 import { isProfileSaved } from "./social.js";
 import { normalizeServiceEmoji, resolveBookingServiceEmoji } from "./serviceEmoji.js";
 import { getSettings, DEFAULT_SETTINGS } from "./userSettings.js";
+import { publicLocation } from "../../location.js";
 import { listArtistHoursPublic } from "./artists/hours.js";
 import { onlineBookingBlock, withoutHiddenProviders } from "../../billing/access.js";
 
@@ -341,8 +342,11 @@ export async function listArtistBookings(artistUserId) {
     const client = row.client_user_id ? clientsById.get(row.client_user_id) || null : null;
     const history = historyOf(index);
     const visits = buildVisits(history);
+    // Which other artist the client picked as a backup, and where an unanswered request went, is the
+    // client's business only.
+    const { fallback_artist_user_id: _fallback, moved_to_booking_id: _movedTo, ...own } = row;
     return {
-      ...row,
+      ...own,
       visits,
       visit_count: visits.filter((level) => level > 0).length,
       sourceSalon: row.source_salon_user_id
@@ -392,12 +396,20 @@ export async function listArtistBookings(artistUserId) {
  */
 export async function listClientArtistBookings(user) {
   const db = await getDb();
-  const match = clientBookingMatch(user, { phoneCol: "client_phone", nameCol: "client_name" });
+  const match = clientBookingMatch(user);
   if (!match.sql) return [];
+  // The backup artist's name, and for a request that was moved, the artist it went to / came from
+  // (the columns are made by salons/bookings.js ensureBookingPartsColumns, run by the route first).
   const rows = await all(db, `
-    SELECT b.*, u.name AS artist_name, u.area AS artist_area, (u.avatar <> '' OR u.avatar_url IS NOT NULL) AS artist_avatar, u.phone AS artist_phone
+    SELECT b.*, u.name AS artist_name, u.area AS artist_area, (u.avatar <> '' OR u.avatar_url IS NOT NULL) AS artist_avatar, u.phone AS artist_phone,
+      fu.name AS fallback_name, tu.name AS moved_to_name, ou.name AS moved_from_name
     FROM artist_bookings b
     LEFT JOIN users u ON u.id = b.artist_user_id
+    LEFT JOIN users fu ON fu.id = b.fallback_artist_user_id
+    LEFT JOIN artist_bookings tb ON tb.id = b.moved_to_booking_id
+    LEFT JOIN users tu ON tu.id = tb.artist_user_id
+    LEFT JOIN artist_bookings ob ON ob.id = b.moved_from_booking_id
+    LEFT JOIN users ou ON ou.id = ob.artist_user_id
     -- source_salon_user_id IS NOT NULL = the artist-calendar copy of a SALON booking; the client
     -- already has that booking from listClientSalonBookings, so listing it again showed every
     -- salon-with-staff booking twice, once per table, each with its own (diverging) status.
@@ -718,6 +730,18 @@ export async function addArtistBookingInTx(artistUserId, data, runner = null) {
   if (data.salonBookingId) {
     await run(db, "UPDATE artist_bookings SET salon_booking_id = $1 WHERE id = $2", [Number(data.salonBookingId), Number(info.rows[0].id)]);
   }
+  // How long a client's request waits (60, or null = until its appointment), its backup artist and the
+  // request it was moved from (columns made the same way, migration 040).
+  if (data.waitMinutes !== undefined || data.fallbackArtistUserId || data.movedFromBookingId) {
+    await run(db, `
+      UPDATE artist_bookings SET wait_minutes = $1, fallback_artist_user_id = $2, moved_from_booking_id = $3 WHERE id = $4
+    `, [
+      data.waitMinutes === undefined ? 60 : data.waitMinutes,
+      Number(data.fallbackArtistUserId || 0) || null,
+      Number(data.movedFromBookingId || 0) || null,
+      Number(info.rows[0].id)
+    ]);
+  }
   return {
     ok: true,
     booking: await get(db, "SELECT * FROM artist_bookings WHERE id = $1", [Number(info.rows[0].id)])
@@ -788,6 +812,7 @@ export async function getPublicArtist(userId, viewerUserId = null) {
     name: user.name,
     role: user.service ? `آرتیست ${user.service}` : "آرتیست",
     area: user.area,
+    location: publicLocation(user),
     // The public page's «تماس» button, same as the salon page (salons.js getSalon).
     phone: user.phone || "",
     avatar: user.avatar ? `/api/media/avatar/${user.id}` : "",
@@ -909,7 +934,7 @@ export async function cancelArtistBookingByClient(id, client) {
   const db = await getDb();
   // Found by the rule the client's own list uses, so a booking they can see is one they can cancel.
   const user = typeof client === "object" && client ? client : { id: client };
-  const match = clientBookingMatch(user, { alias: "b", phoneCol: "client_phone", nameCol: "client_name", startAt: 2 });
+  const match = clientBookingMatch(user, { alias: "b", startAt: 2 });
   const current = match.sql
     ? await get(db, `SELECT b.* FROM artist_bookings b WHERE b.id = $1 AND b.source_salon_user_id IS NULL AND ${match.sql}`, [id, ...match.params])
     : null;

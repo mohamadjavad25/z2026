@@ -4,6 +4,7 @@ import { getUserFromRequest, isValidIranMobile, normalizeDigits, normalizePhone 
 import { checkRateLimit } from "../../lib/rateLimit.js";
 import { clientIp } from "../../lib/adminAuth.js";
 import * as support from "../../lib/db/repos/support.js";
+import { parseAttachments } from "../../lib/supportMedia.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -11,7 +12,8 @@ export const dynamic = "force-dynamic";
 const HOUR = 60 * 60 * 1000;
 
 /**
- * POST { category, subject, message, phone? }: a message to the support inbox.
+ * POST { category, subject, message, phone?, attachments? }: a message to the support inbox, optionally with up to four
+ * pictures or one voice note ([{ kind: "image" | "voice", data: "data:...;base64,...", durationMs? }], see app/lib/supportMedia.js).
  * Signed-in users are identified by their session; a guest (e.g. someone locked out) must leave a phone number to be reached on.
  */
 async function _POST(request) {
@@ -21,7 +23,10 @@ async function _POST(request) {
   const category = support.SUPPORT_CATEGORIES.includes(body.category) ? body.category : "other";
   const subject = normalizeDigits(String(body.subject || "")).trim().slice(0, 120);
   const message = String(body.message || "").trim();
-  if (message.length < 10) return error("پیامت را کمی کامل‌تر بنویس (حداقل ۱۰ حرف).", 400);
+  const files = parseAttachments(body.attachments);
+  if (!files.ok) return error(files.error, 400);
+  // A screenshot or a voice note says enough on its own; plain text needs a few words.
+  if (!files.items.length && message.length < 10) return error("پیامت را کمی کامل‌تر بنویس (حداقل ۱۰ حرف).", 400);
   if (message.length > 2000) return error("پیام خیلی بلند است (حداکثر ۲۰۰۰ حرف).", 400);
 
   let phone = user?.phone || "";
@@ -35,7 +40,7 @@ async function _POST(request) {
     return error("پیام‌های زیادی فرستادی. کمی بعد دوباره امتحان کن.", 429);
   }
 
-  const ticket = await support.createTicket({ kind: "support", userId: user?.id ?? null, contactPhone: phone, category, subject, body: message });
+  const ticket = await support.createTicket({ kind: "support", userId: user?.id ?? null, contactPhone: phone, category, subject, body: message, attachments: files.items });
   return json({ data: { id: ticket.id } }, { status: 201 });
 }
 

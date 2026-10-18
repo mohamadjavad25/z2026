@@ -11,6 +11,20 @@
  * Full setup steps: docs/OPERATIONS.md («پیامک اشتراک»).
  */
 export const SMS_TEMPLATES = {
+  booking_request: {
+    label: "درخواست نوبت تازه (به سالن یا آرتیست)",
+    env: "BOOKING_REQUEST",
+    kavenegar: (v) => ({ token: v.time, token10: v.day, token20: v.who }),
+    faraz: (v) => ({ who: v.who, day: v.day, time: v.time }),
+    preview: (v) => `فرفرو: درخواست نوبت تازه از ${v.who}، ${v.day} ساعت ${v.time}. زودتر در اپ جواب بده، وگرنه منقضی می‌شود.`
+  },
+  booking_answer: {
+    label: "جواب درخواست نوبت (به مشتری)",
+    env: "BOOKING_ANSWER",
+    kavenegar: (v) => ({ token: v.time, token10: v.day, token20: `${v.who} ${v.result}` }),
+    faraz: (v) => ({ who: v.who, day: v.day, time: v.time, result: v.result }),
+    preview: (v) => `فرفرو: نوبتت ${v.day} ساعت ${v.time} در ${v.who} ${v.result}.`
+  },
   billing_receipt: {
     label: "رسید پرداخت اشتراک",
     env: "BILLING_RECEIPT",

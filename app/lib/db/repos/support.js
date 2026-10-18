@@ -1,4 +1,4 @@
-import { getDb, all, get, run } from "../connection.js";
+import { getDb, withTransaction, all, get, run } from "../connection.js";
 
 export const SUPPORT_CATEGORIES = ["question", "bug", "complaint", "account", "other"];
 export const REPORT_REASONS = ["spam", "inappropriate", "fake", "copyright", "other"];
@@ -11,7 +11,7 @@ export const TICKET_STATUSES = ["open", "in_progress", "closed"];
  * `user_read_at` marks when the owner last opened it, so "you have a reply" is simply admin-wrote-last and newer than that.
  */
 let ready;
-/** Creates / upgrades the tables on first use (same DDL as migrations 024 + 025, idempotent): no manual database step on deploy. */
+/** Creates / upgrades the tables on first use (same DDL as migrations 024, 025 + 038, idempotent): no manual database step on deploy. */
 export function ensureSupportTables() {
   ready ??= (async () => {
     const db = await getDb();
@@ -48,6 +48,18 @@ export function ensureSupportTables() {
     )`);
     await run(db, "CREATE INDEX IF NOT EXISTS idx_support_messages_ticket ON support_messages (ticket_id, id)");
     await run(db, "CREATE INDEX IF NOT EXISTS idx_support_tickets_user ON support_tickets (user_id, last_message_at DESC)");
+    await run(db, `CREATE TABLE IF NOT EXISTS support_attachments (
+      id SERIAL PRIMARY KEY,
+      ticket_id INTEGER NOT NULL REFERENCES support_tickets(id) ON DELETE CASCADE,
+      message_id INTEGER NOT NULL REFERENCES support_messages(id) ON DELETE CASCADE,
+      kind TEXT NOT NULL CHECK (kind IN ('image', 'voice')),
+      content_type TEXT NOT NULL,
+      data BYTEA NOT NULL,
+      size_bytes INTEGER NOT NULL,
+      duration_ms INTEGER,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )`);
+    await run(db, "CREATE INDEX IF NOT EXISTS idx_support_attachments_message ON support_attachments (message_id, id)");
     await run(db, `
       INSERT INTO support_messages (ticket_id, author, author_user_id, body, created_at)
       SELECT t.id, 'user', t.user_id, t.body, t.created_at FROM support_tickets t
@@ -63,58 +75,90 @@ export function ensureSupportTables() {
 const clamp = (value, min, max, fallback) => Math.min(Math.max(Number(value) || fallback, min), max);
 const clip = (text, max) => String(text || "").trim().slice(0, max);
 
+/** Writes one message and its pictures / voice note (from app/lib/supportMedia.js parseAttachments) on `client`. */
+async function insertMessage(client, { ticketId, author, authorUserId = null, body = "", attachments = [] }) {
+  const message = await get(client, "INSERT INTO support_messages (ticket_id, author, author_user_id, body) VALUES ($1, $2, $3, $4) RETURNING id", [ticketId, author, authorUserId, body]);
+  for (const item of attachments) {
+    await run(client, `
+      INSERT INTO support_attachments (ticket_id, message_id, kind, content_type, data, size_bytes, duration_ms)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+    `, [ticketId, message.id, item.kind, item.contentType, item.buffer, item.buffer.length, item.durationMs ?? null]);
+  }
+  return message.id;
+}
+
+/** The conversation of one ticket, each message with the pictures / voice notes that came with it (ids only; bytes are served separately). */
+async function messagesOf(db, ticketId) {
+  const [messages, files] = await Promise.all([
+    all(db, "SELECT id, author, body, created_at FROM support_messages WHERE ticket_id = $1 ORDER BY id", [ticketId]),
+    all(db, "SELECT id, message_id, kind, duration_ms FROM support_attachments WHERE ticket_id = $1 ORDER BY id", [ticketId])
+  ]);
+  return messages.map((message) => ({ ...message, attachments: files.filter((file) => file.message_id === message.id).map(({ id, kind, duration_ms }) => ({ id, kind, duration_ms })) }));
+}
+
+/** SQL for "the last message, in words": its text, or what it carried when it was only a picture or a voice note. */
+const LAST_BODY = `(SELECT CASE
+    WHEN m.body <> '' THEN m.body
+    WHEN EXISTS (SELECT 1 FROM support_attachments a WHERE a.message_id = m.id AND a.kind = 'voice') THEN '🎤 پیام صوتی'
+    WHEN EXISTS (SELECT 1 FROM support_attachments a WHERE a.message_id = m.id) THEN '🖼 عکس'
+    ELSE '' END
+  FROM support_messages m WHERE m.ticket_id = t.id ORDER BY m.id DESC LIMIT 1)`;
+
 /** Creates a ticket (a user's message or a report) with its first message. A second live report from the same person about the same target returns the existing one (`already: true`). */
-export async function createTicket({ kind, userId = null, contactPhone = "", category = "other", subject = "", body = "", targetType = "", targetId = null }) {
+export async function createTicket({ kind, userId = null, contactPhone = "", category = "other", subject = "", body = "", targetType = "", targetId = null, attachments = [] }) {
   await ensureSupportTables();
   const db = await getDb();
-  const row = await get(db, `
-    INSERT INTO support_tickets (kind, user_id, contact_phone, category, subject, body, target_type, target_id, user_read_at)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
-    ON CONFLICT (user_id, target_type, target_id) WHERE kind = 'report' AND status <> 'closed' DO NOTHING
-    RETURNING id
-  `, [kind, userId, contactPhone, category, subject, body, targetType, targetId]);
-  if (row) {
-    if (body) await run(db, "INSERT INTO support_messages (ticket_id, author, author_user_id, body) VALUES ($1, 'user', $2, $3)", [row.id, userId, body]);
-    return { id: row.id, already: false };
-  }
+  const created = await withTransaction(null, async (client) => {
+    const row = await get(client, `
+      INSERT INTO support_tickets (kind, user_id, contact_phone, category, subject, body, target_type, target_id, user_read_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+      ON CONFLICT (user_id, target_type, target_id) WHERE kind = 'report' AND status <> 'closed' DO NOTHING
+      RETURNING id
+    `, [kind, userId, contactPhone, category, subject, body, targetType, targetId]);
+    if (row && (body || attachments.length)) await insertMessage(client, { ticketId: row.id, author: "user", authorUserId: userId, body, attachments });
+    return row;
+  });
+  if (created) return { id: created.id, already: false };
   const existing = await get(db, "SELECT id FROM support_tickets WHERE kind = 'report' AND user_id = $1 AND target_type = $2 AND target_id = $3 AND status <> 'closed'", [userId, targetType, targetId]);
   return { id: existing?.id ?? null, already: true };
 }
 
 /** The admin starts a conversation with a user. It shows up in that user's support center as an unread message from support. */
-export async function createAdminTicket({ userId, phone = "", subject = "", body, adminUserId = null }) {
+export async function createAdminTicket({ userId, phone = "", subject = "", body, adminUserId = null, attachments = [] }) {
   await ensureSupportTables();
-  const db = await getDb();
-  const row = await get(db, `
-    INSERT INTO support_tickets (kind, user_id, contact_phone, category, subject, body, status, last_actor, from_admin)
-    VALUES ('support', $1, $2, 'other', $3, '', 'in_progress', 'admin', TRUE) RETURNING id
-  `, [userId, phone, clip(subject, 120)]);
-  await run(db, "INSERT INTO support_messages (ticket_id, author, author_user_id, body) VALUES ($1, 'admin', $2, $3)", [row.id, adminUserId, clip(body, 2000)]);
-  return { id: row.id };
+  return withTransaction(null, async (client) => {
+    const row = await get(client, `
+      INSERT INTO support_tickets (kind, user_id, contact_phone, category, subject, body, status, last_actor, from_admin)
+      VALUES ('support', $1, $2, 'other', $3, '', 'in_progress', 'admin', TRUE) RETURNING id
+    `, [userId, phone, clip(subject, 120)]);
+    await insertMessage(client, { ticketId: row.id, author: "admin", authorUserId: adminUserId, body: clip(body, 2000), attachments });
+    return { id: row.id };
+  });
 }
 
 /**
  * Appends a message and moves the ticket along: a user's message reopens a closed ticket; an admin's first reply moves an
  * open ticket to "in progress". Returns the updated ticket row, or null when it does not exist.
  */
-export async function addMessage({ ticketId, author, authorUserId = null, body }) {
+export async function addMessage({ ticketId, author, authorUserId = null, body, attachments = [] }) {
   await ensureSupportTables();
-  const db = await getDb();
   const text = clip(body, 2000);
-  if (!text) return null;
-  const exists = await get(db, "SELECT id FROM support_tickets WHERE id = $1", [Number(ticketId)]);
-  if (!exists) return null;
-  await run(db, "INSERT INTO support_messages (ticket_id, author, author_user_id, body) VALUES ($1, $2, $3, $4)", [Number(ticketId), author, authorUserId, text]);
-  return (await get(db, `
-    UPDATE support_tickets SET
-      last_actor = $2,
-      last_message_at = NOW(),
-      updated_at = NOW(),
-      status = CASE WHEN $2 = 'user' AND status = 'closed' THEN 'open' WHEN $2 = 'admin' AND status = 'open' THEN 'in_progress' ELSE status END,
-      closed_at = CASE WHEN $2 = 'user' THEN NULL ELSE closed_at END,
-      user_read_at = CASE WHEN $2 = 'user' THEN NOW() ELSE user_read_at END
-    WHERE id = $1 RETURNING id, user_id, status, subject, last_actor
-  `, [Number(ticketId), author])) || null;
+  if (!text && !attachments.length) return null;
+  return withTransaction(null, async (client) => {
+    const exists = await get(client, "SELECT id FROM support_tickets WHERE id = $1 FOR UPDATE", [Number(ticketId)]);
+    if (!exists) return null;
+    await insertMessage(client, { ticketId: Number(ticketId), author, authorUserId, body: text, attachments });
+    return (await get(client, `
+      UPDATE support_tickets SET
+        last_actor = $2,
+        last_message_at = NOW(),
+        updated_at = NOW(),
+        status = CASE WHEN $2 = 'user' AND status = 'closed' THEN 'open' WHEN $2 = 'admin' AND status = 'open' THEN 'in_progress' ELSE status END,
+        closed_at = CASE WHEN $2 = 'user' THEN NULL ELSE closed_at END,
+        user_read_at = CASE WHEN $2 = 'user' THEN NOW() ELSE user_read_at END
+      WHERE id = $1 RETURNING id, user_id, status, subject, last_actor
+    `, [Number(ticketId), author])) || null;
+  });
 }
 
 /** The admin inbox. Tickets waiting for the admin come first, then the ones waiting for the user, then closed ones. */
@@ -135,7 +179,7 @@ export async function listTickets({ status = "", kind = "", q = "", awaiting = "
     all(db, `
       SELECT t.id, t.kind, t.category, t.subject, t.status, t.target_type, t.target_id, t.created_at, t.updated_at, t.last_actor, t.last_message_at, t.from_admin,
              (t.status <> 'closed' AND t.last_actor = 'user') AS awaiting_admin,
-             (SELECT m.body FROM support_messages m WHERE m.ticket_id = t.id ORDER BY m.id DESC LIMIT 1) AS last_body,
+             ${LAST_BODY} AS last_body,
              u.id AS user_id, u.name AS user_name, COALESCE(NULLIF(t.contact_phone, ''), u.phone) AS phone
       FROM support_tickets t LEFT JOIN users u ON u.id = t.user_id
       WHERE ${where}
@@ -162,7 +206,7 @@ export async function getTicket(id) {
     FROM support_tickets t LEFT JOIN users u ON u.id = t.user_id WHERE t.id = $1
   `, [Number(id)]);
   if (!ticket) return null;
-  const messages = await all(db, "SELECT id, author, body, created_at FROM support_messages WHERE ticket_id = $1 ORDER BY id", [ticket.id]);
+  const messages = await messagesOf(db, ticket.id);
   let target = null;
   if (ticket.kind === "report" && ticket.target_type === "post") {
     target = await get(db, `
@@ -206,7 +250,7 @@ export async function listUserTickets(userId) {
   return all(db, `
     SELECT t.id, t.kind, t.category, t.subject, t.status, t.target_type, t.from_admin, t.last_actor, t.last_message_at, t.created_at,
            (t.last_actor = 'admin' AND (t.user_read_at IS NULL OR t.user_read_at < t.last_message_at)) AS unread,
-           (SELECT m.body FROM support_messages m WHERE m.ticket_id = t.id ORDER BY m.id DESC LIMIT 1) AS last_body
+           ${LAST_BODY} AS last_body
     FROM support_tickets t WHERE t.user_id = $1
     ORDER BY t.last_message_at DESC LIMIT 100
   `, [Number(userId)]);
@@ -222,8 +266,7 @@ export async function getUserTicket(userId, ticketId) {
     RETURNING id, kind, category, subject, status, target_type, from_admin, created_at, last_actor, resolution
   `, [Number(ticketId), Number(userId)]);
   if (!ticket) return null;
-  const messages = await all(db, "SELECT id, author, body, created_at FROM support_messages WHERE ticket_id = $1 ORDER BY id", [ticket.id]);
-  return { ticket, messages };
+  return { ticket, messages: await messagesOf(db, ticket.id) };
 }
 
 export async function countUserUnread(userId) {
@@ -233,4 +276,17 @@ export async function countUserUnread(userId) {
     SELECT COUNT(*)::int AS count FROM support_tickets
     WHERE user_id = $1 AND last_actor = 'admin' AND (user_read_at IS NULL OR user_read_at < last_message_at)
   `, [Number(userId)]))?.count || 0;
+}
+
+/**
+ * One attachment's bytes, for the person whose ticket it is (`userId`) or, with `userId` null, for an admin.
+ * Someone else's attachment reads as missing.
+ */
+export async function getAttachment(id, { userId = null } = {}) {
+  await ensureSupportTables();
+  const db = await getDb();
+  return get(db, `
+    SELECT a.content_type, a.data FROM support_attachments a JOIN support_tickets t ON t.id = a.ticket_id
+    WHERE a.id = $1 AND ($2::int IS NULL OR t.user_id = $2::int)
+  `, [Number(id), userId === null ? null : Number(userId)]);
 }

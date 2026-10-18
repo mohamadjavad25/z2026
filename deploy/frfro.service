@@ -1,0 +1,19 @@
+# systemd unit for the app (copy to /etc/systemd/system/frfro.service; see docs/DEPLOY_SERVER.md).
+# Listens on 127.0.0.1 only: visitors always come through nginx, which sets X-Real-IP (rate limits rely on it).
+[Unit]
+Description=frfro (Next.js)
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=frfro
+WorkingDirectory=/srv/frfro/app
+EnvironmentFile=/srv/frfro/.env
+Environment=NODE_ENV=production
+Environment=PORT=3000
+ExecStart=/usr/bin/npx next start -H 127.0.0.1 -p 3000
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

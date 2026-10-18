@@ -99,6 +99,7 @@ export function SalonClientPage({
             avatarPosition={selectedSalon.avatarPosition || "50% 50%"}
             name={publicName}
             area={selectedSalon.area}
+            location={selectedSalon.location}
             start={(
               <button type="button" className="pphRound" onClick={onBack} aria-label="بازگشت به سالن‌ها">
                 <ChevronLeft size={19} />

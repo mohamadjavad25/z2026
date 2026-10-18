@@ -1,0 +1,77 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   «کجاست؟»: the pin next to a salon's or artist's name on their public page
+   and the address sheet it opens (components/LocationButton.jsx). Own loc*
+   class names only.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── Name row: the name keeps its ellipsis, the pin sits right after it ── */
+.pphNameRow { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.pphNameRow h2 { min-width: 0; }
+
+/* ── The pin button: brand blend, a soft ring that breathes now and then ── */
+.locButton { position: relative; flex: none; width: 34px; height: 34px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; background: var(--brand-blend); color: var(--brand-ink); box-shadow: 0 6px 16px -6px rgb(var(--brand-violet-rgb) / 0.7); cursor: pointer; }
+.locButton svg { position: relative; z-index: 1; animation: locHop 3.6s ease-in-out infinite; }
+.locButtonRing { position: absolute; inset: 0; border-radius: 50%; box-shadow: 0 0 0 0 rgb(var(--brand-pink-rgb) / 0.55); animation: locRing 3.6s ease-out infinite; pointer-events: none; }
+.locButton:active { transform: scale(0.92); }
+.locButton:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 3px; }
+
+@keyframes locHop {
+  0%, 70%, 100% { transform: none; }
+  78% { transform: translateY(-3px); }
+  86% { transform: translateY(0) scale(1.06, 0.94); }
+  92% { transform: none; }
+}
+@keyframes locRing {
+  0%, 68% { box-shadow: 0 0 0 0 rgb(var(--brand-pink-rgb) / 0.55); }
+  100% { box-shadow: 0 0 0 12px rgb(var(--brand-pink-rgb) / 0); }
+}
+
+/* ── Sheet ── */
+.locSheetOverlay { position: fixed; inset: 0; z-index: calc(var(--z-sheet-close) - 2); display: flex; align-items: flex-end; justify-content: center; background: var(--scrim); animation: locFade 0.22s ease-out both; }
+.locSheet { width: 100%; max-width: 460px; max-height: calc(100dvh - 40px - env(safe-area-inset-top)); overflow-y: auto; overscroll-behavior: contain; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px; padding: 18px 16px 0; border-radius: 28px 28px 0 0; background: var(--n-0); color: var(--n-900); box-shadow: 0 -20px 50px -20px rgb(var(--shadow-rgb) / 0.45); animation: locRise 0.32s cubic-bezier(0.2, 0.8, 0.25, 1) both; }
+.locSheetHead { display: flex; align-items: center; gap: 12px; }
+.locSheetHead > div { min-width: 0; display: grid; gap: 1px; }
+.locSheetHead h3 { margin: 0; overflow: hidden; font-size: 1.06rem; font-weight: 900; white-space: nowrap; text-overflow: ellipsis; }
+.locSheetHead small { color: var(--n-600); font-size: 0.76rem; font-weight: 700; }
+.locSheetBadge { width: 40px; height: 40px; flex: none; display: grid; place-items: center; border-radius: 14px; background: var(--brand-blend); color: var(--brand-ink); }
+
+.locMap { position: relative; z-index: 0; height: 230px; flex: none; overflow: hidden; border-radius: 20px; background: var(--n-100); direction: ltr; }
+.locMap .leaflet-control-attribution { font-size: 9px; }
+.locPinIcon { background: none !important; border: 0 !important; }
+.locPin { position: relative; display: block; width: 38px; height: 46px; }
+.locPin svg { position: relative; display: block; filter: drop-shadow(0 6px 8px rgb(var(--shadow-rgb) / 0.35)); }
+.locPinPulse { position: absolute; left: 50%; bottom: -6px; width: 44px; height: 16px; margin-left: -22px; border-radius: 50%; background: rgb(var(--brand-violet-rgb) / 0.35); animation: locPulse 2.2s ease-out infinite; }
+@keyframes locPulse { 0% { transform: scale(0.4); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
+
+.locAddress { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border-radius: 18px; background: var(--n-50); }
+.locAddress p { flex: 1; min-width: 0; margin: 0; display: grid; gap: 2px; font-size: 0.9rem; font-weight: 700; line-height: 1.85; }
+.locAddress p b { font-weight: 900; }
+.locCopy { flex: none; min-height: 40px; display: inline-flex; align-items: center; gap: 5px; padding: 0 12px; border: 0; border-radius: 12px; background: var(--n-0); color: var(--n-900); box-shadow: inset 0 0 0 1px var(--n-200); font: inherit; font-size: 0.78rem; font-weight: 800; cursor: pointer; }
+.locCopy:disabled { opacity: 0.5; cursor: default; }
+.locNoPin { margin: -6px 4px 0; color: var(--n-600); font-size: var(--text-sm); font-weight: 700; line-height: 1.8; }
+
+.locSnapp { min-height: 60px; display: flex; align-items: center; gap: 12px; padding: 0 16px; border-radius: 18px; background: var(--fill-strong); color: var(--n-0); text-decoration: none; box-shadow: 0 12px 24px -10px rgb(var(--shadow-rgb) / 0.5); }
+.locSnapp > span { display: grid; gap: 1px; }
+.locSnapp b { font-size: 0.95rem; font-weight: 900; }
+.locSnapp small { color: rgb(var(--paper-rgb) / 0.78); font-size: 0.74rem; font-weight: 700; }
+.locSnapp:active { transform: scale(0.98); }
+
+.locApps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.locApp { min-height: 48px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0 10px; border-radius: 14px; background: var(--n-0); color: var(--n-900); box-shadow: inset 0 0 0 1.5px var(--n-200); font-size: 0.84rem; font-weight: 800; text-decoration: none; }
+.locApp svg { flex: none; color: var(--brand-violet); }
+/* The phone's own chooser / Apple Maps: a full row under the three map apps. */
+.locApp.is-wide { grid-column: 1 / -1; }
+.locApp:active { transform: scale(0.97); }
+.locCopy:focus-visible, .locSnapp:focus-visible, .locApp:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
+
+@keyframes locFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes locRise { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .locButton svg, .locButtonRing, .locPinPulse, .locSheet, .locSheetOverlay { animation: none; }
+}
+
+/* ── تنظیمات → ثبت لوکیشن: plate / floor field and the «no pin yet» nudge ── */
+.profileLocationDetail { display: grid; gap: 4px; color: var(--n-600); font-size: 0.74rem; font-weight: 800; }
+.profileLocationDetail input { min-height: 42px; box-sizing: border-box; width: 100%; padding: 0 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--n-0); color: var(--ink); font: inherit; font-size: 0.84rem; font-weight: 700; }
+.profileLocationNoPin { display: block; margin-top: 2px; color: var(--accent); font-size: 0.72rem; font-weight: 800; line-height: 1.7; }

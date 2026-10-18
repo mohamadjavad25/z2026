@@ -25,6 +25,7 @@ async function _GET(request) {
   // No scheduler is guaranteed, so a client who is still waiting on a request that ran out of time
   // must not depend on an owner opening their app to see it close.
   await sweepExpiredBookingRequestsIfDue();
+  await salons.ensureBookingColumns();
   const [salonBookings, artistBookings] = await Promise.all([
     salons.listClientSalonBookings(auth.user),
     artists.listClientArtistBookings(auth.user)

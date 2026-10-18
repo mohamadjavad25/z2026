@@ -1,7 +1,8 @@
 // Every external host this app actually talks to from the browser, grepped
 // directly out of app/features/** rather than guessed -- a CSP built from a
-// guess either blocks something real (Leaflet's CSS from unpkg, map tiles,
-// Nominatim reverse-geocoding, Google Fonts) or is too loose to matter.
+// guess either blocks something real (map tiles, Nominatim reverse-geocoding)
+// or is too loose to matter. Fonts (styles/fonts.css) and Leaflet's CSS are
+// served from this site, so no font or stylesheet host is allowed.
 // Update this list (and the policy below) if a new external host is ever
 // added -- an unlisted host just silently fails client-side, which is easy
 // to miss without checking the browser console.
@@ -30,10 +31,12 @@ function buildCsp() {
   const directives = {
     "default-src": ["'self'"],
     "script-src": ["'self'", "'unsafe-inline'"],
-    "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://unpkg.com"],
-    "font-src": ["'self'", "https://fonts.gstatic.com"],
+    "style-src": ["'self'", "'unsafe-inline'"],
+    "font-src": ["'self'"],
     "img-src": ["'self'", "data:", "https://*.tile.openstreetmap.org"],
     "connect-src": ["'self'", "https://nominatim.openstreetmap.org"],
+    // blob:: a voice note just recorded in the support chat plays back before it is sent.
+    "media-src": ["'self'", "blob:"],
     "worker-src": ["'self'"],
     "manifest-src": ["'self'"],
     "object-src": ["'none'"],
@@ -57,7 +60,8 @@ const securityHeaders = [
   // (ProfileLocationSettings.jsx) uses navigator.geolocation.
   // camera=(self): the QR scanner (components/QrScanner.jsx) in «سالن و آرتیست من»
   // and the customers page. With camera=() the browser refused without even asking.
-  { key: "Permissions-Policy", value: "geolocation=(self), camera=(self), microphone=()" }
+  // microphone=(self): voice notes in the support chat (features/support/VoiceRecorder.js).
+  { key: "Permissions-Policy", value: "geolocation=(self), camera=(self), microphone=(self)" }
 ];
 
 if (process.env.NODE_ENV === "production") {
@@ -92,7 +96,15 @@ const nextConfig = {
         has: [{ type: "host", value: "z2026.vercel.app" }],
         destination: "https://frfro.ir/:path",
         permanent: true
-      }
+      },
+      // www.frfro.ir and the Persian domain فرفرو.ir (punycode xn--wgba0cb0b.ir), once added
+      // to the Vercel project, land on frfro.ir: one address, so search engines rank one site.
+      ...["www.frfro.ir", "xn--wgba0cb0b.ir", "www.xn--wgba0cb0b.ir"].map((host) => ({
+        source: "/:path*",
+        has: [{ type: "host", value: host }],
+        destination: "https://frfro.ir/:path*",
+        permanent: true
+      }))
     ];
   },
   async headers() {

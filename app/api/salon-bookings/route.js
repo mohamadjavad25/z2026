@@ -2,26 +2,22 @@ import { NextResponse } from "next/server";
 import { requireUser, validateBody, withErrorHandling } from "../../lib/http.js";
 import { ensureDb } from "../../lib/db/connection.js";
 import * as salons from "../../lib/db/repos/salons.js";
-import * as artists from "../../lib/db/repos/artists.js";
 import { checkRateLimit } from "../../lib/rateLimit.js";
 import { sendPushToUser } from "../../lib/push.js";
 import { createBookingSchema } from "../../lib/validation/booking.js";
-// Side-effect import: starts the once-per-process 1-hour booking-request
-// auto-expiry sweep (see that file's docstring) the first time this route
-// module loads — same self-starting-on-import convention as
-// app/lib/rateLimit.js's sweep. This is this app's busiest salon-booking
-// entry point (polled every 8s by both the salon owner dashboard and the
-// client's own-bookings view), so it starts within seconds of real use.
+// The booking-request expiry sweep, run on demand (at most once a minute) from this app's busiest
+// salon-booking entry point (polled by both the salon owner dashboard and the client's own-bookings
+// view), so a stale request closes within seconds of real use.
 import { sweepExpiredBookingRequestsIfDue } from "../../lib/bookingExpirySweep.js";
 import { resolveRollingPersianDateKey } from "../../shared/lib/persianCalendar.js";
-import { visitSlotProblem } from "../../lib/visitSlotRules.js";
-import { normalizeBookingTimeLabel, parseServiceDurationMinutes } from "../../shared/lib/time.js";
-import { summarizeBookingParts } from "../../shared/lib/bookingParts.js";
-import { salonVisitParts } from "../../lib/salonVisitParts.js";
+import { normalizeBookingTimeLabel } from "../../shared/lib/time.js";
 import { bookingMoveOptions } from "../../lib/salonMoveTimes.js";
 import { toPersianDigits } from "../../shared/lib/digits.js";
 import { AWAITING_CLIENT } from "../../shared/lib/bookingOffer.js";
-import { onlineBookingBlock } from "../../lib/billing/access.js";
+import { createSalonBooking } from "../../lib/salonBookingCreate.js";
+import { requestedServiceNames, validFallbackSalon } from "../../lib/bookingFallback.js";
+import { BOOKING_REQUEST_WINDOW_MINUTES } from "../../shared/lib/bookingWindow.js";
+import { smsBookingAnswer, smsNewBookingRequest } from "../../lib/bookingSms.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -35,23 +31,6 @@ function noStoreJson(body, init = {}) {
 function requireSalon(user) {
   if (user.type !== "salon") return noStoreJson({ error: "فقط سالن." }, { status: 403 });
   return null;
-}
-
-// No single entry is longer than this, whoever sends it.
-const MAX_BOOKING_MINUTES = 720;
-
-function resolveRequestedDuration(body, salon, { isClient = false } = {}) {
-  const serviceName = String(body.service || "").trim();
-  const listed = Array.isArray(salon?.services)
-    ? salon.services.find((item) => String(item?.name || "").trim() === serviceName)
-    : null;
-  // A client never chooses how long a service the salon lists takes: that is the salon's own number.
-  if (isClient && listed?.duration) return parseServiceDurationMinutes(listed.duration);
-  const explicit = Number(body.durationMinutes || body.duration_minutes);
-  if (Number.isFinite(explicit) && explicit > 0) return Math.min(MAX_BOOKING_MINUTES, Math.max(15, explicit));
-  if (body.duration) return Math.min(MAX_BOOKING_MINUTES, parseServiceDurationMinutes(body.duration));
-  if (listed?.duration) return parseServiceDurationMinutes(listed.duration);
-  return 60;
 }
 
 async function _GET(request) {
@@ -121,128 +100,34 @@ async function _POST(request) {
   if (!v.ok) return v.response;
   const salonUserId = body.salonUserId ? Number(body.salonUserId) : auth.user.id;
   if (!salonUserId) return noStoreJson({ error: "شناسه سالن نامعتبر است." }, { status: 400 });
-  const salon = await salons.getSalon(salonUserId);
-  if (!salon) return noStoreJson({ error: "سالن پیدا نشد." }, { status: 404 });
   if (auth.user.type === "salon" && salonUserId !== auth.user.id) {
     return noStoreJson({ error: "دسترسی غیرمجاز." }, { status: 403 });
   }
-  // A salon whose subscription has closed takes no new online requests; its own entries for walk-in customers go on.
-  if (auth.user.type === "client") {
-    const blocked = await onlineBookingBlock(salonUserId, "salon");
-    if (blocked) return noStoreJson({ error: blocked.error, code: blocked.code }, { status: blocked.status });
-  }
-  const client = String(body.client || auth.user.name || "").trim();
-  const phone = String(body.phone || auth.user.phone || "").trim();
-  const parts = salonVisitParts(salon, v.data.parts, { allowStaff: auth.user.type === "salon" })
-    .map(({ service, minutes, staff }) => ({ service, minutes, staff }));
-  const multiPart = parts.length >= 2;
-  const service = multiPart ? summarizeBookingParts(parts).service : String(body.service || "").trim();
-  const rawBookingDay = body.bookingDate || body.booking_date || body.date || "";
-  const bookingDateKey = resolveRollingPersianDateKey(rawBookingDay);
-  const time = String(body.time || "").trim();
-  const durationMinutes = multiPart ? summarizeBookingParts(parts).durationMinutes : resolveRequestedDuration(body, salon, { isClient: auth.user.type === "client" });
-  if (!service) return noStoreJson({ error: "خدمت رزرو مشخص نیست." }, { status: 400 });
-  if (!rawBookingDay) return noStoreJson({ error: "روز رزرو مشخص نیست." }, { status: 400 });
-  if (!time) return noStoreJson({ error: "ساعت رزرو مشخص نیست." }, { status: 400 });
-  if (!client) return noStoreJson({ error: "نام مشتری برای رزرو لازم است." }, { status: 400 });
-  if (auth.user.type === "client" && !phone) {
-    return noStoreJson({ error: "برای ثبت رزرو، شماره تماس لازم است." }, { status: 400 });
-  }
-  const slotProblem = visitSlotProblem({
-    hours: await salons.listSalonHours(salonUserId),
-    bookingDateKey,
-    time,
-    durationMinutes,
-    isClient: auth.user.type === "client"
+  // How long the client waits for an answer is their own choice (an hour, or until the appointment);
+  // a backup salon only goes with the hour, and only one the client follows that lists these services.
+  const isClient = auth.user.type === "client";
+  const waitMinutes = isClient && v.data.waitMinutes !== undefined ? v.data.waitMinutes : BOOKING_REQUEST_WINDOW_MINUTES;
+  const fallbackSalonUserId = isClient && waitMinutes !== null && v.data.fallbackSalonUserId
+    ? await validFallbackSalon(auth.user.id, salonUserId, Number(v.data.fallbackSalonUserId), requestedServiceNames(body, v.data))
+    : null;
+  const result = await createSalonBooking({
+    actor: auth.user,
+    salonUserId,
+    body,
+    data: v.data,
+    wait: { minutes: waitMinutes, fallbackSalonUserId }
   });
-  if (slotProblem) {
-    return noStoreJson(
-      slotProblem.code === "TOO_SOON" ? { error: slotProblem.error, code: slotProblem.code } : { error: slotProblem.error },
-      { status: slotProblem.status }
-    );
-  }
-  // A client's single-service request with no artist named gets one the way a visit's services
-  // do (a free artist who does it, the work spread over the team); refused when nobody who could
-  // do it is free -- the availability list never offers such a time.
-  // Only the salon names an artist; a client's request is split by the draft below.
-  let staffName = auth.user.type === "salon" ? String(body.staff || "").trim() : "";
-  if (!multiPart && auth.user.type === "client" && !staffName) {
-    const draft = await salons.draftSingleBookingStaff(salonUserId, bookingDateKey, time, service, durationMinutes);
-    if (draft.unstaffed) {
-      return noStoreJson({ error: `برای «${service}» در این ساعت آرتیست آزادی نیست.`, code: "NO_FREE_ARTIST" }, { status: 409 });
-    }
-    staffName = draft.staff;
-  }
-  // A multi-service booking links its artists per service inside addSalonBooking. A client's
-  // request with no artist free (and nobody who could do it) stays unlinked.
-  const linkedStaff = multiPart || (auth.user.type === "client" && !staffName)
-    ? null
-    : await salons.findSalonStaffForBooking(salonUserId, staffName, body.service);
-  if (linkedStaff?.artist_user_id && await artists.isArtistSlotBlocked(
-    Number(linkedStaff.artist_user_id),
-    bookingDateKey,
-    time,
-    durationMinutes
-  )) {
-    return noStoreJson({
-      error: "این ساعت برای آرتیست قبلاً رزرو شده است.",
-      code: "ARTIST_SLOT_TAKEN",
-      data: { bookings: await salons.listSalonBookings(salonUserId) }
-    }, { status: 409 });
-  }
-  // A client's own booking is a REQUEST the salon must answer ("درخواست": shows up in the salon's
-  // pending list, expires after an hour). An entry made by the salon itself is already settled
-  // ("تازه"). The status is decided here, never read from the body.
-  const result = await salons.addSalonBooking(salonUserId, {
-    ...v.data,
-    staff: multiPart ? "" : staffName,
-    status: auth.user.type === "client" ? "درخواست" : "تازه",
-    client,
-    phone,
-    service,
-    bookingDate: bookingDateKey,
-    time,
-    durationMinutes,
-    parts: multiPart ? parts : undefined,
-    requireStaff: auth.user.type === "client",
-    // A booking is only ever tied to an account by that account itself (the salon's own entries stay
-    // with the name and number it typed), so nobody can put a booking into another person's list.
-    clientUserId: auth.user.type === "client" ? auth.user.id : null
-  });
+  // The salon's full list (every customer's name and number) goes back only to the salon itself,
+  // never to a client who just sent a request.
+  const ownList = !isClient;
   if (!result.ok) {
-    if (result.error === "no_staff") {
-      return noStoreJson({ error: result.message, code: "NO_FREE_ARTIST" }, { status: 409 });
-    }
-    if (result.error === "artist_conflict") {
-      return noStoreJson({ error: result.message || "این ساعت برای آرتیست قبلاً رزرو شده است.", code: result.code || "ARTIST_SLOT_TAKEN" }, { status: 409 });
-    }
-    return noStoreJson({ error: "این زمان قبلاً رزرو شده است." }, { status: 409 });
+    return noStoreJson({
+      error: result.error,
+      ...(result.code ? { code: result.code } : {}),
+      ...(result.withBookings && ownList ? { data: { bookings: await salons.listSalonBookings(salonUserId) } } : {})
+    }, { status: result.status });
   }
-  let artistBooking = null;
-  if (linkedStaff?.artist_user_id) {
-    const artistResult = await artists.addArtistBooking(Number(linkedStaff.artist_user_id), {
-      client: result.booking.client,
-      phone: result.booking.phone,
-      service: result.booking.service,
-      serviceEmoji: result.booking.service_emoji,
-      bookingDate: result.booking.booking_date,
-      time: result.booking.time,
-      // The artist's calendar holds the service for its own length (it used to fall back to an hour).
-      durationMinutes: result.booking.duration_minutes,
-      sourceSalonUserId: salonUserId,
-      status: result.booking.status || "تازه"
-    });
-    if (artistResult.ok) {
-      artistBooking = artistResult.booking;
-    } else {
-      await salons.cancelSalonBooking(Number(result.booking.id), salonUserId);
-      return noStoreJson({
-        error: artistResult.error || "رزرو برای آرتیست ثبت نشد.",
-        code: artistResult.code || "ARTIST_BOOKING_FAILED",
-        data: { bookings: await salons.listSalonBookings(salonUserId) }
-      }, { status: artistResult.code === "SLOT_TAKEN" ? 409 : 400 });
-    }
-  }
+  const { client, service, time, artistBooking, linkedArtistIds } = result;
   // Real-time heads-up for the salon the moment a real client requests a
   // slot, not just whenever they next happen to poll/open the dashboard —
   // only when the CLIENT is the one who just requested it (a salon entering
@@ -252,15 +137,16 @@ async function _POST(request) {
       title: "درخواست رزرو جدید",
       body: `${client} — ${service} · ${time}`
     });
+    smsNewBookingRequest(salonUserId, { client, service, bookingDate: result.booking.booking_date, time });
   }
 
   return noStoreJson({
     data: {
       booking: result.booking,
-      bookings: await salons.listSalonBookings(salonUserId),
+      ...(ownList ? { bookings: await salons.listSalonBookings(salonUserId) } : {}),
       artistBooking,
-      linkedArtistId: linkedStaff?.artist_user_id || result.linkedArtistIds?.[0] || null,
-      linkedArtistIds: result.linkedArtistIds || (linkedStaff?.artist_user_id ? [linkedStaff.artist_user_id] : [])
+      linkedArtistId: linkedArtistIds[0] || null,
+      linkedArtistIds
     }
   }, { status: 201 });
 }
@@ -377,6 +263,12 @@ async function _PATCH(request) {
       void sendPushToUser(bookingClientUserId, {
         title: patch.status === "تایید شده" ? "نوبت شما تایید شد" : "نوبت شما لغو شد",
         body: `${result.booking.service || "نوبت"} — ${result.booking.booking_date || ""} ${result.booking.time || ""}`.trim()
+      });
+      smsBookingAnswer(bookingClientUserId, {
+        providerName: auth.user.name,
+        bookingDate: result.booking.booking_date,
+        time: result.booking.time,
+        confirmed: patch.status === "تایید شده"
       });
     }
   }

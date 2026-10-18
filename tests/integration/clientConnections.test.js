@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createClient, joinSalonAsArtist, registerUser } from "./helpers.js";
+import { createClient, futureBookingDay, joinSalonAsArtist, registerUser } from "./helpers.js";
 
 // Client <-> salon/artist "connect" (the client's «سالن و آرتیست من» list).
 
@@ -195,6 +195,18 @@ describe("connections by category", () => {
 
     const makeup = (await client.api.get("/api/connections/by-category?category=makeup")).payload.data;
     expect(makeup.matches).toEqual([]);
+
+    // A booking for this kind of service puts that place first, tagged, even with fewer matching services.
+    const booked = await client.api.post("/api/artist/bookings", { artistUserId: mixedArtist.user.id, service: "پدیکور", bookingDate: futureBookingDay(3), time: "10:00" });
+    expect(booked.status).toBe(201);
+    const afterBooking = (await client.api.get("/api/connections/by-category?category=nails")).payload.data;
+    expect(afterBooking.matches.map((m) => [m.id, m.lastUsed, m.visits])).toEqual([[mixedArtist.user.id, true, 1], [nailSalon.user.id, false, 0]]);
+
+    // Once cancelled, it no longer counts.
+    expect((await client.api.post(`/api/artist-bookings/${booked.payload.data.booking.id}/cancel`, {})).ok).toBe(true);
+    const afterCancel = (await client.api.get("/api/connections/by-category?category=nails")).payload.data;
+    expect(afterCancel.matches.map((m) => m.id)).toEqual([nailSalon.user.id, mixedArtist.user.id]);
+    expect(afterCancel.matches.some((m) => m.lastUsed)).toBe(false);
 
     expect((await client.api.get("/api/connections/by-category?category=nope")).status).toBe(400);
     expect((await nailSalon.api.get("/api/connections/by-category?category=nails")).status).toBe(403);

@@ -28,6 +28,7 @@ export function ClientHome({ bookings = [], highlightKey = "", clientName = "", 
       <ClientBookingsPanel
         bookings={bookings}
         compactEmpty
+        emptyMascot={bookings.length > 0 || connected === true}
         highlightKey={highlightKey}
         onOpenSettings={onOpenBooking}
         onRebook={onRebook}

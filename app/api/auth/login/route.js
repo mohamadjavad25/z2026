@@ -10,7 +10,7 @@ import {
 } from "../../../lib/auth.js";
 import { ensureDb } from "../../../lib/db/connection.js";
 import * as users from "../../../lib/db/repos/users.js";
-import { checkRateLimit } from "../../../lib/rateLimit.js";
+import { checkIpRateLimit, checkRateLimit } from "../../../lib/rateLimit.js";
 import { withErrorHandling } from "../../../lib/http.js";
 
 export const runtime = "nodejs";
@@ -23,6 +23,7 @@ export const runtime = "nodejs";
 // codebase already uses (see /api/salon-bookings, /api/artist/bookings).
 const LOGIN_ATTEMPT_LIMIT = 10;
 const LOGIN_WINDOW_MS = 15 * 60 * 1000;
+const LOGIN_IP_LIMIT = 30;
 
 async function _POST(request) {
   await ensureDb();
@@ -30,6 +31,15 @@ async function _POST(request) {
   const phone = normalizePhone(body.phone);
   const password = normalizeDigits(String(body.password || ""));
 
+  // Per address as well: the per-phone limit alone let one caller lock any salon out of its own account
+  // with ten wrong passwords, or walk a password list across many phones.
+  const ipLimited = await checkIpRateLimit(request, "login", LOGIN_IP_LIMIT, LOGIN_WINDOW_MS);
+  if (!ipLimited.ok) {
+    return NextResponse.json(
+      { error: "تلاش‌های ورود زیاد بود. چند دقیقه صبر کن.", code: "rate_limited" },
+      { status: 429 }
+    );
+  }
   if (phone) {
     const limited = await checkRateLimit(`login:${phone}`, LOGIN_ATTEMPT_LIMIT, LOGIN_WINDOW_MS);
     if (!limited.ok) {

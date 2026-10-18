@@ -58,12 +58,15 @@ export function uniquePhone() {
   }
 }
 
-export async function registerUser(client, { type = "client", name = "Test User", password = "testpass123", phone: fixedPhone } = {}) {
+export async function registerUser(client, { type = "client", name = "Test User", password = "testpass123", phone: fixedPhone, verified = false } = {}) {
   // Files run in separate module registries, so two of them can draw the same random
   // number; a generated phone that is already taken is retried with a fresh one.
   for (let attempt = 0; ; attempt += 1) {
     const phone = fixedPhone || uniquePhone();
-    const res = await client.post("/api/auth/register", { phone, password, type, name });
+    // verified: prove the number with an SMS code first (the "test" provider keeps the code for the admin panel),
+    // as a real sign-up does once codes are required.
+    const otpProof = verified ? await phoneProof(phone) : undefined;
+    const res = await client.post("/api/auth/register", { phone, password, type, name, otpProof });
     if (res.ok) return { phone, password, user: res.payload.data.user };
     const taken = res.status === 409 || /قبلاً ثبت شده/.test(res.payload?.error || "");
     if (fixedPhone || !taken || attempt >= 8) throw new Error(`registerUser failed: ${JSON.stringify(res.payload)}`);
@@ -93,6 +96,17 @@ export function futureBookingDay(openDaysAhead = 2, { notOn = [] } = {}) {
 }
 
 /** Client holding the admin session globalSetup created (it linked an authenticator and logged in once). Reused by every file: a fresh login per file would need a new one-time code each time. */
+/** An SMS-code proof for `phone`, the way the sign-up form gets one. */
+export async function phoneProof(phone, purpose = "register") {
+  const anon = createClient();
+  const sent = await anon.post("/api/auth/otp/send", { phone, purpose });
+  if (!sent.ok) throw new Error(`otp send failed: ${JSON.stringify(sent.payload)}`);
+  const code = (await (await adminClient()).get(`/api/admin/sms?phone=${phone}`)).payload.data.latestTestCode;
+  const verified = await anon.post("/api/auth/otp/verify", { phone, code });
+  if (!verified.ok) throw new Error(`otp verify failed: ${JSON.stringify(verified.payload)}`);
+  return verified.payload.data.proof;
+}
+
 export async function adminClient() {
   return createClient(process.env.TEST_ADMIN_COOKIE);
 }

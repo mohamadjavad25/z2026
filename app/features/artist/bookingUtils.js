@@ -16,6 +16,7 @@ import {
   timeLabelToMinutes
 } from "../../shared/lib/time";
 import { artistBookingDays, artistBookingHistoryRank } from "./constants";
+import { bookingWaitMinutes } from "../../shared/lib/bookingWindow";
 
 const DAY_MS = 86400000;
 
@@ -309,6 +310,7 @@ export function mapArtistBooking(row) {
     service_emoji: row.service_emoji || "",
     status: row.status || "تایید",
     createdAt: row.created_at || "",
+    waitMinutes: bookingWaitMinutes(row),
     durationMinutes: Number(row.duration_minutes || 0) || 60,
     history: row.history || "day",
     visits: Array.isArray(row.visits) ? row.visits : Array.from({ length: 10 }, () => 0)

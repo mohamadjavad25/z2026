@@ -103,3 +103,92 @@
 .scField :where(input, textarea):focus-visible { outline: 2px solid var(--night); outline-offset: 1px; }
 /* The client's booking strip makes the bottom bar taller: lift the help button above it. */
 html[data-cbt="1"] .supportFab { bottom: calc(8px + 70px + 16px + 58px + env(safe-area-inset-bottom)); }
+
+/* ---------- Pictures and voice notes in the support chat (features/support/Attachments.jsx, Composer.jsx) ---------- */
+.scGroup.is-grouped { margin-top: -4px; }
+.scThread { gap: 6px; }
+.scMsg { box-shadow: var(--shadow-xs); }
+.scMsg time { display: inline-flex; align-items: center; gap: 4px; justify-self: end; }
+.scMsg.is-user { background: var(--fill-strong-grad, var(--fill-strong)); }
+.scMsg.is-pending { opacity: 0.72; }
+.scMsg.has-images { inline-size: min(290px, 80%); padding: 5px 5px 8px; }
+.scMsg.has-images > p, .scMsg.has-images > time, .scMsg.has-images > .scWho { padding-inline: 9px; }
+.scMsg.has-voice { min-inline-size: min(260px, 80vw); }
+.scWho { display: inline-flex; align-items: center; gap: 5px; }
+.scThreadError { padding: 6px 16px 0; background: var(--n-0); }
+.scSending { margin: 6px 4px 0; color: var(--n-600); font-size: 0.72rem; font-weight: 700; }
+.scError { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.scErrorX { display: grid; place-items: center; inline-size: 28px; block-size: 28px; flex: 0 0 auto; border: 0; border-radius: 50%; background: none; color: inherit; cursor: pointer; }
+
+.scImages { display: grid; gap: 3px; inline-size: 100%; border-radius: 16px; overflow: hidden; }
+.scImages.is-2, .scImages.is-3, .scImages.is-4 { grid-template-columns: 1fr 1fr; }
+.scImages.is-3 > :first-child { grid-column: 1 / -1; }
+.scImages button { display: block; padding: 0; border: 0; background: var(--n-100); cursor: zoom-in; }
+.scImages button:disabled { cursor: default; }
+.scImages img { display: block; inline-size: 100%; block-size: 100%; max-block-size: 320px; object-fit: cover; }
+.scImages.is-2 img, .scImages.is-3 img, .scImages.is-4 img { aspect-ratio: 1; }
+.scImages.is-3 > :first-child img { aspect-ratio: 16 / 9; }
+
+.scVoice { display: flex; align-items: center; gap: 10px; min-inline-size: 200px; padding: 2px 0; }
+.scVoicePlay { flex: 0 0 auto; display: grid; place-items: center; inline-size: 40px; block-size: 40px; border: 0; border-radius: 50%; background: currentColor; color: inherit; cursor: pointer; }
+.scVoicePlay svg { color: var(--n-0); }
+.scMsg.is-user .scVoicePlay svg { color: var(--night); }
+.scVoiceTrack { position: relative; flex: 1; block-size: 6px; border-radius: 3px; cursor: pointer; }
+.scVoiceTrack::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: currentColor; opacity: 0.22; }
+.scVoiceTrack::before { content: ""; position: absolute; inset: -12px 0; } /* a bigger area to tap */
+.scVoiceTrack i { position: absolute; inset-block: 0; inset-inline-start: 0; border-radius: inherit; background: currentColor; transition: inline-size 0.2s linear; }
+.scVoiceTime { flex: 0 0 auto; min-inline-size: 34px; font-size: 0.74rem; font-weight: 800; opacity: 0.8; font-variant-numeric: tabular-nums; }
+.scVoice.is-playing .scVoicePlay { transform: scale(1.06); }
+.scVoicePlay { transition: transform 0.15s ease; }
+
+.scLightbox { position: fixed; inset: 0; z-index: calc(var(--z-viewer) + 40); display: grid; place-items: center; padding: 56px 12px 24px; background: var(--scrim); backdrop-filter: blur(6px); animation: scFade 0.18s ease both; }
+.scLightbox img { max-inline-size: 100%; max-block-size: 100%; border-radius: 12px; object-fit: contain; box-shadow: var(--shadow-lg); }
+.scLightboxClose { position: absolute; top: calc(12px + env(safe-area-inset-top)); inset-inline-end: 12px; display: grid; place-items: center; inline-size: 44px; block-size: 44px; border: 0; border-radius: 50%; background: rgb(var(--n-0-rgb) / 0.16); color: var(--on-photo); cursor: pointer; }
+@keyframes scFade { from { opacity: 0; } to { opacity: 1; } }
+
+.scComposer { display: grid; gap: 8px; }
+.scAttach { flex: 0 0 auto; display: grid; place-items: center; inline-size: 46px; block-size: 46px; border: 0; border-radius: 50%; background: none; color: var(--n-700); cursor: pointer; }
+.scAttach:hover:not(:disabled) { background: var(--n-100); color: var(--ink); }
+.scAttach:disabled { opacity: 0.4; cursor: not-allowed; }
+.scSend { transition: transform 0.15s ease; }
+.scSend:active:not(:disabled) { transform: scale(0.92); }
+.scSend.is-mic svg { transform: none; }
+.scSend.is-busy { animation: scBusy 1s ease-in-out infinite; }
+@keyframes scBusy { 50% { opacity: 0.55; } }
+.scIconBtn.is-danger { background: var(--danger-bg); color: var(--danger); }
+
+.scPicked { display: flex; gap: 8px; margin: 0; padding: 8px 4px 0; list-style: none; overflow-x: auto; }
+.scPicked li { position: relative; flex: 0 0 auto; }
+.scPicked img { display: block; inline-size: 64px; block-size: 64px; border-radius: 14px; object-fit: cover; box-shadow: inset 0 0 0 1px var(--line); }
+.scPicked button { position: absolute; top: -6px; inset-inline-end: -6px; display: grid; place-items: center; inline-size: 24px; block-size: 24px; padding: 0; border: 0; border-radius: 50%; background: var(--ink); color: var(--n-0); box-shadow: 0 0 0 2px var(--n-0); cursor: pointer; }
+
+.scRecRow { display: flex; align-items: center; gap: 8px; }
+.scRecLive { flex: 1; min-inline-size: 0; display: flex; align-items: center; gap: 10px; block-size: 46px; padding: 0 14px; border-radius: 23px; background: var(--n-100); }
+.scRecDot { flex: 0 0 auto; inline-size: 10px; block-size: 10px; border-radius: 50%; background: var(--signal-bad, var(--danger)); animation: scBusy 1.2s ease-in-out infinite; }
+.scRecTime { flex: 0 0 auto; font-weight: 850; font-variant-numeric: tabular-nums; }
+.scRecBars { flex: 1; min-inline-size: 0; display: flex; align-items: center; justify-content: flex-end; gap: 3px; block-size: 26px; overflow: hidden; }
+.scRecBars i { flex: 0 0 3px; min-block-size: 3px; border-radius: 2px; background: var(--night); transition: block-size 0.12s ease; }
+
+.scUnsent { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 8px 12px; border-radius: 14px; background: var(--danger-bg); color: var(--danger); font-size: var(--text-sm); font-weight: 750; }
+.scUnsent span { flex: 1; }
+.scUnsent button { min-block-size: 36px; padding: 0 14px; border: 0; border-radius: var(--radius-pill); background: var(--danger); color: var(--n-0); font: inherit; font-weight: 850; cursor: pointer; }
+.scUnsent button.is-quiet { background: none; color: var(--danger); }
+
+.scAttachField { display: grid; gap: 8px; }
+.scAttachLabel { color: var(--n-700); font-size: var(--text-sm); font-weight: 800; }
+.scAttachButtons { display: flex; flex-wrap: wrap; gap: 8px; }
+.scAttachButtons button { display: inline-flex; align-items: center; gap: 6px; min-block-size: 44px; padding: 0 16px; border: 0; border-radius: var(--radius-pill); background: var(--n-0); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); font: inherit; font-size: var(--text-base); font-weight: 750; cursor: pointer; }
+.scAttachButtons button:disabled { opacity: 0.45; cursor: not-allowed; }
+.scAttachVoice { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 18px; background: var(--n-0); color: var(--night); box-shadow: inset 0 0 0 1px var(--line); }
+.scAttachVoice .scVoice { flex: 1; }
+
+/* The same pieces inside the admin inbox take its colours. */
+.admBubble .scImages { inline-size: min(300px, 100%); }
+.admBubble .scVoice { color: var(--a-accent, currentColor); }
+.admReply .scAttachButtons button, .admReply .scAttachVoice { background: var(--a-card, var(--n-0)); color: var(--a-ink, var(--ink)); }
+.admReply .scRecLive { background: var(--a-card2, var(--n-100)); }
+
+@media (prefers-reduced-motion: reduce) {
+  .scLightbox, .scRecDot, .scSend.is-busy { animation: none; }
+  .scVoiceTrack i, .scRecBars i { transition: none; }
+}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { CalendarCheck, Check, X } from "lucide-react";
+import { CalendarCheck, Check } from "lucide-react";
 import { ServiceIcon } from "./ServiceIcon";
 import { ServiceIconStrip } from "./ServiceIconStrip";
 import { EMOJI_CATEGORIES, getBeautyEmoji, guessBeautyEmojiId } from "../shared/constants/beautyEmoji";
@@ -32,7 +32,9 @@ function groupServices(services) {
  * The public salon/artist page's services menu: opens upward from the bottom
  * bar's «خدمات» button, services grouped by category. The client can pick
  * several (e.g. nails and makeup in one visit); confirming hands them, in the
- * order picked, to `onConfirm`. Render it next to the `.spvBar`.
+ * order picked, to `onConfirm`. Render it next to the `.spvBar`. It has no
+ * header or close button (more room for the list); it closes from the bar's
+ * «بستن», the dim backdrop, Back or Escape. `title` is its accessible name.
  */
 export function ServicesDropUp({ open, title, services, focusNames = null, focusLabel = "", onConfirm, onClose }) {
   useBackHandler(open, onClose);
@@ -78,15 +80,6 @@ export function ServicesDropUp({ open, title, services, focusNames = null, focus
       <button type="button" className="sduDim" aria-label="بستن فهرست خدمات" onClick={onClose} />
       <div className="sduPanel" role="dialog" aria-modal="true" aria-label={title}>
         <div className="sduInner">
-          <div className="sduHead">
-            <div>
-              <b>{title}</b>
-            </div>
-            <button type="button" className="sduClose" aria-label="بستن" onClick={onClose}>
-              <X size={16} strokeWidth={2.4} />
-            </button>
-          </div>
-
           {list.length === 0 ? (
             <div className="sduEmpty" role="status">
               <ServiceIconStrip size="md" />

@@ -544,3 +544,50 @@ describe("subscribing", () => {
     expect(seen.at(-1)).not.toBe(controller.getState());
   });
 });
+
+describe("how long a client's request waits", () => {
+  const client = (source) => createVisitBookerController({ role: "client", services, days, source, submit: vi.fn(async () => ({ ok: true })), initial: { selected: ["1"], phone: "0912" } });
+
+  it("asks for backup salons only once the hour is picked, and lets go of one no longer offered", async () => {
+    const source = fakeSource();
+    let offered = [{ id: 7, name: "سالن دو" }];
+    source.loadBackups = vi.fn(async () => ({ ok: true, salons: offered }));
+    const c = client(source);
+    c.start();
+    await flush();
+    expect(c.getState().wait).toBe("open");
+    expect(source.loadBackups).not.toHaveBeenCalled();
+    c.setWait("hour");
+    await flush();
+    expect(source.loadBackups).toHaveBeenCalledWith({ day: "d1", time: "۱۰:۰۰", services: [{ name: "مانیکور", minutes: 45 }] });
+    expect(c.getState().backups).toEqual({ status: "ready", list: offered });
+    c.setBackup("99");
+    expect(c.getState().backup).toBe("");
+    c.setBackup(7);
+    expect(c.getState().backup).toBe("7");
+    offered = [];
+    c.setTime("۱۰:۳۰");
+    await flush();
+    expect(c.getState().backup).toBe("");
+  });
+
+  it("sends the choice with the booking", async () => {
+    const source = fakeSource();
+    source.loadBackups = vi.fn(async () => ({ ok: true, salons: [{ id: 7, name: "سالن دو" }] }));
+    const submit = vi.fn(async () => ({ ok: true }));
+    const c = createVisitBookerController({ role: "client", services, days, source, submit, initial: { selected: ["1"], phone: "0912" } });
+    c.start();
+    await flush();
+    c.setWait("hour");
+    await flush();
+    c.setBackup("7");
+    await c.submit();
+    expect(submit.mock.calls[0][0]).toMatchObject({ waitMinutes: 60, fallbackSalonUserId: "7", fallbackName: "سالن دو" });
+  });
+
+  it("is a client-only choice", async () => {
+    const { controller, state } = make();
+    controller.setWait("hour");
+    expect(state().wait).toBe("open");
+  });
+});

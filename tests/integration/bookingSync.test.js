@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { createClient, joinSalonAsArtist, registerUser, futureBookingDay } from "./helpers.js";
 
-async function setup() {
+async function setup({ verifiedClient = false } = {}) {
   const salonClient = createClient();
   const salon = await registerUser(salonClient, { type: "salon", name: "Sync Salon" });
   await salonClient.get("/api/salon-hours");
@@ -10,7 +10,7 @@ async function setup() {
   const join = await joinSalonAsArtist(artistClient, salonClient, salon.user.id);
   expect(join.ok).toBe(true);
   const clientClient = createClient();
-  const client = await registerUser(clientClient, { type: "client", name: "Sync Client" });
+  const client = await registerUser(clientClient, { type: "client", name: "Sync Client", verified: verifiedClient });
   return { salonClient, salon, artistClient, artist, clientClient, client };
 }
 
@@ -125,7 +125,7 @@ describe("a booking the salon entered for a client who has an account", () => {
   }
 
   it("reaches the client as a settled booking, not as a request waiting for the salon", async () => {
-    const ctx = await setup();
+    const ctx = await setup({ verifiedClient: true });
     const booking = await enterWalkIn(ctx, futureBookingDay(2), "۱۴:۰۰");
     expect(booking.status).toBe("تازه");
     const mine = (await ctx.clientClient.get("/api/client-bookings")).payload.data.salonBookings;
@@ -133,12 +133,33 @@ describe("a booking the salon entered for a client who has an account", () => {
   });
 
   it("can be cancelled by that client, and the salon sees it cancelled", async () => {
-    const ctx = await setup();
+    const ctx = await setup({ verifiedClient: true });
     const booking = await enterWalkIn(ctx, futureBookingDay(3), "۱۵:۰۰");
     const cancelled = await ctx.clientClient.post(`/api/salon-bookings/${booking.id}/cancel`, {});
     expect(cancelled.ok).toBe(true);
     const salonList = (await ctx.salonClient.get("/api/salon-bookings")).payload.data.bookings;
     expect(salonList.find((b) => b.id === booking.id).status).toBe("لغو");
+  });
+
+  it("stays out of reach of an account whose number was never proved with an SMS code", async () => {
+    // Anyone can sign up with someone else's number while codes are not required.
+    const ctx = await setup();
+    const booking = await enterWalkIn(ctx, futureBookingDay(2), "۱۷:۰۰");
+    const mine = (await ctx.clientClient.get("/api/client-bookings")).payload.data.salonBookings;
+    expect(mine.map((b) => b.id)).not.toContain(booking.id);
+    expect((await ctx.clientClient.post(`/api/salon-bookings/${booking.id}/cancel`, {})).status).toBe(404);
+  });
+
+  it("never reaches another account by name when the salon entered no phone", async () => {
+    const ctx = await setup();
+    const created = await ctx.salonClient.post("/api/salon-bookings", {
+      service: "کوتاهی مو", bookingDate: futureBookingDay(2), time: "۱۸:۰۰", client: ctx.client.user.name
+    });
+    expect(created.ok).toBe(true);
+    const booking = created.payload.data.booking;
+    const mine = (await ctx.clientClient.get("/api/client-bookings")).payload.data.salonBookings;
+    expect(mine.map((b) => b.id)).not.toContain(booking.id);
+    expect((await ctx.clientClient.post(`/api/salon-bookings/${booking.id}/cancel`, {})).status).toBe(404);
   });
 
   it("is never cancellable by a different client who merely shares the name", async () => {

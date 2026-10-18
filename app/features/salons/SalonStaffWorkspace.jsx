@@ -1,11 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { Check, Plus, Send, Settings, UserRoundCheck, UserRoundPlus, X } from "lucide-react";
-import { salonArtistRoleOptions } from "../../shared/constants/roles";
+import { Check, Plus, Send, Settings, X } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { ServiceIconStrip } from "../../components/ServiceIconStrip";
+import { SalonOwnerTeamCard } from "./SalonOwnerTeamCard";
 
 const DEFAULT_AVATAR = "/profile-icon.svg";
 
@@ -26,6 +25,8 @@ export function SalonStaffWorkspace({
   onLeaveAsOwner
 }) {
   const ownerMember = staffList.find((person) => person.is_owner) || null;
+  // The manager's own card sits at the top (with its switch), so the list below is the rest of the team.
+  const teamList = onJoinAsOwner ? staffList.filter((person) => !person.is_owner) : staffList;
   const onLeaveCount = Math.max(0, staffList.length - activeStaffCount);
   const stats = [
     { key: "members", label: "عضو تیم", value: staffList.length, tone: "ink" },
@@ -46,11 +47,12 @@ export function SalonStaffWorkspace({
       </div>
 
       {onJoinAsOwner ? (
-        <OwnerJoinCard
+        <SalonOwnerTeamCard
           managerName={managerName}
           ownerMember={ownerMember}
           onJoin={onJoinAsOwner}
           onLeave={onLeaveAsOwner}
+          onManage={onManageStaff}
         />
       ) : null}
 
@@ -95,13 +97,13 @@ export function SalonStaffWorkspace({
         </section>
       ) : null}
 
-      {staffList.length ? (
+      {teamList.length ? (
         <section className="stfSection" aria-label="لیست آرتیست‌ها">
           <div className="stfSectionLabel">
             <span>اعضای تیم</span>
-            <b>{toPersianDigits(staffList.length)}</b>
+            <b>{toPersianDigits(teamList.length)}</b>
           </div>
-          {staffList.map((person) => {
+          {teamList.map((person) => {
             const avatar = person.avatar || person.staff_avatar || "";
             const isActive = person.state !== "مرخصی";
             const role = person.role || person.artist_service || "آرتیست";
@@ -170,104 +172,5 @@ export function SalonStaffWorkspace({
         </div>
       ) : null}
     </div>
-  );
-}
-
-/**
- * "I work here too": always on the staff tab, it is the manager's on/off switch. Switching on asks for
- * a display name and the fields they work in, so services can be assigned to them and bookings made
- * for them like any team member; switching off takes them out of the team (after a confirmation).
- */
-function OwnerJoinCard({ managerName = "", ownerMember = null, onJoin, onLeave }) {
-  const [open, setOpen] = useState(false);
-  const [name, setName] = useState(managerName);
-  const [roles, setRoles] = useState([]);
-  const [busy, setBusy] = useState(false);
-  const isOn = Boolean(ownerMember);
-
-  const toggle = async () => {
-    if (busy) return;
-    if (isOn) {
-      setBusy(true);
-      await onLeave?.(ownerMember.name);
-      setBusy(false);
-      return;
-    }
-    setOpen((current) => !current);
-  };
-
-  const toggleRole = (role) => setRoles((current) => (
-    current.includes(role) ? current.filter((item) => item !== role) : [...current, role]
-  ));
-
-  return (
-    <section className={`stfSelf${isOn ? " is-on" : ""}${open && !isOn ? " is-open" : ""}`} aria-label="خودم هم کار می‌کنم">
-      <div className="stfSelfHead">
-        <span className="stfSelfIcon" aria-hidden="true">
-          {isOn ? <UserRoundCheck size={28} /> : <UserRoundPlus size={28} />}
-        </span>
-        <span className="stfSelfCopy">
-          <b>خودم هم کار می‌کنم</b>
-          <small>
-            {isOn
-              ? `در تیم هستی؛ خدمات و رزرو به اسم «${ownerMember.name}» هم ثبت می‌شود`
-              : "خودت را به تیم اضافه کن تا خدمات و رزرو به اسم خودت هم ثبت شود"}
-          </small>
-        </span>
-        <button
-          type="button"
-          role="switch"
-          aria-checked={isOn}
-          aria-label="خودم هم کار می‌کنم"
-          className="stfSwitch"
-          disabled={busy}
-          onClick={toggle}
-        >
-          <i aria-hidden="true">{isOn ? <Check size={13} strokeWidth={3} /> : null}</i>
-        </button>
-      </div>
-      {open && !isOn ? (
-        <form
-          className="stfSelfForm"
-          onSubmit={async (event) => {
-            event.preventDefault();
-            if (busy || !name.trim()) return;
-            setBusy(true);
-            const ok = await onJoin?.({ name: name.trim(), role: roles.join("، ") });
-            setBusy(false);
-            if (ok) setOpen(false);
-          }}
-        >
-      <b className="stfSelfTitle">خودم هم در سالن کار می‌کنم</b>
-      <label className="stfSelfField">
-        <span>نامت در تیم (همین را مشتری‌ها و برنامه می‌بینند)</span>
-        <input value={name} onChange={(event) => setName(event.target.value)} placeholder="مثلاً مریم" maxLength={80} required />
-      </label>
-      <div className="stfSelfField">
-        <span>چه کارهایی انجام می‌دهی؟ (هر چند تا)</span>
-        <div className="stfSelfRoles" role="group" aria-label="حوزه کاری خودم">
-          {salonArtistRoleOptions.map((role) => (
-            <button
-              type="button"
-              key={role}
-              className={roles.includes(role) ? "is-on" : ""}
-              aria-pressed={roles.includes(role)}
-              onClick={() => toggleRole(role)}
-            >
-              <ServiceIcon name={role} size="xs" />
-              {role}
-            </button>
-          ))}
-        </div>
-      </div>
-      <div className="stfSelfActions">
-        <button type="submit" className="stfSelfSave" disabled={busy || !name.trim()}>
-          {busy ? "در حال ثبت…" : "اضافه کردن خودم به تیم"}
-        </button>
-        <button type="button" className="stfSelfCancel" onClick={() => setOpen(false)}>انصراف</button>
-      </div>
-        </form>
-      ) : null}
-    </section>
   );
 }

@@ -239,6 +239,7 @@ export function useArtistWorkspace({
     artistBookingsEpochRef.current += 1;
     setArtistPortfolioItems([]);
     setArtistServiceList([]);
+    setArtistWorkspaceLoading(true);
     setArtistBreakTime(null);
     setArtistBreakEditorOpen(false);
     setArtistBookingList([]);
