@@ -134,12 +134,14 @@
 .cnScanBtn:active { transform: scale(0.98); }
 
 /* ---- «چه کاری می‌خواهی؟»: what the client comes for ---- */
-/* Two rows of four; more categories than that scroll sideways. */
+/* Two rows; more categories than fit scroll sideways. A slice of the next column peeks in and fades
+   out at the far edge so the row reads as "there is more this way"; the fade goes once the end is reached.
+   Until the client has scrolled it once, the tiles give one soft nudge (CategoryGrid.jsx). */
 .cnCats {
   display: grid;
   grid-auto-flow: column;
   grid-template-rows: repeat(2, 1fr);
-  grid-auto-columns: calc((100% - 24px) / 4);
+  grid-auto-columns: calc((100% - 32px) / 4.35);
   gap: 8px;
   overflow-x: auto;
   overscroll-behavior-x: contain;
@@ -147,6 +149,25 @@
   scrollbar-width: none;
 }
 .cnCats::-webkit-scrollbar { display: none; }
+.cnCats:not(.is-end) {
+  -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 48px), rgba(0, 0, 0, 0.25) 100%);
+  mask-image: linear-gradient(to left, #000 calc(100% - 48px), rgba(0, 0, 0, 0.25) 100%);
+}
+.cnCats.is-moved:not(.is-end) {
+  -webkit-mask-image: linear-gradient(to left, rgba(0, 0, 0, 0.25) 0, #000 32px, #000 calc(100% - 48px), rgba(0, 0, 0, 0.25) 100%);
+  mask-image: linear-gradient(to left, rgba(0, 0, 0, 0.25) 0, #000 32px, #000 calc(100% - 48px), rgba(0, 0, 0, 0.25) 100%);
+}
+.cnCats.is-moved.is-end {
+  -webkit-mask-image: linear-gradient(to left, rgba(0, 0, 0, 0.25) 0, #000 32px);
+  mask-image: linear-gradient(to left, rgba(0, 0, 0, 0.25) 0, #000 32px);
+}
+.cnCats.is-hinting > .cnCat { animation: cnCatsNudge 1.5s cubic-bezier(0.45, 0, 0.25, 1) both; }
+@keyframes cnCatsNudge {
+  0%, 100% { translate: 0; }
+  38% { translate: 30px; }
+  62% { translate: 30px; }
+}
+@media (prefers-reduced-motion: reduce) { .cnCats.is-hinting > .cnCat { animation: none; } }
 .cnCat {
   scroll-snap-align: start;
   display: grid;
