@@ -39,7 +39,8 @@ export function normalizeProfile(profile) {
       avatarPosition: profile.avatarPosition || "",
       posterPosition: profile.posterPosition || "",
       experienceYears: profile.experienceYears || profile.experience_years || "",
-      managerName: profile.managerName || profile.manager_name || ""
+      managerName: profile.managerName || profile.manager_name || "",
+      location: profile.location || null
     }
   };
 }

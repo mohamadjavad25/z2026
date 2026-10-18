@@ -348,6 +348,7 @@ export function SettingsPage({
           <ProfileLocationSettings
             profileType={profile?.type}
             value={profile?.data?.area || ""}
+            location={profile?.data?.location || null}
             saving={locationSaving}
             onSave={onSaveLocation}
           />

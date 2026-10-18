@@ -10,6 +10,7 @@ import { clientBookingMatch, clientVisibleStatus } from "../clientMatch.js";
 import { isProfileSaved } from "./social.js";
 import { normalizeServiceEmoji, resolveBookingServiceEmoji } from "./serviceEmoji.js";
 import { getSettings, DEFAULT_SETTINGS } from "./userSettings.js";
+import { publicLocation } from "../../location.js";
 import { listArtistHoursPublic } from "./artists/hours.js";
 import { onlineBookingBlock, withoutHiddenProviders } from "../../billing/access.js";
 
@@ -811,6 +812,7 @@ export async function getPublicArtist(userId, viewerUserId = null) {
     name: user.name,
     role: user.service ? `آرتیست ${user.service}` : "آرتیست",
     area: user.area,
+    location: publicLocation(user),
     // The public page's «تماس» button, same as the salon page (salons.js getSalon).
     phone: user.phone || "",
     avatar: user.avatar ? `/api/media/avatar/${user.id}` : "",

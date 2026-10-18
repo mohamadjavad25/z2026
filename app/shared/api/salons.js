@@ -186,7 +186,12 @@ export async function getSalonStaffCalendars() {
   return apiJson("/api/salon-staff/calendars");
 }
 
-/** POST /api/salon-staff/self { name, role } → { person, staff }: the manager joins their own team */
+/** GET /api/salon-staff/self → { profile }: what the manager entered for their own team card (kept after leaving) */
+export async function getSalonOwnerProfile() {
+  return apiJson("/api/salon-staff/self");
+}
+
+/** POST /api/salon-staff/self { name?, role?, photo? } → { person, staff, profile }: the manager joins (or edits) their own team card */
 export async function joinSalonTeamAsOwner(body) {
   return apiFetch("/api/salon-staff/self", {
     method: "POST",

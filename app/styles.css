@@ -48,6 +48,7 @@
 @import "./styles/features/connect.css";
 @import "./styles/features/comingSoon.css";
 @import "./styles/features/publicProfile.css";
+@import "./styles/features/location.css";
 @import "./styles/features/landing.css";
 @import "./styles/features/landingLearn.css";
 @import "./styles/features/clientHome.css";
