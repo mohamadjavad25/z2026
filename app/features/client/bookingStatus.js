@@ -100,13 +100,14 @@ export function requestWaitNote(booking, now = new Date()) {
   if (windowMinutes === null) return `${who} تا قبل از نوبت وقت دارد جواب بدهد. اگر دیر شد، خودت لغوش کن.`;
   const deadline = requestDeadlineLabel(booking.created_at || booking.createdAt, booking.booking_date || booking.date, booking.time, { now, windowMinutes });
   if (!deadline) return "";
-  const backup = booking.fallback_salon_name || "";
+  const backup = booking.fallback_name || "";
   return backup
     ? `${who} تا ساعت ${deadline} جواب می‌دهد؛ وگرنه می‌رود برای ${backup}.`
     : `${who} تا ساعت ${deadline} جواب می‌دهد؛ وگرنه لغو می‌شود.`;
 }
 
-/** For a request that went unanswered and was sent on to the client's backup salon: that salon's name. */
-export function movedToSalonName(booking) {
-  return booking?.moved_to_booking_id ? booking.moved_to_salon_name || "سالن دوم" : "";
+/** For a request that went unanswered and was sent on to the client's backup salon / artist: its name. */
+export function movedToName(booking) {
+  if (!booking?.moved_to_booking_id) return "";
+  return booking.moved_to_name || (booking.bookingSource === "artist" ? "آرتیست دوم" : "سالن دوم");
 }

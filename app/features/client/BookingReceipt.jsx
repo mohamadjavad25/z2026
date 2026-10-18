@@ -11,7 +11,7 @@ import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar"
 import { bookingWaitMinutes, requestMinutesLeft, requestRemainingShare } from "../../shared/lib/bookingWindow";
 import { AWAITING_CLIENT } from "../../shared/lib/bookingOffer";
 import { pushNotificationsSupported, subscribeToPushNotifications } from "../shell/homeAppHelpers";
-import { bookingEndLabel, clientBookingKey, movedToSalonName } from "./bookingStatus";
+import { bookingEndLabel, clientBookingKey, movedToName } from "./bookingStatus";
 
 
 function stageOf(status = "") {
@@ -101,8 +101,8 @@ export function BookingReceipt({ receipt, bookings = [], onClose, onViewBookings
   const left = stage === "wait" ? minutesLeft(live, now) : null;
   const phone = live.salonPhone || live.salon_phone || "";
   const waitsOpen = stage === "wait" && bookingWaitMinutes(live) === null;
-  const backupName = stage === "wait" && !waitsOpen ? live.fallback_salon_name || "" : "";
-  const movedTo = stage === "expired" ? movedToSalonName(live) : "";
+  const backupName = stage === "wait" && !waitsOpen ? live.fallback_name || "" : "";
+  const movedTo = stage === "expired" ? movedToName(live) : "";
 
   const hero = {
     wait: { icon: Send, title: `درخواستت به ${place} رسید`, text: `منتظر تأیید ${who} باش.` },

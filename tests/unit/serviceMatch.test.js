@@ -6,6 +6,10 @@ describe("matching a salon's services by name", () => {
     expect(serviceNameKey("كوتاهي  مو")).toBe(serviceNameKey("کوتاهی مو"));
     expect(serviceNameKey("ناخن‌کاشت")).toBe(serviceNameKey("ناخن کاشت"));
     expect(serviceNameKey("کوتاهی مو")).not.toBe(serviceNameKey("رنگ مو"));
+    expect(serviceNameKey("براشینگ و سشوار")).toBe(serviceNameKey("براشینگ-سشوار"));
+    expect(serviceNameKey("براشینگ، سشوار")).toBe(serviceNameKey("براشینگ / سشوار"));
+    expect(serviceNameKey("وکس")).toBe("وکس");
+    expect(serviceNameKey("کوتاهی مو")).not.toBe(serviceNameKey("کوتاهی موی کودک"));
   });
   it("returns the salon's own names in order, or null when one is missing", () => {
     const services = [{ name: "رنگ مو" }, { name: "كوتاهي مو" }];

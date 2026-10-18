@@ -5,7 +5,7 @@ import { CalendarCheck, CalendarClock, Check, ChevronLeft, Hourglass, TimerOff, 
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar";
 import { bookingWaitMinutes, requestDeadlineLabel, requestRemainingShare } from "../../shared/lib/bookingWindow";
-import { isBookingInPast, movedToSalonName } from "./bookingStatus";
+import { isBookingInPast, movedToName } from "./bookingStatus";
 import { AWAITING_CLIENT } from "../../shared/lib/bookingOffer";
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
 
@@ -110,7 +110,7 @@ export function ClientBookingTracker({ bookings = [], onOpen }) {
     const { booking, status } = flash;
     const confirmed = status === "تایید شده";
     const Icon = confirmed ? Check : status === "لغو" ? XCircle : TimerOff;
-    const movedTo = movedToSalonName(booking);
+    const movedTo = movedToName(booking);
     const title = confirmed ? "رزرو تأیید شد" : status === "لغو" ? "رزرو لغو شد" : movedTo ? `درخواستت رفت برای ${movedTo}` : "مهلت پاسخ تمام شد";
     return (
       <Strip

@@ -43,7 +43,9 @@ export const createBookingSchema = z.object({
   // starts). Left out, a request keeps the old hour. Ignored for anyone but a client.
   waitMinutes: z.union([z.literal(60), z.null()]).optional(),
   // A salon the client follows to send the request to if the hour runs out (salon bookings only).
-  fallbackSalonUserId: z.union([z.string().max(20), z.number(), z.null()]).optional()
+  fallbackSalonUserId: z.union([z.string().max(20), z.number(), z.null()]).optional(),
+  // An artist the client follows to send a direct artist request to if the hour runs out.
+  fallbackArtistUserId: z.union([z.string().max(20), z.number(), z.null()]).optional()
 });
 
 /** Status values a caller is ever allowed to request through a PATCH --

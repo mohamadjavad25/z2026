@@ -319,7 +319,7 @@ export function createVisitBookerController({
         const body = buildSubmitBody(role, model, state.picked, state.plan.parts);
         // The backup's name rides along for the screen that follows (the server reads only the id).
         const backupSalon = body.fallbackSalonUserId ? backups.list.find((salon) => String(salon.id) === String(body.fallbackSalonUserId)) : null;
-        if (backupSalon) body.fallbackSalonName = backupSalon.name;
+        if (backupSalon) body.fallbackName = backupSalon.name;
         result = await submit(body);
       } catch {
         result = { ok: false, status: 0, payload: {} };

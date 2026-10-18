@@ -15,6 +15,7 @@ import { PublicArtistGalleryPanel } from "./PublicArtistGalleryPanel";
 import { ProfileSheet } from "../profile/ProfileSheet";
 import { WaitChoice } from "../booking/WaitChoice";
 import { BOOKING_WAIT_CHOICES } from "../../shared/lib/bookingWindow";
+import { getArtistFallbacks } from "../../shared/api/artists";
 import { useEffect, useState } from "react";
 
 // Same decorative cover the artist's own panel shows until a poster is uploaded.
@@ -66,6 +67,27 @@ export function PublicArtistModal({
   useEffect(() => {
     if (focus && hasServices) setServicesOpen(true);
   }, [focus, hasServices]);
+  // With the hour: artists the client follows who do the same service and are free then (backups).
+  const [backups, setBackups] = useState([]);
+  const [backup, setBackup] = useState("");
+  const pickedService = (bundle && bundle.id === selectedServiceId ? bundle : (services || []).find((item) => item.id === selectedServiceId)) || (services || [])[0];
+  const pickedName = pickedService?.name || "";
+  useEffect(() => {
+    let live = true;
+    if (wait !== "hour" || guest || !artist?.id || !bookingSlot || !pickedName) {
+      setBackups([]);
+      return undefined;
+    }
+    getArtistFallbacks(artist.id, pickedName, bookingDay, bookingSlot)
+      .then(({ ok, data }) => {
+        if (!live) return;
+        const found = ok && Array.isArray(data?.artists) ? data.artists : [];
+        setBackups(found);
+        setBackup((current) => (found.some((item) => String(item.id) === current) ? current : ""));
+      })
+      .catch(() => { if (live) setBackups([]); });
+    return () => { live = false; };
+  }, [wait, guest, artist?.id, pickedName, bookingDay, bookingSlot]);
   if (!artist) return null;
 
   const prices = (services || []).map((service) => parseTomanAmount(service.price)).filter(Boolean);
@@ -221,7 +243,9 @@ export function PublicArtistModal({
                   }}
                   onSlotChange={onBookingSlotChange}
                 />
-                {bookingSlot && !guest ? <WaitChoice value={wait} onChange={setWait} who="آرتیست" /> : null}
+                {bookingSlot && !guest ? (
+                  <WaitChoice value={wait} onChange={setWait} who="آرتیست" backups={backups} backup={backup} onBackup={setBackup} />
+                ) : null}
                 {guest ? (
                   <p className="artistBookingPhoneWarning is-info">
                     برای ثبت نوبت باید وارد frfro شوی. بعد از ورود، رزرو را از پروفایل همین آرتیست ادامه بده.
@@ -242,7 +266,11 @@ export function PublicArtistModal({
                   disabled={bookingBusy || !bookingSlot || (!guest && !clientPhone)}
                   onClick={() => {
                     if (bookingBusy || !bookingSlot || (!guest && !clientPhone)) return;
-                    onConfirmBooking({ waitMinutes: BOOKING_WAIT_CHOICES[wait] });
+                    const backupArtist = wait === "hour" && backup ? backups.find((item) => String(item.id) === backup) : null;
+                    onConfirmBooking({
+                      waitMinutes: BOOKING_WAIT_CHOICES[wait],
+                      ...(backupArtist ? { fallbackArtistUserId: backupArtist.id, fallbackName: backupArtist.name } : {})
+                    });
                     setBookingPopup(false);
                   }}
                 >

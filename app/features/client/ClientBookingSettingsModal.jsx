@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, CalendarCheck, CheckCircle2, Clock3, MapPin, Phone, RotateCcw, Store, TimerOff, UserPlus, XCircle } from "lucide-react";
 import { connectTo, listConnections } from "../../shared/api/connections";
 import { SheetClose } from "../../components/SheetClose";
-import { bookingStatusLabel, bookingStatusTone, canClientCancel, hasBookingStarted, movedToSalonName, requestWaitNote } from "./bookingStatus";
+import { bookingStatusLabel, bookingStatusTone, canClientCancel, hasBookingStarted, movedToName, requestWaitNote } from "./bookingStatus";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { minutesToPersianTime, timeLabelToMinutes } from "../../shared/lib/time";
@@ -186,7 +186,7 @@ export function ClientBookingSettingsModal({
   const duration = Number(booking.duration_minutes) || 0;
   const offer = booking.bookingSource === "artist" ? null : bookingTimeOffer(booking);
   const waitNote = statusTone === "pending" && !offer ? requestWaitNote(booking) : "";
-  const movedTo = movedToSalonName(booking);
+  const movedTo = movedToName(booking);
 
   return (
     <div
@@ -254,7 +254,7 @@ export function ClientBookingSettingsModal({
           {movedTo ? (
             <p className="clientBookingPendingNote">
               <Clock3 size={14} />
-              این سالن به‌موقع جواب نداد؛ همین درخواست را برای {movedTo} فرستادیم.
+              {booking.bookingSource === "artist" ? "این آرتیست" : "این سالن"} به‌موقع جواب نداد؛ همین درخواست را برای {movedTo} فرستادیم.
             </p>
           ) : null}
           <div className="clientBookingSettingsActions">

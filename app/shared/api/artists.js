@@ -78,6 +78,16 @@ export async function createArtistBooking(body) {
   });
 }
 
+/**
+ * GET /api/artist-bookings/fallbacks → { artists: [{ id, name, area, avatar }] }
+ * Artists the client follows that do this service and are free at that day and time: the backup
+ * choices for a direct request that gets only an hour.
+ */
+export async function getArtistFallbacks(artistUserId, service, day, time) {
+  const query = new URLSearchParams({ artistUserId: String(artistUserId), service: String(service || ""), day: String(day || ""), time: String(time || "") });
+  return apiJson(`/api/artist-bookings/fallbacks?${query}`);
+}
+
 /** PATCH /api/artist/invites → respond { id, status } → { data: { invite, invites, … } } */
 export async function respondArtistInvite(body) {
   return apiFetch("/api/artist/invites", {

@@ -1,6 +1,7 @@
 import { json, requireUser, withErrorHandling } from "../../lib/http.js";
 import { ensureDb } from "../../lib/db/connection.js";
 import * as artists from "../../lib/db/repos/artists.js";
+import * as salons from "../../lib/db/repos/salons.js";
 import { sweepExpiredBookingRequestsIfDue } from "../../lib/bookingExpirySweep.js";
 
 export const runtime = "nodejs";
@@ -28,6 +29,7 @@ async function _GET(request) {
     return json({ error: "فقط مشتری." }, { status: 403 });
   }
   await sweepExpiredBookingRequestsIfDue();
+  await salons.ensureBookingColumns();
   return json({ data: { bookings: await artists.listClientArtistBookings(auth.user) } });
 }
 

@@ -106,9 +106,9 @@ describe("the backup salon", () => {
     const mine = (await me.client.get("/api/salon-bookings")).payload.data.bookings;
     const old = mine.find((row) => row.id === id);
     expect(old.status).toBe("منقضی شده");
-    expect(old.moved_to_salon_name).toBe("Move Second");
+    expect(old.moved_to_name).toBe("Move Second");
     const moved = mine.find((row) => row.id === old.moved_to_booking_id);
-    expect(moved).toMatchObject({ status: "درخواست", salon_user_id: second.user.id, service: SERVICE, booking_date: day, wait_minutes: 60, fallback_salon_user_id: null, moved_from_salon_name: "Move First" });
+    expect(moved).toMatchObject({ status: "درخواست", salon_user_id: second.user.id, service: SERVICE, booking_date: day, wait_minutes: 60, fallback_salon_user_id: null, moved_from_name: "Move First" });
     const secondView = (await secondClient.get("/api/salon-bookings")).payload.data.bookings;
     expect(secondView.some((row) => row.id === moved.id)).toBe(true);
   });
@@ -132,5 +132,86 @@ describe("the backup salon", () => {
     const old = (await me.client.get("/api/salon-bookings")).payload.data.bookings.find((row) => row.id === created.payload.data.booking.id);
     expect(old.status).toBe("منقضی شده");
     expect(old.moved_to_booking_id).toBeNull();
+  });
+});
+
+describe("a client's booking answer never carries other customers", () => {
+  it("the salon's full list goes back to the salon only", async () => {
+    const { client: salonClient, salon } = await salonWith("Privacy Salon");
+    const first = await customer("Privacy First");
+    const second = await customer("Privacy Second");
+    const day = futureBookingDay(2);
+    expect((await first.client.post("/api/salon-bookings", { salonUserId: salon.user.id, service: SERVICE, bookingDate: day, time: "۱۰:۰۰" })).status).toBe(201);
+    const mine = await second.client.post("/api/salon-bookings", { salonUserId: salon.user.id, service: SERVICE, bookingDate: day, time: "۱۲:۰۰" });
+    expect(mine.status).toBe(201);
+    expect(mine.payload.data.bookings).toBeUndefined();
+    expect(JSON.stringify(mine.payload)).not.toContain("Privacy First");
+    expect(JSON.stringify(mine.payload)).not.toContain(first.phone);
+    // A refused request doesn't hand the list over either.
+    const refused = await second.client.post("/api/salon-bookings", { salonUserId: salon.user.id, service: SERVICE, bookingDate: day, time: "۱۰:۰۰" });
+    expect(refused.status).toBe(409);
+    expect(JSON.stringify(refused.payload)).not.toContain("Privacy First");
+    // The salon's own entry still gets its list back.
+    const own = await salonClient.post("/api/salon-bookings", { service: SERVICE, bookingDate: day, time: "۱۴:۰۰", client: "حضوری" });
+    expect(own.payload.data.bookings.length).toBeGreaterThanOrEqual(3);
+  });
+});
+
+describe("the backup artist, for a request made straight to an artist", () => {
+  const ARTIST_SERVICE = "کاشت صبر";
+  async function artistWith(name, service = ARTIST_SERVICE) {
+    const client = createClient();
+    const artist = await registerUser(client, { type: "artist", name });
+    expect((await client.post("/api/artist/me", { name: service, price: "100", duration: "۶۰ دقیقه" })).ok).toBe(true);
+    return { client, artist };
+  }
+  const artistSweepBack = (id, minutes) => db.query(`UPDATE artist_bookings SET created_at = NOW() - ($2::int * INTERVAL '1 minute') WHERE id = $1`, [id, minutes]);
+
+  it("is offered among followed artists doing the service, and gets the request when the hour runs out", async () => {
+    await connected;
+    const { client: firstClient, artist: first } = await artistWith("Artist Wait First");
+    const { client: secondClient, artist: second } = await artistWith("Artist Wait Second");
+    const { artist: other } = await artistWith("Artist Wait Other", "خدمت دیگر صبر");
+    const me = await customer("Artist Wait Client");
+    for (const target of [second, other]) await me.client.post("/api/follows", { targetUserId: target.user.id, follow: true });
+    const day = futureBookingDay(2);
+    const offered = await me.client.get(`/api/artist-bookings/fallbacks?${new URLSearchParams({ artistUserId: String(first.user.id), service: ARTIST_SERVICE, day, time: "۱۰:۰۰" })}`);
+    expect(offered.payload.data.artists.map((item) => item.id)).toEqual([second.user.id]);
+
+    const created = await me.client.post("/api/artist/bookings", {
+      artistUserId: first.user.id, service: ARTIST_SERVICE, bookingDate: day, time: "۱۰:۰۰", waitMinutes: 60, fallbackArtistUserId: second.user.id
+    });
+    expect(created.status).toBe(201);
+    const id = created.payload.data.booking.id;
+    expect(created.payload.data.booking.fallback_artist_user_id).toBe(second.user.id);
+    // The first artist never sees which artist was the backup.
+    const firstView = (await firstClient.get("/api/artist/me")).payload.data.bookings.find((row) => row.id === id);
+    expect(firstView.fallback_artist_user_id).toBeUndefined();
+
+    await artistSweepBack(id, 61);
+    expect((await sweep()).artistMoved).toBeGreaterThanOrEqual(1);
+    const mine = (await me.client.get("/api/artist-bookings")).payload.data.bookings;
+    const old = mine.find((row) => row.id === id);
+    expect(old.status).toBe("منقضی شده");
+    expect(old.moved_to_name).toBe("Artist Wait Second");
+    const moved = mine.find((row) => row.id === old.moved_to_booking_id);
+    expect(moved).toMatchObject({ artist_user_id: second.user.id, service: ARTIST_SERVICE, booking_date: day, wait_minutes: 60, fallback_artist_user_id: null, moved_from_name: "Artist Wait First" });
+    expect((await secondClient.get("/api/artist/me")).payload.data.bookings.some((row) => row.id === moved.id)).toBe(true);
+  });
+
+  it("a backup the client doesn't follow is never stored, and «صبر می‌کنم» never times out", async () => {
+    await connected;
+    const { artist: first } = await artistWith("Artist Open First");
+    const { artist: stranger } = await artistWith("Artist Open Stranger");
+    const me = await customer();
+    const day = futureBookingDay(2);
+    const sneaky = await me.client.post("/api/artist/bookings", { artistUserId: first.user.id, service: ARTIST_SERVICE, bookingDate: day, time: "۱۰:۰۰", waitMinutes: 60, fallbackArtistUserId: stranger.user.id });
+    expect(sneaky.payload.data.booking.fallback_artist_user_id).toBeNull();
+    const open = await me.client.post("/api/artist/bookings", { artistUserId: first.user.id, service: ARTIST_SERVICE, bookingDate: day, time: "۱۴:۰۰", waitMinutes: null });
+    expect(open.payload.data.booking.wait_minutes).toBeNull();
+    await artistSweepBack(open.payload.data.booking.id, 600);
+    await sweep();
+    const row = (await me.client.get("/api/artist-bookings")).payload.data.bookings.find((item) => item.id === open.payload.data.booking.id);
+    expect(row.status).toBe("تازه");
   });
 });

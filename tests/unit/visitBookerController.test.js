@@ -582,7 +582,7 @@ describe("how long a client's request waits", () => {
     await flush();
     c.setBackup("7");
     await c.submit();
-    expect(submit.mock.calls[0][0]).toMatchObject({ waitMinutes: 60, fallbackSalonUserId: "7", fallbackSalonName: "سالن دو" });
+    expect(submit.mock.calls[0][0]).toMatchObject({ waitMinutes: 60, fallbackSalonUserId: "7", fallbackName: "سالن دو" });
   });
 
   it("is a client-only choice", async () => {

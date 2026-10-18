@@ -422,7 +422,7 @@ export function useSalonDirectory({
           booking_date: created.booking_date || body.bookingDate,
           time: created.time || body.time,
           status: created.status || "درخواست",
-          fallback_salon_name: created.fallback_salon_user_id ? body.fallbackSalonName || "" : ""
+          fallback_name: created.fallback_salon_user_id ? body.fallbackName || "" : ""
         };
         setClientBookingList((list) => [bookedRow, ...list]);
       }

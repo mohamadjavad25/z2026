@@ -44,6 +44,9 @@ export function ensureBookingPartsColumns() {
     await run(db, "ALTER TABLE salon_bookings ADD COLUMN IF NOT EXISTS fallback_salon_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL");
     await run(db, "ALTER TABLE salon_bookings ADD COLUMN IF NOT EXISTS moved_to_booking_id INTEGER");
     await run(db, "ALTER TABLE salon_bookings ADD COLUMN IF NOT EXISTS moved_from_booking_id INTEGER");
+    await run(db, "ALTER TABLE artist_bookings ADD COLUMN IF NOT EXISTS fallback_artist_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL");
+    await run(db, "ALTER TABLE artist_bookings ADD COLUMN IF NOT EXISTS moved_to_booking_id INTEGER");
+    await run(db, "ALTER TABLE artist_bookings ADD COLUMN IF NOT EXISTS moved_from_booking_id INTEGER");
   })().catch((error) => {
     partsColumnsReady = undefined;
     throw error;
@@ -634,7 +637,7 @@ export async function listClientSalonBookings(user) {
   // The backup salon's name, and for a request that was moved, the salon it went to / came from.
   const rows = await all(db, `
     SELECT b.*, s.name AS salon_name, s.area AS salon_area, s.phone AS salon_phone, s.user_id AS source_salon_user_id, (u.avatar <> '' OR u.avatar_url IS NOT NULL) AS salon_avatar,
-      fs.name AS fallback_salon_name, ts.name AS moved_to_salon_name, os.name AS moved_from_salon_name
+      fs.name AS fallback_name, ts.name AS moved_to_name, os.name AS moved_from_name
     FROM salon_bookings b
     LEFT JOIN salons s ON s.user_id = b.salon_user_id
     LEFT JOIN users u ON u.id = b.salon_user_id

@@ -3,7 +3,7 @@ import * as salons from "./db/repos/salons.js";
 import { sendPushToUser } from "./push.js";
 import { isSlotInPast } from "../shared/lib/slots.js";
 import { AWAITING_CLIENT } from "../shared/lib/bookingOffer.js";
-import { sendToFallbackSalon } from "./bookingFallback.js";
+import { sendToFallbackArtist, sendToFallbackSalon } from "./bookingFallback.js";
 
 /**
  * Auto-expiry sweep for booking REQUESTS a salon/artist never actively
@@ -91,7 +91,7 @@ async function findExpiredSalonBookingRequests(db, override) {
  *  as findExpiredSalonBookingRequests above. */
 async function findExpiredDirectArtistBookingRequests(db, override) {
   return all(db, `
-    SELECT id, artist_user_id, client_user_id, client_name, service, booking_date, time,
+    SELECT id, artist_user_id, client_user_id, client_name, client_phone, service, booking_date, time, fallback_artist_user_id,
       ${TIMED_OUT_SQL} AS timed_out
     FROM artist_bookings
     WHERE status = 'تازه'
@@ -149,28 +149,44 @@ function notifyClientOfExpiry(booking, moved = null, triedBackup = false) {
   }
 }
 
-/** Same idea as notifyClientOfExpiry, for a direct artist_bookings row. */
-function notifyClientOfArtistBookingExpiry(booking) {
+/** Same idea as notifyClientOfExpiry, for a direct artist_bookings row (`moved`: { name, booking }). */
+function notifyClientOfArtistBookingExpiry(booking, moved = null, triedBackup = false) {
   const clientUserId = Number(booking.client_user_id || 0);
   const artistUserId = Number(booking.artist_user_id || 0);
   if (!clientUserId || !artistUserId || clientUserId === artistUserId) return;
-  void sendPushToUser(clientUserId, {
-    title: "نوبت شما منقضی شد",
-    body: `${booking.service || "نوبت"} — آرتیست به‌موقع پاسخ نداد و نوبت به‌طور خودکار لغو شد.`
-  });
+  const service = booking.service || "نوبت";
+  if (moved) {
+    void sendPushToUser(clientUserId, {
+      title: `درخواستت رفت برای ${moved.name}`,
+      body: `${service} — آرتیست اول در ۱ ساعت جواب نداد؛ همان درخواست را برای ${moved.name} فرستادیم.`
+    });
+  } else {
+    void sendPushToUser(clientUserId, {
+      title: "نوبت شما منقضی شد",
+      body: triedBackup
+        ? `${service} — آرتیست به‌موقع جواب نداد و آرتیست دومت هم این نوبت را نتوانست بگیرد.`
+        : `${service} — آرتیست به‌موقع پاسخ نداد و نوبت به‌طور خودکار لغو شد.`
+    });
+  }
   void sendPushToUser(artistUserId, {
     title: "یک درخواست نوبت منقضی شد",
     body: booking.timed_out
-      ? `${booking.client_name || booking.client || "مشتری"} — ${booking.service || "نوبت"} در زمانی که مشتری صبر کرد جواب نگرفت و منقضی شد.`
-      : `${booking.client_name || booking.client || "مشتری"} — ${booking.service || "نوبت"} تا شروع نوبت جواب نگرفت و منقضی شد.`
+      ? `${booking.client_name || booking.client || "مشتری"} — ${service} در زمانی که مشتری صبر کرد جواب نگرفت و منقضی شد.`
+      : `${booking.client_name || booking.client || "مشتری"} — ${service} تا شروع نوبت جواب نگرفت و منقضی شد.`
   });
+  if (moved?.booking) {
+    void sendPushToUser(Number(moved.booking.artist_user_id), {
+      title: moved.booking.status === "تایید شده" ? "نوبت جدید (تأیید خودکار)" : "درخواست نوبت جدید",
+      body: `${moved.booking.client_name || "مشتری"} — ${moved.booking.service || service} · ${moved.booking.time || ""}`.trim()
+    });
+  }
 }
 
 /**
  * Runs one sweep pass synchronously. Exported (not just used by the
  * self-starting interval below) so isolated tests can call it directly
  * instead of waiting for a real interval tick.
- * @returns {{ expired: number, attempted: number, salonExpired: number, salonMoved: number, artistExpired: number }}
+ * @returns {{ expired: number, attempted: number, salonExpired: number, salonMoved: number, artistExpired: number, artistMoved: number }}
  */
 export async function sweepExpiredBookingRequestsOnce() {
   await salons.ensureBookingColumns();
@@ -221,6 +237,7 @@ export async function sweepExpiredBookingRequestsOnce() {
 
   const staleDirectArtist = await findExpiredDirectArtistBookingRequests(db, override);
   let artistExpired = 0;
+  let artistMoved = 0;
   for (const row of staleDirectArtist) {
     // A plain single-row UPDATE (updateArtistBookingRow) is already atomic on
     // its own — unlike the salon case there's no linked mirror row to keep in
@@ -233,8 +250,22 @@ export async function sweepExpiredBookingRequestsOnce() {
     `, [BOOKING_REQUEST_EXPIRED_STATUS, row.id]);
     if (updated.rowCount > 0) {
       artistExpired += 1;
+      // Same as the salon case: the hour ran out and the client named a backup artist.
+      let moved = null;
+      const triedBackup = Boolean(row.timed_out && row.fallback_artist_user_id);
+      if (triedBackup) {
+        try {
+          const sent = await sendToFallbackArtist(row);
+          if (sent.ok) {
+            moved = sent;
+            artistMoved += 1;
+          }
+        } catch {
+          // The backup is best-effort: the original is already correctly expired.
+        }
+      }
       try {
-        notifyClientOfArtistBookingExpiry(row);
+        notifyClientOfArtistBookingExpiry(row, moved, triedBackup);
       } catch {
         // Notification is best-effort; the booking is already correctly expired
         // even if the push notification failed to send.
@@ -247,7 +278,8 @@ export async function sweepExpiredBookingRequestsOnce() {
     attempted: staleSalon.length + staleDirectArtist.length,
     salonExpired,
     salonMoved,
-    artistExpired
+    artistExpired,
+    artistMoved
   };
 }
 

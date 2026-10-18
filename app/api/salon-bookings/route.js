@@ -116,11 +116,14 @@ async function _POST(request) {
     data: v.data,
     wait: { minutes: waitMinutes, fallbackSalonUserId }
   });
+  // The salon's full list (every customer's name and number) goes back only to the salon itself,
+  // never to a client who just sent a request.
+  const ownList = !isClient;
   if (!result.ok) {
     return noStoreJson({
       error: result.error,
       ...(result.code ? { code: result.code } : {}),
-      ...(result.withBookings ? { data: { bookings: await salons.listSalonBookings(salonUserId) } } : {})
+      ...(result.withBookings && ownList ? { data: { bookings: await salons.listSalonBookings(salonUserId) } } : {})
     }, { status: result.status });
   }
   const { client, service, time, artistBooking, linkedArtistIds } = result;
@@ -138,7 +141,7 @@ async function _POST(request) {
   return noStoreJson({
     data: {
       booking: result.booking,
-      bookings: await salons.listSalonBookings(salonUserId),
+      ...(ownList ? { bookings: await salons.listSalonBookings(salonUserId) } : {}),
       artistBooking,
       linkedArtistId: linkedArtistIds[0] || null,
       linkedArtistIds
