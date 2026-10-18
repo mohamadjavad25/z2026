@@ -393,7 +393,7 @@ export async function listArtistBookings(artistUserId) {
  */
 export async function listClientArtistBookings(user) {
   const db = await getDb();
-  const match = clientBookingMatch(user, { phoneCol: "client_phone", nameCol: "client_name" });
+  const match = clientBookingMatch(user);
   if (!match.sql) return [];
   const rows = await all(db, `
     SELECT b.*, u.name AS artist_name, u.area AS artist_area, (u.avatar <> '' OR u.avatar_url IS NOT NULL) AS artist_avatar, u.phone AS artist_phone
@@ -911,7 +911,7 @@ export async function cancelArtistBookingByClient(id, client) {
   const db = await getDb();
   // Found by the rule the client's own list uses, so a booking they can see is one they can cancel.
   const user = typeof client === "object" && client ? client : { id: client };
-  const match = clientBookingMatch(user, { alias: "b", phoneCol: "client_phone", nameCol: "client_name", startAt: 2 });
+  const match = clientBookingMatch(user, { alias: "b", startAt: 2 });
   const current = match.sql
     ? await get(db, `SELECT b.* FROM artist_bookings b WHERE b.id = $1 AND b.source_salon_user_id IS NULL AND ${match.sql}`, [id, ...match.params])
     : null;

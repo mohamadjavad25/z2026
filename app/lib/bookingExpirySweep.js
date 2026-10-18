@@ -56,7 +56,7 @@ export const RECOMMENDED_SWEEP_INTERVAL_MS = 3 * 60 * 1000;
 
 /** Test-speedup hook, same idea as FRFRO_BOOKING_PATCH_SYNC_TEST elsewhere in this file's neighbors:
  *  lets an isolated test shrink the window to seconds instead of waiting a real hour. */
-function timeoutMinutes() {
+export function timeoutMinutes() {
   const override = Number(process.env.FRFRO_BOOKING_REQUEST_TIMEOUT_MINUTES);
   return Number.isFinite(override) && override > 0 ? override : DEFAULT_TIMEOUT_MINUTES;
 }

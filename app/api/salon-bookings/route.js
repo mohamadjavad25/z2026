@@ -22,6 +22,7 @@ import { bookingMoveOptions } from "../../lib/salonMoveTimes.js";
 import { toPersianDigits } from "../../shared/lib/digits.js";
 import { AWAITING_CLIENT } from "../../shared/lib/bookingOffer.js";
 import { onlineBookingBlock } from "../../lib/billing/access.js";
+import { smsBookingAnswer, smsNewBookingRequest } from "../../lib/bookingSms.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -252,6 +253,7 @@ async function _POST(request) {
       title: "درخواست رزرو جدید",
       body: `${client} — ${service} · ${time}`
     });
+    smsNewBookingRequest(salonUserId, { client, service, bookingDate: bookingDateKey, time });
   }
 
   return noStoreJson({
@@ -377,6 +379,12 @@ async function _PATCH(request) {
       void sendPushToUser(bookingClientUserId, {
         title: patch.status === "تایید شده" ? "نوبت شما تایید شد" : "نوبت شما لغو شد",
         body: `${result.booking.service || "نوبت"} — ${result.booking.booking_date || ""} ${result.booking.time || ""}`.trim()
+      });
+      smsBookingAnswer(bookingClientUserId, {
+        providerName: auth.user.name,
+        bookingDate: result.booking.booking_date,
+        time: result.booking.time,
+        confirmed: patch.status === "تایید شده"
       });
     }
   }

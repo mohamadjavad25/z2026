@@ -619,7 +619,7 @@ export async function listSalonBookings(salonUserId) {
 
 export async function listClientSalonBookings(user) {
   const db = await getDb();
-  const match = clientBookingMatch(user, { phoneCol: "phone", nameCol: "client" });
+  const match = clientBookingMatch(user);
   if (!match.sql) return [];
   const rows = await all(db, `
     SELECT b.*, s.name AS salon_name, s.area AS salon_area, s.phone AS salon_phone, s.user_id AS source_salon_user_id, (u.avatar <> '' OR u.avatar_url IS NOT NULL) AS salon_avatar
@@ -909,7 +909,7 @@ function withClientConsent(current, data) {
  */
 async function findClientOwnBooking(db, id, client) {
   const user = typeof client === "object" && client ? client : { id: client };
-  const match = clientBookingMatch(user, { alias: "b", phoneCol: "phone", nameCol: "client", startAt: 2 });
+  const match = clientBookingMatch(user, { alias: "b", startAt: 2 });
   if (!match.sql) return null;
   return get(db, `SELECT b.* FROM salon_bookings b WHERE b.id = $1 AND ${match.sql}`, [id, ...match.params]);
 }

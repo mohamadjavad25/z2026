@@ -5,6 +5,8 @@ import * as sessions from "./db/repos/sessions.js";
 import { publicLocation } from "./location.js";
 
 export const SESSION_COOKIE = "frfro_session";
+/** Shortest password sign-up and reset accept (the forms say the same). */
+export const MIN_PASSWORD_LENGTH = 8;
 const SESSION_DAYS = 30;
 
 const PERSIAN_DIGITS = "۰۱۲۳۴۵۶۷۸۹";

@@ -1,7 +1,8 @@
 // Every external host this app actually talks to from the browser, grepped
 // directly out of app/features/** rather than guessed -- a CSP built from a
-// guess either blocks something real (Leaflet's CSS from unpkg, map tiles,
-// Nominatim reverse-geocoding, Google Fonts) or is too loose to matter.
+// guess either blocks something real (map tiles, Nominatim reverse-geocoding)
+// or is too loose to matter. Fonts (styles/fonts.css) and Leaflet's CSS are
+// served from this site, so no font or stylesheet host is allowed.
 // Update this list (and the policy below) if a new external host is ever
 // added -- an unlisted host just silently fails client-side, which is easy
 // to miss without checking the browser console.
@@ -30,8 +31,8 @@ function buildCsp() {
   const directives = {
     "default-src": ["'self'"],
     "script-src": ["'self'", "'unsafe-inline'"],
-    "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://unpkg.com"],
-    "font-src": ["'self'", "https://fonts.gstatic.com"],
+    "style-src": ["'self'", "'unsafe-inline'"],
+    "font-src": ["'self'"],
     "img-src": ["'self'", "data:", "https://*.tile.openstreetmap.org"],
     "connect-src": ["'self'", "https://nominatim.openstreetmap.org"],
     "worker-src": ["'self'"],

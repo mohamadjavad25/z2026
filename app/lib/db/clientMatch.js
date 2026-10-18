@@ -7,18 +7,20 @@ import { normalizePhone } from "./repos/salons/common.js";
  * only found rows tied to their account, so a booking they could see answered "رزرو یافت نشد".
  *
  * - tied to their account (client_user_id);
- * - entered by the salon/artist for a walk-in: no account id, and the same phone;
- * - same, with no phone at all: the same name. A bare name is never matched against rows that
- *   have a phone, or the client would see other people's bookings that merely share their name.
+ * - entered by the salon/artist for a walk-in: no account id, and the same phone -- only once the
+ *   account proved it owns that number with an SMS code (users.phone_verified_at). Anyone can sign up
+ *   with any number while the code is not required, and must not see or cancel that person's bookings.
  *
- * `cols` names the table's phone / name columns (salon_bookings and artist_bookings differ).
+ * A name alone never matches: it is chosen by the user, so anyone could pick a common name and see
+ * every phone-less walk-in booking under it.
+ *
+ * `cols` names the table's phone column (salon_bookings and artist_bookings differ).
  * Returns `{ sql, params }`: `sql` is "(...)" for a WHERE clause, `params` its values, numbered
  * from `startAt`. `sql` is "" when the user has nothing to match on.
  */
-export function clientBookingMatch(user, { alias = "b", phoneCol, nameCol, startAt = 1 } = {}) {
+export function clientBookingMatch(user, { alias = "b", startAt = 1 } = {}) {
   const userId = Number(user?.id || 0);
-  const phone = normalizePhone(user?.phone || "");
-  const name = String(user?.name || "").trim();
+  const phone = user?.phone_verified_at ? normalizePhone(user?.phone || "") : "";
   const conditions = [];
   const params = [];
   const next = (value) => {
@@ -29,9 +31,6 @@ export function clientBookingMatch(user, { alias = "b", phoneCol, nameCol, start
   if (phone) {
     // phone_normalized is a generated, indexed column (migrations/005_normalized_phone.sql).
     conditions.push(`(${alias}.client_user_id IS NULL AND ${alias}.phone_normalized = ${next(phone)})`);
-  }
-  if (name) {
-    conditions.push(`(${alias}.client_user_id IS NULL AND COALESCE(${alias}.${phoneCol}, '') = '' AND ${alias}.${nameCol} = ${next(name)})`);
   }
   return { sql: conditions.length ? `(${conditions.join(" OR ")})` : "", params };
 }

@@ -48,6 +48,12 @@ export async function getUserByPhone(phone, runner = null) {
   return (await get(db, `SELECT ${USER_COLUMNS} FROM users WHERE phone = $1`, [normalized])) || null;
 }
 
+/** Records that the account proved it owns its phone number with an SMS code (see app/lib/db/clientMatch.js). */
+export async function markPhoneVerified(userId) {
+  const db = await getDb();
+  await run(db, "UPDATE users SET phone_verified_at = COALESCE(phone_verified_at, NOW()) WHERE id = $1", [userId]);
+}
+
 export async function createUser({ phone, passwordHash, type, name, area, service, email, avatar, poster, experienceYears, managerName }) {
   const db = await getDb();
   const info = await run(db, `

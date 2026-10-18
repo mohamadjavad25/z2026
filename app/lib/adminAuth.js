@@ -4,7 +4,7 @@ import { all, getDb, get, run } from "./db/connection.js";
 import * as users from "./db/repos/users.js";
 import * as adminRepo from "./db/repos/admin.js";
 import { DUMMY_PASSWORD_HASH, normalizeDigits, normalizePhone, verifyPassword } from "./auth.js";
-import { checkRateLimit } from "./rateLimit.js";
+import { checkRateLimit, clientIp } from "./rateLimit.js";
 import { adminPhoneList, isAdminPhone } from "./admin.js";
 import { generateTotpSecret, totpUri, verifyTotp } from "./totp.js";
 
@@ -100,10 +100,7 @@ function safeEqual(a, b) {
   return left.length === right.length && timingSafeEqual(left, right);
 }
 
-export function clientIp(request) {
-  const forwarded = request.headers.get("x-forwarded-for") || "";
-  return (forwarded.split(",")[0] || request.headers.get("x-real-ip") || "unknown").trim().slice(0, 64);
-}
+export { clientIp };
 
 const userAgentHash = (request) => sha256(request.headers.get("user-agent") || "");
 
