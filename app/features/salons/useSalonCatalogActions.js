@@ -40,28 +40,32 @@ export function useSalonCatalogActions({
     }
   }, [safeSalonStaffList, shellNotify, refreshSalonSystemData]);
 
-  // The manager joins their own team, so they can be assigned to services and booked like anyone else.
-  const joinSalonTeamAsOwner = useCallback(async ({ name, role } = {}) => {
+  // The manager joins their own team (or edits their card there), so they can be assigned to services and
+  // booked like anyone else. An empty body rejoins with what they entered before. Resolves to the saved
+  // profile, or null when it failed.
+  const joinSalonTeamAsOwner = useCallback(async (body = {}, notice = "حالا خودت هم عضو تیمی؛ می‌توانی خدمات را به خودت بدهی و برای خودت رزرو ثبت کنی.") => {
     try {
-      const result = await joinSalonTeamAsOwnerApi({ name, role });
+      const result = await joinSalonTeamAsOwnerApi(body);
       if (!notifyFromResponse(shellNotify, result, { failure: "اضافه شدن به تیم انجام نشد؛ دوباره امتحان کن." })) {
-        return false;
+        return null;
       }
       const nextStaff = Array.isArray(result.payload.data?.staff) ? result.payload.data.staff : [];
       setSalonStaffList(nextStaff);
-      shellNotify("حالا خودت هم عضو تیمی؛ می‌توانی خدمات را به خودت بدهی و برای خودت رزرو ثبت کنی.");
-      return true;
+      // A new name moves the manager's bookings to it on the server.
+      if (body.name) refreshSalonSystemData();
+      if (notice) shellNotify(notice);
+      return result.payload.data?.profile || {};
     } catch {
       shellNotify("اضافه شدن به تیم انجام نشد؛ دوباره امتحان کن.");
-      return false;
+      return null;
     }
-  }, [setSalonStaffList, shellNotify]);
+  }, [setSalonStaffList, shellNotify, refreshSalonSystemData]);
 
   const removeSalonStaff = useCallback(async (name) => {
     const person = safeSalonStaffList.find((item) => item.name === name);
     if (!person?.id) return;
     const question = person.is_owner
-      ? "خودت از تیم خارج شوی؟ خدماتی که به خودت داده بودی بدون آرتیست می‌مانند؛ رزروهای قبلی سر جایشان می‌مانند."
+      ? "خودت از تیم خارج شوی؟ اطلاعات کارتت می‌ماند و با روشن کردن دوباره برمی‌گردی. خدماتی که دستی به خودت داده بودی بدون آرتیست می‌مانند؛ رزروهای قبلی سر جایشان می‌مانند."
       : `«${person.name}» از پرسنل حذف شود؟ این کار قابل بازگشت نیست.`;
     if (typeof window !== "undefined" && !window.confirm(question)) {
       return;
@@ -75,7 +79,9 @@ export function useSalonCatalogActions({
       const nextStaff = Array.isArray(payload.data?.staff) ? payload.data.staff : [];
       setSalonStaffList(nextStaff);
       setSelectedStaffName(nextStaff[0]?.name || "");
-      if (payload.data?.artistNotified) {
+      if (person.is_owner) {
+        shellNotify("از تیم بیرون آمدی؛ هر وقت دوباره روشنش کنی با همین اطلاعات برمی‌گردی.");
+      } else if (payload.data?.artistNotified) {
         if (typeof onArtistCollabOffersPatch === "function") {
           onArtistCollabOffersPatch((items) => items.map((offer) => (
             Number(offer.salonId) === Number(createdProfile?.id)

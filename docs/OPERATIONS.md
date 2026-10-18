@@ -96,6 +96,19 @@
 
 در کاوه‌نگار مقدارهای token و token2 و token3 نباید فاصله داشته باشند (تاریخ‌ها به شکل ۱۴۰۵/۰۹/۲۴ فرستاده می‌شوند). هر ارسال در «سلامت سامانه» و `sms_log` دیده می‌شود. پرداخت‌های آزمایشی پیامک واقعی نمی‌فرستند.
 
+## پیدا شدن در گوگل (جست‌وجوی «فرفرو» و «frfro»)
+
+کد سایت کارش را کرده: عنوان و توضیح صفحهٔ اصلی هر دو نام را دارند، دادهٔ ساختاریافته (`app/layout.jsx`، `SITE_JSON_LD`) به گوگل می‌گوید نام سایت «فرفرو» است و «frfro»، «frfro.ir» و «فرفرو.ir» همان سایت‌اند، و `www.frfro.ir` و `فرفرو.ir` به `frfro.ir` منتقل می‌شوند (`next.config.mjs`). اما گوگل تا سایت را **ایندکس** نکند آن را نشان نمی‌دهد؛ این کارها دستی است و یک بار:
+
+۱. **Vercel:** `NEXT_PUBLIC_SITE_URL` باید دقیقاً `https://frfro.ir` باشد (همهٔ آدرس‌های نقشهٔ سایت و canonical از آن ساخته می‌شوند).
+۲. **Google Search Console** (search.google.com/search-console): «Add property» ← نوع **Domain** ← `frfro.ir` ← رکورد TXT که می‌دهد را در DNS دامنه بگذار و Verify. (یا نوع URL prefix و مقدار تگ HTML را در `FRFRO_GOOGLE_SITE_VERIFICATION` بگذار و دیپلوی کن.)
+۳. در Search Console: Sitemaps ← `https://frfro.ir/sitemap.xml` را ثبت کن. بعد URL Inspection ← `https://frfro.ir/` ← «Request indexing».
+۴. **Bing Webmaster Tools** (bing.com/webmasters): «Import from Google Search Console» بزن (یا تگ را در `FRFRO_BING_SITE_VERIFICATION` بگذار). بینگ موتور DuckDuckGo و جست‌وجوی ویندوز هم هست.
+۵. **دامنهٔ فارسی:** اگر `فرفرو.ir` را داری، در Vercel ← Project ← Settings ← Domains آن را اضافه کن (با `www.frfro.ir`). اگر نداری، از ثبت‌کنندهٔ دامنه بخرش تا کس دیگری نگیرد؛ انتقال به frfro.ir از قبل در کد هست.
+۶. **پیوند از بیرون:** گوگل به نامی اعتماد می‌کند که جاهای دیگر هم به آن پیوند داده‌اند. در بیو اینستاگرام، تلگرام، صفحهٔ اپ در کافه‌بازار/مایکت (وقتی منتشر شد) و پروفایل‌های کاری، `https://frfro.ir` را بگذار. نشانی این صفحه‌ها را بعداً می‌شود در `sameAs` همان `SITE_JSON_LD` اضافه کرد.
+
+بعد از ایندکس، جست‌وجوی دقیق نام معمولاً در چند روز تا چند هفته به ردیف اول می‌رسد. وضعیت را در Search Console ← Performance با پرس‌وجوهای «فرفرو» و «frfro» ببین.
+
 ## آنچه هنوز نیست (تصمیم‌شده برای بعد)
 پیامک یادآوری (فعلاً فقط اعلان اپ)، سرویس خطای شخص ثالث (Sentry)، مجوزها و متن حقوقی نهایی.
 

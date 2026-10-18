@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { createClient, joinSalonAsArtist, registerUser, futureBookingDay } from "./helpers.js";
+import { TEST_BASE_URL } from "../globalSetup.js";
 
 describe("salon manager working on their own team", () => {
   it("joins as a member, gets services and bookings, and is never linked to a same-named artist", async () => {
@@ -47,6 +48,37 @@ describe("salon manager working on their own team", () => {
     // Leaving the team is the usual delete.
     expect((await salonClient.delete("/api/salon-staff", { id: me.id })).ok).toBe(true);
     expect((await salonClient.get("/api/salon-staff")).payload.data.staff.some((p) => p.is_owner)).toBe(false);
+  });
+
+  it("remembers the manager's card after leaving, so switching back on is one tap, and serves their own photo", async () => {
+    const salonClient = createClient();
+    await registerUser(salonClient, { type: "salon", name: "Remember Salon" });
+    expect((await salonClient.get("/api/salon-staff/self")).payload.data.profile.saved).toBe(false);
+
+    // A 1x1 PNG as the manager's own photo.
+    const png = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+    const joined = await salonClient.post("/api/salon-staff/self", { name: "Sara", role: "ناخن‌کار", photo: png });
+    expect(joined.ok).toBe(true);
+    const me = joined.payload.data.person;
+    expect(me.avatar).toMatch(/^\/api\/media\/team-photo\/\d+\?v=\d+$/);
+    const photo = await fetch(`${TEST_BASE_URL}${me.avatar}`);
+    expect(photo.status).toBe(200);
+    expect(photo.headers.get("content-type")).toBe("image/png");
+
+    expect((await salonClient.delete("/api/salon-staff", { id: me.id })).ok).toBe(true);
+    const kept = (await salonClient.get("/api/salon-staff/self")).payload.data.profile;
+    expect(kept).toMatchObject({ saved: true, name: "Sara", role: "ناخن‌کار", useOwnPhoto: true });
+
+    // Switching back on sends nothing: the saved name, fields and photo come back.
+    const back = await salonClient.post("/api/salon-staff/self", {});
+    expect(back.ok).toBe(true);
+    expect(back.payload.data.person).toMatchObject({ name: "Sara", role: "ناخن‌کار" });
+    expect(back.payload.data.person.avatar).toContain("/api/media/team-photo/");
+
+    // Back to the salon's picture (the salon has none here, so no avatar), and a non-image is refused.
+    const salonPic = await salonClient.post("/api/salon-staff/self", { photo: "salon" });
+    expect(salonPic.payload.data.person.avatar).toBe("");
+    expect((await salonClient.post("/api/salon-staff/self", { photo: "data:text/html;base64,PGI+" })).status).toBe(400);
   });
 
   it("refuses a name another member already has, and is for salons only", async () => {

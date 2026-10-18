@@ -95,7 +95,15 @@ const nextConfig = {
         has: [{ type: "host", value: "z2026.vercel.app" }],
         destination: "https://frfro.ir/:path",
         permanent: true
-      }
+      },
+      // www.frfro.ir and the Persian domain فرفرو.ir (punycode xn--wgba0cb0b.ir), once added
+      // to the Vercel project, land on frfro.ir: one address, so search engines rank one site.
+      ...["www.frfro.ir", "xn--wgba0cb0b.ir", "www.xn--wgba0cb0b.ir"].map((host) => ({
+        source: "/:path*",
+        has: [{ type: "host", value: host }],
+        destination: "https://frfro.ir/:path*",
+        permanent: true
+      }))
     ];
   },
   async headers() {
