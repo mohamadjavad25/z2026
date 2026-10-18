@@ -88,12 +88,30 @@ async function resolveArtistUserForStaff(staff, runner = null) {
 }
 
 let ownerColumnReady;
-/** The is_owner column (migration 027), also added on first use so the feature works before the migration is run. */
+/**
+ * The is_owner column (migration 027) and the remembered owner profile (036), also created on first use so
+ * the feature works before the migrations are run.
+ */
 function ensureOwnerColumn() {
   ownerColumnReady ??= (async () => {
     const db = await getDb();
     await run(db, "ALTER TABLE salon_staff ADD COLUMN IF NOT EXISTS is_owner BOOLEAN NOT NULL DEFAULT FALSE");
     await run(db, "CREATE UNIQUE INDEX IF NOT EXISTS salon_staff_one_owner ON salon_staff (salon_user_id) WHERE is_owner");
+    await run(db, `
+      CREATE TABLE IF NOT EXISTS salon_owner_profile (
+        salon_user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+        name TEXT NOT NULL DEFAULT '',
+        role TEXT NOT NULL DEFAULT '',
+        photo TEXT NOT NULL DEFAULT '',
+        use_photo BOOLEAN NOT NULL DEFAULT FALSE,
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    await run(db, `
+      INSERT INTO salon_owner_profile (salon_user_id, name, role)
+      SELECT salon_user_id, name, role FROM salon_staff WHERE is_owner
+      ON CONFLICT (salon_user_id) DO NOTHING
+    `);
   })().catch((error) => {
     ownerColumnReady = undefined;
     throw error;
@@ -101,9 +119,23 @@ function ensureOwnerColumn() {
   return ownerColumnReady;
 }
 
+/** The salon's own picture and, when the manager chose one, their own team photo (a stamp in the URL so a new upload shows at once). */
+async function ownerPictures(salonUserId, db) {
+  await ensureOwnerColumn();
+  const row = await get(db, `
+    SELECT (u.avatar <> '' OR u.avatar_url IS NOT NULL) AS salon_avatar, p.use_photo,
+      (p.photo <> '') AS has_photo, extract(epoch FROM p.updated_at)::bigint AS stamp
+    FROM users u LEFT JOIN salon_owner_profile p ON p.salon_user_id = u.id
+    WHERE u.id = $1
+  `, [salonUserId]);
+  const salonPhoto = row?.salon_avatar ? `/api/media/avatar/${salonUserId}` : "";
+  const ownPhoto = row?.has_photo ? `/api/media/team-photo/${salonUserId}?v=${row.stamp}` : "";
+  return { salonPhoto, ownPhoto, useOwnPhoto: Boolean(row?.use_photo && ownPhoto) };
+}
+
 async function decorateOwnerStaff(row, db) {
-  const salon = await get(db, "SELECT id, (avatar <> '' OR avatar_url IS NOT NULL) AS avatar FROM users WHERE id = $1", [row.salon_user_id]);
-  const avatar = artistAvatarUrl(salon);
+  const pictures = await ownerPictures(row.salon_user_id, db);
+  const avatar = pictures.useOwnPhoto ? pictures.ownPhoto : pictures.salonPhoto;
   return {
     ...row,
     is_owner: true,
@@ -128,20 +160,54 @@ export async function getSalonOwnerStaff(salonUserId, runner = null) {
 }
 
 /**
- * Puts the manager on their own team (or updates that row). Names are how bookings point at a team
- * member, so the name must not be taken by another member. Returns { ok, person } or { ok: false, error }.
+ * What the manager entered for their team card, kept after they switch "I work here too" off so switching it
+ * back on needs nothing again. Null until they first join. Never carries the photo bytes, only URLs.
  */
-export async function upsertSalonOwnerStaff(salonUserId, { name, role } = {}) {
+export async function getSalonOwnerProfile(salonUserId, runner = null) {
+  await ensureOwnerColumn();
+  const db = runner || (await getDb());
+  const row = await get(db, "SELECT name, role FROM salon_owner_profile WHERE salon_user_id = $1", [salonUserId]);
+  const pictures = await ownerPictures(salonUserId, db);
+  return {
+    saved: Boolean(row?.name),
+    name: row?.name || "",
+    role: row?.role || "",
+    salonPhoto: pictures.salonPhoto,
+    ownPhoto: pictures.ownPhoto,
+    useOwnPhoto: pictures.useOwnPhoto
+  };
+}
+
+/** The manager's own team photo as a stored data URL ("" if none). */
+export async function getSalonOwnerPhoto(salonUserId) {
   await ensureOwnerColumn();
   const db = await getDb();
-  const nextName = String(name || "").trim();
-  if (!nextName) return { ok: false, error: "نامت را برای نمایش در تیم وارد کن." };
+  const row = await get(db, `
+    SELECT photo, extract(epoch FROM updated_at)::bigint AS stamp FROM salon_owner_profile WHERE salon_user_id = $1
+  `, [salonUserId]);
+  return row?.photo ? row : null;
+}
+
+/**
+ * Puts the manager on their own team (or updates that row). Anything not sent comes from the profile they
+ * entered before (so switching back on is one tap), then from `fallbackName`. Names are how bookings point at a
+ * team member, so the name must not be taken by another member. `photo`: undefined keeps the choice, "salon"
+ * uses the salon's picture, "own" the photo uploaded before, a data URL uploads a new one.
+ * Returns { ok, person } or { ok: false, error }.
+ */
+export async function upsertSalonOwnerStaff(salonUserId, { name, role, photo, fallbackName = "" } = {}) {
+  await ensureOwnerColumn();
+  const db = await getDb();
+  const saved = await get(db, "SELECT name, role, (photo <> '') AS has_photo FROM salon_owner_profile WHERE salon_user_id = $1", [salonUserId]);
   const current = await get(db, "SELECT * FROM salon_staff WHERE salon_user_id = $1 AND is_owner LIMIT 1", [salonUserId]);
+  const nextName = (String(name || "").trim() || current?.name || saved?.name || String(fallbackName || "").trim()).slice(0, 80);
+  if (!nextName) return { ok: false, error: "نامت را برای نمایش در تیم وارد کن." };
   const clash = await get(db, `
     SELECT id FROM salon_staff WHERE salon_user_id = $1 AND name = $2 AND NOT is_owner LIMIT 1
   `, [salonUserId, nextName]);
   if (clash) return { ok: false, error: "یکی از اعضای تیم همین نام را دارد؛ نام دیگری انتخاب کن." };
-  const nextRole = role == null ? (current?.role || "") : String(role).trim();
+  const nextRole = role == null ? (current?.role ?? saved?.role ?? "") : String(role).trim().slice(0, 200);
+  if (photo === "own" && !saved?.has_photo) return { ok: false, error: "اول یک عکس برای خودت انتخاب کن." };
   if (current) {
     await run(db, `
       UPDATE salon_staff SET name = $1, role = $2, state = CASE WHEN state = '' THEN 'فعال' ELSE state END,
@@ -158,6 +224,18 @@ export async function upsertSalonOwnerStaff(salonUserId, { name, role } = {}) {
       VALUES ($1, NULL, $2, $3, 'فعال', 'مدیر', TRUE)
     `, [salonUserId, nextName, nextRole]);
   }
+  const newPhoto = typeof photo === "string" && photo.startsWith("data:") ? photo : null;
+  const usePhoto = newPhoto ? true : photo === "own" ? true : photo === "salon" ? false : null;
+  await run(db, `
+    INSERT INTO salon_owner_profile (salon_user_id, name, role, photo, use_photo, updated_at)
+    VALUES ($1, $2, $3, COALESCE($4, ''), COALESCE($5, FALSE), CURRENT_TIMESTAMP)
+    ON CONFLICT (salon_user_id) DO UPDATE SET
+      name = excluded.name,
+      role = excluded.role,
+      photo = COALESCE($4, salon_owner_profile.photo),
+      use_photo = COALESCE($5, salon_owner_profile.use_photo),
+      updated_at = excluded.updated_at
+  `, [salonUserId, nextName, nextRole, newPhoto, usePhoto]);
   return { ok: true, person: await getSalonOwnerStaff(salonUserId, db) };
 }
 

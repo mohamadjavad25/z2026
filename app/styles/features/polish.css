@@ -1432,18 +1432,43 @@ html, body { overscroll-behavior-y: none; }
 .stfSwitch[aria-checked="true"] i { inset-inline-start: 27px; }
 .stfSwitch:disabled { opacity: 0.6; cursor: progress; }
 .stfSwitch:focus-visible { outline: 2px solid var(--fill-strong); outline-offset: 3px; }
-.stfSelfForm { display: grid; gap: 12px; padding-top: 12px; border-top: 1px solid rgb(var(--shadow-rgb) / 0.1); }
-.stfSelfTitle { font-size: 0.95rem; font-weight: 950; color: var(--n-900); }
-.stfSelfField { display: grid; gap: 6px; }
-.stfSelfField > span { color: var(--n-700); font-size: 0.74rem; font-weight: 800; }
-.stfSelfField input { min-height: 44px; padding: 0 14px; border: 0; border-radius: 14px; background: var(--n-50); box-shadow: inset 0 0 0 1px rgb(var(--shadow-rgb) / 0.1); font: inherit; font-size: 0.92rem; color: var(--n-900); }
-.stfSelfRoles { display: flex; flex-wrap: wrap; gap: 6px; }
-.stfSelfRoles button { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 12px; border: 0; border-radius: 999px; background: var(--n-0); box-shadow: inset 0 0 0 1px rgb(var(--shadow-rgb) / 0.14); color: var(--n-900); font: inherit; font-size: 0.78rem; font-weight: 800; cursor: pointer; }
-.stfSelfRoles button.is-on { background: var(--fill-strong); color: var(--n-0); box-shadow: none; }
+.stfSelfMe { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 12px; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: start; cursor: pointer; }
+.stfSelfMe:disabled { cursor: default; }
+.stfSelfMe:focus-visible { outline: 2px solid var(--fill-strong); outline-offset: 4px; border-radius: 18px; }
+.stfSelfAvatar { width: 64px; height: 64px; display: block; border-radius: 50%; object-fit: cover; background: var(--n-100); box-shadow: 0 0 0 2.5px var(--n-0), 0 0 0 4.5px rgb(var(--accent-rgb) / 0.55); transition: filter 0.25s ease, opacity 0.25s ease; }
+.stfSelf.has-profile:not(.is-on) .stfSelfAvatar { filter: grayscale(0.8); opacity: 0.7; box-shadow: 0 0 0 2.5px var(--n-0), 0 0 0 4.5px var(--n-200); }
+.stfSelfRoleLine { display: flex; align-items: center; gap: 5px; min-width: 0; color: var(--n-800); font-size: 0.76rem; font-weight: 800; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.stfSelfTools { display: flex; flex-wrap: wrap; gap: 8px; }
+.stfSelfTools button { flex: 1 1 auto; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; padding: 0 14px; border: 0; border-radius: 999px; background: var(--n-100); color: var(--n-900); font: inherit; font-size: 0.76rem; font-weight: 850; cursor: pointer; }
+.stfSelfTools button:active { transform: scale(0.98); }
+.stfSelfForm { display: grid; gap: 16px; padding-top: 14px; border-top: 1px solid rgb(var(--shadow-rgb) / 0.1); }
+.stfSelfPreview { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 18px; background: var(--n-50); box-shadow: inset 0 0 0 1px rgb(var(--shadow-rgb) / 0.08); }
+.stfSelfPreview img { flex: none; width: 52px; height: 52px; border-radius: 50%; object-fit: cover; background: var(--n-100); box-shadow: 0 0 0 2px var(--n-0), 0 0 0 3.5px rgb(var(--accent-rgb) / 0.5); }
+.stfSelfPreview span { display: grid; gap: 2px; min-width: 0; }
+.stfSelfPreview b { color: var(--n-900); font-size: 0.92rem; font-weight: 950; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.stfSelfPreview small { color: var(--n-600); font-size: 0.72rem; font-weight: 700; line-height: 1.6; }
+.stfSelfField { display: grid; gap: 8px; min-width: 0; margin: 0; padding: 0; border: 0; }
+.stfSelfField > span, .stfSelfField > legend { padding: 0; margin-bottom: 8px; color: var(--n-900); font-size: 0.8rem; font-weight: 900; }
+.stfSelfField > span { margin-bottom: 0; }
+.stfSelfField > small { color: var(--n-600); font-size: 0.7rem; font-weight: 700; }
+.stfSelfField input { min-height: 48px; padding: 0 14px; border: 0; border-radius: 14px; background: var(--n-50); box-shadow: inset 0 0 0 1px rgb(var(--shadow-rgb) / 0.12); font: inherit; font-size: 0.92rem; color: var(--n-900); }
+.stfSelfField input:focus { outline: none; box-shadow: inset 0 0 0 2px var(--fill-strong); }
+.stfSelfPhotos { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.stfSelfPhotos button { position: relative; display: grid; justify-items: center; gap: 8px; padding: 14px 8px 12px; border: 0; border-radius: 18px; background: var(--n-0); box-shadow: inset 0 0 0 1px rgb(var(--shadow-rgb) / 0.14); color: var(--n-800); font: inherit; font-size: 0.76rem; font-weight: 850; cursor: pointer; transition: box-shadow 0.2s ease, background 0.2s ease; }
+.stfSelfPhotos button.is-on { background: rgb(var(--accent-rgb) / 0.08); box-shadow: inset 0 0 0 2px var(--fill-strong); color: var(--n-900); }
+.stfSelfPhotos img, .stfSelfPhotoIcon { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; background: var(--n-100); }
+.stfSelfPhotoIcon { display: grid; place-items: center; color: var(--n-600); }
+.stfSelfPhotos i { position: absolute; top: 8px; inset-inline-end: 8px; width: 20px; height: 20px; display: grid; place-items: center; border-radius: 50%; background: var(--fill-strong); color: var(--n-0); }
+.stfSelfLink { justify-self: start; display: inline-flex; align-items: center; gap: 5px; padding: 4px 0; border: 0; background: none; color: var(--accent); font: inherit; font-size: 0.74rem; font-weight: 850; cursor: pointer; }
+.stfSelfError { color: var(--danger); font-size: 0.72rem; font-weight: 800; }
+.stfSelfRoles { display: flex; flex-wrap: wrap; gap: 8px; }
+.stfSelfRoles button { display: inline-flex; align-items: center; gap: 6px; min-height: 42px; padding: 0 12px; border: 0; border-radius: 999px; background: var(--n-0); box-shadow: inset 0 0 0 1px rgb(var(--shadow-rgb) / 0.14); color: var(--n-900); font: inherit; font-size: 0.78rem; font-weight: 800; cursor: pointer; transition: background 0.2s ease, box-shadow 0.2s ease; }
+.stfSelfRoles button.is-on { background: rgb(var(--accent-rgb) / 0.1); box-shadow: inset 0 0 0 2px var(--fill-strong); }
+.stfSelfHint { justify-self: center; color: var(--n-600); font-size: 0.72rem; font-weight: 800; }
 .stfSelfActions { display: flex; gap: 8px; }
-.stfSelfSave { flex: 1; min-height: 46px; border: 0; border-radius: 999px; background: var(--fill-strong); color: var(--n-0); font: inherit; font-weight: 900; cursor: pointer; }
-.stfSelfSave:disabled { opacity: 0.5; cursor: not-allowed; }
-.stfSelfCancel { min-height: 46px; padding: 0 16px; border: 0; border-radius: 999px; background: var(--n-100); color: var(--n-900); font: inherit; font-weight: 800; cursor: pointer; }
+.stfSelfSave { flex: 1; min-height: 48px; border: 0; border-radius: 999px; background: var(--fill-strong); color: var(--n-0); font: inherit; font-weight: 900; cursor: pointer; }
+.stfSelfSave:disabled { opacity: 0.45; cursor: not-allowed; }
+.stfSelfCancel { min-height: 48px; padding: 0 18px; border: 0; border-radius: 999px; background: var(--n-100); color: var(--n-900); font: inherit; font-weight: 800; cursor: pointer; }
 .stfOwnerBadge { margin-inline-start: 6px; padding: 1px 8px; border-radius: 999px; background: var(--n-150); color: var(--accent); font-style: normal; font-size: 0.66rem; font-weight: 900; vertical-align: middle; }
 .smdSelfNote { margin: 0; color: var(--n-700); font-size: 0.74rem; font-weight: 700; line-height: 1.8; }
 
