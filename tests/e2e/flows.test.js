@@ -268,7 +268,7 @@ describe("client starts from what they want (browser)", () => {
     await page.locator(".cnCat", { hasText: "ناخن" }).click();
     // the salon's page opens with its services menu, «کاشت ناخن» first and already picked
     await page.locator(".sduPanel").waitFor();
-    expect(await page.locator(".sduPanel").innerText()).toContain(name);
+    expect(await page.locator(".sduPanel").getAttribute("aria-label")).toContain(name);
     await page.locator(".sduItem.is-selected", { hasText: "کاشت ناخن" }).waitFor();
     expect(await page.locator(".sduItem.is-selected").count()).toBe(1);
     expect(await page.locator(".sduGroup").first().getAttribute("aria-label")).toContain("ناخن");
