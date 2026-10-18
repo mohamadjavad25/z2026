@@ -3,7 +3,18 @@
 import { useEffect, useRef, useState } from "react";
 import { ImagePlus, Mic, Send, Square, Trash2, X } from "lucide-react";
 import { VoicePlayer } from "./Attachments";
-import { MAX_IMAGES, canRecordVoice, duration, prepareImage, useVoiceRecorder } from "./media";
+import { MAX_IMAGES, canRecordVoice, duration, loadVoiceEncoder, prepareImage, useVoiceRecorder } from "./media";
+
+/** Whether this device can record; if so the MP3 encoder starts loading now, so the first tap records at once. */
+function useCanVoice() {
+  const [canVoice, setCanVoice] = useState(false);
+  useEffect(() => {
+    const ok = canRecordVoice();
+    setCanVoice(ok);
+    if (ok) loadVoiceEncoder().catch(() => {});
+  }, []);
+  return canVoice;
+}
 
 /** Turns picked or pasted files into ready-to-send pictures, keeping at most MAX_IMAGES. */
 async function addImages(files, current, setImages, setError) {
@@ -75,8 +86,7 @@ export function Composer({ placeholder, onSend, disabled = false }) {
   const [unsent, setUnsent] = useState(null);
   const fileRef = useRef(null);
   const boxRef = useRef(null);
-  const [canVoice, setCanVoice] = useState(false);
-  useEffect(() => setCanVoice(canRecordVoice()), []);
+  const canVoice = useCanVoice();
 
   async function deliver(payload, after) {
     setBusy(true);
@@ -195,11 +205,10 @@ export function Composer({ placeholder, onSend, disabled = false }) {
  */
 export function AttachmentField({ value, onChange }) {
   const [error, setError] = useState("");
-  const [canVoice, setCanVoice] = useState(false);
+  const canVoice = useCanVoice();
   const [preview, setPreview] = useState("");
   const fileRef = useRef(null);
   const recorder = useVoiceRecorder({ onLimit: (voice) => keepVoice(voice) });
-  useEffect(() => setCanVoice(canRecordVoice()), []);
   useEffect(() => () => preview && URL.revokeObjectURL(preview), [preview]);
   const images = value.filter((item) => item.kind === "image");
   const voice = value.find((item) => item.kind === "voice");

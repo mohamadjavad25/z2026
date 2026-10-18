@@ -60,19 +60,26 @@ export async function prepareImage(file) {
   return canvas.toDataURL("image/jpeg", 0.85);
 }
 
-/** The first recording format this browser can make: Opus in WebM on Chrome/Android/Firefox, AAC in MP4 on Safari. */
-function recordingType() {
-  if (typeof MediaRecorder === "undefined") return null;
-  return ["audio/webm;codecs=opus", "audio/webm", "audio/ogg;codecs=opus", "audio/mp4", "audio/aac"].find((type) => MediaRecorder.isTypeSupported?.(type)) ?? "";
-}
+const AudioCtx = () => (typeof window === "undefined" ? null : window.AudioContext || window.webkitAudioContext || null);
 
 export const canRecordVoice = () =>
-  typeof window !== "undefined" && Boolean(navigator.mediaDevices?.getUserMedia) && recordingType() !== null;
+  typeof window !== "undefined" && Boolean(navigator.mediaDevices?.getUserMedia) && Boolean(AudioCtx());
+
+// The MP3 encoder (~100KB) is loaded only where someone may record, ahead of the tap so recording starts at once.
+let encoderModule;
+export const loadVoiceEncoder = () => (encoderModule ??= import("./mp3Encoder").catch((error) => {
+  encoderModule = undefined;
+  throw error;
+}));
 
 /**
- * Voice recording: start() asks for the microphone and records; stop() resolves with { data, durationMs, blob } (data is a data URL),
- * cancel() throws the recording away. `level` (0..1) is the live loudness, for the little bars while recording.
+ * Voice recording: start() asks for the microphone and records; stop() resolves with { data, durationMs, blob } (data is a
+ * data URL of an MP3), cancel() throws the recording away. `level` (0..1) is the live loudness, for the little bars.
  * Stops on its own at three minutes and hands the recording to `onLimit`.
+ *
+ * Not MediaRecorder: it makes WebM on Chrome/Android, which older iPhones cannot play. The raw sound is taken from the
+ * Web Audio graph instead and encoded to MP3 as it comes in (mp3Encoder.js), so every phone can play every voice note.
+ * ScriptProcessor is old but it is what every iPhone and Android WebView still has.
  */
 export function useVoiceRecorder({ onLimit } = {}) {
   const [state, setState] = useState("idle"); // idle | starting | recording
@@ -88,88 +95,88 @@ export function useVoiceRecorder({ onLimit } = {}) {
     live.current = null;
     if (!current) return;
     clearInterval(current.timer);
-    cancelAnimationFrame(current.frame);
-    if (current.recorder.state !== "inactive") {
-      current.recorder.onstop = null;
-      current.recorder.stop();
+    if (current.processor) current.processor.onaudioprocess = null;
+    try {
+      current.source?.disconnect();
+      current.processor?.disconnect();
+    } catch {
+      // already disconnected
     }
-    current.stream.getTracks().forEach((track) => track.stop());
-    current.audio?.close?.().catch(() => {});
+    current.stream?.getTracks().forEach((track) => track.stop());
+    current.audio.close?.().catch(() => {});
     setState("idle");
     setElapsed(0);
     setLevel(0);
   }, []);
 
-  const finish = useCallback(() => {
+  const finish = useCallback(async () => {
     const current = live.current;
-    if (!current || current.stopping) return Promise.resolve(null);
+    if (!current || current.stopping || !current.encoder) return null;
     current.stopping = true;
-    return new Promise((resolve) => {
-      const durationMs = Date.now() - current.startedAt;
-      current.recorder.onstop = async () => {
-        const blob = new Blob(current.chunks, { type: current.recorder.mimeType || current.type || "audio/webm" });
-        cleanup();
-        if (durationMs < 700 || blob.size < 200) {
-          setError("صدا خیلی کوتاه بود. دکمهٔ میکروفون را بزن و حرف بزن.");
-          return resolve(null);
-        }
-        resolve({ data: await readAsDataUrl(blob), durationMs, blob });
-      };
-      if (current.recorder.state !== "inactive") current.recorder.stop();
-      else current.recorder.onstop();
-      clearInterval(current.timer);
-    });
+    if (current.processor) current.processor.onaudioprocess = null;
+    const durationMs = current.encoder.durationMs();
+    const blob = new Blob(current.encoder.finish(), { type: "audio/mpeg" });
+    cleanup();
+    if (durationMs < 700 || blob.size < 200) {
+      setError("صدا خیلی کوتاه بود. دکمهٔ میکروفون را بزن و حرف بزن.");
+      return null;
+    }
+    return { data: await readAsDataUrl(blob), durationMs, blob };
   }, [cleanup]);
 
   const start = useCallback(async () => {
     if (live.current) return;
     setError("");
+    const Ctx = AudioCtx();
+    if (!Ctx) return setError("این مرورگر ضبط صدا را پشتیبانی نمی‌کند.");
+    // Made inside the tap itself: iPhones only let sound start from a tap, not after the permission prompt.
+    const audio = new Ctx();
+    audio.resume?.().catch(() => {});
+    const current = { audio, stream: null, source: null, processor: null, encoder: null, timer: 0, startedAt: 0, stopping: false };
+    live.current = current;
     setState("starting");
-    let stream;
+    let encoderLib;
     try {
-      stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+      [current.stream, encoderLib] = await Promise.all([
+        navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } }),
+        loadVoiceEncoder()
+      ]);
     } catch (failure) {
-      setState("idle");
-      setError(failure?.name === "NotAllowedError" ? "اجازهٔ میکروفون داده نشد. از تنظیمات مرورگر یا گوشی اجازه بده." : "میکروفون پیدا نشد.");
+      cleanup();
+      const denied = failure?.name === "NotAllowedError" || failure?.name === "SecurityError";
+      const missing = failure?.name === "NotFoundError" || failure?.name === "OverconstrainedError";
+      setError(denied ? "اجازهٔ میکروفون داده نشد. از تنظیمات مرورگر یا گوشی اجازه بده." : missing ? "میکروفون پیدا نشد." : "ضبط صدا شروع نشد. صفحه را دوباره باز کن و امتحان کن.");
       return;
     }
-    const type = recordingType();
-    let recorder;
-    try {
-      recorder = new MediaRecorder(stream, { ...(type ? { mimeType: type } : {}), audioBitsPerSecond: 48000 });
-    } catch {
-      recorder = new MediaRecorder(stream);
+    if (live.current !== current) {
+      // Cancelled while the permission prompt was open.
+      current.stream.getTracks().forEach((track) => track.stop());
+      return;
     }
-    const current = { stream, recorder, type, chunks: [], startedAt: Date.now(), timer: 0, frame: 0, audio: null };
-    recorder.ondataavailable = (event) => event.data?.size && current.chunks.push(event.data);
-    live.current = current;
-    recorder.start(250);
+    await audio.resume?.().catch(() => {});
+    current.encoder = encoderLib.createMp3Encoder(audio.sampleRate);
+    current.source = audio.createMediaStreamSource(current.stream);
+    current.processor = audio.createScriptProcessor(4096, 1, 1);
+    // The processor only runs while connected to the speakers; a silent gain keeps the voice from playing back.
+    const mute = audio.createGain();
+    mute.gain.value = 0;
+    current.source.connect(current.processor);
+    current.processor.connect(mute);
+    mute.connect(audio.destination);
+    current.processor.onaudioprocess = (event) => {
+      const block = event.inputBuffer.getChannelData(0);
+      current.encoder.push(block);
+      let peak = 0;
+      for (let i = 0; i < block.length; i += 16) peak = Math.max(peak, Math.abs(block[i]));
+      setLevel(Math.min(1, peak * 2));
+    };
+    current.startedAt = Date.now();
     setState("recording");
     current.timer = setInterval(() => {
-      const ms = Date.now() - current.startedAt;
-      setElapsed(ms);
-      if (ms >= MAX_VOICE_SECONDS * 1000 && live.current === current) finish().then((voice) => voice && onLimitRef.current?.(voice));
+      setElapsed(Date.now() - current.startedAt);
+      if (current.encoder.durationMs() >= MAX_VOICE_SECONDS * 1000 && live.current === current) finish().then((voice) => voice && onLimitRef.current?.(voice));
     }, 200);
-    try {
-      const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      const audio = new AudioCtx();
-      const analyser = audio.createAnalyser();
-      analyser.fftSize = 256;
-      audio.createMediaStreamSource(stream).connect(analyser);
-      current.audio = audio;
-      const samples = new Uint8Array(analyser.fftSize);
-      const tick = () => {
-        analyser.getByteTimeDomainData(samples);
-        let peak = 0;
-        for (const sample of samples) peak = Math.max(peak, Math.abs(sample - 128));
-        setLevel(Math.min(1, peak / 64));
-        current.frame = requestAnimationFrame(tick);
-      };
-      tick();
-    } catch {
-      // The level bars are decoration; recording works without them.
-    }
-  }, [finish]);
+  }, [cleanup, finish]);
 
   useEffect(() => cleanup, [cleanup]);
 
