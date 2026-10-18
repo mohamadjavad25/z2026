@@ -171,20 +171,19 @@ export function useProfileEditor({
     }
   }, [createdProfile, profileEditAvatar, lockSession, writeAuthSession, setCreatedProfile, setProfileView, setActiveTab, notify]);
 
-  const saveProfileLocation = useCallback(async (nextArea) => {
-    if (!createdProfile) return;
-    const area = String(nextArea || "").trim();
-    if (!area) {
-      notify("لوکیشن را وارد کن.");
-      return;
-    }
+  // { area, geo: { lat, lng } | null, addressDetail } from «ثبت لوکیشن»; an empty area removes the whole location.
+  const saveProfileLocation = useCallback(async (next) => {
+    if (!createdProfile) return false;
+    const area = String(next?.area || "").trim();
+    const removing = !area;
+    const data = removing
+      ? { area: "", geo: null, addressDetail: "" }
+      : { area, geo: next?.geo ?? null, addressDetail: String(next?.addressDetail || "").trim() };
     setProfileLocationSaving(true);
     try {
       const { ok, payload } = await apiFetch("/api/profile", {
         method: "POST",
-        body: JSON.stringify({
-          data: { area }
-        })
+        body: JSON.stringify({ data })
       });
       if (!ok) {
         notify(payload.error || "ذخیره لوکیشن انجام نشد.");
@@ -199,7 +198,8 @@ export function useProfileEditor({
       writeAuthSession(profile);
       setCreatedProfile(profile);
       setProfileType(profile.type);
-      notify("لوکیشن ذخیره شد.");
+      notify(removing ? "لوکیشن حذف شد." : "لوکیشن ذخیره شد.");
+      return true;
     } catch {
       notify("ذخیره لوکیشن انجام نشد؛ دوباره امتحان کن.");
     } finally {

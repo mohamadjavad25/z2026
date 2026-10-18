@@ -1,8 +1,11 @@
+import { LocationButton } from "./LocationButton";
+
 /**
  * Cover + logo header of the public salon and artist pages. The cover and the logo
  * look exactly like the owner's own panel hero: `variant` "salon" (inset cover with
  * rounded bottom) or "artist" (full-width poster under a rounded white sheet).
  * `start` / `end` are the round buttons on the cover (back / share, save).
+ * `location` (lib/location.js publicLocation) puts the map pin next to the name.
  */
 export function PublicProfileHeader({
   cover = "",
@@ -13,6 +16,7 @@ export function PublicProfileHeader({
   avatarPosition = "50% 50%",
   name = "",
   area = "",
+  location = null,
   start = null,
   end = null,
   variant = "salon"
@@ -36,7 +40,10 @@ export function PublicProfileHeader({
         )}
       </span>
       <div className="pphMeta">
-        <h2>{name}</h2>
+        <div className="pphNameRow">
+          <h2>{name}</h2>
+          <LocationButton name={name} location={location} />
+        </div>
         {area ? <p>{area}</p> : null}
       </div>
     </header>
