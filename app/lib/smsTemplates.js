@@ -14,9 +14,9 @@ export const SMS_TEMPLATES = {
   booking_request: {
     label: "درخواست نوبت تازه (به سالن یا آرتیست)",
     env: "BOOKING_REQUEST",
-    kavenegar: (v) => ({ token: v.time, token2: v.minutes, token10: v.day, token20: v.who }),
-    faraz: (v) => ({ who: v.who, day: v.day, time: v.time, minutes: v.minutes }),
-    preview: (v) => `فرفرو: درخواست نوبت تازه از ${v.who}، ${v.day} ساعت ${v.time}. تا ${v.minutes} دقیقه در اپ جواب بده.`
+    kavenegar: (v) => ({ token: v.time, token10: v.day, token20: v.who }),
+    faraz: (v) => ({ who: v.who, day: v.day, time: v.time }),
+    preview: (v) => `فرفرو: درخواست نوبت تازه از ${v.who}، ${v.day} ساعت ${v.time}. زودتر در اپ جواب بده، وگرنه منقضی می‌شود.`
   },
   booking_answer: {
     label: "جواب درخواست نوبت (به مشتری)",

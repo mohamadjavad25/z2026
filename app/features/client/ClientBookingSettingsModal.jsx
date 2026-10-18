@@ -4,11 +4,10 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, CalendarCheck, CheckCircle2, Clock3, MapPin, Phone, RotateCcw, Store, TimerOff, UserPlus, XCircle } from "lucide-react";
 import { connectTo, listConnections } from "../../shared/api/connections";
 import { SheetClose } from "../../components/SheetClose";
-import { bookingStatusLabel, bookingStatusTone, canClientCancel, hasBookingStarted } from "./bookingStatus";
+import { bookingStatusLabel, bookingStatusTone, canClientCancel, hasBookingStarted, movedToName, requestWaitNote } from "./bookingStatus";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { minutesToPersianTime, timeLabelToMinutes } from "../../shared/lib/time";
-import { requestDeadlineLabel } from "../../shared/lib/bookingWindow";
 import { bookingTimeOffer } from "../../shared/lib/bookingOffer";
 import { parseBookingParts } from "../../shared/lib/bookingParts";
 import { getSalonVisitTimes } from "../../shared/api/salons";
@@ -186,7 +185,8 @@ export function ClientBookingSettingsModal({
   const area = booking.salonArea || booking.salon_area || "";
   const duration = Number(booking.duration_minutes) || 0;
   const offer = booking.bookingSource === "artist" ? null : bookingTimeOffer(booking);
-  const pendingDeadline = statusTone === "pending" && !offer ? requestDeadlineLabel(booking.created_at || booking.createdAt, rawDate, booking.time) : "";
+  const waitNote = statusTone === "pending" && !offer ? requestWaitNote(booking) : "";
+  const movedTo = movedToName(booking);
 
   return (
     <div
@@ -245,10 +245,16 @@ export function ClientBookingSettingsModal({
               }}
             />
           ) : null}
-          {pendingDeadline ? (
+          {waitNote ? (
             <p className="clientBookingPendingNote">
               <Clock3 size={14} />
-              سالن تا ساعت {pendingDeadline} پاسخ می‌دهد؛ وگرنه رزرو خودکار لغو می‌شود.
+              {waitNote}
+            </p>
+          ) : null}
+          {movedTo ? (
+            <p className="clientBookingPendingNote">
+              <Clock3 size={14} />
+              {booking.bookingSource === "artist" ? "این آرتیست" : "این سالن"} به‌موقع جواب نداد؛ همین درخواست را برای {movedTo} فرستادیم.
             </p>
           ) : null}
           <div className="clientBookingSettingsActions">

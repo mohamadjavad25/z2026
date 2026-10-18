@@ -94,12 +94,18 @@ describe("booking flow (browser)", () => {
     // the button says "checking" until the server has confirmed who does what at that time
     await cp.locator(".vbPlanRow").first().waitFor();
     await cp.getByRole("button", { name: /ارسال درخواست/ }).waitFor();
+    // how long to wait for the salon: «صبر می‌کنم» unless the client picks the hour
+    const waitChoice = cp.locator(".wc");
+    expect(await waitChoice.getByRole("radio", { name: /صبر می‌کنم/ }).getAttribute("aria-checked")).toBe("true");
+    await waitChoice.getByRole("radio", { name: /فقط ۱ ساعت/ }).click();
+    expect(await waitChoice.getByRole("radio", { name: /فقط ۱ ساعت/ }).getAttribute("aria-checked")).toBe("true");
     await cp.locator(".vbSubmit").click();
     // "now what?": a full screen says the request reached the salon and how long the answer can take
     const receipt = cp.locator(".brScreen");
     await receipt.waitFor();
     expect(await receipt.innerText()).toContain(`درخواستت به ${name} رسید`);
     expect(await receipt.locator(".brCount").innerText()).toContain("دقیقه تا پاسخ سالن");
+    expect(await receipt.locator(".brCount").innerText()).toContain("اگر جواب نداد، لغو می‌شود.");
     await cp.locator(".cbt.is-wait").waitFor({ state: "attached" });
     expect(await cp.locator(".cbt").innerText()).toContain("منتظر تأیید");
     // and takes the client home, where the new booking is the first card
@@ -157,10 +163,16 @@ describe("booking flow (browser)", () => {
     await cp.locator(".vbTime.is-on").waitFor();
     await cp.getByRole("button", { name: /ارسال درخواست/ }).waitFor();
     await cp.locator(".vbSubmit").click();
-    await cp.locator(".cbt.is-wait").waitFor();
+    // left on «صبر می‌کنم»: no countdown, just what happens if it takes long
+    const receipt = cp.locator(".brScreen");
+    await receipt.waitFor();
+    expect(await receipt.locator(".brCount").count()).toBe(0);
+    expect(await receipt.locator(".brWaitNote").innerText()).toContain("تا قبل از نوبت وقت دارد جواب بدهد");
+    await cp.locator(".cbt.is-wait").waitFor({ state: "attached" });
     expect(clientView.problems).toEqual([]);
 
     const booking = (await salonClient.get("/api/salon-bookings")).payload.data.bookings[0];
+    expect(booking.wait_minutes).toBeNull();
     expect(JSON.parse(booking.parts).map((part) => part.service).sort()).toEqual(["مانیکور", "کوتاهی مو"].sort());
     await clientView.context.close();
   });

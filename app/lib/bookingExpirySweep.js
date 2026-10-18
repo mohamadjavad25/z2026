@@ -1,14 +1,19 @@
 import { getDb, all, run } from "./db/connection.js";
 import * as salons from "./db/repos/salons.js";
 import { sendPushToUser } from "./push.js";
+import { smsNewBookingRequest } from "./bookingSms.js";
 import { isSlotInPast } from "../shared/lib/slots.js";
 import { AWAITING_CLIENT } from "../shared/lib/bookingOffer.js";
-import { BOOKING_REQUEST_WINDOW_MINUTES } from "../shared/lib/bookingWindow.js";
+import { sendToFallbackArtist, sendToFallbackSalon } from "./bookingFallback.js";
 
 /**
  * Auto-expiry sweep for booking REQUESTS a salon/artist never actively
- * responded to (Snapp-Food-style bounded response window — founder-approved
- * product decision: 1 hour, auto-cancel on timeout, notify the client).
+ * responded to. The response window is the client's choice, per request
+ * (`wait_minutes`, user's decision 2026-10-18): an hour, after which the
+ * request expires and the client is told (or, at a salon, is sent on to the
+ * backup salon the client picked -- see bookingFallback.js), or none, in
+ * which case it waits until its appointment starts. Either way a request
+ * nobody answered closes once its appointment time has started.
  * Covers two independent, non-overlapping sources:
  *
  * 1. `salon_bookings` rows with status "درخواست" (see
@@ -45,8 +50,6 @@ import { BOOKING_REQUEST_WINDOW_MINUTES } from "../shared/lib/bookingWindow.js";
  */
 export const BOOKING_REQUEST_EXPIRED_STATUS = "منقضی شده";
 
-const DEFAULT_TIMEOUT_MINUTES = BOOKING_REQUEST_WINDOW_MINUTES;
-
 // Recommended external-scheduler interval for app/api/cron/expire-bookings
 // (see vercel.json) -- timeout precision doesn't need to be tighter than
 // this. Not read from here anymore (the old in-process setInterval this
@@ -55,10 +58,11 @@ const DEFAULT_TIMEOUT_MINUTES = BOOKING_REQUEST_WINDOW_MINUTES;
 export const RECOMMENDED_SWEEP_INTERVAL_MS = 3 * 60 * 1000;
 
 /** Test-speedup hook, same idea as FRFRO_BOOKING_PATCH_SYNC_TEST elsewhere in this file's neighbors:
- *  lets an isolated test shrink the window to seconds instead of waiting a real hour. */
-export function timeoutMinutes() {
+ *  lets an isolated test shrink the hour to seconds instead of waiting a real hour. Applies only to
+ *  requests that have a window; null = use each request's own. */
+function timeoutOverrideMinutes() {
   const override = Number(process.env.FRFRO_BOOKING_REQUEST_TIMEOUT_MINUTES);
-  return Number.isFinite(override) && override > 0 ? override : DEFAULT_TIMEOUT_MINUTES;
+  return Number.isFinite(override) && override > 0 ? override : null;
 }
 
 /** A pending request can no longer be answered once its response window ran out or its appointment time has started
@@ -67,30 +71,33 @@ function keepUnanswerable(rows) {
   return rows.filter((row) => row.timed_out || isSlotInPast(row.booking_date, row.time));
 }
 
-/** Every still-pending ("درخواست") salon_bookings row whose created_at is older than the
- *  configured window, compared using the DB's own clock (NOW() - INTERVAL ...) — not JS
- *  Date.now() — so this is immune to any clock skew between the Node process and Postgres. */
-async function findExpiredSalonBookingRequests(db, minutes) {
+/** `timed_out`: the request has a window (wait_minutes) and its created_at is older than it, compared
+ *  using the DB's own clock (NOW() - INTERVAL ...) — not JS Date.now() — so this is immune to any
+ *  clock skew between the Node process and Postgres. A request with no window never times out. */
+const TIMED_OUT_SQL = `(wait_minutes IS NOT NULL AND created_at <= (NOW() - (COALESCE($1::double precision, wait_minutes) * INTERVAL '1 minute')))`;
+
+/** Every still-pending ("درخواست") salon_bookings row whose window ran out or whose appointment started. */
+async function findExpiredSalonBookingRequests(db, override) {
   return all(db, `
-    SELECT id, salon_user_id, client_user_id, client, service, booking_date, time,
-      (created_at <= (NOW() - ($1::double precision * INTERVAL '1 minute'))) AS timed_out
+    SELECT id, salon_user_id, client_user_id, client, phone, service, parts, booking_date, time, fallback_salon_user_id,
+      ${TIMED_OUT_SQL} AS timed_out
     FROM salon_bookings
     WHERE status = 'درخواست'
-  `, [minutes]).then(keepUnanswerable);
+  `, [override]).then(keepUnanswerable);
 }
 
 /** Every still-pending ("تازه") DIRECT artist_bookings row (source_salon_user_id
  *  IS NULL — see the module docstring for why that filter matters) whose
- *  created_at is older than the configured window, same DB-clock comparison
+ *  window ran out or whose appointment started, same DB-clock comparison
  *  as findExpiredSalonBookingRequests above. */
-async function findExpiredDirectArtistBookingRequests(db, minutes) {
+async function findExpiredDirectArtistBookingRequests(db, override) {
   return all(db, `
-    SELECT id, artist_user_id, client_user_id, client_name, service, booking_date, time,
-      (created_at <= (NOW() - ($1::double precision * INTERVAL '1 minute'))) AS timed_out
+    SELECT id, artist_user_id, client_user_id, client_name, client_phone, service, booking_date, time, fallback_artist_user_id,
+      ${TIMED_OUT_SQL} AS timed_out
     FROM artist_bookings
     WHERE status = 'تازه'
       AND source_salon_user_id IS NULL
-  `, [minutes]).then(keepUnanswerable);
+  `, [override]).then(keepUnanswerable);
 }
 
 /** A new time the salon offered that the client never answered, and whose appointment time has now started:
@@ -105,55 +112,102 @@ async function findStartedSalonOffers(db) {
   return rows.filter((row) => isSlotInPast(row.booking_date, row.time));
 }
 
-/** Push notifications for both sides of an expired salon booking request. */
-function notifyClientOfExpiry(booking) {
+/** Push notifications for both sides of an expired salon booking request. `moved` is the request it
+ *  was sent on to at the client's backup salon ({ salonName, booking }), when that went through. */
+function notifyClientOfExpiry(booking, moved = null, triedBackup = false) {
   const clientUserId = Number(booking.client_user_id || 0);
   const salonUserId = Number(booking.salon_user_id || 0);
   if (!clientUserId || !salonUserId || clientUserId === salonUserId) return;
-  void sendPushToUser(clientUserId, {
-    title: "نوبت شما منقضی شد",
-    body: `${booking.service || "نوبت"} — سالن به‌موقع پاسخ نداد و نوبت به‌طور خودکار لغو شد.`
-  });
+  const service = booking.service || "نوبت";
+  if (moved) {
+    void sendPushToUser(clientUserId, {
+      title: `درخواستت رفت برای ${moved.salonName}`,
+      body: `${service} — سالن اول در ۱ ساعت جواب نداد؛ همان درخواست را برای ${moved.salonName} فرستادیم.`
+    });
+  } else {
+    void sendPushToUser(clientUserId, {
+      title: "نوبت شما منقضی شد",
+      body: triedBackup
+        ? `${service} — سالن به‌موقع جواب نداد و سالن دومت هم این نوبت را نتوانست بگیرد.`
+        : `${service} — سالن به‌موقع پاسخ نداد و نوبت به‌طور خودکار لغو شد.`
+    });
+  }
   // The owner-facing half of this fix — see recentlyExpiredSalonBookings in
   // HomeApp.jsx for the in-app counterpart. Before this, a salon that
   // ignored a request had literally zero signal anything happened: the
   // pending count just quietly dropped to zero.
   void sendPushToUser(salonUserId, {
     title: "یک درخواست رزرو منقضی شد",
-    body: `${booking.client || "مشتری"} — ${booking.service || "نوبت"} به‌دلیل عدم پاسخ در ۱ ساعت منقضی شد.`
+    body: booking.timed_out
+      ? `${booking.client || "مشتری"} — ${service} در زمانی که مشتری صبر کرد جواب نگرفت و منقضی شد.`
+      : `${booking.client || "مشتری"} — ${service} تا شروع نوبت جواب نگرفت و منقضی شد.`
   });
+  if (moved?.booking) {
+    void sendPushToUser(Number(moved.booking.salon_user_id), {
+      title: "درخواست رزرو جدید",
+      body: `${moved.booking.client || "مشتری"} — ${moved.booking.service || service} · ${moved.booking.time || ""}`.trim()
+    });
+    smsNewBookingRequest(Number(moved.booking.salon_user_id), {
+      client: moved.booking.client, service: moved.booking.service || service, bookingDate: moved.booking.booking_date, time: moved.booking.time
+    });
+  }
 }
 
-/** Same idea as notifyClientOfExpiry, for a direct artist_bookings row. */
-function notifyClientOfArtistBookingExpiry(booking) {
+/** Same idea as notifyClientOfExpiry, for a direct artist_bookings row (`moved`: { name, booking }). */
+function notifyClientOfArtistBookingExpiry(booking, moved = null, triedBackup = false) {
   const clientUserId = Number(booking.client_user_id || 0);
   const artistUserId = Number(booking.artist_user_id || 0);
   if (!clientUserId || !artistUserId || clientUserId === artistUserId) return;
-  void sendPushToUser(clientUserId, {
-    title: "نوبت شما منقضی شد",
-    body: `${booking.service || "نوبت"} — آرتیست به‌موقع پاسخ نداد و نوبت به‌طور خودکار لغو شد.`
-  });
+  const service = booking.service || "نوبت";
+  if (moved) {
+    void sendPushToUser(clientUserId, {
+      title: `درخواستت رفت برای ${moved.name}`,
+      body: `${service} — آرتیست اول در ۱ ساعت جواب نداد؛ همان درخواست را برای ${moved.name} فرستادیم.`
+    });
+  } else {
+    void sendPushToUser(clientUserId, {
+      title: "نوبت شما منقضی شد",
+      body: triedBackup
+        ? `${service} — آرتیست به‌موقع جواب نداد و آرتیست دومت هم این نوبت را نتوانست بگیرد.`
+        : `${service} — آرتیست به‌موقع پاسخ نداد و نوبت به‌طور خودکار لغو شد.`
+    });
+  }
   void sendPushToUser(artistUserId, {
     title: "یک درخواست نوبت منقضی شد",
-    body: `${booking.client_name || booking.client || "مشتری"} — ${booking.service || "نوبت"} به‌دلیل عدم پاسخ در ۱ ساعت منقضی شد.`
+    body: booking.timed_out
+      ? `${booking.client_name || booking.client || "مشتری"} — ${service} در زمانی که مشتری صبر کرد جواب نگرفت و منقضی شد.`
+      : `${booking.client_name || booking.client || "مشتری"} — ${service} تا شروع نوبت جواب نگرفت و منقضی شد.`
   });
+  if (moved?.booking) {
+    void sendPushToUser(Number(moved.booking.artist_user_id), {
+      title: moved.booking.status === "تایید شده" ? "نوبت جدید (تأیید خودکار)" : "درخواست نوبت جدید",
+      body: `${moved.booking.client_name || "مشتری"} — ${moved.booking.service || service} · ${moved.booking.time || ""}`.trim()
+    });
+    if (moved.booking.status !== "تایید شده") {
+      smsNewBookingRequest(Number(moved.booking.artist_user_id), {
+        client: moved.booking.client_name, service: moved.booking.service || service, bookingDate: moved.booking.booking_date, time: moved.booking.time
+      });
+    }
+  }
 }
 
 /**
  * Runs one sweep pass synchronously. Exported (not just used by the
  * self-starting interval below) so isolated tests can call it directly
  * instead of waiting for a real interval tick.
- * @returns {{ expired: number, attempted: number, salonExpired: number, artistExpired: number }}
+ * @returns {{ expired: number, attempted: number, salonExpired: number, salonMoved: number, artistExpired: number, artistMoved: number }}
  */
 export async function sweepExpiredBookingRequestsOnce() {
+  await salons.ensureBookingColumns();
   const db = await getDb();
-  const minutes = timeoutMinutes();
+  const override = timeoutOverrideMinutes();
 
   const staleSalon = [
-    ...await findExpiredSalonBookingRequests(db, minutes),
+    ...await findExpiredSalonBookingRequests(db, override),
     ...await findStartedSalonOffers(db)
   ];
   let salonExpired = 0;
+  let salonMoved = 0;
   for (const row of staleSalon) {
     // Reuse the exact same atomic salon+linked-artist status-sync path the
     // real PATCH /api/salon-bookings route uses (patchSalonBookingWithArtistSync) —
@@ -163,8 +217,23 @@ export async function sweepExpiredBookingRequestsOnce() {
     }, { allowPast: true });
     if (result.ok) {
       salonExpired += 1;
+      // The client gave this salon an hour and named a backup: the same request goes there now
+      // (only for a window that ran out, never for an appointment that already started).
+      let moved = null;
+      const triedBackup = Boolean(row.timed_out && row.fallback_salon_user_id);
+      if (triedBackup) {
+        try {
+          const sent = await sendToFallbackSalon(row);
+          if (sent.ok) {
+            moved = sent;
+            salonMoved += 1;
+          }
+        } catch {
+          // The backup is best-effort: the original is already correctly expired.
+        }
+      }
       try {
-        notifyClientOfExpiry(row);
+        notifyClientOfExpiry(row, moved, triedBackup);
       } catch {
         // Notification is best-effort; the booking is already correctly expired
         // even if the push notification failed to send.
@@ -175,8 +244,9 @@ export async function sweepExpiredBookingRequestsOnce() {
     // pass retries it automatically.
   }
 
-  const staleDirectArtist = await findExpiredDirectArtistBookingRequests(db, minutes);
+  const staleDirectArtist = await findExpiredDirectArtistBookingRequests(db, override);
   let artistExpired = 0;
+  let artistMoved = 0;
   for (const row of staleDirectArtist) {
     // A plain single-row UPDATE (updateArtistBookingRow) is already atomic on
     // its own — unlike the salon case there's no linked mirror row to keep in
@@ -189,8 +259,22 @@ export async function sweepExpiredBookingRequestsOnce() {
     `, [BOOKING_REQUEST_EXPIRED_STATUS, row.id]);
     if (updated.rowCount > 0) {
       artistExpired += 1;
+      // Same as the salon case: the hour ran out and the client named a backup artist.
+      let moved = null;
+      const triedBackup = Boolean(row.timed_out && row.fallback_artist_user_id);
+      if (triedBackup) {
+        try {
+          const sent = await sendToFallbackArtist(row);
+          if (sent.ok) {
+            moved = sent;
+            artistMoved += 1;
+          }
+        } catch {
+          // The backup is best-effort: the original is already correctly expired.
+        }
+      }
       try {
-        notifyClientOfArtistBookingExpiry(row);
+        notifyClientOfArtistBookingExpiry(row, moved, triedBackup);
       } catch {
         // Notification is best-effort; the booking is already correctly expired
         // even if the push notification failed to send.
@@ -202,7 +286,9 @@ export async function sweepExpiredBookingRequestsOnce() {
     expired: salonExpired + artistExpired,
     attempted: staleSalon.length + staleDirectArtist.length,
     salonExpired,
-    artistExpired
+    salonMoved,
+    artistExpired,
+    artistMoved
   };
 }
 

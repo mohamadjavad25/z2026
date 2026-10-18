@@ -41,6 +41,9 @@ export function ArtistScheduleBoard({
     if (!request) return null;
     return {
       createdAt: request.createdAt,
+      day: request.dateKey || request.date,
+      time: request.time,
+      waitMinutes: request.waitMinutes,
       busy: String(requestBusyId) === `booking:${request.id}`,
       disabled: Boolean(requestBusyId),
       onApprove: () => onApproveRequest?.(request.id),

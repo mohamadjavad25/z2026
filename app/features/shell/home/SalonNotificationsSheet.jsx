@@ -123,7 +123,7 @@ export function SalonNotificationsSheet() {
                 <div className="boardHead">
                   <div>
                     <span>منقضی‌شده‌های اخیر</span>
-                    <strong>بدون پاسخ در بازه ۱ ساعته باقی ماندند</strong>
+                    <strong>در زمانی که مشتری صبر کرد جواب نگرفتند</strong>
                   </div>
                   <b>{toPersianDigits(recentlyExpiredSalonBookings.length)} مورد</b>
                 </div>

@@ -3,6 +3,7 @@ import { MAX_BOOKING_PARTS, scheduleBookingParts } from "../../shared/lib/bookin
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits.js";
 import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money.js";
 import { parseServiceDurationMinutes, minutesToPersianTime, timeLabelToMinutes } from "../../shared/lib/time.js";
+import { BOOKING_WAIT_CHOICES } from "../../shared/lib/bookingWindow.js";
 
 /**
  * The logic of the multi-service booking form (VisitBooker), with no React in it: what the picks
@@ -91,7 +92,7 @@ export const endTimeLabel = (time, minutes) => minutesToPersianTime(timeLabelToM
 
 /** The picks that count as the form's state; every change that can alter what is free clears what was chosen after it. */
 export function createState({ selected = [], day = "", name = "", phone = "" } = {}) {
-  return { selected, day, time: "", name, phone, staff: {} };
+  return { selected, day, time: "", name, phone, staff: {}, wait: "open", backup: "" };
 }
 export const withSelection = (state, selected) => ({ ...state, selected, time: "", staff: {} });
 export const withDay = (state, day) => (state.day === day ? state : { ...state, day, time: "", staff: {} });
@@ -152,6 +153,11 @@ export function buildSubmitBody(role, state, list, planParts = []) {
     return { kind: "booking", ...base, date: state.day, status: "تایید" };
   }
   const body = { ...base, bookingDate: state.day };
+  // A client's request waits until its appointment («تا هر وقت») or an hour, maybe with a backup salon.
+  if (role === "client") {
+    body.waitMinutes = state.wait === "hour" ? BOOKING_WAIT_CHOICES.hour : BOOKING_WAIT_CHOICES.open;
+    if (state.wait === "hour" && state.backup) body.fallbackSalonUserId = state.backup;
+  }
   if (list.length >= 2) {
     // Several services go one by one so each gets its own artist; only the salon may name them.
     body.parts = list.map((service, index) => ({

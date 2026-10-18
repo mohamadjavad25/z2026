@@ -1,6 +1,5 @@
 import * as users from "./db/repos/users.js";
 import { sendTemplateSms } from "./sms.js";
-import { timeoutMinutes } from "./bookingExpirySweep.js";
 import { formatRelativeBookingDayLabel } from "../shared/lib/persianCalendar.js";
 import { normalizeBookingTimeLabel } from "../shared/lib/time.js";
 import { toPersianDigits } from "../shared/lib/digits.js";
@@ -20,7 +19,8 @@ async function phoneOf(userId) {
   return user?.phone || "";
 }
 
-/** A client just asked `providerUserId` (a salon or an artist) for a time. */
+/** A client just asked `providerUserId` (a salon or an artist) for a time (or their request moved there from a
+ *  first choice that did not answer). How long it waits is the client's choice, so the text promises no deadline. */
 export function smsNewBookingRequest(providerUserId, { client, service, bookingDate, time }) {
   void (async () => {
     const phone = await phoneOf(providerUserId);
@@ -28,8 +28,7 @@ export function smsNewBookingRequest(providerUserId, { client, service, bookingD
     await sendTemplateSms(phone, "booking_request", {
       who,
       day: dayLabel(bookingDate),
-      time: timeLabel(time),
-      minutes: toPersianDigits(timeoutMinutes())
+      time: timeLabel(time)
     });
   })().catch(() => {});
 }

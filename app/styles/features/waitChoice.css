@@ -1,0 +1,21 @@
+/* ═══ WaitChoice: how long a client's request waits for an answer ═══
+   Two big choices side by side, then (with the hour) one row of salon chips. Same language as the
+   booking form: pink is only ever "chosen", the rest is plain grey. */
+.wc { display: grid; gap: 8px; min-width: 0; }
+.wcTitle { margin: 0; color: var(--n-900); font-size: 0.8rem; font-weight: 900; }
+.wcChoices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.wcChoice { min-height: 74px; display: grid; justify-items: center; align-content: center; gap: 2px; padding: 8px 6px; border: 2px solid transparent; border-radius: 16px; background: var(--n-50); color: var(--n-700); font: inherit; text-align: center; cursor: pointer; }
+.wcChoice b { font-size: 0.84rem; font-weight: 900; }
+.wcChoice small { max-width: 100%; overflow: hidden; color: var(--n-600); font-size: 0.68rem; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.wcChoice.is-on { border-color: var(--brand-pink); background: var(--accent-soft); color: var(--n-900); }
+.wcChoice.is-on small { color: var(--n-700); }
+.wcChoice:disabled { cursor: progress; }
+.wcBackup { display: grid; gap: 6px; }
+.wcBackup p { margin: 0; color: var(--n-700); font-size: 0.74rem; font-weight: 800; }
+.wcChips { display: flex; gap: 6px; padding: 1px 0; overflow-x: auto; scrollbar-width: none; }
+.wcChips::-webkit-scrollbar { display: none; }
+.wcChip { flex: none; min-height: 40px; max-width: 60vw; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; border: 0; border-radius: 999px; background: var(--n-50); color: var(--n-700); font: inherit; font-size: 0.78rem; font-weight: 800; cursor: pointer; }
+.wcChip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wcChip img { width: 26px; height: 26px; flex: none; border-radius: 999px; object-fit: cover; margin-inline-start: -6px; }
+.wcChip.is-on { background: var(--brand-pink); color: var(--brand-ink); }
+.wc :focus-visible { outline: 2px solid var(--n-900); outline-offset: 2px; }
