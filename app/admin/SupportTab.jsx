@@ -5,6 +5,8 @@ import { Flag, LifeBuoy, MessageSquare, Phone, Search, Send } from "lucide-react
 import { Button, Field } from "../components/ui";
 import { api } from "./adminFetch";
 import { CannedReplies } from "./CannedReplies";
+import { MessageAttachments } from "../features/support/Attachments";
+import { AttachmentField } from "../features/support/Composer";
 import { CATEGORY_LABEL, PAGE, REASON_LABEL, RESOLUTION_LABEL, ago, fmtDate } from "./format";
 import { PageHead } from "./PageHead";
 import { SplitView } from "./SplitView";
@@ -28,6 +30,7 @@ function TurnPill({ ticket }) {
 function TicketDetail({ id, onChanged, onGo }) {
   const [found, setFound] = useState(null);
   const [reply, setReply] = useState("");
+  const [files, setFiles] = useState([]);
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const endRef = useRef(null);
@@ -42,6 +45,7 @@ function TicketDetail({ id, onChanged, onGo }) {
   useEffect(() => {
     setFound(null);
     setReply("");
+    setFiles([]);
     load();
   }, [load]);
   const count = found?.messages?.length || 0;
@@ -59,6 +63,15 @@ function TicketDetail({ id, onChanged, onGo }) {
       await load();
       onChanged();
     }
+  }
+
+  const canSend = Boolean(reply.trim() || files.length);
+  function sendReply(status) {
+    const clear = () => {
+      setReply("");
+      setFiles([]);
+    };
+    send({ reply, attachments: files, ...(status ? { status } : {}) }, status ? "پاسخ فرستاده شد و گفتگو بسته شد." : "پاسخ فرستاده شد.", clear);
   }
 
   if (!found) return <Loading />;
@@ -119,14 +132,15 @@ function TicketDetail({ id, onChanged, onGo }) {
           {messages.map((item) => (
             <div key={item.id} className={`admBubble is-${item.author}`}>
               <small>{item.author === "admin" ? "پشتیبانی" : ticket.user_name || "کاربر"} • {clock(item.created_at)}</small>
-              <p>{item.body}</p>
+              <MessageAttachments items={item.attachments} />
+              {item.body ? <p>{item.body}</p> : null}
             </div>
           ))}
           {!messages.length ? <p className="admMuted">{isReport ? "کاربر توضیحی ننوشته است." : "پیامی نیست."}</p> : null}
           <div ref={endRef} />
         </div>
         {canReply ? (
-          <form className="admReply" onSubmit={(event) => { event.preventDefault(); send({ reply }, "پاسخ فرستاده شد.", () => setReply("")); }}>
+          <form className="admReply" onSubmit={(event) => { event.preventDefault(); sendReply(); }}>
             <CannedReplies onPick={(body) => setReply((prev) => (prev ? `${prev}\n${body}` : body))} />
             <Field label="پاسخ به کاربر" hideLabel>
               {(props) => (
@@ -138,17 +152,18 @@ function TicketDetail({ id, onChanged, onGo }) {
                   placeholder="پاسخت را بنویس؛ کاربر در پشتیبانیِ خودش می‌بیند… (Ctrl+Enter برای ارسال)"
                   onChange={(event) => setReply(event.target.value)}
                   onKeyDown={(event) => {
-                    if ((event.ctrlKey || event.metaKey) && event.key === "Enter" && reply.trim() && !busy) {
+                    if ((event.ctrlKey || event.metaKey) && event.key === "Enter" && canSend && !busy) {
                       event.preventDefault();
-                      send({ reply }, "پاسخ فرستاده شد.", () => setReply(""));
+                      sendReply();
                     }
                   }}
                 />
               )}
             </Field>
+            <AttachmentField value={files} onChange={setFiles} />
             <div className="admRowActions">
-              <Button type="submit" size="sm" disabled={busy || !reply.trim()}><Send size={15} aria-hidden="true" /> ارسال پاسخ</Button>
-              {!closed ? <Button type="button" size="sm" variant="secondary" disabled={busy || !reply.trim()} onClick={() => send({ reply, status: "closed" }, "پاسخ فرستاده شد و گفتگو بسته شد.", () => setReply(""))}>ارسال و بستن</Button> : null}
+              <Button type="submit" size="sm" disabled={busy || !canSend}><Send size={15} aria-hidden="true" /> ارسال پاسخ</Button>
+              {!closed ? <Button type="button" size="sm" variant="secondary" disabled={busy || !canSend} onClick={() => sendReply("closed")}>ارسال و بستن</Button> : null}
             </div>
           </form>
         ) : <p className="admMuted">این فرستنده حساب ندارد؛ فقط با شمارهٔ تماسش می‌شود جواب داد.</p>}
