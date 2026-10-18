@@ -188,13 +188,13 @@ export const LEARN_ROLES = [
           },
           {
             screen: "explore",
-            els: [bookTabs(1), { t: "search", id: "search", placeholder: "شماره، اسم یا لینک صفحه" }, { t: "head", text: "چه کاری می‌خواهی؟" }, categories, navClient(2)],
+            els: [bookTabs(1), { t: "search", id: "search", placeholder: "اسم، شماره یا لینک صفحه‌اش" }, { t: "head", text: "چه کاری می‌خواهی؟" }, categories, navClient(2)],
             tap: "search",
             say: "اسم یا شمارهٔ سالن را جستجو کن."
           },
           {
             screen: "explore",
-            els: [bookTabs(1), { t: "search", id: "search", placeholder: "شماره، اسم یا لینک صفحه", text: SALON, type: true }, { t: "head", text: "نتیجه جستجو" }, salonPlace({ btn: "وصل شو" }), navClient(2)],
+            els: [bookTabs(1), { t: "search", id: "search", placeholder: "اسم، شماره یا لینک صفحه‌اش", text: SALON, type: true }, { t: "head", text: "نتیجه جستجو" }, salonPlace({ btn: "وصل شو" }), navClient(2)],
             tap: "place",
             say: "پیدایش کردی؟ «وصل شو» را بزن.",
             ms: 3400

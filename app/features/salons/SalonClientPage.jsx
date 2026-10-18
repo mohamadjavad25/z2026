@@ -134,7 +134,7 @@ export function SalonClientPage({
             <div className="pphActions">
               <button type="button" className={`pphFollow${isFollowing ? " is-following" : ""}`} onClick={() => onFollow(selectedSalon)}>
                 {isFollowing ? <Check size={18} /> : <UserPlus size={18} />}
-                {isFollowing ? "دنبال می‌کنی" : "دنبال کردن"}
+                {isFollowing ? "وصل هستی" : "وصل شو"}
               </button>
               {selectedSalon.phone ? (
                 <a className="pphCall" href={`tel:${toLatinDigits(selectedSalon.phone)}`} aria-label="تماس با سالن">

@@ -102,3 +102,28 @@ export function registerBackHandler(handler, priority = BACK_PRIORITY.overlay) {
 export function hasOpenOverlay() {
   return entries.some((entry) => entry.priority >= BACK_PRIORITY.overlay);
 }
+
+/**
+ * Runs `fn` once the history this module is about to change has settled. Closing a sheet queues a
+ * `history.go(-1)` for its entry (queueSync); a navigation started in the same tap (a public page's
+ * «رزرو» leaving for the app) would be undone by that pop, so it waits for it.
+ */
+export function afterHistorySettles(fn) {
+  if (typeof window === "undefined") return;
+  // Two ticks: a sheet closed in this same tap queues its sync only when React commits, after this call.
+  window.setTimeout(() => window.setTimeout(() => {
+    if (ignoredPops === 0) {
+      fn();
+      return;
+    }
+    let done = false;
+    const run = () => {
+      if (done) return;
+      done = true;
+      window.removeEventListener("popstate", run);
+      fn();
+    };
+    window.addEventListener("popstate", run);
+    window.setTimeout(run, 500); // the pop never came: go anyway
+  }, 0), 0);
+}

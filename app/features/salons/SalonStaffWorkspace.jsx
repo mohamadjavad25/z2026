@@ -60,7 +60,7 @@ export function SalonStaffWorkspace({
         <span className="stfInviteIcon" aria-hidden="true"><Plus size={38} strokeWidth={2.6} /></span>
         <span className="stfInviteCopy">
           <b>دعوت آرتیست</b>
-          <small>از بین آرتیست‌های نزدیک، همکار تیمت را پیدا کن</small>
+          <small>کد یا لینک تیم را به آرتیست بده؛ با یک اسکن وارد تیمت می‌شود</small>
         </span>
         <span className="stfInviteGo" aria-hidden="true">دعوت</span>
       </button>
@@ -164,7 +164,7 @@ export function SalonStaffWorkspace({
         <div className="stfEmpty">
           <ServiceIconStrip ids={["haircut", "hair_color", "manicure", "lipstick", "eyebrow"]} size="md" />
           <b>هنوز آرتیستی در تیم نیست</b>
-          <p>آرتیست‌ها را از بین آرتیست‌های نزدیک دعوت کن تا رزرو، خدمات و همکاری‌های سالن از همین‌جا مدیریت شوند.</p>
+          <p>آرتیستی که با تو کار می‌کند را با کد یا لینک تیم اضافه کن تا رزروها، خدمات و همکاری‌های سالن از همین‌جا مدیریت شوند.</p>
           <button type="button" onClick={onInviteNearby}>
             <Send size={15} />
             دعوت اولین آرتیست

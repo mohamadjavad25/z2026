@@ -99,7 +99,7 @@ export function ProfileHero({
           open={qrSheetOpen}
           url={salonPublicUrl}
           name={name}
-          hint="مشتری‌ها با اسکن این کد به تو وصل می‌شوند و آرتیست‌ها به تیمت می‌پیوندند."
+          hint="مشتری‌ها با اسکن این کد به تو وصل می‌شوند و از همان‌جا نوبت می‌گیرند. برای آوردن آرتیست به تیمت، از «پرسنل ← دعوت آرتیست» کد مخصوص تیم را نشانش بده."
           onScan={scanFromSheet}
           onOpenChange={setQrSheetOpen}
         />

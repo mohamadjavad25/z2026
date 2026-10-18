@@ -171,6 +171,7 @@
   cursor: pointer;
 }
 .fsSubmit:disabled { opacity: 0.6; cursor: progress; }
+a.fsSubmit { display: grid; place-items: center; text-decoration: none; }
 .fsDone { display: grid; justify-items: center; gap: 10px; padding: 8px 4px 10px; text-align: center; }
 .fsDoneMark {
   width: 74px;

@@ -114,10 +114,12 @@ export default function RootLayout({ children }) {
             "frfro-app". CSS uses the class to always show the app there and hide download links.
             "skip-landing": the home page opens the app, not the about page (HOME_LANDING_SKIP_KEY
             in features/landing/constants.js): in the app, from the home-screen icon, or once the
-            visitor tapped «ورود به فرفرو» on the about page. */}
+            visitor tapped «ورود به فرفرو» on the about page, or came to book with a salon/artist or to
+            join a salon's team (`?open=` / `?join=`, shared/lib/appHandoff.js). */}
         <script dangerouslySetInnerHTML={{ __html: `(function () {
 var root = document.documentElement;
 if (navigator.userAgent.indexOf("frfro-app") !== -1) root.classList.add("native-app", "skip-landing");
+if (/[?&](open|join)=/.test(location.search)) root.classList.add("skip-landing");
 try {
   if (window.matchMedia("(display-mode: standalone)").matches || navigator.standalone || localStorage.getItem("frfro-entered") === "1") root.classList.add("skip-landing");
 } catch (e) {}

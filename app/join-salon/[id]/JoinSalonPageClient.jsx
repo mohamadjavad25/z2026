@@ -8,6 +8,12 @@ import { getAuthMe } from "../../shared/api/auth";
 
 const PENDING_JOIN_KEY = "frfro_pending_join_salon";
 
+// The app, not the about page: a client-side navigation does not re-run the root layout's head script.
+function enterApp(router, href = "/") {
+  document.documentElement.classList.add("skip-landing");
+  router.push(href);
+}
+
 /**
  * QR/link landing page (app/join-salon/[id]) — standalone, auth-agnostic.
  * Salon shows this as a QR code (see SalonNearbyInviteSheet's artistInviteQrCard);
@@ -70,7 +76,7 @@ export function JoinSalonPageClient({ salon, joinCode = "" }) {
     } catch {
       // ignore — the join simply won't auto-fire after login
     }
-    router.push(`/?join=${salon.id}&k=${encodeURIComponent(joinCode)}`);
+    enterApp(router, `/?join=${salon.id}&k=${encodeURIComponent(joinCode)}`);
   }
 
   return (
@@ -107,7 +113,7 @@ export function JoinSalonPageClient({ salon, joinCode = "" }) {
           <div className="joinSalonSuccess">
             <CheckCircle2 size={28} aria-hidden="true" />
             <b>به تیم «{salon.name}» پیوستی!</b>
-            <button type="button" className="joinSalonAction" onClick={() => router.push("/")}>
+            <button type="button" className="joinSalonAction" onClick={() => enterApp(router)}>
               رفتن به داشبورد
             </button>
           </div>

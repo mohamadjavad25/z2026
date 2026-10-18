@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { PageIcon } from "../../components/PageIcon";
 import { ServiceIcon } from "../../components/ServiceIcon";
-import { ArrowDownUp, CalendarCheck, CalendarPlus, ContactRound, MessageSquare, Phone, Repeat2, Search, Sparkles, UserPlus, Users } from "lucide-react";
+import { ArrowDownUp, CalendarCheck, CalendarPlus, ContactRound, Link2, MessageSquare, Phone, Repeat2, Search, Sparkles, UserPlus, Users } from "lucide-react";
 import { ProfileSheet } from "../profile/ProfileSheet";
 import { bookingStatusLabel, bookingStatusTone } from "../client/bookingStatus";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
@@ -11,6 +11,8 @@ import { formatRelativeBookingDayLabel, resolveRollingPersianDate } from "../../
 import { buildBookingCustomers, describeFollowTime, pickFreshFollowers, phoneKey } from "./customers";
 import { contactPickerNeedsAppUpdate, contactPickerSupported, localPhoneOf, pickContact } from "../../shared/lib/contactPicker";
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
+import { buildClientInviteText, buildInviteSmsHref } from "../../shared/lib/inviteSms";
+import { InviteClientsSheet } from "../connect/InviteClientsSheet";
 
 export { buildBookingCustomers };
 
@@ -47,8 +49,12 @@ function Avatar({ customer, size = "" }) {
   );
 }
 
-function CustomerSheet({ customer, onBook, onClose }) {
+function CustomerSheet({ customer, invite, onBook, onClose }) {
   if (!customer) return null;
+  // Not connected yet (a walk-in or a phone booking): one SMS with the page link, so next time they book themselves.
+  const inviteHref = !customer.isFollower && customer.phone && invite?.url
+    ? buildInviteSmsHref(customer.phone, buildClientInviteText({ placeName: invite.name, url: invite.url }))
+    : "";
   return (
     <ProfileSheet open kicker="مشتری" title={customer.name} panelClassName="cuSheet" onClose={onClose}>
       <div className="cuSheetBody">
@@ -63,7 +69,7 @@ function CustomerSheet({ customer, onBook, onClose }) {
           <p className={`cuFollowNote${customer.noBookingYet ? " is-waiting" : ""}`}>
             <UserPlus size={15} aria-hidden="true" />
             <span>
-              {describeFollowTime(customer.followedAt)} شما را دنبال کرد.
+              {describeFollowTime(customer.followedAt)} به شما وصل شد.
               {customer.noBookingYet ? " هنوز نوبتی نگرفته؛ یک تماس یا پیامک می‌تواند اولین نوبتش را بسازد." : ""}
             </span>
           </p>
@@ -77,6 +83,11 @@ function CustomerSheet({ customer, onBook, onClose }) {
               <MessageSquare size={16} /> پیامک
             </a>
           </div>
+        ) : null}
+        {inviteHref ? (
+          <a className="cuInviteBtn cuInviteLink" href={inviteHref}>
+            <Link2 size={16} aria-hidden="true" /> فرستادن لینک نوبت‌گیری
+          </a>
         ) : null}
         {onBook ? (
           <button type="button" className="cuBookBtn" onClick={() => onBook(customer)}>
@@ -117,8 +128,13 @@ function CustomerSheet({ customer, onBook, onClose }) {
  * «مخاطبین» (next to the scan button, where the phone has a contact picker, or in an older app that
  * must be updated first, which it says) picks one contact from the phone: someone already a customer opens their card, anyone else opens the new-booking
  * form with their name and number filled in (`onBookCustomer({ client, phone })`).
+ *
+ * «دعوت مشتری» (`invite`: { url, name, viewerType, onChanged }) opens InviteClientsSheet: the page's QR, a
+ * ready message with its link, and scanning a customer's code. A customer who isn't connected yet gets a
+ * «فرستادن لینک نوبت‌گیری» SMS on their card.
  */
-export function SalonCustomersPage({ active, bookings = [], followers = [], ownerLabel = "سالن شما", headerAction = null, onBookCustomer }) {
+export function SalonCustomersPage({ active, bookings = [], followers = [], ownerLabel = "سالن شما", headerAction = null, invite = null, onBookCustomer }) {
+  const [inviteOpen, setInviteOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
   const [sort, setSort] = useState("recent");
@@ -182,15 +198,21 @@ export function SalonCustomersPage({ active, bookings = [], followers = [], owne
         <div className="salonCustomersTitle">
           <span className="wavyTitle">جامعه مشتریان</span>
         </div>
-        {canPickContact ? (
-          <div className="cuHeadActions">
-            {headerAction}
+        <div className="cuHeadActions">
+          {invite ? (
+            <button type="button" className="cuInviteBtn" onClick={() => setInviteOpen(true)}>
+              <UserPlus size={17} aria-hidden="true" />
+              دعوت مشتری
+            </button>
+          ) : null}
+          {headerAction}
+          {canPickContact ? (
             <button type="button" className="cuContactBtn" onClick={chooseContact} aria-label="انتخاب از مخاطبین گوشی">
               <ContactRound size={17} aria-hidden="true" />
               مخاطبین
             </button>
-          </div>
-        ) : headerAction}
+          ) : null}
+        </div>
       </div>
 
       {freshFollowers.length ? (
@@ -200,7 +222,7 @@ export function SalonCustomersPage({ active, bookings = [], followers = [], owne
             <div>
               <b>تازه به جمعتان پیوستند</b>
               <small>
-                {toPersianDigits(freshFollowers.length)} نفر شما را دنبال کردند و حالا جزو مشتریان‌تان هستند.
+                {toPersianDigits(freshFollowers.length)} نفر به شما وصل شدند و حالا جزو مشتریان‌تان هستند.
               </small>
             </div>
           </header>
@@ -296,7 +318,13 @@ export function SalonCustomersPage({ active, bookings = [], followers = [], owne
           <div className="emptySalonDirectory is-lively">
             <PageIcon name="customers" size={64} />
             <b>هنوز مشتری‌ای ثبت نشده</b>
-            <p>با اولین رزرو یا اولین دنبال‌کننده، مشتری‌هایت اینجا جمع می‌شوند و می‌توانی با یک ضربه تماس بگیری.</p>
+            <p>مشتری‌هایی که همین حالا داری را دعوت کن: کد صفحه‌ات را اسکن کنند یا لینکش را برایشان بفرست. هر کس وصل شود یا نوبت بگیرد، اینجا می‌آید.</p>
+            {invite ? (
+              <button type="button" className="cuInviteBtn" onClick={() => setInviteOpen(true)}>
+                <UserPlus size={17} aria-hidden="true" />
+                دعوت مشتری‌ها
+              </button>
+            ) : null}
           </div>
         ) : visibleCustomers.length === 0 ? (
           <div className="emptySalonDirectory">
@@ -317,14 +345,14 @@ export function SalonCustomersPage({ active, bookings = [], followers = [], owne
                 ) : null}
                 {customer.noBookingYet ? (
                   <small>
-                    <i className="cuWaitTag">دنبال‌کننده • هنوز رزرو نکرده</i>
+                    <i className="cuWaitTag">وصل‌شده • هنوز رزرو نکرده</i>
                     {` • ${describeFollowTime(customer.followedAt)}`}
                   </small>
                 ) : (
                   <small>
                     {toPersianDigits(customer.visitCount)} بار رزرو
                     {customer.upcoming > 0 ? ` • ${toPersianDigits(customer.upcoming)} نوبت پیش‌رو` : customer.lastDate ? ` • ${formatRelativeBookingDayLabel(customer.lastDate)}` : ""}
-                    {customer.isFollower ? " • دنبال‌کننده" : ""}
+                    {customer.isFollower ? " • وصل‌شده" : ""}
                   </small>
                 )}
               </span>
@@ -351,8 +379,19 @@ export function SalonCustomersPage({ active, bookings = [], followers = [], owne
           </div>
         </ProfileSheet>
       ) : null}
+      {invite ? (
+        <InviteClientsSheet
+          open={inviteOpen}
+          url={invite.url}
+          name={invite.name}
+          viewerType={invite.viewerType}
+          onChanged={invite.onChanged}
+          onClose={() => setInviteOpen(false)}
+        />
+      ) : null}
       <CustomerSheet
         customer={openCustomer}
+        invite={invite}
         onBook={onBookCustomer ? (customer) => {
           setOpenKey("");
           onBookCustomer({ client: customer.name, phone: customer.phone });

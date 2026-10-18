@@ -74,18 +74,15 @@ describe("booking flow (browser)", () => {
     const clientApi = createClient();
     await registerUser(clientApi, { type: "client", name: "مشتری تست" });
 
-    // client: find the salon in «سالن و آرتیست من», connect, open it and request a slot
+    // client: find the salon on «پیدا کردن» (the search box is always there), connect — which opens
+    // its page straight away — and request a slot
     const clientView = await newPage({ cookie: clientApi.cookie() });
     const cp = clientView.page;
     await cp.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
     await openExploreTab(cp);
-    await cp.getByRole("button", { name: "جستجو", exact: true }).click();
-    await cp.getByPlaceholder("شماره، اسم یا لینک صفحه").fill(name);
+    await cp.getByPlaceholder("اسم، شماره یا لینک صفحه‌اش").fill(name);
     const result = cp.locator(".cnCard").filter({ hasText: name }).first();
     await result.getByRole("button", { name: "وصل شو" }).click();
-    await result.getByRole("button", { name: "رزرو" }).waitFor();
-    await cp.getByRole("button", { name: "پاک کردن جستجو" }).click();
-    await cp.locator(".cnCard").filter({ hasText: name }).first().getByRole("button", { name: `باز کردن ${name}` }).click();
     await cp.locator(".spvBarBook").click();
     await cp.locator(".sduItem").first().click();
     await cp.locator(".sduConfirm").click();
@@ -307,14 +304,14 @@ describe("client starts from what they want (browser)", () => {
     expect(await sheet.innerText()).toContain("هنوز کسی را وصل نکرده‌ای");
 
     // a number that is not on frfro: the client's own messages app gets the invite, with the category in it
-    await sheet.getByPlaceholder("شماره، اسم یا لینک صفحه").fill("09129998877");
+    await sheet.getByPlaceholder("اسم، شماره یا لینک صفحه‌اش").fill("09129998877");
     await sheet.getByText("این شماره هنوز در فرفرو نیست.").waitFor();
     const href = await sheet.getByRole("link", { name: "پیامک دعوت" }).getAttribute("href");
     expect(href).toMatch(/^sms:09129998877\?&body=/);
     expect(decodeURIComponent(href)).toContain("برای «میکاپ»");
 
     // the salon's own number: connect, and its page opens on the services that match
-    await sheet.getByPlaceholder("شماره، اسم یا لینک صفحه").fill(salon.phone);
+    await sheet.getByPlaceholder("اسم، شماره یا لینک صفحه‌اش").fill(salon.phone);
     await sheet.getByRole("button", { name: "وصل شو" }).click();
     await page.locator(".sduPanel").waitFor();
     await page.locator(".sduItem.is-selected", { hasText: "میکاپ ساده" }).waitFor();

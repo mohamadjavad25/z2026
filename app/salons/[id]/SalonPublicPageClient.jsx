@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { SalonClientPage } from "../../features/salons/SalonClientPage";
 import { getVisibleSalonServiceItems } from "../../features/salons/useSalonDirectory";
 import { FollowSheet, useFollowGate } from "../../features/follow";
+import { goToAppFor } from "../../shared/lib/appHandoff";
 
 // Standalone, unauthenticated rendering of a single salon's public profile.
 // This is the pilot Next.js route for SEO/shareable salon links — it reuses
@@ -14,7 +15,8 @@ import { FollowSheet, useFollowGate } from "../../features/follow";
 // to actually log in and use them. See backend report for the tradeoff note.
 // Follow is the exception: it works right here (sign up or log in in a sheet,
 // follow, thank-you), because a follow is the start of the relationship and a
-// visitor from a QR code must not be sent away to finish it.
+// visitor from a QR code must not be sent away to finish it. Booking and saving open the app on this
+// same salon (shared/lib/appHandoff.js), never on an empty home.
 function getPortfolioCardStyle(item) {
   return item?.image
     ? { backgroundImage: `linear-gradient(180deg, rgba(12, 14, 16, 0.04) 0%, transparent 46%, rgba(12, 14, 16, 0.68) 100%), url("${item.image}")` }
@@ -24,7 +26,8 @@ function getPortfolioCardStyle(item) {
 export function SalonPublicPageClient({ salon }) {
   const router = useRouter();
   const goToApp = () => router.push("/");
-  const followGate = useFollowGate({ targetId: salon.id, targetName: salon.name });
+  const openHere = () => goToAppFor(router, { type: "salon", id: salon.id, name: salon.name });
+  const followGate = useFollowGate({ targetId: salon.id, targetName: salon.name, targetType: "salon" });
 
   const handleShare = () => {
     if (typeof window === "undefined") return;
@@ -47,9 +50,9 @@ export function SalonPublicPageClient({ salon }) {
       getPortfolioCardStyle={getPortfolioCardStyle}
       onBack={goToApp}
       onFollow={followGate.onFollowClick}
-      onSave={goToApp}
+      onSave={openHere}
       onShare={handleShare}
-      onOpenBooking={goToApp}
+      onOpenBooking={openHere}
     />
     <FollowSheet gate={followGate} />
     </>

@@ -7,6 +7,7 @@ import { getPublicArtistServices, salonClientBookingDays } from "../../features/
 import { mapSharedPost } from "../../features/posts/mappers";
 import { parseServiceDurationMinutes } from "../../shared/lib/time";
 import { FollowSheet, useFollowGate } from "../../features/follow";
+import { goToAppFor } from "../../shared/lib/appHandoff";
 
 // Standalone, unauthenticated rendering of a single artist's public profile.
 // This is the artist counterpart of app/salons/[id]/SalonPublicPageClient.jsx —
@@ -15,7 +16,8 @@ import { FollowSheet, useFollowGate } from "../../features/follow";
 // message/book) have a logged-in session or the app's socket/booking state to
 // act on. Rather than half-implement those without auth, we send the visitor
 // into the SPA shell to actually log in and use them. Follow works right here
-// (sheet: sign up or log in, follow, thank-you) -- see SalonPublicPageClient.
+// (sheet: sign up or log in, follow, thank-you) -- see SalonPublicPageClient. Booking, saving and
+// opening a work open the app on this same artist (shared/lib/appHandoff.js).
 function getPortfolioCardStyle(item) {
   return item?.image
     ? { backgroundImage: `linear-gradient(180deg, rgba(12, 14, 16, 0.04) 0%, transparent 46%, rgba(12, 14, 16, 0.68) 100%), url("${item.image}")` }
@@ -25,7 +27,8 @@ function getPortfolioCardStyle(item) {
 export function ArtistPublicPageClient({ artist }) {
   const router = useRouter();
   const goToApp = () => router.push("/");
-  const followGate = useFollowGate({ targetId: artist.id, targetName: artist.name });
+  const openHere = () => goToAppFor(router, { type: "artist", id: artist.id, name: artist.name });
+  const followGate = useFollowGate({ targetId: artist.id, targetName: artist.name, targetType: "artist" });
 
   const [galleryFilter, setGalleryFilter] = useState("همه");
   const [selectedServiceId, setSelectedServiceId] = useState("");
@@ -79,15 +82,15 @@ export function ArtistPublicPageClient({ artist }) {
       getCardStyle={getPortfolioCardStyle}
       onClose={goToApp}
       onShare={handleShare}
-      onSave={goToApp}
+      onSave={openHere}
       onFollow={followGate.onFollowClick}
       onViewChange={() => {}}
       onGalleryFilterChange={setGalleryFilter}
-      onOpenWork={goToApp}
+      onOpenWork={openHere}
       onSelectService={setSelectedServiceId}
       onBookingDayChange={setBookingDay}
       onBookingSlotChange={setBookingSlot}
-      onConfirmBooking={goToApp}
+      onConfirmBooking={openHere}
       guest
     />
     <FollowSheet gate={followGate} />
