@@ -89,7 +89,7 @@ async function resolveArtistUserForStaff(staff, runner = null) {
 
 let ownerColumnReady;
 /**
- * The is_owner column (migration 027) and the remembered owner profile (036), also created on first use so
+ * The is_owner column (migration 027) and the remembered owner profile (037), also created on first use so
  * the feature works before the migrations are run.
  */
 function ensureOwnerColumn() {
