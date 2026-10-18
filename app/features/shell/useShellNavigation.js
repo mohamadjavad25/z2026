@@ -141,7 +141,8 @@ function getPassportMatch(post) {
     resetPublicArtistProfile,
     resetArtistWorkspace,
     resetSalonWorkspace,
-    setSavedArtists
+    setSavedArtists,
+    openConnectedProfile
   };
 
   useEffect(() => {

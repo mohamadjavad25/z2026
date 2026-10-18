@@ -18,6 +18,15 @@ export function buildInviteText({ name = "", category = "", url = "" } = {}) {
   return `سلام${who ? `، من ${who} هستم` : ""} و می‌خواهم ${wants}از فرفرو نوبت بگیرم. اینجا ثبت‌نام کن تا رزروهایت را همین‌جا مدیریت کنی و وصل شویم: ${url}`.trim();
 }
 
+/**
+ * The message a salon/artist sends to their own customers: the link to their page, where one tap on
+ * «وصل شو» puts them in the customer's «سالن و آرتیست من» and the next booking is a few taps.
+ */
+export function buildClientInviteText({ placeName = "", url = "" } = {}) {
+  const place = String(placeName || "").trim();
+  return `سلام! از این به بعد می‌توانی نوبتت را${place ? ` از «${place}»` : ""} مستقیم در فرفرو بگیری، بدون تماس و انتظار. این لینک را باز کن و «وصل شو» را بزن: ${url}`.trim();
+}
+
 /** `sms:` link that opens the phone's messages app with the text filled in (the `?&` form works on both Android and iOS). */
 export function buildInviteSmsHref(phone, text) {
   const number = phoneForSms(phone);

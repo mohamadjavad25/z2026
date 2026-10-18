@@ -145,10 +145,10 @@ function useFollowing(placeId, onNotice) {
         const name = payload?.data?.profile?.name;
         onNotice?.(name ? `${name} به لیستت اضافه شد.` : "به لیستت اضافه شد.");
       } else {
-        onNotice?.(payload?.error || "دنبال کردن انجام نشد؛ دوباره امتحان کن.");
+        onNotice?.(payload?.error || "وصل شدن انجام نشد؛ دوباره امتحان کن.");
       }
     } catch {
-      onNotice?.("دنبال کردن انجام نشد؛ دوباره امتحان کن.");
+      onNotice?.("وصل شدن انجام نشد؛ دوباره امتحان کن.");
     } finally {
       setBusy(false);
     }
@@ -282,7 +282,7 @@ export function ClientBookingSettingsModal({
               {following === false ? (
                 <button type="button" className="cbPlaceFollow" disabled={followBusy} onClick={follow}>
                   <UserPlus size={16} aria-hidden="true" />
-                  {followBusy ? "در حال افزودن…" : "دنبال کردن"}
+                  {followBusy ? "در حال وصل شدن…" : "وصل شو"}
                 </button>
               ) : null}
             </div>

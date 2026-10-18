@@ -14,6 +14,7 @@ import { useHome } from "../HomeContext";
 export function ProfilePanelBody() {
   const {
     createdProfile,
+    arrivalIntent,
     authMode,
     signupStep,
     authNotice,
@@ -159,6 +160,7 @@ export function ProfilePanelBody() {
               authMode={authMode}
               signupStep={signupStep}
               authNotice={authNotice}
+              arrivalIntent={arrivalIntent}
               authBusy={authBusy}
               profileType={profileType}
               activeRoleMeta={activeRoleMeta}

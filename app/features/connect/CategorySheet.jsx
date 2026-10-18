@@ -153,7 +153,7 @@ export function CategorySheet({ category, matches = [], hasConnections = false, 
                     enterKeyHint="search"
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
-                    placeholder="شماره، اسم یا لینک صفحه"
+                    placeholder="اسم، شماره یا لینک صفحه‌اش"
                     autoComplete="off"
                   />
                   {searching ? (

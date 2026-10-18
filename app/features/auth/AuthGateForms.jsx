@@ -388,7 +388,13 @@ const GATE_TAGLINES = {
   artist: "نمونه‌کارهات رو نشون بده، مشتری تازه جذب کن"
 };
 
-function gateTagline({ authMode, signupStep, profileType }) {
+function gateTagline({ authMode, signupStep, profileType, arrivalIntent }) {
+  // Came from a salon/artist page to book, or from a salon's team link: say what the account is for.
+  if (arrivalIntent?.kind === "open") {
+    const place = arrivalIntent.name ? `«${arrivalIntent.name}»` : "این سالن";
+    return authMode === "login" ? `وارد شو تا از ${place} نوبت بگیری` : `یک حساب بساز تا از ${place} نوبت بگیری`;
+  }
+  if (arrivalIntent?.kind === "join") return authMode === "login" ? "وارد شو تا به تیم سالن بپیوندی" : "حساب آرتیستت را بساز تا به تیم سالن بپیوندی";
   if (authMode === "login") return GATE_TAGLINES.login;
   if (signupStep === "form") return GATE_TAGLINES[profileType] || GATE_TAGLINES.client;
   return GATE_TAGLINES.default;
@@ -402,6 +408,7 @@ export function AuthGateForms({
   authMode,
   signupStep,
   authNotice,
+  arrivalIntent = null,
   authBusy = false,
   profileType,
   activeRoleMeta,
@@ -422,7 +429,7 @@ export function AuthGateForms({
       <div className="authGateHero" data-mode={authMode} data-step={signupStep}>
         <div className="authGateCopy">
           <p className="authGateBrand">frfro</p>
-          <p className="authGateTagline">{gateTagline({ authMode, signupStep, profileType })}</p>
+          <p className="authGateTagline">{gateTagline({ authMode, signupStep, profileType, arrivalIntent })}</p>
         </div>
       </div>
 

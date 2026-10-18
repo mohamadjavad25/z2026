@@ -5,7 +5,7 @@ import { apiFetch } from "../../shared/api/client";
 import { getAuthMe } from "../../shared/api/auth";
 
 /**
- * «دنبال کردن» on a public salon or artist page (the page a QR code or a shared link opens).
+ * «وصل شو» on a public salon or artist page (the page a QR code or a shared link opens).
  *
  * A follow is a contact, so it needs an account (name + phone). The visitor either already has one, or
  * makes one right here in a sheet; afterwards the follow is done on the very same page and a thank-you
@@ -13,7 +13,7 @@ import { getAuthMe } from "../../shared/api/auth";
  *
  * sheet: "closed" | "account" (sign up / log in) | "done" (thank-you)
  */
-export function useFollowGate({ targetId, targetName }) {
+export function useFollowGate({ targetId, targetName, targetType = "salon" }) {
   const [viewer, setViewer] = useState(undefined); // undefined: still checking · null: not signed in
   const [following, setFollowing] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -56,11 +56,11 @@ export function useFollowGate({ targetId, targetName }) {
         method: "POST",
         body: JSON.stringify({ targetUserId: Number(targetId), follow })
       });
-      if (!ok) return payload?.error || "دنبال کردن انجام نشد؛ دوباره امتحان کن.";
+      if (!ok) return payload?.error || "وصل شدن انجام نشد؛ دوباره امتحان کن.";
       setFollowing(Boolean(payload.data?.following));
       return "";
     } catch {
-      return "دنبال کردن انجام نشد؛ دوباره امتحان کن.";
+      return "وصل شدن انجام نشد؛ دوباره امتحان کن.";
     }
   }, [targetId]);
 
@@ -79,7 +79,7 @@ export function useFollowGate({ targetId, targetName }) {
     try {
       if (following) {
         const failure = await setFollow(false);
-        setNotice(failure || `دنبال کردن «${targetName}» لغو شد.`);
+        setNotice(failure || `«${targetName}» از لیستت برداشته شد.`);
         return;
       }
       const failure = await setFollow(true);
@@ -105,7 +105,7 @@ export function useFollowGate({ targetId, targetName }) {
     const failure = await setFollow(true);
     if (failure) {
       setSheet("closed");
-      setNotice(created ? "حسابت ساخته شد، اما دنبال کردن انجام نشد. دوباره دکمه را بزن." : failure);
+      setNotice(created ? "حسابت ساخته شد، اما وصل شدن انجام نشد. دوباره دکمه را بزن." : failure);
       return "";
     }
     setJustCreated(created);
@@ -121,6 +121,8 @@ export function useFollowGate({ targetId, targetName }) {
     justCreated,
     notice,
     targetName,
+    targetId,
+    targetType,
     onFollowClick,
     onAccountReady,
     closeSheet: () => setSheet("closed")

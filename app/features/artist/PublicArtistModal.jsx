@@ -131,7 +131,7 @@ export function PublicArtistModal({
             <div className="pphActions">
               <button type="button" className={`pphFollow${following ? " is-following" : ""}`} onClick={onFollow}>
                 {following ? <Check size={18} /> : <Heart size={18} />}
-                {following ? "دنبال می‌کنی" : "دنبال کردن"}
+                {following ? "وصل هستی" : "وصل شو"}
               </button>
               {artist.phone ? (
                 <a className="pphCall" href={`tel:${toLatinDigits(artist.phone)}`} aria-label="تماس با آرتیست">

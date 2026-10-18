@@ -38,7 +38,7 @@ function profileAction(viewerType, profile, relation, joinCode) {
   // A plain salon profile code proves nothing about who showed it -- only the
   // salon's own dedicated QR/link (with a secret) can join the team instantly.
   if (!joinCode) {
-    return { note: "این فقط پروفایل عمومی سالنه. برای پیوستن به تیم، از سالن بخواه کد QR مخصوص «افزودن آرتیست» رو نشونت بده." };
+    return { note: "این کد صفحهٔ عمومی سالن است، نه کد پیوستن. از سالن‌دار بخواه در «پرسنل ← دعوت آرتیست» کد تیم را نشانت دهد، یا «اسکن شو» را بزن و کد خودت را نشانش بده تا دعوتت کند." };
   }
   return {
     note: profile.rules ? "با پیوستن، قوانین سالن را می‌پذیری." : "با پیوستن، در پرسنل این سالن قرار می‌گیری.",

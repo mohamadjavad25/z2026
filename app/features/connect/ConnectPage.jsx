@@ -40,9 +40,7 @@ export function ConnectPage({ me = {}, onOpenProfile, onNotify }) {
   const [checkingCategory, setCheckingCategory] = useState("");
   const [contacts, setContacts] = useState(false); // the phone has a contact picker
   const [contact, setContact] = useState(null); // the contact picked for «از مخاطبین»
-  const [searchOpen, setSearchOpen] = useState(false);
   const searching = query.trim().length > 0;
-  const showSearch = searchOpen || searching;
 
   useEffect(() => { setContacts(contactPickerSupported()); }, []);
 
@@ -53,7 +51,6 @@ export function ConnectPage({ me = {}, onOpenProfile, onNotify }) {
       if (picked) setContact(picked);
     } catch {
       onNotify?.("دسترسی به مخاطبین ممکن نشد؛ شماره را در جستجو بزن.");
-      setSearchOpen(true);
     }
   }
 
@@ -80,10 +77,16 @@ export function ConnectPage({ me = {}, onOpenProfile, onNotify }) {
     }
   }
 
+  // «وصل شو» connects and goes straight to their page to book: one tap, not two.
+  async function connectAndOpen(profile) {
+    const connected = await connect(profile);
+    if (connected) onOpenProfile?.(connected);
+  }
+
   const connectButton = (profile) => (profile.connected ? (
     <button type="button" className="cnPrimaryBtn" onClick={() => onOpenProfile?.(profile)}>رزرو</button>
   ) : (
-    <button type="button" className="cnPrimaryBtn" disabled={connectingId === profile.id} onClick={() => connect(profile)}>
+    <button type="button" className="cnPrimaryBtn" disabled={connectingId === profile.id} onClick={() => connectAndOpen(profile)}>
       {connectingId === profile.id ? "…" : "وصل شو"}
     </button>
   ));
@@ -99,6 +102,24 @@ export function ConnectPage({ me = {}, onOpenProfile, onNotify }) {
 
         <div className="cnConnect">
           <span className="cnConnectLabel">سالن یا آرتیستت را وصل کن</span>
+          <label className="cnSearch">
+            <Search size={20} aria-hidden="true" />
+            <span className="srOnly">جستجو با شماره، اسم یا لینک</span>
+            <input
+              type="search"
+              inputMode="search"
+              enterKeyHint="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="اسم، شماره یا لینک صفحه‌اش"
+              autoComplete="off"
+            />
+            {searching ? (
+              <button type="button" className="cnSearchClear" onClick={() => setQuery("")} aria-label="پاک کردن جستجو">
+                <X size={16} />
+              </button>
+            ) : null}
+          </label>
           <div className="cnChips">
             {contacts ? (
               <button type="button" className="cnChip is-primary" onClick={chooseContact}>
@@ -106,10 +127,6 @@ export function ConnectPage({ me = {}, onOpenProfile, onNotify }) {
                 از مخاطبین
               </button>
             ) : null}
-            <button type="button" className="cnChip" aria-expanded={showSearch} onClick={() => setSearchOpen((open) => !open)}>
-              <Search size={17} aria-hidden="true" />
-              جستجو
-            </button>
             <button type="button" className={`cnChip${contacts ? "" : " is-primary"}`} onClick={() => setSheet("scan")}>
               <ScanLine size={17} aria-hidden="true" />
               اسکن QR
@@ -119,26 +136,6 @@ export function ConnectPage({ me = {}, onOpenProfile, onNotify }) {
               کد من
             </button>
           </div>
-          {showSearch ? (
-            <label className="cnSearch">
-              <Search size={20} aria-hidden="true" />
-              <span className="srOnly">جستجو با شماره، اسم یا لینک</span>
-              <input
-                type="search"
-                inputMode="search"
-                enterKeyHint="search"
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="شماره، اسم یا لینک صفحه"
-                autoComplete="off"
-              />
-              {searching ? (
-                <button type="button" className="cnSearchClear" onClick={() => setQuery("")} aria-label="پاک کردن جستجو">
-                  <X size={16} />
-                </button>
-              ) : null}
-            </label>
-          ) : null}
         </div>
       </header>
 
@@ -169,7 +166,7 @@ export function ConnectPage({ me = {}, onOpenProfile, onNotify }) {
               <div className="cnEmpty">
                 <Mascot pose="search" size={130} />
                 <b>هنوز به سالن یا آرتیستی وصل نشدی</b>
-                <p>بالا پیدایش کن: از مخاطبین، با جستجو یا با اسکن کد.</p>
+                <p>اسم یا شماره‌اش را بالا بزن، یا اگر پیشش هستی کد QR او را اسکن کن. وصل که شدی، نوبت گرفتن یک ضربه است.</p>
               </div>
             ) : null}
             {connections.map((profile) => (

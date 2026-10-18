@@ -8,6 +8,17 @@ import { ConnectPage, OwnerScanButton } from "../../connect";
 import { ClientBookTabs } from "../../client";
 import { useHome } from "../HomeContext";
 
+/** What the customers page's «دعوت مشتری» needs: the owner's public page (its QR and link). */
+function ownerInvite(profile, onChanged) {
+  const path = profile?.type === "artist" ? "artists" : "salons";
+  return {
+    url: profile?.id && typeof window !== "undefined" ? `${window.location.origin}/${path}/${profile.id}` : "",
+    name: profile?.data?.name || "",
+    viewerType: profile?.type,
+    onChanged
+  };
+}
+
 export function ContentPages() {
   const [clientBookTab, setClientBookTab] = useState("mine"); // «رزرو» for a client: «سالن و آرتیست من» | «پیدا کردن»
   const {
@@ -67,6 +78,7 @@ export function ContentPages() {
     salonAppointmentList,
     artistBookingList,
     ownerFollowers,
+    refreshOwnerFollowers,
     selectedSalon,
     sharePost,
     recordPostView,
@@ -144,7 +156,8 @@ export function ContentPages() {
               active={activeTab === "customers"}
               bookings={salonAppointmentList}
               followers={ownerFollowers}
-              headerAction={<OwnerScanButton viewerType="salon" onChanged={() => refreshSalonSystemData?.()} />}
+              headerAction={<OwnerScanButton viewerType="salon" label="اسکن" onChanged={() => { refreshOwnerFollowers?.(); refreshSalonSystemData?.(); }} />}
+              invite={ownerInvite(createdProfile, () => { refreshOwnerFollowers?.(); refreshSalonSystemData?.(); })}
               onBookCustomer={openBookingSheet}
             />
           )}
@@ -155,7 +168,8 @@ export function ContentPages() {
               bookings={artistBookingList}
               followers={ownerFollowers}
               ownerLabel="شما"
-              headerAction={<OwnerScanButton viewerType="artist" onChanged={() => refreshArtistWorkspace?.()} />}
+              headerAction={<OwnerScanButton viewerType="artist" label="اسکن" onChanged={() => { refreshOwnerFollowers?.(); refreshArtistWorkspace?.(); }} />}
+              invite={ownerInvite(createdProfile, () => { refreshOwnerFollowers?.(); refreshArtistWorkspace?.(); })}
               onBookCustomer={openBookingSheet}
             />
           )}

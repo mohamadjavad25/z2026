@@ -5,6 +5,8 @@ import { usePostActivity } from "../posts";
 import { useOwnerFollowers, useSalonDirectory, useSalonWorkspace } from "../salons";
 import { useArtistWorkspace } from "../artist";
 import { apiFetch } from "../../shared/api/client";
+import { connectTo } from "../../shared/api/connections";
+import { parseOpenParam, peekPendingOpen, rememberPendingOpen, takePendingOpen } from "../../shared/lib/appHandoff";
 import { notify } from "../../shared/notice/noticeStore";
 import { pushNotificationsSupported, subscribeToPushNotifications } from "./homeAppHelpers";
 import { useHomeChrome } from "./useHomeChrome";
@@ -19,17 +21,42 @@ export function useHomeApp() {
   // hook in the tree, so it always wins the race against useAuthSession's
   // own mount effect below. useAuthSession's onAuthenticated callback reads
   // this same key once a session exists (login/register/already-booted).
+  // `?open=salon-12` (a public salon/artist page's «رزرو», shared/lib/appHandoff.js) is kept the same
+  // way, so the visitor lands on that place after signing up instead of an empty home.
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
     const joinSalonId = params.get("join");
-    if (!joinSalonId) return;
-    try {
-      window.localStorage.setItem("frfro_pending_join_salon", JSON.stringify({ id: joinSalonId, code: params.get("k") || "" }));
-    } catch {
-      // ignore — join just won't auto-fire post-login
+    const openTarget = parseOpenParam(params.get("open"));
+    if (!joinSalonId && !openTarget) return;
+    if (joinSalonId) {
+      try {
+        window.localStorage.setItem("frfro_pending_join_salon", JSON.stringify({ id: joinSalonId, code: params.get("k") || "" }));
+      } catch {
+        // ignore — join just won't auto-fire post-login
+      }
+    }
+    if (openTarget) {
+      // The public page may have stored the name already; a bare link (a desktop QR) has only the id.
+      const stored = peekPendingOpen();
+      rememberPendingOpen({ ...openTarget, name: stored?.id === openTarget.id ? stored.name : "" });
     }
     window.history.replaceState({}, "", window.location.pathname);
+  }, []);
+  // What a guest came for, so the sign-up screen can say it and skip the role picker
+  // (null, or { kind: "open", name } / { kind: "join" }); read once on mount, after the effect above.
+  const [arrivalIntent, setArrivalIntent] = useState(null);
+  useEffect(() => {
+    const target = peekPendingOpen();
+    if (target) {
+      setArrivalIntent({ kind: "open", name: target.name });
+      return;
+    }
+    try {
+      if (window.localStorage.getItem("frfro_pending_join_salon")) setArrivalIntent({ kind: "join" });
+    } catch {
+      // no pending join
+    }
   }, []);
   const refreshSavedPostsRef = useRef(null);
   const refreshArtistWorkspaceRef = useRef(null);
@@ -102,6 +129,29 @@ export function useHomeApp() {
     }
   }
 
+  // A client who came from a public page's «رزرو»: connect them to that place (it lands in
+  // «سالن و آرتیست من») and open its services menu. Salons and artists don't book, so it is dropped.
+  async function tryOpenPendingPlace(profile) {
+    if (typeof window === "undefined") return;
+    const target = takePendingOpen();
+    setArrivalIntent(null);
+    if (!target || profile?.type !== "client") return;
+    const c = authCascadeRef.current;
+    let place = { id: target.id, type: target.type, name: target.name };
+    try {
+      const { ok, payload } = await connectTo(target.id);
+      if (ok && payload?.data?.profile) {
+        place = payload.data.profile;
+        if (!payload.data.alreadyConnected) setAppToast(`«${place.name}» به «سالن و آرتیست من» اضافه شد.`);
+        c.refreshFollows?.();
+      }
+    } catch {
+      // the page still opens; connecting can be done there
+    }
+    if (place.type !== "artist") setActiveTab("salons");
+    c.openConnectedProfile?.(place, { services: [], label: "همه خدمات" });
+  }
+
   const {
     authChecked,
     createdProfile,
@@ -170,6 +220,7 @@ export function useHomeApp() {
         await tryJoinPendingSalon(profile);
       }
       if (source === "boot" && profile?.type === "client") await c.refreshClientBookings?.();
+      await tryOpenPendingPlace(profile);
       // Real push notifications (see app/lib/push.js) so a salon/artist/client
       // finds out about a new/expired request even when the app isn't open.
       // Only auto-(re)subscribe silently when permission is already granted;
@@ -205,6 +256,18 @@ export function useHomeApp() {
       resetLogoutUiGaps();
     }
   });
+
+  // A guest who came to book with a place or to join a salon's team goes straight to the right sign-up
+  // form (client / artist), not the role picker. Only once, and only for a fresh sign-up (a returning
+  // visitor sees the login form, which is right for them).
+  const arrivalFormShownRef = useRef(false);
+  useEffect(() => {
+    if (!authChecked || createdProfile || !arrivalIntent || arrivalFormShownRef.current) return;
+    arrivalFormShownRef.current = true;
+    if (authMode !== "signup") return;
+    setProfileType(arrivalIntent.kind === "join" ? "artist" : "client");
+    setSignupStep("form");
+  }, [authChecked, createdProfile, arrivalIntent, authMode, setProfileType, setSignupStep]);
 
   const {
     selectedPost,
@@ -645,13 +708,15 @@ export function useHomeApp() {
   });
 
   // Followers are contacts: the customers page lists them and its nav button shows a dot while new.
-  const { followers: ownerFollowers, unseenCount: unseenFollowerCount } = useOwnerFollowers({
+  const { followers: ownerFollowers, unseenCount: unseenFollowerCount, refreshFollowers: refreshOwnerFollowers } = useOwnerFollowers({
     enabled: createdProfile?.type === "salon" || createdProfile?.type === "artist",
     pageOpen: activeTab === "customers"
   });
 
   return {
+    arrivalIntent,
     ownerFollowers,
+    refreshOwnerFollowers,
     unseenFollowerCount,
     ...homeChromeState,
     ...homeWorkspacesState,

@@ -370,7 +370,7 @@ export function usePublicArtistProfile({
         const { ok, payload } = await toggleFollow({ targetUserId: artist.id });
         if (!ok) {
           applyFollowed(previousFollowed);
-          notify(payload?.error || "فالو در سرور ذخیره نشد.");
+          notify(payload?.error || "وصل شدن ذخیره نشد؛ دوباره امتحان کن.");
           return;
         }
         const followerCount = payload?.data?.followerCount ?? payload?.data?.follower_count;
@@ -383,14 +383,14 @@ export function usePublicArtistProfile({
         }
       } catch {
         applyFollowed(previousFollowed);
-        notify("فالو در سرور ذخیره نشد.");
+        notify("وصل شدن ذخیره نشد؛ دوباره امتحان کن.");
         return;
       }
     }
     notify(
       nextFollowed
-        ? `آرتیست «${artist.name}» را دنبال کردی.`
-        : `دنبال کردن «${artist.name}» لغو شد.`
+        ? `به «${artist.name}» وصل شدی؛ از «سالن و آرتیست من» نوبت بگیر.`
+        : `«${artist.name}» از لیستت برداشته شد.`
     );
   }, [followedArtists, setFollowedArtists, setFollowedSalons, notify]);
 

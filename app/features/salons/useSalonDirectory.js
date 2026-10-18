@@ -252,7 +252,7 @@ export function useSalonDirectory({
         follow: nextFollowed
       });
       if (!notifyFromResponse(notify, result, {
-        failure: "ذخیره فالو انجام نشد؛ دوباره امتحان کن."
+        failure: "وصل شدن ذخیره نشد؛ دوباره امتحان کن."
       })) {
         setFollowedSalons((items) => {
           if (previousFollowed) {
@@ -280,7 +280,7 @@ export function useSalonDirectory({
         }
         return items.filter((item) => item !== followKey);
       });
-      notify("ذخیره فالو انجام نشد؛ دوباره امتحان کن.");
+      notify("وصل شدن ذخیره نشد؛ دوباره امتحان کن.");
     }
   }, [followedSalons, notify]);
 

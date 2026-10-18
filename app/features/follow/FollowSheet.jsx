@@ -9,11 +9,12 @@ import { toLatinDigits } from "../../shared/lib/digits";
 import { validateLogin, validateSignup } from "../auth/formValidation";
 import { OtpCodeStep } from "../auth/OtpCodeStep";
 import { useOtpConfig, verifyCode } from "../auth/otp";
+import { openInAppHref, rememberPendingOpen } from "../../shared/lib/appHandoff";
 
 const EMPTY = { name: "", phone: "", password: "", agreeTerms: false };
 
 /**
- * The sheet a visitor sees after tapping «دنبال کردن» without an account: a short sign-up (name, phone,
+ * The sheet a visitor sees after tapping «وصل شو» without an account: a short sign-up (name, phone,
  * password, and the SMS code when the app asks for it) or a login, then the thank-you. `gate` comes from
  * useFollowGate.
  */
@@ -86,7 +87,7 @@ function AccountForm({ gate }) {
   return (
     <div className="fsBody">
       <p className="fsLead">
-        دنبال کردن یعنی از این به بعد با «{gate.targetName}» در ارتباطید. برای این کار یک حساب لازم است؛ فقط چند ثانیه.
+        با وصل شدن، «{gate.targetName}» به «سالن و آرتیست من» تو اضافه می‌شود و از همان‌جا با چند ضربه نوبت می‌گیری. فقط یک حساب لازم است؛ چند ثانیه.
       </p>
       <div className="fsModes" role="tablist" aria-label="حساب">
         <button type="button" role="tab" aria-selected={isSignup} className={isSignup ? "is-on" : ""} onClick={() => switchMode("signup")}>حساب جدید</button>
@@ -143,7 +144,7 @@ function AccountForm({ gate }) {
           </div>
         ) : null}
         <p className="fsConsent">
-          با دنبال کردن، نام و شماره‌ات برای «{gate.targetName}» نمایش داده می‌شود تا بتوانند با تو در ارتباط باشند. رمز عبورت فقط پیش خودت می‌ماند.
+          با وصل شدن، نام و شماره‌ات برای «{gate.targetName}» نمایش داده می‌شود تا بتوانند با تو در ارتباط باشند. رمز عبورت فقط پیش خودت می‌ماند.
         </p>
         {formError ? <p className="fsError" role="alert">{formError}</p> : null}
         {codeStep ? (
@@ -151,7 +152,7 @@ function AccountForm({ gate }) {
             phone={toLatinDigits(form.phone.trim())}
             purpose="register"
             resendSeconds={otp.resendSeconds}
-            submitLabel="تأیید و دنبال کردن"
+            submitLabel="تأیید و وصل شدن"
             busy={busy}
             onEditPhone={() => setCodeStep(false)}
             onSubmit={async (code) => {
@@ -170,8 +171,8 @@ function AccountForm({ gate }) {
             {busy
               ? "چند لحظه…"
               : isSignup
-                ? (otp.required ? "ادامه و تأیید شماره" : "ساخت حساب و دنبال کردن")
-                : "ورود و دنبال کردن"}
+                ? (otp.required ? "ادامه و تأیید شماره" : "ساخت حساب و وصل شدن")
+                : "ورود و وصل شدن"}
           </button>
         )}
       </form>
@@ -183,14 +184,20 @@ function DoneBody({ gate, onClose }) {
   return (
     <div className="fsDone" role="status">
       <span className="fsDoneMark" aria-hidden="true"><Check size={34} strokeWidth={3} /></span>
-      <h3>«{gate.targetName}» را دنبال کردی</h3>
+      <h3>به «{gate.targetName}» وصل شدی</h3>
       <p>
-        از حالا با هم در ارتباطید و خبرها و پیشنهادهایش به دستت می‌رسد.
+        از حالا در «سالن و آرتیست من» توست و از همان‌جا با چند ضربه نوبت می‌گیری.
         {gate.justCreated ? " حسابت هم ساخته شد؛ هر وقت خواستی می‌توانی پروفایلت را کامل کنی." : ""}
       </p>
       <div className="fsDoneActions">
-        <button type="button" className="fsSubmit" onClick={onClose}>ادامهٔ دیدن صفحه</button>
-        <a className="fsGhost" href="/">رفتن به پروفایل من</a>
+        <a
+          className="fsSubmit"
+          href={openInAppHref(gate.targetType, gate.targetId)}
+          onClick={() => rememberPendingOpen({ type: gate.targetType, id: gate.targetId, name: gate.targetName })}
+        >
+          همین حالا نوبت بگیر
+        </a>
+        <button type="button" className="fsGhost" onClick={onClose}>ادامهٔ دیدن صفحه</button>
       </div>
     </div>
   );
@@ -202,7 +209,7 @@ export function FollowSheet({ gate }) {
     <>
       <ProfileSheet
         open={open}
-        kicker={gate.sheet === "done" ? "انجام شد" : "دنبال کردن"}
+        kicker={gate.sheet === "done" ? "انجام شد" : "وصل شدن"}
         title={gate.sheet === "done" ? "خوش آمدی" : gate.targetName}
         panelClassName="fsSheet"
         onClose={gate.closeSheet}
