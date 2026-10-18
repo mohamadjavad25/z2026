@@ -15,8 +15,40 @@ import { LargeScreenGate } from "./features/landing/LargeScreenGate";
 // app/robots.js read the same variable, with the same placeholder fallback,
 // so canonical URLs / sitemap entries / robots.txt can never drift apart.
 const SITE_URL = getSiteUrl();
-const HOME_TITLE = "frfro | شبکه اجتماعی زیبایی بانوان";
-const HOME_DESCRIPTION = "کشف آرایشگاه، نمونه‌کار واقعی، مشاوره زیبایی و رزرو برای بانوان.";
+// The brand is searched both as «فرفرو» and as "frfro", so the home title, description and
+// structured data carry both spellings: that is what makes a search for either one land here.
+const HOME_TITLE = "فرفرو (frfro) | شبکه اجتماعی زیبایی بانوان";
+const HOME_DESCRIPTION = "فرفرو (frfro): کشف آرایشگاه و آرتیست زیبایی، نمونه‌کار واقعی، مشاوره زیبایی و رزرو آنلاین نوبت برای بانوان.";
+
+// Search-engine ownership tags. Set in Vercel; empty means no tag (DNS verification works too).
+const GOOGLE_VERIFICATION = process.env.FRFRO_GOOGLE_SITE_VERIFICATION || undefined;
+const BING_VERIFICATION = process.env.FRFRO_BING_SITE_VERIFICATION || undefined;
+
+// WebSite + Organization structured data: Google takes the name it shows above the result
+// ("site name") from here, and alternateName ties both spellings and both domains to this site.
+const SITE_JSON_LD = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": `${SITE_URL}/#website`,
+      url: `${SITE_URL}/`,
+      name: "فرفرو",
+      alternateName: ["frfro", "فرفرو (frfro)", "frfro.ir", "فرفرو.ir"],
+      inLanguage: "fa-IR",
+      publisher: { "@id": `${SITE_URL}/#organization` }
+    },
+    {
+      "@type": "Organization",
+      "@id": `${SITE_URL}/#organization`,
+      url: `${SITE_URL}/`,
+      name: "فرفرو",
+      alternateName: "frfro",
+      logo: `${SITE_URL}/icons/icon-512.png`,
+      email: "support@frfro.ir"
+    }
+  ]
+};
 
 // interactiveWidget: "resizes-content" tells the browser to resize the
 // actual layout viewport (not just the visual one) when the on-screen
@@ -47,6 +79,12 @@ export const metadata = {
   metadataBase: new URL(SITE_URL),
   title: HOME_TITLE,
   description: HOME_DESCRIPTION,
+  applicationName: "فرفرو",
+  keywords: ["فرفرو", "frfro", "فرفرو.ir", "frfro.ir", "اپ فرفرو", "رزرو آرایشگاه", "سالن زیبایی", "آرتیست زیبایی", "نوبت آرایشگاه"],
+  verification: {
+    google: GOOGLE_VERIFICATION,
+    other: BING_VERIFICATION ? { "msvalidate.01": BING_VERIFICATION } : undefined
+  },
   // The homepage itself was missing alternates.canonical and openGraph —
   // every /salons, /artists detail page already has both (see their
   // generateMetadata), but the root route had neither, so shared links to
@@ -58,9 +96,10 @@ export const metadata = {
     title: HOME_TITLE,
     description: HOME_DESCRIPTION,
     url: "/",
-    siteName: "frfro",
+    siteName: "فرفرو (frfro)",
     locale: "fa_IR",
-    type: "website"
+    type: "website",
+    images: [{ url: "/icons/icon-512.png", width: 512, height: 512, alt: "فرفرو" }]
   }
 };
 
@@ -92,6 +131,10 @@ try {
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="frfro" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(SITE_JSON_LD).replace(/</g, "\\u003c") }}
+        />
       </head>
       <body>
         <PbdqInspector />

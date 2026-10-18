@@ -164,7 +164,7 @@ export async function AppLanding() {
   return (
     <main className="appLanding" dir="rtl">
       <header className="appLanding__nav">
-        <Link href="/download" className="appLanding__brand" aria-label="frfro">
+        <Link href="/download" className="appLanding__brand" aria-label="فرفرو (frfro)">
           <img src="/icons/icon-192.png" alt="" width="36" height="36" />
           <span>فرفرو</span>
         </Link>
@@ -181,7 +181,7 @@ export async function AppLanding() {
         <div className="appLanding__aurora" aria-hidden="true" />
         <div className="appLanding__heroInner">
           <div className="appLanding__heroText">
-            <p className="appLanding__eyebrow"><span aria-hidden="true" /> شبکهٔ اجتماعی زیبایی بانوان</p>
+            <p className="appLanding__eyebrow"><span aria-hidden="true" /> فرفرو · شبکهٔ اجتماعی زیبایی بانوان</p>
             <h1>
               رزرو کن،
               <br />
@@ -330,7 +330,7 @@ export async function AppLanding() {
       <footer className="appLanding__footer">
         <div className="appLanding__footerInner">
           <div>
-            <strong>فرفرو</strong>
+            <strong>فرفرو <bdi>frfro</bdi></strong>
             <span>پشتیبانی: <a href="mailto:support@frfro.ir">support@frfro.ir</a></span>
           </div>
           <nav aria-label="پیوندهای پایین صفحه">
