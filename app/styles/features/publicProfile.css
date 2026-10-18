@@ -55,17 +55,13 @@
 .sduDim { position: fixed; inset: 0; z-index: 58; padding: 0; border: 0; background: rgb(var(--ink-rgb) / 0.38); cursor: default; animation: sduDim 0.25s ease-out both; }
 .sduPanel { position: fixed; z-index: 59; right: 12px; left: 12px; bottom: calc(82px + env(safe-area-inset-bottom)); max-width: 520px; margin-inline: auto; overflow: hidden; border-radius: 28px; background: var(--n-0); color: var(--n-900); box-shadow: 0 24px 60px -12px rgb(var(--shadow-rgb) / 0.45), 0 0 0 1px rgb(var(--shadow-rgb) / 0.04); transform-origin: 50% 100%; animation: sduDrop 0.62s cubic-bezier(0.2, 0.8, 0.25, 1) both; }
 .sduInner { display: flex; flex-direction: column; max-height: calc(100dvh - 82px - 96px - env(safe-area-inset-bottom) - env(safe-area-inset-top)); animation: sduFade 0.62s ease-out both; }
-.sduHead { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 18px 10px; }
-.sduHead > div { display: grid; gap: 1px; }
-.sduHead b { font-size: 1.05rem; font-weight: 900; }
-.sduHead small { color: var(--n-600); font-size: 0.74rem; font-weight: 700; }
-.sduClose { width: 36px; height: 36px; flex: none; display: grid; place-items: center; border: 0; border-radius: 50%; background: var(--n-100); color: var(--n-900); cursor: pointer; }
-.sduTabs { display: flex; gap: 8px; padding: 2px 18px 12px; overflow-x: auto; scrollbar-width: none; }
+.sduTabs { display: flex; gap: 8px; padding: 16px 18px 12px; overflow-x: auto; scrollbar-width: none; }
 .sduTabs::-webkit-scrollbar { display: none; }
 .sduTabs button { flex: none; height: 36px; padding: 0 14px; border: 0; border-radius: 999px; background: var(--n-100); color: var(--n-700); font: inherit; font-size: 0.8rem; font-weight: 800; white-space: nowrap; cursor: pointer; }
 .sduTabs button.is-active { background: var(--fill-strong); color: var(--n-0); }
 .sduList { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 0 12px 12px; display: grid; align-content: start; gap: 6px; border-top: 1px solid var(--n-100); scrollbar-width: none; }
 .sduList::-webkit-scrollbar { display: none; }
+.sduList:first-child { border-top: 0; padding-top: 6px; }
 .sduGroup { display: grid; gap: 4px; padding-top: 10px; }
 .sduGroupHead { display: flex; align-items: center; gap: 8px; padding: 0 6px 2px; color: var(--n-600); font-size: 0.74rem; font-weight: 900; }
 .sduGroupHead i { flex: 1; height: 1px; background: var(--n-100); }
@@ -85,10 +81,10 @@
 .sduConfirm { width: 100%; min-height: 52px; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 0 12px; border: 0; border-radius: 18px; background: var(--fill-strong); color: var(--n-0); font: inherit; font-size: 0.92rem; font-weight: 900; cursor: pointer; box-shadow: 0 12px 24px -10px rgb(var(--shadow-rgb) / 0.5); }
 .sduConfirm small { padding-inline-start: 10px; border-inline-start: 1px solid rgb(var(--paper-rgb) / 0.24); color: rgb(var(--paper-rgb) / 0.8); font-size: 0.8rem; font-weight: 800; }
 .sduConfirm:disabled { background: var(--n-100); color: var(--n-500); box-shadow: none; cursor: default; }
-.sduEmpty { display: grid; justify-items: center; gap: 6px; padding: 18px 18px 24px; text-align: center; }
+.sduEmpty { display: grid; justify-items: center; gap: 6px; padding: 24px 18px; text-align: center; }
 .sduEmpty b { font-size: 0.92rem; font-weight: 900; }
 .sduEmpty span { color: var(--n-600); font-size: 0.78rem; font-weight: 700; line-height: 1.8; }
-.sduItem:focus-visible, .sduTabs button:focus-visible, .sduClose:focus-visible, .sduConfirm:focus-visible { outline: 3px solid var(--n-900); outline-offset: 2px; }
+.sduItem:focus-visible, .sduTabs button:focus-visible, .sduConfirm:focus-visible { outline: 3px solid var(--n-900); outline-offset: 2px; }
 
 @keyframes sduDrop {
   0% { opacity: 0; transform: translateY(30px) scale(0.32, 0.14); border-radius: 40px; }
