@@ -1,3 +1,4 @@
+import "./styles/fonts.css";
 import "./styles.css";
 import Script from "next/script";
 import PbdqInspector from "./components/PbdqInspector.jsx";
@@ -121,9 +122,8 @@ try {
   if (window.matchMedia("(display-mode: standalone)").matches || navigator.standalone || localStorage.getItem("frfro-entered") === "1") root.classList.add("skip-landing");
 } catch (e) {}
 })();` }} />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@500;700;800;900&family=Lalezar&family=Playfair+Display:wght@500;600&display=swap" rel="stylesheet" />
+        {/* The Persian text face, served from this site (styles/fonts.css): fetched early so the first paint uses it. */}
+        <link rel="preload" href="/fonts/vazirmatn-arabic-wght-normal.woff2" as="font" type="font/woff2" crossOrigin="" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#f3f2f8" />
         <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
@@ -137,7 +137,8 @@ try {
         />
       </head>
       <body>
-        <PbdqInspector />
+        {/* Element picker for the local design preview tool; never shipped to visitors. */}
+        {process.env.NODE_ENV === "development" ? <PbdqInspector /> : null}
         <ViewportHeightFix />
         <PortraitLock />
         <ClientErrorReporter />

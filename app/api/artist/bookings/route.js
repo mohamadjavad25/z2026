@@ -4,6 +4,7 @@ import { error, json, validateBody, withErrorHandling } from "../../../lib/http.
 import * as artists from "../../../lib/db/repos/artists.js";
 import * as salons from "../../../lib/db/repos/salons.js";
 import { checkRateLimit } from "../../../lib/rateLimit.js";
+import { smsNewBookingRequest } from "../../../lib/bookingSms.js";
 import { sendPushToUser } from "../../../lib/push.js";
 import { createBookingSchema } from "../../../lib/validation/booking.js";
 import { createArtistBooking } from "../../../lib/artistBookingCreate.js";
@@ -71,6 +72,15 @@ async function _POST(request) {
       title: "درخواست نوبت جدید",
       body: `${result.booking.client || result.booking.client_name || "مشتری"} — ${result.booking.service || ""}`.trim()
     });
+    // A request waiting for the artist's answer must reach them in time, even where push does not.
+    if (result.booking.status !== "تایید شده") {
+      smsNewBookingRequest(artistUserId, {
+        client: result.booking.client || result.booking.client_name,
+        service: result.booking.service,
+        bookingDate: result.booking.booking_date || result.booking.bookingDate,
+        time: result.booking.time
+      });
+    }
   }
 
   return json({

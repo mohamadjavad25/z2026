@@ -3,6 +3,7 @@ import { isValidIranMobile, normalizePhone } from "../../../../lib/auth.js";
 import { ensureDb } from "../../../../lib/db/connection.js";
 import * as users from "../../../../lib/db/repos/users.js";
 import { otpConfig, sendOtp } from "../../../../lib/otp.js";
+import { checkIpRateLimit } from "../../../../lib/rateLimit.js";
 
 export const runtime = "nodejs";
 
@@ -16,6 +17,12 @@ async function _POST(request) {
   const purpose = body.purpose === "reset" ? "reset" : body.purpose === "register" ? "register" : "";
   if (!purpose) return error("نوع درخواست نامعتبر است.", 400);
   if (!isValidIranMobile(phone)) return error("شماره موبایل معتبر وارد کن؛ مثلاً ۰۹۱۲۳۴۵۶۷۸۹.", 400);
+
+  // One address may not burn through the hourly SMS budget everyone shares (otp.js), which would close
+  // sign-up and password reset for every visitor.
+  if (!(await checkIpRateLimit(request, "otp-send", 10, 60 * 60 * 1000)).ok) {
+    return error("درخواست کد زیاد بود. کمی بعد دوباره امتحان کن.", 429);
+  }
 
   const existing = await users.getUserByPhone(phone);
   if (purpose === "register" && existing) return error("این شماره قبلاً ثبت شده است؛ وارد شو.", 409);

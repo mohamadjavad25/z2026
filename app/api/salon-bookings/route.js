@@ -17,6 +17,7 @@ import { AWAITING_CLIENT } from "../../shared/lib/bookingOffer.js";
 import { createSalonBooking } from "../../lib/salonBookingCreate.js";
 import { requestedServiceNames, validFallbackSalon } from "../../lib/bookingFallback.js";
 import { BOOKING_REQUEST_WINDOW_MINUTES } from "../../shared/lib/bookingWindow.js";
+import { smsBookingAnswer, smsNewBookingRequest } from "../../lib/bookingSms.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -136,6 +137,7 @@ async function _POST(request) {
       title: "درخواست رزرو جدید",
       body: `${client} — ${service} · ${time}`
     });
+    smsNewBookingRequest(salonUserId, { client, service, bookingDate: result.booking.booking_date, time });
   }
 
   return noStoreJson({
@@ -261,6 +263,12 @@ async function _PATCH(request) {
       void sendPushToUser(bookingClientUserId, {
         title: patch.status === "تایید شده" ? "نوبت شما تایید شد" : "نوبت شما لغو شد",
         body: `${result.booking.service || "نوبت"} — ${result.booking.booking_date || ""} ${result.booking.time || ""}`.trim()
+      });
+      smsBookingAnswer(bookingClientUserId, {
+        providerName: auth.user.name,
+        bookingDate: result.booking.booking_date,
+        time: result.booking.time,
+        confirmed: patch.status === "تایید شده"
       });
     }
   }

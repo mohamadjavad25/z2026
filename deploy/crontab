@@ -1,0 +1,7 @@
+# The scheduled jobs (they used to run from GitHub Actions). Install as the frfro user: `crontab deploy/crontab`
+# after replacing the path. scripts/cron-call.sh reads CRON_SECRET from /srv/frfro/.env and calls the app locally.
+*/5 * * * *  /srv/frfro/app/scripts/cron-call.sh expire-bookings
+*/10 * * * * /srv/frfro/app/scripts/cron-call.sh send-reminders
+17 * * * *   /srv/frfro/app/scripts/cron-call.sh billing
+# Nightly database backup at 03:30 Tehran time (server clock in Asia/Tehran), keeping 14 days.
+30 3 * * *   /srv/frfro/app/scripts/backup-db.sh

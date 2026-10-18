@@ -632,7 +632,7 @@ export async function listSalonBookings(salonUserId) {
 export async function listClientSalonBookings(user) {
   await ensureBookingPartsColumns();
   const db = await getDb();
-  const match = clientBookingMatch(user, { phoneCol: "phone", nameCol: "client" });
+  const match = clientBookingMatch(user);
   if (!match.sql) return [];
   // The backup salon's name, and for a request that was moved, the salon it went to / came from.
   const rows = await all(db, `
@@ -947,7 +947,7 @@ function withClientConsent(current, data) {
  */
 async function findClientOwnBooking(db, id, client) {
   const user = typeof client === "object" && client ? client : { id: client };
-  const match = clientBookingMatch(user, { alias: "b", phoneCol: "phone", nameCol: "client", startAt: 2 });
+  const match = clientBookingMatch(user, { alias: "b", startAt: 2 });
   if (!match.sql) return null;
   return get(db, `SELECT b.* FROM salon_bookings b WHERE b.id = $1 AND ${match.sql}`, [id, ...match.params]);
 }

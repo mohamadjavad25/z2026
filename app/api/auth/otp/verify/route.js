@@ -2,6 +2,7 @@ import { error, json, withErrorHandling } from "../../../../lib/http.js";
 import { isValidIranMobile, normalizeDigits, normalizePhone } from "../../../../lib/auth.js";
 import { ensureDb } from "../../../../lib/db/connection.js";
 import { createOtpProof, otpConfig, verifyOtp } from "../../../../lib/otp.js";
+import { checkIpRateLimit } from "../../../../lib/rateLimit.js";
 
 export const runtime = "nodejs";
 
@@ -13,6 +14,8 @@ async function _POST(request) {
   const phone = normalizePhone(body.phone || "");
   const code = normalizeDigits(String(body.code || "")).trim();
   if (!isValidIranMobile(phone) || !/^\d{5}$/.test(code)) return error("کد ۵رقمی را درست وارد کن.", 400);
+  // Guessing codes across many phones from one address (the per-phone limit is in verifyOtp).
+  if (!(await checkIpRateLimit(request, "otp-verify", 30, 15 * 60 * 1000)).ok) return error("تلاش زیاد بود. چند دقیقه بعد دوباره امتحان کن.", 429);
   const result = await verifyOtp(phone, "register", code);
   if (!result.ok) {
     if (result.code === "rate_limited") return error("تلاش زیاد بود. چند دقیقه بعد دوباره امتحان کن.", 429);
