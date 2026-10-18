@@ -21,7 +21,7 @@ const NOT_FOUND = {
 /**
  * What happens after a client taps a category («ناخن», «مو»…) and more than one of their salons/artists
  * does it, or none does:
- *  - several: pick one (each shows which of its services match);
+ *  - several: pick one (each shows which of its services match; the one last booked for this is first and tagged);
  *  - none: connect someone, by phone/name/link or QR, and if they aren't on frfro, invite them.
  * One match never gets here: the page opens it directly.
  *
@@ -91,7 +91,7 @@ export function CategorySheet({ category, matches = [], hasConnections = false, 
                 <button type="button" className="cnPickMain" onClick={() => onOpen?.(profile, profile.services || [])} aria-label={`رزرو از ${profile.name}`}>
                   <ConnectionAvatar profile={profile} size={46} />
                   <span className="cnPickText">
-                    <b>{profile.name}</b>
+                    <b>{profile.name}{profile.lastUsed ? <em className="cnPickTag">آخرین بار</em> : null}</b>
                     <small>{(profile.services || []).slice(0, 3).join(" · ")}</small>
                   </span>
                 </button>
