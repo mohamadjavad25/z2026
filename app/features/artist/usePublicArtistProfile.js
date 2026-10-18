@@ -190,7 +190,8 @@ export function usePublicArtistProfile({
     }
   }, [applyPublicArtistPayload, setFollowedArtists, onBeforeOpen]);
 
-  const confirmPublicArtistBooking = useCallback(async () => {
+  // `waitMinutes`: how long the request waits for the artist (60, or null = until the appointment).
+  const confirmPublicArtistBooking = useCallback(async ({ waitMinutes } = {}) => {
     if (!selectedPublicArtist) return;
     if (publicArtistBookingBusyRef.current) return;
     const service = (publicArtistBundle?.id === publicArtistSelectedServiceId ? publicArtistBundle : null)
@@ -235,7 +236,8 @@ export function usePublicArtistProfile({
         time: publicArtistBookingSlot,
         durationMinutes,
         clientName: createdProfile?.data?.name || "",
-        clientPhone: createdProfile?.data?.phone || ""
+        clientPhone: createdProfile?.data?.phone || "",
+        ...(waitMinutes !== undefined ? { waitMinutes } : {})
       });
       if (!ok) {
         if (payload?.code === "SLOT_TAKEN" || status === 409) {

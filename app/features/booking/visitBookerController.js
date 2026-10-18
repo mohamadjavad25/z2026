@@ -13,6 +13,8 @@ import {
  *    of the calendar should look again instead of trusting it
  * `source.loadPlan({ day, time, services, staff })` → { ok, data } (data: the preview endpoint's answer);
  *    leave it out and the plan is the services one after another (the independent artist's case).
+ * `source.loadBackups({ day, time, services })` → { ok, salons: [{ id, name, area, avatar }] } (client only,
+ *    optional): the salons that could take this request if the first one does not answer within the hour.
  * `submit(body)` → { ok, status, payload }
  *
  * State is replaced, never changed, so a UI can subscribe to it (useSyncExternalStore).
@@ -37,6 +39,8 @@ export function createVisitBookerController({
   });
   let times = { status: "idle", list: [], note: "" };
   let plan = { status: "idle", parts: [], message: "", code: "", partIndex: -1 };
+  let backups = { status: "idle", list: [] };
+  let backupsRequest = 0;
   let submitting = false;
   let done = false;
   let tried = false;
@@ -51,6 +55,7 @@ export function createVisitBookerController({
 
   const list = () => pickedServices(model.selected, services);
   const hasPlanSource = typeof source.loadPlan === "function";
+  const hasBackupSource = role === "client" && typeof source.loadBackups === "function";
 
   function build() {
     const picked = list();
@@ -64,6 +69,7 @@ export function createVisitBookerController({
       picked,
       times,
       plan: effectivePlan,
+      backups,
       readiness: ready,
       submitting,
       done,
@@ -141,6 +147,33 @@ export function createVisitBookerController({
     resetPlan();
     emit();
     if (model.time) void refreshPlan();
+    void refreshBackups();
+  }
+
+  /** The backup salons for the chosen services and time, asked for only once the client picks the hour.
+   *  A backup that is no longer among them is let go. */
+  async function refreshBackups() {
+    const picked = list();
+    const request = ++backupsRequest;
+    if (!hasBackupSource || model.wait !== "hour" || !model.time || !picked.length) {
+      backups = { status: "idle", list: [] };
+      if (model.backup && model.wait === "hour") model = { ...model, backup: "" };
+      emit();
+      return;
+    }
+    backups = { status: "loading", list: backups.list };
+    emit();
+    let answer;
+    try {
+      answer = await source.loadBackups({ day: model.day, time: model.time, services: visitQuery(model, picked).services });
+    } catch {
+      answer = { ok: false };
+    }
+    if (disposed || request !== backupsRequest) return;
+    const found = answer?.ok && Array.isArray(answer.salons) ? answer.salons : [];
+    backups = { status: "ready", list: found };
+    if (model.backup && !found.some((salon) => String(salon.id) === String(model.backup))) model = { ...model, backup: "" };
+    emit();
   }
 
   function resetPlan() {
@@ -199,6 +232,7 @@ export function createVisitBookerController({
       disposed = true;
       timesRequest += 1;
       planRequest += 1;
+      backupsRequest += 1;
     },
 
     toggleService(key) {
@@ -228,6 +262,22 @@ export function createVisitBookerController({
       resetPlan();
       emit();
       void refreshPlan();
+      void refreshBackups();
+    },
+    /** The client's choice: "open" (wait until the appointment) or "hour". */
+    setWait(wait) {
+      if (role !== "client" || submitting || done || !["open", "hour"].includes(wait) || wait === model.wait) return;
+      model = { ...model, wait };
+      emit();
+      void refreshBackups();
+    },
+    /** The backup salon's id ("" = none). Only one the server offered may be picked. */
+    setBackup(id) {
+      if (role !== "client" || submitting || done) return;
+      const value = id ? String(id) : "";
+      if (value && !backups.list.some((salon) => String(salon.id) === value)) return;
+      model = { ...model, backup: value };
+      emit();
     },
     setName(name) {
       model = { ...model, name: String(name ?? "") };
@@ -266,7 +316,11 @@ export function createVisitBookerController({
       emit();
       let result;
       try {
-        result = await submit(buildSubmitBody(role, model, state.picked, state.plan.parts));
+        const body = buildSubmitBody(role, model, state.picked, state.plan.parts);
+        // The backup's name rides along for the screen that follows (the server reads only the id).
+        const backupSalon = body.fallbackSalonUserId ? backups.list.find((salon) => String(salon.id) === String(body.fallbackSalonUserId)) : null;
+        if (backupSalon) body.fallbackSalonName = backupSalon.name;
+        result = await submit(body);
       } catch {
         result = { ok: false, status: 0, payload: {} };
       }

@@ -13,6 +13,8 @@ import { isPublicArtistSlotBlocked } from "./bookingUtils";
 import { PublicArtistBookingPanel } from "./PublicArtistBookingPanel";
 import { PublicArtistGalleryPanel } from "./PublicArtistGalleryPanel";
 import { ProfileSheet } from "../profile/ProfileSheet";
+import { WaitChoice } from "../booking/WaitChoice";
+import { BOOKING_WAIT_CHOICES } from "../../shared/lib/bookingWindow";
 import { useEffect, useState } from "react";
 
 // Same decorative cover the artist's own panel shows until a poster is uploaded.
@@ -53,6 +55,8 @@ export function PublicArtistModal({
   onEditProfile
 }) {
   const [bookingPopup, setBookingPopup] = useState(false);
+  // How long the request waits for the artist: until the appointment (default) or an hour.
+  const [wait, setWait] = useState("open");
   const [servicesOpen, setServicesOpen] = useState(false);
   // Several services picked together: one service-shaped bundle (shared/lib/serviceBundle).
   const [bundle, setBundle] = useState(null);
@@ -217,6 +221,7 @@ export function PublicArtistModal({
                   }}
                   onSlotChange={onBookingSlotChange}
                 />
+                {bookingSlot && !guest ? <WaitChoice value={wait} onChange={setWait} who="آرتیست" /> : null}
                 {guest ? (
                   <p className="artistBookingPhoneWarning is-info">
                     برای ثبت نوبت باید وارد frfro شوی. بعد از ورود، رزرو را از پروفایل همین آرتیست ادامه بده.
@@ -237,7 +242,7 @@ export function PublicArtistModal({
                   disabled={bookingBusy || !bookingSlot || (!guest && !clientPhone)}
                   onClick={() => {
                     if (bookingBusy || !bookingSlot || (!guest && !clientPhone)) return;
-                    onConfirmBooking();
+                    onConfirmBooking({ waitMinutes: BOOKING_WAIT_CHOICES[wait] });
                     setBookingPopup(false);
                   }}
                 >

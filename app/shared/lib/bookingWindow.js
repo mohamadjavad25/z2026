@@ -17,6 +17,25 @@ import { getTehranClockMinutes, timeLabelToMinutes, toIsoLikeTimestamp } from ".
 export const BOOKING_REQUEST_WINDOW_MINUTES = 60;
 export const BOOKING_REQUEST_LEAD_MINUTES = 30;
 
+/**
+ * The client chooses the window when sending (user's decision 2026-10-18): «فقط ۱ ساعت» (WINDOW
+ * minutes, after which the request expires, or moves to the salon they picked as a backup) or
+ * «تا هر وقت» (no window: the request waits until its appointment starts, and the client cancels it
+ * themselves if it takes too long). Stored per booking as `wait_minutes` (NULL = no window).
+ */
+export const BOOKING_WAIT_CHOICES = { hour: BOOKING_REQUEST_WINDOW_MINUTES, open: null };
+
+/**
+ * The window one booking request carries: minutes, or null when it waits until its appointment.
+ * A row from before the choice existed has no `wait_minutes` at all and keeps the old hour.
+ */
+export function bookingWaitMinutes(booking) {
+  const raw = booking?.wait_minutes !== undefined ? booking.wait_minutes : booking?.waitMinutes;
+  if (raw === undefined) return BOOKING_REQUEST_WINDOW_MINUTES;
+  const minutes = Number(raw);
+  return raw !== null && raw !== "" && Number.isFinite(minutes) && minutes > 0 ? minutes : null;
+}
+
 /** Minutes from `now` until the slot starts (negative once started). `null` when the day/time can't be read. */
 export function minutesUntilSlotStart(day, time, now = new Date()) {
   // An empty day would read as "today" below; here it means "unknown".
@@ -38,13 +57,14 @@ export function isTooSoonToRequest(day, time, now = new Date(), leadMinutes = BO
 /**
  * Minutes an unanswered request has left (rounded; 0 or less = no longer answerable), or `null`
  * when nothing can be worked out. `day`/`time` are the appointment's, both optional: without them
- * only the response window counts.
+ * only the response window counts. `windowMinutes: null` is a request with no window (it waits
+ * until its appointment starts).
  */
 export function requestMinutesLeft(createdAt, day, time, { now = new Date(), windowMinutes = BOOKING_REQUEST_WINDOW_MINUTES } = {}) {
   let left = null;
   const iso = toIsoLikeTimestamp(createdAt);
   const created = iso ? new Date(iso).getTime() : NaN;
-  if (Number.isFinite(created)) left = Math.round((created + windowMinutes * 60000 - now.getTime()) / 60000);
+  if (windowMinutes !== null && Number.isFinite(created)) left = Math.round((created + windowMinutes * 60000 - now.getTime()) / 60000);
   const untilSlot = minutesUntilSlotStart(day, time, now);
   if (untilSlot !== null && Number.isFinite(untilSlot)) left = left === null ? untilSlot : Math.min(left, untilSlot);
   else if (untilSlot === -Infinity) left = Math.min(left ?? 0, 0);
@@ -59,7 +79,7 @@ export function requestDeadlineLabel(createdAt, day, time, { now = new Date(), w
   if (left === null) return "";
   const iso = toIsoLikeTimestamp(createdAt);
   const created = iso ? new Date(iso).getTime() : NaN;
-  const byWindow = Number.isFinite(created) ? created + windowMinutes * 60000 : Infinity;
+  const byWindow = windowMinutes !== null && Number.isFinite(created) ? created + windowMinutes * 60000 : Infinity;
   const untilSlot = minutesUntilSlotStart(day, time, now);
   const bySlot = untilSlot !== null && Number.isFinite(untilSlot) ? now.getTime() + untilSlot * 60000 : Infinity;
   const deadline = Math.min(byWindow, bySlot);

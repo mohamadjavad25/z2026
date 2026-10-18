@@ -718,6 +718,10 @@ export async function addArtistBookingInTx(artistUserId, data, runner = null) {
   if (data.salonBookingId) {
     await run(db, "UPDATE artist_bookings SET salon_booking_id = $1 WHERE id = $2", [Number(data.salonBookingId), Number(info.rows[0].id)]);
   }
+  // How long a client's request waits (60, or null = until its appointment; column made the same way).
+  if (data.waitMinutes !== undefined) {
+    await run(db, "UPDATE artist_bookings SET wait_minutes = $1 WHERE id = $2", [data.waitMinutes, Number(info.rows[0].id)]);
+  }
   return {
     ok: true,
     booking: await get(db, "SELECT * FROM artist_bookings WHERE id = $1", [Number(info.rows[0].id)])

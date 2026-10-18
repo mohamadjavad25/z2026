@@ -6,12 +6,13 @@ import { getUserFromRequest } from "../../../lib/auth.js";
 import { ensureDb } from "../../../lib/db/connection.js";
 import { error, json, validateBody, withErrorHandling } from "../../../lib/http.js";
 import * as artists from "../../../lib/db/repos/artists.js";
+import * as salons from "../../../lib/db/repos/salons.js";
 import { checkRateLimit } from "../../../lib/rateLimit.js";
 import { sendPushToUser } from "../../../lib/push.js";
 import * as userSettings from "../../../lib/db/repos/userSettings.js";
 import { createBookingSchema } from "../../../lib/validation/booking.js";
 import { onlineBookingBlock } from "../../../lib/billing/access.js";
-// Side-effect import: starts the once-per-process 1-hour booking-request
+// Side-effect import: starts the once-per-process booking-request
 // auto-expiry sweep (see that file's docstring) the first time this route
 // module loads — same self-starting-on-import convention as
 // app/lib/rateLimit.js's sweep, and the exact same import POST /api/salon-bookings
@@ -80,8 +81,13 @@ async function _POST(request) {
     if (listed?.duration) durationMinutes = parseServiceDurationMinutes(listed.duration);
   }
   durationMinutes = durationMinutes > 0 ? Math.min(720, Math.max(15, durationMinutes)) : undefined;
+  // A client's request waits as long as they chose: an hour, or until the appointment (null).
+  await salons.ensureBookingColumns();
+  const waitMinutes = !isOwner && v.data.waitMinutes !== undefined ? v.data.waitMinutes : undefined;
   const result = await artists.addArtistBooking(artistUserId, {
     ...v.data,
+    waitMinutes,
+    fallbackSalonUserId: undefined,
     durationMinutes,
     duration_minutes: undefined,
     // `duration` (text) would be read when no number is given; the number above is the only length.

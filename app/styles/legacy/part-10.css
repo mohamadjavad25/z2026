@@ -1434,6 +1434,12 @@
   color: var(--danger);
 }
 
+/* The client chose to wait until the appointment: nothing is running out yet. */
+.requestExpiryBadge.is-calm {
+  background: var(--n-50);
+  color: var(--n-700);
+}
+
 .scheduleBookingReviewActions .requestExpiryBadge {
   grid-column: 1 / -1;
   justify-self: center;

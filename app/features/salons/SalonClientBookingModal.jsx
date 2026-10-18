@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { VisitBooker } from "../booking/VisitBooker";
 import { normalizeServices } from "../booking/visitBookerModel";
-import { getSalonVisitPreview, getSalonVisitTimes } from "../../shared/api/salons";
+import { getSalonFallbacks, getSalonVisitPreview, getSalonVisitTimes } from "../../shared/api/salons";
 import { serviceKey } from "../../shared/lib/serviceBundle";
 import { buildExactBookingDateTabs } from "../artist/bookingUtils";
 import { findSalonHourForDateKey, isSalonHourOpen } from "../../shared/lib/salonAvailability";
@@ -38,6 +38,11 @@ export function SalonClientBookingModal({ open, salon, booking, onClose, onSubmi
     loadPlan: async ({ day, time, services: list }) => {
       const { ok, data } = await getSalonVisitPreview(salonUserId, day, time, list);
       return { ok, data };
+    },
+    // Followed salons that could take the same visit if this one doesn't answer within the hour.
+    loadBackups: async ({ day, time, services: list }) => {
+      const { ok, data } = await getSalonFallbacks(salonUserId, day, time, list);
+      return { ok, salons: data?.salons };
     }
   };
   return (

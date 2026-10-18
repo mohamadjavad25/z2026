@@ -345,7 +345,7 @@ export const ScheduleRow = memo(function ScheduleRow({
     <div className="bkGroup">
       {row}
       <div className="bkReview">
-        <RequestExpiryBadge createdAt={review.createdAt} day={review.day} time={review.time} />
+        <RequestExpiryBadge createdAt={review.createdAt} day={review.day} time={review.time} waitMinutes={review.waitMinutes} />
         <div className="bkReviewActions">
           <button type="button" className="is-approve" disabled={review.disabled || review.approveDisabled} onClick={review.onApprove}>
             <Check size={15} aria-hidden="true" />

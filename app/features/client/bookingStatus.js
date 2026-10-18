@@ -1,6 +1,6 @@
 import { resolveRollingPersianDate } from "../../shared/lib/persianCalendar";
 import { AWAITING_CLIENT } from "../../shared/lib/bookingOffer";
-import { minutesUntilSlotStart } from "../../shared/lib/bookingWindow";
+import { bookingWaitMinutes, minutesUntilSlotStart, requestDeadlineLabel } from "../../shared/lib/bookingWindow";
 import { scheduleBookingParts } from "../../shared/lib/bookingParts";
 import { getTehranClockMinutes, normalizeBookingTimeLabel, timeLabelToMinutes } from "../../shared/lib/time";
 
@@ -85,4 +85,28 @@ export function bookingEndLabel(booking) {
 /** One booking across both tables (ids are per table): source + id. */
 export function clientBookingKey(booking) {
   return `${booking?.bookingSource === "artist" ? "artist" : "salon"}-${booking?.id}`;
+}
+
+/**
+ * One plain sentence about how long a waiting request has, for the client: by when the salon /
+ * artist answers and what happens if they don't (cancelled, or sent to the backup salon), or for a
+ * request with no window, that it waits until the appointment and the client may cancel it. "" when
+ * the request isn't waiting or nothing can be said.
+ */
+export function requestWaitNote(booking, now = new Date()) {
+  if (!["درخواست", "تازه"].includes(booking?.status)) return "";
+  const who = booking.bookingSource === "artist" ? "آرتیست" : "سالن";
+  const windowMinutes = bookingWaitMinutes(booking);
+  if (windowMinutes === null) return `${who} تا قبل از نوبت وقت دارد جواب بدهد. اگر دیر شد، خودت لغوش کن.`;
+  const deadline = requestDeadlineLabel(booking.created_at || booking.createdAt, booking.booking_date || booking.date, booking.time, { now, windowMinutes });
+  if (!deadline) return "";
+  const backup = booking.fallback_salon_name || "";
+  return backup
+    ? `${who} تا ساعت ${deadline} جواب می‌دهد؛ وگرنه می‌رود برای ${backup}.`
+    : `${who} تا ساعت ${deadline} جواب می‌دهد؛ وگرنه لغو می‌شود.`;
+}
+
+/** For a request that went unanswered and was sent on to the client's backup salon: that salon's name. */
+export function movedToSalonName(booking) {
+  return booking?.moved_to_booking_id ? booking.moved_to_salon_name || "سالن دوم" : "";
 }
