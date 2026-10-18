@@ -29,7 +29,7 @@ let partsColumnsReady;
 /**
  * salon_bookings.parts and artist_bookings.salon_booking_id (migration 029) and the previous
  * time of a booking waiting on its client (migration 030), and the client's chosen response window
- * and backup salon (migration 036), also added on first use so the features work before the
+ * and backup salon (migration 038), also added on first use so the features work before the
  * migrations are run.
  */
 export function ensureBookingPartsColumns() {

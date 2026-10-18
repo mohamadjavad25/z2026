@@ -731,7 +731,7 @@ export async function addArtistBookingInTx(artistUserId, data, runner = null) {
     await run(db, "UPDATE artist_bookings SET salon_booking_id = $1 WHERE id = $2", [Number(data.salonBookingId), Number(info.rows[0].id)]);
   }
   // How long a client's request waits (60, or null = until its appointment), its backup artist and the
-  // request it was moved from (columns made the same way, migration 036).
+  // request it was moved from (columns made the same way, migration 038).
   if (data.waitMinutes !== undefined || data.fallbackArtistUserId || data.movedFromBookingId) {
     await run(db, `
       UPDATE artist_bookings SET wait_minutes = $1, fallback_artist_user_id = $2, moved_from_booking_id = $3 WHERE id = $4
