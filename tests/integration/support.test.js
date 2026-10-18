@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { adminClient, createClient, registerUser, uniquePhone } from "./helpers.js";
-import { TEST_ADMIN_PHONE } from "../globalSetup.js";
+import { TEST_ADMIN_PHONE, TEST_BASE_URL } from "../globalSetup.js";
 
 const PNG = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
 const LONG = "پیام آزمایشی برای پشتیبانی که از ده حرف بیشتر است.";
@@ -264,5 +264,88 @@ describe("conversations (user and admin talk in one thread)", () => {
     expect(found.tickets.some((row) => row.subject === "عنوان جستجوشدنی منحصربه‌فرد")).toBe(true);
     expect((await admin.get("/api/admin/search?q=ab")).payload.data).toEqual({ users: [], posts: [], tickets: [] });
     expect((await createClient().get("/api/admin/search?q=abcdef")).status).toBe(403);
+  });
+});
+
+// The smallest recordings a browser could make: a WebM header (Chrome/Android) and an MP4 "ftyp" box (Safari), padded.
+const WEBM = `data:audio/webm;codecs=opus;base64,${Buffer.concat([Buffer.from([0x1a, 0x45, 0xdf, 0xa3]), Buffer.alloc(600, 1)]).toString("base64")}`;
+const MP4 = `data:audio/mp4;base64,${Buffer.concat([Buffer.from([0, 0, 0, 0x20]), Buffer.from("ftypM4A "), Buffer.alloc(600, 2)]).toString("base64")}`;
+const raw = (path, cookie, headers = {}) => fetch(`${TEST_BASE_URL}${path}`, { headers: { ...(cookie ? { Cookie: cookie } : {}), ...headers } });
+
+describe("pictures and voice notes in support", () => {
+  it("a user sends a picture and a voice note; only they and the admin can open them", async () => {
+    const user = createClient();
+    await registerUser(user, { type: "client", name: "عکس‌فرست" });
+    // A screenshot alone is enough to open a ticket (no 10-letter minimum then).
+    const opened = await user.post("/api/support", { category: "bug", message: "", attachments: [{ kind: "image", data: PNG }] });
+    expect(opened.status).toBe(201);
+    const id = opened.payload.data.id;
+    expect((await user.post(`/api/support/tickets/${id}`, { attachments: [{ kind: "voice", data: WEBM, durationMs: 4200 }] })).status).toBe(201);
+    expect((await user.post(`/api/support/tickets/${id}`, { message: "و این هم از آیفون", attachments: [{ kind: "voice", data: MP4, durationMs: 1500 }] })).status).toBe(201);
+
+    const thread = await user.get(`/api/support/tickets/${id}`);
+    const [first, second, third] = thread.payload.data.messages;
+    expect(first.body).toBe("");
+    expect(first.attachments).toEqual([expect.objectContaining({ kind: "image" })]);
+    expect(second.attachments).toEqual([expect.objectContaining({ kind: "voice", duration_ms: 4200 })]);
+    expect(third.body).toBe("و این هم از آیفون");
+    const list = await user.get("/api/support/tickets");
+    expect(list.payload.data.tickets.find((ticket) => ticket.id === id).last_body).toBe("و این هم از آیفون");
+
+    // Served with the type its bytes really have, never shared-cached.
+    const picture = await raw(`/api/support/attachments/${first.attachments[0].id}`, user.cookie());
+    expect(picture.status).toBe(200);
+    expect(picture.headers.get("content-type")).toBe("image/png");
+    expect(picture.headers.get("cache-control")).toMatch(/^private/);
+    expect(picture.headers.get("x-content-type-options")).toBe("nosniff");
+    expect(Buffer.from(await picture.arrayBuffer()).equals(Buffer.from(PNG.split(",")[1], "base64"))).toBe(true);
+    const voice = await raw(`/api/support/attachments/${second.attachments[0].id}`, user.cookie());
+    expect(voice.headers.get("content-type")).toBe("audio/webm");
+    expect((await raw(`/api/support/attachments/${third.attachments[0].id}`, user.cookie())).headers.get("content-type")).toBe("audio/mp4");
+
+    // Safari asks for byte ranges before it plays audio.
+    const part = await raw(`/api/support/attachments/${second.attachments[0].id}`, user.cookie(), { Range: "bytes=0-3" });
+    expect(part.status).toBe(206);
+    expect(part.headers.get("content-range")).toBe("bytes 0-3/604");
+    expect([...Buffer.from(await part.arrayBuffer())]).toEqual([0x1a, 0x45, 0xdf, 0xa3]);
+
+    // Someone else, or nobody, sees nothing; the admin sees it.
+    const stranger = createClient();
+    await registerUser(stranger, { type: "client", name: "غریبه" });
+    expect((await raw(`/api/support/attachments/${first.attachments[0].id}`, stranger.cookie())).status).toBe(404);
+    expect((await raw(`/api/support/attachments/${first.attachments[0].id}`)).status).toBe(404);
+    const admin = await adminClient();
+    expect((await raw(`/api/support/attachments/${first.attachments[0].id}`, admin.cookie())).status).toBe(200);
+    const detail = await admin.get(`/api/admin/support/${id}`);
+    expect(detail.payload.data.messages[1].attachments[0].kind).toBe("voice");
+  });
+
+  it("the admin can answer with a picture, and the user can open it", async () => {
+    const user = createClient();
+    await registerUser(user, { type: "client", name: "منتظر عکس" });
+    const id = (await user.post("/api/support", { message: LONG })).payload.data.id;
+    const admin = await adminClient();
+    expect((await admin.post(`/api/admin/support/${id}`, { reply: "", attachments: [{ kind: "image", data: PNG }] })).status).toBe(200);
+    const list = await user.get("/api/support/tickets");
+    expect(list.payload.data.tickets.find((ticket) => ticket.id === id)).toMatchObject({ unread: true, last_body: "🖼 عکس" });
+    const thread = await user.get(`/api/support/tickets/${id}`);
+    const answer = thread.payload.data.messages.at(-1);
+    expect(answer.author).toBe("admin");
+    expect((await raw(`/api/support/attachments/${answer.attachments[0].id}`, user.cookie())).status).toBe(200);
+  });
+
+  it("refuses files that are not what they claim, too many pictures, and a voice note mixed with pictures", async () => {
+    const user = createClient();
+    await registerUser(user, { type: "client", name: "فایل‌فرست" });
+    const id = (await user.post("/api/support", { message: LONG })).payload.data.id;
+    const html = `data:image/png;base64,${Buffer.from("<html><script>alert(1)</script></html>").toString("base64")}`;
+    expect((await user.post(`/api/support/tickets/${id}`, { attachments: [{ kind: "image", data: html }] })).status).toBe(400);
+    expect((await user.post(`/api/support/tickets/${id}`, { attachments: [{ kind: "voice", data: PNG }] })).status).toBe(400);
+    expect((await user.post(`/api/support/tickets/${id}`, { attachments: Array.from({ length: 5 }, () => ({ kind: "image", data: PNG })) })).status).toBe(400);
+    expect((await user.post(`/api/support/tickets/${id}`, { attachments: [{ kind: "image", data: PNG }, { kind: "voice", data: WEBM }] })).status).toBe(400);
+    expect((await user.post(`/api/support/tickets/${id}`, { attachments: "nope" })).status).toBe(400);
+    expect((await user.post(`/api/support/tickets/${id}`, { attachments: [] })).status).toBe(400); // nothing to send
+    const thread = await user.get(`/api/support/tickets/${id}`);
+    expect(thread.payload.data.messages).toHaveLength(1);
   });
 });

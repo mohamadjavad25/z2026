@@ -2,11 +2,13 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { ChevronRight, Flag, MessageSquarePlus, Send, X } from "lucide-react";
+import { Check, ChevronRight, Clock3, Flag, MessageSquarePlus, X } from "lucide-react";
 import { apiFetch } from "../../shared/api/client";
 import { SupportIcon } from "./SupportIcon";
 import { notifySupportRead } from "./supportEvents";
 import { useBackHandler } from "../../shared/hooks/useBackHandler";
+import { MessageAttachments } from "./Attachments";
+import { AttachmentField, Composer } from "./Composer";
 
 const CATEGORIES = [
   ["question", "سؤال"],
@@ -106,9 +108,8 @@ function TicketList({ onOpen, onNew }) {
 
 function Thread({ id }) {
   const [data, setData] = useState(null);
-  const [text, setText] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
+  // Messages on their way: shown at once (with a clock) so sending a picture or a voice note never feels stuck.
+  const [pending, setPending] = useState([]);
   const endRef = useRef(null);
 
   const load = useCallback(async (silent = false) => {
@@ -122,22 +123,29 @@ function Thread({ id }) {
     const timer = setInterval(() => load(true), 15_000);
     return () => clearInterval(timer);
   }, [load]);
-  const count = data?.messages?.length || 0;
+  const count = (data?.messages?.length || 0) + pending.length;
   useEffect(() => {
-    endRef.current?.scrollIntoView({ block: "end" });
+    endRef.current?.scrollIntoView({ block: "end", behavior: "smooth" });
   }, [count]);
 
-  async function send(event) {
-    event.preventDefault();
-    const message = text.trim();
-    if (!message || busy) return;
-    setBusy(true);
-    setError("");
-    const { ok, payload } = await apiFetch(`/api/support/tickets/${id}`, { method: "POST", body: JSON.stringify({ message }) });
-    setBusy(false);
-    if (!ok) return setError(payload.error || "ارسال نشد. دوباره امتحان کن.");
-    setText("");
-    await load(true);
+  async function send({ message, attachments }) {
+    const key = `p${Date.now()}`;
+    const preview = attachments.map((item) => (item.kind === "image" ? { kind: "image", src: item.data } : { kind: "voice", durationMs: item.durationMs, pending: true }));
+    setPending((prev) => [...prev, { key, body: message, attachments: preview }]);
+    let result;
+    try {
+      result = await apiFetch(`/api/support/tickets/${id}`, { method: "POST", body: JSON.stringify({ message, attachments }) });
+    } catch {
+      result = { ok: false, payload: { error: "اتصال برقرار نشد. اینترنتت را بررسی کن." } };
+    }
+    if (result.ok) await load(true);
+    setPending((prev) => prev.filter((item) => item.key !== key));
+    if (!result.ok) {
+      setData((prev) => ({ ...prev, sendError: result.payload.error || "ارسال نشد. دوباره امتحان کن." }));
+      return false;
+    }
+    setData((prev) => ({ ...prev, sendError: "" }));
+    return true;
   }
 
   if (!data) return <div className="scBody"><p className="scMuted">در حال بارگذاری…</p></div>;
@@ -152,13 +160,32 @@ function Thread({ id }) {
           <StatePill ticket={ticket} />
         </div>
         {ticket.kind === "report" ? <p className="scInfo">گزارش تو ثبت شد و بررسی می‌شود. هر خبری باشد همین‌جا می‌نویسیم.{ticket.category ? ` (دلیل: ${REASON_LABEL[ticket.category] || ticket.category})` : ""}</p> : null}
-        {messages.map((message, index) => (
-          <div key={message.id}>
-            {index === 0 || !sameDay(messages[index - 1].created_at, message.created_at) ? <p className="scDay">{dayName(message.created_at)}</p> : null}
-            <div className={`scMsg is-${message.author}`}>
-              {message.author === "admin" ? <small className="scWho">پشتیبانی فرفرو</small> : null}
-              <p>{message.body}</p>
-              <time dateTime={message.created_at}>{clock(message.created_at)}</time>
+        {messages.map((message, index) => {
+          const previous = messages[index - 1];
+          const newDay = index === 0 || !sameDay(previous.created_at, message.created_at);
+          const grouped = !newDay && previous.author === message.author;
+          const media = message.attachments?.length ? (message.attachments.some((item) => item.kind === "voice") ? " has-voice" : " has-images") : "";
+          return (
+            <div key={message.id} className={grouped ? "scGroup is-grouped" : "scGroup"}>
+              {newDay ? <p className="scDay">{dayName(message.created_at)}</p> : null}
+              <div className={`scMsg is-${message.author}${media}`}>
+                {message.author === "admin" && !grouped ? <small className="scWho"><SupportIcon size={13} /> پشتیبانی فرفرو</small> : null}
+                <MessageAttachments items={message.attachments} />
+                {message.body ? <p>{message.body}</p> : null}
+                <time dateTime={message.created_at}>
+                  {clock(message.created_at)}
+                  {message.author === "user" ? <Check size={12} aria-label="فرستاده شد" /> : null}
+                </time>
+              </div>
+            </div>
+          );
+        })}
+        {pending.map((item) => (
+          <div key={item.key} className="scGroup">
+            <div className={`scMsg is-user is-pending${item.attachments.length ? " has-images" : ""}`}>
+              {item.attachments.some((file) => file.kind === "voice") ? <p>🎤 پیام صوتی</p> : <MessageAttachments items={item.attachments} />}
+              {item.body ? <p>{item.body}</p> : null}
+              <time><Clock3 size={12} aria-hidden="true" /> در حال ارسال</time>
             </div>
           </div>
         ))}
@@ -166,29 +193,8 @@ function Thread({ id }) {
         {closed ? <p className="scInfo">این گفتگو بسته شده. اگر پیام بدهی دوباره باز می‌شود.</p> : null}
         <div ref={endRef} />
       </div>
-      <form className="scComposer" onSubmit={send}>
-        {error ? <p className="scError" role="alert">{error}</p> : null}
-        <div className="scComposerRow">
-          <textarea
-            rows={1}
-            value={text}
-            maxLength={2000}
-            placeholder={closed ? "پیام بده تا دوباره باز شود…" : "پیامت را بنویس…"}
-            aria-label="پیام"
-            onChange={(event) => {
-              setText(event.target.value);
-              event.target.style.height = "auto";
-              event.target.style.height = `${Math.min(event.target.scrollHeight, 130)}px`;
-            }}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) send(event);
-            }}
-          />
-          <button type="submit" className="scSend" disabled={busy || !text.trim()} aria-label="ارسال">
-            <Send size={19} aria-hidden="true" />
-          </button>
-        </div>
-      </form>
+      {data.sendError ? <p className="scError scThreadError" role="alert">{data.sendError}</p> : null}
+      <Composer placeholder={closed ? "پیام بده تا دوباره باز شود…" : "پیامت را بنویس…"} onSend={send} />
     </>
   );
 }
@@ -197,6 +203,7 @@ function NewTicket({ onCreated }) {
   const [category, setCategory] = useState("question");
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
+  const [attachments, setAttachments] = useState([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -204,7 +211,7 @@ function NewTicket({ onCreated }) {
     event.preventDefault();
     setBusy(true);
     setError("");
-    const { ok, payload } = await apiFetch("/api/support", { method: "POST", body: JSON.stringify({ category, subject, message }) });
+    const { ok, payload } = await apiFetch("/api/support", { method: "POST", body: JSON.stringify({ category, subject, message, attachments }) }).catch(() => ({ ok: false, payload: { error: "اتصال برقرار نشد. اینترنتت را بررسی کن." } }));
     setBusy(false);
     if (ok) onCreated(payload.data.id);
     else setError(payload.error || "ارسال نشد. دوباره امتحان کن.");
@@ -223,10 +230,11 @@ function NewTicket({ onCreated }) {
       </label>
       <label className="scField">
         <span>پیامت</span>
-        <textarea rows={6} value={message} maxLength={2000} required minLength={10} onChange={(event) => setMessage(event.target.value)} placeholder="مشکل یا سؤالت را بنویس…" />
+        <textarea rows={5} value={message} maxLength={2000} onChange={(event) => setMessage(event.target.value)} placeholder="مشکل یا سؤالت را بنویس… اگر راحت‌تری، عکس صفحه یا پیام صوتی بفرست." />
       </label>
+      <AttachmentField value={attachments} onChange={setAttachments} />
       {error ? <p className="scError" role="alert">{error}</p> : null}
-      <button type="submit" className="scPrimary" disabled={busy || message.trim().length < 10}>{busy ? "در حال ارسال…" : "ارسال پیام"}</button>
+      <button type="submit" className="scPrimary" disabled={busy || (!attachments.length && message.trim().length < 10)}>{busy ? "در حال ارسال…" : "ارسال پیام"}</button>
     </form>
   );
 }

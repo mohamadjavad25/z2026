@@ -34,6 +34,8 @@ function buildCsp() {
     "font-src": ["'self'", "https://fonts.gstatic.com"],
     "img-src": ["'self'", "data:", "https://*.tile.openstreetmap.org"],
     "connect-src": ["'self'", "https://nominatim.openstreetmap.org"],
+    // blob:: a voice note just recorded in the support chat plays back before it is sent.
+    "media-src": ["'self'", "blob:"],
     "worker-src": ["'self'"],
     "manifest-src": ["'self'"],
     "object-src": ["'none'"],
@@ -57,7 +59,8 @@ const securityHeaders = [
   // (ProfileLocationSettings.jsx) uses navigator.geolocation.
   // camera=(self): the QR scanner (components/QrScanner.jsx) in «سالن و آرتیست من»
   // and the customers page. With camera=() the browser refused without even asking.
-  { key: "Permissions-Policy", value: "geolocation=(self), camera=(self), microphone=()" }
+  // microphone=(self): voice notes in the support chat (features/support/VoiceRecorder.js).
+  { key: "Permissions-Policy", value: "geolocation=(self), camera=(self), microphone=(self)" }
 ];
 
 if (process.env.NODE_ENV === "production") {

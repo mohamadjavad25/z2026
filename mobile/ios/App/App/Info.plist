@@ -55,6 +55,8 @@
 	<string>برای اسکن کد QR سالن و گرفتن عکس نمونه‌کار</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>برای انتخاب عکس نمونه‌کار و عکس پروفایل</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>برای فرستادن پیام صوتی به پشتیبانی فرفرو</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>برای پیدا کردن سالن‌های نزدیک و ثبت محل سالن</string>
 	<key>UISupportedInterfaceOrientations</key>
