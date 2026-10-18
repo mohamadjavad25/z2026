@@ -21,7 +21,9 @@ export {
   updateSalonStaff,
   deleteSalonStaff,
   getSalonOwnerStaff,
-  upsertSalonOwnerStaff
+  upsertSalonOwnerStaff,
+  getSalonOwnerProfile,
+  getSalonOwnerPhoto
 } from "./salons/staff.js";
 export {
   listSalonArtistInvites,
