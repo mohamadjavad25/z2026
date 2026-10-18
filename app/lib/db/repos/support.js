@@ -11,7 +11,7 @@ export const TICKET_STATUSES = ["open", "in_progress", "closed"];
  * `user_read_at` marks when the owner last opened it, so "you have a reply" is simply admin-wrote-last and newer than that.
  */
 let ready;
-/** Creates / upgrades the tables on first use (same DDL as migrations 024, 025 + 036, idempotent): no manual database step on deploy. */
+/** Creates / upgrades the tables on first use (same DDL as migrations 024, 025 + 038, idempotent): no manual database step on deploy. */
 export function ensureSupportTables() {
   ready ??= (async () => {
     const db = await getDb();
