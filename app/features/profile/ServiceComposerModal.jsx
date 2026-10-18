@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { ArrowRight, Check, Plus, Search, Timer, Trash2 } from "lucide-react";
 import { ServiceEmoji } from "../../components/ServiceEmoji";
 import { ServiceIcon } from "../../components/ServiceIcon";
@@ -19,9 +20,10 @@ const DURATION_CHIPS = ["۱۵ دقیقه", "۳۰ دقیقه", "۴۵ دقیقه",
 /**
  * Shared artist + salon service create/edit page.
  *
- * A full-screen page, not a floating sheet: the sheet's own layers (entry animation, dim backdrop,
- * rounded clip, inner scroll box) were what left static/clipped bands on some Android phones (see
- * docs/DEVLOG.md). It appears instantly, and the phone's back button closes it like any page.
+ * An ordinary page, not an overlay: it is rendered into <body>, the app under it is hidden while it
+ * is open (html.has-svc-page, styles in services.css) and the window scrolls it. As a fixed layer
+ * with its own scroll box over the live app it left static bands on some Android phones (six
+ * reports, see docs/DEVLOG.md). It appears instantly, and the phone's back button closes it.
  *
  * Two tabs: a searchable catalog of ready-made services (tap one to open it
  * pre-filled in the editor, or hit + to add it as-is) and the editor itself,
@@ -100,7 +102,33 @@ export function ServiceComposerModal({
   }, [open, mode, draft?.id]);
 
   // The phone's back button closes the page and returns to where the owner was.
-  useBackHandler(Boolean(open && draft), onClose);
+  const isShown = Boolean(open && draft);
+  useBackHandler(isShown, onClose);
+
+  // Hide the app underneath and start the page at the top; on close, put the owner back where they were.
+  useLayoutEffect(() => {
+    if (!isShown) return undefined;
+    const root = document.documentElement;
+    const scrollY = window.scrollY;
+    // The back-button history entry (useBackHandler) is added while the page is at the top, so the
+    // browser's own restore would drop the owner at the top of their profile when it is popped.
+    window.history.scrollRestoration = "manual";
+    root.classList.add("has-svc-page");
+    window.scrollTo({ top: 0, behavior: "instant" });
+    return () => {
+      root.classList.remove("has-svc-page");
+      window.scrollTo({ top: scrollY, behavior: "instant" });
+      // Hand restoration back once the history entry is gone (popped now or within a moment),
+      // unless the page was opened again meanwhile.
+      window.setTimeout(() => {
+        if (!root.classList.contains("has-svc-page")) window.history.scrollRestoration = "auto";
+      }, 1000);
+    };
+  }, [isShown]);
+  // Catalog and editor are two views of one page: switching starts the new one at the top.
+  useLayoutEffect(() => {
+    if (isShown) window.scrollTo({ top: 0, behavior: "instant" });
+  }, [isShown, mode]);
 
   if (!open || !draft) return null;
 
@@ -122,7 +150,7 @@ export function ServiceComposerModal({
   const hasName = Boolean(draft.name.trim());
   const addedCount = addedNames.size;
 
-  return (
+  return createPortal(
     <div
       className="svcPage"
       role="dialog"
@@ -417,6 +445,7 @@ export function ServiceComposerModal({
           setPickerOpen(false);
         }}
       />
-    </div>
+    </div>,
+    document.body
   );
 }

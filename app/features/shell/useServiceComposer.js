@@ -111,8 +111,9 @@ export function useServiceComposer({
         ? await upsertSalonOwnerService(body)
         : await upsertArtistOwnerService(body);
       if (!ok) return;
-      // Keep the catalog open so several services can be added in one go.
-      notify(`خدمت «${service.name}» اضافه شد.`);
+      // Keep the catalog open so several services can be added in one go. No toast: the card turns
+      // «اضافه شده» and the done bar counts it, and a sliding toast over the list was one more layer
+      // in the Android static-band bug (docs/DEVLOG.md).
     } catch {
       notify("افزودن خدمت انجام نشد.");
     }
