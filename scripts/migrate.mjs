@@ -103,7 +103,14 @@ function withSsl(connString) {
   return url.toString();
 }
 
+// Every Vercel deploy, previews of unmerged branches included, migrates the one shared database, and
+// several branches are built at once. So the database can hold a migration from another branch that
+// this branch doesn't have yet, and node-pg-migrate's default order check (which compares the run list
+// and the local files position by position) then fails every other branch's build. "up" still runs
+// only the local files not run yet, in name order; migrations from different branches must not depend
+// on each other (each one only adds its own columns/tables, IF NOT EXISTS), so the check is off for "up".
 const args = process.argv.slice(2);
+if (args[0] === "up" && !args.some((arg) => arg.includes("check-order"))) args.push("--no-check-order");
 const result = spawnSync("node-pg-migrate", args, {
   stdio: "inherit",
   env: { ...process.env, DATABASE_URL: withSsl(rawConnectionString) }
