@@ -47,9 +47,10 @@ export function SalonScheduleDashboard({
       createdAt: request.createdAt,
       day: request.date,
       time: request.time,
+      waitMinutes: request.waitMinutes,
       busy: String(requestBusyId) === `reservation:${request.id}`,
       disabled: Boolean(requestBusyId),
-      approveDisabled: (requestMinutesLeft(request.createdAt, request.date, request.time) ?? 1) <= 0,
+      approveDisabled: (requestMinutesLeft(request.createdAt, request.date, request.time, { windowMinutes: request.waitMinutes }) ?? 1) <= 0,
       onApprove: () => onApproveRequest?.(request.id, { bookingDateForSlots }),
       onDecline: () => onDeclineRequest?.(request.id)
     };

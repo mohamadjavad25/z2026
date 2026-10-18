@@ -34,6 +34,17 @@ export async function getSalonVisitTimes(salonUserId, day, services) {
 }
 
 /**
+ * GET /api/salon-bookings/fallbacks → { salons: [{ id, name, area, avatar }] }
+ * Salons the client follows that do every one of these services and are free at that day and time:
+ * the backup choices for a request that gets only an hour. `services`: names or { name }.
+ */
+export async function getSalonFallbacks(salonUserId, day, time, services) {
+  const query = new URLSearchParams({ salonUserId: String(salonUserId), day: String(day || ""), time: String(time || "") });
+  for (const service of services) query.append("service", typeof service === "string" ? service : service.name);
+  return apiJson(`/api/salon-bookings/fallbacks?${query}`);
+}
+
+/**
  * GET /api/salon-bookings/preview → { ok, code?, message?, partIndex?, durationMinutes, end, parts: [{ service, minutes, start, end, staff }] }
  * Who would do what, and when, if this visit were booked at `time` (the same checks the booking itself
  * runs). `services`: { name, minutes }, in order; `staff`: the salon's own pick per service, same order

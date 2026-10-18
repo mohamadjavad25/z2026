@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   BOOKING_REQUEST_LEAD_MINUTES,
+  bookingWaitMinutes,
   isTooSoonToRequest,
   minutesUntilSlotStart,
   requestDeadlineLabel,
@@ -74,5 +75,19 @@ describe("requestRemainingShare", () => {
   it("uses the shortened wait when the slot is close", () => {
     // sent 09:50 for a 10:10 slot: the whole wait is 20 minutes, 10 are left.
     expect(requestRemainingShare(sentAt(10), today, "10:10", { now })).toBeCloseTo(0.5, 2);
+  });
+});
+
+describe("a request with no window (the client waits until the appointment)", () => {
+  it("has only the slot start as its limit", () => {
+    expect(requestMinutesLeft(sentAt(120), today, "11:00", { now, windowMinutes: null })).toBe(60);
+    expect(requestDeadlineLabel(sentAt(120), today, "11:00", { now, windowMinutes: null })).toBe("۱۱:۰۰");
+    expect(requestMinutesLeft(sentAt(120), tomorrow, "11:00", { now, windowMinutes: null })).toBeNull();
+  });
+  it("reads the window from the booking, old rows keeping the hour", () => {
+    expect(bookingWaitMinutes({ wait_minutes: null })).toBeNull();
+    expect(bookingWaitMinutes({ wait_minutes: 60 })).toBe(60);
+    expect(bookingWaitMinutes({ waitMinutes: null })).toBeNull();
+    expect(bookingWaitMinutes({})).toBe(60);
   });
 });

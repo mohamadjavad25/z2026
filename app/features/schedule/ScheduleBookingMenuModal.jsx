@@ -25,7 +25,8 @@ import { formatRelativeBookingDayLabel, isPersianDateKey } from "../../shared/li
 import { SegmentClock } from "../../components/SegmentClock";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { normalizeBookingTimeLabel } from "../../shared/lib/time";
-import { requestDeadlineLabel, requestMinutesLeft } from "../../shared/lib/bookingWindow";
+import { bookingWaitMinutes, requestMinutesLeft } from "../../shared/lib/bookingWindow";
+import { RequestExpiryBadge } from "./RequestExpiryBadge";
 import { isMultiPartBooking, parseBookingParts, scheduleBookingParts } from "../../shared/lib/bookingParts";
 import { ArtistOptionList, BookingPartsEditor } from "./BookingPartsEditor";
 import { getSalonBookingMoveTimes, getSalonBookingStaffOptions } from "../../shared/api/salons";
@@ -299,8 +300,8 @@ export function ScheduleBookingMenuModal({
   const StatusIcon = BOOKING_STATUS_ICONS[statusTone];
   const currentStaff = multiPart ? parsedParts.map((part) => part.staff) : [String(booking.staff || "").trim()];
   const createdAt = booking.createdAt || booking.created_at || "";
-  const minutesLeft = requestMinutesLeft(createdAt, dateValue, booking.time);
-  const deadline = requestDeadlineLabel(createdAt, dateValue, booking.time);
+  const waitMinutes = bookingWaitMinutes(booking);
+  const minutesLeft = requestMinutesLeft(createdAt, dateValue, booking.time, { windowMinutes: waitMinutes });
   const showReview = isPendingReview && !readOnly;
   const timeView = view === "time";
 
@@ -483,12 +484,7 @@ export function ScheduleBookingMenuModal({
       <footer className="sbmFoot">
         {showReview && !timeView ? (
           <div className="scheduleBookingReviewActions">
-            {minutesLeft !== null && deadline ? (
-              <span className={`requestExpiryBadge ${minutesLeft <= 15 ? "is-urgent" : ""}`}>
-                <Timer size={12} aria-hidden="true" />
-                {minutesLeft > 0 ? `تا ساعت ${deadline} تایید کن` : "زمان تایید تمام شده"}
-              </span>
-            ) : null}
+            <RequestExpiryBadge createdAt={createdAt} day={dateValue} time={booking.time} waitMinutes={waitMinutes} />
             <button type="button" className="is-approve" disabled={actionDisabled || (minutesLeft !== null && minutesLeft <= 0)} onClick={onApprove}>
               <Check size={17} />
               {busy ? "در حال…" : "تایید نوبت"}

@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createSalonBooking, getSalonBookings, getSalonCollabs, getSalonHours, getSalonInvites, getSalonPortfolio, getSalonServices, getSalonStaff, getSalons, updateSalonBooking } from "../../shared/api/salons";
 import { getApiErrorMessage } from "../../shared/lib/apiNotify";
 import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar";
+import { bookingWaitMinutes } from "../../shared/lib/bookingWindow";
 import { buildSalonStaffByName } from "../profile/ScheduleRow";
 import { useSalonPortfolioActions } from "./useSalonPortfolioActions";
 import { useSalonCatalogActions } from "./useSalonCatalogActions";
@@ -170,7 +171,8 @@ export function useSalonWorkspace({
         time: booking.time,
         day: formatRelativeBookingDayLabel(booking.booking_date),
         date: booking.booking_date || "",
-        createdAt: booking.created_at || ""
+        createdAt: booking.created_at || "",
+        waitMinutes: bookingWaitMinutes(booking)
       }))
   ), [salonAppointmentList]);
 

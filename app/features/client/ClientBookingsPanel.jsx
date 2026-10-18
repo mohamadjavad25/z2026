@@ -6,7 +6,6 @@ import { Mascot } from "../../components/Mascot";
 import { SegmentClock } from "../../components/SegmentClock";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatRelativeBookingDayLabel, resolveRollingPersianDate } from "../../shared/lib/persianCalendar";
-import { requestDeadlineLabel } from "../../shared/lib/bookingWindow";
 import { ClientBookingHistorySheet } from "./ClientBookingHistorySheet";
 import { AWAITING_CLIENT } from "../../shared/lib/bookingOffer";
 import {
@@ -15,7 +14,8 @@ import {
   bookingStatusTone,
   clientBookingKey,
   isBookingAhead,
-  isBookingInPast
+  isBookingInPast,
+  requestWaitNote
 } from "./bookingStatus";
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
 
@@ -110,9 +110,7 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook, c
             {upcoming.map((booking, index) => {
               const meta = metaOf(booking);
               const awaitingClient = booking.status === AWAITING_CLIENT;
-              const pendingDeadline = (booking.status === "درخواست" || booking.status === "تازه")
-                ? requestDeadlineLabel(booking.created_at, booking.booking_date || booking.date, booking.time)
-                : "";
+              const waitNote = requestWaitNote(booking);
               const open = () => onOpenSettings?.({ ...booking, clientBookingSheetMode: "details" });
               return (
                 <article
@@ -145,10 +143,10 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook, c
                         سالن ساعت تازه‌ای پیشنهاد داده؛ کارت را باز کن و جواب بده.
                       </p>
                     ) : null}
-                    {pendingDeadline ? (
+                    {waitNote ? (
                       <p className="cvNote">
                         <Clock3 size={14} aria-hidden="true" />
-                        {booking.bookingSource === "artist" ? "آرتیست" : "سالن"} تا ساعت {pendingDeadline} جواب می‌دهد؛ وگرنه لغو می‌شود.
+                        {waitNote}
                       </p>
                     ) : null}
                   </div>

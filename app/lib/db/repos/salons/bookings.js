@@ -2,7 +2,7 @@ import { getDb, withTransaction, all, get, run } from "../../connection.js";
 import { lockSalonDay, lockVisitDay } from "../../locks.js";
 import * as artists from "../artists.js";
 import { formatPersianDateKey, isPersianDateKey, resolveRollingPersianDateKey } from "../../../../shared/lib/persianCalendar.js";
-import { minutesUntilSlotStart } from "../../../../shared/lib/bookingWindow.js";
+import { BOOKING_REQUEST_WINDOW_MINUTES, minutesUntilSlotStart } from "../../../../shared/lib/bookingWindow.js";
 import {
   normalizeBookingTimeLabel,
   parseServiceDurationMinutes,
@@ -28,8 +28,9 @@ import { AWAITING_CLIENT } from "../../../../shared/lib/bookingOffer.js";
 let partsColumnsReady;
 /**
  * salon_bookings.parts and artist_bookings.salon_booking_id (migration 029) and the previous
- * time of a booking waiting on its client (migration 030), also added on first use so the
- * features work before the migrations are run.
+ * time of a booking waiting on its client (migration 030), and the client's chosen response window
+ * and backup salon (migration 040), also added on first use so the features work before the
+ * migrations are run.
  */
 export function ensureBookingPartsColumns() {
   partsColumnsReady ??= (async () => {
@@ -38,6 +39,14 @@ export function ensureBookingPartsColumns() {
     await run(db, "ALTER TABLE artist_bookings ADD COLUMN IF NOT EXISTS salon_booking_id INTEGER");
     await run(db, "ALTER TABLE salon_bookings ADD COLUMN IF NOT EXISTS previous_booking_date TEXT NOT NULL DEFAULT ''");
     await run(db, "ALTER TABLE salon_bookings ADD COLUMN IF NOT EXISTS previous_time TEXT NOT NULL DEFAULT ''");
+    await run(db, "ALTER TABLE salon_bookings ADD COLUMN IF NOT EXISTS wait_minutes INTEGER DEFAULT 60");
+    await run(db, "ALTER TABLE artist_bookings ADD COLUMN IF NOT EXISTS wait_minutes INTEGER DEFAULT 60");
+    await run(db, "ALTER TABLE salon_bookings ADD COLUMN IF NOT EXISTS fallback_salon_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL");
+    await run(db, "ALTER TABLE salon_bookings ADD COLUMN IF NOT EXISTS moved_to_booking_id INTEGER");
+    await run(db, "ALTER TABLE salon_bookings ADD COLUMN IF NOT EXISTS moved_from_booking_id INTEGER");
+    await run(db, "ALTER TABLE artist_bookings ADD COLUMN IF NOT EXISTS fallback_artist_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL");
+    await run(db, "ALTER TABLE artist_bookings ADD COLUMN IF NOT EXISTS moved_to_booking_id INTEGER");
+    await run(db, "ALTER TABLE artist_bookings ADD COLUMN IF NOT EXISTS moved_from_booking_id INTEGER");
   })().catch((error) => {
     partsColumnsReady = undefined;
     throw error;
@@ -587,8 +596,11 @@ export async function listSalonBookings(salonUserId) {
     const avatarPosition = client?.avatar_position || "";
     const staffPerson = staffByName.get(String(row.staff || "").trim()) || null;
     const staffAvatar = staffPerson?.avatar || staffPerson?.staff_avatar || "";
+    // Which other salon the client picked as a backup, and where an unanswered request went, is the
+    // client's business only.
+    const { fallback_salon_user_id: _fallback, moved_to_booking_id: _movedTo, ...own } = row;
     return {
-      ...row,
+      ...own,
       client_user_id: client?.id || null,
       client_avatar: avatar,
       clientAvatar: avatar,
@@ -618,14 +630,22 @@ export async function listSalonBookings(salonUserId) {
 }
 
 export async function listClientSalonBookings(user) {
+  await ensureBookingPartsColumns();
   const db = await getDb();
   const match = clientBookingMatch(user, { phoneCol: "phone", nameCol: "client" });
   if (!match.sql) return [];
+  // The backup salon's name, and for a request that was moved, the salon it went to / came from.
   const rows = await all(db, `
-    SELECT b.*, s.name AS salon_name, s.area AS salon_area, s.phone AS salon_phone, s.user_id AS source_salon_user_id, (u.avatar <> '' OR u.avatar_url IS NOT NULL) AS salon_avatar
+    SELECT b.*, s.name AS salon_name, s.area AS salon_area, s.phone AS salon_phone, s.user_id AS source_salon_user_id, (u.avatar <> '' OR u.avatar_url IS NOT NULL) AS salon_avatar,
+      fs.name AS fallback_name, ts.name AS moved_to_name, os.name AS moved_from_name
     FROM salon_bookings b
     LEFT JOIN salons s ON s.user_id = b.salon_user_id
     LEFT JOIN users u ON u.id = b.salon_user_id
+    LEFT JOIN salons fs ON fs.user_id = b.fallback_salon_user_id
+    LEFT JOIN salon_bookings tb ON tb.id = b.moved_to_booking_id
+    LEFT JOIN salons ts ON ts.user_id = tb.salon_user_id
+    LEFT JOIN salon_bookings ob ON ob.id = b.moved_from_booking_id
+    LEFT JOIN salons os ON os.user_id = ob.salon_user_id
     WHERE ${match.sql}
     ORDER BY b.id DESC
   `, match.params);
@@ -643,6 +663,20 @@ export async function listClientSalonBookings(user) {
     salonAvatar: row.salon_avatar && row.source_salon_user_id ? `/api/media/avatar/${row.source_salon_user_id}` : "",
     sourceSalonUserId: row.source_salon_user_id || row.salon_user_id
   }));
+}
+
+/**
+ * wait_minutes, fallback_salon_user_id and moved_from_booking_id for a new row: how long a client's
+ * request waits (60, or null = until its appointment), its backup salon and the request it was moved
+ * from. Anything else keeps the hour.
+ */
+function requestWaitColumns(data) {
+  const wait = data.waitMinutes === undefined ? BOOKING_REQUEST_WINDOW_MINUTES : data.waitMinutes;
+  return [
+    wait === null ? null : Math.max(1, Number(wait) || BOOKING_REQUEST_WINDOW_MINUTES),
+    Number(data.fallbackSalonUserId || 0) || null,
+    Number(data.movedFromBookingId || 0) || null
+  ];
 }
 
 export async function addSalonBooking(salonUserId, data) {
@@ -674,8 +708,9 @@ export async function addSalonBooking(salonUserId, data) {
     });
     const info = await run(db, `
       INSERT INTO salon_bookings
-        (salon_user_id, client_user_id, client, phone, service, service_emoji, staff, booking_date, time, duration_minutes, status)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        (salon_user_id, client_user_id, client, phone, service, service_emoji, staff, booking_date, time, duration_minutes, status,
+         wait_minutes, fallback_salon_user_id, moved_from_booking_id)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
       RETURNING id
     `, [
       salonUserId,
@@ -688,7 +723,8 @@ export async function addSalonBooking(salonUserId, data) {
       bookingDate,
       time,
       durationMinutes,
-      data.status || "تازه"
+      data.status || "تازه",
+      ...requestWaitColumns(data)
     ]);
     return {
       ok: true,
@@ -736,8 +772,9 @@ async function addMultiPartSalonBooking(salonUserId, data) {
       });
       const info = await run(db, `
         INSERT INTO salon_bookings
-          (salon_user_id, client_user_id, client, phone, service, service_emoji, staff, booking_date, time, duration_minutes, status, parts)
-        VALUES ($1, $2, $3, $4, $5, $6, '', $7, $8, $9, $10, $11)
+          (salon_user_id, client_user_id, client, phone, service, service_emoji, staff, booking_date, time, duration_minutes, status, parts,
+           wait_minutes, fallback_salon_user_id, moved_from_booking_id)
+        VALUES ($1, $2, $3, $4, $5, $6, '', $7, $8, $9, $10, $11, $12, $13, $14)
         RETURNING id
       `, [
         salonUserId,
@@ -750,7 +787,8 @@ async function addMultiPartSalonBooking(salonUserId, data) {
         data.time,
         durationMinutes,
         data.status || "تازه",
-        serializeBookingParts(parts)
+        serializeBookingParts(parts),
+        ...requestWaitColumns(data)
       ]);
       const booking = await get(db, "SELECT * FROM salon_bookings WHERE id = $1", [Number(info.rows[0].id)]);
       const linkedArtistIds = await createPartMirrors(db, salonUserId, booking, staffList);

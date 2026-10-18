@@ -8,10 +8,10 @@ import { useBackHandler } from "../../shared/hooks/useBackHandler";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
 import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar";
-import { requestMinutesLeft, requestRemainingShare } from "../../shared/lib/bookingWindow";
+import { bookingWaitMinutes, requestMinutesLeft, requestRemainingShare } from "../../shared/lib/bookingWindow";
 import { AWAITING_CLIENT } from "../../shared/lib/bookingOffer";
 import { pushNotificationsSupported, subscribeToPushNotifications } from "../shell/homeAppHelpers";
-import { bookingEndLabel, clientBookingKey } from "./bookingStatus";
+import { bookingEndLabel, clientBookingKey, movedToName } from "./bookingStatus";
 
 
 function stageOf(status = "") {
@@ -22,9 +22,12 @@ function stageOf(status = "") {
   return "wait";
 }
 
-// A request waits an hour at most, and never past its own start (bookingExpirySweep), same as the status strip.
+// A request with the hour waits that long at most, and never past its own start (bookingExpirySweep),
+// same as the status strip. One that waits until its appointment has no countdown (null).
 function minutesLeft(booking, now) {
-  const left = requestMinutesLeft(booking?.created_at || booking?.createdAt, booking?.booking_date || booking?.date, booking?.time, { now: new Date(now) });
+  const windowMinutes = bookingWaitMinutes(booking);
+  if (windowMinutes === null) return null;
+  const left = requestMinutesLeft(booking?.created_at || booking?.createdAt, booking?.booking_date || booking?.date, booking?.time, { now: new Date(now), windowMinutes });
   return left === null ? null : Math.max(0, left);
 }
 
@@ -97,13 +100,18 @@ export function BookingReceipt({ receipt, bookings = [], onClose, onViewBookings
   const price = parseTomanAmount(receipt.price);
   const left = stage === "wait" ? minutesLeft(live, now) : null;
   const phone = live.salonPhone || live.salon_phone || "";
+  const waitsOpen = stage === "wait" && bookingWaitMinutes(live) === null;
+  const backupName = stage === "wait" && !waitsOpen ? live.fallback_name || "" : "";
+  const movedTo = stage === "expired" ? movedToName(live) : "";
 
   const hero = {
     wait: { icon: Send, title: `درخواستت به ${place} رسید`, text: `منتظر تأیید ${who} باش.` },
     ok: { icon: Check, title: "نوبتت قطعی شد", text: `${day} ساعت ${time}` },
     offer: { icon: CalendarClock, title: `${place} ساعت دیگری پیشنهاد داده`, text: "ساعت پیشنهادی را قبول یا رد کن." },
     bad: { icon: XCircle, title: "این ساعت قبول نشد", text: "یک ساعت دیگر انتخاب کن." },
-    expired: { icon: TimerOff, title: `${place} به‌موقع جواب نداد`, text: "می‌توانی دوباره بفرستی." }
+    expired: movedTo
+      ? { icon: Send, title: `درخواستت رفت برای ${movedTo}`, text: `${place} به‌موقع جواب نداد؛ حالا منتظر جواب ${movedTo} باش.` }
+      : { icon: TimerOff, title: `${place} به‌موقع جواب نداد`, text: "می‌توانی دوباره بفرستی." }
   }[stage];
   const HeroIcon = hero.icon;
 
@@ -135,8 +143,15 @@ export function BookingReceipt({ receipt, bookings = [], onClose, onViewBookings
               <strong>{toPersianDigits(left)}</strong>
               <span>دقیقه تا پاسخ {who}</span>
             </div>
-            <span className="brBar" aria-hidden="true"><i style={{ transform: `scaleX(${requestRemainingShare(live?.created_at || live?.createdAt, live?.booking_date || live?.date, live?.time, { now: new Date(now) }) ?? 0})` }} /></span>
+            <span className="brBar" aria-hidden="true"><i style={{ transform: `scaleX(${requestRemainingShare(live?.created_at || live?.createdAt, live?.booking_date || live?.date, live?.time, { now: new Date(now), windowMinutes: bookingWaitMinutes(live) }) ?? 0})` }} /></span>
+            <small className="brCountNote">{backupName ? `اگر جواب نداد، می‌رود برای ${backupName}.` : "اگر جواب نداد، لغو می‌شود."}</small>
           </div>
+        ) : null}
+        {waitsOpen ? (
+          <p className="brWaitNote">
+            <Clock3 size={15} aria-hidden="true" />
+            {who} تا قبل از نوبت وقت دارد جواب بدهد. اگر دیر شد، از «نوبت‌های من» لغوش کن.
+          </p>
         ) : null}
 
         <div className="brCard brSummary">
@@ -182,7 +197,7 @@ export function BookingReceipt({ receipt, bookings = [], onClose, onViewBookings
               دیدن ساعت پیشنهادی و جواب دادن
             </button>
           ) : null}
-          {stage === "bad" || stage === "expired" ? (
+          {stage === "bad" || (stage === "expired" && !movedTo) ? (
             <button type="button" className="brBtn" onClick={() => onRebook?.(live)}>
               <CalendarCheck size={18} aria-hidden="true" />
               انتخاب ساعت دیگر

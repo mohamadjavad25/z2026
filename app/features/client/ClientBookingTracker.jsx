@@ -4,8 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { CalendarCheck, CalendarClock, Check, ChevronLeft, Hourglass, TimerOff, XCircle } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar";
-import { requestDeadlineLabel, requestRemainingShare } from "../../shared/lib/bookingWindow";
-import { isBookingInPast } from "./bookingStatus";
+import { bookingWaitMinutes, requestDeadlineLabel, requestRemainingShare } from "../../shared/lib/bookingWindow";
+import { isBookingInPast, movedToName } from "./bookingStatus";
 import { AWAITING_CLIENT } from "../../shared/lib/bookingOffer";
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
 
@@ -37,14 +37,18 @@ function Strip({ className, onClick, children, ...rest }) {
 const keyOf = (booking) => `${booking.bookingSource === "artist" ? "a" : "s"}${booking.id}`;
 const placeOf = (booking) => booking.salonName || booking.salon_name || "سالن";
 
+// A request that waits until its appointment has no clock to run down: its bar just moves.
 function remainingShare(booking, now) {
-  return requestRemainingShare(booking.created_at || booking.createdAt, booking.booking_date || booking.date, booking.time, { now: new Date(now) });
+  const windowMinutes = bookingWaitMinutes(booking);
+  if (windowMinutes === null) return null;
+  return requestRemainingShare(booking.created_at || booking.createdAt, booking.booking_date || booking.date, booking.time, { now: new Date(now), windowMinutes });
 }
 
 /**
  * A status strip docked into the top of the bottom bar, for the client's own booking requests.
  * - While a request waits for the salon / artist: a live "processing" look (spinning ring,
- *   moving progress bar showing how much of the one-hour answer window is left).
+ *   moving progress bar showing how much of the answer window is left, or just moving when the
+ *   client chose to wait until the appointment).
  * - The moment it is answered (seen through the 10 s refresh): the chip flips to
  *   "confirmed" / "cancelled" / "expired" for a few seconds, then goes away.
  * - A salon offered a new time and waits for the client's answer: that comes first, until answered.
@@ -106,7 +110,8 @@ export function ClientBookingTracker({ bookings = [], onOpen }) {
     const { booking, status } = flash;
     const confirmed = status === "تایید شده";
     const Icon = confirmed ? Check : status === "لغو" ? XCircle : TimerOff;
-    const title = confirmed ? "رزرو تأیید شد" : status === "لغو" ? "رزرو لغو شد" : "مهلت پاسخ تمام شد";
+    const movedTo = movedToName(booking);
+    const title = confirmed ? "رزرو تأیید شد" : status === "لغو" ? "رزرو لغو شد" : movedTo ? `درخواستت رفت برای ${movedTo}` : "مهلت پاسخ تمام شد";
     return (
       <Strip
         className={`is-${confirmed ? "ok" : "bad"}`}
@@ -145,7 +150,7 @@ export function ClientBookingTracker({ bookings = [], onOpen }) {
   if (!pending.length) return null;
   const current = pending[0];
   const share = remainingShare(current, now);
-  const deadline = requestDeadlineLabel(current.created_at || current.createdAt, current.booking_date || current.date, current.time);
+  const deadline = requestDeadlineLabel(current.created_at || current.createdAt, current.booking_date || current.date, current.time, { windowMinutes: bookingWaitMinutes(current) });
   const label = current.bookingSource === "artist" ? "آرتیست" : "سالن";
 
   return (

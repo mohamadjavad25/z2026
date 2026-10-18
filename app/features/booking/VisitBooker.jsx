@@ -7,6 +7,7 @@ import { ServiceIcon } from "../../components/ServiceIcon";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { createVisitBookerController } from "./visitBookerController";
 import { VisitWizard } from "./VisitWizard";
+import { WaitChoice } from "./WaitChoice";
 import { PlanList, TimesList } from "./visitBookerParts";
 import { MAX_VISIT_SERVICES, clockText, missingText, visitSummaryText } from "./visitBookerModel";
 
@@ -85,7 +86,8 @@ function VisitBookerForm({ role, title, subtitle, services, days, initial, custo
     initial: frozen.initial,
     source: {
       loadTimes: (query) => latest.current.source.loadTimes(query),
-      ...(source.loadPlan ? { loadPlan: (query) => latest.current.source.loadPlan(query) } : {})
+      ...(source.loadPlan ? { loadPlan: (query) => latest.current.source.loadPlan(query) } : {}),
+      ...(source.loadBackups ? { loadBackups: (query) => latest.current.source.loadBackups(query) } : {})
     },
     submit: (body) => latest.current.onSubmit(body)
     // Created once per opening of the sheet.
@@ -255,6 +257,17 @@ function VisitBookerForm({ role, title, subtitle, services, days, initial, custo
               <p className="vbPlanNote">آرتیست‌ها پیشنهاد سالن‌اند و ممکن است سالن عوضشان کند. اگر ساعت را عوض کند، اول از تو می‌پرسد.</p>
             ) : null}
           </section>
+        ) : null}
+
+        {state.time ? (
+          <WaitChoice
+            value={state.wait}
+            onChange={(wait) => controller.setWait(wait)}
+            backups={state.backups.list}
+            backup={state.backup}
+            onBackup={(id) => controller.setBackup(id)}
+            disabled={state.submitting}
+          />
         ) : null}
       </div>
 
