@@ -16,6 +16,7 @@
 import { spawnSync } from "node:child_process";
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
+import { createRequire } from "node:module";
 import { join, resolve } from "node:path";
 
 // Source order:
@@ -111,7 +112,10 @@ function withSsl(connString) {
 // on each other (each one only adds its own columns/tables, IF NOT EXISTS), so the check is off for "up".
 const args = process.argv.slice(2);
 if (args[0] === "up" && !args.some((arg) => arg.includes("check-order"))) args.push("--no-check-order");
-const result = spawnSync("node-pg-migrate", args, {
+// Run the CLI's own script with this Node rather than the "node-pg-migrate" shim on PATH: on Windows
+// that shim is a .cmd file, which spawnSync can't start without a shell, so deploys from Windows stopped here.
+const cli = createRequire(import.meta.url).resolve("node-pg-migrate/bin/node-pg-migrate");
+const result = spawnSync(process.execPath, [cli, ...args], {
   stdio: "inherit",
   env: { ...process.env, DATABASE_URL: withSsl(rawConnectionString) }
 });
