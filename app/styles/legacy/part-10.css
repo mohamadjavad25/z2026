@@ -55,15 +55,6 @@
     text-shadow: none !important;
   }
 
-  .profileHero.is-salon .salonHeroVerified {
-    grid-column: 2 !important;
-    grid-row: 1 !important;
-    justify-self: start !important;
-    width: 14px !important;
-    height: 14px !important;
-    font-size: 0.5rem !important;
-    transform: translateY(1px) !important;
-  }
 
   .profileHero.is-salon .profileHeroCopy p {
     grid-column: 1 / -1 !important;

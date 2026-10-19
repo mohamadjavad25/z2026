@@ -20,20 +20,6 @@
   flex-direction: row !important;
 }
 
-.salonPublicTitle h2 .salonPublicVerifiedIcon {
-  order: 2 !important;
-  flex: 0 0 auto !important;
-  width: 18px !important;
-  height: 18px !important;
-  padding: 0 !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  color: var(--n-900) !important;
-  fill: var(--n-900) !important;
-  stroke: var(--n-0) !important;
-  stroke-width: 2.8 !important;
-  filter: drop-shadow(0 4px 8px rgb(var(--shadow-rgb) / 0.18)) !important;
-}
 
 .salonPublicTitle span {
   margin-top: 2px !important;
