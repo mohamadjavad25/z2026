@@ -18,6 +18,7 @@ import { otpConfig, verifyOtpProof } from "../../../lib/otp.js";
 import { isImageDataUrlInvalidType, isImageDataUrlTooLarge } from "../../../lib/mediaLimits.js";
 import { getSetting } from "../../../lib/db/repos/adminControl.js";
 import { toPersianDigits } from "../../../shared/lib/digits.js";
+import { smsAdminsNewAccount } from "../../../lib/adminSms.js";
 
 export const runtime = "nodejs";
 
@@ -104,6 +105,7 @@ async function _POST(request) {
     if (phoneVerified) await users.markPhoneVerified(user.id);
 
     if (type === "salon") await ensureSalonHours(user.id);
+    smsAdminsNewAccount({ type, name: data.name, area: data.area });
 
     const session = await createSessionForUser(user.id);
     const safe = publicUser(user);

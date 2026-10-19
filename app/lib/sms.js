@@ -79,7 +79,11 @@ export async function sendVerificationSms(phone, token, purpose) {
   let result = { ok: false, detail: "sms disabled" };
   try {
     if (provider === "kavenegar") result = await sendKavenegarLookup(phone, process.env.KAVENEGAR_TEMPLATE, { token });
-    else if (provider === "farazsms") result = await sendFarazPattern(phone, process.env.FARAZSMS_PATTERN_CODE, { [process.env.FARAZSMS_PARAM || "code"]: token });
+    else if (provider === "farazsms") {
+      // Sign-up and password reset may each have their own pattern (FARAZSMS_PATTERN_CODE_REGISTER / _RESET).
+      const pattern = process.env[`FARAZSMS_PATTERN_CODE_${String(purpose || "").toUpperCase()}`] || process.env.FARAZSMS_PATTERN_CODE;
+      result = await sendFarazPattern(phone, pattern, { [process.env.FARAZSMS_PARAM || "code"]: token });
+    }
     else if (provider === "test") result = { ok: true, detail: "" };
   } catch (error) {
     result = { ok: false, detail: String(error?.message || error).slice(0, 120) };

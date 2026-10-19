@@ -59,6 +59,13 @@ export const SMS_TEMPLATES = {
     kavenegar: (v) => ({ token: v.amount, token2: v.receipt, token10: v.who }),
     faraz: (v) => ({ amount: v.amount, receipt: v.receipt, who: v.who }),
     preview: (v) => `فرفرو، پرداخت تازه: ${v.who}، ${v.amount} تومان، رسید ${v.receipt}.`
+  },
+  admin_new_account: {
+    label: "ثبت‌نام سالن یا آرتیست تازه (برای مدیر)",
+    env: "ADMIN_NEW_ACCOUNT",
+    kavenegar: (v) => ({ token: v.role, token10: v.who }),
+    faraz: (v) => ({ role: v.role, who: v.who }),
+    preview: (v) => `فرفرو، ثبت‌نام تازه: ${v.role} ${v.who}.`
   }
 };
 
