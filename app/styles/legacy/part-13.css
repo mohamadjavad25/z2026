@@ -72,11 +72,6 @@
   white-space: nowrap;
 }
 
-.artistPublicVerifiedIcon {
-  flex: 0 0 auto;
-  color: var(--info);
-}
-
 /* Actions: follow + message, salon button look, artist accent */
 .artistPublicActions {
   display: grid;
