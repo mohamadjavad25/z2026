@@ -8,10 +8,17 @@
  * the site needs no Capacitor package. FrfroPush (mobile/: FrfroPushPlugin.java) says whether this build has
  * Firebase at all: registering without it would crash the app. An app from before this has neither plugin,
  * and simply keeps getting the SMS.
+ *
+ * The private «فرفرو مدیر» app (same shell, "admin" flavor, user agent "frfro-admin") uses the same code with its
+ * own endpoint (POST /api/admin/push/native, after the admin login): there the users' app push is off, so admin news
+ * never lands in someone's normal app and a user login inside it never stops that user's SMS.
  */
 
 const TOKEN_KEY = "frfro-app-push-token";
+const USER_ENDPOINT = "/api/push/native";
+const ADMIN_ENDPOINT = "/api/admin/push/native";
 let listening = false;
+let endpoint = USER_ENDPOINT;
 
 function nativeApp() {
   if (typeof window === "undefined") return null;
@@ -36,7 +43,7 @@ function storeToken(token) {
 }
 
 function sendToken(method, token) {
-  return fetch("/api/push/native", {
+  return fetch(endpoint, {
     method,
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ token, platform: window.Capacitor?.getPlatform?.() || "android" })
@@ -65,10 +72,18 @@ function listen(cap) {
   });
 }
 
-/** Inside the frfro app with push built in (from this version on). */
-export function appPushAvailable() {
-  const cap = nativeApp();
+function pushBuiltIn(cap) {
   return Boolean(cap && hasPlugin(cap, "PushNotifications") && hasPlugin(cap, "FrfroPush"));
+}
+
+/** The «فرفرو مدیر» app (mobile/: capacitor.config of the admin flavor appends "frfro-admin"). */
+export function isAdminApp() {
+  return typeof navigator !== "undefined" && String(navigator.userAgent || "").includes("frfro-admin");
+}
+
+/** Inside the frfro app with push built in (from this version on). Off in the admin app. */
+export function appPushAvailable() {
+  return !isAdminApp() && pushBuiltIn(nativeApp());
 }
 
 /**
@@ -78,8 +93,20 @@ export function appPushAvailable() {
  * (capacitor.config.json: PushNotifications.presentationOptions).
  */
 export async function startAppPush() {
+  if (!appPushAvailable()) return false;
+  endpoint = USER_ENDPOINT;
+  return register(nativeApp());
+}
+
+/** After every admin login in the «فرفرو مدیر» app; anywhere else it does nothing. */
+export async function startAdminAppPush() {
   const cap = nativeApp();
-  if (!cap || !appPushAvailable()) return false;
+  if (!isAdminApp() || !pushBuiltIn(cap)) return false;
+  endpoint = ADMIN_ENDPOINT;
+  return register(cap);
+}
+
+async function register(cap) {
   try {
     const status = await cap.nativePromise("FrfroPush", "status", {});
     if (!status?.ready) return false;
@@ -103,7 +130,7 @@ export async function startAppPush() {
 /** Before logout: this phone stops getting the account's notifications. */
 export async function stopAppPush() {
   const token = storedToken();
-  if (!token || !nativeApp()) return;
+  if (!token || !nativeApp() || isAdminApp()) return;
   storeToken("");
   await sendToken("DELETE", token);
 }

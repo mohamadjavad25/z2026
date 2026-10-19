@@ -1,10 +1,12 @@
 name: Android app
 
-# Builds the Android app shell in mobile/ (it opens https://frfro.ir).
+# Builds the Android app shell in mobile/: the app «فرفرو» (opens https://frfro.ir) and the private
+# admin app «فرفرو مدیر» (opens https://frfro.ir/admin, never in a store).
 # Download the result from the run page, under "Artifacts".
-#  - frfro-android-debug: an APK to install on a phone for testing.
+#  - frfro-android-debug / frfro-admin-android-debug: APKs to install on a phone for testing.
 #  - frfro-android-release: a signed APK (Cafe Bazaar / Myket / direct download) and AAB (Google Play),
-#    built only when the FRFRO_ANDROID_* secrets are set (see mobile/README.md).
+#    and frfro-admin-android-release: the signed admin APK; built only when the FRFRO_ANDROID_* secrets
+#    are set (see mobile/README.md).
 on:
   workflow_dispatch:
   push:
@@ -42,13 +44,20 @@ jobs:
 
       - run: npx cap sync android
 
+      - run: node scripts/admin-config.mjs
+
       - run: ./gradlew assembleDebug
         working-directory: mobile/android
 
       - uses: actions/upload-artifact@v4
         with:
           name: frfro-android-debug
-          path: mobile/android/app/build/outputs/apk/debug/*.apk
+          path: mobile/android/app/build/outputs/apk/user/debug/*.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: frfro-admin-android-debug
+          path: mobile/android/app/build/outputs/apk/admin/debug/*.apk
 
       - name: Build signed release
         env:
@@ -64,13 +73,19 @@ jobs:
           fi
           export FRFRO_ANDROID_KEYSTORE="$RUNNER_TEMP/frfro.keystore"
           echo "$KEYSTORE_BASE64" | base64 -d > "$FRFRO_ANDROID_KEYSTORE"
-          ./gradlew assembleRelease bundleRelease
+          ./gradlew assembleUserRelease bundleUserRelease assembleAdminRelease
           rm -f "$FRFRO_ANDROID_KEYSTORE"
 
       - uses: actions/upload-artifact@v4
-        if: hashFiles('mobile/android/app/build/outputs/bundle/release/*.aab') != ''
+        if: hashFiles('mobile/android/app/build/outputs/bundle/userRelease/*.aab') != ''
         with:
           name: frfro-android-release
           path: |
-            mobile/android/app/build/outputs/apk/release/*.apk
-            mobile/android/app/build/outputs/bundle/release/*.aab
+            mobile/android/app/build/outputs/apk/user/release/*.apk
+            mobile/android/app/build/outputs/bundle/userRelease/*.aab
+
+      - uses: actions/upload-artifact@v4
+        if: hashFiles('mobile/android/app/build/outputs/apk/admin/release/*.apk') != ''
+        with:
+          name: frfro-admin-android-release
+          path: mobile/android/app/build/outputs/apk/admin/release/*.apk

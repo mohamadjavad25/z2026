@@ -3,7 +3,7 @@
   "private": true,
   "description": "Native app shell (Android and iOS) that opens https://frfro.ir",
   "scripts": {
-    "sync": "cap sync",
+    "sync": "cap sync && node scripts/admin-config.mjs",
     "assets": "capacitor-assets generate --iconBackgroundColor '#1c202c' --iconBackgroundColorDark '#1c202c' --splashBackgroundColor '#1c202c' --splashBackgroundColorDark '#1c202c'",
     "android": "cap open android",
     "ios": "cap open ios"

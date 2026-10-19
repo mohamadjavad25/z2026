@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The admin icon is the frfro logo on red, with red eyes (user's choice 2026-10-19). -->
+<resources>
+    <color name="ic_launcher_background">#E53935</color>
+</resources>

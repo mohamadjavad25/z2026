@@ -17,6 +17,22 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    // Two apps from one shell (mobile/README.md):
+    //  - user: «فرفرو», the app in the stores (opens https://frfro.ir).
+    //  - admin: «فرفرو مدیر», private, never in a store; opens https://frfro.ir/admin and gets the operator's news.
+    //    Its name and icon colour are in src/admin/res, its config in src/admin/assets (scripts/admin-config.mjs).
+    flavorDimensions = ["app"]
+    productFlavors {
+        user {
+            dimension "app"
+            manifestPlaceholders = [linkPathPrefix: "/"]
+        }
+        admin {
+            dimension "app"
+            applicationId "ir.frfro.admin"
+            manifestPlaceholders = [linkPathPrefix: "/admin"]
+        }
+    }
     // Release signing comes from environment variables (set by .github/workflows/mobile-android.yml
     // from repository secrets). The keystore itself is never committed.
     def keystorePath = System.getenv("FRFRO_ANDROID_KEYSTORE")
@@ -65,6 +81,13 @@ try {
     def servicesJSON = file('google-services.json')
     if (servicesJSON.text) {
         apply plugin: 'com.google.gms.google-services'
+        // Until the admin app (ir.frfro.admin) is added to the Firebase project and the new google-services.json
+        // is committed, the admin app builds without push (FrfroPushPlugin then reports not ready) instead of failing.
+        if (!servicesJSON.text.contains('"ir.frfro.admin"')) {
+            tasks.configureEach { task ->
+                if (task.name ==~ /process.*Admin.*GoogleServices/) task.enabled = false
+            }
+        }
     }
 } catch(Exception e) {
     logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")

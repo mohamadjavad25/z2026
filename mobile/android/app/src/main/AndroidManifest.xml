@@ -20,12 +20,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- frfro.ir links open in the app (verified with public/.well-known/assetlinks.json on the site). -->
+            <!-- frfro.ir links open in the app (verified with public/.well-known/assetlinks.json on the site).
+                 The «فرفرو مدیر» app (admin flavor, build.gradle) takes only /admin links. -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="frfro.ir" />
+                <data android:scheme="https" android:host="frfro.ir" android:pathPrefix="${linkPathPrefix}" />
             </intent-filter>
         </activity>
 
