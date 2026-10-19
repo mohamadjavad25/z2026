@@ -75,3 +75,19 @@
 .profileLocationDetail { display: grid; gap: 4px; color: var(--n-600); font-size: 0.74rem; font-weight: 800; }
 .profileLocationDetail input { min-height: 42px; box-sizing: border-box; width: 100%; padding: 0 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--n-0); color: var(--ink); font: inherit; font-size: 0.84rem; font-weight: 700; }
 .profileLocationNoPin { display: block; margin-top: 2px; color: var(--accent); font-size: 0.72rem; font-weight: 800; line-height: 1.7; }
+
+/* «شهر ثبت نشده» under the name in the profile hero: a quiet link to «ثبت لوکیشن». */
+.profileHeroAreaBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 4px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline dotted;
+  text-underline-offset: 4px;
+  -webkit-tap-highlight-color: transparent;
+}

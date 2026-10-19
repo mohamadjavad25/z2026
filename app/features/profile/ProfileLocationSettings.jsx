@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { ChevronDown, ChevronLeft, MapPin, Navigation, Search, X, Check, Locate } from "lucide-react";
 // Bundled with the app instead of fetched from unpkg, so the map never depends on a CDN being reachable.
 import "leaflet/dist/leaflet.css";
+import { onOpenLocationSettings } from "./locationEvents";
 
 export const PROVINCES = [
   {
@@ -637,6 +638,14 @@ export function ProfileLocationSettings({
       setStep("province");
     }
   }
+
+  // Asked from the profile hero: open the editor and bring it into view once Settings shows.
+  const openMapRef = useRef(openMap);
+  openMapRef.current = openMap;
+  useEffect(() => onOpenLocationSettings(() => {
+    openMapRef.current();
+    setTimeout(() => panelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
+  }), []);
 
   function closeMap() {
     setMapOpen(false);
