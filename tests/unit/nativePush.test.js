@@ -99,4 +99,27 @@ describe("app push", () => {
     expect(app.fetch.mock.calls[0][1].method).toBe("DELETE");
     expect(app.storage.has("frfro-app-push-token")).toBe(false);
   });
+
+  it("in the admin app: the users' push stays off, admin push goes to the admin endpoint", async () => {
+    const app = stubApp({ answers: { "FrfroPush.status": { ready: true }, "PushNotifications.checkPermissions": { receive: "granted" } }, stored: "tok-x" });
+    vi.stubGlobal("navigator", { userAgent: "Mozilla/5.0 frfro-app frfro-admin" });
+    const push = await load();
+    expect(push.isAdminApp()).toBe(true);
+    expect(push.appPushAvailable()).toBe(false);
+    expect(await push.startAppPush()).toBe(false);
+    await push.stopAppPush();
+    expect(app.fetch).not.toHaveBeenCalled();
+    expect(await push.startAdminAppPush()).toBe(true);
+    app.listeners.registration({ value: "tok-admin" });
+    expect(app.fetch.mock.calls[0][0]).toBe("/api/admin/push/native");
+    expect(JSON.parse(app.fetch.mock.calls[0][1].body).token).toBe("tok-admin");
+  });
+
+  it("admin push does nothing in the normal app", async () => {
+    stubApp({ answers: { "FrfroPush.status": { ready: true }, "PushNotifications.checkPermissions": { receive: "granted" } } });
+    vi.stubGlobal("navigator", { userAgent: "Mozilla/5.0 frfro-app" });
+    const push = await load();
+    expect(await push.startAdminAppPush()).toBe(false);
+    expect(push.appPushAvailable()).toBe(true);
+  });
 });

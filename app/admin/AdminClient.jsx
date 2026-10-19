@@ -23,6 +23,7 @@ import { SettingsTab } from "./SettingsTab";
 import { SecurityTab } from "./SecurityTab";
 import { ActionsTab } from "./ActionsTab";
 import { SECTIONS, isTab } from "./nav";
+import { startAdminAppPush } from "../shared/lib/nativePush";
 
 const THEME_KEY = "frfro_admin_theme";
 
@@ -142,6 +143,8 @@ function AdminApp({ theme, onToggleTheme }) {
   }
 
   const signedIn = Boolean(me?.isAdmin);
+  // In the «فرفرو مدیر» app: after each login, this phone gets support and payment news as a push (does nothing elsewhere).
+  useEffect(() => { if (signedIn) void startAdminAppPush(); }, [signedIn]);
   useShortcuts({ enabled: signedIn && !paletteOpen && !helpOpen, go, openPalette: () => setPaletteOpen(true), openHelp: () => setHelpOpen(true), toggleTheme: onToggleTheme });
 
   if (!me) return <main className="adm admBoot" aria-busy="true"><span className="admBootMark">frfro</span></main>;

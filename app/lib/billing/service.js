@@ -8,6 +8,7 @@ import { reminderKind, reminderMessage } from "./reminders.js";
 import { reachableByAppPush, sendPushToUser } from "../push.js";
 import { sendTemplateSms, smsProviderName } from "../sms.js";
 import { adminPhoneList } from "../admin.js";
+import { pushAdmins } from "../adminPush.js";
 import { logger } from "../logger.js";
 import { formatPersianLongDate, formatPersianShortDate } from "../../shared/lib/billingFormat.js";
 import { formatTomanNumber } from "../../shared/lib/money.js";
@@ -303,7 +304,7 @@ async function adminUserIds() {
 const smsAllowedFor = (payment) => payment.gateway !== "sandbox" || smsProviderName() === "test";
 
 /**
- * Receipt to the payer (push + SMS) and a "new payment" notice to every admin (push + SMS). When a salon paid for an
+ * Receipt to the payer (push + SMS) and a "new payment" notice to every admin (push, and an SMS unless the «فرفرو مدیر» app got it). When a salon paid for an
  * artist, the salon gets the receipt and the artist a push saying the salon renewed their subscription.
  */
 export async function notifyPaid(payment) {
@@ -345,13 +346,16 @@ export async function notifyPaid(payment) {
   }
   const account = `${payment.user_type === "salon" ? "سالن" : "آرتیست"} ${payment.user_name || ""}`.trim();
   const who = payment.payer_user_id ? `${payment.payer_name || "سالن"} برای ${account}` : account;
+  const adminNews = {
+    title: `پرداخت تازه${test}`,
+    body: `${who}، ${payment.plan_title}، ${amount} تومان`,
+    url: `/admin?p=payments&id=${payment.id}`
+  };
+  // Admins with the «فرفرو مدیر» app get it there and no SMS (adminPush.js).
+  const inAdminApp = await pushAdmins(adminNews);
   for (const admin of await adminUserIds()) {
-    tasks.push(sendPushToUser(admin.id, {
-      title: `پرداخت تازه${test}`,
-      body: `${who}، ${payment.plan_title}، ${amount} تومان`,
-      url: `/admin?p=payments&id=${payment.id}`
-    }));
-    if (smsAllowedFor(payment)) tasks.push(sendTemplateSms(admin.phone, "billing_admin", { amount, receipt, who: who.slice(0, 40) }));
+    tasks.push(sendPushToUser(admin.id, adminNews));
+    if (smsAllowedFor(payment) && !inAdminApp.has(admin.phone)) tasks.push(sendTemplateSms(admin.phone, "billing_admin", { amount, receipt, who: who.slice(0, 40) }));
   }
   await Promise.allSettled(tasks);
 }

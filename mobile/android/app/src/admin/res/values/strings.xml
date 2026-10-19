@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!-- «فرفرو مدیر»: the private admin app (admin flavor in build.gradle). Everything else comes from src/main. -->
+<resources>
+    <string name="app_name">فرفرو مدیر</string>
+    <string name="title_activity_main">فرفرو مدیر</string>
+    <string name="package_name">ir.frfro.admin</string>
+    <string name="custom_url_scheme">ir.frfro.admin</string>
+</resources>

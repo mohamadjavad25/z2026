@@ -24,6 +24,7 @@
 هر بار که چیزی در پوشهٔ `mobile/` عوض شود، GitHub Actions خودش اپ را می‌سازد (workflow «Android app»؛ دستی هم با **Run workflow** اجرا می‌شود).
 از صفحهٔ همان اجرا، پایین در بخش **Artifacts**:
 - `frfro-android-debug`: فایل APK برای نصب آزمایشی روی گوشی.
+- `frfro-admin-android-debug`: اپ «فرفرو مدیر» برای نصب آزمایشی (پایین: «اپ مدیر»).
 - `frfro-android-release`: APK امضاشده (کافه‌بازار، مایکت، دانلود مستقیم) و AAB (گوگل‌پلی). فقط وقتی ساخته می‌شود که کلید امضا تنظیم شده باشد.
 
 ### کلید امضا (هیچ‌وقت گمش نکن)
@@ -37,8 +38,8 @@
 ### انتشار نسخهٔ جدید در سایت
 فایل نصبی سایت در `public/download/frfro.apk` است (دکمه‌های صفحهٔ `/download` به آن اشاره می‌کنند).
 1. `versionCode` را یکی بالا ببر و `versionName` را در `android/app/build.gradle` عوض کن.
-2. نسخهٔ امضاشده را بساز (workflow «Android app» با کلید، یا روی کامپیوتر با `./gradlew assembleRelease`).
-3. فایل `app-release.apk` را جای `public/download/frfro.apk` بگذار و `ANDROID_APP_VERSION` را در `app/features/landing/constants.js` عوض کن.
+2. نسخهٔ امضاشده را بساز (workflow «Android app» با کلید، یا روی کامپیوتر با `./gradlew assembleUserRelease`).
+3. فایل `app-user-release.apk` را جای `public/download/frfro.apk` بگذار و `ANDROID_APP_VERSION` را در `app/features/landing/constants.js` عوض کن.
 
 برای هر نسخهٔ جدید فروشگاه، `versionCode` (یکی بیشتر) و `versionName` را در `android/app/build.gradle` بالا ببر.
 
@@ -77,6 +78,13 @@ npm run assets && npx cap sync
 اندروید آماده است: `public/.well-known/assetlinks.json` اثر کلید فرفرو را دارد، پس لینک‌های frfro.ir در گوشی‌هایی که اپ دارند مستقیم اپ را باز می‌کنند.
 اگر بعداً در گوگل‌پلی «Play App Signing» روشن شد، اثر کلید گوگل را هم به همان فایل اضافه کن.
 برای آیفون (Universal Links) شناسهٔ تیم اپل لازم است و بعد از گرفتن حساب اپل اضافه می‌شود.
+
+## اپ مدیر («فرفرو مدیر»)
+یک اپ دوم از همین پوسته، فقط برای مدیرها: شناسهٔ `ir.frfro.admin`، اسم «فرفرو مدیر»، آیکن لوگوی فرفرو روی قرمز با چشم‌های قرمز (`public/brand/frfro-admin-icon.png`، انتخاب صاحب محصول ۱۹ اکتبر ۲۰۲۶). مستقیم `https://frfro.ir/admin` را باز می‌کند و ورودش همان سه قفل پنل است (شماره، رمز، کد Authenticator).
+- **هیچ‌وقت در کافه‌بازار، مایکت یا گوگل‌پلی منتشر نمی‌شود**؛ فایل APK فقط روی گوشی مدیرها نصب می‌شود. کنار اپ معمولی نصب می‌شود و با آن قاطی نمی‌شود.
+- در Gradle یک flavor جداست (`android/app/build.gradle`: `user` و `admin`). اسم و رنگ آیکن در `android/app/src/admin/res`، و تنظیم Capacitor آن را `scripts/admin-config.mjs` بعد از هر `cap sync` از تنظیم اپ معمولی می‌سازد (`npm run sync` خودش اجرا می‌کند).
+- User-Agent آن `frfro-app frfro-admin` است. سایت با `frfro-admin` می‌فهمد این اپ مدیر است: بعد از ورود مدیر، توکن اعلان را در `admin_push_tokens` می‌گذارد (`/api/admin/push/native`)، نه در توکن‌های کاربران. اعلان کاربری در این اپ خاموش است.
+- اعلانش (پشتیبانی تازه، گزارش تخلف، بازیابی رمز، پرداخت تازه) وقتی کار می‌کند که اپ `ir.frfro.admin` هم در همان پروژهٔ Firebase اضافه شده و `google-services.json` تازه در مخزن باشد. تا آن موقع اپ ساخته می‌شود و کار می‌کند، فقط اعلان ندارد.
 
 ## اعلان (Push)
 اعلان مرورگر (Web Push) داخل WebView کار نمی‌کند، پس اپ اعلان خودش را دارد: `@capacitor/push-notifications` با Firebase، کانال «نوبت‌ها و پیام‌ها» با صدا و لرزش (`FrfroPushPlugin.java`)، آیکن کوچک `res/drawable/ic_stat_frfro.xml`. سایت در `app/shared/lib/nativePush.js` اجازه می‌گیرد و توکن را ذخیره می‌کند؛ با زدن اعلان، همان صفحه باز می‌شود. برای کار کردنش `android/app/google-services.json` لازم است (بدون آن اپ سالم می‌ماند و فقط اعلان ندارد). راه‌اندازی و قاعدهٔ پیامک: `docs/OPERATIONS.md` «اعلان اپ اندروید». آیفون هنوز اپ ندارد و پیامک می‌گیرد.
