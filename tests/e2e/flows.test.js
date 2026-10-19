@@ -202,6 +202,24 @@ describe("booking flow (browser)", () => {
     await clientView.context.close();
   });
 
+  it("a new artist is shown the «+» once, and tapping it opens a new booking", async () => {
+    const artistApi = createClient();
+    await registerUser(artistApi, { type: "artist", name: "آرتیست تازه" });
+    const { page, context, problems } = await newPage({ cookie: artistApi.cookie(), tipSeen: false });
+    await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
+    const tip = page.locator(".createTip");
+    await tip.waitFor();
+    expect(await tip.innerText()).toContain("فهمیدم");
+    await page.locator(".createTipHole").click();
+    await tip.waitFor({ state: "detached" });
+    await page.locator(".visitBookerSheet").waitFor();
+    await page.reload({ waitUntil: "networkidle" });
+    await page.waitForTimeout(1500);
+    expect(await tip.count()).toBe(0);
+    expect(problems).toEqual([]);
+    await context.close();
+  });
+
   it("an artist answers a new booking right on their bookings tab", async () => {
     const artistApi = createClient();
     const artist = await registerUser(artistApi, { type: "artist", name: "آرتیست تست" });
