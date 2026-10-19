@@ -3,7 +3,6 @@
 import { defaultAvatarFor } from "../../shared/lib/defaultAvatar";
 import { useState } from "react";
 import {
-  BadgeCheck,
   Bell,
   Eye,
   ImagePlus,
@@ -186,7 +185,6 @@ export function ProfileHero({
         {type !== "artist" && <p>{kicker}</p>}
         <h2>
           {type === "artist" ? <span className="artistHeroNameText">{name}</span> : name}
-          {type === "artist" && <BadgeCheck className="artistVerifiedTick" size={16} aria-label="تایید شده" />}
         </h2>
         {type === "artist" && profile.data?.area && (
           <span className="artistHeroArea">

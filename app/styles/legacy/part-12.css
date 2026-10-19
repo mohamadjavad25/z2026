@@ -1326,11 +1326,6 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   white-space: normal !important;
 }
 
-.profilePanel.page-profile:has(.createdProfile.is-artist) .artistVerifiedTick {
-  flex: 0 0 auto !important;
-  color: var(--info) !important;
-}
-
 .profilePanel.page-profile:has(.createdProfile.is-artist) .artistHeroArea {
   display: inline-flex !important;
   align-items: center !important;

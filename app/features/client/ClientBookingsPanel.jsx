@@ -67,10 +67,11 @@ function metaOf(booking) {
  */
 /**
  * `compactEmpty`: the client home already invites a booking above, so "nothing ahead" is one line here.
+ * `emptyLine`: off when the card under it already says what to do (the heading alone says nothing is ahead).
  * `emptyMascot`: with that one line, the mascot fills the empty page below it (off when another card already has one).
  * `highlightKey`: the booking just made glows for a moment, so the client sees where it went.
  */
-export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook, compactEmpty = false, emptyMascot = false, highlightKey = "" }) {
+export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook, compactEmpty = false, emptyLine = true, emptyMascot = false, highlightKey = "" }) {
   const [historyOpen, setHistoryOpen] = useState(false);
 
   const { upcoming, past, notes } = useMemo(() => {
@@ -188,9 +189,11 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook, c
 
         {upcoming.length ? null : compactEmpty ? (
           <>
-            <p className="cbpEmptyLine">
-              {past.length ? "نوبت فعالی نداری؛ نوبت‌های قبلی در «سابقه» هستند." : "هنوز نوبتی نگرفتی. نوبت بعدی‌ات اینجا دیده می‌شود."}
-            </p>
+            {emptyLine ? (
+              <p className="cbpEmptyLine">
+                {past.length ? "نوبت فعالی نداری؛ نوبت‌های قبلی در «سابقه» هستند." : "هنوز نوبتی نگرفتی. نوبت بعدی‌ات اینجا دیده می‌شود."}
+              </p>
+            ) : null}
             {emptyMascot ? <Mascot pose="calendar" size={190} className="cbpEmptyMascot" /> : null}
           </>
         ) : (
