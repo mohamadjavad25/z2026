@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "481821479404",
+    "project_id": "frfro-c0bfb",
+    "storage_bucket": "frfro-c0bfb.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:481821479404:android:6a5c345a5fb3f8ecf0f0c9",
+        "android_client_info": {
+          "package_name": "ir.frfro.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAdRd4DEcmKs77t63XuoybT_q0ggX55TMM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
