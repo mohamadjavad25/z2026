@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { AuthGateForms } from "../../auth";
 import { ProfileHero } from "../../profile/ProfileHero";
+import { openLocationSettings } from "../../profile/locationEvents";
 import { ProfileCompleteness } from "../../profile/ProfileCompleteness";
 import { BillingBanner } from "../../billing";
 import { SalonStaffWorkspace, SalonServicesWorkspace } from "../../salons";
@@ -218,6 +219,7 @@ export function ProfilePanelBody() {
               showShare={createdProfile?.type === "salon"}
               onPreviewPublic={ownerType ? openOwnPublicProfile : undefined}
               onScan={ownerType ? () => setOwnerScanOpen(true) : undefined}
+              onOpenLocation={() => { goToTab("settings"); openLocationSettings(); }}
               modeRail={createdProfile?.type === "salon" ? profileModeRail : null}
             />
             {ownerScanOpen && ownerType ? (

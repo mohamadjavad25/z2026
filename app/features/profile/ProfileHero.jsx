@@ -35,6 +35,24 @@ function PublicPreviewButton({ onClick }) {
   );
 }
 
+// City under the name; tapping it opens «ثبت لوکیشن» in Settings.
+function AreaLine({ area, onClick, icon = false }) {
+  const content = (
+    <>
+      {icon ? <MapPin size={14} aria-hidden="true" /> : null}
+      {area || "شهر ثبت نشده"}
+    </>
+  );
+  if (typeof onClick !== "function") return <p>{content}</p>;
+  return (
+    <p>
+      <button type="button" className="profileHeroAreaBtn" onClick={onClick} aria-label={area ? "ویرایش لوکیشن" : "ثبت لوکیشن"}>
+        {content}
+      </button>
+    </p>
+  );
+}
+
 export function ProfileHero({
   profile,
   heroClass = "",
@@ -50,6 +68,7 @@ export function ProfileHero({
   showShare = false,
   onPreviewPublic,
   onScan,
+  onOpenLocation,
   modeRail = null
 }) {
   const type = profile?.type || "";
@@ -109,7 +128,7 @@ export function ProfileHero({
 
         <div className="salonHeroMeta">
           <div className="profileHeroCopy">
-            <p>{profile.data?.area || "شهر ثبت نشده"}</p>
+            <AreaLine area={profile.data?.area} onClick={onOpenLocation} />
             <h2>{name}</h2>
             <span className="salonHeroVerified" aria-hidden="true">✹</span>
           </div>
@@ -146,10 +165,7 @@ export function ProfileHero({
         </span>
         <div className="cphMeta">
           <h2>{name}</h2>
-          <p>
-            <MapPin size={14} aria-hidden="true" />
-            {profile.data?.area || "شهر ثبت نشده"}
-          </p>
+          <AreaLine area={profile.data?.area} onClick={onOpenLocation} icon />
         </div>
       </div>
     );
