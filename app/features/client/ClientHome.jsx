@@ -28,6 +28,7 @@ export function ClientHome({ bookings = [], highlightKey = "", clientName = "", 
       <ClientBookingsPanel
         bookings={bookings}
         compactEmpty
+        emptyLine={!showConnect}
         emptyMascot={bookings.length > 0 || connected === true}
         highlightKey={highlightKey}
         onOpenSettings={onOpenBooking}
@@ -35,9 +36,9 @@ export function ClientHome({ bookings = [], highlightKey = "", clientName = "", 
       />
       {showConnect ? (
       <section className="chCard chStart" aria-label="وصل کردن سالن یا آرتیست">
-        <Mascot pose="search" size={84} className="chEmptyMascot" />
+        <Mascot pose="search" size={64} className="chEmptyMascot" />
         <b>سالن یا آرتیستت را وصل کن</b>
-        <span>از مخاطبین انتخابش کن یا کد QR او را اسکن کن.</span>
+        <span>از مخاطبین یا با اسکن QR.</span>
         <AddPlaceActions
           clientName={clientName}
           onOpenPlace={onOpenPlace}
