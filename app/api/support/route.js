@@ -5,6 +5,7 @@ import { checkRateLimit } from "../../lib/rateLimit.js";
 import { clientIp } from "../../lib/adminAuth.js";
 import * as support from "../../lib/db/repos/support.js";
 import { parseAttachments } from "../../lib/supportMedia.js";
+import { smsAdminsSupport, supportTopic } from "../../lib/adminSms.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -41,6 +42,7 @@ async function _POST(request) {
   }
 
   const ticket = await support.createTicket({ kind: "support", userId: user?.id ?? null, contactPhone: phone, category, subject, body: message, attachments: files.items });
+  smsAdminsSupport("support", { topic: supportTopic(category), who: user?.name || phone });
   return json({ data: { id: ticket.id } }, { status: 201 });
 }
 

@@ -33,6 +33,13 @@
       "style": "DARK",
       "backgroundColor": "#1c202c",
       "overlaysWebView": false
+    },
+    "PushNotifications": {
+      "presentationOptions": [
+        "badge",
+        "sound",
+        "alert"
+      ]
     }
   }
 }

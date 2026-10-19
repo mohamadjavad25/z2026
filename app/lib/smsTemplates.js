@@ -59,6 +59,13 @@ export const SMS_TEMPLATES = {
     kavenegar: (v) => ({ token: v.amount, token2: v.receipt, token10: v.who }),
     faraz: (v) => ({ amount: v.amount, receipt: v.receipt, who: v.who }),
     preview: (v) => `فرفرو، پرداخت تازه: ${v.who}، ${v.amount} تومان، رسید ${v.receipt}.`
+  },
+  admin_support: {
+    label: "درخواست پشتیبانی (برای مدیر)",
+    env: "ADMIN_SUPPORT",
+    kavenegar: (v) => ({ token10: v.topic, token20: v.who }),
+    faraz: (v) => ({ topic: v.topic, who: v.who }),
+    preview: (v) => `فرفرو، درخواست پشتیبانی. موضوع: ${v.topic}، از: ${v.who}. در پنل مدیریت ببین.`
   }
 };
 

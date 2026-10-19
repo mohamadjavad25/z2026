@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tint of the small notification icon: the mascot's pink. -->
+    <color name="frfro_notification">#FF86B8</color>
+    <!-- The one notification channel (created in FrfroPushPlugin.java; the server sends to it in app/lib/fcm.js). -->
+    <string name="frfro_channel_id" translatable="false">frfro</string>
+    <string name="frfro_channel_name">نوبت‌ها و پیام‌ها</string>
+    <string name="frfro_channel_description">درخواست نوبت تازه، جواب نوبت، اشتراک و پیام پشتیبانی</string>
+</resources>

@@ -29,6 +29,15 @@
             </intent-filter>
         </activity>
 
+        <!-- App push (Firebase): the small icon, its tint and the channel a message lands on when it names none. -->
+
+        <meta-data android:name="com.google.firebase.messaging.default_notification_icon" android:resource="@drawable/ic_stat_frfro" />
+
+        <meta-data android:name="com.google.firebase.messaging.default_notification_color" android:resource="@color/frfro_notification" />
+
+        <meta-data android:name="com.google.firebase.messaging.default_notification_channel_id" android:value="@string/frfro_channel_id" />
+
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
@@ -48,6 +57,8 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-feature android:name="android.hardware.location.gps" android:required="false" />
+    <!-- Notifications (Android 13+ asks the person once) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- Voice notes in the support chat -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />

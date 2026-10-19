@@ -6,6 +6,7 @@ import { ensureDb } from "../../../lib/db/connection.js";
 import * as passwordResetRequests from "../../../lib/db/repos/passwordResetRequests.js";
 import { checkRateLimit } from "../../../lib/rateLimit.js";
 import { withErrorHandling } from "../../../lib/http.js";
+import { smsAdminsSupport } from "../../../lib/adminSms.js";
 
 export const runtime = "nodejs";
 
@@ -40,6 +41,7 @@ async function _POST(request) {
     }
 
     const result = await passwordResetRequests.createRequest(phone, note);
+    smsAdminsSupport("password-reset", { topic: "بازیابی رمز", who: phone });
     return NextResponse.json({ data: { id: result.id } });
   } catch (error) {
     console.error(error);

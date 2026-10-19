@@ -4,7 +4,7 @@ import { SMS_TEMPLATES, kavenegarSafe } from "./smsTemplates.js";
 /**
  * SMS sending, provider-agnostic. Pick one with FRFRO_SMS_PROVIDER:
  *   - "kavenegar": real SMS (needs KAVENEGAR_API_KEY and KAVENEGAR_TEMPLATE, a verify-lookup template with %token)
- *   - "farazsms": real SMS via Faraz SMS (IPPanel edge API; needs FARAZSMS_API_KEY, FARAZSMS_PATTERN_CODE, FARAZSMS_SENDER; the pattern text must use %code%, or set FARAZSMS_PARAM)
+ *   - "farazsms": real SMS via Faraz SMS (api.iranpayamak.com, the panel at panel.iranpayamak.com; needs FARAZSMS_API_KEY, FARAZSMS_PATTERN_CODE, FARAZSMS_SENDER; the pattern text must use %code%, or set FARAZSMS_PARAM)
  *   - "test": nothing is sent; the message is kept in sms_log so tests (and the admin panel in a test setup) can read it
  *   - unset: SMS is off -- the app behaves exactly as before and password recovery stays manual.
  * Every attempt is logged (phone masked) so the admin panel can show whether SMS is working.
@@ -43,22 +43,23 @@ async function sendFarazPattern(phone, pattern, params) {
   const key = process.env.FARAZSMS_API_KEY;
   const sender = process.env.FARAZSMS_SENDER;
   if (!key || !pattern || !sender) return { ok: false, detail: "farazsms not configured" };
-  const response = await fetch("https://edge.ippanel.com/v1/api/send", {
+  const attributes = Object.fromEntries(Object.entries(params).map(([name, value]) => [name, String(value)]));
+  const response = await fetch("https://api.iranpayamak.com/ws/v1/sms/pattern", {
     method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: key },
+    headers: { "Content-Type": "application/json", Accept: "application/json", "Api-Key": key },
     body: JSON.stringify({
-      sending_type: "pattern",
-      from_number: sender,
       code: pattern,
-      recipients: [phone.replace(/^0/, "+98")],
-      params,
+      attributes,
+      recipient: phone,
+      line_number: sender.replace(/^\+?98/, ""),
+      number_format: "english",
     }),
     signal: AbortSignal.timeout(8000),
   });
   const payload = await response.json().catch(() => ({}));
-  return payload?.meta?.status === true
+  return payload?.status === "success"
     ? { ok: true, detail: "" }
-    : { ok: false, detail: String(payload?.meta?.message || response.status).slice(0, 120) };
+    : { ok: false, detail: String(payload?.message || payload?.messages || response.status).slice(0, 120) };
 }
 
 async function logAttempt({ phone, purpose, provider, result, body }) {
@@ -78,7 +79,11 @@ export async function sendVerificationSms(phone, token, purpose) {
   let result = { ok: false, detail: "sms disabled" };
   try {
     if (provider === "kavenegar") result = await sendKavenegarLookup(phone, process.env.KAVENEGAR_TEMPLATE, { token });
-    else if (provider === "farazsms") result = await sendFarazPattern(phone, process.env.FARAZSMS_PATTERN_CODE, { [process.env.FARAZSMS_PARAM || "code"]: token });
+    else if (provider === "farazsms") {
+      // Sign-up and password reset may each have their own pattern (FARAZSMS_PATTERN_CODE_REGISTER / _RESET).
+      const pattern = process.env[`FARAZSMS_PATTERN_CODE_${String(purpose || "").toUpperCase()}`] || process.env.FARAZSMS_PATTERN_CODE;
+      result = await sendFarazPattern(phone, pattern, { [process.env.FARAZSMS_PARAM || "code"]: token });
+    }
     else if (provider === "test") result = { ok: true, detail: "" };
   } catch (error) {
     result = { ok: false, detail: String(error?.message || error).slice(0, 120) };

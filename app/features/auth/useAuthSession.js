@@ -4,6 +4,7 @@ import { apiFetch } from "../../shared/api/client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { deleteAccount as apiDeleteAccount, login as apiLogin, logout as apiLogout, register as apiRegister } from "../../shared/api/auth";
 import { AUTH_SESSION_KEY, normalizeProfile, readAuthSession, writeAuthSession } from "./constants";
+import { stopAppPush } from "../../shared/lib/nativePush";
 
 /**
  * Auth/session domain — owns race guards, gate UI state, login/register/logout.
@@ -275,6 +276,8 @@ export function useAuthSession({
 
   async function logoutAccount() {
     try {
+      // Still logged in here, so the server can drop this phone's app push token.
+      await stopAppPush();
       await apiLogout();
     } catch {
       // ignore
