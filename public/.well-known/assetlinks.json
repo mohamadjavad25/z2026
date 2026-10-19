@@ -4,7 +4,15 @@
     "target": {
       "namespace": "android_app",
       "package_name": "ir.frfro.app",
-      "sha256_cert_fingerprints": ["C9:B3:A3:A0:23:BA:ED:E8:6D:D2:D8:7E:BF:22:9A:FB:8D:66:55:A3:B6:99:AD:0A:B3:7B:C0:1C:A6:DC:DE:74"]
+      "sha256_cert_fingerprints": ["AE:1D:83:80:AC:9F:CC:49:9F:66:39:9F:A4:B5:BF:A0:E2:EE:61:63:B8:C1:5B:AD:89:D7:32:2F:1C:CA:B3:AF"]
+    }
+  },
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "ir.frfro.admin",
+      "sha256_cert_fingerprints": ["AE:1D:83:80:AC:9F:CC:49:9F:66:39:9F:A4:B5:BF:A0:E2:EE:61:63:B8:C1:5B:AD:89:D7:32:2F:1C:CA:B3:AF"]
     }
   }
 ]
