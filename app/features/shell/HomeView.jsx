@@ -25,6 +25,7 @@ import { BillingHost } from "../billing";
 import { NoticeHost } from "../../shared/notice/NoticeHost";
 import { ClientBookingTracker } from "../client/ClientBookingTracker";
 import { BottomNav } from "./BottomNav";
+import { CreateBookingTip } from "./CreateBookingTip";
 import { SupportFab } from "../support";
 import { useHome } from "./HomeContext";
 import { PublicArtistHost } from "./home/PublicArtistHost";
@@ -410,6 +411,10 @@ export function HomeView() {
             }
             openBookingSheet();
           }}
+        />
+        <CreateBookingTip
+          active={(createdProfile?.type === "artist" || createdProfile?.type === "salon") && activeTab === "profile" && !bookingSheetOpen && !selectedPublicArtist}
+          onCreateBooking={openBookingSheet}
         />
         {createdProfile && activeTab === "profile" && !selectedPublicArtist ? <SupportFab /> : null}
         <PublicArtistHost />

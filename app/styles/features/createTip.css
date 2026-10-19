@@ -1,0 +1,11 @@
+/* One-time spotlight on the bottom bar's «+» for a new salon/artist (CreateBookingTip.jsx). */
+.createTip { --tip-scrim: rgb(var(--shadow-rgb) / 0.93); position: fixed; inset: 0; z-index: var(--z-modal); animation: createTipFade 0.25s ease both; }
+.createTipHole { position: fixed; padding: 0; border: 0; border-radius: 50%; background: transparent; box-shadow: 0 0 0 200vmax var(--tip-scrim), 0 0 0 3px rgb(var(--brand-pink-rgb) / 0.9), 0 0 24px 6px rgb(var(--brand-violet-rgb) / 0.55); cursor: pointer; animation: createTipPulse 1.8s ease-in-out infinite; }
+.createTipCard { position: fixed; left: max(16px, calc((100vw - 420px) / 2)); right: max(16px, calc((100vw - 420px) / 2)); display: grid; gap: 6px; padding: 16px 18px 14px; border-radius: 22px; background: var(--surface-solid); color: var(--ink); text-align: center; box-shadow: 0 18px 40px rgb(var(--shadow-rgb) / 0.3); }
+.createTipCard strong { font-size: 1rem; font-weight: 900; }
+.createTipCard p { margin: 0; color: var(--muted); font-size: 0.86rem; line-height: 1.8; }
+.createTipOk { justify-self: center; min-width: 120px; min-height: 42px; margin-top: 6px; padding: 0 22px; border: 0; border-radius: 999px; background: var(--primary); color: var(--on-primary); font: inherit; font-weight: 900; cursor: pointer; }
+.createTipArrow { position: fixed; width: 14px; height: 14px; margin-left: -7px; background: var(--surface-solid); transform: rotate(45deg); }
+@keyframes createTipFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes createTipPulse { 50% { box-shadow: 0 0 0 200vmax var(--tip-scrim), 0 0 0 5px rgb(var(--brand-pink-rgb) / 0.9), 0 0 32px 10px rgb(var(--brand-violet-rgb) / 0.6); } }
+@media (prefers-reduced-motion: reduce) { .createTip, .createTipHole { animation: none; } }
