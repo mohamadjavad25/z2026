@@ -16,11 +16,16 @@ export async function closeBrowser() {
 }
 
 /** `entered: false` gives a first-time visitor, who sees the about page at "/" on a phone
- *  until tapping «ورود به فرفرو». By default the visitor has already entered, so "/" is the app. */
-export async function newPage({ width = 390, cookie = "", entered = true } = {}) {
+ *  until tapping «ورود به فرفرو». By default the visitor has already entered, so "/" is the app.
+ *  `tipSeen: false` keeps the one-time spotlight on a salon/artist's «+» (CreateBookingTip), which
+ *  otherwise covers the screen; by default it counts as already seen. */
+export async function newPage({ width = 390, cookie = "", entered = true, tipSeen = true } = {}) {
   const context = await (await getBrowser()).newContext({ viewport: { width, height: 820 }, locale: "fa-IR" });
   if (entered) {
     await context.addInitScript({ content: 'try { localStorage.setItem("frfro-entered", "1"); } catch (e) {}' });
+  }
+  if (tipSeen) {
+    await context.addInitScript({ content: 'try { localStorage.setItem("frfro-tip-create-booking", "1"); } catch (e) {}' });
   }
   if (cookie) {
     const [name, value] = cookie.split("=");
