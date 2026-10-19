@@ -5,7 +5,7 @@ import { activeGateway, gatewayById, gatewayLabel } from "../payments/index.js";
 import { BEST_MONTHS, PRESELECTED_MONTHS, TRIAL_DAYS, getPlan, plansFor, rialToToman } from "./plans.js";
 import { nextPeriod, refundQuote } from "./period.js";
 import { reminderKind, reminderMessage } from "./reminders.js";
-import { sendPushToUser } from "../push.js";
+import { reachableByAppPush, sendPushToUser } from "../push.js";
 import { sendTemplateSms, smsProviderName } from "../sms.js";
 import { adminPhoneList } from "../admin.js";
 import { logger } from "../logger.js";
@@ -338,7 +338,9 @@ export async function notifyPaid(payment) {
       url: `/?billing=${payment.id}`
     }));
   }
-  if (receiptPhone && smsAllowedFor(payment)) {
+  // The receipt SMS is skipped when the push reaches the payer in the Android app (the receipt is also in the app).
+  const receiptUserId = payment.payer_user_id || payment.user_id;
+  if (receiptPhone && smsAllowedFor(payment) && !(await reachableByAppPush(receiptUserId))) {
     tasks.push(sendTemplateSms(receiptPhone, "billing_receipt", { receipt, amount, until: formatPersianShortDate(payment.period_end) }));
   }
   const account = `${payment.user_type === "salon" ? "سالن" : "آرتیست"} ${payment.user_name || ""}`.trim();
@@ -391,9 +393,10 @@ async function sendReminders(now, settings) {
   for (const { row, access, kind } of due) {
     if (!(await billing.claimNotice(row.id, kind, access.accessEndsAt))) continue;
     const message = reminderMessage(kind, access, { graceDays: settings.graceDays });
+    const smsToo = !(await reachableByAppPush(row.id));
     await Promise.allSettled([
       sendPushToUser(row.id, { title: message.title, body: message.body, url: "/?billing=plans" }),
-      sendTemplateSms(row.phone, message.sms.key, message.sms.values)
+      smsToo ? sendTemplateSms(row.phone, message.sms.key, message.sms.values) : null
     ]);
     sent += 1;
   }

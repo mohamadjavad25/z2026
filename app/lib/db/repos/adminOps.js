@@ -48,7 +48,7 @@ export async function getUserDetail(id) {
         (SELECT COUNT(*)::int FROM salon_staff WHERE salon_user_id = $1) AS staff,
         ((SELECT COUNT(*) FROM salon_hours WHERE salon_user_id = $1 AND active) + (SELECT COUNT(*) FROM artist_hours WHERE artist_user_id = $1 AND active))::int AS open_days
     `, [user.id]).catch(() => null),
-    get(db, "SELECT COUNT(*)::int AS count FROM push_subscriptions WHERE user_id = $1", [user.id]).catch(() => ({ count: 0 }))
+    get(db, "SELECT ((SELECT COUNT(*) FROM push_subscriptions WHERE user_id = $1) + (SELECT COUNT(*) FROM native_push_tokens WHERE user_id = $1))::int AS count", [user.id]).catch(() => ({ count: 0 }))
   ]);
   return {
     user,

@@ -9,6 +9,7 @@ import { connectTo } from "../../shared/api/connections";
 import { parseOpenParam, peekPendingOpen, rememberPendingOpen, takePendingOpen } from "../../shared/lib/appHandoff";
 import { notify } from "../../shared/notice/noticeStore";
 import { pushNotificationsSupported, subscribeToPushNotifications } from "./homeAppHelpers";
+import { appPushAvailable, startAppPush } from "../../shared/lib/nativePush";
 import { useHomeChrome } from "./useHomeChrome";
 import { useHomeWorkspaces } from "./useHomeWorkspaces";
 
@@ -229,7 +230,10 @@ export function useHomeApp() {
       // never be re-prompted per the browser spec), so a fresh "default"
       // permission instead shows an in-app soft-ask banner that explains why
       // before the real browser prompt fires — see pushSoftAskVisible below.
-      if (typeof Notification !== "undefined" && Notification.permission === "granted") {
+      // Inside the Android app the WebView has no Web Push: the app's own push takes over (nativePush.js).
+      if (appPushAvailable()) {
+        void startAppPush();
+      } else if (typeof Notification !== "undefined" && Notification.permission === "granted") {
         void subscribeToPushNotifications();
       } else if (
         typeof Notification !== "undefined" &&

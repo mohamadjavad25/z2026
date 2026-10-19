@@ -144,7 +144,7 @@ export async function countSegment(segment) {
   const db = await getDb();
   const row = await get(db, `
     SELECT COUNT(*)::int AS recipients,
-           COUNT(*) FILTER (WHERE EXISTS (SELECT 1 FROM push_subscriptions p WHERE p.user_id = u.id))::int AS with_push
+           COUNT(*) FILTER (WHERE (EXISTS (SELECT 1 FROM push_subscriptions p WHERE p.user_id = u.id) OR EXISTS (SELECT 1 FROM native_push_tokens n WHERE n.user_id = u.id)))::int AS with_push
     FROM users u WHERE ${segmentWhere(segment)}
   `);
   return { recipients: row?.recipients || 0, withPush: row?.with_push || 0 };
@@ -170,12 +170,12 @@ export async function inboxSegment(segment, { title, body, adminUserId = null })
   return result.rowCount || 0;
 }
 
-/** Ids of the people in a segment who have at least one push subscription. */
+/** Ids of the people in a segment who have at least one push subscription (browser or Android app). */
 export async function pushableUserIds(segment) {
   if (!SEGMENTS[segment]) return [];
   const db = await getDb();
   const rows = await all(db, `
-    SELECT u.id FROM users u WHERE ${segmentWhere(segment)} AND EXISTS (SELECT 1 FROM push_subscriptions p WHERE p.user_id = u.id)
+    SELECT u.id FROM users u WHERE ${segmentWhere(segment)} AND (EXISTS (SELECT 1 FROM push_subscriptions p WHERE p.user_id = u.id) OR EXISTS (SELECT 1 FROM native_push_tokens n WHERE n.user_id = u.id))
   `);
   return rows.map((row) => row.id);
 }

@@ -1,5 +1,6 @@
 import * as users from "./db/repos/users.js";
 import { sendTemplateSms } from "./sms.js";
+import { reachableByAppPush } from "./push.js";
 import { formatRelativeBookingDayLabel } from "../shared/lib/persianCalendar.js";
 import { normalizeBookingTimeLabel } from "../shared/lib/time.js";
 import { toPersianDigits } from "../shared/lib/digits.js";
@@ -8,13 +9,17 @@ import { toPersianDigits } from "../shared/lib/digits.js";
  * The two booking messages that must reach people even when push does not (inside the Android app, or where
  * Google's push service is blocked): a salon or artist hearing about a new request before its answer window runs
  * out, and the client hearing the answer. Each is a pattern the operator sets up (smsTemplates.js: booking_request,
- * booking_answer); until then nothing is sent. Fire-and-forget: never throws and never delays the response.
+ * booking_answer); until then nothing is sent. Someone with the frfro Android app gets the push alone, no SMS
+ * (push.js: reachableByAppPush); iPhone and other browser users get both. Fire-and-forget: never throws and never
+ * delays the response.
  */
 
 const dayLabel = (bookingDate) => formatRelativeBookingDayLabel(bookingDate) || toPersianDigits(bookingDate || "");
 const timeLabel = (time) => toPersianDigits(normalizeBookingTimeLabel(time || "") || time || "");
 
+/** The phone to text, or "" when the push already reaches them in the app. */
 async function phoneOf(userId) {
+  if (!userId || (await reachableByAppPush(Number(userId)))) return "";
   const user = userId ? await users.getUserById(Number(userId)) : null;
   return user?.phone || "";
 }
