@@ -18,6 +18,14 @@ curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - && sudo apt in
 sudo adduser --system --group --home /srv/frfro frfro
 ```
 
+اگر قرار است داده از Supabase بیاید، `pg_dump` و `pg_restore` نسخهٔ ۱۷ یا بالاتر لازم است، چون Supabase روی Postgres 17 است و `pg_dump` قدیمی‌تر (مثلاً ۱۶ اوبونتو) قبول نمی‌کند از آن کپی بگیرد. نسخهٔ ۱۷ را از مخزن رسمی Postgres نصب کن:
+
+```bash
+sudo apt install -y postgresql-common && sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh
+sudo apt install -y postgresql-client-17
+pg_dump --version   # باید 17 یا بالاتر بگوید
+```
+
 اگر `npm ci` از سرور ایرانی کند است یا خطا می‌دهد، آینهٔ داخلی بگذار، مثلاً `npm config set registry https://registry.npmmirror.com`، یا هر آینه‌ای که سرویس‌دهنده‌ات معرفی می‌کند.
 
 ## ۲. دیتابیس
@@ -46,6 +54,12 @@ pg_dump --format=custom --no-owner --no-privileges --schema=public \
   --dbname="postgresql://postgres.<project>:<pass>@<host>:5432/postgres" --file=frfro-supabase.dump
 pg_restore --no-owner --no-privileges --dbname="$POSTGRES_URL" frfro-supabase.dump
 ```
+
+`pg_dump` و `pg_restore` باید نسخهٔ ۱۷ یا بالاتر باشند (بخش ۱). `pg_restore` آخر کار دو خطا نشان می‌دهد که بی‌خطرند و داده سالم است:
+- `unrecognized configuration parameter "transaction_timeout"`: این تنظیم در Postgres 17 آمده و Postgres سرور قدیمی‌تر آن را نمی‌شناسد.
+- `schema "public" already exists`: دیتابیس تازه از قبل `public` را دارد.
+
+اگر خطای دیگری دید، کپی کامل نیست. با `scripts/db-counts.sh` تعدادها را روی Supabase و سرور مقایسه کن.
 
 ۳. بعد `npm run migrate` (در `deploy.sh` هست) migrationهای جدیدتر را اضافه می‌کند.
 
@@ -113,7 +127,9 @@ sudo ufw allow OpenSSH && sudo ufw allow 'Nginx Full' && sudo ufw enable
 sudo -u frfro /srv/frfro/app/scripts/deploy.sh
 ```
 
-کد تازهٔ `main` را می‌گیرد، migrationها را اجرا می‌کند، build می‌گیرد، سرویس را دوباره راه می‌اندازد و `/api/health` را چک می‌کند. برای `systemctl restart` بدون رمز، این خط را با `sudo visudo -f /etc/sudoers.d/frfro` اضافه کن:
+کد تازهٔ `main` را می‌گیرد، migrationها را اجرا می‌کند، build می‌گیرد، سرویس را دوباره راه می‌اندازد و `/api/health` را چک می‌کند. بسته‌ها را با `npm ci --include=dev` نصب می‌کند، چون `.env` مقدار `NODE_ENV=production` دارد و npm بدون این گزینه devDependencies را نصب نمی‌کند. migrate (`node-pg-migrate`) و build به همان‌ها نیاز دارند. اگر دستی `npm ci` می‌زنی، `--include=dev` را فراموش نکن، وگرنه `npm run migrate` با `Cannot find module 'node-pg-migrate/bin/node-pg-migrate'` می‌ایستد.
+
+برای `systemctl restart` بدون رمز، این خط را با `sudo visudo -f /etc/sudoers.d/frfro` اضافه کن:
 
 ```
 frfro ALL=NOPASSWD: /usr/bin/systemctl restart frfro

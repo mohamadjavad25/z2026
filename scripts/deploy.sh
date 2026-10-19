@@ -12,7 +12,9 @@ git fetch origin "$branch"
 git checkout -q "$branch"
 git reset -q --hard "origin/$branch"
 
-npm ci --no-audit --no-fund
+# --include=dev: the env sets NODE_ENV=production, which would make npm skip devDependencies, but
+# migrate (node-pg-migrate) and the build need them.
+npm ci --include=dev --no-audit --no-fund
 # Migrations before the new code starts: every schema change the code needs is in migrations/.
 npm run migrate
 npm run build
