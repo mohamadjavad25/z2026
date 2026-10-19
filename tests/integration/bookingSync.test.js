@@ -153,7 +153,7 @@ describe("a booking the salon entered for a client who has an account", () => {
   it("never reaches another account by name when the salon entered no phone", async () => {
     const ctx = await setup();
     const created = await ctx.salonClient.post("/api/salon-bookings", {
-      service: "کوتاهی مو", bookingDate: futureBookingDay(2), time: "۱۸:۰۰", client: ctx.client.user.name
+      service: "کوتاهی مو", bookingDate: futureBookingDay(2, { notOn: ["پنجشنبه"] }), time: "۱۸:۰۰", client: ctx.client.user.name
     });
     expect(created.ok).toBe(true);
     const booking = created.payload.data.booking;
