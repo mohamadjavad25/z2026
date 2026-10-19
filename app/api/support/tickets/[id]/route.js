@@ -3,6 +3,7 @@ import { ensureDb } from "../../../../lib/db/connection.js";
 import { checkRateLimit } from "../../../../lib/rateLimit.js";
 import * as support from "../../../../lib/db/repos/support.js";
 import { parseAttachments } from "../../../../lib/supportMedia.js";
+import { smsAdminsSupport } from "../../../../lib/adminSms.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -34,6 +35,7 @@ async function _POST(request, { params }) {
   if (message.length > 2000) return error("پیام خیلی بلند است (حداکثر ۲۰۰۰ حرف).", 400);
   if (!(await checkRateLimit(`support-reply:${auth.user.id}`, 30, 60 * 60 * 1000)).ok) return error("پیام‌های زیادی فرستادی. کمی بعد دوباره امتحان کن.", 429);
   const ticket = await support.addMessage({ ticketId: id, author: "user", authorUserId: auth.user.id, body: message, attachments: files.items });
+  smsAdminsSupport("support-reply", { topic: "جواب تازه", who: auth.user.name || auth.user.phone });
   return json({ data: { ticket } }, { status: 201 });
 }
 

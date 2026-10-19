@@ -97,7 +97,9 @@
 | پایان اشتراک (شروع مهلت) | `…_BILLING_ENDED` | `…_BILLING_ENDED` | token=روزهای مهلت / `%days%` |
 | بسته شدن حساب | `…_BILLING_CLOSED` | `…_BILLING_CLOSED` | token=تاریخ / `%since%` |
 | خبر پرداخت برای مدیر | `…_BILLING_ADMIN` | `…_BILLING_ADMIN` | token=مبلغ، token2=رسید، token10=نام / `%amount%` `%receipt%` `%who%` |
-| ثبت‌نام سالن یا آرتیست تازه (برای مدیر) | `…_ADMIN_NEW_ACCOUNT` | `…_ADMIN_NEW_ACCOUNT` | token=نقش، token10=نام و منطقه / `%role%` `%who%` |
+| درخواست پشتیبانی (برای مدیر) | `…_ADMIN_SUPPORT` | `…_ADMIN_SUPPORT` | token10=موضوع، token20=نام یا شماره / `%topic%` `%who%` |
+
+پیامک مدیر (`app/lib/adminSms.js`) فقط برای وقتی است که کسی منتظر مدیر است: پیام تازهٔ پشتیبانی، جواب کاربر در گفتگوی پشتیبانی، درخواست بازیابی دستی رمز و گزارش تخلف؛ از هر نوع حداکثر یک پیامک در ۱۵ دقیقه (بقیه در پنل). ثبت‌نام‌ها پیامک ندارند تا هزینه پایین بماند. خبر پرداخت هم جدا با `BILLING_ADMIN` می‌آید.
 
 کد تأیید ثبت‌نام و بازیابی رمز در فراز می‌توانند الگوی جدا داشته باشند: `FARAZSMS_PATTERN_CODE_REGISTER` و `FARAZSMS_PATTERN_CODE_RESET` (اگر نباشند، `FARAZSMS_PATTERN_CODE`).
 

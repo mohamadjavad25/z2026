@@ -60,12 +60,12 @@ export const SMS_TEMPLATES = {
     faraz: (v) => ({ amount: v.amount, receipt: v.receipt, who: v.who }),
     preview: (v) => `فرفرو، پرداخت تازه: ${v.who}، ${v.amount} تومان، رسید ${v.receipt}.`
   },
-  admin_new_account: {
-    label: "ثبت‌نام سالن یا آرتیست تازه (برای مدیر)",
-    env: "ADMIN_NEW_ACCOUNT",
-    kavenegar: (v) => ({ token: v.role, token10: v.who }),
-    faraz: (v) => ({ role: v.role, who: v.who }),
-    preview: (v) => `فرفرو، ثبت‌نام تازه: ${v.role} ${v.who}.`
+  admin_support: {
+    label: "درخواست پشتیبانی (برای مدیر)",
+    env: "ADMIN_SUPPORT",
+    kavenegar: (v) => ({ token10: v.topic, token20: v.who }),
+    faraz: (v) => ({ topic: v.topic, who: v.who }),
+    preview: (v) => `فرفرو، درخواست پشتیبانی. موضوع: ${v.topic}، از: ${v.who}. در پنل مدیریت ببین.`
   }
 };
 

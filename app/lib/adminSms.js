@@ -1,17 +1,38 @@
 import { adminPhoneList } from "./admin.js";
 import { sendTemplateSms } from "./sms.js";
+import { checkRateLimit } from "./rateLimit.js";
 
 /**
- * Pattern SMS to every FRFRO_ADMIN_PHONES number, for events the operator wants to hear about away from the panel.
- * Off until its pattern is set (smsTemplates.js). Fire-and-forget: never throws and never delays the response.
+ * Pattern SMS to every FRFRO_ADMIN_PHONES number, only for things someone is waiting on the operator for (support).
+ * Sign-ups and other routine events are not texted, to keep the SMS bill down. Off until its pattern is set
+ * (smsTemplates.js: admin_support). Fire-and-forget: never throws and never delays the response.
  */
-function smsAdmins(key, values) {
-  void Promise.allSettled(adminPhoneList().map((phone) => sendTemplateSms(phone, key, values))).catch(() => {});
+
+const QUIET_MS = 15 * 60 * 1000;
+
+const SUPPORT_TOPICS = {
+  question: "سؤال",
+  bug: "مشکل فنی",
+  complaint: "شکایت",
+  account: "حساب کاربری",
+  other: "پیام"
+};
+
+/**
+ * Someone needs the operator. `kind` groups the throttle: at most one SMS per kind every 15 minutes, so a burst of
+ * messages (or one person writing many) costs one SMS; the panel shows them all.
+ */
+export function smsAdminsSupport(kind, { topic, who }) {
+  void (async () => {
+    const phones = adminPhoneList();
+    if (!phones.length) return;
+    if (!(await checkRateLimit(`admin-sms:${kind}`, 1, QUIET_MS)).ok) return;
+    const values = {
+      topic: String(topic || "پیام").slice(0, 30),
+      who: String(who || "").trim().slice(0, 40) || "بدون نام"
+    };
+    await Promise.allSettled(phones.map((phone) => sendTemplateSms(phone, "admin_support", values)));
+  })().catch(() => {});
 }
 
-/** A salon or an artist just signed up (clients are not reported: there are too many of them). */
-export function smsAdminsNewAccount({ type, name, area }) {
-  if (type !== "salon" && type !== "artist") return;
-  const who = [name, area].map((part) => String(part || "").trim()).filter(Boolean).join("، ").slice(0, 40) || "بدون نام";
-  smsAdmins("admin_new_account", { role: type === "salon" ? "سالن" : "آرتیست", who });
-}
+export const supportTopic = (category) => SUPPORT_TOPICS[category] || SUPPORT_TOPICS.other;

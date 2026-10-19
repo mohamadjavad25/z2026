@@ -3,6 +3,7 @@ import { ensureDb, getDb, get } from "../../lib/db/connection.js";
 import { getUserFromRequest } from "../../lib/auth.js";
 import { checkRateLimit } from "../../lib/rateLimit.js";
 import * as support from "../../lib/db/repos/support.js";
+import { smsAdminsSupport } from "../../lib/adminSms.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -53,6 +54,7 @@ async function _POST(request) {
     targetType,
     targetId
   });
+  if (!ticket.already) smsAdminsSupport("report", { topic: "گزارش تخلف", who: user.name || user.phone });
   return json({ data: { id: ticket.id, already: ticket.already } }, { status: ticket.already ? 200 : 201 });
 }
 
