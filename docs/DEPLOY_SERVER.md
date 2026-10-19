@@ -96,6 +96,7 @@ sudo systemctl daemon-reload && sudo systemctl enable frfro
 
 sudo cp /srv/frfro/app/deploy/nginx.conf /etc/nginx/sites-available/frfro
 sudo ln -s /etc/nginx/sites-available/frfro /etc/nginx/sites-enabled/frfro
+sudo mkdir -p /var/www/frfro && sudo cp /srv/frfro/app/deploy/maintenance.html /var/www/frfro/   # صفحهٔ حالت نگهداری
 sudo nginx -t && sudo systemctl reload nginx
 sudo certbot --nginx -d frfro.ir -d www.frfro.ir   # بعد از وصل شدن دامنه به IP سرور
 ```
@@ -147,6 +148,10 @@ sudo -u postgres dropdb frfro_restore_test
 - لاگ برنامه: `journalctl -u frfro -f`. خطاهای سرور با `"level":"error"` ثبت می‌شوند.
 - خطاهای گوشی کاربرها: پنل مدیریت ← سلامت سامانه.
 
-## ۹. نقشه
+## ۹. جابه‌جایی به سرور دیگر
+
+هر وقت این سرور جوابگو نبود: `docs/SERVER_MOVE.md`. بستهٔ کامل (دیتابیس، env، گواهی) با بررسی تعداد ردیف‌ها، حالت نگهداری چنددقیقه‌ای، و فرستادن سرور قدیم به جدید تا DNS همه جا عوض شود.
+
+## ۱۰. نقشه
 
 نقشه‌ی انتخاب مکان از OpenStreetMap می‌آید (`tile.openstreetmap.org` و `nominatim.openstreetmap.org`). از ایران گاهی کند است و قوانینش استفادهٔ سنگین را مجاز نمی‌داند. جایگزین ایرانی (نشان یا Map.ir) کلید API می‌خواهد. وقتی کلید را گرفتی، تغییرش در `ProfileLocationSettings.jsx` و `LocationButton.jsx` و CSP در `next.config.mjs` است.
