@@ -194,13 +194,6 @@
     font-size: 0.67rem !important;
   }
 
-  .profileHero.is-salon .salonHeroVerified {
-    grid-column: 1 !important;
-    grid-row: 1 !important;
-    width: 15px !important;
-    height: 15px !important;
-    transform: translateY(1px);
-  }
 
   .profileHero.is-salon .salonHeroRatingPill {
     min-height: 29px !important;

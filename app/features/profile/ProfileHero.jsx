@@ -129,7 +129,6 @@ export function ProfileHero({
           <div className="profileHeroCopy">
             <AreaLine area={profile.data?.area} onClick={onOpenLocation} />
             <h2>{name}</h2>
-            <span className="salonHeroVerified" aria-hidden="true">✹</span>
           </div>
           <PublicPreviewButton onClick={onPreviewPublic} />
         </div>
