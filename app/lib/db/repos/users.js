@@ -1,5 +1,6 @@
 import { getDb, all, get, run } from "../connection.js";
 import { uploadImageDataUrl, deleteStoredImage } from "../../storage.js";
+import { nameKey } from "../../businessName.js";
 
 /**
  * Every column except the picture bytes. avatar/poster come back as a '1' / '' flag (a picture
@@ -46,6 +47,18 @@ export async function getUserByPhone(phone, runner = null) {
   if (!normalized) return null;
   const db = runner || (await getDb());
   return (await get(db, `SELECT ${USER_COLUMNS} FROM users WHERE phone = $1`, [normalized])) || null;
+}
+
+/**
+ * True when another salon or artist already holds this name (see app/lib/businessName.js for what counts as the
+ * same name). `excludeUserId` is the account itself, so saving a profile without renaming never trips it.
+ */
+export async function isBusinessNameTaken(name, excludeUserId = 0, runner = null) {
+  const key = nameKey(name);
+  if (!key) return false;
+  const db = runner || (await getDb());
+  const rows = await all(db, "SELECT name FROM users WHERE type IN ('salon', 'artist') AND id <> $1", [Number(excludeUserId) || 0]);
+  return rows.some((row) => nameKey(row.name) === key);
 }
 
 /** Records that the account proved it owns its phone number with an SMS code (see app/lib/db/clientMatch.js). */

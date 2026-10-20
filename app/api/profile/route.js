@@ -5,6 +5,7 @@ import * as users from "../../lib/db/repos/users.js";
 import { requireUser, validateBody, withErrorHandling } from "../../lib/http.js";
 import { profileUpdateSchema } from "../../lib/validation/user.js";
 import { isImageDataUrlTooLarge, isImageDataUrlInvalidType } from "../../lib/mediaLimits.js";
+import { hasUniqueName, nameKey, NAME_TAKEN_MESSAGE } from "../../lib/businessName.js";
 
 export const runtime = "nodejs";
 
@@ -57,6 +58,15 @@ async function _POST(request) {
       experienceYears: data.experienceYears,
       managerName: data.managerName
     };
+
+    // A salon or artist renaming itself may not take another one's name; an unchanged name (even an old
+    // duplicate from before the rule) always saves.
+    if (
+      hasUniqueName(auth.user.type) && data.name !== undefined && nameKey(data.name) !== nameKey(auth.user.name)
+      && (await users.isBusinessNameTaken(data.name, auth.user.id))
+    ) {
+      return NextResponse.json({ error: NAME_TAKEN_MESSAGE, code: "name_taken" }, { status: 409 });
+    }
 
     // Clients have no field of activity.
     if (auth.user.type === "client") delete patch.service;

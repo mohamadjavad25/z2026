@@ -4,6 +4,7 @@ import { isAdminPhone, requireAdmin, requireStepUp } from "../../../../lib/admin
 import * as admin from "../../../../lib/db/repos/admin.js";
 import * as ops from "../../../../lib/db/repos/adminOps.js";
 import * as users from "../../../../lib/db/repos/users.js";
+import { hasUniqueName, nameKey } from "../../../../lib/businessName.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -56,6 +57,12 @@ async function _PATCH(request, { params }) {
     if (value !== String(detail.user[field] || "")) changes[field] = value;
   }
   if (!Object.keys(changes).length) return json({ data: { changed: [] } });
+  if (
+    changes.name && hasUniqueName(detail.user.type) && nameKey(changes.name) !== nameKey(detail.user.name)
+    && (await users.isBusinessNameTaken(changes.name, id))
+  ) {
+    return error("سالن یا آرتیست دیگری همین اسم را دارد؛ اسم دیگری بنویس.", 409);
+  }
   await users.updateUser(id, changes);
   await admin.logAction({
     adminUserId: gate.admin.id,

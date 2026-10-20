@@ -8,9 +8,9 @@ import { sendCode, useCountdown } from "./otp";
 /**
  * "Enter the 5-digit code we texted you" -- shared by sign-up and password reset.
  * Sends the first code on mount, offers a resend after the countdown, and hands the typed code to `onSubmit(code)`.
- * `onSubmit` returns an error message (string) to show, or nothing on success.
+ * `onSubmit` returns an error message (string) to show, or nothing on success. `sendExtra` rides along on each send.
  */
-export function OtpCodeStep({ phone, purpose, resendSeconds = 60, submitLabel, busy = false, onSubmit, onEditPhone, children }) {
+export function OtpCodeStep({ phone, purpose, sendExtra, resendSeconds = 60, submitLabel, busy = false, onSubmit, onEditPhone, editLabel = "ویرایش شماره", children }) {
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [sending, setSending] = useState(true);
@@ -19,7 +19,7 @@ export function OtpCodeStep({ phone, purpose, resendSeconds = 60, submitLabel, b
   async function send() {
     setSending(true);
     setError("");
-    const { ok, payload } = await sendCode(phone, purpose);
+    const { ok, payload } = await sendCode(phone, purpose, sendExtra);
     setSending(false);
     if (ok) countdown.restart();
     else setError(payload.error || "ارسال پیامک انجام نشد.");
@@ -70,7 +70,7 @@ export function OtpCodeStep({ phone, purpose, resendSeconds = 60, submitLabel, b
         <button type="button" disabled={sending || countdown.left > 0} onClick={send}>
           {sending ? "در حال ارسال…" : countdown.left > 0 ? `ارسال دوباره (${toPersianDigits(countdown.left)})` : "ارسال دوبارهٔ کد"}
         </button>
-        {onEditPhone ? <button type="button" onClick={onEditPhone}>ویرایش شماره</button> : null}
+        {onEditPhone ? <button type="button" onClick={onEditPhone}>{editLabel}</button> : null}
       </div>
     </div>
   );

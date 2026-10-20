@@ -4,10 +4,14 @@ import { ensureDb } from "../../../../lib/db/connection.js";
 import * as users from "../../../../lib/db/repos/users.js";
 import { otpConfig, sendOtp } from "../../../../lib/otp.js";
 import { checkIpRateLimit } from "../../../../lib/rateLimit.js";
+import { hasUniqueName, NAME_TAKEN_MESSAGE } from "../../../../lib/businessName.js";
 
 export const runtime = "nodejs";
 
-/** POST { phone, purpose: "register" | "reset" } -> texts a 5-digit code. */
+/**
+ * POST { phone, purpose: "register" | "reset", type?, name? } -> texts a 5-digit code. A sign-up sends its role and
+ * name too, so a salon/artist name that is already taken is reported before an SMS is spent on it.
+ */
 async function _POST(request) {
   await ensureDb();
   const config = otpConfig();
@@ -26,6 +30,9 @@ async function _POST(request) {
 
   const existing = await users.getUserByPhone(phone);
   if (purpose === "register" && existing) return error("این شماره قبلاً ثبت شده است؛ وارد شو.", 409);
+  if (purpose === "register" && hasUniqueName(body.type) && (await users.isBusinessNameTaken(body.name))) {
+    return json({ error: NAME_TAKEN_MESSAGE, code: "name_taken" }, { status: 409 });
+  }
   if (purpose === "reset" && !existing) {
     // Same answer as a real send, so this can't be used to find out which numbers have accounts.
     return json({ data: { ok: true, resendSeconds: config.resendSeconds } });
