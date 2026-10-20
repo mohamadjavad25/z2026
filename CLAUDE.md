@@ -6,6 +6,10 @@
 - Because `FRFRO_ADMIN_SECRET` changed, each admin had to re-enroll their authenticator once via "راه‌اندازی اولیه" on `/admin` (supported since PR #109). The user confirmed on 2026-10-10 that they re-enrolled and can log in to the admin panel. Push subscriptions must be re-enabled by users; push was not verified. Do not nag the user about this at session start.
 - The old `ZIBABAN_*` variables still exist in Vercel and are harmless; the user may delete them by hand.
 
+## Which server (user's rule, 2026-10-20)
+
+There are two: the main server (Iranian, holds frfro.ir and the real data, gets code only from `main` through `scripts/deploy.sh`) and Vercel (project `z2026`, a test copy; every pushed branch gets a preview). Before any important or complex change (migrations, payments, login/SMS, bookings, deploy or server config), ask the user: «اول روی ورسل تست کنیم یا مستقیم روی سرور اصلی؟». For "Vercel first": push a branch, give the user the preview link, and only after the user says it works merge into `main` and deploy to the main server. Small safe changes (text, style, docs) need no question, but say where they will go.
+
 ## Project notes
 
 - The product name is **frfro**, always lowercase in English. The Persian form is «فرفرو». Never use "Farfaroo", "Frfru", "Zibaban" or «زیبابان».
