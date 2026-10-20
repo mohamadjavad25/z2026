@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { ArrowLeft, Check, ImagePlus, ListPlus, MapPin, Sparkles, X } from "lucide-react";
+import { ArrowLeft, CarTaxiFront, Check, ImagePlus, ListPlus, MapPin, Sparkles, X } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { beautySpecialtyOptions } from "../../shared/constants/roles";
 import { SpecialtyMultiSelect } from "../auth/SpecialtyMultiSelect";
@@ -9,7 +9,7 @@ import { Button } from "../../components/ui/Button";
 import { ProfileSheet } from "./ProfileSheet";
 import { QuickAreaPicker } from "./QuickAreaSheet";
 
-const STEP_ICONS = { avatar: ImagePlus, area: MapPin, specialty: Sparkles, services: ListPlus };
+const STEP_ICONS = { avatar: ImagePlus, area: MapPin, pin: CarTaxiFront, specialty: Sparkles, services: ListPlus };
 
 const STEP_COPY = {
   avatar: (isSalon) => ({
@@ -19,6 +19,10 @@ const STEP_COPY = {
   area: () => ({
     title: "کجا کار می‌کنی؟",
     lead: "شهرت را انتخاب کن تا مشتری‌های همان اطراف تو را در جستجو پیدا کنند."
+  }),
+  pin: (isSalon) => ({
+    title: isSalon ? "درِ سالنت را روی نقشه پین کن" : "جای کارت را روی نقشه پین کن",
+    lead: "با پین، مشتری از صفحه‌ات با یک ضربه تپسی می‌گیرد و مسیر تا همان‌جا آماده است. بدون پین، دکمهٔ تاکسی در صفحه‌ات نیست."
   }),
   specialty: (isSalon) => ({
     title: isSalon ? "خدمات اصلی سالن چیست؟" : "تخصصت چیست؟",
@@ -45,7 +49,8 @@ export function ProfileCompletionFlow({
   onClose,
   onPickLogo,
   onQuickSave,
-  onOpenServices
+  onOpenServices,
+  onOpenLocation
 }) {
   const [saving, setSaving] = useState(false);
 
@@ -126,6 +131,10 @@ export function ProfileCompletionFlow({
 
             {current.id === "area" ? (
               <QuickAreaPicker disabled={saving} onPick={(area) => save({ area }, `محدوده فعالیت: ${area}`)} />
+            ) : null}
+
+            {current.id === "pin" ? (
+              <Button block icon={ArrowLeft} onClick={() => { onClose(); onOpenLocation?.(); }}>گذاشتن پین روی نقشه</Button>
             ) : null}
 
             {current.id === "specialty" ? (

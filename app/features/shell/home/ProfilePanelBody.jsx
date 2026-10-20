@@ -246,6 +246,7 @@ export function ProfilePanelBody() {
                 onPickLogo={saveProfileLogo}
                 logoEditing={Boolean(pendingAvatarUpload)}
                 onQuickSave={quickSaveProfile}
+                onOpenLocation={() => { goToTab("settings"); openLocationSettings(); }}
                 onOpenServices={() => {
                   // Land on the services page and open the add-service sheet right away.
                   if (createdProfile.type === "salon") {

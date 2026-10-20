@@ -118,3 +118,15 @@ describe("tapsiWebLink", () => {
     expect(tapsiWebLink({ address: "تهران", lat: null, lng: null })).toBe("");
   });
 });
+
+describe("«تکمیل پروفایل» asks for the pin", () => {
+  it("is a step until the owner has a pin, after the area", async () => {
+    const { getProfileSteps } = await import("../../app/features/profile/ProfileCompleteness.jsx");
+    const salon = (location) => ({ type: "salon", data: { area: "تهران", location } });
+    const pinStep = (profile) => getProfileSteps(profile, 0).find((step) => step.id === "pin");
+    expect(getProfileSteps(salon(null), 0).map((step) => step.id)).toEqual(["avatar", "area", "pin", "specialty", "services"]);
+    expect(pinStep(salon(null)).done).toBe(false);
+    expect(pinStep(salon({ address: "تهران", lat: null, lng: null })).done).toBe(false);
+    expect(pinStep(salon({ address: "تهران", lat: 35.7, lng: 51.4 })).done).toBe(true);
+  });
+});

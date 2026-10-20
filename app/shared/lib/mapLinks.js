@@ -11,8 +11,8 @@
  * (read from Balad 4.85.1 → Tapsi 8.5.0 on an Android phone, 2026-10-20). It is not documented, so
  * LocationButton tells the client what to do if Tapsi does not open. Android only for now: Tapsi is not
  * in Iran's App Store, and whether the iPhone builds (Sibche, Anardoni) take the link is not tested yet.
- * Everywhere else Tapsi's web app takes the ride in its own address (`tapsiWebLink`); only a salon without
- * a pin falls back to Snapp's way: the address is copied and the web app opens.
+ * Everywhere else Tapsi's web app takes the ride in its own address (`tapsiWebLink`). A salon without a
+ * pin gets no Tapsi button at all (user's decision 2026-10-20): Tapsi on its home page left clients stuck.
  */
 export const SNAPP_URL = "https://app.snapp.taxi/";
 export const TAPSI_SITE_URL = "https://tapsi.ir/";

@@ -13,6 +13,8 @@ export function getProfileSteps(profile, serviceCount) {
   return [
     { id: "avatar", label: isSalon ? "لوگوی سالن" : "عکس پروفایل", done: !isDefaultAvatar(data.avatar) },
     { id: "area", label: "محدوده فعالیت", done: Boolean(String(data.area || "").trim()) },
+    // The pin is what lets a client take a taxi to the door: without it the public page has no «درخواست تپسی».
+    { id: "pin", label: "پین آدرس روی نقشه", done: Number.isFinite(data.location?.lat) && Number.isFinite(data.location?.lng) },
     { id: "specialty", label: isSalon ? "خدمات اصلی" : "تخصص", done: Boolean(String(data.service || "").trim()) },
     { id: "services", label: "اولین خدمت در منو", done: serviceCount > 0 }
   ];
@@ -25,7 +27,7 @@ const RING_LENGTH = 2 * Math.PI * RING_RADIUS;
  * The reminder card on the owner's dashboard. It has no per-step links on purpose: tapping the
  * card (or its button) opens the guided flow, which takes the open steps one after another.
  */
-export function ProfileCompleteness({ profile, serviceCount = 0, logoEditing = false, onOpenServices, onPickLogo, onQuickSave }) {
+export function ProfileCompleteness({ profile, serviceCount = 0, logoEditing = false, onOpenServices, onOpenLocation, onPickLogo, onQuickSave }) {
   // Closing only hides the card for this visit; it is not remembered, so every refresh brings it back until the profile is complete.
   const [dismissed, setDismissed] = useState(false);
   // The guided flow.
@@ -49,6 +51,7 @@ export function ProfileCompleteness({ profile, serviceCount = 0, logoEditing = f
       onPickLogo={onPickLogo}
       onQuickSave={onQuickSave}
       onOpenServices={onOpenServices}
+      onOpenLocation={onOpenLocation}
     />
   );
 

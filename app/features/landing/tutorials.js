@@ -393,7 +393,7 @@ export const LEARN_ROLES = [
           { screen: "form", els: signup({ title: "آرتیست", nameLabel: "نام هنری", name: ARTIST, phone: "۰۹۳۵۱۲۳۴۵۶۷", password: true, terms: true }), tap: "submit", say: "شماره و رمز را بزن، قوانین را تیک بزن و «تکمیل ثبت‌نام».", ms: 3600 },
           {
             screen: "profile",
-            els: [artistHero(), artistRail(0), { t: "head", text: "تکمیل پروفایل", sub: "چند قدم تا صفحهٔ کامل" }, { t: "rows", id: "todo", chevron: true, items: [{ a: "عکس پروفایل" }, { a: "محدوده فعالیت" }, { a: "تخصص" }, { a: "اولین خدمت در منو" }] }, navBiz(1)],
+            els: [artistHero(), artistRail(0), { t: "head", text: "تکمیل پروفایل", sub: "چند قدم تا صفحهٔ کامل" }, { t: "rows", id: "todo", chevron: true, items: [{ a: "عکس پروفایل" }, { a: "محدوده فعالیت" }, { a: "پین آدرس روی نقشه" }, { a: "تخصص" }, { a: "اولین خدمت در منو" }] }, navBiz(1)],
             tap: "todo.2",
             say: "بعد از ثبت‌نام، «تکمیل پروفایل» را قدم‌به‌قدم پر کن؛ مثلاً «تخصص».",
             ms: 3400

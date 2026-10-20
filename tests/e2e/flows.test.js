@@ -510,7 +510,7 @@ describe("profile completeness (browser)", () => {
     await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
     const card = page.locator(".profileCompleteness");
     await card.waitFor();
-    expect(await card.innerText()).toContain("۴ قدم تا پروفایل کامل");
+    expect(await card.innerText()).toContain("۵ قدم تا پروفایل کامل");
     await page.getByRole("button", { name: "بستن یادآوری تکمیل پروفایل" }).click();
     await card.waitFor({ state: "detached" });
     await page.reload({ waitUntil: "networkidle" });

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { CarTaxiFront, Check, Copy, MapPin, Navigation } from "lucide-react";
 import { SheetClose } from "./SheetClose";
-import { SNAPP_URL, TAPSI_SITE_URL, TAPSI_WEB_URL, detectPlatform, fullAddress, navigationLinks, tapsiRideLink, tapsiWebLink } from "../shared/lib/mapLinks";
+import { SNAPP_URL, TAPSI_SITE_URL, detectPlatform, fullAddress, navigationLinks, tapsiRideLink, tapsiWebLink } from "../shared/lib/mapLinks";
 // Bundled with the app instead of fetched from a CDN, so the map never depends on one being reachable.
 import "leaflet/dist/leaflet.css";
 
@@ -71,15 +71,13 @@ function LocationSheet({ name, location, onClose }) {
     return () => { cancelled = true; };
   }, [pinned]);
 
-  // Android: Tapsi's app on the ride. Elsewhere: the same ride in Tapsi's web app. Without a pin, like
-  // Snapp: copy the address and open the web app.
+  // Android: Tapsi's app on the ride. Elsewhere: the same ride in Tapsi's web app. Only with a pin: without
+  // one Tapsi would open on its home page with nothing filled, which left the client stuck (user's
+  // decision 2026-10-20); the owner is asked for the pin in «تکمیل پروفایل» instead.
   const tapsiRide = tapsiRideLink(location, platform, origin);
   const tapsiWeb = tapsiWebLink(location, origin);
-  const showTapsi = Boolean(pinned || address);
-  const tapsiHint = tapsiRide || (tapsiWeb && origin)
-    ? "مسیر آماده است؛ فقط ماشین را انتخاب کن"
-    : tapsiWeb ? "مقصد آماده است؛ جای خودت را تأیید کن"
-      : copied === "tapsi" ? "آدرس کپی شد؛ در تپسی مقصد را بچسبان" : "آدرس کپی می‌شود؛ در تپسی مقصد را بچسبان";
+  const showTapsi = Boolean(tapsiWeb);
+  const tapsiHint = tapsiRide || origin ? "مسیر آماده است؛ فقط ماشین را انتخاب کن" : "مقصد آماده است؛ جای خودت را تأیید کن";
 
   async function copyAddress() {
     try {
@@ -105,10 +103,7 @@ function LocationSheet({ name, location, onClose }) {
 
   // Leaving for Tapsi hides this page; if it is still showing a moment later, Tapsi did not open.
   function onTapsi() {
-    if (!tapsiRide) {
-      if (!tapsiWeb) copyAddress().then((ok) => { if (ok) setCopied("tapsi"); });
-      return;
-    }
+    if (!tapsiRide) return;
     setTapsiMissed(false);
     const startedAt = Date.now();
     window.setTimeout(() => {
@@ -145,7 +140,7 @@ function LocationSheet({ name, location, onClose }) {
           <>
             <a
               className="locRide"
-              href={tapsiRide || tapsiWeb || TAPSI_WEB_URL}
+              href={tapsiRide || tapsiWeb}
               {...(tapsiRide ? {} : { target: "_blank", rel: "noopener noreferrer" })}
               onClick={onTapsi}
             >
