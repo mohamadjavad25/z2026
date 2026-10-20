@@ -4,11 +4,13 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { CarTaxiFront, Check, Copy, MapPin, Navigation } from "lucide-react";
 import { SheetClose } from "./SheetClose";
-import { SNAPP_URL, detectPlatform, fullAddress, navigationLinks } from "../shared/lib/mapLinks";
+import { SNAPP_URL, TAPSI_SITE_URL, detectPlatform, fullAddress, navigationLinks, tapsiLink } from "../shared/lib/mapLinks";
 // Bundled with the app instead of fetched from a CDN, so the map never depends on one being reachable.
 import "leaflet/dist/leaflet.css";
 
 const PIN_ZOOM = 16;
+// Still on this page this long after «درخواست تپسی»: Tapsi did not open (most likely not installed).
+const TAPSI_OPEN_WAIT_MS = 1800;
 const PIN_HTML = `<span class="locPin" aria-hidden="true"><span class="locPinPulse"></span><svg width="38" height="46" viewBox="0 0 38 46"><path d="M19 45s17-15.2 17-26A17 17 0 0 0 2 19c0 10.8 17 26 17 26Z" style="fill:var(--brand-ink);stroke:var(--brand-white)" stroke-width="2.5"/><circle cx="19" cy="19" r="7" style="fill:var(--brand-pink)"/></svg></span>`;
 
 /** The pinned map inside the sheet: Leaflet + OpenStreetMap tiles, the same as «ثبت لوکیشن». */
@@ -43,6 +45,8 @@ function LocationMap({ lat, lng }) {
 function LocationSheet({ name, location, onClose }) {
   const [copied, setCopied] = useState("");
   const [platform, setPlatform] = useState("");
+  const [origin, setOrigin] = useState(null);
+  const [tapsiMissed, setTapsiMissed] = useState(false);
   const address = fullAddress(location);
   const pinned = Number.isFinite(location.lat) && Number.isFinite(location.lng);
   const links = navigationLinks(location, platform);
@@ -50,6 +54,24 @@ function LocationSheet({ name, location, onClose }) {
   useEffect(() => {
     setPlatform(detectPlatform(navigator.userAgent));
   }, []);
+
+  // Tapsi's start point: only when the client already allowed this site their location, so opening
+  // the sheet never asks. Without it Tapsi asks them to confirm where they are.
+  useEffect(() => {
+    if (platform !== "android" || !pinned || !navigator.geolocation || !navigator.permissions?.query) return;
+    let cancelled = false;
+    navigator.permissions.query({ name: "geolocation" }).then((status) => {
+      if (cancelled || status.state !== "granted") return;
+      navigator.geolocation.getCurrentPosition(
+        ({ coords }) => { if (!cancelled) setOrigin({ lat: coords.latitude, lng: coords.longitude }); },
+        () => {},
+        { maximumAge: 120000, timeout: 8000 }
+      );
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [platform, pinned]);
+
+  const tapsiHref = platform === "android" ? tapsiLink(location, origin) : "";
 
   async function copyAddress() {
     try {
@@ -71,6 +93,15 @@ function LocationSheet({ name, location, onClose }) {
   // The copy is not awaited, so the browser still sees the tap as what opens the new page.
   function onSnapp() {
     copyAddress().then((ok) => { if (ok) setCopied("snapp"); });
+  }
+
+  // Leaving for Tapsi hides this page; if it is still showing a moment later, Tapsi did not open.
+  function onTapsi() {
+    setTapsiMissed(false);
+    const startedAt = Date.now();
+    window.setTimeout(() => {
+      if (document.visibilityState === "visible" && Date.now() - startedAt < TAPSI_OPEN_WAIT_MS * 2) setTapsiMissed(true);
+    }, TAPSI_OPEN_WAIT_MS);
   }
 
   return createPortal((
@@ -98,7 +129,24 @@ function LocationSheet({ name, location, onClose }) {
         </div>
         {!pinned ? <p className="locNoPin">هنوز پین دقیق روی نقشه نگذاشته؛ آدرس بالا را ببین.</p> : null}
 
-        <a className="locSnapp" href={SNAPP_URL} target="_blank" rel="noopener noreferrer" onClick={onSnapp}>
+        {tapsiHref ? (
+          <>
+            <a className="locRide" href={tapsiHref} onClick={onTapsi}>
+              <CarTaxiFront size={20} aria-hidden="true" />
+              <span>
+                <b>درخواست تپسی</b>
+                <small>مسیر تا این‌جا آماده است؛ فقط ماشین را انتخاب کن</small>
+              </span>
+            </a>
+            {tapsiMissed ? (
+              <p className="locRideMissed">
+                تپسی باز نشد؟ اگر نصب نیست <a href={TAPSI_SITE_URL} target="_blank" rel="noopener noreferrer">از سایت تپسی بگیرش</a>.
+              </p>
+            ) : null}
+          </>
+        ) : null}
+
+        <a className={`locRide${tapsiHref ? " is-soft" : ""}`} href={SNAPP_URL} target="_blank" rel="noopener noreferrer" onClick={onSnapp}>
           <CarTaxiFront size={20} aria-hidden="true" />
           <span>
             <b>درخواست اسنپ</b>
@@ -125,7 +173,7 @@ function LocationSheet({ name, location, onClose }) {
 
 /**
  * The pin next to a salon's or artist's name on their public page. Tapping it opens the exact
- * address on a map with «درخواست اسنپ» and the navigation apps. Renders nothing without a location.
+ * address on a map with «درخواست تپسی» (Android), «درخواست اسنپ» and the navigation apps. Renders nothing without a location.
  */
 export function LocationButton({ name = "", location = null }) {
   const [open, setOpen] = useState(false);

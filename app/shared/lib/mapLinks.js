@@ -5,8 +5,15 @@
  *
  * Snapp publishes no link that fills in the destination, so «اسنپ» copies the address first
  * (LocationButton) and opens Snapp; the client pastes it as the destination there.
+ *
+ * Tapsi does take one: `tap30://ride/?saddr=lat,lng&daddr=lat,lng` is what Balad hands Tapsi from its
+ * own «تاکسی اینترنتی» tab, and it opens Tapsi's car choice with both ends filled and the prices shown
+ * (read from Balad 4.85.1 → Tapsi 8.5.0 on an Android phone, 2026-10-20). It is not documented, so
+ * LocationButton tells the client what to do if Tapsi does not open. Android only: Tapsi has no
+ * native iPhone app that takes it.
  */
 export const SNAPP_URL = "https://app.snapp.taxi/";
+export const TAPSI_SITE_URL = "https://tapsi.ir/";
 
 function hasPin(location) {
   return Number.isFinite(location?.lat) && Number.isFinite(location?.lng);
@@ -16,6 +23,20 @@ function hasPin(location) {
 export function fullAddress(location) {
   if (!location) return "";
   return [location.address, location.detail].map((part) => String(part || "").trim()).filter(Boolean).join("، ");
+}
+
+function point({ lat, lng }) {
+  return `${Number(lat.toFixed(6))},${Number(lng.toFixed(6))}`;
+}
+
+/**
+ * «درخواست تپسی»: Tapsi opens on the ride to the salon. `origin` is the client's own position when the
+ * page already has it; without it Tapsi asks the client to confirm where they are first.
+ */
+export function tapsiLink(location, origin = null) {
+  if (!hasPin(location)) return "";
+  const from = hasPin(origin) ? `saddr=${point(origin)}&` : "";
+  return `tap30://ride/?${from}daddr=${point(location)}`;
 }
 
 /**

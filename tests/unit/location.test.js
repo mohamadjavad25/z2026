@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { publicLocation } from "../../app/lib/location.js";
-import { detectPlatform, fullAddress, navigationLinks, SNAPP_URL } from "../../app/shared/lib/mapLinks.js";
+import { detectPlatform, fullAddress, navigationLinks, SNAPP_URL, tapsiLink } from "../../app/shared/lib/mapLinks.js";
 
 const pinned = { address: "تهران، یوسف‌آباد، خیابان اسدآبادی", detail: "پلاک ۸، طبقه ۲", lat: 35.7301234567, lng: 51.4112345678 };
 
@@ -64,5 +64,17 @@ describe("fullAddress / detectPlatform", () => {
 
   it("opens Snapp's own web app", () => {
     expect(SNAPP_URL).toBe("https://app.snapp.taxi/");
+  });
+});
+
+describe("tapsiLink", () => {
+  it("opens Tapsi on the ride to the pin, from the client when known", () => {
+    expect(tapsiLink({ lat: 31.34, lng: 48.69 })).toBe("tap30://ride/?daddr=31.34,48.69");
+    expect(tapsiLink({ lat: 31.34, lng: 48.69 }, { lat: 31.3183, lng: 48.6706 })).toBe("tap30://ride/?saddr=31.3183,48.6706&daddr=31.34,48.69");
+  });
+
+  it("needs the salon's pin", () => {
+    expect(tapsiLink({ address: "اهواز" })).toBe("");
+    expect(tapsiLink(null)).toBe("");
   });
 });
