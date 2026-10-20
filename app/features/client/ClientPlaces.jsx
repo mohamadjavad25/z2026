@@ -135,7 +135,7 @@ export function ClientPlaces({ bookings = [], clientName = "", onOpenPlace, onFi
           </div>
         ) : firstTime ? (
           <div className="chCard chEmpty">
-            <Mascot pose="search" size={96} className="chEmptyMascot" />
+            <Mascot pose="connect" size={96} className="chEmptyMascot" />
             <b>سالن یا آرتیستت را وصل کن</b>
             <AddPlaceActions
               clientName={clientName}

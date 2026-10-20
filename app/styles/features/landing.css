@@ -388,7 +388,7 @@ html.native-app .webOnlyAppLink { display: none !important; }
   white-space: nowrap;
 }
 
-.appLanding__ribbonRow img { width: 36px; height: 36px; object-fit: contain; }
+.appLanding__ribbonRow .serviceIcon { flex: none; }
 
 /* ---------- Sections ---------- */
 .appLanding__section {

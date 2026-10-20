@@ -168,7 +168,7 @@ export const LEARN_ROLES = [
           { screen: "form", els: signup({ title: "مشتری", nameLabel: "نام یا نام نمایشی", name: CLIENT, extra: [CITY], phone: "۰۹۱۲۳۴۵۶۷۸۹", password: true, terms: true }), tap: "submit", say: "«تکمیل ثبت‌نام» را بزن." },
           {
             screen: "mine",
-            els: [bookTabs(0), { t: "empty", img: "/brand/mascot/search.webp", title: "سالن یا آرتیستت را وصل کن", text: "نوبت گرفتن از اینجا شروع می‌شود." }, { t: "btns", id: "add", items: [{ text: "از مخاطبین" }, { text: "اسکن QR", ghost: true }] }, navClient(2)],
+            els: [bookTabs(0), { t: "empty", img: "/brand/mascot/connect.webp", title: "سالن یا آرتیستت را وصل کن", text: "نوبت گرفتن از اینجا شروع می‌شود." }, { t: "btns", id: "add", items: [{ text: "از مخاطبین" }, { text: "اسکن QR", ghost: true }] }, navClient(2)],
             toast: "خوش آمدی!",
             say: "تمام! حالا سالن یا آرتیست خودت را اضافه کن.",
             ms: 3400
@@ -182,7 +182,7 @@ export const LEARN_ROLES = [
         scenes: [
           {
             screen: "mine",
-            els: [bookTabs(0), { t: "empty", img: "/brand/mascot/search.webp", title: "سالن یا آرتیستت را وصل کن", text: "نوبت گرفتن از اینجا شروع می‌شود." }, { t: "btns", id: "add", items: [{ text: "از مخاطبین" }, { text: "اسکن QR", ghost: true }] }, navClient(2)],
+            els: [bookTabs(0), { t: "empty", img: "/brand/mascot/connect.webp", title: "سالن یا آرتیستت را وصل کن", text: "نوبت گرفتن از اینجا شروع می‌شود." }, { t: "btns", id: "add", items: [{ text: "از مخاطبین" }, { text: "اسکن QR", ghost: true }] }, navClient(2)],
             tap: "tabs.1",
             say: "در بخش «رزرو»، «پیدا کردن» را بزن."
           },
@@ -266,7 +266,7 @@ export const LEARN_ROLES = [
         text: "خدمت را از کاتالوگ بردار، قیمت و زمان را بزن.",
         scenes: [
           { screen: "profile", els: [salonHero(), salonRail(1), { t: "summary", text: "نوبت‌های امروز: ۳" }, navBiz(1)], tap: "rail.3", say: "در پروفایل سالن، «خدمات» را بزن." },
-          { screen: "services", els: [salonHero(), salonRail(3), { t: "empty", img: "/brand/mascot/nails.webp", title: "هنوز خدمتی ثبت نشده", text: "خدمت‌ها را تعریف کن تا مشتری بتواند روز و ساعت را انتخاب کند." }, { t: "btn", id: "addFirst", text: "افزودن اولین خدمت" }, navBiz(1)], tap: "addFirst", say: "«افزودن اولین خدمت» را بزن." },
+          { screen: "services", els: [salonHero(), salonRail(3), { t: "empty", img: "/brand/mascot/no-services.webp", title: "هنوز خدمتی ثبت نشده", text: "خدمت‌ها را تعریف کن تا مشتری بتواند روز و ساعت را انتخاب کند." }, { t: "btn", id: "addFirst", text: "افزودن اولین خدمت" }, navBiz(1)], tap: "addFirst", say: "«افزودن اولین خدمت» را بزن." },
           {
             screen: "services",
             els: [salonHero(), salonRail(3), navBiz(1)],
@@ -359,7 +359,7 @@ export const LEARN_ROLES = [
         text: "آرتیست‌ها را دعوت کن تا نوبت‌ها به اسم خودشان ثبت شود.",
         scenes: [
           { screen: "profile", els: [salonHero(), salonRail(1), { t: "summary", text: "نوبت‌های امروز: ۳" }, navBiz(1)], tap: "rail.2", say: "در پروفایل سالن، «پرسنل» را بزن." },
-          { screen: "staff", els: [salonHero(), salonRail(2), { t: "empty", img: "/brand/mascot/thumbsup.webp", title: "هنوز آرتیستی در تیم نیست", text: "آرتیستی که می‌شناسی را با کد یا لینک به تیم اضافه کن." }, { t: "btn", id: "invite", text: "دعوت آرتیست" }, navBiz(1)], tap: "invite", say: "«دعوت آرتیست» را بزن." },
+          { screen: "staff", els: [salonHero(), salonRail(2), { t: "empty", img: "/brand/mascot/team.webp", title: "هنوز آرتیستی در تیم نیست", text: "آرتیستی که می‌شناسی را با کد یا لینک به تیم اضافه کن." }, { t: "btn", id: "invite", text: "دعوت آرتیست" }, navBiz(1)], tap: "invite", say: "«دعوت آرتیست» را بزن." },
           {
             screen: "staff",
             els: [salonHero(), salonRail(2), navBiz(1)],

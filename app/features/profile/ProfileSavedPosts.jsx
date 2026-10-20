@@ -183,7 +183,7 @@ export function ProfileSavedPosts({
       {!hasSavedItems ? (
         <ProfileEmptyState
           className="emptySavedState"
-          visual={<Mascot pose="mirror" size={150} />}
+          visual={<Mascot pose="saved-empty" size={150} />}
           title="هنوز چیزی ذخیره نشده"
           description="پست‌ها، مدل‌ها، سالن‌ها و آرتیست‌های ذخیره‌شده اینجا جمع می‌شوند."
         />

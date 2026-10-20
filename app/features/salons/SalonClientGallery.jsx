@@ -44,7 +44,7 @@ export function SalonClientGallery({ salon, items, getFallbackStyle, postActions
   if (!items?.length) {
     return (
       <div className="salonClientEmptyGallery">
-        <Mascot pose="camera" size={130} />
+        <Mascot pose="no-portfolio" size={130} />
         <b>هنوز نمونه‌کاری ثبت نشده</b>
       </div>
     );

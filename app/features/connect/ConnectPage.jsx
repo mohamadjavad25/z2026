@@ -164,7 +164,7 @@ export function ConnectPage({ me = {}, onOpenProfile, onNotify }) {
             {loading ? <SkeletonList rows={3} variant="card" label="در حال بارگذاری" /> : null}
             {!loading && connections.length === 0 ? (
               <div className="cnEmpty">
-                <Mascot pose="search" size={130} />
+                <Mascot pose="connect" size={130} />
                 <b>هنوز به سالن یا آرتیستی وصل نشدی</b>
                 <p>اسم یا شماره‌اش را بالا بزن، یا اگر پیشش هستی کد QR او را اسکن کن. وصل که شدی، نوبت گرفتن یک ضربه است.</p>
               </div>

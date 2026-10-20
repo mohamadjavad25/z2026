@@ -87,7 +87,7 @@ export function PublicArtistGalleryPanel({
         </div>
       ) : (
         <div className="artistPublicEmpty">
-          <Mascot pose="makeup" size={150} />
+          <Mascot pose="no-portfolio" size={150} />
           <b>هنوز نمونه‌کاری نیست</b>
           <span>به‌زودی کارهای این آرتیست اینجا می‌آید.</span>
         </div>

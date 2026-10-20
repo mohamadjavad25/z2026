@@ -79,7 +79,7 @@ export function ArtistScheduleBoard({
             />
           )) : (
             <div className="salonTodayEmpty">
-              <Mascot pose="scissors" size={150} />
+              <Mascot pose="free-day" size={150} />
               <b>برای «{dayLabel}» رزروی ثبت نشده</b>
             </div>
           )}

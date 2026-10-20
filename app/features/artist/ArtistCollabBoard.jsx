@@ -137,7 +137,7 @@ export function ArtistCollabBoard({
         </button>
       </div>
 
-      <Mascot pose="party" size={190} className="clConnMascot" />
+      <Mascot pose="team" size={190} className="clConnMascot" />
 
       {sheet === "scan" ? (
         <ScanFlow viewerType="artist" onChanged={() => onChanged?.()} onClose={() => setSheet("")} />
