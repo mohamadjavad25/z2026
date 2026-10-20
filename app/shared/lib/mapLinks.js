@@ -11,7 +11,8 @@
  * (read from Balad 4.85.1 → Tapsi 8.5.0 on an Android phone, 2026-10-20). It is not documented, so
  * LocationButton tells the client what to do if Tapsi does not open. Android only for now: Tapsi is not
  * in Iran's App Store, and whether the iPhone builds (Sibche, Anardoni) take the link is not tested yet.
- * Everywhere else «تپسی» works like «اسنپ»: the address is copied and Tapsi's web app opens.
+ * Everywhere else Tapsi's web app takes the ride in its own address (`tapsiWebLink`); only a salon without
+ * a pin falls back to Snapp's way: the address is copied and the web app opens.
  */
 export const SNAPP_URL = "https://app.snapp.taxi/";
 export const TAPSI_SITE_URL = "https://tapsi.ir/";
@@ -44,9 +45,26 @@ export function tapsiLink(location, origin = null) {
   return `tap30://ride/?${from}daddr=${point(location)}`;
 }
 
-/** The ride link on phones whose Tapsi takes it; "" means copy the address and open `TAPSI_WEB_URL`. */
+/** The ride link on phones whose Tapsi takes it; "" means use `tapsiWebLink` instead. */
 export function tapsiRideLink(location, platform = "", origin = null) {
   return TAPSI_RIDE_PLATFORMS.includes(platform) ? tapsiLink(location, origin) : "";
+}
+
+// The web app's own spelling: [lng,lat], brackets escaped, commas plain.
+function webPoint({ lat, lng }) {
+  return `%5B${Number(lng.toFixed(6))},${Number(lat.toFixed(6))}%5D`;
+}
+
+/**
+ * The same ride in Tapsi's web app, read from its code (app.tapsi.cab, 2026-10-20): `/preview` is the
+ * car choice with prices and takes `origin` and `destinations`; `/map/origin` takes only the
+ * destination and asks the client where they are. The user confirmed `/preview` on their phone the
+ * same day. "" without a pin.
+ */
+export function tapsiWebLink(location, origin = null) {
+  if (!hasPin(location)) return "";
+  const to = `destinations=%5B${webPoint(location)}%5D`;
+  return hasPin(origin) ? `${TAPSI_WEB_URL}preview?origin=${webPoint(origin)}&${to}` : `${TAPSI_WEB_URL}map/origin?${to}`;
 }
 
 /**

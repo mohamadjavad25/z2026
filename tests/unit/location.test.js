@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { publicLocation } from "../../app/lib/location.js";
-import { detectPlatform, fullAddress, navigationLinks, SNAPP_URL, TAPSI_WEB_URL, tapsiLink, tapsiRideLink } from "../../app/shared/lib/mapLinks.js";
+import { detectPlatform, fullAddress, navigationLinks, SNAPP_URL, TAPSI_WEB_URL, tapsiLink, tapsiRideLink, tapsiWebLink } from "../../app/shared/lib/mapLinks.js";
 
 const pinned = { address: "تهران، یوسف‌آباد، خیابان اسدآبادی", detail: "پلاک ۸، طبقه ۲", lat: 35.7301234567, lng: 51.4112345678 };
 
@@ -94,5 +94,27 @@ describe("tapsiRideLink", () => {
     expect(tapsiRideLink(pinned, "")).toBe("");
     expect(tapsiRideLink({ address: "تهران", lat: null, lng: null }, "android")).toBe("");
     expect(TAPSI_WEB_URL).toBe("https://app.tapsi.cab/");
+  });
+});
+
+describe("tapsiWebLink", () => {
+  it("opens the web app's car choice when the client's position is known, in its [lng,lat] spelling", () => {
+    // The shape the user confirmed on their phone on 2026-10-20.
+    expect(tapsiWebLink(pinned, { lat: 35.712, lng: 51.411 }))
+      .toBe("https://app.tapsi.cab/preview?origin=%5B51.411,35.712%5D&destinations=%5B%5B51.411235,35.730123%5D%5D");
+  });
+
+  it("otherwise fills the destination and lets Tapsi ask where the client is", () => {
+    expect(tapsiWebLink(pinned)).toBe("https://app.tapsi.cab/map/origin?destinations=%5B%5B51.411235,35.730123%5D%5D");
+  });
+
+  it("decodes to what the web app parses", () => {
+    const url = new URL(tapsiWebLink(pinned, { lat: 35.712, lng: 51.411 }));
+    expect(JSON.parse(url.searchParams.get("origin"))).toEqual([51.411, 35.712]);
+    expect(JSON.parse(url.searchParams.get("destinations"))).toEqual([[51.411235, 35.730123]]);
+  });
+
+  it("needs the salon's pin", () => {
+    expect(tapsiWebLink({ address: "تهران", lat: null, lng: null })).toBe("");
   });
 });
