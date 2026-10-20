@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { publicLocation } from "../../app/lib/location.js";
-import { detectPlatform, fullAddress, navigationLinks, SNAPP_URL, tapsiLink } from "../../app/shared/lib/mapLinks.js";
+import { detectPlatform, fullAddress, navigationLinks, SNAPP_URL, TAPSI_WEB_URL, tapsiLink, tapsiRideLink } from "../../app/shared/lib/mapLinks.js";
 
 const pinned = { address: "تهران، یوسف‌آباد، خیابان اسدآبادی", detail: "پلاک ۸، طبقه ۲", lat: 35.7301234567, lng: 51.4112345678 };
 
@@ -76,5 +76,23 @@ describe("tapsiLink", () => {
   it("needs the salon's pin", () => {
     expect(tapsiLink({ address: "اهواز" })).toBe("");
     expect(tapsiLink(null)).toBe("");
+  });
+
+  it("rounds the points like the map links", () => {
+    expect(tapsiLink(pinned)).toBe("tap30://ride/?daddr=35.730123,51.411235");
+  });
+});
+
+describe("tapsiRideLink", () => {
+  it("is the ride link on Android only", () => {
+    expect(tapsiRideLink(pinned, "android")).toBe("tap30://ride/?daddr=35.730123,51.411235");
+    expect(tapsiRideLink(pinned, "android", { lat: 35.7, lng: 51.4 })).toBe("tap30://ride/?saddr=35.7,51.4&daddr=35.730123,51.411235");
+  });
+
+  it("is empty on iPhone, desktop and without a pin, where the address is copied instead", () => {
+    expect(tapsiRideLink(pinned, "ios")).toBe("");
+    expect(tapsiRideLink(pinned, "")).toBe("");
+    expect(tapsiRideLink({ address: "تهران", lat: null, lng: null }, "android")).toBe("");
+    expect(TAPSI_WEB_URL).toBe("https://app.tapsi.cab/");
   });
 });

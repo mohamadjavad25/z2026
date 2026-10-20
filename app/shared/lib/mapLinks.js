@@ -9,11 +9,16 @@
  * Tapsi does take one: `tap30://ride/?saddr=lat,lng&daddr=lat,lng` is what Balad hands Tapsi from its
  * own «تاکسی اینترنتی» tab, and it opens Tapsi's car choice with both ends filled and the prices shown
  * (read from Balad 4.85.1 → Tapsi 8.5.0 on an Android phone, 2026-10-20). It is not documented, so
- * LocationButton tells the client what to do if Tapsi does not open. Android only: Tapsi has no
- * native iPhone app that takes it.
+ * LocationButton tells the client what to do if Tapsi does not open. Android only for now: Tapsi is not
+ * in Iran's App Store, and whether the iPhone builds (Sibche, Anardoni) take the link is not tested yet.
+ * Everywhere else «تپسی» works like «اسنپ»: the address is copied and Tapsi's web app opens.
  */
 export const SNAPP_URL = "https://app.snapp.taxi/";
 export const TAPSI_SITE_URL = "https://tapsi.ir/";
+/** Tapsi's own web app, linked from tapsi.ir as «نسخه وب تپسی». */
+export const TAPSI_WEB_URL = "https://app.tapsi.cab/";
+// Once a real iPhone opens Tapsi on the ride from `tap30://ride/…`, add "ios" here.
+const TAPSI_RIDE_PLATFORMS = ["android"];
 
 function hasPin(location) {
   return Number.isFinite(location?.lat) && Number.isFinite(location?.lng);
@@ -37,6 +42,11 @@ export function tapsiLink(location, origin = null) {
   if (!hasPin(location)) return "";
   const from = hasPin(origin) ? `saddr=${point(origin)}&` : "";
   return `tap30://ride/?${from}daddr=${point(location)}`;
+}
+
+/** The ride link on phones whose Tapsi takes it; "" means copy the address and open `TAPSI_WEB_URL`. */
+export function tapsiRideLink(location, platform = "", origin = null) {
+  return TAPSI_RIDE_PLATFORMS.includes(platform) ? tapsiLink(location, origin) : "";
 }
 
 /**

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { CarTaxiFront, Check, Copy, MapPin, Navigation } from "lucide-react";
 import { SheetClose } from "./SheetClose";
-import { SNAPP_URL, TAPSI_SITE_URL, detectPlatform, fullAddress, navigationLinks, tapsiLink } from "../shared/lib/mapLinks";
+import { SNAPP_URL, TAPSI_SITE_URL, TAPSI_WEB_URL, detectPlatform, fullAddress, navigationLinks, tapsiRideLink } from "../shared/lib/mapLinks";
 // Bundled with the app instead of fetched from a CDN, so the map never depends on one being reachable.
 import "leaflet/dist/leaflet.css";
 
@@ -71,7 +71,9 @@ function LocationSheet({ name, location, onClose }) {
     return () => { cancelled = true; };
   }, [platform, pinned]);
 
-  const tapsiHref = platform === "android" ? tapsiLink(location, origin) : "";
+  // Android: straight to Tapsi's car choice. Elsewhere, like Snapp: copy the address, open Tapsi's web app.
+  const tapsiRide = tapsiRideLink(location, platform, origin);
+  const showTapsi = Boolean(tapsiRide || address);
 
   async function copyAddress() {
     try {
@@ -97,6 +99,10 @@ function LocationSheet({ name, location, onClose }) {
 
   // Leaving for Tapsi hides this page; if it is still showing a moment later, Tapsi did not open.
   function onTapsi() {
+    if (!tapsiRide) {
+      copyAddress().then((ok) => { if (ok) setCopied("tapsi"); });
+      return;
+    }
     setTapsiMissed(false);
     const startedAt = Date.now();
     window.setTimeout(() => {
@@ -129,13 +135,22 @@ function LocationSheet({ name, location, onClose }) {
         </div>
         {!pinned ? <p className="locNoPin">هنوز پین دقیق روی نقشه نگذاشته؛ آدرس بالا را ببین.</p> : null}
 
-        {tapsiHref ? (
+        {showTapsi ? (
           <>
-            <a className="locRide" href={tapsiHref} onClick={onTapsi}>
+            <a
+              className="locRide"
+              href={tapsiRide || TAPSI_WEB_URL}
+              {...(tapsiRide ? {} : { target: "_blank", rel: "noopener noreferrer" })}
+              onClick={onTapsi}
+            >
               <CarTaxiFront size={20} aria-hidden="true" />
               <span>
                 <b>درخواست تپسی</b>
-                <small>مسیر تا این‌جا آماده است؛ فقط ماشین را انتخاب کن</small>
+                <small>
+                  {tapsiRide
+                    ? "مسیر آماده است؛ فقط ماشین را انتخاب کن"
+                    : copied === "tapsi" ? "آدرس کپی شد؛ در تپسی مقصد را بچسبان" : "آدرس کپی می‌شود؛ در تپسی مقصد را بچسبان"}
+                </small>
               </span>
             </a>
             {tapsiMissed ? (
@@ -146,7 +161,7 @@ function LocationSheet({ name, location, onClose }) {
           </>
         ) : null}
 
-        <a className={`locRide${tapsiHref ? " is-soft" : ""}`} href={SNAPP_URL} target="_blank" rel="noopener noreferrer" onClick={onSnapp}>
+        <a className={`locRide${showTapsi ? " is-soft" : ""}`} href={SNAPP_URL} target="_blank" rel="noopener noreferrer" onClick={onSnapp}>
           <CarTaxiFront size={20} aria-hidden="true" />
           <span>
             <b>درخواست اسنپ</b>
@@ -173,7 +188,7 @@ function LocationSheet({ name, location, onClose }) {
 
 /**
  * The pin next to a salon's or artist's name on their public page. Tapping it opens the exact
- * address on a map with «درخواست تپسی» (Android), «درخواست اسنپ» and the navigation apps. Renders nothing without a location.
+ * address on a map with «درخواست تپسی», «درخواست اسنپ» and the navigation apps. Renders nothing without a location.
  */
 export function LocationButton({ name = "", location = null }) {
   const [open, setOpen] = useState(false);
