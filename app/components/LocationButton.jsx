@@ -47,6 +47,8 @@ function LocationSheet({ name, location, onClose }) {
   const [platform, setPlatform] = useState("");
   const [origin, setOrigin] = useState(null);
   const [tapsiMissed, setTapsiMissed] = useState(false);
+  // "" | "locating" | "denied" | "unavailable": asking the phone where the client is before Tapsi opens.
+  const [tapsiLocate, setTapsiLocate] = useState("");
   const address = fullAddress(location);
   const pinned = Number.isFinite(location.lat) && Number.isFinite(location.lng);
   const links = navigationLinks(location, platform);
@@ -55,8 +57,8 @@ function LocationSheet({ name, location, onClose }) {
     setPlatform(detectPlatform(navigator.userAgent));
   }, []);
 
-  // Tapsi's start point: only when the client already allowed this site their location, so opening
-  // the sheet never asks. Without it Tapsi asks them to confirm where they are.
+  // Tapsi's start point, read quietly when the client already allowed this site their location. When
+  // not, «درخواست تپسی» asks on the tap (onTapsi): without a start Tapsi opens on «کجا هستید؟».
   useEffect(() => {
     if (!pinned || !navigator.geolocation || !navigator.permissions?.query) return;
     let cancelled = false;
@@ -77,7 +79,9 @@ function LocationSheet({ name, location, onClose }) {
   const tapsiRide = tapsiRideLink(location, platform, origin);
   const tapsiWeb = tapsiWebLink(location, origin);
   const showTapsi = Boolean(tapsiWeb);
-  const tapsiHint = tapsiRide || origin ? "مسیر آماده است؛ فقط ماشین را انتخاب کن" : "مقصد آماده است؛ جای خودت را تأیید کن";
+  const tapsiHint = origin
+    ? "مسیر آماده است؛ فقط ماشین را انتخاب کن"
+    : tapsiLocate === "locating" ? "در حال پیدا کردن جای تو…" : "جای تو را می‌گیریم تا مسیر کامل آماده شود";
 
   async function copyAddress() {
     try {
@@ -101,14 +105,57 @@ function LocationSheet({ name, location, onClose }) {
     copyAddress().then((ok) => { if (ok) setCopied("snapp"); });
   }
 
-  // Leaving for Tapsi hides this page; if it is still showing a moment later, Tapsi did not open.
-  function onTapsi() {
-    if (!tapsiRide) return;
+  // Leaving for Tapsi's app hides this page; if it is still showing a moment later, Tapsi did not open.
+  function watchTapsiOpens() {
     setTapsiMissed(false);
     const startedAt = Date.now();
     window.setTimeout(() => {
       if (document.visibilityState === "visible" && Date.now() - startedAt < TAPSI_OPEN_WAIT_MS * 2) setTapsiMissed(true);
     }, TAPSI_OPEN_WAIT_MS);
+  }
+
+  function openTapsi(from) {
+    const ride = tapsiRideLink(location, platform, from);
+    window.location.assign(ride || tapsiWebLink(location, from));
+    if (ride) watchTapsiOpens();
+  }
+
+  // Ask the phone where the client is, then open Tapsi with both ends: straight to the car choice.
+  // If the browser no longer counts this as the tap and keeps Tapsi's app shut, the hint asks for one
+  // more tap; the link already has the start by then.
+  function locateThenOpen() {
+    setTapsiMissed(false);
+    setTapsiLocate("locating");
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        const here = { lat: coords.latitude, lng: coords.longitude };
+        setOrigin(here);
+        setTapsiLocate("");
+        openTapsi(here);
+      },
+      (error) => setTapsiLocate(error?.code === 1 ? "denied" : "unavailable"),
+      { enableHighAccuracy: true, maximumAge: 60000, timeout: 12000 }
+    );
+  }
+
+  function onTapsi(event) {
+    if (tapsiLocate === "locating") {
+      event.preventDefault();
+      return;
+    }
+    if (!origin && navigator.geolocation) {
+      event.preventDefault();
+      locateThenOpen();
+      return;
+    }
+    setTapsiLocate("");
+    if (tapsiRide) watchTapsiOpens();
+  }
+
+  // The client's choice when their position cannot be had: Tapsi with the salon only, asking «کجا هستید؟».
+  function openTapsiWithoutStart() {
+    setTapsiLocate("");
+    openTapsi(null);
   }
 
   return createPortal((
@@ -143,6 +190,7 @@ function LocationSheet({ name, location, onClose }) {
               href={tapsiRide || tapsiWeb}
               {...(tapsiRide ? {} : { target: "_blank", rel: "noopener noreferrer" })}
               onClick={onTapsi}
+              aria-busy={tapsiLocate === "locating"}
             >
               <CarTaxiFront size={20} aria-hidden="true" />
               <span>
@@ -150,9 +198,23 @@ function LocationSheet({ name, location, onClose }) {
                 <small>{tapsiHint}</small>
               </span>
             </a>
+            {tapsiLocate === "denied" || tapsiLocate === "unavailable" ? (
+              <div className="locRideAsk" role="alert">
+                <p>
+                  {tapsiLocate === "denied"
+                    ? "اجازهٔ موقعیت داده نشد. برای مسیر کامل، به فرفرو اجازهٔ موقعیت بده."
+                    : "جای تو پیدا نشد. موقعیت (GPS) گوشی را روشن کن و دوباره بزن."}
+                </p>
+                <div>
+                  <button type="button" onClick={locateThenOpen}>دوباره امتحان کن</button>
+                  <button type="button" className="is-soft" onClick={openTapsiWithoutStart}>بدون آن برو</button>
+                </div>
+                <small>«بدون آن برو»: تپسی باز می‌شود و جای تو را در خودش می‌پرسد.</small>
+              </div>
+            ) : null}
             {tapsiMissed ? (
               <p className="locRideMissed">
-                تپسی باز نشد؟ <a href={tapsiWeb} target="_blank" rel="noopener noreferrer">با نسخهٔ وب تپسی برو</a> یا <a href={TAPSI_SITE_URL} target="_blank" rel="noopener noreferrer">اپ تپسی را بگیر</a>.
+                تپسی باز نشد؟ یک بار دیگر بزن، یا <a href={tapsiWeb} target="_blank" rel="noopener noreferrer">با نسخهٔ وب تپسی برو</a> یا <a href={TAPSI_SITE_URL} target="_blank" rel="noopener noreferrer">اپ تپسی را بگیر</a>.
               </p>
             ) : null}
           </>
