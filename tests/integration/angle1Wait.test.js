@@ -88,15 +88,21 @@ describe("who gets the slot while a request waits", () => {
     expect(res.status, "approved a request whose appointment already started").toBe(409);
   });
 
-  it("an open-ended request (wait until appointment) does not expire by the hour, and a sweep storm leaves it alone", async () => {
+  it("an open-ended request (wait until appointment) does not expire by the hour, only after 24 hours, and a sweep storm leaves it alone before that", async () => {
     const ctx = await makeSalon("A1 Wait Open", { staffCount: 1 });
     const a = await makeClient("A1 A");
     const d = day(2);
     const first = await requestSlot(a, ctx.salon.user.id, { day: d, time: "10:00", waitMinutes: null });
-    await sendBack(db, first.payload.data.booking.id, 100000);
+    await sendBack(db, first.payload.data.booking.id, 600); // 10 hours: well past the hour
     const outs = await Promise.all(Array.from({ length: 6 }, () => sweep()));
     expect(outs.every((o) => o.status === 200)).toBe(true);
     expect(await statusOf(a, first.payload.data.booking.id)).toBe("درخواست");
+    // "any time" is at most 24 hours (decision 2026-10-21): past that it is closed like any unanswered request
+    await sendBack(db, first.payload.data.booking.id, 25 * 60);
+    const b = await makeClient("A1 B");
+    expect((await requestSlot(b, ctx.salon.user.id, { day: d, time: "10:00" })).status, "a lapsed any-time request no longer blocks").toBe(201);
+    expect((await sweep()).status).toBe(200);
+    expect(await statusOf(a, first.payload.data.booking.id)).toBe("منقضی شده");
   });
 });
 
@@ -177,7 +183,7 @@ describe("the salon moves a waiting request (offers another time)", () => {
     }
   });
 
-  it("an offer nobody answers: it is not stuck forever (design: how long does the new time stay held?)", async () => {
+  it("an offer nobody answers is held 6 hours only: then the time is free again, the sweep closes it, and it can no longer be accepted (decision 2026-10-21)", async () => {
     const ctx = await makeSalon("A1 Offer Stuck", { staffCount: 1 });
     const a = await makeClient("A1 A");
     const b = await makeClient("A1 B");
@@ -185,11 +191,19 @@ describe("the salon moves a waiting request (offers another time)", () => {
     const first = await requestSlot(a, ctx.salon.user.id, { day: d, time: "10:00" });
     const id = first.payload.data.booking.id;
     expect((await ctx.salonClient.patch("/api/salon-bookings", { id, time: "12:00" })).status).toBe(200);
-    await sendBack(db, id, 60 * 24 * 3); // the client has been silent for 3 days
-    await sweep();
-    // after 3 days of silence the new time is still held for nobody
+    expect(await statusOf(a, id)).toBe("در انتظار مشتری");
+    // 5 hours later the new time is still held for the client
+    await db.query("UPDATE salon_bookings SET offer_at = NOW() - INTERVAL '5 hours' WHERE id = $1", [id]);
+    expect((await requestSlot(b, ctx.salon.user.id, { day: d, time: "12:00" })).status).toBe(409);
+    // 7 hours later nobody else was told "full" any more, even before the sweep
+    await db.query("UPDATE salon_bookings SET offer_at = NOW() - INTERVAL '7 hours' WHERE id = $1", [id]);
+    const accept = await a.client.post(`/api/salon-bookings/${id}/answer`, { accept: true });
+    expect(accept.status, "a lapsed offer cannot be accepted").toBe(409);
     const other = await requestSlot(b, ctx.salon.user.id, { day: d, time: "12:00" });
-    expect(other.status, "a never-answered offer still holds the time after 3 days").toBe(201);
+    expect(other.status, "a never-answered offer still holds the time after 7 hours").toBe(201);
+    expect((await sweep()).status).toBe(200);
+    expect(await statusOf(a, id)).toBe("منقضی شده");
+    expect((await mirrors(ctx.salon.user.id, d, "12:00")).find((m) => m.status === "منقضی شده"), "the artist's copy is closed too").toBeTruthy();
   });
 });
 

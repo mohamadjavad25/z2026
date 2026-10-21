@@ -134,7 +134,8 @@ describe("salon booking mirrored into the artist's calendar", () => {
     const artistClient = ctx.staff[0].artistClient;
     for (let round = 0; round < 6; round += 1) {
       const c = await makeClient();
-      const d = day(2 + round);
+      // one day per round (day() skips Thursdays, so consecutive numbers can land on the same date)
+      const d = day(2 + round * 2);
       const r = await requestSlot(c, ctx.salon.user.id, { day: d, time: "10:00" });
       const id = r.payload.data.booking.id;
       const copy = (await db.query("SELECT id FROM artist_bookings WHERE source_salon_user_id = $1 AND booking_date = $2 AND time = '10:00' AND status <> ALL($3)", [ctx.salon.user.id, d, DEAD])).rows[0];

@@ -154,7 +154,7 @@ describe("capacity: unassigned entries and the salon_hours.capacity number", () 
     expect(own.status).toBe(409);
   });
 
-  it("salon_hours.capacity (how many a day takes) is honoured", async () => {
+  it("salon_hours.capacity (the day number) is not enforced: the places come from the artists on the team (decision 2026-10-21)", async () => {
     const ctx = await makeSalon("A1 Capacity", { staffCount: 1 });
     const d = day(2);
     // capacity of the weekday of d set to 1
@@ -171,8 +171,8 @@ describe("capacity: unassigned entries and the salon_hours.capacity number", () 
     const first = await requestSlot(a, ctx.salon.user.id, { day: d, time: "10:00" });
     const second = await requestSlot(b, ctx.salon.user.id, { day: d, time: "12:00" });
     expect(first.status).toBe(201);
-    // FINDING if 201: capacity=1 is stored but never enforced.
-    expect(second.status, "capacity 1 but a second booking on the same day was accepted").toBe(409);
+    // The number is stored (the settings screen shows it) but a day takes as many as the free artists allow.
+    expect(second.status, "a day-number of 1 must not refuse a free artist").toBe(201);
   });
 
   it("all staff on leave: a client request is not accepted for nobody", async () => {
@@ -188,31 +188,49 @@ describe("capacity: unassigned entries and the salon_hours.capacity number", () 
 });
 
 describe("one person in several places at once", () => {
-  it("a client double-submits the identical request in parallel and in sequence: one booking only", async () => {
+  it("a client double-submits the identical request in parallel and in sequence: one booking only, the same one comes back (decision 2026-10-21)", async () => {
     const ctx = await makeSalon("A1 Double", { staffCount: 2 });
     const c = await makeClient();
     const d = day(2);
     const res = await Promise.all([1, 2, 3].map(() => requestSlot(c, ctx.salon.user.id, { day: d, time: "10:00" })));
-    const created = res.filter((r) => r.status === 201);
-    expect(created.length, `parallel double tap: ${res.map((r) => r.status)}`).toBe(1);
+    expect(res.every((r) => r.status === 201 || r.status === 200), `parallel double tap: ${res.map((r) => r.status)}`).toBe(true);
+    expect(res.filter((r) => r.status === 201).length, `exactly one is the new one: ${res.map((r) => r.status)}`).toBe(1);
+    const ids = new Set(res.map((r) => r.payload.data.booking.id));
+    expect(ids.size, "every tap got the same booking").toBe(1);
     const again = await requestSlot(c, ctx.salon.user.id, { day: d, time: "10:00" });
-    expect(again.status).toBe(409);
+    expect(again.status).toBe(200);
+    expect(again.payload.data.booking.id).toBe([...ids][0]);
     const rows = (await db.query("SELECT id FROM salon_bookings WHERE salon_user_id = $1 AND client_user_id = $2 AND status <> ALL($3)", [ctx.salon.user.id, c.user.id, ["لغو", "منقضی شده"]])).rows;
     expect(rows.length).toBe(1);
+    // and the salon was told once, the artist's calendar holds one copy
+    const copies = (await db.query("SELECT id FROM artist_bookings WHERE source_salon_user_id = $1 AND status <> ALL($2)", [ctx.salon.user.id, ["لغو", "منقضی شده"]])).rows;
+    expect(copies.length).toBe(1);
   });
 
-  it("the same client asks for two overlapping times at the same salon (two staff): they cannot be in two chairs", async () => {
-    const ctx = await makeSalon("A1 Selfclash", { staffCount: 2 });
+  it("after the identical request was cancelled, sending it again makes a new one", async () => {
+    const ctx = await makeSalon("A1 Double Again", { staffCount: 1 });
     const c = await makeClient();
     const d = day(2);
-    const a = await requestSlot(c, ctx.salon.user.id, { day: d, time: "10:00" });
-    const b = await requestSlot(c, ctx.salon.user.id, { day: d, time: "10:00" });
-    expect(a.status).toBe(201);
-    // design question: a client holding two places at the same minute
-    expect(b.status, "same client got two simultaneous places").toBe(409);
+    const first = await requestSlot(c, ctx.salon.user.id, { day: d, time: "10:00" });
+    expect(first.status).toBe(201);
+    expect((await c.client.post(`/api/salon-bookings/${first.payload.data.booking.id}/cancel`, {})).status).toBe(200);
+    const second = await requestSlot(c, ctx.salon.user.id, { day: d, time: "10:00" });
+    expect(second.status).toBe(201);
+    expect(second.payload.data.booking.id).not.toBe(first.payload.data.booking.id);
   });
 
-  it("the same client asks two different salons for the same hour", async () => {
+  it("the same client asks for two overlapping (different) times at the same salon: both are accepted, no 'continue?' prompt (decision 2026-10-21)", async () => {
+    const ctx = await makeSalon("A1 Selfclash", { staffCount: 2, services: [{ name: "S60", duration: "۶۰ دقیقه" }] });
+    const c = await makeClient();
+    const d = day(2);
+    const a = await requestSlot(c, ctx.salon.user.id, { service: "S60", day: d, time: "10:00" });
+    const b = await requestSlot(c, ctx.salon.user.id, { service: "S60", day: d, time: "10:30" });
+    expect(a.status).toBe(201);
+    expect(b.status).toBe(201);
+    expect(await overlapViolations(db, ctx.salon.user.id, d)).toEqual([]);
+  });
+
+  it("the same client asks two different salons for the same hour: both are accepted (several places may be asked, decision 2026-10-21)", async () => {
     const one = await makeSalon("A1 Pair One", { staffCount: 1 });
     const two = await makeSalon("A1 Pair Two", { staffCount: 1 });
     const c = await makeClient();
@@ -220,8 +238,7 @@ describe("one person in several places at once", () => {
     const a = await requestSlot(c, one.salon.user.id, { day: d, time: "10:00" });
     const b = await requestSlot(c, two.salon.user.id, { day: d, time: "10:00" });
     expect(a.status).toBe(201);
-    // design question
-    expect(b.status, "same client holds the same hour at two salons").toBe(409);
+    expect(b.status).toBe(201);
   });
 
   it("one artist who works in two salons and also takes direct bookings: three entry points at the same moment, one winner", async () => {

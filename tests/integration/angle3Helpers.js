@@ -35,6 +35,9 @@ export async function newClient(name = "Angle3 Client", extra = {}) {
 export async function newArtist(name = "Angle3 Artist") {
   const client = createClient();
   const account = await registerUser(client, { type: "artist", name: `${name} ${uniq()}` });
+  // A client can only book a service on the artist's own menu (decision 2026-10-21).
+  const service = await client.post("/api/artist/me", { name: "ناخن", price: "100", duration: "60 دقیقه" });
+  if (!service.ok) throw new Error(`artist service failed ${JSON.stringify(service.payload)}`);
   return { client, ...account };
 }
 

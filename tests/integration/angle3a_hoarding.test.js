@@ -34,16 +34,21 @@ describe("angle3a: slot hoarding", () => {
     expect(v.status).toBe(201);
   });
 
-  it("a client cannot hold the same slot at many salons at once (global cap on pending requests)", async () => {
+  it("a client cannot hold the same slot at many salons at once: at most 5 open requests in total (decision 2026-10-21)", async () => {
     const salons = [];
     for (let i = 0; i < 6; i += 1) salons.push(await newSalon(`Multi ${i}`));
     const hoarder = await newClient("Multi Hoarder");
     const day = futureBookingDay(2);
-    let accepted = 0;
-    for (const s of salons) if ((await bookSalon(hoarder, s, { day, time: hhmm(11) })).status === 201) accepted += 1;
+    const results = [];
+    for (const s of salons) results.push(await bookSalon(hoarder, s, { day, time: hhmm(11) }));
+    const accepted = results.filter((r) => r.status === 201).length;
     console.log("[multi-salon] same slot accepted at", accepted, "of", salons.length, "salons");
-    // [design] the product may want to let a client ask 2-3 places for the same hour, but not unlimited.
-    expect(accepted).toBeLessThanOrEqual(3);
+    // Asking a few places for the same hour is allowed (a backup), but not unlimited: 5 open requests in all.
+    expect(accepted).toBe(5);
+    const refused = results.find((r) => r.status !== 201);
+    expect(refused.status).toBe(409);
+    expect(refused.payload.code).toBe("TOO_MANY_OPEN_REQUESTS");
+    expect(refused.payload.error).toContain("اول یکی از درخواست‌های قبلی را لغو کن یا منتظر جواب بمان");
   });
 
   it("the per-client booking rate limit exists (20/min) but is per account, so throwaway accounts multiply it", async () => {
