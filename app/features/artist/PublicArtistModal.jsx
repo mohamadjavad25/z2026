@@ -1,10 +1,11 @@
 "use client";
 
-import { Bookmark, CalendarCheck, Check, ChevronLeft, ChevronUp, Clock3, Heart, Phone, Scissors, Share2 } from "lucide-react";
+import { Bookmark, CalendarCheck, ChevronLeft, ChevronUp, Clock3, Heart, Phone, Scissors, Share2 } from "lucide-react";
 import { PublicProfileHeader } from "../../components/PublicProfileHeader";
 import { BookingPausedNote } from "../../components/BookingPausedNote";
 import { ServicesDropUp } from "../../components/ServicesDropUp";
 import { WeeklyHours } from "../../components/WeeklyHours";
+import { ConnectToggle } from "../connect/ConnectToggle";
 import { bundleServices } from "../../shared/lib/serviceBundle";
 import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
@@ -156,10 +157,7 @@ export function PublicArtistModal({
               </div>
             ) : null}
             <div className="pphActions">
-              <button type="button" className={`pphFollow${following ? " is-following" : ""}`} onClick={onFollow}>
-                {following ? <Check size={18} /> : <Heart size={18} />}
-                {following ? "وصل هستی" : "وصل شو"}
-              </button>
+              <ConnectToggle following={following} onToggle={onFollow} name={artist.name || ""} kind="آرتیست" icon={<Heart size={18} />} />
               {artist.phone ? (
                 <a className="pphCall" href={`tel:${toLatinDigits(artist.phone)}`} aria-label="تماس با آرتیست">
                   <Phone size={18} /> تماس

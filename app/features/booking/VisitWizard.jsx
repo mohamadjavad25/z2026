@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, CalendarCheck, CalendarX, Check, ChevronRight, Info } from "lucide-react";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
@@ -18,9 +18,40 @@ const COPY = {
 };
 
 /**
+ * The days again, as one sideways row above the hours: switching day stays on the hours step.
+ * The chosen day scrolls into view when the step opens.
+ */
+function DayRail({ days, value, onPick }) {
+  const railRef = useRef(null);
+  useEffect(() => {
+    railRef.current?.querySelector(".is-on")?.scrollIntoView({ block: "nearest", inline: "center" });
+  }, []);
+  return (
+    <div className="vbDayRail" ref={railRef} role="group" aria-label="روز">
+      {days.map((item) => (
+        <button
+          type="button"
+          key={item.value}
+          aria-pressed={value === item.value}
+          aria-disabled={item.closed || undefined}
+          className={`vbDay${value === item.value ? " is-on" : ""}${item.closed ? " is-closed" : ""}`}
+          onClick={() => {
+            if (!item.closed && item.value !== value) onPick(item.value);
+          }}
+        >
+          {item.label}
+          {item.closed ? <small>تعطیل</small> : null}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/**
  * The salon's and the artist's booking form, one question at a time: the question sits in the middle
  * of the screen, and once it is answered it shrinks to a chip at the top (tap it to change it) and the
- * next question comes up. The day and the hour move on by themselves when tapped; the name and the
+ * next question comes up. The day and the hour move on by themselves when tapped (on the hour step the
+ * days stay in a row above the hours, to switch day without going back); the name and the
  * services ask for «ادامه» because they can be more than one tap.
  *
  * It only draws what the controller already knows (see visitBookerController.js): the same rules,
@@ -77,7 +108,8 @@ export function VisitWizard({ role, title, state, controller, services, days, cu
   const done = [];
   if (index > 0) done.push({ id: "who", caption: "مشتری", value: [state.name.trim(), state.phone].filter(Boolean).join(" · ") });
   if (index > 1) done.push({ id: "services", caption: "خدمت", value: state.picked.map((item) => item.name).join("، ") });
-  if (index > 2 && day) done.push({ id: "day", caption: "روز", value: day.label });
+  // On the hour step the days sit in their own row above the hours, so the day chip waits until after.
+  if (index > 3 && day) done.push({ id: "day", caption: "روز", value: day.label });
   if (index > 3 && state.time) done.push({ id: "time", caption: "ساعت", value: clockText(state.time) });
 
   const showButton = current === "who" || current === "services" || current === "confirm";
@@ -229,6 +261,7 @@ export function VisitWizard({ role, title, state, controller, services, days, cu
 
           {current === "time" ? (
             <div className="vbAsk">
+              <DayRail days={days} value={state.day} onPick={(value) => controller.setDay(value)} />
               {noTimes ? (
                 <div className="vbNoTimes">
                   <span className="vbNoTimesIcon"><CalendarX size={26} aria-hidden="true" /></span>
@@ -243,15 +276,12 @@ export function VisitWizard({ role, title, state, controller, services, days, cu
                   </button>
                 </div>
               ) : (
-                <>
-                  <TimesList
-                    state={state}
-                    role={role}
-                    onPick={(time) => { controller.setTime(time); go("confirm"); }}
-                    onRetry={() => controller.retryTimes()}
-                  />
-                  <button type="button" className="vbLink vbOtherDay" onClick={() => go("day")}>ساعت مناسب نیست؟ روز دیگری را انتخاب کن</button>
-                </>
+                <TimesList
+                  state={state}
+                  role={role}
+                  onPick={(time) => { controller.setTime(time); go("confirm"); }}
+                  onRetry={() => controller.retryTimes()}
+                />
               )}
             </div>
           ) : null}
