@@ -165,4 +165,8 @@ button.vbWho2[aria-expanded="true"] svg { transform: rotate(180deg); }
 .vbNoTimesIcon { width: 56px; height: 56px; display: grid; place-items: center; border-radius: 18px; background: var(--vb-fill); color: var(--vb-ink); }
 .vbNoTimes p { margin: 0 0 6px; color: var(--n-700); font-size: 0.86rem; font-weight: 800; line-height: 1.9; }
 .vbNoTimes .vbSubmit { max-width: 300px; }
-.vbOtherDay { justify-self: center; margin-top: 4px; }
+
+/* the hour step: the days again as one sideways row above the hours (VisitWizard DayRail) */
+.vbDayRail { display: flex; gap: 8px; margin-inline: -16px; padding: 2px 16px 6px; overflow-x: auto; scroll-snap-type: x proximity; scroll-padding-inline: 16px; scrollbar-width: none; -webkit-mask-image: linear-gradient(to left, transparent 0, #000 16px, #000 calc(100% - 16px), transparent 100%); mask-image: linear-gradient(to left, transparent 0, #000 16px, #000 calc(100% - 16px), transparent 100%); }
+.vbDayRail::-webkit-scrollbar { display: none; }
+.vbDayRail .vbDay { min-height: 44px; padding: 0 14px; border-radius: 14px; white-space: nowrap; scroll-snap-align: center; transition: background 0.2s ease, color 0.2s ease; }

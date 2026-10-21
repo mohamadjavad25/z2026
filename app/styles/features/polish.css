@@ -1083,10 +1083,21 @@ html[data-cbt="1"] body { padding-bottom: 92px; }
 main.appShell.is-auth-gate .workspace { background: var(--n-0) !important; }
 .appShell.is-auth-gate .authGateAurora { background: none; }
 .appShell.is-auth-gate .authGateScrim { display: none; }
-.appShell.is-auth-gate .authAuroraBlob { mix-blend-mode: normal; opacity: 0.4; }
-.appShell.is-auth-gate .authAuroraBlob--gold { background: radial-gradient(circle, var(--brand-pink) 0%, rgb(255 134 184 / 0) 72%); }
-.appShell.is-auth-gate .authAuroraBlob--blush { background: radial-gradient(circle, var(--brand-violet) 0%, rgb(139 108 255 / 0) 70%); }
-.appShell.is-auth-gate .authAuroraBlob--teal { background: radial-gradient(circle, var(--brand-pink) 0%, rgb(255 134 184 / 0) 72%); opacity: 0.3; }
+/* The blobs used to be a short gradient under a big blur(); on a dark screen that shows as visible rings
+   (banding). Now each blob is a long, eased fade with no blur, and a faint static grain on top dithers
+   what is left, so the light reads as one smooth wash. */
+.appShell.is-auth-gate .authAuroraBlob { mix-blend-mode: normal; opacity: 0.4; filter: none; scale: 1.5; }
+.appShell.is-auth-gate .authAuroraBlob--gold { background: radial-gradient(circle closest-side, rgb(var(--brand-pink-rgb) / 1) 0%, rgb(var(--brand-pink-rgb) / 0.96) 12.5%, rgb(var(--brand-pink-rgb) / 0.85) 25%, rgb(var(--brand-pink-rgb) / 0.69) 37.5%, rgb(var(--brand-pink-rgb) / 0.5) 50%, rgb(var(--brand-pink-rgb) / 0.31) 62.5%, rgb(var(--brand-pink-rgb) / 0.15) 75%, rgb(var(--brand-pink-rgb) / 0.04) 87.5%, rgb(var(--brand-pink-rgb) / 0) 100%); }
+.appShell.is-auth-gate .authAuroraBlob--blush { background: radial-gradient(circle closest-side, rgb(var(--brand-violet-rgb) / 1) 0%, rgb(var(--brand-violet-rgb) / 0.96) 12.5%, rgb(var(--brand-violet-rgb) / 0.85) 25%, rgb(var(--brand-violet-rgb) / 0.69) 37.5%, rgb(var(--brand-violet-rgb) / 0.5) 50%, rgb(var(--brand-violet-rgb) / 0.31) 62.5%, rgb(var(--brand-violet-rgb) / 0.15) 75%, rgb(var(--brand-violet-rgb) / 0.04) 87.5%, rgb(var(--brand-violet-rgb) / 0) 100%); }
+.appShell.is-auth-gate .authAuroraBlob--teal { background: radial-gradient(circle closest-side, rgb(var(--brand-pink-rgb) / 1) 0%, rgb(var(--brand-pink-rgb) / 0.96) 12.5%, rgb(var(--brand-pink-rgb) / 0.85) 25%, rgb(var(--brand-pink-rgb) / 0.69) 37.5%, rgb(var(--brand-pink-rgb) / 0.5) 50%, rgb(var(--brand-pink-rgb) / 0.31) 62.5%, rgb(var(--brand-pink-rgb) / 0.15) 75%, rgb(var(--brand-pink-rgb) / 0.04) 87.5%, rgb(var(--brand-pink-rgb) / 0) 100%); opacity: 0.3; }
+.appShell.is-auth-gate .authGateAurora::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.05;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 1.6 -0.3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E") repeat;
+}
 .appShell.is-auth-gate .authAuroraSparkle { background: var(--brand-pink); box-shadow: 0 0 6px 1px rgb(255 134 184 / 0.8); }
 :root[data-theme="dark"] .appShell.is-auth-gate .authAuroraBlob { mix-blend-mode: screen; opacity: 0.34; }
 @media (prefers-color-scheme: dark) {

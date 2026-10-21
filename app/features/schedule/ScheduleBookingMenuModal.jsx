@@ -24,7 +24,7 @@ import { getBookingDateOffsetDays, getBookingTimelinePhase } from "../artist/boo
 import { formatRelativeBookingDayLabel, isPersianDateKey } from "../../shared/lib/persianCalendar";
 import { SegmentClock } from "../../components/SegmentClock";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
-import { normalizeBookingTimeLabel } from "../../shared/lib/time";
+import { normalizeBookingTimeLabel, timeLabelToMinutes } from "../../shared/lib/time";
 import { bookingWaitMinutes, requestMinutesLeft } from "../../shared/lib/bookingWindow";
 import { RequestExpiryBadge } from "./RequestExpiryBadge";
 import { isMultiPartBooking, parseBookingParts, scheduleBookingParts } from "../../shared/lib/bookingParts";
@@ -80,7 +80,9 @@ const BOOKING_STATUS_ICONS = {
  * «تغییر ساعت»: only the times this booking really fits at, asked from the server with the same
  * rules the move itself is checked by -- its services with their artists, nothing else in the
  * way, ending by closing time. Times that run past closing come last, marked with how much
- * longer the salon would stay, and are sent only as a deliberate choice.
+ * longer the salon would stay, and are sent only as a deliberate choice. On top, «پیشنهادی»: the
+ * free times closest to the current one, the likeliest move. Each time is a chip at the start
+ * of its row, and the row's empty side fades out.
  */
 function MoveTimeList({ booking, disabled, onPick }) {
   const [state, setState] = useState({ id: null, loading: true, times: [], close: "", closed: false, failed: false });
@@ -100,6 +102,11 @@ function MoveTimeList({ booking, disabled, onPick }) {
   const inHours = state.times.filter((option) => !option.overtimeMinutes);
   const late = state.times.filter((option) => option.overtimeMinutes > 0);
   const others = inHours.filter((option) => option.time !== current);
+  const currentMinutes = timeLabelToMinutes(current);
+  const suggested = Number.isFinite(currentMinutes)
+    ? [...others].sort((a, b) => Math.abs(timeLabelToMinutes(a.time) - currentMinutes) - Math.abs(timeLabelToMinutes(b.time) - currentMinutes)).slice(0, 3)
+      .sort((a, b) => timeLabelToMinutes(a.time) - timeLabelToMinutes(b.time))
+    : others.slice(0, 3);
 
   if (state.loading) return <p className="sbmMoveNote">در حال پیدا کردن ساعت‌های آزاد…</p>;
   if (state.failed) return <p className="sbmMoveNote is-warn">ساعت‌های آزاد گرفته نشد؛ دوباره امتحان کن.</p>;
@@ -120,7 +127,7 @@ function MoveTimeList({ booking, disabled, onPick }) {
           onPick(option.time, overtime);
         }}
       >
-        <SegmentClock value={option.time} size="xs" as="span" />
+        <span className="sbmMoveChip"><SegmentClock value={option.time} size="xs" as="span" backgroundColor="transparent" /></span>
         <span className="sbmMoveCopy">
           <b>تا {toPersianDigits(option.end)}</b>
           {active ? <small>ساعت فعلی</small> : overtime ? <small>{toPersianDigits(option.overtimeMinutes)} دقیقه بیشتر بمانید</small> : null}
@@ -131,7 +138,20 @@ function MoveTimeList({ booking, disabled, onPick }) {
   };
 
   return (
-    <div className="scheduleBookingPickList">
+    <div className="scheduleBookingPickList is-move">
+      {suggested.length ? (
+        <div className="sbmSuggest">
+          <p className="sbmSuggestHead"><Sparkles size={14} aria-hidden="true" /> پیشنهادی</p>
+          <div className="sbmSuggestRow">
+            {suggested.map((option) => (
+              <button type="button" key={option.time} disabled={disabled} onClick={() => onPick(option.time, false)} aria-label={`جابه‌جایی به ${toPersianDigits(option.time)} تا ${toPersianDigits(option.end)}`}>
+                <b>{toPersianDigits(option.time)}</b>
+                <small>تا {toPersianDigits(option.end)}</small>
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
       {others.length === 0 ? (
         <p className="sbmMoveNote is-warn">
           {late.length

@@ -4,7 +4,6 @@ import { DEFAULT_SALON_LOGO } from "../../shared/lib/defaultAvatar";
 import { useState, useEffect } from "react";
 import {
   Bookmark,
-  Check,
   ChevronLeft,
   ChevronUp,
   Clock3,
@@ -23,6 +22,7 @@ import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
 import { SalonClientGallery } from "./SalonClientGallery";
 import { SheetClose } from "../../components/SheetClose";
 import { WeeklyHours } from "../../components/WeeklyHours";
+import { ConnectToggle } from "../connect/ConnectToggle";
 
 // Bug fix: this used to fall back to hardcoded fake services and a fake
 // portfolio gallery (identical stock images) whenever a real salon had none
@@ -132,10 +132,7 @@ export function SalonClientPage({
               </div>
             ) : null}
             <div className="pphActions">
-              <button type="button" className={`pphFollow${isFollowing ? " is-following" : ""}`} onClick={() => onFollow(selectedSalon)}>
-                {isFollowing ? <Check size={18} /> : <UserPlus size={18} />}
-                {isFollowing ? "وصل هستی" : "وصل شو"}
-              </button>
+              <ConnectToggle following={isFollowing} onToggle={() => onFollow(selectedSalon)} name={publicName} kind="سالن" icon={<UserPlus size={18} />} />
               {selectedSalon.phone ? (
                 <a className="pphCall" href={`tel:${toLatinDigits(selectedSalon.phone)}`} aria-label="تماس با سالن">
                   <Phone size={18} /> تماس

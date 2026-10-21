@@ -231,9 +231,9 @@ function Thread({ id }) {
   );
 }
 
-function NewTicket({ initialCategory = "question", onCreated }) {
+function NewTicket({ initialCategory = "question", initialSubject = "", onCreated }) {
   const [category, setCategory] = useState(initialCategory);
-  const [subject, setSubject] = useState("");
+  const [subject, setSubject] = useState(initialSubject);
   const [message, setMessage] = useState("");
   const [attachments, setAttachments] = useState([]);
   const [busy, setBusy] = useState(false);
@@ -292,11 +292,12 @@ function NewTicket({ initialCategory = "question", onCreated }) {
 
 /**
  * The whole support experience in one sheet: my conversations, one conversation (read replies, keep writing),
- * and a new message. `initial` can jump straight to a conversation ({ ticketId }) or the new-message form ({ view: "new" }).
+ * and a new message. `initial` can jump straight to a conversation ({ ticketId }) or the new-message form
+ * ({ view: "new", category?, subject? }, e.g. a complaint already titled with a salon's name).
  */
 export function SupportCenter({ initial = {}, onClose }) {
   useBackHandler(true, onClose);
-  const [view, setView] = useState(initial.ticketId ? { name: "thread", id: initial.ticketId } : initial.view === "new" ? { name: "new" } : { name: "list" });
+  const [view, setView] = useState(initial.ticketId ? { name: "thread", id: initial.ticketId } : initial.view === "new" ? { name: "new", category: initial.category, subject: initial.subject } : { name: "list" });
   const sheetRef = useRef(null);
   const closeRef = useRef(onClose);
   useEffect(() => {
@@ -334,7 +335,7 @@ export function SupportCenter({ initial = {}, onClose }) {
         </header>
         {view.name === "list" ? <TicketList onOpen={(id) => setView({ name: "thread", id })} onNew={(category) => setView({ name: "new", category })} /> : null}
         {view.name === "thread" ? <Thread key={view.id} id={view.id} /> : null}
-        {view.name === "new" ? <NewTicket initialCategory={view.category} onCreated={(id) => setView({ name: "thread", id })} /> : null}
+        {view.name === "new" ? <NewTicket initialCategory={view.category} initialSubject={view.subject} onCreated={(id) => setView({ name: "thread", id })} /> : null}
       </div>
     </div>,
     document.body

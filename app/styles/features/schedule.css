@@ -131,6 +131,7 @@
   max-height: 320px;
   overflow: auto;
 }
+.scheduleBookingSettings .scheduleBookingPickList.is-move{ max-height: none; }
 
 .scheduleBookingPickList .sbmMoveCopy{
   flex: 1;
@@ -176,6 +177,56 @@
   background: none;
   color: var(--warning);
 }
+
+/* «تغییر ساعت» rows: the time is a chip at the start, and the row's empty side fades out (RTL: to the left). */
+.scheduleBookingPickList.is-move > button{
+  border: 0;
+  background: linear-gradient(to left, transparent 0%, rgb(var(--ink-rgb) / 0.02) 30%, rgb(var(--ink-rgb) / 0.07) 100%);
+}
+.scheduleBookingPickList.is-move > button.is-selected{
+  background: linear-gradient(to left, transparent 0%, rgb(var(--brand-violet-rgb) / 0.08) 35%, rgb(var(--brand-violet-rgb) / 0.22) 100%);
+}
+.scheduleBookingPickList.is-move > button.is-overtime{
+  background: linear-gradient(to left, transparent 0%, rgb(var(--warning-rgb) / 0.05) 35%, rgb(var(--warning-rgb) / 0.16) 100%);
+}
+.sbmMoveChip{
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--n-0);
+  box-shadow: inset 0 0 0 1px rgb(var(--ink-rgb) / 0.08);
+}
+.is-selected .sbmMoveChip{ box-shadow: inset 0 0 0 1.5px var(--brand-violet); }
+
+/* «پیشنهادی»: the free times closest to the current one, as big chips in one row. */
+.sbmSuggest{ display: grid; gap: 8px; padding-bottom: 6px; }
+.sbmSuggestHead{
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--n-700);
+  font-size: 0.74rem;
+  font-weight: 900;
+}
+.sbmSuggestHead svg{ color: var(--brand-violet); }
+.sbmSuggestRow{ display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.scheduleBookingPickList .sbmSuggestRow button{
+  min-height: 62px;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 2px;
+  padding: 8px 6px;
+  border: 1.5px solid transparent;
+  border-radius: 999px;
+  background: linear-gradient(var(--n-0), var(--n-0)) padding-box, var(--brand-blend) border-box;
+  text-align: center;
+}
+.scheduleBookingPickList .sbmSuggestRow button b{ font-size: 1.02rem; font-weight: 950; }
+.scheduleBookingPickList .sbmSuggestRow button:active{ transform: scale(0.97); }
 
 .scheduleBookingSettingsGrid span{
   grid-template-columns: 18px 42px minmax(0, 1fr);

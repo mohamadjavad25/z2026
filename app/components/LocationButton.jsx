@@ -2,9 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Check, Copy, MapPin } from "lucide-react";
+import { MapPin } from "lucide-react";
 import { SheetClose } from "./SheetClose";
-import { baladLink, fullAddress } from "../shared/lib/mapLinks";
 // Bundled with the app instead of fetched from a CDN, so the map never depends on one being reachable.
 import "leaflet/dist/leaflet.css";
 
@@ -41,52 +40,18 @@ function LocationMap({ lat, lng }) {
 }
 
 function LocationSheet({ name, location, onClose }) {
-  const [copied, setCopied] = useState(false);
-  const address = fullAddress(location);
-  const pinned = Number.isFinite(location.lat) && Number.isFinite(location.lng);
-  const baladHref = baladLink(location);
-
-  async function onCopy() {
-    try {
-      await navigator.clipboard.writeText(address);
-    } catch {
-      return;
-    }
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 1800);
-  }
-
   return createPortal((
-    <div className="locSheetOverlay" role="dialog" aria-modal="true" aria-label={`آدرس ${name}`} onClick={onClose}>
+    <div className="locSheetOverlay" role="dialog" aria-modal="true" aria-label={`${name} روی نقشه`} onClick={onClose}>
       <article className="locSheet" onClick={(event) => event.stopPropagation()}>
         <header className="locSheetHead">
           <span className="locSheetBadge" aria-hidden="true"><MapPin size={18} /></span>
           <div>
             <h3>{name}</h3>
-            <small>آدرس</small>
+            <small>روی نقشه</small>
           </div>
         </header>
 
-        {pinned ? <LocationMap lat={location.lat} lng={location.lng} /> : null}
-
-        <div className="locAddress">
-          <p>
-            {location.address ? <span>{location.address}</span> : null}
-            {location.detail ? <b>{location.detail}</b> : null}
-          </p>
-          <button type="button" className="locCopy" onClick={onCopy} disabled={!address} aria-label="کپی آدرس">
-            {copied ? <Check size={16} /> : <Copy size={16} />}
-            <span>{copied ? "کپی شد" : "کپی"}</span>
-          </button>
-        </div>
-        {!pinned ? <p className="locNoPin">هنوز پین دقیق روی نقشه نگذاشته؛ آدرس بالا را ببین.</p> : null}
-
-        {baladHref ? (
-          <a className="locBalad" href={baladHref} target="_blank" rel="noopener noreferrer">
-            <img src="/brand/balad-logo.png" alt="" width="32" height="32" />
-            <span>دیدن روی بلد</span>
-          </a>
-        ) : null}
+        <LocationMap lat={location.lat} lng={location.lng} />
 
         <SheetClose onClick={onClose} />
       </article>
@@ -95,12 +60,12 @@ function LocationSheet({ name, location, onClose }) {
 }
 
 /**
- * The pin next to a salon's or artist's name on their public page. Tapping it opens the exact
- * address on a map, with «دیدن روی بلد» to see the same point in Balad. Renders nothing without a location.
+ * The pin next to a salon's or artist's name on their public page. Tapping it opens the pinned
+ * spot on a map, and only the map. Renders nothing until the salon or artist has dropped a pin.
  */
 export function LocationButton({ name = "", location = null }) {
   const [open, setOpen] = useState(false);
-  if (!location || (!location.address && !Number.isFinite(location.lat))) return null;
+  if (!location || !Number.isFinite(location.lat) || !Number.isFinite(location.lng)) return null;
   return (
     <>
       <button type="button" className="locButton" onClick={() => setOpen(true)} aria-label={`آدرس ${name} روی نقشه`} aria-haspopup="dialog">
