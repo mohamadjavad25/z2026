@@ -1,0 +1,88 @@
+/* ── Loading system (one spin, one shimmer, one bar, one mascot) ───────────
+   Every loader reads the brand blend and the neutral ramp, so day/night follows the theme.
+   Pieces: Spinner (components/Spinner.jsx), Skeleton (components/Skeleton.jsx),
+   NetworkBusyBar, AuthBootScreen, sheetBusy. Rules: docs/DESIGN_SYSTEM.md «لودینگ». */
+
+:root {
+  --load-sk-1: rgb(var(--ink-rgb) / 0.06);
+  --load-sk-2: rgb(var(--ink-rgb) / 0.13);
+}
+
+@keyframes loadSpin { to { transform: rotate(360deg); } }
+@keyframes loadShimmer { from { background-position: 140% 0; } to { background-position: -40% 0; } }
+@keyframes loadBar { 0% { transform: translateX(120%); } 100% { transform: translateX(-260%); } }
+@keyframes loadPeek { 0%, 100% { transform: translateY(26%); } 45%, 60% { transform: translateY(0); } }
+@keyframes loadFade { from { opacity: 0; } to { opacity: 1; } }
+
+/* Spinner: a ring in the brand blend; `is-current` takes the text colour (inside a filled button). */
+.loadSpinner {
+  --s: 20px;
+  display: inline-block;
+  flex: 0 0 auto;
+  width: var(--s);
+  height: var(--s);
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent 0 12%, var(--brand-pink) 45%, var(--brand-violet) 100%);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2.2px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2.2px));
+  animation: loadSpin 0.8s linear infinite;
+}
+.loadSpinner.is-current { background: conic-gradient(from 0deg, transparent 0 12%, currentColor 100%); }
+
+/* Skeleton: the one shimmer. Blocks keep their final size so nothing jumps when content lands. */
+.uxSkeletonBlock {
+  display: block;
+  border-radius: 10px;
+  background: linear-gradient(100deg, var(--load-sk-1) 30%, var(--load-sk-2) 50%, var(--load-sk-1) 70%);
+  background-size: 300% 100%;
+  animation: loadShimmer 1.4s ease-in-out infinite;
+}
+.uxSkeletonBlock.is-round { border-radius: 50%; }
+.uxSkeletonBlock.is-pill { border-radius: 999px; }
+.uxSkeletonHead { display: grid; grid-template-columns: 64px 1fr; gap: 14px; align-items: center; }
+.uxSkeletonHead .uxSkeletonCopy { gap: 10px; }
+.uxSkeletonGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; width: 100%; }
+.uxSkeletonGrid .uxSkeletonBlock { aspect-ratio: 1; border-radius: 12px; }
+.uxSkeletonSlots { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; width: 100%; }
+.uxSkeletonSlots .uxSkeletonBlock { height: 34px; }
+.uxSkeletonStats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; }
+.uxSkeletonStats .uxSkeletonBlock { height: 58px; border-radius: 16px; }
+.uxSkeletonPage { display: grid; gap: 22px; width: min(100%, 560px); margin-inline: auto; padding: calc(24px + env(safe-area-inset-top, 0px)) 16px 32px; }
+.uxSkeletonSection { display: grid; gap: 10px; }
+
+/* Admin has its own dark palette. */
+.admSkeleton { --load-sk-1: var(--a-card2); --load-sk-2: var(--a-raise); }
+
+/* Content that replaces a skeleton fades in instead of snapping. */
+.loadFadeIn { animation: loadFade 0.28s ease both; }
+
+/* Top bar for requests in flight. */
+.networkBusyBar i { background: var(--brand-blend); }
+
+/* Cold-open screen: the mascot peeks up from the bottom, like the app icon. */
+.authBootScreen {
+  background: var(--n-0);
+  color: var(--n-900);
+}
+.authBootPeek {
+  position: relative;
+  width: 112px;
+  height: 112px;
+  overflow: hidden;
+  border-radius: 30px;
+  background: #fcfaf8;
+  box-shadow: 0 10px 30px rgb(var(--brand-violet-rgb) / 0.28), 0 0 0 1px rgb(var(--ink-rgb) / 0.06);
+}
+.authBootPeek img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; animation: loadPeek 2.2s var(--ease-standard) infinite; }
+.authBootInner small { color: var(--n-600); }
+.authBootInner .authBootSlow { color: var(--warning); font-weight: 800; }
+
+/* Spinner inside a QR frame. */
+.ivtQrWait { display: grid; place-items: center; }
+
+@media (prefers-reduced-motion: reduce) {
+  .loadSpinner { animation-duration: 2.4s; }
+  .uxSkeletonBlock { animation: none; }
+  .networkBusyBar i { animation: none; width: 100%; opacity: 0.6; }
+  .authBootPeek img { animation: none; transform: none; }
+}

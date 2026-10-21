@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { RotateCw } from "lucide-react";
+import { Spinner } from "./Spinner";
 import { refreshApp } from "../shared/lib/appRefresh";
 import { hasOpenOverlay } from "../shared/lib/backStack";
 
@@ -124,7 +125,7 @@ export function PullToRefresh() {
       role="status"
       aria-label={refreshing ? "در حال تازه کردن" : ready ? "رها کن تا تازه شود" : "برای تازه کردن بکش"}
     >
-      <RotateCw size={20} style={refreshing ? undefined : { transform: `rotate(${pull * 3}deg)` }} aria-hidden="true" />
+      {refreshing ? <Spinner size={22} /> : <RotateCw size={20} style={{ transform: `rotate(${pull * 3}deg)` }} aria-hidden="true" />}
     </div>
   );
 }

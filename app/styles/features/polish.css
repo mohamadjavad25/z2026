@@ -667,16 +667,6 @@
   color: var(--n-900);
   font-size: 0.86rem;
 }
-.sheetBusySpinner {
-  width: 38px;
-  height: 38px;
-  border: 3.5px solid var(--n-200);
-  border-top-color: var(--n-900);
-  border-radius: 50%;
-  animation: sheetBusySpin 0.8s linear infinite;
-}
-@keyframes sheetBusySpin { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) { .sheetBusySpinner { animation-duration: 2s; } }
 
 /* Keep the last content clear of the floating close button. */
 .sheetCloseSpacer { display: block; flex: 0 0 auto; width: 100%; height: 76px; pointer-events: none; }
@@ -1167,18 +1157,6 @@ main.appShell.is-auth-gate .workspace { background: var(--n-0) !important; }
 .appShell.is-auth-gate .authNotice { background: var(--n-100); color: var(--accent); }
 .appShell.is-auth-gate .authGateHero ~ .authNotice { background: var(--danger); color: var(--n-0); }
 
-/* Boot screen matches */
-.authBootScreen { background: var(--n-0); color: var(--auth-ink, var(--n-950)); }
-.authBootBrand {
-  font-family: "Playfair Display", Georgia, serif;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  color: var(--n-900);
-  font-size: clamp(2.6rem, 12vw, 3.4rem);
-}
-.authBootInner small { color: var(--n-600); }
-.authBootSpinner { border-color: rgb(var(--ink-rgb) / 0.14); border-top-color: var(--accent); }
-
 /* Text wordmark on the 404 page (replaces the old image logo) */
 .errorPage__logo {
   margin: 0 auto 10px;
@@ -1230,8 +1208,6 @@ main.appShell.is-auth-gate .workspace { background: var(--n-0) !important; }
   place-items: center;
 }
 .ivtQr img { width: 100%; height: 100%; display: block; image-rendering: pixelated; }
-.ivtQrWait { width: 44px; height: 44px; border-radius: 50%; border: 3px solid var(--n-150); border-top-color: var(--n-900); animation: ivtSpin 0.8s linear infinite; }
-@keyframes ivtSpin { to { transform: rotate(360deg); } }
 .ivtCorner { position: absolute; width: 26px; height: 26px; border: 0 solid var(--n-900); }
 .ivtCorner.is-tl { top: 0; left: 0; border-top-width: 3px; border-left-width: 3px; border-top-left-radius: 14px; }
 .ivtCorner.is-tr { top: 0; right: 0; border-top-width: 3px; border-right-width: 3px; border-top-right-radius: 14px; }

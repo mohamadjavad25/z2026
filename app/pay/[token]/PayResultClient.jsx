@@ -1,7 +1,8 @@
 "use client";
 
+import { Spinner } from "../../components/Spinner";
 import { useEffect, useRef, useState } from "react";
-import { CircleCheck, CircleX, FlaskConical, Hourglass } from "lucide-react";
+import { CircleCheck, CircleX, FlaskConical } from "lucide-react";
 import { applyRole } from "../../shared/lib/theme";
 import { formatPersianLongDate } from "../../shared/lib/billingFormat";
 import { toPersianDigits } from "../../shared/lib/digits";
@@ -61,7 +62,7 @@ export function PayResultClient({ token }) {
 
         {status === "loading" || status === "pending" ? (
           <>
-            <span className="payIcon"><Hourglass size={34} aria-hidden="true" className="billSpinSlow" /></span>
+            <span className="payIcon"><Spinner size={34} /></span>
             <h1>در حال تأیید پرداخت…</h1>
             <p>چند ثانیه صبر کن؛ نتیجه از بانک پرسیده می‌شود. این صفحه خودش به‌روز می‌شود.</p>
           </>

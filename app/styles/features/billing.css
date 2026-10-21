@@ -133,8 +133,6 @@
 .billEmpty { display: grid; justify-items: center; gap: 6px; padding: var(--space-7) var(--space-3); color: var(--muted); text-align: center; }
 .billEmpty b { color: var(--ink); font-size: var(--text-md); font-weight: 900; }
 .billEmpty p { margin: 0; font-size: var(--text-sm); }
-.billSkeleton { display: grid; gap: var(--space-2); }
-.billSkeleton span { height: 64px; border-radius: var(--radius-lg); background: rgb(var(--ink-rgb) / 0.06); animation: billPulse 1.2s ease-in-out infinite alternate; }
 
 /* ───────── reminder bar on the home page ───────── */
 .billBanner { display: flex; align-items: center; gap: 10px; margin: 14px 14px 0; padding: 10px 8px 10px 12px; border-radius: var(--radius-lg); background: linear-gradient(var(--info-bg), var(--info-bg)), var(--surface-solid); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); }
@@ -175,12 +173,6 @@
 .payCard .payError { color: var(--danger); font-weight: 800; }
 
 /* ───────── motion ───────── */
-.billSpin { animation: billSpin 0.9s linear infinite; }
-.billSpinSlow { animation: billTurn 2.4s var(--ease-standard) infinite; }
-@keyframes billSpin { to { transform: rotate(360deg); } }
-@keyframes billTurn { 0%, 40% { transform: rotate(0); } 60%, 100% { transform: rotate(180deg); } }
-@keyframes billPulse { from { opacity: 0.55; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) {
-  .billSpin, .billSpinSlow, .billSkeleton span { animation: none; }
   .billMeter i, .billPlan, .billPlanDot { transition: none; }
 }
