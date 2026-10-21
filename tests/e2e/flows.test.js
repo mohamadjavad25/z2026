@@ -671,7 +671,8 @@ describe("support (browser)", () => {
       return result.violations.filter((v) => v.impact === "serious" || v.impact === "critical").map((v) => `${v.id}: ${v.nodes[0].html.slice(0, 80)}`);
     });
     expect(await axeIssues()).toEqual([]);
-    await center.getByRole("button", { name: /پیام جدید به پشتیبانی/ }).click();
+    // The topic cards start a new message with that topic already chosen.
+    await center.getByRole("button", { name: /^سؤال/ }).click();
     await center.getByLabel("پیامت").fill("سلام، این یک پیام آزمایشی از مرورگر برای پشتیبانی است.");
     await center.getByRole("button", { name: "ارسال پیام" }).click();
     await center.getByText("سلام، این یک پیام آزمایشی از مرورگر برای پشتیبانی است.").waitFor();
