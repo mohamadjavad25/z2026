@@ -6,6 +6,7 @@ import { Button, Field } from "../components/ui";
 import { api } from "./adminFetch";
 import { Avatar } from "./Avatar";
 import { CannedReplies } from "./CannedReplies";
+import { ClaudeButton, ClaudeMark, askClaude, setClaudeContext } from "./ClaudeConnect";
 import { MessageAttachments } from "../features/support/Attachments";
 import { AttachmentField } from "../features/support/Composer";
 import { CATEGORY_LABEL, PAGE, REASON_LABEL, RESOLUTION_LABEL, ago, fmtDate } from "./format";
@@ -125,6 +126,13 @@ function Conversation({ id, onChanged, onGo, onBack }) {
   }, [load]);
   const count = found?.messages?.length || 0;
   useEffect(() => {
+    if (!found?.ticket) return undefined;
+    const { ticket: current, messages: all } = found;
+    const first = (all[0]?.body || current.body || "").slice(0, 400);
+    setClaudeContext("ticket", `گفتگوی پشتیبانی #${current.id} (${current.kind === "report" ? "گزارش" : "پیام"}، دسته: ${current.category}، وضعیت: ${current.status}، موضوع: ${current.subject || "—"}). اولین پیام کاربر: «${first}»`);
+    return () => setClaudeContext("ticket", null);
+  }, [found]);
+  useEffect(() => {
     endRef.current?.scrollIntoView({ block: "end" });
   }, [count, tab]);
   useEffect(() => {
@@ -177,14 +185,16 @@ function Conversation({ id, onChanged, onGo, onBack }) {
         <button type="button" className={`admIconBtn admConvInfoBtn${tab === "info" ? " is-on" : ""}`} aria-label="اطلاعات و یادداشت" aria-pressed={tab === "info"} onClick={() => setTab((value) => (value === "info" ? "chat" : "info"))}><Info size={18} aria-hidden="true" /></button>
         <ConvMenu
           items={[
-            ...(closed ? [{ label: "بازکردن دوباره", run: () => send({ status: "open" }, "دوباره باز شد.") }] : [
+            ...(closed ? [{ label: "بازکردن دوباره", run: () => send({ status: "open" }, "دوباره باز شد.") }, { label: "بده به Claude", icon: <ClaudeMark size={15} />, run: () => askClaude({ kind: "bug" }) }] : [
               ...(ticket.status !== "in_progress" ? [{ label: "در حال بررسی", run: () => send({ status: "in_progress", note }, "در حال بررسی.") }] : []),
               ...(canReply ? [{ label: "ارسال و بستن", disabled: !canSend, run: () => sendReply("closed") }] : []),
+              { label: "بده به Claude", icon: <ClaudeMark size={15} />, run: () => askClaude({ kind: "bug" }) },
               { label: "بستن گفتگو", icon: <CircleCheck size={15} aria-hidden="true" />, run: () => send({ status: "closed", note }, "گفتگو بسته شد.") }
             ])
           ]}
         />
         <div className="admConvTools">
+          <ClaudeButton seed={{ kind: "bug" }} label="Claude" />
           {closed ? (
             <Button size="sm" variant="secondary" disabled={busy} onClick={() => send({ status: "open" }, "دوباره باز شد.")}>بازکردن دوباره</Button>
           ) : (

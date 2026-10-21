@@ -211,3 +211,24 @@
   .admReplyPop > .admSheetClose { display: inline-grid; grid-area: close; width: 42px; height: 42px; }
   .admReplyPop > .admReplyList { grid-area: list; display: grid; max-height: calc(74dvh - 100px); }
 }
+
+/* ---- connect to Claude ---- */
+.admClaudeBtn { background: color-mix(in srgb, #d97757 14%, var(--a-card)); box-shadow: inset 0 0 0 1px color-mix(in srgb, #d97757 40%, transparent); }
+.admClaudeBtn:hover { background: color-mix(in srgb, #d97757 24%, var(--a-card)); }
+.admErrorClaude { display: inline-flex; align-items: center; gap: 5px; margin-inline-start: 10px; color: inherit; }
+.admClaude { width: min(560px, 100%); max-height: calc(100dvh - 32px); overflow-y: auto; }
+.admClaude h2 { display: flex; align-items: center; gap: 8px; }
+.admClaudeKinds, .admClaudeUse { display: flex; flex-wrap: wrap; gap: 6px; }
+.admClaudeKinds button, .admClaudeUse button { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 13px; border: 0; border-radius: 999px; background: var(--a-card2); color: var(--a-muted); font: inherit; font-size: var(--text-sm); font-weight: 800; cursor: pointer; box-shadow: inset 0 0 0 1px var(--a-line); }
+.admClaudeKinds button.is-on { background: color-mix(in srgb, #d97757 18%, transparent); color: var(--a-ink); box-shadow: inset 0 0 0 1px color-mix(in srgb, #d97757 55%, transparent); }
+.admClaudeUse button { min-height: 30px; font-weight: 700; }
+.admClaudeUse button.is-on { background: var(--a-violet-soft); color: var(--a-violet); box-shadow: none; }
+.admClaudePreview summary { cursor: pointer; color: var(--a-muted); font-size: var(--text-sm); font-weight: 800; padding: 4px 0; }
+.admClaudePreview textarea { width: 100%; margin-top: 8px; padding: 10px 12px; border: 0; border-radius: 12px; background: var(--a-bg2); color: var(--a-ink); font: inherit; font-size: var(--text-sm); line-height: 1.8; box-shadow: inset 0 0 0 1px var(--a-line2); resize: vertical; }
+.admClaudeActions { display: flex; flex-wrap: wrap; gap: 8px; }
+.admClaudeActions .ui-btn:first-child { background: #d97757; color: #fff; box-shadow: none; }
+.admClaudeActions .ui-btn span { display: inline-flex; align-items: center; gap: 6px; }
+@media (max-width: 760px) {
+  .admModal.is-sheet .admClaude { width: 100%; max-height: 90dvh; border-radius: 22px 22px 0 0; padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom)); animation: admDrawerUp 0.22s cubic-bezier(0.3, 0.7, 0.2, 1) both; }
+  .admClaudeActions .ui-btn { flex: 1 1 100%; }
+}

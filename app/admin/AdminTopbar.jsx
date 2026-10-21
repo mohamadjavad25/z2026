@@ -3,6 +3,7 @@
 import { Bell, Keyboard, Search } from "lucide-react";
 import { toPersianDigits } from "../shared/lib/digits";
 import { Kbd } from "./ui";
+import { askClaude, ClaudeMark } from "./ClaudeConnect";
 
 /**
  * The bar above every page: one search box for everything (it opens the command palette) and a bell that sums what is
@@ -18,6 +19,7 @@ export function AdminTopbar({ onOpenPalette, onOpenHelp, onGo, badges = {} }) {
         <span className="admSearchKeys"><Kbd>Ctrl</Kbd><Kbd>K</Kbd></span>
       </button>
       <div className="admTopActions">
+        <button type="button" className="admIconBtn is-lg admClaudeBtn" aria-label="بده به Claude" title="مشکل این صفحه را به Claude بده" onClick={() => askClaude()}><ClaudeMark size={20} /></button>
         <button type="button" className="admIconBtn is-lg" aria-label={waiting ? `${toPersianDigits(waiting)} مورد منتظر توست` : "چیزی منتظر نیست"} title="منتظر تو" onClick={() => onGo(badges.support ? "support" : badges.resets ? "resets" : "overview")}>
           <Bell size={19} aria-hidden="true" />
           {waiting ? <span className="admTopCount">{toPersianDigits(waiting > 99 ? "99+" : waiting)}</span> : null}

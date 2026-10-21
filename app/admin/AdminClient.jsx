@@ -8,6 +8,7 @@ import { AdminTopbar } from "./AdminTopbar";
 import { CommandPalette } from "./CommandPalette";
 import { ShortcutsHelp, useShortcuts } from "./shortcuts";
 import { StepUpDialog } from "./StepUpDialog";
+import { ClaudeHost } from "./ClaudeConnect";
 import { ConfirmHost, Toaster } from "./ui";
 import { Dashboard } from "./Dashboard";
 import { UsersTab } from "./UsersTab";
@@ -161,6 +162,7 @@ function AdminApp({ theme, onToggleTheme }) {
       </main>
       {paletteOpen ? <CommandPalette onClose={() => setPaletteOpen(false)} onGo={go} onToggleTheme={onToggleTheme} onLogout={logout} onOpenHelp={() => setHelpOpen(true)} /> : null}
       {helpOpen ? <ShortcutsHelp onClose={() => setHelpOpen(false)} /> : null}
+      <ClaudeHost tab={tab} params={params} />
       <StepUpDialog />
       <ConfirmHost />
       <Toaster />
