@@ -10,6 +10,10 @@
 
 There are two: the main server (Iranian, holds frfro.ir and the real data, gets code only from `main` through `scripts/deploy.sh`) and Vercel (project `z2026`, a test copy; every pushed branch gets a preview). Before any important or complex change (migrations, payments, login/SMS, bookings, deploy or server config), ask the user: «اول روی ورسل تست کنیم یا مستقیم روی سرور اصلی؟». For "Vercel first": push a branch, give the user the preview link, and only after the user says it works merge into `main` and deploy to the main server. Small safe changes (text, style, docs) need no question, but say where they will go.
 
+## Ask before building (user's rule, 2026-10-21)
+
+Before building or changing any feature that touches bookings, accounts, login/SMS, payments, teams or the directory, first ask the user the plain-language product questions it raises, each with a recommended answer, in short simple Persian (3 to 6 questions, not a long report). Then build. Do not wait for a later review to find them. Think of: limits (how many at once, how far ahead, how long), what happens when two people act at the same time, what happens at the edge of working hours or capacity, what happens when an account or salon is deleted, suspended or its phone number is reused, what a client sees when the answer is "no", and who gets told. Record the user's answers in `docs/DECISIONS.md` (one line each, dated) so the same question is never asked twice.
+
 ## Project notes
 
 - The product name is **frfro**, always lowercase in English. The Persian form is «فرفرو». Never use "Farfaroo", "Frfru", "Zibaban" or «زیبابان».
