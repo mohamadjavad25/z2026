@@ -1,5 +1,6 @@
 "use client";
 
+import { Spinner } from "../../components/Spinner";
 import { useEffect, useState } from "react";
 import { Check, Copy, MapPin, Send, Share2 } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
@@ -173,7 +174,7 @@ export function SalonNearbyInviteSheet({
             <span className="ivtCorner is-bl" aria-hidden="true" />
             <span className="ivtCorner is-br" aria-hidden="true" />
             <div className="ivtQr">
-              {qrDataUrl ? <img src={qrDataUrl} alt={`کد پیوستن به تیم ${salonName}`} /> : <span className="ivtQrWait" />}
+              {qrDataUrl ? <img src={qrDataUrl} alt={`کد پیوستن به تیم ${salonName}`} /> : <span className="ivtQrWait"><Spinner size={44} /></span>}
             </div>
           </div>
           <p className="ivtHint">کد را به آرتیست نشان بده، یا لینک را برایش بفرست.</p>

@@ -1,5 +1,6 @@
 "use client";
 
+import { Spinner } from "../../components/Spinner";
 import { useEffect, useRef, useState } from "react";
 import { Camera, Check, ChevronDown, Crop, Globe, ImagePlus, Lock, Pin, Trash2, Upload } from "lucide-react";
 import { createPortal } from "react-dom";
@@ -388,7 +389,7 @@ export function ProfilePostComposer({
         <SheetClose onClick={onClose} disabled={saving} />
         {saving ? (
           <div className="sheetBusy" role="status" aria-live="polite">
-            <span className="sheetBusySpinner" aria-hidden="true" />
+            <Spinner size={38} />
             <b>{isNew ? "در حال انتشار نمونه‌کار…" : "در حال ذخیره تغییرات…"}</b>
           </div>
         ) : null}

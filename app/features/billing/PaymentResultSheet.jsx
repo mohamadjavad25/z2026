@@ -1,7 +1,8 @@
 "use client";
 
+import { Spinner } from "../../components/Spinner";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { CircleCheck, CircleX, Hourglass, RefreshCw } from "lucide-react";
+import { CircleCheck, CircleX, RefreshCw } from "lucide-react";
 import { Button } from "../../components/ui";
 import { ProfileSheet } from "../profile/ProfileSheet";
 import { getBillingPayment } from "../../shared/api/billing";
@@ -87,14 +88,14 @@ export function PaymentResultSheet({ open, paymentId, onClose, onRetry }) {
 
       {!error && status === "loading" ? (
         <div className="billResult is-wait" aria-busy="true">
-          <span className="billResultIcon"><Hourglass size={30} aria-hidden="true" className="billSpinSlow" /></span>
+          <span className="billResultIcon"><Spinner size={30} /></span>
           <b>در حال دریافت نتیجه…</b>
         </div>
       ) : null}
 
       {status === "pending" ? (
         <div className="billResult is-wait" role="status">
-          <span className="billResultIcon"><Hourglass size={30} aria-hidden="true" className="billSpinSlow" /></span>
+          <span className="billResultIcon"><Spinner size={30} /></span>
           <b>{waitedOut ? "نتیجه هنوز از بانک نیامده" : "در حال تأیید پرداخت…"}</b>
           <p>
             {waitedOut

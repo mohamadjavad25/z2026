@@ -1,7 +1,8 @@
 "use client";
 
+import { Spinner } from "../../components/Spinner";
 import { useEffect } from "react";
-import { ChevronLeft, FlaskConical, LoaderCircle, ReceiptText, UsersRound } from "lucide-react";
+import { ChevronLeft, FlaskConical, ReceiptText, UsersRound } from "lucide-react";
 import { Button } from "../../components/ui";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { accountView, teamMemberView } from "./billingView";
@@ -38,7 +39,7 @@ export function SubscriptionCard() {
         {view.note ? <p className="billCardNote">{view.note}</p> : null}
         {overview.pending ? (
           <button type="button" className="billPendingRow" onClick={() => openPaymentResult(overview.pending.id)}>
-            <LoaderCircle size={16} aria-hidden="true" className="billSpin" />
+            <Spinner size={16} />
             <span>یک پرداخت در حال بررسی است</span>
             <ChevronLeft size={16} aria-hidden="true" />
           </button>

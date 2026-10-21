@@ -1,5 +1,6 @@
 "use client";
 
+import { Spinner } from "../../components/Spinner";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Download, X } from "lucide-react";
@@ -50,7 +51,7 @@ export function MyCodeSheet({ name = "", avatar = "", onClose }) {
         <b>{name || "کد من"}</b>
       </div>
       <div className="cnCodeQr">
-        {qr ? <img src={qr} alt="کد QR شخصی تو" /> : failed ? <p role="alert">کد باز نشد؛ دوباره امتحان کن.</p> : <span className="ivtQrWait" aria-label="در حال آماده‌سازی" />}
+        {qr ? <img src={qr} alt="کد QR شخصی تو" /> : failed ? <p role="alert">کد باز نشد؛ دوباره امتحان کن.</p> : <span className="ivtQrWait" role="status" aria-label="در حال آماده‌سازی"><Spinner size={44} /></span>}
       </div>
       <p className="cnCodeHint">این کد را به سالن یا آرتیستت نشان بده. با اسکن آن، تو را به مشتری‌هایش اضافه می‌کند و او هم به لیست تو اضافه می‌شود.</p>
       {qr ? (

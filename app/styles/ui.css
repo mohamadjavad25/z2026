@@ -3,7 +3,7 @@
 .ui-btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); min-height: 44px; padding: 0 var(--space-5); border: 0; border-radius: var(--radius-pill); background: var(--fill-strong); color: var(--n-0); font: inherit; font-size: var(--text-md); font-weight: 800; cursor: pointer; transition: transform var(--duration-fast) var(--ease-standard), opacity var(--duration-fast); }
 .ui-btn:active:not(:disabled) { transform: scale(0.97); }
 .ui-btn:disabled { opacity: 0.45; cursor: not-allowed; }
-.ui-btn.is-loading { cursor: progress; }
+.ui-btn.is-loading { cursor: progress; opacity: 1; }
 .ui-btn.is-secondary { background: var(--n-0); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
 .ui-btn.is-ghost { background: transparent; color: var(--ink); }
 .ui-btn.is-danger { background: var(--danger-bg); color: var(--danger); }

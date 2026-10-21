@@ -1,5 +1,6 @@
 "use client";
 
+import { SkeletonList } from "../../components/Skeleton";
 import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, ReceiptText } from "lucide-react";
 import { ProfileSheet } from "../profile/ProfileSheet";
@@ -51,7 +52,7 @@ export function PaymentsSheet({ open, onClose }) {
       ) : (
         <>
           {error ? <p className="billError" role="alert">{error}</p> : null}
-          {!payments && !error ? <div className="billSkeleton" aria-busy="true"><span /><span /><span /></div> : null}
+          {!payments && !error ? <SkeletonList rows={3} variant="row" label="در حال بارگذاری پرداخت‌ها" /> : null}
           {payments && !payments.length ? (
             <div className="billEmpty">
               <ReceiptText size={26} aria-hidden="true" />

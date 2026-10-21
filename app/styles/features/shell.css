@@ -548,37 +548,9 @@
   text-align: center;
 }
 
-.authBootLogo {
-  width: 72px;
-  height: 72px;
-  object-fit: contain;
-  border-radius: 20px;
-}
-
-.authBootBrand {
-  margin: 0;
-  font-size: clamp(1.8rem, 6vw, 2.4rem);
-  font-weight: 900;
-  letter-spacing: -0.02em;
-  color: var(--n-100);
-}
-
-.authBootSpinner {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  border: 2px solid rgb(var(--n-100-rgb) / 0.22);
-  border-top-color: var(--accent);
-  animation: authBootSpin 0.7s linear infinite;
-}
-
 .authBootInner small {
   font-size: 0.82rem;
   color: rgb(var(--n-100-rgb) / 0.72);
-}
-
-@keyframes authBootSpin {
-  to { transform: rotate(360deg); }
 }
 
 .uxSkeletonList {
@@ -613,19 +585,6 @@
 
 .uxSkeletonCopy.is-full {
   width: 100%;
-}
-
-.uxSkeletonBlock {
-  display: block;
-  border-radius: 10px;
-  background: linear-gradient(
-    90deg,
-    rgb(var(--ink-rgb) / 0.06) 0%,
-    rgb(var(--ink-rgb) / 0.12) 42%,
-    rgb(var(--ink-rgb) / 0.06) 84%
-  );
-  background-size: 200% 100%;
-  animation: uxSkeletonShimmer 1.15s ease-in-out infinite;
 }
 
 .uxSkeletonMedia {
@@ -670,7 +629,3 @@
   height: 10px;
 }
 
-@keyframes uxSkeletonShimmer {
-  0% { background-position: 100% 0; }
-  100% { background-position: -100% 0; }
-}
