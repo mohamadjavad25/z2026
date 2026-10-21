@@ -583,9 +583,7 @@ async function createPartMirrors(db, salonUserId, booking, staffList) {
       durationMinutes: group.minutes,
       sourceSalonUserId: salonUserId,
       salonBookingId: booking.id,
-      status: mirrorStatus(booking.status),
-      // The copy waits as long as the request itself (an offered new time has no hour of its own).
-      waitMinutes: booking.status === AWAITING_CLIENT ? null : booking.wait_minutes
+      status: mirrorStatus(booking.status)
     }, db);
     if (!created.ok) {
       throw artistConflictError(
@@ -910,8 +908,7 @@ async function addDraftedSingleSalonBooking(salonUserId, data, durationMinutes) 
           time: booking.time,
           durationMinutes: booking.duration_minutes,
           sourceSalonUserId: salonUserId,
-          status: mirrorStatus(booking.status),
-          waitMinutes: booking.wait_minutes
+          status: mirrorStatus(booking.status)
         }, db);
         if (!created.ok) throw artistConflictError(created.code || "ARTIST_SLOT_TAKEN", created.error || "این ساعت برای آرتیست قبلاً رزرو شده است.");
         artistBooking = created.booking;
@@ -1311,9 +1308,7 @@ async function patchSalonBookingUncached(id, salonUserId, data, options = {}) {
             booking_date: next.booking_date,
             time: next.time,
             duration_minutes: next.duration_minutes,
-            status: mirrorStatus(next.status, oldArtistBooking.status),
-            // An offered new time has no hour of its own (the salon's offer is held 6 hours, see the sweep).
-            ...(next.status === AWAITING_CLIENT ? { wait_minutes: null } : {})
+            status: mirrorStatus(next.status, oldArtistBooking.status)
           }, db);
         } else {
           const created = await artists.addArtistBookingInTx(newArtistId, {
@@ -1325,8 +1320,7 @@ async function patchSalonBookingUncached(id, salonUserId, data, options = {}) {
             time: next.time,
             durationMinutes: next.duration_minutes,
             sourceSalonUserId: salonUserId,
-            status: mirrorStatus(next.status),
-            waitMinutes: next.status === AWAITING_CLIENT ? null : next.wait_minutes
+            status: mirrorStatus(next.status)
           }, db);
           if (!created.ok) failArtist(created.code || "ARTIST_BOOKING_FAILED", created.error);
         }
@@ -1346,8 +1340,7 @@ async function patchSalonBookingUncached(id, salonUserId, data, options = {}) {
             time: next.time,
             durationMinutes: next.duration_minutes,
             sourceSalonUserId: salonUserId,
-            status: mirrorStatus(next.status),
-            waitMinutes: next.status === AWAITING_CLIENT ? null : next.wait_minutes
+            status: mirrorStatus(next.status)
           }, db);
           if (!created.ok) failArtist(created.code || "ARTIST_BOOKING_FAILED", created.error);
           linkedArtistIds.push(newArtistId);

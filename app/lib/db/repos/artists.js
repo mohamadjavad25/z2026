@@ -676,10 +676,6 @@ export async function updateArtistBookingRow(bookingId, fields = {}, runner = nu
     next.service_emoji || "",
     Number(bookingId)
   ]);
-  // The response window of a calendar copy of a salon request follows the request (null = no hour of its own).
-  if (Object.prototype.hasOwnProperty.call(fields, "wait_minutes")) {
-    await run(db, "UPDATE artist_bookings SET wait_minutes = $1 WHERE id = $2", [fields.wait_minutes, Number(bookingId)]);
-  }
   return get(db, "SELECT * FROM artist_bookings WHERE id = $1", [Number(bookingId)]);
 }
 

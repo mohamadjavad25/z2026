@@ -32,11 +32,21 @@ export function salonRequestLapsedSql(alias = "") {
     OR (${a}status = '${AWAITING_CLIENT}' AND COALESCE(${a}offer_at, ${a}created_at) <= (NOW() - INTERVAL '${OFFER_HOLD_HOURS} hours')))`;
 }
 
-/** An artist_bookings row that is a waiting request (direct, or the calendar copy of a salon request) and has run out of time. */
+/**
+ * An artist_bookings row that is a waiting request and has run out of time: a direct request by its own window, or
+ * the calendar copy of a salon request when the salon's request it was made from has (the copy ages with its
+ * request, however it was made: found by its multi-service link or by the same client, service, day and time).
+ */
 export function artistRequestLapsedSql(alias = "") {
   const a = dot(alias);
-  return `(((${a}status = 'تازه' AND ${a}source_salon_user_id IS NULL) OR (${a}status = 'درخواست' AND ${a}source_salon_user_id IS NOT NULL))
-    AND ${windowLapsed(alias)})`;
+  return `((${a}status = 'تازه' AND ${a}source_salon_user_id IS NULL AND ${windowLapsed(alias)})
+    OR (${a}status = 'درخواست' AND ${a}source_salon_user_id IS NOT NULL AND EXISTS (
+      SELECT 1 FROM salon_bookings sb
+      WHERE sb.salon_user_id = ${a}source_salon_user_id
+        AND (sb.id = ${a}salon_booking_id OR (${a}salon_booking_id IS NULL AND sb.client = ${a}client_name AND sb.phone = ${a}client_phone
+          AND sb.service = ${a}service AND sb.booking_date = ${a}booking_date AND sb.time = ${a}time))
+        AND ${salonRequestLapsedSql("sb")}
+    )))`;
 }
 
 /** Statuses of a request that still waits for an answer (before its time is checked). */
