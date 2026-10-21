@@ -24,7 +24,8 @@ describe("OTP guessing at scale", () => {
       await createClient().post("/api/auth/otp/send", { phone: victim.phone, purpose: "reset" });
       const real = await latestCode(victim.phone);
       // The attacker does not know `real`; this puts it in a random slot only to measure how many of the guesses get evaluated.
-      const slot = Math.floor(Math.random() * BURST);
+      // slot >= 50: the real code can only be accepted if more than the 5 allowed guesses were really checked.
+      const slot = 50 + Math.floor(Math.random() * (BURST - 50));
       const guesses = Array.from({ length: BURST }, (_, i) => (i === slot ? real : String(10000 + ((Number(real) - 10000 + 1 + i) % 90000))));
       const results = await Promise.all(guesses.map((code) => createClient().post("/api/auth/password-reset/confirm", { phone: victim.phone, code, newPassword: "hijacked-pass-1" })));
       const won = results.some((r) => r.ok);
@@ -33,7 +34,7 @@ describe("OTP guessing at scale", () => {
     }
     note(`reset: real code accepted in ${cracked}/${trials} bursts of ${BURST}`);
     // Intended design: 5 attempts per code, 12 per 15 min => about 12/90000 odds. If this is red the guard leaks under concurrency.
-    expect(BURST * 0 + cracked / trials).toBeLessThan(0.1);
+    expect(cracked).toBe(0);
   }, 120_000);
 
   it("2500 parallel guesses at one signup code: count how many are really checked", async () => {
@@ -69,16 +70,17 @@ describe("phone-number sweeping (what «دعوت در انتظار» will sit ne
 });
 
 describe("big public payloads", () => {
-  it("the directory stays small even with a 200,000-character artist name", async () => {
-    const big = createClient();
-    await registerUser(big, { type: "artist", name: "ب".repeat(200_000), });
+  it("a 200,000-character name is refused, and the directory stays small", async () => {
+    const refused = await createClient().post("/api/auth/register", { phone: uniquePhone(), password: "testpass123", type: "artist", name: "ب".repeat(200_000) });
+    expect(refused.status).toBe(400);
+    await registerUser(createClient(), { type: "artist", name: "ب".repeat(120) });
     for (const path of ["/api/artists", "/api/salons", "/api/connections/by-category"]) {
       const c = createClient();
       await registerUser(c, { type: "client" });
       const res = await fetch(`${TEST_BASE_URL}${path}`, { headers: { Cookie: c.cookie() } });
       const text = await res.text();
       note(`GET ${path}`, res.status, `${(text.length / 1024).toFixed(0)} KB`);
-      expect(text.length).toBeLessThan(2 * 1024 * 1024);
+      expect(text.length).toBeLessThan(400 * 1024);
     }
   }, 60_000);
 });

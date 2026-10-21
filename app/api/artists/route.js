@@ -5,18 +5,19 @@ import { withErrorHandling } from "../../lib/http.js";
 
 export const runtime = "nodejs";
 
+// A page, never the whole table -- see the matching note in app/api/salons/route.js.
+const DEFAULT_PAGE = 100;
+
 async function _GET(request) {
   await ensureDb();
   const { searchParams } = new URL(request.url);
   const cursor = searchParams.get("cursor");
-  const limitParam = searchParams.get("limit");
-  // Paginate only when the caller opts in -- see the matching note in
-  // app/api/salons/route.js for why omitting both preserves today's
-  // "one call, the whole directory" behavior.
-  if (!cursor && !limitParam) {
-    return NextResponse.json({ data: { artists: await artists.listArtists() } });
-  }
-  const { artists: list, nextCursor } = await artists.listArtists({ cursor, limit: Number(limitParam) || 20 });
+  const requested = Number(searchParams.get("limit")) || 0;
+  const { artists: list, nextCursor } = await artists.listArtists({
+    cursor,
+    limit: requested || DEFAULT_PAGE,
+    maxLimit: requested ? 50 : DEFAULT_PAGE
+  });
   return NextResponse.json({ data: { artists: list, nextCursor } });
 }
 

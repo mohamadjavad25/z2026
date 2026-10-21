@@ -1,6 +1,7 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, afterAll } from "vitest";
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
+import pg from "pg";
 import { createClient, registerUser } from "./helpers.js";
 import { TEST_BASE_URL } from "../globalSetup.js";
 
@@ -40,6 +41,15 @@ const post = async (client, route, body) => {
 };
 
 describe("fuzz every route", () => {
+  // The fuzzer fills the support form's hourly quota (kept per address, and every test call comes from this machine);
+  // clear it afterwards so the support tests that run later start with a fresh one.
+  afterAll(async () => {
+    const db = new pg.Client({ connectionString: process.env.TEST_POSTGRES_URL });
+    await db.connect();
+    await db.query("DELETE FROM rate_limit_hits WHERE key LIKE 'support%'");
+    await db.end();
+  });
+
   for (const role of ["client", "artist", "salon"]) {
     it(`as ${role}: no 5xx anywhere`, async () => {
       const client = createClient();

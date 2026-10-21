@@ -60,7 +60,7 @@ export {
  * the true underlying table position, so paging through it still visits
  * every row exactly once.
  */
-export async function listSalons({ cursor, limit } = {}) {
+export async function listSalons({ cursor, limit, maxLimit = 50 } = {}) {
   const db = await getDb();
   const params = [];
   let where = "";
@@ -69,7 +69,7 @@ export async function listSalons({ cursor, limit } = {}) {
     where = `WHERE s.user_id < $${params.length}`;
   }
   let limitClause = "";
-  const pageSize = limit ? Math.min(Math.max(Number(limit) || 20, 1), 50) : null;
+  const pageSize = limit ? Math.min(Math.max(Number(limit) || 20, 1), maxLimit) : null;
   if (pageSize) {
     params.push(pageSize + 1);
     limitClause = `LIMIT $${params.length}`;

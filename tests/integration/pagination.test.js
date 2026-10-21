@@ -39,11 +39,14 @@ describe("cursor pagination", () => {
     expect(new Set(seededCollected).size).toBe(seededIds.length);
   });
 
-  it("an unpaginated call (no cursor/limit) still returns the full list", async () => {
+  it("an unpaginated call (no cursor/limit) answers one bounded page, and following nextCursor reaches the rest", async () => {
     const anon = createClient();
     const res = await anon.get("/api/salons");
     expect(res.ok).toBe(true);
-    expect(res.payload.data.nextCursor).toBeUndefined();
     expect(Array.isArray(res.payload.data.salons)).toBe(true);
+    expect(res.payload.data.salons.length).toBeLessThanOrEqual(100);
+    // a full page always says where the next one starts; a short last page says there is none
+    if (res.payload.data.salons.length === 100) expect(res.payload.data.nextCursor).toBeTruthy();
+    else expect(res.payload.data.nextCursor).toBeNull();
   });
 });

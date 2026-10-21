@@ -64,7 +64,7 @@ describe("junk input", () => {
     const search = await c.get(`/api/connections/search?q=${encodeURIComponent(NUL)}`);
     note("search NUL", search.status);
     expect(search.status).toBeLessThan(500);
-    const profile = await c.patch("/api/profile", { name: NUL, bio: NUL });
+    const profile = await c.post("/api/profile", { name: NUL, bio: NUL });
     note("profile NUL", profile.status);
     expect(profile.status).toBeLessThan(500);
   });

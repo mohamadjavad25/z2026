@@ -851,7 +851,7 @@ export async function getPublicArtist(userId, viewerUserId = null) {
  * privacy-filter-after-fetch tradeoff, same why-not-created_at note).
  * Cursors on users.id, artists' own primary key.
  */
-export async function listArtists({ cursor, limit } = {}) {
+export async function listArtists({ cursor, limit, maxLimit = 50 } = {}) {
   const db = await getDb();
   const params = [];
   let where = "type = 'artist'";
@@ -860,7 +860,7 @@ export async function listArtists({ cursor, limit } = {}) {
     where += ` AND id < $${params.length}`;
   }
   let limitClause = "";
-  const pageSize = limit ? Math.min(Math.max(Number(limit) || 20, 1), 50) : null;
+  const pageSize = limit ? Math.min(Math.max(Number(limit) || 20, 1), maxLimit) : null;
   if (pageSize) {
     params.push(pageSize + 1);
     limitClause = `LIMIT $${params.length}`;

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { hashPassword, publicUser, verifyPassword } from "../../lib/auth.js";
 import { ensureDb } from "../../lib/db/connection.js";
 import * as users from "../../lib/db/repos/users.js";
-import { requireUser, validateBody, withErrorHandling } from "../../lib/http.js";
+import { clientErrorResponse, readJson, requireUser, validateBody, withErrorHandling } from "../../lib/http.js";
 import { profileUpdateSchema } from "../../lib/validation/user.js";
 import { isImageDataUrlTooLarge, isImageDataUrlInvalidType } from "../../lib/mediaLimits.js";
 import { hasUniqueName, nameKey, NAME_TAKEN_MESSAGE } from "../../lib/businessName.js";
@@ -19,7 +19,7 @@ async function _GET(request) {
 async function _POST(request) {
   await ensureDb();
   try {
-    const body = await request.json();
+    const body = (await readJson(request)) || {};
 
     // Legacy signup path without session → redirect clients to /api/auth/register
     // Keep PATCH-like profile update for logged-in users.
@@ -61,11 +61,11 @@ async function _POST(request) {
 
     // A salon or artist renaming itself may not take another one's name; an unchanged name (even an old
     // duplicate from before the rule) always saves.
-    if (
-      hasUniqueName(auth.user.type) && data.name !== undefined && nameKey(data.name) !== nameKey(auth.user.name)
-      && (await users.isBusinessNameTaken(data.name, auth.user.id))
-    ) {
-      return NextResponse.json({ error: NAME_TAKEN_MESSAGE, code: "name_taken" }, { status: 409 });
+    // The check and the rename happen under one lock, so two accounts cannot both take a free name at the same moment.
+    if (hasUniqueName(auth.user.type) && data.name !== undefined && nameKey(data.name) !== nameKey(auth.user.name)) {
+      if (!(await users.renameBusiness(auth.user.id, data.name))) {
+        return NextResponse.json({ error: NAME_TAKEN_MESSAGE, code: "name_taken" }, { status: 409 });
+      }
     }
 
     // Clients have no field of activity.
@@ -84,6 +84,8 @@ async function _POST(request) {
     const user = await users.updateUser(auth.user.id, patch);
     return NextResponse.json({ data: { user: publicUser(user) } });
   } catch (error) {
+    const badInput = clientErrorResponse(error);
+    if (badInput) return badInput;
     console.error(error);
     return NextResponse.json({ error: "ذخیره پروفایل انجام نشد." }, { status: 500 });
   }
@@ -97,7 +99,7 @@ async function _DELETE(request) {
   // password-change branch of POST /api/profile above -- without this, a
   // stolen/hijacked session cookie alone was enough to permanently delete
   // the account with a single unauthenticated-content-check-only request.
-  const body = await request.json().catch(() => ({}));
+  const body = (await readJson(request)) || {};
   const currentPassword = typeof body?.currentPassword === "string" ? body.currentPassword : "";
   if (!currentPassword) {
     return NextResponse.json({ error: "برای حذف حساب، رمز عبور فعلی را وارد کن." }, { status: 400 });

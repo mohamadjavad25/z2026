@@ -1,5 +1,5 @@
 import { createHmac, randomInt, timingSafeEqual } from "node:crypto";
-import { getDb, get, run } from "./db/connection.js";
+import { getDb, get, run, withTransaction } from "./db/connection.js";
 import { checkRateLimit } from "./rateLimit.js";
 import { sendVerificationSms, smsEnabled } from "./sms.js";
 
@@ -67,23 +67,29 @@ export async function sendOtp(phone, purpose) {
   return sent.ok ? { ok: true } : { ok: false, code: "send_failed" };
 }
 
-/** Checks a code. A wrong guess costs an attempt; after MAX_ATTEMPTS the code is dead. A right one is single-use. */
+/**
+ * Checks a code. A wrong guess costs an attempt; after MAX_ATTEMPTS the code is dead. A right one is single-use.
+ * The code's row is locked for the whole check, so guesses sent at the same moment are judged one at a time: the
+ * fifth wrong guess really is the last one, however many arrive together.
+ */
 export async function verifyOtp(phone, purpose, code) {
   const limited = await checkRateLimit(`otp-verify:${phone}`, 12, 15 * 60 * 1000);
   if (!limited.ok) return { ok: false, code: "rate_limited" };
-  const db = await getDb();
-  const row = await get(db, `
-    SELECT id, code_hash, attempts FROM otp_codes
-    WHERE phone = $1 AND purpose = $2 AND consumed_at IS NULL AND expires_at > NOW()
-    ORDER BY id DESC LIMIT 1
-  `, [phone, purpose]);
-  if (!row || row.attempts >= MAX_ATTEMPTS) return { ok: false, code: "expired" };
-  const given = Buffer.from(hashCode(phone, purpose, String(code || "").trim()));
-  const expected = Buffer.from(row.code_hash);
-  if (given.length !== expected.length || !timingSafeEqual(given, expected)) {
-    await run(db, "UPDATE otp_codes SET attempts = attempts + 1 WHERE id = $1", [row.id]);
-    return { ok: false, code: "wrong" };
-  }
-  await run(db, "UPDATE otp_codes SET consumed_at = NOW() WHERE id = $1", [row.id]);
-  return { ok: true };
+  return withTransaction(null, async (client) => {
+    const row = await get(client, `
+      SELECT id, code_hash, attempts FROM otp_codes
+      WHERE phone = $1 AND purpose = $2 AND consumed_at IS NULL AND expires_at > NOW()
+      ORDER BY id DESC LIMIT 1
+      FOR UPDATE
+    `, [phone, purpose]);
+    if (!row || row.attempts >= MAX_ATTEMPTS) return { ok: false, code: "expired" };
+    const given = Buffer.from(hashCode(phone, purpose, String(code || "").trim()));
+    const expected = Buffer.from(row.code_hash);
+    if (given.length !== expected.length || !timingSafeEqual(given, expected)) {
+      await run(client, "UPDATE otp_codes SET attempts = attempts + 1 WHERE id = $1", [row.id]);
+      return { ok: false, code: "wrong" };
+    }
+    await run(client, "UPDATE otp_codes SET consumed_at = NOW() WHERE id = $1", [row.id]);
+    return { ok: true };
+  });
 }

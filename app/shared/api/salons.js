@@ -1,8 +1,24 @@
 import { apiFetch, apiJson } from "./client";
 
-/** GET /api/salons → { salons, data?: { salons } } (public directory; no /api/salons/:id) */
+// 100 pages of 100: a directory past 10,000 needs a real "load more" screen, which this app does not have yet.
+const DIRECTORY_MAX_PAGES = 100;
+
+/**
+ * GET /api/salons → { salons, data?: { salons } } (public directory; no /api/salons/:id)
+ * The server answers one page at a time; this follows nextCursor and returns every salon in one list (same shape as
+ * before), so the screens that expect the whole directory keep working while each request stays small.
+ */
 export async function getSalons() {
-  return apiJson("/api/salons");
+  let result = await apiJson("/api/salons");
+  const all = [];
+  for (let page = 0; page < DIRECTORY_MAX_PAGES; page += 1) {
+    if (!result.ok) return page === 0 ? result : { ...result, ok: true, data: { salons: all } };
+    all.push(...(result.data?.salons || []));
+    const next = result.data?.nextCursor;
+    if (!next) return { ...result, data: { ...result.data, salons: all, nextCursor: null } };
+    result = await apiJson(`/api/salons?cursor=${encodeURIComponent(next)}`);
+  }
+  return { ...result, ok: true, data: { salons: all, nextCursor: null } };
 }
 
 /**

@@ -1,4 +1,4 @@
-import { error, json, withErrorHandling } from "../../../../lib/http.js";
+import { error, json, readJson, withErrorHandling } from "../../../../lib/http.js";
 import { MIN_PASSWORD_LENGTH, hashPassword, isValidIranMobile, normalizeDigits, normalizePhone } from "../../../../lib/auth.js";
 import { ensureDb, getDb, run } from "../../../../lib/db/connection.js";
 import * as users from "../../../../lib/db/repos/users.js";
@@ -11,7 +11,7 @@ export const runtime = "nodejs";
 async function _POST(request) {
   await ensureDb();
   if (!otpConfig().enabled) return error("بازیابی با پیامک هنوز فعال نشده است.", 503);
-  const body = await request.json().catch(() => ({}));
+  const body = (await readJson(request)) || {};
   const phone = normalizePhone(body.phone || "");
   const code = normalizeDigits(String(body.code || "")).trim();
   const newPassword = normalizeDigits(String(body.newPassword || ""));

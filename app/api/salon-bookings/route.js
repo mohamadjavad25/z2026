@@ -61,7 +61,9 @@ async function _GET(request) {
         staff: booking.staff,
         status: booking.status
     }));
-    return noStoreJson({ data: { unavailableSlots, hours: await salons.listSalonHours(salonUserId) } });
+    const hours = await salons.listSalonHours(salonUserId);
+    if (!hours.length) return noStoreJson({ error: "این سالن پیدا نشد." }, { status: 404 });
+    return noStoreJson({ data: { unavailableSlots, hours } });
   }
   if (auth.user.type === "client") {
     const bookings = await salons.listClientSalonBookings(auth.user);

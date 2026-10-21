@@ -1,4 +1,4 @@
-import { error, json, withErrorHandling } from "../../../../lib/http.js";
+import { error, json, readJson, withErrorHandling } from "../../../../lib/http.js";
 import { isValidIranMobile, normalizePhone } from "../../../../lib/auth.js";
 import { ensureDb } from "../../../../lib/db/connection.js";
 import * as users from "../../../../lib/db/repos/users.js";
@@ -16,7 +16,7 @@ async function _POST(request) {
   await ensureDb();
   const config = otpConfig();
   if (!config.enabled) return error("ارسال پیامک هنوز فعال نشده است.", 503);
-  const body = await request.json().catch(() => ({}));
+  const body = (await readJson(request)) || {};
   const phone = normalizePhone(body.phone || "");
   const purpose = body.purpose === "reset" ? "reset" : body.purpose === "register" ? "register" : "";
   if (!purpose) return error("نوع درخواست نامعتبر است.", 400);

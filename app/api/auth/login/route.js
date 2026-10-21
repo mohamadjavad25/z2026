@@ -11,7 +11,7 @@ import {
 import { ensureDb } from "../../../lib/db/connection.js";
 import * as users from "../../../lib/db/repos/users.js";
 import { checkIpRateLimit, checkRateLimit } from "../../../lib/rateLimit.js";
-import { withErrorHandling } from "../../../lib/http.js";
+import { readJson, withErrorHandling } from "../../../lib/http.js";
 
 export const runtime = "nodejs";
 
@@ -27,7 +27,7 @@ const LOGIN_IP_LIMIT = 30;
 
 async function _POST(request) {
   await ensureDb();
-  const body = await request.json();
+  const body = (await readJson(request)) || {};
   const phone = normalizePhone(body.phone);
   const password = normalizeDigits(String(body.password || ""));
 

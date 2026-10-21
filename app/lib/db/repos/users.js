@@ -1,4 +1,4 @@
-import { getDb, all, get, run } from "../connection.js";
+import { withTransaction, getDb, all, get, run } from "../connection.js";
 import { uploadImageDataUrl, deleteStoredImage } from "../../storage.js";
 import { nameKey } from "../../businessName.js";
 
@@ -61,14 +61,36 @@ export async function isBusinessNameTaken(name, excludeUserId = 0, runner = null
   return rows.some((row) => nameKey(row.name) === key);
 }
 
+/**
+ * Runs `fn(client)` while holding the lock every salon/artist name check-and-write takes. Without it two sign-ups with the
+ * same name both saw "free" and both won (8 of 20 at once in the stress test). `client` is the transaction's connection:
+ * run the check and the write on it, so the second caller waits, then sees the first one's name.
+ */
+export function withBusinessNameLock(fn) {
+  return withTransaction(null, async (client) => {
+    await run(client, "SELECT pg_advisory_xact_lock(hashtextextended('business-name', 0))");
+    return fn(client);
+  });
+}
+
+/** Gives a salon or artist a new name if no other salon or artist holds it (same rule as sign-up). false = taken. */
+export async function renameBusiness(userId, name) {
+  return withBusinessNameLock(async (client) => {
+    if (await isBusinessNameTaken(name, userId, client)) return false;
+    await run(client, "UPDATE users SET name = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2", [name, userId]);
+    await run(client, "UPDATE salons SET name = $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2", [name, userId]);
+    return true;
+  });
+}
+
 /** Records that the account proved it owns its phone number with an SMS code (see app/lib/db/clientMatch.js). */
 export async function markPhoneVerified(userId) {
   const db = await getDb();
   await run(db, "UPDATE users SET phone_verified_at = COALESCE(phone_verified_at, NOW()) WHERE id = $1", [userId]);
 }
 
-export async function createUser({ phone, passwordHash, type, name, area, service, email, avatar, poster, experienceYears, managerName }) {
-  const db = await getDb();
+export async function createUser({ phone, passwordHash, type, name, area, service, email, avatar, poster, experienceYears, managerName }, runner = null) {
+  const db = runner || (await getDb());
   const info = await run(db, `
     INSERT INTO users (phone, password_hash, type, name, area, service, email, avatar, poster, experience_years, manager_name)
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
