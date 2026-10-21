@@ -55,3 +55,7 @@ export function serviceFieldsProblem(body) {
   }
   return priceProblem(body.price) || durationProblem(body.duration);
 }
+
+/** A salon or an artist has at most this many services: they all ride on every public directory response (user's decision 2026-10-21). */
+export const MAX_SERVICES_PER_PROVIDER = 100;
+export const SERVICE_LIMIT_MESSAGE = "حداکثر ۱۰۰ خدمت می‌توانی داشته باشی؛ اول چند خدمت قبلی را پاک کن.";

@@ -8,6 +8,8 @@ import { notifyConnection } from "../../../lib/connectionNotify.js";
 import { checkRateLimit } from "../../../lib/rateLimit.js";
 import { get, withTransaction } from "../../../lib/db/connection.js";
 import { lockArtistDays, lockSalonDay } from "../../../lib/db/locks.js";
+import { artistRequestLapsedSql } from "../../../lib/db/repos/openRequests.js";
+import { isSlotInPast } from "../../../shared/lib/slots.js";
 import { AWAITING_CLIENT } from "../../../shared/lib/bookingOffer.js";
 import { serviceFieldsProblem } from "../../../lib/validation/service.js";
 import { readBookingSlot } from "../../../lib/validation/bookingSlot.js";
@@ -161,7 +163,7 @@ async function patchOwnArtistBooking(artistUserId, body, artistName = "") {
   await withTransaction(null, async (db) => {
     if (current.sourceSalonUserId) await lockSalonDay(db, current.sourceSalonUserId, current.bookingDate);
     await lockArtistDays(db, [artistUserId], current.bookingDate);
-    const locked = await get(db, "SELECT * FROM artist_bookings WHERE id = $1 FOR UPDATE", [bookingId]);
+    const locked = await get(db, `SELECT a.*, ${artistRequestLapsedSql("a")} AS lapsed FROM artist_bookings a WHERE a.id = $1 FOR UPDATE`, [bookingId]);
     if (!locked) return;
     statusBefore = locked.status;
     // One artist's share of a multi-service visit: the visit is approved by the salon, and the
@@ -177,6 +179,13 @@ async function patchOwnArtistBooking(artistUserId, body, artistName = "") {
     }
     if (locked.status === "منقضی شده") {
       refusal = error("این درخواست به‌دلیل عدم پاسخ به‌موقع منقضی شده و دیگر قابل تایید یا رد نیست.", 409);
+      return;
+    }
+    // A request can be answered only while it is alive: its window has not run out (decided now, not when the sweep
+    // gets there) and its appointment has not started.
+    const isRequestRow = (locked.status === "تازه" && !locked.source_salon_user_id) || (locked.status === "درخواست" && locked.source_salon_user_id);
+    if (nextStatus === "تایید شده" && isRequestRow && (locked.lapsed || isSlotInPast(locked.booking_date, locked.time))) {
+      refusal = json({ error: "مهلت این درخواست تمام شده و دیگر قابل تایید نیست.", code: "BOOKING_EXPIRED" }, { status: 409 });
       return;
     }
     if (locked.status === "لغو" && nextStatus === "تایید شده") {
