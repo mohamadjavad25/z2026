@@ -163,7 +163,6 @@ export function UsersTab({ intent = {}, onChanged, onGo, setParam }) {
         open={Boolean(selected)}
         onClose={() => setSelected(null)}
         label="جزئیات کاربر"
-        emptyHint="روی یک کاربر بزن تا اطلاعات، فعالیت و ابزارهای مدیریتش را ببینی."
         detail={selected ? <UserDetail key={selected} userId={selected} onChanged={() => { reload(); onChanged?.(); }} onGo={onGo} onClose={() => setSelected(null)} /> : null}
       />
     </>

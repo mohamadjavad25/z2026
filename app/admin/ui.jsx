@@ -6,6 +6,7 @@ import { Button } from "../components/ui";
 import { api } from "./adminFetch";
 import { notify } from "../shared/notice/noticeStore";
 import { num } from "./format";
+import { ClaudeMark, askClaude } from "./ClaudeConnect";
 
 /* ───────────── toasts: short feedback, shown by the shared top-of-screen stack (app/shared/notice) ───────────── */
 
@@ -162,6 +163,7 @@ export function ErrorNote({ error, onRetry }) {
   return (
     <p className="admError" role="alert">
       {error} {onRetry ? <button type="button" className="admLink" onClick={onRetry}>دوباره امتحان کن</button> : null}
+      <button type="button" className="admLink admErrorClaude" onClick={() => askClaude({ kind: "bug", details: `پیام خطای پنل: ${error}` })}><ClaudeMark size={14} /> بده به Claude</button>
     </p>
   );
 }

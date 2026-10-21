@@ -256,7 +256,7 @@ export function UserDetail({ userId, onChanged, onGo, onClose }) {
           <p className="admMuted"><MessageSquarePlus size={14} aria-hidden="true" /> پیام در «پشتیبانی» همین کاربر می‌نشیند و اگر اعلان را روشن کرده باشد خبر هم می‌گیرد. جواب‌هایش در صندوق پشتیبانی می‌آید.</p>
           <Field label="عنوان (اختیاری)">{(props) => <input {...props} type="text" maxLength={120} value={subject} onChange={(event) => setSubject(event.target.value)} />}</Field>
           <Field label="متن پیام">{(props) => <textarea {...props} rows={5} maxLength={2000} required value={text} onChange={(event) => setText(event.target.value)} />}</Field>
-          <CannedReplies onPick={(body) => setText((prev) => (prev ? `${prev}\n${body}` : body))} />
+          <CannedReplies name={user?.name} onPick={(body) => setText((prev) => (prev ? `${prev}\n${body}` : body))} />
           <Button type="submit" disabled={busy || text.trim().length < 2}>ارسال پیام</Button>
         </form>
       ) : null}

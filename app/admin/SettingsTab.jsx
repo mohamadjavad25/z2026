@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Info, MessageSquareQuote, Megaphone, Pencil, Plus, Trash2, UserPlus } from "lucide-react";
+import { Info, MessageSquareQuote, Megaphone, Pencil, Plus, Sparkles, Trash2, UserPlus } from "lucide-react";
 import { Button } from "../components/ui";
 import { api } from "./adminFetch";
 import { forgetCannedReplies } from "./CannedReplies";
+import { SampleChips } from "./SampleChips";
+import { NOTICE_SAMPLES, REPLY_SAMPLES, SIGNUP_CLOSED_SAMPLES } from "./samples";
 import { ago } from "./format";
 import { PageHead } from "./PageHead";
 import { Card, ErrorNote, Loading, Segmented, Toggle, confirmAction, toastResult, useAdminData } from "./ui";
@@ -48,6 +50,7 @@ function NoticeCard({ initial, focus }) {
         {value.link && value.linkLabel ? <u>{value.linkLabel}</u> : null}
       </div>
       <div className="admForm">
+        <SampleChips items={NOTICE_SAMPLES} onPick={(sample) => setValue((prev) => ({ ...prev, tone: sample.tone, audience: sample.audience, text: sample.text, link: sample.link, linkLabel: sample.linkLabel }))} />
         <Toggle checked={value.enabled} onChange={(enabled) => (dirty ? set("enabled")(enabled) : submit({ ...value, enabled }))} label={value.enabled ? "روشن است" : "خاموش است"} hint={dirty ? "پس از ذخیره اعمال می‌شود" : "با زدن، همین الان روشن یا خاموش می‌شود"} disabled={busy || (!value.enabled && value.text.trim().length < 3)} />
         <label className="admLabel">
           <span>متن اعلان</span>
@@ -95,9 +98,12 @@ function SignupsCard({ initial, focus }) {
       <p className="admMuted">برای وقتی که سیل حساب جعلی آمده یا یک نقش هنوز آماده نیست. ورود حساب‌های موجود دست نمی‌خورد.</p>
       {closed.length ? <p className="admError admBanner">ثبت‌نام {closed.map((role) => ({ client: "مشتری", artist: "آرتیست", salon: "سالن" })[role]).join("، ")} الان بسته است.</p> : null}
       <div className="admForm">
-        <Toggle checked={value.client} disabled={busy} onChange={(on) => submit({ ...value, client: on })} label="مشتری‌ها" />
-        <Toggle checked={value.artist} disabled={busy} onChange={(on) => submit({ ...value, artist: on })} label="آرتیست‌ها" />
-        <Toggle checked={value.salon} disabled={busy} onChange={(on) => submit({ ...value, salon: on })} label="سالن‌ها" />
+        <div className="admToggleGrid is-three">
+          <Toggle checked={value.client} disabled={busy} onChange={(on) => submit({ ...value, client: on })} label="مشتری‌ها" />
+          <Toggle checked={value.artist} disabled={busy} onChange={(on) => submit({ ...value, artist: on })} label="آرتیست‌ها" />
+          <Toggle checked={value.salon} disabled={busy} onChange={(on) => submit({ ...value, salon: on })} label="سالن‌ها" />
+        </div>
+        <SampleChips label="نمونهٔ پیام" items={SIGNUP_CLOSED_SAMPLES} onPick={(sample) => setValue((prev) => ({ ...prev, message: sample.text }))} />
         <label className="admLabel">
           <span>پیامی که موقع بسته‌بودن می‌بینند</span>
           <input type="text" maxLength={200} value={value.message} placeholder="ثبت‌نام جدید فعلاً بسته است. کمی بعد دوباره سر بزن." onChange={(event) => setValue({ ...value, message: event.target.value })} />
@@ -135,7 +141,7 @@ function RepliesCard({ initial }) {
   }
   return (
     <Card title="پاسخ‌های آماده" icon={MessageSquareQuote} actions={<Button size="sm" variant="secondary" onClick={() => setEditing({ id: Math.random().toString(36).slice(2, 10), title: "", body: "" })}><Plus size={15} aria-hidden="true" /> پاسخ تازه</Button>}>
-      <p className="admMuted">جواب‌هایی که زیاد می‌نویسی (سلام و تشکر، راهنمای افزودن خدمت، …). در پشتیبانی و پیام به کاربر با یک ضربه اضافه می‌شوند.</p>
+      <p className="admMuted">جواب‌هایی که زیاد می‌نویسی. در گفتگوی پشتیبانی و پیام به کاربر از دکمهٔ «پاسخ آماده» اضافه می‌شوند؛ <code dir="ltr">{"{name}"}</code> با نام کوچک کاربر پر می‌شود.</p>
       {editing ? (
         <form className="admForm admEditBox" onSubmit={submitEdit}>
           <label className="admLabel"><span>عنوان کوتاه (روی دکمه)</span><input type="text" maxLength={60} required value={editing.title} onChange={(event) => setEditing({ ...editing, title: event.target.value })} autoFocus /></label>
@@ -158,7 +164,21 @@ function RepliesCard({ initial }) {
             </li>
           ))}
         </ul>
-      ) : !editing ? <p className="admMuted">هنوز پاسخ آماده‌ای نساخته‌ای.</p> : null}
+      ) : null}
+      {!editing ? (
+        <>
+          <SampleChips
+            items={REPLY_SAMPLES.filter((sample) => !items.some((item) => item.title === sample.title))}
+            hint="برای ویرایش و ذخیره باز می‌شود"
+            onPick={(sample) => setEditing({ id: Math.random().toString(36).slice(2, 10), title: sample.title, body: sample.body })}
+          />
+          {!items.length ? (
+            <div className="admRowActions">
+              <Button size="sm" variant="secondary" disabled={busy} onClick={() => persist(REPLY_SAMPLES.map((sample) => ({ id: Math.random().toString(36).slice(2, 10), ...sample })), "پاسخ‌های نمونه اضافه شد.")}><Sparkles size={15} aria-hidden="true" /> افزودن همهٔ نمونه‌ها</Button>
+            </div>
+          ) : null}
+        </>
+      ) : null}
     </Card>
   );
 }

@@ -630,7 +630,7 @@ describe("admin page (browser)", () => {
     // The other pages open without errors.
     for (const name of ["محتوا", "رزروها", "پشتیبانی", "پیام همگانی", "گزارش‌ها", "سلامت سامانه", "تنظیمات", "امنیت و دسترسی"]) {
       await nav(name).click();
-      await page.locator(".admCard").first().waitFor();
+      await page.locator(".admCard, .admChat").first().waitFor();
     }
     expect(await page.locator("main").innerText()).toContain("نشست‌های فعال پنل");
     await nav("کاربران").click();

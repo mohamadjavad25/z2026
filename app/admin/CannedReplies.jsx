@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { MessageSquareQuote } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ChevronDown, MessageSquareQuote, Search, Sparkles, X } from "lucide-react";
 import { api } from "./adminFetch";
+import { REPLY_SAMPLES, fillReply } from "./samples";
 
 let cache = null;
 /** Forgets the saved replies so the next reply box loads the edited list (called after Settings saves them). */
@@ -10,11 +11,18 @@ export function forgetCannedReplies() {
   cache = null;
 }
 
-/** The saved answers from Settings as a row of one-tap buttons above a reply box. Renders nothing when there are none. */
-export function CannedReplies({ onPick }) {
+/**
+ * "Ready replies" as one button above a reply box. It opens a small list: your saved replies first, then frfro's
+ * example replies (so a fresh panel is never empty). Picking one inserts it, with {name} filled in. Esc or a click
+ * outside closes it.
+ */
+export function CannedReplies({ onPick, name = "", pill = false }) {
   const [items, setItems] = useState(cache || []);
+  const [open, setOpen] = useState(false);
+  const [q, setQ] = useState("");
+  const box = useRef(null);
   useEffect(() => {
-    if (cache) return;
+    if (cache) return undefined;
     let live = true;
     api.get("/api/admin/settings").then((result) => {
       if (!live || !result.ok) return;
@@ -25,13 +33,53 @@ export function CannedReplies({ onPick }) {
       live = false;
     };
   }, []);
-  if (!items.length) return null;
+  useEffect(() => {
+    if (!open) return undefined;
+    const close = (event) => {
+      if (event.type === "keydown" ? event.key === "Escape" : !box.current?.contains(event.target)) setOpen(false);
+    };
+    document.addEventListener("keydown", close);
+    document.addEventListener("pointerdown", close);
+    return () => {
+      document.removeEventListener("keydown", close);
+      document.removeEventListener("pointerdown", close);
+    };
+  }, [open]);
+  const needle = q.trim();
+  const match = (item) => !needle || item.title.includes(needle) || item.body.includes(needle);
+  const mine = useMemo(() => items.filter(match), [items, needle]); // eslint-disable-line react-hooks/exhaustive-deps
+  const samples = useMemo(() => REPLY_SAMPLES.filter(match), [needle]); // eslint-disable-line react-hooks/exhaustive-deps
+  const pick = (body) => {
+    onPick(fillReply(body, name));
+    setOpen(false);
+    setQ("");
+  };
   return (
-    <div className="admCanned" role="group" aria-label="پاسخ‌های آماده">
-      <MessageSquareQuote size={15} aria-hidden="true" />
-      {items.map((item) => (
-        <button key={item.id} type="button" title={item.body} onClick={() => onPick(item.body)}>{item.title}</button>
-      ))}
+    <div className="admReplyPicker" ref={box}>
+      <button type="button" className={pill ? "admPillBtn" : "admChipLink"} aria-label="پاسخ آماده" aria-expanded={open} aria-haspopup="true" onClick={() => setOpen((value) => !value)}>
+        <MessageSquareQuote size={15} aria-hidden="true" /> <span className={pill ? "" : "admBtnText"}>پاسخ آماده</span> {pill ? null : <ChevronDown className="admBtnText" size={14} aria-hidden="true" />}
+      </button>
+      {open ? (
+        <div className="admReplyPop" role="menu" aria-label="پاسخ‌های آماده">
+          <button type="button" className="admSheetClose admIconBtn" aria-label="بستن" onClick={() => setOpen(false)}><X size={16} aria-hidden="true" /></button>
+          <label className="admInlineSearch">
+            <Search size={16} aria-hidden="true" />
+            <input type="search" value={q} autoFocus={!window.matchMedia?.("(pointer: coarse)").matches} placeholder="جست‌وجو در پاسخ‌ها…" aria-label="جست‌وجو در پاسخ‌های آماده" onChange={(event) => setQ(event.target.value)} />
+          </label>
+          <div className="admReplyList">
+            {mine.length ? <h4>پاسخ‌های من</h4> : null}
+            {mine.map((item) => (
+              <button key={item.id} type="button" role="menuitem" onClick={() => pick(item.body)}><b>{item.title}</b><small>{item.body}</small></button>
+            ))}
+            {samples.length ? <h4><Sparkles size={13} aria-hidden="true" /> نمونه‌ها</h4> : null}
+            {samples.map((item) => (
+              <button key={item.title} type="button" role="menuitem" onClick={() => pick(item.body)}><b>{item.title}</b><small>{item.body}</small></button>
+            ))}
+            {!mine.length && !samples.length ? <p className="admMuted">چیزی پیدا نشد.</p> : null}
+          </div>
+          <p className="admReplyHint">پاسخ‌های خودت را در «تنظیمات» می‌سازی. <code dir="ltr">{"{name}"}</code> با نام کوچک کاربر پر می‌شود.</p>
+        </div>
+      ) : null}
     </div>
   );
 }

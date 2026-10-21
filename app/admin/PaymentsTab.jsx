@@ -330,7 +330,6 @@ export function PaymentsTab({ intent = {}, onGo, setParam, onChanged }) {
         open={Boolean(selected)}
         onClose={() => setSelected(null)}
         label="جزئیات پرداخت"
-        emptyHint="روی یک پرداخت بزن تا رسید، حساب و ابزارهایش را ببینی."
         detail={selected ? <PaymentDetail key={selected} id={selected} onGo={onGo} onSelect={setSelected} onChanged={reload} /> : null}
       />
     </>

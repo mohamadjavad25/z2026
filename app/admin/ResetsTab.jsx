@@ -31,7 +31,11 @@ export function ResetsTab({ onGo, onChanged }) {
     <>
       <PageHead tab="resets" />
       <section className="admCard">
-        <p className="admMuted admLead">۱. با شمارهٔ کاربر تماس بگیر و هویتش را تأیید کن. ۲. یک رمز جدید بساز (دکمهٔ «رمز تصادفی»). ۳. رمز را تلفنی به او بگو؛ همهٔ دستگاه‌هایش خارج می‌شوند.</p>
+        <ol className="admSteps">
+          <li><i>۱</i><span><b>تأیید هویت</b><small>با شمارهٔ کاربر تماس بگیر و مطمئن شو خودش است.</small></span></li>
+          <li><i>۲</i><span><b>رمز تازه</b><small>با دکمهٔ «رمز تصادفی» یک رمز بساز.</small></span></li>
+          <li><i>۳</i><span><b>اعلام رمز</b><small>رمز را تلفنی بگو؛ همهٔ دستگاه‌هایش خارج می‌شوند.</small></span></li>
+        </ol>
         <ErrorNote error={error} onRetry={reload} />
         {!data && !error ? <Loading /> : null}
         {data && !requests.length ? <EmptyState icon={KeyRound} title="درخواستی منتظر نیست">هر کس در اپ «فراموشی رمز» را بزند، اینجا می‌آید.</EmptyState> : null}
