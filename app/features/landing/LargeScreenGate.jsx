@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
-import { ENTER_APP_EVENT, LARGE_SCREEN_QUERY } from "./constants";
+import { usePathname, useRouter } from "next/navigation";
+import { APP_DOWNLOADS_OPEN, ENTER_APP_EVENT, LARGE_SCREEN_QUERY } from "./constants";
 
 // Pages that look the same on every screen. Everything else is a phone page: on a
 // tablet or desktop the about/download page is shown instead (landing.css).
@@ -32,6 +32,7 @@ function skipsHomeLanding() {
  */
 export function LargeScreenGate({ landing, children }) {
   const pathname = usePathname() || "/";
+  const router = useRouter();
   const [large, setLarge] = useState(false);
   const [homeLanding, setHomeLanding] = useState(false);
   const gated = !isAlwaysShown(pathname);
@@ -53,6 +54,14 @@ export function LargeScreenGate({ landing, children }) {
     window.addEventListener(ENTER_APP_EVENT, enter);
     return () => window.removeEventListener(ENTER_APP_EVENT, enter);
   }, [isHome]);
+
+  // While downloads are closed the about page is for large screens only: a phone that reaches
+  // /download in the browser (a client-side link; a full load is sent on by the root layout's
+  // head script) opens the app instead.
+  useEffect(() => {
+    if (APP_DOWNLOADS_OPEN || pathname !== "/download" || isNativeApp()) return;
+    if (!window.matchMedia(LARGE_SCREEN_QUERY).matches) router.replace("/");
+  }, [pathname, router]);
 
   if (!gated) return children;
   return (

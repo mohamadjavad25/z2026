@@ -23,6 +23,7 @@ import {
   X
 } from "lucide-react";
 import { useSoundPreference } from "../../shared/lib/useSoundPreference";
+import { APP_DOWNLOADS_OPEN } from "../landing/constants";
 import { useThemePreference } from "../../shared/lib/useThemePreference";
 import { playSound } from "../../shared/lib/sounds";
 import { openSupport } from "../support";
@@ -277,7 +278,7 @@ export function AccountSettings({ onLogout, onDeleteAccount }) {
         <button type="button" onClick={() => openSupport()}>ارتباط با پشتیبانی</button>
         <Link href="/terms">قوانین و مقررات</Link>
         <Link href="/privacy">حریم خصوصی</Link>
-        <a className="webOnlyAppLink" href="/download">دانلود اپلیکیشن</a>
+        {APP_DOWNLOADS_OPEN ? <a className="webOnlyAppLink" href="/download">دانلود اپلیکیشن</a> : null}
       </div>
 
       <button type="button" className="neoSettingsLogout" onClick={onLogout}>

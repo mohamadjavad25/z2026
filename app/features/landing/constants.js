@@ -1,3 +1,11 @@
+/**
+ * Off while the Android app waits for its store release (user's decision 2026-10-21: the APK on
+ * the site is not right). While off: no download links anywhere, the auth screens say «به‌زودی»
+ * instead, phones go straight to the app at "/" (no about page first), and /download on a phone
+ * opens the app. The about page still shows on tablets and desktops. Turn on to bring it all back.
+ */
+export const APP_DOWNLOADS_OPEN = false;
+
 /** Where the Android app is downloaded from. The APK is built from mobile/ (see mobile/README.md). */
 export const ANDROID_APK_URL = "/download/frfro.apk";
 export const ANDROID_APP_VERSION = "1.0.0";

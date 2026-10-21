@@ -10,6 +10,7 @@ import { getSiteUrl } from "./lib/siteUrl.js";
 import { THEME_BOOT_SCRIPT } from "./shared/lib/theme.js";
 import { AppLanding } from "./features/landing/AppLanding";
 import { LargeScreenGate } from "./features/landing/LargeScreenGate";
+import { APP_DOWNLOADS_OPEN, LARGE_SCREEN_QUERY } from "./features/landing/constants";
 
 // NEXT_PUBLIC_SITE_URL is the single source of truth for the site's public
 // domain (see .env.example at the repo root) — app/sitemap.js and
@@ -115,11 +116,14 @@ export default function RootLayout({ children }) {
             "skip-landing": the home page opens the app, not the about page (HOME_LANDING_SKIP_KEY
             in features/landing/constants.js): in the app, from the home-screen icon, or once the
             visitor tapped «ورود به فرفرو» on the about page, or came to book with a salon/artist or to
-            join a salon's team (`?open=` / `?join=`, shared/lib/appHandoff.js). */}
+            join a salon's team (`?open=` / `?join=`, shared/lib/appHandoff.js). While APP_DOWNLOADS_OPEN
+            is off: always, and /download on a phone opens the app instead. */}
         <script dangerouslySetInnerHTML={{ __html: `(function () {
 var root = document.documentElement;
 if (navigator.userAgent.indexOf("frfro-app") !== -1) root.classList.add("native-app", "skip-landing");
-if (/[?&](open|join)=/.test(location.search)) root.classList.add("skip-landing");
+if (/[?&](open|join)=/.test(location.search)) root.classList.add("skip-landing");${APP_DOWNLOADS_OPEN ? "" : `
+root.classList.add("skip-landing");
+if (!root.classList.contains("native-app") && (location.pathname === "/download" || location.pathname === "/download/") && !window.matchMedia(${JSON.stringify(LARGE_SCREEN_QUERY)}).matches) location.replace("/");`}
 try {
   if (window.matchMedia("(display-mode: standalone)").matches || navigator.standalone || localStorage.getItem("frfro-entered") === "1") root.classList.add("skip-landing");
 } catch (e) {}
