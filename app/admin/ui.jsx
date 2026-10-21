@@ -134,7 +134,7 @@ export function withQuery(path, params) {
 export function Skeleton({ rows = 4, className = "" }) {
   return (
     <div className={`admSkeleton ${className}`} aria-hidden="true">
-      {Array.from({ length: rows }, (_, index) => <span key={index} style={{ width: `${92 - ((index * 17) % 40)}%` }} />)}
+      {Array.from({ length: rows }, (_, index) => <span key={index} className="uxSkeletonBlock" style={{ width: `${92 - ((index * 17) % 40)}%`, height: index % 3 === 0 ? 18 : 14 }} />)}
     </div>
   );
 }

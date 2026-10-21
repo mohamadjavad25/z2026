@@ -1,5 +1,6 @@
 "use client";
 
+import { SkeletonList } from "../../components/Skeleton";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ChevronLeft, LayoutGrid, Plus, RotateCcw, Store, UserRound } from "lucide-react";
 import { ServiceIcon } from "../../components/ServiceIcon";
@@ -128,14 +129,10 @@ export function ClientPlaces({ bookings = [], clientName = "", onOpenPlace, onFi
         </div>
 
         {places === null ? (
-          <div className="chCard is-loading" aria-busy="true" aria-label="در حال بارگذاری">
-            <span className="chSkel is-row" />
-            <span className="chSkel" />
-            <span className="chSkel" />
-          </div>
+          <SkeletonList rows={3} variant="row" label="در حال بارگذاری" />
         ) : firstTime ? (
           <div className="chCard chEmpty">
-            <Mascot pose="search" size={96} className="chEmptyMascot" />
+            <Mascot pose="connect" size={96} className="chEmptyMascot" />
             <b>سالن یا آرتیستت را وصل کن</b>
             <AddPlaceActions
               clientName={clientName}

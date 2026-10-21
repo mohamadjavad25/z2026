@@ -9,7 +9,7 @@ export default function NotFound() {
   return (
     <main className="errorPage">
       <div className="errorPage__inner">
-        <Mascot pose="search" size={180} className="errorPage__mascot" />
+        <Mascot pose="lost" size={180} className="errorPage__mascot" />
         <p className="errorPage__logo" aria-hidden="true">frfro</p>
         <p className="errorPage__code">۴۰۴</p>
         <h1 className="errorPage__title">این صفحه پیدا نشد</h1>

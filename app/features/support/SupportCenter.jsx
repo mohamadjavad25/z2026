@@ -2,22 +2,26 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Check, ChevronRight, Clock3, Flag, MessageSquarePlus, X } from "lucide-react";
+import { Bug, Check, ChevronLeft, ChevronRight, CircleHelp, Clock3, Ellipsis, Flag, MessageSquareWarning, UserRoundCog, X } from "lucide-react";
 import { apiFetch } from "../../shared/api/client";
 import { SupportIcon } from "./SupportIcon";
 import { notifySupportRead } from "./supportEvents";
 import { useBackHandler } from "../../shared/hooks/useBackHandler";
 import { MessageAttachments } from "./Attachments";
 import { AttachmentField, Composer } from "./Composer";
+import { Spinner } from "../../components/Spinner";
+import { SkeletonList } from "../../components/Skeleton";
 
-const CATEGORIES = [
-  ["question", "سؤال"],
-  ["bug", "مشکل فنی"],
-  ["account", "مشکل حساب"],
-  ["complaint", "شکایت"],
-  ["other", "سایر"]
+// value, label, icon, one line that says when to pick it, and what to write in the box.
+const TOPICS = [
+  ["question", "سؤال", CircleHelp, "می‌خواهم چیزی را بدانم", "سؤالت را بنویس…"],
+  ["bug", "مشکل فنی", Bug, "چیزی کار نمی‌کند", "چه کار می‌کردی و چه شد؟ اگر راحت‌تری عکس صفحه بفرست."],
+  ["account", "مشکل حساب", UserRoundCog, "ورود، شماره، اشتراک", "مشکل حسابت را بنویس…"],
+  ["complaint", "شکایت", MessageSquareWarning, "از کسی یا چیزی راضی نبودم", "ماجرا را بنویس؛ اگر شکایت از یک سالن یا آرتیست است، اسمش را هم بگو."],
+  ["other", "سایر", Ellipsis, "هیچ‌کدام از این‌ها", "هر چه می‌خواهی بنویس…"]
 ];
-const CATEGORY_LABEL = Object.fromEntries(CATEGORIES);
+const CATEGORY_LABEL = Object.fromEntries(TOPICS.map(([value, label]) => [value, label]));
+const MIN_MESSAGE = 10;
 const REASON_LABEL = { spam: "اسپم یا تبلیغ", inappropriate: "محتوای نامناسب", fake: "جعلی یا گمراه‌کننده", copyright: "کپی از دیگران", other: "سایر" };
 
 const digits = (value) => String(value).replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[d]);
@@ -49,7 +53,7 @@ function titleOf(ticket) {
 
 function StatePill({ ticket }) {
   const state = stateOf(ticket);
-  return <span className={`scState is-${state.key}`}>{state.label}</span>;
+  return <span className={`scState is-${state.key}`}><i aria-hidden="true" />{state.label}</span>;
 }
 
 function TicketList({ onOpen, onNew }) {
@@ -70,38 +74,66 @@ function TicketList({ onOpen, onNew }) {
 
   return (
     <div className="scBody">
-      <button type="button" className="scPrimary" onClick={onNew}>
-        <MessageSquarePlus size={18} aria-hidden="true" /> پیام جدید به پشتیبانی
-      </button>
-      {failed ? <p className="scError" role="alert">بارگذاری نشد. اینترنتت را بررسی کن.</p> : null}
-      {tickets === null && !failed ? <p className="scMuted">در حال بارگذاری…</p> : null}
-      {tickets && !tickets.length ? (
-        <div className="scEmpty">
-          <span className="scEmptyIcon"><SupportIcon size={34} /></span>
-          <b>هنوز پیامی نداری</b>
-          <p>سؤال یا مشکلی داری؟ همین‌جا بنویس. جواب را هم همین‌جا می‌بینی.</p>
+      <section className="scAsk" aria-labelledby="scAskTitle">
+        <div className="scAskHead">
+          <h4 id="scAskTitle">چه کمکی می‌خواهی؟</h4>
+          <p>موضوع را انتخاب کن، جواب را همین‌جا می‌بینی.</p>
+        </div>
+        <div className="scTopics">
+          {TOPICS.map(([value, label, Icon, hint]) => (
+            <button key={value} type="button" className={`scTopic${value === "other" ? " is-wide" : ""}`} onClick={() => onNew(value)}>
+              <span className="scTopicIcon"><Icon size={20} aria-hidden="true" /></span>
+              <span className="scTopicText"><b>{label}</b><small>{hint}</small></span>
+              <ChevronLeft className="scTopicGo" size={16} aria-hidden="true" />
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {failed ? (
+        <div className="scError scRetry" role="alert">
+          <span>بارگذاری نشد. اینترنتت را بررسی کن.</span>
+          <button type="button" onClick={load}>دوباره</button>
         </div>
       ) : null}
-      {tickets?.length ? (
-        <ul className="scList">
-          {tickets.map((ticket) => (
-            <li key={ticket.id}>
-              <button type="button" className={ticket.unread ? "is-unread" : ""} onClick={() => onOpen(ticket.id)}>
-                <span className={`scKind is-${ticket.kind}`}>{ticket.kind === "report" ? <Flag size={16} aria-hidden="true" /> : <SupportIcon size={18} />}</span>
-                <span className="scItemBody">
-                  <b>{titleOf(ticket)}</b>
-                  <small>{ticket.last_body || (ticket.kind === "report" ? REASON_LABEL[ticket.category] : "")}</small>
-                </span>
-                <span className="scItemMeta">
-                  <time dateTime={ticket.last_message_at}>{ago(ticket.last_message_at)}</time>
-                  <StatePill ticket={ticket} />
-                </span>
-                {ticket.unread ? <i className="scDot" aria-label="پاسخ جدید" /> : null}
-              </button>
-            </li>
-          ))}
-        </ul>
-      ) : null}
+
+      <section className="scMine" aria-labelledby="scMineTitle">
+        <div className="scMineHead">
+          <h4 id="scMineTitle">گفتگوهای من</h4>
+          {tickets?.length ? <span className="scCount">{digits(tickets.length)}</span> : null}
+        </div>
+        {tickets === null && !failed ? <SkeletonList rows={2} variant="row" label="در حال بارگذاری گفتگوها" /> : null}
+        {tickets && !tickets.length ? (
+          <div className="scEmpty">
+            <span className="scEmptyIcon"><SupportIcon size={30} /></span>
+            <b>هنوز پیامی نداری</b>
+            <p>وقتی به پشتیبانی پیام بدهی، گفتگو و جوابش اینجا می‌ماند.</p>
+          </div>
+        ) : null}
+        {tickets?.length ? (
+          <ul className="scList">
+            {tickets.map((ticket) => {
+              const state = stateOf(ticket);
+              return (
+                <li key={ticket.id}>
+                  <button type="button" className={`is-${state.key}${ticket.unread ? " is-unread" : ""}`} onClick={() => onOpen(ticket.id)}>
+                    <span className={`scKind is-${ticket.kind}`}>{ticket.kind === "report" ? <Flag size={16} aria-hidden="true" /> : <SupportIcon size={18} />}</span>
+                    <span className="scItemBody">
+                      <span className="scItemTop">
+                        <b>{titleOf(ticket)}</b>
+                        <time dateTime={ticket.last_message_at}>{ago(ticket.last_message_at)}</time>
+                      </span>
+                      <small>{ticket.last_body || (ticket.kind === "report" ? REASON_LABEL[ticket.category] : "")}</small>
+                      <StatePill ticket={ticket} />
+                    </span>
+                    {ticket.unread ? <i className="scDot" aria-label="پاسخ جدید" /> : null}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        ) : null}
+      </section>
     </div>
   );
 }
@@ -148,7 +180,7 @@ function Thread({ id }) {
     return true;
   }
 
-  if (!data) return <div className="scBody"><p className="scMuted">در حال بارگذاری…</p></div>;
+  if (!data) return <div className="scBody"><SkeletonList rows={3} variant="row" label="در حال بارگذاری گفتگو" /></div>;
   if (data.error) return <div className="scBody"><p className="scError" role="alert">{data.error}</p></div>;
   const { ticket, messages } = data;
   const closed = ticket.status === "closed";
@@ -199,16 +231,20 @@ function Thread({ id }) {
   );
 }
 
-function NewTicket({ onCreated }) {
-  const [category, setCategory] = useState("question");
+function NewTicket({ initialCategory = "question", onCreated }) {
+  const [category, setCategory] = useState(initialCategory);
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [attachments, setAttachments] = useState([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const topic = TOPICS.find(([value]) => value === category) || TOPICS[0];
+  const length = message.trim().length;
+  const ready = attachments.length > 0 || length >= MIN_MESSAGE;
 
   async function submit(event) {
     event.preventDefault();
+    if (busy || !ready) return;
     setBusy(true);
     setError("");
     const { ok, payload } = await apiFetch("/api/support", { method: "POST", body: JSON.stringify({ category, subject, message, attachments }) }).catch(() => ({ ok: false, payload: { error: "اتصال برقرار نشد. اینترنتت را بررسی کن." } }));
@@ -218,23 +254,38 @@ function NewTicket({ onCreated }) {
   }
 
   return (
-    <form className="scBody scForm" onSubmit={submit}>
-      <div className="scChips" role="radiogroup" aria-label="موضوع پیام">
-        {CATEGORIES.map(([value, label]) => (
-          <button key={value} type="button" role="radio" aria-checked={category === value} className={category === value ? "is-on" : ""} onClick={() => setCategory(value)}>{label}</button>
-        ))}
+    <form className="scForm" onSubmit={submit}>
+      <div className="scBody">
+        <fieldset className="scFieldset">
+          <legend>موضوع</legend>
+          <div className="scPicks" role="radiogroup" aria-label="موضوع پیام">
+            {TOPICS.map(([value, label, Icon]) => (
+              <button key={value} type="button" role="radio" aria-checked={category === value} className={`scPick${category === value ? " is-on" : ""}${value === "other" ? " is-wide" : ""}`} onClick={() => setCategory(value)}>
+                <Icon size={18} aria-hidden="true" />
+                <span>{label}</span>
+              </button>
+            ))}
+          </div>
+        </fieldset>
+        <label className="scField">
+          <span>پیامت</span>
+          <textarea rows={6} value={message} maxLength={2000} onChange={(event) => setMessage(event.target.value)} placeholder={topic[4]} />
+          <em className={`scCounter${length >= MIN_MESSAGE ? " is-ok" : ""}`} aria-live="polite">
+            {attachments.length ? "عکس یا صدا هم کافی است" : length >= MIN_MESSAGE ? <><Check size={13} aria-hidden="true" /> آماده ارسال</> : `حداقل ${digits(MIN_MESSAGE)} حرف بنویس (${digits(length)} از ${digits(MIN_MESSAGE)})`}
+          </em>
+        </label>
+        <AttachmentField value={attachments} onChange={setAttachments} />
+        <label className="scField">
+          <span>عنوان <small>(اختیاری)</small></span>
+          <input type="text" value={subject} maxLength={120} onChange={(event) => setSubject(event.target.value)} placeholder="مثلاً: نوبتم ثبت نشد" />
+        </label>
       </div>
-      <label className="scField">
-        <span>عنوان (اختیاری)</span>
-        <input type="text" value={subject} maxLength={120} onChange={(event) => setSubject(event.target.value)} />
-      </label>
-      <label className="scField">
-        <span>پیامت</span>
-        <textarea rows={5} value={message} maxLength={2000} onChange={(event) => setMessage(event.target.value)} placeholder="مشکل یا سؤالت را بنویس… اگر راحت‌تری، عکس صفحه یا پیام صوتی بفرست." />
-      </label>
-      <AttachmentField value={attachments} onChange={setAttachments} />
-      {error ? <p className="scError" role="alert">{error}</p> : null}
-      <button type="submit" className="scPrimary" disabled={busy || (!attachments.length && message.trim().length < 10)}>{busy ? "در حال ارسال…" : "ارسال پیام"}</button>
+      <footer className="scFoot">
+        {error ? <p className="scError" role="alert">{error}</p> : null}
+        <button type="submit" className="scPrimary" disabled={busy || !ready} aria-busy={busy || undefined}>
+          {busy ? <><Spinner size={18} current /> در حال ارسال…</> : "ارسال پیام"}
+        </button>
+      </footer>
     </form>
   );
 }
@@ -281,9 +332,9 @@ export function SupportCenter({ initial = {}, onClose }) {
           <h3>{title}</h3>
           <button type="button" className="scIconBtn" onClick={onClose} aria-label="بستن پشتیبانی"><X size={19} aria-hidden="true" /></button>
         </header>
-        {view.name === "list" ? <TicketList onOpen={(id) => setView({ name: "thread", id })} onNew={() => setView({ name: "new" })} /> : null}
+        {view.name === "list" ? <TicketList onOpen={(id) => setView({ name: "thread", id })} onNew={(category) => setView({ name: "new", category })} /> : null}
         {view.name === "thread" ? <Thread key={view.id} id={view.id} /> : null}
-        {view.name === "new" ? <NewTicket onCreated={(id) => setView({ name: "thread", id })} /> : null}
+        {view.name === "new" ? <NewTicket initialCategory={view.category} onCreated={(id) => setView({ name: "thread", id })} /> : null}
       </div>
     </div>,
     document.body

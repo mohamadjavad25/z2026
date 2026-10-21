@@ -1,5 +1,6 @@
 "use client";
 
+import { Spinner } from "../../components/Spinner";
 import { useState } from "react";
 import { Check, Copy, ScanLine, Share2 } from "lucide-react";
 import { ProfileSheet } from "../profile/ProfileSheet";
@@ -57,7 +58,7 @@ export function InviteClientsSheet({ open, url = "", name = "", viewerType, onCh
             <span className="ivtCorner is-bl" aria-hidden="true" />
             <span className="ivtCorner is-br" aria-hidden="true" />
             <div className="ivtQr">
-              {qr ? <img src={qr} alt={`کد QR صفحهٔ ${name}`} /> : <span className="ivtQrWait" />}
+              {qr ? <img src={qr} alt={`کد QR صفحهٔ ${name}`} /> : <span className="ivtQrWait"><Spinner size={44} /></span>}
             </div>
           </div>
           <p className="ivtHint">با دوربین گوشی هم باز می‌شود. چاپش کن و روی پیشخوان بگذار تا هر مشتری خودش وصل شود.</p>

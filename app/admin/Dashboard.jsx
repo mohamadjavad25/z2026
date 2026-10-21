@@ -293,6 +293,7 @@ export function Dashboard({ onGo, name }) {
       <div className="admLiveStrip">
         <div><span className="admLiveDot" aria-hidden="true" /><b>{num(live.online)}</b><small>الان آنلاین</small></div>
         <div><b>{num(live.signupsToday)}</b><small>ثبت‌نام در ۲۴ ساعت</small></div>
+        <div><b>{num(totals.users)}</b><small>کل کاربران</small></div>
         <div><b>{num(alerts.suspended)}</b><small>حساب مسدود</small></div>
       </div>
 
@@ -319,7 +320,7 @@ export function Dashboard({ onGo, name }) {
         <Kpi label="کاربران فعال" value={kpis.active.value} hint={`در ${toPersianDigits(days)} روز`} tint="var(--a-accent)" Icon={Activity} />
       </div>
 
-      <div className="admDash">
+      <>
         <section className="admCard admChartCard">
           <div className="admChartHead">
             <h2>روند ثبت‌نام و رزرو</h2>
@@ -344,7 +345,7 @@ export function Dashboard({ onGo, name }) {
           ) : <TrendChart series={series} />}
         </section>
 
-      </div>
+      </>
 
       <div className="admTwo">
         <section className="admCard">

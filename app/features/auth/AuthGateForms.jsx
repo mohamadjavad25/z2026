@@ -163,7 +163,7 @@ function PasswordRecoveryPanel({ onClose, otp }) {
             <span>تیم پشتیبانی طی ۲۴ ساعت با همین شماره تماس می‌گیرد.</span>
           </div>
         </div>
-        <Mascot pose="thumbsup" size={140} className="mascotEmpty" />
+        <Mascot pose="done" size={140} className="mascotEmpty" />
         <button type="button" className="profileSubmit" onClick={onClose}>بازگشت به ورود</button>
       </div>
     );

@@ -1,9 +1,11 @@
 "use client";
 
+import { Spinner } from "../Spinner";
+
 /**
  * The one button. Variants: primary (default), secondary, ghost, danger.
  * Sizes: md (44px, the touch-target minimum) and sm (36px, inline use only).
- * `loading` disables the button and shows `loadingLabel` so a double tap can't
+ * `loading` disables the button, shows a spinner and `loadingLabel` so a double tap can't
  * submit twice; `block` makes it full width.
  */
 export function Button({
@@ -24,7 +26,7 @@ export function Button({
     .join(" ");
   return (
     <button type={type} className={classes} disabled={disabled || loading} aria-busy={loading || undefined} {...rest}>
-      {Icon && !loading ? <Icon size={18} aria-hidden="true" /> : null}
+      {loading ? <Spinner size={16} current /> : Icon ? <Icon size={18} aria-hidden="true" /> : null}
       <span>{loading && loadingLabel ? loadingLabel : children}</span>
     </button>
   );

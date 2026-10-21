@@ -628,7 +628,7 @@ describe("admin page (browser)", () => {
     // The other pages open without errors.
     for (const name of ["محتوا", "رزروها", "پشتیبانی", "پیام همگانی", "گزارش‌ها", "سلامت سامانه", "تنظیمات", "امنیت و دسترسی"]) {
       await nav(name).click();
-      await page.locator(".admCard").first().waitFor();
+      await page.locator(".admCard, .admChat").first().waitFor();
     }
     expect(await page.locator("main").innerText()).toContain("نشست‌های فعال پنل");
     await nav("کاربران").click();
@@ -671,7 +671,8 @@ describe("support (browser)", () => {
       return result.violations.filter((v) => v.impact === "serious" || v.impact === "critical").map((v) => `${v.id}: ${v.nodes[0].html.slice(0, 80)}`);
     });
     expect(await axeIssues()).toEqual([]);
-    await center.getByRole("button", { name: /پیام جدید به پشتیبانی/ }).click();
+    // The topic cards start a new message with that topic already chosen.
+    await center.getByRole("button", { name: /^سؤال/ }).click();
     await center.getByLabel("پیامت").fill("سلام، این یک پیام آزمایشی از مرورگر برای پشتیبانی است.");
     await center.getByRole("button", { name: "ارسال پیام" }).click();
     await center.getByText("سلام، این یک پیام آزمایشی از مرورگر برای پشتیبانی است.").waitFor();

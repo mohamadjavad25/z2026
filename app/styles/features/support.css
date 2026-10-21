@@ -93,10 +93,6 @@
 .scSend:disabled { opacity: 0.4; cursor: not-allowed; }
 .scSend svg { transform: scaleX(-1); }
 
-.scForm { gap: var(--space-3); }
-.scChips { display: flex; gap: 8px; flex-wrap: wrap; }
-.scChips button { min-height: 44px; padding: 0 var(--space-4); border: 0; border-radius: var(--radius-pill); background: var(--n-0); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); font: inherit; font-size: var(--text-base); font-weight: 750; cursor: pointer; }
-.scChips button.is-on { background: var(--fill-strong); color: var(--n-0); box-shadow: none; }
 .scField { display: grid; gap: 6px; }
 .scField > span { color: var(--n-700); font-size: var(--text-sm); font-weight: 800; }
 .scField :where(input, textarea) { width: 100%; padding: 12px var(--space-4); border: 0; border-radius: var(--radius-md); background: var(--n-0); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); font: inherit; font-size: var(--text-md); line-height: 1.8; resize: vertical; }
@@ -176,8 +172,10 @@ html[data-cbt="1"] .supportFab { bottom: calc(8px + 70px + 16px + 58px + env(saf
 
 .scAttachField { display: grid; gap: 8px; }
 .scAttachLabel { color: var(--n-700); font-size: var(--text-sm); font-weight: 800; }
-.scAttachButtons { display: flex; flex-wrap: wrap; gap: 8px; }
-.scAttachButtons button { display: inline-flex; align-items: center; gap: 6px; min-block-size: 44px; padding: 0 16px; border: 0; border-radius: var(--radius-pill); background: var(--n-0); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); font: inherit; font-size: var(--text-base); font-weight: 750; cursor: pointer; }
+.scAttachButtons { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
+.scAttachButtons button { display: grid; justify-items: center; align-content: center; gap: 6px; min-block-size: 76px; padding: 10px; border: 0; border-radius: 18px; background: var(--n-0); box-shadow: inset 0 0 0 1.5px var(--n-200); color: var(--n-800, var(--ink)); font: inherit; font-size: var(--text-sm); font-weight: 800; cursor: pointer; transition: box-shadow var(--duration-fast), transform var(--duration-fast); }
+.scAttachButtons button:active:not(:disabled) { transform: scale(0.97); }
+.scAttachButtons button svg { color: var(--accent); }
 .scAttachButtons button:disabled { opacity: 0.45; cursor: not-allowed; }
 .scAttachVoice { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 18px; background: var(--n-0); color: var(--night); box-shadow: inset 0 0 0 1px var(--line); }
 .scAttachVoice .scVoice { flex: 1; }
@@ -192,6 +190,61 @@ html[data-cbt="1"] .supportFab { bottom: calc(8px + 70px + 16px + 58px + env(saf
   .scLightbox, .scRecDot, .scSend.is-busy { animation: none; }
   .scVoiceTrack i, .scRecBars i { transition: none; }
 }
+
+/* ---------- Support center v2: topics, my conversations, new message ---------- */
+.scAsk { display: grid; gap: 12px; }
+.scAskHead h4, .scMineHead h4 { margin: 0; font-size: 1.05rem; font-weight: 900; }
+.scAskHead p { margin: 2px 0 0; color: var(--n-700); font-size: var(--text-sm); font-weight: 650; }
+.scTopics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.scTopic { position: relative; display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 10px; min-height: 64px; padding: 10px 12px; border: 0; border-radius: 18px; background: var(--n-0); color: var(--ink); font: inherit; text-align: start; box-shadow: var(--shadow-xs), inset 0 0 0 1px var(--line); cursor: pointer; transition: transform var(--duration-fast) var(--ease-standard), box-shadow var(--duration-fast); }
+.scTopic:active { transform: scale(0.97); }
+.scTopic:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+.scTopic.is-wide { grid-column: 1 / -1; }
+.scTopicIcon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 14px; background: var(--brand-blend); color: var(--brand-ink); }
+.scTopicText { display: grid; gap: 1px; min-width: 0; }
+.scTopicText b { font-size: 0.9rem; font-weight: 900; }
+.scTopicText small { color: var(--n-600); font-size: 0.7rem; font-weight: 650; line-height: 1.6; }
+.scTopicGo { display: none; position: absolute; inset-inline-end: 12px; color: var(--n-500, var(--n-600)); }
+.scTopic.is-wide .scTopicGo { display: block; }
+
+.scMine { display: grid; gap: 10px; }
+.scMineHead { display: flex; align-items: center; gap: 8px; }
+.scCount { min-width: 24px; height: 24px; display: inline-grid; place-items: center; padding: 0 7px; border-radius: 999px; background: var(--n-100); color: var(--n-700); font-size: 0.72rem; font-weight: 900; font-variant-numeric: tabular-nums; }
+.scRetry { padding: 10px 12px; border-radius: 14px; background: var(--danger-bg); }
+.scRetry button { min-height: 32px; padding: 0 14px; border: 0; border-radius: 999px; background: var(--danger); color: var(--n-0); font: inherit; font-size: 0.74rem; font-weight: 850; cursor: pointer; }
+.scEmpty { padding: var(--space-5) var(--space-4); border-radius: 22px; background: var(--n-0); box-shadow: inset 0 0 0 1.5px var(--n-200); }
+.scEmpty b { font-weight: 900; }
+.scList button { align-items: flex-start; }
+.scItemBody { gap: 4px; }
+.scItemTop { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.scItemTop b { min-width: 0; font-weight: 900; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.scItemTop time { flex: 0 0 auto; color: var(--n-600); font-size: 0.7rem; font-weight: 650; }
+.scItemBody .scState { justify-self: start; margin-top: 2px; }
+.scList button.is-answered { box-shadow: var(--shadow-xs), inset 0 0 0 1.5px var(--success); }
+.scList button.is-unread .scItemTop b { color: var(--ink); }
+.scState { display: inline-flex; align-items: center; gap: 6px; }
+.scState i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.scState.is-answered { background: var(--success-bg); }
+.scState.is-closed i { opacity: 0.5; }
+
+.scForm { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.scForm .scBody { gap: var(--space-4); }
+.scFieldset { margin: 0; padding: 0; border: 0; display: grid; gap: 8px; min-width: 0; }
+.scFieldset legend { padding: 0; margin-bottom: 8px; color: var(--n-700); font-size: var(--text-sm); font-weight: 800; }
+.scPicks { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.scPick { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 12px; border: 0; border-radius: 16px; background: var(--n-0); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); font: inherit; font-size: var(--text-base); font-weight: 800; cursor: pointer; transition: background var(--duration-fast), color var(--duration-fast); }
+.scPick.is-wide { grid-column: 1 / -1; }
+.scPick svg { color: var(--accent); }
+.scPick.is-on { background: var(--fill-strong); color: var(--n-0); box-shadow: none; }
+.scPick.is-on svg { color: currentColor; }
+.scPick:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+.scField > span small { color: var(--n-600); font-weight: 650; }
+.scField textarea { min-height: 140px; }
+.scCounter { display: inline-flex; align-items: center; gap: 4px; justify-self: end; font-style: normal; font-size: 0.72rem; font-weight: 750; color: var(--n-600); font-variant-numeric: tabular-nums; }
+.scCounter.is-ok { color: var(--success); }
+.scFoot { flex: 0 0 auto; display: grid; gap: 8px; padding: 10px var(--space-4) calc(10px + env(safe-area-inset-bottom)); background: var(--n-0); box-shadow: 0 -1px 0 var(--line), 0 -12px 24px -16px rgb(var(--shadow-rgb) / 0.18); }
+.scFoot .scError { justify-content: center; }
+.scPrimary[aria-busy="true"] { cursor: progress; opacity: 1; }
 
 /* ---- composer: one rounded box, text on top, round buttons underneath (shared look with the admin chat) ---- */
 .scComposer { background: transparent; box-shadow: none; padding: 8px 12px calc(10px + env(safe-area-inset-bottom)); }

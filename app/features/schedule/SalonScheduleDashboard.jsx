@@ -204,7 +204,7 @@ export function SalonScheduleDashboard({
             />
           )) : (
             <div className="salonTodayEmpty">
-              <Mascot pose="hairdryer" size={140} />
+              <Mascot pose="free-day" size={140} />
               <b>برای «{emptyDayLabel}» رزروی ثبت نشده</b>
             </div>
           )}

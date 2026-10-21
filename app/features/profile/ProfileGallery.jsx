@@ -201,7 +201,7 @@ export function ProfileGallery({
           </div>
         ) : !hideBody && !loading ? (
           <div className="profileGalleryEmpty">
-            <Mascot pose="camera" size={150} />
+            <Mascot pose="no-portfolio" size={150} />
             <b>{emptyTitle}</b>
             {emptyDescription ? <span>{emptyDescription}</span> : null}
             {onEmptyAction && emptyActionLabel ? (

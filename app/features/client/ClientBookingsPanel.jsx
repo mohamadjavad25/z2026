@@ -194,11 +194,11 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook, c
                 {past.length ? "نوبت فعالی نداری؛ نوبت‌های قبلی در «سابقه» هستند." : "هنوز نوبتی نگرفتی. نوبت بعدی‌ات اینجا دیده می‌شود."}
               </p>
             ) : null}
-            {emptyMascot ? <Mascot pose="calendar" size={190} className="cbpEmptyMascot" /> : null}
+            {emptyMascot ? <Mascot pose="no-bookings" size={190} className="cbpEmptyMascot" /> : null}
           </>
         ) : (
           <div className="clientBookingsEmpty">
-            <Mascot pose="calendar" size={168} className="mascotEmpty" />
+            <Mascot pose="no-bookings" size={168} className="mascotEmpty" />
             <b>{bookings.length ? "نوبت فعالی نداری" : "هنوز رزروی ثبت نشده"}</b>
             <span>
               {bookings.length

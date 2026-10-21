@@ -5,6 +5,7 @@ import { ANDROID_APK_URL, ANDROID_APP_VERSION, DOWNLOAD_PAGE_URL } from "./const
 import { EnterAppButton } from "./EnterAppButton";
 import { HeroFilm } from "./HeroFilm";
 import { ScanToOpen } from "./ScanToOpen";
+import { ServiceIcon } from "../../components/ServiceIcon";
 
 /**
  * The page about frfro with the app download links. Shown at /download, at "/" on phones
@@ -16,14 +17,14 @@ import { ScanToOpen } from "./ScanToOpen";
  */
 
 const CATEGORIES = [
-  { image: "/brand/mascot/nails.webp", label: "ناخن" },
-  { image: "/brand/mascot/hairstyle.webp", label: "مو" },
-  { image: "/brand/mascot/mirror.webp", label: "ابرو و مژه" },
-  { image: "/brand/mascot/makeup.webp", label: "میکاپ" },
-  { image: "/brand/mascot/hairdryer.webp", label: "براشینگ" },
-  { image: "/brand/mascot/scissors.webp", label: "کوتاهی" },
-  { image: "/brand/mascot/party.webp", label: "میکاپ عروس" },
-  { image: "/brand/mascot/camera.webp", label: "پوست" }
+  { icon: "manicure", label: "ناخن" },
+  { icon: "highlights", label: "مو" },
+  { icon: "eyebrow", label: "ابرو و مژه" },
+  { icon: "lipstick", label: "میکاپ" },
+  { icon: "blowdry", label: "براشینگ" },
+  { icon: "haircut", label: "کوتاهی" },
+  { icon: "bridal", label: "میکاپ عروس" },
+  { icon: "facial", label: "پوست" }
 ];
 
 const AUDIENCES = [
@@ -62,10 +63,10 @@ const AUDIENCES = [
 ];
 
 const STEPS = [
-  { image: "/brand/mascot/search.webp", title: "پیدا کن", text: "از دسته‌ها یا جست‌وجو سالن و آرتیست پیدا کن." },
-  { image: "/brand/mascot/camera.webp", title: "ببین", text: "نمونه‌کار، خدمات و قیمت‌ها را قبل از رفتن ببین." },
-  { image: "/brand/mascot/calendar.webp", title: "رزرو کن", text: "ساعت آزاد انتخاب کن؛ سالن تأیید می‌کند و یادآوری می‌گیری." },
-  { image: "/brand/mascot/thumbsup.webp", title: "وصل شو", text: "به سالن و آرتیست محبوبت وصل شو تا نوبت گرفتن یک ضربه باشد و نمونه‌کار تازه‌شان را از دست ندهی." }
+  { image: "/brand/mascot/find.webp", title: "پیدا کن", text: "از دسته‌ها یا جست‌وجو سالن و آرتیست پیدا کن." },
+  { image: "/brand/mascot/no-portfolio.webp", title: "ببین", text: "نمونه‌کار، خدمات و قیمت‌ها را قبل از رفتن ببین." },
+  { image: "/brand/mascot/booked.webp", title: "رزرو کن", text: "ساعت آزاد انتخاب کن؛ سالن تأیید می‌کند و یادآوری می‌گیری." },
+  { image: "/brand/mascot/connect.webp", title: "وصل شو", text: "به سالن و آرتیست محبوبت وصل شو تا نوبت گرفتن یک ضربه باشد و نمونه‌کار تازه‌شان را از دست ندهی." }
 ];
 
 const PROMISES = [
@@ -143,7 +144,7 @@ function CategoryRibbon() {
     <ul className="appLanding__ribbonRow" aria-hidden={hidden || undefined}>
       {CATEGORIES.map((category) => (
         <li key={category.label}>
-          <img src={category.image} alt="" width="40" height="40" loading="lazy" />
+          <ServiceIcon emoji={category.icon} size="sm" />
           {category.label}
         </li>
       ))}
@@ -317,7 +318,7 @@ export async function AppLanding() {
 
       <section className="appLanding__finaleWrap">
         <div className="appLanding__finale appLanding__reveal">
-          <img className="appLanding__finaleMascot" src="/brand/mascot/thumbsup.webp" alt="" width="460" height="640" loading="lazy" />
+          <img className="appLanding__finaleMascot" src="/brand/mascot/done.webp" alt="" width="641" height="640" loading="lazy" />
           <div>
             <h2>نوبت بعدی‌ات را با فرفرو بگیر.</h2>
             <p>رایگان، سبک و بدون پرداخت داخل برنامه.</p>

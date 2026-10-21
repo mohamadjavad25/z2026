@@ -1,5 +1,6 @@
 "use client";
 
+import { Spinner } from "./Spinner";
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { Check, Copy, ScanLine, Share2 } from "lucide-react";
@@ -51,7 +52,7 @@ export function ProfileQrCodeSheet({ open, url, name = "پروفایل", hint = 
           <span className="ivtCorner is-bl" aria-hidden="true" />
           <span className="ivtCorner is-br" aria-hidden="true" />
           <div className="qrsImage">
-            {dataUrl ? <img src={dataUrl} alt={`کد QR پروفایل عمومی ${name}`} /> : <span className="ivtQrWait" />}
+            {dataUrl ? <img src={dataUrl} alt={`کد QR پروفایل عمومی ${name}`} /> : <span className="ivtQrWait"><Spinner size={44} /></span>}
           </div>
         </div>
         <p className="qrsHint">{hint}</p>

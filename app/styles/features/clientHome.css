@@ -118,10 +118,6 @@
   box-shadow: 0 12px 24px -12px rgb(var(--shadow-rgb) / 0.6);
 }
 
-.chCard.is-loading { gap: 10px; }
-.chSkel { display: block; height: 44px; border-radius: 14px; background: linear-gradient(90deg, var(--n-100) 0%, var(--n-25) 50%, var(--n-100) 100%); background-size: 200% 100%; animation: chSkel 1.2s linear infinite; }
-.chSkel.is-row { height: 62px; }
-@keyframes chSkel { to { background-position: -200% 0; } }
 
 /* «نوبت‌های من» when nothing is ahead: one quiet line, the place card above is the call to action. */
 .cbpEmptyLine { margin: 0; padding: 14px 16px; border-radius: 18px; background: rgb(var(--paper-rgb) / 0.7); color: var(--n-600); font-size: 0.78rem; font-weight: 800; line-height: 1.8; }

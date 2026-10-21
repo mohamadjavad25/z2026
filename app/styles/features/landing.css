@@ -388,7 +388,7 @@ html.native-app .webOnlyAppLink { display: none !important; }
   white-space: nowrap;
 }
 
-.appLanding__ribbonRow img { width: 36px; height: 36px; object-fit: contain; }
+.appLanding__ribbonRow .serviceIcon { flex: none; }
 
 /* ---------- Sections ---------- */
 .appLanding__section {
@@ -791,13 +791,11 @@ html.native-app .webOnlyAppLink { display: none !important; }
   border-radius: 50%;
   background: var(--n-0);
   color: var(--muted);
-  box-shadow: 0 6px 20px rgba(28, 32, 44, 0.18);
+  box-shadow: 0 6px 20px rgb(var(--shadow-rgb) / 0.2), inset 0 0 0 1px var(--line);
   pointer-events: none;
 }
 
 .pullRefresh.is-ready, .pullRefresh.is-refreshing { color: var(--ink); }
-.pullRefresh.is-refreshing svg { animation: pullRefreshSpin 0.8s linear infinite; }
-@keyframes pullRefreshSpin { to { transform: rotate(360deg); } }
 
 /* Android's own overscroll stretch would fight the pull. */
 html.native-app, html.native-app body { overscroll-behavior-y: none; }

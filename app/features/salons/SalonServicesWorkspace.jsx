@@ -41,7 +41,7 @@ export function SalonServicesWorkspace({
         {services.length === 0 ? (
           <ProfileEmptyState
             className="artistServiceEmpty"
-            visual={<Mascot pose="hairstyle" size={140} />}
+            visual={<Mascot pose="no-services" size={140} />}
             title="هنوز خدمتی ثبت نشده"
             description="خدمت‌ها را تعریف کن تا مشتری بتواند روز، ساعت و آرتیست مناسب را انتخاب کند."
             actionLabel="افزودن اولین خدمت"
