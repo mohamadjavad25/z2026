@@ -71,7 +71,7 @@ describe("a salon account is deleted while clients have bookings with it", () =>
     const { pending } = await setup();
     const admin = await adminClient();
     expect((await admin.get("/api/admin/bookings?limit=50")).status).toBe(200);
-    const res = await admin.post(`/api/admin/bookings/salon/${pending.id}`, { action: "cancel" });
+    const res = await admin.post(`/api/admin/bookings/salon/${pending.id}`, { action: "cancel", reason: "تست لغو توسط مدیر" });
     note("admin cancel of orphan booking ->", res.status, JSON.stringify(res.payload).slice(0, 100));
     expect(res.status).toBeLessThan(500);
     const [row] = await q("SELECT status FROM salon_bookings WHERE id = $1", [pending.id]);
@@ -105,7 +105,7 @@ describe("a salon with a team is deleted: the artists' calendar copies", () => {
 });
 
 describe("an artist account is deleted", () => {
-  it("a client's direct booking can still be cancelled, lists work, and a new booking for that id is a 404", async () => {
+  it("a client's direct booking can still be cancelled and lists work", async () => {
     const artist = await newArtist();
     const client = await newClient("Artist Orphan", { verified: true });
     const day = pickDay({ min: 3 });
@@ -115,10 +115,17 @@ describe("an artist account is deleted", () => {
     const list = await client.api.get("/api/artist-bookings");
     expect(list.status).toBe(200);
     expect(list.payload.data.bookings[0].salonName).toBe("آرتیست حذف‌شده");
-    const again = await client.api.post("/api/artist/bookings", { artistUserId: artist.id, service: "مانیکور", bookingDate: day.key, time: "۱۴:۰۰", clientName: client.user.name, clientPhone: client.phone });
-    expect(again.status).toBe(404);
     const cancel = await client.api.post(`/api/artist-bookings/${made.payload.data.booking.id}/cancel`, {});
     expect(cancel.status).toBe(200);
+  });
+
+  it("a new booking for a deleted artist's id is a 404, not a 500 (FK violation)", async () => {
+    const artist = await newArtist();
+    const client = await newClient();
+    await deleteAccount(artist);
+    const day = pickDay({ min: 3 }).key;
+    const res = await client.api.post("/api/artist/bookings", { artistUserId: artist.id, service: "مانیکور", bookingDate: day, time: "۱۴:۰۰", clientName: client.user.name, clientPhone: client.phone });
+    expect(res.status).toBe(404);
   });
 
   it("booking an id that is not an artist (a client, a salon, a nonexistent id) is a 404, not a calendar row or a 500", async () => {

@@ -9,9 +9,9 @@ const arabicIndic = (text) => String(text).replace(/\d/g, (c) => String.fromChar
 let counter = 0;
 const freshPhone = () => `0913${String(Date.now() % 1e5).padStart(5, "0")}${String(counter += 1).padStart(2, "0")}`.slice(0, 11);
 
-async function walkIn(salon, phone, name = "مهمان حضوری") {
+async function walkIn(salon, phone, name = "مهمان حضوری", time = "۱۱:۰۰") {
   const day = pickDay({ min: 3 }).key;
-  const res = await salon.api.post("/api/salon-bookings", { service: "کوتاهی مو", bookingDate: day, time: "۱۱:۰۰", client: name, phone });
+  const res = await salon.api.post("/api/salon-bookings", { service: "کوتاهی مو", bookingDate: day, time, client: name, phone });
   expect(res.status, JSON.stringify(res.payload)).toBe(201);
   return res.payload.data.booking;
 }
@@ -40,7 +40,7 @@ describe("one phone, first a guest booking then an account", () => {
     await registerUser(owner, { type: "client", name: "Digits Owner", phone, verified: true });
     expect((await owner.get("/api/salon-bookings")).payload.data.bookings.map((b) => b.id)).toContain(booking.id);
     // and with separators / spaces typed by the salon
-    const spaced = await walkIn(salon, `${phone.slice(0, 4)} ${phone.slice(4, 7)}-${phone.slice(7)}`);
+    const spaced = await walkIn(salon, `${phone.slice(0, 4)} ${phone.slice(4, 7)}-${phone.slice(7)}`, "مهمان دو", "۱۴:۰۰");
     expect((await owner.get("/api/salon-bookings")).payload.data.bookings.map((b) => b.id)).toContain(spaced.id);
   });
 
