@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireUser, validateBody, withErrorHandling } from "../../lib/http.js";
+import { requireUser, validateBody, withErrorHandling, readObjectBody } from "../../lib/http.js";
 import { ensureDb } from "../../lib/db/connection.js";
 import * as salons from "../../lib/db/repos/salons.js";
 import { checkRateLimit } from "../../lib/rateLimit.js";
@@ -9,8 +9,8 @@ import { createBookingSchema } from "../../lib/validation/booking.js";
 // salon-booking entry point (polled by both the salon owner dashboard and the client's own-bookings
 // view), so a stale request closes within seconds of real use.
 import { sweepExpiredBookingRequestsIfDue } from "../../lib/bookingExpirySweep.js";
-import { resolveRollingPersianDateKey } from "../../shared/lib/persianCalendar.js";
 import { normalizeBookingTimeLabel } from "../../shared/lib/time.js";
+import { readBookingSlot } from "../../lib/validation/bookingSlot.js";
 import { bookingMoveOptions } from "../../lib/salonMoveTimes.js";
 import { toPersianDigits } from "../../shared/lib/digits.js";
 import { AWAITING_CLIENT } from "../../shared/lib/bookingOffer.js";
@@ -89,7 +89,7 @@ async function _POST(request) {
     return noStoreJson({ error: "درخواست‌های زیاد. کمی صبر کن." }, { status: 429 });
   }
 
-  const body = await request.json();
+  const body = await readObjectBody(request);
   if (!["client", "salon"].includes(auth.user.type)) {
     return noStoreJson({ error: "فقط مشتری یا سالن می‌تواند رزرو ثبت کند." }, { status: 403 });
   }
@@ -139,7 +139,7 @@ async function _POST(request) {
       title: "درخواست رزرو جدید",
       body: `${client} — ${service} · ${time}`
     });
-    smsNewBookingRequest(salonUserId, { client, service, bookingDate: result.booking.booking_date, time });
+    smsNewBookingRequest(salonUserId, { client, service, bookingDate: result.booking.booking_date, time, fromUserId: auth.user.id });
   }
 
   return noStoreJson({
@@ -159,7 +159,7 @@ async function _PATCH(request) {
   if (!auth.ok) return auth.response;
   const forbidden = requireSalon(auth.user);
   if (forbidden) return forbidden;
-  const body = await request.json();
+  const body = await readObjectBody(request);
   const id = Number(body.id);
   if (!id) return noStoreJson({ error: "شناسه رزرو نامعتبر است." }, { status: 400 });
 
@@ -186,14 +186,25 @@ async function _PATCH(request) {
     }
     patch = suggestion.parts ? { parts: suggestion.parts } : { staff: suggestion.staff };
   }
+  // A new day or time is read strictly (a real Jalali day, a real HH:MM), whatever else is edited with it.
+  const movesTo = ["time", "booking_date", "bookingDate", "date"].some((key) => body[key] != null);
+  if (!wantsCancel && movesTo) {
+    const current = await salons.getSalonBookingRow(id, auth.user.id);
+    if (!current) return noStoreJson({ error: "رزرو یافت نشد." }, { status: 404 });
+    const rawDay = body.booking_date ?? body.bookingDate ?? body.date ?? current.booking_date;
+    const rawTime = body.time ?? current.time ?? "";
+    const slot = readBookingSlot(typeof rawDay === "string" ? rawDay : "", typeof rawTime === "string" ? rawTime : "");
+    if (!slot.ok) return noStoreJson({ error: slot.error }, { status: slot.status });
+    // What is saved is the canonical form, never the text as typed.
+    patch = { ...patch, bookingDate: slot.dateKey, booking_date: undefined, date: undefined, time: slot.time };
+  }
   // A new time (or day) must be one the «تغییر ساعت» list offers: its services fit with their
   // artists, and it ends by closing time -- or past it only when the salon chose to stay longer.
-  const movesTo = ["time", "booking_date", "bookingDate", "date"].some((key) => body[key] != null);
   if (!wantsCancel && movesTo && body.staff === undefined && body.parts === undefined) {
     const current = await salons.getSalonBookingRow(id, auth.user.id);
     if (!current) return noStoreJson({ error: "رزرو یافت نشد." }, { status: 404 });
-    const dateKey = resolveRollingPersianDateKey(body.booking_date ?? body.bookingDate ?? body.date ?? current.booking_date);
-    const time = normalizeBookingTimeLabel(String(body.time ?? current.time ?? ""));
+    const dateKey = patch.bookingDate;
+    const time = patch.time;
     const unchanged = dateKey === current.booking_date && time === normalizeBookingTimeLabel(current.time || "");
     if (!unchanged) {
       const options = await bookingMoveOptions(auth.user.id, id, dateKey);
@@ -212,6 +223,8 @@ async function _PATCH(request) {
       }
     }
   }
+  // What the booking's status was before this call: the client is only told about an answer that really changed it.
+  const statusBefore = (await salons.getSalonBookingRow(id, auth.user.id))?.status ?? null;
   // A new day or time for a client's booking goes to the client to accept (withClientConsent).
   const result = await salons.patchSalonBookingWithArtistSync(id, auth.user.id, patch, { askClient: true });
 
@@ -259,7 +272,8 @@ async function _PATCH(request) {
   // whitelisted "تایید شده" transition above) — a plain time/staff edit
   // patches through the same route with no status field and shouldn't spam
   // a push for every minor change.
-  if (patch.status === "تایید شده" || patch.status === "لغو") {
+  const statusChanged = statusBefore !== null && result.booking.status !== statusBefore;
+  if (statusChanged && (patch.status === "تایید شده" || patch.status === "لغو")) {
     const bookingClientUserId = result.booking.client_user_id ? Number(result.booking.client_user_id) : null;
     if (bookingClientUserId) {
       void sendPushToUser(bookingClientUserId, {
@@ -270,7 +284,8 @@ async function _PATCH(request) {
         providerName: auth.user.name,
         bookingDate: result.booking.booking_date,
         time: result.booking.time,
-        confirmed: patch.status === "تایید شده"
+        confirmed: patch.status === "تایید شده",
+        booking: { kind: "salon", id }
       });
     }
   }

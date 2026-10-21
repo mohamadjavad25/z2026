@@ -1,4 +1,4 @@
-import { error, json, notFound, requireUserRole, withErrorHandling } from "../../../lib/http.js";
+import { error, json, notFound, requireUserRole, withErrorHandling, readObjectBody } from "../../../lib/http.js";
 import { sweepExpiredBookingRequestsIfDue } from "../../../lib/bookingExpirySweep.js";
 import * as artists from "../../../lib/db/repos/artists.js";
 import * as salons from "../../../lib/db/repos/salons.js";
@@ -9,6 +9,9 @@ import { checkRateLimit } from "../../../lib/rateLimit.js";
 import { get, withTransaction } from "../../../lib/db/connection.js";
 import { lockArtistDays, lockSalonDay } from "../../../lib/db/locks.js";
 import { AWAITING_CLIENT } from "../../../shared/lib/bookingOffer.js";
+import { serviceFieldsProblem } from "../../../lib/validation/service.js";
+import { readBookingSlot } from "../../../lib/validation/bookingSlot.js";
+import { MAX_BOOKING_MINUTES, parseRequestedMinutes } from "../../../lib/validation/numbers.js";
 import { smsBookingAnswer } from "../../../lib/bookingSms.js";
 
 export const runtime = "nodejs";
@@ -41,11 +44,18 @@ async function _GET(request) {
 async function _POST(request) {
   const auth = await requireUserRole(request, "artist", "فقط آرتیست.");
   if (!auth.ok) return auth.response;
-  const body = await request.json();
+  const body = await readObjectBody(request);
   if (body.kind === "booking") {
     // An entry the artist makes in their own calendar is already settled. Left as "تازه" (a client's
     // pending request) the expiry sweep would cancel it an hour later, as if nobody had answered.
-    const result = await artists.addArtistBooking(auth.user.id, { ...body, status: "تایید" });
+    const slot = readBookingSlot(body.bookingDate || body.booking_date || body.date || "", body.time ?? "");
+    if (!slot.ok) return error(slot.error, slot.status);
+    const length = parseRequestedMinutes(body);
+    if (!length.ok) return error(`مدت نوبت نامعتبر است؛ عدد صحیح دقیقه، حداکثر ${MAX_BOOKING_MINUTES}.`, 400);
+    const result = await artists.addArtistBooking(auth.user.id, {
+      ...body, bookingDate: slot.dateKey, booking_date: undefined, date: undefined, time: slot.time,
+      durationMinutes: length.minutes, duration_minutes: undefined, status: "تایید"
+    });
     if (!result.ok) {
       return json({ error: result.error, code: result.code }, { status: result.code === "SLOT_TAKEN" ? 409 : 400 });
     }
@@ -81,6 +91,8 @@ async function _POST(request) {
     });
     return json({ data: { collab: result.collab } }, { status: 201 });
   }
+  const problem = serviceFieldsProblem(body);
+  if (problem) return error(problem, 400);
   const service = await artists.addArtistService(auth.user.id, body);
   return json({ data: { service } }, { status: 201 });
 }
@@ -88,10 +100,12 @@ async function _POST(request) {
 async function _PATCH(request) {
   const auth = await requireUserRole(request, "artist", "فقط آرتیست.");
   if (!auth.ok) return auth.response;
-  const body = await request.json();
+  const body = await readObjectBody(request);
   if (body.kind === "booking") {
     return patchOwnArtistBooking(auth.user.id, body, auth.user.name);
   }
+  const problem = serviceFieldsProblem(body);
+  if (problem) return error(problem, 400);
   const service = await artists.updateArtistService(Number(body.id), auth.user.id, body);
   if (!service) return notFound();
   return json({ data: { service } });
@@ -143,11 +157,13 @@ async function patchOwnArtistBooking(artistUserId, body, artistName = "") {
   let updatedRow = null;
   let salonBooking = null;
   let refusal = null;
+  let statusBefore = null;
   await withTransaction(null, async (db) => {
     if (current.sourceSalonUserId) await lockSalonDay(db, current.sourceSalonUserId, current.bookingDate);
     await lockArtistDays(db, [artistUserId], current.bookingDate);
     const locked = await get(db, "SELECT * FROM artist_bookings WHERE id = $1 FOR UPDATE", [bookingId]);
     if (!locked) return;
+    statusBefore = locked.status;
     // One artist's share of a multi-service visit: the visit is approved by the salon, and the
     // shares follow it. Confirming a share alone used to mark it confirmed here while the salon
     // booking -- and so the client -- stayed "waiting", the two sides disagreeing for good.
@@ -187,6 +203,16 @@ async function patchOwnArtistBooking(artistUserId, body, artistName = "") {
   if (refusal) return refusal;
   if (!updatedRow) return notFound();
 
+  // Nobody is told again about an answer that changed nothing (a second tap on «تایید», or «لغو» on a cancelled one).
+  if (updatedRow.status === statusBefore) {
+    return json({
+      data: {
+        booking: await artists.getArtistBookingById(bookingId),
+        bookings: await artists.listArtistBookings(artistUserId)
+      }
+    });
+  }
+
   const answerWord = nextStatus === "تایید شده" ? "تایید کرد" : "لغو کرد";
   if (salonBooking && salonBooking.salon_user_id) {
     void sendPushToUser(Number(salonBooking.salon_user_id), {
@@ -204,7 +230,8 @@ async function patchOwnArtistBooking(artistUserId, body, artistName = "") {
       providerName: artistName,
       bookingDate: current.bookingDate,
       time: current.time,
-      confirmed: nextStatus === "تایید شده"
+      confirmed: nextStatus === "تایید شده",
+      booking: { kind: "artist", id: bookingId }
     });
   }
 
@@ -219,7 +246,7 @@ async function patchOwnArtistBooking(artistUserId, body, artistName = "") {
 async function _DELETE(request) {
   const auth = await requireUserRole(request, "artist", "فقط آرتیست.");
   if (!auth.ok) return auth.response;
-  const body = await request.json();
+  const body = await readObjectBody(request);
   if (body.kind === "collab") {
     const ok = await artists.deleteArtistCollab(Number(body.id), auth.user.id);
     if (!ok) return notFound();

@@ -1,4 +1,4 @@
-import { json, requireUserRole, withErrorHandling } from "../../../lib/http.js";
+import { json, requireUserRole, withErrorHandling, readObjectBody } from "../../../lib/http.js";
 import * as salons from "../../../lib/db/repos/salons.js";
 import { notifyConnection } from "../../../lib/connectionNotify.js";
 
@@ -15,7 +15,7 @@ async function _GET(request) {
 async function _DELETE(request) {
   const auth = await requireUserRole(request, "artist", "فقط آرتیست.");
   if (!auth.ok) return auth.response;
-  const body = await request.json();
+  const body = await readObjectBody(request);
   const salonUserId = Number(body.salonUserId || body.salon_user_id || 0);
   if (!salonUserId) {
     return json({ error: "سالن نامعتبر است.", code: "INVALID_SALON" }, { status: 400 });

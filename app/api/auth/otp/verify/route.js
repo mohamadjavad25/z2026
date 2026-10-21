@@ -1,7 +1,7 @@
-import { error, json, readJson, withErrorHandling } from "../../../../lib/http.js";
+import { error, json, readJson, requireUser, withErrorHandling } from "../../../../lib/http.js";
 import { isValidIranMobile, normalizeDigits, normalizePhone } from "../../../../lib/auth.js";
 import { ensureDb } from "../../../../lib/db/connection.js";
-import { createOtpProof, otpConfig, verifyOtp } from "../../../../lib/otp.js";
+import { createOtpProof, otpConfig, phoneChangePurpose, verifyOtp } from "../../../../lib/otp.js";
 import { checkIpRateLimit } from "../../../../lib/rateLimit.js";
 
 export const runtime = "nodejs";
@@ -16,13 +16,19 @@ async function _POST(request) {
   if (!isValidIranMobile(phone) || !/^\d{5}$/.test(code)) return error("کد ۵رقمی را درست وارد کن.", 400);
   // Guessing codes across many phones from one address (the per-phone limit is in verifyOtp).
   if (!(await checkIpRateLimit(request, "otp-verify", 30, 15 * 60 * 1000)).ok) return error("تلاش زیاد بود. چند دقیقه بعد دوباره امتحان کن.", 429);
-  const result = await verifyOtp(phone, "register", code);
+  let purpose = "register";
+  if (body.purpose === "phone_change") {
+    const auth = await requireUser(request);
+    if (!auth.ok) return auth.response;
+    purpose = phoneChangePurpose(auth.user.id);
+  }
+  const result = await verifyOtp(phone, purpose, code);
   if (!result.ok) {
     if (result.code === "rate_limited") return error("تلاش زیاد بود. چند دقیقه بعد دوباره امتحان کن.", 429);
     if (result.code === "wrong") return error("کد اشتباه است.", 400);
     return error("کد منقضی شده؛ کد جدید بگیر.", 400);
   }
-  return json({ data: { proof: createOtpProof(phone, "register") } });
+  return json({ data: { proof: createOtpProof(phone, purpose) } });
 }
 
 export const POST = withErrorHandling(_POST);

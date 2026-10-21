@@ -5,6 +5,7 @@ import { formatPersianDateKey, isPersianDateKey, resolveRollingPersianDateKey } 
 import { BOOKING_REQUEST_WINDOW_MINUTES, minutesUntilSlotStart } from "../../../../shared/lib/bookingWindow.js";
 import {
   normalizeBookingTimeLabel,
+  parseBookingTime,
   parseServiceDurationMinutes,
   rangesOverlap,
   timeLabelToMinutes
@@ -682,7 +683,9 @@ function requestWaitColumns(data) {
 export async function addSalonBooking(salonUserId, data) {
   await ensureBookingPartsColumns();
   const bookingDate = resolveRollingPersianDateKey(data.bookingDate || data.booking_date || data.date || "");
-  const time = normalizeBookingTimeLabel(data.time || "");
+  const time = parseBookingTime(String(data.time ?? ""));
+  // Backstop for any caller that skipped the route-level checks: never store a guessed day or time.
+  if (!bookingDate || !time) return { ok: false, error: "bad_slot", message: "روز یا ساعت رزرو نامعتبر است." };
   if (parseBookingParts(data.parts).length >= 2) {
     return addMultiPartSalonBooking(salonUserId, { ...data, bookingDate, time });
   }

@@ -1,4 +1,5 @@
-import { json, notFound, requireUserRole, withErrorHandling } from "../../lib/http.js";
+import { error, json, notFound, requireUserRole, withErrorHandling, readObjectBody } from "../../lib/http.js";
+import { serviceFieldsProblem } from "../../lib/validation/service.js";
 import * as salons from "../../lib/db/repos/salons.js";
 
 export const runtime = "nodejs";
@@ -12,7 +13,9 @@ async function _GET(request) {
 async function _POST(request) {
   const auth = await requireUserRole(request, "salon", "فقط سالن.");
   if (!auth.ok) return auth.response;
-  const body = await request.json();
+  const body = await readObjectBody(request);
+  const problem = serviceFieldsProblem(body);
+  if (problem) return error(problem, 400);
   const service = await salons.addSalonService(auth.user.id, body);
   return json({ data: { service } }, { status: 201 });
 }
@@ -20,7 +23,9 @@ async function _POST(request) {
 async function _PATCH(request) {
   const auth = await requireUserRole(request, "salon", "فقط سالن.");
   if (!auth.ok) return auth.response;
-  const body = await request.json();
+  const body = await readObjectBody(request);
+  const problem = serviceFieldsProblem(body);
+  if (problem) return error(problem, 400);
   const service = await salons.updateSalonService(Number(body.id), auth.user.id, body);
   if (!service) return notFound();
   return json({ data: { service } });
@@ -29,7 +34,7 @@ async function _PATCH(request) {
 async function _DELETE(request) {
   const auth = await requireUserRole(request, "salon", "فقط سالن.");
   if (!auth.ok) return auth.response;
-  const body = await request.json();
+  const body = await readObjectBody(request);
   const ok = await salons.deleteSalonService(Number(body.id), auth.user.id);
   if (!ok) return notFound();
   return json({ data: { ok: true } });

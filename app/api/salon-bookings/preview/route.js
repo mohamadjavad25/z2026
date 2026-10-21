@@ -6,9 +6,8 @@ import { checkRateLimit } from "../../../lib/rateLimit.js";
 import { salonVisitParts } from "../../../lib/salonVisitParts.js";
 import { visitSlotProblem } from "../../../lib/visitSlotRules.js";
 import { MAX_BOOKING_PARTS, summarizeBookingParts } from "../../../shared/lib/bookingParts.js";
-import { resolveRollingPersianDateKey } from "../../../shared/lib/persianCalendar.js";
-import { toLatinDigits } from "../../../shared/lib/digits.js";
-import { normalizeBookingTimeLabel, timeLabelToMinutes } from "../../../shared/lib/time.js";
+import { strictDayKey } from "../../../lib/validation/bookingSlot.js";
+import { parseBookingTime, timeLabelToMinutes } from "../../../shared/lib/time.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -47,16 +46,12 @@ async function _GET(request) {
   if (!limited.ok) return noStoreJson({ error: "درخواست‌های زیاد. کمی صبر کن." }, { status: 429 });
 
   const day = String(searchParams.get("day") || "").trim();
-  const bookingDateKey = resolveRollingPersianDateKey(day);
+  const bookingDateKey = strictDayKey(day);
   if (!day || !bookingDateKey) return noStoreJson({ error: "روز رزرو مشخص نیست." }, { status: 400 });
   // Strict on purpose: "HH:MM" (Persian or Latin digits) on a real clock, nothing the lenient
   // booking parser would turn into some other time.
-  const rawTime = toLatinDigits(String(searchParams.get("time") || "").trim());
-  const clock = /^(\d{1,2}):(\d{2})$/.exec(rawTime);
-  if (!clock || Number(clock[1]) > 23 || Number(clock[2]) > 59) {
-    return noStoreJson({ error: "ساعت رزرو نامعتبر است." }, { status: 400 });
-  }
-  const time = normalizeBookingTimeLabel(rawTime);
+  const time = parseBookingTime(String(searchParams.get("time") || ""));
+  if (!time) return noStoreJson({ error: "ساعت رزرو نامعتبر است." }, { status: 400 });
   const names = searchParams.getAll("service").map((name) => name.trim());
   if (!names.length || names.length > MAX_BOOKING_PARTS || names.some((name) => !name || name.length > 120)) {
     return noStoreJson({ error: "فهرست خدمات نامعتبر است." }, { status: 400 });

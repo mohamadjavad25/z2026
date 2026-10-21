@@ -1,4 +1,4 @@
-import { toLatinDigits, toPersianDigits } from "./digits.js";
+import { toAsciiDigits, toLatinDigits, toPersianDigits } from "./digits.js";
 
 export const PUBLIC_BOOKING_DAY_START = 9 * 60;
 export const PUBLIC_BOOKING_DAY_END = 21 * 60;
@@ -31,6 +31,21 @@ export function normalizeBookingTimeLabel(value) {
   const total = timeLabelToMinutes(value);
   const hours = Math.floor(total / 60);
   const minutes = total % 60;
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+}
+
+/**
+ * The strict reading of a clock time typed or sent by a person: "H:MM" or "HH:MM" in Persian, Arabic-Indic
+ * or Latin digits, hour 0-23, minute 0-59. → canonical "HH:MM", or "" for anything else ("24:00", "10:60",
+ * "11:00:00", "11", "1100", text, numbers). normalizeBookingTimeLabel above is the forgiving one for stored data.
+ */
+export function parseBookingTime(value) {
+  if (typeof value !== "string") return "";
+  const match = toAsciiDigits(value.trim()).match(/^(\d{1,2}):(\d{2})$/);
+  if (!match) return "";
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  if (hours > 23 || minutes > 59) return "";
   return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
 }
 

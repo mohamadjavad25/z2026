@@ -190,6 +190,8 @@ export async function updateUser(id, data) {
       poster = CASE WHEN $9 THEN $10 ELSE poster END, poster_url = CASE WHEN $9 THEN $11 ELSE poster_url END,
       avatar_position = $12, poster_position = $13, experience_years = $14, manager_name = $15, password_hash = $16,
       geo_lat = $18, geo_lng = $19, address_detail = $20,
+      -- A new number is only "verified" when the caller proved it with a code; the old number's proof never carries over.
+      phone_verified_at = CASE WHEN $21 THEN CASE WHEN $22 THEN NOW() ELSE NULL END ELSE phone_verified_at END,
       updated_at = CURRENT_TIMESTAMP
     WHERE id = $17
   `, [
@@ -197,7 +199,8 @@ export async function updateUser(id, data) {
     avatar.change, avatar.blob, avatar.url,
     poster.change, poster.blob, poster.url,
     next.avatar_position, next.poster_position, next.experience_years, next.manager_name, next.password_hash, id,
-    geo.lat, geo.lng, next.address_detail
+    geo.lat, geo.lng, next.address_detail,
+    next.phone !== current.phone, data.phoneVerified === true
   ]);
 
   // The replaced/removed pictures no longer need their Storage copies.

@@ -5,7 +5,7 @@ import { buildClientHistoryLookup } from "./clientHistory.js";
 import { listPostsByOwner } from "./posts.js";
 import { formatPersianDateKey, isPersianDateKey, resolveRollingPersianDateKey } from "../../../shared/lib/persianCalendar.js";
 import { minutesUntilSlotStart } from "../../../shared/lib/bookingWindow.js";
-import { normalizeBookingTimeLabel } from "../../../shared/lib/time.js";
+import { normalizeBookingTimeLabel, parseBookingTime } from "../../../shared/lib/time.js";
 import { clientBookingMatch, clientVisibleStatus } from "../clientMatch.js";
 import { isProfileSaved } from "./social.js";
 import { normalizeServiceEmoji, resolveBookingServiceEmoji } from "./serviceEmoji.js";
@@ -681,7 +681,7 @@ export async function cancelArtistBookingRow(bookingId, runner = null) {
 export async function addArtistBookingInTx(artistUserId, data, runner = null) {
   const db = runner || (await getDb());
   const bookingDate = resolveRollingPersianDateKey(data.bookingDate || data.booking_date || data.date || "");
-  const time = normalizeBookingTimeLabel(data.time || "");
+  const time = parseBookingTime(String(data.time ?? ""));
   // Never shorter than 15 minutes nor longer than half a day, whatever the caller sent.
   const durationMinutes = Math.min(720, Math.max(
     15,
@@ -690,7 +690,7 @@ export async function addArtistBookingInTx(artistUserId, data, runner = null) {
       || 60
   ));
   if (!bookingDate || !time) {
-    return { ok: false, error: "روز و ساعت لازم است.", code: "MISSING_SLOT" };
+    return { ok: false, error: "روز و ساعت معتبر لازم است.", code: "MISSING_SLOT" };
   }
   // Held until the surrounding transaction ends, so two requests for this artist's day are checked one after the other.
   await lockArtistDays(db, [artistUserId], bookingDate);

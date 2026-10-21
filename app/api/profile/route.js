@@ -5,6 +5,8 @@ import * as users from "../../lib/db/repos/users.js";
 import { clientErrorResponse, readJson, requireUser, validateBody, withErrorHandling } from "../../lib/http.js";
 import { profileUpdateSchema } from "../../lib/validation/user.js";
 import { isImageDataUrlTooLarge, isImageDataUrlInvalidType } from "../../lib/mediaLimits.js";
+import { isValidIranMobile } from "../../lib/auth.js";
+import { phoneChangePurpose, verifyOtpProof } from "../../lib/otp.js";
 import { hasUniqueName, nameKey, NAME_TAKEN_MESSAGE } from "../../lib/businessName.js";
 
 export const runtime = "nodejs";
@@ -59,6 +61,21 @@ async function _POST(request) {
       managerName: data.managerName
     };
 
+    // A new phone number must be proven with an SMS code first (POST /api/auth/otp/send + /verify, purpose
+    // "phone_change"): the number is how bookings made for it are matched to an account, and where a salon's
+    // booking SMS goes, so nobody may point their account at a number they have not shown they own.
+    const phoneChanging = data.phone !== undefined && data.phone !== auth.user.phone;
+    if (phoneChanging) {
+      if (!isValidIranMobile(data.phone)) return NextResponse.json({ error: "شماره موبایل نامعتبر است." }, { status: 400 });
+      if (!verifyOtpProof(data.phoneProof, data.phone, phoneChangePurpose(auth.user.id))) {
+        return NextResponse.json({ error: "برای تغییر شماره، اول کد پیامک‌شده به شماره جدید را وارد کن.", code: "phone_proof_required" }, { status: 400 });
+      }
+      if (await users.getUserByPhone(data.phone)) {
+        return NextResponse.json({ error: "این شماره برای حساب دیگری ثبت شده است.", code: "phone_taken" }, { status: 409 });
+      }
+      patch.phoneVerified = true;
+    }
+
     // A salon or artist renaming itself may not take another one's name; an unchanged name (even an old
     // duplicate from before the rule) always saves.
     // The check and the rename happen under one lock, so two accounts cannot both take a free name at the same moment.
@@ -84,6 +101,10 @@ async function _POST(request) {
     const user = await users.updateUser(auth.user.id, patch);
     return NextResponse.json({ data: { user: publicUser(user) } });
   } catch (error) {
+    // Two accounts proving the same new number at the same moment: the database's unique number wins.
+    if (error?.code === "23505" && /phone/i.test(String(error?.constraint || error?.detail || ""))) {
+      return NextResponse.json({ error: "این شماره برای حساب دیگری ثبت شده است.", code: "phone_taken" }, { status: 409 });
+    }
     const badInput = clientErrorResponse(error);
     if (badInput) return badInput;
     console.error(error);

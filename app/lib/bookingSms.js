@@ -1,4 +1,6 @@
 import * as users from "./db/repos/users.js";
+import { getDb, run } from "./db/connection.js";
+import { checkRateLimit } from "./rateLimit.js";
 import { sendTemplateSms } from "./sms.js";
 import { reachableByAppPush } from "./push.js";
 import { formatRelativeBookingDayLabel } from "../shared/lib/persianCalendar.js";
@@ -24,10 +26,30 @@ async function phoneOf(userId) {
   return user?.phone || "";
 }
 
+/**
+ * Claims the right to text this answer: true exactly once per (booking, status), however many calls or
+ * simultaneous taps come (the primary key of booking_sms_sent decides). A repeat gets false and sends nothing.
+ */
+async function claimBookingAnswerSms(kind, bookingId, status) {
+  if (!bookingId) return true;
+  const db = await getDb();
+  const res = await run(db, `
+    INSERT INTO booking_sms_sent (booking_kind, booking_id, status) VALUES ($1, $2, $3)
+    ON CONFLICT DO NOTHING RETURNING booking_id
+  `, [kind, Number(bookingId), String(status)]);
+  return res.rows.length > 0;
+}
+
 /** A client just asked `providerUserId` (a salon or an artist) for a time (or their request moved there from a
  *  first choice that did not answer). How long it waits is the client's choice, so the text promises no deadline. */
-export function smsNewBookingRequest(providerUserId, { client, service, bookingDate, time }) {
+export function smsNewBookingRequest(providerUserId, { client, service, bookingDate, time, fromUserId = null }) {
   void (async () => {
+    // One client may text the same salon or artist only a few times an hour, however many requests they make
+    // (the push and the booking list still show every one); a request made by nobody logged in is not capped here.
+    if (fromUserId) {
+      const limited = await checkRateLimit(`sms-booking-request:${Number(providerUserId)}:${Number(fromUserId)}`, 3, 60 * 60 * 1000);
+      if (!limited.ok) return;
+    }
     const phone = await phoneOf(providerUserId);
     const who = [client, service].map((part) => String(part || "").trim()).filter(Boolean).join("، ") || "مشتری";
     await sendTemplateSms(phone, "booking_request", {
@@ -38,9 +60,14 @@ export function smsNewBookingRequest(providerUserId, { client, service, bookingD
   })().catch(() => {});
 }
 
-/** The salon or artist answered a client's request: `confirmed` true for approved, false for declined or cancelled. */
-export function smsBookingAnswer(clientUserId, { providerName, bookingDate, time, confirmed }) {
+/**
+ * The salon or artist answered a client's request: `confirmed` true for approved, false for declined or cancelled.
+ * Pass `booking` ({ kind: "salon" | "artist", id }) so each answer is texted once per booking; callers also
+ * call this only when the status really changed.
+ */
+export function smsBookingAnswer(clientUserId, { providerName, bookingDate, time, confirmed, booking = null }) {
   void (async () => {
+    if (booking && !(await claimBookingAnswerSms(booking.kind, booking.id, confirmed ? "confirmed" : "cancelled"))) return;
     const phone = await phoneOf(clientUserId);
     await sendTemplateSms(phone, "booking_answer", {
       who: String(providerName || "").trim() || "سالن",

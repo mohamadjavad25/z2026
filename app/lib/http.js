@@ -30,6 +30,13 @@ export async function readJson(request) {
   }
 }
 
+/** The request's JSON body, which must be an object: malformed JSON, null, a list or a bare value all become a 400 (via withErrorHandling), never a crash further down. */
+export async function readObjectBody(request) {
+  const body = await request.json();
+  if (!body || typeof body !== "object" || Array.isArray(body)) throw new SyntaxError("JSON body must be an object");
+  return body;
+}
+
 export function notFound(message = "یافت نشد.") {
   return error(message, 404);
 }

@@ -1,7 +1,8 @@
 import { json, requireUser, withErrorHandling } from "../../../lib/http.js";
 import { ensureDb } from "../../../lib/db/connection.js";
 import { listFallbackArtists } from "../../../lib/bookingFallback.js";
-import { resolveRollingPersianDateKey } from "../../../shared/lib/persianCalendar.js";
+import { strictDayKey } from "../../../lib/validation/bookingSlot.js";
+import { parseBookingTime } from "../../../shared/lib/time.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -22,8 +23,11 @@ async function _GET(request) {
   if (!artistUserId) return json({ error: "آرتیست نامعتبر است." }, { status: 400 });
   const service = String(searchParams.get("service") || "").trim();
   if (!service || service.length > 200) return json({ error: "خدمت نامعتبر است." }, { status: 400 });
-  const bookingDateKey = resolveRollingPersianDateKey(String(searchParams.get("day") || "").trim());
-  const time = String(searchParams.get("time") || "").trim().slice(0, 10);
+  const bookingDateKey = strictDayKey(String(searchParams.get("day") || "").trim());
+  if (!bookingDateKey) return json({ error: "روز رزرو نامعتبر است." }, { status: 400 });
+  const rawTime = String(searchParams.get("time") || "").trim();
+  const time = rawTime ? parseBookingTime(rawTime) : "";
+  if (rawTime && !time) return json({ error: "ساعت رزرو نامعتبر است." }, { status: 400 });
   const list = await listFallbackArtists({ clientUserId: auth.user.id, artistUserId, service, bookingDateKey, time });
   return json({ data: { artists: list } });
 }

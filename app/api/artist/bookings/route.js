@@ -1,6 +1,6 @@
 import { getUserFromRequest } from "../../../lib/auth.js";
 import { ensureDb } from "../../../lib/db/connection.js";
-import { error, json, validateBody, withErrorHandling } from "../../../lib/http.js";
+import { error, json, validateBody, withErrorHandling, readObjectBody } from "../../../lib/http.js";
 import * as artists from "../../../lib/db/repos/artists.js";
 import * as salons from "../../../lib/db/repos/salons.js";
 import { checkRateLimit } from "../../../lib/rateLimit.js";
@@ -24,7 +24,7 @@ export const runtime = "nodejs";
 
 async function _POST(request) {
   await ensureDb();
-  const body = await request.json();
+  const body = await readObjectBody(request);
   const artistUserId = Number(body.artistUserId);
   if (!artistUserId) return error("آرتیست نامعتبر است.", 400);
 
@@ -78,7 +78,8 @@ async function _POST(request) {
         client: result.booking.client || result.booking.client_name,
         service: result.booking.service,
         bookingDate: result.booking.booking_date || result.booking.bookingDate,
-        time: result.booking.time
+        time: result.booking.time,
+        fromUserId: viewer.id
       });
     }
   }

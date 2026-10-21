@@ -29,7 +29,9 @@ export const profileUpdateSchema = z.object({
   managerName: z.string().trim().max(120).optional(),
   // "" means "not changing it" (the route ignores a falsy password).
   password: z.union([z.literal(""), z.string().min(6).max(200)]).optional(),
-  currentPassword: z.string().optional()
+  currentPassword: z.string().optional(),
+  // Proof from POST /api/auth/otp/verify (purpose "phone_change"): required whenever phone differs from the current number.
+  phoneProof: z.string().max(1000).optional()
 });
 
 /** The text fields of POST /api/auth/register, with the same ceilings as a profile edit. */

@@ -16,7 +16,11 @@ async function _POST(request) {
   let now = new Date();
   if (process.env.FRFRO_REMINDER_TEST_CLOCK === "1") {
     const body = await request.json().catch(() => ({}));
-    if (body?.now) now = new Date(body.now);
+    if (body?.now !== undefined) {
+      const given = typeof body.now === "string" || typeof body.now === "number" ? new Date(body.now) : null;
+      if (!given || Number.isNaN(given.getTime())) return NextResponse.json({ error: "زمان نامعتبر است." }, { status: 400 });
+      now = given;
+    }
   }
   return NextResponse.json({ data: await sweepBookingReminders(now) });
 }

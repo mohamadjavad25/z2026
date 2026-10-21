@@ -49,6 +49,9 @@ export function verifyOtpProof(proof, phone, purpose, now = Date.now()) {
   return proofPhone === phone && proofPurpose === purpose && Number(expires) > now;
 }
 
+/** The purpose string for changing the phone of one account: a code or proof made for one account never works for another. */
+export const phoneChangePurpose = (userId) => `phone_change:${Number(userId)}`;
+
 /** Creates a fresh code for (phone, purpose) and texts it. Throttled per phone and globally. */
 export async function sendOtp(phone, purpose) {
   const perPhone = await checkRateLimit(`otp-send:${phone}`, 3, 15 * 60 * 1000);
@@ -63,7 +66,8 @@ export async function sendOtp(phone, purpose) {
     INSERT INTO otp_codes (phone, purpose, code_hash, expires_at)
     VALUES ($1, $2, $3, NOW() + ($4 * INTERVAL '1 minute'))
   `, [phone, purpose, hashCode(phone, purpose, code), CODE_TTL_MINUTES]);
-  const sent = await sendVerificationSms(phone, code, purpose);
+  // A purpose may carry a binding after a colon ("phone_change:12" = the code is for account 12); the SMS provider only sees the kind.
+  const sent = await sendVerificationSms(phone, code, purpose.split(":")[0]);
   return sent.ok ? { ok: true } : { ok: false, code: "send_failed" };
 }
 

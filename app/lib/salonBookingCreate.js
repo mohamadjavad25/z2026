@@ -1,15 +1,13 @@
 import * as salons from "./db/repos/salons.js";
 import * as artists from "./db/repos/artists.js";
 import { onlineBookingBlock } from "./billing/access.js";
-import { resolveRollingPersianDateKey } from "../shared/lib/persianCalendar.js";
 import { visitSlotProblem } from "./visitSlotRules.js";
 import { parseServiceDurationMinutes } from "../shared/lib/time.js";
+import { readBookingSlot } from "./validation/bookingSlot.js";
+import { MAX_BOOKING_MINUTES, parseRequestedMinutes } from "./validation/numbers.js";
 import { summarizeBookingParts } from "../shared/lib/bookingParts.js";
 import { salonVisitParts } from "./salonVisitParts.js";
 import { BOOKING_REQUEST_WINDOW_MINUTES } from "../shared/lib/bookingWindow.js";
-
-// No single entry is longer than this, whoever sends it.
-const MAX_BOOKING_MINUTES = 720;
 
 function resolveRequestedDuration(body, salon, { isClient = false } = {}) {
   const serviceName = String(body.service || "").trim();
@@ -18,8 +16,9 @@ function resolveRequestedDuration(body, salon, { isClient = false } = {}) {
     : null;
   // A client never chooses how long a service the salon lists takes: that is the salon's own number.
   if (isClient && listed?.duration) return parseServiceDurationMinutes(listed.duration);
-  const explicit = Number(body.durationMinutes || body.duration_minutes);
-  if (Number.isFinite(explicit) && explicit > 0) return Math.min(MAX_BOOKING_MINUTES, Math.max(15, explicit));
+  // Already checked by createSalonBooking (parseRequestedMinutes): a whole number of minutes, or absent.
+  const explicit = parseRequestedMinutes(body).minutes;
+  if (explicit) return explicit;
   if (body.duration) return Math.min(MAX_BOOKING_MINUTES, parseServiceDurationMinutes(body.duration));
   if (listed?.duration) return parseServiceDurationMinutes(listed.duration);
   return 60;
@@ -47,19 +46,22 @@ export async function createSalonBooking({ actor, salonUserId, body, data, wait 
     const blocked = await onlineBookingBlock(salonUserId, "salon");
     if (blocked) return refuse(blocked.status, blocked.error, blocked.code);
   }
+  // Everything that decides WHEN and HOW LONG is read strictly first: a bad value is a 400, never a guessed one.
+  const slot = readBookingSlot(body.bookingDate || body.booking_date || body.date || "", body.time ?? "");
+  if (!slot.ok) return refuse(slot.status, slot.error);
+  const lengthsOk = parseRequestedMinutes(body).ok
+    && (data.parts || []).every((part) => parseRequestedMinutes(part).ok);
+  if (!lengthsOk) return refuse(400, `مدت نوبت نامعتبر است؛ عدد صحیح دقیقه، حداکثر ${MAX_BOOKING_MINUTES}.`);
   const client = String(body.client || actor.name || "").trim();
   const phone = String(body.phone || actor.phone || "").trim();
   const parts = salonVisitParts(salon, data.parts, { allowStaff: actor.type === "salon" })
     .map(({ service, minutes, staff }) => ({ service, minutes, staff }));
   const multiPart = parts.length >= 2;
   const service = multiPart ? summarizeBookingParts(parts).service : String(body.service || "").trim();
-  const rawBookingDay = body.bookingDate || body.booking_date || body.date || "";
-  const bookingDateKey = resolveRollingPersianDateKey(rawBookingDay);
-  const time = String(body.time || "").trim();
+  const bookingDateKey = slot.dateKey;
+  const time = slot.time;
   const durationMinutes = multiPart ? summarizeBookingParts(parts).durationMinutes : resolveRequestedDuration(body, salon, { isClient });
   if (!service) return refuse(400, "خدمت رزرو مشخص نیست.");
-  if (!rawBookingDay) return refuse(400, "روز رزرو مشخص نیست.");
-  if (!time) return refuse(400, "ساعت رزرو مشخص نیست.");
   if (!client) return refuse(400, "نام مشتری برای رزرو لازم است.");
   if (isClient && !phone) return refuse(400, "برای ثبت رزرو، شماره تماس لازم است.");
   const slotProblem = visitSlotProblem({
@@ -116,6 +118,7 @@ export async function createSalonBooking({ actor, salonUserId, body, data, wait 
     movedFromBookingId: wait.movedFromBookingId || null
   });
   if (!result.ok) {
+    if (result.error === "bad_slot") return refuse(400, result.message);
     if (result.error === "no_staff") return refuse(409, result.message, "NO_FREE_ARTIST");
     if (result.error === "artist_conflict") {
       return refuse(409, result.message || "این ساعت برای آرتیست قبلاً رزرو شده است.", result.code || "ARTIST_SLOT_TAKEN");

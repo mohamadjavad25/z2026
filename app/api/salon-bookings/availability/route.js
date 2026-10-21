@@ -6,7 +6,7 @@ import { salonVisitParts } from "../../../lib/salonVisitParts.js";
 import { isSlotInPast } from "../../../shared/lib/slots.js";
 import { isTooSoonToRequest } from "../../../shared/lib/bookingWindow.js";
 import { MAX_BOOKING_PARTS, summarizeBookingParts } from "../../../shared/lib/bookingParts.js";
-import { resolveRollingPersianDateKey } from "../../../shared/lib/persianCalendar.js";
+import { strictDayKey } from "../../../lib/validation/bookingSlot.js";
 import { findSalonHourForDateKey, isSalonHourOpen, salonDayWindow } from "../../../shared/lib/salonAvailability.js";
 import { buildDayBookingSlots } from "../../../shared/lib/time.js";
 
@@ -34,7 +34,7 @@ async function _GET(request) {
   const salonUserId = Number(searchParams.get("salonUserId"));
   if (!salonUserId) return noStoreJson({ error: "شناسه سالن نامعتبر است." }, { status: 400 });
   const day = String(searchParams.get("day") || "").trim();
-  const bookingDateKey = resolveRollingPersianDateKey(day);
+  const bookingDateKey = strictDayKey(day);
   if (!day || !bookingDateKey) return noStoreJson({ error: "روز رزرو مشخص نیست." }, { status: 400 });
   const names = searchParams.getAll("service").map((name) => name.trim()).filter(Boolean);
   if (!names.length || names.length > MAX_BOOKING_PARTS || names.some((name) => name.length > 120)) {
