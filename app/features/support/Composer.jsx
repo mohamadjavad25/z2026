@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ImagePlus, Mic, Send, Square, Trash2, X } from "lucide-react";
+import { ArrowUp, ImagePlus, Mic, Plus, Send, Square, Trash2, X } from "lucide-react";
 import { VoicePlayer } from "./Attachments";
 import { MAX_IMAGES, canRecordVoice, duration, loadVoiceEncoder, prepareImage, useVoiceRecorder } from "./media";
 
@@ -73,8 +73,7 @@ function RecordingBar({ recorder, onSend, sendLabel = "ارسال پیام صو�
 }
 
 /**
- * The chat composer: a picture button, the text box, and on the end either send (when there is something to send)
- * or the microphone. Pictures can also be pasted. A voice note is sent the moment recording stops.
+ * The chat composer: one rounded box with the text on top and round buttons underneath (+ for pictures, the microphone, send). Pictures can also be pasted. A voice note is sent the moment recording stops.
  * `onSend({ message, attachments })` resolves to true when the message went out.
  */
 export function Composer({ placeholder, onSend, disabled = false }) {
@@ -147,21 +146,7 @@ export function Composer({ placeholder, onSend, disabled = false }) {
       {recorder.state === "recording" ? (
         <RecordingBar recorder={recorder} onSend={stopAndSend} />
       ) : (
-        <div className="scComposerRow">
-          <button type="button" className="scAttach" onClick={() => fileRef.current?.click()} disabled={busy || images.length >= MAX_IMAGES} aria-label="فرستادن عکس">
-            <ImagePlus size={21} aria-hidden="true" />
-          </button>
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/*"
-            multiple
-            hidden
-            onChange={(event) => {
-              addImages(event.target.files, images, setImages, setError);
-              event.target.value = "";
-            }}
-          />
+        <div className="scBox">
           <textarea
             ref={boxRef}
             rows={1}
@@ -183,15 +168,31 @@ export function Composer({ placeholder, onSend, disabled = false }) {
               if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) submit(event);
             }}
           />
-          {hasContent || !canVoice ? (
-            <button type="submit" className={`scSend${busy ? " is-busy" : ""}`} disabled={busy || disabled || !hasContent} aria-label="ارسال">
-              <Send size={19} aria-hidden="true" />
+          <div className="scBoxBar">
+            <button type="button" className="scRound" onClick={() => fileRef.current?.click()} disabled={busy || images.length >= MAX_IMAGES} aria-label="فرستادن عکس">
+              <Plus size={21} aria-hidden="true" />
             </button>
-          ) : (
-            <button type="button" className={`scSend is-mic${recording ? " is-busy" : ""}`} disabled={busy || disabled || recording} onClick={recorder.start} aria-label="ضبط پیام صوتی">
-              <Mic size={20} aria-hidden="true" />
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              multiple
+              hidden
+              onChange={(event) => {
+                addImages(event.target.files, images, setImages, setError);
+                event.target.value = "";
+              }}
+            />
+            <span className="scBoxGap" />
+            {canVoice && !hasContent ? (
+              <button type="button" className="scRound" disabled={busy || disabled || recording} onClick={recorder.start} aria-label="ضبط پیام صوتی">
+                <Mic size={20} aria-hidden="true" />
+              </button>
+            ) : null}
+            <button type="submit" className={`scRound is-send${busy ? " is-busy" : ""}`} disabled={busy || disabled || !hasContent} aria-label="ارسال">
+              <ArrowUp size={21} aria-hidden="true" />
             </button>
-          )}
+          </div>
         </div>
       )}
       {busy ? <p className="scSending" aria-live="polite">در حال ارسال…</p> : null}
