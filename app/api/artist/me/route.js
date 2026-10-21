@@ -11,7 +11,7 @@ import { lockArtistDays, lockSalonDay } from "../../../lib/db/locks.js";
 import { AWAITING_CLIENT } from "../../../shared/lib/bookingOffer.js";
 import { serviceFieldsProblem } from "../../../lib/validation/service.js";
 import { readBookingSlot } from "../../../lib/validation/bookingSlot.js";
-import { MAX_BOOKING_MINUTES, parseRequestedMinutes } from "../../../lib/validation/numbers.js";
+import { parseRequestedMinutes } from "../../../lib/validation/numbers.js";
 import { smsBookingAnswer } from "../../../lib/bookingSms.js";
 
 export const runtime = "nodejs";
@@ -51,7 +51,7 @@ async function _POST(request) {
     const slot = readBookingSlot(body.bookingDate || body.booking_date || body.date || "", body.time ?? "");
     if (!slot.ok) return error(slot.error, slot.status);
     const length = parseRequestedMinutes(body);
-    if (!length.ok) return error(`مدت نوبت نامعتبر است؛ عدد صحیح دقیقه، حداکثر ${MAX_BOOKING_MINUTES}.`, 400);
+    if (!length.ok) return error(`مدت نوبت نامعتبر است؛ یک عدد صحیح (دقیقه) بنویس.`, 400);
     const result = await artists.addArtistBooking(auth.user.id, {
       ...body, bookingDate: slot.dateKey, booking_date: undefined, date: undefined, time: slot.time,
       durationMinutes: length.minutes, duration_minutes: undefined, status: "تایید"

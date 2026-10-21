@@ -22,16 +22,16 @@ export const MAX_BOOKING_MINUTES = 720;
 /**
  * The appointment length a caller sent (`durationMinutes` / `duration_minutes`, or the text `duration` like
  * "۴۵ دقیقه"). Not sent (missing, null, "", 0) → { ok: true, minutes: undefined } so the service's own length applies.
- * Sent but not a whole number of minutes up to MAX_BOOKING_MINUTES → { ok: false } (callers answer 400).
- * Anything under MIN_BOOKING_MINUTES is raised to it, as before.
+ * Sent but not a whole positive number of minutes (text, NaN, negative, fraction) → { ok: false } (callers answer 400).
+ * Under MIN_BOOKING_MINUTES is raised to it and over MAX_BOOKING_MINUTES cut to it, as before.
  */
 export function parseRequestedMinutes(source) {
   for (const key of ["durationMinutes", "duration_minutes"]) {
     const raw = source?.[key];
     if (raw === undefined || raw === null || raw === "" || raw === 0 || raw === "0") continue;
-    const parsed = parseBoundedInt(raw, { min: 1, max: MAX_BOOKING_MINUTES });
+    const parsed = parseBoundedInt(raw, { min: 1 });
     if (!parsed.ok) return { ok: false };
-    return { ok: true, minutes: Math.max(MIN_BOOKING_MINUTES, parsed.value) };
+    return { ok: true, minutes: Math.min(MAX_BOOKING_MINUTES, Math.max(MIN_BOOKING_MINUTES, parsed.value)) };
   }
   return { ok: true, minutes: undefined };
 }

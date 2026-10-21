@@ -51,7 +51,7 @@ export async function createSalonBooking({ actor, salonUserId, body, data, wait 
   if (!slot.ok) return refuse(slot.status, slot.error);
   const lengthsOk = parseRequestedMinutes(body).ok
     && (data.parts || []).every((part) => parseRequestedMinutes(part).ok);
-  if (!lengthsOk) return refuse(400, `مدت نوبت نامعتبر است؛ عدد صحیح دقیقه، حداکثر ${MAX_BOOKING_MINUTES}.`);
+  if (!lengthsOk) return refuse(400, `مدت نوبت نامعتبر است؛ یک عدد صحیح (دقیقه) بنویس.`);
   const client = String(body.client || actor.name || "").trim();
   const phone = String(body.phone || actor.phone || "").trim();
   const parts = salonVisitParts(salon, data.parts, { allowStaff: actor.type === "salon" })

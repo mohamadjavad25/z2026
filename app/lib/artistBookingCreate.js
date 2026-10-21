@@ -7,7 +7,7 @@ import { BOOKING_REQUEST_LEAD_MINUTES, isTooSoonToRequest } from "../shared/lib/
 import { toPersianDigits } from "../shared/lib/digits.js";
 import { parseServiceDurationMinutes } from "../shared/lib/time.js";
 import { readBookingSlot } from "./validation/bookingSlot.js";
-import { MAX_BOOKING_MINUTES, parseRequestedMinutes } from "./validation/numbers.js";
+import { parseRequestedMinutes } from "./validation/numbers.js";
 
 const refuse = (status, error, code = "") => ({ ok: false, status, error, code });
 
@@ -32,7 +32,7 @@ export async function createArtistBooking({ artistUserId, viewer, data, body = {
   const slot = readBookingSlot(data.bookingDate || data.booking_date || data.date || "", data.time ?? "");
   if (!slot.ok) return refuse(slot.status, slot.error);
   const requested = parseRequestedMinutes(data);
-  if (!requested.ok) return refuse(400, `مدت نوبت نامعتبر است؛ عدد صحیح دقیقه، حداکثر ${MAX_BOOKING_MINUTES}.`);
+  if (!requested.ok) return refuse(400, `مدت نوبت نامعتبر است؛ یک عدد صحیح (دقیقه) بنویس.`);
   const day = slot.dateKey;
   const time = slot.time;
   if (isSlotInPast(day, time)) return refuse(409, "این ساعت گذشته است. ساعت دیگری انتخاب کن.");
