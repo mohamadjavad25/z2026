@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown, MessageSquareQuote, Search, Sparkles } from "lucide-react";
+import { ChevronDown, MessageSquareQuote, Search, Sparkles, X } from "lucide-react";
 import { api } from "./adminFetch";
 import { REPLY_SAMPLES, fillReply } from "./samples";
 
@@ -56,14 +56,15 @@ export function CannedReplies({ onPick, name = "" }) {
   };
   return (
     <div className="admReplyPicker" ref={box}>
-      <button type="button" className="admChipLink" aria-expanded={open} aria-haspopup="true" onClick={() => setOpen((value) => !value)}>
-        <MessageSquareQuote size={15} aria-hidden="true" /> پاسخ آماده <ChevronDown size={14} aria-hidden="true" />
+      <button type="button" className="admChipLink" aria-label="پاسخ آماده" aria-expanded={open} aria-haspopup="true" onClick={() => setOpen((value) => !value)}>
+        <MessageSquareQuote size={15} aria-hidden="true" /> <span className="admBtnText">پاسخ آماده</span> <ChevronDown className="admBtnText" size={14} aria-hidden="true" />
       </button>
       {open ? (
         <div className="admReplyPop" role="menu" aria-label="پاسخ‌های آماده">
+          <button type="button" className="admSheetClose admIconBtn" aria-label="بستن" onClick={() => setOpen(false)}><X size={16} aria-hidden="true" /></button>
           <label className="admInlineSearch">
             <Search size={16} aria-hidden="true" />
-            <input type="search" value={q} autoFocus placeholder="جست‌وجو در پاسخ‌ها…" aria-label="جست‌وجو در پاسخ‌های آماده" onChange={(event) => setQ(event.target.value)} />
+            <input type="search" value={q} autoFocus={!window.matchMedia?.("(pointer: coarse)").matches} placeholder="جست‌وجو در پاسخ‌ها…" aria-label="جست‌وجو در پاسخ‌های آماده" onChange={(event) => setQ(event.target.value)} />
           </label>
           <div className="admReplyList">
             {mine.length ? <h4>پاسخ‌های من</h4> : null}

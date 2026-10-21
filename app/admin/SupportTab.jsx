@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowRight, CircleCheck, Flag, Info, LifeBuoy, MessageSquare, MessageSquarePlus, Paperclip, Phone, Plus, Search, Send, StickyNote, X } from "lucide-react";
+import { ArrowRight, CircleCheck, EllipsisVertical, Flag, Info, LifeBuoy, MessageSquare, MessageSquarePlus, Paperclip, Phone, Plus, Search, Send, StickyNote, X } from "lucide-react";
 import { Button, Field } from "../components/ui";
 import { api } from "./adminFetch";
 import { Avatar } from "./Avatar";
@@ -62,6 +62,36 @@ function Thread({ messages, userName, isReport, endRef }) {
       {rows}
       {!messages.length ? <p className="admMuted admThreadEmpty">{isReport ? "کاربر توضیحی ننوشته است." : "هنوز پیامی نیست."}</p> : null}
       <div ref={endRef} />
+    </div>
+  );
+}
+
+/** The "more" menu in a conversation's header: status changes and send-and-close, for a phone where the buttons do not fit. */
+function ConvMenu({ items }) {
+  const [open, setOpen] = useState(false);
+  const box = useRef(null);
+  useEffect(() => {
+    if (!open) return undefined;
+    const close = (event) => {
+      if (event.type === "keydown" ? event.key === "Escape" : !box.current?.contains(event.target)) setOpen(false);
+    };
+    document.addEventListener("keydown", close);
+    document.addEventListener("pointerdown", close);
+    return () => {
+      document.removeEventListener("keydown", close);
+      document.removeEventListener("pointerdown", close);
+    };
+  }, [open]);
+  return (
+    <div className="admConvMenu" ref={box}>
+      <button type="button" className="admIconBtn" aria-label="گزینه‌های بیشتر" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((value) => !value)}><EllipsisVertical size={18} aria-hidden="true" /></button>
+      {open ? (
+        <div className="admMenuPop" role="menu">
+          {items.map((item) => (
+            <button key={item.label} type="button" role="menuitem" disabled={item.disabled} onClick={() => { setOpen(false); item.run(); }}>{item.icon}{item.label}</button>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -144,6 +174,16 @@ function Conversation({ id, onChanged, onGo, onBack }) {
           <small>{title} • {labelOf(ticket)}</small>
         </div>
         <TurnPill ticket={ticket} />
+        <button type="button" className={`admIconBtn admConvInfoBtn${tab === "info" ? " is-on" : ""}`} aria-label="اطلاعات و یادداشت" aria-pressed={tab === "info"} onClick={() => setTab((value) => (value === "info" ? "chat" : "info"))}><Info size={18} aria-hidden="true" /></button>
+        <ConvMenu
+          items={[
+            ...(closed ? [{ label: "بازکردن دوباره", run: () => send({ status: "open" }, "دوباره باز شد.") }] : [
+              ...(ticket.status !== "in_progress" ? [{ label: "در حال بررسی", run: () => send({ status: "in_progress", note }, "در حال بررسی.") }] : []),
+              ...(canReply ? [{ label: "ارسال و بستن", disabled: !canSend, run: () => sendReply("closed") }] : []),
+              { label: "بستن گفتگو", icon: <CircleCheck size={15} aria-hidden="true" />, run: () => send({ status: "closed", note }, "گفتگو بسته شد.") }
+            ])
+          ]}
+        />
         <div className="admConvTools">
           {closed ? (
             <Button size="sm" variant="secondary" disabled={busy} onClick={() => send({ status: "open" }, "دوباره باز شد.")}>بازکردن دوباره</Button>
@@ -179,10 +219,10 @@ function Conversation({ id, onChanged, onGo, onBack }) {
                   <textarea
                     {...props}
                     ref={box}
-                    rows={2}
+                    rows={1}
                     maxLength={2000}
                     value={reply}
-                    placeholder={closed ? "گفتگو بسته است؛ با ارسال پاسخ می‌توانی دوباره بازش کنی." : "پاسخت را بنویس؛ کاربر در پشتیبانیِ خودش می‌بیند…"}
+                    placeholder={closed ? "گفتگو بسته است؛ پاسخ، دوباره بازش می‌کند…" : "پاسخت را بنویس…"}
                     onChange={(event) => setReply(event.target.value)}
                     onKeyDown={(event) => {
                       if ((event.ctrlKey || event.metaKey) && event.key === "Enter" && canSend && !busy) {
@@ -195,16 +235,17 @@ function Conversation({ id, onChanged, onGo, onBack }) {
               </Field>
               <div className="admComposerBar">
                 <CannedReplies name={ticket.user_name} onPick={(body) => setReply((prev) => (prev ? `${prev}\n${body}` : body))} />
-                <button type="button" className={`admChipLink${showFiles || files.length ? " is-on" : ""}`} aria-pressed={showFiles} onClick={() => setShowFiles((value) => !value)}><Paperclip size={15} aria-hidden="true" /> عکس یا صدا{files.length ? ` (${files.length})` : ""}</button>
+                <button type="button" className={`admChipLink${showFiles || files.length ? " is-on" : ""}`} aria-label="افزودن عکس یا صدا" aria-pressed={showFiles} onClick={() => setShowFiles((value) => !value)}><Paperclip size={15} aria-hidden="true" /> <span className="admBtnText">عکس یا صدا{files.length ? ` (${files.length})` : ""}</span></button>
                 <span className="admComposerHint"><span className="admCounter">{reply.length} / ۲۰۰۰</span> Ctrl+Enter</span>
-                {!closed ? <Button type="button" size="sm" variant="secondary" disabled={busy || !canSend} onClick={() => sendReply("closed")}>ارسال و بستن</Button> : null}
-                <Button type="submit" size="sm" disabled={busy || !canSend}><Send size={15} aria-hidden="true" /> ارسال</Button>
+                {!closed ? <Button type="button" size="sm" variant="secondary" className="admSendClose" disabled={busy || !canSend} onClick={() => sendReply("closed")}>ارسال و بستن</Button> : null}
+                <Button type="submit" size="sm" className="admSendBtn" aria-label="ارسال" disabled={busy || !canSend}><Send size={15} aria-hidden="true" /> <span className="admBtnText">ارسال</span></Button>
               </div>
             </form>
           ) : <p className="admMuted admChatPad">این فرستنده حساب ندارد؛ فقط با شمارهٔ تماسش می‌شود جواب داد.</p>}
         </>
       ) : (
         <div className="admConvInfo">
+          <button type="button" className="admChipLink admInfoBack" onClick={() => setTab("chat")}><ArrowRight size={15} aria-hidden="true" /> بازگشت به گفتگو</button>
           <section>
             <h3>فرستنده</h3>
             <ul className="admFacts">
@@ -276,7 +317,7 @@ function NewChat({ onClose, onCreated }) {
     onCreated(payload.data.id);
   }
   return (
-    <div className="admModal" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && !busy && onClose()}>
+    <div className="admModal is-sheet" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && !busy && onClose()}>
       <form className="admCard admForm admNewChat" role="dialog" aria-modal="true" aria-labelledby="admNewChatTitle" onSubmit={submit}>
         <div className="admCardHead">
           <h2 id="admNewChatTitle"><MessageSquarePlus size={18} aria-hidden="true" /> گفتگوی تازه</h2>
@@ -303,10 +344,12 @@ function NewChat({ onClose, onCreated }) {
             <div className="admRowActions"><CannedReplies name={picked.name} onPick={(body) => setText((prev) => (prev ? `${prev}\n${body}` : body))} /></div>
           </>
         ) : null}
-        <div className="admDialogActions">
-          <Button type="button" variant="ghost" onClick={onClose}>انصراف</Button>
-          <Button type="submit" disabled={busy || !picked || text.trim().length < 2} loading={busy} loadingLabel="…"><Send size={15} aria-hidden="true" /> ارسال</Button>
-        </div>
+        {picked ? (
+          <div className="admDialogActions">
+            <Button type="button" variant="ghost" onClick={onClose}>انصراف</Button>
+            <Button type="submit" disabled={busy || text.trim().length < 2} loading={busy} loadingLabel="…"><Send size={15} aria-hidden="true" /> ارسال</Button>
+          </div>
+        ) : null}
       </form>
     </div>
   );
@@ -416,6 +459,7 @@ export function SupportTab({ intent = {}, onChanged, onGo, setParam }) {
           )}
         </section>
       </div>
+      <button type="button" className="admFab" aria-label="گفتگوی تازه" onClick={() => setComposing(true)}><Plus size={22} aria-hidden="true" /></button>
       {composing ? <NewChat onClose={() => setComposing(false)} onCreated={(id) => { setComposing(false); setView("all"); setSelected(id); changed(); }} /> : null}
     </>
   );
