@@ -2,13 +2,14 @@
 
 import { apiFetch } from "../../shared/api/client";
 import { useEffect, useId, useRef, useState } from "react";
-import { ChevronLeft, Download, Eye, EyeOff, ShieldCheck } from "lucide-react";
+import { ChevronLeft, Download, Eye, EyeOff, ShieldCheck, Sparkles } from "lucide-react";
 import { profileRoles } from "../../shared/constants/roles";
 import { toLatinDigits } from "../../shared/lib/digits";
 import { Button, Field } from "../../components/ui";
 import { Mascot } from "../../components/Mascot";
 import { ProfileRoleGrid } from "../profile/ProfileRoleGrid";
 import { firstInvalidField, validateLogin, validateSignup } from "./formValidation";
+import { APP_DOWNLOADS_OPEN } from "../landing/constants";
 import { OtpCodeStep } from "./OtpCodeStep";
 import { confirmReset, useOtpConfig, verifyCode } from "./otp";
 
@@ -393,6 +394,25 @@ const GATE_TAGLINES = {
   artist: "نمونه‌کارهات رو نشون بده، مشتری تازه جذب کن"
 };
 
+// Bottom of the role and login screens, browser only (never inside the app): the download link,
+// or «به‌زودی» while the app waits for its store release (APP_DOWNLOADS_OPEN).
+function AppDownloadCue() {
+  if (!APP_DOWNLOADS_OPEN) {
+    return (
+      <p className="webAppDownloadLink webAppSoon webOnlyAppLink">
+        <Sparkles size={15} aria-hidden="true" />
+        به‌زودی: اپلیکیشن و وبلاگ فرفرو
+      </p>
+    );
+  }
+  return (
+    <a className="webAppDownloadLink webOnlyAppLink" href="/download">
+      <Download size={15} aria-hidden="true" />
+      دانلود اپلیکیشن فرفرو
+    </a>
+  );
+}
+
 function gateTagline({ authMode, signupStep, profileType, arrivalIntent }) {
   // Came from a salon/artist page to book, or from a salon's team link: say what the account is for.
   if (arrivalIntent?.kind === "open") {
@@ -449,10 +469,7 @@ export function AuthGateForms({
               ورود
             </button>
           </p>
-          <a className="webAppDownloadLink webOnlyAppLink" href="/download">
-            <Download size={15} aria-hidden="true" />
-            دانلود اپلیکیشن فرفرو
-          </a>
+          <AppDownloadCue />
         </div>
       )}
 
@@ -468,6 +485,7 @@ export function AuthGateForms({
             ثبت‌نام کن
           </button>
         </p>
+        <AppDownloadCue />
         </>
         )
       ) : signupStep !== "form" ? null : (

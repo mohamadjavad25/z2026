@@ -1,7 +1,7 @@
 import Link from "next/link";
 import QRCode from "qrcode";
 import { Check, Palette, Search, Store } from "lucide-react";
-import { ANDROID_APK_URL, ANDROID_APP_VERSION, DOWNLOAD_PAGE_URL } from "./constants";
+import { ANDROID_APK_URL, ANDROID_APP_VERSION, APP_DOWNLOADS_OPEN, DOWNLOAD_PAGE_URL } from "./constants";
 import { EnterAppButton } from "./EnterAppButton";
 import { HeroFilm } from "./HeroFilm";
 import { ScanToOpen } from "./ScanToOpen";
@@ -12,6 +12,8 @@ import { ServiceIcon } from "../../components/ServiceIcon";
  * until the visitor taps «ورود به فرفرو», and on large screens (tablet and desktop) in place
  * of every page but /admin, /terms and /privacy (see LargeScreenGate).
  * Server component: plain content; the only client part is the hero film (HeroFilm). Motion is CSS (landing.css).
+ * While APP_DOWNLOADS_OPEN is off it is shown on large screens only, with «به‌زودی» in place of every
+ * download link, and the install section explains adding the site to the home screen instead.
  * The «آموزش» tutorials player (LearnSection) is built but hidden for now (user's decision 2026-10-15).
  * Look: white and ink with pink and violet blended in (see the tokens at the top of landing.css).
  */
@@ -75,11 +77,14 @@ const PROMISES = [
   { title: "دسترسی کم", text: "نه مخاطبین، نه پیامک، نه فایل‌ها. دوربین و موقعیت فقط با اجازه تو." }
 ];
 
-const FAQ = [
+const DOWNLOAD_FAQ = [
   {
     q: "چرا گوشی موقع نصب هشدار می‌دهد؟",
     a: "اندروید برای نصب از خارج از فروشگاه هشدار می‌دهد؛ این هشدار مربوط به فرفرو نیست. فایل با امضای فرفرو امضا شده و فقط از frfro.ir دانلودش کن."
   },
+];
+
+const SHARED_FAQ = [
   {
     q: "اپ به چه چیزهایی دسترسی دارد؟",
     a: "فقط اینترنت، و با اجازه تو: دوربین (اسکن QR و عکس نمونه‌کار) و موقعیت (برای پیدا کردن سالن نزدیک). به مخاطبین، پیامک، تماس و فایل‌ها دسترسی ندارد."
@@ -87,12 +92,20 @@ const FAQ = [
   {
     q: "پرداخت داخل اپ هست؟",
     a: "برای مشتری نه. فرفرو فقط برای پیدا کردن و رزرو نوبت است؛ هزینه خدمت را در سالن می‌دهی."
-  },
-  {
-    q: "آیفون چه می‌شود؟",
-    a: "نسخهٔ App Store در راه است. فعلاً در Safari باز کن، «افزودن به صفحهٔ اصلی» را بزن؛ مثل یک اپ کامل باز می‌شود."
   }
 ];
+
+const IPHONE_FAQ = {
+  q: "آیفون چه می‌شود؟",
+  a: "نسخهٔ App Store در راه است. فعلاً در Safari باز کن، «افزودن به صفحهٔ اصلی» را بزن؛ مثل یک اپ کامل باز می‌شود."
+};
+
+const SOON_FAQ = {
+  q: "اپلیکیشن کی می‌آید؟",
+  a: "اپ اندروید و آیفون به‌زودی منتشر می‌شود. تا آن موقع frfro.ir را در مرورگر گوشی باز کن و به صفحهٔ اصلی اضافه کن؛ مثل یک اپ کامل باز می‌شود."
+};
+
+const FAQ = APP_DOWNLOADS_OPEN ? [...DOWNLOAD_FAQ, ...SHARED_FAQ, IPHONE_FAQ] : [SOON_FAQ, ...SHARED_FAQ];
 
 async function downloadQrSvg() {
   try {
@@ -119,6 +132,14 @@ function AppleIcon() {
 }
 
 function DownloadButtons({ tone = "light" }) {
+  if (!APP_DOWNLOADS_OPEN) {
+    return (
+      <div className={`appLanding__appSoon is-${tone}`}>
+        <strong>اپلیکیشن فرفرو به‌زودی</strong>
+        <span>تا آن موقع فرفرو را در مرورگر گوشی باز کن.</span>
+      </div>
+    );
+  }
   return (
     <div className={`appLanding__buttons is-${tone}`}>
       <a className="appLanding__store is-primary" href={ANDROID_APK_URL} download="frfro.apk">
@@ -175,7 +196,11 @@ export async function AppLanding() {
           <a href="#install">نصب</a>
           <a href="#faq">سؤال‌ها</a>
         </nav>
-        <a className="appLanding__navCta" href={ANDROID_APK_URL} download="frfro.apk">دانلود اپ</a>
+        {APP_DOWNLOADS_OPEN ? (
+          <a className="appLanding__navCta" href={ANDROID_APK_URL} download="frfro.apk">دانلود اپ</a>
+        ) : (
+          <span className="appLanding__navCta is-soon">اپ به‌زودی</span>
+        )}
       </header>
 
       <section className="appLanding__hero">
@@ -194,7 +219,9 @@ export async function AppLanding() {
             <ScanToOpen />
             <DownloadButtons />
             <EnterAppButton className="appLanding__enter">یا ورود به فرفرو در مرورگر ←</EnterAppButton>
-            <p className="appLanding__note">نسخهٔ اندروید {ANDROID_APP_VERSION} · رایگان برای مشتری · بدون پرداخت داخل برنامه</p>
+            <p className="appLanding__note">
+              {APP_DOWNLOADS_OPEN ? `نسخهٔ اندروید ${ANDROID_APP_VERSION} · ` : ""}رایگان برای مشتری · بدون پرداخت داخل برنامه
+            </p>
           </div>
 
           <div className="appLanding__heroArt">
@@ -270,21 +297,35 @@ export async function AppLanding() {
           <header className="appLanding__head appLanding__reveal">
             <p className="appLanding__kicker">نصب</p>
             <h2>فرفرو را روی گوشی‌ات بیاور</h2>
+            {APP_DOWNLOADS_OPEN ? null : <p>اپلیکیشن به‌زودی منتشر می‌شود. تا آن موقع فرفرو را به صفحهٔ اصلی گوشی اضافه کن.</p>}
           </header>
           <div className="appLanding__install">
-            <article className="appLanding__guide appLanding__reveal">
-              <h3><AndroidIcon /> اندروید</h3>
-              <ol>
-                <li>دکمهٔ دانلود اندروید را بزن.</li>
-                <li>فایل <bdi>frfro.apk</bdi> را از اعلان دانلود یا فایل‌ها باز کن.</li>
-                <li>اجازهٔ «نصب برنامه‌های ناشناس» را بده و دوباره فایل را باز کن.</li>
-                <li>«نصب» را بزن. اگر Play Protect پرسید، «در هر صورت نصب شود» را بزن.</li>
-              </ol>
-              <a className="appLanding__store is-primary is-small" href={ANDROID_APK_URL} download="frfro.apk">
-                <AndroidIcon />
-                <span>دانلود فایل نصبی</span>
-              </a>
-            </article>
+            {APP_DOWNLOADS_OPEN ? (
+              <article className="appLanding__guide appLanding__reveal">
+                <h3><AndroidIcon /> اندروید</h3>
+                <ol>
+                  <li>دکمهٔ دانلود اندروید را بزن.</li>
+                  <li>فایل <bdi>frfro.apk</bdi> را از اعلان دانلود یا فایل‌ها باز کن.</li>
+                  <li>اجازهٔ «نصب برنامه‌های ناشناس» را بده و دوباره فایل را باز کن.</li>
+                  <li>«نصب» را بزن. اگر Play Protect پرسید، «در هر صورت نصب شود» را بزن.</li>
+                </ol>
+                <a className="appLanding__store is-primary is-small" href={ANDROID_APK_URL} download="frfro.apk">
+                  <AndroidIcon />
+                  <span>دانلود فایل نصبی</span>
+                </a>
+              </article>
+            ) : (
+              <article className="appLanding__guide appLanding__reveal">
+                <h3><AndroidIcon /> اندروید</h3>
+                <ol>
+                  <li><bdi>frfro.ir</bdi> را در Chrome باز کن.</li>
+                  <li>منوی سه‌نقطهٔ بالای صفحه را بزن.</li>
+                  <li>«افزودن به صفحهٔ اصلی» یا «نصب برنامه» را انتخاب کن.</li>
+                  <li>حالا فرفرو مثل یک اپ تمام‌صفحه باز می‌شود.</li>
+                </ol>
+                <p className="appLanding__soon">اپ اندروید به‌زودی.</p>
+              </article>
+            )}
             <article id="iphone" className="appLanding__guide appLanding__reveal">
               <h3><AppleIcon /> آیفون</h3>
               <ol>

@@ -152,6 +152,9 @@ html.native-app .webOnlyAppLink { display: none !important; }
   transition: transform var(--duration-fast) ease, box-shadow var(--duration-base) ease;
 }
 .appLanding__navCta:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(91, 63, 214, 0.35); }
+/* While downloads are closed (APP_DOWNLOADS_OPEN): a label, not a button. */
+.appLanding__navCta.is-soon { cursor: default; }
+.appLanding__navCta.is-soon:hover { transform: none; box-shadow: none; }
 
 /* ---------- Hero: white, with a pink and violet glow behind the phone ---------- */
 .appLanding__hero {
@@ -251,6 +254,22 @@ html.native-app .webOnlyAppLink { display: none !important; }
 .appLanding__buttons.is-dark .appLanding__store:hover { background: rgba(255, 255, 255, 0.08); }
 .appLanding__buttons.is-dark .appLanding__store.is-primary { background: #fff; border-color: #fff; color: var(--l-ink); }
 .appLanding__buttons.is-dark .appLanding__store.is-primary:hover { box-shadow: 0 14px 44px rgba(255, 134, 184, 0.45); }
+
+/* «اپلیکیشن فرفرو به‌زودی», in place of the download buttons while downloads are closed. */
+.appLanding__appSoon {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 12px 22px;
+  border-radius: 18px;
+  border: 1.5px dashed currentColor;
+  line-height: 1.5;
+}
+.appLanding__appSoon strong { font-size: 1.05rem; font-weight: 900; }
+.appLanding__appSoon span { font-size: 0.82rem; font-weight: 700; opacity: 0.75; }
+.appLanding__appSoon.is-light { color: var(--l-fg); }
+.appLanding__appSoon.is-dark { color: #fff; border-color: rgba(255, 255, 255, 0.45); }
 
 .appLanding__enter {
   display: inline-block;
@@ -777,6 +796,9 @@ html.native-app .webOnlyAppLink { display: none !important; }
 }
 
 .webAppDownloadLink:hover { opacity: 1; text-decoration: underline; }
+/* «به‌زودی: اپلیکیشن و وبلاگ فرفرو» in its place while downloads are closed: text, not a link. */
+.webAppSoon { margin-bottom: 0; font-weight: 700; opacity: 0.7; }
+.webAppSoon:hover { opacity: 0.7; text-decoration: none; }
 
 /* Pull-to-refresh in the app (components/PullToRefresh.jsx). */
 .pullRefresh {
