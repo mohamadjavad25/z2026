@@ -97,7 +97,7 @@ export function requestWaitNote(booking, now = new Date()) {
   if (!["درخواست", "تازه"].includes(booking?.status)) return "";
   const who = booking.bookingSource === "artist" ? "آرتیست" : "سالن";
   const windowMinutes = bookingWaitMinutes(booking);
-  if (windowMinutes === null) return `${who} تا قبل از نوبت وقت دارد جواب بدهد. اگر دیر شد، خودت لغوش کن.`;
+  if (windowMinutes === null) return `${who} تا قبل از نوبت (حداکثر ۲۴ ساعت) وقت دارد جواب بدهد. اگر دیر شد، خودت لغوش کن.`;
   const deadline = requestDeadlineLabel(booking.created_at || booking.createdAt, booking.booking_date || booking.date, booking.time, { now, windowMinutes });
   if (!deadline) return "";
   const backup = booking.fallback_name || "";

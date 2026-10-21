@@ -92,7 +92,7 @@ export const endTimeLabel = (time, minutes) => minutesToPersianTime(timeLabelToM
 
 /** The picks that count as the form's state; every change that can alter what is free clears what was chosen after it. */
 export function createState({ selected = [], day = "", name = "", phone = "" } = {}) {
-  return { selected, day, time: "", name, phone, staff: {}, wait: "open", backup: "" };
+  return { selected, day, time: "", name, phone, staff: {}, wait: "hour", backup: "" };
 }
 export const withSelection = (state, selected) => ({ ...state, selected, time: "", staff: {} });
 export const withDay = (state, day) => (state.day === day ? state : { ...state, day, time: "", staff: {} });

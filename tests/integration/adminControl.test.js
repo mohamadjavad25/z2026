@@ -50,7 +50,7 @@ describe("admin control room: settings, broadcast, health, reports, bulk actions
     } finally {
       expect((await fetchPut(admin, { key: "signups", value: SIGNUPS_OPEN })).ok).toBe(true);
     }
-    await registerUser(createClient(), { type: "salon", name: "Open Again Salon" });
+    await registerUser(createClient(), { type: "salon", menu: true, name: "Open Again Salon" });
   });
 
   it("saves canned support replies", async () => {
@@ -65,6 +65,7 @@ describe("admin control room: settings, broadcast, health, reports, bulk actions
   it("broadcasts to a segment only after a password re-check, and refuses a double send", async () => {
     const admin = await enrolledAdminClient(TEST_ADMIN6_PHONE);
     const salonClient = createClient();
+    // no services on purpose: the «incomplete» segment is accounts that have not added any
     await registerUser(salonClient, { type: "salon", name: "Broadcast Salon" });
 
     const reach = await admin.get("/api/admin/broadcast?segment=incomplete");
@@ -126,7 +127,7 @@ describe("admin control room: settings, broadcast, health, reports, bulk actions
   it("hides posts in bulk and still shows the admin their picture", async () => {
     const admin = await adminClient();
     const artist = createClient();
-    await registerUser(artist, { type: "artist", name: "Bulk Post Artist" });
+    await registerUser(artist, { type: "artist", menu: true, name: "Bulk Post Artist" });
     const ids = [];
     for (const title of ["پست گروهی یک", "پست گروهی دو"]) ids.push((await artist.post("/api/posts", { title, tag: "ناخن", caption: "x", image: PNG })).payload.data.post.id);
     expect((await admin.post("/api/admin/posts/bulk", { ids, action: "hide" })).payload.data.changed).toBe(2);
@@ -144,7 +145,7 @@ describe("admin control room: settings, broadcast, health, reports, bulk actions
   it("opens one booking with both people and cancels it with a reason", async () => {
     const admin = await adminClient();
     const salonClient = createClient();
-    const salon = await registerUser(salonClient, { type: "salon", name: "Cancel Test Salon" });
+    const salon = await registerUser(salonClient, { type: "salon", menu: true, name: "Cancel Test Salon" });
     await salonClient.get("/api/salon-hours");
     const bookerClient = createClient();
     const booker = await registerUser(bookerClient, { type: "client", name: "Cancel Test Booker" });

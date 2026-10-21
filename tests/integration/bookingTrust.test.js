@@ -45,6 +45,8 @@ describe("a client cannot decide how a booking is laid out", () => {
       });
       expect(res.status, JSON.stringify(extra)).toBe(201);
       expect(Number(res.payload.data.booking.duration_minutes), JSON.stringify(extra)).toBe(45);
+      // a client keeps at most 3 open requests with one salon (decision 2026-10-21)
+      expect((await ctx.clientClient.post(`/api/salon-bookings/${res.payload.data.booking.id}/cancel`, {})).status).toBe(200);
     }
   });
 

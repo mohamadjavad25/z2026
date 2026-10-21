@@ -196,7 +196,7 @@ describe("a staff member / team artist is removed while bookings with them exist
     expect(row.status).toBe("لغو");
   });
 
-  it("a deleted service: existing bookings stay listed, confirmable and cancellable", async () => {
+  it("a deleted service: existing bookings stay listed and cancellable, but a waiting request can no longer be approved (decision 2026-10-21)", async () => {
     const salon = await newSalon("Svc Salon");
     const client = await newClient();
     const svc = await salon.api.post("/api/salon-services", { name: "خدمت موقت", price: "۱۰۰", duration: "۶۰ دقیقه", emoji: "gem" });
@@ -207,7 +207,9 @@ describe("a staff member / team artist is removed while bookings with them exist
     expect((await salon.api.delete("/api/salon-services", { id: svc.payload.data.service.id })).status).toBe(200);
     expect((await salon.api.get("/api/salon-bookings")).status).toBe(200);
     expect((await client.api.get("/api/client-bookings")).status).toBe(200);
-    expect((await salon.api.patch("/api/salon-bookings", { id: made.payload.data.booking.id, status: "تایید شده" })).status).toBe(200);
+    const approve = await salon.api.patch("/api/salon-bookings", { id: made.payload.data.booking.id, status: "تایید شده" });
+    expect(approve.status).toBe(409);
+    expect(approve.payload.code).toBe("REQUEST_NOT_POSSIBLE");
     expect((await client.api.post(`/api/salon-bookings/${made.payload.data.booking.id}/cancel`, {})).status).toBe(200);
   });
 });

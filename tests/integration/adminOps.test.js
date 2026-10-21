@@ -21,7 +21,7 @@ describe("admin panel: users, content, bookings, security", () => {
   it("shows an account's detail and can sign it out everywhere", async () => {
     const admin = await adminClient();
     const target = createClient();
-    const user = await registerUser(target, { type: "artist", name: "Detail Target" });
+    const user = await registerUser(target, { type: "artist", menu: true, name: "Detail Target" });
     const detail = await admin.get(`/api/admin/users/${user.user.id}`);
     expect(detail.ok).toBe(true);
     expect(detail.payload.data.user.phone).toBe(user.phone);
@@ -37,7 +37,7 @@ describe("admin panel: users, content, bookings, security", () => {
   it("moderates posts: hide/show freely, delete only after a password re-check", async () => {
     const admin = await adminClient();
     const artist = createClient();
-    await registerUser(artist, { type: "artist", name: "Moderated Artist" });
+    await registerUser(artist, { type: "artist", menu: true, name: "Moderated Artist" });
     const created = await artist.post("/api/posts", { title: "پست قابل بررسی", tag: "ناخن", caption: "x", image: PNG });
     const postId = created.payload.data.post.id;
 
@@ -81,7 +81,7 @@ describe("admin panel: users, content, bookings, security", () => {
   it("lists bookings across salons and artists, filterable by status and text", async () => {
     const admin = await adminClient();
     const salonClient = createClient();
-    const salon = await registerUser(salonClient, { type: "salon", name: "Admin View Salon" });
+    const salon = await registerUser(salonClient, { type: "salon", menu: true, name: "Admin View Salon" });
     await salonClient.get("/api/salon-hours");
     const bookerClient = createClient();
     const booker = await registerUser(bookerClient, { type: "client", name: "Admin View Booker" });

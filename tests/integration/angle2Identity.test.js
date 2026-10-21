@@ -125,7 +125,7 @@ describe("same-name accounts", () => {
   it("two salons / a salon and an artist cannot share a name, even with different spacing, emoji or Arabic letter forms; two clients may", async () => {
     const name = `نام یکتا ${Date.now() % 100000}`;
     const a = createClient();
-    await registerUser(a, { type: "salon", name });
+    await registerUser(a, { type: "salon", menu: true, name });
     const variants = [name.toUpperCase(), `${name} 💇`, name.replace(/ی/g, "ي"), name.replace(/ /g, "")];
     const problems = [];
     for (const variant of variants) {

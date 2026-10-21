@@ -330,7 +330,7 @@ describe("booking days never double up", () => {
 
   it("an independent artist's slot taken by two clients at once goes to one of them", async () => {
     const artistClient = createClient();
-    const artist = await registerUser(artistClient, { type: "artist", name: "Solo Artist" });
+    const artist = await registerUser(artistClient, { type: "artist", name: "Solo Artist", menu: [["ابرو", "30 دقیقه"]] });
     const day = futureBookingDay(8);
     const clients = [];
     for (let i = 0; i < 4; i += 1) {

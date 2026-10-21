@@ -57,7 +57,7 @@ export function PublicArtistModal({
 }) {
   const [bookingPopup, setBookingPopup] = useState(false);
   // How long the request waits for the artist: until the appointment (default) or an hour.
-  const [wait, setWait] = useState("open");
+  const [wait, setWait] = useState("hour");
   const [servicesOpen, setServicesOpen] = useState(false);
   // Several services picked together: one service-shaped bundle (shared/lib/serviceBundle).
   const [bundle, setBundle] = useState(null);

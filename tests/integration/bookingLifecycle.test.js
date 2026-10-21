@@ -30,12 +30,12 @@ const startedFiveMinutesAgo = async (table, id) => { await connected; await db.q
 
 async function newSalon(name, { withArtist = false } = {}) {
   const salonClient = createClient();
-  const salon = await registerUser(salonClient, { type: "salon", name: `${name} Salon` });
+  const salon = await registerUser(salonClient, { type: "salon", menu: true, name: `${name} Salon` });
   await salonClient.get("/api/salon-hours");
   const ctx = { salonClient, salon };
   if (withArtist) {
     ctx.artistClient = createClient();
-    ctx.artist = await registerUser(ctx.artistClient, { type: "artist", name: `${name} Staff` });
+    ctx.artist = await registerUser(ctx.artistClient, { type: "artist", menu: true, name: `${name} Staff` });
     expect((await joinSalonAsArtist(ctx.artistClient, salonClient, salon.user.id)).ok).toBe(true);
     ctx.staffName = (await salonClient.get("/api/salon-staff")).payload.data.staff[0].name;
   }
@@ -58,7 +58,7 @@ const clientSalonRow = async (who, id) => (await who.api.get("/api/salon-booking
 
 async function newDirectArtist(name, settings = {}) {
   const artistClient = createClient();
-  const artist = await registerUser(artistClient, { type: "artist", name });
+  const artist = await registerUser(artistClient, { type: "artist", menu: true, name });
   if (Object.keys(settings).length) await artistClient.post("/api/profile/settings", { settings });
   return { artistClient, artist };
 }

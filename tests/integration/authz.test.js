@@ -4,7 +4,7 @@ import { createClient, registerUser, futureBookingDay } from "./helpers.js";
 describe("ownership scoping (IDOR checks)", () => {
   it("a salon cannot PATCH another salon's booking by guessing its id", async () => {
     const salonAClient = createClient();
-    const salonA = await registerUser(salonAClient, { type: "salon", name: "Salon A" });
+    const salonA = await registerUser(salonAClient, { type: "salon", menu: true, name: "Salon A" });
     await salonAClient.get("/api/salon-hours");
 
     const bookerClient = createClient();
@@ -21,7 +21,7 @@ describe("ownership scoping (IDOR checks)", () => {
     const bookingId = created.payload.data.booking.id;
 
     const salonBClient = createClient();
-    await registerUser(salonBClient, { type: "salon", name: "Salon B" });
+    await registerUser(salonBClient, { type: "salon", menu: true, name: "Salon B" });
     const hijackAttempt = await salonBClient.patch("/api/salon-bookings", {
       id: bookingId,
       status: "تایید شده"

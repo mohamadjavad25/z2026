@@ -14,7 +14,7 @@ async function sweep(now) {
 
 async function confirmedBooking({ time, remindersOn = true }) {
   const salonClient = createClient();
-  const salon = await registerUser(salonClient, { type: "salon", name: "Reminder Salon" });
+  const salon = await registerUser(salonClient, { type: "salon", menu: true, name: "Reminder Salon" });
   await salonClient.get("/api/salon-hours");
   const clientApi = createClient();
   const booker = await registerUser(clientApi, { type: "client", name: "Reminder Client" });
@@ -54,7 +54,7 @@ describe("booking reminders", () => {
 
   it("sends nothing for a booking that is not confirmed", async () => {
     const salonClient = createClient();
-    const salon = await registerUser(salonClient, { type: "salon", name: "Pending Salon" });
+    const salon = await registerUser(salonClient, { type: "salon", menu: true, name: "Pending Salon" });
     await salonClient.get("/api/salon-hours");
     const clientApi = createClient();
     const booker = await registerUser(clientApi, { type: "client" });

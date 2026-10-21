@@ -91,8 +91,10 @@ describe("booking flow (browser)", () => {
     // the button says "checking" until the server has confirmed who does what at that time
     await cp.locator(".vbPlanRow").first().waitFor();
     await cp.getByRole("button", { name: /ارسال درخواست/ }).waitFor();
-    // how long to wait for the salon: «صبر می‌کنم» unless the client picks the hour
+    // how long to wait for the salon: «فقط ۱ ساعت» unless the client picks to wait (decision 2026-10-21)
     const waitChoice = cp.locator(".wc");
+    expect(await waitChoice.getByRole("radio", { name: /فقط ۱ ساعت/ }).getAttribute("aria-checked")).toBe("true");
+    await waitChoice.getByRole("radio", { name: /صبر می‌کنم/ }).click();
     expect(await waitChoice.getByRole("radio", { name: /صبر می‌کنم/ }).getAttribute("aria-checked")).toBe("true");
     await waitChoice.getByRole("radio", { name: /فقط ۱ ساعت/ }).click();
     expect(await waitChoice.getByRole("radio", { name: /فقط ۱ ساعت/ }).getAttribute("aria-checked")).toBe("true");
@@ -159,12 +161,14 @@ describe("booking flow (browser)", () => {
     expect(await cp.locator(".vbPlanRow").count()).toBe(2);
     await cp.locator(".vbTime.is-on").waitFor();
     await cp.getByRole("button", { name: /ارسال درخواست/ }).waitFor();
+    // the default is one hour (decision 2026-10-21); this flow picks «صبر می‌کنم» (until the appointment, at most 24 hours)
+    await cp.getByRole("radio", { name: /صبر می‌کنم/ }).click();
     await cp.locator(".vbSubmit").click();
-    // left on «صبر می‌کنم»: no countdown, just what happens if it takes long
+    // chosen «صبر می‌کنم»: no countdown, just what happens if it takes long
     const receipt = cp.locator(".brScreen");
     await receipt.waitFor();
     expect(await receipt.locator(".brCount").count()).toBe(0);
-    expect(await receipt.locator(".brWaitNote").innerText()).toContain("تا قبل از نوبت وقت دارد جواب بدهد");
+    expect(await receipt.locator(".brWaitNote").innerText()).toContain("تا قبل از نوبت (حداکثر ۲۴ ساعت) وقت دارد جواب بدهد");
     await cp.locator(".cbt.is-wait").waitFor({ state: "attached" });
     expect(clientView.problems).toEqual([]);
 
@@ -222,7 +226,7 @@ describe("booking flow (browser)", () => {
 
   it("an artist answers a new booking right on their bookings tab", async () => {
     const artistApi = createClient();
-    const artist = await registerUser(artistApi, { type: "artist", name: "آرتیست تست" });
+    const artist = await registerUser(artistApi, { type: "artist", name: "آرتیست تست", menu: [["کوتاهی", "30 دقیقه"]] });
     const clientApi = createClient();
     await registerUser(clientApi, { type: "client", name: "مشتری مستقیم" });
     const created = await clientApi.post("/api/artist/bookings", {

@@ -40,7 +40,7 @@ export function pickDay({ min = 2, max = 14, exclude = [] } = {}) {
 
 export async function newSalon(name = "Angle2 Salon") {
   const api = createClient();
-  const reg = await registerUser(api, { type: "salon", name });
+  const reg = await registerUser(api, { type: "salon", name, menu: true });
   await api.get("/api/salon-hours");
   return { api, ...reg, id: reg.user.id };
 }
@@ -51,7 +51,7 @@ export async function newClient(name = "Angle2 Client", opts = {}) {
 }
 export async function newArtist(name = "Angle2 Artist") {
   const api = createClient();
-  const reg = await registerUser(api, { type: "artist", name });
+  const reg = await registerUser(api, { type: "artist", name, menu: true });
   return { api, ...reg, id: reg.user.id };
 }
 

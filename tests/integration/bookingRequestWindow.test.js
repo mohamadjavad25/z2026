@@ -21,7 +21,7 @@ describe("a client can't request a time that starts too soon", () => {
   it("salon: refused with TOO_SOON, other reasons stay unchanged", async () => {
     if (nearMidnight()) return;
     const salonClient = createClient();
-    const salon = await registerUser(salonClient, { type: "salon", name: "Soon Salon" });
+    const salon = await registerUser(salonClient, { type: "salon", menu: true, name: "Soon Salon" });
     await salonClient.get("/api/salon-hours");
     const clientApi = createClient();
     const client = await registerUser(clientApi, { type: "client", name: "Soon Client" });
@@ -41,7 +41,7 @@ describe("a client can't request a time that starts too soon", () => {
   it("artist: a client is refused, the artist's own entry is not", async () => {
     if (nearMidnight()) return;
     const artistClient = createClient();
-    const artist = await registerUser(artistClient, { type: "artist", name: "Soon Artist" });
+    const artist = await registerUser(artistClient, { type: "artist", menu: true, name: "Soon Artist" });
     const clientApi = createClient();
     await registerUser(clientApi, { type: "client", name: "Soon Booker" });
     const body = (time) => ({ artistUserId: artist.user.id, service: "ناخن", bookingDate: today(), time });
@@ -60,7 +60,7 @@ describe("a client can't request a time that starts too soon", () => {
 describe("the sweep closes a request at the earlier of: an hour after sending, or the appointment start", () => {
   async function pending(name) {
     const salonClient = createClient();
-    const salon = await registerUser(salonClient, { type: "salon", name: `${name} Salon` });
+    const salon = await registerUser(salonClient, { type: "salon", menu: true, name: `${name} Salon` });
     await salonClient.get("/api/salon-hours");
     const clientApi = createClient();
     const client = await registerUser(clientApi, { type: "client", name: `${name} Client` });

@@ -150,7 +150,7 @@ export function BookingReceipt({ receipt, bookings = [], onClose, onViewBookings
         {waitsOpen ? (
           <p className="brWaitNote">
             <Clock3 size={15} aria-hidden="true" />
-            {who} تا قبل از نوبت وقت دارد جواب بدهد. اگر دیر شد، از «نوبت‌های من» لغوش کن.
+            {who} تا قبل از نوبت (حداکثر ۲۴ ساعت) وقت دارد جواب بدهد. اگر دیر شد، از «نوبت‌های من» لغوش کن.
           </p>
         ) : null}
 
