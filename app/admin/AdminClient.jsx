@@ -156,7 +156,7 @@ function AdminApp({ theme, onToggleTheme }) {
     <div className="admShell">
       <AdminSidebar sections={SECTIONS} active={tab} onSelect={(id) => go(id)} name={me.name} onLogout={logout} theme={theme} onToggleTheme={onToggleTheme} badges={badges} />
       <main className="adm" id="admMain">
-        <AdminTopbar tab={tab} name={me.name} onOpenPalette={() => setPaletteOpen(true)} onOpenHelp={() => setHelpOpen(true)} onGo={go} badges={badges} />
+        <AdminTopbar onOpenPalette={() => setPaletteOpen(true)} onOpenHelp={() => setHelpOpen(true)} onGo={go} badges={badges} />
         <Page key={n} intent={params} onGo={go} setParam={setParam} onChanged={refresh} name={me.name} />
       </main>
       {paletteOpen ? <CommandPalette onClose={() => setPaletteOpen(false)} onGo={go} onToggleTheme={onToggleTheme} onLogout={logout} onOpenHelp={() => setHelpOpen(true)} /> : null}

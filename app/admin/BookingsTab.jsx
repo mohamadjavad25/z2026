@@ -197,7 +197,6 @@ export function BookingsTab({ intent = {}, onGo, setParam }) {
         open={Boolean(selected)}
         onClose={() => setSelected(null)}
         label="جزئیات رزرو"
-        emptyHint="روی یک رزرو بزن تا هر دو طرف، زمان و ابزار لغو را ببینی."
         detail={selected ? <BookingDetail key={selected} kind={selKind} id={selId} onGo={onGo} onChanged={reload} /> : null}
       />
     </>

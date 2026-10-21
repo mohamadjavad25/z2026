@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { Activity, BarChart3, CalendarCheck, CircleCheck, CreditCard, Download, Image as ImageIcon, Megaphone, RefreshCw, ShieldCheck, ToggleRight, TriangleAlert, UserPlus, Users } from "lucide-react";
+import { Activity, CalendarCheck, CircleCheck, CreditCard, Image as ImageIcon, RefreshCw, ShieldCheck, TriangleAlert, UserPlus, Users } from "lucide-react";
 import { toPersianDigits } from "../shared/lib/digits";
 import { Button } from "../components/ui";
 import { ACTION_LABEL, BOOKING_TONE, TYPE_LABEL, ago, num } from "./format";
-import { ErrorNote, Loading, Segmented, exportCsv, useAdminData } from "./ui";
+import { ErrorNote, Loading, Segmented, useAdminData } from "./ui";
 
 const SERIES = [
   { key: "signups", label: "ثبت‌نام", color: "var(--a-s1)", dash: "" },
@@ -244,16 +244,9 @@ function useSince(at) {
   return at ? Math.max(0, Math.round((Date.now() - at) / 1000)) : null;
 }
 
-const QUICK = [
-  { id: "broadcast", label: "پیام همگانی", icon: Megaphone, go: ["broadcast"] },
-  { id: "notice", label: "اعلان بالای اپ", icon: ToggleRight, go: ["settings", { focus: "notice" }] },
-  { id: "reports", label: "گزارش‌ها", icon: BarChart3, go: ["reports"] },
-  { id: "export", label: "خروجی کاربران", icon: Download, run: () => exportCsv("users") }
-];
-
 /**
- * The admin home: a greeting, a live strip (who is online, what is waiting), things that need attention, numbers vs the
- * previous period, trend, a 7-day forecast and recent activity. Refreshes itself every minute while the tab is open.
+ * The admin home: a greeting, a live strip (who is online), things that need attention, numbers vs the
+ * previous period, the trend and recent activity. Refreshes itself every minute while the tab is open.
  */
 export function Dashboard({ onGo, name }) {
   const [days, setDays] = useState(7);
@@ -281,7 +274,7 @@ export function Dashboard({ onGo, name }) {
 
   if (!data) return <div className="admDash">{hello}{error ? <ErrorNote error={error} onRetry={reload} /> : <Loading />}</div>;
 
-  const { kpis, totals, series, alerts, forecast, live = {} } = data;
+  const { kpis, totals, series, alerts, live = {} } = data;
   const attention = [
     { n: alerts.openTickets, text: "پیام یا گزارش پشتیبانی منتظر پاسخ توست", go: "support", tone: "warn" },
     { n: live.waitingBookings, text: "درخواست رزرو هنوز جواب سالن یا آرتیست را نگرفته", go: ["bookings", { status: "درخواست" }], tone: "info" },
@@ -300,15 +293,7 @@ export function Dashboard({ onGo, name }) {
       <div className="admLiveStrip">
         <div><span className="admLiveDot" aria-hidden="true" /><b>{num(live.online)}</b><small>الان آنلاین</small></div>
         <div><b>{num(live.signupsToday)}</b><small>ثبت‌نام در ۲۴ ساعت</small></div>
-        <div><b>{num(totals.users)}</b><small>کل کاربران</small></div>
         <div><b>{num(alerts.suspended)}</b><small>حساب مسدود</small></div>
-        <div className="admQuick">
-          {QUICK.map((item) => (
-            <button key={item.id} type="button" onClick={() => (item.run ? item.run() : onGo(...item.go))}>
-              <item.icon size={16} aria-hidden="true" /> {item.label}
-            </button>
-          ))}
-        </div>
       </div>
 
       {attention.length ? (
@@ -334,7 +319,7 @@ export function Dashboard({ onGo, name }) {
         <Kpi label="کاربران فعال" value={kpis.active.value} hint={`در ${toPersianDigits(days)} روز`} tint="var(--a-accent)" Icon={Activity} />
       </div>
 
-      <div className="admTwo">
+      <div className="admDash">
         <section className="admCard admChartCard">
           <div className="admChartHead">
             <h2>روند ثبت‌نام و رزرو</h2>
@@ -359,14 +344,6 @@ export function Dashboard({ onGo, name }) {
           ) : <TrendChart series={series} />}
         </section>
 
-        <section className="admCard">
-          <h2>پیش‌بینی ۷ روز آینده</h2>
-          <div className="admForecast">
-            <div><small>ثبت‌نام جدید</small><b>≈ {num(forecast.signups)}</b></div>
-            <div><small>رزرو جدید</small><b>≈ {num(forecast.bookings)}</b></div>
-          </div>
-          <p className="admMuted">برآورد ساده بر پایهٔ روند {toPersianDigits(forecast.basedOnDays)} روز اخیر{forecast.reliable ? "." : "؛ داده هنوز کم است و دقتش پایین است."}</p>
-        </section>
       </div>
 
       <div className="admTwo">

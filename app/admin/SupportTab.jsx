@@ -271,7 +271,6 @@ export function SupportTab({ intent = {}, onChanged, onGo, setParam }) {
         open={Boolean(selected)}
         onClose={() => setSelected(null)}
         label="گفتگو"
-        emptyHint="یک پیام را از فهرست باز کن تا گفتگو و ابزارهای رسیدگی را ببینی."
         detail={selected ? <TicketDetail key={selected} id={selected} onChanged={changed} onGo={onGo} /> : null}
       />
     </>
