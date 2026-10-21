@@ -61,13 +61,20 @@ export function uniquePhone() {
 export async function registerUser(client, { type = "client", name = "Test User", password = "testpass123", phone: fixedPhone, verified = false } = {}) {
   // Files run in separate module registries, so two of them can draw the same random
   // number; a generated phone that is already taken is retried with a fresh one.
+  // Salon and artist names are one per account (app/lib/businessName.js) and every file shares one database,
+  // so a salon/artist name another test already took is retried with a number after it.
+  let tryName = name;
   for (let attempt = 0; ; attempt += 1) {
     const phone = fixedPhone || uniquePhone();
     // verified: prove the number with an SMS code first (the "test" provider keeps the code for the admin panel),
     // as a real sign-up does once codes are required.
     const otpProof = verified ? await phoneProof(phone) : undefined;
-    const res = await client.post("/api/auth/register", { phone, password, type, name, otpProof });
+    const res = await client.post("/api/auth/register", { phone, password, type, name: tryName, otpProof });
     if (res.ok) return { phone, password, user: res.payload.data.user };
+    if (res.payload?.code === "name_taken" && attempt < 8) {
+      tryName = `${name} ${phone.slice(-6)}`;
+      continue;
+    }
     const taken = res.status === 409 || /قبلاً ثبت شده/.test(res.payload?.error || "");
     if (fixedPhone || !taken || attempt >= 8) throw new Error(`registerUser failed: ${JSON.stringify(res.payload)}`);
   }

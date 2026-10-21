@@ -305,12 +305,15 @@ function SignupForm({ type, heroClass, authBusy, onBackToRole, onSwitchToLogin, 
   const formRef = useRef(null);
   const [codeStep, setCodeStep] = useState(false);
   const [phone, setPhone] = useState("");
+  const [name, setName] = useState("");
   const [proof, setProof] = useState("");
   const [verifying, setVerifying] = useState(false);
   const form = useAuthForm((data) => validateSignup(type, data), (event) => {
     // Once SMS is required, the first valid submit opens the code step; the second (after the code) creates the account.
     if (otp?.required && !proof) {
-      setPhone(toLatinDigits(String(new FormData(event.currentTarget).get("phone") || "").trim()));
+      const fields = new FormData(event.currentTarget);
+      setPhone(toLatinDigits(String(fields.get("phone") || "").trim()));
+      setName(String(fields.get("name") || "").trim());
       setCodeStep(true);
       return;
     }
@@ -356,10 +359,12 @@ function SignupForm({ type, heroClass, authBusy, onBackToRole, onSwitchToLogin, 
         <OtpCodeStep
           phone={phone}
           purpose="register"
+          sendExtra={{ type, name }}
           resendSeconds={otp.resendSeconds}
           submitLabel="تأیید و ساخت حساب"
           busy={verifying || authBusy}
           onEditPhone={() => { setCodeStep(false); setProof(""); }}
+          editLabel="ویرایش اسم یا شماره"
           onSubmit={async (code) => {
             setVerifying(true);
             const { ok, payload } = await verifyCode(phone, code);

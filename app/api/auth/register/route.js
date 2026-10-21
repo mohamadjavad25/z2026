@@ -18,6 +18,7 @@ import { otpConfig, verifyOtpProof } from "../../../lib/otp.js";
 import { isImageDataUrlInvalidType, isImageDataUrlTooLarge } from "../../../lib/mediaLimits.js";
 import { getSetting } from "../../../lib/db/repos/adminControl.js";
 import { toPersianDigits } from "../../../shared/lib/digits.js";
+import { hasUniqueName, NAME_TAKEN_MESSAGE } from "../../../lib/businessName.js";
 
 export const runtime = "nodejs";
 
@@ -81,6 +82,9 @@ async function _POST(request) {
     }
     if (await users.getUserByPhone(phone)) {
       return NextResponse.json({ error: "این شماره قبلاً ثبت شده است." }, { status: 409 });
+    }
+    if (hasUniqueName(type) && (await users.isBusinessNameTaken(data.name))) {
+      return NextResponse.json({ error: NAME_TAKEN_MESSAGE, code: "name_taken" }, { status: 409 });
     }
     // Same server-side checks /api/profile already applies to an avatar update --
     // an unauthenticated signup shouldn't be the one upload path without them.

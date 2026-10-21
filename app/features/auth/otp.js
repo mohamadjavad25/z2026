@@ -25,6 +25,7 @@ export function useCountdown(seconds) {
   return { left, restart: () => setLeft(seconds) };
 }
 
-export const sendCode = (phone, purpose) => apiFetch("/api/auth/otp/send", { method: "POST", body: JSON.stringify({ phone, purpose }) });
+/** `extra` is the sign-up's { type, name }, so a taken salon/artist name is caught before the SMS goes out. */
+export const sendCode = (phone, purpose, extra = {}) => apiFetch("/api/auth/otp/send", { method: "POST", body: JSON.stringify({ ...extra, phone, purpose }) });
 export const verifyCode = (phone, code) => apiFetch("/api/auth/otp/verify", { method: "POST", body: JSON.stringify({ phone, code }) });
 export const confirmReset = (body) => apiFetch("/api/auth/password-reset/confirm", { method: "POST", body: JSON.stringify(body) });
