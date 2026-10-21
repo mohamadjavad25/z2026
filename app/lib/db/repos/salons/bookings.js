@@ -1290,7 +1290,9 @@ async function patchSalonBookingUncached(id, salonUserId, data, options = {}) {
         }
       } else if (oldArtistId && newArtistId && oldArtistId === newArtistId) {
         if (oldArtistBooking) {
-          if (await artists.isArtistSlotBlocked(
+          // Closing a request (expired) takes nothing, so another live request on the same time (made after this
+          // one's hour ran out) must not stop it from being closed.
+          if (next.status !== "منقضی شده" && await artists.isArtistSlotBlocked(
             newArtistId,
             next.booking_date,
             next.time,
