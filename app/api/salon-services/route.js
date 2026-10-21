@@ -1,5 +1,5 @@
 import { error, json, notFound, requireUserRole, withErrorHandling, readObjectBody } from "../../lib/http.js";
-import { serviceFieldsProblem } from "../../lib/validation/service.js";
+import { SERVICE_LIMIT_MESSAGE, serviceFieldsProblem } from "../../lib/validation/service.js";
 import * as salons from "../../lib/db/repos/salons.js";
 
 export const runtime = "nodejs";
@@ -17,6 +17,7 @@ async function _POST(request) {
   const problem = serviceFieldsProblem(body);
   if (problem) return error(problem, 400);
   const service = await salons.addSalonService(auth.user.id, body);
+  if (service?.limit) return json({ error: SERVICE_LIMIT_MESSAGE, code: "SERVICE_LIMIT" }, { status: 409 });
   return json({ data: { service } }, { status: 201 });
 }
 

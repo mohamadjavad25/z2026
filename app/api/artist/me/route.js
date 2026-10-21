@@ -11,7 +11,7 @@ import { lockArtistDays, lockSalonDay } from "../../../lib/db/locks.js";
 import { artistRequestLapsedSql } from "../../../lib/db/repos/openRequests.js";
 import { isSlotInPast } from "../../../shared/lib/slots.js";
 import { AWAITING_CLIENT } from "../../../shared/lib/bookingOffer.js";
-import { serviceFieldsProblem } from "../../../lib/validation/service.js";
+import { SERVICE_LIMIT_MESSAGE, serviceFieldsProblem } from "../../../lib/validation/service.js";
 import { readBookingSlot } from "../../../lib/validation/bookingSlot.js";
 import { parseRequestedMinutes } from "../../../lib/validation/numbers.js";
 import { smsBookingAnswer } from "../../../lib/bookingSms.js";
@@ -96,6 +96,7 @@ async function _POST(request) {
   const problem = serviceFieldsProblem(body);
   if (problem) return error(problem, 400);
   const service = await artists.addArtistService(auth.user.id, body);
+  if (service?.limit) return json({ error: SERVICE_LIMIT_MESSAGE, code: "SERVICE_LIMIT" }, { status: 409 });
   return json({ data: { service } }, { status: 201 });
 }
 

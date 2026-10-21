@@ -51,7 +51,8 @@ export function smsNewBookingRequest(providerUserId, { client, service, bookingD
       if (!limited.ok) return;
     }
     const phone = await phoneOf(providerUserId);
-    const who = [client, service].map((part) => String(part || "").trim()).filter(Boolean).join("، ") || "مشتری";
+    // The client's free-text name is cut to 30 characters: a long one would make the text long and costly.
+    const who = [String(client || "").trim().slice(0, 30), service].map((part) => String(part || "").trim()).filter(Boolean).join("، ") || "مشتری";
     await sendTemplateSms(phone, "booking_request", {
       who,
       day: dayLabel(bookingDate),

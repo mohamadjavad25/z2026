@@ -20,6 +20,7 @@ import { getSettings, DEFAULT_SETTINGS } from "./userSettings.js";
 import { publicLocation } from "../../location.js";
 import { listArtistHoursPublic } from "./artists/hours.js";
 import { onlineBookingBlock, withoutHiddenProviders } from "../../billing/access.js";
+import { MAX_SERVICES_PER_PROVIDER } from "../../validation/service.js";
 
 export { ensureArtistHours, listArtistHours, updateArtistHour } from "./artists/hours.js";
 
@@ -32,22 +33,27 @@ export async function listArtistServices(userId, runner = null) {
 }
 
 export async function addArtistService(userId, data) {
-  const db = await getDb();
-  const info = await run(db, `
-    INSERT INTO artist_services (user_id, name, price, duration, hint, badge, tone, emoji)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-    RETURNING id
-  `, [
-    userId,
-    data.name || "",
-    data.price || "",
-    data.duration || "",
-    data.hint || "",
-    data.badge || "",
-    data.tone || "soft",
-    normalizeServiceEmoji(data.emoji)
-  ]);
-  return get(db, "SELECT * FROM artist_services WHERE id = $1", [Number(info.rows[0].id)]);
+  // Counted and inserted under one lock per artist, so parallel requests can't slip past the cap.
+  return withTransaction(null, async (db) => {
+    await run(db, "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", [`artist-services:${Number(userId)}`]);
+    const count = await get(db, "SELECT COUNT(*)::int AS n FROM artist_services WHERE user_id = $1", [userId]);
+    if (count.n >= MAX_SERVICES_PER_PROVIDER) return { limit: true };
+    const info = await run(db, `
+      INSERT INTO artist_services (user_id, name, price, duration, hint, badge, tone, emoji)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING id
+    `, [
+      userId,
+      data.name || "",
+      data.price || "",
+      data.duration || "",
+      data.hint || "",
+      data.badge || "",
+      data.tone || "soft",
+      normalizeServiceEmoji(data.emoji)
+    ]);
+    return get(db, "SELECT * FROM artist_services WHERE id = $1", [Number(info.rows[0].id)]);
+  });
 }
 
 export async function updateArtistService(id, userId, data) {
