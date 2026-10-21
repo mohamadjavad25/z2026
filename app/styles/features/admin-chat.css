@@ -73,14 +73,6 @@
 .admMsg.is-admin .admBubble small { color: color-mix(in srgb, var(--a-accent) 70%, var(--a-muted)); }
 .admThreadEmpty { margin: auto; }
 
-/* composer */
-.admComposer { display: grid; gap: 8px; padding: 10px var(--space-4) 12px; border-top: 1px solid var(--a-line); background: color-mix(in srgb, var(--a-card) 60%, var(--a-bg2)); }
-.admComposer .ui-field { margin: 0; }
-.admRoot .admComposer .ui-field textarea { min-height: 52px; max-height: 180px; padding: 12px 14px; border-radius: 14px; resize: none; }
-.admComposerBar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.admComposerHint { margin-inline-start: auto; display: inline-flex; align-items: center; gap: 8px; color: var(--a-faint); font-size: 0.7rem; font-weight: 700; }
-.admComposerHint .admCounter { justify-self: auto; }
-.admChipLink.is-on { background: var(--a-violet-soft); color: var(--a-violet); }
 
 /* ready replies popover */
 .admReplyPicker { position: relative; }
@@ -121,7 +113,6 @@
   .admConvBack { display: inline-grid; }
   .admConvTools .ui-btn { padding-inline: 10px; }
   .admBubble { max-width: 86%; }
-  .admComposerHint { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { .admReplyPop { animation: none; } }
 
@@ -174,20 +165,6 @@
   .admConvInfo { padding: 12px 14px calc(24px + env(safe-area-inset-bottom)); }
   .admInfoBack { display: inline-flex; justify-self: start; }
 
-  /* composer: [attach] [replies] [ field ........ ] [send] */
-  .admComposer { grid-template-columns: auto auto minmax(0, 1fr) auto; align-items: end; gap: 8px; padding: 8px 10px calc(8px + env(safe-area-inset-bottom)); }
-  .admComposerBar { display: contents; }
-  .admComposer > .scAttachField { grid-column: 1 / -1; order: -1; }
-  .admComposer > .ui-field { grid-column: 3; order: 3; }
-  .admComposerBar > .admChipLink { order: 1; }
-  .admComposerBar > .admReplyPicker { order: 2; }
-  .admComposerBar .admSendBtn { order: 4; }
-  .admComposerBar .admComposerHint, .admComposerBar .admSendClose, .admBtnText { display: none; }
-  .admComposerBar .admChipLink { width: 42px; min-height: 42px; padding: 0; justify-content: center; border-radius: 14px; }
-  .admReplyPicker .admChipLink { width: 42px; }
-  .admComposerBar .admSendBtn { width: 42px; min-height: 42px; padding: 0; border-radius: 14px; }
-  .admComposerBar .admSendBtn > span { display: grid; place-items: center; }
-  .admRoot .admComposer .ui-field textarea { min-height: 42px; max-height: 140px; padding: 10px 14px; border-radius: 16px; font-size: 1rem; }
 
   /* ready replies: a bottom sheet */
   .admReplyPop { position: fixed; inset-block-end: 0; inset-inline: 0; width: auto; max-height: 74dvh; border-radius: 22px 22px 0 0; padding: 14px 14px calc(14px + env(safe-area-inset-bottom)); box-shadow: 0 0 0 100vmax rgba(4, 6, 10, 0.55), var(--a-pop); z-index: calc(var(--z-nav) + 6); }
@@ -204,7 +181,6 @@
 @keyframes admDrawerUp { from { transform: translateY(24px); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .admReplyPop, .admMenuPop, .admModal.is-sheet .admNewChat { animation: none; } }
 .admSheetClose { display: none; }
-.admRoot .admComposer .ui-field textarea { line-height: 1.7; }
 @media (max-width: 760px) {
   .admReplyPop { grid-template-columns: 1fr auto; grid-template-areas: "search close" "list list" "hint hint"; align-items: center; }
   .admReplyPop > .admInlineSearch { grid-area: search; }
@@ -231,4 +207,36 @@
 @media (max-width: 760px) {
   .admModal.is-sheet .admClaude { width: 100%; max-height: 90dvh; border-radius: 22px 22px 0 0; padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom)); animation: admDrawerUp 0.22s cubic-bezier(0.3, 0.7, 0.2, 1) both; }
   .admClaudeActions .ui-btn { flex: 1 1 100%; }
+}
+
+/* ---- composer: one big rounded box; text on top, round buttons and a pill underneath ---- */
+.admComposer { padding: 6px var(--space-4) calc(12px + env(safe-area-inset-bottom)); }
+.admComposeBox { display: grid; gap: 2px; border-radius: 30px; background: var(--a-card2); box-shadow: inset 0 0 0 1px var(--a-line2), 0 10px 30px -22px rgba(0, 0, 0, 0.7); transition: box-shadow 0.15s ease; }
+.admComposeBox:focus-within { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--a-accent) 55%, var(--a-line2)), 0 10px 30px -22px rgba(0, 0, 0, 0.7); }
+.admComposeBox .scAttachField { padding: 12px 18px 0; }
+.admComposeBox .scAttachField:not(:has(*)) { display: none; }
+.admComposeBox .ui-field { margin: 0; }
+.admRoot .admComposeBox .ui-field textarea { min-height: 52px; max-height: 190px; padding: 16px 22px 6px; border: 0; border-radius: 0; background: transparent; box-shadow: none; font-size: 1.02rem; line-height: 1.8; resize: none; }
+.admRoot .admComposeBox .ui-field textarea:focus-visible { outline: 0; box-shadow: none; background: transparent; }
+.admComposeBar { display: flex; align-items: center; gap: 8px; padding: 6px 10px 10px; }
+.admComposeGap { flex: 1; }
+.admRound { flex: 0 0 auto; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; background: var(--a-raise); color: var(--a-ink); cursor: pointer; transition: background 0.15s ease, opacity 0.15s ease, transform 0.1s ease; }
+.admRound:hover:not(:disabled) { background: color-mix(in srgb, var(--a-ink) 14%, var(--a-raise)); }
+.admRound:active:not(:disabled) { transform: scale(0.94); }
+.admRound:disabled { opacity: 0.4; cursor: not-allowed; }
+.admRound.is-send { background: var(--a-accent); color: var(--a-accent-ink); }
+.admRound.is-send:disabled { opacity: 1; background: color-mix(in srgb, var(--a-accent) 32%, var(--a-card2)); color: color-mix(in srgb, var(--a-accent-ink) 55%, transparent); }
+.admPillBtn { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 18px; border: 0; border-radius: 999px; background: var(--a-raise); color: var(--a-ink); font: inherit; font-size: var(--text-base); font-weight: 750; cursor: pointer; white-space: nowrap; transition: background 0.15s ease; }
+.admPillBtn:hover, .admPillBtn[aria-expanded="true"] { background: color-mix(in srgb, var(--a-ink) 14%, var(--a-raise)); }
+.admRoot[data-theme="light"] .admComposeBox { background: #fff; }
+.admRoot[data-theme="light"] .admRound, .admRoot[data-theme="light"] .admPillBtn { background: #f1efeb; }
+.admConvMenu { display: block; position: relative; }
+@media (max-width: 760px) {
+  .admComposer { padding: 6px 10px calc(8px + env(safe-area-inset-bottom)); }
+  .admComposeBox { border-radius: 28px; }
+  .admRoot .admComposeBox .ui-field textarea { padding: 14px 18px 4px; }
+  .admComposeBar { padding: 4px 8px 8px; gap: 6px; }
+  .admRound, .admPillBtn { height: 42px; }
+  .admRound { width: 42px; }
+  .admPillBtn { padding: 0 14px; }
 }

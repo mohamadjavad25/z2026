@@ -16,7 +16,7 @@ export function forgetCannedReplies() {
  * example replies (so a fresh panel is never empty). Picking one inserts it, with {name} filled in. Esc or a click
  * outside closes it.
  */
-export function CannedReplies({ onPick, name = "" }) {
+export function CannedReplies({ onPick, name = "", pill = false }) {
   const [items, setItems] = useState(cache || []);
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
@@ -56,8 +56,8 @@ export function CannedReplies({ onPick, name = "" }) {
   };
   return (
     <div className="admReplyPicker" ref={box}>
-      <button type="button" className="admChipLink" aria-label="پاسخ آماده" aria-expanded={open} aria-haspopup="true" onClick={() => setOpen((value) => !value)}>
-        <MessageSquareQuote size={15} aria-hidden="true" /> <span className="admBtnText">پاسخ آماده</span> <ChevronDown className="admBtnText" size={14} aria-hidden="true" />
+      <button type="button" className={pill ? "admPillBtn" : "admChipLink"} aria-label="پاسخ آماده" aria-expanded={open} aria-haspopup="true" onClick={() => setOpen((value) => !value)}>
+        <MessageSquareQuote size={15} aria-hidden="true" /> <span className={pill ? "" : "admBtnText"}>پاسخ آماده</span> {pill ? null : <ChevronDown className="admBtnText" size={14} aria-hidden="true" />}
       </button>
       {open ? (
         <div className="admReplyPop" role="menu" aria-label="پاسخ‌های آماده">

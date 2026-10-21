@@ -1,14 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowRight, CircleCheck, EllipsisVertical, Flag, Info, LifeBuoy, MessageSquare, MessageSquarePlus, Paperclip, Phone, Plus, Search, Send, StickyNote, X } from "lucide-react";
+import { ArrowRight, ArrowUp, CircleCheck, EllipsisVertical, Flag, Info, LifeBuoy, MessageSquare, MessageSquarePlus, Mic, Phone, Plus, Search, Send, StickyNote, X } from "lucide-react";
 import { Button, Field } from "../components/ui";
 import { api } from "./adminFetch";
 import { Avatar } from "./Avatar";
 import { CannedReplies } from "./CannedReplies";
-import { ClaudeButton, ClaudeMark, askClaude, setClaudeContext } from "./ClaudeConnect";
+import { ClaudeMark, askClaude, setClaudeContext } from "./ClaudeConnect";
 import { MessageAttachments } from "../features/support/Attachments";
 import { AttachmentField } from "../features/support/Composer";
+import { canRecordVoice } from "../features/support/media";
 import { CATEGORY_LABEL, PAGE, REASON_LABEL, RESOLUTION_LABEL, ago, fmtDate } from "./format";
 import { PageHead } from "./PageHead";
 import { EmptyState, ErrorNote, Loading, Pager, Segmented, Skeleton, confirmAction, toast, useAdminData, withQuery } from "./ui";
@@ -102,12 +103,14 @@ function Conversation({ id, onChanged, onGo, onBack }) {
   const [found, setFound] = useState(null);
   const [reply, setReply] = useState("");
   const [files, setFiles] = useState([]);
-  const [showFiles, setShowFiles] = useState(false);
   const [note, setNote] = useState("");
   const [tab, setTab] = useState("chat");
   const [busy, setBusy] = useState(false);
   const endRef = useRef(null);
   const box = useRef(null);
+  const attachRef = useRef(null);
+  const [canVoice, setCanVoice] = useState(false);
+  useEffect(() => setCanVoice(canRecordVoice()), []);
 
   const load = useCallback(async () => {
     const { ok, payload } = await api.get(`/api/admin/support/${id}`);
@@ -120,7 +123,6 @@ function Conversation({ id, onChanged, onGo, onBack }) {
     setFound(null);
     setReply("");
     setFiles([]);
-    setShowFiles(false);
     setTab("chat");
     load();
   }, [load]);
@@ -159,8 +161,7 @@ function Conversation({ id, onChanged, onGo, onBack }) {
     const clear = () => {
       setReply("");
       setFiles([]);
-      setShowFiles(false);
-    };
+      };
     send({ reply, attachments: files, ...(status ? { status } : {}) }, status ? "پاسخ فرستاده شد و گفتگو بسته شد." : "پاسخ فرستاده شد.", clear);
   }
 
@@ -194,12 +195,10 @@ function Conversation({ id, onChanged, onGo, onBack }) {
           ]}
         />
         <div className="admConvTools">
-          <ClaudeButton seed={{ kind: "bug" }} label="Claude" />
           {closed ? (
             <Button size="sm" variant="secondary" disabled={busy} onClick={() => send({ status: "open" }, "دوباره باز شد.")}>بازکردن دوباره</Button>
           ) : (
             <>
-              {ticket.status !== "in_progress" ? <Button size="sm" variant="ghost" disabled={busy} onClick={() => send({ status: "in_progress", note }, "در حال بررسی.")}>در حال بررسی</Button> : null}
               <Button size="sm" variant="secondary" disabled={busy} onClick={() => send({ status: "closed", note }, "گفتگو بسته شد.")}><CircleCheck size={15} aria-hidden="true" /> بستن</Button>
             </>
           )}
@@ -223,32 +222,34 @@ function Conversation({ id, onChanged, onGo, onBack }) {
           <Thread messages={messages} userName={ticket.user_name} isReport={isReport} endRef={endRef} />
           {canReply ? (
             <form className="admComposer" onSubmit={(event) => { event.preventDefault(); sendReply(); }}>
-              {showFiles ? <AttachmentField value={files} onChange={setFiles} /> : null}
-              <Field label="پاسخ به کاربر" hideLabel>
-                {(props) => (
-                  <textarea
-                    {...props}
-                    ref={box}
-                    rows={1}
-                    maxLength={2000}
-                    value={reply}
-                    placeholder={closed ? "گفتگو بسته است؛ پاسخ، دوباره بازش می‌کند…" : "پاسخت را بنویس…"}
-                    onChange={(event) => setReply(event.target.value)}
-                    onKeyDown={(event) => {
-                      if ((event.ctrlKey || event.metaKey) && event.key === "Enter" && canSend && !busy) {
-                        event.preventDefault();
-                        sendReply();
-                      }
-                    }}
-                  />
-                )}
-              </Field>
-              <div className="admComposerBar">
-                <CannedReplies name={ticket.user_name} onPick={(body) => setReply((prev) => (prev ? `${prev}\n${body}` : body))} />
-                <button type="button" className={`admChipLink${showFiles || files.length ? " is-on" : ""}`} aria-label="افزودن عکس یا صدا" aria-pressed={showFiles} onClick={() => setShowFiles((value) => !value)}><Paperclip size={15} aria-hidden="true" /> <span className="admBtnText">عکس یا صدا{files.length ? ` (${files.length})` : ""}</span></button>
-                <span className="admComposerHint"><span className="admCounter">{reply.length} / ۲۰۰۰</span> Ctrl+Enter</span>
-                {!closed ? <Button type="button" size="sm" variant="secondary" className="admSendClose" disabled={busy || !canSend} onClick={() => sendReply("closed")}>ارسال و بستن</Button> : null}
-                <Button type="submit" size="sm" className="admSendBtn" aria-label="ارسال" disabled={busy || !canSend}><Send size={15} aria-hidden="true" /> <span className="admBtnText">ارسال</span></Button>
+              <div className="admComposeBox">
+                <AttachmentField bare value={files} onChange={setFiles} controlRef={attachRef} />
+                <Field label="پاسخ به کاربر" hideLabel>
+                  {(props) => (
+                    <textarea
+                      {...props}
+                      ref={box}
+                      rows={1}
+                      maxLength={2000}
+                      value={reply}
+                      placeholder={closed ? "گفتگو بسته است؛ پاسخ، دوباره بازش می‌کند…" : "پاسخت را بنویس…"}
+                      onChange={(event) => setReply(event.target.value)}
+                      onKeyDown={(event) => {
+                        if ((event.ctrlKey || event.metaKey) && event.key === "Enter" && canSend && !busy) {
+                          event.preventDefault();
+                          sendReply();
+                        }
+                      }}
+                    />
+                  )}
+                </Field>
+                <div className="admComposeBar">
+                  <button type="button" className="admRound" aria-label="افزودن عکس" title="افزودن عکس" disabled={files.some((item) => item.kind === "voice") || files.length >= 4} onClick={() => attachRef.current?.pick()}><Plus size={20} aria-hidden="true" /></button>
+                  <CannedReplies pill name={ticket.user_name} onPick={(body) => setReply((prev) => (prev ? `${prev}\n${body}` : body))} />
+                  <span className="admComposeGap" />
+                  {canVoice && !files.length ? <button type="button" className="admRound" aria-label="ضبط پیام صوتی" title="ضبط پیام صوتی" onClick={() => attachRef.current?.record()}><Mic size={19} aria-hidden="true" /></button> : null}
+                  <button type="submit" className="admRound is-send" aria-label="ارسال" title="ارسال (Ctrl+Enter)" disabled={busy || !canSend}><ArrowUp size={20} aria-hidden="true" /></button>
+                </div>
               </div>
             </form>
           ) : <p className="admMuted admChatPad">این فرستنده حساب ندارد؛ فقط با شمارهٔ تماسش می‌شود جواب داد.</p>}

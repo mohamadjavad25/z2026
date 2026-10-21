@@ -203,7 +203,7 @@ export function Composer({ placeholder, onSend, disabled = false }) {
  * Pictures and a voice note for the new-message form, before anything is sent: add up to four pictures, or record one
  * voice note and listen to it first. `value` is the list of attachments; `onChange` receives the new list.
  */
-export function AttachmentField({ value, onChange }) {
+export function AttachmentField({ value, onChange, bare = false, controlRef = null }) {
   const [error, setError] = useState("");
   const canVoice = useCanVoice();
   const [preview, setPreview] = useState("");
@@ -217,10 +217,12 @@ export function AttachmentField({ value, onChange }) {
     setPreview(URL.createObjectURL(recorded.blob));
     onChange([{ kind: "voice", data: recorded.data, durationMs: recorded.durationMs }]);
   }
+  // `bare`: no label or buttons; the host (a composer with its own + and mic buttons) drives it through controlRef.
+  if (controlRef) controlRef.current = { pick: () => fileRef.current?.click(), record: () => recorder.start(), recording: recorder.state !== "idle" };
 
   return (
-    <div className="scAttachField">
-      <span className="scAttachLabel">عکس یا صدا (اختیاری)</span>
+    <div className={`scAttachField${bare ? " is-bare" : ""}`}>
+      {bare ? null : <span className="scAttachLabel">عکس یا صدا (اختیاری)</span>}
       {recorder.state === "recording" ? (
         <RecordingBar recorder={recorder} sendLabel="پایان ضبط" stopOnly onSend={async () => { const recorded = await recorder.stop(); if (recorded) keepVoice(recorded); }} />
       ) : voice ? (
@@ -231,7 +233,7 @@ export function AttachmentField({ value, onChange }) {
       ) : (
         <>
           <PickedImages images={images} onRemove={(index) => onChange(images.filter((_, i) => i !== index))} />
-          <div className="scAttachButtons">
+          {bare ? null : <div className="scAttachButtons">
             <button type="button" onClick={() => fileRef.current?.click()} disabled={images.length >= MAX_IMAGES}>
               <ImagePlus size={18} aria-hidden="true" /> افزودن عکس
             </button>
@@ -240,7 +242,7 @@ export function AttachmentField({ value, onChange }) {
                 <Mic size={18} aria-hidden="true" /> ضبط صدا
               </button>
             ) : null}
-          </div>
+          </div>}
           <input
             ref={fileRef}
             type="file"
