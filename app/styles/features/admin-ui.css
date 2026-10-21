@@ -84,13 +84,6 @@
 .admReportBox h3 { margin-top: 0; }
 
 /* ---- conversation ---- */
-.admThread { display: grid; gap: 8px; max-height: 340px; overflow-y: auto; padding: 4px 2px; }
-.admBubble { max-width: 90%; display: grid; gap: 3px; padding: 10px 14px; border-radius: 18px; line-height: 1.9; font-weight: 600; }
-.admBubble p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
-.admBubble small { color: var(--a-muted); font-size: 0.72rem; font-weight: 700; }
-.admBubble.is-user { justify-self: start; background: var(--a-card2); border-end-start-radius: 6px; }
-.admBubble.is-admin { justify-self: end; background: var(--a-accent-soft); border-end-end-radius: 6px; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--a-accent) 30%, transparent); }
-.admReply textarea { min-height: 84px; }
 .admTurn.is-you { background: var(--a-warn-soft); color: var(--a-warn); box-shadow: none; }
 .admTurn.is-them { background: color-mix(in srgb, var(--a-s1) 16%, transparent); color: var(--a-s1); box-shadow: none; }
 .admTurn.is-closed { background: var(--a-card); color: var(--a-faint); }

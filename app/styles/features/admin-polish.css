@@ -76,3 +76,57 @@
   .admTopbar { margin-top: -66px; }
   .admPageHead p { display: none; }
 }
+
+/* ---- example content chips (SampleChips) ---- */
+.admSamples { display: grid; gap: 6px; }
+.admSamplesLabel { display: inline-flex; align-items: center; gap: 6px; color: var(--a-violet); font-size: 0.75rem; font-weight: 850; }
+.admSamplesRow { display: flex; flex-wrap: wrap; gap: 6px; }
+.admSamplesRow button { min-height: 30px; padding: 0 12px; border: 0; border-radius: 999px; background: var(--a-card); color: var(--a-ink); font: inherit; font-size: var(--text-sm); font-weight: 750; cursor: pointer; box-shadow: inset 0 0 0 1px var(--a-line2); transition: background 0.15s ease, color 0.15s ease; }
+.admSamplesRow button:hover { background: var(--a-violet); color: #fff; box-shadow: none; }
+.admMuted code { padding: 0 4px; border-radius: 5px; background: var(--a-card2); font-size: 0.75rem; }
+
+/* ---- toggles side by side ---- */
+.admToggleGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); }
+.admToggleGrid.is-three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.admToggleGrid .admToggle { padding: 10px 12px; }
+.admToggleGrid .admToggleText small { font-size: 0.72rem; }
+@media (max-width: 560px) { .admToggleGrid, .admToggleGrid.is-three { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---- broadcast: write on one side, see it on the other ---- */
+.admBroadcast { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 380px); gap: var(--a-gap); align-items: start; }
+.admBroadcastSide { position: sticky; top: 76px; display: grid; gap: var(--a-gap); }
+@media (max-width: 960px) { .admBroadcast { grid-template-columns: minmax(0, 1fr); } .admBroadcastSide { position: static; } }
+.admSegments { display: flex; flex-wrap: wrap; gap: 6px; }
+.admSegments legend { float: none; width: 100%; }
+.admSegments label { padding: 0 14px; min-height: 36px; align-content: center; border-radius: 999px; }
+.admSegments label.is-on { box-shadow: inset 0 0 0 1px var(--a-accent); }
+.admSegments b { font-size: var(--text-sm); font-weight: 800; }
+.admSegHint { margin: -4px 0 0; color: var(--a-faint); font-size: var(--text-sm); font-weight: 650; }
+.admReach { padding: 10px 14px; }
+.admReach b { font-size: 1.15rem; }
+.admPhone { border-radius: 20px; padding: 12px; }
+
+/* ---- password-reset steps ---- */
+.admSteps { list-style: none; margin: 0 0 var(--space-4); padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-2); }
+.admSteps li { display: flex; align-items: flex-start; gap: 10px; padding: 12px; border-radius: 14px; background: var(--a-card2); }
+.admSteps i { flex: 0 0 auto; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 9px; background: var(--a-violet-soft); color: var(--a-violet); font-style: normal; font-weight: 900; font-size: var(--text-sm); }
+.admSteps span { display: grid; gap: 2px; }
+.admSteps b { font-weight: 850; font-size: var(--text-base); }
+.admSteps small { color: var(--a-muted); font-weight: 600; line-height: 1.8; }
+@media (max-width: 760px) { .admSteps { grid-template-columns: minmax(0, 1fr); } }
+.admReqs li { padding: var(--space-3) var(--space-4); border-radius: 14px; }
+
+/* ---- activity log: one calm row per event ---- */
+.admLog li { align-items: center; padding: 11px 6px; }
+.admLogDot { margin-top: 0; }
+.admLogBody { flex-wrap: nowrap; align-items: baseline; }
+.admLogBody b { flex: 0 0 auto; }
+.admLogBody p { flex: 1 1 auto; min-width: 0; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--a-faint); }
+.admLogMeta { flex-direction: row; display: flex; align-items: center; gap: 12px; }
+.admLogMeta small { display: none; }
+@media (max-width: 760px) { .admLogBody { flex-wrap: wrap; } .admLogBody p { flex-basis: 100%; white-space: normal; } }
+.admReqs li { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-3); }
+.admReqs li > div { flex: 1 1 240px; display: grid; gap: 2px; }
+.admReqs li > div b { font-size: var(--text-md); font-weight: 900; }
+.admReqs .admReqInput { flex: 1 1 280px; }
+.admReqs .admReqTools { margin-top: 6px; }

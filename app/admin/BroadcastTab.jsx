@@ -6,6 +6,8 @@ import { Button } from "../components/ui";
 import { api } from "./adminFetch";
 import { SEGMENT_LABEL, ago, fmtDate, num } from "./format";
 import { PageHead } from "./PageHead";
+import { SampleChips } from "./SampleChips";
+import { BROADCAST_SAMPLES } from "./samples";
 import { Card, EmptyState, ErrorNote, Skeleton, Toggle, confirmAction, toast, useAdminData } from "./ui";
 
 const SEGMENT_HINT = {
@@ -59,19 +61,20 @@ export function BroadcastTab({ intent = {} }) {
   return (
     <>
       <PageHead tab="broadcast" />
-      <div className="admTwo is-even">
+      <div className="admBroadcast">
         <Card title="پیام تازه" icon={Megaphone}>
           <div className="admForm">
+            <SampleChips items={BROADCAST_SAMPLES} onPick={(sample) => { setSegment(sample.segment); setTitle(sample.title); setBody(sample.body); setUrl(sample.url); }} />
             <fieldset className="admSegments">
               <legend>به چه کسانی؟</legend>
               {Object.entries(SEGMENT_LABEL).map(([value, label]) => (
                 <label key={value} className={segment === value ? "is-on" : ""}>
                   <input type="radio" name="segment" value={value} checked={segment === value} onChange={() => setSegment(value)} />
                   <b>{label}</b>
-                  <small>{SEGMENT_HINT[value]}</small>
                 </label>
               ))}
             </fieldset>
+            <p className="admSegHint">{SEGMENT_HINT[segment]}</p>
             <div className="admReach" aria-live="polite">
               {reach ? (
                 <>
@@ -80,8 +83,10 @@ export function BroadcastTab({ intent = {} }) {
                 </>
               ) : <span className="admMuted">در حال شمردن…</span>}
             </div>
-            <Toggle checked={inbox} onChange={setInbox} label="در صندوق پشتیبانی" hint="می‌ماند تا بخوانند و می‌توانند جواب بدهند" />
-            <Toggle checked={push} onChange={setPush} label="اعلان روی گوشی" hint="فقط برای کسانی که اعلان فرفرو را روشن کرده‌اند" />
+            <div className="admToggleGrid">
+              <Toggle checked={inbox} onChange={setInbox} label="در صندوق پشتیبانی" hint="می‌ماند و می‌توانند جواب بدهند" />
+              <Toggle checked={push} onChange={setPush} label="اعلان روی گوشی" hint="فقط اعلان‌روشن‌ها" />
+            </div>
             <label className="admLabel">
               <span>عنوان (اختیاری)</span>
               <input type="text" maxLength={120} value={title} placeholder="مثلاً: خبر خوب برای سالن‌ها" onChange={(event) => setTitle(event.target.value)} />
@@ -102,7 +107,7 @@ export function BroadcastTab({ intent = {} }) {
           </div>
         </Card>
 
-        <div className="admStack">
+        <div className="admStack admBroadcastSide">
           <Card title="پیش‌نمایش" icon={BellRing}>
             <div className="admPhone">
               {push ? (
