@@ -47,22 +47,11 @@ async function _GET(request) {
       const bookings = await salons.listSalonBookings(auth.user.id);
       return noStoreJson({ data: { bookings } });
     }
-    const allBookings = await salons.listSalonBookings(salonUserId);
-    const unavailableSlots = allBookings
-      // 'منقضی شده' (auto-expired request, see bookingExpirySweep.js) no longer
-      // holds its slot, same as 'لغو' — otherwise a timed-out request would
-      // wrongly go on blocking that slot for every other client forever.
-      .filter((booking) => booking.status !== "لغو" && booking.status !== "منقضی شده")
-      .map((booking) => ({
-        booking_date: booking.booking_date,
-        time: booking.time,
-        duration_minutes: booking.duration_minutes,
-        service: booking.service,
-        staff: booking.staff,
-        status: booking.status
-    }));
+    // Only what another client needs to see: the live bookings of the next few weeks (never the salon's whole
+    // history), briefly cached -- every client's booking screen asks for this.
     const hours = await salons.listSalonHours(salonUserId);
     if (!hours.length) return noStoreJson({ error: "این سالن پیدا نشد." }, { status: 404 });
+    const unavailableSlots = await salons.listUnavailableSlots(salonUserId);
     return noStoreJson({ data: { unavailableSlots, hours } });
   }
   if (auth.user.type === "client") {
@@ -134,7 +123,8 @@ async function _POST(request) {
   // slot, not just whenever they next happen to poll/open the dashboard —
   // only when the CLIENT is the one who just requested it (a salon entering
   // its own walk-in booking doesn't need to be told about its own action).
-  if (auth.user.type === "client") {
+  // A repeated tap on the same request is answered with the request already made, and the salon is not told twice.
+  if (auth.user.type === "client" && !result.duplicate) {
     void sendPushToUser(salonUserId, {
       title: "درخواست رزرو جدید",
       body: `${client} — ${service} · ${time}`
@@ -150,7 +140,7 @@ async function _POST(request) {
       linkedArtistId: linkedArtistIds[0] || null,
       linkedArtistIds
     }
-  }, { status: 201 });
+  }, { status: result.duplicate ? 200 : 201 });
 }
 
 async function _PATCH(request) {
@@ -246,6 +236,13 @@ async function _PATCH(request) {
       return noStoreJson({
         error: result.message || "این ساعت برای آرتیست قبلاً رزرو شده است.",
         code: result.code || "ARTIST_SLOT_TAKEN",
+        data: { bookings: await salons.listSalonBookings(auth.user.id) }
+      }, { status: 409 });
+    }
+    if (result.error === "unavailable") {
+      return noStoreJson({
+        error: result.message || "این درخواست دیگر قابل تأیید نیست.",
+        code: "REQUEST_NOT_POSSIBLE",
         data: { bookings: await salons.listSalonBookings(auth.user.id) }
       }, { status: 409 });
     }

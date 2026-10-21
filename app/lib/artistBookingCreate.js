@@ -56,9 +56,11 @@ export async function createArtistBooking({ artistUserId, viewer, data, body = {
   // number. (The artist's entry for their own customer may set it; either way it stays within a day.)
   let durationMinutes = requested.minutes || 0;
   if (!isOwner) {
+    // Only what is on the artist's own menu can be asked for, and its length is the artist's (never the client's).
     const listed = (await artists.listArtistServices(artistUserId))
-      .find((item) => String(item.name || "").trim() === String(data.service || "").trim());
-    if (listed?.duration) durationMinutes = parseServiceDurationMinutes(listed.duration);
+      .find((item) => String(item.name || "").trim() === service);
+    if (!listed) return refuse(400, `«${service}» در خدمات این آرتیست نیست.`, "SERVICE_NOT_LISTED");
+    durationMinutes = listed.duration ? parseServiceDurationMinutes(listed.duration) : 60;
   }
   durationMinutes = durationMinutes > 0 ? Math.min(720, Math.max(15, durationMinutes)) : undefined;
   // A client's request waits as long as they chose (an hour, or until the appointment), maybe with a backup artist.
@@ -80,10 +82,12 @@ export async function createArtistBooking({ artistUserId, viewer, data, body = {
     // The artist's own entry is settled; a client's waits for the artist (see POST /api/artist/me).
     ...(isOwner ? { status: "تایید" } : {}),
     ...(isRequest && artistSettings.autoConfirm ? { status: "تایید شده" } : {}),
+    // A client's own request: an identical one already sent is merged into it, and the number open at once is capped.
+    clientRequest: isRequest,
     clientUserId: viewer?.id || null,
     clientName: body.clientName || viewer?.name || "",
     clientPhone: body.clientPhone || viewer?.phone || ""
   });
-  if (!result.ok) return refuse(result.code === "SLOT_TAKEN" ? 409 : 400, result.error, result.code);
-  return { ok: true, booking: result.booking };
+  if (!result.ok) return refuse(result.code === "SLOT_TAKEN" || result.code === "TOO_MANY_OPEN_REQUESTS" ? 409 : 400, result.error, result.code);
+  return { ok: true, booking: result.booking, duplicate: Boolean(result.duplicate) };
 }

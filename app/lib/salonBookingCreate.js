@@ -14,8 +14,9 @@ function resolveRequestedDuration(body, salon, { isClient = false } = {}) {
   const listed = Array.isArray(salon?.services)
     ? salon.services.find((item) => String(item?.name || "").trim() === serviceName)
     : null;
-  // A client never chooses how long a service the salon lists takes: that is the salon's own number.
-  if (isClient && listed?.duration) return parseServiceDurationMinutes(listed.duration);
+  // A client never chooses how long a service takes: it is the salon's own number (a client may only ask for a
+  // service on the salon's menu, checked by createSalonBooking).
+  if (isClient) return listed?.duration ? parseServiceDurationMinutes(listed.duration) : 60;
   // Already checked by createSalonBooking (parseRequestedMinutes): a whole number of minutes, or absent.
   const explicit = parseRequestedMinutes(body).minutes;
   if (explicit) return explicit;
@@ -57,6 +58,13 @@ export async function createSalonBooking({ actor, salonUserId, body, data, wait 
   const parts = salonVisitParts(salon, data.parts, { allowStaff: actor.type === "salon" })
     .map(({ service, minutes, staff }) => ({ service, minutes, staff }));
   const multiPart = parts.length >= 2;
+  // A client books only what is on the salon's own menu (nothing made up), and the salon's own length is used.
+  if (isClient) {
+    const names = multiPart ? parts.map((part) => part.service) : [String(body.service || "").trim()];
+    const menu = new Set((salon.services || []).map((item) => String(item?.name || "").trim()));
+    const unlisted = names.find((name) => name && !menu.has(name));
+    if (unlisted) return refuse(400, `«${unlisted}» در خدمات این سالن نیست.`, "SERVICE_NOT_LISTED");
+  }
   const service = multiPart ? summarizeBookingParts(parts).service : String(body.service || "").trim();
   const bookingDateKey = slot.dateKey;
   const time = slot.time;
@@ -72,16 +80,11 @@ export async function createSalonBooking({ actor, salonUserId, body, data, wait 
     isClient
   });
   if (slotProblem) return refuse(slotProblem.status, slotProblem.error, slotProblem.code === "TOO_SOON" ? slotProblem.code : "");
-  // A client's single-service request with no artist named gets one the way a visit's services
-  // do (a free artist who does it, the work spread over the team); refused when nobody who could
-  // do it is free -- the availability list never offers such a time.
-  // Only the salon names an artist; a client's request is split by the draft below.
-  let staffName = actor.type === "salon" ? String(body.staff || "").trim() : "";
-  if (!multiPart && isClient && !staffName) {
-    const draft = await salons.draftSingleBookingStaff(salonUserId, bookingDateKey, time, service, durationMinutes);
-    if (draft.unstaffed) return refuse(409, `برای «${service}» در این ساعت آرتیست آزادی نیست.`, "NO_FREE_ARTIST");
-    staffName = draft.staff;
-  }
+  // A client's single-service request with no artist named gets one the way a visit's services do (a free artist
+  // who does it, the work spread over the team), chosen inside addSalonBooking under the salon's day lock;
+  // refused when nobody who could do it is free -- the availability list never offers such a time.
+  // Only the salon names an artist; a client's request is split by the draft there.
+  const staffName = actor.type === "salon" ? String(body.staff || "").trim() : "";
   // A multi-service booking links its artists per service inside addSalonBooking. A client's
   // request with no artist free (and nobody who could do it) stays unlinked.
   const linkedStaff = multiPart || (isClient && !staffName)
@@ -120,12 +123,17 @@ export async function createSalonBooking({ actor, salonUserId, body, data, wait 
   if (!result.ok) {
     if (result.error === "bad_slot") return refuse(400, result.message);
     if (result.error === "no_staff") return refuse(409, result.message, "NO_FREE_ARTIST");
+    if (result.error === "too_many") return refuse(409, result.message, result.code);
     if (result.error === "artist_conflict") {
       return refuse(409, result.message || "این ساعت برای آرتیست قبلاً رزرو شده است.", result.code || "ARTIST_SLOT_TAKEN");
     }
     return refuse(409, "این زمان قبلاً رزرو شده است.");
   }
-  let artistBooking = null;
+  // The same request sent twice is the one booking that is already there: nothing new was made.
+  if (result.duplicate) {
+    return { ok: true, duplicate: true, booking: result.booking, artistBooking: null, linkedArtistIds: [], client, service, time };
+  }
+  let artistBooking = result.artistBooking || null;
   if (linkedStaff?.artist_user_id) {
     const artistResult = await artists.addArtistBooking(Number(linkedStaff.artist_user_id), {
       client: result.booking.client,

@@ -1,5 +1,12 @@
 import { getDb, withTransaction, all, get, run } from "../connection.js";
-import { lockArtistDays } from "../locks.js";
+import { lockArtistDays, lockClientRequests } from "../locks.js";
+import {
+  TOO_MANY_OPEN_CODE,
+  TOO_MANY_OPEN_MESSAGE,
+  artistRequestLapsedSql,
+  findIdenticalArtistRequest,
+  openRequestLimitReached
+} from "./openRequests.js";
 import { countFollowers, countFollowCountsMany, getUserProfileById, getUserLiteById, isFollowing } from "./users.js";
 import { buildClientHistoryLookup } from "./clientHistory.js";
 import { listPostsByOwner } from "./posts.js";
@@ -532,9 +539,10 @@ export async function listArtistBookedSlots(artistUserId, { excludeBookingId = n
   const excluded = new Set([excludeBookingId, ...excludeBookingIds].filter((id) => id != null).map(Number));
   const rows = await all(db, `
     SELECT id, booking_date, time, status, service, duration_minutes
-    FROM artist_bookings
+    FROM artist_bookings a
     WHERE artist_user_id = $1
       AND status NOT IN ('لغو', 'لغو شده', 'cancelled', 'منقضی شده')
+      AND NOT ${artistRequestLapsedSql("a")}
     ORDER BY id ASC
   `, [artistUserId]);
   return rows.filter((row) => !excluded.has(Number(row.id))).map((row) => ({
@@ -662,6 +670,10 @@ export async function updateArtistBookingRow(bookingId, fields = {}, runner = nu
     next.service_emoji || "",
     Number(bookingId)
   ]);
+  // The response window of a calendar copy of a salon request follows the request (null = no hour of its own).
+  if (Object.prototype.hasOwnProperty.call(fields, "wait_minutes")) {
+    await run(db, "UPDATE artist_bookings SET wait_minutes = $1 WHERE id = $2", [fields.wait_minutes, Number(bookingId)]);
+  }
   return get(db, "SELECT * FROM artist_bookings WHERE id = $1", [Number(bookingId)]);
 }
 
@@ -757,7 +769,30 @@ export async function addArtistBookingInTx(artistUserId, data, runner = null) {
  * instead.
  */
 export async function addArtistBooking(artistUserId, data) {
-  return withTransaction(null, (client) => addArtistBookingInTx(artistUserId, data, client));
+  return withTransaction(null, async (client) => {
+    // A client's own request (not the artist's entry, not a salon's calendar copy): the same request sent twice is
+    // one request (the existing one comes back as it is), and one client has only a few open at once.
+    const clientUserId = Number(data.clientUserId || 0);
+    if (data.clientRequest && clientUserId) {
+      await lockClientRequests(client, clientUserId);
+      const bookingDate = resolveRollingPersianDateKey(data.bookingDate || data.booking_date || data.date || "");
+      const time = parseBookingTime(String(data.time ?? ""));
+      if (bookingDate && time) {
+        const same = await findIdenticalArtistRequest(client, {
+          artistUserId,
+          clientUserId,
+          bookingDate,
+          time,
+          service: data.service || ""
+        });
+        if (same) return { ok: true, booking: same, duplicate: true };
+      }
+      if (await openRequestLimitReached(client, clientUserId, { kind: "artist", id: artistUserId })) {
+        return { ok: false, error: TOO_MANY_OPEN_MESSAGE, code: TOO_MANY_OPEN_CODE };
+      }
+    }
+    return addArtistBookingInTx(artistUserId, data, client);
+  });
 }
 
 /** Full booking snapshot, camelCased. Live status — callers should re-fetch, never cache. */

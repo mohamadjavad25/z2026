@@ -67,7 +67,8 @@ async function _POST(request) {
     return json({ error: result.error, ...(result.code ? { code: result.code } : {}) }, { status: result.status });
   }
 
-  if (viewer?.id && viewer.id !== artistUserId) {
+  // A repeated tap on the same request is answered with the request already made, and the artist is not told twice.
+  if (viewer?.id && viewer.id !== artistUserId && !result.duplicate) {
     void sendPushToUser(artistUserId, {
       title: "درخواست نوبت جدید",
       body: `${result.booking.client || result.booking.client_name || "مشتری"} — ${result.booking.service || ""}`.trim()
@@ -89,7 +90,7 @@ async function _POST(request) {
       booking: result.booking,
       bookedSlots: await artists.listArtistBookedSlots(artistUserId)
     }
-  }, { status: 201 });
+  }, { status: result.duplicate ? 200 : 201 });
 }
 
 export const POST = withErrorHandling(_POST);
