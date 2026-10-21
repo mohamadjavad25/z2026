@@ -2,9 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { CarTaxiFront, Check, Copy, MapPin, Navigation } from "lucide-react";
+import { Check, Copy, MapPin } from "lucide-react";
 import { SheetClose } from "./SheetClose";
-import { SNAPP_URL, detectPlatform, fullAddress, navigationLinks } from "../shared/lib/mapLinks";
+import { baladLink, fullAddress } from "../shared/lib/mapLinks";
 // Bundled with the app instead of fetched from a CDN, so the map never depends on one being reachable.
 import "leaflet/dist/leaflet.css";
 
@@ -41,36 +41,19 @@ function LocationMap({ lat, lng }) {
 }
 
 function LocationSheet({ name, location, onClose }) {
-  const [copied, setCopied] = useState("");
-  const [platform, setPlatform] = useState("");
+  const [copied, setCopied] = useState(false);
   const address = fullAddress(location);
   const pinned = Number.isFinite(location.lat) && Number.isFinite(location.lng);
-  const links = navigationLinks(location, platform);
-
-  useEffect(() => {
-    setPlatform(detectPlatform(navigator.userAgent));
-  }, []);
-
-  async function copyAddress() {
-    try {
-      await navigator.clipboard.writeText(address);
-      return true;
-    } catch {
-      return false;
-    }
-  }
+  const baladHref = baladLink(location);
 
   async function onCopy() {
-    if (await copyAddress()) {
-      setCopied("copy");
-      window.setTimeout(() => setCopied(""), 1800);
+    try {
+      await navigator.clipboard.writeText(address);
+    } catch {
+      return;
     }
-  }
-
-  // Snapp takes no destination in a link: copy the address on the way so it is one paste away there.
-  // The copy is not awaited, so the browser still sees the tap as what opens the new page.
-  function onSnapp() {
-    copyAddress().then((ok) => { if (ok) setCopied("snapp"); });
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1800);
   }
 
   return createPortal((
@@ -80,7 +63,7 @@ function LocationSheet({ name, location, onClose }) {
           <span className="locSheetBadge" aria-hidden="true"><MapPin size={18} /></span>
           <div>
             <h3>{name}</h3>
-            <small>آدرس و مسیریابی</small>
+            <small>آدرس</small>
           </div>
         </header>
 
@@ -92,29 +75,17 @@ function LocationSheet({ name, location, onClose }) {
             {location.detail ? <b>{location.detail}</b> : null}
           </p>
           <button type="button" className="locCopy" onClick={onCopy} disabled={!address} aria-label="کپی آدرس">
-            {copied === "copy" ? <Check size={16} /> : <Copy size={16} />}
-            <span>{copied === "copy" ? "کپی شد" : "کپی"}</span>
+            {copied ? <Check size={16} /> : <Copy size={16} />}
+            <span>{copied ? "کپی شد" : "کپی"}</span>
           </button>
         </div>
         {!pinned ? <p className="locNoPin">هنوز پین دقیق روی نقشه نگذاشته؛ آدرس بالا را ببین.</p> : null}
 
-        <a className="locSnapp" href={SNAPP_URL} target="_blank" rel="noopener noreferrer" onClick={onSnapp}>
-          <CarTaxiFront size={20} aria-hidden="true" />
-          <span>
-            <b>درخواست اسنپ</b>
-            <small>{copied === "snapp" ? "آدرس کپی شد؛ در اسنپ مقصد را بچسبان" : "آدرس کپی می‌شود تا در اسنپ مقصد را بچسبانی"}</small>
-          </span>
-        </a>
-
-        {links.length ? (
-          <div className="locApps" aria-label="مسیریابی با">
-            {links.map((link) => (
-              <a key={link.id} className={`locApp${link.id === "other" || link.id === "apple" ? " is-wide" : ""}`} href={link.href} target="_blank" rel="noopener noreferrer">
-                <Navigation size={16} aria-hidden="true" />
-                <span>{link.label}</span>
-              </a>
-            ))}
-          </div>
+        {baladHref ? (
+          <a className="locBalad" href={baladHref} target="_blank" rel="noopener noreferrer">
+            <img src="/brand/balad-logo.png" alt="" width="32" height="32" />
+            <span>دیدن روی بلد</span>
+          </a>
         ) : null}
 
         <SheetClose onClick={onClose} />
@@ -125,7 +96,7 @@ function LocationSheet({ name, location, onClose }) {
 
 /**
  * The pin next to a salon's or artist's name on their public page. Tapping it opens the exact
- * address on a map with «درخواست اسنپ» and the navigation apps. Renders nothing without a location.
+ * address on a map, with «دیدن روی بلد» to see the same point in Balad. Renders nothing without a location.
  */
 export function LocationButton({ name = "", location = null }) {
   const [open, setOpen] = useState(false);
