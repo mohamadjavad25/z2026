@@ -49,8 +49,11 @@ export function ConnectPage({ me = {}, onOpenProfile: openProfile, onNotify }) {
   useEffect(() => {
     if (restoredRef.current || !ready) return;
     restoredRef.current = true;
-    if (restoredScrollY > 0) window.requestAnimationFrame(() => window.scrollTo({ top: restoredScrollY, left: 0, behavior: "instant" }));
-  }, [ready, restoredScrollY]);
+    if (restoredScrollY > 0) {
+      window.requestAnimationFrame(() => window.scrollTo({ top: restoredScrollY, left: 0, behavior: "instant" }));
+      rememberSearch(owner, { scrollY: 0 }); // used once
+    }
+  }, [ready, restoredScrollY, owner]);
   const [sheet, setSheet] = useState(""); // "" | "scan" | "code"
   const [categorySheet, setCategorySheet] = useState(null); // { category, matches } while the pick/connect sheet is open
   const [checkingCategory, setCheckingCategory] = useState("");
