@@ -1,4 +1,6 @@
 import { notFound } from "next/navigation";
+import { PageUnavailable } from "../../components/PageUnavailable";
+import { suspendedAccountIds } from "../../lib/db/repos/users.js";
 import { ensureDb } from "../../lib/db/connection.js";
 import * as artists from "../../lib/db/repos/artists.js";
 import { ArtistPublicPageClient } from "./ArtistPublicPageClient";
@@ -14,6 +16,8 @@ async function loadArtist(id) {
   const userId = Number(id);
   if (!Number.isFinite(userId)) return null;
   await ensureDb();
+  // A suspended account has no public page: `{ unavailable: true }` makes the page say so in one sentence.
+  if ((await suspendedAccountIds([userId])).has(userId)) return { unavailable: true };
   const artist = await artists.getPublicArtist(userId, null);
   if (!artist) return null;
   // An artist switched to "خصوصی" in تنظیمات → ویترین عمومی آرتیست must stay
@@ -30,6 +34,7 @@ async function loadArtist(id) {
 export async function generateMetadata({ params }) {
   const { id } = await params;
   const artist = await loadArtist(id);
+  if (artist?.unavailable) return { title: "صفحه در دسترس نیست | frfro", robots: { index: false } };
   if (!artist) {
     return { title: "آرتیست پیدا نشد | frfro" };
   }
@@ -84,6 +89,7 @@ function buildArtistJsonLd(artist, canonicalUrl) {
 export default async function ArtistPublicPage({ params }) {
   const { id } = await params;
   const artist = await loadArtist(id);
+  if (artist?.unavailable) return <PageUnavailable />;
   if (!artist) {
     notFound();
   }

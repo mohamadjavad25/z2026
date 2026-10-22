@@ -10,7 +10,7 @@ import {
 import { countFollowers, countFollowCountsMany, getUserProfileById, getUserLiteById, isFollowing } from "./users.js";
 import { buildClientHistoryLookup } from "./clientHistory.js";
 import { listPostsByOwner } from "./posts.js";
-import { formatPersianDateKey, isPersianDateKey, resolveRollingPersianDateKey } from "../../../shared/lib/persianCalendar.js";
+import { formatPersianDateKey, isPersianDateKey, persianDateKeyToDate, resolveRollingPersianDateKey } from "../../../shared/lib/persianCalendar.js";
 import { minutesUntilSlotStart } from "../../../shared/lib/bookingWindow.js";
 import { normalizeBookingTimeLabel, parseBookingTime } from "../../../shared/lib/time.js";
 import { clientBookingMatch, clientVisibleStatus } from "../clientMatch.js";
@@ -585,7 +585,31 @@ export async function listArtistBusyRanges(artistUserId, bookingDate, { excludeB
     const bookedStart = timeToMinutes(item.time);
     ranges.push({ start: bookedStart, end: bookedStart + Math.max(15, Number(item.duration_minutes) || 60) });
   }
+  // A visit that runs past midnight also holds the early hours of the next day (23:00 for 3 h holds until 02:00), and
+  // a visit asked for late in the evening must not run into tomorrow's first booking: the neighbouring days' bookings
+  // are shifted onto this day's clock (yesterday's by -24 h, tomorrow's by +24 h) and only the part that reaches in counts.
+  for (const [offsetDays, shift] of [[-1, -1440], [1, 1440]]) {
+    const neighbourKey = shiftedDateKey(bookingDateKey, offsetDays);
+    if (!neighbourKey) continue;
+    const neighbours = await listArtistBookedSlots(artistUserId, { excludeBookingId, excludeBookingIds, onlyDateKey: neighbourKey }, db);
+    for (const item of neighbours) {
+      if (resolveRollingPersianDateKey(item.booking_date) !== neighbourKey) continue;
+      const start = timeToMinutes(item.time) + shift;
+      const end = start + Math.max(15, Number(item.duration_minutes) || 60);
+      if (shift < 0 ? end > 0 : start < 1440 + 720) ranges.push({ start, end });
+    }
+  }
   return ranges;
+}
+
+/** The date key `days` before/after `dateKey`, or "" when the key is not a real day near today. */
+function shiftedDateKey(dateKey, days) {
+  const date = persianDateKeyToDate(dateKey);
+  if (!date) return "";
+  const moved = new Date(date);
+  moved.setHours(12, 0, 0, 0);
+  moved.setDate(moved.getDate() + days);
+  return formatPersianDateKey(moved);
 }
 
 export async function isArtistSlotBlocked(artistUserId, bookingDate, time, durationMinutes = 60, excludeBookingId = null, runner = null) {

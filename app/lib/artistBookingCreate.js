@@ -6,8 +6,12 @@ import { isSlotInPast } from "../shared/lib/slots.js";
 import { BOOKING_REQUEST_LEAD_MINUTES, isTooSoonToRequest } from "../shared/lib/bookingWindow.js";
 import { toPersianDigits } from "../shared/lib/digits.js";
 import { parseServiceDurationMinutes } from "../shared/lib/time.js";
+import { artistSlotProblem } from "./visitSlotRules.js";
 import { readBookingSlot } from "./validation/bookingSlot.js";
 import { parseRequestedMinutes } from "./validation/numbers.js";
+
+export const LOGIN_TO_BOOK_MESSAGE = "برای رزرو، شمارهٔ موبایلت را وارد کن";
+export const ARTIST_TOO_MANY_OPEN_MESSAGE = "چند درخواست باز داری. اول جواب یکی را بگیر یا لغوش کن.";
 
 const refuse = (status, error, code = "") => ({ ok: false, status, error, code });
 
@@ -63,6 +67,14 @@ export async function createArtistBooking({ artistUserId, viewer, data, body = {
     durationMinutes = listed.duration ? parseServiceDurationMinutes(listed.duration) : 60;
   }
   durationMinutes = durationMinutes > 0 ? Math.min(720, Math.max(15, durationMinutes)) : undefined;
+  // The artist's own working hours, closed weekdays and 30-minute step count here exactly as a salon's do.
+  const slotProblem = artistSlotProblem({
+    hours: await artists.listArtistHours(artistUserId),
+    bookingDateKey: day,
+    time,
+    durationMinutes: durationMinutes || 60
+  });
+  if (slotProblem) return refuse(slotProblem.status, slotProblem.error, slotProblem.code);
   // A client's request waits as long as they chose (an hour, or until the appointment), maybe with a backup artist.
   const isRequest = !isOwner && Boolean(viewer?.id);
   const result = await artists.addArtistBooking(artistUserId, {
@@ -85,9 +97,14 @@ export async function createArtistBooking({ artistUserId, viewer, data, body = {
     // A client's own request: an identical one already sent is merged into it, and the number open at once is capped.
     clientRequest: isRequest,
     clientUserId: viewer?.id || null,
-    clientName: body.clientName || viewer?.name || "",
-    clientPhone: body.clientPhone || viewer?.phone || ""
+    // A client's name and number are the account's own (a typed one is ignored); only the artist's own
+    // entry for a walk-in customer takes them from the form.
+    clientName: isOwner ? body.clientName || "" : viewer?.name || "",
+    clientPhone: isOwner ? body.clientPhone || "" : viewer?.phone || ""
   });
-  if (!result.ok) return refuse(result.code === "SLOT_TAKEN" || result.code === "TOO_MANY_OPEN_REQUESTS" ? 409 : 400, result.error, result.code);
+  if (!result.ok) {
+    const error = result.code === "TOO_MANY_OPEN_REQUESTS" ? ARTIST_TOO_MANY_OPEN_MESSAGE : result.error;
+    return refuse(result.code === "SLOT_TAKEN" || result.code === "TOO_MANY_OPEN_REQUESTS" ? 409 : 400, error, result.code);
+  }
   return { ok: true, booking: result.booking, duplicate: Boolean(result.duplicate) };
 }

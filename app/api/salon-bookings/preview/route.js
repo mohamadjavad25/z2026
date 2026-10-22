@@ -5,6 +5,7 @@ import * as salons from "../../../lib/db/repos/salons.js";
 import { checkRateLimit } from "../../../lib/rateLimit.js";
 import { salonVisitParts } from "../../../lib/salonVisitParts.js";
 import { visitSlotProblem } from "../../../lib/visitSlotRules.js";
+import { onlineBookingBlock } from "../../../lib/billing/access.js";
 import { MAX_BOOKING_PARTS, summarizeBookingParts } from "../../../shared/lib/bookingParts.js";
 import { strictDayKey } from "../../../lib/validation/bookingSlot.js";
 import { parseBookingTime, timeLabelToMinutes } from "../../../shared/lib/time.js";
@@ -58,6 +59,10 @@ async function _GET(request) {
   }
   const salon = await salons.getSalon(salonUserId);
   if (!salon) return noStoreJson({ error: "سالن پیدا نشد." }, { status: 404 });
+  if (!owner) {
+    const blocked = await onlineBookingBlock(salonUserId, "salon");
+    if (blocked) return noStoreJson({ data: { ok: false, code: blocked.code, message: blocked.error, durationMinutes: 0, end: 0, parts: [] } });
+  }
   const minutes = searchParams.getAll("minutes").map(Number);
   const staff = searchParams.getAll("staff");
   const parts = salonVisitParts(

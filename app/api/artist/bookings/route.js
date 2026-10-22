@@ -3,7 +3,8 @@ import { ensureDb } from "../../../lib/db/connection.js";
 import { error, json, validateBody, withErrorHandling, readObjectBody } from "../../../lib/http.js";
 import * as artists from "../../../lib/db/repos/artists.js";
 import * as salons from "../../../lib/db/repos/salons.js";
-import { checkRateLimit } from "../../../lib/rateLimit.js";
+import { checkRateLimit, clientIp } from "../../../lib/rateLimit.js";
+import { LOGIN_TO_BOOK_MESSAGE } from "../../../lib/artistBookingCreate.js";
 import { smsNewBookingRequest } from "../../../lib/bookingSms.js";
 import { sendPushToUser } from "../../../lib/push.js";
 import { createBookingSchema } from "../../../lib/validation/booking.js";
@@ -28,16 +29,23 @@ async function _POST(request) {
   const artistUserId = Number(body.artistUserId);
   if (!artistUserId) return error("آرتیست نامعتبر است.", 400);
 
-  // Per-target throttle: this route deliberately allows anonymous booking
-  // (no session required, see viewer below), so there is no caller identity
-  // to key a limiter by -- keyed on the artist being booked instead, so one
-  // artist's calendar can't be flooded with spam bookings by a scripted
-  // caller hammering this endpoint, logged in or not. Same DB-backed
-  // limiter/pattern this codebase already uses elsewhere (see
-  // /api/auth/login, /api/salon-bookings).
-  const bookingLimited = await checkRateLimit(`artist-booking-create:${artistUserId}`, 20, 60_000);
+  // Booking an independent artist needs a login (owner's decision 2026-10-22): the client's name and number come
+  // from the signed-in account, never from the body, so nobody can book in a stranger's name or into a victim's list.
+  const viewer = await getUserFromRequest(request);
+  if (!viewer?.id) {
+    // No account to key a throttle by: a guest's refusals are counted per address, so a bot cannot use up anything real people share.
+    const guestLimited = await checkRateLimit(`artist-booking-guest:${clientIp(request)}`, 30, 60_000);
+    if (!guestLimited.ok) return error("درخواست‌های زیاد. کمی صبر کن.", 429);
+    return error(LOGIN_TO_BOOK_MESSAGE, 401);
+  }
+  // Per-account throttle (not per artist: one bot must not be able to lock everybody else out of an artist).
+  const bookingLimited = await checkRateLimit(`artist-booking-create:user:${viewer.id}`, 20, 60_000);
   if (!bookingLimited.ok) {
     return error("درخواست‌های زیاد. کمی صبر کن.", 429);
+  }
+  // Only the artist (for their own walk-in customers) or a client may create an entry.
+  if (viewer.id !== artistUserId && viewer.type !== "client") {
+    return error("فقط مشتری می‌تواند از آرتیست نوبت بگیرد.", 403);
   }
 
   // Validated/stripped body -- zod drops any unlisted key (in particular
@@ -47,7 +55,6 @@ async function _POST(request) {
   const v = validateBody(createBookingSchema, body);
   if (!v.ok) return v.response;
 
-  const viewer = await getUserFromRequest(request);
   // How long a client's request waits (an hour, or until the appointment) and, with the hour, the
   // backup artist: one the client follows that does the same service.
   await salons.ensureBookingColumns();

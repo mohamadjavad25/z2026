@@ -2,6 +2,7 @@
 
 import { playSound } from "../../shared/lib/sounds";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { openInAppHref, rememberPendingOpen } from "../../shared/lib/appHandoff";
 import { createArtistBooking, getArtist, toggleFollow } from "../../shared/api/artists";
 import { toggleSave } from "../../shared/api/saves";
 import { getApiErrorMessage } from "../../shared/lib/apiNotify";
@@ -207,6 +208,14 @@ export function usePublicArtistProfile({
       notify("اول روز و ساعت نوبت را انتخاب کن.");
       return;
     }
+    // Booking an independent artist needs an account (owner's decision 2026-10-22): a guest is sent to the same
+    // hand-off a public page uses, so they sign up and come back to this artist's services.
+    if (!createdProfile) {
+      notify("برای رزرو، شمارهٔ موبایلت را وارد کن");
+      rememberPendingOpen({ type: "artist", id: selectedPublicArtist.id, name: selectedPublicArtist.name });
+      window.location.assign(openInAppHref("artist", selectedPublicArtist.id));
+      return;
+    }
     if (!createdProfile?.data?.phone) {
       setPublicArtistView("booking");
       notify("برای رزرو، ابتدا شماره تماس را در پروفایلت ثبت کن.");
@@ -236,8 +245,6 @@ export function usePublicArtistProfile({
         bookingDate: publicArtistBookingDay,
         time: publicArtistBookingSlot,
         durationMinutes,
-        clientName: createdProfile?.data?.name || "",
-        clientPhone: createdProfile?.data?.phone || "",
         ...(waitMinutes !== undefined ? { waitMinutes } : {}),
         ...(fallbackArtistUserId ? { fallbackArtistUserId } : {})
       });

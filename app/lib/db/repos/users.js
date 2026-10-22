@@ -21,6 +21,15 @@ export async function getUserById(id, runner = null) {
   return (await get(db, `SELECT ${USER_COLUMNS} FROM users WHERE id = $1`, [id])) || null;
 }
 
+/** Of these account ids, the suspended ones (an operator switched them off). One batch, for directory lists. */
+export async function suspendedAccountIds(userIds) {
+  const ids = [...new Set((userIds || []).map(Number).filter((id) => Number.isInteger(id) && id > 0))];
+  if (!ids.length) return new Set();
+  const db = await getDb();
+  const rows = await all(db, "SELECT id FROM users WHERE id = ANY($1::int[]) AND suspended_at IS NOT NULL", [ids]);
+  return new Set(rows.map((row) => Number(row.id)));
+}
+
 /** Profile fields only -- avatar comes back as a present/absent flag, never the base64 bytes. */
 export async function getUserLiteById(id, runner = null) {
   const db = runner || (await getDb());

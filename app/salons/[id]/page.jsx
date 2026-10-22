@@ -1,4 +1,6 @@
 import { notFound } from "next/navigation";
+import { PageUnavailable } from "../../components/PageUnavailable";
+import { suspendedAccountIds } from "../../lib/db/repos/users.js";
 import { ensureDb } from "../../lib/db/connection.js";
 import * as salons from "../../lib/db/repos/salons.js";
 import { SalonPublicPageClient } from "./SalonPublicPageClient";
@@ -14,6 +16,8 @@ async function loadSalon(id) {
   const userId = Number(id);
   if (!Number.isFinite(userId)) return null;
   await ensureDb();
+  // A suspended account has no public page: `{ unavailable: true }` makes the page say so in one sentence.
+  if ((await suspendedAccountIds([userId])).has(userId)) return { unavailable: true };
   const salon = await salons.getSalon(userId);
   if (!salon) return null;
   // A salon switched to "خصوصی" in تنظیمات → پروفایل عمومی سالن must stay
@@ -30,6 +34,7 @@ async function loadSalon(id) {
 export async function generateMetadata({ params }) {
   const { id } = await params;
   const salon = await loadSalon(id);
+  if (salon?.unavailable) return { title: "صفحه در دسترس نیست | frfro", robots: { index: false } };
   if (!salon) {
     return { title: "سالن پیدا نشد | frfro" };
   }
@@ -93,6 +98,7 @@ function buildSalonJsonLd(salon, canonicalUrl) {
 export default async function SalonPublicPage({ params }) {
   const { id } = await params;
   const salon = await loadSalon(id);
+  if (salon?.unavailable) return <PageUnavailable />;
   if (!salon) {
     notFound();
   }

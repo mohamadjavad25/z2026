@@ -12,7 +12,18 @@ import {
 } from "./bookingUtils";
 import { salonClientBookingDays } from "./constants";
 import { isTooSoonToRequest } from "../../shared/lib/bookingWindow";
-import { getTehranClockMinutes, timeLabelToMinutes } from "../../shared/lib/time";
+import { buildDayBookingSlots, getTehranClockMinutes, timeLabelToMinutes } from "../../shared/lib/time";
+import { findSalonHourForDateKey, isSalonHourOpen, salonDayWindow } from "../../shared/lib/salonAvailability";
+
+/** The 30-minute start times of one day that fit the artist's hours; the default week when none are known. */
+function slotsInHours(hours, dayKey, durationMinutes) {
+  const rows = Array.isArray(hours) && hours.length ? hours : null;
+  if (!rows) return buildPublicBookingSlots(durationMinutes);
+  const row = findSalonHourForDateKey(rows, dayKey);
+  if (!isSalonHourOpen(row)) return [];
+  const window = salonDayWindow(row);
+  return buildDayBookingSlots(window.open, window.close, durationMinutes);
+}
 
 export function PublicArtistBookingPanel({
   artist,
@@ -28,7 +39,9 @@ export function PublicArtistBookingPanel({
   const safeServices = Array.isArray(services) ? services : [];
   const activeService = safeServices.find((item) => item.id === selectedServiceId) || safeServices[0];
   const durationMinutes = parseDuration(activeService?.duration);
-  const slots = buildPublicBookingSlots(durationMinutes);
+  // Only times inside the artist's hours for that day are offered (the server refuses anything else).
+  const slotsFor = (day) => slotsInHours(artist?.hours, day, durationMinutes);
+  const slots = slotsFor(bookingDay);
   const freeSlots = slots.filter(
     (slot) => !isTooSoonToRequest(bookingDay, slot) && !isPublicArtistSlotBlocked(
       artist,
@@ -40,7 +53,7 @@ export function PublicArtistBookingPanel({
 
   // Rule: a day with NO free slot is full — shown disabled and not selectable.
   const fullDays = salonClientBookingDays.filter((day) => (
-    !slots.some((slot) => !isTooSoonToRequest(day, slot) && !isPublicArtistSlotBlocked(artist, day, slot, durationMinutes))
+    !slotsFor(day).some((slot) => !isTooSoonToRequest(day, slot) && !isPublicArtistSlotBlocked(artist, day, slot, durationMinutes))
   ));
 
   // Open on the first day that still has a free hour (today is often already over), until the

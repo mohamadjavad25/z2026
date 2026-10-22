@@ -8,6 +8,7 @@ import { isTooSoonToRequest } from "../../../shared/lib/bookingWindow.js";
 import { MAX_BOOKING_PARTS, summarizeBookingParts } from "../../../shared/lib/bookingParts.js";
 import { strictDayKey } from "../../../lib/validation/bookingSlot.js";
 import { findSalonHourForDateKey, isSalonHourOpen, salonDayWindow } from "../../../shared/lib/salonAvailability.js";
+import { onlineBookingBlock } from "../../../lib/billing/access.js";
 import { buildDayBookingSlots } from "../../../shared/lib/time.js";
 
 export const runtime = "nodejs";
@@ -42,6 +43,10 @@ async function _GET(request) {
   }
   const salon = await salons.getSalon(salonUserId);
   if (!salon) return noStoreJson({ error: "سالن پیدا نشد." }, { status: 404 });
+  // A salon that takes no new requests (suspended, or its subscription closed) offers no free times to anyone but itself.
+  if (auth.user.id !== salonUserId && await onlineBookingBlock(salonUserId, "salon")) {
+    return noStoreJson({ data: { times: [], durationMinutes: 0 } });
+  }
   const minutes = searchParams.getAll("minutes").map(Number);
   const parts = salonVisitParts(salon, names.map((service, index) => ({ service, durationMinutes: minutes[index] })));
   const missing = parts.find((part, index) => !part.listed && !(minutes[index] > 0));

@@ -88,7 +88,8 @@ describe("angle3c: a salon closes while it holds bookings", () => {
     await age(artist.user.id, 40);
     const body = { artistUserId: artist.user.id, service: "ناخن", bookingDate: futureBookingDay(2), time: hhmm(10) };
     expect((await c.client.post("/api/artist/bookings", body)).status).toBe(403);
-    expect((await createClient().post("/api/artist/bookings", body)).status).toBe(403);
+    // Booking an independent artist needs a login (owner's decision 2026-10-22): a guest is told to sign in (401), whatever the artist's state.
+    expect((await createClient().post("/api/artist/bookings", body)).status).toBe(401);
   });
 });
 
