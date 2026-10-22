@@ -25,7 +25,7 @@ async function _POST(request) {
   const result = await verifyOtp(phone, purpose, code);
   if (!result.ok) {
     if (result.code === "rate_limited") return error("تلاش زیاد بود. چند دقیقه بعد دوباره امتحان کن.", 429);
-    if (result.code === "wrong") return error("کد اشتباه است.", 400);
+    if (result.code === "wrong") return json({ error: "کد اشتباه است.", code: "wrong", attemptsLeft: result.attemptsLeft }, { status: 400 });
     return error("کد منقضی شده؛ کد جدید بگیر.", 400);
   }
   return json({ data: { proof: createOtpProof(phone, purpose) } });

@@ -10,6 +10,7 @@ import { Mascot } from "../../components/Mascot";
 import { ProfileRoleGrid } from "../profile/ProfileRoleGrid";
 import { firstInvalidField, validateLogin, validateSignup } from "./formValidation";
 import { OtpCodeStep } from "./OtpCodeStep";
+import { ClientSignupWizard } from "./ClientSignupWizard";
 import { confirmReset, useOtpConfig, verifyCode } from "./otp";
 
 // target="_blank" (not next/link) deliberately -- this sits inside a
@@ -300,7 +301,45 @@ function LoginForm({ authBusy, defaultPhone, onSubmit, onForgot }) {
   );
 }
 
+/** A client signs up in short steps (ClientSignupWizard); salons and artists keep the one-page form below. */
+function ClientSignup({ heroClass, authBusy, onBackToRole, onSwitchToLogin, onProfileSubmit, otp }) {
+  return (
+    <ClientSignupWizard
+      otp={otp}
+      busy={authBusy}
+      onLogin={onSwitchToLogin}
+      className={`signupForm is-client ${heroClass || ""}`}
+      header={(
+        <>
+          <button type="button" className="profileBackButton" onClick={onBackToRole}>
+            <ChevronLeft size={17} />
+            تغییر نقش
+          </button>
+          <div className="formTitle">
+            <div>
+              <strong>{ROLE_FORMS.client.title}</strong>
+              <span>{ROLE_FORMS.client.subtitle}</span>
+            </div>
+          </div>
+        </>
+      )}
+      footer={(
+        <p className="authSwitchHint">
+          قبلاً ثبت‌نام کردی؟{" "}
+          <button type="button" onClick={onSwitchToLogin}>ورود</button>
+        </p>
+      )}
+      onComplete={({ phone, name, password, proof }) => onProfileSubmit({ preventDefault() {} }, "client", { name, phone, password, otpProof: proof })}
+    />
+  );
+}
+
 function SignupForm({ type, heroClass, authBusy, onBackToRole, onSwitchToLogin, onProfileSubmit, otp }) {
+  if (type === "client") return <ClientSignup heroClass={heroClass} authBusy={authBusy} onBackToRole={onBackToRole} onSwitchToLogin={onSwitchToLogin} onProfileSubmit={onProfileSubmit} otp={otp} />;
+  return <SalonArtistSignupForm type={type} heroClass={heroClass} authBusy={authBusy} onBackToRole={onBackToRole} onSwitchToLogin={onSwitchToLogin} onProfileSubmit={onProfileSubmit} otp={otp} />;
+}
+
+function SalonArtistSignupForm({ type, heroClass, authBusy, onBackToRole, onSwitchToLogin, onProfileSubmit, otp }) {
   const config = ROLE_FORMS[type] || ROLE_FORMS.client;
   const formRef = useRef(null);
   const [codeStep, setCodeStep] = useState(false);

@@ -8,6 +8,8 @@ import { hasUniqueName, NAME_TAKEN_MESSAGE } from "../../../../lib/businessName.
 
 export const runtime = "nodejs";
 
+const OTP_BUSY_MESSAGE = "الان شلوغ است. با رمز وارد شو یا ۱۰ دقیقه بعد کد بگیر.";
+
 /**
  * POST { phone, purpose: "register" | "reset" | "phone_change" (needs a session), type?, name? } -> texts a 5-digit code. A sign-up sends its role and
  * name too, so a salon/artist name that is already taken is reported before an SMS is spent on it.
@@ -59,6 +61,8 @@ async function _POST(request) {
 
   const result = await sendOtp(phone, purpose);
   if (!result.ok) {
+    // The whole site's hourly budget of codes is used up: tell the visitor what to do instead (log in with the password, or come back).
+    if (result.code === "rate_limited" && result.scope === "global") return json({ error: OTP_BUSY_MESSAGE, code: "otp_busy" }, { status: 429 });
     if (result.code === "rate_limited") return error("درخواست کد زیاد بود. چند دقیقه بعد دوباره امتحان کن.", 429);
     return error("ارسال پیامک انجام نشد؛ کمی بعد دوباره امتحان کن.", 502);
   }

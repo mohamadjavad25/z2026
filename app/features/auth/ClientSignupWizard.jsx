@@ -1,0 +1,260 @@
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
+import { Check, Eye, EyeOff } from "lucide-react";
+import { Button, Field } from "../../components/ui";
+import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
+import { sendCode, verifyCode } from "./otp";
+import { clearSignupDraft, readSignupDraft, saveSignupDraft } from "./signupDraft";
+
+export const PHONE_ERROR = "شماره درست نیست؛ مثلاً ۰۹۱۲۳۴۵۶۷۸۹";
+export const WRONG_CODE = "کد اشتباه است. دوباره بزن";
+const MOBILE = /^09\d{9}$/;
+/** After this many wrong codes the visitor is offered a fresh one (with a short wait). */
+const MISTAKES_BEFORE_RESEND = 2;
+const FRESH_CODE_WAIT = 30;
+
+/** Counts down once a second; `start(n)` begins (or shortens) it. */
+function useWait() {
+  const [left, setLeft] = useState(0);
+  useEffect(() => {
+    if (left <= 0) return undefined;
+    const timer = setTimeout(() => setLeft((value) => value - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [left]);
+  return { left, start: useCallback((seconds) => setLeft(seconds), []) };
+}
+
+/**
+ * The client sign-up as short steps, one question each: phone number -> (texted code) -> name -> password.
+ * The first screen asks only for the number and says in one line under the button that continuing accepts
+ * the terms. The account is made by `onComplete({ phone, name, password, proof })`, which resolves to an
+ * error message (shown under the password) or "" on success.
+ *
+ * Phone and name are kept for 10 minutes in this tab (signupDraft.js) so Back/Forward does not empty the form.
+ * The password is never stored.
+ */
+export function ClientSignupWizard({ otp, onComplete, busy = false, onLogin = null, className = "", header = null, footer = null, submitLabel = "ساخت حساب" }) {
+  const needsCode = Boolean(otp?.required);
+  const [step, setStep] = useState("phone"); // phone | code | name | password
+  const [phone, setPhone] = useState("");
+  const [name, setName] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [code, setCode] = useState("");
+  const [proof, setProof] = useState("");
+  const [error, setError] = useState("");
+  const [busyStep, setBusyStep] = useState(false);
+  const [wrong, setWrong] = useState(0);
+  const [attemptsLeft, setAttemptsLeft] = useState(null);
+  const [verified, setVerified] = useState(false);
+  const [busyBlock, setBusyBlock] = useState(false); // the site-wide hourly cap of codes is used up
+  const wait = useWait();
+  const total = needsCode ? 4 : 3;
+  const position = { phone: 1, code: 2, name: needsCode ? 3 : 2, password: needsCode ? 4 : 3 }[step];
+
+  // Read after mount (never during render, so the server and first client render match); declared before the save below.
+  useEffect(() => {
+    const saved = readSignupDraft();
+    if (saved.phone) setPhone(saved.phone);
+    if (saved.name) setName(saved.name);
+  }, []);
+  useEffect(() => { saveSignupDraft({ phone, name }); }, [phone, name]);
+
+  const cleanPhone = toLatinDigits(phone.trim());
+
+  async function sendTheCode() {
+    setBusyStep(true);
+    setError("");
+    setBusyBlock(false);
+    try {
+      const { ok, payload } = await sendCode(cleanPhone, "register", { type: "client", name: "" });
+      if (!ok) {
+        if (payload?.code === "otp_busy") setBusyBlock(true);
+        setError(payload?.error || "ارسال پیامک انجام نشد؛ کمی بعد دوباره امتحان کن.");
+        return false;
+      }
+      wait.start(otp?.resendSeconds || 60);
+      return true;
+    } catch {
+      setError("اینترنتت کند است. دوباره تلاش کن");
+      return false;
+    } finally {
+      setBusyStep(false);
+    }
+  }
+
+  async function submitPhone() {
+    if (!MOBILE.test(cleanPhone)) { setError(PHONE_ERROR); return; }
+    if (!needsCode) { setError(""); setStep("name"); return; }
+    if (await sendTheCode()) {
+      setCode(""); setWrong(0); setAttemptsLeft(null); setVerified(false); setProof("");
+      setStep("code");
+    }
+  }
+
+  async function submitCode() {
+    const clean = toLatinDigits(code).trim();
+    if (!/^\d{5}$/.test(clean)) { setError("کد ۵رقمی را کامل وارد کن."); return; }
+    setBusyStep(true);
+    setError("");
+    try {
+      const { ok, payload } = await verifyCode(cleanPhone, clean);
+      if (ok) {
+        setProof(payload.data.proof);
+        setVerified(true);
+        setTimeout(() => { setVerified(false); setStep("name"); }, 700);
+        return;
+      }
+      if (payload?.code === "wrong") {
+        const mistakes = wrong + 1;
+        setWrong(mistakes);
+        setAttemptsLeft(typeof payload.attemptsLeft === "number" ? payload.attemptsLeft : null);
+        setError(WRONG_CODE);
+        setCode("");
+        if (mistakes >= MISTAKES_BEFORE_RESEND) wait.start(payload.attemptsLeft === 0 ? 0 : FRESH_CODE_WAIT);
+        return;
+      }
+      setError(payload?.error || "تأیید کد انجام نشد.");
+      if (/منقضی/.test(payload?.error || "")) { setWrong(MISTAKES_BEFORE_RESEND); wait.start(0); }
+    } catch {
+      setError("اینترنتت کند است. دوباره تلاش کن");
+    } finally {
+      setBusyStep(false);
+    }
+  }
+
+  function submitName() {
+    if (!name.trim()) { setError("نام خودت را وارد کن."); return; }
+    setError("");
+    setStep("password");
+  }
+
+  async function submitPassword() {
+    if (password.trim().length < 8) { setError("رمز عبور باید حداقل ۸ کاراکتر باشد."); return; }
+    setBusyStep(true);
+    setError("");
+    try {
+      const message = await onComplete({ phone: cleanPhone, name: name.trim(), password, proof });
+      if (message) setError(message);
+      else clearSignupDraft();
+    } finally {
+      setBusyStep(false);
+    }
+  }
+
+  function onSubmit(event) {
+    event.preventDefault();
+    if (busyStep || busy || verified) return;
+    if (step === "phone") submitPhone();
+    else if (step === "code") submitCode();
+    else if (step === "name") submitName();
+    else submitPassword();
+  }
+
+  function changePhone() {
+    setStep("phone"); setError(""); setCode(""); setProof(""); setWrong(0); setAttemptsLeft(null); setBusyBlock(false);
+  }
+
+  const showFresh = step === "code" && (wrong >= MISTAKES_BEFORE_RESEND || (wait.left === 0 && !busyStep));
+  const freshWaiting = wait.left > 0;
+
+  return (
+    <form className={`suw ${className}`.trim()} noValidate onSubmit={onSubmit}>
+      {header}
+      <p className="suwStep" aria-live="polite">قدم {toPersianDigits(position)} از {toPersianDigits(total)}</p>
+
+      {step === "phone" ? (
+        <>
+          <h3 className="suwTitle">شمارهٔ موبایلت را بزن</h3>
+          <Field label="شماره تماس" error={error && !busyBlock ? error : ""} hideLabel>
+            {(props) => (
+              <input {...props} name="phone" placeholder="شماره موبایل؛ مثلاً ۰۹۱۲۳۴۵۶۷۸۹" inputMode="tel" dir="ltr" autoComplete="tel" maxLength={11} autoFocus
+                value={phone} onChange={(event) => { setPhone(toLatinDigits(event.target.value)); setError(""); setBusyBlock(false); }} />
+            )}
+          </Field>
+          {busyBlock ? (
+            <div className="suwBusy" role="alert">
+              <p>{error}</p>
+              {onLogin ? <button type="button" className="suwLink" onClick={onLogin}>ورود با رمز</button> : null}
+            </div>
+          ) : null}
+          <Button type="submit" block loading={busyStep} loadingLabel="در حال ارسال…">{needsCode ? "دریافت کد" : "ادامه"}</Button>
+          <p className="suwTerms">
+            با ادامه دادن، <a href="/terms" target="_blank" rel="noopener noreferrer">قوانین</a> را می‌پذیرم
+            {" "}<span aria-hidden="true">·</span>{" "}
+            <a href="/privacy" target="_blank" rel="noopener noreferrer">حریم خصوصی</a>
+          </p>
+        </>
+      ) : null}
+
+      {step === "code" ? (
+        <>
+          <button type="button" className="suwChange" onClick={changePhone}>تغییر شماره</button>
+          <h3 className="suwTitle">کد پیامک‌شده را بزن</h3>
+          <p className="suwHint">کد ۵رقمی برای <b dir="ltr">{toPersianDigits(cleanPhone)}</b> رفت.</p>
+          {verified ? (
+            <p className="suwOk" role="status"><span className="suwTick" aria-hidden="true"><Check size={18} strokeWidth={3} /></span> شماره تأیید شد</p>
+          ) : (
+            <>
+              <Field label="کد تأیید" error={error} hideLabel>
+                {(props) => (
+                  <input {...props} name="otpCode" inputMode="numeric" autoComplete="one-time-code" dir="ltr" maxLength={5} placeholder="_ _ _ _ _" autoFocus
+                    value={code} onChange={(event) => { setCode(toLatinDigits(event.target.value).replace(/\D/g, "")); setError(""); }} />
+                )}
+              </Field>
+              {attemptsLeft !== null && wrong > 0 ? (
+                <p className="suwHint" role="status">
+                  {attemptsLeft > 0 ? `${toPersianDigits(attemptsLeft)} بار دیگر می‌توانی امتحان کنی` : "این کد دیگر کار نمی‌کند؛ کد تازه بگیر."}
+                </p>
+              ) : null}
+              <Button type="submit" block loading={busyStep} loadingLabel="در حال بررسی…" disabled={attemptsLeft === 0}>تأیید</Button>
+              {showFresh ? (
+                <button type="button" className="suwLink" disabled={freshWaiting || busyStep}
+                  onClick={async () => { if (await sendTheCode()) { setCode(""); setWrong(0); setAttemptsLeft(null); } }}>
+                  {freshWaiting ? `کد تازه بفرست (${toPersianDigits(wait.left)})` : "کد تازه بفرست"}
+                </button>
+              ) : (
+                <p className="suwHint">کد نرسید؟ بعد از {toPersianDigits(wait.left)} ثانیه می‌توانی دوباره بگیری.</p>
+              )}
+            </>
+          )}
+        </>
+      ) : null}
+
+      {step === "name" ? (
+        <>
+          <h3 className="suwTitle">اسمت چیست؟</h3>
+          <Field label="نام" error={error} hideLabel>
+            {(props) => (
+              <input {...props} name="name" placeholder="نام یا نام نمایشی" autoComplete="name" autoFocus
+                value={name} onChange={(event) => { setName(event.target.value); setError(""); }} />
+            )}
+          </Field>
+          <Button type="submit" block>ادامه</Button>
+          <button type="button" className="suwLink" onClick={changePhone}>برگشت به شماره</button>
+        </>
+      ) : null}
+
+      {step === "password" ? (
+        <>
+          <h3 className="suwTitle">یک رمز برای خودت بساز</h3>
+          <Field label="رمز عبور" error={error} hint="حداقل ۸ کاراکتر" hideLabel>
+            {(props) => (
+              <div className="suwPassword">
+                <input {...props} name="password" type={showPassword ? "text" : "password"} placeholder="رمز عبور (حداقل ۸ کاراکتر)" autoComplete="new-password" autoFocus
+                  value={password} onChange={(event) => { setPassword(event.target.value); setError(""); }} />
+                <button type="button" className="suwEye" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? "پنهان کردن رمز عبور" : "نمایش رمز عبور"}>
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            )}
+          </Field>
+          <Button type="submit" block loading={busyStep || busy} loadingLabel="در حال ساختن حساب…">{submitLabel}</Button>
+          <button type="button" className="suwLink" onClick={() => { setError(""); setStep("name"); }}>برگشت</button>
+        </>
+      ) : null}
+      {footer}
+    </form>
+  );
+}

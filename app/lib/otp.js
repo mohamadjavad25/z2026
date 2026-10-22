@@ -5,6 +5,9 @@ import { sendVerificationSms, smsEnabled } from "./sms.js";
 
 const CODE_TTL_MINUTES = 5;
 const MAX_ATTEMPTS = 5;
+/** The site-wide hourly cap on texted codes (all sign-ups, resets and phone changes together). */
+export const OTP_GLOBAL_HOURLY_CAP = 200;
+export const OTP_GLOBAL_KEY = "otp-send-global";
 const PROOF_TTL_MS = 15 * 60 * 1000;
 const RESEND_SECONDS = 60;
 
@@ -56,8 +59,9 @@ export const phoneChangePurpose = (userId) => `phone_change:${Number(userId)}`;
 export async function sendOtp(phone, purpose) {
   const perPhone = await checkRateLimit(`otp-send:${phone}`, 3, 15 * 60 * 1000);
   if (!perPhone.ok) return { ok: false, code: "rate_limited", retryAfterMs: perPhone.retryAfterMs };
-  const global = await checkRateLimit("otp-send-global", 200, 60 * 60 * 1000);
-  if (!global.ok) return { ok: false, code: "rate_limited", retryAfterMs: global.retryAfterMs };
+  const global = await checkRateLimit(OTP_GLOBAL_KEY, OTP_GLOBAL_HOURLY_CAP, 60 * 60 * 1000);
+  // `scope: "global"`: the whole site's hourly budget is used up, not this phone's own limit (the screen says so differently).
+  if (!global.ok) return { ok: false, code: "rate_limited", scope: "global", retryAfterMs: global.retryAfterMs };
 
   const code = String(randomInt(10000, 100000));
   const db = await getDb();
@@ -91,7 +95,7 @@ export async function verifyOtp(phone, purpose, code) {
     const expected = Buffer.from(row.code_hash);
     if (given.length !== expected.length || !timingSafeEqual(given, expected)) {
       await run(client, "UPDATE otp_codes SET attempts = attempts + 1 WHERE id = $1", [row.id]);
-      return { ok: false, code: "wrong" };
+      return { ok: false, code: "wrong", attemptsLeft: Math.max(MAX_ATTEMPTS - row.attempts - 1, 0) };
     }
     await run(client, "UPDATE otp_codes SET consumed_at = NOW() WHERE id = $1", [row.id]);
     return { ok: true };

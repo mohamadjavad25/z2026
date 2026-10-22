@@ -1,4 +1,5 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, afterAll } from "vitest";
+import pg from "pg";
 import { adminClient, createClient, uniquePhone, registerUser } from "./helpers.js";
 
 async function codeFor(admin, phone) {
@@ -6,7 +7,45 @@ async function codeFor(admin, phone) {
   return res.payload.data.latestTestCode;
 }
 
+const db = new pg.Client({ connectionString: process.env.TEST_POSTGRES_URL });
+const connected = db.connect();
+afterAll(async () => { await connected; await db.end(); });
+
 describe("SMS codes", () => {
+  it("tells a wrong guess how many tries are left", async () => {
+    const admin = await adminClient();
+    const phone = uniquePhone();
+    const anon = createClient();
+    await anon.post("/api/auth/otp/send", { phone, purpose: "register" });
+    const code = await codeFor(admin, phone);
+    const bad = code === "11111" ? "22222" : "11111";
+    const first = await anon.post("/api/auth/otp/verify", { phone, code: bad });
+    expect(first.status).toBe(400);
+    expect(first.payload.code).toBe("wrong");
+    expect(first.payload.attemptsLeft).toBe(4);
+    expect((await anon.post("/api/auth/otp/verify", { phone, code: bad })).payload.attemptsLeft).toBe(3);
+  });
+
+  it("says «busy» (not the per-phone message) when the site-wide hourly cap of codes is used up, and the admin home warns at 80%", async () => {
+    await connected;
+    const admin = await adminClient();
+    const marker = "otp-send-global";
+    await db.query("DELETE FROM rate_limit_hits WHERE key = $1", [marker]);
+    try {
+      await db.query("INSERT INTO rate_limit_hits (key, hit_at) SELECT $1, NOW() FROM generate_series(1, 160)", [marker]);
+      const dash = (await admin.get("/api/admin/dashboard")).payload.data;
+      expect(dash.alerts.otpUsed).toBeGreaterThanOrEqual(160);
+      expect(dash.alerts.otpCap).toBe(200);
+      await db.query("INSERT INTO rate_limit_hits (key, hit_at) SELECT $1, NOW() FROM generate_series(1, 40)", [marker]);
+      const res = await createClient().post("/api/auth/otp/send", { phone: uniquePhone(), purpose: "register" });
+      expect(res.status).toBe(429);
+      expect(res.payload.code).toBe("otp_busy");
+      expect(res.payload.error).toBe("الان شلوغ است. با رمز وارد شو یا ۱۰ دقیقه بعد کد بگیر.");
+    } finally {
+      await db.query("DELETE FROM rate_limit_hits WHERE key = $1", [marker]);
+    }
+  });
+
   it("reports that SMS is on but not yet required", async () => {
     const res = await createClient().get("/api/auth/otp/config");
     expect(res.payload.data.enabled).toBe(true);

@@ -18,6 +18,7 @@
 @import "./styles/features/salon.css";
 @import "./styles/features/client.css";
 @import "./styles/features/auth.css";
+@import "./styles/features/signupWizard.css";
 @import "./styles/features/joinSalon.css";
 @import "./styles/features/legal.css";
 @import "./styles/features/errorPage.css";
