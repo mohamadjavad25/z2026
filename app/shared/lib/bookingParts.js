@@ -1,11 +1,16 @@
 import { normalizeBookingTimeLabel, parseServiceDurationMinutes, timeLabelToMinutes } from "./time";
 import { joinServiceNames } from "./serviceBundle";
+import { toPersianDigits } from "./digits";
 
 // A salon booking with several services (one visit, back to back) keeps them in
 // salon_bookings.parts: [{ service, minutes, staff }] in visit order. Each part's
 // clock time is not stored -- it follows from the booking's start time and the
 // order. A booking with no parts (or one) is an ordinary single-service booking.
 export const MAX_BOOKING_PARTS = 8;
+// A request for a group (owner's decision 2026-10-22): up to this many people at the same time, each
+// with the same services. Their parts sit in one list, person by person; `person` (0, 1, 2) is the
+// lane a part runs in, and every lane starts at the booking's start time.
+export const MAX_GROUP_PEOPLE = 3;
 
 export function parseBookingParts(value) {
   let list = value;
@@ -22,7 +27,8 @@ export function parseBookingParts(value) {
     .map((part) => ({
       service: String(part?.service || "").trim(),
       minutes: Math.max(15, Number(part?.minutes) || parseServiceDurationMinutes(part?.duration)),
-      staff: String(part?.staff || "").trim()
+      staff: String(part?.staff || "").trim(),
+      ...(Number(part?.person) > 0 ? { person: Math.min(MAX_GROUP_PEOPLE - 1, Math.floor(Number(part.person))) } : {})
     }))
     .filter((part) => part.service)
     .slice(0, MAX_BOOKING_PARTS);
@@ -37,12 +43,39 @@ export function isMultiPartBooking(booking) {
   return parseBookingParts(booking?.parts).length >= 2;
 }
 
-/** The booking's service text and total length for these parts. */
+/** How many people the parts are for: one, or a group asking together (see MAX_GROUP_PEOPLE). */
+export function bookingPeople(booking) {
+  const list = Array.isArray(booking) ? booking : parseBookingParts(booking?.parts);
+  return list.reduce((most, part) => Math.max(most, (part.person || 0) + 1), 1);
+}
+
+/** One person's services as the parts of `people` people at the same time (person 0 first). */
+export function expandPartsForPeople(parts, people) {
+  const count = Math.max(1, Math.min(MAX_GROUP_PEOPLE, Math.floor(Number(people)) || 1));
+  const list = parseBookingParts(parts).map(({ person: _person, ...part }) => part);
+  if (count < 2) return list;
+  return Array.from({ length: count }, (_, person) => list.map((part) => ({ ...part, ...(person ? { person } : {}) }))).flat();
+}
+
+/** "۲ نفر" for a group's booking; "" for one person. */
+export function peopleLabel(booking) {
+  const people = bookingPeople(booking);
+  return people > 1 ? `${toPersianDigits(people)} نفر` : "";
+}
+
+/**
+ * The booking's service text and total length for these parts. A group's length is the longest
+ * person's (they run side by side) and its text names one person's services and the head count.
+ */
 export function summarizeBookingParts(parts) {
   const list = parseBookingParts(parts);
+  const people = bookingPeople(list);
+  const first = people > 1 ? list.filter((part) => !part.person) : list;
+  const lane = (person) => list.filter((part) => (part.person || 0) === person).reduce((sum, part) => sum + part.minutes, 0);
+  const service = joinServiceNames(first.map((part) => part.service));
   return {
-    service: joinServiceNames(list.map((part) => part.service)),
-    durationMinutes: list.reduce((sum, part) => sum + part.minutes, 0)
+    service: people > 1 ? `${service} · ${toPersianDigits(people)} نفر` : service,
+    durationMinutes: Math.max(...Array.from({ length: people }, (_, person) => lane(person)), 0)
   };
 }
 
@@ -54,10 +87,13 @@ function minutesToLabel(total) {
 
 /** Each part with its start/end (minutes from midnight, and "HH:MM"), in visit order. */
 export function scheduleBookingParts(startTime, parts) {
-  let cursor = timeLabelToMinutes(normalizeBookingTimeLabel(startTime || ""));
+  const begin = timeLabelToMinutes(normalizeBookingTimeLabel(startTime || ""));
+  const cursors = new Map();
   return parseBookingParts(parts).map((part, index) => {
-    const start = cursor;
-    cursor += part.minutes;
+    const lane = part.person || 0;
+    const start = cursors.has(lane) ? cursors.get(lane) : begin;
+    const cursor = start + part.minutes;
+    cursors.set(lane, cursor);
     return { ...part, index, start, end: cursor, startLabel: minutesToLabel(start), endLabel: minutesToLabel(cursor) };
   });
 }

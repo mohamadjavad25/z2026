@@ -40,8 +40,9 @@ export async function getSalonBookings(salonUserId) {
  * can be requested. `services`: names, or { name, minutes } (minutes count only for a service
  * the salon does not list).
  */
-export async function getSalonVisitTimes(salonUserId, day, services) {
+export async function getSalonVisitTimes(salonUserId, day, services, people = 1) {
   const query = new URLSearchParams({ salonUserId: String(salonUserId), day: String(day || "") });
+  if (people > 1) query.set("people", String(people));
   for (const service of services) {
     query.append("service", typeof service === "string" ? service : service.name);
     if (service?.minutes) query.append("minutes", String(service.minutes));
@@ -67,8 +68,9 @@ export async function getSalonFallbacks(salonUserId, day, time, services) {
  * ("" = the system's), used only for the salon's own session. For the salon each part also has `free`
  * and `options`. A plan the salon cannot take is `ok: false` with the reason, not an error.
  */
-export async function getSalonVisitPreview(salonUserId, day, time, services, staff = []) {
+export async function getSalonVisitPreview(salonUserId, day, time, services, staff = [], people = 1) {
   const query = new URLSearchParams({ salonUserId: String(salonUserId), day: String(day || ""), time: String(time || "") });
+  if (people > 1) query.set("people", String(people));
   for (const service of services) {
     query.append("service", typeof service === "string" ? service : service.name);
     if (service?.minutes) query.append("minutes", String(service.minutes));

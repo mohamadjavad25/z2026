@@ -5,7 +5,7 @@ import { visitSlotProblem } from "./visitSlotRules.js";
 import { parseServiceDurationMinutes } from "../shared/lib/time.js";
 import { readBookingSlot } from "./validation/bookingSlot.js";
 import { MAX_BOOKING_MINUTES, parseRequestedMinutes } from "./validation/numbers.js";
-import { summarizeBookingParts } from "../shared/lib/bookingParts.js";
+import { MAX_BOOKING_PARTS, expandPartsForPeople, summarizeBookingParts } from "../shared/lib/bookingParts.js";
 import { salonVisitParts } from "./salonVisitParts.js";
 import { BOOKING_REQUEST_WINDOW_MINUTES } from "../shared/lib/bookingWindow.js";
 
@@ -57,8 +57,16 @@ export async function createSalonBooking({ actor, salonUserId, body, data, wait 
   // stranger's name or put a booking into another person's list. Only the salon's own entry takes them from the form (never the salon's own number: a walk-in with no number has none).
   const client = String(isClient ? actor.name || "" : body.client || "").trim();
   const phone = String(isClient ? actor.phone || "" : body.phone || "").trim();
-  const parts = salonVisitParts(salon, data.parts, { allowStaff: actor.type === "salon" })
-    .map(({ service, minutes, staff }) => ({ service, minutes, staff }));
+  const people = Number(data.people) > 1 ? Number(data.people) : 1;
+  // A group: one person's services, repeated for each person, side by side (a client's request only).
+  const onePerson = salonVisitParts(
+    salon,
+    people > 1 && !data.parts?.length ? [{ service: String(body.service || "").trim(), durationMinutes: resolveRequestedDuration(body, salon, { isClient }) }] : data.parts,
+    { allowStaff: actor.type === "salon" && people < 2 }
+  ).map(({ service, minutes, staff }) => ({ service, minutes, staff }));
+  if (people > 1 && !isClient) return refuse(400, "درخواست چندنفره را فقط مشتری می‌فرستد.");
+  if (onePerson.length * people > MAX_BOOKING_PARTS) return refuse(400, `برای ${people} نفر حداکثر ${Math.floor(MAX_BOOKING_PARTS / people)} خدمت در یک نوبت.`);
+  const parts = people > 1 ? expandPartsForPeople(onePerson, people) : onePerson;
   const multiPart = parts.length >= 2;
   // A client books only what is on the salon's own menu (nothing made up), and the salon's own length is used.
   if (isClient) {
@@ -124,7 +132,7 @@ export async function createSalonBooking({ actor, salonUserId, body, data, wait 
   });
   if (!result.ok) {
     if (result.error === "bad_slot") return refuse(400, result.message);
-    if (result.error === "no_staff") return refuse(409, result.message, "NO_FREE_ARTIST");
+    if (result.error === "no_staff") return refuse(409, result.message, result.code || "NO_FREE_ARTIST");
     if (result.error === "too_many") return refuse(409, result.message, result.code);
     if (result.error === "artist_conflict") {
       return refuse(409, result.message || "این ساعت برای آرتیست قبلاً رزرو شده است.", result.code || "ARTIST_SLOT_TAKEN");

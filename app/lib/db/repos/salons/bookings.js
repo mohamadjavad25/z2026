@@ -26,16 +26,19 @@ import { buildClientHistoryLookup } from "../clientHistory.js";
 import { listSalonServices } from "./services.js";
 import { listSalonHours } from "./hours.js";
 import { resolveBookingServiceEmoji } from "../serviceEmoji.js";
+import { bumpSalonAvailability } from "../../../availabilityCache.js";
 import { findSalonStaffForBooking, listSalonStaff } from "./staff.js";
 import {
   groupConsecutiveParts,
   isMultiPartBooking,
+  bookingPeople,
   parseBookingParts,
   scheduleBookingParts,
   serializeBookingParts,
   summarizeBookingParts
 } from "../../../../shared/lib/bookingParts.js";
 import { AWAITING_CLIENT } from "../../../../shared/lib/bookingOffer.js";
+import { toPersianDigits } from "../../../../shared/lib/digits.js";
 import { isProposalLapsed, proposalView } from "../../../../shared/lib/providerRules.js";
 
 let partsColumnsReady;
@@ -301,20 +304,29 @@ function compareRanks(a, b) {
 async function draftVisitParts(day, time, parts) {
   const drafted = [];
   const visitMinutes = new Map();
+  // What this visit has already given each artist (a group's people run side by side: one artist cannot be two of them).
+  const taken = [];
+  const takenBy = (name, start, end) => taken.some((item) => item.staff === name && rangesOverlap(start, end, item.start, item.end));
   let previous = "";
+  let previousPerson = 0;
   for (const part of scheduleBookingParts(time, parts)) {
     let staff = part.staff;
+    if (previousPerson !== (part.person || 0)) {
+      previous = "";
+      previousPerson = part.person || 0;
+    }
     if (!staff) {
       let best = null;
       const pool = draftPool(day, part.service);
       // The seats at this hour: working team members free then, less those the salon's unassigned entries take.
       let freeSeats = 0;
       for (const person of day.team) {
-        if (isStaffWorking(person) && (await isStaffFree(day, person, part.start, part.end))) freeSeats += 1;
+        if (isStaffWorking(person) && !takenBy(staffName(person), part.start, part.end) && (await isStaffFree(day, person, part.start, part.end))) freeSeats += 1;
       }
       const seatsLeft = freeSeats - unassignedSeats(day, part.start, part.end);
       for (let order = 0; seatsLeft > 0 && order < pool.length; order += 1) {
         const person = pool[order];
+        if (takenBy(staffName(person), part.start, part.end)) continue;
         if (!(await isStaffFree(day, person, part.start, part.end))) continue;
         const name = staffName(person);
         const rank = [visitMinutes.get(name) || 0, name === previous ? 0 : 1, day.load.get(name) || 0, order];
@@ -322,9 +334,12 @@ async function draftVisitParts(day, time, parts) {
       }
       staff = best?.name || "";
     }
-    if (staff) visitMinutes.set(staff, (visitMinutes.get(staff) || 0) + part.minutes);
+    if (staff) {
+      visitMinutes.set(staff, (visitMinutes.get(staff) || 0) + part.minutes);
+      taken.push({ staff, start: part.start, end: part.end });
+    }
     previous = staff;
-    drafted.push({ service: part.service, minutes: part.minutes, staff });
+    drafted.push({ service: part.service, minutes: part.minutes, staff, ...(part.person ? { person: part.person } : {}) });
   }
   return drafted;
 }
@@ -390,6 +405,7 @@ export async function previewVisit(salonUserId, bookingDate, time, parts, { with
       start: part.startLabel,
       end: part.endLabel,
       staff: part.staff,
+      ...(part.person ? { person: part.person } : {}),
       unknownStaff: Boolean(part.staff && !person),
       free: part.staff && person ? await isStaffFree(day, person, part.start, part.end) : null
     };
@@ -646,17 +662,20 @@ export async function listUnavailableSlots(salonUserId) {
 /** Drops the short-lived list of a salon's taken slots (after bookings of it were changed outside this module's own paths). */
 export function invalidateUnavailable(salonUserId) {
   unavailableCache.delete(Number(salonUserId));
+  bumpSalonAvailability(salonUserId);
 }
 
 export async function addSalonBooking(salonUserId, data) {
   const result = await addSalonBookingUncached(salonUserId, data);
   unavailableCache.delete(Number(salonUserId));
+  bumpSalonAvailability(salonUserId);
   return result;
 }
 
 export async function patchSalonBookingWithArtistSync(id, salonUserId, data, options = {}) {
   const result = await patchSalonBookingUncached(id, salonUserId, data, options);
   unavailableCache.delete(Number(salonUserId));
+  bumpSalonAvailability(salonUserId);
   return result;
 }
 
@@ -964,6 +983,9 @@ async function addMultiPartSalonBooking(salonUserId, data) {
       // (the same rule listFeasibleVisitTimes shows them); the salon may leave one open.
       const unstaffed = data.requireStaff ? findUnstaffedPart(day, parts) : null;
       if (unstaffed) {
+        // A group is answered as a whole: if the team can no longer seat all of them at once, nobody is booked.
+        const people = bookingPeople(parts);
+        if (people > 1) return { ok: false, error: "no_staff", code: "GROUP_FULL", message: `این ساعت دیگر برای ${toPersianDigits(people)} نفر جا ندارد؛ ساعت‌ها به‌روز شد.` };
         return { ok: false, error: "no_staff", message: `برای «${unstaffed.service}» در این ساعت آرتیست آزادی نیست.` };
       }
       const { service, durationMinutes } = summarizeBookingParts(parts);
@@ -1193,7 +1215,9 @@ export async function updateSalonBooking(id, salonUserId, data) {
   `, [id, salonUserId]);
   if (!current) return { ok: false, error: "missing" };
 
-  return withTransaction(null, (db) => updateSalonBookingInTx(db, id, salonUserId, current, data));
+  const result = await withTransaction(null, (db) => updateSalonBookingInTx(db, id, salonUserId, current, data));
+  invalidateUnavailable(salonUserId);
+  return result;
 }
 
 /**
@@ -1453,7 +1477,10 @@ async function patchMultiPartBooking(id, salonUserId, current, data) {
     }
     // Lengths come from the booking itself, never from the request.
     const remaining = [...currentParts];
-    nextParts = incoming.map((part) => {
+    // A group keeps its people: the salon may change who does a part, never which person it belongs to.
+    const isGroup = bookingPeople(currentParts) > 1;
+    if (isGroup && incoming.some((part, index) => part.service !== currentParts[index].service)) return { ok: false, error: "parts" };
+    nextParts = isGroup ? incoming.map((part, index) => ({ ...currentParts[index], staff: part.staff })) : incoming.map((part) => {
       const index = remaining.findIndex((item) => item.service === part.service);
       const [original] = remaining.splice(index, 1);
       return { service: part.service, minutes: original.minutes, staff: part.staff };
@@ -1526,6 +1553,12 @@ async function patchMultiPartBooking(id, salonUserId, current, data) {
  * Runs on the caller's transaction so both tables change together.
  */
 export async function syncSalonBookingFromArtistMirror(artistBooking, status, runner = null) {
+  const result = await syncSalonBookingFromArtistMirrorUncached(artistBooking, status, runner);
+  invalidateUnavailable(artistBooking?.source_salon_user_id || artistBooking?.sourceSalonUserId);
+  return result;
+}
+
+async function syncSalonBookingFromArtistMirrorUncached(artistBooking, status, runner = null) {
   const salonUserId = Number(artistBooking?.source_salon_user_id || artistBooking?.sourceSalonUserId || 0);
   if (!salonUserId || !["تایید شده", "لغو"].includes(status)) return null;
   const db = runner || (await getDb());
