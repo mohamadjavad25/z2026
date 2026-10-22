@@ -315,16 +315,16 @@ describe("client -> independent artist", () => {
     expect((await clientArtistRow(client, booking.id)).status).toBe("تایید شده");
   });
 
-  it("a guest (not signed in) request also waits and expires", async () => {
+  // Changed on purpose (owner's decision 2026-10-22): an independent artist takes bookings only from a signed-in
+  // client, so a guest request no longer exists to wait or expire; it is refused with 401.
+  it("a guest (not signed in) request is refused: booking an independent artist needs a login", async () => {
     const a = await newDirectArtist("Direct Guest");
     const guest = createClient();
     const res = await guest.post("/api/artist/bookings", {
       artistUserId: a.artist.user.id, service: "ناخن", bookingDate: futureBookingDay(2), time: "10:00", clientName: "Guest", clientPhone: "09120000777"
     });
-    expect(res.status).toBe(201);
-    await age("artist_bookings", res.payload.data.booking.id, 61);
-    await sweep();
-    expect((await artistRow(a, res.payload.data.booking.id)).status).toBe(EXPIRED);
+    expect(res.status).toBe(401);
+    expect(res.payload.error).toContain("برای رزرو، شمارهٔ موبایلت را وارد کن");
   });
 });
 

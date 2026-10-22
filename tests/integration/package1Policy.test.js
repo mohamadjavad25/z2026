@@ -238,9 +238,10 @@ describe("P13: limits", () => {
 
   it("the client name in the salon's SMS is cut to 30 characters", async () => {
     const ctx = await makeSalon("P13 Sms", { staffCount: 0 });
-    const c = await makeClient("P13 Sms Client");
+    // A client's request carries the account's own name (a typed one is ignored since 2026-10-22), so the long name is the account's.
     const longName = "ن".repeat(80);
-    const r = await c.client.post("/api/salon-bookings", { salonUserId: ctx.salon.user.id, service: "S30", bookingDate: day(2), time: "10:00", client: longName, phone: c.phone });
+    const c = await makeClient(longName);
+    const r = await c.client.post("/api/salon-bookings", { salonUserId: ctx.salon.user.id, service: "S30", bookingDate: day(2), time: "10:00", phone: c.phone });
     expect(r.status).toBe(201);
     const filter = { phone: ctx.salon.phone, purpose: "booking_request" };
     await settledSmsCount(filter);
