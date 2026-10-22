@@ -174,17 +174,28 @@ export function parsePersianDateKey(value, from = new Date()) {
 export function persianDateKeyToDate(dateKey, from = new Date(), rangeDays = 400) {
   if (!isPersianDateKey(dateKey)) return null;
   const base = startOfDay(from);
-  if (formatPersianDateKey(base) === dateKey) return base;
-  for (let offset = 1; offset <= rangeDays; offset += 1) {
+  const baseKey = formatPersianDateKey(base);
+  if (baseKey === dateKey) return base;
+  // The same key is asked for again and again (every booking row of an artist is read for each availability question,
+  // up to 800 Intl formats per row), and the answer only depends on the key and on today's date, so it is remembered.
+  const cacheKey = `${dateKey}|${baseKey}|${rangeDays}`;
+  const known = dateKeyCache.get(cacheKey);
+  if (known !== undefined) return known === null ? null : new Date(known);
+  let found = null;
+  for (let offset = 1; offset <= rangeDays && !found; offset += 1) {
     const forward = new Date(base);
     forward.setDate(forward.getDate() + offset);
-    if (formatPersianDateKey(forward) === dateKey) return forward;
+    if (formatPersianDateKey(forward) === dateKey) { found = forward; break; }
     const backward = new Date(base);
     backward.setDate(backward.getDate() - offset);
-    if (formatPersianDateKey(backward) === dateKey) return backward;
+    if (formatPersianDateKey(backward) === dateKey) found = backward;
   }
-  return null;
+  if (dateKeyCache.size >= 4000) dateKeyCache.clear();
+  dateKeyCache.set(cacheKey, found ? found.getTime() : null);
+  return found;
 }
+
+const dateKeyCache = new Map();
 
 const compactLabel = (text) => String(text || "").replace(/[\s\u200c]/g, "").replace(/ي/g, "ی").replace(/ك/g, "ک");
 
