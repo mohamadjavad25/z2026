@@ -91,7 +91,11 @@ export function bookAtSalon(clientApi, salon, client, { day, time = "۱۰:۰۰",
   });
 }
 
-export async function deleteAccount(account) {
-  const res = await account.api.delete("/api/profile", { currentPassword: account.password });
+/**
+ * Deletes the account through the real route. A salon or artist with farther confirmed bookings is only deleted with
+ * `cancelAll` (owner's rule of 2026-10-22: «لغو همهٔ نوبت‌ها و ارسال پیامک»); the tests that are about something else leave it on.
+ */
+export async function deleteAccount(account, { cancelAll = true } = {}) {
+  const res = await account.api.delete("/api/profile", { currentPassword: account.password, ...(cancelAll ? { cancelAll: true } : {}) });
   if (!res.ok) throw new Error(`delete account failed: ${res.status} ${JSON.stringify(res.payload)}`);
 }

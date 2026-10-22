@@ -38,11 +38,44 @@ describe("a salon account is deleted while clients have bookings with it", () =>
     expect((await client.api.get("/api/salon-bookings")).status).toBe(200);
   });
 
-  it("the client can still cancel both the pending and the confirmed booking at the deleted salon", async () => {
+  it("both bookings were cancelled with notice when the salon left; the client's lists show them with «سالن دیگر در فرفرو نیست» and a second cancel is a plain 409", async () => {
+    // Owner's rule 2026-10-22 (Q6): when a salon is deleted its open bookings are cancelled with notice to the client
+    // («لغو همهٔ نوبت‌ها و ارسال پیامک»), so they are no longer cancellable by the client (they used to stay «در انتظار»
+    // for a salon nobody could answer for).
     const { client, pending, confirmed } = await setup();
+    const list = (await client.api.get("/api/client-bookings")).payload.data.salonBookings;
+    for (const id of [pending.id, confirmed.id]) {
+      const row = list.find((b) => b.id === id);
+      expect(row.status).toBe("لغو");
+      expect(row.cancelled_by).toBe("gone");
+      expect(row.placeGone).toBe(true);
+    }
     const a = await client.api.post(`/api/salon-bookings/${pending.id}/cancel`, {});
     const b = await client.api.post(`/api/salon-bookings/${confirmed.id}/cancel`, {});
-    expect([a.status, b.status], JSON.stringify([a.payload, b.payload])).toEqual([200, 200]);
+    expect([a.status, b.status], JSON.stringify([a.payload, b.payload])).toEqual([409, 409]);
+  });
+
+  it("a booking left behind by an older deletion (live, no salon) can still be cancelled by the client (200) and by the admin; the sweep closes it", async () => {
+    const salon = await newSalon("Legacy Orphan Salon");
+    const client = await newClient("Legacy Orphan Client", { verified: true });
+    const d1 = pickDay({ min: 3 });
+    const d2 = pickDay({ min: d1.offset + 1, max: 20 });
+    const a = (await bookAtSalon(client.api, salon, client, { day: d1.key, time: "۱۱:۰۰" })).payload.data.booking;
+    const b = (await bookAtSalon(client.api, salon, client, { day: d2.key, time: "۱۲:۰۰" })).payload.data.booking;
+    const c = (await bookAtSalon(client.api, salon, client, { day: d2.key, time: "۱۵:۰۰" })).payload.data.booking;
+    await salon.api.patch("/api/salon-bookings", { id: b.id, status: "تایید شده" });
+    // what deleting a salon did before the rule: the rows stay live with no salon
+    await q("UPDATE salon_bookings SET salon_user_id = NULL WHERE id = ANY($1)", [[a.id, b.id, c.id]]);
+    expect((await client.api.post(`/api/salon-bookings/${a.id}/cancel`, {})).status).toBe(200);
+    expect((await client.api.post(`/api/salon-bookings/${b.id}/cancel`, {})).status).toBe(200);
+    const admin = await adminClient();
+    expect((await admin.post(`/api/admin/bookings/salon/${c.id}`, { action: "cancel", reason: "تست لغو توسط مدیر" })).status).toBe(200);
+    expect((await q("SELECT status, cancelled_by FROM salon_bookings WHERE id = $1", [c.id]))[0]).toMatchObject({ status: "لغو", cancelled_by: "admin" });
+    // and a live orphan nobody touches is closed by the sweep with the same notice
+    const e = (await bookAtSalon(client.api, (await newSalon("Legacy Orphan Salon 2")), client, { day: d1.key, time: "۱۱:۰۰" })).payload.data.booking;
+    await q("UPDATE salon_bookings SET salon_user_id = NULL WHERE id = $1", [e.id]);
+    expect((await cron("expire-bookings")).status).toBe(200);
+    expect((await q("SELECT status, cancelled_by FROM salon_bookings WHERE id = $1", [e.id]))[0]).toMatchObject({ status: "لغو", cancelled_by: "gone" });
   });
 
   it("the expiry sweep closes a pending request of a deleted salon once its day has passed (it does not stay 'درخواست' forever)", async () => {
@@ -105,7 +138,9 @@ describe("a salon with a team is deleted: the artists' calendar copies", () => {
 });
 
 describe("an artist account is deleted", () => {
-  it("a client's direct booking can still be cancelled and lists work", async () => {
+  it("a client's direct request is closed with notice when the artist leaves; lists work and show the deleted-artist label", async () => {
+    // Owner's rule 2026-10-22: a salon or artist leaving closes what is open with notice to the client (a waiting request
+    // too, it used to sit there for an artist nobody could answer for); a second cancel is a plain 409, never a 5xx.
     const artist = await newArtist();
     const client = await newClient("Artist Orphan", { verified: true });
     const day = pickDay({ min: 3 });
@@ -115,8 +150,9 @@ describe("an artist account is deleted", () => {
     const list = await client.api.get("/api/artist-bookings");
     expect(list.status).toBe(200);
     expect(list.payload.data.bookings[0].salonName).toBe("آرتیست حذف‌شده");
+    expect(list.payload.data.bookings[0]).toMatchObject({ status: "لغو", cancelled_by: "gone", placeGone: true });
     const cancel = await client.api.post(`/api/artist-bookings/${made.payload.data.booking.id}/cancel`, {});
-    expect(cancel.status).toBe(200);
+    expect(cancel.status).toBe(409);
   });
 
   it("a new booking for a deleted artist's id is a 404, not a 500 (FK violation)", async () => {
