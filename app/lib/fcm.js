@@ -57,7 +57,7 @@ async function accessToken() {
  * Sends one notification to one app. Returns { ok } or { ok: false, gone } — gone means the token no
  * longer belongs to an installed app and should be deleted.
  */
-export async function sendFcm(token, { title, body, url = "/" }) {
+export async function sendFcm(token, { title, body, url = "/", ttl = 86400 }) {
   if (!fcmConfigured()) return { ok: false, gone: false };
   const sa = serviceAccount();
   const response = await fetch(`https://fcm.googleapis.com/v1/projects/${sa.project_id}/messages:send`, {
@@ -70,7 +70,7 @@ export async function sendFcm(token, { title, body, url = "/" }) {
         data: { url: String(url || "/") },
         android: {
           priority: "HIGH",
-          ttl: "86400s",
+          ttl: `${Math.max(60, Math.round(Number(ttl) || 86400))}s`,
           notification: { channel_id: CHANNEL_ID, sound: "default", default_vibrate_timings: true, notification_priority: "PRIORITY_HIGH" }
         }
       }

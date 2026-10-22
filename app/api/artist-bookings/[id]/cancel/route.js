@@ -1,6 +1,7 @@
 import { error, json, notFound, parseId, requireUserRole, withErrorHandling } from "../../../../lib/http.js";
 import * as artists from "../../../../lib/db/repos/artists.js";
 import { sendPushToUser } from "../../../../lib/push.js";
+import { bookingWhen } from "../../../../lib/bookingSms.js";
 import { checkRateLimit } from "../../../../lib/rateLimit.js";
 
 export const runtime = "nodejs";
@@ -23,7 +24,7 @@ async function _POST(request, { params }) {
   }
   void sendPushToUser(result.artistUserId, {
     title: "مشتری نوبت را لغو کرد",
-    body: `${result.booking.client_name || "مشتری"} — ${result.booking.service || "نوبت"} ${result.booking.time || ""}`.trim()
+    body: `${result.booking.client_name || "مشتری"} — ${result.booking.service || "نوبت"} · ${bookingWhen(result.booking.booking_date, result.booking.time)}`
   });
   return json({ data: { booking: result.booking } });
 }

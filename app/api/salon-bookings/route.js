@@ -17,7 +17,7 @@ import { AWAITING_CLIENT } from "../../shared/lib/bookingOffer.js";
 import { createSalonBooking } from "../../lib/salonBookingCreate.js";
 import { requestedServiceNames, validFallbackSalon } from "../../lib/bookingFallback.js";
 import { BOOKING_REQUEST_WINDOW_MINUTES } from "../../shared/lib/bookingWindow.js";
-import { smsBookingAnswer, smsNewBookingRequest } from "../../lib/bookingSms.js";
+import { bookingWhen, smsBookingAnswer, smsNewBookingRequest } from "../../lib/bookingSms.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -133,11 +133,11 @@ async function _POST(request) {
   // only when the CLIENT is the one who just requested it (a salon entering
   // its own walk-in booking doesn't need to be told about its own action).
   if (auth.user.type === "client") {
-    void sendPushToUser(salonUserId, {
+    const push = sendPushToUser(salonUserId, {
       title: "درخواست رزرو جدید",
-      body: `${client} — ${service} · ${time}`
-    });
-    smsNewBookingRequest(salonUserId, { client, service, bookingDate: result.booking.booking_date, time });
+      body: `${client} — ${service} · ${bookingWhen(result.booking.booking_date, time)}`
+    }).catch(() => null);
+    smsNewBookingRequest(salonUserId, { client, service, bookingDate: result.booking.booking_date, time }, push);
   }
 
   return noStoreJson({
@@ -260,16 +260,16 @@ async function _PATCH(request) {
   if (patch.status === "تایید شده" || patch.status === "لغو") {
     const bookingClientUserId = result.booking.client_user_id ? Number(result.booking.client_user_id) : null;
     if (bookingClientUserId) {
-      void sendPushToUser(bookingClientUserId, {
+      const push = sendPushToUser(bookingClientUserId, {
         title: patch.status === "تایید شده" ? "نوبت شما تایید شد" : "نوبت شما لغو شد",
-        body: `${result.booking.service || "نوبت"} — ${result.booking.booking_date || ""} ${result.booking.time || ""}`.trim()
-      });
+        body: `${result.booking.service || "نوبت"} — ${bookingWhen(result.booking.booking_date, result.booking.time)}`
+      }).catch(() => null);
       smsBookingAnswer(bookingClientUserId, {
         providerName: auth.user.name,
         bookingDate: result.booking.booking_date,
         time: result.booking.time,
         confirmed: patch.status === "تایید شده"
-      });
+      }, push);
     }
   }
 
@@ -278,7 +278,7 @@ async function _PATCH(request) {
   if (!wantsCancel && moved && result.booking.status === AWAITING_CLIENT && result.booking.client_user_id) {
     void sendPushToUser(Number(result.booking.client_user_id), {
       title: "ساعت تازه برای نوبتت",
-      body: `${auth.user.name || "سالن"} ساعت ${result.booking.time || ""} را برای ${result.booking.service || "نوبت"} پیشنهاد داده. قبول یا رد کن.`
+      body: `${auth.user.name || "سالن"} ${bookingWhen(result.booking.booking_date, result.booking.time)} را برای ${result.booking.service || "نوبت"} پیشنهاد داده. قبول یا رد کن.`
     });
   }
 

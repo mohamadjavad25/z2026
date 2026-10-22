@@ -9,7 +9,7 @@ import { checkRateLimit } from "../../../lib/rateLimit.js";
 import { get, withTransaction } from "../../../lib/db/connection.js";
 import { lockArtistDays, lockSalonDay } from "../../../lib/db/locks.js";
 import { AWAITING_CLIENT } from "../../../shared/lib/bookingOffer.js";
-import { smsBookingAnswer } from "../../../lib/bookingSms.js";
+import { bookingWhen, smsBookingAnswer } from "../../../lib/bookingSms.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -196,16 +196,16 @@ async function patchOwnArtistBooking(artistUserId, body, artistName = "") {
   }
 
   if (current.clientUserId) {
-    void sendPushToUser(Number(current.clientUserId), {
+    const push = sendPushToUser(Number(current.clientUserId), {
       title: nextStatus === "تایید شده" ? "نوبت شما تایید شد" : "نوبت شما لغو شد",
-      body: `${current.service || "نوبت"} — ${current.bookingDate || ""} ${current.time || ""}`.trim()
-    });
+      body: `${current.service || "نوبت"} — ${bookingWhen(current.bookingDate, current.time)}`
+    }).catch(() => null);
     smsBookingAnswer(Number(current.clientUserId), {
       providerName: artistName,
       bookingDate: current.bookingDate,
       time: current.time,
       confirmed: nextStatus === "تایید شده"
-    });
+    }, push);
   }
 
   return json({

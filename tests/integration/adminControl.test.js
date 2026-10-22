@@ -95,6 +95,17 @@ describe("admin control room: settings, broadcast, health, reports, bulk actions
     expect((await admin.get("/api/admin/broadcast")).payload.data.history[0].body).toBe(message.body);
   });
 
+  it("sends a broadcast once even when it is posted twice at the same moment", async () => {
+    const admin = await enrolledAdminClient(TEST_ADMIN6_PHONE);
+    expect((await admin.post("/api/admin/auth/stepup", { password: TEST_ADMIN_PASSWORD })).ok).toBe(true);
+    const message = { segment: "all", channels: ["inbox"], title: "دوبار", body: `دو کلیک هم‌زمان ${Date.now()}` };
+    const statuses = (await Promise.all([admin.post("/api/admin/broadcast", message), admin.post("/api/admin/broadcast", message)])).map((res) => res.status).sort();
+    expect(statuses).toEqual([201, 409]);
+    const history = (await admin.get("/api/admin/broadcast")).payload.data.history.filter((row) => row.body === message.body);
+    expect(history).toHaveLength(1);
+    expect(history[0].inboxed).toBeGreaterThan(0);
+  });
+
   it("filters users by status, sorts them, and runs bulk actions that never touch an admin", async () => {
     const admin = await adminClient();
     const a = await registerUser(createClient(), { type: "client", name: "Bulk A" });

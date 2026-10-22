@@ -92,7 +92,7 @@ function BookingDetail({ kind, id, onGo, onChanged }) {
         {booking.staff ? <li><span>آرتیست سالن</span><b>{booking.staff}</b></li> : null}
         <li><span>ثبت</span><b>{fmtDate(booking.created_at)} ({ago(booking.created_at)})</b></li>
         {booking.updated_at ? <li><span>آخرین تغییر</span><b>{fmtDate(booking.updated_at)}</b></li> : null}
-        <li><span>یادآوری‌های فرستاده‌شده</span><b>{found.reminders.length ? found.reminders.map((row) => (row.kind === "day" ? "یک روز قبل" : "دو ساعت قبل")).join("، ") : "هنوز نه"}</b></li>
+        <li><span>یادآوری‌های فرستاده‌شده</span><b>{found.reminders.length ? found.reminders.map((row) => (String(row.kind).startsWith("day") ? "یک روز قبل" : "دو ساعت قبل")).join("، ") : "هنوز نه"}</b></li>
       </ul>
 
       {found.history.length ? (

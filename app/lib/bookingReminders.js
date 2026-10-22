@@ -1,6 +1,6 @@
 import { getDb, all, get } from "./db/connection.js";
 import { sendPushToUser } from "./push.js";
-import { dueReminderKind } from "../shared/lib/reminderTiming.js";
+import { bookingStartMs, dueReminderKind } from "../shared/lib/reminderTiming.js";
 import { formatPersianDateKey } from "../shared/lib/persianCalendar.js";
 import { formatRelativeBookingDayLabel } from "../shared/lib/persianCalendar.js";
 import { toPersianDigits } from "../shared/lib/digits.js";
@@ -11,10 +11,17 @@ import { toPersianDigits } from "../shared/lib/digits.js";
  * .github/workflows/cron-booking-reminders.yml), like the expiry sweep.
  *
  * - Respects the client's own "reminders" setting (default on).
- * - Claims a (booking, kind) row BEFORE sending, so overlapping sweeps can't double-send.
+ * - Claims a (booking, kind) row BEFORE sending, so overlapping sweeps can't double-send. The claimed kind carries
+ *   the booking's date and time ("day@1405-08-03 15:00"), so a booking moved to a new time is reminded again for it.
  * - Only confirmed bookings: cancelled, expired and still-pending requests never get one.
+ * - A few at a time (one slow phone no longer holds up everyone after it), and each push only waits for a phone
+ *   that is off until the appointment starts: a reminder after the visit is worse than none.
  */
 const CONFIRMED = "تایید شده";
+const PARALLEL = 10;
+
+/** What booking_reminders.kind holds for one reminder: "day" or "soon", and the time it was for. */
+export const reminderClaimKind = (kind, booking) => `${kind}@${booking.booking_date} ${booking.time}`;
 
 async function loadCandidates(db, now) {
   // Date keys are zero-padded "YYYY-MM-DD", so text comparison orders them correctly.
@@ -57,23 +64,38 @@ export function reminderMessage(kind, booking, now) {
 export async function sweepBookingReminders(now = new Date()) {
   const db = await getDb();
   const result = { candidates: 0, claimed: 0, sent: 0, skipped: 0 };
+  const due = [];
   for (const booking of await loadCandidates(db, now)) {
     const kind = dueReminderKind(booking.booking_date, booking.time, now);
-    if (!kind) continue;
-    result.candidates += 1;
+    if (kind) due.push({ booking, kind });
+  }
+  result.candidates = due.length;
+  const remind = async ({ booking, kind }) => {
     if (!(await remindersEnabled(db, booking))) {
       result.skipped += 1;
-      continue;
+      return;
     }
+    // A bare "day"/"soon" row is from before the claim carried the time: it still counts, so nobody is reminded twice.
     const claim = await get(db, `
-      INSERT INTO booking_reminders (source, booking_id, kind) VALUES ($1, $2, $3)
+      INSERT INTO booking_reminders (source, booking_id, kind)
+      SELECT $1::text, $2::int, $3::text WHERE NOT EXISTS (SELECT 1 FROM booking_reminders WHERE source = $1::text AND booking_id = $2::int AND kind = $4::text)
       ON CONFLICT DO NOTHING RETURNING booking_id
-    `, [booking.source, booking.id, kind]);
-    if (!claim) continue;
+    `, [booking.source, booking.id, reminderClaimKind(kind, booking), kind]);
+    if (!claim) return;
     result.claimed += 1;
     const message = reminderMessage(kind, booking, now);
-    const push = await sendPushToUser(booking.client_user_id, { ...message, url: "/" }).catch(() => ({ sent: 0 }));
+    const ttl = (bookingStartMs(booking.booking_date, booking.time, now) - now.getTime()) / 1000;
+    const push = await sendPushToUser(booking.client_user_id, { ...message, url: "/", ttl }).catch(() => ({ sent: 0 }));
     result.sent += push.sent || 0;
-  }
+  };
+  let next = 0;
+  const worker = async () => {
+    while (next < due.length) {
+      const item = due[next];
+      next += 1;
+      await remind(item).catch(() => {});
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(PARALLEL, due.length) }, worker));
   return result;
 }

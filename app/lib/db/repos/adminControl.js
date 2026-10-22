@@ -1,4 +1,4 @@
-import { getDb, all, get, run } from "../connection.js";
+import { getDb, all, get, run, withTransaction } from "../connection.js";
 import { ensureSupportTables } from "./support.js";
 
 /**
@@ -180,13 +180,31 @@ export async function pushableUserIds(segment) {
   return rows.map((row) => row.id);
 }
 
-export async function recordBroadcast({ segment, channels, title, body, url, recipients, inboxed, pushed, adminUserId, adminLabel }) {
+/**
+ * Records a broadcast BEFORE it is sent, so a second click (or a retry while the first is still sending) finds it and
+ * is refused instead of sending everything twice. Under a lock on (segment, text), so two requests at the same moment
+ * cannot both pass the check. Returns null when the same text went to the same group in the last few minutes.
+ */
+export async function claimBroadcast({ segment, channels, title, body, url, recipients, adminUserId, adminLabel }, windowMinutes = 5) {
   await ensureControlTables();
+  return withTransaction(null, async (client) => {
+    await client.query("SELECT pg_advisory_xact_lock(hashtext($1))", [`broadcast:${segment}:${body}`]);
+    const recent = await client.query(`
+      SELECT 1 FROM admin_broadcasts WHERE segment = $1 AND body = $2 AND created_at > now() - make_interval(mins => $3) LIMIT 1
+    `, [segment, String(body).slice(0, 2000), windowMinutes]);
+    if (recent.rowCount) return null;
+    const inserted = await client.query(`
+      INSERT INTO admin_broadcasts (segment, channels, title, body, url, recipients, inboxed, pushed, admin_user_id, admin_label)
+      VALUES ($1, $2, $3, $4, $5, $6, 0, 0, $7, $8) RETURNING *
+    `, [segment, channels.join(","), String(title || "").slice(0, 120), String(body).slice(0, 2000), String(url || "").slice(0, 300), recipients, adminUserId, String(adminLabel || "").slice(0, 40)]);
+    return inserted.rows[0];
+  });
+}
+
+/** Writes how many inboxes and devices a claimed broadcast reached, once it is sent. */
+export async function finishBroadcast(id, { inboxed, pushed }) {
   const db = await getDb();
-  return get(db, `
-    INSERT INTO admin_broadcasts (segment, channels, title, body, url, recipients, inboxed, pushed, admin_user_id, admin_label)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *
-  `, [segment, channels.join(","), String(title || "").slice(0, 120), String(body).slice(0, 2000), String(url || "").slice(0, 300), recipients, inboxed, pushed, adminUserId, String(adminLabel || "").slice(0, 40)]);
+  return get(db, "UPDATE admin_broadcasts SET inboxed = $2, pushed = $3 WHERE id = $1 RETURNING *", [id, inboxed, pushed]);
 }
 
 export async function listBroadcasts(limit = 30) {

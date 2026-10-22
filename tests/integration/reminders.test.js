@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { TEST_BASE_URL, TEST_CRON_SECRET } from "../globalSetup.js";
 import { createClient, registerUser, futureBookingDay } from "./helpers.js";
 import { bookingStartMs } from "../../app/shared/lib/reminderTiming.js";
+import { openDb } from "./afterVisitKit.js";
 
 async function sweep(now) {
   const res = await fetch(`${TEST_BASE_URL}/api/cron/send-reminders`, {
@@ -27,7 +28,7 @@ async function confirmedBooking({ time, remindersOn = true }) {
   expect(created.ok).toBe(true);
   const confirmed = await salonClient.patch("/api/salon-bookings", { id: created.payload.data.booking.id, status: "تایید شده" });
   expect(confirmed.ok).toBe(true);
-  return { day, start: bookingStartMs(day, time, new Date()) };
+  return { day, start: bookingStartMs(day, time, new Date()), id: created.payload.data.booking.id, salonClient, clientApi };
 }
 
 describe("booking reminders", () => {
@@ -44,6 +45,25 @@ describe("booking reminders", () => {
     expect(first.body.claimed).toBeGreaterThanOrEqual(1);
     const second = await sweep(justBefore);
     expect(second.body.claimed).toBe(0);
+  });
+
+  it("reminds again when the booking moves to a new time", async () => {
+    const db = openDb();
+    const sent = async () => (await db.query("SELECT kind FROM booking_reminders WHERE source = 'salon' AND booking_id = $1 ORDER BY sent_at", [id])).rows.map((row) => row.kind);
+    const { start, id, salonClient, clientApi } = await confirmedBooking({ time: "14:00" });
+    await sweep(new Date(start - 20 * 3600e3));
+    expect(await sent()).toHaveLength(1);
+    // The salon offers another day, the client takes it: the visit is confirmed again at the new time.
+    const newDay = futureBookingDay(4);
+    expect((await salonClient.patch("/api/salon-bookings", { id, bookingDate: newDay, time: "15:00" })).ok).toBe(true);
+    expect((await clientApi.post(`/api/salon-bookings/${id}/answer`, { accept: true })).ok).toBe(true);
+    const newStart = bookingStartMs(newDay, "15:00", new Date());
+    await sweep(new Date(newStart - 20 * 3600e3));
+    await sweep(new Date(newStart - 20 * 3600e3));
+    const kinds = await sent();
+    await db.end();
+    expect(kinds).toHaveLength(2);
+    expect(kinds[1]).toBe(`day@${newDay} 15:00`);
   });
 
   it("skips clients who turned reminders off", async () => {

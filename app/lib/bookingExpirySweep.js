@@ -1,7 +1,7 @@
 import { getDb, all, run } from "./db/connection.js";
 import * as salons from "./db/repos/salons.js";
 import { sendPushToUser } from "./push.js";
-import { smsNewBookingRequest } from "./bookingSms.js";
+import { bookingWhen, smsNewBookingRequest } from "./bookingSms.js";
 import { isSlotInPast } from "../shared/lib/slots.js";
 import { AWAITING_CLIENT } from "../shared/lib/bookingOffer.js";
 import { sendToFallbackArtist, sendToFallbackSalon } from "./bookingFallback.js";
@@ -143,13 +143,13 @@ function notifyClientOfExpiry(booking, moved = null, triedBackup = false) {
       : `${booking.client || "مشتری"} — ${service} تا شروع نوبت جواب نگرفت و منقضی شد.`
   });
   if (moved?.booking) {
-    void sendPushToUser(Number(moved.booking.salon_user_id), {
+    const push = sendPushToUser(Number(moved.booking.salon_user_id), {
       title: "درخواست رزرو جدید",
-      body: `${moved.booking.client || "مشتری"} — ${moved.booking.service || service} · ${moved.booking.time || ""}`.trim()
-    });
+      body: `${moved.booking.client || "مشتری"} — ${moved.booking.service || service} · ${bookingWhen(moved.booking.booking_date, moved.booking.time)}`
+    }).catch(() => null);
     smsNewBookingRequest(Number(moved.booking.salon_user_id), {
       client: moved.booking.client, service: moved.booking.service || service, bookingDate: moved.booking.booking_date, time: moved.booking.time
-    });
+    }, push);
   }
 }
 
@@ -179,14 +179,14 @@ function notifyClientOfArtistBookingExpiry(booking, moved = null, triedBackup = 
       : `${booking.client_name || booking.client || "مشتری"} — ${service} تا شروع نوبت جواب نگرفت و منقضی شد.`
   });
   if (moved?.booking) {
-    void sendPushToUser(Number(moved.booking.artist_user_id), {
+    const push = sendPushToUser(Number(moved.booking.artist_user_id), {
       title: moved.booking.status === "تایید شده" ? "نوبت جدید (تأیید خودکار)" : "درخواست نوبت جدید",
-      body: `${moved.booking.client_name || "مشتری"} — ${moved.booking.service || service} · ${moved.booking.time || ""}`.trim()
-    });
+      body: `${moved.booking.client_name || "مشتری"} — ${moved.booking.service || service} · ${bookingWhen(moved.booking.booking_date, moved.booking.time)}`
+    }).catch(() => null);
     if (moved.booking.status !== "تایید شده") {
       smsNewBookingRequest(Number(moved.booking.artist_user_id), {
         client: moved.booking.client_name, service: moved.booking.service || service, bookingDate: moved.booking.booking_date, time: moved.booking.time
-      });
+      }, push);
     }
   }
 }
