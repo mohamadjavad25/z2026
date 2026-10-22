@@ -46,6 +46,20 @@ export function inferTone(text = "") {
   return "info";
 }
 
+/**
+ * At most MAX_VISIBLE at once. Short-lived notices make room first, so a quick "saved" never pushes out a notice
+ * that waits to be closed (the appointment alarm, an error, the operator's notice); only when every one of them
+ * stays does the oldest go.
+ */
+function keepVisible(list) {
+  const next = [...list];
+  while (next.length > MAX_VISIBLE) {
+    const passing = next.findIndex((item) => item.timer > 0);
+    next.splice(passing >= 0 ? passing : 0, 1);
+  }
+  return next;
+}
+
 function emit() {
   for (const listener of listeners) listener();
 }
@@ -65,8 +79,7 @@ export function notify(input) {
     id: base.id || `notice-${++sequence}`,
     timer: base.timer ?? DEFAULT_TIMER[kind] ?? 0
   };
-  const rest = items.filter((item) => item.id !== notice.id);
-  items = [...rest, notice].slice(-MAX_VISIBLE);
+  items = keepVisible([...items.filter((item) => item.id !== notice.id), notice]);
   emit();
   for (const listener of noticeListeners) listener(notice);
   return notice.id;

@@ -8,6 +8,7 @@ import {
   EyeOff,
   Bell,
   BellOff,
+  BellRing,
   CalendarCheck,
   LogOut,
   Globe,
@@ -168,18 +169,33 @@ export function AppearanceSettings() {
   );
 }
 
-/** Reservation alerts and notification sound. Every account type has these. */
+/**
+ * In-app alerts, appointment reminders (clients; artists set theirs under booking controls) and the sound. The
+ * «reservationAlerts» switch only governs what shows inside the open app: the phone notification and SMS about a
+ * booking always go (audit 2026-10-22: the old label promised more than it did).
+ */
 export function NotificationSettings({ profileType, profileSettings, onToggle }) {
   const [soundOn, setSoundOn] = useSoundPreference();
   return (
     <SettingsGroup title="اعلان‌ها">
       <SettingsToggle
         icon={profileSettings.reservationAlerts ? Bell : BellOff}
-        label={profileType === "artist" ? "اعلان رزرو" : profileType === "salon" ? "اعلان رزرو و تیم" : "اعلان رزرو"}
-        description={profileType === "artist" ? "درخواست نوبت جدید، تایید یا لغو و انقضای نوبت" : profileType === "salon" ? "رزرو جدید، جابه‌جایی نوبت و انقضای درخواست" : "تایید، لغو یا انقضای نوبتی که رزرو کردی"}
+        label="خبرهای داخل اپ"
+        description={profileType === "client"
+          ? "وقتی اپ باز است: پیام بالای صفحه و زنگ نیم ساعت قبل از نوبت. خبر تأیید و لغو نوبت روی گوشی همیشه می‌آید."
+          : "وقتی اپ باز است: پیام بالای صفحه برای درخواست تازه، تأیید، لغو و انقضا. خبر درخواست تازه روی گوشی همیشه می‌آید."}
         checked={profileSettings.reservationAlerts}
         onChange={() => onToggle("reservationAlerts")}
       />
+      {profileType === "client" && (
+        <SettingsToggle
+          icon={profileSettings.reminders ? BellRing : BellOff}
+          label="یادآوری نوبت"
+          description="یک روز و دو ساعت قبل از هر نوبت تأییدشده"
+          checked={profileSettings.reminders !== false}
+          onChange={() => onToggle("reminders")}
+        />
+      )}
       <SettingsToggle
         icon={soundOn ? Volume2 : VolumeX}
         label="صدای اعلان‌ها"

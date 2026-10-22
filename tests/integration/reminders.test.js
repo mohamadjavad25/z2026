@@ -28,7 +28,7 @@ async function confirmedBooking({ time, remindersOn = true }) {
   expect(created.ok).toBe(true);
   const confirmed = await salonClient.patch("/api/salon-bookings", { id: created.payload.data.booking.id, status: "تایید شده" });
   expect(confirmed.ok).toBe(true);
-  return { day, start: bookingStartMs(day, time, new Date()), id: created.payload.data.booking.id, salonClient, clientApi };
+  return { day, start: bookingStartMs(day, time, new Date()), id: created.payload.data.booking.id, salonClient, clientApi, clientPhone: booker.phone };
 }
 
 describe("booking reminders", () => {
@@ -64,6 +64,28 @@ describe("booking reminders", () => {
     await db.end();
     expect(kinds).toHaveLength(2);
     expect(kinds[1]).toBe(`day@${newDay} 15:00`);
+  });
+
+  it("keeps the day-before reminder for the morning, and texts the two-hour one to a client no push reaches", async () => {
+    const db = openDb();
+    const { start, id, clientPhone } = await confirmedBooking({ time: "11:00" });
+    const kinds = async () => (await db.query("SELECT kind FROM booking_reminders WHERE source = 'salon' AND booking_id = $1", [id])).rows.map((row) => row.kind);
+    // 23:00 Tehran the night before (12h before an 11:00 visit): nothing yet.
+    await sweep(new Date(start - 12 * 3600e3));
+    expect(await kinds()).toEqual([]);
+    // 08:00 Tehran: the day-before reminder goes.
+    await sweep(new Date(start - 3 * 3600e3));
+    expect((await kinds())[0]).toMatch(/^day@/);
+    // Two hours before: this client has no notifications at all, so it also comes as an SMS.
+    await sweep(new Date(start - 90 * 60000));
+    let texts = [];
+    for (let i = 0; i < 20 && !texts.length; i += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 150));
+      texts = (await db.query("SELECT body FROM sms_log WHERE phone = $1 AND purpose = 'booking_reminder'", [clientPhone])).rows.map((row) => row.body);
+    }
+    await db.end();
+    expect(texts).toHaveLength(1);
+    expect(texts[0]).toContain("۱۱:۰۰");
   });
 
   it("skips clients who turned reminders off", async () => {

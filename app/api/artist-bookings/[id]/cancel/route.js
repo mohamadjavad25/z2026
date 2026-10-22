@@ -1,7 +1,7 @@
 import { error, json, notFound, parseId, requireUserRole, withErrorHandling } from "../../../../lib/http.js";
 import * as artists from "../../../../lib/db/repos/artists.js";
 import { sendPushToUser } from "../../../../lib/push.js";
-import { bookingWhen } from "../../../../lib/bookingSms.js";
+import { bookingWhen, smsClientCancelled } from "../../../../lib/bookingSms.js";
 import { checkRateLimit } from "../../../../lib/rateLimit.js";
 
 export const runtime = "nodejs";
@@ -22,10 +22,11 @@ async function _POST(request, { params }) {
     if (result.error === "past") return error("رزرو گذشته قابل لغو نیست.", 409);
     return error("لغو رزرو انجام نشد.", 409);
   }
-  void sendPushToUser(result.artistUserId, {
+  const push = sendPushToUser(result.artistUserId, {
     title: "مشتری نوبت را لغو کرد",
     body: `${result.booking.client_name || "مشتری"} — ${result.booking.service || "نوبت"} · ${bookingWhen(result.booking.booking_date, result.booking.time)}`
-  });
+  }).catch(() => null);
+  smsClientCancelled(result.artistUserId, { client: result.booking.client_name, bookingDate: result.booking.booking_date, time: result.booking.time }, push);
   return json({ data: { booking: result.booking } });
 }
 

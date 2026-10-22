@@ -18,6 +18,7 @@ import { createSalonBooking } from "../../lib/salonBookingCreate.js";
 import { requestedServiceNames, validFallbackSalon } from "../../lib/bookingFallback.js";
 import { BOOKING_REQUEST_WINDOW_MINUTES } from "../../shared/lib/bookingWindow.js";
 import { bookingWhen, smsBookingAnswer, smsNewBookingRequest } from "../../lib/bookingSms.js";
+import { notifyStaff } from "../../lib/staffNotify.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -139,6 +140,11 @@ async function _POST(request) {
     }).catch(() => null);
     smsNewBookingRequest(salonUserId, { client, service, bookingDate: result.booking.booking_date, time }, push);
   }
+  // The team artist whose visit it is hears about it too (waiting for the salon's answer, or booked by the salon).
+  notifyStaff({ artistIds: linkedArtistIds, exceptUserId: auth.user.id }, {
+    title: auth.user.type === "client" ? "درخواست نوبت در سالن" : "نوبت تازه برایت گذاشته شد",
+    body: `${client} — ${service} · ${bookingWhen(result.booking.booking_date, time)}${auth.user.type === "client" ? " (منتظر جواب سالن)" : ""}`
+  });
 
   return noStoreJson({
     data: {
@@ -271,6 +277,10 @@ async function _PATCH(request) {
         confirmed: patch.status === "تایید شده"
       }, push);
     }
+    notifyStaff({ artistIds: result.linkedArtistIds, salonBookingId: result.booking.id, exceptUserId: auth.user.id }, {
+      title: patch.status === "تایید شده" ? "نوبتت در سالن تأیید شد" : "نوبتت در سالن لغو شد",
+      body: `${result.booking.client || "مشتری"} — ${result.booking.service || "نوبت"} · ${bookingWhen(result.booking.booking_date, result.booking.time)}`
+    });
   }
 
   // The salon moved a client's booking: the client hears about the new time right away.

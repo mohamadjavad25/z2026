@@ -1,5 +1,6 @@
 import { getDb, all, get } from "./db/connection.js";
 import { sendPushToUser } from "./push.js";
+import { smsBookingReminder } from "./bookingSms.js";
 import { bookingStartMs, dueReminderKind } from "../shared/lib/reminderTiming.js";
 import { formatPersianDateKey } from "../shared/lib/persianCalendar.js";
 import { formatRelativeBookingDayLabel } from "../shared/lib/persianCalendar.js";
@@ -16,9 +17,21 @@ import { toPersianDigits } from "../shared/lib/digits.js";
  * - Only confirmed bookings: cancelled, expired and still-pending requests never get one.
  * - A few at a time (one slow phone no longer holds up everyone after it), and each push only waits for a phone
  *   that is off until the appointment starts: a reminder after the visit is worse than none.
+ * - The day-before reminder waits out the night (22:00 to 08:00 Tehran): a visit confirmed at 1 a.m. for the next
+ *   evening is reminded in the morning, not straight after the "confirmed" news. The two-hour one always goes, and
+ *   someone no push reached (no app, no browser notifications: most iPhones) gets it as an SMS (booking_reminder).
  */
 const CONFIRMED = "تایید شده";
 const PARALLEL = 10;
+const QUIET_FROM = 22 * 60;
+const QUIET_UNTIL = 8 * 60;
+const TEHRAN_OFFSET_MINUTES = 3 * 60 + 30;
+
+/** True between 22:00 and 08:00 in Tehran (no daylight saving), whatever the server's own clock zone. */
+export function tehranNight(now) {
+  const minutes = (((now.getUTCHours() * 60 + now.getUTCMinutes() + TEHRAN_OFFSET_MINUTES) % 1440) + 1440) % 1440;
+  return minutes >= QUIET_FROM || minutes < QUIET_UNTIL;
+}
 
 /** What booking_reminders.kind holds for one reminder: "day" or "soon", and the time it was for. */
 export const reminderClaimKind = (kind, booking) => `${kind}@${booking.booking_date} ${booking.time}`;
@@ -41,13 +54,13 @@ async function loadCandidates(db, now) {
   return [...salon, ...artist];
 }
 
-/** The client can opt out (reminders, or booking alerts as a whole); a salon/artist can switch reminders off for their customers. */
+/** The client can opt out (تنظیمات → یادآوری نوبت); a salon/artist can switch reminders off for their customers. */
 async function remindersEnabled(db, booking) {
   const rows = await all(db, "SELECT user_id, settings FROM user_settings WHERE user_id = ANY($1::int[])", [[Number(booking.client_user_id), Number(booking.owner_user_id)]]);
   const settingsOf = (id) => rows.find((row) => Number(row.user_id) === Number(id))?.settings || {};
   const client = settingsOf(booking.client_user_id);
   const owner = settingsOf(booking.owner_user_id);
-  return client.reminders !== false && client.reservationAlerts !== false && owner.reminders !== false;
+  return client.reminders !== false && owner.reminders !== false;
 }
 
 export function reminderMessage(kind, booking, now) {
@@ -65,8 +78,10 @@ export async function sweepBookingReminders(now = new Date()) {
   const db = await getDb();
   const result = { candidates: 0, claimed: 0, sent: 0, skipped: 0 };
   const due = [];
+  const night = tehranNight(now);
   for (const booking of await loadCandidates(db, now)) {
     const kind = dueReminderKind(booking.booking_date, booking.time, now);
+    if (kind === "day" && night) continue;
     if (kind) due.push({ booking, kind });
   }
   result.candidates = due.length;
@@ -87,6 +102,7 @@ export async function sweepBookingReminders(now = new Date()) {
     const ttl = (bookingStartMs(booking.booking_date, booking.time, now) - now.getTime()) / 1000;
     const push = await sendPushToUser(booking.client_user_id, { ...message, url: "/", ttl }).catch(() => ({ sent: 0 }));
     result.sent += push.sent || 0;
+    if (kind === "soon") smsBookingReminder(booking.client_user_id, { providerName: booking.place, time: booking.time }, push);
   };
   let next = 0;
   const worker = async () => {

@@ -36,5 +36,13 @@ describe("unanswered booking requests whose day has passed", () => {
 
     const list = (await salonClient.get("/api/salon-bookings")).payload.data.bookings;
     expect(list.find((item) => item.id === id)?.status).toBe("منقضی شده");
+
+    // The client has no app and no browser notifications, so the end of the request comes as a text.
+    let texts = [];
+    for (let i = 0; i < 20 && !texts.some((body) => body.includes("منقضی شد")); i += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 150));
+      texts = (await db.query("SELECT body FROM sms_log WHERE phone = $1 AND purpose = 'booking_answer'", [booker.phone])).rows.map((row) => row.body);
+    }
+    expect(texts.some((body) => body.includes("Expiry Salon") && body.includes("منقضی شد"))).toBe(true);
   });
 });

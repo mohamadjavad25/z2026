@@ -45,7 +45,7 @@ function rememberReminded(key) {
  * confirmed / cancelled / expired, invites), for notices, and the "appointment soon" alarm.
  * Each of those arrivals also shows a top notice (app/shared/notice). Nothing plays or shows
  * for the first data load after login, only for changes after that.
- * Booking sounds and notices respect the "اعلان رزرو" setting.
+ * Booking sounds and notices respect the «خبرهای داخل اپ» setting (reservationAlerts).
  */
 export function useAppSounds({
   profile,

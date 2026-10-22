@@ -46,15 +46,45 @@ export function smsNewBookingRequest(providerUserId, { client, service, bookingD
   })().catch(() => {});
 }
 
-/** The salon or artist answered a client's request: `confirmed` true for approved, false for declined or cancelled. */
-export function smsBookingAnswer(clientUserId, { providerName, bookingDate, time, confirmed }, push = null) {
+/** The salon or artist answered a client's request: `confirmed` true for approved, false for declined or cancelled.
+ *  `expired` instead: nobody answered in time (bookingExpirySweep.js). `providerUserId` looks the name up when the
+ *  caller does not have it. */
+export function smsBookingAnswer(clientUserId, { providerName, providerUserId = null, bookingDate, time, confirmed, expired = false }, push = null) {
   void (async () => {
     const phone = await phoneOf(clientUserId, push);
+    if (!phone) return;
+    const name = String(providerName || "").trim() || (providerUserId ? (await users.getUserById(Number(providerUserId)))?.name : "");
     await sendTemplateSms(phone, "booking_answer", {
-      who: String(providerName || "").trim() || "سالن",
+      who: String(name || "").trim() || "سالن",
       day: dayLabel(bookingDate),
       time: timeLabel(time),
-      result: confirmed ? "تأیید شد" : "لغو شد"
+      result: expired ? "منقضی شد" : confirmed ? "تأیید شد" : "لغو شد"
+    });
+  })().catch(() => {});
+}
+
+/** About two hours before a visit, for a client no notification reached (no app, no browser notifications: most
+ *  iPhones). `push` is the reminder push just sent; it counts as reached when any device took it. */
+export function smsBookingReminder(clientUserId, { providerName, time }, push) {
+  void (async () => {
+    const result = await Promise.resolve(push).catch(() => null);
+    if (!clientUserId || Number(result?.sent || 0) > 0) return;
+    const user = await users.getUserById(Number(clientUserId));
+    await sendTemplateSms(user?.phone || "", "booking_reminder", {
+      who: String(providerName || "").trim() || "سالن",
+      time: timeLabel(time)
+    });
+  })().catch(() => {});
+}
+
+/** A client cancelled their visit: the salon or artist hears it by SMS when the push did not reach their app. */
+export function smsClientCancelled(providerUserId, { client, bookingDate, time }, push = null) {
+  void (async () => {
+    const phone = await phoneOf(providerUserId, push);
+    await sendTemplateSms(phone, "booking_cancelled", {
+      who: String(client || "").trim() || "مشتری",
+      day: dayLabel(bookingDate),
+      time: timeLabel(time)
     });
   })().catch(() => {});
 }
