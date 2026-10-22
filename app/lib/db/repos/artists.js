@@ -536,7 +536,7 @@ function rangesOverlap(startA, endA, startB, endB) {
   return startA < endB && startB < endA;
 }
 
-export async function listArtistBookedSlots(artistUserId, { excludeBookingId = null, excludeBookingIds = [] } = {}, runner = null) {
+export async function listArtistBookedSlots(artistUserId, { excludeBookingId = null, excludeBookingIds = [], onlyDateKey = null } = {}, runner = null) {
   const db = runner || (await getDb());
   const services = await listArtistServices(artistUserId, db);
   const serviceDurationMap = Object.fromEntries(
@@ -549,8 +549,9 @@ export async function listArtistBookedSlots(artistUserId, { excludeBookingId = n
     WHERE artist_user_id = $1
       AND status NOT IN ('لغو', 'لغو شده', 'cancelled', 'منقضی شده')
       AND NOT ${artistRequestLapsedSql("a")}
+      AND ($2::text IS NULL OR booking_date = $2 OR booking_date !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
     ORDER BY id ASC
-  `, [artistUserId]);
+  `, [artistUserId, onlyDateKey || null]);
   return rows.filter((row) => !excluded.has(Number(row.id))).map((row) => ({
     id: row.id,
     booking_date: row.booking_date,
@@ -578,7 +579,7 @@ export async function listArtistBusyRanges(artistUserId, bookingDate, { excludeB
     const breakEnd = timeToMinutes(artistBreak.end);
     if (breakEnd > breakStart) ranges.push({ start: breakStart, end: breakEnd });
   }
-  const bookedSlots = await listArtistBookedSlots(artistUserId, { excludeBookingId, excludeBookingIds }, db);
+  const bookedSlots = await listArtistBookedSlots(artistUserId, { excludeBookingId, excludeBookingIds, onlyDateKey: bookingDateKey }, db);
   for (const item of bookedSlots) {
     if (resolveRollingPersianDateKey(item.booking_date) !== bookingDateKey) continue;
     const bookedStart = timeToMinutes(item.time);
