@@ -220,6 +220,7 @@ export function ContentPages() {
             continueFor={continueService?.strip}
             onContinue={continueService?.onContinue}
             onDismissContinue={continueService?.dismiss}
+            onRetryDetail={() => openConnectedProfile(selectedSalon)}
           />
         </section>
   );

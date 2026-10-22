@@ -25,7 +25,7 @@ export function PublicProfileHeader({
     <header className={`pphHero is-${variant === "artist" ? "artist" : "salon"}`}>
       <div className="pphCover">
         {cover ? (
-          <img className="pphCoverImage" src={cover} alt={coverAlt} aria-hidden={coverAlt ? undefined : "true"} style={{ objectPosition: coverPosition }} />
+          <img className="pphCoverImage" fetchPriority="low" src={cover} alt={coverAlt} aria-hidden={coverAlt ? undefined : "true"} style={{ objectPosition: coverPosition }} />
         ) : null}
         <div className="pphTopbar">
           {start}

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ChevronDown, RotateCw } from "lucide-react";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { clockText } from "./visitBookerModel";
+import { SlowTimesNotice } from "./SlowTimesNotice";
 
 /** A tel: link target from a number as the salon typed it (any digits, spaces, dashes). */
 const telHref = (phone) => `tel:${toLatinDigits(String(phone || "")).replace(/[^\d+]/g, "")}`;
@@ -39,7 +40,14 @@ export function TimesList({ state, role, onPick, onRetry, onAhead, onChain, phon
   const together = group && !state.chain;
   const peopleText = toPersianDigits(state.people);
   if (!state.picked.length) return <p className="vbInfo">اول خدمت را انتخاب کن تا ساعت‌های خالی را ببینی.</p>;
-  if (times.status === "loading" || times.status === "idle") return <p className="vbInfo" role="status">در حال پیدا کردن ساعت‌های آزاد…</p>;
+  if (times.status === "loading" || times.status === "idle") {
+    return (
+      <>
+        <p className="vbInfo" role="status">در حال پیدا کردن ساعت‌های آزاد…</p>
+        <SlowTimesNotice onRetry={onRetry} />
+      </>
+    );
+  }
   if (times.status === "closed") {
     return <p className="vbInfo" role="status">این روز سالن تعطیل است.{times.closedNext ? ` روز بعد باز: ${times.closedNext}.` : ""}</p>;
   }

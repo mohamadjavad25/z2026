@@ -211,8 +211,8 @@ export function PublicArtistModal({
                 aria-haspopup="dialog"
               >
                 <Scissors size={19} />
-                {servicesOpen ? "بستن" : "خدمات"}
-                {fromPrice && !servicesOpen ? <small>از {formatTomanNumber(fromPrice)} تومان</small> : null}
+                {servicesOpen ? "بستن" : "رزرو"}
+                {fromPrice && !servicesOpen ? <small>قیمت از {formatTomanNumber(fromPrice)} تومان</small> : null}
                 <ChevronUp size={18} className={`spvBarChevron${servicesOpen ? " is-open" : ""}`} aria-hidden="true" />
               </button>
             </nav>
