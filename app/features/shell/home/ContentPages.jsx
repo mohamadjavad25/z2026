@@ -91,6 +91,7 @@ export function ContentPages() {
     shareSalonProfile,
     setSalonClientTab,
     openSalonClientBooking,
+    continueService,
     openConnectedProfile,
     clientBookingList,
     setSalonHeroSheet,
@@ -216,6 +217,9 @@ export function ContentPages() {
             onShare={shareSalonProfile}
             onTabChange={setSalonClientTab}
             onOpenBooking={openSalonClientBooking}
+            continueFor={continueService?.strip}
+            onContinue={continueService?.onContinue}
+            onDismissContinue={continueService?.dismiss}
           />
         </section>
   );

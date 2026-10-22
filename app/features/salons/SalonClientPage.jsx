@@ -59,7 +59,10 @@ export function SalonClientPage({
   onSave,
   onShare,
   postActions = null,
-  onOpenBooking
+  onOpenBooking,
+  continueFor = null,
+  onContinue = null,
+  onDismissContinue = null
 }) {
   const [publicSheet, setPublicSheet] = useState("");
   const [servicesOpen, setServicesOpen] = useState(false);
@@ -142,6 +145,17 @@ export function SalonClientPage({
                 </a>
               ) : null}
             </div>
+            {continueFor ? (
+              <div className={`spvContinue${continueFor.error ? " is-error" : ""}`} role={continueFor.error ? "alert" : "status"}>
+                <span>{continueFor.error || continueFor.text}</span>
+                <span className="spvContinueActions">
+                  {continueFor.error ? null : <button type="button" className="spvContinueGo" onClick={onContinue}>ادامه</button>}
+                  <button type="button" onClick={() => { onDismissContinue?.(); setServicesOpen(true); }}>
+                    {continueFor.error ? "انتخاب خدمت" : "تغییر خدمت"}
+                  </button>
+                </span>
+              </div>
+            ) : null}
             {selectedSalon.onlineBookingPaused ? <BookingPausedNote hasPhone={Boolean(selectedSalon.phone)} /> : null}
           </section>
 

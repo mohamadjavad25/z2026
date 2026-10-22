@@ -1,5 +1,5 @@
 import { serviceKey, joinServiceNames } from "../../shared/lib/serviceBundle.js";
-import { MAX_BOOKING_PARTS, scheduleBookingParts } from "../../shared/lib/bookingParts.js";
+import { MAX_BOOKING_PARTS, MAX_GROUP_PEOPLE, scheduleBookingParts } from "../../shared/lib/bookingParts.js";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits.js";
 import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money.js";
 import { parseServiceDurationMinutes, minutesToPersianTime, timeLabelToMinutes } from "../../shared/lib/time.js";
@@ -14,6 +14,9 @@ import { BOOKING_WAIT_CHOICES } from "../../shared/lib/bookingWindow.js";
  * "artist" (an independent artist enters their own customer).
  */
 export const MAX_VISIT_SERVICES = MAX_BOOKING_PARTS;
+/** Most people in one request (owner's decision 2026-10-22) and how many services each of them may have. */
+export const MAX_VISIT_PEOPLE = MAX_GROUP_PEOPLE;
+export const maxServicesFor = (people = 1) => Math.max(1, Math.floor(MAX_VISIT_SERVICES / Math.max(1, people)));
 
 /** The salon's or artist's own service list as the form's services: one per name, with a length (same parser the server uses). */
 export function normalizeServices(raw) {
@@ -41,20 +44,20 @@ export function normalizeServices(raw) {
 }
 
 /** Picks as keys, in the order picked. Unknown keys and repeats are dropped; more than the limit are cut. */
-export function sanitizeSelection(keys, services) {
+export function sanitizeSelection(keys, services, max = MAX_VISIT_SERVICES) {
   const known = new Set(services.map((service) => service.key));
   const out = [];
   for (const key of Array.isArray(keys) ? keys : []) {
     if (known.has(key) && !out.includes(key)) out.push(key);
   }
-  return out.slice(0, MAX_VISIT_SERVICES);
+  return out.slice(0, max);
 }
 
 /** Tap on a service: off if on, else on at the end. `limited` when the visit is already full. */
-export function toggleSelection(keys, key, services) {
+export function toggleSelection(keys, key, services, max = MAX_VISIT_SERVICES) {
   if (keys.includes(key)) return { keys: keys.filter((item) => item !== key), limited: false };
   if (!services.some((service) => service.key === key)) return { keys, limited: false };
-  if (keys.length >= MAX_VISIT_SERVICES) return { keys, limited: true };
+  if (keys.length >= max) return { keys, limited: true };
   return { keys: [...keys, key], limited: false };
 }
 
@@ -74,13 +77,14 @@ export function visitTotals(list) {
 }
 
 /** "۲ خدمت · ۷۵ دقیقه · ۹۵۰ تومان" for the line under the services. */
-export function visitSummaryText(list) {
+export function visitSummaryText(list, people = 1) {
   if (!list.length) return "";
   const totals = visitTotals(list);
   return [
-    `${toPersianDigits(totals.count)} خدمت`,
+    people > 1 ? `${toPersianDigits(people)} نفر` : "",
+    `${toPersianDigits(totals.count)} خدمت${people > 1 ? " برای هر نفر" : ""}`,
     `${toPersianDigits(totals.minutes)} دقیقه`,
-    totals.price ? `${formatTomanNumber(totals.price)} تومان` : ""
+    totals.price ? `${formatTomanNumber(totals.price * Math.max(1, people))} تومان` : ""
   ].filter(Boolean).join(" · ");
 }
 
@@ -92,8 +96,11 @@ export const endTimeLabel = (time, minutes) => minutesToPersianTime(timeLabelToM
 
 /** The picks that count as the form's state; every change that can alter what is free clears what was chosen after it. */
 export function createState({ selected = [], day = "", name = "", phone = "" } = {}) {
-  return { selected, day, time: "", name, phone, staff: {}, wait: "hour", backup: "" };
+  // `people`: how many are coming together (a client's request, 1 to 3). `chain`: the same people one after another
+  // (when nobody has a common free time), which is just the services repeated in one ordinary visit.
+  return { selected, day, time: "", name, phone, staff: {}, wait: "hour", backup: "", people: 1, chain: false };
 }
+export const withPeople = (state, people, chain = false) => ({ ...state, people, chain, time: "", staff: {}, backup: "" });
 export const withSelection = (state, selected) => ({ ...state, selected, time: "", staff: {} });
 export const withDay = (state, day) => (state.day === day ? state : { ...state, day, time: "", staff: {} });
 export const withTime = (state, time) => ({ ...state, time, staff: {} });
@@ -152,19 +159,32 @@ export function buildSubmitBody(role, state, list, planParts = []) {
   if (role === "artist") {
     return { kind: "booking", ...base, date: state.day, status: "تایید" };
   }
+  const people = role === "client" ? Math.max(1, Math.min(MAX_GROUP_PEOPLE, Number(state.people) || 1)) : 1;
+  const chain = people > 1 && state.chain;
+  const together = people > 1 && !chain;
+  // One after another: the services of every person in a row, as one ordinary multi-service visit.
+  const rows = chain ? Array.from({ length: people }, () => list).flat() : list;
+  if (chain) {
+    base.service = joinServiceNames(rows.map((service) => service.name));
+    base.durationMinutes = totals.minutes * people;
+  }
   const body = { ...base, bookingDate: state.day };
+  if (together) body.people = people;
   // A client's request waits until its appointment («تا هر وقت») or an hour, maybe with a backup salon.
   if (role === "client") {
     body.waitMinutes = state.wait === "hour" ? BOOKING_WAIT_CHOICES.hour : BOOKING_WAIT_CHOICES.open;
-    if (state.wait === "hour" && state.backup) body.fallbackSalonUserId = state.backup;
+    if (state.wait === "hour" && state.backup && !together) body.fallbackSalonUserId = state.backup;
   }
-  if (list.length >= 2) {
+  if (rows.length >= 2 && !together) {
     // Several services go one by one so each gets its own artist; only the salon may name them.
-    body.parts = list.map((service, index) => ({
+    body.parts = rows.map((service, index) => ({
       service: service.name,
       duration: service.duration || `${service.minutes} دقیقه`,
       ...(staffFor(index) ? { staff: staffFor(index) } : {})
     }));
+  } else if (together && list.length >= 2) {
+    // A group: one person's services; the server repeats them for each person and seats them side by side.
+    body.parts = list.map((service) => ({ service: service.name, duration: service.duration || `${service.minutes} دقیقه` }));
   } else if (staffFor(0)) {
     body.staff = staffFor(0);
   }
@@ -173,15 +193,21 @@ export function buildSubmitBody(role, state, list, planParts = []) {
 
 /** The query for the server's times and preview calls: services in order with their lengths, and the salon's own artist picks. */
 export function visitQuery(state, list, { withStaff: includeStaff = false } = {}) {
+  const people = Math.max(1, Number(state.people) || 1);
+  // "One after another" asks for the services repeated; "together" asks for that many artists at once (`people`).
+  const rows = people > 1 && state.chain ? Array.from({ length: people }, () => list).flat() : list;
   return {
-    services: list.map((service) => ({ name: service.name, minutes: service.minutes })),
-    staff: includeStaff ? list.map((_, index) => state.staff[index] || "") : []
+    services: rows.map((service) => ({ name: service.name, minutes: service.minutes })),
+    staff: includeStaff ? list.map((_, index) => state.staff[index] || "") : [],
+    ...(people > 1 && !state.chain ? { people } : {})
   };
 }
 
 /** What to tell the person, and whether the free times must be asked for again, after a refused booking. */
 export function submitFailure({ status = 0, payload = {} } = {}) {
   const error = typeof payload?.error === "string" && payload.error.trim() ? payload.error.trim() : "";
+  // Too many open requests is a 409 too, but the time is not what went wrong: nothing to reload or offer.
+  if (status === 409 && payload?.code === "TOO_MANY_OPEN_REQUESTS") return { message: error, reloadTimes: false };
   if (status === 409) return { message: error || "این زمان دیگر آزاد نیست؛ ساعت دیگری انتخاب کن.", reloadTimes: true };
   if (status === 429) return { message: error || "درخواست‌های زیاد. کمی صبر کن.", reloadTimes: false };
   if (status === 401) return { message: "ورود تو منقضی شده؛ دوباره وارد شو.", reloadTimes: false };

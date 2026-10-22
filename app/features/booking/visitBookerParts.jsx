@@ -2,13 +2,47 @@
 
 import { useState } from "react";
 import { ChevronDown, RotateCw } from "lucide-react";
-import { toLatinDigits } from "../../shared/lib/digits";
+import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { clockText } from "./visitBookerModel";
 
-export function TimesList({ state, role, onPick, onRetry }) {
+/** A tel: link target from a number as the salon typed it (any digits, spaces, dashes). */
+const telHref = (phone) => `tel:${toLatinDigits(String(phone || "")).replace(/[^\d+]/g, "")}`;
+
+/**
+ * What the client's form says when the chosen day has no free hour (owner's decisions 2026-10-22): the first free
+ * hour found ahead with a button to go there, or that nothing is free for two weeks with a call button when the
+ * salon's number is shown.
+ */
+function AheadNotice({ ahead, phone, onAhead }) {
+  if (!ahead) return null;
+  if (ahead.status === "loading") return <p className="vbInfo" role="status">در حال پیدا کردن اولین ساعت خالی…</p>;
+  if (ahead.status === "found") {
+    return (
+      <div className="vbInfo vbAhead" role="status">
+        <span>اولین ساعت خالی: {ahead.label} {clockText(ahead.time)}</span>
+        <button type="button" className="vbAction" onClick={onAhead}>برو به آن روز</button>
+      </div>
+    );
+  }
+  return (
+    <div className="vbInfo vbAhead" role="status">
+      <span>تا دو هفته آینده جا نیست. به سالن پیام بده</span>
+      {phone ? <a className="vbAction" href={telHref(phone)}>تماس</a> : null}
+    </div>
+  );
+}
+
+export function TimesList({ state, role, onPick, onRetry, onAhead, onChain, phone }) {
   const { times } = state;
+  const isClient = role === "client";
+  const group = isClient && state.people > 1;
+  const together = group && !state.chain;
+  const peopleText = toPersianDigits(state.people);
   if (!state.picked.length) return <p className="vbInfo">اول خدمت را انتخاب کن تا ساعت‌های خالی را ببینی.</p>;
   if (times.status === "loading" || times.status === "idle") return <p className="vbInfo" role="status">در حال پیدا کردن ساعت‌های آزاد…</p>;
+  if (times.status === "closed") {
+    return <p className="vbInfo" role="status">این روز سالن تعطیل است.{times.closedNext ? ` روز بعد باز: ${times.closedNext}.` : ""}</p>;
+  }
   if (times.status === "error") {
     return (
       <div className="vbInfo is-error" role="alert">
@@ -18,17 +52,33 @@ export function TimesList({ state, role, onPick, onRetry }) {
     );
   }
   if (!times.list.length) {
+    if (together) {
+      return (
+        <>
+          <div className="vbInfo vbAhead" role="status">
+            <span>برای {peopleText} نفر در این روز ساعت مشترک نیست. می‌خواهی {state.people === 2 ? "دو" : peopleText} نوبت پشت‌سرهم بگیری؟</span>
+            <button type="button" className="vbAction" onClick={onChain}>آره، پشت‌سرهم</button>
+          </div>
+          <AheadNotice ahead={times.ahead} phone={phone} onAhead={onAhead} />
+        </>
+      );
+    }
     return (
-      <p className="vbInfo" role="status">
-        {state.picked.length > 1
-          ? "این روز ساعتی نیست که همهٔ این خدمت‌ها پشت‌سرهم جا شوند. روز دیگری را انتخاب کن."
-          : role === "artist" ? "برای این روز ساعت آزادی با این مدت‌زمان نیست." : "برای این روز ساعتی آزاد نیست. روز دیگری را انتخاب کن."}
-      </p>
+      <>
+        <p className="vbInfo" role="status">
+          {state.picked.length > 1 || (group && state.chain)
+            ? "این روز ساعتی نیست که همهٔ این خدمت‌ها پشت‌سرهم جا شوند. روز دیگری را انتخاب کن."
+            : role === "artist" ? "برای این روز ساعت آزادی با این مدت‌زمان نیست." : "برای این روز ساعتی آزاد نیست. روز دیگری را انتخاب کن."}
+        </p>
+        {isClient ? <AheadNotice ahead={times.ahead} phone={phone} onAhead={onAhead} /> : null}
+      </>
     );
   }
   return (
     <>
       {times.note === "advanced" ? <p className="vbNote" role="status">روزِ قبلی ساعت خالی نداشت؛ نزدیک‌ترین روزِ آزاد را باز کردیم.</p> : null}
+      {together ? <p className="vbNote" role="status">ساعت‌هایی که برای {peopleText} نفر با هم جا دارد</p> : null}
+      {group && state.chain ? <p className="vbNote" role="status">{peopleText} نفر پشت‌سرهم، یکی بعد از دیگری</p> : null}
       <div className="vbTimes" role="group" aria-label="ساعت شروع">
         {times.list.map((time) => {
           const on = state.time && toLatinDigits(time) === toLatinDigits(state.time);
@@ -76,7 +126,7 @@ export function PlanList({ role, state, onStaff, onRetry }) {
         return (
           <li key={`${part.service}-${index}`} className={`vbPlanRow${problem ? " has-problem" : ""}`}>
             <span className="vbPlanTime">{clockText(part.start)}–{clockText(part.end)}</span>
-            <span className="vbPlanService">{part.service}</span>
+            <span className="vbPlanService">{state.people > 1 && !state.chain ? `نفر ${toPersianDigits((part.person || 0) + 1)} · ` : ""}{part.service}</span>
             {role === "artist" ? null : pickable ? (
               <button
                 type="button"

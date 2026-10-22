@@ -33,6 +33,10 @@ export function ClientHome({ bookings = [], highlightKey = "", clientName = "", 
         highlightKey={highlightKey}
         onOpenSettings={onOpenBooking}
         onRebook={onRebook}
+        clientName={clientName}
+        onNotify={onNotify}
+        onFindPlaces={onFindPlaces}
+        onOpenPlace={onOpenPlace}
       />
       {showConnect ? (
       <section className="chCard chStart" aria-label="وصل کردن سالن یا آرتیست">

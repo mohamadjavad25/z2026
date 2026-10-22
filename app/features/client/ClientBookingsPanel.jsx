@@ -7,6 +7,7 @@ import { SegmentClock } from "../../components/SegmentClock";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatRelativeBookingDayLabel, resolveRollingPersianDate } from "../../shared/lib/persianCalendar";
 import { ClientBookingHistorySheet } from "./ClientBookingHistorySheet";
+import { ExpiredRequestActions } from "./ExpiredRequestActions";
 import { AWAITING_CLIENT } from "../../shared/lib/bookingOffer";
 import {
   bookingEndLabel,
@@ -76,7 +77,7 @@ function metaOf(booking) {
  * `emptyMascot`: with that one line, the mascot fills the empty page below it (off when another card already has one).
  * `highlightKey`: the booking just made glows for a moment, so the client sees where it went.
  */
-export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook, compactEmpty = false, emptyLine = true, emptyMascot = false, highlightKey = "" }) {
+export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook, compactEmpty = false, emptyLine = true, emptyMascot = false, highlightKey = "", clientName = "", onNotify, onFindPlaces, onOpenPlace }) {
   const [historyOpen, setHistoryOpen] = useState(false);
 
   const { upcoming, past, notes } = useMemo(() => {
@@ -190,6 +191,7 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook, c
                     <span>{text}</span>
                     <time>{when}</time>
                   </button>
+                  <ExpiredRequestActions booking={booking} clientName={clientName} onNotify={onNotify} onFindPlaces={onFindPlaces} onOpenPlace={onOpenPlace} />
                 </li>
               );
             })}
@@ -233,6 +235,11 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook, c
           setHistoryOpen(false);
           onRebook?.(booking);
         }}
+        clientName={clientName}
+        onNotify={onNotify}
+        onFindPlaces={onFindPlaces}
+        onOpenPlace={onOpenPlace}
+        onClosePanel={() => setHistoryOpen(false)}
       />
     </>
   );

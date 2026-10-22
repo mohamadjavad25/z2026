@@ -438,7 +438,7 @@ function getPassportMatch(post) {
       openPublicArtistProfile(card);
       return;
     }
-    selectSalonWithDetail({
+    return selectSalonWithDetail({
       ...card,
       source_key: String(profile.id),
       tag: profile.specialty || "",

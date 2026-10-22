@@ -1,7 +1,8 @@
 import {
-  buildSubmitBody, createState, pickedServices, readiness, sameTime, sanitizeSelection, sequentialPlan, submitFailure,
-  toggleSelection, visitQuery, withDay, withSelection, withStaff, withTime
+  MAX_VISIT_PEOPLE, buildSubmitBody, createState, maxServicesFor, pickedServices, readiness, sameTime, sanitizeSelection, sequentialPlan, submitFailure,
+  toggleSelection, visitQuery, withDay, withPeople, withSelection, withStaff, withTime
 } from "./visitBookerModel.js";
+import { timeLabelToMinutes } from "../../shared/lib/time.js";
 
 /**
  * Everything that happens over time in the booking form, with no React in it so it can be tested
@@ -29,15 +30,20 @@ export function createVisitBookerController({
   /** Skip to the nearest open day when the first one has nothing free (until the person picks a day). */
   autoAdvance = true
 }) {
+  const isClient = role === "client";
   const dayValues = days.filter((day) => !day.closed).map((day) => day.value);
   const firstDay = initial.day && days.some((day) => day.value === initial.day) ? initial.day : (dayValues[0] || days[0]?.value || "");
   let model = createState({
-    selected: sanitizeSelection(initial.selected, services),
+    selected: sanitizeSelection(initial.selected, services, isClient ? maxServicesFor(1) : undefined),
     day: firstDay,
     name: initial.name || "",
     phone: initial.phone || ""
   });
-  let times = { status: "idle", list: [], note: "" };
+  // For a client's form (owner's decisions 2026-10-22): a closed day says when the salon opens next, a day with nothing
+  // free looks ahead for the first free hour (`ahead`), and a time taken while sending is offered the next one (`conflict`).
+  const weekdayOf = (day) => day?.weekday || String(day?.label || "").split(" ")[0];
+  let times = { status: "idle", list: [], note: "", ahead: null, closedNext: "" };
+  let conflict = null;
   let plan = { status: "idle", parts: [], message: "", code: "", partIndex: -1 };
   let backups = { status: "idle", list: [] };
   let backupsRequest = 0;
@@ -51,6 +57,8 @@ export function createVisitBookerController({
   let timesRequest = 0;
   let planRequest = 0;
   let snapshot = null;
+  // An hour asked for beforehand (an unanswered request tried at another place): picked when that day has it, else the first.
+  let preferTime = isClient ? String(initial.time || "") : "";
   const listeners = new Set();
 
   const list = () => pickedServices(model.selected, services);
@@ -75,7 +83,8 @@ export function createVisitBookerController({
       done,
       tried,
       error,
-      limitHit
+      limitHit,
+      conflict
     };
     return snapshot;
   }
@@ -91,7 +100,7 @@ export function createVisitBookerController({
     const query = visitQuery(model, picked);
     let answer;
     try {
-      answer = await source.loadTimes({ day, services: query.services, fresh });
+      answer = await source.loadTimes({ day, services: query.services, fresh, ...(query.people ? { people: query.people } : {}) });
     } catch {
       answer = { ok: false };
     }
@@ -99,24 +108,36 @@ export function createVisitBookerController({
     return answer?.ok && Array.isArray(answer.times) ? answer.times : false;
   }
 
-  /** Free times for the current day and services; picks the first when the chosen one is not among them. */
-  async function refreshTimes({ keepNote = false, fresh = false } = {}) {
+  /** Free times for the current day and services; picks the first when the chosen one is not among them
+   *  (`noPick`: leave the time empty instead, so a time that was just taken never turns into another one unasked). */
+  async function refreshTimes({ keepNote = false, fresh = false, noPick = false } = {}) {
     const picked = list();
     if (!picked.length || !model.day) {
       timesRequest += 1;
-      times = { status: "idle", list: [], note: "" };
+      times = { status: "idle", list: [], note: "", ahead: null, closedNext: "" };
       model = withTime(model, "");
       resetPlan();
       emit();
       return;
     }
     const startDay = model.day;
-    times = { status: "loading", list: [], note: keepNote ? times.note : "" };
+    const dayIndex = days.findIndex((item) => item.value === startDay);
+    // A closed day (the client form lets her tap it): say so and when the salon is open next, ask nothing.
+    if (isClient && days[dayIndex]?.closed) {
+      timesRequest += 1;
+      const next = days.slice(dayIndex + 1).find((item) => !item.closed);
+      times = { status: "closed", list: [], note: "", ahead: null, closedNext: next ? weekdayOf(next) : "" };
+      model = withTime(model, "");
+      resetPlan();
+      emit();
+      return;
+    }
+    times = { status: "loading", list: [], note: keepNote ? times.note : "", ahead: null, closedNext: "" };
     emit();
     let result = await loadTimesFor(startDay, picked, fresh);
     if (result === null) return;
     if (result === false) {
-      times = { status: "error", list: [], note: "" };
+      times = { status: "error", list: [], note: "", ahead: null, closedNext: "" };
       model = withTime(model, "");
       resetPlan();
       emit();
@@ -137,13 +158,38 @@ export function createVisitBookerController({
         }
       }
     }
-    applyTimes(result, note);
+    applyTimes(result, note, noPick);
+    if (isClient && !result.length) void lookAhead(picked, fresh);
   }
 
-  function applyTimes(result, note = "") {
-    times = { status: "ready", list: result, note };
+  /** The chosen day has nothing free: look through the days after it (up to the end of the list) for the first free hour. */
+  async function lookAhead(picked, fresh) {
+    const request = timesRequest;
+    const from = days.findIndex((item) => item.value === model.day);
+    times = { ...times, ahead: { status: "loading" } };
+    emit();
+    for (const day of days.slice(from + 1)) {
+      if (day.closed) continue;
+      const next = await loadTimesFor(day.value, picked, fresh);
+      if (next === null || disposed || request !== timesRequest) return;
+      if (next === false) break;
+      if (next.length) {
+        times = { ...times, ahead: { status: "found", day: day.value, label: day.label, time: next[0] } };
+        emit();
+        return;
+      }
+    }
+    times = { ...times, ahead: { status: "none" } };
+    emit();
+  }
+
+  function applyTimes(result, note = "", noPick = false) {
+    times = { status: "ready", list: result, note, ahead: null, closedNext: "" };
     const keep = model.time && result.some((time) => sameTime(time, model.time));
-    if (!keep) model = withTime(model, result[0] || "");
+    const wanted = !keep && preferTime ? result.find((time) => sameTime(time, preferTime)) : "";
+    preferTime = "";
+    if (wanted) model = withTime(model, wanted);
+    else if (!keep) model = withTime(model, noPick ? "" : (result[0] || ""));
     resetPlan();
     emit();
     if (model.time) void refreshPlan();
@@ -155,7 +201,7 @@ export function createVisitBookerController({
   async function refreshBackups() {
     const picked = list();
     const request = ++backupsRequest;
-    if (!hasBackupSource || model.wait !== "hour" || !model.time || !picked.length) {
+    if (!hasBackupSource || model.wait !== "hour" || !model.time || !picked.length || (model.people > 1 && !model.chain)) {
       backups = { status: "idle", list: [] };
       if (model.backup && model.wait === "hour") model = { ...model, backup: "" };
       emit();
@@ -195,7 +241,7 @@ export function createVisitBookerController({
     const query = visitQuery(model, picked, { withStaff: role === "salon" });
     let answer;
     try {
-      answer = await source.loadPlan({ day: model.day, time: model.time, services: query.services, staff: query.staff });
+      answer = await source.loadPlan({ day: model.day, time: model.time, services: query.services, staff: query.staff, ...(query.people ? { people: query.people } : {}) });
     } catch {
       answer = { ok: false };
     }
@@ -237,19 +283,21 @@ export function createVisitBookerController({
 
     toggleService(key) {
       if (submitting || done) return;
-      const result = toggleSelection(model.selected, key, services);
+      const result = toggleSelection(model.selected, key, services, isClient ? maxServicesFor(model.people) : undefined);
       limitHit = result.limited;
       error = "";
       if (result.limited) return emit();
-      model = withSelection(model, result.keys);
+      model = { ...withSelection(model, result.keys), people: model.people, chain: model.chain };
+      conflict = null;
       reloadedFor.clear();
       emit();
       void refreshTimes();
     },
     setDay(day) {
-      if (submitting || done || !days.some((item) => item.value === day && !item.closed) || day === model.day) return;
+      if (submitting || done || !days.some((item) => item.value === day && (isClient || !item.closed)) || day === model.day) return;
       dayTouched = true;
       error = "";
+      conflict = null;
       model = withDay(model, day);
       reloadedFor.clear();
       emit();
@@ -258,11 +306,57 @@ export function createVisitBookerController({
     setTime(time) {
       if (submitting || done || !times.list.some((item) => sameTime(item, time)) || sameTime(model.time, time)) return;
       error = "";
+      conflict = null;
       model = withTime(model, times.list.find((item) => sameTime(item, time)));
       resetPlan();
       emit();
       void refreshPlan();
       void refreshBackups();
+    },
+    /** «برای چند نفر؟»: 1 to 3 people at the same time (a client's request). Services beyond what fits are dropped from the end. */
+    setPeople(count) {
+      const people = Math.floor(Number(count));
+      if (!isClient || submitting || done || !(people >= 1 && people <= MAX_VISIT_PEOPLE) || (people === model.people && !model.chain)) return;
+      error = "";
+      conflict = null;
+      limitHit = false;
+      const max = maxServicesFor(people);
+      model = withPeople({ ...model, selected: model.selected.slice(0, max) }, people, false);
+      reloadedFor.clear();
+      emit();
+      void refreshTimes();
+    },
+    /** «آره، پشت‌سرهم»: nobody is free together, so the same people go one after another (one ordinary visit). */
+    chainPeople() {
+      if (!isClient || submitting || done || model.people < 2 || model.chain) return;
+      error = "";
+      conflict = null;
+      model = withPeople(model, model.people, true);
+      reloadedFor.clear();
+      emit();
+      void refreshTimes();
+    },
+    /** «برو به آن روز»: the first free hour found ahead. */
+    goToAhead() {
+      const ahead = times.ahead;
+      if (ahead?.status !== "found") return;
+      controller.setDay(ahead.day);
+    },
+    /** The 409 card's «بله، ارسال»: the next free hour of that day is taken and sent. */
+    async acceptConflict() {
+      if (!conflict?.next || submitting || done) return { ok: false, reason: "busy" };
+      const next = conflict.next;
+      conflict = null;
+      model = withTime(model, next);
+      resetPlan();
+      emit();
+      await refreshPlan();
+      return controller.submit();
+    },
+    /** The 409 card's «ساعت دیگر»: back to the day's list with nothing chosen. */
+    dismissConflict() {
+      conflict = null;
+      emit();
     },
     /** The client's choice: "open" (wait until the appointment) or "hour". */
     setWait(wait) {
@@ -333,6 +427,23 @@ export function createVisitBookerController({
       }
       const failure = submitFailure(result || {});
       error = failure.message;
+      if (isClient && failure.reloadTimes) {
+        // The hour was taken while sending: look again, and never move to another hour unasked. A single person is
+        // offered the next free hour of that day; a group's refusal already says the hours were refreshed.
+        const taken = model.time;
+        const code = result?.payload?.code || "";
+        await refreshTimes({ fresh: true, noPick: true });
+        if (disposed) return { ok: false, reason: "refused", message: failure.message };
+        if (code === "GROUP_FULL" || (model.people > 1 && !model.chain)) {
+          emit();
+        } else {
+          const after = times.status === "ready" ? times.list.find((time) => timeLabelToMinutes(time) > timeLabelToMinutes(taken)) : "";
+          error = "";
+          conflict = { taken, next: after || "" };
+          emit();
+        }
+        return { ok: false, reason: "refused", message: failure.message };
+      }
       emit();
       if (failure.reloadTimes) void refreshTimes({ fresh: true });
       return { ok: false, reason: "refused", message: failure.message };

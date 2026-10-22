@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { connectTo, listConnections, searchConnections } from "../../shared/api/connections";
 import { useAppRefresh } from "../../shared/lib/appRefresh";
+import { recallSearch, rememberSearch } from "./searchMemory";
 
 const SEARCH_DELAY_MS = 300;
 
@@ -11,11 +12,14 @@ const SEARCH_DELAY_MS = 300;
  * debounced search (link, phone or name) and connecting to a result.
  * `load: false` skips loading the list, for a second instance that only searches and connects.
  */
-export function useConnections({ onNotify, load = true } = {}) {
+export function useConnections({ onNotify, load = true, memoryOwner = null } = {}) {
   const [connections, setConnections] = useState([]);
   const [loading, setLoading] = useState(load);
-  const [query, setQuery] = useState("");
-  const [search, setSearch] = useState({ status: "idle", by: "none", results: [] }); // idle | searching | done | error
+  // Coming back from a salon page: the same query and results as when the client left (searchMemory.js).
+  const [recalled] = useState(() => (memoryOwner === null ? null : recallSearch(memoryOwner)));
+  const [query, setQuery] = useState(recalled?.query || "");
+  const [search, setSearch] = useState(recalled?.search?.status === "done" ? recalled.search : { status: "idle", by: "none", results: [] }); // idle | searching | done | error
+  const skipSearchFor = useRef(recalled?.search?.status === "done" ? recalled.query : null);
   const [connectingId, setConnectingId] = useState(null);
   const notifyRef = useRef(onNotify);
   notifyRef.current = onNotify;
@@ -32,6 +36,11 @@ export function useConnections({ onNotify, load = true } = {}) {
   // Debounced search; an older request never overwrites a newer one.
   useEffect(() => {
     const text = query.trim();
+    if (skipSearchFor.current !== null && skipSearchFor.current === query) {
+      skipSearchFor.current = null; // the restored results are already the answer for this text
+      return undefined;
+    }
+    skipSearchFor.current = null;
     if (!text) {
       setSearch({ status: "idle", by: "none", results: [] });
       return undefined;
@@ -56,6 +65,10 @@ export function useConnections({ onNotify, load = true } = {}) {
       window.clearTimeout(timer);
     };
   }, [query]);
+
+  useEffect(() => {
+    if (memoryOwner !== null) rememberSearch(memoryOwner, { query, search: search.status === "done" ? search : null });
+  }, [memoryOwner, query, search]);
 
   /**
    * Connects to a salon/artist card; resolves to the connected profile or null.
@@ -86,5 +99,5 @@ export function useConnections({ onNotify, load = true } = {}) {
     }
   }, []);
 
-  return { connections, loading, query, setQuery, search, connect, connectingId, refresh };
+  return { connections, loading, query, setQuery, search, connect, connectingId, refresh, restoredScrollY: recalled?.scrollY || 0 };
 }

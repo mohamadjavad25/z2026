@@ -390,6 +390,25 @@ export function useSalonDirectory({
     }));
   }, [selectedSalon, createdProfile, shellMsg]);
 
+  /**
+   * «همین نوبت را جای دیگر بگیر»: opens the form of the salon that is now selected with the services, day and
+   * time of an unanswered request already filled in (`prefill`: { names, day, time }). The form still asks the
+   * server for that day's free hours, so a time that is gone is said so there.
+   */
+  const openSalonClientBookingPrefilled = useCallback((prefill) => {
+    const names = Array.isArray(prefill?.names) ? prefill.names.filter(Boolean) : [];
+    if (!names.length) return;
+    setSalonClientTab("services");
+    setSalonClientBooking((current) => ({
+      open: true,
+      service: names[0],
+      bundle: null,
+      prefill: { names, day: prefill.day || "", time: prefill.time || "" },
+      client: current.client || createdProfile?.data?.name || "",
+      phone: current.phone || createdProfile?.data?.phone || ""
+    }));
+  }, [createdProfile]);
+
   const closeSalonClientBooking = useCallback(() => {
     setSalonClientBooking((current) => ({ ...current, open: false }));
   }, []);
@@ -493,6 +512,7 @@ export function useSalonDirectory({
     toggleSaveSalon,
     shareSalonProfile,
     openSalonClientBooking,
+    openSalonClientBookingPrefilled,
     closeSalonClientBooking,
     submitSalonClientVisit,
     getVisibleSalonServiceItems

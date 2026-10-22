@@ -8,6 +8,7 @@ import { toPersianDigits } from "../../shared/lib/digits";
 import { formatRelativeBookingDayLabel, resolveRollingPersianDate } from "../../shared/lib/persianCalendar";
 import { bookingStatusLabel, bookingStatusTone } from "./bookingStatus";
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
+import { ExpiredRequestActions } from "./ExpiredRequestActions";
 
 const FILTERS = [
   { id: "all", label: "همه" },
@@ -22,7 +23,7 @@ const timeOf = (booking) => (dayKeyOf(booking) ? resolveRollingPersianDate(dayKe
  * The client's booking history: everything that is over, cancelled or expired, newest first and
  * grouped by day. Tap a row for its details, or the arrow to book the same thing again.
  */
-export function ClientBookingHistorySheet({ open, onClose, bookings = [], onOpenBooking, onRebook }) {
+export function ClientBookingHistorySheet({ open, onClose, bookings = [], onOpenBooking, onRebook, clientName = "", onNotify, onFindPlaces, onOpenPlace, onClosePanel }) {
   const [filter, setFilter] = useState("all");
 
   const groups = useMemo(() => {
@@ -93,6 +94,14 @@ export function ClientBookingHistorySheet({ open, onClose, bookings = [], onOpen
                       >
                         <RotateCcw size={16} />
                       </button>
+                      <ExpiredRequestActions
+                        booking={booking}
+                        clientName={clientName}
+                        onNotify={onNotify}
+                        onFindPlaces={onFindPlaces}
+                        onOpenPlace={onOpenPlace}
+                        onClosePanel={onClosePanel}
+                      />
                     </li>
                   );
                 })}
