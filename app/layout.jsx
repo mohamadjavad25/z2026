@@ -119,7 +119,10 @@ export default function RootLayout({ children }) {
         <script dangerouslySetInnerHTML={{ __html: `(function () {
 var root = document.documentElement;
 if (navigator.userAgent.indexOf("frfro-app") !== -1) root.classList.add("native-app", "skip-landing");
-if (/[?&](open|join)=/.test(location.search)) root.classList.add("skip-landing");
+if (/[?&](open|join)=/.test(location.search)) {
+  root.classList.add("skip-landing");
+  try { localStorage.setItem("frfro-entered", "1"); } catch (e) {}
+}
 try {
   if (window.matchMedia("(display-mode: standalone)").matches || navigator.standalone || localStorage.getItem("frfro-entered") === "1") root.classList.add("skip-landing");
 } catch (e) {}

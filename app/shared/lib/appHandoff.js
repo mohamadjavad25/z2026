@@ -69,5 +69,7 @@ export function takePendingOpen() {
 export function goToAppFor(router, target) {
   rememberPendingOpen(target);
   if (typeof document !== "undefined") document.documentElement.classList.add("skip-landing");
+  // Remembered like a tap on «ورود به فرفرو»: coming back to "/" later (browser Back) must open the app, not the about page.
+  try { window.localStorage.setItem("frfro-entered", "1"); } catch { /* private mode */ }
   afterHistorySettles(() => router.push(openInAppHref(target.type, target.id)));
 }
