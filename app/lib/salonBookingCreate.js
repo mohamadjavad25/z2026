@@ -53,8 +53,10 @@ export async function createSalonBooking({ actor, salonUserId, body, data, wait 
   const lengthsOk = parseRequestedMinutes(body).ok
     && (data.parts || []).every((part) => parseRequestedMinutes(part).ok);
   if (!lengthsOk) return refuse(400, `مدت نوبت نامعتبر است؛ یک عدد صحیح (دقیقه) بنویس.`);
-  const client = String(body.client || actor.name || "").trim();
-  const phone = String(body.phone || actor.phone || "").trim();
+  // A client's request carries the account's own name and number; a typed one is ignored, so nobody can book in a
+  // stranger's name or put a booking into another person's list. Only the salon's own entry takes them from the form (never the salon's own number: a walk-in with no number has none).
+  const client = String(isClient ? actor.name || "" : body.client || "").trim();
+  const phone = String(isClient ? actor.phone || "" : body.phone || "").trim();
   const parts = salonVisitParts(salon, data.parts, { allowStaff: actor.type === "salon" })
     .map(({ service, minutes, staff }) => ({ service, minutes, staff }));
   const multiPart = parts.length >= 2;

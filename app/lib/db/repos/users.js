@@ -269,9 +269,11 @@ export async function isFollowing(followerId, targetId, runner = null) {
 export async function deleteUserDetachingPhone(id) {
   const userId = Number(id);
   return withTransaction(null, async (client) => {
-    const row = await get(client, "SELECT id, phone, name, type FROM users WHERE id = $1 FOR UPDATE", [userId]);
+    const row = await get(client, "SELECT id, phone, name, type, phone_verified_at FROM users WHERE id = $1 FOR UPDATE", [userId]);
     if (!row) return null;
-    const key = String(row.phone || "").trim();
+    // Walk-ins typed for the bare number are cut off only when this account had proved it owns the number (SMS code):
+    // an unverified sign-up with someone else's number must not be able to wipe the real person's bookings by deleting itself.
+    const key = row.phone_verified_at ? String(row.phone || "").trim() : "";
     for (const [table, column] of [["salon_bookings", "phone"], ["artist_bookings", "client_phone"]]) {
       await run(client, `
         UPDATE ${table} SET ${column} = ''
