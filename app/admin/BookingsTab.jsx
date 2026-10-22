@@ -1,11 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { CalendarCheck, CalendarX2, Download, Phone, Search, Store, UserRound } from "lucide-react";
+import { CalendarCheck, CalendarX2, Download, MoreHorizontal, Phone, Search, Store, UserRound } from "lucide-react";
 import { Button } from "../components/ui";
 import { api } from "./adminFetch";
 import { BOOKING_TONE, TYPE_LABEL, ago, fmtDate, fmtKey, fmtTime, num } from "./format";
 import { PageHead } from "./PageHead";
+import { ActionMenu } from "./ActionMenu";
 import { SplitView } from "./SplitView";
 import { EmptyState, ErrorNote, Loading, Pager, Segmented, Skeleton, confirmAction, exportCsv, toastResult, useAdminData, withQuery } from "./ui";
 
@@ -24,6 +25,7 @@ export function StatusTag({ status }) {
 function BookingDetail({ kind, id, onGo, onChanged }) {
   const [found, setFound] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [menu, setMenu] = useState(false);
   const load = useCallback(async () => {
     const result = await api.get(`/api/admin/bookings/${kind}/${id}`);
     setFound(result.ok ? result.payload.data : { error: result.payload?.error || "بارگذاری نشد." });
@@ -70,6 +72,12 @@ function BookingDetail({ kind, id, onGo, onChanged }) {
     </div>
   );
 
+  const menuItems = [
+    ...(client ? [{ group: "رفتن به", icon: UserRound, label: "حساب مشتری", run: () => onGo("users", { id: client.id }) }] : []),
+    ...(provider ? [{ group: "رفتن به", icon: Store, label: "حساب سالن یا آرتیست", run: () => onGo("users", { id: provider.id }) }] : []),
+    ...(found.cancellable ? [{ group: "خطرناک", icon: CalendarX2, label: "لغو این رزرو (شکایت یا درخواست جعلی)", danger: true, run: cancel }] : [])
+  ];
+
   return (
     <div className="admDetail">
       <header className="admDetailHead">
@@ -80,6 +88,10 @@ function BookingDetail({ kind, id, onGo, onChanged }) {
         </div>
         <StatusTag status={booking.status} />
       </header>
+
+      <div className="admDetailTools">
+        <button type="button" className="admChipLink is-primary" disabled={busy} onClick={() => setMenu(true)}><MoreHorizontal size={15} aria-hidden="true" /> اقدام‌ها</button>
+      </div>
 
       <div className="admWhen">
         <div><small>روز</small><b>{fmtKey(booking.booking_date)}</b></div>
@@ -107,13 +119,8 @@ function BookingDetail({ kind, id, onGo, onChanged }) {
         </section>
       ) : null}
 
-      {found.cancellable ? (
-        <section className="admDanger">
-          <h3>لغو رزرو</h3>
-          <p className="admMuted">برای شکایت یا درخواست جعلی. لغو از همان مسیری انجام می‌شود که سالن یا مشتری لغو می‌کنند، پس تقویم آرتیست هم درست می‌ماند.</p>
-          <Button size="sm" variant="danger" disabled={busy} onClick={cancel}><CalendarX2 size={15} aria-hidden="true" /> لغو این رزرو</Button>
-        </section>
-      ) : <p className="admMuted">این رزرو {booking.status === "لغو" || booking.status === "منقضی شده" ? "بسته شده" : "گذشته"} است و دیگر لغو نمی‌شود.</p>}
+      {!found.cancellable ? <p className="admMuted">این رزرو {booking.status === "لغو" || booking.status === "منقضی شده" ? "بسته شده" : "گذشته"} است و دیگر لغو نمی‌شود.</p> : null}
+      {menu ? <ActionMenu items={menuItems} onClose={() => setMenu(false)} /> : null}
     </div>
   );
 }

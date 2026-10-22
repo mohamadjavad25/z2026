@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Eye, EyeOff, Flag, Image as ImageIcon, ImageOff, LayoutGrid, Rows3, Search, Trash2, X } from "lucide-react";
+import { Eye, EyeOff, Flag, Image as ImageIcon, ImageOff, LayoutGrid, MoreHorizontal, Rows3, Search, Trash2, UserRound, X } from "lucide-react";
 import { Button } from "../components/ui";
 import { api } from "./adminFetch";
 import { TYPE_LABEL, ago, fmtDate, num } from "./format";
+import { ActionMenu } from "./ActionMenu";
 import { PageHead } from "./PageHead";
 import { EmptyState, ErrorNote, Pager, Segmented, Skeleton, confirmAction, toastResult, useAdminData, withQuery } from "./ui";
 
@@ -21,6 +22,13 @@ function Thumb({ post, full = false }) {
 
 /** A post up close: the full picture, its text, who posted it, how many reports, and the actions. */
 function PostPreview({ post, onClose, onAct, onGo }) {
+  const [menu, setMenu] = useState(false);
+  const menuItems = [
+    { group: "پست", icon: post.is_public ? EyeOff : Eye, label: post.is_public ? "پنهان‌کردن (برگشت‌پذیر)" : "نمایش دوباره", run: () => onAct([post], post.is_public ? "hide" : "show") },
+    { group: "رفتن به", icon: UserRound, label: "حساب صاحب پست", run: () => { onClose(); onGo("users", { id: post.owner_id }); } },
+    ...(post.reports ? [{ group: "رفتن به", icon: Flag, label: "دیدن گزارش‌ها", run: () => { onClose(); onGo("support", { q: post.title }); } }] : []),
+    { group: "خطرناک", icon: Trash2, label: "حذف دائمی پست", danger: true, run: () => onAct([post], "delete") }
+  ];
   useEffect(() => {
     const onKey = (event) => event.key === "Escape" && onClose();
     document.addEventListener("keydown", onKey);
@@ -42,13 +50,10 @@ function PostPreview({ post, onClose, onAct, onGo }) {
             <li><span>گزارش</span><b className={post.reports ? "admBadText" : ""}>{post.reports ? `${num(post.reports)} گزارش` : "ندارد"}</b></li>
             <li><span>وضعیت</span><b>{post.is_public ? "نمایان" : "پنهان"}</b></li>
           </ul>
-          <div className="admRowActions">
-            {post.is_public
-              ? <Button size="sm" variant="secondary" onClick={() => onAct([post], "hide")}><EyeOff size={15} aria-hidden="true" /> پنهان‌کردن</Button>
-              : <Button size="sm" variant="secondary" onClick={() => onAct([post], "show")}><Eye size={15} aria-hidden="true" /> نمایش دوباره</Button>}
-            <Button size="sm" variant="danger" onClick={() => onAct([post], "delete")}><Trash2 size={15} aria-hidden="true" /> حذف</Button>
-            {post.reports ? <Button size="sm" variant="ghost" onClick={() => { onClose(); onGo("support", { q: post.title }); }}><Flag size={15} aria-hidden="true" /> دیدن گزارش‌ها</Button> : null}
+          <div className="admDetailTools">
+            <button type="button" className="admChipLink is-primary" onClick={() => setMenu(true)}><MoreHorizontal size={15} aria-hidden="true" /> اقدام‌ها</button>
           </div>
+          {menu ? <ActionMenu items={menuItems} onClose={() => setMenu(false)} /> : null}
         </div>
       </section>
     </div>
