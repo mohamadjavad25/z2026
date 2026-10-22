@@ -5,6 +5,7 @@ import { ensureDb } from "../../lib/db/connection.js";
 import * as artists from "../../lib/db/repos/artists.js";
 import { ArtistPublicPageClient } from "./ArtistPublicPageClient";
 import { getSiteUrl } from "../../lib/siteUrl.js";
+import { createShortCache } from "../../lib/shortCache.js";
 
 export const runtime = "nodejs";
 
@@ -12,7 +13,12 @@ export const runtime = "nodejs";
 // app/layout.jsx's metadataBase — never hardcode the domain a second time.
 const SITE_URL = getSiteUrl();
 
-async function loadArtist(id) {
+// Opened by many visitors at once (a shared link, a QR code): the page builds from this answer, and both
+// generateMetadata and the page itself ask for it, so it is computed once per few seconds instead of twice per visit.
+const publicCache = createShortCache({ ttlMs: 5000, max: 300 });
+const loadArtist = (id) => publicCache.get(String(id), () => loadArtistFresh(id));
+
+async function loadArtistFresh(id) {
   const userId = Number(id);
   if (!Number.isFinite(userId)) return null;
   await ensureDb();

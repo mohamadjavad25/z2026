@@ -164,14 +164,13 @@ export function createVisitBookerController({
 
   /** The chosen day has nothing free: look through the days after it (up to the end of the list) for the first free hour. */
   async function lookAhead(picked, fresh) {
-    const request = timesRequest;
     const from = days.findIndex((item) => item.value === model.day);
     times = { ...times, ahead: { status: "loading" } };
     emit();
     for (const day of days.slice(from + 1)) {
       if (day.closed) continue;
       const next = await loadTimesFor(day.value, picked, fresh);
-      if (next === null || disposed || request !== timesRequest) return;
+      if (next === null || disposed) return; // null: the picks changed meanwhile (a newer question was asked)
       if (next === false) break;
       if (next.length) {
         times = { ...times, ahead: { status: "found", day: day.value, label: day.label, time: next[0] } };

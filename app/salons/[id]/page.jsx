@@ -5,6 +5,7 @@ import { ensureDb } from "../../lib/db/connection.js";
 import * as salons from "../../lib/db/repos/salons.js";
 import { SalonPublicPageClient } from "./SalonPublicPageClient";
 import { getSiteUrl } from "../../lib/siteUrl.js";
+import { createShortCache } from "../../lib/shortCache.js";
 
 export const runtime = "nodejs";
 
@@ -12,7 +13,12 @@ export const runtime = "nodejs";
 // app/layout.jsx's metadataBase — never hardcode the domain a second time.
 const SITE_URL = getSiteUrl();
 
-async function loadSalon(id) {
+// Opened by many visitors at once (a shared link, a QR code): the page builds from this answer, and both
+// generateMetadata and the page itself ask for it, so it is computed once per few seconds instead of twice per visit.
+const publicCache = createShortCache({ ttlMs: 5000, max: 300 });
+const loadSalon = (id) => publicCache.get(String(id), () => loadSalonFresh(id));
+
+async function loadSalonFresh(id) {
   const userId = Number(id);
   if (!Number.isFinite(userId)) return null;
   await ensureDb();
