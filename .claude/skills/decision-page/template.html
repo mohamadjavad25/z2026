@@ -78,6 +78,22 @@ section { display: grid; gap: 14px; min-width: 0; }
 .chip { font-size: 12px; font-weight: 700; padding: 1px 10px; border-radius: 999px; background: var(--soft); color: var(--muted); white-space: nowrap; }
 .chip.rec { background: var(--blend); color: #0c0d12; }
 .story { background: var(--soft); border-radius: 14px; padding: 12px 14px; }
+/* plan (optional): how the pieces work together, as a timeline and the possible results */
+.plan[hidden] { display: none; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.step { position: relative; padding-inline-start: 30px; padding-bottom: 16px; display: grid; gap: 2px; }
+.step::before { content: ""; position: absolute; inset-inline-start: 7px; top: 12px; bottom: -4px; width: 2px; background: var(--line); }
+.step:last-child::before { display: none; }
+.step::after { content: ""; position: absolute; inset-inline-start: 1px; top: 8px; width: 14px; height: 14px; border-radius: 50%; background: var(--violet); box-shadow: 0 0 0 3px var(--paper); }
+.step.good::after { background: var(--good); } .step.mid::after { background: var(--wait); } .step.bad::after { background: var(--bad); }
+.step.quiet::after { background: var(--paper); border: 2px solid var(--muted); width: 10px; height: 10px; }
+.step .when { font-size: 13px; font-weight: 700; color: var(--muted); }
+.step b { font-weight: 800; }
+.outcomes { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
+.outcome { border-radius: 14px; padding: 10px 12px; background: var(--soft); display: grid; gap: 2px; border-top: 4px solid var(--violet); }
+.outcome.good { border-top-color: var(--good); } .outcome.mid { border-top-color: var(--wait); } .outcome.bad { border-top-color: var(--bad); }
+.outcome b { font-weight: 800; }
+.outcome span { font-size: 14px; color: var(--muted); }
 .story b { font-weight: 700; }
 
 /* phones */
@@ -154,6 +170,14 @@ button:focus-visible, textarea:focus-visible { outline: 2px solid var(--pink); o
     <div class="issues" id="issues"></div>
   </section>
 
+  <section class="plan" id="plan" aria-labelledby="planTitle" hidden>
+    <h2 id="planTitle"></h2>
+    <p id="planLead"></p>
+    <ol class="steps" id="steps"></ol>
+    <h2 id="outTitle"></h2>
+    <div class="outcomes" id="outcomes"></div>
+  </section>
+
   <section aria-labelledby="cTitle">
     <div class="carousel-head">
       <h2 id="cTitle">پیشنهادها</h2>
@@ -189,11 +213,13 @@ const PAGE = {
   id: "example",                       // short latin id; answers are saved under it
   eyebrow: "فرفرو · تصمیم",
   title: "عنوان: سؤالی که باید جواب بدهی",
-  problem: {
+  problem: {                           // optional heading replaces «مشکل چیست», e.g. «هدف و قانون‌ها» on a plan
     lead: "خلاصهٔ مشکل در یک یا دو جملهٔ ساده، از دید کسی که اپ را دارد.",
     cast: [{ name: "سارا", role: "مشتری" }],
     issues: [{ title: "یک مشکل", text: "با یک مثال واقعی.", level: "high" }]
   },
+  // plan (optional): how the pieces fit together, shown between the problem and the proposals.
+  // plan: { title, lead, steps: [{ when, title, text, tone: "good"|"mid"|"bad"|"quiet" }], outcomesTitle, outcomes: [{ name, text, tone }] },
   proposals: [{
     id: "p1", title: "پیشنهاد", size: "کوچک", recommended: true,
     story: "قصهٔ کوتاه با اسم و ساعت.",
@@ -243,9 +269,21 @@ const PAGE = {
 
   $("eyebrow").textContent = PAGE.eyebrow || "";
   $("title").textContent = PAGE.title;
+  if (PAGE.problem.heading) $("pTitle").textContent = PAGE.problem.heading;
   $("pLead").innerHTML = rich(PAGE.problem.lead);
   $("cast").innerHTML = (PAGE.problem.cast || []).map((c) => `<span class="who"><b>${esc(c.name)}</b> ${esc(c.role)}</span>`).join("");
   $("issues").innerHTML = (PAGE.problem.issues || []).map((i) => `<div class="issue${i.level === "high" ? "" : " mid"}"><b>${esc(i.title)}</b><span>${rich(i.text)}</span></div>`).join("");
+
+  if (PAGE.plan) {
+    const pl = PAGE.plan;
+    $("plan").hidden = false;
+    $("planTitle").textContent = pl.title || "چطور با هم کار می‌کنند";
+    $("planLead").innerHTML = rich(pl.lead || "");
+    $("steps").innerHTML = (pl.steps || []).map((x) => `<li class="step ${x.tone || ""}"><span class="when">${esc(x.when)}</span><b>${esc(x.title)}</b><span>${rich(x.text)}</span></li>`).join("");
+    $("outTitle").textContent = pl.outcomesTitle || "";
+    $("outTitle").hidden = !(pl.outcomes || []).length;
+    $("outcomes").innerHTML = (pl.outcomes || []).map((o) => `<div class="outcome ${o.tone || ""}"><b>${esc(o.name)}</b><span>${rich(o.text)}</span></div>`).join("");
+  }
 
   const track = $("track");
   track.innerHTML = PAGE.proposals.map((p, i) => `

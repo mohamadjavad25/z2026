@@ -15,6 +15,10 @@ anything else in their own words, by voice if they like. The answers come back t
 1. **The problem, on top.** One or two plain sentences from the app user's side, then the people of the example
    (for example سارا مشتری، سالن رز، نگار آرتیست), then each issue as one line with a real example and how often
    it happened if you measured it. Red edge for serious, amber for minor.
+   When the owner asks for a plan ("how do these work together", "what is the plan"), add the optional `plan`
+   object: a timeline of what happens when (`steps`, each with `when`, `title`, `text`, `tone`; `quiet` for a step
+   where nothing is sent) and the possible results (`outcomes`). It shows between the problem and the proposals,
+   and the proposals then become the building steps, in order, each answerable on its own.
 2. **The proposals, as a carousel.** One proposal per slide, swiped sideways, with arrows, a counter and dots.
    Each slide has:
    - a title, a size chip (کوچک / متوسط / بزرگ), «پیشنهاد من» on the ones you recommend, and «اول روی ورسل»
