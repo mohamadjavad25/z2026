@@ -251,6 +251,25 @@ async function acceptArtistProposal({ id, client }) {
   });
 }
 
+/**
+ * «لغو نوبت، بدون هیچ مشکلی»: the client's cancel is an answer to an OPEN proposal, so it first takes the proposal in one
+ * atomic UPDATE (the same step «قبول» and the sweep take it by). Whoever takes it first wins: a cancel that arrives after
+ * the client accepted, or after the provider withdrew, finds no proposal and changes nothing. → the booking row, or null.
+ */
+export async function claimProposalForCancel({ kind, id, client }) {
+  await salons.ensureBookingColumns();
+  const table = kind === "artist" ? "artist_bookings" : "salon_bookings";
+  const match = clientBookingMatch(client, { alias: "b", startAt: 2 });
+  if (!match.sql) return null;
+  return get(await getDb(), `
+    UPDATE ${table} t
+    SET proposal_date = '', proposal_time = '', ${table === "salon_bookings" ? "proposal_staff = '', proposal_from = ''," : ""} proposal_at = NULL
+    WHERE t.id = $1 AND t.proposal_at IS NOT NULL
+      AND EXISTS (SELECT 1 FROM ${table} b WHERE b.id = t.id ${kind === "artist" ? "AND b.source_salon_user_id IS NULL" : ""} AND ${match.sql})
+    RETURNING t.*
+  `, [Number(id), ...match.params]);
+}
+
 /** What the caller needs to tell the provider «با مشتری تماس بگیر» when this call is the one that closed a lapsed proposal. */
 function lapsedInfo(kind, row) {
   return {

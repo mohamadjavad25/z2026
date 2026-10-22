@@ -45,8 +45,18 @@ describe("cursor pagination", () => {
     expect(res.ok).toBe(true);
     expect(Array.isArray(res.payload.data.salons)).toBe(true);
     expect(res.payload.data.salons.length).toBeLessThanOrEqual(100);
-    // a full page always says where the next one starts; a short last page says there is none
+    // A full page always says where the next one starts. A page can also come back short while more remain (salons that
+    // are hidden from the directory are dropped after the page is cut, see listSalons), so a short page proves nothing:
+    // what matters is that following nextCursor reaches an end.
     if (res.payload.data.salons.length === 100) expect(res.payload.data.nextCursor).toBeTruthy();
-    else expect(res.payload.data.nextCursor).toBeNull();
+    let cursor = res.payload.data.nextCursor;
+    let pages = 1;
+    while (cursor && pages < 500) {
+      const next = await anon.get(`/api/salons?cursor=${cursor}`);
+      expect(next.ok).toBe(true);
+      cursor = next.payload.data.nextCursor;
+      pages += 1;
+    }
+    expect(cursor).toBeNull();
   });
 });

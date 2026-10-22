@@ -29,6 +29,8 @@ async function _POST(request) {
   if (!["accept", "cancel"].includes(body.action)) return error("جواب مشخص نیست.", 400);
 
   if (body.action === "cancel") {
+    const claimed = await proposals.claimProposalForCancel({ kind, id, client: auth.user });
+    if (!claimed) return json({ error: "پیشنهادی برای این نوبت نمانده است؛ صفحه را تازه کن.", code: "NO_PROPOSAL" }, { status: 409 });
     const result = kind === "artist" ? await artists.cancelArtistBookingByClient(id, auth.user) : await salons.cancelSalonBookingByClient(id, auth.user);
     if (!result.ok) {
       if (result.error === "missing") return error("رزرو یافت نشد.", 404);

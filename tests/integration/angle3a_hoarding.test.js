@@ -134,7 +134,10 @@ describe("angle3a: SMS / push cost storm", () => {
     console.log("[idem] approve x5 statuses", statuses.join(","), "SMS", afterApprove);
     const cancels = [];
     for (let i = 0; i < 5; i += 1) cancels.push((await salon.client.patch("/api/salon-bookings", { id, status: "لغو" })).status);
-    const afterCancel = (await settledSmsCount({ phone: client.phone, purpose: "booking_answer" })) - base;
+    // Cancelling a booking that was confirmed is a broken promise: its text is booking_cancelled_by_provider (owner's rules of
+    // 2026-10-22), one per booking whichever of the two cancel texts goes first. Approve text + cancel text = 2.
+    const afterCancel = (await settledSmsCount({ phone: client.phone, purpose: "booking_answer" })) - base
+      + (await settledSmsCount({ phone: client.phone, purpose: "booking_cancelled_by_provider" }));
     console.log("[idem] cancel x5 statuses", cancels.join(","), "total SMS", afterCancel);
     expect(afterApprove).toBe(1);
     expect(afterCancel).toBe(2);

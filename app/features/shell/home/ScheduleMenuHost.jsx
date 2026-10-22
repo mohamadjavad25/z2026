@@ -69,6 +69,7 @@ export function ScheduleMenuHost() {
     changeScheduleBookingParts,
     autoAssignScheduleBooking,
     cancelScheduleBooking,
+    withdrawScheduleProposal,
     scheduleBookingBusy,
     approveReservationRequest,
     confirmArtistBookingRequest,
@@ -109,6 +110,7 @@ export function ScheduleMenuHost() {
       onChangeParts={changeScheduleBookingParts}
       onAutoAssign={autoAssignScheduleBooking}
       onCancel={cancelScheduleBooking}
+      onWithdrawProposal={withdrawScheduleProposal}
       onApprove={async () => {
         if (!liveBooking) return;
         if (liveBooking.ownerType === "salon") {

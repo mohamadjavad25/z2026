@@ -227,10 +227,10 @@ export async function updateSalonStaff(body) {
  * DELETE /api/salon-staff → { ok, staff, endedCollabs, artistNotified, artistUserId }
  * May end linked artist collabs.
  */
-export async function deleteSalonStaff(id) {
+export async function deleteSalonStaff(id, { cancelAll = false } = {}) {
   return apiFetch("/api/salon-staff", {
     method: "DELETE",
-    body: JSON.stringify({ id })
+    body: JSON.stringify({ id, ...(cancelAll ? { cancelAll: true } : {}) })
   });
 }
 

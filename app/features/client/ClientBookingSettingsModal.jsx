@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, CalendarCheck, CheckCircle2, Clock3, MapPin, Phone, RotateCcw, Store, TimerOff, UserPlus, XCircle } from "lucide-react";
 import { connectTo, listConnections } from "../../shared/api/connections";
 import { SheetClose } from "../../components/SheetClose";
-import { bookingStatusLabel, bookingStatusTone, canClientCancel, hasBookingStarted, movedToName, requestWaitNote } from "./bookingStatus";
+import { bookingStatusLabel, bookingStatusTone, canClientCancel, hasBookingStarted, isPlaceGone, movedToName, openProposalOf, requestWaitNote } from "./bookingStatus";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { minutesToPersianTime, timeLabelToMinutes } from "../../shared/lib/time";
@@ -13,6 +13,7 @@ import { parseBookingParts } from "../../shared/lib/bookingParts";
 import { getSalonVisitTimes } from "../../shared/api/salons";
 import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar";
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
+import { ACCEPT_LABEL, CALL_PLACE_LABEL, CLIENT_CANCEL_LABEL, ARTIST_GONE_TEXT, SALON_GONE_TEXT, cancelledByProviderText, handoverProposalText, shortClock, timeProposalText } from "../../shared/lib/providerRules";
 
 const BOOKING_STATUS_ICONS = {
   pending: Clock3,
@@ -110,6 +111,56 @@ function TimeOfferBlock({ booking, offer, onAnswer }) {
   );
 }
 
+/**
+ * The salon or artist asked to move this CONFIRMED booking to another time (or give it to another artist). The booking
+ * stays as it was until the client says yes (owner's rules of 2026-10-22): accept, cancel without any problem, or call.
+ */
+function ProposalBlock({ booking, proposal, onAnswer, onCall }) {
+  const [answering, setAnswering] = useState("");
+  const isArtist = booking.bookingSource === "artist";
+  const name = booking.salonName || booking.salon_name || "";
+  const type = isArtist ? "artist" : "salon";
+  const fromDate = booking.booking_date || booking.date || "";
+  const toDate = proposal.date || fromDate;
+  const otherDay = toDate !== fromDate;
+  const fromLabel = `${otherDay ? `${formatRelativeBookingDayLabel(fromDate)} ` : ""}${shortClock(booking.time)}`;
+  const toLabel = `${otherDay ? `${formatRelativeBookingDayLabel(toDate)} ` : ""}${shortClock(proposal.time || booking.time)}`;
+  const sentence = proposal.staff && !proposal.time
+    ? handoverProposalText(type, name, booking.staff || "", proposal.staff)
+    : timeProposalText(type, name, fromLabel, toLabel);
+  const until = proposal.expiresAt
+    ? new Date(proposal.expiresAt).toLocaleTimeString("fa-IR", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Tehran" })
+    : "";
+  const send = async (action) => {
+    setAnswering(action);
+    const ok = await onAnswer(booking, action);
+    setAnswering("");
+    return ok;
+  };
+  return (
+    <div className="cbProposal" role="group" aria-label="پیشنهاد ساعت دیگر">
+      <b>{sentence}</b>
+      {proposal.time ? (
+        <div className="cbProposalTimes">
+          <s aria-label="ساعت فعلی">{fromLabel}</s>
+          <ArrowLeft size={16} aria-hidden="true" />
+          <strong aria-label="ساعت پیشنهادی">{toLabel}</strong>
+        </div>
+      ) : null}
+      <p>تا وقتی قبول نکنی، نوبتت همان‌طور که بود می‌ماند.{until ? ` مهلت جواب: تا ساعت ${until}.` : ""}</p>
+      <div className="cbProposalActions">
+        <button type="button" className="is-accept" disabled={Boolean(answering)} onClick={() => send("accept")}>
+          {answering === "accept" ? "در حال ثبت…" : ACCEPT_LABEL}
+        </button>
+        <button type="button" disabled={Boolean(answering)} onClick={() => send("cancel")}>
+          {answering === "cancel" ? "در حال لغو…" : CLIENT_CANCEL_LABEL}
+        </button>
+        <button type="button" onClick={onCall}>{CALL_PLACE_LABEL[type]}</button>
+      </div>
+    </div>
+  );
+}
+
 /** The salon or artist a booking belongs to, as a connection id. */
 function placeIdOf(booking) {
   return String(booking?.bookingSource === "artist"
@@ -167,7 +218,8 @@ export function ClientBookingSettingsModal({
   onOpenPlace,
   onNotice,
   onCancelBooking,
-  onAnswerOffer
+  onAnswerOffer,
+  onAnswerProposal
 }) {
   const [confirming, setConfirming] = useState(false);
   const [cancelling, setCancelling] = useState(false);
@@ -187,6 +239,15 @@ export function ClientBookingSettingsModal({
   const offer = booking.bookingSource === "artist" ? null : bookingTimeOffer(booking);
   const waitNote = statusTone === "pending" && !offer ? requestWaitNote(booking) : "";
   const movedTo = movedToName(booking);
+  const proposal = openProposalOf(booking);
+  const gone = isPlaceGone(booking);
+  const callPlace = () => {
+    if (typeof onCallSalon === "function") {
+      onCallSalon(booking);
+      return;
+    }
+    if (phone) window.location.href = `tel:${toLatinDigits(phone)}`;
+  };
 
   return (
     <div
@@ -245,6 +306,24 @@ export function ClientBookingSettingsModal({
               }}
             />
           ) : null}
+          {proposal && onAnswerProposal ? (
+            <ProposalBlock
+              booking={booking}
+              proposal={proposal}
+              onCall={callPlace}
+              onAnswer={async (target, action) => {
+                const ok = await onAnswerProposal(target, action);
+                if (ok) onClose?.();
+                return ok;
+              }}
+            />
+          ) : null}
+          {booking.status === "لغو" && booking.cancelled_by === "provider" && !gone ? (
+            <p className="cbGone"><XCircle size={15} aria-hidden="true" />{cancelledByProviderText(booking.bookingSource === "artist" ? "artist" : "salon", booking.salonName || booking.salon_name || "")}</p>
+          ) : null}
+          {gone ? (
+            <p className="cbGone"><Store size={15} aria-hidden="true" />{booking.bookingSource === "artist" ? ARTIST_GONE_TEXT : SALON_GONE_TEXT}</p>
+          ) : null}
           {waitNote ? (
             <p className="clientBookingPendingNote">
               <Clock3 size={14} />
@@ -258,20 +337,16 @@ export function ClientBookingSettingsModal({
             </p>
           ) : null}
           <div className="clientBookingSettingsActions">
+            {gone ? null : (
             <button
               type="button"
               className="primary"
-              onClick={() => {
-                if (typeof onCallSalon === "function") {
-                  onCallSalon(booking);
-                  return;
-                }
-                if (phone) window.location.href = `tel:${toLatinDigits(phone)}`;
-              }}
+              onClick={callPlace}
             >
               <Phone size={16} />
               تماس
             </button>
+            )}
             {isBookingSettled(booking) ? (
               <button type="button" onClick={() => onRebookSalon?.(booking)}>
                 <RotateCcw size={16} />

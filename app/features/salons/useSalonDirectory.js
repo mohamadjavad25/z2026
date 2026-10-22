@@ -13,6 +13,7 @@ import {
 import { getClientBookings } from "../../shared/api/artists";
 import { toggleSave } from "../../shared/api/saves";
 import { apiFetch } from "../../shared/api/client";
+import { answerProposal } from "../../shared/api/providerExit";
 import { notifyFromResponse } from "../../shared/lib/apiNotify";
 import { bundleServices } from "../../shared/lib/serviceBundle";
 import { salonServiceCatalog } from "./constants";
@@ -185,6 +186,27 @@ export function useSalonDirectory({
       return true;
     } catch {
       notify("جواب ثبت نشد؛ دوباره امتحان کن.");
+      return false;
+    }
+  }, [notify, refreshClientBookings]);
+
+  /**
+   * The client answers a provider's proposal on a CONFIRMED booking (another time or artist; owner's rules of
+   * 2026-10-22): "accept" moves the booking, "cancel" cancels it with nothing counted against the client.
+   */
+  const answerClientProposal = useCallback(async (booking, action) => {
+    if (!booking?.id) return false;
+    try {
+      const { ok, payload } = await answerProposal({ kind: booking.bookingSource === "artist" ? "artist" : "salon", id: booking.id, action });
+      if (typeof refreshClientBookings === "function") await refreshClientBookings();
+      if (!ok) {
+        notify(payload?.error || "جواب ثبت نشد.");
+        return false;
+      }
+      notify(action === "accept" ? "قبول شد. نوبتت به ساعت تازه رفت." : "نوبت لغو شد. هیچ مشکلی نیست؛ هر وقت خواستی دوباره نوبت بگیر.");
+      return true;
+    } catch {
+      notify("جواب ثبت نشد؛ اینترنتت را نگاه کن و دوباره امتحان کن.");
       return false;
     }
   }, [notify, refreshClientBookings]);
@@ -465,6 +487,7 @@ export function useSalonDirectory({
     refreshClientBookings,
     cancelClientBooking,
     answerClientTimeOffer,
+    answerClientProposal,
     resetSalonClient,
     toggleFollowSalon,
     toggleSaveSalon,

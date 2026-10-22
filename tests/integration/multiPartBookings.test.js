@@ -349,12 +349,14 @@ describe("salon offers a client a new time", () => {
     });
     expect(created.status).toBe(201);
     const id = created.payload.data.booking.id;
-    // Approved first, then moved: the confirmed time is what the client sees as before.
+    // Approved first, then moved: a CONFIRMED booking is never moved on the salon's word alone (owner's rules of
+    // 2026-10-22). The new time is a proposal, and the confirmed time stays what the client has until they accept.
     expect((await ctx.salonClient.patch("/api/salon-bookings", { id, status: "تایید شده" })).ok).toBe(true);
     const moved = await ctx.salonClient.patch("/api/salon-bookings", { id, time: "11:00" });
-    expect(moved.payload.data.booking.status).toBe(AWAITING);
-    // A change that does not touch the time does not ask again.
-    expect((await ctx.salonClient.patch("/api/salon-bookings", { id, staff: "" })).payload.data.booking.status).toBe(AWAITING);
+    expect(moved.payload.data.proposal).toBe(true);
+    expect(moved.payload.data.booking.status).toBe("تایید شده");
+    expect(moved.payload.data.booking.time).toBe("10:00");
+    expect(moved.payload.data.booking.proposal_time).toBe("11:00");
     expect((await ctx.clientClient.post(`/api/salon-bookings/${id}/cancel`, {})).ok).toBe(true);
     expect((await clientRow(ctx, id)).status).toBe("لغو");
   });

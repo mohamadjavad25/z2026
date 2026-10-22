@@ -45,11 +45,13 @@ export async function logout() {
  *  → 400 { error } if currentPassword is missing/wrong (re-auth required,
  *     same bar as the password-change branch of POST /api/profile, so a
  *     hijacked session cookie alone can't destroy the account).
+ *  → 409 { error, code: "NEAR_BOOKINGS" | "HAS_BOOKINGS", data: { plan } } for a salon or artist with confirmed
+ *     bookings (owner's rules of 2026-10-22); `cancelAll: true` cancels the far ones with notice and deletes.
  *  Permanent — see migration v34 for what happens to other users' data that
  *  referenced this account (preserved, not cascade-deleted). */
-export async function deleteAccount(currentPassword) {
+export async function deleteAccount(currentPassword, { cancelAll = false } = {}) {
   return apiFetch("/api/profile", {
     method: "DELETE",
-    body: JSON.stringify({ currentPassword })
+    body: JSON.stringify({ currentPassword, ...(cancelAll ? { cancelAll: true } : {}) })
   });
 }

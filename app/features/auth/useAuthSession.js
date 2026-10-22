@@ -299,10 +299,12 @@ export function useAuthSession({
    *  through to the same client-side cleanup logoutAccount uses (session is
    *  already gone server-side once the user row is deleted; see migration
    *  v34 for what this does and doesn't take down with it). */
-  async function deleteAccountPermanently(password) {
-    const { ok, payload } = await apiDeleteAccount(password);
+  async function deleteAccountPermanently(password, options = {}) {
+    const { ok, payload } = await apiDeleteAccount(password, options);
     if (!ok) {
-      return { ok: false, error: payload?.error || "حذف حساب انجام نشد." };
+      // A salon or artist with confirmed bookings: the server answers with the list (owner's rules of 2026-10-22).
+      const plan = payload?.data?.plan;
+      return { ok: false, error: payload?.error || "حذف حساب انجام نشد.", ...(plan ? { plan, code: payload.code } : {}) };
     }
     clearAuthSession();
     await onLoggedOutRef.current?.();

@@ -13,6 +13,7 @@ import { ArtistNotificationsSheet } from "./home/ArtistNotificationsSheet";
 import { ClientNotificationsSheet } from "./home/ClientNotificationsSheet";
 import { ProfileSheet } from "../profile/ProfileSheet";
 import { BookingReceipt, ClientBookingSettingsModal } from "../client";
+import { ProviderExitHost } from "../exit/ProviderExitHost";
 import { MobileFloatingCta } from "./MobileFloatingCta";
 import { ClientProfileModal } from "./ClientProfileModal";
 import { OwnerBookingSheet } from "./home/OwnerBookingSheet";
@@ -86,6 +87,7 @@ export function HomeView() {
     clientBookingSettings,
     cancelClientBooking,
     answerClientTimeOffer,
+    answerClientProposal,
     salonWeekStripFloating,
     salonToolSheetOpen,
     salonTool,
@@ -225,12 +227,14 @@ export function HomeView() {
           </ProfileSheet>
         )}
 
+        <ProviderExitHost onNotice={setAppToast} />
         <ClientBookingSettingsModal
           key={clientBookingSettings ? `${clientBookingSettings.bookingSource || "salon"}-${clientBookingSettings.id}` : "none"}
           booking={clientBookingSettings}
           onClose={() => setClientBookingSettings(null)}
           onCancelBooking={cancelClientBooking}
           onAnswerOffer={answerClientTimeOffer}
+          onAnswerProposal={answerClientProposal}
           onNotice={setAppToast}
           onOpenPlace={(booking) => {
             setClientBookingSettings(null);

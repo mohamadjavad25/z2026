@@ -170,7 +170,8 @@ export function useHomeWorkspaces({
     changeScheduleBookingStaff,
     changeScheduleBookingParts,
     autoAssignScheduleBooking,
-    cancelScheduleBooking
+    cancelScheduleBooking,
+    withdrawScheduleProposal
   } = useScheduleBookingMenu({
     artistBookingList,
     salonAppointmentList,
@@ -306,6 +307,7 @@ export function useHomeWorkspaces({
     changeScheduleBookingParts,
     autoAssignScheduleBooking,
     cancelScheduleBooking,
+    withdrawScheduleProposal,
     activeRoleMeta,
     activeCreatedMeta,
     salonWorkTagOptions,

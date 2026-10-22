@@ -15,8 +15,11 @@ import {
   clientBookingKey,
   isBookingAhead,
   isBookingInPast,
+  isPlaceGone,
+  openProposalOf,
   requestWaitNote
 } from "./bookingStatus";
+import { ARTIST_GONE_TEXT, SALON_GONE_TEXT, cancelledByProviderText } from "../../shared/lib/providerRules";
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
 
 function dayOf(booking) {
@@ -40,6 +43,8 @@ function noteOf(booking) {
   const service = shortServiceLabel(booking.service) || "خدمت زیبایی";
   const day = dayOf(booking) ? formatRelativeBookingDayLabel(dayOf(booking)) : "امروز";
   const when = booking.time ? `${day} • ${toPersianDigits(booking.time)}` : day;
+  if (tone === "bad" && isPlaceGone(booking)) return { Icon: Ban, tone, text: `${booking.bookingSource === "artist" ? ARTIST_GONE_TEXT : SALON_GONE_TEXT}؛ نوبت ${service} لغو شد`, when };
+  if (tone === "bad" && booking.cancelled_by === "provider") return { Icon: Ban, tone, text: cancelledByProviderText(booking.bookingSource === "artist" ? "artist" : "salon", booking.salonName || booking.salon_name || ""), when };
   if (tone === "bad") return { Icon: Ban, tone, text: `رزرو ${service} در ${place} لغو شد`, when };
   if (tone === "expired") return { Icon: TimerOff, tone, text: `${place} به رزرو ${service} جواب نداد؛ منقضی شد`, when };
   return { Icon: CheckCircle2, tone: "done", text: `نوبت ${service} در ${place} تمام شد`, when };
@@ -112,10 +117,11 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook, c
               const meta = metaOf(booking);
               const awaitingClient = booking.status === AWAITING_CLIENT;
               const waitNote = requestWaitNote(booking);
+              const proposal = openProposalOf(booking);
               const open = () => onOpenSettings?.({ ...booking, clientBookingSheetMode: "details" });
               return (
                 <article
-                  className={`cvCard is-${awaitingClient ? "offer" : meta.tone} ${highlightKey && highlightKey === clientBookingKey(booking) ? "is-fresh" : ""}`}
+                  className={`cvCard is-${awaitingClient || proposal ? "offer" : meta.tone} ${highlightKey && highlightKey === clientBookingKey(booking) ? "is-fresh" : ""}`}
                   key={`${booking.bookingSource || "salon"}-${booking.id || index}`}
                   role="button"
                   tabIndex={0}
@@ -142,6 +148,12 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook, c
                       <p className="cvNote">
                         <CalendarClock size={14} aria-hidden="true" />
                         سالن ساعت تازه‌ای پیشنهاد داده؛ کارت را باز کن و جواب بده.
+                      </p>
+                    ) : null}
+                    {proposal ? (
+                      <p className="cvNote">
+                        <CalendarClock size={14} aria-hidden="true" />
+                        {booking.bookingSource === "artist" ? "آرتیست" : "سالن"} می‌خواهد نوبتت را جابه‌جا کند؛ کارت را باز کن و جواب بده.
                       </p>
                     ) : null}
                     {waitNote ? (
