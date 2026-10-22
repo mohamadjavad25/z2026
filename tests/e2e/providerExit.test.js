@@ -57,13 +57,13 @@ describe("proposals and leaving (browser)", () => {
     const salon = await newSalon("Browser Cancel Salon");
     const client = await newClient("Browser Cancel Client");
     const id = await confirmedAt(salon, client, { day: FAR_DAY(3), time: "11:00" });
-    await moveSalonBookingNear(id, 600);
+    await moveSalonBookingNear(id, 25); // later today, so it is on the schedule's first day
 
     const view = await newPage({ cookie: salon.api.cookie() });
     const page = view.page;
     await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
     // open the booking from the salon's schedule
-    await page.getByText("Browser Cancel Client").first().click();
+    await page.getByText("Browser Cancel Client").locator("visible=true").first().click({ timeout: 8000 }).catch(async (e) => { throw new Error(`${e.message}\n${(await page.locator("body").innerText()).slice(0, 900)}`); });
     const screen = page.locator(".sbmScreen");
     await screen.waitFor();
     expect(await screen.locator(".sbmBar").getByRole("button", { name: "پیشنهاد ساعت دیگر" }).count()).toBe(1);
@@ -88,7 +88,7 @@ describe("proposals and leaving (browser)", () => {
     const view = await newPage({ cookie: salon.api.cookie() });
     const page = view.page;
     await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
-    await page.locator("nav.bottomNav > button").last().click();
+    await page.locator("nav.bottomNav").getByRole("button", { name: "تنظیمات" }).click();
     await page.getByRole("button", { name: "حذف حساب" }).click();
     const confirm = page.locator(".neoSettingsDeleteConfirm");
     await confirm.locator("input").first().fill("حذف");
