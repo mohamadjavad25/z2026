@@ -33,9 +33,7 @@ export const ACTION_LABEL = {
   billing_settings: "تغییر تنظیمات اشتراک",
   billing_grant: "افزودن روز به اشتراک",
   billing_reverify: "بررسی دوبارهٔ پرداخت",
-  billing_refund: "ثبت بازپرداخت",
-  device_key_issued: "روشن‌کردن پس‌زمینه یا همیشه‌روشن اپ مدیر",
-  device_key_revoked: "خاموش‌کردن پس‌زمینه و همیشه‌روشن اپ مدیر"
+  billing_refund: "ثبت بازپرداخت"
 };
 
 /** Filters for the audit log (the same groups as ACTION_GROUPS on the server). */

@@ -96,7 +96,7 @@ export const ACTION_GROUPS = {
   billing: ["billing_settings", "billing_grant", "billing_reverify", "billing_refund"],
   support: ["support_update", "broadcast"],
   system: ["settings_update", "export", "cleanup", "clear_errors"],
-  security: ["login", "login_failed", "login_blocked", "enroll", "enroll_failed", "stepup", "stepup_failed", "revoke_sessions", "reset_authenticator", "device_key_issued", "device_key_revoked"]
+  security: ["login", "login_failed", "login_blocked", "enroll", "enroll_failed", "stepup", "stepup_failed", "revoke_sessions", "reset_authenticator"]
 };
 
 /** The audit log, newest first: filter by group, by admin, by the account it touched, or by text. */
