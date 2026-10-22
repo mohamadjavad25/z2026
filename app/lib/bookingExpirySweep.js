@@ -6,6 +6,9 @@ import { isSlotInPast } from "../shared/lib/slots.js";
 import { AWAITING_CLIENT } from "../shared/lib/bookingOffer.js";
 import { sendToFallbackArtist, sendToFallbackSalon } from "./bookingFallback.js";
 import { OFFER_HOLD_HOURS, OPEN_WAIT_MAX_MINUTES } from "./db/repos/openRequests.js";
+import { sweepLapsedProposals } from "./db/repos/bookingProposals.js";
+import { closeOrphanBookings } from "./db/repos/providerExit.js";
+import { noticeProposalLapsed } from "./providerNotices.js";
 
 /**
  * Auto-expiry sweep for booking REQUESTS a salon/artist never actively
@@ -297,13 +300,39 @@ export async function sweepExpiredBookingRequestsOnce() {
     }
   }
 
+  // A proposal on a confirmed booking (another time / artist) nobody answered in 6 hours, or by 2 hours before the booking:
+  // the original stays, the provider is told to call the client. (Owner's rules of 2026-10-22.)
+  let proposalsLapsed = 0;
+  try {
+    for (const lapsed of await sweepLapsedProposals()) {
+      proposalsLapsed += 1;
+      noticeProposalLapsed({
+        providerUserId: lapsed.providerUserId,
+        clientUserId: lapsed.clientUserId,
+        booking: lapsed.booking,
+        clientName: lapsed.kind === "salon" ? lapsed.booking.client : lapsed.booking.client_name
+      });
+    }
+  } catch {
+    // The next pass retries.
+  }
+  // Bookings left behind by a salon or artist that is gone are closed with the «دیگر در فرفرو نیست» notice.
+  let orphansClosed = 0;
+  try {
+    orphansClosed = await closeOrphanBookings();
+  } catch {
+    // The next pass retries.
+  }
+
   return {
     expired: salonExpired + artistExpired,
     attempted: staleSalon.length + staleDirectArtist.length,
     salonExpired,
     salonMoved,
     artistExpired,
-    artistMoved
+    artistMoved,
+    proposalsLapsed,
+    orphansClosed
   };
 }
 

@@ -12,6 +12,8 @@ import { EmptyState, ErrorNote, Loading, Pager, Segmented, Skeleton, confirmActi
 const PAGE_SIZE = 30;
 const WHEN = [{ value: "", label: "همه" }, { value: "today", label: "امروز" }, { value: "upcoming", label: "آینده" }, { value: "past", label: "گذشته" }];
 const KIND = [{ value: "", label: "همه" }, { value: "salon", label: "سالن" }, { value: "artist", label: "آرتیست" }];
+const PROVIDER = [{ value: "", label: "همه" }, { value: "1", label: "حذف‌شده" }];
+const CANCELLED_BY = { client: "مشتری", provider: "سالن یا آرتیست", gone: "سالن یا آرتیست از فرفرو رفت", admin: "مدیر" };
 const keyOf = (kind, id) => (kind && id ? `${kind}-${id}` : null);
 
 export function StatusTag({ status }) {
@@ -90,6 +92,7 @@ function BookingDetail({ kind, id, onGo, onChanged }) {
 
       <ul className="admFacts">
         {booking.staff ? <li><span>آرتیست سالن</span><b>{booking.staff}</b></li> : null}
+        {booking.cancelled_by ? <li><span>لغو از طرف</span><b>{CANCELLED_BY[booking.cancelled_by] || booking.cancelled_by}</b></li> : null}
         <li><span>ثبت</span><b>{fmtDate(booking.created_at)} ({ago(booking.created_at)})</b></li>
         {booking.updated_at ? <li><span>آخرین تغییر</span><b>{fmtDate(booking.updated_at)}</b></li> : null}
         <li><span>یادآوری‌های فرستاده‌شده</span><b>{found.reminders.length ? found.reminders.map((row) => (row.kind === "day" ? "یک روز قبل" : "دو ساعت قبل")).join("، ") : "هنوز نه"}</b></li>
@@ -121,10 +124,11 @@ export function BookingsTab({ intent = {}, onGo, setParam }) {
   const [status, setStatus] = useState(intent.status || "");
   const [when, setWhen] = useState(intent.when || "");
   const [kind, setKind] = useState("");
+  const [deleted, setDeleted] = useState("");
   const [offset, setOffset] = useState(0);
   const [selected, setSelected] = useState(keyOf(intent.kind, intent.id));
 
-  const path = withQuery("/api/admin/bookings", { q: q.trim(), status, when, kind, offset, limit: PAGE_SIZE });
+  const path = withQuery("/api/admin/bookings", { q: q.trim(), status, when, kind, deleted, offset, limit: PAGE_SIZE });
   const { data, error, loading, reload } = useAdminData(path, { debounce: q ? 250 : 0 });
   useEffect(() => {
     const [k, id] = selected ? selected.split("-") : [null, null];
@@ -149,6 +153,7 @@ export function BookingsTab({ intent = {}, onGo, setParam }) {
         </label>
         <Segmented label="زمان رزرو" size="sm" value={when} onChange={reset(setWhen)} options={WHEN} />
         <Segmented label="نوع" size="sm" value={kind} onChange={reset(setKind)} options={KIND} />
+        <Segmented label="سالن یا آرتیستِ حذف‌شده" size="sm" value={deleted} onChange={reset(setDeleted)} options={PROVIDER} />
       </div>
       <div className="admChipsRow" role="group" aria-label="وضعیت">
         <button type="button" className={`admTag${status === "" ? " is-on" : ""}`} onClick={() => reset(setStatus)("")}>همهٔ وضعیت‌ها</button>

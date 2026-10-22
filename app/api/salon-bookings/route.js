@@ -18,6 +18,8 @@ import { createSalonBooking } from "../../lib/salonBookingCreate.js";
 import { requestedServiceNames, validFallbackSalon } from "../../lib/bookingFallback.js";
 import { BOOKING_REQUEST_WINDOW_MINUTES } from "../../shared/lib/bookingWindow.js";
 import { smsBookingAnswer, smsNewBookingRequest } from "../../lib/bookingSms.js";
+import { noticeClientCancelledByProvider, noticeClientTimeProposal } from "../../lib/providerNotices.js";
+import * as proposals from "../../lib/db/repos/bookingProposals.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -188,6 +190,26 @@ async function _PATCH(request) {
     // What is saved is the canonical form, never the text as typed.
     patch = { ...patch, bookingDate: slot.dateKey, booking_date: undefined, date: undefined, time: slot.time };
   }
+  // A CONFIRMED booking of a client with an account is never moved on the salon's word alone (owner's rule of
+  // 2026-10-22): the new time becomes a proposal («پیشنهاد ساعت دیگر»), the original time stays valid until the
+  // client accepts. (A walk-in with no account has nobody to ask: it moves as before, the salon calls them.)
+  if (!wantsCancel && movesTo && body.staff === undefined && body.parts === undefined) {
+    const current = await salons.getSalonBookingRow(id, auth.user.id);
+    if (current && current.client_user_id && proposals.SALON_CONFIRMED.includes(current.status)
+      && (patch.bookingDate !== current.booking_date || patch.time !== normalizeBookingTimeLabel(current.time || ""))) {
+      const made = await proposals.proposeSalonTime({ salonUserId: auth.user.id, id, date: patch.bookingDate, time: patch.time });
+      if (!made.ok) {
+        return noStoreJson({ error: made.message, code: made.error.toUpperCase(), ...(made.phone ? { data: { phone: made.phone } } : {}) }, { status: made.error === "missing" ? 404 : made.error === "same" ? 400 : 409 });
+      }
+      noticeClientTimeProposal(Number(current.client_user_id), {
+        provider: { type: "salon", name: auth.user.name },
+        booking: { ...made.booking, kind: "salon" },
+        toDate: made.toDate,
+        toTime: made.toTime
+      });
+      return noStoreJson({ data: { booking: made.booking, bookings: await salons.listSalonBookings(auth.user.id), proposal: true, linkedArtistId: null, linkedArtistIds: [] } });
+    }
+  }
   // A new time (or day) must be one the «تغییر ساعت» list offers: its services fit with their
   // artists, and it ends by closing time -- or past it only when the salon chose to stay longer.
   if (!wantsCancel && movesTo && body.staff === undefined && body.parts === undefined) {
@@ -216,7 +238,10 @@ async function _PATCH(request) {
   // What the booking's status was before this call: the client is only told about an answer that really changed it.
   const statusBefore = (await salons.getSalonBookingRow(id, auth.user.id))?.status ?? null;
   // A new day or time for a client's booking goes to the client to accept (withClientConsent).
-  const result = await salons.patchSalonBookingWithArtistSync(id, auth.user.id, patch, { askClient: true });
+  const result = await salons.patchSalonBookingWithArtistSync(id, auth.user.id, patch, {
+    askClient: true,
+    ...(wantsCancel ? { cancelledBy: { by: "provider", userId: auth.user.id } } : {})
+  });
 
   if (!result.ok) {
     if (result.error === "missing") {
@@ -246,6 +271,9 @@ async function _PATCH(request) {
         data: { bookings: await salons.listSalonBookings(auth.user.id) }
       }, { status: 409 });
     }
+    if (result.error === "needs_proposal") {
+      return noStoreJson({ error: "نوبت تأییدشده فقط با پیشنهاد به مشتری جابه‌جا می‌شود.", code: "NEEDS_PROPOSAL" }, { status: 409 });
+    }
     if (result.error === "awaiting_client") {
       return noStoreJson({ error: "مشتری هنوز به ساعت تازه جواب نداده؛ بعد از قبولش تایید می‌شود.", code: "AWAITING_CLIENT" }, { status: 409 });
     }
@@ -272,7 +300,14 @@ async function _PATCH(request) {
   const statusChanged = statusBefore !== null && result.booking.status !== statusBefore;
   if (statusChanged && (patch.status === "تایید شده" || patch.status === "لغو")) {
     const bookingClientUserId = result.booking.client_user_id ? Number(result.booking.client_user_id) : null;
-    if (bookingClientUserId) {
+    // Cancelling a booking that was already confirmed is a broken promise: the client gets the apology push + SMS
+    // (booking_cancelled_by_provider), never the plain "cancelled" answer on top of it.
+    if (bookingClientUserId && patch.status === "لغو" && proposals.SALON_CONFIRMED.includes(statusBefore)) {
+      noticeClientCancelledByProvider(bookingClientUserId, {
+        provider: { type: "salon", name: auth.user.name },
+        booking: { kind: "salon", id, booking_date: result.booking.booking_date, time: result.booking.time, service: result.booking.service }
+      });
+    } else if (bookingClientUserId) {
       void sendPushToUser(bookingClientUserId, {
         title: patch.status === "تایید شده" ? "نوبت شما تایید شد" : "نوبت شما لغو شد",
         body: `${result.booking.service || "نوبت"} — ${result.booking.booking_date || ""} ${result.booking.time || ""}`.trim()

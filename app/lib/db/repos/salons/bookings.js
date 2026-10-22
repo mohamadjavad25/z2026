@@ -36,6 +36,7 @@ import {
   summarizeBookingParts
 } from "../../../../shared/lib/bookingParts.js";
 import { AWAITING_CLIENT } from "../../../../shared/lib/bookingOffer.js";
+import { isProposalLapsed, proposalView } from "../../../../shared/lib/providerRules.js";
 
 let partsColumnsReady;
 /**
@@ -66,6 +67,20 @@ export function ensureBookingPartsColumns() {
     throw error;
   });
   return partsColumnsReady;
+}
+
+/**
+ * Writes who cancelled a booking ({ by: 'client' | 'provider' | 'gone' | 'admin', userId }) and, for a provider
+ * cancelling a booking that was confirmed ('تایید شده'), adds one to that account's counter (users.provider_cancel_count,
+ * shown in the admin accounts list: a count only, no automatic penalty). Call it only from the transaction that really
+ * changed the status, on that transaction's connection.
+ */
+export async function recordCancellation(db, table, bookingId, statusBefore, { by, userId = null } = {}) {
+  if (!["client", "provider", "gone", "admin"].includes(by)) return;
+  await run(db, `UPDATE ${table} SET cancelled_by = $2 WHERE id = $1`, [Number(bookingId), by]);
+  if ((by === "provider" || by === "gone") && statusBefore === "تایید شده" && userId) {
+    await run(db, "UPDATE users SET provider_cancel_count = provider_cancel_count + 1 WHERE id = $1", [Number(userId)]);
+  }
 }
 
 /**
@@ -628,6 +643,11 @@ export async function listUnavailableSlots(salonUserId) {
   return rows;
 }
 
+/** Drops the short-lived list of a salon's taken slots (after bookings of it were changed outside this module's own paths). */
+export function invalidateUnavailable(salonUserId) {
+  unavailableCache.delete(Number(salonUserId));
+}
+
 export async function addSalonBooking(salonUserId, data) {
   const result = await addSalonBookingUncached(salonUserId, data);
   unavailableCache.delete(Number(salonUserId));
@@ -675,6 +695,7 @@ export async function listSalonBookings(salonUserId) {
     const { fallback_salon_user_id: _fallback, moved_to_booking_id: _movedTo, ...own } = row;
     return {
       ...own,
+      proposal: proposalView(row),
       client_user_id: row.client_user_id || client?.id || null,
       client_avatar: avatar,
       clientAvatar: avatar,
@@ -726,6 +747,9 @@ export async function listClientSalonBookings(user) {
   return rows.map((row) => ({
     ...row,
     status: clientVisibleStatus(row.status, "salon"),
+    // A proposal from the salon on this confirmed booking (another time / artist) and whether the salon has left frfro.
+    proposal: proposalView(row),
+    placeGone: !row.salon_user_id || row.cancelled_by === "gone",
     // salon_user_id is now nullable (see migration v34 — deleting a salon
     // account no longer destroys the client's own booking history with it),
     // so a booking can legitimately outlive its salon. Distinguish that from
@@ -1018,7 +1042,7 @@ async function updateSalonBookingInTx(db, id, salonUserId, current, data) {
   // salon approving, the expiry sweep) may have changed the row since; look again, holding the
   // row, and refuse rather than act on a stale picture (e.g. approve a request that just expired).
   const locked = await get(db, `
-    SELECT b.status, ${salonRequestLapsedSql("b")} AS lapsed
+    SELECT b.status, b.proposal_at, ${salonRequestLapsedSql("b")} AS lapsed
     FROM salon_bookings b WHERE b.id = $1 AND b.salon_user_id = $2 FOR UPDATE
   `, [id, salonUserId]);
   if (!locked) return { ok: false, error: "missing" };
@@ -1026,6 +1050,12 @@ async function updateSalonBookingInTx(db, id, salonUserId, current, data) {
     if (locked.status === "منقضی شده") return { ok: false, error: "expired" };
     if (locked.status === "لغو") return { ok: false, error: "inactive" };
     return { ok: false, error: "stale" };
+  }
+  // The client accepting a proposal (another time or artist for a confirmed booking): it must still be the very
+  // proposal they saw (not withdrawn or replaced meanwhile) and not past its deadline.
+  if (data.acceptProposal) {
+    if (!locked.proposal_at || new Date(locked.proposal_at).getTime() !== Number(data.acceptProposal.at)) return { ok: false, error: "stale" };
+    if (isProposalLapsed({ proposal_at: locked.proposal_at, booking_date: current.booking_date, time: current.time })) return { ok: false, error: "proposal_lapsed" };
   }
   // A request is answered only while it is alive: its window has not run out (live, not "when the sweep gets there")
   // and its appointment has not started. A request the salon can no longer keep its word on -- the day closed, the
@@ -1077,6 +1107,19 @@ async function updateSalonBookingInTx(db, id, salonUserId, current, data) {
     next.staff = "";
   }
 
+  if (data.acceptProposal && (next.booking_date !== current.booking_date || next.time !== normalizeBookingTimeLabel(current.time || ""))) {
+    // A proposed time must still be a real in-hours slot when the client says yes (hours may have changed since).
+    const hours = await listSalonHours(salonUserId, db);
+    const problem = isSlotInPast(next.booking_date, next.time) ? { error: "این ساعت گذشته است." } : visitSlotProblem({
+      hours,
+      bookingDateKey: next.booking_date,
+      time: next.time,
+      durationMinutes: next.duration_minutes,
+      isClient: false
+    });
+    if (problem) return { ok: false, error: "unavailable", message: problem.error };
+  }
+
   if (next.status !== "لغو" && next.status !== "منقضی شده") {
     const conflict = await findOverlapConflict(db, {
       salonUserId,
@@ -1122,6 +1165,18 @@ async function updateSalonBookingInTx(db, id, salonUserId, current, data) {
     await run(db, `
       UPDATE salon_bookings SET previous_booking_date = $1, previous_time = $2, offer_at = NOW() WHERE id = $3 AND salon_user_id = $4
     `, [data.previousSlot.date || "", data.previousSlot.time || "", id, salonUserId]);
+  }
+  // Who cancelled it, and the provider's cancellation counter (owner's rules of 2026-10-22): only the transaction that
+  // really moved the booking from confirmed to cancelled counts, so two simultaneous taps count once.
+  if (next.status === "لغو" && current.status !== "لغو" && data.cancelledBy) {
+    await recordCancellation(db, "salon_bookings", id, current.status, data.cancelledBy);
+  }
+  // A proposal ends as soon as the booking changes in any way (cancelled, moved, re-assigned, accepted).
+  const changedSlot = next.status !== "تایید شده" || next.booking_date !== current.booking_date
+    || next.time !== normalizeBookingTimeLabel(current.time || "") || String(next.staff || "") !== String(current.staff || "")
+    || nextParts !== (current.parts || "");
+  if (changedSlot) {
+    await run(db, "UPDATE salon_bookings SET proposal_date = '', proposal_time = '', proposal_staff = '', proposal_from = '', proposal_at = NULL WHERE id = $1 AND proposal_at IS NOT NULL", [id]);
   }
 
   return {
@@ -1206,6 +1261,8 @@ export async function answerSalonTimeOffer(id, client, accept) {
  */
 async function patchSalonBookingUncached(id, salonUserId, data, options = {}) {
   const { allowPast = false, askClient = false, clientAnswer = false } = options;
+  if (options.cancelledBy) data = { ...data, cancelledBy: options.cancelledBy };
+  if (options.acceptProposal) data = { ...data, acceptProposal: options.acceptProposal };
   await ensureBookingPartsColumns();
   const pool = await getDb();
   const current = await get(pool, `
@@ -1241,6 +1298,14 @@ async function patchSalonBookingUncached(id, salonUserId, data, options = {}) {
   // Only a request still waiting can time out; an approved or cancelled booking never expires.
   if (data.status === "منقضی شده" && !["درخواست", AWAITING_CLIENT].includes(current.status)) {
     return { ok: false, error: "inactive" };
+  }
+  // A confirmed booking is never moved on the salon's word alone: its new time is a proposal the client accepts
+  // (bookingProposals.js); the original stays valid until then. The route sends it there first; this is the safety net.
+  if (askClient && current.client_user_id && ["تایید شده", "تازه"].includes(current.status) && data.status !== "لغو"
+    && (data.time != null || data.booking_date != null || data.bookingDate != null || data.date != null)) {
+    const nextDate = resolveRollingPersianDateKey(data.booking_date ?? data.bookingDate ?? data.date ?? current.booking_date);
+    const nextTime = normalizeBookingTimeLabel(data.time ?? current.time);
+    if (nextDate !== current.booking_date || nextTime !== normalizeBookingTimeLabel(current.time || "")) return { ok: false, error: "needs_proposal" };
   }
   if (askClient) data = withClientConsent(current, data);
 
@@ -1486,6 +1551,12 @@ export async function syncSalonBookingFromArtistMirror(artistBooking, status, ru
   // The visit waits on the client's answer to a new time; the artist agreeing does not settle it.
   if (match.status === AWAITING_CLIENT && status === "تایید شده") return null;
   await run(db, "UPDATE salon_bookings SET status = $1 WHERE id = $2", [status, match.id]);
+  // The artist's own answer: the salon row was cancelled by a provider (no counter for the salon, the artist's is
+  // counted by the artist's route), and a proposal waiting on it is over.
+  if (status === "لغو") {
+    await recordCancellation(db, "salon_bookings", match.id, match.status, { by: "provider" });
+    await run(db, "UPDATE salon_bookings SET proposal_date = '', proposal_time = '', proposal_staff = '', proposal_from = '', proposal_at = NULL WHERE id = $1", [match.id]);
+  }
   return get(db, "SELECT * FROM salon_bookings WHERE id = $1", [match.id]);
 }
 
@@ -1511,8 +1582,8 @@ async function syncMultiPartBookingFromArtist(db, artistBooking, status) {
   return get(db, "SELECT * FROM salon_bookings WHERE id = $1", [row.id]);
 }
 
-export async function cancelSalonBooking(id, salonUserId) {
-  return patchSalonBookingWithArtistSync(id, salonUserId, { status: "لغو" });
+export async function cancelSalonBooking(id, salonUserId, options = {}) {
+  return patchSalonBookingWithArtistSync(id, salonUserId, { status: "لغو" }, options);
 }
 
 /**
@@ -1528,6 +1599,15 @@ export async function cancelSalonBookingByClient(id, client) {
   // Once the appointment has started (today's 10:00 at 14:29) it can't be cancelled any more.
   const until = minutesUntilSlotStart(current.booking_date, current.time);
   if (until !== null && until <= 0) return { ok: false, error: "past" };
-  const result = await patchSalonBookingWithArtistSync(id, current.salon_user_id, { status: "لغو" });
+  // A booking whose salon is gone (cancelled when the salon left frfro, or an older row left behind) has no salon
+  // to run the artist-calendar sync for: the row alone is closed.
+  if (!current.salon_user_id) {
+    const changed = await run(db, `
+      UPDATE salon_bookings SET status = 'لغو', cancelled_by = 'client', proposal_date = '', proposal_time = '', proposal_staff = '', proposal_from = '', proposal_at = NULL
+      WHERE id = $1 AND status IN ('تازه', 'درخواست', 'تایید شده', 'در انتظار مشتری')
+    `, [id]);
+    return changed.rowCount ? { ok: true, booking: { ...current, status: "لغو" }, salonUserId: null } : { ok: false, error: "inactive" };
+  }
+  const result = await patchSalonBookingWithArtistSync(id, current.salon_user_id, { status: "لغو" }, { cancelledBy: { by: "client" } });
   return result.ok ? { ok: true, booking: result.booking, salonUserId: current.salon_user_id } : result;
 }

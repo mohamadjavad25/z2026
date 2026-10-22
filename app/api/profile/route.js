@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { hashPassword, publicUser, verifyPassword } from "../../lib/auth.js";
 import { ensureDb } from "../../lib/db/connection.js";
 import * as users from "../../lib/db/repos/users.js";
+import { deleteProviderAccount } from "../../lib/db/repos/providerExit.js";
+import { exitRefusal } from "../../lib/providerExitResponse.js";
 import { clientErrorResponse, readJson, requireUser, validateBody, withErrorHandling } from "../../lib/http.js";
 import { profileUpdateSchema } from "../../lib/validation/user.js";
 import { isImageDataUrlTooLarge, isImageDataUrlInvalidType } from "../../lib/mediaLimits.js";
@@ -128,9 +130,11 @@ async function _DELETE(request) {
   if (!verifyPassword(currentPassword, auth.user.password_hash)) {
     return NextResponse.json({ error: "رمز فعلی نادرست است." }, { status: 400 });
   }
-  // Soft approach: delete user cascades via FK
+  // A salon or artist is never deleted while a confirmed booking starts within 24 hours; farther confirmed bookings are
+  // cancelled one by one or all together with notice (owner's rules of 2026-10-22, providerExit.js). Clients just go.
   // The account's phone number is cut off its old bookings first (a later holder of the number must see none of them).
-  await users.deleteUserDetachingPhone(auth.user.id);
+  const result = await deleteProviderAccount({ user: auth.user, cancelAll: body?.cancelAll === true });
+  if (!result.ok) return exitRefusal(result, { scope: "account" });
   return NextResponse.json({ data: { user: null } });
 }
 

@@ -15,6 +15,7 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS provider_cancel_count INTEGER NOT NUL
 ALTER TABLE salon_bookings ADD COLUMN IF NOT EXISTS proposal_date TEXT NOT NULL DEFAULT '';
 ALTER TABLE salon_bookings ADD COLUMN IF NOT EXISTS proposal_time TEXT NOT NULL DEFAULT '';
 ALTER TABLE salon_bookings ADD COLUMN IF NOT EXISTS proposal_staff TEXT NOT NULL DEFAULT '';
+ALTER TABLE salon_bookings ADD COLUMN IF NOT EXISTS proposal_from TEXT NOT NULL DEFAULT '';
 ALTER TABLE salon_bookings ADD COLUMN IF NOT EXISTS proposal_at TIMESTAMPTZ;
 ALTER TABLE artist_bookings ADD COLUMN IF NOT EXISTS proposal_date TEXT NOT NULL DEFAULT '';
 ALTER TABLE artist_bookings ADD COLUMN IF NOT EXISTS proposal_time TEXT NOT NULL DEFAULT '';
@@ -41,6 +42,7 @@ ALTER TABLE artist_bookings DROP COLUMN IF EXISTS proposal_at;
 ALTER TABLE artist_bookings DROP COLUMN IF EXISTS proposal_time;
 ALTER TABLE artist_bookings DROP COLUMN IF EXISTS proposal_date;
 ALTER TABLE salon_bookings DROP COLUMN IF EXISTS proposal_at;
+ALTER TABLE salon_bookings DROP COLUMN IF EXISTS proposal_from;
 ALTER TABLE salon_bookings DROP COLUMN IF EXISTS proposal_staff;
 ALTER TABLE salon_bookings DROP COLUMN IF EXISTS proposal_time;
 ALTER TABLE salon_bookings DROP COLUMN IF EXISTS proposal_date;

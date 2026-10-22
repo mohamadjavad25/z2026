@@ -19,7 +19,7 @@ const STATUS = [
   { value: "inactive", label: "غیرفعال (۳۰ روز)", key: "inactive" },
   { value: "suspended", label: "مسدود", key: "suspended" }
 ];
-const SORTS = [["new", "تازه‌ترین"], ["seen", "آخرین بازدید"], ["name", "نام"], ["old", "قدیمی‌ترین"]];
+const SORTS = [["new", "تازه‌ترین"], ["seen", "آخرین بازدید"], ["name", "نام"], ["old", "قدیمی‌ترین"], ["cancels", "بیشترین لغو توسط سالن"]];
 
 /**
  * Accounts: search, filter by type and status, sort, select several for one action, and everything about one person in the
@@ -120,7 +120,7 @@ export function UsersTab({ intent = {}, onChanged, onGo, setParam }) {
               <thead>
                 <tr>
                   <th className="admCheckCol"><input type="checkbox" aria-label="انتخاب همهٔ این صفحه" checked={allPicked} onChange={toggleAll} /></th>
-                  <th>کاربر</th><th>نوع</th><th className="admHideNarrow">منطقه</th><th className="admHideNarrow">آخرین بازدید</th><th>وضعیت</th>
+                  <th>کاربر</th><th>نوع</th><th className="admHideNarrow">منطقه</th><th className="admHideNarrow">آخرین بازدید</th><th title="چند بار نوبت تأییدشدهٔ مشتری را خودش لغو کرده (فقط شمارش)">لغو توسط سالن</th><th>وضعیت</th>
                 </tr>
               </thead>
               <tbody>
@@ -141,6 +141,7 @@ export function UsersTab({ intent = {}, onChanged, onGo, setParam }) {
                     <td><span className={`admPill is-${user.type}`}>{TYPE_LABEL[user.type] || user.type}</span></td>
                     <td className="admHideNarrow">{user.area || "—"}</td>
                     <td className="admHideNarrow">{user.last_seen_at ? ago(user.last_seen_at) : "—"}</td>
+                    <td className="admCancelCount">{user.type === "client" ? "—" : <b className={user.provider_cancel_count ? "is-some" : ""}>{num(user.provider_cancel_count || 0)}</b>}</td>
                     <td><span className={`admDot${user.suspended_at ? " is-off" : ""}`}>{user.suspended_at ? "مسدود" : "فعال"}</span></td>
                   </tr>
                 ))}

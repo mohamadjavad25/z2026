@@ -21,6 +21,7 @@ import { publicLocation } from "../../location.js";
 import { listArtistHoursPublic } from "./artists/hours.js";
 import { onlineBookingBlock, withoutHiddenProviders } from "../../billing/access.js";
 import { MAX_SERVICES_PER_PROVIDER } from "../../validation/service.js";
+import { proposalView } from "../../../shared/lib/providerRules.js";
 
 export { ensureArtistHours, listArtistHours, updateArtistHour } from "./artists/hours.js";
 
@@ -360,6 +361,7 @@ export async function listArtistBookings(artistUserId) {
     const { fallback_artist_user_id: _fallback, moved_to_booking_id: _movedTo, ...own } = row;
     return {
       ...own,
+      proposal: proposalView(row),
       visits,
       visit_count: visits.filter((level) => level > 0).length,
       sourceSalon: row.source_salon_user_id
@@ -432,6 +434,8 @@ export async function listClientArtistBookings(user) {
   return rows.map((row) => ({
     ...row,
     status: clientVisibleStatus(row.status, "artist"),
+    proposal: proposalView(row),
+    placeGone: !row.artist_user_id || row.cancelled_by === "gone",
     client: row.client_name || "",
     // NOTE: unlike salon bookings' `phone` column (the booking client's own
     // number), artist_bookings has no such plain `phone` column — reuse it
@@ -1009,7 +1013,7 @@ export async function cancelArtistBookingByClient(id, client) {
   if (until !== null && until <= 0) return { ok: false, error: "past" };
   // Conditional on it still being active: the sweep or the artist may have closed it since the read above.
   const changed = await run(db, `
-    UPDATE artist_bookings SET status = 'لغو', updated_at = CURRENT_TIMESTAMP
+    UPDATE artist_bookings SET status = 'لغو', cancelled_by = 'client', proposal_date = '', proposal_time = '', proposal_at = NULL, updated_at = CURRENT_TIMESTAMP
     WHERE id = $1 AND status IN ('تازه', 'درخواست', 'تایید', 'تایید شده')
   `, [id]);
   if (!changed.rowCount) return { ok: false, error: "inactive" };

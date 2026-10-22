@@ -151,6 +151,7 @@ export function UserDetail({ userId, onChanged, onGo, onClose }) {
             <li><span>آخرین بازدید</span><b>{user.last_seen_at ? ago(user.last_seen_at) : "—"}</b></li>
             <li><span>منطقه و خدمت</span><b>{[user.area, user.service].filter(Boolean).join(" • ") || "—"}</b></li>
             {user.email ? <li><span>ایمیل</span><b dir="ltr">{user.email}</b></li> : null}
+            {user.type !== "client" ? <li><span>لغو توسط سالن</span><b>{num(user.provider_cancel_count || 0)} بار (نوبت تأییدشده را خودش لغو کرده؛ فقط شمارش)</b></li> : null}
             <li><span>نشست فعال</span><b>{num(detail.activeSessions)} دستگاه</b></li>
             <li><span>اعلان گوشی</span><b>{detail.pushDevices ? `روشن روی ${num(detail.pushDevices)} دستگاه` : "خاموش"}</b></li>
           </ul>

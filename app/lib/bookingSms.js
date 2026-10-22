@@ -79,3 +79,38 @@ export function smsBookingAnswer(clientUserId, { providerName, bookingDate, time
     });
   })().catch(() => {});
 }
+
+/**
+ * A provider cancelled a booking that was already confirmed (or left frfro with it still on the books): the client's
+ * text. Claimed under the same key as the plain "cancelled" answer above, so one booking is never texted twice
+ * whichever of the two messages goes first. `gone`: the salon or artist is no longer on frfro («… دیگر در فرفرو نیست»).
+ */
+export function smsBookingCancelledByProvider(clientUserId, { providerName, bookingDate, time, booking = null, gone = false }) {
+  void (async () => {
+    if (booking && !(await claimBookingAnswerSms(booking.kind, booking.id, "cancelled"))) return;
+    const phone = await phoneOf(clientUserId);
+    await sendTemplateSms(phone, gone ? "booking_cancelled_gone" : "booking_cancelled_by_provider", {
+      who: String(providerName || "").trim() || "سالن",
+      day: dayLabel(bookingDate),
+      time: timeLabel(time)
+    });
+  })().catch(() => {});
+}
+
+/**
+ * The provider asks the client to move a confirmed booking (another time, or another artist). Texted once per
+ * distinct proposal (`proposalKey`), and at most 3 times a day per booking however often the provider re-proposes.
+ */
+export function smsBookingProposal(clientUserId, { template, providerName, booking, proposalKey, values }) {
+  void (async () => {
+    if (booking && !(await claimBookingAnswerSms(booking.kind, booking.id, `proposal:${proposalKey}`))) return;
+    if (booking) {
+      const limited = await checkRateLimit(`sms-proposal:${booking.kind}:${Number(booking.id)}`, 3, 24 * 60 * 60 * 1000);
+      if (!limited.ok) return;
+    }
+    const phone = await phoneOf(clientUserId);
+    await sendTemplateSms(phone, template, { who: String(providerName || "").trim() || "سالن", ...values });
+  })().catch(() => {});
+}
+
+export { dayLabel as smsDayLabel, timeLabel as smsTimeLabel };

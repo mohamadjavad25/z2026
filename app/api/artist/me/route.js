@@ -2,7 +2,7 @@ import { error, json, notFound, requireUserRole, withErrorHandling, readObjectBo
 import { sweepExpiredBookingRequestsIfDue } from "../../../lib/bookingExpirySweep.js";
 import * as artists from "../../../lib/db/repos/artists.js";
 import * as salons from "../../../lib/db/repos/salons.js";
-import { countFollowers } from "../../../lib/db/repos/users.js";
+import { countFollowers, getUserLiteById } from "../../../lib/db/repos/users.js";
 import { sendPushToUser } from "../../../lib/push.js";
 import { notifyConnection } from "../../../lib/connectionNotify.js";
 import { checkRateLimit } from "../../../lib/rateLimit.js";
@@ -15,6 +15,7 @@ import { SERVICE_LIMIT_MESSAGE, serviceFieldsProblem } from "../../../lib/valida
 import { readBookingSlot } from "../../../lib/validation/bookingSlot.js";
 import { parseRequestedMinutes } from "../../../lib/validation/numbers.js";
 import { smsBookingAnswer } from "../../../lib/bookingSms.js";
+import { noticeClientCancelledByProvider } from "../../../lib/providerNotices.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -211,6 +212,11 @@ async function patchOwnArtistBooking(artistUserId, body, artistName = "") {
     if (updatedRow && updatedRow.source_salon_user_id) {
       salonBooking = await salons.syncSalonBookingFromArtistMirror(updatedRow, nextStatus, db);
     }
+    // Who cancelled, and the artist's counter of cancelled CONFIRMED bookings (only this transaction's real change counts).
+    if (wantsCancel && updatedRow && statusBefore !== "لغو") {
+      await salons.recordCancellation(db, "artist_bookings", bookingId, statusBefore === "تایید" ? "تایید" : statusBefore, { by: "provider", userId: artistUserId });
+      await db.query("UPDATE artist_bookings SET proposal_date = '', proposal_time = '', proposal_at = NULL WHERE id = $1", [bookingId]);
+    }
   });
   if (refusal) return refusal;
   if (!updatedRow) return notFound();
@@ -233,7 +239,19 @@ async function patchOwnArtistBooking(artistUserId, body, artistName = "") {
     });
   }
 
-  if (current.clientUserId) {
+  // Cancelling a booking that was already confirmed is a broken promise: the client gets the apology push + SMS
+  // (owner's rule of 2026-10-22), never the plain "cancelled" answer on top of it.
+  const confirmedBefore = ["تایید شده", "تایید"].includes(statusBefore);
+  if (nextStatus === "لغو" && confirmedBefore) {
+    const clientId = Number(current.clientUserId || salonBooking?.client_user_id || 0);
+    const viaSalon = salonBooking?.salon_user_id ? await getUserLiteById(Number(salonBooking.salon_user_id)).catch(() => null) : null;
+    noticeClientCancelledByProvider(clientId, {
+      provider: viaSalon ? { type: "salon", name: viaSalon.name } : { type: "artist", name: artistName },
+      booking: viaSalon && salonBooking
+        ? { kind: "salon", id: salonBooking.id, booking_date: salonBooking.booking_date, time: salonBooking.time, service: salonBooking.service }
+        : { kind: "artist", id: bookingId, booking_date: current.bookingDate, time: current.time, service: current.service }
+    });
+  } else if (current.clientUserId) {
     void sendPushToUser(Number(current.clientUserId), {
       title: nextStatus === "تایید شده" ? "نوبت شما تایید شد" : "نوبت شما لغو شد",
       body: `${current.service || "نوبت"} — ${current.bookingDate || ""} ${current.time || ""}`.trim()
