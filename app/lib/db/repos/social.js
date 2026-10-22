@@ -132,8 +132,8 @@ export async function listFollowersForOwner(ownerUserId, { limit = 100 } = {}) {
     SELECT f.follower_user_id AS user_id, f.created_at, f.seen_at,
            u.name, u.phone, (u.avatar <> '' OR u.avatar_url IS NOT NULL) AS has_avatar,
            (
-             EXISTS (SELECT 1 FROM salon_bookings b WHERE b.salon_user_id = $1 AND (b.client_user_id = f.follower_user_id OR (u.phone <> '' AND b.phone = u.phone)))
-             OR EXISTS (SELECT 1 FROM artist_bookings b WHERE b.artist_user_id = $1 AND (b.client_user_id = f.follower_user_id OR (u.phone <> '' AND b.client_phone = u.phone)))
+             EXISTS (SELECT 1 FROM salon_bookings b WHERE b.salon_user_id = $1 AND (b.client_user_id = f.follower_user_id OR (u.phone <> '' AND b.phone_normalized = u.phone)))
+             OR EXISTS (SELECT 1 FROM artist_bookings b WHERE b.artist_user_id = $1 AND (b.client_user_id = f.follower_user_id OR (u.phone <> '' AND b.phone_normalized = u.phone)))
            ) AS has_booked
     FROM follows f
     JOIN users u ON u.id = f.follower_user_id

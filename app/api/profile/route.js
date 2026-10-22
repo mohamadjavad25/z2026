@@ -129,8 +129,8 @@ async function _DELETE(request) {
     return NextResponse.json({ error: "رمز فعلی نادرست است." }, { status: 400 });
   }
   // Soft approach: delete user cascades via FK
-  const { getDb, run } = await import("../../lib/db/connection.js");
-  await run(await getDb(), "DELETE FROM users WHERE id = $1", [auth.user.id]);
+  // The account's phone number is cut off its old bookings first (a later holder of the number must see none of them).
+  await users.deleteUserDetachingPhone(auth.user.id);
   return NextResponse.json({ data: { user: null } });
 }
 

@@ -156,6 +156,9 @@ export function VisitWizard({ role, title, state, controller, services, days, cu
                 dir="ltr"
                 maxLength={13}
               />
+              {!String(state.phone || "").trim() ? (
+                <p className="vbPhoneNote" role="status"><Info size={15} aria-hidden="true" /><span>بدون شماره، مشتری یادآوری پیامکی نمی‌گیرد و نوبت به حسابی وصل نمی‌شود.</span></p>
+              ) : null}
               <p className="vbPhoneNote"><Info size={15} aria-hidden="true" /><span>شمارهٔ مشتری مهم است. رزرو با همین شماره برایش ثبت می‌شود و اطلاع‌رسانی نوبت به‌صورت خودکار انجام می‌شود؛ دیگر لازم نیست خودت پیام بدهی.</span></p>
               {suggestions.length ? (
                 <div className="vbChips vbSuggest" role="group" aria-label="مشتریان قبلی">

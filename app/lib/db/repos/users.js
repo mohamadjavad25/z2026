@@ -259,3 +259,26 @@ export async function isFollowing(followerId, targetId, runner = null) {
     await get(db, "SELECT 1 FROM follows WHERE follower_user_id = $1 AND target_user_id = $2", [followerId, targetId])
   );
 }
+
+/**
+ * Deletes an account for good, and first cuts its phone number off every booking it left behind (owner's decision
+ * 2026-10-22): the account's own bookings, and the walk-ins a salon or artist typed for that number, lose the
+ * number (the name and the visit stay for the salon's own records). So whoever takes the number over later sees
+ * nothing of the previous person's bookings. Returns the deleted row ({ id, phone, name, type }) or null.
+ */
+export async function deleteUserDetachingPhone(id) {
+  const userId = Number(id);
+  return withTransaction(null, async (client) => {
+    const row = await get(client, "SELECT id, phone, name, type FROM users WHERE id = $1 FOR UPDATE", [userId]);
+    if (!row) return null;
+    const key = String(row.phone || "").trim();
+    for (const [table, column] of [["salon_bookings", "phone"], ["artist_bookings", "client_phone"]]) {
+      await run(client, `
+        UPDATE ${table} SET ${column} = ''
+        WHERE client_user_id = $1 OR ($2 <> '' AND client_user_id IS NULL AND phone_normalized = frfro_phone_key($2))
+      `, [userId, key]);
+    }
+    await run(client, "DELETE FROM users WHERE id = $1", [userId]);
+    return row;
+  });
+}

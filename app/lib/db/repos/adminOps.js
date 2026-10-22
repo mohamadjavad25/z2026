@@ -3,6 +3,7 @@ import { ensureSupportTables } from "./support.js";
 import { deleteStoredImage } from "../../storage.js";
 import { formatPersianDateKey } from "../../../shared/lib/persianCalendar.js";
 import { cancelSalonBooking } from "./salons/bookings.js";
+import { deleteUserDetachingPhone } from "./users.js";
 
 const clamp = (value, min, max, fallback) => Math.min(Math.max(Number(value) || fallback, min), max);
 const likeOf = (term) => {
@@ -92,9 +93,8 @@ export async function saveUserNote(userId, note, label = "") {
 }
 
 export async function deleteUser(id) {
-  const db = await getDb();
-  const row = await get(db, "DELETE FROM users WHERE id = $1 RETURNING id, phone, name", [Number(id)]);
-  return row || null;
+  // Same as the user deleting their own account: the phone number is cut off the old bookings first.
+  return deleteUserDetachingPhone(id);
 }
 
 export async function listPosts({ q = "", visibility = "", limit = 25, offset = 0 } = {}) {

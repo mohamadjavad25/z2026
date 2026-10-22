@@ -112,11 +112,8 @@ async function findBookingClient(row, runner) {
     `, [rawPhone]);
     if (byRaw) return byRaw;
   }
-  const clientName = String(row.client || "").trim();
-  if (!clientName) return null;
-  return get(runner, `
-    SELECT id, (avatar <> '' OR avatar_url IS NOT NULL) AS avatar, avatar_position FROM users WHERE type = 'client' AND name = $1 LIMIT 1
-  `, [clientName]);
+  // Only the phone ties a booking to an account. A name is typed by anyone, so it never does (owner's decision 2026-10-22).
+  return null;
 }
 
 function buildClientVisitLevels(historyRows) {
@@ -653,7 +650,7 @@ export async function listSalonBookings(salonUserId) {
   const rows = await all(db, `SELECT * FROM salon_bookings WHERE salon_user_id = $1 ORDER BY id DESC LIMIT ${LIST_BOOKINGS_LIMIT}`, [salonUserId]);
 
   // findBookingClient runs an unindexed, 10-nested-REPLACE phone-matching
-  // scan over the whole users table (falling back to a name lookup) --
+  // scan over the whole users table (a name never counts) --
   // expensive on its own, and this used to run it once per booking,
   // sequentially, so a salon with many bookings from the same handful of
   // repeat customers re-ran that same expensive scan for every single one
@@ -678,7 +675,7 @@ export async function listSalonBookings(salonUserId) {
     const { fallback_salon_user_id: _fallback, moved_to_booking_id: _movedTo, ...own } = row;
     return {
       ...own,
-      client_user_id: client?.id || null,
+      client_user_id: row.client_user_id || client?.id || null,
       client_avatar: avatar,
       clientAvatar: avatar,
       client_avatar_position: avatarPosition,
