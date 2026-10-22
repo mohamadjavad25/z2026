@@ -18,7 +18,7 @@ The user often talks by voice and listens to replies with the phone's read-aloud
 - Explain things through what users of the app see and do, not through how the code works.
 - Say the plain summary first. If details are needed, put them after it, clearly separated, so the user can stop listening after the summary.
 - For anything complex (a plan, a choice between options, a flow, a comparison, a report), also make an Artifact with pictures or diagrams so the user can see it, and give the link in one short sentence.
-- When the user has to understand a problem and choose (findings with suggestions, a plan, options), build the page with the `decision-page` skill (`.claude/skills/decision-page/`, user's format 2026-10-22): the problem on top, the proposals as a swipeable carousel with «امروز / با این تغییر» phone screens and an answer on each, a «نظر خودت» box that takes voice through the keyboard microphone, and answers saved where any session can read them.
+- When the user has to understand a problem and choose (findings with suggestions, a plan, options), build the page with the `decision-page` skill (`.claude/skills/decision-page/`, user's format 2026-10-22): the problem on top, the proposals as a swipeable carousel with «امروز / با این تغییر» phone screens and an answer on each, a «نظر خودت» box that takes voice through the keyboard microphone, and answers saved where any session can read them. That format is only for choosing; to explain how something works (a flow, every state and case), design a fresh page that fits it, such as a map of every road with a scenario player (user's correction 2026-10-22).
 
 ## Project notes
 

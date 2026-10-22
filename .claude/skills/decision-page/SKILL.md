@@ -63,5 +63,16 @@ will do, and ask before building anything the project rules say needs a question
 
 ## When not to use it
 
+**This template is for choosing, not for explaining.** The owner said so on 2026-10-22, after a plan of how a
+system works was squeezed into this carousel and could not be understood: "that template was for one job; to
+explain this, use another method, another design, another graphic". When the owner needs to understand how
+something works (every state a booking moves through, who sees what and when), design a fresh page for that
+job instead. What worked: the possible results first as coloured pills, a short day timeline, a map of every
+road drawn as boxes and arrows that end in those same pills, and a scenario player (one chip per case) that
+lights up that road on the map and tells it as the messages each phone shows. If one open question remains,
+put it once at the end in a plain box, with your recommendation. Example: https://claude.ai/artifact/VR8YQAq5oJJzNx5nSYJ8hN (visit-map
+page, roadmap ۱۴).
+
+
 A one-line answer, or a report with nothing to decide, does not need the carousel; a plain Artifact with
 pictures is enough. Any page with choices or a plan uses this one.
