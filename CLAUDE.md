@@ -10,6 +10,15 @@
 
 There are two: the main server (Iranian, holds frfro.ir and the real data, gets code only from `main` through `scripts/deploy.sh`) and Vercel (project `z2026`, a test copy; every pushed branch gets a preview). Before any important or complex change (migrations, payments, login/SMS, bookings, deploy or server config), ask the user: «اول روی ورسل تست کنیم یا مستقیم روی سرور اصلی؟». For "Vercel first": push a branch, give the user the preview link, and only after the user says it works merge into `main` and deploy to the main server. Small safe changes (text, style, docs) need no question, but say where they will go. Finished work is merged into `main` (user's request 2026-10-21), so the next main-server update (`scripts/deploy.sh`) carries it; the Vercel-first rule above still holds for important changes.
 
+## How to answer the user (user's rule, 2026-10-22)
+
+The user often talks by voice and listens to replies with the phone's read-aloud. The user is not technical but knows the product well from the user's side. So in chat:
+
+- Write replies in Persian the way you would say them: short, plain sentences, like talking. No lists, bullets, tables, headings, bold, emoji or symbols, no code, file names, paths or English technical words, unless the user asks for them.
+- Explain things through what users of the app see and do, not through how the code works.
+- Say the plain summary first. If details are needed, put them after it, clearly separated, so the user can stop listening after the summary.
+- For anything complex (a plan, a choice between options, a flow, a comparison, a report), also make an Artifact with pictures or diagrams so the user can see it, and give the link in one short sentence.
+
 ## Project notes
 
 - The product name is **frfro**, always lowercase in English. The Persian form is «فرفرو». Never use "Farfaroo", "Frfru", "Zibaban" or «زیبابان».
