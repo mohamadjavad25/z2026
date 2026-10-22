@@ -20,6 +20,8 @@ anything else in their own words, by voice if they like. The answers come back t
    - a title, a size chip (کوچک / متوسط / بزرگ), «پیشنهاد من» on the ones you recommend, and «اول روی ورسل»
      when the project rules say important changes go to the Vercel test copy first;
    - a short story with a name, a day and a time (`**bold**` works);
+   - optionally «کجا دیده شده»: which well-known apps already do this and how (field `seenIn`). Use it whenever the
+     proposals come from looking at other products; the owner asked for that kind of research (2026-10-22);
    - two phone screens side by side: «امروز» and «با این تغییر», built from blocks (an SMS bubble, a push with a
      button, a booking card with its state and buttons, a struck-out button for one that goes away, a counter, an
      empty screen). Use the app's real words, button labels and SMS texts (`app/lib/smsTemplates.js`);
@@ -36,7 +38,7 @@ anything else in their own words, by voice if they like. The answers come back t
 - Copy `template.html` (next to this file) to the scratchpad and change **only the `PAGE` object** at the top of
   its script: `id` (short latin, unique per page), `eyebrow`, `title`, `problem`, `proposals`. The template already
   has the brand look (ink, pink, violet, Vazirmatn, day and night), right-to-left layout, phone width and saving.
-  Block shapes: `{sms, bad}`, `{push, text, buttons}`, `{card, state, note, stats:[{text, bad}], buttons}`,
+  A proposal may also have `seenIn` (text, `**bold**` works). Block shapes: `{sms, bad}`, `{push, text, buttons}`, `{card, state, note, stats:[{text, bad}], buttons}`,
   `{empty}`, `{note}`; a button is `{text, kind}` with kind `danger`, `main` or `gone` (struck out).
   A question is `{id, text, options:[...], default}`.
 - Keep `<title>` a short Persian name of the page.

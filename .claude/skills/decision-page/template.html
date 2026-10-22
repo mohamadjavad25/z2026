@@ -109,6 +109,8 @@ section { display: grid; gap: 14px; min-width: 0; }
 .stat span { background: var(--soft); border-radius: 8px; padding: 0 8px; font-size: 12px; }
 .stat .no { color: var(--bad); }
 .cost { font-size: 14px; color: var(--muted); }
+.seen { font-size: 13px; color: var(--muted); border-inline-start: 3px solid var(--violet); padding-inline-start: 10px; }
+.seen b { color: var(--ink); font-weight: 700; }
 
 /* answers */
 .answer { display: grid; gap: 10px; border-top: 1px dashed var(--line); padding-top: 14px; }
@@ -195,6 +197,7 @@ const PAGE = {
   proposals: [{
     id: "p1", title: "پیشنهاد", size: "کوچک", recommended: true,
     story: "قصهٔ کوتاه با اسم و ساعت.",
+    seenIn: "",                          // optional: which other apps already do this
     today: { phone: "گوشی سارا", time: "۱۸:۴۰", screen: "پیامک", blocks: [{ sms: "متن", bad: true }] },
     after: { phone: "گوشی سارا", time: "۱۸:۴۰", screen: "پیامک", blocks: [{ empty: "هیچ پیامی نیست" }] },
     cost: "",
@@ -249,6 +252,7 @@ const PAGE = {
     <article class="slide" id="slide-${p.id}" data-id="${p.id}" aria-label="پیشنهاد ${fa(i + 1)} از ${fa(PAGE.proposals.length)}">
       <div class="slide-head"><h3>${fa(i + 1)}. ${esc(p.title)}</h3><div class="chips">${p.recommended ? '<span class="chip rec">پیشنهاد من</span>' : ""}${p.size ? `<span class="chip">${esc(p.size)}</span>` : ""}${p.where ? `<span class="chip">${esc(p.where)}</span>` : ""}</div></div>
       <p class="story">${rich(p.story)}</p>
+      ${p.seenIn ? `<p class="seen"><b>کجا دیده شده:</b> ${rich(p.seenIn)}</p>` : ""}
       <div class="pair">${phone(p.today, "امروز", "bad")}${phone(p.after, "با این تغییر", "good")}</div>
       ${p.cost ? `<p class="cost">${rich(p.cost)}</p>` : ""}
       <div class="answer">
