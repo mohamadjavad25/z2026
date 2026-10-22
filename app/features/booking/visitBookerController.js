@@ -144,6 +144,7 @@ export function createVisitBookerController({
       return;
     }
     let note = "";
+    let scanned = false;
     if (!result.length && autoAdvance && !dayTouched) {
       const later = days.filter((day) => !day.closed && days.findIndex((item) => item.value === day.value) > days.findIndex((item) => item.value === startDay));
       for (const day of later) {
@@ -157,9 +158,15 @@ export function createVisitBookerController({
           break;
         }
       }
+      scanned = !result.length; // every later day was just asked and none has an hour: no need to look again
     }
     applyTimes(result, note, noPick);
-    if (isClient && !result.length) void lookAhead(picked, fresh);
+    if (isClient && !result.length) {
+      if (scanned) {
+        times = { ...times, ahead: { status: "none" } };
+        emit();
+      } else void lookAhead(picked, fresh);
+    }
   }
 
   /** The chosen day has nothing free: look through the days after it (up to the end of the list) for the first free hour. */

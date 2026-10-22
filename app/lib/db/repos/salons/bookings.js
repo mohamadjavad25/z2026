@@ -349,7 +349,11 @@ async function draftVisitParts(day, time, parts) {
  * but where nobody is working (all on leave or switched off) counts too: a request is never accepted for nobody.
  */
 function findUnstaffedPart(day, parts) {
-  return parts.find((part) => !part.staff && (draftPool(day, part.service).length || day.team.length)) || null;
+  const missing = parts.find((part) => !part.staff && (draftPool(day, part.service).length || day.team.length));
+  if (missing) return missing;
+  // A group needs a seat each; a salon with no team on the system has one (nobody to draft, so nobody is "unstaffed" above).
+  if (bookingPeople(parts) > 1 && !day.team.length) return parts.find((part) => part.person) || parts[0];
+  return null;
 }
 
 /** Same rule as findOverlapConflict, against an already loaded day (each drafted part with its own artist). */

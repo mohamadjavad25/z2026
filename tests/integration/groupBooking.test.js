@@ -121,6 +121,17 @@ describe("group booking (برای چند نفر؟)", () => {
     expect([one.status, two.status].sort()).toEqual([201, 409]);
   });
 
+  it("a salon with no team on frfro has one seat: no common hour for 2, but one after another works", async () => {
+    const ctx = await setup(0);
+    const day = futureBookingDay(2);
+    const a = await newClient("Seat A");
+    expect((await timesFor(ctx, a, day, 1)).length).toBeGreaterThan(2);
+    expect(await timesFor(ctx, a, day, 2)).toEqual([]);
+    const refused = await request(ctx, a, day, "10:00", { people: 2 });
+    expect(refused.status).toBe(409);
+    expect(refused.payload.code).toBe("GROUP_FULL");
+  });
+
   it("limits a request to 3 people and keeps the services per person within the parts cap", async () => {
     const ctx = await setup(3);
     const day = futureBookingDay(2);
