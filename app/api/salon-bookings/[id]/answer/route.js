@@ -24,6 +24,7 @@ async function _POST(request, { params }) {
   if (!result.ok) {
     if (result.error === "missing") return notFound("رزرو یافت نشد.");
     if (result.error === "inactive") return error("این رزرو دیگر منتظر جواب تو نیست.", 409);
+    if (result.error === "expired") return error("مهلت جواب به این ساعت تمام شده؛ اگر هنوز می‌خواهی دوباره درخواست بده.", 409);
     if (result.error === "past") return error("روز این رزرو گذشته است.", 409);
     return error(result.message || "این ساعت دیگر آزاد نیست.", 409);
   }

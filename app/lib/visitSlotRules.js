@@ -1,7 +1,7 @@
 import { isSlotInPast } from "../shared/lib/slots.js";
 import { BOOKING_REQUEST_LEAD_MINUTES, isTooSoonToRequest } from "../shared/lib/bookingWindow.js";
 import { findSalonHourForDateKey, isSalonHourOpen, salonDayWindow } from "../shared/lib/salonAvailability.js";
-import { buildDayBookingSlots, timeLabelToMinutes } from "../shared/lib/time.js";
+import { PUBLIC_BOOKING_SLOT_STEP, buildDayBookingSlots, timeLabelToMinutes } from "../shared/lib/time.js";
 import { toPersianDigits } from "../shared/lib/digits.js";
 
 /**
@@ -32,6 +32,31 @@ export function visitSlotProblem({ hours, bookingDateKey, time, durationMinutes,
   const requestedMinutes = timeLabelToMinutes(time);
   if (!buildDayBookingSlots(window.open, window.close, durationMinutes).some((slot) => timeLabelToMinutes(slot) === requestedMinutes)) {
     return { status: 409, error: "این ساعت خارج از زمان کاری سالن است.", code: "OUTSIDE_HOURS" };
+  }
+  return null;
+}
+
+export const ARTIST_OFF_HOURS_MESSAGE = "آرتیست در این ساعت کار نمی‌کند.";
+export const ARTIST_OFF_GRID_MESSAGE = "ساعت را از میان گزینه‌های نشان‌داده‌شده انتخاب کن.";
+
+/**
+ * The independent artist's side of visitSlotProblem: the day must be one the artist works, the whole visit inside
+ * that day's hours, and the start on the 30-minute step counted from opening time (the times the booking page offers).
+ * → null when fine, else { status: 409, error, code }.
+ */
+export function artistSlotProblem({ hours, bookingDateKey, time, durationMinutes }) {
+  const hour = findSalonHourForDateKey(hours, bookingDateKey);
+  if (!isSalonHourOpen(hour)) return { status: 409, error: ARTIST_OFF_HOURS_MESSAGE, code: "OUTSIDE_HOURS" };
+  const window = salonDayWindow(hour);
+  const open = timeLabelToMinutes(window.open);
+  const close = timeLabelToMinutes(window.close);
+  const start = timeLabelToMinutes(time);
+  const length = Math.max(15, Number(durationMinutes) || 60);
+  if (!(close > open) || start < open || start + length > close) {
+    return { status: 409, error: ARTIST_OFF_HOURS_MESSAGE, code: "OUTSIDE_HOURS" };
+  }
+  if ((start - open) % PUBLIC_BOOKING_SLOT_STEP !== 0) {
+    return { status: 409, error: ARTIST_OFF_GRID_MESSAGE, code: "OFF_GRID" };
   }
   return null;
 }

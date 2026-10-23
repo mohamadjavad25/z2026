@@ -45,6 +45,8 @@ describe("a client cannot decide how a booking is laid out", () => {
       });
       expect(res.status, JSON.stringify(extra)).toBe(201);
       expect(Number(res.payload.data.booking.duration_minutes), JSON.stringify(extra)).toBe(45);
+      // a client keeps at most 3 open requests with one salon (decision 2026-10-21)
+      expect((await ctx.clientClient.post(`/api/salon-bookings/${res.payload.data.booking.id}/cancel`, {})).status).toBe(200);
     }
   });
 
@@ -118,11 +120,13 @@ describe("a booking at an independent artist is as long as the artist says", () 
     const day = futureBookingDay(2);
     const client = createClient();
     const c = await registerUser(client, { type: "client", name: "Trust Solo Client" });
-    const anonymous = createClient();
+    // The fourth request comes from a second client: one client holds at most 3 open requests with one artist.
+    const second = createClient();
+    await registerUser(second, { type: "client", name: "Trust Solo Second" });
     const cases = [
       [client, { time: "10:00", durationMinutes: 15 }],
       [client, { time: "12:00", duration: "15 دقیقه" }],
-      [anonymous, { time: "14:00", durationMinutes: 1, clientName: "ناشناس", clientPhone: "09120000000" }],
+      [second, { time: "14:00", durationMinutes: 1 }],
       [client, { time: "16:00", duration_minutes: 100000 }]
     ];
     for (const [who, extra] of cases) {

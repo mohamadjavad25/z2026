@@ -37,7 +37,6 @@ const roles = (on) => ({
   ]
 });
 
-const CITY = { t: "field", id: "city", placeholder: "شهر (اختیاری)" };
 
 const roleScreen = (on) => [{ t: "title", text: "ورود به دنیای فرفرو", sub: "مشتری، سالن یا آرتیست" }, roles(on)];
 
@@ -51,6 +50,23 @@ function signup({ title, nameLabel, name, phone, password, terms, typing, extra 
     { t: "field", id: "password", placeholder: "رمز عبور (حداقل ۸ کاراکتر)", text: password ? "••••••••" : "", type: typing === "password", ltr: true },
     { t: "check", id: "terms", text: "قوانین و حریم خصوصی را می‌پذیرم", on: terms },
     { t: "btn", id: "submit", text: "تکمیل ثبت‌نام" }
+  ];
+}
+
+/** The client's step-by-step sign-up (one question per screen): phone -> code -> name -> password. */
+function clientStep(step, { phone = "", code = "", name = "", password = false, typing } = {}) {
+  const titles = { phone: "شمارهٔ موبایلت را بزن", code: "کد پیامک‌شده را بزن", name: "اسمت چیست؟", password: "یک رمز برای خودت بساز" };
+  const buttons = { phone: "دریافت کد", code: "تأیید", name: "ادامه", password: "ساخت حساب" };
+  const field = {
+    phone: { t: "field", id: "phone", placeholder: "شماره موبایل؛ مثلاً ۰۹۱۲۳۴۵۶۷۸۹", text: phone, type: typing === "phone", ltr: true },
+    code: { t: "field", id: "code", placeholder: "_ _ _ _ _", text: code, type: typing === "code", ltr: true },
+    name: { t: "field", id: "name", placeholder: "نام یا نام نمایشی", text: name, type: typing === "name" },
+    password: { t: "field", id: "password", placeholder: "رمز عبور (حداقل ۸ کاراکتر)", text: password ? "••••••••" : "", type: typing === "password", ltr: true }
+  }[step];
+  return [
+    { t: "title", text: titles[step], sub: step === "phone" ? "با ادامه دادن، قوانین را می‌پذیرم" : "" },
+    field,
+    { t: "btn", id: "submit", text: buttons[step] }
   ];
 }
 
@@ -162,10 +178,11 @@ export const LEARN_ROLES = [
         text: "در کمتر از یک دقیقه عضو فرفرو شو.",
         scenes: [
           { screen: "role", els: roleScreen(-1), tap: "roles.0", say: "فرفرو را باز کن و «مشتری» را بزن." },
-          { screen: "form", els: signup({ title: "مشتری", nameLabel: "نام یا نام نمایشی", name: CLIENT, extra: [CITY], typing: "name" }), tap: "name", say: "اسمت را بنویس.", ms: 3200 },
-          { screen: "form", els: signup({ title: "مشتری", nameLabel: "نام یا نام نمایشی", name: CLIENT, extra: [CITY], phone: "۰۹۱۲۳۴۵۶۷۸۹", password: true, typing: "phone" }), tap: "phone", say: "شمارهٔ موبایلت را بزن و یک رمز بگذار.", ms: 3400 },
-          { screen: "form", els: signup({ title: "مشتری", nameLabel: "نام یا نام نمایشی", name: CLIENT, extra: [CITY], phone: "۰۹۱۲۳۴۵۶۷۸۹", password: true }), tap: "terms", say: "قوانین را تیک بزن." },
-          { screen: "form", els: signup({ title: "مشتری", nameLabel: "نام یا نام نمایشی", name: CLIENT, extra: [CITY], phone: "۰۹۱۲۳۴۵۶۷۸۹", password: true, terms: true }), tap: "submit", say: "«تکمیل ثبت‌نام» را بزن." },
+          { screen: "form", els: clientStep("phone", { typing: "phone" }), tap: "phone", say: "شمارهٔ موبایلت را بزن.", ms: 3200 },
+          { screen: "form", els: clientStep("phone", { phone: "۰۹۱۲۳۴۵۶۷۸۹" }), tap: "submit", say: "«دریافت کد» را بزن." },
+          { screen: "form", els: clientStep("code", { code: "۱۲۳۴۵", typing: "code" }), tap: "code", say: "کدی که پیامک شد را بزن.", ms: 3200 },
+          { screen: "form", els: clientStep("name", { name: CLIENT, typing: "name" }), tap: "name", say: "اسمت را بنویس.", ms: 3200 },
+          { screen: "form", els: clientStep("password", { password: true, typing: "password" }), tap: "password", say: "یک رمز بگذار؛ بعد «ساخت حساب».", ms: 3400 },
           {
             screen: "mine",
             els: [bookTabs(0), { t: "empty", img: "/brand/mascot/connect.webp", title: "سالن یا آرتیستت را وصل کن", text: "نوبت گرفتن از اینجا شروع می‌شود." }, { t: "btns", id: "add", items: [{ text: "از مخاطبین" }, { text: "اسکن QR", ghost: true }] }, navClient(2)],

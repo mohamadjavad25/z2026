@@ -1,17 +1,20 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { CalendarCheck, CalendarX2, Download, Phone, Search, Store, UserRound } from "lucide-react";
+import { CalendarCheck, CalendarX2, Download, MoreHorizontal, Phone, Search, Store, UserRound } from "lucide-react";
 import { Button } from "../components/ui";
 import { api } from "./adminFetch";
 import { BOOKING_TONE, TYPE_LABEL, ago, fmtDate, fmtKey, fmtTime, num } from "./format";
 import { PageHead } from "./PageHead";
+import { ActionMenu } from "./ActionMenu";
 import { SplitView } from "./SplitView";
 import { EmptyState, ErrorNote, Loading, Pager, Segmented, Skeleton, confirmAction, exportCsv, toastResult, useAdminData, withQuery } from "./ui";
 
 const PAGE_SIZE = 30;
 const WHEN = [{ value: "", label: "همه" }, { value: "today", label: "امروز" }, { value: "upcoming", label: "آینده" }, { value: "past", label: "گذشته" }];
 const KIND = [{ value: "", label: "همه" }, { value: "salon", label: "سالن" }, { value: "artist", label: "آرتیست" }];
+const PROVIDER = [{ value: "", label: "همه" }, { value: "1", label: "حذف‌شده" }];
+const CANCELLED_BY = { client: "مشتری", provider: "سالن یا آرتیست", gone: "سالن یا آرتیست از فرفرو رفت", admin: "مدیر" };
 const keyOf = (kind, id) => (kind && id ? `${kind}-${id}` : null);
 
 export function StatusTag({ status }) {
@@ -22,6 +25,7 @@ export function StatusTag({ status }) {
 function BookingDetail({ kind, id, onGo, onChanged }) {
   const [found, setFound] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [menu, setMenu] = useState(false);
   const load = useCallback(async () => {
     const result = await api.get(`/api/admin/bookings/${kind}/${id}`);
     setFound(result.ok ? result.payload.data : { error: result.payload?.error || "بارگذاری نشد." });
@@ -68,6 +72,12 @@ function BookingDetail({ kind, id, onGo, onChanged }) {
     </div>
   );
 
+  const menuItems = [
+    ...(client ? [{ group: "رفتن به", icon: UserRound, label: "حساب مشتری", run: () => onGo("users", { id: client.id }) }] : []),
+    ...(provider ? [{ group: "رفتن به", icon: Store, label: "حساب سالن یا آرتیست", run: () => onGo("users", { id: provider.id }) }] : []),
+    ...(found.cancellable ? [{ group: "خطرناک", icon: CalendarX2, label: "لغو این رزرو (شکایت یا درخواست جعلی)", danger: true, run: cancel }] : [])
+  ];
+
   return (
     <div className="admDetail">
       <header className="admDetailHead">
@@ -78,6 +88,10 @@ function BookingDetail({ kind, id, onGo, onChanged }) {
         </div>
         <StatusTag status={booking.status} />
       </header>
+
+      <div className="admDetailTools">
+        <button type="button" className="admChipLink is-primary" disabled={busy} onClick={() => setMenu(true)}><MoreHorizontal size={15} aria-hidden="true" /> اقدام‌ها</button>
+      </div>
 
       <div className="admWhen">
         <div><small>روز</small><b>{fmtKey(booking.booking_date)}</b></div>
@@ -90,6 +104,7 @@ function BookingDetail({ kind, id, onGo, onChanged }) {
 
       <ul className="admFacts">
         {booking.staff ? <li><span>آرتیست سالن</span><b>{booking.staff}</b></li> : null}
+        {booking.cancelled_by ? <li><span>لغو از طرف</span><b>{CANCELLED_BY[booking.cancelled_by] || booking.cancelled_by}</b></li> : null}
         <li><span>ثبت</span><b>{fmtDate(booking.created_at)} ({ago(booking.created_at)})</b></li>
         {booking.updated_at ? <li><span>آخرین تغییر</span><b>{fmtDate(booking.updated_at)}</b></li> : null}
         <li><span>یادآوری‌های فرستاده‌شده</span><b>{found.reminders.length ? found.reminders.map((row) => (String(row.kind).startsWith("day") ? "یک روز قبل" : "دو ساعت قبل")).join("، ") : "هنوز نه"}</b></li>
@@ -104,13 +119,8 @@ function BookingDetail({ kind, id, onGo, onChanged }) {
         </section>
       ) : null}
 
-      {found.cancellable ? (
-        <section className="admDanger">
-          <h3>لغو رزرو</h3>
-          <p className="admMuted">برای شکایت یا درخواست جعلی. لغو از همان مسیری انجام می‌شود که سالن یا مشتری لغو می‌کنند، پس تقویم آرتیست هم درست می‌ماند.</p>
-          <Button size="sm" variant="danger" disabled={busy} onClick={cancel}><CalendarX2 size={15} aria-hidden="true" /> لغو این رزرو</Button>
-        </section>
-      ) : <p className="admMuted">این رزرو {booking.status === "لغو" || booking.status === "منقضی شده" ? "بسته شده" : "گذشته"} است و دیگر لغو نمی‌شود.</p>}
+      {!found.cancellable ? <p className="admMuted">این رزرو {booking.status === "لغو" || booking.status === "منقضی شده" ? "بسته شده" : "گذشته"} است و دیگر لغو نمی‌شود.</p> : null}
+      {menu ? <ActionMenu items={menuItems} onClose={() => setMenu(false)} /> : null}
     </div>
   );
 }
@@ -121,10 +131,11 @@ export function BookingsTab({ intent = {}, onGo, setParam }) {
   const [status, setStatus] = useState(intent.status || "");
   const [when, setWhen] = useState(intent.when || "");
   const [kind, setKind] = useState("");
+  const [deleted, setDeleted] = useState("");
   const [offset, setOffset] = useState(0);
   const [selected, setSelected] = useState(keyOf(intent.kind, intent.id));
 
-  const path = withQuery("/api/admin/bookings", { q: q.trim(), status, when, kind, offset, limit: PAGE_SIZE });
+  const path = withQuery("/api/admin/bookings", { q: q.trim(), status, when, kind, deleted, offset, limit: PAGE_SIZE });
   const { data, error, loading, reload } = useAdminData(path, { debounce: q ? 250 : 0 });
   useEffect(() => {
     const [k, id] = selected ? selected.split("-") : [null, null];
@@ -149,6 +160,7 @@ export function BookingsTab({ intent = {}, onGo, setParam }) {
         </label>
         <Segmented label="زمان رزرو" size="sm" value={when} onChange={reset(setWhen)} options={WHEN} />
         <Segmented label="نوع" size="sm" value={kind} onChange={reset(setKind)} options={KIND} />
+        <Segmented label="سالن یا آرتیستِ حذف‌شده" size="sm" value={deleted} onChange={reset(setDeleted)} options={PROVIDER} />
       </div>
       <div className="admChipsRow" role="group" aria-label="وضعیت">
         <button type="button" className={`admTag${status === "" ? " is-on" : ""}`} onClick={() => reset(setStatus)("")}>همهٔ وضعیت‌ها</button>

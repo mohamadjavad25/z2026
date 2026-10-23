@@ -58,7 +58,7 @@ export function PublicArtistModal({
 }) {
   const [bookingPopup, setBookingPopup] = useState(false);
   // How long the request waits for the artist: until the appointment (default) or an hour.
-  const [wait, setWait] = useState("open");
+  const [wait, setWait] = useState("hour");
   const [servicesOpen, setServicesOpen] = useState(false);
   // Several services picked together: one service-shaped bundle (shared/lib/serviceBundle).
   const [bundle, setBundle] = useState(null);
@@ -209,8 +209,8 @@ export function PublicArtistModal({
                 aria-haspopup="dialog"
               >
                 <Scissors size={19} />
-                {servicesOpen ? "بستن" : "خدمات"}
-                {fromPrice && !servicesOpen ? <small>از {formatTomanNumber(fromPrice)} تومان</small> : null}
+                {servicesOpen ? "بستن" : "رزرو"}
+                {fromPrice && !servicesOpen ? <small>قیمت از {formatTomanNumber(fromPrice)} تومان</small> : null}
                 <ChevronUp size={18} className={`spvBarChevron${servicesOpen ? " is-open" : ""}`} aria-hidden="true" />
               </button>
             </nav>

@@ -1,4 +1,6 @@
 import * as users from "./db/repos/users.js";
+import { getDb, run } from "./db/connection.js";
+import { checkRateLimit } from "./rateLimit.js";
 import { sendTemplateSms } from "./sms.js";
 import { pushReachedApp, reachableByAppPush } from "./push.js";
 import { formatRelativeBookingDayLabel } from "../shared/lib/persianCalendar.js";
@@ -32,12 +34,34 @@ async function phoneOf(userId, push) {
   return user?.phone || "";
 }
 
+/**
+ * Claims the right to text this answer: true exactly once per (booking, status), however many calls or
+ * simultaneous taps come (the primary key of booking_sms_sent decides). A repeat gets false and sends nothing.
+ */
+async function claimBookingAnswerSms(kind, bookingId, status) {
+  if (!bookingId) return true;
+  const db = await getDb();
+  const res = await run(db, `
+    INSERT INTO booking_sms_sent (booking_kind, booking_id, status) VALUES ($1, $2, $3)
+    ON CONFLICT DO NOTHING RETURNING booking_id
+  `, [kind, Number(bookingId), String(status)]);
+  return res.rows.length > 0;
+}
+
 /** A client just asked `providerUserId` (a salon or an artist) for a time (or their request moved there from a
  *  first choice that did not answer). How long it waits is the client's choice, so the text promises no deadline. */
-export function smsNewBookingRequest(providerUserId, { client, service, bookingDate, time }, push = null) {
+export function smsNewBookingRequest(providerUserId, { client, service, bookingDate, time, fromUserId = null }, push = null) {
   void (async () => {
+    // One client may text the same salon or artist only a few times an hour, however many requests they make
+    // (the push and the booking list still show every one); a request made by nobody logged in is not capped here.
+    if (fromUserId) {
+      const limited = await checkRateLimit(`sms-booking-request:${Number(providerUserId)}:${Number(fromUserId)}`, 3, 60 * 60 * 1000);
+      if (!limited.ok) return;
+    }
     const phone = await phoneOf(providerUserId, push);
-    const who = [client, service].map((part) => String(part || "").trim()).filter(Boolean).join("، ") || "مشتری";
+    // The client's free-text name is cut to 30 characters: a long one would make the text long and costly.
+    // Cut by whole characters (code points), so an emoji at the cut is never left half (it showed as "�" in the text).
+    const who = [Array.from(String(client || "").trim()).slice(0, 30).join(""), service].map((part) => String(part || "").trim()).filter(Boolean).join("، ") || "مشتری";
     await sendTemplateSms(phone, "booking_request", {
       who,
       day: dayLabel(bookingDate),
@@ -46,11 +70,16 @@ export function smsNewBookingRequest(providerUserId, { client, service, bookingD
   })().catch(() => {});
 }
 
-/** The salon or artist answered a client's request: `confirmed` true for approved, false for declined or cancelled.
- *  `expired` instead: nobody answered in time (bookingExpirySweep.js). `providerUserId` looks the name up when the
- *  caller does not have it. */
-export function smsBookingAnswer(clientUserId, { providerName, providerUserId = null, bookingDate, time, confirmed, expired = false }, push = null) {
+/**
+ * The salon or artist answered a client's request: `confirmed` true for approved, false for declined or cancelled.
+ * `expired` instead: nobody answered in time (bookingExpirySweep.js). `providerUserId` looks the name up when the
+ * caller does not have it. Pass `booking` ({ kind: "salon" | "artist", id }) so each answer is texted once per
+ * booking; callers also call this only when the status really changed.
+ */
+export function smsBookingAnswer(clientUserId, { providerName, providerUserId = null, bookingDate, time, confirmed, expired = false, booking = null }, push = null) {
   void (async () => {
+    const status = expired ? "expired" : confirmed ? "confirmed" : "cancelled";
+    if (booking && !(await claimBookingAnswerSms(booking.kind, booking.id, status))) return;
     const phone = await phoneOf(clientUserId, push);
     if (!phone) return;
     const name = String(providerName || "").trim() || (providerUserId ? (await users.getUserById(Number(providerUserId)))?.name : "");
@@ -88,3 +117,38 @@ export function smsClientCancelled(providerUserId, { client, bookingDate, time }
     });
   })().catch(() => {});
 }
+
+/**
+ * A provider cancelled a booking that was already confirmed (or left frfro with it still on the books): the client's
+ * text. Claimed under the same key as the plain "cancelled" answer above, so one booking is never texted twice
+ * whichever of the two messages goes first. `gone`: the salon or artist is no longer on frfro («… دیگر در فرفرو نیست»).
+ */
+export function smsBookingCancelledByProvider(clientUserId, { providerName, bookingDate, time, booking = null, gone = false }) {
+  void (async () => {
+    if (booking && !(await claimBookingAnswerSms(booking.kind, booking.id, "cancelled"))) return;
+    const phone = await phoneOf(clientUserId);
+    await sendTemplateSms(phone, gone ? "booking_cancelled_gone" : "booking_cancelled_by_provider", {
+      who: String(providerName || "").trim() || "سالن",
+      day: dayLabel(bookingDate),
+      time: timeLabel(time)
+    });
+  })().catch(() => {});
+}
+
+/**
+ * The provider asks the client to move a confirmed booking (another time, or another artist). Texted once per
+ * distinct proposal (`proposalKey`), and at most 3 times a day per booking however often the provider re-proposes.
+ */
+export function smsBookingProposal(clientUserId, { template, providerName, booking, proposalKey, values }) {
+  void (async () => {
+    if (booking && !(await claimBookingAnswerSms(booking.kind, booking.id, `proposal:${proposalKey}`))) return;
+    if (booking) {
+      const limited = await checkRateLimit(`sms-proposal:${booking.kind}:${Number(booking.id)}`, 3, 24 * 60 * 60 * 1000);
+      if (!limited.ok) return;
+    }
+    const phone = await phoneOf(clientUserId);
+    await sendTemplateSms(phone, template, { who: String(providerName || "").trim() || "سالن", ...values });
+  })().catch(() => {});
+}
+
+export { dayLabel as smsDayLabel, timeLabel as smsTimeLabel };

@@ -29,5 +29,18 @@ export const profileUpdateSchema = z.object({
   managerName: z.string().trim().max(120).optional(),
   // "" means "not changing it" (the route ignores a falsy password).
   password: z.union([z.literal(""), z.string().min(6).max(200)]).optional(),
-  currentPassword: z.string().optional()
+  currentPassword: z.string().optional(),
+  // Proof from POST /api/auth/otp/verify (purpose "phone_change"): required whenever phone differs from the current number.
+  phoneProof: z.string().max(1000).optional()
 });
+
+/** The text fields of POST /api/auth/register, with the same ceilings as a profile edit. */
+export const registerFieldsSchema = z.object({
+  name: z.string().trim().max(120),
+  area: z.string().trim().max(120),
+  service: z.string().trim().max(120),
+  email: z.string().trim().max(200)
+});
+
+/** Longest password accepted anywhere (a 30 MB "password" would otherwise be hashed in full). */
+export const MAX_PASSWORD_LENGTH = 200;

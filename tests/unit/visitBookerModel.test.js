@@ -163,13 +163,14 @@ describe("buildSubmitBody", () => {
     expect(body).toEqual({
       time: "۱۰:۰۰", client: "مریم", phone: "0912", service: "مانیکور + کوتاهی", durationMinutes: 75, bookingDate: "1405-07-28",
       parts: [{ service: "مانیکور", duration: "۴۵ دقیقه" }, { service: "کوتاهی", duration: "30 دقیقه" }],
-      waitMinutes: null
+      waitMinutes: 60
     });
   });
-  it("a client waits until the appointment by default; with the hour it may name a backup salon", () => {
+  it("a client waits one hour by default (decision 2026-10-21); the open choice waits until the appointment, at most 24 hours; with the hour it may name a backup salon", () => {
     const list = bySlug("مانیکور");
-    expect(buildSubmitBody("client", state, list)).toMatchObject({ waitMinutes: null });
-    expect(buildSubmitBody("client", { ...state, backup: "7" }, list).fallbackSalonUserId).toBeUndefined();
+    expect(buildSubmitBody("client", state, list)).toMatchObject({ waitMinutes: 60 });
+    expect(buildSubmitBody("client", { ...state, wait: "open" }, list)).toMatchObject({ waitMinutes: null });
+    expect(buildSubmitBody("client", { ...state, wait: "open", backup: "7" }, list).fallbackSalonUserId).toBeUndefined();
     expect(buildSubmitBody("client", { ...state, wait: "hour" }, list)).toMatchObject({ waitMinutes: 60 });
     expect(buildSubmitBody("client", { ...state, wait: "hour", backup: "7" }, list)).toMatchObject({ waitMinutes: 60, fallbackSalonUserId: "7" });
     expect(buildSubmitBody("salon", { ...state, wait: "hour", backup: "7" }, list).waitMinutes).toBeUndefined();

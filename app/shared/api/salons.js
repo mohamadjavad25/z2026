@@ -1,8 +1,24 @@
 import { apiFetch, apiJson } from "./client";
 
-/** GET /api/salons → { salons, data?: { salons } } (public directory; no /api/salons/:id) */
+// 100 pages of 100: a directory past 10,000 needs a real "load more" screen, which this app does not have yet.
+const DIRECTORY_MAX_PAGES = 100;
+
+/**
+ * GET /api/salons → { salons, data?: { salons } } (public directory; no /api/salons/:id)
+ * The server answers one page at a time; this follows nextCursor and returns every salon in one list (same shape as
+ * before), so the screens that expect the whole directory keep working while each request stays small.
+ */
 export async function getSalons() {
-  return apiJson("/api/salons");
+  let result = await apiJson("/api/salons");
+  const all = [];
+  for (let page = 0; page < DIRECTORY_MAX_PAGES; page += 1) {
+    if (!result.ok) return page === 0 ? result : { ...result, ok: true, data: { salons: all } };
+    all.push(...(result.data?.salons || []));
+    const next = result.data?.nextCursor;
+    if (!next) return { ...result, data: { ...result.data, salons: all, nextCursor: null } };
+    result = await apiJson(`/api/salons?cursor=${encodeURIComponent(next)}`);
+  }
+  return { ...result, ok: true, data: { salons: all, nextCursor: null } };
 }
 
 /**
@@ -24,8 +40,9 @@ export async function getSalonBookings(salonUserId) {
  * can be requested. `services`: names, or { name, minutes } (minutes count only for a service
  * the salon does not list).
  */
-export async function getSalonVisitTimes(salonUserId, day, services) {
+export async function getSalonVisitTimes(salonUserId, day, services, people = 1) {
   const query = new URLSearchParams({ salonUserId: String(salonUserId), day: String(day || "") });
+  if (people > 1) query.set("people", String(people));
   for (const service of services) {
     query.append("service", typeof service === "string" ? service : service.name);
     if (service?.minutes) query.append("minutes", String(service.minutes));
@@ -51,8 +68,9 @@ export async function getSalonFallbacks(salonUserId, day, time, services) {
  * ("" = the system's), used only for the salon's own session. For the salon each part also has `free`
  * and `options`. A plan the salon cannot take is `ok: false` with the reason, not an error.
  */
-export async function getSalonVisitPreview(salonUserId, day, time, services, staff = []) {
+export async function getSalonVisitPreview(salonUserId, day, time, services, staff = [], people = 1) {
   const query = new URLSearchParams({ salonUserId: String(salonUserId), day: String(day || ""), time: String(time || "") });
+  if (people > 1) query.set("people", String(people));
   for (const service of services) {
     query.append("service", typeof service === "string" ? service : service.name);
     if (service?.minutes) query.append("minutes", String(service.minutes));
@@ -211,10 +229,10 @@ export async function updateSalonStaff(body) {
  * DELETE /api/salon-staff → { ok, staff, endedCollabs, artistNotified, artistUserId }
  * May end linked artist collabs.
  */
-export async function deleteSalonStaff(id) {
+export async function deleteSalonStaff(id, { cancelAll = false } = {}) {
   return apiFetch("/api/salon-staff", {
     method: "DELETE",
-    body: JSON.stringify({ id })
+    body: JSON.stringify({ id, ...(cancelAll ? { cancelAll: true } : {}) })
   });
 }
 

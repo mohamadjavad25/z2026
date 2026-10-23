@@ -9,7 +9,7 @@ import { Infinity as Always, Timer } from "lucide-react";
  * client follows) show as one row of chips, «نه» first; the line under the hour says what will happen.
  * Used by the salon booking form and the artist booking sheet.
  */
-export function WaitChoice({ value = "open", onChange, who = "سالن", backups = [], backup = "", onBackup, disabled = false }) {
+export function WaitChoice({ value = "hour", onChange, who = "سالن", backups = [], backup = "", onBackup, disabled = false }) {
   const hour = value === "hour";
   const picked = hour && backup ? backups.find((item) => String(item.id) === String(backup)) : null;
   return (
@@ -26,7 +26,7 @@ export function WaitChoice({ value = "open", onChange, who = "سالن", backups
         >
           <Always size={20} aria-hidden="true" />
           <b>صبر می‌کنم</b>
-          <small>تا هر وقت جواب بدهد</small>
+          <small>تا شروع نوبت، حداکثر ۲۴ ساعت</small>
         </button>
         <button
           type="button"

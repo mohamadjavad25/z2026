@@ -32,6 +32,7 @@ import { ArtistOptionList, BookingPartsEditor } from "./BookingPartsEditor";
 import { getSalonBookingMoveTimes, getSalonBookingStaffOptions } from "../../shared/api/salons";
 import { useBackHandler } from "../../shared/hooks/useBackHandler";
 import { AWAITING_CLIENT, bookingTimeOffer } from "../../shared/lib/bookingOffer";
+import { CALL_FIRST_TEXT, CANCEL_WITH_NOTICE, CLIENT_CAN_CALL, PROPOSE_LABEL, shortClock, startsSoon } from "../../shared/lib/providerRules";
 
 // Shown when a customer / staff member / source has no uploaded photo.
 const DEFAULT_AVATAR = "/profile-icon.svg";
@@ -254,6 +255,7 @@ export function ScheduleBookingMenuModal({
   onChangeParts,
   onAutoAssign,
   onCancel,
+  onWithdrawProposal,
   onApprove,
   onDecline,
   busy = false
@@ -261,8 +263,10 @@ export function ScheduleBookingMenuModal({
   // The artist picker opens inline; reset per booking because this screen
   // instance is reused rather than remounted per booking.
   const [artistPickerOpen, setArtistPickerOpen] = useState(false);
+  const [cancelAsk, setCancelAsk] = useState(false);
   useEffect(() => {
     setArtistPickerOpen(false);
+    setCancelAsk(false);
   }, [booking?.id]);
 
   const visible = Boolean(open && booking);
@@ -324,6 +328,13 @@ export function ScheduleBookingMenuModal({
   const minutesLeft = requestMinutesLeft(createdAt, dateValue, booking.time, { windowMinutes: waitMinutes });
   const showReview = isPendingReview && !readOnly;
   const timeView = view === "time";
+  // A CONFIRMED booking is a promise to the client (owner's rules of 2026-10-22): moving it is a proposal the client
+  // accepts, and cancelling it tells the client (the call comes first when it starts within 24 hours).
+  const confirmed = isSalonOwner && ["تایید شده", "تازه"].includes(booking.status);
+  const hasAccount = Boolean(booking.client_user_id || booking.clientUserId);
+  const soon = confirmed && startsSoon(booking.booking_date || booking.date || "", booking.time);
+  const proposal = confirmed ? booking.proposal || null : null;
+  const timeLabel = confirmed && hasAccount ? PROPOSE_LABEL : "تغییر ساعت";
 
   return (
     <div className="sbmScreen" role="dialog" aria-modal="true" aria-label={`رزرو ${title}`}>
@@ -334,7 +345,7 @@ export function ScheduleBookingMenuModal({
           </span>
           <div className="sbmWho">
             <small>
-              {timeView ? "تغییر ساعت" : readOnly ? "جزئیات رزرو • فقط مشاهده" : showReview ? "درخواست رزرو تازه" : "جزئیات رزرو"}
+              {timeView ? timeLabel : readOnly ? "جزئیات رزرو • فقط مشاهده" : showReview ? "درخواست رزرو تازه" : "جزئیات رزرو"}
             </small>
             <b>{title}</b>
             <strong className={`clientBookingSettingsStatus is-${statusTone}${showReview ? " is-live" : ""}`}>
@@ -461,6 +472,20 @@ export function ScheduleBookingMenuModal({
               </p>
             ) : null}
 
+            {proposal && !readOnly ? (
+              <div className="pxNote" role="status">
+                <p>
+                  {proposal.time
+                    ? `پیشنهاد ساعت ${shortClock(proposal.time)} برای مشتری فرستاده شد.`
+                    : `پیشنهاد آرتیست «${proposal.staff}» برای مشتری فرستاده شد.`}
+                  {" "}هنوز جواب نداده؛ تا قبول نکند نوبت همان‌طور که بود می‌ماند.
+                </p>
+                {onWithdrawProposal ? (
+                  <button type="button" className="pxBtn" disabled={actionDisabled} onClick={onWithdrawProposal}>پس گرفتن پیشنهاد</button>
+                ) : null}
+              </div>
+            ) : null}
+
             {readOnly ? (
               <p className="scheduleBookingReadOnlyNote">
                 <Eye size={14} aria-hidden="true" />
@@ -468,12 +493,32 @@ export function ScheduleBookingMenuModal({
               </p>
             ) : null}
 
-            {canManage && !isPendingReview ? (
+            {canManage && !isPendingReview && cancelAsk && confirmed ? (
+              <div className="pxCancelPanel" role="alertdialog" aria-label="لغو نوبت تأییدشده">
+                <p>{soon ? CALL_FIRST_TEXT : "این نوبت تأیید شده بود و مشتری روی آن حساب کرده است."}</p>
+                {phone && (soon || !hasAccount) ? (
+                  <a className="pxBtn" href={`tel:${toLatinDigits(phone)}`}><Phone size={15} aria-hidden="true" />{CLIENT_CAN_CALL}<span dir="ltr">{toPersianDigits(phone)}</span></a>
+                ) : null}
+                <p>
+                  {hasAccount
+                    ? "با لغو، مشتری با اعلان و پیامک باخبر می‌شود: «بابت این اتفاق متأسفیم؛ می‌توانی نوبت دیگری بگیری.»"
+                    : "این مشتری حساب فرفرو ندارد و پیامکی نمی‌گیرد؛ خودت با او تماس بگیر."}
+                </p>
+                <div>
+                  <button type="button" className="pxBtn is-danger" disabled={actionDisabled} onClick={() => onCancel?.()}>{busy ? "در حال لغو…" : CANCEL_WITH_NOTICE}</button>
+                  <button type="button" className="pxBtn" disabled={actionDisabled} onClick={() => setCancelAsk(false)}>نه، نگه دار</button>
+                </div>
+              </div>
+            ) : canManage && !isPendingReview ? (
               <button
                 type="button"
                 className="sbmCancel"
                 disabled={actionDisabled}
                 onClick={() => {
+                  if (confirmed) {
+                    setCancelAsk(true);
+                    return;
+                  }
                   if (typeof window !== "undefined" && !window.confirm("این رزرو لغو شود؟")) return;
                   onCancel?.();
                 }}
@@ -489,8 +534,12 @@ export function ScheduleBookingMenuModal({
               <ArrowRight size={15} aria-hidden="true" />
               بازگشت به جزئیات
             </button>
-            {isSalonOwner && (booking.client_user_id || booking.clientUserId) ? (
-              <p className="scheduleBookingReadOnlyNote is-offer">ساعت تازه برای مشتری فرستاده می‌شود تا قبول یا رد کند.</p>
+            {isSalonOwner && hasAccount ? (
+              <p className="scheduleBookingReadOnlyNote is-offer">
+                {confirmed
+                  ? "ساعت پیشنهادی برای مشتری فرستاده می‌شود. تا قبول نکند، نوبت همان ساعت قبلی می‌ماند."
+                  : "ساعت تازه برای مشتری فرستاده می‌شود تا قبول یا رد کند."}
+              </p>
             ) : null}
             <MoveTimeList
               booking={booking}
@@ -525,7 +574,7 @@ export function ScheduleBookingMenuModal({
               onClick={() => onViewChange?.(timeView ? "menu" : "time")}
             >
               <Timer size={19} aria-hidden="true" />
-              <span>تغییر ساعت</span>
+              <span>{timeLabel}</span>
             </button>
           ) : null}
           <button

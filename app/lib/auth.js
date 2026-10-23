@@ -25,11 +25,8 @@ export function normalizeDigits(value) {
     .replace(/[٠-٩]/g, (digit) => String(ARABIC_DIGITS.indexOf(digit)));
 }
 
-export function normalizePhone(value) {
-  return normalizeDigits(value)
-    .trim()
-    .replace(/[\s\-()]/g, "");
-}
+// The one phone normaliser (app/shared/lib/phone.js); re-exported so existing imports keep working.
+export { normalizePhone } from "../shared/lib/phone.js";
 
 const IRAN_MOBILE_PATTERN = /^09\d{9}$/;
 

@@ -13,6 +13,7 @@ import {
 import { getClientBookings } from "../../shared/api/artists";
 import { toggleSave } from "../../shared/api/saves";
 import { apiFetch } from "../../shared/api/client";
+import { answerProposal } from "../../shared/api/providerExit";
 import { notifyFromResponse } from "../../shared/lib/apiNotify";
 import { bundleServices } from "../../shared/lib/serviceBundle";
 import { salonServiceCatalog } from "./constants";
@@ -185,6 +186,27 @@ export function useSalonDirectory({
       return true;
     } catch {
       notify("جواب ثبت نشد؛ دوباره امتحان کن.");
+      return false;
+    }
+  }, [notify, refreshClientBookings]);
+
+  /**
+   * The client answers a provider's proposal on a CONFIRMED booking (another time or artist; owner's rules of
+   * 2026-10-22): "accept" moves the booking, "cancel" cancels it with nothing counted against the client.
+   */
+  const answerClientProposal = useCallback(async (booking, action) => {
+    if (!booking?.id) return false;
+    try {
+      const { ok, payload } = await answerProposal({ kind: booking.bookingSource === "artist" ? "artist" : "salon", id: booking.id, action });
+      if (typeof refreshClientBookings === "function") await refreshClientBookings();
+      if (!ok) {
+        notify(payload?.error || "جواب ثبت نشد.");
+        return false;
+      }
+      notify(action === "accept" ? "قبول شد. نوبتت به ساعت تازه رفت." : "نوبت لغو شد. هیچ مشکلی نیست؛ هر وقت خواستی دوباره نوبت بگیر.");
+      return true;
+    } catch {
+      notify("جواب ثبت نشد؛ اینترنتت را نگاه کن و دوباره امتحان کن.");
       return false;
     }
   }, [notify, refreshClientBookings]);
@@ -368,6 +390,25 @@ export function useSalonDirectory({
     }));
   }, [selectedSalon, createdProfile, shellMsg]);
 
+  /**
+   * «همین نوبت را جای دیگر بگیر»: opens the form of the salon that is now selected with the services, day and
+   * time of an unanswered request already filled in (`prefill`: { names, day, time }). The form still asks the
+   * server for that day's free hours, so a time that is gone is said so there.
+   */
+  const openSalonClientBookingPrefilled = useCallback((prefill) => {
+    const names = Array.isArray(prefill?.names) ? prefill.names.filter(Boolean) : [];
+    if (!names.length) return;
+    setSalonClientTab("services");
+    setSalonClientBooking((current) => ({
+      open: true,
+      service: names[0],
+      bundle: null,
+      prefill: { names, day: prefill.day || "", time: prefill.time || "" },
+      client: current.client || createdProfile?.data?.name || "",
+      phone: current.phone || createdProfile?.data?.phone || ""
+    }));
+  }, [createdProfile]);
+
   const closeSalonClientBooking = useCallback(() => {
     setSalonClientBooking((current) => ({ ...current, open: false }));
   }, []);
@@ -465,11 +506,13 @@ export function useSalonDirectory({
     refreshClientBookings,
     cancelClientBooking,
     answerClientTimeOffer,
+    answerClientProposal,
     resetSalonClient,
     toggleFollowSalon,
     toggleSaveSalon,
     shareSalonProfile,
     openSalonClientBooking,
+    openSalonClientBookingPrefilled,
     closeSalonClientBooking,
     submitSalonClientVisit,
     getVisibleSalonServiceItems

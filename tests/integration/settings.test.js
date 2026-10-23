@@ -4,7 +4,7 @@ import { createClient, registerUser, futureBookingDay } from "./helpers.js";
 describe("profile settings", () => {
   it("saves toggles, keeps unrelated keys, and ignores unknown ones", async () => {
     const c = createClient();
-    await registerUser(c, { type: "artist", name: "Settings Artist" });
+    await registerUser(c, { type: "artist", menu: true, name: "Settings Artist" });
     const first = await c.post("/api/profile/settings", { settings: { showPrices: false } });
     expect(first.ok).toBe(true);
     const second = await c.post("/api/profile/settings", { settings: { vacationMode: true, bogus: true } });
@@ -37,7 +37,7 @@ describe("profile settings", () => {
 
   it("vacation mode / closed direct booking stop new artist bookings; autoConfirm confirms", async () => {
     const artistClient = createClient();
-    const artist = await registerUser(artistClient, { type: "artist", name: "Vacation Artist" });
+    const artist = await registerUser(artistClient, { type: "artist", menu: true, name: "Vacation Artist" });
     const clientClient = createClient();
     await registerUser(clientClient, { type: "client", name: "Booker" });
     const body = (time) => ({

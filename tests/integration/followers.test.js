@@ -3,7 +3,7 @@ import { createClient, futureBookingDay, registerUser } from "./helpers.js";
 
 async function person(type, name) {
   const client = createClient();
-  const user = await registerUser(client, { type, name });
+  const user = await registerUser(client, { type, name, menu: true });
   return { client, ...user };
 }
 

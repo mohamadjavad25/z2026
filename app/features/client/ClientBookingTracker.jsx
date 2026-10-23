@@ -5,7 +5,7 @@ import { CalendarCheck, CalendarClock, Check, ChevronLeft, Hourglass, TimerOff, 
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar";
 import { bookingWaitMinutes, requestDeadlineLabel, requestRemainingShare } from "../../shared/lib/bookingWindow";
-import { isBookingInPast, movedToName } from "./bookingStatus";
+import { isBookingInPast, movedToName, openProposalOf } from "./bookingStatus";
 import { AWAITING_CLIENT } from "../../shared/lib/bookingOffer";
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
 
@@ -97,9 +97,14 @@ export function ClientBookingTracker({ bookings = [], onOpen }) {
     bookings.filter((booking) => booking.status === AWAITING_CLIENT && booking.bookingSource !== "artist" && !isBookingInPast(booking))
   ), [bookings]);
 
+  // A salon or artist asked to move a CONFIRMED booking: the client's answer comes first too (owner's rules of 2026-10-22).
+  const proposals = useMemo(() => (
+    bookings.filter((booking) => openProposalOf(booking) && !isBookingInPast(booking))
+  ), [bookings]);
+
   // Tell the page the bar has grown a strip so it can reserve room for it
   // (otherwise the bar covers the last card of whatever list is underneath).
-  const chipVisible = Boolean(flash) || pending.length > 0 || offers.length > 0;
+  const chipVisible = Boolean(flash) || pending.length > 0 || offers.length > 0 || proposals.length > 0;
   useEffect(() => {
     if (!chipVisible) return undefined;
     document.documentElement.dataset.cbt = "1";
@@ -127,6 +132,22 @@ export function ClientBookingTracker({ bookings = [], onOpen }) {
           </small>
         </span>
         <ChevronLeft size={18} />
+      </Strip>
+    );
+  }
+
+  if (proposals.length) {
+    const asked = proposals[0];
+    return (
+      <Strip className="is-offer" onClick={() => onOpen?.(asked)} aria-live="polite">
+        <span className="cbtIcon" aria-hidden="true"><CalendarClock size={19} /></span>
+        <span className="cbtText">
+          <b>{asked.bookingSource === "artist" ? "آرتیست" : "سالن"} می‌خواهد نوبتت را جابه‌جا کند</b>
+          <small>
+            {shortServiceLabel(asked.service) || "نوبت"} — {placeOf(asked)} — جواب بده
+          </small>
+        </span>
+        {proposals.length > 1 ? <em className="cbtCount">{toPersianDigits(proposals.length)}</em> : <ChevronLeft size={18} aria-hidden="true" />}
       </Strip>
     );
   }

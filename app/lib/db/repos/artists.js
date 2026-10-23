@@ -1,11 +1,18 @@
 import { getDb, withTransaction, all, get, run } from "../connection.js";
-import { lockArtistDays } from "../locks.js";
+import { lockArtistDays, lockClientRequests } from "../locks.js";
+import {
+  TOO_MANY_OPEN_CODE,
+  TOO_MANY_OPEN_MESSAGE,
+  artistRequestLapsedSql,
+  findIdenticalArtistRequest,
+  openRequestLimitReached
+} from "./openRequests.js";
 import { countFollowers, countFollowCountsMany, getUserProfileById, getUserLiteById, isFollowing } from "./users.js";
 import { buildClientHistoryLookup } from "./clientHistory.js";
 import { listPostsByOwner } from "./posts.js";
-import { formatPersianDateKey, isPersianDateKey, resolveRollingPersianDateKey } from "../../../shared/lib/persianCalendar.js";
+import { formatPersianDateKey, isPersianDateKey, persianDateKeyToDate, resolveRollingPersianDateKey } from "../../../shared/lib/persianCalendar.js";
 import { minutesUntilSlotStart } from "../../../shared/lib/bookingWindow.js";
-import { normalizeBookingTimeLabel } from "../../../shared/lib/time.js";
+import { normalizeBookingTimeLabel, parseBookingTime } from "../../../shared/lib/time.js";
 import { clientBookingMatch, clientVisibleStatus } from "../clientMatch.js";
 import { isProfileSaved } from "./social.js";
 import { normalizeServiceEmoji, resolveBookingServiceEmoji } from "./serviceEmoji.js";
@@ -13,6 +20,8 @@ import { getSettings, DEFAULT_SETTINGS } from "./userSettings.js";
 import { publicLocation } from "../../location.js";
 import { listArtistHoursPublic } from "./artists/hours.js";
 import { onlineBookingBlock, withoutHiddenProviders } from "../../billing/access.js";
+import { MAX_SERVICES_PER_PROVIDER } from "../../validation/service.js";
+import { proposalView } from "../../../shared/lib/providerRules.js";
 
 export { ensureArtistHours, listArtistHours, updateArtistHour } from "./artists/hours.js";
 
@@ -25,22 +34,27 @@ export async function listArtistServices(userId, runner = null) {
 }
 
 export async function addArtistService(userId, data) {
-  const db = await getDb();
-  const info = await run(db, `
-    INSERT INTO artist_services (user_id, name, price, duration, hint, badge, tone, emoji)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-    RETURNING id
-  `, [
-    userId,
-    data.name || "",
-    data.price || "",
-    data.duration || "",
-    data.hint || "",
-    data.badge || "",
-    data.tone || "soft",
-    normalizeServiceEmoji(data.emoji)
-  ]);
-  return get(db, "SELECT * FROM artist_services WHERE id = $1", [Number(info.rows[0].id)]);
+  // Counted and inserted under one lock per artist, so parallel requests can't slip past the cap.
+  return withTransaction(null, async (db) => {
+    await run(db, "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", [`artist-services:${Number(userId)}`]);
+    const count = await get(db, "SELECT COUNT(*)::int AS n FROM artist_services WHERE user_id = $1", [userId]);
+    if (count.n >= MAX_SERVICES_PER_PROVIDER) return { limit: true };
+    const info = await run(db, `
+      INSERT INTO artist_services (user_id, name, price, duration, hint, badge, tone, emoji)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING id
+    `, [
+      userId,
+      data.name || "",
+      data.price || "",
+      data.duration || "",
+      data.hint || "",
+      data.badge || "",
+      data.tone || "soft",
+      normalizeServiceEmoji(data.emoji)
+    ]);
+    return get(db, "SELECT * FROM artist_services WHERE id = $1", [Number(info.rows[0].id)]);
+  });
 }
 
 export async function updateArtistService(id, userId, data) {
@@ -347,6 +361,7 @@ export async function listArtistBookings(artistUserId) {
     const { fallback_artist_user_id: _fallback, moved_to_booking_id: _movedTo, ...own } = row;
     return {
       ...own,
+      proposal: proposalView(row),
       visits,
       visit_count: visits.filter((level) => level > 0).length,
       sourceSalon: row.source_salon_user_id
@@ -419,6 +434,8 @@ export async function listClientArtistBookings(user) {
   return rows.map((row) => ({
     ...row,
     status: clientVisibleStatus(row.status, "artist"),
+    proposal: proposalView(row),
+    placeGone: !row.artist_user_id || row.cancelled_by === "gone",
     client: row.client_name || "",
     // NOTE: unlike salon bookings' `phone` column (the booking client's own
     // number), artist_bookings has no such plain `phone` column — reuse it
@@ -523,7 +540,7 @@ function rangesOverlap(startA, endA, startB, endB) {
   return startA < endB && startB < endA;
 }
 
-export async function listArtistBookedSlots(artistUserId, { excludeBookingId = null, excludeBookingIds = [] } = {}, runner = null) {
+export async function listArtistBookedSlots(artistUserId, { excludeBookingId = null, excludeBookingIds = [], onlyDateKey = null } = {}, runner = null) {
   const db = runner || (await getDb());
   const services = await listArtistServices(artistUserId, db);
   const serviceDurationMap = Object.fromEntries(
@@ -532,11 +549,13 @@ export async function listArtistBookedSlots(artistUserId, { excludeBookingId = n
   const excluded = new Set([excludeBookingId, ...excludeBookingIds].filter((id) => id != null).map(Number));
   const rows = await all(db, `
     SELECT id, booking_date, time, status, service, duration_minutes
-    FROM artist_bookings
+    FROM artist_bookings a
     WHERE artist_user_id = $1
       AND status NOT IN ('لغو', 'لغو شده', 'cancelled', 'منقضی شده')
+      AND NOT ${artistRequestLapsedSql("a")}
+      AND ($2::text IS NULL OR booking_date = $2 OR booking_date !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
     ORDER BY id ASC
-  `, [artistUserId]);
+  `, [artistUserId, onlyDateKey || null]);
   return rows.filter((row) => !excluded.has(Number(row.id))).map((row) => ({
     id: row.id,
     booking_date: row.booking_date,
@@ -564,13 +583,37 @@ export async function listArtistBusyRanges(artistUserId, bookingDate, { excludeB
     const breakEnd = timeToMinutes(artistBreak.end);
     if (breakEnd > breakStart) ranges.push({ start: breakStart, end: breakEnd });
   }
-  const bookedSlots = await listArtistBookedSlots(artistUserId, { excludeBookingId, excludeBookingIds }, db);
+  const bookedSlots = await listArtistBookedSlots(artistUserId, { excludeBookingId, excludeBookingIds, onlyDateKey: bookingDateKey }, db);
   for (const item of bookedSlots) {
     if (resolveRollingPersianDateKey(item.booking_date) !== bookingDateKey) continue;
     const bookedStart = timeToMinutes(item.time);
     ranges.push({ start: bookedStart, end: bookedStart + Math.max(15, Number(item.duration_minutes) || 60) });
   }
+  // A visit that runs past midnight also holds the early hours of the next day (23:00 for 3 h holds until 02:00), and
+  // a visit asked for late in the evening must not run into tomorrow's first booking: the neighbouring days' bookings
+  // are shifted onto this day's clock (yesterday's by -24 h, tomorrow's by +24 h) and only the part that reaches in counts.
+  for (const [offsetDays, shift] of [[-1, -1440], [1, 1440]]) {
+    const neighbourKey = shiftedDateKey(bookingDateKey, offsetDays);
+    if (!neighbourKey) continue;
+    const neighbours = await listArtistBookedSlots(artistUserId, { excludeBookingId, excludeBookingIds, onlyDateKey: neighbourKey }, db);
+    for (const item of neighbours) {
+      if (resolveRollingPersianDateKey(item.booking_date) !== neighbourKey) continue;
+      const start = timeToMinutes(item.time) + shift;
+      const end = start + Math.max(15, Number(item.duration_minutes) || 60);
+      if (shift < 0 ? end > 0 : start < 1440 + 720) ranges.push({ start, end });
+    }
+  }
   return ranges;
+}
+
+/** The date key `days` before/after `dateKey`, or "" when the key is not a real day near today. */
+function shiftedDateKey(dateKey, days) {
+  const date = persianDateKeyToDate(dateKey);
+  if (!date) return "";
+  const moved = new Date(date);
+  moved.setHours(12, 0, 0, 0);
+  moved.setDate(moved.getDate() + days);
+  return formatPersianDateKey(moved);
 }
 
 export async function isArtistSlotBlocked(artistUserId, bookingDate, time, durationMinutes = 60, excludeBookingId = null, runner = null) {
@@ -681,7 +724,7 @@ export async function cancelArtistBookingRow(bookingId, runner = null) {
 export async function addArtistBookingInTx(artistUserId, data, runner = null) {
   const db = runner || (await getDb());
   const bookingDate = resolveRollingPersianDateKey(data.bookingDate || data.booking_date || data.date || "");
-  const time = normalizeBookingTimeLabel(data.time || "");
+  const time = parseBookingTime(String(data.time ?? ""));
   // Never shorter than 15 minutes nor longer than half a day, whatever the caller sent.
   const durationMinutes = Math.min(720, Math.max(
     15,
@@ -690,7 +733,7 @@ export async function addArtistBookingInTx(artistUserId, data, runner = null) {
       || 60
   ));
   if (!bookingDate || !time) {
-    return { ok: false, error: "روز و ساعت لازم است.", code: "MISSING_SLOT" };
+    return { ok: false, error: "روز و ساعت معتبر لازم است.", code: "MISSING_SLOT" };
   }
   // Held until the surrounding transaction ends, so two requests for this artist's day are checked one after the other.
   await lockArtistDays(db, [artistUserId], bookingDate);
@@ -757,7 +800,30 @@ export async function addArtistBookingInTx(artistUserId, data, runner = null) {
  * instead.
  */
 export async function addArtistBooking(artistUserId, data) {
-  return withTransaction(null, (client) => addArtistBookingInTx(artistUserId, data, client));
+  return withTransaction(null, async (client) => {
+    // A client's own request (not the artist's entry, not a salon's calendar copy): the same request sent twice is
+    // one request (the existing one comes back as it is), and one client has only a few open at once.
+    const clientUserId = Number(data.clientUserId || 0);
+    if (data.clientRequest && clientUserId) {
+      await lockClientRequests(client, clientUserId);
+      const bookingDate = resolveRollingPersianDateKey(data.bookingDate || data.booking_date || data.date || "");
+      const time = parseBookingTime(String(data.time ?? ""));
+      if (bookingDate && time) {
+        const same = await findIdenticalArtistRequest(client, {
+          artistUserId,
+          clientUserId,
+          bookingDate,
+          time,
+          service: data.service || ""
+        });
+        if (same) return { ok: true, booking: same, duplicate: true };
+      }
+      if (await openRequestLimitReached(client, clientUserId, { kind: "artist", id: artistUserId })) {
+        return { ok: false, error: TOO_MANY_OPEN_MESSAGE, code: TOO_MANY_OPEN_CODE };
+      }
+    }
+    return addArtistBookingInTx(artistUserId, data, client);
+  });
 }
 
 /** Full booking snapshot, camelCased. Live status — callers should re-fetch, never cache. */
@@ -851,7 +917,7 @@ export async function getPublicArtist(userId, viewerUserId = null) {
  * privacy-filter-after-fetch tradeoff, same why-not-created_at note).
  * Cursors on users.id, artists' own primary key.
  */
-export async function listArtists({ cursor, limit } = {}) {
+export async function listArtists({ cursor, limit, maxLimit = 50 } = {}) {
   const db = await getDb();
   const params = [];
   let where = "type = 'artist'";
@@ -860,7 +926,7 @@ export async function listArtists({ cursor, limit } = {}) {
     where += ` AND id < $${params.length}`;
   }
   let limitClause = "";
-  const pageSize = limit ? Math.min(Math.max(Number(limit) || 20, 1), 50) : null;
+  const pageSize = limit ? Math.min(Math.max(Number(limit) || 20, 1), maxLimit) : null;
   if (pageSize) {
     params.push(pageSize + 1);
     limitClause = `LIMIT $${params.length}`;
@@ -947,7 +1013,7 @@ export async function cancelArtistBookingByClient(id, client) {
   if (until !== null && until <= 0) return { ok: false, error: "past" };
   // Conditional on it still being active: the sweep or the artist may have closed it since the read above.
   const changed = await run(db, `
-    UPDATE artist_bookings SET status = 'لغو', updated_at = CURRENT_TIMESTAMP
+    UPDATE artist_bookings SET status = 'لغو', cancelled_by = 'client', proposal_date = '', proposal_time = '', proposal_at = NULL, updated_at = CURRENT_TIMESTAMP
     WHERE id = $1 AND status IN ('تازه', 'درخواست', 'تایید', 'تایید شده')
   `, [id]);
   if (!changed.rowCount) return { ok: false, error: "inactive" };

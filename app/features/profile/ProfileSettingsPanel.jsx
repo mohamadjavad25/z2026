@@ -28,6 +28,8 @@ import { APP_DOWNLOADS_OPEN } from "../landing/constants";
 import { useThemePreference } from "../../shared/lib/useThemePreference";
 import { playSound } from "../../shared/lib/sounds";
 import { openSupport } from "../support";
+import { ExitPlanPanel } from "../exit/ExitPlanPanel";
+import { CANCEL_ALL_AND_TEXT } from "../../shared/lib/providerRules";
 
 const DELETE_CONFIRM_WORD = "حذف";
 
@@ -39,10 +41,12 @@ const DELETE_CONFIRM_WORD = "حذف";
  * preserved). Requires literally typing "حذف" before the real action is
  * even clickable.
  */
-function DeleteAccountConfirm({ onConfirm, onCancel, busy, error }) {
+function DeleteAccountConfirm({ onConfirm, onCancel, busy, error, exit = null, onExitPlan, onNotice }) {
   const [typed, setTyped] = useState("");
   const [password, setPassword] = useState("");
   const matches = typed.trim() === DELETE_CONFIRM_WORD && password.length > 0;
+  // A salon or artist with confirmed bookings: the list of what stands in the way (owner's rules of 2026-10-22).
+  const stuck = Boolean(exit?.plan && (exit.plan.blocked || exit.plan.needsChoice));
   return (
     <div className="neoSettingsDeleteConfirm" role="alertdialog" aria-label="تایید حذف حساب">
       <div className="neoSettingsDeleteConfirmHead">
@@ -68,12 +72,24 @@ function DeleteAccountConfirm({ onConfirm, onCancel, busy, error }) {
         disabled={busy}
       />
       {error ? <p className="neoSettingsDeleteConfirmError">{error}</p> : null}
+      {exit?.plan ? (
+        <ExitPlanPanel
+          plan={exit.plan}
+          scope="account"
+          message={exit.message}
+          busy={busy}
+          onPlan={onExitPlan}
+          onNotice={onNotice}
+          onConfirm={matches ? ({ cancelAll }) => onConfirm(password, { cancelAll }) : null}
+        />
+      ) : null}
+      {exit?.plan && exit.plan.needsChoice && !matches ? <p className="neoSettingsDeleteConfirmError">برای «{CANCEL_ALL_AND_TEXT}» اول کلمهٔ «{DELETE_CONFIRM_WORD}» و رمزت را بنویس.</p> : null}
       <div className="neoSettingsDeleteConfirmActions">
         <button type="button" onClick={onCancel} disabled={busy}>
           <X size={15} />
           انصراف
         </button>
-        <button type="button" className="is-danger" disabled={!matches || busy} onClick={() => onConfirm(password)}>
+        <button type="button" className="is-danger" disabled={!matches || busy || stuck} onClick={() => onConfirm(password)}>
           <Trash2 size={15} />
           {busy ? "در حال حذف…" : "تایید حذف حساب"}
         </button>
@@ -283,10 +299,11 @@ export function ArtistBookingSettings({ profileSettings, onToggle }) {
 }
 
 /** Support, legal pages, sign-out and account deletion. Always the last section. */
-export function AccountSettings({ onLogout, onDeleteAccount }) {
+export function AccountSettings({ onLogout, onDeleteAccount, onNotice }) {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [deleteError, setDeleteError] = useState("");
+  const [deleteExit, setDeleteExit] = useState(null);
 
   return (
     <>
@@ -307,17 +324,26 @@ export function AccountSettings({ onLogout, onDeleteAccount }) {
           <DeleteAccountConfirm
             busy={deleteBusy}
             error={deleteError}
+            exit={deleteExit}
+            onExitPlan={(plan) => setDeleteExit((current) => ({ ...(current || {}), plan }))}
+            onNotice={onNotice}
             onCancel={() => {
               setDeleteConfirmOpen(false);
               setDeleteError("");
+              setDeleteExit(null);
             }}
-            onConfirm={async (password) => {
+            onConfirm={async (password, options) => {
               setDeleteBusy(true);
               setDeleteError("");
-              const result = await onDeleteAccount(password);
+              const result = await onDeleteAccount(password, options);
               setDeleteBusy(false);
               if (result && result.ok === false) {
-                setDeleteError(result.error || "رمز عبور اشتباه است.");
+                if (result.plan) {
+                  // Confirmed bookings stand in the way: show them (the account is not deleted).
+                  setDeleteExit({ plan: result.plan, message: result.error });
+                } else {
+                  setDeleteError(result.error || "رمز عبور اشتباه است.");
+                }
               }
             }}
           />

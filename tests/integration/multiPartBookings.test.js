@@ -349,12 +349,14 @@ describe("salon offers a client a new time", () => {
     });
     expect(created.status).toBe(201);
     const id = created.payload.data.booking.id;
-    // Approved first, then moved: the confirmed time is what the client sees as before.
+    // Approved first, then moved: a CONFIRMED booking is never moved on the salon's word alone (owner's rules of
+    // 2026-10-22). The new time is a proposal, and the confirmed time stays what the client has until they accept.
     expect((await ctx.salonClient.patch("/api/salon-bookings", { id, status: "تایید شده" })).ok).toBe(true);
     const moved = await ctx.salonClient.patch("/api/salon-bookings", { id, time: "11:00" });
-    expect(moved.payload.data.booking.status).toBe(AWAITING);
-    // A change that does not touch the time does not ask again.
-    expect((await ctx.salonClient.patch("/api/salon-bookings", { id, staff: "" })).payload.data.booking.status).toBe(AWAITING);
+    expect(moved.payload.data.proposal).toBe(true);
+    expect(moved.payload.data.booking.status).toBe("تایید شده");
+    expect(moved.payload.data.booking.time).toBe("10:00");
+    expect(moved.payload.data.booking.proposal_time).toBe("11:00");
     expect((await ctx.clientClient.post(`/api/salon-bookings/${id}/cancel`, {})).ok).toBe(true);
     expect((await clientRow(ctx, id)).status).toBe("لغو");
   });
@@ -421,9 +423,14 @@ describe("the system shares the work between artists", () => {
     return { ...ctx, second };
   }
 
-  const bookManicure = (ctx, day, time, phone) => ctx.clientClient.post("/api/salon-bookings", {
-    salonUserId: ctx.salon.user.id, service: "مانیکور ویزیت", bookingDate: day, time, client: ctx.client.user.name, phone
-  });
+  // Each call is a different customer (own account): the same account asking twice for the same thing would be merged.
+  const bookManicure = async (ctx, day, time, phone) => {
+    const api = createClient();
+    const customer = await registerUser(api, { type: "client", name: `Customer ${phone}` });
+    return api.post("/api/salon-bookings", {
+      salonUserId: ctx.salon.user.id, service: "مانیکور ویزیت", bookingDate: day, time, client: customer.user.name, phone: customer.phone
+    });
+  };
 
   it("gives a client's single-service request to a free artist, so two artists take two clients at once", async () => {
     const ctx = await setupTwoNail();
@@ -435,7 +442,9 @@ describe("the system shares the work between artists", () => {
     expect([first.payload.data.booking.staff, second.payload.data.booking.staff].sort())
       .toEqual([ctx.nail.staff.name, ctx.second.staff.name].sort());
     // Each request went into that artist's own calendar.
-    expect((await myVisitShare(ctx.second, ctx)).map((b) => b.time)).toEqual(["10:00"]);
+    const secondCalendar = (await ctx.second.client.get("/api/artist/me")).payload.data.bookings
+      .filter((b) => b.booking_date === day && !["لغو", "منقضی شده"].includes(b.status));
+    expect(secondCalendar.map((b) => b.time)).toEqual(["10:00"]);
 
     // Both nail artists are busy now: a third request at that time is refused, and not offered.
     const third = await bookManicure(ctx, day, "10:00", "09120000203");

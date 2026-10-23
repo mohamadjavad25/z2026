@@ -9,7 +9,7 @@ import { createVisitBookerController } from "./visitBookerController";
 import { VisitWizard } from "./VisitWizard";
 import { WaitChoice } from "./WaitChoice";
 import { PlanList, TimesList } from "./visitBookerParts";
-import { MAX_VISIT_SERVICES, clockText, missingText, visitSummaryText } from "./visitBookerModel";
+import { MAX_VISIT_PEOPLE, clockText, maxServicesFor, missingText, visitSummaryText } from "./visitBookerModel";
 
 const ROLE_COPY = {
   client: { submit: "ارسال درخواست", busy: "در حال ارسال…" },
@@ -41,7 +41,8 @@ export function VisitBooker({
   onDone,
   onClose,
   onAddService,
-  onEditProfile
+  onEditProfile,
+  contactPhone = ""
 }) {
   return (
     <ProfileSheet
@@ -65,13 +66,14 @@ export function VisitBooker({
         onDone={onDone}
         onAddService={onAddService}
         onEditProfile={onEditProfile}
+        contactPhone={contactPhone}
         onClose={onClose}
       />
     </ProfileSheet>
   );
 }
 
-function VisitBookerForm({ role, title, subtitle, services, days, initial, customers, source, onSubmit, onDone, onAddService, onEditProfile, onClose }) {
+function VisitBookerForm({ role, title, subtitle, services, days, initial, customers, source, onSubmit, onDone, onAddService, onEditProfile, contactPhone, onClose }) {
   // The controller lives as long as the sheet is open; what the parent passes later (fresh lists,
   // new closures) is read through refs so it never has to be recreated.
   const latest = useRef({});
@@ -111,7 +113,7 @@ function VisitBookerForm({ role, title, subtitle, services, days, initial, custo
   const { services: frozenServices, days: frozenDays } = frozen;
   const copy = ROLE_COPY[role] || ROLE_COPY.salon;
   const day = frozenDays.find((item) => item.value === state.day);
-  const summary = visitSummaryText(state.picked);
+  const summary = visitSummaryText(state.picked, state.people);
   const { readiness } = state;
   const checking = readiness.reason === "checking";
   const phoneMissing = role === "client" && !String(state.phone || "").trim();
@@ -216,7 +218,7 @@ function VisitBookerForm({ role, title, subtitle, services, days, initial, custo
               </div>
               <p className="vbSummary" aria-live="polite">
                 {state.limitHit
-                  ? `حداکثر ${toPersianDigits(MAX_VISIT_SERVICES)} خدمت در یک نوبت.`
+                  ? `حداکثر ${toPersianDigits(maxServicesFor(state.people))} خدمت در یک نوبت${state.people > 1 ? ` برای ${toPersianDigits(state.people)} نفر` : ""}.`
                   : summary || "یک یا چند خدمت را انتخاب کن."}
               </p>
             </>
@@ -228,6 +230,28 @@ function VisitBookerForm({ role, title, subtitle, services, days, initial, custo
           )}
         </section>
 
+        {frozenServices.length ? (
+          <section className="vbSection vbPeople" aria-label="برای چند نفر؟">
+            <p className="vbPeopleTitle" id="vb-people-label">برای چند نفر؟</p>
+            <div className="vbChips" role="group" aria-labelledby="vb-people-label">
+              {Array.from({ length: MAX_VISIT_PEOPLE }, (_, index) => index + 1).map((count) => (
+                <button
+                  type="button"
+                  key={count}
+                  className={`vbService vbCount${state.people === count ? " is-on" : ""}`}
+                  aria-pressed={state.people === count}
+                  onClick={() => controller.setPeople(count)}
+                >
+                  {toPersianDigits(count)}
+                </button>
+              ))}
+            </div>
+            {state.people > 1 && state.chain ? (
+              <p className="vbSummary">{toPersianDigits(state.people)} نوبت پشت‌سرهم. <button type="button" className="vbLink" onClick={() => controller.setPeople(state.people)}>با هم، هم‌زمان</button></p>
+            ) : null}
+          </section>
+        ) : null}
+
         <section className="vbSection" aria-label="روز">
           <div className="vbChips" role="group" aria-label="روز">
             {frozenDays.map((item) => (
@@ -235,7 +259,6 @@ function VisitBookerForm({ role, title, subtitle, services, days, initial, custo
                 type="button"
                 key={item.value}
                 aria-pressed={state.day === item.value}
-                aria-disabled={item.closed || undefined}
                 className={`vbDay${state.day === item.value ? " is-on" : ""}${item.closed ? " is-closed" : ""}`}
                 onClick={() => controller.setDay(item.value)}
               >
@@ -247,7 +270,15 @@ function VisitBookerForm({ role, title, subtitle, services, days, initial, custo
         </section>
 
         <section className="vbSection vbTimesSection" aria-label="ساعت">
-          <TimesList state={state} role={role} onPick={(time) => controller.setTime(time)} onRetry={() => controller.retryTimes()} />
+          <TimesList
+            state={state}
+            role={role}
+            phone={contactPhone}
+            onPick={(time) => controller.setTime(time)}
+            onRetry={() => controller.retryTimes()}
+            onAhead={() => controller.goToAhead()}
+            onChain={() => controller.chainPeople()}
+          />
         </section>
 
         {state.time ? (
@@ -272,6 +303,26 @@ function VisitBookerForm({ role, title, subtitle, services, days, initial, custo
       </div>
 
       <footer className="vbFoot">
+        {state.conflict ? (
+          <div className="vbConflict" role="alert">
+            {state.conflict.next ? (
+              <>
+                <p>این ساعت همین حالا گرفته شد. ساعت خالیِ بعدی {clockText(state.conflict.next)} است. می‌خواهی همین را بفرستم؟</p>
+                <div className="vbConflictActions">
+                  <button type="button" className="vbAction is-primary" disabled={state.submitting} onClick={() => void controller.acceptConflict()}>بله، ارسال</button>
+                  <button type="button" className="vbAction" onClick={() => controller.dismissConflict()}>ساعت دیگر</button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p>این ساعت همین حالا گرفته شد و برای این روز ساعت خالی دیگری نمانده است. روز دیگری را انتخاب کن.</p>
+                <div className="vbConflictActions">
+                  <button type="button" className="vbAction" onClick={() => controller.dismissConflict()}>باشه</button>
+                </div>
+              </>
+            )}
+          </div>
+        ) : null}
         {hint ? <p className="vbHint" role="alert">{hint}</p> : null}
         <button
           type="submit"

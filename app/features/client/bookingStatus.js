@@ -97,7 +97,7 @@ export function requestWaitNote(booking, now = new Date()) {
   if (!["درخواست", "تازه"].includes(booking?.status)) return "";
   const who = booking.bookingSource === "artist" ? "آرتیست" : "سالن";
   const windowMinutes = bookingWaitMinutes(booking);
-  if (windowMinutes === null) return `${who} تا قبل از نوبت وقت دارد جواب بدهد. اگر دیر شد، خودت لغوش کن.`;
+  if (windowMinutes === null) return `${who} تا قبل از نوبت (حداکثر ۲۴ ساعت) وقت دارد جواب بدهد. اگر دیر شد، خودت لغوش کن.`;
   const deadline = requestDeadlineLabel(booking.created_at || booking.createdAt, booking.booking_date || booking.date, booking.time, { now, windowMinutes });
   if (!deadline) return "";
   const backup = booking.fallback_name || "";
@@ -110,4 +110,19 @@ export function requestWaitNote(booking, now = new Date()) {
 export function movedToName(booking) {
   if (!booking?.moved_to_booking_id) return "";
   return booking.moved_to_name || (booking.bookingSource === "artist" ? "آرتیست دوم" : "سالن دوم");
+}
+
+/**
+ * The provider's open proposal on this CONFIRMED booking (another time and/or artist), or null. The booking itself keeps
+ * its original time until the client accepts (owner's rules of 2026-10-22).
+ */
+export function openProposalOf(booking) {
+  if (!booking?.proposal || !["تایید شده", "تایید"].includes(booking.status || "")) return null;
+  if (booking.proposal.expiresAt && new Date(booking.proposal.expiresAt).getTime() <= Date.now()) return null;
+  return booking.proposal;
+}
+
+/** The place no longer exists on frfro (its salon or artist left, or it was removed). */
+export function isPlaceGone(booking) {
+  return Boolean(booking?.placeGone);
 }

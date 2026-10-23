@@ -1,8 +1,11 @@
 import { notFound } from "next/navigation";
+import { PageUnavailable } from "../../components/PageUnavailable";
+import { suspendedAccountIds } from "../../lib/db/repos/users.js";
 import { ensureDb } from "../../lib/db/connection.js";
 import * as artists from "../../lib/db/repos/artists.js";
 import { ArtistPublicPageClient } from "./ArtistPublicPageClient";
 import { getSiteUrl } from "../../lib/siteUrl.js";
+import { createShortCache } from "../../lib/shortCache.js";
 
 export const runtime = "nodejs";
 
@@ -10,10 +13,17 @@ export const runtime = "nodejs";
 // app/layout.jsx's metadataBase — never hardcode the domain a second time.
 const SITE_URL = getSiteUrl();
 
-async function loadArtist(id) {
+// Opened by many visitors at once (a shared link, a QR code): the page builds from this answer, and both
+// generateMetadata and the page itself ask for it, so it is computed once per few seconds instead of twice per visit.
+const publicCache = createShortCache({ ttlMs: 5000, max: 300 });
+const loadArtist = (id) => publicCache.get(String(id), () => loadArtistFresh(id));
+
+async function loadArtistFresh(id) {
   const userId = Number(id);
   if (!Number.isFinite(userId)) return null;
   await ensureDb();
+  // A suspended account has no public page: `{ unavailable: true }` makes the page say so in one sentence.
+  if ((await suspendedAccountIds([userId])).has(userId)) return { unavailable: true };
   const artist = await artists.getPublicArtist(userId, null);
   if (!artist) return null;
   // An artist switched to "خصوصی" in تنظیمات → ویترین عمومی آرتیست must stay
@@ -30,6 +40,7 @@ async function loadArtist(id) {
 export async function generateMetadata({ params }) {
   const { id } = await params;
   const artist = await loadArtist(id);
+  if (artist?.unavailable) return { title: "صفحه در دسترس نیست | frfro", robots: { index: false } };
   if (!artist) {
     return { title: "آرتیست پیدا نشد | frfro" };
   }
@@ -84,6 +95,7 @@ function buildArtistJsonLd(artist, canonicalUrl) {
 export default async function ArtistPublicPage({ params }) {
   const { id } = await params;
   const artist = await loadArtist(id);
+  if (artist?.unavailable) return <PageUnavailable />;
   if (!artist) {
     notFound();
   }

@@ -1,4 +1,4 @@
-import { getDb, all, get, run } from "../connection.js";
+import { withTransaction, getDb, all, get, run } from "../connection.js";
 import { uploadImageDataUrl, deleteStoredImage } from "../../storage.js";
 import { nameKey } from "../../businessName.js";
 
@@ -19,6 +19,15 @@ const USER_COLUMNS = `
 export async function getUserById(id, runner = null) {
   const db = runner || (await getDb());
   return (await get(db, `SELECT ${USER_COLUMNS} FROM users WHERE id = $1`, [id])) || null;
+}
+
+/** Of these account ids, the suspended ones (an operator switched them off). One batch, for directory lists. */
+export async function suspendedAccountIds(userIds) {
+  const ids = [...new Set((userIds || []).map(Number).filter((id) => Number.isInteger(id) && id > 0))];
+  if (!ids.length) return new Set();
+  const db = await getDb();
+  const rows = await all(db, "SELECT id FROM users WHERE id = ANY($1::int[]) AND suspended_at IS NOT NULL", [ids]);
+  return new Set(rows.map((row) => Number(row.id)));
 }
 
 /** Profile fields only -- avatar comes back as a present/absent flag, never the base64 bytes. */
@@ -61,14 +70,36 @@ export async function isBusinessNameTaken(name, excludeUserId = 0, runner = null
   return rows.some((row) => nameKey(row.name) === key);
 }
 
+/**
+ * Runs `fn(client)` while holding the lock every salon/artist name check-and-write takes. Without it two sign-ups with the
+ * same name both saw "free" and both won (8 of 20 at once in the stress test). `client` is the transaction's connection:
+ * run the check and the write on it, so the second caller waits, then sees the first one's name.
+ */
+export function withBusinessNameLock(fn) {
+  return withTransaction(null, async (client) => {
+    await run(client, "SELECT pg_advisory_xact_lock(hashtextextended('business-name', 0))");
+    return fn(client);
+  });
+}
+
+/** Gives a salon or artist a new name if no other salon or artist holds it (same rule as sign-up). false = taken. */
+export async function renameBusiness(userId, name) {
+  return withBusinessNameLock(async (client) => {
+    if (await isBusinessNameTaken(name, userId, client)) return false;
+    await run(client, "UPDATE users SET name = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2", [name, userId]);
+    await run(client, "UPDATE salons SET name = $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2", [name, userId]);
+    return true;
+  });
+}
+
 /** Records that the account proved it owns its phone number with an SMS code (see app/lib/db/clientMatch.js). */
 export async function markPhoneVerified(userId) {
   const db = await getDb();
   await run(db, "UPDATE users SET phone_verified_at = COALESCE(phone_verified_at, NOW()) WHERE id = $1", [userId]);
 }
 
-export async function createUser({ phone, passwordHash, type, name, area, service, email, avatar, poster, experienceYears, managerName }) {
-  const db = await getDb();
+export async function createUser({ phone, passwordHash, type, name, area, service, email, avatar, poster, experienceYears, managerName }, runner = null) {
+  const db = runner || (await getDb());
   const info = await run(db, `
     INSERT INTO users (phone, password_hash, type, name, area, service, email, avatar, poster, experience_years, manager_name)
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
@@ -168,6 +199,8 @@ export async function updateUser(id, data) {
       poster = CASE WHEN $9 THEN $10 ELSE poster END, poster_url = CASE WHEN $9 THEN $11 ELSE poster_url END,
       avatar_position = $12, poster_position = $13, experience_years = $14, manager_name = $15, password_hash = $16,
       geo_lat = $18, geo_lng = $19, address_detail = $20,
+      -- A new number is only "verified" when the caller proved it with a code; the old number's proof never carries over.
+      phone_verified_at = CASE WHEN $21 THEN CASE WHEN $22 THEN NOW() ELSE NULL END ELSE phone_verified_at END,
       updated_at = CURRENT_TIMESTAMP
     WHERE id = $17
   `, [
@@ -175,7 +208,8 @@ export async function updateUser(id, data) {
     avatar.change, avatar.blob, avatar.url,
     poster.change, poster.blob, poster.url,
     next.avatar_position, next.poster_position, next.experience_years, next.manager_name, next.password_hash, id,
-    geo.lat, geo.lng, next.address_detail
+    geo.lat, geo.lng, next.address_detail,
+    next.phone !== current.phone, data.phoneVerified === true
   ]);
 
   // The replaced/removed pictures no longer need their Storage copies.
@@ -224,4 +258,29 @@ export async function isFollowing(followerId, targetId, runner = null) {
   return Boolean(
     await get(db, "SELECT 1 FROM follows WHERE follower_user_id = $1 AND target_user_id = $2", [followerId, targetId])
   );
+}
+
+/**
+ * Deletes an account for good, and first cuts its phone number off every booking it left behind (owner's decision
+ * 2026-10-22): the account's own bookings, and the walk-ins a salon or artist typed for that number, lose the
+ * number (the name and the visit stay for the salon's own records). So whoever takes the number over later sees
+ * nothing of the previous person's bookings. Returns the deleted row ({ id, phone, name, type }) or null.
+ */
+export async function deleteUserDetachingPhone(id) {
+  const userId = Number(id);
+  return withTransaction(null, async (client) => {
+    const row = await get(client, "SELECT id, phone, name, type, phone_verified_at FROM users WHERE id = $1 FOR UPDATE", [userId]);
+    if (!row) return null;
+    // Walk-ins typed for the bare number are cut off only when this account had proved it owns the number (SMS code):
+    // an unverified sign-up with someone else's number must not be able to wipe the real person's bookings by deleting itself.
+    const key = row.phone_verified_at ? String(row.phone || "").trim() : "";
+    for (const [table, column] of [["salon_bookings", "phone"], ["artist_bookings", "client_phone"]]) {
+      await run(client, `
+        UPDATE ${table} SET ${column} = ''
+        WHERE client_user_id = $1 OR ($2 <> '' AND client_user_id IS NULL AND phone_normalized = frfro_phone_key($2))
+      `, [userId, key]);
+    }
+    await run(client, "DELETE FROM users WHERE id = $1", [userId]);
+    return row;
+  });
 }

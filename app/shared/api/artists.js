@@ -1,8 +1,20 @@
 import { apiFetch, apiJson } from "./client";
 
-/** GET /api/artists → { data: { artists } } (public directory) */
+// 100 pages of 100: a directory past 10,000 needs a real "load more" screen, which this app does not have yet.
+const DIRECTORY_MAX_PAGES = 100;
+
+/** GET /api/artists → { data: { artists } } (public directory). Follows nextCursor, see getSalons() in ./salons.js. */
 export async function getArtists() {
-  return apiJson("/api/artists");
+  let result = await apiJson("/api/artists");
+  const all = [];
+  for (let page = 0; page < DIRECTORY_MAX_PAGES; page += 1) {
+    if (!result.ok) return page === 0 ? result : { ...result, ok: true, data: { artists: all } };
+    all.push(...(result.data?.artists || []));
+    const next = result.data?.nextCursor;
+    if (!next) return { ...result, data: { ...result.data, artists: all, nextCursor: null } };
+    result = await apiJson(`/api/artists?cursor=${encodeURIComponent(next)}`);
+  }
+  return { ...result, ok: true, data: { artists: all, nextCursor: null } };
 }
 
 /** GET /api/artists/:id → { data: { artist } } (public profile; viewer session optional) */

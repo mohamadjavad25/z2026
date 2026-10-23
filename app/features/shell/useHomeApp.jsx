@@ -1,8 +1,11 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { onBookElsewhere } from "../booking/rebookBus";
 import { clientBookingKey } from "../client/bookingStatus";
 import { useAuthSession } from "../auth";
 import { usePostActivity } from "../posts";
 import { useOwnerFollowers, useSalonDirectory, useSalonWorkspace } from "../salons";
+import { getVisibleSalonServiceItems } from "../salons/useSalonDirectory";
+import { useContinueService } from "../follow/useContinueService";
 import { useArtistWorkspace } from "../artist";
 import { apiFetch } from "../../shared/api/client";
 import { connectTo } from "../../shared/api/connections";
@@ -40,7 +43,8 @@ export function useHomeApp() {
     if (openTarget) {
       // The public page may have stored the name already; a bare link (a desktop QR) has only the id.
       const stored = peekPendingOpen();
-      rememberPendingOpen({ ...openTarget, name: stored?.id === openTarget.id ? stored.name : "" });
+      // Keep what the guest had ticked on the public page (name and services) when the same place is opened by id.
+      rememberPendingOpen({ ...openTarget, name: stored?.id === openTarget.id ? stored.name : "", services: stored?.id === openTarget.id ? stored.services : [] });
     }
     window.history.replaceState({}, "", window.location.pathname);
   }, []);
@@ -59,6 +63,7 @@ export function useHomeApp() {
       // no pending join
     }
   }, []);
+  const continueServiceRef = useRef(null);
   const refreshSavedPostsRef = useRef(null);
   const refreshArtistWorkspaceRef = useRef(null);
   const notifyArtistBookingCreatedRef = useRef(null);
@@ -150,6 +155,12 @@ export function useHomeApp() {
       // the page still opens; connecting can be done there
     }
     if (place.type !== "artist") setActiveTab("salons");
+    // The guest had ticked a service on the public page: open the page plain and let it open the booking form on that service.
+    if (target.services?.length && place.type !== "artist") {
+      continueServiceRef.current?.begin(place.id, target.services);
+      c.openConnectedProfile?.(place, null);
+      return;
+    }
     c.openConnectedProfile?.(place, { services: [], label: "همه خدمات" });
   }
 
@@ -311,11 +322,13 @@ export function useHomeApp() {
     refreshClientBookings,
     cancelClientBooking,
     answerClientTimeOffer,
+    answerClientProposal,
     resetSalonClient,
     toggleFollowSalon,
     toggleSaveSalon,
     shareSalonProfile,
     openSalonClientBooking,
+    openSalonClientBookingPrefilled,
     closeSalonClientBooking,
     submitSalonClientVisit
   } = useSalonDirectory({
@@ -326,6 +339,19 @@ export function useHomeApp() {
     onLinkedArtistBooked: (id) => notifyArtistBookingCreatedRef.current?.(id),
     onClientBooked
   });
+  // «همین نوبت را جای دیگر بگیر» (features/client/ExpiredRequestActions): open the chosen place with the request filled in.
+  const prefilledOpenerRef = useRef(null);
+  prefilledOpenerRef.current = openSalonClientBookingPrefilled;
+  useEffect(() => onBookElsewhere(async ({ place, prefill }) => {
+    if (!place?.id) return;
+    setActiveTab("salons");
+    // The form opens only once the place's own page (with its services) is loaded: the form keeps the services it starts with.
+    await authCascadeRef.current.openConnectedProfile?.({ ...place, type: "salon" });
+    prefilledOpenerRef.current?.(prefill);
+  }), []);
+  // A guest's ticked service survives sign-up: the salon page opens with the booking form on it (features/follow/useContinueService).
+  const continueService = useContinueService({ selectedSalon, openBooking: openSalonClientBooking, getServices: getVisibleSalonServiceItems });
+  continueServiceRef.current = continueService;
   onClientBookedRef.current = (booking, { price = "", items = [] } = {}) => {
     if (createdProfile?.type !== "client" || !booking?.id) return;
     const key = clientBookingKey(booking);
@@ -775,12 +801,14 @@ export function useHomeApp() {
     isSavedSelectedSalon,
     cancelClientBooking,
     answerClientTimeOffer,
+    answerClientProposal,
     toggleFollowSalon,
     toggleSaveSalon,
     shareSalonProfile,
     openSalonClientBooking,
     closeSalonClientBooking,
     submitSalonClientVisit,
+    continueService,
     unseenClientBookingCount,
     markClientBookingsSeen,
     artistSocialStats,

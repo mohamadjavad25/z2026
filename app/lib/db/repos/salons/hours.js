@@ -5,6 +5,9 @@ export async function ensureSalonHours(salonUserId, runner = null) {
   const db = runner || (await getDb());
   const has = await get(db, "SELECT id FROM salon_hours WHERE salon_user_id = $1 LIMIT 1", [salonUserId]);
   if (has) return;
+  // Only a real salon gets opening hours: any other id (a client or artist, or one that does not exist) used to get
+  // seven rows made for it, or a foreign-key 500, just by being named in a booking request.
+  if (!(await get(db, "SELECT 1 FROM salons WHERE user_id = $1", [salonUserId]))) return;
   for (const h of defaultHours) {
     await run(db, `
       INSERT INTO salon_hours (salon_user_id, day, open_time, close_time, capacity, active)

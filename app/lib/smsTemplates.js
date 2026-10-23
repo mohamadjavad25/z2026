@@ -34,10 +34,38 @@ export const SMS_TEMPLATES = {
   },
   booking_cancelled: {
     label: "لغو نوبت از طرف مشتری (به سالن یا آرتیست)",
-    env: "BOOKING_CANCELLED",
+    env: "BOOKING_CLIENT_CANCELLED",
     kavenegar: (v) => ({ token: v.time, token10: v.day, token20: v.who }),
     faraz: (v) => ({ who: v.who, day: v.day, time: v.time }),
     preview: (v) => `فرفرو: ${v.who} نوبت ${v.day} ساعت ${v.time} را لغو کرد.`
+  },
+  booking_cancelled_by_provider: {
+    label: "لغو نوبت تأییدشده از طرف سالن یا آرتیست (به مشتری)",
+    env: "BOOKING_CANCELLED",
+    kavenegar: (v) => ({ token: v.time, token10: v.day, token20: v.who }),
+    faraz: (v) => ({ who: v.who, day: v.day, time: v.time }),
+    preview: (v) => `فرفرو: ${v.who} نوبتت (${v.day} ساعت ${v.time}) را لغو کرد. بابت این اتفاق متأسفیم. می‌توانی از فرفرو نوبت دیگری بگیری.`
+  },
+  booking_cancelled_gone: {
+    label: "لغو نوبت چون سالن یا آرتیست از فرفرو رفته (به مشتری)",
+    env: "BOOKING_GONE",
+    kavenegar: (v) => ({ token: v.time, token10: v.day, token20: v.who }),
+    faraz: (v) => ({ who: v.who, day: v.day, time: v.time }),
+    preview: (v) => `فرفرو: ${v.who} دیگر در فرفرو نیست و نوبتت (${v.day} ساعت ${v.time}) لغو شد. می‌توانی از فرفرو نوبت دیگری بگیری.`
+  },
+  booking_time_proposal: {
+    label: "پیشنهاد ساعت دیگر برای نوبت تأییدشده (به مشتری)",
+    env: "BOOKING_PROPOSAL",
+    kavenegar: (v) => ({ token: v.from, token2: v.to, token10: v.who }),
+    faraz: (v) => ({ who: v.who, from: v.from, to: v.to }),
+    preview: (v) => `فرفرو: ${v.who} می‌خواهد نوبتت را از ${v.from} به ${v.to} ببرد. قبول می‌کنی؟ جوابت را در فرفرو بده؛ تا جواب ندهی، ساعت قبلی سر جایش است.`
+  },
+  booking_handover_proposal: {
+    label: "پیشنهاد آرتیست دیگر برای نوبت تأییدشده (به مشتری)",
+    env: "BOOKING_HANDOVER",
+    kavenegar: (v) => ({ token: v.time, token10: v.day, token20: v.who }),
+    faraz: (v) => ({ who: v.who, day: v.day, time: v.time, artist: v.artist }),
+    preview: (v) => `فرفرو: ${v.who} می‌خواهد نوبتت (${v.day} ساعت ${v.time}) را به ${v.artist} بدهد. قبول می‌کنی؟ جوابت را در فرفرو بده؛ تا جواب ندهی، همه‌چیز سر جایش است.`
   },
   billing_receipt: {
     label: "رسید پرداخت اشتراک",

@@ -58,7 +58,14 @@ export function uniquePhone() {
   }
 }
 
-export async function registerUser(client, { type = "client", name = "Test User", password = "testpass123", phone: fixedPhone, verified = false } = {}) {
+/**
+ * The services most older tests book (a client may only book what is on the salon's or artist's own menu, decision
+ * 2026-10-21). `registerUser(..., { menu: true })` puts them on a new salon's or artist's menu, each an hour long
+ * (what an unlisted service used to default to); `menu: [[name, duration], ...]` names its own.
+ */
+export const LEGACY_MENU = [["کوتاهی مو", "60 دقیقه"], ["مانیکور", "60 دقیقه"], ["ناخن", "60 دقیقه"], ["رنگ مو", "60 دقیقه"]];
+
+export async function registerUser(client, { type = "client", name = "Test User", password = "testpass123", phone: fixedPhone, verified = false, menu = false } = {}) {
   // Files run in separate module registries, so two of them can draw the same random
   // number; a generated phone that is already taken is retried with a fresh one.
   // Salon and artist names are one per account (app/lib/businessName.js) and every file shares one database,
@@ -70,7 +77,15 @@ export async function registerUser(client, { type = "client", name = "Test User"
     // as a real sign-up does once codes are required.
     const otpProof = verified ? await phoneProof(phone) : undefined;
     const res = await client.post("/api/auth/register", { phone, password, type, name: tryName, otpProof });
-    if (res.ok) return { phone, password, user: res.payload.data.user };
+    if (res.ok) {
+      if (menu && (type === "salon" || type === "artist")) {
+        for (const [serviceName, duration] of menu === true ? LEGACY_MENU : menu) {
+          const made = await client.post(type === "salon" ? "/api/salon-services" : "/api/artist/me", { name: serviceName, price: "100", duration });
+          if (!made.ok) throw new Error(`menu service failed: ${JSON.stringify(made.payload)}`);
+        }
+      }
+      return { phone, password, user: res.payload.data.user };
+    }
     if (res.payload?.code === "name_taken" && attempt < 8) {
       tryName = `${name} ${phone.slice(-6)}`;
       continue;

@@ -555,8 +555,11 @@ describe("how long a client's request waits", () => {
     const c = client(source);
     c.start();
     await flush();
-    expect(c.getState().wait).toBe("open");
-    expect(source.loadBackups).not.toHaveBeenCalled();
+    // one hour is the default (decision 2026-10-21); backups are only asked for once a time is chosen
+    expect(c.getState().wait).toBe("hour");
+    c.setWait("open");
+    await flush();
+    source.loadBackups.mockClear();
     c.setWait("hour");
     await flush();
     expect(source.loadBackups).toHaveBeenCalledWith({ day: "d1", time: "۱۰:۰۰", services: [{ name: "مانیکور", minutes: 45 }] });
@@ -587,7 +590,8 @@ describe("how long a client's request waits", () => {
 
   it("is a client-only choice", async () => {
     const { controller, state } = make();
-    controller.setWait("hour");
-    expect(state().wait).toBe("open");
+    const before = state().wait;
+    controller.setWait(before === "hour" ? "open" : "hour");
+    expect(state().wait).toBe(before);
   });
 });

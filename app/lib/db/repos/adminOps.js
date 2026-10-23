@@ -3,6 +3,7 @@ import { ensureSupportTables } from "./support.js";
 import { deleteStoredImage } from "../../storage.js";
 import { formatPersianDateKey } from "../../../shared/lib/persianCalendar.js";
 import { cancelSalonBooking } from "./salons/bookings.js";
+import { deleteProviderAccount } from "./providerExit.js";
 
 const clamp = (value, min, max, fallback) => Math.min(Math.max(Number(value) || fallback, min), max);
 const likeOf = (term) => {
@@ -14,7 +15,7 @@ const likeOf = (term) => {
 export async function getUserDetail(id) {
   const db = await getDb();
   const user = await get(db, `
-    SELECT id, name, phone, email, type, area, service, manager_name, experience_years, created_at, updated_at, last_seen_at, suspended_at,
+    SELECT id, name, phone, email, type, area, service, manager_name, experience_years, created_at, updated_at, last_seen_at, suspended_at, provider_cancel_count,
            (avatar <> '' OR COALESCE(avatar_url, '') <> '') AS has_avatar
     FROM users WHERE id = $1
   `, [Number(id)]);
@@ -92,9 +93,13 @@ export async function saveUserNote(userId, note, label = "") {
 }
 
 export async function deleteUser(id) {
-  const db = await getDb();
-  const row = await get(db, "DELETE FROM users WHERE id = $1 RETURNING id, phone, name", [Number(id)]);
-  return row || null;
+  // Same as the user deleting their own account: the phone number is cut off the old bookings first. A salon's or
+  // artist's open bookings are cancelled with notice to the clients first («… دیگر در فرفرو نیست»); the admin is not
+  // held back by the 24-hour rule (the admin decides).
+  const row = await get(await getDb(), "SELECT id, phone, name, type FROM users WHERE id = $1", [Number(id)]);
+  if (!row) return null;
+  await deleteProviderAccount({ user: row, byAdmin: true });
+  return row;
 }
 
 export async function listPosts({ q = "", visibility = "", limit = 25, offset = 0 } = {}) {
@@ -175,10 +180,10 @@ export async function userIdsByPhones(phones) {
 }
 
 const BOOKING_LIST = `
-  SELECT 'salon' AS kind, b.id, u.id AS provider_id, u.name AS provider, b.client_user_id, b.client, b.phone, b.service, b.booking_date, b.time, b.duration_minutes, b.status, b.created_at
+  SELECT 'salon' AS kind, b.id, u.id AS provider_id, COALESCE(u.name, 'سالن حذف‌شده') AS provider, b.client_user_id, b.client, b.phone, b.service, b.booking_date, b.time, b.duration_minutes, b.status, b.created_at, b.cancelled_by
     FROM salon_bookings b LEFT JOIN users u ON u.id = b.salon_user_id
   UNION ALL
-  SELECT 'artist', b.id, u.id, u.name, b.client_user_id, b.client_name, b.client_phone, b.service, b.booking_date, b.time, b.duration_minutes, b.status, b.created_at
+  SELECT 'artist', b.id, u.id, COALESCE(u.name, 'آرتیست حذف‌شده'), b.client_user_id, b.client_name, b.client_phone, b.service, b.booking_date, b.time, b.duration_minutes, b.status, b.created_at, b.cancelled_by
     FROM artist_bookings b LEFT JOIN users u ON u.id = b.artist_user_id WHERE b.source_salon_user_id IS NULL
 `;
 export const ACTIVE_BOOKING_STATUSES = ["تازه", "درخواست", "تایید شده", "در انتظار مشتری"];
@@ -187,15 +192,16 @@ export const ACTIVE_BOOKING_STATUSES = ["تازه", "درخواست", "تایی�
  * Salon and artist bookings together (artist rows mirrored from a salon are skipped: they are the same booking), newest first.
  * `when`: today | upcoming | past (by the visit's own date, Tehran calendar). `kind`: salon | artist.
  */
-export async function listBookings({ q = "", status = "", kind = "", when = "", limit = 25, offset = 0 } = {}) {
+export async function listBookings({ q = "", status = "", kind = "", when = "", deleted = false, limit = 25, offset = 0 } = {}) {
   const db = await getDb();
   const like = likeOf(q);
   const stat = String(status || "").slice(0, 40);
   const kd = ["salon", "artist"].includes(kind) ? kind : "";
   const wh = ["today", "upcoming", "past"].includes(when) ? when : "";
   const today = formatPersianDateKey(new Date());
+  // `deleted`: only the bookings of a salon or artist that left frfro (the admin can still open and cancel them).
   const where = `($1 = '' OR client ILIKE $1 OR phone LIKE $1 OR provider ILIKE $1 OR service ILIKE $1) AND ($2 = '' OR status = $2) AND ($3 = '' OR kind = $3)
-    AND ($4 = '' OR ($4 = 'today' AND booking_date = $5) OR ($4 = 'upcoming' AND booking_date > $5) OR ($4 = 'past' AND booking_date < $5))`;
+    AND ($4 = '' OR ($4 = 'today' AND booking_date = $5) OR ($4 = 'upcoming' AND booking_date > $5) OR ($4 = 'past' AND booking_date < $5))${deleted ? " AND provider_id IS NULL" : ""}`;
   const params = [like, stat, kd, wh, today];
   const order = wh === "upcoming" || wh === "today" ? "booking_date ASC, time ASC" : "created_at DESC";
   const [total, rows, statuses] = await Promise.all([
@@ -212,12 +218,12 @@ export async function getBookingDetail(kind, id) {
   const row = kind === "salon"
     ? await get(db, `
         SELECT 'salon' AS kind, b.id, b.salon_user_id AS provider_id, b.client_user_id, b.client AS client_name, b.phone AS client_phone, b.service, b.staff,
-               b.booking_date, b.time, b.duration_minutes, b.status, b.created_at, NULL AS updated_at
+               b.booking_date, b.time, b.duration_minutes, b.status, b.created_at, NULL AS updated_at, b.cancelled_by
         FROM salon_bookings b WHERE b.id = $1`, [Number(id)])
     : kind === "artist"
       ? await get(db, `
           SELECT 'artist' AS kind, b.id, b.artist_user_id AS provider_id, b.client_user_id, b.client_name, b.client_phone, b.service, '' AS staff,
-                 b.booking_date, b.time, b.duration_minutes, b.status, b.created_at, b.updated_at, b.source_salon_user_id
+                 b.booking_date, b.time, b.duration_minutes, b.status, b.created_at, b.updated_at, b.source_salon_user_id, b.cancelled_by
           FROM artist_bookings b WHERE b.id = $1`, [Number(id)])
       : null;
   if (!row) return null;
@@ -247,14 +253,23 @@ export async function cancelBookingAsAdmin(kind, id) {
     const current = await get(db, "SELECT salon_user_id, status FROM salon_bookings WHERE id = $1", [Number(id)]);
     if (!current) return { ok: false, error: "missing" };
     if (!ACTIVE_BOOKING_STATUSES.includes(current.status)) return { ok: false, error: "inactive" };
-    return cancelSalonBooking(Number(id), current.salon_user_id);
+    // A booking whose salon left frfro (an older one, or one a deletion raced with) has no salon to sync: the row alone is closed.
+    if (!current.salon_user_id) {
+      const changed = await run(db, `
+        UPDATE salon_bookings SET status = 'لغو', cancelled_by = 'admin', proposal_date = '', proposal_time = '', proposal_staff = '', proposal_from = '', proposal_at = NULL
+        WHERE id = $1 AND status = ANY($2)
+      `, [Number(id), ACTIVE_BOOKING_STATUSES]);
+      if (!changed.rowCount) return { ok: false, error: "inactive" };
+      return { ok: true, booking: { ...current, status: "لغو" } };
+    }
+    return cancelSalonBooking(Number(id), current.salon_user_id, { cancelledBy: { by: "admin" } });
   }
   if (kind === "artist") {
     const current = await get(db, "SELECT * FROM artist_bookings WHERE id = $1 AND source_salon_user_id IS NULL", [Number(id)]);
     if (!current) return { ok: false, error: "missing" };
     if (current.booking_date && current.booking_date < formatPersianDateKey(new Date())) return { ok: false, error: "past" };
     const changed = await run(db, `
-      UPDATE artist_bookings SET status = 'لغو', updated_at = CURRENT_TIMESTAMP
+      UPDATE artist_bookings SET status = 'لغو', cancelled_by = 'admin', proposal_date = '', proposal_time = '', proposal_at = NULL, updated_at = CURRENT_TIMESTAMP
       WHERE id = $1 AND status IN ('تازه', 'درخواست', 'تایید شده', 'در انتظار مشتری')
     `, [Number(id)]);
     if (!changed.rowCount) return { ok: false, error: "inactive" };

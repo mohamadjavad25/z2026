@@ -1,8 +1,11 @@
 import { notFound } from "next/navigation";
+import { PageUnavailable } from "../../components/PageUnavailable";
+import { suspendedAccountIds } from "../../lib/db/repos/users.js";
 import { ensureDb } from "../../lib/db/connection.js";
 import * as salons from "../../lib/db/repos/salons.js";
 import { SalonPublicPageClient } from "./SalonPublicPageClient";
 import { getSiteUrl } from "../../lib/siteUrl.js";
+import { createShortCache } from "../../lib/shortCache.js";
 
 export const runtime = "nodejs";
 
@@ -10,10 +13,17 @@ export const runtime = "nodejs";
 // app/layout.jsx's metadataBase — never hardcode the domain a second time.
 const SITE_URL = getSiteUrl();
 
-async function loadSalon(id) {
+// Opened by many visitors at once (a shared link, a QR code): the page builds from this answer, and both
+// generateMetadata and the page itself ask for it, so it is computed once per few seconds instead of twice per visit.
+const publicCache = createShortCache({ ttlMs: 5000, max: 300 });
+const loadSalon = (id) => publicCache.get(String(id), () => loadSalonFresh(id));
+
+async function loadSalonFresh(id) {
   const userId = Number(id);
   if (!Number.isFinite(userId)) return null;
   await ensureDb();
+  // A suspended account has no public page: `{ unavailable: true }` makes the page say so in one sentence.
+  if ((await suspendedAccountIds([userId])).has(userId)) return { unavailable: true };
   const salon = await salons.getSalon(userId);
   if (!salon) return null;
   // A salon switched to "خصوصی" in تنظیمات → پروفایل عمومی سالن must stay
@@ -30,6 +40,7 @@ async function loadSalon(id) {
 export async function generateMetadata({ params }) {
   const { id } = await params;
   const salon = await loadSalon(id);
+  if (salon?.unavailable) return { title: "صفحه در دسترس نیست | frfro", robots: { index: false } };
   if (!salon) {
     return { title: "سالن پیدا نشد | frfro" };
   }
@@ -93,6 +104,7 @@ function buildSalonJsonLd(salon, canonicalUrl) {
 export default async function SalonPublicPage({ params }) {
   const { id } = await params;
   const salon = await loadSalon(id);
+  if (salon?.unavailable) return <PageUnavailable />;
   if (!salon) {
     notFound();
   }

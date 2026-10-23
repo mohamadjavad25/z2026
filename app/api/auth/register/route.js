@@ -13,7 +13,8 @@ import { ensureDb } from "../../../lib/db/connection.js";
 import * as users from "../../../lib/db/repos/users.js";
 import { ensureSalonHours } from "../../../lib/db/repos/salons.js";
 import { checkIpRateLimit, checkRateLimit } from "../../../lib/rateLimit.js";
-import { withErrorHandling } from "../../../lib/http.js";
+import { clientErrorResponse, readJson, validateBody, withErrorHandling } from "../../../lib/http.js";
+import { MAX_PASSWORD_LENGTH, registerFieldsSchema } from "../../../lib/validation/user.js";
 import { otpConfig, verifyOtpProof } from "../../../lib/otp.js";
 import { isImageDataUrlInvalidType, isImageDataUrlTooLarge } from "../../../lib/mediaLimits.js";
 import { getSetting } from "../../../lib/db/repos/adminControl.js";
@@ -36,7 +37,7 @@ const REGISTER_IP_LIMIT = 20;
 async function _POST(request) {
   await ensureDb();
   try {
-    const body = await request.json();
+    const body = (await readJson(request)) || {};
     const phone = normalizePhone(body.phone || body.data?.phone || "");
     const password = normalizeDigits(String(body.password || body.data?.password || ""));
     const type = String(body.type || "client");
@@ -57,6 +58,9 @@ async function _POST(request) {
     const phoneVerified = Boolean(proof);
     // Same rule the sign-up form and the SMS password reset already apply; checked here too so a direct API call
     // cannot set a one-letter password.
+    if (password.length > MAX_PASSWORD_LENGTH) {
+      return NextResponse.json({ error: "رمز عبور خیلی بلند است." }, { status: 400 });
+    }
     if (password.trim().length < MIN_PASSWORD_LENGTH) {
       return NextResponse.json({ error: `رمز عبور باید حداقل ${toPersianDigits(MIN_PASSWORD_LENGTH)} کاراکتر باشد.` }, { status: 400 });
     }
@@ -69,6 +73,10 @@ async function _POST(request) {
         { status: 429 }
       );
     }
+    const fields = validateBody(registerFieldsSchema, {
+      name: data.name ?? "", area: data.area ?? "", service: data.service ?? "", email: data.email ?? ""
+    });
+    if (!fields.ok) return fields.response;
     if (!["client", "artist", "salon"].includes(type)) {
       return NextResponse.json({ error: "نقش نامعتبر است." }, { status: 400 });
     }
@@ -83,7 +91,7 @@ async function _POST(request) {
     if (await users.getUserByPhone(phone)) {
       return NextResponse.json({ error: "این شماره قبلاً ثبت شده است." }, { status: 409 });
     }
-    if (hasUniqueName(type) && (await users.isBusinessNameTaken(data.name))) {
+    if (hasUniqueName(type) && (await users.isBusinessNameTaken(fields.data.name))) {
       return NextResponse.json({ error: NAME_TAKEN_MESSAGE, code: "name_taken" }, { status: 409 });
     }
     // Same server-side checks /api/profile already applies to an avatar update --
@@ -95,16 +103,29 @@ async function _POST(request) {
       return NextResponse.json({ error: "فرمت عکس پشتیبانی نمی‌شود." }, { status: 400 });
     }
 
-    const user = await users.createUser({
+    const newAccount = {
       phone,
       passwordHash: hashPassword(password),
       type,
-      name: data.name || "",
-      area: data.area || "",
-      service: data.service || "",
-      email: data.email || "",
-      avatar: data.avatar || ""
-    });
+      name: fields.data.name,
+      area: fields.data.area,
+      service: fields.data.service,
+      email: fields.data.email,
+      avatar: typeof data.avatar === "string" ? data.avatar : ""
+    };
+    let user;
+    if (hasUniqueName(type)) {
+      // The name check and the insert happen under one lock (a second sign-up with the same name waits, then sees it).
+      // The picture goes up after the lock is released: Storage is slow and must not hold other sign-ups.
+      user = await users.withBusinessNameLock(async (client) => {
+        if (await users.isBusinessNameTaken(newAccount.name, 0, client)) return null;
+        return users.createUser({ ...newAccount, avatar: "" }, client);
+      });
+      if (!user) return NextResponse.json({ error: NAME_TAKEN_MESSAGE, code: "name_taken" }, { status: 409 });
+      if (newAccount.avatar) user = (await users.updateUser(user.id, { avatar: newAccount.avatar })) || user;
+    } else {
+      user = await users.createUser(newAccount);
+    }
     if (phoneVerified) await users.markPhoneVerified(user.id);
 
     if (type === "salon") await ensureSalonHours(user.id);
@@ -115,6 +136,10 @@ async function _POST(request) {
     setSessionCookie(response, session.token, session.expiresAt);
     return response;
   } catch (error) {
+    // Two sign-ups for one number at the same moment: the database's unique key lets exactly one through.
+    if (error?.code === "23505") return NextResponse.json({ error: "این شماره قبلاً ثبت شده است." }, { status: 409 });
+    const badInput = clientErrorResponse(error);
+    if (badInput) return badInput;
     console.error(error);
     return NextResponse.json({ error: "ثبت‌نام انجام نشد." }, { status: 500 });
   }

@@ -1,4 +1,5 @@
 import { closedAccountIds, getBillingSettings } from "../db/repos/billing.js";
+import { suspendedAccountIds } from "../db/repos/users.js";
 import { activeGateway } from "../payments/index.js";
 
 /**
@@ -15,10 +16,19 @@ export async function billingEnforced() {
   return settings.enabled && Boolean(activeGateway());
 }
 
-/** Of these provider ids, the ones to leave out of directory lists and search (empty while not enforced). */
+export const PAGE_UNAVAILABLE_MESSAGE = "این صفحه فعلاً در دسترس نیست.";
+
+/**
+ * Of these provider ids, the ones to leave out of directory lists and search: a suspended account always, and a
+ * closed one (subscription over) only while billing is enforced.
+ */
 export async function hiddenProviderIds(userIds) {
-  if (!userIds?.length || !(await billingEnforced())) return new Set();
-  return closedAccountIds(userIds);
+  if (!userIds?.length) return new Set();
+  const [suspended, closed] = await Promise.all([
+    suspendedAccountIds(userIds),
+    billingEnforced().then((on) => (on ? closedAccountIds(userIds) : new Set()))
+  ]);
+  return new Set([...suspended, ...closed]);
 }
 
 /** Filters a list of rows by their provider id field. */
@@ -34,7 +44,12 @@ export async function withoutHiddenProviders(rows, idOf) {
  */
 export async function onlineBookingBlock(providerUserId, kind = "salon") {
   const id = Number(providerUserId);
-  if (!id || !(await billingEnforced())) return null;
+  if (!id) return null;
+  // A suspended account takes no new request at all (nobody could answer it), whatever billing says.
+  if ((await suspendedAccountIds([id])).has(id)) {
+    return { status: 403, code: "PROVIDER_INACTIVE", error: PAGE_UNAVAILABLE_MESSAGE };
+  }
+  if (!(await billingEnforced())) return null;
   const closed = await closedAccountIds([id]);
   if (!closed.has(id)) return null;
   const who = kind === "artist" ? "این آرتیست" : "این سالن";

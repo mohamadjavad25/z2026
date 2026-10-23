@@ -45,8 +45,12 @@ describe("salon manager working on their own team", () => {
     const bookings = (await salonClient.get("/api/salon-bookings")).payload.data.bookings;
     expect(bookings.find((b) => b.client === "A").staff).toBe("Maryam");
 
-    // Leaving the team is the usual delete.
-    expect((await salonClient.delete("/api/salon-staff", { id: me.id })).ok).toBe(true);
+    // Leaving the team is the usual delete, but a confirmed booking still ahead is never dropped silently (owner's rules of
+    // 2026-10-22): the server asks for a choice first, and «لغو همهٔ نوبت‌ها» settles all of them with notice.
+    const asked = await salonClient.delete("/api/salon-staff", { id: me.id });
+    expect(asked.status).toBe(409);
+    expect(asked.payload.code).toBe("HAS_BOOKINGS");
+    expect((await salonClient.delete("/api/salon-staff", { id: me.id, cancelAll: true })).ok).toBe(true);
     expect((await salonClient.get("/api/salon-staff")).payload.data.staff.some((p) => p.is_owner)).toBe(false);
   });
 

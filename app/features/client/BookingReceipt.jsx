@@ -12,6 +12,7 @@ import { bookingWaitMinutes, requestMinutesLeft, requestRemainingShare } from ".
 import { AWAITING_CLIENT } from "../../shared/lib/bookingOffer";
 import { pushNotificationsSupported, subscribeToPushNotifications } from "../shell/homeAppHelpers";
 import { bookingEndLabel, clientBookingKey, movedToName } from "./bookingStatus";
+import { bookingPeople } from "../../shared/lib/bookingParts";
 
 
 function stageOf(status = "") {
@@ -103,9 +104,15 @@ export function BookingReceipt({ receipt, bookings = [], onClose, onViewBookings
   const waitsOpen = stage === "wait" && bookingWaitMinutes(live) === null;
   const backupName = stage === "wait" && !waitsOpen ? live.fallback_name || "" : "";
   const movedTo = stage === "expired" ? movedToName(live) : "";
+  const people = bookingPeople(live);
 
   const hero = {
-    wait: { icon: Send, title: `درخواستت به ${place} رسید`, text: `منتظر تأیید ${who} باش.` },
+    wait: {
+      icon: Send,
+      title: `درخواستت به ${place} رسید`,
+      // A group is one request, answered together (owner's decision 2026-10-22).
+      text: people > 1 ? `درخواست ${toPersianDigits(people)} نفره ارسال شد. ${who} ${people === 2 ? "هر دو" : "هر سه"} را با هم جواب می‌دهد.` : `منتظر تأیید ${who} باش.`
+    },
     ok: { icon: Check, title: "نوبتت قطعی شد", text: `${day} ساعت ${time}` },
     offer: { icon: CalendarClock, title: `${place} ساعت دیگری پیشنهاد داده`, text: "ساعت پیشنهادی را قبول یا رد کن." },
     bad: { icon: XCircle, title: "این ساعت قبول نشد", text: "یک ساعت دیگر انتخاب کن." },
@@ -150,7 +157,7 @@ export function BookingReceipt({ receipt, bookings = [], onClose, onViewBookings
         {waitsOpen ? (
           <p className="brWaitNote">
             <Clock3 size={15} aria-hidden="true" />
-            {who} تا قبل از نوبت وقت دارد جواب بدهد. اگر دیر شد، از «نوبت‌های من» لغوش کن.
+            {who} تا قبل از نوبت (حداکثر ۲۴ ساعت) وقت دارد جواب بدهد. اگر دیر شد، از «نوبت‌های من» لغوش کن.
           </p>
         ) : null}
 

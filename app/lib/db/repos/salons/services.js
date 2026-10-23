@@ -1,4 +1,5 @@
-import { getDb, all, get, run } from "../../connection.js";
+import { getDb, withTransaction, all, get, run } from "../../connection.js";
+import { MAX_SERVICES_PER_PROVIDER } from "../../../validation/service.js";
 import { listSalonStaff } from "./staff.js";
 import { normalizeServiceEmoji } from "../serviceEmoji.js";
 import { resolveServiceStaff, splitServiceStaffChoice } from "../../../../shared/lib/serviceSkills.js";
@@ -61,26 +62,31 @@ async function getSalonServiceWithStaff(id, salonUserId, db) {
 
 export async function addSalonService(salonUserId, data) {
   await ensureExclusionsColumn();
-  const db = await getDb();
   const staffId = data.staff_id == null || data.staff_id === "" ? null : Number(data.staff_id);
   // A new service starts with everyone whose skills match it; any ids sent are extra hand-picked ones.
   const staffIds = Array.isArray(data.staff_ids)
     ? data.staff_ids.map((id) => String(id)).filter(Boolean).join(",")
     : String(data.staff_ids || "");
-  const info = await run(db, `
-    INSERT INTO salon_services (salon_user_id, name, price, duration, hint, staff_id, staff_ids, emoji) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-    RETURNING id
-  `, [
-    salonUserId,
-    data.name || "",
-    data.price || "",
-    data.duration || "",
-    data.hint || "",
-    Number.isFinite(staffId) ? staffId : null,
-    staffIds,
-    normalizeServiceEmoji(data.emoji)
-  ]);
-  return getSalonServiceWithStaff(Number(info.rows[0].id), salonUserId, db);
+  // Counted and inserted under one lock per salon, so parallel requests can't slip past the cap.
+  return withTransaction(null, async (tx) => {
+    await run(tx, "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", [`salon-services:${Number(salonUserId)}`]);
+    const count = await get(tx, "SELECT COUNT(*)::int AS n FROM salon_services WHERE salon_user_id = $1", [salonUserId]);
+    if (count.n >= MAX_SERVICES_PER_PROVIDER) return { limit: true };
+    const info = await run(tx, `
+      INSERT INTO salon_services (salon_user_id, name, price, duration, hint, staff_id, staff_ids, emoji) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING id
+    `, [
+      salonUserId,
+      data.name || "",
+      data.price || "",
+      data.duration || "",
+      data.hint || "",
+      Number.isFinite(staffId) ? staffId : null,
+      staffIds,
+      normalizeServiceEmoji(data.emoji)
+    ]);
+    return getSalonServiceWithStaff(Number(info.rows[0].id), salonUserId, tx);
+  });
 }
 
 export async function updateSalonService(id, salonUserId, data) {

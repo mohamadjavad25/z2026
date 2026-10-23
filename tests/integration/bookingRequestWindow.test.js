@@ -21,7 +21,7 @@ describe("a client can't request a time that starts too soon", () => {
   it("salon: refused with TOO_SOON, other reasons stay unchanged", async () => {
     if (nearMidnight()) return;
     const salonClient = createClient();
-    const salon = await registerUser(salonClient, { type: "salon", name: "Soon Salon" });
+    const salon = await registerUser(salonClient, { type: "salon", menu: true, name: "Soon Salon" });
     await salonClient.get("/api/salon-hours");
     const clientApi = createClient();
     const client = await registerUser(clientApi, { type: "client", name: "Soon Client" });
@@ -39,28 +39,36 @@ describe("a client can't request a time that starts too soon", () => {
   });
 
   it("artist: a client is refused, the artist's own entry is not", async () => {
-    if (nearMidnight()) return;
+    // Needs the later hour (and its whole hour-long visit) to fit before midnight.
+    if (getTehranClockMinutes(new Date()) + 215 >= 24 * 60 - 1) return;
     const artistClient = createClient();
-    const artist = await registerUser(artistClient, { type: "artist", name: "Soon Artist" });
+    const artist = await registerUser(artistClient, { type: "artist", menu: true, name: "Soon Artist" });
+    // The artist works round the clock today, so this test does not depend on the hour it runs at (hours are enforced
+    // for independent artists since 2026-10-22), and every time used is a half-hour start.
+    for (const row of (await artistClient.get("/api/artist-hours")).payload.data.hours) {
+      expect((await artistClient.patch("/api/artist-hours", { day: row.day, active: true, openTime: "00:00", closeTime: "23:59" })).ok).toBe(true);
+    }
     const clientApi = createClient();
     await registerUser(clientApi, { type: "client", name: "Soon Booker" });
     const body = (time) => ({ artistUserId: artist.user.id, service: "ناخن", bookingDate: today(), time });
-    const soon = await clientApi.post("/api/artist/bookings", body(inMinutes(10)));
+    const nowMinutes = getTehranClockMinutes(new Date());
+    const nextHalfHour = (Math.floor(nowMinutes / 30) + 1) * 30;
+    const soon = await clientApi.post("/api/artist/bookings", body(minutesToPersianTime(nextHalfHour)));
     expect(soon.status).toBe(409);
     expect(JSON.stringify(soon.payload)).toContain("حداقل");
     // The artist's own entry (a walk-in, minutes from now) is fine; bookings last an hour, so the
     // client's later request goes well after it.
-    const own = await artistClient.post("/api/artist/bookings", { ...body(inMinutes(5)), clientName: "حضوری", clientPhone: "09120000999" });
-    expect(own.status).toBe(201);
-    const later = await clientApi.post("/api/artist/bookings", body(inMinutes(100)));
-    expect(later.status).toBe(201);
+    const own = await artistClient.post("/api/artist/bookings", { ...body(minutesToPersianTime(nextHalfHour)), clientName: "حضوری", clientPhone: "09120000999" });
+    expect(own.status, JSON.stringify(own.payload)).toBe(201);
+    const later = await clientApi.post("/api/artist/bookings", body(minutesToPersianTime(nextHalfHour + 120)));
+    expect(later.status, JSON.stringify(later.payload)).toBe(201);
   });
 });
 
 describe("the sweep closes a request at the earlier of: an hour after sending, or the appointment start", () => {
   async function pending(name) {
     const salonClient = createClient();
-    const salon = await registerUser(salonClient, { type: "salon", name: `${name} Salon` });
+    const salon = await registerUser(salonClient, { type: "salon", menu: true, name: `${name} Salon` });
     await salonClient.get("/api/salon-hours");
     const clientApi = createClient();
     const client = await registerUser(clientApi, { type: "client", name: `${name} Client` });

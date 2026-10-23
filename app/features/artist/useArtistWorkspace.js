@@ -18,6 +18,7 @@ import { readArtistRailDock } from "./railUtils";
 import { useArtistWorkActions } from "./useArtistWorkActions";
 import { useArtistRailDrag } from "./useArtistRailDrag";
 import { useArtistHours } from "./useArtistHours";
+import { exitRefusalOf, openExitDialog } from "../exit/exitDialogBus";
 
 /**
  * Artist-owner workspace: portfolio, services, bookings, break, outbound collabs,
@@ -628,14 +629,35 @@ export function useArtistWorkspace({
     if (!salonUserId || artistTeamBusyId) return;
     if (typeof window !== "undefined" && !window.confirm("از این تیم خارج می‌شوی و دیگر در برنامه‌ی سالن نیستی. ادامه؟")) return;
     setArtistTeamBusyId(String(salonUserId));
+    // One try; a refusal because of confirmed bookings (owner's rules of 2026-10-22) opens the list dialog, whose
+    // «ادامه» repeats this same try (with «لغو همهٔ نوبت‌ها» when chosen).
+    const attempt = async ({ cancelAll = false } = {}) => {
+      const result = await leaveArtistTeam({ salonUserId, ...(cancelAll ? { cancelAll: true } : {}) });
+      if (result.ok) {
+        setArtistTeams(result.payload.data?.teams || []);
+        shellNotify("از تیم خارج شدی.");
+        return { ok: true };
+      }
+      const refusal = exitRefusalOf(result);
+      if (refusal) return { ok: false, plan: refusal.plan, message: refusal.message, refusal };
+      return { ok: false, message: result.payload?.error || "خروج از تیم انجام نشد." };
+    };
     try {
-      const { ok, payload } = await leaveArtistTeam({ salonUserId });
-      if (!ok) {
-        shellNotify(payload?.error || "خروج از تیم انجام نشد.");
+      const result = await attempt();
+      if (result.ok) return;
+      if (result.refusal) {
+        openExitDialog({
+          scope: "team",
+          params: { salonUserId },
+          plan: result.plan,
+          message: result.message,
+          title: "خروج از تیم",
+          confirmLabel: "خروج از تیم",
+          retry: attempt
+        });
         return;
       }
-      setArtistTeams(payload.data?.teams || []);
-      shellNotify("از تیم خارج شدی.");
+      shellNotify(result.message);
     } catch {
       shellNotify("خروج از تیم انجام نشد؛ دوباره امتحان کن.");
     } finally {

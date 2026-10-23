@@ -7,6 +7,7 @@ import { SegmentClock } from "../../components/SegmentClock";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatRelativeBookingDayLabel, resolveRollingPersianDate } from "../../shared/lib/persianCalendar";
 import { ClientBookingHistorySheet } from "./ClientBookingHistorySheet";
+import { ExpiredRequestActions } from "./ExpiredRequestActions";
 import { AWAITING_CLIENT } from "../../shared/lib/bookingOffer";
 import {
   bookingEndLabel,
@@ -15,8 +16,11 @@ import {
   clientBookingKey,
   isBookingAhead,
   isBookingInPast,
+  isPlaceGone,
+  openProposalOf,
   requestWaitNote
 } from "./bookingStatus";
+import { ARTIST_GONE_TEXT, SALON_GONE_TEXT, cancelledByProviderText } from "../../shared/lib/providerRules";
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
 
 function dayOf(booking) {
@@ -40,6 +44,8 @@ function noteOf(booking) {
   const service = shortServiceLabel(booking.service) || "خدمت زیبایی";
   const day = dayOf(booking) ? formatRelativeBookingDayLabel(dayOf(booking)) : "امروز";
   const when = booking.time ? `${day} • ${toPersianDigits(booking.time)}` : day;
+  if (tone === "bad" && isPlaceGone(booking)) return { Icon: Ban, tone, text: `${booking.bookingSource === "artist" ? ARTIST_GONE_TEXT : SALON_GONE_TEXT}؛ نوبت ${service} لغو شد`, when };
+  if (tone === "bad" && booking.cancelled_by === "provider") return { Icon: Ban, tone, text: cancelledByProviderText(booking.bookingSource === "artist" ? "artist" : "salon", booking.salonName || booking.salon_name || ""), when };
   if (tone === "bad") return { Icon: Ban, tone, text: `رزرو ${service} در ${place} لغو شد`, when };
   if (tone === "expired") return { Icon: TimerOff, tone, text: `${place} به رزرو ${service} جواب نداد؛ منقضی شد`, when };
   return { Icon: CheckCircle2, tone: "done", text: `نوبت ${service} در ${place} تمام شد`, when };
@@ -71,7 +77,7 @@ function metaOf(booking) {
  * `emptyMascot`: with that one line, the mascot fills the empty page below it (off when another card already has one).
  * `highlightKey`: the booking just made glows for a moment, so the client sees where it went.
  */
-export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook, compactEmpty = false, emptyLine = true, emptyMascot = false, highlightKey = "" }) {
+export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook, compactEmpty = false, emptyLine = true, emptyMascot = false, highlightKey = "", clientName = "", onNotify, onFindPlaces, onOpenPlace }) {
   const [historyOpen, setHistoryOpen] = useState(false);
 
   const { upcoming, past, notes } = useMemo(() => {
@@ -112,10 +118,11 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook, c
               const meta = metaOf(booking);
               const awaitingClient = booking.status === AWAITING_CLIENT;
               const waitNote = requestWaitNote(booking);
+              const proposal = openProposalOf(booking);
               const open = () => onOpenSettings?.({ ...booking, clientBookingSheetMode: "details" });
               return (
                 <article
-                  className={`cvCard is-${awaitingClient ? "offer" : meta.tone} ${highlightKey && highlightKey === clientBookingKey(booking) ? "is-fresh" : ""}`}
+                  className={`cvCard is-${awaitingClient || proposal ? "offer" : meta.tone} ${highlightKey && highlightKey === clientBookingKey(booking) ? "is-fresh" : ""}`}
                   key={`${booking.bookingSource || "salon"}-${booking.id || index}`}
                   role="button"
                   tabIndex={0}
@@ -142,6 +149,12 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook, c
                       <p className="cvNote">
                         <CalendarClock size={14} aria-hidden="true" />
                         سالن ساعت تازه‌ای پیشنهاد داده؛ کارت را باز کن و جواب بده.
+                      </p>
+                    ) : null}
+                    {proposal ? (
+                      <p className="cvNote">
+                        <CalendarClock size={14} aria-hidden="true" />
+                        {booking.bookingSource === "artist" ? "آرتیست" : "سالن"} می‌خواهد نوبتت را جابه‌جا کند؛ کارت را باز کن و جواب بده.
                       </p>
                     ) : null}
                     {waitNote ? (
@@ -178,6 +191,7 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook, c
                     <span>{text}</span>
                     <time>{when}</time>
                   </button>
+                  <ExpiredRequestActions booking={booking} clientName={clientName} onNotify={onNotify} onFindPlaces={onFindPlaces} onOpenPlace={onOpenPlace} />
                 </li>
               );
             })}
@@ -221,6 +235,11 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook, c
           setHistoryOpen(false);
           onRebook?.(booking);
         }}
+        clientName={clientName}
+        onNotify={onNotify}
+        onFindPlaces={onFindPlaces}
+        onOpenPlace={onOpenPlace}
+        onClosePanel={() => setHistoryOpen(false)}
       />
     </>
   );

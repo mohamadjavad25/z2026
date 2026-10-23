@@ -10,13 +10,9 @@ export const defaultHours = [
   { day: "جمعه", open_time: "", close_time: "", capacity: 0, active: false }
 ];
 
-export function toAsciiDigits(value) {
-  return String(value ?? "").replace(/[۰-۹]/g, (digit) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit)));
-}
-
-export function normalizePhone(phone) {
-  return toAsciiDigits(phone).replace(/[^\d+]/g, "").trim();
-}
+export { toAsciiDigits } from "../../../../shared/lib/digits.js";
+// The one phone normaliser, shared with sign-up and login (see app/shared/lib/phone.js).
+export { normalizePhone } from "../../../../shared/lib/phone.js";
 
 export async function countFollowing(userId, runner = null) {
   const db = runner || (await getDb());

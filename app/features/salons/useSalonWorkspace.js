@@ -5,6 +5,7 @@ import { useAppRefresh } from "../../shared/lib/appRefresh";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createSalonBooking, getSalonBookings, getSalonCollabs, getSalonHours, getSalonInvites, getSalonPortfolio, getSalonServices, getSalonStaff, getSalons, updateSalonBooking } from "../../shared/api/salons";
 import { getApiErrorMessage } from "../../shared/lib/apiNotify";
+import { withdrawProposal } from "../../shared/api/providerExit";
 import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar";
 import { bookingWaitMinutes } from "../../shared/lib/bookingWindow";
 import { buildSalonStaffByName } from "../profile/ScheduleRow";
@@ -411,7 +412,10 @@ export function useSalonWorkspace({
     scheduleBookingBusyRef.current = true;
     setScheduleBookingBusy(true);
     try {
-      const { ok, payload } = await updateSalonBooking({ id: booking.id, ...patch });
+      // `withdrawProposal`: the salon takes back its «پیشنهاد ساعت دیگر» (DELETE /api/booking-proposals).
+      const { ok, payload } = patch?.withdrawProposal
+        ? await withdrawProposal({ kind: "salon", id: booking.id })
+        : await updateSalonBooking({ id: booking.id, ...patch });
       if (!ok) {
         if (Array.isArray(payload.data?.bookings)) applySalonBookings(payload.data.bookings, { bump: true });
         shellNotify(getApiErrorMessage(payload, "به‌روزرسانی رزرو انجام نشد."));
