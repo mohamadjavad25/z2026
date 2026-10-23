@@ -282,9 +282,9 @@ describe("VisitBooker for the salon (browser)", () => {
     await fillWho(page, "روز پر");
     await pickService(page, H);
     await goOn(page);
-    // an hour is open: there is always a way to another day
+    // on the hour step the days stay in a row above the hours: there is always a way to another day
     await pickDay(page, DAY2);
-    await page.locator(".vbOtherDay").click();
+    await page.locator(".vbTime").first().waitFor();
     expect(await page.locator(".vbDay").count()).toBeGreaterThan(0);
     // and the phone number is explained
     await page.locator(".vbDoneChip").first().click();

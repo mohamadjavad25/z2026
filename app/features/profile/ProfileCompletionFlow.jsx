@@ -7,7 +7,7 @@ import { beautySpecialtyOptions } from "../../shared/constants/roles";
 import { SpecialtyMultiSelect } from "../auth/SpecialtyMultiSelect";
 import { Button } from "../../components/ui/Button";
 import { ProfileSheet } from "./ProfileSheet";
-import { QuickAreaPicker } from "./QuickAreaSheet";
+import { MapPinPicker } from "./MapPinPicker";
 
 const STEP_ICONS = { avatar: ImagePlus, area: MapPin, specialty: Sparkles, services: ListPlus };
 
@@ -18,7 +18,7 @@ const STEP_COPY = {
   }),
   area: () => ({
     title: "کجا کار می‌کنی؟",
-    lead: "شهرت را انتخاب کن تا مشتری‌های همان اطراف تو را در جستجو پیدا کنند."
+    lead: "جای دقیقت را روی نقشه پیدا می‌کنیم؛ اگر درست نبود، پین را جابه‌جا کن. مشتری‌های همان اطراف پیدایت می‌کنند."
   }),
   specialty: (isSalon) => ({
     title: isSalon ? "خدمات اصلی سالن چیست؟" : "تخصصت چیست؟",
@@ -125,7 +125,7 @@ export function ProfileCompletionFlow({
             ) : null}
 
             {current.id === "area" ? (
-              <QuickAreaPicker disabled={saving} onPick={(area) => save({ area }, `محدوده فعالیت: ${area}`)} />
+              <MapPinPicker saving={saving} onSave={(fields) => save(fields, "جای کارت روی نقشه ذخیره شد.")} />
             ) : null}
 
             {current.id === "specialty" ? (

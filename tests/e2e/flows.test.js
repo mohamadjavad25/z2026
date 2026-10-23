@@ -550,6 +550,28 @@ describe("salon day at the top of the bookings (browser)", () => {
   });
 });
 
+describe("work location on a map (browser)", () => {
+  it("pins the phone's own position right away and saves it from Settings", async () => {
+    const api = createClient();
+    await registerUser(api, { type: "salon", name: "سالن نقشه" });
+    const { page, context, problems } = await newPage({ cookie: api.cookie() });
+    await context.grantPermissions(["geolocation"]);
+    await context.setGeolocation({ latitude: 31.3183, longitude: 48.6706 });
+    await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
+    await page.locator("nav.bottomNav > button").first().click();
+    await page.locator(".profileLocationSettings .profileLocationRow").click();
+    // no question first: the map opens on the phone's position, ready to save
+    await page.locator(".mpp .profileLocationMapPin").waitFor();
+    await page.locator(".mppSave:not([disabled])").click();
+    await page.locator(".profileLocationSettings .profileLocationRow").waitFor();
+    const me = (await api.get("/api/auth/me")).payload.data.user;
+    expect(Math.round(me.location.lat)).toBe(31);
+    expect(Math.round(me.location.lng)).toBe(49);
+    expect(problems).toEqual([]);
+    await context.close();
+  });
+});
+
 describe("profile completeness (browser)", () => {
   it("shows a new salon what is missing, and comes back after a refresh once closed", async () => {
     const api = createClient();
