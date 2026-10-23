@@ -123,7 +123,7 @@ const SCREENS = [
   { id: "client-notifications", role: "client", title: "اعلان‌های مشتری", steps: [tap("اعلان‌ها")] },
   { id: "client-support", role: "client", title: "پشتیبانی", steps: [tap(/^پشتیبانی/)] },
   { id: "client-history", role: "client", title: "نوبت‌های قبلی", steps: [tap(/نوبت‌های قبلی/)] },
-  { id: "client-booking-confirmed", role: "client", title: "جزئیات نوبت تأییدشده", steps: [tap(/کوتاهی مو، فردا/)] },
+  { id: "client-booking-confirmed", role: "client", title: "جزئیات نوبت تأییدشده", steps: [tap(/^سالن رز، کوتاهی مو/)] },
   { id: "client-booking-pending", role: "client", title: "جزئیات درخواست در انتظار", steps: [tap(/^سالن رز، رنگ مو/)] },
   { id: "client-category-nails", role: "client", title: "دسته‌بندی ناخن", steps: [css(".cnCat", "ناخن")] },
   { id: "client-category-empty", role: "client", title: "دسته‌بندی بدون سالن", steps: [css(".cnCat", "ابرو")] },
@@ -136,7 +136,7 @@ const SCREENS = [
   { id: "client-settings", role: "client", title: "تنظیمات مشتری", steps: [tab(0)] },
   { id: "client-settings-full", role: "client", title: "تنظیمات مشتری، کامل", steps: [tab(0)], full: true },
   { id: "client-edit-profile", role: "client", title: "ویرایش پروفایل", steps: [tab(0), tap(/ویرایش/)] },
-  { id: "client-location", role: "client", title: "ثبت لوکیشن", steps: [tab(0), text("ثبت لوکیشن")] },
+  { id: "client-location", role: "client", title: "جام روی نقشه", steps: [tab(0), text("جام روی نقشه")] },
   { id: "client-saved", role: "client", title: "ذخیره‌شده‌ها", steps: [tab(0), text("ذخیره‌شده‌ها")] },
   // salon (its requests open by themselves on arrival; most screens close them first)
   { id: "salon-request-on-open", role: "salon", title: "درخواست تازه که با باز شدن اپ می‌آید", keepDialogs: true },
