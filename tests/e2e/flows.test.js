@@ -92,7 +92,7 @@ describe("booking flow (browser)", () => {
     await cp.locator(".vbTime.is-on").waitFor();
     // the button says "checking" until the server has confirmed who does what at that time
     await cp.locator(".vbPlanRow").first().waitFor();
-    await cp.getByRole("button", { name: /ارسال درخواست/ }).waitFor();
+    await cp.getByRole("button", { name: /^بفرست/ }).waitFor();
     // how long to wait for the salon: folded on «فقط ۱ ساعت» (decision 2026-10-21) until the client opens it
     await cp.locator(".wcFold").filter({ hasText: "فقط ۱ ساعت" }).click();
     const waitChoice = cp.locator(".wc");
@@ -106,12 +106,12 @@ describe("booking flow (browser)", () => {
     const receipt = cp.locator(".brScreen");
     await receipt.waitFor();
     expect(await receipt.innerText()).toContain(`درخواستت به ${name} رسید`);
-    expect(await receipt.locator(".brCount").innerText()).toContain("دقیقه تا پاسخ سالن");
-    expect(await receipt.locator(".brCount").innerText()).toContain("اگر جواب نداد، لغو می‌شود.");
+    expect(await receipt.locator(".brCount").innerText()).toContain("دقیقه تا جواب");
+    expect(await receipt.locator(".brCount").innerText()).toContain("اگه جواب نداد، لغو می‌شه.");
     await cp.locator(".cbt.is-wait").waitFor({ state: "attached" });
-    expect(await cp.locator(".cbt").innerText()).toContain("منتظر تأیید");
+    expect(await cp.locator(".cbt").innerText()).toContain("منتظر سالن");
     // and takes the client home, where the new booking is the first card
-    await receipt.getByRole("button", { name: "دیدن در «نوبت‌های من»" }).click();
+    await receipt.getByRole("button", { name: "ببینش توی «نوبت‌هام»" }).click();
     await receipt.waitFor({ state: "detached" });
     await cp.locator(".clientHome .cvCard.is-fresh", { hasText: name }).waitFor();
     expect(clientView.problems).toEqual([]);
@@ -126,7 +126,7 @@ describe("booking flow (browser)", () => {
     for (const label of ["تغییر ساعت", "تماس", "بستن"]) {
       expect(await screen.locator(".sbmBar").getByRole("button", { name: label }).count()).toBe(1);
     }
-    await screen.getByRole("button", { name: "تایید نوبت" }).click();
+    await screen.getByRole("button", { name: "تأیید", exact: true }).click();
     await screen.waitFor({ state: "detached" });
     // answered once, it does not open again
     await sp.reload({ waitUntil: "networkidle" });
@@ -163,7 +163,7 @@ describe("booking flow (browser)", () => {
     await cp.locator(".vbPlanRow").nth(1).waitFor();
     expect(await cp.locator(".vbPlanRow").count()).toBe(2);
     await cp.locator(".vbTime.is-on").waitFor();
-    await cp.getByRole("button", { name: /ارسال درخواست/ }).waitFor();
+    await cp.getByRole("button", { name: /^بفرست/ }).waitFor();
     // the default is one hour (decision 2026-10-21); this flow picks «صبر می‌کنم» (until the appointment, at most 24 hours)
     await cp.locator(".wcFold").click();
     await cp.getByRole("radio", { name: /صبر می‌کنم/ }).click();
@@ -172,7 +172,7 @@ describe("booking flow (browser)", () => {
     const receipt = cp.locator(".brScreen");
     await receipt.waitFor();
     expect(await receipt.locator(".brCount").count()).toBe(0);
-    expect(await receipt.locator(".brWaitNote").innerText()).toContain("تا قبل از نوبت (حداکثر ۲۴ ساعت) وقت دارد جواب بدهد");
+    expect(await receipt.locator(".brWaitNote").innerText()).toContain("تا قبل از نوبت (حداکثر ۲۴ ساعت) وقت داره جواب بده");
     await cp.locator(".cbt.is-wait").waitFor({ state: "attached" });
     expect(clientView.problems).toEqual([]);
 
@@ -201,7 +201,7 @@ describe("booking flow (browser)", () => {
     const offer = cp.locator(".cbOffer");
     await offer.waitFor();
     expect(await offer.innerText()).toContain("۱۲:۰۰");
-    await offer.getByRole("button", { name: "قبول ساعت تازه" }).click();
+    await offer.getByRole("button", { name: "قبول، ساعت تازه" }).click();
     await offer.waitFor({ state: "detached" });
     expect(clientView.problems).toEqual([]);
     const row = (await salonClient.get("/api/salon-bookings")).payload.data.bookings.find((b) => b.id === id);
@@ -244,7 +244,7 @@ describe("booking flow (browser)", () => {
     // the booking is two days ahead: the notice names that day, and the card there has the buttons
     await page.locator(".artistBookingsPage .pendingOtherDays button").first().click();
     const card = page.locator(".artistBookingsPage .bkGroup").filter({ hasText: "مشتری مستقیم" });
-    await card.getByRole("button", { name: "تایید" }).click();
+    await card.getByRole("button", { name: "تأیید" }).click();
     await card.waitFor({ state: "detached" });
     expect(problems).toEqual([]);
     const mine = (await artistApi.get("/api/artist/me")).payload.data.bookings;
@@ -274,14 +274,14 @@ describe("client starts from what they want (browser)", () => {
     await page.locator(".sduItem.is-selected", { hasText: "کوتاهی مو" }).waitFor();
     await page.locator(".sduConfirm").click();
     await page.locator(".vbTime.is-on").waitFor();
-    await page.getByRole("button", { name: /ارسال درخواست/ }).waitFor();
+    await page.getByRole("button", { name: /^بفرست/ }).waitFor();
     await page.locator(".vbSubmit").click();
     const receipt = page.locator(".brScreen");
     await receipt.waitFor();
     // closing the salon page goes back to «سالن و آرتیست من»; the booking is under «نوبت‌های من» on the profile
     await receipt.getByRole("button", { name: "بستن" }).click();
     await receipt.waitFor({ state: "detached" });
-    await page.getByRole("button", { name: "بازگشت به سالن‌ها" }).click();
+    await page.getByRole("button", { name: "برگرد" }).click();
     await page.locator(".chPlace").waitFor();
     await page.locator("nav.bottomNav > button").nth(1).click();
     await page.locator(".clientHome .cvCard", { hasText: name }).waitFor();
@@ -304,7 +304,7 @@ describe("client starts from what they want (browser)", () => {
     const row = page.locator(".sopRow", { hasText: "کوتاهی مو" });
     await row.waitFor();
     expect(await row.innerText()).toContain("دقیقه");
-    expect(await page.locator(".spvBarBook").innerText()).toContain("رزرو نوبت");
+    expect(await page.locator(".spvBarBook").innerText()).toContain("رزرو");
     await row.click();
     // the time screen: a way back, the first free time marked «زودترین», the wait question folded
     await page.locator(".vbTime.is-on.is-earliest").waitFor();
@@ -353,17 +353,17 @@ describe("client starts from what they want (browser)", () => {
     await page.locator("#cbt-panel .cnCat", { hasText: "میکاپ" }).click();
     const sheet = page.locator(".cnSheetRoot");
     await sheet.waitFor();
-    expect(await sheet.innerText()).toContain("هنوز کسی را وصل نکرده‌ای");
+    expect(await sheet.innerText()).toContain("هنوز کسی رو وصل نکردی");
 
     // a number that is not on frfro: the client's own messages app gets the invite, with the category in it
-    await sheet.getByPlaceholder("اسم، شماره یا لینک صفحه‌اش").fill("09129998877");
-    await sheet.getByText("این شماره هنوز در فرفرو نیست.").waitFor();
+    await sheet.getByPlaceholder("اسم، شماره یا لینک صفحه‌ش").fill("09129998877");
+    await sheet.getByText("این شماره هنوز توی فرفرو نیست.").waitFor();
     const href = await sheet.getByRole("link", { name: "پیامک دعوت" }).getAttribute("href");
     expect(href).toMatch(/^sms:09129998877\?&body=/);
     expect(decodeURIComponent(href)).toContain("برای «میکاپ»");
 
     // the salon's own number: connect, and its page opens on the services that match
-    await sheet.getByPlaceholder("اسم، شماره یا لینک صفحه‌اش").fill(salon.phone);
+    await sheet.getByPlaceholder("اسم، شماره یا لینک صفحه‌ش").fill(salon.phone);
     await sheet.getByRole("button", { name: "وصل شو" }).click();
     await page.locator(".sduPanel").waitFor();
     await page.locator(".sduItem.is-selected", { hasText: "میکاپ ساده" }).waitFor();
@@ -394,7 +394,7 @@ describe("client picks a salon from their contacts (browser)", () => {
     await openExploreTab(stranger.page);
     await stranger.page.getByRole("button", { name: "از مخاطبین" }).click();
     const sheet = stranger.page.locator(".cnSheetRoot");
-    await sheet.getByText("خانم ناشناس هنوز در فرفرو نیست.").waitFor();
+    await sheet.getByText("خانم ناشناس هنوز توی فرفرو نیست.").waitFor();
     const href = await sheet.getByRole("link", { name: "پیامک دعوت" }).getAttribute("href");
     expect(href).toMatch(/^sms:09120001122\?&body=/);
     expect(stranger.problems).toEqual([]);
@@ -519,7 +519,7 @@ describe("accessibility (browser)", () => {
     const { page, context } = await newPage({ cookie: api.cookie() });
     await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
     await page.locator("nav.bottomNav > button").nth(0).click();
-    await page.locator("main button").filter({ hasText: "ویرایش برند سالن" }).first().click();
+    await page.locator("main button").filter({ hasText: "اطلاعات سالن" }).first().click();
     const trigger = page.locator(".specialtySelectTrigger");
     await trigger.waitFor();
     await trigger.focus();
@@ -546,10 +546,10 @@ describe("salon day at the top of the bookings (browser)", () => {
     await nav.waitFor();
     expect(await nav.locator(".dayNavDay").innerText()).toContain("امروز");
     await nav.getByRole("button", { name: "روز بعد" }).click();
-    await nav.getByRole("button", { name: "برگشت به امروز" }).click();
-    await nav.getByRole("button", { name: "برگشت به امروز" }).waitFor({ state: "detached" });
+    await nav.getByRole("button", { name: "برگرد به امروز" }).click();
+    await nav.getByRole("button", { name: "برگرد به امروز" }).waitFor({ state: "detached" });
     await nav.locator(".dayNavDay").click();
-    await page.getByText("تاریخچه رزروها").first().waitFor();
+    await page.getByText("تقویم نوبت‌ها").first().waitFor();
     expect(problems).toEqual([]);
     await context.close();
   });
@@ -585,7 +585,7 @@ describe("profile completeness (browser)", () => {
     await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
     const card = page.locator(".profileCompleteness");
     await card.waitFor();
-    expect(await card.innerText()).toContain("۴ قدم مانده");
+    expect(await card.innerText()).toContain("۴ قدم دیگه");
     await page.getByRole("button", { name: "بستن یادآوری تکمیل پروفایل" }).click();
     await card.waitFor({ state: "detached" });
     await page.reload({ waitUntil: "networkidle" });
@@ -614,23 +614,23 @@ describe("dialogs (browser)", () => {
       ["artist", "رزرو دستی", (page) => page.locator("button.is-createBooking").click()],
       ["artist", "افزودن خدمت", async (page) => {
         await page.locator(".profileModeRail button", { hasText: "خدمات" }).click();
-        await page.getByRole("button", { name: /افزودن خدمت/ }).first().click();
+        await page.getByRole("button", { name: /خدمت تازه/ }).first().click();
       }],
       ["artist", "ایجاد پست", async (page) => {
         await page.locator(".profileModeRail button", { hasText: "نمونه‌کار" }).click();
         // "Create post" opens the device gallery first; the picked photo goes to the crop step.
         const [chooser] = await Promise.all([
           page.waitForEvent("filechooser"),
-          page.getByRole("button", { name: /ایجاد پست/ }).first().click()
+          page.getByRole("button", { name: /نمونه‌کار تازه/ }).first().click()
         ]);
         await chooser.setFiles({ name: "post.png", mimeType: "image/png", buffer: Buffer.from(TEST_PHOTO_PNG, "base64") });
         // Confirm the crop: the sheet then shows the photo and the details form, which is what gets checked.
-        await page.locator("[role=dialog]").last().getByRole("button", { name: /تایید کادر/ }).click();
+        await page.locator("[role=dialog]").last().getByRole("button", { name: /همین خوبه/ }).click();
         await page.locator(".artistWorkForm").waitFor();
       }],
       ["salon", "ویرایش پروفایل", async (page) => {
         await page.locator("nav.bottomNav > button").nth(0).click();
-        await page.locator("main button").filter({ hasText: "ویرایش برند سالن" }).first().click();
+        await page.locator("main button").filter({ hasText: "اطلاعات سالن" }).first().click();
       }]
     ];
     for (const [type, label, open] of checks) {
@@ -749,7 +749,7 @@ describe("support (browser)", () => {
     // The topic cards start a new message with that topic already chosen.
     await center.getByRole("button", { name: /^سؤال/ }).click();
     await center.getByLabel("پیامت").fill("سلام، این یک پیام آزمایشی از مرورگر برای پشتیبانی است.");
-    await center.getByRole("button", { name: "ارسال پیام" }).click();
+    await center.getByRole("button", { name: "بفرست" }).click();
     await center.getByText("سلام، این یک پیام آزمایشی از مرورگر برای پشتیبانی است.").waitFor();
     expect(await axeIssues()).toEqual([]);
 
@@ -760,7 +760,7 @@ describe("support (browser)", () => {
     expect((await admin.post(`/api/admin/support/${inbox.tickets[0].id}`, { reply: "سلام! مشکل را بررسی کردیم." })).ok).toBe(true);
     await page.reload({ waitUntil: "networkidle" });
     await page.getByRole("button", { name: /پشتیبانی، 1 پاسخ جدید/ }).click();
-    await page.getByRole("dialog", { name: "پشتیبانی" }).getByText("پاسخ داده شد").first().waitFor();
+    await page.getByRole("dialog", { name: "پشتیبانی" }).getByText("جواب داده").first().waitFor();
     await page.locator(".scList button").first().click();
     await page.getByText("سلام! مشکل را بررسی کردیم.").waitFor();
     await settleAnimations(page);
@@ -793,7 +793,7 @@ describe("SMS code at sign-up (browser)", () => {
     expect(await page.locator("[name=name]").count()).toBe(0);
     expect(await page.locator("[name=password]").count()).toBe(0);
     expect(await page.locator("[name=agreeTerms]").count()).toBe(0);
-    await page.getByText("با ادامه دادن،").waitFor();
+    await page.getByText("با ادامه،").waitFor();
     await page.fill("[name=phone]", "0912");
     await page.getByRole("button", { name: "کد بفرست" }).click();
     await page.getByRole("alert").filter({ hasText: "شماره درست نیست؛ مثلاً" }).waitFor();
@@ -805,7 +805,7 @@ describe("SMS code at sign-up (browser)", () => {
     await page.fill("[name=otpCode]", "00000");
     await page.getByRole("button", { name: "تأیید", exact: true }).click();
     await page.getByRole("alert").filter({ hasText: "کد اشتباهه؛ دوباره بزن" }).waitFor();
-    await page.getByText("بار دیگر می‌توانی امتحان کنی").waitFor();
+    await page.getByText("بار دیگه می‌تونی امتحان کنی").waitFor();
     // the real code
     let code = null;
     for (let i = 0; i < 20 && !code; i += 1) {

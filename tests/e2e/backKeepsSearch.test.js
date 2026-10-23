@@ -24,7 +24,7 @@ describe("Back from a salon page (browser)", () => {
 
     // nothing matches: the empty text says what to do
     await box.fill("ناموجود-" + Math.floor(Math.random() * 1e6));
-    await page.getByText("نتیجه‌ای نیست؛ اسم دیگری امتحان کن.").waitFor();
+    await page.getByText("پیدا نشد؛ یه اسم دیگه امتحان کن.").waitFor();
 
     await box.fill(name);
     const card = page.locator(".cnCard").filter({ hasText: name }).first();
@@ -33,7 +33,7 @@ describe("Back from a salon page (browser)", () => {
     await card.locator(".cnCardMain").click();
     await page.locator(".salonPublicProfile").waitFor();
 
-    await page.getByRole("button", { name: "بازگشت به سالن‌ها" }).click();
+    await page.getByRole("button", { name: "برگرد" }).click();
     await page.locator(".cnCard").filter({ hasText: name }).first().waitFor();
     expect(await box.inputValue()).toBe(name);
     await expect.poll(() => page.evaluate(() => Math.round(window.scrollY))).toBeGreaterThan(200);

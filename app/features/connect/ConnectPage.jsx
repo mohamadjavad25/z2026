@@ -22,7 +22,7 @@ import { rememberSearch } from "./searchMemory";
 const searching0 = (text) => String(text).trim().length > 0;
 
 const NOT_FOUND = {
-  phone: "این شماره هنوز در فرفرو نیست.",
+  phone: "این شماره هنوز توی فرفرو نیست.",
   link: "این لینک مال هیچ سالن یا آرتیستی نیست.",
   name: "پیدا نشد؛ یه اسم دیگه امتحان کن."
 };

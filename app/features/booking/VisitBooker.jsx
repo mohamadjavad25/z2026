@@ -221,7 +221,7 @@ function VisitBookerForm({ role, title, subtitle, services, days, initial, custo
               </div>
               <p className="vbSummary" aria-live="polite">
                 {state.limitHit
-                  ? `حداکثر ${toPersianDigits(maxServicesFor(state.people))} خدمت در یک نوبت${state.people > 1 ? ` برای ${toPersianDigits(state.people)} نفر` : ""}.`
+                  ? `حداکثر ${toPersianDigits(maxServicesFor(state.people))} خدمت توی یه نوبت${state.people > 1 ? ` برای ${toPersianDigits(state.people)} نفر` : ""}.`
                   : summary || "یکی یا چندتا کار انتخاب کن."}
               </p>
             </>
@@ -310,7 +310,7 @@ function VisitBookerForm({ role, title, subtitle, services, days, initial, custo
           <div className="vbConflict" role="alert">
             {state.conflict.next ? (
               <>
-                <p>این ساعت همین الان پر شد. ساعت خالی بعدی {clockText(state.conflict.next)}ه. همین رو بفرستم؟</p>
+                <p>این ساعت همین الان پر شد. ساعت خالی بعدی: {clockText(state.conflict.next)}. همین رو بفرستم؟</p>
                 <div className="vbConflictActions">
                   <button type="button" className="vbAction is-primary" disabled={state.submitting} onClick={() => void controller.acceptConflict()}>آره، بفرست</button>
                   <button type="button" className="vbAction" onClick={() => controller.dismissConflict()}>یه ساعت دیگه</button>

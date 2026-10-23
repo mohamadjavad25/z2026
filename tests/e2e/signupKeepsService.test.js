@@ -50,7 +50,7 @@ describe("the service a guest picked survives sign-up (browser)", () => {
     await guestPicksAndSignsUp(page, salon.user.id, { beforeAccount: async () => { await salonClient.delete("/api/salon-services", { id: serviceId }); } });
     await page.getByText("این خدمت دیگه نیست؛ یه خدمت دیگه انتخاب کن.").waitFor();
     expect(await page.locator(".visitBookerSheet").count()).toBe(0);
-    await page.getByRole("button", { name: "انتخاب خدمت" }).click();
+    await page.getByRole("button", { name: "یه خدمت انتخاب کن" }).click();
     await page.locator(".sduItem", { hasText: "رنگ مو" }).waitFor();
     await context.close();
   }, 90_000);

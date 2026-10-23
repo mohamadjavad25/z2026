@@ -13,7 +13,7 @@ import { InviteToFrfro } from "./InviteToFrfro";
 import { useConnections } from "./useConnections";
 
 const NOT_FOUND = {
-  phone: "این شماره هنوز در فرفرو نیست.",
+  phone: "این شماره هنوز توی فرفرو نیست.",
   link: "این لینک مال هیچ سالن یا آرتیستی نیست.",
   name: "با این اسم کسی پیدا نشد."
 };

@@ -210,7 +210,7 @@ describe("VisitBooker for the salon (browser)", () => {
     await openBookingSheet(page);
     // the name is asked first, and the form does not move on without it (the button is aria-disabled, so force the click)
     await page.locator(".vbSubmit").click({ force: true });
-    expect(await page.locator(".vbHint").innerText()).toBe("نام مشتری را بنویس.");
+    expect(await page.locator(".vbHint").innerText()).toBe("اسم مشتری رو بنویس.");
     expect(await page.evaluate(() => document.activeElement?.id)).toBe("vb-name");
     expect(await page.locator(".vbService").count()).toBe(0);
     // the services cannot be skipped either
@@ -288,7 +288,7 @@ describe("VisitBooker for the salon (browser)", () => {
     expect(await page.locator(".vbDay").count()).toBeGreaterThan(0);
     // and the phone number is explained
     await page.locator(".vbDoneChip").first().click();
-    expect(await page.locator(".vbPhoneNote").innerText()).toContain("شمارهٔ مشتری مهم است");
+    expect(await page.locator(".vbPhoneNote").innerText()).toContain("شماره‌ش رو بزن");
     await context.close();
   });
 
@@ -349,12 +349,12 @@ describe("VisitBooker for the salon (browser)", () => {
     await pickDay(page, DAY2);
     const failure = page.locator(".vbInfo.is-error");
     await failure.waitFor();
-    expect(await failure.innerText()).toContain("ساعت‌های آزاد بارگیری نشد");
+    expect(await failure.innerText()).toContain("ساعت‌های خالی نیومد");
     // nothing can be saved meanwhile: the form has not even reached the last step
     expect(await page.locator(".vbSubmit").count()).toBe(0);
     expect(await bookingsOf(team)).toHaveLength(0);
     await page.unroute("**/api/salon-bookings/availability*");
-    await failure.getByRole("button", { name: /دوباره امتحان/ }).click();
+    await failure.getByRole("button", { name: /دوباره بزن/ }).click();
     await page.locator(".vbTime.is-on").waitFor();
     await context.close();
   });
@@ -374,7 +374,7 @@ describe("VisitBooker for the salon (browser)", () => {
     await page.locator(".vbSubmit").click({ force: true });
     expect(await bookingsOf(team)).toHaveLength(0);
     await page.unroute("**/api/salon-bookings/preview*");
-    await failure.getByRole("button", { name: /دوباره امتحان/ }).click();
+    await failure.getByRole("button", { name: /دوباره بزن/ }).click();
     await page.locator(".vbPlanRow").first().waitFor();
     await page.locator(".vbSubmit").click();
     await page.locator(".visitBookerSheet").waitFor({ state: "detached" });
@@ -582,7 +582,7 @@ describe("VisitBooker for a client (browser)", () => {
     expect(rows[0]).toContain("آرتیست ناخن");
     expect(rows[1]).toContain("آرتیست مو");
     expect(await cp.locator("button.vbWho2").count()).toBe(0);
-    expect(await cp.locator(".vbSubmit").innerText()).toContain("ارسال درخواست");
+    expect(await cp.locator(".vbSubmit").innerText()).toContain("بفرست");
     await cp.locator(".vbSubmit").click();
     await cp.locator(".brScreen").waitFor();
     expect(view.problems).toEqual([]);

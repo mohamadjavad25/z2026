@@ -138,7 +138,7 @@ function ProposalBlock({ booking, proposal, onAnswer, onCall }) {
     return ok;
   };
   return (
-    <div className="cbProposal" role="group" aria-label="پیشنهاد ساعت دیگر">
+    <div className="cbProposal" role="group" aria-label="پیشنهاد ساعت دیگه">
       <b>{sentence}</b>
       {proposal.time ? (
         <div className="cbProposalTimes">
