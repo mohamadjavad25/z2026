@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import { updateSalonStaff as updateSalonStaffApi, deleteSalonStaff, joinSalonTeamAsOwner as joinSalonTeamAsOwnerApi, updateSalonHours, createSalonService as createSalonServiceApi, updateSalonService as updateSalonServiceApi, deleteSalonService as deleteSalonServiceApi } from "../../shared/api/salons";
 import { notifyFromResponse, getApiErrorMessage } from "../../shared/lib/apiNotify";
+import { exitRefusalOf, openExitDialog } from "../exit/exitDialogBus";
 
 export function useSalonCatalogActions({
   safeSalonStaffList,
@@ -70,11 +71,15 @@ export function useSalonCatalogActions({
     if (typeof window !== "undefined" && !window.confirm(question)) {
       return;
     }
-    try {
-      const { ok, payload } = await deleteSalonStaff(person.id);
+    // One try; a refusal because of confirmed bookings (owner's rules of 2026-10-22) opens the list dialog, whose
+    // «ادامه» repeats this same try (with «لغو همهٔ نوبت‌ها» when chosen).
+    const attempt = async ({ cancelAll = false } = {}) => {
+      const result = await deleteSalonStaff(person.id, { cancelAll });
+      const { ok, payload } = result;
       if (!ok) {
-        shellNotify(payload.error || "حذف پرسنل انجام نشد؛ دوباره امتحان کن.");
-        return;
+        const refusal = exitRefusalOf(result);
+        if (refusal) return { ok: false, plan: refusal.plan, message: refusal.message, refusal };
+        return { ok: false, message: payload.error || "حذف پرسنل انجام نشد؛ دوباره امتحان کن." };
       }
       const nextStaff = Array.isArray(payload.data?.staff) ? payload.data.staff : [];
       setSalonStaffList(nextStaff);
@@ -94,6 +99,24 @@ export function useSalonCatalogActions({
       } else {
         shellNotify(`همکاری با «${name}» پایان یافت و از پرسنل حذف شد.`);
       }
+      return { ok: true };
+    };
+    try {
+      const result = await attempt();
+      if (result.ok) return;
+      if (result.refusal) {
+        openExitDialog({
+          scope: "staff",
+          params: { staffId: person.id },
+          plan: result.plan,
+          message: result.message,
+          title: person.is_owner ? "خروج خودت از تیم" : `برداشتن «${person.name}» از تیم`,
+          confirmLabel: person.is_owner ? "خروج از تیم" : "برداشتن از تیم",
+          retry: attempt
+        });
+        return;
+      }
+      shellNotify(result.message);
     } catch {
       shellNotify("حذف پرسنل انجام نشد؛ دوباره امتحان کن.");
     }

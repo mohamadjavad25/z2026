@@ -223,27 +223,40 @@ export function useAuthSession({
     }
   }
 
-  async function handleProfileSubmit(event, type) {
+  // `values`: the fields already collected by the step-by-step client sign-up (ClientSignupWizard), instead of a form's.
+  // Resolves to the error message shown (or "" when the account was made), so the wizard can show it under its field too.
+  const lastSignupFailureRef = useRef("");
+  async function handleProfileSubmit(event, type, values = null) {
+    lastSignupFailureRef.current = "";
+    await runProfileSubmit(event, type, values);
+    return lastSignupFailureRef.current;
+  }
+
+  async function runProfileSubmit(event, type, values) {
     event.preventDefault();
     if (authBusyRef.current) return;
     authBusyRef.current = true;
     setAuthBusy(true);
-    const data = Object.fromEntries(new FormData(event.currentTarget).entries());
-    setAuthNotice("");
+    const data = values || Object.fromEntries(new FormData(event.currentTarget).entries());
+    const showNotice = (message) => {
+      if (message) lastSignupFailureRef.current = message;
+      setAuthNotice(message);
+    };
+    showNotice("");
     if (!String(data.password || "").trim()) {
-      setAuthNotice("رمز عبور را وارد کن.");
+      showNotice("رمز عبور را وارد کن.");
       authBusyRef.current = false;
       setAuthBusy(false);
       return;
     }
     if (String(data.password).trim().length < 8) {
-      setAuthNotice("رمز عبور باید حداقل ۸ کاراکتر باشد.");
+      showNotice("رمز عبور باید حداقل ۸ کاراکتر باشد.");
       authBusyRef.current = false;
       setAuthBusy(false);
       return;
     }
     if (!String(data.phone || "").trim()) {
-      setAuthNotice("شماره تماس را وارد کن.");
+      showNotice("شماره تماس را وارد کن.");
       authBusyRef.current = false;
       setAuthBusy(false);
       return;
@@ -251,13 +264,13 @@ export function useAuthSession({
     try {
       const { ok, payload } = await apiRegister({ type, data, phone: data.phone, password: data.password, otpProof: data.otpProof || undefined });
       if (!ok) {
-        setAuthNotice(payload.error || "ثبت‌نام انجام نشد؛ دوباره امتحان کن.");
+        showNotice(payload.error || "ثبت‌نام انجام نشد؛ دوباره امتحان کن.");
         return;
       }
 
       const profile = normalizeProfile(payload.profile || payload.data?.user);
       if (!profile?.data?.phone) {
-        setAuthNotice("ثبت‌نام در دیتابیس ذخیره نشد؛ دوباره امتحان کن.");
+        showNotice("ثبت‌نام در دیتابیس ذخیره نشد؛ دوباره امتحان کن.");
         return;
       }
 
@@ -267,7 +280,7 @@ export function useAuthSession({
       onShellNoticeRef.current?.("حساب ساخته شد و آماده استفاده است.");
       Promise.resolve(onAuthenticatedRef.current?.(profile, { source: "register" })).catch(() => {});
     } catch {
-      setAuthNotice("ثبت‌نام انجام نشد؛ دوباره امتحان کن.");
+      showNotice("ثبت‌نام انجام نشد؛ دوباره امتحان کن.");
       onShellNoticeRef.current?.("ذخیره پروفایل انجام نشد؛ دوباره امتحان کن.");
     } finally {
       authBusyRef.current = false;
@@ -300,10 +313,12 @@ export function useAuthSession({
    *  through to the same client-side cleanup logoutAccount uses (session is
    *  already gone server-side once the user row is deleted; see migration
    *  v34 for what this does and doesn't take down with it). */
-  async function deleteAccountPermanently(password) {
-    const { ok, payload } = await apiDeleteAccount(password);
+  async function deleteAccountPermanently(password, options = {}) {
+    const { ok, payload } = await apiDeleteAccount(password, options);
     if (!ok) {
-      return { ok: false, error: payload?.error || "حذف حساب انجام نشد." };
+      // A salon or artist with confirmed bookings: the server answers with the list (owner's rules of 2026-10-22).
+      const plan = payload?.data?.plan;
+      return { ok: false, error: payload?.error || "حذف حساب انجام نشد.", ...(plan ? { plan, code: payload.code } : {}) };
     }
     clearAuthSession();
     await onLoggedOutRef.current?.();

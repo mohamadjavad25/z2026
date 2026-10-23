@@ -1,4 +1,4 @@
-import { getDb, get, run } from "./db/connection.js";
+import { getDb, get, run, withTransaction } from "./db/connection.js";
 
 /**
  * DB-backed sliding-window rate limiter (rate_limit_hits table, migration
@@ -11,11 +11,12 @@ import { getDb, get, run } from "./db/connection.js";
  * starts). A shared Postgres table is the one thing every instance
  * actually has in common.
  *
- * Not perfectly atomic under heavy concurrency (two simultaneous calls for
- * the same key can both read a count under the limit and both insert,
- * overshooting it by a small margin) -- acceptable for abuse throttling
- * the same way the old in-memory version was also only approximate, and
- * not worth a transaction/advisory-lock for this use case.
+ * Atomic per key: the count and the insert run in one transaction behind a
+ * Postgres advisory lock named after the key, so a burst of simultaneous
+ * calls for the same key is counted one by one. (The earlier read-then-insert
+ * version let 300 parallel phone searches through a limit of 40, and about
+ * 480 of 600 parallel one-time-code guesses through a limit of 12.) Different
+ * keys never wait for each other.
  *
  * @param {string} key - unique per (scope, actor) e.g. "login:09121234567"
  * @param {number} limit - max hits allowed inside the window
@@ -23,20 +24,30 @@ import { getDb, get, run } from "./db/connection.js";
  * @returns {Promise<{ ok: true } | { ok: false, retryAfterMs: number }>}
  */
 export async function checkRateLimit(key, limit, windowMs) {
-  const db = await getDb();
-  const windowStart = new Date(Date.now() - windowMs).toISOString();
-  const row = await get(db, `
-    SELECT COUNT(*) AS c, MIN(hit_at) AS oldest
-    FROM rate_limit_hits
-    WHERE key = $1 AND hit_at > $2
-  `, [key, windowStart]);
-  const count = Number(row?.c || 0);
-  if (count >= limit) {
-    const oldestMs = row?.oldest ? new Date(row.oldest).getTime() : Date.now();
-    const retryAfterMs = Math.max(windowMs - (Date.now() - oldestMs), 0);
-    return { ok: false, retryAfterMs };
+  let result;
+  try {
+    result = await withTransaction(null, async (client) => {
+      await client.query("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", [`rate-limit:${key}`]);
+      const windowStart = new Date(Date.now() - windowMs).toISOString();
+      const row = await get(client, `
+        SELECT COUNT(*) AS c, MIN(hit_at) AS oldest
+        FROM rate_limit_hits
+        WHERE key = $1 AND hit_at > $2
+      `, [key, windowStart]);
+      const count = Number(row?.c || 0);
+      if (count >= limit) {
+        const oldestMs = row?.oldest ? new Date(row.oldest).getTime() : Date.now();
+        return { ok: false, retryAfterMs: Math.max(windowMs - (Date.now() - oldestMs), 0) };
+      }
+      await run(client, "INSERT INTO rate_limit_hits (key, hit_at) VALUES ($1, NOW())", [key]);
+      return { ok: true };
+    });
+  } catch (error) {
+    // A flood on one key can keep every pooled connection waiting for that key's lock until the pool gives up.
+    // The throttle then says "slow down" (the safe answer for a flood) instead of failing the request with a 500.
+    if (/timeout exceeded when trying to connect/i.test(String(error?.message))) return { ok: false, retryAfterMs: 1000 };
+    throw error;
   }
-  await run(db, "INSERT INTO rate_limit_hits (key, hit_at) VALUES ($1, NOW())", [key]);
   // Opportunistic cleanup instead of a scheduled sweep (a setInterval sweep
   // has the same serverless-instance problem this whole rewrite exists to
   // fix -- it might never run again after a cold start): a small random
@@ -44,9 +55,9 @@ export async function checkRateLimit(key, limit, windowMs) {
   // uses could still care about them. Best-effort -- a failed cleanup
   // never blocks the actual rate-limit decision above.
   if (Math.random() < 0.01) {
-    run(db, "DELETE FROM rate_limit_hits WHERE hit_at < NOW() - INTERVAL '1 hour'").catch(() => {});
+    getDb().then((db) => run(db, "DELETE FROM rate_limit_hits WHERE hit_at < NOW() - INTERVAL '1 hour'")).catch(() => {});
   }
-  return { ok: true };
+  return result;
 }
 
 /**

@@ -443,7 +443,7 @@ function getPassportMatch(post) {
       salonReturnTabRef.current = activeTab === "profile" ? "profile" : "";
       goToTab("salons");
     }
-    selectSalonWithDetail({
+    return selectSalonWithDetail({
       ...card,
       source_key: String(profile.id),
       tag: profile.specialty || "",
@@ -557,7 +557,7 @@ function getPassportMatch(post) {
         if (detail && typeof detail === "object") {
           setSelectedSalon((current) => (
             current && String(current.id) === String(salon.id)
-              ? { ...current, ...detail }
+              ? { ...current, ...detail, detailFailed: false }
               : { ...salon, ...detail }
           ));
           if (typeof detail.isSaved === "boolean") {
@@ -568,11 +568,17 @@ function getPassportMatch(post) {
             });
           }
         }
+      } else {
+        markDetailFailed(salon);
       }
     } catch {
-      // keep the list row
+      // keep the list row, and say the page did not fully load (SalonClientPage offers «دوباره»)
+      markDetailFailed(salon);
     }
   };
+  function markDetailFailed(salon) {
+    setSelectedSalon((current) => (current && String(current.id) === String(salon.id) ? { ...current, detailFailed: true } : current));
+  }
 
   return {
     getPassportMatch,

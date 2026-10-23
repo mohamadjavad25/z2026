@@ -9,6 +9,7 @@ import {
   ChevronUp,
   ImagePlus,
   Phone,
+  RotateCw,
   Share2,
   UserPlus
 } from "lucide-react";
@@ -59,7 +60,11 @@ export function SalonClientPage({
   onSave,
   onShare,
   postActions = null,
-  onOpenBooking
+  onOpenBooking,
+  continueFor = null,
+  onContinue = null,
+  onDismissContinue = null,
+  onRetryDetail = null
 }) {
   const [publicSheet, setPublicSheet] = useState("");
   const [servicesOpen, setServicesOpen] = useState(false);
@@ -126,8 +131,26 @@ export function SalonClientPage({
                 </a>
               ) : null}
             </div>
+            {continueFor ? (
+              <div className={`spvContinue${continueFor.error ? " is-error" : ""}`} role={continueFor.error ? "alert" : "status"}>
+                <span>{continueFor.error || continueFor.text}</span>
+                <span className="spvContinueActions">
+                  {continueFor.error ? null : <button type="button" className="spvContinueGo" onClick={onContinue}>ادامه</button>}
+                  <button type="button" onClick={() => { onDismissContinue?.(); setServicesOpen(true); }}>
+                    {continueFor.error ? "انتخاب خدمت" : "تغییر خدمت"}
+                  </button>
+                </span>
+              </div>
+            ) : null}
             {selectedSalon.onlineBookingPaused ? <BookingPausedNote hasPhone={Boolean(selectedSalon.phone)} /> : null}
           </section>
+
+          {selectedSalon.detailFailed && onRetryDetail ? (
+            <p className="salonGalleryRetry" role="alert">
+              اینترنتت کند است. دوباره تلاش کن
+              <button type="button" onClick={onRetryDetail}><RotateCw size={14} aria-hidden="true" /> دوباره</button>
+            </p>
+          ) : null}
 
           <WeeklyHours rows={weekHours} todayName={todayName} />
 
@@ -190,7 +213,7 @@ export function SalonClientPage({
             >
               <CalendarCheck size={19} />
               {servicesOpen ? "بستن" : "رزرو نوبت"}
-              {minPrice && !servicesOpen ? <small>از {formatTomanNumber(minPrice)} تومان</small> : null}
+              {minPrice && !servicesOpen ? <small>قیمت از {formatTomanNumber(minPrice)} تومان</small> : null}
               <ChevronUp size={18} className={`spvBarChevron${servicesOpen ? " is-open" : ""}`} aria-hidden="true" />
             </button>
           </nav>

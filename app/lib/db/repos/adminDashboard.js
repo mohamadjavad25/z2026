@@ -2,6 +2,7 @@ import { getDb, all, get } from "../connection.js";
 import { countActive } from "./support.js";
 import { ensureControlTables } from "./adminControl.js";
 import { ensureBillingTables } from "./billing.js";
+import { OTP_GLOBAL_HOURLY_CAP, OTP_GLOBAL_KEY } from "../../otp.js";
 
 const TZ = "Asia/Tehran";
 const DAY = "INTERVAL '1 day'";
@@ -103,6 +104,8 @@ export async function getDashboard(rangeDays = 7) {
   ]);
 
   const openTickets = await countActive().catch(() => 0);
+  // Texted codes used in the last hour against the site-wide hourly cap (lib/otp.js); the home page warns at 80%.
+  const otpUsed = Number((await get(db, "SELECT COUNT(*)::int AS c FROM rate_limit_hits WHERE key = $1 AND hit_at > NOW() - INTERVAL '1 hour'", [OTP_GLOBAL_KEY]).catch(() => null))?.c || 0);
   const signups = series.map((row) => row.signups);
   const bookings = series.map((row) => row.bookings);
   return {
@@ -124,7 +127,9 @@ export async function getDashboard(rangeDays = 7) {
       adminFailedLogins: alerts?.admin_failed_logins || 0,
       suspended: totals?.suspended || 0,
       hiddenPosts: totals?.hidden_posts || 0,
-      clientErrors: alerts?.client_errors || 0
+      clientErrors: alerts?.client_errors || 0,
+      otpUsed,
+      otpCap: OTP_GLOBAL_HOURLY_CAP
     },
     live: { online: alerts?.online || 0, signupsToday: alerts?.signups_today || 0, waitingBookings: alerts?.waiting_bookings || 0 },
     forecast: {

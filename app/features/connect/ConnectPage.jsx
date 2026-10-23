@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ContactRound, QrCode, ScanLine, Search, X } from "lucide-react";
 import { ComingSoon } from "../../components/ComingSoon";
 import { Mascot } from "../../components/Mascot";
@@ -17,11 +17,14 @@ import { InviteToFrfro } from "./InviteToFrfro";
 import { MyCodeSheet } from "./MyCodeSheet";
 import { ScanFlow } from "./ScanFlow";
 import { useConnections } from "./useConnections";
+import { rememberSearch } from "./searchMemory";
+
+const searching0 = (text) => String(text).trim().length > 0;
 
 const NOT_FOUND = {
   phone: "این شماره هنوز در فرفرو نیست.",
   link: "این لینک به سالن یا آرتیستی نمی‌رسد.",
-  name: "با این اسم سالن یا آرتیستی پیدا نشد."
+  name: "نتیجه‌ای نیست؛ اسم دیگری امتحان کن."
 };
 
 /**
@@ -36,8 +39,25 @@ const NOT_FOUND = {
  *  - onOpenProfile(profile, focus?): show a salon/artist page; `focus` = { services, label } opens its services menu on those
  *  - onNotify(message)
  */
-export function ConnectPage({ me = {}, compact = false, onOpenProfile, onNotify }) {
-  const { connections, loading, query, setQuery, search, connect, connectingId, refresh } = useConnections({ onNotify });
+export function ConnectPage({ me = {}, compact = false, onOpenProfile: openProfile, onNotify }) {
+  // The home card and the «پیدا کردن» tab each remember their own search.
+  const owner = `${compact ? "home:" : ""}${me.name || ""}`;
+  const { connections, loading, query, setQuery, search, connect, connectingId, refresh, restoredScrollY } = useConnections({ onNotify, memoryOwner: owner });
+  // Opening a salon page swaps this screen out: remember where the client was so Back lands there (searchMemory.js).
+  const onOpenProfile = (...args) => {
+    rememberSearch(owner, { scrollY: window.scrollY });
+    openProfile?.(...args);
+  };
+  const restoredRef = useRef(false);
+  const ready = searching0(query) ? search.status !== "searching" : !loading;
+  useEffect(() => {
+    if (restoredRef.current || !ready) return;
+    restoredRef.current = true;
+    if (restoredScrollY > 0) {
+      window.requestAnimationFrame(() => window.scrollTo({ top: restoredScrollY, left: 0, behavior: "instant" }));
+      rememberSearch(owner, { scrollY: 0 }); // used once
+    }
+  }, [ready, restoredScrollY, owner]);
   const [sheet, setSheet] = useState(""); // "" | "scan" | "code"
   const [categorySheet, setCategorySheet] = useState(null); // { category, matches } while the pick/connect sheet is open
   const [checkingCategory, setCheckingCategory] = useState("");

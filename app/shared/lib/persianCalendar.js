@@ -1,4 +1,4 @@
-import { toPersianDigits } from "./digits.js";
+import { toAsciiDigits, toPersianDigits } from "./digits.js";
 
 const persianDateFmt = new Intl.DateTimeFormat("en-US-u-ca-persian-nu-latn", {
   year: "numeric",
@@ -89,15 +89,15 @@ export function shiftPersianMonth(year, month, delta) {
 }
 
 export function persianWeekdayIndex(weekday) {
-  const normalized = String(weekday || "").replace(/\s/g, "");
-  let index = PERSIAN_WEEKDAYS.findIndex((day) => day.replace(/\s/g, "") === normalized);
+  const normalized = compactLabel(weekday);
+  let index = PERSIAN_WEEKDAYS.findIndex((day) => compactLabel(day) === normalized);
   if (index < 0) {
     // Labels may carry a date suffix ("یکشنبه ۸ شهریور"): match the LONGEST
     // contained weekday name so "یکشنبه" wins over its "شنبه" substring.
     let best = -1;
     let bestLen = 0;
     PERSIAN_WEEKDAYS.forEach((day, i) => {
-      const compact = day.replace(/\s/g, "");
+      const compact = compactLabel(day);
       if (normalized.includes(compact) && compact.length > bestLen) {
         best = i;
         bestLen = compact.length;
@@ -147,6 +147,23 @@ export function isPersianDateKey(value) {
 }
 
 /**
+ * A written date ("1405-08-03", also with Persian/Arabic digits, "/" or "." separators, or no zero padding)
+ * as the canonical key "YYYY-MM-DD" -- only when it is a REAL Jalali day within about a year of `from`
+ * (the range persianDateKeyToDate can check). "" for anything else: impossible month/day, a Gregorian
+ * date, text. Never "today" as a fallback.
+ */
+export function parsePersianDateKey(value, from = new Date()) {
+  const match = toAsciiDigits(String(value ?? "").trim()).match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})$/);
+  if (!match) return "";
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  if (month < 1 || month > 12 || day < 1 || day > (month <= 6 ? 31 : 30)) return "";
+  const key = `${match[1]}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  return year >= 1300 && persianDateKeyToDate(key, from) ? key : "";
+}
+
+/**
  * Reverses a Persian date key ("1404-02-24") back into a real Date, by
  * walking outward from `from` day by day until the formatted key matches.
  * There is no closed-form Persian→Gregorian conversion available via Intl
@@ -157,16 +174,62 @@ export function isPersianDateKey(value) {
 export function persianDateKeyToDate(dateKey, from = new Date(), rangeDays = 400) {
   if (!isPersianDateKey(dateKey)) return null;
   const base = startOfDay(from);
-  if (formatPersianDateKey(base) === dateKey) return base;
-  for (let offset = 1; offset <= rangeDays; offset += 1) {
+  const baseKey = formatPersianDateKey(base);
+  if (baseKey === dateKey) return base;
+  // The same key is asked for again and again (every booking row of an artist is read for each availability question,
+  // up to 800 Intl formats per row), and the answer only depends on the key and on today's date, so it is remembered.
+  const cacheKey = `${dateKey}|${baseKey}|${rangeDays}`;
+  const known = dateKeyCache.get(cacheKey);
+  if (known !== undefined) return known === null ? null : new Date(known);
+  let found = null;
+  for (let offset = 1; offset <= rangeDays && !found; offset += 1) {
     const forward = new Date(base);
     forward.setDate(forward.getDate() + offset);
-    if (formatPersianDateKey(forward) === dateKey) return forward;
+    if (formatPersianDateKey(forward) === dateKey) { found = forward; break; }
     const backward = new Date(base);
     backward.setDate(backward.getDate() - offset);
-    if (formatPersianDateKey(backward) === dateKey) return backward;
+    if (formatPersianDateKey(backward) === dateKey) found = backward;
   }
-  return null;
+  if (dateKeyCache.size >= 4000) dateKeyCache.clear();
+  dateKeyCache.set(cacheKey, found ? found.getTime() : null);
+  return found;
+}
+
+const dateKeyCache = new Map();
+
+const compactLabel = (text) => String(text || "").replace(/[\s\u200c]/g, "").replace(/ي/g, "ی").replace(/ك/g, "ک");
+
+function hasWeekdayName(raw) {
+  const normalized = compactLabel(raw);
+  return PERSIAN_WEEKDAYS.some((day) => normalized.includes(compactLabel(day)));
+}
+
+/**
+ * The strict reading of a booking's day: the Date it means, or null when it is not a real day. Accepted:
+ * "" (today), "امروز", "فردا", "پس‌فردا", a weekday name (optionally followed by a date label), and a real
+ * Jalali date key in any digits. An impossible date or plain text is null, never today and never "Saturday".
+ */
+export function tryResolveRollingPersianDate(value, from = new Date()) {
+  const raw = String(value ?? "").trim();
+  const today = startOfDay(from);
+  if (!raw) return today;
+  if (/^[\d۰-۹٠-٩０-９\s\-/.]+$/.test(raw)) {
+    const key = parsePersianDateKey(raw, from);
+    return key ? persianDateKeyToDate(key, from) : null;
+  }
+  if (raw === "امروز") return today;
+  if (raw === "فردا" || raw === "پس‌فردا") {
+    const next = new Date(today);
+    next.setDate(today.getDate() + (raw === "فردا" ? 1 : 2));
+    return next;
+  }
+  if (!hasWeekdayName(raw)) return null;
+  const targetIndex = persianWeekdayIndex(raw);
+  const todayIndex = persianWeekdayIndex(getPersianWeekday(today));
+  const offset = (targetIndex - todayIndex + 7) % 7;
+  const target = new Date(today);
+  target.setDate(today.getDate() + offset);
+  return target;
 }
 
 /**
@@ -180,30 +243,18 @@ export function persianDateKeyToDate(dateKey, from = new Date(), rangeDays = 400
  * with a different `from`, intentionally reinterprets it relative to the
  * new `from` — callers that need a value pinned in time must store/pass an
  * absolute "YYYY-MM-DD" key instead.
+ *
+ * Display code only: an unreadable value still gives today so a screen never breaks. Anything that
+ * decides or stores a day must use resolveRollingPersianDateKey (or tryResolveRollingPersianDate).
  */
 export function resolveRollingPersianDate(value, from = new Date()) {
-  const raw = String(value || "").trim();
-  const today = startOfDay(from);
-  if (!raw) return today;
-  if (isPersianDateKey(raw)) return persianDateKeyToDate(raw, from) || today;
-
-  if (raw === "امروز") return today;
-  if (raw === "فردا" || raw === "پس‌فردا") {
-    const next = new Date(today);
-    next.setDate(today.getDate() + (raw === "فردا" ? 1 : 2));
-    return next;
-  }
-
-  const targetIndex = persianWeekdayIndex(raw);
-  const todayIndex = persianWeekdayIndex(getPersianWeekday(today));
-  const offset = (targetIndex - todayIndex + 7) % 7;
-  const target = new Date(today);
-  target.setDate(today.getDate() + offset);
-  return target;
+  return tryResolveRollingPersianDate(value, from) || startOfDay(from);
 }
 
+/** The canonical "YYYY-MM-DD" for a day value, or "" when it is not a real day (empty input still means today). */
 export function resolveRollingPersianDateKey(value, from = new Date()) {
-  return formatPersianDateKey(resolveRollingPersianDate(value, from));
+  const date = tryResolveRollingPersianDate(value, from);
+  return date ? formatPersianDateKey(date) : "";
 }
 
 /**

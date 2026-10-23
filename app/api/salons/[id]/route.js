@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getUserFromRequest } from "../../../lib/auth.js";
 import { ensureDb } from "../../../lib/db/connection.js";
 import * as salons from "../../../lib/db/repos/salons.js";
+import { suspendedAccountIds } from "../../../lib/db/repos/users.js";
+import { PAGE_UNAVAILABLE_MESSAGE } from "../../../lib/billing/access.js";
 import { withErrorHandling } from "../../../lib/http.js";
 
 export const runtime = "nodejs";
@@ -12,6 +14,10 @@ async function _GET(request, context) {
   const userId = Number(params?.id);
   if (!Number.isFinite(userId)) {
     return NextResponse.json({ error: "شناسه سالن نامعتبر است." }, { status: 400 });
+  }
+  // A suspended salon's page is not available to anyone (its owner cannot log in either).
+  if ((await suspendedAccountIds([userId])).has(userId)) {
+    return NextResponse.json({ error: PAGE_UNAVAILABLE_MESSAGE }, { status: 404 });
   }
   const viewer = await getUserFromRequest(request);
   const salon = await salons.getSalon(userId, viewer?.id || null);

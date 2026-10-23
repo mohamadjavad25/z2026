@@ -30,12 +30,12 @@ const startedFiveMinutesAgo = async (table, id) => { await connected; await db.q
 
 async function newSalon(name, { withArtist = false } = {}) {
   const salonClient = createClient();
-  const salon = await registerUser(salonClient, { type: "salon", name: `${name} Salon` });
+  const salon = await registerUser(salonClient, { type: "salon", menu: true, name: `${name} Salon` });
   await salonClient.get("/api/salon-hours");
   const ctx = { salonClient, salon };
   if (withArtist) {
     ctx.artistClient = createClient();
-    ctx.artist = await registerUser(ctx.artistClient, { type: "artist", name: `${name} Staff` });
+    ctx.artist = await registerUser(ctx.artistClient, { type: "artist", menu: true, name: `${name} Staff` });
     expect((await joinSalonAsArtist(ctx.artistClient, salonClient, salon.user.id)).ok).toBe(true);
     ctx.staffName = (await salonClient.get("/api/salon-staff")).payload.data.staff[0].name;
   }
@@ -58,7 +58,7 @@ const clientSalonRow = async (who, id) => (await who.api.get("/api/salon-booking
 
 async function newDirectArtist(name, settings = {}) {
   const artistClient = createClient();
-  const artist = await registerUser(artistClient, { type: "artist", name });
+  const artist = await registerUser(artistClient, { type: "artist", menu: true, name });
   if (Object.keys(settings).length) await artistClient.post("/api/profile/settings", { settings });
   return { artistClient, artist };
 }
@@ -315,16 +315,16 @@ describe("client -> independent artist", () => {
     expect((await clientArtistRow(client, booking.id)).status).toBe("تایید شده");
   });
 
-  it("a guest (not signed in) request also waits and expires", async () => {
+  // Changed on purpose (owner's decision 2026-10-22): an independent artist takes bookings only from a signed-in
+  // client, so a guest request no longer exists to wait or expire; it is refused with 401.
+  it("a guest (not signed in) request is refused: booking an independent artist needs a login", async () => {
     const a = await newDirectArtist("Direct Guest");
     const guest = createClient();
     const res = await guest.post("/api/artist/bookings", {
       artistUserId: a.artist.user.id, service: "ناخن", bookingDate: futureBookingDay(2), time: "10:00", clientName: "Guest", clientPhone: "09120000777"
     });
-    expect(res.status).toBe(201);
-    await age("artist_bookings", res.payload.data.booking.id, 61);
-    await sweep();
-    expect((await artistRow(a, res.payload.data.booking.id)).status).toBe(EXPIRED);
+    expect(res.status).toBe(401);
+    expect(res.payload.error).toContain("برای رزرو، شمارهٔ موبایلت را وارد کن");
   });
 });
 

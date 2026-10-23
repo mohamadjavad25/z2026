@@ -83,10 +83,16 @@ export function useScheduleBookingMenu({
     if (!scheduleBookingMenu) return;
     // A client's own booking does not just move: the new time goes to them to accept or decline.
     const askedClient = Boolean(scheduleBookingMenu.client_user_id || scheduleBookingMenu.clientUserId);
+    // A CONFIRMED booking is only ever a proposal: its original time stays until the client accepts (owner's rules of 2026-10-22).
+    const confirmed = ["تایید شده", "تازه"].includes(scheduleBookingMenu.status);
     const ok = await patchSalonAppointment(
       scheduleBookingMenu,
       overtime ? { time, overtime: true } : { time },
-      askedClient ? `ساعت ${time} برای مشتری فرستاده شد؛ تا قبول کند «در انتظار مشتری» می‌ماند.` : `ساعت رزرو به ${time} تغییر کرد.`
+      askedClient
+        ? (confirmed
+          ? `پیشنهاد ساعت ${time} برای مشتری فرستاده شد. تا قبول نکند، نوبت همان ساعت قبلی می‌ماند.`
+          : `ساعت ${time} برای مشتری فرستاده شد؛ تا قبول کند «در انتظار مشتری» می‌ماند.`)
+        : `ساعت رزرو به ${time} تغییر کرد.`
     );
     if (ok) closeScheduleBookingMenu();
   }, [scheduleBookingMenu, patchSalonAppointment, closeScheduleBookingMenu]);
@@ -127,6 +133,12 @@ export function useScheduleBookingMenu({
     if (ok) closeScheduleBookingMenu();
   }, [scheduleBookingMenu, patchSalonAppointment, closeScheduleBookingMenu]);
 
+  // The salon takes its proposal back; the booking stays at its original time.
+  const withdrawScheduleProposal = useCallback(async () => {
+    if (!scheduleBookingMenu) return false;
+    return patchSalonAppointment(scheduleBookingMenu, { withdrawProposal: true }, "پیشنهاد پس گرفته شد؛ نوبت همان ساعت قبلی است.");
+  }, [scheduleBookingMenu, patchSalonAppointment]);
+
   return {
     scheduleBookingMenu,
     setScheduleBookingMenu,
@@ -138,6 +150,7 @@ export function useScheduleBookingMenu({
     changeScheduleBookingStaff,
     changeScheduleBookingParts,
     autoAssignScheduleBooking,
-    cancelScheduleBooking
+    cancelScheduleBooking,
+    withdrawScheduleProposal
   };
 }

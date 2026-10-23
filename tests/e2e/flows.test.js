@@ -93,9 +93,11 @@ describe("booking flow (browser)", () => {
     // the button says "checking" until the server has confirmed who does what at that time
     await cp.locator(".vbPlanRow").first().waitFor();
     await cp.getByRole("button", { name: /ارسال درخواست/ }).waitFor();
-    // how long to wait for the salon: folded on «صبر می‌کنم» unless the client opens it and picks the hour
-    await cp.locator(".wcFold").filter({ hasText: "صبر می‌کنم" }).click();
+    // how long to wait for the salon: folded on «فقط ۱ ساعت» (decision 2026-10-21) until the client opens it
+    await cp.locator(".wcFold").filter({ hasText: "فقط ۱ ساعت" }).click();
     const waitChoice = cp.locator(".wc");
+    expect(await waitChoice.getByRole("radio", { name: /فقط ۱ ساعت/ }).getAttribute("aria-checked")).toBe("true");
+    await waitChoice.getByRole("radio", { name: /صبر می‌کنم/ }).click();
     expect(await waitChoice.getByRole("radio", { name: /صبر می‌کنم/ }).getAttribute("aria-checked")).toBe("true");
     await waitChoice.getByRole("radio", { name: /فقط ۱ ساعت/ }).click();
     expect(await waitChoice.getByRole("radio", { name: /فقط ۱ ساعت/ }).getAttribute("aria-checked")).toBe("true");
@@ -162,12 +164,15 @@ describe("booking flow (browser)", () => {
     expect(await cp.locator(".vbPlanRow").count()).toBe(2);
     await cp.locator(".vbTime.is-on").waitFor();
     await cp.getByRole("button", { name: /ارسال درخواست/ }).waitFor();
+    // the default is one hour (decision 2026-10-21); this flow picks «صبر می‌کنم» (until the appointment, at most 24 hours)
+    await cp.locator(".wcFold").click();
+    await cp.getByRole("radio", { name: /صبر می‌کنم/ }).click();
     await cp.locator(".vbSubmit").click();
-    // left on «صبر می‌کنم»: no countdown, just what happens if it takes long
+    // chosen «صبر می‌کنم»: no countdown, just what happens if it takes long
     const receipt = cp.locator(".brScreen");
     await receipt.waitFor();
     expect(await receipt.locator(".brCount").count()).toBe(0);
-    expect(await receipt.locator(".brWaitNote").innerText()).toContain("تا قبل از نوبت وقت دارد جواب بدهد");
+    expect(await receipt.locator(".brWaitNote").innerText()).toContain("تا قبل از نوبت (حداکثر ۲۴ ساعت) وقت دارد جواب بدهد");
     await cp.locator(".cbt.is-wait").waitFor({ state: "attached" });
     expect(clientView.problems).toEqual([]);
 
@@ -225,7 +230,7 @@ describe("booking flow (browser)", () => {
 
   it("an artist answers a new booking right on their bookings tab", async () => {
     const artistApi = createClient();
-    const artist = await registerUser(artistApi, { type: "artist", name: "آرتیست تست" });
+    const artist = await registerUser(artistApi, { type: "artist", name: "آرتیست تست", menu: [["کوتاهی", "30 دقیقه"]] });
     const clientApi = createClient();
     await registerUser(clientApi, { type: "client", name: "مشتری مستقیم" });
     const created = await clientApi.post("/api/artist/bookings", {
@@ -303,7 +308,7 @@ describe("client starts from what they want (browser)", () => {
     await row.click();
     // the time screen: a way back, the first free time marked «زودترین», the wait question folded
     await page.locator(".vbTime.is-on.is-earliest").waitFor();
-    expect(await page.locator(".wcFold").innerText()).toContain("صبر می‌کنم");
+    expect(await page.locator(".wcFold").innerText()).toContain("فقط ۱ ساعت");
     await page.getByRole("button", { name: "برگشت" }).click();
     await page.locator(".vbTime").first().waitFor({ state: "detached" });
     await page.locator(".sopRow").first().waitFor();
@@ -784,17 +789,23 @@ describe("SMS code at sign-up (browser)", () => {
     await page.route("**/api/auth/otp/config", (route) => route.fulfill({ json: { data: { enabled: true, required: true, resendSeconds: 60 } } }));
     await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
     await page.getByText("مشتری", { exact: true }).first().click();
-    await page.fill("[name=name]", "مشتری کدی");
-    await page.fill("[name=area]", "تهران");
+    // step 1: only the phone number; the terms are one small line under the button
+    expect(await page.locator("[name=name]").count()).toBe(0);
+    expect(await page.locator("[name=password]").count()).toBe(0);
+    expect(await page.locator("[name=agreeTerms]").count()).toBe(0);
+    await page.getByText("با ادامه دادن،").waitFor();
+    await page.fill("[name=phone]", "0912");
+    await page.getByRole("button", { name: "دریافت کد" }).click();
+    await page.getByRole("alert").filter({ hasText: "شماره درست نیست؛ مثلاً" }).waitFor();
     await page.fill("[name=phone]", phone);
-    await page.fill("[name=password]", "testpass123");
-    await page.locator("[name=agreeTerms]").check();
-    await page.getByRole("button", { name: "ادامه و تأیید شماره" }).click();
+    await page.getByRole("button", { name: "دریافت کد" }).click();
     await page.locator("[name=otpCode]").waitFor();
-    // wrong code first: Persian error, still on the code step
+    await page.getByRole("button", { name: "تغییر شماره" }).waitFor();
+    // wrong code first: red field, Persian error, how many tries are left, still on the code step
     await page.fill("[name=otpCode]", "00000");
-    await page.getByRole("button", { name: "تأیید و ساخت حساب" }).click();
-    await page.getByRole("alert").filter({ hasText: persian }).first().waitFor();
+    await page.getByRole("button", { name: "تأیید", exact: true }).click();
+    await page.getByRole("alert").filter({ hasText: "کد اشتباه است. دوباره بزن" }).waitFor();
+    await page.getByText("بار دیگر می‌توانی امتحان کنی").waitFor();
     // the real code
     let code = null;
     for (let i = 0; i < 20 && !code; i += 1) {
@@ -802,7 +813,13 @@ describe("SMS code at sign-up (browser)", () => {
       if (!code) await page.waitForTimeout(250);
     }
     await page.fill("[name=otpCode]", code);
-    await page.getByRole("button", { name: "تأیید و ساخت حساب" }).click();
+    await page.getByRole("button", { name: "تأیید", exact: true }).click();
+    // green tick, then one question at a time: name, then password
+    await page.getByText("شماره تأیید شد").waitFor();
+    await page.fill("[name=name]", "مشتری کدی");
+    await page.getByRole("button", { name: "ادامه", exact: true }).click();
+    await page.fill("[name=password]", "testpass123");
+    await page.getByRole("button", { name: "ساخت حساب" }).click();
     await page.locator("nav.bottomNav").waitFor();
     const me = await page.evaluate(async () => (await (await fetch("/api/auth/me")).json()).data.user?.phone);
     expect(me).toBe(phone);

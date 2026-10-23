@@ -1,15 +1,21 @@
-import { error, json, notFound, requireUserRole, withErrorHandling } from "../../../lib/http.js";
+import { error, json, notFound, requireUserRole, withErrorHandling, readObjectBody } from "../../../lib/http.js";
 import { sweepExpiredBookingRequestsIfDue } from "../../../lib/bookingExpirySweep.js";
 import * as artists from "../../../lib/db/repos/artists.js";
 import * as salons from "../../../lib/db/repos/salons.js";
-import { countFollowers } from "../../../lib/db/repos/users.js";
+import { countFollowers, getUserLiteById } from "../../../lib/db/repos/users.js";
 import { sendPushToUser } from "../../../lib/push.js";
 import { notifyConnection } from "../../../lib/connectionNotify.js";
 import { checkRateLimit } from "../../../lib/rateLimit.js";
 import { get, withTransaction } from "../../../lib/db/connection.js";
 import { lockArtistDays, lockSalonDay } from "../../../lib/db/locks.js";
+import { artistRequestLapsedSql } from "../../../lib/db/repos/openRequests.js";
+import { isSlotInPast } from "../../../shared/lib/slots.js";
 import { AWAITING_CLIENT } from "../../../shared/lib/bookingOffer.js";
+import { SERVICE_LIMIT_MESSAGE, serviceFieldsProblem } from "../../../lib/validation/service.js";
+import { readBookingSlot } from "../../../lib/validation/bookingSlot.js";
+import { parseRequestedMinutes } from "../../../lib/validation/numbers.js";
 import { bookingWhen, smsBookingAnswer } from "../../../lib/bookingSms.js";
+import { noticeClientCancelledByProvider } from "../../../lib/providerNotices.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -41,11 +47,18 @@ async function _GET(request) {
 async function _POST(request) {
   const auth = await requireUserRole(request, "artist", "فقط آرتیست.");
   if (!auth.ok) return auth.response;
-  const body = await request.json();
+  const body = await readObjectBody(request);
   if (body.kind === "booking") {
     // An entry the artist makes in their own calendar is already settled. Left as "تازه" (a client's
     // pending request) the expiry sweep would cancel it an hour later, as if nobody had answered.
-    const result = await artists.addArtistBooking(auth.user.id, { ...body, status: "تایید" });
+    const slot = readBookingSlot(body.bookingDate || body.booking_date || body.date || "", body.time ?? "");
+    if (!slot.ok) return error(slot.error, slot.status);
+    const length = parseRequestedMinutes(body);
+    if (!length.ok) return error(`مدت نوبت نامعتبر است؛ یک عدد صحیح (دقیقه) بنویس.`, 400);
+    const result = await artists.addArtistBooking(auth.user.id, {
+      ...body, bookingDate: slot.dateKey, booking_date: undefined, date: undefined, time: slot.time,
+      durationMinutes: length.minutes, duration_minutes: undefined, status: "تایید"
+    });
     if (!result.ok) {
       return json({ error: result.error, code: result.code }, { status: result.code === "SLOT_TAKEN" ? 409 : 400 });
     }
@@ -81,17 +94,24 @@ async function _POST(request) {
     });
     return json({ data: { collab: result.collab } }, { status: 201 });
   }
+  const problem = serviceFieldsProblem(body);
+  if (problem) return error(problem, 400);
+  // A service without a name can't be booked and would only use up one of the 100 places.
+  if (typeof body.name !== "string" || !body.name.trim()) return error("نام خدمت را بنویس.", 400);
   const service = await artists.addArtistService(auth.user.id, body);
+  if (service?.limit) return json({ error: SERVICE_LIMIT_MESSAGE, code: "SERVICE_LIMIT" }, { status: 409 });
   return json({ data: { service } }, { status: 201 });
 }
 
 async function _PATCH(request) {
   const auth = await requireUserRole(request, "artist", "فقط آرتیست.");
   if (!auth.ok) return auth.response;
-  const body = await request.json();
+  const body = await readObjectBody(request);
   if (body.kind === "booking") {
     return patchOwnArtistBooking(auth.user.id, body, auth.user.name);
   }
+  const problem = serviceFieldsProblem(body);
+  if (problem) return error(problem, 400);
   const service = await artists.updateArtistService(Number(body.id), auth.user.id, body);
   if (!service) return notFound();
   return json({ data: { service } });
@@ -143,11 +163,13 @@ async function patchOwnArtistBooking(artistUserId, body, artistName = "") {
   let updatedRow = null;
   let salonBooking = null;
   let refusal = null;
+  let statusBefore = null;
   await withTransaction(null, async (db) => {
     if (current.sourceSalonUserId) await lockSalonDay(db, current.sourceSalonUserId, current.bookingDate);
     await lockArtistDays(db, [artistUserId], current.bookingDate);
-    const locked = await get(db, "SELECT * FROM artist_bookings WHERE id = $1 FOR UPDATE", [bookingId]);
+    const locked = await get(db, `SELECT a.*, ${artistRequestLapsedSql("a")} AS lapsed FROM artist_bookings a WHERE a.id = $1 FOR UPDATE`, [bookingId]);
     if (!locked) return;
+    statusBefore = locked.status;
     // One artist's share of a multi-service visit: the visit is approved by the salon, and the
     // shares follow it. Confirming a share alone used to mark it confirmed here while the salon
     // booking -- and so the client -- stayed "waiting", the two sides disagreeing for good.
@@ -161,6 +183,13 @@ async function patchOwnArtistBooking(artistUserId, body, artistName = "") {
     }
     if (locked.status === "منقضی شده") {
       refusal = error("این درخواست به‌دلیل عدم پاسخ به‌موقع منقضی شده و دیگر قابل تایید یا رد نیست.", 409);
+      return;
+    }
+    // A request can be answered only while it is alive: its window has not run out (decided now, not when the sweep
+    // gets there) and its appointment has not started.
+    const isRequestRow = (locked.status === "تازه" && !locked.source_salon_user_id) || (locked.status === "درخواست" && locked.source_salon_user_id);
+    if (nextStatus === "تایید شده" && isRequestRow && (locked.lapsed || isSlotInPast(locked.booking_date, locked.time))) {
+      refusal = json({ error: "مهلت این درخواست تمام شده و دیگر قابل تایید نیست.", code: "BOOKING_EXPIRED" }, { status: 409 });
       return;
     }
     if (locked.status === "لغو" && nextStatus === "تایید شده") {
@@ -183,9 +212,24 @@ async function patchOwnArtistBooking(artistUserId, body, artistName = "") {
     if (updatedRow && updatedRow.source_salon_user_id) {
       salonBooking = await salons.syncSalonBookingFromArtistMirror(updatedRow, nextStatus, db);
     }
+    // Who cancelled, and the artist's counter of cancelled CONFIRMED bookings (only this transaction's real change counts).
+    if (wantsCancel && updatedRow && statusBefore !== "لغو") {
+      await salons.recordCancellation(db, "artist_bookings", bookingId, statusBefore === "تایید" ? "تایید" : statusBefore, { by: "provider", userId: artistUserId });
+      await db.query("UPDATE artist_bookings SET proposal_date = '', proposal_time = '', proposal_at = NULL WHERE id = $1", [bookingId]);
+    }
   });
   if (refusal) return refusal;
   if (!updatedRow) return notFound();
+
+  // Nobody is told again about an answer that changed nothing (a second tap on «تایید», or «لغو» on a cancelled one).
+  if (updatedRow.status === statusBefore) {
+    return json({
+      data: {
+        booking: await artists.getArtistBookingById(bookingId),
+        bookings: await artists.listArtistBookings(artistUserId)
+      }
+    });
+  }
 
   const answerWord = nextStatus === "تایید شده" ? "تایید کرد" : "لغو کرد";
   if (salonBooking && salonBooking.salon_user_id) {
@@ -195,7 +239,19 @@ async function patchOwnArtistBooking(artistUserId, body, artistName = "") {
     });
   }
 
-  if (current.clientUserId) {
+  // Cancelling a booking that was already confirmed is a broken promise: the client gets the apology push + SMS
+  // (owner's rule of 2026-10-22), never the plain "cancelled" answer on top of it.
+  const confirmedBefore = ["تایید شده", "تایید"].includes(statusBefore);
+  if (nextStatus === "لغو" && confirmedBefore) {
+    const clientId = Number(current.clientUserId || salonBooking?.client_user_id || 0);
+    const viaSalon = salonBooking?.salon_user_id ? await getUserLiteById(Number(salonBooking.salon_user_id)).catch(() => null) : null;
+    noticeClientCancelledByProvider(clientId, {
+      provider: viaSalon ? { type: "salon", name: viaSalon.name } : { type: "artist", name: artistName },
+      booking: viaSalon && salonBooking
+        ? { kind: "salon", id: salonBooking.id, booking_date: salonBooking.booking_date, time: salonBooking.time, service: salonBooking.service }
+        : { kind: "artist", id: bookingId, booking_date: current.bookingDate, time: current.time, service: current.service }
+    });
+  } else if (current.clientUserId) {
     const push = sendPushToUser(Number(current.clientUserId), {
       title: nextStatus === "تایید شده" ? "نوبت شما تایید شد" : "نوبت شما لغو شد",
       body: `${current.service || "نوبت"} — ${bookingWhen(current.bookingDate, current.time)}`
@@ -204,7 +260,8 @@ async function patchOwnArtistBooking(artistUserId, body, artistName = "") {
       providerName: artistName,
       bookingDate: current.bookingDate,
       time: current.time,
-      confirmed: nextStatus === "تایید شده"
+      confirmed: nextStatus === "تایید شده",
+      booking: { kind: "artist", id: bookingId }
     }, push);
   }
 
@@ -219,7 +276,7 @@ async function patchOwnArtistBooking(artistUserId, body, artistName = "") {
 async function _DELETE(request) {
   const auth = await requireUserRole(request, "artist", "فقط آرتیست.");
   if (!auth.ok) return auth.response;
-  const body = await request.json();
+  const body = await readObjectBody(request);
   if (body.kind === "collab") {
     const ok = await artists.deleteArtistCollab(Number(body.id), auth.user.id);
     if (!ok) return notFound();

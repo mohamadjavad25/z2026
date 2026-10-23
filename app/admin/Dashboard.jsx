@@ -281,7 +281,9 @@ export function Dashboard({ onGo, name }) {
     { n: alerts.pendingResets, text: "درخواست بازیابی رمز منتظر پیگیری", go: "resets", tone: "warn" },
     { n: alerts.clientErrors, text: "خطای اپ روی گوشی کاربران در ۲۴ ساعت", go: "health", tone: "bad" },
     { n: alerts.adminFailedLogins, text: "تلاش ناموفق ورود به پنل در ۲۴ ساعت", go: "security", tone: "bad" },
-    { n: alerts.smsFailed, text: "پیامک ناموفق در ۲۴ ساعت", go: "health", tone: "bad" }
+    { n: alerts.smsFailed, text: "پیامک ناموفق در ۲۴ ساعت", go: "health", tone: "bad" },
+    // 80% of the site-wide hourly cap of texted codes: past it, new sign-ups are told "busy".
+    { n: alerts.otpUsed >= alerts.otpCap * 0.8 ? alerts.otpUsed : 0, text: `کد پیامکی در یک ساعت گذشته از سقف ${toPersianDigits(alerts.otpCap)} در ساعت؛ نزدیک پر شدن است`, go: "health", tone: "warn" }
   ].filter((item) => item.n > 0);
   const col = (key) => series.map((row) => row[key]);
   const open = (target) => (Array.isArray(target) ? onGo(...target) : onGo(target));

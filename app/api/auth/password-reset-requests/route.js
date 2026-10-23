@@ -5,7 +5,7 @@ import { requireAdmin } from "../../../lib/admin.js";
 import { ensureDb } from "../../../lib/db/connection.js";
 import * as passwordResetRequests from "../../../lib/db/repos/passwordResetRequests.js";
 import { checkRateLimit } from "../../../lib/rateLimit.js";
-import { withErrorHandling } from "../../../lib/http.js";
+import { readJson, withErrorHandling } from "../../../lib/http.js";
 import { smsAdminsSupport } from "../../../lib/adminSms.js";
 
 export const runtime = "nodejs";
@@ -24,7 +24,7 @@ const REQUEST_WINDOW_MS = 60 * 60 * 1000;
 async function _POST(request) {
   await ensureDb();
   try {
-    const body = await request.json();
+    const body = (await readJson(request)) || {};
     const phone = normalizePhone(body.phone || "");
     const note = String(body.note || "").slice(0, 300);
 

@@ -11,7 +11,7 @@ afterAll(async () => { await connected; await db.end(); });
 describe("unanswered booking requests whose day has passed", () => {
   it("are marked expired but stay in the list", async () => {
     const salonClient = createClient();
-    const salon = await registerUser(salonClient, { type: "salon", name: "Expiry Salon" });
+    const salon = await registerUser(salonClient, { type: "salon", menu: true, name: "Expiry Salon" });
     await salonClient.get("/api/salon-hours");
     const bookerClient = createClient();
     const booker = await registerUser(bookerClient, { type: "client", name: "Late Booker" });

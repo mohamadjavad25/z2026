@@ -10,7 +10,7 @@ import { listSalonStaff } from "./salons/staff.js";
 import { onlineBookingBlock, withoutHiddenProviders } from "../../billing/access.js";
 import { publicLocation } from "../../location.js";
 
-export { ensureBookingPartsColumns as ensureBookingColumns, answerSalonTimeOffer, cancelSalonBookingByClient, draftSingleBookingStaff, getSalonBookingRow, listBookingMoveTimes, listBookingStaffOptions, listFeasibleVisitTimes, previewVisit, suggestBookingStaff, listSalonBookings, listClientSalonBookings, addSalonBooking, updateSalonBooking, cancelSalonBooking, patchSalonBookingWithArtistSync, syncSalonBookingFromArtistMirror } from "./salons/bookings.js";
+export { ensureBookingPartsColumns as ensureBookingColumns, answerSalonTimeOffer, cancelSalonBookingByClient, draftSingleBookingStaff, getSalonBookingRow, listBookingMoveTimes, listBookingStaffOptions, listFeasibleVisitTimes, previewVisit, suggestBookingStaff, listSalonBookings, listUnavailableSlots, listClientSalonBookings, addSalonBooking, updateSalonBooking, cancelSalonBooking, patchSalonBookingWithArtistSync, syncSalonBookingFromArtistMirror, recordCancellation, invalidateUnavailable } from "./salons/bookings.js";
 export { ensureSalonHours, listSalonHours, updateSalonHour } from "./salons/hours.js";
 export { listSalonPortfolio, addSalonPortfolio, updateSalonPortfolio, deleteSalonPortfolio } from "./salons/portfolio.js";
 export { listSalonServices, addSalonService, updateSalonService, deleteSalonService } from "./salons/services.js";
@@ -60,7 +60,7 @@ export {
  * the true underlying table position, so paging through it still visits
  * every row exactly once.
  */
-export async function listSalons({ cursor, limit } = {}) {
+export async function listSalons({ cursor, limit, maxLimit = 50 } = {}) {
   const db = await getDb();
   const params = [];
   let where = "";
@@ -69,7 +69,7 @@ export async function listSalons({ cursor, limit } = {}) {
     where = `WHERE s.user_id < $${params.length}`;
   }
   let limitClause = "";
-  const pageSize = limit ? Math.min(Math.max(Number(limit) || 20, 1), 50) : null;
+  const pageSize = limit ? Math.min(Math.max(Number(limit) || 20, 1), maxLimit) : null;
   if (pageSize) {
     params.push(pageSize + 1);
     limitClause = `LIMIT $${params.length}`;

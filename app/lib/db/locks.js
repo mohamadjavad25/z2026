@@ -12,6 +12,15 @@ import { run } from "./connection.js";
  */
 const advisory = (db, key) => run(db, "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", [key]);
 
+/**
+ * One client's open requests are counted and added one at a time (the cap of 3 per provider / 5 in total, and the
+ * merge of an identical double-submit), so a burst of parallel requests can't slip past either. Taken FIRST, before
+ * any salon or artist day: client, then salon's day, then artists' days.
+ */
+export function lockClientRequests(db, clientUserId) {
+  return advisory(db, `client-requests:${Number(clientUserId)}`);
+}
+
 export function lockSalonDay(db, salonUserId, bookingDate) {
   return advisory(db, `salon-day:${Number(salonUserId)}:${bookingDate}`);
 }

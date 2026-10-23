@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { SalonClientPage } from "../../features/salons/SalonClientPage";
 import { getVisibleSalonServiceItems } from "../../features/salons/useSalonDirectory";
 import { FollowSheet, useFollowGate } from "../../features/follow";
-import { goToAppFor } from "../../shared/lib/appHandoff";
+import { goToAppFor, pickedServiceNames } from "../../shared/lib/appHandoff";
 
 // Standalone, unauthenticated rendering of a single salon's public profile.
 // This is the pilot Next.js route for SEO/shareable salon links — it reuses
@@ -26,7 +26,8 @@ function getPortfolioCardStyle(item) {
 export function SalonPublicPageClient({ salon }) {
   const router = useRouter();
   const goToApp = () => router.push("/");
-  const openHere = () => goToAppFor(router, { type: "salon", id: salon.id, name: salon.name });
+  // `picked`: the service(s) the visitor ticked in the services menu; they are kept through sign-up so the booking form opens on them.
+  const openHere = (picked = null) => goToAppFor(router, { type: "salon", id: salon.id, name: salon.name, services: pickedServiceNames(picked) });
   const followGate = useFollowGate({ targetId: salon.id, targetName: salon.name, targetType: "salon" });
 
   const handleShare = () => {
@@ -50,7 +51,7 @@ export function SalonPublicPageClient({ salon }) {
       getPortfolioCardStyle={getPortfolioCardStyle}
       onBack={goToApp}
       onFollow={followGate.onFollowClick}
-      onSave={openHere}
+      onSave={() => openHere()}
       onShare={handleShare}
       onOpenBooking={openHere}
     />

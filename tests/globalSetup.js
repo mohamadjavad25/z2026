@@ -22,7 +22,8 @@ import { totpCodeAt, totpStepAt } from "../app/lib/totp.js";
  * Requires `npm run build` to have already produced .next/ -- see the
  * "test" script in package.json, which builds first.
  */
-const TEST_PORT = 3100;
+// TEST_PORT / TEST_STORAGE_PORT let two suites run side by side on one machine (each with its own TEST_DATABASE_URL).
+const TEST_PORT = Number(process.env.TEST_PORT) || 3100;
 export const TEST_CRON_SECRET = "test-cron-secret";
 export const TEST_ADMIN_PHONE = "09120000001";
 // Two more listed admins that the admin-login tests enroll themselves (see tests/integration/adminAuth.test.js and the browser flow).
@@ -38,7 +39,7 @@ export const TEST_BASE_URL = `http://localhost:${TEST_PORT}`;
 
 let container;
 let fakeStorage;
-const FAKE_STORAGE_PORT = 3199;
+const FAKE_STORAGE_PORT = Number(process.env.TEST_STORAGE_PORT) || 3199;
 let serverProcess;
 
 async function waitForServer(url, timeoutMs) {

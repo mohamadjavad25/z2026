@@ -5,6 +5,10 @@ import { bookingWhen, smsBookingAnswer, smsNewBookingRequest } from "./bookingSm
 import { isSlotInPast } from "../shared/lib/slots.js";
 import { AWAITING_CLIENT } from "../shared/lib/bookingOffer.js";
 import { sendToFallbackArtist, sendToFallbackSalon } from "./bookingFallback.js";
+import { OFFER_HOLD_HOURS, OPEN_WAIT_MAX_MINUTES } from "./db/repos/openRequests.js";
+import { sweepLapsedProposals } from "./db/repos/bookingProposals.js";
+import { closeOrphanBookings } from "./db/repos/providerExit.js";
+import { noticeProposalLapsed } from "./providerNotices.js";
 
 /**
  * Auto-expiry sweep for booking REQUESTS a salon/artist never actively
@@ -73,8 +77,8 @@ function keepUnanswerable(rows) {
 
 /** `timed_out`: the request has a window (wait_minutes) and its created_at is older than it, compared
  *  using the DB's own clock (NOW() - INTERVAL ...) — not JS Date.now() — so this is immune to any
- *  clock skew between the Node process and Postgres. A request with no window never times out. */
-const TIMED_OUT_SQL = `(wait_minutes IS NOT NULL AND created_at <= (NOW() - (COALESCE($1::double precision, wait_minutes) * INTERVAL '1 minute')))`;
+ *  clock skew between the Node process and Postgres. A request with no window ("any time") waits until its appointment, but never longer than 24 hours (OPEN_WAIT_MAX_MINUTES). */
+const TIMED_OUT_SQL = `(created_at <= (NOW() - (CASE WHEN wait_minutes IS NULL THEN ${OPEN_WAIT_MAX_MINUTES}::double precision ELSE COALESCE($1::double precision, wait_minutes) END * INTERVAL '1 minute')))`;
 
 /** Every still-pending ("درخواست") salon_bookings row whose window ran out or whose appointment started. */
 async function findExpiredSalonBookingRequests(db, override) {
@@ -100,16 +104,18 @@ async function findExpiredDirectArtistBookingRequests(db, override) {
   `, [override]).then(keepUnanswerable);
 }
 
-/** A new time the salon offered that the client never answered, and whose appointment time has now started:
- *  it can't be accepted any more, so it is closed like any other unanswered request (it has no hour window
- *  of its own -- the salon moved it on purpose, and the client may take until it starts). */
-async function findStartedSalonOffers(db) {
+/** A new time the salon offered that the client never answered, and either 6 hours have passed since the offer
+ *  (OFFER_HOLD_HOURS: the time is then free for others again) or its appointment time has started: it can't be
+ *  accepted any more, so it is closed like any other unanswered request (no backup salon: the salon moved it on
+ *  purpose). Both sides are told (notifyClientOfExpiry, `is_offer`). */
+async function findLapsedSalonOffers(db) {
   const rows = await all(db, `
-    SELECT id, salon_user_id, client_user_id, client, service, booking_date, time, FALSE AS timed_out
+    SELECT id, salon_user_id, client_user_id, client, service, booking_date, time, TRUE AS is_offer,
+      (COALESCE(offer_at, created_at) <= (NOW() - INTERVAL '${OFFER_HOLD_HOURS} hours')) AS timed_out
     FROM salon_bookings
     WHERE status = $1
   `, [AWAITING_CLIENT]);
-  return rows.filter((row) => isSlotInPast(row.booking_date, row.time));
+  return rows.filter((row) => row.timed_out || isSlotInPast(row.booking_date, row.time));
 }
 
 /** Push notifications for both sides of an expired salon booking request. `moved` is the request it
@@ -119,6 +125,18 @@ function notifyClientOfExpiry(booking, moved = null, triedBackup = false) {
   const salonUserId = Number(booking.salon_user_id || 0);
   if (!clientUserId || !salonUserId || clientUserId === salonUserId) return;
   const service = booking.service || "نوبت";
+  if (booking.is_offer) {
+    // The salon's new time was not answered: the time is free again, and both sides hear it.
+    void sendPushToUser(clientUserId, {
+      title: "ساعت پیشنهادی منقضی شد",
+      body: `${service} — به ساعت تازه‌ای که سالن پیشنهاد داده بود جواب ندادی؛ نوبت لغو شد و وقتش آزاد شد. اگر هنوز می‌خواهی، دوباره درخواست بده.`
+    });
+    void sendPushToUser(salonUserId, {
+      title: "پیشنهاد ساعت جواب نگرفت",
+      body: `${booking.client || "مشتری"} — ${service}: مشتری به ساعت پیشنهادی جواب نداد؛ نوبت لغو شد و وقتش آزاد شد.`
+    });
+    return;
+  }
   if (moved) {
     void sendPushToUser(clientUserId, {
       title: `درخواستت رفت برای ${moved.salonName}`,
@@ -208,7 +226,7 @@ export async function sweepExpiredBookingRequestsOnce() {
 
   const staleSalon = [
     ...await findExpiredSalonBookingRequests(db, override),
-    ...await findStartedSalonOffers(db)
+    ...await findLapsedSalonOffers(db)
   ];
   let salonExpired = 0;
   let salonMoved = 0;
@@ -286,13 +304,39 @@ export async function sweepExpiredBookingRequestsOnce() {
     }
   }
 
+  // A proposal on a confirmed booking (another time / artist) nobody answered in 6 hours, or by 2 hours before the booking:
+  // the original stays, the provider is told to call the client. (Owner's rules of 2026-10-22.)
+  let proposalsLapsed = 0;
+  try {
+    for (const lapsed of await sweepLapsedProposals()) {
+      proposalsLapsed += 1;
+      noticeProposalLapsed({
+        providerUserId: lapsed.providerUserId,
+        clientUserId: lapsed.clientUserId,
+        booking: lapsed.booking,
+        clientName: lapsed.kind === "salon" ? lapsed.booking.client : lapsed.booking.client_name
+      });
+    }
+  } catch {
+    // The next pass retries.
+  }
+  // Bookings left behind by a salon or artist that is gone are closed with the «دیگر در فرفرو نیست» notice.
+  let orphansClosed = 0;
+  try {
+    orphansClosed = await closeOrphanBookings();
+  } catch {
+    // The next pass retries.
+  }
+
   return {
     expired: salonExpired + artistExpired,
     attempted: staleSalon.length + staleDirectArtist.length,
     salonExpired,
     salonMoved,
     artistExpired,
-    artistMoved
+    artistMoved,
+    proposalsLapsed,
+    orphansClosed
   };
 }
 

@@ -5,10 +5,10 @@ import { createClient, joinSalonAsArtist, registerUser, futureBookingDay } from 
 // straight with them (their personal page, or one they enter themselves) must never overlap.
 async function setup() {
   const salonClient = createClient();
-  const salon = await registerUser(salonClient, { type: "salon", name: "Overlap Salon" });
+  const salon = await registerUser(salonClient, { type: "salon", menu: true, name: "Overlap Salon" });
   await salonClient.get("/api/salon-hours");
   const artistClient = createClient();
-  const artist = await registerUser(artistClient, { type: "artist", name: "Overlap Artist" });
+  const artist = await registerUser(artistClient, { type: "artist", menu: true, name: "Overlap Artist" });
   expect((await joinSalonAsArtist(artistClient, salonClient, salon.user.id)).ok).toBe(true);
   const staff = (await salonClient.get("/api/salon-staff")).payload.data.staff
     .find((person) => Number(person.artist_user_id) === Number(artist.user.id));

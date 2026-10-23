@@ -77,7 +77,7 @@ describe("per-address throttles", () => {
 describe("booking SMS", () => {
   it("texts the salon about a new request and the client about the answer", async () => {
     const salonClient = createClient();
-    const salon = await registerUser(salonClient, { type: "salon", name: "سالن پیامک" });
+    const salon = await registerUser(salonClient, { type: "salon", menu: true, name: "سالن پیامک" });
     await salonClient.get("/api/salon-hours");
     const clientClient = createClient();
     const client = await registerUser(clientClient, { type: "client", name: "مشتری پیامک" });

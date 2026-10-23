@@ -29,6 +29,10 @@ export function ClientHome({ bookings = [], highlightKey = "", clientName = "", 
         highlightKey={highlightKey}
         onOpenSettings={onOpenBooking}
         onRebook={onRebook}
+        clientName={clientName}
+        onNotify={onNotify}
+        onFindPlaces={onFindPlaces}
+        onOpenPlace={onOpenPlace}
       />
       {hasAhead ? find : null}
     </div>

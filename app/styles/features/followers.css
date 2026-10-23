@@ -207,3 +207,11 @@ a.fsSubmit { display: grid; place-items: center; text-decoration: none; }
   font-weight: 900;
   text-align: center;
 }
+
+/* «ادامه برای: …» strip on a salon page after a guest signed up with a service ticked (features/follow/useContinueService) */
+.spvContinue { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; padding: 10px 12px; border-radius: 14px; background: var(--accent-soft); color: var(--n-900); font-size: 0.82rem; font-weight: 850; line-height: 1.8; }
+.spvContinue.is-error { background: var(--danger-bg); color: var(--danger); }
+.spvContinueActions { display: inline-flex; gap: 6px; }
+.spvContinue button { min-height: 36px; padding: 0 12px; border: 0; border-radius: 999px; background: var(--n-0); color: var(--n-900); box-shadow: inset 0 0 0 1px var(--n-150); font: inherit; font-size: 0.78rem; font-weight: 900; cursor: pointer; }
+.spvContinue .spvContinueGo { background: var(--primary); color: var(--on-primary); box-shadow: none; }
+.spvContinue button:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; }

@@ -3,10 +3,10 @@ import { createClient, joinSalonAsArtist, registerUser, futureBookingDay } from 
 
 async function setup({ verifiedClient = false } = {}) {
   const salonClient = createClient();
-  const salon = await registerUser(salonClient, { type: "salon", name: "Sync Salon" });
+  const salon = await registerUser(salonClient, { type: "salon", menu: true, name: "Sync Salon" });
   await salonClient.get("/api/salon-hours");
   const artistClient = createClient();
-  const artist = await registerUser(artistClient, { type: "artist", name: "Rojan Staff" });
+  const artist = await registerUser(artistClient, { type: "artist", menu: true, name: "Rojan Staff" });
   const join = await joinSalonAsArtist(artistClient, salonClient, salon.user.id);
   expect(join.ok).toBe(true);
   const clientClient = createClient();
@@ -75,7 +75,7 @@ describe("salon booking assigned to a staff artist", () => {
 describe("client booking lists", () => {
   it("never shows a client someone else's booking that only shares their name", async () => {
     const salonClient = createClient();
-    const salon = await registerUser(salonClient, { type: "salon", name: "Name Salon" });
+    const salon = await registerUser(salonClient, { type: "salon", menu: true, name: "Name Salon" });
     await salonClient.get("/api/salon-hours");
     const a = createClient();
     const b = createClient();

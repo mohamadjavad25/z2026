@@ -39,6 +39,8 @@ export const createBookingSchema = z.object({
     durationMinutes: z.union([z.string(), z.number()]).optional(),
     staff: z.string().trim().max(120).optional()
   })).max(8).optional(),
+  // A group asking together (salon bookings only): 1 to 3 people, each with the same services, at the same time.
+  people: z.union([z.literal(1), z.literal(2), z.literal(3)]).optional(),
   // The client's response window: 60 («فقط ۱ ساعت») or null («تا هر وقت»: until the appointment
   // starts). Left out, a request keeps the old hour. Ignored for anyone but a client.
   waitMinutes: z.union([z.literal(60), z.null()]).optional(),

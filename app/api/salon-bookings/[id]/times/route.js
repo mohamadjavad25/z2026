@@ -1,7 +1,7 @@
 import { json, notFound, parseId, requireUserRole, withErrorHandling } from "../../../../lib/http.js";
 import * as salons from "../../../../lib/db/repos/salons.js";
 import { bookingMoveOptions } from "../../../../lib/salonMoveTimes.js";
-import { resolveRollingPersianDateKey } from "../../../../shared/lib/persianCalendar.js";
+import { strictDayKey } from "../../../../lib/validation/bookingSlot.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,7 +20,8 @@ async function _GET(request, { params }) {
   const booking = await salons.getSalonBookingRow(id, auth.user.id);
   if (!booking) return notFound("رزرو یافت نشد.");
   const day = new URL(request.url).searchParams.get("day");
-  const dateKey = resolveRollingPersianDateKey(day || booking.booking_date);
+  const dateKey = strictDayKey(day || booking.booking_date);
+  if (!dateKey) return json({ error: "روز نامعتبر است." }, { status: 400 });
   const result = await bookingMoveOptions(auth.user.id, id, dateKey);
   if (!result.ok) return notFound("رزرو یافت نشد.");
   return json({ data: { day: dateKey, times: result.times, close: result.close, closed: result.closed } });

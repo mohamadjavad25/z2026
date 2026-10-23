@@ -1,4 +1,5 @@
-import { json, requireUserRole, withErrorHandling } from "../../lib/http.js";
+import { error, json, readJson, requireUserRole, withErrorHandling } from "../../lib/http.js";
+import { readHoursPatch } from "../../lib/validation/hours.js";
 import * as salons from "../../lib/db/repos/salons.js";
 
 export const runtime = "nodejs";
@@ -12,8 +13,9 @@ async function _GET(request) {
 async function _PATCH(request) {
   const auth = await requireUserRole(request, "salon", "فقط سالن.");
   if (!auth.ok) return auth.response;
-  const body = await request.json();
-  const hour = await salons.updateSalonHour(auth.user.id, body.day, body);
+  const read = readHoursPatch(await readJson(request), await salons.listSalonHours(auth.user.id));
+  if (!read.ok) return error(read.error, 400);
+  const hour = await salons.updateSalonHour(auth.user.id, read.day, read.patch);
   return json({
     data: {
       hour,

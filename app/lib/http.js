@@ -30,6 +30,13 @@ export async function readJson(request) {
   }
 }
 
+/** The request's JSON body, which must be an object: malformed JSON, null, a list or a bare value all become a 400 (via withErrorHandling), never a crash further down. */
+export async function readObjectBody(request) {
+  const body = await request.json();
+  if (!body || typeof body !== "object" || Array.isArray(body)) throw new SyntaxError("JSON body must be an object");
+  return body;
+}
+
 export function notFound(message = "یافت نشد.") {
   return error(message, 404);
 }
@@ -77,6 +84,18 @@ export function validateBody(schema, body) {
   return { ok: true, data: result.data, response: null };
 }
 
+// Postgres errors that can only come from what the caller sent: text it cannot store (NUL byte, bad JSON escape),
+// a number past the column's range, text where a number belongs, a value too long for its column.
+const BAD_INPUT_DB_CODES = new Set(["22001", "22003", "22007", "22008", "22021", "22023", "22P02", "22P05"]);
+
+/** A 400 for a failure that is the caller's input (unreadable JSON body, a value the database cannot take), else null. */
+export function clientErrorResponse(err) {
+  if (!err) return null;
+  if (err instanceof SyntaxError && /JSON/i.test(String(err.message))) return error("بدنهٔ درخواست خوانا نیست.", 400);
+  if (BAD_INPUT_DB_CODES.has(err.code)) return error("ورودی نامعتبر است؛ بررسی کن و دوباره امتحان کن.", 400);
+  return null;
+}
+
 /**
  * Wraps a route handler (GET/POST/PATCH/DELETE) so an unexpected thrown
  * error (a DB constraint violation, a dropped connection, a bug) returns
@@ -94,6 +113,11 @@ export function withErrorHandling(handler) {
       return await handler(...args);
     } catch (err) {
       const request = args[0];
+      const badInput = clientErrorResponse(err);
+      if (badInput) {
+        logger.warn("Rejected bad input", { method: request?.method, url: request?.url, code: err.code || err.name });
+        return badInput;
+      }
       logger.error("Unhandled route error", {
         error: err,
         method: request?.method,

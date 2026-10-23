@@ -895,3 +895,22 @@
 .cvMsg:focus-visible, .cvNotesMore:focus-visible { outline: 3px solid rgb(var(--ink-rgb) / 0.25); outline-offset: 2px; }
 .cvNotesMore { border: 0; background: none; padding: 4px 12px; color: var(--muted); font: inherit; font-size: 0.72rem; font-weight: 900; text-align: start; cursor: pointer; }
 .todayScheduleList > .cvMsg { margin: 4px 0; }
+
+/* Under a request nobody answered («منقضی شده»): the main way forward and the quieter one (ExpiredRequestActions). */
+.cbhGroup li { flex-wrap: wrap; }
+.erActions { flex: 1 0 100%; display: flex; flex-wrap: wrap; gap: 8px; padding: 6px 2px 2px; }
+.erPrimary, .erSecondary { min-height: 40px; padding: 0 16px; border: 0; border-radius: 999px; font: inherit; font-size: 0.76rem; font-weight: 900; cursor: pointer; }
+.erPrimary { background: var(--brand-pink); color: var(--brand-ink); }
+.erSecondary { background: rgb(var(--ink-rgb) / 0.06); color: var(--n-800); }
+.erSecondary:disabled { opacity: 0.6; cursor: progress; }
+.erPrimary:focus-visible, .erSecondary:focus-visible, .erPlace:focus-visible { outline: 3px solid rgb(var(--ink-rgb) / 0.25); outline-offset: 2px; }
+.erBody { display: grid; gap: 12px; padding: 4px 4px 16px; }
+.erSummary { margin: 0; color: var(--n-600); font-size: 0.8rem; font-weight: 800; }
+.erInfo { margin: 0; padding: 12px; border-radius: 14px; background: var(--n-50); color: var(--n-700); font-size: 0.78rem; font-weight: 800; text-align: center; line-height: 1.7; }
+.erInfo.is-error { color: var(--danger); }
+.erPlaces { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.erPlace { width: 100%; display: grid; gap: 2px; padding: 12px 14px; border: 0; border-radius: 16px; background: var(--n-50); color: var(--n-900); font: inherit; text-align: start; cursor: pointer; }
+.erPlace b { font-size: 0.88rem; font-weight: 900; }
+.erPlace small { color: var(--n-600); font-size: 0.72rem; font-weight: 700; }
+.erEmpty { display: grid; gap: 12px; }
+.erEmpty p { margin: 0; padding: 12px; border-radius: 14px; background: var(--n-50); color: var(--n-700); font-size: 0.8rem; font-weight: 800; text-align: center; line-height: 1.7; }

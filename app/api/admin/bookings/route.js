@@ -6,7 +6,7 @@ import * as ops from "../../../lib/db/repos/adminOps.js";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/** GET ?q=&status=&kind=&when=&offset=&limit=: every booking, salon and independent artist together. */
+/** GET ?q=&status=&kind=&when=&deleted=1&offset=&limit=: every booking, salon and independent artist together. */
 async function _GET(request) {
   await ensureDb();
   const gate = await requireAdmin(request);
@@ -18,6 +18,7 @@ async function _GET(request) {
       status: params.get("status") || "",
       kind: params.get("kind") || "",
       when: params.get("when") || "",
+      deleted: params.get("deleted") === "1",
       limit: params.get("limit") || 25,
       offset: params.get("offset") || 0
     })

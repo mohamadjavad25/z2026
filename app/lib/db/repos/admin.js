@@ -42,7 +42,8 @@ const USER_SORT = {
   new: "u.id DESC",
   old: "u.id ASC",
   seen: "u.last_seen_at DESC NULLS LAST, u.id DESC",
-  name: "NULLIF(u.name, '') ASC NULLS LAST, u.id DESC"
+  name: "NULLIF(u.name, '') ASC NULLS LAST, u.id DESC",
+  cancels: "u.provider_cancel_count DESC, u.id DESC"
 };
 
 /**
@@ -59,7 +60,7 @@ export async function listUsers({ q = "", type = "", status = "", sort = "new", 
   const [total, rows, counts] = await Promise.all([
     get(db, `SELECT COUNT(*)::int AS count FROM users u WHERE ${where}`, params),
     all(db, `
-      SELECT u.id, u.name, u.phone, u.type, u.area, u.created_at, u.last_seen_at, u.suspended_at,
+      SELECT u.id, u.name, u.phone, u.type, u.area, u.created_at, u.last_seen_at, u.suspended_at, u.provider_cancel_count,
              (u.avatar <> '' OR COALESCE(u.avatar_url, '') <> '') AS has_avatar
       FROM users u WHERE ${where}
       ORDER BY ${USER_SORT[sort] || USER_SORT.new} LIMIT $3 OFFSET $4

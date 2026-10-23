@@ -20,6 +20,7 @@
 @import "./styles/features/salon.css";
 @import "./styles/features/client.css";
 @import "./styles/features/auth.css";
+@import "./styles/features/signupWizard.css";
 @import "./styles/features/joinSalon.css";
 @import "./styles/features/legal.css";
 @import "./styles/features/errorPage.css";
@@ -34,6 +35,7 @@
 @import "./styles/features/followers.css";
 @import "./styles/features/salonClient.css";
 @import "./styles/features/salonPage.css";
+@import "./styles/features/providerExit.css";
 @import "./styles/legacy/part-01.css";
 @import "./styles/legacy/part-02.css";
 @import "./styles/legacy/part-03.css";

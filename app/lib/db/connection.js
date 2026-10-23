@@ -117,6 +117,19 @@ function getPool() {
   // timeouts/"Connection terminated unexpectedly" errors seen here. This
   // just logs it and lets the pool quietly open a fresh connection on the
   // next checkout instead.
+  // Postgres refuses a text value holding a NUL byte (error 22021), which turned a stray \u0000 in a name, a search
+  // or a password into a 500. Every pooled connection drops that byte from its string parameters before sending.
+  pool.on("connect", (client) => {
+    const query = client.query.bind(client);
+    const clean = (value) => (typeof value === "string" && value.includes("\u0000") ? value.replaceAll("\u0000", "") : value);
+    client.query = (first, second, ...rest) => {
+      if (typeof first === "string" && Array.isArray(second)) return query(first, second.map(clean), ...rest);
+      if (first && typeof first === "object" && typeof first.text === "string" && Array.isArray(first.values) && typeof first.submit !== "function") {
+        return query({ ...first, values: first.values.map(clean) }, second, ...rest);
+      }
+      return query(first, second, ...rest);
+    };
+  });
   pool.on("error", (error) => {
     console.error("Idle Postgres client error (pool recovers automatically):", error.message);
   });

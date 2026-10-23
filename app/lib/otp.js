@@ -1,10 +1,13 @@
 import { createHmac, randomInt, timingSafeEqual } from "node:crypto";
-import { getDb, get, run } from "./db/connection.js";
+import { getDb, get, run, withTransaction } from "./db/connection.js";
 import { checkRateLimit } from "./rateLimit.js";
 import { sendVerificationSms, smsEnabled } from "./sms.js";
 
 const CODE_TTL_MINUTES = 5;
 const MAX_ATTEMPTS = 5;
+/** The site-wide hourly cap on texted codes (all sign-ups, resets and phone changes together). */
+export const OTP_GLOBAL_HOURLY_CAP = 200;
+export const OTP_GLOBAL_KEY = "otp-send-global";
 const PROOF_TTL_MS = 15 * 60 * 1000;
 const RESEND_SECONDS = 60;
 
@@ -49,12 +52,16 @@ export function verifyOtpProof(proof, phone, purpose, now = Date.now()) {
   return proofPhone === phone && proofPurpose === purpose && Number(expires) > now;
 }
 
+/** The purpose string for changing the phone of one account: a code or proof made for one account never works for another. */
+export const phoneChangePurpose = (userId) => `phone_change:${Number(userId)}`;
+
 /** Creates a fresh code for (phone, purpose) and texts it. Throttled per phone and globally. */
 export async function sendOtp(phone, purpose) {
   const perPhone = await checkRateLimit(`otp-send:${phone}`, 3, 15 * 60 * 1000);
   if (!perPhone.ok) return { ok: false, code: "rate_limited", retryAfterMs: perPhone.retryAfterMs };
-  const global = await checkRateLimit("otp-send-global", 200, 60 * 60 * 1000);
-  if (!global.ok) return { ok: false, code: "rate_limited", retryAfterMs: global.retryAfterMs };
+  const global = await checkRateLimit(OTP_GLOBAL_KEY, OTP_GLOBAL_HOURLY_CAP, 60 * 60 * 1000);
+  // `scope: "global"`: the whole site's hourly budget is used up, not this phone's own limit (the screen says so differently).
+  if (!global.ok) return { ok: false, code: "rate_limited", scope: "global", retryAfterMs: global.retryAfterMs };
 
   const code = String(randomInt(10000, 100000));
   const db = await getDb();
@@ -63,27 +70,34 @@ export async function sendOtp(phone, purpose) {
     INSERT INTO otp_codes (phone, purpose, code_hash, expires_at)
     VALUES ($1, $2, $3, NOW() + ($4 * INTERVAL '1 minute'))
   `, [phone, purpose, hashCode(phone, purpose, code), CODE_TTL_MINUTES]);
-  const sent = await sendVerificationSms(phone, code, purpose);
+  // A purpose may carry a binding after a colon ("phone_change:12" = the code is for account 12); the SMS provider only sees the kind.
+  const sent = await sendVerificationSms(phone, code, purpose.split(":")[0]);
   return sent.ok ? { ok: true } : { ok: false, code: "send_failed" };
 }
 
-/** Checks a code. A wrong guess costs an attempt; after MAX_ATTEMPTS the code is dead. A right one is single-use. */
+/**
+ * Checks a code. A wrong guess costs an attempt; after MAX_ATTEMPTS the code is dead. A right one is single-use.
+ * The code's row is locked for the whole check, so guesses sent at the same moment are judged one at a time: the
+ * fifth wrong guess really is the last one, however many arrive together.
+ */
 export async function verifyOtp(phone, purpose, code) {
   const limited = await checkRateLimit(`otp-verify:${phone}`, 12, 15 * 60 * 1000);
   if (!limited.ok) return { ok: false, code: "rate_limited" };
-  const db = await getDb();
-  const row = await get(db, `
-    SELECT id, code_hash, attempts FROM otp_codes
-    WHERE phone = $1 AND purpose = $2 AND consumed_at IS NULL AND expires_at > NOW()
-    ORDER BY id DESC LIMIT 1
-  `, [phone, purpose]);
-  if (!row || row.attempts >= MAX_ATTEMPTS) return { ok: false, code: "expired" };
-  const given = Buffer.from(hashCode(phone, purpose, String(code || "").trim()));
-  const expected = Buffer.from(row.code_hash);
-  if (given.length !== expected.length || !timingSafeEqual(given, expected)) {
-    await run(db, "UPDATE otp_codes SET attempts = attempts + 1 WHERE id = $1", [row.id]);
-    return { ok: false, code: "wrong" };
-  }
-  await run(db, "UPDATE otp_codes SET consumed_at = NOW() WHERE id = $1", [row.id]);
-  return { ok: true };
+  return withTransaction(null, async (client) => {
+    const row = await get(client, `
+      SELECT id, code_hash, attempts FROM otp_codes
+      WHERE phone = $1 AND purpose = $2 AND consumed_at IS NULL AND expires_at > NOW()
+      ORDER BY id DESC LIMIT 1
+      FOR UPDATE
+    `, [phone, purpose]);
+    if (!row || row.attempts >= MAX_ATTEMPTS) return { ok: false, code: "expired" };
+    const given = Buffer.from(hashCode(phone, purpose, String(code || "").trim()));
+    const expected = Buffer.from(row.code_hash);
+    if (given.length !== expected.length || !timingSafeEqual(given, expected)) {
+      await run(client, "UPDATE otp_codes SET attempts = attempts + 1 WHERE id = $1", [row.id]);
+      return { ok: false, code: "wrong", attemptsLeft: Math.max(MAX_ATTEMPTS - row.attempts - 1, 0) };
+    }
+    await run(client, "UPDATE otp_codes SET consumed_at = NOW() WHERE id = $1", [row.id]);
+    return { ok: true };
+  });
 }

@@ -14,7 +14,7 @@ export function RequestExpiryBadge({ createdAt, day, time, waitMinutes = BOOKING
     return (
       <span className="requestExpiryBadge is-calm">
         <AlarmClock size={12} aria-hidden="true" />
-        مشتری تا قبل از نوبت صبر می‌کند
+        مشتری تا قبل از نوبت (حداکثر ۲۴ ساعت) صبر می‌کند
       </span>
     );
   }

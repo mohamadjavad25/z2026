@@ -56,7 +56,16 @@
 .vbDay small { color: var(--vb-muted); font-size: 0.62rem; font-weight: 700; }
 .vbService.is-on, .vbDay.is-on { background: var(--vb-pink); color: var(--brand-ink); }
 .vbDay.is-on small { color: var(--brand-ink); }
-.vbDay.is-closed { color: var(--n-500); cursor: not-allowed; }
+.vbDay.is-closed { color: var(--n-500); }
+.vbPeople { display: grid; gap: 6px; }
+.vbPeopleTitle { margin: 0; color: var(--vb-muted); font-size: 0.74rem; font-weight: 800; }
+.vbCount { min-width: 52px; justify-content: center; font-variant-numeric: tabular-nums; }
+.vbAhead { display: grid; gap: 8px; justify-items: center; }
+.vbAction { display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: 0 18px; border: 0; border-radius: 999px; background: var(--vb-fill); color: var(--vb-ink); font: inherit; font-size: 0.8rem; font-weight: 900; text-decoration: none; cursor: pointer; }
+.vbAction.is-primary, .vbAhead .vbAction { background: var(--vb-pink); color: var(--brand-ink); }
+.vbConflict { width: 100%; max-width: 420px; display: grid; gap: 8px; padding: 12px; border-radius: 16px; background: var(--vb-fill); color: var(--vb-ink); }
+.vbConflict p { margin: 0; font-size: 0.8rem; font-weight: 800; line-height: 1.7; text-align: center; }
+.vbConflictActions { display: flex; gap: 8px; justify-content: center; }
 .vbService i { display: inline-grid; place-items: center; min-width: 18px; height: 18px; border-radius: 999px; background: var(--vb-ink); color: var(--n-0); font-size: 0.64rem; font-style: normal; font-weight: 900; }
 .vbSummary { margin: 0; color: var(--vb-muted); font-size: 0.72rem; font-weight: 800; }
 .vbEmpty { min-height: 52px; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px dashed var(--n-400); border-radius: 16px; background: var(--n-25); color: var(--vb-ink); font: inherit; font-size: 0.82rem; font-weight: 900; cursor: pointer; }

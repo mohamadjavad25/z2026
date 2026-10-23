@@ -57,6 +57,8 @@ export async function updateArtistHour(artistUserId, day, data) {
 export async function listArtistHoursPublic(artistUserId, runner = null) {
   const db = runner || (await getDb());
   const order = new Map(defaultArtistHours.map((h, i) => [h.day, i]));
-  const rows = await all(db, "SELECT day, open_time, close_time, active FROM artist_hours WHERE artist_user_id = $1", [artistUserId]);
+  let rows = await all(db, "SELECT day, open_time, close_time, active FROM artist_hours WHERE artist_user_id = $1", [artistUserId]);
+  // An artist who never opened the hours screen works the default week (the booking rules use the same rows).
+  if (!rows.length) rows = defaultArtistHours.map(({ day, open_time, close_time, active }) => ({ day, open_time, close_time, active }));
   return rows.sort((a, b) => (order.get(a.day) ?? 99) - (order.get(b.day) ?? 99));
 }

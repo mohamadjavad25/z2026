@@ -2,8 +2,14 @@
 
 import { thumbUrl } from "../../shared/lib/mediaUrl";
 import { useState } from "react";
+import { RotateCw } from "lucide-react";
 import { Mascot } from "../../components/Mascot";
 import { PostViewer } from "../posts/PostViewer";
+
+// Small enough for a phone's 3G (the full picture opens only in the viewer).
+const TILE_WIDTH = 360;
+
+const withRetry = (url, attempt) => (attempt && url ? `${url}${url.includes("?") ? "&" : "?"}r=${attempt}` : url);
 
 function getItemKey(item, index) {
   return String(item.id || item.image || item.title || index);
@@ -26,6 +32,12 @@ function getMosaicShape(ratio, index) {
 export function SalonClientGallery({ salon, items, getFallbackStyle, postActions = null, allItems = null }) {
   const [selectedItem, setSelectedItem] = useState(null);
   const [imageRatios, setImageRatios] = useState({});
+  // On a slow connection the pictures come last: each tile is a grey block until its small copy has arrived, and a
+  // picture that did not arrive is said so once, with «دوباره» to ask again (a new ?r= so the browser does not reuse the failure).
+  const [loaded, setLoaded] = useState({});
+  const [failed, setFailed] = useState({});
+  const [attempt, setAttempt] = useState(0);
+  const anyFailed = Object.values(failed).some(Boolean);
   const browseList = allItems?.length ? allItems : items;
 
   function rememberImageRatio(key, event) {
@@ -59,7 +71,7 @@ export function SalonClientGallery({ salon, items, getFallbackStyle, postActions
           return (
             <button
               type="button"
-              className={`salonClientMosaicTile ${shape} ${item.image ? "hasImage" : ""}`}
+              className={`salonClientMosaicTile ${shape} ${item.image ? "hasImage" : ""}${item.image && !loaded[key] ? " is-loading" : ""}`}
               key={key}
               style={item.image ? undefined : getFallbackStyle(item)}
               onClick={() => openItem(item)}
@@ -67,17 +79,28 @@ export function SalonClientGallery({ salon, items, getFallbackStyle, postActions
             >
               {item.image ? (
                 <img
-                  src={thumbUrl(item.image, 720)}
+                  ref={(node) => { if (node?.complete && node.naturalWidth && !loaded[key]) setLoaded((current) => ({ ...current, [key]: true })); }}
+                  src={withRetry(thumbUrl(item.image, TILE_WIDTH), attempt)}
                   alt={item.title || `نمونه‌کار ${salon?.name || "سالن"}`}
-                  loading={index < 6 ? "eager" : "lazy"}
+                  loading="lazy"
+                  fetchPriority="low"
                   decoding="async"
-                  onLoad={(event) => rememberImageRatio(key, event)}
+                  onLoad={(event) => { setLoaded((current) => ({ ...current, [key]: true })); setFailed((current) => (current[key] ? { ...current, [key]: false } : current)); rememberImageRatio(key, event); }}
+                  onError={() => setFailed((current) => ({ ...current, [key]: true }))}
                 />
               ) : null}
             </button>
           );
         })}
       </div>
+      {anyFailed ? (
+        <p className="salonGalleryRetry" role="alert">
+          اینترنتت کند است. دوباره تلاش کن
+          <button type="button" onClick={() => { setFailed({}); setAttempt((count) => count + 1); }}>
+            <RotateCw size={14} aria-hidden="true" /> دوباره
+          </button>
+        </p>
+      ) : null}
 
       <PostViewer
         post={selectedItem}

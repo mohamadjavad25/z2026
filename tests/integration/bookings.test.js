@@ -3,7 +3,7 @@ import { createClient, registerUser, futureBookingDay } from "./helpers.js";
 
 async function setupSalonAndClient() {
   const salonClient = createClient();
-  const salon = await registerUser(salonClient, { type: "salon", name: "Test Salon" });
+  const salon = await registerUser(salonClient, { type: "salon", menu: true, name: "Test Salon" });
   // GET /api/salon-hours auto-creates the default weekly schedule
   // (ensureSalonHours) the first time it's read for a new salon.
   await salonClient.get("/api/salon-hours");
@@ -110,7 +110,9 @@ describe("booking service icon snapshot", () => {
   });
 
   it("falls back to an empty icon (never an invalid id) when the service has none", async () => {
-    const { bookerClient, salon, booker } = await setupSalonAndClient();
+    const { bookerClient, salonClient, salon, booker } = await setupSalonAndClient();
+    // a client books only what is on the menu: a service with no icon of its own
+    expect((await salonClient.post("/api/salon-services", { name: "خدمت ناشناخته", price: "100", duration: "60 دقیقه" })).ok).toBe(true);
     const created = await bookerClient.post("/api/salon-bookings", {
       salonUserId: salon.user.id,
       service: "خدمت ناشناخته",

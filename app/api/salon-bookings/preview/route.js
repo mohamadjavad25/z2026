@@ -5,10 +5,11 @@ import * as salons from "../../../lib/db/repos/salons.js";
 import { checkRateLimit } from "../../../lib/rateLimit.js";
 import { salonVisitParts } from "../../../lib/salonVisitParts.js";
 import { visitSlotProblem } from "../../../lib/visitSlotRules.js";
-import { MAX_BOOKING_PARTS, summarizeBookingParts } from "../../../shared/lib/bookingParts.js";
-import { resolveRollingPersianDateKey } from "../../../shared/lib/persianCalendar.js";
-import { toLatinDigits } from "../../../shared/lib/digits.js";
-import { normalizeBookingTimeLabel, timeLabelToMinutes } from "../../../shared/lib/time.js";
+import { onlineBookingBlock } from "../../../lib/billing/access.js";
+import { MAX_BOOKING_PARTS, MAX_GROUP_PEOPLE, expandPartsForPeople, summarizeBookingParts } from "../../../shared/lib/bookingParts.js";
+import { strictDayKey } from "../../../lib/validation/bookingSlot.js";
+import { toPersianDigits } from "../../../shared/lib/digits.js";
+import { parseBookingTime, timeLabelToMinutes } from "../../../shared/lib/time.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -47,30 +48,34 @@ async function _GET(request) {
   if (!limited.ok) return noStoreJson({ error: "درخواست‌های زیاد. کمی صبر کن." }, { status: 429 });
 
   const day = String(searchParams.get("day") || "").trim();
-  const bookingDateKey = resolveRollingPersianDateKey(day);
+  const bookingDateKey = strictDayKey(day);
   if (!day || !bookingDateKey) return noStoreJson({ error: "روز رزرو مشخص نیست." }, { status: 400 });
   // Strict on purpose: "HH:MM" (Persian or Latin digits) on a real clock, nothing the lenient
   // booking parser would turn into some other time.
-  const rawTime = toLatinDigits(String(searchParams.get("time") || "").trim());
-  const clock = /^(\d{1,2}):(\d{2})$/.exec(rawTime);
-  if (!clock || Number(clock[1]) > 23 || Number(clock[2]) > 59) {
-    return noStoreJson({ error: "ساعت رزرو نامعتبر است." }, { status: 400 });
-  }
-  const time = normalizeBookingTimeLabel(rawTime);
+  const time = parseBookingTime(String(searchParams.get("time") || ""));
+  if (!time) return noStoreJson({ error: "ساعت رزرو نامعتبر است." }, { status: 400 });
   const names = searchParams.getAll("service").map((name) => name.trim());
   if (!names.length || names.length > MAX_BOOKING_PARTS || names.some((name) => !name || name.length > 120)) {
     return noStoreJson({ error: "فهرست خدمات نامعتبر است." }, { status: 400 });
   }
   const salon = await salons.getSalon(salonUserId);
   if (!salon) return noStoreJson({ error: "سالن پیدا نشد." }, { status: 404 });
+  if (!owner) {
+    const blocked = await onlineBookingBlock(salonUserId, "salon");
+    if (blocked) return noStoreJson({ data: { ok: false, code: blocked.code, message: blocked.error, durationMinutes: 0, end: 0, parts: [] } });
+  }
   const minutes = searchParams.getAll("minutes").map(Number);
   const staff = searchParams.getAll("staff");
-  const parts = salonVisitParts(
+  // A client may ask for a group (2 or 3 people, same services, same time): see expandPartsForPeople.
+  const people = owner ? 1 : Math.max(1, Math.min(MAX_GROUP_PEOPLE, Math.floor(Number(searchParams.get("people"))) || 1));
+  if (names.length * people > MAX_BOOKING_PARTS) return noStoreJson({ error: "فهرست خدمات نامعتبر است." }, { status: 400 });
+  const single = salonVisitParts(
     salon,
     names.map((service, index) => ({ service, durationMinutes: minutes[index], staff: staff[index] })),
     { allowStaff: owner }
   );
-  const missing = parts.find((part, index) => !part.listed && !(minutes[index] > 0));
+  const parts = people > 1 ? expandPartsForPeople(single.map((part) => ({ ...part, staff: "" })), people).map((part, index) => ({ ...single[index % single.length], ...part })) : single;
+  const missing = single.find((part, index) => !part.listed && !(minutes[index] > 0));
   if (missing) return noStoreJson({ error: `«${missing.service}» در خدمات این سالن نیست.` }, { status: 400 });
 
   const { durationMinutes } = summarizeBookingParts(parts);
@@ -91,7 +96,9 @@ async function _GET(request) {
   let problem = plan.problem;
   if (!owner && plan.unstaffed >= 0) {
     const part = plan.parts[plan.unstaffed];
-    problem = { code: "NO_FREE_ARTIST", partIndex: plan.unstaffed, message: `برای «${part.service}» در این ساعت آرتیست آزادی نیست.` };
+    problem = people > 1
+      ? { code: "NO_FREE_ARTIST", partIndex: -1, message: `این ساعت دیگر برای ${toPersianDigits(people)} نفر جا ندارد؛ ساعت‌ها به‌روز شد.` }
+      : { code: "NO_FREE_ARTIST", partIndex: plan.unstaffed, message: `برای «${part.service}» در این ساعت آرتیست آزادی نیست.` };
   }
   const shown = plan.parts.map((part) => {
     const { unknownStaff, free, options, ...rest } = part;
