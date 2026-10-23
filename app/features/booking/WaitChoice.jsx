@@ -1,17 +1,29 @@
 "use client";
 
-import { Infinity as Always, Timer } from "lucide-react";
+import { useState } from "react";
+import { ChevronDown, Infinity as Always, Timer } from "lucide-react";
 
 /**
  * How long a client's request waits for an answer (user's decision 2026-10-18): two big choices,
  * «تا هر وقت» (until the appointment; the client cancels it if it takes too long) and «فقط ۱ ساعت».
  * With the hour, the salons / artists that could take the same visit instead (`backups`, ones the
  * client follows) show as one row of chips, «نه» first; the line under the hour says what will happen.
+ * Folded by default into one quiet row that names the current choice (user's choice 2026-10-23: most
+ * clients keep the default, so the question should not stand in the way of «ارسال»); a tap opens it.
  * Used by the salon booking form and the artist booking sheet.
  */
 export function WaitChoice({ value = "open", onChange, who = "سالن", backups = [], backup = "", onBackup, disabled = false }) {
   const hour = value === "hour";
   const picked = hour && backup ? backups.find((item) => String(item.id) === String(backup)) : null;
+  const [open, setOpen] = useState(false);
+  if (!open) {
+    return (
+      <button type="button" className="wcFold" aria-expanded="false" onClick={() => setOpen(true)}>
+        <span>اگر {who} دیر جواب داد: <b>{hour ? "فقط ۱ ساعت صبر" : "صبر می‌کنم"}</b></span>
+        <ChevronDown size={16} aria-hidden="true" />
+      </button>
+    );
+  }
   return (
     <section className="wc" aria-label={`صبر برای جواب ${who}`}>
       <p className="wcTitle">اگر {who} دیر جواب داد؟</p>

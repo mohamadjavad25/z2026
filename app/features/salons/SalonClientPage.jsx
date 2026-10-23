@@ -4,18 +4,18 @@ import { DEFAULT_SALON_LOGO } from "../../shared/lib/defaultAvatar";
 import { useState, useEffect } from "react";
 import {
   Bookmark,
+  CalendarCheck,
   ChevronLeft,
   ChevronUp,
-  Clock3,
   ImagePlus,
   Phone,
-  Scissors,
   Share2,
   UserPlus
 } from "lucide-react";
 import { PublicProfileHeader } from "../../components/PublicProfileHeader";
 import { BookingPausedNote } from "../../components/BookingPausedNote";
 import { ServicesDropUp } from "../../components/ServicesDropUp";
+import { ServicesOnPage } from "../../components/ServicesOnPage";
 import { bundleServices } from "../../shared/lib/serviceBundle";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
@@ -75,12 +75,6 @@ export function SalonClientPage({
   const teamMembers = (selectedSalon?.staff || []).filter((member) => member && (member.artist_name || member.name)).slice(0, 12);
   const weekHours = Array.isArray(selectedSalon?.hours) ? selectedSalon.hours : [];
   const todayName = PERSIAN_WEEKDAYS[new Date().getDay()];
-  const todayHours = weekHours.find((row) => row.day === todayName);
-  const openStatus = weekHours.length
-    ? (todayHours?.active
-        ? { open: true, text: `امروز باز است • ${toPersianDigits(todayHours.open_time || "")} تا ${toPersianDigits(todayHours.close_time || "")}` }
-        : { open: false, text: "امروز تعطیل است" })
-    : null;
   const prices = services.map((service) => parseTomanAmount(service.price)).filter(Boolean);
   const minPrice = prices.length ? Math.min(...prices) : 0;
 
@@ -124,13 +118,6 @@ export function SalonClientPage({
           />
 
           <section className="pphInfo" aria-label={`معرفی ${publicName}`}>
-            {openStatus ? (
-              <div className="pphChips">
-                <span className={`pphChip ${openStatus.open ? "is-open" : "is-closed"}`}>
-                  <Clock3 size={14} /> {openStatus.text}
-                </span>
-              </div>
-            ) : null}
             <div className="pphActions">
               <ConnectToggle following={isFollowing} onToggle={() => onFollow(selectedSalon)} name={publicName} kind="سالن" icon={<UserPlus size={18} />} />
               {selectedSalon.phone ? (
@@ -143,6 +130,8 @@ export function SalonClientPage({
           </section>
 
           <WeeklyHours rows={weekHours} todayName={todayName} />
+
+          <ServicesOnPage services={services} onPick={(service) => onOpenBooking(bundleServices([service]))} />
 
           {teamMembers.length ? (
             <section className="spvSection spvTeam" aria-label="تیم سالن">
@@ -199,8 +188,8 @@ export function SalonClientPage({
               aria-expanded={servicesOpen}
               aria-haspopup="dialog"
             >
-              <Scissors size={19} />
-              {servicesOpen ? "بستن" : "خدمات"}
+              <CalendarCheck size={19} />
+              {servicesOpen ? "بستن" : "رزرو نوبت"}
               {minPrice && !servicesOpen ? <small>از {formatTomanNumber(minPrice)} تومان</small> : null}
               <ChevronUp size={18} className={`spvBarChevron${servicesOpen ? " is-open" : ""}`} aria-hidden="true" />
             </button>

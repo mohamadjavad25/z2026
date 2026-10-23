@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
-import { CalendarCheck, Check, Plus, Scissors } from "lucide-react";
+import { CalendarCheck, Check, ChevronRight, Plus, Scissors } from "lucide-react";
 import { ProfileSheet } from "../profile/ProfileSheet";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { toPersianDigits } from "../../shared/lib/digits";
@@ -176,6 +176,9 @@ function VisitBookerForm({ role, title, subtitle, services, days, initial, custo
   return (
     <form className={`vb is-${role}`} onSubmit={handleSubmit} noValidate aria-label={title}>
       <header className="vbHead">
+        <button type="button" className="vbBack" onClick={onClose} aria-label="برگشت">
+          <ChevronRight size={20} aria-hidden="true" />
+        </button>
         <h2>{title}</h2>
         {subtitle ? <small>{subtitle}</small> : null}
       </header>

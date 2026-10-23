@@ -30,11 +30,21 @@ export function TimesList({ state, role, onPick, onRetry }) {
     <>
       {times.note === "advanced" ? <p className="vbNote" role="status">روزِ قبلی ساعت خالی نداشت؛ نزدیک‌ترین روزِ آزاد را باز کردیم.</p> : null}
       <div className="vbTimes" role="group" aria-label="ساعت شروع">
-        {times.list.map((time) => {
+        {times.list.map((time, index) => {
           const on = state.time && toLatinDigits(time) === toLatinDigits(state.time);
+          // The form starts on the first free time; the client sees why that one is already chosen.
+          const earliest = role === "client" && index === 0;
           return (
-            <button type="button" key={time} aria-pressed={Boolean(on)} className={`vbTime${on ? " is-on" : ""}`} onClick={() => onPick(time)}>
+            <button
+              type="button"
+              key={time}
+              aria-pressed={Boolean(on)}
+              aria-label={earliest ? `${clockText(time)}، زودترین ساعت خالی` : undefined}
+              className={`vbTime${on ? " is-on" : ""}${earliest ? " is-earliest" : ""}`}
+              onClick={() => onPick(time)}
+            >
               {clockText(time)}
+              {earliest ? <small aria-hidden="true">زودترین</small> : null}
             </button>
           );
         })}

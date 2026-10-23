@@ -93,7 +93,8 @@ describe("booking flow (browser)", () => {
     // the button says "checking" until the server has confirmed who does what at that time
     await cp.locator(".vbPlanRow").first().waitFor();
     await cp.getByRole("button", { name: /ارسال درخواست/ }).waitFor();
-    // how long to wait for the salon: «صبر می‌کنم» unless the client picks the hour
+    // how long to wait for the salon: folded on «صبر می‌کنم» unless the client opens it and picks the hour
+    await cp.locator(".wcFold").filter({ hasText: "صبر می‌کنم" }).click();
     const waitChoice = cp.locator(".wc");
     expect(await waitChoice.getByRole("radio", { name: /صبر می‌کنم/ }).getAttribute("aria-checked")).toBe("true");
     await waitChoice.getByRole("radio", { name: /فقط ۱ ساعت/ }).click();

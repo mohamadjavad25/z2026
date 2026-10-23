@@ -30,3 +30,6 @@
 .weekDockPill span { font-size: 0.82rem; font-weight: 900; }
 .weekDockClose { justify-self: center; display: grid; place-items: center; width: 44px; height: 24px; border: 0; border-radius: 999px; background: var(--n-0); color: var(--night); box-shadow: 0 4px 12px rgb(var(--shadow-rgb) / 0.14); cursor: pointer; }
 .weekDock .salonHeroWeekStrip { margin-top: 0 !important; }
+
+/* The day picker in the flow, at the top of the salon's day (ProfilePanelBody), not floating over it. */
+.salonDayInline { display: grid; justify-items: center; margin: 12px 14px 0; }

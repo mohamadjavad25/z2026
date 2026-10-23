@@ -4,7 +4,7 @@ export const profileRoles = [
   {
     id: "client",
     label: "مشتری",
-    hint: "کشف، تست و رزرو",
+    hint: "سالن پیدا کن و نوبت بگیر",
     icon: UserRound,
     image: "/role-client.png",
     tone: "roleClient"

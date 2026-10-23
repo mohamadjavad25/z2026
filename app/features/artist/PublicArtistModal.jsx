@@ -1,9 +1,10 @@
 "use client";
 
-import { Bookmark, CalendarCheck, ChevronLeft, ChevronUp, Clock3, Heart, Phone, Scissors, Share2 } from "lucide-react";
+import { Bookmark, CalendarCheck, ChevronLeft, ChevronUp, Heart, Phone, Share2 } from "lucide-react";
 import { PublicProfileHeader } from "../../components/PublicProfileHeader";
 import { BookingPausedNote } from "../../components/BookingPausedNote";
 import { ServicesDropUp } from "../../components/ServicesDropUp";
+import { ServicesOnPage } from "../../components/ServicesOnPage";
 import { WeeklyHours } from "../../components/WeeklyHours";
 import { ConnectToggle } from "../connect/ConnectToggle";
 import { bundleServices } from "../../shared/lib/serviceBundle";
@@ -93,15 +94,15 @@ export function PublicArtistModal({
 
   const prices = (services || []).map((service) => parseTomanAmount(service.price)).filter(Boolean);
   const fromPrice = prices.length ? Math.min(...prices) : 0;
-  // Today's working hours, worded like the salon page's chip.
   const weekHours = Array.isArray(artist.hours) ? artist.hours : [];
   const todayName = PERSIAN_WEEKDAYS[new Date().getDay()];
-  const todayHours = weekHours.find((row) => row.day === todayName);
-  const openStatus = weekHours.length
-    ? (todayHours?.active
-        ? { open: true, text: `امروز کار می‌کند • ${toPersianDigits(todayHours.open_time || "")} تا ${toPersianDigits(todayHours.close_time || "")}` }
-        : { open: false, text: "امروز تعطیل است" })
-    : null;
+  function startBooking(picked) {
+    const service = bundleServices(picked);
+    setServicesOpen(false);
+    setBundle(service.items ? service : null);
+    onSelectService(service.id, service);
+    setBookingPopup(true);
+  }
 
   return (
     <div
@@ -147,15 +148,6 @@ export function PublicArtistModal({
           />
 
           <section className="pphInfo" aria-label={`معرفی ${artist.name || "آرتیست"}`}>
-            {openStatus ? (
-              <div className="pphChips">
-                {openStatus ? (
-                  <span className={`pphChip ${openStatus.open ? "is-open" : "is-closed"}`}>
-                    <Clock3 size={14} /> {openStatus.text}
-                  </span>
-                ) : null}
-              </div>
-            ) : null}
             <div className="pphActions">
               <ConnectToggle following={following} onToggle={onFollow} name={artist.name || ""} kind="آرتیست" icon={<Heart size={18} />} />
               {artist.phone ? (
@@ -170,6 +162,8 @@ export function PublicArtistModal({
           <div className={`artistPublicBody${servicesOpen ? " is-servicesOpen" : ""}`}>
             {/* Hours sit above the posts so a long gallery never buries them. */}
             <WeeklyHours rows={weekHours} todayName={todayName} />
+
+            <ServicesOnPage services={services} onPick={(service) => startBooking([service])} />
 
             <div className="artistPublicContent" key={view}>
               <>
@@ -191,13 +185,7 @@ export function PublicArtistModal({
               services={services}
               focusNames={focus?.names}
               focusLabel={focus?.label ? `مناسب «${focus.label}»` : ""}
-              onConfirm={(picked) => {
-                const service = bundleServices(picked);
-                setServicesOpen(false);
-                setBundle(service.items ? service : null);
-                onSelectService(service.id, service);
-                setBookingPopup(true);
-              }}
+              onConfirm={startBooking}
               onClose={() => setServicesOpen(false)}
             />
             <nav className="spvBar" aria-label="رزرو و اطلاعات">
@@ -208,8 +196,8 @@ export function PublicArtistModal({
                 aria-expanded={servicesOpen}
                 aria-haspopup="dialog"
               >
-                <Scissors size={19} />
-                {servicesOpen ? "بستن" : "خدمات"}
+                <CalendarCheck size={19} />
+                {servicesOpen ? "بستن" : "رزرو نوبت"}
                 {fromPrice && !servicesOpen ? <small>از {formatTomanNumber(fromPrice)} تومان</small> : null}
                 <ChevronUp size={18} className={`spvBarChevron${servicesOpen ? " is-open" : ""}`} aria-hidden="true" />
               </button>

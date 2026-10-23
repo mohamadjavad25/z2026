@@ -5,6 +5,7 @@ import { ProfileHeroWeekStrip } from "../profile/ProfileHeroWeekStrip";
 import { SalonWeekStripDock } from "./SalonWeekStripDock";
 import { useBackHandler } from "../../shared/hooks/useBackHandler";
 import { BACK_PRIORITY } from "../../shared/lib/backStack";
+import { useState } from "react";
 
 export function useHomeChrome({
   salonHoursList,
@@ -217,7 +218,6 @@ export function useHomeChrome({
       profileType={profileType}
       profileView={profileView}
       salonWorkspace={salonWorkspace}
-      activeRoleMeta={activeRoleMeta}
       onOverview={() => {
         closeSalonWorkspace();
         setProfileView("overview");
@@ -233,8 +233,10 @@ export function useHomeChrome({
   // position:fixed element nested inside .mobilePage.is-active gets trapped
   // by that element's page-transition transform and never reaches the real
   // viewport edge. See MobileFloatingCta.jsx.
-  const salonWeekStripFloating = (
-    <SalonWeekStripDock items={salonHeroWeekTabs} selectedDay={activeScheduleDateKey}>
+  // One open state for the inline pill and the floating strip it opens.
+  const [salonWeekDockOpen, setSalonWeekDockOpen] = useState(false);
+  const salonWeekStripFloating = salonWeekDockOpen ? (
+    <SalonWeekStripDock mode="strip" onOpenChange={setSalonWeekDockOpen}>
       <ProfileHeroWeekStrip
         items={salonHeroWeekTabs}
         selectedDay={activeScheduleDateKey}
@@ -243,6 +245,15 @@ export function useHomeChrome({
         ariaLabel="برنامه هفته سالن"
       />
     </SalonWeekStripDock>
+  ) : null;
+  const salonWeekPill = (
+    <SalonWeekStripDock
+      mode="pill"
+      open={salonWeekDockOpen}
+      onOpenChange={setSalonWeekDockOpen}
+      items={salonHeroWeekTabs}
+      selectedDay={activeScheduleDateKey}
+    />
   );
 
   return {
@@ -283,6 +294,7 @@ export function useHomeChrome({
     selectedPostSiblings,
     selectSalonWithDetail,
     profileModeRail,
-    salonWeekStripFloating
+    salonWeekStripFloating,
+    salonWeekPill
   };
 }

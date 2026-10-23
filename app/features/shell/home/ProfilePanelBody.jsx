@@ -15,6 +15,7 @@ import { useHome } from "../HomeContext";
 export function ProfilePanelBody() {
   const {
     createdProfile,
+    salonWeekPill,
     arrivalIntent,
     authMode,
     signupStep,
@@ -261,7 +262,8 @@ export function ProfilePanelBody() {
 
           {createdProfile.type === profileType ? (
             <div className={`createdProfile ${activeRoleMeta.heroClass || ""}`}>
-              {profileView === "overview" && (
+              {/* An artist's «نوبت‌ها» is the overview too (the schedule, below); their posts are the «portfolio» view. */}
+              {(profileView === "overview" || (profileView === "portfolio" && profileType === "artist")) && (
                 <>
                   {profileType === "salon" ? (
                     salonWorkspace ? (
@@ -321,6 +323,9 @@ export function ProfilePanelBody() {
                       )}
                       </div>
                     ) : (
+                    <>
+                    {/* The day picker sits above the day's list, not floating over it (2026-10-23). */}
+                    <div className="salonDayInline">{salonWeekPill}</div>
                     <SalonScheduleDashboard
                       pendingCollabRequests={pendingSalonCollabRequests}
                       onApproveCollab={(id) => updateSalonCollabRequest(id, "تایید شد")}
@@ -343,8 +348,9 @@ export function ProfilePanelBody() {
                       historyOpen={salonWeekHistoryOpen}
                       onHistoryOpenChange={setSalonWeekHistoryOpen}
                     />
+                    </>
                     )
-                  ) : profileType === "artist" ? (
+                  ) : profileType === "artist" && profileView === "portfolio" ? (
                     <ArtistOverviewReviews
                       galleryItems={artistGalleryItems}
                       loading={artistWorkspaceLoading}
@@ -386,13 +392,13 @@ export function ProfilePanelBody() {
                   onOpenBooking={(booking) => setClientBookingSettings({ ...booking, clientBookingSheetMode: "details" })}
                   onRebook={rebookFromBooking}
                   clientName={createdProfile?.data?.name || ""}
+                  clientAvatar={createdProfile?.data?.avatar || ""}
                   onOpenPlace={openConnectedProfile}
-                  onFindPlaces={() => goToTab("salons")}
                   onNotify={setAppToast}
                 />
               )}
 
-              {profileView === "bookings" && profileType === "artist" && (
+              {(profileView === "overview" || profileView === "bookings") && profileType === "artist" && (
                 <ArtistScheduleBoard
                   breakTime={artistBreakTime}
                   onOpenBreakEditor={openArtistBreakEditor}

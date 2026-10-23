@@ -28,12 +28,15 @@ const NOT_FOUND = {
  * «سالن و آرتیست من» (the client's salons tab): connect to the salons and
  * artists they already go to — by phone, name, link or QR — and book from here.
  *
+ * The search box comes first (with a small scan button beside it), then the categories.
+ *
  * Props:
  *  - me: { name, avatar } (for the personal code sheet)
+ *  - compact: the card on the client's home page — no list of connected places under it (that is the «رزرو» tab)
  *  - onOpenProfile(profile, focus?): show a salon/artist page; `focus` = { services, label } opens its services menu on those
  *  - onNotify(message)
  */
-export function ConnectPage({ me = {}, onOpenProfile, onNotify }) {
+export function ConnectPage({ me = {}, compact = false, onOpenProfile, onNotify }) {
   const { connections, loading, query, setQuery, search, connect, connectingId, refresh } = useConnections({ onNotify });
   const [sheet, setSheet] = useState(""); // "" | "scan" | "code"
   const [categorySheet, setCategorySheet] = useState(null); // { category, matches } while the pick/connect sheet is open
@@ -92,26 +95,23 @@ export function ConnectPage({ me = {}, onOpenProfile, onNotify }) {
   ));
 
   return (
-    <section className="cnPage" aria-labelledby="cn-title">
+    <section className={`cnPage${compact ? " is-compact" : ""}`} aria-labelledby={compact ? "cn-home-title" : "cn-title"}>
       <header className="cnHead">
         <div className="cnHeadText">
-          <h1 id="cn-title">چه کاری می‌خواهی؟</h1>
-          <p>یکی را بزن. اگر سالن یا آرتیستش را داری، مستقیم می‌روی.</p>
+          {compact ? <h2 id="cn-home-title">نوبت تازه بگیر</h2> : <h1 id="cn-title">چه کاری می‌خواهی؟</h1>}
+          {compact ? null : <p>اسم سالن یا آرتیستت را بنویس، یا یکی از کارها را بزن.</p>}
         </div>
-        <CategoryGrid busyId={checkingCategory} onPick={pickCategory} />
-
-        <div className="cnConnect">
-          <span className="cnConnectLabel">سالن یا آرتیستت را وصل کن</span>
+        <div className="cnSearchRow">
           <label className="cnSearch">
             <Search size={20} aria-hidden="true" />
-            <span className="srOnly">جستجو با شماره، اسم یا لینک</span>
+            <span className="srOnly">جستجو با اسم، شماره یا لینک</span>
             <input
               type="search"
               inputMode="search"
               enterKeyHint="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="اسم، شماره یا لینک صفحه‌اش"
+              placeholder="اسم سالن یا آرتیست"
               autoComplete="off"
             />
             {searching ? (
@@ -120,25 +120,31 @@ export function ConnectPage({ me = {}, onOpenProfile, onNotify }) {
               </button>
             ) : null}
           </label>
+          <button type="button" className="cnScanIcon" onClick={() => setSheet("scan")} aria-label="اسکن کد سالن یا آرتیست">
+            <ScanLine size={22} aria-hidden="true" />
+          </button>
+        </div>
+        <CategoryGrid busyId={checkingCategory} onPick={pickCategory} />
+
+        {contacts || !compact ? (
           <div className="cnChips">
             {contacts ? (
-              <button type="button" className="cnChip is-primary" onClick={chooseContact}>
+              <button type="button" className="cnChip" onClick={chooseContact}>
                 <ContactRound size={17} aria-hidden="true" />
                 از مخاطبین
               </button>
             ) : null}
-            <button type="button" className={`cnChip${contacts ? "" : " is-primary"}`} onClick={() => setSheet("scan")}>
-              <ScanLine size={17} aria-hidden="true" />
-              اسکن QR
-            </button>
-            <button type="button" className="cnChip" onClick={() => setSheet("code")}>
-              <QrCode size={17} aria-hidden="true" />
-              کد من
-            </button>
+            {compact ? null : (
+              <button type="button" className="cnChip" onClick={() => setSheet("code")}>
+                <QrCode size={17} aria-hidden="true" />
+                کد من
+              </button>
+            )}
           </div>
-        </div>
+        ) : null}
       </header>
 
+      {compact && !searching ? null : (
       <div className="cnBody">
         {searching ? (
           <section aria-label="نتیجه جستجو" aria-live="polite" className="cnList">
@@ -155,7 +161,7 @@ export function ConnectPage({ me = {}, onOpenProfile, onNotify }) {
               <ConnectionCard key={profile.id} profile={profile} onOpen={onOpenProfile} action={connectButton(profile)} />
             )) : null}
           </section>
-        ) : (
+        ) : compact ? null : (
           <section aria-labelledby="cn-list-title" className="cnList">
             <div className="cnListHead">
               <h2 id="cn-list-title">سرویس‌دهنده‌های وصل‌شده</h2>
@@ -185,6 +191,7 @@ export function ConnectPage({ me = {}, onOpenProfile, onNotify }) {
           </section>
         )}
       </div>
+      )}
 
       {categorySheet ? (
         <CategorySheet
