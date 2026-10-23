@@ -389,7 +389,7 @@ export function ScheduleBookingMenuModal({
                   <span>زمان</span>
                   <b>
                     {toPersianDigits(services[0].startLabel)} تا {toPersianDigits(services[services.length - 1].endLabel)}
-                    <small className="sbmCount"> · {toPersianDigits(services.length)} خدمت</small>
+                    <small className="sbmCount">، {toPersianDigits(services.length)} خدمت</small>
                   </b>
                 </div>
               ) : (

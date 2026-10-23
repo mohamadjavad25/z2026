@@ -107,8 +107,9 @@ export function BookingHistoryCalendarSheet({
             </div>
             <div className="bookingWeekHistoryDateHeroStat">
               <CalendarDays size={18} aria-hidden="true" />
-              <strong>{toPersianDigits(activeDayBookings.length)}</strong>
-              <small>نوبت</small>
+              {/* «۰ نوبت» read «• نوبت» (the Persian zero is a dot); an empty day says it in words. */}
+              {activeDayBookings.length ? <strong>{toPersianDigits(activeDayBookings.length)}</strong> : null}
+              <small>{activeDayBookings.length ? "نوبت" : "بدون نوبت"}</small>
             </div>
           </div>
 
@@ -147,7 +148,7 @@ export function BookingHistoryCalendarSheet({
                     count > 0 ? "has-bookings" : ""
                   ].filter(Boolean).join(" ")}
                   aria-selected={active}
-                  aria-label={`${cell.weekday} ${cell.dayLabel} • ${toPersianDigits(count)} نوبت`}
+                  aria-label={`${cell.weekday} ${cell.dayLabel}، ${toPersianDigits(count)} نوبت`}
                   onClick={() => pickCell(cell)}
                 >
                   <strong>{cell.dayLabel}</strong>
@@ -168,7 +169,7 @@ export function BookingHistoryCalendarSheet({
             <span>رزروهای این تاریخ</span>
             <b>{activeTitle?.full || ""}</b>
           </div>
-          <em>{toPersianDigits(activeDayBookings.length)} نوبت</em>
+          <em>{activeDayBookings.length ? `${toPersianDigits(activeDayBookings.length)} نوبت` : "بدون نوبت"}</em>
         </div>
 
         <div className="bookingWeekHistoryList todayScheduleList" aria-label={`رزروهای ${activeTitle?.full || ""}`}>

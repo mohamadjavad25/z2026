@@ -1,4 +1,4 @@
-/** One global support center (opened by the floating button): anything can ask for it with openSupport(). */
+/** One global support center (SupportHost): anything can ask for it with openSupport(). */
 const OPEN_EVENT = "frfro:open-support";
 const READ_EVENT = "frfro:support-read";
 
@@ -13,9 +13,22 @@ export const onOpenSupport = (handler) => {
   return () => window.removeEventListener(OPEN_EVENT, listener);
 };
 
-/** Tell the floating button to refresh its unread count (after reading or sending). */
+/** Ask SupportHost to refresh the unread count (after reading or sending). */
 export const notifySupportRead = () => typeof window !== "undefined" && window.dispatchEvent(new Event(READ_EVENT));
 export const onSupportRead = (handler) => {
   window.addEventListener(READ_EVENT, handler);
   return () => window.removeEventListener(READ_EVENT, handler);
+};
+
+/** The unread count SupportHost last fetched, for the buttons that show it (SupportButton). */
+const UNREAD_EVENT = "frfro:support-unread";
+export let supportUnread = 0;
+export function publishSupportUnread(count) {
+  supportUnread = count;
+  if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent(UNREAD_EVENT, { detail: count }));
+}
+export const onSupportUnread = (handler) => {
+  const listener = (event) => handler(Number(event.detail) || 0);
+  window.addEventListener(UNREAD_EVENT, listener);
+  return () => window.removeEventListener(UNREAD_EVENT, listener);
 };

@@ -85,7 +85,7 @@ export function visitSummaryText(list, people = 1) {
     `${toPersianDigits(totals.count)} خدمت${people > 1 ? " برای هر نفر" : ""}`,
     `${toPersianDigits(totals.minutes)} دقیقه`,
     totals.price ? `${formatTomanNumber(totals.price * Math.max(1, people))} تومان` : ""
-  ].filter(Boolean).join(" · ");
+  ].filter(Boolean).join("، ");
 }
 
 /** Clock label comparison that ignores digit script and a leading zero. */

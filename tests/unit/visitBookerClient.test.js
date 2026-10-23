@@ -69,7 +69,7 @@ describe("the body and the query of a group", () => {
     expect(body.parts.map((part) => part.service)).toEqual(["کوتاهی", "کوتاهی"]);
   });
   it("says how many people and the total in the summary", () => {
-    expect(visitSummaryText(list, 2)).toBe("۲ نفر · ۱ خدمت برای هر نفر · ۳۰ دقیقه · ۶۰۰ تومان");
+    expect(visitSummaryText(list, 2)).toBe("۲ نفر، ۱ خدمت برای هر نفر، ۳۰ دقیقه، ۶۰۰ تومان");
   });
 });
 

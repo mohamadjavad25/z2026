@@ -143,7 +143,7 @@ export function PlanList({ role, state, onStaff, onRetry }) {
         return (
           <li key={`${part.service}-${index}`} className={`vbPlanRow${problem ? " has-problem" : ""}`}>
             <span className="vbPlanTime">{clockText(part.start)}–{clockText(part.end)}</span>
-            <span className="vbPlanService">{state.people > 1 && !state.chain ? `نفر ${toPersianDigits((part.person || 0) + 1)} · ` : ""}{part.service}</span>
+            <span className="vbPlanService">{state.people > 1 && !state.chain ? `نفر ${toPersianDigits((part.person || 0) + 1)}: ` : ""}{part.service}</span>
             {role === "artist" ? null : pickable ? (
               <button
                 type="button"

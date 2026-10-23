@@ -1,4 +1,5 @@
 import { Bell, QrCode, Share2 } from "lucide-react";
+import { SupportButton } from "../support";
 
 // The gear/settings icon that used to live here was removed: "تنظیمات" is
 // now its own bottom-nav tab (see SettingsPage), so a second entry point
@@ -16,15 +17,19 @@ export function ProfileHeroActions({
   if (profileType === "salon") {
     return (
       <div className="profileHeroActions is-salonTopActions">
-        <button
-          type="button"
-          className={`${activePanel === "notifications" ? "is-active" : ""} ${notificationCount > 0 ? "has-notifications" : ""}`.trim()}
-          onClick={onOpenNotifications}
-          disabled={typeof onOpenNotifications !== "function"}
-          aria-label="اعلان‌ها"
-        >
-          <Bell size={17} />
-        </button>
+        {/* Bell and support stay side by side (support used to float over the page; owner's choice 2026-10-23). */}
+        <span className="profileHeroActionsPair">
+          <button
+            type="button"
+            className={`${activePanel === "notifications" ? "is-active" : ""} ${notificationCount > 0 ? "has-notifications" : ""}`.trim()}
+            onClick={onOpenNotifications}
+            disabled={typeof onOpenNotifications !== "function"}
+            aria-label="اعلان‌ها"
+          >
+            <Bell size={17} />
+          </button>
+          <SupportButton />
+        </span>
       </div>
     );
   }
@@ -39,14 +44,17 @@ export function ProfileHeroActions({
           </button>
         ) : null}
         {(profileType === "artist" || profileType === "client") && (
-          <button
-            type="button"
-            className={`${activePanel === "notifications" ? "is-active" : ""} ${notificationCount > 0 ? "has-notifications" : ""}`.trim()}
-            onClick={onOpenNotifications}
-            aria-label="اعلان‌ها"
-          >
-            <Bell size={17} />
-          </button>
+          <span className="profileHeroActionsPair">
+            <button
+              type="button"
+              className={`${activePanel === "notifications" ? "is-active" : ""} ${notificationCount > 0 ? "has-notifications" : ""}`.trim()}
+              onClick={onOpenNotifications}
+              aria-label="اعلان‌ها"
+            >
+              <Bell size={17} />
+            </button>
+            <SupportButton />
+          </span>
         )}
         {showShare ? (
           <button type="button" aria-label="اشتراک‌گذاری" onClick={onShare}>

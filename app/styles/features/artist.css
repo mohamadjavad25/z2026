@@ -145,8 +145,17 @@
 /* .artistBreakSheet */
 .artistBreakSheet {
   position: relative;
-  grid-template-rows: 1fr;
+  grid-template-rows: auto 1fr;
 }
+
+/* .artistBreakHead: the title and one line on what the break does */
+.artistBreakHead {
+  display: grid;
+  gap: 4px;
+  padding: 22px 18px 0;
+}
+.artistBreakHead h3 { margin: 0; font-size: 1.05rem; font-weight: 950; }
+.artistBreakHead p { margin: 0; color: var(--muted); font-size: 0.8rem; font-weight: 700; line-height: 1.8; }
 
 /* .artistBreakClose */
 .artistBreakClose {
@@ -160,7 +169,7 @@
 .artistBreakModalBody {
   display: grid;
   gap: 14px;
-  padding: 52px 18px calc(18px + env(safe-area-inset-bottom, 0px));
+  padding: 16px 18px calc(18px + env(safe-area-inset-bottom, 0px));
   overflow: auto;
 }
 

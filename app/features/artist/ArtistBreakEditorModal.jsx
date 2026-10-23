@@ -61,7 +61,11 @@ export function ArtistBreakEditorModal({
       onClick={onClose}
     >
       <article className="artistServiceSheet artistBreakSheet" onClick={(event) => event.stopPropagation()}>
-
+        {/* A title and what it does: the window opened with only clocks and «ذخیره بازه» (owner's choice 2026-10-23). */}
+        <header className="artistBreakHead">
+          <h3>تایم استراحت</h3>
+          <p>یک بازه برای همهٔ روزها؛ در برنامه‌ات به‌شکل استراحت نشان داده می‌شود.</p>
+        </header>
         <div className="artistBreakModalBody">
           <div className="qrChips" role="group" aria-label="بازه‌های رایج">
             {QUICK_BREAKS.filter(([from, to]) => clockOptions.includes(from) && clockOptions.includes(to)).map(([from, to]) => (
@@ -105,7 +109,7 @@ export function ArtistBreakEditorModal({
 
           <div className="artistBreakEditorActions">
             <button type="button" onClick={onSave} disabled={isInvalid || saving}>
-              {saving ? "در حال ذخیره..." : "ذخیره بازه"}
+              {saving ? "در حال ذخیره..." : "ذخیرهٔ تایم استراحت"}
             </button>
             {hasBreak ? (
               <button type="button" className="danger" onClick={onClear} disabled={saving}>حذف</button>

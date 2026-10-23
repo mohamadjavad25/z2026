@@ -183,7 +183,7 @@ export function BookingReceipt({ receipt, bookings = [], onClose, onViewBookings
           ) : null}
           <div className="brRow">
             <span><Clock3 size={15} aria-hidden="true" /> زمان</span>
-            <b>{day}{time ? ` · ${time}` : ""}{end ? ` تا ${toPersianDigits(end)}` : ""}</b>
+            <b>{day}{time ? `، ساعت ${time}` : ""}{end ? ` تا ${toPersianDigits(end)}` : ""}</b>
           </div>
         </div>
 

@@ -172,7 +172,7 @@
   white-space: nowrap;
 }
 
-.bkChip.is-upcoming { background: var(--n-100); color: var(--info); }
+.bkChip.is-upcoming { background: var(--n-100); color: var(--success); }
 .bkChip.is-live { background: var(--n-100); color: var(--success); }
 .bkChip.is-done { background: var(--n-100); color: var(--n-600); }
 .bkChip.is-status-pending { background: rgb(var(--warning-rgb) / 0.14); color: var(--warning); }
@@ -728,65 +728,53 @@
 .salonClientMosaicTile.hasImage,
 .artistPublicGrid .artistPublicCard { background-color: var(--n-150); }
 
-/* ── Client booking tracker chip (cbt*) ── */
-/* The strip is the first row of the bottom bar: the bar turns from a pill into one rounded card, status on top, tabs below. */
-.bottomNav:has(> .cbt) { flex-wrap: wrap; align-content: flex-start; padding-top: 0 !important; border-radius: 26px !important; overflow: hidden; }
-.bottomNav > .cbt {
-  order: -1;
-  position: relative;
-  flex: 0 0 calc(100% + 24px);
+/* ── Client booking tracker pill (cbt*) ── */
+/* A small pill at the top of the screen (owner's choice 2026-10-23): it used to dock into the bottom bar and covered
+   the «رزرو» button of a salon's services sheet. It steps aside while a sheet or dialog is open, and on a salon's or
+   artist's own page, where the client is busy booking. */
+.cbtPill {
+  position: fixed;
+  z-index: var(--z-nav);
+  top: calc(64px + env(safe-area-inset-top, 0px)); /* under the bell row, on the home banner */
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: min(340px, calc(100vw - 48px));
   display: flex;
   align-items: center;
-  gap: 11px;
-  margin: 0 -12px 4px;
-  padding: 10px 14px 13px;
-  background: var(--n-50);
+  gap: 8px;
+  padding: 5px 12px 5px 6px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--n-0);
   color: var(--n-900);
+  box-shadow: 0 10px 26px rgb(var(--shadow-rgb) / 0.16), inset 0 0 0 1px var(--n-100);
   text-align: start;
   cursor: pointer;
   animation: cbtIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
   -webkit-tap-highlight-color: transparent;
 }
-.bottomNav > .cbt:focus-visible { outline: 3px solid rgb(var(--ink-rgb) / 0.28); outline-offset: -3px; }
-.cbtIcon { position: relative; flex: 0 0 auto; width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; background: var(--n-0); color: var(--n-900); }
+.cbtPill:focus-visible { outline: 3px solid rgb(var(--ink-rgb) / 0.28); outline-offset: 2px; }
+.cbtPill.is-away,
+.appShell:is(.is-salon-client, .is-artist-public) .cbtPill,
+body:has([role="dialog"], [aria-modal="true"], .scOverlay, .supOverlay) .cbtPill { display: none; }
+.cbtIcon { position: relative; flex: 0 0 auto; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%; background: var(--n-50); color: var(--n-900); }
+.cbtIcon svg { width: 16px; height: 16px; }
 .cbtIcon i { position: absolute; inset: -2px; border-radius: 50%; border: 3px solid transparent; border-top-color: var(--accent); border-right-color: rgb(var(--accent-rgb) / 0.3); animation: cbtSpin 1s linear infinite; }
-.cbtIcon svg { animation: cbtTilt 2.4s ease-in-out infinite; }
-.cbtText { flex: 1; min-width: 0; display: grid; gap: 2px; }
-.cbtText b { font-size: 0.86rem; font-weight: 950; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.cbtText small { color: var(--n-600); font-size: 0.72rem; font-weight: 750; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cbtIcon.is-spin svg { animation: cbtTilt 2.4s ease-in-out infinite; }
+.cbtText { flex: 1; min-width: 0; display: flex; align-items: baseline; gap: 6px; white-space: nowrap; overflow: hidden; }
+.cbtText b { flex: 0 0 auto; font-size: 0.8rem; font-weight: 950; }
+.cbtText small { min-width: 0; color: var(--n-600); font-size: 0.7rem; font-weight: 750; overflow: hidden; text-overflow: ellipsis; }
 .cbt > svg { flex: 0 0 auto; color: var(--n-600); }
-.cbtCount { flex: 0 0 auto; min-width: 26px; height: 26px; display: grid; place-items: center; padding: 0 7px; border-radius: 999px; background: var(--fill-strong); color: var(--n-0); font-style: normal; font-size: 0.74rem; font-weight: 950; }
-.cbtBar { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--n-200); overflow: hidden; }
+.cbtCount { flex: 0 0 auto; min-width: 22px; height: 22px; display: grid; place-items: center; padding: 0 6px; border-radius: 999px; background: var(--fill-strong); color: var(--n-0); font-style: normal; font-size: 0.7rem; font-weight: 950; }
+.cbtBar { position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--n-100); overflow: hidden; }
 .cbtBar i { display: block; height: 100%; width: 100%; transform-origin: right center; background: linear-gradient(90deg, var(--brand-pink), var(--signal-hot), var(--brand-pink)); background-size: 200% 100%; animation: cbtSheen 1.6s linear infinite; transition: transform 0.6s ease; }
 .cbtBar.is-indeterminate i { width: 40%; animation: cbtSlide 1.2s ease-in-out infinite; }
-.bottomNav > .cbt.is-ok { background: var(--n-50); }
 .cbt.is-ok .cbtIcon { background: var(--success); color: var(--n-0); animation: cbtPop 0.5s cubic-bezier(0.22, 1.6, 0.36, 1) both; }
-.bottomNav > .cbt.is-bad { background: var(--n-100); }
 .cbt.is-bad .cbtIcon { background: var(--n-100); color: var(--danger); }
 /* A new time the salon offered, waiting for the client (ClientBookingTracker) */
-.bottomNav > .cbt.is-offer { background: var(--n-50); }
 .cbt.is-offer .cbtIcon { background: var(--warning); color: var(--n-0); }
-/* A salon or artist page has its own bottom bar and hides the tabs: the strip then floats above that bar, on its own. */
-.appShell.is-salon-client .bottomNav:has(> .cbt),
-.appShell.is-artist-public .bottomNav:has(> .cbt) {
-  display: flex !important;
-  bottom: calc(96px + env(safe-area-inset-bottom, 0px));
-  min-height: 0 !important;
-  padding: 0 !important;
-  border-radius: 20px !important;
-  background: transparent;
-  box-shadow: none;
-}
-.appShell.is-salon-client .bottomNav:has(> .cbt) > button,
-.appShell.is-artist-public .bottomNav:has(> .cbt) > button { display: none !important; }
-.appShell.is-salon-client .bottomNav > .cbt,
-.appShell.is-artist-public .bottomNav > .cbt {
-  flex-basis: 100%;
-  margin: 0;
-  border-radius: 20px;
-  box-shadow: 0 14px 34px rgb(var(--shadow-rgb) / 0.2), inset 0 0 0 1px var(--n-100);
-}
-@keyframes cbtIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes cbtIn { from { opacity: 0; translate: 0 -12px; } to { opacity: 1; translate: 0 0; } }
 @keyframes cbtSpin { to { transform: rotate(360deg); } }
 @keyframes cbtTilt { 0%, 40% { transform: rotate(0); } 60%, 100% { transform: rotate(180deg); } }
 @keyframes cbtSheen { to { background-position: -200% 0; } }
@@ -819,8 +807,6 @@
 .cbhEmpty b { color: var(--n-900); font-size: 0.92rem; font-weight: 950; }
 .cbhEmpty span { font-size: 0.76rem; font-weight: 700; line-height: 1.8; }
 
-/* Reserve room for the booking strip in the bottom bar so it never hides the last card. */
-html[data-cbt="1"] body { padding-bottom: 92px; }
 
 /* Touch targets: small icon buttons keep their look but get a 44px hit area; text chips and links reach 40px. */
 .brandCardAvatarEdit::after,
@@ -1126,6 +1112,14 @@ main.appShell.is-auth-gate .workspace { background: var(--n-0) !important; }
 }
 .appShell.is-auth-gate .authGateCopy h2 { color: var(--auth-ink); }
 .appShell.is-auth-gate .authGateCopy > span { color: var(--n-600); }
+/* The salon or artist a guest came from, above the sign-up form (AuthGateForms › ArrivalPlaceCard). */
+.authArrivalPlace { position: relative; z-index: 1; display: flex; align-items: center; gap: 12px; width: min(100%, 26rem); margin: 14px auto 0; padding: 12px 14px; border-radius: 22px; background: var(--n-0); box-shadow: 0 12px 30px rgb(var(--shadow-rgb) / 0.08), inset 0 0 0 1px var(--n-100); text-align: start; }
+.authArrivalAvatar { flex: 0 0 auto; width: 50px; height: 50px; display: grid; place-items: center; overflow: hidden; border-radius: 16px; background: var(--accent-soft); color: var(--accent); font-size: 1.2rem; font-weight: 950; }
+.authArrivalAvatar.is-round { border-radius: 50%; }
+.authArrivalAvatar img { width: 100%; height: 100%; object-fit: cover; }
+.authArrivalText { min-width: 0; display: grid; gap: 2px; }
+.authArrivalText b { color: var(--ink); font-size: 1rem; font-weight: 950; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.authArrivalText small { color: var(--n-600); font-size: 0.78rem; font-weight: 700; line-height: 1.7; }
 
 .appShell.is-auth-gate .profileRoleCard {
   border: 1px solid rgb(var(--ink-rgb) / 0.1);
@@ -1611,3 +1605,7 @@ html, body { overscroll-behavior-y: none; }
   color: var(--n-0);
   font-size: 0.64rem;
 }
+
+/* Booking history calendar: room under the last line for the pinned round close button, which sat on
+   «برای … هنوز رزروی نیست» (owner's choice 2026-10-23). */
+.bookingWeekHistoryBody { padding-bottom: 84px; }

@@ -259,8 +259,8 @@ export const ScheduleRow = memo(function ScheduleRow({
         onClick={() => onAction?.(actionPayload)}
       >
         <NoteIcon size={15} aria-hidden="true" />
-        <span>{text}{what ? ` • ${what}` : ""}</span>
-        <time>{showDate ? `${date} • ` : ""}{toPersianDigits(String(time || ""))}</time>
+        <span>{text}{what ? `، ${what}` : ""}</span>
+        <time>{showDate ? `${date}، ` : ""}{toPersianDigits(String(time || ""))}</time>
       </button>
     );
   }

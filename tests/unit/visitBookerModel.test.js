@@ -75,8 +75,8 @@ describe("totals and the summary line", () => {
   });
 
   it("writes the summary in Persian digits and leaves the price out when unknown", () => {
-    expect(visitSummaryText(bySlug("مانیکور", "کوتاهی"))).toBe("۲ خدمت · ۷۵ دقیقه · ۷۵۰ تومان");
-    expect(visitSummaryText(bySlug("مانیکور", "ابرو"))).toBe("۲ خدمت · ۶۵ دقیقه");
+    expect(visitSummaryText(bySlug("مانیکور", "کوتاهی"))).toBe("۲ خدمت، ۷۵ دقیقه، ۷۵۰ تومان");
+    expect(visitSummaryText(bySlug("مانیکور", "ابرو"))).toBe("۲ خدمت، ۶۵ دقیقه");
     expect(visitSummaryText([])).toBe("");
   });
 });

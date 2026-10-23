@@ -1,6 +1,5 @@
 /* ── Client home (ch*) — the client's page under the profile header: «نوبت‌های من» + «سالن و آرتیست من» ── */
 .clientHome { display: grid; gap: 22px; padding: 14px 0 120px; }
-:root[data-cbt="1"] .clientHome { padding-bottom: 190px; }
 
 .clientHome .clientBookingsBoard { padding-bottom: 0; margin-bottom: 0; }
 .chPlaces { display: grid; gap: 12px; }

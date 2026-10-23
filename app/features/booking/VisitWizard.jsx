@@ -106,7 +106,7 @@ export function VisitWizard({ role, title, state, controller, services, days, cu
 
   // What was answered so far, in the order it was asked.
   const done = [];
-  if (index > 0) done.push({ id: "who", caption: "مشتری", value: [state.name.trim(), state.phone].filter(Boolean).join(" · ") });
+  if (index > 0) done.push({ id: "who", caption: "مشتری", value: [state.name.trim(), state.phone].filter(Boolean).join("، ") });
   if (index > 1) done.push({ id: "services", caption: "خدمت", value: state.picked.map((item) => item.name).join("، ") });
   // On the hour step the days sit in their own row above the hours, so the day chip waits until after.
   if (index > 3 && day) done.push({ id: "day", caption: "روز", value: day.label });

@@ -58,7 +58,7 @@ export function ReceiptDetails({ payment }) {
     ["روش", payment.source === "admin" ? "ثبت‌شده توسط فرفرو" : payment.gatewayLabel],
     payment.status === "failed" && payment.failure ? ["دلیل", payment.failure] : null,
     payment.refundedAt
-      ? ["بازپرداخت", `${formatToman(payment.refundToman)} در ${formatPersianLongDate(payment.refundedAt)}${payment.refundDays ? ` • ${toPersianDigits(payment.refundDays)} روز از اشتراک کم شد` : ""}`]
+      ? ["بازپرداخت", `${formatToman(payment.refundToman)} در ${formatPersianLongDate(payment.refundedAt)}${payment.refundDays ? `، ${toPersianDigits(payment.refundDays)} روز از اشتراک کم شد` : ""}`]
       : null
   ].filter(Boolean);
   return (

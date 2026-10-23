@@ -43,7 +43,7 @@ function noteOf(booking) {
   const place = booking.salonName || booking.salon_name || (booking.bookingSource === "artist" ? "آرتیست" : "سالن");
   const service = shortServiceLabel(booking.service) || "خدمت زیبایی";
   const day = dayOf(booking) ? formatRelativeBookingDayLabel(dayOf(booking)) : "امروز";
-  const when = booking.time ? `${day} • ${toPersianDigits(booking.time)}` : day;
+  const when = booking.time ? `${day}، ${toPersianDigits(booking.time)}` : day;
   if (tone === "bad" && isPlaceGone(booking)) return { Icon: Ban, tone, text: `${booking.bookingSource === "artist" ? ARTIST_GONE_TEXT : SALON_GONE_TEXT}؛ نوبت ${service} لغو شد`, when };
   if (tone === "bad" && booking.cancelled_by === "provider") return { Icon: Ban, tone, text: cancelledByProviderText(booking.bookingSource === "artist" ? "artist" : "salon", booking.salonName || booking.salon_name || ""), when };
   if (tone === "bad") return { Icon: Ban, tone, text: `رزرو ${service} در ${place} لغو شد`, when };

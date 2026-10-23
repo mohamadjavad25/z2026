@@ -313,7 +313,7 @@ export function usePublicArtistProfile({
         }, { price: service.price || "", items: Array.isArray(service.items) ? service.items : [service] });
       } else {
         notify(
-          `رزرو «${service.name}» • ${publicArtistBookingDay} ساعت ${publicArtistBookingSlot} برای «${selectedPublicArtist.name}» ثبت شد و در انتظار تایید آرتیست است.`
+          `رزرو «${service.name}»، ${publicArtistBookingDay} ساعت ${publicArtistBookingSlot} برای «${selectedPublicArtist.name}» ثبت شد و در انتظار تایید آرتیست است.`
         );
       }
       setPublicArtistBookingSlot("");

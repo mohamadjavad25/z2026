@@ -28,18 +28,12 @@
 .neoSettingsLegalLinks button:hover { color: var(--ink); text-decoration: underline; }
 .supLink { min-height: 44px; border: 0; background: none; color: var(--night); font: inherit; font-size: var(--text-base); font-weight: 800; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }
 
-/* ---------- Floating support button ---------- */
-/* Sits on the end (left) side above the bottom bar; where the bar is hidden it drops to the bottom; over the salon mode dock it rises. */
-.supportFab { position: fixed; z-index: calc(var(--z-nav) + 1); left: max(14px, calc((100vw - 460px) / 2 + 14px)); bottom: calc(8px + 70px + 16px + env(safe-area-inset-bottom)); display: grid; place-items: center; width: 54px; height: 54px; padding: 0; border: 0; border-radius: 50%; background: var(--fill-strong-grad); color: var(--n-0); box-shadow: 0 12px 28px rgb(var(--shadow-rgb) / 0.38), inset 0 0 0 1px rgba(255, 255, 255, 0.14); cursor: pointer; transition: transform 0.18s ease, box-shadow 0.18s ease; }
-.supportFab:hover { transform: translateY(-2px); }
-.supportFab:active { transform: scale(0.95); }
-.supportFab:focus-visible { outline: 3px solid var(--n-0); outline-offset: 2px; box-shadow: 0 0 0 5px var(--night); }
-.supportFab.has-unread::after { content: ""; position: absolute; inset: -5px; border-radius: 50%; border: 2px solid rgb(var(--accent-rgb) / 0.55); animation: supPulse 1.8s ease-out infinite; }
-@keyframes supPulse { from { transform: scale(0.92); opacity: 1; } to { transform: scale(1.22); opacity: 0; } }
-.supportFabBadge { position: absolute; top: -4px; inset-inline-end: -4px; display: grid; place-items: center; min-width: 22px; height: 22px; padding: 0 5px; border-radius: 11px; background: var(--fill-hot); color: var(--n-0); font-style: normal; font-size: 0.72rem; font-weight: 900; box-shadow: 0 0 0 2px var(--n-0); }
-.appShell.is-artist-public .supportFab, .appShell.is-salon-client .supportFab { bottom: calc(18px + env(safe-area-inset-bottom)); }
-.appShell:has(.floatingMobileCta .salonHeroWeekStrip) .supportFab { bottom: calc(8px + 70px + 16px + 78px + env(safe-area-inset-bottom)); }
-@media (prefers-reduced-motion: reduce) { .supportFab, .supportFab.has-unread::after { transition: none; animation: none; } }
+/* ---------- Support button at the top of the home page (SupportButton), next to the bell ---------- */
+/* It takes the look of the bell beside it (.profileHeroActions button, .cphBell); only the unread badge is its own. */
+.profileHeroActionsPair { display: flex; align-items: center; gap: 7px; pointer-events: auto; }
+.supportTopBtn { position: relative; cursor: pointer; }
+.profileHero.cphHero .cphBell.cphSupport { left: 62px; }
+.supportTopBadge { position: absolute; top: -5px; inset-inline-end: -5px; display: grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px; background: var(--fill-hot); color: var(--n-0); font-style: normal; font-size: 0.68rem; font-weight: 900; box-shadow: 0 0 0 2px var(--n-0); }
 
 /* ---------- Support center (list, conversation, new message) ---------- */
 .scOverlay { position: fixed; inset: 0; z-index: var(--z-dialog); display: grid; justify-items: center; align-items: end; background: rgba(20, 22, 32, 0.52); backdrop-filter: blur(2px); }
@@ -97,8 +91,6 @@
 .scField > span { color: var(--n-700); font-size: var(--text-sm); font-weight: 800; }
 .scField :where(input, textarea) { width: 100%; padding: 12px var(--space-4); border: 0; border-radius: var(--radius-md); background: var(--n-0); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); font: inherit; font-size: var(--text-md); line-height: 1.8; resize: vertical; }
 .scField :where(input, textarea):focus-visible { outline: 2px solid var(--night); outline-offset: 1px; }
-/* The client's booking strip makes the bottom bar taller: lift the help button above it. */
-html[data-cbt="1"] .supportFab { bottom: calc(8px + 70px + 16px + 58px + env(safe-area-inset-bottom)); }
 
 /* ---------- Pictures and voice notes in the support chat (features/support/Attachments.jsx, Composer.jsx) ---------- */
 .scGroup.is-grouped { margin-top: -4px; }

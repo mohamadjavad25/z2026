@@ -186,10 +186,12 @@ export function resolveBookingDateToWeekday(date) {
   return getTodayPersianWeekday();
 }
 
+// Shown only on confirmed bookings (requests show their own status). «upcoming» used to read «در انتظار», which the
+// artist took for "not confirmed yet" while the client already saw «تأیید شد» (owner's choice 2026-10-23).
 const BOOKING_PHASE_LABEL = {
   live: "در حال انجام",
   done: "انجام شد",
-  upcoming: "در انتظار"
+  upcoming: "تأیید شده"
 };
 
 /**

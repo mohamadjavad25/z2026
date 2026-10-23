@@ -27,7 +27,7 @@ import { NoticeHost } from "../../shared/notice/NoticeHost";
 import { ClientBookingTracker } from "../client/ClientBookingTracker";
 import { BottomNav } from "./BottomNav";
 import { CreateBookingTip } from "./CreateBookingTip";
-import { SupportFab } from "../support";
+import { SupportHost } from "../support";
 import { useHome } from "./HomeContext";
 import { PublicArtistHost } from "./home/PublicArtistHost";
 import { ScheduleMenuHost } from "./home/ScheduleMenuHost";
@@ -394,10 +394,10 @@ export function HomeView() {
         {authChecked ? <SiteNotice role={createdProfile?.type || ""} /> : null}
         <BillingHost />
 
+        {createdProfile?.type === "client" ? (
+          <ClientBookingTracker bookings={clientBookingList} onOpen={setClientBookingSettings} away={activeTab !== "profile"} />
+        ) : null}
         <BottomNav
-          status={createdProfile?.type === "client" ? (
-            <ClientBookingTracker bookings={clientBookingList} onOpen={setClientBookingSettings} />
-          ) : null}
           activeTab={activeTab}
           createdProfile={createdProfile}
           customersBadge={unseenFollowerCount}
@@ -416,7 +416,7 @@ export function HomeView() {
           accountId={createdProfile?.id}
           onCreateBooking={openBookingSheet}
         />
-        {createdProfile && activeTab === "profile" && !selectedPublicArtist ? <SupportFab /> : null}
+        {createdProfile ? <SupportHost /> : null}
         <PublicArtistHost />
         <PostPreviewModal
           post={selectedPost}

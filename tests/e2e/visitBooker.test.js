@@ -393,7 +393,7 @@ describe("VisitBooker for the salon (browser)", () => {
     await pickDay(page, DAY2);
     await takeTime(page);
     await page.locator(".vbPlanRow").nth(1).waitFor();
-    expect(await page.locator(".vbSummary").innerText()).toContain("۲ خدمت · ۷۵ دقیقه");
+    expect(await page.locator(".vbSummary").innerText()).toContain("۲ خدمت، ۷۵ دقیقه");
     // tap the services chip, take one off, and walk the day and the hour again
     await page.locator(".vbDoneChip").nth(1).click();
     await pickService(page, H);
@@ -401,7 +401,7 @@ describe("VisitBooker for the salon (browser)", () => {
     await pickDay(page, DAY2);
     await takeTime(page);
     await page.waitForFunction(() => document.querySelectorAll(".vbPlanRow").length === 1);
-    expect(await page.locator(".vbSummary").innerText()).toContain("۱ خدمت · ۴۵ دقیقه");
+    expect(await page.locator(".vbSummary").innerText()).toContain("۱ خدمت، ۴۵ دقیقه");
     expect(await page.locator(".vbPlanRow").first().innerText()).toContain(M);
     await context.close();
   });

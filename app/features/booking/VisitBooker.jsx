@@ -137,7 +137,7 @@ function VisitBookerForm({ role, title, subtitle, services, days, initial, custo
   let label = copy.submit;
   if (state.submitting) label = copy.busy;
   else if (checking) label = "در حال بررسی…";
-  else if (readiness.ok && day) label = `${copy.submit} · ${day.label} ${clockText(state.time)}`;
+  else if (readiness.ok && day) label = `${copy.submit}، ${day.label}، ساعت ${clockText(state.time)}`;
 
   // A salon or artist with no services cannot book anything yet: say so, and take them to add one.
   if (role !== "client" && !frozenServices.length) {

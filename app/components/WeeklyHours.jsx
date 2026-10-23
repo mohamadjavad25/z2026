@@ -6,7 +6,7 @@ import { toPersianDigits } from "../shared/lib/digits";
 
 const WEEK = ["شنبه", "یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنجشنبه", "جمعه"];
 
-/** Closed today: also say when it opens next («امروز تعطیل · فردا از ۱۰:۰۰»). */
+/** Closed today: also say when it opens next («امروز تعطیل، فردا از ۱۰:۰۰»). */
 function closedText(rows, todayName) {
   const start = WEEK.indexOf(todayName);
   if (start < 0) return "امروز تعطیل است";
@@ -15,7 +15,7 @@ function closedText(rows, todayName) {
     const row = rows.find((item) => item.day === day);
     if (row?.active) {
       const when = step === 1 ? "فردا" : day;
-      return `امروز تعطیل · ${when} از ${toPersianDigits(row.open_time || "")}`;
+      return `امروز تعطیل، ${when} از ${toPersianDigits(row.open_time || "")}`;
     }
   }
   return "امروز تعطیل است";

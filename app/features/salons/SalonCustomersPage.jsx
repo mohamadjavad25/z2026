@@ -109,7 +109,7 @@ function CustomerSheet({ customer, invite, onBook, onClose }) {
                 <ServiceIcon emoji={booking.service_emoji} name={booking.service} size="xs" />
                 <div>
                   <b>{shortServiceLabel(booking.service) || "خدمت"}</b>
-                  <small>{date ? formatRelativeBookingDayLabel(date) : "—"}{booking.time ? ` • ${toPersianDigits(booking.time)}` : ""}</small>
+                  <small>{date ? formatRelativeBookingDayLabel(date) : "—"}{booking.time ? `، ${toPersianDigits(booking.time)}` : ""}</small>
                 </div>
                 <em className={`is-${tone}`}>{bookingStatusLabel(booking.status)}</em>
               </li>
@@ -346,14 +346,14 @@ export function SalonCustomersPage({ active, bookings = [], followers = [], owne
                 ) : null}
                 {customer.noBookingYet ? (
                   <small>
-                    <i className="cuWaitTag">وصل‌شده • هنوز رزرو نکرده</i>
-                    {` • ${describeFollowTime(customer.followedAt)}`}
+                    <i className="cuWaitTag">وصل‌شده، هنوز رزرو نکرده</i>
+                    {`، ${describeFollowTime(customer.followedAt)}`}
                   </small>
                 ) : (
                   <small>
                     {toPersianDigits(customer.visitCount)} بار رزرو
-                    {customer.upcoming > 0 ? ` • ${toPersianDigits(customer.upcoming)} نوبت پیش‌رو` : customer.lastDate ? ` • ${formatRelativeBookingDayLabel(customer.lastDate)}` : ""}
-                    {customer.isFollower ? " • وصل‌شده" : ""}
+                    {customer.upcoming > 0 ? `، ${toPersianDigits(customer.upcoming)} نوبت پیش‌رو` : customer.lastDate ? `، ${formatRelativeBookingDayLabel(customer.lastDate)}` : ""}
+                    {customer.isFollower ? "، وصل‌شده" : ""}
                   </small>
                 )}
               </span>

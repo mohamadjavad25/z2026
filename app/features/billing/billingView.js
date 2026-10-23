@@ -113,10 +113,10 @@ export function bannerView(overview) {
  */
 export function teamMemberView(member, overview) {
   const account = member?.account || {};
-  if (account.state === "trial") return { tone: "trial", status: `ماه رایگان • ${formatDaysLeft(account.daysLeft)} مانده`, urgent: account.daysLeft <= 5 };
+  if (account.state === "trial") return { tone: "trial", status: `ماه رایگان، ${formatDaysLeft(account.daysLeft)} مانده`, urgent: account.daysLeft <= 5 };
   if (account.state === "active") return { tone: "active", status: `فعال تا ${formatPersianLongDate(account.accessEndsAt)}`, urgent: account.daysLeft <= 5 };
   if (!overview?.enforced) return { tone: "soon", status: "ماه رایگان تمام شد", urgent: false };
-  if (account.state === "grace") return { tone: "warn", status: `تمام شده • ${formatDaysLeft(account.graceDaysLeft)} مهلت`, urgent: true };
+  if (account.state === "grace") return { tone: "warn", status: `تمام شده، ${formatDaysLeft(account.graceDaysLeft)} مهلت`, urgent: true };
   return { tone: "danger", status: "غیرفعال؛ در جست‌وجو دیده نمی‌شود", urgent: true };
 }
 

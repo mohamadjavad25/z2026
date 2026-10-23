@@ -30,7 +30,7 @@ export function SalonServicesWorkspace({
       <div className="svcToolbar">
         <div>
           <span>خدمات</span>
-          <b>منوی خدمات • {toPersianDigits(services.length)}</b>
+          <b>منوی خدمات ({toPersianDigits(services.length)} خدمت)</b>
         </div>
         <button type="button" className="svcAddBtn" onClick={onCreate}>
           <Plus size={16} />

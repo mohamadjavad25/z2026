@@ -5,9 +5,8 @@ import { Plus } from "lucide-react";
 import { PageIcon } from "../../components/PageIcon";
 import { toPersianDigits } from "../../shared/lib/digits";
 
-// `status`: something that docks into the bar above the tabs (the client's booking status strip).
 // `customersBadge`: how many new followers the owner has not looked at yet (shown on «مشتریان»).
-export function BottomNav({ activeTab, createdProfile, onTabChange, showCreateBooking = false, onCreateBooking, status = null, customersBadge = 0 }) {
+export function BottomNav({ activeTab, createdProfile, onTabChange, showCreateBooking = false, onCreateBooking, customersBadge = 0 }) {
   // Salon/artist owners already run their own business — browsing the
   // salon directory (a client-facing feature) isn't useful to them, so
   // their third tab opens their own customer community instead. See
@@ -15,7 +14,6 @@ export function BottomNav({ activeTab, createdProfile, onTabChange, showCreateBo
   const isBusinessOwner = createdProfile?.type === "salon" || createdProfile?.type === "artist";
   return (
     <nav className="bottomNav" aria-label="ناوبری موبایل">
-      {status}
       <button type="button" onClick={() => onTabChange("settings")} className={activeTab === "settings" ? "active" : ""}>
         <PageIcon name="settings" size={24} />
         <span>تنظیمات</span>

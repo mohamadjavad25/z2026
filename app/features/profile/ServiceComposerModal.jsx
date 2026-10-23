@@ -318,7 +318,7 @@ export function ServiceComposerModal({
               ) : null}
               <button type="button" className="svcDoneBtn" onClick={onClose}>
                 <Check size={18} aria-hidden="true" />
-                {addedCount ? `تمام · ${toPersianDigits(addedCount)} خدمت در منو` : "بستن"}
+                {addedCount ? `تمام، ${toPersianDigits(addedCount)} خدمت در منو` : "بستن"}
               </button>
             </div>
           </div>

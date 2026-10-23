@@ -68,8 +68,8 @@ export function PaymentsSheet({ open, onClose }) {
                     <span className="billHistoryMain">
                       <b>{payment.title}</b>
                       <small>
-                        {payment.paidFor ? `برای ${payment.paidFor} • ` : payment.paidBy ? `پرداخت ${payment.paidBy} • ` : ""}
-                        {formatPersianLongDate(payment.paidAt || payment.createdAt)}{payment.sandbox ? " • آزمایشی" : ""}
+                        {payment.paidFor ? `برای ${payment.paidFor}، ` : payment.paidBy ? `پرداخت ${payment.paidBy}، ` : ""}
+                        {formatPersianLongDate(payment.paidAt || payment.createdAt)}{payment.sandbox ? "، آزمایشی" : ""}
                       </small>
                     </span>
                     <span className="billHistorySide">

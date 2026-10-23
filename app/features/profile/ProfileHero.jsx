@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { ProfileHeroActions } from "./ProfileHeroActions";
+import { SupportButton } from "../support";
 import { ProfileQrCodeSheet } from "../../components/ProfileQrCodeSheet";
 
 /**
@@ -158,6 +159,7 @@ export function ProfileHero({
         >
           <Bell size={18} />
         </button>
+        <SupportButton className="clientBeautyHeroBell cphBell cphSupport" size={18} />
         <span className="cphAvatar">
           <img className="profileAvatarImage" src={avatar} alt="" aria-hidden="true" style={{ objectPosition: avatarPosition }} />
         </span>

@@ -1,4 +1,5 @@
 export { SupportCenter } from "./SupportCenter";
-export { SupportFab } from "./SupportFab";
+export { SupportHost } from "./SupportHost";
+export { SupportButton } from "./SupportButton";
 export { ReportSheet } from "./ReportSheet";
 export { openSupport } from "./supportEvents";

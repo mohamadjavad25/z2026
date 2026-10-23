@@ -293,7 +293,7 @@ export function SettingsPage({
     : isSalon
       ? "لوگو، نام سالن، شماره تماس و مسیر رزرو"
       : clientPhone
-        ? <><span dir="ltr">{toPersianDigits(clientPhone)}</span>{" · عکس، نام، ایمیل و رمز عبور"}</>
+        ? <><span dir="ltr">{toPersianDigits(clientPhone)}</span>{"؛ عکس، نام، ایمیل و رمز عبور"}</>
         : "عکس، نام، تماس، ایمیل و رمز عبور";
   const accountAvatar = profile?.data?.avatar || profile?.avatar || defaultAvatarFor(profile?.type);
   const roleLabel = isArtist ? "حساب آرتیست" : isSalon ? "حساب سالن" : "حساب من";

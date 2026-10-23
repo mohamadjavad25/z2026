@@ -49,12 +49,12 @@ export function useHomeApp() {
     window.history.replaceState({}, "", window.location.pathname);
   }, []);
   // What a guest came for, so the sign-up screen can say it and skip the role picker
-  // (null, or { kind: "open", name } / { kind: "join" }); read once on mount, after the effect above.
+  // (null, or { kind: "open", name, type, id } / { kind: "join" }); read once on mount, after the effect above.
   const [arrivalIntent, setArrivalIntent] = useState(null);
   useEffect(() => {
     const target = peekPendingOpen();
     if (target) {
-      setArrivalIntent({ kind: "open", name: target.name });
+      setArrivalIntent({ kind: "open", name: target.name, type: target.type, id: target.id });
       return;
     }
     try {

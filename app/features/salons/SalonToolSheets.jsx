@@ -29,7 +29,7 @@ export function SalonToolSheets({
                 <span>عملیات سالن</span>
                 <b>موجودی و چک‌لیست امروز</b>
               </div>
-              <small>{inventory.length} ماده • {tasks.length} کار</small>
+              <small>{inventory.length} ماده، {tasks.length} کار</small>
             </div>
             <div className="systemHeroPanel opsHeroPanel">
               <div>

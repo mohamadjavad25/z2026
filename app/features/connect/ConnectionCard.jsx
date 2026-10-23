@@ -16,7 +16,8 @@ export function ConnectionAvatar({ profile, size = 50 }) {
   }
   return (
     <span className={`cnAvatar is-letter ${shape}`} style={{ width: size, height: size }} aria-hidden="true">
-      {String(profile.name || "؟").trim().replace(/^(سالن|آتلیه)\s+/, "").slice(0, 1)}
+      {/* The name's first letter, as on every other avatar («سالن رز» is «س»; it used to skip «سالن» and read «ر»). */}
+      {String(profile.name || "؟").trim().slice(0, 1)}
     </span>
   );
 }

@@ -1,5 +1,5 @@
 import { toPersianDigits } from "../../../shared/lib/digits";
-import { formatRelativeBookingDayLabel } from "../../../shared/lib/persianCalendar";
+import { formatPersianDateKey, formatRelativeBookingDayLabel } from "../../../shared/lib/persianCalendar";
 import { ProfileSheet } from "../../profile/ProfileSheet";
 import { BellRing, Check, X, TimerOff } from "lucide-react";
 import { PageIcon } from "../../../components/PageIcon";
@@ -21,6 +21,17 @@ export function SalonNotificationsSheet() {
     approveReservationRequest,
     declineReservationRequest
   } = useHome();
+
+  // «نوبت‌های پیش‌رو»: today and later, without cancelled or expired ones (it used to count every booking and was
+  // titled «برنامه امروز», so a closed Friday read «۴»; owner's choice 2026-10-23).
+  const todayKey = formatPersianDateKey(new Date());
+  const ahead = salonAppointmentList.filter((booking) => !["لغو", "منقضی شده"].includes(booking.status) && String(booking.booking_date || "") >= todayKey);
+  const todayCount = ahead.filter((booking) => booking.booking_date === todayKey).length;
+  const aheadText = !ahead.length
+    ? "نوبتی در پیش نیست."
+    : todayCount
+      ? `امروز ${toPersianDigits(todayCount)} نوبت؛ روی‌هم ${toPersianDigits(ahead.length)} نوبت پیش‌رو.`
+      : `امروز نوبتی نداری؛ ${toPersianDigits(ahead.length)} نوبت در روزهای بعد.`;
 
   return (
     (createdProfile?.type === "salon" && salonHeroSheet === "notifications" && (
@@ -52,10 +63,10 @@ export function SalonNotificationsSheet() {
               <article>
                 <span><PageIcon name="bookings" size={22} /></span>
                 <div>
-                  <b>برنامه امروز</b>
-                  <small>{salonAppointmentList.length ? `${toPersianDigits(salonAppointmentList.length)} نوبت در برنامه سالن ثبت شده است.` : "برنامه امروز خالی است."}</small>
+                  <b>نوبت‌های پیش‌رو</b>
+                  <small>{aheadText}</small>
                 </div>
-                <em>{toPersianDigits(salonAppointmentList.length)}</em>
+                <em>{toPersianDigits(ahead.length)}</em>
               </article>
             </div>
 
@@ -86,8 +97,8 @@ export function SalonNotificationsSheet() {
                           <div className="requestCardAside">
                             <SegmentClock value={request.time} size="xs" as="span" />
                             <div className="requestCardWhen">
-                              <em>{request.day}</em>
-                              <span>{request.date}</span>
+                              {/* The day label already names the date («فردا», «یکشنبه ۳ آبان»); the raw key read «1405-08-02». */}
+                              <em>{request.day || formatRelativeBookingDayLabel(request.date)}</em>
                             </div>
                           </div>
                         </div>

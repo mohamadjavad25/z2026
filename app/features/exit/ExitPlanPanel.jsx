@@ -82,7 +82,7 @@ export function ExitPlanPanel({ plan, scope, params = {}, message = "", confirmL
       <li className={`pxItem${item.near ? " is-near" : ""}`} key={id}>
         <div className="pxItemHead">
           <b>{item.clientName || "مشتری"}</b>
-          <span>{formatRelativeBookingDayLabel(item.date)} • {toPersianDigits(item.time || "")}</span>
+          <span>{formatRelativeBookingDayLabel(item.date)}، {toPersianDigits(item.time || "")}</span>
         </div>
         <small>{item.service || "نوبت"}{item.staff?.length ? ` • ${item.staff.join("، ")}` : ""}</small>
         {item.near ? <p className="pxHint">{CALL_FIRST_TEXT}</p> : null}

@@ -84,7 +84,7 @@ function PlacesSheet({ booking, clientName, onClose, onNotify, onFindPlaces, onO
   return (
     <ProfileSheet open kicker="نوبت بی‌جواب" title="همین نوبت را جای دیگر بگیر" panelClassName="erSheet" onClose={onClose}>
       <div className="erBody">
-        <p className="erSummary">{shortServiceLabel(booking.service)}{when ? ` • ${when}` : ""}</p>
+        <p className="erSummary">{shortServiceLabel(booking.service)}{when ? `، ${when}` : ""}</p>
         {state.status === "loading" ? <p className="erInfo" role="status">در حال پیدا کردن جاهایی که این خدمت را دارند…</p> : null}
         {state.status === "error" ? (
           <p className="erInfo is-error" role="alert">فهرست بارگیری نشد؛ دوباره امتحان کن.</p>

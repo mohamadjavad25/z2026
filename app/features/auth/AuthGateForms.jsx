@@ -455,13 +455,44 @@ function AppDownloadCue() {
 function gateTagline({ authMode, signupStep, profileType, arrivalIntent }) {
   // Came from a salon/artist page to book, or from a salon's team link: say what the account is for.
   if (arrivalIntent?.kind === "open") {
-    const place = arrivalIntent.name ? `«${arrivalIntent.name}»` : "این سالن";
+    const place = arrivalIntent.name ? `«${arrivalIntent.name}»` : arrivalIntent.type === "artist" ? "این آرتیست" : "این سالن";
     return authMode === "login" ? `وارد شو تا از ${place} نوبت بگیری` : `یک حساب بساز تا از ${place} نوبت بگیری`;
   }
   if (arrivalIntent?.kind === "join") return authMode === "login" ? "وارد شو تا به تیم سالن بپیوندی" : "حساب آرتیستت را بساز تا به تیم سالن بپیوندی";
   if (authMode === "login") return GATE_TAGLINES.login;
   if (signupStep === "form") return GATE_TAGLINES[profileType] || GATE_TAGLINES.client;
   return GATE_TAGLINES.default;
+}
+
+/**
+ * The salon or artist a guest came from (a public page's «رزرو», a shared link or QR), shown above the form so the
+ * guest knows which place the account is for (owner's choice 2026-10-23). A bare link carries only the id, so the
+ * name and picture come from the public page's data; a private or missing place shows nothing.
+ */
+function ArrivalPlaceCard({ intent }) {
+  const isArtist = intent.type === "artist";
+  const [place, setPlace] = useState(intent.name ? { name: intent.name, avatar: "" } : null);
+  useEffect(() => {
+    if (!intent.id) return undefined;
+    let alive = true;
+    apiFetch(`/api/${isArtist ? "artists" : "salons"}/${intent.id}`).then(({ ok, payload }) => {
+      const found = ok ? (isArtist ? payload.data?.artist : payload.data?.salon) : null;
+      if (alive && found?.name) setPlace({ name: found.name, avatar: found.avatar || "", avatarPosition: found.avatarPosition || "" });
+    });
+    return () => { alive = false; };
+  }, [intent.id, isArtist]);
+  if (!place?.name) return null;
+  return (
+    <div className="authArrivalPlace">
+      <span className={`authArrivalAvatar${isArtist ? " is-round" : ""}`} aria-hidden="true">
+        {place.avatar ? <img src={place.avatar} alt="" style={{ objectPosition: place.avatarPosition || "50% 50%" }} /> : place.name.trim().slice(0, 1)}
+      </span>
+      <span className="authArrivalText">
+        <b>{place.name}</b>
+        <small>بعد از ثبت‌نام، مستقیم به خدمات {isArtist ? "همین آرتیست" : "همین سالن"} می‌روی.</small>
+      </span>
+    </div>
+  );
 }
 
 /**
@@ -496,6 +527,7 @@ export function AuthGateForms({
           <p className="authGateTagline">{gateTagline({ authMode, signupStep, profileType, arrivalIntent })}</p>
         </div>
       </div>
+      {arrivalIntent?.kind === "open" ? <ArrivalPlaceCard intent={arrivalIntent} /> : null}
 
       {authNotice && !recoveryOpen ? <p className="authNotice" role="alert">{authNotice}</p> : null}
 
