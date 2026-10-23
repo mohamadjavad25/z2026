@@ -1,96 +1,60 @@
 import { PageIcon } from "../../components/PageIcon";
 
+/**
+ * The tab row under a salon's or artist's profile header. Both roles get the same names in the same
+ * order, and both open on «نوبت‌ها» (user's choice 2026-10-23):
+ *   salon:  نوبت‌ها (overview: the schedule) · خدمات · نمونه‌کار · پرسنل
+ *   artist: نوبت‌ها (overview: the schedule) · خدمات · نمونه‌کار · همکاری
+ * A client's page has no tab row (ClientHome).
+ */
 export function ProfileModeRail({
   profileType,
   profileView,
   salonWorkspace,
-  activeRoleMeta,
   onOverview,
   onSalonWorkspace,
   onProfileView,
   placement = "panel"
 }) {
-  // Overview icon per role: storefront for a salon, posts for an artist's dock,
-  // person for everyone else.
-  const overviewIconName = profileType === "salon" ? "salon" : profileType === "artist" && placement === "dock" ? "posts" : "me";
-  const overviewLabel = profileType === "artist" && placement === "panel" ? "من" : activeRoleMeta.overviewLabel;
+  const salon = profileType === "salon";
+  const tabs = salon
+    ? [
+        { id: "overview", label: "نوبت‌ها", icon: "bookings", on: profileView === "overview" && !salonWorkspace, go: onOverview },
+        { id: "hours", label: "خدمات", icon: "services", on: salonWorkspace === "hours", go: () => onSalonWorkspace("hours") },
+        { id: "portfolio", label: "نمونه‌کار", icon: "posts", on: salonWorkspace === "portfolio", go: () => onSalonWorkspace("portfolio") },
+        { id: "staff", label: "پرسنل", icon: "staff", on: salonWorkspace === "staff", go: () => onSalonWorkspace("staff") }
+      ]
+    : profileType === "artist"
+      ? [
+          { id: "overview", label: "نوبت‌ها", icon: "bookings", on: profileView === "overview" || profileView === "bookings", go: onOverview },
+          { id: "services", label: "خدمات", icon: "services", on: profileView === "services", go: () => onProfileView("services") },
+          { id: "portfolio", label: "نمونه‌کار", icon: "posts", on: profileView === "portfolio", go: () => onProfileView("portfolio") },
+          { id: "collabs", label: "همکاری", icon: "collab", on: profileView === "collabs", go: () => onProfileView("collabs") }
+        ]
+      : [];
 
   return (
     <div
-      className={`profileModeRail ${placement === "dock" ? "is-dockRail" : "is-panelRail"} ${profileType === "client" ? "is-client" : ""} ${profileType === "artist" || profileType === "salon" ? "is-artist-rail" : ""} ${profileType === "salon" ? "is-salon" : ""}`}
+      className={`profileModeRail ${placement === "dock" ? "is-dockRail" : "is-panelRail"} is-artist-rail${salon ? " is-salon" : ""}`}
       aria-label="بخش‌های پروفایل"
     >
-      {profileType === "salon" && (
-        <button type="button" className={salonWorkspace === "portfolio" ? "active" : ""} onClick={() => onSalonWorkspace("portfolio")}>
-          <PageIcon name="posts" size={20} />
-          <span>پست‌ها</span>
-        </button>
-      )}
-
-      {!(profileType === "artist" && placement === "panel") && (
+      {tabs.map((tab) => (
         <button
           type="button"
-          className={profileView === "overview" && !salonWorkspace ? "active" : ""}
-          onClick={onOverview}
-          aria-label={overviewLabel}
+          key={tab.id}
+          className={tab.on ? "active" : ""}
+          aria-current={tab.on ? "page" : undefined}
+          onClick={() => {
+            tab.go();
+            // Deferred one frame: the view swap is a React state update, and scrolling in the same
+            // tick can get lost on some mobile browsers before the new view's layout commits.
+            requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "smooth" }));
+          }}
         >
-          <PageIcon name={overviewIconName} size={20} />
-          {placement !== "dock" && <span>{overviewLabel}</span>}
+          <PageIcon name={tab.icon} size={20} />
+          <span>{tab.label}</span>
         </button>
-      )}
-
-      {profileType === "salon" && (
-        <>
-          <button type="button" className={salonWorkspace === "staff" ? "active" : ""} onClick={() => onSalonWorkspace("staff")}>
-            <PageIcon name="staff" size={20} />
-            <span>پرسنل</span>
-          </button>
-          <button type="button" className={salonWorkspace === "hours" ? "active" : ""} onClick={() => onSalonWorkspace("hours")}>
-            <PageIcon name="services" size={20} />
-            <span>خدمات</span>
-          </button>
-        </>
-      )}
-
-      {profileType === "artist" && (
-        <>
-          <button type="button" className={profileView === "overview" ? "active" : ""} onClick={onOverview}>
-            <PageIcon name="posts" size={20} />
-            <span>نمونه‌کار</span>
-          </button>
-          <button
-            type="button"
-            className={profileView === "bookings" ? "active" : ""}
-            onClick={() => {
-              onProfileView("bookings");
-              // Deferred one frame: the view swap above is a React state
-              // update, and scrolling in the same tick as that can get lost
-              // on some mobile browsers if it lands before the new view's
-              // layout actually commits.
-              requestAnimationFrame(() => {
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              });
-            }}
-          >
-            <PageIcon name="bookings" size={20} />
-            <span>رزروها</span>
-          </button>
-          <button type="button" className={profileView === "services" ? "active" : ""} onClick={() => onProfileView("services")}>
-            <PageIcon name="services" size={20} />
-            <span>خدمات</span>
-          </button>
-          <button type="button" className={profileView === "collabs" ? "active" : ""} onClick={() => onProfileView("collabs")}>
-            <PageIcon name="collab" size={20} />
-            <span>همکاری</span>
-          </button>
-        </>
-      )}
-      {profileType === "client" && (
-        <button type="button" className={profileView === "bookings" ? "active" : ""} onClick={() => onProfileView("bookings")}>
-          <PageIcon name="activity" size={20} />
-          <span>فعالیت من</span>
-        </button>
-      )}
+      ))}
     </div>
   );
 }

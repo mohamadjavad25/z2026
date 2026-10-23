@@ -19,3 +19,9 @@
 .wcChip img { width: 26px; height: 26px; flex: none; border-radius: 999px; object-fit: cover; margin-inline-start: -6px; }
 .wcChip.is-on { background: var(--brand-pink); color: var(--brand-ink); }
 .wc :focus-visible { outline: 2px solid var(--n-900); outline-offset: 2px; }
+
+/* Folded: one quiet row with the current choice; a tap opens the two choices. */
+.wcFold { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-height: 44px; padding: 0 14px; border: 0; border-radius: 14px; background: var(--n-50); color: var(--n-700); font: inherit; font-size: 0.78rem; font-weight: 700; text-align: right; cursor: pointer; }
+.wcFold b { color: var(--n-900); font-weight: 900; }
+.wcFold svg { flex: none; color: var(--n-500); }
+.wcFold:focus-visible { outline: 2px solid var(--n-900); outline-offset: 2px; }

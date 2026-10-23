@@ -25,7 +25,8 @@ export async function newPage({ width = 390, cookie = "", entered = true, tipSee
     await context.addInitScript({ content: 'try { localStorage.setItem("frfro-entered", "1"); } catch (e) {}' });
   }
   if (tipSeen) {
-    await context.addInitScript({ content: 'try { localStorage.setItem("frfro-tip-create-booking", "1"); } catch (e) {}' });
+    // The tip is remembered per account ("frfro-tip-create-booking:<id>"), so every such key reads as seen.
+    await context.addInitScript({ content: 'try { const get = Storage.prototype.getItem; Storage.prototype.getItem = function (key) { return String(key).startsWith("frfro-tip-create-booking") ? "1" : get.call(this, key); }; } catch (e) {}' });
   }
   if (cookie) {
     const [name, value] = cookie.split("=");

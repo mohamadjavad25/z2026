@@ -20,7 +20,7 @@ describe("Back from a salon page (browser)", () => {
     await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
     await page.locator("nav.bottomNav > button").nth(2).click();
     await page.getByRole("tab", { name: "پیدا کردن" }).click();
-    const box = page.getByPlaceholder("اسم، شماره یا لینک صفحه‌اش");
+    const box = page.locator("#cbt-panel").getByPlaceholder("اسم سالن یا آرتیست");
 
     // nothing matches: the empty text says what to do
     await box.fill("ناموجود-" + Math.floor(Math.random() * 1e6));

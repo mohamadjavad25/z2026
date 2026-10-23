@@ -1,3 +1,4 @@
+/* global window */
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { SIGNUP_DRAFT_TTL_MS, clearSignupDraft, readSignupDraft, saveSignupDraft } from "../../app/features/auth/signupDraft.js";
 

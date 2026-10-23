@@ -8,7 +8,7 @@ import { SegmentClock } from "../../components/SegmentClock";
 import { SkeletonList } from "../../components/Skeleton";
 import { getBookingDateKey, isArtistBookingOnExactDate } from "../artist";
 import { BookingHistoryCalendarSheet } from "../profile/BookingHistoryCalendarSheet";
-import { ProfileHeroWeekStrip } from "../profile/ProfileHeroWeekStrip";
+import { DayNav, useDaySwipe } from "../profile/DayNav";
 import { ScheduleRow } from "../profile/ScheduleRow";
 import { PendingOtherDays } from "./PendingOtherDays";
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
@@ -35,6 +35,7 @@ export function ArtistScheduleBoard({
   onDeclineRequest
 }) {
   const [historyOpen, setHistoryOpen] = useState(false);
+  const daySwipe = useDaySwipe(weekTabs, selectedDay, onSelectDay);
   const requestsById = new Map(requests.map((request) => [String(request.id), request]));
   const reviewFor = (booking) => {
     const request = booking.id != null ? requestsById.get(String(booking.id)) : null;
@@ -54,19 +55,13 @@ export function ArtistScheduleBoard({
   return (
     <div className="artistBookingsPage">
       <section className="salonTodaySchedule is-artistSchedule">
-        <ProfileHeroWeekStrip
-          items={weekTabs}
-          selectedDay={selectedDay}
-          onSelectDay={onSelectDay}
-          onOpenHistory={() => setHistoryOpen(true)}
-          ariaLabel="انتخاب روز رزروها"
-        />
+        <DayNav items={weekTabs} selectedDay={selectedDay} onSelectDay={onSelectDay} onOpenCalendar={() => setHistoryOpen(true)} />
         <PendingOtherDays
           requests={requests.map((request) => ({ id: request.id, dateKey: getBookingDateKey(request.dateKey || request.date) }))}
           visibleIds={dayRows.map((booking) => booking.id)}
           onSelectDay={onSelectDay}
         />
-        <div className="todayScheduleList">
+        <div className="todayScheduleList" {...daySwipe}>
           {loading ? (
             <SkeletonList rows={4} variant="row" className="artistScheduleSkeleton" label="در حال بارگذاری رزروهای آرتیست" />
           ) : dayRows.length > 0 ? dayRows.map((booking, index) => (

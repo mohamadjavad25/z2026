@@ -4,6 +4,23 @@ import { useState } from "react";
 import { ChevronDown, Clock3 } from "lucide-react";
 import { toPersianDigits } from "../shared/lib/digits";
 
+const WEEK = ["شنبه", "یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنجشنبه", "جمعه"];
+
+/** Closed today: also say when it opens next («امروز تعطیل · فردا از ۱۰:۰۰»). */
+function closedText(rows, todayName) {
+  const start = WEEK.indexOf(todayName);
+  if (start < 0) return "امروز تعطیل است";
+  for (let step = 1; step < 7; step += 1) {
+    const day = WEEK[(start + step) % 7];
+    const row = rows.find((item) => item.day === day);
+    if (row?.active) {
+      const when = step === 1 ? "فردا" : day;
+      return `امروز تعطیل · ${when} از ${toPersianDigits(row.open_time || "")}`;
+    }
+  }
+  return "امروز تعطیل است";
+}
+
 /**
  * «ساعت کاری» of a public salon/artist page: one quiet row (today's hours) that opens the
  * whole week. It sits right under the intro, above the posts, so a long gallery can never
@@ -15,7 +32,7 @@ export function WeeklyHours({ rows, todayName }) {
   const today = rows.find((row) => row.day === todayName);
   const todayText = today?.active
     ? `امروز ${toPersianDigits(today.open_time || "")} تا ${toPersianDigits(today.close_time || "")}`
-    : "امروز تعطیل است";
+    : closedText(rows, todayName);
   return (
     <section className="spvSection spvHours">
       <button type="button" className="spvHoursToggle" aria-expanded={open} onClick={() => setOpen((value) => !value)}>

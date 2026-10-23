@@ -110,8 +110,8 @@ const booker = ({ day = -1, time = -1, ready = false }) => [
   ...(ready ? [{ t: "summary", text: "۱ خدمت · ۹۰ دقیقه · ۴۵۰٬۰۰۰ تومان" }, { t: "btn", id: "send", text: "ارسال درخواست · یکشنبه ۱۵:۳۰" }] : [])
 ];
 
-const salonRail = (on) => ({ t: "rail", id: "rail", items: ["پست‌ها", "داشبورد", "پرسنل", "خدمات"], on });
-const artistRail = (on) => ({ t: "rail", id: "rail", items: ["نمونه‌کار", "رزروها", "خدمات", "همکاری"], on });
+const salonRail = (on) => ({ t: "rail", id: "rail", items: ["نوبت‌ها", "خدمات", "نمونه‌کار", "پرسنل"], on });
+const artistRail = (on) => ({ t: "rail", id: "rail", items: ["نوبت‌ها", "خدمات", "نمونه‌کار", "همکاری"], on });
 
 const salonHero = (actions = false) => ({
   t: "hero",
@@ -282,11 +282,11 @@ export const LEARN_ROLES = [
         title: "چیدن منوی خدمات",
         text: "خدمت را از کاتالوگ بردار، قیمت و زمان را بزن.",
         scenes: [
-          { screen: "profile", els: [salonHero(), salonRail(1), { t: "summary", text: "نوبت‌های امروز: ۳" }, navBiz(1)], tap: "rail.3", say: "در پروفایل سالن، «خدمات» را بزن." },
-          { screen: "services", els: [salonHero(), salonRail(3), { t: "empty", img: "/brand/mascot/no-services.webp", title: "هنوز خدمتی ثبت نشده", text: "خدمت‌ها را تعریف کن تا مشتری بتواند روز و ساعت را انتخاب کند." }, { t: "btn", id: "addFirst", text: "افزودن اولین خدمت" }, navBiz(1)], tap: "addFirst", say: "«افزودن اولین خدمت» را بزن." },
+          { screen: "profile", els: [salonHero(), salonRail(0), { t: "summary", text: "نوبت‌های امروز: ۳" }, navBiz(1)], tap: "rail.1", say: "در پروفایل سالن، «خدمات» را بزن." },
+          { screen: "services", els: [salonHero(), salonRail(1), { t: "empty", img: "/brand/mascot/no-services.webp", title: "هنوز خدمتی ثبت نشده", text: "خدمت‌ها را تعریف کن تا مشتری بتواند روز و ساعت را انتخاب کند." }, { t: "btn", id: "addFirst", text: "افزودن اولین خدمت" }, navBiz(1)], tap: "addFirst", say: "«افزودن اولین خدمت» را بزن." },
           {
             screen: "services",
-            els: [salonHero(), salonRail(3), navBiz(1)],
+            els: [salonHero(), salonRail(1), navBiz(1)],
             sheet: {
               title: "افزودن خدمت",
               els: [
@@ -302,7 +302,7 @@ export const LEARN_ROLES = [
           },
           {
             screen: "services",
-            els: [salonHero(), salonRail(3), navBiz(1)],
+            els: [salonHero(), salonRail(1), navBiz(1)],
             sheet: {
               title: "افزودن خدمت",
               els: [
@@ -317,7 +317,7 @@ export const LEARN_ROLES = [
             say: "قیمت و مدت را بزن و «افزودن به خدمات من».",
             ms: 3600
           },
-          { screen: "services", els: [salonHero(), salonRail(3), ...salonServices(false), navBiz(1)], toast: "خدمت اضافه شد", say: "همین! مشتری‌ها حالا این خدمت را می‌بینند و رزرو می‌کنند.", ms: 3400 }
+          { screen: "services", els: [salonHero(), salonRail(1), ...salonServices(false), navBiz(1)], toast: "خدمت اضافه شد", say: "همین! مشتری‌ها حالا این خدمت را می‌بینند و رزرو می‌کنند.", ms: 3400 }
         ]
       },
       {
@@ -327,13 +327,13 @@ export const LEARN_ROLES = [
         scenes: [
           {
             screen: "dashboard",
-            els: [salonHero(), salonRail(1), { t: "head", text: "امروز" }, { t: "request", id: "req", name: CLIENT, service: "کاشت و ژلیش", when: "یکشنبه · ۱۵:۳۰", badge: "تازه", tone: "new" }, { t: "request", id: "old", name: "مریم", service: "براشینگ", when: "امروز · ۱۸:۰۰", badge: "تایید شده", tone: "ok" }, navBiz(1)],
+            els: [salonHero(), salonRail(0), { t: "head", text: "امروز" }, { t: "request", id: "req", name: CLIENT, service: "کاشت و ژلیش", when: "یکشنبه · ۱۵:۳۰", badge: "تازه", tone: "new" }, { t: "request", id: "old", name: "مریم", service: "براشینگ", when: "امروز · ۱۸:۰۰", badge: "تایید شده", tone: "ok" }, navBiz(1)],
             tap: "req",
-            say: "درخواست تازه در «داشبورد» می‌آید؛ رویش بزن."
+            say: "درخواست تازه در «نوبت‌ها» می‌آید؛ رویش بزن."
           },
           {
             screen: "dashboard",
-            els: [salonHero(), salonRail(1), navBiz(1)],
+            els: [salonHero(), salonRail(0), navBiz(1)],
             sheet: {
               title: "درخواست رزرو تازه",
               els: [
@@ -347,7 +347,7 @@ export const LEARN_ROLES = [
           },
           {
             screen: "dashboard",
-            els: [salonHero(), salonRail(1), { t: "head", text: "امروز" }, { t: "request", id: "req", name: CLIENT, service: "کاشت و ژلیش", when: "یکشنبه · ۱۵:۳۰", badge: "تایید شده", tone: "ok" }, { t: "request", id: "old", name: "مریم", service: "براشینگ", when: "امروز · ۱۸:۰۰", badge: "تایید شده", tone: "ok" }, navBiz(1)],
+            els: [salonHero(), salonRail(0), { t: "head", text: "امروز" }, { t: "request", id: "req", name: CLIENT, service: "کاشت و ژلیش", when: "یکشنبه · ۱۵:۳۰", badge: "تایید شده", tone: "ok" }, { t: "request", id: "old", name: "مریم", service: "براشینگ", when: "امروز · ۱۸:۰۰", badge: "تایید شده", tone: "ok" }, navBiz(1)],
             toast: `نوبت ${CLIENT} تأیید شد`,
             say: "مشتری همان لحظه باخبر می‌شود.",
             ms: 3200
@@ -359,7 +359,7 @@ export const LEARN_ROLES = [
         title: "آوردن مشتری‌ها با کد QR",
         text: "کد سالن را روی میز بگذار؛ مشتری با یک اسکن وصل می‌شود.",
         scenes: [
-          { screen: "profile", els: [salonHero(true), salonRail(1), { t: "summary", text: "نوبت‌های امروز: ۳" }, navBiz(1)], tap: "actions.1", say: "در پروفایل، «کد QR و اسکن» را بزن." },
+          { screen: "profile", els: [salonHero(true), salonRail(0), { t: "summary", text: "نوبت‌های امروز: ۳" }, navBiz(1)], tap: "actions.1", say: "در پروفایل، «کد QR و اسکن» را بزن." },
           { screen: "qr", els: [{ t: "bar", text: "کد من", back: true }, { t: "qr", name: SALON, text: "این کد را به مشتری‌هایت نشان بده یا چاپش کن و روی میز بگذار." }], say: "این کد را چاپ کن یا روی پیشخوان بگذار.", ms: 3400 },
           {
             screen: "customers",
@@ -375,11 +375,11 @@ export const LEARN_ROLES = [
         title: "اضافه کردن آرتیست به تیم",
         text: "آرتیست‌ها را دعوت کن تا نوبت‌ها به اسم خودشان ثبت شود.",
         scenes: [
-          { screen: "profile", els: [salonHero(), salonRail(1), { t: "summary", text: "نوبت‌های امروز: ۳" }, navBiz(1)], tap: "rail.2", say: "در پروفایل سالن، «پرسنل» را بزن." },
-          { screen: "staff", els: [salonHero(), salonRail(2), { t: "empty", img: "/brand/mascot/team.webp", title: "هنوز آرتیستی در تیم نیست", text: "آرتیستی که می‌شناسی را با کد یا لینک به تیم اضافه کن." }, { t: "btn", id: "invite", text: "دعوت آرتیست" }, navBiz(1)], tap: "invite", say: "«دعوت آرتیست» را بزن." },
+          { screen: "profile", els: [salonHero(), salonRail(0), { t: "summary", text: "نوبت‌های امروز: ۳" }, navBiz(1)], tap: "rail.3", say: "در پروفایل سالن، «پرسنل» را بزن." },
+          { screen: "staff", els: [salonHero(), salonRail(3), { t: "empty", img: "/brand/mascot/team.webp", title: "هنوز آرتیستی در تیم نیست", text: "آرتیستی که می‌شناسی را با کد یا لینک به تیم اضافه کن." }, { t: "btn", id: "invite", text: "دعوت آرتیست" }, navBiz(1)], tap: "invite", say: "«دعوت آرتیست» را بزن." },
           {
             screen: "staff",
-            els: [salonHero(), salonRail(2), navBiz(1)],
+            els: [salonHero(), salonRail(3), navBiz(1)],
             sheet: {
               title: "افزودن آرتیست",
               els: [
@@ -390,7 +390,7 @@ export const LEARN_ROLES = [
             tap: "send",
             say: "کد را نشان بده یا «ارسال لینک» را بزن."
           },
-          { screen: "staff", els: [salonHero(), salonRail(2), { t: "head", text: "اعضای تیم" }, { t: "rows", id: "team", items: [{ a: ARTIST, b: "ناخن", badge: "فعال" }] }, navBiz(1)], toast: `${ARTIST} به تیم پیوست`, say: "آرتیست لینک را باز می‌کند و می‌پیوندد؛ نوبت‌های سالن به اسم او هم ثبت می‌شود.", ms: 3600 }
+          { screen: "staff", els: [salonHero(), salonRail(3), { t: "head", text: "اعضای تیم" }, { t: "rows", id: "team", items: [{ a: ARTIST, b: "ناخن", badge: "فعال" }] }, navBiz(1)], toast: `${ARTIST} به تیم پیوست`, say: "آرتیست لینک را باز می‌کند و می‌پیوندد؛ نوبت‌های سالن به اسم او هم ثبت می‌شود.", ms: 3600 }
         ]
       }
     ]
@@ -410,14 +410,14 @@ export const LEARN_ROLES = [
           { screen: "form", els: signup({ title: "آرتیست", nameLabel: "نام هنری", name: ARTIST, phone: "۰۹۳۵۱۲۳۴۵۶۷", password: true, terms: true }), tap: "submit", say: "شماره و رمز را بزن، قوانین را تیک بزن و «تکمیل ثبت‌نام».", ms: 3600 },
           {
             screen: "profile",
-            els: [artistHero(), artistRail(0), { t: "head", text: "تکمیل پروفایل", sub: "چند قدم تا صفحهٔ کامل" }, { t: "rows", id: "todo", chevron: true, items: [{ a: "عکس پروفایل" }, { a: "محدوده فعالیت" }, { a: "تخصص" }, { a: "اولین خدمت در منو" }] }, navBiz(1)],
+            els: [artistHero(), artistRail(2), { t: "head", text: "تکمیل پروفایل", sub: "چند قدم تا صفحهٔ کامل" }, { t: "rows", id: "todo", chevron: true, items: [{ a: "عکس پروفایل" }, { a: "محدوده فعالیت" }, { a: "تخصص" }, { a: "اولین خدمت در منو" }] }, navBiz(1)],
             tap: "todo.2",
             say: "بعد از ثبت‌نام، «تکمیل پروفایل» را قدم‌به‌قدم پر کن؛ مثلاً «تخصص».",
             ms: 3400
           },
           {
             screen: "profile",
-            els: [artistHero(), artistRail(0), navBiz(1)],
+            els: [artistHero(), artistRail(2), navBiz(1)],
             sheet: {
               title: "تخصص",
               els: [{ t: "chips", id: "spec", items: ["ناخن", "مو", "ابرو و مژه", "میکاپ", "پوست", "براشینگ"], on: 0, grid: 3 }, { t: "btn", id: "go", text: "ذخیره" }]
@@ -425,7 +425,7 @@ export const LEARN_ROLES = [
             tap: "go",
             say: "کارهایی که انجام می‌دهی را انتخاب کن تا مشتری درست پیدایت کند."
           },
-          { screen: "profile", els: [artistHero(true), artistRail(0), { t: "gallery", id: "gallery", add: true, items: [] }, navBiz(1)], tap: "actions.0", say: "صفحه‌ات آماده است. لینکش را با «اشتراک‌گذاری» همه‌جا بگذار.", ms: 3600 }
+          { screen: "profile", els: [artistHero(true), artistRail(2), { t: "gallery", id: "gallery", add: true, items: [] }, navBiz(1)], tap: "actions.0", say: "صفحه‌ات آماده است. لینکش را با «اشتراک‌گذاری» همه‌جا بگذار.", ms: 3600 }
         ]
       },
       {
@@ -433,7 +433,7 @@ export const LEARN_ROLES = [
         title: "گذاشتن نمونه‌کار",
         text: "عکس کار را بگذار و به خدمتش وصل کن.",
         scenes: [
-          { screen: "profile", els: [artistHero(), artistRail(0), { t: "gallery", id: "gallery", add: true, items: ["nail_art", "manicure"] }, navBiz(1)], tap: "gallery.add", say: "در «نمونه‌کار»، خانهٔ «+» را بزن." },
+          { screen: "profile", els: [artistHero(), artistRail(2), { t: "gallery", id: "gallery", add: true, items: ["nail_art", "manicure"] }, navBiz(1)], tap: "gallery.add", say: "در «نمونه‌کار»، خانهٔ «+» را بزن." },
           { screen: "composer", els: [{ t: "bar", text: "نمونه‌کار", back: true }, { t: "photo", id: "photo" }, { t: "field", id: "title", label: "عنوان", placeholder: "عنوان نمونه‌کار" }], tap: "photo", say: "عکس کار را از گالری گوشی انتخاب کن." },
           {
             screen: "composer",
@@ -448,7 +448,7 @@ export const LEARN_ROLES = [
             tap: "save",
             say: "«ذخیره» را بزن."
           },
-          { screen: "profile", els: [artistHero(), artistRail(0), { t: "gallery", id: "gallery", add: true, fresh: true, items: ["gel_nails", "nail_art", "manicure"] }, navBiz(1)], toast: "نمونه‌کار منتشر شد", say: "کار تازه در صفحه‌ات و در جستجوی مشتری‌ها دیده می‌شود.", ms: 3400 }
+          { screen: "profile", els: [artistHero(), artistRail(2), { t: "gallery", id: "gallery", add: true, fresh: true, items: ["gel_nails", "nail_art", "manicure"] }, navBiz(1)], toast: "نمونه‌کار منتشر شد", say: "کار تازه در صفحه‌ات و در جستجوی مشتری‌ها دیده می‌شود.", ms: 3400 }
         ]
       },
       {
@@ -461,13 +461,13 @@ export const LEARN_ROLES = [
           { screen: "hours", els: hoursScreen(0, "۹:۰۰ تا ۱۷:۰۰", false), toast: "ساعت کاری ذخیره شد", say: "مشتری‌ها فقط ساعت‌های آزاد تو را می‌بینند." },
           {
             screen: "requests",
-            els: [artistHero(), artistRail(1), { t: "head", text: "نوبت‌های تازه", sub: "نیاز به تایید شما" }, { t: "request", id: "req", name: CLIENT, service: "مانیکور", when: "دوشنبه · ۱۱:۳۰", badge: "تازه", tone: "new", btn: "تایید" }, navBiz(1)],
+            els: [artistHero(), artistRail(0), { t: "head", text: "نوبت‌های تازه", sub: "نیاز به تایید شما" }, { t: "request", id: "req", name: CLIENT, service: "مانیکور", when: "دوشنبه · ۱۱:۳۰", badge: "تازه", tone: "new", btn: "تایید" }, navBiz(1)],
             tap: "req",
-            say: "درخواست تازه در «رزروها» می‌آید؛ «تایید» را بزن."
+            say: "درخواست تازه در «نوبت‌ها» می‌آید؛ «تایید» را بزن."
           },
           {
             screen: "requests",
-            els: [artistHero(), artistRail(1), { t: "head", text: "رزروها" }, { t: "request", id: "req", name: CLIENT, service: "مانیکور", when: "دوشنبه · ۱۱:۳۰", badge: "تایید شده", tone: "ok" }, navBiz(1)],
+            els: [artistHero(), artistRail(0), { t: "head", text: "نوبت‌ها" }, { t: "request", id: "req", name: CLIENT, service: "مانیکور", when: "دوشنبه · ۱۱:۳۰", badge: "تایید شده", tone: "ok" }, navBiz(1)],
             toast: "نوبت تأیید شد",
             say: "نوبت قطعی شد و مشتری باخبر می‌شود.",
             ms: 3200
@@ -479,7 +479,7 @@ export const LEARN_ROLES = [
         title: "همکاری با سالن",
         text: "به تیم یک سالن بپیوند تا نوبت‌های سالن هم به تو برسد.",
         scenes: [
-          { screen: "profile", els: [artistHero(), artistRail(0), { t: "gallery", id: "gallery", add: true, items: ["gel_nails", "nail_art", "manicure"] }, navBiz(1)], tap: "rail.3", say: "در پروفایل، «همکاری» را بزن." },
+          { screen: "profile", els: [artistHero(), artistRail(2), { t: "gallery", id: "gallery", add: true, items: ["gel_nails", "nail_art", "manicure"] }, navBiz(1)], tap: "rail.3", say: "در پروفایل، «همکاری» را بزن." },
           {
             screen: "collab",
             els: [artistHero(), artistRail(3), { t: "head", text: "همکاری با سالن" }, { t: "rows", id: "ways", chevron: true, items: [{ a: "کد سالن را اسکن کن", b: "سالن کد «افزودن آرتیست» را نشانت می‌دهد" }, { a: "کدت را به سالن نشان بده", b: "سالن‌دار کد تو را اسکن می‌کند" }] }, navBiz(1)],

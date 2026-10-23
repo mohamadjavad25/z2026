@@ -199,7 +199,8 @@ export function SalonCustomersPage({ active, bookings = [], followers = [], owne
           <span className="wavyTitle">جامعه مشتریان</span>
         </div>
         <div className="cuHeadActions">
-          {invite ? (
+          {/* No customers yet: the empty card below has the one invite button. */}
+          {invite && customers.length > 0 ? (
             <button type="button" className="cuInviteBtn" onClick={() => setInviteOpen(true)}>
               <UserPlus size={17} aria-hidden="true" />
               دعوت مشتری
@@ -322,7 +323,7 @@ export function SalonCustomersPage({ active, bookings = [], followers = [], owne
             {invite ? (
               <button type="button" className="cuInviteBtn" onClick={() => setInviteOpen(true)}>
                 <UserPlus size={17} aria-hidden="true" />
-                دعوت مشتری‌ها
+                دعوت مشتری
               </button>
             ) : null}
           </div>

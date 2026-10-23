@@ -438,6 +438,11 @@ function getPassportMatch(post) {
       openPublicArtistProfile(card);
       return;
     }
+    // Opened from the «نوبت تازه بگیر» card on the client's home: show the salon page, and come back home on close.
+    if (activeTab !== "salons") {
+      salonReturnTabRef.current = activeTab === "profile" ? "profile" : "";
+      goToTab("salons");
+    }
     return selectSalonWithDetail({
       ...card,
       source_key: String(profile.id),

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft, X } from "lucide-react";
+import { X } from "lucide-react";
 import { isDefaultAvatar } from "../../shared/lib/defaultAvatar";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { ProfileCompletionFlow } from "./ProfileCompletionFlow";
@@ -71,46 +71,34 @@ export function ProfileCompleteness({ profile, serviceCount = 0, logoEditing = f
 
   return (
     <>
+      {/* One slim row (user's choice 2026-10-23): the day's bookings below it stay the first thing on screen. */}
       <section className="profileCompleteness" aria-label="تکمیل پروفایل" onClick={handleCardClick}>
-        <header className="pccHead">
-          <div className="pccRing" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent} aria-label="میزان تکمیل پروفایل">
-            <svg viewBox="0 0 56 56" aria-hidden="true">
-              <defs>
-                <linearGradient id="pccGrad" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stopColor="#8b6cff" />
-                  <stop offset="100%" stopColor="#ff86b8" />
-                </linearGradient>
-              </defs>
-              <circle className="pccRingTrack" cx="28" cy="28" r={RING_RADIUS} />
-              <circle
-                className="pccRingFill"
-                cx="28"
-                cy="28"
-                r={RING_RADIUS}
-                strokeDasharray={RING_LENGTH}
-                strokeDashoffset={RING_LENGTH * (1 - percent / 100)}
-              />
-            </svg>
-            <b>{toPersianDigits(percent)}٪</b>
-          </div>
-          <div className="pccCopy">
-            <strong>{remaining === 1 ? "فقط یک قدم مانده" : `${toPersianDigits(remaining)} قدم تا پروفایل کامل`}</strong>
-            <small>پروفایل کامل‌تر، دیده شدن و رزرو بیشتر؛ مشتری‌ها پروفایل‌های پر را جدی‌تر می‌گیرند.</small>
-          </div>
-          <button type="button" className="profileCompletenessClose" aria-label="بستن یادآوری تکمیل پروفایل" onClick={() => setDismissed(true)}>
-            <X size={16} aria-hidden="true" />
-          </button>
-        </header>
-
-        <div className="pccSteps" aria-hidden="true">
-          {steps.map((step) => (
-            <i key={step.id} className={step.done ? "is-done" : ""} />
-          ))}
+        <div className="pccRing" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent} aria-label="میزان تکمیل پروفایل">
+          <svg viewBox="0 0 56 56" aria-hidden="true">
+            <defs>
+              <linearGradient id="pccGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor="#8b6cff" />
+                <stop offset="100%" stopColor="#ff86b8" />
+              </linearGradient>
+            </defs>
+            <circle className="pccRingTrack" cx="28" cy="28" r={RING_RADIUS} />
+            <circle
+              className="pccRingFill"
+              cx="28"
+              cy="28"
+              r={RING_RADIUS}
+              strokeDasharray={RING_LENGTH}
+              strokeDashoffset={RING_LENGTH * (1 - percent / 100)}
+            />
+          </svg>
         </div>
-
-        <button type="button" className="pccStart" onClick={startFlow}>
-          <span>{remaining === 1 ? "تکمیلش کن" : "قدم‌به‌قدم کامل کن"}</span>
-          <ArrowLeft size={18} aria-hidden="true" />
+        <div className="pccCopy">
+          <strong>پروفایلت {toPersianDigits(percent)}٪ کامل است</strong>
+          <small>{remaining === 1 ? "فقط یک قدم مانده" : `${toPersianDigits(remaining)} قدم مانده`}</small>
+        </div>
+        <button type="button" className="pccStart" onClick={startFlow}>کاملش کن</button>
+        <button type="button" className="profileCompletenessClose" aria-label="بستن یادآوری تکمیل پروفایل" onClick={() => setDismissed(true)}>
+          <X size={16} aria-hidden="true" />
         </button>
       </section>
       {flow}

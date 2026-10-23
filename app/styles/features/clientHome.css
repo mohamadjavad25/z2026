@@ -87,15 +87,10 @@
 .chEmpty b, .chStart b { font-size: 1rem; font-weight: 950; }
 .chEmpty > span, .chStart > span { max-width: 32ch; color: var(--n-600); font-size: 0.8rem; font-weight: 750; line-height: 1.9; }
 
-/* First moment (no booking, nobody connected): everything fits one phone screen, no scrolling.
-   The profile-page rule gives the bookings board a 102px bottom padding; here the card below follows it closely. */
-.clientHome:has(.chStart) { gap: 14px; padding-top: 6px; }
-.profilePanel.page-profile:has(.createdProfile.is-client) .clientHome:has(.chStart) .clientBookingsBoard { padding: 4px 0 0; }
-.chStart { gap: 6px; padding: 14px 16px 12px; }
-.chStart > span { line-height: 1.6; }
-.chStart .chAddBtns { margin-top: 6px; }
-.chStart .chAddBtn { min-height: 50px; }
-.chStart .chAddLink { min-height: 40px; }
+/* Nothing ahead: the «نوبت تازه بگیر» card (ConnectPage compact) comes first and the bookings line follows it closely.
+   The profile-page rule gives the bookings board a 102px bottom padding; here it does not need it. */
+.clientHome.is-findFirst { gap: 14px; padding-top: 6px; }
+.profilePanel.page-profile:has(.createdProfile.is-client) .clientHome.is-findFirst .clientBookingsBoard { padding: 4px 0 0; }
 
 /* The ways to add a salon/artist: two big buttons (contacts, scan) and one quiet link to «رزرو». */
 .chAdd { display: grid; gap: 6px; width: 100%; }

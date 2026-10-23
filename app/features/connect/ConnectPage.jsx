@@ -31,13 +31,17 @@ const NOT_FOUND = {
  * «سالن و آرتیست من» (the client's salons tab): connect to the salons and
  * artists they already go to — by phone, name, link or QR — and book from here.
  *
+ * Order: the quick ways (contacts, scan, my code), the categories, then the search box with its results right under it.
+ *
  * Props:
  *  - me: { name, avatar } (for the personal code sheet)
+ *  - compact: the card on the client's home page — no list of connected places under it (that is the «رزرو» tab)
  *  - onOpenProfile(profile, focus?): show a salon/artist page; `focus` = { services, label } opens its services menu on those
  *  - onNotify(message)
  */
-export function ConnectPage({ me = {}, onOpenProfile: openProfile, onNotify }) {
-  const owner = String(me.name || "");
+export function ConnectPage({ me = {}, compact = false, onOpenProfile: openProfile, onNotify }) {
+  // The home card and the «پیدا کردن» tab each remember their own search.
+  const owner = `${compact ? "home:" : ""}${me.name || ""}`;
   const { connections, loading, query, setQuery, search, connect, connectingId, refresh, restoredScrollY } = useConnections({ onNotify, memoryOwner: owner });
   // Opening a salon page swaps this screen out: remember where the client was so Back lands there (searchMemory.js).
   const onOpenProfile = (...args) => {
@@ -111,53 +115,57 @@ export function ConnectPage({ me = {}, onOpenProfile: openProfile, onNotify }) {
   ));
 
   return (
-    <section className="cnPage" aria-labelledby="cn-title">
+    <section className={`cnPage${compact ? " is-compact" : ""}`} aria-labelledby={compact ? "cn-home-title" : "cn-title"}>
       <header className="cnHead">
         <div className="cnHeadText">
-          <h1 id="cn-title">چه کاری می‌خواهی؟</h1>
-          <p>یکی را بزن. اگر سالن یا آرتیستش را داری، مستقیم می‌روی.</p>
+          {compact ? <h2 id="cn-home-title">نوبت تازه بگیر</h2> : <h1 id="cn-title">چه کاری می‌خواهی؟</h1>}
+          {compact ? null : <p>اسم سالن یا آرتیستت را بنویس، یا یکی از کارها را بزن.</p>}
+        </div>
+        {/* The quick ways first (contacts, scan their code, show mine), then the categories; the search box
+            comes last so its results sit right under it, not off-screen (owner's request 2026-10-23). */}
+        <div className="cnChips">
+          {contacts ? (
+            <button type="button" className="cnChip" onClick={chooseContact}>
+              <ContactRound size={17} aria-hidden="true" />
+              از مخاطبین
+            </button>
+          ) : null}
+          <button type="button" className="cnChip is-primary" onClick={() => setSheet("scan")}>
+            <ScanLine size={17} aria-hidden="true" />
+            اسکن QR
+          </button>
+          <button type="button" className="cnChip" onClick={() => setSheet("code")}>
+            <QrCode size={17} aria-hidden="true" />
+            کد من
+          </button>
         </div>
         <CategoryGrid busyId={checkingCategory} onPick={pickCategory} />
-
-        <div className="cnConnect">
-          <span className="cnConnectLabel">سالن یا آرتیستت را وصل کن</span>
-          <label className="cnSearch">
-            <Search size={20} aria-hidden="true" />
-            <span className="srOnly">جستجو با شماره، اسم یا لینک</span>
-            <input
-              type="search"
-              inputMode="search"
-              enterKeyHint="search"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="اسم، شماره یا لینک صفحه‌اش"
-              autoComplete="off"
-            />
-            {searching ? (
-              <button type="button" className="cnSearchClear" onClick={() => setQuery("")} aria-label="پاک کردن جستجو">
-                <X size={16} />
-              </button>
-            ) : null}
-          </label>
-          <div className="cnChips">
-            {contacts ? (
-              <button type="button" className="cnChip is-primary" onClick={chooseContact}>
-                <ContactRound size={17} aria-hidden="true" />
-                از مخاطبین
-              </button>
-            ) : null}
-            <button type="button" className={`cnChip${contacts ? "" : " is-primary"}`} onClick={() => setSheet("scan")}>
-              <ScanLine size={17} aria-hidden="true" />
-              اسکن QR
+        <label className="cnSearch">
+          <Search size={20} aria-hidden="true" />
+          <span className="srOnly">جستجو با اسم، شماره یا لینک</span>
+          <input
+            type="search"
+            inputMode="search"
+            enterKeyHint="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            // The keyboard covers half the screen: bring the box up so the results under it stay in view.
+            onFocus={(event) => {
+              const box = event.currentTarget;
+              window.setTimeout(() => box.scrollIntoView({ block: "start", behavior: "smooth" }), 250);
+            }}
+            placeholder="اسم سالن یا آرتیست"
+            autoComplete="off"
+          />
+          {searching ? (
+            <button type="button" className="cnSearchClear" onClick={() => setQuery("")} aria-label="پاک کردن جستجو">
+              <X size={16} />
             </button>
-            <button type="button" className="cnChip" onClick={() => setSheet("code")}>
-              <QrCode size={17} aria-hidden="true" />
-              کد من
-            </button>
-          </div>
-        </div>
+          ) : null}
+        </label>
       </header>
 
+      {compact && !searching ? null : (
       <div className="cnBody">
         {searching ? (
           <section aria-label="نتیجه جستجو" aria-live="polite" className="cnList">
@@ -174,7 +182,7 @@ export function ConnectPage({ me = {}, onOpenProfile: openProfile, onNotify }) {
               <ConnectionCard key={profile.id} profile={profile} onOpen={onOpenProfile} action={connectButton(profile)} />
             )) : null}
           </section>
-        ) : (
+        ) : compact ? null : (
           <section aria-labelledby="cn-list-title" className="cnList">
             <div className="cnListHead">
               <h2 id="cn-list-title">سرویس‌دهنده‌های وصل‌شده</h2>
@@ -204,6 +212,7 @@ export function ConnectPage({ me = {}, onOpenProfile: openProfile, onNotify }) {
           </section>
         )}
       </div>
+      )}
 
       {categorySheet ? (
         <CategorySheet

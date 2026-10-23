@@ -105,16 +105,17 @@ export function useScheduleViews({
 
   // Unrestricted-scroll range for the salon hero week strip: `daysBefore`
   // reaches back several months by default (extended further if an older
-  // booking actually exists), while `daysAfter` only reaches as far into
-  // the future as the salon's own bookings go — there's nothing useful to
-  // scroll to on an empty future day. Both are capped so the rail never
-  // has to render an unbounded number of cells.
+  // booking actually exists), while `daysAfter` covers at least the next
+  // two months (DayNav steps into them) and further when bookings go
+  // further. Both are capped so the list never grows unbounded.
   const SALON_HERO_MIN_PAST_DAYS = 180;
   const SALON_HERO_MAX_PAST_DAYS = 365;
   const SALON_HERO_MAX_FUTURE_DAYS = 365;
+  // DayNav's «روز بعد» always has days ahead to go to, even before anything is booked there.
+  const SALON_HERO_MIN_FUTURE_DAYS = 60;
   const salonHeroWeekRangeBounds = useMemo(() => {
     let pastDays = SALON_HERO_MIN_PAST_DAYS;
-    let futureDays = 0;
+    let futureDays = SALON_HERO_MIN_FUTURE_DAYS;
     salonHistoryAppointments.forEach((item) => {
       if (!item.dateKey) return;
       const offset = getBookingDateOffsetDays(item.dateKey);
@@ -207,7 +208,7 @@ export function useScheduleViews({
   // logic below is simpler than activeScheduleDay/activeScheduleDateKey.
   const artistWeekRangeBounds = useMemo(() => {
     let pastDays = SALON_HERO_MIN_PAST_DAYS;
-    let futureDays = 0;
+    let futureDays = SALON_HERO_MIN_FUTURE_DAYS;
     artistBookingList.forEach((item) => {
       if (!item.dateKey) return;
       const offset = getBookingDateOffsetDays(item.dateKey);
