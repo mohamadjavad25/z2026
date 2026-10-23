@@ -139,7 +139,7 @@ try {
         <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="frfro" />
+        <meta name="apple-mobile-web-app-title" content="فرفرو" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(SITE_JSON_LD).replace(/</g, "\\u003c") }}
