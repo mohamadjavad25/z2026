@@ -97,12 +97,11 @@ export function TimesList({ state, role, onPick, onRetry, onAhead, onChain, phon
               type="button"
               key={time}
               aria-pressed={Boolean(on)}
-              aria-label={earliest ? `${clockText(time)}، زودترین ساعت خالی` : undefined}
+              aria-description={earliest ? "زودترین ساعت خالی" : undefined}
               className={`vbTime${on ? " is-on" : ""}${earliest ? " is-earliest" : ""}`}
               onClick={() => onPick(time)}
             >
               {clockText(time)}
-              {earliest ? <small aria-hidden="true">زودترین</small> : null}
             </button>
           );
         })}

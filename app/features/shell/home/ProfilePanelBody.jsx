@@ -397,6 +397,7 @@ export function ProfilePanelBody() {
                   clientName={createdProfile?.data?.name || ""}
                   clientAvatar={createdProfile?.data?.avatar || ""}
                   onOpenPlace={openConnectedProfile}
+                  onFindPlaces={() => goToTab("salons")}
                   onNotify={setAppToast}
                 />
               )}
