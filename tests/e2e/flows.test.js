@@ -94,7 +94,7 @@ describe("booking flow (browser)", () => {
     await cp.locator(".vbPlanRow").first().waitFor();
     await cp.getByRole("button", { name: /^بفرست/ }).waitFor();
     // how long to wait for the salon: folded on «فقط ۱ ساعت» (decision 2026-10-21) until the client opens it
-    await cp.locator(".wcFold").filter({ hasText: "فقط ۱ ساعت" }).click();
+    await cp.locator(".wcFold").filter({ hasText: "۱ ساعت صبر می‌کنم" }).click();
     const waitChoice = cp.locator(".wc");
     expect(await waitChoice.getByRole("radio", { name: /فقط ۱ ساعت/ }).getAttribute("aria-checked")).toBe("true");
     await waitChoice.getByRole("radio", { name: /صبر می‌کنم/ }).click();
@@ -308,7 +308,7 @@ describe("client starts from what they want (browser)", () => {
     await row.click();
     // the time screen: a way back, the first free time marked «زودترین», the wait question folded
     await page.locator(".vbTime.is-on.is-earliest").waitFor();
-    expect(await page.locator(".wcFold").innerText()).toContain("فقط ۱ ساعت");
+    expect(await page.locator(".wcFold").innerText()).toContain("۱ ساعت صبر می‌کنم");
     await page.getByRole("button", { name: "برگشت" }).click();
     await page.locator(".vbTime").first().waitFor({ state: "detached" });
     await page.locator(".sopRow").first().waitFor();
@@ -392,7 +392,7 @@ describe("client picks a salon from their contacts (browser)", () => {
     await stranger.context.addInitScript(withContacts({ name: ["خانم ناشناس"], tel: ["0912 000 1122"] }));
     await stranger.page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
     await openExploreTab(stranger.page);
-    await stranger.page.getByRole("button", { name: "از مخاطبین" }).click();
+    await stranger.page.getByRole("button", { name: "از مخاطب‌ها" }).click();
     const sheet = stranger.page.locator(".cnSheetRoot");
     await sheet.getByText("خانم ناشناس هنوز توی فرفرو نیست.").waitFor();
     const href = await sheet.getByRole("link", { name: "پیامک دعوت" }).getAttribute("href");
@@ -405,7 +405,7 @@ describe("client picks a salon from their contacts (browser)", () => {
     await known.context.addInitScript(withContacts({ name: ["سالن من"], tel: ["021 5555 0000", salon.phone] }));
     await known.page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
     await openExploreTab(known.page);
-    await known.page.getByRole("button", { name: "از مخاطبین" }).click();
+    await known.page.getByRole("button", { name: "از مخاطب‌ها" }).click();
     await known.page.locator(".cnSheetRoot").getByRole("button", { name: "وصل شو" }).click();
     await known.page.locator(".spvBarBook").waitFor();
     const list = await clientApi.get("/api/connections");

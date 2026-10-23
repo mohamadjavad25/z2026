@@ -216,7 +216,8 @@
 .scList button.is-unread .scItemTop b { color: var(--ink); }
 .scState { display: inline-flex; align-items: center; gap: 6px; }
 .scState i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-.scState.is-answered { background: var(--success-bg); }
+.scState.is-answered { background: var(--success-bg); color: var(--n-800); }
+.scState.is-answered i { background: var(--success); }
 .scState.is-closed i { opacity: 0.5; }
 
 .scForm { flex: 1; min-height: 0; display: flex; flex-direction: column; }

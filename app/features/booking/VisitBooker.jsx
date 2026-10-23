@@ -221,7 +221,7 @@ function VisitBookerForm({ role, title, subtitle, services, days, initial, custo
               </div>
               <p className="vbSummary" aria-live="polite">
                 {state.limitHit
-                  ? `حداکثر ${toPersianDigits(maxServicesFor(state.people))} خدمت توی یه نوبت${state.people > 1 ? ` برای ${toPersianDigits(state.people)} نفر` : ""}.`
+                  ? `حداکثر ${toPersianDigits(maxServicesFor(state.people))} کار توی یه نوبت${state.people > 1 ? ` برای ${toPersianDigits(state.people)} نفر` : ""}.`
                   : summary || "یکی یا چندتا کار انتخاب کن."}
               </p>
             </>

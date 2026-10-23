@@ -416,7 +416,7 @@ describe("VisitBooker for the salon (browser)", () => {
     expect(await chips.count()).toBe(10);
     for (let i = 0; i < 9; i += 1) await chips.nth(i).click();
     expect(await page.locator(".vbService.is-on").count()).toBe(8);
-    expect(await page.locator(".vbSummary").innerText()).toContain("حداکثر ۸ خدمت");
+    expect(await page.locator(".vbSummary").innerText()).toContain("حداکثر ۸ کار");
     await context.close();
   });
 
