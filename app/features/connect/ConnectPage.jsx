@@ -28,7 +28,7 @@ const NOT_FOUND = {
  * «سالن و آرتیست من» (the client's salons tab): connect to the salons and
  * artists they already go to — by phone, name, link or QR — and book from here.
  *
- * The search box comes first (with a small scan button beside it), then the categories.
+ * Order: the quick ways (contacts, scan, my code), the categories, then the search box with its results right under it.
  *
  * Props:
  *  - me: { name, avatar } (for the personal code sheet)
@@ -101,47 +101,48 @@ export function ConnectPage({ me = {}, compact = false, onOpenProfile, onNotify 
           {compact ? <h2 id="cn-home-title">نوبت تازه بگیر</h2> : <h1 id="cn-title">چه کاری می‌خواهی؟</h1>}
           {compact ? null : <p>اسم سالن یا آرتیستت را بنویس، یا یکی از کارها را بزن.</p>}
         </div>
-        <div className="cnSearchRow">
-          <label className="cnSearch">
-            <Search size={20} aria-hidden="true" />
-            <span className="srOnly">جستجو با اسم، شماره یا لینک</span>
-            <input
-              type="search"
-              inputMode="search"
-              enterKeyHint="search"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="اسم سالن یا آرتیست"
-              autoComplete="off"
-            />
-            {searching ? (
-              <button type="button" className="cnSearchClear" onClick={() => setQuery("")} aria-label="پاک کردن جستجو">
-                <X size={16} />
-              </button>
-            ) : null}
-          </label>
-          <button type="button" className="cnScanIcon" onClick={() => setSheet("scan")} aria-label="اسکن کد سالن یا آرتیست">
-            <ScanLine size={22} aria-hidden="true" />
+        {/* The quick ways first (contacts, scan their code, show mine), then the categories; the search box
+            comes last so its results sit right under it, not off-screen (owner's request 2026-10-23). */}
+        <div className="cnChips">
+          {contacts ? (
+            <button type="button" className="cnChip" onClick={chooseContact}>
+              <ContactRound size={17} aria-hidden="true" />
+              از مخاطبین
+            </button>
+          ) : null}
+          <button type="button" className="cnChip is-primary" onClick={() => setSheet("scan")}>
+            <ScanLine size={17} aria-hidden="true" />
+            اسکن QR
+          </button>
+          <button type="button" className="cnChip" onClick={() => setSheet("code")}>
+            <QrCode size={17} aria-hidden="true" />
+            کد من
           </button>
         </div>
         <CategoryGrid busyId={checkingCategory} onPick={pickCategory} />
-
-        {contacts || !compact ? (
-          <div className="cnChips">
-            {contacts ? (
-              <button type="button" className="cnChip" onClick={chooseContact}>
-                <ContactRound size={17} aria-hidden="true" />
-                از مخاطبین
-              </button>
-            ) : null}
-            {compact ? null : (
-              <button type="button" className="cnChip" onClick={() => setSheet("code")}>
-                <QrCode size={17} aria-hidden="true" />
-                کد من
-              </button>
-            )}
-          </div>
-        ) : null}
+        <label className="cnSearch">
+          <Search size={20} aria-hidden="true" />
+          <span className="srOnly">جستجو با اسم، شماره یا لینک</span>
+          <input
+            type="search"
+            inputMode="search"
+            enterKeyHint="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            // The keyboard covers half the screen: bring the box up so the results under it stay in view.
+            onFocus={(event) => {
+              const box = event.currentTarget;
+              window.setTimeout(() => box.scrollIntoView({ block: "start", behavior: "smooth" }), 250);
+            }}
+            placeholder="اسم سالن یا آرتیست"
+            autoComplete="off"
+          />
+          {searching ? (
+            <button type="button" className="cnSearchClear" onClick={() => setQuery("")} aria-label="پاک کردن جستجو">
+              <X size={16} />
+            </button>
+          ) : null}
+        </label>
       </header>
 
       {compact && !searching ? null : (

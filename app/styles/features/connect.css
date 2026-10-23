@@ -687,27 +687,10 @@ a.cnInviteBtn { text-decoration: none; }
 .cuHeadActions:has(.cuInviteBtn) .cnScanCustomerBtn { flex: none; padding: 0 16px; }
 .salonCustomersHead:has(.cuHeadActions) { flex-wrap: wrap; }
 
-/* Search first, with a small scan button beside it (user's choice 2026-10-23). */
-.cnSearchRow { display: flex; align-items: center; gap: 8px; }
-.cnSearchRow .cnSearch { flex: 1; min-width: 0; }
-.cnScanIcon {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 54px;
-  height: 54px;
-  border: 0;
-  border-radius: 18px;
-  background: var(--primary);
-  color: var(--on-primary);
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-.cnScanIcon:active { transform: scale(0.96); }
-.cnScanIcon:focus-visible { outline: 3px solid rgb(var(--ink-rgb) / 0.28); outline-offset: 2px; }
-
 /* The same search and categories as a card on the client's home page (ClientHome). */
 .cnPage.is-compact { min-height: 0; padding-bottom: 0; gap: 12px; background: transparent; }
 .cnPage.is-compact .cnHead { padding: 18px 16px; border-radius: 26px; box-shadow: 0 8px 22px -14px rgb(var(--shadow-rgb) / 0.28), inset 0 0 0 1px var(--n-100); }
 .cnPage.is-compact .cnHeadText h2 { margin: 0; font-size: 1.15rem; font-weight: 950; line-height: 1.4; }
 .cnPage.is-compact .cnBody { padding: 0; }
+/* Typing brings the search box to the top; keep it clear of the top edge. */
+.cnSearch input { scroll-margin-top: 16px; }

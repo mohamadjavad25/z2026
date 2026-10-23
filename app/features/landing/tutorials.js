@@ -210,7 +210,7 @@ export const LEARN_ROLES = [
             screen: "scan",
             els: scanScreen({ name: SALON, sub: "سالن · تهرانپارس", btn: "وصل شو" }),
             tap: "found",
-            say: "اگر در خود سالنی، کد QR روی میز را با دکمهٔ اسکن کنار جستجو بگیر.",
+            say: "اگر در خود سالنی، کد QR روی میز را با «اسکن QR» بگیر.",
             ms: 3600
           }
         ]

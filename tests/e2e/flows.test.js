@@ -439,7 +439,7 @@ describe("QR scanning (browser)", () => {
     const cp = clientView.page;
     await cp.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
     await openExploreTab(cp);
-    await cp.locator("#cbt-panel").getByRole("button", { name: "اسکن کد سالن یا آرتیست" }).click();
+    await cp.locator("#cbt-panel").getByRole("button", { name: "اسکن QR" }).click();
     const found = cp.locator(".cnScanResult").filter({ hasText: name });
     await found.getByRole("button", { name: "وصل شو" }).click();
     await found.getByRole("button", { name: "رزرو" }).waitFor();
