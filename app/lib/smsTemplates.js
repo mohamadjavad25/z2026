@@ -16,7 +16,7 @@ export const SMS_TEMPLATES = {
     env: "BOOKING_REQUEST",
     kavenegar: (v) => ({ token: v.time, token10: v.day, token20: v.who }),
     faraz: (v) => ({ who: v.who, day: v.day, time: v.time }),
-    preview: (v) => `فرفرو: درخواست نوبت تازه از ${v.who}، ${v.day} ساعت ${v.time}. زودتر در اپ جواب بده، وگرنه منقضی می‌شود.`
+    preview: (v) => `فرفرو: درخواست نوبت تازه از ${v.who}، ${v.day} ساعت ${v.time}. در اپ جواب بده.`
   },
   booking_answer: {
     label: "جواب درخواست نوبت (به مشتری)",
@@ -24,6 +24,20 @@ export const SMS_TEMPLATES = {
     kavenegar: (v) => ({ token: v.time, token10: v.day, token20: `${v.who} ${v.result}` }),
     faraz: (v) => ({ who: v.who, day: v.day, time: v.time, result: v.result }),
     preview: (v) => `فرفرو: نوبتت ${v.day} ساعت ${v.time} در ${v.who} ${v.result}.`
+  },
+  booking_reminder: {
+    label: "یادآوری نوبت، دو ساعت قبل (به مشتری بدون اعلان)",
+    env: "BOOKING_REMINDER",
+    kavenegar: (v) => ({ token: v.time, token10: v.who }),
+    faraz: (v) => ({ who: v.who, time: v.time }),
+    preview: (v) => `فرفرو: یادت نره، امروز ساعت ${v.time} نوبت داری در ${v.who}.`
+  },
+  booking_cancelled: {
+    label: "لغو نوبت از طرف مشتری (به سالن یا آرتیست)",
+    env: "BOOKING_CANCELLED",
+    kavenegar: (v) => ({ token: v.time, token10: v.day, token20: v.who }),
+    faraz: (v) => ({ who: v.who, day: v.day, time: v.time }),
+    preview: (v) => `فرفرو: ${v.who} نوبت ${v.day} ساعت ${v.time} را لغو کرد.`
   },
   billing_receipt: {
     label: "رسید پرداخت اشتراک",

@@ -4,6 +4,7 @@ import { requireAdmin } from "../../../../../lib/admin.js";
 import * as admin from "../../../../../lib/db/repos/admin.js";
 import * as ops from "../../../../../lib/db/repos/adminOps.js";
 import { sendPushToUser } from "../../../../../lib/push.js";
+import { bookingWhen } from "../../../../../lib/bookingSms.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -53,7 +54,7 @@ async function _POST(request, { params }) {
     detail: `${kind}#${id} ${booking.service || ""} ${booking.booking_date} ${booking.time} • ${reason}`
   });
   if (body.notify !== false) {
-    const text = `رزرو «${booking.service || "خدمت"}» در ${booking.booking_date} ساعت ${booking.time} از طرف پشتیبانی فرفرو لغو شد. ${reason}`.slice(0, 200);
+    const text = `رزرو «${booking.service || "خدمت"}» ${bookingWhen(booking.booking_date, booking.time)} از طرف پشتیبانی فرفرو لغو شد. ${reason}`.slice(0, 200);
     for (const userId of [booking.client_user_id, booking.provider_id].filter(Boolean)) {
       sendPushToUser(userId, { title: "لغو رزرو", body: text, url: "/" }).catch(() => {});
     }

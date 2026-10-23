@@ -4,7 +4,7 @@ import { error, json, validateBody, withErrorHandling } from "../../../lib/http.
 import * as artists from "../../../lib/db/repos/artists.js";
 import * as salons from "../../../lib/db/repos/salons.js";
 import { checkRateLimit } from "../../../lib/rateLimit.js";
-import { smsNewBookingRequest } from "../../../lib/bookingSms.js";
+import { bookingWhen, smsNewBookingRequest } from "../../../lib/bookingSms.js";
 import { sendPushToUser } from "../../../lib/push.js";
 import { createBookingSchema } from "../../../lib/validation/booking.js";
 import { createArtistBooking } from "../../../lib/artistBookingCreate.js";
@@ -68,18 +68,19 @@ async function _POST(request) {
   }
 
   if (viewer?.id && viewer.id !== artistUserId) {
-    void sendPushToUser(artistUserId, {
-      title: "درخواست نوبت جدید",
-      body: `${result.booking.client || result.booking.client_name || "مشتری"} — ${result.booking.service || ""}`.trim()
-    });
+    const confirmed = result.booking.status === "تایید شده";
+    const push = sendPushToUser(artistUserId, {
+      title: confirmed ? "نوبت جدید (تأیید خودکار)" : "درخواست نوبت جدید",
+      body: `${result.booking.client || result.booking.client_name || "مشتری"} — ${result.booking.service || "نوبت"} · ${bookingWhen(result.booking.booking_date || result.booking.bookingDate, result.booking.time)}`
+    }).catch(() => null);
     // A request waiting for the artist's answer must reach them in time, even where push does not.
-    if (result.booking.status !== "تایید شده") {
+    if (!confirmed) {
       smsNewBookingRequest(artistUserId, {
         client: result.booking.client || result.booking.client_name,
         service: result.booking.service,
         bookingDate: result.booking.booking_date || result.booking.bookingDate,
         time: result.booking.time
-      });
+      }, push);
     }
   }
 

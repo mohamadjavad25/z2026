@@ -5,7 +5,7 @@ import { activeGateway, gatewayById, gatewayLabel } from "../payments/index.js";
 import { BEST_MONTHS, PRESELECTED_MONTHS, TRIAL_DAYS, getPlan, plansFor, rialToToman } from "./plans.js";
 import { nextPeriod, refundQuote } from "./period.js";
 import { reminderKind, reminderMessage } from "./reminders.js";
-import { reachableByAppPush, sendPushToUser } from "../push.js";
+import { pushReachedApp, sendPushToUser } from "../push.js";
 import { sendTemplateSms, smsProviderName } from "../sms.js";
 import { adminPhoneList } from "../admin.js";
 import { pushAdmins } from "../adminPush.js";
@@ -314,16 +314,18 @@ export async function notifyPaid(payment) {
   const until = formatPersianLongDate(payment.period_end);
   const tasks = [];
   let receiptPhone = payment.user_phone;
+  let receiptPush = null;
   if (payment.payer_user_id) {
     const db = await getDb();
     const [payer] = await all(db, "SELECT id, phone FROM users WHERE id = $1", [payment.payer_user_id]);
     receiptPhone = payer?.phone || "";
     if (payer) {
-      tasks.push(sendPushToUser(payer.id, {
+      receiptPush = sendPushToUser(payer.id, {
         title: `اشتراک ${payment.user_name || "آرتیست"} فعال شد`,
         body: `${payment.plan_title}${test}، تا ${until}. شمارهٔ رسید ${receipt}.`,
         url: `/?billing=${payment.id}`
-      }));
+      });
+      tasks.push(receiptPush);
     }
     if (payment.user_id) {
       tasks.push(sendPushToUser(payment.user_id, {
@@ -333,15 +335,15 @@ export async function notifyPaid(payment) {
       }));
     }
   } else if (payment.user_id) {
-    tasks.push(sendPushToUser(payment.user_id, {
+    receiptPush = sendPushToUser(payment.user_id, {
       title: "اشتراکت فعال شد",
       body: `${payment.plan_title}${test}، تا ${until}. شمارهٔ رسید ${receipt}.`,
       url: `/?billing=${payment.id}`
-    }));
+    });
+    tasks.push(receiptPush);
   }
-  // The receipt SMS is skipped when the push reaches the payer in the Android app (the receipt is also in the app).
-  const receiptUserId = payment.payer_user_id || payment.user_id;
-  if (receiptPhone && smsAllowedFor(payment) && !(await reachableByAppPush(receiptUserId))) {
+  // The receipt SMS is skipped when the push reached the payer's Android app (the receipt is also in the app).
+  if (receiptPhone && smsAllowedFor(payment) && !(await pushReachedApp(receiptPush))) {
     tasks.push(sendTemplateSms(receiptPhone, "billing_receipt", { receipt, amount, until: formatPersianShortDate(payment.period_end) }));
   }
   const account = `${payment.user_type === "salon" ? "سالن" : "آرتیست"} ${payment.user_name || ""}`.trim();
@@ -397,11 +399,8 @@ async function sendReminders(now, settings) {
   for (const { row, access, kind } of due) {
     if (!(await billing.claimNotice(row.id, kind, access.accessEndsAt))) continue;
     const message = reminderMessage(kind, access, { graceDays: settings.graceDays });
-    const smsToo = !(await reachableByAppPush(row.id));
-    await Promise.allSettled([
-      sendPushToUser(row.id, { title: message.title, body: message.body, url: "/?billing=plans" }),
-      smsToo ? sendTemplateSms(row.phone, message.sms.key, message.sms.values) : null
-    ]);
+    const push = sendPushToUser(row.id, { title: message.title, body: message.body, url: "/?billing=plans" }).catch(() => null);
+    if (!(await pushReachedApp(push))) await sendTemplateSms(row.phone, message.sms.key, message.sms.values).catch(() => null);
     sent += 1;
   }
   return sent;

@@ -17,7 +17,8 @@ import { AWAITING_CLIENT } from "../../shared/lib/bookingOffer.js";
 import { createSalonBooking } from "../../lib/salonBookingCreate.js";
 import { requestedServiceNames, validFallbackSalon } from "../../lib/bookingFallback.js";
 import { BOOKING_REQUEST_WINDOW_MINUTES } from "../../shared/lib/bookingWindow.js";
-import { smsBookingAnswer, smsNewBookingRequest } from "../../lib/bookingSms.js";
+import { bookingWhen, smsBookingAnswer, smsNewBookingRequest } from "../../lib/bookingSms.js";
+import { notifyStaff } from "../../lib/staffNotify.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -133,12 +134,17 @@ async function _POST(request) {
   // only when the CLIENT is the one who just requested it (a salon entering
   // its own walk-in booking doesn't need to be told about its own action).
   if (auth.user.type === "client") {
-    void sendPushToUser(salonUserId, {
+    const push = sendPushToUser(salonUserId, {
       title: "درخواست رزرو جدید",
-      body: `${client} — ${service} · ${time}`
-    });
-    smsNewBookingRequest(salonUserId, { client, service, bookingDate: result.booking.booking_date, time });
+      body: `${client} — ${service} · ${bookingWhen(result.booking.booking_date, time)}`
+    }).catch(() => null);
+    smsNewBookingRequest(salonUserId, { client, service, bookingDate: result.booking.booking_date, time }, push);
   }
+  // The team artist whose visit it is hears about it too (waiting for the salon's answer, or booked by the salon).
+  notifyStaff({ artistIds: linkedArtistIds, exceptUserId: auth.user.id }, {
+    title: auth.user.type === "client" ? "درخواست نوبت در سالن" : "نوبت تازه برایت گذاشته شد",
+    body: `${client} — ${service} · ${bookingWhen(result.booking.booking_date, time)}${auth.user.type === "client" ? " (منتظر جواب سالن)" : ""}`
+  });
 
   return noStoreJson({
     data: {
@@ -260,17 +266,21 @@ async function _PATCH(request) {
   if (patch.status === "تایید شده" || patch.status === "لغو") {
     const bookingClientUserId = result.booking.client_user_id ? Number(result.booking.client_user_id) : null;
     if (bookingClientUserId) {
-      void sendPushToUser(bookingClientUserId, {
+      const push = sendPushToUser(bookingClientUserId, {
         title: patch.status === "تایید شده" ? "نوبت شما تایید شد" : "نوبت شما لغو شد",
-        body: `${result.booking.service || "نوبت"} — ${result.booking.booking_date || ""} ${result.booking.time || ""}`.trim()
-      });
+        body: `${result.booking.service || "نوبت"} — ${bookingWhen(result.booking.booking_date, result.booking.time)}`
+      }).catch(() => null);
       smsBookingAnswer(bookingClientUserId, {
         providerName: auth.user.name,
         bookingDate: result.booking.booking_date,
         time: result.booking.time,
         confirmed: patch.status === "تایید شده"
-      });
+      }, push);
     }
+    notifyStaff({ artistIds: result.linkedArtistIds, salonBookingId: result.booking.id, exceptUserId: auth.user.id }, {
+      title: patch.status === "تایید شده" ? "نوبتت در سالن تأیید شد" : "نوبتت در سالن لغو شد",
+      body: `${result.booking.client || "مشتری"} — ${result.booking.service || "نوبت"} · ${bookingWhen(result.booking.booking_date, result.booking.time)}`
+    });
   }
 
   // The salon moved a client's booking: the client hears about the new time right away.
@@ -278,7 +288,7 @@ async function _PATCH(request) {
   if (!wantsCancel && moved && result.booking.status === AWAITING_CLIENT && result.booking.client_user_id) {
     void sendPushToUser(Number(result.booking.client_user_id), {
       title: "ساعت تازه برای نوبتت",
-      body: `${auth.user.name || "سالن"} ساعت ${result.booking.time || ""} را برای ${result.booking.service || "نوبت"} پیشنهاد داده. قبول یا رد کن.`
+      body: `${auth.user.name || "سالن"} ${bookingWhen(result.booking.booking_date, result.booking.time)} را برای ${result.booking.service || "نوبت"} پیشنهاد داده. قبول یا رد کن.`
     });
   }
 

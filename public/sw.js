@@ -41,19 +41,26 @@ self.addEventListener("push", (event) => {
   );
 });
 
-// Focuses an already-open frfro tab instead of always opening a new one —
-// this is a single-page app (one route, "/"), so "the right screen" is
-// whatever in-app state that tab is already holding, not a URL to navigate
-// to; url in the payload is carried through for a future deep-link need but
-// intentionally unused for navigation today.
+// Focuses an already-open frfro tab instead of always opening a new one. When the notification is about a
+// particular screen (url other than "/", e.g. "/?billing=plans" or "/admin?p=support"), that tab is sent there;
+// a plain "/" keeps whatever the tab is showing. Only paths on this site are followed.
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
+  const raw = String(event.notification.data?.url || "/");
+  const path = raw.startsWith("/") && !raw.startsWith("//") ? raw : "/";
   event.waitUntil(
-    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
-      for (const client of clientList) {
-        if ("focus" in client) return client.focus();
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(async (clientList) => {
+      const client = clientList.find((item) => "focus" in item);
+      if (client) {
+        const target = new URL(path, self.location.origin);
+        const current = new URL(client.url);
+        if (path !== "/" && current.pathname + current.search !== target.pathname + target.search && "navigate" in client) {
+          const moved = await client.navigate(target.href).catch(() => null);
+          return (moved || client).focus();
+        }
+        return client.focus();
       }
-      if (self.clients.openWindow) return self.clients.openWindow(event.notification.data?.url || "/");
+      if (self.clients.openWindow) return self.clients.openWindow(path);
     })
   );
 });

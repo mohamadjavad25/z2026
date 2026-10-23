@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { deleteAccount as apiDeleteAccount, login as apiLogin, logout as apiLogout, register as apiRegister } from "../../shared/api/auth";
 import { AUTH_SESSION_KEY, normalizeProfile, readAuthSession, writeAuthSession } from "./constants";
 import { stopAppPush } from "../../shared/lib/nativePush";
+import { stopWebPush } from "../../shared/lib/webPush";
 
 /**
  * Auth/session domain — owns race guards, gate UI state, login/register/logout.
@@ -276,8 +277,8 @@ export function useAuthSession({
 
   async function logoutAccount() {
     try {
-      // Still logged in here, so the server can drop this phone's app push token.
-      await stopAppPush();
+      // Still logged in here, so the server can drop this phone's app push token and this browser's subscription.
+      await Promise.all([stopAppPush(), stopWebPush()]);
       await apiLogout();
     } catch {
       // ignore
