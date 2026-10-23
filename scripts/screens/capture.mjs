@@ -98,7 +98,6 @@ const tap = (name, opts = {}) => async (p) => { await p.getByRole("button", { na
 const text = (t) => async (p) => { await p.getByText(t, { exact: true }).first().click({ timeout: 4000 }); await p.waitForTimeout(900); };
 const css = (selector, hasText) => async (p) => { await p.locator(selector, hasText ? { hasText } : {}).first().click({ timeout: 4000 }); await p.waitForTimeout(900); };
 const fill = (selector, value) => async (p) => { await p.locator(selector).fill(value, { timeout: 4000 }); };
-const scroll = (y) => async (p) => { await p.mouse.wheel(0, y); await p.waitForTimeout(700); };
 const salonPath = (ids) => `/salons/${ids.salon}`;
 const artistPath = (ids) => `/artists/${ids.artist}`;
 
