@@ -36,8 +36,8 @@ function todayStatus(place) {
   const hours = Array.isArray(place?.hours) ? place.hours : [];
   if (!hours.length) return null;
   const today = hours.find((row) => row.day === getPersianWeekday(new Date()));
-  if (!today?.active) return { open: false, text: "امروز تعطیل است" };
-  return { open: true, text: `امروز باز است تا ${toPersianDigits(today.close_time || "")}` };
+  if (!today?.active) return { open: false, text: "امروز تعطیله" };
+  return { open: true, text: `امروز تا ${toPersianDigits(today.close_time || "")} بازه` };
 }
 
 function serviceMeta(service) {
@@ -117,8 +117,8 @@ export function ClientPlaces({ bookings = [], clientName = "", onOpenPlace, onFi
       <section className="chPlaces" aria-label="سالن و آرتیست من">
         <div className="chHead">
           <div>
-            <span>سالن و آرتیست من</span>
-            <strong>{active ? "از همین‌جا نوبت بگیر" : "نوبت گرفتن از اینجا شروع می‌شود"}</strong>
+            <span>سالن و آرتیست‌هام</span>
+            <strong>{active ? "از همین‌جا نوبت بگیر" : "نوبت گرفتن از اینجا شروع می‌شه"}</strong>
           </div>
           {ordered.length ? (
             <button type="button" className="chHeadBtn" onClick={() => setAdding(true)}>
@@ -133,7 +133,7 @@ export function ClientPlaces({ bookings = [], clientName = "", onOpenPlace, onFi
         ) : firstTime ? (
           <div className="chCard chEmpty">
             <Mascot pose="connect" size={96} className="chEmptyMascot" />
-            <b>سالن یا آرتیستت را وصل کن</b>
+            <b>سالن یا آرتیستت رو وصل کن</b>
             <AddPlaceActions
               clientName={clientName}
               onConnected={load}
@@ -175,7 +175,7 @@ export function ClientPlaces({ bookings = [], clientName = "", onOpenPlace, onFi
       </section>
 
       {adding ? (
-        <ConnectSheet label="افزودن سالن یا آرتیست" title="سالن یا آرتیستت را وصل کن" onClose={() => setAdding(false)}>
+        <ConnectSheet label="افزودن سالن یا آرتیست" title="سالن یا آرتیستت رو وصل کن" onClose={() => setAdding(false)}>
           <AddPlaceActions
             clientName={clientName}
             onConnected={load}
@@ -225,7 +225,7 @@ function PlaceCard({ place, lastBooking, onOpenPlace }) {
           <RotateCcw size={18} aria-hidden="true" />
           <span>
             <b>دوباره «{shortServiceLabel(repeatService)}»</b>
-            <small>آخرین بار {formatRelativeBookingDayLabel(lastBooking.booking_date || lastBooking.date || "امروز")}؛ فقط روز و ساعت را انتخاب کن</small>
+            <small>آخرین بار {formatRelativeBookingDayLabel(lastBooking.booking_date || lastBooking.date || "امروز")}؛ فقط روز و ساعت رو انتخاب کن</small>
           </span>
           <ChevronLeft size={18} aria-hidden="true" />
         </button>
@@ -247,13 +247,13 @@ function PlaceCard({ place, lastBooking, onOpenPlace }) {
           ))}
         </ul>
       ) : (
-        <p className="chNoServices">هنوز خدمتی در صفحه‌اش نگذاشته؛ صفحه‌اش را ببین یا تماس بگیر.</p>
+        <p className="chNoServices">هنوز خدمتی نذاشته؛ صفحه‌ش رو ببین یا زنگ بزن.</p>
       )}
 
       {total ? (
         <button type="button" className="chAll" onClick={() => book([], "همه خدمات")}>
           <LayoutGrid size={17} aria-hidden="true" />
-          <span>{total > shown.length ? `همه خدمات (${toPersianDigits(total)})` : "چند خدمت با هم در یک نوبت"}</span>
+          <span>{total > shown.length ? `همهٔ خدمت‌ها (${toPersianDigits(total)})` : "چند کار با هم، توی یه نوبت"}</span>
           <ChevronLeft size={17} aria-hidden="true" />
         </button>
       ) : (

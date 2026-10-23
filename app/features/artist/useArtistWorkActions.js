@@ -68,11 +68,11 @@ export function useArtistWorkActions({
     // A category is asked for only when the menu has services to pick from.
     const hasServices = artistServiceList.some((item) => String(item?.name || "").trim());
     if (!title || (!tag && hasServices)) {
-      notify(title ? "دسته لازم است." : "عنوان لازم است.");
+      notify(title ? "بگو مال کدوم خدمته." : "یه عنوان بنویس.");
       return;
     }
     if (!image) {
-      notify("تصویر نمونه‌کار لازم است.");
+      notify("یه عکس از کارت بذار.");
       return;
     }
     const body = {
@@ -93,7 +93,7 @@ export function useArtistWorkActions({
         ? await createPost(body)
         : await updatePost(editingArtistWork.id, body);
       if (!ok) {
-        notify(payload.error || "ذخیره نمونه‌کار انجام نشد.");
+        notify(payload.error || "نمونه‌کار ذخیره نشد؛ دوباره بزن.");
         return;
       }
       // The API already returned the saved post: put it in the gallery and close
@@ -108,10 +108,10 @@ export function useArtistWorkActions({
         ));
       }
       setEditingArtistWork(null);
-      notify("نمونه‌کار ذخیره شد.");
+      notify("نمونه‌کارت ذخیره شد!");
       void syncArtistPosts().catch(() => {});
     } catch {
-      notify("ذخیره نمونه‌کار انجام نشد.");
+      notify("نمونه‌کار ذخیره نشد؛ دوباره بزن.");
     } finally {
       setArtistWorkSaving(false);
     }
@@ -119,7 +119,7 @@ export function useArtistWorkActions({
 
   async function deleteArtistWork() {
     if (!editingArtistWork?.id) return;
-    if (typeof window !== "undefined" && !window.confirm("این پست از گالری نمونه‌کار حذف شود؟")) {
+    if (typeof window !== "undefined" && !window.confirm("این نمونه‌کار پاک بشه؟")) {
       return;
     }
     if (artistWorkSaving) return;
@@ -128,16 +128,16 @@ export function useArtistWorkActions({
     try {
       const { ok, payload } = await deletePost(id);
       if (!ok) {
-        notify(payload.error || "حذف انجام نشد.");
+        notify(payload.error || "پاک نشد؛ دوباره بزن.");
         return;
       }
       setArtistPortfolioItems((items) => items.filter((item) => String(item.id) !== String(id)));
       setEditingArtistWork(null);
       setPreviewingArtistWorkId((prev) => (prev === id ? null : prev));
-      notify("نمونه‌کار از گالری حذف شد.");
+      notify("نمونه‌کار پاک شد.");
       void syncArtistPosts().catch(() => {});
     } catch {
-      notify("حذف انجام نشد.");
+      notify("پاک نشد؛ دوباره بزن.");
     } finally {
       setArtistWorkSaving(false);
     }

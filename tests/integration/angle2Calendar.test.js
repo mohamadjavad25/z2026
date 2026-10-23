@@ -474,7 +474,7 @@ describe("today, the end of the day and slots that already passed", () => {
     const salon2 = await newSalon();
     const crossing = await bookAtSalon(client.api, salon2, client, { day: key, time: "۱۷:۳۰", service: "کوتاهی مو", durationMinutes: 60 });
     expect(crossing.status).toBe(409);
-    expect(crossing.payload.error).toMatch(/خارج از زمان کاری/);
+    expect(crossing.payload.error).toMatch(/باز نیست/);
     const late = await bookAtSalon(client.api, salon2, client, { day: key, time: "۱۹:۰۰", service: "کوتاهی مو", durationMinutes: 60 });
     expect(late.status).toBe(409);
   });

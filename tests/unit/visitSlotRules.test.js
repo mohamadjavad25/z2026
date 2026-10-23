@@ -46,7 +46,7 @@ describe("visitSlotProblem", () => {
 
   it("refuses a closed day", () => {
     expect(check({ bookingDateKey: friday }).code).toBe("SALON_CLOSED");
-    expect(check({ bookingDateKey: friday, isClient: false }).error).toBe("سالن در این روز تعطیل است.");
+    expect(check({ bookingDateKey: friday, isClient: false }).error).toBe("سالن این روز تعطیله.");
   });
 
   it("refuses a visit that does not fit inside the opening hours", () => {

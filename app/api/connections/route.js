@@ -11,7 +11,7 @@ export const runtime = "nodejs";
 
 async function _GET(request) {
   await ensureDb();
-  const auth = await requireUserRole(request, "client", "فقط مشتری‌ها لیست سالن و آرتیست دارند.");
+  const auth = await requireUserRole(request, "client", "این بخش مال مشتری‌هاست.");
   if (!auth.ok) return auth.response;
   const withServices = new URL(request.url).searchParams.get("services") === "1";
   return json({ data: { connections: await connections.listConnections(auth.user.id, { withServices }) } });
@@ -19,12 +19,12 @@ async function _GET(request) {
 
 async function _POST(request) {
   await ensureDb();
-  const auth = await requireUserRole(request, "client", "فقط مشتری‌ها می‌توانند وصل شوند.");
+  const auth = await requireUserRole(request, "client", "با حساب مشتری می‌شه وصل شد.");
   if (!auth.ok) return auth.response;
   const targetUserId = parseId((await readJson(request))?.targetUserId);
-  if (!targetUserId) return error("سالن یا آرتیست مشخص نیست.");
+  if (!targetUserId) return error("کدوم سالن یا آرتیست؟ انتخابش کن.");
   const result = await connections.connect(auth.user.id, targetUserId);
-  if (!result.ok) return error("این سالن یا آرتیست پیدا نشد.", 404);
+  if (!result.ok) return error("این سالن یا آرتیست رو پیدا نکردیم.", 404);
   return json({ data: { profile: result.profile, alreadyConnected: result.alreadyConnected } });
 }
 
@@ -33,7 +33,7 @@ async function _DELETE(request) {
   const auth = await requireUserRole(request, "client");
   if (!auth.ok) return auth.response;
   const targetUserId = parseId((await readJson(request))?.targetUserId);
-  if (!targetUserId) return error("سالن یا آرتیست مشخص نیست.");
+  if (!targetUserId) return error("کدوم سالن یا آرتیست؟ انتخابش کن.");
   return json({ data: await connections.disconnect(auth.user.id, targetUserId) });
 }
 

@@ -132,7 +132,7 @@ describe("GET /api/salon-bookings/preview", () => {
     const friday = await ctx.customer.client.get(previewUrl(ctx, { day: dateKeyOnWeekday("جمعه"), time: "10:00" }));
     expect(friday.status).toBe(200);
     expect(friday.payload.data).toMatchObject({ ok: false, code: "SALON_CLOSED", parts: [] });
-    expect(friday.payload.data.message).toBe("سالن در این روز تعطیل است.");
+    expect(friday.payload.data.message).toBe("سالن این روز تعطیله.");
 
     const late = await ctx.customer.client.get(previewUrl(ctx, { day: futureBookingDay(2, { notOn: ["پنجشنبه"] }), time: "19:30" }));
     expect(late.payload.data).toMatchObject({ ok: false, code: "OUTSIDE_HOURS" });

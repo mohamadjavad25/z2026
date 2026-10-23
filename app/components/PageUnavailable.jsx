@@ -9,7 +9,7 @@ export function PageUnavailable() {
         <Mascot pose="search" size={180} className="errorPage__mascot" />
         <p className="errorPage__logo" aria-hidden="true">frfro</p>
         <h1 className="errorPage__title">این صفحه فعلاً در دسترس نیست.</h1>
-        <Link href="/" className="errorPage__back">بازگشت به frfro</Link>
+        <Link href="/" className="errorPage__back">برگرد به فرفرو</Link>
       </div>
     </main>
   );

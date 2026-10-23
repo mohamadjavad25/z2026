@@ -141,7 +141,7 @@ describe("readiness", () => {
     expect(readiness("salon", createState(), []).missing).toEqual(["خدمت", "نام مشتری", "ساعت"]);
     expect(readiness("salon", { ...ready, name: "  " }, list).missing).toEqual(["نام مشتری"]);
     expect(readiness("salon", { ...ready, time: "" }, list).missing).toEqual(["ساعت"]);
-    expect(missingText(["خدمت", "ساعت"])).toBe("برای ثبت لازم است: خدمت، ساعت");
+    expect(missingText(["خدمت", "ساعت"])).toBe("برای ثبت اینا لازمه: خدمت، ساعت");
     expect(missingText([])).toBe("");
   });
   it("asks a client for a phone, not a name (the name is their account's)", () => {
@@ -224,7 +224,7 @@ describe("visitQuery", () => {
 
 describe("submitFailure", () => {
   it("asks for fresh times when the time was taken", () => {
-    expect(submitFailure({ status: 409, payload: { error: "این زمان قبلاً رزرو شده است." } })).toEqual({ message: "این زمان قبلاً رزرو شده است.", reloadTimes: true });
+    expect(submitFailure({ status: 409, payload: { error: "این ساعت پر شده؛ یه ساعت دیگه بزن." } })).toEqual({ message: "این ساعت پر شده؛ یه ساعت دیگه بزن.", reloadTimes: true });
     expect(submitFailure({ status: 409, payload: {} }).reloadTimes).toBe(true);
   });
   it("has a Persian message for every case, even with no body at all", () => {
@@ -233,8 +233,8 @@ describe("submitFailure", () => {
       expect(out.message, String(status)).toMatch(/[؀-ۿ]/);
     }
     // No status at all means the request never got an answer.
-    expect(submitFailure().message).toBe("اتصال برقرار نشد؛ اینترنت را بررسی کن و دوباره امتحان کن.");
-    expect(submitFailure({ status: 500 })).toEqual({ message: "ثبت رزرو انجام نشد؛ دوباره امتحان کن.", reloadTimes: false });
-    expect(submitFailure({ status: 400, payload: { error: 42 } }).message).toBe("ثبت رزرو انجام نشد؛ دوباره امتحان کن.");
+    expect(submitFailure().message).toBe("وصل نشد؛ اینترنتت رو یه نگاه بنداز و دوباره بزن.");
+    expect(submitFailure({ status: 500 })).toEqual({ message: "نوبت ثبت نشد؛ دوباره بزن.", reloadTimes: false });
+    expect(submitFailure({ status: 400, payload: { error: 42 } }).message).toBe("نوبت ثبت نشد؛ دوباره بزن.");
   });
 });

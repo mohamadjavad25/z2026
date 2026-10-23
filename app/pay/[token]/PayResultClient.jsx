@@ -63,15 +63,15 @@ export function PayResultClient({ token }) {
         {status === "loading" || status === "pending" ? (
           <>
             <span className="payIcon"><Spinner size={34} /></span>
-            <h1>در حال تأیید پرداخت…</h1>
-            <p>چند ثانیه صبر کن؛ نتیجه از بانک پرسیده می‌شود. این صفحه خودش به‌روز می‌شود.</p>
+            <h1>داریم پرداخت رو چک می‌کنیم…</h1>
+            <p>چند ثانیه صبر کن؛ داریم از بانک می‌پرسیم. صفحه خودش عوض می‌شه.</p>
           </>
         ) : null}
 
         {status === "paid" ? (
           <>
             <span className="payIcon"><CircleCheck size={34} aria-hidden="true" /></span>
-            <h1>پرداخت موفق بود</h1>
+            <h1>پرداخت شد!</h1>
             <p>{payment.title}، تا <b>{formatPersianLongDate(payment.periodEnd)}</b> فعال شد.</p>
             <dl className="payFacts">
               <div><dt>مبلغ</dt><dd>{formatToman(payment.amountToman)}</dd></div>
@@ -85,27 +85,27 @@ export function PayResultClient({ token }) {
           <>
             <span className="payIcon"><CircleX size={34} aria-hidden="true" /></span>
             <h1>پرداخت انجام نشد</h1>
-            <p>{payment.failure || "پرداخت کامل نشد."} اگر پولی از حسابت کم شده، بانک آن را خودکار برمی‌گرداند (معمولاً تا ۷۲ ساعت).</p>
+            <p>{payment.failure || "پرداخت کامل نشد."} اگه پولی از حسابت کم شده، بانک خودش برش می‌گردونه (معمولاً تا ۷۲ ساعت).</p>
           </>
         ) : null}
 
         {status === "missing" ? (
           <>
             <span className="payIcon"><CircleX size={34} aria-hidden="true" /></span>
-            <h1>این پرداخت پیدا نشد</h1>
-            <p>نشانی کامل نیست یا منقضی شده. وضعیت اشتراکت را در اپ ببین: تنظیمات، اشتراک.</p>
+            <h1>این پرداخت رو پیدا نکردیم</h1>
+            <p>لینک کامل نیست یا کهنه شده. اشتراکت رو توی اپ ببین: تنظیمات، اشتراک من.</p>
           </>
         ) : null}
 
         {status === "offline" ? (
           <>
             <span className="payIcon"><CircleX size={34} aria-hidden="true" /></span>
-            <h1>نتیجه دریافت نشد</h1>
-            <p>اتصال برقرار نشد. اینترنت را بررسی کن و صفحه را دوباره باز کن؛ پرداختت ثبت شده و از بین نمی‌رود.</p>
+            <h1>جواب بانک نرسید</h1>
+            <p>اینترنتت رو چک کن و صفحه رو دوباره باز کن؛ پرداختت ثبت شده و گم نمی‌شه.</p>
           </>
         ) : null}
 
-        {payment?.sandbox ? <p className="payTest"><FlaskConical size={15} aria-hidden="true" /> پرداخت آزمایشی؛ پولی جابه‌جا نشده است.</p> : null}
+        {payment?.sandbox ? <p className="payTest"><FlaskConical size={15} aria-hidden="true" /> پرداخت آزمایشی؛ پولی جابه‌جا نشده.</p> : null}
 
         {status !== "loading" && status !== "pending" ? (
           <>

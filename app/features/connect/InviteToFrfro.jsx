@@ -35,7 +35,7 @@ export function InviteToFrfro({ phone = "", clientName = "", category = "" }) {
       ) : null}
       <button type="button" className={smsHref ? "cnGhostBtn" : "cnInviteBtn"} onClick={share}>
         {smsHref ? null : <Share2 size={16} aria-hidden="true" />}
-        {smsHref ? "راه دیگر" : "دعوتش کن به فرفرو"}
+        {smsHref ? "یه راه دیگه" : "دعوتش کن به فرفرو"}
       </button>
     </div>
   );

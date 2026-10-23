@@ -14,8 +14,8 @@ import { useConnections } from "./useConnections";
 
 const NOT_FOUND = {
   phone: "این شماره هنوز در فرفرو نیست.",
-  link: "این لینک به سالن یا آرتیستی نمی‌رسد.",
-  name: "با این اسم سالن یا آرتیستی پیدا نشد."
+  link: "این لینک مال هیچ سالن یا آرتیستی نیست.",
+  name: "با این اسم کسی پیدا نشد."
 };
 
 /**
@@ -48,7 +48,7 @@ export function CategorySheet({ category, matches = [], hasConnections = false, 
       const picked = await pickContact();
       if (picked) setContact(picked);
     } catch {
-      onNotify?.("دسترسی به مخاطبین ممکن نشد؛ شماره را خودت بزن.");
+      onNotify?.("به مخاطب‌هات دسترسی نداریم؛ شماره رو خودت بزن.");
       setTyping(true);
     }
   }
@@ -71,10 +71,10 @@ export function CategorySheet({ category, matches = [], hasConnections = false, 
   }
 
   const subtitle = matches.length
-    ? "چند جا برای این کار داری؛ یکی را انتخاب کن."
+    ? "این کار رو چند جا انجام می‌دن؛ کدوم؟"
     : hasConnections
-      ? "سالن و آرتیست‌هایی که داری این خدمت را ندارند."
-      : "هنوز کسی را وصل نکرده‌ای.";
+      ? "سالن و آرتیست‌هات این کار رو ندارن."
+      : "هنوز کسی رو وصل نکردی.";
 
   return (
     <ConnectSheet
@@ -111,14 +111,14 @@ export function CategorySheet({ category, matches = [], hasConnections = false, 
           <div className="cnFindBlock">
             <p className="cnFindHint">
               {contacts
-                ? "سالن یا آرتیستی که همیشه پیشش می‌روی را از مخاطبین‌ات انتخاب کن، یا QR او را اسکن کن."
-                : "شمارهٔ سالن یا آرتیستی که می‌شناسی را بزن، یا QR او را اسکن کن."}
+                ? "سالن یا آرتیستی که همیشه پیشش می‌ری رو از مخاطب‌هات انتخاب کن، یا QRش رو اسکن کن."
+                : "شمارهٔ سالن یا آرتیستی که می‌شناسی رو بزن، یا QRش رو اسکن کن."}
             </p>
             <div className="cnScanRow">
               {contacts ? (
                 <button type="button" className="cnScanBtn is-dark" onClick={chooseContact}>
                   <span aria-hidden="true"><ContactRound size={20} /></span>
-                  <span><b>از مخاطبین</b><small>یکی را انتخاب کن</small></span>
+                  <span><b>از مخاطب‌ها</b><small>یکی رو انتخاب کن</small></span>
                 </button>
               ) : null}
               <button type="button" className={`cnScanBtn${contacts ? "" : " is-dark"}`} onClick={onScan}>
@@ -153,7 +153,7 @@ export function CategorySheet({ category, matches = [], hasConnections = false, 
                     enterKeyHint="search"
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
-                    placeholder="اسم، شماره یا لینک صفحه‌اش"
+                    placeholder="اسم، شماره یا لینک صفحه‌ش"
                     autoComplete="off"
                   />
                   {searching ? (
@@ -166,11 +166,11 @@ export function CategorySheet({ category, matches = [], hasConnections = false, 
                 {searching ? (
                   <section className="cnList" aria-live="polite" aria-label="نتیجه جستجو">
                     {search.status === "searching" ? <SkeletonList rows={1} variant="card" label="در حال جستجو" /> : null}
-                    {search.status === "error" ? <p className="cnNote" role="alert">{search.message || "جستجو انجام نشد؛ دوباره امتحان کن."}</p> : null}
+                    {search.status === "error" ? <p className="cnNote" role="alert">{search.message || "جستجو نشد؛ دوباره بزن."}</p> : null}
                     {search.status === "done" && search.results.length === 0 ? (
                       <div className="cnEmpty is-compact">
                         <b>{NOT_FOUND[search.by] || NOT_FOUND.name}</b>
-                        <p>اگر هنوز در فرفرو نیست، دعوتش کن؛ بعد از ثبت‌نام می‌توانی از او نوبت بگیری.</p>
+                        <p>اگه هنوز توی فرفرو نیست، دعوتش کن؛ که اومد، ازش نوبت می‌گیری.</p>
                         <InviteToFrfro phone={search.by === "phone" ? query : ""} clientName={clientName} category={category.label} />
                       </div>
                     ) : null}

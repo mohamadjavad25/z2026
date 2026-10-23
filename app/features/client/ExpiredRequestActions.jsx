@@ -17,7 +17,7 @@ import { canRetryExpired, repeatRequestBody, requestedOf } from "./expiredReques
  *    opens that place's booking form with the services, day and time already filled in.
  *  - «دوباره از همین سالن بپرس»: a fresh request for the same time, sent at once (the server checks it is still free
  *    and the client's limit on open requests).
- * Empty list: «هنوز جای دیگری وصل نکرده‌ای. شمارهٔ سالن یا آرتیست بعدی را بزن.» with the ways to connect.
+ * Empty list: «هنوز جای دیگه‌ای وصل نکردی. شمارهٔ یه سالن یا آرتیست دیگه رو بزن.» with the ways to connect.
  */
 export function ExpiredRequestActions({ booking, clientName = "", onNotify, onFindPlaces, onOpenPlace, onClosePanel }) {
   const [sheet, setSheet] = useState(false);
@@ -31,14 +31,14 @@ export function ExpiredRequestActions({ booking, clientName = "", onNotify, onFi
     try {
       const { ok, payload } = await createSalonBooking(repeatRequestBody(booking));
       if (ok) {
-        onNotify?.(`درخواست تازه برای ${place} ارسال شد.`);
+        onNotify?.(`درخواست تازه رفت برای ${place}.`);
         void refreshApp();
       } else {
         // The server's own words (limit on open requests, hour taken, salon closed …); the other button is still there.
-        onNotify?.(payload?.error || "درخواست ارسال نشد؛ دوباره امتحان کن.");
+        onNotify?.(payload?.error || "درخواست نرفت؛ دوباره بزن.");
       }
     } catch {
-      onNotify?.("درخواست ارسال نشد؛ اینترنتت را بررسی کن.");
+      onNotify?.("درخواست نرفت؛ اینترنتت رو یه نگاه بنداز.");
     } finally {
       setAsking(false);
     }
@@ -46,9 +46,9 @@ export function ExpiredRequestActions({ booking, clientName = "", onNotify, onFi
 
   return (
     <div className="erActions" role="group" aria-label={`راه بعدی برای ${shortServiceLabel(booking.service)}`}>
-      <button type="button" className="erPrimary" onClick={() => setSheet(true)}>همین نوبت را جای دیگر بگیر</button>
+      <button type="button" className="erPrimary" onClick={() => setSheet(true)}>همین نوبت رو جای دیگه بگیر</button>
       <button type="button" className="erSecondary" disabled={asking} onClick={askAgain}>
-        {asking ? "در حال ارسال…" : "دوباره از همین سالن بپرس"}
+        {asking ? "دارم می‌فرستم…" : "دوباره از همین سالن بپرس"}
       </button>
       {sheet ? (
         <PlacesSheet
@@ -82,12 +82,12 @@ function PlacesSheet({ booking, clientName, onClose, onNotify, onFindPlaces, onO
 
   const when = `${day ? formatRelativeBookingDayLabel(day) : ""} ${booking.time ? toPersianDigits(booking.time) : ""}`.trim();
   return (
-    <ProfileSheet open kicker="نوبت بی‌جواب" title="همین نوبت را جای دیگر بگیر" panelClassName="erSheet" onClose={onClose}>
+    <ProfileSheet open kicker="نوبت بی‌جواب" title="همین نوبت رو جای دیگه بگیر" panelClassName="erSheet" onClose={onClose}>
       <div className="erBody">
         <p className="erSummary">{shortServiceLabel(booking.service)}{when ? `، ${when}` : ""}</p>
-        {state.status === "loading" ? <p className="erInfo" role="status">در حال پیدا کردن جاهایی که این خدمت را دارند…</p> : null}
+        {state.status === "loading" ? <p className="erInfo" role="status">دارم جاهایی رو پیدا می‌کنم که این کار رو دارن…</p> : null}
         {state.status === "error" ? (
-          <p className="erInfo is-error" role="alert">فهرست بارگیری نشد؛ دوباره امتحان کن.</p>
+          <p className="erInfo is-error" role="alert">فهرست نیومد؛ دوباره بزن.</p>
         ) : null}
         {state.status === "ready" && state.places.length ? (
           <ul className="erPlaces" aria-label="جاهای وصل‌شده">
@@ -110,7 +110,7 @@ function PlacesSheet({ booking, clientName, onClose, onNotify, onFindPlaces, onO
         ) : null}
         {state.status === "ready" && !state.places.length ? (
           <div className="erEmpty">
-            <p role="status">هنوز جای دیگری وصل نکرده‌ای. شمارهٔ سالن یا آرتیست بعدی را بزن.</p>
+            <p role="status">هنوز جای دیگه‌ای وصل نکردی. شمارهٔ یه سالن یا آرتیست دیگه رو بزن.</p>
             <AddPlaceActions
               clientName={clientName}
               onNotify={onNotify}

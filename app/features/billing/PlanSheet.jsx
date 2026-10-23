@@ -13,13 +13,13 @@ import { goToGateway, rememberPendingPayment } from "./billingStore";
 function leadText(account, name = "") {
   const until = formatPersianLongDate(account?.accessEndsAt);
   if (name) {
-    if (account?.state === "trial") return `ماه رایگان ${name} تا ${until} ادامه دارد. پلنی که الان بخری از همان روز شروع می‌شود.`;
-    if (account?.state === "active") return `پلن تازه به آخر اشتراک فعلی ${name} (${until}) اضافه می‌شود.`;
-    return "پلن از همین امروز شروع می‌شود.";
+    if (account?.state === "trial") return `ماه رایگان ${name} تا ${until} هست. پلنی که الان بخری از همون روز شروع می‌شه.`;
+    if (account?.state === "active") return `پلن تازه به آخر اشتراک ${name} (${until}) اضافه می‌شه.`;
+    return "پلن از همین امروز شروع می‌شه.";
   }
-  if (account?.state === "trial") return `ماه رایگانت تا ${until} ادامه دارد. پلنی که الان بخری از همان روز شروع می‌شود.`;
-  if (account?.state === "active") return `پلن تازه به آخر اشتراک فعلی‌ات (${until}) اضافه می‌شود.`;
-  return "پلن از همین امروز شروع می‌شود.";
+  if (account?.state === "trial") return `ماه رایگانت تا ${until} هست. پلنی که الان بخری از همون روز شروع می‌شه.`;
+  if (account?.state === "active") return `پلن تازه به آخر اشتراکت (${until}) اضافه می‌شه.`;
+  return "پلن از همین امروز شروع می‌شه.";
 }
 
 /**
@@ -60,10 +60,10 @@ export function PlanSheet({ open, overview, forMember = null, onClose }) {
     try {
       result = await startBillingCheckout(plan.id, forMember?.id || null);
     } catch {
-      result = { ok: false, payload: { error: "اتصال برقرار نشد؛ اینترنت را بررسی کن و دوباره بزن." } };
+      result = { ok: false, payload: { error: "اینترنتت وصل نیست؛ یه نگاه بنداز و دوباره بزن." } };
     }
     if (!result.ok || !result.data?.redirect) {
-      setError(result.payload?.error || "شروع پرداخت انجام نشد؛ دوباره امتحان کن.");
+      setError(result.payload?.error || "نرفتیم سراغ بانک؛ دوباره بزن.");
       setBusy(false);
       return;
     }
@@ -76,13 +76,13 @@ export function PlanSheet({ open, overview, forMember = null, onClose }) {
     <ProfileSheet
       open={open}
       kicker={`اشتراک ${roleLabel}`}
-      title={forMember ? `پرداخت برای ${forMember.name}` : "انتخاب پلن"}
+      title={forMember ? `پرداخت برای ${forMember.name}` : "یه پلن انتخاب کن"}
       label={forMember ? `پرداخت اشتراک ${forMember.name}` : "انتخاب پلن اشتراک"}
       panelClassName="billSheet"
       onClose={busy ? () => {} : onClose}
     >
       <p className="billSheetLead">{forMember ? leadText(forMember.account, forMember.name) : leadText(overview?.account)}</p>
-      {forMember ? <p className="billTeamNote">اشتراک {forMember.name} تمدید می‌شود و رسید پیش تو می‌ماند. پرداخت برای آرتیست‌ها اختیاری است.</p> : null}
+      {forMember ? <p className="billTeamNote">اشتراک {forMember.name} تمدید می‌شه و رسیدش پیش تو می‌مونه. پرداخت برای آرتیست‌ها دلبخواهیه.</p> : null}
 
       <fieldset className="billPlans" disabled={busy}>
         <legend className="srOnly">پلن اشتراک</legend>
@@ -115,17 +115,17 @@ export function PlanSheet({ open, overview, forMember = null, onClose }) {
       ) : null}
 
       {overview?.sandbox ? (
-        <p className="billTestNote"><FlaskConical size={16} aria-hidden="true" /> درگاه آزمایشی است؛ هیچ پولی گرفته نمی‌شود.</p>
+        <p className="billTestNote"><FlaskConical size={16} aria-hidden="true" /> درگاه آزمایشیه؛ پولی کم نمی‌شه.</p>
       ) : null}
       {error ? <p className="billError" role="alert">{error}</p> : null}
 
-      <Button block icon={ShieldCheck} loading={busy} loadingLabel="در حال رفتن به درگاه بانک…" disabled={!plan || !ready} onClick={pay}>
-        {ready && plan ? `پرداخت ${formatTomanNumber(plan.amountToman)} تومان` : "پرداخت به‌زودی فعال می‌شود"}
+      <Button block icon={ShieldCheck} loading={busy} loadingLabel="داریم می‌ریم صفحهٔ بانک…" disabled={!plan || !ready} onClick={pay}>
+        {ready && plan ? `پرداخت ${formatTomanNumber(plan.amountToman)} تومان` : "پرداخت به‌زودی باز می‌شه"}
       </Button>
 
       <p className="billFine">
-        پرداخت در صفحهٔ امن بانک انجام می‌شود و فرفرو شمارهٔ کارتت را نمی‌بیند. تمدید خودکار نیست؛ هیچ مبلغی بدون اجازه‌ات کم نمی‌شود.
-        با پرداخت، <a href="/terms" target="_blank" rel="noreferrer">قوانین و مقررات</a> را می‌پذیری.
+        پرداخت توی صفحهٔ امن بانکه و فرفرو شمارهٔ کارتت رو نمی‌بینه. تمدید خودکار نداریم؛ بی‌اجازه‌ت پولی کم نمی‌شه.
+        با پرداخت، <a href="/terms" target="_blank" rel="noreferrer">قوانین و مقررات</a> رو قبول داری.
       </p>
     </ProfileSheet>
   );

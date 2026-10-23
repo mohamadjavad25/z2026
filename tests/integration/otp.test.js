@@ -40,7 +40,7 @@ describe("SMS codes", () => {
       const res = await createClient().post("/api/auth/otp/send", { phone: uniquePhone(), purpose: "register" });
       expect(res.status).toBe(429);
       expect(res.payload.code).toBe("otp_busy");
-      expect(res.payload.error).toBe("الان شلوغ است. با رمز وارد شو یا ۱۰ دقیقه بعد کد بگیر.");
+      expect(res.payload.error).toBe("الان شلوغه؛ با رمز وارد شو یا ۱۰ دقیقه دیگه کد بگیر.");
     } finally {
       await db.query("DELETE FROM rate_limit_hits WHERE key = $1", [marker]);
     }

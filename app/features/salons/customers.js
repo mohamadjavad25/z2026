@@ -101,7 +101,7 @@ export function buildBookingCustomers(bookings = [], followers = []) {
       if (!customer) {
         customer = {
           key: keys[0] || `follower:${follower.name}`,
-          name: follower.name || "مشتری جدید",
+          name: follower.name || "مشتری تازه",
           phone: follower.phone || "",
           avatar: follower.avatar || "",
           lastService: "",

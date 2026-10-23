@@ -21,7 +21,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 async function _GET(request) {
-  const auth = await requireUserRole(request, "artist", "فقط آرتیست.");
+  const auth = await requireUserRole(request, "artist", "این بخش مال آرتیست‌هاست.");
   if (!auth.ok) return auth.response;
   const userId = auth.user.id;
   await sweepExpiredBookingRequestsIfDue();
@@ -45,7 +45,7 @@ async function _GET(request) {
 }
 
 async function _POST(request) {
-  const auth = await requireUserRole(request, "artist", "فقط آرتیست.");
+  const auth = await requireUserRole(request, "artist", "این بخش مال آرتیست‌هاست.");
   if (!auth.ok) return auth.response;
   const body = await readObjectBody(request);
   if (body.kind === "booking") {
@@ -54,7 +54,7 @@ async function _POST(request) {
     const slot = readBookingSlot(body.bookingDate || body.booking_date || body.date || "", body.time ?? "");
     if (!slot.ok) return error(slot.error, slot.status);
     const length = parseRequestedMinutes(body);
-    if (!length.ok) return error(`مدت نوبت نامعتبر است؛ یک عدد صحیح (دقیقه) بنویس.`, 400);
+    if (!length.ok) return error(`مدت نوبت رو با عدد و به دقیقه بنویس.`, 400);
     const result = await artists.addArtistBooking(auth.user.id, {
       ...body, bookingDate: slot.dateKey, booking_date: undefined, date: undefined, time: slot.time,
       durationMinutes: length.minutes, duration_minutes: undefined, status: "تایید"
@@ -82,14 +82,14 @@ async function _POST(request) {
   }
   if (body.kind === "collab") {
     const limited = await checkRateLimit(`artist-collab:${auth.user.id}`, 10, 60_000);
-    if (!limited.ok) return error("درخواست‌های زیاد. کمی صبر کن.", 429);
+    if (!limited.ok) return error("یه کم زیاد زدی؛ چند لحظه صبر کن.", 429);
     const result = await artists.addArtistCollab(auth.user.id, body);
     if (!result.ok) {
       return json({ error: result.error, code: result.code }, { status: result.code === "SALON_NOT_FOUND" ? 404 : 400 });
     }
     notifyConnection(result.collab.salonId, {
       title: "پیشنهاد همکاری تازه",
-      body: `${auth.user.name || "یک آرتیست"} می‌خواهد با سالنت همکاری کند.`,
+      body: `${auth.user.name || "یه آرتیست"} می‌خواد با سالنت کار کنه.`,
       url: "/"
     });
     return json({ data: { collab: result.collab } }, { status: 201 });
@@ -97,14 +97,14 @@ async function _POST(request) {
   const problem = serviceFieldsProblem(body);
   if (problem) return error(problem, 400);
   // A service without a name can't be booked and would only use up one of the 100 places.
-  if (typeof body.name !== "string" || !body.name.trim()) return error("نام خدمت را بنویس.", 400);
+  if (typeof body.name !== "string" || !body.name.trim()) return error("اسم کار رو بنویس.", 400);
   const service = await artists.addArtistService(auth.user.id, body);
   if (service?.limit) return json({ error: SERVICE_LIMIT_MESSAGE, code: "SERVICE_LIMIT" }, { status: 409 });
   return json({ data: { service } }, { status: 201 });
 }
 
 async function _PATCH(request) {
-  const auth = await requireUserRole(request, "artist", "فقط آرتیست.");
+  const auth = await requireUserRole(request, "artist", "این بخش مال آرتیست‌هاست.");
   if (!auth.ok) return auth.response;
   const body = await readObjectBody(request);
   if (body.kind === "booking") {
@@ -137,14 +137,14 @@ async function _PATCH(request) {
  */
 async function patchOwnArtistBooking(artistUserId, body, artistName = "") {
   const bookingId = Number(body.id);
-  if (!bookingId) return error("شناسه نوبت نامعتبر است.", 400);
+  if (!bookingId) return error("این نوبت رو پیدا نکردیم.", 400);
   const current = await artists.getArtistBookingById(bookingId);
   if (!current || Number(current.artistUserId) !== Number(artistUserId)) return notFound();
 
   const wantsCancel = body.status === "لغو" || body.action === "cancel";
   const nextStatus = wantsCancel ? "لغو" : body.status;
   if (nextStatus !== "تایید شده" && nextStatus !== "لغو") {
-    return error("وضعیت نامعتبر است.", 400);
+    return error("این جواب رو نفهمیدیم؛ دوباره بزن.", 400);
   }
 
   // An already-expired request (bookingExpirySweep.js) is a dead end by
@@ -153,7 +153,7 @@ async function patchOwnArtistBooking(artistUserId, body, artistName = "") {
   // life. Matches the salon-side guard added in patchSalonBookingWithArtistSync's
   // caller for the same "منقضی شده" resurrection hole.
   if (current.status === "منقضی شده") {
-    return error("این درخواست به‌دلیل عدم پاسخ به‌موقع منقضی شده و دیگر قابل تایید یا رد نیست.", 409);
+    return error("وقت جواب دادن به این درخواست تموم شده.", 409);
   }
 
   // The answer is applied under the same locks the booking paths use (salon's day first, then the
@@ -177,30 +177,30 @@ async function patchOwnArtistBooking(artistUserId, body, artistName = "") {
     if (nextStatus === "تایید شده" && locked.salon_booking_id) {
       const visit = await get(db, "SELECT status FROM salon_bookings WHERE id = $1", [locked.salon_booking_id]);
       if (visit && ["درخواست", AWAITING_CLIENT].includes(visit.status)) {
-        refusal = error("این نوبت بخشی از رزرو چندخدمتی است؛ تأیید نهایی‌اش را سالن می‌دهد.", 409);
+        refusal = error("این نوبت بخشی از یه نوبت چندکاره‌ست؛ تأییدش با سالنه.", 409);
         return;
       }
     }
     if (locked.status === "منقضی شده") {
-      refusal = error("این درخواست به‌دلیل عدم پاسخ به‌موقع منقضی شده و دیگر قابل تایید یا رد نیست.", 409);
+      refusal = error("وقت جواب دادن به این درخواست تموم شده.", 409);
       return;
     }
     // A request can be answered only while it is alive: its window has not run out (decided now, not when the sweep
     // gets there) and its appointment has not started.
     const isRequestRow = (locked.status === "تازه" && !locked.source_salon_user_id) || (locked.status === "درخواست" && locked.source_salon_user_id);
     if (nextStatus === "تایید شده" && isRequestRow && (locked.lapsed || isSlotInPast(locked.booking_date, locked.time))) {
-      refusal = json({ error: "مهلت این درخواست تمام شده و دیگر قابل تایید نیست.", code: "BOOKING_EXPIRED" }, { status: 409 });
+      refusal = json({ error: "وقت جواب دادن به این درخواست تموم شده.", code: "BOOKING_EXPIRED" }, { status: 409 });
       return;
     }
     if (locked.status === "لغو" && nextStatus === "تایید شده") {
-      refusal = error("این نوبت لغو شده و دیگر قابل تایید نیست.", 409);
+      refusal = error("این نوبت لغو شده و دیگه تأیید نمی‌شه.", 409);
       return;
     }
     if (
       nextStatus === "تایید شده"
       && await artists.isArtistSlotBlocked(artistUserId, current.bookingDate, current.time, current.durationMinutes, bookingId, db)
     ) {
-      refusal = error("این بازه زمانی توسط نوبت دیگری اشغال شده است.", 409);
+      refusal = error("این ساعت با یه نوبت دیگه‌ت پر شده.", 409);
       return;
     }
     // A salon-assigned appointment (source_salon_user_id) is only a mirror of the salon's own
@@ -231,11 +231,11 @@ async function patchOwnArtistBooking(artistUserId, body, artistName = "") {
     });
   }
 
-  const answerWord = nextStatus === "تایید شده" ? "تایید کرد" : "لغو کرد";
+  const answerWord = nextStatus === "تایید شده" ? "تأیید کرد" : "لغو کرد";
   if (salonBooking && salonBooking.salon_user_id) {
     void sendPushToUser(Number(salonBooking.salon_user_id), {
-      title: nextStatus === "تایید شده" ? "نوبت توسط آرتیست تایید شد" : "نوبت توسط آرتیست لغو شد",
-      body: `${current.client || "مشتری"} — ${current.service || "نوبت"}: آرتیست ${answerWord}.`
+      title: nextStatus === "تایید شده" ? "آرتیست نوبت رو تأیید کرد" : "آرتیست نوبت رو لغو کرد",
+      body: `${current.client || "مشتری"}، ${current.service || "نوبت"}: آرتیست ${answerWord}.`
     });
   }
 
@@ -253,8 +253,8 @@ async function patchOwnArtistBooking(artistUserId, body, artistName = "") {
     });
   } else if (current.clientUserId) {
     const push = sendPushToUser(Number(current.clientUserId), {
-      title: nextStatus === "تایید شده" ? "نوبت شما تایید شد" : "نوبت شما لغو شد",
-      body: `${current.service || "نوبت"} — ${bookingWhen(current.bookingDate, current.time)}`
+      title: nextStatus === "تایید شده" ? "نوبتت تأیید شد" : "نوبتت لغو شد",
+      body: `${current.service || "نوبت"}، ${bookingWhen(current.bookingDate, current.time)}`
     }).catch(() => null);
     smsBookingAnswer(Number(current.clientUserId), {
       providerName: artistName,
@@ -274,7 +274,7 @@ async function patchOwnArtistBooking(artistUserId, body, artistName = "") {
 }
 
 async function _DELETE(request) {
-  const auth = await requireUserRole(request, "artist", "فقط آرتیست.");
+  const auth = await requireUserRole(request, "artist", "این بخش مال آرتیست‌هاست.");
   if (!auth.ok) return auth.response;
   const body = await readObjectBody(request);
   if (body.kind === "collab") {

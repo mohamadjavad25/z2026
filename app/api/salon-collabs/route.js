@@ -9,7 +9,7 @@ export const runtime = "nodejs";
 
 function requireSalon(user) {
   if (user.type !== "salon") {
-    return NextResponse.json({ error: "فقط سالن." }, { status: 403 });
+    return NextResponse.json({ error: "این بخش مال سالن‌هاست." }, { status: 403 });
   }
   return null;
 }
@@ -47,10 +47,10 @@ async function _PATCH(request) {
     : null;
   if (body.status === "تایید شد" || body.status === "رد شد") {
     notifyConnection(collab?.artistId, {
-      title: body.status === "تایید شد" ? "پیشنهادت پذیرفته شد" : "پیشنهادت رد شد",
+      title: body.status === "تایید شد" ? "سالن پیشنهادت رو قبول کرد" : "سالن فعلاً پیشنهادت رو نخواست",
       body: body.status === "تایید شد"
-        ? `${auth.user.name || "سالن"} پیشنهاد همکاری‌ات را پذیرفت و حالا عضو تیم هستی.`
-        : `${auth.user.name || "سالن"} پیشنهاد همکاری‌ات را نپذیرفت.`,
+        ? `${auth.user.name || "سالن"} پیشنهادت رو قبول کرد؛ حالا توی تیمشی.`
+        : `${auth.user.name || "سالن"} فعلاً پیشنهادت رو نخواست.`,
       url: "/"
     });
   }

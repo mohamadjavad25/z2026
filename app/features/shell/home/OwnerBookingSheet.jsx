@@ -82,7 +82,7 @@ export function OwnerBookingSheet() {
       key={`${role}-${services.length ? "ready" : "loading"}`}
       open
       role={role}
-      title="ایجاد رزرو"
+      title="نوبت تازه"
       services={services}
       days={days}
       initial={{ name: bookingPrefill?.client || "", phone: bookingPrefill?.phone || "" }}

@@ -17,11 +17,11 @@ async function _POST(request) {
   await ensureDb();
   const auth = await requireUser(request);
   if (!auth.ok) return auth.response;
-  if (!POST_AUTHOR_TYPES.includes(auth.user.type)) return error("فقط آرتیست‌ها و سالن‌ها می‌توانند نمونه‌کار منتشر کنند.", 403);
+  if (!POST_AUTHOR_TYPES.includes(auth.user.type)) return error("نمونه‌کار رو سالن‌ها و آرتیست‌ها می‌ذارن.", 403);
   const limited = await limitPostWrites(auth.user.id);
   if (limited) return limited;
   const body = await readJson(request);
-  if (!body) return error("درخواست نامعتبر است.", 400);
+  if (!body) return error("درخواست درست نرسید؛ دوباره بزن.", 400);
   const invalid = validatePostBody(body, { creating: true });
   if (invalid) return invalid;
   const post = await posts.createPost(auth.user.id, body, null, { defer: (fn) => after(fn) });

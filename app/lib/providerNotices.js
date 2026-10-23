@@ -24,7 +24,7 @@ export function noticeClientCancelledByProvider(clientUserId, { provider, bookin
   if (!clientUserId) return;
   const type = provider?.type === "artist" ? "artist" : "salon";
   const body = gone
-    ? `${providerLabel(type, provider?.name)} دیگر در فرفرو نیست و نوبتت (${booking.service || "نوبت"}) لغو شد. می‌توانی از فرفرو نوبت دیگری بگیری.`
+    ? `${providerLabel(type, provider?.name)} دیگه توی فرفرو نیست و نوبتت (${booking.service || "نوبت"}) لغو شد. می‌تونی یه جای دیگه نوبت بگیری.`
     : cancelledByProviderText(type, provider?.name);
   void quiet(sendPushToUser(Number(clientUserId), { title: gone ? (type === "artist" ? ARTIST_GONE_TEXT : SALON_GONE_TEXT) : "نوبتت لغو شد", body, url: "/" }));
   smsBookingCancelledByProvider(Number(clientUserId), {
@@ -45,7 +45,7 @@ export function noticeClientTimeProposal(clientUserId, { provider, booking, toDa
   const to = sameDay ? shortClock(toTime) : `${smsDayLabel(toDate)} ${shortClock(toTime)}`;
   void quiet(sendPushToUser(Number(clientUserId), {
     title: "پیشنهاد ساعت تازه برای نوبتت",
-    body: `${timeProposalText(type, provider?.name, from, to)} تا جواب ندهی، ساعت قبلی سر جایش است.`,
+    body: `${timeProposalText(type, provider?.name, from, to)} تا جواب ندی، ساعت قبلی سر جاشه.`,
     url: "/"
   }));
   smsBookingProposal(Number(clientUserId), {
@@ -62,8 +62,8 @@ export function noticeClientHandoverProposal(clientUserId, { provider, booking, 
   if (!clientUserId) return;
   const type = provider?.type === "artist" ? "artist" : "salon";
   void quiet(sendPushToUser(Number(clientUserId), {
-    title: "پیشنهاد آرتیست دیگر برای نوبتت",
-    body: `${handoverProposalText(type, provider?.name, fromStaff, toStaff)} تا جواب ندهی، همه‌چیز سر جایش است.`,
+    title: "پیشنهاد آرتیست دیگه برای نوبتت",
+    body: `${handoverProposalText(type, provider?.name, fromStaff, toStaff)} تا جواب ندی، همه‌چی سر جاشه.`,
     url: "/"
   }));
   smsBookingProposal(Number(clientUserId), {
@@ -79,8 +79,8 @@ export function noticeClientHandoverProposal(clientUserId, { provider, booking, 
 export function noticeProviderProposalAnswer(providerUserId, { accepted, booking, clientName, what = "ساعت" }) {
   if (!providerUserId) return;
   void quiet(sendPushToUser(Number(providerUserId), {
-    title: accepted ? `مشتری ${what} تازه را قبول کرد` : "مشتری نوبت را لغو کرد",
-    body: `${clientName || "مشتری"} — ${booking.service || "نوبت"}${accepted ? "" : ": پیشنهاد را نپذیرفت و نوبت را لغو کرد."}`.trim(),
+    title: accepted ? `مشتری ${what} تازه رو قبول کرد` : "مشتری نوبت رو لغو کرد",
+    body: `${clientName || "مشتری"}، ${booking.service || "نوبت"}${accepted ? "" : ": پیشنهادت رو نخواست و نوبت لغو شد."}`.trim(),
     url: "/"
   }));
 }
@@ -90,14 +90,14 @@ export function noticeProposalLapsed({ providerUserId, clientUserId, booking, cl
   if (providerUserId) {
     void quiet(sendPushToUser(Number(providerUserId), {
       title: "مشتری به پیشنهاد جواب نداد",
-      body: `${clientName || "مشتری"} — ${booking.service || "نوبت"}: ساعت و آرتیست قبلی سر جایش است. با مشتری تماس بگیر.`,
+      body: `${clientName || "مشتری"}، ${booking.service || "نوبت"}: ساعت و آرتیست قبلی سر جاشه. بهش زنگ بزن.`,
       url: "/"
     }));
   }
   if (clientUserId) {
     void quiet(sendPushToUser(Number(clientUserId), {
-      title: "پیشنهاد منقضی شد",
-      body: `${booking.service || "نوبت"} — به پیشنهاد تازه جواب ندادی؛ نوبت قبلی‌ات همان‌طور که بود سر جایش است.`,
+      title: "وقت جواب دادن تموم شد",
+      body: `${booking.service || "نوبت"}: به پیشنهاد جواب ندادی؛ نوبت قبلیت سر جاشه.`,
       url: "/"
     }));
   }

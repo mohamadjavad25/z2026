@@ -68,7 +68,7 @@ function InviteTermsPanel({ terms, onChange, onConfirm, onCancel, busy }) {
         </button>
         <button type="button" className="artistInviteSend" disabled={busy} onClick={onConfirm}>
           <Send size={14} aria-hidden="true" />
-          {busy ? "..." : "ارسال دعوت"}
+          {busy ? "…" : "دعوتش کن"}
         </button>
       </div>
     </div>
@@ -146,7 +146,7 @@ export function SalonNearbyInviteSheet({
     if (!joinUrl) return;
     if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
       try {
-        await navigator.share({ title: salonName, text: `برای پیوستن به تیم «${salonName}» در frfro این لینک را باز کن:`, url: joinUrl });
+        await navigator.share({ title: salonName, text: `برای اومدن به تیم «${salonName}» توی فرفرو این لینک رو باز کن:`, url: joinUrl });
         return;
       } catch (error) {
         if (error?.name === "AbortError") return;
@@ -159,15 +159,15 @@ export function SalonNearbyInviteSheet({
     <ProfileSheet
       open={open}
       kicker="پرسنل"
-      title="افزودن آرتیست"
-      label="افزودن آرتیست به تیم"
+      title="آرتیست بیار"
+      label="آرتیست بیار توی تیم"
       panelClassName="artistInviteSheet"
       onClose={onClose}
     >
       {salonId ? (
-        <section className="ivtHero" aria-label="پیوستن با کد QR">
+        <section className="ivtHero" aria-label="اومدن به تیم با QR">
           <p className="ivtEyebrow">سریع‌ترین راه</p>
-          <h4 className="ivtTitle">با یک اسکن، آرتیست وارد تیم می‌شود</h4>
+          <h4 className="ivtTitle">یه اسکن، آرتیست میاد توی تیم</h4>
           <div className="ivtScan">
             <span className="ivtCorner is-tl" aria-hidden="true" />
             <span className="ivtCorner is-tr" aria-hidden="true" />
@@ -177,11 +177,11 @@ export function SalonNearbyInviteSheet({
               {qrDataUrl ? <img src={qrDataUrl} alt={`کد پیوستن به تیم ${salonName}`} /> : <span className="ivtQrWait"><Spinner size={44} /></span>}
             </div>
           </div>
-          <p className="ivtHint">کد را به آرتیست نشان بده، یا لینک را برایش بفرست.</p>
+          <p className="ivtHint">کد رو به آرتیست نشون بده، یا لینک رو براش بفرست.</p>
           <div className="ivtActions">
             <button type="button" className="ivtShare" onClick={shareJoinLink}>
               <Share2 size={17} aria-hidden="true" />
-              ارسال لینک
+              لینک رو بفرست
             </button>
             <button type="button" className={`ivtCopyBtn ${copied ? "is-done" : ""}`} onClick={copyJoinLink} aria-label={copied ? "کپی شد" : "کپی لینک"}>
               {copied ? <Check size={18} aria-hidden="true" /> : <Copy size={18} aria-hidden="true" />}
@@ -201,7 +201,7 @@ export function SalonNearbyInviteSheet({
       {loading ? (
         <div className="ivtEmpty">
           <span className="ivtEmptyIcon" aria-hidden="true"><MapPin size={22} /></span>
-          <b>در حال پیدا کردن آرتیست‌های اطراف…</b>
+          <b>دارم آرتیست‌های دور و بر رو پیدا می‌کنم…</b>
         </div>
       ) : artists.length ? (
         <div className="ivtList" aria-label="لیست آرتیست‌های نزدیک">
@@ -251,7 +251,7 @@ export function SalonNearbyInviteSheet({
         <ComingSoon
           className="ivtSoon"
           title="پیشنهاد آرتیست‌های نزدیک"
-          text="به‌زودی آرتیست‌های مناسب اطراف سالنت را اینجا می‌بینی. تا آن موقع، کد یا لینک بالا را برای آرتیستی که می‌شناسی بفرست."
+          text="به‌زودی آرتیست‌های دور و بر سالنت رو اینجا می‌بینی. تا اون موقع، کد یا لینک بالا رو برای آرتیستی که می‌شناسی بفرست."
         />
       )}
     </ProfileSheet>

@@ -48,7 +48,7 @@ describe("angle3a: slot hoarding", () => {
     const refused = results.find((r) => r.status !== 201);
     expect(refused.status).toBe(409);
     expect(refused.payload.code).toBe("TOO_MANY_OPEN_REQUESTS");
-    expect(refused.payload.error).toContain("اول یکی از درخواست‌های قبلی را لغو کن یا منتظر جواب بمان");
+    expect(refused.payload.error).toContain("چند تا درخواست منتظر جواب داری");
   });
 
   it("the per-client booking rate limit exists (20/min) but is per account, so throwaway accounts multiply it", async () => {

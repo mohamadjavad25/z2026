@@ -17,8 +17,8 @@ export function PublicArtistServicesPanel({
       {safeServices.length === 0 ? (
         <div className="artistPublicServiceEmpty" role="status">
           <ServiceIconStrip size="md" />
-          <b>هنوز خدمتی ثبت نشده</b>
-          <span>این آرتیست فعلاً خدمتی برای رزرو آنلاین اضافه نکرده؛ بعداً سر بزن.</span>
+          <b>هنوز خدمتی نذاشته</b>
+          <span>فعلاً خدمتی برای نوبت گرفتن نذاشته؛ بعداً یه سر بزن.</span>
         </div>
       ) : (
         <div className="spvServiceList">
@@ -34,7 +34,7 @@ export function PublicArtistServicesPanel({
                 <ServiceIcon emoji={service.emoji} name={service.name} size="md" />
                 <span className="spvServiceBody">
                   <b>{service.name}</b>
-                  <small>{service.duration || "زمان متغیر"}</small>
+                  <small>{service.duration || "مدتش فرق می‌کنه"}</small>
                 </span>
                 <span className="spvServicePrice">
                   {amount ? <><b>{formatTomanNumber(amount)}</b><em>تومان</em></> : <em>قیمت توافقی</em>}

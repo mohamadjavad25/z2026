@@ -71,7 +71,7 @@ export function SalonHoursEditor({
         <Timer size={16} aria-hidden="true" />
         <div>
           <strong>ساعت کاری</strong>
-          <span>قالب بزن، بعد هر روز را با یک لمس تنظیم کن</span>
+          <span>یه قالب بزن، بعد هر روز رو با یه ضربه درست کن</span>
         </div>
         <em className="settingsSalonHoursSummary">
           {toPersianDigits(openDaysCount)} روز باز
@@ -143,7 +143,7 @@ export function SalonHoursEditor({
                 <div className="hoursDayEditorTop">
                   <div>
                     <strong>{selectedHour.day}</strong>
-                    <span>{selectedHour.active ? "برای این روز وقت می‌گیری" : "این روز تعطیل است"}</span>
+                    <span>{selectedHour.active ? "این روز نوبت می‌گیری" : "این روز تعطیله"}</span>
                   </div>
                   <label className="neoSettingsSwitch hoursOpenToggle" data-on={Boolean(selectedHour.active)}>
                     <input
@@ -187,7 +187,7 @@ export function SalonHoursEditor({
                           idPrefix={`salon-hour-open-${selectedHour.day}`}
                         />
                       </div>
-                      <em>{isInvalidRange ? "نامعتبر" : `${toPersianDigits(durationMinutes)} دقیقه`}</em>
+                      <em>{isInvalidRange ? "درست نیست" : `${toPersianDigits(durationMinutes)} دقیقه`}</em>
                       <div>
                         <span>تا ساعت</span>
                         <BreakTimeWheel
@@ -208,7 +208,7 @@ export function SalonHoursEditor({
                         onClick={() => onCopyToOpenDays?.(selectedHour)}
                       >
                         <CopyCheck size={14} />
-                        اعمال همین ساعت به {toPersianDigits(otherOpenDaysCount)} روز باز دیگر
+                        همین ساعت برای {toPersianDigits(otherOpenDaysCount)} روز باز دیگه
                       </button>
                     ) : null}
                     <div className="hoursCapacityControl settingsHoursCapacityControl">
@@ -238,7 +238,7 @@ export function SalonHoursEditor({
                     </div>
                   </>
                 ) : (
-                  <p className="hoursDayClosedNote">برای باز کردن این روز، کلید بالا را بزن.</p>
+                  <p className="hoursDayClosedNote">برای باز کردن این روز، کلید بالا رو بزن.</p>
                 )}
               </div>
             ) : null}

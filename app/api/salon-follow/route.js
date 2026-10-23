@@ -12,10 +12,10 @@ async function _POST(request) {
   if (!auth.ok) return auth.response;
   const body = await request.json();
   const salonUserId = Number(body.salonUserId || body.salonId);
-  if (!salonUserId) return NextResponse.json({ error: "سالن نامعتبر است." }, { status: 400 });
+  if (!salonUserId) return NextResponse.json({ error: "این سالن رو پیدا نکردیم." }, { status: 400 });
   const target = await getUserLiteById(salonUserId);
   if (!target || target.type !== "salon") return NextResponse.json({ error: "سالن پیدا نشد." }, { status: 404 });
-  if (salonUserId === auth.user.id) return NextResponse.json({ error: "نمی‌توانی خودت را دنبال کنی." }, { status: 400 });
+  if (salonUserId === auth.user.id) return NextResponse.json({ error: "نمی‌تونی به خودت وصل شی." }, { status: 400 });
   const follow = body.follow !== false;
   const result = await salons.setSalonFollow(salonUserId, auth.user.id, follow);
   return NextResponse.json({ data: result });

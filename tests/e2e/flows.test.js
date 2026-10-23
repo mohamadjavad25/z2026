@@ -46,7 +46,7 @@ describe("auth forms (browser)", () => {
     const { page, context, problems } = await newPage();
     await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
     await page.getByText("سالن", { exact: true }).first().click();
-    await page.getByRole("button", { name: "تکمیل ثبت‌نام" }).click();
+    await page.getByRole("button", { name: "بساز" }).click();
     const alerts = (await page.locator("[role=alert]").allInnerTexts()).filter(Boolean);
     // name, phone, password, terms: signup is intentionally short
     expect(alerts.length).toBeGreaterThanOrEqual(4);
@@ -795,16 +795,16 @@ describe("SMS code at sign-up (browser)", () => {
     expect(await page.locator("[name=agreeTerms]").count()).toBe(0);
     await page.getByText("با ادامه دادن،").waitFor();
     await page.fill("[name=phone]", "0912");
-    await page.getByRole("button", { name: "دریافت کد" }).click();
+    await page.getByRole("button", { name: "کد بفرست" }).click();
     await page.getByRole("alert").filter({ hasText: "شماره درست نیست؛ مثلاً" }).waitFor();
     await page.fill("[name=phone]", phone);
-    await page.getByRole("button", { name: "دریافت کد" }).click();
+    await page.getByRole("button", { name: "کد بفرست" }).click();
     await page.locator("[name=otpCode]").waitFor();
     await page.getByRole("button", { name: "تغییر شماره" }).waitFor();
     // wrong code first: red field, Persian error, how many tries are left, still on the code step
     await page.fill("[name=otpCode]", "00000");
     await page.getByRole("button", { name: "تأیید", exact: true }).click();
-    await page.getByRole("alert").filter({ hasText: "کد اشتباه است. دوباره بزن" }).waitFor();
+    await page.getByRole("alert").filter({ hasText: "کد اشتباهه؛ دوباره بزن" }).waitFor();
     await page.getByText("بار دیگر می‌توانی امتحان کنی").waitFor();
     // the real code
     let code = null;
@@ -819,7 +819,7 @@ describe("SMS code at sign-up (browser)", () => {
     await page.fill("[name=name]", "مشتری کدی");
     await page.getByRole("button", { name: "ادامه", exact: true }).click();
     await page.fill("[name=password]", "testpass123");
-    await page.getByRole("button", { name: "ساخت حساب" }).click();
+    await page.getByRole("button", { name: "بساز" }).click();
     await page.locator("nav.bottomNav").waitFor();
     const me = await page.evaluate(async () => (await (await fetch("/api/auth/me")).json()).data.user?.phone);
     expect(me).toBe(phone);

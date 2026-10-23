@@ -34,11 +34,11 @@ export function PaymentResultSheet({ open, paymentId, onClose, onRetry }) {
     try {
       result = await getBillingPayment(asked);
     } catch {
-      result = { ok: false, payload: { error: "اتصال برقرار نشد؛ اینترنت را بررسی کن." } };
+      result = { ok: false, payload: { error: "اینترنتت وصل نیست؛ یه نگاه بنداز و دوباره بزن." } };
     }
     if (watching.current !== asked) return;
     if (!result.ok) {
-      setError(result.payload?.error || "نتیجهٔ پرداخت دریافت نشد.");
+      setError(result.payload?.error || "جواب پرداخت نیومد؛ دوباره بزن.");
       return;
     }
     setError("");
@@ -80,29 +80,29 @@ export function PaymentResultSheet({ open, paymentId, onClose, onRetry }) {
       {error && !payment ? (
         <div className="billResult is-bad">
           <span className="billResultIcon"><CircleX size={30} aria-hidden="true" /></span>
-          <b>نتیجه دریافت نشد</b>
+          <b>جواب نیومد</b>
           <p role="alert">{error}</p>
-          <Button variant="secondary" icon={RefreshCw} onClick={checkAgain}>دوباره بررسی کن</Button>
+          <Button variant="secondary" icon={RefreshCw} onClick={checkAgain}>دوباره چک کن</Button>
         </div>
       ) : null}
 
       {!error && status === "loading" ? (
         <div className="billResult is-wait" aria-busy="true">
           <span className="billResultIcon"><Spinner size={30} /></span>
-          <b>در حال دریافت نتیجه…</b>
+          <b>دارم جواب رو می‌گیرم…</b>
         </div>
       ) : null}
 
       {status === "pending" ? (
         <div className="billResult is-wait" role="status">
           <span className="billResultIcon"><Spinner size={30} /></span>
-          <b>{waitedOut ? "نتیجه هنوز از بانک نیامده" : "در حال تأیید پرداخت…"}</b>
+          <b>{waitedOut ? "بانک هنوز جواب نداده" : "دارم پرداخت رو چک می‌کنم…"}</b>
           <p>
             {waitedOut
-              ? "اگر پرداخت را کامل کردی و پولی کم شده، نگران نباش: به‌محض اینکه بانک تأیید کند، اشتراک خودکار فعال می‌شود. اگر پرداخت را نیمه‌کاره رها کردی، این صفحه را ببند؛ چیزی از حسابت کم نشده."
-              : "چند ثانیه صبر کن؛ نتیجه از بانک پرسیده می‌شود. اگر پرداخت را کامل نکردی، می‌توانی این صفحه را ببندی."}
+              ? "اگه پرداخت رو کامل کردی و پولی کم شده، نگران نباش: همین که بانک تأیید کنه، اشتراکت خودش فعال می‌شه. اگه نیمه‌کاره ولش کردی، این صفحه رو ببند؛ چیزی از حسابت کم نشده."
+              : "چند ثانیه صبر کن؛ داریم از بانک می‌پرسیم. اگه پرداخت رو کامل نکردی، می‌تونی این صفحه رو ببندی."}
           </p>
-          {waitedOut ? <Button variant="secondary" icon={RefreshCw} onClick={checkAgain}>دوباره بررسی کن</Button> : null}
+          {waitedOut ? <Button variant="secondary" icon={RefreshCw} onClick={checkAgain}>دوباره چک کن</Button> : null}
         </div>
       ) : null}
 
@@ -111,12 +111,12 @@ export function PaymentResultSheet({ open, paymentId, onClose, onRetry }) {
           <div className="billResult is-ok" role="status">
             <span className="billResultIcon"><CircleCheck size={30} aria-hidden="true" /></span>
             <b>{payment.paidFor ? `اشتراک ${payment.paidFor} فعال شد` : "اشتراکت فعال شد"}</b>
-            <p>تا {formatPersianLongDate(payment.periodEnd)}. رسید در «پرداخت‌های من» هم می‌ماند.</p>
+            <p>تا {formatPersianLongDate(payment.periodEnd)}. رسیدش توی «پرداخت‌هام» هم هست.</p>
           </div>
           <ReceiptDetails payment={payment} />
           <div className="billSheetActions">
             <CopyReceiptButton payment={payment} />
-            <Button onClick={onClose}>عالی، بستن</Button>
+            <Button onClick={onClose}>عالی!</Button>
           </div>
         </>
       ) : null}
@@ -125,12 +125,12 @@ export function PaymentResultSheet({ open, paymentId, onClose, onRetry }) {
         <>
           <div className="billResult is-bad" role="alert">
             <span className="billResultIcon"><CircleX size={30} aria-hidden="true" /></span>
-            <b>پرداخت انجام نشد</b>
-            <p>{payment.failure || "پرداخت کامل نشد."} اگر پولی از حسابت کم شده، بانک آن را خودکار برمی‌گرداند (معمولاً تا ۷۲ ساعت).</p>
+            <b>پرداخت نشد</b>
+            <p>{payment.failure || "پرداخت کامل نشد."} اگه پولی از حسابت کم شده، بانک خودش برش می‌گردونه (معمولاً تا ۷۲ ساعت).</p>
           </div>
           <div className="billSheetActions">
             <Button variant="secondary" onClick={onClose}>بستن</Button>
-            <Button onClick={() => onRetry(payment.paidForUserId || null)}>دوباره امتحان کن</Button>
+            <Button onClick={() => onRetry(payment.paidForUserId || null)}>دوباره بزن</Button>
           </div>
         </>
       ) : null}

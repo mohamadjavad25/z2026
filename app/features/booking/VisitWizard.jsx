@@ -10,11 +10,11 @@ import { MAX_VISIT_SERVICES, clockText, visitSummaryText } from "./visitBookerMo
 const STEPS = ["who", "services", "day", "time", "confirm"];
 
 const COPY = {
-  who: { title: "مشتری کیست؟", hint: "" },
-  services: { title: "چه خدمتی انجام می‌شود؟", hint: "یک یا چند خدمت؛ به همان ترتیبی که انتخاب می‌کنی انجام می‌شوند." },
-  day: { title: "کدام روز؟", hint: "" },
+  who: { title: "نوبت برای کیه؟", hint: "" },
+  services: { title: "چه کاری؟", hint: "یکی یا چندتا؛ به همین ترتیب انجام می‌شن." },
+  day: { title: "چه روزی؟", hint: "" },
   time: { title: "ساعت چند؟", hint: "" },
-  confirm: { title: "همه‌چیز آماده است", hint: "" }
+  confirm: { title: "همه‌چی آماده‌ست", hint: "" }
 };
 
 /**
@@ -72,7 +72,7 @@ export function VisitWizard({ role, title, state, controller, services, days, cu
   const hasName = Boolean(state.name.trim());
   // The chosen day has no free hour for these services: say so, and offer the way out right there.
   const noTimes = current === "time" && state.times.status === "ready" && !state.times.list.length;
-  const question = noTimes ? "ساعت خالی نیست" : COPY[current].title;
+  const question = noTimes ? "ساعت خالی نداره" : COPY[current].title;
 
   const typed = state.name.trim();
   const suggestions = (Array.isArray(customers) ? customers : [])
@@ -87,7 +87,7 @@ export function VisitWizard({ role, title, state, controller, services, days, cu
   function next() {
     if (current === "who") {
       if (!hasName) {
-        setNameHint("نام مشتری را بنویس.");
+        setNameHint("اسم مشتری رو بنویس.");
         nameRef.current?.focus();
         return;
       }
@@ -167,8 +167,8 @@ export function VisitWizard({ role, title, state, controller, services, days, cu
                     else next();
                   }
                 }}
-                placeholder="نام مشتری"
-                aria-label="نام مشتری"
+                placeholder="اسم مشتری"
+                aria-label="اسم مشتری"
                 autoComplete="off"
                 autoFocus
                 maxLength={120}
@@ -180,19 +180,19 @@ export function VisitWizard({ role, title, state, controller, services, days, cu
                 className="vbBig"
                 value={state.phone}
                 onChange={(event) => controller.setPhone(toLatinDigits(event.target.value).replace(/[^\d+]/g, ""))}
-                placeholder="موبایل (اختیاری)"
-                aria-label="شماره تماس"
+                placeholder="موبایل (اگه داری)"
+                aria-label="شماره موبایل"
                 inputMode="tel"
                 enterKeyHint="next"
                 autoComplete="off"
                 dir="ltr"
                 maxLength={13}
               />
-              <p className="vbPhoneNote"><Info size={15} aria-hidden="true" /><span>شمارهٔ مشتری مهم است. رزرو با همین شماره برایش ثبت می‌شود و اطلاع‌رسانی نوبت به‌صورت خودکار انجام می‌شود؛ دیگر لازم نیست خودت پیام بدهی.
-                {!String(state.phone || "").trim() ? <><br /><strong>بدون شماره، مشتری یادآوری پیامکی نمی‌گیرد و نوبت به حسابی وصل نمی‌شود.</strong></> : null}
+              <p className="vbPhoneNote"><Info size={15} aria-hidden="true" /><span>شماره‌ش رو بزن تا یادآوری براش پیامک بشه؛ دیگه لازم نیست خودت پیام بدی.
+                {!String(state.phone || "").trim() ? <><br /><strong>بدون شماره هم می‌شه، فقط یادآوری نمی‌ره.</strong></> : null}
               </span></p>
               {suggestions.length ? (
-                <div className="vbChips vbSuggest" role="group" aria-label="مشتریان قبلی">
+                <div className="vbChips vbSuggest" role="group" aria-label="مشتری‌های قبلی">
                   {suggestions.map((item) => (
                     <button
                       type="button"
@@ -211,7 +211,7 @@ export function VisitWizard({ role, title, state, controller, services, days, cu
 
           {current === "services" ? (
             <div className="vbAsk">
-              <div className="vbPick" role="group" aria-label="خدمت‌ها؛ به ترتیبی که انتخاب می‌کنی انجام می‌شوند">
+              <div className="vbPick" role="group" aria-label="خدمت‌ها؛ به همین ترتیب انجام می‌شن">
                 {services.map((service) => {
                   const order = state.selected.indexOf(service.key);
                   const on = order >= 0;
@@ -232,7 +232,7 @@ export function VisitWizard({ role, title, state, controller, services, days, cu
                 })}
               </div>
               <p className="vbSummary" aria-live="polite">
-                {state.limitHit ? `حداکثر ${toPersianDigits(MAX_VISIT_SERVICES)} خدمت در یک نوبت.` : visitSummaryText(state.picked)}
+                {state.limitHit ? `حداکثر ${toPersianDigits(MAX_VISIT_SERVICES)} کار توی یه نوبت.` : visitSummaryText(state.picked)}
               </p>
             </div>
           ) : null}
@@ -268,13 +268,13 @@ export function VisitWizard({ role, title, state, controller, services, days, cu
                 <div className="vbNoTimes">
                   <span className="vbNoTimesIcon"><CalendarX size={26} aria-hidden="true" /></span>
                   <p>
-                    {day ? `${day.label}` : "این روز"} برای {state.picked.length > 1 ? "این چند خدمتِ پشت‌سرهم" : "این خدمت"} ساعت خالی ندارد.
+                    {day ? `${day.label}` : "این روز"} برای {state.picked.length > 1 ? "این چند کارِ پشت‌سرهم" : "این کار"} ساعت خالی نداره.
                   </p>
                   <button type="button" className="vbSubmit" onClick={() => go("day")}>
-                    انتخاب روز دیگر
+                    یه روز دیگه
                   </button>
                   <button type="button" className="vbLink" onClick={() => go("services")}>
-                    {state.picked.length > 1 ? "کمتر کردن یا عوض کردن خدمت‌ها" : "عوض کردن خدمت"}
+                    {state.picked.length > 1 ? "کمترش کن یا عوضش کن" : "یه کار دیگه"}
                   </button>
                 </div>
               ) : (

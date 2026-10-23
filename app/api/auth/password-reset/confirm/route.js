@@ -10,24 +10,24 @@ export const runtime = "nodejs";
 /** POST { phone, code, newPassword } -> sets the new password if the SMS code is right, and signs the account out everywhere. */
 async function _POST(request) {
   await ensureDb();
-  if (!otpConfig().enabled) return error("بازیابی با پیامک هنوز فعال نشده است.", 503);
+  if (!otpConfig().enabled) return error("بازیابی با پیامک هنوز راه نیفتاده.", 503);
   const body = (await readJson(request)) || {};
   const phone = normalizePhone(body.phone || "");
   const code = normalizeDigits(String(body.code || "")).trim();
   const newPassword = normalizeDigits(String(body.newPassword || ""));
-  if (!isValidIranMobile(phone) || !/^\d{5}$/.test(code)) return error("کد ۵رقمی را درست وارد کن.", 400);
-  if (newPassword.length < MIN_PASSWORD_LENGTH) return error("رمز عبور جدید باید حداقل ۸ کاراکتر باشد.", 400);
+  if (!isValidIranMobile(phone) || !/^\d{5}$/.test(code)) return error("کد ۵ رقمی رو درست بزن.", 400);
+  if (newPassword.length < MIN_PASSWORD_LENGTH) return error("رمز تازه دست‌کم ۸ حرف باشه.", 400);
 
   // Guessing codes across many phones from one address (the per-phone limit is in verifyOtp).
-  if (!(await checkIpRateLimit(request, "otp-verify", 30, 15 * 60 * 1000)).ok) return error("تلاش زیاد بود. چند دقیقه بعد دوباره امتحان کن.", 429);
+  if (!(await checkIpRateLimit(request, "otp-verify", 30, 15 * 60 * 1000)).ok) return error("زیاد امتحان کردی؛ چند دقیقه دیگه دوباره بزن.", 429);
   const result = await verifyOtp(phone, "reset", code);
   if (!result.ok) {
-    if (result.code === "rate_limited") return error("تلاش زیاد بود. چند دقیقه بعد دوباره امتحان کن.", 429);
-    if (result.code === "wrong") return error("کد اشتباه است.", 400);
-    return error("کد منقضی شده؛ کد جدید بگیر.", 400);
+    if (result.code === "rate_limited") return error("زیاد امتحان کردی؛ چند دقیقه دیگه دوباره بزن.", 429);
+    if (result.code === "wrong") return error("کد اشتباهه؛ دوباره بزن.", 400);
+    return error("این کد دیگه کار نمی‌کنه؛ یه کد تازه بگیر.", 400);
   }
   const user = await users.getUserByPhone(phone);
-  if (!user) return error("حسابی با این شماره پیدا نشد.", 404);
+  if (!user) return error("با این شماره حسابی نداری.", 404);
   await users.updateUser(user.id, { password_hash: hashPassword(newPassword) });
   // The code just proved this account owns the number.
   await users.markPhoneVerified(user.id);

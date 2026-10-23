@@ -16,7 +16,7 @@ async function _GET(request, { params }) {
   if (!auth.ok) return auth.response;
   const id = parseId((await params).id);
   const payment = id ? await getPayment(id) : null;
-  if (!canSeePayment(payment, auth.user.id)) return notFound("این پرداخت پیدا نشد.");
+  if (!canSeePayment(payment, auth.user.id)) return notFound("این پرداخت رو پیدا نکردیم.");
   return json({ data: { payment: presentPayment(await refreshIfPending(payment), { viewerId: auth.user.id }) } });
 }
 

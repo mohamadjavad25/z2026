@@ -50,10 +50,10 @@ function AccountForm({ gate }) {
       if (signup && result.status === 409) {
         switchMode("login");
         setForm((current) => ({ ...current, phone }));
-        setFormError("این شماره قبلاً ثبت شده؛ با رمز عبورت وارد شو.");
+        setFormError("این شماره حساب داره؛ با رمزت وارد شو.");
         return "";
       }
-      return result.payload?.error || (signup ? "ثبت‌نام انجام نشد؛ دوباره امتحان کن." : "ورود انجام نشد.");
+      return result.payload?.error || (signup ? "حساب ساخته نشد؛ دوباره بزن." : "وارد نشدی؛ دوباره بزن.");
     }
     try {
       window.localStorage.setItem("frfro_last_phone", phone);
@@ -84,10 +84,10 @@ function AccountForm({ gate }) {
   return (
     <div className="fsBody">
       <p className="fsLead">
-        با وصل شدن، «{gate.targetName}» به «سالن و آرتیست من» تو اضافه می‌شود و از همان‌جا با چند ضربه نوبت می‌گیری. فقط یک حساب لازم است؛ چند ثانیه.
+        وصل که بشی، «{gate.targetName}» میاد توی سالن و آرتیست‌هات و از همون‌جا با چند ضربه نوبت می‌گیری. فقط یه حساب می‌خواد؛ چند ثانیه.
       </p>
       <div className="fsModes" role="tablist" aria-label="حساب">
-        <button type="button" role="tab" aria-selected={isSignup} className={isSignup ? "is-on" : ""} onClick={() => switchMode("signup")}>حساب جدید</button>
+        <button type="button" role="tab" aria-selected={isSignup} className={isSignup ? "is-on" : ""} onClick={() => switchMode("signup")}>حساب تازه</button>
         <button type="button" role="tab" aria-selected={!isSignup} className={!isSignup ? "is-on" : ""} onClick={() => switchMode("login")}>حساب دارم</button>
       </div>
       {isSignup ? (
@@ -95,7 +95,7 @@ function AccountForm({ gate }) {
           className="fsForm"
           otp={otp}
           busy={busy}
-          submitLabel="ساخت حساب و وصل شدن"
+          submitLabel="بساز و وصل شو"
           onLogin={() => switchMode("login")}
           onComplete={async (values) => {
             setBusy(true);
@@ -107,18 +107,18 @@ function AccountForm({ gate }) {
           }}
           footer={(
             <p className="fsConsent">
-              با وصل شدن، نام و شماره‌ات برای «{gate.targetName}» نمایش داده می‌شود تا بتوانند با تو در ارتباط باشند. رمز عبورت فقط پیش خودت می‌ماند.
+              وصل که بشی، «{gate.targetName}» اسم و شماره‌ت رو می‌بینه تا بتونه باهات در تماس باشه. رمزت فقط پیش خودت می‌مونه.
             </p>
           )}
         />
       ) : (
         <form className="fsForm" noValidate onSubmit={submitLogin}>
-          <Field label="شماره تماس" error={errors.phone} hideLabel>
+          <Field label="شماره موبایل" error={errors.phone} hideLabel>
             {(props) => (
               <input
                 {...props}
                 name="phone"
-                placeholder="شماره تماس"
+                placeholder="شماره موبایل"
                 inputMode="tel"
                 dir="ltr"
                 autoComplete="tel"
@@ -128,13 +128,13 @@ function AccountForm({ gate }) {
               />
             )}
           </Field>
-          <Field label="رمز عبور" error={errors.password} hideLabel>
+          <Field label="رمز" error={errors.password} hideLabel>
             {(props) => (
               <input
                 {...props}
                 name="password"
                 type="password"
-                placeholder="رمز عبور"
+                placeholder="رمز"
                 autoComplete="current-password"
                 value={form.password}
                 onChange={(event) => change("password", event.target.value)}
@@ -142,7 +142,7 @@ function AccountForm({ gate }) {
             )}
           </Field>
           {formError ? <p className="fsError" role="alert">{formError}</p> : null}
-          <button type="submit" className="fsSubmit" disabled={busy}>{busy ? "چند لحظه…" : "ورود و وصل شدن"}</button>
+          <button type="submit" className="fsSubmit" disabled={busy}>{busy ? "یه لحظه…" : "وارد شو و وصل شو"}</button>
         </form>
       )}
     </div>
@@ -155,8 +155,8 @@ function DoneBody({ gate, onClose }) {
       <span className="fsDoneMark" aria-hidden="true"><Check size={34} strokeWidth={3} /></span>
       <h3>به «{gate.targetName}» وصل شدی</h3>
       <p>
-        از حالا در «سالن و آرتیست من» توست و از همان‌جا با چند ضربه نوبت می‌گیری.
-        {gate.justCreated ? " حسابت هم ساخته شد؛ هر وقت خواستی می‌توانی پروفایلت را کامل کنی." : ""}
+        از حالا توی سالن و آرتیست‌هاته و از همون‌جا با چند ضربه نوبت می‌گیری.
+        {gate.justCreated ? " حسابت هم ساخته شد؛ هر وقت خواستی پروفایلت رو کامل کن." : ""}
       </p>
       <div className="fsDoneActions">
         <a
@@ -164,9 +164,9 @@ function DoneBody({ gate, onClose }) {
           href={openInAppHref(gate.targetType, gate.targetId)}
           onClick={() => rememberPendingOpen({ type: gate.targetType, id: gate.targetId, name: gate.targetName })}
         >
-          همین حالا نوبت بگیر
+          همین الان نوبت بگیر
         </a>
-        <button type="button" className="fsGhost" onClick={onClose}>ادامهٔ دیدن صفحه</button>
+        <button type="button" className="fsGhost" onClick={onClose}>صفحه رو ببینم</button>
       </div>
     </div>
   );
@@ -179,7 +179,7 @@ export function FollowSheet({ gate }) {
       <ProfileSheet
         open={open}
         kicker={gate.sheet === "done" ? "انجام شد" : "وصل شدن"}
-        title={gate.sheet === "done" ? "خوش آمدی" : gate.targetName}
+        title={gate.sheet === "done" ? "خوش اومدی!" : gate.targetName}
         panelClassName="fsSheet"
         onClose={gate.closeSheet}
       >

@@ -102,11 +102,11 @@ export function PublicArtistBookingPanel({
         timeOptions={freeSlots}
         timeValue={bookingSlot}
         onTimeChange={onSlotChange}
-        emptyTimeMessage="برای این روز نوبت آزادی با این مدت‌زمان نیست."
+        emptyTimeMessage="این روز ساعت خالی‌ای به این اندازه نیست."
       />
 
       <p className="artistPublicBookingNote">
-        در طول مدت خدمت، ساعت دیگری قابل رزرو نیست.
+        تا کار تموم نشه، ساعت دیگه‌ای گرفته نمی‌شه.
       </p>
     </section>
   );

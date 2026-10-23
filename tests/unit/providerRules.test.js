@@ -12,11 +12,11 @@ const IN_3_DAYS = formatPersianDateKey(new Date("2026-10-08T12:00:00Z"));
 
 describe("owner's rules of 2026-10-22: texts", () => {
   it("says the exact sentences the owner approved", () => {
-    expect(blockedByNearText(2)).toBe("۲ مشتری تا ۲۴ ساعت دیگر نوبت دارند. تا زمانی که این نوبت‌ها انجام یا لغو نشوند نمی‌شود حساب را حذف کرد.");
+    expect(blockedByNearText(2)).toBe("۲ مشتری تا ۲۴ ساعت دیگه نوبت دارن. تا این نوبت‌ها انجام یا لغو نشن، نمی‌شه حساب رو پاک کرد.");
     expect(blockedTeamText(1)).toContain("از تیم بیرون رفت");
     expect(blockedTeamText(1, true)).toContain("از تیم برداشت");
-    expect(cancelledByProviderText("salon", "شیدا")).toBe("سالن شیدا نوبت تو را لغو کرد. بابت این اتفاق متأسفیم. می‌توانی از فرفرو نوبت دیگری بگیری.");
-    expect(timeProposalText("salon", "شیدا", shortClock("10:00"), shortClock("12:00"))).toBe("سالن شیدا می‌خواهد نوبتت را از ۱۰ به ۱۲ ببرد. قبول می‌کنی؟");
+    expect(cancelledByProviderText("salon", "شیدا")).toBe("سالن شیدا نوبتت رو لغو کرد. ببخشید که این‌طوری شد؛ یه نوبت دیگه از فرفرو بگیر.");
+    expect(timeProposalText("salon", "شیدا", shortClock("10:00"), shortClock("12:00"))).toBe("سالن شیدا می‌خواد نوبتت رو از ۱۰ ببره به ۱۲. قبول می‌کنی؟");
     expect(handoverProposalText("salon", "شیدا", "مینا", "سارا")).toContain("از مینا به سارا");
   });
 

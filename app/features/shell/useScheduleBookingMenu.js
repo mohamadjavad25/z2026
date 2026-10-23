@@ -90,9 +90,9 @@ export function useScheduleBookingMenu({
       overtime ? { time, overtime: true } : { time },
       askedClient
         ? (confirmed
-          ? `پیشنهاد ساعت ${time} برای مشتری فرستاده شد. تا قبول نکند، نوبت همان ساعت قبلی می‌ماند.`
-          : `ساعت ${time} برای مشتری فرستاده شد؛ تا قبول کند «در انتظار مشتری» می‌ماند.`)
-        : `ساعت رزرو به ${time} تغییر کرد.`
+          ? `ساعت ${time} رو به مشتری پیشنهاد دادیم. تا قبول نکنه، نوبت همون ساعت قبلی می‌مونه.`
+          : `ساعت ${time} رفت برای مشتری؛ تا قبول کنه «منتظر مشتری» می‌مونه.`)
+        : `نوبت رفت ساعت ${time}.`
     );
     if (ok) closeScheduleBookingMenu();
   }, [scheduleBookingMenu, patchSalonAppointment, closeScheduleBookingMenu]);
@@ -103,21 +103,21 @@ export function useScheduleBookingMenu({
     return patchSalonAppointment(
       scheduleBookingMenu,
       { staff: staffName },
-      staffName ? `آرتیست رزرو به «${staffName}» تغییر کرد.` : "آرتیست از این رزرو برداشته شد."
+      staffName ? `حالا «${staffName}» این نوبت رو انجام می‌ده.` : "آرتیست از این نوبت برداشته شد."
     );
   }, [scheduleBookingMenu, patchSalonAppointment]);
 
   // «تقسیم خودکار»: the server gives each service to a free artist again, from scratch.
   const autoAssignScheduleBooking = useCallback(async () => {
     if (!scheduleBookingMenu) return false;
-    return patchSalonAppointment(scheduleBookingMenu, { autoAssign: true }, "آرتیست‌ها خودکار چیده شدند.");
+    return patchSalonAppointment(scheduleBookingMenu, { autoAssign: true }, "آرتیست‌ها خودکار چیده شدن.");
   }, [scheduleBookingMenu, patchSalonAppointment]);
 
   // A multi-service booking: new order and/or artist per service. The menu stays open so the
   // salon can make several changes in a row.
   const changeScheduleBookingParts = useCallback(async (parts) => {
     if (!scheduleBookingMenu) return false;
-    const ok = await patchSalonAppointment(scheduleBookingMenu, { parts }, "تقسیم نوبت به‌روز شد.");
+    const ok = await patchSalonAppointment(scheduleBookingMenu, { parts }, "تقسیم نوبت ذخیره شد.");
     if (ok) {
       const summary = summarizeBookingParts(parts);
       setScheduleBookingMenu((current) => (current
@@ -129,14 +129,14 @@ export function useScheduleBookingMenu({
 
   const cancelScheduleBooking = useCallback(async () => {
     if (!scheduleBookingMenu) return;
-    const ok = await patchSalonAppointment(scheduleBookingMenu, { status: "لغو", action: "cancel" }, "رزرو لغو شد.");
+    const ok = await patchSalonAppointment(scheduleBookingMenu, { status: "لغو", action: "cancel" }, "نوبت لغو شد.");
     if (ok) closeScheduleBookingMenu();
   }, [scheduleBookingMenu, patchSalonAppointment, closeScheduleBookingMenu]);
 
   // The salon takes its proposal back; the booking stays at its original time.
   const withdrawScheduleProposal = useCallback(async () => {
     if (!scheduleBookingMenu) return false;
-    return patchSalonAppointment(scheduleBookingMenu, { withdrawProposal: true }, "پیشنهاد پس گرفته شد؛ نوبت همان ساعت قبلی است.");
+    return patchSalonAppointment(scheduleBookingMenu, { withdrawProposal: true }, "پیشنهاد رو پس گرفتی؛ نوبت همون ساعت قبلیه.");
   }, [scheduleBookingMenu, patchSalonAppointment]);
 
   return {

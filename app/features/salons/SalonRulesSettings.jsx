@@ -53,14 +53,14 @@ export function SalonRulesSettings({ onNotify }) {
     try {
       const { ok, data, payload } = await saveSalonRules(draft);
       if (!ok) {
-        onNotify?.(payload?.error || "ذخیره قوانین انجام نشد.");
+        onNotify?.(payload?.error || "قوانین ذخیره نشد؛ دوباره بزن.");
         return;
       }
       setSaved(String(data?.rules ?? draft.trim()));
       setOpen(false);
-      onNotify?.("قوانین و شرایط سالن ذخیره شد.");
+      onNotify?.("قوانین سالن ذخیره شد.");
     } catch {
-      onNotify?.("ذخیره قوانین انجام نشد؛ دوباره امتحان کن.");
+      onNotify?.("قوانین ذخیره نشد؛ دوباره بزن.");
     } finally {
       setSaving(false);
     }
@@ -77,7 +77,7 @@ export function SalonRulesSettings({ onNotify }) {
           </span>
           <span className="profileLocationRowInfo">
             <strong>قوانین و شرایط سالن</strong>
-            <span>{saved ? `${toPersianDigits(lineCount)} بند ثبت‌شده` : "هنوز قانونی ننوشته‌ای"}</span>
+            <span>{saved ? `${toPersianDigits(lineCount)} بند` : "هنوز قانونی ننوشتی؛ اگه داری، بنویس تا آرتیست‌ها بدونن"}</span>
           </span>
           <ChevronLeft size={16} className="profileLocationRowChevron" aria-hidden="true" />
         </button>
@@ -92,7 +92,7 @@ export function SalonRulesSettings({ onNotify }) {
         onClose={() => (saving ? null : setOpen(false))}
       >
         <p className="salonRulesHint">
-          هر بند را در یک خط بنویس. آرتیست‌ها این قوانین را موقع پیوستن به سالن یا قبول دعوت می‌بینند و باید طبق آن‌ها کار کنند.
+          هر بند رو یه خط بنویس. آرتیست‌ها اینا رو موقع اومدن به تیم می‌بینن و باید طبقش کار کنن.
         </p>
         <textarea
           className="salonRulesInput"

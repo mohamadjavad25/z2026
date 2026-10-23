@@ -14,7 +14,7 @@ export function ProfileAuthModeSwitch({ mode, onSignup, onLogin }) {
         <span className="authModeIcon" aria-hidden="true"><UserPlus size={18} /></span>
         <span className="authModeCopy">
           <strong>ثبت‌نام</strong>
-          <small>ساخت حساب جدید</small>
+          <small>یه حساب تازه بساز</small>
         </span>
       </button>
       <button
@@ -27,7 +27,7 @@ export function ProfileAuthModeSwitch({ mode, onSignup, onLogin }) {
         <span className="authModeIcon" aria-hidden="true"><LogIn size={18} /></span>
         <span className="authModeCopy">
           <strong>ورود</strong>
-          <small>حسابت را باز کن</small>
+          <small>حسابت رو باز کن</small>
         </span>
       </button>
     </div>

@@ -32,7 +32,7 @@ function noStoreJson(body, init = {}) {
 }
 
 function requireSalon(user) {
-  if (user.type !== "salon") return noStoreJson({ error: "فقط سالن." }, { status: 403 });
+  if (user.type !== "salon") return noStoreJson({ error: "این بخش مال سالن‌هاست." }, { status: 403 });
   return null;
 }
 
@@ -45,7 +45,7 @@ async function _GET(request) {
   const requestedSalonId = searchParams.get("salonUserId");
   if (requestedSalonId) {
     const salonUserId = Number(requestedSalonId);
-    if (!salonUserId) return noStoreJson({ error: "شناسه سالن نامعتبر است." }, { status: 400 });
+    if (!salonUserId) return noStoreJson({ error: "این سالن رو پیدا نکردیم." }, { status: 400 });
     if (auth.user.type === "salon" && salonUserId === auth.user.id) {
       const bookings = await salons.listSalonBookings(auth.user.id);
       return noStoreJson({ data: { bookings } });
@@ -78,7 +78,7 @@ async function _POST(request) {
   // other abuse-prone routes (see /api/auth/login, /api/artist/bookings).
   const bookingLimited = await checkRateLimit(`salon-booking-create:${auth.user.id}`, 20, 60_000);
   if (!bookingLimited.ok) {
-    return noStoreJson({ error: "درخواست‌های زیاد. کمی صبر کن." }, { status: 429 });
+    return noStoreJson({ error: "یه کم زیاد زدی؛ چند لحظه صبر کن." }, { status: 429 });
   }
 
   const body = await readObjectBody(request);
@@ -93,9 +93,9 @@ async function _POST(request) {
   const v = validateBody(createBookingSchema, body);
   if (!v.ok) return v.response;
   const salonUserId = body.salonUserId ? Number(body.salonUserId) : auth.user.id;
-  if (!salonUserId) return noStoreJson({ error: "شناسه سالن نامعتبر است." }, { status: 400 });
+  if (!salonUserId) return noStoreJson({ error: "این سالن رو پیدا نکردیم." }, { status: 400 });
   if (auth.user.type === "salon" && salonUserId !== auth.user.id) {
-    return noStoreJson({ error: "دسترسی غیرمجاز." }, { status: 403 });
+    return noStoreJson({ error: "این کار با حساب تو نمی‌شه." }, { status: 403 });
   }
   // How long the client waits for an answer is their own choice (an hour, or until the appointment);
   // a backup salon only goes with the hour, and only one the client follows that lists these services.
@@ -129,16 +129,16 @@ async function _POST(request) {
   // A repeated tap on the same request is answered with the request already made, and the salon is not told twice.
   if (auth.user.type === "client" && !result.duplicate) {
     const push = sendPushToUser(salonUserId, {
-      title: "درخواست رزرو جدید",
-      body: `${client} — ${service} · ${bookingWhen(result.booking.booking_date, time)}`
+      title: "درخواست تازه",
+      body: `${client}، ${service}، ${bookingWhen(result.booking.booking_date, time)}`
     }).catch(() => null);
     smsNewBookingRequest(salonUserId, { client, service, bookingDate: result.booking.booking_date, time, fromUserId: auth.user.id }, push);
   }
   // The team artist whose visit it is hears about it too (waiting for the salon's answer, or booked by the salon).
   if (!result.duplicate) {
     notifyStaff({ artistIds: linkedArtistIds, exceptUserId: auth.user.id }, {
-      title: auth.user.type === "client" ? "درخواست نوبت در سالن" : "نوبت تازه برایت گذاشته شد",
-      body: `${client} — ${service} · ${bookingWhen(result.booking.booking_date, time)}${auth.user.type === "client" ? " (منتظر جواب سالن)" : ""}`
+      title: auth.user.type === "client" ? "یه درخواست تازه برات توی سالن" : "سالن برات نوبت گذاشت",
+      body: `${client}، ${service}، ${bookingWhen(result.booking.booking_date, time)}${auth.user.type === "client" ? "؛ منتظر جواب سالن" : ""}`
     });
   }
 
@@ -161,7 +161,7 @@ async function _PATCH(request) {
   if (forbidden) return forbidden;
   const body = await readObjectBody(request);
   const id = Number(body.id);
-  if (!id) return noStoreJson({ error: "شناسه رزرو نامعتبر است." }, { status: 400 });
+  if (!id) return noStoreJson({ error: "این نوبت رو پیدا نکردیم." }, { status: 400 });
 
   const wantsCancel = body.status === "لغو" || body.action === "cancel";
   // Whitelist, same shape as patchOwnArtistBooking in /api/artist/me: the only
@@ -172,14 +172,14 @@ async function _PATCH(request) {
   // Other PATCH fields (time/staff/client/…) never carry a status, so this
   // only fires when the caller explicitly sends one.
   if (!wantsCancel && body.status != null && body.status !== "" && body.status !== "تایید شده") {
-    return noStoreJson({ error: "وضعیت نامعتبر است." }, { status: 400 });
+    return noStoreJson({ error: "این جواب رو نفهمیدیم؛ دوباره بزن." }, { status: 400 });
   }
   let patch = wantsCancel ? { status: "لغو" } : body;
   // «تقسیم خودکار»: the server re-drafts who does what (suggestBookingStaff) and saves it like
   // any other artist change -- each artist checked free, their calendars updated.
   if (!wantsCancel && body.autoAssign === true) {
     const suggestion = await salons.suggestBookingStaff(id, auth.user.id);
-    if (!suggestion) return noStoreJson({ error: "رزرو یافت نشد." }, { status: 404 });
+    if (!suggestion) return noStoreJson({ error: "این نوبت رو پیدا نکردیم." }, { status: 404 });
     const anyone = suggestion.parts ? suggestion.parts.some((part) => part.staff) : Boolean(suggestion.staff);
     if (!anyone) {
       return noStoreJson({ error: "در این ساعت آرتیست آزادی برای این نوبت نیست.", code: "NO_FREE_ARTIST" }, { status: 409 });
@@ -190,7 +190,7 @@ async function _PATCH(request) {
   const movesTo = ["time", "booking_date", "bookingDate", "date"].some((key) => body[key] != null);
   if (!wantsCancel && movesTo) {
     const current = await salons.getSalonBookingRow(id, auth.user.id);
-    if (!current) return noStoreJson({ error: "رزرو یافت نشد." }, { status: 404 });
+    if (!current) return noStoreJson({ error: "این نوبت رو پیدا نکردیم." }, { status: 404 });
     const rawDay = body.booking_date ?? body.bookingDate ?? body.date ?? current.booking_date;
     const rawTime = body.time ?? current.time ?? "";
     const slot = readBookingSlot(typeof rawDay === "string" ? rawDay : "", typeof rawTime === "string" ? rawTime : "");
@@ -222,7 +222,7 @@ async function _PATCH(request) {
   // artists, and it ends by closing time -- or past it only when the salon chose to stay longer.
   if (!wantsCancel && movesTo && body.staff === undefined && body.parts === undefined) {
     const current = await salons.getSalonBookingRow(id, auth.user.id);
-    if (!current) return noStoreJson({ error: "رزرو یافت نشد." }, { status: 404 });
+    if (!current) return noStoreJson({ error: "این نوبت رو پیدا نکردیم." }, { status: 404 });
     const dateKey = patch.bookingDate;
     const time = patch.time;
     const unchanged = dateKey === current.booking_date && time === normalizeBookingTimeLabel(current.time || "");
@@ -231,13 +231,13 @@ async function _PATCH(request) {
       const option = options.times?.find((item) => item.time === time);
       if (!option) {
         return noStoreJson({
-          error: options.closed ? "سالن در این روز تعطیل است." : "این ساعت برای این نوبت جا ندارد؛ یکی از ساعت‌های فهرست را انتخاب کن.",
+          error: options.closed ? "سالن این روز تعطیله." : "این ساعت برای این نوبت جا نداره؛ یکی از ساعت‌های فهرست رو بزن.",
           code: "MOVE_TIME_UNAVAILABLE"
         }, { status: 409 });
       }
       if (option.overtimeMinutes > 0 && body.overtime !== true) {
         return noStoreJson({
-          error: `این ساعت تا ${toPersianDigits(option.end)} طول می‌کشد؛ ${toPersianDigits(option.overtimeMinutes)} دقیقه بعد از ساعت کاری.`,
+          error: `این نوبت تا ${toPersianDigits(option.end)} طول می‌کشه؛ ${toPersianDigits(option.overtimeMinutes)} دقیقه بعد از ساعت کاری.`,
           code: "NEEDS_OVERTIME"
         }, { status: 409 });
       }
@@ -253,50 +253,50 @@ async function _PATCH(request) {
 
   if (!result.ok) {
     if (result.error === "missing") {
-      return noStoreJson({ error: "رزرو یافت نشد." }, { status: 404 });
+      return noStoreJson({ error: "این نوبت رو پیدا نکردیم." }, { status: 404 });
     }
     if (result.error === "past") {
       return noStoreJson({ error: "رزرو گذشته قابل ویرایش نیست." }, { status: 409 });
     }
     if (result.error === "expired") {
       return noStoreJson({
-        error: "این درخواست به‌دلیل عدم پاسخ به‌موقع منقضی شده و دیگر قابل تایید نیست.",
+        error: "وقت جواب دادن به این درخواست تموم شده.",
         code: "BOOKING_EXPIRED",
         data: { bookings: await salons.listSalonBookings(auth.user.id) }
       }, { status: 409 });
     }
     if (result.error === "artist_conflict") {
       return noStoreJson({
-        error: result.message || "این ساعت برای آرتیست قبلاً رزرو شده است.",
+        error: result.message || "آرتیست این ساعت نوبت داره؛ یه ساعت دیگه بزن.",
         code: result.code || "ARTIST_SLOT_TAKEN",
         data: { bookings: await salons.listSalonBookings(auth.user.id) }
       }, { status: 409 });
     }
     if (result.error === "unavailable") {
       return noStoreJson({
-        error: result.message || "این درخواست دیگر قابل تأیید نیست.",
+        error: result.message || "این درخواست دیگه تأیید نمی‌شه.",
         code: "REQUEST_NOT_POSSIBLE",
         data: { bookings: await salons.listSalonBookings(auth.user.id) }
       }, { status: 409 });
     }
     if (result.error === "needs_proposal") {
-      return noStoreJson({ error: "نوبت تأییدشده فقط با پیشنهاد به مشتری جابه‌جا می‌شود.", code: "NEEDS_PROPOSAL" }, { status: 409 });
+      return noStoreJson({ error: "نوبت تأییدشده فقط با پیشنهاد به مشتری جابه‌جا می‌شه.", code: "NEEDS_PROPOSAL" }, { status: 409 });
     }
     if (result.error === "awaiting_client") {
-      return noStoreJson({ error: "مشتری هنوز به ساعت تازه جواب نداده؛ بعد از قبولش تایید می‌شود.", code: "AWAITING_CLIENT" }, { status: 409 });
+      return noStoreJson({ error: "مشتری هنوز به ساعت تازه جواب نداده؛ قبول کنه، خودش تأیید می‌شه.", code: "AWAITING_CLIENT" }, { status: 409 });
     }
     if (result.error === "inactive" || result.error === "stale") {
       return noStoreJson({
-        error: "این رزرو همین الان تغییر کرد؛ فهرست را تازه کردیم، دوباره نگاه کن.",
+        error: "این نوبت همین الان عوض شد؛ فهرست رو تازه کردیم، یه نگاه دیگه بنداز.",
         code: "BOOKING_CHANGED",
         data: { bookings: await salons.listSalonBookings(auth.user.id) }
       }, { status: 409 });
     }
     if (result.error === "parts") {
-      return noStoreJson({ error: "فهرست خدمات این نوبت نامعتبر است." }, { status: 400 });
+      return noStoreJson({ error: "کارهای این نوبت درست نرسید؛ دوباره بزن." }, { status: 400 });
     }
     return noStoreJson({
-      error: result.message || "این زمان قابل رزرو نیست.",
+      error: result.message || "این ساعت نمی‌شه؛ یه ساعت دیگه بزن.",
       data: { bookings: await salons.listSalonBookings(auth.user.id) }
     }, { status: 409 });
   }
@@ -317,8 +317,8 @@ async function _PATCH(request) {
       });
     } else if (bookingClientUserId) {
       const push = sendPushToUser(bookingClientUserId, {
-        title: patch.status === "تایید شده" ? "نوبت شما تایید شد" : "نوبت شما لغو شد",
-        body: `${result.booking.service || "نوبت"} — ${bookingWhen(result.booking.booking_date, result.booking.time)}`
+        title: patch.status === "تایید شده" ? "نوبتت تأیید شد" : "نوبتت لغو شد",
+        body: `${result.booking.service || "نوبت"}، ${bookingWhen(result.booking.booking_date, result.booking.time)}`
       }).catch(() => null);
       smsBookingAnswer(bookingClientUserId, {
         providerName: auth.user.name,
@@ -329,8 +329,8 @@ async function _PATCH(request) {
       }, push);
     }
     notifyStaff({ artistIds: result.linkedArtistIds, salonBookingId: result.booking.id, exceptUserId: auth.user.id }, {
-      title: patch.status === "تایید شده" ? "نوبتت در سالن تأیید شد" : "نوبتت در سالن لغو شد",
-      body: `${result.booking.client || "مشتری"} — ${result.booking.service || "نوبت"} · ${bookingWhen(result.booking.booking_date, result.booking.time)}`
+      title: patch.status === "تایید شده" ? "نوبتت توی سالن تأیید شد" : "نوبتت توی سالن لغو شد",
+      body: `${result.booking.client || "مشتری"}، ${result.booking.service || "نوبت"}، ${bookingWhen(result.booking.booking_date, result.booking.time)}`
     });
   }
 
@@ -338,8 +338,8 @@ async function _PATCH(request) {
   const moved = ["time", "booking_date", "bookingDate", "date"].some((key) => body[key] != null);
   if (!wantsCancel && moved && result.booking.status === AWAITING_CLIENT && result.booking.client_user_id) {
     void sendPushToUser(Number(result.booking.client_user_id), {
-      title: "ساعت تازه برای نوبتت",
-      body: `${auth.user.name || "سالن"} ${bookingWhen(result.booking.booking_date, result.booking.time)} را برای ${result.booking.service || "نوبت"} پیشنهاد داده. قبول یا رد کن.`
+      title: "سالن یه ساعت دیگه پیشنهاد داد",
+      body: `${auth.user.name || "سالن"} برای ${result.booking.service || "نوبت"} ${bookingWhen(result.booking.booking_date, result.booking.time)} رو پیشنهاد داده. قبول می‌کنی؟`
     });
   }
 

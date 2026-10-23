@@ -35,9 +35,9 @@ export function BookingHistoryCalendarSheet({
   bookings = [],
   getDayCount,
   matchBookingDay,
-  kicker = "رزرو",
+  kicker = "نوبت‌ها",
   title = "همه تاریخ‌ها",
-  emptyDayLabel = "رزروی ثبت نشده",
+  emptyDayLabel = "نوبتی نیست",
   renderBooking
 }) {
   const todayParts = useMemo(() => getPersianDateParts(new Date()), []);
@@ -166,13 +166,13 @@ export function BookingHistoryCalendarSheet({
 
         <div className="bookingWeekHistoryHead">
           <div>
-            <span>رزروهای این تاریخ</span>
+            <span>نوبت‌های این روز</span>
             <b>{activeTitle?.full || ""}</b>
           </div>
           <em>{activeDayBookings.length ? `${toPersianDigits(activeDayBookings.length)} نوبت` : "بدون نوبت"}</em>
         </div>
 
-        <div className="bookingWeekHistoryList todayScheduleList" aria-label={`رزروهای ${activeTitle?.full || ""}`}>
+        <div className="bookingWeekHistoryList todayScheduleList" aria-label={`نوبت‌های ${activeTitle?.full || ""}`}>
           {activeDayBookings.length ? activeDayBookings.map((booking, index) => (
             <div className="bookingWeekHistoryItem" key={booking.id || `${booking.time}-${booking.client}-${index}`}>
               {renderBooking?.(booking, {
@@ -183,7 +183,7 @@ export function BookingHistoryCalendarSheet({
             <div className="bookingWeekHistoryEmpty">
               <CalendarDays size={28} aria-hidden="true" />
               <b>{emptyDayLabel}</b>
-              <span>برای «{activeTitle?.full || ""}» هنوز رزروی نیست.</span>
+              <span>«{activeTitle?.full || ""}» هنوز نوبتی نداره.</span>
             </div>
           )}
         </div>

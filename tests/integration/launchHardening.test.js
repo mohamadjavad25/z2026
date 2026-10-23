@@ -87,7 +87,7 @@ describe("booking SMS", () => {
     });
     expect(created.status).toBe(201);
     const toSalon = await eventually(() => smsTo(salon.phone, "booking_request"), (list) => list.length > 0);
-    expect(toSalon[0]).toContain("درخواست نوبت تازه");
+    expect(toSalon[0]).toContain("درخواست تازه");
     expect(toSalon[0]).toContain("مشتری پیامک");
 
     const approved = await salonClient.patch("/api/salon-bookings", { id: created.payload.data.booking.id, status: "تایید شده" });

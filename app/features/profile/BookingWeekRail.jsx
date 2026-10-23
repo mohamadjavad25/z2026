@@ -24,10 +24,10 @@ export function BookingWeekRail({
   bookings = [],
   matchBookingDay,
   renderBooking,
-  tabLabel = "تاریخچه",
-  modalKicker = "رزرو",
+  tabLabel = "تقویم",
+  modalKicker = "نوبت‌ها",
   modalTitle = "همه تاریخ‌ها",
-  emptyDayLabel = "رزروی ثبت نشده",
+  emptyDayLabel = "نوبتی نیست",
   ariaLabel = "انتخاب روز برنامه"
 }) {
   const todayParts = useMemo(() => getPersianDateParts(new Date()), []);
@@ -231,13 +231,13 @@ export function BookingWeekRail({
 
           <div className="bookingWeekHistoryHead">
             <div>
-              <span>رزروهای این تاریخ</span>
+              <span>نوبت‌های این روز</span>
               <b>{activeTitle?.full || activeModalDay}</b>
             </div>
             <em>{toPersianDigits(modalDayBookings.length)} نوبت</em>
           </div>
 
-          <div className="bookingWeekHistoryList todayScheduleList" aria-label={`رزروهای ${activeTitle?.full || activeModalDay}`}>
+          <div className="bookingWeekHistoryList todayScheduleList" aria-label={`نوبت‌های ${activeTitle?.full || activeModalDay}`}>
             {modalDayBookings.length ? modalDayBookings.map((booking, index) => (
               <div className="bookingWeekHistoryItem" key={booking.id || `${booking.time}-${booking.client}-${index}`}>
                 {renderBooking?.(booking, {
@@ -248,7 +248,7 @@ export function BookingWeekRail({
               <div className="bookingWeekHistoryEmpty">
                 <CalendarDays size={28} aria-hidden="true" />
                 <b>{emptyDayLabel}</b>
-                <span>برای «{activeTitle?.full || activeModalDay}» هنوز رزروی نیست.</span>
+                <span>«{activeTitle?.full || activeModalDay}» هنوز نوبتی نداره.</span>
               </div>
             )}
           </div>

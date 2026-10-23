@@ -4,13 +4,13 @@ import * as salons from "../../lib/db/repos/salons.js";
 export const runtime = "nodejs";
 
 async function _GET(request) {
-  const auth = await requireUserRole(request, "salon", "فقط سالن.");
+  const auth = await requireUserRole(request, "salon", "این بخش مال سالن‌هاست.");
   if (!auth.ok) return auth.response;
   return json({ data: { rules: await salons.getSalonRules(auth.user.id) } });
 }
 
 async function _PUT(request) {
-  const auth = await requireUserRole(request, "salon", "فقط سالن.");
+  const auth = await requireUserRole(request, "salon", "این بخش مال سالن‌هاست.");
   if (!auth.ok) return auth.response;
   const body = await request.json().catch(() => ({}));
   if (typeof body.rules !== "string") {

@@ -82,10 +82,10 @@ export function CreateBookingTip({ active, accountId, onCreateBooking }) {
           close();
           onCreateBooking?.();
         }}
-        aria-label="ایجاد رزرو جدید"
+        aria-label="نوبت تازه"
       />
       <div className="createTipCard" style={{ bottom: above + 18 }}>
-        <strong id="createTipTitle">رزرو جدید از همین دکمه</strong>
+        <strong id="createTipTitle">نوبت تازه از همین دکمه</strong>
         <p>مشتری تلفنی یا حضوری وقت خواست؟ این + رو بزن و خودت براش نوبت ثبت کن.</p>
         <button type="button" className="createTipOk" onClick={close}>
           فهمیدم

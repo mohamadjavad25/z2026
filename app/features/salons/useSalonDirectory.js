@@ -149,16 +149,16 @@ export function useSalonDirectory({
         body: "{}"
       });
       if (!ok) {
-        notify(payload?.error || "لغو رزرو انجام نشد.");
+        notify(payload?.error || "نوبت لغو نشد؛ دوباره بزن.");
         return false;
       }
       setClientBookingList((list) => list.map((item) => (
         item.id === booking.id && (item.bookingSource === "artist") === isArtist ? { ...item, status: "لغو" } : item
       )));
-      notify("رزرو لغو شد.");
+      notify("نوبت لغو شد.");
       return true;
     } catch {
-      notify("لغو رزرو انجام نشد؛ دوباره امتحان کن.");
+      notify("نوبت لغو نشد؛ دوباره بزن.");
       return false;
     }
   }, [notify]);
@@ -172,7 +172,7 @@ export function useSalonDirectory({
         body: JSON.stringify({ accept })
       });
       if (!ok) {
-        notify(payload?.error || "جواب ثبت نشد.");
+        notify(payload?.error || "جوابت نرسید؛ دوباره بزن.");
         if (typeof refreshClientBookings === "function") refreshClientBookings();
         return false;
       }
@@ -181,11 +181,11 @@ export function useSalonDirectory({
         item.id === booking.id && item.bookingSource !== "artist" ? { ...item, ...updated, service: item.service } : item
       )));
       notify(accept
-        ? `نوبتت برای ساعت ${updated.time || booking.time} قطعی شد.`
-        : "درخواست لغو شد. می‌توانی ساعت دیگری بگیری.");
+        ? `نوبتت برای ساعت ${updated.time || booking.time} قطعی شد!`
+        : "درخواست لغو شد. یه ساعت دیگه بگیر.");
       return true;
     } catch {
-      notify("جواب ثبت نشد؛ دوباره امتحان کن.");
+      notify("جوابت نرسید؛ دوباره بزن.");
       return false;
     }
   }, [notify, refreshClientBookings]);
@@ -200,13 +200,13 @@ export function useSalonDirectory({
       const { ok, payload } = await answerProposal({ kind: booking.bookingSource === "artist" ? "artist" : "salon", id: booking.id, action });
       if (typeof refreshClientBookings === "function") await refreshClientBookings();
       if (!ok) {
-        notify(payload?.error || "جواب ثبت نشد.");
+        notify(payload?.error || "جوابت نرسید؛ دوباره بزن.");
         return false;
       }
-      notify(action === "accept" ? "قبول شد. نوبتت به ساعت تازه رفت." : "نوبت لغو شد. هیچ مشکلی نیست؛ هر وقت خواستی دوباره نوبت بگیر.");
+      notify(action === "accept" ? "قبول شد؛ نوبتت رفت ساعت تازه." : "نوبت لغو شد؛ اشکال نداره، هر وقت خواستی دوباره بگیر.");
       return true;
     } catch {
-      notify("جواب ثبت نشد؛ اینترنتت را نگاه کن و دوباره امتحان کن.");
+      notify("جوابت نرسید؛ اینترنتت رو یه نگاه بنداز و دوباره بزن.");
       return false;
     }
   }, [notify, refreshClientBookings]);
@@ -274,7 +274,7 @@ export function useSalonDirectory({
         follow: nextFollowed
       });
       if (!notifyFromResponse(notify, result, {
-        failure: "وصل شدن ذخیره نشد؛ دوباره امتحان کن."
+        failure: "وصل نشد؛ دوباره بزن."
       })) {
         setFollowedSalons((items) => {
           if (previousFollowed) {
@@ -302,7 +302,7 @@ export function useSalonDirectory({
         }
         return items.filter((item) => item !== followKey);
       });
-      notify("وصل شدن ذخیره نشد؛ دوباره امتحان کن.");
+      notify("وصل نشد؛ دوباره بزن.");
     }
   }, [followedSalons, notify]);
 
@@ -319,14 +319,14 @@ export function useSalonDirectory({
     if (!targetUserId) {
       // No real user id to persist against (e.g. a mock/demo row) — keep the
       // local-only toggle rather than failing silently.
-      notify(willSave ? "سالن ذخیره شد." : "سالن از ذخیره‌ها حذف شد.");
+      notify(willSave ? "سالن ذخیره شد." : "از ذخیره‌شده‌ها برداشته شد.");
       return;
     }
 
     try {
       const result = await toggleSave(targetUserId);
       if (!notifyFromResponse(notify, result, {
-        failure: "ذخیره سالن انجام نشد؛ دوباره امتحان کن."
+        failure: "ذخیره نشد؛ دوباره بزن."
       })) {
         setSavedSalonKeys((items) => (
           previousSaved
@@ -335,20 +335,20 @@ export function useSalonDirectory({
         ));
         return;
       }
-      notify(willSave ? "سالن ذخیره شد." : "سالن از ذخیره‌ها حذف شد.");
+      notify(willSave ? "سالن ذخیره شد." : "از ذخیره‌شده‌ها برداشته شد.");
     } catch {
       setSavedSalonKeys((items) => (
         previousSaved
           ? (items.includes(key) ? items : [...items, key])
           : items.filter((item) => item !== key)
       ));
-      notify("ذخیره سالن انجام نشد؛ دوباره امتحان کن.");
+      notify("ذخیره نشد؛ دوباره بزن.");
     }
   }, [savedSalonKeys, notify]);
 
   const shareSalonProfile = useCallback(async (nameHint) => {
     const name = nameHint || selectedSalon?.name || createdProfile?.data?.name || "سالن";
-    const shareText = `پروفایل سالن «${name}» در frfro`;
+    const shareText = `صفحهٔ «${name}» توی فرفرو`;
     const salonId = selectedSalon?.id ?? selectedSalon?.source_key;
     const shareUrl = typeof window !== "undefined"
       ? (salonId ? `${window.location.origin}/salons/${salonId}` : window.location.href)
@@ -360,13 +360,13 @@ export function useSalonDirectory({
       }
       if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
-        notify(`لینک پروفایل «${name}» کپی شد.`);
+        notify(`لینک صفحهٔ «${name}» کپی شد.`);
         return;
       }
     } catch {
       // cancelled
     }
-    notify(`لینک پروفایل «${name}» آماده اشتراک‌گذاری است.`);
+    notify(`لینک صفحهٔ «${name}» آماده‌ست؛ بفرستش.`);
   }, [createdProfile, notify, selectedSalon]);
 
   // `service`: a service name, or a service object — several services picked
@@ -377,7 +377,7 @@ export function useSalonDirectory({
     const serviceItems = getBookableSalonServiceItems(selectedSalon);
     const nextService = picked?.name || (typeof service === "string" ? service : "") || serviceItems[0]?.name || "";
     if (!nextService) {
-      shellMsg("این سالن هنوز خدمتی برای رزرو ثبت نکرده است.");
+      shellMsg("این سالن هنوز خدمتی نذاشته.");
       return;
     }
     setSalonClientTab("services");
@@ -421,8 +421,8 @@ export function useSalonDirectory({
    */
   const submitSalonClientVisit = useCallback(async (body) => {
     const salonUserId = selectedSalon?.id || selectedSalon?.source_key;
-    if (!salonUserId) return { ok: false, status: 0, payload: { error: "شناسه سالن برای ثبت رزرو پیدا نشد." } };
-    if (clientVisitBusyRef.current) return { ok: false, status: 0, payload: { error: "ثبت قبلی هنوز تمام نشده." } };
+    if (!salonUserId) return { ok: false, status: 0, payload: { error: "سالن پیدا نشد؛ صفحه رو دوباره باز کن." } };
+    if (clientVisitBusyRef.current) return { ok: false, status: 0, payload: { error: "قبلیه هنوز تموم نشده؛ یه لحظه صبر کن." } };
     clientVisitBusyRef.current = true;
     try {
       const { ok, payload, status } = await createSalonBooking({ ...body, salonUserId, status: "درخواست" });
@@ -473,8 +473,8 @@ export function useSalonDirectory({
       if (bookedRow && typeof onClientBooked === "function") {
         onClientBooked(bookedRow, { price: price || "", items });
       } else {
-        shellMsg("درخواست رزرو ثبت شد؛ در انتظار تایید سالن.");
-        notify(`رزرو ${body.service} ساعت ${body.time} ثبت شد و در انتظار تایید سالن است.`);
+        shellMsg("درخواستت رفت؛ منتظر جواب سالن باش.");
+        notify(`درخواست ${body.service} ساعت ${body.time} رفت؛ منتظر جواب سالن باش.`);
       }
       return { ok: true, status, payload };
     } catch {

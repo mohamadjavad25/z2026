@@ -34,7 +34,7 @@ function SalonCard({ avatar, name, area, role, terms, tag, rules = "", children 
       </div>
       <TermsChips days={terms.days} from={terms.from} to={terms.to} share={terms.share} capacity={terms.capacity} />
       <SalonRulesNote rules={rules} open={tag === "invite"} />
-      {rules && tag === "invite" ? <p className="salonRulesAgree">با قبول کردن، قوانین سالن را می‌پذیری.</p> : null}
+      {rules && tag === "invite" ? <p className="salonRulesAgree">قبول کنی، یعنی قوانین سالن رو هم قبول داری.</p> : null}
       {children}
     </article>
   );
@@ -129,11 +129,11 @@ export function ArtistCollabBoard({
       <div className="cnScanRow">
         <button type="button" className="cnScanBtn is-dark" onClick={() => setSheet("scan")}>
           <span aria-hidden="true"><ScanLine size={20} /></span>
-          <span><b>اسکن کن</b><small>کد سالن را اسکن کن</small></span>
+          <span><b>اسکن کن</b><small>کد سالن رو اسکن کن</small></span>
         </button>
         <button type="button" className="cnScanBtn" disabled={!codeUrl} onClick={() => setSheet("code")}>
           <span aria-hidden="true"><QrCode size={20} /></span>
-          <span><b>اسکن شو</b><small>کدت را به سالن نشان بده</small></span>
+          <span><b>کد من</b><small>کدت رو به سالن نشون بده</small></span>
         </button>
       </div>
 
@@ -146,7 +146,7 @@ export function ArtistCollabBoard({
         open={sheet === "code"}
         url={codeUrl}
         name={artistName || "کد من"}
-        hint="سالن‌دار این کد را اسکن کند؛ دعوت همکاری همین‌جا برایت می‌آید."
+        hint="سالن‌دار این کد رو اسکن کنه؛ دعوتش همین‌جا برات میاد."
         onOpenChange={(open) => setSheet(open ? "code" : "")}
       />
     </section>

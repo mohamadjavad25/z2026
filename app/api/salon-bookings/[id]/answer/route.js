@@ -11,26 +11,26 @@ export const runtime = "nodejs";
  * time the salon offered: accept confirms it, decline cancels the booking.
  */
 async function _POST(request, { params }) {
-  const auth = await requireUserRole(request, "client", "فقط مشتری می‌تواند به ساعت تازه جواب بدهد.");
+  const auth = await requireUserRole(request, "client", "فقط خود مشتری می‌تونه به ساعت تازه جواب بده.");
   if (!auth.ok) return auth.response;
   const id = parseId((await params).id);
   if (!id) return notFound();
   const limited = await checkRateLimit(`booking-answer:${auth.user.id}`, 30, 60 * 60 * 1000);
-  if (!limited.ok) return error("تعداد درخواست‌ها زیاد است؛ کمی بعد دوباره امتحان کن.", 429);
+  if (!limited.ok) return error("یه کم زیاد زدی؛ چند لحظه دیگه دوباره بزن.", 429);
   const body = await readJson(request);
-  if (typeof body?.accept !== "boolean") return error("جواب مشخص نیست.");
+  if (typeof body?.accept !== "boolean") return error("قبول یا رد؟ یکی رو بزن.");
 
   const result = await salons.answerSalonTimeOffer(id, auth.user, body.accept);
   if (!result.ok) {
-    if (result.error === "missing") return notFound("رزرو یافت نشد.");
-    if (result.error === "inactive") return error("این رزرو دیگر منتظر جواب تو نیست.", 409);
-    if (result.error === "expired") return error("مهلت جواب به این ساعت تمام شده؛ اگر هنوز می‌خواهی دوباره درخواست بده.", 409);
-    if (result.error === "past") return error("روز این رزرو گذشته است.", 409);
-    return error(result.message || "این ساعت دیگر آزاد نیست.", 409);
+    if (result.error === "missing") return notFound("این نوبت رو پیدا نکردیم.");
+    if (result.error === "inactive") return error("این نوبت دیگه منتظر جوابت نیست.", 409);
+    if (result.error === "expired") return error("وقت جواب دادن به این ساعت تموم شده؛ هنوز می‌خوای؟ دوباره درخواست بده.", 409);
+    if (result.error === "past") return error("روز این نوبت گذشته.", 409);
+    return error(result.message || "این ساعت دیگه آزاد نیست.", 409);
   }
   void sendPushToUser(result.salonUserId, {
-    title: body.accept ? "مشتری ساعت تازه را قبول کرد" : "مشتری ساعت تازه را رد کرد",
-    body: `${result.booking.client || "مشتری"} — ${result.booking.service || "نوبت"} · ${bookingWhen(result.booking.booking_date, result.booking.time)}`
+    title: body.accept ? "مشتری ساعت تازه رو قبول کرد" : "مشتری ساعت تازه رو نخواست",
+    body: `${result.booking.client || "مشتری"}، ${result.booking.service || "نوبت"}، ${bookingWhen(result.booking.booking_date, result.booking.time)}`
   });
   return json({ data: { booking: result.booking } });
 }

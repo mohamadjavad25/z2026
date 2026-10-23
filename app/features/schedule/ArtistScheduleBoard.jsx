@@ -63,7 +63,7 @@ export function ArtistScheduleBoard({
         />
         <div className="todayScheduleList" {...daySwipe}>
           {loading ? (
-            <SkeletonList rows={4} variant="row" className="artistScheduleSkeleton" label="در حال بارگذاری رزروهای آرتیست" />
+            <SkeletonList rows={4} variant="row" className="artistScheduleSkeleton" label="دارم نوبت‌ها رو میارم" />
           ) : dayRows.length > 0 ? dayRows.map((booking, index) => (
             <ScheduleRow
               key={booking.id != null ? String(booking.id) : `artist-row-${booking.time}-${booking.client}-${index}`}
@@ -75,7 +75,7 @@ export function ArtistScheduleBoard({
           )) : (
             <div className="salonTodayEmpty">
               <Mascot pose="free-day" size={150} />
-              <b>برای «{dayLabel}» رزروی ثبت نشده</b>
+              <b>«{dayLabel}» نوبتی نداری؛ وقت یه چایی‌ه</b>
             </div>
           )}
         </div>
@@ -107,9 +107,9 @@ export function ArtistScheduleBoard({
         onSelectDay={onSelectDay}
         bookings={bookings}
         matchBookingDay={(booking, dateKey) => isArtistBookingOnExactDate(booking, dateKey)}
-        kicker="رزرو"
-        title="تاریخچه رزروها"
-        emptyDayLabel="رزروی ثبت نشده"
+        kicker="نوبت‌ها"
+        title="تقویم نوبت‌ها"
+        emptyDayLabel="نوبتی نیست"
         renderBooking={(booking, { closeHistory }) => {
           const sourceSalon = booking.sourceSalon;
           const sourceSalonAvatar = sourceSalon?.avatar || "";
@@ -146,8 +146,8 @@ export function ArtistScheduleBoard({
                 <button
                   type="button"
                   className="scheduleBookingMore"
-                  aria-label={`تنظیمات رزرو ${booking.client}`}
-                  title="تنظیمات رزرو"
+                  aria-label={`نوبت ${booking.client}`}
+                  title="جزئیات نوبت"
                   onClick={() => {
                     closeHistory?.();
                     onOpenBookingMenu?.(booking);
@@ -159,7 +159,7 @@ export function ArtistScheduleBoard({
                   <span className={`scheduleStaffAvatar ${sourceSalonAvatar ? "hasImage" : ""}`} aria-hidden="true">
                     {sourceSalonAvatar ? <img src={sourceSalonAvatar} alt="" /> : (sourceSalon ? <Store size={14} /> : String(booking.client || "م").slice(0, 1))}
                   </span>
-                  <small>{sourceSalon?.name || "شخصی"}</small>
+                  <small>{sourceSalon?.name || "خودم"}</small>
                 </div>
               </div>
             </article>

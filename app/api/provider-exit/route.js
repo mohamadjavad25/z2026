@@ -30,7 +30,7 @@ async function _GET(request) {
   const auth = await requireUser(request);
   if (!auth.ok) return auth.response;
   const plan = await planFor(auth.user, Object.fromEntries(new URL(request.url).searchParams));
-  if (!plan) return error("درخواست نامعتبر است.", 400);
+  if (!plan) return error("درخواست درست نرسید؛ دوباره بزن.", 400);
   return json({ data: { plan: await describePlan(plan) } });
 }
 
@@ -42,16 +42,16 @@ async function _POST(request) {
   const auth = await requireUser(request);
   if (!auth.ok) return auth.response;
   const limited = await checkRateLimit(`provider-exit-cancel:${auth.user.id}`, 60, 60 * 60 * 1000);
-  if (!limited.ok) return error("لغوهای زیاد. کمی بعد دوباره امتحان کن.", 429);
+  if (!limited.ok) return error("یه کم زیاد لغو کردی؛ چند لحظه دیگه دوباره بزن.", 429);
   const body = await readObjectBody(request);
   const plan = await planFor(auth.user, body);
-  if (!plan) return error("درخواست نامعتبر است.", 400);
+  if (!plan) return error("درخواست درست نرسید؛ دوباره بزن.", 400);
   const id = parseId(body.id);
   const kind = body.kind === "artist" ? "artist" : "salon";
   const item = plan.items.find((entry) => entry.kind === kind && entry.id === id);
-  if (!item) return error("این نوبت دیگر در فهرست نیست.", 404);
+  if (!item) return error("این نوبت دیگه توی فهرست نیست.", 404);
   const result = await cancelItem(item, { by: "provider", userId: auth.user.id, actor: auth.user, purgeMirrorOf: item.team ? plan.staffRows.map((row) => row.artist_user_id).filter(Boolean) : [] });
-  if (!result.ok) return error("این نوبت همین الان تغییر کرد؛ فهرست را تازه کردیم.", 409);
+  if (!result.ok) return error("این نوبت همین الان عوض شد؛ فهرست رو تازه کردیم.", 409);
   const fresh = await planFor(auth.user, body);
   return json({ data: { plan: await describePlan(fresh) } });
 }

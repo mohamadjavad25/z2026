@@ -79,7 +79,7 @@ export function ServiceEmojiPicker({ open, value = "", onPick, onClose }) {
           ))}
         </div>
         {value ? (
-          <button type="button" className="svcPickerClear" onClick={() => onPick?.("")}>حذف آیکن (انتخاب خودکار)</button>
+          <button type="button" className="svcPickerClear" onClick={() => onPick?.("")}>بی‌آیکن (خودکار انتخاب کن)</button>
         ) : null}
         <SheetClose onClick={onClose} />
       </div>

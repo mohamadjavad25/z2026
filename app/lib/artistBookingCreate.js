@@ -10,8 +10,8 @@ import { artistSlotProblem } from "./visitSlotRules.js";
 import { readBookingSlot } from "./validation/bookingSlot.js";
 import { parseRequestedMinutes } from "./validation/numbers.js";
 
-export const LOGIN_TO_BOOK_MESSAGE = "برای رزرو، شمارهٔ موبایلت را وارد کن";
-export const ARTIST_TOO_MANY_OPEN_MESSAGE = "چند درخواست باز داری. اول جواب یکی را بگیر یا لغوش کن.";
+export const LOGIN_TO_BOOK_MESSAGE = "برای گرفتن نوبت، شماره‌ت رو بزن";
+export const ARTIST_TOO_MANY_OPEN_MESSAGE = "چند تا درخواست منتظر جواب داری. صبر کن جواب یکی بیاد، یا یکی رو لغو کن.";
 
 const refuse = (status, error, code = "") => ({ ok: false, status, error, code });
 
@@ -30,21 +30,21 @@ export async function createArtistBooking({ artistUserId, viewer, data, body = {
   // The same strict checks a salon booking gets: the artist exists, there is a service, the day is a real
   // one and the time a real clock time, the length a whole number of minutes. Nothing is guessed.
   const artist = await users.getUserById(artistUserId);
-  if (!artist || artist.type !== "artist") return refuse(404, "آرتیست پیدا نشد.");
+  if (!artist || artist.type !== "artist") return refuse(404, "این آرتیست رو پیدا نکردیم.");
   const service = String(data.service || "").trim();
-  if (!service) return refuse(400, "خدمت رزرو مشخص نیست.");
+  if (!service) return refuse(400, "یه کار انتخاب کن.");
   const slot = readBookingSlot(data.bookingDate || data.booking_date || data.date || "", data.time ?? "");
   if (!slot.ok) return refuse(slot.status, slot.error);
   const requested = parseRequestedMinutes(data);
-  if (!requested.ok) return refuse(400, `مدت نوبت نامعتبر است؛ یک عدد صحیح (دقیقه) بنویس.`);
+  if (!requested.ok) return refuse(400, `مدت نوبت رو با عدد و به دقیقه بنویس.`);
   const day = slot.dateKey;
   const time = slot.time;
-  if (isSlotInPast(day, time)) return refuse(409, "این ساعت گذشته است. ساعت دیگری انتخاب کن.");
+  if (isSlotInPast(day, time)) return refuse(409, "این ساعت گذشته؛ یه ساعت دیگه بزن.");
   const artistSettings = await userSettings.getSettings(artistUserId);
   const isOwner = viewer?.id === artistUserId;
   // Anyone but the artist is sending a request the artist must answer: it can't start within the next few minutes.
   if (!isOwner && isTooSoonToRequest(day, time)) {
-    return refuse(409, `برای رزرو باید حداقل ${toPersianDigits(BOOKING_REQUEST_LEAD_MINUTES)} دقیقه تا شروع نوبت مانده باشد تا آرتیست فرصت پاسخ داشته باشد. ساعت دیگری انتخاب کن.`);
+    return refuse(409, `این ساعت خیلی نزدیکه؛ آرتیست باید دست‌کم ${toPersianDigits(BOOKING_REQUEST_LEAD_MINUTES)} دقیقه وقت داشته باشه جواب بده. یه ساعت دیرتر بزن.`);
   }
   // An artist whose subscription has closed (and no salon of theirs covers them) takes no new online requests.
   if (!isOwner) {
@@ -53,8 +53,8 @@ export async function createArtistBooking({ artistUserId, viewer, data, body = {
   }
   if (!isOwner && (artistSettings.vacationMode || artistSettings.directBooking === false)) {
     return refuse(403, artistSettings.vacationMode
-      ? "این آرتیست فعلاً در مرخصی است و نوبت جدید نمی‌پذیرد."
-      : "این آرتیست فعلاً رزرو مستقیم را بسته است.");
+      ? "این آرتیست فعلاً مرخصیه و نوبت تازه نمی‌گیره."
+      : "این آرتیست فعلاً نوبت آنلاین نمی‌گیره.");
   }
   // Someone booking the artist never chooses how long a listed service takes: that is the artist's own
   // number. (The artist's entry for their own customer may set it; either way it stays within a day.)
@@ -63,7 +63,7 @@ export async function createArtistBooking({ artistUserId, viewer, data, body = {
     // Only what is on the artist's own menu can be asked for, and its length is the artist's (never the client's).
     const listed = (await artists.listArtistServices(artistUserId))
       .find((item) => String(item.name || "").trim() === service);
-    if (!listed) return refuse(400, `«${service}» در خدمات این آرتیست نیست.`, "SERVICE_NOT_LISTED");
+    if (!listed) return refuse(400, `«${service}» توی کارهای این آرتیست نیست.`, "SERVICE_NOT_LISTED");
     durationMinutes = listed.duration ? parseServiceDurationMinutes(listed.duration) : 60;
   }
   durationMinutes = durationMinutes > 0 ? Math.min(720, Math.max(15, durationMinutes)) : undefined;

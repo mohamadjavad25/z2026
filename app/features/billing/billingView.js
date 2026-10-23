@@ -15,17 +15,17 @@ export function accountView(overview) {
   const account = overview.account;
   const until = formatPersianLongDate(account.accessEndsAt);
   const ready = Boolean(overview.checkoutReady);
-  const cta = (label, emphasis = "primary") => ({ label: ready ? label : "پرداخت به‌زودی فعال می‌شود", emphasis, disabled: !ready });
+  const cta = (label, emphasis = "primary") => ({ label: ready ? label : "پرداخت به‌زودی باز می‌شه", emphasis, disabled: !ready });
 
   if (account.state === "trial") {
     return {
       tone: "trial",
       badge: "ماه رایگان",
-      title: `${formatDaysLeft(account.daysLeft)} از ماه رایگانت مانده`,
-      sub: `تا ${until}. هر پلنی بخری از همان روز شروع می‌شود و روزی از ماه رایگانت از دست نمی‌رود.`,
+      title: `${formatDaysLeft(account.daysLeft)} از ماه رایگانت مونده`,
+      sub: `تا ${until}. هر پلنی بخری از همون روز شروع می‌شه و روزی از ماه رایگانت نمی‌سوزه.`,
       note: "",
       meter: Math.min(1, Math.max(0, account.daysLeft / (overview.trialDays || TRIAL_DAYS_FALLBACK))),
-      action: cta("خرید اشتراک", account.daysLeft <= 5 ? "primary" : "secondary")
+      action: cta("اشتراک بخر", account.daysLeft <= 5 ? "primary" : "secondary")
     };
   }
   if (account.state === "active") {
@@ -35,43 +35,43 @@ export function accountView(overview) {
     return {
       tone: "active",
       badge: "فعال",
-      title: `اشتراکت تا ${until} فعال است`,
-      sub: `${formatDaysLeft(account.daysLeft)} مانده.${overview.lastPayment?.title ? ` آخرین پرداخت: ${overview.lastPayment.title}.` : ""}`,
+      title: `اشتراکت تا ${until} فعاله`,
+      sub: `${formatDaysLeft(account.daysLeft)} مونده.${overview.lastPayment?.title ? ` آخرین پرداخت: ${overview.lastPayment.title}.` : ""}`,
       note: "",
       meter: total ? Math.min(1, Math.max(0, account.daysLeft / total)) : null,
-      action: cta("تمدید اشتراک", account.daysLeft <= 5 ? "primary" : "secondary")
+      action: cta("تمدیدش کن", account.daysLeft <= 5 ? "primary" : "secondary")
     };
   }
   if (!overview.enforced) {
     return {
       tone: "soon",
-      badge: "ماه رایگان تمام شد",
-      title: "پرداخت اشتراک به‌زودی فعال می‌شود",
-      sub: "تا آن موقع همه‌چیز مثل قبل کار می‌کند و چیزی بسته نمی‌شود.",
+      badge: "ماه رایگان تموم شد",
+      title: "پرداخت اشتراک به‌زودی باز می‌شه",
+      sub: "تا اون موقع همه‌چی مثل قبل کار می‌کنه و چیزی بسته نمی‌شه.",
       note: "",
       meter: null,
-      action: cta("خرید اشتراک")
+      action: cta("اشتراک بخر")
     };
   }
   if (account.state === "grace") {
     return {
       tone: "warn",
       badge: "مهلت تمدید",
-      title: "اشتراکت تمام شده",
-      sub: `${formatDaysLeft(account.graceDaysLeft)} فرصت داری تمدید کنی. بعد از آن در جست‌وجو دیده نمی‌شوی و نوبت آنلاین نمی‌گیری.`,
+      title: "اشتراکت تموم شده",
+      sub: `${formatDaysLeft(account.graceDaysLeft)} وقت داری تمدید کنی. بعدش توی جستجو دیده نمی‌شی و نوبت آنلاین نمی‌گیری.`,
       note: "",
       meter: null,
-      action: cta("تمدید اشتراک")
+      action: cta("تمدیدش کن")
     };
   }
   return {
     tone: "danger",
     badge: "غیرفعال",
-    title: "اشتراکت غیرفعال است",
-    sub: "در جست‌وجو دیده نمی‌شوی و نوبت آنلاین نمی‌گیری. نوبت‌ها، مشتری‌ها و عکس‌هایت سر جایشان است و با خرید اشتراک همان لحظه همه‌چیز برمی‌گردد.",
+    title: "اشتراکت غیرفعاله",
+    sub: "توی جستجو دیده نمی‌شی و نوبت آنلاین نمی‌گیری. نوبت‌ها، مشتری‌ها و عکس‌هات سر جاشونه و اشتراک بخری همون لحظه همه‌چی برمی‌گرده.",
     note: "",
     meter: null,
-    action: cta("خرید اشتراک")
+    action: cta("اشتراک بخر")
   };
 }
 
@@ -82,7 +82,7 @@ export function accountView(overview) {
 export function bannerView(overview) {
   if (!overview?.visible || !overview.account) return null;
   if (overview.pending) {
-    return { key: `pending-${overview.pending.id}`, tone: "info", text: "پرداختت در حال بررسی است.", action: "دیدن نتیجه", kind: "result", paymentId: overview.pending.id };
+    return { key: `pending-${overview.pending.id}`, tone: "info", text: "پرداختت داره چک می‌شه.", action: "ببین چی شد", kind: "result", paymentId: overview.pending.id };
   }
   const account = overview.account;
   // Nothing to warn about while nobody can pay yet.
@@ -95,16 +95,16 @@ export function bannerView(overview) {
       key: `${key}-${lastDay ? "1" : "5"}`,
       tone: lastDay ? "warn" : "info",
       text: account.state === "trial"
-        ? `${formatDaysLeft(account.daysLeft)} از ماه رایگانت مانده.`
-        : `اشتراکت ${lastDay ? "تا یک روز دیگر" : `${toPersianDigits(account.daysLeft)} روز دیگر`} تمام می‌شود.`,
-      action: account.state === "trial" ? "خرید اشتراک" : "تمدید",
+        ? `${formatDaysLeft(account.daysLeft)} از ماه رایگانت مونده.`
+        : `اشتراکت ${lastDay ? "تا یه روز دیگه" : `${toPersianDigits(account.daysLeft)} روز دیگه`} تموم می‌شه.`,
+      action: account.state === "trial" ? "اشتراک بخر" : "تمدید",
       kind: "plans"
     };
   }
   if (account.state === "grace") {
-    return { key, tone: "warn", text: `اشتراکت تمام شده؛ ${formatDaysLeft(account.graceDaysLeft)} فرصت تمدید داری.`, action: "تمدید", kind: "plans" };
+    return { key, tone: "warn", text: `اشتراکت تموم شده؛ ${formatDaysLeft(account.graceDaysLeft)} وقت داری تمدید کنی.`, action: "تمدید", kind: "plans" };
   }
-  return { key, tone: "danger", text: "در جست‌وجو دیده نمی‌شوی و نوبت آنلاین نمی‌گیری.", action: "خرید اشتراک", kind: "plans" };
+  return { key, tone: "danger", text: "توی جستجو دیده نمی‌شی و نوبت آنلاین نمی‌گیری.", action: "اشتراک بخر", kind: "plans" };
 }
 
 /**
@@ -113,11 +113,11 @@ export function bannerView(overview) {
  */
 export function teamMemberView(member, overview) {
   const account = member?.account || {};
-  if (account.state === "trial") return { tone: "trial", status: `ماه رایگان، ${formatDaysLeft(account.daysLeft)} مانده`, urgent: account.daysLeft <= 5 };
+  if (account.state === "trial") return { tone: "trial", status: `ماه رایگان، ${formatDaysLeft(account.daysLeft)} مونده`, urgent: account.daysLeft <= 5 };
   if (account.state === "active") return { tone: "active", status: `فعال تا ${formatPersianLongDate(account.accessEndsAt)}`, urgent: account.daysLeft <= 5 };
-  if (!overview?.enforced) return { tone: "soon", status: "ماه رایگان تمام شد", urgent: false };
-  if (account.state === "grace") return { tone: "warn", status: `تمام شده، ${formatDaysLeft(account.graceDaysLeft)} مهلت`, urgent: true };
-  return { tone: "danger", status: "غیرفعال؛ در جست‌وجو دیده نمی‌شود", urgent: true };
+  if (!overview?.enforced) return { tone: "soon", status: "ماه رایگان تموم شد", urgent: false };
+  if (account.state === "grace") return { tone: "warn", status: `تموم شده، ${formatDaysLeft(account.graceDaysLeft)} مهلت`, urgent: true };
+  return { tone: "danger", status: "غیرفعال؛ توی جستجو دیده نمی‌شه", urgent: true };
 }
 
 /** «رسید پرداخت فرفرو …», the text the «کپی رسید» button copies. */

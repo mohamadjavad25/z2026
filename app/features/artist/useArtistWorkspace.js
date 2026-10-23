@@ -314,7 +314,7 @@ export function useArtistWorkspace({
    * booking is answered by a fresh look at the calendar, so the form's list of free times is current.
    */
   async function submitArtistVisit(body) {
-    if (artistBookingSubmittingRef.current) return { ok: false, status: 0, payload: { error: "ثبت قبلی هنوز تمام نشده." } };
+    if (artistBookingSubmittingRef.current) return { ok: false, status: 0, payload: { error: "قبلیه هنوز تموم نشده؛ یه لحظه صبر کن." } };
     artistBookingSubmittingRef.current = true;
     try {
       const { ok, status, payload } = await createArtistMe(body);
@@ -374,7 +374,7 @@ export function useArtistWorkspace({
   async function saveArtistBreakTime() {
     if (artistBreakSaving) return;
     if (timeLabelToMinutes(artistBreakDraft.end) <= timeLabelToMinutes(artistBreakDraft.start)) {
-      notify("پایان استراحت باید بعد از شروع باشد.");
+      notify("آخر استراحت باید بعد از اولش باشه.");
       return;
     }
     setArtistBreakSaving(true);
@@ -385,7 +385,7 @@ export function useArtistWorkspace({
         endTime: artistBreakDraft.end
       });
       if (!ok) {
-        notify(payload.error || "ذخیره تایم استراحت انجام نشد.");
+        notify(payload.error || "استراحت ذخیره نشد؛ دوباره بزن.");
         return;
       }
       setArtistBreakTime(payload.data?.breakTime || {
@@ -395,7 +395,7 @@ export function useArtistWorkspace({
       setArtistBreakEditorOpen(false);
       notify(`تایم استراحت ${artistBreakDraft.start} تا ${artistBreakDraft.end} ذخیره شد.`);
     } catch {
-      notify("ذخیره تایم استراحت انجام نشد.");
+      notify("استراحت ذخیره نشد؛ دوباره بزن.");
     } finally {
       setArtistBreakSaving(false);
     }
@@ -407,14 +407,14 @@ export function useArtistWorkspace({
     try {
       const { ok } = await createArtistMe({ kind: "break", clear: true });
       if (!ok) {
-        notify("حذف تایم استراحت انجام نشد.");
+        notify("استراحت پاک نشد؛ دوباره بزن.");
         return;
       }
       setArtistBreakTime(null);
       setArtistBreakEditorOpen(false);
-      notify("تایم استراحت حذف شد.");
+      notify("استراحت پاک شد.");
     } catch {
-      notify("حذف تایم استراحت انجام نشد.");
+      notify("استراحت پاک نشد؛ دوباره بزن.");
     } finally {
       setArtistBreakSaving(false);
     }
@@ -422,20 +422,20 @@ export function useArtistWorkspace({
 
   async function deleteArtistService(id) {
     const target = artistServiceList.find((item) => item.id === id);
-    if (typeof window !== "undefined" && !window.confirm(target ? `«${target.name}» حذف شود؟ این کار قابل بازگشت نیست.` : "این خدمت حذف شود؟ این کار قابل بازگشت نیست.")) {
+    if (typeof window !== "undefined" && !window.confirm(target ? `«${target.name}» پاک بشه؟ این کار برگشت نداره.` : "این خدمت پاک بشه؟ این کار برگشت نداره.")) {
       return false;
     }
     try {
       const { ok, payload } = await deleteArtistMe({ id });
       if (!ok) {
-        notify(payload.error || "حذف خدمت انجام نشد.");
+        notify(payload.error || "خدمت پاک نشد؛ دوباره بزن.");
         return false;
       }
       await refreshArtistWorkspace();
-      notify("خدمت حذف شد.");
+      notify("خدمت پاک شد.");
       return true;
     } catch {
-      notify("حذف خدمت انجام نشد.");
+      notify("خدمت پاک نشد؛ دوباره بزن.");
       return false;
     }
   }
@@ -446,7 +446,7 @@ export function useArtistWorkspace({
       ? await updateArtistMe({ id: editingId, ...body })
       : await createArtistMe(body);
     if (!ok) {
-      notify(payload.error || (editingId ? "ویرایش خدمت انجام نشد." : "افزودن خدمت انجام نشد."));
+      notify(payload.error || (editingId ? "خدمت ذخیره نشد؛ دوباره بزن." : "خدمت اضافه نشد؛ دوباره بزن."));
       return false;
     }
     await refreshArtistWorkspace();
@@ -461,7 +461,7 @@ export function useArtistWorkspace({
       || item.name === artistCollabDraft.salonId
     )) || salonDirectory[0];
     if (!salon) {
-      notify("اول باید یک سالن در سیستم وجود داشته باشد.");
+      notify("هنوز سالنی پیدا نشد.");
       return;
     }
     const service = String(createdProfile?.data?.service || artistServiceList[0]?.name || "").trim();
@@ -471,11 +471,11 @@ export function useArtistWorkspace({
     const share = String(artistCollabDraft.share || "").trim();
     const capacity = String(artistCollabDraft.capacity || "").trim();
     if (!service || !days || !from || !to || !share) {
-      notify(service ? "روز، ساعت و درصد همکاری را کامل کن." : "اول تخصص پروفایل یا یک خدمت آرتیست را ثبت کن.");
+      notify(service ? "روز، ساعت و سهمت رو کامل کن." : "اول کارهات یا یه خدمت رو بذار.");
       return;
     }
     if (timeLabelToMinutes(to) <= timeLabelToMinutes(from)) {
-      notify("ساعت پایان باید بعد از شروع باشد.");
+      notify("ساعت آخر باید بعد از اول باشه.");
       return;
     }
     try {
@@ -493,30 +493,30 @@ export function useArtistWorkspace({
         status: "آماده ارسال"
       });
       if (!ok) {
-        notify(payload.error || "ثبت همکاری انجام نشد.");
+        notify(payload.error || "پیشنهاد همکاری نرفت؛ دوباره بزن.");
         return;
       }
       setArtistCollabOffers((items) => ([payload.data?.collab, ...items].filter(Boolean)));
-      notify("پیشنهاد همکاری ساخته شد.");
+      notify("پیشنهاد همکاریت آماده‌ست.");
     } catch {
-      notify("ثبت همکاری انجام نشد.");
+      notify("پیشنهاد همکاری نرفت؛ دوباره بزن.");
     }
   }
 
   async function deleteArtistCollabOffer(id) {
-    if (typeof window !== "undefined" && !window.confirm("این پیشنهاد همکاری حذف شود؟")) {
+    if (typeof window !== "undefined" && !window.confirm("این پیشنهاد همکاری پاک بشه؟")) {
       return;
     }
     try {
       const { ok, payload } = await deleteArtistMe({ kind: "collab", id });
       if (!ok) {
-        notify(payload.error || "حذف همکاری انجام نشد.");
+        notify(payload.error || "پاک نشد؛ دوباره بزن.");
         return;
       }
       setArtistCollabOffers((items) => items.filter((item) => item.id !== id));
-      notify("پیشنهاد همکاری حذف شد.");
+      notify("پیشنهاد همکاری پاک شد.");
     } catch {
-      notify("حذف همکاری انجام نشد.");
+      notify("پاک نشد؛ دوباره بزن.");
     }
   }
   const {
@@ -558,15 +558,15 @@ export function useArtistWorkspace({
     try {
       const { ok, payload } = await updateArtistBooking({ id: bookingId, status: "تایید شده" });
       if (!ok) {
-        shellNotify(payload?.error || "تایید نوبت انجام نشد.");
+        shellNotify(payload?.error || "تأیید نشد؛ دوباره بزن.");
         return;
       }
       if (Array.isArray(payload.data?.bookings)) {
         setArtistBookingList(payload.data.bookings.map(mapArtistBooking).filter(Boolean));
       }
-      shellNotify("نوبت تایید شد.");
+      shellNotify("تأیید شد؛ مشتری خبردار شد.");
     } catch {
-      shellNotify("تایید نوبت انجام نشد؛ دوباره امتحان کن.");
+      shellNotify("تأیید نشد؛ دوباره بزن.");
     } finally {
       artistRequestBusyIdRef.current = "";
       setArtistRequestBusyId("");
@@ -586,15 +586,15 @@ export function useArtistWorkspace({
     try {
       const { ok, payload } = await updateArtistBooking({ id: bookingId, status: "لغو", action: "cancel" });
       if (!ok) {
-        shellNotify(payload?.error || "رد نوبت انجام نشد.");
+        shellNotify(payload?.error || "رد نشد؛ دوباره بزن.");
         return;
       }
       if (Array.isArray(payload.data?.bookings)) {
         setArtistBookingList(payload.data.bookings.map(mapArtistBooking).filter(Boolean));
       }
-      shellNotify("نوبت رد شد.");
+      shellNotify("رد شد؛ مشتری خبردار شد.");
     } catch {
-      shellNotify("رد نوبت انجام نشد؛ دوباره امتحان کن.");
+      shellNotify("رد نشد؛ دوباره بزن.");
     } finally {
       artistRequestBusyIdRef.current = "";
       setArtistRequestBusyId("");
@@ -607,7 +607,7 @@ export function useArtistWorkspace({
     try {
       const { ok, payload } = await respondArtistInvite({ id: inviteId, status });
       if (!ok) {
-        shellNotify(payload.error || "پاسخ به دعوت انجام نشد.");
+        shellNotify(payload.error || "جوابت نرسید؛ دوباره بزن.");
         return;
       }
       setArtistSalonInviteList(payload.data?.invites || []);
@@ -616,10 +616,10 @@ export function useArtistWorkspace({
         if (teamsRes.ok) setArtistTeams(teamsRes.data?.teams || []);
       }
       shellNotify(status === "تایید شد"
-        ? "دعوت سالن پذیرفته شد و به پرسنل اضافه شدی."
-        : "دعوت سالن رد شد.");
+        ? "قبول کردی؛ حالا توی تیم سالنی!"
+        : "دعوت رو رد کردی.");
     } catch {
-      shellNotify("پاسخ به دعوت انجام نشد؛ دوباره امتحان کن.");
+      shellNotify("جوابت نرسید؛ دوباره بزن.");
     } finally {
       setArtistInviteRespondBusyId("");
     }
@@ -627,7 +627,7 @@ export function useArtistWorkspace({
 
   async function leaveArtistSalonTeam(salonUserId) {
     if (!salonUserId || artistTeamBusyId) return;
-    if (typeof window !== "undefined" && !window.confirm("از این تیم خارج می‌شوی و دیگر در برنامه‌ی سالن نیستی. ادامه؟")) return;
+    if (typeof window !== "undefined" && !window.confirm("از تیم می‌ری بیرون و دیگه توی برنامهٔ سالن نیستی. مطمئنی؟")) return;
     setArtistTeamBusyId(String(salonUserId));
     // One try; a refusal because of confirmed bookings (owner's rules of 2026-10-22) opens the list dialog, whose
     // «ادامه» repeats this same try (with «لغو همهٔ نوبت‌ها» when chosen).
@@ -635,12 +635,12 @@ export function useArtistWorkspace({
       const result = await leaveArtistTeam({ salonUserId, ...(cancelAll ? { cancelAll: true } : {}) });
       if (result.ok) {
         setArtistTeams(result.payload.data?.teams || []);
-        shellNotify("از تیم خارج شدی.");
+        shellNotify("از تیم اومدی بیرون.");
         return { ok: true };
       }
       const refusal = exitRefusalOf(result);
       if (refusal) return { ok: false, plan: refusal.plan, message: refusal.message, refusal };
-      return { ok: false, message: result.payload?.error || "خروج از تیم انجام نشد." };
+      return { ok: false, message: result.payload?.error || "از تیم بیرون نیومدی؛ دوباره بزن." };
     };
     try {
       const result = await attempt();
@@ -651,15 +651,15 @@ export function useArtistWorkspace({
           params: { salonUserId },
           plan: result.plan,
           message: result.message,
-          title: "خروج از تیم",
-          confirmLabel: "خروج از تیم",
+          title: "از تیم بری بیرون؟",
+          confirmLabel: "آره، برم بیرون",
           retry: attempt
         });
         return;
       }
       shellNotify(result.message);
     } catch {
-      shellNotify("خروج از تیم انجام نشد؛ دوباره امتحان کن.");
+      shellNotify("از تیم بیرون نیومدی؛ دوباره بزن.");
     } finally {
       setArtistTeamBusyId("");
     }

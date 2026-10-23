@@ -349,7 +349,7 @@ function getPassportMatch(post) {
     if (!booking) return;
     const salonId = booking.salon_user_id || booking.sourceSalonUserId || booking.salonUserId || "";
     if (!salonId) {
-      setAppToast("این رزرو به یک حساب سالن وصل نیست.");
+      setAppToast("این نوبت به حساب سالنی وصل نیست.");
       return;
     }
     openSalonProfile({
@@ -372,7 +372,7 @@ function getPassportMatch(post) {
     if (!booking) return;
     const artistId = booking.artistUserId || booking.sourceArtistUserId || "";
     if (!artistId) {
-      setAppToast("این رزرو به یک حساب آرتیست وصل نیست.");
+      setAppToast("این نوبت به حساب آرتیستی وصل نیست.");
       return;
     }
     openPublicArtistProfile({

@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from "react";
 
 export const SLOW_AFTER_MS = 3000;
 export const BUSY_AFTER_MS = 10000;
-export const SLOW_TEXT = "ساعت‌ها دیر می‌آیند؛ دارم دوباره امتحان می‌کنم";
-export const BUSY_TEXT = "الان شلوغ است. چند لحظهٔ دیگر";
+export const SLOW_TEXT = "ساعت‌ها دیر میان؛ دارم دوباره امتحان می‌کنم";
+export const BUSY_TEXT = "الان شلوغه؛ چند لحظهٔ دیگه";
 
 /** 0 = nothing to say yet, 1 = slow (after 3 s), 2 = busy (after 10 s). */
 export function slowLevel(elapsedMs) {

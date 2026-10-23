@@ -16,18 +16,18 @@ const telHref = (phone) => `tel:${toLatinDigits(String(phone || "")).replace(/[^
  */
 function AheadNotice({ ahead, phone, onAhead }) {
   if (!ahead) return null;
-  if (ahead.status === "loading") return <p className="vbInfo" role="status">در حال پیدا کردن اولین ساعت خالی…</p>;
+  if (ahead.status === "loading") return <p className="vbInfo" role="status">دارم اولین ساعت خالی رو پیدا می‌کنم…</p>;
   if (ahead.status === "found") {
     return (
       <div className="vbInfo vbAhead" role="status">
         <span>اولین ساعت خالی: {ahead.label} {clockText(ahead.time)}</span>
-        <button type="button" className="vbAction" onClick={onAhead}>برو به آن روز</button>
+        <button type="button" className="vbAction" onClick={onAhead}>بریم همون روز</button>
       </div>
     );
   }
   return (
     <div className="vbInfo vbAhead" role="status">
-      <span>تا دو هفته آینده جا نیست. به سالن پیام بده</span>
+      <span>تا دو هفتهٔ دیگه جا نیست؛ به سالن پیام بده</span>
       {phone ? <a className="vbAction" href={telHref(phone)}>تماس</a> : null}
     </div>
   );
@@ -39,23 +39,23 @@ export function TimesList({ state, role, onPick, onRetry, onAhead, onChain, phon
   const group = isClient && state.people > 1;
   const together = group && !state.chain;
   const peopleText = toPersianDigits(state.people);
-  if (!state.picked.length) return <p className="vbInfo">اول خدمت را انتخاب کن تا ساعت‌های خالی را ببینی.</p>;
+  if (!state.picked.length) return <p className="vbInfo">اول یه کار انتخاب کن تا ساعت‌های خالی رو ببینی.</p>;
   if (times.status === "loading" || times.status === "idle") {
     return (
       <>
-        <p className="vbInfo" role="status">در حال پیدا کردن ساعت‌های آزاد…</p>
+        <p className="vbInfo" role="status">دارم ساعت‌های خالی رو پیدا می‌کنم…</p>
         <SlowTimesNotice onRetry={onRetry} />
       </>
     );
   }
   if (times.status === "closed") {
-    return <p className="vbInfo" role="status">این روز سالن تعطیل است.{times.closedNext ? ` روز بعد باز: ${times.closedNext}.` : ""}</p>;
+    return <p className="vbInfo" role="status">این روز سالن تعطیله.{times.closedNext ? ` بعدی که بازه: ${times.closedNext}.` : ""}</p>;
   }
   if (times.status === "error") {
     return (
       <div className="vbInfo is-error" role="alert">
-        ساعت‌های آزاد بارگیری نشد.
-        <button type="button" className="vbLink" onClick={onRetry}><RotateCw size={14} aria-hidden="true" /> دوباره امتحان کن</button>
+        ساعت‌های خالی نیومد.
+        <button type="button" className="vbLink" onClick={onRetry}><RotateCw size={14} aria-hidden="true" /> دوباره بزن</button>
       </div>
     );
   }
@@ -64,7 +64,7 @@ export function TimesList({ state, role, onPick, onRetry, onAhead, onChain, phon
       return (
         <>
           <div className="vbInfo vbAhead" role="status">
-            <span>برای {peopleText} نفر در این روز ساعت مشترک نیست. می‌خواهی {state.people === 2 ? "دو" : peopleText} نوبت پشت‌سرهم بگیری؟</span>
+            <span>برای {peopleText} نفر این روز ساعت مشترک نیست. {state.people === 2 ? "دو" : peopleText} تا نوبت پشت‌سرهم بگیریم؟</span>
             <button type="button" className="vbAction" onClick={onChain}>آره، پشت‌سرهم</button>
           </div>
           <AheadNotice ahead={times.ahead} phone={phone} onAhead={onAhead} />
@@ -75,8 +75,8 @@ export function TimesList({ state, role, onPick, onRetry, onAhead, onChain, phon
       <>
         <p className="vbInfo" role="status">
           {state.picked.length > 1 || (group && state.chain)
-            ? "این روز ساعتی نیست که همهٔ این خدمت‌ها پشت‌سرهم جا شوند. روز دیگری را انتخاب کن."
-            : role === "artist" ? "برای این روز ساعت آزادی با این مدت‌زمان نیست." : "برای این روز ساعتی آزاد نیست. روز دیگری را انتخاب کن."}
+            ? "این روز ساعتی نیست که همهٔ این کارها پشت‌سرهم جا بشن. یه روز دیگه انتخاب کن."
+            : role === "artist" ? "این روز ساعت خالی‌ای به این اندازه نیست." : "این روز ساعت خالی نداره. یه روز دیگه انتخاب کن."}
         </p>
         {isClient ? <AheadNotice ahead={times.ahead} phone={phone} onAhead={onAhead} /> : null}
       </>
@@ -84,8 +84,8 @@ export function TimesList({ state, role, onPick, onRetry, onAhead, onChain, phon
   }
   return (
     <>
-      {times.note === "advanced" ? <p className="vbNote" role="status">روزِ قبلی ساعت خالی نداشت؛ نزدیک‌ترین روزِ آزاد را باز کردیم.</p> : null}
-      {together ? <p className="vbNote" role="status">ساعت‌هایی که برای {peopleText} نفر با هم جا دارد</p> : null}
+      {times.note === "advanced" ? <p className="vbNote" role="status">اون روز ساعت خالی نداشت؛ نزدیک‌ترین روز خالی رو باز کردیم.</p> : null}
+      {together ? <p className="vbNote" role="status">ساعت‌هایی که {peopleText} نفر با هم جا می‌شن</p> : null}
       {group && state.chain ? <p className="vbNote" role="status">{peopleText} نفر پشت‌سرهم، یکی بعد از دیگری</p> : null}
       <div className="vbTimes" role="group" aria-label="ساعت شروع">
         {times.list.map((time, index) => {
@@ -124,13 +124,13 @@ export function PlanList({ role, state, onStaff, onRetry }) {
   if (plan.status === "error") {
     return (
       <div className="vbInfo is-error" role="alert">
-        نتوانستیم این ساعت را بررسی کنیم.
-        <button type="button" className="vbLink" onClick={onRetry}><RotateCw size={14} aria-hidden="true" /> دوباره امتحان کن</button>
+        نتونستیم این ساعت رو چک کنیم.
+        <button type="button" className="vbLink" onClick={onRetry}><RotateCw size={14} aria-hidden="true" /> دوباره بزن</button>
       </div>
     );
   }
   if (!parts.length) {
-    return plan.status === "loading" ? <p className="vbInfo" role="status">در حال بررسی…</p> : null;
+    return plan.status === "loading" ? <p className="vbInfo" role="status">دارم چک می‌کنم…</p> : null;
   }
   const canPick = role === "salon";
   return (
@@ -149,10 +149,10 @@ export function PlanList({ role, state, onStaff, onRetry }) {
                 type="button"
                 className="vbWho2"
                 aria-expanded={expanded}
-                aria-label={`آرتیست ${part.service}: ${part.staff || "تعیین نشده"}. تغییر`}
+                aria-label={`آرتیست ${part.service}: ${part.staff || "هنوز معلوم نیست"}. تغییر`}
                 onClick={() => setOpenIndex(expanded ? -1 : index)}
               >
-                {part.staff || "تعیین نشده"}
+                {part.staff || "هنوز معلوم نیست"}
                 <ChevronDown size={14} aria-hidden="true" />
               </button>
             ) : (

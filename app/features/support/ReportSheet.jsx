@@ -29,18 +29,18 @@ export function ReportSheet({ targetType = "post", targetId, title = "", above =
     const { ok, payload } = await apiFetch("/api/reports", { method: "POST", body: JSON.stringify({ targetType, targetId, reason, note }) });
     setBusy(false);
     if (ok) setSent(payload.data?.id || true);
-    else setError(payload.error || "ارسال نشد. دوباره امتحان کن.");
+    else setError(payload.error || "نرفت؛ دوباره بزن.");
   }
 
   return (
-    <SupportShell title={targetType === "post" ? "گزارش این پست" : "گزارش این حساب"} label="گزارش تخلف" above={above} onClose={onClose}>
+    <SupportShell title={targetType === "post" ? "گزارش این نمونه‌کار" : "گزارش این حساب"} label="گزارش تخلف" above={above} onClose={onClose}>
       {sent ? (
         <div className="supDone" role="status">
           <CircleCheck size={36} aria-hidden="true" />
-          <b>ممنون که گزارش دادی</b>
-          <p>گزارشت را بررسی می‌کنیم. هر خبری باشد در بخش پشتیبانی برایت می‌نویسیم.</p>
+          <b>مرسی که گفتی</b>
+          <p>بررسیش می‌کنیم و هر خبری بود توی پشتیبانی برات می‌نویسیم.</p>
           <button type="button" className="supBtn" onClick={onClose}>باشه</button>
-          {typeof sent === "number" ? <button type="button" className="supLink" onClick={() => { onClose(); openSupport({ ticketId: sent }); }}>دیدن در پشتیبانی</button> : null}
+          {typeof sent === "number" ? <button type="button" className="supLink" onClick={() => { onClose(); openSupport({ ticketId: sent }); }}>ببینش توی پشتیبانی</button> : null}
         </div>
       ) : (
         <form onSubmit={submit} className="supForm">
@@ -51,11 +51,11 @@ export function ReportSheet({ targetType = "post", targetId, title = "", above =
             ))}
           </div>
           <label className="supField">
-            <span>توضیح بیشتر (اختیاری)</span>
+            <span>بیشتر بگو (اگه بخوای)</span>
             <textarea rows={3} value={note} maxLength={500} onChange={(event) => setNote(event.target.value)} />
           </label>
           {error ? <p className="supError" role="alert">{error}</p> : null}
-          <button type="submit" className="supBtn" disabled={busy || !reason}>{busy ? "در حال ارسال…" : "ارسال گزارش"}</button>
+          <button type="submit" className="supBtn" disabled={busy || !reason}>{busy ? "دارم می‌فرستم…" : "بفرست"}</button>
         </form>
       )}
     </SupportShell>

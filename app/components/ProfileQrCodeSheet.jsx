@@ -13,7 +13,7 @@ import { SheetClose } from "./SheetClose";
  * salon invite an artist (features/connect/ScanFlow); any other camera just
  * opens the page. `onScan` adds an «اسکن کن» button for the other direction.
  */
-export function ProfileQrCodeSheet({ open, url, name = "پروفایل", hint = "مشتری‌ها با اسکن این کد در فرفرو به تو وصل می‌شوند.", onScan, onOpenChange }) {
+export function ProfileQrCodeSheet({ open, url, name = "پروفایل", hint = "مشتری‌ها این کد رو توی فرفرو اسکن کنن، بهت وصل می‌شن.", onScan, onOpenChange }) {
   const dataUrl = useQrCode(url, open);
   const [copied, setCopied] = useState(false);
 

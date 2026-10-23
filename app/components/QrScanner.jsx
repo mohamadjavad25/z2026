@@ -141,7 +141,7 @@ function buzz() {
 // 1×1 transparent GIF.
 const BLANK_POSTER = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 
-export function QrScanner({ title = "اسکن کن", hint = "کد QR را داخل کادر بگیر", onDetected, paused = false, footer = null, onClose }) {
+export function QrScanner({ title = "اسکن کن", hint = "QR رو بگیر توی کادر", onDetected, paused = false, footer = null, onClose }) {
   useBackHandler(true, onClose);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -253,7 +253,7 @@ export function QrScanner({ title = "اسکن کن", hint = "کد QR را داخ
         pausedRef.current = false;
         report(text);
       } else {
-        setPhotoError("در این عکس کد QR پیدا نشد.");
+        setPhotoError("توی این عکس QR پیدا نشد.");
       }
     } catch {
       setPhotoError("این عکس باز نشد.");
@@ -265,9 +265,9 @@ export function QrScanner({ title = "اسکن کن", hint = "کد QR را داخ
   if (typeof document === "undefined") return null;
 
   const cameraMessage = {
-    blocked: "دسترسی دوربین داده نشد. از تنظیمات مرورگر برای این سایت اجازهٔ دوربین بده و «دوباره» را بزن، یا عکس کد را انتخاب کن.",
-    missing: "دوربینی پیدا نشد؛ عکس کد را انتخاب کن.",
-    unsupported: "این مرورگر به دوربین دسترسی ندارد؛ عکس کد را انتخاب کن."
+    blocked: "به دوربین دسترسی نداریم. از تنظیمات مرورگر اجازهٔ دوربین بده و «دوباره» رو بزن، یا عکس کد رو انتخاب کن.",
+    missing: "دوربین پیدا نشد؛ عکس کد رو انتخاب کن.",
+    unsupported: "این مرورگر دوربین نداره؛ عکس کد رو انتخاب کن."
   }[cameraState] || "";
 
   return createPortal(
@@ -292,7 +292,7 @@ export function QrScanner({ title = "اسکن کن", hint = "کد QR را داخ
       <div className={`qrScannerFrame ${cameraState === "live" ? "" : "is-idle"}`} aria-hidden="true">
         <span className="is-tl" /><span className="is-tr" /><span className="is-bl" /><span className="is-br" />
       </div>
-      <p className="qrScannerHint" role="status">{readingPhoto ? "در حال خواندن عکس…" : photoError || cameraMessage || (cameraState === "starting" ? "در حال باز کردن دوربین…" : hint)}</p>
+      <p className="qrScannerHint" role="status">{readingPhoto ? "دارم عکس رو می‌خونم…" : photoError || cameraMessage || (cameraState === "starting" ? "دارم دوربین رو باز می‌کنم…" : hint)}</p>
       <div className="qrScannerBottom">
         {footer || (
           <div className="qrScannerActions">
@@ -304,7 +304,7 @@ export function QrScanner({ title = "اسکن کن", hint = "کد QR را داخ
             ) : null}
             <label className="qrScannerPhoto">
               <ImageUp size={18} aria-hidden="true" />
-              انتخاب عکس کد
+              عکس کد رو انتخاب کن
               <input type="file" accept="image/*" onChange={scanPhoto} />
             </label>
           </div>

@@ -19,7 +19,7 @@ export function BookingSlotPicker({
   timeOptions = [],
   timeValue = "",
   onTimeChange,
-  emptyTimeMessage = "برای این روز ساعتی آزاد نیست."
+  emptyTimeMessage = "این روز ساعت خالی نداره."
 }) {
   const stripRef = useRef(null);
   const activeDayRef = useRef(null);

@@ -21,8 +21,8 @@ export async function notifyNewFollower(followerUserId, targetUserId) {
     const follower = await getUserLiteById(followerUserId);
     const name = String(follower?.name || "").trim();
     notifyConnection(targetUserId, {
-      title: "مشتری تازه به جمعتان پیوست",
-      body: name ? `${name} شما را دنبال کرد و به مشتریان‌تان اضافه شد.` : "یک نفر شما را دنبال کرد و به مشتریان‌تان اضافه شد.",
+      title: "یه مشتری تازه بهت وصل شد",
+      body: name ? `${name} بهت وصل شد و رفت توی مشتری‌هات.` : "یه نفر بهت وصل شد و رفت توی مشتری‌هات.",
       url: "/"
     });
   } catch {

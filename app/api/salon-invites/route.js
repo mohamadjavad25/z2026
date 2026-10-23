@@ -5,7 +5,7 @@ import { notifyConnection } from "../../lib/connectionNotify.js";
 export const runtime = "nodejs";
 
 async function _GET(request) {
-  const auth = await requireUserRole(request, "salon", "فقط سالن.");
+  const auth = await requireUserRole(request, "salon", "این بخش مال سالن‌هاست.");
   if (!auth.ok) return auth.response;
   const { searchParams } = new URL(request.url);
   const status = searchParams.get("status") || undefined;
@@ -14,7 +14,7 @@ async function _GET(request) {
 }
 
 async function _POST(request) {
-  const auth = await requireUserRole(request, "salon", "فقط سالن.");
+  const auth = await requireUserRole(request, "salon", "این بخش مال سالن‌هاست.");
   if (!auth.ok) return auth.response;
   const body = await request.json();
   const result = await salons.createSalonArtistInvite(auth.user.id, body);
@@ -22,8 +22,8 @@ async function _POST(request) {
     return json({ error: result.error, code: result.code, data: { invite: result.invite || null } }, { status: 400 });
   }
   notifyConnection(result.invite?.artistId, {
-    title: "دعوت به تیم",
-    body: `${auth.user.name || "یک سالن"} تو را به تیمش دعوت کرد؛ شرایط را ببین و پاسخ بده.`,
+    title: "یه سالن دعوتت کرد",
+    body: `${auth.user.name || "یه سالن"} دعوتت کرد توی تیمش؛ شرایط رو ببین و جواب بده.`,
     url: "/"
   });
   return json({
@@ -36,7 +36,7 @@ async function _POST(request) {
 }
 
 async function _DELETE(request) {
-  const auth = await requireUserRole(request, "salon", "فقط سالن.");
+  const auth = await requireUserRole(request, "salon", "این بخش مال سالن‌هاست.");
   if (!auth.ok) return auth.response;
   const body = await request.json();
   const invite = await salons.cancelSalonArtistInvite(Number(body.id), auth.user.id);

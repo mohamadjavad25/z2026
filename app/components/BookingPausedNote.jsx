@@ -11,7 +11,7 @@ export function BookingPausedNote({ hasPhone = false }) {
     <p className="pphPausedNote" role="note">
       <CalendarOff size={17} aria-hidden="true" />
       <span>
-        <b>فعلاً نوبت آنلاین نمی‌گیرد.</b>
+        <b>فعلاً نوبت آنلاین نمی‌گیره.</b>
         {hasPhone ? " برای نوبت، با دکمهٔ «تماس» هماهنگ کن." : " برای نوبت، مستقیم با خودش هماهنگ کن."}
       </span>
     </p>

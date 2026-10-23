@@ -29,7 +29,7 @@ export function DateTimeWheelPicker({
   timeIdPrefix = "wheel-time",
   timeLabel = "ساعت",
   timeAriaLabel = "انتخاب ساعت",
-  emptyTimeMessage = "نوبت آزادی نیست"
+  emptyTimeMessage = "ساعت خالی نیست"
 }) {
   const normalizedDayOptions = dayOptions.map((option) => (
     option && typeof option === "object"

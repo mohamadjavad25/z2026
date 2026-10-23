@@ -60,15 +60,15 @@ export function SalonStaffWorkspace({
         <span className="stfInviteIcon" aria-hidden="true"><Plus size={38} strokeWidth={2.6} /></span>
         <span className="stfInviteCopy">
           <b>دعوت آرتیست</b>
-          <small>کد یا لینک تیم را به آرتیست بده؛ با یک اسکن وارد تیمت می‌شود</small>
+          <small>کد یا لینک تیم رو به آرتیست بده؛ با یه اسکن میاد توی تیمت</small>
         </span>
         <span className="stfInviteGo" aria-hidden="true">دعوت</span>
       </button>
 
       {pendingInvites.length ? (
-        <section className="stfSection" aria-label="دعوت‌های در انتظار تایید">
+        <section className="stfSection" aria-label="دعوت‌هایی که منتظر جوابن">
           <div className="stfSectionLabel">
-            <span>دعوت‌های در انتظار</span>
+            <span>منتظر جواب</span>
             <b>{toPersianDigits(pendingInvites.length)}</b>
           </div>
           {pendingInvites.map((invite) => (
@@ -81,7 +81,7 @@ export function SalonStaffWorkspace({
                   {invite.role || invite.artistService || "آرتیست"}
                   {invite.artistArea ? ` • ${invite.artistArea}` : ""}
                 </span>
-                <em className="stfState is-pending"><i aria-hidden="true" />در انتظار تایید</em>
+                <em className="stfState is-pending"><i aria-hidden="true" />منتظر جواب</em>
               </div>
               <button
                 type="button"
@@ -163,11 +163,11 @@ export function SalonStaffWorkspace({
       ) : !pendingInvites.length ? (
         <div className="stfEmpty">
           <ServiceIconStrip ids={["haircut", "hair_color", "manicure", "lipstick", "eyebrow"]} size="md" />
-          <b>هنوز آرتیستی در تیم نیست</b>
-          <p>آرتیستی که با تو کار می‌کند را با کد یا لینک تیم اضافه کن تا رزروها، خدمات و همکاری‌های سالن از همین‌جا مدیریت شوند.</p>
+          <b>تیمت هنوز خالیه</b>
+          <p>آرتیستی که باهات کار می‌کنه رو با کد یا لینک تیم بیار تا نوبت‌ها و خدمت‌هاش رو همین‌جا داشته باشی.</p>
           <button type="button" onClick={onInviteNearby}>
             <Send size={15} />
-            دعوت اولین آرتیست
+            اولین آرتیست رو دعوت کن
           </button>
         </div>
       ) : null}

@@ -188,7 +188,7 @@ export function PublicArtistModal({
               onConfirm={startBooking}
               onClose={() => setServicesOpen(false)}
             />
-            <nav className="spvBar" aria-label="رزرو و اطلاعات">
+            <nav className="spvBar" aria-label="نوبت گرفتن">
               <button
                 type="button"
                 className={`spvBarBook${servicesOpen ? " is-open" : ""}`}
@@ -197,7 +197,7 @@ export function PublicArtistModal({
                 aria-haspopup="dialog"
               >
                 <CalendarCheck size={19} />
-                {servicesOpen ? "بستن" : "رزرو نوبت"}
+                {servicesOpen ? "بستن" : "رزرو"}
                 {fromPrice && !servicesOpen ? <small>قیمت از {formatTomanNumber(fromPrice)} تومان</small> : null}
                 <ChevronUp size={18} className={`spvBarChevron${servicesOpen ? " is-open" : ""}`} aria-hidden="true" />
               </button>
@@ -207,7 +207,7 @@ export function PublicArtistModal({
           <ProfileSheet
             open={bookingPopup}
             kicker={artist.name || "آرتیست"}
-            title="رزرو نوبت"
+            title="نوبت بگیر"
             panelClassName="artistBookingPopupSheet"
             onClose={() => setBookingPopup(false)}
           >
@@ -235,14 +235,14 @@ export function PublicArtistModal({
                 ) : null}
                 {guest ? (
                   <p className="artistBookingPhoneWarning is-info">
-                    برای ثبت نوبت باید وارد frfro شوی. بعد از ورود، رزرو را از پروفایل همین آرتیست ادامه بده.
+                    برای نوبت گرفتن اول وارد فرفرو شو؛ بعدش از همین صفحه ادامه بده.
                   </p>
                 ) : !clientPhone ? (
                   <p className="artistBookingPhoneWarning">
-                    برای رزرو، شماره تماس را در پروفایلت ثبت کن — بدون آن آرتیست نمی‌تواند برای تایید با تو تماس بگیرد.{" "}
+                    برای نوبت گرفتن، شماره‌ت رو توی پروفایلت بذار؛ آرتیست برای تأیید باید بتونه بهت زنگ بزنه.{" "}
                     {typeof onEditProfile === "function" ? (
                       <button type="button" onClick={onEditProfile}>
-                        ثبت شماره تماس
+                        شماره‌م رو بذارم
                       </button>
                     ) : null}
                   </p>
@@ -262,7 +262,7 @@ export function PublicArtistModal({
                   }}
                 >
                   <CalendarCheck size={17} />
-                  {bookingBusy ? "در حال ثبت..." : bookingSlot ? (guest ? "ورود و ادامه رزرو" : `تایید رزرو، ${bookingDay} ساعت ${bookingSlot}`) : "ساعت را انتخاب کن"}
+                  {bookingBusy ? "یه لحظه…" : bookingSlot ? (guest ? "وارد شو و ادامه بده" : `بفرست برای ${bookingDay}، ${bookingSlot}`) : "یه ساعت انتخاب کن"}
                 </button>
           </ProfileSheet>
 

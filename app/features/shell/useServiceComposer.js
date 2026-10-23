@@ -56,7 +56,7 @@ export function useServiceComposer({
     const hint = String(artistServiceDraft.hint || "").trim();
     const editingId = artistServiceDraft.id;
     if (!name) {
-      notify("نام خدمت را وارد کن.");
+      notify("اسم خدمت چیه؟");
       return;
     }
     const body = {
@@ -77,7 +77,7 @@ export function useServiceComposer({
       if (!ok) return;
       if (editingId) {
         closeArtistServiceCreate();
-        notify("خدمت به‌روزرسانی شد.");
+        notify("خدمت ذخیره شد.");
       } else {
         // Stay in the sheet: back to the catalog so the next service can be picked right away.
         setArtistServiceCreateMode("preset");
@@ -85,7 +85,7 @@ export function useServiceComposer({
         notify(`خدمت «${name}» اضافه شد.`);
       }
     } catch {
-      notify(editingId ? "ویرایش خدمت انجام نشد." : "افزودن خدمت انجام نشد.");
+      notify(editingId ? "خدمت ذخیره نشد؛ دوباره بزن." : "خدمت اضافه نشد؛ دوباره بزن.");
     }
   }, [createdProfile, artistServiceDraft, upsertSalonOwnerService, upsertArtistOwnerService, closeArtistServiceCreate, notify]);
 
@@ -94,7 +94,7 @@ export function useServiceComposer({
     const isSalonService = createdProfile?.type === "salon";
     const existingServices = isSalonService ? salonServiceList : artistServiceList;
     if (existingServices.some((item) => item.name === service.name)) {
-      notify("این خدمت قبلا در منو هست.");
+      notify("این خدمت از قبل توی منوته.");
       return;
     }
     const body = {
@@ -115,7 +115,7 @@ export function useServiceComposer({
       // «اضافه شده» and the done bar counts it, and a sliding toast over the list was one more layer
       // in the Android static-band bug (docs/DEVLOG.md).
     } catch {
-      notify("افزودن خدمت انجام نشد.");
+      notify("خدمت اضافه نشد؛ دوباره بزن.");
     }
   }, [createdProfile, salonServiceList, artistServiceList, upsertSalonOwnerService, upsertArtistOwnerService, notify]);
 

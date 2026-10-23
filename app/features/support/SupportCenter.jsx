@@ -14,11 +14,11 @@ import { SkeletonList } from "../../components/Skeleton";
 
 // value, label, icon, one line that says when to pick it, and what to write in the box.
 const TOPICS = [
-  ["question", "سؤال", CircleHelp, "می‌خواهم چیزی را بدانم", "سؤالت را بنویس…"],
-  ["bug", "مشکل فنی", Bug, "چیزی کار نمی‌کند", "چه کار می‌کردی و چه شد؟ اگر راحت‌تری عکس صفحه بفرست."],
-  ["account", "مشکل حساب", UserRoundCog, "ورود، شماره، اشتراک", "مشکل حسابت را بنویس…"],
-  ["complaint", "شکایت", MessageSquareWarning, "از کسی یا چیزی راضی نبودم", "ماجرا را بنویس؛ اگر شکایت از یک سالن یا آرتیست است، اسمش را هم بگو."],
-  ["other", "سایر", Ellipsis, "هیچ‌کدام از این‌ها", "هر چه می‌خواهی بنویس…"]
+  ["question", "سؤال", CircleHelp, "یه چیزی می‌خوام بدونم", "سؤالت رو بنویس…"],
+  ["bug", "مشکل فنی", Bug, "یه چیزی کار نمی‌کنه", "داشتی چی کار می‌کردی و چی شد؟ اگه راحت‌تری، عکس صفحه رو بفرست."],
+  ["account", "مشکل حساب", UserRoundCog, "ورود، شماره، اشتراک", "مشکل حسابت رو بنویس…"],
+  ["complaint", "شکایت", MessageSquareWarning, "از کسی یا چیزی راضی نبودم", "ماجرا رو بنویس؛ اگه از یه سالن یا آرتیسته، اسمش رو هم بگو."],
+  ["other", "سایر", Ellipsis, "هیچ‌کدوم از اینا", "هر چی می‌خوای بنویس…"]
 ];
 const CATEGORY_LABEL = Object.fromEntries(TOPICS.map(([value, label]) => [value, label]));
 const MIN_MESSAGE = 10;
@@ -42,8 +42,8 @@ function ago(value) {
 /** What the person should see as the state of their ticket, in plain words. */
 function stateOf(ticket) {
   if (ticket.status === "closed") return { key: "closed", label: "بسته شد" };
-  if (ticket.last_actor === "admin") return { key: "answered", label: "پاسخ داده شد" };
-  return { key: "waiting", label: "در انتظار پاسخ" };
+  if (ticket.last_actor === "admin") return { key: "answered", label: "جواب داده" };
+  return { key: "waiting", label: "منتظر جواب" };
 }
 
 function titleOf(ticket) {
@@ -76,8 +76,8 @@ function TicketList({ onOpen, onNew }) {
     <div className="scBody">
       <section className="scAsk" aria-labelledby="scAskTitle">
         <div className="scAskHead">
-          <h4 id="scAskTitle">چه کمکی می‌خواهی؟</h4>
-          <p>موضوع را انتخاب کن، جواب را همین‌جا می‌بینی.</p>
+          <h4 id="scAskTitle">چه کمکی ازمون برمیاد؟</h4>
+          <p>موضوع رو انتخاب کن؛ جوابش همین‌جا میاد.</p>
         </div>
         <div className="scTopics">
           {TOPICS.map(([value, label, Icon, hint]) => (
@@ -92,7 +92,7 @@ function TicketList({ onOpen, onNew }) {
 
       {failed ? (
         <div className="scError scRetry" role="alert">
-          <span>بارگذاری نشد. اینترنتت را بررسی کن.</span>
+          <span>نیومد؛ اینترنتت رو یه نگاه بنداز.</span>
           <button type="button" onClick={load}>دوباره</button>
         </div>
       ) : null}
@@ -106,8 +106,8 @@ function TicketList({ onOpen, onNew }) {
         {tickets && !tickets.length ? (
           <div className="scEmpty">
             <span className="scEmptyIcon"><SupportIcon size={30} /></span>
-            <b>هنوز پیامی نداری</b>
-            <p>وقتی به پشتیبانی پیام بدهی، گفتگو و جوابش اینجا می‌ماند.</p>
+            <b>هنوز پیامی ندادی</b>
+            <p>هر چی بپرسی، جوابش همین‌جا می‌مونه.</p>
           </div>
         ) : null}
         {tickets?.length ? (
@@ -126,7 +126,7 @@ function TicketList({ onOpen, onNew }) {
                       <small>{ticket.last_body || (ticket.kind === "report" ? REASON_LABEL[ticket.category] : "")}</small>
                       <StatePill ticket={ticket} />
                     </span>
-                    {ticket.unread ? <i className="scDot" aria-label="پاسخ جدید" /> : null}
+                    {ticket.unread ? <i className="scDot" aria-label="جواب تازه" /> : null}
                   </button>
                 </li>
               );
@@ -147,7 +147,7 @@ function Thread({ id }) {
   const load = useCallback(async (silent = false) => {
     const { ok, payload } = await apiFetch(`/api/support/tickets/${id}`);
     if (ok) setData(payload.data);
-    else if (!silent) setData({ error: payload.error || "بارگذاری نشد." });
+    else if (!silent) setData({ error: payload.error || "نیومد؛ دوباره بزن." });
     notifySupportRead();
   }, [id]);
   useEffect(() => {
@@ -168,12 +168,12 @@ function Thread({ id }) {
     try {
       result = await apiFetch(`/api/support/tickets/${id}`, { method: "POST", body: JSON.stringify({ message, attachments }) });
     } catch {
-      result = { ok: false, payload: { error: "اتصال برقرار نشد. اینترنتت را بررسی کن." } };
+      result = { ok: false, payload: { error: "اینترنتت وصل نیست؛ یه نگاه بنداز و دوباره بزن." } };
     }
     if (result.ok) await load(true);
     setPending((prev) => prev.filter((item) => item.key !== key));
     if (!result.ok) {
-      setData((prev) => ({ ...prev, sendError: result.payload.error || "ارسال نشد. دوباره امتحان کن." }));
+      setData((prev) => ({ ...prev, sendError: result.payload.error || "نرفت؛ دوباره بزن." }));
       return false;
     }
     setData((prev) => ({ ...prev, sendError: "" }));
@@ -191,7 +191,7 @@ function Thread({ id }) {
           <b>{titleOf(ticket)}</b>
           <StatePill ticket={ticket} />
         </div>
-        {ticket.kind === "report" ? <p className="scInfo">گزارش تو ثبت شد و بررسی می‌شود. هر خبری باشد همین‌جا می‌نویسیم.{ticket.category ? ` (دلیل: ${REASON_LABEL[ticket.category] || ticket.category})` : ""}</p> : null}
+        {ticket.kind === "report" ? <p className="scInfo">گزارشت رسید و بررسیش می‌کنیم. هر خبری بود همین‌جا می‌نویسیم.{ticket.category ? ` (دلیل: ${REASON_LABEL[ticket.category] || ticket.category})` : ""}</p> : null}
         {messages.map((message, index) => {
           const previous = messages[index - 1];
           const newDay = index === 0 || !sameDay(previous.created_at, message.created_at);
@@ -217,16 +217,16 @@ function Thread({ id }) {
             <div className={`scMsg is-user is-pending${item.attachments.length ? " has-images" : ""}`}>
               {item.attachments.some((file) => file.kind === "voice") ? <p>🎤 پیام صوتی</p> : <MessageAttachments items={item.attachments} />}
               {item.body ? <p>{item.body}</p> : null}
-              <time><Clock3 size={12} aria-hidden="true" /> در حال ارسال</time>
+              <time><Clock3 size={12} aria-hidden="true" /> داره می‌ره</time>
             </div>
           </div>
         ))}
-        {!messages.length ? <p className="scMuted">هنوز پیامی در این گفتگو نیست.</p> : null}
-        {closed ? <p className="scInfo">این گفتگو بسته شده. اگر پیام بدهی دوباره باز می‌شود.</p> : null}
+        {!messages.length ? <p className="scMuted">هنوز پیامی اینجا نیست.</p> : null}
+        {closed ? <p className="scInfo">این گفتگو بسته شده؛ پیام بدی دوباره باز می‌شه.</p> : null}
         <div ref={endRef} />
       </div>
       {data.sendError ? <p className="scError scThreadError" role="alert">{data.sendError}</p> : null}
-      <Composer placeholder={closed ? "پیام بده تا دوباره باز شود…" : "پیامت را بنویس…"} onSend={send} />
+      <Composer placeholder={closed ? "پیام بده تا دوباره باز بشه…" : "پیامت رو بنویس…"} onSend={send} />
     </>
   );
 }
@@ -247,10 +247,10 @@ function NewTicket({ initialCategory = "question", initialSubject = "", onCreate
     if (busy || !ready) return;
     setBusy(true);
     setError("");
-    const { ok, payload } = await apiFetch("/api/support", { method: "POST", body: JSON.stringify({ category, subject, message, attachments }) }).catch(() => ({ ok: false, payload: { error: "اتصال برقرار نشد. اینترنتت را بررسی کن." } }));
+    const { ok, payload } = await apiFetch("/api/support", { method: "POST", body: JSON.stringify({ category, subject, message, attachments }) }).catch(() => ({ ok: false, payload: { error: "اینترنتت وصل نیست؛ یه نگاه بنداز و دوباره بزن." } }));
     setBusy(false);
     if (ok) onCreated(payload.data.id);
-    else setError(payload.error || "ارسال نشد. دوباره امتحان کن.");
+    else setError(payload.error || "نرفت؛ دوباره بزن.");
   }
 
   return (
@@ -271,19 +271,19 @@ function NewTicket({ initialCategory = "question", initialSubject = "", onCreate
           <span>پیامت</span>
           <textarea rows={6} value={message} maxLength={2000} onChange={(event) => setMessage(event.target.value)} placeholder={topic[4]} />
           <em className={`scCounter${length >= MIN_MESSAGE ? " is-ok" : ""}`} aria-live="polite">
-            {attachments.length ? "عکس یا صدا هم کافی است" : length >= MIN_MESSAGE ? <><Check size={13} aria-hidden="true" /> آماده ارسال</> : `حداقل ${digits(MIN_MESSAGE)} حرف بنویس (${digits(length)} از ${digits(MIN_MESSAGE)})`}
+            {attachments.length ? "عکس یا صدا هم کافیه" : length >= MIN_MESSAGE ? <><Check size={13} aria-hidden="true" /> آماده‌ست</> : `دست‌کم ${digits(MIN_MESSAGE)} حرف بنویس (${digits(length)} از ${digits(MIN_MESSAGE)})`}
           </em>
         </label>
         <AttachmentField value={attachments} onChange={setAttachments} />
         <label className="scField">
-          <span>عنوان <small>(اختیاری)</small></span>
+          <span>عنوان <small>(اگه بخوای)</small></span>
           <input type="text" value={subject} maxLength={120} onChange={(event) => setSubject(event.target.value)} placeholder="مثلاً: نوبتم ثبت نشد" />
         </label>
       </div>
       <footer className="scFoot">
         {error ? <p className="scError" role="alert">{error}</p> : null}
         <button type="submit" className="scPrimary" disabled={busy || !ready} aria-busy={busy || undefined}>
-          {busy ? <><Spinner size={18} current /> در حال ارسال…</> : "ارسال پیام"}
+          {busy ? <><Spinner size={18} current /> دارم می‌فرستم…</> : "بفرست"}
         </button>
       </footer>
     </form>
@@ -318,7 +318,7 @@ export function SupportCenter({ initial = {}, onClose }) {
   if (typeof document === "undefined") return null;
 
   const inList = view.name === "list";
-  const title = view.name === "new" ? "پیام جدید" : view.name === "thread" ? "گفتگو" : "پشتیبانی";
+  const title = view.name === "new" ? "پیام تازه" : view.name === "thread" ? "گفتگو" : "پشتیبانی";
   return createPortal(
     <div className="scOverlay" onClick={onClose}>
       <div className="scSheet" role="dialog" aria-modal="true" aria-label="پشتیبانی" tabIndex={-1} ref={sheetRef} onClick={(event) => event.stopPropagation()}>

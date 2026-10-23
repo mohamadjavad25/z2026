@@ -8,19 +8,19 @@ export const runtime = "nodejs";
 
 /** GET /api/artist/teams -> the salon teams this artist currently belongs to. */
 async function _GET(request) {
-  const auth = await requireUserRole(request, "artist", "فقط آرتیست.");
+  const auth = await requireUserRole(request, "artist", "این بخش مال آرتیست‌هاست.");
   if (!auth.ok) return auth.response;
   return json({ data: { teams: await salons.listArtistTeams(auth.user.id) } });
 }
 
 /** DELETE /api/artist/teams  body: { salonUserId } -> the artist leaves that team. */
 async function _DELETE(request) {
-  const auth = await requireUserRole(request, "artist", "فقط آرتیست.");
+  const auth = await requireUserRole(request, "artist", "این بخش مال آرتیست‌هاست.");
   if (!auth.ok) return auth.response;
   const body = await readObjectBody(request);
   const salonUserId = Number(body.salonUserId || body.salon_user_id || 0);
   if (!salonUserId) {
-    return json({ error: "سالن نامعتبر است.", code: "INVALID_SALON" }, { status: 400 });
+    return json({ error: "این سالن رو پیدا نکردیم.", code: "INVALID_SALON" }, { status: 400 });
   }
   // Not while a confirmed booking of theirs starts within 24 hours; farther ones are handed over or cancelled with notice
   // first (owner's rules of 2026-10-22, providerExit.js); waiting requests go back to the salon unassigned.
@@ -32,8 +32,8 @@ async function _DELETE(request) {
     return json({ error: result.error, code: result.code }, { status: 404 });
   }
   notifyConnection(salonUserId, {
-    title: "آرتیست از تیم خارج شد",
-    body: `${auth.user.name || "یک آرتیست"} همکاری با سالنت را پایان داد.`,
+    title: "یه آرتیست از تیم رفت",
+    body: `${auth.user.name || "یه آرتیست"} دیگه با سالنت کار نمی‌کنه.`,
     url: "/"
   });
   return json({ data: { ok: true, teams: await salons.listArtistTeams(auth.user.id) } });

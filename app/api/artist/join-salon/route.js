@@ -11,13 +11,13 @@ export const runtime = "nodejs";
  *  it, salonUserId alone is just the salon's small public id and proves
  *  nothing. */
 async function _POST(request) {
-  const auth = await requireUserRole(request, "artist", "فقط آرتیست.");
+  const auth = await requireUserRole(request, "artist", "این بخش مال آرتیست‌هاست.");
   if (!auth.ok) return auth.response;
   const body = await request.json();
   const salonUserId = Number(body.salonUserId || body.salon_user_id || 0);
   const code = String(body.code || "").trim();
   if (!salonUserId) {
-    return json({ error: "سالن نامعتبر است.", code: "INVALID_SALON" }, { status: 400 });
+    return json({ error: "این سالن رو پیدا نکردیم.", code: "INVALID_SALON" }, { status: 400 });
   }
   const result = await salons.joinSalonByArtist(salonUserId, auth.user.id, code);
   if (!result.ok) {
@@ -25,8 +25,8 @@ async function _POST(request) {
     return json({ error: result.error, code: result.code }, { status: 400 });
   }
   notifyConnection(salonUserId, {
-    title: "آرتیست جدید در تیم",
-    body: `${auth.user.name || "یک آرتیست"} با کد QR سالنت به تیم پیوست.`,
+    title: "یه آرتیست تازه اومد توی تیمت",
+    body: `${auth.user.name || "یه آرتیست"} با کد سالنت اومد توی تیم.`,
     url: "/"
   });
   return json({ data: result }, { status: 201 });

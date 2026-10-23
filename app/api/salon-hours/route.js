@@ -5,13 +5,13 @@ import * as salons from "../../lib/db/repos/salons.js";
 export const runtime = "nodejs";
 
 async function _GET(request) {
-  const auth = await requireUserRole(request, "salon", "فقط سالن.");
+  const auth = await requireUserRole(request, "salon", "این بخش مال سالن‌هاست.");
   if (!auth.ok) return auth.response;
   return json({ data: { hours: await salons.listSalonHours(auth.user.id) } });
 }
 
 async function _PATCH(request) {
-  const auth = await requireUserRole(request, "salon", "فقط سالن.");
+  const auth = await requireUserRole(request, "salon", "این بخش مال سالن‌هاست.");
   if (!auth.ok) return auth.response;
   const read = readHoursPatch(await readJson(request), await salons.listSalonHours(auth.user.id));
   if (!read.ok) return error(read.error, 400);

@@ -13,7 +13,7 @@ async function _GET(request, context) {
   const params = await context?.params;
   const userId = Number(params?.id);
   if (!Number.isFinite(userId)) {
-    return NextResponse.json({ error: "شناسه سالن نامعتبر است." }, { status: 400 });
+    return NextResponse.json({ error: "این سالن رو پیدا نکردیم." }, { status: 400 });
   }
   // A suspended salon's page is not available to anyone (its owner cannot log in either).
   if ((await suspendedAccountIds([userId])).has(userId)) {

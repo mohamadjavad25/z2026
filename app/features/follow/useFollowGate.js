@@ -56,11 +56,11 @@ export function useFollowGate({ targetId, targetName, targetType = "salon" }) {
         method: "POST",
         body: JSON.stringify({ targetUserId: Number(targetId), follow })
       });
-      if (!ok) return payload?.error || "وصل شدن انجام نشد؛ دوباره امتحان کن.";
+      if (!ok) return payload?.error || "وصل نشد؛ دوباره بزن.";
       setFollowing(Boolean(payload.data?.following));
       return "";
     } catch {
-      return "وصل شدن انجام نشد؛ دوباره امتحان کن.";
+      return "وصل نشد؛ دوباره بزن.";
     }
   }, [targetId]);
 
@@ -79,7 +79,7 @@ export function useFollowGate({ targetId, targetName, targetType = "salon" }) {
     try {
       if (following) {
         const failure = await setFollow(false);
-        setNotice(failure || `«${targetName}» از لیستت برداشته شد.`);
+        setNotice(failure || `«${targetName}» دیگه وصل نیست.`);
         return;
       }
       const failure = await setFollow(true);
@@ -105,7 +105,7 @@ export function useFollowGate({ targetId, targetName, targetType = "salon" }) {
     const failure = await setFollow(true);
     if (failure) {
       setSheet("closed");
-      setNotice(created ? "حسابت ساخته شد، اما وصل شدن انجام نشد. دوباره دکمه را بزن." : failure);
+      setNotice(created ? "حسابت ساخته شد، ولی وصل نشد؛ دوباره دکمه رو بزن." : failure);
       return "";
     }
     setJustCreated(created);

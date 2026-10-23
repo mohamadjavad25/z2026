@@ -8,7 +8,7 @@ import { isValidIranMobile } from "../auth.js";
  *  existed, so POST /api/profile could silently set phone to any string. */
 export const profileUpdateSchema = z.object({
   name: z.string().trim().max(120).optional(),
-  phone: z.string().refine(isValidIranMobile, "شماره موبایل نامعتبر است.").optional(),
+  phone: z.string().refine(isValidIranMobile, "شماره موبایل درست نیست؛ این‌جوری بزن: ۰۹۱۲…").optional(),
   area: z.string().trim().max(120).optional(),
   // The map pin of «ثبت لوکیشن»: null removes it. Plate / floor / unit go in addressDetail.
   geo: z.union([

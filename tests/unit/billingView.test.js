@@ -25,7 +25,7 @@ describe("subscription card and reminder bar", () => {
     expect(view.tone).toBe("trial");
     expect(view.title).toContain("۲۰ روز");
     expect(view.meter).toBeCloseTo(20 / 30);
-    expect(view.action).toEqual({ label: "خرید اشتراک", emphasis: "secondary", disabled: false });
+    expect(view.action).toEqual({ label: "اشتراک بخر", emphasis: "secondary", disabled: false });
     expect(accountView(overview({ state: "trial", daysLeft: 4 })).action.emphasis).toBe("primary");
   });
 

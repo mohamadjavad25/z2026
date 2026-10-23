@@ -21,13 +21,13 @@ async function _PATCH(request, { params }) {
   await ensureDb();
   const auth = await requireUser(request);
   if (!auth.ok) return auth.response;
-  if (!POST_AUTHOR_TYPES.includes(auth.user.type)) return error("دسترسی غیرمجاز.", 403);
+  if (!POST_AUTHOR_TYPES.includes(auth.user.type)) return error("این کار با حساب تو نمی‌شه.", 403);
   const id = parseId((await params).id);
   if (!id) return notFound();
   const limited = await limitPostWrites(auth.user.id);
   if (limited) return limited;
   const body = await readJson(request);
-  if (!body) return error("درخواست نامعتبر است.", 400);
+  if (!body) return error("درخواست درست نرسید؛ دوباره بزن.", 400);
   const invalid = validatePostBody(body, { creating: false });
   if (invalid) return invalid;
   const post = await posts.updatePost(id, auth.user.id, body, null, { defer: (fn) => after(fn) });

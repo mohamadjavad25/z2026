@@ -83,8 +83,8 @@ export function ServicesDropUp({ open, title, services, focusNames = null, focus
           {list.length === 0 ? (
             <div className="sduEmpty" role="status">
               <ServiceIconStrip size="md" />
-              <b>هنوز خدمتی ثبت نشده</b>
-              <span>فعلاً خدمتی برای رزرو آنلاین اضافه نشده؛ بعداً سر بزن.</span>
+              <b>هنوز خدمتی نذاشته</b>
+              <span>فعلاً خدمتی برای نوبت گرفتن نذاشته؛ بعداً یه سر بزن.</span>
             </div>
           ) : (
             <>
@@ -130,7 +130,7 @@ export function ServicesDropUp({ open, title, services, focusNames = null, focus
                           <ServiceIcon emoji={service.emoji} name={service.name} size="sm" />
                           <span className="sduItemBody">
                             <b>{service.name}</b>
-                            <small>{service.duration || "زمان متغیر"}</small>
+                            <small>{service.duration || "مدتش فرق می‌کنه"}</small>
                           </span>
                           <span className="sduItemPrice">
                             {amount ? <>{formatTomanNumber(amount)} <small>تومان</small></> : <small>قیمت توافقی</small>}
@@ -146,7 +146,7 @@ export function ServicesDropUp({ open, title, services, focusNames = null, focus
               <div className="sduFoot">
                 {picked.length > 1 ? (
                   <p className="sduSummary" aria-live="polite">
-                    <b>{toPersianDigits(picked.length)} خدمت در یک نوبت</b>
+                    <b>{toPersianDigits(picked.length)} کار توی یه نوبت</b>
                     <span>{total.duration}</span>
                   </p>
                 ) : null}
@@ -154,7 +154,7 @@ export function ServicesDropUp({ open, title, services, focusNames = null, focus
                   <CalendarCheck size={18} />
                   {picked.length > 1
                     ? `رزرو ${toPersianDigits(picked.length)} خدمت`
-                    : picked.length ? `رزرو «${picked[0].name}»` : "خدمت‌های مورد نظرت را انتخاب کن"}
+                    : picked.length ? `رزرو «${picked[0].name}»` : "چه کارهایی می‌خوای؟"}
                   {totalAmount ? <small>{formatTomanNumber(totalAmount)} تومان</small> : null}
                 </button>
               </div>

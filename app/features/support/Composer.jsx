@@ -21,13 +21,13 @@ async function addImages(files, current, setImages, setError) {
   const room = MAX_IMAGES - current.length;
   const list = [...files].filter((file) => file.type?.startsWith("image/"));
   if (!list.length) return;
-  if (list.length > room) setError("در هر پیام حداکثر ۴ عکس می‌شود فرستاد.");
+  if (list.length > room) setError("توی هر پیام حداکثر ۴ تا عکس می‌شه فرستاد.");
   const ready = [];
   for (const file of list.slice(0, Math.max(room, 0))) {
     try {
       ready.push({ kind: "image", data: await prepareImage(file) });
     } catch (failure) {
-      setError(failure.message || "این عکس آماده نشد.");
+      setError(failure.message || "این عکس آماده نشد؛ یکی دیگه بفرست.");
     }
   }
   if (ready.length) setImages((prev) => [...prev, ...ready].slice(0, MAX_IMAGES));
@@ -138,8 +138,8 @@ export function Composer({ placeholder, onSend, disabled = false }) {
       <PickedImages images={images} onRemove={(index) => setImages((prev) => prev.filter((_, i) => i !== index))} />
       {unsent && !busy ? (
         <div className="scUnsent" role="alert">
-          <span>پیام صوتی ({duration(unsent.durationMs)}) ارسال نشد.</span>
-          <button type="button" onClick={() => sendVoice(unsent)}>ارسال دوباره</button>
+          <span>پیام صوتی ({duration(unsent.durationMs)}) نرفت.</span>
+          <button type="button" onClick={() => sendVoice(unsent)}>دوباره بفرست</button>
           <button type="button" className="is-quiet" onClick={() => setUnsent(null)}>حذف</button>
         </div>
       ) : null}
@@ -195,7 +195,7 @@ export function Composer({ placeholder, onSend, disabled = false }) {
           </div>
         </div>
       )}
-      {busy ? <p className="scSending" aria-live="polite">در حال ارسال…</p> : null}
+      {busy ? <p className="scSending" aria-live="polite">دارم می‌فرستم…</p> : null}
     </form>
   );
 }
@@ -223,7 +223,7 @@ export function AttachmentField({ value, onChange, bare = false, controlRef = nu
 
   return (
     <div className={`scAttachField${bare ? " is-bare" : ""}`}>
-      {bare ? null : <span className="scAttachLabel">عکس یا صدا (اختیاری)</span>}
+      {bare ? null : <span className="scAttachLabel">عکس یا صدا (اگه بخوای)</span>}
       {recorder.state === "recording" ? (
         <RecordingBar recorder={recorder} sendLabel="پایان ضبط" stopOnly onSend={async () => { const recorded = await recorder.stop(); if (recorded) keepVoice(recorded); }} />
       ) : voice ? (
@@ -236,11 +236,11 @@ export function AttachmentField({ value, onChange, bare = false, controlRef = nu
           <PickedImages images={images} onRemove={(index) => onChange(images.filter((_, i) => i !== index))} />
           {bare ? null : <div className="scAttachButtons">
             <button type="button" onClick={() => fileRef.current?.click()} disabled={images.length >= MAX_IMAGES}>
-              <ImagePlus size={18} aria-hidden="true" /> افزودن عکس
+              <ImagePlus size={18} aria-hidden="true" /> عکس بذار
             </button>
             {canVoice && !images.length ? (
               <button type="button" onClick={recorder.start} disabled={recorder.state !== "idle"}>
-                <Mic size={18} aria-hidden="true" /> ضبط صدا
+                <Mic size={18} aria-hidden="true" /> صدا ضبط کن
               </button>
             ) : null}
           </div>}

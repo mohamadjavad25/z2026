@@ -55,7 +55,7 @@ export function SalonClientBookingModal({ open, salon, booking, onClose, onSubmi
     <VisitBooker
       open
       role="client"
-      title={`رزرو در ${salon.name || "سالن"}`}
+      title={`نوبت در ${salon.name || "سالن"}`}
       services={services}
       days={days}
       initial={{ selected: picked, day: booking.prefill?.day, time: booking.prefill?.time, name: booking.client, phone: booking.phone }}

@@ -321,7 +321,7 @@ export async function deleteProviderAccount({ user, cancelAll = false, byAdmin =
         await cancelItem(item, { by: "provider", userId: user.id, actor: user, purgeMirrorOf: [user.id] });
       }
       await detachFromTeam({ salonUserId: salon, artistId: user.id, names, now: new Date() });
-      notifyConnection(salon, { title: "آرتیست از تیم خارج شد", body: `${user.name || "یک آرتیست"} حسابش را حذف کرد؛ نوبت‌های بدون آرتیست را بررسی کن.`, url: "/" });
+      notifyConnection(salon, { title: "یه آرتیست از تیم رفت", body: `${user.name || "یه آرتیست"} حسابش رو پاک کرد؛ نوبت‌هایی که آرتیست ندارن رو ببین.`, url: "/" });
     }
   }
   if (!byAdmin) {

@@ -32,28 +32,28 @@ export function reminderMessage(kind, access, { graceDays = 3 } = {}) {
   const what = access.state === "trial" ? "ماه رایگانت" : "اشتراکت";
   if (kind === "ends_5d") {
     return {
-      title: access.state === "trial" ? "ماه رایگانت رو به پایان است" : "اشتراکت رو به پایان است",
-      body: `${what} ${toPersianDigits(access.daysLeft)} روز دیگر، ${until}، تمام می‌شود. برای ادامهٔ نوبت آنلاین، از تنظیمات اشتراک بخر.`,
+      title: access.state === "trial" ? "ماه رایگانت داره تموم می‌شه" : "اشتراکت داره تموم می‌شه",
+      body: `${what} ${toPersianDigits(access.daysLeft)} روز دیگه، ${until}، تموم می‌شه. برای اینکه نوبت آنلاین قطع نشه، از تنظیمات اشتراک بخر.`,
       sms: { key: "billing_reminder", values: { days: toPersianDigits(access.daysLeft), until: untilShort } }
     };
   }
   if (kind === "ends_1d") {
     return {
-      title: "کمتر از یک روز مانده",
-      body: `${what} ${until} تمام می‌شود. با خرید اشتراک، نوبت آنلاین و دیده شدن در جست‌وجو بدون وقفه ادامه دارد.`,
+      title: "کمتر از یه روز مونده",
+      body: `${what} ${until} تموم می‌شه. اشتراک بخری، نوبت آنلاین و دیده شدنت توی جست‌وجو بی‌وقفه ادامه داره.`,
       sms: { key: "billing_reminder", values: { days: toPersianDigits(1), until: untilShort } }
     };
   }
   if (kind === "ended") {
     return {
-      title: "اشتراکت تمام شد",
-      body: `تا ${toPersianDigits(graceDays)} روز دیگر همه‌چیز مثل قبل کار می‌کند. بعد از آن، تا تمدید نکنی، در جست‌وجو دیده نمی‌شوی و نوبت آنلاین نمی‌گیری.`,
+      title: "اشتراکت تموم شد",
+      body: `تا ${toPersianDigits(graceDays)} روز دیگه همه‌چی مثل قبل کار می‌کنه. بعدش تا تمدید نکنی، توی جست‌وجو دیده نمی‌شی و نوبت آنلاین نمی‌گیری.`,
       sms: { key: "billing_ended", values: { days: toPersianDigits(graceDays) } }
     };
   }
   return {
-    title: "حسابت از جست‌وجو کنار رفت",
-    body: "نوبت‌ها، مشتری‌ها و عکس‌هایت سر جایشان است. با خرید اشتراک، همه‌چیز همان لحظه برمی‌گردد.",
+    title: "دیگه توی جست‌وجو دیده نمی‌شی",
+    body: "نوبت‌ها، مشتری‌ها و عکس‌هات سر جاشونه. اشتراک بخری، همه‌چی همون لحظه برمی‌گرده.",
     sms: { key: "billing_closed", values: { since: formatPersianShortDate(access.graceEndsAt) } }
   };
 }

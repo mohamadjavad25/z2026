@@ -22,7 +22,7 @@ export function AuthBootScreen() {
         <span className="authBootPeek" aria-hidden="true">
           <img src="/brand/frfro-peek.webp" alt="" width="112" height="112" draggable={false} decoding="async" />
         </span>
-        <small className={slow ? "authBootSlow" : undefined}>{slow ? "اینترنتت کند است؛ هنوز داریم تلاش می‌کنیم…" : "در حال آماده‌سازی…"}</small>
+        <small className={slow ? "authBootSlow" : undefined}>{slow ? "اینترنتت کنده؛ هنوز داریم تلاش می‌کنیم…" : "یه لحظه…"}</small>
       </div>
     </div>
   );

@@ -29,9 +29,9 @@ const readAsDataUrl = (blob) =>
  * at a few hundred KB. A GIF is sent as is (it may move). Rejects anything that is not a picture.
  */
 export async function prepareImage(file) {
-  if (!file?.type?.startsWith("image/")) throw new Error("فقط عکس می‌شود فرستاد.");
+  if (!file?.type?.startsWith("image/")) throw new Error("فقط عکس می‌شه فرستاد.");
   if (file.type === "image/gif") {
-    if (file.size > 3 * 1024 * 1024) throw new Error("این GIF خیلی بزرگ است.");
+    if (file.size > 3 * 1024 * 1024) throw new Error("این GIF خیلی بزرگه.");
     return readAsDataUrl(file);
   }
   // Decoded straight from the file (blob: URLs are not allowed for pictures by the site's CSP); a data URL is the fallback.
@@ -118,7 +118,7 @@ export function useVoiceRecorder({ onLimit } = {}) {
     const blob = new Blob(current.encoder.finish(), { type: "audio/mpeg" });
     cleanup();
     if (durationMs < 700 || blob.size < 200) {
-      setError("صدا خیلی کوتاه بود. دکمهٔ میکروفون را بزن و حرف بزن.");
+      setError("صدا خیلی کوتاه بود؛ میکروفون رو بزن و حرف بزن.");
       return null;
     }
     return { data: await readAsDataUrl(blob), durationMs, blob };
@@ -128,7 +128,7 @@ export function useVoiceRecorder({ onLimit } = {}) {
     if (live.current) return;
     setError("");
     const Ctx = AudioCtx();
-    if (!Ctx) return setError("این مرورگر ضبط صدا را پشتیبانی نمی‌کند.");
+    if (!Ctx) return setError("این مرورگر صدا ضبط نمی‌کنه.");
     // Made inside the tap itself: iPhones only let sound start from a tap, not after the permission prompt.
     const audio = new Ctx();
     audio.resume?.().catch(() => {});
@@ -145,7 +145,7 @@ export function useVoiceRecorder({ onLimit } = {}) {
       cleanup();
       const denied = failure?.name === "NotAllowedError" || failure?.name === "SecurityError";
       const missing = failure?.name === "NotFoundError" || failure?.name === "OverconstrainedError";
-      setError(denied ? "اجازهٔ میکروفون داده نشد. از تنظیمات مرورگر یا گوشی اجازه بده." : missing ? "میکروفون پیدا نشد." : "ضبط صدا شروع نشد. صفحه را دوباره باز کن و امتحان کن.");
+      setError(denied ? "به میکروفون دسترسی نداریم؛ از تنظیمات گوشی اجازه بده." : missing ? "میکروفون پیدا نشد." : "ضبط شروع نشد؛ صفحه رو دوباره باز کن و دوباره بزن.");
       return;
     }
     if (live.current !== current) {

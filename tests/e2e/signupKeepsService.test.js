@@ -29,7 +29,7 @@ async function guestPicksAndSignsUp(page, salonId, { beforeAccount } = {}) {
   await page.getByRole("button", { name: "ادامه", exact: true }).click();
   await page.fill("[name=password]", "testpass123");
   if (beforeAccount) await beforeAccount();
-  await page.getByRole("button", { name: "ساخت حساب" }).click();
+  await page.getByRole("button", { name: "بساز" }).click();
 }
 
 describe("the service a guest picked survives sign-up (browser)", () => {
@@ -48,7 +48,7 @@ describe("the service a guest picked survives sign-up (browser)", () => {
     const { salon, salonClient, serviceId } = await seedSalon();
     const { page, context } = await newPage({ entered: false });
     await guestPicksAndSignsUp(page, salon.user.id, { beforeAccount: async () => { await salonClient.delete("/api/salon-services", { id: serviceId }); } });
-    await page.getByText("این خدمت دیگر موجود نیست؛ یکی دیگر را انتخاب کن.").waitFor();
+    await page.getByText("این خدمت دیگه نیست؛ یه خدمت دیگه انتخاب کن.").waitFor();
     expect(await page.locator(".visitBookerSheet").count()).toBe(0);
     await page.getByRole("button", { name: "انتخاب خدمت" }).click();
     await page.locator(".sduItem", { hasText: "رنگ مو" }).waitFor();

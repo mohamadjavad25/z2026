@@ -18,8 +18,9 @@
  *   note    the operator's app-wide notice (SiteNotice). Stays until closed.
  */
 
-/** Same word lists the sound hook used before the notices existed, so sounds keep matching. */
-export const ERROR_WORDS = /(نشد|خطا|مشکل|نامعتبر|اشغال|قطع)/;
+/** Same word lists the sound hook used before the notices existed, so sounds keep matching; the rest are the
+ *  everyday words of docs/COPY.md («نرفت»، «نیومد»، «دوباره بزن»…). */
+export const ERROR_WORDS = /(نشد|خطا|مشکل|نامعتبر|اشغال|قطع|نرفت|نیومد|نرسید|ننشست|دسترسی نداریم|دوباره بزن|درست نیست)/;
 export const DONE_WORDS = /شد/;
 
 const DEFAULT_TIMER = {

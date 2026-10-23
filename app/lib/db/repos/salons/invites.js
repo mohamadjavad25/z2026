@@ -160,7 +160,7 @@ export async function createSalonArtistInvite(salonUserId, data) {
   const db = await getDb();
   const artistUserId = Number(data.artistUserId || data.artist_user_id || 0);
   if (!artistUserId) {
-    return { ok: false, error: "آرتیست نامعتبر است.", code: "INVALID_ARTIST" };
+    return { ok: false, error: "این آرتیست رو پیدا نکردیم.", code: "INVALID_ARTIST" };
   }
 
   const artist = await get(db, `
@@ -168,7 +168,7 @@ export async function createSalonArtistInvite(salonUserId, data) {
     FROM users WHERE id = $1 AND type = 'artist' LIMIT 1
   `, [artistUserId]);
   if (!artist) {
-    return { ok: false, error: "آرتیست پیدا نشد.", code: "ARTIST_NOT_FOUND" };
+    return { ok: false, error: "این آرتیست رو پیدا نکردیم.", code: "ARTIST_NOT_FOUND" };
   }
 
   const alreadyStaff = await get(db, `
@@ -177,7 +177,7 @@ export async function createSalonArtistInvite(salonUserId, data) {
     LIMIT 1
   `, [salonUserId, artistUserId]);
   if (alreadyStaff) {
-    return { ok: false, error: "این آرتیست همین حالا در پرسنل سالن است.", code: "ALREADY_STAFF" };
+    return { ok: false, error: "این آرتیست همین الان توی تیمته.", code: "ALREADY_STAFF" };
   }
 
   // The artist already proposed to this salon: answering that proposal is the
@@ -189,7 +189,7 @@ export async function createSalonArtistInvite(salonUserId, data) {
   if (pendingProposal) {
     return {
       ok: false,
-      error: "این آرتیست خودش پیشنهاد همکاری فرستاده؛ از بخش درخواست‌ها پاسخش را بده.",
+      error: "این آرتیست خودش پیشنهاد همکاری فرستاده؛ از «درخواست‌ها» جوابش رو بده.",
       code: "PROPOSAL_PENDING"
     };
   }
@@ -241,13 +241,13 @@ export async function createSalonArtistInvite(salonUserId, data) {
   if (existing.status === PENDING) {
     return {
       ok: false,
-      error: "دعوت قبلی هنوز در انتظار تایید آرتیست است.",
+      error: "آرتیست هنوز به دعوت قبلیت جواب نداده.",
       code: "PENDING_EXISTS",
       invite: mapSalonInvite(await getInviteRow(existing.id, db))
     };
   }
   if (existing.status === ACCEPTED) {
-    return { ok: false, error: "این آرتیست قبلا دعوت را پذیرفته است.", code: "ALREADY_ACCEPTED" };
+    return { ok: false, error: "این آرتیست قبلاً دعوتت رو قبول کرده.", code: "ALREADY_ACCEPTED" };
   }
   await run(db, `
     UPDATE salon_artist_invites
@@ -279,24 +279,24 @@ export async function joinSalonByArtist(salonUserId, artistUserId, code) {
     WHERE s.user_id = $1
   `, [salonUserId]);
   if (!salon) {
-    return { ok: false, error: "سالن پیدا نشد.", code: "SALON_NOT_FOUND" };
+    return { ok: false, error: "این سالن رو پیدا نکردیم.", code: "SALON_NOT_FOUND" };
   }
   if (!secretsMatch(salon.join_secret, code)) {
-    return { ok: false, error: "این لینک معتبر نیست؛ از سالن بخواه کد را دوباره نشانت بدهد.", code: "INVALID_CODE" };
+    return { ok: false, error: "این کد کار نمی‌کنه؛ از سالن بخواه دوباره نشونت بده.", code: "INVALID_CODE" };
   }
 
   const artist = await get(db, `
     SELECT id, name, phone, area, service FROM users WHERE id = $1 AND type = 'artist' LIMIT 1
   `, [artistUserId]);
   if (!artist) {
-    return { ok: false, error: "آرتیست پیدا نشد.", code: "ARTIST_NOT_FOUND" };
+    return { ok: false, error: "این آرتیست رو پیدا نکردیم.", code: "ARTIST_NOT_FOUND" };
   }
 
   const alreadyStaff = await get(db, `
     SELECT id FROM salon_staff WHERE salon_user_id = $1 AND artist_user_id = $2 LIMIT 1
   `, [salonUserId, artistUserId]);
   if (alreadyStaff) {
-    return { ok: false, error: "شما همین حالا عضو تیم این سالن هستید.", code: "ALREADY_STAFF" };
+    return { ok: false, error: "تو همین الان توی تیم این سالنی.", code: "ALREADY_STAFF" };
   }
 
   const role = artist.service || "آرتیست";
@@ -420,7 +420,7 @@ export async function respondArtistSalonInvite(id, artistUserId, status) {
   const allowed = new Set([ACCEPTED, REJECTED]);
   const nextStatus = allowed.has(status) ? status : null;
   if (!nextStatus) {
-    return { ok: false, error: "وضعیت نامعتبر است.", code: "INVALID_STATUS" };
+    return { ok: false, error: "این جواب رو نفهمیدیم؛ دوباره بزن.", code: "INVALID_STATUS" };
   }
 
   const current = await get(db, `
@@ -428,12 +428,12 @@ export async function respondArtistSalonInvite(id, artistUserId, status) {
     WHERE id = $1 AND artist_user_id = $2
   `, [id, artistUserId]);
   if (!current) {
-    return { ok: false, error: "دعوت پیدا نشد.", code: "NOT_FOUND" };
+    return { ok: false, error: "این دعوت رو پیدا نکردیم.", code: "NOT_FOUND" };
   }
   if (current.status !== PENDING) {
     return {
       ok: false,
-      error: "این دعوت دیگر قابل پاسخ نیست.",
+      error: "این دعوت دیگه جواب نمی‌گیره.",
       code: "NOT_PENDING",
       invite: mapSalonInvite(await getInviteRow(id, db))
     };
@@ -562,7 +562,7 @@ export async function leaveSalonTeam(artistUserId, salonUserId) {
     SELECT id, name FROM salon_staff WHERE salon_user_id = $1 AND artist_user_id = $2 LIMIT 1
   `, [salonUserId, artistUserId]);
   if (!staff) {
-    return { ok: false, error: "تو عضو تیم این سالن نیستی.", code: "NOT_MEMBER" };
+    return { ok: false, error: "تو توی تیم این سالن نیستی.", code: "NOT_MEMBER" };
   }
   await run(db, "DELETE FROM salon_staff WHERE salon_user_id = $1 AND artist_user_id = $2", [salonUserId, artistUserId]);
   await run(db, `

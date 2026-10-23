@@ -41,7 +41,7 @@ export function MyCodeSheet({ name = "", avatar = "", onClose }) {
   return createPortal(
     <div className="cnCodeSheet" role="dialog" aria-modal="true" aria-label="کد من برای اسکن">
       <div className="cnCodeTop">
-        <b>اسکن شو</b>
+        <b>کد من</b>
         <button type="button" className="qrScannerClose" onClick={onClose} aria-label="بستن">
           <X size={20} />
         </button>
@@ -51,13 +51,13 @@ export function MyCodeSheet({ name = "", avatar = "", onClose }) {
         <b>{name || "کد من"}</b>
       </div>
       <div className="cnCodeQr">
-        {qr ? <img src={qr} alt="کد QR شخصی تو" /> : failed ? <p role="alert">کد باز نشد؛ دوباره امتحان کن.</p> : <span className="ivtQrWait" role="status" aria-label="در حال آماده‌سازی"><Spinner size={44} /></span>}
+        {qr ? <img src={qr} alt="کد QR شخصی تو" /> : failed ? <p role="alert">کد باز نشد؛ دوباره بزن.</p> : <span className="ivtQrWait" role="status" aria-label="در حال آماده‌سازی"><Spinner size={44} /></span>}
       </div>
-      <p className="cnCodeHint">این کد را به سالن یا آرتیستت نشان بده. با اسکن آن، تو را به مشتری‌هایش اضافه می‌کند و او هم به لیست تو اضافه می‌شود.</p>
+      <p className="cnCodeHint">این کد رو به سالن یا آرتیستت نشون بده. اسکنش که کنه، به هم وصل می‌شید.</p>
       {qr ? (
         <a className="cnCodeSave" href={qr} download="frfro-code.png">
           <Download size={18} aria-hidden="true" />
-          ذخیره تصویر کد
+          عکس کد رو ذخیره کن
         </a>
       ) : null}
     </div>,

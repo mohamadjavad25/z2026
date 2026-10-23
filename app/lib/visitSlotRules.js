@@ -13,31 +13,31 @@ import { toPersianDigits } from "../shared/lib/digits.js";
  */
 export function visitSlotProblem({ hours, bookingDateKey, time, durationMinutes, isClient, now = new Date() }) {
   if (isSlotInPast(bookingDateKey, time, now)) {
-    return { status: 409, error: "این ساعت گذشته است. ساعت دیگری انتخاب کن.", code: "SLOT_PAST" };
+    return { status: 409, error: "این ساعت گذشته؛ یه ساعت دیگه بزن.", code: "SLOT_PAST" };
   }
   // A client's request needs an answer from the salon first, so it can't start in the next few
   // minutes (the salon would have no time to see it). The salon's own entries are exempt.
   if (isClient && isTooSoonToRequest(bookingDateKey, time, now)) {
     return {
       status: 409,
-      error: `برای رزرو باید حداقل ${toPersianDigits(BOOKING_REQUEST_LEAD_MINUTES)} دقیقه تا شروع نوبت مانده باشد تا سالن فرصت پاسخ داشته باشد. ساعت دیگری انتخاب کن.`,
+      error: `این ساعت خیلی نزدیکه؛ سالن باید دست‌کم ${toPersianDigits(BOOKING_REQUEST_LEAD_MINUTES)} دقیقه وقت داشته باشه جواب بده. یه ساعت دیرتر بزن.`,
       code: "TOO_SOON"
     };
   }
   const hour = findSalonHourForDateKey(hours, bookingDateKey);
   if (!isSalonHourOpen(hour)) {
-    return { status: 409, error: "سالن در این روز تعطیل است.", code: "SALON_CLOSED" };
+    return { status: 409, error: "سالن این روز تعطیله.", code: "SALON_CLOSED" };
   }
   const window = salonDayWindow(hour);
   const requestedMinutes = timeLabelToMinutes(time);
   if (!buildDayBookingSlots(window.open, window.close, durationMinutes).some((slot) => timeLabelToMinutes(slot) === requestedMinutes)) {
-    return { status: 409, error: "این ساعت خارج از زمان کاری سالن است.", code: "OUTSIDE_HOURS" };
+    return { status: 409, error: "سالن این ساعت باز نیست؛ یه ساعت دیگه بزن.", code: "OUTSIDE_HOURS" };
   }
   return null;
 }
 
-export const ARTIST_OFF_HOURS_MESSAGE = "آرتیست در این ساعت کار نمی‌کند.";
-export const ARTIST_OFF_GRID_MESSAGE = "ساعت را از میان گزینه‌های نشان‌داده‌شده انتخاب کن.";
+export const ARTIST_OFF_HOURS_MESSAGE = "آرتیست این ساعت کار نمی‌کنه.";
+export const ARTIST_OFF_GRID_MESSAGE = "یکی از ساعت‌های فهرست رو بزن.";
 
 /**
  * The independent artist's side of visitSlotProblem: the day must be one the artist works, the whole visit inside

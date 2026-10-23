@@ -28,16 +28,16 @@ async function _GET(request) {
   if (auth.user.type !== "client") return noStoreJson({ data: { salons: [] } });
   const { searchParams } = new URL(request.url);
   const salonUserId = Number(searchParams.get("salonUserId"));
-  if (!salonUserId) return noStoreJson({ error: "شناسه سالن نامعتبر است." }, { status: 400 });
+  if (!salonUserId) return noStoreJson({ error: "این سالن رو پیدا نکردیم." }, { status: 400 });
   const names = searchParams.getAll("service").map((name) => name.trim()).filter(Boolean);
   if (!names.length || names.length > MAX_BOOKING_PARTS || names.some((name) => name.length > 120)) {
-    return noStoreJson({ error: "فهرست خدمات نامعتبر است." }, { status: 400 });
+    return noStoreJson({ error: "کارها درست نرسید؛ دوباره انتخاب کن." }, { status: 400 });
   }
   const bookingDateKey = strictDayKey(String(searchParams.get("day") || "").trim());
-  if (!bookingDateKey) return noStoreJson({ error: "روز رزرو نامعتبر است." }, { status: 400 });
+  if (!bookingDateKey) return noStoreJson({ error: "این روز رو نفهمیدیم؛ دوباره انتخاب کن." }, { status: 400 });
   const rawTime = String(searchParams.get("time") || "").trim();
   const time = rawTime ? parseBookingTime(rawTime) : "";
-  if (rawTime && !time) return noStoreJson({ error: "ساعت رزرو نامعتبر است." }, { status: 400 });
+  if (rawTime && !time) return noStoreJson({ error: "این ساعت رو نفهمیدیم؛ دوباره انتخاب کن." }, { status: 400 });
   const list = await listFallbackSalons({ clientUserId: auth.user.id, salonUserId, names, bookingDateKey, time });
   return noStoreJson({ data: { salons: list } });
 }

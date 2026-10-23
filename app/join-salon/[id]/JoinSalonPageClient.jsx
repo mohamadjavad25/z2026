@@ -62,10 +62,10 @@ export function JoinSalonPageClient({ salon, joinCode = "" }) {
         setStatus("joined");
         return;
       }
-      setErrorText(payload?.error || "پیوستن انجام نشد؛ دوباره امتحان کن.");
+      setErrorText(payload?.error || "نشد؛ دوباره بزن.");
       setStatus("ready");
     } catch {
-      setErrorText("پیوستن انجام نشد؛ دوباره امتحان کن.");
+      setErrorText("نشد؛ دوباره بزن.");
       setStatus("ready");
     }
   }
@@ -90,44 +90,44 @@ export function JoinSalonPageClient({ salon, joinCode = "" }) {
         {salon.area ? <p className="joinSalonArea">{salon.area}</p> : null}
 
         {status === "checking" ? (
-          <p className="joinSalonHint">در حال بررسی حساب...</p>
+          <p className="joinSalonHint">یه لحظه…</p>
         ) : status === "guest" ? (
           <>
             <p className="joinSalonHint">
-              با ورود یا ساخت حساب آرتیست، به تیم «{salon.name}» می‌پیوندی.
+              با حساب آرتیستت وارد شو (یا یکی بساز) تا بری توی تیم «{salon.name}».
             </p>
             <button type="button" className="joinSalonAction" onClick={handleGuestContinue}>
-              ورود یا ثبت‌نام در frfro
+              ورود یا ساخت حساب
             </button>
           </>
         ) : status === "wrong-role" ? (
           <>
             <p className="joinSalonHint is-warning">
-              این لینک فقط برای پیوستن آرتیست‌هاست. با یک حساب آرتیست وارد شو.
+              این لینک مال آرتیست‌هاست؛ با حساب آرتیستت وارد شو.
             </p>
             <button type="button" className="joinSalonAction is-secondary" onClick={() => router.push("/")}>
-              رفتن به frfro
+              برو به فرفرو
             </button>
           </>
         ) : status === "joined" ? (
           <div className="joinSalonSuccess">
             <CheckCircle2 size={28} aria-hidden="true" />
-            <b>به تیم «{salon.name}» پیوستی!</b>
+            <b>اومدی توی تیم «{salon.name}»!</b>
             <button type="button" className="joinSalonAction" onClick={() => enterApp(router)}>
-              رفتن به داشبورد
+              برو به خونه
             </button>
           </div>
         ) : (
           <>
             <ul className="joinSalonPerks">
-              <li>نوبت‌های مشتری‌های سالن در برنامه‌ات هم نشان داده می‌شود</li>
-              <li>سالن بلافاصله از پیوستن تو باخبر می‌شود</li>
-              <li>هر زمان خواستی از بخش «همکاری» می‌توانی تیم را ترک کنی</li>
+              <li>نوبت‌هایی که سالن برات می‌ذاره توی برنامه‌ت هم میاد</li>
+              <li>سالن همون لحظه خبردار می‌شه</li>
+              <li>هر وقت خواستی از «همکاری» می‌تونی از تیم بری</li>
             </ul>
             <SalonRulesNote rules={salon.rules} open />
             {errorText ? <p className="joinSalonHint is-warning">{errorText}</p> : null}
             <button type="button" className="joinSalonAction" disabled={status === "joining"} onClick={handleJoin}>
-              {status === "joining" ? "در حال پیوستن..." : salon.rules ? "قبول قوانین و پیوستن" : `پیوستن به تیم ${salon.name}`}
+              {status === "joining" ? "یه لحظه…" : salon.rules ? "قوانین رو قبول دارم، بریم" : `برو توی تیم ${salon.name}`}
             </button>
           </>
         )}

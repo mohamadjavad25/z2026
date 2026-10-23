@@ -24,9 +24,9 @@ export function PaymentsSheet({ open, onClose }) {
       .then((result) => {
         if (!live) return;
         if (result.ok) setPayments(result.data.payments || []);
-        else setError(result.payload?.error || "فهرست پرداخت‌ها بارگذاری نشد.");
+        else setError(result.payload?.error || "پرداخت‌ها نیومد؛ دوباره بزن.");
       })
-      .catch(() => live && setError("اتصال برقرار نشد؛ اینترنت را بررسی کن."));
+      .catch(() => live && setError("اینترنتت وصل نیست؛ یه نگاه بنداز و دوباره بزن."));
     return () => {
       live = false;
     };
@@ -36,8 +36,8 @@ export function PaymentsSheet({ open, onClose }) {
     <ProfileSheet
       open={open}
       kicker="اشتراک"
-      title={selected ? "رسید پرداخت" : "پرداخت‌های من"}
-      label="پرداخت‌های من"
+      title={selected ? "رسید" : "پرداخت‌هام"}
+      label="پرداخت‌هام"
       panelClassName="billSheet"
       onClose={selected ? () => setSelected(null) : onClose}
     >
@@ -52,12 +52,12 @@ export function PaymentsSheet({ open, onClose }) {
       ) : (
         <>
           {error ? <p className="billError" role="alert">{error}</p> : null}
-          {!payments && !error ? <SkeletonList rows={3} variant="row" label="در حال بارگذاری پرداخت‌ها" /> : null}
+          {!payments && !error ? <SkeletonList rows={3} variant="row" label="دارم پرداخت‌ها رو میارم" /> : null}
           {payments && !payments.length ? (
             <div className="billEmpty">
               <ReceiptText size={26} aria-hidden="true" />
               <b>هنوز پرداختی نداری</b>
-              <p>رسید هر پرداخت اینجا می‌ماند.</p>
+              <p>رسید هر پرداختت اینجا می‌مونه.</p>
             </div>
           ) : null}
           {payments?.length ? (

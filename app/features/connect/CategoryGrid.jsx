@@ -81,7 +81,7 @@ export function CategoryGrid({ busyId = "", onPick }) {
       ref={rowRef}
       className={`cnCats${atStart ? "" : " is-moved"}${atEnd ? " is-end" : ""}${hinting ? " is-hinting" : ""}`}
       role="group"
-      aria-label="چه کاری می‌خواهی؟"
+      aria-label="چه کاری می‌خوای؟"
       onAnimationEnd={() => setHinting(false)}
     >
       {CLIENT_CATEGORIES.map((category) => (

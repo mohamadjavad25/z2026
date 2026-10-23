@@ -57,7 +57,7 @@ export function ArtistOptionList({ staffOptions = [], current = "", availability
               <span className="bpeTags">
                 {info.skilled ? <i className="is-skill">کار همین خدمت</i> : null}
                 {info.away ? <i className="is-away">{info.away}</i> : null}
-                {active ? null : info.free ? <i className="is-free">آزاد</i> : <i className="is-busy">نوبت دارد</i>}
+                {active ? null : info.free ? <i className="is-free">آزاد</i> : <i className="is-busy">نوبت داره</i>}
               </span>
             ) : null}
             {active ? <Check size={16} /> : null}
@@ -67,7 +67,7 @@ export function ArtistOptionList({ staffOptions = [], current = "", availability
       {onClear ? (
         <button type="button" role="option" aria-selected={false} disabled={disabled} onClick={onClear}>
           <span className="scheduleStaffAvatar" aria-hidden="true"><UserRound size={15} /></span>
-          <span className="bpeOption"><b>بدون آرتیست</b><small>{clearLabel || "سالن خودش انجام می‌دهد"}</small></span>
+          <span className="bpeOption"><b>بدون آرتیست</b><small>{clearLabel || "سالن خودش انجام می‌ده"}</small></span>
         </button>
       ) : null}
     </div>
@@ -110,7 +110,7 @@ export function BookingPartsEditor({ booking, staffOptions = [], availability = 
       <div className="bpeHead">
         <span>
           <b>تقسیم بین آرتیست‌ها</b>
-          <small>ساعت هر خدمت پشت سر هم از {toPersianDigits(parts[0].startLabel)} حساب می‌شود.</small>
+          <small>کارها پشت سر هم از {toPersianDigits(parts[0].startLabel)} شروع می‌شن.</small>
         </span>
         {!disabled && canGiveAll ? (
           <button type="button" className="bpeAll" onClick={() => giveAllTo(firstStaff)}>همه با {firstStaff}</button>
@@ -150,7 +150,7 @@ export function BookingPartsEditor({ booking, staffOptions = [], availability = 
                   <img src={person?.avatar || person?.staff_avatar || DEFAULT_AVATAR} alt="" />
                 </span>
               ) : null}
-              <span className="bpeWhoName">{part.staff ? staffLabel(person) || part.staff : "انتخاب آرتیست"}</span>
+              <span className="bpeWhoName">{part.staff ? staffLabel(person) || part.staff : "یه آرتیست انتخاب کن"}</span>
               {!disabled ? <ChevronDown size={14} aria-hidden="true" /> : null}
             </button>
             {open ? (

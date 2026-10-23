@@ -24,23 +24,23 @@ const STATUS = { missing: 404, not_confirmed: 409, no_account: 409, too_late: 40
 async function _POST(request) {
   const auth = await requireUser(request);
   if (!auth.ok) return auth.response;
-  if (!["salon", "artist"].includes(auth.user.type)) return error("فقط سالن یا آرتیست.", 403);
+  if (!["salon", "artist"].includes(auth.user.type)) return error("این کار مال سالن یا آرتیسته.", 403);
   const limited = await checkRateLimit(`booking-proposal:${auth.user.id}`, 30, 60 * 60 * 1000);
-  if (!limited.ok) return error("پیشنهادهای زیاد. کمی بعد دوباره امتحان کن.", 429);
+  if (!limited.ok) return error("یه کم زیاد پیشنهاد دادی؛ چند لحظه دیگه دوباره بزن.", 429);
   const body = await readObjectBody(request);
   const id = parseId(body.id);
   const kind = body.kind === "artist" ? "artist" : "salon";
-  if (!id) return error("شناسه رزرو نامعتبر است.", 400);
+  if (!id) return error("این نوبت رو پیدا نکردیم.", 400);
   const toStaff = typeof body.toStaff === "string" ? body.toStaff.trim() : "";
   const date = typeof body.date === "string" ? body.date : "";
   const time = typeof body.time === "string" ? body.time : "";
-  if (!toStaff && !time) return error("ساعت پیشنهادی مشخص نیست.", 400);
+  if (!toStaff && !time) return error("یه ساعت انتخاب کن.", 400);
 
   let result;
   let providerForClient;
   let providerUserId = auth.user.id;
   if (kind === "artist") {
-    if (auth.user.type !== "artist" || toStaff) return error("دسترسی غیرمجاز.", 403);
+    if (auth.user.type !== "artist" || toStaff) return error("این کار با حساب تو نمی‌شه.", 403);
     result = await proposals.proposeArtistTime({ artistUserId: auth.user.id, id, date, time });
     providerForClient = { type: "artist", name: auth.user.name };
   } else if (toStaff) {
@@ -51,21 +51,21 @@ async function _POST(request) {
     let actorArtistId = null;
     if (auth.user.type === "salon") {
       const fromStaffId = parseId(body.fromStaffId);
-      if (!fromStaffId) return error("آرتیستی که می‌رود مشخص نیست.", 400);
+      if (!fromStaffId) return error("کدوم آرتیست می‌ره؟ انتخابش کن.", 400);
       fromNames = (await all(db, "SELECT name FROM salon_staff WHERE id = $1 AND salon_user_id = $2", [fromStaffId, salonUserId])).map((row) => row.name);
     } else {
       salonUserId = parseId(body.salonUserId);
-      if (!salonUserId) return error("سالن مشخص نیست.", 400);
+      if (!salonUserId) return error("کدوم سالن؟ انتخابش کن.", 400);
       fromNames = (await all(db, "SELECT name FROM salon_staff WHERE salon_user_id = $1 AND artist_user_id = $2", [salonUserId, auth.user.id])).map((row) => row.name);
       actorArtistId = auth.user.id;
     }
-    if (!fromNames.length) return error("این آرتیست عضو تیم این سالن نیست.", 404);
+    if (!fromNames.length) return error("این آرتیست توی تیم این سالن نیست.", 404);
     result = await proposals.proposeSalonHandover({ salonUserId, id, toStaff, fromNames, actorArtistId });
     const salon = await getUserLiteById(salonUserId);
     providerForClient = { type: "salon", name: salon?.name || "" };
     providerUserId = salonUserId;
   } else {
-    if (auth.user.type !== "salon") return error("دسترسی غیرمجاز.", 403);
+    if (auth.user.type !== "salon") return error("این کار با حساب تو نمی‌شه.", 403);
     result = await proposals.proposeSalonTime({ salonUserId: auth.user.id, id, date, time });
     providerForClient = { type: "salon", name: auth.user.name };
   }
@@ -88,10 +88,10 @@ async function _POST(request) {
 async function _DELETE(request) {
   const auth = await requireUser(request);
   if (!auth.ok) return auth.response;
-  if (!["salon", "artist"].includes(auth.user.type)) return error("فقط سالن یا آرتیست.", 403);
+  if (!["salon", "artist"].includes(auth.user.type)) return error("این کار مال سالن یا آرتیسته.", 403);
   const body = await readObjectBody(request);
   const id = parseId(body.id);
-  if (!id) return error("شناسه رزرو نامعتبر است.", 400);
+  if (!id) return error("این نوبت رو پیدا نکردیم.", 400);
   const kind = auth.user.type === "artist" && body.kind === "artist" ? "artist" : "salon";
   const result = await proposals.withdrawProposal({ kind, id, providerUserId: auth.user.id });
   if (!result.ok) return error(result.message, STATUS[result.error] || 409);

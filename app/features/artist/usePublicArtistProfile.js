@@ -109,7 +109,7 @@ export function usePublicArtistProfile({
     ));
 
     if (!artist.id) {
-      notify(willSave ? `پروفایل «${artist.name || "آرتیست"}» ذخیره شد.` : `پروفایل «${artist.name || "آرتیست"}» از ذخیره‌ها حذف شد.`);
+      notify(willSave ? `«${artist.name || "آرتیست"}» ذخیره شد.` : `«${artist.name || "آرتیست"}» از ذخیره‌شده‌ها برداشته شد.`);
       return;
     }
 
@@ -121,17 +121,17 @@ export function usePublicArtistProfile({
             ? (items.includes(key) ? items : [...items, key])
             : items.filter((item) => item !== key)
         ));
-        notify(getApiErrorMessage(payload, "ذخیره آرتیست انجام نشد؛ دوباره امتحان کن."));
+        notify(getApiErrorMessage(payload, "ذخیره نشد؛ دوباره بزن."));
         return;
       }
-      notify(willSave ? `پروفایل «${artist.name || "آرتیست"}» ذخیره شد.` : `پروفایل «${artist.name || "آرتیست"}» از ذخیره‌ها حذف شد.`);
+      notify(willSave ? `«${artist.name || "آرتیست"}» ذخیره شد.` : `«${artist.name || "آرتیست"}» از ذخیره‌شده‌ها برداشته شد.`);
     } catch {
       setSavedArtists((items) => (
         previousSaved
           ? (items.includes(key) ? items : [...items, key])
           : items.filter((item) => item !== key)
       ));
-      notify("ذخیره آرتیست انجام نشد؛ دوباره امتحان کن.");
+      notify("ذخیره نشد؛ دوباره بزن.");
     }
   }, [savedArtists, notify]);
 
@@ -200,29 +200,29 @@ export function usePublicArtistProfile({
       || publicArtistServices.find((item) => item.id === publicArtistSelectedServiceId)
       || publicArtistServices[0];
     if (!service) {
-      notify("خدمتی برای رزرو موجود نیست.");
+      notify("هنوز خدمتی نذاشته.");
       return;
     }
     if (!publicArtistBookingSlot) {
       setPublicArtistView("booking");
-      notify("اول روز و ساعت نوبت را انتخاب کن.");
+      notify("اول روز و ساعت رو انتخاب کن.");
       return;
     }
     // Booking an independent artist needs an account (owner's decision 2026-10-22): a guest is sent to the same
     // hand-off a public page uses, so they sign up and come back to this artist's services.
     if (!createdProfile) {
-      notify("برای رزرو، شمارهٔ موبایلت را وارد کن");
+      notify("برای نوبت گرفتن، شماره موبایلت رو بزن.");
       rememberPendingOpen({ type: "artist", id: selectedPublicArtist.id, name: selectedPublicArtist.name });
       window.location.assign(openInAppHref("artist", selectedPublicArtist.id));
       return;
     }
     if (!createdProfile?.data?.phone) {
       setPublicArtistView("booking");
-      notify("برای رزرو، ابتدا شماره تماس را در پروفایلت ثبت کن.");
+      notify("برای نوبت گرفتن، اول شماره‌ت رو توی پروفایلت بذار.");
       return;
     }
     if (!selectedPublicArtist.id) {
-      notify("آرتیست نامعتبر است.");
+      notify("این آرتیست پیدا نشد.");
       return;
     }
     if (isPublicArtistSlotBlocked(
@@ -231,7 +231,7 @@ export function usePublicArtistProfile({
       publicArtistBookingSlot,
       parseServiceDurationMinutes(service.duration)
     )) {
-      notify("این بازه با نوبت دیگری تداخل دارد. ساعت دیگری انتخاب کن.");
+      notify("این ساعت با یه نوبت دیگه قاطی می‌شه؛ یه ساعت دیگه انتخاب کن.");
       setPublicArtistBookingSlot("");
       return;
     }
@@ -268,7 +268,7 @@ export function usePublicArtistProfile({
           ));
           setPublicArtistBookingSlot("");
         }
-        notify(getApiErrorMessage(payload, "رزرو انجام نشد."));
+        notify(getApiErrorMessage(payload, "نوبت ثبت نشد؛ دوباره بزن."));
         return;
       }
       setSelectedPublicArtist((current) => (
@@ -313,7 +313,7 @@ export function usePublicArtistProfile({
         }, { price: service.price || "", items: Array.isArray(service.items) ? service.items : [service] });
       } else {
         notify(
-          `رزرو «${service.name}»، ${publicArtistBookingDay} ساعت ${publicArtistBookingSlot} برای «${selectedPublicArtist.name}» ثبت شد و در انتظار تایید آرتیست است.`
+          `درخواست «${service.name}» برای ${publicArtistBookingDay} ساعت ${publicArtistBookingSlot} رفت؛ منتظر جواب «${selectedPublicArtist.name}» باش.`
         );
       }
       setPublicArtistBookingSlot("");
@@ -326,7 +326,7 @@ export function usePublicArtistProfile({
         }
       }
     } catch {
-      notify("رزرو انجام نشد.");
+      notify("نوبت ثبت نشد؛ دوباره بزن.");
     } finally {
       publicArtistBookingBusyRef.current = false;
       setPublicArtistBookingBusy(false);
@@ -382,7 +382,7 @@ export function usePublicArtistProfile({
         const { ok, payload } = await toggleFollow({ targetUserId: artist.id });
         if (!ok) {
           applyFollowed(previousFollowed);
-          notify(payload?.error || "وصل شدن ذخیره نشد؛ دوباره امتحان کن.");
+          notify(payload?.error || "وصل نشد؛ دوباره بزن.");
           return;
         }
         const followerCount = payload?.data?.followerCount ?? payload?.data?.follower_count;
@@ -395,21 +395,21 @@ export function usePublicArtistProfile({
         }
       } catch {
         applyFollowed(previousFollowed);
-        notify("وصل شدن ذخیره نشد؛ دوباره امتحان کن.");
+        notify("وصل نشد؛ دوباره بزن.");
         return;
       }
     }
     notify(
       nextFollowed
-        ? `به «${artist.name}» وصل شدی؛ از «سالن و آرتیست من» نوبت بگیر.`
-        : `«${artist.name}» از لیستت برداشته شد.`
+        ? `به «${artist.name}» وصل شدی؛ از سالن و آرتیست‌هات نوبت بگیر.`
+        : `«${artist.name}» دیگه وصل نیست.`
     );
   }, [followedArtists, setFollowedArtists, setFollowedSalons, notify]);
 
   const shareArtistProfile = useCallback(async () => {
     if (!selectedPublicArtist) return;
     const name = selectedPublicArtist.name || "آرتیست";
-    const shareText = `پروفایل آرتیست «${name}» در frfro`;
+    const shareText = `صفحهٔ «${name}» توی فرفرو`;
     const artistId = selectedPublicArtist.id;
     const shareUrl = typeof window !== "undefined"
       ? (artistId ? `${window.location.origin}/artists/${artistId}` : window.location.href)
@@ -421,14 +421,14 @@ export function usePublicArtistProfile({
       }
       if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(shareUrl || shareText);
-        notify(`لینک پروفایل «${name}» کپی شد.`);
+        notify(`لینک صفحهٔ «${name}» کپی شد.`);
         return;
       }
     } catch {
       // user cancelled or share failed
       return;
     }
-    notify(`لینک پروفایل «${name}» آماده اشتراک‌گذاری است.`);
+    notify(`لینک صفحهٔ «${name}» آماده‌ست؛ بفرستش.`);
   }, [selectedPublicArtist, notify]);
 
   // The post opens over the artist's page and the page stays open underneath, so closing the post

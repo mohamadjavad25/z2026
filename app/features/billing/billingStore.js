@@ -35,9 +35,9 @@ export function refreshBilling() {
     update({ loading: true });
     try {
       const { ok, data, payload } = await getBilling();
-      update(ok ? { overview: data, error: "", loading: false, loadedAt: Date.now() } : { error: payload?.error || "وضعیت اشتراک بارگذاری نشد.", loading: false });
+      update(ok ? { overview: data, error: "", loading: false, loadedAt: Date.now() } : { error: payload?.error || "اشتراکت نیومد؛ دوباره بزن.", loading: false });
     } catch {
-      update({ loading: false, error: "اتصال برقرار نشد؛ اینترنت را بررسی کن." });
+      update({ loading: false, error: "اینترنتت وصل نیست؛ یه نگاه بنداز و دوباره بزن." });
     } finally {
       inflight = null;
     }

@@ -53,7 +53,7 @@ function ImageEditMenu({ hasImage, busy, title, triggerClassName, triggerLabel, 
         aria-label={triggerLabel || title}
       >
         {triggerIcon}
-        {busy ? "در حال ذخیره…" : triggerLabel}
+        {busy ? "دارم ذخیره می‌کنم…" : triggerLabel}
       </button>
       <ProfileSheet
         open={open}
@@ -66,17 +66,17 @@ function ImageEditMenu({ hasImage, busy, title, triggerClassName, triggerLabel, 
         <div className="imageActionList" role="menu">
           <button type="button" role="menuitem" onClick={() => run(onPickFile)}>
             <span><Camera size={17} aria-hidden="true" /></span>
-            <b>انتخاب عکس جدید</b>
+            <b>یه عکس تازه</b>
             <small>از گالری یا دوربین</small>
           </button>
           <button type="button" role="menuitem" onClick={() => run(onReposition)}>
             <span><Move size={17} aria-hidden="true" /></span>
-            <b>تنظیم کادر تصویر</b>
-            <small>جابه‌جایی و بزرگ‌نمایی</small>
+            <b>قابش رو درست کن</b>
+            <small>جابه‌جا و بزرگ‌کوچیک کن</small>
           </button>
           <button type="button" role="menuitem" className="is-danger" onClick={() => run(onRemove)}>
             <span><Trash2 size={17} aria-hidden="true" /></span>
-            <b>حذف عکس</b>
+            <b>عکس رو پاک کن</b>
           </button>
         </div>
       </ProfileSheet>
@@ -133,13 +133,13 @@ function BrandCard({
           <ImageEditMenu
             hasImage={Boolean(poster)}
             busy={posterSaving}
-            title={poster ? "تغییر پوستر" : "افزودن پوستر"}
+            title={poster ? "عوض کردن پوستر" : "یه پوستر بذار"}
             triggerClassName="brandCardPosterEdit"
             triggerLabel=""
             triggerIcon={
               <span className="brandCardPosterPill">
                 {poster ? <Camera size={15} aria-hidden="true" /> : <ImagePlus size={17} aria-hidden="true" />}
-                {poster ? "تغییر پوستر" : "افزودن پوستر"}
+                {poster ? "عوض کردن پوستر" : "یه پوستر بذار"}
                 {poster ? null : <Plus size={15} strokeWidth={3} aria-hidden="true" />}
               </span>
             }
@@ -285,26 +285,26 @@ export function SettingsPage({
 
   const isArtist = profile.type === "artist";
   const isSalon = profile.type === "salon";
-  const accountTitle = isArtist ? "برند شخصی آرتیست" : isSalon ? "ویرایش برند سالن" : "ویرایش پروفایل";
+  const accountTitle = isArtist ? "پروفایلت" : isSalon ? "اطلاعات سالن" : "پروفایلت";
   const isClient = !isArtist && !isSalon;
   const clientPhone = String(profile?.data?.phone || "").trim();
   const accountDescription = isArtist
-    ? "عکس، نام هنری، تخصص، تماس و مسیر رزرو"
+    ? "عکس، اسم هنری، کارها و شماره"
     : isSalon
-      ? "لوگو، نام سالن، شماره تماس و مسیر رزرو"
+      ? "لوگو، اسم سالن و شماره"
       : clientPhone
-        ? <><span dir="ltr">{toPersianDigits(clientPhone)}</span>{"؛ عکس، نام، ایمیل و رمز عبور"}</>
-        : "عکس، نام، تماس، ایمیل و رمز عبور";
+        ? <><span dir="ltr">{toPersianDigits(clientPhone)}</span>{"؛ عکس، اسم، ایمیل و رمز"}</>
+        : "عکس، اسم، شماره، ایمیل و رمز";
   const accountAvatar = profile?.data?.avatar || profile?.avatar || defaultAvatarFor(profile?.type);
   const roleLabel = isArtist ? "حساب آرتیست" : isSalon ? "حساب سالن" : "حساب من";
-  const savedTitle = isArtist ? "بوکمارک‌های آرتیست" : isSalon ? "بوکمارک‌های سالن" : "ذخیره‌شده‌ها";
+  const savedTitle = "ذخیره‌شده‌ها";
   const savedDescription = isArtist
-    ? `${toPersianDigits(savedPostsCount || 0)} نمونه ذخیره‌شده`
+    ? (savedPostsCount ? `${toPersianDigits(savedPostsCount)} تا ذخیره کردی` : "هنوز چیزی ذخیره نکردی")
     : isSalon
-      ? "مشاهده لیست ذخیره‌شده‌ها"
+      ? "هر چی ذخیره کردی"
       : savedPostsCount
-        ? `${toPersianDigits(savedPostsCount)} مورد ذخیره‌شده`
-        : "مدل‌ها و نمونه‌کارهای ذخیره‌شده";
+        ? `${toPersianDigits(savedPostsCount)} تا ذخیره کردی`
+        : "مدل‌ها و نمونه‌کارهایی که نشون کردی";
 
   return (
     <div className={`settingsPagePanel mobilePage page-settings ${active ? "is-active" : ""}`} id="settings">
@@ -319,7 +319,7 @@ export function SettingsPage({
 
         {/* 1. Identity: who you are, where you work, and what customers see of it. */}
         <section className="spSection" aria-labelledby="spSection-profile">
-          <h3 className="spSectionTitle" id="spSection-profile">{isClient ? "پروفایل من" : "پروفایل و برند"}</h3>
+          <h3 className="spSectionTitle" id="spSection-profile">{isClient ? "پروفایلم" : "پروفایل"}</h3>
           <BrandCard
             hasPoster={isArtist || isSalon}
             poster={profile?.data?.poster || ""}
@@ -376,7 +376,7 @@ export function SettingsPage({
         {/* 2. Work and bookings: hours first, then the rules or booking switches that go with them. */}
         {isArtist || isSalon ? (
           <section className="spSection" aria-labelledby="spSection-work">
-            <h3 className="spSectionTitle" id="spSection-work">کار و رزرو</h3>
+            <h3 className="spSectionTitle" id="spSection-work">کار و نوبت</h3>
             <SalonHoursEditor
               kicker={isArtist ? "تنظیمات آرتیست" : "تنظیمات سالن"}
               open={hoursOpen}
@@ -405,7 +405,7 @@ export function SettingsPage({
 
         {/* 3. Notifications and appearance: how the app talks to you on this device. */}
         <section className="spSection" aria-labelledby="spSection-prefs">
-          <h3 className="spSectionTitle" id="spSection-prefs">اعلان‌ها و ظاهر</h3>
+          <h3 className="spSectionTitle" id="spSection-prefs">اعلان و ظاهر</h3>
           <div className="neoSettingsPanel">
             <NotificationSettings profileType={profile.type} profileSettings={profileSettings} onToggle={onToggleSetting} />
             <AppearanceSettings />

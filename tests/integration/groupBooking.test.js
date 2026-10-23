@@ -101,7 +101,7 @@ describe("group booking (برای چند نفر؟)", () => {
     const refused = await request(ctx, a, day, slot, { people: 2 });
     expect(refused.status).toBe(409);
     expect(refused.payload.code).toBe("GROUP_FULL");
-    expect(refused.payload.error).toBe("این ساعت دیگر برای ۲ نفر جا ندارد؛ ساعت‌ها به‌روز شد.");
+    expect(refused.payload.error).toBe("این ساعت دیگه برای ۲ نفر جا نداره؛ ساعت‌ها رو تازه کردیم.");
     const salonList = (await ctx.salonClient.get("/api/salon-bookings")).payload.data.bookings;
     expect(salonList.filter((item) => item.client === a.user.name)).toHaveLength(0);
     // Not even an artist calendar copy was left behind.

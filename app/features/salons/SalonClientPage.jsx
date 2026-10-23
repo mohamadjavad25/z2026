@@ -100,7 +100,7 @@ export function SalonClientPage({
             area={selectedSalon.area}
             location={selectedSalon.location}
             start={(
-              <button type="button" className="pphRound" onClick={onBack} aria-label="بازگشت به سالن‌ها">
+              <button type="button" className="pphRound" onClick={onBack} aria-label="برگرد">
                 <ChevronLeft size={19} />
               </button>
             )}
@@ -137,7 +137,7 @@ export function SalonClientPage({
                 <span className="spvContinueActions">
                   {continueFor.error ? null : <button type="button" className="spvContinueGo" onClick={onContinue}>ادامه</button>}
                   <button type="button" onClick={() => { onDismissContinue?.(); setServicesOpen(true); }}>
-                    {continueFor.error ? "انتخاب خدمت" : "تغییر خدمت"}
+                    {continueFor.error ? "یه خدمت انتخاب کن" : "یه خدمت دیگه"}
                   </button>
                 </span>
               </div>
@@ -147,7 +147,7 @@ export function SalonClientPage({
 
           {selectedSalon.detailFailed && onRetryDetail ? (
             <p className="salonGalleryRetry" role="alert">
-              اینترنتت کند است. دوباره تلاش کن
+              اینترنتت کنده؛ دوباره بزن
               <button type="button" onClick={onRetryDetail}><RotateCw size={14} aria-hidden="true" /> دوباره</button>
             </p>
           ) : null}
@@ -177,7 +177,7 @@ export function SalonClientPage({
               <h3 className="spvHead">نمونه‌کارها</h3>
               {portfolioItems.length > PORTFOLIO_PREVIEW ? (
                 <button type="button" className="spvSeeAll" onClick={() => setPublicSheet("portfolio")}>
-                  مشاهده همه ({toPersianDigits(portfolioItems.length)})
+                  همه ({toPersianDigits(portfolioItems.length)})
                 </button>
               ) : null}
             </div>
@@ -203,7 +203,7 @@ export function SalonClientPage({
             }}
             onClose={() => setServicesOpen(false)}
           />
-          <nav className="spvBar" aria-label="رزرو و ذخیره">
+          <nav className="spvBar" aria-label="نوبت گرفتن">
             <button
               type="button"
               className={`spvBarBook${servicesOpen ? " is-open" : ""}`}
@@ -212,7 +212,7 @@ export function SalonClientPage({
               aria-haspopup="dialog"
             >
               <CalendarCheck size={19} />
-              {servicesOpen ? "بستن" : "رزرو نوبت"}
+              {servicesOpen ? "بستن" : "رزرو"}
               {minPrice && !servicesOpen ? <small>قیمت از {formatTomanNumber(minPrice)} تومان</small> : null}
               <ChevronUp size={18} className={`spvBarChevron${servicesOpen ? " is-open" : ""}`} aria-hidden="true" />
             </button>
@@ -236,7 +236,7 @@ export function SalonClientPage({
                 ) : (
                   <div className="salonClientEmptyGallery">
                     <ImagePlus size={22} />
-                    <b>هنوز نمونه‌کاری ثبت نشده</b>
+                    <b>هنوز کاری نذاشته؛ به‌زودی اینجا میاد</b>
                   </div>
                 )}
                 <SheetClose onClick={() => setPublicSheet("")} />

@@ -45,7 +45,7 @@ async function _POST(request) {
   if (!auth.ok) return auth.response;
   const body = await request.json();
   const targetUserId = Number(body.targetUserId || body.userId);
-  if (!targetUserId) return NextResponse.json({ error: "هدف لازم است." }, { status: 400 });
+  if (!targetUserId) return NextResponse.json({ error: "کدوم حساب؟ انتخابش کن." }, { status: 400 });
 
   const target = await getUserLiteById(targetUserId);
   if (!target || (target.type !== "salon" && target.type !== "artist")) {
@@ -54,7 +54,7 @@ async function _POST(request) {
 
   const result = await social.toggleSaveProfile(auth.user.id, targetUserId);
   if (!result.ok && result.error === "self") {
-    return NextResponse.json({ error: "نمی‌توانی پروفایل خودت را ذخیره کنی." }, { status: 400 });
+    return NextResponse.json({ error: "نمی‌تونی خودت رو ذخیره کنی." }, { status: 400 });
   }
   return NextResponse.json({ data: result });
 }

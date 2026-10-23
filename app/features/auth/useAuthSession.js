@@ -133,8 +133,8 @@ export function useAuthSession({
         if (meResult.serverDown) {
           onEnterTabRef.current?.("profile");
           setAuthMode("login");
-          setAuthNotice("سرور الان پاسخ نمی‌دهد؛ حسابت سر جایش است. چند لحظه بعد صفحه را دوباره باز کن.");
-          onShellNoticeRef.current?.("سرور موقتاً در دسترس نیست؛ از حسابت خارج نشده‌ای.");
+          setAuthNotice("سرور الان جواب نمی‌ده؛ حسابت سر جاشه. چند لحظه دیگه صفحه رو دوباره باز کن.");
+          onShellNoticeRef.current?.("سرور یه لحظه در دسترس نیست؛ از حسابت بیرون نیومدی.");
           return;
         }
 
@@ -167,7 +167,7 @@ export function useAuthSession({
         }
       } catch {
         if (isStale()) return;
-        onShellNoticeRef.current?.("اتصال به سرور برقرار نشد؛ دوباره صفحه را باز کن.");
+        onShellNoticeRef.current?.("به سرور نرسیدیم؛ صفحه رو دوباره باز کن.");
       } finally {
         if (bootId === authBootRef.current) {
           setAuthChecked(true);
@@ -188,7 +188,7 @@ export function useAuthSession({
     try {
       const { ok, payload } = await apiLogin({ phone: data.phone, password: data.password });
       if (!ok) {
-        setAuthNotice(payload.error || "ورود انجام نشد.");
+        setAuthNotice(payload.error || "وارد نشدی؛ دوباره بزن.");
         if (payload.code === "not_found") {
           window.setTimeout(() => {
             setAuthMode("signup");
@@ -199,7 +199,7 @@ export function useAuthSession({
       }
       const profile = normalizeProfile(payload.profile || payload.data?.user);
       if (!profile) {
-        setAuthNotice("ورود انجام نشد؛ دوباره امتحان کن.");
+        setAuthNotice("وارد نشدی؛ دوباره بزن.");
         return;
       }
       try {
@@ -213,10 +213,10 @@ export function useAuthSession({
       // refreshes (follows, saves, salon/artist workspace),
       // which could take seconds and had nothing to do with whether login
       // itself worked.
-      onShellNoticeRef.current?.("با موفقیت وارد شدی.");
+      onShellNoticeRef.current?.("خوش اومدی!");
       Promise.resolve(onAuthenticatedRef.current?.(profile, { source: "login" })).catch(() => {});
     } catch {
-      setAuthNotice("ورود انجام نشد؛ دوباره امتحان کن.");
+      setAuthNotice("وارد نشدی؛ دوباره بزن.");
     } finally {
       authBusyRef.current = false;
       setAuthBusy(false);
@@ -244,19 +244,19 @@ export function useAuthSession({
     };
     showNotice("");
     if (!String(data.password || "").trim()) {
-      showNotice("رمز عبور را وارد کن.");
+      showNotice("یه رمز بذار؛ دست‌کم ۸ حرف.");
       authBusyRef.current = false;
       setAuthBusy(false);
       return;
     }
     if (String(data.password).trim().length < 8) {
-      showNotice("رمز عبور باید حداقل ۸ کاراکتر باشد.");
+      showNotice("رمز دست‌کم ۸ حرف باشه.");
       authBusyRef.current = false;
       setAuthBusy(false);
       return;
     }
     if (!String(data.phone || "").trim()) {
-      showNotice("شماره تماس را وارد کن.");
+      showNotice("شماره موبایلت رو بزن.");
       authBusyRef.current = false;
       setAuthBusy(false);
       return;
@@ -264,24 +264,24 @@ export function useAuthSession({
     try {
       const { ok, payload } = await apiRegister({ type, data, phone: data.phone, password: data.password, otpProof: data.otpProof || undefined });
       if (!ok) {
-        showNotice(payload.error || "ثبت‌نام انجام نشد؛ دوباره امتحان کن.");
+        showNotice(payload.error || "حساب ساخته نشد؛ دوباره بزن.");
         return;
       }
 
       const profile = normalizeProfile(payload.profile || payload.data?.user);
       if (!profile?.data?.phone) {
-        showNotice("ثبت‌نام در دیتابیس ذخیره نشد؛ دوباره امتحان کن.");
+        showNotice("حساب ساخته نشد؛ دوباره بزن.");
         return;
       }
 
       enterAuthenticatedSession(profile, "profile");
       // Same reasoning as login above: the account already exists at this
       // point, so the toast shouldn't wait on background refreshes.
-      onShellNoticeRef.current?.("حساب ساخته شد و آماده استفاده است.");
+      onShellNoticeRef.current?.("حسابت آماده‌ست؛ خوش اومدی!");
       Promise.resolve(onAuthenticatedRef.current?.(profile, { source: "register" })).catch(() => {});
     } catch {
-      showNotice("ثبت‌نام انجام نشد؛ دوباره امتحان کن.");
-      onShellNoticeRef.current?.("ذخیره پروفایل انجام نشد؛ دوباره امتحان کن.");
+      showNotice("حساب ساخته نشد؛ دوباره بزن.");
+      onShellNoticeRef.current?.("پروفایلت ذخیره نشد؛ دوباره بزن.");
     } finally {
       authBusyRef.current = false;
       setAuthBusy(false);
@@ -300,7 +300,7 @@ export function useAuthSession({
     // The session is already cleared client-side at this point -- show the
     // toast right away instead of waiting on onLoggedOut's cleanup/refetch
     // cascade.
-    onShellNoticeRef.current?.("از حساب خارج شدی.");
+    onShellNoticeRef.current?.("از حسابت اومدی بیرون.");
     Promise.resolve(onLoggedOutRef.current?.()).catch(() => {});
   }
 
@@ -318,11 +318,11 @@ export function useAuthSession({
     if (!ok) {
       // A salon or artist with confirmed bookings: the server answers with the list (owner's rules of 2026-10-22).
       const plan = payload?.data?.plan;
-      return { ok: false, error: payload?.error || "حذف حساب انجام نشد.", ...(plan ? { plan, code: payload.code } : {}) };
+      return { ok: false, error: payload?.error || "حسابت پاک نشد؛ دوباره بزن.", ...(plan ? { plan, code: payload.code } : {}) };
     }
     clearAuthSession();
     await onLoggedOutRef.current?.();
-    onShellNoticeRef.current?.("حساب شما برای همیشه حذف شد.");
+    onShellNoticeRef.current?.("حسابت برای همیشه پاک شد.");
     return { ok: true };
   }
 

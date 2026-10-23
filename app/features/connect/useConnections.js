@@ -80,7 +80,7 @@ export function useConnections({ onNotify, load = true, memoryOwner = null } = {
     try {
       const { ok, payload } = await connectTo(profile.id);
       if (!ok) {
-        notifyRef.current?.(payload?.error || "وصل شدن انجام نشد؛ دوباره امتحان کن.");
+        notifyRef.current?.(payload?.error || "وصل نشد؛ دوباره بزن.");
         return null;
       }
       const connected = payload.data.profile;
@@ -89,10 +89,10 @@ export function useConnections({ onNotify, load = true, memoryOwner = null } = {
         ...prev,
         results: prev.results.map((item) => (item.id === connected.id ? { ...item, connected: true } : item))
       }));
-      if (!payload.data.alreadyConnected && !silent) notifyRef.current?.(`${connected.name} به لیستت اضافه شد.`);
+      if (!payload.data.alreadyConnected && !silent) notifyRef.current?.(`${connected.name} اضافه شد به سالن و آرتیست‌هات.`);
       return connected;
     } catch {
-      notifyRef.current?.("وصل شدن انجام نشد؛ دوباره امتحان کن.");
+      notifyRef.current?.("وصل نشد؛ دوباره بزن.");
       return null;
     } finally {
       setConnectingId(null);

@@ -351,7 +351,7 @@ export function useSalonWorkspace({
    * can say what went wrong; nothing here toasts a failure (the form shows it where the person is looking).
    */
   const submitSalonVisit = useCallback(async (body) => {
-    if (salonBookingSubmittingRef.current) return { ok: false, status: 0, payload: { error: "ثبت قبلی هنوز تمام نشده." } };
+    if (salonBookingSubmittingRef.current) return { ok: false, status: 0, payload: { error: "قبلیه هنوز تموم نشده؛ یه لحظه صبر کن." } };
     salonBookingSubmittingRef.current = true;
     try {
       const { ok, status, payload } = await createSalonBooking({ ...body, status: "تازه" });
@@ -375,9 +375,9 @@ export function useSalonWorkspace({
         ? payload.data.linkedArtistIds
         : [payload.data?.linkedArtistId].filter(Boolean);
       shellNotify(linkedArtistIds.length
-        ? "رزرو در سالن ثبت شد و برای آرتیست هم ارسال شد."
-        : "رزرو در سالن ثبت شد؛ این پرسنل به پروفایل آرتیست وصل نیست.");
-      notify("رزرو با موفقیت ثبت شد.");
+        ? "نوبت ثبت شد و آرتیست هم خبردار شد."
+        : "نوبت ثبت شد؛ این آرتیست حساب فرفرو نداره، خودت خبرش کن.");
+      notify("نوبت ثبت شد!");
       setSalonToolSheetOpen(false);
       if (typeof onLinkedArtistBooked === "function") {
         for (const linkedArtistId of linkedArtistIds) {
@@ -405,7 +405,7 @@ export function useSalonWorkspace({
    */
   const patchSalonAppointment = useCallback(async (booking, patch, notice) => {
     if (!booking?.id) {
-      shellNotify("این رزرو قابل ویرایش نیست.");
+      shellNotify("این نوبت رو دیگه نمی‌شه عوض کرد.");
       return false;
     }
     if (scheduleBookingBusyRef.current) return false;
@@ -418,7 +418,7 @@ export function useSalonWorkspace({
         : await updateSalonBooking({ id: booking.id, ...patch });
       if (!ok) {
         if (Array.isArray(payload.data?.bookings)) applySalonBookings(payload.data.bookings, { bump: true });
-        shellNotify(getApiErrorMessage(payload, "به‌روزرسانی رزرو انجام نشد."));
+        shellNotify(getApiErrorMessage(payload, "نوبت ذخیره نشد؛ دوباره بزن."));
         return false;
       }
       applySalonBookings(payload.data?.bookings || [], { bump: true });
@@ -433,7 +433,7 @@ export function useSalonWorkspace({
       if (notice) shellNotify(notice);
       return true;
     } catch {
-      shellNotify("به‌روزرسانی رزرو انجام نشد؛ دوباره امتحان کن.");
+      shellNotify("نوبت ذخیره نشد؛ دوباره بزن.");
       return false;
     } finally {
       scheduleBookingBusyRef.current = false;
@@ -459,7 +459,7 @@ export function useSalonWorkspace({
       const { ok, payload } = await updateSalonBooking({ id: requestId, status: "تایید شده" });
       if (!ok) {
         if (Array.isArray(payload.data?.bookings)) applySalonBookings(payload.data.bookings, { bump: true });
-        shellNotify(getApiErrorMessage(payload, "تایید رزرو انجام نشد."));
+        shellNotify(getApiErrorMessage(payload, "تأیید نشد؛ دوباره بزن."));
         return;
       }
       applySalonBookings(payload.data?.bookings || [], { bump: true });
@@ -472,10 +472,10 @@ export function useSalonWorkspace({
       if (typeof onLinkedArtistBooked === "function") {
         for (const artistId of notifyIds) onLinkedArtistBooked(artistId);
       }
-      shellNotify("درخواست رزرو تایید شد.");
+      shellNotify("تأیید شد؛ مشتری خبردار شد.");
       await refreshSalonBookingsLive(salonBookingsEpochRef.current);
     } catch {
-      shellNotify("تایید رزرو ذخیره نشد؛ دوباره امتحان کن.");
+      shellNotify("تأیید نشد؛ دوباره بزن.");
     } finally {
       salonRequestBusyIdRef.current = "";
       setSalonRequestBusyId("");
@@ -498,7 +498,7 @@ export function useSalonWorkspace({
       const { ok, payload } = await updateSalonBooking({ id: requestId, status: "لغو", action: "cancel" });
       if (!ok) {
         if (Array.isArray(payload.data?.bookings)) applySalonBookings(payload.data.bookings, { bump: true });
-        shellNotify(getApiErrorMessage(payload, "رد درخواست رزرو انجام نشد."));
+        shellNotify(getApiErrorMessage(payload, "رد نشد؛ دوباره بزن."));
         return;
       }
       applySalonBookings(payload.data?.bookings || [], { bump: true });
@@ -508,9 +508,9 @@ export function useSalonWorkspace({
       if (typeof onLinkedArtistBooked === "function") {
         for (const artistId of notifyIds) onLinkedArtistBooked(artistId);
       }
-      shellNotify("درخواست رزرو رد شد.");
+      shellNotify("رد شد؛ مشتری خبردار شد.");
     } catch {
-      shellNotify("رد درخواست رزرو انجام نشد؛ دوباره امتحان کن.");
+      shellNotify("رد نشد؛ دوباره بزن.");
     } finally {
       salonRequestBusyIdRef.current = "";
       setSalonRequestBusyId("");

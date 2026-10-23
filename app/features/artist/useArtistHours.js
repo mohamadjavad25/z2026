@@ -52,12 +52,12 @@ export function useArtistHours({
     try {
       const result = await updateArtistHours(nextHour);
       if (!result.ok) {
-        shellNotify(result.payload?.error || "به‌روزرسانی ساعت کاری انجام نشد؛ دوباره امتحان کن.");
+        shellNotify(result.payload?.error || "ساعت کاری ذخیره نشد؛ دوباره بزن.");
         return;
       }
       setArtistHoursList(result.payload.data?.hours || []);
     } catch {
-      shellNotify("به‌روزرسانی ساعت کاری انجام نشد؛ دوباره امتحان کن.");
+      shellNotify("ساعت کاری ذخیره نشد؛ دوباره بزن.");
     }
   }, [shellNotify]);
 
@@ -77,13 +77,13 @@ export function useArtistHours({
       const results = await Promise.all(nextHours.map((hour) => updateArtistHours(hour)));
       const failed = results.find((item) => !item.ok);
       if (failed) {
-        shellNotify(failed.payload?.error || "ذخیره گزینه کلی ساعت کاری انجام نشد؛ دوباره امتحان کن.");
+        shellNotify(failed.payload?.error || "ساعت کاری ذخیره نشد؛ دوباره بزن.");
         return;
       }
       const latestHours = results[results.length - 1]?.payload?.data?.hours || nextHours;
       setArtistHoursList(latestHours);
     } catch {
-      shellNotify("ذخیره گزینه کلی ساعت کاری انجام نشد؛ دوباره امتحان کن.");
+      shellNotify("ساعت کاری ذخیره نشد؛ دوباره بزن.");
     }
   }, [artistHoursList, shellNotify]);
 
@@ -105,15 +105,15 @@ export function useArtistHours({
         const nextHour = { ...hour, open_time: sourceHour.open_time, close_time: sourceHour.close_time, capacity: sourceHour.capacity };
         const result = await updateArtistHours(nextHour);
         if (!result.ok) {
-          shellNotify(result.payload?.error || "اعمال ساعت به بقیه روزها انجام نشد؛ دوباره امتحان کن.");
+          shellNotify(result.payload?.error || "ساعت روی بقیهٔ روزها ننشست؛ دوباره بزن.");
           return;
         }
         latestHours = result.payload.data?.hours || latestHours;
       }
       setArtistHoursList(latestHours);
-      shellNotify("ساعت روی بقیه روزهای باز اعمال شد.");
+      shellNotify("همین ساعت روی بقیهٔ روزهای باز نشست.");
     } catch {
-      shellNotify("اعمال ساعت به بقیه روزها انجام نشد؛ دوباره امتحان کن.");
+      shellNotify("ساعت روی بقیهٔ روزها ننشست؛ دوباره بزن.");
     }
   }, [artistHoursList, shellNotify]);
 

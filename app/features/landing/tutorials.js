@@ -49,7 +49,7 @@ function signup({ title, nameLabel, name, phone, password, terms, typing, extra 
     { t: "field", id: "phone", placeholder: "شماره تماس", text: phone, type: typing === "phone", ltr: true },
     { t: "field", id: "password", placeholder: "رمز عبور (حداقل ۸ کاراکتر)", text: password ? "••••••••" : "", type: typing === "password", ltr: true },
     { t: "check", id: "terms", text: "قوانین و حریم خصوصی را می‌پذیرم", on: terms },
-    { t: "btn", id: "submit", text: "تکمیل ثبت‌نام" }
+    { t: "btn", id: "submit", text: "بساز" }
   ];
 }
 
@@ -107,7 +107,7 @@ const booker = ({ day = -1, time = -1, ready = false }) => [
   { t: "head", text: "روز" },
   { t: "chips", id: "days", items: DAYS, on: day },
   ...(day >= 0 ? [{ t: "head", text: "ساعت شروع" }, { t: "chips", id: "times", items: TIMES, on: time, grid: 4 }] : [{ t: "note", text: "روز را انتخاب کن تا ساعت‌های آزاد را ببینی." }]),
-  ...(ready ? [{ t: "summary", text: "۱ خدمت · ۹۰ دقیقه · ۴۵۰٬۰۰۰ تومان" }, { t: "btn", id: "send", text: "ارسال درخواست · یکشنبه ۱۵:۳۰" }] : [])
+  ...(ready ? [{ t: "summary", text: "۱ کار، ۹۰ دقیقه، ۴۵۰٬۰۰۰ تومان" }, { t: "btn", id: "send", text: "بفرست، یکشنبه ۱۵:۳۰" }] : [])
 ];
 
 const salonRail = (on) => ({ t: "rail", id: "rail", items: ["نوبت‌ها", "خدمات", "نمونه‌کار", "پرسنل"], on });
@@ -240,7 +240,7 @@ export const LEARN_ROLES = [
           { screen: "mine", els: [bookTabs(0), salonPlace(), ...salonServices(), navClient(2)], tap: "svc0", say: "کنار خدمتی که می‌خواهی، «رزرو» را بزن." },
           { screen: "booker", els: booker({}), tap: "days.1", say: "روز را انتخاب کن." },
           { screen: "booker", els: booker({ day: 1 }), tap: "times.3", say: "از ساعت‌های آزاد یکی را بزن." },
-          { screen: "booker", els: booker({ day: 1, time: 3, ready: true }), tap: "send", say: "«ارسال درخواست» را بزن." },
+          { screen: "booker", els: booker({ day: 1, time: 3, ready: true }), tap: "send", say: "«بفرست» رو بزن." },
           {
             screen: "status",
             els: [bookTabs(0), { t: "status", tone: "wait", title: `درخواستت به ${SALON} رسید`, text: `منتظر تأیید ${SALON} باش.`, when: "یکشنبه ۲۷ مهر · ساعت ۱۵:۳۰" }, salonPlace(), navClient(2)],
@@ -270,7 +270,7 @@ export const LEARN_ROLES = [
         scenes: [
           { screen: "role", els: roleScreen(-1), tap: "roles.1", say: "فرفرو را باز کن و «سالن» را بزن." },
           { screen: "form", els: signup({ title: "سالن", nameLabel: "نام سالن", name: SALON, typing: "name" }), tap: "name", say: "اسم سالن را بنویس.", ms: 3200 },
-          { screen: "form", els: signup({ title: "سالن", nameLabel: "نام سالن", name: SALON, phone: "۰۹۱۲۱۲۳۴۵۶۷", password: true, terms: true }), tap: "submit", say: "شماره و رمز را بزن، قوانین را تیک بزن و «تکمیل ثبت‌نام».", ms: 3600 },
+          { screen: "form", els: signup({ title: "سالن", nameLabel: "نام سالن", name: SALON, phone: "۰۹۱۲۱۲۳۴۵۶۷", password: true, terms: true }), tap: "submit", say: "شماره و رمز را بزن، قوانین را تیک بزن و «بساز».", ms: 3600 },
           { screen: "settings", els: settingsList("salon"), tap: "settings.1", say: "در «تنظیمات»، «ساعت کاری» را باز کن." },
           { screen: "hours", els: hoursScreen(-1, ""), tap: "presets.1", say: "یک قالب ساعت را بزن؛ همهٔ روزها با هم پر می‌شوند." },
           { screen: "hours", els: hoursScreen(1, "۱۰:۰۰ تا ۲۰:۰۰"), tap: "week.6", say: "روز تعطیل را با یک لمس ببند." },
@@ -338,11 +338,11 @@ export const LEARN_ROLES = [
               title: "درخواست رزرو تازه",
               els: [
                 { t: "rows", id: "info", items: [{ a: "مشتری", b: CLIENT }, { a: "خدمت", b: "کاشت و ژلیش · ۹۰ دقیقه" }, { a: "زمان", b: "یکشنبه ۲۷ مهر · ۱۵:۳۰" }, { a: "آرتیست", b: `${ARTIST} (پیشنهاد سیستم)` }] },
-                { t: "btns", id: "act", items: [{ text: "تایید نوبت" }, { text: "تغییر ساعت", ghost: true }] }
+                { t: "btns", id: "act", items: [{ text: "تأیید" }, { text: "تغییر ساعت", ghost: true }] }
               ]
             },
             tap: "act.0",
-            say: "وقت داری؟ «تایید نوبت». نه؟ «تغییر ساعت» و ساعت دیگری پیشنهاد بده.",
+            say: "وقت داری؟ «تأیید». نه؟ «تغییر ساعت» و ساعت دیگری پیشنهاد بده.",
             ms: 3800
           },
           {
@@ -407,7 +407,7 @@ export const LEARN_ROLES = [
         scenes: [
           { screen: "role", els: roleScreen(-1), tap: "roles.2", say: "فرفرو را باز کن و «آرتیست» را بزن." },
           { screen: "form", els: signup({ title: "آرتیست", nameLabel: "نام هنری", name: ARTIST, typing: "name" }), tap: "name", say: "نام هنری‌ات را بنویس.", ms: 3200 },
-          { screen: "form", els: signup({ title: "آرتیست", nameLabel: "نام هنری", name: ARTIST, phone: "۰۹۳۵۱۲۳۴۵۶۷", password: true, terms: true }), tap: "submit", say: "شماره و رمز را بزن، قوانین را تیک بزن و «تکمیل ثبت‌نام».", ms: 3600 },
+          { screen: "form", els: signup({ title: "آرتیست", nameLabel: "نام هنری", name: ARTIST, phone: "۰۹۳۵۱۲۳۴۵۶۷", password: true, terms: true }), tap: "submit", say: "شماره و رمز را بزن، قوانین را تیک بزن و «بساز».", ms: 3600 },
           {
             screen: "profile",
             els: [artistHero(), artistRail(2), { t: "head", text: "تکمیل پروفایل", sub: "چند قدم تا صفحهٔ کامل" }, { t: "rows", id: "todo", chevron: true, items: [{ a: "عکس پروفایل" }, { a: "محدوده فعالیت" }, { a: "تخصص" }, { a: "اولین خدمت در منو" }] }, navBiz(1)],
@@ -495,11 +495,11 @@ export const LEARN_ROLES = [
               els: [
                 { t: "rows", id: "terms", items: [{ a: "روزهای حضور", b: "شنبه تا چهارشنبه" }, { a: "ساعت کاری", b: "۱۰:۰۰ تا ۱۸:۰۰" }, { a: "سهم آرتیست", b: "۴۰٪" }, { a: "ظرفیت روزانه", b: "۶ نفر در روز" }] },
                 { t: "note", text: "با پیوستن، قوانین سالن را می‌پذیری." },
-                { t: "btn", id: "join", text: "قبول قوانین و پیوستن" }
+                { t: "btn", id: "join", text: "قوانین رو قبول دارم، بریم" }
               ]
             },
             tap: "join",
-            say: "قوانین همکاری را بخوان و «قبول قوانین و پیوستن» را بزن.",
+            say: "قوانین همکاری را بخوان و «قوانین رو قبول دارم، بریم» رو بزن.",
             ms: 3600
           },
           {

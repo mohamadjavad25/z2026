@@ -111,14 +111,14 @@ export function BookingReceipt({ receipt, bookings = [], onClose, onViewBookings
       icon: Send,
       title: `درخواستت به ${place} رسید`,
       // A group is one request, answered together (owner's decision 2026-10-22).
-      text: people > 1 ? `درخواست ${toPersianDigits(people)} نفره ارسال شد. ${who} ${people === 2 ? "هر دو" : "هر سه"} را با هم جواب می‌دهد.` : `منتظر تأیید ${who} باش.`
+      text: people > 1 ? `درخواست ${toPersianDigits(people)} نفره رفت. ${who} ${people === 2 ? "هر دو" : "هر سه"} رو با هم جواب می‌ده.` : `حالا منتظر جواب ${who} باش.`
     },
-    ok: { icon: Check, title: "نوبتت قطعی شد", text: `${day} ساعت ${time}` },
-    offer: { icon: CalendarClock, title: `${place} ساعت دیگری پیشنهاد داده`, text: "ساعت پیشنهادی را قبول یا رد کن." },
-    bad: { icon: XCircle, title: "این ساعت قبول نشد", text: "یک ساعت دیگر انتخاب کن." },
+    ok: { icon: Check, title: "نوبتت قطعی شد!", text: `${day} ساعت ${time}` },
+    offer: { icon: CalendarClock, title: `${place} یه ساعت دیگه پیشنهاد داده`, text: "قبولش کن یا ردش کن." },
+    bad: { icon: XCircle, title: "این ساعت جور نشد", text: "یه ساعت دیگه انتخاب کن." },
     expired: movedTo
-      ? { icon: Send, title: `درخواستت رفت برای ${movedTo}`, text: `${place} به‌موقع جواب نداد؛ حالا منتظر جواب ${movedTo} باش.` }
-      : { icon: TimerOff, title: `${place} به‌موقع جواب نداد`, text: "می‌توانی دوباره بفرستی." }
+      ? { icon: Send, title: `درخواستت رفت برای ${movedTo}`, text: `${place} به‌موقع جواب نداد؛ حالا منتظر ${movedTo} باش.` }
+      : { icon: TimerOff, title: `${place} به‌موقع جواب نداد`, text: "می‌تونی دوباره بفرستی." }
   }[stage];
   const HeroIcon = hero.icon;
 
@@ -148,16 +148,16 @@ export function BookingReceipt({ receipt, bookings = [], onClose, onViewBookings
           <div className="brCount">
             <div>
               <strong>{toPersianDigits(left)}</strong>
-              <span>دقیقه تا پاسخ {who}</span>
+              <span>دقیقه تا جواب {who}</span>
             </div>
             <span className="brBar" aria-hidden="true"><i style={{ transform: `scaleX(${requestRemainingShare(live?.created_at || live?.createdAt, live?.booking_date || live?.date, live?.time, { now: new Date(now), windowMinutes: bookingWaitMinutes(live) }) ?? 0})` }} /></span>
-            <small className="brCountNote">{backupName ? `اگر جواب نداد، می‌رود برای ${backupName}.` : "اگر جواب نداد، لغو می‌شود."}</small>
+            <small className="brCountNote">{backupName ? `اگه جواب نداد، می‌ره برای ${backupName}.` : "اگه جواب نداد، لغو می‌شه."}</small>
           </div>
         ) : null}
         {waitsOpen ? (
           <p className="brWaitNote">
             <Clock3 size={15} aria-hidden="true" />
-            {who} تا قبل از نوبت (حداکثر ۲۴ ساعت) وقت دارد جواب بدهد. اگر دیر شد، از «نوبت‌های من» لغوش کن.
+            {who} تا قبل از نوبت (حداکثر ۲۴ ساعت) وقت داره جواب بده. اگه دیر کرد، از «نوبت‌هام» لغوش کن.
           </p>
         ) : null}
 
@@ -191,29 +191,29 @@ export function BookingReceipt({ receipt, bookings = [], onClose, onViewBookings
           {stage === "wait" && alerts === "default" ? (
             <button type="button" className="brBtn is-accent" onClick={enableAlerts}>
               <BellRing size={18} aria-hidden="true" />
-              اعلان را روشن کن
+              اعلان رو روشن کن
             </button>
           ) : null}
           {stage === "wait" && alerts === "granted" ? (
-            <p className="brOk"><BellRing size={16} aria-hidden="true" /> اعلان روشن است.</p>
+            <p className="brOk"><BellRing size={16} aria-hidden="true" /> اعلان روشنه.</p>
           ) : null}
 
           {stage === "offer" ? (
             <button type="button" className="brBtn" onClick={() => onOpenDetails?.(live)}>
               <CalendarClock size={18} aria-hidden="true" />
-              دیدن ساعت پیشنهادی و جواب دادن
+              ساعت پیشنهادی رو ببین و جواب بده
             </button>
           ) : null}
           {stage === "bad" || (stage === "expired" && !movedTo) ? (
             <button type="button" className="brBtn" onClick={() => onRebook?.(live)}>
               <CalendarCheck size={18} aria-hidden="true" />
-              انتخاب ساعت دیگر
+              یه ساعت دیگه
             </button>
           ) : null}
 
           <button type="button" className={`brBtn ${stage === "wait" || stage === "ok" ? "" : "is-soft"}`} onClick={() => onViewBookings?.(live)}>
             <ListChecks size={18} aria-hidden="true" />
-            دیدن در «نوبت‌های من»
+            ببینش توی «نوبت‌هام»
           </button>
 
           {stage === "ok" && phone ? (

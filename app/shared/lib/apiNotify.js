@@ -4,7 +4,7 @@
  */
 
 /** Extract a user-facing error string from an API JSON body. */
-export function getApiErrorMessage(payload, fallback = "عملیات انجام نشد.") {
+export function getApiErrorMessage(payload, fallback = "نشد؛ دوباره بزن.") {
   const error = payload?.error;
   if (typeof error === "string" && error.trim()) return error.trim();
   const message = payload?.message;
@@ -24,7 +24,7 @@ export function getApiErrorMessage(payload, fallback = "عملیات انجام 
  * @returns {boolean}
  */
 export function notifyFromResponse(notify, result, options = {}) {
-  const { success, failure = "عملیات انجام نشد." } = options;
+  const { success, failure = "نشد؛ دوباره بزن." } = options;
   const ok = Boolean(result?.ok);
   const payload = result?.payload ?? {};
   if (!ok) {

@@ -18,7 +18,7 @@ export function PortraitLock() {
 
   return (
     <div className="portraitLock" role="alert">
-      <p>گوشی را عمودی بگیرید</p>
+      <p>گوشی رو عمودی بگیر</p>
     </div>
   );
 }

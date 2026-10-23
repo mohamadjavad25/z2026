@@ -7,7 +7,7 @@
  * Persian (ي/ى→ی, ك→ک, ة/ۀ→ه, أ/إ/آ→ا, ؤ→و), Persian/Arabic digits to Latin, diacritics dropped, and every
  * character that is not a letter or a digit removed (spaces, ZWNJ, emoji, punctuation).
  */
-export const NAME_TAKEN_MESSAGE = "این اسم را سالن یا آرتیست دیگری در فرفرو برداشته است؛ اسم دیگری انتخاب کن.";
+export const NAME_TAKEN_MESSAGE = "این اسم رو یه سالن یا آرتیست دیگه برداشته؛ یه اسم دیگه بزن.";
 
 const LETTER_MAP = { "ي": "ی", "ى": "ی", "ك": "ک", "ة": "ه", "ۀ": "ه", "أ": "ا", "إ": "ا", "آ": "ا", "ؤ": "و" };
 

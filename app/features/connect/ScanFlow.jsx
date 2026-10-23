@@ -10,9 +10,9 @@ import { ConnectionCard } from "./ConnectionCard";
 
 const TYPE_NAME = { salon: "سالن", artist: "آرتیست" };
 const HINTS = {
-  client: "کد QR سالن یا آرتیست را داخل کادر بگیر",
-  salon: "کد مشتری یا آرتیست را داخل کادر بگیر",
-  artist: "کد مشتری یا سالن را داخل کادر بگیر"
+  client: "QR سالن یا آرتیست رو بگیر توی کادر",
+  salon: "کد مشتری یا آرتیست رو بگیر توی کادر",
+  artist: "کد مشتری یا سالن رو بگیر توی کادر"
 };
 
 /**
@@ -20,29 +20,29 @@ const HINTS = {
  * Returns { label, run } for a button, { note } for a plain status line, or both.
  */
 function profileAction(viewerType, profile, relation, joinCode) {
-  if (relation === "self") return { note: "این کد خودت است." };
+  if (relation === "self") return { note: "این که کد خودته!" };
   if (viewerType === "client") {
     return relation === "connected"
-      ? { note: "وصل هستی؛ از همین‌جا وقت بگیر.", label: "رزرو", kind: "open" }
+      ? { note: "وصل هستی؛ از همین‌جا نوبت بگیر.", label: "رزرو", kind: "open" }
       : { label: "وصل شو", kind: "connect" };
   }
   if (relation === "unrelated") {
-    return { note: `این کد یک ${TYPE_NAME[profile.type]} دیگر است؛ ${TYPE_NAME[viewerType]}ها به هم وصل نمی‌شوند.` };
+    return { note: `این کد یه ${TYPE_NAME[profile.type]} دیگه‌ست؛ ${TYPE_NAME[viewerType]}ها به هم وصل نمی‌شن.` };
   }
   if (viewerType === "salon") {
-    if (relation === "member") return { note: "عضو تیم توست." };
-    if (relation === "invited") return { note: "دعوت فرستاده شده؛ منتظر پاسخ آرتیست." };
-    return { note: "آرتیست بعد از دیدن دعوت تأیید می‌کند.", label: "دعوت به تیم", kind: "invite" };
+    if (relation === "member") return { note: "توی تیمته." };
+    if (relation === "invited") return { note: "دعوتش کردی؛ منتظر جواب آرتیسته." };
+    return { note: "آرتیست دعوت رو که ببینه، تأیید می‌کنه.", label: "دعوتش کن به تیم", kind: "invite" };
   }
-  if (relation === "member") return { note: "عضو تیم این سالن هستی." };
+  if (relation === "member") return { note: "توی تیم همین سالنی." };
   // A plain salon profile code proves nothing about who showed it -- only the
   // salon's own dedicated QR/link (with a secret) can join the team instantly.
   if (!joinCode) {
-    return { note: "این کد صفحهٔ عمومی سالن است، نه کد پیوستن. از سالن‌دار بخواه در «پرسنل ← دعوت آرتیست» کد تیم را نشانت دهد، یا «اسکن شو» را بزن و کد خودت را نشانش بده تا دعوتت کند." };
+    return { note: "این کد صفحهٔ سالنه، نه کد تیم. از سالن‌دار بخواه از «پرسنل ← دعوت آرتیست» کد تیم رو نشونت بده، یا «کد من» رو بزن و کد خودت رو نشونش بده تا دعوتت کنه." };
   }
   return {
-    note: profile.rules ? "با پیوستن، قوانین سالن را می‌پذیری." : "با پیوستن، در پرسنل این سالن قرار می‌گیری.",
-    label: profile.rules ? "قبول قوانین و پیوستن" : "پیوستن به تیم",
+    note: profile.rules ? "با رفتن به تیم، قوانین سالن رو قبول داری." : "می‌ری توی پرسنل این سالن.",
+    label: profile.rules ? "قبول دارم، برم توی تیم" : "برم توی تیم",
     kind: "join"
   };
 }
@@ -76,26 +76,26 @@ export function ScanFlow({ viewerType, connect, onOpenProfile, onChanged, onClos
     }
     if (code.kind === "client") {
       if (viewerType === "client") {
-        setStep({ state: "message", text: "این کد یک مشتری است؛ کد سالن یا آرتیست را اسکن کن." });
+        setStep({ state: "message", text: "این کد یه مشتریه؛ کد سالن یا آرتیست رو اسکن کن." });
         return;
       }
-      setStep({ state: "busy", text: "در حال وصل کردن مشتری…" });
+      setStep({ state: "busy", text: "دارم مشتری رو وصل می‌کنم…" });
       try {
         const { ok, payload } = await connectScannedClient(String(text).trim());
         if (!ok) {
-          setStep({ state: "message", text: payload?.error || "وصل شدن انجام نشد." });
+          setStep({ state: "message", text: payload?.error || "وصل نشد؛ دوباره بزن." });
           return;
         }
         const { client, alreadyConnected } = payload.data;
         const name = client.name || "مشتری";
-        setStep({ state: "message", text: alreadyConnected ? `${name} از قبل وصل بود.` : `${name} وصل شد؛ حالا از لیست خودش مستقیم از تو وقت می‌گیرد.` });
+        setStep({ state: "message", text: alreadyConnected ? `${name} از قبل وصل بود.` : `${name} وصل شد؛ حالا یه‌راست از تو نوبت می‌گیره.` });
         if (!alreadyConnected) onChanged?.("client");
       } catch {
-        setStep({ state: "message", text: "اتصال برقرار نشد؛ دوباره امتحان کن." });
+        setStep({ state: "message", text: "وصل نشد؛ دوباره بزن." });
       }
       return;
     }
-    setStep({ state: "busy", text: "در حال پیدا کردن…" });
+    setStep({ state: "busy", text: "دارم پیدا می‌کنم…" });
     try {
       const { ok, data, payload } = await lookupScannedCode(String(text).trim());
       if (!ok) {
@@ -104,7 +104,7 @@ export function ScanFlow({ viewerType, connect, onOpenProfile, onChanged, onClos
       }
       setStep({ state: "profile", profile: data.profile, relation: data.relation, joinCode: code.joinCode || "" });
     } catch {
-      setStep({ state: "message", text: "اتصال برقرار نشد؛ دوباره امتحان کن." });
+      setStep({ state: "message", text: "وصل نشد؛ دوباره بزن." });
     }
   }
 
@@ -127,20 +127,20 @@ export function ScanFlow({ viewerType, connect, onOpenProfile, onChanged, onClos
         ? await createSalonInvite({ artistUserId: profile.id })
         : await joinSalonTeam(profile.id, joinCode);
       if (!ok) {
-        setStep({ state: "message", text: payload?.error || "انجام نشد؛ دوباره امتحان کن." });
+        setStep({ state: "message", text: payload?.error || "نشد؛ دوباره بزن." });
         return;
       }
       setStep({ state: "profile", profile, relation: kind === "invite" ? "invited" : "member" });
       onChanged?.(kind);
     } catch {
-      setStep({ state: "message", text: "اتصال برقرار نشد؛ دوباره امتحان کن." });
+      setStep({ state: "message", text: "وصل نشد؛ دوباره بزن." });
     } finally {
       setActing(false);
     }
   }
 
   const scanAgain = (
-    <button type="button" className="cnGhostBtn" onClick={() => setStep({ state: "scanning" })}>اسکن دوباره</button>
+    <button type="button" className="cnGhostBtn" onClick={() => setStep({ state: "scanning" })}>دوباره اسکن کن</button>
   );
 
   let footer = null;

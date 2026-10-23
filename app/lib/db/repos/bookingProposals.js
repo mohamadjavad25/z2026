@@ -27,16 +27,16 @@ export const ARTIST_CONFIRMED = ["تایید شده", "تایید"];
 
 const fail = (error, message, extra = {}) => ({ ok: false, error, message, ...extra });
 const MESSAGES = {
-  missing: "رزرو پیدا نشد.",
-  not_confirmed: "این نوبت دیگر تأییدشده نیست؛ فهرست را تازه کن.",
-  no_account: "این مشتری حساب فرفرو ندارد؛ با او تماس بگیر.",
-  too_late: "نوبت کمتر از ۲ ساعت دیگر است و دیگر جا برای پیشنهاد نیست. با مشتری تماس بگیر.",
-  slot: "این ساعت جای خالیِ داخل ساعت کاری نیست؛ یکی از ساعت‌های فهرست را انتخاب کن.",
-  same: "این همان ساعت فعلی نوبت است.",
-  staff: "این آرتیست در این ساعت آزاد نیست یا عضو تیم نیست.",
-  changed: "این نوبت همین الان تغییر کرد؛ فهرست را تازه کردیم."
+  missing: "این نوبت رو پیدا نکردیم.",
+  not_confirmed: "این نوبت دیگه تأییدشده نیست؛ فهرست رو تازه کن.",
+  no_account: "این مشتری فرفرو نداره؛ بهش زنگ بزن.",
+  too_late: "تا نوبت کمتر از ۲ ساعت مونده و دیگه وقت پیشنهاد نیست؛ به مشتری زنگ بزن.",
+  slot: "این ساعت خالی نیست؛ یکی از ساعت‌های فهرست رو بزن.",
+  same: "این همون ساعت فعلی نوبته.",
+  staff: "این آرتیست این ساعت آزاد نیست.",
+  changed: "این نوبت همین الان عوض شد؛ فهرست رو تازه کردیم."
 };
-const refuse = (code, extra) => fail(code, MESSAGES[code] || "انجام نشد.", extra);
+const refuse = (code, extra) => fail(code, MESSAGES[code] || "نشد؛ دوباره بزن.", extra);
 
 function leadProblem(bookingDate, time) {
   const minutes = minutesToStart(bookingDate, time);
@@ -172,13 +172,13 @@ export async function acceptProposal({ kind, id, client }) {
   const match = clientBookingMatch(client, { alias: "b", startAt: 2 });
   const current = match.sql ? await get(db, `SELECT b.* FROM salon_bookings b WHERE b.id = $1 AND ${match.sql}`, [Number(id), ...match.params]) : null;
   if (!current) return fail("missing", MESSAGES.missing);
-  if (!SALON_CONFIRMED.includes(current.status)) return fail("inactive", "این نوبت دیگر فعال نیست.");
-  if (!current.proposal_at) return fail("no_proposal", "پیشنهادی برای این نوبت نمانده است.");
+  if (!SALON_CONFIRMED.includes(current.status)) return fail("inactive", "این نوبت دیگه فعال نیست.");
+  if (!current.proposal_at) return fail("no_proposal", "پیشنهادی برای این نوبت نمونده.");
   if (isProposalLapsed(current)) {
     const closed = await closeLapsedSalonProposal(current.id);
-    return fail("expired", "مهلت جواب به این پیشنهاد تمام شده؛ نوبت قبلی‌ات سر جایش است.", { code: "PROPOSAL_EXPIRED", lapsed: closed ? lapsedInfo("salon", closed) : null });
+    return fail("expired", "وقت جواب دادن به این پیشنهاد تموم شده؛ نوبت قبلیت سر جاشه.", { code: "PROPOSAL_EXPIRED", lapsed: closed ? lapsedInfo("salon", closed) : null });
   }
-  if (!current.salon_user_id) return fail("inactive", "این نوبت دیگر فعال نیست.");
+  if (!current.salon_user_id) return fail("inactive", "این نوبت دیگه فعال نیست.");
   const data = {
     status: current.status,
     ...(current.proposal_time ? { bookingDate: current.proposal_date || current.booking_date, time: current.proposal_time } : {}),
@@ -195,13 +195,13 @@ export async function acceptProposal({ kind, id, client }) {
   if (result.ok) return { ok: true, booking: result.booking, salonUserId: current.salon_user_id, before: current };
   if (result.error === "proposal_lapsed") {
     const closed = await closeLapsedSalonProposal(current.id);
-    return fail("expired", "مهلت جواب به این پیشنهاد تمام شده؛ نوبت قبلی‌ات سر جایش است.", { code: "PROPOSAL_EXPIRED", lapsed: closed ? lapsedInfo("salon", closed) : null });
+    return fail("expired", "وقت جواب دادن به این پیشنهاد تموم شده؛ نوبت قبلیت سر جاشه.", { code: "PROPOSAL_EXPIRED", lapsed: closed ? lapsedInfo("salon", closed) : null });
   }
-  if (result.error === "inactive" || result.error === "expired") return fail("inactive", "این نوبت دیگر فعال نیست.");
-  if (result.error === "stale") return fail("stale", "پیشنهاد همین الان عوض یا پس گرفته شد؛ صفحه را تازه کن.", { code: "PROPOSAL_CHANGED" });
+  if (result.error === "inactive" || result.error === "expired") return fail("inactive", "این نوبت دیگه فعال نیست.");
+  if (result.error === "stale") return fail("stale", "پیشنهاد همین الان عوض شد؛ صفحه رو تازه کن.", { code: "PROPOSAL_CHANGED" });
   // The time or artist is no longer free: the proposal can't be honoured, the original stays, the provider is told.
   await run(db, "UPDATE salon_bookings SET proposal_date = '', proposal_time = '', proposal_staff = '', proposal_from = '', proposal_at = NULL WHERE id = $1 AND proposal_at = $2", [Number(id), current.proposal_at]);
-  return fail("unavailable", "این ساعت یا آرتیست دیگر آزاد نیست؛ نوبت قبلی‌ات همان‌طور که بود سر جایش است.", { code: "PROPOSAL_UNAVAILABLE", salonUserId: current.salon_user_id, before: current });
+  return fail("unavailable", "این ساعت یا آرتیست دیگه آزاد نیست؛ نوبت قبلیت سر جاشه.", { code: "PROPOSAL_UNAVAILABLE", salonUserId: current.salon_user_id, before: current });
 }
 
 /** The parts of a visit with the leaving artist's parts (and any part nobody holds any more) given to the proposed one. */
@@ -215,13 +215,13 @@ async function acceptArtistProposal({ id, client }) {
   const match = clientBookingMatch(client, { alias: "b", startAt: 2 });
   const current = match.sql ? await get(db, `SELECT b.* FROM artist_bookings b WHERE b.id = $1 AND b.source_salon_user_id IS NULL AND ${match.sql}`, [Number(id), ...match.params]) : null;
   if (!current) return fail("missing", MESSAGES.missing);
-  if (!ARTIST_CONFIRMED.includes(current.status)) return fail("inactive", "این نوبت دیگر فعال نیست.");
-  if (!current.proposal_at) return fail("no_proposal", "پیشنهادی برای این نوبت نمانده است.");
+  if (!ARTIST_CONFIRMED.includes(current.status)) return fail("inactive", "این نوبت دیگه فعال نیست.");
+  if (!current.proposal_at) return fail("no_proposal", "پیشنهادی برای این نوبت نمونده.");
   if (isProposalLapsed(current)) {
     const closed = await closeLapsedArtistProposal(current.id);
-    return fail("expired", "مهلت جواب به این پیشنهاد تمام شده؛ نوبت قبلی‌ات سر جایش است.", { code: "PROPOSAL_EXPIRED", lapsed: closed ? lapsedInfo("artist", closed) : null });
+    return fail("expired", "وقت جواب دادن به این پیشنهاد تموم شده؛ نوبت قبلیت سر جاشه.", { code: "PROPOSAL_EXPIRED", lapsed: closed ? lapsedInfo("artist", closed) : null });
   }
-  if (!current.artist_user_id) return fail("inactive", "این نوبت دیگر فعال نیست.");
+  if (!current.artist_user_id) return fail("inactive", "این نوبت دیگه فعال نیست.");
   const artistUserId = Number(current.artist_user_id);
   const minutes = Math.max(15, Number(current.duration_minutes) || 60);
   const hours = await artists.listArtistHours(artistUserId);
@@ -229,11 +229,11 @@ async function acceptArtistProposal({ id, client }) {
     const days = [...new Set([current.booking_date, current.proposal_date || current.booking_date])].sort();
     for (const day of days) await lockArtistDays(tx, [artistUserId], day);
     const locked = await get(tx, "SELECT * FROM artist_bookings WHERE id = $1 FOR UPDATE", [Number(id)]);
-    if (!locked || !ARTIST_CONFIRMED.includes(locked.status)) return fail("inactive", "این نوبت دیگر فعال نیست.");
-    if (!locked.proposal_at || new Date(locked.proposal_at).getTime() !== new Date(current.proposal_at).getTime()) return fail("stale", "پیشنهاد همین الان عوض یا پس گرفته شد؛ صفحه را تازه کن.", { code: "PROPOSAL_CHANGED" });
+    if (!locked || !ARTIST_CONFIRMED.includes(locked.status)) return fail("inactive", "این نوبت دیگه فعال نیست.");
+    if (!locked.proposal_at || new Date(locked.proposal_at).getTime() !== new Date(current.proposal_at).getTime()) return fail("stale", "پیشنهاد همین الان عوض شد؛ صفحه رو تازه کن.", { code: "PROPOSAL_CHANGED" });
     if (isProposalLapsed(locked)) {
       await clearProposal(tx, "artist_bookings", locked.id);
-      return fail("expired", "مهلت جواب به این پیشنهاد تمام شده؛ نوبت قبلی‌ات سر جایش است.", { code: "PROPOSAL_EXPIRED", lapsed: lapsedInfo("artist", locked) });
+      return fail("expired", "وقت جواب دادن به این پیشنهاد تموم شده؛ نوبت قبلیت سر جاشه.", { code: "PROPOSAL_EXPIRED", lapsed: lapsedInfo("artist", locked) });
     }
     const toDate = locked.proposal_date || locked.booking_date;
     const toTime = locked.proposal_time || locked.time;
@@ -242,7 +242,7 @@ async function acceptArtistProposal({ id, client }) {
       || await artists.isArtistSlotBlocked(artistUserId, toDate, toTime, minutes, locked.id, tx);
     if (problem) {
       await clearProposal(tx, "artist_bookings", locked.id);
-      return fail("unavailable", "این ساعت دیگر آزاد نیست؛ نوبت قبلی‌ات همان‌طور که بود سر جایش است.", { code: "PROPOSAL_UNAVAILABLE", artistUserId, before: locked });
+      return fail("unavailable", "این ساعت دیگه آزاد نیست؛ نوبت قبلیت سر جاشه.", { code: "PROPOSAL_UNAVAILABLE", artistUserId, before: locked });
     }
     await run(tx, `
       UPDATE artist_bookings SET booking_date = $1, time = $2, proposal_date = '', proposal_time = '', proposal_at = NULL, updated_at = CURRENT_TIMESTAMP WHERE id = $3

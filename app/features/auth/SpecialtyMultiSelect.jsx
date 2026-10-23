@@ -121,7 +121,7 @@ export function SpecialtyMultiSelect({
             );
           })}
           {visible.length === 0 ? (
-            <p className="specialtySheetEmpty">موردی پیدا نشد؛ می‌توانی پایین خودت اضافه‌اش کنی.</p>
+            <p className="specialtySheetEmpty">پیدا نشد؛ می‌تونی پایین خودت اضافه‌ش کنی.</p>
           ) : null}
         </div>
 
@@ -129,7 +129,7 @@ export function SpecialtyMultiSelect({
           <input
             type="text"
             value={draft}
-            placeholder="مورد دلخواه خودت را اضافه کن…"
+            placeholder="یه مورد دیگه بنویس…"
             onChange={(event) => setDraft(event.target.value)}
             onKeyDown={(event) => {
               if (event.key === "Enter") {
@@ -145,7 +145,7 @@ export function SpecialtyMultiSelect({
 
         <div className="specialtySheetBar">
           <Button block icon={Check} className="specialtySheetDone" onClick={confirm} disabled={disabled || (inline && !selected.length)}>
-            {selected.length ? `تأیید (${toPersianDigits(selected.length)} مورد)` : inline ? "یک مورد انتخاب کن" : "بستن"}
+            {selected.length ? `تأیید (${toPersianDigits(selected.length)} مورد)` : inline ? "یکی رو انتخاب کن" : "بستن"}
           </Button>
         </div>
     </>
@@ -188,7 +188,7 @@ export function SpecialtyMultiSelect({
       {inline ? (
         <div className="specialtyInline">{pickerBody}</div>
       ) : (
-        <ProfileSheet open={open} kicker="انتخاب چندتایی" title="حوزه فعالیت" panelClassName="specialtySheet" onClose={close}>
+        <ProfileSheet open={open} kicker="انتخاب چندتایی" title="چه کارهایی می‌کنی؟" panelClassName="specialtySheet" onClose={close}>
           {pickerBody}
         </ProfileSheet>
       )}

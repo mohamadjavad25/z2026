@@ -134,7 +134,7 @@ export function SalonStaffProfileModal({
           <div className="smdMeta">
             <span className={`smdState ${isActive ? "is-active" : "is-idle"}`}>{staffState}</span>
             {hasPublic ? <span className="smdLinked"><ShieldCheck size={12} />عضو frfro</span> : null}
-            {isOwner ? <span className="smdLinked"><ShieldCheck size={12} />خودم · مدیر سالن</span> : null}
+            {isOwner ? <span className="smdLinked"><ShieldCheck size={12} />خودم، مدیر سالن</span> : null}
             {staffArea ? <span><MapPin size={12} />{staffArea}</span> : null}
           </div>
         </header>
@@ -148,61 +148,61 @@ export function SalonStaffProfileModal({
           ) : (
             <button type="button" className="smdBtn" disabled>
               <Phone size={15} />
-              بدون شماره
+              شماره نداره
             </button>
           )}
           {hasPublic ? (
             <button type="button" className="smdBtn is-primary" onClick={() => onOpenPublic?.(staff)}>
               <Eye size={15} />
-              پروفایل عمومی
+              صفحه‌ش
             </button>
           ) : (
             <button type="button" className="smdBtn" disabled>
               <Eye size={15} />
-              بدون پروفایل
+              صفحه نداره
             </button>
           )}
         </div>}
 
         {isOwner ? (
-          <p className="smdSelfNote">این ردیف خودت هستی. خدمات را از تب «خدمات» به خودت بده تا در رزروها به اسم خودت ثبت شود؛ اگر موقتاً کار نمی‌کنی «غیرفعال» کن تا رزرو جدید برایت گرفته نشود.</p>
+          <p className="smdSelfNote">این خودتی. از «خدمات» کارها رو به خودت بده تا نوبت‌ها به اسمت ثبت بشه؛ اگه فعلاً کار نمی‌کنی «غیرفعال» کن تا نوبت تازه برات گرفته نشه.</p>
         ) : null}
 
         <StaffPerformanceChart stats={stats} />
 
         <section className="smdSection">
-          <h4>اطلاعات تماس و دسترسی</h4>
+          <h4>تماس و دسترسی</h4>
           <div className="smdList">
             {hasPublic ? (
               <>
                 <div className="smdRow">
                   <Phone size={15} />
                   <span>تماس</span>
-                  <b dir="ltr">{staffPhone ? toPersianDigits(staffPhone) : "ثبت نشده"}</b>
+                  <b dir="ltr">{staffPhone ? toPersianDigits(staffPhone) : "نداره"}</b>
                 </div>
                 <div className="smdRow">
                   <MapPin size={15} />
-                  <span>منطقه</span>
-                  <b>{staffArea || "ثبت نشده"}</b>
+                  <span>کجا</span>
+                  <b>{staffArea || "نگفته"}</b>
                 </div>
               </>
             ) : (
               <>
                 <EditableFact
                   icon={UserRound}
-                  label="نام"
+                  label="اسم"
                   value={staffName}
-                  placeholder="نام پرسنل"
-                  onSave={(name) => onUpdate?.(staff, { name }, "نام بروزرسانی شد.")}
+                  placeholder="اسمش"
+                  onSave={(name) => onUpdate?.(staff, { name }, "اسم ذخیره شد.")}
                 />
                 {isOwner ? null : <EditableFact
                   icon={Phone}
                   label="تماس"
                   value={staffPhone}
-                  placeholder="شماره تماس"
+                  placeholder="شماره موبایل"
                   dir="ltr"
                   formatValue={toPersianDigits}
-                  onSave={(phone) => onUpdate?.(staff, { phone }, "شماره تماس بروزرسانی شد.")}
+                  onSave={(phone) => onUpdate?.(staff, { phone }, "شماره ذخیره شد.")}
                 />}
               </>
             )}
@@ -214,7 +214,7 @@ export function SalonStaffProfileModal({
             {staffBooked ? (
               <div className="smdRow">
                 <CalendarCheck size={15} />
-                <span>رزروها</span>
+                <span>نوبت‌ها</span>
                 <b>{toPersianDigits(staffBooked)}</b>
               </div>
             ) : null}
@@ -233,7 +233,7 @@ export function SalonStaffProfileModal({
         ) : null}
 
         <section className="smdSection">
-          <h4>حوزه فعالیت <small>{hasPublic ? "توسط خود آرتیست تعیین می‌شود" : "برای رزرو و منوی سالن"}</small></h4>
+          <h4>کارهاش <small>{hasPublic ? "خود آرتیست انتخاب می‌کنه" : "برای نوبت و منوی سالن"}</small></h4>
           {hasPublic ? (
             <div className="smdRoles is-locked">
               {staffRoles.length ? staffRoles.map((role) => (
@@ -241,11 +241,11 @@ export function SalonStaffProfileModal({
                   <ServiceIcon name={role} size="xs" />
                   {role}
                 </span>
-              )) : <span className="smdRoleEmpty">آرتیست هنوز حوزه‌ای ثبت نکرده است.</span>}
-              <p className="smdLockNote"><Lock size={12} /> این بخش را فقط خود آرتیست از پروفایلش تغییر می‌دهد.</p>
+              )) : <span className="smdRoleEmpty">آرتیست هنوز کارهاش رو نگفته.</span>}
+              <p className="smdLockNote"><Lock size={12} /> اینو فقط خود آرتیست از پروفایلش عوض می‌کنه.</p>
             </div>
           ) : (
-            <div className="smdRoles" role="group" aria-label="حوزه فعالیت">
+            <div className="smdRoles" role="group" aria-label="کارهاش">
               {roleOptions.map((role) => {
                 // The manager often does several things: their row takes any number of fields.
                 const on = isOwner ? staffRoles.includes(role) : staffRole === role;
@@ -258,11 +258,11 @@ export function SalonStaffProfileModal({
                   onClick={() => {
                     if (isOwner) {
                       const next = on ? staffRoles.filter((item) => item !== role) : [...staffRoles, role];
-                      onUpdate?.(staff, { role: next.join("، ") }, "حوزه کاری‌ات بروزرسانی شد.");
+                      onUpdate?.(staff, { role: next.join("، ") }, "کارهات ذخیره شد.");
                       return;
                     }
                     if (staffRole === role) return;
-                    onUpdate?.(staff, { role }, `حوزه ${staffName} تغییر کرد.`);
+                    onUpdate?.(staff, { role }, `کارهای ${staffName} ذخیره شد.`);
                   }}
                 >
                   <ServiceIcon name={role} size="xs" />
@@ -280,13 +280,13 @@ export function SalonStaffProfileModal({
             className="smdToggle"
             onClick={() => {
               const nextState = isActive ? "غیرفعال" : "فعال";
-              onUpdate?.(staff, { state: nextState }, `وضعیت همکاری ${staffName} تغییر کرد.`);
+              onUpdate?.(staff, { state: nextState }, `وضعیت ${staffName} عوض شد.`);
             }}
           >
-            {isActive ? "غیرفعال کردن" : "فعال کردن مجدد"}
+            {isActive ? "غیرفعالش کن" : "دوباره فعالش کن"}
           </button>
           <button type="button" className="smdEnd" onClick={() => onRemove?.(staff)}>
-            {isOwner ? "خروج خودم از تیم" : "پایان همکاری"}
+            {isOwner ? "خودم برم بیرون از تیم" : "تموم کردن همکاری"}
           </button>
         </footer>
   <SheetClose onClick={onClose} />

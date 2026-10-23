@@ -165,10 +165,10 @@ export function ServiceComposerModal({
           <div>
             <span>
               {!editing && addedCount
-                ? `${toPersianDigits(addedCount)} خدمت در منوی تو`
+                ? `${toPersianDigits(addedCount)} خدمت توی منوته`
                 : "خدمات"}
             </span>
-            <h3>{editing ? "ویرایش خدمت" : "افزودن خدمت"}</h3>
+            <h3>{editing ? "ویرایش خدمت" : "خدمت تازه"}</h3>
           </div>
         </header>
 
@@ -182,7 +182,7 @@ export function ServiceComposerModal({
             onClick={() => onModeChange?.("preset")}
           >
             <ServiceEmoji id="sparkles" size={20} />
-            کاتالوگ خدمات
+            از فهرست آماده
           </button>
           <button
             type="button"
@@ -192,7 +192,7 @@ export function ServiceComposerModal({
             onClick={() => onModeChange?.("custom")}
           >
             <ServiceEmoji id="makeup_brush" size={20} />
-            {editing ? "ویرایش" : "ساخت خدمت"}
+            {editing ? "ویرایش" : "خودم می‌سازم"}
           </button>
         </div>
 
@@ -205,7 +205,7 @@ export function ServiceComposerModal({
                   type="search"
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
-                  placeholder="جستجوی خدمت… (مثلاً ژلیش، لیزر، شینیون)"
+                  placeholder="دنبال چی می‌گردی؟ (مثلاً ژلیش، لیزر، شینیون)"
                   aria-label="جستجوی خدمت"
                 />
               </label>
@@ -248,18 +248,18 @@ export function ServiceComposerModal({
               </div>
 
               <p className="svcCatalogHint">
-                روی خدمت بزن تا نام و قیمتش را ویرایش کنی، یا با + سریع اضافه‌اش کن. می‌توانی چند خدمت پشت‌سرهم انتخاب کنی.
+                روی خدمت بزن تا اسم و قیمتش رو عوض کنی، یا با + یه‌راست اضافه‌ش کن. چندتا پشت‌سرهم هم می‌شه.
               </p>
 
               <div className="svcPresetGrid" role="list">
                 {visible.length === 0 ? (
                   <div className="svcEmptyState" role="status">
                     <ServiceIcon emoji="mirror" size="xl" />
-                    <b>خدمتی پیدا نشد</b>
-                    <span>می‌توانی خدمت دلخواهت را خودت بسازی.</span>
+                    <b>پیدا نشد</b>
+                    <span>خودت بسازش.</span>
                     <button type="button" onClick={() => onModeChange?.("custom")}>
                       <Plus size={15} />
-                      ساخت خدمت جدید
+                      یه خدمت تازه بساز
                     </button>
                   </div>
                 ) : null}
@@ -283,7 +283,7 @@ export function ServiceComposerModal({
                         </span>
                       </button>
                       {added ? (
-                        <span className="svcPresetDone"><Check size={14} /> اضافه شده</span>
+                        <span className="svcPresetDone"><Check size={14} /> توی منوته</span>
                       ) : (
                         <button
                           type="button"
@@ -301,7 +301,7 @@ export function ServiceComposerModal({
               </div>
               {hiddenCount > 0 ? (
                 <button type="button" className="svcMoreBtn" onClick={() => setShown((count) => count + CATALOG_PAGE)}>
-                  نمایش بیشتر ({toPersianDigits(hiddenCount)} خدمت دیگر)
+                  {toPersianDigits(hiddenCount)} تای دیگه
                 </button>
               ) : null}
             </div>
@@ -318,7 +318,7 @@ export function ServiceComposerModal({
               ) : null}
               <button type="button" className="svcDoneBtn" onClick={onClose}>
                 <Check size={18} aria-hidden="true" />
-                {addedCount ? `تمام، ${toPersianDigits(addedCount)} خدمت در منو` : "بستن"}
+                {addedCount ? `تموم، ${toPersianDigits(addedCount)} خدمت توی منوته` : "بستن"}
               </button>
             </div>
           </div>
@@ -336,10 +336,10 @@ export function ServiceComposerModal({
                 ) : (
                   <span className="svcIconSlotEmpty"><Plus size={26} /></span>
                 )}
-                <small>{draft.emoji ? "تغییر آیکن" : "انتخاب آیکن"}</small>
+                <small>{draft.emoji ? "عوض کردن آیکن" : "یه آیکن انتخاب کن"}</small>
               </button>
               <label className="svcField">
-                <span>نام خدمت</span>
+                <span>اسم خدمت</span>
                 <input
                   value={draft.name}
                   onChange={(event) => onDraftChange?.({ name: event.target.value })}
@@ -352,7 +352,7 @@ export function ServiceComposerModal({
 
             {suggestions.length ? (
               <div className="svcSuggest" role="group" aria-label="پیشنهاد از کاتالوگ">
-                <small>پیشنهاد؛ با یک ضربه قیمت و مدت پر می‌شود:</small>
+                <small>یکی رو بزن تا قیمت و مدت پر بشه:</small>
                 <div>
                   {suggestions.map((item) => (
                     <button
@@ -419,18 +419,18 @@ export function ServiceComposerModal({
             </label>
 
             {!draft.price.trim() ? (
-              <p className="svcFormNote">قیمت را خالی بگذاری، «توافقی» نمایش داده می‌شود.</p>
+              <p className="svcFormNote">قیمت رو خالی بذاری، «توافقی» نوشته می‌شه.</p>
             ) : null}
 
             <button type="submit" className="svcSubmit" disabled={!hasName || deleting}>
               <Check size={17} />
-              {editing ? "ذخیره تغییرات" : "افزودن به خدمات من"}
+              {editing ? "ذخیره کن" : "بذارش توی منو"}
             </button>
 
             {canDelete ? (
               <button type="button" className="svcDeleteBtn" onClick={handleDelete} disabled={deleting}>
                 <Trash2 size={16} />
-                {deleting ? "در حال حذف…" : "حذف این خدمت"}
+                {deleting ? "دارم پاک می‌کنم…" : "این خدمت رو پاک کن"}
               </button>
             ) : null}
           </form>

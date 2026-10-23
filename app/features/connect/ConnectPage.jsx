@@ -23,8 +23,8 @@ const searching0 = (text) => String(text).trim().length > 0;
 
 const NOT_FOUND = {
   phone: "این شماره هنوز در فرفرو نیست.",
-  link: "این لینک به سالن یا آرتیستی نمی‌رسد.",
-  name: "نتیجه‌ای نیست؛ اسم دیگری امتحان کن."
+  link: "این لینک مال هیچ سالن یا آرتیستی نیست.",
+  name: "پیدا نشد؛ یه اسم دیگه امتحان کن."
 };
 
 /**
@@ -73,7 +73,7 @@ export function ConnectPage({ me = {}, compact = false, onOpenProfile: openProfi
       const picked = await pickContact();
       if (picked) setContact(picked);
     } catch {
-      onNotify?.("دسترسی به مخاطبین ممکن نشد؛ شماره را در جستجو بزن.");
+      onNotify?.("به مخاطب‌هات دسترسی نداریم؛ شماره رو توی جستجو بزن.");
     }
   }
 
@@ -84,7 +84,7 @@ export function ConnectPage({ me = {}, compact = false, onOpenProfile: openProfi
     try {
       const { ok, data } = await listConnectionsForCategory(category.id);
       if (!ok) {
-        onNotify?.("پیدا کردن انجام نشد؛ دوباره امتحان کن.");
+        onNotify?.("پیدا نشد؛ دوباره بزن.");
         return;
       }
       const matches = data?.matches || [];
@@ -94,7 +94,7 @@ export function ConnectPage({ me = {}, compact = false, onOpenProfile: openProfi
       }
       setCategorySheet({ category, matches });
     } catch {
-      onNotify?.("پیدا کردن انجام نشد؛ دوباره امتحان کن.");
+      onNotify?.("پیدا نشد؛ دوباره بزن.");
     } finally {
       setCheckingCategory("");
     }
@@ -118,8 +118,8 @@ export function ConnectPage({ me = {}, compact = false, onOpenProfile: openProfi
     <section className={`cnPage${compact ? " is-compact" : ""}`} aria-labelledby={compact ? "cn-home-title" : "cn-title"}>
       <header className="cnHead">
         <div className="cnHeadText">
-          {compact ? <h2 id="cn-home-title">نوبت تازه بگیر</h2> : <h1 id="cn-title">چه کاری می‌خواهی؟</h1>}
-          {compact ? null : <p>اسم سالن یا آرتیستت را بنویس، یا یکی از کارها را بزن.</p>}
+          {compact ? <h2 id="cn-home-title">نوبت تازه بگیر</h2> : <h1 id="cn-title">چه کاری می‌خوای؟</h1>}
+          {compact ? null : <p>اسم سالن یا آرتیستت رو بنویس، یا یکی از کارها رو بزن.</p>}
         </div>
         {/* The quick ways first (contacts, scan their code, show mine), then the categories; the search box
             comes last so its results sit right under it, not off-screen (owner's request 2026-10-23). */}
@@ -127,7 +127,7 @@ export function ConnectPage({ me = {}, compact = false, onOpenProfile: openProfi
           {contacts ? (
             <button type="button" className="cnChip" onClick={chooseContact}>
               <ContactRound size={17} aria-hidden="true" />
-              از مخاطبین
+              از مخاطب‌ها
             </button>
           ) : null}
           <button type="button" className="cnChip is-primary" onClick={() => setSheet("scan")}>
@@ -170,11 +170,11 @@ export function ConnectPage({ me = {}, compact = false, onOpenProfile: openProfi
         {searching ? (
           <section aria-label="نتیجه جستجو" aria-live="polite" className="cnList">
             {search.status === "searching" ? <SkeletonList rows={2} variant="card" label="در حال جستجو" /> : null}
-            {search.status === "error" ? <p className="cnNote" role="alert">{search.message || "جستجو انجام نشد؛ دوباره امتحان کن."}</p> : null}
+            {search.status === "error" ? <p className="cnNote" role="alert">{search.message || "جستجو نشد؛ دوباره بزن."}</p> : null}
             {search.status === "done" && search.results.length === 0 ? (
               <div className="cnEmpty is-compact">
                 <b>{NOT_FOUND[search.by] || NOT_FOUND.name}</b>
-                <p>اگر هنوز در فرفرو نیست، دعوتش کن؛ بعد از ثبت‌نام همین‌جا پیدایش می‌کنی.</p>
+                <p>اگه هنوز توی فرفرو نیست، دعوتش کن؛ که اومد، همین‌جا پیداش می‌کنی.</p>
                 <InviteToFrfro phone={search.by === "phone" ? query : ""} clientName={me.name} />
               </div>
             ) : null}
@@ -185,7 +185,7 @@ export function ConnectPage({ me = {}, compact = false, onOpenProfile: openProfi
         ) : compact ? null : (
           <section aria-labelledby="cn-list-title" className="cnList">
             <div className="cnListHead">
-              <h2 id="cn-list-title">سرویس‌دهنده‌های وصل‌شده</h2>
+              <h2 id="cn-list-title">سالن و آرتیست‌هات</h2>
               {connections.length ? <span>{toPersianDigits(connections.length)}</span> : null}
             </div>
             {loading ? <SkeletonList rows={3} variant="card" label="در حال بارگذاری" /> : null}
@@ -193,7 +193,7 @@ export function ConnectPage({ me = {}, compact = false, onOpenProfile: openProfi
               <div className="cnEmpty">
                 <Mascot pose="connect" size={130} />
                 <b>هنوز به سالن یا آرتیستی وصل نشدی</b>
-                <p>اسم یا شماره‌اش را بالا بزن، یا اگر پیشش هستی کد QR او را اسکن کن. وصل که شدی، نوبت گرفتن یک ضربه است.</p>
+                <p>اسم یا شماره‌ش رو بالا بزن، یا اگه پیشش هستی QRش رو اسکن کن. وصل که بشی، نوبت گرفتن یه ضربه‌ست.</p>
               </div>
             ) : null}
             {connections.map((profile) => (
@@ -207,7 +207,7 @@ export function ConnectPage({ me = {}, compact = false, onOpenProfile: openProfi
             <ComingSoon
               className="is-compact"
               title="پیشنهاد سالن و آرتیست از فرفرو"
-              text="به‌زودی بهترین‌های اطرافت را اینجا پیشنهاد می‌دهیم. فعلا سالن و آرتیست خودت را وصل کن."
+              text="به‌زودی بهترین‌های دور و برت رو اینجا نشونت می‌دیم. فعلاً سالن و آرتیست خودت رو وصل کن."
             />
           </section>
         )}
@@ -235,7 +235,7 @@ export function ConnectPage({ me = {}, compact = false, onOpenProfile: openProfi
         />
       ) : null}
       {contact ? (
-        <ConnectSheet label="مخاطب انتخاب‌شده" title={contact.name || "مخاطب انتخاب‌شده"} subtitle="دنبال فرفرو می‌گردیم." onClose={() => setContact(null)}>
+        <ConnectSheet label="مخاطب انتخاب‌شده" title={contact.name || "مخاطب انتخاب‌شده"} subtitle="داریم توی فرفرو پیداش می‌کنیم." onClose={() => setContact(null)}>
           <ContactLookup
             contact={contact}
             clientName={me.name}

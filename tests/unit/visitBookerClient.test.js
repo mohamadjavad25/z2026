@@ -138,7 +138,7 @@ describe("a day with no free hour", () => {
 });
 
 describe("the hour was taken while sending (409)", () => {
-  const taken = { ok: false, status: 409, payload: { error: "این زمان قبلاً رزرو شده است." } };
+  const taken = { ok: false, status: 409, payload: { error: "این ساعت پر شده؛ یه ساعت دیگه بزن." } };
   it("does not jump: offers the next free hour, and «بله، ارسال» sends it", async () => {
     let free = ["۱۰:۰۰", "۱۰:۳۰", "۱۱:۳۰"];
     const submit = vi.fn()
@@ -186,8 +186,8 @@ describe("the hour was taken while sending (409)", () => {
   });
 
   it("too many open requests is not about the hour: no reload, no card", () => {
-    expect(submitFailure({ status: 409, payload: { code: "TOO_MANY_OPEN_REQUESTS", error: "اول یکی از درخواست‌های قبلی را لغو کن یا منتظر جواب بمان." } }))
-      .toEqual({ message: "اول یکی از درخواست‌های قبلی را لغو کن یا منتظر جواب بمان.", reloadTimes: false });
+    expect(submitFailure({ status: 409, payload: { code: "TOO_MANY_OPEN_REQUESTS", error: "چند تا درخواست منتظر جواب داری. صبر کن جواب یکی بیاد، یا یکی رو لغو کن." } }))
+      .toEqual({ message: "چند تا درخواست منتظر جواب داری. صبر کن جواب یکی بیاد، یا یکی رو لغو کن.", reloadTimes: false });
   });
 });
 

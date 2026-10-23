@@ -97,15 +97,15 @@ export function useProfileEditor({
     const currentPassword = String(data.currentPassword || "").trim();
     if (nextPassword || confirmPassword) {
       if (!currentPassword) {
-        notify("برای تغییر رمز، رمز فعلی را وارد کن.");
+        notify("برای عوض کردن رمز، اول رمز فعلیت رو بزن.");
         return;
       }
       if (nextPassword.length < 8) {
-        notify("رمز جدید باید حداقل ۸ کاراکتر باشد.");
+        notify("رمز تازه دست‌کم ۸ حرف باشه.");
         return;
       }
       if (nextPassword !== confirmPassword) {
-        notify("تکرار رمز با رمز جدید یکی نیست.");
+        notify("دو تا رمز تازه با هم یکی نیستن.");
         return;
       }
     }
@@ -145,12 +145,12 @@ export function useProfileEditor({
         body: JSON.stringify(body)
       });
       if (!ok) {
-        notify(payload.error || "ویرایش ذخیره نشد.");
+        notify(payload.error || "ذخیره نشد؛ دوباره بزن.");
         return;
       }
       const profile = normalizeProfile(payload.data?.user);
       if (!profile) {
-        notify("ویرایش ذخیره نشد.");
+        notify("ذخیره نشد؛ دوباره بزن.");
         return;
       }
       lockSession();
@@ -162,9 +162,9 @@ export function useProfileEditor({
         setProfileView("overview");
       }
       setActiveTab?.("settings");
-      notify(nextPassword ? "اطلاعات و رمز عبور به‌روزرسانی شد." : "اطلاعات ثبت‌نام به‌روزرسانی شد.");
+      notify(nextPassword ? "ذخیره شد؛ رمزت هم عوض شد." : "ذخیره شد.");
     } catch {
-      notify("ویرایش انجام نشد؛ دوباره امتحان کن.");
+      notify("ذخیره نشد؛ دوباره بزن.");
     } finally {
       profileSavingRef.current = false;
       setProfileSaving(false);
@@ -186,22 +186,22 @@ export function useProfileEditor({
         body: JSON.stringify({ data })
       });
       if (!ok) {
-        notify(payload.error || "ذخیره لوکیشن انجام نشد.");
+        notify(payload.error || "جات روی نقشه ذخیره نشد؛ دوباره بزن.");
         return;
       }
       const profile = normalizeProfile(payload.data?.user);
       if (!profile) {
-        notify("ذخیره لوکیشن انجام نشد.");
+        notify("جات روی نقشه ذخیره نشد؛ دوباره بزن.");
         return;
       }
       lockSession();
       writeAuthSession(profile);
       setCreatedProfile(profile);
       setProfileType(profile.type);
-      notify(removing ? "لوکیشن حذف شد." : "لوکیشن ذخیره شد.");
+      notify(removing ? "جات از روی نقشه پاک شد." : "جات روی نقشه ذخیره شد.");
       return true;
     } catch {
-      notify("ذخیره لوکیشن انجام نشد؛ دوباره امتحان کن.");
+      notify("جات روی نقشه ذخیره نشد؛ دوباره بزن.");
     } finally {
       setProfileLocationSaving(false);
     }
@@ -216,12 +216,12 @@ export function useProfileEditor({
     const file = event.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith("image/")) {
-      notify("فقط فایل تصویری مجاز است.");
+      notify("فقط عکس می‌شه.");
       event.target.value = "";
       return;
     }
     if (file.size > 4 * 1024 * 1024) {
-      notify("حجم تصویر باید کمتر از ۴ مگابایت باشد.");
+      notify("عکس باید کمتر از ۴ مگ باشه.");
       event.target.value = "";
       return;
     }
@@ -263,12 +263,12 @@ export function useProfileEditor({
           body: JSON.stringify({ data: fields })
         });
         if (!ok) {
-          notify(payload.error || "ذخیره انجام نشد.");
+          notify(payload.error || "ذخیره نشد؛ دوباره بزن.");
           return;
         }
         const profile = normalizeProfile(payload.data?.user);
         if (!profile) {
-          notify("ذخیره انجام نشد.");
+          notify("ذخیره نشد؛ دوباره بزن.");
           return;
         }
         if (profile.data) Object.assign(profile.data, fields);
@@ -276,7 +276,7 @@ export function useProfileEditor({
         setCreatedProfile(profile);
         if (successMessage) notify(successMessage);
       } catch {
-        notify("ذخیره انجام نشد؛ دوباره امتحان کن.");
+        notify("ذخیره نشد؛ دوباره بزن.");
       } finally {
         setBusy?.(false);
       }
@@ -297,11 +297,11 @@ export function useProfileEditor({
   const stageProfileImage = useCallback(async (file, setPending) => {
     if (!file) return;
     if (!file.type.startsWith("image/")) {
-      notify("فقط فایل تصویری مجاز است.");
+      notify("فقط عکس می‌شه.");
       return;
     }
     if (file.size > 4 * 1024 * 1024) {
-      notify("حجم تصویر باید کمتر از ۴ مگابایت باشد.");
+      notify("عکس باید کمتر از ۴ مگ باشه.");
       return;
     }
     // Same downscale-before-upload as handleProfileAvatarUpload above --
@@ -328,7 +328,7 @@ export function useProfileEditor({
     if (!pendingAvatarUpload) return;
     saveProfileFields(
       { avatar: croppedImage || pendingAvatarUpload, avatarPosition: position },
-      { setBusy: setLogoSaving, successMessage: "لوگو بروزرسانی شد." }
+      { setBusy: setLogoSaving, successMessage: "لوگوی تازه نشست." }
     );
     setPendingAvatarUpload("");
   }, [pendingAvatarUpload, saveProfileFields]);
@@ -337,30 +337,30 @@ export function useProfileEditor({
     if (!pendingPosterUpload) return;
     saveProfileFields(
       { poster: croppedImage || pendingPosterUpload, posterPosition: position },
-      { setBusy: setPosterSaving, successMessage: "پوستر بروزرسانی شد." }
+      { setBusy: setPosterSaving, successMessage: "پوستر تازه نشست." }
     );
     setPendingPosterUpload("");
   }, [pendingPosterUpload, saveProfileFields]);
 
   const removeProfileLogo = useCallback(() => {
-    saveProfileField("avatar", "", { setBusy: setLogoSaving, successMessage: "لوگو حذف شد." });
+    saveProfileField("avatar", "", { setBusy: setLogoSaving, successMessage: "لوگو پاک شد." });
   }, [saveProfileField]);
 
   const removeProfilePoster = useCallback(() => {
-    saveProfileField("poster", "", { setBusy: setPosterSaving, successMessage: "پوستر حذف شد." });
+    saveProfileField("poster", "", { setBusy: setPosterSaving, successMessage: "پوستر پاک شد." });
   }, [saveProfileField]);
 
   const saveAvatarPosition = useCallback((position, croppedImage) => (
     saveProfileFields(
       croppedImage ? { avatar: croppedImage, avatarPosition: position } : { avatarPosition: position },
-      { setBusy: setLogoSaving, successMessage: "لوگو بروزرسانی شد." }
+      { setBusy: setLogoSaving, successMessage: "لوگوی تازه نشست." }
     )
   ), [saveProfileFields]);
 
   const savePosterPosition = useCallback((position, croppedImage) => (
     saveProfileFields(
       croppedImage ? { poster: croppedImage, posterPosition: position } : { posterPosition: position },
-      { setBusy: setPosterSaving, successMessage: "پوستر بروزرسانی شد." }
+      { setBusy: setPosterSaving, successMessage: "پوستر تازه نشست." }
     )
   ), [saveProfileFields]);
 
@@ -388,7 +388,7 @@ export function useProfileEditor({
       } catch (err) {
         // Only roll back if no newer tap has changed this key since.
         if (settingsRef.current[key] === value) applySetting(key, previous);
-        notify(err?.message || "ذخیره تنظیمات انجام نشد؛ اتصال را بررسی کن و دوباره امتحان کن.");
+        notify(err?.message || "تنظیمات ذخیره نشد؛ اینترنتت رو یه نگاه بنداز و دوباره بزن.");
       }
     });
     chain.set(key, run);

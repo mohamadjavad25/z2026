@@ -14,7 +14,7 @@ export function RequestExpiryBadge({ createdAt, day, time, waitMinutes = BOOKING
     return (
       <span className="requestExpiryBadge is-calm">
         <AlarmClock size={12} aria-hidden="true" />
-        مشتری تا قبل از نوبت (حداکثر ۲۴ ساعت) صبر می‌کند
+        مشتری تا قبل از نوبت (حداکثر ۲۴ ساعت) صبر می‌کنه
       </span>
     );
   }
@@ -23,7 +23,7 @@ export function RequestExpiryBadge({ createdAt, day, time, waitMinutes = BOOKING
   return (
     <span className={`requestExpiryBadge ${urgent ? "is-urgent" : ""}`}>
       <AlarmClock size={12} aria-hidden="true" />
-      {minutesLeft > 0 ? `تا ساعت ${deadline} تایید کن` : "زمان تایید تمام شده"}
+      {minutesLeft > 0 ? `تا ${deadline} وقت داری جواب بدی` : "وقت جواب دادن تموم شد"}
     </span>
   );
 }

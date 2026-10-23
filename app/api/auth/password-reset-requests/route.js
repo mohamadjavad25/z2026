@@ -35,7 +35,7 @@ async function _POST(request) {
     const limited = await checkRateLimit(`password-reset-request:${phone}`, REQUEST_LIMIT, REQUEST_WINDOW_MS);
     if (!limited.ok) {
       return NextResponse.json(
-        { error: "درخواست‌های زیادی ثبت شده. کمی بعد دوباره امتحان کن.", code: "rate_limited" },
+        { error: "زیاد درخواست دادی؛ چند دقیقه دیگه دوباره بزن.", code: "rate_limited" },
         { status: 429 }
       );
     }

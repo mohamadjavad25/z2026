@@ -52,7 +52,7 @@ describe("followers as contacts", () => {
 
   it("falls back to a placeholder name and the account id when the follower has no name or phone", () => {
     const [customer] = buildBookingCustomers([], [{ userId: 9, name: "", phone: "", followedAt: minutesAgo(1), isNew: true, hasBooked: false }]);
-    expect(customer.name).toBe("مشتری جدید");
+    expect(customer.name).toBe("مشتری تازه");
     expect(customer.key).toBe("id:9");
   });
 

@@ -4,7 +4,7 @@ export function ProfileSignupSteps({ step }) {
   return (
     <div className={`profileStepBar is-${step}`} aria-label="مراحل ساخت پروفایل">
       <div className="profileStepHead">
-        <span className="profileStepKicker">مسیر عضویت</span>
+        <span className="profileStepKicker">ساختن حساب</span>
         <strong>{step === "form" ? "مرحله ۲ از ۳" : "مرحله ۱ از ۳"}</strong>
       </div>
       <ol className="profileStepList">
@@ -24,7 +24,7 @@ export function ProfileSignupSteps({ step }) {
           <span className="profileStepDot" aria-hidden="true"><b>۲</b></span>
           <span className="profileStepCopy">
             <strong>فرم کوتاه</strong>
-            <small>اطلاعات پایه و رمز عبور</small>
+            <small>اسم، شماره و رمز</small>
           </span>
         </li>
         <li className="profileStepBridge" aria-hidden="true">
@@ -33,8 +33,8 @@ export function ProfileSignupSteps({ step }) {
         <li>
           <span className="profileStepDot" aria-hidden="true"><b>۳</b></span>
           <span className="profileStepCopy">
-            <strong>پروفایل آماده</strong>
-            <small>ورود به دنیای frfro</small>
+            <strong>آماده‌ست!</strong>
+            <small>خوش اومدی به فرفرو</small>
           </span>
         </li>
       </ol>

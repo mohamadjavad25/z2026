@@ -13,13 +13,13 @@ export const runtime = "nodejs";
 // exception is the manager themself, added via /api/salon-staff/self.
 
 async function _GET(request) {
-  const auth = await requireUserRole(request, "salon", "فقط سالن.");
+  const auth = await requireUserRole(request, "salon", "این بخش مال سالن‌هاست.");
   if (!auth.ok) return auth.response;
   return json({ data: { staff: await salons.listSalonStaff(auth.user.id) } });
 }
 
 async function _PATCH(request) {
-  const auth = await requireUserRole(request, "salon", "فقط سالن.");
+  const auth = await requireUserRole(request, "salon", "این بخش مال سالن‌هاست.");
   if (!auth.ok) return auth.response;
   const body = await readObjectBody(request);
   const person = await salons.updateSalonStaff(Number(body.id), auth.user.id, body);
@@ -29,7 +29,7 @@ async function _PATCH(request) {
 }
 
 async function _DELETE(request) {
-  const auth = await requireUserRole(request, "salon", "فقط سالن.");
+  const auth = await requireUserRole(request, "salon", "این بخش مال سالن‌هاست.");
   if (!auth.ok) return auth.response;
   const body = await readObjectBody(request);
   // Not while a confirmed booking of that member starts within 24 hours; farther ones are handed over or cancelled with
@@ -44,8 +44,8 @@ async function _DELETE(request) {
     ? await artists.endSalonCollabsForArtist(auth.user.id, artistUserId)
     : 0;
   notifyConnection(artistUserId, {
-    title: "همکاری پایان یافت",
-    body: `همکاری‌ات با ${auth.user.name || "سالن"} پایان یافت.`,
+    title: "همکاری تموم شد",
+    body: `دیگه با ${auth.user.name || "سالن"} کار نمی‌کنی.`,
     url: "/"
   });
   return json({

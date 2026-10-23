@@ -5,13 +5,13 @@ import * as artists from "../../lib/db/repos/artists.js";
 export const runtime = "nodejs";
 
 async function _GET(request) {
-  const auth = await requireUserRole(request, "artist", "فقط آرتیست.");
+  const auth = await requireUserRole(request, "artist", "این بخش مال آرتیست‌هاست.");
   if (!auth.ok) return auth.response;
   return json({ data: { hours: await artists.listArtistHours(auth.user.id) } });
 }
 
 async function _PATCH(request) {
-  const auth = await requireUserRole(request, "artist", "فقط آرتیست.");
+  const auth = await requireUserRole(request, "artist", "این بخش مال آرتیست‌هاست.");
   if (!auth.ok) return auth.response;
   const read = readHoursPatch(await readJson(request), await artists.listArtistHours(auth.user.id));
   if (!read.ok) return error(read.error, 400);

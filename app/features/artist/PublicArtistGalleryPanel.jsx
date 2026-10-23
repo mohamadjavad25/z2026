@@ -88,8 +88,8 @@ export function PublicArtistGalleryPanel({
       ) : (
         <div className="artistPublicEmpty">
           <Mascot pose="no-portfolio" size={150} />
-          <b>هنوز نمونه‌کاری نیست</b>
-          <span>به‌زودی کارهای این آرتیست اینجا می‌آید.</span>
+          <b>هنوز کاری نذاشته</b>
+          <span>به‌زودی کارهاش اینجا میاد.</span>
         </div>
       )}
     </section>

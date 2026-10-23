@@ -109,9 +109,9 @@ function MoveTimeList({ booking, disabled, onPick }) {
       .sort((a, b) => timeLabelToMinutes(a.time) - timeLabelToMinutes(b.time))
     : others.slice(0, 3);
 
-  if (state.loading) return <p className="sbmMoveNote">در حال پیدا کردن ساعت‌های آزاد…</p>;
-  if (state.failed) return <p className="sbmMoveNote is-warn">ساعت‌های آزاد گرفته نشد؛ دوباره امتحان کن.</p>;
-  if (state.closed) return <p className="sbmMoveNote is-warn">سالن در این روز تعطیل است.</p>;
+  if (state.loading) return <p className="sbmMoveNote">دارم ساعت‌های خالی رو پیدا می‌کنم…</p>;
+  if (state.failed) return <p className="sbmMoveNote is-warn">ساعت‌های خالی نیومد؛ دوباره بزن.</p>;
+  if (state.closed) return <p className="sbmMoveNote is-warn">سالن این روز تعطیله.</p>;
 
   const row = (option, overtime) => {
     const active = option.time === current;
@@ -123,7 +123,7 @@ function MoveTimeList({ booking, disabled, onPick }) {
         disabled={disabled || active}
         onClick={() => {
           if (overtime && typeof window !== "undefined" && !window.confirm(
-            `این نوبت تا ${toPersianDigits(option.end)} طول می‌کشد؛ یعنی ${toPersianDigits(option.overtimeMinutes)} دقیقه بیشتر از ساعت کاری بمانید. فرستاده شود؟`
+            `این نوبت تا ${toPersianDigits(option.end)} طول می‌کشه؛ یعنی ${toPersianDigits(option.overtimeMinutes)} دقیقه بیشتر از ساعت کاری می‌مونی. بفرستم؟`
           )) return;
           onPick(option.time, overtime);
         }}
@@ -131,7 +131,7 @@ function MoveTimeList({ booking, disabled, onPick }) {
         <span className="sbmMoveChip"><SegmentClock value={option.time} size="xs" as="span" backgroundColor="transparent" /></span>
         <span className="sbmMoveCopy">
           <b>تا {toPersianDigits(option.end)}</b>
-          {active ? <small>ساعت فعلی</small> : overtime ? <small>{toPersianDigits(option.overtimeMinutes)} دقیقه بیشتر بمانید</small> : null}
+          {active ? <small>ساعت فعلی</small> : overtime ? <small>{toPersianDigits(option.overtimeMinutes)} دقیقه بیشتر می‌مونی</small> : null}
         </span>
         {active ? <Check size={16} /> : null}
       </button>
@@ -156,14 +156,14 @@ function MoveTimeList({ booking, disabled, onPick }) {
       {others.length === 0 ? (
         <p className="sbmMoveNote is-warn">
           {late.length
-            ? `تا پایان ساعت کاری (${toPersianDigits(state.close)}) ساعت آزاد دیگری برای این نوبت نیست.`
-            : "این روز ساعت آزاد دیگری برای این نوبت نیست."}
+            ? `تا آخر ساعت کاری (${toPersianDigits(state.close)}) ساعت خالی دیگه‌ای برای این نوبت نیست.`
+            : "این روز ساعت خالی دیگه‌ای برای این نوبت نیست."}
         </p>
       ) : null}
       {inHours.map((option) => row(option, false))}
       {late.length ? (
         <>
-          <p className="sbmMoveHead">با ماندن بعد از ساعت کاری (سالن تا {toPersianDigits(state.close)} باز است)</p>
+          <p className="sbmMoveHead">اگه بعد از ساعت کاری بمونی (سالن تا {toPersianDigits(state.close)} بازه)</p>
           {late.map((option) => row(option, true))}
         </>
       ) : null}
@@ -217,8 +217,8 @@ function AutoAssignCard({ current, suggested, services, disabled, onAutoAssign }
       <p className="sbmAuto is-stuck">
         <UserRound size={15} aria-hidden="true" />
         <span>
-          <b>{services > 1 ? `${toPersianDigits(missing)} خدمت بدون آرتیست` : "این رزرو آرتیست ندارد"}</b>
-          <small>در این ساعت آرتیست آزادی نیست؛ ساعت را عوض کن یا خودت یکی را انتخاب کن.</small>
+          <b>{services > 1 ? `${toPersianDigits(missing)} کار بدون آرتیست` : "این نوبت آرتیست نداره"}</b>
+          <small>این ساعت آرتیست آزادی نیست؛ ساعت رو عوض کن یا خودت یکی رو انتخاب کن.</small>
         </span>
       </p>
     );
@@ -228,7 +228,7 @@ function AutoAssignCard({ current, suggested, services, disabled, onAutoAssign }
     <div className={`sbmAuto ${missing ? "is-missing" : ""}`}>
       <Sparkles size={16} aria-hidden="true" />
       <span>
-        <b>{missing ? (services > 1 ? `${toPersianDigits(missing)} خدمت بدون آرتیست` : "این رزرو آرتیست ندارد") : "پیشنهاد سیستم"}</b>
+        <b>{missing ? (services > 1 ? `${toPersianDigits(missing)} کار بدون آرتیست` : "این نوبت آرتیست نداره") : "پیشنهاد ما"}</b>
         <small>{`آزادترین آرتیست‌ها: ${names.join("، ")}`}</small>
       </span>
       <button type="button" disabled={disabled} onClick={onAutoAssign}>چیدن خودکار</button>
@@ -298,7 +298,7 @@ export function ScheduleBookingMenuModal({
     : !sourceSalon.name && (booking.status === "درخواست" || booking.status === "تازه");
   // Always show a logo: the uploaded photo when there is one, else the app's default profile icon.
   const avatar = booking.clientAvatar || booking.client_avatar || sourceSalon.avatar || DEFAULT_AVATAR;
-  const title = booking.client || booking.salonName || sourceSalon.name || "رزرو";
+  const title = booking.client || booking.salonName || sourceSalon.name || "نوبت";
   const multiPart = isSalonOwner && isMultiPartBooking(booking);
   const parsedParts = multiPart ? parseBookingParts(booking.parts) : [];
   const partStaff = [...new Set(parsedParts.map((part) => part.staff).filter(Boolean))];
@@ -337,7 +337,7 @@ export function ScheduleBookingMenuModal({
   const timeLabel = confirmed && hasAccount ? PROPOSE_LABEL : "تغییر ساعت";
 
   return (
-    <div className="sbmScreen" role="dialog" aria-modal="true" aria-label={`رزرو ${title}`}>
+    <div className="sbmScreen" role="dialog" aria-modal="true" aria-label={`نوبت ${title}`}>
       <div className="clientBookingSettings scheduleBookingSettings sbmBody">
         <div className="clientBookingSettingsHead">
           <span className="clientBookingSettingsAvatar hasImage" aria-hidden="true">
@@ -345,12 +345,12 @@ export function ScheduleBookingMenuModal({
           </span>
           <div className="sbmWho">
             <small>
-              {timeView ? timeLabel : readOnly ? "جزئیات رزرو • فقط مشاهده" : showReview ? "درخواست رزرو تازه" : "جزئیات رزرو"}
+              {timeView ? timeLabel : readOnly ? "جزئیات نوبت، فقط دیدنی" : showReview ? "درخواست نوبت تازه" : "جزئیات نوبت"}
             </small>
             <b>{title}</b>
             <strong className={`clientBookingSettingsStatus is-${statusTone}${showReview ? " is-live" : ""}`}>
               <StatusIcon size={11} />
-              {!isSalonOwner && sourceSalon.name && statusTone === "pending" ? "منتظر سالن" : (booking.status || "درخواست")}
+              {!isSalonOwner && sourceSalon.name && statusTone === "pending" ? "منتظر سالن" : (booking.status === "تایید شده" ? "تأیید شده" : booking.status || "درخواست")}
             </strong>
           </div>
           {team.length ? (
@@ -366,7 +366,7 @@ export function ScheduleBookingMenuModal({
           ) : (
             <div className="sbmTeam is-empty">
               <span className="sbmTeamFaces" aria-hidden="true"><UserRound size={16} /></span>
-              <small>{isSalonOwner ? "بدون آرتیست" : "رزرو شخصی"}</small>
+              <small>{isSalonOwner ? "بدون آرتیست" : "نوبت خودت"}</small>
             </div>
           )}
         </div>
@@ -441,7 +441,7 @@ export function ScheduleBookingMenuModal({
                   </span>
                   <span className="scheduleBookingArtistCopy">
                     <small>آرتیست</small>
-                    <b>{booking.staff ? currentArtist?.artist_name || booking.staff : canManage ? "انتخاب آرتیست" : "آرتیست ثبت نشده"}</b>
+                    <b>{booking.staff ? currentArtist?.artist_name || booking.staff : canManage ? "یه آرتیست انتخاب کن" : "هنوز آرتیست نداره"}</b>
                   </span>
                   {canManage ? <ChevronDown size={16} className="scheduleBookingArtistChevron" aria-hidden="true" /> : null}
                 </button>
@@ -468,7 +468,7 @@ export function ScheduleBookingMenuModal({
             {isSalonOwner && !readOnly && bookingTimeOffer(booking) ? (
               <p className="scheduleBookingReadOnlyNote is-offer">
                 <Timer size={14} aria-hidden="true" />
-                ساعت تازه برای مشتری فرستاده شد (قبلاً {toPersianDigits(bookingTimeOffer(booking).fromTime)})؛ تا قبول یا رد کند، «{AWAITING_CLIENT}» می‌ماند.
+                ساعت تازه رفت برای مشتری (قبلاً {toPersianDigits(bookingTimeOffer(booking).fromTime)} بود)؛ تا جواب نده، «منتظر مشتری» می‌مونه.
               </p>
             ) : null}
 
@@ -476,12 +476,12 @@ export function ScheduleBookingMenuModal({
               <div className="pxNote" role="status">
                 <p>
                   {proposal.time
-                    ? `پیشنهاد ساعت ${shortClock(proposal.time)} برای مشتری فرستاده شد.`
-                    : `پیشنهاد آرتیست «${proposal.staff}» برای مشتری فرستاده شد.`}
-                  {" "}هنوز جواب نداده؛ تا قبول نکند نوبت همان‌طور که بود می‌ماند.
+                    ? `ساعت ${shortClock(proposal.time)} رو به مشتری پیشنهاد دادی.`
+                    : `آرتیست «${proposal.staff}» رو به مشتری پیشنهاد دادی.`}
+                  {" "}هنوز جواب نداده؛ تا قبول نکنه، نوبت همون‌طور که بود می‌مونه.
                 </p>
                 {onWithdrawProposal ? (
-                  <button type="button" className="pxBtn" disabled={actionDisabled} onClick={onWithdrawProposal}>پس گرفتن پیشنهاد</button>
+                  <button type="button" className="pxBtn" disabled={actionDisabled} onClick={onWithdrawProposal}>پیشنهاد رو پس بگیر</button>
                 ) : null}
               </div>
             ) : null}
@@ -489,24 +489,24 @@ export function ScheduleBookingMenuModal({
             {readOnly ? (
               <p className="scheduleBookingReadOnlyNote">
                 <Eye size={14} aria-hidden="true" />
-                {isCancelled ? "این رزرو بسته شده و فقط قابل مشاهده است." : "این رزرو گذشته است و فقط قابل مشاهده است."}
+                {isCancelled ? "این نوبت بسته شده؛ فقط می‌شه دیدش." : "این نوبت گذشته؛ فقط می‌شه دیدش."}
               </p>
             ) : null}
 
             {canManage && !isPendingReview && cancelAsk && confirmed ? (
               <div className="pxCancelPanel" role="alertdialog" aria-label="لغو نوبت تأییدشده">
-                <p>{soon ? CALL_FIRST_TEXT : "این نوبت تأیید شده بود و مشتری روی آن حساب کرده است."}</p>
+                <p>{soon ? CALL_FIRST_TEXT : "این نوبت تأیید شده بود و مشتری روش حساب کرده."}</p>
                 {phone && (soon || !hasAccount) ? (
                   <a className="pxBtn" href={`tel:${toLatinDigits(phone)}`}><Phone size={15} aria-hidden="true" />{CLIENT_CAN_CALL}<span dir="ltr">{toPersianDigits(phone)}</span></a>
                 ) : null}
                 <p>
                   {hasAccount
-                    ? "با لغو، مشتری با اعلان و پیامک باخبر می‌شود: «بابت این اتفاق متأسفیم؛ می‌توانی نوبت دیگری بگیری.»"
-                    : "این مشتری حساب فرفرو ندارد و پیامکی نمی‌گیرد؛ خودت با او تماس بگیر."}
+                    ? "لغوش کنی، مشتری با اعلان و پیامک خبردار می‌شه: «ببخشید؛ یه نوبت دیگه بگیر.»"
+                    : "این مشتری حساب فرفرو نداره و پیامکی نمی‌گیره؛ خودت بهش زنگ بزن."}
                 </p>
                 <div>
-                  <button type="button" className="pxBtn is-danger" disabled={actionDisabled} onClick={() => onCancel?.()}>{busy ? "در حال لغو…" : CANCEL_WITH_NOTICE}</button>
-                  <button type="button" className="pxBtn" disabled={actionDisabled} onClick={() => setCancelAsk(false)}>نه، نگه دار</button>
+                  <button type="button" className="pxBtn is-danger" disabled={actionDisabled} onClick={() => onCancel?.()}>{busy ? "دارم لغو می‌کنم…" : CANCEL_WITH_NOTICE}</button>
+                  <button type="button" className="pxBtn" disabled={actionDisabled} onClick={() => setCancelAsk(false)}>نه، بمونه</button>
                 </div>
               </div>
             ) : canManage && !isPendingReview ? (
@@ -519,12 +519,12 @@ export function ScheduleBookingMenuModal({
                     setCancelAsk(true);
                     return;
                   }
-                  if (typeof window !== "undefined" && !window.confirm("این رزرو لغو شود؟")) return;
+                  if (typeof window !== "undefined" && !window.confirm("این نوبت لغو بشه؟")) return;
                   onCancel?.();
                 }}
               >
                 <Trash2 size={15} aria-hidden="true" />
-                لغو این رزرو
+                لغو این نوبت
               </button>
             ) : null}
           </>
@@ -532,13 +532,13 @@ export function ScheduleBookingMenuModal({
           <>
             <button type="button" className="scheduleBookingBack sbmBack" disabled={actionDisabled} onClick={() => onViewChange?.("menu")}>
               <ArrowRight size={15} aria-hidden="true" />
-              بازگشت به جزئیات
+              برگرد به جزئیات
             </button>
             {isSalonOwner && hasAccount ? (
               <p className="scheduleBookingReadOnlyNote is-offer">
                 {confirmed
-                  ? "ساعت پیشنهادی برای مشتری فرستاده می‌شود. تا قبول نکند، نوبت همان ساعت قبلی می‌ماند."
-                  : "ساعت تازه برای مشتری فرستاده می‌شود تا قبول یا رد کند."}
+                  ? "ساعت پیشنهادی می‌ره برای مشتری. تا قبول نکنه، نوبت همون ساعت قبلی می‌مونه."
+                  : "ساعت تازه می‌ره برای مشتری تا قبول یا رد کنه."}
               </p>
             ) : null}
             <MoveTimeList
@@ -556,15 +556,15 @@ export function ScheduleBookingMenuModal({
             <RequestExpiryBadge createdAt={createdAt} day={dateValue} time={booking.time} waitMinutes={waitMinutes} />
             <button type="button" className="is-approve" disabled={actionDisabled || (minutesLeft !== null && minutesLeft <= 0)} onClick={onApprove}>
               <Check size={17} />
-              {busy ? "در حال…" : "تایید نوبت"}
+              {busy ? "یه لحظه…" : "تأیید"}
             </button>
             <button type="button" className="is-decline" disabled={actionDisabled} onClick={onDecline}>
               <X size={17} />
-              رد کردن
+              رد
             </button>
           </div>
         ) : null}
-        <nav className="sbmBar" aria-label="کارهای رزرو">
+        <nav className="sbmBar" aria-label="کارهای نوبت">
           {canManage ? (
             <button
               type="button"
@@ -580,7 +580,7 @@ export function ScheduleBookingMenuModal({
           <button
             type="button"
             disabled={!phone}
-            aria-label={phone ? `تماس با ${title}` : "شماره‌ای ثبت نشده"}
+            aria-label={phone ? `تماس با ${title}` : "شماره نداره"}
             onClick={() => {
               if (phone) window.location.href = `tel:${toLatinDigits(phone)}`;
             }}

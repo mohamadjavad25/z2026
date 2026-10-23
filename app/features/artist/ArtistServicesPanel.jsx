@@ -27,7 +27,7 @@ export function ArtistServicesPanel({
         </div>
         <button type="button" className="svcAddBtn" onClick={onCreate}>
           <Plus size={16} />
-          افزودن خدمت
+          خدمت تازه
         </button>
       </div>
 
@@ -36,9 +36,9 @@ export function ArtistServicesPanel({
           <ProfileEmptyState
             className="artistServiceEmpty"
             visual={<ServiceIconStrip />}
-            title="هنوز خدمتی ثبت نشده"
-            description="اولین خدمت را اضافه کن تا قیمت، مدت‌زمان و رزرو مستقیم برای مشتری روشن شود."
-            actionLabel="افزودن اولین خدمت"
+            title="منوت هنوز خالیه"
+            description="اولین خدمتت رو بذار تا مشتری قیمت و مدتش رو ببینه و یه‌راست نوبت بگیره."
+            actionLabel="اولین خدمت رو بذار"
             onAction={onCreate}
           />
         ) : (
@@ -64,7 +64,7 @@ export function ArtistServicesPanel({
                 <div className="svcCardMeta">
                   <span className="svcChip is-price">{service.price ? `${formatTomanNumber(parseTomanAmount(service.price))} تومان` : "توافقی"}</span>
                   <span className="svcChip"><Timer size={12} /> {service.duration}</span>
-                  <span className="svcChip"><CalendarCheck size={12} /> قابل رزرو</span>
+                  <span className="svcChip"><CalendarCheck size={12} /> نوبت می‌گیره</span>
                 </div>
               </div>
             </article>

@@ -15,7 +15,7 @@ async function _GET(request, { params }) {
   if (!auth.ok) return auth.response;
   const id = parseId((await params).id);
   const found = id ? await support.getUserTicket(auth.user.id, id) : null;
-  if (!found) return error("گفتگو پیدا نشد.", 404);
+  if (!found) return error("این گفت‌وگو رو پیدا نکردیم.", 404);
   return json({ data: found });
 }
 
@@ -26,14 +26,14 @@ async function _POST(request, { params }) {
   if (!auth.ok) return auth.response;
   const id = parseId((await params).id);
   const mine = id ? await support.getUserTicket(auth.user.id, id) : null;
-  if (!mine) return error("گفتگو پیدا نشد.", 404);
+  if (!mine) return error("این گفت‌وگو رو پیدا نکردیم.", 404);
   const body = (await readJson(request)) || {};
   const message = String(body.message || "").trim();
   const files = parseAttachments(body.attachments);
   if (!files.ok) return error(files.error, 400);
-  if (!message && !files.items.length) return error("پیامت خالی است.", 400);
-  if (message.length > 2000) return error("پیام خیلی بلند است (حداکثر ۲۰۰۰ حرف).", 400);
-  if (!(await checkRateLimit(`support-reply:${auth.user.id}`, 30, 60 * 60 * 1000)).ok) return error("پیام‌های زیادی فرستادی. کمی بعد دوباره امتحان کن.", 429);
+  if (!message && !files.items.length) return error("پیامت خالیه.", 400);
+  if (message.length > 2000) return error("پیامت خیلی بلنده (حداکثر ۲۰۰۰ حرف).", 400);
+  if (!(await checkRateLimit(`support-reply:${auth.user.id}`, 30, 60 * 60 * 1000)).ok) return error("زیاد پیام فرستادی؛ یه کم دیگه دوباره بزن.", 429);
   const ticket = await support.addMessage({ ticketId: id, author: "user", authorUserId: auth.user.id, body: message, attachments: files.items });
   smsAdminsSupport("support-reply", { topic: "جواب تازه", who: auth.user.name || auth.user.phone });
   return json({ data: { ticket } }, { status: 201 });

@@ -77,7 +77,7 @@ export function ProfileSavedPosts({
                   </span>
                   <span className="savedSalonBody">
                     <b>{salon.name}</b>
-                    <small><MapPin size={13} /> {salon.area || "محدوده نامشخص"}</small>
+                    <small><MapPin size={13} /> {salon.area || "جاش معلوم نیست"}</small>
                     <em>{toPersianDigits(salon.portfolio?.length || salon.post_count || 0)} نمونه‌کار</em>
                   </span>
                 </span>
@@ -148,8 +148,8 @@ export function ProfileSavedPosts({
       {posts.length ? (
         <section className="savedProfileGroup" aria-label="پست‌های ذخیره‌شده">
           <div className="savedProfileGroupHead">
-            <span>پست‌ها و مدل‌ها</span>
-            <b>{toPersianDigits(posts.length)} مورد</b>
+            <span>نمونه‌کارها و مدل‌ها</span>
+            <b>{toPersianDigits(posts.length)} تا</b>
           </div>
           <div className="savedPostList">
             {posts.map((item, index) => {
@@ -184,8 +184,8 @@ export function ProfileSavedPosts({
         <ProfileEmptyState
           className="emptySavedState"
           visual={<Mascot pose="saved-empty" size={150} />}
-          title="هنوز چیزی ذخیره نشده"
-          description="پست‌ها، مدل‌ها، سالن‌ها و آرتیست‌های ذخیره‌شده اینجا جمع می‌شوند."
+          title="هنوز چیزی نشون نکردی"
+          description="هر جا ذخیره رو زدی، اینجا جمع می‌شه."
         />
       ) : null}
     </div>

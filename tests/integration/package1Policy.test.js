@@ -16,7 +16,7 @@ afterAll(async () => { await connected; await db.end(); });
 const day = (n = 2) => futureBookingDay(n, { notOn: ["پنجشنبه"] });
 const approve = (ctx, id) => ctx.salonClient.patch("/api/salon-bookings", { id, status: "تایید شده" });
 const cancelByClient = (c, id) => c.client.post(`/api/salon-bookings/${id}/cancel`, {});
-const TOO_MANY = "اول یکی از درخواست‌های قبلی را لغو کن یا منتظر جواب بمان";
+const TOO_MANY = "چند تا درخواست منتظر جواب داری";
 
 describe("P1: seats", () => {
   it("a walk-in typed without an artist takes one of two seats: one client fits, the next is refused", async () => {

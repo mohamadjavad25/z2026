@@ -63,9 +63,9 @@ export function SalonScheduleDashboard({
           <div className="boardHead">
             <div>
               <span>پیشنهاد همکاری</span>
-              <strong>آرتیست‌ها برای سالن شما</strong>
+              <strong>آرتیست‌هایی که می‌خوان با سالنت کار کنن</strong>
             </div>
-            <b>{toPersianDigits(pendingCollabRequests.length)} جدید</b>
+            <b>{toPersianDigits(pendingCollabRequests.length)} تازه</b>
           </div>
           <div className="salonCollabInboxList">
             {pendingCollabRequests.map((request) => {
@@ -94,7 +94,7 @@ export function SalonScheduleDashboard({
                 <div className="requestActions">
                   <button type="button" className="is-approve" disabled={anyBusy} onClick={() => onApproveCollab?.(request.id)}>
                     <Check size={15} />
-                    {busy ? "…" : "تایید"}
+                    {busy ? "…" : "تأیید"}
                   </button>
                   <button type="button" className="is-decline" disabled={anyBusy} onClick={() => onDeclineCollab?.(request.id)}>
                     <X size={15} />
@@ -126,9 +126,9 @@ export function SalonScheduleDashboard({
               dateKey || getBookingDateKey(day)
             )
           )).length}
-          tabLabel="تاریخچه"
-          modalTitle="تاریخچه رزروها"
-          emptyDayLabel="رزروی ثبت نشده"
+          tabLabel="تقویم"
+          modalTitle="تقویم نوبت‌ها"
+          emptyDayLabel="نوبتی نیست"
           renderBooking={(item, { closeHistory }) => {
             const clientAvatar = item.clientAvatar || item.client_avatar || "";
             const staffPerson = staffList.find((person) => person.name === item.staff);
@@ -166,8 +166,8 @@ export function SalonScheduleDashboard({
                   <button
                     type="button"
                     className="scheduleBookingMore"
-                    aria-label={`مدیریت رزرو ${item.client}`}
-                    title="گزینه‌های رزرو"
+                    aria-label={`نوبت ${item.client}`}
+                    title="جزئیات نوبت"
                     onClick={() => {
                       closeHistory?.();
                       onOpenBookingMenu?.(item);
@@ -193,7 +193,7 @@ export function SalonScheduleDashboard({
         />
         <div className="todayScheduleList">
           {loading ? (
-            <SkeletonList rows={4} variant="row" className="salonScheduleSkeleton" label="در حال بارگذاری برنامه سالن" />
+            <SkeletonList rows={4} variant="row" className="salonScheduleSkeleton" label="دارم برنامهٔ سالن رو میارم" />
           ) : dayAppointments.length > 0 ? dayAppointments.map((item, index) => (
             <ScheduleRow
               key={item.id != null ? String(item.id) : `salon-row-${item.time}-${item.client}-${index}`}
@@ -205,7 +205,7 @@ export function SalonScheduleDashboard({
           )) : (
             <div className="salonTodayEmpty">
               <Mascot pose="free-day" size={140} />
-              <b>برای «{emptyDayLabel}» رزروی ثبت نشده</b>
+              <b>«{emptyDayLabel}» نوبتی نداری؛ وقت یه چایی‌ه</b>
             </div>
           )}
         </div>

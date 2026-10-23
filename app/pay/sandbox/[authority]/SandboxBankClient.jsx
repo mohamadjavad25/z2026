@@ -25,7 +25,7 @@ export function SandboxBankClient({ authority }) {
         if (response.ok) setInfo(payload.data);
         else setError(payload?.error || "این پرداخت آزمایشی پیدا نشد.");
       })
-      .catch(() => live && setError("اتصال برقرار نشد."));
+      .catch(() => live && setError("اینترنت قطعه؛ دوباره بزن."));
     return () => {
       live = false;
     };
@@ -71,7 +71,7 @@ export function SandboxBankClient({ authority }) {
                 </button>
               </div>
             ) : (
-              <p>این پرداخت قبلاً تمام شده است.</p>
+              <p>این پرداخت قبلاً تموم شده.</p>
             )}
           </>
         ) : null}

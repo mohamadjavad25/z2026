@@ -82,7 +82,7 @@ function TimeOfferBlock({ booking, offer, onAnswer }) {
   };
   return (
     <div className="cbOffer" role="group" aria-label="ساعت پیشنهادی تازه">
-      <b>سالن ساعت تازه‌ای پیشنهاد داده</b>
+      <b>سالن یه ساعت تازه پیشنهاد داده</b>
       <div className="cbOfferTimes">
         <s aria-label="ساعت قبلی">
           {otherDay ? `${formatRelativeBookingDayLabel(offer.fromDate)} ` : ""}{clockRange(offer.fromTime, minutes)}
@@ -94,17 +94,17 @@ function TimeOfferBlock({ booking, offer, onAnswer }) {
       </div>
       <p>
         {otherTimes === null
-          ? "اگر رد کنی، این نوبت لغو می‌شود."
+          ? "اگه رد کنی، این نوبت لغو می‌شه."
           : otherTimes.length
-            ? `اگر رد کنی، این نوبت لغو می‌شود. ساعت‌های آزاد دیگر این روز: ${otherTimes.slice(0, 4).map((time) => toPersianDigits(time)).join("، ")}${otherTimes.length > 4 ? " و …" : ""}`
-            : "این روز ساعت آزاد دیگری برای این خدمت‌ها ندارد؛ اگر رد کنی، این نوبت لغو می‌شود و باید روز دیگری بگیری."}
+            ? `اگه رد کنی، این نوبت لغو می‌شه. ساعت‌های خالی دیگهٔ این روز: ${otherTimes.slice(0, 4).map((time) => toPersianDigits(time)).join("، ")}${otherTimes.length > 4 ? " و …" : ""}`
+            : "این روز ساعت خالی دیگه‌ای برای این کارها نداره؛ اگه رد کنی، نوبت لغو می‌شه و باید یه روز دیگه بگیری."}
       </p>
       <div className="cbOfferActions">
         <button type="button" className="is-accept" disabled={Boolean(answering)} onClick={() => send(true)}>
-          {answering === "yes" ? "در حال ثبت…" : "قبول ساعت تازه"}
+          {answering === "yes" ? "یه لحظه…" : "قبول، ساعت تازه"}
         </button>
         <button type="button" disabled={Boolean(answering)} onClick={() => send(false)}>
-          {answering === "no" ? "در حال ثبت…" : "رد"}
+          {answering === "no" ? "یه لحظه…" : "رد"}
         </button>
       </div>
     </div>
@@ -147,13 +147,13 @@ function ProposalBlock({ booking, proposal, onAnswer, onCall }) {
           <strong aria-label="ساعت پیشنهادی">{toLabel}</strong>
         </div>
       ) : null}
-      <p>تا وقتی قبول نکنی، نوبتت همان‌طور که بود می‌ماند.{until ? ` مهلت جواب: تا ساعت ${until}.` : ""}</p>
+      <p>تا قبول نکنی، نوبتت همون‌طور که بود می‌مونه.{until ? ` تا ساعت ${until} وقت داری جواب بدی.` : ""}</p>
       <div className="cbProposalActions">
         <button type="button" className="is-accept" disabled={Boolean(answering)} onClick={() => send("accept")}>
-          {answering === "accept" ? "در حال ثبت…" : ACCEPT_LABEL}
+          {answering === "accept" ? "یه لحظه…" : ACCEPT_LABEL}
         </button>
         <button type="button" disabled={Boolean(answering)} onClick={() => send("cancel")}>
-          {answering === "cancel" ? "در حال لغو…" : CLIENT_CANCEL_LABEL}
+          {answering === "cancel" ? "دارم لغو می‌کنم…" : CLIENT_CANCEL_LABEL}
         </button>
         <button type="button" onClick={onCall}>{CALL_PLACE_LABEL[type]}</button>
       </div>
@@ -193,12 +193,12 @@ function useFollowing(placeId, onNotice) {
       if (ok) {
         setState({ id: placeId, following: true });
         const name = payload?.data?.profile?.name;
-        onNotice?.(name ? `${name} به لیستت اضافه شد.` : "به لیستت اضافه شد.");
+        onNotice?.(name ? `${name} اضافه شد به سالن و آرتیست‌هات.` : "اضافه شد.");
       } else {
-        onNotice?.(payload?.error || "وصل شدن انجام نشد؛ دوباره امتحان کن.");
+        onNotice?.(payload?.error || "وصل نشد؛ دوباره بزن.");
       }
     } catch {
-      onNotice?.("وصل شدن انجام نشد؛ دوباره امتحان کن.");
+      onNotice?.("وصل نشد؛ دوباره بزن.");
     } finally {
       setBusy(false);
     }
@@ -254,7 +254,7 @@ export function ClientBookingSettingsModal({
       className="clientBookingSettingsBackdrop"
       role="dialog"
       aria-modal="true"
-      aria-label="تنظیمات رزرو"
+      aria-label="جزئیات نوبت"
       onClick={onClose}
     >
       <div className="clientBookingSettingsWrap" onClick={(event) => event.stopPropagation()}>
@@ -264,7 +264,7 @@ export function ClientBookingSettingsModal({
               {avatar ? <img src={avatar} alt="" /> : String(salonName || "س").slice(0, 1)}
             </span>
             <div>
-              <small>جزئیات رزرو</small>
+              <small>جزئیات نوبت</small>
               <b className="svcInline"><ServiceIcon emoji={booking.service_emoji} name={booking.service} size="xs" />{shortServiceLabel(booking.service) || "خدمت زیبایی"}</b>
               <em>{salonName}</em>
             </div>
@@ -292,7 +292,7 @@ export function ClientBookingSettingsModal({
             ) : null}
             {area ? (
               <span>
-                <MapPin size={14} /> <b>محدوده</b>
+                <MapPin size={14} /> <b>کجا</b>
                 <em>{area}</em>
               </span>
             ) : null}
@@ -333,7 +333,7 @@ export function ClientBookingSettingsModal({
           {movedTo ? (
             <p className="clientBookingPendingNote">
               <Clock3 size={14} />
-              {booking.bookingSource === "artist" ? "این آرتیست" : "این سالن"} به‌موقع جواب نداد؛ همین درخواست را برای {movedTo} فرستادیم.
+              {booking.bookingSource === "artist" ? "این آرتیست" : "این سالن"} به‌موقع جواب نداد؛ همین درخواست رو برای {movedTo} فرستادیم.
             </p>
           ) : null}
           <div className="clientBookingSettingsActions">
@@ -350,7 +350,7 @@ export function ClientBookingSettingsModal({
             {isBookingSettled(booking) ? (
               <button type="button" onClick={() => onRebookSalon?.(booking)}>
                 <RotateCcw size={16} />
-                رزرو دوباره
+                دوباره نوبت بگیر
               </button>
             ) : null}
           </div>
@@ -358,20 +358,20 @@ export function ClientBookingSettingsModal({
             <div className="cbPlace">
               <button type="button" className="cbPlaceOpen" onClick={() => onOpenPlace(booking)}>
                 <Store size={16} aria-hidden="true" />
-                {booking.bookingSource === "artist" ? "رفتن به صفحهٔ آرتیست" : "رفتن به صفحهٔ سالن"}
+                {booking.bookingSource === "artist" ? "صفحهٔ آرتیست" : "صفحهٔ سالن"}
               </button>
               {following === false ? (
                 <button type="button" className="cbPlaceFollow" disabled={followBusy} onClick={follow}>
                   <UserPlus size={16} aria-hidden="true" />
-                  {followBusy ? "در حال وصل شدن…" : "وصل شو"}
+                  {followBusy ? "دارم وصل می‌کنم…" : "وصل شو"}
                 </button>
               ) : null}
             </div>
           ) : null}
           {canClientCancel(booking) && onCancelBooking && !offer ? (
             confirming ? (
-              <div className="cbCancelConfirm" role="alertdialog" aria-label="تأیید لغو رزرو">
-                <p>این رزرو لغو شود؟ سالن بلافاصله باخبر می‌شود.</p>
+              <div className="cbCancelConfirm" role="alertdialog" aria-label="لغو نوبت">
+                <p>این نوبت لغو بشه؟ سالن همون لحظه خبردار می‌شه.</p>
                 <div>
                   <button
                     type="button"
@@ -387,14 +387,14 @@ export function ClientBookingSettingsModal({
                       }
                     }}
                   >
-                    {cancelling ? "در حال لغو…" : "بله، لغو شود"}
+                    {cancelling ? "دارم لغو می‌کنم…" : "آره، لغو کن"}
                   </button>
-                  <button type="button" disabled={cancelling} onClick={() => setConfirming(false)}>نه، نگه دار</button>
+                  <button type="button" disabled={cancelling} onClick={() => setConfirming(false)}>نه، بمونه</button>
                 </div>
               </div>
             ) : (
               <button type="button" className="cbCancelBtn" onClick={() => setConfirming(true)}>
-                <XCircle size={16} /> لغو رزرو
+                <XCircle size={16} /> لغو نوبت
               </button>
             )
           ) : null}

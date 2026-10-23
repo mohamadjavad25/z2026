@@ -16,19 +16,19 @@ async function _POST(request) {
   const auth = await requireUser(request);
   if (!auth.ok) return auth.response;
   const owner = auth.user;
-  if (owner.type !== "salon" && owner.type !== "artist") return error("فقط سالن و آرتیست می‌توانند مشتری اسکن کنند.", 403);
+  if (owner.type !== "salon" && owner.type !== "artist") return error("اسکن مشتری مال سالن و آرتیسته.", 403);
   const limited = await checkRateLimit(`connect-scan:${owner.id}`, SCANS_PER_MINUTE, 60 * 1000);
-  if (!limited.ok) return error("اسکن زیاد شد؛ یک دقیقه بعد دوباره امتحان کن.", 429);
+  if (!limited.ok) return error("یه کم زیاد اسکن کردی؛ یه دقیقه دیگه دوباره بزن.", 429);
 
   const code = parseClientCode((await readJson(request))?.code);
   if (!code) return error("این کد مشتری فرفرو نیست.");
   const result = await connections.connectByClientCode(owner.id, code);
-  if (!result.ok) return error("این کد معتبر نیست؛ از مشتری بخواه کدش را دوباره باز کند.");
+  if (!result.ok) return error("این کد کار نکرد؛ از مشتری بخواه کدش رو دوباره باز کنه.");
 
   if (!result.alreadyConnected) {
     notifyConnection(result.client.id, {
-      title: "به لیستت اضافه شد",
-      body: `${owner.name || (owner.type === "salon" ? "سالن" : "آرتیست")} حالا در «سالن و آرتیست من» است؛ از همان‌جا وقت بگیر.`
+      title: "وصل شدین",
+      body: `${owner.name || (owner.type === "salon" ? "سالن" : "آرتیست")} رفت توی «سالن و آرتیست‌هات»؛ از همون‌جا نوبت بگیر.`
     });
   }
   return json({ data: { client: result.client, alreadyConnected: result.alreadyConnected } });

@@ -48,12 +48,12 @@ function DeleteAccountConfirm({ onConfirm, onCancel, busy, error, exit = null, o
   // A salon or artist with confirmed bookings: the list of what stands in the way (owner's rules of 2026-10-22).
   const stuck = Boolean(exit?.plan && (exit.plan.blocked || exit.plan.needsChoice));
   return (
-    <div className="neoSettingsDeleteConfirm" role="alertdialog" aria-label="تایید حذف حساب">
+    <div className="neoSettingsDeleteConfirm" role="alertdialog" aria-label="پاک کردن حساب">
       <div className="neoSettingsDeleteConfirmHead">
         <AlertTriangle size={16} />
-        <b>این کار برگشت‌ناپذیر است</b>
+        <b>این کار برگشت نداره</b>
       </div>
-      <p>حساب و اطلاعاتی که فقط متعلق به خودت است برای همیشه حذف می‌شود. برای تایید، کلمه «{DELETE_CONFIRM_WORD}» را تایپ کن و رمز عبور فعلی‌ات را وارد کن.</p>
+      <p>حسابت و هر چی فقط مال خودته برای همیشه پاک می‌شه. اگه مطمئنی، کلمهٔ «{DELETE_CONFIRM_WORD}» رو بنویس و رمزت رو بزن.</p>
       <input
         type="text"
         inputMode="text"
@@ -68,7 +68,7 @@ function DeleteAccountConfirm({ onConfirm, onCancel, busy, error, exit = null, o
         autoComplete="current-password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
-        placeholder="رمز عبور فعلی"
+        placeholder="رمز فعلیت"
         disabled={busy}
       />
       {error ? <p className="neoSettingsDeleteConfirmError">{error}</p> : null}
@@ -83,7 +83,7 @@ function DeleteAccountConfirm({ onConfirm, onCancel, busy, error, exit = null, o
           onConfirm={matches ? ({ cancelAll }) => onConfirm(password, { cancelAll }) : null}
         />
       ) : null}
-      {exit?.plan && exit.plan.needsChoice && !matches ? <p className="neoSettingsDeleteConfirmError">برای «{CANCEL_ALL_AND_TEXT}» اول کلمهٔ «{DELETE_CONFIRM_WORD}» و رمزت را بنویس.</p> : null}
+      {exit?.plan && exit.plan.needsChoice && !matches ? <p className="neoSettingsDeleteConfirmError">برای «{CANCEL_ALL_AND_TEXT}» اول کلمهٔ «{DELETE_CONFIRM_WORD}» و رمزت رو بنویس.</p> : null}
       <div className="neoSettingsDeleteConfirmActions">
         <button type="button" onClick={onCancel} disabled={busy}>
           <X size={15} />
@@ -91,7 +91,7 @@ function DeleteAccountConfirm({ onConfirm, onCancel, busy, error, exit = null, o
         </button>
         <button type="button" className="is-danger" disabled={!matches || busy || stuck} onClick={() => onConfirm(password)}>
           <Trash2 size={15} />
-          {busy ? "در حال حذف…" : "تایید حذف حساب"}
+          {busy ? "دارم پاک می‌کنم…" : "پاکش کن"}
         </button>
       </div>
     </div>
@@ -198,8 +198,8 @@ export function NotificationSettings({ profileType, profileSettings, onToggle })
         icon={profileSettings.reservationAlerts ? Bell : BellOff}
         label="خبرهای داخل اپ"
         description={profileType === "client"
-          ? "وقتی اپ باز است: پیام بالای صفحه و زنگ نیم ساعت قبل از نوبت. خبر تأیید و لغو نوبت روی گوشی همیشه می‌آید."
-          : "وقتی اپ باز است: پیام بالای صفحه برای درخواست تازه، تأیید، لغو و انقضا. خبر درخواست تازه روی گوشی همیشه می‌آید."}
+          ? "وقتی اپ بازه: پیام بالای صفحه و زنگ نیم ساعت قبل از نوبت. خبر تأیید و لغو نوبت همیشه روی گوشی میاد."
+          : "وقتی اپ بازه: پیام بالای صفحه برای درخواست تازه، تأیید و لغو. خبر درخواست تازه همیشه روی گوشی میاد."}
         checked={profileSettings.reservationAlerts}
         onChange={() => onToggle("reservationAlerts")}
       />
@@ -207,7 +207,7 @@ export function NotificationSettings({ profileType, profileSettings, onToggle })
         <SettingsToggle
           icon={profileSettings.reminders ? BellRing : BellOff}
           label="یادآوری نوبت"
-          description="یک روز و دو ساعت قبل از هر نوبت تأییدشده"
+          description="یه روز و دو ساعت قبل از هر نوبت"
           checked={profileSettings.reminders !== false}
           onChange={() => onToggle("reminders")}
         />
@@ -215,7 +215,7 @@ export function NotificationSettings({ profileType, profileSettings, onToggle })
       <SettingsToggle
         icon={soundOn ? Volume2 : VolumeX}
         label="صدای اعلان‌ها"
-        description="روی همین دستگاه برای اعلان، نوبت‌ها و یادآوری پخش شود"
+        description="روی همین گوشی، برای خبرها و یادآوری‌ها"
         checked={soundOn}
         onChange={(value) => {
           setSoundOn(value);
@@ -238,8 +238,8 @@ export function ProfileVisibilitySettings({ profileType, profileSettings, onTogg
     <SettingsGroup title="نمایش برای مشتری‌ها">
       <SettingsToggle
         icon={profileSettings.publicPortfolio ? Globe : Lock}
-        label={profileType === "artist" ? "ویترین عمومی آرتیست" : "پروفایل عمومی سالن"}
-        description={profileType === "artist" ? "نمونه‌کار، خدمات و مسیر رزرو برای مشتری‌ها" : "خدمات، نمونه‌کارها، تیم و ظرفیت رزرو برای مشتری‌ها"}
+        label={profileType === "artist" ? "صفحه‌م برای همه" : "صفحهٔ سالن برای همه"}
+        description={profileType === "artist" ? "مشتری‌ها کارها و خدمت‌هات رو ببینن و نوبت بگیرن" : "مشتری‌ها خدمت‌ها، کارها و تیمت رو ببینن و نوبت بگیرن"}
         checked={profileSettings.publicPortfolio}
         onChange={() => onToggle("publicPortfolio")}
         onLabel="عمومی"
@@ -249,7 +249,7 @@ export function ProfileVisibilitySettings({ profileType, profileSettings, onTogg
         <SettingsToggle
           icon={Tag}
           label="نمایش قیمت‌ها"
-          description="قیمت خدمات در پروفایل عمومی نشان داده شود، وگرنه «تماس بگیرید»"
+          description="قیمت‌ها توی صفحه‌ت دیده بشه؛ وگرنه «زنگ بزن»"
           checked={Boolean(profileSettings.showPrices)}
           onChange={() => onToggle("showPrices")}
           onLabel="نمایش"
@@ -263,11 +263,11 @@ export function ProfileVisibilitySettings({ profileType, profileSettings, onTogg
 /** Artist booking capacity: vacation mode, direct booking, instant confirm and reminders. */
 export function ArtistBookingSettings({ profileSettings, onToggle }) {
   return (
-    <SettingsGroup title="رزرو و ظرفیت کاری">
+    <SettingsGroup title="نوبت‌ها">
       <SettingsToggle
         icon={Moon}
         label="حالت مرخصی"
-        description="نوبت‌گیری جدید موقتاً بسته شود، بدون خصوصی کردن پروفایل"
+        description="فعلاً نوبت تازه نگیر؛ صفحه‌ت سر جاش می‌مونه"
         checked={Boolean(profileSettings.vacationMode)}
         onChange={() => onToggle("vacationMode")}
         onLabel="فعال"
@@ -275,22 +275,22 @@ export function ArtistBookingSettings({ profileSettings, onToggle }) {
       />
       <SettingsToggle
         icon={CalendarCheck}
-        label="رزرو مستقیم"
-        description="مشتری از پروفایل عمومی بدون واسطه وقت بگیرد"
+        label="نوبت مستقیم"
+        description="مشتری از صفحه‌ت یه‌راست نوبت بگیره"
         checked={Boolean(profileSettings.directBooking)}
         onChange={() => onToggle("directBooking")}
       />
       <SettingsToggle
         icon={Briefcase}
         label="تأیید سریع نوبت"
-        description="نوبت‌های جدید بدون بررسی دستی تایید شوند"
+        description="نوبت‌های تازه خودشون تأیید بشن"
         checked={Boolean(profileSettings.autoConfirm)}
         onChange={() => onToggle("autoConfirm")}
       />
       <SettingsToggle
         icon={Bell}
         label="یادآوری مشتری"
-        description="یک روز و دو ساعت قبل از هر نوبت تأییدشده، برای مشتری اعلان یادآوری می‌رود"
+        description="یه روز و دو ساعت قبل از هر نوبت، به مشتری یادآوری می‌ره"
         checked={Boolean(profileSettings.reminders)}
         onChange={() => onToggle("reminders")}
       />
@@ -316,7 +316,7 @@ export function AccountSettings({ onLogout, onDeleteAccount, onNotice }) {
 
       <button type="button" className="neoSettingsLogout" onClick={onLogout}>
         <LogOut size={16} />
-        <span>خروج از حساب</span>
+        <span>خروج</span>
       </button>
 
       {onDeleteAccount ? (
@@ -342,7 +342,7 @@ export function AccountSettings({ onLogout, onDeleteAccount, onNotice }) {
                   // Confirmed bookings stand in the way: show them (the account is not deleted).
                   setDeleteExit({ plan: result.plan, message: result.error });
                 } else {
-                  setDeleteError(result.error || "رمز عبور اشتباه است.");
+                  setDeleteError(result.error || "رمز اشتباهه.");
                 }
               }
             }}
@@ -350,7 +350,7 @@ export function AccountSettings({ onLogout, onDeleteAccount, onNotice }) {
         ) : (
           <button type="button" className="neoSettingsDelete" onClick={() => setDeleteConfirmOpen(true)}>
             <Trash2 size={16} />
-            <span>حذف حساب</span>
+            <span>پاک کردن حساب</span>
           </button>
         )
       ) : null}

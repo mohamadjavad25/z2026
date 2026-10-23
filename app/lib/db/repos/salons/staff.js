@@ -201,13 +201,13 @@ export async function upsertSalonOwnerStaff(salonUserId, { name, role, photo, fa
   const saved = await get(db, "SELECT name, role, (photo <> '') AS has_photo FROM salon_owner_profile WHERE salon_user_id = $1", [salonUserId]);
   const current = await get(db, "SELECT * FROM salon_staff WHERE salon_user_id = $1 AND is_owner LIMIT 1", [salonUserId]);
   const nextName = (String(name || "").trim() || current?.name || saved?.name || String(fallbackName || "").trim()).slice(0, 80);
-  if (!nextName) return { ok: false, error: "نامت را برای نمایش در تیم وارد کن." };
+  if (!nextName) return { ok: false, error: "اسمت توی تیم چی باشه؟" };
   const clash = await get(db, `
     SELECT id FROM salon_staff WHERE salon_user_id = $1 AND name = $2 AND NOT is_owner LIMIT 1
   `, [salonUserId, nextName]);
-  if (clash) return { ok: false, error: "یکی از اعضای تیم همین نام را دارد؛ نام دیگری انتخاب کن." };
+  if (clash) return { ok: false, error: "یکی توی تیم همین اسم رو داره؛ یه اسم دیگه بزن." };
   const nextRole = role == null ? (current?.role ?? saved?.role ?? "") : String(role).trim().slice(0, 200);
-  if (photo === "own" && !saved?.has_photo) return { ok: false, error: "اول یک عکس برای خودت انتخاب کن." };
+  if (photo === "own" && !saved?.has_photo) return { ok: false, error: "اول یه عکس برای خودت انتخاب کن." };
   if (current) {
     await run(db, `
       UPDATE salon_staff SET name = $1, role = $2, state = CASE WHEN state = '' THEN 'فعال' ELSE state END,

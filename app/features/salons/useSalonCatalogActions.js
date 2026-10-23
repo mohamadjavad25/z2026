@@ -27,7 +27,7 @@ export function useSalonCatalogActions({
     if (!person) return;
     try {
       const result = await updateSalonStaffApi({ ...person, ...patch });
-      if (!notifyFromResponse(shellNotify, result, { failure: "به‌روزرسانی پرسنل انجام نشد؛ دوباره امتحان کن." })) {
+      if (!notifyFromResponse(shellNotify, result, { failure: "تیم ذخیره نشد؛ دوباره بزن." })) {
         return;
       }
       const nextStaff = Array.isArray(result.payload.data?.staff) ? result.payload.data.staff : [];
@@ -37,17 +37,17 @@ export function useSalonCatalogActions({
       if (patch.name && person.is_owner) refreshSalonSystemData();
       if (notice) shellNotify(notice);
     } catch {
-      shellNotify("به‌روزرسانی پرسنل انجام نشد؛ دوباره امتحان کن.");
+      shellNotify("تیم ذخیره نشد؛ دوباره بزن.");
     }
   }, [safeSalonStaffList, shellNotify, refreshSalonSystemData]);
 
   // The manager joins their own team (or edits their card there), so they can be assigned to services and
   // booked like anyone else. An empty body rejoins with what they entered before. Resolves to the saved
   // profile, or null when it failed.
-  const joinSalonTeamAsOwner = useCallback(async (body = {}, notice = "حالا خودت هم عضو تیمی؛ می‌توانی خدمات را به خودت بدهی و برای خودت رزرو ثبت کنی.") => {
+  const joinSalonTeamAsOwner = useCallback(async (body = {}, notice = "حالا خودت هم توی تیمی؛ می‌تونی کارها رو به خودت بدی و برای خودت نوبت ثبت کنی.") => {
     try {
       const result = await joinSalonTeamAsOwnerApi(body);
-      if (!notifyFromResponse(shellNotify, result, { failure: "اضافه شدن به تیم انجام نشد؛ دوباره امتحان کن." })) {
+      if (!notifyFromResponse(shellNotify, result, { failure: "نشد بری توی تیم؛ دوباره بزن." })) {
         return null;
       }
       const nextStaff = Array.isArray(result.payload.data?.staff) ? result.payload.data.staff : [];
@@ -57,7 +57,7 @@ export function useSalonCatalogActions({
       if (notice) shellNotify(notice);
       return result.payload.data?.profile || {};
     } catch {
-      shellNotify("اضافه شدن به تیم انجام نشد؛ دوباره امتحان کن.");
+      shellNotify("نشد بری توی تیم؛ دوباره بزن.");
       return null;
     }
   }, [setSalonStaffList, shellNotify, refreshSalonSystemData]);
@@ -66,8 +66,8 @@ export function useSalonCatalogActions({
     const person = safeSalonStaffList.find((item) => item.name === name);
     if (!person?.id) return;
     const question = person.is_owner
-      ? "خودت از تیم خارج شوی؟ اطلاعات کارتت می‌ماند و با روشن کردن دوباره برمی‌گردی. خدماتی که دستی به خودت داده بودی بدون آرتیست می‌مانند؛ رزروهای قبلی سر جایشان می‌مانند."
-      : `«${person.name}» از پرسنل حذف شود؟ این کار قابل بازگشت نیست.`;
+      ? "خودت از تیم بری بیرون؟ کارتت می‌مونه و روشنش کنی برمی‌گردی. کارهایی که دستی به خودت داده بودی بدون آرتیست می‌مونن؛ نوبت‌های قبلی سر جاشون می‌مونن."
+      : `«${person.name}» از تیم برداشته بشه؟ این کار برگشت نداره.`;
     if (typeof window !== "undefined" && !window.confirm(question)) {
       return;
     }
@@ -79,13 +79,13 @@ export function useSalonCatalogActions({
       if (!ok) {
         const refusal = exitRefusalOf(result);
         if (refusal) return { ok: false, plan: refusal.plan, message: refusal.message, refusal };
-        return { ok: false, message: payload.error || "حذف پرسنل انجام نشد؛ دوباره امتحان کن." };
+        return { ok: false, message: payload.error || "برداشته نشد؛ دوباره بزن." };
       }
       const nextStaff = Array.isArray(payload.data?.staff) ? payload.data.staff : [];
       setSalonStaffList(nextStaff);
       setSelectedStaffName(nextStaff[0]?.name || "");
       if (person.is_owner) {
-        shellNotify("از تیم بیرون آمدی؛ هر وقت دوباره روشنش کنی با همین اطلاعات برمی‌گردی.");
+        shellNotify("از تیم اومدی بیرون؛ هر وقت روشنش کنی با همین اطلاعات برمی‌گردی.");
       } else if (payload.data?.artistNotified) {
         if (typeof onArtistCollabOffersPatch === "function") {
           onArtistCollabOffersPatch((items) => items.map((offer) => (
@@ -95,9 +95,9 @@ export function useSalonCatalogActions({
               : offer
           )));
         }
-        shellNotify(`همکاری با «${name}» پایان یافت و در پروفایل آرتیست اطلاع داده شد.`);
+        shellNotify(`همکاری با «${name}» تموم شد و بهش خبر دادیم.`);
       } else {
-        shellNotify(`همکاری با «${name}» پایان یافت و از پرسنل حذف شد.`);
+        shellNotify(`همکاری با «${name}» تموم شد و از تیم برداشته شد.`);
       }
       return { ok: true };
     };
@@ -110,15 +110,15 @@ export function useSalonCatalogActions({
           params: { staffId: person.id },
           plan: result.plan,
           message: result.message,
-          title: person.is_owner ? "خروج خودت از تیم" : `برداشتن «${person.name}» از تیم`,
-          confirmLabel: person.is_owner ? "خروج از تیم" : "برداشتن از تیم",
+          title: person.is_owner ? "خودت بری بیرون از تیم؟" : `«${person.name}» از تیم برداشته بشه؟`,
+          confirmLabel: person.is_owner ? "آره، برم بیرون" : "آره، بردار",
           retry: attempt
         });
         return;
       }
       shellNotify(result.message);
     } catch {
-      shellNotify("حذف پرسنل انجام نشد؛ دوباره امتحان کن.");
+      shellNotify("برداشته نشد؛ دوباره بزن.");
     }
   }, [safeSalonStaffList, createdProfile?.id, onArtistCollabOffersPatch, shellNotify]);
 
@@ -126,13 +126,13 @@ export function useSalonCatalogActions({
     const nextHour = { ...hour, ...patch };
     try {
       const result = await updateSalonHours(nextHour);
-      if (!notifyFromResponse(shellNotify, result, { failure: "به‌روزرسانی تقویم سالن انجام نشد؛ دوباره امتحان کن." })) {
+      if (!notifyFromResponse(shellNotify, result, { failure: "ساعت کاری ذخیره نشد؛ دوباره بزن." })) {
         return;
       }
       setSalonHoursList(result.payload.data?.hours || []);
-      shellNotify(`تقویم ${nextHour.day} در دیتابیس سالن ذخیره شد.`);
+      shellNotify(`ساعت کاری ${nextHour.day} ذخیره شد.`);
     } catch {
-      shellNotify("به‌روزرسانی تقویم سالن انجام نشد؛ دوباره امتحان کن.");
+      shellNotify("ساعت کاری ذخیره نشد؛ دوباره بزن.");
     }
   }, [shellNotify]);
 
@@ -152,14 +152,14 @@ export function useSalonCatalogActions({
       const results = await Promise.all(nextHours.map((hour) => updateSalonHours(hour)));
       const failed = results.find((item) => !item.ok);
       if (failed) {
-        shellNotify(getApiErrorMessage(failed.payload, "ذخیره گزینه کلی ساعت کاری انجام نشد؛ دوباره امتحان کن."));
+        shellNotify(getApiErrorMessage(failed.payload, "ساعت کاری ذخیره نشد؛ دوباره بزن."));
         return;
       }
       const latestHours = results[results.length - 1]?.payload?.data?.hours || nextHours;
       setSalonHoursList(latestHours);
-      shellNotify("گزینه کلی ساعت کاری روی تقویم سالن اعمال شد.");
+      shellNotify("قالب ساعت کاری روی همهٔ روزها نشست.");
     } catch {
-      shellNotify("ذخیره گزینه کلی ساعت کاری انجام نشد؛ دوباره امتحان کن.");
+      shellNotify("ساعت کاری ذخیره نشد؛ دوباره بزن.");
     }
   }, [salonHoursList, shellNotify]);
 
@@ -181,15 +181,15 @@ export function useSalonCatalogActions({
         const nextHour = { ...hour, open_time: sourceHour.open_time, close_time: sourceHour.close_time, capacity: sourceHour.capacity };
         const result = await updateSalonHours(nextHour);
         if (!result.ok) {
-          shellNotify(getApiErrorMessage(result.payload, "اعمال ساعت به بقیه روزها انجام نشد؛ دوباره امتحان کن."));
+          shellNotify(getApiErrorMessage(result.payload, "ساعت روی بقیهٔ روزها ننشست؛ دوباره بزن."));
           return;
         }
         latestHours = result.payload.data?.hours || latestHours;
       }
       setSalonHoursList(latestHours);
-      shellNotify("ساعت روی بقیه روزهای باز اعمال شد.");
+      shellNotify("همین ساعت روی بقیهٔ روزهای باز نشست.");
     } catch {
-      shellNotify("اعمال ساعت به بقیه روزها انجام نشد؛ دوباره امتحان کن.");
+      shellNotify("ساعت روی بقیهٔ روزها ننشست؛ دوباره بزن.");
     }
   }, [salonHoursList, shellNotify]);
 
@@ -204,7 +204,7 @@ export function useSalonCatalogActions({
         duration: data.duration || ""
       });
       if (!ok) {
-        shellNotify(payload.error || "ذخیره خدمت انجام نشد؛ دوباره امتحان کن.");
+        shellNotify(payload.error || "خدمت ذخیره نشد؛ دوباره بزن.");
         return;
       }
       const savedService = payload.data?.service;
@@ -232,10 +232,10 @@ export function useSalonCatalogActions({
         });
       }
       await refreshSalonSystemData();
-      shellNotify("خدمت جدید در دیتابیس سالن ذخیره شد.");
+      shellNotify("خدمت تازه ذخیره شد.");
       event.currentTarget.reset();
     } catch {
-      shellNotify("ذخیره خدمت انجام نشد؛ دوباره امتحان کن.");
+      shellNotify("خدمت ذخیره نشد؛ دوباره بزن.");
     }
   }, [createdProfile?.id, createdProfile?.data?.name, syncSalonDirectory, syncSelectedSalon, refreshSalonSystemData, shellNotify]);
 
@@ -251,7 +251,7 @@ export function useSalonCatalogActions({
         staff_ids: staffId ? [String(staffId)] : []
       });
       if (!ok) {
-        shellNotify(payload.error || "انتخاب آرتیست انجام نشد؛ دوباره امتحان کن.");
+        shellNotify(payload.error || "آرتیست انتخاب نشد؛ دوباره بزن.");
         return;
       }
       const saved = payload.data?.service;
@@ -293,9 +293,9 @@ export function useSalonCatalogActions({
       }
       // The artist picker is a sheet that stays open so several artists can be ticked in a row.
       const artistName = saved?.staff_name || safeSalonStaffList.find((person) => String(person.id) === String(staffId))?.name;
-      shellNotify(artistName ? `آرتیست «${artistName}» برای «${service.name}» انتخاب شد.` : `آرتیست خدمت «${service.name}» برداشته شد.`);
+      shellNotify(artistName ? `حالا «${artistName}» «${service.name}» رو انجام می‌ده.` : `آرتیست «${service.name}» برداشته شد.`);
     } catch {
-      shellNotify("انتخاب آرتیست انجام نشد؛ دوباره امتحان کن.");
+      shellNotify("آرتیست انتخاب نشد؛ دوباره بزن.");
     }
   }, [safeSalonStaffList, syncSalonDirectory, syncSelectedSalon, refreshSalonSystemData, shellNotify]);
 
@@ -372,7 +372,7 @@ export function useSalonCatalogActions({
         const confirmed = serviceArtistConfirmedRef.current.get(key) || [];
         serviceArtistDesiredRef.current.set(key, confirmed);
         applyServiceArtists(service.id, confirmed);
-        shellNotify(error?.message || "انتخاب آرتیست ذخیره نشد؛ دوباره امتحان کن.");
+        shellNotify(error?.message || "آرتیست ذخیره نشد؛ دوباره بزن.");
       }
       // Only the last save in the queue marks the service as settled; a refresh that starts after this
       // moment sees the saved data, any earlier one is overridden by the local list.
@@ -394,21 +394,21 @@ export function useSalonCatalogActions({
   const deleteSalonService = useCallback(async (id) => {
     const target = salonServiceList.find((item) => item.id === id);
     const confirmed = typeof window === "undefined"
-      || window.confirm(target ? `«${target.name}» حذف شود؟ این کار قابل بازگشت نیست.` : "این خدمت حذف شود؟ این کار قابل بازگشت نیست.");
+      || window.confirm(target ? `«${target.name}» پاک بشه؟ این کار برگشت نداره.` : "این خدمت پاک بشه؟ این کار برگشت نداره.");
     if (!confirmed) return false;
     try {
       const result = await deleteSalonServiceApi(id);
-      if (!notifyFromResponse(shellNotify, result, { failure: "حذف خدمت انجام نشد؛ دوباره امتحان کن." })) {
+      if (!notifyFromResponse(shellNotify, result, { failure: "خدمت پاک نشد؛ دوباره بزن." })) {
         return false;
       }
       if (Array.isArray(result.payload.data?.services)) {
         setSalonServiceList(result.payload.data.services);
       }
       await refreshSalonSystemData();
-      shellNotify("خدمت حذف شد.");
+      shellNotify("خدمت پاک شد.");
       return true;
     } catch {
-      shellNotify("حذف خدمت انجام نشد؛ دوباره امتحان کن.");
+      shellNotify("خدمت پاک نشد؛ دوباره بزن.");
       return false;
     }
   }, [salonServiceList, refreshSalonSystemData, shellNotify]);

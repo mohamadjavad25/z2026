@@ -13,8 +13,8 @@ export function PushSoftAsk() {
           <div className="pushSoftAsk" role="status" aria-live="polite">
             <BellRing size={17} />
             <div>
-              <b>اعلان‌ها را فعال کن</b>
-              <small>تا از تایید، رد یا انقضای رزروهایت حتی وقتی اپ باز نیست باخبر شوی.</small>
+              <b>اعلان‌ها رو روشن کن</b>
+              <small>تا حتی وقتی اپ بسته‌ست بفهمی نوبتت تأیید شد یا نه.</small>
             </div>
             <div className="pushSoftAskActions">
               <button
@@ -24,7 +24,7 @@ export function PushSoftAsk() {
                   void subscribeToPushNotifications();
                 }}
               >
-                فعال کن
+                روشنش کن
               </button>
               <button
                 type="button"

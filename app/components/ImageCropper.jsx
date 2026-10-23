@@ -23,7 +23,7 @@ export function ImageCropper({
   shape = "rect",
   outputWidth = 1080,
   quality = 0.9,
-  hint = "تصویر را بکشید و با اسلایدر یا دو انگشت بزرگ و کوچک کنید.",
+  hint = "عکس رو بکش و با دو انگشت بزرگ‌کوچیکش کن.",
   className = ""
 }) {
   const frameRef = useRef(null);

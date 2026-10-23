@@ -16,7 +16,7 @@ export async function billingEnforced() {
   return settings.enabled && Boolean(activeGateway());
 }
 
-export const PAGE_UNAVAILABLE_MESSAGE = "این صفحه فعلاً در دسترس نیست.";
+export const PAGE_UNAVAILABLE_MESSAGE = "این صفحه فعلاً باز نیست.";
 
 /**
  * Of these provider ids, the ones to leave out of directory lists and search: a suspended account always, and a
@@ -53,5 +53,5 @@ export async function onlineBookingBlock(providerUserId, kind = "salon") {
   const closed = await closedAccountIds([id]);
   if (!closed.has(id)) return null;
   const who = kind === "artist" ? "این آرتیست" : "این سالن";
-  return { status: 403, code: "PROVIDER_INACTIVE", error: `${who} فعلاً نوبت آنلاین نمی‌گیرد. برای گرفتن نوبت، مستقیم با خودش تماس بگیر.` };
+  return { status: 403, code: "PROVIDER_INACTIVE", error: `${who} فعلاً نوبت آنلاین نمی‌گیره؛ برای نوبت مستقیم بهش زنگ بزن.` };
 }

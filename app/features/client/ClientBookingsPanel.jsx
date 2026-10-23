@@ -46,9 +46,9 @@ function noteOf(booking) {
   const when = booking.time ? `${day}، ${toPersianDigits(booking.time)}` : day;
   if (tone === "bad" && isPlaceGone(booking)) return { Icon: Ban, tone, text: `${booking.bookingSource === "artist" ? ARTIST_GONE_TEXT : SALON_GONE_TEXT}؛ نوبت ${service} لغو شد`, when };
   if (tone === "bad" && booking.cancelled_by === "provider") return { Icon: Ban, tone, text: cancelledByProviderText(booking.bookingSource === "artist" ? "artist" : "salon", booking.salonName || booking.salon_name || ""), when };
-  if (tone === "bad") return { Icon: Ban, tone, text: `رزرو ${service} در ${place} لغو شد`, when };
-  if (tone === "expired") return { Icon: TimerOff, tone, text: `${place} به رزرو ${service} جواب نداد؛ منقضی شد`, when };
-  return { Icon: CheckCircle2, tone: "done", text: `نوبت ${service} در ${place} تمام شد`, when };
+  if (tone === "bad") return { Icon: Ban, tone, text: `نوبت ${service} در ${place} لغو شد`, when };
+  if (tone === "expired") return { Icon: TimerOff, tone, text: `${place} به درخواست ${service} جواب نداد؛ تموم شد`, when };
+  return { Icon: CheckCircle2, tone: "done", text: `نوبت ${service} در ${place} انجام شد`, when };
 }
 
 function metaOf(booking) {
@@ -94,20 +94,20 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook, c
 
   return (
     <>
-      <section className="clientBookingsBoard" aria-label="رزروهای مشتری">
+      <section className="clientBookingsBoard" aria-label="نوبت‌هام">
         <div className="boardHead cbpHead">
           <div>
-            <span>نوبت‌های من</span>
-            <strong>{upcoming.length ? "وضعیت نوبت‌هایت" : "نوبت پیش‌رویی نداری"}</strong>
+            <span>نوبت‌هام</span>
+            <strong>{upcoming.length ? "چه خبر از نوبت‌هات" : "فعلاً نوبتی نداری"}</strong>
           </div>
           <button
             type="button"
             className="cbpHistoryBtn"
             onClick={() => setHistoryOpen(true)}
-            aria-label={`سابقه رزروها، ${toPersianDigits(past.length)} مورد`}
+            aria-label={`نوبت‌های قبلی، ${toPersianDigits(past.length)} تا`}
           >
             <History size={18} />
-            <span>سابقه</span>
+            <span>قبلی‌ها</span>
             {past.length ? <b>{toPersianDigits(past.length)}</b> : null}
           </button>
         </div>
@@ -148,13 +148,13 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook, c
                     {awaitingClient ? (
                       <p className="cvNote">
                         <CalendarClock size={14} aria-hidden="true" />
-                        سالن ساعت تازه‌ای پیشنهاد داده؛ کارت را باز کن و جواب بده.
+                        سالن یه ساعت تازه پیشنهاد داده؛ کارت رو باز کن و جواب بده.
                       </p>
                     ) : null}
                     {proposal ? (
                       <p className="cvNote">
                         <CalendarClock size={14} aria-hidden="true" />
-                        {booking.bookingSource === "artist" ? "آرتیست" : "سالن"} می‌خواهد نوبتت را جابه‌جا کند؛ کارت را باز کن و جواب بده.
+                        {booking.bookingSource === "artist" ? "آرتیست" : "سالن"} می‌خواد نوبتت رو جابه‌جا کنه؛ کارت رو باز کن و جواب بده.
                       </p>
                     ) : null}
                     {waitNote ? (
@@ -196,7 +196,7 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook, c
               );
             })}
             {notes.length > NOTES_SHOWN ? (
-              <li><button type="button" className="cvNotesMore" onClick={() => setHistoryOpen(true)}>{toPersianDigits(notes.length - NOTES_SHOWN)} مورد دیگر در سابقه</button></li>
+              <li><button type="button" className="cvNotesMore" onClick={() => setHistoryOpen(true)}>{toPersianDigits(notes.length - NOTES_SHOWN)} تای دیگه توی قبلی‌ها</button></li>
             ) : null}
           </ul>
         ) : null}
@@ -205,7 +205,7 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook, c
           <>
             {emptyLine ? (
               <p className="cbpEmptyLine">
-                {past.length ? "نوبت فعالی نداری؛ نوبت‌های قبلی در «سابقه» هستند." : "هنوز نوبتی نگرفتی. نوبت بعدی‌ات اینجا دیده می‌شود."}
+                {past.length ? "فعلاً نوبتی نداری؛ قبلی‌ها توی «قبلی‌ها» هستن." : "هنوز نوبتی نگرفتی؛ نوبت بعدیت اینجا میاد."}
               </p>
             ) : null}
             {emptyMascot ? <Mascot pose="no-bookings" size={190} className="cbpEmptyMascot" /> : null}
@@ -213,11 +213,11 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook, c
         ) : (
           <div className="clientBookingsEmpty">
             <Mascot pose="no-bookings" size={168} className="mascotEmpty" />
-            <b>{bookings.length ? "نوبت فعالی نداری" : "هنوز رزروی ثبت نشده"}</b>
+            <b>{bookings.length ? "فعلاً نوبتی نداری" : "هنوز نوبتی نگرفتی"}</b>
             <span>
               {bookings.length
-                ? "نوبت‌های قبلی‌ات در سابقه هستند. از بخش «رزرو» نوبت تازه بگیر."
-                : "بعد از رزرو سالن، نوبت‌ها اینجا نمایش داده می‌شوند."}
+                ? "قبلی‌ها توی «قبلی‌ها» هستن. از «نوبت» یه نوبت تازه بگیر."
+                : "اولین نوبتت رو که بگیری، اینجا میاد."}
             </span>
           </div>
         )}

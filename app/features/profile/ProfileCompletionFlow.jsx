@@ -13,20 +13,20 @@ const STEP_ICONS = { avatar: ImagePlus, area: MapPin, specialty: Sparkles, servi
 
 const STEP_COPY = {
   avatar: (isSalon) => ({
-    title: isSalon ? "لوگوی سالنت را بگذار" : "عکس پروفایلت را بگذار",
-    lead: "یک عکس واضح، اولین چیزی است که مشتری می‌بیند. بعد از انتخاب، قابش را خودت تنظیم می‌کنی."
+    title: isSalon ? "لوگوی سالنت رو بذار" : "یه عکس از خودت بذار",
+    lead: "اولین چیزیه که مشتری می‌بینه. انتخابش که کردی، قابش رو خودت تنظیم می‌کنی."
   }),
   area: () => ({
     title: "کجا کار می‌کنی؟",
-    lead: "جای دقیقت را روی نقشه پیدا می‌کنیم؛ اگر درست نبود، پین را جابه‌جا کن. مشتری‌های همان اطراف پیدایت می‌کنند."
+    lead: "جات رو روی نقشه پیدا می‌کنیم؛ اگه درست نبود، پین رو جابه‌جا کن. مشتری‌های همون دور و بر پیدات می‌کنن."
   }),
   specialty: (isSalon) => ({
-    title: isSalon ? "خدمات اصلی سالن چیست؟" : "تخصصت چیست؟",
-    lead: "هر چند مورد که انجام می‌دهی انتخاب کن؛ بعداً هر وقت خواستی عوض می‌شود."
+    title: isSalon ? "کارهای اصلی سالنت چیه؟" : "چه کارهایی می‌کنی؟",
+    lead: "هر چندتا که انجام می‌دی انتخاب کن؛ هر وقت خواستی عوضش کن."
   }),
   services: () => ({
-    title: "اولین خدمتت را به منو اضافه کن",
-    lead: "با اسم و قیمت، مشتری می‌تواند همان‌جا مستقیم برایت نوبت بگیرد."
+    title: "اولین خدمتت رو بذار توی منو",
+    lead: "با اسم و قیمت، مشتری همون‌جا ازت نوبت می‌گیره."
   })
 };
 
@@ -84,7 +84,7 @@ export function ProfileCompletionFlow({
     <ProfileSheet open hideHeader hideClose label="تکمیل پروفایل" panelClassName="pcfSheet" onClose={handleClose}>
       <div className="pcfTop">
         <span className="pcfCount">
-          {allDone ? "تمام شد" : `قدم ${toPersianDigits(Math.min(index + 1, steps.length))} از ${toPersianDigits(steps.length)}`}
+          {allDone ? "تموم شد!" : `قدم ${toPersianDigits(Math.min(index + 1, steps.length))} از ${toPersianDigits(steps.length)}`}
         </span>
         <button type="button" className="pcfClose" aria-label="بستن" onClick={onClose}>
           <X size={18} aria-hidden="true" />
@@ -100,10 +100,10 @@ export function ProfileCompletionFlow({
       {allDone ? (
         <div className="pcfStep pcfFinale" key="finale">
           <span className="pcfFinaleBadge" aria-hidden="true"><Check size={40} /></span>
-          <h3>پروفایلت کامل شد</h3>
-          <p>حالا مشتری‌ها راحت‌تر پیدایت می‌کنند و بیشتر به رزرو اعتماد می‌کنند.</p>
+          <h3>صفحه‌ت آماده‌ست!</h3>
+          <p>حالا مشتری‌ها راحت‌تر پیدات می‌کنن و با خیال راحت نوبت می‌گیرن.</p>
           <div className="pcfFooter">
-            <Button block onClick={onClose}>دیدن پروفایل</Button>
+            <Button block onClick={onClose}>ببینمش</Button>
           </div>
         </div>
       ) : current ? (
@@ -118,14 +118,14 @@ export function ProfileCompletionFlow({
             {current.id === "avatar" ? (
               <label className="pcfPick">
                 <span className="pcfPickDisc" aria-hidden="true"><ImagePlus size={34} /></span>
-                <b>انتخاب عکس از گالری</b>
-                <small>اندازه و قاب را بعد از انتخاب تنظیم می‌کنی</small>
+                <b>از گالری انتخاب کن</b>
+                <small>اندازه و قابش رو بعدش تنظیم می‌کنی</small>
                 <input className="captureInput" type="file" accept="image/*" onChange={onPickLogo} />
               </label>
             ) : null}
 
             {current.id === "area" ? (
-              <MapPinPicker saving={saving} onSave={(fields) => save(fields, "جای کارت روی نقشه ذخیره شد.")} />
+              <MapPinPicker saving={saving} onSave={(fields) => save(fields, "جات روی نقشه ذخیره شد.")} />
             ) : null}
 
             {current.id === "specialty" ? (
@@ -134,12 +134,12 @@ export function ProfileCompletionFlow({
                 options={beautySpecialtyOptions}
                 defaultValue={profile?.data?.service || ""}
                 disabled={saving}
-                onDone={(selected) => save({ service: selected.join("، ") }, "حوزه فعالیت ذخیره شد.")}
+                onDone={(selected) => save({ service: selected.join("، ") }, "کارهات ذخیره شد.")}
               />
             ) : null}
 
             {current.id === "services" ? (
-              <Button block icon={ArrowLeft} onClick={openServices}>افزودن اولین خدمت</Button>
+              <Button block icon={ArrowLeft} onClick={openServices}>اولین خدمت رو بذار</Button>
             ) : null}
           </div>
         </div>

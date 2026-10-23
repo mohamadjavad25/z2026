@@ -27,7 +27,7 @@ function TermsAgreement({ error, onChange }) {
         <a href="/terms" target="_blank" rel="noopener noreferrer">قوانین و مقررات</a>
         {" "}و{" "}
         <a href="/privacy" target="_blank" rel="noopener noreferrer">حریم خصوصی</a>
-        {" "}frfro رو خوندم و قبول دارم.
+        {" "}رو خوندم و قبول دارم.
       </span>
     </label>
     {error ? <small id={errorId} className="ui-field-error" role="alert">{error}</small> : null}
@@ -50,7 +50,7 @@ function PasswordField({ name, placeholder, autoComplete = "current-password", c
         type="button"
         className="authPasswordToggle"
         onClick={() => setVisible((v) => !v)}
-        aria-label={visible ? "پنهان کردن رمز عبور" : "نمایش رمز عبور"}
+        aria-label={visible ? "قایم کن رمز رو" : "نشونم بده رمز رو"}
       >
         {visible ? <EyeOff size={16} /> : <Eye size={16} />}
       </button>
@@ -91,13 +91,13 @@ function PasswordRecoveryPanel({ onClose, otp }) {
         body: JSON.stringify({ phone })
       });
       if (!ok) {
-        setError(payload.error || "ثبت درخواست انجام نشد.");
+        setError(payload.error || "نشد بفرستیم؛ دوباره بزن.");
         setStatus("error");
         return;
       }
       setStatus("sent");
     } catch {
-      setError("ارتباط با سرور برقرار نشد.");
+      setError("به سرور نرسیدیم؛ اینترنتت رو یه نگاه بنداز.");
       setStatus("error");
     }
   }
@@ -108,11 +108,11 @@ function PasswordRecoveryPanel({ onClose, otp }) {
         <div className="formTitle">
           <span className="formTitleIcon"><ShieldCheck size={18} /></span>
           <div>
-            <strong>رمز عبور عوض شد</strong>
-            <span>با رمز جدید وارد شو.</span>
+            <strong>رمزت عوض شد</strong>
+            <span>حالا با رمز تازه وارد شو.</span>
           </div>
         </div>
-        <button type="button" className="profileSubmit" onClick={onClose}>رفتن به ورود</button>
+        <button type="button" className="profileSubmit" onClick={onClose}>بریم ورود</button>
       </div>
     );
   }
@@ -123,20 +123,20 @@ function PasswordRecoveryPanel({ onClose, otp }) {
         <div className="formTitle">
           <span className="formTitleIcon"><ShieldCheck size={18} /></span>
           <div>
-            <strong>بازیابی رمز عبور</strong>
-            <span>کد پیامکی و رمز جدیدت را وارد کن.</span>
+            <strong>رمزت یادت رفته؟</strong>
+            <span>کدی که پیامک شد و رمز تازه‌ت رو بزن.</span>
           </div>
         </div>
         <OtpCodeStep
           phone={phone}
           purpose="reset"
           resendSeconds={otp.resendSeconds}
-          submitLabel="تغییر رمز عبور"
+          submitLabel="عوضش کن"
           onEditPhone={() => setCodeStep(false)}
           onSubmit={async (code) => {
-            if (newPassword.length < 8) return "رمز جدید باید حداقل ۸ کاراکتر باشد.";
+            if (newPassword.length < 8) return "رمز تازه دست‌کم ۸ حرف باشه.";
             const { ok, payload } = await confirmReset({ phone, code, newPassword });
-            if (!ok) return payload.error || "تغییر رمز انجام نشد.";
+            if (!ok) return payload.error || "رمز عوض نشد؛ دوباره بزن.";
             setResetDone(true);
             return "";
           }}
@@ -144,8 +144,8 @@ function PasswordRecoveryPanel({ onClose, otp }) {
           <input
             type="password"
             name="newPassword"
-            aria-label="رمز عبور جدید"
-            placeholder="رمز عبور جدید (حداقل ۸ کاراکتر)"
+            aria-label="رمز تازه"
+            placeholder="رمز تازه (دست‌کم ۸ حرف)"
             autoComplete="new-password"
             value={newPassword}
             onChange={(event) => setNewPassword(event.target.value)}
@@ -161,12 +161,12 @@ function PasswordRecoveryPanel({ onClose, otp }) {
         <div className="formTitle">
           <span className="formTitleIcon"><ShieldCheck size={18} /></span>
           <div>
-            <strong>درخواست ثبت شد</strong>
-            <span>تیم پشتیبانی طی ۲۴ ساعت با همین شماره تماس می‌گیرد.</span>
+            <strong>درخواستت رسید</strong>
+            <span>پشتیبانی تا ۲۴ ساعت دیگه به همین شماره زنگ می‌زنه.</span>
           </div>
         </div>
         <Mascot pose="done" size={140} className="mascotEmpty" />
-        <button type="button" className="profileSubmit" onClick={onClose}>بازگشت به ورود</button>
+        <button type="button" className="profileSubmit" onClick={onClose}>برگرد به ورود</button>
       </div>
     );
   }
@@ -176,14 +176,14 @@ function PasswordRecoveryPanel({ onClose, otp }) {
       <div className="formTitle">
         <span className="formTitleIcon"><ShieldCheck size={18} /></span>
         <div>
-          <strong>بازیابی رمز عبور</strong>
-          <span>{otp?.enabled ? "شماره‌ات را وارد کن تا کد پیامکی بفرستیم." : "شماره تماس حسابت را وارد کن تا پشتیبانی برای بازیابی تماس بگیرد."}</span>
+          <strong>رمزت یادت رفته؟</strong>
+          <span>{otp?.enabled ? "شماره‌ت رو بزن تا یه کد برات پیامک کنیم." : "شمارهٔ حسابت رو بزن تا پشتیبانی بهت زنگ بزنه."}</span>
         </div>
       </div>
       <input
         name="phone"
-        placeholder="شماره تماس"
-        aria-label="شماره تماس"
+        placeholder="شماره موبایل"
+        aria-label="شماره موبایل"
         inputMode="tel"
         dir="ltr"
         autoComplete="tel"
@@ -195,10 +195,10 @@ function PasswordRecoveryPanel({ onClose, otp }) {
       />
       {error ? <p className="authNotice" role="alert">{error}</p> : null}
       <button type="submit" className="profileSubmit" disabled={status === "sending"}>
-        {status === "sending" ? "در حال ارسال…" : otp?.enabled ? "ارسال کد" : "ثبت درخواست بازیابی"}
+        {status === "sending" ? "دارم می‌فرستم…" : otp?.enabled ? "کد بفرست" : "زنگم بزنید"}
       </button>
       <p className="authSwitchHint">
-        <button type="button" onClick={onClose}>بازگشت به ورود</button>
+        <button type="button" onClick={onClose}>برگرد به ورود</button>
       </p>
     </form>
   );
@@ -207,20 +207,20 @@ function PasswordRecoveryPanel({ onClose, otp }) {
 const ROLE_FORMS = {
   salon: {
     title: "سالن",
-    subtitle: "فقط چند ثانیه؛ بقیهٔ اطلاعات را بعداً با یک ضربه کامل می‌کنی.",
-    name: { label: "نام سالن", placeholder: "نام سالن" },
+    subtitle: "فقط سه تا چیز؛ بقیه‌ش بعداً.",
+    name: { label: "اسم سالن", placeholder: "اسم سالن" },
     order: ["name"]
   },
   artist: {
     title: "آرتیست",
-    subtitle: "فقط چند ثانیه؛ بقیهٔ اطلاعات را بعداً با یک ضربه کامل می‌کنی.",
-    name: { label: "نام هنری", placeholder: "نام هنری" },
+    subtitle: "فقط سه تا چیز؛ بقیه‌ش بعداً.",
+    name: { label: "اسم هنری", placeholder: "اسم هنری" },
     order: ["name"]
   },
   client: {
     title: "مشتری",
-    subtitle: "فقط چند ثانیه تا اولین رزرو.",
-    name: { label: "نام یا نام نمایشی", placeholder: "نام یا نام نمایشی" },
+    subtitle: "چند ثانیه تا اولین نوبتت.",
+    name: { label: "اسمت", placeholder: "اسمت" },
     area: { label: "شهر (اختیاری)", placeholder: "شهر (اختیاری)" },
     order: ["name", "area"]
   }
@@ -261,16 +261,16 @@ function useAuthForm(validate, onValid) {
 function PhoneAndPassword({ errors, newPassword }) {
   return (
     <div className="formRow">
-      <Field label="شماره تماس" error={errors.phone} hideLabel>
+      <Field label="شماره موبایل" error={errors.phone} hideLabel>
         {(props) => (
-          <input name="phone" placeholder="شماره تماس" inputMode="tel" dir="ltr" autoComplete="tel" maxLength={11} onInput={normalizePhoneInput} {...props} />
+          <input name="phone" placeholder="شماره موبایل" inputMode="tel" dir="ltr" autoComplete="tel" maxLength={11} onInput={normalizePhoneInput} {...props} />
         )}
       </Field>
-      <Field label="رمز عبور" error={errors.password} hideLabel>
+      <Field label="رمز" error={errors.password} hideLabel>
         {(props) => (
           <PasswordField
             name="password"
-            placeholder={newPassword ? "رمز عبور (حداقل ۸ کاراکتر)" : "رمز عبور"}
+            placeholder={newPassword ? "رمز (دست‌کم ۸ حرف)" : "رمز"}
             autoComplete={newPassword ? "new-password" : "current-password"}
             controlProps={props}
           />
@@ -284,19 +284,19 @@ function LoginForm({ authBusy, defaultPhone, onSubmit, onForgot }) {
   const form = useAuthForm(validateLogin, onSubmit);
   return (
     <form className="signupForm is-login" noValidate onSubmit={form.handleSubmit} onInput={form.onInput}>
-      <Field label="شماره تماس" error={form.errors.phone} hideLabel>
+      <Field label="شماره موبایل" error={form.errors.phone} hideLabel>
         {(props) => (
-          <input name="phone" placeholder="شماره تماس" inputMode="tel" dir="ltr" autoComplete="tel" maxLength={11} defaultValue={defaultPhone} onInput={normalizePhoneInput} {...props} />
+          <input name="phone" placeholder="شماره موبایل" inputMode="tel" dir="ltr" autoComplete="tel" maxLength={11} defaultValue={defaultPhone} onInput={normalizePhoneInput} {...props} />
         )}
       </Field>
-      <Field label="رمز عبور" error={form.errors.password} hideLabel>
-        {(props) => <PasswordField name="password" placeholder="رمز عبور" controlProps={props} />}
+      <Field label="رمز" error={form.errors.password} hideLabel>
+        {(props) => <PasswordField name="password" placeholder="رمز" controlProps={props} />}
       </Field>
       <button type="button" className="authForgotLink" onClick={onForgot}>
-        رمز عبور را فراموش کردی؟
+        رمزت یادت رفته؟
       </button>
       <button type="submit" className="profileSubmit" disabled={authBusy}>
-        {authBusy ? "در حال ورود…" : "ورود"}
+        {authBusy ? "دارم وارد می‌شم…" : "ورود"}
       </button>
     </form>
   );
@@ -326,7 +326,7 @@ function ClientSignup({ heroClass, authBusy, onBackToRole, onSwitchToLogin, onPr
       )}
       footer={(
         <p className="authSwitchHint">
-          قبلاً ثبت‌نام کردی؟{" "}
+          حساب داری؟{" "}
           <button type="button" onClick={onSwitchToLogin}>ورود</button>
         </p>
       )}
@@ -393,7 +393,7 @@ function SalonArtistSignupForm({ type, heroClass, authBusy, onBackToRole, onSwit
       <TermsAgreement error={form.errors.agreeTerms} />
       <input type="hidden" name="otpProof" value={proof} />
       <button type="submit" className="profileSubmit" disabled={authBusy}>
-        {authBusy ? "در حال ثبت…" : otp?.required ? "ادامه و تأیید شماره" : "تکمیل ثبت‌نام"}
+        {authBusy ? "دارم می‌سازم…" : otp?.required ? "ادامه و تأیید شماره" : "بساز"}
       </button>
       {codeStep ? (
         <OtpCodeStep
@@ -401,22 +401,22 @@ function SalonArtistSignupForm({ type, heroClass, authBusy, onBackToRole, onSwit
           purpose="register"
           sendExtra={{ type, name }}
           resendSeconds={otp.resendSeconds}
-          submitLabel="تأیید و ساخت حساب"
+          submitLabel="تأیید و بساز"
           busy={verifying || authBusy}
           onEditPhone={() => { setCodeStep(false); setProof(""); }}
-          editLabel="ویرایش اسم یا شماره"
+          editLabel="اسم یا شماره رو عوض کن"
           onSubmit={async (code) => {
             setVerifying(true);
             const { ok, payload } = await verifyCode(phone, code);
             setVerifying(false);
-            if (!ok) return payload.error || "تأیید کد انجام نشد.";
+            if (!ok) return payload.error || "کد تأیید نشد؛ دوباره بزن.";
             setProof(payload.data.proof);
             return "";
           }}
         />
       ) : null}
       <p className="authSwitchHint">
-        قبلاً ثبت‌نام کردی؟{" "}
+        حساب داری؟{" "}
         <button type="button" onClick={onSwitchToLogin}>
           ورود
         </button>
@@ -426,11 +426,11 @@ function SalonArtistSignupForm({ type, heroClass, authBusy, onBackToRole, onSwit
 }
 
 const GATE_TAGLINES = {
-  default: "زیبایی، فقط یک نوبت فاصله دارد",
+  default: "زیبایی، یه نوبت فاصله داره",
   login: "خوش برگشتی؛ نوبت‌هات منتظرته",
-  client: "بهترین‌ها رو پیدا کن، نوبتت رو همین‌جا بگیر",
-  salon: "سالنت رو بساز؛ رزروها و تیمت رو یک‌جا مدیریت کن",
-  artist: "نمونه‌کارهات رو نشون بده، مشتری تازه جذب کن"
+  client: "سالنت رو پیدا کن، نوبتت رو بگیر",
+  salon: "سالنت رو بیار اینجا؛ نوبت‌ها و تیمت یه‌جا",
+  artist: "کارهات رو نشون بده، مشتری بیار"
 };
 
 // Bottom of the role and login screens, browser only (never inside the app): the download link,
@@ -456,9 +456,9 @@ function gateTagline({ authMode, signupStep, profileType, arrivalIntent }) {
   // Came from a salon/artist page to book, or from a salon's team link: say what the account is for.
   if (arrivalIntent?.kind === "open") {
     const place = arrivalIntent.name ? `«${arrivalIntent.name}»` : arrivalIntent.type === "artist" ? "این آرتیست" : "این سالن";
-    return authMode === "login" ? `وارد شو تا از ${place} نوبت بگیری` : `یک حساب بساز تا از ${place} نوبت بگیری`;
+    return authMode === "login" ? `وارد شو تا از ${place} نوبت بگیری` : `یه حساب بساز تا از ${place} نوبت بگیری`;
   }
-  if (arrivalIntent?.kind === "join") return authMode === "login" ? "وارد شو تا به تیم سالن بپیوندی" : "حساب آرتیستت را بساز تا به تیم سالن بپیوندی";
+  if (arrivalIntent?.kind === "join") return authMode === "login" ? "وارد شو تا بری توی تیم سالن" : "حساب آرتیستت رو بساز تا بری توی تیم سالن";
   if (authMode === "login") return GATE_TAGLINES.login;
   if (signupStep === "form") return GATE_TAGLINES[profileType] || GATE_TAGLINES.client;
   return GATE_TAGLINES.default;
@@ -489,7 +489,7 @@ function ArrivalPlaceCard({ intent }) {
       </span>
       <span className="authArrivalText">
         <b>{place.name}</b>
-        <small>بعد از ثبت‌نام، مستقیم به خدمات {isArtist ? "همین آرتیست" : "همین سالن"} می‌روی.</small>
+        <small>بعد از ثبت‌نام، یه‌راست می‌ری سراغ خدمات {isArtist ? "همین آرتیست" : "همین سالن"}.</small>
       </span>
     </div>
   );

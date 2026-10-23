@@ -6,6 +6,7 @@ import { ServiceIcon } from "../../../components/ServiceIcon";
 
 import { useHome } from "../HomeContext";
 import { shortServiceLabel } from "../../../shared/lib/serviceBundle";
+import { bookingStatusLabel } from "../../client/bookingStatus";
 export function ClientNotificationsSheet() {
   const {
     createdProfile,
@@ -31,7 +32,7 @@ export function ClientNotificationsSheet() {
                 .sort((a, b) => new Date(toIsoLikeTimestamp(b.created_at)) - new Date(toIsoLikeTimestamp(a.created_at)))
                 .slice(0, 20);
               return recentBookingNotices.length ? (
-                <div className="reservationRequestList" aria-label="آخرین تغییرات رزروها">
+                <div className="reservationRequestList" aria-label="آخرین خبرهای نوبت‌هات">
                   {recentBookingNotices.map((booking) => {
                     const offer = booking.status === AWAITING_CLIENT;
                     const StatusIcon = offer ? CalendarClock : booking.status === "تایید شده" ? Check : booking.status === "لغو" ? X : TimerOff;
@@ -46,7 +47,7 @@ export function ClientNotificationsSheet() {
                           <div className="requestCardAside">
                             <span className="expiredNoticeTag">
                               <StatusIcon size={14} />
-                              {offer ? "ساعت تازه پیشنهاد شده" : booking.status}
+                              {offer ? "یه ساعت تازه پیشنهاد داده" : bookingStatusLabel(booking.status)}
                             </span>
                           </div>
                         </div>
@@ -59,8 +60,8 @@ export function ClientNotificationsSheet() {
                   <article>
                     <span><BellRing size={18} /></span>
                     <div>
-                      <b>هنوز اعلانی نداری</b>
-                      <small>تغییر وضعیت رزروهایت اینجا نمایش داده می‌شود.</small>
+                      <b>هنوز خبری نیست</b>
+                      <small>هر خبری از نوبت‌هات بشه، اینجا میاد.</small>
                     </div>
                   </article>
                 </div>

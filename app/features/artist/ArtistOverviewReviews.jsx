@@ -34,7 +34,7 @@ export function ArtistOverviewReviews({
         activeFilter={galleryFilter}
         onFilterChange={onGalleryFilterChange}
         onAdd={onAddWork}
-        addLabel="ایجاد پست"
+        addLabel="نمونه‌کار تازه"
         onItemClick={onItemClick}
         composeValue={composeValue}
         onComposeChange={onComposeChange}

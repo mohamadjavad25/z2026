@@ -31,7 +31,7 @@ export function useSalonInviteActions({
     try {
       const { ok, payload } = await updateSalonCollabs({ id, status });
       if (!ok) {
-        shellNotify(getApiErrorMessage(payload, "به‌روزرسانی پیشنهاد همکاری انجام نشد."));
+        shellNotify(getApiErrorMessage(payload, "جوابت ذخیره نشد؛ دوباره بزن."));
         return;
       }
       setSalonCollabRequestList(payload.data?.collabs || []);
@@ -40,10 +40,10 @@ export function useSalonInviteActions({
         setSelectedStaffName((current) => current || payload.data.staff[0]?.name || "");
       }
       shellNotify(status === "تایید شد"
-        ? (payload.data?.staffCreated ? "پیشنهاد تایید شد و آرتیست به پرسنل اضافه شد." : "پیشنهاد تایید شد؛ این آرتیست قبلا در پرسنل بود.")
-        : "پیشنهاد همکاری رد شد.");
+        ? (payload.data?.staffCreated ? "قبول کردی؛ آرتیست اومد توی تیم." : "قبول کردی؛ این آرتیست از قبل توی تیمت بود.")
+        : "پیشنهاد همکاری رو رد کردی.");
     } catch {
-      shellNotify("به‌روزرسانی پیشنهاد همکاری انجام نشد.");
+      shellNotify("جوابت ذخیره نشد؛ دوباره بزن.");
     } finally {
       salonRequestBusyIdRef.current = "";
       setSalonRequestBusyId("");
@@ -103,7 +103,7 @@ export function useSalonInviteActions({
       setNearbyArtists(filtered);
     } catch {
       setNearbyArtists([]);
-      shellNotify("لیست آرتیست‌ها دریافت نشد؛ دوباره امتحان کن.");
+      shellNotify("فهرست آرتیست‌ها نیومد؛ دوباره بزن.");
     } finally {
       setNearbyArtistsLoading(false);
     }
@@ -125,14 +125,14 @@ export function useSalonInviteActions({
         capacity: terms.capacity || ""
       });
       if (!ok) {
-        shellNotify(payload.error || "دعوت آرتیست انجام نشد.");
+        shellNotify(payload.error || "دعوت نرفت؛ دوباره بزن.");
         return;
       }
       setSalonArtistInviteList(Array.isArray(payload.data?.invites) ? payload.data.invites : []);
       setNearbyArtists((current) => current.filter((item) => Number(item.id) !== Number(artist.id)));
-      shellNotify(`دعوت برای «${artist.name || "آرتیست"}» ارسال شد؛ تا تایید آرتیست نهایی نیست.`);
+      shellNotify(`دعوت رفت برای «${artist.name || "آرتیست"}»؛ تا قبول نکنه، قطعی نیست.`);
     } catch {
-      shellNotify("دعوت آرتیست انجام نشد؛ دوباره امتحان کن.");
+      shellNotify("دعوت نرفت؛ دوباره بزن.");
     } finally {
       setArtistInviteBusyId("");
     }
@@ -142,13 +142,13 @@ export function useSalonInviteActions({
     try {
       const { ok, payload } = await deleteSalonInvite(inviteId);
       if (!ok) {
-        shellNotify(payload.error || "لغو دعوت انجام نشد.");
+        shellNotify(payload.error || "دعوت لغو نشد؛ دوباره بزن.");
         return;
       }
       setSalonArtistInviteList(Array.isArray(payload.data?.invites) ? payload.data.invites : []);
       shellNotify("دعوت لغو شد.");
     } catch {
-      shellNotify("لغو دعوت انجام نشد؛ دوباره امتحان کن.");
+      shellNotify("دعوت لغو نشد؛ دوباره بزن.");
     }
   }, [shellNotify]);
 

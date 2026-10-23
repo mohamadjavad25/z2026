@@ -42,21 +42,21 @@ export function ProfileLocationSettings({
   const hasAddress = Boolean(address);
 
   return (
-    <section className="profileLocationSettings" aria-label="ثبت لوکیشن" ref={panelRef}>
+    <section className="profileLocationSettings" aria-label="جام روی نقشه" ref={panelRef}>
       {!mapOpen && (
         <button type="button" className="profileLocationRow" onClick={() => setMapOpen(true)}>
           <span className="profileLocationRowIcon" aria-hidden="true">
             <MapPin size={17} />
           </span>
           <span className="profileLocationRowInfo">
-            <strong>ثبت لوکیشن</strong>
+            <strong>جام روی نقشه</strong>
             <span>
               {hasAddress
                 ? [address, location?.detail].filter(Boolean).join("، ")
-                : profileType === "salon" ? "روی نقشه محل سالن را مشخص کن" : "روی نقشه محل کارت رو مشخص کن"}
+                : profileType === "salon" ? "سالنت کجاست؟ روی نقشه نشونش بده" : profileType === "client" ? "تا سالن‌های نزدیکت رو ببینی" : "کجا کار می‌کنی؟ روی نقشه نشونش بده"}
             </span>
             {hasAddress && !savedPin && profileType !== "client" ? (
-              <small className="profileLocationNoPin">پین روی نقشه نداری؛ بزن و پین بگذار تا مشتری راحت پیدایت کند.</small>
+              <small className="profileLocationNoPin">هنوز پین نذاشتی؛ بزن و بذار تا مشتری راحت پیدات کنه.</small>
             ) : null}
           </span>
           {hasAddress ? (
@@ -66,7 +66,7 @@ export function ProfileLocationSettings({
               className="profileLocationRowClear"
               onClick={(e) => { e.stopPropagation(); onSave?.({ area: "" }); }}
               onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); onSave?.({ area: "" }); } }}
-              aria-label="حذف لوکیشن"
+              aria-label="پاک کردن جام از نقشه"
             >
               <X size={13} />
             </span>
@@ -83,7 +83,7 @@ export function ProfileLocationSettings({
             initialDetail={location?.detail || ""}
             askDetail={profileType !== "client"}
             saving={saving}
-            saveLabel="تایید و ذخیره لوکیشن"
+            saveLabel="همین‌جا رو ذخیره کن"
             onSave={save}
             onCancel={() => setMapOpen(false)}
           />

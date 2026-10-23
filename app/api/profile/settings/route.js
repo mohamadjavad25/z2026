@@ -20,10 +20,10 @@ async function _POST(request) {
   const body = await request.json().catch(() => ({}));
   const rawPatch = body?.settings && typeof body.settings === "object" ? body.settings : body;
   if (!rawPatch || typeof rawPatch !== "object") {
-    return NextResponse.json({ error: "درخواست نامعتبر است." }, { status: 400 });
+    return NextResponse.json({ error: "درخواست درست نرسید؛ دوباره بزن." }, { status: 400 });
   }
   const v = validateBody(settingsPatchSchema, rawPatch);
-  if (!v.ok) return NextResponse.json({ error: "مقدار تنظیمات نامعتبر است؛ دوباره امتحان کن." }, { status: 400 });
+  if (!v.ok) return NextResponse.json({ error: "تنظیمات ذخیره نشد؛ دوباره بزن." }, { status: 400 });
   const settings = await userSettings.saveSettings(auth.user.id, v.data);
   return NextResponse.json({ data: { settings } });
 }

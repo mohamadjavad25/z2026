@@ -15,7 +15,7 @@ export function phoneForSms(text) {
 export function buildInviteText({ name = "", category = "", url = "" } = {}) {
   const who = String(name || "").trim();
   const wants = category ? `برای «${category}» ` : "";
-  return `سلام${who ? `، من ${who} هستم` : ""} و می‌خواهم ${wants}از فرفرو نوبت بگیرم. اینجا ثبت‌نام کن تا رزروهایت را همین‌جا مدیریت کنی و وصل شویم: ${url}`.trim();
+  return `سلام${who ? `، ${who} هستم` : ""}! می‌خوام ${wants}از فرفرو ازت نوبت بگیرم. اینجا ثبت‌نام کن تا وصل بشیم و نوبت‌هات یه‌جا باشه: ${url}`.trim();
 }
 
 /**
@@ -24,7 +24,7 @@ export function buildInviteText({ name = "", category = "", url = "" } = {}) {
  */
 export function buildClientInviteText({ placeName = "", url = "" } = {}) {
   const place = String(placeName || "").trim();
-  return `سلام! از این به بعد می‌توانی نوبتت را${place ? ` از «${place}»` : ""} مستقیم در فرفرو بگیری، بدون تماس و انتظار. این لینک را باز کن و «وصل شو» را بزن: ${url}`.trim();
+  return `سلام! از این به بعد می‌تونی نوبتت رو${place ? ` از «${place}»` : ""} یه‌راست توی فرفرو بگیری، بی‌زنگ و بی‌انتظار. این لینک رو باز کن و «وصل شو» رو بزن: ${url}`.trim();
 }
 
 /** `sms:` link that opens the phone's messages app with the text filled in (the `?&` form works on both Android and iOS). */

@@ -64,8 +64,8 @@ export function SalonToolSheets({
               </section>
             </div>
             <div className="opsQuickActions">
-              <button type="button" onClick={() => onNotice?.("هشدار خرید مواد کم‌موجودی ثبت شد.")}>ثبت خرید مواد</button>
-              <button type="button" onClick={() => onNotice?.("چک‌لیست امروز تکمیل شد.")}>تکمیل چک‌لیست</button>
+              <button type="button" onClick={() => onNotice?.("یادت می‌ندازیم موادی که کمه رو بخری.")}>ثبت خرید مواد</button>
+              <button type="button" onClick={() => onNotice?.("چک‌لیست امروز تموم شد!")}>تکمیل چک‌لیست</button>
             </div>
           </>
         )}

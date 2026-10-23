@@ -23,7 +23,7 @@ async function _POST(request, { params }) {
   const user = await getUserFromRequest(request);
   const viewerKey = viewerKeyFor(request, user);
   const limited = await checkRateLimit(`post-view:${viewerKey}`, 120, 60 * 1000);
-  if (!limited.ok) return error("تعداد درخواست‌ها زیاد است.", 429);
+  if (!limited.ok) return error("یه کم زیاد زدی؛ چند لحظه صبر کن.", 429);
   const post = await posts.recordPostView(id, viewerKey, user?.id || null);
   if (!post) return notFound();
   return NextResponse.json({ data: { post } });

@@ -63,11 +63,11 @@ export function ClientProfileModal({ client, onClose }) {
         <div className="clientProfileInfoGrid">
           <span>
             <b>تماس</b>
-            <em dir="ltr">{client.phone || "ثبت نشده"}</em>
+            <em dir="ltr">{client.phone || "نداره"}</em>
           </span>
           <span>
-            <b>منطقه</b>
-            {client.area || "ثبت نشده"}
+            <b>کجا</b>
+            {client.area || "نگفته"}
           </span>
         </div>
 

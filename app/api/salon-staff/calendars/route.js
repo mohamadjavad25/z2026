@@ -14,7 +14,7 @@ export const runtime = "nodejs";
  * shared, never who the customer is.
  */
 async function _GET(request) {
-  const auth = await requireUserRole(request, "salon", "فقط سالن.");
+  const auth = await requireUserRole(request, "salon", "این بخش مال سالن‌هاست.");
   if (!auth.ok) return auth.response;
   const todayKey = formatPersianDateKey(new Date());
   const staff = await salons.listSalonStaff(auth.user.id);

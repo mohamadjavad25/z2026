@@ -9,7 +9,7 @@ import { receiptText } from "./billingView";
 
 export const PAYMENT_STATUS = {
   paid: { label: "پرداخت‌شده", tone: "ok" },
-  pending: { label: "در حال بررسی", tone: "wait" },
+  pending: { label: "داره چک می‌شه", tone: "wait" },
   failed: { label: "ناموفق", tone: "bad" },
   refunded: { label: "بازپرداخت‌شده", tone: "wait" }
 };
@@ -37,7 +37,7 @@ export function CopyReceiptButton({ payment }) {
   return (
     <button type="button" className="billGhostBtn" onClick={copy}>
       {state === "done" ? <Check size={16} aria-hidden="true" /> : <Copy size={16} aria-hidden="true" />}
-      {state === "done" ? "کپی شد" : state === "failed" ? "کپی نشد؛ از صفحه عکس بگیر" : "کپی رسید"}
+      {state === "done" ? "کپی شد" : state === "failed" ? "کپی نشد؛ از صفحه عکس بگیر" : "رسید رو کپی کن"}
     </button>
   );
 }
@@ -49,13 +49,13 @@ export function ReceiptDetails({ payment }) {
     ["وضعیت", <PaymentStatusChip key="status" status={chipStatus(payment)} />],
     ["پلن", payment.title],
     payment.paidFor ? ["برای", payment.paidFor] : null,
-    payment.paidBy ? ["پرداخت توسط", payment.paidBy] : null,
+    payment.paidBy ? ["پرداخت کرده", payment.paidBy] : null,
     ["مبلغ", payment.amountToman ? formatToman(payment.amountToman) : "رایگان (هدیه)"],
     payment.refId ? ["کد پیگیری بانک", <span key="ref" dir="ltr">{toPersianDigits(payment.refId)}</span>] : null,
     payment.cardPan ? ["کارت", <span key="pan" dir="ltr">{toPersianDigits(payment.cardPan)}</span>] : null,
     ["تاریخ", formatPersianDateTime(payment.paidAt || payment.createdAt)],
     payment.periodStart && payment.periodEnd ? ["اعتبار", `${formatPersianLongDate(payment.periodStart)} تا ${formatPersianLongDate(payment.periodEnd)}`] : null,
-    ["روش", payment.source === "admin" ? "ثبت‌شده توسط فرفرو" : payment.gatewayLabel],
+    ["روش", payment.source === "admin" ? "فرفرو ثبت کرده" : payment.gatewayLabel],
     payment.status === "failed" && payment.failure ? ["دلیل", payment.failure] : null,
     payment.refundedAt
       ? ["بازپرداخت", `${formatToman(payment.refundToman)} در ${formatPersianLongDate(payment.refundedAt)}${payment.refundDays ? `، ${toPersianDigits(payment.refundDays)} روز از اشتراک کم شد` : ""}`]

@@ -18,31 +18,31 @@ const HOUR = 60 * 60 * 1000;
 async function _POST(request) {
   await ensureDb();
   const user = await getUserFromRequest(request);
-  if (!user) return error("برای گزارش‌دادن باید وارد شوی.", 401);
+  if (!user) return error("برای گزارش دادن اول وارد حسابت شو.", 401);
   const body = (await readJson(request)) || {};
   const targetType = body.targetType === "post" || body.targetType === "user" ? body.targetType : "";
   const targetId = parseId(body.targetId);
   const reason = support.REPORT_REASONS.includes(body.reason) ? body.reason : "";
   const note = String(body.note || "").trim().slice(0, 500);
-  if (!targetType || !targetId || !reason) return error("درخواست نامعتبر است.", 400);
+  if (!targetType || !targetId || !reason) return error("درخواست درست نرسید؛ دوباره بزن.", 400);
 
-  if (!(await checkRateLimit(`report:${user.id}`, 10, HOUR)).ok) return error("گزارش‌های زیادی فرستادی. کمی بعد دوباره امتحان کن.", 429);
+  if (!(await checkRateLimit(`report:${user.id}`, 10, HOUR)).ok) return error("زیاد گزارش فرستادی؛ یه کم دیگه دوباره بزن.", 429);
 
   const db = await getDb();
   let ownerId;
   let label;
   if (targetType === "post") {
     const post = await get(db, "SELECT id, title, owner_user_id FROM posts WHERE id = $1", [targetId]);
-    if (!post) return error("این پست پیدا نشد.", 404);
+    if (!post) return error("این نمونه‌کار رو پیدا نکردیم.", 404);
     ownerId = post.owner_user_id;
     label = post.title;
   } else {
     const target = await get(db, "SELECT id, name FROM users WHERE id = $1", [targetId]);
-    if (!target) return error("این حساب پیدا نشد.", 404);
+    if (!target) return error("این حساب رو پیدا نکردیم.", 404);
     ownerId = target.id;
     label = target.name;
   }
-  if (ownerId === user.id) return error("نمی‌توانی مورد مربوط به خودت را گزارش کنی.", 400);
+  if (ownerId === user.id) return error("نمی‌تونی خودت رو گزارش کنی.", 400);
 
   const ticket = await support.createTicket({
     kind: "report",

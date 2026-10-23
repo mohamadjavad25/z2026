@@ -12,12 +12,12 @@ export const dynamic = "force-dynamic";
  * split «تقسیم خودکار» would make (listBookingStaffOptions). PATCH still checks every change.
  */
 async function _GET(request, { params }) {
-  const auth = await requireUserRole(request, "salon", "فقط سالن.");
+  const auth = await requireUserRole(request, "salon", "این بخش مال سالن‌هاست.");
   if (!auth.ok) return auth.response;
   const id = parseId((await params).id);
   if (!id) return notFound();
   const result = await salons.listBookingStaffOptions(id, auth.user.id);
-  if (!result) return notFound("رزرو یافت نشد.");
+  if (!result) return notFound("این نوبت رو پیدا نکردیم.");
   return json({ data: result });
 }
 

@@ -40,7 +40,7 @@ export const sandboxGateway = {
     if (payload.sandboxResult === "paid-wrong-amount") {
       return { status: "paid", refId: payload.sandboxRef, cardPan: "6037-99**-****-4242", amountRial: amountRial - 10_000, detail: "sandbox: wrong amount" };
     }
-    if (payload.sandboxResult === "cancelled") return { status: "failed", failure: "پرداخت را لغو کردی.", detail: "sandbox: cancelled" };
+    if (payload.sandboxResult === "cancelled") return { status: "failed", failure: "پرداخت رو لغو کردی.", detail: "sandbox: cancelled" };
     return { status: "unknown", detail: "sandbox: no answer yet" };
   }
 };

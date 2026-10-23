@@ -27,8 +27,8 @@ function PublicPreviewButton({ onClick }) {
       type="button"
       className="profileHeroEyeBtn"
       onClick={onClick}
-      aria-label="دیدن پروفایل عمومی"
-      title="دیدن پروفایل عمومی"
+      aria-label="صفحه‌م رو مثل مشتری ببینم"
+      title="صفحه‌م رو مثل مشتری ببینم"
     >
       <Eye size={18} />
     </button>
@@ -40,13 +40,13 @@ function AreaLine({ area, onClick, icon = false }) {
   const content = (
     <>
       {icon ? <MapPin size={14} aria-hidden="true" /> : null}
-      {area || "شهر ثبت نشده"}
+      {area || "شهرت رو بگو"}
     </>
   );
   if (typeof onClick !== "function") return <p>{content}</p>;
   return (
     <p>
-      <button type="button" className="profileHeroAreaBtn" onClick={onClick} aria-label={area ? "ویرایش لوکیشن" : "ثبت لوکیشن"}>
+      <button type="button" className="profileHeroAreaBtn" onClick={onClick} aria-label={area ? "عوض کردن جات روی نقشه" : "جام روی نقشه"}>
         {content}
       </button>
     </p>
@@ -118,7 +118,7 @@ export function ProfileHero({
           open={qrSheetOpen}
           url={salonPublicUrl}
           name={name}
-          hint="مشتری‌ها با اسکن این کد به تو وصل می‌شوند و از همان‌جا نوبت می‌گیرند. برای آوردن آرتیست به تیمت، از «پرسنل ← دعوت آرتیست» کد مخصوص تیم را نشانش بده."
+          hint="مشتری‌ها این کد رو اسکن کنن، بهت وصل می‌شن و از همون‌جا نوبت می‌گیرن. برای آوردن آرتیست به تیمت، از «پرسنل ← دعوت آرتیست» کد تیم رو نشونش بده."
           onScan={scanFromSheet}
           onOpenChange={setQrSheetOpen}
         />
@@ -139,7 +139,7 @@ export function ProfileHero({
             <span>
               <ImagePlus size={14} />
               <b>{toPersianDigits(salonStats?.posts)}</b>
-              <small>پست</small>
+              <small>نمونه‌کار</small>
             </span>
           </div>
         </div>
@@ -196,14 +196,14 @@ export function ProfileHero({
         {type !== "artist" && (
           <span>
             {type === "client"
-              ? (profile.data?.area || "آدرس ثبت نشده")
+              ? (profile.data?.area || "آدرست رو بگو")
               : desc}
           </span>
         )}
       </div>
       {type === "artist" && (
         <div className="artistHeroStats" aria-label="آمار آرتیست">
-          <span><b>{artistStats?.bookingCount ?? 0}</b> رزرو فعال</span>
+          <span><b>{toPersianDigits(artistStats?.bookingCount ?? 0)}</b> نوبت پیش‌رو</span>
         </div>
       )}
       <ProfileHeroActions
@@ -219,7 +219,7 @@ export function ProfileHero({
           open={qrSheetOpen}
           url={artistPublicUrl}
           name={name}
-          hint="مشتری‌ها با اسکن این کد به تو وصل می‌شوند و سالن‌ها تو را به تیمشان دعوت می‌کنند."
+          hint="مشتری‌ها این کد رو اسکن کنن بهت وصل می‌شن، و سالن‌ها دعوتت می‌کنن به تیمشون."
           onScan={scanFromSheet}
           onOpenChange={setQrSheetOpen}
         />

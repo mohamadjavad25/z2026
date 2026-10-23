@@ -128,26 +128,26 @@ function notifyClientOfExpiry(booking, moved = null, triedBackup = false) {
   if (booking.is_offer) {
     // The salon's new time was not answered: the time is free again, and both sides hear it.
     void sendPushToUser(clientUserId, {
-      title: "ساعت پیشنهادی منقضی شد",
-      body: `${service} — به ساعت تازه‌ای که سالن پیشنهاد داده بود جواب ندادی؛ نوبت لغو شد و وقتش آزاد شد. اگر هنوز می‌خواهی، دوباره درخواست بده.`
+      title: "ساعت پیشنهادی از دست رفت",
+      body: `${service}: به ساعتی که سالن پیشنهاد داد جواب ندادی، پس نوبت لغو شد. هنوز می‌خوای؟ دوباره درخواست بده.`
     });
     void sendPushToUser(salonUserId, {
-      title: "پیشنهاد ساعت جواب نگرفت",
-      body: `${booking.client || "مشتری"} — ${service}: مشتری به ساعت پیشنهادی جواب نداد؛ نوبت لغو شد و وقتش آزاد شد.`
+      title: "مشتری به پیشنهادت جواب نداد",
+      body: `${booking.client || "مشتری"}، ${service}: نوبت لغو شد و وقتش آزاد شد.`
     });
     return;
   }
   if (moved) {
     void sendPushToUser(clientUserId, {
       title: `درخواستت رفت برای ${moved.salonName}`,
-      body: `${service} — سالن اول در ۱ ساعت جواب نداد؛ همان درخواست را برای ${moved.salonName} فرستادیم.`
+      body: `${service}: سالن اول یه ساعت جواب نداد، پس همون درخواست رو برای ${moved.salonName} فرستادیم.`
     });
   } else {
     const push = sendPushToUser(clientUserId, {
-      title: "نوبت شما منقضی شد",
+      title: "درخواستت جواب نگرفت",
       body: triedBackup
-        ? `${service} — سالن به‌موقع جواب نداد و سالن دومت هم این نوبت را نتوانست بگیرد.`
-        : `${service} — سالن به‌موقع پاسخ نداد و نوبت به‌طور خودکار لغو شد.`
+        ? `${service}: سالن به‌موقع جواب نداد، سالن دومت هم نتونست. یه جای دیگه رو امتحان کن.`
+        : `${service}: سالن به‌موقع جواب نداد. یه ساعت یا سالن دیگه رو امتحان کن.`
     }).catch(() => null);
     // Someone no notification reaches (most iPhones) would otherwise never learn the request is over.
     smsBookingAnswer(clientUserId, { providerUserId: salonUserId, bookingDate: booking.booking_date, time: booking.time, expired: true }, push);
@@ -157,15 +157,15 @@ function notifyClientOfExpiry(booking, moved = null, triedBackup = false) {
   // ignored a request had literally zero signal anything happened: the
   // pending count just quietly dropped to zero.
   void sendPushToUser(salonUserId, {
-    title: "یک درخواست رزرو منقضی شد",
+    title: "یه درخواست بی‌جواب موند",
     body: booking.timed_out
-      ? `${booking.client || "مشتری"} — ${service} در زمانی که مشتری صبر کرد جواب نگرفت و منقضی شد.`
-      : `${booking.client || "مشتری"} — ${service} تا شروع نوبت جواب نگرفت و منقضی شد.`
+      ? `${booking.client || "مشتری"}، ${service}: تا وقتی مشتری صبر کرد جواب نگرفت.`
+      : `${booking.client || "مشتری"}، ${service}: تا شروع نوبت جواب نگرفت.`
   });
   if (moved?.booking) {
     const push = sendPushToUser(Number(moved.booking.salon_user_id), {
-      title: "درخواست رزرو جدید",
-      body: `${moved.booking.client || "مشتری"} — ${moved.booking.service || service} · ${bookingWhen(moved.booking.booking_date, moved.booking.time)}`
+      title: "درخواست تازه",
+      body: `${moved.booking.client || "مشتری"}، ${moved.booking.service || service}، ${bookingWhen(moved.booking.booking_date, moved.booking.time)}`
     }).catch(() => null);
     smsNewBookingRequest(Number(moved.booking.salon_user_id), {
       client: moved.booking.client, service: moved.booking.service || service, bookingDate: moved.booking.booking_date, time: moved.booking.time
@@ -182,28 +182,28 @@ function notifyClientOfArtistBookingExpiry(booking, moved = null, triedBackup = 
   if (moved) {
     void sendPushToUser(clientUserId, {
       title: `درخواستت رفت برای ${moved.name}`,
-      body: `${service} — آرتیست اول در ۱ ساعت جواب نداد؛ همان درخواست را برای ${moved.name} فرستادیم.`
+      body: `${service}: آرتیست اول یه ساعت جواب نداد، پس همون درخواست رو برای ${moved.name} فرستادیم.`
     });
   } else {
     const push = sendPushToUser(clientUserId, {
-      title: "نوبت شما منقضی شد",
+      title: "درخواستت جواب نگرفت",
       body: triedBackup
-        ? `${service} — آرتیست به‌موقع جواب نداد و آرتیست دومت هم این نوبت را نتوانست بگیرد.`
-        : `${service} — آرتیست به‌موقع پاسخ نداد و نوبت به‌طور خودکار لغو شد.`
+        ? `${service}: آرتیست به‌موقع جواب نداد، آرتیست دومت هم نتونست. یه جای دیگه رو امتحان کن.`
+        : `${service}: آرتیست به‌موقع جواب نداد. یه ساعت یا آرتیست دیگه رو امتحان کن.`
     }).catch(() => null);
     // Someone no notification reaches (most iPhones) would otherwise never learn the request is over.
     smsBookingAnswer(clientUserId, { providerUserId: artistUserId, bookingDate: booking.booking_date, time: booking.time, expired: true }, push);
   }
   void sendPushToUser(artistUserId, {
-    title: "یک درخواست نوبت منقضی شد",
+    title: "یه درخواست بی‌جواب موند",
     body: booking.timed_out
-      ? `${booking.client_name || booking.client || "مشتری"} — ${service} در زمانی که مشتری صبر کرد جواب نگرفت و منقضی شد.`
-      : `${booking.client_name || booking.client || "مشتری"} — ${service} تا شروع نوبت جواب نگرفت و منقضی شد.`
+      ? `${booking.client_name || booking.client || "مشتری"}، ${service}: تا وقتی مشتری صبر کرد جواب نگرفت.`
+      : `${booking.client_name || booking.client || "مشتری"}، ${service}: تا شروع نوبت جواب نگرفت.`
   });
   if (moved?.booking) {
     const push = sendPushToUser(Number(moved.booking.artist_user_id), {
-      title: moved.booking.status === "تایید شده" ? "نوبت جدید (تأیید خودکار)" : "درخواست نوبت جدید",
-      body: `${moved.booking.client_name || "مشتری"} — ${moved.booking.service || service} · ${bookingWhen(moved.booking.booking_date, moved.booking.time)}`
+      title: moved.booking.status === "تایید شده" ? "نوبت تازه (خودکار تأیید شد)" : "درخواست تازه",
+      body: `${moved.booking.client_name || "مشتری"}، ${moved.booking.service || service}، ${bookingWhen(moved.booking.booking_date, moved.booking.time)}`
     }).catch(() => null);
     if (moved.booking.status !== "تایید شده") {
       smsNewBookingRequest(Number(moved.booking.artist_user_id), {

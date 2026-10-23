@@ -8,7 +8,7 @@ import { sendCode, verifyCode } from "./otp";
 import { clearSignupDraft, readSignupDraft, saveSignupDraft } from "./signupDraft";
 
 export const PHONE_ERROR = "شماره درست نیست؛ مثلاً ۰۹۱۲۳۴۵۶۷۸۹";
-export const WRONG_CODE = "کد اشتباه است. دوباره بزن";
+export const WRONG_CODE = "کد اشتباهه؛ دوباره بزن";
 const MOBILE = /^09\d{9}$/;
 /** After this many wrong codes the visitor is offered a fresh one (with a short wait). */
 const MISTAKES_BEFORE_RESEND = 2;
@@ -34,7 +34,7 @@ function useWait() {
  * Phone and name are kept for 10 minutes in this tab (signupDraft.js) so Back/Forward does not empty the form.
  * The password is never stored.
  */
-export function ClientSignupWizard({ otp, onComplete, busy = false, onLogin = null, className = "", header = null, footer = null, submitLabel = "ساخت حساب" }) {
+export function ClientSignupWizard({ otp, onComplete, busy = false, onLogin = null, className = "", header = null, footer = null, submitLabel = "بساز" }) {
   const needsCode = Boolean(otp?.required);
   const [step, setStep] = useState("phone"); // phone | code | name | password
   const [phone, setPhone] = useState("");
@@ -71,13 +71,13 @@ export function ClientSignupWizard({ otp, onComplete, busy = false, onLogin = nu
       const { ok, payload } = await sendCode(cleanPhone, "register", { type: "client", name: "" });
       if (!ok) {
         if (payload?.code === "otp_busy") setBusyBlock(true);
-        setError(payload?.error || "ارسال پیامک انجام نشد؛ کمی بعد دوباره امتحان کن.");
+        setError(payload?.error || "پیامک نرفت؛ یه کم بعد دوباره بزن.");
         return false;
       }
       wait.start(otp?.resendSeconds || 60);
       return true;
     } catch {
-      setError("اینترنتت کند است. دوباره تلاش کن");
+      setError("اینترنتت کنده؛ دوباره بزن");
       return false;
     } finally {
       setBusyStep(false);
@@ -95,7 +95,7 @@ export function ClientSignupWizard({ otp, onComplete, busy = false, onLogin = nu
 
   async function submitCode() {
     const clean = toLatinDigits(code).trim();
-    if (!/^\d{5}$/.test(clean)) { setError("کد ۵رقمی را کامل وارد کن."); return; }
+    if (!/^\d{5}$/.test(clean)) { setError("هر ۵ رقم کد رو بزن."); return; }
     setBusyStep(true);
     setError("");
     try {
@@ -115,23 +115,23 @@ export function ClientSignupWizard({ otp, onComplete, busy = false, onLogin = nu
         if (mistakes >= MISTAKES_BEFORE_RESEND) wait.start(payload.attemptsLeft === 0 ? 0 : FRESH_CODE_WAIT);
         return;
       }
-      setError(payload?.error || "تأیید کد انجام نشد.");
+      setError(payload?.error || "کد تأیید نشد؛ دوباره بزن.");
       if (/منقضی/.test(payload?.error || "")) { setWrong(MISTAKES_BEFORE_RESEND); wait.start(0); }
     } catch {
-      setError("اینترنتت کند است. دوباره تلاش کن");
+      setError("اینترنتت کنده؛ دوباره بزن");
     } finally {
       setBusyStep(false);
     }
   }
 
   function submitName() {
-    if (!name.trim()) { setError("نام خودت را وارد کن."); return; }
+    if (!name.trim()) { setError("اسمت چیه؟"); return; }
     setError("");
     setStep("password");
   }
 
   async function submitPassword() {
-    if (password.trim().length < 8) { setError("رمز عبور باید حداقل ۸ کاراکتر باشد."); return; }
+    if (password.trim().length < 8) { setError("رمز دست‌کم ۸ حرف باشه."); return; }
     setBusyStep(true);
     setError("");
     try {
@@ -166,10 +166,10 @@ export function ClientSignupWizard({ otp, onComplete, busy = false, onLogin = nu
 
       {step === "phone" ? (
         <>
-          <h3 className="suwTitle">شمارهٔ موبایلت را بزن</h3>
-          <Field label="شماره تماس" error={error && !busyBlock ? error : ""} hideLabel>
+          <h3 className="suwTitle">شماره موبایلت چنده؟</h3>
+          <Field label="شماره موبایل" error={error && !busyBlock ? error : ""} hideLabel>
             {(props) => (
-              <input {...props} name="phone" placeholder="شماره موبایل؛ مثلاً ۰۹۱۲۳۴۵۶۷۸۹" inputMode="tel" dir="ltr" autoComplete="tel" maxLength={11} autoFocus
+              <input {...props} name="phone" placeholder="مثلاً ۰۹۱۲۳۴۵۶۷۸۹" inputMode="tel" dir="ltr" autoComplete="tel" maxLength={11} autoFocus
                 value={phone} onChange={(event) => { setPhone(toLatinDigits(event.target.value)); setError(""); setBusyBlock(false); }} />
             )}
           </Field>
@@ -179,9 +179,9 @@ export function ClientSignupWizard({ otp, onComplete, busy = false, onLogin = nu
               {onLogin ? <button type="button" className="suwLink" onClick={onLogin}>ورود با رمز</button> : null}
             </div>
           ) : null}
-          <Button type="submit" block loading={busyStep} loadingLabel="در حال ارسال…">{needsCode ? "دریافت کد" : "ادامه"}</Button>
+          <Button type="submit" block loading={busyStep} loadingLabel="دارم می‌فرستم…">{needsCode ? "کد بفرست" : "ادامه"}</Button>
           <p className="suwTerms">
-            با ادامه دادن، <a href="/terms" target="_blank" rel="noopener noreferrer">قوانین</a> را می‌پذیرم
+            با ادامه، <a href="/terms" target="_blank" rel="noopener noreferrer">قوانین</a> رو قبول داری
             {" "}<span aria-hidden="true">·</span>{" "}
             <a href="/privacy" target="_blank" rel="noopener noreferrer">حریم خصوصی</a>
           </p>
@@ -191,8 +191,8 @@ export function ClientSignupWizard({ otp, onComplete, busy = false, onLogin = nu
       {step === "code" ? (
         <>
           <button type="button" className="suwChange" onClick={changePhone}>تغییر شماره</button>
-          <h3 className="suwTitle">کد پیامک‌شده را بزن</h3>
-          <p className="suwHint">کد ۵رقمی برای <b dir="ltr">{toPersianDigits(cleanPhone)}</b> رفت.</p>
+          <h3 className="suwTitle">کدی که پیامک شد رو بزن</h3>
+          <p className="suwHint">کد ۵رقمی برای <b dir="ltr">{toPersianDigits(cleanPhone)}</b> فرستادیم.</p>
           {verified ? (
             <p className="suwOk" role="status"><span className="suwTick" aria-hidden="true"><Check size={18} strokeWidth={3} /></span> شماره تأیید شد</p>
           ) : (
@@ -205,17 +205,17 @@ export function ClientSignupWizard({ otp, onComplete, busy = false, onLogin = nu
               </Field>
               {attemptsLeft !== null && wrong > 0 ? (
                 <p className="suwHint" role="status">
-                  {attemptsLeft > 0 ? `${toPersianDigits(attemptsLeft)} بار دیگر می‌توانی امتحان کنی` : "این کد دیگر کار نمی‌کند؛ کد تازه بگیر."}
+                  {attemptsLeft > 0 ? `${toPersianDigits(attemptsLeft)} بار دیگه می‌تونی امتحان کنی` : "این کد دیگه کار نمی‌کنه؛ یه کد تازه بگیر."}
                 </p>
               ) : null}
-              <Button type="submit" block loading={busyStep} loadingLabel="در حال بررسی…" disabled={attemptsLeft === 0}>تأیید</Button>
+              <Button type="submit" block loading={busyStep} loadingLabel="دارم چک می‌کنم…" disabled={attemptsLeft === 0}>تأیید</Button>
               {showFresh ? (
                 <button type="button" className="suwLink" disabled={freshWaiting || busyStep}
                   onClick={async () => { if (await sendTheCode()) { setCode(""); setWrong(0); setAttemptsLeft(null); } }}>
                   {freshWaiting ? `کد تازه بفرست (${toPersianDigits(wait.left)})` : "کد تازه بفرست"}
                 </button>
               ) : (
-                <p className="suwHint">کد نرسید؟ بعد از {toPersianDigits(wait.left)} ثانیه می‌توانی دوباره بگیری.</p>
+                <p className="suwHint">کد نرسید؟ بعد از {toPersianDigits(wait.left)} ثانیه دیگه می‌تونی دوباره بگیری.</p>
               )}
             </>
           )}
@@ -224,10 +224,10 @@ export function ClientSignupWizard({ otp, onComplete, busy = false, onLogin = nu
 
       {step === "name" ? (
         <>
-          <h3 className="suwTitle">اسمت چیست؟</h3>
-          <Field label="نام" error={error} hideLabel>
+          <h3 className="suwTitle">اسمت چیه؟</h3>
+          <Field label="اسم" error={error} hideLabel>
             {(props) => (
-              <input {...props} name="name" placeholder="نام یا نام نمایشی" autoComplete="name" autoFocus
+              <input {...props} name="name" placeholder="اسمت" autoComplete="name" autoFocus
                 value={name} onChange={(event) => { setName(event.target.value); setError(""); }} />
             )}
           </Field>
@@ -238,19 +238,19 @@ export function ClientSignupWizard({ otp, onComplete, busy = false, onLogin = nu
 
       {step === "password" ? (
         <>
-          <h3 className="suwTitle">یک رمز برای خودت بساز</h3>
-          <Field label="رمز عبور" error={error} hint="حداقل ۸ کاراکتر" hideLabel>
+          <h3 className="suwTitle">یه رمز برای خودت بذار</h3>
+          <Field label="رمز" error={error} hint="دست‌کم ۸ حرف" hideLabel>
             {(props) => (
               <div className="suwPassword">
-                <input {...props} name="password" type={showPassword ? "text" : "password"} placeholder="رمز عبور (حداقل ۸ کاراکتر)" autoComplete="new-password" autoFocus
+                <input {...props} name="password" type={showPassword ? "text" : "password"} placeholder="رمز (دست‌کم ۸ حرف)" autoComplete="new-password" autoFocus
                   value={password} onChange={(event) => { setPassword(event.target.value); setError(""); }} />
-                <button type="button" className="suwEye" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? "پنهان کردن رمز عبور" : "نمایش رمز عبور"}>
+                <button type="button" className="suwEye" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? "قایم کن رمز رو" : "نشونم بده رمز رو"}>
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
             )}
           </Field>
-          <Button type="submit" block loading={busyStep || busy} loadingLabel="در حال ساختن حساب…">{submitLabel}</Button>
+          <Button type="submit" block loading={busyStep || busy} loadingLabel="دارم حسابت رو می‌سازم…">{submitLabel}</Button>
           <button type="button" className="suwLink" onClick={() => { setError(""); setStep("name"); }}>برگشت</button>
         </>
       ) : null}

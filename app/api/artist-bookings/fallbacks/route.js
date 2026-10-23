@@ -20,14 +20,14 @@ async function _GET(request) {
   if (auth.user.type !== "client") return json({ data: { artists: [] } });
   const { searchParams } = new URL(request.url);
   const artistUserId = Number(searchParams.get("artistUserId"));
-  if (!artistUserId) return json({ error: "آرتیست نامعتبر است." }, { status: 400 });
+  if (!artistUserId) return json({ error: "این آرتیست رو پیدا نکردیم." }, { status: 400 });
   const service = String(searchParams.get("service") || "").trim();
-  if (!service || service.length > 200) return json({ error: "خدمت نامعتبر است." }, { status: 400 });
+  if (!service || service.length > 200) return json({ error: "یه کار انتخاب کن." }, { status: 400 });
   const bookingDateKey = strictDayKey(String(searchParams.get("day") || "").trim());
-  if (!bookingDateKey) return json({ error: "روز رزرو نامعتبر است." }, { status: 400 });
+  if (!bookingDateKey) return json({ error: "این روز رو نفهمیدیم؛ دوباره انتخاب کن." }, { status: 400 });
   const rawTime = String(searchParams.get("time") || "").trim();
   const time = rawTime ? parseBookingTime(rawTime) : "";
-  if (rawTime && !time) return json({ error: "ساعت رزرو نامعتبر است." }, { status: 400 });
+  if (rawTime && !time) return json({ error: "این ساعت رو نفهمیدیم؛ دوباره انتخاب کن." }, { status: 400 });
   const list = await listFallbackArtists({ clientUserId: auth.user.id, artistUserId, service, bookingDateKey, time });
   return json({ data: { artists: list } });
 }

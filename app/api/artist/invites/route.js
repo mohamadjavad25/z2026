@@ -5,7 +5,7 @@ import { notifyConnection } from "../../../lib/connectionNotify.js";
 export const runtime = "nodejs";
 
 async function _GET(request) {
-  const auth = await requireUserRole(request, "artist", "فقط آرتیست.");
+  const auth = await requireUserRole(request, "artist", "این بخش مال آرتیست‌هاست.");
   if (!auth.ok) return auth.response;
   const { searchParams } = new URL(request.url);
   const status = searchParams.get("status") || undefined;
@@ -18,7 +18,7 @@ async function _GET(request) {
 }
 
 async function _PATCH(request) {
-  const auth = await requireUserRole(request, "artist", "فقط آرتیست.");
+  const auth = await requireUserRole(request, "artist", "این بخش مال آرتیست‌هاست.");
   if (!auth.ok) return auth.response;
   const body = await request.json();
   const result = await salons.respondArtistSalonInvite(Number(body.id), auth.user.id, body.status);
@@ -29,10 +29,10 @@ async function _PATCH(request) {
   }
   const accepted = result.invite?.status === "تایید شد";
   notifyConnection(result.invite?.salonId, {
-    title: accepted ? "آرتیست به تیم پیوست" : "دعوت رد شد",
+    title: accepted ? "آرتیست اومد توی تیمت" : "آرتیست دعوتت رو نخواست",
     body: accepted
-      ? `${auth.user.name || "آرتیست"} دعوتت را پذیرفت و حالا عضو تیم است.`
-      : `${auth.user.name || "آرتیست"} دعوتت را نپذیرفت.`,
+      ? `${auth.user.name || "آرتیست"} دعوتت رو قبول کرد و حالا توی تیمته.`
+      : `${auth.user.name || "آرتیست"} فعلاً نمی‌تونه بیاد توی تیمت.`,
     url: "/"
   });
   return json({

@@ -41,10 +41,10 @@ async function _POST(request) {
     const data = v.data;
 
     if (isImageDataUrlTooLarge(data.avatar) || isImageDataUrlTooLarge(data.poster)) {
-      return NextResponse.json({ error: "حجم عکس بیش از حد مجاز (۵ مگابایت) است." }, { status: 413 });
+      return NextResponse.json({ error: "عکس بزرگ‌تر از ۵ مگابایته؛ یه عکس کوچیک‌تر بذار." }, { status: 413 });
     }
     if (isImageDataUrlInvalidType(data.avatar) || isImageDataUrlInvalidType(data.poster)) {
-      return NextResponse.json({ error: "فرمت عکس پشتیبانی نمی‌شود." }, { status: 400 });
+      return NextResponse.json({ error: "این نوع عکس رو نمی‌شناسیم؛ JPG یا PNG بذار." }, { status: 400 });
     }
 
     const patch = {
@@ -68,12 +68,12 @@ async function _POST(request) {
     // booking SMS goes, so nobody may point their account at a number they have not shown they own.
     const phoneChanging = data.phone !== undefined && data.phone !== auth.user.phone;
     if (phoneChanging) {
-      if (!isValidIranMobile(data.phone)) return NextResponse.json({ error: "شماره موبایل نامعتبر است." }, { status: 400 });
+      if (!isValidIranMobile(data.phone)) return NextResponse.json({ error: "شماره موبایل درست نیست؛ این‌جوری بزن: ۰۹۱۲…" }, { status: 400 });
       if (!verifyOtpProof(data.phoneProof, data.phone, phoneChangePurpose(auth.user.id))) {
-        return NextResponse.json({ error: "برای تغییر شماره، اول کد پیامک‌شده به شماره جدید را وارد کن.", code: "phone_proof_required" }, { status: 400 });
+        return NextResponse.json({ error: "برای عوض کردن شماره، اول کدی که به شماره‌ی تازه اومد رو بزن.", code: "phone_proof_required" }, { status: 400 });
       }
       if (await users.getUserByPhone(data.phone)) {
-        return NextResponse.json({ error: "این شماره برای حساب دیگری ثبت شده است.", code: "phone_taken" }, { status: 409 });
+        return NextResponse.json({ error: "این شماره مال یه حساب دیگه‌ست.", code: "phone_taken" }, { status: 409 });
       }
       patch.phoneVerified = true;
     }
@@ -92,10 +92,10 @@ async function _POST(request) {
 
     if (data.password) {
       if (!data.currentPassword) {
-        return NextResponse.json({ error: "برای تغییر رمز، رمز فعلی را وارد کن." }, { status: 400 });
+        return NextResponse.json({ error: "برای عوض کردن رمز، رمز فعلیت رو بزن." }, { status: 400 });
       }
       if (!verifyPassword(data.currentPassword, auth.user.password_hash)) {
-        return NextResponse.json({ error: "رمز فعلی نادرست است." }, { status: 400 });
+        return NextResponse.json({ error: "رمز فعلی اشتباهه." }, { status: 400 });
       }
       patch.password_hash = hashPassword(data.password);
     }
@@ -105,7 +105,7 @@ async function _POST(request) {
   } catch (error) {
     // Two accounts proving the same new number at the same moment: the database's unique number wins.
     if (error?.code === "23505" && /phone/i.test(String(error?.constraint || error?.detail || ""))) {
-      return NextResponse.json({ error: "این شماره برای حساب دیگری ثبت شده است.", code: "phone_taken" }, { status: 409 });
+      return NextResponse.json({ error: "این شماره مال یه حساب دیگه‌ست.", code: "phone_taken" }, { status: 409 });
     }
     const badInput = clientErrorResponse(error);
     if (badInput) return badInput;
@@ -125,10 +125,10 @@ async function _DELETE(request) {
   const body = (await readJson(request)) || {};
   const currentPassword = typeof body?.currentPassword === "string" ? body.currentPassword : "";
   if (!currentPassword) {
-    return NextResponse.json({ error: "برای حذف حساب، رمز عبور فعلی را وارد کن." }, { status: 400 });
+    return NextResponse.json({ error: "برای پاک کردن حساب، رمزت رو بزن." }, { status: 400 });
   }
   if (!verifyPassword(currentPassword, auth.user.password_hash)) {
-    return NextResponse.json({ error: "رمز فعلی نادرست است." }, { status: 400 });
+    return NextResponse.json({ error: "رمز فعلی اشتباهه." }, { status: 400 });
   }
   // A salon or artist is never deleted while a confirmed booking starts within 24 hours; farther confirmed bookings are
   // cancelled one by one or all together with notice (owner's rules of 2026-10-22, providerExit.js). Clients just go.

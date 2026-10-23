@@ -44,7 +44,7 @@ async function _POST(request) {
     const data = body.data || body;
 
     if (!phone || !password) {
-      return NextResponse.json({ error: "شماره و رمز عبور لازم است." }, { status: 400 });
+      return NextResponse.json({ error: "شماره و رمزت رو بزن." }, { status: 400 });
     }
     if (!isValidIranMobile(phone)) {
       return NextResponse.json({ error: "شماره تماس باید یک شماره موبایل معتبر ایران باشد (مثلا 09123456789)." }, { status: 400 });
@@ -53,13 +53,13 @@ async function _POST(request) {
     // Phone verification: required once SMS is on and FRFRO_OTP_REQUIRED=1; a proof that is sent must always be valid.
     const proof = String(body.otpProof || "");
     if ((otpConfig().required || proof) && !verifyOtpProof(proof, phone, "register")) {
-      return NextResponse.json({ error: "شمارهٔ موبایلت هنوز با کد پیامکی تأیید نشده است.", code: "otp_required" }, { status: 400 });
+      return NextResponse.json({ error: "اول کد پیامکی رو بزن تا شماره‌ت تأیید شه.", code: "otp_required" }, { status: 400 });
     }
     const phoneVerified = Boolean(proof);
     // Same rule the sign-up form and the SMS password reset already apply; checked here too so a direct API call
     // cannot set a one-letter password.
     if (password.length > MAX_PASSWORD_LENGTH) {
-      return NextResponse.json({ error: "رمز عبور خیلی بلند است." }, { status: 400 });
+      return NextResponse.json({ error: "رمزت خیلی بلنده؛ کوتاه‌ترش کن." }, { status: 400 });
     }
     if (password.trim().length < MIN_PASSWORD_LENGTH) {
       return NextResponse.json({ error: `رمز عبور باید حداقل ${toPersianDigits(MIN_PASSWORD_LENGTH)} کاراکتر باشد.` }, { status: 400 });
@@ -69,7 +69,7 @@ async function _POST(request) {
     const ipLimited = limited.ok ? await checkIpRateLimit(request, "register", REGISTER_IP_LIMIT, REGISTER_WINDOW_MS) : limited;
     if (!limited.ok || !ipLimited.ok) {
       return NextResponse.json(
-        { error: "تلاش‌های ثبت‌نام زیاد بود. کمی بعد دوباره امتحان کن.", code: "rate_limited" },
+        { error: "زیاد امتحان کردی؛ چند دقیقه دیگه دوباره بزن.", code: "rate_limited" },
         { status: 429 }
       );
     }
@@ -78,18 +78,18 @@ async function _POST(request) {
     });
     if (!fields.ok) return fields.response;
     if (!["client", "artist", "salon"].includes(type)) {
-      return NextResponse.json({ error: "نقش نامعتبر است." }, { status: 400 });
+      return NextResponse.json({ error: "مشتری هستی، سالن یا آرتیست؟ یکی رو بزن." }, { status: 400 });
     }
     // The operator can pause new accounts per role from the admin panel (Settings). A failed read keeps sign-up open.
     const signups = await getSetting("signups").catch(() => null);
     if (signups && signups[type] === false) {
       return NextResponse.json(
-        { error: signups.message || "ثبت‌نام جدید فعلاً بسته است. کمی بعد دوباره سر بزن.", code: "signups_closed" },
+        { error: signups.message || "ثبت‌نام فعلاً بسته‌ست؛ یه کم دیگه سر بزن.", code: "signups_closed" },
         { status: 403 }
       );
     }
     if (await users.getUserByPhone(phone)) {
-      return NextResponse.json({ error: "این شماره قبلاً ثبت شده است." }, { status: 409 });
+      return NextResponse.json({ error: "با این شماره قبلاً حساب ساختی؛ وارد شو." }, { status: 409 });
     }
     if (hasUniqueName(type) && (await users.isBusinessNameTaken(fields.data.name))) {
       return NextResponse.json({ error: NAME_TAKEN_MESSAGE, code: "name_taken" }, { status: 409 });
@@ -97,10 +97,10 @@ async function _POST(request) {
     // Same server-side checks /api/profile already applies to an avatar update --
     // an unauthenticated signup shouldn't be the one upload path without them.
     if (isImageDataUrlTooLarge(data.avatar)) {
-      return NextResponse.json({ error: "حجم عکس بیش از حد مجاز (۵ مگابایت) است." }, { status: 413 });
+      return NextResponse.json({ error: "عکس بزرگ‌تر از ۵ مگابایته؛ یه عکس کوچیک‌تر بذار." }, { status: 413 });
     }
     if (isImageDataUrlInvalidType(data.avatar)) {
-      return NextResponse.json({ error: "فرمت عکس پشتیبانی نمی‌شود." }, { status: 400 });
+      return NextResponse.json({ error: "این نوع عکس رو نمی‌شناسیم؛ JPG یا PNG بذار." }, { status: 400 });
     }
 
     const newAccount = {
@@ -137,7 +137,7 @@ async function _POST(request) {
     return response;
   } catch (error) {
     // Two sign-ups for one number at the same moment: the database's unique key lets exactly one through.
-    if (error?.code === "23505") return NextResponse.json({ error: "این شماره قبلاً ثبت شده است." }, { status: 409 });
+    if (error?.code === "23505") return NextResponse.json({ error: "با این شماره قبلاً حساب ساختی؛ وارد شو." }, { status: 409 });
     const badInput = clientErrorResponse(error);
     if (badInput) return badInput;
     console.error(error);

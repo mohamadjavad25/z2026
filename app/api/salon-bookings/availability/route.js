@@ -34,13 +34,13 @@ async function _GET(request) {
   if (!auth.ok) return auth.response;
   const { searchParams } = new URL(request.url);
   const salonUserId = Number(searchParams.get("salonUserId"));
-  if (!salonUserId) return noStoreJson({ error: "شناسه سالن نامعتبر است." }, { status: 400 });
+  if (!salonUserId) return noStoreJson({ error: "این سالن رو پیدا نکردیم." }, { status: 400 });
   const day = String(searchParams.get("day") || "").trim();
   const bookingDateKey = strictDayKey(day);
   if (!day || !bookingDateKey) return noStoreJson({ error: "روز رزرو مشخص نیست." }, { status: 400 });
   const names = searchParams.getAll("service").map((name) => name.trim()).filter(Boolean);
   if (!names.length || names.length > MAX_BOOKING_PARTS || names.some((name) => name.length > 120)) {
-    return noStoreJson({ error: "فهرست خدمات نامعتبر است." }, { status: 400 });
+    return noStoreJson({ error: "کارها درست نرسید؛ دوباره انتخاب کن." }, { status: 400 });
   }
   // A salon that takes no new requests (suspended, or its subscription closed) offers no free times to anyone but itself.
   if (auth.user.id !== salonUserId && await onlineBookingBlock(salonUserId, "salon")) {
@@ -52,7 +52,7 @@ async function _GET(request) {
   // It only decides what the page shows: booking itself re-checks under row locks.
   // A group (2 or 3 people at the same time, a client's request only) needs that many artists free together.
   const people = isClient ? Math.max(1, Math.min(MAX_GROUP_PEOPLE, Math.floor(Number(searchParams.get("people"))) || 1)) : 1;
-  if (names.length * people > MAX_BOOKING_PARTS) return noStoreJson({ error: "فهرست خدمات نامعتبر است." }, { status: 400 });
+  if (names.length * people > MAX_BOOKING_PARTS) return noStoreJson({ error: "کارها درست نرسید؛ دوباره انتخاب کن." }, { status: 400 });
   const key = availabilityKey(salonUserId, bookingDateKey, [...names.map((service, index) => ({ service, minutes: minutes[index] || 0 })), ...(people > 1 ? [{ service: "people", minutes: people }] : [])], isClient);
   const outcome = await cachedAvailability(salonUserId, key, () => computeTimes(salonUserId, bookingDateKey, names, minutes, isClient, people));
   if (outcome.error) return noStoreJson({ error: outcome.error }, { status: outcome.status });

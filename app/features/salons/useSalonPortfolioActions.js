@@ -60,17 +60,17 @@ export function useSalonPortfolioActions({
     const isPublic = salonWorkDraft.isPublic !== false;
     const featured = Boolean(salonWorkDraft.featured);
     if (!image) {
-      shellNotify("اول یک عکس برای پست انتخاب کن.");
+      shellNotify("اول یه عکس انتخاب کن.");
       return;
     }
     if (!title) {
-      shellNotify("عنوان پست را وارد کن.");
+      shellNotify("یه عنوان بنویس.");
       return;
     }
     // A category is asked for only when the menu has services to pick from.
     const hasServices = salonServiceList.some((item) => String(item?.name || "").trim());
     if (!tag && hasServices) {
-      shellNotify("دسته پست را از بین خدمات انتخاب کن.");
+      shellNotify("بگو این کار مال کدوم خدمته.");
       return;
     }
 
@@ -88,14 +88,14 @@ export function useSalonPortfolioActions({
           featured
         });
         if (!ok) {
-          shellNotify(payload.error || "ویرایش پست انجام نشد؛ دوباره امتحان کن.");
+          shellNotify(payload.error || "ذخیره نشد؛ دوباره بزن.");
           return;
         }
         const savedItem = payload.data?.item;
         if (savedItem) {
           setSalonPortfolioList((items) => items.map((item) => (String(item.id) === String(savedItem.id) ? { ...item, ...savedItem } : item)));
         }
-        shellNotify(isPublic ? "پست به‌روزرسانی شد." : "پست به‌روزرسانی شد و فقط خودت می‌بینی.");
+        shellNotify(isPublic ? "ذخیره شد." : "ذخیره شد؛ فقط خودت می‌بینیش.");
         void Promise.all([
           refreshSalonSystemData(),
           typeof onPostsChanged === "function" ? onPostsChanged() : null
@@ -110,14 +110,14 @@ export function useSalonPortfolioActions({
           featured
         });
         if (!ok) {
-          shellNotify(payload.error || "ذخیره نمونه‌کار انجام نشد؛ دوباره امتحان کن.");
+          shellNotify(payload.error || "نمونه‌کار ذخیره نشد؛ دوباره بزن.");
           return;
         }
         // Show the new post immediately from the API response; the heavy
         // refreshes (workspace, public directory) run in the background.
         const createdItem = payload.data?.item;
         if (createdItem) setSalonPortfolioList((items) => [createdItem, ...items]);
-        shellNotify(isPublic ? "پست منتشر شد." : "پست ذخیره شد و فقط خودت می‌بینی.");
+        shellNotify(isPublic ? "نمونه‌کارت رفت توی ویترین!" : "ذخیره شد؛ فقط خودت می‌بینیش.");
         void Promise.all([
           refreshSalonSystemData(),
           typeof onPostsChanged === "function" ? onPostsChanged() : null
@@ -125,7 +125,7 @@ export function useSalonPortfolioActions({
       }
       resetPortfolioComposer();
     } catch {
-      shellNotify(isNew ? "ذخیره نمونه‌کار انجام نشد؛ دوباره امتحان کن." : "ویرایش پست انجام نشد؛ دوباره امتحان کن.");
+      shellNotify(isNew ? "نمونه‌کار ذخیره نشد؛ دوباره بزن." : "ذخیره نشد؛ دوباره بزن.");
     } finally {
       setPortfolioSaving(false);
     }
@@ -133,22 +133,22 @@ export function useSalonPortfolioActions({
 
   const deleteSalonPortfolio = useCallback(async (id) => {
     if (!id) return;
-    if (typeof window !== "undefined" && !window.confirm("این پست حذف شود؟")) return;
+    if (typeof window !== "undefined" && !window.confirm("این نمونه‌کار پاک بشه؟")) return;
     try {
       const { ok, payload } = await deleteSalonPortfolioApi(id);
       if (!ok) {
-        shellNotify(payload.error || "حذف پست انجام نشد؛ دوباره امتحان کن.");
+        shellNotify(payload.error || "پاک نشد؛ دوباره بزن.");
         return;
       }
       setSalonPortfolioList((items) => items.filter((item) => String(item.id) !== String(id)));
       if (salonWorkDraft?.id === id) resetPortfolioComposer();
-      shellNotify("پست سالن حذف شد.");
+      shellNotify("نمونه‌کار پاک شد.");
       void Promise.all([
         refreshSalonSystemData(),
         typeof onPostsChanged === "function" ? onPostsChanged() : null
       ]).catch(() => {});
     } catch {
-      shellNotify("حذف پست انجام نشد؛ دوباره امتحان کن.");
+      shellNotify("پاک نشد؛ دوباره بزن.");
     }
   }, [shellNotify, refreshSalonSystemData, onPostsChanged, salonWorkDraft, resetPortfolioComposer]);
 
@@ -169,13 +169,13 @@ export function useSalonPortfolioActions({
         ? await updateSalonServiceApi({ id: editingId, ...body })
         : await createSalonServiceApi(body);
       if (!ok) {
-        shellNotify(payload.error || (editingId ? "ویرایش خدمت انجام نشد." : "افزودن خدمت انجام نشد."));
+        shellNotify(payload.error || (editingId ? "خدمت ذخیره نشد؛ دوباره بزن." : "خدمت اضافه نشد؛ دوباره بزن."));
         return false;
       }
       await refreshSalonSystemData();
       return true;
     } catch {
-      shellNotify(editingId ? "ویرایش خدمت انجام نشد." : "افزودن خدمت انجام نشد.");
+      shellNotify(editingId ? "خدمت ذخیره نشد؛ دوباره بزن." : "خدمت اضافه نشد؛ دوباره بزن.");
       return false;
     }
   }, [shellNotify, refreshSalonSystemData]);

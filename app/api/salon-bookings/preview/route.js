@@ -41,11 +41,11 @@ async function _GET(request) {
   if (!auth.ok) return auth.response;
   const { searchParams } = new URL(request.url);
   const salonUserId = Number(searchParams.get("salonUserId"));
-  if (!salonUserId) return noStoreJson({ error: "شناسه سالن نامعتبر است." }, { status: 400 });
+  if (!salonUserId) return noStoreJson({ error: "این سالن رو پیدا نکردیم." }, { status: 400 });
   const owner = auth.user.type === "salon" && auth.user.id === salonUserId;
   if (!owner && auth.user.type !== "client") return noStoreJson({ error: "فقط مشتری یا خود سالن." }, { status: 403 });
   const limited = await checkRateLimit(`visit-preview:${auth.user.id}`, 120, 60_000);
-  if (!limited.ok) return noStoreJson({ error: "درخواست‌های زیاد. کمی صبر کن." }, { status: 429 });
+  if (!limited.ok) return noStoreJson({ error: "یه کم زیاد زدی؛ چند لحظه صبر کن." }, { status: 429 });
 
   const day = String(searchParams.get("day") || "").trim();
   const bookingDateKey = strictDayKey(day);
@@ -53,10 +53,10 @@ async function _GET(request) {
   // Strict on purpose: "HH:MM" (Persian or Latin digits) on a real clock, nothing the lenient
   // booking parser would turn into some other time.
   const time = parseBookingTime(String(searchParams.get("time") || ""));
-  if (!time) return noStoreJson({ error: "ساعت رزرو نامعتبر است." }, { status: 400 });
+  if (!time) return noStoreJson({ error: "این ساعت رو نفهمیدیم؛ دوباره انتخاب کن." }, { status: 400 });
   const names = searchParams.getAll("service").map((name) => name.trim());
   if (!names.length || names.length > MAX_BOOKING_PARTS || names.some((name) => !name || name.length > 120)) {
-    return noStoreJson({ error: "فهرست خدمات نامعتبر است." }, { status: 400 });
+    return noStoreJson({ error: "کارها درست نرسید؛ دوباره انتخاب کن." }, { status: 400 });
   }
   const salon = await salons.getSalon(salonUserId);
   if (!salon) return noStoreJson({ error: "سالن پیدا نشد." }, { status: 404 });
@@ -68,7 +68,7 @@ async function _GET(request) {
   const staff = searchParams.getAll("staff");
   // A client may ask for a group (2 or 3 people, same services, same time): see expandPartsForPeople.
   const people = owner ? 1 : Math.max(1, Math.min(MAX_GROUP_PEOPLE, Math.floor(Number(searchParams.get("people"))) || 1));
-  if (names.length * people > MAX_BOOKING_PARTS) return noStoreJson({ error: "فهرست خدمات نامعتبر است." }, { status: 400 });
+  if (names.length * people > MAX_BOOKING_PARTS) return noStoreJson({ error: "کارها درست نرسید؛ دوباره انتخاب کن." }, { status: 400 });
   const single = salonVisitParts(
     salon,
     names.map((service, index) => ({ service, durationMinutes: minutes[index], staff: staff[index] })),
@@ -97,8 +97,8 @@ async function _GET(request) {
   if (!owner && plan.unstaffed >= 0) {
     const part = plan.parts[plan.unstaffed];
     problem = people > 1
-      ? { code: "NO_FREE_ARTIST", partIndex: -1, message: `این ساعت دیگر برای ${toPersianDigits(people)} نفر جا ندارد؛ ساعت‌ها به‌روز شد.` }
-      : { code: "NO_FREE_ARTIST", partIndex: plan.unstaffed, message: `برای «${part.service}» در این ساعت آرتیست آزادی نیست.` };
+      ? { code: "NO_FREE_ARTIST", partIndex: -1, message: `این ساعت دیگه برای ${toPersianDigits(people)} نفر جا نداره؛ ساعت‌ها رو تازه کردیم.` }
+      : { code: "NO_FREE_ARTIST", partIndex: plan.unstaffed, message: `این ساعت برای «${part.service}» آرتیست آزاد نداریم؛ یه ساعت دیگه بزن.` };
   }
   const shown = plan.parts.map((part) => {
     const { unknownStaff, free, options, ...rest } = part;

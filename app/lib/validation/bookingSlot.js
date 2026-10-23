@@ -24,11 +24,11 @@ export function strictDayKey(raw) {
  * `rawDay` / `rawTime` are what the caller sent. → { ok: true, dateKey, time } or { ok: false, status: 400, error }.
  */
 export function readBookingSlot(rawDay, rawTime) {
-  if (typeof rawDay !== "string" || !rawDay.trim()) return { ok: false, status: 400, error: "روز رزرو مشخص نیست." };
-  if (typeof rawTime !== "string" || !rawTime.trim()) return { ok: false, status: 400, error: "ساعت رزرو مشخص نیست." };
+  if (typeof rawDay !== "string" || !rawDay.trim()) return { ok: false, status: 400, error: "یه روز انتخاب کن." };
+  if (typeof rawTime !== "string" || !rawTime.trim()) return { ok: false, status: 400, error: "یه ساعت انتخاب کن." };
   const dateKey = strictDayKey(rawDay);
-  if (!dateKey) return { ok: false, status: 400, error: "روز رزرو نامعتبر است." };
+  if (!dateKey) return { ok: false, status: 400, error: "این روز رو نفهمیدیم؛ دوباره انتخاب کن." };
   const time = parseBookingTime(rawTime);
-  if (!time) return { ok: false, status: 400, error: "ساعت رزرو نامعتبر است؛ مثلاً ۱۴:۳۰." };
+  if (!time) return { ok: false, status: 400, error: "ساعت رو این‌جوری بنویس: ۱۴:۳۰" };
   return { ok: true, dateKey, time };
 }

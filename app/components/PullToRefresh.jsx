@@ -123,7 +123,7 @@ export function PullToRefresh() {
       className={`pullRefresh${ready ? " is-ready" : ""}${refreshing ? " is-refreshing" : ""}`}
       style={{ transform: `translate(-50%, ${pull}px)` }}
       role="status"
-      aria-label={refreshing ? "در حال تازه کردن" : ready ? "رها کن تا تازه شود" : "برای تازه کردن بکش"}
+      aria-label={refreshing ? "دارم تازه می‌کنم" : ready ? "ولش کن تا تازه بشه" : "بکش تا تازه بشه"}
     >
       {refreshing ? <Spinner size={22} /> : <RotateCw size={20} style={{ transform: `rotate(${pull * 3}deg)` }} aria-hidden="true" />}
     </div>

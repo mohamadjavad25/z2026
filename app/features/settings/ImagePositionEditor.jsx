@@ -9,8 +9,8 @@ import { ImageCropper } from "../../components/ImageCropper";
 // poster: the wide banner band), so the framing chosen here is the framing
 // users see everywhere.
 const FRAMES = {
-  circle: { aspect: 1, outputWidth: 720, title: "تنظیم لوگو", shape: "circle" },
-  wide: { aspect: 343 / 248, outputWidth: 1440, title: "تنظیم پوستر", shape: "rect" }
+  circle: { aspect: 1, outputWidth: 720, title: "قاب لوگو", shape: "circle" },
+  wide: { aspect: 343 / 248, outputWidth: 1440, title: "قاب پوستر", shape: "rect" }
 };
 
 /**

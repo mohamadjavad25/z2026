@@ -36,7 +36,7 @@ async function _POST(request) {
   const ipLimited = await checkIpRateLimit(request, "login", LOGIN_IP_LIMIT, LOGIN_WINDOW_MS);
   if (!ipLimited.ok) {
     return NextResponse.json(
-      { error: "تلاش‌های ورود زیاد بود. چند دقیقه صبر کن.", code: "rate_limited" },
+      { error: "زیاد امتحان کردی؛ چند دقیقه صبر کن.", code: "rate_limited" },
       { status: 429 }
     );
   }
@@ -44,7 +44,7 @@ async function _POST(request) {
     const limited = await checkRateLimit(`login:${phone}`, LOGIN_ATTEMPT_LIMIT, LOGIN_WINDOW_MS);
     if (!limited.ok) {
       return NextResponse.json(
-        { error: "تلاش‌های ورود زیاد بود. چند دقیقه صبر کن.", code: "rate_limited" },
+        { error: "زیاد امتحان کردی؛ چند دقیقه صبر کن.", code: "rate_limited" },
         { status: 429 }
       );
     }
@@ -62,21 +62,21 @@ async function _POST(request) {
     // distinct on purpose).
     verifyPassword(password, DUMMY_PASSWORD_HASH);
     return NextResponse.json(
-      { error: "حسابی با این شماره پیدا نشد. اول ثبت‌نام کن.", code: "not_found" },
+      { error: "با این شماره حسابی نداری؛ اول ثبت‌نام کن.", code: "not_found" },
       { status: 401 }
     );
   }
 
   if (!verifyPassword(password, user.password_hash)) {
     return NextResponse.json(
-      { error: "رمز عبور اشتباه است.", code: "bad_password" },
+      { error: "رمز اشتباهه؛ دوباره بزن.", code: "bad_password" },
       { status: 401 }
     );
   }
 
   // Said only after the password is right, so it can't be used to probe which numbers are suspended.
   if (user.suspended_at) {
-    return NextResponse.json({ error: "این حساب مسدود شده است. با پشتیبانی frfro تماس بگیر.", code: "suspended" }, { status: 403 });
+    return NextResponse.json({ error: "این حساب بسته شده؛ به پشتیبانی فرفرو پیام بده.", code: "suspended" }, { status: 403 });
   }
 
   const session = await createSessionForUser(user.id);

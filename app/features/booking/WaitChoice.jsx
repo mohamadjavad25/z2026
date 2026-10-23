@@ -19,14 +19,14 @@ export function WaitChoice({ value = "hour", onChange, who = "سالن", backups
   if (!open) {
     return (
       <button type="button" className="wcFold" aria-expanded="false" onClick={() => setOpen(true)}>
-        <span>اگر {who} دیر جواب داد: <b>{hour ? "فقط ۱ ساعت صبر" : "صبر می‌کنم"}</b></span>
+        <span>اگه {who} دیر کرد: <b>{hour ? "۱ ساعت صبر می‌کنم" : "صبر می‌کنم"}</b></span>
         <ChevronDown size={16} aria-hidden="true" />
       </button>
     );
   }
   return (
     <section className="wc" aria-label={`صبر برای جواب ${who}`}>
-      <p className="wcTitle">اگر {who} دیر جواب داد؟</p>
+      <p className="wcTitle">اگه {who} دیر جواب داد؟</p>
       <div className="wcChoices" role="radiogroup" aria-label={`صبر برای جواب ${who}`}>
         <button
           type="button"
@@ -50,12 +50,12 @@ export function WaitChoice({ value = "hour", onChange, who = "سالن", backups
         >
           <Timer size={20} aria-hidden="true" />
           <b>فقط ۱ ساعت</b>
-          <small>{picked ? `بعد می‌رود برای ${picked.name}` : "بعدش لغو می‌شود"}</small>
+          <small>{picked ? `بعدش می‌ره برای ${picked.name}` : "بعدش لغو می‌شه"}</small>
         </button>
       </div>
       {hour && backups.length ? (
         <div className="wcBackup">
-          <p>اگر جواب نداد، بفرستیم برای:</p>
+          <p>اگه جواب نداد، بفرستیم برای:</p>
           <div className="wcChips" role="radiogroup" aria-label={`${who} دوم`}>
             <button
               type="button"
@@ -65,7 +65,7 @@ export function WaitChoice({ value = "hour", onChange, who = "سالن", backups
               disabled={disabled}
               onClick={() => onBackup?.("")}
             >
-              نه، لغو شود
+              نه، لغو بشه
             </button>
             {backups.map((item) => {
               const on = Boolean(picked) && String(picked.id) === String(item.id);

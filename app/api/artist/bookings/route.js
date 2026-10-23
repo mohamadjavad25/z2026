@@ -27,7 +27,7 @@ async function _POST(request) {
   await ensureDb();
   const body = await readObjectBody(request);
   const artistUserId = Number(body.artistUserId);
-  if (!artistUserId) return error("آرتیست نامعتبر است.", 400);
+  if (!artistUserId) return error("این آرتیست رو پیدا نکردیم.", 400);
 
   // Booking an independent artist needs a login (owner's decision 2026-10-22): the client's name and number come
   // from the signed-in account, never from the body, so nobody can book in a stranger's name or into a victim's list.
@@ -35,17 +35,17 @@ async function _POST(request) {
   if (!viewer?.id) {
     // No account to key a throttle by: a guest's refusals are counted per address, so a bot cannot use up anything real people share.
     const guestLimited = await checkRateLimit(`artist-booking-guest:${clientIp(request)}`, 30, 60_000);
-    if (!guestLimited.ok) return error("درخواست‌های زیاد. کمی صبر کن.", 429);
+    if (!guestLimited.ok) return error("یه کم زیاد زدی؛ چند لحظه صبر کن.", 429);
     return error(LOGIN_TO_BOOK_MESSAGE, 401);
   }
   // Per-account throttle (not per artist: one bot must not be able to lock everybody else out of an artist).
   const bookingLimited = await checkRateLimit(`artist-booking-create:user:${viewer.id}`, 20, 60_000);
   if (!bookingLimited.ok) {
-    return error("درخواست‌های زیاد. کمی صبر کن.", 429);
+    return error("یه کم زیاد زدی؛ چند لحظه صبر کن.", 429);
   }
   // Only the artist (for their own walk-in customers) or a client may create an entry.
   if (viewer.id !== artistUserId && viewer.type !== "client") {
-    return error("فقط مشتری می‌تواند از آرتیست نوبت بگیرد.", 403);
+    return error("با حساب مشتری می‌شه از آرتیست نوبت گرفت.", 403);
   }
 
   // Validated/stripped body -- zod drops any unlisted key (in particular
@@ -78,8 +78,8 @@ async function _POST(request) {
   if (viewer?.id && viewer.id !== artistUserId && !result.duplicate) {
     const confirmed = result.booking.status === "تایید شده";
     const push = sendPushToUser(artistUserId, {
-      title: confirmed ? "نوبت جدید (تأیید خودکار)" : "درخواست نوبت جدید",
-      body: `${result.booking.client || result.booking.client_name || "مشتری"} — ${result.booking.service || "نوبت"} · ${bookingWhen(result.booking.booking_date || result.booking.bookingDate, result.booking.time)}`
+      title: confirmed ? "نوبت تازه (خودکار تأیید شد)" : "درخواست تازه",
+      body: `${result.booking.client || result.booking.client_name || "مشتری"}، ${result.booking.service || "نوبت"}، ${bookingWhen(result.booking.booking_date || result.booking.bookingDate, result.booking.time)}`
     }).catch(() => null);
     // A request waiting for the artist's answer must reach them in time, even where push does not.
     if (!confirmed) {

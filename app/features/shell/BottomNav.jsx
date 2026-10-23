@@ -23,7 +23,7 @@ export function BottomNav({ activeTab, createdProfile, onTabChange, showCreateBo
           type="button"
           onClick={onCreateBooking}
           className="profileTab is-createBooking"
-          aria-label="ایجاد رزرو جدید"
+          aria-label="نوبت تازه"
         >
           <Plus size={26} />
         </button>
@@ -61,7 +61,7 @@ export function BottomNav({ activeTab, createdProfile, onTabChange, showCreateBo
       ) : (
         <button type="button" onClick={() => onTabChange("salons")} className={activeTab === "salons" ? "active" : ""}>
           <PageIcon name="booking-add" size={24} />
-          <span>رزرو</span>
+          <span>نوبت</span>
         </button>
       )}
     </nav>

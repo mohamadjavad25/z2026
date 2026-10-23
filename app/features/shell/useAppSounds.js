@@ -80,7 +80,7 @@ export function useAppSounds({
       for (const id of requestIds) {
         if (!current.requests.has(id)) {
           playSound("request");
-          notify({ kind: "glass", tone: "info", title: "درخواست نوبت جدید", text: "برای دیدن جزئیات، درخواست‌ها را باز کنید.", timer: 7000 });
+          notify({ kind: "glass", tone: "info", title: "یه درخواست نوبت تازه!", text: "اعلان‌ها رو باز کن و جواب بده.", timer: 7000 });
           break;
         }
       }
@@ -96,7 +96,7 @@ export function useAppSounds({
             kind: "glass",
             tone: "info",
             title: "دعوت تازه",
-            text: type === "salon" ? "یک درخواست همکاری تازه رسیده." : "یک سالن شما را به تیم دعوت کرده.",
+            text: type === "salon" ? "یه درخواست همکاری تازه رسیده." : "یه سالن دعوتت کرده به تیمش.",
             timer: 7000
           });
           break;
@@ -128,9 +128,9 @@ export function useAppSounds({
         notify({
           kind: "ticket",
           tone: "info",
-          label: "نوبت شما",
+          label: "نوبتت",
           big: first.time || "",
-          title: "نوبتت تأیید شد",
+          title: "نوبتت تأیید شد!",
           text: [first.service, first.date].filter(Boolean).join(" · ")
         });
       }
@@ -169,8 +169,8 @@ export function useAppSounds({
           remind?.({
             kind: "ring",
             tone: "info",
-            title: `نوبت «${booking.service || "تو"}» نزدیک است`,
-            text: `${left} دقیقه دیگر`,
+            title: `نوبت «${booking.service || "تو"}» نزدیکه`,
+            text: `${left} دقیقهٔ دیگه`,
             big: String(left),
             p: Math.max(4, Math.round((minutes / REMINDER_LEAD_MINUTES) * 100))
           });

@@ -110,7 +110,7 @@ export function ClientBookingTracker({ bookings = [], onOpen, away = false }) {
     const confirmed = status === "تایید شده";
     const Icon = confirmed ? Check : status === "لغو" ? XCircle : TimerOff;
     const movedTo = movedToName(booking);
-    const title = confirmed ? "رزرو تأیید شد" : status === "لغو" ? "رزرو لغو شد" : movedTo ? `درخواستت رفت برای ${movedTo}` : "مهلت پاسخ تمام شد";
+    const title = confirmed ? "نوبتت تأیید شد!" : status === "لغو" ? "نوبتت لغو شد" : movedTo ? `درخواستت رفت برای ${movedTo}` : "جواب نداد؛ وقتش تموم شد";
     return (
       <Strip
         away={away}
@@ -137,7 +137,7 @@ export function ClientBookingTracker({ bookings = [], onOpen, away = false }) {
       <Strip away={away} className="is-offer" onClick={() => onOpen?.(asked)} aria-live="polite">
         <span className="cbtIcon" aria-hidden="true"><CalendarClock size={19} /></span>
         <span className="cbtText">
-          <b>{asked.bookingSource === "artist" ? "آرتیست" : "سالن"} می‌خواهد نوبتت را جابه‌جا کند</b>
+          <b>{asked.bookingSource === "artist" ? "آرتیست" : "سالن"} می‌خواد نوبتت رو جابه‌جا کنه</b>
           <small>
             {shortServiceLabel(asked.service) || "نوبت"}، {placeOf(asked)}؛ جواب بده
           </small>
@@ -153,7 +153,7 @@ export function ClientBookingTracker({ bookings = [], onOpen, away = false }) {
       <Strip away={away} className="is-offer" onClick={() => onOpen?.(offer)} aria-live="polite">
         <span className="cbtIcon" aria-hidden="true"><CalendarClock size={19} /></span>
         <span className="cbtText">
-          <b>سالن ساعت تازه پیشنهاد داده</b>
+          <b>سالن یه ساعت تازه پیشنهاد داده</b>
           <small>
             {shortServiceLabel(offer.service) || "نوبت"}، {formatRelativeBookingDayLabel(offer.booking_date || "امروز")} {offer.time ? toPersianDigits(offer.time) : ""}
           </small>
@@ -176,7 +176,7 @@ export function ClientBookingTracker({ bookings = [], onOpen, away = false }) {
         <Hourglass size={18} />
       </span>
       <span className="cbtText">
-        <b>منتظر تأیید {label}</b>
+        <b>منتظر {label}</b>
         <small>
           {shortServiceLabel(current.service) || "نوبت"}
           {deadline ? `، تا ${deadline}` : ""}

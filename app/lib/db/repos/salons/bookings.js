@@ -431,11 +431,11 @@ export async function previewVisit(salonUserId, bookingDate, time, parts, { with
   const unknown = planned.findIndex((part) => part.unknownStaff);
   const busy = planned.findIndex((part) => part.staff && part.free === false);
   if (unknown >= 0) {
-    problem = { code: "UNKNOWN_STAFF", partIndex: unknown, message: `«${planned[unknown].staff}» در تیم سالن نیست.` };
+    problem = { code: "UNKNOWN_STAFF", partIndex: unknown, message: `«${planned[unknown].staff}» توی تیم سالن نیست.` };
   } else if (busy >= 0) {
-    problem = { code: "STAFF_BUSY", partIndex: busy, message: `${planned[busy].staff} از ${planned[busy].start} تا ${planned[busy].end} نوبت دیگری دارد.` };
+    problem = { code: "STAFF_BUSY", partIndex: busy, message: `${planned[busy].staff} از ${planned[busy].start} تا ${planned[busy].end} یه نوبت دیگه داره.` };
   } else if (visitOverlaps(day, time, drafted)) {
-    problem = { code: "CONFLICT", partIndex: -1, message: "این زمان قبلاً رزرو شده است." };
+    problem = { code: "CONFLICT", partIndex: -1, message: "این ساعت پر شده؛ یه ساعت دیگه بزن." };
   }
   const missing = findUnstaffedPart(day, drafted);
   return { parts: planned, unstaffed: missing ? drafted.indexOf(missing) : -1, problem };
@@ -620,7 +620,7 @@ async function createPartMirrors(db, salonUserId, booking, staffList) {
     if (!created.ok) {
       throw artistConflictError(
         created.code || "ARTIST_SLOT_TAKEN",
-        `${group.staff} از ${group.startLabel} تا ${group.endLabel} نوبت دیگری دارد.`
+        `${group.staff} از ${group.startLabel} تا ${group.endLabel} یه نوبت دیگه داره.`
       );
     }
     linkedArtistIds.push(artistId);
@@ -805,7 +805,7 @@ async function addSalonBookingUncached(salonUserId, data) {
   const bookingDate = resolveRollingPersianDateKey(data.bookingDate || data.booking_date || data.date || "");
   const time = parseBookingTime(String(data.time ?? ""));
   // Backstop for any caller that skipped the route-level checks: never store a guessed day or time.
-  if (!bookingDate || !time) return { ok: false, error: "bad_slot", message: "روز یا ساعت رزرو نامعتبر است." };
+  if (!bookingDate || !time) return { ok: false, error: "bad_slot", message: "روز و ساعت رو دوباره انتخاب کن." };
   if (parseBookingParts(data.parts).length >= 2) {
     return addMultiPartSalonBooking(salonUserId, { ...data, bookingDate, time });
   }
@@ -900,7 +900,7 @@ async function addDraftedSingleSalonBooking(salonUserId, data, durationMinutes) 
       const service = String(data.service || "").trim();
       const drafted = await draftVisitParts(day, data.time, [{ service, minutes: durationMinutes, staff: "" }]);
       if (findUnstaffedPart(day, drafted)) {
-        return { ok: false, error: "no_staff", message: `برای «${service}» در این ساعت آرتیست آزادی نیست.` };
+        return { ok: false, error: "no_staff", message: `این ساعت برای «${service}» آرتیست آزاد نداریم؛ یه ساعت دیگه بزن.` };
       }
       const staff = drafted[0]?.staff || "";
       const conflict = await findOverlapConflict(db, {
@@ -954,7 +954,7 @@ async function addDraftedSingleSalonBooking(salonUserId, data, durationMinutes) 
           sourceSalonUserId: salonUserId,
           status: mirrorStatus(booking.status)
         }, db);
-        if (!created.ok) throw artistConflictError(created.code || "ARTIST_SLOT_TAKEN", created.error || "این ساعت برای آرتیست قبلاً رزرو شده است.");
+        if (!created.ok) throw artistConflictError(created.code || "ARTIST_SLOT_TAKEN", created.error || "آرتیست این ساعت نوبت داره؛ یه ساعت دیگه بزن.");
         artistBooking = created.booking;
       }
       return { ok: true, booking, artistBooking, linkedArtistIds: artistId ? [artistId] : [] };
@@ -989,8 +989,8 @@ async function addMultiPartSalonBooking(salonUserId, data) {
       if (unstaffed) {
         // A group is answered as a whole: if the team can no longer seat all of them at once, nobody is booked.
         const people = bookingPeople(parts);
-        if (people > 1) return { ok: false, error: "no_staff", code: "GROUP_FULL", message: `این ساعت دیگر برای ${toPersianDigits(people)} نفر جا ندارد؛ ساعت‌ها به‌روز شد.` };
-        return { ok: false, error: "no_staff", message: `برای «${unstaffed.service}» در این ساعت آرتیست آزادی نیست.` };
+        if (people > 1) return { ok: false, error: "no_staff", code: "GROUP_FULL", message: `این ساعت دیگه برای ${toPersianDigits(people)} نفر جا نداره؛ ساعت‌ها رو تازه کردیم.` };
+        return { ok: false, error: "no_staff", message: `این ساعت برای «${unstaffed.service}» آرتیست آزاد نداریم؛ یه ساعت دیگه بزن.` };
       }
       const { service, durationMinutes } = summarizeBookingParts(parts);
       const conflict = await findOverlapConflict(db, {
@@ -1107,8 +1107,8 @@ async function updateSalonBookingInTx(db, id, salonUserId, current, data) {
           ok: false,
           error: "unavailable",
           message: missing
-            ? `«${missing}» دیگر در خدمات سالن نیست؛ این درخواست را لغو کن.`
-            : `${problem.error} این درخواست را لغو کن یا ساعت دیگری پیشنهاد بده.`
+            ? `«${missing}» دیگه توی کارهای سالن نیست؛ این درخواست رو لغو کن.`
+            : `${problem.error} این درخواست رو لغو کن یا یه ساعت دیگه پیشنهاد بده.`
         };
       }
     }
@@ -1136,7 +1136,7 @@ async function updateSalonBookingInTx(db, id, salonUserId, current, data) {
   if (data.acceptProposal && (next.booking_date !== current.booking_date || next.time !== normalizeBookingTimeLabel(current.time || ""))) {
     // A proposed time must still be a real in-hours slot when the client says yes (hours may have changed since).
     const hours = await listSalonHours(salonUserId, db);
-    const problem = isSlotInPast(next.booking_date, next.time) ? { error: "این ساعت گذشته است." } : visitSlotProblem({
+    const problem = isSlotInPast(next.booking_date, next.time) ? { error: "این ساعت گذشته." } : visitSlotProblem({
       hours,
       bookingDateKey: next.booking_date,
       time: next.time,
@@ -1161,7 +1161,7 @@ async function updateSalonBookingInTx(db, id, salonUserId, current, data) {
         ok: false,
         error: "conflict",
         message: nextParts && conflict.conflictStaff
-          ? `${conflict.conflictStaff} در این ساعت نوبت دیگری در سالن دارد.`
+          ? `${conflict.conflictStaff} این ساعت توی سالن یه نوبت دیگه داره.`
           : undefined
       };
     }
@@ -1390,7 +1390,7 @@ async function patchSalonBookingUncached(id, salonUserId, data, options = {}) {
             oldArtistBooking.id,
             db
           )) {
-            failArtist("ARTIST_SLOT_TAKEN", "این ساعت برای آرتیست قبلاً رزرو شده است.");
+            failArtist("ARTIST_SLOT_TAKEN", "آرتیست این ساعت نوبت داره؛ یه ساعت دیگه بزن.");
           }
           await artists.updateArtistBookingRow(oldArtistBooking.id, {
             client: next.client,

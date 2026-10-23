@@ -299,10 +299,10 @@ export function ProfilePanelBody() {
 
                       {salonWorkspace === "portfolio" && (
                         <ProfileGallery
-                          label="گالری پست‌ها"
+                          label="نمونه‌کارها"
                           items={salonPortfolioList}
                           onAdd={() => openPortfolioComposer()}
-                          addLabel="ایجاد پست"
+                          addLabel="نمونه‌کار تازه"
                           getFallbackStyle={getPortfolioCardStyle}
                           editingId={salonWorkDraft && salonWorkDraft.id !== "new" ? salonWorkDraft.id : null}
                           onItemClick={(item) => setSalonPreviewWorkId(item.id)}
@@ -318,8 +318,8 @@ export function ProfilePanelBody() {
                           onComposeTagMenuOpenChange={setSalonWorkTagMenuOpen}
                           composeSaving={portfolioSaving}
                           loading={salonWorkspaceLoading}
-                          composeAriaLabel={salonWorkDraft?.id === "new" ? "پست جدید" : "ویرایش پست"}
-                          composeSubmitLabel={salonWorkDraft?.id === "new" ? "انتشار پست" : "ذخیره تغییرات"}
+                          composeAriaLabel={salonWorkDraft?.id === "new" ? "نمونه‌کار تازه" : "ویرایش نمونه‌کار"}
+                          composeSubmitLabel={salonWorkDraft?.id === "new" ? "بذارش" : "ذخیره کن"}
                         />
                       )}
                       </div>

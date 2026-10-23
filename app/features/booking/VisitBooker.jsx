@@ -12,9 +12,9 @@ import { PlanList, TimesList } from "./visitBookerParts";
 import { MAX_VISIT_PEOPLE, clockText, maxServicesFor, missingText, visitSummaryText } from "./visitBookerModel";
 
 const ROLE_COPY = {
-  client: { submit: "ارسال درخواست", busy: "در حال ارسال…" },
-  salon: { submit: "ثبت رزرو", busy: "در حال ثبت…" },
-  artist: { submit: "ثبت رزرو", busy: "در حال ثبت…" }
+  client: { submit: "بفرست", busy: "دارم می‌فرستم…" },
+  salon: { submit: "ثبت کن", busy: "دارم ثبت می‌کنم…" },
+  artist: { submit: "ثبت کن", busy: "دارم ثبت می‌کنم…" }
 };
 
 /**
@@ -121,7 +121,7 @@ function VisitBookerForm({ role, title, subtitle, services, days, initial, custo
   let hint = "";
   if (state.error) hint = state.error;
   // A problem with one service is written on its row; the rest are said here.
-  else if (readiness.reason === "problem" && !(state.plan.partIndex >= 0)) hint = readiness.message || "این زمان برای این نوبت جا ندارد؛ ساعت دیگری را انتخاب کن.";
+  else if (readiness.reason === "problem" && !(state.plan.partIndex >= 0)) hint = readiness.message || "این ساعت برای این نوبت جا نداره؛ یه ساعت دیگه انتخاب کن.";
   else if (state.tried && readiness.reason === "missing") hint = missingText(readiness.missing);
 
   function handleSubmit(event) {
@@ -136,16 +136,16 @@ function VisitBookerForm({ role, title, subtitle, services, days, initial, custo
 
   let label = copy.submit;
   if (state.submitting) label = copy.busy;
-  else if (checking) label = "در حال بررسی…";
-  else if (readiness.ok && day) label = `${copy.submit}، ${day.label}، ساعت ${clockText(state.time)}`;
+  else if (checking) label = "دارم چک می‌کنم…";
+  else if (readiness.ok && day) label = `${copy.submit} برای ${day.label}، ${clockText(state.time)}`;
 
   // A salon or artist with no services cannot book anything yet: say so, and take them to add one.
   if (role !== "client" && !frozenServices.length) {
     return (
       <div className="vb vbNoService" role="group" aria-label={title}>
         <span className="vbNoServiceIcon"><Scissors size={30} aria-hidden="true" /></span>
-        <h2>اول خدمت‌هایت را اضافه کن</h2>
-        <p>برای ثبت رزرو باید حداقل یک خدمت داشته باشی تا مدت نوبت و ساعت‌های خالی حساب شود. فقط یک‌بار لازم است.</p>
+        <h2>اول خدمت‌هات رو اضافه کن</h2>
+        <p>برای ثبت نوبت دست‌کم یه خدمت لازمه تا مدت نوبت و ساعت‌های خالی حساب بشه. فقط یه بار.</p>
         <button type="button" className="vbSubmit" onClick={onAddService}>
           <Plus size={18} aria-hidden="true" />
           افزودن خدمت
@@ -189,9 +189,9 @@ function VisitBookerForm({ role, title, subtitle, services, days, initial, custo
         {/* The client's own name and number are already known; the card shows only to ask for a missing number. */}
         {phoneMissing ? (
           <section className="vbWho is-readonly" aria-label="اطلاعات تماس">
-            <span><small>شماره تماس</small><b dir="ltr">ثبت نشده</b></span>
+            <span><small>شماره موبایل</small><b dir="ltr">نداری هنوز</b></span>
             {typeof onEditProfile === "function" ? (
-              <button type="button" className="vbLink" onClick={onEditProfile}>ثبت شماره تماس</button>
+              <button type="button" className="vbLink" onClick={onEditProfile}>شماره‌ت رو بذار</button>
             ) : null}
           </section>
         ) : null}
@@ -199,7 +199,7 @@ function VisitBookerForm({ role, title, subtitle, services, days, initial, custo
         <section className="vbSection" aria-label="خدمت‌ها">
           {frozenServices.length ? (
             <>
-              <div className="vbChips" role="group" aria-label="خدمت‌ها؛ به ترتیبی که انتخاب می‌کنی انجام می‌شوند">
+              <div className="vbChips" role="group" aria-label="خدمت‌ها؛ به همین ترتیب انجام می‌شن">
                 {frozenServices.map((service) => {
                   const order = state.selected.indexOf(service.key);
                   const on = order >= 0;
@@ -222,13 +222,13 @@ function VisitBookerForm({ role, title, subtitle, services, days, initial, custo
               <p className="vbSummary" aria-live="polite">
                 {state.limitHit
                   ? `حداکثر ${toPersianDigits(maxServicesFor(state.people))} خدمت در یک نوبت${state.people > 1 ? ` برای ${toPersianDigits(state.people)} نفر` : ""}.`
-                  : summary || "یک یا چند خدمت را انتخاب کن."}
+                  : summary || "یکی یا چندتا کار انتخاب کن."}
               </p>
             </>
           ) : (
             <button type="button" className="vbEmpty" onClick={onAddService}>
               <Plus size={16} aria-hidden="true" />
-              هنوز خدمتی نداری؛ اولین خدمت را اضافه کن
+              هنوز خدمتی نداری؛ اولیش رو اضافه کن
             </button>
           )}
         </section>
@@ -288,7 +288,7 @@ function VisitBookerForm({ role, title, subtitle, services, days, initial, custo
           <section className="vbSection vbPlanSection" aria-label="برنامهٔ نوبت" aria-live="polite">
             <PlanList role={role} state={state} onStaff={(index, name) => controller.setStaff(index, name)} onRetry={() => controller.retryPlan()} />
             {role === "client" && state.plan.status === "ok" && state.plan.parts.length > 1 ? (
-              <p className="vbPlanNote">آرتیست‌ها پیشنهاد سالن‌اند و ممکن است سالن عوضشان کند. اگر ساعت را عوض کند، اول از تو می‌پرسد.</p>
+              <p className="vbPlanNote">آرتیست‌ها رو سالن پیشنهاد داده و شاید عوضشون کنه. اگه ساعت رو عوض کنه، اول از خودت می‌پرسه.</p>
             ) : null}
           </section>
         ) : null}
@@ -310,15 +310,15 @@ function VisitBookerForm({ role, title, subtitle, services, days, initial, custo
           <div className="vbConflict" role="alert">
             {state.conflict.next ? (
               <>
-                <p>این ساعت همین حالا گرفته شد. ساعت خالیِ بعدی {clockText(state.conflict.next)} است. می‌خواهی همین را بفرستم؟</p>
+                <p>این ساعت همین الان پر شد. ساعت خالی بعدی {clockText(state.conflict.next)}ه. همین رو بفرستم؟</p>
                 <div className="vbConflictActions">
-                  <button type="button" className="vbAction is-primary" disabled={state.submitting} onClick={() => void controller.acceptConflict()}>بله، ارسال</button>
-                  <button type="button" className="vbAction" onClick={() => controller.dismissConflict()}>ساعت دیگر</button>
+                  <button type="button" className="vbAction is-primary" disabled={state.submitting} onClick={() => void controller.acceptConflict()}>آره، بفرست</button>
+                  <button type="button" className="vbAction" onClick={() => controller.dismissConflict()}>یه ساعت دیگه</button>
                 </div>
               </>
             ) : (
               <>
-                <p>این ساعت همین حالا گرفته شد و برای این روز ساعت خالی دیگری نمانده است. روز دیگری را انتخاب کن.</p>
+                <p>این ساعت همین الان پر شد و این روز دیگه ساعت خالی نداره. یه روز دیگه انتخاب کن.</p>
                 <div className="vbConflictActions">
                   <button type="button" className="vbAction" onClick={() => controller.dismissConflict()}>باشه</button>
                 </div>

@@ -137,7 +137,7 @@ export function readiness(role, state, list, plan = { status: "ok" }) {
 }
 
 /** "برای ثبت لازم است: خدمت، ساعت" */
-export const missingText = (missing) => (missing.length ? `برای ثبت لازم است: ${missing.join("، ")}` : "");
+export const missingText = (missing) => (missing.length ? `برای ثبت اینا لازمه: ${missing.join("، ")}` : "");
 
 /**
  * The body of the booking request; the caller adds who is booking (the salon's id).
@@ -208,11 +208,11 @@ export function submitFailure({ status = 0, payload = {} } = {}) {
   const error = typeof payload?.error === "string" && payload.error.trim() ? payload.error.trim() : "";
   // Too many open requests is a 409 too, but the time is not what went wrong: nothing to reload or offer.
   if (status === 409 && payload?.code === "TOO_MANY_OPEN_REQUESTS") return { message: error, reloadTimes: false };
-  if (status === 409) return { message: error || "این زمان دیگر آزاد نیست؛ ساعت دیگری انتخاب کن.", reloadTimes: true };
-  if (status === 429) return { message: error || "درخواست‌های زیاد. کمی صبر کن.", reloadTimes: false };
-  if (status === 401) return { message: "ورود تو منقضی شده؛ دوباره وارد شو.", reloadTimes: false };
-  if (status === 0) return { message: "اتصال برقرار نشد؛ اینترنت را بررسی کن و دوباره امتحان کن.", reloadTimes: false };
-  return { message: error || "ثبت رزرو انجام نشد؛ دوباره امتحان کن.", reloadTimes: false };
+  if (status === 409) return { message: error || "این ساعت دیگه خالی نیست؛ یه ساعت دیگه انتخاب کن.", reloadTimes: true };
+  if (status === 429) return { message: error || "یه کم زیادی شد؛ چند لحظه صبر کن.", reloadTimes: false };
+  if (status === 401) return { message: "از حسابت بیرون اومدی؛ دوباره وارد شو.", reloadTimes: false };
+  if (status === 0) return { message: "وصل نشد؛ اینترنتت رو یه نگاه بنداز و دوباره بزن.", reloadTimes: false };
+  return { message: error || "نوبت ثبت نشد؛ دوباره بزن.", reloadTimes: false };
 }
 
 /** Persian digits for a server clock label such as "10:00". */

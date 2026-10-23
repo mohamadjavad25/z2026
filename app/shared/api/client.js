@@ -9,7 +9,7 @@ export async function apiFetch(path, options = {}) {
   const breakerKey = isGet ? String(path).split("?")[0] : "";
   if (isGet && getBreaker.isBlocked(breakerKey)) {
     // Too many quick failures from this endpoint: don't send another request until the cooldown ends.
-    return { ok: false, status: 429, payload: { error: "درخواست‌های زیادی ارسال شد. چند لحظه بعد دوباره تلاش کن." }, response: null };
+    return { ok: false, status: 429, payload: { error: "یه کم زیادی شد؛ چند لحظه دیگه دوباره بزن." }, response: null };
   }
   let response;
   try {

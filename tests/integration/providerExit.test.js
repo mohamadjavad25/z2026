@@ -19,7 +19,7 @@ describe("a salon or artist cannot walk away from a confirmed booking within 24 
     const refused = await deleteMe(salon);
     expect(refused.status).toBe(409);
     expect(refused.payload.code).toBe("NEAR_BOOKINGS");
-    expect(refused.payload.error).toContain("تا ۲۴ ساعت دیگر نوبت دارند");
+    expect(refused.payload.error).toContain("تا ۲۴ ساعت دیگه نوبت دارن");
     const near = refused.payload.data.plan.near;
     expect(near).toHaveLength(1);
     expect(near[0]).toMatchObject({ id, clientPhone: client.phone, clientName: client.user.name, near: true });

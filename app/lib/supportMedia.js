@@ -46,35 +46,35 @@ const fail = (message) => ({ ok: false, error: message });
  */
 export function parseAttachments(input) {
   if (input === undefined || input === null) return { ok: true, items: [] };
-  if (!Array.isArray(input)) return fail("پیوست نامعتبر است.");
+  if (!Array.isArray(input)) return fail("این پیوست باز نشد؛ دوباره بفرست.");
   if (!input.length) return { ok: true, items: [] };
   const items = [];
   let total = 0;
   for (const raw of input) {
     const kind = raw?.kind === "voice" ? "voice" : raw?.kind === "image" ? "image" : "";
     const match = DATA_URL_RE.exec(String(raw?.data || ""));
-    if (!kind || !match) return fail("پیوست نامعتبر است.");
+    if (!kind || !match) return fail("این پیوست باز نشد؛ دوباره بفرست.");
     const buffer = Buffer.from(match[2], "base64");
     total += buffer.length;
     if (kind === "image") {
       const contentType = sniffImage(buffer);
-      if (!contentType) return fail("فقط عکس (JPG، PNG، WebP یا GIF) می‌شود فرستاد.");
-      if (buffer.length > MAX_IMAGE_BYTES) return fail("عکس خیلی بزرگ است (حداکثر ۳ مگابایت).");
+      if (!contentType) return fail("فقط عکس می‌شه فرستاد (JPG، PNG، WebP یا GIF).");
+      if (buffer.length > MAX_IMAGE_BYTES) return fail("عکس بزرگ‌تر از ۳ مگابایته؛ یه عکس کوچیک‌تر بفرست.");
       items.push({ kind, contentType, buffer, durationMs: null });
     } else {
       const contentType = sniffAudio(buffer);
-      if (!contentType) return fail("این فایل صوتی پشتیبانی نمی‌شود.");
-      if (buffer.length > MAX_VOICE_BYTES) return fail("پیام صوتی خیلی بزرگ است.");
+      if (!contentType) return fail("این صدا باز نشد؛ دوباره ضبط کن.");
+      if (buffer.length > MAX_VOICE_BYTES) return fail("پیام صوتی خیلی بزرگه؛ کوتاه‌ترش کن.");
       const durationMs = Math.round(Number(raw.durationMs) || 0);
-      if (durationMs > MAX_VOICE_MS + 2000) return fail("پیام صوتی حداکثر ۳ دقیقه می‌تواند باشد.");
-      if (buffer.length < 200) return fail("پیام صوتی خالی است.");
+      if (durationMs > MAX_VOICE_MS + 2000) return fail("پیام صوتی حداکثر ۳ دقیقه‌ست.");
+      if (buffer.length < 200) return fail("پیام صوتی خالیه؛ دوباره ضبط کن.");
       items.push({ kind, contentType, buffer, durationMs: durationMs > 0 ? durationMs : null });
     }
   }
   const voices = items.filter((item) => item.kind === "voice").length;
-  if (voices > 1 || (voices && items.length > 1)) return fail("پیام صوتی را جدا بفرست.");
-  if (items.length > MAX_IMAGES_PER_MESSAGE) return fail("در هر پیام حداکثر ۴ عکس می‌شود فرستاد.");
-  if (total > MAX_MESSAGE_BYTES) return fail("حجم پیوست‌ها زیاد است. عکس‌ها را جدا بفرست.");
+  if (voices > 1 || (voices && items.length > 1)) return fail("پیام صوتی رو جدا بفرست.");
+  if (items.length > MAX_IMAGES_PER_MESSAGE) return fail("توی هر پیام حداکثر ۴ تا عکس می‌شه فرستاد.");
+  if (total > MAX_MESSAGE_BYTES) return fail("پیوست‌ها زیادن؛ عکس‌ها رو جدا بفرست.");
   return { ok: true, items };
 }
 

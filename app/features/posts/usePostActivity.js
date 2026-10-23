@@ -90,7 +90,7 @@ export function usePostActivity({ onNotice } = {}) {
     } catch {
       setSavedPostTitles(previousTitles);
       setSavedPostObjects(previousObjects);
-      notify(nextSaved ? "ذخیره نشد؛ دوباره امتحان کن." : "حذف از ذخیره‌شده‌ها انجام نشد؛ دوباره امتحان کن.");
+      notify(nextSaved ? "ذخیره نشد؛ دوباره بزن." : "برداشته نشد؛ دوباره بزن.");
     } finally {
       savingRef.current.delete(key);
     }
@@ -134,7 +134,7 @@ export function usePostActivity({ onNotice } = {}) {
     } catch (error) {
       if (error?.name === "AbortError") return; // the user closed the share sheet
     }
-    notify("اشتراک‌گذاری انجام نشد؛ لینک را دستی کپی کن.");
+    notify("فرستاده نشد؛ لینک رو دستی کپی کن.");
   }, [notify]);
 
   return {

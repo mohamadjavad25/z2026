@@ -34,12 +34,12 @@ async function _POST(request, { params }) {
   const body = await request.json();
   const newPassword = normalizeDigits(String(body.newPassword || ""));
   if (newPassword.length < 8) {
-    return NextResponse.json({ error: "رمز عبور جدید باید حداقل ۸ کاراکتر باشد." }, { status: 400 });
+    return NextResponse.json({ error: "رمز تازه دست‌کم ۸ حرف باشه." }, { status: 400 });
   }
 
   const user = await users.getUserByPhone(resetRequest.phone);
   if (!user) {
-    return NextResponse.json({ error: "حسابی با این شماره پیدا نشد." }, { status: 404 });
+    return NextResponse.json({ error: "با این شماره حسابی نداری." }, { status: 404 });
   }
 
   await users.updateUser(user.id, { password_hash: hashPassword(newPassword) });

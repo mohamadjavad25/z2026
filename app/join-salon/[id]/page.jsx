@@ -25,7 +25,7 @@ export async function generateMetadata({ params }) {
   if (!salon) return { title: "لینک نامعتبر | frfro" };
   return {
     title: `پیوستن به تیم ${salon.name} | frfro`,
-    description: `این لینک، تو رو به‌عنوان آرتیست به تیم «${salon.name}» در frfro اضافه می‌کند.`,
+    description: `با این لینک، به‌عنوان آرتیست می‌ری توی تیم «${salon.name}» در فرفرو.`,
     alternates: { canonical: `${SITE_URL}/join-salon/${salon.id}` },
     robots: { index: false, follow: false }
   };

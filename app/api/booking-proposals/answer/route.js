@@ -18,24 +18,24 @@ const STATUS = { missing: 404, inactive: 409, no_proposal: 409, expired: 409, st
  *   cancel  «لغو نوبت، بدون هیچ مشکلی»: the client cancels; nothing counts against anybody
  */
 async function _POST(request) {
-  const auth = await requireUserRole(request, "client", "فقط مشتری می‌تواند به پیشنهاد جواب بدهد.");
+  const auth = await requireUserRole(request, "client", "فقط خود مشتری می‌تونه به پیشنهاد جواب بده.");
   if (!auth.ok) return auth.response;
   const limited = await checkRateLimit(`booking-answer:${auth.user.id}`, 30, 60 * 60 * 1000);
-  if (!limited.ok) return error("تعداد درخواست‌ها زیاد است؛ کمی بعد دوباره امتحان کن.", 429);
+  if (!limited.ok) return error("یه کم زیاد زدی؛ چند لحظه دیگه دوباره بزن.", 429);
   const body = await readObjectBody(request);
   const id = parseId(body.id);
   const kind = body.kind === "artist" ? "artist" : "salon";
-  if (!id) return error("شناسه رزرو نامعتبر است.", 400);
-  if (!["accept", "cancel"].includes(body.action)) return error("جواب مشخص نیست.", 400);
+  if (!id) return error("این نوبت رو پیدا نکردیم.", 400);
+  if (!["accept", "cancel"].includes(body.action)) return error("قبول یا رد؟ یکی رو بزن.", 400);
 
   if (body.action === "cancel") {
     const claimed = await proposals.claimProposalForCancel({ kind, id, client: auth.user });
-    if (!claimed) return json({ error: "پیشنهادی برای این نوبت نمانده است؛ صفحه را تازه کن.", code: "NO_PROPOSAL" }, { status: 409 });
+    if (!claimed) return json({ error: "پیشنهادی برای این نوبت نمونده؛ صفحه رو تازه کن.", code: "NO_PROPOSAL" }, { status: 409 });
     const result = kind === "artist" ? await artists.cancelArtistBookingByClient(id, auth.user) : await salons.cancelSalonBookingByClient(id, auth.user);
     if (!result.ok) {
-      if (result.error === "missing") return error("رزرو یافت نشد.", 404);
-      if (result.error === "past") return error("رزرو گذشته قابل لغو نیست.", 409);
-      return error("این رزرو دیگر فعال نیست.", 409);
+      if (result.error === "missing") return error("این نوبت رو پیدا نکردیم.", 404);
+      if (result.error === "past") return error("این نوبت گذشته و دیگه لغو نمی‌شه.", 409);
+      return error("این نوبت دیگه فعال نیست.", 409);
     }
     const providerId = Number(kind === "artist" ? result.artistUserId : result.salonUserId || 0);
     noticeProviderProposalAnswer(providerId, { accepted: false, booking: result.booking, clientName: result.booking.client || result.booking.client_name || auth.user.name });
@@ -47,8 +47,8 @@ async function _POST(request) {
     if (result.error === "unavailable" && result.before) {
       const providerId = Number(kind === "artist" ? result.artistUserId : result.salonUserId || 0);
       void sendPushToUser(providerId, {
-        title: "پیشنهادت ثبت نشد",
-        body: `${result.before.client || result.before.client_name || "مشتری"} — ${result.before.service || "نوبت"}: ساعت یا آرتیست پیشنهادی دیگر آزاد نبود؛ نوبت قبلی سر جایش است. با مشتری تماس بگیر.`
+        title: "پیشنهادت نرسید",
+        body: `${result.before.client || result.before.client_name || "مشتری"}، ${result.before.service || "نوبت"}: ساعت یا آرتیستی که پیشنهاد دادی دیگه آزاد نبود؛ نوبت قبلی سر جاشه. به مشتری زنگ بزن.`
       });
     }
     // The client answered after the deadline and this call is the one that closed it: the provider is told to call.

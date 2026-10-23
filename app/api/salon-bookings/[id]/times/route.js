@@ -13,17 +13,17 @@ export const dynamic = "force-dynamic";
  * exactly these (bookingMoveOptions).
  */
 async function _GET(request, { params }) {
-  const auth = await requireUserRole(request, "salon", "فقط سالن.");
+  const auth = await requireUserRole(request, "salon", "این بخش مال سالن‌هاست.");
   if (!auth.ok) return auth.response;
   const id = parseId((await params).id);
   if (!id) return notFound();
   const booking = await salons.getSalonBookingRow(id, auth.user.id);
-  if (!booking) return notFound("رزرو یافت نشد.");
+  if (!booking) return notFound("این نوبت رو پیدا نکردیم.");
   const day = new URL(request.url).searchParams.get("day");
   const dateKey = strictDayKey(day || booking.booking_date);
-  if (!dateKey) return json({ error: "روز نامعتبر است." }, { status: 400 });
+  if (!dateKey) return json({ error: "این روز رو نفهمیدیم؛ دوباره انتخاب کن." }, { status: 400 });
   const result = await bookingMoveOptions(auth.user.id, id, dateKey);
-  if (!result.ok) return notFound("رزرو یافت نشد.");
+  if (!result.ok) return notFound("این نوبت رو پیدا نکردیم.");
   return json({ data: { day: dateKey, times: result.times, close: result.close, closed: result.closed } });
 }
 

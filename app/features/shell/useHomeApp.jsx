@@ -126,12 +126,12 @@ export function useHomeApp() {
         body: JSON.stringify({ salonUserId: pendingSalonId, code: pendingCode })
       });
       if (ok) {
-        setAppToast(`به تیم «${payload?.data?.salon?.name || "سالن"}» پیوستی!`);
+        setAppToast(`رفتی توی تیم «${payload?.data?.salon?.name || "سالن"}»!`);
       } else if (payload?.code !== "ALREADY_STAFF") {
-        setAppToast(payload?.error || "پیوستن به تیم سالن انجام نشد.");
+        setAppToast(payload?.error || "نشد بری توی تیم سالن؛ دوباره بزن.");
       }
     } catch {
-      setAppToast("پیوستن به تیم سالن انجام نشد.");
+      setAppToast("نشد بری توی تیم سالن؛ دوباره بزن.");
     }
   }
 
@@ -148,7 +148,7 @@ export function useHomeApp() {
       const { ok, payload } = await connectTo(target.id);
       if (ok && payload?.data?.profile) {
         place = payload.data.profile;
-        if (!payload.data.alreadyConnected) setAppToast(`«${place.name}» به «سالن و آرتیست من» اضافه شد.`);
+        if (!payload.data.alreadyConnected) setAppToast(`«${place.name}» اضافه شد به سالن و آرتیست‌هات.`);
         c.refreshFollows?.();
       }
     } catch {

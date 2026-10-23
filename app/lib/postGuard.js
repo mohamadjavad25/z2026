@@ -7,12 +7,12 @@ export const POST_AUTHOR_TYPES = ["artist", "salon"];
 
 /** Shared create/update validation. Returns an error Response, or null when fine. */
 export function validatePostBody(body, { creating }) {
-  if (creating && !String(body.title || "").trim()) return error("عنوان لازم است.", 400);
-  if (creating && !String(body.image || "").startsWith("data:image/")) return error("تصویر نمونه‌کار لازم است.", 400);
-  if (body.title !== undefined && !String(body.title).trim()) return error("عنوان نمی‌تواند خالی باشد.", 400);
+  if (creating && !String(body.title || "").trim()) return error("یه عنوان بنویس.", 400);
+  if (creating && !String(body.image || "").startsWith("data:image/")) return error("یه عکس از کارت بذار.", 400);
+  if (body.title !== undefined && !String(body.title).trim()) return error("عنوان نمی‌تونه خالی باشه.", 400);
   if (body.image && typeof body.image === "string" && body.image.startsWith("data:")) {
-    if (isImageDataUrlTooLarge(body.image)) return error("حجم عکس بیش از حد مجاز (۵ مگابایت) است.", 413);
-    if (isImageDataUrlInvalidType(body.image)) return error("فرمت عکس پشتیبانی نمی‌شود.", 400);
+    if (isImageDataUrlTooLarge(body.image)) return error("عکس بزرگ‌تر از ۵ مگابایته؛ یه عکس کوچیک‌تر بذار.", 413);
+    if (isImageDataUrlInvalidType(body.image)) return error("این نوع عکس رو نمی‌شناسیم؛ JPG یا PNG بذار.", 400);
   }
   return null;
 }
@@ -21,5 +21,5 @@ export function validatePostBody(body, { creating }) {
 export async function limitPostWrites(userId) {
   const limited = await checkRateLimit(`post-write:${userId}`, 60, 10 * 60 * 1000);
   if (limited.ok) return null;
-  return error("تعداد درخواست‌ها زیاد است؛ چند دقیقه بعد دوباره امتحان کن.", 429);
+  return error("یه کم زیاد زدی؛ چند دقیقه دیگه دوباره بزن.", 429);
 }

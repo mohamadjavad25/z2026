@@ -57,7 +57,7 @@ export function SalonClientGallery({ salon, items, getFallbackStyle, postActions
     return (
       <div className="salonClientEmptyGallery">
         <Mascot pose="no-portfolio" size={130} />
-        <b>هنوز نمونه‌کاری ثبت نشده</b>
+        <b>هنوز کاری نذاشته؛ به‌زودی اینجا میاد</b>
       </div>
     );
   }
@@ -95,7 +95,7 @@ export function SalonClientGallery({ salon, items, getFallbackStyle, postActions
       </div>
       {anyFailed ? (
         <p className="salonGalleryRetry" role="alert">
-          اینترنتت کند است. دوباره تلاش کن
+          اینترنتت کنده؛ دوباره بزن
           <button type="button" onClick={() => { setFailed({}); setAttempt((count) => count + 1); }}>
             <RotateCw size={14} aria-hidden="true" /> دوباره
           </button>

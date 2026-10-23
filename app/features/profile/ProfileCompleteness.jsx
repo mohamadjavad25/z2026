@@ -12,7 +12,7 @@ export function getProfileSteps(profile, serviceCount) {
   const isSalon = profile?.type === "salon";
   return [
     { id: "avatar", label: isSalon ? "لوگوی سالن" : "عکس پروفایل", done: !isDefaultAvatar(data.avatar) },
-    { id: "area", label: "محدوده فعالیت", done: Boolean(String(data.area || "").trim()) },
+    { id: "area", label: "جات روی نقشه", done: Boolean(String(data.area || "").trim()) },
     { id: "specialty", label: isSalon ? "خدمات اصلی" : "تخصص", done: Boolean(String(data.service || "").trim()) },
     { id: "services", label: "اولین خدمت در منو", done: serviceCount > 0 }
   ];
@@ -93,10 +93,10 @@ export function ProfileCompleteness({ profile, serviceCount = 0, logoEditing = f
           </svg>
         </div>
         <div className="pccCopy">
-          <strong>پروفایلت {toPersianDigits(percent)}٪ کامل است</strong>
-          <small>{remaining === 1 ? "فقط یک قدم مانده" : `${toPersianDigits(remaining)} قدم مانده`}</small>
+          <strong>صفحه‌ت {toPersianDigits(percent)}٪ آماده‌ست</strong>
+          <small>{remaining === 1 ? "فقط یه قدم دیگه" : `${toPersianDigits(remaining)} قدم دیگه`}</small>
         </div>
-        <button type="button" className="pccStart" onClick={startFlow}>کاملش کن</button>
+        <button type="button" className="pccStart" onClick={startFlow}>بریم</button>
         <button type="button" className="profileCompletenessClose" aria-label="بستن یادآوری تکمیل پروفایل" onClick={() => setDismissed(true)}>
           <X size={16} aria-hidden="true" />
         </button>

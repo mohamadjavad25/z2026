@@ -10,7 +10,7 @@ export function bookingStatusLabel(status = "") {
   if (status === "لغو") return "لغو شد";
   if (status === "منقضی شده") return "منقضی شد";
   if (status === AWAITING_CLIENT) return "در انتظار تو";
-  return "در انتظار تأیید";
+  return "منتظر سالن";
 }
 
 export function bookingStatusTone(status = "") {
@@ -97,13 +97,13 @@ export function requestWaitNote(booking, now = new Date()) {
   if (!["درخواست", "تازه"].includes(booking?.status)) return "";
   const who = booking.bookingSource === "artist" ? "آرتیست" : "سالن";
   const windowMinutes = bookingWaitMinutes(booking);
-  if (windowMinutes === null) return `${who} تا قبل از نوبت (حداکثر ۲۴ ساعت) وقت دارد جواب بدهد. اگر دیر شد، خودت لغوش کن.`;
+  if (windowMinutes === null) return `${who} تا قبل از نوبت (حداکثر ۲۴ ساعت) وقت داره جواب بده. اگه دیر کرد، خودت لغوش کن.`;
   const deadline = requestDeadlineLabel(booking.created_at || booking.createdAt, booking.booking_date || booking.date, booking.time, { now, windowMinutes });
   if (!deadline) return "";
   const backup = booking.fallback_name || "";
   return backup
-    ? `${who} تا ساعت ${deadline} جواب می‌دهد؛ وگرنه می‌رود برای ${backup}.`
-    : `${who} تا ساعت ${deadline} جواب می‌دهد؛ وگرنه لغو می‌شود.`;
+    ? `${who} تا ${deadline} جواب می‌ده؛ اگه نداد، می‌ره برای ${backup}.`
+    : `${who} تا ${deadline} جواب می‌ده؛ اگه نداد، خودش لغو می‌شه و چیزی گردنت نیست.`;
 }
 
 /** For a request that went unanswered and was sent on to the client's backup salon / artist: its name. */

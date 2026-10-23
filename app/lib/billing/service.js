@@ -193,17 +193,17 @@ export async function startCheckout({ user, planId, origin, forUserId = null }) 
   let account = user;
   let payer = null;
   if (forUserId && Number(forUserId) !== Number(user.id)) {
-    if (user.type !== "salon") return fail(403, "فقط سالن می‌تواند برای آرتیست‌های تیمش پرداخت کند.", "NOT_SALON");
-    if (!(await billing.isTeamArtist(user.id, forUserId))) return fail(403, "این آرتیست عضو تیم سالنت نیست.", "NOT_TEAM");
+    if (user.type !== "salon") return fail(403, "فقط سالن می‌تونه اشتراک آرتیست‌های تیمش رو بده.", "NOT_SALON");
+    if (!(await billing.isTeamArtist(user.id, forUserId))) return fail(403, "این آرتیست توی تیم سالنت نیست.", "NOT_TEAM");
     const state = await billing.getAccountState(forUserId);
-    if (!state) return fail(404, "حساب این آرتیست پیدا نشد.", "NO_ACCOUNT");
+    if (!state) return fail(404, "حساب این آرتیست رو پیدا نکردیم.", "NO_ACCOUNT");
     account = state.user;
     payer = user;
   }
   const plan = getPlan(planId);
-  if (!plan || plan.role !== account.type) return fail(400, payer ? "این پلن برای آرتیست نیست." : "این پلن برای حساب تو نیست.", "BAD_PLAN");
+  if (!plan || plan.role !== account.type) return fail(400, payer ? "این پلن مال آرتیست نیست." : "این پلن مال حساب تو نیست.", "BAD_PLAN");
   const [settings, gateway] = [await billing.getBillingSettings(), activeGateway()];
-  if (!settings.enabled || !gateway) return fail(409, "پرداخت اشتراک هنوز راه‌اندازی نشده است.", "BILLING_OFF");
+  if (!settings.enabled || !gateway) return fail(409, "خرید اشتراک هنوز باز نشده.", "BILLING_OFF");
 
   const payment = await billing.createPayment({ user: account, plan, gateway: gateway.id, payer });
   const callbackUrl = `${origin}/api/billing/callback/${gateway.id}?pid=${payment.id}`;
@@ -218,10 +218,10 @@ export async function startCheckout({ user, planId, origin, forUserId = null }) 
   if (!started?.ok || !started.authority || !redirect) {
     await billing.failPayment(payment.id, "اتصال به درگاه برقرار نشد.", started?.detail || "bad gateway answer");
     logger.warn("billing checkout could not start", { paymentId: payment.id, gateway: gateway.id, detail: String(started?.detail || "").slice(0, 200) });
-    return fail(502, "اتصال به درگاه پرداخت برقرار نشد. چند دقیقه بعد دوباره امتحان کن؛ پولی کم نشده است.", "GATEWAY_DOWN");
+    return fail(502, "درگاه بانک جواب نداد. چند دقیقه دیگه دوباره بزن؛ پولی کم نشده.", "GATEWAY_DOWN");
   }
   const saved = await billing.attachAuthority(payment.id, started.authority, started.payload || {});
-  if (!saved) return fail(500, "شروع پرداخت ذخیره نشد؛ دوباره امتحان کن.", "SAVE_FAILED");
+  if (!saved) return fail(500, "پرداخت شروع نشد؛ دوباره بزن.", "SAVE_FAILED");
   return { ok: true, paymentId: payment.id, redirect };
 }
 
@@ -329,8 +329,8 @@ export async function notifyPaid(payment) {
     }
     if (payment.user_id) {
       tasks.push(sendPushToUser(payment.user_id, {
-        title: `${payment.payer_name || "سالنت"} اشتراکت را پرداخت کرد`,
-        body: `${payment.plan_title}${test}؛ اشتراکت تا ${until} فعال است.`,
+        title: `${payment.payer_name || "سالنت"} اشتراکت رو خرید`,
+        body: `${payment.plan_title}${test}؛ اشتراکت تا ${until} فعاله.`,
         url: "/?billing=history"
       }));
     }
@@ -367,7 +367,7 @@ export async function notifyGranted(payment) {
   if (!payment?.user_id) return;
   await sendPushToUser(payment.user_id, {
     title: "اشتراکت تمدید شد",
-    body: `${toPersianDigits(payment.days)} روز اضافه شد؛ اشتراکت تا ${formatPersianLongDate(payment.period_end)} فعال است.`,
+    body: `${toPersianDigits(payment.days)} روز اضافه شد؛ اشتراکت تا ${formatPersianLongDate(payment.period_end)} فعاله.`,
     url: `/?billing=${payment.id}`
   }).catch(() => {});
 }
@@ -380,7 +380,7 @@ export async function notifyRefunded(payment) {
   const days = Number(payment.refund_days) ? ` و ${toPersianDigits(payment.refund_days)} روز از اشتراک کم شد` : "";
   await sendPushToUser(to, {
     title: "بازپرداخت ثبت شد",
-    body: `${amount} تومان از رسید ${payment.receipt_no || ""} به کارتت برمی‌گردد${days}.`,
+    body: `${amount} تومان از رسید ${payment.receipt_no || ""} به کارتت برمی‌گرده${days}.`,
     url: "/?billing=history"
   }).catch(() => {});
 }

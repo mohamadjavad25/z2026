@@ -39,15 +39,15 @@ export function ExitPlanPanel({ plan, scope, params = {}, message = "", confirmL
     try {
       const result = await cancelExitBooking(scope, params, item);
       if (result.ok) {
-        onNotice?.("نوبت لغو شد و مشتری باخبر شد.");
+        onNotice?.("نوبت لغو شد و مشتری خبردار شد.");
         if (result.payload?.data?.plan) onPlan?.(result.payload.data.plan);
         else await refresh();
       } else {
-        setError(result.payload?.error || "لغو انجام نشد؛ دوباره امتحان کن.");
+        setError(result.payload?.error || "لغو نشد؛ دوباره بزن.");
         await refresh();
       }
     } catch {
-      setError("لغو انجام نشد؛ اینترنتت را نگاه کن و دوباره امتحان کن.");
+      setError("لغو نشد؛ اینترنتت رو یه نگاه بنداز و دوباره بزن.");
     } finally {
       setWorkingId("");
       setAskId("");
@@ -64,11 +64,11 @@ export function ExitPlanPanel({ plan, scope, params = {}, message = "", confirmL
         ? { id: item.id, toStaff, fromStaffId: params.staffId }
         : { id: item.id, toStaff, salonUserId: item.salonUserId };
       const result = await proposeHandover(body);
-      if (result.ok) onNotice?.("پیشنهاد برای مشتری فرستاده شد. تا قبول نکند، نوبت همان‌طور که بود می‌ماند.");
-      else setError(result.payload?.error || "پیشنهاد فرستاده نشد؛ دوباره امتحان کن.");
+      if (result.ok) onNotice?.("پیشنهاد رفت برای مشتری؛ تا قبول نکنه، نوبت همون‌طور که بود می‌مونه.");
+      else setError(result.payload?.error || "پیشنهاد نرفت؛ دوباره بزن.");
       await refresh();
     } catch {
-      setError("پیشنهاد فرستاده نشد؛ اینترنتت را نگاه کن و دوباره امتحان کن.");
+      setError("پیشنهاد نرفت؛ اینترنتت رو یه نگاه بنداز و دوباره بزن.");
     } finally {
       setWorkingId("");
     }
@@ -84,19 +84,19 @@ export function ExitPlanPanel({ plan, scope, params = {}, message = "", confirmL
           <b>{item.clientName || "مشتری"}</b>
           <span>{formatRelativeBookingDayLabel(item.date)}، {toPersianDigits(item.time || "")}</span>
         </div>
-        <small>{item.service || "نوبت"}{item.staff?.length ? ` • ${item.staff.join("، ")}` : ""}</small>
+        <small>{item.service || "نوبت"}{item.staff?.length ? `، ${item.staff.join("، ")}` : ""}</small>
         {item.near ? <p className="pxHint">{CALL_FIRST_TEXT}</p> : null}
         {item.proposalPending ? (
-          <p className="pxWait">منتظر جواب مشتری هستیم{item.proposalStaff ? ` (پیشنهاد: ${item.proposalStaff})` : ""}. تا قبول نکند، نوبت همان‌طور که بود می‌ماند.</p>
+          <p className="pxWait">منتظر جواب مشتری هستیم{item.proposalStaff ? ` (پیشنهاد: ${item.proposalStaff})` : ""}؛ تا قبول نکنه، نوبت همون‌طور که بود می‌مونه.</p>
         ) : null}
         <div className="pxActions">
           {phone ? (
             <a className="pxBtn" href={`tel:${phone}`}><Phone size={15} aria-hidden="true" />{CLIENT_CAN_CALL}<span dir="ltr">{toPersianDigits(item.clientPhone)}</span></a>
-          ) : <span className="pxNoPhone">شمارهٔ مشتری ثبت نشده.</span>}
+          ) : <span className="pxNoPhone">مشتری شماره نداره.</span>}
           {askId === id ? (
             <span className="pxAsk" role="alertdialog" aria-label="تأیید لغو">
-              <span>مشتری با پیامک و اعلان باخبر می‌شود. لغو شود؟</span>
-              <button type="button" className="pxBtn is-danger" disabled={working} onClick={() => cancelOne(item)}>{working ? "در حال لغو…" : "بله، لغو شود"}</button>
+              <span>مشتری با پیامک و اعلان خبردار می‌شه. لغو بشه؟</span>
+              <button type="button" className="pxBtn is-danger" disabled={working} onClick={() => cancelOne(item)}>{working ? "دارم لغو می‌کنم…" : "آره، لغو کن"}</button>
               <button type="button" className="pxBtn" disabled={working} onClick={() => setAskId("")}>نه</button>
             </span>
           ) : (
@@ -116,7 +116,7 @@ export function ExitPlanPanel({ plan, scope, params = {}, message = "", confirmL
               </select>
               <button type="button" className="pxBtn is-primary" disabled={Boolean(workingId)} onClick={() => handOver(item)}><UserRoundCheck size={15} aria-hidden="true" />{HANDOVER_LABEL}</button>
             </div>
-          ) : <p className="pxMuted">در این ساعت آرتیست آزادی در تیم نیست؛ این نوبت را لغو کن.</p>
+          ) : <p className="pxMuted">این ساعت آرتیست آزادی توی تیم نیست؛ این نوبت رو لغو کن.</p>
         ) : null}
       </li>
     );
@@ -130,10 +130,10 @@ export function ExitPlanPanel({ plan, scope, params = {}, message = "", confirmL
     <section className="pxPanel" aria-live="polite">
       {message ? <p className="pxAlert">{message}</p> : null}
       {error ? <p className="pxAlert is-error">{error}</p> : null}
-      {nothing ? <p className="pxMuted">نوبت تأییدشده‌ای جلوی این کار نمانده.</p> : null}
+      {nothing ? <p className="pxMuted">دیگه نوبتی جلوی این کار رو نگرفته.</p> : null}
       {near.length ? (
         <>
-          <h4>تا ۲۴ ساعت دیگر</h4>
+          <h4>تا ۲۴ ساعت دیگه</h4>
           <ul className="pxList">{near.map(row)}</ul>
         </>
       ) : null}
@@ -145,8 +145,8 @@ export function ExitPlanPanel({ plan, scope, params = {}, message = "", confirmL
       ) : null}
       {!plan?.blocked && plan?.needsChoice && onConfirm ? (
         <div className="pxAll">
-          <p>اگر نمی‌خواهی تک‌تک لغو کنی، همه را یک‌جا لغو کن. هر مشتری پیامک می‌گیرد.</p>
-          <button type="button" className="pxBtn is-danger" disabled={busy || Boolean(workingId)} onClick={() => onConfirm({ cancelAll: true })}>{busy ? "در حال لغو…" : CANCEL_ALL_AND_TEXT}</button>
+          <p>اگه نمی‌خوای تک‌تک لغو کنی، همه رو یه‌جا لغو کن. هر مشتری پیامک می‌گیره.</p>
+          <button type="button" className="pxBtn is-danger" disabled={busy || Boolean(workingId)} onClick={() => onConfirm({ cancelAll: true })}>{busy ? "دارم لغو می‌کنم…" : CANCEL_ALL_AND_TEXT}</button>
         </div>
       ) : null}
       {confirmLabel && onConfirm ? (
@@ -156,10 +156,10 @@ export function ExitPlanPanel({ plan, scope, params = {}, message = "", confirmL
           disabled={busy || Boolean(workingId) || plan?.blocked || plan?.needsChoice}
           onClick={() => onConfirm({})}
         >
-          {busy ? "در حال انجام…" : confirmLabel}
+          {busy ? "یه لحظه…" : confirmLabel}
         </button>
       ) : null}
-      {plan?.blocked ? <p className="pxMuted">تا این نوبت‌ها انجام یا لغو نشوند، نمی‌شود ادامه داد.</p> : null}
+      {plan?.blocked ? <p className="pxMuted">تا این نوبت‌ها انجام یا لغو نشن، نمی‌شه ادامه داد.</p> : null}
     </section>
   );
 }

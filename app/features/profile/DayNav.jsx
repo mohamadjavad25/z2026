@@ -36,7 +36,7 @@ export function DayNav({ items = [], selectedDay = "", onSelectDay, onOpenCalend
         <ChevronLeft size={20} aria-hidden="true" />
       </button>
       {todayIndex >= 0 && todayIndex !== index ? (
-        <button type="button" className="dayNavToday" onClick={() => go(todayIndex - index)}>برگشت به امروز</button>
+        <button type="button" className="dayNavToday" onClick={() => go(todayIndex - index)}>برگرد به امروز</button>
       ) : null}
     </div>
   );

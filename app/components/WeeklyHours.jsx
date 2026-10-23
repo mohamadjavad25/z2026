@@ -9,7 +9,7 @@ const WEEK = ["شنبه", "یکشنبه", "دوشنبه", "سه‌شنبه", "چ
 /** Closed today: also say when it opens next («امروز تعطیل، فردا از ۱۰:۰۰»). */
 function closedText(rows, todayName) {
   const start = WEEK.indexOf(todayName);
-  if (start < 0) return "امروز تعطیل است";
+  if (start < 0) return "امروز تعطیله";
   for (let step = 1; step < 7; step += 1) {
     const day = WEEK[(start + step) % 7];
     const row = rows.find((item) => item.day === day);
@@ -18,7 +18,7 @@ function closedText(rows, todayName) {
       return `امروز تعطیل، ${when} از ${toPersianDigits(row.open_time || "")}`;
     }
   }
-  return "امروز تعطیل است";
+  return "امروز تعطیله";
 }
 
 /**

@@ -22,7 +22,7 @@ export function SkeletonList({
   rows = 3,
   variant = "list",
   className = "",
-  label = "در حال بارگذاری"
+  label = "یه لحظه…"
 }) {
   const count = Math.max(1, Number(rows) || 3);
   const items = Array.from({ length: count }, (_, index) => index);
@@ -103,7 +103,7 @@ export function SkeletonStats({ count = 3 }) {
 }
 
 // A whole public page (salon or artist): header, a few services, a photo grid.
-export function SkeletonPage({ label = "در حال بارگذاری صفحه" }) {
+export function SkeletonPage({ label = "یه لحظه…" }) {
   return (
     <main className="uxSkeletonPage" role="status" aria-live="polite" aria-label={label}>
       <SkeletonHead />

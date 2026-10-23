@@ -16,7 +16,7 @@ async function _GET(request) {
   const auth = await requireUserRole(request, "client");
   if (!auth.ok) return auth.response;
   const limited = await checkRateLimit(`connect-search:${auth.user.id}`, SEARCHES_PER_MINUTE, 60 * 1000);
-  if (!limited.ok) return error("جستجو زیاد شد؛ یک دقیقه بعد دوباره امتحان کن.", 429);
+  if (!limited.ok) return error("یه کم زیاد گشتی؛ یه دقیقه دیگه دوباره بزن.", 429);
   const query = new URL(request.url).searchParams.get("q") || "";
   return json({ data: await connections.searchProfiles(query, auth.user.id) });
 }

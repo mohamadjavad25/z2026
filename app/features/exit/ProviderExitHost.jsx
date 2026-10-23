@@ -28,7 +28,7 @@ export function ProviderExitHost({ onNotice }) {
         setDetail((current) => (current ? { ...current, plan: result?.plan || current.plan, message: result?.message || current.message } : current));
       }
     } catch {
-      setDetail((current) => (current ? { ...current, message: "انجام نشد؛ اینترنتت را نگاه کن و دوباره امتحان کن." } : current));
+      setDetail((current) => (current ? { ...current, message: "نشد؛ اینترنتت رو یه نگاه بنداز و دوباره بزن." } : current));
     } finally {
       setBusy(false);
     }

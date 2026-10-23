@@ -17,11 +17,11 @@ async function _GET(request) {
   const auth = await requireUser(request);
   if (!auth.ok) return auth.response;
   const limited = await checkRateLimit(`connect-lookup:${auth.user.id}`, LOOKUPS_PER_MINUTE, 60 * 1000);
-  if (!limited.ok) return error("اسکن زیاد شد؛ یک دقیقه بعد دوباره امتحان کن.", 429);
+  if (!limited.ok) return error("یه کم زیاد اسکن کردی؛ یه دقیقه دیگه دوباره بزن.", 429);
   const link = parseProfileLink(new URL(request.url).searchParams.get("code") || "");
   if (!link) return error("این کد مال سالن یا آرتیست فرفرو نیست.");
   const result = await connections.lookupProfile(auth.user, link);
-  if (!result) return error("این سالن یا آرتیست پیدا نشد.", 404);
+  if (!result) return error("این سالن یا آرتیست رو پیدا نکردیم.", 404);
   return json({ data: result });
 }
 

@@ -46,20 +46,20 @@ export function ContactLookup({ contact, categoryLabel = "", clientName = "", co
   const who = contact?.name || "این مخاطب";
 
   if (state.status === "searching") return <SkeletonList rows={1} variant="card" label="در حال پیدا کردن" />;
-  if (state.status === "error") return <p className="cnNote" role="alert">پیدا کردن انجام نشد؛ دوباره امتحان کن.</p>;
+  if (state.status === "error") return <p className="cnNote" role="alert">پیدا نشد؛ دوباره بزن.</p>;
   if (!contact?.phones?.length) {
     return (
       <div className="cnEmpty is-compact">
-        <b>{who} شمارهٔ تلفن ندارد.</b>
-        <p>یک مخاطب دیگر انتخاب کن.</p>
+        <b>{who} شماره نداره.</b>
+        <p>یکی دیگه رو انتخاب کن.</p>
       </div>
     );
   }
   if (state.results.length === 0) {
     return (
       <div className="cnEmpty is-compact">
-        <b>{who} هنوز در فرفرو نیست.</b>
-        <p>دعوتش کن؛ بعد از ثبت‌نام می‌توانی از او نوبت بگیری.</p>
+        <b>{who} هنوز توی فرفرو نیست.</b>
+        <p>دعوتش کن؛ که اومد، ازش نوبت می‌گیری.</p>
         <InviteToFrfro phone={invitePhoneOf(contact.phones)} clientName={clientName} category={categoryLabel} />
       </div>
     );

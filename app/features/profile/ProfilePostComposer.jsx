@@ -100,7 +100,7 @@ export function ProfilePostComposer({
   async function acceptFile(file) {
     if (!file) return;
     if (!file.type.startsWith("image/")) {
-      onNotify?.("فقط فایل تصویری مجاز است.");
+      onNotify?.("فقط عکس می‌شه.");
       if (startedFromPicker.current) onClose?.();
       return;
     }
@@ -108,7 +108,7 @@ export function ProfilePostComposer({
     try {
       setCropSrc(await prepareSource(file));
     } catch {
-      onNotify?.("حجم تصویر باید کمتر از ۸ مگابایت باشد.");
+      onNotify?.("عکس باید کمتر از ۸ مگ باشه.");
       if (startedFromPicker.current) onClose?.();
     } finally {
       setPreparing(false);
@@ -224,7 +224,7 @@ export function ProfilePostComposer({
                     انصراف
                   </button>
                   <button type="button" className="artistWorkCropConfirm" onClick={confirmCrop}>
-                    <Check size={15} /> تایید کادر
+                    <Check size={15} /> همین خوبه
                   </button>
                 </div>
               </>
@@ -259,15 +259,15 @@ export function ProfilePostComposer({
         ) : preparing ? (
           <div className="artistWorkHero">
             <div className="artistWorkUploadEmpty" role="status">
-              <b>در حال آماده‌سازی عکس…</b>
+              <b>دارم عکس رو آماده می‌کنم…</b>
             </div>
           </div>
         ) : (
           <div className="artistWorkHero">
             <div className="artistWorkUploadEmpty">
               <Upload size={28} />
-              <b>تصویر نمونه‌کار را آپلود کن</b>
-              <span>بعد از انتخاب، کادر عکس را جابه‌جا و بزرگ‌کوچک می‌کنی.</span>
+              <b>عکس کارت رو بذار</b>
+              <span>انتخابش که کردی، قابش رو جابه‌جا و بزرگ‌کوچیک می‌کنی.</span>
               <div className="artistWorkUploadActions">
                 <label>
                   <Camera size={16} />
@@ -286,7 +286,7 @@ export function ProfilePostComposer({
         {cropSrc ? null : (
         <form className="artistWorkForm" onSubmit={onSubmit}>
           <div className="artistWorkField artistWorkCategoryField">
-            <span>این کار مربوط به کدام خدمت است؟</span>
+            <span>این کار مال کدوم خدمته؟</span>
             {tagChoices.length ? (
               <div className="pcTags" role="radiogroup" aria-label="انتخاب خدمت">
                 {tagChoices.map((tag) => (
@@ -309,7 +309,7 @@ export function ProfilePostComposer({
                 ))}
               </div>
             ) : (
-              <small className="pcHint">هنوز خدمتی در منوی تو نیست؛ پست بدون دسته منتشر می‌شود. بعداً می‌توانی آن را به یک خدمت وصل کنی.</small>
+              <small className="pcHint">هنوز خدمتی توی منوت نیست؛ بدون دسته می‌ره. بعداً می‌تونی به یه خدمت وصلش کنی.</small>
             )}
           </div>
 
@@ -333,7 +333,7 @@ export function ProfilePostComposer({
               <textarea
                 value={value.caption || ""}
                 onChange={(event) => patch({ caption: event.target.value })}
-                placeholder="توضیح کوتاه دربارهٔ این کار"
+                placeholder="یه توضیح کوتاه دربارهٔ این کار"
                 rows={3}
                 maxLength={600}
                 disabled={saving}
@@ -343,7 +343,7 @@ export function ProfilePostComposer({
 
           {showVisibility ? (
             <div className="artistWorkField">
-              <span>چه کسی ببیند؟</span>
+              <span>کی ببینه؟</span>
               <div className="pcVisibility" role="radiogroup" aria-label="نمایش پست">
                 <button type="button" role="radio" aria-checked={!isPrivate} className={!isPrivate ? "is-on" : ""} disabled={saving} onClick={() => patch({ isPublic: true })}>
                   <Globe size={15} /> همه
@@ -352,7 +352,7 @@ export function ProfilePostComposer({
                   <Lock size={15} /> فقط من
                 </button>
               </div>
-              <small className="pcHint">{isPrivate ? "این کار در پروفایل عمومی و جست‌وجو دیده نمی‌شود." : "این کار در پروفایل عمومی تو نمایش داده می‌شود."}</small>
+              <small className="pcHint">{isPrivate ? "توی صفحه‌ت و جستجو دیده نمی‌شه." : "توی صفحه‌ت دیده می‌شه."}</small>
             </div>
           ) : null}
 
@@ -366,8 +366,8 @@ export function ProfilePostComposer({
             >
               <Pin size={16} />
               <span>
-                <b>سنجاق به ابتدای گالری</b>
-                <small>{pinDisabled ? `حداکثر ${pinLimit} کار را می‌توانی سنجاق کنی.` : "کارهای سنجاق‌شده همیشه اول دیده می‌شوند."}</small>
+                <b>سنجاقش کن اول ویترین</b>
+                <small>{pinDisabled ? `حداکثر ${pinLimit} تا کار رو می‌تونی سنجاق کنی.` : "کارهای سنجاق‌شده همیشه اول دیده می‌شن."}</small>
               </span>
               <i>{value.featured ? "روشن" : "خاموش"}</i>
             </button>
@@ -375,7 +375,7 @@ export function ProfilePostComposer({
 
           <div className="artistWorkActions">
             <button type="submit" className="artistWorkSave" disabled={saving || !canSubmit}>
-              <Check size={16} /> {saving ? "در حال ذخیره..." : submitLabel}
+              <Check size={16} /> {saving ? "دارم ذخیره می‌کنم…" : submitLabel}
             </button>
             {!isNew && typeof onDelete === "function" ? (
               <button type="button" className="artistWorkDelete" onClick={onDelete} disabled={saving}>
@@ -383,14 +383,14 @@ export function ProfilePostComposer({
               </button>
             ) : null}
           </div>
-          {!canSubmit ? <p className="pcMissing" role="status">برای ذخیره لازم است: {missing.join("، ")}</p> : null}
+          {!canSubmit ? <p className="pcMissing" role="status">برای ذخیره اینا لازمه: {missing.join("، ")}</p> : null}
         </form>
         )}
         <SheetClose onClick={onClose} disabled={saving} />
         {saving ? (
           <div className="sheetBusy" role="status" aria-live="polite">
             <Spinner size={38} />
-            <b>{isNew ? "در حال انتشار نمونه‌کار…" : "در حال ذخیره تغییرات…"}</b>
+            <b>{isNew ? "دارم نمونه‌کار رو می‌ذارم…" : "دارم ذخیره می‌کنم…"}</b>
           </div>
         ) : null}
       </article>

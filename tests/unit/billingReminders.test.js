@@ -24,7 +24,7 @@ describe("subscription reminders", () => {
   it("words the free month and a paid period differently", () => {
     expect(reminderMessage("ends_5d", access(25)).title).toContain("ماه رایگان");
     const paid = computeAccess({ now: NOW, createdAt: new Date(0), launchedAt: new Date(0), paidUntil: new Date(NOW.getTime() + 3 * DAY_MS) });
-    expect(reminderMessage("ends_5d", paid).title).toBe("اشتراکت رو به پایان است");
+    expect(reminderMessage("ends_5d", paid).title).toBe("اشتراکت داره تموم می‌شه");
   });
 
   it("keeps SMS values free of spaces (Kavenegar tokens)", () => {

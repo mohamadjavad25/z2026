@@ -28,7 +28,7 @@ export function SalonNotificationsSheet() {
   const ahead = salonAppointmentList.filter((booking) => !["لغو", "منقضی شده"].includes(booking.status) && String(booking.booking_date || "") >= todayKey);
   const todayCount = ahead.filter((booking) => booking.booking_date === todayKey).length;
   const aheadText = !ahead.length
-    ? "نوبتی در پیش نیست."
+    ? "فعلاً نوبتی نداری."
     : todayCount
       ? `امروز ${toPersianDigits(todayCount)} نوبت؛ روی‌هم ${toPersianDigits(ahead.length)} نوبت پیش‌رو.`
       : `امروز نوبتی نداری؛ ${toPersianDigits(ahead.length)} نوبت در روزهای بعد.`;
@@ -47,8 +47,8 @@ export function SalonNotificationsSheet() {
               <article>
                 <span><BellRing size={18} /></span>
                 <div>
-                  <b>اطلاع‌رسانی رزروها</b>
-                  <small>{reservationRequestList.length ? `${toPersianDigits(reservationRequestList.length)} درخواست رزرو در انتظار بررسی است.` : "درخواست رزرو تازه‌ای ثبت نشده است."}</small>
+                  <b>درخواست‌های نوبت</b>
+                  <small>{reservationRequestList.length ? `${toPersianDigits(reservationRequestList.length)} درخواست منتظر جوابته.` : "فعلاً درخواستی نیست."}</small>
                 </div>
                 <em>{toPersianDigits(reservationRequestList.length)}</em>
               </article>
@@ -56,7 +56,7 @@ export function SalonNotificationsSheet() {
                 <span><PageIcon name="collab" size={22} /></span>
                 <div>
                   <b>همکاری و پرسنل</b>
-                  <small>{pendingSalonCollabRequests.length ? `${toPersianDigits(pendingSalonCollabRequests.length)} درخواست همکاری نیاز به پاسخ دارد.` : "درخواست همکاری تازه‌ای نداری."}</small>
+                  <small>{pendingSalonCollabRequests.length ? `${toPersianDigits(pendingSalonCollabRequests.length)} درخواست همکاری منتظر جوابته.` : "درخواست تازه‌ای نیست."}</small>
                 </div>
                 <em>{toPersianDigits(pendingSalonCollabRequests.length)}</em>
               </article>
@@ -71,11 +71,11 @@ export function SalonNotificationsSheet() {
             </div>
 
             {reservationRequestList.length > 0 && (
-              <section className="salonRequestsBoard" aria-label="درخواست‌های رزرو در انتظار پاسخ">
+              <section className="salonRequestsBoard" aria-label="درخواست‌هایی که منتظر جوابن">
                 <div className="boardHead">
                   <div>
-                    <span>درخواست‌های رزرو</span>
-                    <strong>نیاز به تایید شما</strong>
+                    <span>درخواست‌های نوبت</span>
+                    <strong>منتظر جواب تو</strong>
                   </div>
                   <b>{toPersianDigits(reservationRequestList.length)} درخواست</b>
                 </div>
@@ -110,7 +110,7 @@ export function SalonNotificationsSheet() {
                             onClick={() => approveReservationRequest(request.id)}
                           >
                             <Check size={15} />
-                            {busy ? "…" : "تایید"}
+                            {busy ? "…" : "تأیید"}
                           </button>
                           <button
                             type="button"
@@ -133,10 +133,10 @@ export function SalonNotificationsSheet() {
               <section className="salonRequestsBoard salonExpiredNoticeBoard" aria-label="درخواست‌های منقضی‌شده اخیر">
                 <div className="boardHead">
                   <div>
-                    <span>منقضی‌شده‌های اخیر</span>
-                    <strong>در زمانی که مشتری صبر کرد جواب نگرفتند</strong>
+                    <span>بی‌جواب موندن</span>
+                    <strong>تا وقتی مشتری صبر کرد جواب نگرفتن</strong>
                   </div>
-                  <b>{toPersianDigits(recentlyExpiredSalonBookings.length)} مورد</b>
+                  <b>{toPersianDigits(recentlyExpiredSalonBookings.length)} تا</b>
                 </div>
                 <div className="reservationRequestList">
                   {recentlyExpiredSalonBookings.map((booking) => (

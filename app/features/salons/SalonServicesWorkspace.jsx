@@ -42,9 +42,9 @@ export function SalonServicesWorkspace({
           <ProfileEmptyState
             className="artistServiceEmpty"
             visual={<Mascot pose="no-services" size={140} />}
-            title="هنوز خدمتی ثبت نشده"
-            description="خدمت‌ها را تعریف کن تا مشتری بتواند روز، ساعت و آرتیست مناسب را انتخاب کند."
-            actionLabel="افزودن اولین خدمت"
+            title="منوت هنوز خالیه"
+            description="خدمت‌هات رو بذار تا مشتری روز، ساعت و آرتیستش رو انتخاب کنه."
+            actionLabel="اولین خدمت رو بذار"
             onAction={onCreate}
           />
         ) : (
@@ -82,8 +82,8 @@ export function SalonServicesWorkspace({
                   <div className="svcCardTitle"><strong>{service.name}</strong></div>
                   {service.hint ? <p className="svcCardHint">{service.hint}</p> : null}
                   <div className="svcCardMeta">
-                    <span className="svcChip is-price">{service.price ? `${formatTomanNumber(parseTomanAmount(service.price))} تومان` : "قیمت را تنظیم کن"}</span>
-                    <span className="svcChip">{service.duration || "زمان را تنظیم کن"}</span>
+                    <span className="svcChip is-price">{service.price ? `${formatTomanNumber(parseTomanAmount(service.price))} تومان` : "قیمت بذار"}</span>
+                    <span className="svcChip">{service.duration || "مدت بذار"}</span>
                   </div>
                   <div className="serviceArtistPick">
                     <button
@@ -124,17 +124,17 @@ export function SalonServicesWorkspace({
                     </button>
                     <ProfileSheet
                       open={menuOpen}
-                      kicker={selectedArtistIds.length ? `${toPersianDigits(selectedArtistIds.length)} آرتیست انتخاب شده` : "آرتیستی انتخاب نشده"}
+                      kicker={selectedArtistIds.length ? `${toPersianDigits(selectedArtistIds.length)} آرتیست انتخاب شده` : "هنوز آرتیستی انتخاب نشده"}
                       title={service.name}
                       panelClassName="sasSheet"
                       onClose={() => onMenuToggle?.(null)}
                     >
                       <div className="sasBody" role="listbox" aria-label="لیست آرتیست‌ها" aria-multiselectable="true">
                         {staffList.length === 0 ? (
-                          <p className="sasEmpty">هنوز پرسنلی ثبت نشده. از بخش پرسنل یک آرتیست دعوت کن، یا اگر خودت این کار را انجام می‌دهی «خودم هم کار می‌کنم» را بزن.</p>
+                          <p className="sasEmpty">هنوز کسی توی تیمت نیست. از «پرسنل» یه آرتیست دعوت کن، یا اگه خودت این کار رو می‌کنی «خودم هم کار می‌کنم» رو بزن.</p>
                         ) : (
                           <>
-                            <p className="sasHint">آرتیست‌هایی که تخصصشان به این خدمت می‌خورد خودکار وصل می‌شوند. هر کدام را نخواستی بردار، یا کس دیگری را اضافه کن؛ انتخابت حفظ می‌شود.</p>
+                            <p className="sasHint">آرتیست‌هایی که کارشون به این خدمت می‌خوره خودکار وصل می‌شن. هر کدوم رو نخواستی بردار، یا یکی دیگه اضافه کن؛ انتخابت می‌مونه.</p>
                             {staffList.map((person) => {
                               const selected = selectedArtistIds.includes(String(person.id));
                               const avatar = person.avatar || person.staff_avatar || "";
@@ -155,7 +155,7 @@ export function SalonServicesWorkspace({
                                     <small>
                                       {person.role || person.artist_service || "آرتیست"}
                                       {autoIds.includes(String(person.id)) ? (
-                                        <em className={`sasAuto${selected ? "" : " is-off"}`}>{selected ? "خودکار از تخصص" : "مرتبط؛ برداشته شده"}</em>
+                                        <em className={`sasAuto${selected ? "" : " is-off"}`}>{selected ? "خودکار" : "برداشتی"}</em>
                                       ) : selected ? <em className="sasAuto is-manual">دستی</em> : null}
                                     </small>
                                   </span>
@@ -165,7 +165,7 @@ export function SalonServicesWorkspace({
                             })}
                             {selectedArtistIds.length ? (
                               <button type="button" className="sasClear" onClick={() => onClearArtists?.(service)}>
-                                حذف همه آرتیست‌ها
+                                همه رو بردار
                               </button>
                             ) : null}
                           </>

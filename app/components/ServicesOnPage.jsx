@@ -28,7 +28,7 @@ export function ServicesOnPage({ services = [], onPick }) {
               <ServiceIcon emoji={service.emoji} name={service.name} size="sm" />
               <span className="sopBody">
                 <b>{service.name}</b>
-                <small>{service.duration || "زمان متغیر"}</small>
+                <small>{service.duration || "مدتش فرق می‌کنه"}</small>
               </span>
               <span className="sopPrice">
                 {amount ? <>{formatTomanNumber(amount)} <small>تومان</small></> : <small>قیمت توافقی</small>}

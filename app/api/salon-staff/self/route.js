@@ -13,22 +13,22 @@ export const runtime = "nodejs";
  * other member. Leaving the team is the usual DELETE /api/salon-staff with that member's id.
  */
 async function _GET(request) {
-  const auth = await requireUserRole(request, "salon", "فقط سالن.");
+  const auth = await requireUserRole(request, "salon", "این بخش مال سالن‌هاست.");
   if (!auth.ok) return auth.response;
   return json({ data: { profile: await salons.getSalonOwnerProfile(auth.user.id) } });
 }
 
 async function _POST(request) {
-  const auth = await requireUserRole(request, "salon", "فقط سالن.");
+  const auth = await requireUserRole(request, "salon", "این بخش مال سالن‌هاست.");
   if (!auth.ok) return auth.response;
   const body = await request.json().catch(() => ({}));
   const photo = body?.photo == null ? undefined : String(body.photo);
   if (photo !== undefined && photo !== "salon" && photo !== "own") {
     if (!photo.startsWith("data:") || isImageDataUrlInvalidType(photo)) {
-      return json({ error: "این فایل عکس نیست؛ یک عکس دیگر انتخاب کن." }, { status: 400 });
+      return json({ error: "این فایل عکس نیست؛ یه عکس دیگه انتخاب کن." }, { status: 400 });
     }
     if (isImageDataUrlTooLarge(photo)) {
-      return json({ error: "حجم عکس زیاد است؛ یک عکس کوچک‌تر انتخاب کن." }, { status: 413 });
+      return json({ error: "عکس خیلی بزرگه؛ یه عکس کوچیک‌تر انتخاب کن." }, { status: 413 });
     }
   }
   const result = await salons.upsertSalonOwnerStaff(auth.user.id, {

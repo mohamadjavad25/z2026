@@ -6,7 +6,7 @@ import { formatTomanNumber } from "../../shared/lib/money";
 
 const MODES = [
   { id: "income", label: "درآمد" },
-  { id: "bookings", label: "رزرو" }
+  { id: "bookings", label: "نوبت" }
 ];
 
 function compactToman(value) {
@@ -33,8 +33,8 @@ export function StaffPerformanceChart({ stats }) {
   return (
     <section className="staffProfileSection staffPerf" aria-label="عملکرد آرتیست">
       <div className="staffProfileSectionHead">
-        <span>عملکرد ۶ هفته اخیر</span>
-        <small>بر اساس رزروهای ثبت‌شده در سالن</small>
+        <span>۶ هفتهٔ اخیر</span>
+        <small>از روی نوبت‌های سالن</small>
       </div>
 
       <div className="staffPerfKpis">
@@ -44,11 +44,11 @@ export function StaffPerformanceChart({ stats }) {
         </article>
         <article>
           <b>{toPersianDigits(stats.completed)}</b>
-          <small>رزرو انجام‌شده</small>
+          <small>نوبت انجام‌شده</small>
         </article>
         <article>
           <b>{toPersianDigits(stats.upcoming)}</b>
-          <small>رزرو پیش‌رو</small>
+          <small>نوبت پیش‌رو</small>
         </article>
       </div>
 
@@ -69,9 +69,9 @@ export function StaffPerformanceChart({ stats }) {
         </div>
 
         {max === 0 ? (
-          <p className="staffPerfEmpty">هنوز رزرو ثبت‌شده‌ای در این بازه نیست.</p>
+          <p className="staffPerfEmpty">توی این مدت هنوز نوبتی نبوده.</p>
         ) : (
-          <div className="staffPerfBars" role="img" aria-label={`نمودار ${mode === "income" ? "درآمد" : "رزرو"} هفتگی`}>
+          <div className="staffPerfBars" role="img" aria-label={`نمودار ${mode === "income" ? "درآمد" : "نوبت"} هفتگی`}>
             {stats.weeks.map((week, index) => {
               const value = values[index];
               const weeksAgo = stats.weeks.length - 1 - index;

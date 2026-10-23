@@ -61,7 +61,7 @@ export function SalonOwnerTeamCard({ managerName = "", ownerMember = null, onJoi
       return;
     }
     if (profile?.saved) {
-      await join({}, "دوباره در تیم هستی؛ با همان نام، کارها و عکس قبلی.");
+      await join({}, "برگشتی توی تیم؛ با همون اسم، کارها و عکس قبلی.");
       return;
     }
     setEditing((current) => !current);
@@ -97,8 +97,8 @@ export function SalonOwnerTeamCard({ managerName = "", ownerMember = null, onJoi
               ) : null}
               <small>
                 {isOn
-                  ? (isActive ? "در تیم هستی و رزرو می‌گیری" : "در تیم هستی؛ حالت مرخصی")
-                  : "خاموش است؛ با روشن کردن با همین اطلاعات به تیم برمی‌گردی"}
+                  ? (isActive ? "توی تیمی و نوبت می‌گیری" : "توی تیمی؛ مرخصی هستی")
+                  : "خاموشه؛ روشنش کنی با همین اطلاعات برمی‌گردی توی تیم"}
               </small>
             </span>
           </button>
@@ -107,7 +107,7 @@ export function SalonOwnerTeamCard({ managerName = "", ownerMember = null, onJoi
             <span className="stfSelfIcon" aria-hidden="true"><UserRoundPlus size={28} /></span>
             <span className="stfSelfCopy">
               <b>خودم هم کار می‌کنم</b>
-              <small>خودت را به تیم اضافه کن تا خدمات و رزرو به اسم خودت هم ثبت شود</small>
+              <small>خودت رو هم بذار توی تیم تا نوبت به اسم خودت هم ثبت بشه</small>
             </span>
           </>
         )}
@@ -128,7 +128,7 @@ export function SalonOwnerTeamCard({ managerName = "", ownerMember = null, onJoi
         <div className="stfSelfTools">
           <button type="button" onClick={() => setEditing(true)}>
             <PencilLine size={15} />
-            ویرایش نام، کارها و عکس
+            اسم، کارها و عکس
           </button>
           {isOn ? (
             <button type="button" onClick={() => onManage?.(ownerMember)}>
@@ -149,7 +149,7 @@ export function SalonOwnerTeamCard({ managerName = "", ownerMember = null, onJoi
           busy={busy}
           onCancel={() => setEditing(false)}
           onSubmit={async (body) => {
-            const ok = await join(body, isOn ? "کارتت در تیم به‌روز شد." : undefined);
+            const ok = await join(body, isOn ? "کارتت توی تیم ذخیره شد." : undefined);
             if (ok) setEditing(false);
           }}
         />
@@ -169,7 +169,7 @@ function OwnerProfileForm({ initialName, initialRoles, profile, joining, busy, o
   const salonPhoto = profile?.salonPhoto || "";
   const ownPhoto = newPhoto || profile?.ownPhoto || "";
   const preview = (photoChoice === "own" ? ownPhoto : salonPhoto) || DEFAULT_AVATAR;
-  const missing = !name.trim() ? "نامت را بنویس" : !roles.length ? "دست‌کم یک کار را انتخاب کن" : "";
+  const missing = !name.trim() ? "اسمت رو بنویس" : !roles.length ? "دست‌کم یه کار انتخاب کن" : "";
 
   const toggleRole = (role) => setRoles((current) => (
     current.includes(role) ? current.filter((item) => item !== role) : [...current, role]
@@ -189,7 +189,7 @@ function OwnerProfileForm({ initialName, initialRoles, profile, joining, busy, o
       return;
     }
     if (file.size > 8 * 1024 * 1024) {
-      setPhotoError("حجم عکس باید کمتر از ۸ مگابایت باشد.");
+      setPhotoError("عکس باید کمتر از ۸ مگ باشه.");
       return;
     }
     setPhotoError("");
@@ -213,19 +213,19 @@ function OwnerProfileForm({ initialName, initialRoles, profile, joining, busy, o
       <div className="stfSelfPreview" aria-label="پیش‌نمایش کارتت در تیم">
         <img src={preview} alt="" aria-hidden="true" draggable={false} />
         <span>
-          <b>{name.trim() || "نامت"}</b>
-          <small>{roles.length ? roles.join("، ") : "کارهایت این‌جا دیده می‌شود"}</small>
+          <b>{name.trim() || "اسمت"}</b>
+          <small>{roles.length ? roles.join("، ") : "کارهات اینجا دیده می‌شه"}</small>
         </span>
       </div>
 
       <label className="stfSelfField">
-        <span>نامت در تیم</span>
+        <span>اسمت توی تیم</span>
         <input value={name} onChange={(event) => setName(event.target.value)} placeholder="مثلاً مریم" maxLength={80} />
-        <small>مشتری‌ها موقع رزرو همین نام را می‌بینند.</small>
+        <small>مشتری‌ها موقع نوبت گرفتن همین اسم رو می‌بینن.</small>
       </label>
 
       <fieldset className="stfSelfField">
-        <legend>چه کارهایی انجام می‌دهی؟</legend>
+        <legend>چه کارهایی می‌کنی؟</legend>
         <div className="stfSelfRoles">
           {salonArtistRoleOptions.map((role) => (
             <button
@@ -263,7 +263,7 @@ function OwnerProfileForm({ initialName, initialRoles, profile, joining, busy, o
             onClick={pickOwn}
           >
             {ownPhoto ? <img src={ownPhoto} alt="" aria-hidden="true" /> : <span className="stfSelfPhotoIcon"><ImagePlus size={22} /></span>}
-            <span>{ownPhoto ? "عکس خودم" : "انتخاب عکس خودم"}</span>
+            <span>{ownPhoto ? "عکس خودم" : "یه عکس از خودم"}</span>
             {photoChoice === "own" ? <i aria-hidden="true"><Check size={12} strokeWidth={3} /></i> : null}
           </button>
         </div>
@@ -280,7 +280,7 @@ function OwnerProfileForm({ initialName, initialRoles, profile, joining, busy, o
       {missing ? <small className="stfSelfHint">{missing}</small> : null}
       <div className="stfSelfActions">
         <button type="submit" className="stfSelfSave" disabled={busy || Boolean(missing)}>
-          {busy ? "در حال ثبت…" : joining ? "اضافه کردن خودم به تیم" : "ذخیره"}
+          {busy ? "یه لحظه…" : joining ? "خودمم بذار توی تیم" : "ذخیره"}
         </button>
         <button type="button" className="stfSelfCancel" onClick={onCancel}>انصراف</button>
       </div>

@@ -10,7 +10,7 @@ import { sendCode, useCountdown } from "./otp";
  * Sends the first code on mount, offers a resend after the countdown, and hands the typed code to `onSubmit(code)`.
  * `onSubmit` returns an error message (string) to show, or nothing on success. `sendExtra` rides along on each send.
  */
-export function OtpCodeStep({ phone, purpose, sendExtra, resendSeconds = 60, submitLabel, busy = false, onSubmit, onEditPhone, editLabel = "ویرایش شماره", children }) {
+export function OtpCodeStep({ phone, purpose, sendExtra, resendSeconds = 60, submitLabel, busy = false, onSubmit, onEditPhone, editLabel = "شماره رو عوض کن", children }) {
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [sending, setSending] = useState(true);
@@ -22,7 +22,7 @@ export function OtpCodeStep({ phone, purpose, sendExtra, resendSeconds = 60, sub
     const { ok, payload } = await sendCode(phone, purpose, sendExtra);
     setSending(false);
     if (ok) countdown.restart();
-    else setError(payload.error || "ارسال پیامک انجام نشد.");
+    else setError(payload.error || "پیامک نرفت؛ دوباره بزن.");
   }
 
   useEffect(() => {
@@ -34,7 +34,7 @@ export function OtpCodeStep({ phone, purpose, sendExtra, resendSeconds = 60, sub
     event.preventDefault();
     const clean = toLatinDigits(code).trim();
     if (!/^\d{5}$/.test(clean)) {
-      setError("کد ۵رقمی را کامل وارد کن.");
+      setError("هر ۵ رقم کد رو بزن.");
       return;
     }
     setError("");
@@ -45,7 +45,7 @@ export function OtpCodeStep({ phone, purpose, sendExtra, resendSeconds = 60, sub
   return (
     <div className="authOtp" role="group" aria-label="تأیید شماره با پیامک">
       <p className="authOtpText">
-        کد ۵رقمی پیامک‌شده به <b dir="ltr">{toPersianDigits(phone)}</b> را وارد کن.
+        کد ۵رقمی‌ای که به <b dir="ltr">{toPersianDigits(phone)}</b> پیامک شد رو بزن.
       </p>
       <Field label="کد تأیید" error={error} hideLabel>
         {(props) => (
@@ -65,10 +65,10 @@ export function OtpCodeStep({ phone, purpose, sendExtra, resendSeconds = 60, sub
         )}
       </Field>
       {children}
-      <Button block loading={busy} loadingLabel="در حال بررسی…" onClick={submit}>{submitLabel}</Button>
+      <Button block loading={busy} loadingLabel="دارم چک می‌کنم…" onClick={submit}>{submitLabel}</Button>
       <div className="authOtpActions">
         <button type="button" disabled={sending || countdown.left > 0} onClick={send}>
-          {sending ? "در حال ارسال…" : countdown.left > 0 ? `ارسال دوباره (${toPersianDigits(countdown.left)})` : "ارسال دوبارهٔ کد"}
+          {sending ? "دارم می‌فرستم…" : countdown.left > 0 ? `دوباره بفرست (${toPersianDigits(countdown.left)})` : "کد رو دوباره بفرست"}
         </button>
         {onEditPhone ? <button type="button" onClick={onEditPhone}>{editLabel}</button> : null}
       </div>

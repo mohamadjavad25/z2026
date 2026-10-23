@@ -9,16 +9,16 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 export function validateLogin(data) {
   const errors = {};
   const phone = toLatinDigits(String(data.phone || "").trim());
-  if (!phone) errors.phone = "شماره تماس را وارد کن.";
-  else if (!MOBILE.test(phone)) errors.phone = "شماره موبایل معتبر وارد کن؛ مثلاً ۰۹۱۲۳۴۵۶۷۸۹.";
-  if (!String(data.password || "")) errors.password = "رمز عبور را وارد کن.";
+  if (!phone) errors.phone = "شماره موبایلت رو بزن.";
+  else if (!MOBILE.test(phone)) errors.phone = "این شماره درست نیست؛ مثلاً ۰۹۱۲۳۴۵۶۷۸۹";
+  if (!String(data.password || "")) errors.password = "یه رمز بذار؛ دست‌کم ۸ حرف.";
   return errors;
 }
 
 const NAME_MESSAGE = {
-  salon: "نام سالن را وارد کن.",
-  artist: "نام هنری را وارد کن.",
-  client: "نام خودت را وارد کن."
+  salon: "اسم سالنت چیه؟",
+  artist: "اسم هنریت چیه؟",
+  client: "اسمت چیه؟"
 };
 
 export function validateSignup(type, data) {
@@ -27,10 +27,10 @@ export function validateSignup(type, data) {
   // Area and specialty are NOT asked at signup: owners fill them with one tap from the
   // profile-completeness card, so creating an account stays name + phone + password.
   const password = String(data.password || "");
-  if (password && password.trim().length < 8) errors.password = "رمز عبور باید حداقل ۸ کاراکتر باشد.";
+  if (password && password.trim().length < 8) errors.password = "رمز دست‌کم ۸ حرف باشه.";
   const email = String(data.email || "").trim();
-  if (email && !EMAIL.test(email)) errors.email = "ایمیل معتبر نیست؛ یا آن را خالی بگذار.";
-  if (!data.agreeTerms) errors.agreeTerms = "برای ادامه باید قوانین و حریم خصوصی را قبول کنی.";
+  if (email && !EMAIL.test(email)) errors.email = "این ایمیل درست نیست؛ یا درستش کن یا خالی بذار.";
+  if (!data.agreeTerms) errors.agreeTerms = "اول تیک قوانین رو بزن.";
   return errors;
 }
 

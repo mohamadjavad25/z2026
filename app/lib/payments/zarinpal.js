@@ -20,7 +20,7 @@ const merchantId = () => String(process.env.ZARINPAL_MERCHANT_ID || "").trim();
 // payment pending so it is asked about again instead of being written off.
 const FAILED_CODES = new Map([
   [-50, "مبلغ پرداخت‌شده با مبلغ اشتراک یکی نبود."],
-  [-51, "پرداخت انجام نشد یا لغو شد."],
+  [-51, "پرداخت انجام نشد یا لغوش کردی."],
   [-54, "این پرداخت در درگاه پیدا نشد."],
   [-55, "این پرداخت در درگاه پیدا نشد."]
 ]);

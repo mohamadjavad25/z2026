@@ -16,11 +16,11 @@ export function ArtistRequestsBoard({ requests = [], busyId = "", onApprove, onD
   if (!requests.length) return null;
   const anyBusy = Boolean(busyId);
   return (
-    <section className="salonRequestsBoard" aria-label="نوبت‌های تازه در انتظار پاسخ">
+    <section className="salonRequestsBoard" aria-label="نوبت‌های تازه‌ای که منتظر جوابن">
       <div className="boardHead">
         <div>
           <span>نوبت‌های تازه</span>
-          <strong>نیاز به تایید شما</strong>
+          <strong>منتظر جواب تو</strong>
         </div>
         <b>{toPersianDigits(requests.length)} نوبت</b>
       </div>
@@ -33,7 +33,7 @@ export function ArtistRequestsBoard({ requests = [], busyId = "", onApprove, onD
                 <div className="requestCardWho">
                   <strong>{request.client || "مشتری"}</strong>
                   <span className="svcInline"><ServiceIcon emoji={request.service_emoji} name={request.service} size="xs" />{shortServiceLabel(request.service)}</span>
-                  <small>رزرو شخصی</small>
+                  <small>نوبت خودت</small>
                 </div>
                 <div className="requestCardAside">
                   <SegmentClock value={request.time} size="xs" as="span" />
@@ -46,7 +46,7 @@ export function ArtistRequestsBoard({ requests = [], busyId = "", onApprove, onD
               <div className="requestActions">
                 <button type="button" className="is-approve" disabled={anyBusy} onClick={() => onApprove?.(request.id)}>
                   <Check size={15} />
-                  {busy ? "…" : "تایید"}
+                  {busy ? "…" : "تأیید"}
                 </button>
                 <button type="button" className="is-decline" disabled={anyBusy} onClick={() => onDecline?.(request.id)}>
                   <X size={15} />

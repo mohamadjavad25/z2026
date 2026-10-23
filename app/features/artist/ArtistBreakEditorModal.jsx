@@ -64,7 +64,7 @@ export function ArtistBreakEditorModal({
         {/* A title and what it does: the window opened with only clocks and «ذخیره بازه» (owner's choice 2026-10-23). */}
         <header className="artistBreakHead">
           <h3>تایم استراحت</h3>
-          <p>یک بازه برای همهٔ روزها؛ در برنامه‌ات به‌شکل استراحت نشان داده می‌شود.</p>
+          <p>یه بازه برای همهٔ روزها؛ توی برنامه‌ت استراحت نشون داده می‌شه.</p>
         </header>
         <div className="artistBreakModalBody">
           <div className="qrChips" role="group" aria-label="بازه‌های رایج">
@@ -92,7 +92,7 @@ export function ArtistBreakEditorModal({
 
             <div className="artistBreakRangeMid" aria-hidden="true">
               <span className="artistBreakRangeArrow">←</span>
-              <em>{isInvalid ? "نامعتبر" : `${toPersianDigits(durationMinutes)} دقیقه`}</em>
+              <em>{isInvalid ? "درست نیست" : `${toPersianDigits(durationMinutes)} دقیقه`}</em>
             </div>
 
             <div className="artistBreakRangeCol">
@@ -109,10 +109,10 @@ export function ArtistBreakEditorModal({
 
           <div className="artistBreakEditorActions">
             <button type="button" onClick={onSave} disabled={isInvalid || saving}>
-              {saving ? "در حال ذخیره..." : "ذخیرهٔ تایم استراحت"}
+              {saving ? "دارم ذخیره می‌کنم…" : "ذخیره کن"}
             </button>
             {hasBreak ? (
-              <button type="button" className="danger" onClick={onClear} disabled={saving}>حذف</button>
+              <button type="button" className="danger" onClick={onClear} disabled={saving}>پاکش کن</button>
             ) : null}
           </div>
         </div>

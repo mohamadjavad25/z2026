@@ -71,7 +71,7 @@ export function reminderMessage(kind, booking, now) {
     return { title: "نوبتت نزدیکه", body: `${what}${where} ساعت ${time}؛ کمتر از ۲ ساعت دیگه.` };
   }
   const day = formatRelativeBookingDayLabel(booking.booking_date, now);
-  return { title: "یادآوری نوبت", body: `${what}${where} ${day} ساعت ${time}.` };
+  return { title: "یادت نره، نوبت داری", body: `${what}${where} ${day} ساعت ${time}.` };
 }
 
 export async function sweepBookingReminders(now = new Date()) {

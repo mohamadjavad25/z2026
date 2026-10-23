@@ -6,18 +6,18 @@ import { limitPostWrites, validatePostBody } from "../../lib/postGuard.js";
 export const runtime = "nodejs";
 
 async function _GET(request) {
-  const auth = await requireUserRole(request, "salon", "فقط سالن.");
+  const auth = await requireUserRole(request, "salon", "این بخش مال سالن‌هاست.");
   if (!auth.ok) return auth.response;
   return json({ data: { portfolio: await salons.listSalonPortfolio(auth.user.id) } });
 }
 
 async function _POST(request) {
-  const auth = await requireUserRole(request, "salon", "فقط سالن.");
+  const auth = await requireUserRole(request, "salon", "این بخش مال سالن‌هاست.");
   if (!auth.ok) return auth.response;
   const limited = await limitPostWrites(auth.user.id);
   if (limited) return limited;
   const body = await readJson(request);
-  if (!body) return error("درخواست نامعتبر است.", 400);
+  if (!body) return error("درخواست درست نرسید؛ دوباره بزن.", 400);
   const invalid = validatePostBody(body, { creating: true });
   if (invalid) return invalid;
   const item = await salons.addSalonPortfolio(auth.user.id, body, { defer: (fn) => after(fn) });
@@ -25,13 +25,13 @@ async function _POST(request) {
 }
 
 async function _PATCH(request) {
-  const auth = await requireUserRole(request, "salon", "فقط سالن.");
+  const auth = await requireUserRole(request, "salon", "این بخش مال سالن‌هاست.");
   if (!auth.ok) return auth.response;
   const limited = await limitPostWrites(auth.user.id);
   if (limited) return limited;
   const body = await readJson(request);
   const id = parseId(body?.id);
-  if (!body || !id) return error("درخواست نامعتبر است.", 400);
+  if (!body || !id) return error("درخواست درست نرسید؛ دوباره بزن.", 400);
   const invalid = validatePostBody(body, { creating: false });
   if (invalid) return invalid;
   const item = await salons.updateSalonPortfolio(id, auth.user.id, body, { defer: (fn) => after(fn) });
@@ -40,13 +40,13 @@ async function _PATCH(request) {
 }
 
 async function _DELETE(request) {
-  const auth = await requireUserRole(request, "salon", "فقط سالن.");
+  const auth = await requireUserRole(request, "salon", "این بخش مال سالن‌هاست.");
   if (!auth.ok) return auth.response;
   const limited = await limitPostWrites(auth.user.id);
   if (limited) return limited;
   const body = await readJson(request);
   const id = parseId(body?.id);
-  if (!id) return error("درخواست نامعتبر است.", 400);
+  if (!id) return error("درخواست درست نرسید؛ دوباره بزن.", 400);
   const ok = await salons.deleteSalonPortfolio(id, auth.user.id);
   if (!ok) return notFound();
   return json({ data: { ok: true } });

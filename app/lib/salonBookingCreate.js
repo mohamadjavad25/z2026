@@ -41,7 +41,7 @@ const refuse = (status, error, code = "", withBookings = false) => ({ ok: false,
 export async function createSalonBooking({ actor, salonUserId, body, data, wait = {} }) {
   const isClient = actor.type === "client";
   const salon = await salons.getSalon(salonUserId);
-  if (!salon) return refuse(404, "سالن پیدا نشد.");
+  if (!salon) return refuse(404, "این سالن رو پیدا نکردیم.");
   // A salon whose subscription has closed takes no new online requests; its own entries for walk-in customers go on.
   if (isClient) {
     const blocked = await onlineBookingBlock(salonUserId, "salon");
@@ -52,7 +52,7 @@ export async function createSalonBooking({ actor, salonUserId, body, data, wait 
   if (!slot.ok) return refuse(slot.status, slot.error);
   const lengthsOk = parseRequestedMinutes(body).ok
     && (data.parts || []).every((part) => parseRequestedMinutes(part).ok);
-  if (!lengthsOk) return refuse(400, `مدت نوبت نامعتبر است؛ یک عدد صحیح (دقیقه) بنویس.`);
+  if (!lengthsOk) return refuse(400, `مدت نوبت رو با عدد و به دقیقه بنویس.`);
   // A client's request carries the account's own name and number; a typed one is ignored, so nobody can book in a
   // stranger's name or put a booking into another person's list. Only the salon's own entry takes them from the form (never the salon's own number: a walk-in with no number has none).
   const client = String(isClient ? actor.name || "" : body.client || "").trim();
@@ -64,8 +64,8 @@ export async function createSalonBooking({ actor, salonUserId, body, data, wait 
     people > 1 && !data.parts?.length ? [{ service: String(body.service || "").trim(), durationMinutes: resolveRequestedDuration(body, salon, { isClient }) }] : data.parts,
     { allowStaff: actor.type === "salon" && people < 2 }
   ).map(({ service, minutes, staff }) => ({ service, minutes, staff }));
-  if (people > 1 && !isClient) return refuse(400, "درخواست چندنفره را فقط مشتری می‌فرستد.");
-  if (onePerson.length * people > MAX_BOOKING_PARTS) return refuse(400, `برای ${people} نفر حداکثر ${Math.floor(MAX_BOOKING_PARTS / people)} خدمت در یک نوبت.`);
+  if (people > 1 && !isClient) return refuse(400, "نوبت چندنفره رو فقط مشتری می‌تونه بفرسته.");
+  if (onePerson.length * people > MAX_BOOKING_PARTS) return refuse(400, `برای ${people} نفر، توی یه نوبت حداکثر ${Math.floor(MAX_BOOKING_PARTS / people)} کار.`);
   const parts = people > 1 ? expandPartsForPeople(onePerson, people) : onePerson;
   const multiPart = parts.length >= 2;
   // A client books only what is on the salon's own menu (nothing made up), and the salon's own length is used.
@@ -73,15 +73,15 @@ export async function createSalonBooking({ actor, salonUserId, body, data, wait 
     const names = multiPart ? parts.map((part) => part.service) : [String(body.service || "").trim()];
     const menu = new Set((salon.services || []).map((item) => String(item?.name || "").trim()));
     const unlisted = names.find((name) => name && !menu.has(name));
-    if (unlisted) return refuse(400, `«${unlisted}» در خدمات این سالن نیست.`, "SERVICE_NOT_LISTED");
+    if (unlisted) return refuse(400, `«${unlisted}» توی کارهای این سالن نیست.`, "SERVICE_NOT_LISTED");
   }
   const service = multiPart ? summarizeBookingParts(parts).service : String(body.service || "").trim();
   const bookingDateKey = slot.dateKey;
   const time = slot.time;
   const durationMinutes = multiPart ? summarizeBookingParts(parts).durationMinutes : resolveRequestedDuration(body, salon, { isClient });
-  if (!service) return refuse(400, "خدمت رزرو مشخص نیست.");
-  if (!client) return refuse(400, "نام مشتری برای رزرو لازم است.");
-  if (isClient && !phone) return refuse(400, "برای ثبت رزرو، شماره تماس لازم است.");
+  if (!service) return refuse(400, "یه کار انتخاب کن.");
+  if (!client) return refuse(400, "اسم مشتری چیه؟");
+  if (isClient && !phone) return refuse(400, "شماره‌ت رو بزن تا سالن بتونه خبرت کنه.");
   const slotProblem = visitSlotProblem({
     hours: await salons.listSalonHours(salonUserId),
     bookingDateKey,
@@ -106,7 +106,7 @@ export async function createSalonBooking({ actor, salonUserId, body, data, wait 
     time,
     durationMinutes
   )) {
-    return refuse(409, "این ساعت برای آرتیست قبلاً رزرو شده است.", "ARTIST_SLOT_TAKEN", true);
+    return refuse(409, "آرتیست این ساعت نوبت داره؛ یه ساعت دیگه بزن.", "ARTIST_SLOT_TAKEN", true);
   }
   // A client's own booking is a REQUEST the salon must answer ("درخواست": shows up in the salon's
   // pending list, waits as long as the client chose). An entry made by the salon itself is already
@@ -135,9 +135,9 @@ export async function createSalonBooking({ actor, salonUserId, body, data, wait 
     if (result.error === "no_staff") return refuse(409, result.message, result.code || "NO_FREE_ARTIST");
     if (result.error === "too_many") return refuse(409, result.message, result.code);
     if (result.error === "artist_conflict") {
-      return refuse(409, result.message || "این ساعت برای آرتیست قبلاً رزرو شده است.", result.code || "ARTIST_SLOT_TAKEN");
+      return refuse(409, result.message || "آرتیست این ساعت نوبت داره؛ یه ساعت دیگه بزن.", result.code || "ARTIST_SLOT_TAKEN");
     }
-    return refuse(409, "این زمان قبلاً رزرو شده است.");
+    return refuse(409, "این ساعت پر شده؛ یه ساعت دیگه بزن.");
   }
   // The same request sent twice is the one booking that is already there: nothing new was made.
   if (result.duplicate) {
@@ -163,7 +163,7 @@ export async function createSalonBooking({ actor, salonUserId, body, data, wait 
       await salons.cancelSalonBooking(Number(result.booking.id), salonUserId);
       return refuse(
         artistResult.code === "SLOT_TAKEN" ? 409 : 400,
-        artistResult.error || "رزرو برای آرتیست ثبت نشد.",
+        artistResult.error || "نوبت برای آرتیست ثبت نشد؛ دوباره بزن.",
         artistResult.code || "ARTIST_BOOKING_FAILED",
         true
       );

@@ -51,7 +51,7 @@ export function InviteClientsSheet({ open, url = "", name = "", viewerType, onCh
       <ProfileSheet open={open && !scanning} kicker="مشتری‌ها" title="دعوت مشتری‌ها" panelClassName="artistInviteSheet" onClose={onClose}>
         <section className="ivtHero" aria-label="دعوت با کد QR">
           <p className="ivtEyebrow">مشتری پیش توست؟</p>
-          <h4 className="ivtTitle">این کد را اسکن کند و «وصل شو» را بزند</h4>
+          <h4 className="ivtTitle">این کد رو اسکن کنه و «وصل شو» رو بزنه</h4>
           <div className="ivtScan">
             <span className="ivtCorner is-tl" aria-hidden="true" />
             <span className="ivtCorner is-tr" aria-hidden="true" />
@@ -61,31 +61,31 @@ export function InviteClientsSheet({ open, url = "", name = "", viewerType, onCh
               {qr ? <img src={qr} alt={`کد QR صفحهٔ ${name}`} /> : <span className="ivtQrWait"><Spinner size={44} /></span>}
             </div>
           </div>
-          <p className="ivtHint">با دوربین گوشی هم باز می‌شود. چاپش کن و روی پیشخوان بگذار تا هر مشتری خودش وصل شود.</p>
+          <p className="ivtHint">با دوربین گوشی هم باز می‌شه. چاپش کن و بذارش روی پیشخون تا هر مشتری خودش وصل بشه.</p>
         </section>
 
         <section className="ivtHero icsMessage" aria-label="فرستادن لینک برای مشتری‌ها">
           <p className="ivtEyebrow">برای بقیهٔ مشتری‌ها</p>
-          <h4 className="ivtTitle">یک پیام آماده با لینک صفحه‌ات</h4>
+          <h4 className="ivtTitle">یه پیام آماده با لینک صفحه‌ت</h4>
           <p className="icsText">{text}</p>
           <div className="ivtActions">
             <button type="button" className="ivtShare" onClick={share} disabled={!url}>
               <Share2 size={17} aria-hidden="true" />
-              فرستادن برای مشتری‌ها
+              بفرست برای مشتری‌ها
             </button>
             <button type="button" className={`ivtCopyBtn ${copied ? "is-done" : ""}`} onClick={copyText} disabled={!url} aria-label={copied ? "کپی شد" : "کپی متن"}>
               {copied ? <Check size={18} aria-hidden="true" /> : <Copy size={18} aria-hidden="true" />}
               <span>{copied ? "کپی شد" : "کپی"}</span>
             </button>
           </div>
-          <p className="ivtHint">در واتس‌اپ، تلگرام یا پیامک برای مشتری‌ها یا گروهشان بفرست.</p>
+          <p className="ivtHint">توی واتس‌اپ، تلگرام یا پیامک بفرست برای مشتری‌ها یا گروهشون.</p>
         </section>
 
         <button type="button" className="qrsScanBtn icsScan" onClick={() => setScanning(true)}>
           <ScanLine size={18} aria-hidden="true" />
           اسکن کد مشتری
         </button>
-        <p className="icsScanHint">مشتری در فرفرو «کد من» را باز کند؛ با اسکن آن، همان لحظه به مشتری‌هایت اضافه می‌شود.</p>
+        <p className="icsScanHint">مشتری توی فرفرو «کد من» رو باز کنه؛ اسکنش که کنی، همون لحظه می‌شه مشتریت.</p>
       </ProfileSheet>
       {scanning ? (
         <ScanFlow viewerType={viewerType} onChanged={onChanged} onClose={() => setScanning(false)} />

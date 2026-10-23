@@ -71,7 +71,7 @@ describe("silent salon: what the client can do with an expired request", () => {
     const limited = await client.api.post("/api/salon-bookings", repeatRequestBody(expired));
     expect(limited.status).toBe(409);
     expect(limited.payload.code).toBe("TOO_MANY_OPEN_REQUESTS");
-    expect(limited.payload.error).toBe("اول یکی از درخواست‌های قبلی را لغو کن یا منتظر جواب بمان.");
+    expect(limited.payload.error).toBe("چند تا درخواست منتظر جواب داری. صبر کن جواب یکی بیاد، یا یکی رو لغو کن.");
   });
 
   it("lists the places the client is connected to that do the same services (the «جای دیگر» list), not the silent salon itself", async () => {

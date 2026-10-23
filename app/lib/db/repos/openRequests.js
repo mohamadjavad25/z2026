@@ -17,7 +17,7 @@ export const MAX_OPEN_REQUESTS_PER_PROVIDER = 3;
 export const MAX_OPEN_REQUESTS_TOTAL = 5;
 export const OPEN_WAIT_MAX_MINUTES = 24 * 60;
 export const OFFER_HOLD_HOURS = 6;
-export const TOO_MANY_OPEN_MESSAGE = "اول یکی از درخواست‌های قبلی را لغو کن یا منتظر جواب بمان.";
+export const TOO_MANY_OPEN_MESSAGE = "چند تا درخواست منتظر جواب داری. صبر کن جواب یکی بیاد، یا یکی رو لغو کن.";
 export const TOO_MANY_OPEN_CODE = "TOO_MANY_OPEN_REQUESTS";
 
 const dot = (alias) => (alias ? `${alias}.` : "");

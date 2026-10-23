@@ -160,7 +160,7 @@ export async function addArtistCollab(userId, data) {
   const db = await getDb();
   const salonUserId = Number(data.salonId || data.salon_user_id || 0) || null;
   if (!salonUserId) {
-    return { ok: false, error: "سالن نامعتبر است.", code: "INVALID_SALON" };
+    return { ok: false, error: "این سالن رو پیدا نکردیم.", code: "INVALID_SALON" };
   }
   const salon = await get(db, `
     SELECT u.id, COALESCE(NULLIF(s.name, ''), u.name) AS name, COALESCE(s.area, '') AS area
@@ -169,14 +169,14 @@ export async function addArtistCollab(userId, data) {
     WHERE u.id = $1 AND u.type = 'salon'
   `, [salonUserId]);
   if (!salon) {
-    return { ok: false, error: "سالن پیدا نشد.", code: "SALON_NOT_FOUND" };
+    return { ok: false, error: "این سالن رو پیدا نکردیم.", code: "SALON_NOT_FOUND" };
   }
 
   const alreadyStaff = await get(db, `
     SELECT id FROM salon_staff WHERE salon_user_id = $1 AND artist_user_id = $2 LIMIT 1
   `, [salonUserId, userId]);
   if (alreadyStaff) {
-    return { ok: false, error: "تو همین حالا عضو تیم این سالن هستی.", code: "ALREADY_STAFF" };
+    return { ok: false, error: "تو همین الان توی تیم این سالنی.", code: "ALREADY_STAFF" };
   }
 
   const pendingInvite = await get(db, `
@@ -186,7 +186,7 @@ export async function addArtistCollab(userId, data) {
   if (pendingInvite) {
     return {
       ok: false,
-      error: "این سالن قبلاً تو را دعوت کرده؛ از بخش «دعوت‌ها» به آن پاسخ بده.",
+      error: "این سالن قبلاً دعوتت کرده؛ از «دعوت‌ها» جوابش رو بده.",
       code: "INVITE_PENDING"
     };
   }
@@ -196,7 +196,7 @@ export async function addArtistCollab(userId, data) {
     WHERE artist_user_id = $1 AND salon_user_id = $2 AND status = $3 LIMIT 1
   `, [userId, salonUserId, COLLAB_PENDING]);
   if (pendingProposal) {
-    return { ok: false, error: "پیشنهاد قبلی‌ات هنوز در انتظار پاسخ این سالن است.", code: "PENDING_EXISTS" };
+    return { ok: false, error: "سالن هنوز به پیشنهاد قبلیت جواب نداده.", code: "PENDING_EXISTS" };
   }
 
   const info = await run(db, `
@@ -245,9 +245,9 @@ export async function updateSalonCollabStatus(id, salonUserId, status) {
   const current = await get(db, `
     SELECT status FROM artist_collabs WHERE id = $1 AND salon_user_id = $2
   `, [id, salonUserId]);
-  if (!current) return { ok: false, code: "NOT_FOUND", error: "پیشنهاد پیدا نشد." };
+  if (!current) return { ok: false, code: "NOT_FOUND", error: "این پیشنهاد رو پیدا نکردیم." };
   if (!COLLAB_TRANSITIONS[current.status]?.has(status)) {
-    return { ok: false, code: "INVALID_TRANSITION", error: "این پیشنهاد دیگر قابل تغییر نیست." };
+    return { ok: false, code: "INVALID_TRANSITION", error: "این پیشنهاد دیگه عوض نمی‌شه." };
   }
   await run(db, `
     UPDATE artist_collabs
@@ -292,7 +292,7 @@ export async function setArtistBreak(userId, startTime, endTime) {
   const startMinutes = timeToMinutes(start);
   const endMinutes = timeToMinutes(end);
   if (!(endMinutes > startMinutes)) {
-    return { ok: false, error: "پایان استراحت باید بعد از شروع باشد." };
+    return { ok: false, error: "آخر استراحت باید بعد از اولش باشه." };
   }
   await run(db, `
     INSERT INTO artist_breaks (user_id, start_time, end_time, updated_at)
@@ -733,12 +733,12 @@ export async function addArtistBookingInTx(artistUserId, data, runner = null) {
       || 60
   ));
   if (!bookingDate || !time) {
-    return { ok: false, error: "روز و ساعت معتبر لازم است.", code: "MISSING_SLOT" };
+    return { ok: false, error: "روز و ساعت رو انتخاب کن.", code: "MISSING_SLOT" };
   }
   // Held until the surrounding transaction ends, so two requests for this artist's day are checked one after the other.
   await lockArtistDays(db, [artistUserId], bookingDate);
   if (await isArtistSlotBlocked(artistUserId, bookingDate, time, durationMinutes, data.excludeBookingId ?? null, db)) {
-    return { ok: false, error: "این بازه زمانی با نوبت دیگری تداخل دارد.", code: "SLOT_TAKEN" };
+    return { ok: false, error: "این ساعت با یه نوبت دیگه‌ت هم‌پوشونی داره.", code: "SLOT_TAKEN" };
   }
 
   const sourceSalonUserId = data.sourceSalonUserId || data.source_salon_user_id || null;

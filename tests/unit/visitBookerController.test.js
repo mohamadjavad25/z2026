@@ -449,7 +449,7 @@ describe("sending", () => {
 
   it("a refused booking shows the server's words, can be tried again, and asks for fresh times when the slot was taken", async () => {
     const submit = vi.fn()
-      .mockResolvedValueOnce({ ok: false, status: 409, payload: { error: "این زمان قبلاً رزرو شده است." } })
+      .mockResolvedValueOnce({ ok: false, status: 409, payload: { error: "این ساعت پر شده؛ یه ساعت دیگه بزن." } })
       .mockResolvedValueOnce({ ok: true, status: 201, payload: {} });
     const source = fakeSource();
     const { controller, state } = make({ submit, source });
@@ -458,8 +458,8 @@ describe("sending", () => {
     const timesAsked = source.calls.times.length;
     const result = await controller.submit();
     await flush();
-    expect(result).toMatchObject({ ok: false, reason: "refused", message: "این زمان قبلاً رزرو شده است." });
-    expect(state()).toMatchObject({ error: "این زمان قبلاً رزرو شده است.", submitting: false, done: false });
+    expect(result).toMatchObject({ ok: false, reason: "refused", message: "این ساعت پر شده؛ یه ساعت دیگه بزن." });
+    expect(state()).toMatchObject({ error: "این ساعت پر شده؛ یه ساعت دیگه بزن.", submitting: false, done: false });
     expect(source.calls.times.length).toBe(timesAsked + 1);
     expect(state().time).toBe("۱۰:۰۰");
     expect((await controller.submit()).ok).toBe(true);
@@ -473,7 +473,7 @@ describe("sending", () => {
     await flush();
     const result = await controller.submit();
     expect(result.ok).toBe(false);
-    expect(state().error).toContain("اتصال");
+    expect(state().error).toContain("اینترنت");
     expect(state().submitting).toBe(false);
     expect((await controller.submit()).ok).toBe(true);
   });

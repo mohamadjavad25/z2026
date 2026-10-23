@@ -37,7 +37,7 @@ export async function readObjectBody(request) {
   return body;
 }
 
-export function notFound(message = "یافت نشد.") {
+export function notFound(message = "پیداش نکردیم.") {
   return error(message, 404);
 }
 
@@ -47,13 +47,13 @@ export async function requireUser(request) {
     return {
       ok: false,
       user: null,
-      response: error("ورود لازم است.", 401)
+      response: error("اول وارد حسابت شو.", 401)
     };
   }
   return result;
 }
 
-export function requireRole(user, role, message = "دسترسی غیرمجاز.") {
+export function requireRole(user, role, message = "این کار با حساب تو نمی‌شه.") {
   if (user.type !== role) return error(message, 403);
   return null;
 }
@@ -78,7 +78,7 @@ export function validateBody(schema, body) {
     const issue = result.error.issues[0];
     // Users read this message in the UI: only pass it through when it is already Persian
     // (zod's default messages and the "field: " prefix are English).
-    const message = /[؀-ۿ]/.test(issue?.message || "") ? issue.message : "ورودی نامعتبر است؛ بررسی کن و دوباره امتحان کن.";
+    const message = /[؀-ۿ]/.test(issue?.message || "") ? issue.message : "یه چیزی درست پر نشده؛ نگاه کن و دوباره بزن.";
     return { ok: false, data: null, response: error(message, 400) };
   }
   return { ok: true, data: result.data, response: null };
@@ -91,8 +91,8 @@ const BAD_INPUT_DB_CODES = new Set(["22001", "22003", "22007", "22008", "22021",
 /** A 400 for a failure that is the caller's input (unreadable JSON body, a value the database cannot take), else null. */
 export function clientErrorResponse(err) {
   if (!err) return null;
-  if (err instanceof SyntaxError && /JSON/i.test(String(err.message))) return error("بدنهٔ درخواست خوانا نیست.", 400);
-  if (BAD_INPUT_DB_CODES.has(err.code)) return error("ورودی نامعتبر است؛ بررسی کن و دوباره امتحان کن.", 400);
+  if (err instanceof SyntaxError && /JSON/i.test(String(err.message))) return error("درخواست خونده نشد؛ دوباره بزن.", 400);
+  if (BAD_INPUT_DB_CODES.has(err.code)) return error("یه چیزی درست پر نشده؛ نگاه کن و دوباره بزن.", 400);
   return null;
 }
 
@@ -123,7 +123,7 @@ export function withErrorHandling(handler) {
         method: request?.method,
         url: request?.url
       });
-      return error("خطای سرور. لطفاً دوباره امتحان کنید.", 500);
+      return error("یه مشکلی پیش اومد؛ چند لحظه دیگه دوباره بزن.", 500);
     }
   };
 }

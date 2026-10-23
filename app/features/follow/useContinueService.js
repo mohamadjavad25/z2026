@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { bundleServices } from "../../shared/lib/serviceBundle";
 
-export const SERVICE_GONE_MESSAGE = "این خدمت دیگر موجود نیست؛ یکی دیگر را انتخاب کن.";
+export const SERVICE_GONE_MESSAGE = "این خدمت دیگه نیست؛ یه خدمت دیگه انتخاب کن.";
 
 /** What the strip says: «ادامه برای: کوتاهی مو» (several: names joined with « + »). */
 export const continueText = (names) => `ادامه برای: ${names.join(" + ")}`;

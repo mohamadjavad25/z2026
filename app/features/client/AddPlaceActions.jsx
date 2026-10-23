@@ -37,7 +37,7 @@ export function AddPlaceActions({ clientName = "", onConnected, onOpenPlace, onF
       const picked = await pickContact();
       if (picked) setContact(picked);
     } catch {
-      onNotify?.("دسترسی به مخاطبین ممکن نشد؛ از «جستجو» استفاده کن.");
+      onNotify?.("به مخاطب‌هات دسترسی نداریم؛ از «جستجو» پیداش کن.");
     }
   }
 
@@ -63,11 +63,11 @@ export function AddPlaceActions({ clientName = "", onConnected, onOpenPlace, onF
       </div>
       <button type="button" className="chAddLink" onClick={() => { onDone?.(); onFindPlaces?.(); }}>
         <Search size={15} aria-hidden="true" />
-        اینجا نیستند؟ در «رزرو» جستجو کن
+        اینجا نیستن؟ توی «نوبت» جستجو کن
       </button>
 
       {contact ? (
-        <ConnectSheet label="مخاطب انتخاب‌شده" title={contact.name || "مخاطب انتخاب‌شده"} subtitle="دنبال فرفرو می‌گردیم." onClose={() => setContact(null)}>
+        <ConnectSheet label="مخاطب انتخاب‌شده" title={contact.name || "مخاطب انتخاب‌شده"} subtitle="داریم توی فرفرو پیداش می‌کنیم." onClose={() => setContact(null)}>
           <ContactLookup
             contact={contact}
             clientName={clientName}

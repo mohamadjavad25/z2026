@@ -20,8 +20,8 @@ const FILTERS = [
   { id: "all", label: "همه" },
   { id: "upcoming", label: "نوبت پیش‌رو" },
   { id: "repeat", label: "تکراری" },
-  { id: "lapsed", label: "مدتی نیامده" },
-  { id: "nobooking", label: "هنوز رزرو نکرده" }
+  { id: "lapsed", label: "یه مدته نیومده" },
+  { id: "nobooking", label: "هنوز نوبت نگرفته" }
 ];
 
 const LAPSED_DAYS = 30;
@@ -36,9 +36,9 @@ function isLapsed(customer, todayTime) {
 }
 
 const SORTS = [
-  { id: "recent", label: "آخرین رزرو" },
-  { id: "visits", label: "بیشترین رزرو" },
-  { id: "name", label: "نام" }
+  { id: "recent", label: "آخرین نوبت" },
+  { id: "visits", label: "بیشترین نوبت" },
+  { id: "name", label: "اسم" }
 ];
 
 function Avatar({ customer, size = "" }) {
@@ -62,15 +62,15 @@ function CustomerSheet({ customer, invite, onBook, onClose }) {
           <Avatar customer={customer} size="is-lg" />
           <div>
             <b>{customer.name}</b>
-            <span dir="ltr">{customer.phone ? toPersianDigits(customer.phone) : "شماره ثبت نشده"}</span>
+            <span dir="ltr">{customer.phone ? toPersianDigits(customer.phone) : "شماره نداره"}</span>
           </div>
         </div>
         {customer.isFollower ? (
           <p className={`cuFollowNote${customer.noBookingYet ? " is-waiting" : ""}`}>
             <UserPlus size={15} aria-hidden="true" />
             <span>
-              {describeFollowTime(customer.followedAt)} به شما وصل شد.
-              {customer.noBookingYet ? " هنوز نوبتی نگرفته؛ یک تماس یا پیامک می‌تواند اولین نوبتش را بسازد." : ""}
+              {describeFollowTime(customer.followedAt)} بهت وصل شد.
+              {customer.noBookingYet ? " هنوز نوبت نگرفته؛ یه زنگ یا پیامک شاید اولین نوبتش رو بسازه." : ""}
             </span>
           </p>
         ) : null}
@@ -86,12 +86,12 @@ function CustomerSheet({ customer, invite, onBook, onClose }) {
         ) : null}
         {inviteHref ? (
           <a className="cuInviteBtn cuInviteLink" href={inviteHref}>
-            <Link2 size={16} aria-hidden="true" /> فرستادن لینک نوبت‌گیری
+            <Link2 size={16} aria-hidden="true" /> لینک نوبت رو بفرست
           </a>
         ) : null}
         {onBook ? (
           <button type="button" className="cuBookBtn" onClick={() => onBook(customer)}>
-            <CalendarPlus size={16} aria-hidden="true" /> نوبت جدید
+            <CalendarPlus size={16} aria-hidden="true" /> نوبت تازه
           </button>
         ) : null}
         <div className="cuStats">
@@ -99,7 +99,7 @@ function CustomerSheet({ customer, invite, onBook, onClose }) {
           <span><b>{toPersianDigits(customer.upcoming)}</b>پیش‌رو</span>
           <span><b>{toPersianDigits(customer.cancelled)}</b>لغو</span>
         </div>
-        {customer.bookings.length ? <h4 className="cuHistoryTitle">سابقه رزروها</h4> : null}
+        {customer.bookings.length ? <h4 className="cuHistoryTitle">نوبت‌هاش</h4> : null}
         <ul className="cuHistory">
           {customer.bookings.map((booking, index) => {
             const tone = bookingStatusTone(booking.status || "تازه");
@@ -133,7 +133,7 @@ function CustomerSheet({ customer, invite, onBook, onClose }) {
  * ready message with its link, and scanning a customer's code. A customer who isn't connected yet gets a
  * «فرستادن لینک نوبت‌گیری» SMS on their card.
  */
-export function SalonCustomersPage({ active, bookings = [], followers = [], ownerLabel = "سالن شما", headerAction = null, invite = null, onBookCustomer }) {
+export function SalonCustomersPage({ active, bookings = [], followers = [], ownerLabel = "سالنت", headerAction = null, invite = null, onBookCustomer }) {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
@@ -196,7 +196,7 @@ export function SalonCustomersPage({ active, bookings = [], followers = [], owne
     <div className={`salonCustomersPage mobilePage page-customers ${active ? "is-active" : ""}`} id="customers">
       <div className="salonCustomersHead">
         <div className="salonCustomersTitle">
-          <span className="wavyTitle">جامعه مشتریان</span>
+          <span className="wavyTitle">مشتری‌هام</span>
         </div>
         <div className="cuHeadActions">
           {/* No customers yet: the empty card below has the one invite button. */}
@@ -208,9 +208,9 @@ export function SalonCustomersPage({ active, bookings = [], followers = [], owne
           ) : null}
           {headerAction}
           {canPickContact ? (
-            <button type="button" className="cuContactBtn" onClick={chooseContact} aria-label="انتخاب از مخاطبین گوشی">
+            <button type="button" className="cuContactBtn" onClick={chooseContact} aria-label="از مخاطب‌های گوشی">
               <ContactRound size={17} aria-hidden="true" />
-              مخاطبین
+              مخاطب‌ها
             </button>
           ) : null}
         </div>
@@ -221,9 +221,9 @@ export function SalonCustomersPage({ active, bookings = [], followers = [], owne
           <header className="cuFreshHead">
             <span className="cuFreshSpark" aria-hidden="true"><Sparkles size={18} /></span>
             <div>
-              <b>تازه به جمعتان پیوستند</b>
+              <b>تازه وصل شدن</b>
               <small>
-                {toPersianDigits(freshFollowers.length)} نفر به شما وصل شدند و حالا جزو مشتریان‌تان هستند.
+                {toPersianDigits(freshFollowers.length)} نفر تازه بهت وصل شدن.
               </small>
             </div>
           </header>
@@ -235,13 +235,13 @@ export function SalonCustomersPage({ active, bookings = [], followers = [], owne
                   <span className="cuFreshInfo">
                     <b>
                       {customer.name}
-                      {customer.isNewFollower ? <em className="cuNewTag">جدید</em> : null}
+                      {customer.isNewFollower ? <em className="cuNewTag">تازه</em> : null}
                     </b>
-                    <span dir="ltr">{customer.phone ? toPersianDigits(customer.phone) : "شماره ثبت نشده"}</span>
+                    <span dir="ltr">{customer.phone ? toPersianDigits(customer.phone) : "شماره نداره"}</span>
                     <small className="cuFreshMeta">
                       <span>{describeFollowTime(customer.followedAt)}</span>
                       <i className={customer.noBookingYet ? "is-waiting" : "is-booked"}>
-                        {customer.noBookingYet ? "هنوز رزرو نکرده" : "قبلاً رزرو داشته"}
+                        {customer.noBookingYet ? "هنوز نوبت نگرفته" : "قبلاً نوبت گرفته"}
                       </i>
                     </small>
                   </span>
@@ -254,7 +254,7 @@ export function SalonCustomersPage({ active, bookings = [], followers = [], owne
                     <a href={`tel:${toLatinDigits(customer.phone)}`} aria-label={`تماس با ${customer.name}`}><Phone size={16} /></a>
                   ) : null}
                   {onBookCustomer ? (
-                    <button type="button" onClick={() => onBookCustomer({ client: customer.name, phone: customer.phone })} aria-label={`نوبت جدید برای ${customer.name}`}>
+                    <button type="button" onClick={() => onBookCustomer({ client: customer.name, phone: customer.phone })} aria-label={`نوبت تازه برای ${customer.name}`}>
                       <CalendarPlus size={16} />
                     </button>
                   ) : null}
@@ -264,7 +264,7 @@ export function SalonCustomersPage({ active, bookings = [], followers = [], owne
           </ul>
           {freshFollowers.some((customer) => customer.noBookingYet) ? (
             <p className="cuFreshHint">
-              کسانی که هنوز رزرو نکرده‌اند آماده‌ترین مشتری‌ها هستند؛ با یک تماس، پیامک یا پیشنهاد، اولین نوبتشان را بگیر.
+              اونایی که هنوز نوبت نگرفتن، آماده‌ترین مشتری‌هاتن؛ با یه زنگ یا پیامک اولین نوبتشون رو بساز.
             </p>
           ) : null}
         </section>
@@ -283,7 +283,7 @@ export function SalonCustomersPage({ active, bookings = [], followers = [], owne
               type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="جستجوی نام یا شماره..."
+              placeholder="اسم یا شماره…"
               aria-label="جستجوی مشتریان"
             />
           </label>
@@ -318,8 +318,8 @@ export function SalonCustomersPage({ active, bookings = [], followers = [], owne
         {customers.length === 0 ? (
           <div className="emptySalonDirectory is-lively">
             <PageIcon name="customers" size={64} />
-            <b>هنوز مشتری‌ای ثبت نشده</b>
-            <p>مشتری‌هایی که همین حالا داری را دعوت کن: کد صفحه‌ات را اسکن کنند یا لینکش را برایشان بفرست. هر کس وصل شود یا نوبت بگیرد، اینجا می‌آید.</p>
+            <b>هنوز مشتری‌ای نداری</b>
+            <p>مشتری‌هایی که همین الان داری رو دعوت کن: کد صفحه‌ت رو اسکن کنن یا لینکش رو براشون بفرست. هر کی وصل بشه یا نوبت بگیره، اینجا میاد.</p>
             {invite ? (
               <button type="button" className="cuInviteBtn" onClick={() => setInviteOpen(true)}>
                 <UserPlus size={17} aria-hidden="true" />
@@ -330,8 +330,8 @@ export function SalonCustomersPage({ active, bookings = [], followers = [], owne
         ) : visibleCustomers.length === 0 ? (
           <div className="emptySalonDirectory">
             <Search size={22} />
-            <b>نتیجه‌ای پیدا نشد</b>
-            <p>فیلتر یا عبارت دیگری را امتحان کن.</p>
+            <b>پیدا نشد</b>
+            <p>یه فیلتر یا اسم دیگه امتحان کن.</p>
           </div>
         ) : null}
         {visibleCustomers.map((customer) => (
@@ -340,20 +340,20 @@ export function SalonCustomersPage({ active, bookings = [], followers = [], owne
               <Avatar customer={customer} />
               <span className="salonCustomerInfo">
                 <b>{customer.name}</b>
-                <span dir="ltr">{customer.phone ? toPersianDigits(customer.phone) : "شماره ثبت نشده"}</span>
+                <span dir="ltr">{customer.phone ? toPersianDigits(customer.phone) : "شماره نداره"}</span>
                 {customer.lastService ? (
                   <em className="salonCustomerService"><ServiceIcon name={customer.lastService} size="xs" />{customer.lastService}</em>
                 ) : null}
                 {customer.noBookingYet ? (
                   <small>
-                    <i className="cuWaitTag">وصل‌شده، هنوز رزرو نکرده</i>
+                    <i className="cuWaitTag">وصل شده، هنوز نوبت نگرفته</i>
                     {`، ${describeFollowTime(customer.followedAt)}`}
                   </small>
                 ) : (
                   <small>
-                    {toPersianDigits(customer.visitCount)} بار رزرو
+                    {toPersianDigits(customer.visitCount)} بار نوبت
                     {customer.upcoming > 0 ? `، ${toPersianDigits(customer.upcoming)} نوبت پیش‌رو` : customer.lastDate ? `، ${formatRelativeBookingDayLabel(customer.lastDate)}` : ""}
-                    {customer.isFollower ? "، وصل‌شده" : ""}
+                    {customer.isFollower ? "، وصل شده" : ""}
                   </small>
                 )}
               </span>
@@ -367,15 +367,15 @@ export function SalonCustomersPage({ active, bookings = [], followers = [], owne
         ))}
       </div>
       {contactNotice ? (
-        <ProfileSheet open kicker="مخاطبین" title={contactNotice === "update" ? "اپ را به‌روز کن" : "مخاطبین باز نشد"} onClose={() => setContactNotice("")}>
+        <ProfileSheet open kicker="مخاطبین" title={contactNotice === "update" ? "اپ رو به‌روز کن" : "مخاطب‌ها باز نشد"} onClose={() => setContactNotice("")}>
           <div className="cuSheetBody">
             {contactNotice === "update" ? (
               <>
-                <p className="cuNotice">برای انتخاب از مخاطبین گوشی، نسخهٔ جدید اپ فرفرو را نصب کن.</p>
-                <a className="cuBookBtn" href="/download">دریافت نسخهٔ جدید</a>
+                <p className="cuNotice">برای انتخاب از مخاطب‌های گوشی، نسخهٔ تازهٔ اپ فرفرو رو نصب کن.</p>
+                <a className="cuBookBtn" href="/download">نسخهٔ تازه رو بگیر</a>
               </>
             ) : (
-              <p className="cuNotice">فهرست مخاطبین گوشی باز نشد. دوباره امتحان کن.</p>
+              <p className="cuNotice">مخاطب‌های گوشی باز نشد؛ دوباره بزن.</p>
             )}
           </div>
         </ProfileSheet>

@@ -44,9 +44,9 @@ export function ClientBookingHistorySheet({ open, onClose, bookings = [], onOpen
   }, [bookings, filter]);
 
   return (
-    <ProfileSheet open={open} kicker="رزروهای من" title="سابقه رزروها" panelClassName="cbhSheet" onClose={onClose}>
+    <ProfileSheet open={open} kicker="نوبت‌هام" title="نوبت‌های قبلی" panelClassName="cbhSheet" onClose={onClose}>
       <div className="cbhBody">
-        <div className="cbhChips" role="tablist" aria-label="فیلتر سابقه">
+        <div className="cbhChips" role="tablist" aria-label="فیلتر نوبت‌های قبلی">
           {FILTERS.map((item) => (
             <button
               type="button"
@@ -64,8 +64,8 @@ export function ClientBookingHistorySheet({ open, onClose, bookings = [], onOpen
         {groups.length === 0 ? (
           <div className="cbhEmpty">
             <History size={26} />
-            <b>{bookings.length ? "موردی با این فیلتر نیست" : "هنوز سابقه‌ای نداری"}</b>
-            <span>{bookings.length ? "فیلتر دیگری را امتحان کن." : "رزروهای انجام‌شده، لغوشده و منقضی اینجا جمع می‌شوند."}</span>
+            <b>{bookings.length ? "با این فیلتر چیزی نیست" : "هنوز نوبت قبلی نداری"}</b>
+            <span>{bookings.length ? "یه فیلتر دیگه بزن." : "بعد از اولین نوبتت، اینجا می‌بینیش."}</span>
           </div>
         ) : (
           groups.map(([day, items]) => (
@@ -89,8 +89,8 @@ export function ClientBookingHistorySheet({ open, onClose, bookings = [], onOpen
                         type="button"
                         className="cbhAgain"
                         onClick={() => onRebook?.(booking)}
-                        aria-label="رزرو دوباره"
-                        title="رزرو دوباره"
+                        aria-label="دوباره نوبت بگیر"
+                        title="دوباره نوبت بگیر"
                       >
                         <RotateCcw size={16} />
                       </button>

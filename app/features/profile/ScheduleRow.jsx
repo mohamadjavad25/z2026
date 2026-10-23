@@ -84,7 +84,7 @@ export function normalizeSalonScheduleBooking(item, staffByName, serviceList = [
     time: item?.time || "",
     staff: staffName,
     staffLabel: multiPart
-      ? (partStaff.length ? partStaff.map((person) => person.label).join(" و ") : "آرتیست ثبت نشده")
+      ? (partStaff.length ? partStaff.map((person) => person.label).join(" و ") : "هنوز آرتیست نداره")
       : staffPerson?.artist_name || staffName,
     staffAvatar: item?.staffAvatar || item?.staff_avatar || staffPerson?.avatar || staffPerson?.staff_avatar || "",
     staffInitial: String(staffPerson?.artist_name || staffName || "آ").trim().slice(0, 1) || "آ",
@@ -228,7 +228,7 @@ export const ScheduleRow = memo(function ScheduleRow({
   const statusText = isClientBooking && rawStatus === AWAITING_CLIENT
     ? "در انتظار تو"
     : waitsOnSalon ? "منتظر سالن" : rawStatus;
-  const phaseTagLabel = unansweredAndOver ? "منقضی شد" : showStatusTag ? (statusText || "درخواست") : phaseLabel;
+  const phaseTagLabel = unansweredAndOver ? "بی‌جواب موند" : showStatusTag ? (statusText || "درخواست") : phaseLabel;
 
   // The time column: start, a rail as long as the visit, end, and how long it takes.
   const durationMinutes = Number(booking.durationMinutes) || 0;
@@ -247,10 +247,10 @@ export const ScheduleRow = memo(function ScheduleRow({
     const what = shortServiceLabel(service);
     const NoteIcon = statusTone === "bad" ? Ban : statusTone === "expired" ? TimerOff : CheckCircle2;
     const text = statusTone === "bad"
-      ? `رزرو ${who} لغو شد`
+      ? `نوبت ${who} لغو شد`
       : statusTone === "expired"
-        ? `رزرو ${who} منقضی شد`
-        : `نوبت ${who} تمام شد`;
+        ? `درخواست ${who} بی‌جواب موند`
+        : `نوبت ${who} انجام شد`;
     return (
       <button
         type="button"
@@ -271,7 +271,7 @@ export const ScheduleRow = memo(function ScheduleRow({
       data-phase={phase}
       role="button"
       tabIndex={0}
-      aria-label={`مدیریت رزرو ${title}، ${meta}، ${date}، ${time}`}
+      aria-label={`نوبت ${title}، ${meta}، ${date}، ${time}`}
       onClick={() => onAction?.(actionPayload)}
       onKeyDown={(event) => {
         if (event.target !== event.currentTarget) return;
@@ -349,7 +349,7 @@ export const ScheduleRow = memo(function ScheduleRow({
         <div className="bkReviewActions">
           <button type="button" className="is-approve" disabled={review.disabled || review.approveDisabled} onClick={review.onApprove}>
             <Check size={15} aria-hidden="true" />
-            {review.busy ? "…" : "تایید"}
+            {review.busy ? "…" : "تأیید"}
           </button>
           <button type="button" className="is-decline" disabled={review.disabled} onClick={review.onDecline}>
             <X size={15} aria-hidden="true" />

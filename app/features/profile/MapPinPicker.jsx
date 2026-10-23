@@ -31,7 +31,7 @@ function nearestCity(lat, lng) {
  * shape as «ثبت لوکیشن» in Settings; `area` is the street address when the map service answers,
  * else the nearest city.
  */
-export function MapPinPicker({ initialPin = null, initialDetail = "", askDetail = true, saving = false, saveLabel = "ذخیره همین‌جا", onSave, onCancel }) {
+export function MapPinPicker({ initialPin = null, initialDetail = "", askDetail = true, saving = false, saveLabel = "همین‌جا رو ذخیره کن", onSave, onCancel }) {
   const [pin, setPin] = useState(initialPin);
   const [address, setAddress] = useState("");
   const [addressLoading, setAddressLoading] = useState(false);
@@ -96,7 +96,7 @@ export function MapPinPicker({ initialPin = null, initialDetail = "", askDetail 
   // once more without high accuracy (often answers indoors or when GPS is slow).
   function locate() {
     if (!navigator.geolocation) {
-      setNote("این گوشی موقعیت نمی‌دهد؛ روی نقشه بزن یا شهرت را جستجو کن.");
+      setNote("این گوشی جات رو نمی‌گه؛ روی نقشه بزن یا اسم شهرت رو بنویس.");
       return;
     }
     setNote("");
@@ -108,8 +108,8 @@ export function MapPinPicker({ initialPin = null, initialDetail = "", askDetail 
     const failed = (error) => {
       setLocating(false);
       setNote(error?.code === 1
-        ? "اجازهٔ موقعیت داده نشد؛ روی نقشه بزن یا شهرت را جستجو کن."
-        : "موقعیتت پیدا نشد؛ روی نقشه بزن یا شهرت را جستجو کن.");
+        ? "به جات دسترسی نداریم؛ روی نقشه بزن یا اسم شهرت رو بنویس."
+        : "جات پیدا نشد؛ روی نقشه بزن یا اسم شهرت رو بنویس.");
     };
     navigator.geolocation.getCurrentPosition(done, (error) => {
       if (error?.code === 1) return failed(error);
@@ -158,7 +158,7 @@ export function MapPinPicker({ initialPin = null, initialDetail = "", askDetail 
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="جستجوی شهر… (مثلاً اهواز)"
+            placeholder="اسم شهرت… (مثلاً اهواز)"
             aria-label="جستجوی شهر"
             autoComplete="off"
           />
@@ -183,7 +183,7 @@ export function MapPinPicker({ initialPin = null, initialDetail = "", askDetail 
         <div className="mppMap" ref={boxRef} />
         <button type="button" className="mppLocate" onClick={locate} disabled={locating}>
           <Locate size={16} aria-hidden="true" />
-          {locating ? "در حال پیدا کردن…" : "موقعیت فعلی من"}
+          {locating ? "دارم پیدات می‌کنم…" : "همین‌جا که هستم"}
         </button>
       </div>
 
@@ -192,15 +192,15 @@ export function MapPinPicker({ initialPin = null, initialDetail = "", askDetail 
         <MapPin size={15} aria-hidden="true" />
         <span>
           {pin
-            ? (addressLoading && !address ? "در حال پیدا کردن آدرس…" : address || "جای پین")
-            : locating ? "در حال پیدا کردن جای دقیقت…" : "روی نقشه بزن تا پین بگذاری"}
+            ? (addressLoading && !address ? "دارم آدرس رو پیدا می‌کنم…" : address || "جای پین")
+            : locating ? "دارم جای دقیقت رو پیدا می‌کنم…" : "روی نقشه بزن تا پین بذاری"}
         </span>
       </p>
-      {pin ? <p className="mppHint">اگر دقیق نیست، پین را بکش یا روی جای درست بزن.</p> : null}
+      {pin ? <p className="mppHint">اگه دقیق نیست، پین رو بکش یا روی جای درست بزن.</p> : null}
 
       {askDetail ? (
         <label className="mppDetail">
-          <span>پلاک، طبقه، واحد (اختیاری)</span>
+          <span>پلاک، طبقه، واحد (اگه بخوای)</span>
           <input value={detail} onChange={(event) => setDetail(event.target.value)} placeholder="مثلاً پلاک ۸، طبقه ۲، زنگ رز" maxLength={160} autoComplete="off" />
         </label>
       ) : null}
@@ -213,7 +213,7 @@ export function MapPinPicker({ initialPin = null, initialDetail = "", askDetail 
           onClick={() => onSave?.({ area: address, geo: pin, addressDetail: detail.trim() })}
         >
           <Check size={16} aria-hidden="true" />
-          {saving ? "در حال ذخیره…" : saveLabel}
+          {saving ? "دارم ذخیره می‌کنم…" : saveLabel}
         </button>
         {onCancel ? <button type="button" className="mppCancel" onClick={onCancel}>انصراف</button> : null}
       </div>

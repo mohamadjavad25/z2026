@@ -27,18 +27,18 @@ async function _POST(request) {
   const files = parseAttachments(body.attachments);
   if (!files.ok) return error(files.error, 400);
   // A screenshot or a voice note says enough on its own; plain text needs a few words.
-  if (!files.items.length && message.length < 10) return error("پیامت را کمی کامل‌تر بنویس (حداقل ۱۰ حرف).", 400);
-  if (message.length > 2000) return error("پیام خیلی بلند است (حداکثر ۲۰۰۰ حرف).", 400);
+  if (!files.items.length && message.length < 10) return error("یه کم بیشتر بنویس (دست‌کم ۱۰ حرف).", 400);
+  if (message.length > 2000) return error("پیامت خیلی بلنده (حداکثر ۲۰۰۰ حرف).", 400);
 
   let phone = user?.phone || "";
   if (!user) {
     phone = normalizePhone(body.phone);
-    if (!isValidIranMobile(phone)) return error("شمارهٔ موبایلت را درست وارد کن تا بتوانیم با تو تماس بگیریم.", 400);
+    if (!isValidIranMobile(phone)) return error("شماره‌ت رو درست بزن تا بتونیم بهت زنگ بزنیم.", 400);
   }
 
   const who = user ? `user:${user.id}` : `phone:${phone}`;
   if (!(await checkRateLimit(`support:${who}`, 5, HOUR)).ok || !(await checkRateLimit(`support-ip:${clientIp(request)}`, 20, HOUR)).ok) {
-    return error("پیام‌های زیادی فرستادی. کمی بعد دوباره امتحان کن.", 429);
+    return error("زیاد پیام فرستادی؛ یه کم دیگه دوباره بزن.", 429);
   }
 
   const ticket = await support.createTicket({ kind: "support", userId: user?.id ?? null, contactPhone: phone, category, subject, body: message, attachments: files.items });

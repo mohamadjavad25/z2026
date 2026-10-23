@@ -324,7 +324,7 @@ describe("client -> independent artist", () => {
       artistUserId: a.artist.user.id, service: "ناخن", bookingDate: futureBookingDay(2), time: "10:00", clientName: "Guest", clientPhone: "09120000777"
     });
     expect(res.status).toBe(401);
-    expect(res.payload.error).toContain("برای رزرو، شمارهٔ موبایلت را وارد کن");
+    expect(res.payload.error).toContain("برای گرفتن نوبت، شماره‌ت رو بزن");
   });
 });
 

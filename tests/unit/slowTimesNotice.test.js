@@ -10,7 +10,7 @@ describe("slow times notice", () => {
     expect(slowLevel(10000)).toBe(2);
   });
   it("uses the owner's approved texts", () => {
-    expect(SLOW_TEXT).toBe("ساعت‌ها دیر می‌آیند؛ دارم دوباره امتحان می‌کنم");
-    expect(BUSY_TEXT).toBe("الان شلوغ است. چند لحظهٔ دیگر");
+    expect(SLOW_TEXT).toBe("ساعت‌ها دیر میان؛ دارم دوباره امتحان می‌کنم");
+    expect(BUSY_TEXT).toBe("الان شلوغه؛ چند لحظهٔ دیگه");
   });
 });

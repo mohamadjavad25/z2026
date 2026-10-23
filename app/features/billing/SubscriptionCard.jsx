@@ -40,14 +40,14 @@ export function SubscriptionCard() {
         {overview.pending ? (
           <button type="button" className="billPendingRow" onClick={() => openPaymentResult(overview.pending.id)}>
             <Spinner size={16} />
-            <span>یک پرداخت در حال بررسی است</span>
+            <span>یه پرداخت داره چک می‌شه</span>
             <ChevronLeft size={16} aria-hidden="true" />
           </button>
         ) : null}
         <div className="billCardActions">
           <Button variant={view.action.emphasis} disabled={view.action.disabled} onClick={openPlans}>{view.action.label}</Button>
           <button type="button" className="billGhostBtn" onClick={openPaymentHistory}>
-            <ReceiptText size={16} aria-hidden="true" /> پرداخت‌های من
+            <ReceiptText size={16} aria-hidden="true" /> پرداخت‌هام
           </button>
         </div>
       </div>
@@ -68,7 +68,7 @@ function TeamSubscriptions({ overview }) {
         <UsersRound size={18} aria-hidden="true" />
         <div>
           <b>اشتراک آرتیست‌های تیم</b>
-          <p>اختیاری است: اگر بخواهی اشتراک آرتیستی را تو پرداخت می‌کنی؛ وگرنه هر آرتیست خودش پرداخت می‌کند.</p>
+          <p>دلبخواهیه: اگه بخوای اشتراک یه آرتیست رو تو می‌دی؛ وگرنه هر آرتیست خودش می‌ده.</p>
         </div>
       </div>
       <ul className="billTeamList">

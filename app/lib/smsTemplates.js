@@ -16,84 +16,84 @@ export const SMS_TEMPLATES = {
     env: "BOOKING_REQUEST",
     kavenegar: (v) => ({ token: v.time, token10: v.day, token20: v.who }),
     faraz: (v) => ({ who: v.who, day: v.day, time: v.time }),
-    preview: (v) => `فرفرو: درخواست نوبت تازه از ${v.who}، ${v.day} ساعت ${v.time}. در اپ جواب بده.`
+    preview: (v) => `فرفرو: درخواست تازه از ${v.who}، ${v.day} ساعت ${v.time}. توی اپ جواب بده.`
   },
   booking_answer: {
     label: "جواب درخواست نوبت (به مشتری)",
     env: "BOOKING_ANSWER",
     kavenegar: (v) => ({ token: v.time, token10: v.day, token20: `${v.who} ${v.result}` }),
     faraz: (v) => ({ who: v.who, day: v.day, time: v.time, result: v.result }),
-    preview: (v) => `فرفرو: نوبتت ${v.day} ساعت ${v.time} در ${v.who} ${v.result}.`
+    preview: (v) => `فرفرو: نوبتت ${v.day} ساعت ${v.time} توی ${v.who} ${v.result}.`
   },
   booking_reminder: {
     label: "یادآوری نوبت، دو ساعت قبل (به مشتری بدون اعلان)",
     env: "BOOKING_REMINDER",
     kavenegar: (v) => ({ token: v.time, token10: v.who }),
     faraz: (v) => ({ who: v.who, time: v.time }),
-    preview: (v) => `فرفرو: یادت نره، امروز ساعت ${v.time} نوبت داری در ${v.who}.`
+    preview: (v) => `فرفرو: یادت نره، امروز ساعت ${v.time} توی ${v.who} نوبت داری.`
   },
   booking_cancelled: {
     label: "لغو نوبت از طرف مشتری (به سالن یا آرتیست)",
     env: "BOOKING_CLIENT_CANCELLED",
     kavenegar: (v) => ({ token: v.time, token10: v.day, token20: v.who }),
     faraz: (v) => ({ who: v.who, day: v.day, time: v.time }),
-    preview: (v) => `فرفرو: ${v.who} نوبت ${v.day} ساعت ${v.time} را لغو کرد.`
+    preview: (v) => `فرفرو: ${v.who} نوبت ${v.day} ساعت ${v.time} رو لغو کرد.`
   },
   booking_cancelled_by_provider: {
     label: "لغو نوبت تأییدشده از طرف سالن یا آرتیست (به مشتری)",
     env: "BOOKING_CANCELLED",
     kavenegar: (v) => ({ token: v.time, token10: v.day, token20: v.who }),
     faraz: (v) => ({ who: v.who, day: v.day, time: v.time }),
-    preview: (v) => `فرفرو: ${v.who} نوبتت (${v.day} ساعت ${v.time}) را لغو کرد. بابت این اتفاق متأسفیم. می‌توانی از فرفرو نوبت دیگری بگیری.`
+    preview: (v) => `فرفرو: ${v.who} نوبتت (${v.day} ساعت ${v.time}) رو لغو کرد. ببخشید که این‌طوری شد؛ یه نوبت دیگه از فرفرو بگیر.`
   },
   booking_cancelled_gone: {
     label: "لغو نوبت چون سالن یا آرتیست از فرفرو رفته (به مشتری)",
     env: "BOOKING_GONE",
     kavenegar: (v) => ({ token: v.time, token10: v.day, token20: v.who }),
     faraz: (v) => ({ who: v.who, day: v.day, time: v.time }),
-    preview: (v) => `فرفرو: ${v.who} دیگر در فرفرو نیست و نوبتت (${v.day} ساعت ${v.time}) لغو شد. می‌توانی از فرفرو نوبت دیگری بگیری.`
+    preview: (v) => `فرفرو: ${v.who} دیگه توی فرفرو نیست و نوبتت (${v.day} ساعت ${v.time}) لغو شد. یه نوبت دیگه از فرفرو بگیر.`
   },
   booking_time_proposal: {
-    label: "پیشنهاد ساعت دیگر برای نوبت تأییدشده (به مشتری)",
+    label: "پیشنهاد ساعت دیگه برای نوبت تأییدشده (به مشتری)",
     env: "BOOKING_PROPOSAL",
     kavenegar: (v) => ({ token: v.from, token2: v.to, token10: v.who }),
     faraz: (v) => ({ who: v.who, from: v.from, to: v.to }),
-    preview: (v) => `فرفرو: ${v.who} می‌خواهد نوبتت را از ${v.from} به ${v.to} ببرد. قبول می‌کنی؟ جوابت را در فرفرو بده؛ تا جواب ندهی، ساعت قبلی سر جایش است.`
+    preview: (v) => `فرفرو: ${v.who} می‌خواد نوبتت رو از ${v.from} ببره به ${v.to}. قبول می‌کنی؟ توی فرفرو جواب بده؛ تا جواب ندی، ساعت قبلی سر جاشه.`
   },
   booking_handover_proposal: {
-    label: "پیشنهاد آرتیست دیگر برای نوبت تأییدشده (به مشتری)",
+    label: "پیشنهاد آرتیست دیگه برای نوبت تأییدشده (به مشتری)",
     env: "BOOKING_HANDOVER",
     kavenegar: (v) => ({ token: v.time, token10: v.day, token20: v.who }),
     faraz: (v) => ({ who: v.who, day: v.day, time: v.time, artist: v.artist }),
-    preview: (v) => `فرفرو: ${v.who} می‌خواهد نوبتت (${v.day} ساعت ${v.time}) را به ${v.artist} بدهد. قبول می‌کنی؟ جوابت را در فرفرو بده؛ تا جواب ندهی، همه‌چیز سر جایش است.`
+    preview: (v) => `فرفرو: ${v.who} می‌خواد نوبتت (${v.day} ساعت ${v.time}) رو بده به ${v.artist}. قبول می‌کنی؟ توی فرفرو جواب بده؛ تا جواب ندی، همه‌چی سر جاشه.`
   },
   billing_receipt: {
     label: "رسید پرداخت اشتراک",
     env: "BILLING_RECEIPT",
     kavenegar: (v) => ({ token: v.receipt, token2: v.amount, token3: v.until }),
     faraz: (v) => ({ receipt: v.receipt, amount: v.amount, until: v.until }),
-    preview: (v) => `فرفرو: اشتراکت فعال شد تا ${v.until}. مبلغ ${v.amount} تومان، شمارهٔ رسید ${v.receipt}.`
+    preview: (v) => `فرفرو: اشتراکت تا ${v.until} فعال شد. ${v.amount} تومان، رسید ${v.receipt}.`
   },
   billing_reminder: {
     label: "یادآوری پایان اشتراک",
     env: "BILLING_REMINDER",
     kavenegar: (v) => ({ token: v.days, token2: v.until }),
     faraz: (v) => ({ days: v.days, until: v.until }),
-    preview: (v) => `فرفرو: اشتراکت ${v.days} روز دیگر (${v.until}) تمام می‌شود. برای تمدید: تنظیمات، اشتراک من.`
+    preview: (v) => `فرفرو: اشتراکت ${v.days} روز دیگه (${v.until}) تموم می‌شه. برای تمدید: تنظیمات، اشتراک من.`
   },
   billing_ended: {
     label: "پایان اشتراک (شروع مهلت)",
     env: "BILLING_ENDED",
     kavenegar: (v) => ({ token: v.days }),
     faraz: (v) => ({ days: v.days }),
-    preview: (v) => `فرفرو: اشتراکت تمام شد. ${v.days} روز فرصت داری تمدید کنی تا از جست‌وجو کنار نروی.`
+    preview: (v) => `فرفرو: اشتراکت تموم شد. ${v.days} روز وقت داری تمدید کنی تا توی جست‌وجو بمونی.`
   },
   billing_closed: {
     label: "غیرفعال شدن حساب",
     env: "BILLING_CLOSED",
     kavenegar: (v) => ({ token: v.since }),
     faraz: (v) => ({ since: v.since }),
-    preview: (v) => `فرفرو: از ${v.since} در جست‌وجو دیده نمی‌شوی و نوبت آنلاین نمی‌گیری. با تمدید اشتراک همه‌چیز برمی‌گردد.`
+    preview: (v) => `فرفرو: از ${v.since} توی جست‌وجو دیده نمی‌شی و نوبت آنلاین نمی‌گیری. تمدید کنی، همه‌چی برمی‌گرده.`
   },
   billing_admin: {
     label: "خبر پرداخت برای مدیر",

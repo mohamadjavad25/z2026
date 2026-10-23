@@ -38,7 +38,7 @@ export function ArtistNotificationsSheet() {
                 <span><BellRing size={18} /></span>
                 <div>
                   <b>نوبت‌های تازه</b>
-                  <small>{pendingArtistBookingRequests.length ? `${toPersianDigits(pendingArtistBookingRequests.length)} نوبت تازه هنوز بررسی نشده است.` : "نوبت تازه‌ای ثبت نشده است."}</small>
+                  <small>{pendingArtistBookingRequests.length ? `${toPersianDigits(pendingArtistBookingRequests.length)} نوبت تازه منتظر جوابته.` : "فعلاً نوبت تازه‌ای نیست."}</small>
                 </div>
                 <em>{toPersianDigits(pendingArtistBookingRequests.length)}</em>
               </article>
@@ -46,15 +46,15 @@ export function ArtistNotificationsSheet() {
                 <span><PageIcon name="collab" size={22} /></span>
                 <div>
                   <b>دعوت همکاری سالن‌ها</b>
-                  <small>{pendingArtistSalonInvites.length ? `${toPersianDigits(pendingArtistSalonInvites.length)} دعوت همکاری نیاز به پاسخ دارد.` : "دعوت همکاری تازه‌ای نداری."}</small>
+                  <small>{pendingArtistSalonInvites.length ? `${toPersianDigits(pendingArtistSalonInvites.length)} دعوت همکاری منتظر جوابته.` : "دعوت تازه‌ای نیست."}</small>
                 </div>
                 <em>{toPersianDigits(pendingArtistSalonInvites.length)}</em>
               </article>
               <article>
                 <span><CalendarClock size={18} /></span>
                 <div>
-                  <b>برنامه نوبت‌ها</b>
-                  <small>{artistBookingList.length ? `${toPersianDigits(artistBookingList.length)} نوبت در برنامه‌ات ثبت شده است.` : "برنامه نوبت‌ها خالی است."}</small>
+                  <b>نوبت‌های پیش‌رو</b>
+                  <small>{artistBookingList.length ? `${toPersianDigits(artistBookingList.length)} نوبت توی برنامه‌ته.` : "برنامه‌ت خالیه."}</small>
                 </div>
                 <em>{toPersianDigits(artistBookingList.length)}</em>
               </article>
@@ -71,10 +71,10 @@ export function ArtistNotificationsSheet() {
               <section className="salonRequestsBoard salonExpiredNoticeBoard" aria-label="نوبت‌های منقضی‌شده اخیر">
                 <div className="boardHead">
                   <div>
-                    <span>منقضی‌شده‌های اخیر</span>
-                    <strong>در زمانی که مشتری صبر کرد جواب نگرفتند</strong>
+                    <span>بی‌جواب موندن</span>
+                    <strong>تا وقتی مشتری صبر کرد جواب نگرفتن</strong>
                   </div>
-                  <b>{toPersianDigits(recentlyExpiredArtistBookings.length)} مورد</b>
+                  <b>{toPersianDigits(recentlyExpiredArtistBookings.length)} تا</b>
                 </div>
                 <div className="reservationRequestList">
                   {recentlyExpiredArtistBookings.map((request) => (

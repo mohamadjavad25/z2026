@@ -3,8 +3,8 @@ import { PLANS } from "../billing/plans.js";
 
 /** POST /api/billing/checkout. forUserId: a salon paying for an artist on its team (optional). */
 export const checkoutSchema = z.object({
-  plan: z.enum(PLANS.map((plan) => plan.id), { message: "پلن انتخاب‌شده معتبر نیست." }),
-  forUserId: z.number().int().positive("آرتیست انتخاب‌شده معتبر نیست.").optional()
+  plan: z.enum(PLANS.map((plan) => plan.id), { message: "یه پلن انتخاب کن." }),
+  forUserId: z.number().int().positive("یه آرتیست انتخاب کن.").optional()
 });
 
 /** PUT /api/admin/billing/settings */

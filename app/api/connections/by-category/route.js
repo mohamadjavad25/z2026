@@ -10,10 +10,10 @@ export const runtime = "nodejs";
 // Empty `matches` means the client has no one for it yet (the app then offers to connect someone).
 async function _GET(request) {
   await ensureDb();
-  const auth = await requireUserRole(request, "client", "فقط مشتری‌ها.");
+  const auth = await requireUserRole(request, "client", "این بخش مال مشتری‌هاست.");
   if (!auth.ok) return auth.response;
   const category = findClientCategory(new URL(request.url).searchParams.get("category"));
-  if (!category) return error("این دسته پیدا نشد.");
+  if (!category) return error("این دسته رو پیدا نکردیم.");
   const matches = await connections.listConnectionsForCategory(auth.user.id, category);
   return json({ data: { category: category.id, matches } });
 }
