@@ -32,4 +32,25 @@
 .weekDock .salonHeroWeekStrip { margin-top: 0 !important; }
 
 /* The day picker in the flow, at the top of the salon's day (ProfilePanelBody), not floating over it. */
-.salonDayInline { display: grid; justify-items: center; margin: 12px 14px 0; }
+.salonDayInline { box-sizing: border-box; display: grid; width: 100%; margin: 0; padding: 12px 14px 0; }
+
+/* DayNav: the day at the top of the bookings, the day before / after beside it (features/profile/DayNav.jsx). */
+.dayNav { box-sizing: border-box; min-width: 0; display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; align-items: center; gap: 8px; width: 100%; padding: 6px; border-radius: 20px; background: var(--n-0); box-shadow: inset 0 0 0 1px var(--n-100), 0 10px 24px rgb(var(--shadow-rgb) / 0.06); touch-action: pan-y; }
+.dayNavStep { display: grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 14px; background: var(--n-50); color: var(--n-900); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.dayNavStep:active:not(:disabled) { transform: scale(0.94); }
+.dayNavStep:disabled { opacity: 0.35; cursor: default; }
+.dayNavDay { position: relative; display: flex; align-items: center; justify-content: center; gap: 8px; min-width: 0; min-height: 48px; padding: 0 8px; border: 0; border-radius: 14px; background: transparent; color: var(--n-900); font: inherit; cursor: pointer; overflow: hidden; -webkit-tap-highlight-color: transparent; }
+.dayNavDay:active { background: var(--n-50); }
+.dayNavText { display: grid; justify-items: center; gap: 1px; min-width: 0; }
+.dayNavText b { font-size: 0.95rem; font-weight: 950; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.dayNavText small { color: var(--n-600); font-size: 0.72rem; font-weight: 800; }
+.dayNavCal { flex: none; color: var(--n-500); }
+.dayNavText.is-from-next { animation: dayNavFromNext 0.24s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.dayNavText.is-from-prev { animation: dayNavFromPrev 0.24s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+@keyframes dayNavFromNext { from { opacity: 0; translate: -28px 0; } to { opacity: 1; translate: 0 0; } }
+@keyframes dayNavFromPrev { from { opacity: 0; translate: 28px 0; } to { opacity: 1; translate: 0 0; } }
+@media (prefers-reduced-motion: reduce) { .dayNavText.is-from-next, .dayNavText.is-from-prev { animation: none; } }
+.dayNavToday { grid-column: 1 / -1; justify-self: center; min-height: 32px; padding: 0 14px; border: 0; border-radius: 999px; background: var(--n-50); color: var(--n-800); font: inherit; font-size: 0.74rem; font-weight: 900; cursor: pointer; }
+.dayNavToday:focus-visible, .dayNavStep:focus-visible, .dayNavDay:focus-visible { outline: 2px solid var(--n-900); outline-offset: 2px; }
+.salonDayInline { justify-items: stretch; min-width: 0; }
+.artistBookingsPage .dayNav { margin-bottom: 12px; }

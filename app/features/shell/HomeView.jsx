@@ -86,7 +86,6 @@ export function HomeView() {
     clientBookingSettings,
     cancelClientBooking,
     answerClientTimeOffer,
-    salonWeekStripFloating,
     salonToolSheetOpen,
     salonTool,
     closeSalonToolSheet,
@@ -272,11 +271,7 @@ export function HomeView() {
             && createdProfile.type !== "client"
           }
           profileType={createdProfile?.type}
-          modeRail={
-            createdProfile?.type === "salon" && !salonWorkspace && profileView === "overview"
-              ? salonWeekStripFloating
-              : null
-          }
+          modeRail={null}
         />
 
         {createdProfile?.type === "salon" && (

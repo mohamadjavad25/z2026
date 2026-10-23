@@ -531,6 +531,25 @@ describe("accessibility (browser)", () => {
   });
 });
 
+describe("salon day at the top of the bookings (browser)", () => {
+  it("steps to the next day and back to today, and opens the full calendar from the day", async () => {
+    const api = createClient();
+    await registerUser(api, { type: "salon", name: "سالن روزها" });
+    const { page, context, problems } = await newPage({ cookie: api.cookie() });
+    await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
+    const nav = page.locator(".salonDayInline .dayNav");
+    await nav.waitFor();
+    expect(await nav.locator(".dayNavDay").innerText()).toContain("امروز");
+    await nav.getByRole("button", { name: "روز بعد" }).click();
+    await nav.getByRole("button", { name: "برگشت به امروز" }).click();
+    await nav.getByRole("button", { name: "برگشت به امروز" }).waitFor({ state: "detached" });
+    await nav.locator(".dayNavDay").click();
+    await page.getByText("تاریخچه رزروها").first().waitFor();
+    expect(problems).toEqual([]);
+    await context.close();
+  });
+});
+
 describe("profile completeness (browser)", () => {
   it("shows a new salon what is missing, and comes back after a refresh once closed", async () => {
     const api = createClient();

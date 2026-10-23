@@ -15,7 +15,8 @@ import { useHome } from "../HomeContext";
 export function ProfilePanelBody() {
   const {
     createdProfile,
-    salonWeekPill,
+    salonDayNav,
+    salonDaySwipe,
     arrivalIntent,
     authMode,
     signupStep,
@@ -325,7 +326,8 @@ export function ProfilePanelBody() {
                     ) : (
                     <>
                     {/* The day picker sits above the day's list, not floating over it (2026-10-23). */}
-                    <div className="salonDayInline">{salonWeekPill}</div>
+                    <div className="salonDayInline">{salonDayNav}</div>
+                    <div className="salonDaySwipe" {...salonDaySwipe}>
                     <SalonScheduleDashboard
                       pendingCollabRequests={pendingSalonCollabRequests}
                       onApproveCollab={(id) => updateSalonCollabRequest(id, "تایید شد")}
@@ -348,6 +350,7 @@ export function ProfilePanelBody() {
                       historyOpen={salonWeekHistoryOpen}
                       onHistoryOpenChange={setSalonWeekHistoryOpen}
                     />
+                    </div>
                     </>
                     )
                   ) : profileType === "artist" && profileView === "portfolio" ? (

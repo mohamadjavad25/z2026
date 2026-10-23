@@ -1,11 +1,9 @@
 import { useScheduleViews } from "./useScheduleViews";
 import { useShellNavigation } from "./useShellNavigation";
 import { ProfileModeRail } from "../profile/ProfileModeRail";
-import { ProfileHeroWeekStrip } from "../profile/ProfileHeroWeekStrip";
-import { SalonWeekStripDock } from "./SalonWeekStripDock";
+import { DayNav, useDaySwipe } from "../profile/DayNav";
 import { useBackHandler } from "../../shared/hooks/useBackHandler";
 import { BACK_PRIORITY } from "../../shared/lib/backStack";
-import { useState } from "react";
 
 export function useHomeChrome({
   salonHoursList,
@@ -233,28 +231,17 @@ export function useHomeChrome({
   // position:fixed element nested inside .mobilePage.is-active gets trapped
   // by that element's page-transition transform and never reaches the real
   // viewport edge. See MobileFloatingCta.jsx.
-  // One open state for the inline pill and the floating strip it opens.
-  const [salonWeekDockOpen, setSalonWeekDockOpen] = useState(false);
-  const salonWeekStripFloating = salonWeekDockOpen ? (
-    <SalonWeekStripDock mode="strip" onOpenChange={setSalonWeekDockOpen}>
-      <ProfileHeroWeekStrip
-        items={salonHeroWeekTabs}
-        selectedDay={activeScheduleDateKey}
-        onSelectDay={setScheduleViewDay}
-        onOpenHistory={() => setSalonWeekHistoryOpen(true)}
-        ariaLabel="برنامه هفته سالن"
-      />
-    </SalonWeekStripDock>
-  ) : null;
-  const salonWeekPill = (
-    <SalonWeekStripDock
-      mode="pill"
-      open={salonWeekDockOpen}
-      onOpenChange={setSalonWeekDockOpen}
+  // The salon's day sits at the top of its bookings: the day before / after beside it, a swipe on the
+  // day or on the list under it, and the full calendar from the day itself (DayNav, 2026-10-23).
+  const salonDayNav = (
+    <DayNav
       items={salonHeroWeekTabs}
       selectedDay={activeScheduleDateKey}
+      onSelectDay={setScheduleViewDay}
+      onOpenCalendar={() => setSalonWeekHistoryOpen(true)}
     />
   );
+  const salonDaySwipe = useDaySwipe(salonHeroWeekTabs, activeScheduleDateKey, setScheduleViewDay);
 
   return {
     salonHoursPresets,
@@ -294,7 +281,7 @@ export function useHomeChrome({
     selectedPostSiblings,
     selectSalonWithDetail,
     profileModeRail,
-    salonWeekStripFloating,
-    salonWeekPill
+    salonDayNav,
+    salonDaySwipe
   };
 }
