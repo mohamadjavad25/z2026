@@ -279,7 +279,7 @@ describe("the salon did not answer (browser)", () => {
     await sheet.locator(".erPlace").click();
     await page.locator(".visitBookerSheet").waitFor();
     expect(await page.locator(".visitBookerSheet h2").innerText()).toContain(other.name);
-    expect(await page.locator(".vbService.is-on").innerText()).toContain(SERVICE);
+    expect(await page.locator(".vbService.is-on:not(.vbCount)").innerText()).toContain(SERVICE);
     await page.locator(".vbTime.is-on").waitFor();
     expect(LATIN(await page.locator(".vbTime.is-on").innerText())).toBe("11:00");
     expect(problems).toEqual([]);

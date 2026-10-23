@@ -15,7 +15,8 @@ async function confirmedBooking(time = "۱۲:۰۰") {
   const start = bookingStartMs(day.key, time, new Date());
   return { salon, client, id: made.payload.data.booking.id, start };
 }
-const claims = (id) => q("SELECT kind FROM booking_reminders WHERE source = 'salon' AND booking_id = $1", [id]);
+// A claim is "day" or "soon" plus the time it was for ("soon@1405-08-04 12:00"); these tests only look at the kind.
+const claims = async (id) => (await q("SELECT kind FROM booking_reminders WHERE source = 'salon' AND booking_id = $1", [id])).map((row) => ({ ...row, kind: String(row.kind).split("@")[0] }));
 
 describe("cron auth", () => {
   it("rejects missing, wrong, malformed, empty and prefix-only secrets with 401 on every cron route", async () => {
@@ -102,16 +103,21 @@ describe("two sweeps at the same moment", () => {
     const salon = await newSalon();
     const client = await newClient();
     const day = pickDay({ min: 3 });
-    // 10:00 booking; "now" is 22:30 Tehran the evening before (= 19:00Z): day reminder due; 23:59 Tehran must also be a day/soon-free zone for 10:00
+    // 10:00 booking; "now" is 22:30 Tehran the evening before (= 19:00Z): the day reminder would be due, but it waits
+    // out the night (22:00 to 08:00, bookingReminders.js), so nothing is claimed; 26 hours before is the wrong day.
     const made = await bookAtSalon(client.api, salon, client, { day: day.key, time: "۱۰:۰۰" });
     await salon.api.patch("/api/salon-bookings", { id: made.payload.data.booking.id, status: "تایید شده" });
     const start = bookingStartMs(day.key, "۱۰:۰۰", new Date());
     const res = await cron("send-reminders", { now: new Date(start - 9.5 * 3600000).toISOString() });
     expect(res.status).toBe(200);
-    expect((await claims(made.payload.data.booking.id)).map((r) => r.kind)).toEqual(["day"]);
+    expect((await claims(made.payload.data.booking.id)).map((r) => r.kind)).toEqual([]);
     const wrongDay = await cron("send-reminders", { now: new Date(start - 26 * 3600000).toISOString() });
     expect(wrongDay.status).toBe(200);
-    expect((await claims(made.payload.data.booking.id)).map((r) => r.kind)).toEqual(["day"]);
+    expect((await claims(made.payload.data.booking.id)).map((r) => r.kind)).toEqual([]);
+    // 08:30 Tehran the same morning: the night is over; the visit is 90 minutes away, so it is the "soon" one that goes.
+    const morning = await cron("send-reminders", { now: new Date(start - 90 * 60000).toISOString() });
+    expect(morning.status).toBe(200);
+    expect((await claims(made.payload.data.booking.id)).map((r) => r.kind)).toEqual(["soon"]);
   });
 
   it("5 parallel expiry sweeps expire an overdue request once: one expired status, one client+salon notice, never an error", async () => {

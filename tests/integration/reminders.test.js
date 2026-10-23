@@ -53,10 +53,10 @@ describe("booking reminders", () => {
     const { start, id, salonClient, clientApi } = await confirmedBooking({ time: "14:00" });
     await sweep(new Date(start - 20 * 3600e3));
     expect(await sent()).toHaveLength(1);
-    // The salon offers another day, the client takes it: the visit is confirmed again at the new time.
+    // The salon proposes another day (a confirmed visit only moves once the client accepts), the client takes it.
     const newDay = futureBookingDay(4);
-    expect((await salonClient.patch("/api/salon-bookings", { id, bookingDate: newDay, time: "15:00" })).ok).toBe(true);
-    expect((await clientApi.post(`/api/salon-bookings/${id}/answer`, { accept: true })).ok).toBe(true);
+    expect((await salonClient.post("/api/booking-proposals", { kind: "salon", id, date: newDay, time: "15:00" })).ok).toBe(true);
+    expect((await clientApi.post("/api/booking-proposals/answer", { kind: "salon", id, action: "accept" })).ok).toBe(true);
     const newStart = bookingStartMs(newDay, "15:00", new Date());
     await sweep(new Date(newStart - 20 * 3600e3));
     await sweep(new Date(newStart - 20 * 3600e3));

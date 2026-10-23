@@ -1,6 +1,6 @@
 import { describe, it, expect, afterAll } from "vitest";
 import {
-  CONFIRMED, CANCELLED, PENDING_SALON, openDb, daysAgoKey, moveBooking, tehranMinutes, expirySweep, reminderSweep,
+  CONFIRMED, CANCELLED, EXPIRED, openDb, daysAgoKey, moveBooking, tehranMinutes, expirySweep, reminderSweep,
   newSalon, newDirectArtist, newClient, requestSalon, requestArtist, confirmSalon, confirmArtist,
   cancelBySalon, cancelByArtist, cancelByClient, salonRow, clientSalonRow, artistRow, clientArtistRow,
   moveToDaysAgo, moveToStartedAgo, answerSmsTo
@@ -14,6 +14,12 @@ import {
  */
 const db = openDb();
 afterAll(() => db.end());
+
+async function apologySmsTo(phone) {
+  await new Promise((resolve) => setTimeout(resolve, 600));
+  const { rows } = await db.query("SELECT body FROM sms_log WHERE phone = $1 AND purpose = 'booking_cancelled_by_provider' ORDER BY id", [phone]);
+  return rows.map((row) => row.body);
+}
 
 async function confirmedSalonVisit(name, { withArtist = false } = {}) {
   const ctx = await newSalon(name, { withArtist });
@@ -96,28 +102,28 @@ describe("after the visit: who may still change it", () => {
     expect((await salonRow(ctx, booking.id)).status).toBe(CONFIRMED);
   });
 
-  it("gap: the salon CAN cancel today's visit after it ended, and the client is texted «لغو شد»", async () => {
+  // Since the provider rules of 2026-10-22 a confirmed visit cancelled by its salon or artist gets the apology text
+  // (booking_cancelled_by_provider, «… را لغو کرد. بابت این اتفاق متأسفیم.») instead of the plain «لغو شد» answer.
+  it("gap: the salon CAN cancel today's visit after it ended, and the client gets the apology text", async () => {
     if (tehranMinutes() < 150) return; // needs a visit that ended earlier today
     const { ctx, client, booking } = await confirmedSalonVisit("SalonSameDay");
     await moveToStartedAgo(db, "salon_bookings", booking.id, 120);
-    const textsBefore = (await answerSmsTo(db, client.phone)).length;
+    const answersBefore = (await answerSmsTo(db, client.phone)).length;
     expect((await cancelBySalon(ctx, booking.id)).ok).toBe(true);
     expect((await clientSalonRow(client, booking.id)).status).toBe(CANCELLED);
-    const texts = await answerSmsTo(db, client.phone);
-    expect(texts.length).toBe(textsBefore + 1);
-    expect(texts.at(-1)).toContain("لغو شد");
+    expect((await answerSmsTo(db, client.phone)).length).toBe(answersBefore);
+    expect((await apologySmsTo(client.phone)).at(-1)).toContain("لغو کرد");
   });
 
-  it("gap: an independent artist CAN cancel a visit from three days ago, and the client is texted «لغو شد»", async () => {
+  it("gap: an independent artist CAN cancel a visit from three days ago, and the client gets the apology text", async () => {
     const { a, client, booking } = await confirmedArtistVisit("ArtistPast");
     await moveToDaysAgo(db, "artist_bookings", booking.id, 3);
-    const textsBefore = (await answerSmsTo(db, client.phone)).length;
+    const answersBefore = (await answerSmsTo(db, client.phone)).length;
     expect((await cancelByArtist(a, booking.id)).ok).toBe(true);
     expect((await clientArtistRow(client, booking.id)).status).toBe(CANCELLED);
     expect((await artistRow(a, booking.id)).status).toBe(CANCELLED);
-    const texts = await answerSmsTo(db, client.phone);
-    expect(texts.length).toBe(textsBefore + 1);
-    expect(texts.at(-1)).toContain("لغو شد");
+    expect((await answerSmsTo(db, client.phone)).length).toBe(answersBefore);
+    expect((await apologySmsTo(client.phone)).at(-1)).toContain("لغو کرد");
   });
 
   it("gap: a salon's team artist CAN cancel last week's salon visit, and the salon's booking flips to «لغو» too", async () => {
@@ -131,7 +137,7 @@ describe("after the visit: who may still change it", () => {
     expect((await clientSalonRow(client, booking.id)).status).toBe(CANCELLED);
   });
 
-  it("gap (rare): a team-artist request whose time is taken on the artist's calendar never closes; every sweep retries it", async () => {
+  it("fixed (rare): a team-artist request whose time is taken on the artist's calendar is closed by the sweep", async () => {
     const ctx = await newSalon("Stuck", { withArtist: true });
     const first = await newClient("C Stuck 1");
     const second = await newClient("C Stuck 2");
@@ -143,19 +149,16 @@ describe("after the visit: who may still change it", () => {
     await moveBooking(db, "salon_bookings", waiting.id, { date: daysAgoKey(2), time: "12:00" });
     await expirySweep();
     await expirySweep();
-    expect((await salonRow(ctx, waiting.id)).status).toBe(PENDING_SALON);
+    expect((await salonRow(ctx, waiting.id)).status).toBe(EXPIRED);
   });
 
-  it("gap: a request nobody answered can still be approved after its time started, until the next sweep", async () => {
+  it("fixed: a request nobody answered can no longer be approved once its time started", async () => {
     if (tehranMinutes() < 40) return;
     const ctx = await newSalon("LateApprove");
     const client = await newClient("C LateApprove");
     const booking = (await requestSalon(ctx, client)).payload.data.booking;
     await moveToStartedAgo(db, "salon_bookings", booking.id, 30);
-    expect((await confirmSalon(ctx, booking.id)).ok).toBe(true);
-    expect((await clientSalonRow(client, booking.id)).status).toBe(CONFIRMED);
-    // and once approved, the sweep leaves it confirmed
-    await expirySweep();
-    expect((await clientSalonRow(client, booking.id)).status).toBe(CONFIRMED);
+    expect((await confirmSalon(ctx, booking.id)).ok).toBe(false);
+    expect((await clientSalonRow(client, booking.id)).status).not.toBe(CONFIRMED);
   });
 });

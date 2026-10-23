@@ -573,7 +573,7 @@ describe("VisitBooker for a client (browser)", () => {
     await cp.locator(".sduConfirm").click();
     await cp.locator(".visitBookerSheet").waitFor();
     // the services they picked are already on, and the customer's own details are read-only
-    expect(await cp.locator(".vbService.is-on").count()).toBe(2);
+    expect(await cp.locator(".vbService.is-on:not(.vbCount)").count()).toBe(2);
     expect(await cp.locator("#vb-name").count()).toBe(0);
     // their name and number are already known, so no contact card is shown
     expect(await cp.locator(".vbWho").count()).toBe(0);

@@ -46,7 +46,7 @@ export async function reminderSweep(now = new Date()) {
 
 export async function newSalon(name, { withArtist = false } = {}) {
   const salonClient = createClient();
-  const salon = await registerUser(salonClient, { type: "salon", name: `${name} Salon` });
+  const salon = await registerUser(salonClient, { type: "salon", name: `${name} Salon`, menu: true });
   await salonClient.get("/api/salon-hours");
   const ctx = { kind: "salon", salonClient, salon, id: salon.user.id };
   if (withArtist) {
@@ -60,7 +60,7 @@ export async function newSalon(name, { withArtist = false } = {}) {
 
 export async function newDirectArtist(name) {
   const artistClient = createClient();
-  const artist = await registerUser(artistClient, { type: "artist", name });
+  const artist = await registerUser(artistClient, { type: "artist", name, menu: true });
   return { kind: "artist", artistClient, artist, id: artist.user.id };
 }
 
