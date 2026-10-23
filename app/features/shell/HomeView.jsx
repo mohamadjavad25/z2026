@@ -414,6 +414,7 @@ export function HomeView() {
         />
         <CreateBookingTip
           active={(createdProfile?.type === "artist" || createdProfile?.type === "salon") && activeTab === "profile" && !bookingSheetOpen && !selectedPublicArtist}
+          accountId={createdProfile?.id}
           onCreateBooking={openBookingSheet}
         />
         {createdProfile && activeTab === "profile" && !selectedPublicArtist ? <SupportFab /> : null}

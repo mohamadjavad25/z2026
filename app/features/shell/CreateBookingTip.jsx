@@ -2,20 +2,24 @@
 
 import { useEffect, useState } from "react";
 
-// Set once a salon/artist has seen the tip, so it shows a single time per device.
+// Set once a salon/artist's account has been shown the tip: one time per account on this device.
 const SEEN_KEY = "frfro-tip-create-booking";
 
-function hasSeen() {
+function seenKey(accountId) {
+  return `${SEEN_KEY}:${accountId}`;
+}
+
+function hasSeen(accountId) {
   try {
-    return window.localStorage.getItem(SEEN_KEY) === "1";
+    return window.localStorage.getItem(seenKey(accountId)) === "1";
   } catch {
     return false;
   }
 }
 
-function rememberSeen() {
+function rememberSeen(accountId) {
   try {
-    window.localStorage.setItem(SEEN_KEY, "1");
+    window.localStorage.setItem(seenKey(accountId), "1");
   } catch {
     // Private window or blocked storage: the tip just shows again next time.
   }
@@ -32,15 +36,20 @@ function findButtonRect() {
  * only clients could book, through the salon's link). Tapping the «+» itself also
  * closes it and opens the booking sheet.
  */
-export function CreateBookingTip({ active, onCreateBooking }) {
+export function CreateBookingTip({ active, accountId, onCreateBooking }) {
   const [rect, setRect] = useState(null);
 
   useEffect(() => {
-    if (!active || hasSeen()) return undefined;
+    if (!active || !accountId || hasSeen(accountId)) return undefined;
     let frame = 0;
     const measure = () => {
       cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => setRect(findButtonRect()));
+      frame = requestAnimationFrame(() => {
+        const next = findButtonRect();
+        // Counted as seen as soon as it is shown, so a reload or an app restart does not show it again.
+        if (next) rememberSeen(accountId);
+        setRect(next);
+      });
     };
     // Let the profile and the bar settle first, so the hole lands on the button.
     const timer = window.setTimeout(measure, 900);
@@ -50,12 +59,11 @@ export function CreateBookingTip({ active, onCreateBooking }) {
       cancelAnimationFrame(frame);
       window.removeEventListener("resize", measure);
     };
-  }, [active]);
+  }, [active, accountId]);
 
   if (!active || !rect) return null;
 
   const close = () => {
-    rememberSeen();
     setRect(null);
   };
   const pad = 8;
