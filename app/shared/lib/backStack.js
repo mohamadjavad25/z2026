@@ -32,6 +32,7 @@ let pushed = 0;
 let ignoredPops = 0;
 let syncQueued = false;
 let listening = false;
+let goTimer = 0;
 
 function topEntry() {
   let top = null;
@@ -53,6 +54,11 @@ function queueSync() {
   syncQueued = true;
   window.setTimeout(() => {
     syncQueued = false;
+    // A history.go() of ours has not landed yet. Pushing now puts the new entry on top of the page that go() is
+    // leaving, and go() then lands one entry too far back: a salon closing its first request, with the next one
+    // opening right away, left the app on the second «بستن» (found in the screenshot run of 2026-10-23).
+    // handlePopState syncs again once it lands.
+    if (ignoredPops > 0) return;
     const diff = entries.length - pushed;
     if (diff > 0) {
       for (let i = 0; i < diff; i += 1) {
@@ -64,6 +70,14 @@ function queueSync() {
       pushed += diff;
       ignoredPops += 1;
       window.history.go(diff);
+      // If the pop never arrives (nothing to go back to), stop waiting for it.
+      window.clearTimeout(goTimer);
+      goTimer = window.setTimeout(() => {
+        if (ignoredPops > 0) {
+          ignoredPops = 0;
+          queueSync();
+        }
+      }, 800);
     }
   }, 0);
 }
@@ -71,6 +85,10 @@ function queueSync() {
 function handlePopState() {
   if (ignoredPops > 0) {
     ignoredPops -= 1;
+    if (ignoredPops === 0) {
+      window.clearTimeout(goTimer);
+      queueSync();
+    }
     return;
   }
   if (pushed === 0) return;

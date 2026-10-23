@@ -735,7 +735,7 @@
 .cbtPill {
   position: fixed;
   z-index: var(--z-nav);
-  top: calc(64px + env(safe-area-inset-top, 0px)); /* under the bell row, on the home banner */
+  top: calc(80px + env(safe-area-inset-top, 0px)); /* under the bell row, on the home banner */
   left: 50%;
   transform: translateX(-50%);
   width: max-content;

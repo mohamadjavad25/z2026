@@ -24,6 +24,10 @@ The user often talks by voice and listens to replies with the phone's read-aloud
 
 Before building or changing any feature that touches bookings, accounts, login/SMS, payments, teams or the directory, first ask the user the plain-language product questions it raises, each with a recommended answer, in short simple Persian (3 to 6 questions, not a long report). Then build. Do not wait for a later review to find them. Think of: limits (how many at once, how far ahead, how long), what happens when two people act at the same time, what happens at the edge of working hours or capacity, what happens when an account or salon is deleted, suspended or its phone number is reused, what a client sees when the answer is "no", and who gets told. Every finding, option list or report given to the user must also say what the UI and UX will be: which screen changes, what the user sees and taps (a small mock-up), the exact Persian text, and the empty, error and success states (user's rule, 2026-10-21, «خیلی مهمه»). Record the user's answers in `docs/DECISIONS.md` (one line each, dated) so the same question is never asked twice.
 
+## Screenshots first (user's rule, 2026-10-23)
+
+`docs/screens/` holds a picture of every screen for every role, with its visible text in `index.json`. Whenever the user asks about or for a change to how something looks or reads, first look at that screen's picture there, then read its code. If they match, work from the picture and propose on it; if the code has moved on, retake that screen with `scripts/screens/capture.mjs` and replace the picture in the same change. How to take them: `docs/screens/README.md`.
+
 ## Project notes
 
 - The product name is **frfro**, always lowercase in English. The Persian form is «فرفرو». Never use "Farfaroo", "Frfru", "Zibaban" or «زیبابان».
