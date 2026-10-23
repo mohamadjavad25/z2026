@@ -82,7 +82,7 @@ describe("booking flow (browser)", () => {
     const cp = clientView.page;
     await cp.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
     await openExploreTab(cp);
-    await cp.getByPlaceholder("اسم، شماره یا لینک صفحه‌اش").fill(name);
+    await cp.locator("#cbt-panel").getByPlaceholder("اسم سالن یا آرتیست").fill(name);
     const result = cp.locator(".cnCard").filter({ hasText: name }).first();
     await result.getByRole("button", { name: "وصل شو" }).click();
     await cp.locator(".spvBarBook").click();
@@ -235,7 +235,7 @@ describe("booking flow (browser)", () => {
 
     const { page, context, problems } = await newPage({ cookie: artistApi.cookie() });
     await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
-    await page.locator(".profileModeRail button", { hasText: "رزروها" }).click();
+    await page.locator(".profileModeRail button", { hasText: "نوبت‌ها" }).click();
     // the booking is two days ahead: the notice names that day, and the card there has the buttons
     await page.locator(".artistBookingsPage .pendingOtherDays button").first().click();
     const card = page.locator(".artistBookingsPage .bkGroup").filter({ hasText: "مشتری مستقیم" });
@@ -285,6 +285,32 @@ describe("client starts from what they want (browser)", () => {
   });
 
 
+  it("from the home card: search by name, open the salon, its services are on the page, a tap goes to the times", async () => {
+    const { name } = await seedSalon();
+    const clientApi = createClient();
+    await registerUser(clientApi, { type: "client", name: "مشتری خانه" });
+
+    const { page, context, problems } = await newPage({ cookie: clientApi.cookie() });
+    await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
+    const home = page.locator(".clientHome .cnPage.is-compact");
+    await home.getByPlaceholder("اسم سالن یا آرتیست").fill(name);
+    await home.locator(".cnCard").filter({ hasText: name }).first().getByRole("button", { name: "وصل شو" }).click();
+    // the salon page lists its services with their prices, and the bottom button says «رزرو نوبت»
+    const row = page.locator(".sopRow", { hasText: "کوتاهی مو" });
+    await row.waitFor();
+    expect(await row.innerText()).toContain("دقیقه");
+    expect(await page.locator(".spvBarBook").innerText()).toContain("رزرو نوبت");
+    await row.click();
+    // the time screen: a way back, the first free time marked «زودترین», the wait question folded
+    await page.locator(".vbTime.is-on.is-earliest").waitFor();
+    expect(await page.locator(".wcFold").innerText()).toContain("صبر می‌کنم");
+    await page.getByRole("button", { name: "برگشت" }).click();
+    await page.locator(".vbTime").first().waitFor({ state: "detached" });
+    await page.locator(".sopRow").first().waitFor();
+    expect(problems).toEqual([]);
+    await context.close();
+  });
+
   it("one connected salon does it: straight to its services, the service already picked", async () => {
     const { name, client: salonClient, salon } = await seedSalon();
     await salonClient.post("/api/salon-services", { name: "کاشت ناخن", price: "900000", duration: "120 دقیقه" });
@@ -295,7 +321,7 @@ describe("client starts from what they want (browser)", () => {
     const { page, context, problems } = await newPage({ cookie: clientApi.cookie() });
     await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
     await openExploreTab(page);
-    await page.locator(".cnCat", { hasText: "ناخن" }).click();
+    await page.locator("#cbt-panel .cnCat", { hasText: "ناخن" }).click();
     // the salon's page opens with its services menu, «کاشت ناخن» first and already picked
     await page.locator(".sduPanel").waitFor();
     expect(await page.locator(".sduPanel").getAttribute("aria-label")).toContain(name);
@@ -318,8 +344,8 @@ describe("client starts from what they want (browser)", () => {
     await page.locator("nav.bottomNav > button").nth(2).click();
     await page.locator("#cbt-panel .chEmpty").waitFor();
     await page.locator("#cbt-panel .chAddLink").click();
-    await page.locator(".cnCat", { hasText: "میکاپ" }).waitFor();
-    await page.locator(".cnCat", { hasText: "میکاپ" }).click();
+    await page.locator("#cbt-panel .cnCat", { hasText: "میکاپ" }).waitFor();
+    await page.locator("#cbt-panel .cnCat", { hasText: "میکاپ" }).click();
     const sheet = page.locator(".cnSheetRoot");
     await sheet.waitFor();
     expect(await sheet.innerText()).toContain("هنوز کسی را وصل نکرده‌ای");
@@ -413,7 +439,7 @@ describe("QR scanning (browser)", () => {
     const cp = clientView.page;
     await cp.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
     await openExploreTab(cp);
-    await cp.getByRole("button", { name: "اسکن QR" }).click();
+    await cp.locator("#cbt-panel").getByRole("button", { name: "اسکن کد سالن یا آرتیست" }).click();
     const found = cp.locator(".cnScanResult").filter({ hasText: name });
     await found.getByRole("button", { name: "وصل شو" }).click();
     await found.getByRole("button", { name: "رزرو" }).waitFor();
@@ -513,7 +539,7 @@ describe("profile completeness (browser)", () => {
     await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
     const card = page.locator(".profileCompleteness");
     await card.waitFor();
-    expect(await card.innerText()).toContain("۴ قدم تا پروفایل کامل");
+    expect(await card.innerText()).toContain("۴ قدم مانده");
     await page.getByRole("button", { name: "بستن یادآوری تکمیل پروفایل" }).click();
     await card.waitFor({ state: "detached" });
     await page.reload({ waitUntil: "networkidle" });
