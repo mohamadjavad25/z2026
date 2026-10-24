@@ -54,6 +54,21 @@ describe("a follow is a contact", () => {
     expect((await followers(salon)).unseen).toBe(1);
   });
 
+  it("never makes a salon or an artist a follower; only a client can be one", async () => {
+    const artist = await person("artist", "آرتیست هدف");
+    const salon = await person("salon", "سالنی که اسکن کرد");
+    const otherArtist = await person("artist", "آرتیست دیگه");
+
+    const bySalon = await follow(salon, artist);
+    expect(bySalon.ok).toBe(false);
+    expect(bySalon.status).toBe(403);
+    expect((await follow(otherArtist, artist)).status).toBe(403);
+    expect((await salon.client.post("/api/salon-follow", { salonUserId: artist.user.id })).ok).toBe(false);
+    expect((await followers(artist)).followers).toHaveLength(0);
+    // Taking an old follow away still works for anyone.
+    expect((await follow(salon, artist, false)).ok).toBe(true);
+  });
+
   it("marks a follower who has booked, so only the others read as «not booked yet»", async () => {
     const artist = await person("artist", "آرتیست رزرو");
     const booker = await person("client", "رزروکننده");

@@ -747,6 +747,10 @@ export function useHomeApp() {
     arrivalIntent,
     ownerFollowers,
     refreshOwnerFollowers,
+    // The profile page's scanner and the customers page's scan button call these after a team join or invite;
+    // they used to be missing here, so nothing refreshed until the page was reloaded.
+    refreshSalonSystemData,
+    refreshArtistWorkspace,
     unseenFollowerCount,
     ...homeChromeState,
     ...homeWorkspacesState,
