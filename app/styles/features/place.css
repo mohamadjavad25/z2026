@@ -1,3 +1,15 @@
+/* Soft tints of the two role colours that follow the day/night neutral ramp (the fixed --violet-soft / --pink-soft stay light at night). */
+:root {
+  --pl-violet-bg: color-mix(in srgb, var(--brand-violet) 14%, var(--n-0));
+  --pl-pink-bg: color-mix(in srgb, var(--brand-pink) 20%, var(--n-0));
+  --pl-violet-ink: var(--violet-deep);
+  --pl-pink-ink: var(--pink-deep);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --pl-violet-ink: #bfb0ff; --pl-pink-ink: #ff9cc7; }
+}
+:root[data-theme="dark"] { --pl-violet-ink: #bfb0ff; --pl-pink-ink: #ff9cc7; }
+
 /* ═══ Where an artist on a salon team receives the clients who book them directly (owner's idea of 2026-10-24) ═══
    The artist's chooser (collab tab), the salon's switch and the place line on the client's booking sheet.
    Colours come from the role tokens only: the salon is the violet side, the artist's own place the pink one. */
@@ -9,21 +21,21 @@
 .plOpts { display: grid; gap: 8px; }
 .plOpt { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; padding: 12px; border: 1.5px solid var(--n-150); border-radius: 18px; background: var(--n-0); color: var(--n-900); font: inherit; text-align: start; cursor: pointer; }
 .plOpt:disabled { opacity: 0.55; cursor: default; }
-.plOpt.is-on { border-color: var(--brand-violet); background: var(--violet-soft); }
+.plOpt.is-on { border-color: var(--brand-violet); background: var(--pl-violet-bg); }
 .plOptIcon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 14px; background: var(--n-100); color: var(--n-700); }
-.plOpt.is-on .plOptIcon { background: var(--n-0); color: var(--violet-deep); }
+.plOpt.is-on .plOptIcon { background: var(--n-0); color: var(--pl-violet-ink); }
 .plOptText { display: grid; gap: 1px; min-width: 0; }
 .plOptText b { font-size: 0.92rem; font-weight: 900; }
 .plOptText small { color: var(--n-600); font-size: 0.74rem; font-weight: 700; line-height: 1.7; }
 .plOptDot { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--n-300); color: var(--n-0); }
-.plOpt.is-on .plOptDot { border-color: var(--violet-deep); background: var(--violet-deep); }
+.plOpt.is-on .plOptDot { border-color: var(--pl-violet-ink); background: var(--violet-deep); }
 .plWeekBlock { display: grid; gap: 8px; }
 .plWeek { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
 .plDay { display: grid; justify-items: center; gap: 0; padding: 6px 0 5px; border: 1.5px solid var(--n-150); border-radius: 14px; background: var(--n-0); color: var(--n-800); font: inherit; cursor: pointer; }
 .plDay b { font-size: 0.86rem; font-weight: 900; }
 .plDay small { font-size: 0.64rem; font-weight: 800; }
-.plDay.is-salon { border-color: var(--brand-violet); background: var(--violet-soft); color: var(--violet-deep); }
-.plDay.is-own { border-color: var(--brand-pink); background: var(--pink-soft); color: var(--pink-deep); }
+.plDay.is-salon { border-color: var(--brand-violet); background: var(--pl-violet-bg); color: var(--pl-violet-ink); }
+.plDay.is-own { border-color: var(--brand-pink); background: var(--pl-pink-bg); color: var(--pl-pink-ink); }
 .plDay.is-shut { opacity: 0.55; }
 .plHint { margin: 0; color: var(--n-600); font-size: 0.74rem; font-weight: 700; line-height: 1.7; }
 .plNote { display: grid; gap: 8px; margin: 0; padding: 10px 12px; border-radius: 14px; font-size: 0.8rem; font-weight: 800; line-height: 1.75; }
@@ -63,12 +75,12 @@
 .plPlace { display: grid; gap: 4px; margin-top: 12px; padding: 10px 12px; border-radius: 16px; font-size: 0.8rem; font-weight: 800; line-height: 1.7; }
 .plPlace b { font-size: 0.86rem; font-weight: 950; }
 .plPlace span { display: inline-flex; align-items: center; gap: 5px; font-weight: 750; }
-.plPlace.is-salon { background: var(--violet-soft); color: var(--violet-deep); }
-.plPlace.is-own { background: var(--pink-soft); color: var(--pink-deep); }
+.plPlace.is-salon { background: var(--pl-violet-bg); color: var(--pl-violet-ink); }
+.plPlace.is-own { background: var(--pl-pink-bg); color: var(--pl-pink-ink); }
 .plPlace.is-off { background: var(--n-100); color: var(--n-700); }
 .plPlace a { color: inherit; font-weight: 950; text-decoration: underline; text-underline-offset: 3px; }
-.plTeamChip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 999px; background: var(--violet-soft); color: var(--violet-deep); font-size: 0.74rem; font-weight: 900; }
-.bspDay.is-at-salon:not(.is-selected) em { color: var(--violet-deep); }
-.bspDay.is-at-own:not(.is-selected) em { color: var(--pink-deep); }
+.plTeamChip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 999px; background: var(--pl-violet-bg); color: var(--pl-violet-ink); font-size: 0.74rem; font-weight: 900; }
+.bspDay.is-at-salon:not(.is-selected) em { color: var(--pl-violet-ink); }
+.bspDay.is-at-own:not(.is-selected) em { color: var(--pl-pink-ink); }
 .bspDay.is-at-off:not(.is-selected) em { color: var(--n-500); }
 .bspAfterDays { display: grid; }

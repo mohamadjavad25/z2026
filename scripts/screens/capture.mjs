@@ -157,14 +157,14 @@ function placeScreens() {
 /** The client books the artist straight from their page on the first day she receives at the salon. */
 async function makeDirectBooking({ sessions, ids }) {
   const { client, artist } = sessions;
-  for (let n = 1; n <= 7; n += 1) {
+  for (let n = 1; n <= 14; n += 1) {
     const day = new Date();
     day.setDate(day.getDate() + n);
-    if (getPersianWeekday(day) === "شنبه" || getPersianWeekday(day) === "دوشنبه") {
-      const made = await client.post("/api/artist/bookings", { artistUserId: ids.artist, service: "لاک ژل", bookingDate: formatPersianDateKey(day), time: "۱۴:۰۰" });
-      if (made.ok) await artist.patch("/api/artist/me", { kind: "booking", id: made.payload.data.booking.id, status: "تایید شده" });
-      return;
-    }
+    if (getPersianWeekday(day) !== "شنبه" && getPersianWeekday(day) !== "دوشنبه") continue;
+    const made = await client.post("/api/artist/bookings", { artistUserId: ids.artist, service: "لاک ژل", bookingDate: formatPersianDateKey(day), time: "۱۶:۰۰" });
+    if (!made.ok) continue; // the artist is busy then (the sample salon booking): try the next salon day
+    await artist.patch("/api/artist/me", { kind: "booking", id: made.payload.data.booking.id, status: "تایید شده" });
+    return;
   }
 }
 
