@@ -343,3 +343,44 @@ describe("where an artist's clients are received: an ordered list of salons", ()
     expect(gone.placeSalonName).toBe("");
   });
 });
+
+describe("where the client is told to go: the artist's own spot, or the salon's once it is held there", () => {
+  const SALON_SPOT = { area: "تهران، خیابان گلستان", addressDetail: "پلاک ۱۲", geo: { lat: 35.7219, lng: 51.3347 } };
+  const OWN_SPOT = { area: "تهران، خیابان لاله", addressDetail: "واحد ۳", geo: { lat: 35.7007, lng: 51.4041 } };
+
+  it("a confirmed booking shows the salon's pin when it is held there, and the artist's own pin otherwise", async () => {
+    const ctx = await setup();
+    expect((await ctx.salonClient.post("/api/profile", { data: SALON_SPOT })).ok).toBe(true);
+    expect((await ctx.artistClient.post("/api/profile", { data: OWN_SPOT })).ok).toBe(true);
+    expect((await putList(ctx, [ctx.salon.user.id])).ok).toBe(true);
+    const { client } = await newClient();
+    const atSalon = await book(ctx, client, dayOn(SATURDAY), "13:00");
+    await ctx.salonClient.patch("/api/salon-hours", { day: SUNDAY, active: false });
+    const atOwn = await book(ctx, client, dayOn(SUNDAY), "13:00");
+    expect((await confirm(ctx, atSalon.payload.data.booking.id)).ok).toBe(true);
+    expect((await confirm(ctx, atOwn.payload.data.booking.id)).ok).toBe(true);
+    const salonRow = await clientRow(client, atSalon.payload.data.booking.id);
+    expect(salonRow.placeLocation).toMatchObject({ address: SALON_SPOT.area, detail: SALON_SPOT.addressDetail, lat: 35.7219, lng: 51.3347 });
+    expect(salonRow.placeSalonName).toBe(ctx.salon.user.name);
+    const ownRow = await clientRow(client, atOwn.payload.data.booking.id);
+    expect(ownRow.placeLocation).toMatchObject({ address: OWN_SPOT.area, lat: 35.7007, lng: 51.4041 });
+    expect(ownRow.placeSalonName).toBe("");
+  });
+
+  it("a saved spot survives profile edits, settings saves and a new login", async () => {
+    const ctx = await setup({ team: false });
+    expect((await ctx.artistClient.post("/api/profile", { data: OWN_SPOT })).ok).toBe(true);
+    const spot = async () => (await ctx.artistClient.get("/api/auth/me")).payload.data.user.location;
+    expect(await spot()).toMatchObject({ address: OWN_SPOT.area, detail: OWN_SPOT.addressDetail, lat: 35.7007, lng: 51.4041 });
+    expect((await ctx.artistClient.post("/api/profile", { type: "artist", data: { name: ctx.artist.user.name, service: "ناخن", email: "" } })).ok).toBe(true);
+    expect((await ctx.artistClient.post("/api/profile/settings", { settings: { vacationMode: false, autoConfirm: true } })).ok).toBe(true);
+    expect((await ctx.artistClient.post("/api/artist/me", { name: "کاشت ناخن", price: "800000", duration: "۹۰ دقیقه" })).ok).toBe(true);
+    expect(await spot()).toMatchObject({ address: OWN_SPOT.area, lat: 35.7007, lng: 51.4041 });
+    const again = createClient();
+    expect((await again.post("/api/auth/login", { phone: ctx.artist.phone, password: ctx.artist.password })).ok).toBe(true);
+    expect((await again.get("/api/auth/me")).payload.data.user.location).toMatchObject({ lat: 35.7007, lng: 51.4041 });
+    // Only an explicit clear removes it.
+    expect((await ctx.artistClient.post("/api/profile", { data: { area: "", geo: null, addressDetail: "" } })).ok).toBe(true);
+    expect(await spot()).toBeNull();
+  });
+});

@@ -424,9 +424,9 @@ export async function listClientArtistBookings(user) {
   // The backup artist's name, and for a request that was moved, the artist it went to / came from
   // (the columns are made by salons/bookings.js ensureBookingPartsColumns, run by the route first).
   const rows = await all(db, `
-    SELECT b.*, u.name AS artist_name, u.area AS artist_area, (u.avatar <> '' OR u.avatar_url IS NOT NULL) AS artist_avatar, u.phone AS artist_phone,
+    SELECT b.*, u.name AS artist_name, u.area AS artist_area, u.address_detail AS artist_detail, u.geo_lat AS artist_lat, u.geo_lng AS artist_lng, (u.avatar <> '' OR u.avatar_url IS NOT NULL) AS artist_avatar, u.phone AS artist_phone,
       fu.name AS fallback_name, tu.name AS moved_to_name, ou.name AS moved_from_name,
-      COALESCE(NULLIF(ps.name, ''), pu.name) AS place_salon_name, pu.area AS place_salon_area, pu.phone AS place_salon_phone
+      COALESCE(NULLIF(ps.name, ''), pu.name) AS place_salon_name, pu.area AS place_salon_area, pu.address_detail AS place_salon_detail, pu.geo_lat AS place_salon_lat, pu.geo_lng AS place_salon_lng, pu.phone AS place_salon_phone
     FROM artist_bookings b
     LEFT JOIN users u ON u.id = b.artist_user_id
     LEFT JOIN users pu ON pu.id = b.place_salon_user_id
@@ -463,6 +463,10 @@ export async function listClientArtistBookings(user) {
     // is the artist's to say, so a client only reads it once the booking is confirmed.
     salonArea: (placeShown(row) ? row.place_salon_area : row.artist_area) || "",
     salon_area: (placeShown(row) ? row.place_salon_area : row.artist_area) || "",
+    // Where to go: the salon's place once it is confirmed there, else the artist's own (the pin the artist set in settings).
+    placeLocation: placeShown(row)
+      ? publicLocation({ area: row.place_salon_area, address_detail: row.place_salon_detail, geo_lat: row.place_salon_lat, geo_lng: row.place_salon_lng })
+      : publicLocation({ area: row.artist_area, address_detail: row.artist_detail, geo_lat: row.artist_lat, geo_lng: row.artist_lng }),
     placeSalonName: placeShown(row) ? row.place_salon_name || "سالن" : "",
     placeSalonUserId: placeShown(row) ? row.place_salon_user_id : null,
     salonAvatar: row.artist_avatar && row.artist_user_id ? `/api/media/avatar/${row.artist_user_id}` : "",

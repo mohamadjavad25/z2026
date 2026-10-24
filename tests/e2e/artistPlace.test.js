@@ -78,4 +78,27 @@ describe("where an artist's clients are received (browser)", () => {
     expect(artistView.problems).toEqual([]);
     await artistView.context.close();
   });
+
+  it("the ✕ beside a saved spot asks first: «نه، بمونه» keeps it, «آره، پاک کن» removes it", async () => {
+    const { members } = await teamSalon("Place Spot Salon", 1);
+    const artist = members[0];
+    expect((await artist.api.post("/api/profile", { data: { area: "تهران، خیابان لاله", addressDetail: "واحد ۳", geo: { lat: 35.7, lng: 51.4 } } })).ok).toBe(true);
+    const view = await newPage({ cookie: artist.api.cookie() });
+    const page = view.page;
+    page.setDefaultTimeout(8000);
+    await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
+    await page.locator("nav.bottomNav > button").nth(0).click();
+    await page.locator(".profileLocationRow").first().waitFor();
+    await page.locator(".profileLocationRowClear").click();
+    await page.getByText("جات از روی نقشه پاک بشه؟").waitFor();
+    await page.getByRole("button", { name: "نه، بمونه" }).click();
+    expect(await page.locator(".profileLocationRow").first().innerText()).toContain("تهران، خیابان لاله");
+    expect((await artist.api.get("/api/auth/me")).payload.data.user.location.lat).toBe(35.7);
+    await page.locator(".profileLocationRowClear").click();
+    await page.getByRole("button", { name: "آره، پاک کن" }).click();
+    await page.getByText("جات از روی نقشه پاک شد.").first().waitFor();
+    expect((await artist.api.get("/api/auth/me")).payload.data.user.location).toBeNull();
+    expect(view.problems).toEqual([]);
+    await view.context.close();
+  });
 });
