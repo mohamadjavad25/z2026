@@ -18,25 +18,6 @@
 .plHead { display: grid; gap: 2px; }
 .plHead b { color: var(--n-900); font-size: 1rem; font-weight: 950; }
 .plHead small { color: var(--n-600); font-size: 0.78rem; font-weight: 750; }
-.plOpts { display: grid; gap: 8px; }
-.plOpt { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; padding: 12px; border: 1.5px solid var(--n-150); border-radius: 18px; background: var(--n-0); color: var(--n-900); font: inherit; text-align: start; cursor: pointer; }
-.plOpt:disabled { opacity: 0.55; cursor: default; }
-.plOpt.is-on { border-color: var(--brand-violet); background: var(--pl-violet-bg); }
-.plOptIcon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 14px; background: var(--n-100); color: var(--n-700); }
-.plOpt.is-on .plOptIcon { background: var(--n-0); color: var(--pl-violet-ink); }
-.plOptText { display: grid; gap: 1px; min-width: 0; }
-.plOptText b { font-size: 0.92rem; font-weight: 900; }
-.plOptText small { color: var(--n-600); font-size: 0.74rem; font-weight: 700; line-height: 1.7; }
-.plOptDot { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--n-300); color: var(--n-0); }
-.plOpt.is-on .plOptDot { border-color: var(--pl-violet-ink); background: var(--violet-deep); }
-.plWeekBlock { display: grid; gap: 8px; }
-.plWeek { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
-.plDay { display: grid; justify-items: center; gap: 0; padding: 6px 0 5px; border: 1.5px solid var(--n-150); border-radius: 14px; background: var(--n-0); color: var(--n-800); font: inherit; cursor: pointer; }
-.plDay b { font-size: 0.86rem; font-weight: 900; }
-.plDay small { font-size: 0.64rem; font-weight: 800; }
-.plDay.is-salon { border-color: var(--brand-violet); background: var(--pl-violet-bg); color: var(--pl-violet-ink); }
-.plDay.is-own { border-color: var(--brand-pink); background: var(--pl-pink-bg); color: var(--pl-pink-ink); }
-.plDay.is-shut { opacity: 0.55; }
 .plHint { margin: 0; color: var(--n-600); font-size: 0.74rem; font-weight: 700; line-height: 1.7; }
 .plNote { display: grid; gap: 8px; margin: 0; padding: 10px 12px; border-radius: 14px; font-size: 0.8rem; font-weight: 800; line-height: 1.75; }
 .plNote.is-warn { background: var(--warning-bg); color: var(--warning); }
@@ -45,7 +26,7 @@
 .plGhost { justify-self: start; min-height: 36px; padding: 0 14px; border: 1px solid currentColor; border-radius: 12px; background: transparent; color: inherit; font: inherit; font-size: 0.8rem; font-weight: 900; cursor: pointer; }
 .plSave { min-height: 46px; border: 0; border-radius: 15px; background: var(--primary); color: var(--on-primary); font: inherit; font-size: 0.92rem; font-weight: 900; cursor: pointer; }
 .plSave:disabled { opacity: 0.4; cursor: default; }
-.plOpt:focus-visible, .plDay:focus-visible, .plSave:focus-visible, .plGhost:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+.plTools button:focus-visible, .plAdd:focus-visible, .plSeg button:focus-visible, .plChips button:focus-visible, .plSave:focus-visible, .plGhost:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
 
 /* The salon's switch for one member (inside the member's manage sheet) */
 .plSwitchRow { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border: 1px solid var(--n-150); border-radius: 18px; background: var(--n-0); }
@@ -71,16 +52,39 @@
 .plVisit b { color: var(--n-900); font-size: 0.86rem; font-weight: 900; }
 .plVisit span { color: var(--n-600); font-size: 0.74rem; font-weight: 750; }
 
-/* Client's booking sheet: where this day is received, under the days */
-.plPlace { display: grid; gap: 4px; margin-top: 12px; padding: 10px 12px; border-radius: 16px; font-size: 0.8rem; font-weight: 800; line-height: 1.7; }
-.plPlace b { font-size: 0.86rem; font-weight: 950; }
-.plPlace span { display: inline-flex; align-items: center; gap: 5px; font-weight: 750; }
-.plPlace.is-salon { background: var(--pl-violet-bg); color: var(--pl-violet-ink); }
-.plPlace.is-own { background: var(--pl-pink-bg); color: var(--pl-pink-ink); }
-.plPlace.is-off { background: var(--n-100); color: var(--n-700); }
-.plPlace a { color: inherit; font-weight: 950; text-decoration: underline; text-underline-offset: 3px; }
-.plTeamChip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 999px; background: var(--pl-violet-bg); color: var(--pl-violet-ink); font-size: 0.74rem; font-weight: 900; }
-.bspDay.is-at-salon:not(.is-selected) em { color: var(--pl-violet-ink); }
-.bspDay.is-at-own:not(.is-selected) em { color: var(--pl-pink-ink); }
-.bspDay.is-at-off:not(.is-selected) em { color: var(--n-500); }
-.bspAfterDays { display: grid; }
+/* The artist's ordered list of salons («نوبت مشتری‌هام کجا باشه؟») */
+.plList { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.plRow { display: grid; grid-template-columns: auto auto 1fr auto; align-items: center; gap: 10px; padding: 10px 12px; border: 1.5px solid var(--n-150); border-radius: 18px; background: var(--n-0); }
+.plRow.is-skipped { background: var(--n-50); }
+.plRow.is-skipped .plAv { opacity: 0.6; }
+.plNum { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--pl-violet-bg); color: var(--pl-violet-ink); font-size: 0.74rem; font-weight: 950; }
+.plAv { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 13px; background: var(--pl-violet-bg); color: var(--pl-violet-ink); font-weight: 950; }
+.plText { display: grid; gap: 0; min-width: 0; }
+.plText b { color: var(--n-900); font-size: 0.9rem; font-weight: 900; line-height: 1.6; }
+.plText small { color: var(--n-600); font-size: 0.72rem; font-weight: 700; line-height: 1.7; }
+.plRow.is-skipped .plText small { color: var(--warning); }
+.plTools { display: inline-flex; gap: 2px; }
+.plTools button { display: grid; place-items: center; width: 32px; height: 32px; border: 0; border-radius: 10px; background: transparent; color: var(--n-600); cursor: pointer; }
+.plTools button:disabled { opacity: 0.3; cursor: default; }
+.plTools button:not(:disabled):hover { background: var(--n-100); }
+.plAdd { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; border: 1.5px dashed var(--n-300); border-radius: 18px; background: transparent; color: var(--n-800); font: inherit; text-align: start; cursor: pointer; }
+.plAdd span { display: grid; min-width: 0; }
+.plAdd b { font-size: 0.88rem; font-weight: 900; }
+.plAdd small { color: var(--n-600); font-size: 0.72rem; font-weight: 700; }
+.plAdd em { color: var(--pl-violet-ink); font-size: 0.76rem; font-style: normal; font-weight: 950; }
+.plLast { display: grid; gap: 8px; padding-top: 4px; }
+.plLast > b { color: var(--n-900); font-size: 0.86rem; font-weight: 900; }
+.plLast > small { color: var(--n-600); font-size: 0.74rem; font-weight: 700; line-height: 1.7; }
+.plSeg { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: 15px; background: var(--n-100); }
+.plSeg button { min-height: 38px; border: 0; border-radius: 12px; background: transparent; color: var(--n-700); font: inherit; font-size: 0.84rem; font-weight: 850; cursor: pointer; }
+.plSeg button.is-on { background: var(--n-0); color: var(--n-900); box-shadow: 0 1px 6px rgb(var(--shadow-rgb) / 0.12); }
+
+/* «جای نوبت» in the artist's booking sheet */
+.plBookingPlace { display: grid; gap: 8px; padding: 12px 14px; border: 1px solid var(--n-150); border-radius: 18px; background: var(--n-0); }
+.plBookingLabel { display: inline-flex; align-items: center; gap: 6px; color: var(--n-700); font-size: 0.8rem; font-weight: 900; }
+.plChips { display: flex; flex-wrap: wrap; gap: 6px; }
+.plChips button { min-height: 36px; padding: 0 14px; border: 1.5px solid var(--n-150); border-radius: 999px; background: var(--n-0); color: var(--n-800); font: inherit; font-size: 0.82rem; font-weight: 850; cursor: pointer; }
+.plChips button.is-on { border-color: var(--brand-violet); background: var(--pl-violet-bg); color: var(--pl-violet-ink); }
+.plChips button:disabled { opacity: 0.6; cursor: default; }
+.plBookingMsg { color: var(--success); font-size: 0.76rem; font-weight: 800; }
+.plBookingMsg.is-bad { color: var(--danger); }

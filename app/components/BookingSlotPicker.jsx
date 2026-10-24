@@ -16,10 +16,6 @@ export function BookingSlotPicker({
   onDayChange,
   disabledDays = [],
   closedDays = [],
-  // day label → { tone: "salon" | "own" | "off", text }: where that day is received (an artist on a salon team); shown in place of the month.
-  dayTags = {},
-  // Shown between the days and the times: what is true of the picked day (where it is received).
-  afterDays = null,
   timeOptions = [],
   timeValue = "",
   onTimeChange,
@@ -48,7 +44,6 @@ export function BookingSlotPicker({
           const selected = label === dayValue;
           const closed = closedDays.includes(label);
           const disabled = closed || disabledDays.includes(label);
-          const tag = dayTags[label] || null;
           return (
             <button
               type="button"
@@ -57,18 +52,16 @@ export function BookingSlotPicker({
               disabled={disabled}
               key={label}
               ref={selected ? activeDayRef : null}
-              className={`bspDay${selected ? " is-selected" : ""}${disabled ? " is-disabled" : ""}${tag ? ` is-at-${tag.tone}` : ""}`}
+              className={`bspDay${selected ? " is-selected" : ""}${disabled ? " is-disabled" : ""}`}
               onClick={() => onDayChange?.(label)}
             >
               <small>{index === 0 ? "امروز" : weekday}</small>
               <b>{dayNumber}</b>
-              <em>{closed ? "تعطیل" : disabled ? "پر" : tag ? tag.text : month.join(" ")}</em>
+              <em>{closed ? "تعطیل" : disabled ? "پر" : month.join(" ")}</em>
             </button>
           );
         })}
       </div>
-
-      {afterDays ? <div className="bspAfterDays">{afterDays}</div> : null}
 
       <div className="bspLabel">ساعت</div>
       {timeOptions.length ? (

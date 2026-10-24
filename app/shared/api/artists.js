@@ -157,12 +157,17 @@ export async function updateArtistHours(body) {
   });
 }
 
-/** GET /api/artist/place → { data: { place } }: where the artist's own clients are received (null when they are on no salon team). */
+/** GET /api/artist/place → { data: { place: { teams, fallback } } }: the artist's ordered list of salons (empty `teams` when on no team). */
 export async function getArtistPlace() {
   return apiJson("/api/artist/place");
 }
 
-/** PUT /api/artist/place { mode: "own" | "salon" | "days", days? } → { data: { place } } */
+/** PUT /api/artist/place { order: [salonId, …], fallback: "own" | "ask" } → { data: { place } } */
 export async function saveArtistPlace(body) {
   return apiFetch("/api/artist/place", { method: "PUT", body: JSON.stringify(body) });
+}
+
+/** PUT /api/artist-bookings/:id/place { salonUserId: number | null } → the artist says where one booking is held. */
+export async function moveArtistBookingPlace(id, salonUserId) {
+  return apiFetch(`/api/artist-bookings/${id}/place`, { method: "PUT", body: JSON.stringify({ salonUserId }) });
 }

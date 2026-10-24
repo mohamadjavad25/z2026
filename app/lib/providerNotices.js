@@ -116,3 +116,13 @@ export function noticeClientPlaceMoved(clientUserId, { artistName, salonName, sa
     : `${artist} دیگه توی ${salon} نیست. نوبتت (${booking.service || "نوبت"}) جای خود ${artist} برگزار می‌شه. اگه نمی‌خوای، لغوش کن.`;
   void quiet(sendPushToUser(Number(clientUserId), { title: "جای نوبتت عوض شد", body, url: "/" }));
 }
+
+/** The artist moved a booking to another place (a salon of theirs, or back to their own). The client is told where it is now. */
+export function noticeClientPlaceChanged(clientUserId, { artistName, toSalonName = "", booking }) {
+  if (!clientUserId) return;
+  const artist = artistName || "آرتیست";
+  const body = toSalonName
+    ? `${artist} جای نوبتت (${booking.service || "نوبت"}) رو عوض کرد. حالا توی ${toSalonName} برگزار می‌شه. ساعتش همونه.`
+    : `${artist} جای نوبتت (${booking.service || "نوبت"}) رو عوض کرد. حالا جای خود ${artist} برگزار می‌شه. ساعتش همونه.`;
+  void quiet(sendPushToUser(Number(clientUserId), { title: "جای نوبتت عوض شد", body, url: "/" }));
+}

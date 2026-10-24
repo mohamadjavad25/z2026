@@ -2,12 +2,11 @@ import * as artists from "./db/repos/artists.js";
 import * as users from "./db/repos/users.js";
 import * as userSettings from "./db/repos/userSettings.js";
 import * as artistPlace from "./db/repos/artistPlace.js";
-import { placeRefusal } from "../shared/lib/artistPlace.js";
 import { onlineBookingBlock } from "./billing/access.js";
 import { isSlotInPast } from "../shared/lib/slots.js";
 import { BOOKING_REQUEST_LEAD_MINUTES, isTooSoonToRequest } from "../shared/lib/bookingWindow.js";
 import { toPersianDigits } from "../shared/lib/digits.js";
-import { parseServiceDurationMinutes, timeLabelToMinutes } from "../shared/lib/time.js";
+import { parseServiceDurationMinutes } from "../shared/lib/time.js";
 import { artistSlotProblem } from "./visitSlotRules.js";
 import { readBookingSlot } from "./validation/bookingSlot.js";
 import { parseRequestedMinutes } from "./validation/numbers.js";
@@ -69,38 +68,18 @@ export async function createArtistBooking({ artistUserId, viewer, data, body = {
     durationMinutes = listed.duration ? parseServiceDurationMinutes(listed.duration) : 60;
   }
   durationMinutes = durationMinutes > 0 ? Math.min(720, Math.max(15, durationMinutes)) : undefined;
-  // Where this day is received (shared/lib/artistPlace.js): an artist on a salon team may have chosen their salon for it.
-  // A client is held to the hours both are open and refused when the salon is closed, the artist is away from it that
-  // day, or the salon switched direct bookings off. The artist's own entry is never refused; it only remembers the place.
-  const place = await artistPlace.placeForDate(artistUserId, day);
-  let hours = place.hours;
-  let placeSalonUserId = null;
-  if (place.atSalon) {
-    if (!isOwner && place.kind !== "salon") {
-      return refuse(409, placeRefusal(place.kind, { name: artist.name, salonName: place.team.salonName }), `PLACE_${place.kind.toUpperCase()}`);
-    }
-    if (place.kind === "salon") placeSalonUserId = place.team.salonUserId;
-  }
-  if (isOwner) hours = await artists.listArtistHours(artistUserId);
   // The artist's own working hours, closed weekdays and 30-minute step count here exactly as a salon's do.
   const slotProblem = artistSlotProblem({
-    hours,
+    hours: await artists.listArtistHours(artistUserId),
     bookingDateKey: day,
     time,
     durationMinutes: durationMinutes || 60
   });
-  if (slotProblem) {
-    // At the salon the window is the one both are open: say which end the hour crosses, in the salon's words.
-    if (placeSalonUserId && !isOwner && slotProblem.code === "OUTSIDE_HOURS" && place.row) {
-      const start = timeLabelToMinutes(time);
-      const before = start < timeLabelToMinutes(place.row.open_time);
-      const where = place.team.salonName;
-      return refuse(409, before
-        ? `${where} از ساعت ${place.row.open_time} باز می‌شه. یکی از ساعت‌های فهرست رو بزن.`
-        : `${where} ساعت ${place.row.close_time} می‌بنده. یکی از ساعت‌های فهرست رو بزن.`, slotProblem.code);
-    }
-    return refuse(slotProblem.status, slotProblem.error, slotProblem.code);
-  }
+  if (slotProblem) return refuse(slotProblem.status, slotProblem.error, slotProblem.code);
+  // Where it is held (shared/lib/artistPlace.js): the first salon in the artist's list that can take it, else «مثل قبل»
+  // or, if the artist chose so, it waits for them to say where. The client never chooses and is never refused for it.
+  const place = await artistPlace.placeForBooking(artistUserId, { dateKey: day, time, minutes: durationMinutes || 60 });
+  const placeSalonUserId = place.salonUserId;
   // A client's request waits as long as they chose (an hour, or until the appointment), maybe with a backup artist.
   const isRequest = !isOwner && Boolean(viewer?.id);
   const result = await artists.addArtistBooking(artistUserId, {
@@ -120,7 +99,7 @@ export async function createArtistBooking({ artistUserId, viewer, data, body = {
     duration: durationMinutes ? undefined : data.duration,
     // The artist's own entry is settled; a client's waits for the artist (see POST /api/artist/me).
     ...(isOwner ? { status: "تایید" } : {}),
-    ...(isRequest && artistSettings.autoConfirm ? { status: "تایید شده" } : {}),
+    ...(isRequest && artistSettings.autoConfirm && !place.ask ? { status: "تایید شده" } : {}),
     // A client's own request: an identical one already sent is merged into it, and the number open at once is capped.
     clientRequest: isRequest,
     clientUserId: viewer?.id || null,
@@ -133,5 +112,5 @@ export async function createArtistBooking({ artistUserId, viewer, data, body = {
     const error = result.code === "TOO_MANY_OPEN_REQUESTS" ? ARTIST_TOO_MANY_OPEN_MESSAGE : result.error;
     return refuse(result.code === "SLOT_TAKEN" || result.code === "TOO_MANY_OPEN_REQUESTS" ? 409 : 400, error, result.code);
   }
-  return { ok: true, booking: result.booking, duplicate: Boolean(result.duplicate) };
+  return { ok: true, booking: result.booking, duplicate: Boolean(result.duplicate), placeAsk: place.ask };
 }

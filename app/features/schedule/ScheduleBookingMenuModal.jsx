@@ -29,6 +29,7 @@ import { bookingWaitMinutes, requestMinutesLeft } from "../../shared/lib/booking
 import { RequestExpiryBadge } from "./RequestExpiryBadge";
 import { isMultiPartBooking, parseBookingParts, scheduleBookingParts } from "../../shared/lib/bookingParts";
 import { ArtistOptionList, BookingPartsEditor } from "./BookingPartsEditor";
+import { ArtistBookingPlace } from "./ArtistBookingPlace";
 import { getSalonBookingMoveTimes, getSalonBookingStaffOptions } from "../../shared/api/salons";
 import { useBackHandler } from "../../shared/hooks/useBackHandler";
 import { AWAITING_CLIENT, bookingTimeOffer } from "../../shared/lib/bookingOffer";
@@ -407,6 +408,8 @@ export function ScheduleBookingMenuModal({
                 </div>
               ) : null}
             </div>
+
+            {!isSalonOwner && !readOnly && !sourceSalon.name && booking.id != null ? <ArtistBookingPlace booking={booking} /> : null}
 
             {canManage && staffState.ready ? (
               <AutoAssignCard

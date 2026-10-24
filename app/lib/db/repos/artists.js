@@ -18,7 +18,7 @@ import { isProfileSaved } from "./social.js";
 import { normalizeServiceEmoji, resolveBookingServiceEmoji } from "./serviceEmoji.js";
 import { getSettings, DEFAULT_SETTINGS } from "./userSettings.js";
 import { publicLocation } from "../../location.js";
-import { resolveArtistPlaces } from "./artistPlace.js";
+import { listArtistHoursPublic } from "./artists/hours.js";
 import { onlineBookingBlock, withoutHiddenProviders } from "../../billing/access.js";
 import { MAX_SERVICES_PER_PROVIDER } from "../../validation/service.js";
 import { proposalView } from "../../../shared/lib/providerRules.js";
@@ -375,7 +375,7 @@ export async function listArtistBookings(artistUserId) {
             area: row.source_salon_area || ""
           }
         : null,
-      // A direct booking the artist receives at a salon of theirs (artist_place_prefs); the artist still answers it.
+      // A direct booking the artist receives at a salon of theirs (artist_place_order); the artist still answers it.
       placeSalon: row.place_salon_user_id ? { id: row.place_salon_user_id, name: row.place_salon_name || "سالن" } : null,
       clientProfile: client
         ? {
@@ -414,6 +414,9 @@ export async function listArtistBookings(artistUserId) {
  * artist booking apart from a salon booking and route to the artist's
  * public profile instead — see rebookFromBooking in HomeApp.jsx.
  */
+/** A booking's salon place is told to its client only when it is confirmed. */
+const placeShown = (row) => Boolean(row.place_salon_user_id) && !["تازه", "درخواست", "لغو", "منقضی شده"].includes(row.status);
+
 export async function listClientArtistBookings(user) {
   const db = await getDb();
   const match = clientBookingMatch(user);
@@ -456,11 +459,12 @@ export async function listClientArtistBookings(user) {
     // with them), same distinction as listClientSalonBookings' salonName.
     salonName: row.artist_name || (row.artist_user_id ? "آرتیست" : "آرتیست حذف‌شده"),
     salon_name: row.artist_name || (row.artist_user_id ? "آرتیست" : "آرتیست حذف‌شده"),
-    // Received at a salon: «کجا» is the salon's address; the name stays the artist's (the client booked a person).
-    salonArea: (row.place_salon_user_id ? row.place_salon_area : row.artist_area) || "",
-    salon_area: (row.place_salon_user_id ? row.place_salon_area : row.artist_area) || "",
-    placeSalonName: row.place_salon_user_id ? row.place_salon_name || "سالن" : "",
-    placeSalonUserId: row.place_salon_user_id || null,
+    // Received at a salon: «کجا» is the salon's address; the name stays the artist's (the client booked a person). The place
+    // is the artist's to say, so a client only reads it once the booking is confirmed.
+    salonArea: (placeShown(row) ? row.place_salon_area : row.artist_area) || "",
+    salon_area: (placeShown(row) ? row.place_salon_area : row.artist_area) || "",
+    placeSalonName: placeShown(row) ? row.place_salon_name || "سالن" : "",
+    placeSalonUserId: placeShown(row) ? row.place_salon_user_id : null,
     salonAvatar: row.artist_avatar && row.artist_user_id ? `/api/media/avatar/${row.artist_user_id}` : "",
     salon_avatar: row.artist_avatar && row.artist_user_id ? `/api/media/avatar/${row.artist_user_id}` : "",
     salonPhone: row.artist_phone || "",
@@ -872,7 +876,7 @@ export async function getPublicArtist(userId, viewerUserId = null) {
     isSaved,
     bookedSlots,
     breakTime,
-    places,
+    hours,
     bookingBlock
   ] = await Promise.all([
     listPostsByOwner(userId, null, { publicOnly: Number(viewerUserId || 0) !== Number(userId) }),
@@ -883,7 +887,7 @@ export async function getPublicArtist(userId, viewerUserId = null) {
     viewerUserId ? isProfileSaved(viewerUserId, user.id) : false,
     listArtistBookedSlots(userId),
     getArtistBreak(userId),
-    resolveArtistPlaces(userId, { publicRead: true }),
+    listArtistHoursPublic(userId),
     onlineBookingBlock(userId, "artist")
   ]);
   return {
@@ -919,19 +923,7 @@ export async function getPublicArtist(userId, viewerUserId = null) {
     services,
     bookedSlots,
     breakTime,
-    // What can be booked, by weekday: the artist's own hours, or (on the days they receive clients at their salon)
-    // the hours the salon is open too (shared/lib/artistPlace.js).
-    hours: places.hours,
-    // Only when some days are at a salon: which salon, and each weekday's place, so the booking screen can say where.
-    team: places.week && places.planned.includes("s")
-      ? {
-          salonId: places.team.salonUserId,
-          name: places.team.salonName,
-          avatar: places.team.salonAvatar,
-          location: places.team.location
-        }
-      : null,
-    placeDays: places.week ? places.week.map(({ day, kind }) => ({ day, kind })) : null
+    hours
   };
 }
 

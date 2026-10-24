@@ -2,8 +2,9 @@ import { describe, it, expect } from "vitest";
 import { createClient, joinSalonAsArtist, registerUser } from "./helpers.js";
 import { formatPersianDateKey, getPersianWeekday } from "../../app/shared/lib/persianCalendar.js";
 
-// Owner's idea of 2026-10-24: an artist on a salon team chooses where the clients who book them directly are received
-// (their own place, the salon, or a place per weekday) and the salon keeps one switch. These tests drive the real server.
+// Owner's idea of 2026-10-24 (second version): an artist on salon teams keeps an ordered list of their salons. A client only
+// picks a day and an hour; the booking goes to the first salon in the list that can take it, else «مثل قبل» (or waits for
+// the artist). These tests drive the real server.
 
 const norm = (value) => String(value || "").replace(/[\s‌]/g, "");
 
@@ -54,188 +55,218 @@ const book = (ctx, who, day, time, extra = {}) => who.post("/api/artist/bookings
   ...extra
 });
 
-const choose = (ctx, mode, days) => ctx.artistClient.put("/api/artist/place", { mode, days });
-
-const publicArtist = async (ctx) => (await createClient().get(`/api/artists/${ctx.artist.user.id}`)).payload.data.artist;
 const hourOf = (hours, day) => hours.find((row) => norm(row.day) === norm(day));
+const putList = (ctx, order, fallback = "own") => ctx.artistClient.put("/api/artist/place", { order, fallback });
+const artistRows = async (ctx) => (await ctx.artistClient.get("/api/artist/me")).payload.data.bookings;
+const rowOf = async (ctx, id) => (await artistRows(ctx)).find((item) => item.id === id);
+const clientRow = async (client, id) => (await client.get("/api/artist-bookings")).payload.data.bookings.find((item) => item.id === id);
+const confirm = (ctx, id) => ctx.artistClient.patch("/api/artist/me", { kind: "booking", id, status: "تایید شده" });
 
-describe("where an artist on a salon team receives the clients who book them directly", () => {
-  it("an artist on no team has nothing to choose, and books as before", async () => {
+async function secondSalon(ctx, name = "Second Salon") {
+  const client = createClient();
+  const salon = await registerUser(client, { type: "salon", menu: true, name });
+  await client.get("/api/salon-hours");
+  expect((await joinSalonAsArtist(ctx.artistClient, client, salon.user.id)).ok).toBe(true);
+  return { client, salon };
+}
+
+describe("where an artist's clients are received: an ordered list of salons", () => {
+  it("an artist on no team has no list, and books exactly as before", async () => {
     const ctx = await setup({ team: false });
     const place = await ctx.artistClient.get("/api/artist/place");
     expect(place.status).toBe(200);
-    expect(place.payload.data.place).toBeNull();
-    const { client } = await newClient();
-    expect((await book(ctx, client, dayOn(SATURDAY), "10:00")).ok).toBe(true);
-    expect((await publicArtist(ctx)).team).toBeNull();
-  });
-
-  it("nothing changes until the artist chooses: their own place, the whole of their own hours, no salon on the page", async () => {
-    const ctx = await setup();
-    const place = (await ctx.artistClient.get("/api/artist/place")).payload.data.place;
-    expect(place).toMatchObject({ mode: "own", allowed: true, salonName: ctx.salon.user.name });
-    const { client } = await newClient();
-    const day = dayOn(SATURDAY);
-    const made = await book(ctx, client, day, "19:00");
-    expect(made.ok).toBe(true);
-    const mine = (await client.get("/api/artist-bookings")).payload.data.bookings.find((item) => item.id === made.payload.data.booking.id);
-    expect(mine.placeSalonName || "").toBe("");
-    const page = await publicArtist(ctx);
-    expect(page.team).toBeNull();
-    expect(page.placeDays).toBeNull();
-  });
-
-  it("the artist's choice needs a valid mode and days, and a team they are really on", async () => {
-    const ctx = await setup();
-    const bad = await choose(ctx, "everywhere");
-    expect(bad.status).toBe(400);
-    const badDays = await choose(ctx, "days", "sosoo");
-    expect(badDays.status).toBe(400);
-    const stranger = createClient();
-    await registerUser(stranger, { type: "artist", menu: true, name: "Lone Artist" });
-    const none = await stranger.put("/api/artist/place", { mode: "salon" });
-    expect(none.status).toBe(404);
-    const client = (await newClient()).client;
-    expect((await client.get("/api/artist/place")).status).toBe(403);
-    expect((await createClient().get("/api/artist/place")).status).toBe(401);
-  });
-
-  it("«توی سالن»: the page names the salon, the hours are the ones both are open, the booking is held at the salon", async () => {
-    const ctx = await setup();
-    // Salon works 12:00-16:00 on Saturday; the artist's own hours stay 10:00-20:00.
-    await ctx.salonClient.patch("/api/salon-hours", { day: SATURDAY, openTime: "12:00", closeTime: "16:00" });
-    expect((await choose(ctx, "salon")).ok).toBe(true);
-
-    const page = await publicArtist(ctx);
-    expect(page.team).toMatchObject({ salonId: ctx.salon.user.id, name: ctx.salon.user.name });
-    const saturday = hourOf(page.hours, SATURDAY);
-    expect(saturday).toMatchObject({ open_time: "۱۲:۰۰", close_time: "۱۶:۰۰", active: true });
-    expect(page.placeDays.find((row) => norm(row.day) === norm(SATURDAY)).kind).toBe("salon");
-    // Friday: the artist does not work it.
-    expect(hourOf(page.hours, FRIDAY).active).toBe(false);
-
-    const { client, user } = await newClient();
-    const day = dayOn(SATURDAY);
-    const early = await book(ctx, client, day, "10:00");
-    expect(early.status).toBe(409);
-    expect(early.payload.error).toBe(`${ctx.salon.user.name} از ساعت ۱۲:۰۰ باز می‌شه. یکی از ساعت‌های فهرست رو بزن.`);
-    const late = await book(ctx, client, day, "16:00");
-    expect(late.status).toBe(409);
-    expect(late.payload.error).toBe(`${ctx.salon.user.name} ساعت ۱۶:۰۰ می‌بنده. یکی از ساعت‌های فهرست رو بزن.`);
-    const ok = await book(ctx, client, day, "13:00");
-    expect(ok.ok).toBe(true);
-    const row = (await client.get("/api/artist-bookings")).payload.data.bookings.find((item) => item.id === ok.payload.data.booking.id);
-    expect(row.placeSalonName).toBe(ctx.salon.user.name);
-    expect(Number(row.placeSalonUserId)).toBe(ctx.salon.user.id);
-    expect(row.salonName).toBe(ctx.artist.user.name);
-    expect(user.user.id).toBeTruthy();
-  });
-
-  it("«جای خودم»: the artist's own hours apply even though they are on a team", async () => {
-    const ctx = await setup();
-    await ctx.salonClient.patch("/api/salon-hours", { day: SATURDAY, openTime: "12:00", closeTime: "16:00" });
-    expect((await choose(ctx, "own")).ok).toBe(true);
+    expect(place.payload.data.place.teams).toEqual([]);
     const { client } = await newClient();
     const made = await book(ctx, client, dayOn(SATURDAY), "10:00");
     expect(made.ok).toBe(true);
-    expect(made.payload.data.booking.place_salon_user_id ?? null).toBeNull();
+    expect((await rowOf(ctx, made.payload.data.booking.id)).placeSalon).toBeNull();
   });
 
-  it("«هر روز یه جا»: each weekday has its own place and the booking remembers it", async () => {
+  it("nothing changes until the artist adds a salon: the salon is on offer, not in the list", async () => {
     const ctx = await setup();
-    // شنبه سالن، یکشنبه خودم، دوشنبه سالن، بقیه خودم.
-    expect((await choose(ctx, "days", "sosoooo")).ok).toBe(true);
-    const page = await publicArtist(ctx);
-    const kinds = Object.fromEntries(page.placeDays.map((row) => [norm(row.day), row.kind]));
-    expect(kinds[norm(SATURDAY)]).toBe("salon");
-    expect(kinds[norm(SUNDAY)]).toBe("own");
-    expect(kinds[norm(MONDAY)]).toBe("salon");
+    const place = (await ctx.artistClient.get("/api/artist/place")).payload.data.place;
+    expect(place.fallback).toBe("own");
+    expect(place.teams).toHaveLength(1);
+    expect(place.teams[0]).toMatchObject({ salonId: ctx.salon.user.id, name: ctx.salon.user.name, inList: false, allowed: true, note: "" });
     const { client } = await newClient();
-    const atSalon = await book(ctx, client, dayOn(SATURDAY), "10:00");
-    const atOwn = await book(ctx, client, dayOn(SUNDAY), "10:00");
-    expect(atSalon.ok && atOwn.ok).toBe(true);
-    const list = (await client.get("/api/artist-bookings")).payload.data.bookings;
-    expect(list.find((item) => item.id === atSalon.payload.data.booking.id).placeSalonName).toBe(ctx.salon.user.name);
-    expect(list.find((item) => item.id === atOwn.payload.data.booking.id).placeSalonName).toBe("");
+    const made = await book(ctx, client, dayOn(SATURDAY), "11:00");
+    expect(made.ok).toBe(true);
+    expect((await rowOf(ctx, made.payload.data.booking.id)).placeSalon).toBeNull();
   });
 
-  it("a day the salon is closed refuses a booking in plain words, and shows as closed on the page", async () => {
+  it("the list is checked: only salons they are on, a known fallback, a real list", async () => {
     const ctx = await setup();
+    expect((await putList(ctx, [ctx.salon.user.id], "sometimes")).status).toBe(400);
+    expect((await ctx.artistClient.put("/api/artist/place", { order: "x", fallback: "own" })).status).toBe(400);
+    const other = createClient();
+    const foreign = await registerUser(other, { type: "salon", name: "Foreign Salon" });
+    expect((await putList(ctx, [foreign.user.id])).status).toBe(404);
+    const client = (await newClient()).client;
+    expect((await client.get("/api/artist/place")).status).toBe(403);
+    expect((await createClient().get("/api/artist/place")).status).toBe(401);
+    const saved = await putList(ctx, [ctx.salon.user.id, ctx.salon.user.id], "ask");
+    expect(saved.ok).toBe(true);
+    expect(saved.payload.data.place.teams[0]).toMatchObject({ inList: true, position: 0 });
+    expect(saved.payload.data.place.fallback).toBe("ask");
+  });
+
+  it("the client is never refused or told about places: any hour in the artist's own hours is bookable", async () => {
+    const ctx = await setup();
+    await ctx.salonClient.patch("/api/salon-hours", { day: SATURDAY, openTime: "12:00", closeTime: "16:00" });
+    expect((await putList(ctx, [ctx.salon.user.id])).ok).toBe(true);
+    const page = (await createClient().get(`/api/artists/${ctx.artist.user.id}`)).payload.data.artist;
+    expect(page.team).toBeUndefined();
+    expect(page.placeDays).toBeUndefined();
+    expect(hourOf(page.hours, SATURDAY)).toMatchObject({ open_time: "۱۰:۰۰", close_time: "۲۰:۰۰" });
+    const { client } = await newClient();
+    expect((await book(ctx, client, dayOn(SATURDAY), "10:00")).ok).toBe(true);
+    expect((await book(ctx, client, dayOn(SATURDAY), "19:00")).ok).toBe(true);
+  });
+
+  it("the first salon that can take the booking gets it; the hours decide, not the client", async () => {
+    const ctx = await setup();
+    await ctx.salonClient.patch("/api/salon-hours", { day: SATURDAY, openTime: "12:00", closeTime: "16:00" });
+    expect((await putList(ctx, [ctx.salon.user.id])).ok).toBe(true);
+    const { client } = await newClient();
+    const day = dayOn(SATURDAY);
+    const early = await book(ctx, client, day, "10:00");
+    const inside = await book(ctx, client, day, "13:00");
+    const late = await book(ctx, client, day, "15:30"); // a 60-minute visit would end after 16:00
+    expect([early.ok, inside.ok, late.ok]).toEqual([true, true, true]);
+    expect((await rowOf(ctx, early.payload.data.booking.id)).placeSalon).toBeNull();
+    expect((await rowOf(ctx, inside.payload.data.booking.id)).placeSalon).toMatchObject({ id: ctx.salon.user.id, name: ctx.salon.user.name });
+    expect((await rowOf(ctx, late.payload.data.booking.id)).placeSalon).toBeNull();
+  });
+
+  it("two salons: the next one takes it when the first is closed, full or switched off", async () => {
+    const ctx = await setup();
+    const second = await secondSalon(ctx);
+    expect((await putList(ctx, [ctx.salon.user.id, second.salon.user.id])).ok).toBe(true);
+    const { client } = await newClient();
+    const day = dayOn(SATURDAY);
+    const first = await book(ctx, client, day, "10:00");
+    expect((await rowOf(ctx, first.payload.data.booking.id)).placeSalon.id).toBe(ctx.salon.user.id);
+
+    // The first salon is closed that day.
     await ctx.salonClient.patch("/api/salon-hours", { day: SATURDAY, active: false });
-    expect((await choose(ctx, "salon")).ok).toBe(true);
-    const page = await publicArtist(ctx);
-    expect(hourOf(page.hours, SATURDAY).active).toBe(false);
-    expect(page.placeDays.find((row) => norm(row.day) === norm(SATURDAY)).kind).toBe("closed");
-    const { client } = await newClient();
-    const refused = await book(ctx, client, dayOn(SATURDAY), "11:00");
-    expect(refused.status).toBe(409);
-    expect(refused.payload.error).toBe("این روز سالن تعطیله. روز دیگه‌ای انتخاب کن.");
-    // The same artist's other days still work.
-    expect((await book(ctx, client, dayOn(SUNDAY), "11:00")).ok).toBe(true);
+    const other = (await newClient("Other One")).client;
+    const closed = await book(ctx, other, day, "12:00");
+    expect((await rowOf(ctx, closed.payload.data.booking.id)).placeSalon.id).toBe(second.salon.user.id);
+
+    // Open again, but full (one place a day, already used by the first booking).
+    await ctx.salonClient.patch("/api/salon-hours", { day: SATURDAY, active: true, capacity: 1 });
+    const full = await book(ctx, other, day, "14:00");
+    expect((await rowOf(ctx, full.payload.data.booking.id)).placeSalon.id).toBe(second.salon.user.id);
+
+    // Capacity back up, but the salon switched «نوبت مستقیم» off for this artist.
+    await ctx.salonClient.patch("/api/salon-hours", { day: SATURDAY, capacity: 8 });
+    const staff = (await ctx.salonClient.get("/api/salon-staff")).payload.data.staff.find((person) => Number(person.artist_user_id) === Number(ctx.artist.user.id));
+    expect((await ctx.salonClient.patch("/api/salon-staff", { id: staff.id, directAllowed: false })).ok).toBe(true);
+    const third = (await newClient("Other Two")).client;
+    const blocked = await book(ctx, third, day, "16:00");
+    expect((await rowOf(ctx, blocked.payload.data.booking.id)).placeSalon.id).toBe(second.salon.user.id);
+    const place = (await ctx.artistClient.get("/api/artist/place")).payload.data.place;
+    expect(place.teams.find((team) => team.salonId === ctx.salon.user.id).note).toBe(`${ctx.salon.user.name} نوبت مستقیم رو بسته. نوبتی اونجا نمی‌افته.`);
+    // What was already booked at the first salon stays there.
+    expect((await rowOf(ctx, first.payload.data.booking.id)).placeSalon.id).toBe(ctx.salon.user.id);
   });
 
-  it("the salon's switch: off closes the salon days for new clients, keeps what was booked, and the artist is told no", async () => {
+  it("when no salon can: «مثل قبل» holds it at the artist's own place and never refuses", async () => {
     const ctx = await setup();
-    expect((await choose(ctx, "salon")).ok).toBe(true);
+    expect((await putList(ctx, [ctx.salon.user.id], "own")).ok).toBe(true);
+    expect((await ctx.salonClient.patch("/api/salon-hours", { day: SATURDAY, active: false })).ok).toBe(true);
     const { client } = await newClient();
-    const before = await book(ctx, client, dayOn(SATURDAY), "10:00");
-    expect(before.ok).toBe(true);
-
-    const off = await ctx.salonClient.patch("/api/salon-staff", { id: ctx.staff.id, directAllowed: false });
-    expect(off.ok).toBe(true);
-    expect(off.payload.data.staff.find((person) => person.id === ctx.staff.id).direct_allowed).toBe(false);
-
-    const second = (await newClient("Second")).client;
-    const refused = await book(ctx, second, dayOn(SATURDAY), "12:00");
-    expect(refused.status).toBe(409);
-    expect(refused.payload.error).toBe(`${ctx.salon.user.name} نوبت مستقیم رو بسته. از خود سالن رزرو کن.`);
-    const page = await publicArtist(ctx);
-    expect(page.placeDays.find((row) => norm(row.day) === norm(SATURDAY)).kind).toBe("blocked");
-    // What was booked stays.
-    const stays = (await client.get("/api/artist-bookings")).payload.data.bookings.find((item) => item.id === before.payload.data.booking.id);
-    expect(stays.status).not.toBe("لغو");
-    expect(stays.placeSalonName).toBe(ctx.salon.user.name);
-
-    // The artist cannot pick the salon again while it is closed to them, but their own place is always theirs.
-    const again = await choose(ctx, "salon");
-    expect(again.status).toBe(409);
-    expect(again.payload.error).toBe(`${ctx.salon.user.name} نوبت مستقیم توی سالن رو بسته. با سالن هماهنگ کن.`);
-    expect((await ctx.artistClient.get("/api/artist/place")).payload.data.place.allowed).toBe(false);
-    expect((await choose(ctx, "own")).ok).toBe(true);
-    expect((await book(ctx, second, dayOn(SATURDAY), "12:00")).ok).toBe(true);
-
-    // Switched back on: the salon days open again.
-    expect((await ctx.salonClient.patch("/api/salon-staff", { id: ctx.staff.id, directAllowed: true })).ok).toBe(true);
-    expect((await choose(ctx, "salon")).ok).toBe(true);
-    expect((await book(ctx, second, dayOn(SATURDAY, 1), "12:00")).ok).toBe(true);
+    const made = await book(ctx, client, dayOn(SATURDAY), "11:00");
+    expect(made.ok).toBe(true);
+    expect((await rowOf(ctx, made.payload.data.booking.id)).placeSalon).toBeNull();
   });
 
-  it("a member on leave or switched off in the team is not at the salon: the salon days refuse, the artist's own days work", async () => {
+  it("when no salon can and the artist wants to say: the booking waits for them, even with auto-confirm", async () => {
     const ctx = await setup();
-    expect((await choose(ctx, "days", "soooooo")).ok).toBe(true);
-    expect((await ctx.salonClient.patch("/api/salon-staff", { id: ctx.staff.id, state: "مرخصی" })).ok).toBe(true);
-    const { client } = await newClient();
-    const refused = await book(ctx, client, dayOn(SATURDAY), "11:00");
-    expect(refused.status).toBe(409);
-    expect(refused.payload.error).toBe(`${ctx.artist.user.name} این روز توی ${ctx.salon.user.name} نیست. روز دیگه‌ای انتخاب کن.`);
-    expect((await book(ctx, client, dayOn(SUNDAY), "11:00")).ok).toBe(true);
-    expect((await ctx.salonClient.patch("/api/salon-staff", { id: ctx.staff.id, state: "فعال" })).ok).toBe(true);
-    expect((await book(ctx, client, dayOn(SATURDAY), "11:00")).ok).toBe(true);
-  });
-
-  it("the artist's own entry for a walk-in on a salon day is never refused, and is held at the salon", async () => {
-    const ctx = await setup();
+    expect((await ctx.artistClient.post("/api/profile/settings", { settings: { autoConfirm: true } })).ok).toBe(true);
+    expect((await putList(ctx, [ctx.salon.user.id], "ask")).ok).toBe(true);
     await ctx.salonClient.patch("/api/salon-hours", { day: SATURDAY, active: false });
-    expect((await choose(ctx, "salon")).ok).toBe(true);
-    const own = await ctx.artistClient.post("/api/artist/me", {
-      kind: "booking", service: "کوتاهی مو", bookingDate: dayOn(SATURDAY), time: "18:00", client: "حضوری", phone: "09120000555"
-    });
-    expect(own.ok).toBe(true);
+    const { client } = await newClient();
+    const waiting = await book(ctx, client, dayOn(SATURDAY), "11:00");
+    expect(waiting.status).toBe(201);
+    expect(waiting.payload.data.booking.status).toBe("تازه");
+    // A salon that can take it still confirms at once.
+    const fits = await book(ctx, client, dayOn(SUNDAY), "11:00");
+    expect(fits.payload.data.booking.status).toBe("تایید شده");
+    expect((await rowOf(ctx, fits.payload.data.booking.id)).placeSalon.id).toBe(ctx.salon.user.id);
   });
 
-  it("a direct booking and a salon booking share the artist's calendar at the salon", async () => {
+  it("the client reads the salon only once the booking is confirmed", async () => {
     const ctx = await setup();
-    expect((await choose(ctx, "salon")).ok).toBe(true);
+    expect((await putList(ctx, [ctx.salon.user.id])).ok).toBe(true);
+    const { client } = await newClient();
+    const made = await book(ctx, client, dayOn(SATURDAY), "11:00");
+    const before = await clientRow(client, made.payload.data.booking.id);
+    expect(before.placeSalonName).toBe("");
+    expect((await confirm(ctx, made.payload.data.booking.id)).ok).toBe(true);
+    const after = await clientRow(client, made.payload.data.booking.id);
+    expect(after.placeSalonName).toBe(ctx.salon.user.name);
+    expect(Number(after.placeSalonUserId)).toBe(ctx.salon.user.id);
+    expect(after.salonName).toBe(ctx.artist.user.name);
+  });
+
+  it("the artist says where one booking is held: another salon, or back to «مثل قبل»", async () => {
+    const ctx = await setup();
+    const second = await secondSalon(ctx);
+    expect((await putList(ctx, [ctx.salon.user.id])).ok).toBe(true);
+    const { client } = await newClient();
+    const made = await book(ctx, client, dayOn(SATURDAY), "11:00");
+    const id = made.payload.data.booking.id;
+    expect((await confirm(ctx, id)).ok).toBe(true);
+
+    const moved = await ctx.artistClient.put(`/api/artist-bookings/${id}/place`, { salonUserId: second.salon.user.id });
+    expect(moved.ok).toBe(true);
+    expect((await rowOf(ctx, id)).placeSalon.id).toBe(second.salon.user.id);
+    expect((await clientRow(client, id)).placeSalonName).toBe(second.salon.user.name);
+
+    expect((await ctx.artistClient.put(`/api/artist-bookings/${id}/place`, { salonUserId: null })).ok).toBe(true);
+    expect((await rowOf(ctx, id)).placeSalon).toBeNull();
+    expect((await clientRow(client, id)).placeSalonName).toBe("");
+
+    // Not a salon of theirs, not their booking, not a booking any more.
+    const other = createClient();
+    const foreign = await registerUser(other, { type: "salon", name: "Foreign Two" });
+    expect((await ctx.artistClient.put(`/api/artist-bookings/${id}/place`, { salonUserId: foreign.user.id })).status).toBe(409);
+    expect((await client.put(`/api/artist-bookings/${id}/place`, { salonUserId: null })).status).toBe(403);
+    const stranger = createClient();
+    await registerUser(stranger, { type: "artist", menu: true, name: "Not Theirs" });
+    expect((await stranger.put(`/api/artist-bookings/${id}/place`, { salonUserId: null })).status).toBe(404);
+    await ctx.artistClient.patch("/api/artist/me", { kind: "booking", id, status: "لغو" });
+    expect((await ctx.artistClient.put(`/api/artist-bookings/${id}/place`, { salonUserId: null })).status).toBe(409);
+  });
+
+  it("a salon that switched direct bookings off cannot be picked for a booking", async () => {
+    const ctx = await setup();
+    const { client } = await newClient();
+    const made = await book(ctx, client, dayOn(SATURDAY), "11:00");
+    const staff = (await ctx.salonClient.get("/api/salon-staff")).payload.data.staff.find((person) => Number(person.artist_user_id) === Number(ctx.artist.user.id));
+    expect((await ctx.salonClient.patch("/api/salon-staff", { id: staff.id, directAllowed: false })).ok).toBe(true);
+    const refused = await ctx.artistClient.put(`/api/artist-bookings/${made.payload.data.booking.id}/place`, { salonUserId: ctx.salon.user.id });
+    expect(refused.status).toBe(409);
+    expect(refused.payload.code).toBe("SALON_BLOCKED");
+  });
+
+  it("a member on leave is skipped; back on duty the salon takes bookings again", async () => {
+    const ctx = await setup();
+    expect((await putList(ctx, [ctx.salon.user.id])).ok).toBe(true);
+    const staff = (await ctx.salonClient.get("/api/salon-staff")).payload.data.staff.find((person) => Number(person.artist_user_id) === Number(ctx.artist.user.id));
+    expect((await ctx.salonClient.patch("/api/salon-staff", { id: staff.id, state: "مرخصی" })).ok).toBe(true);
+    const { client } = await newClient();
+    const away = await book(ctx, client, dayOn(SATURDAY), "11:00");
+    expect((await rowOf(ctx, away.payload.data.booking.id)).placeSalon).toBeNull();
+    expect((await ctx.salonClient.patch("/api/salon-staff", { id: staff.id, state: "فعال" })).ok).toBe(true);
+    const back = await book(ctx, client, dayOn(SATURDAY), "13:00");
+    expect((await rowOf(ctx, back.payload.data.booking.id)).placeSalon.id).toBe(ctx.salon.user.id);
+  });
+
+  it("a direct booking and a salon booking share the artist's calendar", async () => {
+    const ctx = await setup();
+    expect((await putList(ctx, [ctx.salon.user.id])).ok).toBe(true);
     const { client } = await newClient();
     const day = dayOn(SATURDAY);
     expect((await book(ctx, client, day, "11:00")).ok).toBe(true);
@@ -243,15 +274,11 @@ describe("where an artist on a salon team receives the clients who book them dir
     const clash = await book(ctx, other, day, "11:30");
     expect(clash.status).toBe(409);
     expect(clash.payload.code).toBe("SLOT_TAKEN");
-    const viaSalon = await other.post("/api/salon-bookings", {
-      salonUserId: ctx.salon.user.id, service: "کوتاهی مو", staff: ctx.staff.name, bookingDate: day, time: "11:00", client: "Other", phone: "09120000777"
-    });
-    expect(viaSalon.status).toBe(409);
   });
 
-  it("two clients at the same hour: one gets it, the other is told it was just taken", async () => {
+  it("two clients at the same hour: one gets it, the others are told it was just taken", async () => {
     const ctx = await setup();
-    expect((await choose(ctx, "salon")).ok).toBe(true);
+    expect((await putList(ctx, [ctx.salon.user.id])).ok).toBe(true);
     const day = dayOn(SATURDAY);
     const clients = await Promise.all([newClient("R1"), newClient("R2"), newClient("R3")]);
     const results = await Promise.all(clients.map(({ client }) => book(ctx, client, day, "14:00")));
@@ -261,18 +288,15 @@ describe("where an artist on a salon team receives the clients who book them dir
 
   it("the salon sees how many clients its member brings, never who they are", async () => {
     const ctx = await setup();
-    expect((await choose(ctx, "salon")).ok).toBe(true);
+    expect((await putList(ctx, [ctx.salon.user.id])).ok).toBe(true);
     const a = await newClient("Brought A");
     const b = await newClient("Brought B");
     const day = dayOn(SATURDAY);
     expect((await book(ctx, a.client, day, "10:00")).ok).toBe(true);
     expect((await book(ctx, b.client, day, "12:00")).ok).toBe(true);
-    // One of them connects to the salon afterwards.
     expect((await a.client.post("/api/follows", { targetUserId: ctx.salon.user.id })).ok).toBe(true);
-
-    const staff = (await ctx.salonClient.get("/api/salon-staff")).payload.data.staff.find((person) => person.id === ctx.staff.id);
+    const staff = (await ctx.salonClient.get("/api/salon-staff")).payload.data.staff.find((person) => Number(person.artist_user_id) === Number(ctx.artist.user.id));
     expect(staff.direct_stats).toMatchObject({ live: 2, clientsThisMonth: 2, connected: 1 });
-
     const direct = await ctx.salonClient.get("/api/salon-staff/direct");
     expect(direct.ok).toBe(true);
     const visits = direct.payload.data.visits;
@@ -282,75 +306,40 @@ describe("where an artist on a salon team receives the clients who book them dir
     expect((await a.client.get("/api/salon-staff/direct")).status).toBe(403);
   });
 
-  it("an artist leaving the team keeps every booking, now at their own place, and forgets the choice", async () => {
+  it("an artist leaving a team keeps every booking at their own place, and the salon leaves their list", async () => {
     const ctx = await setup();
-    expect((await choose(ctx, "salon")).ok).toBe(true);
+    expect((await putList(ctx, [ctx.salon.user.id])).ok).toBe(true);
     const { client } = await newClient();
     const made = await book(ctx, client, dayOn(SATURDAY, 2), "10:00");
     expect(made.ok).toBe(true);
-    const left = await ctx.artistClient.delete("/api/artist/teams", { salonUserId: ctx.salon.user.id });
-    expect(left.ok).toBe(true);
-    const row = (await client.get("/api/artist-bookings")).payload.data.bookings.find((item) => item.id === made.payload.data.booking.id);
+    expect((await ctx.artistClient.delete("/api/artist/teams", { salonUserId: ctx.salon.user.id })).ok).toBe(true);
+    const row = await clientRow(client, made.payload.data.booking.id);
     expect(row.status).not.toBe("لغو");
     expect(row.placeSalonName).toBe("");
-    expect((await ctx.artistClient.get("/api/artist/place")).payload.data.place).toBeNull();
-    expect((await publicArtist(ctx)).team).toBeNull();
-    // Joining again starts from their own place.
+    expect((await ctx.artistClient.get("/api/artist/place")).payload.data.place.teams).toEqual([]);
+    // Joining again: on offer, not in the list.
     expect((await joinSalonAsArtist(ctx.artistClient, ctx.salonClient, ctx.salon.user.id)).ok).toBe(true);
-    expect((await ctx.artistClient.get("/api/artist/place")).payload.data.place.mode).toBe("own");
+    expect((await ctx.artistClient.get("/api/artist/place")).payload.data.place.teams[0].inList).toBe(false);
   });
 
-  it("a salon removing the member does the same", async () => {
+  it("a salon removing the member, or leaving frfro, hands the bookings back to the artist's own place", async () => {
     const ctx = await setup();
-    expect((await choose(ctx, "salon")).ok).toBe(true);
+    expect((await putList(ctx, [ctx.salon.user.id])).ok).toBe(true);
     const { client } = await newClient();
     const made = await book(ctx, client, dayOn(SATURDAY, 2), "10:00");
-    const removed = await ctx.salonClient.delete("/api/salon-staff", { id: ctx.staff.id });
-    expect(removed.ok).toBe(true);
-    const row = (await client.get("/api/artist-bookings")).payload.data.bookings.find((item) => item.id === made.payload.data.booking.id);
+    const staff = (await ctx.salonClient.get("/api/salon-staff")).payload.data.staff.find((person) => Number(person.artist_user_id) === Number(ctx.artist.user.id));
+    expect((await ctx.salonClient.delete("/api/salon-staff", { id: staff.id })).ok).toBe(true);
+    const row = await clientRow(client, made.payload.data.booking.id);
     expect(row.status).not.toBe("لغو");
     expect(row.placeSalonName).toBe("");
-  });
 
-  it("a salon that leaves frfro hands its direct bookings back to each artist's own place", async () => {
-    const ctx = await setup();
-    expect((await choose(ctx, "salon")).ok).toBe(true);
-    const { client } = await newClient();
-    const made = await book(ctx, client, dayOn(SATURDAY, 2), "10:00");
-    expect(made.ok).toBe(true);
-    const gone = await ctx.salonClient.delete("/api/profile", { currentPassword: "testpass123", cancelAll: true });
-    expect(gone.ok).toBe(true);
-    const row = (await client.get("/api/artist-bookings")).payload.data.bookings.find((item) => item.id === made.payload.data.booking.id);
-    expect(row.status).not.toBe("لغو");
-    expect(row.placeSalonName).toBe("");
-  });
-
-  it("someone on two teams chooses for one salon; the other is untouched", async () => {
-    const ctx = await setup();
-    const secondSalonClient = createClient();
-    const secondSalon = await registerUser(secondSalonClient, { type: "salon", menu: true, name: "Second Salon" });
-    await secondSalonClient.get("/api/salon-hours");
-    expect((await joinSalonAsArtist(ctx.artistClient, secondSalonClient, secondSalon.user.id)).ok).toBe(true);
-    const place = (await ctx.artistClient.get("/api/artist/place")).payload.data.place;
-    expect(place.salonName).toBe(secondSalon.user.name);
-    expect((await choose(ctx, "salon")).ok).toBe(true);
-    const page = await publicArtist(ctx);
-    expect(page.team.name).toBe(secondSalon.user.name);
-  });
-
-  it("a stale or foreign salon id in the choice is refused", async () => {
-    const ctx = await setup();
-    const other = createClient();
-    const otherSalon = await registerUser(other, { type: "salon", name: "Foreign Salon" });
-    const wrong = await ctx.artistClient.put("/api/artist/place", { mode: "salon", salonUserId: otherSalon.user.id });
-    expect(wrong.status).toBe(404);
-  });
-
-  it("the page's hours follow the salon when it changes its hours, within moments", async () => {
-    const ctx = await setup();
-    expect((await choose(ctx, "salon")).ok).toBe(true);
-    expect(hourOf((await publicArtist(ctx)).hours, SATURDAY).open_time).toBe("۱۰:۰۰");
-    await ctx.salonClient.patch("/api/salon-hours", { day: SATURDAY, openTime: "13:00" });
-    expect(hourOf((await publicArtist(ctx)).hours, SATURDAY).open_time).toBe("۱۳:۰۰");
+    const again = await setup();
+    expect((await putList(again, [again.salon.user.id])).ok).toBe(true);
+    const second = await newClient();
+    const kept = await book(again, second.client, dayOn(SATURDAY, 2), "10:00");
+    expect((await again.salonClient.delete("/api/profile", { currentPassword: "testpass123", cancelAll: true })).ok).toBe(true);
+    const gone = await clientRow(second.client, kept.payload.data.booking.id);
+    expect(gone.status).not.toBe("لغو");
+    expect(gone.placeSalonName).toBe("");
   });
 });

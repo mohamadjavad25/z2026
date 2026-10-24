@@ -1,32 +1,38 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Check, MapPin, Store, UserRound } from "lucide-react";
+import { ArrowDown, ArrowUp, Plus, X } from "lucide-react";
 import { getArtistPlace, saveArtistPlace } from "../../shared/api/artists";
 import { getApiErrorMessage } from "../../shared/lib/apiNotify";
-import { PLACE_WEEKDAYS, plannedPlaces } from "../../shared/lib/artistPlace";
-import { shortPersianWeekday } from "../../shared/lib/time";
-import { openLocationSettings } from "../profile/locationEvents";
 
-const SAVED_MESSAGE = "ذخیره شد. از الان مشتری‌هات همین‌طور نوبت می‌گیرن.";
+const SAVED_MESSAGE = "ذخیره شد. از الان نوبت‌ها همین‌طور جا می‌گیرن.";
+const FALLBACKS = [
+  { id: "own", title: "مثل قبل", hint: "نوبت مثل همیشه برگزار می‌شه." },
+  { id: "ask", title: "بهم خبر بده", hint: "نوبت منتظر می‌مونه تا جاش رو تو بگی." }
+];
+
+const mark = (name) => String(name || "س").trim().slice(0, 1) || "س";
 
 /**
- * Artist on a salon team — «مشتری‌هات کجا نوبت بگیرن؟» (owner's idea of 2026-10-24). The artist picks where the clients who
- * book them straight from their page are received: at the salon, at their own place, or a place per weekday. The salon
- * only keeps a switch (SalonStaffProfileModal). Nothing changes until they save, and what was already booked stays.
+ * Artist on one or more salon teams — «نوبت مشتری‌هام کجا باشه؟» (owner's idea of 2026-10-24). The client only picks a
+ * day and an hour. The artist keeps an ordered list of their salons; a booking goes to the first one that can take it,
+ * and when none can it stays «مثل قبل» or waits for the artist's word. Nothing changes until they save.
  */
 export function ArtistPlaceChooser() {
-  const [place, setPlace] = useState(null);
   const [state, setState] = useState("loading"); // loading | ready | none | error
-  const [mode, setMode] = useState("own");
-  const [days, setDays] = useState(Array(7).fill("o"));
+  const [saved, setSaved] = useState({ order: [], fallback: "own" });
+  const [teams, setTeams] = useState([]);
+  const [order, setOrder] = useState([]);
+  const [fallback, setFallback] = useState("own");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState({ tone: "", text: "" });
 
-  const apply = useCallback((next) => {
-    setPlace(next);
-    setMode(next.mode);
-    setDays(plannedPlaces(next.mode, next.days));
+  const apply = useCallback((place) => {
+    const inList = place.teams.filter((team) => team.inList).map((team) => team.salonId);
+    setTeams(place.teams);
+    setSaved({ order: inList, fallback: place.fallback });
+    setOrder(inList);
+    setFallback(place.fallback);
   }, []);
 
   const load = useCallback(async () => {
@@ -34,7 +40,7 @@ export function ArtistPlaceChooser() {
     try {
       const { ok, data } = await getArtistPlace();
       if (!ok) { setState("error"); return; }
-      if (!data?.place) { setState("none"); return; }
+      if (!data?.place?.teams?.length) { setState("none"); return; }
       apply(data.place);
       setState("ready");
     } catch {
@@ -55,29 +61,27 @@ export function ArtistPlaceChooser() {
     );
   }
 
-  const salon = place.salonName || "سالن";
-  const blocked = !place.allowed;
-  const draftDays = mode === "salon" ? Array(7).fill("s") : mode === "own" ? Array(7).fill("o") : days;
-  const dirty = mode !== place.mode || (mode === "days" && days.join("") !== place.days);
-  const wantsOwn = draftDays.includes("o");
-  const savedWantsSalon = plannedPlaces(place.mode, place.days).includes("s");
-  const options = [
-    { id: "salon", icon: Store, title: `توی ${salon}`, hint: "نوبت‌ها با ساعت سالن می‌خونن و مشتری آدرس سالن رو می‌بینه.", locked: blocked },
-    { id: "own", icon: UserRound, title: "جای خودم", hint: "مشتری آدرس خودت رو می‌بینه. سالن فقط می‌بینه اون ساعت درگیری.", locked: false },
-    { id: "days", icon: MapPin, title: "هر روز یه جا", hint: "مثلاً شنبه و دوشنبه سالن، بقیه جای خودم.", locked: false }
-  ];
+  const byId = new Map(teams.map((team) => [team.salonId, team]));
+  const listed = order.map((id) => byId.get(id)).filter(Boolean);
+  const spare = teams.filter((team) => !order.includes(team.salonId));
+  const dirty = fallback !== saved.fallback || order.join(",") !== saved.order.join(",");
+  const fallbackHint = FALLBACKS.find((item) => item.id === fallback)?.hint || "";
 
-  function pickDay(index) {
-    setMessage({ tone: "", text: "" });
-    setDays((current) => current.map((value, i) => (i === index ? (value === "s" ? "o" : blocked ? "o" : "s") : value)));
-  }
+  const touch = (next) => { setMessage({ tone: "", text: "" }); setOrder(next); };
+  const move = (index, step) => {
+    const next = [...order];
+    const to = index + step;
+    if (to < 0 || to >= next.length) return;
+    [next[index], next[to]] = [next[to], next[index]];
+    touch(next);
+  };
 
   async function save() {
     if (busy || !dirty) return;
     setBusy(true);
     setMessage({ tone: "", text: "" });
     try {
-      const { ok, payload } = await saveArtistPlace({ salonUserId: place.salonId, mode, ...(mode === "days" ? { days: days.join("") } : {}) });
+      const { ok, payload } = await saveArtistPlace({ order, fallback });
       if (!ok) {
         setMessage({ tone: "bad", text: getApiErrorMessage(payload, "ذخیره نشد؛ دوباره بزن.") });
         return;
@@ -94,71 +98,56 @@ export function ArtistPlaceChooser() {
   return (
     <section className="plBox" aria-label="جای نوبت‌ها">
       <header className="plHead">
-        <b>مشتری‌هات کجا نوبت بگیرن؟</b>
-        <small>خودت انتخاب کن. مشتری‌هات همین رو می‌بینن.</small>
+        <b>نوبت مشتری‌هام کجا باشه؟</b>
+        <small>مشتری فقط ساعت می‌گیره. هر نوبت می‌ره سراغ اولین سالنی که جا داره.</small>
       </header>
 
-      <div className="plOpts" role="radiogroup" aria-label="جای نوبت‌ها">
-        {options.map(({ id, icon: Icon, title, hint, locked }) => (
-          <button
-            type="button"
-            key={id}
-            role="radio"
-            aria-checked={mode === id}
-            disabled={locked}
-            className={`plOpt${mode === id ? " is-on" : ""}`}
-            onClick={() => { setMode(id); setMessage({ tone: "", text: "" }); }}
-          >
-            <span className="plOptIcon" aria-hidden="true"><Icon size={18} /></span>
-            <span className="plOptText">
-              <b>{title}</b>
-              <small>{locked ? `${salon} نوبت مستقیم توی سالن رو بسته. با سالن هماهنگ کن.` : hint}</small>
-            </span>
-            <span className="plOptDot" aria-hidden="true">{mode === id ? <Check size={13} strokeWidth={3} /> : null}</span>
-          </button>
-        ))}
+      {listed.length ? (
+        <ol className="plList" aria-label="سالن‌ها به ترتیب">
+          {listed.map((team, index) => (
+            <li key={team.salonId} className={`plRow${team.note ? " is-skipped" : ""}`}>
+              <span className="plNum" aria-hidden="true">{index + 1}</span>
+              <span className="plAv" aria-hidden="true">{mark(team.name)}</span>
+              <span className="plText">
+                <b>{team.name}</b>
+                <small>{team.note || team.area || "سالن"}</small>
+              </span>
+              <span className="plTools">
+                <button type="button" aria-label={`${team.name} رو بالاتر ببر`} disabled={index === 0} onClick={() => move(index, -1)}><ArrowUp size={15} /></button>
+                <button type="button" aria-label={`${team.name} رو پایین‌تر ببر`} disabled={index === listed.length - 1} onClick={() => move(index, 1)}><ArrowDown size={15} /></button>
+                <button type="button" aria-label={`${team.name} رو از فهرست بردار`} onClick={() => touch(order.filter((id) => id !== team.salonId))}><X size={15} /></button>
+              </span>
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <p className="plHint">هنوز سالنی اضافه نکردی. همه نوبت‌ها مثل قبل می‌مونن.</p>
+      )}
+
+      {spare.map((team) => (
+        <button type="button" key={team.salonId} className="plAdd" onClick={() => touch([...order, team.salonId])}>
+          <Plus size={16} aria-hidden="true" />
+          <span><b>{team.name}</b>{team.area ? <small>{team.area}</small> : null}</span>
+          <em>اضافه کن</em>
+        </button>
+      ))}
+
+      <div className="plLast">
+        <b>اگه هیچ‌کدوم جا نداشت</b>
+        <div className="plSeg" role="radiogroup" aria-label="اگه هیچ‌کدوم جا نداشت">
+          {FALLBACKS.map((item) => (
+            <button
+              type="button"
+              key={item.id}
+              role="radio"
+              aria-checked={fallback === item.id}
+              className={fallback === item.id ? "is-on" : ""}
+              onClick={() => { setFallback(item.id); setMessage({ tone: "", text: "" }); }}
+            >{item.title}</button>
+          ))}
+        </div>
+        <small>{fallbackHint}</small>
       </div>
-
-      {mode === "days" ? (
-        <div className="plWeekBlock">
-          <p className="plHint">روی هر روز بزن تا بین «سالن» و «جای خودم» عوض شه.</p>
-          <div className="plWeek" role="group" aria-label="جای هر روز">
-            {PLACE_WEEKDAYS.map((day, index) => {
-              const atSalon = days[index] === "s";
-              const shut = atSalon && place.salonOpenDays?.[index] === false;
-              return (
-                <button
-                  type="button"
-                  key={day}
-                  aria-pressed={atSalon}
-                  aria-label={`${day}، ${atSalon ? "سالن" : "جای خودم"}${shut ? "، سالن تعطیله" : ""}`}
-                  className={`plDay ${atSalon ? "is-salon" : "is-own"}${shut ? " is-shut" : ""}`}
-                  onClick={() => pickDay(index)}
-                >
-                  <b>{shortPersianWeekday(day)}</b>
-                  <small>{shut ? "تعطیل" : atSalon ? "سالن" : "خودم"}</small>
-                </button>
-              );
-            })}
-          </div>
-          {draftDays.some((value, index) => value === "s" && place.salonOpenDays?.[index] === false) ? (
-            <p className="plHint">روزهایی که سالن تعطیله، مشتری نمی‌تونه نوبت بگیره.</p>
-          ) : null}
-        </div>
-      ) : null}
-
-      {wantsOwn && !place.hasOwnAddress ? (
-        <div className="plNote is-warn">
-          <span>هنوز آدرس خودت رو نذاشتی. بذار تا مشتری بدونه کجا بیاد.</span>
-          <button type="button" className="plGhost" onClick={openLocationSettings}>جام رو روی نقشه بذار</button>
-        </div>
-      ) : null}
-
-      {blocked && savedWantsSalon ? (
-        <p className="plNote is-bad">{salon} نوبت مستقیم رو بسته؛ مشتری‌هات الان نمی‌تونن روزهای سالن رو بگیرن. «جای خودم» رو بزن تا نوبت بگیرن.</p>
-      ) : null}
-
-      <p className="plHint">نوبت‌هایی که تا حالا گرفته شده سر جاشون می‌مونن.</p>
 
       {message.text ? <p className={`plNote is-${message.tone}`} role="status">{message.text}</p> : null}
 
