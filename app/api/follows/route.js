@@ -29,6 +29,11 @@ async function _POST(request) {
   if (targetUserId === auth.user.id) {
     return NextResponse.json({ error: "نمی‌تونی به خودت وصل شی." }, { status: 400 });
   }
+  // Only clients follow. A salon or artist is never a follower: that would list them among the target's customers
+  // (a salon owner who scanned an artist's code used to land here). Removing an old follow stays allowed.
+  if (body.follow !== false && auth.user.type !== "client") {
+    return NextResponse.json({ error: "فقط مشتری‌ها می‌تونن وصل شن؛ سالن و آرتیست از «همکاری» به هم وصل می‌شن." }, { status: 403 });
+  }
   // `follow: true|false` sets the state; without it the call toggles (what the in-app buttons use). A visitor who has
   // just signed up from a public page asks for `follow: true` so an account that already follows is never flipped off.
   const result = typeof body.follow === "boolean"

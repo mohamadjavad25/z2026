@@ -96,7 +96,13 @@ function AccountForm({ gate }) {
           otp={otp}
           busy={busy}
           submitLabel="بساز و وصل شو"
-          onLogin={() => switchMode("login")}
+          onLogin={(phone) => {
+            switchMode("login");
+            if (typeof phone === "string" && phone) {
+              setForm((current) => ({ ...current, phone }));
+              setFormError("این شماره حساب داره؛ با رمزت وارد شو.");
+            }
+          }}
           onComplete={async (values) => {
             setBusy(true);
             try {
@@ -142,9 +148,25 @@ function AccountForm({ gate }) {
             )}
           </Field>
           {formError ? <p className="fsError" role="alert">{formError}</p> : null}
-          <button type="submit" className="fsSubmit" disabled={busy}>{busy ? "یه لحظه…" : "وارد شو و وصل شو"}</button>
+          <button type="submit" className="fsSubmit" disabled={busy}>{busy ? "یه لحظه…" : "وارد شو"}</button>
         </form>
       )}
+    </div>
+  );
+}
+
+/** A salon or artist opened a page meant for clients: what happened (an invite) or what to do instead. */
+function OwnerBody({ gate, onClose }) {
+  return (
+    <div className="fsDone" role="status">
+      <h3>{gate.outcome?.title}</h3>
+      <p>{gate.outcome?.text}</p>
+      <div className="fsDoneActions">
+        <a className="fsSubmit" href="/" onClick={() => { try { window.localStorage.setItem("frfro-entered", "1"); } catch { /* private mode */ } }}>
+          برو به فرفرو
+        </a>
+        <button type="button" className="fsGhost" onClick={onClose}>صفحه رو ببینم</button>
+      </div>
     </div>
   );
 }
@@ -183,7 +205,9 @@ export function FollowSheet({ gate }) {
         panelClassName="fsSheet"
         onClose={gate.closeSheet}
       >
-        {gate.sheet === "done" ? <DoneBody gate={gate} onClose={gate.closeSheet} /> : open ? <AccountForm gate={gate} /> : null}
+        {gate.sheet === "done" ? <DoneBody gate={gate} onClose={gate.closeSheet} />
+          : gate.sheet === "owner" ? <OwnerBody gate={gate} onClose={gate.closeSheet} />
+          : open ? <AccountForm gate={gate} /> : null}
       </ProfileSheet>
       {gate.notice ? <p className="fsToast" role="status">{gate.notice}</p> : null}
     </>

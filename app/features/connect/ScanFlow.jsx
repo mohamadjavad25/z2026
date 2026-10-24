@@ -6,6 +6,7 @@ import { connectScannedClient, connectTo, joinSalonTeam, lookupScannedCode } fro
 import { SalonRulesNote } from "../salons/SalonRulesNote";
 import { createSalonInvite } from "../../shared/api/salons";
 import { readScannedCode } from "../../shared/lib/connectCodes";
+import { notify } from "../../shared/notice/noticeStore";
 import { ConnectionCard } from "./ConnectionCard";
 
 const TYPE_NAME = { salon: "سالن", artist: "آرتیست" };
@@ -130,8 +131,14 @@ export function ScanFlow({ viewerType, connect, onOpenProfile, onChanged, onClos
         setStep({ state: "message", text: payload?.error || "نشد؛ دوباره بزن." });
         return;
       }
-      setStep({ state: "profile", profile, relation: kind === "invite" ? "invited" : "member" });
       onChanged?.(kind);
+      if (kind === "join") {
+        // Joined: back to the page the scanner opened over, which now shows the team, with a line saying so.
+        notify(`رفتی توی تیم «${profile.name || "سالن"}»!`);
+        onClose?.();
+        return;
+      }
+      setStep({ state: "profile", profile, relation: "invited" });
     } catch {
       setStep({ state: "message", text: "وصل نشد؛ دوباره بزن." });
     } finally {

@@ -17,6 +17,9 @@ async function _POST(request) {
   if (!target || target.type !== "salon") return NextResponse.json({ error: "سالن پیدا نشد." }, { status: 404 });
   if (salonUserId === auth.user.id) return NextResponse.json({ error: "نمی‌تونی به خودت وصل شی." }, { status: 400 });
   const follow = body.follow !== false;
+  if (follow && auth.user.type !== "client") {
+    return NextResponse.json({ error: "فقط مشتری‌ها می‌تونن وصل شن؛ سالن و آرتیست از «همکاری» به هم وصل می‌شن." }, { status: 403 });
+  }
   const result = await salons.setSalonFollow(salonUserId, auth.user.id, follow);
   return NextResponse.json({ data: result });
 }
