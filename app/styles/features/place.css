@@ -1,0 +1,74 @@
+/* ═══ Where an artist on a salon team receives the clients who book them directly (owner's idea of 2026-10-24) ═══
+   The artist's chooser (collab tab), the salon's switch and the place line on the client's booking sheet.
+   Colours come from the role tokens only: the salon is the violet side, the artist's own place the pink one. */
+.plBox { display: grid; gap: 12px; padding: 16px; border: 1px solid var(--n-150); border-radius: 22px; background: var(--n-0); }
+.plBox.is-loading { min-height: 150px; background: linear-gradient(90deg, var(--n-50), var(--n-100), var(--n-50)); }
+.plHead { display: grid; gap: 2px; }
+.plHead b { color: var(--n-900); font-size: 1rem; font-weight: 950; }
+.plHead small { color: var(--n-600); font-size: 0.78rem; font-weight: 750; }
+.plOpts { display: grid; gap: 8px; }
+.plOpt { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; padding: 12px; border: 1.5px solid var(--n-150); border-radius: 18px; background: var(--n-0); color: var(--n-900); font: inherit; text-align: start; cursor: pointer; }
+.plOpt:disabled { opacity: 0.55; cursor: default; }
+.plOpt.is-on { border-color: var(--brand-violet); background: var(--violet-soft); }
+.plOptIcon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 14px; background: var(--n-100); color: var(--n-700); }
+.plOpt.is-on .plOptIcon { background: var(--n-0); color: var(--violet-deep); }
+.plOptText { display: grid; gap: 1px; min-width: 0; }
+.plOptText b { font-size: 0.92rem; font-weight: 900; }
+.plOptText small { color: var(--n-600); font-size: 0.74rem; font-weight: 700; line-height: 1.7; }
+.plOptDot { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--n-300); color: var(--n-0); }
+.plOpt.is-on .plOptDot { border-color: var(--violet-deep); background: var(--violet-deep); }
+.plWeekBlock { display: grid; gap: 8px; }
+.plWeek { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
+.plDay { display: grid; justify-items: center; gap: 0; padding: 6px 0 5px; border: 1.5px solid var(--n-150); border-radius: 14px; background: var(--n-0); color: var(--n-800); font: inherit; cursor: pointer; }
+.plDay b { font-size: 0.86rem; font-weight: 900; }
+.plDay small { font-size: 0.64rem; font-weight: 800; }
+.plDay.is-salon { border-color: var(--brand-violet); background: var(--violet-soft); color: var(--violet-deep); }
+.plDay.is-own { border-color: var(--brand-pink); background: var(--pink-soft); color: var(--pink-deep); }
+.plDay.is-shut { opacity: 0.55; }
+.plHint { margin: 0; color: var(--n-600); font-size: 0.74rem; font-weight: 700; line-height: 1.7; }
+.plNote { display: grid; gap: 8px; margin: 0; padding: 10px 12px; border-radius: 14px; font-size: 0.8rem; font-weight: 800; line-height: 1.75; }
+.plNote.is-warn { background: var(--warning-bg); color: var(--warning); }
+.plNote.is-bad { background: var(--danger-bg); color: var(--danger); }
+.plNote.is-ok { background: var(--success-bg); color: var(--success); }
+.plGhost { justify-self: start; min-height: 36px; padding: 0 14px; border: 1px solid currentColor; border-radius: 12px; background: transparent; color: inherit; font: inherit; font-size: 0.8rem; font-weight: 900; cursor: pointer; }
+.plSave { min-height: 46px; border: 0; border-radius: 15px; background: var(--primary); color: var(--on-primary); font: inherit; font-size: 0.92rem; font-weight: 900; cursor: pointer; }
+.plSave:disabled { opacity: 0.4; cursor: default; }
+.plOpt:focus-visible, .plDay:focus-visible, .plSave:focus-visible, .plGhost:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+
+/* The salon's switch for one member (inside the member's manage sheet) */
+.plSwitchRow { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border: 1px solid var(--n-150); border-radius: 18px; background: var(--n-0); }
+.plSwitchRow > span { display: grid; gap: 1px; min-width: 0; }
+.plSwitchRow b { color: var(--n-900); font-size: 0.9rem; font-weight: 900; }
+.plSwitchRow small { color: var(--n-600); font-size: 0.74rem; font-weight: 700; line-height: 1.7; }
+.plSwitch { position: relative; flex: none; width: 50px; height: 30px; padding: 0; border: 0; border-radius: 999px; background: var(--n-300); cursor: pointer; transition: background 0.15s; }
+.plSwitch::after { content: ""; position: absolute; top: 3px; inset-inline-start: 3px; width: 24px; height: 24px; border-radius: 50%; background: var(--n-0); box-shadow: 0 2px 6px rgb(var(--shadow-rgb) / 0.25); transition: inset-inline-start 0.15s; }
+.plSwitch[aria-checked="true"] { background: var(--success); }
+.plSwitch[aria-checked="true"]::after { inset-inline-start: 23px; }
+.plSwitch:disabled { opacity: 0.5; cursor: default; }
+.plSwitch:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+.plStats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.plStat { display: grid; gap: 0; padding: 10px 12px; border-radius: 16px; background: var(--n-50); }
+.plStat b { color: var(--n-900); font-size: 1.35rem; font-weight: 950; line-height: 1.4; }
+.plStat span { color: var(--n-600); font-size: 0.72rem; font-weight: 800; }
+
+/* The salon's list of clients its members receive: when and who, never the client */
+.plVisits { display: grid; gap: 8px; padding: 14px; border: 1px solid var(--n-150); border-radius: 20px; background: var(--n-0); }
+.plVisits h3 { margin: 0; color: var(--n-900); font-size: 0.95rem; font-weight: 950; }
+.plVisits > p { margin: 0; color: var(--n-600); font-size: 0.76rem; font-weight: 700; }
+.plVisit { display: grid; gap: 1px; padding: 8px 12px; border-radius: 14px; background: var(--n-50); border-inline-start: 4px solid var(--brand-violet); }
+.plVisit b { color: var(--n-900); font-size: 0.86rem; font-weight: 900; }
+.plVisit span { color: var(--n-600); font-size: 0.74rem; font-weight: 750; }
+
+/* Client's booking sheet: where this day is received, under the days */
+.plPlace { display: grid; gap: 4px; margin-top: 12px; padding: 10px 12px; border-radius: 16px; font-size: 0.8rem; font-weight: 800; line-height: 1.7; }
+.plPlace b { font-size: 0.86rem; font-weight: 950; }
+.plPlace span { display: inline-flex; align-items: center; gap: 5px; font-weight: 750; }
+.plPlace.is-salon { background: var(--violet-soft); color: var(--violet-deep); }
+.plPlace.is-own { background: var(--pink-soft); color: var(--pink-deep); }
+.plPlace.is-off { background: var(--n-100); color: var(--n-700); }
+.plPlace a { color: inherit; font-weight: 950; text-decoration: underline; text-underline-offset: 3px; }
+.plTeamChip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 999px; background: var(--violet-soft); color: var(--violet-deep); font-size: 0.74rem; font-weight: 900; }
+.bspDay.is-at-salon:not(.is-selected) em { color: var(--violet-deep); }
+.bspDay.is-at-own:not(.is-selected) em { color: var(--pink-deep); }
+.bspDay.is-at-off:not(.is-selected) em { color: var(--n-500); }
+.bspAfterDays { display: grid; }

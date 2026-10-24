@@ -159,7 +159,7 @@ export function ArtistScheduleBoard({
                   <span className={`scheduleStaffAvatar ${sourceSalonAvatar ? "hasImage" : ""}`} aria-hidden="true">
                     {sourceSalonAvatar ? <img src={sourceSalonAvatar} alt="" /> : (sourceSalon ? <Store size={14} /> : String(booking.client || "م").slice(0, 1))}
                   </span>
-                  <small>{sourceSalon?.name || "خودم"}</small>
+                  <small>{sourceSalon?.name || (booking.placeSalon?.name ? `خودم، ${booking.placeSalon.name}` : "خودم")}</small>
                 </div>
               </div>
             </article>

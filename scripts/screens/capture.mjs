@@ -38,7 +38,7 @@ function api(cookie = "") {
     const payload = await res.json().catch(() => ({}));
     return { ok: res.ok, status: res.status, payload };
   };
-  return { cookie: () => cookie, get: (r) => request(r, "GET"), post: (r, b) => request(r, "POST", b), patch: (r, b) => request(r, "PATCH", b) };
+  return { cookie: () => cookie, get: (r) => request(r, "GET"), post: (r, b) => request(r, "POST", b), patch: (r, b) => request(r, "PATCH", b), put: (r, b) => request(r, "PUT", b) };
 }
 
 /** An open (non-Friday) day `n` open days from today, as the API's date key. */
@@ -168,8 +168,77 @@ const SCREENS = [
   { id: "artist-services", role: "artist", title: "خدمات آرتیست", steps: [css(".profileModeRail button, [role=tab], button", "خدمات")] },
   { id: "artist-collab", role: "artist", title: "همکاری با سالن", steps: [css(".profileModeRail button, [role=tab], button", "همکاری")] },
   { id: "artist-customers", role: "artist", title: "مشتریان آرتیست", steps: [tab(2)] },
-  { id: "artist-settings", role: "artist", title: "تنظیمات آرتیست", steps: [tab(0)] }
+  { id: "artist-settings", role: "artist", title: "تنظیمات آرتیست", steps: [tab(0)] },
+  // where an artist on a salon team receives the clients who book them directly (owner's idea of 2026-10-24).
+  // Each screen sets the state it shows first (the choice, the salon's switch, an address), so the order does not matter.
+  ...placeScreens()
 ];
+
+/* ---------- where an artist on a salon team receives clients (state is set through the real API) ---------- */
+const COLLAB = css(".profileModeRail button, [role=tab], button", "همکاری");
+const SALON_LOCATION = { area: "تهران، خیابان گلستان", addressDetail: "پلاک ۱۲، طبقه ۲", geo: { lat: 35.7219, lng: 51.3347 } };
+const ARTIST_LOCATION = { area: "تهران، خیابان لاله", addressDetail: "کوچهٔ ۴، واحد ۳", geo: { lat: 35.7007, lng: 51.4041 } };
+
+/** Sets the world: salon with an address, the artist's choice, the salon's switch, whether the artist has an address. */
+function placeState({ mode = "own", days, switchOn = true, artistAddress = false }) {
+  return async ({ sessions }) => {
+    const { salon, artist } = sessions;
+    await salon.post("/api/profile", { data: SALON_LOCATION });
+    await artist.post("/api/profile", { data: artistAddress ? ARTIST_LOCATION : { area: "", addressDetail: "", geo: null } });
+    const staff = (await salon.get("/api/salon-staff")).payload.data.staff.find((person) => person.artist_user_id);
+    await salon.patch("/api/salon-staff", { id: staff.id, directAllowed: true });
+    if (mode !== "own") await artist.put("/api/artist/place", { mode, days });
+    else await artist.put("/api/artist/place", { mode: "own" });
+    if (!switchOn) await salon.patch("/api/salon-staff", { id: staff.id, directAllowed: false });
+  };
+}
+
+/** The client opens the artist's page in the app, picks the first service and goes to the day and hour sheet. */
+const openBooker = async (p) => {
+  await p.locator("button.sduItem").first().click({ timeout: 6000 });
+  await p.waitForTimeout(400);
+  await p.locator(".sduPanel button", { hasText: "رزرو" }).last().click({ timeout: 4000, force: true });
+  await p.waitForTimeout(1500);
+};
+const pickDay = (n) => async (p) => { await p.locator(".bspDay").nth(n).click({ timeout: 4000 }); await p.waitForTimeout(900); };
+const SALON_AND_OWN_DAYS = "sosooso";
+
+function placeScreens() {
+  const artistOpen = (ids) => `/?open=artist-${ids.artist}`;
+  const mixed = { mode: "days", days: SALON_AND_OWN_DAYS };
+  return [
+    { id: "artist-place-default", role: "artist", title: "مشتری‌هات کجا نوبت بگیرن؟، هنوز چیزی انتخاب نشده", setup: placeState({}), steps: [COLLAB], full: true },
+    { id: "artist-place-own-address", role: "artist", title: "جای خودم، با آدرس ثبت‌شده", setup: placeState({ artistAddress: true }), steps: [COLLAB], full: true },
+    { id: "artist-place-salon-saved", role: "artist", title: "توی سالن را انتخاب و ذخیره کرد", setup: placeState({}), steps: [COLLAB, tap(/^توی سالن رز/), tap("ذخیره")], full: true },
+    { id: "artist-place-days-edit", role: "artist", title: "هر روز یه جا، در حال انتخاب روزها", setup: placeState({ ...mixed, artistAddress: true }), steps: [COLLAB, tap(/^هر روز یه جا/), tap(/^دوشنبه، سالن/)], full: true },
+    { id: "artist-place-blocked", role: "artist", title: "سالن نوبت مستقیم را بسته", setup: placeState({ switchOn: false }), steps: [COLLAB], full: true },
+    { id: "artist-place-days-dark", role: "artist", title: "هر روز یه جا، شب", dark: true, setup: placeState({ ...mixed, artistAddress: true }), steps: [COLLAB], full: true },
+    { id: "client-artist-team-page", role: "client", title: "صفحهٔ آرتیستی که عضو یه سالنه", setup: placeState({ ...mixed, artistAddress: true }), path: artistOpen },
+    { id: "client-artist-book-salon-day", role: "client", title: "نوبت از آرتیست، روزِ سالن", setup: placeState({ ...mixed, artistAddress: true }), path: artistOpen, steps: [openBooker, pickDay(2)] },
+    { id: "client-artist-book-own-day", role: "client", title: "نوبت از آرتیست، روزی که جای خودشه", setup: placeState({ ...mixed, artistAddress: true }), path: artistOpen, steps: [openBooker, pickDay(1)] },
+    { id: "client-artist-book-own-no-address", role: "client", title: "روزِ جای خودش، بدون آدرس", setup: placeState({ ...mixed }), path: artistOpen, steps: [openBooker, pickDay(1)] },
+    { id: "client-artist-book-closed-day", role: "client", title: "روزی که سالن تعطیله", setup: placeState({ ...mixed, artistAddress: true }), path: artistOpen, steps: [openBooker, pickDay(6)] },
+    { id: "client-artist-book-blocked", role: "client", title: "سالن نوبت مستقیم را بسته", setup: placeState({ ...mixed, artistAddress: true, switchOn: false }), path: artistOpen, steps: [openBooker, pickDay(2)] },
+    { id: "client-artist-book-salon-dark", role: "client", title: "نوبت از آرتیست، روزِ سالن، شب", dark: true, setup: placeState({ ...mixed, artistAddress: true }), path: artistOpen, steps: [openBooker, pickDay(2)] },
+    { id: "salon-staff-direct-switch", role: "salon", title: "مدیریت آرتیست، کلید نوبت مستقیم", setup: placeState({ ...mixed, artistAddress: true }), steps: [css(".profileModeRail button, [role=tab], button", "پرسنل"), tap(/^مدیریت نگار/), async (p) => { await p.getByText("مشتری‌هایی که خودش میاره").first().scrollIntoViewIfNeeded(); await p.waitForTimeout(500); }] },
+    { id: "salon-staff-direct-off", role: "salon", title: "مدیریت آرتیست، نوبت مستقیم بسته", setup: placeState({ ...mixed, artistAddress: true, switchOn: false }), steps: [css(".profileModeRail button, [role=tab], button", "پرسنل"), tap(/^مدیریت نگار/), async (p) => { await p.getByText("مشتری‌هایی که خودش میاره").first().scrollIntoViewIfNeeded(); await p.waitForTimeout(500); }] },
+    { id: "salon-direct-visits", role: "salon", title: "مشتری‌های مستقیمِ تیم توی برنامهٔ سالن", setup: async (ctx) => { await placeState({ ...mixed, artistAddress: true })(ctx); await makeDirectBooking(ctx); }, full: true }
+  ];
+}
+
+/** The client books the artist straight from their page on the first day she receives at the salon. */
+async function makeDirectBooking({ sessions, ids }) {
+  const { client, artist } = sessions;
+  for (let n = 1; n <= 7; n += 1) {
+    const day = new Date();
+    day.setDate(day.getDate() + n);
+    if (getPersianWeekday(day) === "شنبه" || getPersianWeekday(day) === "دوشنبه") {
+      const made = await client.post("/api/artist/bookings", { artistUserId: ids.artist, service: "لاک ژل", bookingDate: formatPersianDateKey(day), time: "۱۴:۰۰" });
+      if (made.ok) await artist.patch("/api/artist/me", { kind: "booking", id: made.payload.data.booking.id, status: "تایید شده" });
+      return;
+    }
+  }
+}
 
 async function closeArrivalDialogs(page) {
   for (let k = 0; k < 3; k += 1) {
@@ -188,9 +257,11 @@ async function main() {
   const index = fs.existsSync(indexFile) ? JSON.parse(fs.readFileSync(indexFile, "utf8")) : { screens: {} };
   for (const screen of SCREENS) {
     if (only.size && !only.has(screen.id)) continue;
+    // A screen may set up the state it shows (the choice, a switch, an address) through the real API first.
+    if (screen.setup) await screen.setup({ sessions, ids });
     const context = await browser.newContext(screen.desktop
-      ? { viewport: { width: 1366, height: 820 }, locale: "fa-IR" }
-      : { viewport: { width: 390, height: 844 }, deviceScaleFactor: 1.5, locale: "fa-IR", isMobile: true, hasTouch: true });
+      ? { viewport: { width: 1366, height: 820 }, locale: "fa-IR", ...(screen.dark ? { colorScheme: "dark" } : {}) }
+      : { viewport: { width: 390, height: 844 }, deviceScaleFactor: 1.5, locale: "fa-IR", isMobile: true, hasTouch: true, ...(screen.dark ? { colorScheme: "dark" } : {}) });
     // Phones skip the about page; the one-time «+» tip counts as seen so it does not cover the screens.
     await context.addInitScript({ content: `try { ${screen.desktop ? "" : 'localStorage.setItem("frfro-entered", "1");'} const g = Storage.prototype.getItem; Storage.prototype.getItem = function (k) { return String(k).startsWith("frfro-tip") ? "1" : g.call(this, k); }; } catch (e) {}` });
     if (screen.role !== "guest") {

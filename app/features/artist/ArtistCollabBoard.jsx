@@ -8,6 +8,7 @@ import { usePolling } from "../../shared/lib/usePolling";
 import { SalonRulesNote } from "../salons/SalonRulesNote";
 import { TermsChips } from "../collab/TermsEditor";
 import { ScanFlow } from "../connect/ScanFlow";
+import { ArtistPlaceChooser } from "./ArtistPlaceChooser";
 
 function SalonAvatar({ src }) {
   return (
@@ -93,6 +94,7 @@ export function ArtistCollabBoard({
             </button>
           </SalonCard>
         ))}
+        <ArtistPlaceChooser />
       </section>
     );
   }

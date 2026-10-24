@@ -1,6 +1,6 @@
 "use client";
 
-import { Bookmark, CalendarCheck, ChevronLeft, ChevronUp, Heart, Phone, Share2 } from "lucide-react";
+import { Bookmark, CalendarCheck, ChevronLeft, ChevronUp, Heart, Phone, Share2, Store } from "lucide-react";
 import { PublicProfileHeader } from "../../components/PublicProfileHeader";
 import { BookingPausedNote } from "../../components/BookingPausedNote";
 import { ServicesDropUp } from "../../components/ServicesDropUp";
@@ -148,6 +148,9 @@ export function PublicArtistModal({
           />
 
           <section className="pphInfo" aria-label={`معرفی ${artist.name || "آرتیست"}`}>
+            {artist.team ? (
+              <p className="plTeamChip"><Store size={13} aria-hidden="true" />توی {artist.team.name} هم کار می‌کنه</p>
+            ) : null}
             <div className="pphActions">
               <ConnectToggle following={following} onToggle={onFollow} name={artist.name || ""} kind="آرتیست" icon={<Heart size={18} />} />
               {artist.phone ? (

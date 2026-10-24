@@ -18,7 +18,7 @@ import { isProfileSaved } from "./social.js";
 import { normalizeServiceEmoji, resolveBookingServiceEmoji } from "./serviceEmoji.js";
 import { getSettings, DEFAULT_SETTINGS } from "./userSettings.js";
 import { publicLocation } from "../../location.js";
-import { listArtistHoursPublic } from "./artists/hours.js";
+import { resolveArtistPlaces } from "./artistPlace.js";
 import { onlineBookingBlock, withoutHiddenProviders } from "../../billing/access.js";
 import { MAX_SERVICES_PER_PROVIDER } from "../../validation/service.js";
 import { proposalView } from "../../../shared/lib/providerRules.js";
@@ -318,9 +318,12 @@ export async function listArtistBookings(artistUserId) {
       b.*,
       salon.name AS source_salon_name,
       (salon.avatar <> '' OR salon.avatar_url IS NOT NULL) AS source_salon_avatar,
-      salon.area AS source_salon_area
+      salon.area AS source_salon_area,
+      COALESCE(NULLIF(ps.name, ''), pu.name) AS place_salon_name
     FROM artist_bookings b
     LEFT JOIN users salon ON salon.id = b.source_salon_user_id
+    LEFT JOIN users pu ON pu.id = b.place_salon_user_id
+    LEFT JOIN salons ps ON ps.user_id = b.place_salon_user_id
     WHERE b.artist_user_id = $1
     ORDER BY b.id DESC
     LIMIT 1500
@@ -372,6 +375,8 @@ export async function listArtistBookings(artistUserId) {
             area: row.source_salon_area || ""
           }
         : null,
+      // A direct booking the artist receives at a salon of theirs (artist_place_prefs); the artist still answers it.
+      placeSalon: row.place_salon_user_id ? { id: row.place_salon_user_id, name: row.place_salon_name || "سالن" } : null,
       clientProfile: client
         ? {
             id: client.id,
@@ -417,9 +422,12 @@ export async function listClientArtistBookings(user) {
   // (the columns are made by salons/bookings.js ensureBookingPartsColumns, run by the route first).
   const rows = await all(db, `
     SELECT b.*, u.name AS artist_name, u.area AS artist_area, (u.avatar <> '' OR u.avatar_url IS NOT NULL) AS artist_avatar, u.phone AS artist_phone,
-      fu.name AS fallback_name, tu.name AS moved_to_name, ou.name AS moved_from_name
+      fu.name AS fallback_name, tu.name AS moved_to_name, ou.name AS moved_from_name,
+      COALESCE(NULLIF(ps.name, ''), pu.name) AS place_salon_name, pu.area AS place_salon_area, pu.phone AS place_salon_phone
     FROM artist_bookings b
     LEFT JOIN users u ON u.id = b.artist_user_id
+    LEFT JOIN users pu ON pu.id = b.place_salon_user_id
+    LEFT JOIN salons ps ON ps.user_id = b.place_salon_user_id
     LEFT JOIN users fu ON fu.id = b.fallback_artist_user_id
     LEFT JOIN artist_bookings tb ON tb.id = b.moved_to_booking_id
     LEFT JOIN users tu ON tu.id = tb.artist_user_id
@@ -448,8 +456,11 @@ export async function listClientArtistBookings(user) {
     // with them), same distinction as listClientSalonBookings' salonName.
     salonName: row.artist_name || (row.artist_user_id ? "آرتیست" : "آرتیست حذف‌شده"),
     salon_name: row.artist_name || (row.artist_user_id ? "آرتیست" : "آرتیست حذف‌شده"),
-    salonArea: row.artist_area || "",
-    salon_area: row.artist_area || "",
+    // Received at a salon: «کجا» is the salon's address; the name stays the artist's (the client booked a person).
+    salonArea: (row.place_salon_user_id ? row.place_salon_area : row.artist_area) || "",
+    salon_area: (row.place_salon_user_id ? row.place_salon_area : row.artist_area) || "",
+    placeSalonName: row.place_salon_user_id ? row.place_salon_name || "سالن" : "",
+    placeSalonUserId: row.place_salon_user_id || null,
     salonAvatar: row.artist_avatar && row.artist_user_id ? `/api/media/avatar/${row.artist_user_id}` : "",
     salon_avatar: row.artist_avatar && row.artist_user_id ? `/api/media/avatar/${row.artist_user_id}` : "",
     salonPhone: row.artist_phone || "",
@@ -752,8 +763,8 @@ export async function addArtistBookingInTx(artistUserId, data, runner = null) {
     : "");
   const info = await run(db, `
     INSERT INTO artist_bookings
-      (artist_user_id, client_user_id, source_salon_user_id, client_name, client_phone, service, service_emoji, booking_date, time, duration_minutes, status)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      (artist_user_id, client_user_id, source_salon_user_id, client_name, client_phone, service, service_emoji, booking_date, time, duration_minutes, status, place_salon_user_id)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
     RETURNING id
   `, [
     artistUserId,
@@ -766,7 +777,9 @@ export async function addArtistBookingInTx(artistUserId, data, runner = null) {
     bookingDate,
     time,
     durationMinutes,
-    data.status || "تازه"
+    data.status || "تازه",
+    // The salon a direct booking is received at (shared/lib/artistPlace.js); null = the artist's own place.
+    Number(data.placeSalonUserId || 0) || null
   ]);
   // A share of a multi-service salon booking points straight at it (the column is made by
   // salons/bookings.js ensureBookingPartsColumns before any caller passes this).
@@ -859,7 +872,7 @@ export async function getPublicArtist(userId, viewerUserId = null) {
     isSaved,
     bookedSlots,
     breakTime,
-    hours,
+    places,
     bookingBlock
   ] = await Promise.all([
     listPostsByOwner(userId, null, { publicOnly: Number(viewerUserId || 0) !== Number(userId) }),
@@ -870,7 +883,7 @@ export async function getPublicArtist(userId, viewerUserId = null) {
     viewerUserId ? isProfileSaved(viewerUserId, user.id) : false,
     listArtistBookedSlots(userId),
     getArtistBreak(userId),
-    listArtistHoursPublic(userId),
+    resolveArtistPlaces(userId, { publicRead: true }),
     onlineBookingBlock(userId, "artist")
   ]);
   return {
@@ -906,7 +919,19 @@ export async function getPublicArtist(userId, viewerUserId = null) {
     services,
     bookedSlots,
     breakTime,
-    hours
+    // What can be booked, by weekday: the artist's own hours, or (on the days they receive clients at their salon)
+    // the hours the salon is open too (shared/lib/artistPlace.js).
+    hours: places.hours,
+    // Only when some days are at a salon: which salon, and each weekday's place, so the booking screen can say where.
+    team: places.week && places.planned.includes("s")
+      ? {
+          salonId: places.team.salonUserId,
+          name: places.team.salonName,
+          avatar: places.team.salonAvatar,
+          location: places.team.location
+        }
+      : null,
+    placeDays: places.week ? places.week.map(({ day, kind }) => ({ day, kind })) : null
   };
 }
 

@@ -102,3 +102,17 @@ export function noticeProposalLapsed({ providerUserId, clientUserId, booking, cl
     }));
   }
 }
+
+/**
+ * A direct booking held at a salon is now held at the artist's own place (the artist left the salon's team, was removed,
+ * or the salon left frfro). Nothing is cancelled; the client is told so they can cancel if the new place does not suit them.
+ */
+export function noticeClientPlaceMoved(clientUserId, { artistName, salonName, salonGone = false, booking }) {
+  if (!clientUserId) return;
+  const artist = artistName || "آرتیست";
+  const salon = salonName || "سالن";
+  const body = salonGone
+    ? `${salon} دیگه توی فرفرو نیست. نوبتت با ${artist} (${booking.service || "نوبت"}) جای خود ${artist} برگزار می‌شه. اگه نمی‌خوای، لغوش کن.`
+    : `${artist} دیگه توی ${salon} نیست. نوبتت (${booking.service || "نوبت"}) جای خود ${artist} برگزار می‌شه. اگه نمی‌خوای، لغوش کن.`;
+  void quiet(sendPushToUser(Number(clientUserId), { title: "جای نوبتت عوض شد", body, url: "/" }));
+}
