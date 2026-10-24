@@ -93,8 +93,8 @@
 
 /* .artistBreakBtn.is-active */
 .artistBreakBtn.is-active {
-  border-color: rgb(var(--ink-rgb) / 0.28);
-  background: rgb(var(--ink-rgb) / 0.16);
+  border-color: var(--n-300);
+  background: var(--n-200);
   color: var(--teal);
 }
 
