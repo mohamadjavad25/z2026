@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 // Set once a salon/artist's account has been shown the tip: one time per account on this device.
 const SEEN_KEY = "frfro-tip-create-booking";
@@ -38,6 +38,9 @@ function findButtonRect() {
  */
 export function CreateBookingTip({ active, accountId, onCreateBooking }) {
   const [rect, setRect] = useState(null);
+  // Set once the tip is closed, so a later resize can never bring it back: phones fire "resize"
+  // whenever the address bar or keyboard moves, which used to re-open the tip after every dismissal.
+  const closedRef = useRef(false);
 
   useEffect(() => {
     if (!active || !accountId || hasSeen(accountId)) return undefined;
@@ -45,6 +48,7 @@ export function CreateBookingTip({ active, accountId, onCreateBooking }) {
     const measure = () => {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
+        if (closedRef.current) return;
         const next = findButtonRect();
         // Counted as seen as soon as it is shown, so a reload or an app restart does not show it again.
         if (next) rememberSeen(accountId);
@@ -64,6 +68,7 @@ export function CreateBookingTip({ active, accountId, onCreateBooking }) {
   if (!active || !rect) return null;
 
   const close = () => {
+    closedRef.current = true;
     setRect(null);
   };
   const pad = 8;
