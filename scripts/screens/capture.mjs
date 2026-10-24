@@ -127,6 +127,7 @@ const openBooker = async (p) => {
   await p.locator(".sduPanel button", { hasText: "رزرو" }).last().click({ timeout: 4000, force: true });
   await p.waitForTimeout(1500);
 };
+const radio = (name) => async (p) => { await p.getByRole("radio", { name }).first().click({ timeout: 4000 }); await p.waitForTimeout(700); };
 const pickDay = (n) => async (p) => { await p.locator(".bspDay").nth(n).click({ timeout: 4000 }); await p.waitForTimeout(900); };
 const SALON_AND_OWN_DAYS = "sosooso";
 
@@ -136,15 +137,15 @@ function placeScreens() {
   return [
     { id: "artist-place-default", role: "artist", title: "مشتری‌هات کجا نوبت بگیرن؟، هنوز چیزی انتخاب نشده", setup: placeState({}), steps: [COLLAB], full: true },
     { id: "artist-place-own-address", role: "artist", title: "جای خودم، با آدرس ثبت‌شده", setup: placeState({ artistAddress: true }), steps: [COLLAB], full: true },
-    { id: "artist-place-salon-saved", role: "artist", title: "توی سالن را انتخاب و ذخیره کرد", setup: placeState({}), steps: [COLLAB, tap(/^توی سالن رز/), tap("ذخیره")], full: true },
-    { id: "artist-place-days-edit", role: "artist", title: "هر روز یه جا، در حال انتخاب روزها", setup: placeState({ ...mixed, artistAddress: true }), steps: [COLLAB, tap(/^هر روز یه جا/), tap(/^دوشنبه، سالن/)], full: true },
+    { id: "artist-place-salon-saved", role: "artist", title: "توی سالن را انتخاب و ذخیره کرد", setup: placeState({}), steps: [COLLAB, radio(/^توی سالن رز/), tap("ذخیره")], full: true },
+    { id: "artist-place-days-edit", role: "artist", title: "هر روز یه جا، در حال انتخاب روزها", setup: placeState({ ...mixed, artistAddress: true }), steps: [COLLAB, radio(/^هر روز یه جا/), tap(/^دوشنبه، سالن/)], full: true },
     { id: "artist-place-blocked", role: "artist", title: "سالن نوبت مستقیم را بسته", setup: placeState({ switchOn: false }), steps: [COLLAB], full: true },
     { id: "artist-place-days-dark", role: "artist", title: "هر روز یه جا، شب", dark: true, setup: placeState({ ...mixed, artistAddress: true }), steps: [COLLAB], full: true },
     { id: "client-artist-team-page", role: "client", title: "صفحهٔ آرتیستی که عضو یه سالنه", setup: placeState({ ...mixed, artistAddress: true }), path: artistOpen },
     { id: "client-artist-book-salon-day", role: "client", title: "نوبت از آرتیست، روزِ سالن", setup: placeState({ ...mixed, artistAddress: true }), path: artistOpen, steps: [openBooker, pickDay(2)] },
     { id: "client-artist-book-own-day", role: "client", title: "نوبت از آرتیست، روزی که جای خودشه", setup: placeState({ ...mixed, artistAddress: true }), path: artistOpen, steps: [openBooker, pickDay(1)] },
     { id: "client-artist-book-own-no-address", role: "client", title: "روزِ جای خودش، بدون آدرس", setup: placeState({ ...mixed }), path: artistOpen, steps: [openBooker, pickDay(1)] },
-    { id: "client-artist-book-closed-day", role: "client", title: "روزی که سالن تعطیله", setup: placeState({ ...mixed, artistAddress: true }), path: artistOpen, steps: [openBooker, pickDay(6)] },
+    { id: "client-artist-book-closed-day", role: "client", title: "روزی که سالن تعطیله", setup: placeState({ mode: "days", days: "sosooos", artistAddress: true }), path: artistOpen, steps: [openBooker, pickDay(6)] },
     { id: "client-artist-book-blocked", role: "client", title: "سالن نوبت مستقیم را بسته", setup: placeState({ ...mixed, artistAddress: true, switchOn: false }), path: artistOpen, steps: [openBooker, pickDay(2)] },
     { id: "client-artist-book-salon-dark", role: "client", title: "نوبت از آرتیست، روزِ سالن، شب", dark: true, setup: placeState({ ...mixed, artistAddress: true }), path: artistOpen, steps: [openBooker, pickDay(2)] },
     { id: "salon-staff-direct-switch", role: "salon", title: "مدیریت آرتیست، کلید نوبت مستقیم", setup: placeState({ ...mixed, artistAddress: true }), steps: [css(".profileModeRail button, [role=tab], button", "پرسنل"), tap(/^مدیریت نگار/), async (p) => { await p.getByText("مشتری‌هایی که خودش میاره").first().scrollIntoViewIfNeeded(); await p.waitForTimeout(500); }] },
