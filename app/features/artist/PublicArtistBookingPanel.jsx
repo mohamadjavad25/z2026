@@ -81,6 +81,11 @@ export function PublicArtistBookingPanel({
     }
   }, [bookingDay, fullDays.join("|")]);
 
+  // An hour picked on another day may not exist on this one (shorter hours, or a day the salon is closed): never keep it.
+  useEffect(() => {
+    if (bookingSlot && !freeSlots.includes(bookingSlot)) onSlotChange?.("");
+  }, [bookingDay, freeSlots.join("|")]);
+
   // Default: nearest free hour (from now), refreshed when the day changes.
   useEffect(() => {
     if (!bookingSlot && freeSlots.length) {
@@ -148,7 +153,7 @@ export function PublicArtistBookingPanel({
         timeValue={bookingSlot}
         onTimeChange={onSlotChange}
         emptyTimeMessage={team && offDay(bookingDay)
-          ? placeRefusal(selectedKind, { name: artist.name || "آرتیست", salonName: team.name })
+          ? "برای این روز ساعتی نیست."
           : "این روز ساعت خالی‌ای به این اندازه نیست."}
       />
 
