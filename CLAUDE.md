@@ -1,20 +1,5 @@
 # frfro: instructions for Claude
 
-## URGENT unfinished work: salon/artist connect flows (user's request 2026-10-24)
-
-At the start of the next session, before anything else, tell the user in one short Persian sentence that this urgent job is waiting and offer to finish it. The work is on branch `claude/reserve-button-display-delete-bug-7p3ywn` (pushed, NOT merged, no PR yet); check it out first. Delete this section when the work is merged.
-
-The user's report: (1) an artist's QR scanned with the phone camera outside the app opened the public artist page; a salon owner tapped «وصل شو», typed the salon's phone, and only at the password step was told the number has an account; after login the page offered booking, but the owner wanted to connect the artist to the salon's team. (2) Inside the app the salon showed its team QR, the artist scanned it, the scanner stayed open on the result, and the team showed nothing until a full refresh.
-
-Done on the branch (built and tried in a real browser with two accounts):
-- `useFollowGate.js` / `FollowSheet.jsx`: a salon or artist is never made a follower. Salon on an artist page sends a team invite («دعوت رفت»); artist on a salon page is told to use the team code; same-type pairs are told they do not connect; an invite already waiting says so. Login button is just «وارد شو».
-- `ClientSignupWizard.jsx`: when the SMS step says the phone already has an account, go straight to login with the phone filled in.
-- `/api/follows` and `/api/salon-follow`: 403 when a non-client tries to follow (removing stays allowed). Test added in `tests/integration/followers.test.js` (passes).
-- `useHomeApp.jsx`: now returns `refreshSalonSystemData` and `refreshArtistWorkspace` (they were missing, so scans never refreshed anything).
-- `ScanFlow.jsx`: after an artist joins a team by scan, the scanner closes and a line «رفتی توی تیم «…»!» shows; the team card is there without reload.
-
-Still to do: (a) run lint and the wider tests once more (5 tests in `angle3b_authz.test.js` about phone privacy failed; they probably fail on untouched `main` too, not confirmed: check by testing `main`); (b) check the new texts against `docs/COPY.md` and retake affected `docs/screens` pictures; (c) add one line to `docs/DECISIONS.md` (only clients follow; salon-to-artist from a public page = team invite the artist must accept); (d) ask the user the short product questions (what the salon sees after inviting, and so on); (e) open the PR, merge into `main`, say it reaches the main server with the next `scripts/deploy.sh`. Local test setup: Postgres 16 (`pg_ctlcluster 16 main start`, database `frfro_screens`, see `docs/screens/README.md`); move the dangling `headless_shell` symlink aside before `npm run build` and restore it with `git checkout headless_shell`.
-
 ## Deployment status (for reference, no reminder needed)
 
 - The `ZIBABAN_*` → `FRFRO_*` environment variable rename in Vercel (project `z2026`) is done and deployed on 2026-10-10. The secrets (`FRFRO_ADMIN_SECRET`, `FRFRO_ADMIN_SETUP_KEY`, `FRFRO_ADMIN_TOKEN`, `FRFRO_VAPID_PRIVATE_KEY`, `NEXT_PUBLIC_VAPID_PUBLIC_KEY`) were regenerated, not copied, because Vercel does not expose sensitive values.
