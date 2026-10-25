@@ -1,5 +1,8 @@
 /* «وقتش شده» on the salon's and the artist's side (features/dueReminders, owner's decisions 2026-10-25). */
-.dueCard { position: relative; display: grid; gap: 10px; margin: 12px 14px; padding: 16px; border: 1px solid var(--n-100); border-radius: 20px; background: var(--n-0); }
+.dueModal { position: fixed; inset: 0; z-index: var(--z-modal); display: grid; place-items: center; padding: 24px max(16px, env(safe-area-inset-right, 0px)) 24px max(16px, env(safe-area-inset-left, 0px)); background: var(--scrim); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); animation: dueModalIn 0.22s ease both; }
+@keyframes dueModalIn { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .dueModal { animation: none; } }
+.dueCard { position: relative; display: grid; gap: 10px; width: min(100%, 420px); margin: 0; box-shadow: 0 18px 40px rgb(var(--shadow-rgb) / 0.3); padding: 16px; border: 1px solid var(--n-100); border-radius: 20px; background: var(--n-0); }
 .dueCard > b { padding-inline-end: 36px; font-size: 0.95rem; font-weight: 950; }
 .dueCard > p { margin: 0; color: var(--n-600); font-size: 0.76rem; font-weight: 750; line-height: 1.9; }
 .dueCardIcon { display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 14px; background: var(--fill-violet); color: var(--n-0); }
@@ -21,7 +24,8 @@
 .dueSection > p.is-warn { color: var(--warning); }
 .dueList { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
 .dueList button { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 54px; padding: 8px 12px; border: 1px solid var(--n-100); border-radius: 14px; background: var(--n-25); color: var(--n-900); font: inherit; text-align: start; cursor: pointer; }
-.dueList button > span { display: grid; flex: 1; min-width: 0; gap: 2px; }
+.dueList button > span:not(.serviceIcon) { display: grid; flex: 1; min-width: 0; gap: 2px; }
+.dueList button > .serviceIcon { flex: none; }
 .dueList b { font-size: 0.82rem; font-weight: 900; }
 .dueList small { overflow: hidden; color: var(--n-600); font-size: 0.7rem; font-weight: 750; text-overflow: ellipsis; white-space: nowrap; }
 .dueList em { flex: none; font-style: normal; font-size: 0.72rem; font-weight: 900; color: var(--success); }

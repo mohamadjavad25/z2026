@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { BellRing, Check, ChevronLeft, X } from "lucide-react";
 import { apiFetch } from "../../shared/api/client";
 import { ProfileSheet } from "../profile/ProfileSheet";
@@ -30,38 +31,62 @@ function useDuePlan(reloadKey) {
   return { plan, send };
 }
 
-/** One-time card on the home page; gone once confirmed (or closed for this visit). */
+const LATER_KEY = "frfro-due-later";
+
+/**
+ * The one-time question, as a pop-up over the home page with the page blurred behind it (owner's request
+ * 2026-10-25: «پاپ بشه، روی همه»). It waits a moment after the page opens and never covers the «+» tip; «فعلاً نه»
+ * (the ×, or a tap outside) keeps it away until the app is opened again. Gone for good once confirmed.
+ */
 export function DueRemindersCard({ reloadKey = 0 }) {
   const { plan, send } = useDuePlan(reloadKey);
-  const [hidden, setHidden] = useState(false);
+  const [ready, setReady] = useState(false);
+  const [hidden, setHidden] = useState(() => {
+    try { return window.sessionStorage.getItem(LATER_KEY) === "1"; } catch { return false; }
+  });
   const [editing, setEditing] = useState(false);
   const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setReady(!document.querySelector(".createTip")), 1200);
+    return () => window.clearTimeout(timer);
+  }, []);
+  const later = () => {
+    setHidden(true);
+    try { window.sessionStorage.setItem(LATER_KEY, "1"); } catch { /* it just asks again next time */ }
+  };
   const shown = (plan?.services || []).filter((service) => service.gapDays > 0);
-  if (hidden || !plan || plan.confirmed || !plan.services.length) return null;
-  return (
-    <section className="dueCard" aria-label="یادآوری وقتش شده برای مشتری‌هات">
-      <button type="button" className="dueCardClose" aria-label="فعلاً نه" onClick={() => setHidden(true)}><X size={16} /></button>
-      <span className="dueCardIcon" aria-hidden="true"><BellRing size={20} /></span>
-      {/* Short on purpose: the owner struck the explanation out (2026-10-25). */}
-      <b>یادآوری «وقتش شده»</b>
-      {shown.length ? (
-        <ul className="dueCardList">
-          {shown.slice(0, 6).map((service) => (
-            <li key={service.name}><span>{service.name}</span><em>{gapLabel(service.gapDays)}</em></li>
-          ))}
-          {shown.length > 6 ? <li className="is-more">و {toPersianDigits(shown.length - 6)} خدمت دیگه</li> : null}
-        </ul>
-      ) : <p>برای خدمت‌هات فاصلهٔ معمولی پیدا نکردیم؛ با «عوض می‌کنم» خودت بذار.</p>}
-      <div className="dueCardActions">
-        <button type="button" className="dueBtn is-main" disabled={busy} onClick={async () => { setBusy(true); await send({ confirm: true }); setBusy(false); }}>
-          <Check size={16} aria-hidden="true" />{busy ? "یه لحظه…" : "همه درسته"}
-        </button>
-        <button type="button" className="dueBtn" onClick={() => setEditing(true)}>عوض می‌کنم</button>
-      </div>
-      <ProfileSheet open={editing} kicker="خدمت‌ها" title="یادآوری وقتش شده" onClose={() => setEditing(false)}>
+  if (hidden || !ready || !plan || plan.confirmed || !plan.services.length) return null;
+  if (editing) {
+    return (
+      <ProfileSheet open kicker="خدمت‌ها" title="یادآوری وقتش شده" onClose={() => setEditing(false)}>
         <DueRuleList plan={plan} send={send} />
       </ProfileSheet>
-    </section>
+    );
+  }
+  return createPortal(
+    <div className="dueModal" role="dialog" aria-modal="true" aria-labelledby="due-modal-title" onClick={later}>
+      <section className="dueCard" onClick={(event) => event.stopPropagation()}>
+        <button type="button" className="dueCardClose" aria-label="فعلاً نه" onClick={later}><X size={16} /></button>
+        <span className="dueCardIcon" aria-hidden="true"><BellRing size={20} /></span>
+        <b id="due-modal-title">یادآوری «وقتش شده»</b>
+        <p>چند هفته بعد از هر نوبت، مشتری یه اعلان می‌گیره که وقت دوباره‌شه.</p>
+        {shown.length ? (
+          <ul className="dueCardList">
+            {shown.slice(0, 6).map((service) => (
+              <li key={service.name}><span>{service.name}</span><em>{gapLabel(service.gapDays)}</em></li>
+            ))}
+            {shown.length > 6 ? <li className="is-more">و {toPersianDigits(shown.length - 6)} خدمت دیگه</li> : null}
+          </ul>
+        ) : <p>برای خدمت‌هات فاصلهٔ معمولی پیدا نکردیم؛ با «عوض می‌کنم» خودت بذار.</p>}
+        <div className="dueCardActions">
+          <button type="button" className="dueBtn is-main" disabled={busy} onClick={async () => { setBusy(true); await send({ confirm: true }); setBusy(false); }}>
+            <Check size={16} aria-hidden="true" />{busy ? "یه لحظه…" : "همه درسته"}
+          </button>
+          <button type="button" className="dueBtn" onClick={() => setEditing(true)}>عوض می‌کنم</button>
+        </div>
+      </section>
+    </div>,
+    document.body
   );
 }
 
