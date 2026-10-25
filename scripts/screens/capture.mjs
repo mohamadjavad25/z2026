@@ -283,7 +283,7 @@ async function main() {
       ? { viewport: { width: 1366, height: 820 }, locale: "fa-IR", ...(screen.dark ? { colorScheme: "dark" } : {}) }
       : { viewport: { width: 390, height: 844 }, deviceScaleFactor: 1.5, locale: "fa-IR", isMobile: true, hasTouch: true, ...(screen.dark ? { colorScheme: "dark" } : {}) });
     // Phones skip the about page; the one-time «+» tip counts as seen so it does not cover the screens.
-    await context.addInitScript({ content: `try { ${screen.desktop ? "" : 'localStorage.setItem("frfro-entered", "1");'} const g = Storage.prototype.getItem; Storage.prototype.getItem = function (k) { return String(k).startsWith("frfro-tip") ? "1" : g.call(this, k); }; } catch (e) {}` });
+    await context.addInitScript({ content: `try { ${screen.desktop ? "" : 'localStorage.setItem("frfro-entered", "1");'} const g = Storage.prototype.getItem; Storage.prototype.getItem = function (k) { return String(k).startsWith("frfro-tip") || k === "frfro-due-later" ? "1" : g.call(this, k); }; } catch (e) {}` });
     if (screen.role !== "guest") {
       const [name, ...rest] = sessions[screen.role].cookie().split("=");
       await context.addCookies([{ name, value: rest.join("="), url: BASE }]);

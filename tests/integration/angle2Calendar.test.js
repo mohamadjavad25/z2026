@@ -155,13 +155,23 @@ describe("impossible and out-of-range booking dates", () => {
 
 describe("how far ahead a valid date can be booked", () => {
   const openOffset = (n) => { let o = n; while (plain(weekdayAhead(o)) === plain("جمعه")) o += 1; return o; };
-  for (const target of [30, 120, 300, 399]) {
+  for (const target of [30, 55]) {
     it(`+${target} days (valid) is stored exactly`, async () => {
       const offset = openOffset(target);
       const key = keyAhead(offset);
       const { res, rows } = await tryBooking({ bookingDate: key, time: "۱۱:۰۰" });
       expect(res.status, JSON.stringify(res.payload)).toBe(201);
       expect(rows[0].booking_date).toBe(key);
+    });
+  }
+  // A client may ask at most 60 days ahead (owner's decision 2026-10-25); further is refused and creates nothing.
+  for (const target of [120, 300, 399]) {
+    it(`+${target} days (valid) is refused for a client as too far, and creates nothing`, async () => {
+      const offset = openOffset(target);
+      const { res, rows } = await tryBooking({ bookingDate: keyAhead(offset), time: "۱۱:۰۰" });
+      expect(res.status, JSON.stringify(res.payload)).toBe(409);
+      expect(res.payload.error).toMatch(/روز جلوتر/);
+      expect(rows).toHaveLength(0);
     });
   }
   for (const target of [401, 450, 800]) {
@@ -207,7 +217,10 @@ describe("Esfand, Nowruz and month boundaries inside the booking horizon", () =>
     for (const [label, offset] of [["last day", end.offset], ["Nowruz", end.nextOffset]]) {
       const key = keyAhead(offset);
       const { res, rows } = await tryBooking({ bookingDate: key, time: "۱۱:۰۰" });
-      if (plain(weekdayAhead(offset)) === plain("جمعه")) {
+      if (offset > 60) {
+        expect(res.status, `${label} ${key} is past the 60-day horizon`).toBe(409);
+        expect(res.payload.error).toMatch(/روز جلوتر/);
+      } else if (plain(weekdayAhead(offset)) === plain("جمعه")) {
         expect(res.status, `${label} ${key} is a Friday`).toBe(409);
       } else {
         expect(res.status, `${label} ${key}: ${JSON.stringify(res.payload)}`).toBe(201);
@@ -239,7 +252,8 @@ describe("Esfand, Nowruz and month boundaries inside the booking horizon", () =>
     await salon.api.patch("/api/salon-hours", { day: row.day, active: false });
     const blocked = await bookAtSalon(client.api, salon, client, { day: keyAhead(end.nextOffset), time: "۱۱:۰۰" });
     expect(blocked.status).toBe(409);
-    expect(blocked.payload.error).toMatch(/تعطیل/);
+    // Past the client's 60-day horizon the "too far" answer comes first; inside it, the closed day.
+    expect(blocked.payload.error).toMatch(end.nextOffset > 60 ? /روز جلوتر/ : /تعطیل/);
   });
 
   it("the Mehr 30 / Aban 1 and Aban 30 / Azar 1 boundaries are consecutive days that both book exactly", async () => {
