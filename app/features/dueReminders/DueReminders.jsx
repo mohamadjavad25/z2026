@@ -42,8 +42,8 @@ export function DueRemindersCard({ reloadKey = 0 }) {
     <section className="dueCard" aria-label="یادآوری وقتش شده برای مشتری‌هات">
       <button type="button" className="dueCardClose" aria-label="فعلاً نه" onClick={() => setHidden(true)}><X size={16} /></button>
       <span className="dueCardIcon" aria-hidden="true"><BellRing size={20} /></span>
-      <b>یادآوری «وقتش شده» برای مشتری‌هات</b>
-      <p>چند هفته بعد از هر نوبت، فرفرو به مشتری یه اعلان می‌ده که وقت دوباره‌ش شده و با یه ضربه دوباره پیش خودت نوبت می‌گیره. تا تأیید نکنی، چیزی نمی‌ره.</p>
+      {/* Short on purpose: the owner struck the explanation out (2026-10-25). */}
+      <b>یادآوری «وقتش شده»</b>
       {shown.length ? (
         <ul className="dueCardList">
           {shown.slice(0, 6).map((service) => (
