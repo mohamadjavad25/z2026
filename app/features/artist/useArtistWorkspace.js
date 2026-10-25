@@ -112,7 +112,6 @@ export function useArtistWorkspace({
   const [artistBookingSelectedDay, setArtistBookingSelectedDay] = useState(getTodayPersianWeekday());
   const [artistHoursList, setArtistHoursList] = useState([]);
   const [artistHoursOpen, setArtistHoursOpen] = useState(false);
-  const [selectedArtistHourDay, setSelectedArtistHourDay] = useState("");
   const [artistRailDock, setArtistRailDock] = useState({ wall: "left", along: 1 });
   const [artistRailDragging, setArtistRailDragging] = useState(false);
   const [artistRailDragPos, setArtistRailDragPos] = useState(null);
@@ -207,19 +206,10 @@ export function useArtistWorkspace({
     }
   }, []);
   const {
-    artistHoursPresets,
-    activeArtistHoursPreset,
-    activeArtistHoursPresetMeta,
     activeArtistHours,
-    weeklyArtistCapacityTotal,
-    selectedArtistHour,
-    artistHourTimeOptions,
-    updateArtistHour,
-    updateArtistHoursPreset,
-    copyArtistHourToOpenDays
+    saveArtistHoursWeek,
   } = useArtistHours({
     artistHoursList,
-    selectedArtistHourDay,
     shellNotify,
     setArtistHoursList
   });
@@ -255,7 +245,6 @@ export function useArtistWorkspace({
     setArtistWorkspaceLoading(true);
     setArtistHoursList([]);
     setArtistHoursOpen(false);
-    setSelectedArtistHourDay("");
   }, []);
 
   usePolling(refreshArtistBookingsOnly, 20000, createdProfile?.type === "artist");
@@ -713,18 +702,8 @@ export function useArtistWorkspace({
     artistHoursList,
     artistHoursOpen,
     setArtistHoursOpen,
-    selectedArtistHourDay,
-    setSelectedArtistHourDay,
-    artistHoursPresets,
-    activeArtistHoursPreset,
-    activeArtistHoursPresetMeta,
-    selectedArtistHour,
-    artistHourTimeOptions,
     openArtistHoursDaysCount: activeArtistHours.length,
-    weeklyArtistCapacityTotal,
-    updateArtistHour,
-    updateArtistHoursPreset,
-    copyArtistHourToOpenDays,
+    saveArtistHoursWeek,
     artistRailDock,
     setArtistRailDock,
     artistRailDragging,

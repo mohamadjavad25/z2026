@@ -159,6 +159,8 @@ const SCREENS = [
   { id: "salon-invite-clients", role: "salon", title: "دعوت مشتری", steps: [tab(2), tap(/دعوت مشتری/)] },
   { id: "salon-settings", role: "salon", title: "تنظیمات سالن", steps: [tab(0)] },
   { id: "salon-settings-full", role: "salon", title: "تنظیمات سالن، کامل", steps: [tab(0)], full: true },
+  { id: "salon-hours", role: "salon", title: "ساعت کاری سالن", steps: [tab(0), css(".settingsSalonHoursToggle")] },
+  { id: "salon-hours-day", role: "salon", title: "ساعت کاری سالن، یک روز باز", steps: [tab(0), css(".settingsSalonHoursToggle"), css(".hrsDayMain", "دوشنبه")] },
   { id: "salon-public-preview", role: "salon", title: "پیش‌نمایش صفحهٔ عمومی", steps: [tap("صفحه‌م رو مثل مشتری ببینم")] },
   // artist
   { id: "artist-home", role: "artist", title: "خانهٔ آرتیست" },

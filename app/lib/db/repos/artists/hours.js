@@ -1,4 +1,4 @@
-import { getDb, all, get, run } from "../../connection.js";
+import { getDb, all, get, run, withTransaction } from "../../connection.js";
 
 const defaultArtistHours = [
   { day: "شنبه", open_time: "۱۰:۰۰", close_time: "۲۰:۰۰", capacity: 8, active: true },
@@ -31,8 +31,8 @@ export async function listArtistHours(artistUserId, runner = null) {
   return rows.sort((a, b) => (order.get(a.day) ?? 99) - (order.get(b.day) ?? 99));
 }
 
-export async function updateArtistHour(artistUserId, day, data) {
-  const db = await getDb();
+export async function updateArtistHour(artistUserId, day, data, runner = null) {
+  const db = runner || (await getDb());
   await ensureArtistHours(artistUserId, db);
   await run(db, `
     UPDATE artist_hours SET
@@ -61,4 +61,13 @@ export async function listArtistHoursPublic(artistUserId, runner = null) {
   // An artist who never opened the hours screen works the default week (the booking rules use the same rows).
   if (!rows.length) rows = defaultArtistHours.map(({ day, open_time, close_time, active }) => ({ day, open_time, close_time, active }));
   return rows.sort((a, b) => (order.get(a.day) ?? 99) - (order.get(b.day) ?? 99));
+}
+
+/** Saves several weekdays at once (the hours sheet's «ذخیره»): all of them or none. */
+export async function saveArtistHoursWeek(artistUserId, days) {
+  await listArtistHours(artistUserId);
+  await withTransaction(null, async (client) => {
+    for (const { day, patch } of days) await updateArtistHour(artistUserId, day, patch, client);
+  });
+  return listArtistHours(artistUserId);
 }

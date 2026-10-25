@@ -149,10 +149,11 @@ export async function getArtistHours() {
   return apiJson("/api/artist-hours");
 }
 
-/** PATCH /api/artist-hours → { hour, hours } body: { day, open_time?, close_time?, capacity?, active? } */
-export async function updateArtistHours(body) {
+/** PATCH /api/artist-hours with the whole week → { hours } (all days saved, or none) */
+export async function saveArtistHoursWeek(hours) {
   return apiFetch("/api/artist-hours", {
     method: "PATCH",
-    body: JSON.stringify(body)
+    body: JSON.stringify({ hours })
   });
 }
+

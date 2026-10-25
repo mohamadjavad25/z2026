@@ -23,7 +23,7 @@ import { onlineBookingBlock, withoutHiddenProviders } from "../../billing/access
 import { MAX_SERVICES_PER_PROVIDER } from "../../validation/service.js";
 import { proposalView } from "../../../shared/lib/providerRules.js";
 
-export { ensureArtistHours, listArtistHours, updateArtistHour } from "./artists/hours.js";
+export { ensureArtistHours, listArtistHours, updateArtistHour, saveArtistHoursWeek } from "./artists/hours.js";
 
 export async function listArtistServices(userId, runner = null) {
   const db = runner || (await getDb());

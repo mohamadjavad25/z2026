@@ -8,7 +8,6 @@ import { BACK_PRIORITY } from "../../shared/lib/backStack";
 export function useHomeChrome({
   salonHoursList,
   activeSalonHours,
-  selectedSalonHourDay,
   salonAppointmentList,
   createdProfile,
   artistBookingList,
@@ -79,12 +78,6 @@ export function useHomeChrome({
   setSalonWeekHistoryOpen
 }) {
   const {
-    salonHoursPresets,
-    activeHoursPreset,
-    activeHoursPresetMeta,
-    weeklyCapacityTotal,
-    selectedSalonHour,
-    salonHourTimeOptions,
     bookingCustomerOptions,
     selectedStaffStats,
     salonHistoryAppointments,
@@ -103,7 +96,6 @@ export function useHomeChrome({
   } = useScheduleViews({
     salonHoursList,
     activeSalonHours,
-    selectedSalonHourDay,
     salonAppointmentList,
     createdProfile,
     artistBookingList,
@@ -244,12 +236,6 @@ export function useHomeChrome({
   const salonDaySwipe = useDaySwipe(salonHeroWeekTabs, activeScheduleDateKey, setScheduleViewDay);
 
   return {
-    salonHoursPresets,
-    activeHoursPreset,
-    activeHoursPresetMeta,
-    weeklyCapacityTotal,
-    selectedSalonHour,
-    salonHourTimeOptions,
     bookingCustomerOptions,
     selectedStaffStats,
     salonHistoryAppointments,

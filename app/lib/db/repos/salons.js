@@ -11,7 +11,7 @@ import { onlineBookingBlock, withoutHiddenProviders } from "../../billing/access
 import { publicLocation } from "../../location.js";
 
 export { ensureBookingPartsColumns as ensureBookingColumns, answerSalonTimeOffer, cancelSalonBookingByClient, draftSingleBookingStaff, getSalonBookingRow, listBookingMoveTimes, listBookingStaffOptions, listFeasibleVisitTimes, previewVisit, suggestBookingStaff, listSalonBookings, listUnavailableSlots, listClientSalonBookings, addSalonBooking, updateSalonBooking, cancelSalonBooking, patchSalonBookingWithArtistSync, syncSalonBookingFromArtistMirror, recordCancellation, invalidateUnavailable } from "./salons/bookings.js";
-export { ensureSalonHours, listSalonHours, updateSalonHour } from "./salons/hours.js";
+export { ensureSalonHours, listSalonHours, updateSalonHour, saveSalonHoursWeek } from "./salons/hours.js";
 export { listSalonPortfolio, addSalonPortfolio, updateSalonPortfolio, deleteSalonPortfolio } from "./salons/portfolio.js";
 export { listSalonServices, addSalonService, updateSalonService, deleteSalonService } from "./salons/services.js";
 export {

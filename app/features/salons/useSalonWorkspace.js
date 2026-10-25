@@ -107,7 +107,6 @@ export function useSalonWorkspace({
   const [salonServiceList, setSalonServiceList] = useState([]);
   const [salonPortfolioList, setSalonPortfolioList] = useState([]);
   const [salonHoursList, setSalonHoursList] = useState([]);
-  const [selectedSalonHourDay, setSelectedSalonHourDay] = useState("");
   const [selectedStaffName, setSelectedStaffName] = useState("");
   const [selectedArtistProfile, setSelectedArtistProfile] = useState(null);
   const [selectedBookingClient, setSelectedBookingClient] = useState(null);
@@ -542,9 +541,7 @@ export function useSalonWorkspace({
     updateSalonStaff,
     removeSalonStaff,
     joinSalonTeamAsOwner,
-    updateSalonHour,
-    updateSalonHoursPreset,
-    copySalonHourToOpenDays,
+    saveSalonHoursWeek,
     addSalonService,
     assignSalonServiceArtist,
     toggleSalonServiceArtist,
@@ -608,7 +605,6 @@ export function useSalonWorkspace({
     setSalonPortfolioList([]);
     setSalonHoursList([]);
     setSalonWorkspaceLoading(true);
-    setSelectedSalonHourDay("");
     setSelectedStaffName("");
     setSelectedArtistProfile(null);
     setSelectedBookingClient(null);
@@ -649,8 +645,6 @@ export function useSalonWorkspace({
     setSalonPortfolioList,
     salonHoursList,
     setSalonHoursList,
-    selectedSalonHourDay,
-    setSelectedSalonHourDay,
     selectedStaffName,
     setSelectedStaffName,
     selectedArtistProfile,
@@ -697,9 +691,7 @@ export function useSalonWorkspace({
     updateSalonStaff,
     removeSalonStaff,
     joinSalonTeamAsOwner,
-    updateSalonHour,
-    updateSalonHoursPreset,
-    copySalonHourToOpenDays,
+    saveSalonHoursWeek,
     addSalonService,
     assignSalonServiceArtist,
     toggleSalonServiceArtist,

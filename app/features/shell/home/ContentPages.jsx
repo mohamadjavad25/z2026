@@ -51,30 +51,12 @@ export function ContentPages() {
     logoutAccount,
     deleteAccountPermanently,
     settingsHoursOpen,
-    artistHoursPresets,
-    salonHoursPresets,
-    activeArtistHoursPreset,
-    activeHoursPreset,
-    activeArtistHoursPresetMeta,
-    activeHoursPresetMeta,
     artistHoursList,
     salonHoursList,
-    selectedArtistHour,
-    selectedSalonHour,
-    artistHourTimeOptions,
-    salonHourTimeOptions,
     openArtistHoursDaysCount,
     activeSalonHours,
-    weeklyArtistCapacityTotal,
-    weeklyCapacityTotal,
-    updateArtistHoursPreset,
-    updateSalonHoursPreset,
-    copyArtistHourToOpenDays,
-    copySalonHourToOpenDays,
-    setSelectedArtistHourDay,
-    setSelectedSalonHourDay,
-    updateArtistHour,
-    updateSalonHour,
+    saveArtistHoursWeek,
+    saveSalonHoursWeek,
     salonAppointmentList,
     artistBookingList,
     ownerFollowers,
@@ -138,18 +120,10 @@ export function ContentPages() {
             onDeleteAccount={deleteAccountPermanently}
             hoursOpen={settingsHoursOpen}
             onToggleHoursOpen={() => setSettingsHoursOpen((open) => !open)}
-            hoursPresets={createdProfile?.type === "artist" ? artistHoursPresets : salonHoursPresets}
-            activeHoursPresetId={createdProfile?.type === "artist" ? activeArtistHoursPreset : activeHoursPreset}
-            activeHoursPresetMeta={createdProfile?.type === "artist" ? activeArtistHoursPresetMeta : activeHoursPresetMeta}
             hoursList={createdProfile?.type === "artist" ? artistHoursList : salonHoursList}
-            selectedHour={createdProfile?.type === "artist" ? selectedArtistHour : selectedSalonHour}
-            hourTimeOptions={createdProfile?.type === "artist" ? artistHourTimeOptions : salonHourTimeOptions}
             openDaysCount={createdProfile?.type === "artist" ? openArtistHoursDaysCount : activeSalonHours.length}
-            weeklyCapacityTotal={createdProfile?.type === "artist" ? weeklyArtistCapacityTotal : weeklyCapacityTotal}
-            onSelectHoursPreset={createdProfile?.type === "artist" ? updateArtistHoursPreset : updateSalonHoursPreset}
-            onCopyHourToOpenDays={createdProfile?.type === "artist" ? copyArtistHourToOpenDays : copySalonHourToOpenDays}
-            onSelectHourDay={createdProfile?.type === "artist" ? setSelectedArtistHourDay : setSelectedSalonHourDay}
-            onUpdateHour={createdProfile?.type === "artist" ? updateArtistHour : updateSalonHour}
+            onSaveHours={createdProfile?.type === "artist" ? saveArtistHoursWeek : saveSalonHoursWeek}
+            hoursBookings={createdProfile?.type === "artist" ? artistBookingList : salonAppointmentList}
           />
 
           {createdProfile?.type === "salon" && (

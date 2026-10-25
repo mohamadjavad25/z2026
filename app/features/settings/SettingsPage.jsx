@@ -266,18 +266,10 @@ export function SettingsPage({
   onNotify,
   hoursOpen = false,
   onToggleHoursOpen,
-  hoursPresets = [],
-  activeHoursPresetId,
-  activeHoursPresetMeta,
   hoursList = [],
-  selectedHour,
-  hourTimeOptions = [],
   openDaysCount = 0,
-  weeklyCapacityTotal = 0,
-  onSelectHoursPreset,
-  onSelectHourDay,
-  onUpdateHour,
-  onCopyHourToOpenDays
+  onSaveHours,
+  hoursBookings = []
 }) {
   if (!profile) {
     return <div className={`settingsPagePanel mobilePage page-settings ${active ? "is-active" : ""}`} id="settings" />;
@@ -379,20 +371,13 @@ export function SettingsPage({
             <h3 className="spSectionTitle" id="spSection-work">کار و نوبت</h3>
             <SalonHoursEditor
               kicker={isArtist ? "تنظیمات آرتیست" : "تنظیمات سالن"}
+              isArtist={isArtist}
               open={hoursOpen}
               onToggleOpen={onToggleHoursOpen}
-              presets={hoursPresets}
-              activePresetId={activeHoursPresetId}
-              activePresetMeta={activeHoursPresetMeta}
               hoursList={hoursList}
-              selectedHour={selectedHour}
-              timeOptions={hourTimeOptions}
               openDaysCount={openDaysCount}
-              weeklyCapacityTotal={weeklyCapacityTotal}
-              onSelectPreset={onSelectHoursPreset}
-              onSelectDay={onSelectHourDay}
-              onUpdateHour={onUpdateHour}
-              onCopyToOpenDays={onCopyHourToOpenDays}
+              bookings={hoursBookings}
+              onSave={onSaveHours}
             />
             {isArtist ? (
               <div className="neoSettingsPanel">
