@@ -6,6 +6,7 @@ import { defaultAvatarFor } from "../../shared/lib/defaultAvatar";
 import { beautySpecialtyOptions } from "../../shared/constants/roles";
 import { SpecialtyMultiSelect } from "../auth/SpecialtyMultiSelect";
 import { useBackHandler } from "../../shared/hooks/useBackHandler";
+import { PhoneChangeBox } from "./PhoneChangeBox";
 
 /**
  * Registered profile edit sheet: one tidy scrolling page with three groups
@@ -19,6 +20,7 @@ export function ProfileEditModal({
   onClose,
   onAvatarUpload,
   onSubmit,
+  onPhoneChanged,
   saving = false
 }) {
   useBackHandler(Boolean(open && profile), onClose);
@@ -106,18 +108,7 @@ export function ProfileEditModal({
 
           <section className="peGroup" aria-labelledby="pe-contact">
             <h4 id="pe-contact">تماس</h4>
-            <label className="peField">
-              <span>شماره موبایل</span>
-              <input
-                name="phone"
-                defaultValue={profile.data?.phone || ""}
-                inputMode="tel"
-                autoComplete="tel"
-                dir="ltr"
-                maxLength={11}
-                placeholder="09123456789"
-              />
-            </label>
+            <PhoneChangeBox phone={profile.data?.phone || ""} onChanged={onPhoneChanged} />
             <label className="peField">
               <span>ایمیل <em>اگه بخوای؛ برای خبرها و وقتی رمزت یادت رفت</em></span>
               <input

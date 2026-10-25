@@ -102,6 +102,13 @@ export const SMS_TEMPLATES = {
     faraz: (v) => ({ amount: v.amount, receipt: v.receipt, who: v.who }),
     preview: (v) => `فرفرو، پرداخت تازه: ${v.who}، ${v.amount} تومان، رسید ${v.receipt}.`
   },
+  phone_changed: {
+    label: "شمارهٔ حساب عوض شد (به شمارهٔ قبلی)",
+    env: "PHONE_CHANGED",
+    kavenegar: (v) => ({ token: v.tail }),
+    faraz: (v) => ({ tail: v.tail }),
+    preview: (v) => `فرفرو: شمارهٔ حسابت به شماره‌ای که با ${v.tail} تموم می‌شه عوض شد. اگه کار خودت نبوده، به پشتیبانی فرفرو خبر بده.`
+  },
   admin_support: {
     label: "درخواست پشتیبانی (برای مدیر)",
     env: "ADMIN_SUPPORT",

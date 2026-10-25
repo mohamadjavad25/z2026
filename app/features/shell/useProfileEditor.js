@@ -88,6 +88,15 @@ export function useProfileEditor({
     };
   }, [createdProfile?.id]);
 
+  // «شمارهٔ موبایل» was changed from the profile sheet (PhoneChangeBox): the saved account replaces the old one.
+  const applyChangedPhone = useCallback((user) => {
+    const profile = normalizeProfile(user);
+    if (!profile) return;
+    writeAuthSession(profile);
+    setCreatedProfile(profile);
+    notify("شماره‌ت عوض شد. بقیهٔ گوشی‌هات از حساب بیرون رفتن.");
+  }, [notify, setCreatedProfile, writeAuthSession]);
+
   const updateRegisteredProfile = useCallback(async (event) => {
     event.preventDefault();
     if (!createdProfile || profileSavingRef.current) return;
@@ -128,7 +137,6 @@ export function useProfileEditor({
         name: text(data.name),
         area: text(data.area),
         service: text(data.service) || text(createdProfile.data.service),
-        phone: text(data.phone),
         email: text(data.email),
         experienceYears: text(data.experienceYears) || text(createdProfile.data.experienceYears),
         managerName: text(data.managerName) || text(createdProfile.data.managerName),
@@ -403,6 +411,7 @@ export function useProfileEditor({
     profileSaving,
     profileSettings,
     updateRegisteredProfile,
+    applyChangedPhone,
     saveProfileLocation,
     openProfileEdit,
     handleProfileAvatarUpload,

@@ -5,6 +5,7 @@ import { isAdminPhone, requireAdmin, requireStepUp } from "../../../../../lib/ad
 import * as admin from "../../../../../lib/db/repos/admin.js";
 import * as ops from "../../../../../lib/db/repos/adminOps.js";
 import * as users from "../../../../../lib/db/repos/users.js";
+import { deleteUserSessions } from "../../../../../lib/db/repos/sessions.js";
 
 export const runtime = "nodejs";
 
@@ -25,6 +26,8 @@ async function _POST(request, { params }) {
   const newPassword = normalizeDigits(String(((await readJson(request)) || {}).newPassword || ""));
   if (newPassword.length < 8) return error("رمز جدید باید حداقل ۸ کاراکتر باشد.", 400);
   await users.updateUser(id, { password_hash: hashPassword(newPassword) });
+  // A password set for the user signs them out everywhere (owner's decision of 2026-10-25).
+  await deleteUserSessions(id);
   await ops.killUserSessions(id);
   await admin.logAction({ adminUserId: gate.admin.id, adminLabel: gate.admin.label, action: "set_password", targetUserId: id });
   return json({ data: { ok: true } });
