@@ -55,3 +55,4 @@ One line each, dated. Claude reads this before asking questions.
 - 2026-10-25: «برای چند نفر؟» in the salon's own entry form: each extra person gets a name and an optional phone (not required).
 - 2026-10-25: Account security item 1 (other phones stay signed in after a password change) is to be fixed soon; the owner thinks another session may already be on it, so check first.
 - 2026-10-25: Client value: «وقتش شده» (a reminder when a service is due again) is the first one to build and test.
+- 2026-10-25: «وقتش شده» (owner): frfro's usual gap per kind of service, but confirmed by the salon or artist concerned; the salon or artist can also pick another ready text or write/edit their own. Push only, no SMS; once per booking; «رزرو همین» opens that place's form with the same service and artist picked; nothing is sent when the client already has a later booking for it; the client can switch it off in Settings (on by default).
