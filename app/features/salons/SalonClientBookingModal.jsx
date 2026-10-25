@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { BOOKING_HORIZON_DAYS } from "../../shared/lib/bookingWindow";
 import { VisitBooker } from "../booking/VisitBooker";
 import { normalizeServices } from "../booking/visitBookerModel";
 import { getSalonFallbacks, getSalonVisitPreview, getSalonVisitTimes } from "../../shared/api/salons";
@@ -19,7 +20,8 @@ export function SalonClientBookingModal({ open, salon, booking, onClose, onSubmi
   const services = useMemo(() => normalizeServices(getBookableSalonServiceItems(salon)), [salon]);
   // The next two weeks (the form looks ahead through all of them for a free hour) as real dates (never a bare weekday name, which a server would have to guess a
   // date for), worked out each time the sheet opens so a screen left open past midnight is not a day behind.
-  const days = useMemo(() => buildExactBookingDateTabs(14).map((tab) => ({
+  // Today and the next 60 days: how far a client may ask (owner's decision of 2026-10-25).
+  const days = useMemo(() => buildExactBookingDateTabs(BOOKING_HORIZON_DAYS + 1).map((tab) => ({
     value: tab.dateKey,
     weekday: tab.day,
     label: `${tab.label} ${tab.sub || ""}`.trim(),

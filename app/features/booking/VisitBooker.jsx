@@ -9,6 +9,7 @@ import { createVisitBookerController } from "./visitBookerController";
 import { VisitWizard } from "./VisitWizard";
 import { WaitChoice } from "./WaitChoice";
 import { PlanList, TimesList } from "./visitBookerParts";
+import { TOO_FAR_TEXT } from "../../shared/lib/bookingWindow";
 import { MAX_VISIT_PEOPLE, clockText, maxServicesFor, missingText, visitSummaryText } from "./visitBookerModel";
 
 const ROLE_COPY = {
@@ -81,6 +82,8 @@ function VisitBookerForm({ role, title, subtitle, services, days, initial, custo
   // The services and days as they were when the sheet opened: the person is mid-booking, so the
   // list does not shift under them (the server still checks everything when it is sent).
   const [frozen] = useState(() => ({ services, days, initial }));
+  // «بعدش؟» at the end of the client's days: why there are no more (the 60-day limit, owner's decision of 2026-10-25).
+  const [farOpen, setFarOpen] = useState(false);
   const controller = useMemo(() => createVisitBookerController({
     role,
     services: frozen.services,
@@ -269,7 +272,13 @@ function VisitBookerForm({ role, title, subtitle, services, days, initial, custo
                 {item.closed ? <small>تعطیل</small> : null}
               </button>
             ))}
+            {role === "client" ? (
+              <button type="button" className={`vbDay is-closed is-horizon${farOpen ? " is-open" : ""}`} aria-expanded={farOpen} onClick={() => setFarOpen((value) => !value)}>
+                بعدش؟
+              </button>
+            ) : null}
           </div>
+          {role === "client" && farOpen ? <p className="vbHint">{TOO_FAR_TEXT}</p> : null}
         </section>
 
         <section className="vbSection vbTimesSection" aria-label="ساعت">

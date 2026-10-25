@@ -98,3 +98,17 @@ export function requestRemainingShare(createdAt, day, time, { now = new Date(), 
   if (!total || total <= 0) return 0;
   return Math.max(0, Math.min(1, left / total));
 }
+
+/**
+ * How far ahead a client may ask (owner's decision of 2026-10-25): 60 days. Only a client's request; a salon or artist
+ * enters any date themselves (a bride booking three months ahead calls the salon).
+ */
+export const BOOKING_HORIZON_DAYS = 60;
+export const TOO_FAR_TEXT = `فعلاً تا ${toPersianDigits(BOOKING_HORIZON_DAYS)} روز جلوتر می‌شه نوبت گرفت. برای بعدش به سالن زنگ بزن.`;
+
+/** True when `day` is more than BOOKING_HORIZON_DAYS after today (Tehran). */
+export function isTooFarToRequest(day, now = new Date(), horizonDays = BOOKING_HORIZON_DAYS) {
+  const key = resolveRollingPersianDateKey(day, now);
+  if (!key) return false;
+  return key > formatPersianDateKey(new Date(now.getTime() + horizonDays * 86400000));
+}

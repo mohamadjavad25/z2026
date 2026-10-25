@@ -4,6 +4,9 @@ import {
 } from "./visitBookerModel.js";
 import { timeLabelToMinutes } from "../../shared/lib/time.js";
 
+/** How many days after the chosen one the form searches for the first free hour. */
+const LOOK_AHEAD_DAYS = 14;
+
 /**
  * Everything that happens over time in the booking form, with no React in it so it can be tested
  * on its own: asking the server for free times and for the plan, throwing away answers that are
@@ -174,7 +177,8 @@ export function createVisitBookerController({
     const from = days.findIndex((item) => item.value === model.day);
     times = { ...times, ahead: { status: "loading" } };
     emit();
-    for (const day of days.slice(from + 1)) {
+    // At most the next two weeks (owner's decision of 2026-10-22), however long the list of days is.
+    for (const day of days.slice(from + 1, from + 1 + LOOK_AHEAD_DAYS)) {
       if (day.closed) continue;
       const next = await loadTimesFor(day.value, picked, fresh);
       if (next === null || disposed) return; // null: the picks changed meanwhile (a newer question was asked)
