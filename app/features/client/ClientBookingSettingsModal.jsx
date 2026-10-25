@@ -233,7 +233,7 @@ export function ClientBookingSettingsModal({
   const phone = booking.salonPhone || booking.salon_phone || booking.phone || "";
   const rawDate = booking.booking_date || booking.date || "";
   const formattedDate = rawDate ? formatRelativeBookingDayLabel(rawDate) : "امروز";
-  const statusTone = bookingStatusTone(booking.status || "تازه");
+  const statusTone = booking.no_show_at ? "bad" : bookingStatusTone(booking.status || "تازه");
   const StatusIcon = BOOKING_STATUS_ICONS[statusTone];
   const area = booking.salonArea || booking.salon_area || "";
   const duration = Number(booking.duration_minutes) || 0;
@@ -271,7 +271,7 @@ export function ClientBookingSettingsModal({
             </div>
             <strong className={`clientBookingSettingsStatus is-${statusTone}`}>
               <StatusIcon size={13} />
-              {booking.status === "تایید شده" && hasBookingStarted(booking) ? "گذشته" : bookingStatusLabel(booking.status)}
+              {booking.no_show_at ? "نیومدی" : booking.status === "تایید شده" && hasBookingStarted(booking) ? "گذشته" : bookingStatusLabel(booking.status)}
             </strong>
           </div>
           <div className="clientBookingSettingsGrid">
