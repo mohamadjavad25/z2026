@@ -1,5 +1,6 @@
 "use client";
 
+import { TeamNoticeHost } from "../team/TeamNoticeHost";
 import { SalonClientBookingModal, SalonToolSheets, SalonStaffProfileModal, SalonNearbyInviteSheet } from "../salons";
 import { salonInventory, salonTasks } from "./mockData";
 import { salonArtistRoleOptions } from "../../shared/constants/roles";
@@ -297,8 +298,8 @@ export function HomeView() {
             updateSalonStaff(person.name, patch, notice);
             setSelectedArtistProfile({ ...person, ...patch });
           }}
-          onRemove={(person) => {
-            removeSalonStaff(person.name);
+          onRemove={(person, options) => {
+            removeSalonStaff(person.name, options);
             setSelectedArtistProfile(null);
           }}
           onOpenPublic={openSalonStaffPublicProfile}
@@ -389,6 +390,7 @@ export function HomeView() {
           onDelete={createdProfile?.type === "salon" ? deleteSalonService : deleteArtistService}
         />
         <NoticeHost />
+        <TeamNoticeHost profileType={createdProfile?.type || ""} />
 
         <PushSoftAsk />
         {authChecked ? <SiteNotice role={createdProfile?.type || ""} /> : null}

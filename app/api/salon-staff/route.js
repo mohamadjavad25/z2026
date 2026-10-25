@@ -1,7 +1,7 @@
 import { json, notFound, requireUserRole, withErrorHandling, readObjectBody } from "../../lib/http.js";
 import * as salons from "../../lib/db/repos/salons.js";
 import * as artists from "../../lib/db/repos/artists.js";
-import { notifyConnection } from "../../lib/connectionNotify.js";
+import { notifyTeamEnd } from "../../lib/teamNotify.js";
 import { leaveOrRemoveFromTeam } from "../../lib/db/repos/providerExit.js";
 import { exitRefusal } from "../../lib/providerExitResponse.js";
 
@@ -43,17 +43,15 @@ async function _DELETE(request) {
   const endedCollabs = artistUserId
     ? await artists.endSalonCollabsForArtist(auth.user.id, artistUserId)
     : 0;
-  notifyConnection(artistUserId, {
-    title: "همکاری تموم شد",
-    body: `دیگه با ${auth.user.name || "سالن"} کار نمی‌کنی.`,
-    url: "/"
-  });
+  // A card in the artist's app, a push, and an SMS when the push did not reach their app; `reason` is the salon's
+  // optional line to the artist (owner's decision 2026-10-25).
+  notifyTeamEnd({ kind: "removed", toUserId: artistUserId, from: auth.user, reason: body.reason });
   return json({
     data: {
       ok: true,
       staff: await salons.listSalonStaff(auth.user.id),
       endedCollabs,
-      artistNotified: endedCollabs > 0,
+      artistNotified: Boolean(artistUserId),
       artistUserId
     }
   });

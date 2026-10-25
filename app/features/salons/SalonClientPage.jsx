@@ -61,6 +61,8 @@ export function SalonClientPage({
   onShare,
   postActions = null,
   onOpenBooking,
+  // A salon or artist looking at this page (opened from a scanned code): their own bar replaces «رزرو» and «وصل شو».
+  visitorBar = null,
   continueFor = null,
   onContinue = null,
   onDismissContinue = null,
@@ -124,7 +126,7 @@ export function SalonClientPage({
 
           <section className="pphInfo" aria-label={`معرفی ${publicName}`}>
             <div className="pphActions">
-              <ConnectToggle following={isFollowing} onToggle={() => onFollow(selectedSalon)} name={publicName} kind="سالن" icon={<UserPlus size={18} />} />
+              {visitorBar ? null : <ConnectToggle following={isFollowing} onToggle={() => onFollow(selectedSalon)} name={publicName} kind="سالن" icon={<UserPlus size={18} />} />}
               {selectedSalon.phone ? (
                 <a className="pphCall" href={`tel:${toLatinDigits(selectedSalon.phone)}`} aria-label="تماس با سالن">
                   <Phone size={18} /> تماس
@@ -154,7 +156,7 @@ export function SalonClientPage({
 
           <WeeklyHours rows={weekHours} todayName={todayName} />
 
-          <ServicesOnPage services={services} onPick={(service) => onOpenBooking(bundleServices([service]))} />
+          <ServicesOnPage services={services} onPick={visitorBar ? undefined : (service) => onOpenBooking(bundleServices([service]))} />
 
           {teamMembers.length ? (
             <section className="spvSection spvTeam" aria-label="تیم سالن">
@@ -191,6 +193,8 @@ export function SalonClientPage({
           </section>
           ) : null}
 
+          {visitorBar || (
+          <>
           <ServicesDropUp
             open={servicesOpen}
             title={`خدمات ${publicName}`}
@@ -217,6 +221,8 @@ export function SalonClientPage({
               <ChevronUp size={18} className={`spvBarChevron${servicesOpen ? " is-open" : ""}`} aria-hidden="true" />
             </button>
           </nav>
+          </>
+          )}
           {publicSheet ? (
             <div className="salonPublicBrowseOverlay" role="dialog" aria-modal="true" aria-label="همه نمونه‌کارها" onClick={() => setPublicSheet("")}>
               <article className={`salonPublicBrowseSheet is-${publicSheet}`} onClick={(event) => event.stopPropagation()}>

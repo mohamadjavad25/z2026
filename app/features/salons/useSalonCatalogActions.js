@@ -62,19 +62,20 @@ export function useSalonCatalogActions({
     }
   }, [setSalonStaffList, shellNotify, refreshSalonSystemData]);
 
-  const removeSalonStaff = useCallback(async (name) => {
+  // `confirmed`: the staff sheet already asked (and maybe took the salon's one-line `reason` for the artist).
+  const removeSalonStaff = useCallback(async (name, { confirmed = false, reason = "" } = {}) => {
     const person = safeSalonStaffList.find((item) => item.name === name);
     if (!person?.id) return;
     const question = person.is_owner
       ? "خودت از تیم بری بیرون؟ کارتت می‌مونه و روشنش کنی برمی‌گردی. کارهایی که دستی به خودت داده بودی بدون آرتیست می‌مونن؛ نوبت‌های قبلی سر جاشون می‌مونن."
       : `«${person.name}» از تیم برداشته بشه؟ این کار برگشت نداره.`;
-    if (typeof window !== "undefined" && !window.confirm(question)) {
+    if (!confirmed && typeof window !== "undefined" && !window.confirm(question)) {
       return;
     }
     // One try; a refusal because of confirmed bookings (owner's rules of 2026-10-22) opens the list dialog, whose
     // «ادامه» repeats this same try (with «لغو همهٔ نوبت‌ها» when chosen).
     const attempt = async ({ cancelAll = false } = {}) => {
-      const result = await deleteSalonStaff(person.id, { cancelAll });
+      const result = await deleteSalonStaff(person.id, { cancelAll, reason });
       const { ok, payload } = result;
       if (!ok) {
         const refusal = exitRefusalOf(result);
