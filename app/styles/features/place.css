@@ -1,0 +1,100 @@
+/* Soft tints of the two role colours that follow the day/night neutral ramp (the fixed --violet-soft / --pink-soft stay light at night). */
+:root {
+  --pl-violet-bg: color-mix(in srgb, var(--brand-violet) 14%, var(--n-0));
+  --pl-pink-bg: color-mix(in srgb, var(--brand-pink) 20%, var(--n-0));
+  --pl-violet-ink: var(--violet-deep);
+  --pl-pink-ink: var(--pink-deep);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --pl-violet-ink: #bfb0ff; --pl-pink-ink: #ff9cc7; }
+}
+:root[data-theme="dark"] { --pl-violet-ink: #bfb0ff; --pl-pink-ink: #ff9cc7; }
+
+/* ═══ Where an artist on a salon team receives the clients who book them directly (owner's idea of 2026-10-24) ═══
+   The artist's chooser (collab tab), the salon's switch and the place line on the client's booking sheet.
+   Colours come from the role tokens only: the salon is the violet side, the artist's own place the pink one. */
+.plBox { display: grid; gap: 12px; padding: 16px; border: 1px solid var(--n-150); border-radius: 22px; background: var(--n-0); }
+.plBox.is-loading { min-height: 150px; background: linear-gradient(90deg, var(--n-50), var(--n-100), var(--n-50)); }
+.plHead { display: grid; gap: 2px; }
+.plHead b { color: var(--n-900); font-size: 1rem; font-weight: 950; }
+.plHead small { color: var(--n-600); font-size: 0.78rem; font-weight: 750; }
+.plHint { margin: 0; color: var(--n-600); font-size: 0.74rem; font-weight: 700; line-height: 1.7; }
+.plNote { display: grid; gap: 8px; margin: 0; padding: 10px 12px; border-radius: 14px; font-size: 0.8rem; font-weight: 800; line-height: 1.75; }
+.plNote.is-warn { background: var(--warning-bg); color: var(--warning); }
+.plNote.is-bad { background: var(--danger-bg); color: var(--danger); }
+.plNote.is-ok { background: var(--success-bg); color: var(--success); }
+.plGhost { justify-self: start; min-height: 36px; padding: 0 14px; border: 1px solid currentColor; border-radius: 12px; background: transparent; color: inherit; font: inherit; font-size: 0.8rem; font-weight: 900; cursor: pointer; }
+.plSave { min-height: 46px; border: 0; border-radius: 15px; background: var(--primary); color: var(--on-primary); font: inherit; font-size: 0.92rem; font-weight: 900; cursor: pointer; }
+.plSave:disabled { opacity: 0.4; cursor: default; }
+.plTools button:focus-visible, .plAdd:focus-visible, .plSeg button:focus-visible, .plChips button:focus-visible, .plSave:focus-visible, .plGhost:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+
+/* The salon's switch for one member (inside the member's manage sheet) */
+.plSwitchRow { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border: 1px solid var(--n-150); border-radius: 18px; background: var(--n-0); }
+.plSwitchRow > span { display: grid; gap: 1px; min-width: 0; }
+.plSwitchRow b { color: var(--n-900); font-size: 0.9rem; font-weight: 900; }
+.plSwitchRow small { color: var(--n-600); font-size: 0.74rem; font-weight: 700; line-height: 1.7; }
+.plSwitch { position: relative; flex: none; width: 50px; height: 30px; padding: 0; border: 0; border-radius: 999px; background: var(--n-300); cursor: pointer; transition: background 0.15s; }
+.plSwitch::after { content: ""; position: absolute; top: 3px; inset-inline-start: 3px; width: 24px; height: 24px; border-radius: 50%; background: var(--n-0); box-shadow: 0 2px 6px rgb(var(--shadow-rgb) / 0.25); transition: inset-inline-start 0.15s; }
+.plSwitch[aria-checked="true"] { background: var(--success); }
+.plSwitch[aria-checked="true"]::after { inset-inline-start: 23px; }
+.plSwitch:disabled { opacity: 0.5; cursor: default; }
+.plSwitch:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+.plStats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.plStat { display: grid; gap: 0; padding: 10px 12px; border-radius: 16px; background: var(--n-50); }
+.plStat b { color: var(--n-900); font-size: 1.35rem; font-weight: 950; line-height: 1.4; }
+.plStat span { color: var(--n-600); font-size: 0.72rem; font-weight: 800; }
+
+/* The salon's list of clients its members receive: when and who, never the client */
+.plVisits { display: grid; gap: 8px; padding: 14px; border: 1px solid var(--n-150); border-radius: 20px; background: var(--n-0); }
+.plVisits h3 { margin: 0; color: var(--n-900); font-size: 0.95rem; font-weight: 950; }
+.plVisits > p { margin: 0; color: var(--n-600); font-size: 0.76rem; font-weight: 700; }
+.plVisit { display: grid; gap: 1px; padding: 8px 12px; border-radius: 14px; background: var(--n-50); border-inline-start: 4px solid var(--brand-violet); }
+.plVisit b { color: var(--n-900); font-size: 0.86rem; font-weight: 900; }
+.plVisit span { color: var(--n-600); font-size: 0.74rem; font-weight: 750; }
+
+/* The artist's ordered list of salons («نوبت مشتری‌هام کجا باشه؟») */
+.plList { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.plRow { display: grid; grid-template-columns: auto auto 1fr auto; align-items: center; gap: 10px; padding: 10px 12px; border: 1.5px solid var(--n-150); border-radius: 18px; background: var(--n-0); }
+.plRow.is-skipped { background: var(--n-50); }
+.plRow.is-skipped .plAv { opacity: 0.6; }
+.plNum { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--pl-violet-bg); color: var(--pl-violet-ink); font-size: 0.74rem; font-weight: 950; }
+.plAv { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 13px; background: var(--pl-violet-bg); color: var(--pl-violet-ink); font-weight: 950; }
+.plText { display: grid; gap: 0; min-width: 0; }
+.plText b { color: var(--n-900); font-size: 0.9rem; font-weight: 900; line-height: 1.6; }
+.plText small { color: var(--n-600); font-size: 0.72rem; font-weight: 700; line-height: 1.7; }
+.plRow.is-skipped .plText small { color: var(--warning); }
+.plTools { display: inline-flex; gap: 2px; }
+.plTools button { display: grid; place-items: center; width: 32px; height: 32px; border: 0; border-radius: 10px; background: transparent; color: var(--n-600); cursor: pointer; }
+.plTools button:disabled { opacity: 0.3; cursor: default; }
+.plTools button:not(:disabled):hover { background: var(--n-100); }
+.plAdd { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; border: 1.5px dashed var(--n-300); border-radius: 18px; background: transparent; color: var(--n-800); font: inherit; text-align: start; cursor: pointer; }
+.plAdd span { display: grid; min-width: 0; }
+.plAdd b { font-size: 0.88rem; font-weight: 900; }
+.plAdd small { color: var(--n-600); font-size: 0.72rem; font-weight: 700; }
+.plAdd em { color: var(--pl-violet-ink); font-size: 0.76rem; font-style: normal; font-weight: 950; }
+.plLast { display: grid; gap: 8px; padding-top: 4px; }
+.plLast > b { color: var(--n-900); font-size: 0.86rem; font-weight: 900; }
+.plLast > small { color: var(--n-600); font-size: 0.74rem; font-weight: 700; line-height: 1.7; }
+.plSeg { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: 15px; background: var(--n-100); }
+.plSeg button { min-height: 38px; border: 0; border-radius: 12px; background: transparent; color: var(--n-700); font: inherit; font-size: 0.84rem; font-weight: 850; cursor: pointer; }
+.plSeg button.is-on { background: var(--n-0); color: var(--n-900); box-shadow: 0 1px 6px rgb(var(--shadow-rgb) / 0.12); }
+
+/* «جای نوبت» in the artist's booking sheet */
+.plBookingPlace { display: grid; gap: 8px; padding: 12px 14px; border: 1px solid var(--n-150); border-radius: 18px; background: var(--n-0); }
+.plBookingLabel { display: inline-flex; align-items: center; gap: 6px; color: var(--n-700); font-size: 0.8rem; font-weight: 900; }
+.plChips { display: flex; flex-wrap: wrap; gap: 6px; }
+.plChips button { min-height: 36px; padding: 0 14px; border: 1.5px solid var(--n-150); border-radius: 999px; background: var(--n-0); color: var(--n-800); font: inherit; font-size: 0.82rem; font-weight: 850; cursor: pointer; }
+.plChips button.is-on { border-color: var(--brand-violet); background: var(--pl-violet-bg); color: var(--pl-violet-ink); }
+.plChips button:disabled { opacity: 0.6; cursor: default; }
+.plBookingMsg { color: var(--success); font-size: 0.76rem; font-weight: 800; }
+.plBookingMsg.is-bad { color: var(--danger); }
+
+/* Asked before a saved spot is cleared (settings → جام روی نقشه) */
+.profileLocationAsk { display: grid; gap: 4px; padding: 14px; border: 1px solid var(--n-150); border-radius: 20px; background: var(--n-0); }
+.profileLocationAsk strong { color: var(--n-900); font-size: 0.92rem; font-weight: 950; }
+.profileLocationAsk > span { color: var(--n-600); font-size: 0.78rem; font-weight: 700; }
+.profileLocationAsk > div { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+.profileLocationAsk button { min-height: 42px; border-radius: 14px; font: inherit; font-size: 0.86rem; font-weight: 900; cursor: pointer; }
+.profileLocationAskYes { border: 1.5px solid var(--danger); background: transparent; color: var(--danger); }
+.profileLocationAskNo { border: 0; background: var(--primary); color: var(--on-primary); }
+.profileLocationAsk button:disabled { opacity: 0.5; cursor: default; }

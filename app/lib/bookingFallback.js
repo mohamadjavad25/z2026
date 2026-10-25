@@ -2,7 +2,7 @@ import { getDb, all, get, run } from "./db/connection.js";
 import * as salons from "./db/repos/salons.js";
 import { onlineBookingBlock } from "./billing/access.js";
 import { salonVisitParts } from "./salonVisitParts.js";
-import { visitSlotProblem } from "./visitSlotRules.js";
+import { artistSlotProblem, visitSlotProblem } from "./visitSlotRules.js";
 import { createSalonBooking } from "./salonBookingCreate.js";
 import { createArtistBooking } from "./artistBookingCreate.js";
 import * as artists from "./db/repos/artists.js";
@@ -160,6 +160,7 @@ async function artistServiceFor(artistUserId, service) {
 async function artistFreeAt(artistUserId, listed, bookingDateKey, time) {
   if (isSlotInPast(bookingDateKey, time) || isTooSoonToRequest(bookingDateKey, time)) return false;
   const minutes = parseServiceDurationMinutes(listed.duration) || 60;
+  if (artistSlotProblem({ hours: await artists.listArtistHours(artistUserId), bookingDateKey, time, durationMinutes: minutes })) return false;
   return !(await artists.isArtistSlotBlocked(artistUserId, bookingDateKey, time, minutes));
 }
 

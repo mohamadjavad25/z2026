@@ -13,13 +13,15 @@ import {
 import { salonClientBookingDays } from "./constants";
 import { isTooSoonToRequest } from "../../shared/lib/bookingWindow";
 import { buildDayBookingSlots, getTehranClockMinutes, timeLabelToMinutes } from "../../shared/lib/time";
+import { resolveRollingPersianDateKey } from "../../shared/lib/persianCalendar";
 import { findSalonHourForDateKey, isSalonHourOpen, salonDayWindow } from "../../shared/lib/salonAvailability";
 
 /** The 30-minute start times of one day that fit the artist's hours; the default week when none are known. */
-function slotsInHours(hours, dayKey, durationMinutes) {
+function slotsInHours(hours, day, durationMinutes) {
   const rows = Array.isArray(hours) && hours.length ? hours : null;
   if (!rows) return buildPublicBookingSlots(durationMinutes);
-  const row = findSalonHourForDateKey(rows, dayKey);
+  // The day strip holds labels ("شنبه ۲ آبان"); the hours are looked up by the real date.
+  const row = findSalonHourForDateKey(rows, resolveRollingPersianDateKey(day) || day);
   if (!isSalonHourOpen(row)) return [];
   const window = salonDayWindow(row);
   return buildDayBookingSlots(window.open, window.close, durationMinutes);

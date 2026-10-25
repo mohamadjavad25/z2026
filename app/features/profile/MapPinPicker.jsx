@@ -31,9 +31,10 @@ function nearestCity(lat, lng) {
  * shape as «ثبت لوکیشن» in Settings; `area` is the street address when the map service answers,
  * else the nearest city.
  */
-export function MapPinPicker({ initialPin = null, initialDetail = "", askDetail = true, saving = false, saveLabel = "همین‌جا رو ذخیره کن", onSave, onCancel }) {
+export function MapPinPicker({ initialPin = null, initialAddress = "", initialDetail = "", askDetail = true, saving = false, saveLabel = "همین‌جا رو ذخیره کن", onSave, onCancel }) {
   const [pin, setPin] = useState(initialPin);
-  const [address, setAddress] = useState("");
+  // A reopened saved spot starts with its saved address, so «ذخیره» never waits for the map service to answer again.
+  const [address, setAddress] = useState(initialAddress);
   const [addressLoading, setAddressLoading] = useState(false);
   const [locating, setLocating] = useState(false);
   const [note, setNote] = useState("");

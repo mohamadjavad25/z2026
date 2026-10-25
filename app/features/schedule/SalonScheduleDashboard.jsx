@@ -12,6 +12,7 @@ import { PendingOtherDays } from "./PendingOtherDays";
 import { BookingWeekRail } from "../profile/BookingWeekRail";
 import { ScheduleRow } from "../profile/ScheduleRow";
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
+import { SalonDirectVisits } from "../salons/SalonDirectVisits";
 
 /**
  * Salon owner overview — collab inbox + day schedule; a pending request is answered on its own card.
@@ -210,6 +211,7 @@ export function SalonScheduleDashboard({
           )}
         </div>
       </section>
+      <SalonDirectVisits />
     </div>
   );
 }

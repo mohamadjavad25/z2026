@@ -307,6 +307,7 @@ export function mapArtistBooking(row) {
     clientArea: profile?.area || "",
     clientType: profile?.type || "client",
     sourceSalon: row.sourceSalon || row.source_salon || null,
+    placeSalon: row.placeSalon || null,
     phone: profile?.phone || row.client_phone || row.phone || "",
     service: row.service || "",
     service_emoji: row.service_emoji || "",

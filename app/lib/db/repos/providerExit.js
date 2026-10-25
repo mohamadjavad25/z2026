@@ -9,6 +9,7 @@ import { isMultiPartBooking, parseBookingParts, serializeBookingParts } from "..
 import { NEAR_BOOKING_HOURS } from "../../../shared/lib/providerRules.js";
 import { noticeClientCancelledByProvider } from "../../providerNotices.js";
 import { notifyConnection } from "../../connectionNotify.js";
+import { salonGone } from "../../artistPlaceRelease.js";
 
 /**
  * Leaving: a salon or artist deleting their account, an artist leaving a salon team, a salon removing a team member
@@ -328,6 +329,8 @@ export async function deleteProviderAccount({ user, cancelAll = false, byAdmin =
     const after = await planExit({ scope: "account", user, now: new Date() });
     if (after.near.length) return BLOCKED(after);
   }
+  // A salon's direct bookings (clients an artist receives there) move back to the artist's own place, with notice.
+  if (user.type === "salon") await salonGone({ salonUserId: user.id, salonName: user.name || "" });
   await users.deleteUserDetachingPhone(user.id);
   await closeOrphanBookings();
   return { ok: true };

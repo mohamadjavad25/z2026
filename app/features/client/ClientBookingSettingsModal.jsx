@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, CalendarCheck, CheckCircle2, Clock3, MapPin, Phone, RotateCcw, Store, TimerOff, UserPlus, XCircle } from "lucide-react";
 import { connectTo, listConnections } from "../../shared/api/connections";
 import { SheetClose } from "../../components/SheetClose";
+import { LocationButton } from "../../components/LocationButton";
 import { bookingStatusLabel, bookingStatusTone, canClientCancel, hasBookingStarted, isPlaceGone, movedToName, openProposalOf, requestWaitNote } from "./bookingStatus";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
@@ -234,7 +235,8 @@ export function ClientBookingSettingsModal({
   const formattedDate = rawDate ? formatRelativeBookingDayLabel(rawDate) : "امروز";
   const statusTone = bookingStatusTone(booking.status || "تازه");
   const StatusIcon = BOOKING_STATUS_ICONS[statusTone];
-  const area = booking.salonArea || booking.salon_area || "";
+  // A direct booking received at the artist's salon says so: «سالن رز، خیابان …» (the name stays the artist's).
+  const area = [booking.placeSalonName, booking.salonArea || booking.salon_area || ""].filter(Boolean).join("، ");
   const duration = Number(booking.duration_minutes) || 0;
   const offer = booking.bookingSource === "artist" ? null : bookingTimeOffer(booking);
   const waitNote = statusTone === "pending" && !offer ? requestWaitNote(booking) : "";
@@ -294,6 +296,7 @@ export function ClientBookingSettingsModal({
               <span>
                 <MapPin size={14} /> <b>کجا</b>
                 <em>{area}</em>
+                <LocationButton name={booking.placeSalonName || booking.salonName || "آرتیست"} location={booking.placeLocation || null} />
               </span>
             ) : null}
           </div>
