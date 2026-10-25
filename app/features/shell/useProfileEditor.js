@@ -15,7 +15,8 @@ const DEFAULT_PROFILE_SETTINGS = {
   vacationMode: false,
   directBooking: true,
   autoConfirm: false,
-  reminders: true
+  reminders: true,
+  dueReminders: true
 };
 
 /**

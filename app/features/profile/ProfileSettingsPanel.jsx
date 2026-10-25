@@ -9,6 +9,7 @@ import {
   Bell,
   BellOff,
   BellRing,
+  CalendarClock,
   CalendarCheck,
   LogOut,
   Globe,
@@ -210,6 +211,15 @@ export function NotificationSettings({ profileType, profileSettings, onToggle })
           description="یه روز و دو ساعت قبل از هر نوبت"
           checked={profileSettings.reminders !== false}
           onChange={() => onToggle("reminders")}
+        />
+      )}
+      {profileType === "client" && (
+        <SettingsToggle
+          icon={profileSettings.dueReminders !== false ? CalendarClock : BellOff}
+          label="یادآوری وقتش شده"
+          description="چند هفته بعد از هر کار، یه اعلان که وقت دوباره‌ش شده"
+          checked={profileSettings.dueReminders !== false}
+          onChange={() => onToggle("dueReminders")}
         />
       )}
       <SettingsToggle

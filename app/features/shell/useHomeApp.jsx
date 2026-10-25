@@ -9,7 +9,7 @@ import { useContinueService } from "../follow/useContinueService";
 import { useArtistWorkspace } from "../artist";
 import { apiFetch } from "../../shared/api/client";
 import { connectTo } from "../../shared/api/connections";
-import { parseOpenParam, peekPendingOpen, rememberPendingOpen, takePendingOpen } from "../../shared/lib/appHandoff";
+import { cleanPendingServices, parseOpenParam, peekPendingOpen, rememberPendingOpen, takePendingOpen } from "../../shared/lib/appHandoff";
 import { notify } from "../../shared/notice/noticeStore";
 import { pushNotificationsSupported, subscribeToPushNotifications } from "./homeAppHelpers";
 import { appPushAvailable, startAppPush } from "../../shared/lib/nativePush";
@@ -44,7 +44,9 @@ export function useHomeApp() {
       // The public page may have stored the name already; a bare link (a desktop QR) has only the id.
       const stored = peekPendingOpen();
       // Keep what the guest had ticked on the public page (name and services) when the same place is opened by id.
-      rememberPendingOpen({ ...openTarget, name: stored?.id === openTarget.id ? stored.name : "", services: stored?.id === openTarget.id ? stored.services : [] });
+      // `&s=…`: a «وقتش شده» push names the service, so the booking form opens on it (owner's decision of 2026-10-25).
+      const named = cleanPendingServices(params.getAll("s"));
+      rememberPendingOpen({ ...openTarget, name: stored?.id === openTarget.id ? stored.name : "", services: named.length ? named : stored?.id === openTarget.id ? stored.services : [] });
     }
     window.history.replaceState({}, "", window.location.pathname);
   }, []);
