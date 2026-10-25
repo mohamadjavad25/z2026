@@ -43,3 +43,21 @@ export function readHoursPatch(body, rows) {
   }
   return { ok: true, day: row.day, patch };
 }
+
+/**
+ * Reads a whole week saved at once (PATCH /api/salon-hours and /api/artist-hours with `{ hours: [...] }`, the
+ * hours sheet's one «ذخیره»): 1 to 7 days, each read by readHoursPatch, no day twice.
+ * → { ok: true, days: [{ day, patch }] } or { ok: false, error }.
+ */
+export function readHoursWeek(body, rows) {
+  const list = body?.hours;
+  if (!Array.isArray(list) || !list.length || list.length > 7) return { ok: false, error: "ساعت کاری درست نرسید؛ دوباره بزن." };
+  const days = [];
+  for (const item of list) {
+    const read = readHoursPatch(item, rows);
+    if (!read.ok) return read;
+    if (days.some((entry) => entry.day === read.day)) return { ok: false, error: "ساعت کاری درست نرسید؛ دوباره بزن." };
+    days.push({ day: read.day, patch: read.patch });
+  }
+  return { ok: true, days };
+}

@@ -128,11 +128,11 @@ export async function getSalonHours() {
   return apiJson("/api/salon-hours");
 }
 
-/** PATCH /api/salon-hours → { hour } singular (not full list) */
-export async function updateSalonHours(body) {
+/** PATCH /api/salon-hours with the whole week → { hours } (all days saved, or none) */
+export async function saveSalonHoursWeek(hours) {
   return apiFetch("/api/salon-hours", {
     method: "PATCH",
-    body: JSON.stringify(body)
+    body: JSON.stringify({ hours })
   });
 }
 

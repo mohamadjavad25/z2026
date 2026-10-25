@@ -1,63 +1,341 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { ChevronDown, CopyCheck, Minus, Plus, Timer, X } from "lucide-react";
-import { BreakTimeWheel } from "../../components/BreakTimeWheel";
+import { Check, ChevronDown, CopyCheck, Timer, X } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
-import { shortPersianWeekday, timeLabelToMinutes } from "../../shared/lib/time";
+import { SALON_HOUR_TIME_OPTIONS, timeLabelToMinutes } from "../../shared/lib/time";
+import { isPersianDateKey, formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar";
+import { bookingHoldsSlot, findSalonHourForDateKey } from "../../shared/lib/salonAvailability";
+import { isSlotInPast } from "../../shared/lib/slots";
 import { useBackHandler } from "../../shared/hooks/useBackHandler";
 
-// Common opening hours: one tap instead of two wheels (wheels stay for custom times).
-const QUICK_RANGES = [
-  ["۰۹:۰۰", "۱۷:۰۰"],
-  ["۰۹:۰۰", "۱۸:۰۰"],
-  ["۱۰:۰۰", "۲۰:۰۰"],
-  ["۱۲:۰۰", "۲۱:۰۰"]
-];
+const DEFAULT_OPEN = "۱۰:۰۰";
+const DEFAULT_CLOSE = "۲۰:۰۰";
+
+const sameTime = (a, b) => timeLabelToMinutes(a) === timeLabelToMinutes(b);
+
+/** "۱۰:۰۰" → "۱۰", "۰۹:۳۰" → "۹:۳۰": how a day's hours read in the week list. */
+function shortTime(label) {
+  const total = timeLabelToMinutes(label);
+  const hours = Math.floor(total / 60);
+  const minutes = total % 60;
+  return toPersianDigits(minutes ? `${hours}:${String(minutes).padStart(2, "0")}` : String(hours));
+}
+
+const rangeLabel = (row) => `${shortTime(row.open_time)} تا ${shortTime(row.close_time)}`;
+
+function toDraft(hoursList) {
+  return hoursList.map((row) => ({
+    day: row.day,
+    open_time: row.open_time || DEFAULT_OPEN,
+    close_time: row.close_time || DEFAULT_CLOSE,
+    active: Boolean(row.active)
+  }));
+}
+
+function rowChanged(row, saved) {
+  if (!saved) return true;
+  if (Boolean(saved.active) !== row.active) return true;
+  if (!row.active) return false;
+  return !sameTime(row.open_time, saved.open_time || DEFAULT_OPEN) || !sameTime(row.close_time, saved.close_time || DEFAULT_CLOSE);
+}
+
+function fitsDay(row, start, end) {
+  if (!row || !row.active) return false;
+  return start >= timeLabelToMinutes(row.open_time) && end <= timeLabelToMinutes(row.close_time);
+}
 
 /**
- * Salon hours editor nested inside the "تنظیمات" tab (SettingsPage).
- * Presentational: hours list/presets/selection owned by HomeApp / useSalonWorkspace.
+ * Upcoming bookings that fit the saved hours but fall outside the new ones (their day closed, or its hours cut
+ * short). They are kept as they are; the sheet only says so before saving. An artist's calendar copies of a
+ * salon's bookings follow the salon's hours, not the artist's own, so they are left out.
+ */
+function bookingsLeftOutside(bookings, saved, draft) {
+  return (bookings || []).filter((booking) => {
+    if (!bookingHoldsSlot(booking) || booking.source_salon_user_id) return false;
+    const dateKey = String(booking.booking_date || "").trim();
+    if (!isPersianDateKey(dateKey) || !booking.time || isSlotInPast(dateKey, booking.time)) return false;
+    const start = timeLabelToMinutes(booking.time);
+    const end = start + (Number(booking.duration_minutes) || 60);
+    return fitsDay(findSalonHourForDateKey(saved, dateKey), start, end)
+      && !fitsDay(findSalonHourForDateKey(draft, dateKey), start, end);
+  });
+}
+
+/**
+ * Working hours sheet in the "تنظیمات" tab, for salons and artists: the week in one list, a day opens to pick
+ * its hours, and everything is saved together with one «ذخیره». How many people fit at once is worked out by
+ * the booking system from the team, so the sheet only asks which days are open and from when to when.
  */
 export function SalonHoursEditor({
   kicker = "تنظیمات سالن",
   open,
   onToggleOpen,
-  presets = [],
-  activePresetId,
-  activePresetMeta,
   hoursList = [],
-  selectedHour,
-  timeOptions = [],
   openDaysCount = 0,
-  weeklyCapacityTotal = 0,
-  onSelectPreset,
-  onSelectDay,
-  onUpdateHour,
-  onCopyToOpenDays
+  bookings = [],
+  onSave
 }) {
-  useBackHandler(Boolean(open), onToggleOpen);
-  const clockOptions = timeOptions.length ? timeOptions : [];
-  const startOptions = clockOptions.slice(0, -1);
-  const startValue = selectedHour?.open_time || startOptions[0] || "۱۰:۰۰";
-  const endValue = selectedHour?.close_time || clockOptions[clockOptions.length - 1] || "۲۰:۰۰";
-  const startMinutes = timeLabelToMinutes(startValue);
-  const endMinutes = timeLabelToMinutes(endValue);
-  const disabledEnds = clockOptions.filter((slot) => timeLabelToMinutes(slot) <= startMinutes);
-  const durationMinutes = Math.max(0, endMinutes - startMinutes);
-  const isInvalidRange = selectedHour?.active && endMinutes <= startMinutes;
-  const otherOpenDaysCount = hoursList.filter((item) => item.active && item.day !== selectedHour?.day).length;
+  const [draft, setDraft] = useState(() => toDraft(hoursList));
+  const [expandedDay, setExpandedDay] = useState("");
+  const [copyFrom, setCopyFrom] = useState(null);
+  const [copyTargets, setCopyTargets] = useState([]);
+  const [dialog, setDialog] = useState(null);
+  const [saving, setSaving] = useState(false);
 
-  const quickRanges = QUICK_RANGES.filter(([from, to]) => clockOptions.includes(from) && clockOptions.includes(to));
+  const changedDays = useMemo(
+    () => draft.filter((row) => rowChanged(row, hoursList.find((saved) => saved.day === row.day))),
+    [draft, hoursList]
+  );
+  const dirty = changedDays.length > 0;
 
-  const pickStart = (slot) => {
-    if (!selectedHour) return;
-    const nextStartMinutes = timeLabelToMinutes(slot);
-    const currentEndMinutes = timeLabelToMinutes(endValue);
-    const nextEnd = currentEndMinutes > nextStartMinutes
-      ? endValue
-      : (clockOptions.find((item) => timeLabelToMinutes(item) > nextStartMinutes) || endValue);
-    onUpdateHour?.(selectedHour, { open_time: slot, close_time: nextEnd });
+  // Opening the sheet starts from what is saved; while nothing is edited it follows fresh data from the server.
+  useEffect(() => {
+    if (!open) return;
+    if (!dirty) setDraft(toDraft(hoursList));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, hoursList]);
+
+  const resetAndClose = () => {
+    setDraft(toDraft(hoursList));
+    setExpandedDay("");
+    setCopyFrom(null);
+    setDialog(null);
+    onToggleOpen?.();
+  };
+
+  const requestClose = () => {
+    if (saving) return false;
+    if (dialog) {
+      setDialog(null);
+      return false;
+    }
+    if (copyFrom) {
+      setCopyFrom(null);
+      return false;
+    }
+    if (dirty) {
+      setDialog({ kind: "leave" });
+      return false;
+    }
+    resetAndClose();
+    return true;
+  };
+
+  useBackHandler(Boolean(open), requestClose);
+
+  const updateRow = (day, patch) => {
+    setDraft((rows) => rows.map((row) => (row.day === day ? { ...row, ...patch } : row)));
+  };
+
+  const toggleDay = (row) => {
+    if (row.active) {
+      updateRow(row.day, { active: false });
+      if (expandedDay === row.day) setExpandedDay("");
+      return;
+    }
+    updateRow(row.day, { active: true });
+    setExpandedDay(row.day);
+  };
+
+  const pickStart = (row, slot) => {
+    const start = timeLabelToMinutes(slot);
+    const close = timeLabelToMinutes(row.close_time) > start
+      ? row.close_time
+      : SALON_HOUR_TIME_OPTIONS.find((item) => timeLabelToMinutes(item) > start) || row.close_time;
+    updateRow(row.day, { open_time: slot, close_time: close });
+  };
+
+  const openCopy = (row) => {
+    setCopyFrom(row);
+    setCopyTargets(draft.filter((item) => item.day !== row.day && item.active).map((item) => item.day));
+  };
+
+  const applyCopy = () => {
+    const targets = new Set(copyTargets);
+    setDraft((rows) => rows.map((row) => (targets.has(row.day)
+      ? { ...row, active: true, open_time: copyFrom.open_time, close_time: copyFrom.close_time }
+      : row)));
+    setCopyFrom(null);
+  };
+
+  const save = async () => {
+    setDialog(null);
+    setSaving(true);
+    const ok = await onSave?.(changedDays.map(({ day, open_time, close_time, active }) => ({ day, open_time, close_time, active })));
+    setSaving(false);
+    if (ok) {
+      setExpandedDay("");
+      onToggleOpen?.();
+    }
+  };
+
+  const requestSave = () => {
+    if (!dirty || saving) return;
+    const outside = bookingsLeftOutside(bookings, hoursList, draft);
+    if (outside.length) {
+      setDialog({ kind: "booked", bookings: outside });
+      return;
+    }
+    save();
+  };
+
+  const draftOpenCount = draft.filter((row) => row.active).length;
+
+  const renderTimes = (row) => {
+    const options = [...SALON_HOUR_TIME_OPTIONS];
+    [row.open_time, row.close_time].forEach((value) => {
+      if (value && !options.some((item) => sameTime(item, value))) options.push(value);
+    });
+    options.sort((a, b) => timeLabelToMinutes(a) - timeLabelToMinutes(b));
+    const start = timeLabelToMinutes(row.open_time);
+    return (
+      <div className="hrsEdit">
+        <span className="hrsLabel" id={`hrs-open-${row.day}`}>از ساعت</span>
+        <div className="hrsGrid" role="radiogroup" aria-labelledby={`hrs-open-${row.day}`}>
+          {options.slice(0, -1).map((slot) => (
+            <button
+              key={slot}
+              type="button"
+              role="radio"
+              aria-checked={sameTime(slot, row.open_time)}
+              className={`hrsTime${sameTime(slot, row.open_time) ? " is-on" : ""}`}
+              onClick={() => pickStart(row, slot)}
+            >
+              {shortTime(slot)}
+            </button>
+          ))}
+        </div>
+        <span className="hrsLabel" id={`hrs-close-${row.day}`}>تا ساعت</span>
+        <div className="hrsGrid" role="radiogroup" aria-labelledby={`hrs-close-${row.day}`}>
+          {options.slice(1).map((slot) => (
+            <button
+              key={slot}
+              type="button"
+              role="radio"
+              aria-checked={sameTime(slot, row.close_time)}
+              disabled={timeLabelToMinutes(slot) <= start}
+              className={`hrsTime${sameTime(slot, row.close_time) ? " is-on" : ""}`}
+              onClick={() => updateRow(row.day, { close_time: slot })}
+            >
+              {shortTime(slot)}
+            </button>
+          ))}
+        </div>
+        {draft.length > 1 ? (
+          <button type="button" className="hrsCopyBtn" onClick={() => openCopy(row)}>
+            <CopyCheck size={15} aria-hidden="true" />
+            همین ساعت برای روزهای دیگه
+          </button>
+        ) : null}
+      </div>
+    );
+  };
+
+  const renderWeek = () => (
+    <ul className="hrsWeek">
+      {draft.map((row) => {
+        const expanded = expandedDay === row.day && row.active;
+        return (
+          <li key={row.day} className={`hrsDay${row.active ? "" : " is-off"}${expanded ? " is-open" : ""}`}>
+            <div className="hrsDayRow">
+              <button
+                type="button"
+                className="hrsDayMain"
+                aria-expanded={expanded}
+                disabled={!row.active}
+                onClick={() => setExpandedDay(expanded ? "" : row.day)}
+              >
+                <b>{row.day}</b>
+                <span>{row.active ? rangeLabel(row) : "تعطیل"}</span>
+              </button>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={row.active}
+                aria-label={`${row.day} ${row.active ? "بازه" : "تعطیله"}`}
+                className="hrsSwitch"
+                onClick={() => toggleDay(row)}
+              >
+                <span />
+              </button>
+            </div>
+            {expanded ? renderTimes(row) : null}
+          </li>
+        );
+      })}
+    </ul>
+  );
+
+  const renderCopy = () => (
+    <div className="hrsCopy">
+      <strong className="hrsCopyTitle">{rangeLabel(copyFrom)} برای کدوم روزها؟</strong>
+      <ul className="hrsCopyList">
+        {draft.filter((row) => row.day !== copyFrom.day).map((row) => {
+          const checked = copyTargets.includes(row.day);
+          return (
+            <li key={row.day}>
+              <button
+                type="button"
+                role="checkbox"
+                aria-checked={checked}
+                className={`hrsCheck${checked ? " is-on" : ""}`}
+                onClick={() => setCopyTargets((list) => (checked ? list.filter((day) => day !== row.day) : [...list, row.day]))}
+              >
+                <span className="hrsBox">{checked ? <Check size={13} aria-hidden="true" /> : null}</span>
+                <b>{row.day}</b>
+                <small>{row.active ? rangeLabel(row) : "تعطیل"}</small>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+      <div className="hrsBtns">
+        <button type="button" className="hrsBtn is-main" disabled={!copyTargets.length} onClick={applyCopy}>
+          {copyTargets.length ? `روی ${toPersianDigits(copyTargets.length)} روز بزن` : "یه روز انتخاب کن"}
+        </button>
+        <button type="button" className="hrsBtn" onClick={() => setCopyFrom(null)}>بی‌خیال</button>
+      </div>
+    </div>
+  );
+
+  const renderDialog = () => {
+    if (!dialog) return null;
+    if (dialog.kind === "leave") {
+      return (
+        <div className="hrsDialog" role="alertdialog" aria-labelledby="hrs-leave-title">
+          <strong id="hrs-leave-title">تغییرها ذخیره نشده. ذخیره کنم؟</strong>
+          <div className="hrsBtns">
+            <button type="button" className="hrsBtn is-main" onClick={requestSave} disabled={saving}>ذخیره کن</button>
+            <button type="button" className="hrsBtn" onClick={resetAndClose} disabled={saving}>بی‌خیال</button>
+          </div>
+        </div>
+      );
+    }
+    return (
+      <div className="hrsDialog" role="alertdialog" aria-labelledby="hrs-booked-title">
+        <strong id="hrs-booked-title">
+          {toPersianDigits(dialog.bookings.length)} نوبت سر جاش می‌مونه
+        </strong>
+        <ul className="hrsBooked">
+          {dialog.bookings.slice(0, 5).map((booking) => (
+            <li key={booking.id}>
+              <span>{booking.client || booking.client_name || "مشتری"}{booking.service ? ` · ${booking.service}` : ""}</span>
+              <span>{formatRelativeBookingDayLabel(booking.booking_date)} · {toPersianDigits(booking.time)}</span>
+            </li>
+          ))}
+        </ul>
+        {dialog.bookings.length > 5 ? (
+          <p className="hrsNote">و {toPersianDigits(dialog.bookings.length - 5)} نوبت دیگه.</p>
+        ) : null}
+        <p className="hrsNote">این نوبت‌ها بیرون از ساعت تازه‌ان. اگه می‌خوای لغوشون کنی، از تقویم با اطلاع مشتری لغو کن.</p>
+        <div className="hrsBtns">
+          <button type="button" className="hrsBtn is-main" onClick={save} disabled={saving}>باشه، ذخیره کن</button>
+          <button type="button" className="hrsBtn" onClick={() => setDialog(null)} disabled={saving}>برگرد</button>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -71,7 +349,7 @@ export function SalonHoursEditor({
         <Timer size={16} aria-hidden="true" />
         <div>
           <strong>ساعت کاری</strong>
-          <span>یه قالب بزن، بعد هر روز رو با یه ضربه درست کن</span>
+          <span>کدوم روزها بازی و از چه ساعتی تا چه ساعتی</span>
         </div>
         <em className="settingsSalonHoursSummary">
           {toPersianDigits(openDaysCount)} روز باز
@@ -83,177 +361,37 @@ export function SalonHoursEditor({
           className="settingsHoursModal"
           role="dialog"
           aria-modal="true"
-          aria-label="تنظیم ساعت کاری"
-          onClick={onToggleOpen}
+          aria-label="ساعت کاری"
+          onClick={requestClose}
         >
-          <article className="settingsHoursSheet" onClick={(event) => event.stopPropagation()}>
-            <header className="settingsHoursHero">
-              <Timer size={28} aria-hidden="true" />
+          <article className="settingsHoursSheet hrsSheet" onClick={(event) => event.stopPropagation()}>
+            <header className="hrsHead">
               <div>
                 <span>{kicker}</span>
                 <strong>ساعت کاری</strong>
               </div>
-              <em>{toPersianDigits(openDaysCount)} روز باز</em>
+              <em>{draftOpenCount ? `${toPersianDigits(draftOpenCount)} روز باز` : "همه روزها تعطیل"}</em>
             </header>
 
-            <div className="hoursPresetGrid settingsHoursPresetGrid" role="radiogroup" aria-label="قالب ساعت کاری">
-              {presets.map((preset) => (
-                <button
-                  key={preset.id}
-                  type="button"
-                  role="radio"
-                  aria-checked={activePresetId === preset.id}
-                  className={activePresetId === preset.id ? "is-active" : undefined}
-                  onClick={() => onSelectPreset?.(preset.id)}
-                >
-                  {preset.label}
+            {copyFrom ? renderCopy() : renderWeek()}
+
+            {dirty && !copyFrom ? (
+              <div className="hrsSaveBar">
+                <span>{toPersianDigits(changedDays.length)} روز عوض شد</span>
+                <button type="button" onClick={requestSave} disabled={saving}>
+                  {saving ? "در حال ذخیره…" : "ذخیره"}
                 </button>
-              ))}
-            </div>
-            {activePresetMeta ? (
-              <p className="hoursPresetHint settingsHoursPresetHint">{activePresetMeta.detail}</p>
-            ) : null}
-
-            <div className="hoursWeekStrip settingsHoursWeekStrip" role="tablist" aria-label="روزهای هفته">
-              {hoursList.map((item) => {
-                const isSelected = selectedHour?.day === item.day;
-                return (
-                  <button
-                    key={item.day}
-                    type="button"
-                    role="tab"
-                    aria-selected={isSelected}
-                    aria-label={`${item.day}، ${item.active ? "باز" : "تعطیل"}`}
-                    className={[
-                      "hoursDayChip",
-                      item.active ? "is-open" : "is-closed",
-                      isSelected ? "is-selected" : ""
-                    ].filter(Boolean).join(" ")}
-                    onClick={() => onSelectDay?.(item.day)}
-                  >
-                    <b>{shortPersianWeekday(item.day)}</b>
-                    <small>{item.active ? "باز" : "بسته"}</small>
-                  </button>
-                );
-              })}
-            </div>
-
-            {selectedHour ? (
-              <div className="hoursDayEditor settingsHoursDayEditor">
-                <div className="hoursDayEditorTop">
-                  <div>
-                    <strong>{selectedHour.day}</strong>
-                    <span>{selectedHour.active ? "این روز نوبت می‌گیری" : "این روز تعطیله"}</span>
-                  </div>
-                  <label className="neoSettingsSwitch hoursOpenToggle" data-on={Boolean(selectedHour.active)}>
-                    <input
-                      type="checkbox"
-                      checked={Boolean(selectedHour.active)}
-                      onChange={() => onUpdateHour?.(selectedHour, { active: !selectedHour.active })}
-                    />
-                    <span className="neoSettingsSwitchTrack">
-                      <span className="neoSettingsSwitchKnob" />
-                    </span>
-                    <span className="neoSettingsSwitchLabel">
-                      {selectedHour.active ? "باز" : "تعطیل"}
-                    </span>
-                  </label>
-                </div>
-
-                {selectedHour.active ? (
-                  <>
-                    {quickRanges.length ? (
-                      <div className="qrChips" role="group" aria-label="ساعت‌های رایج">
-                        {quickRanges.map(([from, to]) => (
-                          <button
-                            type="button"
-                            key={`${from}-${to}`}
-                            className={`qrChip${startValue === from && endValue === to ? " is-on" : ""}`}
-                            onClick={() => onUpdateHour?.(selectedHour, { open_time: from, close_time: to })}
-                          >
-                            {toPersianDigits(from)} تا {toPersianDigits(to)}
-                          </button>
-                        ))}
-                      </div>
-                    ) : null}
-                    <div className={`settingsHoursWheelRange ${isInvalidRange ? "is-invalid" : ""}`}>
-                      <div>
-                        <span>از ساعت</span>
-                        <BreakTimeWheel
-                          options={startOptions}
-                          value={startValue}
-                          onChange={pickStart}
-                          ariaLabel={`ساعت شروع ${selectedHour.day}`}
-                          idPrefix={`salon-hour-open-${selectedHour.day}`}
-                        />
-                      </div>
-                      <em>{isInvalidRange ? "درست نیست" : `${toPersianDigits(durationMinutes)} دقیقه`}</em>
-                      <div>
-                        <span>تا ساعت</span>
-                        <BreakTimeWheel
-                          options={clockOptions}
-                          value={endValue}
-                          disabledValues={disabledEnds}
-                          onChange={(slot) => onUpdateHour?.(selectedHour, { close_time: slot })}
-                          ariaLabel={`ساعت پایان ${selectedHour.day}`}
-                          idPrefix={`salon-hour-close-${selectedHour.day}`}
-                        />
-                      </div>
-                    </div>
-                    {otherOpenDaysCount > 0 ? (
-                      <button
-                        type="button"
-                        className="hoursCopyToOpenDays"
-                        disabled={isInvalidRange}
-                        onClick={() => onCopyToOpenDays?.(selectedHour)}
-                      >
-                        <CopyCheck size={14} />
-                        همین ساعت برای {toPersianDigits(otherOpenDaysCount)} روز باز دیگه
-                      </button>
-                    ) : null}
-                    <div className="hoursCapacityControl settingsHoursCapacityControl">
-                      <span>ظرفیت روز</span>
-                      <div>
-                        <button
-                          type="button"
-                          aria-label="کاهش ظرفیت"
-                          disabled={Number(selectedHour.capacity || 0) <= 0}
-                          onClick={() => onUpdateHour?.(selectedHour, {
-                            capacity: Math.max(0, Number(selectedHour.capacity || 0) - 1)
-                          })}
-                        >
-                          <Minus size={14} />
-                        </button>
-                        <b>{toPersianDigits(selectedHour.capacity || 0)}</b>
-                        <button
-                          type="button"
-                          aria-label="افزایش ظرفیت"
-                          onClick={() => onUpdateHour?.(selectedHour, {
-                            capacity: Math.min(50, Number(selectedHour.capacity || 0) + 1)
-                          })}
-                        >
-                          <Plus size={14} />
-                        </button>
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <p className="hoursDayClosedNote">برای باز کردن این روز، کلید بالا رو بزن.</p>
-                )}
               </div>
             ) : null}
 
-            <div className="hoursSummaryStrip settingsHoursSummaryStrip" aria-label="خلاصه هفته">
-              <span><b>{toPersianDigits(openDaysCount)}</b> روز باز</span>
-              <span><b>{toPersianDigits(weeklyCapacityTotal)}</b> ظرفیت هفته</span>
-            </div>
+            {dialog ? <div className="hrsDialogLayer">{renderDialog()}</div> : null}
           </article>
           <button
             type="button"
             className="settingsHoursClose"
             onClick={(event) => {
               event.stopPropagation();
-              onToggleOpen?.();
+              requestClose();
             }}
             aria-label="بستن"
           >

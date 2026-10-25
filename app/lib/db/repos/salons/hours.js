@@ -1,4 +1,4 @@
-import { getDb, all, get, run } from "../../connection.js";
+import { getDb, all, get, run, withTransaction } from "../../connection.js";
 import { defaultHours } from "./common.js";
 
 export async function ensureSalonHours(salonUserId, runner = null) {
@@ -25,8 +25,8 @@ export async function listSalonHours(salonUserId, runner = null) {
   return rows.sort((a, b) => (order.get(a.day) ?? 99) - (order.get(b.day) ?? 99));
 }
 
-export async function updateSalonHour(salonUserId, day, data) {
-  const db = await getDb();
+export async function updateSalonHour(salonUserId, day, data, runner = null) {
+  const db = runner || (await getDb());
   await ensureSalonHours(salonUserId, db);
   await run(db, `
     UPDATE salon_hours SET
@@ -45,4 +45,13 @@ export async function updateSalonHour(salonUserId, day, data) {
     day
   ]);
   return get(db, "SELECT * FROM salon_hours WHERE salon_user_id = $1 AND day = $2", [salonUserId, day]);
+}
+
+/** Saves several weekdays at once (the hours sheet's «ذخیره»): all of them or none. */
+export async function saveSalonHoursWeek(salonUserId, days) {
+  await listSalonHours(salonUserId);
+  await withTransaction(null, async (client) => {
+    for (const { day, patch } of days) await updateSalonHour(salonUserId, day, patch, client);
+  });
+  return listSalonHours(salonUserId);
 }
