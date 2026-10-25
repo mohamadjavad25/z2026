@@ -49,3 +49,4 @@ One line each, dated. Claude reads this before asking questions.
 - 2026-10-25: Not wanted (owner): booking and income numbers on the staff tab («نه خوب نیست»), an income/accounting page, and the online/offline item. Do not propose these again.
 - 2026-10-25: Removed from a team (wanted): the artist gets a push, an in-app card that stays until seen and an SMS; the salon may add an optional one-line reason that goes to the artist; the other way too (an artist who leaves, the salon is told).
 - 2026-10-25: Break (wanted): «الان استراحت می‌کنم» (15/30/60 minutes, today only), the daily lunch window, and each weekday switched on or off (same hours for every day); salons get a break too.
+- 2026-10-25: Support topics (owner picked «پ»): one plain list like settings, a small line icon, the topic and its line, an arrow; no coloured tiles.

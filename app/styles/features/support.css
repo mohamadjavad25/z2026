@@ -187,17 +187,17 @@
 .scAsk { display: grid; gap: 12px; }
 .scAskHead h4, .scMineHead h4 { margin: 0; font-size: 1.05rem; font-weight: 900; }
 .scAskHead p { margin: 2px 0 0; color: var(--n-700); font-size: var(--text-sm); font-weight: 650; }
-.scTopics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.scTopic { position: relative; display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 10px; min-height: 64px; padding: 10px 12px; border: 0; border-radius: 18px; background: var(--n-0); color: var(--ink); font: inherit; text-align: start; box-shadow: var(--shadow-xs), inset 0 0 0 1px var(--line); cursor: pointer; transition: transform var(--duration-fast) var(--ease-standard), box-shadow var(--duration-fast); }
-.scTopic:active { transform: scale(0.97); }
-.scTopic:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
-.scTopic.is-wide { grid-column: 1 / -1; }
-.scTopicIcon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 14px; background: var(--brand-blend); color: var(--brand-ink); }
+/* Topics as one plain list, like settings (owner's pick «پ», 2026-10-25): a small line icon, the topic, an arrow. */
+.scTopics { display: grid; border-radius: 18px; background: var(--n-0); box-shadow: inset 0 0 0 1px var(--line); overflow: hidden; }
+.scTopic { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; min-height: 60px; padding: 10px 14px; border: 0; border-top: 1px solid var(--line); background: transparent; color: var(--ink); font: inherit; text-align: start; cursor: pointer; }
+.scTopic:first-child { border-top: 0; }
+.scTopic:active { background: var(--n-50); }
+.scTopic:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: -2px; }
+.scTopicIcon { display: grid; place-items: center; width: 24px; height: 24px; color: var(--n-900); }
 .scTopicText { display: grid; gap: 1px; min-width: 0; }
 .scTopicText b { font-size: 0.9rem; font-weight: 900; }
-.scTopicText small { color: var(--n-600); font-size: 0.7rem; font-weight: 650; line-height: 1.6; }
-.scTopicGo { display: none; position: absolute; inset-inline-end: 12px; color: var(--n-500, var(--n-600)); }
-.scTopic.is-wide .scTopicGo { display: block; }
+.scTopicText small { color: var(--n-600); font-size: 0.72rem; font-weight: 650; line-height: 1.6; }
+.scTopicGo { color: var(--n-600); }
 
 .scMine { display: grid; gap: 10px; }
 .scMineHead { display: flex; align-items: center; gap: 8px; }

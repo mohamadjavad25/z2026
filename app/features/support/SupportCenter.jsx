@@ -81,7 +81,7 @@ function TicketList({ onOpen, onNew }) {
         </div>
         <div className="scTopics">
           {TOPICS.map(([value, label, Icon, hint]) => (
-            <button key={value} type="button" className={`scTopic${value === "other" ? " is-wide" : ""}`} onClick={() => onNew(value)}>
+            <button key={value} type="button" className="scTopic" onClick={() => onNew(value)}>
               <span className="scTopicIcon"><Icon size={20} aria-hidden="true" /></span>
               <span className="scTopicText"><b>{label}</b><small>{hint}</small></span>
               <ChevronLeft className="scTopicGo" size={16} aria-hidden="true" />
