@@ -314,7 +314,8 @@ export async function sweepExpiredBookingRequestsOnce() {
         providerUserId: lapsed.providerUserId,
         clientUserId: lapsed.clientUserId,
         booking: lapsed.booking,
-        clientName: lapsed.kind === "salon" ? lapsed.booking.client : lapsed.booking.client_name
+        clientName: lapsed.kind === "salon" ? lapsed.booking.client : lapsed.booking.client_name,
+        provider: { type: lapsed.kind, name: lapsed.providerName || "" }
       });
     }
   } catch {

@@ -28,7 +28,8 @@ export function ClientBookingHistorySheet({ open, onClose, bookings = [], onOpen
 
   const groups = useMemo(() => {
     const wanted = bookings.filter((booking) => {
-      const tone = bookingStatusTone(booking.status || "تازه");
+      // A visit the salon marked «نیومد» is not a done one (owner's decision of 2026-10-25).
+      const tone = booking.no_show_at ? "bad" : bookingStatusTone(booking.status || "تازه");
       if (filter === "done") return tone === "done";
       if (filter === "bad") return tone === "bad" || tone === "expired";
       return true;
@@ -73,7 +74,7 @@ export function ClientBookingHistorySheet({ open, onClose, bookings = [], onOpen
               <h4>{day === "—" ? "بدون تاریخ" : formatRelativeBookingDayLabel(day)}</h4>
               <ul>
                 {items.map((booking, index) => {
-                  const tone = bookingStatusTone(booking.status || "تازه");
+                  const tone = booking.no_show_at ? "bad" : bookingStatusTone(booking.status || "تازه");
                   const place = booking.salonName || booking.salon_name || "سالن";
                   return (
                     <li key={`${booking.bookingSource || "salon"}-${booking.id || index}`}>
@@ -83,7 +84,7 @@ export function ClientBookingHistorySheet({ open, onClose, bookings = [], onOpen
                           <b>{shortServiceLabel(booking.service) || "خدمت زیبایی"}</b>
                           <small>{place}{booking.time ? `، ${toPersianDigits(booking.time)}` : ""}</small>
                         </span>
-                        <em className={`is-${tone}`}>{bookingStatusLabel(booking.status)}</em>
+                        <em className={`is-${tone}`}>{booking.no_show_at ? "نیومدی" : bookingStatusLabel(booking.status)}</em>
                       </button>
                       <button
                         type="button"

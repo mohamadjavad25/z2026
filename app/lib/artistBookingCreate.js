@@ -3,7 +3,7 @@ import * as users from "./db/repos/users.js";
 import * as userSettings from "./db/repos/userSettings.js";
 import { onlineBookingBlock } from "./billing/access.js";
 import { isSlotInPast } from "../shared/lib/slots.js";
-import { BOOKING_REQUEST_LEAD_MINUTES, isTooSoonToRequest } from "../shared/lib/bookingWindow.js";
+import { BOOKING_REQUEST_LEAD_MINUTES, TOO_FAR_TEXT, isTooFarToRequest, isTooSoonToRequest } from "../shared/lib/bookingWindow.js";
 import { toPersianDigits } from "../shared/lib/digits.js";
 import { parseServiceDurationMinutes } from "../shared/lib/time.js";
 import { joinServiceNames } from "../shared/lib/serviceBundle.js";
@@ -61,6 +61,7 @@ export async function createArtistBooking({ artistUserId, viewer, data, body = {
   if (!isOwner && isTooSoonToRequest(day, time)) {
     return refuse(409, `این ساعت خیلی نزدیکه؛ آرتیست باید دست‌کم ${toPersianDigits(BOOKING_REQUEST_LEAD_MINUTES)} دقیقه وقت داشته باشه جواب بده. یه ساعت دیرتر بزن.`);
   }
+  if (!isOwner && isTooFarToRequest(day)) return refuse(409, TOO_FAR_TEXT.replace("سالن", "آرتیست"), "TOO_FAR");
   // An artist whose subscription has closed (and no salon of theirs covers them) takes no new online requests.
   if (!isOwner) {
     const blocked = await onlineBookingBlock(artistUserId, "artist");

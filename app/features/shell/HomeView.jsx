@@ -106,6 +106,7 @@ export function HomeView() {
     profileEditAvatar,
     handleProfileAvatarUpload,
     updateRegisteredProfile,
+    applyChangedPhone,
     profileSaving,
     salonPreviewWork,
     previewingArtistWork,
@@ -331,6 +332,7 @@ export function HomeView() {
           onAvatarUpload={handleProfileAvatarUpload}
           onClearAvatar={() => setProfileEditAvatar("")}
           onSubmit={updateRegisteredProfile}
+          onPhoneChanged={applyChangedPhone}
           saving={profileSaving}
         />
         <ArtistWorkPreviewModal

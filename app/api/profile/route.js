@@ -7,7 +7,10 @@ import { exitRefusal } from "../../lib/providerExitResponse.js";
 import { clientErrorResponse, readJson, requireUser, validateBody, withErrorHandling } from "../../lib/http.js";
 import { profileUpdateSchema } from "../../lib/validation/user.js";
 import { isImageDataUrlTooLarge, isImageDataUrlInvalidType } from "../../lib/mediaLimits.js";
-import { isValidIranMobile } from "../../lib/auth.js";
+import { getSessionToken, isValidIranMobile } from "../../lib/auth.js";
+import { deleteOtherUserSessions } from "../../lib/db/repos/sessions.js";
+import { sendTemplateSms } from "../../lib/sms.js";
+import { toLatinDigits } from "../../shared/lib/digits.js";
 import { phoneChangePurpose, verifyOtpProof } from "../../lib/otp.js";
 import { hasUniqueName, nameKey, NAME_TAKEN_MESSAGE } from "../../lib/businessName.js";
 
@@ -100,7 +103,16 @@ async function _POST(request) {
       patch.password_hash = hashPassword(data.password);
     }
 
+    // The walk-ins typed for the old number until now stay with this account (owner's decision of 2026-10-25).
+    if (phoneChanging) await users.lockOldNumberBookings(auth.user.id);
     const user = await users.updateUser(auth.user.id, patch);
+    // A new password or number signs the account out everywhere but here (owner's decision of 2026-10-25); the old
+    // number is told, so a change someone else made is noticed (sent only once its pattern is approved).
+    if (data.password || phoneChanging) await deleteOtherUserSessions(auth.user.id, getSessionToken(request));
+    if (phoneChanging) {
+      const tail = toLatinDigits(String(data.phone)).slice(-4);
+      void sendTemplateSms(auth.user.phone, "phone_changed", { tail }, "phone_changed").catch(() => {});
+    }
     return NextResponse.json({ data: { user: publicUser(user) } });
   } catch (error) {
     // Two accounts proving the same new number at the same moment: the database's unique number wins.

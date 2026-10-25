@@ -17,6 +17,7 @@ import {
   TimerOff,
   Trash2,
   UserRound,
+  UserX,
   X,
   XCircle
 } from "lucide-react";
@@ -24,7 +25,8 @@ import { getBookingDateOffsetDays, getBookingTimelinePhase } from "../artist/boo
 import { formatRelativeBookingDayLabel, isPersianDateKey } from "../../shared/lib/persianCalendar";
 import { SegmentClock } from "../../components/SegmentClock";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
-import { normalizeBookingTimeLabel, timeLabelToMinutes } from "../../shared/lib/time";
+import { minutesToPersianTime, normalizeBookingTimeLabel, timeLabelToMinutes } from "../../shared/lib/time";
+import { getArtistProposalTimes } from "../../shared/api/providerExit";
 import { bookingWaitMinutes, requestMinutesLeft } from "../../shared/lib/bookingWindow";
 import { RequestExpiryBadge } from "./RequestExpiryBadge";
 import { isMultiPartBooking, parseBookingParts, scheduleBookingParts } from "../../shared/lib/bookingParts";
@@ -32,7 +34,7 @@ import { ArtistOptionList, BookingPartsEditor } from "./BookingPartsEditor";
 import { getSalonBookingMoveTimes, getSalonBookingStaffOptions } from "../../shared/api/salons";
 import { useBackHandler } from "../../shared/hooks/useBackHandler";
 import { AWAITING_CLIENT, bookingTimeOffer } from "../../shared/lib/bookingOffer";
-import { CALL_FIRST_TEXT, CANCEL_WITH_NOTICE, CLIENT_CAN_CALL, PROPOSE_LABEL, shortClock, startsSoon } from "../../shared/lib/providerRules";
+import { CALL_FIRST_TEXT, CANCEL_WITH_NOTICE, CLIENT_CAN_CALL, NO_SHOW_HOURS, NO_SHOW_LABEL, NO_SHOW_UNDO_LABEL, PROPOSE_LABEL, noShowPhase, shortClock, startsSoon } from "../../shared/lib/providerRules";
 
 // Shown when a customer / staff member / source has no uploaded photo.
 const DEFAULT_AVATAR = "/profile-icon.svg";
@@ -90,7 +92,20 @@ function MoveTimeList({ booking, disabled, onPick }) {
   useEffect(() => {
     let alive = true;
     setState({ id: booking.id, loading: true, times: [], close: "", closed: false, failed: false });
-    getSalonBookingMoveTimes(booking.id).then(({ ok, data }) => {
+    // An independent artist's own booking: the free times of its day from GET /api/booking-proposals (no overtime).
+    const load = booking.ownerType === "salon"
+      ? getSalonBookingMoveTimes(booking.id)
+      : getArtistProposalTimes(booking.id).then(({ ok, payload }) => ({
+        ok,
+        data: {
+          times: (payload?.data?.times || []).map((time) => ({
+            time,
+            end: minutesToPersianTime(timeLabelToMinutes(time) + (Number(booking.durationMinutes) || 60)),
+            overtimeMinutes: 0
+          }))
+        }
+      }));
+    load.then(({ ok, data }) => {
       if (!alive) return;
       setState({ id: booking.id, loading: false, times: ok ? data.times || [] : [], close: data?.close || "", closed: Boolean(data?.closed), failed: !ok });
     }).catch(() => {
@@ -256,6 +271,7 @@ export function ScheduleBookingMenuModal({
   onAutoAssign,
   onCancel,
   onWithdrawProposal,
+  onNoShow,
   onApprove,
   onDecline,
   busy = false
@@ -264,9 +280,11 @@ export function ScheduleBookingMenuModal({
   // instance is reused rather than remounted per booking.
   const [artistPickerOpen, setArtistPickerOpen] = useState(false);
   const [cancelAsk, setCancelAsk] = useState(false);
+  const [noShowAsk, setNoShowAsk] = useState(false);
   useEffect(() => {
     setArtistPickerOpen(false);
     setCancelAsk(false);
+    setNoShowAsk(false);
   }, [booking?.id]);
 
   const visible = Boolean(open && booking);
@@ -275,7 +293,18 @@ export function ScheduleBookingMenuModal({
   const isCancelled = booking?.status === "لغو" || booking?.status === "منقضی شده";
   // Past or settled bookings can be reviewed, never edited.
   const readOnly = isPast || isCancelled;
-  const canManage = visible && isSalonOwner && !readOnly;
+  // «نیومد» (owner's decision of 2026-10-25): a confirmed booking of the salon's own, or an independent artist's direct
+  // one, that has started can't be cancelled or moved any more; until 24 hours after the start it can be marked «نیومد».
+  const ownConfirmed = visible && (isSalonOwner
+    ? ["تایید شده", "تازه"].includes(booking?.status)
+    : !booking?.sourceSalon?.name && ["تایید", "تایید شده"].includes(booking?.status));
+  const noShowAt = ownConfirmed ? noShowPhase(booking?.booking_date || booking?.dateKey || booking?.date || "", booking?.time) : null;
+  const started = noShowAt === "open" || noShowAt === "closed";
+  const markedNoShow = Boolean(booking?.no_show_at || booking?.noShowAt);
+  const canManage = visible && isSalonOwner && !readOnly && !started;
+  // An independent artist's own confirmed booking ahead: the salon's «پیشنهاد ساعت دیگه» and call-first cancel
+  // (owner's decision of 2026-10-25), nothing else (no artists to pick).
+  const canArtistManage = visible && !isSalonOwner && ownConfirmed && !readOnly && !started;
   const staffState = useStaffAvailability(booking, canManage);
 
   useBackHandler(visible, () => {
@@ -320,7 +349,7 @@ export function ScheduleBookingMenuModal({
   const currentArtist = staffOptions.find((person) => person.name === booking.staff);
   const currentArtistAvatar = booking.staffAvatar || currentArtist?.avatar || DEFAULT_AVATAR;
   const actionDisabled = Boolean(busy);
-  const statusTone = getBookingStatusTone(booking.status || "درخواست", isSalonOwner ? "salon" : "artist");
+  const statusTone = markedNoShow ? "bad" : getBookingStatusTone(booking.status || "درخواست", isSalonOwner ? "salon" : "artist");
   const StatusIcon = BOOKING_STATUS_ICONS[statusTone];
   const currentStaff = multiPart ? parsedParts.map((part) => part.staff) : [String(booking.staff || "").trim()];
   const createdAt = booking.createdAt || booking.created_at || "";
@@ -330,11 +359,13 @@ export function ScheduleBookingMenuModal({
   const timeView = view === "time";
   // A CONFIRMED booking is a promise to the client (owner's rules of 2026-10-22): moving it is a proposal the client
   // accepts, and cancelling it tells the client (the call comes first when it starts within 24 hours).
-  const confirmed = isSalonOwner && ["تایید شده", "تازه"].includes(booking.status);
+  const confirmed = (isSalonOwner && ["تایید شده", "تازه"].includes(booking.status)) || canArtistManage;
   const hasAccount = Boolean(booking.client_user_id || booking.clientUserId);
   const soon = confirmed && startsSoon(booking.booking_date || booking.date || "", booking.time);
   const proposal = confirmed ? booking.proposal || null : null;
   const timeLabel = confirmed && hasAccount ? PROPOSE_LABEL : "تغییر ساعت";
+  const canMove = canManage || (canArtistManage && hasAccount);
+  const canCancel = canManage || canArtistManage;
 
   return (
     <div className="sbmScreen" role="dialog" aria-modal="true" aria-label={`نوبت ${title}`}>
@@ -350,7 +381,7 @@ export function ScheduleBookingMenuModal({
             <b>{title}</b>
             <strong className={`clientBookingSettingsStatus is-${statusTone}${showReview ? " is-live" : ""}`}>
               <StatusIcon size={11} />
-              {!isSalonOwner && sourceSalon.name && statusTone === "pending" ? "منتظر سالن" : (booking.status === "تایید شده" ? "تأیید شده" : booking.status || "درخواست")}
+              {markedNoShow ? NO_SHOW_LABEL : !isSalonOwner && sourceSalon.name && statusTone === "pending" ? "منتظر سالن" : (booking.status === "تایید شده" ? "تأیید شده" : booking.status || "درخواست")}
             </strong>
           </div>
           {team.length ? (
@@ -486,14 +517,36 @@ export function ScheduleBookingMenuModal({
               </div>
             ) : null}
 
-            {readOnly ? (
+            {noShowAt === "open" && onNoShow ? (
+              markedNoShow ? (
+                <div className="pxNote is-noshow" role="status">
+                  <p>زدی که {booking.client || "مشتری"} نیومد. روی نوبتش همین رو می‌بینه.</p>
+                  <button type="button" className="pxBtn" disabled={actionDisabled} onClick={() => onNoShow(false)}>{NO_SHOW_UNDO_LABEL}</button>
+                </div>
+              ) : noShowAsk ? (
+                <div className="pxCancelPanel" role="alertdialog" aria-label="مشتری نیومد">
+                  <p>مطمئنی {booking.client || "مشتری"} نیومد؟ روی نوبتش می‌بینه که زدی نیومده. پیامکی نمی‌ره.</p>
+                  <div>
+                    <button type="button" className="pxBtn is-danger" disabled={actionDisabled} onClick={async () => { if (await onNoShow(true)) setNoShowAsk(false); }}>{busy ? "یه لحظه…" : "آره، نیومد"}</button>
+                    <button type="button" className="pxBtn" disabled={actionDisabled} onClick={() => setNoShowAsk(false)}>نه</button>
+                  </div>
+                </div>
+              ) : (
+                <div className="pxNote is-started" role="group" aria-label="بعد از ساعت نوبت">
+                  <p>ساعت نوبت رسیده و دیگه لغو نمی‌شه. اگه مشتری نیومد، تا {toPersianDigits(NO_SHOW_HOURS)} ساعت بعد از ساعت نوبت می‌تونی «نیومد» رو بزنی.</p>
+                  <button type="button" className="pxBtn is-dangerSoft" disabled={actionDisabled} onClick={() => setNoShowAsk(true)}><UserX size={15} aria-hidden="true" />{NO_SHOW_LABEL}</button>
+                </div>
+              )
+            ) : null}
+
+            {readOnly && !(noShowAt === "open" && onNoShow) ? (
               <p className="scheduleBookingReadOnlyNote">
                 <Eye size={14} aria-hidden="true" />
-                {isCancelled ? "این نوبت بسته شده؛ فقط می‌شه دیدش." : "این نوبت گذشته؛ فقط می‌شه دیدش."}
+                {isCancelled ? "این نوبت بسته شده؛ فقط می‌شه دیدش." : markedNoShow ? "مشتری نیومد؛ این نوبت بسته شده." : "این نوبت گذشته؛ فقط می‌شه دیدش."}
               </p>
             ) : null}
 
-            {canManage && !isPendingReview && cancelAsk && confirmed ? (
+            {canCancel && !isPendingReview && cancelAsk && confirmed ? (
               <div className="pxCancelPanel" role="alertdialog" aria-label="لغو نوبت تأییدشده">
                 <p>{soon ? CALL_FIRST_TEXT : "این نوبت تأیید شده بود و مشتری روش حساب کرده."}</p>
                 {phone && (soon || !hasAccount) ? (
@@ -509,7 +562,7 @@ export function ScheduleBookingMenuModal({
                   <button type="button" className="pxBtn" disabled={actionDisabled} onClick={() => setCancelAsk(false)}>نه، بمونه</button>
                 </div>
               </div>
-            ) : canManage && !isPendingReview ? (
+            ) : canCancel && !isPendingReview ? (
               <button
                 type="button"
                 className="sbmCancel"
@@ -534,7 +587,7 @@ export function ScheduleBookingMenuModal({
               <ArrowRight size={15} aria-hidden="true" />
               برگرد به جزئیات
             </button>
-            {isSalonOwner && hasAccount ? (
+            {(isSalonOwner || canArtistManage) && hasAccount ? (
               <p className="scheduleBookingReadOnlyNote is-offer">
                 {confirmed
                   ? "ساعت پیشنهادی می‌ره برای مشتری. تا قبول نکنه، نوبت همون ساعت قبلی می‌مونه."
@@ -565,7 +618,7 @@ export function ScheduleBookingMenuModal({
           </div>
         ) : null}
         <nav className="sbmBar" aria-label="کارهای نوبت">
-          {canManage ? (
+          {canMove ? (
             <button
               type="button"
               className={timeView ? "is-active" : ""}

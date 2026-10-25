@@ -9,6 +9,7 @@ import { createVisitBookerController } from "./visitBookerController";
 import { VisitWizard } from "./VisitWizard";
 import { WaitChoice } from "./WaitChoice";
 import { PlanList, TimesList } from "./visitBookerParts";
+import { notify } from "../../shared/notice/noticeStore";
 import { MAX_VISIT_PEOPLE, clockText, maxServicesFor, missingText, visitSummaryText } from "./visitBookerModel";
 
 const ROLE_COPY = {
@@ -269,6 +270,11 @@ function VisitBookerForm({ role, title, subtitle, services, days, initial, custo
                 {item.closed ? <small>تعطیل</small> : null}
               </button>
             ))}
+            {role === "client" ? (
+              <button type="button" className="vbDay is-closed is-horizon" onClick={() => notify({ id: "booking-horizon", title: "فعلاً تا ۶۰ روز جلوتر", text: "برای بعدش به سالن زنگ بزن.", tone: "info" })}>
+                بعدش؟
+              </button>
+            ) : null}
           </div>
         </section>
 

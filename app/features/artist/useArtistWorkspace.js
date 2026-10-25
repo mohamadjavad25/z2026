@@ -5,6 +5,8 @@ import { useAppRefresh } from "../../shared/lib/appRefresh";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createArtistMe, deleteArtistMe, getArtistHours, getArtistMe, respondArtistInvite, getArtistTeams, leaveArtistTeam, updateArtistBooking, updateArtistMe } from "../../shared/api/artists";
 import { getPosts } from "../../shared/api/posts";
+import { markNoShow, proposeArtistTime, withdrawProposal } from "../../shared/api/providerExit";
+import { toPersianDigits } from "../../shared/lib/digits";
 import { buildClockOptions, getTodayPersianWeekday, timeLabelToMinutes } from "../../shared/lib/time";
 import { mapPortfolioItem } from "../posts/mappers";
 import {
@@ -601,6 +603,59 @@ export function useArtistWorkspace({
     }
   }, [shellNotify]);
 
+  /**
+   * One change to the artist's own confirmed direct booking from its screen: «نیومد», «پیشنهاد ساعت دیگه», taking the
+   * proposal back, or cancelling with notice. The list comes back from the server; true when it went through.
+   */
+  const runArtistBookingCall = useCallback(async (bookingId, call, notice) => {
+    if (artistRequestBusyIdRef.current) return false;
+    const busyKey = `booking:${bookingId}`;
+    artistRequestBusyIdRef.current = busyKey;
+    setArtistRequestBusyId(busyKey);
+    try {
+      const { ok, payload } = await call();
+      if (!ok) {
+        shellNotify(payload?.error || "نشد؛ دوباره بزن.");
+        return false;
+      }
+      if (Array.isArray(payload.data?.bookings)) {
+        setArtistBookingList(payload.data.bookings.map(mapArtistBooking).filter(Boolean));
+      }
+      shellNotify(notice);
+      return true;
+    } catch {
+      shellNotify("نشد؛ دوباره بزن.");
+      return false;
+    } finally {
+      artistRequestBusyIdRef.current = "";
+      setArtistRequestBusyId("");
+    }
+  }, [shellNotify]);
+
+  const markArtistNoShow = useCallback((bookingId, noShow) => runArtistBookingCall(
+    bookingId,
+    () => markNoShow({ kind: "artist", id: bookingId, noShow }),
+    noShow ? "زدی که نیومد." : "برگشت؛ دیگه «نیومد» نیست."
+  ), [runArtistBookingCall]);
+
+  const proposeArtistBookingTime = useCallback((bookingId, time) => runArtistBookingCall(
+    bookingId,
+    () => proposeArtistTime({ id: bookingId, time }),
+    `ساعت ${toPersianDigits(time)} رو به مشتری پیشنهاد دادیم. تا قبول نکنه، نوبت همون ساعت قبلی می‌مونه.`
+  ), [runArtistBookingCall]);
+
+  const withdrawArtistProposal = useCallback((bookingId) => runArtistBookingCall(
+    bookingId,
+    () => withdrawProposal({ kind: "artist", id: bookingId }),
+    "پیشنهاد رو پس گرفتی؛ نوبت همون ساعت قبلیه."
+  ), [runArtistBookingCall]);
+
+  const cancelArtistConfirmedBooking = useCallback((bookingId) => runArtistBookingCall(
+    bookingId,
+    () => updateArtistBooking({ id: bookingId, status: "لغو", action: "cancel" }),
+    "نوبت لغو شد؛ مشتری خبردار شد."
+  ), [runArtistBookingCall]);
+
   async function respondArtistSalonInvite(inviteId, status) {
     if (!inviteId || artistInviteRespondBusyId) return;
     setArtistInviteRespondBusyId(String(inviteId));
@@ -678,6 +733,10 @@ export function useArtistWorkspace({
     artistRequestBusyId,
     confirmArtistBookingRequest,
     declineArtistBookingRequest,
+    markArtistNoShow,
+    proposeArtistBookingTime,
+    withdrawArtistProposal,
+    cancelArtistConfirmedBooking,
     artistWorkspaceLoading,
     artistGalleryFilter,
     setArtistGalleryFilter,
