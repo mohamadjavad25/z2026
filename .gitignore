@@ -15,3 +15,6 @@ data/*.db
 # Android signing keys never go in the repo (see mobile/README.md)
 *.keystore
 *.jks
+
+# Local browser link a screenshot run left behind; a dangling link here breaks next build.
+/headless_shell
