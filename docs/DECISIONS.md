@@ -50,3 +50,8 @@ One line each, dated. Claude reads this before asking questions.
 - 2026-10-25: Phone change: opens from Settings, under the name («شمارهٔ موبایل»); a number that belongs to another account is refused («این شماره مال یه حساب دیگه‌ست.»); the old number gets one short SMS. Still open (owner asked for scenarios): logging other phones out, and bookings a salon typed with the old number.
 - 2026-10-25: Firebase: the owner tested, app push arrives. «دعوت در انتظار» is enough as it is (link/code sign-up connects); removed from the roadmap. Customisable top-of-page notices: removed from the roadmap. Removed salon/artist: Q1-Q6 as built are fine. Account security: later, explained as scenarios first. Client value ideas: agreed, to be tested first. Slow network: study it.
 - 2026-10-25: «برای چند نفر؟» in the salon's own entry form: the owner agrees, and wants each person's phone number entered so their later bookings link to them.
+- 2026-10-25: Booking horizon: the 60-day limit is for clients only; a salon or artist may enter any date themselves. Try it on Vercel first.
+- 2026-10-25: Phone change: every other session of the account is signed out (this phone stays in); bookings already tied to the old number are locked to the account at the moment of the change, while bookings typed later with the old number are not the account's.
+- 2026-10-25: «برای چند نفر؟» in the salon's own entry form: each extra person gets a name and an optional phone (not required).
+- 2026-10-25: Account security item 1 (other phones stay signed in after a password change) is to be fixed soon; the owner thinks another session may already be on it, so check first.
+- 2026-10-25: Client value: «وقتش شده» (a reminder when a service is due again) is the first one to build and test.
