@@ -5,6 +5,7 @@ import {
   SALON_GONE_TEXT,
   cancelledByProviderText,
   handoverProposalText,
+  proposalLapsedClientText,
   providerLabel,
   shortClock,
   timeProposalText
@@ -86,7 +87,7 @@ export function noticeProviderProposalAnswer(providerUserId, { accepted, booking
 }
 
 /** A proposal nobody answered in time: the original stays; the provider is told to call, the client that nothing changed. */
-export function noticeProposalLapsed({ providerUserId, clientUserId, booking, clientName }) {
+export function noticeProposalLapsed({ providerUserId, clientUserId, booking, clientName, provider }) {
   if (providerUserId) {
     void quiet(sendPushToUser(Number(providerUserId), {
       title: "مشتری به پیشنهاد جواب نداد",
@@ -95,9 +96,10 @@ export function noticeProposalLapsed({ providerUserId, clientUserId, booking, cl
     }));
   }
   if (clientUserId) {
+    // Owner's wording of 2026-10-25: «پیشنهاد سالن رز تموم شد. نوبتت همون شنبه ساعت ۱۰ سر جاشه.» (push and card line, no SMS)
     void quiet(sendPushToUser(Number(clientUserId), {
-      title: "وقت جواب دادن تموم شد",
-      body: `${booking.service || "نوبت"}: به پیشنهاد جواب ندادی؛ نوبت قبلیت سر جاشه.`,
+      title: `پیشنهاد ${providerLabel(provider?.type, provider?.name)} تموم شد`,
+      body: proposalLapsedClientText(booking),
       url: "/"
     }));
   }

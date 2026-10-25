@@ -70,6 +70,12 @@ export function ScheduleMenuHost() {
     autoAssignScheduleBooking,
     cancelScheduleBooking,
     withdrawScheduleProposal,
+    markScheduleNoShow,
+    markArtistNoShow,
+    proposeArtistBookingTime,
+    withdrawArtistProposal,
+    cancelArtistConfirmedBooking,
+    artistBookingList,
     scheduleBookingBusy,
     approveReservationRequest,
     confirmArtistBookingRequest,
@@ -92,10 +98,20 @@ export function ScheduleMenuHost() {
   // The open booking follows the live list (polling, the salon's own edits, a client's answer),
   // so the screen never shows a stale status, time or split.
   const liveBooking = useMemo(() => {
-    if (!scheduleBookingMenu || scheduleBookingMenu.ownerType !== "salon" || scheduleBookingMenu.id == null) return scheduleBookingMenu;
+    if (!scheduleBookingMenu || scheduleBookingMenu.id == null) return scheduleBookingMenu;
+    if (scheduleBookingMenu.ownerType !== "salon") {
+      // An artist's own booking follows the artist's list the same way («نیومد» set or taken back).
+      const fresh = (artistBookingList || []).find((booking) => String(booking.id) === String(scheduleBookingMenu.id));
+      return fresh
+        ? { ...scheduleBookingMenu, status: fresh.status, no_show_at: fresh.no_show_at, proposal: fresh.proposal, booking_date: fresh.booking_date || scheduleBookingMenu.booking_date }
+        : scheduleBookingMenu;
+    }
     const fresh = salonBookings.find((booking) => String(booking.id) === String(scheduleBookingMenu.id));
     return fresh ? { ...scheduleBookingMenu, ...fresh, ownerType: "salon" } : scheduleBookingMenu;
-  }, [scheduleBookingMenu, salonBookings]);
+  }, [scheduleBookingMenu, salonBookings, artistBookingList]);
+
+  // An independent artist's own booking (not a salon's calendar copy): the artist's own proposal and cancel calls.
+  const isArtistOwn = Boolean(liveBooking && liveBooking.ownerType !== "salon" && !liveBooking.sourceSalon?.name);
 
   return (
     <ScheduleBookingMenuModal
@@ -105,12 +121,17 @@ export function ScheduleMenuHost() {
       onViewChange={setScheduleBookingView}
       staffOptions={safeSalonStaffList.length ? safeSalonStaffList : bookingStaffOptions}
       onClose={closeScheduleBookingMenu}
-      onChangeTime={changeScheduleBookingTime}
+      onChangeTime={isArtistOwn
+        ? async (time) => { if (await proposeArtistBookingTime(liveBooking.id, time)) setScheduleBookingView("menu"); }
+        : changeScheduleBookingTime}
       onChangeStaff={changeScheduleBookingStaff}
       onChangeParts={changeScheduleBookingParts}
       onAutoAssign={autoAssignScheduleBooking}
-      onCancel={cancelScheduleBooking}
-      onWithdrawProposal={withdrawScheduleProposal}
+      onCancel={isArtistOwn
+        ? async () => { if (await cancelArtistConfirmedBooking(liveBooking.id)) closeScheduleBookingMenu(); }
+        : cancelScheduleBooking}
+      onWithdrawProposal={isArtistOwn ? () => withdrawArtistProposal(liveBooking.id) : withdrawScheduleProposal}
+      onNoShow={liveBooking?.ownerType === "salon" ? markScheduleNoShow : (noShow) => markArtistNoShow(liveBooking.id, noShow)}
       onApprove={async () => {
         if (!liveBooking) return;
         if (liveBooking.ownerType === "salon") {

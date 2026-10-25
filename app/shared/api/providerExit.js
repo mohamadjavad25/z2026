@@ -30,3 +30,18 @@ export async function withdrawProposal(body) {
 export async function answerProposal(body) {
   return apiFetch("/api/booking-proposals/answer", { method: "POST", body: JSON.stringify(body) });
 }
+
+/** POST /api/booking-no-show { kind, id, noShow } → «نیومد» on a started confirmed booking, or taking it back. */
+export async function markNoShow(body) {
+  return apiFetch("/api/booking-no-show", { method: "POST", body: JSON.stringify(body) });
+}
+
+/** GET /api/booking-proposals?id=… (an independent artist) → { data: { times } }: free times that day to propose. */
+export async function getArtistProposalTimes(id) {
+  return apiFetch(`/api/booking-proposals?id=${encodeURIComponent(id)}`);
+}
+
+/** POST /api/booking-proposals { kind: "artist", id, time } → the client is asked to accept another time. */
+export async function proposeArtistTime(body) {
+  return apiFetch("/api/booking-proposals", { method: "POST", body: JSON.stringify({ kind: "artist", ...body }) });
+}

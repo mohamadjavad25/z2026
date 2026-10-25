@@ -699,9 +699,18 @@
 .cuSheetTop b { font-size: 1rem; font-weight: 950; }
 .cuSheetTop span { color: var(--n-600); font-size: 0.78rem; font-weight: 800; }
 .cuCall { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 14px; border-radius: 999px; background: var(--fill-strong); color: var(--n-0); font-size: 0.78rem; font-weight: 900; text-decoration: none; }
-.cuStats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.cuStats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
 .cuStats span { display: grid; justify-items: center; gap: 2px; padding: 10px 4px; border-radius: 14px; background: var(--n-50); color: var(--n-600); font-size: 0.68rem; font-weight: 800; }
 .cuStats b { color: var(--n-900); font-size: 1.15rem; font-weight: 950; }
+.cuStats span.is-came { background: var(--success-bg); color: var(--success); }
+.cuStats span.is-came b { color: var(--success); }
+.cuStats span.is-noshow { background: var(--danger-bg); color: var(--danger); }
+.cuStats span.is-noshow b { color: var(--danger); }
+/* «۵ بار اومد» / «۲ بار نیومد» under a customer's row (owner's request 2026-10-25) */
+.cuTally { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.cuTally i { display: inline-flex; align-items: center; gap: 4px; font-style: normal; font-size: 0.68rem; font-weight: 900; padding: 3px 9px; border-radius: 8px; }
+.cuTally i.is-came { background: var(--success-bg); color: var(--success); }
+.cuTally i.is-noshow { background: var(--danger-bg); color: var(--danger); }
 .cuHistoryTitle { margin: 4px 0 0; font-size: 0.82rem; font-weight: 950; }
 .cuHistory { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
 .cuHistory li { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 14px; background: var(--n-25); }

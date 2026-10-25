@@ -57,6 +57,7 @@ export function buildBookingCustomers(bookings = [], followers = []) {
         lastDate: booking.booking_date || booking.date || "",
         visitCount: 0,
         completed: 0,
+        noShow: 0,
         upcoming: 0,
         cancelled: 0,
         lastVisitTime: 0,
@@ -82,6 +83,11 @@ export function buildBookingCustomers(bookings = [], followers = []) {
     customer.visitCount += 1;
     const time = bookingTime(booking);
     const isPast = time !== null && time < todayTime;
+    // «نیومد» (the salon or artist marked it): a booking, but not a visit.
+    if (booking.no_show_at || booking.noShowAt) {
+      customer.noShow += 1;
+      return;
+    }
     if (booking.status === "تایید شده" && isPast) {
       customer.completed += 1;
       customer.lastVisitTime = Math.max(customer.lastVisitTime, time);
@@ -108,6 +114,7 @@ export function buildBookingCustomers(bookings = [], followers = []) {
           lastDate: "",
           visitCount: 0,
           completed: 0,
+        noShow: 0,
           upcoming: 0,
           cancelled: 0,
           lastVisitTime: 0,

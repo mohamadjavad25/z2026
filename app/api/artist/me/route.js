@@ -16,6 +16,7 @@ import { readBookingSlot } from "../../../lib/validation/bookingSlot.js";
 import { parseRequestedMinutes } from "../../../lib/validation/numbers.js";
 import { bookingWhen, smsBookingAnswer } from "../../../lib/bookingSms.js";
 import { noticeClientCancelledByProvider } from "../../../lib/providerNotices.js";
+import { STARTED_NO_CANCEL_TEXT, STARTED_TEAM_NO_CANCEL_TEXT, hasStarted } from "../../../shared/lib/providerRules.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -190,6 +191,15 @@ async function patchOwnArtistBooking(artistUserId, body, artistName = "") {
     const isRequestRow = (locked.status === "تازه" && !locked.source_salon_user_id) || (locked.status === "درخواست" && locked.source_salon_user_id);
     if (nextStatus === "تایید شده" && isRequestRow && (locked.lapsed || isSlotInPast(locked.booking_date, locked.time))) {
       refusal = json({ error: "وقت جواب دادن به این درخواست تموم شده.", code: "BOOKING_EXPIRED" }, { status: 409 });
+      return;
+    }
+    // A confirmed visit that has started can't be cancelled by its artist any more (owner's decision of 2026-10-25):
+    // an independent artist marks «نیومد» instead; a salon's visit is the salon's to mark.
+    if (wantsCancel && ["تایید", "تایید شده"].includes(locked.status) && hasStarted(locked.booking_date, locked.time)) {
+      refusal = json({
+        error: locked.source_salon_user_id ? STARTED_TEAM_NO_CANCEL_TEXT : STARTED_NO_CANCEL_TEXT,
+        code: "BOOKING_STARTED"
+      }, { status: 409 });
       return;
     }
     if (locked.status === "لغو" && nextStatus === "تایید شده") {

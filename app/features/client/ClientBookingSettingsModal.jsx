@@ -13,7 +13,8 @@ import { parseBookingParts } from "../../shared/lib/bookingParts";
 import { getSalonVisitTimes } from "../../shared/api/salons";
 import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar";
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
-import { ACCEPT_LABEL, CALL_PLACE_LABEL, CLIENT_CANCEL_LABEL, ARTIST_GONE_TEXT, SALON_GONE_TEXT, cancelledByProviderText, handoverProposalText, shortClock, timeProposalText } from "../../shared/lib/providerRules";
+import { ACCEPT_LABEL, CALL_PLACE_LABEL, CLIENT_CANCEL_LABEL, ARTIST_GONE_TEXT, NO_SHOW_WRONG_LABEL, SALON_GONE_TEXT, cancelledByProviderText, handoverProposalText, noShowClientText, proposalLapsedLine, shortClock, timeProposalText } from "../../shared/lib/providerRules";
+import { openSupport } from "../support/supportEvents";
 
 const BOOKING_STATUS_ICONS = {
   pending: Clock3,
@@ -320,6 +321,24 @@ export function ClientBookingSettingsModal({
           ) : null}
           {booking.status === "لغو" && booking.cancelled_by === "provider" && !gone ? (
             <p className="cbGone"><XCircle size={15} aria-hidden="true" />{cancelledByProviderText(booking.bookingSource === "artist" ? "artist" : "salon", booking.salonName || booking.salon_name || "")}</p>
+          ) : null}
+          {!proposal && booking.proposal_lapsed_at && !booking.no_show_at && !hasBookingStarted(booking) && booking.status !== "لغو" ? (
+            <p className="clientBookingPendingNote"><Clock3 size={14} aria-hidden="true" />{proposalLapsedLine(booking)}</p>
+          ) : null}
+          {booking.no_show_at && booking.status !== "لغو" ? (
+            <div className="cbNoShow" role="status">
+              <p><XCircle size={15} aria-hidden="true" />{noShowClientText(booking.bookingSource === "artist" ? "artist" : "salon", booking.salonName || booking.salon_name || "")}</p>
+              <button
+                type="button"
+                onClick={() => openSupport({
+                  view: "new",
+                  category: "complaint",
+                  subject: `«نیومد» اشتباهه: ${shortServiceLabel(booking.service) || "نوبت"} در ${booking.salonName || booking.salon_name || "سالن"}، ${formatRelativeBookingDayLabel(booking.booking_date || booking.date || "")} ${toPersianDigits(booking.time || "")}`
+                })}
+              >
+                {NO_SHOW_WRONG_LABEL}
+              </button>
+            </div>
           ) : null}
           {gone ? (
             <p className="cbGone"><Store size={15} aria-hidden="true" />{booking.bookingSource === "artist" ? ARTIST_GONE_TEXT : SALON_GONE_TEXT}</p>

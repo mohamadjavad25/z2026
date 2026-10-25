@@ -328,7 +328,7 @@ export async function listArtistBookings(artistUserId) {
 
   function buildVisits(historyRows) {
     const recent = [...historyRows]
-      .filter((item) => item && item.status !== "لغو")
+      .filter((item) => item && item.status !== "لغو" && !item.no_show_at)
       .sort((a, b) => Number(a.id || 0) - Number(b.id || 0))
       .slice(-10);
     const visits = Array.from({ length: 10 }, () => 0);

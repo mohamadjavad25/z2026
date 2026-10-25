@@ -47,3 +47,12 @@
 .cbProposalActions button.is-accept { border-color: transparent; background: var(--fill-strong); color: var(--n-0); }
 .cbProposalActions button:disabled { opacity: 0.6; }
 .cbGone { display: flex; align-items: center; gap: 6px; margin: 8px 0 0; color: var(--danger); font-size: 0.78rem; font-weight: 850; line-height: 1.8; }
+
+/* «نیومد» on a booking that has started (owner's decision 2026-10-25). */
+.pxNote.is-started { border-color: var(--n-100); color: var(--n-700); }
+.pxNote.is-noshow { border-color: rgb(var(--danger-rgb) / 0.3); color: var(--danger); }
+.pxBtn.is-dangerSoft { border-color: rgb(var(--danger-rgb) / 0.4); color: var(--danger); }
+/* The client's line on a booking marked «نیومد», with «اشتباهه؟» to support. */
+.cbNoShow { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin: 8px 0 0; padding: 10px 12px; border: 1px solid rgb(var(--danger-rgb) / 0.3); border-radius: 14px; background: var(--danger-bg); }
+.cbNoShow p { display: flex; align-items: center; gap: 6px; margin: 0; color: var(--danger); font-size: 0.78rem; font-weight: 850; line-height: 1.8; }
+.cbNoShow button { min-height: 36px; padding: 0 12px; border: 1px solid rgb(var(--danger-rgb) / 0.4); border-radius: 10px; background: var(--n-0); color: var(--danger); font: inherit; font-size: 0.76rem; font-weight: 900; cursor: pointer; }
