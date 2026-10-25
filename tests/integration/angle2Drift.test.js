@@ -254,7 +254,8 @@ describe("a salon changes its hours or closes a day while bookings exist", () =>
   it("existing bookings stay listed, can be approved and cancelled; the closed day takes no new ones", async () => {
     const salon = await newSalon("Hours Salon");
     const client = await newClient();
-    const day = pickDay({ min: 3 });
+    // Not a Thursday: it closes at 18:00 by default, before this 19:00 booking.
+    const day = pickDay({ min: 3, exclude: ["پنجشنبه"] });
     const made = await bookAtSalon(client.api, salon, client, { day: day.key, time: "۱۹:۰۰" });
     expect(made.status).toBe(201);
     const hours = (await salon.api.get("/api/salon-hours")).payload.data.hours;
