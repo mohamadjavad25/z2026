@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Check, ChevronDown, CopyCheck, Timer, X } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
@@ -83,6 +83,8 @@ export function SalonHoursEditor({
   const [copyTargets, setCopyTargets] = useState([]);
   const [dialog, setDialog] = useState(null);
   const [saving, setSaving] = useState(false);
+  // A quick double tap lands before `saving` re-renders; the ref stops the second request.
+  const savingRef = useRef(false);
 
   const changedDays = useMemo(
     () => draft.filter((row) => rowChanged(row, hoursList.find((saved) => saved.day === row.day))),
@@ -161,9 +163,12 @@ export function SalonHoursEditor({
   };
 
   const save = async () => {
+    if (savingRef.current) return;
+    savingRef.current = true;
     setDialog(null);
     setSaving(true);
     const ok = await onSave?.(changedDays.map(({ day, open_time, close_time, active }) => ({ day, open_time, close_time, active })));
+    savingRef.current = false;
     setSaving(false);
     if (ok) {
       setExpandedDay("");
@@ -172,7 +177,7 @@ export function SalonHoursEditor({
   };
 
   const requestSave = () => {
-    if (!dirty || saving) return;
+    if (!dirty || savingRef.current) return;
     const outside = bookingsLeftOutside(bookings, hoursList, draft);
     if (outside.length) {
       setDialog({ kind: "booked", bookings: outside });
