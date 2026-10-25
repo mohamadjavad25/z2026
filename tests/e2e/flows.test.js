@@ -549,7 +549,7 @@ describe("salon day at the top of the bookings (browser)", () => {
     await nav.getByRole("button", { name: "برگرد به امروز" }).click();
     await nav.getByRole("button", { name: "برگرد به امروز" }).waitFor({ state: "detached" });
     await nav.locator(".dayNavDay").click();
-    await page.getByText("تقویم نوبت‌ها").first().waitFor();
+    await page.getByText("تقویم نوبت‌ها", { exact: true }).first().waitFor();
     expect(problems).toEqual([]);
     await context.close();
   });

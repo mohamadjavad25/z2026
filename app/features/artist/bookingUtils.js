@@ -125,9 +125,9 @@ export function buildExactBookingDateTabsCentered(daysBefore = 3, daysAfter = 3)
 export function getBookingDateOffsetDays(dateKey, from = new Date()) {
   const resolved = persianDateKeyToDate(dateKey, from);
   if (!resolved) return 0;
-  const start = new Date(from.getFullYear(), from.getMonth(), from.getDate());
-  const end = new Date(resolved.getFullYear(), resolved.getMonth(), resolved.getDate());
-  return Math.round((end - start) / 86400000);
+  // Both are the same moment of their Tehran day (persianCalendar's day values), so the difference is whole days.
+  const start = persianDateKeyToDate(formatPersianDateKey(from), from);
+  return Math.round((resolved - start) / 86400000);
 }
 
 export function getArtistBookingDayRank(date) {

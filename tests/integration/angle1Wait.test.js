@@ -134,9 +134,14 @@ describe("the salon moves a waiting request (offers another time)", () => {
 
   it("accept and decline at the same moment: one wins, and everybody sees the same final status", async () => {
     const ctx = await makeSalon("A1 Offer Race", { staffCount: 1 });
+    const used = new Set();
     for (let round = 0; round < 5; round += 1) {
       const a = await makeClient("A1 A");
-      const d = day(2 + round);
+      // A different day each round: day(n) skips Thursday to the Saturday, which day(n + 1) also is.
+      let n = 2 + round;
+      while (used.has(day(n))) n += 1;
+      const d = day(n);
+      used.add(d);
       const time = ["10:00", "12:00", "14:00", "16:00", "18:00"][round];
       const first = await requestSlot(a, ctx.salon.user.id, { day: d, time });
       const id = first.payload.data.booking.id;
@@ -161,12 +166,18 @@ describe("the salon moves a waiting request (offers another time)", () => {
 
   it("client accepts while the salon moves the booking again: no 5xx, nothing double booked", async () => {
     const ctx = await makeSalon("A1 Offer Race2", { staffCount: 1 });
+    const used = new Set();
     for (let round = 0; round < 5; round += 1) {
       const a = await makeClient("A1 A");
-      const d = day(2 + round);
+      // A different day each round: day(n) skips Thursday to the Saturday, which day(n + 1) also is.
+      let n = 2 + round;
+      while (used.has(day(n))) n += 1;
+      const d = day(n);
+      used.add(d);
       const first = await requestSlot(a, ctx.salon.user.id, { day: d, time: "10:00" });
       const id = first.payload.data.booking.id;
-      expect((await ctx.salonClient.patch("/api/salon-bookings", { id, time: "13:00" })).status).toBe(200);
+      const moved = await ctx.salonClient.patch("/api/salon-bookings", { id, time: "13:00" });
+      expect(moved.status, `${d} ${JSON.stringify(moved.payload)}`).toBe(200);
       const [acc, mv] = await Promise.all([
         a.client.post(`/api/salon-bookings/${id}/answer`, { accept: true }),
         ctx.salonClient.patch("/api/salon-bookings", { id, time: "15:00" })

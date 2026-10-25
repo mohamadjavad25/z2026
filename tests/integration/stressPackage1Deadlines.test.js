@@ -139,6 +139,8 @@ describe("4a) a request's hour, raced at its last moment", () => {
     await ageRequest(id, 60_000);
     expect((await get(a.client, `/api/salon-bookings/availability?salonUserId=${ctx.salon.user.id}&day=${d}&service=S30`)).payload.data.times.map(ascii)).not.toContain("10:00");
     await ageRequest(id, -60_000);
+    // The free-times answer is shared for 5 s (availabilityCache.js); ageing the row by hand bumps nothing.
+    await new Promise((resolve) => setTimeout(resolve, 5100));
     const times = (await get(a.client, `/api/salon-bookings/availability?salonUserId=${ctx.salon.user.id}&day=${d}&service=S30`)).payload.data.times;
     expect(times.map(ascii)).toContain("10:00");
   }, 60_000);
@@ -167,13 +169,16 @@ describe("4e) the slot of a request whose hour is ending: approve, a newcomer an
   it(`${ROUNDS} rounds on a one-artist salon: the artist is never booked twice, and the calendar copies match`, async () => {
     await clearThrottles(db);
     const ctx = await makeSalon("P1 Slot Handover", { staffCount: 1, services: SERVICES });
+    // Three different days (ten rounds each): day(n) skips Thursday to the Saturday, which day(n + 1) also is.
+    const days = [];
+    for (let n = 3; days.length < 3; n += 1) if (!days.includes(day(n))) days.push(day(n));
     const results = [];
     for (let round = 0; round < ROUNDS; round += 1) {
       const a = pool[round];
       const b = pool[(round + ROUNDS) % pool.length];
       for (const x of [a, b]) await db.query("UPDATE salon_bookings SET status = 'لغو' WHERE client_user_id = $1 AND status = 'درخواست'", [x.user.id]);
       await clearThrottles(db);
-      const d = day(3 + Math.floor(round / 10));
+      const d = days[Math.floor(round / 10)];
       const time = slotTime(round);
       const first = await post(a.client, "/api/salon-bookings", slotBody(ctx.salon.user.id, { day: d, time }));
       expect(first.status, JSON.stringify(first.payload)).toBe(201);
@@ -266,7 +271,7 @@ describe("4b) an offered new time (held 6 hours), raced at its last moment", () 
     await ageOffer(outside, -1000);
     const refused = await post(b.client, `/api/salon-bookings/${outside}/answer`, { accept: true });
     expect(refused.status).toBe(409);
-    expect(refused.payload.error).toMatch(/مهلت/);
+    expect(refused.payload.error).toMatch(/تموم شده/);
     // the offered 16:00 is free for someone else before the sweep has run, and the old offer cannot take it back
     const other = await post(c2.client, "/api/salon-bookings", slotBody(ctx.salon.user.id, { day: d, time: "16:00" }));
     expect(other.status, JSON.stringify(other.payload)).toBe(201);

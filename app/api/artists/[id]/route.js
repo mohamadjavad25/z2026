@@ -24,6 +24,9 @@ async function _GET(request, { params }) {
   if (!artist.isPublic && viewer?.id !== artistUserId) {
     return NextResponse.json({ error: "آرتیست یافت نشد." }, { status: 404 });
   }
+  // The number is the artist's login phone: only a signed-in viewer gets it (the app's «تماس با آرتیست»); the public
+  // web page never shows it, so an anonymous request does not get it either.
+  if (!viewer) delete artist.phone;
   return NextResponse.json({ data: { artist } });
 }
 

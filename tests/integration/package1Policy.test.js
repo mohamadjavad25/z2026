@@ -72,6 +72,8 @@ describe("P2: deadlines", () => {
     const listed = async () => (await b.client.get(`/api/salon-bookings/availability?salonUserId=${ctx.salon.user.id}&day=${d}&service=S30`)).payload.data.times.map(normalizeBookingTimeLabel);
     expect(await listed()).not.toContain("10:00");
     await sendBack(db, r.payload.data.booking.id, 90);
+    // The free-times answer is shared for 5 s (availabilityCache.js); ageing the row by hand bumps nothing.
+    await new Promise((resolve) => setTimeout(resolve, 5100));
     expect(await listed()).toContain("10:00");
   });
 
