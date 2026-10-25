@@ -54,3 +54,19 @@
 .dayNavToday:focus-visible, .dayNavStep:focus-visible, .dayNavDay:focus-visible { outline: 2px solid var(--n-900); outline-offset: 2px; }
 .salonDayInline { justify-items: stretch; min-width: 0; }
 .artistBookingsPage .dayNav { margin-bottom: 12px; }
+
+/* The bottom bar keeps its floating pill, but sits on a solid strip down to the screen's edge, so the page never
+   shows through under or beside it (owner's request 2026-10-25: «به پایین صفحه بچسبه ولی حالت فعلیشو حفظ کنه»). */
+.bottomNav::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: 50%;
+  left: -8px;
+  right: -8px;
+  bottom: calc(-8px - env(safe-area-inset-bottom, 0px) - 2px);
+  background: var(--n-0);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 24px);
+  mask-image: linear-gradient(to bottom, transparent, #000 24px);
+  pointer-events: none;
+}

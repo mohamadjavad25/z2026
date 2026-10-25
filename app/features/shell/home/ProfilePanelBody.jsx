@@ -2,7 +2,7 @@ import { useState } from "react";
 import { AuthGateForms } from "../../auth";
 import { ProfileHero } from "../../profile/ProfileHero";
 import { openLocationSettings } from "../../profile/locationEvents";
-import { ProfileCompleteness } from "../../profile/ProfileCompleteness";
+import { ProfileCompleteness, ProfileReadyCelebration } from "../../profile/ProfileCompleteness";
 import { BillingBanner } from "../../billing";
 import { SalonStaffWorkspace, SalonServicesWorkspace } from "../../salons";
 import { ProfileGallery } from "../../profile/ProfileGallery";
@@ -237,6 +237,14 @@ export function ProfilePanelBody() {
 
             {(createdProfile?.type === "salon" || createdProfile?.type === "artist") && createdProfile.type === profileType && profileView === "overview" && !salonWorkspace ? (
               <BillingBanner />
+            ) : null}
+
+            {createdProfile?.type === "salon" || createdProfile?.type === "artist" ? (
+              <ProfileReadyCelebration
+                profile={createdProfile}
+                serviceCount={createdProfile.type === "salon" ? salonServiceList.length : artistServiceList.length}
+                ready={!(createdProfile.type === "salon" ? salonWorkspaceLoading : artistWorkspaceLoading)}
+              />
             ) : null}
 
             {/* Wait for the workspace to load: until then the service count reads 0 and a complete profile would flash the card. */}

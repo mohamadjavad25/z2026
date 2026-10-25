@@ -36,6 +36,18 @@ const DEFAULT_TIMER = {
 
 const MAX_VISIBLE = 3;
 
+/**
+ * A notice that leaves by itself stays at least long enough to be read: about 14 letters a second plus two seconds
+ * to notice it, up to 15 seconds. A long message used to vanish before its end was read.
+ */
+const READ_MS_PER_CHAR = 70;
+const READ_MS_MAX = 15000;
+export function readingTime(base, timer) {
+  if (!timer) return timer;
+  const length = `${base.title || ""} ${base.text || ""} ${base.big || ""}`.trim().length;
+  return Math.max(timer, Math.min(READ_MS_MAX, 2000 + length * READ_MS_PER_CHAR));
+}
+
 let items = [];
 let sequence = 0;
 const listeners = new Set();
@@ -78,7 +90,7 @@ export function notify(input) {
     tone,
     kind,
     id: base.id || `notice-${++sequence}`,
-    timer: base.timer ?? DEFAULT_TIMER[kind] ?? 0
+    timer: base.timer ?? readingTime(base, DEFAULT_TIMER[kind] ?? 0)
   };
   items = keepVisible([...items.filter((item) => item.id !== notice.id), notice]);
   emit();

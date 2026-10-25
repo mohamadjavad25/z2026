@@ -1,6 +1,6 @@
 import { json, requireUserRole, withErrorHandling, readObjectBody } from "../../../lib/http.js";
 import * as salons from "../../../lib/db/repos/salons.js";
-import { notifyConnection } from "../../../lib/connectionNotify.js";
+import { notifyTeamEnd } from "../../../lib/teamNotify.js";
 import { leaveOrRemoveFromTeam } from "../../../lib/db/repos/providerExit.js";
 import { exitRefusal } from "../../../lib/providerExitResponse.js";
 
@@ -31,11 +31,7 @@ async function _DELETE(request) {
   if (!result.ok) {
     return json({ error: result.error, code: result.code }, { status: 404 });
   }
-  notifyConnection(salonUserId, {
-    title: "یه آرتیست از تیم رفت",
-    body: `${auth.user.name || "یه آرتیست"} دیگه با سالنت کار نمی‌کنه.`,
-    url: "/"
-  });
+  notifyTeamEnd({ kind: "left", toUserId: salonUserId, from: auth.user });
   return json({ data: { ok: true, teams: await salons.listArtistTeams(auth.user.id) } });
 }
 

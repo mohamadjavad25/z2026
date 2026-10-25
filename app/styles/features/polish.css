@@ -613,6 +613,13 @@
 .smdToggle, .smdEnd { min-height: 44px; border-radius: 14px; font: inherit; font-size: 0.8rem; font-weight: 900; cursor: pointer; }
 .smdToggle { border: 1px solid var(--n-100); background: var(--n-0); color: var(--n-900); }
 .smdEnd { border: 1px solid rgb(var(--danger-rgb) / 0.3); background: var(--n-50); color: var(--danger); }
+.smdConfirm { display: grid; gap: 8px; margin: 0 16px 14px; padding: 12px; border-radius: 16px; background: var(--n-50); }
+.smdConfirm > b { font-size: 0.9rem; font-weight: 950; }
+.smdConfirm > span { color: var(--n-600); font-size: 0.78rem; line-height: 1.7; }
+.smdReason { display: grid; gap: 4px; }
+.smdReason span { color: var(--n-800); font-size: 0.74rem; font-weight: 850; }
+.smdReason input { box-sizing: border-box; width: 100%; min-height: 44px; padding: 0 12px; border: 1px solid var(--n-100); border-radius: 12px; background: var(--n-0); color: var(--n-900); font: inherit; font-size: 0.86rem; }
+.smdConfirmActions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 
 .profileEditSpecialty { display: grid; gap: 6px; grid-column: 1 / -1; }
 .profileEditSpecialty > span { color: var(--n-800); font-size: 0.78rem; font-weight: 900; }

@@ -7,7 +7,8 @@ import { createPortal } from "react-dom";
 import { ImageCropper } from "../../components/ImageCropper";
 import { SheetClose } from "../../components/SheetClose";
 
-const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
+// A photo this small and no bigger than MAX_SOURCE_SIDE goes to the crop step untouched.
+const SMALL_ENOUGH_BYTES = 4 * 1024 * 1024;
 // 4:5 is the card ratio used in the galleries, so the framing
 // chosen here is exactly what every card shows.
 const POST_ASPECT = 4 / 5;
@@ -40,26 +41,50 @@ function readAsDataUrl(blob) {
   });
 }
 
-// Shrinks a big photo (and applies its EXIF rotation) before cropping; falls back to the raw file.
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("decode"));
+    img.src = src;
+  });
+}
+
+// Decodes the photo however this browser can: with its EXIF rotation, plain, or through an <img>
+// (older Android WebViews reject the rotation option, and some fail on very big bitmaps).
+async function decodePhoto(file) {
+  if (typeof createImageBitmap === "function") {
+    try {
+      return await createImageBitmap(file, { imageOrientation: "from-image" });
+    } catch { /* try the next way */ }
+    try {
+      return await createImageBitmap(file);
+    } catch { /* try the next way */ }
+  }
+  return loadImage(await readAsDataUrl(file));
+}
+
+// Shrinks any photo (however many megabytes) before cropping; a photo is refused only when it
+// cannot be opened at all.
 async function prepareSource(file) {
-  try {
-    if (typeof createImageBitmap !== "function") return await readAsDataUrl(file);
-    const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
-    const scale = Math.min(1, MAX_SOURCE_SIDE / Math.max(bitmap.width, bitmap.height));
-    if (scale === 1 && file.size <= MAX_IMAGE_BYTES) {
-      bitmap.close?.();
-      return await readAsDataUrl(file);
-    }
-    const canvas = document.createElement("canvas");
-    canvas.width = Math.max(1, Math.round(bitmap.width * scale));
-    canvas.height = Math.max(1, Math.round(bitmap.height * scale));
-    canvas.getContext("2d").drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-    bitmap.close?.();
-    return canvas.toDataURL("image/jpeg", 0.92);
-  } catch {
-    if (file.size > MAX_IMAGE_BYTES) throw new Error("too-big");
+  const image = await decodePhoto(file);
+  const width = image.width || image.naturalWidth;
+  const height = image.height || image.naturalHeight;
+  if (!width || !height) throw new Error("decode");
+  const scale = Math.min(1, MAX_SOURCE_SIDE / Math.max(width, height));
+  if (scale === 1 && file.size <= SMALL_ENOUGH_BYTES) {
+    image.close?.();
     return readAsDataUrl(file);
   }
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(width * scale));
+  canvas.height = Math.max(1, Math.round(height * scale));
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#fff"; // a transparent PNG would turn black as JPEG
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+  image.close?.();
+  return canvas.toDataURL("image/jpeg", 0.92);
 }
 
 /**
@@ -108,7 +133,7 @@ export function ProfilePostComposer({
     try {
       setCropSrc(await prepareSource(file));
     } catch {
-      onNotify?.("عکس باید کمتر از ۸ مگ باشه.");
+      onNotify?.("این عکس باز نشد؛ یه عکس دیگه انتخاب کن.");
       if (startedFromPicker.current) onClose?.();
     } finally {
       setPreparing(false);

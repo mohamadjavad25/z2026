@@ -37,8 +37,9 @@ function profileAction(viewerType, profile, relation, joinCode) {
   if (relation === "member") return { note: "توی تیم همین سالنی." };
   // A plain salon profile code proves nothing about who showed it -- only the
   // salon's own dedicated QR/link (with a secret) can join the team instantly.
+  // Without it, the artist can send a collaboration proposal from the salon's page (owner's decision 2026-10-25).
   if (!joinCode) {
-    return { note: "این کد صفحهٔ سالنه، نه کد تیم. از سالن‌دار بخواه از «پرسنل ← دعوت آرتیست» کد تیم رو نشونت بده، یا «کد من» رو بزن و کد خودت رو نشونش بده تا دعوتت کنه." };
+    return { note: "این کد صفحهٔ سالنه؛ برای اومدن به تیم، پیشنهاد همکاری بفرست تا سالن جواب بده.", label: "پیشنهاد همکاری", kind: "propose" };
   }
   return {
     note: profile.rules ? "با رفتن به تیم، قوانین سالن رو قبول داری." : "می‌ری توی پرسنل این سالن.",
@@ -109,6 +110,11 @@ export function ScanFlow({ viewerType, connect, onOpenProfile, onChanged, onClos
   }
 
   async function runAction(kind, profile, joinCode) {
+    if (kind === "propose") {
+      // The salon's public page has the proposal form (BusinessVisitorBar).
+      window.location.assign(`/salons/${Number(profile.id)}`);
+      return;
+    }
     if (kind === "open") {
       onClose?.();
       onOpenProfile?.(profile);

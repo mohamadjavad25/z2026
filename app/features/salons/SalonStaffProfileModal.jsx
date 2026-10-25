@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   CalendarCheck,
   CalendarDays,
@@ -93,6 +93,13 @@ export function SalonStaffProfileModal({
   onRemove,
   onOpenPublic
 }) {
+  const [confirmEnd, setConfirmEnd] = useState(false);
+  const [endReason, setEndReason] = useState("");
+  const staffKey = staff?.id || staff?.name || "";
+  useEffect(() => {
+    setConfirmEnd(false);
+    setEndReason("");
+  }, [staffKey]);
   if (!staff) return null;
 
   const staffName = staff.artist_name || staff.name || "";
@@ -285,10 +292,32 @@ export function SalonStaffProfileModal({
           >
             {isActive ? "غیرفعالش کن" : "دوباره فعالش کن"}
           </button>
-          <button type="button" className="smdEnd" onClick={() => onRemove?.(staff)}>
+          <button type="button" className="smdEnd" onClick={() => (isOwner ? onRemove?.(staff) : setConfirmEnd(true))}>
             {isOwner ? "خودم برم بیرون از تیم" : "تموم کردن همکاری"}
           </button>
         </footer>
+        {confirmEnd ? (
+          <div className="smdConfirm" role="group" aria-label={`برداشتن ${staffName} از تیم`}>
+            <b>«{staffName}» از تیم برداشته بشه؟</b>
+            <span>این کار برگشت نداره.{hasPublic ? " بهش اعلان و پیامک می‌دیم." : ""}</span>
+            {hasPublic ? (
+              <label className="smdReason">
+                <span>یه خط برای {staffName} (اگه خواستی)</span>
+                <input
+                  type="text"
+                  value={endReason}
+                  maxLength={120}
+                  placeholder="مثلاً: ممنون از همکاریت"
+                  onChange={(event) => setEndReason(event.target.value)}
+                />
+              </label>
+            ) : null}
+            <div className="smdConfirmActions">
+              <button type="button" className="smdEnd" onClick={() => onRemove?.(staff, { confirmed: true, reason: endReason.trim() })}>آره، بردار</button>
+              <button type="button" className="smdToggle" onClick={() => { setConfirmEnd(false); setEndReason(""); }}>نه</button>
+            </div>
+          </div>
+        ) : null}
   <SheetClose onClick={onClose} />
       </article>
     </div>

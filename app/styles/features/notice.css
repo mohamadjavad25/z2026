@@ -31,12 +31,12 @@
 
 .notice .noticeText { flex: 1; min-width: 0; display: grid; gap: 2px; }
 .notice .noticeText b { font-weight: 850; }
+/* Text always wraps: a long message grows the notice instead of running off the screen. */
+.notice .noticeText b,
+.notice .noticeText span { overflow-wrap: anywhere; }
 .notice .noticeText span {
   color: var(--muted);
   font-size: 0.8rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .noticeAction {
@@ -78,6 +78,7 @@
   transform-origin: right center;
   animation: noticeShrink var(--notice-timer, 4s) linear forwards;
 }
+.notice.is-held .noticeTimer { animation-play-state: paused; }
 
 /* island: a live pill, like the phone's own island */
 .notice-island,
@@ -86,7 +87,7 @@
   width: max-content;
   max-width: 100%;
   padding: 8px 16px 8px 12px;
-  border-radius: 999px;
+  border-radius: 22px;
   background: var(--ink);
   color: var(--bg);
   box-shadow: 0 12px 30px rgb(var(--shadow-rgb) / 0.25);
@@ -174,12 +175,7 @@
   border: 2px solid var(--brand-violet);
   opacity: 0.45;
 }
-.notice-glass .noticeClamp {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  white-space: normal;
-}
+.notice-glass .noticeClamp { white-space: normal; }
 
 /* ring: how long is left, as a ring */
 .notice-ring {

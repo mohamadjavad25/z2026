@@ -102,6 +102,20 @@ export const SMS_TEMPLATES = {
     faraz: (v) => ({ amount: v.amount, receipt: v.receipt, who: v.who }),
     preview: (v) => `فرفرو، پرداخت تازه: ${v.who}، ${v.amount} تومان، رسید ${v.receipt}.`
   },
+  team_removed: {
+    label: "برداشته شدن از تیم سالن (به آرتیست)",
+    env: "TEAM_REMOVED",
+    kavenegar: (v) => ({ token10: v.who }),
+    faraz: (v) => ({ who: v.who }),
+    preview: (v) => `فرفرو: ${v.who} تو رو از تیمش برداشت. نوبت‌های خودت سر جاشه.`
+  },
+  team_left: {
+    label: "رفتن آرتیست از تیم (به سالن)",
+    env: "TEAM_LEFT",
+    kavenegar: (v) => ({ token10: v.who }),
+    faraz: (v) => ({ who: v.who }),
+    preview: (v) => `فرفرو: ${v.who} از تیمت رفت. توی اپ ببین.`
+  },
   admin_support: {
     label: "درخواست پشتیبانی (برای مدیر)",
     env: "ADMIN_SUPPORT",

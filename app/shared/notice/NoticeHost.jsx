@@ -27,10 +27,15 @@ export function NoticeHost() {
   );
 }
 
-/** One notice. It leaves by itself after `timer` ms (0 means it stays until closed). */
+/**
+ * One notice. It leaves by itself after `timer` ms (0 means it stays until closed). While a finger or the mouse rests
+ * on it the countdown waits, so a long message can be read to its end.
+ */
 function Notice({ notice }) {
   const { id, kind, tone, timer, action, title, text, big, label, avatar, p } = notice;
   const [leaving, setLeaving] = useState(false);
+  const [held, setHeld] = useState(false);
+  const leftRef = useRef(timer);
   const leavingRef = useRef(false);
 
   const close = () => {
@@ -43,10 +48,16 @@ function Notice({ notice }) {
   const closeRef = useRef(close);
   closeRef.current = close;
   useEffect(() => {
-    if (!timer) return undefined;
-    const timeout = window.setTimeout(() => closeRef.current(), timer);
-    return () => window.clearTimeout(timeout);
-  }, [timer]);
+    if (!timer || held) return undefined;
+    const startedAt = Date.now();
+    const timeout = window.setTimeout(() => closeRef.current(), leftRef.current);
+    return () => {
+      window.clearTimeout(timeout);
+      leftRef.current = Math.max(800, leftRef.current - (Date.now() - startedAt));
+    };
+  }, [timer, held]);
+  const hold = timer ? () => setHeld(true) : undefined;
+  const release = timer ? () => setHeld(false) : undefined;
 
   const runAction = () => {
     try {
@@ -56,7 +67,7 @@ function Notice({ notice }) {
     }
   };
 
-  const className = `notice notice-${kind} is-${tone}${leaving ? " is-leaving" : ""}`;
+  const className = `notice notice-${kind} is-${tone}${leaving ? " is-leaving" : ""}${held ? " is-held" : ""}`;
   const style = timer ? { "--notice-timer": `${timer}ms` } : undefined;
   const actionButton = action ? (
     <button type="button" className="noticeAction" onClick={runAction}>{action.label}</button>
@@ -70,7 +81,16 @@ function Notice({ notice }) {
   const Icon = NOTE_ICON[tone] || Info;
 
   return (
-    <div className={className} role={tone === "error" ? "alert" : "status"} style={style}>
+    <div
+      className={className}
+      role={tone === "error" ? "alert" : "status"}
+      style={style}
+      onPointerEnter={hold}
+      onPointerDown={hold}
+      onPointerLeave={release}
+      onPointerUp={release}
+      onPointerCancel={release}
+    >
       {kind === "island" ? (
         <>
           <span className="noticePulse" aria-hidden="true" />

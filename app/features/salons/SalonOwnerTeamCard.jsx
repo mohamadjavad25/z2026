@@ -188,10 +188,6 @@ function OwnerProfileForm({ initialName, initialRoles, profile, joining, busy, o
       setPhotoError("این فایل عکس نیست.");
       return;
     }
-    if (file.size > 8 * 1024 * 1024) {
-      setPhotoError("عکس باید کمتر از ۸ مگ باشه.");
-      return;
-    }
     setPhotoError("");
     setNewPhoto(await compressImageToDataUrl(file, { maxDimension: 640 }));
     setPhotoChoice("own");

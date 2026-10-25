@@ -7,6 +7,7 @@ import { getPublicArtistServices, salonClientBookingDays } from "../../features/
 import { mapSharedPost } from "../../features/posts/mappers";
 import { parseServiceDurationMinutes } from "../../shared/lib/time";
 import { FollowSheet, useFollowGate } from "../../features/follow";
+import { BusinessVisitorBar, businessVisitorKind } from "../../features/connect/BusinessVisitorBar";
 import { goToAppFor } from "../../shared/lib/appHandoff";
 
 // Standalone, unauthenticated rendering of a single artist's public profile.
@@ -29,6 +30,11 @@ export function ArtistPublicPageClient({ artist }) {
   const goToApp = () => router.push("/");
   const openHere = () => goToAppFor(router, { type: "artist", id: artist.id, name: artist.name });
   const followGate = useFollowGate({ targetId: artist.id, targetName: artist.name, targetType: "artist" });
+  // A salon or artist who scanned this page's code: their own bar instead of «رزرو» and «وصل شو» (owner's decision 2026-10-25).
+  const visitorTarget = { type: "artist", id: artist.id, name: artist.name, area: artist.area || "" };
+  const visitorBar = businessVisitorKind(followGate.viewer, visitorTarget)
+    ? <BusinessVisitorBar viewer={followGate.viewer} target={visitorTarget} />
+    : null;
 
   const [galleryFilter, setGalleryFilter] = useState("همه");
   const [selectedServiceId, setSelectedServiceId] = useState("");
@@ -91,6 +97,7 @@ export function ArtistPublicPageClient({ artist }) {
       onBookingDayChange={setBookingDay}
       onBookingSlotChange={setBookingSlot}
       onConfirmBooking={openHere}
+      visitorBar={visitorBar}
       guest
     />
     <FollowSheet gate={followGate} />
