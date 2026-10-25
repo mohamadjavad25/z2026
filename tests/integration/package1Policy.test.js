@@ -180,6 +180,27 @@ describe("P11: identical requests", () => {
     expect(rows.length).toBe(1);
   });
 
+  it("a client can book several of an independent artist's services as one visit, and only listed ones", async () => {
+    const artistClient = createClient();
+    const artist = await registerUser(artistClient, { type: "artist", name: "P11 Bundle Artist" });
+    for (const [name, duration] of [["S30", "۳۰ دقیقه"], ["S60", "۶۰ دقیقه"]]) {
+      expect((await artistClient.post("/api/artist/me", { name, price: "100", duration })).ok).toBe(true);
+    }
+    const c = await makeClient();
+    const d = day(2);
+    const viaParts = await c.client.post("/api/artist/bookings", { artistUserId: artist.user.id, service: "S30 + S60", parts: [{ service: "S30" }, { service: "S60" }], bookingDate: d, time: "10:00" });
+    expect(viaParts.status).toBe(201);
+    expect(viaParts.payload.data.booking.service).toBe("S30 + S60");
+    const row = (await db.query("SELECT duration_minutes FROM artist_bookings WHERE id = $1", [viaParts.payload.data.booking.id])).rows[0];
+    expect(Number(row.duration_minutes)).toBe(90);
+    // The joined text alone (how the expiry sweep sends a request on) is read the same way.
+    const viaText = await c.client.post("/api/artist/bookings", { artistUserId: artist.user.id, service: "S30 + S60", bookingDate: d, time: "14:00" });
+    expect(viaText.status).toBe(201);
+    const unlisted = await c.client.post("/api/artist/bookings", { artistUserId: artist.user.id, service: "S30 + X", parts: [{ service: "S30" }, { service: "X" }], bookingDate: d, time: "16:00" });
+    expect(unlisted.status).toBe(400);
+    expect(unlisted.payload.code).toBe("SERVICE_NOT_LISTED");
+  });
+
   it("the same request for a visit of two services is merged too", async () => {
     const ctx = await makeSalon("P11 Visit", { staffCount: 2, services: [{ name: "S30", duration: "۳۰ دقیقه" }, { name: "S60", duration: "۶۰ دقیقه" }] });
     const c = await makeClient();
