@@ -47,7 +47,7 @@ function AccountForm({ gate }) {
       ? await register({ type: "client", phone, password, otpProof: signup.proof || undefined, data: { name: signup.name.trim() } })
       : await login({ phone, password });
     if (!result.ok) {
-      if (signup && result.status === 409) {
+      if (signup && result.payload?.code === "phone_taken") {
         switchMode("login");
         setForm((current) => ({ ...current, phone }));
         setFormError("این شماره حساب داره؛ با رمزت وارد شو.");
@@ -96,7 +96,14 @@ function AccountForm({ gate }) {
           otp={otp}
           busy={busy}
           submitLabel="بساز و وصل شو"
-          onLogin={() => switchMode("login")}
+          onLogin={(takenPhone) => {
+            switchMode("login");
+            // With a phone: the number already has an account, so the login opens with it filled in.
+            if (typeof takenPhone === "string" && takenPhone) {
+              setForm((current) => ({ ...current, phone: takenPhone }));
+              setFormError("این شماره حساب داره؛ با رمزت وارد شو.");
+            }
+          }}
           onComplete={async (values) => {
             setBusy(true);
             try {

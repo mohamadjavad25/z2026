@@ -173,7 +173,15 @@ export function ProfilePanelBody() {
                 setSignupStep("form");
                 setAuthNotice("");
               }}
-              onSwitchToLogin={() => { setAuthMode("login"); setAuthNotice(""); }}
+              onSwitchToLogin={(takenPhone) => {
+                // With a phone: sign-up found it already has an account, so the login opens with it filled in.
+                const taken = typeof takenPhone === "string" && takenPhone ? takenPhone : "";
+                if (taken) {
+                  try { window.localStorage.setItem("frfro_last_phone", taken); } catch { /* only fills the form */ }
+                }
+                setAuthMode("login");
+                setAuthNotice(taken ? "این شماره حساب داره؛ با رمزت وارد شو." : "");
+              }}
               onSwitchToSignup={() => { setAuthMode("signup"); setSignupStep("role"); setAuthNotice(""); }}
               onBackToRole={() => setSignupStep("role")}
               onLoginSubmit={handleLoginSubmit}

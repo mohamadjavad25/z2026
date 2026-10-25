@@ -97,7 +97,6 @@ sudo chmod 600 /srv/frfro/.env
 | `FRFRO_ADMIN_PHONES`، `FRFRO_ADMIN_SECRET`، `FRFRO_ADMIN_SETUP_KEY` | **همان مقدارهای Vercel**. با عوض شدن `FRFRO_ADMIN_SECRET`، Authenticator همهٔ مدیرها باطل می‌شود |
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY`، `FRFRO_VAPID_PRIVATE_KEY`، `FRFRO_VAPID_CONTACT` | همان مقدارهای Vercel، وگرنه اشتراک اعلان کاربرها باطل می‌شود |
 | `FRFRO_SMS_PROVIDER`، کلیدهای کاوه‌نگار یا فراز، `FRFRO_OTP_SECRET` | بخش پیامک در `docs/OPERATIONS.md` |
-| `FRFRO_OTP_REQUIRED=1` | وقتی پیامک کار کرد |
 | `FRFRO_PAYMENT_GATEWAY`، `ZARINPAL_MERCHANT_ID` | وقتی درگاه آماده شد |
 
 `NEXT_PUBLIC_*` در زمان build خوانده می‌شود: بعد از تغییرشان، دوباره `deploy.sh` را اجرا کن.

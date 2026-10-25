@@ -3,6 +3,18 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { apiFetch } from "../../shared/api/client";
 import { getAuthMe } from "../../shared/api/auth";
+import { businessVisitorKind } from "../connect/BusinessVisitorBar";
+
+const TYPE_NAME = { salon: "سالن", artist: "آرتیست" };
+
+/** What a salon or artist visitor is told instead of being connected: the bar at the bottom says what they can do. */
+function businessVisitorLine(user, target) {
+  const kind = businessVisitorKind(user, target);
+  const who = `با حساب ${TYPE_NAME[user.type]} وارد شدی`;
+  if (kind === "invite") return `${who}؛ وصل شدن مال مشتری‌هاست. اگه می‌خوای بیاد توی تیمت، «دعوت به تیمم» رو بزن.`;
+  if (kind === "propose") return `${who}؛ وصل شدن مال مشتری‌هاست. برای کار کردن اینجا «پیشنهاد همکاری» بفرست.`;
+  return `${who}؛ این صفحه رو فقط می‌تونی ببینی.`;
+}
 
 /**
  * «وصل شو» on a public salon or artist page (the page a QR code or a shared link opens).
@@ -10,6 +22,10 @@ import { getAuthMe } from "../../shared/api/auth";
  * A follow is a contact, so it needs an account (name + phone). The visitor either already has one, or
  * makes one right here in a sheet; afterwards the follow is done on the very same page and a thank-you
  * is shown. Nothing sends them to the app in between.
+ *
+ * Only clients connect (owner's decision 2026-10-25). A salon or artist who logs in here is never connected: the
+ * sheet closes, a line says why, and the page's bottom bar (BusinessVisitorBar) offers «دعوت به تیمم» or
+ * «پیشنهاد همکاری» instead.
  *
  * sheet: "closed" | "account" (sign up / log in) | "done" (thank-you)
  */
@@ -45,7 +61,7 @@ export function useFollowGate({ targetId, targetName, targetType = "salon" }) {
 
   useEffect(() => {
     if (!notice) return undefined;
-    const timer = window.setTimeout(() => setNotice(""), 3200);
+    const timer = window.setTimeout(() => setNotice(""), notice.length > 60 ? 6500 : 3200);
     return () => window.clearTimeout(timer);
   }, [notice]);
 
@@ -74,6 +90,10 @@ export function useFollowGate({ targetId, targetName, targetType = "salon" }) {
       setNotice("این صفحهٔ خودته.");
       return;
     }
+    if (viewer.type !== "client") {
+      setNotice(businessVisitorLine(viewer, { id: targetId, type: targetType }));
+      return;
+    }
     busyRef.current = true;
     setBusy(true);
     try {
@@ -92,7 +112,7 @@ export function useFollowGate({ targetId, targetName, targetType = "salon" }) {
       busyRef.current = false;
       setBusy(false);
     }
-  }, [viewer, following, targetId, targetName, setFollow]);
+  }, [viewer, following, targetId, targetName, targetType, setFollow]);
 
   /** The visitor just made an account or logged in inside the sheet: follow now and say thanks. */
   const onAccountReady = useCallback(async (user, { created = false } = {}) => {
@@ -100,6 +120,11 @@ export function useFollowGate({ targetId, targetName, targetType = "salon" }) {
     if (Number(user?.id) === Number(targetId)) {
       setSheet("closed");
       setNotice("این صفحهٔ خودته.");
+      return "";
+    }
+    if (user?.type && user.type !== "client") {
+      setSheet("closed");
+      setNotice(businessVisitorLine(user, { id: targetId, type: targetType }));
       return "";
     }
     const failure = await setFollow(true);
@@ -111,7 +136,7 @@ export function useFollowGate({ targetId, targetName, targetType = "salon" }) {
     setJustCreated(created);
     setSheet("done");
     return "";
-  }, [targetId, setFollow]);
+  }, [targetId, targetType, setFollow]);
 
   return {
     viewer,

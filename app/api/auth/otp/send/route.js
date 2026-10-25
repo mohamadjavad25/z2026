@@ -50,7 +50,7 @@ async function _POST(request) {
   }
 
   const existing = await users.getUserByPhone(phone);
-  if (purpose === "register" && existing) return error("با این شماره قبلاً حساب ساختی؛ وارد شو.", 409);
+  if (purpose === "register" && existing) return json({ error: "این شماره حساب داره؛ با رمزت وارد شو.", code: "phone_taken" }, { status: 409 });
   if (purpose === "register" && hasUniqueName(body.type) && (await users.isBusinessNameTaken(body.name))) {
     return json({ error: NAME_TAKEN_MESSAGE, code: "name_taken" }, { status: 409 });
   }

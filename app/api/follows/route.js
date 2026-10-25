@@ -29,6 +29,11 @@ async function _POST(request) {
   if (targetUserId === auth.user.id) {
     return NextResponse.json({ error: "نمی‌تونی به خودت وصل شی." }, { status: 400 });
   }
+  // Only clients connect (owner's decision 2026-10-25). A salon or artist would land among the other's customers;
+  // they reach each other through «دعوت به تیمم» and «پیشنهاد همکاری». Taking an old connection away stays allowed.
+  if (body.follow !== false && auth.user.type !== "client") {
+    return NextResponse.json({ error: "فقط مشتری‌ها وصل می‌شن؛ سالن و آرتیست با «دعوت به تیمم» و «پیشنهاد همکاری» با هم کار می‌کنن.", code: "clients_only" }, { status: 403 });
+  }
   // `follow: true|false` sets the state; without it the call toggles (what the in-app buttons use). A visitor who has
   // just signed up from a public page asks for `follow: true` so an account that already follows is never flipped off.
   const result = typeof body.follow === "boolean"

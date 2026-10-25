@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createOtpProof, verifyOtpProof } from "../../app/lib/otp.js";
+import { createOtpProof, otpConfig, verifyOtpProof } from "../../app/lib/otp.js";
 
 // createOtpProof/verifyOtpProof now fail closed with no real secret configured
 // (see app/lib/otp.js) -- this file runs in the Vitest process itself, which
@@ -42,6 +42,34 @@ describe("otp proof token", () => {
     } finally {
       if (savedOtpSecret === undefined) delete process.env.FRFRO_OTP_SECRET; else process.env.FRFRO_OTP_SECRET = savedOtpSecret;
       if (savedCronSecret === undefined) delete process.env.CRON_SECRET; else process.env.CRON_SECRET = savedCronSecret;
+    }
+  });
+});
+
+describe("sign-up needs the SMS code whenever SMS works", () => {
+  const saved = { provider: process.env.FRFRO_SMS_PROVIDER, required: process.env.FRFRO_OTP_REQUIRED };
+  const restore = () => {
+    for (const [key, value] of [["FRFRO_SMS_PROVIDER", saved.provider], ["FRFRO_OTP_REQUIRED", saved.required]]) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  };
+
+  it("is required as soon as a provider is set, with no second switch", () => {
+    try {
+      delete process.env.FRFRO_OTP_REQUIRED;
+      process.env.FRFRO_SMS_PROVIDER = "kavenegar";
+      expect(otpConfig()).toMatchObject({ enabled: true, required: true });
+      process.env.FRFRO_OTP_REQUIRED = "1";
+      expect(otpConfig().required).toBe(true);
+      // Only a test setup turns it off, and only with an explicit 0.
+      process.env.FRFRO_OTP_REQUIRED = "0";
+      expect(otpConfig().required).toBe(false);
+      delete process.env.FRFRO_SMS_PROVIDER;
+      delete process.env.FRFRO_OTP_REQUIRED;
+      expect(otpConfig()).toMatchObject({ enabled: false, required: false });
+    } finally {
+      restore();
     }
   });
 });

@@ -9,8 +9,9 @@ import { sendCode, useCountdown } from "./otp";
  * "Enter the 5-digit code we texted you" -- shared by sign-up and password reset.
  * Sends the first code on mount, offers a resend after the countdown, and hands the typed code to `onSubmit(code)`.
  * `onSubmit` returns an error message (string) to show, or nothing on success. `sendExtra` rides along on each send.
+ * `onPhoneTaken`: sign-up found the number already has an account (the form then opens the login instead).
  */
-export function OtpCodeStep({ phone, purpose, sendExtra, resendSeconds = 60, submitLabel, busy = false, onSubmit, onEditPhone, editLabel = "شماره رو عوض کن", children }) {
+export function OtpCodeStep({ phone, purpose, sendExtra, resendSeconds = 60, submitLabel, busy = false, onSubmit, onEditPhone, onPhoneTaken = null, editLabel = "شماره رو عوض کن", children }) {
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [sending, setSending] = useState(true);
@@ -21,6 +22,7 @@ export function OtpCodeStep({ phone, purpose, sendExtra, resendSeconds = 60, sub
     setError("");
     const { ok, payload } = await sendCode(phone, purpose, sendExtra);
     setSending(false);
+    if (!ok && payload?.code === "phone_taken" && onPhoneTaken) { onPhoneTaken(); return; }
     if (ok) countdown.restart();
     else setError(payload.error || "پیامک نرفت؛ دوباره بزن.");
   }

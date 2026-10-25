@@ -404,6 +404,7 @@ function SalonArtistSignupForm({ type, heroClass, authBusy, onBackToRole, onSwit
           submitLabel="تأیید و بساز"
           busy={verifying || authBusy}
           onEditPhone={() => { setCodeStep(false); setProof(""); }}
+          onPhoneTaken={() => onSwitchToLogin(phone)}
           editLabel="اسم یا شماره رو عوض کن"
           onSubmit={async (code) => {
             setVerifying(true);

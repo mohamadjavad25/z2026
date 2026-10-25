@@ -264,6 +264,15 @@ export function useAuthSession({
     try {
       const { ok, payload } = await apiRegister({ type, data, phone: data.phone, password: data.password, otpProof: data.otpProof || undefined });
       if (!ok) {
+        if (payload?.code === "phone_taken") {
+          // The number already has an account: the login, with the number filled in (owner's decision 2026-10-25).
+          try {
+            window.localStorage.setItem("frfro_last_phone", String(data.phone || "").trim());
+          } catch {
+            // only fills the login form
+          }
+          setAuthMode("login");
+        }
         showNotice(payload.error || "حساب ساخته نشد؛ دوباره بزن.");
         return;
       }
