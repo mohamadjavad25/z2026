@@ -12,6 +12,7 @@
  * Env: SCREENS_BASE_URL (default http://localhost:3100), SCREENS_CHROMIUM (a Chromium binary when Playwright's
  * own is missing). The sample people and their passwords are fixed below; never run this against real data.
  */
+import { dateKeyAfter } from "../../app/shared/lib/artistPlace.js";
 import { chromium } from "playwright";
 import fs from "node:fs";
 import path from "node:path";
@@ -105,14 +106,17 @@ const artistPath = (ids) => `/artists/${ids.artist}`;
 const COLLAB = css(".profileModeRail button, [role=tab], button", "همکاری");
 const SALON_LOCATION = { area: "تهران، خیابان گلستان", addressDetail: "پلاک ۱۲، طبقه ۲", geo: { lat: 35.7219, lng: 51.3347 } };
 
-/** Sets the world: the salon with an address, the artist's list (`list`: "salon" puts the sample salon in), the fallback and the salon's switch. */
-function placeState({ list = [], fallback = "own", switchOn = true } = {}) {
+/** Sets the world: the salon with an address, where the artist's clients go (`at`: "salon", "second" or null for their own
+ *  place, from today; `next`: the same, from a week later) and the salon's switch. */
+function placeState({ at = null, next, switchOn = true } = {}) {
   return async ({ sessions, ids }) => {
     const { salon, artist } = sessions;
+    const idOf = (item) => (item === "salon" ? ids.salon : item === "second" ? ids.salon2 : null);
     await salon.post("/api/profile", { data: SALON_LOCATION });
     const staff = (await salon.get("/api/salon-staff")).payload.data.staff.find((person) => person.artist_user_id);
     await salon.patch("/api/salon-staff", { id: staff.id, directAllowed: true });
-    await artist.put("/api/artist/place", { order: list.map((item) => (item === "salon" ? ids.salon : item === "second" ? ids.salon2 : item)), fallback });
+    await artist.put("/api/artist/place", { salonId: idOf(at), startsOn: dateKeyAfter(0), moveBookings: true });
+    if (next !== undefined) await artist.put("/api/artist/place", { salonId: idOf(next), startsOn: dateKeyAfter(7), moveBookings: false });
     if (!switchOn) await salon.patch("/api/salon-staff", { id: staff.id, directAllowed: false });
   };
 }
@@ -138,27 +142,34 @@ const openBooker = async (p) => {
   await p.locator(".sduPanel button", { hasText: "رزرو" }).last().click({ timeout: 4000, force: true });
   await p.waitForTimeout(1500);
 };
-const radio = (name) => async (p) => { await p.getByRole("radio", { name }).first().click({ timeout: 4000 }); await p.waitForTimeout(700); };
-const addSalon = (name) => async (p) => { await p.locator(".plAdd", { hasText: name }).first().click({ timeout: 4000 }); await p.waitForTimeout(500); };
 const scrollTo = (selector) => async (p) => { await p.locator(selector).first().scrollIntoViewIfNeeded({ timeout: 8000 }); await p.waitForTimeout(500); };
 
 function placeScreens() {
   const artistOpen = (ids) => `/?open=artist-${ids.artist}`;
-  const direct = async (ctx) => { await placeState({ list: ["salon"] })(ctx); await makeDirectBooking(ctx); };
+  const direct = async (ctx) => { await placeState({ at: "salon" })(ctx); await makeDirectBooking(ctx); };
   const staffSheet = [css(".profileModeRail button, [role=tab], button", "پرسنل"), tap(/^مدیریت نگار/), scrollTo(".plSwitchRow")];
+  // Tomorrow: one of نگار's own clients at her own place (18:30), then she works at سالن رز and one comes there (13:30).
+  const teamDay = async (ctx) => {
+    await placeState({})(ctx);
+    const { client2 } = ctx.sessions;
+    await client2.post("/api/artist/bookings", { artistUserId: ctx.ids.artist, service: "لاک ژل", bookingDate: dateKeyAfter(1), time: "۱۸:۳۰" });
+    await placeState({ at: "salon" })(ctx);
+    await ctx.sessions.client.post("/api/artist/bookings", { artistUserId: ctx.ids.artist, service: "لاک ژل", bookingDate: dateKeyAfter(1), time: "۱۳:۳۰" });
+  };
+  const turnOn = async (p) => { await p.getByRole("switch", { name: /^مشتری‌های خودت میان/ }).first().click({ timeout: 4000 }); await p.waitForTimeout(900); };
   return [
-    { id: "artist-place-empty", role: "artist", title: "نوبت مشتری‌هام کجا باشه؟، هنوز سالنی اضافه نشده", setup: placeState({}), steps: [COLLAB], full: true },
-    { id: "artist-place-one", role: "artist", title: "فهرست با یک سالن", setup: placeState({ list: ["salon"] }), steps: [COLLAB], full: true },
-    { id: "artist-place-added", role: "artist", title: "سالن را اضافه و ذخیره کرد", setup: placeState({}), steps: [COLLAB, addSalon("سالن رز"), tap("ذخیره")], full: true },
-    { id: "artist-place-skipped", role: "artist", title: "سالن نوبت مستقیم را بسته، رد می‌شه", setup: placeState({ list: ["salon"], switchOn: false }), steps: [COLLAB], full: true },
-    { id: "artist-place-dark", role: "artist", title: "فهرست با یک سالن، شب", dark: true, setup: placeState({ list: ["salon"] }), steps: [COLLAB], full: true },
-    { id: "client-artist-book-no-place", role: "client", title: "نوبت از آرتیست، فقط روز و ساعت", setup: placeState({ list: ["salon"] }), path: artistOpen, steps: [openBooker] },
-    { id: "client-artist-confirmed-place", role: "client", title: "نوبت تأییدشده، جا بعد از تأیید پیداست", setup: direct, steps: [tap(/لاک ژل/)] },
+    { id: "artist-place-own", role: "artist", title: "همکاری، کارت سالن، مشتری‌ها میان جای خودش", setup: placeState({}), steps: [COLLAB], full: true },
+    { id: "artist-place-here", role: "artist", title: "همکاری، کارت سالن، الان اینجا کار می‌کنه", setup: placeState({ at: "salon" }), steps: [COLLAB], full: true },
+    { id: "artist-place-switch", role: "artist", title: "برگهٔ «از کی اینجا کار می‌کنی؟»", setup: placeState({}), steps: [COLLAB, turnOn] },
+    { id: "artist-place-blocked", role: "artist", title: "سالن مشتری‌های خودش رو بسته", setup: placeState({ at: "salon", switchOn: false }), steps: [COLLAB], full: true },
+    { id: "artist-place-dark", role: "artist", title: "همکاری، کارت سالن، شب", dark: true, setup: placeState({ at: "salon" }), steps: [COLLAB], full: true },
+    { id: "client-artist-book-place", role: "client", title: "نوبت از آرتیست، «کجا» سالن رو می‌گه", setup: placeState({ at: "salon" }), path: artistOpen, steps: [openBooker] },
+    { id: "client-artist-booking-place", role: "client", title: "جزئیات نوبت آرتیست توی سالن", setup: direct, steps: [tap(/لاک ژل/)] },
     { id: "salon-staff-direct-switch", role: "salon", title: "مدیریت آرتیست، کلید نوبت مستقیم", setup: direct, steps: staffSheet },
-    { id: "salon-staff-direct-off", role: "salon", title: "مدیریت آرتیست، نوبت مستقیم بسته", setup: placeState({ list: ["salon"], switchOn: false }), steps: staffSheet },
-    { id: "salon-direct-visits", role: "salon", title: "مشتری‌های مستقیمِ تیم توی برنامهٔ سالن", setup: direct, steps: [scrollTo(".plVisits")] },
+    { id: "salon-staff-direct-off", role: "salon", title: "مدیریت آرتیست، نوبت مستقیم بسته", setup: placeState({ at: "salon", switchOn: false }), steps: staffSheet },
+    { id: "salon-day-team-client", role: "salon", title: "برنامهٔ فردای سالن با «مشتری نگار» و «نگار سرش شلوغه»", setup: teamDay, steps: [tap("روز بعد"), async (p) => { await p.locator(".plTeamRow").first().waitFor({ timeout: 35000 }).catch(() => {}); }, scrollTo(".todayScheduleList")] },
     // Last: the second salon stays in the sample database from here on.
-    { id: "artist-place-two-ask", role: "artist", title: "دو سالن به ترتیب، «بهم خبر بده» انتخاب شده", setup: async (ctx) => { await withSecondSalon(ctx); await placeState({ list: ["salon", "second"], fallback: "ask" })(ctx); }, steps: [COLLAB], full: true }
+    { id: "artist-place-two", role: "artist", title: "دو سالن، کارت‌های کشویی، جابه‌جایی از هفتهٔ بعد", setup: async (ctx) => { await withSecondSalon(ctx); await placeState({ at: "salon", next: "second" })(ctx); }, steps: [COLLAB], full: true }
   ];
 }
 

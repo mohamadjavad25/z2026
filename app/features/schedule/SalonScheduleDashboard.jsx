@@ -12,7 +12,8 @@ import { PendingOtherDays } from "./PendingOtherDays";
 import { BookingWeekRail } from "../profile/BookingWeekRail";
 import { ScheduleRow } from "../profile/ScheduleRow";
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
-import { SalonDirectVisits } from "../salons/SalonDirectVisits";
+import { TeamBusyRow, TeamVisitRow, useTeamClientTimes } from "../salons/SalonDirectVisits";
+import { timeLabelToMinutes } from "../../shared/lib/time";
 
 /**
  * Salon owner overview — collab inbox + day schedule; a pending request is answered on its own card.
@@ -40,6 +41,15 @@ export function SalonScheduleDashboard({
   onHistoryOpenChange,
   requestBusyId = ""
 }) {
+  // The team's own clients that day (owner's decision of 2026-10-25): received here (violet) or elsewhere (striped),
+  // placed among the salon's own bookings by time.
+  const teamTimes = useTeamClientTimes();
+  const dayKey = getBookingDateKey(selectedDay);
+  const dayRows = [
+    ...dayAppointments.map((item, index) => ({ kind: "own", item, index, at: timeLabelToMinutes(item.time) })),
+    ...teamTimes.visits.filter((visit) => visit.date === dayKey).map((item) => ({ kind: "visit", item, at: timeLabelToMinutes(item.time) })),
+    ...teamTimes.busy.filter((busy) => busy.date === dayKey).map((item) => ({ kind: "busy", item, at: timeLabelToMinutes(item.time) }))
+  ].sort((a, b) => a.at - b.at);
   const requestsById = new Map(reservationRequests.map((request) => [String(request.id), request]));
   const reviewFor = (item) => {
     const request = item.id != null ? requestsById.get(String(item.id)) : null;
@@ -195,14 +205,18 @@ export function SalonScheduleDashboard({
         <div className="todayScheduleList">
           {loading ? (
             <SkeletonList rows={4} variant="row" className="salonScheduleSkeleton" label="دارم برنامهٔ سالن رو میارم" />
-          ) : dayAppointments.length > 0 ? dayAppointments.map((item, index) => (
-            <ScheduleRow
-              key={item.id != null ? String(item.id) : `salon-row-${item.time}-${item.client}-${index}`}
-              booking={item}
-              onOpenClient={onOpenClient}
-              onAction={onOpenBookingMenu}
-              review={reviewFor(item)}
-            />
+          ) : dayRows.length > 0 ? dayRows.map((row) => (
+            row.kind === "visit" ? <TeamVisitRow key={`team-visit-${row.item.id}`} visit={row.item} />
+              : row.kind === "busy" ? <TeamBusyRow key={`team-busy-${row.item.id}`} item={row.item} />
+                : (
+                  <ScheduleRow
+                    key={row.item.id != null ? String(row.item.id) : `salon-row-${row.item.time}-${row.item.client}-${row.index}`}
+                    booking={row.item}
+                    onOpenClient={onOpenClient}
+                    onAction={onOpenBookingMenu}
+                    review={reviewFor(row.item)}
+                  />
+                )
           )) : (
             <div className="salonTodayEmpty">
               <Mascot pose="free-day" size={140} />
@@ -211,7 +225,6 @@ export function SalonScheduleDashboard({
           )}
         </div>
       </section>
-      <SalonDirectVisits />
     </div>
   );
 }

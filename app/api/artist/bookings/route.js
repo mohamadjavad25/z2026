@@ -78,7 +78,7 @@ async function _POST(request) {
   if (viewer?.id && viewer.id !== artistUserId && !result.duplicate) {
     const confirmed = result.booking.status === "تایید شده";
     const push = sendPushToUser(artistUserId, {
-      title: result.placeAsk ? "درخواست تازه، جاش رو بگو" : confirmed ? "نوبت تازه (خودکار تأیید شد)" : "درخواست تازه",
+      title: confirmed ? "نوبت تازه (خودکار تأیید شد)" : "درخواست تازه",
       body: `${result.booking.client || result.booking.client_name || "مشتری"}، ${result.booking.service || "نوبت"}، ${bookingWhen(result.booking.booking_date || result.booking.bookingDate, result.booking.time)}`
     }).catch(() => null);
     // A request waiting for the artist's answer must reach them in time, even where push does not.

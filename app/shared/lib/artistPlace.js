@@ -1,45 +1,45 @@
-import { findSalonHourForWeekday, isSalonHourOpen, salonDayWindow, weekdayOfDateKey } from "./salonAvailability.js";
+import { findSalonHourForDateKey, isSalonHourOpen, salonDayWindow } from "./salonAvailability.js";
+import { formatPersianDateKey } from "./persianCalendar.js";
 import { timeLabelToMinutes } from "./time.js";
 
 /**
- * Where a client's booking with an artist on salon teams is received (owner's idea of 2026-10-24, second version).
- * The client never chooses. The artist keeps an ordered list of their salons; the booking goes to the first salon in
- * the list that can take it, and when none can it stays where the artist always worked («مثل قبل») or waits for the
- * artist to say. One pure place for the rule, used by the server when a booking is made and by the artist's list screen,
- * so what is shown is what the server does.
- *
- * A candidate is one salon of the list: { salonUserId, state, allowed, hours, used }
- *   state    the member's state in that salon's team («فعال» / «غیرفعال» / «مرخصی»);
- *   allowed  the salon's switch «نوبت مستقیم توی سالن» for this member;
- *   hours    the salon's weekly hours rows (day, open_time, close_time, capacity, active);
- *   used     how many bookings the salon already holds on that date (its own and the direct ones).
+ * Where an artist's own clients are received (owner's decision of 2026-10-25). One place at a time: the artist's
+ * «محل کار», a salon whose team they are on, or their own place. The artist can say "from this day on I work at …", so
+ * the place is a short schedule: [{ from: "1405-08-04", salon: { id, name, area, hours, … } | null }], oldest first,
+ * where an entry holds from its day until the next entry's day (salon null = the artist's own place). The server builds
+ * it (db/repos/artistPlace.js), the public page and the server read it through the same helpers below, so what a client
+ * is offered is exactly what the server accepts.
  */
 
-export const PLACE_FALLBACKS = ["own", "ask"];
-const AWAY_STATES = new Set(["غیرفعال", "مرخصی"]);
+/** Today's Persian date key, `days` later when given (Tehran calendar, like booking_date). */
+export function dateKeyAfter(days = 0, from = new Date()) {
+  return formatPersianDateKey(new Date(from.getTime() + Number(days || 0) * 86400000));
+}
 
-/** Why a salon cannot take this booking: 'away' | 'blocked' | 'closed' | 'outside' | 'full'; '' when it can. */
-export function placeBlock(candidate, { dateKey, time, minutes = 60 } = {}) {
-  if (AWAY_STATES.has(String(candidate.state || "").trim())) return "away";
-  if (candidate.allowed === false) return "blocked";
-  const row = findSalonHourForWeekday(candidate.hours || [], weekdayOfDateKey(dateKey) || dateKey);
+/** The entry of the schedule that holds on `dateKey`, or null (the artist's own place) when none does. */
+export function workplaceOn(schedule, dateKey) {
+  let found = null;
+  for (const entry of Array.isArray(schedule) ? schedule : []) {
+    if (String(entry?.from || "") <= String(dateKey || "")) found = entry;
+  }
+  return found?.salon || null;
+}
+
+/**
+ * Whether a booking of `minutes` at `time` on `dateKey` fits a salon's weekly hours: '' when it does, 'closed' when the
+ * salon is closed that weekday, 'outside' when it starts before it opens or ends after it closes. The artist's own hours
+ * are checked separately; a bookable hour is one inside both (owner's decision of 2026-10-25).
+ */
+export function salonTimeBlock(hours, dateKey, time, minutes = 60) {
+  const row = findSalonHourForDateKey(Array.isArray(hours) ? hours : [], dateKey);
   if (!isSalonHourOpen(row)) return "closed";
   const window = salonDayWindow(row);
   const start = timeLabelToMinutes(time);
-  if (start < timeLabelToMinutes(window.open) || start + Number(minutes || 60) > timeLabelToMinutes(window.close)) return "outside";
-  const capacity = row ? Number(row.capacity) : NaN;
-  if (Number.isFinite(capacity) && Number(candidate.used || 0) >= capacity) return "full";
+  if (start < timeLabelToMinutes(window.open) || start + Math.max(15, Number(minutes) || 60) > timeLabelToMinutes(window.close)) return "outside";
   return "";
 }
 
-/** The first salon of the list that can take the booking, or null (then the artist's fallback decides). */
-export function pickPlace(candidates, booking) {
-  return (candidates || []).find((candidate) => !placeBlock(candidate, booking)) || null;
-}
-
-/** The salon in the artist's list as the artist reads it: nothing to worry about, or why it is skipped for now. */
-export function placeNote(candidate, salonName = "سالن") {
-  if (AWAY_STATES.has(String(candidate.state || "").trim())) return `الان توی ${salonName} نیستی (مرخصی یا غیرفعال). نوبتی اونجا نمی‌افته.`;
-  if (candidate.allowed === false) return `${salonName} نوبت مستقیم رو بسته. نوبتی اونجا نمی‌افته.`;
-  return "";
+/** The refusal the server gives and the client shows when the hour falls outside the workplace salon's hours. */
+export function salonClosedMessage(salonName = "سالن") {
+  return `${salonName} این ساعت بسته‌ست. یه ساعت دیگه بزن.`;
 }

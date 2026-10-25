@@ -5,8 +5,8 @@ import { MapPin } from "lucide-react";
 import { getArtistPlace, moveArtistBookingPlace } from "../../shared/api/artists";
 
 /**
- * «جای نوبت» in an artist's booking sheet: the salons of theirs that take direct bookings, and «مثل قبل». The booking
- * already sits where the artist's list put it; one tap here says otherwise. Hidden for an artist on no team.
+ * «جای نوبت» in an artist's booking sheet: the salons of theirs that take their clients, and «جای خودم». The booking
+ * already sits at the artist's workplace of that day; one tap here says otherwise. Hidden for an artist on no team.
  */
 export function ArtistBookingPlace({ booking }) {
   const [teams, setTeams] = useState([]);
@@ -16,10 +16,10 @@ export function ArtistBookingPlace({ booking }) {
   useEffect(() => setCurrent(booking?.placeSalon?.id ?? null), [booking?.id, booking?.placeSalon?.id]);
   useEffect(() => {
     let alive = true;
-    getArtistPlace().then(({ ok, data }) => { if (alive && ok) setTeams(data?.place?.teams || []); }).catch(() => {});
+    getArtistPlace().then(({ ok, data }) => { if (alive && ok) setTeams(data?.workplace?.teams || []); }).catch(() => {});
     return () => { alive = false; };
   }, []);
-  const choices = teams.filter((team) => !team.note || team.salonId === current);
+  const choices = teams.filter((team) => (team.allowed && !team.away) || team.salonId === current);
   if (!teams.length) return null;
 
   async function pick(salonId) {
@@ -44,7 +44,7 @@ export function ArtistBookingPlace({ booking }) {
         {choices.map((team) => (
           <button type="button" key={team.salonId} role="radio" aria-checked={current === team.salonId} className={current === team.salonId ? "is-on" : ""} disabled={busy} onClick={() => pick(team.salonId)}>{team.name}</button>
         ))}
-        <button type="button" role="radio" aria-checked={current == null} className={current == null ? "is-on" : ""} disabled={busy} onClick={() => pick(null)}>مثل قبل</button>
+        <button type="button" role="radio" aria-checked={current == null} className={current == null ? "is-on" : ""} disabled={busy} onClick={() => pick(null)}>جای خودم</button>
       </div>
       {msg.text ? <small className={`plBookingMsg${msg.bad ? " is-bad" : ""}`} role="status">{msg.text}</small> : null}
     </div>

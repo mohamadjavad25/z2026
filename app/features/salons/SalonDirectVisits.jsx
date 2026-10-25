@@ -2,40 +2,64 @@
 
 import { useState } from "react";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
-import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar";
 import { usePolling } from "../../shared/lib/usePolling";
 import { getSalonDirectVisits } from "../../shared/api/salons";
+import { timeLabelToMinutes } from "../../shared/lib/time";
 
-const SHOWN = 6;
+const firstWord = (name) => String(name || "").trim().split(/\s+/)[0] || "";
+
+/** The end of a visit as a clock label ("۱۱:۳۰"), from its start and length. */
+function endLabel(time, minutes) {
+  const end = timeLabelToMinutes(time) + (Number(minutes) || 60);
+  const hh = String(Math.floor(end / 60) % 24).padStart(2, "0");
+  const mm = String(end % 60).padStart(2, "0");
+  return toPersianDigits(`${hh}:${mm}`);
+}
 
 /**
- * Salon owner — the clients the team's artists receive at the salon from their own pages (owner's idea of 2026-10-24).
- * Only when, how long and which artist: those hours are already taken in the artist's calendar, and the client's name
- * and number stay with the artist until the client connects to the salon. Renders nothing while there are none.
+ * The salon's team's own clients for the salon's day list (owner's decision of 2026-10-25), polled every 30 seconds:
+ * { visits, busy } from GET /api/salon-staff/direct. Empty lists until it loads.
  */
-export function SalonDirectVisits() {
-  const [visits, setVisits] = useState([]);
+export function useTeamClientTimes() {
+  const [data, setData] = useState({ visits: [], busy: [] });
   usePolling(async () => {
-    const { ok, data } = await getSalonDirectVisits();
-    if (ok && Array.isArray(data?.visits)) setVisits(data.visits);
+    const { ok, data: next } = await getSalonDirectVisits();
+    if (ok && next) setData({ visits: Array.isArray(next.visits) ? next.visits : [], busy: Array.isArray(next.busy) ? next.busy : [] });
   }, 30000);
+  return data;
+}
 
-  if (!visits.length) return null;
-  const rest = visits.length - SHOWN;
+/** A team member's own client received at the salon: a violet row «مشتری نگار» with the time, service and first name. */
+export function TeamVisitRow({ visit }) {
+  const artist = firstWord(visit.artistName) || "آرتیست";
   return (
-    <section className="plVisits" aria-label="مشتری‌های مستقیم تیم">
-      <h3>مشتری‌های مستقیمِ تیم</h3>
-      <p>آرتیست‌هات از صفحهٔ خودشون نوبت گرفتن. اسم مشتری دیده نمی‌شه.</p>
-      {visits.slice(0, SHOWN).map((visit) => (
-        <div className="plVisit" key={visit.id}>
-          <b>نوبت شخصی {visit.artistName}</b>
-          <span>
-            {formatRelativeBookingDayLabel(visit.date)}، ساعت {toPersianDigits(toLatinDigits(visit.time))}
-            {visit.service ? `، ${visit.service}` : ""}
-          </span>
-        </div>
-      ))}
-      {rest > 0 ? <p>و {toPersianDigits(rest)} تای دیگه</p> : null}
-    </section>
+    <div role="group" className="plTeamRow is-visit" aria-label={`مشتری ${artist}`}>
+      <span className="plTeamTime">
+        <b>{toPersianDigits(toLatinDigits(visit.time))}</b>
+        <small>تا {endLabel(visit.time, visit.minutes)}</small>
+      </span>
+      <span className="plTeamText">
+        <span className="plTeamTag">مشتری {artist}</span>
+        <b>{visit.clientFirstName || "مشتری"}{visit.service ? `، ${visit.service}` : ""}</b>
+        <small>{artist} خودش این نوبت رو گرفته و جوابش رو می‌ده.</small>
+      </span>
+    </div>
+  );
+}
+
+/** A team member busy with their own client elsewhere: a striped row, only when and how long. */
+export function TeamBusyRow({ item }) {
+  const artist = firstWord(item.artistName) || "آرتیست";
+  return (
+    <div role="group" className="plTeamRow is-busy" aria-label={`${artist} سرش شلوغه`}>
+      <span className="plTeamTime">
+        <b>{toPersianDigits(toLatinDigits(item.time))}</b>
+        <small>تا {endLabel(item.time, item.minutes)}</small>
+      </span>
+      <span className="plTeamText">
+        <b>{artist} سرش شلوغه</b>
+        <small>مشتری خودشه، جای دیگه. این ساعت رو به {artist} نده.</small>
+      </span>
+    </div>
   );
 }

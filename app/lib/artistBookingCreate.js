@@ -8,6 +8,7 @@ import { BOOKING_REQUEST_LEAD_MINUTES, isTooSoonToRequest } from "../shared/lib/
 import { toPersianDigits } from "../shared/lib/digits.js";
 import { parseServiceDurationMinutes } from "../shared/lib/time.js";
 import { artistSlotProblem } from "./visitSlotRules.js";
+import { salonClosedMessage } from "../shared/lib/artistPlace.js";
 import { readBookingSlot } from "./validation/bookingSlot.js";
 import { parseRequestedMinutes } from "./validation/numbers.js";
 
@@ -76,10 +77,11 @@ export async function createArtistBooking({ artistUserId, viewer, data, body = {
     durationMinutes: durationMinutes || 60
   });
   if (slotProblem) return refuse(slotProblem.status, slotProblem.error, slotProblem.code);
-  // Where it is held (shared/lib/artistPlace.js): the first salon in the artist's list that can take it, else «مثل قبل»
-  // or, if the artist chose so, it waits for them to say where. The client never chooses and is never refused for it.
+  // Where it is held: the artist's workplace on that day (shared/lib/artistPlace.js), a salon or their own place. A client
+  // is only offered hours inside both the artist's and that salon's hours; the artist's own entry may go anywhere.
   const place = await artistPlace.placeForBooking(artistUserId, { dateKey: day, time, minutes: durationMinutes || 60 });
-  const placeSalonUserId = place.salonUserId;
+  if (place.block && !isOwner) return refuse(409, salonClosedMessage(place.salonName), "SALON_CLOSED");
+  const placeSalonUserId = place.block ? null : place.salonUserId;
   // A client's request waits as long as they chose (an hour, or until the appointment), maybe with a backup artist.
   const isRequest = !isOwner && Boolean(viewer?.id);
   const result = await artists.addArtistBooking(artistUserId, {
@@ -99,7 +101,7 @@ export async function createArtistBooking({ artistUserId, viewer, data, body = {
     duration: durationMinutes ? undefined : data.duration,
     // The artist's own entry is settled; a client's waits for the artist (see POST /api/artist/me).
     ...(isOwner ? { status: "تایید" } : {}),
-    ...(isRequest && artistSettings.autoConfirm && !place.ask ? { status: "تایید شده" } : {}),
+    ...(isRequest && artistSettings.autoConfirm ? { status: "تایید شده" } : {}),
     // A client's own request: an identical one already sent is merged into it, and the number open at once is capped.
     clientRequest: isRequest,
     clientUserId: viewer?.id || null,
@@ -112,5 +114,5 @@ export async function createArtistBooking({ artistUserId, viewer, data, body = {
     const error = result.code === "TOO_MANY_OPEN_REQUESTS" ? ARTIST_TOO_MANY_OPEN_MESSAGE : result.error;
     return refuse(result.code === "SLOT_TAKEN" || result.code === "TOO_MANY_OPEN_REQUESTS" ? 409 : 400, error, result.code);
   }
-  return { ok: true, booking: result.booking, duplicate: Boolean(result.duplicate), placeAsk: place.ask };
+  return { ok: true, booking: result.booking, duplicate: Boolean(result.duplicate) };
 }

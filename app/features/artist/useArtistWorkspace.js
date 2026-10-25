@@ -608,7 +608,7 @@ export function useArtistWorkspace({
       const { ok, payload } = await respondArtistInvite({ id: inviteId, status });
       if (!ok) {
         shellNotify(payload.error || "جوابت نرسید؛ دوباره بزن.");
-        return;
+        return false;
       }
       setArtistSalonInviteList(payload.data?.invites || []);
       if (status === "تایید شد") {
@@ -618,11 +618,13 @@ export function useArtistWorkspace({
       shellNotify(status === "تایید شد"
         ? "قبول کردی؛ حالا توی تیم سالنی!"
         : "دعوت رو رد کردی.");
+      return true;
     } catch {
       shellNotify("جوابت نرسید؛ دوباره بزن.");
     } finally {
       setArtistInviteRespondBusyId("");
     }
+    return false;
   }
 
   async function leaveArtistSalonTeam(salonUserId) {

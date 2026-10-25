@@ -7,9 +7,9 @@ afterAll(closeBrowser);
 
 const tabOf = (page, label) => page.locator(".profileModeRail button, [role=tab], button", { hasText: label }).first();
 
-/** The owner's idea of 2026-10-24 (second version): the artist's ordered list of salons, in a real phone-sized browser. */
+/** The owner's decision of 2026-10-25: one workplace at a time, set from the salon's wallet card, in a real phone-sized browser. */
 describe("where an artist's clients are received (browser)", () => {
-  it("the artist adds a salon to the list, saves, and the client's booking sheet shows no place at all", async () => {
+  it("the artist turns on «مشتری‌های خودت میان اینجا» on the salon's card, and the client's booking sheet says where", async () => {
     const { salon, members } = await teamSalon("Place Browser Salon", 1);
     const artist = members[0];
     const client = await newClient("Place Browser Client");
@@ -19,19 +19,20 @@ describe("where an artist's clients are received (browser)", () => {
     page.setDefaultTimeout(8000);
     await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
     await tabOf(page, "همکاری").click();
-    const box = page.locator(".plBox");
-    await box.waitFor();
-    expect(await box.innerText()).toContain("نوبت مشتری‌هام کجا باشه؟");
-    expect(await box.innerText()).toContain("هنوز سالنی اضافه نکردی. همه نوبت‌ها مثل قبل می‌مونن.");
-    expect(await box.getByRole("button", { name: "ذخیره" }).isDisabled()).toBe(true);
-    await box.locator(".plAdd", { hasText: salon.user.name }).click();
-    expect(await box.locator(".plRow").count()).toBe(1);
-    await box.getByRole("radio", { name: "بهم خبر بده" }).click();
-    await box.getByRole("button", { name: "ذخیره" }).click();
-    await box.getByText("ذخیره شد. از الان نوبت‌ها همین‌طور جا می‌گیرن.").waitFor();
-    const place = (await artist.api.get("/api/artist/place")).payload.data.place;
-    expect(place.fallback).toBe("ask");
-    expect(place.teams[0]).toMatchObject({ inList: true, name: salon.user.name });
+    const card = page.locator(".clwCard", { hasText: salon.user.name });
+    await card.waitFor();
+    expect(await card.innerText()).toContain("توی تیمشی");
+    await page.locator(".clwNow", { hasText: "جای خودت" }).waitFor();
+    expect(await page.locator(".clwDots").count()).toBe(0);
+    const toggle = page.getByRole("switch", { name: `مشتری‌های خودت میان ${salon.user.name}` });
+    expect(await toggle.getAttribute("aria-checked")).toBe("false");
+    await toggle.click();
+    await page.getByText(`از کی توی ${salon.user.name} کار می‌کنی؟`).waitFor();
+    await page.getByRole("button", { name: "از امروز اینجا کار می‌کنم" }).click();
+    await page.getByText(`از امروز مشتری‌هات میان ${salon.user.name}.`).waitFor();
+    expect(await card.innerText()).toContain("الان اینجا کار می‌کنی");
+    expect(await toggle.getAttribute("aria-checked")).toBe("true");
+    expect((await artist.api.get("/api/artist/place")).payload.data.workplace.current).toBe(salon.id);
     expect(artistView.problems).toEqual([]);
     await artistView.context.close();
 
@@ -44,16 +45,41 @@ describe("where an artist's clients are received (browser)", () => {
     await item.click();
     await cp.locator(".sduPanel button", { hasText: "رزرو" }).last().click({ force: true });
     await cp.locator(".bspDay").first().waitFor();
-    expect(await cp.locator(".plPlace, .plTeamChip").count()).toBe(0);
-    expect(await cp.locator(".artistPublicBookingPanel").innerText()).not.toContain(salon.user.name);
+    expect(await cp.locator(".plWhere").innerText()).toContain(salon.user.name);
     expect(clientView.problems).toEqual([]);
     await clientView.context.close();
   });
 
-  it("the salon's switch in the member's sheet is off: the artist's list says the salon is skipped", async () => {
+  it("accepting a salon's invite asks once whether the artist's own clients come there too", async () => {
+    const { salon, members } = await teamSalon("Place Invite Home", 1);
+    const artist = members[0];
+    const { salon: inviter } = await teamSalon("Place Invite New", 0);
+    expect((await inviter.api.post("/api/salon-invites", { artistUserId: artist.id })).status).toBe(201);
+
+    const view = await newPage({ cookie: artist.api.cookie() });
+    const page = view.page;
+    page.setDefaultTimeout(8000);
+    await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
+    await tabOf(page, "همکاری").click();
+    // The invite shows even while the artist is on a team: it is the first card, with the dots for the two.
+    const invite = page.locator(".clwCard.is-active", { hasText: inviter.user.name });
+    await invite.waitFor();
+    expect(await invite.innerText()).toContain("دعوت تازه");
+    expect(await page.locator(".clwDots button").count()).toBe(2);
+    await page.locator(".clwPanel").getByRole("button", { name: "قبول" }).click();
+    await page.getByText(`مشتری‌هایی که خودشون ازت نوبت می‌گیرن هم بیان ${inviter.user.name}؟`).waitFor();
+    await page.getByRole("button", { name: "آره، بیان اینجا" }).click();
+    await page.getByText(`از امروز مشتری‌هات میان ${inviter.user.name}.`).waitFor();
+    expect((await artist.api.get("/api/artist/place")).payload.data.workplace.current).toBe(inviter.id);
+    expect(await page.locator(".clwCard").count()).toBe(2);
+    expect(await page.locator(".clwCard", { hasText: salon.user.name }).innerText()).toContain("توی تیمشی");
+    expect(view.problems).toEqual([]);
+    await view.context.close();
+  });
+
+  it("the salon's switch in the member's sheet is off: the artist's card says so and the switch is locked", async () => {
     const { salon, members } = await teamSalon("Place Switch Salon", 1);
     const artist = members[0];
-    expect((await artist.api.put("/api/artist/place", { order: [salon.user.id], fallback: "own" })).ok).toBe(true);
 
     const salonView = await newPage({ cookie: salon.api.cookie() });
     const sp = salonView.page;
@@ -72,9 +98,8 @@ describe("where an artist's clients are received (browser)", () => {
     const ap = artistView.page;
     await ap.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
     await tabOf(ap, "همکاری").click();
-    const box = ap.locator(".plBox");
-    await box.waitFor();
-    expect(await box.innerText()).toContain(`${salon.user.name} نوبت مستقیم رو بسته. نوبتی اونجا نمی‌افته.`);
+    await ap.getByText(`${salon.user.name} فعلاً مشتری‌های خودت رو قبول نمی‌کنه؛ میان جای خودت.`).waitFor();
+    expect(await ap.getByRole("switch", { name: `مشتری‌های خودت میان ${salon.user.name}` }).isDisabled()).toBe(true);
     expect(artistView.problems).toEqual([]);
     await artistView.context.close();
   });

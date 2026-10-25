@@ -1,5 +1,5 @@
 import { sendPushToUser } from "./push.js";
-import { smsBookingCancelledByProvider, smsBookingProposal, smsDayLabel, smsTimeLabel } from "./bookingSms.js";
+import { bookingWhen, smsBookingCancelledByProvider, smsBookingProposal, smsDayLabel, smsTimeLabel } from "./bookingSms.js";
 import {
   ARTIST_GONE_TEXT,
   SALON_GONE_TEXT,
@@ -117,12 +117,13 @@ export function noticeClientPlaceMoved(clientUserId, { artistName, salonName, sa
   void quiet(sendPushToUser(Number(clientUserId), { title: "جای نوبتت عوض شد", body, url: "/" }));
 }
 
-/** The artist moved a booking to another place (a salon of theirs, or back to their own). The client is told where it is now. */
+/** The artist moved a booking to another place (their workplace salon, or back to their own). The client is told where it is now. */
 export function noticeClientPlaceChanged(clientUserId, { artistName, toSalonName = "", booking }) {
   if (!clientUserId) return;
   const artist = artistName || "آرتیست";
+  const what = `${booking.service || "نوبت"}، ${bookingWhen(booking.booking_date, booking.time)}`;
   const body = toSalonName
-    ? `${artist} جای نوبتت (${booking.service || "نوبت"}) رو عوض کرد. حالا توی ${toSalonName} برگزار می‌شه. ساعتش همونه.`
-    : `${artist} جای نوبتت (${booking.service || "نوبت"}) رو عوض کرد. حالا جای خود ${artist} برگزار می‌شه. ساعتش همونه.`;
+    ? `${artist} جای نوبتت (${what}) رو عوض کرد. حالا توی ${toSalonName} برگزار می‌شه. ساعتش همونه.`
+    : `${artist} جای نوبتت (${what}) رو عوض کرد. حالا جای خود ${artist} برگزار می‌شه. ساعتش همونه.`;
   void quiet(sendPushToUser(Number(clientUserId), { title: "جای نوبتت عوض شد", body, url: "/" }));
 }
