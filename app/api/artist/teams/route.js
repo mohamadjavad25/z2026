@@ -3,6 +3,8 @@ import * as salons from "../../../lib/db/repos/salons.js";
 import { notifyTeamEnd } from "../../../lib/teamNotify.js";
 import { leaveOrRemoveFromTeam } from "../../../lib/db/repos/providerExit.js";
 import { exitRefusal } from "../../../lib/providerExitResponse.js";
+import { artistLeftSalon } from "../../../lib/artistPlaceRelease.js";
+import * as users from "../../../lib/db/repos/users.js";
 
 export const runtime = "nodejs";
 
@@ -31,6 +33,9 @@ async function _DELETE(request) {
   if (!result.ok) {
     return json({ error: result.error, code: result.code }, { status: 404 });
   }
+  // Clients booked at that salon keep their booking, now at the artist's own place, and are told.
+  const salon = await users.getUserLiteById(salonUserId);
+  await artistLeftSalon({ artistUserId: auth.user.id, salonUserId, salonName: salon?.name || "" });
   notifyTeamEnd({ kind: "left", toUserId: salonUserId, from: auth.user });
   return json({ data: { ok: true, teams: await salons.listArtistTeams(auth.user.id) } });
 }

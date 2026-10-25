@@ -1,6 +1,7 @@
 import * as artists from "./db/repos/artists.js";
 import * as users from "./db/repos/users.js";
 import * as userSettings from "./db/repos/userSettings.js";
+import * as artistPlace from "./db/repos/artistPlace.js";
 import { onlineBookingBlock } from "./billing/access.js";
 import { isSlotInPast } from "../shared/lib/slots.js";
 import { BOOKING_REQUEST_LEAD_MINUTES, TOO_FAR_TEXT, isTooFarToRequest, isTooSoonToRequest } from "../shared/lib/bookingWindow.js";
@@ -8,6 +9,7 @@ import { toPersianDigits } from "../shared/lib/digits.js";
 import { parseServiceDurationMinutes } from "../shared/lib/time.js";
 import { joinServiceNames } from "../shared/lib/serviceBundle.js";
 import { artistSlotProblem } from "./visitSlotRules.js";
+import { salonClosedMessage } from "../shared/lib/artistPlace.js";
 import { readBookingSlot } from "./validation/bookingSlot.js";
 import { parseRequestedMinutes } from "./validation/numbers.js";
 
@@ -100,6 +102,11 @@ export async function createArtistBooking({ artistUserId, viewer, data, body = {
     durationMinutes: durationMinutes || 60
   });
   if (slotProblem) return refuse(slotProblem.status, slotProblem.error, slotProblem.code);
+  // Where it is held: the artist's workplace on that day (shared/lib/artistPlace.js), a salon or their own place. A client
+  // is only offered hours inside both the artist's and that salon's hours; the artist's own entry may go anywhere.
+  const place = await artistPlace.placeForBooking(artistUserId, { dateKey: day, time, minutes: durationMinutes || 60 });
+  if (place.block && !isOwner) return refuse(409, salonClosedMessage(place.salonName), "SALON_CLOSED");
+  const placeSalonUserId = place.block ? null : place.salonUserId;
   // A client's request waits as long as they chose (an hour, or until the appointment), maybe with a backup artist.
   const isRequest = !isOwner && Boolean(viewer?.id);
   const result = await artists.addArtistBooking(artistUserId, {
@@ -113,6 +120,7 @@ export async function createArtistBooking({ artistUserId, viewer, data, body = {
     fallbackArtistUserId: isRequest ? wait.fallbackArtistUserId || null : null,
     movedFromBookingId: wait.movedFromBookingId || null,
     durationMinutes,
+    placeSalonUserId,
     duration_minutes: undefined,
     // `duration` (text) would be read when no number is given; the number above is the only length.
     duration: durationMinutes ? undefined : data.duration,

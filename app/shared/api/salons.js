@@ -288,3 +288,8 @@ export async function saveSalonRules(rules) {
     body: JSON.stringify({ rules })
   });
 }
+
+/** GET /api/salon-staff/direct → { visits }: the clients the team's artists receive at this salon from their own pages (when and who, never the client) */
+export async function getSalonDirectVisits() {
+  return apiJson("/api/salon-staff/direct");
+}

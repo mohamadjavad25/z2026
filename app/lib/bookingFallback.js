@@ -2,10 +2,11 @@ import { getDb, all, get, run } from "./db/connection.js";
 import * as salons from "./db/repos/salons.js";
 import { onlineBookingBlock } from "./billing/access.js";
 import { salonVisitParts } from "./salonVisitParts.js";
-import { visitSlotProblem } from "./visitSlotRules.js";
+import { artistSlotProblem, visitSlotProblem } from "./visitSlotRules.js";
 import { createSalonBooking } from "./salonBookingCreate.js";
 import { createArtistBooking } from "./artistBookingCreate.js";
 import * as artists from "./db/repos/artists.js";
+import { placeForBooking } from "./db/repos/artistPlace.js";
 import * as userSettings from "./db/repos/userSettings.js";
 import { matchServiceNames } from "../shared/lib/serviceMatch.js";
 import { parseBookingParts, summarizeBookingParts } from "../shared/lib/bookingParts.js";
@@ -168,6 +169,9 @@ async function artistServicesFor(artistUserId, service) {
 async function artistFreeAt(artistUserId, listed, bookingDateKey, time) {
   if (isSlotInPast(bookingDateKey, time) || isTooSoonToRequest(bookingDateKey, time)) return false;
   const minutes = listed.reduce((sum, item) => sum + (parseServiceDurationMinutes(item.duration) || 60), 0);
+  if (artistSlotProblem({ hours: await artists.listArtistHours(artistUserId), bookingDateKey, time, durationMinutes: minutes })) return false;
+  // Received at a salon that day: that salon must be open then too (artistBookingCreate.js refuses otherwise).
+  if ((await placeForBooking(artistUserId, { dateKey: bookingDateKey, time, minutes })).block) return false;
   return !(await artists.isArtistSlotBlocked(artistUserId, bookingDateKey, time, minutes));
 }
 
