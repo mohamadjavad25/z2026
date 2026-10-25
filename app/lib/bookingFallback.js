@@ -146,20 +146,28 @@ async function followedArtists(clientUserId, exceptArtistUserId, onlyId = null) 
   `, [clientUserId, exceptArtistUserId, onlyId]);
 }
 
-/** The artist's own listing of `service` when they take direct online requests now; else null. */
-async function artistServiceFor(artistUserId, service) {
+/**
+ * The artist's own listings for `service` when they take direct online requests now; else null. A visit of
+ * several services (names joined with « + », shared/lib/serviceBundle) needs every one of them listed.
+ */
+async function artistServicesFor(artistUserId, service) {
   const settings = await userSettings.getSettings(artistUserId);
   if (settings.vacationMode || settings.directBooking === false) return null;
   if (await onlineBookingBlock(artistUserId, "artist")) return null;
   const list = await artists.listArtistServices(artistUserId);
-  const [own] = matchServiceNames(list, [service]) || [];
-  return own ? list.find((item) => String(item.name || "").trim() === own) || null : null;
+  const text = String(service || "").trim();
+  const exact = matchServiceNames(list, [text]);
+  const names = exact ? [text] : text.split(" + ").map((name) => name.trim()).filter(Boolean);
+  const own = exact || (names.length >= 2 ? matchServiceNames(list, names) : null);
+  if (!own) return null;
+  const listed = own.map((name) => list.find((item) => String(item.name || "").trim() === name)).filter(Boolean);
+  return listed.length === own.length ? listed : null;
 }
 
-/** Whether the artist's calendar is free for that service at that day and time (same checks as a request). */
+/** Whether the artist's calendar is free for those services at that day and time (same checks as a request). */
 async function artistFreeAt(artistUserId, listed, bookingDateKey, time) {
   if (isSlotInPast(bookingDateKey, time) || isTooSoonToRequest(bookingDateKey, time)) return false;
-  const minutes = parseServiceDurationMinutes(listed.duration) || 60;
+  const minutes = listed.reduce((sum, item) => sum + (parseServiceDurationMinutes(item.duration) || 60), 0);
   return !(await artists.isArtistSlotBlocked(artistUserId, bookingDateKey, time, minutes));
 }
 
@@ -171,7 +179,7 @@ export async function listFallbackArtists({ clientUserId, artistUserId, service,
   if (!clientUserId || !service) return [];
   const out = [];
   for (const artist of await followedArtists(clientUserId, artistUserId)) {
-    const listed = await artistServiceFor(artist.id, service);
+    const listed = await artistServicesFor(artist.id, service);
     if (!listed) continue;
     if (bookingDateKey && time && !(await artistFreeAt(artist.id, listed, bookingDateKey, time))) continue;
     out.push({ id: artist.id, name: artist.name || "آرتیست", area: artist.area || "", avatar: artist.has_avatar ? `/api/media/avatar/${artist.id}` : "" });
@@ -185,7 +193,7 @@ export async function validFallbackArtist(clientUserId, artistUserId, fallbackId
   if (!fallbackId || fallbackId === artistUserId || !String(service || "").trim()) return null;
   const [artist] = await followedArtists(clientUserId, artistUserId, fallbackId);
   if (!artist) return null;
-  return (await artistServiceFor(fallbackId, service)) ? fallbackId : null;
+  return (await artistServicesFor(fallbackId, service)) ? fallbackId : null;
 }
 
 /**
@@ -197,7 +205,7 @@ export async function sendToFallbackArtist(row) {
   const clientUserId = Number(row.client_user_id || 0);
   if (!fallbackId || !clientUserId) return { ok: false };
   if (!(await validFallbackArtist(clientUserId, Number(row.artist_user_id || 0), fallbackId, row.service))) return { ok: false };
-  const listed = await artistServiceFor(fallbackId, row.service);
+  const listed = await artistServicesFor(fallbackId, row.service);
   if (!listed) return { ok: false };
   const db = await getDb();
   const user = await get(db, "SELECT id, name, phone, type FROM users WHERE id = $1 AND suspended_at IS NULL", [clientUserId]);
@@ -205,7 +213,12 @@ export async function sendToFallbackArtist(row) {
   const result = await createArtistBooking({
     artistUserId: fallbackId,
     viewer: user,
-    data: { service: listed.name, bookingDate: row.booking_date, time: row.time },
+    data: {
+      service: listed.map((item) => item.name).join(" + "),
+      ...(listed.length >= 2 ? { parts: listed.map((item) => ({ service: item.name })) } : {}),
+      bookingDate: row.booking_date,
+      time: row.time
+    },
     body: { clientName: row.client_name || user.name || "", clientPhone: row.client_phone || user.phone || "" },
     wait: { minutes: BOOKING_REQUEST_WINDOW_MINUTES, fallbackArtistUserId: null, movedFromBookingId: Number(row.id) }
   });

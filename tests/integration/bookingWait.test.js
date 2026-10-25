@@ -199,6 +199,42 @@ describe("the backup artist, for a request made straight to an artist", () => {
     expect((await secondClient.get("/api/artist/me")).payload.data.bookings.some((row) => row.id === moved.id)).toBe(true);
   });
 
+  it("a visit of several services gets a backup artist who does all of them, and moves there whole", async () => {
+    await connected;
+    const EXTRA = "ابرو صبر";
+    const withBoth = async (name, services) => {
+      const { client, artist } = await artistWith(name, services[0]);
+      for (const service of services.slice(1)) {
+        expect((await client.post("/api/artist/me", { name: service, price: "100", duration: "۳۰ دقیقه" })).ok).toBe(true);
+      }
+      return { client, artist };
+    };
+    const { artist: first } = await withBoth("Artist Bundle First", [ARTIST_SERVICE, EXTRA]);
+    const { client: secondClient, artist: second } = await withBoth("Artist Bundle Second", [ARTIST_SERVICE, EXTRA]);
+    const { artist: half } = await artistWith("Artist Bundle Half");
+    const me = await customer("Artist Bundle Client");
+    for (const target of [second, half]) await me.client.post("/api/follows", { targetUserId: target.user.id, follow: true });
+    const day = futureBookingDay(2);
+    const visit = `${ARTIST_SERVICE} + ${EXTRA}`;
+    const offered = await me.client.get(`/api/artist-bookings/fallbacks?${new URLSearchParams({ artistUserId: String(first.user.id), service: visit, day, time: "۱۰:۰۰" })}`);
+    expect(offered.payload.data.artists.map((item) => item.id)).toEqual([second.user.id]);
+
+    const created = await me.client.post("/api/artist/bookings", {
+      artistUserId: first.user.id, service: visit, parts: [{ service: ARTIST_SERVICE }, { service: EXTRA }],
+      bookingDate: day, time: "۱۰:۰۰", waitMinutes: 60, fallbackArtistUserId: second.user.id
+    });
+    expect(created.status).toBe(201);
+    expect(created.payload.data.booking.fallback_artist_user_id).toBe(second.user.id);
+    await artistSweepBack(created.payload.data.booking.id, 61);
+    await sweep();
+    const mine = (await me.client.get("/api/artist-bookings")).payload.data.bookings;
+    const moved = mine.find((row) => row.id === mine.find((item) => item.id === created.payload.data.booking.id).moved_to_booking_id);
+    expect(moved).toMatchObject({ artist_user_id: second.user.id, service: visit });
+    const length = (await db.query("SELECT duration_minutes FROM artist_bookings WHERE id = $1", [moved.id])).rows[0];
+    expect(Number(length.duration_minutes)).toBe(90);
+    expect((await secondClient.get("/api/artist/me")).payload.data.bookings.some((row) => row.id === moved.id)).toBe(true);
+  });
+
   it("a backup the client doesn't follow is never stored, and «صبر می‌کنم» never times out", async () => {
     await connected;
     const { artist: first } = await artistWith("Artist Open First");

@@ -6,6 +6,7 @@ import { isSlotInPast } from "../shared/lib/slots.js";
 import { BOOKING_REQUEST_LEAD_MINUTES, isTooSoonToRequest } from "../shared/lib/bookingWindow.js";
 import { toPersianDigits } from "../shared/lib/digits.js";
 import { parseServiceDurationMinutes } from "../shared/lib/time.js";
+import { joinServiceNames } from "../shared/lib/serviceBundle.js";
 import { artistSlotProblem } from "./visitSlotRules.js";
 import { readBookingSlot } from "./validation/bookingSlot.js";
 import { parseRequestedMinutes } from "./validation/numbers.js";
@@ -14,6 +15,18 @@ export const LOGIN_TO_BOOK_MESSAGE = "برای گرفتن نوبت، شماره�
 export const ARTIST_TOO_MANY_OPEN_MESSAGE = "چند تا درخواست منتظر جواب داری. صبر کن جواب یکی بیاد، یا یکی رو لغو کن.";
 
 const refuse = (status, error, code = "") => ({ ok: false, status, error, code });
+
+/**
+ * The menu names a client's request asks for, in visit order: `parts` when several were sent; else the one
+ * `service`, or, when that exact name isn't listed, its « + »-joined names (shared/lib/serviceBundle).
+ */
+function requestedArtistServiceNames(data, service, findListed) {
+  const parts = (data.parts || []).map((part) => String(part?.service || "").trim()).filter(Boolean);
+  if (parts.length >= 2) return parts;
+  if (findListed(service)) return [service];
+  const joined = service.split(" + ").map((name) => name.trim()).filter(Boolean);
+  return joined.length >= 2 ? joined : [service];
+}
 
 /**
  * One new booking with an independent artist, with every check POST /api/artist/bookings makes: not
@@ -31,7 +44,9 @@ export async function createArtistBooking({ artistUserId, viewer, data, body = {
   // one and the time a real clock time, the length a whole number of minutes. Nothing is guessed.
   const artist = await users.getUserById(artistUserId);
   if (!artist || artist.type !== "artist") return refuse(404, "این آرتیست رو پیدا نکردیم.");
-  const service = String(data.service || "").trim();
+  let service = String(data.service || "").trim();
+  const partNames = (data.parts || []).map((part) => String(part?.service || "").trim()).filter(Boolean);
+  if (!service && partNames.length) service = partNames.join(" + ");
   if (!service) return refuse(400, "یه کار انتخاب کن.");
   const slot = readBookingSlot(data.bookingDate || data.booking_date || data.date || "", data.time ?? "");
   if (!slot.ok) return refuse(slot.status, slot.error);
@@ -61,10 +76,19 @@ export async function createArtistBooking({ artistUserId, viewer, data, body = {
   let durationMinutes = requested.minutes || 0;
   if (!isOwner) {
     // Only what is on the artist's own menu can be asked for, and its length is the artist's (never the client's).
-    const listed = (await artists.listArtistServices(artistUserId))
-      .find((item) => String(item.name || "").trim() === service);
-    if (!listed) return refuse(400, `«${service}» توی کارهای این آرتیست نیست.`, "SERVICE_NOT_LISTED");
-    durationMinutes = listed.duration ? parseServiceDurationMinutes(listed.duration) : 60;
+    // Several services picked for one visit come as `parts`, or joined with « + » in `service` (a request the
+    // expiry sweep sends on): each one must be listed, and the visit lasts their lengths added up.
+    const menu = await artists.listArtistServices(artistUserId);
+    const findListed = (name) => menu.find((item) => String(item.name || "").trim() === name);
+    const names = requestedArtistServiceNames(data, service, findListed);
+    const lengths = [];
+    for (const name of names) {
+      const listed = findListed(name);
+      if (!listed) return refuse(400, `«${name}» توی کارهای این آرتیست نیست.`, "SERVICE_NOT_LISTED");
+      lengths.push(listed.duration ? parseServiceDurationMinutes(listed.duration) : 60);
+    }
+    durationMinutes = lengths.reduce((sum, minutes) => sum + minutes, 0);
+    if (names.length > 1) service = joinServiceNames(names);
   }
   durationMinutes = durationMinutes > 0 ? Math.min(720, Math.max(15, durationMinutes)) : undefined;
   // The artist's own working hours, closed weekdays and 30-minute step count here exactly as a salon's do.
