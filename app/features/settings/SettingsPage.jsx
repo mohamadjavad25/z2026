@@ -401,7 +401,7 @@ export function SettingsPage({
         <section className="spSection" aria-labelledby="spSection-account">
           <h3 className="spSectionTitle" id="spSection-account">حساب و پشتیبانی</h3>
           <div className="neoSettingsPanel">
-            <AccountSettings onLogout={onLogout} onDeleteAccount={onDeleteAccount} onNotice={onNotify} />
+            <AccountSettings onLogout={onLogout} onDeleteAccount={onDeleteAccount} onNotice={onNotify} isClient={isClient} />
           </div>
         </section>
       </div>

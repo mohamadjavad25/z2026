@@ -30,6 +30,8 @@ import { useThemePreference } from "../../shared/lib/useThemePreference";
 import { playSound } from "../../shared/lib/sounds";
 import { openSupport } from "../support";
 import { ExitPlanPanel } from "../exit/ExitPlanPanel";
+import { ClientExitPanel, getClientExitPlan } from "../exit/ClientExitPanel";
+import { CANCEL_ALL_AND_DELETE } from "../../shared/lib/clientExitText";
 import { CANCEL_ALL_AND_TEXT } from "../../shared/lib/providerRules";
 
 const DELETE_CONFIRM_WORD = "حذف";
@@ -47,7 +49,10 @@ function DeleteAccountConfirm({ onConfirm, onCancel, busy, error, exit = null, o
   const [password, setPassword] = useState("");
   const matches = typed.trim() === DELETE_CONFIRM_WORD && password.length > 0;
   // A salon or artist with confirmed bookings: the list of what stands in the way (owner's rules of 2026-10-22).
-  const stuck = Boolean(exit?.plan && (exit.plan.blocked || exit.plan.needsChoice));
+  // A client (scope "client"): bookings within 24 hours block it, the rest go with «لغو همه و پاک کردن حساب».
+  const clientPlan = exit?.plan?.scope === "client" ? exit.plan : null;
+  const stuck = clientPlan ? Boolean(clientPlan.blocked) : Boolean(exit?.plan && (exit.plan.blocked || exit.plan.needsChoice));
+  const cancelAll = Boolean(clientPlan?.needsChoice);
   return (
     <div className="neoSettingsDeleteConfirm" role="alertdialog" aria-label="پاک کردن حساب">
       <div className="neoSettingsDeleteConfirmHead">
@@ -73,7 +78,9 @@ function DeleteAccountConfirm({ onConfirm, onCancel, busy, error, exit = null, o
         disabled={busy}
       />
       {error ? <p className="neoSettingsDeleteConfirmError">{error}</p> : null}
-      {exit?.plan ? (
+      {clientPlan ? (
+        <ClientExitPanel plan={clientPlan} onPlan={onExitPlan} onNotice={onNotice} />
+      ) : exit?.plan ? (
         <ExitPlanPanel
           plan={exit.plan}
           scope="account"
@@ -84,15 +91,15 @@ function DeleteAccountConfirm({ onConfirm, onCancel, busy, error, exit = null, o
           onConfirm={matches ? ({ cancelAll }) => onConfirm(password, { cancelAll }) : null}
         />
       ) : null}
-      {exit?.plan && exit.plan.needsChoice && !matches ? <p className="neoSettingsDeleteConfirmError">برای «{CANCEL_ALL_AND_TEXT}» اول کلمهٔ «{DELETE_CONFIRM_WORD}» و رمزت رو بنویس.</p> : null}
+      {exit?.plan && !clientPlan && exit.plan.needsChoice && !matches ? <p className="neoSettingsDeleteConfirmError">برای «{CANCEL_ALL_AND_TEXT}» اول کلمهٔ «{DELETE_CONFIRM_WORD}» و رمزت رو بنویس.</p> : null}
       <div className="neoSettingsDeleteConfirmActions">
         <button type="button" onClick={onCancel} disabled={busy}>
           <X size={15} />
           انصراف
         </button>
-        <button type="button" className="is-danger" disabled={!matches || busy || stuck} onClick={() => onConfirm(password)}>
+        <button type="button" className="is-danger" disabled={!matches || busy || stuck} onClick={() => onConfirm(password, cancelAll ? { cancelAll: true } : undefined)}>
           <Trash2 size={15} />
-          {busy ? "دارم پاک می‌کنم…" : "پاکش کن"}
+          {busy ? "دارم پاک می‌کنم…" : cancelAll ? CANCEL_ALL_AND_DELETE : "پاکش کن"}
         </button>
       </div>
     </div>
@@ -309,7 +316,7 @@ export function ArtistBookingSettings({ profileSettings, onToggle }) {
 }
 
 /** Support, legal pages, sign-out and account deletion. Always the last section. */
-export function AccountSettings({ onLogout, onDeleteAccount, onNotice }) {
+export function AccountSettings({ onLogout, onDeleteAccount, onNotice, isClient = false }) {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [deleteError, setDeleteError] = useState("");
@@ -358,7 +365,18 @@ export function AccountSettings({ onLogout, onDeleteAccount, onNotice }) {
             }}
           />
         ) : (
-          <button type="button" className="neoSettingsDelete" onClick={() => setDeleteConfirmOpen(true)}>
+          <button
+            type="button"
+            className="neoSettingsDelete"
+            onClick={async () => {
+              setDeleteConfirmOpen(true);
+              if (!isClient) return;
+              // A client sees their open bookings before typing anything (owner's decision 2026-10-26).
+              const result = await getClientExitPlan().catch(() => null);
+              const plan = result?.ok ? result.payload?.data?.plan : null;
+              if (plan && (plan.near.length || plan.rest.length)) setDeleteExit({ plan });
+            }}
+          >
             <Trash2 size={16} />
             <span>پاک کردن حساب</span>
           </button>

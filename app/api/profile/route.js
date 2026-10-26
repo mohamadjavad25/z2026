@@ -143,7 +143,7 @@ async function _DELETE(request) {
     return NextResponse.json({ error: "رمز فعلی اشتباهه." }, { status: 400 });
   }
   // A salon or artist is never deleted while a confirmed booking starts within 24 hours; farther confirmed bookings are
-  // cancelled one by one or all together with notice (owner's rules of 2026-10-22, providerExit.js). Clients just go.
+  // cancelled one by one or all together with notice (owner's rules of 2026-10-22, providerExit.js). A client is held by the same rule from their side (clientExit.js, 2026-10-26).
   // The account's phone number is cut off its old bookings first (a later holder of the number must see none of them).
   const result = await deleteProviderAccount({ user: auth.user, cancelAll: body?.cancelAll === true });
   if (!result.ok) return exitRefusal(result, { scope: "account" });

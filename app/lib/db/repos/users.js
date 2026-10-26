@@ -264,7 +264,8 @@ export async function isFollowing(followerId, targetId, runner = null) {
  * Deletes an account for good, and first cuts its phone number off every booking it left behind (owner's decision
  * 2026-10-22): the account's own bookings, and the walk-ins a salon or artist typed for that number, lose the
  * number (the name and the visit stay for the salon's own records). So whoever takes the number over later sees
- * nothing of the previous person's bookings. Returns the deleted row ({ id, phone, name, type }) or null.
+ * nothing of the previous person's bookings. Those rows are also marked `client_account_deleted_at`, so the salon's
+ * customers page says «حسابش رو پاک کرده» rather than «شماره نداره» (owner's decision 2026-10-26). Returns the deleted row ({ id, phone, name, type }) or null.
  */
 export async function deleteUserDetachingPhone(id) {
   const userId = Number(id);
@@ -276,7 +277,7 @@ export async function deleteUserDetachingPhone(id) {
     const key = row.phone_verified_at ? String(row.phone || "").trim() : "";
     for (const [table, column] of [["salon_bookings", "phone"], ["artist_bookings", "client_phone"]]) {
       await run(client, `
-        UPDATE ${table} SET ${column} = ''
+        UPDATE ${table} SET ${column} = '', client_account_deleted_at = COALESCE(client_account_deleted_at, CURRENT_TIMESTAMP)
         WHERE client_user_id = $1 OR ($2 <> '' AND client_user_id IS NULL AND phone_normalized = frfro_phone_key($2))
       `, [userId, key]);
     }
@@ -299,4 +300,23 @@ export async function lockOldNumberBookings(userId) {
   for (const table of ["salon_bookings", "artist_bookings"]) {
     await run(db, `UPDATE ${table} SET client_user_id = $1 WHERE client_user_id IS NULL AND phone_normalized = frfro_phone_key($2)`, [Number(userId), key]);
   }
+}
+
+/**
+ * «از لیست مشتری‌هام بردار» (owner's decision 2026-10-26): a salon or artist takes a customer off its customers page.
+ * Only for a customer with no number left (a deleted account, or a walk-in typed without one); the bookings stay in
+ * the calendar and the numbers. Only the owner's own rows are touched. Returns how many rows were marked.
+ */
+export async function hideCustomerBookings(owner, bookingIds = []) {
+  const ids = [...new Set((Array.isArray(bookingIds) ? bookingIds : []).map(Number).filter((id) => Number.isInteger(id) && id > 0))].slice(0, 2000);
+  if (!ids.length) return 0;
+  const [table, ownerColumn, phoneColumn] = owner.type === "salon"
+    ? ["salon_bookings", "salon_user_id", "phone"]
+    : ["artist_bookings", "artist_user_id", "client_phone"];
+  const db = await getDb();
+  const info = await run(db, `
+    UPDATE ${table} SET customers_hidden_at = CURRENT_TIMESTAMP
+    WHERE id = ANY($1::int[]) AND ${ownerColumn} = $2 AND COALESCE(${phoneColumn}, '') = '' AND customers_hidden_at IS NULL
+  `, [ids, Number(owner.id)]);
+  return info?.rowCount || 0;
 }
