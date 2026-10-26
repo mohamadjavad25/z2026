@@ -128,6 +128,7 @@ export function ProfilePanelBody() {
     activeArtistScheduleDayLabel,
     artistServiceList,
     openArtistServiceCreate,
+    artistServiceCreateOpen,
     salonDirectory,
     artistCollabOffers,
     artistSalonInviteList,
@@ -253,6 +254,7 @@ export function ProfilePanelBody() {
                 profile={createdProfile}
                 serviceCount={createdProfile.type === "salon" ? salonServiceList.length : artistServiceList.length}
                 ready={!(createdProfile.type === "salon" ? salonWorkspaceLoading : artistWorkspaceLoading)}
+                paused={artistServiceCreateOpen}
               />
             ) : null}
 

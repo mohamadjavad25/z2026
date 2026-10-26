@@ -109,9 +109,11 @@ export function ProfileCompleteness({ profile, serviceCount = 0, logoEditing = f
 /**
  * «صفحه‌ت آماده‌ست!» the moment the last step gets done, wherever it was done (the last step, the first service,
  * is added on the services page, where the reminder card is not shown). Mounted for the whole visit; a profile
- * that was already complete when the app opened shows nothing.
+ * that was already complete when the app opened shows nothing. While `paused` (the add-service sheet is open,
+ * where each tap on a catalog card saves at once) it waits, so the owner can pick every service first and
+ * sees it after «تموم».
  */
-export function ProfileReadyCelebration({ profile, serviceCount = 0, ready = false }) {
+export function ProfileReadyCelebration({ profile, serviceCount = 0, ready = false, paused = false }) {
   const isOwner = Boolean(profile) && (profile.type === "salon" || profile.type === "artist");
   const steps = isOwner ? getProfileSteps(profile, serviceCount) : [];
   const allDone = isOwner && steps.every((step) => step.done);
@@ -124,11 +126,11 @@ export function ProfileReadyCelebration({ profile, serviceCount = 0, ready = fal
       wasIncomplete.current = true;
       return;
     }
-    if (wasIncomplete.current) {
+    if (wasIncomplete.current && !paused) {
       wasIncomplete.current = false;
       setShow(true);
     }
-  }, [ready, isOwner, allDone]);
+  }, [ready, isOwner, allDone, paused]);
 
   if (!show) return null;
   return (
