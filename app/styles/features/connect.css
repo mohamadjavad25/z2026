@@ -27,7 +27,8 @@
 .qrScanner,
 .cnCodeSheet,
 .cnSheetRoot,
-.clConnBoard {
+.clConnBoard,
+.clwBoard {
   --cn-ink: var(--n-900);
   --cn-muted: var(--n-600);
   --cn-line: var(--n-150);
@@ -647,6 +648,7 @@
 .cnSheetPanel .cnEmpty.is-compact { background: var(--cn-soft); }
 .cnInviteRow { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
 a.cnInviteBtn { text-decoration: none; }
+.cnCopyBtn { display: inline-flex; align-items: center; gap: 6px; }
 
 /* ═══ «دعوت مشتری‌ها» (salon/artist customers page, InviteClientsSheet) ═══ */
 .icsMessage { margin-top: 12px; }

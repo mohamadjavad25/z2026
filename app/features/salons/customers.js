@@ -9,7 +9,13 @@ export function phoneKey(phone) {
   return digits.length >= 10 ? digits.slice(-10) : digits;
 }
 
+function isAccountDeleted(booking) {
+  return Boolean(booking.client_account_deleted_at || booking.clientAccountDeletedAt);
+}
+
 function customerKey(booking) {
+  // A deleted account's bookings lost their number: kept apart from a walk-in who happens to share the name.
+  if (isAccountDeleted(booking)) return booking.client ? `deleted:${String(booking.client).trim()}` : null;
   const phone = phoneKey(booking.phone);
   const id = booking.client_user_id || booking.clientUserId;
   return (
@@ -39,11 +45,15 @@ function bookingTime(booking) {
  * a contact too. One who already booked is merged into that customer (and
  * marked as a follower); one who has not booked yet becomes a customer with
  * `noBookingYet` so the owner can see who still needs a first reason to come.
+ *
+ * Bookings the owner took off the list («از لیست مشتری‌هام بردار», `customers_hidden_at`) make no row. A customer
+ * whose account was deleted gets `accountDeleted`; one with no number left (deleted or a walk-in) gets `removable`.
  */
 export function buildBookingCustomers(bookings = [], followers = []) {
   const todayTime = resolveRollingPersianDate("امروز").getTime();
   const byKey = new Map();
   bookings.forEach((booking) => {
+    if (booking.customers_hidden_at || booking.customersHiddenAt) return;
     const key = customerKey(booking);
     if (!key) return;
     let customer = byKey.get(key);
@@ -68,6 +78,7 @@ export function buildBookingCustomers(bookings = [], followers = []) {
         followedToday: false,
         hasBooked: true,
         noBookingYet: false,
+        accountDeleted: isAccountDeleted(booking),
         bookings: []
       };
       byKey.set(key, customer);
@@ -133,7 +144,11 @@ export function buildBookingCustomers(bookings = [], followers = []) {
       if (!customer.avatar && follower.avatar) customer.avatar = follower.avatar;
       if (!customer.phone && follower.phone) customer.phone = follower.phone;
     });
-  return [...byKey.values()];
+  return [...byKey.values()].map((customer) => ({
+    ...customer,
+    accountDeleted: Boolean(customer.accountDeleted),
+    removable: !customer.phone && !customer.isFollower && customer.bookings.length > 0
+  }));
 }
 
 function followTime(follower) {

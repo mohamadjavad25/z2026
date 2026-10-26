@@ -1,6 +1,6 @@
 import { afterAll, describe, expect, it } from "vitest";
 import { TEST_BASE_URL } from "../globalSetup.js";
-import { newClient, teamSalon } from "../integration/exitHelpers.js";
+import { FAR_DAY, newClient, teamSalon } from "../integration/exitHelpers.js";
 import { closeBrowser, newPage } from "./browser.js";
 
 afterAll(closeBrowser);
@@ -26,12 +26,45 @@ describe("where an artist's clients are received (browser)", () => {
     expect(await page.locator(".clwDots").count()).toBe(0);
     const toggle = page.getByRole("switch", { name: `مشتری‌های خودت میان ${salon.user.name}` });
     expect(await toggle.getAttribute("aria-checked")).toBe("false");
+    // No booking ahead: one question («از کی؟»), then it is done.
     await toggle.click();
-    await page.getByText(`از کی توی ${salon.user.name} کار می‌کنی؟`).waitFor();
-    await page.getByRole("button", { name: "از امروز اینجا کار می‌کنم" }).click();
+    await page.getByText(`مشتری‌هات از کی بیان ${salon.user.name}؟`).waitFor();
+    expect(await page.getByRole("radio", { name: "از همین الان" }).getAttribute("aria-checked")).toBe("true");
+    await page.getByRole("button", { name: "ادامه" }).click();
     await page.getByText(`از امروز مشتری‌هات میان ${salon.user.name}.`).waitFor();
     expect(await card.innerText()).toContain("الان اینجا کار می‌کنی");
     expect(await toggle.getAttribute("aria-checked")).toBe("true");
+    expect((await artist.api.get("/api/artist/place")).payload.data.workplace.current).toBe(salon.id);
+
+    // Back to the artist's own place with one booking ahead: step two lists it and asks.
+    const made = await client.api.post("/api/artist/bookings", { artistUserId: artist.id, service: "کوتاهی مو", bookingDate: FAR_DAY(3), time: "11:00" });
+    expect(made.ok).toBe(true);
+    await toggle.click();
+    await page.getByText("مشتری‌هات از کی بیان جای خودت؟").waitFor();
+    await page.getByRole("button", { name: "ادامه" }).click();
+    await page.getByText("این نوبت هم بیاد جای خودت؟").waitFor();
+    await page.getByText("این نوبتیه که از الان به بعد داری.").waitFor();
+    expect(await page.locator(".clwBk").innerText()).toContain("کوتاهی مو");
+    await page.getByRole("button", { name: "آره، بیاد جای خودت" }).click();
+    await page.getByText("از امروز مشتری‌هات میان جای خودت. ۱ نوبت جابه‌جا شد و به مشتری‌هاش خبر دادیم.").waitFor();
+    expect(await toggle.getAttribute("aria-checked")).toBe("false");
+
+    // And to the salon again, from tomorrow, keeping that booking where it is.
+    await toggle.click();
+    await page.getByRole("radio", { name: "از فردا" }).click();
+    await page.getByRole("button", { name: "ادامه" }).click();
+    await page.getByText(`این نوبت هم بیاد ${salon.user.name}؟`).waitFor();
+    await page.getByText("این نوبتیه که از فردا به بعد داری.").waitFor();
+    await page.getByRole("button", { name: "نه، همین‌جا بمونه" }).click();
+    await page.getByText(`از فردا مشتری‌هات میان ${salon.user.name}.`).waitFor();
+    const rows = (await artist.api.get("/api/artist/me")).payload.data.bookings;
+    expect(rows.find((row) => row.id === made.payload.data.booking.id).placeSalon).toBeNull();
+    await page.getByRole("button", { name: "لغو" }).click();
+    await page.getByText("جابه‌جایی لغو شد.").waitFor();
+    await toggle.click();
+    await page.getByRole("button", { name: "ادامه" }).click();
+    await page.getByRole("button", { name: `آره، بیاد ${salon.user.name}` }).click();
+    await page.getByText(`از امروز مشتری‌هات میان ${salon.user.name}. ۱ نوبت جابه‌جا شد و به مشتری‌هاش خبر دادیم.`).waitFor();
     expect((await artist.api.get("/api/artist/place")).payload.data.workplace.current).toBe(salon.id);
     expect(artistView.problems).toEqual([]);
     await artistView.context.close();

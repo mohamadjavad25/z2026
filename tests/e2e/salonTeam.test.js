@@ -16,7 +16,11 @@ describe("the team on a salon's page (browser)", () => {
     const services = (await salon.api.get("/api/salon-services")).payload.data.services;
     const cut = services.find((service) => service.name === "کوتاهی مو");
     expect((await salon.api.patch("/api/salon-services", { id: cut.id, name: cut.name, staff_ids: [String(negar.staff.id), String(sahar.staff.id)] })).ok).toBe(true);
-    expect((await negar.api.post("/api/posts", { title: "کار نگار", tag: "مو", image: PNG })).ok).toBe(true);
+    const made = await negar.api.post("/api/posts", { title: "کار نگار", tag: "مو", image: PNG });
+    expect(made.ok).toBe(true);
+    // It shows on the salon's page only once the salon added it (owner's decision 2026-10-26).
+    expect((await negar.api.post("/api/artist/team-posts", { postId: made.payload.data.post.id, salonUserId: salon.id, action: "send" })).ok).toBe(true);
+    expect((await salon.api.post("/api/salon-team-posts", { postId: made.payload.data.post.id, action: "approve" })).ok).toBe(true);
     const client = await newClient("Team Card Client");
     expect((await client.api.post("/api/connections", { targetUserId: salon.id })).ok).toBe(true);
 
@@ -63,23 +67,48 @@ describe("the team on a salon's page (browser)", () => {
     await context.close();
   });
 
-  it("the artist turns their posts off for that salon from its card in «همکاری»", async () => {
-    const { salon, members } = await teamSalon("Team Posts Switch", 1);
+  it("the artist sends a new post to the salon, and the salon adds it from «درخواست‌های تیم»", async () => {
+    const { salon, members } = await teamSalon("Team Posts Ask", 1);
     const artist = members[0];
-    const { page, context, problems } = await newPage({ cookie: artist.api.cookie() });
-    page.setDefaultTimeout(8000);
-    await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
-    await page.locator(".profileModeRail button, [role=tab], button", { hasText: "همکاری" }).first().click();
-    const toggle = page.getByRole("switch", { name: `پست‌هات توی صفحهٔ ${salon.user.name} هم بیاد` });
-    await toggle.waitFor();
-    expect(await toggle.getAttribute("aria-checked")).toBe("true");
-    await toggle.click();
-    await page.getByText("خاموشه؛ پست‌هات فقط توی صفحهٔ خودت هستن.").waitFor();
-    expect(await toggle.getAttribute("aria-checked")).toBe("false");
-    const teams = (await artist.api.get("/api/artist/teams")).payload.data.teams;
-    expect(teams.find((team) => team.salonId === salon.id).postsOnSalon).toBe(false);
-    expect(problems).toEqual([]);
-    await context.close();
+    const photo = Buffer.from(PNG.split(",")[1], "base64");
+
+    const mine = await newPage({ cookie: artist.api.cookie() });
+    mine.page.setDefaultTimeout(8000);
+    await mine.page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
+    await mine.page.locator(".profileModeRail button", { hasText: "نمونه‌کار" }).click();
+    const [chooser] = await Promise.all([
+      mine.page.waitForEvent("filechooser"),
+      mine.page.getByRole("button", { name: /نمونه‌کار تازه/ }).first().click()
+    ]);
+    await chooser.setFiles({ name: "post.png", mimeType: "image/png", buffer: photo });
+    const sheet = mine.page.locator("[role=dialog]").last();
+    await sheet.getByRole("button", { name: /همین خوبه/ }).click();
+    await sheet.locator(".artistWorkForm").waitFor();
+    await sheet.getByPlaceholder("عنوان نمونه‌کار").fill("کار برای سالن");
+    const send = sheet.getByRole("button", { name: new RegExp(`برای صفحهٔ ${salon.user.name} هم بفرست`) });
+    expect(await send.getAttribute("aria-pressed")).toBe("false");
+    await send.click();
+    expect(await send.innerText()).toContain(`بعد از ذخیره می‌ره پیش ${salon.user.name} تا قبولش کنه.`);
+    await sheet.locator(".artistWorkSave").click();
+    await mine.page.getByText("ذخیره شد و رفت پیش سالن تا قبولش کنه.").waitFor();
+    expect(mine.problems).toEqual([]);
+    await mine.context.close();
+
+    const theirs = await newPage({ cookie: salon.api.cookie() });
+    theirs.page.setDefaultTimeout(8000);
+    await theirs.page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
+    await theirs.page.locator(".profileModeRail button", { hasText: "نمونه‌کار" }).click();
+    const panel = theirs.page.locator(".teamPosts");
+    await panel.getByText("درخواست‌های تیم").waitFor();
+    expect(await panel.innerText()).toContain(artist.user.name);
+    await panel.getByRole("button", { name: /اضافه کن/ }).click();
+    await theirs.page.getByText("اضافه شد؛ توی صفحه‌ت با اسم آرتیست دیده می‌شه.").waitFor();
+    await panel.getByText("پست‌های تیم توی صفحه‌ت").waitFor();
+    expect(theirs.problems).toEqual([]);
+    await theirs.context.close();
+
+    const page = (await salon.api.get(`/api/salons/${salon.id}`)).payload.data.salon;
+    expect(page.team.find((member) => member.artistId === artist.id).posts.map((item) => item.title)).toEqual(["کار برای سالن"]);
   });
 
   it("«رزرو با …» on the salon's website page opens the app's form with that artist", async () => {

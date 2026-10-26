@@ -9,6 +9,7 @@ public class MainActivity extends BridgeActivity {
         // App-local plugins must be registered before the bridge starts.
         registerPlugin(ContactPickerPlugin.class);
         registerPlugin(FrfroPushPlugin.class);
+        registerPlugin(DeviceLocationPlugin.class);
         super.onCreate(savedInstanceState);
     }
 }

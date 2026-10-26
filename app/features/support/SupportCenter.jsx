@@ -231,8 +231,8 @@ function Thread({ id }) {
   );
 }
 
-function NewTicket({ initialCategory = "question", initialSubject = "", onCreated }) {
-  const [category, setCategory] = useState(initialCategory);
+// The topic is picked on the list (or comes from where support was opened); the form only asks for the message.
+function NewTicket({ category = "question", initialSubject = "", onCreated }) {
   const [subject, setSubject] = useState(initialSubject);
   const [message, setMessage] = useState("");
   const [attachments, setAttachments] = useState([]);
@@ -256,17 +256,6 @@ function NewTicket({ initialCategory = "question", initialSubject = "", onCreate
   return (
     <form className="scForm" onSubmit={submit}>
       <div className="scBody">
-        <fieldset className="scFieldset">
-          <legend>موضوع</legend>
-          <div className="scPicks" role="radiogroup" aria-label="موضوع پیام">
-            {TOPICS.map(([value, label, Icon]) => (
-              <button key={value} type="button" role="radio" aria-checked={category === value} className={`scPick${category === value ? " is-on" : ""}${value === "other" ? " is-wide" : ""}`} onClick={() => setCategory(value)}>
-                <Icon size={18} aria-hidden="true" />
-                <span>{label}</span>
-              </button>
-            ))}
-          </div>
-        </fieldset>
         <label className="scField">
           <span>پیامت</span>
           <textarea rows={6} value={message} maxLength={2000} onChange={(event) => setMessage(event.target.value)} placeholder={topic[4]} />
@@ -318,7 +307,7 @@ export function SupportCenter({ initial = {}, onClose }) {
   if (typeof document === "undefined") return null;
 
   const inList = view.name === "list";
-  const title = view.name === "new" ? "پیام تازه" : view.name === "thread" ? "گفتگو" : "پشتیبانی";
+  const title = view.name === "new" ? (TOPICS.find(([value]) => value === view.category) || TOPICS[0])[1] : view.name === "thread" ? "گفتگو" : "پشتیبانی";
   return createPortal(
     <div className="scOverlay" onClick={onClose}>
       <div className="scSheet" role="dialog" aria-modal="true" aria-label="پشتیبانی" tabIndex={-1} ref={sheetRef} onClick={(event) => event.stopPropagation()}>
@@ -335,7 +324,7 @@ export function SupportCenter({ initial = {}, onClose }) {
         </header>
         {view.name === "list" ? <TicketList onOpen={(id) => setView({ name: "thread", id })} onNew={(category) => setView({ name: "new", category })} /> : null}
         {view.name === "thread" ? <Thread key={view.id} id={view.id} /> : null}
-        {view.name === "new" ? <NewTicket initialCategory={view.category} initialSubject={view.subject} onCreated={(id) => setView({ name: "thread", id })} /> : null}
+        {view.name === "new" ? <NewTicket category={view.category} initialSubject={view.subject} onCreated={(id) => setView({ name: "thread", id })} /> : null}
       </div>
     </div>,
     document.body

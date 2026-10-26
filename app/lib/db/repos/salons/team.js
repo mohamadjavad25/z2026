@@ -1,34 +1,27 @@
-import { all, run } from "../../connection.js";
-import { getSettings } from "../userSettings.js";
-
-// Newest public posts of each team artist shown on the salon's page.
-const POSTS_PER_ARTIST = 24;
+import { all } from "../../connection.js";
+import { approvedTeamPostIds } from "./teamPosts.js";
 
 /**
  * The salon's team as anyone may see it on its public page (owner's decision 2026-10-26): who they are and, for an
- * artist with a frfro account who lets it (salon_staff.posts_on_salon, on by default; their public portfolio switch
- * also counts), their newest public posts. Nothing private (phones, terms) is in it. The salon owner's own row has
- * no posts here: the salon's posts are theirs. `staff` is listSalonStaff()'s result, in the salon's order.
+ * artist with a frfro account, the posts of theirs the salon approved (salon_team_posts, migration 056; owner's
+ * decision of the same day: nothing goes on a salon's page without the salon's yes). Nothing private (phones, terms)
+ * is in it. The salon owner's own row has no posts here: the salon's posts are theirs. `staff` is listSalonStaff()'s
+ * result, in the salon's order; `salonUserId` is whose page it is.
  */
-export async function listPublicTeam(staff, runner) {
+export async function listPublicTeam(staff, salonUserId, runner) {
   const members = (staff || []).filter((member) => member && (member.artist_name || member.name));
-  const artistIds = [...new Set(members
-    .filter((member) => !member.is_owner && member.artist_user_id && member.has_artist_profile && member.posts_on_salon !== false)
-    .map((member) => Number(member.artist_user_id)))];
-  const shown = (await Promise.all(artistIds.map(async (id) => ((await getSettings(id, runner)).publicPortfolio === false ? null : id))))
-    .filter(Boolean);
-  const rows = shown.length ? await all(runner, `
-    SELECT id, owner_user_id, title, tag, updated_at, created_at, has_image FROM (
-      SELECT p.id, p.owner_user_id, p.title, p.tag, p.updated_at, p.created_at,
-        (p.image <> '' OR p.image_url IS NOT NULL) AS has_image,
-        ROW_NUMBER() OVER (PARTITION BY p.owner_user_id ORDER BY p.featured DESC, p.created_at DESC, p.id DESC) AS n
-      FROM posts p
-      JOIN users u ON u.id = p.owner_user_id AND u.suspended_at IS NULL
-      WHERE p.owner_user_id = ANY($1::int[]) AND p.is_public
-    ) ranked
-    WHERE n <= $2
-    ORDER BY created_at DESC, id DESC
-  `, [shown, POSTS_PER_ARTIST]) : [];
+  const memberIds = new Set(members
+    .filter((member) => !member.is_owner && member.artist_user_id && member.has_artist_profile)
+    .map((member) => Number(member.artist_user_id)));
+  const approved = memberIds.size ? await approvedTeamPostIds(salonUserId, runner) : [];
+  const rows = approved.length ? await all(runner, `
+    SELECT p.id, p.owner_user_id, p.title, p.tag, p.updated_at, p.created_at,
+      (p.image <> '' OR p.image_url IS NOT NULL) AS has_image
+    FROM posts p
+    JOIN users u ON u.id = p.owner_user_id AND u.suspended_at IS NULL
+    WHERE p.id = ANY($1::int[]) AND p.owner_user_id = ANY($2::int[]) AND p.is_public
+    ORDER BY p.created_at DESC, p.id DESC
+  `, [approved, [...memberIds]]) : [];
   const postsBy = new Map();
   for (const row of rows) {
     const list = postsBy.get(Number(row.owner_user_id)) || [];
@@ -56,13 +49,4 @@ export async function listPublicTeam(staff, runner) {
       posts: artistId ? postsBy.get(artistId) || [] : []
     };
   });
-}
-
-/** The artist's «پست‌هام توی صفحهٔ این سالن هم بیاد» for one salon whose team they are on. → true when saved. */
-export async function setTeamPostsOnSalon(artistUserId, salonUserId, on, runner) {
-  const result = await run(runner, `
-    UPDATE salon_staff SET posts_on_salon = $3, updated_at = CURRENT_TIMESTAMP
-    WHERE salon_user_id = $1 AND artist_user_id = $2
-  `, [Number(salonUserId), Number(artistUserId), Boolean(on)]);
-  return result.rowCount > 0;
 }

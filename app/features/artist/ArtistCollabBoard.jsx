@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Check, Images, LogOut, MapPin, MoreHorizontal, QrCode, ScanLine, Store, X } from "lucide-react";
+import { Check, LogOut, MapPin, MoreHorizontal, QrCode, ScanLine, Store, X } from "lucide-react";
 import { Mascot } from "../../components/Mascot";
 import { ProfileQrCodeSheet } from "../../components/ProfileQrCodeSheet";
 import { usePolling } from "../../shared/lib/usePolling";
@@ -10,7 +10,7 @@ import { TermsChips } from "../collab/TermsEditor";
 import { NEGOTIABLE } from "../collab/collabPresets";
 import { ScanFlow } from "../connect/ScanFlow";
 import { ProfileSheet } from "../profile/ProfileSheet";
-import { getArtistPlace, saveArtistPlace, setTeamPostsOnSalon } from "../../shared/api/artists";
+import { getArtistPlace, previewArtistPlace, saveArtistPlace } from "../../shared/api/artists";
 import { dateKeyAfter } from "../../shared/lib/artistPlace";
 import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar";
 import { toPersianDigits } from "../../shared/lib/digits";
@@ -138,81 +138,135 @@ function WhereRow({ card, workplace, onTurnOn, onTurnOff }) {
   );
 }
 
-/**
- * «پست‌هام توی صفحهٔ این سالن هم بیاد» (owner's decision 2026-10-26, on by default): the artist's public posts also show
- * on that salon's page, under their name. Saved at once; `busy` while it is on its way.
- */
-function PostsOnSalonRow({ card, saved, busy, onToggle }) {
-  const on = saved ?? card.terms?.postsOnSalon !== false;
+/** One of the artist's bookings in the «اینا هم بیان …؟» list. */
+function SwitchBooking({ booking, closed }) {
   return (
-    <div className={`clwWhere${on ? " is-on" : ""}`}>
-      <span className="clwWhereIcon" aria-hidden="true"><Images size={17} /></span>
-      <span className="clwWhereText">
-        <b>پست‌هام توی صفحهٔ این سالن هم بیاد</b>
-        <small>{on ? `مشتری‌های ${card.name} کارهات رو با اسمت می‌بینن.` : "خاموشه؛ پست‌هات فقط توی صفحهٔ خودت هستن."}</small>
-      </span>
-      <button
-        type="button"
-        className="plSwitch"
-        role="switch"
-        aria-checked={on}
-        aria-label={`پست‌هات توی صفحهٔ ${card.name} هم بیاد`}
-        disabled={busy}
-        onClick={() => onToggle(!on)}
-      />
-    </div>
+    <li className={`clwBk${closed ? " is-stay" : ""}`}>
+      <b>{booking.clientFirstName || "مشتری"}{booking.service ? `، ${booking.service}` : ""}</b>
+      <span>{dayLabel(booking.date)}، ساعت {toPersianDigits(String(booking.time || ""))}</span>
+      {closed ? <em>سالن اون ساعت بسته‌ست؛ همین‌جا می‌مونه.</em> : null}
+    </li>
   );
 }
 
 /**
- * The sheet that changes where the artist's own clients go: from which day, and whether bookings already made for
- * those days move too (on by default; owner's decision of 2026-10-25). `target` is { salonId | null, name }.
- * `ask` is the question right after accepting a salon's invite.
+ * The sheet that changes where the artist's own clients go (owner's decision of 2026-10-26: one question a step).
+ * Step one asks from when («از همین الان» / «از فردا» / «یه روز دیگه»); step two comes only when bookings from then on
+ * would move, lists them and asks whether they come too; with none, it saves right away. `target` is
+ * { salonId | null, name }. `ask` replaces step one with the question right after accepting a salon's invite.
  */
-function SwitchSheet({ target, ask, busy, onSave, onClose }) {
-  const [day, setDay] = useState(0);
-  const [move, setMove] = useState(true);
-  useEffect(() => { setDay(0); setMove(true); }, [target?.salonId, ask]);
+function SwitchSheet({ target, ask, busy, error, onSave, onClose }) {
+  const [when, setWhen] = useState("now"); // "now" | "tomorrow" | "other"
+  const [otherDay, setOtherDay] = useState("");
+  const [preview, setPreview] = useState(null); // { startsOn, moving, staying }
+  const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState("");
+  useEffect(() => { setWhen("now"); setOtherDay(""); setPreview(null); setLoadError(""); }, [target?.salonId, ask]);
   if (!target) return null;
   const toOwn = !target.salonId;
-  const days = Array.from({ length: SWITCH_DAYS }, (_, index) => dateKeyAfter(index));
+  const where = toOwn ? "جای خودت" : target.name;
+  const otherDays = Array.from({ length: SWITCH_DAYS - 2 }, (_, index) => dateKeyAfter(index + 2));
+  const startsOn = when === "now" ? dateKeyAfter(0) : when === "tomorrow" ? dateKeyAfter(1) : otherDay;
+  const working = busy || loading;
 
-  if (ask) {
+  // Which bookings would move: none → save at once; some → step two.
+  async function next(day) {
+    if (!day || working) return;
+    setLoading(true);
+    setLoadError("");
+    try {
+      const { ok, data, payload } = await previewArtistPlace(target.salonId, day);
+      if (!ok) { setLoadError(payload?.error || "نشد؛ دوباره بزن."); return; }
+      const moving = data?.moving || [];
+      if (!moving.length) { onSave({ startsOn: day, moveBookings: true }); return; }
+      setPreview({ startsOn: day, moving, staying: data?.staying || [] });
+    } catch {
+      setLoadError("نشد؛ دوباره بزن.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const problem = loadError || error;
+  const problemNote = problem ? <p className="clwMsg is-bad" role="alert">{problem}</p> : null;
+
+  if (preview) {
+    const count = preview.moving.length;
+    const since = preview.startsOn === dateKeyAfter(0) ? "از الان به بعد" : `${fromLabel(preview.startsOn)} به بعد`;
     return (
-      <ProfileSheet open kicker={target.name} title={`مشتری‌هایی که خودشون ازت نوبت می‌گیرن هم بیان ${target.name}؟`} panelClassName="clwSheet" onClose={onClose}>
-        <p className="clwSheetText">اگه آره، آدرس {target.name} روی صفحه‌ت نوشته می‌شه و نوبت‌هات از امروز اونجاست. نوبت‌ها به اسم خودت می‌مونن و مشتری‌ها هم مال خودتن. هر وقت خواستی از همین تب عوضش کن.</p>
-        <div className="clwSheetActions">
-          <button type="button" className="clwBtn is-ghost" disabled={busy} onClick={onClose}>نه، بیان جای خودم</button>
-          <button type="button" className="clwBtn is-primary" disabled={busy} onClick={() => onSave({ startsOn: days[0], moveBookings: true })}>آره، بیان اینجا</button>
+      <ProfileSheet
+        open
+        kicker={`نوبت‌هات ${since}`}
+        title={count === 1 ? `این نوبت هم بیاد ${where}؟` : `این ${toPersianDigits(count)} نوبت هم بیان ${where}؟`}
+        panelClassName="clwSheet"
+        onClose={onClose}
+      >
+        <p className="clwSheetText">{count === 1 ? `این نوبتیه که ${since} داری.` : `این‌ها نوبت‌هایی‌ان که ${since} داری.`}</p>
+        <ul className="clwBks">
+          {preview.moving.map((booking) => <SwitchBooking key={booking.id} booking={booking} />)}
+          {preview.staying.map((booking) => <SwitchBooking key={booking.id} booking={booking} closed />)}
+        </ul>
+        <p className="clwNote">به مشتری‌هاشون خبر می‌دیم. ساعتشون عوض نمی‌شه.</p>
+        {problemNote}
+        <div className="clwSheetStack">
+          <button type="button" className="clwBtn is-primary is-wide" disabled={busy} onClick={() => onSave({ startsOn: preview.startsOn, moveBookings: true })}>
+            {`آره، ${count === 1 ? "بیاد" : "بیان"} ${where}`}
+          </button>
+          <button type="button" className="clwBtn is-ghost is-wide" disabled={busy} onClick={() => onSave({ startsOn: preview.startsOn, moveBookings: false })}>
+            {count === 1 ? "نه، همین‌جا بمونه" : "نه، همین‌جا بمونن"}
+          </button>
         </div>
       </ProfileSheet>
     );
   }
 
+  if (ask) {
+    return (
+      <ProfileSheet open kicker={target.name} title={`مشتری‌هایی که خودشون ازت نوبت می‌گیرن هم بیان ${target.name}؟`} panelClassName="clwSheet" onClose={onClose}>
+        <p className="clwSheetText">اگه آره، آدرس {target.name} روی صفحه‌ت نوشته می‌شه و مشتری‌هات از همین الان میان اونجا. نوبت‌ها به اسم خودت می‌مونن و مشتری‌ها هم مال خودتن. هر وقت خواستی از همین تب عوضش کن.</p>
+        {problemNote}
+        <div className="clwSheetActions">
+          <button type="button" className="clwBtn is-ghost" disabled={working} onClick={onClose}>نه، بیان جای خودم</button>
+          <button type="button" className="clwBtn is-primary" disabled={working} onClick={() => next(dateKeyAfter(0))}>{loading ? "یه لحظه…" : "آره، بیان اینجا"}</button>
+        </div>
+      </ProfileSheet>
+    );
+  }
+
+  const choices = [
+    { key: "now", label: "از همین الان" },
+    { key: "tomorrow", label: "از فردا" },
+    { key: "other", label: "یه روز دیگه", hint: "روزش رو انتخاب کن" }
+  ];
   return (
-    <ProfileSheet
-      open
-      kicker={toOwn ? "جای خودت" : target.name}
-      title={toOwn ? "مشتری‌هات از کی بیان جای خودت؟" : `از کی توی ${target.name} کار می‌کنی؟`}
-      panelClassName="clwSheet"
-      onClose={onClose}
-    >
-      <div className="clwDays" role="radiogroup" aria-label="از کدوم روز">
-        {days.map((key, index) => (
-          <button type="button" key={key} role="radio" aria-checked={day === index} className={day === index ? "is-on" : ""} onClick={() => setDay(index)}>
-            {dayLabel(key)}
+    <ProfileSheet open kicker={where} title={`مشتری‌هات از کی بیان ${where}؟`} panelClassName="clwSheet" onClose={onClose}>
+      <div className="clwChoices" role="radiogroup" aria-label="از کی">
+        {choices.map((choice) => (
+          <button
+            type="button"
+            key={choice.key}
+            role="radio"
+            aria-checked={when === choice.key}
+            className={when === choice.key ? "is-on" : ""}
+            onClick={() => setWhen(choice.key)}
+          >
+            <b>{choice.label}</b>
+            {choice.hint ? <small>{choice.hint}</small> : null}
           </button>
         ))}
       </div>
-      <label className="clwMove">
-        <span>
-          <b>نوبت‌هایی که از این روز به بعد داری هم بیان {toOwn ? "جای خودت" : "اینجا"}</b>
-          <small>به مشتری‌هاشون خبر می‌دیم. ساعتشون عوض نمی‌شه.</small>
-        </span>
-        <button type="button" className="plSwitch" role="switch" aria-checked={move} aria-label="نوبت‌های قبلی هم جابه‌جا بشن" onClick={() => setMove((value) => !value)} />
-      </label>
-      <button type="button" className="clwBtn is-primary is-wide" disabled={busy} onClick={() => onSave({ startsOn: days[day], moveBookings: move })}>
-        {toOwn ? `${fromLabel(days[day])} جای خودم` : `${fromLabel(days[day])} اینجا کار می‌کنم`}
+      {when === "other" ? (
+        <div className="clwDays" role="radiogroup" aria-label="از کدوم روز">
+          {otherDays.map((key) => (
+            <button type="button" key={key} role="radio" aria-checked={otherDay === key} className={otherDay === key ? "is-on" : ""} onClick={() => setOtherDay(key)}>
+              {dayLabel(key)}
+            </button>
+          ))}
+        </div>
+      ) : null}
+      {problemNote}
+      <button type="button" className="clwBtn is-primary is-wide" disabled={working || !startsOn} onClick={() => next(startsOn)}>
+        {loading ? "یه لحظه…" : "ادامه"}
       </button>
     </ProfileSheet>
   );
@@ -221,8 +275,9 @@ function SwitchSheet({ target, ask, busy, onSave, onClose }) {
 /**
  * Artist owner — collaboration tab (owner's choice of 2026-10-25: wallet cards). The salons the artist is on the team
  * of and the salons inviting them are cards in one row the artist swipes; under the row, the card in view: its terms,
- * «مشتری‌های خودت میان اینجا» (the artist's one workplace at a time) and its rules. No team and no invite: only
- * «اسکن کن» and «کد من».
+ * «مشتری‌های خودت میان اینجا» (the artist's one workplace at a time) and its rules. «اسکن کن» and «کد من» stay
+ * under the cards (titled «یه سالن دیگه هم اضافه کن» once on a team), so a second salon can be added; no team and no
+ * invite: only those two.
  */
 export function ArtistCollabBoard({
   artistId,
@@ -241,10 +296,6 @@ export function ArtistCollabBoard({
   const [menuFor, setMenuFor] = useState("");
   const [switchTo, setSwitchTo] = useState(null); // { salonId | null, name, ask? }
   const [saving, setSaving] = useState(false);
-  const [postsBusy, setPostsBusy] = useState(false);
-  // What the server saved for «پست‌هام توی صفحهٔ این سالن هم بیاد», by salon, until the teams list is fetched again.
-  const [postsSaved, setPostsSaved] = useState({});
-  useEffect(() => { setPostsSaved({}); }, [teams]);
   const [message, setMessage] = useState({ bad: false, text: "" });
   const railRef = useRef(null);
   const connected = teams.length > 0;
@@ -263,11 +314,14 @@ export function ArtistCollabBoard({
   useEffect(() => { if (connected) loadWorkplace(); }, [connected, teamKey, loadWorkplace]);
 
   // While the code is on screen, check for the salon's invite so it shows up as soon as they scan; close the code
-  // once it (or a team) arrives.
-  usePolling(() => onChanged?.(), 5000, sheet === "code" && !connected);
+  // once a new invite (or a new team) arrives. Counts, not "any", so an artist already on a team can show it too.
+  usePolling(() => onChanged?.(), 5000, sheet === "code");
+  const arrivals = teams.length + pendingInvites.length;
+  const lastArrivals = useRef(arrivals);
   useEffect(() => {
-    if (connected || pendingInvites.length) setSheet("");
-  }, [connected, pendingInvites.length]);
+    if (arrivals > lastArrivals.current) setSheet("");
+    lastArrivals.current = arrivals;
+  }, [arrivals]);
 
   const cards = [
     ...pendingInvites.map((invite) => ({
@@ -332,26 +386,13 @@ export function ArtistCollabBoard({
 
   async function accept(invite) {
     const done = await onInviteRespond?.(invite.id, "تایید شد");
-    if (done) setSwitchTo({ salonId: Number(invite.salonId), name: invite.salonName || "سالن", ask: true });
+    if (done) openSwitch({ salonId: Number(invite.salonId), name: invite.salonName || "سالن", ask: true });
   }
 
-  async function savePostsOnSalon(target, on) {
-    setPostsBusy(true);
+  // A fresh sheet: an older message (a failed cancel, the last switch) does not follow it in.
+  function openSwitch(target) {
     setMessage({ bad: false, text: "" });
-    try {
-      const { ok, payload } = await setTeamPostsOnSalon(target.salonId, on);
-      if (!ok) {
-        setMessage({ bad: true, text: payload?.error || "ذخیره نشد؛ دوباره بزن." });
-        return;
-      }
-      const saved = (payload?.data?.teams || []).find((team) => Number(team.salonId) === target.salonId);
-      setPostsSaved((current) => ({ ...current, [target.salonId]: saved ? saved.postsOnSalon !== false : on }));
-      onChanged?.();
-    } catch {
-      setMessage({ bad: true, text: "اینترنتت کنده؛ دوباره بزن." });
-    } finally {
-      setPostsBusy(false);
-    }
+    setSwitchTo(target);
   }
 
   async function saveSwitch({ startsOn, moveBookings }) {
@@ -467,10 +508,9 @@ export function ArtistCollabBoard({
                   <WhereRow
                     card={card}
                     workplace={workplace}
-                    onTurnOn={() => setSwitchTo({ salonId: card.salonId, name: card.name })}
-                    onTurnOff={() => setSwitchTo({ salonId: null, name: "جای خودت" })}
+                    onTurnOn={() => openSwitch({ salonId: card.salonId, name: card.name })}
+                    onTurnOff={() => openSwitch({ salonId: null, name: "جای خودت" })}
                   />
-                  <PostsOnSalonRow card={card} saved={postsSaved[card.salonId]} busy={postsBusy} onToggle={(on) => savePostsOnSalon(card, on)} />
                   {info?.weekCount || card.rules ? (
                     <div className="clwFoot">
                       {info?.weekCount ? <span className="clwCount">{toPersianDigits(info.weekCount)} نوبت این هفته اینجاست</span> : <span />}
@@ -485,23 +525,20 @@ export function ArtistCollabBoard({
         </>
       ) : null}
 
-      {!connected ? (
-        <>
-          <div className="cnScanRow">
-            <button type="button" className="cnScanBtn is-dark" onClick={() => setSheet("scan")}>
-              <span aria-hidden="true"><ScanLine size={20} /></span>
-              <span><b>اسکن کن</b><small>کد سالن رو اسکن کن</small></span>
-            </button>
-            <button type="button" className="cnScanBtn" disabled={!codeUrl} onClick={() => setSheet("code")}>
-              <span aria-hidden="true"><QrCode size={20} /></span>
-              <span><b>کد من</b><small>کدت رو به سالن نشون بده</small></span>
-            </button>
-          </div>
-          {!cards.length ? <Mascot pose="team" size={190} className="clConnMascot" /> : null}
-        </>
-      ) : null}
+      {connected ? <p className="clwAddLead">یه سالن دیگه هم اضافه کن</p> : null}
+      <div className="cnScanRow">
+        <button type="button" className="cnScanBtn" onClick={() => setSheet("scan")}>
+          <span aria-hidden="true"><ScanLine size={20} /></span>
+          <span><b>اسکن کن</b><small>کد سالن رو اسکن کن</small></span>
+        </button>
+        <button type="button" className="cnScanBtn" disabled={!codeUrl} onClick={() => setSheet("code")}>
+          <span aria-hidden="true"><QrCode size={20} /></span>
+          <span><b>کد من</b><small>کدت رو به سالن نشون بده</small></span>
+        </button>
+      </div>
+      {!cards.length ? <Mascot pose="team" size={190} className="clConnMascot" /> : null}
 
-      <SwitchSheet target={switchTo} ask={Boolean(switchTo?.ask)} busy={saving} onSave={saveSwitch} onClose={() => setSwitchTo(null)} />
+      <SwitchSheet target={switchTo} ask={Boolean(switchTo?.ask)} busy={saving} error={switchTo && message.bad ? message.text : ""} onSave={saveSwitch} onClose={() => { setSwitchTo(null); setMessage({ bad: false, text: "" }); }} />
 
       {sheet === "scan" ? (
         <ScanFlow viewerType="artist" onChanged={() => onChanged?.()} onClose={() => setSheet("")} />

@@ -7,6 +7,7 @@ import { DueRemindersSection } from "../../dueReminders/DueReminders";
 import { BillingBanner } from "../../billing";
 import { SalonStaffWorkspace, SalonServicesWorkspace } from "../../salons";
 import { ProfileGallery } from "../../profile/ProfileGallery";
+import { SalonTeamPostsPanel } from "../../salons/SalonTeamPostsPanel";
 import { SalonScheduleDashboard, ArtistScheduleBoard } from "../../schedule";
 import { ArtistOverviewReviews, ArtistServicesPanel, ArtistCollabBoard } from "../../artist";
 import { ClientHome } from "../../client";
@@ -128,6 +129,7 @@ export function ProfilePanelBody() {
     activeArtistScheduleDayLabel,
     artistServiceList,
     openArtistServiceCreate,
+    artistServiceCreateOpen,
     salonDirectory,
     artistCollabOffers,
     artistSalonInviteList,
@@ -253,6 +255,7 @@ export function ProfilePanelBody() {
                 profile={createdProfile}
                 serviceCount={createdProfile.type === "salon" ? salonServiceList.length : artistServiceList.length}
                 ready={!(createdProfile.type === "salon" ? salonWorkspaceLoading : artistWorkspaceLoading)}
+                paused={artistServiceCreateOpen}
               />
             ) : null}
 
@@ -316,6 +319,7 @@ export function ProfilePanelBody() {
                         </DueRemindersSection>
                       )}
 
+                      {salonWorkspace === "portfolio" && <SalonTeamPostsPanel onNotify={setAppToast} />}
                       {salonWorkspace === "portfolio" && (
                         <ProfileGallery
                           label="نمونه‌کارها"

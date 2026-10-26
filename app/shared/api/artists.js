@@ -113,11 +113,16 @@ export async function getArtistTeams() {
   return apiJson("/api/artist/teams");
 }
 
-/** PATCH /api/artist/teams { salonUserId, postsOnSalon } → «پست‌هام توی صفحهٔ این سالن هم بیاد» → { data: { teams } } */
-export async function setTeamPostsOnSalon(salonUserId, postsOnSalon) {
-  return apiFetch("/api/artist/teams", {
-    method: "PATCH",
-    body: JSON.stringify({ salonUserId, postsOnSalon })
+/** GET /api/artist/team-posts → { teams: [{ salonId, name }], statuses: { [postId]: { [salonId]: status } } } */
+export async function getArtistTeamPosts() {
+  return apiJson("/api/artist/team-posts");
+}
+
+/** POST /api/artist/team-posts { postId, salonUserId, action: "send" | "withdraw" } → same shape as GET */
+export async function sendArtistTeamPost(postId, salonUserId, action = "send") {
+  return apiJson("/api/artist/team-posts", {
+    method: "POST",
+    body: JSON.stringify({ postId, salonUserId, action })
   });
 }
 
@@ -168,6 +173,13 @@ export async function saveArtistHoursWeek(hours) {
 /** GET /api/artist/place → { data: { workplace: { current, savedCurrent, next, teams } } }: where the artist's own clients go. */
 export async function getArtistPlace() {
   return apiJson("/api/artist/place");
+}
+
+/** GET /api/artist/place/preview → { data: { moving, staying } }: the bookings a switch to `salonId` (null = own place) from `startsOn` would move. */
+export async function previewArtistPlace(salonId, startsOn) {
+  const query = new URLSearchParams({ startsOn });
+  if (salonId) query.set("salonId", String(salonId));
+  return apiJson(`/api/artist/place/preview?${query}`);
 }
 
 /** PUT /api/artist/place { salonId: number | null, startsOn, moveBookings } → { data: { workplace, moved, kept } } */

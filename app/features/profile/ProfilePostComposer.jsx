@@ -2,16 +2,16 @@
 
 import { Spinner } from "../../components/Spinner";
 import { useEffect, useRef, useState } from "react";
-import { Camera, Check, ChevronDown, Crop, Globe, ImagePlus, Lock, Pin, Trash2, Upload } from "lucide-react";
+import { Camera, Check, ChevronDown, Crop, Globe, ImagePlus, Lock, Pin, Store, Trash2, Upload } from "lucide-react";
 import { createPortal } from "react-dom";
 import { ImageCropper } from "../../components/ImageCropper";
 import { SheetClose } from "../../components/SheetClose";
 
 // A photo this small and no bigger than MAX_SOURCE_SIDE goes to the crop step untouched.
 const SMALL_ENOUGH_BYTES = 4 * 1024 * 1024;
-// 4:5 is the card ratio used in the galleries, so the framing
-// chosen here is exactly what every card shows.
-const POST_ASPECT = 4 / 5;
+// A post keeps the photo's own shape (owner's request 2026-10-26: a tall screenshot was cut to
+// 4:5). The full viewer shows it whole; only the small gallery cards trim it to 4:5.
+const POST_ASPECT = "auto";
 // Phone photos can be huge; the crop step never needs more than this on its long side.
 const MAX_SOURCE_SIDE = 2400;
 
@@ -110,7 +110,8 @@ export function ProfilePostComposer({
   showPin = true,
   pinnedCount = 0,
   pinLimit = 3,
-  submitLabel = "ذخیره"
+  submitLabel = "ذخیره",
+  salonTeams = []
 }) {
   const cropperRef = useRef(null);
   const [cropSrc, setCropSrc] = useState("");
@@ -398,6 +399,23 @@ export function ProfilePostComposer({
             </button>
           ) : null}
 
+          {salonTeams.length ? (
+            <div className="artistWorkField">
+              <span>صفحهٔ سالن</span>
+              {salonTeams.map((team) => (
+                <SalonSendRow
+                  key={team.salonId}
+                  team={team}
+                  on={value.salonSends?.[team.salonId] ?? (team.status === "pending" || team.status === "approved")}
+                  touched={value.salonSends?.[team.salonId] !== undefined}
+                  isPrivate={isPrivate}
+                  saving={saving}
+                  onToggle={(on) => patch({ salonSends: { ...(value.salonSends || {}), [team.salonId]: on } })}
+                />
+              ))}
+            </div>
+          ) : null}
+
           <div className="artistWorkActions">
             <button type="submit" className="artistWorkSave" disabled={saving || !canSubmit}>
               <Check size={16} /> {saving ? "دارم ذخیره می‌کنم…" : submitLabel}
@@ -421,5 +439,47 @@ export function ProfilePostComposer({
       </article>
     </div>,
     document.body
+  );
+}
+
+/**
+ * One salon the artist is on the team of (owner's decision 2026-10-26): «برای صفحهٔ <salon> هم بفرست», off by default.
+ * The post goes on that salon's page only once the salon says yes; until then the line says it is waiting. A post the
+ * salon did not add cannot be sent again, and a «فقط من» post cannot be sent at all.
+ */
+function SalonSendRow({ team, on, touched, isPrivate, saving, onToggle }) {
+  if (team.status === "declined") {
+    return (
+      <div className="pcPin is-static">
+        <Store size={16} />
+        <span>
+          <b>{team.name}</b>
+          <small>{team.name} این پست رو اضافه نکرد.</small>
+        </span>
+      </div>
+    );
+  }
+  const hint = isPrivate
+    ? "پست «فقط من» رو نمی‌شه برای سالن فرستاد."
+    : !on
+      ? touched && team.status ? `از صفحهٔ ${team.name} برداشته می‌شه.` : `اگه بفرستی و ${team.name} قبول کنه، با اسمت توی صفحه‌ش میاد.`
+      : touched && !team.status ? `بعد از ذخیره می‌ره پیش ${team.name} تا قبولش کنه.`
+        : team.status === "approved" ? `توی صفحهٔ ${team.name} هست.` : `منتظر تأیید ${team.name}.`;
+  const shownOn = on && !isPrivate;
+  return (
+    <button
+      type="button"
+      className={`pcPin ${shownOn ? "is-on" : ""}`}
+      aria-pressed={shownOn}
+      disabled={saving || isPrivate}
+      onClick={() => onToggle(!on)}
+    >
+      <Store size={16} />
+      <span>
+        <b>برای صفحهٔ {team.name} هم بفرست</b>
+        <small>{hint}</small>
+      </span>
+      <i>{shownOn ? "روشن" : "خاموش"}</i>
+    </button>
   );
 }

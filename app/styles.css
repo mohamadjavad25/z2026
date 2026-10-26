@@ -58,6 +58,7 @@
 @import "./styles/features/location.css";
 @import "./styles/features/hours.css";
 @import "./styles/features/place.css";
+@import "./styles/features/teamPosts.css";
 @import "./styles/features/createTip.css";
 @import "./styles/features/landing.css";
 @import "./styles/features/landingLearn.css";

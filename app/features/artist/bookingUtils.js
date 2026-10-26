@@ -314,6 +314,8 @@ export function mapArtistBooking(row) {
     status: row.status || "تایید",
     booking_date: row.booking_date || "",
     no_show_at: row.no_show_at || null,
+    client_account_deleted_at: row.client_account_deleted_at || null,
+    customers_hidden_at: row.customers_hidden_at || null,
     proposal: row.proposal || null,
     cancelled_by: row.cancelled_by || "",
     createdAt: row.created_at || "",

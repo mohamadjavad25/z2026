@@ -14,7 +14,6 @@ import { publicLocation } from "../../location.js";
 export { ensureBookingPartsColumns as ensureBookingColumns, answerSalonTimeOffer, cancelSalonBookingByClient, draftSingleBookingStaff, getSalonBookingRow, listBookingMoveTimes, listBookingStaffOptions, listFeasibleVisitTimes, previewVisit, suggestBookingStaff, listSalonBookings, listUnavailableSlots, listClientSalonBookings, addSalonBooking, updateSalonBooking, cancelSalonBooking, patchSalonBookingWithArtistSync, syncSalonBookingFromArtistMirror, recordCancellation, invalidateUnavailable } from "./salons/bookings.js";
 export { ensureSalonHours, listSalonHours, updateSalonHour, saveSalonHoursWeek } from "./salons/hours.js";
 export { listSalonPortfolio, addSalonPortfolio, updateSalonPortfolio, deleteSalonPortfolio } from "./salons/portfolio.js";
-export { setTeamPostsOnSalon } from "./salons/team.js";
 export { listSalonServices, addSalonService, updateSalonService, deleteSalonService } from "./salons/services.js";
 export {
   listSalonStaff,
@@ -271,7 +270,7 @@ export async function getSalon(userId, viewerUserId = null, { withTeam = false }
     listSalonHours(userId, db),
     onlineBookingBlock(row.user_id, "salon")
   ]);
-  const team = withTeam ? await listPublicTeam(staff, db) : undefined;
+  const team = withTeam ? await listPublicTeam(staff, userId, db) : undefined;
   return {
     id: row.user_id,
     user_id: row.user_id,

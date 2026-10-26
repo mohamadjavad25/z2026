@@ -147,9 +147,22 @@
 .clwDays::-webkit-scrollbar { display: none; }
 .clwDays button { flex: none; min-height: 40px; padding: 0 14px; border: 1.5px solid var(--n-150); border-radius: 14px; background: var(--n-0); color: var(--n-800); font: inherit; font-size: 0.82rem; font-weight: 850; white-space: nowrap; cursor: pointer; }
 .clwDays button.is-on { border-color: var(--violet-deep); background: var(--pl-violet-bg); color: var(--pl-violet-ink); }
-.clwMove { display: flex; align-items: center; gap: 12px; margin: 4px 0 12px; padding: 12px; border-radius: 18px; background: var(--n-50); }
-.clwMove > span { display: grid; flex: 1; min-width: 0; line-height: 1.6; }
-.clwMove b { color: var(--n-900); font-size: 0.84rem; font-weight: 900; }
-.clwMove small { color: var(--n-600); font-size: 0.72rem; font-weight: 750; }
-.clwMove .plSwitch[aria-checked="true"] { background: var(--violet-deep); }
+/* The switch sheet (2026-10-26): one question a step; step two lists the bookings that would move. */
+.clwChoices { display: grid; gap: 8px; margin-bottom: 10px; }
+.clwChoices button { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 52px; padding: 0 16px; border: 1.5px solid var(--n-150); border-radius: 16px; background: var(--n-0); color: var(--n-900); font: inherit; text-align: start; cursor: pointer; }
+.clwChoices b { font-size: 0.9rem; font-weight: 900; }
+.clwChoices small { color: var(--n-600); font-size: 0.72rem; font-weight: 750; }
+.clwChoices button.is-on { border-color: var(--violet-deep); background: var(--pl-violet-bg); color: var(--pl-violet-ink); }
+.clwChoices button:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+.clwChoices + .clwDays { margin-bottom: 6px; }
+.clwBks { display: grid; gap: 6px; max-height: 44vh; margin: 0 0 8px; padding: 0; overflow-y: auto; list-style: none; }
+.clwBk { display: grid; gap: 1px; padding: 10px 14px; border: 1.5px solid var(--n-150); border-radius: 14px; background: var(--n-0); line-height: 1.6; }
+.clwBk b { color: var(--n-900); font-size: 0.84rem; font-weight: 900; }
+.clwBk span { color: var(--n-700); font-size: 0.76rem; font-weight: 750; }
+.clwBk.is-stay { opacity: 0.7; }
+.clwBk em { color: var(--danger); font-size: 0.72rem; font-style: normal; font-weight: 800; }
+.clwNote { margin: 0 0 10px; color: var(--n-600); font-size: 0.74rem; font-weight: 750; text-align: center; }
+.clwSheetStack { display: grid; gap: 8px; }
+.clwSheet .clwMsg { margin-bottom: 8px; }
 @media (prefers-reduced-motion: reduce) { .clwCard, .clwDots button::before { transition: none; } }
+.clwAddLead { margin: 6px 2px -2px; color: var(--n-700); font-size: 0.82rem; font-weight: 900; }

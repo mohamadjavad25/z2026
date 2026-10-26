@@ -196,6 +196,19 @@ export async function deleteSalonPortfolio(id) {
   });
 }
 
+/** GET /api/salon-team-posts → { requests, approved } team posts waiting for the salon's yes / on its page */
+export async function getSalonTeamPosts() {
+  return apiJson("/api/salon-team-posts");
+}
+
+/** POST /api/salon-team-posts { postId, action: "approve" | "decline" | "remove" } → same shape as GET */
+export async function decideSalonTeamPost(postId, action) {
+  return apiJson("/api/salon-team-posts", {
+    method: "POST",
+    body: JSON.stringify({ postId, action })
+  });
+}
+
 /** GET /api/salon-staff → { staff } owner-only */
 export async function getSalonStaff() {
   return apiJson("/api/salon-staff");

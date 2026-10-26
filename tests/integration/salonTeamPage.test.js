@@ -88,52 +88,146 @@ describe("salon page team: «رزرو با …»", () => {
   });
 });
 
-describe("salon page team: cards and posts", () => {
-  it("lists the team with each artist's public posts and nothing private; the artist can take their posts off", async () => {
+describe("salon page team: posts need the salon's yes", () => {
+  const post = async (artist, title, extra = {}) => {
+    const res = await artist.client.post("/api/posts", { title, tag: "ناخن", image: PNG, ...extra });
+    expect(res.ok).toBe(true);
+    return res.payload.data.post.id;
+  };
+  const send = (ctx, artist, postId, action = "send") => artist.client.post("/api/artist/team-posts", { postId, salonUserId: ctx.salon.user.id, action });
+  const decide = (ctx, postId, action) => ctx.salonClient.post("/api/salon-team-posts", { postId, action });
+  const pagePosts = async (ctx, artist) => {
+    const salon = (await ctx.clientClient.get(`/api/salons/${ctx.salon.user.id}`)).payload.data.salon;
+    return (salon.team.find((member) => member.artistId === artist.user.id)?.posts || []).map((item) => item.title);
+  };
+
+  it("shows a post on the salon's page only after the salon adds it; a no stays a no", async () => {
     const ctx = await setup();
-    expect((await ctx.negar.client.post("/api/posts", { title: "ناخن نگار", tag: "ناخن", image: PNG })).ok).toBe(true);
-    expect((await ctx.negar.client.post("/api/posts", { title: "خصوصی", tag: "ناخن", image: PNG, isPublic: false })).ok).toBe(true);
+    const kept = await post(ctx.negar, "ناخن نگار");
+    const refusedPost = await post(ctx.negar, "طرح دوم");
+    const secret = await post(ctx.negar, "خصوصی", { isPublic: false });
+    expect(await pagePosts(ctx, ctx.negar)).toEqual([]);
 
-    const page = async () => (await ctx.clientClient.get(`/api/salons/${ctx.salon.user.id}`)).payload.data.salon;
-    let salon = await page();
-    const negar = salon.team.find((member) => member.artistId === ctx.negar.user.id);
-    const sahar = salon.team.find((member) => member.artistId === ctx.sahar.user.id);
-    expect(negar.posts.map((post) => post.title)).toEqual(["ناخن نگار"]);
-    expect(negar.bookingName).toBe(ctx.negar.staff.name);
-    expect(sahar.posts).toEqual([]);
-    expect(JSON.stringify(salon.team)).not.toMatch(/phone/);
+    expect((await send(ctx, ctx.negar, secret)).status).toBe(400);
+    const sent = await send(ctx, ctx.negar, kept);
+    expect(sent.ok).toBe(true);
+    expect(sent.payload.data.statuses[kept][ctx.salon.user.id]).toBe("pending");
+    expect((await send(ctx, ctx.negar, refusedPost)).ok).toBe(true);
+    expect(await pagePosts(ctx, ctx.negar)).toEqual([]);
 
-    // Off for this salon: gone from its page, still on the artist's own.
-    const off = await ctx.negar.client.patch("/api/artist/teams", { salonUserId: ctx.salon.user.id, postsOnSalon: false });
-    expect(off.ok).toBe(true);
-    expect(off.payload.data.teams.find((team) => team.salonId === ctx.salon.user.id).postsOnSalon).toBe(false);
-    salon = await page();
-    expect(salon.team.find((member) => member.artistId === ctx.negar.user.id).posts).toEqual([]);
-    const own = (await ctx.clientClient.get(`/api/artists/${ctx.negar.user.id}`)).payload.data.artist;
-    expect(JSON.stringify(own)).toContain("ناخن نگار");
+    const waiting = (await ctx.salonClient.get("/api/salon-team-posts")).payload.data;
+    expect(waiting.requests.map((item) => item.postId).sort()).toEqual([kept, refusedPost].sort());
+    expect(waiting.requests[0].artistName).toBeTruthy();
 
-    // Back on.
-    expect((await ctx.negar.client.patch("/api/artist/teams", { salonUserId: ctx.salon.user.id, postsOnSalon: true })).ok).toBe(true);
-    salon = await page();
-    expect(salon.team.find((member) => member.artistId === ctx.negar.user.id).posts).toHaveLength(1);
+    expect((await decide(ctx, kept, "approve")).ok).toBe(true);
+    expect((await decide(ctx, refusedPost, "decline")).ok).toBe(true);
+    expect(await pagePosts(ctx, ctx.negar)).toEqual(["ناخن نگار"]);
+    // The same answer twice is refused; a declined post cannot be sent again.
+    expect((await decide(ctx, kept, "approve")).status).toBe(409);
+    expect((await send(ctx, ctx.negar, refusedPost)).status).toBe(409);
+
+    const salon = (await ctx.clientClient.get(`/api/salons/${ctx.salon.user.id}`)).payload.data.salon;
+    expect(salon.team.find((member) => member.artistId === ctx.negar.user.id).bookingName).toBe(ctx.negar.staff.name);
+    expect(JSON.stringify(salon.team)).not.toMatch(/phone|خصوصی|طرح دوم/);
   });
 
-  it("only a member changes the switch, and only for their own team", async () => {
+  it("the salon can take an added post off; the artist can take theirs back; the post itself stays", async () => {
     const ctx = await setup();
+    const one = await post(ctx.negar, "اولی");
+    const two = await post(ctx.negar, "دومی");
+    for (const id of [one, two]) {
+      await send(ctx, ctx.negar, id);
+      await decide(ctx, id, "approve");
+    }
+    expect((await pagePosts(ctx, ctx.negar)).sort()).toEqual(["اولی", "دومی"].sort());
+    expect((await decide(ctx, one, "remove")).ok).toBe(true);
+    expect((await send(ctx, ctx.negar, two, "withdraw")).ok).toBe(true);
+    expect(await pagePosts(ctx, ctx.negar)).toEqual([]);
+    const own = (await ctx.clientClient.get(`/api/artists/${ctx.negar.user.id}`)).payload.data.artist;
+    expect(JSON.stringify(own)).toContain("اولی");
+    // Taken off by the salon counts as a no; taken back by the artist can be sent again.
+    expect((await send(ctx, ctx.negar, one)).status).toBe(409);
+    expect((await send(ctx, ctx.negar, two)).ok).toBe(true);
+  });
+
+  it("a new picture sends an added post back to the salon", async () => {
+    const ctx = await setup();
+    const id = await post(ctx.negar, "عکس عوض‌شده");
+    await send(ctx, ctx.negar, id);
+    await decide(ctx, id, "approve");
+    expect((await ctx.negar.client.patch(`/api/posts/${id}`, { title: "عکس عوض‌شده", tag: "ناخن", image: PNG })).ok).toBe(true);
+    expect(await pagePosts(ctx, ctx.negar)).toEqual([]);
+    const waiting = (await ctx.salonClient.get("/api/salon-team-posts")).payload.data;
+    expect(waiting.requests.map((item) => item.postId)).toEqual([id]);
+    // A title-only edit keeps it on the page.
+    await decide(ctx, id, "approve");
+    expect((await ctx.negar.client.patch(`/api/posts/${id}`, { title: "تیتر تازه", tag: "ناخن" })).ok).toBe(true);
+    expect(await pagePosts(ctx, ctx.negar)).toEqual(["تیتر تازه"]);
+  });
+
+  it("only a member sends, only their own posts, and only this salon answers", async () => {
+    const ctx = await setup();
+    const id = await post(ctx.negar, "مال نگار");
     const stranger = createClient();
     await registerUser(stranger, { type: "artist", name: "Not On Team" });
-    expect((await stranger.patch("/api/artist/teams", { salonUserId: ctx.salon.user.id, postsOnSalon: false })).status).toBe(404);
-    expect((await ctx.clientClient.patch("/api/artist/teams", { salonUserId: ctx.salon.user.id, postsOnSalon: false })).status).toBe(403);
-    expect((await ctx.negar.client.patch("/api/artist/teams", { salonUserId: ctx.salon.user.id, postsOnSalon: "no" })).status).toBe(400);
+    const strangerPost = (await stranger.post("/api/posts", { title: "غریبه", tag: "ناخن", image: PNG })).payload.data.post.id;
+    expect((await stranger.post("/api/artist/team-posts", { postId: strangerPost, salonUserId: ctx.salon.user.id, action: "send" })).status).toBe(404);
+    expect((await send(ctx, ctx.sahar, id)).status).toBe(404); // someone else's post
+    expect((await ctx.clientClient.post("/api/artist/team-posts", { postId: id, salonUserId: ctx.salon.user.id, action: "send" })).status).toBe(403);
+    expect((await ctx.negar.client.post("/api/artist/team-posts", { postId: id, salonUserId: ctx.salon.user.id, action: "maybe" })).status).toBe(400);
+
+    expect((await send(ctx, ctx.negar, id)).ok).toBe(true);
+    const otherSalon = createClient();
+    await registerUser(otherSalon, { type: "salon", name: "Other Team Salon" });
+    expect((await otherSalon.post("/api/salon-team-posts", { postId: id, action: "approve" })).status).toBe(409);
+    expect((await ctx.negar.client.post("/api/salon-team-posts", { postId: id, action: "approve" })).status).toBe(403);
+    expect(await pagePosts(ctx, ctx.negar)).toEqual([]);
   });
 
-  it("an artist who leaves the team leaves the salon's page with their posts", async () => {
+  it("keeps at most ten waiting per salon, even when two are sent at once", async () => {
     const ctx = await setup();
-    expect((await ctx.sahar.client.post("/api/posts", { title: "کار سحر", tag: "مو", image: PNG })).ok).toBe(true);
+    const ids = [];
+    for (let i = 0; i < 11; i += 1) ids.push(await post(ctx.negar, `کار ${i}`));
+    for (const id of ids.slice(0, 9)) expect((await send(ctx, ctx.negar, id)).ok).toBe(true);
+    const both = await Promise.all([send(ctx, ctx.negar, ids[9]), send(ctx, ctx.negar, ids[10])]);
+    expect(both.filter((res) => res.ok)).toHaveLength(1);
+    expect(both.find((res) => !res.ok).status).toBe(429);
+    // Once the salon answers one, there is room again.
+    await decide(ctx, ids[0], "approve");
+    const late = both[0].ok ? ids[10] : ids[9];
+    expect((await send(ctx, ctx.negar, late)).ok).toBe(true);
+  });
+
+  it("an artist who leaves takes their posts off the salon's page, and a return starts over", async () => {
+    const ctx = await setup();
+    const id = await post(ctx.sahar, "کار سحر");
+    await send(ctx, ctx.sahar, id);
+    await decide(ctx, id, "approve");
+    expect(await pagePosts(ctx, ctx.sahar)).toEqual(["کار سحر"]);
     expect((await ctx.sahar.client.delete("/api/artist/teams", { salonUserId: ctx.salon.user.id })).ok).toBe(true);
     const salon = (await ctx.clientClient.get(`/api/salons/${ctx.salon.user.id}`)).payload.data.salon;
     expect(salon.team.some((member) => member.artistId === ctx.sahar.user.id)).toBe(false);
     expect(JSON.stringify(salon.team)).not.toContain("کار سحر");
+    expect((await ctx.salonClient.get("/api/salon-team-posts")).payload.data.approved).toEqual([]);
+    expect((await send(ctx, ctx.sahar, id)).status).toBe(404);
+
+    expect((await joinSalonAsArtist(ctx.sahar.client, ctx.salonClient, ctx.salon.user.id)).ok).toBe(true);
+    expect(await pagePosts(ctx, ctx.sahar)).toEqual([]);
+    expect((await ctx.sahar.client.get("/api/artist/team-posts")).payload.data.statuses).toEqual({});
+    expect((await send(ctx, ctx.sahar, id)).ok).toBe(true);
+  });
+
+  it("a deleted post leaves the salon's page and its waiting list", async () => {
+    const ctx = await setup();
+    const shown = await post(ctx.negar, "پاک‌شدنی");
+    const waiting = await post(ctx.negar, "منتظر");
+    await send(ctx, ctx.negar, shown);
+    await decide(ctx, shown, "approve");
+    await send(ctx, ctx.negar, waiting);
+    expect((await ctx.negar.client.delete(`/api/posts/${shown}`)).ok).toBe(true);
+    expect((await ctx.negar.client.delete(`/api/posts/${waiting}`)).ok).toBe(true);
+    expect(await pagePosts(ctx, ctx.negar)).toEqual([]);
+    expect((await ctx.salonClient.get("/api/salon-team-posts")).payload.data).toEqual({ requests: [], approved: [] });
   });
 });
 
