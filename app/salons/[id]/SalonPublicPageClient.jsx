@@ -27,8 +27,15 @@ function getPortfolioCardStyle(item) {
 export function SalonPublicPageClient({ salon }) {
   const router = useRouter();
   const goToApp = () => router.push("/");
-  // `picked`: the service(s) the visitor ticked in the services menu; they are kept through sign-up so the booking form opens on them.
-  const openHere = (picked = null) => goToAppFor(router, { type: "salon", id: salon.id, name: salon.name, services: pickedServiceNames(picked) });
+  // `picked`: the service(s) the visitor ticked in the services menu; they are kept through sign-up so the booking form opens on them,
+  // with the team member they chose on a team card («رزرو با …») when there was one.
+  const openHere = (picked = null, options = {}) => goToAppFor(router, {
+    type: "salon",
+    id: salon.id,
+    name: salon.name,
+    services: pickedServiceNames(picked),
+    staffId: options?.withStaff?.staffId
+  });
   const followGate = useFollowGate({ targetId: salon.id, targetName: salon.name, targetType: "salon" });
   // A salon or artist who scanned this page's code: their own bar instead of «رزرو» and «وصل شو» (owner's decision 2026-10-25).
   const visitorTarget = { type: "salon", id: salon.id, name: salon.name, area: salon.area || "" };

@@ -5,8 +5,11 @@ import { bundleServices } from "../../shared/lib/serviceBundle";
 
 export const SERVICE_GONE_MESSAGE = "این خدمت دیگه نیست؛ یه خدمت دیگه انتخاب کن.";
 
-/** What the strip says: «ادامه برای: کوتاهی مو» (several: names joined with « + »). */
-export const continueText = (names) => `ادامه برای: ${names.join(" + ")}`;
+/** What the strip says: «ادامه برای: کوتاهی مو» (several: names joined with « + »; «… با نگار» when booking with someone). */
+export const continueText = (names, withName = "") => `ادامه برای: ${names.join(" + ")}${withName ? ` با ${withName}` : ""}`;
+
+/** The chosen team member is no longer on this salon's page (left the team, or the salon removed them). */
+export const memberGoneMessage = "اون آرتیست دیگه توی این سالن نیست؛ یه خدمت انتخاب کن تا با یکی دیگه از تیم رزرو کنی.";
 
 /**
  * A guest ticked a service on a public salon page, then signed up (shared/lib/appHandoff keeps the names). Once
@@ -14,19 +17,29 @@ export const continueText = (names) => `ادامه برای: ${names.join(" + ")
  * (`openBooking(bundle)`, the same call the services menu makes). The page shows a strip «ادامه برای: …»
  * with «تغییر خدمت» (SalonClientPage). If a service is no longer in the menu the strip says so instead.
  *
- * `begin(salonId, names)` arms it; nothing else is needed. `salonLoaded` is true once the salon's detail (with its
+ * `begin(salonId, names, staffId)` arms it (`staffId`: the team member chosen with «رزرو با …», the form books with them);
+ * nothing else is needed. `salonLoaded` is true once the salon's detail (with its
  * services) is in `selectedSalon`.
  */
 export function useContinueService({ selectedSalon, openBooking, getServices }) {
-  const [pending, setPending] = useState(null); // { salonId, names, error }
+  const [pending, setPending] = useState(null); // { salonId, names, staffId, error }
   const openedRef = useRef(false);
   const salonId = selectedSalon?.id ?? selectedSalon?.source_key;
   const loaded = Boolean(selectedSalon) && selectedSalon.isPublic !== undefined;
 
-  const begin = useCallback((id, names) => {
+  const begin = useCallback((id, names, staffId = 0) => {
     openedRef.current = false;
-    setPending(names?.length ? { salonId: String(id), names, error: "" } : null);
+    setPending(names?.length ? { salonId: String(id), names, staffId: Number(staffId) || 0, error: "" } : null);
   }, []);
+
+  // The member to book with, from the salon page's team (repos/salons/team.js): { staffId, name, bookingName }, null when
+  // none was chosen, false when they are no longer there.
+  const memberFor = useCallback((staffId) => {
+    if (!staffId) return null;
+    const member = (selectedSalon?.team || []).find((item) => Number(item.staffId) === Number(staffId));
+    return member ? { staffId: member.staffId, name: member.name, bookingName: member.bookingName || member.name } : false;
+  }, [selectedSalon]);
+  const open = useCallback((found, member) => openBooking(bundleServices(found), member ? { withStaff: member } : undefined), [openBooking]);
 
   const find = useCallback((names) => {
     const menu = getServices(selectedSalon);
@@ -38,19 +51,24 @@ export function useContinueService({ selectedSalon, openBooking, getServices }) 
     if (!pending || pending.error || openedRef.current || !loaded || String(salonId) !== pending.salonId) return;
     openedRef.current = true;
     const found = find(pending.names);
-    if (!found) {
-      setPending((current) => (current ? { ...current, error: SERVICE_GONE_MESSAGE } : current));
+    const member = memberFor(pending.staffId);
+    if (!found || member === false) {
+      setPending((current) => (current ? { ...current, error: found ? memberGoneMessage : SERVICE_GONE_MESSAGE } : current));
       return;
     }
-    openBooking(bundleServices(found));
-  }, [pending, loaded, salonId, find, openBooking]);
+    open(found, member);
+  }, [pending, loaded, salonId, find, memberFor, open]);
 
   const forSalon = pending && String(salonId) === pending.salonId ? pending : null;
   return {
     begin,
     /** Props for the strip on the salon page, or null when nothing is waiting there. */
-    strip: forSalon ? { text: forSalon.error ? "" : continueText(forSalon.names), error: forSalon.error } : null,
-    onContinue: () => { const found = forSalon && find(forSalon.names); if (found) openBooking(bundleServices(found)); },
+    strip: forSalon ? { text: forSalon.error ? "" : continueText(forSalon.names, memberFor(forSalon.staffId)?.name || ""), error: forSalon.error } : null,
+    onContinue: () => {
+      const found = forSalon && find(forSalon.names);
+      const member = forSalon ? memberFor(forSalon.staffId) : null;
+      if (found && member !== false) open(found, member);
+    },
     dismiss: () => setPending(null)
   };
 }

@@ -81,4 +81,39 @@ describe("the team on a salon's page (browser)", () => {
     expect(problems).toEqual([]);
     await context.close();
   });
+
+  it("«رزرو با …» on the salon's website page opens the app's form with that artist", async () => {
+    const { salon, members } = await teamSalon("Team Web Salon", 2);
+    const [, sahar] = members;
+    const client = await newClient("Team Web Client");
+    const { page, context, problems } = await newPage({ cookie: client.api.cookie() });
+    page.setDefaultTimeout(8000);
+    await page.goto(`${TEST_BASE_URL}/salons/${salon.id}`, { waitUntil: "networkidle" });
+    await page.locator(".stmCard", { hasText: sahar.user.name }).click();
+    await page.locator(".stmSheet").getByRole("button", { name: `رزرو با ${sahar.user.name}` }).click();
+    const menu = page.locator(".sduPanel");
+    await menu.waitFor();
+    await menu.locator(".sduItem").first().click();
+    await menu.locator(".sduConfirm").click();
+    // The app opens on the salon with the form already asking for Sahar.
+    await page.getByRole("heading", { name: `نوبت با ${sahar.user.name} در ${salon.user.name}` }).waitFor({ timeout: 15000 });
+    expect(problems).toEqual([]);
+    await context.close();
+  });
+
+  it("arriving from a link, closing the services menu keeps the client on the salon's page", async () => {
+    const { salon } = await teamSalon("Team Link Salon", 1);
+    const client = await newClient("Team Link Client");
+    const { page, context, problems } = await newPage({ cookie: client.api.cookie() });
+    page.setDefaultTimeout(8000);
+    await page.goto(`${TEST_BASE_URL}/?open=salon-${salon.id}`, { waitUntil: "networkidle" });
+    await page.locator(".sduPanel").waitFor();
+    await page.locator(".spvBarBook").click();
+    await page.locator(".sduPanel").waitFor({ state: "detached" });
+    await page.waitForTimeout(800);
+    expect(await page.locator(".salonPublicProfile").count()).toBe(1);
+    await page.locator(".stmCard").first().waitFor();
+    expect(problems).toEqual([]);
+    await context.close();
+  });
 });

@@ -46,9 +46,12 @@ export function useHomeApp() {
       // Keep what the guest had ticked on the public page (name and services) when the same place is opened by id.
       // `&s=…`: a «وقتش شده» push names the service, so the booking form opens on it (owner's decision of 2026-10-25).
       const named = cleanPendingServices(params.getAll("s"));
-      rememberPendingOpen({ ...openTarget, name: stored?.id === openTarget.id ? stored.name : "", services: named.length ? named : stored?.id === openTarget.id ? stored.services : [] });
+      const same = stored?.id === openTarget.id;
+      rememberPendingOpen({ ...openTarget, name: same ? stored.name : "", services: named.length ? named : same ? stored.services : [], staffId: same && !named.length ? stored.staffId : 0 });
     }
-    window.history.replaceState({}, "", window.location.pathname);
+    // Keep the router's own history state: replacing it with {} made Next treat the page as a new one on its next
+    // history change, so closing the services menu that opened here remounted the app back on the home screen.
+    window.history.replaceState(window.history.state, "", window.location.pathname);
   }, []);
   // What a guest came for, so the sign-up screen can say it and skip the role picker
   // (null, or { kind: "open", name, type, id } / { kind: "join" }); read once on mount, after the effect above.
@@ -159,7 +162,7 @@ export function useHomeApp() {
     if (place.type !== "artist") setActiveTab("salons");
     // The guest had ticked a service on the public page: open the page plain and let it open the booking form on that service.
     if (target.services?.length && place.type !== "artist") {
-      continueServiceRef.current?.begin(place.id, target.services);
+      continueServiceRef.current?.begin(place.id, target.services, target.staffId);
       c.openConnectedProfile?.(place, null);
       return;
     }

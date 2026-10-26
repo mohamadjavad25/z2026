@@ -47,11 +47,21 @@ export function pickedServiceNames(picked) {
   return cleanPendingServices([picked.name]);
 }
 
-/** `services`: what the guest had ticked, so after signing up the booking form opens on it (features/follow/useContinueService). */
+/** A team member's id (salon_staff) from «رزرو با …», or 0. */
+function cleanStaffId(value) {
+  const id = Number(value);
+  return Number.isSafeInteger(id) && id > 0 ? id : 0;
+}
+
+/**
+ * `services`: what the guest had ticked, so after signing up the booking form opens on it (features/follow/useContinueService);
+ * `staffId`: the team member they chose with «رزرو با …», so the form books with them.
+ */
 export function rememberPendingOpen(target) {
   if (!target?.id) return;
   try {
-    window.localStorage.setItem(PENDING_OPEN_KEY, JSON.stringify({ type: target.type, id: target.id, name: target.name || "", services: cleanPendingServices(target.services) }));
+    const staffId = cleanStaffId(target.staffId);
+    window.localStorage.setItem(PENDING_OPEN_KEY, JSON.stringify({ type: target.type, id: target.id, name: target.name || "", services: cleanPendingServices(target.services), ...(staffId ? { staffId } : {}) }));
   } catch {
     // private mode: the visitor just lands on the app's home
   }
@@ -62,7 +72,7 @@ export function peekPendingOpen() {
   try {
     const parsed = JSON.parse(window.localStorage.getItem(PENDING_OPEN_KEY) || "null");
     const target = parseOpenParam(`${parsed?.type}-${parsed?.id}`);
-    return target ? { ...target, name: String(parsed?.name || ""), services: cleanPendingServices(parsed?.services) } : null;
+    return target ? { ...target, name: String(parsed?.name || ""), services: cleanPendingServices(parsed?.services), staffId: cleanStaffId(parsed?.staffId) } : null;
   } catch {
     return null;
   }
