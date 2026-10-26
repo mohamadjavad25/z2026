@@ -162,6 +162,13 @@ export async function getArtistPlace() {
   return apiJson("/api/artist/place");
 }
 
+/** GET /api/artist/place/preview → { data: { moving, staying } }: the bookings a switch to `salonId` (null = own place) from `startsOn` would move. */
+export async function previewArtistPlace(salonId, startsOn) {
+  const query = new URLSearchParams({ startsOn });
+  if (salonId) query.set("salonId", String(salonId));
+  return apiJson(`/api/artist/place/preview?${query}`);
+}
+
 /** PUT /api/artist/place { salonId: number | null, startsOn, moveBookings } → { data: { workplace, moved, kept } } */
 export async function saveArtistPlace(body) {
   return apiFetch("/api/artist/place", { method: "PUT", body: JSON.stringify(body) });

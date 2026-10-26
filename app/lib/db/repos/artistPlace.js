@@ -2,6 +2,7 @@ import { getDb, all, get, run, withTransaction } from "../connection.js";
 import { defaultHours } from "./salons/common.js";
 import { publicLocation } from "../../location.js";
 import { dateKeyAfter, salonTimeBlock, workplaceOn } from "../../../shared/lib/artistPlace.js";
+import { minutesToStart } from "../../../shared/lib/providerRules.js";
 
 /**
  * Where an artist's own clients are received (owner's decision of 2026-10-25, rules in shared/lib/artistPlace.js): one
@@ -15,6 +16,15 @@ const AWAY_STATES = ["غیرفعال", "مرخصی"];
 export const MAX_SWITCH_AHEAD_DAYS = 60;
 
 const LIVE_AT_SALON = ["تازه", "درخواست", "تایید", "تایید شده", "در انتظار مشتری"];
+
+/**
+ * A booking whose time has come (started or over, even if nobody marked it done) stays where it was held: it already
+ * happened there, so no switch of place moves it (owner's decision of 2026-10-26). An unreadable time counts as not yet.
+ */
+function notStartedYet(booking, now = new Date()) {
+  const minutes = minutesToStart(booking.booking_date, booking.time, now);
+  return minutes === null || minutes > 0;
+}
 
 /** The salon's weekly hours without creating any (a visit must not write); the default week when it never set them. */
 async function readSalonHours(salonUserId, db) {
@@ -135,51 +145,96 @@ export async function getArtistWorkplace(artistUserId, runner = null) {
   };
 }
 
+/** A day from today to MAX_SWITCH_AHEAD_DAYS ahead, or null. */
+function switchDay(startsOn) {
+  const from = String(startsOn || dateKeyAfter(0));
+  return /^\d{4}-\d{2}-\d{2}$/.test(from) && from >= dateKeyAfter(0) && from <= dateKeyAfter(MAX_SWITCH_AHEAD_DAYS) ? from : null;
+}
+const BAD_DAY = { ok: false, status: 400, error: "یه روز از امروز تا دو ماه دیگه انتخاب کن.", code: "BAD_DAY" };
+
+/** The salon a switch goes to, checked: { salon } ({ id, name, hours }, null for the artist's own place) or a refusal. */
+async function switchTarget(artistUserId, target, db) {
+  if (!target) return { salon: null };
+  const team = (await memberTeams(artistUserId, db)).find((row) => Number(row.salon_user_id) === target);
+  if (!team) return { ok: false, status: 404, error: "تو عضو تیم این سالن نیستی.", code: "NOT_MEMBER" };
+  if (team.direct_allowed === false) return { ok: false, status: 409, error: `${team.salon_name || "سالن"} فعلاً مشتری‌های خودت رو قبول نمی‌کنه.`, code: "SALON_BLOCKED" };
+  if (AWAY_STATES.includes(String(team.state || "").trim())) return { ok: false, status: 409, error: `توی ${team.salon_name || "سالن"} الان مرخصی یا غیرفعالی.`, code: "AWAY" };
+  return { salon: { id: target, name: team.salon_name || "سالن", hours: await readSalonHours(target, db) } };
+}
+
+/**
+ * The artist's own live bookings from `from` on that a switch to `salon` (null = own place) would move: `moving`, and
+ * `staying` for those the salon is closed at. Ones whose time has come are in neither (they stay where they were).
+ */
+async function bookingsForSwitch(artistUserId, from, salon, db, { lock = false } = {}) {
+  const live = await all(db, `
+    SELECT b.id, b.client_user_id, b.service, b.booking_date, b.time, b.duration_minutes, b.status, b.place_salon_user_id,
+      COALESCE(NULLIF(cu.name, ''), b.client_name, '') AS client_name
+    FROM artist_bookings b
+    LEFT JOIN users cu ON cu.id = b.client_user_id
+    WHERE b.artist_user_id = $1 AND b.source_salon_user_id IS NULL AND b.booking_date >= $2 AND b.status = ANY($3)
+      AND b.place_salon_user_id IS DISTINCT FROM $4
+    ORDER BY b.booking_date, b.time
+    ${lock ? "FOR UPDATE OF b" : ""}
+  `, [artistUserId, from, LIVE_AT_SALON, salon?.id || null]);
+  const moving = [];
+  const staying = [];
+  for (const booking of live) {
+    if (!notStartedYet(booking)) continue;
+    if (salon && salonTimeBlock(salon.hours, booking.booking_date, booking.time, booking.duration_minutes || 60)) staying.push(booking);
+    else moving.push(booking);
+  }
+  return { moving, staying };
+}
+
+/**
+ * Before a switch: which of the artist's bookings it would move, for the sheet that asks «اینا هم بیان …؟». Only the
+ * artist's own clients' first names, the service and when. → { ok, moving: [...], staying: [...] } or a refusal.
+ */
+export async function previewArtistWorkplace(artistUserId, { salonUserId = null, startsOn }) {
+  const from = switchDay(startsOn);
+  if (!from) return BAD_DAY;
+  const db = await getDb();
+  const checked = await switchTarget(artistUserId, Number(salonUserId || 0) || null, db);
+  if (checked.ok === false) return checked;
+  const { moving, staying } = await bookingsForSwitch(artistUserId, from, checked.salon, db);
+  const view = (row) => ({
+    id: row.id,
+    clientFirstName: String(row.client_name || "").trim().split(/\s+/)[0] || "",
+    service: row.service || "",
+    date: row.booking_date,
+    time: row.time
+  });
+  return { ok: true, moving: moving.map(view), staying: staying.map(view) };
+}
+
 /**
  * The artist says "from `startsOn` on, my clients come to `salonUserId`" (null = my own place). Every later switch
  * already set is replaced. With `moveBookings`, their live bookings from that day on move there too, except those
- * outside the salon's hours (they stay put and are counted). → { ok, moved: [rows to tell], kept } or a refusal.
+ * outside the salon's hours (they stay put and are counted) and those whose time has already come (they stay put, uncounted).
+ * → { ok, moved: [rows to tell], kept } or a refusal.
  */
 export async function setArtistWorkplace(artistUserId, { salonUserId = null, startsOn, moveBookings = false }) {
-  const todayKey = dateKeyAfter(0);
-  const lastKey = dateKeyAfter(MAX_SWITCH_AHEAD_DAYS);
-  const from = String(startsOn || todayKey);
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(from) || from < todayKey || from > lastKey) {
-    return { ok: false, status: 400, error: "یه روز از امروز تا دو ماه دیگه انتخاب کن.", code: "BAD_DAY" };
-  }
+  const from = switchDay(startsOn);
+  if (!from) return BAD_DAY;
   const target = Number(salonUserId || 0) || null;
   return withTransaction(null, async (db) => {
     // One switch at a time per artist: two taps from two phones land one after the other.
     await run(db, "SELECT pg_advisory_xact_lock(51, $1)", [artistUserId]);
-    let salon = null;
-    if (target) {
-      const team = (await memberTeams(artistUserId, db)).find((row) => Number(row.salon_user_id) === target);
-      if (!team) return { ok: false, status: 404, error: "تو عضو تیم این سالن نیستی.", code: "NOT_MEMBER" };
-      if (team.direct_allowed === false) return { ok: false, status: 409, error: `${team.salon_name || "سالن"} فعلاً مشتری‌های خودت رو قبول نمی‌کنه.`, code: "SALON_BLOCKED" };
-      if (AWAY_STATES.includes(String(team.state || "").trim())) return { ok: false, status: 409, error: `توی ${team.salon_name || "سالن"} الان مرخصی یا غیرفعالی.`, code: "AWAY" };
-      salon = { id: target, name: team.salon_name || "سالن", hours: await readSalonHours(target, db) };
-    }
+    const checked = await switchTarget(artistUserId, target, db);
+    if (checked.ok === false) return checked;
+    const { salon } = checked;
     await run(db, "DELETE FROM artist_workplace WHERE artist_user_id = $1 AND starts_on >= $2", [artistUserId, from]);
     // Already the place on the day before (a later switch being taken back): nothing to add.
     const before = await get(db, "SELECT salon_user_id FROM artist_workplace WHERE artist_user_id = $1 AND starts_on < $2 ORDER BY starts_on DESC LIMIT 1", [artistUserId, from]);
     const samePlace = before ? Number(before.salon_user_id || 0) === Number(target || 0) : !target;
     if (!samePlace) await run(db, "INSERT INTO artist_workplace (artist_user_id, salon_user_id, starts_on) VALUES ($1, $2, $3)", [artistUserId, target, from]);
     if (!moveBookings) return { ok: true, moved: [], kept: 0 };
-    const live = await all(db, `
-      SELECT b.id, b.client_user_id, b.service, b.booking_date, b.time, b.duration_minutes, b.status, b.place_salon_user_id
-      FROM artist_bookings b
-      WHERE b.artist_user_id = $1 AND b.source_salon_user_id IS NULL AND b.booking_date >= $2 AND b.status = ANY($3)
-        AND b.place_salon_user_id IS DISTINCT FROM $4
-      FOR UPDATE
-    `, [artistUserId, from, LIVE_AT_SALON, target]);
-    const moved = [];
-    let kept = 0;
-    for (const booking of live) {
-      if (salon && salonTimeBlock(salon.hours, booking.booking_date, booking.time, booking.duration_minutes || 60)) { kept += 1; continue; }
+    const { moving, staying } = await bookingsForSwitch(artistUserId, from, salon, db, { lock: true });
+    for (const booking of moving) {
       await run(db, "UPDATE artist_bookings SET place_salon_user_id = $1 WHERE id = $2", [target, booking.id]);
-      moved.push(booking);
     }
-    return { ok: true, moved, kept, salonName: salon?.name || "" };
+    return { ok: true, moved: moving, kept: staying.length, salonName: salon?.name || "" };
   });
 }
 
@@ -290,7 +345,8 @@ export async function listTeamClientTimes(salonUserId, fromKey, toKey, runner = 
       minutes: Number(row.duration_minutes) || 60,
       service: row.service || ""
     })),
-    busy: rows.filter((row) => !row.here).map((row) => ({
+    // Elsewhere and already started: that hour no longer matters to the salon.
+    busy: rows.filter((row) => !row.here && notStartedYet(row)).map((row) => ({
       id: row.id,
       artistName: row.artist_name || "آرتیست",
       date: row.booking_date,
@@ -302,18 +358,23 @@ export async function listTeamClientTimes(salonUserId, fromKey, toKey, runner = 
 
 /**
  * Takes direct bookings back from a salon: the salon's place on them is cleared, so they are held at the artist's own place
- * (nothing is cancelled). Only live bookings; `artistUserId` null = every artist of that salon. Returns what moved, with
+ * (nothing is cancelled). Only live bookings that have not started yet; `artistUserId` null = every artist of that salon. Returns what moved, with
  * the names to tell the clients.
  */
 export async function releasePlacedBookings(salonUserId, artistUserId = null, runner = null) {
   const db = runner || (await getDb());
-  return all(db, `
-    UPDATE artist_bookings b SET place_salon_user_id = NULL
-    FROM users au
+  const rows = await all(db, `
+    SELECT b.id, b.client_user_id, b.service, b.booking_date, b.time, au.name AS artist_name
+    FROM artist_bookings b JOIN users au ON au.id = b.artist_user_id
     WHERE b.place_salon_user_id = $1 AND b.source_salon_user_id IS NULL AND b.status = ANY($2)
-      AND ($3::int IS NULL OR b.artist_user_id = $3) AND au.id = b.artist_user_id
-    RETURNING b.id, b.client_user_id, b.service, b.booking_date, b.time, au.name AS artist_name
+      AND ($3::int IS NULL OR b.artist_user_id = $3)
   `, [salonUserId, LIVE_AT_SALON, artistUserId]);
+  // One whose time has come already happened at the salon: it stays there, and nobody is told it moved.
+  const moved = rows.filter((row) => notStartedYet(row));
+  if (moved.length) {
+    await run(db, "UPDATE artist_bookings SET place_salon_user_id = NULL WHERE id = ANY($1) AND place_salon_user_id = $2", [moved.map((row) => row.id), salonUserId]);
+  }
+  return moved;
 }
 
 /**
@@ -327,7 +388,7 @@ export async function moveBookingPlace(artistUserId, bookingId, salonUserId, run
     FROM artist_bookings b WHERE b.id = $1 AND b.artist_user_id = $2 AND b.source_salon_user_id IS NULL
   `, [bookingId, artistUserId]);
   if (!booking) return { ok: false, status: 404, error: "این نوبت رو پیدا نکردیم." };
-  if (!LIVE_AT_SALON.includes(booking.status)) return { ok: false, status: 409, error: "این نوبت تموم شده؛ جاش رو نمی‌شه عوض کرد." };
+  if (!LIVE_AT_SALON.includes(booking.status) || !notStartedYet(booking)) return { ok: false, status: 409, error: "وقت این نوبت رسیده؛ جاش رو نمی‌شه عوض کرد." };
   const target = Number(salonUserId || 0) || null;
   if (target && !(await movablePlaces(artistUserId, db)).some((team) => Number(team.salon_user_id) === target)) {
     return { ok: false, status: 409, error: "این سالن فعلاً مشتری‌های خودت رو قبول نمی‌کنه.", code: "SALON_BLOCKED" };

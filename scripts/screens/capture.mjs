@@ -156,11 +156,17 @@ function placeScreens() {
     await placeState({ at: "salon" })(ctx);
     await ctx.sessions.client.post("/api/artist/bookings", { artistUserId: ctx.ids.artist, service: "لاک ژل", bookingDate: dateKeyAfter(1), time: "۱۳:۳۰" });
   };
+  // نگار at her own place with one of her clients tomorrow, before she turns سالن رز on.
+  const switchList = async (ctx) => {
+    await placeState({})(ctx);
+    await ctx.sessions.client.post("/api/artist/bookings", { artistUserId: ctx.ids.artist, service: "لاک ژل", bookingDate: dateKeyAfter(1), time: "۱۵:۰۰" });
+  };
   const turnOn = async (p) => { await p.getByRole("switch", { name: /^مشتری‌های خودت میان/ }).first().click({ timeout: 4000 }); await p.waitForTimeout(900); };
   return [
     { id: "artist-place-own", role: "artist", title: "همکاری، کارت سالن، مشتری‌ها میان جای خودش", setup: placeState({}), steps: [COLLAB], full: true },
     { id: "artist-place-here", role: "artist", title: "همکاری، کارت سالن، الان اینجا کار می‌کنه", setup: placeState({ at: "salon" }), steps: [COLLAB], full: true },
-    { id: "artist-place-switch", role: "artist", title: "برگهٔ «از کی اینجا کار می‌کنی؟»", setup: placeState({}), steps: [COLLAB, turnOn] },
+    { id: "artist-place-switch", role: "artist", title: "برگهٔ «مشتری‌هات از کی بیان …؟»", setup: placeState({}), steps: [COLLAB, turnOn] },
+    { id: "artist-place-switch-list", role: "artist", title: "برگهٔ «این نوبت هم بیاد …؟» با نوبت‌هایی که جابه‌جا می‌شن", setup: switchList, steps: [COLLAB, turnOn, tap("ادامه"), async (p) => { await p.waitForTimeout(6000); }] },
     { id: "artist-place-blocked", role: "artist", title: "سالن مشتری‌های خودش رو بسته", setup: placeState({ at: "salon", switchOn: false }), steps: [COLLAB], full: true },
     { id: "artist-place-dark", role: "artist", title: "همکاری، کارت سالن، شب", dark: true, setup: placeState({ at: "salon" }), steps: [COLLAB], full: true },
     { id: "client-artist-book-place", role: "client", title: "نوبت از آرتیست، «کجا» سالن رو می‌گه", setup: placeState({ at: "salon" }), path: artistOpen, steps: [openBooker] },
