@@ -187,6 +187,9 @@ async function makeDirectBooking({ sessions, ids }) {
   }
 }
 
+/** The «کجا» card in the booking details opens the map sheet; the tiles get a moment to load. */
+const openMap = async (p) => { await p.locator(".locCard.is-pinned").first().click({ timeout: 6000 }); await p.waitForTimeout(2500); };
+
 const SCREENS = [
   // guest
   { id: "guest-welcome", role: "guest", title: "صفحهٔ اول، انتخاب نقش" },
@@ -211,6 +214,8 @@ const SCREENS = [
   { id: "client-history", role: "client", title: "نوبت‌های قبلی", steps: [tap(/نوبت‌های قبلی/)] },
   { id: "client-booking-confirmed", role: "client", title: "جزئیات نوبت تأییدشده", steps: [tap(/^سالن رز، کوتاهی مو/)] },
   { id: "client-booking-pending", role: "client", title: "جزئیات درخواست در انتظار", steps: [tap(/^سالن رز، رنگ مو/)] },
+  { id: "client-booking-map", role: "client", title: "«کجا» روی نقشه، از جزئیات نوبت", steps: [tap(/^سالن رز، کوتاهی مو/), openMap] },
+  { id: "client-booking-map-dark", role: "client", title: "«کجا» روی نقشه، شب", dark: true, steps: [tap(/^سالن رز، کوتاهی مو/), openMap] },
   { id: "client-category-nails", role: "client", title: "دسته‌بندی ناخن", steps: [css(".cnCat", "ناخن")] },
   { id: "client-category-empty", role: "client", title: "دسته‌بندی بدون سالن", steps: [css(".cnCat", "ابرو")] },
   { id: "client-my-code", role: "client", title: "کد من", steps: [tap("کد من")] },

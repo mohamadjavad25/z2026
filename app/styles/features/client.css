@@ -470,6 +470,11 @@
   gap: 8px;
 }
 
+/* Only «تماس» (or only «دوباره نوبت بگیر»): one full-width button, not a lonely half. */
+.clientBookingSettingsActions:has(> button:only-child) {
+  grid-template-columns: 1fr;
+}
+
 /* .clientBookingSettingsActions button */
 .clientBookingSettingsActions button {
   min-height: 42px;

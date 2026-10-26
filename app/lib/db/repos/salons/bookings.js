@@ -27,6 +27,7 @@ import { listSalonServices } from "./services.js";
 import { listSalonHours } from "./hours.js";
 import { resolveBookingServiceEmoji } from "../serviceEmoji.js";
 import { bumpSalonAvailability } from "../../../availabilityCache.js";
+import { publicLocation } from "../../../location.js";
 import { findSalonStaffForBooking, listSalonStaff } from "./staff.js";
 import {
   groupConsecutiveParts,
@@ -755,6 +756,7 @@ export async function listClientSalonBookings(user) {
   // The backup salon's name, and for a request that was moved, the salon it went to / came from.
   const rows = await all(db, `
     SELECT b.*, s.name AS salon_name, s.area AS salon_area, s.phone AS salon_phone, s.user_id AS source_salon_user_id, (u.avatar <> '' OR u.avatar_url IS NOT NULL) AS salon_avatar,
+      u.geo_lat AS salon_geo_lat, u.geo_lng AS salon_geo_lng,
       fs.name AS fallback_name, ts.name AS moved_to_name, os.name AS moved_from_name
     FROM salon_bookings b
     LEFT JOIN salons s ON s.user_id = b.salon_user_id
@@ -780,6 +782,8 @@ export async function listClientSalonBookings(user) {
     // existing "‹thing› حذف‌شده" convention for a deleted parent row.
     salonName: row.salon_name || (row.salon_user_id ? "سالن" : "سالن حذف‌شده"),
     salonArea: row.salon_area || "",
+    // The salon's pin for «کجا» in the client's booking details (the same pin as on its public page).
+    placeLocation: publicLocation({ area: row.salon_area, geo_lat: row.salon_geo_lat, geo_lng: row.salon_geo_lng }),
     salonPhone: row.salon_phone || "",
     salonAvatar: row.salon_avatar && row.source_salon_user_id ? `/api/media/avatar/${row.source_salon_user_id}` : "",
     sourceSalonUserId: row.source_salon_user_id || row.salon_user_id
