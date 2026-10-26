@@ -77,3 +77,22 @@ describe("describeFollowTime", () => {
     expect(describeFollowTime("", now)).toBe("");
   });
 });
+
+describe("deleted accounts and removed customers", () => {
+  it("marks a deleted account apart from a walk-in with the same name, and skips removed bookings", () => {
+    const list = buildBookingCustomers([
+      { id: 5, client: "صدف", phone: "", client_account_deleted_at: "2026-10-26T10:00:00Z", status: "تایید شده", date: "امروز" },
+      { id: 4, client: "صدف", phone: "", status: "تازه", date: "فردا" },
+      { id: 3, client: "نازنین", phone: "", status: "تازه", date: "فردا", customers_hidden_at: "2026-10-26T10:00:00Z" },
+      { id: 2, client: "مریم", phone: "09121234567", status: "تازه", date: "فردا" }
+    ]);
+    expect(list).toHaveLength(3);
+    const deleted = list.find((c) => c.accountDeleted);
+    expect(deleted.name).toBe("صدف");
+    expect(deleted.removable).toBe(true);
+    const walkIn = list.find((c) => c.name === "صدف" && !c.accountDeleted);
+    expect(walkIn.removable).toBe(true);
+    expect(list.find((c) => c.name === "مریم").removable).toBe(false);
+    expect(list.some((c) => c.name === "نازنین")).toBe(false);
+  });
+});
