@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { adminClient } from "./helpers.js";
-import { TEST_ADMIN_PASSWORD } from "../globalSetup.js";
+import { enrolledAdminClient } from "./helpers.js";
+import { TEST_ADMIN_PASSWORD, TEST_ADMIN7_PHONE } from "../globalSetup.js";
 import {
   q, newSalon, newClient, newArtist, confirmedAt, directConfirmed, moveSalonBookingNear, moveArtistBookingNear,
   salonRow, artistRow, smsEventually, FAR_DAY, createClient, registerUser
@@ -140,7 +140,8 @@ describe("client deletes their account", () => {
     const near = await confirmedAt(salon, client, { day: FAR_DAY(3), time: "11:00" });
     await moveSalonBookingNear(near, 240);
     const far = await requestAt(salon, client, { day: FAR_DAY(4), time: "16:00" });
-    const admin = await adminClient();
+    // Its own admin session: the password re-check must not leak into the shared one other files test.
+    const admin = await enrolledAdminClient(TEST_ADMIN7_PHONE);
     await admin.post("/api/admin/auth/stepup", { password: TEST_ADMIN_PASSWORD });
     const gone = await admin.delete(`/api/admin/users/${client.id}`, { confirmPhone: client.phone });
     expect(gone.ok).toBe(true);
