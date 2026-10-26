@@ -26,28 +26,69 @@
   100% { box-shadow: 0 0 0 12px rgb(var(--brand-pink-rgb) / 0); }
 }
 
-/* ── Sheet ── */
+/* ── Sheet: the map fills it; the name floats on top, the map tools sit on the side ── */
 .locSheetOverlay { position: fixed; inset: 0; z-index: calc(var(--z-sheet-close) - 2); display: flex; align-items: flex-end; justify-content: center; background: var(--scrim); animation: locFade 0.22s ease-out both; }
-.locSheet { width: 100%; max-width: 460px; max-height: calc(100dvh - 40px - env(safe-area-inset-top)); overflow-y: auto; overscroll-behavior: contain; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px; padding: 18px 16px 0; border-radius: 28px 28px 0 0; background: var(--n-0); color: var(--n-900); box-shadow: 0 -20px 50px -20px rgb(var(--shadow-rgb) / 0.45); animation: locRise 0.32s cubic-bezier(0.2, 0.8, 0.25, 1) both; }
-.locSheetHead { display: flex; align-items: center; gap: 12px; }
-.locSheetHead > div { min-width: 0; display: grid; gap: 1px; }
-.locSheetHead h3 { margin: 0; overflow: hidden; font-size: 1.06rem; font-weight: 900; white-space: nowrap; text-overflow: ellipsis; }
-.locSheetHead small { color: var(--n-600); font-size: 0.76rem; font-weight: 700; }
-.locSheetBadge { width: 40px; height: 40px; flex: none; display: grid; place-items: center; border-radius: 14px; background: var(--brand-blend); color: var(--brand-ink); }
+.locSheet { width: 100%; max-width: 460px; box-sizing: border-box; display: flex; flex-direction: column; padding: 10px 10px 0; border-radius: 30px 30px 0 0; background: var(--n-0); color: var(--n-900); box-shadow: 0 -20px 50px -20px rgb(var(--shadow-rgb) / 0.45); animation: locRise 0.36s cubic-bezier(0.2, 0.8, 0.25, 1) both; }
+.locStage { position: relative; height: min(calc(100dvh - 150px - env(safe-area-inset-top)), 620px); flex: none; overflow: hidden; border-radius: 22px; background: var(--n-100); isolation: isolate; }
+.locStage .locMap { position: absolute; inset: 0; height: auto; border-radius: 0; }
 
-.locMap { position: relative; z-index: 0; height: min(60dvh, 440px); flex: none; overflow: hidden; border-radius: 20px; background: var(--n-100); direction: ltr; }
-.locMap .leaflet-control-attribution { font-size: 9px; }
-.locPinIcon { background: none !important; border: 0 !important; }
-.locPin { position: relative; display: block; width: 38px; height: 46px; }
+.locSheetHead { position: absolute; z-index: 2; top: 10px; right: 10px; left: 10px; display: flex; align-items: center; gap: 10px; padding: 8px 14px 8px 8px; border-radius: 18px; background: rgb(var(--paper-rgb) / 0.9); box-shadow: 0 10px 28px -10px rgb(var(--shadow-rgb) / 0.4), inset 0 0 0 1px rgb(var(--ink-rgb) / 0.06); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); animation: locDrop 0.4s 0.12s cubic-bezier(0.2, 0.8, 0.25, 1) both; }
+.locSheetHead > div { min-width: 0; display: grid; gap: 1px; }
+.locSheetHead h3 { margin: 0; overflow: hidden; color: var(--n-900); font-size: 1rem; font-weight: 900; white-space: nowrap; text-overflow: ellipsis; }
+.locSheetHead small { color: var(--n-600); font-size: 0.74rem; font-weight: 800; }
+.locSheetBadge { width: 40px; height: 40px; flex: none; display: grid; place-items: center; border-radius: 13px; background: var(--brand-blend); color: var(--brand-ink); }
+
+.locTools { position: absolute; z-index: 2; bottom: 14px; left: 12px; display: grid; gap: 8px; justify-items: center; }
+.locTools button { width: 44px; height: 44px; display: grid; place-items: center; padding: 0; border: 0; background: rgb(var(--paper-rgb) / 0.94); color: var(--n-900); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.locTools > button { border-radius: 50%; box-shadow: 0 8px 20px -8px rgb(var(--shadow-rgb) / 0.5), inset 0 0 0 1px rgb(var(--ink-rgb) / 0.06); }
+.locZoom { display: grid; overflow: hidden; border-radius: 16px; box-shadow: 0 8px 20px -8px rgb(var(--shadow-rgb) / 0.5), inset 0 0 0 1px rgb(var(--ink-rgb) / 0.06); }
+.locZoom button + button { border-top: 1px solid rgb(var(--ink-rgb) / 0.08); }
+.locTools button:active { background: var(--n-100); }
+.locTools button:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
+
+/* Until the tiles arrive (slow networks) a faint street grid keeps it looking like a map, not an empty box. */
+.locMap { position: relative; z-index: 0; height: min(60dvh, 440px); flex: none; overflow: hidden; border-radius: 20px; direction: ltr; }
+.locMap, .locMap.leaflet-container { background-color: var(--n-100); background-image: linear-gradient(rgb(var(--ink-rgb) / 0.05) 2px, transparent 2px), linear-gradient(90deg, rgb(var(--ink-rgb) / 0.05) 2px, transparent 2px), linear-gradient(35deg, transparent 47%, rgb(var(--paper-rgb) / 0.7) 47%, rgb(var(--paper-rgb) / 0.7) 53%, transparent 53%); background-size: 46px 46px, 46px 46px, 100% 100%; }
+.locMap .leaflet-control-attribution { font-size: 9px; background: rgb(var(--paper-rgb) / 0.8); color: var(--n-600); }
+.locMap .leaflet-control-attribution a { color: inherit; }
+.locStage .leaflet-bottom.leaflet-left { margin-left: 64px; }
+.locPinIcon { background: none !important; border: 0 !important; overflow: visible; }
+.locPin { position: relative; display: block; width: 44px; height: 54px; animation: locPinDrop 0.6s 0.2s cubic-bezier(0.3, 1.5, 0.5, 1) both; }
 .locPin svg { position: relative; display: block; filter: drop-shadow(0 6px 8px rgb(var(--shadow-rgb) / 0.35)); }
-.locPinPulse { position: absolute; left: 50%; bottom: -6px; width: 44px; height: 16px; margin-left: -22px; border-radius: 50%; background: rgb(var(--brand-violet-rgb) / 0.35); animation: locPulse 2.2s ease-out infinite; }
+.locPinPulse { position: absolute; left: 50%; bottom: -6px; width: 50px; height: 18px; margin-left: -25px; border-radius: 50%; background: rgb(var(--brand-violet-rgb) / 0.35); animation: locPulse 2.2s ease-out infinite; }
+.locPinTag { position: absolute; bottom: calc(100% + 6px); left: 50%; max-width: 180px; overflow: hidden; padding: 5px 11px; border-radius: 999px; background: var(--n-900); color: var(--n-0); font-family: inherit; font-size: 12px; font-weight: 900; line-height: 1.5; white-space: nowrap; text-overflow: ellipsis; direction: rtl; transform: translateX(-50%); box-shadow: 0 6px 14px -6px rgb(var(--shadow-rgb) / 0.6); }
+.locPinTag::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px; border: 5px solid transparent; border-top-color: var(--n-900); }
 @keyframes locPulse { 0% { transform: scale(0.4); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
+@keyframes locPinDrop { from { transform: translateY(-28px); opacity: 0; } to { transform: none; opacity: 1; } }
 
 @keyframes locFade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes locRise { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes locDrop { from { transform: translateY(-10px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* At night the street map dims to match the app instead of glowing white. */
+:root[data-theme="dark"] .locMap .leaflet-tile-pane { filter: brightness(0.62) contrast(1.15) saturate(0.7); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .locMap .leaflet-tile-pane { filter: brightness(0.62) contrast(1.15) saturate(0.7); }
+}
+
+/* ── «کجا» card in the client's booking details (LocationCard) ── */
+.locCard { position: relative; display: grid; width: 100%; overflow: hidden; padding: 0; border: 0; border-radius: 16px; background: rgb(var(--ink-rgb) / 0.04); color: var(--n-900); font: inherit; text-align: right; }
+.locCard.is-pinned { cursor: pointer; box-shadow: inset 0 0 0 1px rgb(var(--brand-violet-rgb) / 0.22); -webkit-tap-highlight-color: transparent; }
+.locCard.is-pinned:active { transform: scale(0.985); }
+.locCard.is-pinned:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
+.locCardMap { position: relative; display: block; height: 112px; pointer-events: none; }
+.locCardMap .locMap { position: absolute; inset: 0; height: auto; border-radius: 0; }
+.locCardMap::after { content: ""; position: absolute; inset: auto 0 0; z-index: 1; height: 36px; background: linear-gradient(to top, rgb(var(--ink-rgb) / 0.12), transparent); }
+.locCardText { display: flex; align-items: center; gap: 10px; padding: 10px 12px; }
+.locCardIcon { width: 34px; height: 34px; flex: none; display: grid; place-items: center; border-radius: 11px; background: var(--brand-blend); color: var(--brand-ink); }
+.locCardLines { flex: 1; min-width: 0; display: grid; gap: 1px; }
+.locCardLines small { color: var(--info); font-size: 0.64rem; font-weight: 900; }
+.locCardLines b { overflow: hidden; color: var(--n-900); font-size: 0.8rem; font-weight: 950; white-space: nowrap; text-overflow: ellipsis; }
+.locCardLines em { color: var(--n-600); font-size: 0.7rem; font-style: normal; font-weight: 800; line-height: 1.6; }
+.locCardGo { flex: none; display: inline-flex; align-items: center; gap: 2px; padding: 6px 8px 6px 10px; border-radius: 999px; background: var(--fill-strong); color: var(--n-0); font-size: 0.68rem; font-weight: 900; }
 
 @media (prefers-reduced-motion: reduce) {
-  .locButton svg, .locButtonRing, .locPinPulse, .locSheet, .locSheetOverlay { animation: none; }
+  .locButton svg, .locButtonRing, .locPinPulse, .locPin, .locSheet, .locSheetHead, .locSheetOverlay { animation: none; }
 }
 
 /* ── تنظیمات → ثبت لوکیشن: plate / floor field and the «no pin yet» nudge ── */
