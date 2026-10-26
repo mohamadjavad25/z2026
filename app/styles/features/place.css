@@ -153,3 +153,4 @@
 .clwMove small { color: var(--n-600); font-size: 0.72rem; font-weight: 750; }
 .clwMove .plSwitch[aria-checked="true"] { background: var(--violet-deep); }
 @media (prefers-reduced-motion: reduce) { .clwCard, .clwDots button::before { transition: none; } }
+.clwAddLead { margin: 6px 2px -2px; color: var(--n-700); font-size: 0.82rem; font-weight: 900; }

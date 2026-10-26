@@ -195,8 +195,9 @@ function SwitchSheet({ target, ask, busy, onSave, onClose }) {
 /**
  * Artist owner — collaboration tab (owner's choice of 2026-10-25: wallet cards). The salons the artist is on the team
  * of and the salons inviting them are cards in one row the artist swipes; under the row, the card in view: its terms,
- * «مشتری‌های خودت میان اینجا» (the artist's one workplace at a time) and its rules. No team and no invite: only
- * «اسکن کن» and «کد من».
+ * «مشتری‌های خودت میان اینجا» (the artist's one workplace at a time) and its rules. «اسکن کن» and «کد من» stay
+ * under the cards (titled «یه سالن دیگه هم اضافه کن» once on a team), so a second salon can be added; no team and no
+ * invite: only those two.
  */
 export function ArtistCollabBoard({
   artistId,
@@ -233,11 +234,14 @@ export function ArtistCollabBoard({
   useEffect(() => { if (connected) loadWorkplace(); }, [connected, teamKey, loadWorkplace]);
 
   // While the code is on screen, check for the salon's invite so it shows up as soon as they scan; close the code
-  // once it (or a team) arrives.
-  usePolling(() => onChanged?.(), 5000, sheet === "code" && !connected);
+  // once a new invite (or a new team) arrives. Counts, not "any", so an artist already on a team can show it too.
+  usePolling(() => onChanged?.(), 5000, sheet === "code");
+  const arrivals = teams.length + pendingInvites.length;
+  const lastArrivals = useRef(arrivals);
   useEffect(() => {
-    if (connected || pendingInvites.length) setSheet("");
-  }, [connected, pendingInvites.length]);
+    if (arrivals > lastArrivals.current) setSheet("");
+    lastArrivals.current = arrivals;
+  }, [arrivals]);
 
   const cards = [
     ...pendingInvites.map((invite) => ({
@@ -435,21 +439,18 @@ export function ArtistCollabBoard({
         </>
       ) : null}
 
-      {!connected ? (
-        <>
-          <div className="cnScanRow">
-            <button type="button" className="cnScanBtn is-dark" onClick={() => setSheet("scan")}>
-              <span aria-hidden="true"><ScanLine size={20} /></span>
-              <span><b>اسکن کن</b><small>کد سالن رو اسکن کن</small></span>
-            </button>
-            <button type="button" className="cnScanBtn" disabled={!codeUrl} onClick={() => setSheet("code")}>
-              <span aria-hidden="true"><QrCode size={20} /></span>
-              <span><b>کد من</b><small>کدت رو به سالن نشون بده</small></span>
-            </button>
-          </div>
-          {!cards.length ? <Mascot pose="team" size={190} className="clConnMascot" /> : null}
-        </>
-      ) : null}
+      {connected ? <p className="clwAddLead">یه سالن دیگه هم اضافه کن</p> : null}
+      <div className="cnScanRow">
+        <button type="button" className="cnScanBtn is-dark" onClick={() => setSheet("scan")}>
+          <span aria-hidden="true"><ScanLine size={20} /></span>
+          <span><b>اسکن کن</b><small>کد سالن رو اسکن کن</small></span>
+        </button>
+        <button type="button" className="cnScanBtn" disabled={!codeUrl} onClick={() => setSheet("code")}>
+          <span aria-hidden="true"><QrCode size={20} /></span>
+          <span><b>کد من</b><small>کدت رو به سالن نشون بده</small></span>
+        </button>
+      </div>
+      {!cards.length ? <Mascot pose="team" size={190} className="clConnMascot" /> : null}
 
       <SwitchSheet target={switchTo} ask={Boolean(switchTo?.ask)} busy={saving} onSave={saveSwitch} onClose={() => setSwitchTo(null)} />
 

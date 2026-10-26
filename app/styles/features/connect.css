@@ -27,7 +27,8 @@
 .qrScanner,
 .cnCodeSheet,
 .cnSheetRoot,
-.clConnBoard {
+.clConnBoard,
+.clwBoard {
   --cn-ink: var(--n-900);
   --cn-muted: var(--n-600);
   --cn-line: var(--n-150);
