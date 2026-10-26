@@ -3,7 +3,7 @@ import { AuthGateForms } from "../../auth";
 import { ProfileHero } from "../../profile/ProfileHero";
 import { openLocationSettings } from "../../profile/locationEvents";
 import { ProfileCompleteness, ProfileReadyCelebration } from "../../profile/ProfileCompleteness";
-import { DueRemindersCard, DueRemindersSection } from "../../dueReminders/DueReminders";
+import { DueRemindersSection } from "../../dueReminders/DueReminders";
 import { BillingBanner } from "../../billing";
 import { SalonStaffWorkspace, SalonServicesWorkspace } from "../../salons";
 import { ProfileGallery } from "../../profile/ProfileGallery";
@@ -278,11 +278,6 @@ export function ProfilePanelBody() {
               />
             ) : null}
 
-            {/* «وقتش شده»: the one-time confirmation (owner's decisions of 2026-10-25). */}
-            {(createdProfile?.type === "salon" || createdProfile?.type === "artist") && createdProfile.type === profileType && profileView === "overview" && !salonWorkspace ? (
-              <DueRemindersCard reloadKey={createdProfile.type === "salon" ? salonServiceList.length : artistServiceList.length} />
-            ) : null}
-
           {createdProfile.type === profileType ? (
             <div className={`createdProfile ${activeRoleMeta.heroClass || ""}`}>
               {/* An artist's «نوبت‌ها» is the overview too (the schedule, below); their posts are the «portfolio» view. */}
@@ -307,6 +302,7 @@ export function ProfilePanelBody() {
                       )}
 
                       {salonWorkspace === "hours" && (
+                        <DueRemindersSection reloadKey={salonServiceList.length}>
                         <SalonServicesWorkspace
                           services={salonServiceList}
                           staffList={safeSalonStaffList}
@@ -317,8 +313,8 @@ export function ProfilePanelBody() {
                           onClearArtists={(service) => assignSalonServiceArtist(service, null)}
                           onEdit={editArtistService}
                         />
+                        </DueRemindersSection>
                       )}
-                      {salonWorkspace === "hours" && <DueRemindersSection reloadKey={salonServiceList.length} />}
 
                       {salonWorkspace === "portfolio" && (
                         <ProfileGallery
@@ -446,14 +442,13 @@ export function ProfilePanelBody() {
               )}
 
               {profileView === "services" && profileType === "artist" && (
-                <>
+                <DueRemindersSection reloadKey={artistServiceList.length}>
                   <ArtistServicesPanel
                     services={artistServiceList}
                     onCreate={openArtistServiceCreate}
                     onEdit={editArtistService}
                   />
-                  <DueRemindersSection reloadKey={artistServiceList.length} />
-                </>
+                </DueRemindersSection>
               )}
 
               {profileView === "collabs" && profileType === "artist" && (

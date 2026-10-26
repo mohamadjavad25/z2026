@@ -5,6 +5,7 @@ import { leaveOrRemoveFromTeam } from "../../../lib/db/repos/providerExit.js";
 import { exitRefusal } from "../../../lib/providerExitResponse.js";
 import { artistLeftSalon } from "../../../lib/artistPlaceRelease.js";
 import * as users from "../../../lib/db/repos/users.js";
+import { getDb } from "../../../lib/db/connection.js";
 
 export const runtime = "nodejs";
 
@@ -40,5 +41,23 @@ async function _DELETE(request) {
   return json({ data: { ok: true, teams: await salons.listArtistTeams(auth.user.id) } });
 }
 
+/**
+ * PATCH /api/artist/teams  body: { salonUserId, postsOnSalon: boolean } -> «پست‌هام توی صفحهٔ این سالن هم بیاد» for that
+ * team (on by default). -> { teams }
+ */
+async function _PATCH(request) {
+  const auth = await requireUserRole(request, "artist", "این بخش مال آرتیست‌هاست.");
+  if (!auth.ok) return auth.response;
+  const body = await readObjectBody(request);
+  const salonUserId = Number(body.salonUserId || 0);
+  if (!salonUserId || typeof body.postsOnSalon !== "boolean") {
+    return json({ error: "این سالن رو پیدا نکردیم.", code: "INVALID_SALON" }, { status: 400 });
+  }
+  const saved = await salons.setTeamPostsOnSalon(auth.user.id, salonUserId, body.postsOnSalon, await getDb());
+  if (!saved) return json({ error: "تو عضو تیم این سالن نیستی.", code: "NOT_MEMBER" }, { status: 404 });
+  return json({ data: { teams: await salons.listArtistTeams(auth.user.id) } });
+}
+
 export const GET = withErrorHandling(_GET);
+export const PATCH = withErrorHandling(_PATCH);
 export const DELETE = withErrorHandling(_DELETE);

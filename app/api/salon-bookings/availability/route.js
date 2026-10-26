@@ -26,7 +26,8 @@ function noStoreJson(body, init = {}) {
  * The start times on that day at which one service, or several back to back in this order, can
  * be requested: the same checks a client's POST goes through (listFeasibleVisitTimes), so the
  * client is only offered times that will be accepted. `minutes` (one per service, same order)
- * is used only for a service the salon does not list.
+ * is used only for a service the salon does not list. A client's `prefer` (a team member's name, «رزرو با …»)
+ * keeps only the times at which that person can do every service.
  */
 async function _GET(request) {
   await ensureDb();
@@ -52,14 +53,15 @@ async function _GET(request) {
   // It only decides what the page shows: booking itself re-checks under row locks.
   // A group (2 or 3 people at the same time, a client's request only) needs that many artists free together.
   const people = isClient ? Math.max(1, Math.min(MAX_GROUP_PEOPLE, Math.floor(Number(searchParams.get("people"))) || 1)) : 1;
+  const prefer = isClient && people < 2 ? String(searchParams.get("prefer") || "").trim().slice(0, 120) : "";
   if (names.length * people > MAX_BOOKING_PARTS) return noStoreJson({ error: "کارها درست نرسید؛ دوباره انتخاب کن." }, { status: 400 });
-  const key = availabilityKey(salonUserId, bookingDateKey, [...names.map((service, index) => ({ service, minutes: minutes[index] || 0 })), ...(people > 1 ? [{ service: "people", minutes: people }] : [])], isClient);
-  const outcome = await cachedAvailability(salonUserId, key, () => computeTimes(salonUserId, bookingDateKey, names, minutes, isClient, people));
+  const key = availabilityKey(salonUserId, bookingDateKey, [...names.map((service, index) => ({ service, minutes: minutes[index] || 0 })), ...(people > 1 ? [{ service: "people", minutes: people }] : []), ...(prefer ? [{ service: `prefer:${prefer}`, minutes: 0 }] : [])], isClient);
+  const outcome = await cachedAvailability(salonUserId, key, () => computeTimes(salonUserId, bookingDateKey, names, minutes, isClient, people, prefer));
   if (outcome.error) return noStoreJson({ error: outcome.error }, { status: outcome.status });
   return noStoreJson({ data: outcome.data });
 }
 
-async function computeTimes(salonUserId, bookingDateKey, names, minutes, isClient, people = 1) {
+async function computeTimes(salonUserId, bookingDateKey, names, minutes, isClient, people = 1, prefer = "") {
   const salon = await salons.getSalon(salonUserId);
   if (!salon) return { error: "سالن پیدا نشد.", status: 404 };
   const single = salonVisitParts(salon, names.map((service, index) => ({ service, durationMinutes: minutes[index] })));
@@ -76,7 +78,7 @@ async function computeTimes(salonUserId, bookingDateKey, names, minutes, isClien
       .filter((time) => !isSlotInPast(bookingDateKey, time))
       // Same rule POST enforces for a client: the salon needs time to answer.
       .filter((time) => !isClient || !isTooSoonToRequest(bookingDateKey, time));
-    times = await salons.listFeasibleVisitTimes(salonUserId, bookingDateKey, parts, candidates);
+    times = await salons.listFeasibleVisitTimes(salonUserId, bookingDateKey, parts, candidates, { prefer });
   }
   return { data: { times, durationMinutes } };
 }

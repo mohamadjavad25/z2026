@@ -99,6 +99,15 @@ const tap = (name, opts = {}) => async (p) => { await p.getByRole("button", { na
 const text = (t) => async (p) => { await p.getByText(t, { exact: true }).first().click({ timeout: 4000 }); await p.waitForTimeout(900); };
 const css = (selector, hasText) => async (p) => { await p.locator(selector, hasText ? { hasText } : {}).first().click({ timeout: 4000 }); await p.waitForTimeout(900); };
 const fill = (selector, value) => async (p) => { await p.locator(selector).fill(value, { timeout: 4000 }); };
+/** Two posts of نگار's (made once), so her card on سالن رز's page has pictures. */
+async function artistPosts({ sessions }) {
+  const mine = (await sessions.artist.get("/api/posts")).payload?.data?.posts || [];
+  if (mine.length) return;
+  for (const [file, title, tag] of [["nails-chrome.webp", "ناخن کروم", "ناخن"], ["brow-lash.webp", "لیفت مژه", "ابرو و مژه"]]) {
+    const image = `data:image/webp;base64,${(await fs.promises.readFile(new URL(`../../public/brand/photos/${file}`, import.meta.url))).toString("base64")}`;
+    await sessions.artist.post("/api/posts", { title, tag, image });
+  }
+}
 const salonPath = (ids) => `/salons/${ids.salon}`;
 const artistPath = (ids) => `/artists/${ids.artist}`;
 
@@ -198,6 +207,7 @@ const SCREENS = [
   { id: "guest-from-salon-link", role: "guest", title: "مهمانی که با لینک سالن آمده", path: (ids) => `/?open=salon-${ids.salon}` },
   { id: "guest-salon-page", role: "guest", title: "صفحهٔ عمومی سالن", path: salonPath },
   { id: "guest-salon-page-full", role: "guest", title: "صفحهٔ عمومی سالن، کامل", path: salonPath, full: true },
+  { id: "guest-salon-team-sheet", role: "guest", title: "برگهٔ آرتیست تیم در صفحهٔ سالن", setup: artistPosts, path: salonPath, steps: [css(".stmCard", "نگار کاشی")] },
   { id: "guest-artist-page", role: "guest", title: "صفحهٔ عمومی آرتیست", path: artistPath },
   { id: "guest-not-found", role: "guest", title: "صفحه پیدا نشد", path: () => "/no-such-page" },
   { id: "guest-terms", role: "guest", title: "قوانین", path: () => "/terms" },

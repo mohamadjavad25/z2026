@@ -518,6 +518,7 @@ export async function listArtistTeams(artistUserId) {
       st.role,
       st.state,
       st.created_at,
+      st.posts_on_salon,
       COALESCE(NULLIF(s.name, ''), su.name) AS salon_name,
       COALESCE(s.area, '') AS salon_area,
       COALESCE(s.rules, '') AS salon_rules,
@@ -557,7 +558,8 @@ export async function listArtistTeams(artistUserId) {
     from: row.from_time || "",
     to: row.to_time || "",
     share: row.share_percent || "",
-    capacity: row.capacity || ""
+    capacity: row.capacity || "",
+    postsOnSalon: row.posts_on_salon !== false
   }));
 }
 

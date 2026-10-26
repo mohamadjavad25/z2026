@@ -43,7 +43,8 @@ export function VisitBooker({
   onClose,
   onAddService,
   onEditProfile,
-  contactPhone = ""
+  contactPhone = "",
+  withName = ""
 }) {
   return (
     <ProfileSheet
@@ -68,13 +69,15 @@ export function VisitBooker({
         onAddService={onAddService}
         onEditProfile={onEditProfile}
         contactPhone={contactPhone}
+        withName={withName}
         onClose={onClose}
       />
     </ProfileSheet>
   );
 }
 
-function VisitBookerForm({ role, title, subtitle, services, days, initial, customers, source, onSubmit, onDone, onAddService, onEditProfile, contactPhone, onClose }) {
+/** `withName`: the client asked for one team member («رزرو با …»): one person only, and empty days say it is them who is full. */
+function VisitBookerForm({ role, title, subtitle, services, days, initial, customers, source, onSubmit, onDone, onAddService, onEditProfile, contactPhone, withName, onClose }) {
   // The controller lives as long as the sheet is open; what the parent passes later (fresh lists,
   // new closures) is read through refs so it never has to be recreated.
   const latest = useRef({});
@@ -234,7 +237,7 @@ function VisitBookerForm({ role, title, subtitle, services, days, initial, custo
           )}
         </section>
 
-        {frozenServices.length ? (
+        {frozenServices.length && !withName ? (
           <section className="vbSection vbPeople" aria-label="برای چند نفر؟">
             <p className="vbPeopleTitle" id="vb-people-label">برای چند نفر؟</p>
             <div className="vbChips" role="group" aria-labelledby="vb-people-label">
@@ -283,6 +286,7 @@ function VisitBookerForm({ role, title, subtitle, services, days, initial, custo
             state={state}
             role={role}
             phone={contactPhone}
+            withName={withName}
             onPick={(time) => controller.setTime(time)}
             onRetry={() => controller.retryTimes()}
             onAhead={() => controller.goToAhead()}

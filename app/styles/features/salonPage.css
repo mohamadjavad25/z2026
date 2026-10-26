@@ -30,12 +30,46 @@
 .spvHeadRow .spvHead { margin: 0; }
 .spvSeeAll { min-height: 32px; padding: 0 4px; border: 0; background: none; color: var(--n-900); font: inherit; font-size: 0.78rem; font-weight: 900; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }
 
-.spvTeamRail { display: flex; gap: 16px; overflow-x: auto; padding: 2px 0 4px; scrollbar-width: none; }
-.spvTeamRail::-webkit-scrollbar { display: none; }
-.spvMember { display: grid; justify-items: center; gap: 2px; min-width: 64px; max-width: 80px; text-align: center; }
-.spvMember img { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; background: var(--n-100); }
-.spvMember b { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 4px; font-size: 0.76rem; font-weight: 900; }
-.spvMember small { color: var(--n-500); font-size: 0.64rem; font-weight: 700; }
+/* «تیم سالن»: a card per member (features/salons/SalonTeam.jsx), swiped sideways. */
+.stmCount { color: var(--n-500); font-size: 0.74rem; font-weight: 800; }
+.stmRail { display: flex; gap: 10px; overflow-x: auto; padding: 2px 0 6px; scroll-snap-type: x mandatory; scrollbar-width: none; }
+.stmRail::-webkit-scrollbar { display: none; }
+.stmCard { flex: 0 0 min(72%, 240px); scroll-snap-align: start; display: grid; gap: 10px; padding: 12px; border: 0; border-radius: 20px; background: var(--n-0); color: var(--n-900); box-shadow: inset 0 0 0 1px var(--n-100); font: inherit; text-align: right; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.stmCard:active { transform: scale(0.98); background: var(--n-50); }
+.stmCard:focus-visible { outline: 3px solid rgb(var(--ink-rgb) / 0.28); outline-offset: 2px; }
+.stmWho { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.stmName { display: grid; gap: 1px; min-width: 0; }
+.stmName b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.86rem; font-weight: 900; }
+.stmName small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--n-600); font-size: 0.7rem; font-weight: 700; }
+.stmThumbs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+.stmThumbs img, .stmThumbs i { display: block; width: 100%; aspect-ratio: 1; border-radius: 10px; object-fit: cover; background: var(--n-100); }
+.stmNoPosts { display: grid; place-items: center; min-height: 64px; border-radius: 12px; background: var(--n-50); color: var(--n-500); font-size: 0.72rem; font-weight: 800; }
+
+.stmSheetBody { display: grid; gap: 16px; padding: 4px 18px calc(18px + env(safe-area-inset-bottom)); }
+.stmSheetHead { display: flex; align-items: center; gap: 12px; }
+.stmSheetHead span { display: grid; gap: 2px; }
+.stmSheetHead b { font-size: 1.02rem; font-weight: 950; }
+.stmSheetHead small { color: var(--n-600); font-size: 0.76rem; font-weight: 700; }
+.stmServices { display: grid; gap: 6px; }
+.stmService { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 16px; box-shadow: inset 0 0 0 1px var(--n-100); }
+.stmService > span { flex: 1; min-width: 0; display: grid; gap: 1px; }
+.stmService b { font-size: 0.86rem; font-weight: 900; }
+.stmService small { color: var(--n-600); font-size: 0.7rem; font-weight: 700; }
+.stmService em { flex: none; font-style: normal; font-size: 0.84rem; font-weight: 900; white-space: nowrap; }
+.stmPosts h4 { margin: 0 0 8px; font-size: 0.86rem; font-weight: 900; }
+.stmPosts .salonClientMosaicGallery { gap: 3px !important; }
+.stmPosts .salonClientMosaicTile { border-radius: 6px !important; }
+.stmEmpty { display: flex; align-items: center; gap: 6px; margin: 0; color: var(--n-500); font-size: 0.78rem; font-weight: 800; }
+.stmActions { display: grid; gap: 8px; }
+.stmBook { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 50px; border: 0; border-radius: 16px; background: var(--fill-strong); color: var(--n-0); font: inherit; font-size: 0.92rem; font-weight: 950; cursor: pointer; }
+.stmPage { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 46px; border: 0; border-radius: 16px; background: var(--n-0); color: var(--n-900); box-shadow: inset 0 0 0 1px var(--n-150); font: inherit; font-size: 0.86rem; font-weight: 900; text-decoration: none; cursor: pointer; }
+
+/* «نمونه‌کارها»: whose posts (the salon's and each team artist's), and the artist's name on their tiles. */
+.spvPostFilters { display: flex; gap: 6px; margin: 0 0 10px; overflow-x: auto; scrollbar-width: none; }
+.spvPostFilters::-webkit-scrollbar { display: none; }
+.spvPostFilters button { flex: none; min-height: 34px; padding: 0 14px; border: 0; border-radius: 999px; background: var(--n-0); color: var(--n-800); box-shadow: inset 0 0 0 1px var(--n-150); font: inherit; font-size: 0.78rem; font-weight: 850; cursor: pointer; }
+.spvPostFilters button.is-on { background: var(--fill-strong); color: var(--n-0); box-shadow: none; }
+.salonClientMosaicBy { position: absolute; inset-inline-start: 4px; bottom: 4px; max-width: calc(100% - 8px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 1px 7px; border-radius: 8px; background: var(--scrim); color: var(--on-photo); font-size: 0.62rem; font-weight: 850; pointer-events: none; }
 
 :root .salonPublicProfile .salonPublicPortfolio .salonClientMosaicGallery { gap: 3px !important; }
 :root .salonPublicProfile .salonPublicPortfolio .salonClientMosaicTile { border-radius: 6px !important; }

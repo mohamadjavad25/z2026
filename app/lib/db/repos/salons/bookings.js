@@ -301,7 +301,12 @@ function compareRanks(a, b) {
  * so far, then whoever did the service right before (one hand-over fewer), then whoever has the
  * least booked that day, then the salon's own order. A service nobody can take stays unassigned.
  */
-async function draftVisitParts(day, time, parts) {
+/**
+ * `prefer` is a team member's name a client asked for («رزرو با …» on the salon page, owner's decision 2026-10-26):
+ * a service with no artist named then goes to that person only, under the same rules (free then, seats left); if
+ * they cannot take it the service stays unstaffed, so the time is not offered and a request for it is refused.
+ */
+async function draftVisitParts(day, time, parts, { prefer = "" } = {}) {
   const drafted = [];
   const visitMinutes = new Map();
   // What this visit has already given each artist (a group's people run side by side: one artist cannot be two of them).
@@ -317,7 +322,9 @@ async function draftVisitParts(day, time, parts) {
     }
     if (!staff) {
       let best = null;
-      const pool = draftPool(day, part.service);
+      const pool = prefer
+        ? day.team.filter((person) => isStaffWorking(person) && staffName(person) === prefer)
+        : draftPool(day, part.service);
       // The seats at this hour: working team members free then, less those the salon's unassigned entries take.
       let freeSeats = 0;
       for (const person of day.team) {
@@ -370,14 +377,14 @@ function visitOverlaps(day, time, parts) {
  * could do gets a free artist, and nothing overlaps the salon's other bookings. One service
  * is just a visit of one part.
  */
-export async function listFeasibleVisitTimes(salonUserId, bookingDate, parts, times) {
+export async function listFeasibleVisitTimes(salonUserId, bookingDate, parts, times, { prefer = "" } = {}) {
   await ensureBookingPartsColumns();
   const list = parseBookingParts(parts).map((part) => ({ ...part, staff: "" }));
   if (!list.length) return [];
   const day = await loadVisitDay(await getDb(), salonUserId, bookingDate);
   const feasible = [];
   for (const time of times) {
-    const drafted = await draftVisitParts(day, time, list);
+    const drafted = await draftVisitParts(day, time, list, { prefer });
     if (!findUnstaffedPart(day, drafted) && !visitOverlaps(day, time, drafted)) feasible.push(time);
   }
   return feasible;
@@ -393,12 +400,12 @@ export async function listFeasibleVisitTimes(salonUserId, bookingDate, parts, ti
  * salon or their own calendar then), `skilled` (linked to the service) and `away` (their state when
  * inactive or on leave): the salon's artist picker. Null when there is no service.
  */
-export async function previewVisit(salonUserId, bookingDate, time, parts, { withOptions = false } = {}) {
+export async function previewVisit(salonUserId, bookingDate, time, parts, { withOptions = false, prefer = "" } = {}) {
   await ensureBookingPartsColumns();
   const list = parseBookingParts(parts);
   if (!list.length) return null;
   const day = await loadVisitDay(await getDb(), salonUserId, bookingDate);
-  const drafted = await draftVisitParts(day, time, list);
+  const drafted = await draftVisitParts(day, time, list, { prefer });
   const teamByName = new Map(day.team.map((person) => [staffName(person), person]));
   const planned = [];
   for (const part of scheduleBookingParts(time, drafted)) {
@@ -898,7 +905,7 @@ async function addDraftedSingleSalonBooking(salonUserId, data, durationMinutes) 
       await lockVisitDay(db, salonUserId, data.bookingDate, staffList.map((person) => person.artist_user_id));
       const day = await loadVisitDay(db, salonUserId, data.bookingDate);
       const service = String(data.service || "").trim();
-      const drafted = await draftVisitParts(day, data.time, [{ service, minutes: durationMinutes, staff: "" }]);
+      const drafted = await draftVisitParts(day, data.time, [{ service, minutes: durationMinutes, staff: "" }], { prefer: data.preferStaff || "" });
       if (findUnstaffedPart(day, drafted)) {
         return { ok: false, error: "no_staff", message: `این ساعت برای «${service}» آرتیست آزاد نداریم؛ یه ساعت دیگه بزن.` };
       }
@@ -982,7 +989,7 @@ async function addMultiPartSalonBooking(salonUserId, data) {
       if (gate) return gate;
       await lockVisitDay(db, salonUserId, data.bookingDate, staffList.map((person) => person.artist_user_id));
       const day = await loadVisitDay(db, salonUserId, data.bookingDate);
-      const parts = await draftVisitParts(day, data.time, parseBookingParts(data.parts));
+      const parts = await draftVisitParts(day, data.time, parseBookingParts(data.parts), { prefer: data.preferStaff || "" });
       // A client's request must find an artist for every service someone at the salon does
       // (the same rule listFeasibleVisitTimes shows them); the salon may leave one open.
       const unstaffed = data.requireStaff ? findUnstaffedPart(day, parts) : null;

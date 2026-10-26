@@ -22,6 +22,7 @@ import { bundleServices } from "../../shared/lib/serviceBundle";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
 import { SalonClientGallery } from "./SalonClientGallery";
+import { SalonTeam } from "./SalonTeam";
 import { SheetClose } from "../../components/SheetClose";
 import { WeeklyHours } from "../../components/WeeklyHours";
 import { ConnectToggle } from "../connect/ConnectToggle";
@@ -62,6 +63,8 @@ export function SalonClientPage({
   onShare,
   postActions = null,
   onOpenBooking,
+  // Opens a team artist's own page («صفحهٔ …» on their card); without it the card links to /artists/:id.
+  onOpenArtist = null,
   // A salon or artist looking at this page (opened from a scanned code): their own bar replaces «رزرو» and «وصل شو».
   visitorBar = null,
   continueFor = null,
@@ -71,6 +74,12 @@ export function SalonClientPage({
 }) {
   const [publicSheet, setPublicSheet] = useState("");
   const [servicesOpen, setServicesOpen] = useState(false);
+  // «رزرو با …» from a team card: the services menu shows only that member's services and books with them.
+  const [bookWith, setBookWith] = useState(null);
+  // «نمونه‌کارها» filter: "all", "salon", or a team member's staffId.
+  const [postsBy, setPostsBy] = useState("all");
+  const salonKey = selectedSalon?.id ?? "";
+  useEffect(() => { setBookWith(null); setPostsBy("all"); }, [salonKey]);
   const services = selectedSalon ? getVisibleServices(selectedSalon) : [];
   // Opened from a category on «سالن و آرتیست من»: show the services menu as soon as the services have loaded.
   const focus = selectedSalon?.focusServices || null;
@@ -78,9 +87,41 @@ export function SalonClientPage({
   useEffect(() => {
     if (focus && hasServices) setServicesOpen(true);
   }, [focus, hasServices]);
-  const portfolioItems = Array.isArray(selectedSalon?.portfolio) ? selectedSalon.portfolio : [];
+  const salonPosts = Array.isArray(selectedSalon?.portfolio) ? selectedSalon.portfolio : [];
   const publicName = selectedSalon?.name || "سالن";
-  const teamMembers = (selectedSalon?.staff || []).filter((member) => member && (member.artist_name || member.name)).slice(0, 12);
+  // The team as the salon's public page shows it (repos/salons/team.js); until the detail arrives, the plain staff list.
+  const team = Array.isArray(selectedSalon?.team)
+    ? selectedSalon.team
+    : (selectedSalon?.staff || []).filter((member) => member && (member.artist_name || member.name)).map((member) => ({
+      staffId: member.id ?? null,
+      name: member.artist_name || member.name,
+      bookingName: String(member.name || "").trim(),
+      role: String(member.role || member.artist_service || "").split(/[،,]/)[0],
+      avatar: member.avatar || member.staff_avatar || "",
+      isOwner: Boolean(member.is_owner),
+      posts: []
+    }));
+  // The salon's own posts and its team artists' (owner's decision 2026-10-26), newest first; each team post carries
+  // its artist (`by`) for the name on the tile and the viewer.
+  const teamPosts = team.filter((member) => !member.isOwner).flatMap((member) => (member.posts || []).map((post) => ({
+    ...post,
+    staffKey: String(member.staffId),
+    by: { name: member.name, role: "آرتیست", area: selectedSalon?.area || "", avatar: member.avatar || "" }
+  })));
+  const allPosts = teamPosts.length
+    ? [...salonPosts, ...teamPosts].sort((a, b) => (Number(Boolean(b.featured && !b.by)) - Number(Boolean(a.featured && !a.by)))
+      || (new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()))
+    : salonPosts;
+  const postFilters = teamPosts.length ? [
+    { key: "all", label: "همه" },
+    ...(salonPosts.length ? [{ key: "salon", label: "سالن" }] : []),
+    ...team.filter((member) => !member.isOwner && member.posts?.length).map((member) => ({ key: String(member.staffId), label: member.name }))
+  ] : [];
+  const activeFilter = postFilters.some((filter) => filter.key === postsBy) ? postsBy : "all";
+  const portfolioItems = activeFilter === "all" ? allPosts
+    : activeFilter === "salon" ? salonPosts
+    : teamPosts.filter((post) => post.staffKey === activeFilter);
+  const menuServices = bookWith ? bookWith.services : services;
   const weekHours = Array.isArray(selectedSalon?.hours) ? selectedSalon.hours : [];
   const todayName = PERSIAN_WEEKDAYS[new Date().getDay()];
   const prices = services.map((service) => parseTomanAmount(service.price)).filter(Boolean);
@@ -165,22 +206,21 @@ export function SalonClientPage({
           {/* Clients pick services from the «رزرو» bar; a visiting salon or artist has no bar, so it sees them here. */}
           {visitorBar ? <ServicesOnPage services={services} /> : null}
 
-          {teamMembers.length ? (
-            <section className="spvSection spvTeam" aria-label="تیم سالن">
-              <h3 className="spvHead">تیم سالن</h3>
-              <div className="spvTeamRail">
-                {teamMembers.map((member) => (
-                  <div className="spvMember" key={member.id || member.name}>
-                    <img src={member.avatar || member.staff_avatar || "/profile-icon.svg"} alt="" loading="lazy" decoding="async" />
-                    <b>{member.artist_name || member.name}</b>
-                    <small>{String(member.role || member.artist_service || "آرتیست").split(/[،,]/)[0]}</small>
-                  </div>
-                ))}
-              </div>
-            </section>
-          ) : null}
+          <SalonTeam
+            salon={selectedSalon}
+            team={team}
+            services={services}
+            salonPosts={salonPosts}
+            getFallbackStyle={getPortfolioCardStyle}
+            postActions={postActions}
+            onBookWith={visitorBar || selectedSalon.onlineBookingPaused ? null : (member, theirs) => {
+              setBookWith({ member, services: theirs });
+              setServicesOpen(true);
+            }}
+            onOpenArtist={onOpenArtist}
+          />
 
-          {portfolioItems.length ? (
+          {allPosts.length ? (
           <section className="spvSection salonPublicPortfolio" aria-label="نمونه‌کارها">
             <div className="spvHeadRow">
               <h3 className="spvHead">نمونه‌کارها</h3>
@@ -190,6 +230,21 @@ export function SalonClientPage({
                 </button>
               ) : null}
             </div>
+            {postFilters.length > 2 ? (
+              <div className="spvPostFilters" role="group" aria-label="نمونه‌کارهای کی؟">
+                {postFilters.map((filter) => (
+                  <button
+                    type="button"
+                    key={filter.key}
+                    aria-pressed={activeFilter === filter.key}
+                    className={activeFilter === filter.key ? "is-on" : ""}
+                    onClick={() => setPostsBy(filter.key)}
+                  >
+                    {filter.label}
+                  </button>
+                ))}
+              </div>
+            ) : null}
             <SalonClientGallery
               salon={selectedSalon}
               items={portfolioItems.slice(0, PORTFOLIO_PREVIEW)}
@@ -203,23 +258,29 @@ export function SalonClientPage({
           {visitorBar || (
           <>
           <ServicesDropUp
+            key={bookWith ? `with-${bookWith.member.staffId}` : "all"}
             open={servicesOpen}
-            title={`خدمات ${publicName}`}
-            services={services}
-            focusNames={focus?.names}
-            focusLabel={focus?.label ? `مناسب «${focus.label}»` : ""}
+            title={bookWith ? `کارهای ${bookWith.member.name}` : `خدمات ${publicName}`}
+            services={menuServices}
+            focusNames={bookWith ? null : focus?.names}
+            focusLabel={focus?.label && !bookWith ? `مناسب «${focus.label}»` : ""}
+            note={bookWith ? `کارهای ${bookWith.member.name}؛ نوبتت با خودش ثبت می‌شه.` : ""}
             browseOnly={Boolean(selectedSalon.onlineBookingPaused)}
             onConfirm={(picked) => {
+              const member = bookWith?.member;
               setServicesOpen(false);
-              onOpenBooking(bundleServices(picked));
+              setBookWith(null);
+              onOpenBooking(bundleServices(picked), member ? {
+                withStaff: { staffId: member.staffId, name: member.name, bookingName: member.bookingName || member.name }
+              } : undefined);
             }}
-            onClose={() => setServicesOpen(false)}
+            onClose={() => { setServicesOpen(false); setBookWith(null); }}
           />
           <nav className="spvBar" aria-label="نوبت گرفتن">
             <button
               type="button"
               className={`spvBarBook${servicesOpen ? " is-open" : ""}`}
-              onClick={() => setServicesOpen((open) => !open)}
+              onClick={() => { setBookWith(null); setServicesOpen((open) => !open); }}
               aria-expanded={servicesOpen}
               aria-haspopup="dialog"
             >

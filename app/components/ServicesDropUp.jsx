@@ -37,7 +37,7 @@ function groupServices(services) {
  * «بستن», the dim backdrop, Back or Escape. `title` is its accessible name. With `browseOnly` (online booking
  * paused) the services are only shown: nothing to pick, no «رزرو».
  */
-export function ServicesDropUp({ open, title, services, focusNames = null, focusLabel = "", browseOnly = false, onConfirm, onClose }) {
+export function ServicesDropUp({ open, title, services, focusNames = null, focusLabel = "", browseOnly = false, note = "", onConfirm, onClose }) {
   useBackHandler(open, onClose);
   const list = Array.isArray(services) ? services : [];
   // Services the client came for (a category tapped on «سالن و آرتیست من») are listed first, in a group of their own.
@@ -81,6 +81,7 @@ export function ServicesDropUp({ open, title, services, focusNames = null, focus
       <button type="button" className="sduDim" aria-label="بستن فهرست خدمات" onClick={onClose} />
       <div className="sduPanel" role="dialog" aria-modal="true" aria-label={title}>
         <div className="sduInner">
+          {note ? <p className="sduNote">{note}</p> : null}
           {list.length === 0 ? (
             <div className="sduEmpty" role="status">
               <ServiceIconStrip size="md" />

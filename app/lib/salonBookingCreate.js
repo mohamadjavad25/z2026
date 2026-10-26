@@ -123,6 +123,7 @@ export async function createSalonBooking({ actor, salonUserId, body, data, wait 
     durationMinutes,
     parts: multiPart ? parts : undefined,
     requireStaff: isClient,
+    preferStaff: isClient && people < 2 ? String(data.preferStaff || "").trim() : "",
     // A booking is only ever tied to an account by that account itself (the salon's own entries stay
     // with the name and number it typed), so nobody can put a booking into another person's list.
     clientUserId: isClient ? actor.id : null,

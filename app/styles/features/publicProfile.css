@@ -105,6 +105,7 @@
 .sduDim { position: fixed; inset: 0; z-index: 58; padding: 0; border: 0; background: rgb(var(--ink-rgb) / 0.38); cursor: default; animation: sduDim 0.25s ease-out both; }
 .sduPanel { position: fixed; z-index: 59; right: 12px; left: 12px; bottom: calc(82px + env(safe-area-inset-bottom)); max-width: 520px; margin-inline: auto; overflow: hidden; border-radius: 28px; background: var(--n-0); color: var(--n-900); box-shadow: 0 24px 60px -12px rgb(var(--shadow-rgb) / 0.45), 0 0 0 1px rgb(var(--shadow-rgb) / 0.04); transform-origin: 50% 100%; animation: sduDrop 0.62s cubic-bezier(0.2, 0.8, 0.25, 1) both; }
 .sduInner { display: flex; flex-direction: column; max-height: calc(100dvh - 82px - 96px - env(safe-area-inset-bottom) - env(safe-area-inset-top)); animation: sduFade 0.62s ease-out both; }
+.sduNote { margin: 0; padding: 14px 18px 0; color: var(--n-700); font-size: 0.8rem; font-weight: 850; }
 .sduTabs { display: flex; gap: 8px; padding: 16px 18px 12px; overflow-x: auto; scrollbar-width: none; }
 .sduTabs::-webkit-scrollbar { display: none; }
 .sduTabs button { flex: none; height: 36px; padding: 0 14px; border: 0; border-radius: 999px; background: var(--n-100); color: var(--n-700); font: inherit; font-size: 0.8rem; font-weight: 800; white-space: nowrap; cursor: pointer; }

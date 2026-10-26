@@ -24,7 +24,7 @@ async function loadSalonFresh(id) {
   await ensureDb();
   // A suspended account has no public page: `{ unavailable: true }` makes the page say so in one sentence.
   if ((await suspendedAccountIds([userId])).has(userId)) return { unavailable: true };
-  const salon = await salons.getSalon(userId);
+  const salon = await salons.getSalon(userId, null, { withTeam: true });
   if (!salon) return null;
   // A salon switched to "خصوصی" in تنظیمات → پروفایل عمومی سالن must stay
   // hidden here too — GET /api/salons/[id] enforces the exact same rule for

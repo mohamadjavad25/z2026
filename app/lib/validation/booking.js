@@ -44,6 +44,8 @@ export const createBookingSchema = z.object({
   // The client's response window: 60 («فقط ۱ ساعت») or null («تا هر وقت»: until the appointment
   // starts). Left out, a request keeps the old hour. Ignored for anyone but a client.
   waitMinutes: z.union([z.literal(60), z.null()]).optional(),
+  // «رزرو با …»: the team member the client asked for (salon bookings only); every service goes to them or is refused.
+  preferStaff: z.string().trim().max(120).optional(),
   // A salon the client follows to send the request to if the hour runs out (salon bookings only).
   fallbackSalonUserId: z.union([z.string().max(20), z.number(), z.null()]).optional(),
   // An artist the client follows to send a direct artist request to if the hour runs out.

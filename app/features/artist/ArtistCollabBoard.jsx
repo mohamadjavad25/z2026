@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Check, LogOut, MapPin, MoreHorizontal, QrCode, ScanLine, Store, X } from "lucide-react";
+import { Check, Images, LogOut, MapPin, MoreHorizontal, QrCode, ScanLine, Store, X } from "lucide-react";
 import { Mascot } from "../../components/Mascot";
 import { ProfileQrCodeSheet } from "../../components/ProfileQrCodeSheet";
 import { usePolling } from "../../shared/lib/usePolling";
@@ -10,7 +10,7 @@ import { TermsChips } from "../collab/TermsEditor";
 import { NEGOTIABLE } from "../collab/collabPresets";
 import { ScanFlow } from "../connect/ScanFlow";
 import { ProfileSheet } from "../profile/ProfileSheet";
-import { getArtistPlace, saveArtistPlace } from "../../shared/api/artists";
+import { getArtistPlace, saveArtistPlace, setTeamPostsOnSalon } from "../../shared/api/artists";
 import { dateKeyAfter } from "../../shared/lib/artistPlace";
 import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar";
 import { toPersianDigits } from "../../shared/lib/digits";
@@ -139,6 +139,32 @@ function WhereRow({ card, workplace, onTurnOn, onTurnOff }) {
 }
 
 /**
+ * «پست‌هام توی صفحهٔ این سالن هم بیاد» (owner's decision 2026-10-26, on by default): the artist's public posts also show
+ * on that salon's page, under their name. Saved at once; `busy` while it is on its way.
+ */
+function PostsOnSalonRow({ card, saved, busy, onToggle }) {
+  const on = saved ?? card.terms?.postsOnSalon !== false;
+  return (
+    <div className={`clwWhere${on ? " is-on" : ""}`}>
+      <span className="clwWhereIcon" aria-hidden="true"><Images size={17} /></span>
+      <span className="clwWhereText">
+        <b>پست‌هام توی صفحهٔ این سالن هم بیاد</b>
+        <small>{on ? `مشتری‌های ${card.name} کارهات رو با اسمت می‌بینن.` : "خاموشه؛ پست‌هات فقط توی صفحهٔ خودت هستن."}</small>
+      </span>
+      <button
+        type="button"
+        className="plSwitch"
+        role="switch"
+        aria-checked={on}
+        aria-label={`پست‌هات توی صفحهٔ ${card.name} هم بیاد`}
+        disabled={busy}
+        onClick={() => onToggle(!on)}
+      />
+    </div>
+  );
+}
+
+/**
  * The sheet that changes where the artist's own clients go: from which day, and whether bookings already made for
  * those days move too (on by default; owner's decision of 2026-10-25). `target` is { salonId | null, name }.
  * `ask` is the question right after accepting a salon's invite.
@@ -215,6 +241,10 @@ export function ArtistCollabBoard({
   const [menuFor, setMenuFor] = useState("");
   const [switchTo, setSwitchTo] = useState(null); // { salonId | null, name, ask? }
   const [saving, setSaving] = useState(false);
+  const [postsBusy, setPostsBusy] = useState(false);
+  // What the server saved for «پست‌هام توی صفحهٔ این سالن هم بیاد», by salon, until the teams list is fetched again.
+  const [postsSaved, setPostsSaved] = useState({});
+  useEffect(() => { setPostsSaved({}); }, [teams]);
   const [message, setMessage] = useState({ bad: false, text: "" });
   const railRef = useRef(null);
   const connected = teams.length > 0;
@@ -303,6 +333,25 @@ export function ArtistCollabBoard({
   async function accept(invite) {
     const done = await onInviteRespond?.(invite.id, "تایید شد");
     if (done) setSwitchTo({ salonId: Number(invite.salonId), name: invite.salonName || "سالن", ask: true });
+  }
+
+  async function savePostsOnSalon(target, on) {
+    setPostsBusy(true);
+    setMessage({ bad: false, text: "" });
+    try {
+      const { ok, payload } = await setTeamPostsOnSalon(target.salonId, on);
+      if (!ok) {
+        setMessage({ bad: true, text: payload?.error || "ذخیره نشد؛ دوباره بزن." });
+        return;
+      }
+      const saved = (payload?.data?.teams || []).find((team) => Number(team.salonId) === target.salonId);
+      setPostsSaved((current) => ({ ...current, [target.salonId]: saved ? saved.postsOnSalon !== false : on }));
+      onChanged?.();
+    } catch {
+      setMessage({ bad: true, text: "اینترنتت کنده؛ دوباره بزن." });
+    } finally {
+      setPostsBusy(false);
+    }
   }
 
   async function saveSwitch({ startsOn, moveBookings }) {
@@ -421,6 +470,7 @@ export function ArtistCollabBoard({
                     onTurnOn={() => setSwitchTo({ salonId: card.salonId, name: card.name })}
                     onTurnOff={() => setSwitchTo({ salonId: null, name: "جای خودت" })}
                   />
+                  <PostsOnSalonRow card={card} saved={postsSaved[card.salonId]} busy={postsBusy} onToggle={(on) => savePostsOnSalon(card, on)} />
                   {info?.weekCount || card.rules ? (
                     <div className="clwFoot">
                       {info?.weekCount ? <span className="clwCount">{toPersianDigits(info.weekCount)} نوبت این هفته اینجاست</span> : <span />}

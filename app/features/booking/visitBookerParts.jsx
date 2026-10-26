@@ -33,7 +33,7 @@ function AheadNotice({ ahead, phone, onAhead }) {
   );
 }
 
-export function TimesList({ state, role, onPick, onRetry, onAhead, onChain, phone }) {
+export function TimesList({ state, role, onPick, onRetry, onAhead, onChain, phone, withName = "" }) {
   const { times } = state;
   const isClient = role === "client";
   const group = isClient && state.people > 1;
@@ -74,7 +74,9 @@ export function TimesList({ state, role, onPick, onRetry, onAhead, onChain, phon
     return (
       <>
         <p className="vbInfo" role="status">
-          {state.picked.length > 1 || (group && state.chain)
+          {withName
+            ? `${withName} این روز وقت خالی نداره؛ یه روز دیگه رو ببین یا با یکی دیگه از تیم رزرو کن.`
+            : state.picked.length > 1 || (group && state.chain)
             ? "این روز ساعتی نیست که همهٔ این کارها پشت‌سرهم جا بشن. یه روز دیگه انتخاب کن."
             : role === "artist" ? "این روز ساعت خالی‌ای به این اندازه نیست." : "این روز ساعت خالی نداره. یه روز دیگه انتخاب کن."}
         </p>

@@ -17,7 +17,13 @@ import { getBookableSalonServiceItems } from "./useSalonDirectory";
  * goes out through `onSubmit` (useSalonDirectory submitSalonClientVisit).
  */
 export function SalonClientBookingModal({ open, salon, booking, onClose, onSubmit, onEditProfile }) {
-  const services = useMemo(() => normalizeServices(getBookableSalonServiceItems(salon)), [salon]);
+  // «رزرو با …» on a team card: only what that person does here, and every request asks for them (`prefer`).
+  const withStaff = booking?.withStaff || null;
+  const services = useMemo(() => {
+    const all = getBookableSalonServiceItems(salon);
+    const theirs = withStaff ? all.filter((service) => (service.staff_ids || []).map(String).includes(String(withStaff.staffId))) : all;
+    return normalizeServices(theirs);
+  }, [salon, withStaff]);
   // The next two weeks (the form looks ahead through all of them for a free hour) as real dates (never a bare weekday name, which a server would have to guess a
   // date for), worked out each time the sheet opens so a screen left open past midnight is not a day behind.
   // Today and the next 60 days: how far a client may ask (owner's decision of 2026-10-25).
@@ -38,13 +44,14 @@ export function SalonClientBookingModal({ open, salon, booking, onClose, onSubmi
     : booking.bundle?.name === booking.service && Array.isArray(booking.bundle.items)
       ? booking.bundle.items.map(serviceKey)
       : [services.find((service) => service.name === booking.service)?.key].filter(Boolean);
+  const prefer = withStaff?.bookingName || "";
   const source = {
     loadTimes: async ({ day, services: list, people = 1 }) => {
-      const { ok, data } = await getSalonVisitTimes(salonUserId, day, list, people);
+      const { ok, data } = await getSalonVisitTimes(salonUserId, day, list, people, prefer);
       return { ok, times: data?.times };
     },
     loadPlan: async ({ day, time, services: list, people = 1 }) => {
-      const { ok, data } = await getSalonVisitPreview(salonUserId, day, time, list, [], people);
+      const { ok, data } = await getSalonVisitPreview(salonUserId, day, time, list, [], people, prefer);
       return { ok, data };
     },
     // Followed salons that could take the same visit if this one doesn't answer within the hour.
@@ -57,13 +64,14 @@ export function SalonClientBookingModal({ open, salon, booking, onClose, onSubmi
     <VisitBooker
       open
       role="client"
-      title={`نوبت در ${salon.name || "سالن"}`}
+      title={withStaff ? `نوبت با ${withStaff.name} در ${salon.name || "سالن"}` : `نوبت در ${salon.name || "سالن"}`}
+      withName={withStaff?.name || ""}
       services={services}
       days={days}
       initial={{ selected: picked, day: booking.prefill?.day, time: booking.prefill?.time, name: booking.client, phone: booking.phone }}
       contactPhone={salon.phone || ""}
       source={source}
-      onSubmit={onSubmit}
+      onSubmit={prefer ? (body) => onSubmit({ ...body, preferStaff: prefer }) : onSubmit}
       onDone={() => {}}
       onClose={onClose}
       onEditProfile={onEditProfile}

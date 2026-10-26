@@ -28,8 +28,10 @@ function getMosaicShape(ratio, index) {
  * share); opening one counts a view via `postActions.view`.
  *
  * postActions: { isSaved(post), toggleSave(post), share(post), view(post) }
+ * A team artist's post (item.by: { name, avatar, … }, see SalonClientPage) carries their name on its tile and opens
+ * with them as its owner; `owner` sets the owner for every item (an artist's own sheet in SalonTeam).
  */
-export function SalonClientGallery({ salon, items, getFallbackStyle, postActions = null, allItems = null }) {
+export function SalonClientGallery({ salon, items, getFallbackStyle, postActions = null, allItems = null, owner = null }) {
   const [selectedItem, setSelectedItem] = useState(null);
   const [imageRatios, setImageRatios] = useState({});
   // On a slow connection the pictures come last: each tile is a grey block until its small copy has arrived, and a
@@ -89,6 +91,7 @@ export function SalonClientGallery({ salon, items, getFallbackStyle, postActions
                   onError={() => setFailed((current) => ({ ...current, [key]: true }))}
                 />
               ) : null}
+              {item.by?.name && !owner ? <span className="salonClientMosaicBy">{item.by.name}</span> : null}
             </button>
           );
         })}
@@ -105,7 +108,7 @@ export function SalonClientGallery({ salon, items, getFallbackStyle, postActions
       <PostViewer
         post={selectedItem}
         posts={browseList}
-        owner={selectedItem ? { name: salon?.name || "سالن", role: "سالن", area: salon?.area || "", avatar: salon?.avatar || "" } : null}
+        owner={selectedItem ? (owner || selectedItem.by || { name: salon?.name || "سالن", role: "سالن", area: salon?.area || "", avatar: salon?.avatar || "" }) : null}
         isSaved={selectedItem ? Boolean(postActions?.isSaved?.(selectedItem)) : false}
         onClose={() => setSelectedItem(null)}
         onNavigate={openItem}

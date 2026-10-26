@@ -20,7 +20,7 @@ async function _GET(request, context) {
     return NextResponse.json({ error: PAGE_UNAVAILABLE_MESSAGE }, { status: 404 });
   }
   const viewer = await getUserFromRequest(request);
-  const salon = await salons.getSalon(userId, viewer?.id || null);
+  const salon = await salons.getSalon(userId, viewer?.id || null, { withTeam: true });
   if (!salon) {
     return NextResponse.json({ error: "سالن پیدا نشد." }, { status: 404 });
   }

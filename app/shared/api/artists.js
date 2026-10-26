@@ -113,6 +113,14 @@ export async function getArtistTeams() {
   return apiJson("/api/artist/teams");
 }
 
+/** PATCH /api/artist/teams { salonUserId, postsOnSalon } → «پست‌هام توی صفحهٔ این سالن هم بیاد» → { data: { teams } } */
+export async function setTeamPostsOnSalon(salonUserId, postsOnSalon) {
+  return apiFetch("/api/artist/teams", {
+    method: "PATCH",
+    body: JSON.stringify({ salonUserId, postsOnSalon })
+  });
+}
+
 /** DELETE /api/artist/teams { salonUserId } → leave that team → { data: { teams } } */
 export async function leaveArtistTeam(body) {
   return apiFetch("/api/artist/teams", {

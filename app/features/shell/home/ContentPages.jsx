@@ -64,6 +64,7 @@ export function ContentPages() {
     selectedSalon,
     sharePost,
     recordPostView,
+    openPublicArtistProfile,
     salonClientTab,
     isFollowingSelectedSalon,
     isSavedSelectedSalon,
@@ -171,11 +172,12 @@ export function ContentPages() {
             ) : null}
             postActions={{
               isSaved: (post) => savedPostTitles.includes(String(post.id)),
+              // A team artist's post on the salon's page (post.by) is saved as theirs.
               toggleSave: (post) => toggleSavedPost(post.title, mapSharedPost({
                 ...post,
-                ownerUserId: selectedSalon?.id,
-                ownerType: "salon",
-                salon: selectedSalon?.name
+                ownerUserId: post.by ? post.ownerUserId : selectedSalon?.id,
+                ownerType: post.by ? "artist" : "salon",
+                salon: post.by ? post.by.name : selectedSalon?.name
               })),
               share: sharePost,
               view: recordPostView
@@ -191,6 +193,7 @@ export function ContentPages() {
             onShare={shareSalonProfile}
             onTabChange={setSalonClientTab}
             onOpenBooking={openSalonClientBooking}
+            onOpenArtist={(member) => openPublicArtistProfile({ id: member.artistId, name: member.name, avatar: member.avatar })}
             continueFor={continueService?.strip}
             onContinue={continueService?.onContinue}
             onDismissContinue={continueService?.dismiss}

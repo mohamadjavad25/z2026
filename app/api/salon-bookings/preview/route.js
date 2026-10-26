@@ -90,7 +90,9 @@ async function _GET(request) {
   if (slotProblem) {
     return noStoreJson({ data: { ...base, ok: false, code: slotProblem.code, message: slotProblem.error, parts: [] } });
   }
-  const plan = await salons.previewVisit(salonUserId, bookingDateKey, time, parts, { withOptions: owner });
+  // «رزرو با …»: a client's chosen team member (see draftVisitParts); the salon names artists per service instead.
+  const prefer = !owner && people < 2 ? String(searchParams.get("prefer") || "").trim().slice(0, 120) : "";
+  const plan = await salons.previewVisit(salonUserId, bookingDateKey, time, parts, { withOptions: owner, prefer });
   // A client's request is refused first for a service nobody is free to do, as POST does (before
   // its overlap check); the salon's own entry may leave one open.
   let problem = plan.problem;
