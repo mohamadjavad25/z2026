@@ -136,3 +136,21 @@ describe("salon page team: cards and posts", () => {
     expect(JSON.stringify(salon.team)).not.toContain("کار سحر");
   });
 });
+
+describe("salon page team: «رزرو با …» only for that person's services", () => {
+  it("refuses a service given to someone else, and takes one given to nobody", async () => {
+    const ctx = await setup();
+    const day = futureBookingDay(2);
+    const only = "رنگ فقط سحر";
+    const made = await ctx.salonClient.post("/api/salon-services", { name: only, price: "500000", duration: "۶۰ دقیقه" });
+    await ctx.salonClient.patch("/api/salon-services", { id: made.payload.data.service.id, name: only, staff_ids: [String(ctx.sahar.staff.id)] });
+    const ask = async (prefer) => {
+      const query = new URLSearchParams({ salonUserId: String(ctx.salon.user.id), day, service: only, prefer });
+      return (await ctx.clientClient.get(`/api/salon-bookings/availability?${query}`)).payload.data.times;
+    };
+    expect(await ask(ctx.negar.staff.name)).toEqual([]);
+    expect((await ask(ctx.sahar.staff.name)).length).toBeGreaterThan(0);
+    const refused = await ctx.clientClient.post("/api/salon-bookings", { salonUserId: ctx.salon.user.id, service: only, bookingDate: day, time: "12:00", client: ctx.client.user.name, phone: ctx.client.phone, preferStaff: ctx.negar.staff.name });
+    expect(refused.status).toBe(409);
+  });
+});

@@ -10,10 +10,16 @@ import { thumbUrl } from "../../shared/lib/mediaUrl";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
 
-/** The services this team member does at the salon (the salon's own service list says who does what). */
+/**
+ * The services this team member does at the salon: the ones the salon's list gives them, and the ones it gives nobody
+ * (a booking drafts anyone on the team for those, see draftPool in repos/salons/bookings.js).
+ */
 export function memberServices(member, services) {
   if (member?.staffId == null) return [];
-  return (services || []).filter((service) => (service.staff_ids || []).map(String).includes(String(member.staffId)));
+  return (services || []).filter((service) => {
+    const ids = (service.staff_ids || []).map(String);
+    return !ids.length || ids.includes(String(member.staffId));
+  });
 }
 
 /** A member's posts as gallery items: their own, or the salon's for the owner (the salon's posts are theirs). */
@@ -103,7 +109,7 @@ export function SalonTeam({ salon, team, services, salonPosts = [], getFallbackS
                   return (
                     <div className="stmService" key={service.id ?? service.name}>
                       <ServiceIcon emoji={service.emoji} name={service.name} size="sm" />
-                      <span><b>{service.name}</b><small>{service.duration || "مدتش فرق می‌کنه"}</small></span>
+                      <span className="stmServiceBody"><b>{service.name}</b><small>{service.duration || "مدتش فرق می‌کنه"}</small></span>
                       <em>{amount ? <>{formatTomanNumber(amount)} <small>تومان</small></> : <small>قیمت توافقی</small>}</em>
                     </div>
                   );

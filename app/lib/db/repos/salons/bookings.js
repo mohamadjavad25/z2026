@@ -322,8 +322,9 @@ async function draftVisitParts(day, time, parts, { prefer = "" } = {}) {
     }
     if (!staff) {
       let best = null;
+      // The one asked for, if this service is theirs (the same pool the draft takes from: linked, else anyone).
       const pool = prefer
-        ? day.team.filter((person) => isStaffWorking(person) && staffName(person) === prefer)
+        ? draftPool(day, part.service).filter((person) => staffName(person) === prefer)
         : draftPool(day, part.service);
       // The seats at this hour: working team members free then, less those the salon's unassigned entries take.
       let freeSeats = 0;

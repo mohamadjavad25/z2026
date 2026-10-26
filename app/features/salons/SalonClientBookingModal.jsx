@@ -10,6 +10,7 @@ import { matchServiceNames } from "../../shared/lib/serviceMatch";
 import { buildExactBookingDateTabs } from "../artist/bookingUtils";
 import { findSalonHourForDateKey, isSalonHourOpen } from "../../shared/lib/salonAvailability";
 import { getBookableSalonServiceItems } from "./useSalonDirectory";
+import { memberServices } from "./SalonTeam";
 
 /**
  * A client's booking request at a salon: VisitBooker with the services they picked (one, or several
@@ -21,7 +22,7 @@ export function SalonClientBookingModal({ open, salon, booking, onClose, onSubmi
   const withStaff = booking?.withStaff || null;
   const services = useMemo(() => {
     const all = getBookableSalonServiceItems(salon);
-    const theirs = withStaff ? all.filter((service) => (service.staff_ids || []).map(String).includes(String(withStaff.staffId))) : all;
+    const theirs = withStaff ? memberServices(withStaff, all) : all;
     return normalizeServices(theirs);
   }, [salon, withStaff]);
   // The next two weeks (the form looks ahead through all of them for a free hour) as real dates (never a bare weekday name, which a server would have to guess a
