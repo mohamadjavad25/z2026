@@ -10,6 +10,7 @@ import {
   ImagePlus,
   Phone,
   RotateCw,
+  Scissors,
   Share2,
   UserPlus
 } from "lucide-react";
@@ -84,6 +85,11 @@ export function SalonClientPage({
   const todayName = PERSIAN_WEEKDAYS[new Date().getDay()];
   const prices = services.map((service) => parseTomanAmount(service.price)).filter(Boolean);
   const minPrice = prices.length ? Math.min(...prices) : 0;
+  // On the bottom bar: how many services and the lowest price, e.g. «۸ خدمت، قیمت از ۴ تومان».
+  const barNote = [
+    services.length ? `${toPersianDigits(services.length)} خدمت` : "",
+    minPrice ? `قیمت از ${formatTomanNumber(minPrice)} تومان` : ""
+  ].filter(Boolean).join("، ");
 
   return (
     <div className={`salonPanel mobilePage page-salons ${active ? "is-active" : ""}`} id="salons">
@@ -156,7 +162,8 @@ export function SalonClientPage({
 
           <WeeklyHours rows={weekHours} todayName={todayName} />
 
-          <ServicesOnPage services={services} onPick={visitorBar ? undefined : (service) => onOpenBooking(bundleServices([service]))} />
+          {/* Clients pick services from the «رزرو» bar; a visiting salon or artist has no bar, so it sees them here. */}
+          {visitorBar ? <ServicesOnPage services={services} /> : null}
 
           {teamMembers.length ? (
             <section className="spvSection spvTeam" aria-label="تیم سالن">
@@ -201,6 +208,7 @@ export function SalonClientPage({
             services={services}
             focusNames={focus?.names}
             focusLabel={focus?.label ? `مناسب «${focus.label}»` : ""}
+            browseOnly={Boolean(selectedSalon.onlineBookingPaused)}
             onConfirm={(picked) => {
               setServicesOpen(false);
               onOpenBooking(bundleServices(picked));
@@ -215,9 +223,9 @@ export function SalonClientPage({
               aria-expanded={servicesOpen}
               aria-haspopup="dialog"
             >
-              <CalendarCheck size={19} />
-              {servicesOpen ? "بستن" : "رزرو"}
-              {minPrice && !servicesOpen ? <small>قیمت از {formatTomanNumber(minPrice)} تومان</small> : null}
+              {selectedSalon.onlineBookingPaused ? <Scissors size={19} /> : <CalendarCheck size={19} />}
+              {servicesOpen ? "بستن" : selectedSalon.onlineBookingPaused ? "خدمات و قیمت‌ها" : "رزرو"}
+              {barNote && !servicesOpen ? <small>{barNote}</small> : null}
               <ChevronUp size={18} className={`spvBarChevron${servicesOpen ? " is-open" : ""}`} aria-hidden="true" />
             </button>
           </nav>

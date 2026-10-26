@@ -117,6 +117,7 @@
 .sduGroupHead i { flex: 1; height: 1px; background: var(--n-100); }
 .sduGroupHead small { font-size: inherit; font-weight: 700; }
 .sduItem { width: 100%; display: flex; align-items: center; gap: 12px; padding: 8px 10px; border: 0; border-radius: 18px; background: var(--n-0); color: var(--n-900); font: inherit; text-align: right; cursor: pointer; transition: background-color 0.15s, box-shadow 0.15s; -webkit-tap-highlight-color: transparent; }
+.sduItem.is-static { cursor: default; }
 .sduItem.is-selected { background: var(--n-50); box-shadow: inset 0 0 0 1.5px rgb(var(--shadow-rgb)); }
 .sduItemBody { flex: 1; min-width: 0; display: grid; gap: 2px; }
 .sduItemBody b { font-size: 0.88rem; font-weight: 900; }
@@ -165,3 +166,5 @@
 .sopPrice { flex: none; font-size: 0.88rem; font-weight: 900; white-space: nowrap; }
 .sopPrice small { color: var(--n-600); font-size: 0.68rem; font-weight: 700; }
 .sopGo { flex: none; color: var(--n-400); }
+.sopRow.is-static { cursor: default; }
+.sopRow.is-static:active { transform: none; background: var(--n-0); }

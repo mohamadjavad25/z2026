@@ -1,6 +1,6 @@
 "use client";
 
-import { Bookmark, CalendarCheck, ChevronLeft, ChevronUp, Heart, Phone, Share2 } from "lucide-react";
+import { Bookmark, CalendarCheck, ChevronLeft, ChevronUp, Heart, Phone, Scissors, Share2 } from "lucide-react";
 import { PublicProfileHeader } from "../../components/PublicProfileHeader";
 import { BookingPausedNote } from "../../components/BookingPausedNote";
 import { ServicesDropUp } from "../../components/ServicesDropUp";
@@ -96,6 +96,11 @@ export function PublicArtistModal({
 
   const prices = (services || []).map((service) => parseTomanAmount(service.price)).filter(Boolean);
   const fromPrice = prices.length ? Math.min(...prices) : 0;
+  // On the bottom bar: how many services and the lowest price, e.g. «۸ خدمت، قیمت از ۴ تومان».
+  const barNote = [
+    (services || []).length ? `${toPersianDigits((services || []).length)} خدمت` : "",
+    fromPrice ? `قیمت از ${formatTomanNumber(fromPrice)} تومان` : ""
+  ].filter(Boolean).join("، ");
   const weekHours = Array.isArray(artist.hours) ? artist.hours : [];
   const todayName = PERSIAN_WEEKDAYS[new Date().getDay()];
   function startBooking(picked) {
@@ -165,7 +170,8 @@ export function PublicArtistModal({
             {/* Hours sit above the posts so a long gallery never buries them. */}
             <WeeklyHours rows={weekHours} todayName={todayName} />
 
-            <ServicesOnPage services={services} onPick={visitorBar ? undefined : (service) => startBooking([service])} />
+            {/* Clients pick services from the «رزرو» bar; a visiting salon or artist has no bar, so it sees them here. */}
+            {visitorBar ? <ServicesOnPage services={services} /> : null}
 
             <div className="artistPublicContent" key={view}>
               <>
@@ -189,6 +195,7 @@ export function PublicArtistModal({
               services={services}
               focusNames={focus?.names}
               focusLabel={focus?.label ? `مناسب «${focus.label}»` : ""}
+              browseOnly={Boolean(artist.onlineBookingPaused)}
               onConfirm={startBooking}
               onClose={() => setServicesOpen(false)}
             />
@@ -200,9 +207,9 @@ export function PublicArtistModal({
                 aria-expanded={servicesOpen}
                 aria-haspopup="dialog"
               >
-                <CalendarCheck size={19} />
-                {servicesOpen ? "بستن" : "رزرو"}
-                {fromPrice && !servicesOpen ? <small>قیمت از {formatTomanNumber(fromPrice)} تومان</small> : null}
+                {artist.onlineBookingPaused ? <Scissors size={19} /> : <CalendarCheck size={19} />}
+                {servicesOpen ? "بستن" : artist.onlineBookingPaused ? "خدمات و قیمت‌ها" : "رزرو"}
+                {barNote && !servicesOpen ? <small>{barNote}</small> : null}
                 <ChevronUp size={18} className={`spvBarChevron${servicesOpen ? " is-open" : ""}`} aria-hidden="true" />
               </button>
             </nav>

@@ -290,7 +290,7 @@ describe("client starts from what they want (browser)", () => {
   });
 
 
-  it("from the home card: search by name, open the salon, its services are on the page, a tap goes to the times", async () => {
+  it("from the home card: search by name, open the salon, its services are behind «رزرو», a pick goes to the times", async () => {
     const { name } = await seedSalon();
     const clientApi = createClient();
     await registerUser(clientApi, { type: "client", name: "مشتری خانه" });
@@ -300,18 +300,24 @@ describe("client starts from what they want (browser)", () => {
     const home = page.locator(".clientHome .cnPage.is-compact");
     await home.getByPlaceholder("اسم سالن یا آرتیست").fill(name);
     await home.locator(".cnCard").filter({ hasText: name }).first().getByRole("button", { name: "وصل شو" }).click();
-    // the salon page lists its services with their prices, and the bottom button says «رزرو نوبت»
-    const row = page.locator(".sopRow", { hasText: "کوتاهی مو" });
-    await row.waitFor();
-    expect(await row.innerText()).toContain("دقیقه");
-    expect(await page.locator(".spvBarBook").innerText()).toContain("رزرو");
-    await row.click();
+    // the services are not listed on the page twice: the bottom button says how many and from what price
+    const bar = page.locator(".spvBarBook");
+    await bar.waitFor();
+    expect(await page.locator(".sopRow").count()).toBe(0);
+    const barText = await bar.innerText();
+    expect(barText).toContain("رزرو");
+    expect(barText).toContain("خدمت، قیمت از");
+    await bar.click();
+    const item = page.locator(".sduItem", { hasText: "کوتاهی مو" });
+    expect(await item.innerText()).toContain("دقیقه");
+    await item.click();
+    await page.locator(".sduConfirm").click();
     // the time screen: a way back, the first free time marked «زودترین», the wait question folded
     await page.locator(".vbTime.is-on.is-earliest").waitFor();
     expect(await page.locator(".wcFold").innerText()).toContain("۱ ساعت صبر می‌کنم");
     await page.getByRole("button", { name: "برگشت" }).click();
     await page.locator(".vbTime").first().waitFor({ state: "detached" });
-    await page.locator(".sopRow").first().waitFor();
+    await page.locator(".spvBarBook").waitFor();
     expect(problems).toEqual([]);
     await context.close();
   });
