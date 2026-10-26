@@ -440,7 +440,7 @@ export function ScheduleBookingMenuModal({
               ) : null}
             </div>
 
-            {!isSalonOwner && !readOnly && !sourceSalon.name && booking.id != null ? <ArtistBookingPlace booking={booking} /> : null}
+            {!isSalonOwner && !readOnly && !started && !sourceSalon.name && booking.id != null ? <ArtistBookingPlace booking={booking} /> : null}
 
             {canManage && staffState.ready ? (
               <AutoAssignCard

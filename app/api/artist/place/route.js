@@ -3,6 +3,7 @@ import { getArtistWorkplace, setArtistWorkplace } from "../../../lib/db/repos/ar
 import { noticeClientPlaceChanged } from "../../../lib/providerNotices.js";
 import { notifyConnection } from "../../../lib/connectionNotify.js";
 import { formatRelativeBookingDayLabel } from "../../../shared/lib/persianCalendar.js";
+import { toPersianDigits } from "../../../shared/lib/digits.js";
 
 export const runtime = "nodejs";
 
@@ -35,11 +36,32 @@ async function _PUT(request) {
   // The salon hears when a member starts bringing their own clients there (not when a switch is only taken back).
   const salonId = Number(body.salonId || 0);
   const already = salonId && (before.savedCurrent === salonId || before.next?.salonId === salonId);
+  // Bookings already made are mentioned only when some really moved there (none when all were over or none existed).
+  const comingIn = salonId ? result.moved.length : 0;
   if (salonId && !already && (after.savedCurrent === salonId || after.next?.salonId === salonId)) {
     const day = formatRelativeBookingDayLabel(body.startsOn);
     notifyConnection(salonId, {
       title: "یه آرتیست مشتری‌هاش رو میاره سالنت",
-      body: `${auth.user.name || "یه آرتیست"} ${day === "امروز" ? "از امروز" : `از ${day}`} مشتری‌های خودش رو توی سالنت می‌بینه. نوبت‌هاشون توی برنامهٔ روزت بنفش دیده می‌شن.`,
+      body: `${auth.user.name || "یه آرتیست"} ${day === "امروز" ? "از امروز" : `از ${day}`} مشتری‌های خودش رو توی سالنت می‌بینه.${comingIn ? ` ${toPersianDigits(comingIn)} نوبتی که از قبل داشت هم اومد سالنت.` : ""} نوبت‌هاشون توی برنامهٔ روزت بنفش دیده می‌شن.`,
+      url: "/"
+    });
+  } else if (comingIn) {
+    notifyConnection(salonId, {
+      title: "نوبت‌های یه آرتیست اومد سالنت",
+      body: `${toPersianDigits(comingIn)} نوبت ${auth.user.name || "یه آرتیست"} اومد سالنت. توی برنامهٔ روزت بنفش دیده می‌شن.`,
+      url: "/"
+    });
+  }
+  // A salon whose bookings of this artist really left hears how many (nothing when none moved).
+  const leaving = new Map();
+  for (const booking of result.moved) {
+    const from = Number(booking.place_salon_user_id || 0);
+    if (from && from !== salonId) leaving.set(from, (leaving.get(from) || 0) + 1);
+  }
+  for (const [fromSalonId, count] of leaving) {
+    notifyConnection(fromSalonId, {
+      title: "نوبت‌های یه آرتیست از سالنت رفت",
+      body: `${toPersianDigits(count)} نوبت ${auth.user.name || "یه آرتیست"} دیگه توی سالنت نیست و جای دیگه برگزار می‌شه. ساعتش توی برنامهٔ روزت فقط شلوغ دیده می‌شه.`,
       url: "/"
     });
   }

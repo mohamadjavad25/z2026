@@ -1,4 +1,5 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, afterAll } from "vitest";
+import pg from "pg";
 import { createClient, joinSalonAsArtist, registerUser } from "./helpers.js";
 import { formatPersianDateKey, getPersianWeekday } from "../../app/shared/lib/persianCalendar.js";
 import { dateKeyAfter } from "../../app/shared/lib/artistPlace.js";
@@ -6,6 +7,10 @@ import { dateKeyAfter } from "../../app/shared/lib/artistPlace.js";
 // Owner's decision of 2026-10-25: an artist's own clients go to one place at a time, the artist's «محل کار» (a salon whose
 // team they are on, or their own place), set "from this day on". A client sees where before booking and is only offered
 // hours both the artist and that salon are open. These tests drive the real server.
+
+const db = new pg.Client({ connectionString: process.env.TEST_POSTGRES_URL });
+const connected = db.connect();
+afterAll(async () => { await connected; await db.end(); });
 
 const norm = (value) => String(value || "").replace(/[\s‌]/g, "");
 
@@ -188,6 +193,31 @@ describe("where an artist's clients are received: one workplace at a time", () =
     const refused = await ctx.artistClient.put(`/api/artist-bookings/${early.payload.data.booking.id}/place`, { salonUserId: two.salon.user.id });
     expect(refused.status).toBe(409);
     expect(refused.payload.code).toBe("SALON_CLOSED");
+  });
+
+  it("a booking whose time has come stays where it was: joining a salon today moves only the ones still ahead", async () => {
+    const ctx = await setup({ team: false });
+    const { client } = await newClient();
+    const done = await book(ctx, client, dayOn(SATURDAY), "11:00");
+    const ahead = await book(ctx, client, dayOn(SATURDAY), "14:00");
+    expect([done.ok, ahead.ok]).toEqual([true, true]);
+    // The first one is turned into a visit of this morning that already happened (nobody marked it done yet).
+    await connected;
+    await db.query("UPDATE artist_bookings SET booking_date = $2, time = '00:00', status = 'تایید' WHERE id = $1", [done.payload.data.booking.id, today()]);
+    expect((await joinSalonAsArtist(ctx.artistClient, ctx.salonClient, ctx.salon.user.id)).ok).toBe(true);
+    const joined = await putPlace(ctx, ctx.salon.user.id, today(), true);
+    expect(joined.payload.data).toMatchObject({ moved: 1, kept: 0 });
+    expect((await rowOf(ctx, done.payload.data.booking.id)).placeSalon).toBeNull();
+    expect((await rowOf(ctx, ahead.payload.data.booking.id)).placeSalon.id).toBe(ctx.salon.user.id);
+    // Nor can it be moved by hand, and the salon is not shown its hour as busy any more.
+    const refused = await ctx.artistClient.put(`/api/artist-bookings/${done.payload.data.booking.id}/place`, { salonUserId: ctx.salon.user.id });
+    expect(refused.status).toBe(409);
+    const { visits, busy } = (await ctx.salonClient.get("/api/salon-staff/direct")).payload.data;
+    expect(visits.map((row) => row.id)).toEqual([ahead.payload.data.booking.id]);
+    expect(busy).toEqual([]);
+    // Nothing ahead to move: a switch moves nothing.
+    expect((await putPlace(ctx, null, today(), true)).payload.data).toMatchObject({ moved: 1 });
+    expect((await putPlace(ctx, ctx.salon.user.id, dayOn(SATURDAY, 1), true)).payload.data).toMatchObject({ moved: 0, kept: 0 });
   });
 
   it("back to the artist's own place: bookings come back with them when asked", async () => {

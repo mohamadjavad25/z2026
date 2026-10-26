@@ -154,7 +154,7 @@ function SwitchSheet({ target, ask, busy, onSave, onClose }) {
   if (ask) {
     return (
       <ProfileSheet open kicker={target.name} title={`مشتری‌هایی که خودشون ازت نوبت می‌گیرن هم بیان ${target.name}؟`} panelClassName="clwSheet" onClose={onClose}>
-        <p className="clwSheetText">اگه آره، آدرس {target.name} روی صفحه‌ت نوشته می‌شه و نوبت‌هات از امروز اونجاست. نوبت‌ها به اسم خودت می‌مونن و مشتری‌ها هم مال خودتن. هر وقت خواستی از همین تب عوضش کن.</p>
+        <p className="clwSheetText">اگه آره، آدرس {target.name} روی صفحه‌ت نوشته می‌شه و نوبت‌هات از امروز اونجاست. نوبت‌ها به اسم خودت می‌مونن و مشتری‌ها هم مال خودتن. نوبت‌هایی که ساعتشون گذشته سر جاشون می‌مونن. هر وقت خواستی از همین تب عوضش کن.</p>
         <div className="clwSheetActions">
           <button type="button" className="clwBtn is-ghost" disabled={busy} onClick={onClose}>نه، بیان جای خودم</button>
           <button type="button" className="clwBtn is-primary" disabled={busy} onClick={() => onSave({ startsOn: days[0], moveBookings: true })}>آره، بیان اینجا</button>
@@ -181,7 +181,7 @@ function SwitchSheet({ target, ask, busy, onSave, onClose }) {
       <label className="clwMove">
         <span>
           <b>نوبت‌هایی که از این روز به بعد داری هم بیان {toOwn ? "جای خودت" : "اینجا"}</b>
-          <small>به مشتری‌هاشون خبر می‌دیم. ساعتشون عوض نمی‌شه.</small>
+          <small>به مشتری‌هاشون خبر می‌دیم. ساعتشون عوض نمی‌شه. نوبت‌هایی که ساعتشون گذشته سر جاشون می‌مونن.</small>
         </span>
         <button type="button" className="plSwitch" role="switch" aria-checked={move} aria-label="نوبت‌های قبلی هم جابه‌جا بشن" onClick={() => setMove((value) => !value)} />
       </label>
