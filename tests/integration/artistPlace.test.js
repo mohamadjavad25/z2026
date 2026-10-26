@@ -220,6 +220,54 @@ describe("where an artist's clients are received: one workplace at a time", () =
     expect((await putPlace(ctx, ctx.salon.user.id, dayOn(SATURDAY, 1), true)).payload.data).toMatchObject({ moved: 0, kept: 0 });
   });
 
+  it("before a switch the artist sees which bookings would move: names first only, closed hours apart, past ones left out", async () => {
+    const ctx = await setup();
+    await ctx.salonClient.patch("/api/salon-hours", { day: SATURDAY, openTime: "14:00", closeTime: "18:00" });
+    const { client } = await newClient("Shirin Karimi");
+    const early = await book(ctx, client, dayOn(SATURDAY), "10:00");
+    const late = await book(ctx, client, dayOn(SATURDAY), "15:00");
+    const gone = await book(ctx, client, dayOn(SATURDAY, 1), "15:00");
+    await connected;
+    await db.query("UPDATE artist_bookings SET booking_date = $2, time = '00:00' WHERE id = $1", [gone.payload.data.booking.id, today()]);
+    const preview = (query) => ctx.artistClient.get(`/api/artist/place/preview?${new URLSearchParams(query)}`);
+    const seen = await preview({ salonId: ctx.salon.user.id, startsOn: today() });
+    expect(seen.ok).toBe(true);
+    expect(seen.payload.data.moving.map((row) => row.id)).toEqual([late.payload.data.booking.id]);
+    expect(seen.payload.data.staying.map((row) => row.id)).toEqual([early.payload.data.booking.id]);
+    expect(Object.keys(seen.payload.data.moving[0]).sort()).toEqual(["clientFirstName", "date", "id", "service", "time"]);
+    expect(seen.payload.data.moving[0]).toMatchObject({ clientFirstName: "Shirin", service: "کوتاهی مو", time: "15:00" });
+    expect(JSON.stringify(seen.payload)).not.toContain("Karimi");
+    // Nothing moved by looking.
+    expect((await rowOf(ctx, late.payload.data.booking.id)).placeSalon).toBeNull();
+    // A later day leaves out what comes before it; the own place has nothing to bring back yet.
+    expect((await preview({ salonId: ctx.salon.user.id, startsOn: dateKeyAfter(40) })).payload.data).toEqual({ moving: [], staying: [] });
+    expect((await preview({ startsOn: today() })).payload.data).toEqual({ moving: [], staying: [] });
+    // Checked like the switch itself.
+    expect((await preview({ salonId: ctx.salon.user.id, startsOn: dateKeyAfter(-1) })).payload.code).toBe("BAD_DAY");
+    const stranger = createClient();
+    const other = await registerUser(stranger, { type: "salon", name: "Not My Salon" });
+    expect((await preview({ salonId: other.user.id, startsOn: today() })).payload.code).toBe("NOT_MEMBER");
+    expect((await client.get(`/api/artist/place/preview?startsOn=${today()}`)).status).toBe(403);
+    // The switch moves exactly what the list showed.
+    const moved = await putPlace(ctx, ctx.salon.user.id, today(), true);
+    expect(moved.payload.data).toMatchObject({ moved: 1, kept: 1 });
+    expect((await rowOf(ctx, late.payload.data.booking.id)).placeSalon.id).toBe(ctx.salon.user.id);
+  });
+
+  it("two switches at the same moment (two phones): the bookings end up where the clients go", async () => {
+    const ctx = await setup();
+    const { client } = await newClient();
+    const made = await book(ctx, client, dayOn(SATURDAY), "11:00");
+    for (let round = 0; round < 3; round += 1) {
+      const results = await Promise.all([putPlace(ctx, ctx.salon.user.id, today(), true), putPlace(ctx, null, today(), true)]);
+      expect(results.every((result) => result.ok)).toBe(true);
+      const where = (await getPlace(ctx)).current;
+      expect((await rowOf(ctx, made.payload.data.booking.id)).placeSalon?.id ?? null).toBe(where);
+      // Between them the booking moved exactly once per real change of place.
+      expect(results.reduce((sum, result) => sum + result.payload.data.moved, 0)).toBeLessThanOrEqual(2);
+    }
+  });
+
   it("back to the artist's own place: bookings come back with them when asked", async () => {
     const ctx = await setup();
     expect((await putPlace(ctx, ctx.salon.user.id)).ok).toBe(true);
