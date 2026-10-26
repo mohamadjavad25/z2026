@@ -10,6 +10,7 @@ import { NEAR_BOOKING_HOURS } from "../../../shared/lib/providerRules.js";
 import { noticeClientCancelledByProvider } from "../../providerNotices.js";
 import { notifyConnection } from "../../connectionNotify.js";
 import { salonGone } from "../../artistPlaceRelease.js";
+import { deleteClientAccount } from "./clientExit.js";
 
 /**
  * Leaving: a salon or artist deleting their account, an artist leaving a salon team, a salon removing a team member
@@ -290,10 +291,8 @@ export async function leaveOrRemoveFromTeam({ scope, actor, salonUserId, staffId
  * during these steps) is closed by closeOrphanBookings straight away and by the sweep later.
  */
 export async function deleteProviderAccount({ user, cancelAll = false, byAdmin = false }) {
-  if (!["salon", "artist"].includes(user.type)) {
-    await users.deleteUserDetachingPhone(user.id);
-    return { ok: true };
-  }
+  // A client: their own rule (clientExit.js), the client side of the same «never broken without notice».
+  if (!["salon", "artist"].includes(user.type)) return deleteClientAccount({ user, cancelAll, byAdmin });
   const now = new Date();
   const plan = await planExit({ scope: "account", user, now });
   if (!byAdmin && plan.near.length) return BLOCKED(plan);

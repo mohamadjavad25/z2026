@@ -545,7 +545,9 @@ export function ScheduleBookingMenuModal({
             {readOnly && !(noShowAt === "open" && onNoShow) ? (
               <p className="scheduleBookingReadOnlyNote">
                 <Eye size={14} aria-hidden="true" />
-                {isCancelled ? "این نوبت بسته شده؛ فقط می‌شه دیدش." : markedNoShow ? "مشتری نیومد؛ این نوبت بسته شده." : "این نوبت گذشته؛ فقط می‌شه دیدش."}
+                {isCancelled && booking.client_account_deleted_at
+                  ? `${booking.client || "مشتری"} حسابش رو از فرفرو پاک کرد و این نوبت لغو شد.`
+                  : isCancelled ? "این نوبت بسته شده؛ فقط می‌شه دیدش." : markedNoShow ? "مشتری نیومد؛ این نوبت بسته شده." : "این نوبت گذشته؛ فقط می‌شه دیدش."}
               </p>
             ) : null}
 

@@ -25,7 +25,7 @@ describe("customers page: deleted accounts and «از لیست مشتری‌ها
     });
     expect(kept.ok).toBe(true);
 
-    const del = await clientApi.delete("/api/profile", { currentPassword: "testpass123" });
+    const del = await clientApi.delete("/api/profile", { currentPassword: "testpass123", cancelAll: true });
     expect(del.ok).toBe(true);
 
     const list = await salonClient.get("/api/salon-bookings");

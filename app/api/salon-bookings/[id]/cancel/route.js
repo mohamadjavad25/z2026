@@ -1,9 +1,7 @@
 import { error, json, notFound, parseId, requireUserRole, withErrorHandling } from "../../../../lib/http.js";
 import * as salons from "../../../../lib/db/repos/salons.js";
-import { sendPushToUser } from "../../../../lib/push.js";
-import { bookingWhen, smsClientCancelled } from "../../../../lib/bookingSms.js";
+import { noticeProviderClientCancelled } from "../../../../lib/clientCancelNotice.js";
 import { checkRateLimit } from "../../../../lib/rateLimit.js";
-import { notifyStaff } from "../../../../lib/staffNotify.js";
 
 export const runtime = "nodejs";
 
@@ -23,15 +21,7 @@ async function _POST(request, { params }) {
     if (result.error === "past") return error("این نوبت گذشته و دیگه لغو نمی‌شه.", 409);
     return error("لغو نشد؛ دوباره بزن.", 409);
   }
-  const push = sendPushToUser(result.salonUserId, {
-    title: "مشتری نوبت رو لغو کرد",
-    body: `${result.booking.client || "مشتری"}، ${result.booking.service || "نوبت"}، ${bookingWhen(result.booking.booking_date, result.booking.time)}`
-  }).catch(() => null);
-  smsClientCancelled(result.salonUserId, { client: result.booking.client, bookingDate: result.booking.booking_date, time: result.booking.time }, push);
-  notifyStaff({ salonBookingId: result.booking.id }, {
-    title: "مشتری نوبت رو لغو کرد",
-    body: `${result.booking.client || "مشتری"}، ${result.booking.service || "نوبت"}، ${bookingWhen(result.booking.booking_date, result.booking.time)}`
-  });
+  noticeProviderClientCancelled("salon", result);
   return json({ data: { booking: result.booking } });
 }
 

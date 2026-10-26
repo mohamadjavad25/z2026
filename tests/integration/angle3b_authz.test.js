@@ -197,7 +197,10 @@ describe("angle3b: account state vs sessions", () => {
     const dup = createClient();
     await dup.post("/api/auth/login", { phone: acc.phone, password: acc.password });
     await bookSalon({ client: c1, user: acc.user, phone: acc.phone }, salon, { day: futureBookingDay(2), time: hhmm(10) });
-    const del = await c1.delete("/api/profile", { currentPassword: acc.password });
+    // An open request asks first (owner's decision 2026-10-26): «لغو همه و پاک کردن حساب».
+    const asked = await c1.delete("/api/profile", { currentPassword: acc.password });
+    expect(asked.status).toBe(409);
+    const del = await c1.delete("/api/profile", { currentPassword: acc.password, cancelAll: true });
     expect(del.ok).toBe(true);
     expect((await dup.get("/api/auth/me")).payload.data.user).toBeNull();
     expect((await dup.get("/api/client-bookings")).status).toBe(401);
