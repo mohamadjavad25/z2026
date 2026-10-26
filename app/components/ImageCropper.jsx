@@ -4,6 +4,10 @@ import { useCallback, useEffect, useImperativeHandle, useLayoutEffect, useRef, u
 import { Minus, Plus } from "lucide-react";
 
 const MAX_ZOOM = 4;
+// With aspect="auto" the frame takes the photo's own shape, kept between these (a long phone
+// screenshot is about 9:20; anything narrower or wider is framed at the limit).
+const AUTO_ASPECT_MIN = 0.4;
+const AUTO_ASPECT_MAX = 2.5;
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
@@ -15,11 +19,12 @@ function clamp(value, min, max) {
  * screen. `ref.current.exportCrop()` bakes the framed region into a new
  * image (data URL), which means every surface that shows it renders the same
  * pixels instead of re-deriving a crop from CSS object-position.
+ * `aspect="auto"` frames the whole photo in its own shape instead.
  */
 export function ImageCropper({
   ref,
   src,
-  aspect = 1,
+  aspect: aspectProp = 1,
   shape = "rect",
   outputWidth = 1080,
   quality = 0.9,
@@ -64,6 +69,9 @@ export function ImageCropper({
     return () => observer.disconnect();
   }, []);
 
+  const aspect = aspectProp === "auto"
+    ? (natural ? clamp(natural.w / natural.h, AUTO_ASPECT_MIN, AUTO_ASPECT_MAX) : 4 / 5)
+    : aspectProp;
   const baseScale = natural && frame.w ? Math.max(frame.w / natural.w, frame.h / natural.h) : 1;
   const scale = baseScale * zoom;
 
@@ -181,7 +189,7 @@ export function ImageCropper({
       <div
         ref={frameRef}
         className={`imageCropperFrame is-${shape}`}
-        style={{ aspectRatio: String(aspect) }}
+        style={{ aspectRatio: String(aspect), "--crop-aspect": aspect }}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}

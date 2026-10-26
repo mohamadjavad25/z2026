@@ -9,9 +9,9 @@ import { SheetClose } from "../../components/SheetClose";
 
 // A photo this small and no bigger than MAX_SOURCE_SIDE goes to the crop step untouched.
 const SMALL_ENOUGH_BYTES = 4 * 1024 * 1024;
-// 4:5 is the card ratio used in the galleries, so the framing
-// chosen here is exactly what every card shows.
-const POST_ASPECT = 4 / 5;
+// A post keeps the photo's own shape (owner's request 2026-10-26: a tall screenshot was cut to
+// 4:5). The full viewer shows it whole; only the small gallery cards trim it to 4:5.
+const POST_ASPECT = "auto";
 // Phone photos can be huge; the crop step never needs more than this on its long side.
 const MAX_SOURCE_SIDE = 2400;
 
