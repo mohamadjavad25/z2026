@@ -10,7 +10,7 @@ import { DUE_CUSTOM_MAX, DUE_GAP_CHOICES, DUE_TEXTS, dueText, gapLabel } from ".
 
 /**
  * «وقتش شده» on the salon's and the artist's side (owner's decisions of 2026-10-25): a card on the services page that asks
- * once («همه درسته» / «عوض می‌کنم») and a section below the services where each service's gap and text can be changed.
+ * once («روشنش کن» / «اول فاصله‌ها رو ببینم») and a section below the services where each service's gap and text can be changed.
  * Nothing goes to the clients until the place has confirmed once.
  */
 
@@ -32,7 +32,7 @@ function useDuePlan(reloadKey) {
 
 /**
  * The services page with «وقتش شده» around it. Until the place has confirmed once, a card above the services asks
- * («همه درسته» / «عوض می‌کنم»); the full list where each gap and text can be changed sits below them. The question
+ * («روشنش کن» / «اول فاصله‌ها رو ببینم»); the full list where each gap and text can be changed sits below them. The question
  * lives here, not as a pop-up on the home page (owner's request 2026-10-26: each start-up question in its own section).
  * `reloadKey` changes when the menu changes.
  */
@@ -54,22 +54,27 @@ function DueAskCard({ plan, send }) {
   const shown = plan.services.filter((service) => service.gapDays > 0);
   return (
     <section className="dueCard" aria-labelledby="due-ask-title">
-      <span className="dueCardIcon" aria-hidden="true"><BellRing size={20} /></span>
-      <b id="due-ask-title">یادآوری «وقتش شده»</b>
-      <p>چند هفته بعد از هر نوبت، مشتری یه اعلان می‌گیره که وقت دوباره‌شه. تا تأیید نکنی، چیزی برای مشتری‌ها نمی‌ره.</p>
+      <div className="dueCardHead">
+        <span className="dueCardIcon" aria-hidden="true"><BellRing size={16} /></span>
+        <span>
+          <b id="due-ask-title">یادآوری وقتش شده</b>
+          <small>هنوز خاموشه</small>
+        </span>
+      </div>
+      <p>وقتی وقت دوبارهٔ هر خدمت برسه، یه یادآوری برای مشتری می‌ره تا دوباره نوبت بگیره.</p>
       {shown.length ? (
         <ul className="dueCardList">
-          {shown.slice(0, 6).map((service) => (
-            <li key={service.name}><span>{service.name}</span><em>{gapLabel(service.gapDays)}</em></li>
+          {shown.slice(0, 4).map((service) => (
+            <li key={service.name}><span>{service.name}</span><em>{gapLabel(service.gapDays).replace("هر ", "")}</em></li>
           ))}
-          {shown.length > 6 ? <li className="is-more">و {toPersianDigits(shown.length - 6)} خدمت دیگه</li> : null}
+          {shown.length > 4 ? <li className="is-more">+{toPersianDigits(shown.length - 4)}</li> : null}
         </ul>
-      ) : <p>برای خدمت‌هات فاصلهٔ معمولی پیدا نکردیم؛ با «عوض می‌کنم» خودت بذار.</p>}
+      ) : null}
       <div className="dueCardActions">
         <button type="button" className="dueBtn is-main" disabled={busy} onClick={async () => { setBusy(true); await send({ confirm: true }); setBusy(false); }}>
-          <Check size={16} aria-hidden="true" />{busy ? "یه لحظه…" : "همه درسته"}
+          <Check size={16} aria-hidden="true" />{busy ? "یه لحظه…" : "روشنش کن"}
         </button>
-        <button type="button" className="dueBtn" onClick={() => setEditing(true)}>عوض می‌کنم</button>
+        <button type="button" className="dueLink" onClick={() => setEditing(true)}>{shown.length ? "اول فاصله‌ها رو ببینم" : "فاصله‌ها رو بذار"}</button>
       </div>
       <ProfileSheet open={editing} kicker="خدمت‌ها" title="یادآوری وقتش شده" onClose={() => setEditing(false)}>
         <DueRuleList plan={plan} send={send} />
@@ -82,11 +87,7 @@ function DueRulesSection({ plan, send }) {
   return (
     <section className="dueSection" aria-labelledby="due-section-title">
       <h3 id="due-section-title"><BellRing size={16} aria-hidden="true" />یادآوری وقتش شده</h3>
-      <p className={plan.confirmed ? "" : "is-warn"}>
-        {plan.confirmed
-          ? "چند هفته بعد از هر نوبت، مشتری یه اعلان می‌گیره. برای عوض کردن، روی هر خدمت بزن."
-          : "هنوز تأیید نکردی؛ تا تأیید نکنی، چیزی برای مشتری‌ها نمی‌ره."}
-      </p>
+      <p>{plan.confirmed ? "روشنه. برای عوض کردن فاصله یا متن، روی هر خدمت بزن." : "خاموشه؛ با «روشنش کن» بالای خدمت‌ها روشن می‌شه."}</p>
       <DueRuleList plan={plan} send={send} />
     </section>
   );
