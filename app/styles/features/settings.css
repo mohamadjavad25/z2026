@@ -421,7 +421,7 @@
   line-height: 1.7;
 }
 
-/* Post composer: 4:5 preview + crop stage + service-only category select */
+/* Post composer: whole-photo preview + crop stage + service-only category select */
 .profilePostComposer .artistWorkHero.has-image{
   height: 300px;
   min-height: 300px;
@@ -430,12 +430,13 @@
 }
 
 /* Explicit size: a % height does not resolve here, and the picture used to
-   render at its full 1080px, so only a zoomed-in corner showed. */
+   render at its full 1080px, so only a zoomed-in corner showed. The width follows the photo's own
+   shape, so a tall or wide post is previewed whole. */
 .profilePostComposer .artistWorkHero.has-image img{
-  width: 240px;
+  width: auto;
   height: 300px;
-  max-width: 100%;
-  object-fit: cover;
+  max-width: calc(100% - 32px);
+  object-fit: contain;
 }
 
 .artistWorkCropStage{
@@ -445,8 +446,9 @@
   background: var(--n-0);
 }
 
+/* Narrow enough that a tall photo (framed in its own shape) still fits the screen with its buttons. */
 .artistWorkCropStage .imageCropperFrame{
-  max-width: 250px;
+  max-width: min(250px, calc(52dvh * var(--crop-aspect, 1)));
 }
 
 .artistWorkCropActions{
