@@ -441,7 +441,7 @@ export function ArtistCollabBoard({
 
       {connected ? <p className="clwAddLead">یه سالن دیگه هم اضافه کن</p> : null}
       <div className="cnScanRow">
-        <button type="button" className="cnScanBtn is-dark" onClick={() => setSheet("scan")}>
+        <button type="button" className="cnScanBtn" onClick={() => setSheet("scan")}>
           <span aria-hidden="true"><ScanLine size={20} /></span>
           <span><b>اسکن کن</b><small>کد سالن رو اسکن کن</small></span>
         </button>
