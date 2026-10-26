@@ -55,7 +55,7 @@ describe("a client can't request a time that starts too soon", () => {
     const nextHalfHour = (Math.floor(nowMinutes / 30) + 1) * 30;
     const soon = await clientApi.post("/api/artist/bookings", body(minutesToPersianTime(nextHalfHour)));
     expect(soon.status).toBe(409);
-    expect(JSON.stringify(soon.payload)).toContain("حداقل");
+    expect(JSON.stringify(soon.payload)).toContain("دست‌کم");
     // The artist's own entry (a walk-in, minutes from now) is fine; bookings last an hour, so the
     // client's later request goes well after it.
     const own = await artistClient.post("/api/artist/bookings", { ...body(minutesToPersianTime(nextHalfHour)), clientName: "حضوری", clientPhone: "09120000999" });

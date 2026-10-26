@@ -20,10 +20,25 @@ const persianWeekdayFmt = new Intl.DateTimeFormat("fa-IR", {
 export const PERSIAN_WEEKDAY_HEADERS = ["ش", "ی", "د", "س", "چ", "پ", "ج"];
 export const PERSIAN_WEEKDAYS = ["شنبه", "یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنجشنبه", "جمعه"];
 
+const tehranGregorianFmt = new Intl.DateTimeFormat("en-US", {
+  year: "numeric",
+  month: "numeric",
+  day: "numeric",
+  timeZone: "Asia/Tehran"
+});
+
+/**
+ * One fixed moment inside the Tehran day that holds `date`: noon in Tehran. Every day value here is such a
+ * moment, so +1 day with setDate stays inside the next Tehran day whatever the machine's own time zone. It used
+ * to be the machine's local midnight, which on a server set to UTC (Vercel) is still the day before in Tehran from
+ * midnight to 03:30, so «فردا» there meant today.
+ */
 function startOfDay(date) {
-  const next = new Date(date);
-  next.setHours(0, 0, 0, 0);
-  return next;
+  const parts = Object.fromEntries(
+    tehranGregorianFmt.formatToParts(new Date(date)).filter((part) => part.type !== "literal").map((part) => [part.type, Number(part.value)])
+  );
+  // Tehran is UTC+03:30 (no daylight saving since 1401); an hour either way would still be the same day.
+  return new Date(Date.UTC(parts.year, parts.month - 1, parts.day, 12, 0) - (3 * 60 + 30) * 60000);
 }
 
 export function getPersianDateParts(date = new Date()) {

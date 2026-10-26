@@ -153,8 +153,13 @@ describe("«پیشنهاد ساعت دیگر» on a confirmed booking", () => {
     // the client no longer sees an open proposal
     const card = (await client.api.get("/api/client-bookings")).payload.data.salonBookings.find((b) => b.id === id);
     expect(card.proposal).toBeNull();
+    // ... but the card carries the line «پیشنهاد سالن … تموم شد. نوبتت همون … سر جاشه.» (owner's decision of 2026-10-25)
+    expect(card.proposal_lapsed_at).toBeTruthy();
     expect((await answer(client, { kind: "salon", id, action: "accept" })).status).toBe(409);
     expect((await salonRow(id)).time).toBe("11:00");
+    // a new proposal clears the line
+    expect((await salon.api.patch("/api/salon-bookings", { id, time: "14:00" })).ok).toBe(true);
+    expect((await salonRow(id)).proposal_lapsed_at).toBeNull();
   });
 
   it("a proposal that ran out is also refused on read, before any sweep: «قبول» after the deadline keeps the original", async () => {

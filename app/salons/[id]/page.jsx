@@ -34,7 +34,9 @@ async function loadSalonFresh(id) {
   // Round-tripping through JSON.stringify/parse guarantees plain
   // objects/arrays throughout (services/portfolio/staff/hours) before
   // crossing the "use client" SalonPublicPageClient RSC boundary.
-  return JSON.parse(JSON.stringify(salon));
+  // The page never shows the number, and it is the owner's login phone: it stays out of the HTML.
+  const { phone: _loginPhone, ...shown } = salon;
+  return JSON.parse(JSON.stringify(shown));
 }
 
 export async function generateMetadata({ params }) {

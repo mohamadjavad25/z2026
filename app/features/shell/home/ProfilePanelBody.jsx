@@ -2,7 +2,8 @@ import { useState } from "react";
 import { AuthGateForms } from "../../auth";
 import { ProfileHero } from "../../profile/ProfileHero";
 import { openLocationSettings } from "../../profile/locationEvents";
-import { ProfileCompleteness } from "../../profile/ProfileCompleteness";
+import { ProfileCompleteness, ProfileReadyCelebration } from "../../profile/ProfileCompleteness";
+import { DueRemindersCard, DueRemindersSection } from "../../dueReminders/DueReminders";
 import { BillingBanner } from "../../billing";
 import { SalonStaffWorkspace, SalonServicesWorkspace } from "../../salons";
 import { ProfileGallery } from "../../profile/ProfileGallery";
@@ -172,7 +173,15 @@ export function ProfilePanelBody() {
                 setSignupStep("form");
                 setAuthNotice("");
               }}
-              onSwitchToLogin={() => { setAuthMode("login"); setAuthNotice(""); }}
+              onSwitchToLogin={(takenPhone) => {
+                // With a phone: sign-up found it already has an account, so the login opens with it filled in.
+                const taken = typeof takenPhone === "string" && takenPhone ? takenPhone : "";
+                if (taken) {
+                  try { window.localStorage.setItem("frfro_last_phone", taken); } catch { /* only fills the form */ }
+                }
+                setAuthMode("login");
+                setAuthNotice(taken ? "این شماره حساب داره؛ با رمزت وارد شو." : "");
+              }}
               onSwitchToSignup={() => { setAuthMode("signup"); setSignupStep("role"); setAuthNotice(""); }}
               onBackToRole={() => setSignupStep("role")}
               onLoginSubmit={handleLoginSubmit}
@@ -239,6 +248,14 @@ export function ProfilePanelBody() {
               <BillingBanner />
             ) : null}
 
+            {createdProfile?.type === "salon" || createdProfile?.type === "artist" ? (
+              <ProfileReadyCelebration
+                profile={createdProfile}
+                serviceCount={createdProfile.type === "salon" ? salonServiceList.length : artistServiceList.length}
+                ready={!(createdProfile.type === "salon" ? salonWorkspaceLoading : artistWorkspaceLoading)}
+              />
+            ) : null}
+
             {/* Wait for the workspace to load: until then the service count reads 0 and a complete profile would flash the card. */}
             {(createdProfile?.type === "salon" || createdProfile?.type === "artist") && createdProfile.type === profileType && profileView === "overview" && !salonWorkspace
               && !(createdProfile.type === "salon" ? salonWorkspaceLoading : artistWorkspaceLoading) ? (
@@ -259,6 +276,11 @@ export function ProfilePanelBody() {
                   }
                 }}
               />
+            ) : null}
+
+            {/* «وقتش شده»: the one-time confirmation (owner's decisions of 2026-10-25). */}
+            {(createdProfile?.type === "salon" || createdProfile?.type === "artist") && createdProfile.type === profileType && profileView === "overview" && !salonWorkspace ? (
+              <DueRemindersCard reloadKey={createdProfile.type === "salon" ? salonServiceList.length : artistServiceList.length} />
             ) : null}
 
           {createdProfile.type === profileType ? (
@@ -296,6 +318,7 @@ export function ProfilePanelBody() {
                           onEdit={editArtistService}
                         />
                       )}
+                      {salonWorkspace === "hours" && <DueRemindersSection reloadKey={salonServiceList.length} />}
 
                       {salonWorkspace === "portfolio" && (
                         <ProfileGallery
@@ -423,11 +446,14 @@ export function ProfilePanelBody() {
               )}
 
               {profileView === "services" && profileType === "artist" && (
-                <ArtistServicesPanel
-                  services={artistServiceList}
-                  onCreate={openArtistServiceCreate}
-                  onEdit={editArtistService}
-                />
+                <>
+                  <ArtistServicesPanel
+                    services={artistServiceList}
+                    onCreate={openArtistServiceCreate}
+                    onEdit={editArtistService}
+                  />
+                  <DueRemindersSection reloadKey={artistServiceList.length} />
+                </>
               )}
 
               {profileView === "collabs" && profileType === "artist" && (

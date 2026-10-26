@@ -14,6 +14,8 @@ function mapSalonInvite(row) {
     salonId: row.salon_user_id,
     salonName: row.salon_name || "",
     salonAvatar: row.salon_avatar && row.salon_user_id ? `/api/media/avatar/${row.salon_user_id}` : "",
+    salonPoster: row.salon_poster && row.salon_user_id ? `/api/media/poster/${row.salon_user_id}` : "",
+    salonPosterPosition: row.salon_poster_position || "",
     salonArea: row.salon_area || "",
     salonRules: row.salon_rules || "",
     artistId: row.artist_user_id,
@@ -49,6 +51,7 @@ export async function listSalonArtistInvites(salonUserId, { status } = {}) {
           u.phone AS artist_phone,
           s.name AS salon_name,
           (salon_user.avatar <> '' OR salon_user.avatar_url IS NOT NULL) AS salon_avatar,
+          (salon_user.poster <> '' OR salon_user.poster_url IS NOT NULL) AS salon_poster, salon_user.poster_position AS salon_poster_position,
           s.area AS salon_area,
           s.rules AS salon_rules
         FROM salon_artist_invites i
@@ -68,6 +71,7 @@ export async function listSalonArtistInvites(salonUserId, { status } = {}) {
           u.phone AS artist_phone,
           s.name AS salon_name,
           (salon_user.avatar <> '' OR salon_user.avatar_url IS NOT NULL) AS salon_avatar,
+          (salon_user.poster <> '' OR salon_user.poster_url IS NOT NULL) AS salon_poster, salon_user.poster_position AS salon_poster_position,
           s.area AS salon_area,
           s.rules AS salon_rules
         FROM salon_artist_invites i
@@ -93,6 +97,7 @@ export async function listArtistSalonInvites(artistUserId, { status } = {}) {
           u.phone AS artist_phone,
           s.name AS salon_name,
           (salon_user.avatar <> '' OR salon_user.avatar_url IS NOT NULL) AS salon_avatar,
+          (salon_user.poster <> '' OR salon_user.poster_url IS NOT NULL) AS salon_poster, salon_user.poster_position AS salon_poster_position,
           s.area AS salon_area,
           s.rules AS salon_rules
         FROM salon_artist_invites i
@@ -112,6 +117,7 @@ export async function listArtistSalonInvites(artistUserId, { status } = {}) {
           u.phone AS artist_phone,
           s.name AS salon_name,
           (salon_user.avatar <> '' OR salon_user.avatar_url IS NOT NULL) AS salon_avatar,
+          (salon_user.poster <> '' OR salon_user.poster_url IS NOT NULL) AS salon_poster, salon_user.poster_position AS salon_poster_position,
           s.area AS salon_area,
           s.rules AS salon_rules
         FROM salon_artist_invites i
@@ -146,6 +152,7 @@ async function getInviteRow(id, runner = null) {
       u.phone AS artist_phone,
       s.name AS salon_name,
       (salon_user.avatar <> '' OR salon_user.avatar_url IS NOT NULL) AS salon_avatar,
+      (salon_user.poster <> '' OR salon_user.poster_url IS NOT NULL) AS salon_poster, salon_user.poster_position AS salon_poster_position,
       s.area AS salon_area,
           s.rules AS salon_rules
     FROM salon_artist_invites i
@@ -515,6 +522,7 @@ export async function listArtistTeams(artistUserId) {
       COALESCE(s.area, '') AS salon_area,
       COALESCE(s.rules, '') AS salon_rules,
       (su.avatar <> '' OR su.avatar_url IS NOT NULL) AS salon_avatar,
+      (su.poster <> '' OR su.poster_url IS NOT NULL) AS salon_poster, su.poster_position AS salon_poster_position,
       COALESCE(i.days, c.days, '') AS days,
       COALESCE(i.from_time, c.from_time, '') AS from_time,
       COALESCE(i.to_time, c.to_time, '') AS to_time,
@@ -540,6 +548,8 @@ export async function listArtistTeams(artistUserId) {
     salonArea: row.salon_area || "",
     salonRules: row.salon_rules || "",
     salonAvatar: row.salon_avatar ? `/api/media/avatar/${row.salon_user_id}` : "",
+    salonPoster: row.salon_poster ? `/api/media/poster/${row.salon_user_id}` : "",
+    salonPosterPosition: row.salon_poster_position || "",
     role: row.role || "",
     state: row.state || "فعال",
     since: row.created_at,

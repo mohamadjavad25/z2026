@@ -22,6 +22,8 @@ export function ProfileLocationSettings({
   onSave
 }) {
   const [mapOpen, setMapOpen] = useState(false);
+  // One tap on the small ✕ must never delete a saved spot: it asks first.
+  const [askClear, setAskClear] = useState(false);
   const panelRef = useRef(null);
   const address = String(value || "");
   const savedPin = Number.isFinite(location?.lat) && Number.isFinite(location?.lng)
@@ -43,7 +45,18 @@ export function ProfileLocationSettings({
 
   return (
     <section className="profileLocationSettings" aria-label="جام روی نقشه" ref={panelRef}>
-      {!mapOpen && (
+      {!mapOpen && askClear && (
+        <div className="profileLocationAsk" role="alertdialog" aria-label="پاک کردن جا از نقشه">
+          <strong>جات از روی نقشه پاک بشه؟</strong>
+          <span>مشتری‌ها دیگه آدرست رو نمی‌بینن.</span>
+          <div>
+            <button type="button" className="profileLocationAskYes" disabled={saving} onClick={async () => { await onSave?.({ area: "" }); setAskClear(false); }}>آره، پاک کن</button>
+            <button type="button" className="profileLocationAskNo" onClick={() => setAskClear(false)}>نه، بمونه</button>
+          </div>
+        </div>
+      )}
+
+      {!mapOpen && !askClear && (
         <button type="button" className="profileLocationRow" onClick={() => setMapOpen(true)}>
           <span className="profileLocationRowIcon" aria-hidden="true">
             <MapPin size={17} />
@@ -64,8 +77,8 @@ export function ProfileLocationSettings({
               role="button"
               tabIndex={0}
               className="profileLocationRowClear"
-              onClick={(e) => { e.stopPropagation(); onSave?.({ area: "" }); }}
-              onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); onSave?.({ area: "" }); } }}
+              onClick={(e) => { e.stopPropagation(); setAskClear(true); }}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); setAskClear(true); } }}
               aria-label="پاک کردن جام از نقشه"
             >
               <X size={13} />
@@ -80,6 +93,7 @@ export function ProfileLocationSettings({
         <div className="profileLocationMapPanel">
           <MapPinPicker
             initialPin={savedPin}
+            initialAddress={address}
             initialDetail={location?.detail || ""}
             askDetail={profileType !== "client"}
             saving={saving}

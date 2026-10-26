@@ -17,7 +17,9 @@ export const DEFAULT_SETTINGS = {
   vacationMode: false,
   directBooking: true,
   autoConfirm: false,
-  reminders: true
+  reminders: true,
+  // «یادآوری وقتش شده» for clients (owner's decision of 2026-10-25: on by default).
+  dueReminders: true
 };
 
 const KNOWN_KEYS = new Set(Object.keys(DEFAULT_SETTINGS));

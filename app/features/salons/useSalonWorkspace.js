@@ -5,7 +5,7 @@ import { useAppRefresh } from "../../shared/lib/appRefresh";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createSalonBooking, getSalonBookings, getSalonCollabs, getSalonHours, getSalonInvites, getSalonPortfolio, getSalonServices, getSalonStaff, getSalons, updateSalonBooking } from "../../shared/api/salons";
 import { getApiErrorMessage } from "../../shared/lib/apiNotify";
-import { withdrawProposal } from "../../shared/api/providerExit";
+import { markNoShow, withdrawProposal } from "../../shared/api/providerExit";
 import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar";
 import { bookingWaitMinutes } from "../../shared/lib/bookingWindow";
 import { buildSalonStaffByName } from "../profile/ScheduleRow";
@@ -412,9 +412,12 @@ export function useSalonWorkspace({
     setScheduleBookingBusy(true);
     try {
       // `withdrawProposal`: the salon takes back its «پیشنهاد ساعت دیگر» (DELETE /api/booking-proposals).
+      // `noShow`: «نیومد» on a booking that has started, or taking it back (POST /api/booking-no-show).
       const { ok, payload } = patch?.withdrawProposal
         ? await withdrawProposal({ kind: "salon", id: booking.id })
-        : await updateSalonBooking({ id: booking.id, ...patch });
+        : typeof patch?.noShow === "boolean"
+          ? await markNoShow({ kind: "salon", id: booking.id, noShow: patch.noShow })
+          : await updateSalonBooking({ id: booking.id, ...patch });
       if (!ok) {
         if (Array.isArray(payload.data?.bookings)) applySalonBookings(payload.data.bookings, { bump: true });
         shellNotify(getApiErrorMessage(payload, "نوبت ذخیره نشد؛ دوباره بزن."));

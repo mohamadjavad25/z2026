@@ -1,0 +1,64 @@
+/* «همکاری تموم شد» card (features/team/TeamNoticeHost.jsx). Tokens only. */
+.teamNoticeBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-dialog);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgb(var(--shadow-rgb) / 0.42);
+}
+.teamNotice {
+  box-sizing: border-box;
+  width: min(100%, 380px);
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 22px 18px 18px;
+  border-radius: 24px;
+  background: var(--n-0);
+  color: var(--n-900);
+  text-align: center;
+  box-shadow: var(--shadow-soft);
+}
+.teamNoticeIcon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--n-50);
+  color: var(--n-900);
+}
+.teamNotice h3 { margin: 0; font-size: 1.05rem; font-weight: 950; line-height: 1.6; }
+.teamNotice p { margin: 0; color: var(--n-600); font-size: 0.86rem; line-height: 1.8; }
+.teamNotice blockquote {
+  margin: 0;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--n-50);
+  font-size: 0.86rem;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+.teamNoticeActions { width: 100%; display: grid; gap: 8px; margin-top: 4px; }
+.teamNoticeActions button,
+.teamNoticeActions a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 48px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--n-50);
+  color: var(--n-900);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 900;
+  text-decoration: none;
+  cursor: pointer;
+}
+.teamNoticeActions .is-main { background: var(--n-900); color: var(--n-0); }

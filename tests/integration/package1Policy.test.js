@@ -72,6 +72,8 @@ describe("P2: deadlines", () => {
     const listed = async () => (await b.client.get(`/api/salon-bookings/availability?salonUserId=${ctx.salon.user.id}&day=${d}&service=S30`)).payload.data.times.map(normalizeBookingTimeLabel);
     expect(await listed()).not.toContain("10:00");
     await sendBack(db, r.payload.data.booking.id, 90);
+    // The free-times answer is shared for 5 s (availabilityCache.js); ageing the row by hand bumps nothing.
+    await new Promise((resolve) => setTimeout(resolve, 5100));
     expect(await listed()).toContain("10:00");
   });
 
@@ -178,6 +180,27 @@ describe("P11: identical requests", () => {
     expect(new Set(res.map((r) => r.payload.data.booking.id)).size).toBe(1);
     const rows = (await db.query("SELECT id FROM artist_bookings WHERE artist_user_id = $1 AND status <> ALL($2)", [artist.user.id, ["لغو", "منقضی شده"]])).rows;
     expect(rows.length).toBe(1);
+  });
+
+  it("a client can book several of an independent artist's services as one visit, and only listed ones", async () => {
+    const artistClient = createClient();
+    const artist = await registerUser(artistClient, { type: "artist", name: "P11 Bundle Artist" });
+    for (const [name, duration] of [["S30", "۳۰ دقیقه"], ["S60", "۶۰ دقیقه"]]) {
+      expect((await artistClient.post("/api/artist/me", { name, price: "100", duration })).ok).toBe(true);
+    }
+    const c = await makeClient();
+    const d = day(2);
+    const viaParts = await c.client.post("/api/artist/bookings", { artistUserId: artist.user.id, service: "S30 + S60", parts: [{ service: "S30" }, { service: "S60" }], bookingDate: d, time: "10:00" });
+    expect(viaParts.status).toBe(201);
+    expect(viaParts.payload.data.booking.service).toBe("S30 + S60");
+    const row = (await db.query("SELECT duration_minutes FROM artist_bookings WHERE id = $1", [viaParts.payload.data.booking.id])).rows[0];
+    expect(Number(row.duration_minutes)).toBe(90);
+    // The joined text alone (how the expiry sweep sends a request on) is read the same way.
+    const viaText = await c.client.post("/api/artist/bookings", { artistUserId: artist.user.id, service: "S30 + S60", bookingDate: d, time: "14:00" });
+    expect(viaText.status).toBe(201);
+    const unlisted = await c.client.post("/api/artist/bookings", { artistUserId: artist.user.id, service: "S30 + X", parts: [{ service: "S30" }, { service: "X" }], bookingDate: d, time: "16:00" });
+    expect(unlisted.status).toBe(400);
+    expect(unlisted.payload.code).toBe("SERVICE_NOT_LISTED");
   });
 
   it("the same request for a visit of two services is merged too", async () => {

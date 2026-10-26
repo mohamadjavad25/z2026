@@ -45,6 +45,8 @@ export function PublicArtistModal({
   onShare,
   onSave,
   onFollow,
+  // A salon or artist looking at this page (opened from a scanned code): their own bar replaces «رزرو» and «وصل شو».
+  visitorBar = null,
   onViewChange,
   onGalleryFilterChange,
   onOpenWork,
@@ -149,7 +151,7 @@ export function PublicArtistModal({
 
           <section className="pphInfo" aria-label={`معرفی ${artist.name || "آرتیست"}`}>
             <div className="pphActions">
-              <ConnectToggle following={following} onToggle={onFollow} name={artist.name || ""} kind="آرتیست" icon={<Heart size={18} />} />
+              {visitorBar ? null : <ConnectToggle following={following} onToggle={onFollow} name={artist.name || ""} kind="آرتیست" icon={<Heart size={18} />} />}
               {artist.phone ? (
                 <a className="pphCall" href={`tel:${toLatinDigits(artist.phone)}`} aria-label="تماس با آرتیست">
                   <Phone size={18} /> تماس
@@ -163,7 +165,7 @@ export function PublicArtistModal({
             {/* Hours sit above the posts so a long gallery never buries them. */}
             <WeeklyHours rows={weekHours} todayName={todayName} />
 
-            <ServicesOnPage services={services} onPick={(service) => startBooking([service])} />
+            <ServicesOnPage services={services} onPick={visitorBar ? undefined : (service) => startBooking([service])} />
 
             <div className="artistPublicContent" key={view}>
               <>
@@ -179,6 +181,8 @@ export function PublicArtistModal({
                 </>
             </div>
 
+            {visitorBar || (
+            <>
             <ServicesDropUp
               open={servicesOpen}
               title={`خدمات ${artist.name || "آرتیست"}`}
@@ -202,6 +206,8 @@ export function PublicArtistModal({
                 <ChevronUp size={18} className={`spvBarChevron${servicesOpen ? " is-open" : ""}`} aria-hidden="true" />
               </button>
             </nav>
+            </>
+            )}
           </div>
 
           <ProfileSheet

@@ -39,6 +39,23 @@ describe("a follow is a contact", () => {
     expect(afterSeen.followers[0].isNew).toBe(false);
   });
 
+  it("never makes a salon or an artist a follower; only a client connects", async () => {
+    const artist = await person("artist", "آرتیست هدف");
+    const salon = await person("salon", "سالنی که اسکن کرد");
+    const otherArtist = await person("artist", "آرتیست دیگه");
+
+    const bySalon = await follow(salon, artist);
+    expect(bySalon.status).toBe(403);
+    expect(bySalon.payload.code).toBe("clients_only");
+    expect((await follow(otherArtist, artist)).status).toBe(403);
+    expect((await artist.client.post("/api/follows", { targetUserId: salon.user.id })).status).toBe(403);
+    expect((await artist.client.post("/api/salon-follow", { salonUserId: salon.user.id })).status).toBe(403);
+    expect((await followers(artist)).followers).toHaveLength(0);
+    expect((await followers(salon)).followers).toHaveLength(0);
+    // Taking an old connection away still works for anyone.
+    expect((await follow(salon, artist, false)).ok).toBe(true);
+  });
+
   it("works for a salon, and a re-follow after unfollowing is new again", async () => {
     const salon = await person("salon", "سالن تازه");
     const guest = await person("client", "مشتری سالن");

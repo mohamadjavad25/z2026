@@ -58,3 +58,13 @@ export async function getSessionUser(token) {
   `, [hashToken(token)]);
   return row || null;
 }
+
+/**
+ * Signs an account out everywhere except the session in `keepToken` (owner's decision of 2026-10-25): after a password
+ * or phone change, a phone left in a taxi or a stolen session stops working, while the phone that made the change
+ * stays in.
+ */
+export async function deleteOtherUserSessions(userId, keepToken) {
+  const db = await getDb();
+  await run(db, "DELETE FROM sessions WHERE user_id = $1 AND token <> $2", [userId, hashToken(keepToken)]);
+}

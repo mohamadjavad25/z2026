@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { verifyCronSecret } from "../../../lib/auth.js";
 import { ensureDb } from "../../../lib/db/connection.js";
 import { sweepBookingReminders } from "../../../lib/bookingReminders.js";
+import { sweepDueReminders } from "../../../lib/dueReminderSweep.js";
 import { withErrorHandling } from "../../../lib/http.js";
 
 export const runtime = "nodejs";
@@ -22,7 +23,10 @@ async function _POST(request) {
       now = given;
     }
   }
-  return NextResponse.json({ data: await sweepBookingReminders(now) });
+  // «وقتش شده» rides on the same job (owner's decisions of 2026-10-25).
+  const reminders = await sweepBookingReminders(now);
+  const due = await sweepDueReminders(now).catch(() => ({ candidates: 0, sent: 0, failed: true }));
+  return NextResponse.json({ data: { ...reminders, due } });
 }
 
 export const POST = withErrorHandling(_POST);

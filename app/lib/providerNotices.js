@@ -1,10 +1,11 @@
 import { sendPushToUser } from "./push.js";
-import { smsBookingCancelledByProvider, smsBookingProposal, smsDayLabel, smsTimeLabel } from "./bookingSms.js";
+import { bookingWhen, smsBookingCancelledByProvider, smsBookingProposal, smsDayLabel, smsTimeLabel } from "./bookingSms.js";
 import {
   ARTIST_GONE_TEXT,
   SALON_GONE_TEXT,
   cancelledByProviderText,
   handoverProposalText,
+  proposalLapsedClientText,
   providerLabel,
   shortClock,
   timeProposalText
@@ -86,7 +87,7 @@ export function noticeProviderProposalAnswer(providerUserId, { accepted, booking
 }
 
 /** A proposal nobody answered in time: the original stays; the provider is told to call, the client that nothing changed. */
-export function noticeProposalLapsed({ providerUserId, clientUserId, booking, clientName }) {
+export function noticeProposalLapsed({ providerUserId, clientUserId, booking, clientName, provider }) {
   if (providerUserId) {
     void quiet(sendPushToUser(Number(providerUserId), {
       title: "مشتری به پیشنهاد جواب نداد",
@@ -95,10 +96,36 @@ export function noticeProposalLapsed({ providerUserId, clientUserId, booking, cl
     }));
   }
   if (clientUserId) {
+    // Owner's wording of 2026-10-25: «پیشنهاد سالن رز تموم شد. نوبتت همون شنبه ساعت ۱۰ سر جاشه.» (push and card line, no SMS)
     void quiet(sendPushToUser(Number(clientUserId), {
-      title: "وقت جواب دادن تموم شد",
-      body: `${booking.service || "نوبت"}: به پیشنهاد جواب ندادی؛ نوبت قبلیت سر جاشه.`,
+      title: `پیشنهاد ${providerLabel(provider?.type, provider?.name)} تموم شد`,
+      body: proposalLapsedClientText(booking),
       url: "/"
     }));
   }
+}
+
+/**
+ * A direct booking held at a salon is now held at the artist's own place (the artist left the salon's team, was removed,
+ * or the salon left frfro). Nothing is cancelled; the client is told so they can cancel if the new place does not suit them.
+ */
+export function noticeClientPlaceMoved(clientUserId, { artistName, salonName, salonGone = false, booking }) {
+  if (!clientUserId) return;
+  const artist = artistName || "آرتیست";
+  const salon = salonName || "سالن";
+  const body = salonGone
+    ? `${salon} دیگه توی فرفرو نیست. نوبتت با ${artist} (${booking.service || "نوبت"}) جای خود ${artist} برگزار می‌شه. اگه نمی‌خوای، لغوش کن.`
+    : `${artist} دیگه توی ${salon} نیست. نوبتت (${booking.service || "نوبت"}) جای خود ${artist} برگزار می‌شه. اگه نمی‌خوای، لغوش کن.`;
+  void quiet(sendPushToUser(Number(clientUserId), { title: "جای نوبتت عوض شد", body, url: "/" }));
+}
+
+/** The artist moved a booking to another place (their workplace salon, or back to their own). The client is told where it is now. */
+export function noticeClientPlaceChanged(clientUserId, { artistName, toSalonName = "", booking }) {
+  if (!clientUserId) return;
+  const artist = artistName || "آرتیست";
+  const what = `${booking.service || "نوبت"}، ${bookingWhen(booking.booking_date, booking.time)}`;
+  const body = toSalonName
+    ? `${artist} جای نوبتت (${what}) رو عوض کرد. حالا توی ${toSalonName} برگزار می‌شه. ساعتش همونه.`
+    : `${artist} جای نوبتت (${what}) رو عوض کرد. حالا جای خود ${artist} برگزار می‌شه. ساعتش همونه.`;
+  void quiet(sendPushToUser(Number(clientUserId), { title: "جای نوبتت عوض شد", body, url: "/" }));
 }

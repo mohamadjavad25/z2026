@@ -28,7 +28,7 @@ They are taken by `scripts/screens/capture.mjs` against a local app on an **empt
 createdb frfro_screens
 POSTGRES_URL="postgres://…/frfro_screens?sslmode=disable" node scripts/migrate.mjs up
 npm run build
-POSTGRES_URL="postgres://…/frfro_screens?sslmode=disable" NODE_ENV=production FRFRO_SMS_PROVIDER=test \
+POSTGRES_URL="postgres://…/frfro_screens?sslmode=disable" NODE_ENV=production FRFRO_SMS_PROVIDER=test FRFRO_OTP_REQUIRED=0 \
   FRFRO_PAYMENT_GATEWAY=sandbox npx next start -p 3200 &
 SCREENS_BASE_URL=http://localhost:3200 node scripts/screens/capture.mjs               # all screens
 SCREENS_BASE_URL=http://localhost:3200 node scripts/screens/capture.mjs salon-home    # only some ids

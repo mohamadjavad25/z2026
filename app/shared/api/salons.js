@@ -229,10 +229,10 @@ export async function updateSalonStaff(body) {
  * DELETE /api/salon-staff → { ok, staff, endedCollabs, artistNotified, artistUserId }
  * May end linked artist collabs.
  */
-export async function deleteSalonStaff(id, { cancelAll = false } = {}) {
+export async function deleteSalonStaff(id, { cancelAll = false, reason = "" } = {}) {
   return apiFetch("/api/salon-staff", {
     method: "DELETE",
-    body: JSON.stringify({ id, ...(cancelAll ? { cancelAll: true } : {}) })
+    body: JSON.stringify({ id, ...(cancelAll ? { cancelAll: true } : {}), ...(reason ? { reason } : {}) })
   });
 }
 
@@ -287,4 +287,9 @@ export async function saveSalonRules(rules) {
     method: "PUT",
     body: JSON.stringify({ rules })
   });
+}
+
+/** GET /api/salon-staff/direct → { visits }: the clients the team's artists receive at this salon from their own pages (when and who, never the client) */
+export async function getSalonDirectVisits() {
+  return apiJson("/api/salon-staff/direct");
 }

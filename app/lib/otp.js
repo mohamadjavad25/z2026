@@ -21,10 +21,14 @@ function secret() {
   return process.env.FRFRO_OTP_SECRET || process.env.CRON_SECRET || "";
 }
 
-/** Whether the app can send codes, and whether sign-up demands one (set FRFRO_OTP_REQUIRED=1 once SMS works). */
+/**
+ * Whether the app can send codes, and whether sign-up demands one. Whenever SMS works, sign-up needs the code
+ * (owner's decision 2026-10-25: otherwise anyone could sign up with a number that isn't theirs). Only a test setup
+ * that makes accounts straight through the API turns it off, with FRFRO_OTP_REQUIRED=0; never on a real server.
+ */
 export function otpConfig() {
   const enabled = smsEnabled();
-  return { enabled, required: enabled && process.env.FRFRO_OTP_REQUIRED === "1", resendSeconds: RESEND_SECONDS };
+  return { enabled, required: enabled && process.env.FRFRO_OTP_REQUIRED !== "0", resendSeconds: RESEND_SECONDS };
 }
 
 const hashCode = (phone, purpose, code) => createHmac("sha256", secret()).update(`${phone}|${purpose}|${code}`).digest("hex");

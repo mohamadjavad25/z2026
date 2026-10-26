@@ -284,3 +284,19 @@ export async function deleteUserDetachingPhone(id) {
     return row;
   });
 }
+
+/**
+ * Before an account's number changes (owner's decision of 2026-10-25): the walk-ins a salon or artist typed for the
+ * OLD number until now are tied to the account for good, so the history stays with the person. Rows typed later for
+ * the old number belong to whoever has that number then. Only when the account had proved the old number (SMS code),
+ * the same bar the client's booking list uses.
+ */
+export async function lockOldNumberBookings(userId) {
+  const db = await getDb();
+  const row = await get(db, "SELECT phone, phone_verified_at FROM users WHERE id = $1", [Number(userId)]);
+  const key = row?.phone_verified_at ? String(row.phone || "").trim() : "";
+  if (!key) return;
+  for (const table of ["salon_bookings", "artist_bookings"]) {
+    await run(db, `UPDATE ${table} SET client_user_id = $1 WHERE client_user_id IS NULL AND phone_normalized = frfro_phone_key($2)`, [Number(userId), key]);
+  }
+}

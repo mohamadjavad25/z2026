@@ -262,26 +262,38 @@ describe("angle3b: phone is the key to a person's booking history", () => {
 });
 
 describe("angle3b: information leaks (phone enumeration, public payloads)", () => {
-  it("login does not reveal whether a phone has an account", async () => {
+  // The owner chose to say plainly when a number already has an account (decision 2026-10-25): login says there is
+  // no account with that number, and sign-up sends the visitor to the login with the number filled in. What keeps
+  // anyone from testing numbers in bulk is the per-number and per-address limits, checked here.
+  it("login says plainly whether a number has an account, and the address limit still stops a sweep", async () => {
     const acc = await newClient("Enum Target");
     const anon = createClient();
     const unknown = `0912${String(Math.floor(Math.random() * 1e7)).padStart(7, "0")}`;
     const h1 = { headers: { "x-real-ip": `10.60.${Math.floor(Math.random() * 250)}.${Math.floor(Math.random() * 250)}` } };
     const known = await anon.post("/api/auth/login", { phone: acc.phone, password: "wrong-password-1" }, h1);
     const none = await anon.post("/api/auth/login", { phone: unknown, password: "wrong-password-1" }, h1);
-    console.log("[enum] wrong password:", known.status, JSON.stringify(known.payload), "| unknown phone:", none.status, JSON.stringify(none.payload));
-    expect(none.payload).toEqual(known.payload);
+    expect(known.ok).toBe(false);
+    expect(none.ok).toBe(false);
+    expect(none.payload.error).not.toBe(known.payload.error);
+    let limited = null;
+    for (let i = 0; i < 40 && !limited; i += 1) {
+      const res = await anon.post("/api/auth/login", { phone: `0912${String(Math.floor(Math.random() * 1e7)).padStart(7, "0")}`, password: "wrong-password-1" }, h1);
+      if (res.status === 429) limited = res;
+    }
+    expect(limited?.status).toBe(429);
   });
 
-  it("registration / OTP-send do not reveal whether a phone has an account", async () => {
+  it("sign-up says a number already has an account (code phone_taken) and sends no SMS for it", async () => {
     const acc = await newClient("Enum Target 2");
     const anon = createClient();
     const unknown = `0912${String(Math.floor(Math.random() * 1e7)).padStart(7, "0")}`;
     const h = { headers: { "x-real-ip": `10.61.${Math.floor(Math.random() * 250)}.${Math.floor(Math.random() * 250)}` } };
     const a = await anon.post("/api/auth/otp/send", { phone: acc.phone, purpose: "register" }, h);
     const b = await anon.post("/api/auth/otp/send", { phone: unknown, purpose: "register" }, h);
-    console.log("[enum-otp] known phone:", a.status, a.payload.error, "| unknown:", b.status);
-    expect(a.status).toBe(b.status);
+    expect(a.status).toBe(409);
+    expect(a.payload).toMatchObject({ code: "phone_taken", error: "این شماره حساب داره؛ با رمزت وارد شو." });
+    expect(b.ok).toBe(true);
+    expect(await smsRows({ phone: acc.phone, purpose: "register" })).toHaveLength(0);
   });
 
   it("the public salon page does not publish the owner's login phone", async () => {

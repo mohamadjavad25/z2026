@@ -36,6 +36,7 @@
 @import "./styles/features/salonClient.css";
 @import "./styles/features/salonPage.css";
 @import "./styles/features/providerExit.css";
+@import "./styles/features/dueReminders.css";
 @import "./styles/legacy/part-01.css";
 @import "./styles/legacy/part-02.css";
 @import "./styles/legacy/part-03.css";
@@ -50,11 +51,13 @@
 @import "./styles/legacy/part-12.css";
 @import "./styles/legacy/part-13.css";
 @import "./styles/features/dock.css";
+@import "./styles/features/teamNotice.css";
 @import "./styles/features/connect.css";
 @import "./styles/features/comingSoon.css";
 @import "./styles/features/publicProfile.css";
 @import "./styles/features/location.css";
 @import "./styles/features/hours.css";
+@import "./styles/features/place.css";
 @import "./styles/features/createTip.css";
 @import "./styles/features/landing.css";
 @import "./styles/features/landingLearn.css";

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { PageIcon } from "../../components/PageIcon";
 import { ServiceIcon } from "../../components/ServiceIcon";
-import { ArrowDownUp, CalendarCheck, CalendarPlus, ContactRound, Link2, MessageSquare, Phone, Repeat2, Search, Sparkles, UserPlus, Users } from "lucide-react";
+import { ArrowDownUp, CalendarCheck, Check, CalendarPlus, ContactRound, Link2, MessageSquare, Phone, Repeat2, Search, Sparkles, UserPlus, Users, X } from "lucide-react";
 import { ProfileSheet } from "../profile/ProfileSheet";
 import { bookingStatusLabel, bookingStatusTone } from "../client/bookingStatus";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
@@ -13,6 +13,7 @@ import { contactPickerNeedsAppUpdate, contactPickerSupported, localPhoneOf, pick
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
 import { buildClientInviteText, buildInviteSmsHref } from "../../shared/lib/inviteSms";
 import { InviteClientsSheet } from "../connect/InviteClientsSheet";
+import { NO_SHOW_LABEL } from "../../shared/lib/providerRules";
 
 export { buildBookingCustomers };
 
@@ -95,14 +96,16 @@ function CustomerSheet({ customer, invite, onBook, onClose }) {
           </button>
         ) : null}
         <div className="cuStats">
-          <span><b>{toPersianDigits(customer.completed)}</b>انجام‌شده</span>
+          <span className="is-came"><b>{toPersianDigits(customer.completed)}</b>اومد</span>
+          <span className={customer.noShow ? "is-noshow" : ""}><b>{toPersianDigits(customer.noShow)}</b>نیومد</span>
           <span><b>{toPersianDigits(customer.upcoming)}</b>پیش‌رو</span>
           <span><b>{toPersianDigits(customer.cancelled)}</b>لغو</span>
         </div>
         {customer.bookings.length ? <h4 className="cuHistoryTitle">نوبت‌هاش</h4> : null}
         <ul className="cuHistory">
           {customer.bookings.map((booking, index) => {
-            const tone = bookingStatusTone(booking.status || "تازه");
+            const noShow = Boolean(booking.no_show_at || booking.noShowAt);
+            const tone = noShow ? "bad" : bookingStatusTone(booking.status || "تازه");
             const date = booking.booking_date || booking.date || "";
             return (
               <li key={booking.id || index}>
@@ -111,13 +114,27 @@ function CustomerSheet({ customer, invite, onBook, onClose }) {
                   <b>{shortServiceLabel(booking.service) || "خدمت"}</b>
                   <small>{date ? formatRelativeBookingDayLabel(date) : "—"}{booking.time ? `، ${toPersianDigits(booking.time)}` : ""}</small>
                 </div>
-                <em className={`is-${tone}`}>{bookingStatusLabel(booking.status)}</em>
+                <em className={`is-${tone}`}>{noShow ? NO_SHOW_LABEL : bookingStatusLabel(booking.status)}</em>
               </li>
             );
           })}
         </ul>
       </div>
     </ProfileSheet>
+  );
+}
+
+/**
+ * How often the customer came and didn't: a green box and, once there is a «نیومد», a red one next to it
+ * (owner's request 2026-10-25). Nothing while there is no past visit yet.
+ */
+function CameTally({ came = 0, noShow = 0 }) {
+  if (!came && !noShow) return null;
+  return (
+    <span className="cuTally" aria-label={`${toPersianDigits(came)} بار اومد، ${toPersianDigits(noShow)} بار نیومد`}>
+      {came ? <i className="is-came"><Check size={12} aria-hidden="true" />{toPersianDigits(came)} بار اومد</i> : null}
+      {noShow ? <i className="is-noshow"><X size={12} aria-hidden="true" />{toPersianDigits(noShow)} بار نیومد</i> : null}
+    </span>
   );
 }
 
@@ -356,6 +373,7 @@ export function SalonCustomersPage({ active, bookings = [], followers = [], owne
                     {customer.isFollower ? "، وصل شده" : ""}
                   </small>
                 )}
+                <CameTally came={customer.completed} noShow={customer.noShow} />
               </span>
             </button>
             {customer.phone ? (

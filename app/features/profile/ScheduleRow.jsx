@@ -115,10 +115,11 @@ export function normalizeArtistScheduleBooking(booking, serviceList = []) {
     date,
     time: booking?.time || "",
     staff: "",
-    staffLabel: sourceSalon?.name || "شخصی",
+    staffLabel: sourceSalon?.name || (booking?.placeSalon?.name ? `شخصی، ${booking.placeSalon.name}` : "شخصی"),
     staffAvatar: sourceSalonAvatar,
     staffInitial: (sourceSalon?.name || client || "م").trim().slice(0, 1) || "م",
     sourceSalon,
+    placeSalon: booking?.placeSalon || null,
     visits,
     visitCount: visits.filter((level) => level > 0).length,
     durationMinutes: resolveBookingDurationMinutes(booking, serviceList),
@@ -245,16 +246,18 @@ export const ScheduleRow = memo(function ScheduleRow({
   if (!review && (statusTone === "bad" || statusTone === "expired" || finished)) {
     const who = title || "مشتری";
     const what = shortServiceLabel(service);
-    const NoteIcon = statusTone === "bad" ? Ban : statusTone === "expired" ? TimerOff : CheckCircle2;
+    // «نیومد» (owner's decision of 2026-10-25): a finished visit the salon or artist marked as a no-show.
+    const noShow = finished && Boolean(booking.source?.no_show_at || booking.no_show_at || booking.noShowAt);
+    const NoteIcon = statusTone === "bad" || noShow ? Ban : statusTone === "expired" ? TimerOff : CheckCircle2;
     const text = statusTone === "bad"
       ? `نوبت ${who} لغو شد`
       : statusTone === "expired"
         ? `درخواست ${who} بی‌جواب موند`
-        : `نوبت ${who} انجام شد`;
+        : noShow ? `${who} نیومد` : `نوبت ${who} انجام شد`;
     return (
       <button
         type="button"
-        className={`cvMsg is-${finished ? "done" : statusTone}`}
+        className={`cvMsg is-${noShow ? "bad" : finished ? "done" : statusTone}`}
         aria-label={`${text}، ${meta}، ${date}، ${time}`}
         onClick={() => onAction?.(actionPayload)}
       >

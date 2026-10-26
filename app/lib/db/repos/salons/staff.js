@@ -389,6 +389,10 @@ export async function updateSalonStaff(id, salonUserId, data) {
     }
     return getSalonOwnerStaff(salonUserId, db);
   }
+  // The salon's switch for direct bookings at the salon (owner's idea of 2026-10-24); not the manager's own row.
+  if (data.directAllowed !== undefined && data.directAllowed !== null) {
+    await run(db, "UPDATE salon_staff SET direct_allowed = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 AND salon_user_id = $3", [Boolean(data.directAllowed), id, salonUserId]);
+  }
   // A member linked to a real artist account owns their own identity and field of
   // activity (name, phone, specialty come from the artist's profile); the salon
   // may only change what is genuinely the salon's: state, access level, booking tally.

@@ -34,7 +34,9 @@ async function loadArtistFresh(id) {
   // Round-tripping through JSON.stringify/parse guarantees plain
   // objects/arrays throughout (posts/services/bookedSlots) before crossing
   // the "use client" ArtistPublicPageClient RSC boundary.
-  return JSON.parse(JSON.stringify(artist));
+  // The page never shows the number, and it is the artist's login phone: it stays out of the HTML.
+  const { phone: _loginPhone, ...shown } = artist;
+  return JSON.parse(JSON.stringify(shown));
 }
 
 export async function generateMetadata({ params }) {

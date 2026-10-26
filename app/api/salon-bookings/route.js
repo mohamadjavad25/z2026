@@ -21,6 +21,7 @@ import { bookingWhen, smsBookingAnswer, smsNewBookingRequest } from "../../lib/b
 import { notifyStaff } from "../../lib/staffNotify.js";
 import { noticeClientCancelledByProvider, noticeClientTimeProposal } from "../../lib/providerNotices.js";
 import * as proposals from "../../lib/db/repos/bookingProposals.js";
+import { STARTED_NO_CANCEL_TEXT } from "../../shared/lib/providerRules.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -257,6 +258,9 @@ async function _PATCH(request) {
     }
     if (result.error === "past") {
       return noStoreJson({ error: "رزرو گذشته قابل ویرایش نیست." }, { status: 409 });
+    }
+    if (result.error === "started") {
+      return noStoreJson({ error: STARTED_NO_CANCEL_TEXT, code: "BOOKING_STARTED" }, { status: 409 });
     }
     if (result.error === "expired") {
       return noStoreJson({

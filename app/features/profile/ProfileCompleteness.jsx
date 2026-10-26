@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { isDefaultAvatar } from "../../shared/lib/defaultAvatar";
 import { toPersianDigits } from "../../shared/lib/digits";
@@ -52,8 +52,8 @@ export function ProfileCompleteness({ profile, serviceCount = 0, logoEditing = f
     />
   );
 
-  // Finished while the flow is open: the sheet shows the closing screen, the card is already gone.
-  if (allDone) return flow;
+  // Finished: the closing screen comes from ProfileReadyCelebration, which stays mounted on every tab.
+  if (allDone) return null;
   if (dismissed) return flow;
 
   const percent = Math.round((done / steps.length) * 100);
@@ -103,5 +103,41 @@ export function ProfileCompleteness({ profile, serviceCount = 0, logoEditing = f
       </section>
       {flow}
     </>
+  );
+}
+
+/**
+ * «صفحه‌ت آماده‌ست!» the moment the last step gets done, wherever it was done (the last step, the first service,
+ * is added on the services page, where the reminder card is not shown). Mounted for the whole visit; a profile
+ * that was already complete when the app opened shows nothing.
+ */
+export function ProfileReadyCelebration({ profile, serviceCount = 0, ready = false }) {
+  const isOwner = Boolean(profile) && (profile.type === "salon" || profile.type === "artist");
+  const steps = isOwner ? getProfileSteps(profile, serviceCount) : [];
+  const allDone = isOwner && steps.every((step) => step.done);
+  const wasIncomplete = useRef(false);
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
+    if (!ready || !isOwner) return;
+    if (!allDone) {
+      wasIncomplete.current = true;
+      return;
+    }
+    if (wasIncomplete.current) {
+      wasIncomplete.current = false;
+      setShow(true);
+    }
+  }, [ready, isOwner, allDone]);
+
+  if (!show) return null;
+  return (
+    <ProfileCompletionFlow
+      open
+      isSalon={profile.type === "salon"}
+      steps={steps}
+      profile={profile}
+      onClose={() => setShow(false)}
+    />
   );
 }

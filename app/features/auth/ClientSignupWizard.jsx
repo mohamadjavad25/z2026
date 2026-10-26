@@ -70,6 +70,8 @@ export function ClientSignupWizard({ otp, onComplete, busy = false, onLogin = nu
     try {
       const { ok, payload } = await sendCode(cleanPhone, "register", { type: "client", name: "" });
       if (!ok) {
+        // The number already has an account: to the login with it filled in, not an error to read.
+        if (payload?.code === "phone_taken" && onLogin) { onLogin(cleanPhone); return false; }
         if (payload?.code === "otp_busy") setBusyBlock(true);
         setError(payload?.error || "پیامک نرفت؛ یه کم بعد دوباره بزن.");
         return false;
@@ -176,7 +178,7 @@ export function ClientSignupWizard({ otp, onComplete, busy = false, onLogin = nu
           {busyBlock ? (
             <div className="suwBusy" role="alert">
               <p>{error}</p>
-              {onLogin ? <button type="button" className="suwLink" onClick={onLogin}>ورود با رمز</button> : null}
+              {onLogin ? <button type="button" className="suwLink" onClick={() => onLogin()}>ورود با رمز</button> : null}
             </div>
           ) : null}
           <Button type="submit" block loading={busyStep} loadingLabel="دارم می‌فرستم…">{needsCode ? "کد بفرست" : "ادامه"}</Button>

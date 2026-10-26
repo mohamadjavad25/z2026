@@ -50,7 +50,7 @@ async function _POST(request) {
       return NextResponse.json({ error: "شماره تماس باید یک شماره موبایل معتبر ایران باشد (مثلا 09123456789)." }, { status: 400 });
     }
 
-    // Phone verification: required once SMS is on and FRFRO_OTP_REQUIRED=1; a proof that is sent must always be valid.
+    // Phone verification: required whenever SMS is on (otpConfig); a proof that is sent must always be valid.
     const proof = String(body.otpProof || "");
     if ((otpConfig().required || proof) && !verifyOtpProof(proof, phone, "register")) {
       return NextResponse.json({ error: "اول کد پیامکی رو بزن تا شماره‌ت تأیید شه.", code: "otp_required" }, { status: 400 });
@@ -89,7 +89,7 @@ async function _POST(request) {
       );
     }
     if (await users.getUserByPhone(phone)) {
-      return NextResponse.json({ error: "با این شماره قبلاً حساب ساختی؛ وارد شو." }, { status: 409 });
+      return NextResponse.json({ error: "این شماره حساب داره؛ با رمزت وارد شو.", code: "phone_taken" }, { status: 409 });
     }
     if (hasUniqueName(type) && (await users.isBusinessNameTaken(fields.data.name))) {
       return NextResponse.json({ error: NAME_TAKEN_MESSAGE, code: "name_taken" }, { status: 409 });
@@ -137,7 +137,7 @@ async function _POST(request) {
     return response;
   } catch (error) {
     // Two sign-ups for one number at the same moment: the database's unique key lets exactly one through.
-    if (error?.code === "23505") return NextResponse.json({ error: "با این شماره قبلاً حساب ساختی؛ وارد شو." }, { status: 409 });
+    if (error?.code === "23505") return NextResponse.json({ error: "این شماره حساب داره؛ با رمزت وارد شو.", code: "phone_taken" }, { status: 409 });
     const badInput = clientErrorResponse(error);
     if (badInput) return badInput;
     console.error(error);

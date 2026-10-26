@@ -157,3 +157,17 @@ export async function saveArtistHoursWeek(hours) {
   });
 }
 
+/** GET /api/artist/place → { data: { workplace: { current, savedCurrent, next, teams } } }: where the artist's own clients go. */
+export async function getArtistPlace() {
+  return apiJson("/api/artist/place");
+}
+
+/** PUT /api/artist/place { salonId: number | null, startsOn, moveBookings } → { data: { workplace, moved, kept } } */
+export async function saveArtistPlace(body) {
+  return apiFetch("/api/artist/place", { method: "PUT", body: JSON.stringify(body) });
+}
+
+/** PUT /api/artist-bookings/:id/place { salonUserId: number | null } → the artist says where one booking is held. */
+export async function moveArtistBookingPlace(id, salonUserId) {
+  return apiFetch(`/api/artist-bookings/${id}/place`, { method: "PUT", body: JSON.stringify({ salonUserId }) });
+}

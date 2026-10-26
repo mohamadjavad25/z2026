@@ -39,7 +39,7 @@ import {
 } from "../../../../shared/lib/bookingParts.js";
 import { AWAITING_CLIENT } from "../../../../shared/lib/bookingOffer.js";
 import { toPersianDigits } from "../../../../shared/lib/digits.js";
-import { isProposalLapsed, proposalView } from "../../../../shared/lib/providerRules.js";
+import { hasStarted, isProposalLapsed, proposalView } from "../../../../shared/lib/providerRules.js";
 
 let partsColumnsReady;
 /**
@@ -136,7 +136,7 @@ async function findBookingClient(row, runner) {
 
 function buildClientVisitLevels(historyRows) {
   const recent = [...historyRows]
-    .filter((item) => item && item.status !== "لغو")
+    .filter((item) => item && item.status !== "لغو" && !item.no_show_at)
     .sort((a, b) => Number(a.id || 0) - Number(b.id || 0))
     .slice(-10);
   const visits = Array.from({ length: 10 }, () => 0);
@@ -1303,6 +1303,12 @@ async function patchSalonBookingUncached(id, salonUserId, data, options = {}) {
   // The expiry sweep is the one caller allowed to close a request whose day went by unanswered.
   if (!allowPast && isPersianDateKey(current.booking_date) && current.booking_date < formatPersianDateKey(new Date())) {
     return { ok: false, error: "past" };
+  }
+  // A confirmed visit that has started is no longer the salon's to cancel: «نیومد» takes its place
+  // (owner's decision of 2026-10-25; /api/booking-no-show). The client's own cancel stops at the start too.
+  if (data.status === "لغو" && options.cancelledBy?.by === "provider" && ["تایید شده", "تازه"].includes(current.status)
+    && hasStarted(current.booking_date, current.time)) {
+    return { ok: false, error: "started" };
   }
 
   // An already-expired request (bookingExpirySweep.js) already told the client

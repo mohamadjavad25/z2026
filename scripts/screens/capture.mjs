@@ -12,6 +12,7 @@
  * Env: SCREENS_BASE_URL (default http://localhost:3100), SCREENS_CHROMIUM (a Chromium binary when Playwright's
  * own is missing). The sample people and their passwords are fixed below; never run this against real data.
  */
+import { dateKeyAfter } from "../../app/shared/lib/artistPlace.js";
 import { chromium } from "playwright";
 import fs from "node:fs";
 import path from "node:path";
@@ -38,7 +39,7 @@ function api(cookie = "") {
     const payload = await res.json().catch(() => ({}));
     return { ok: res.ok, status: res.status, payload };
   };
-  return { cookie: () => cookie, get: (r) => request(r, "GET"), post: (r, b) => request(r, "POST", b), patch: (r, b) => request(r, "PATCH", b) };
+  return { cookie: () => cookie, get: (r) => request(r, "GET"), post: (r, b) => request(r, "POST", b), patch: (r, b) => request(r, "PATCH", b), put: (r, b) => request(r, "PUT", b) };
 }
 
 /** An open (non-Friday) day `n` open days from today, as the API's date key. */
@@ -100,6 +101,91 @@ const css = (selector, hasText) => async (p) => { await p.locator(selector, hasT
 const fill = (selector, value) => async (p) => { await p.locator(selector).fill(value, { timeout: 4000 }); };
 const salonPath = (ids) => `/salons/${ids.salon}`;
 const artistPath = (ids) => `/artists/${ids.artist}`;
+
+/* ---------- where an artist on a salon team receives clients (state is set through the real API) ---------- */
+const COLLAB = css(".profileModeRail button, [role=tab], button", "همکاری");
+const SALON_LOCATION = { area: "تهران، خیابان گلستان", addressDetail: "پلاک ۱۲، طبقه ۲", geo: { lat: 35.7219, lng: 51.3347 } };
+
+/** Sets the world: the salon with an address, where the artist's clients go (`at`: "salon", "second" or null for their own
+ *  place, from today; `next`: the same, from a week later) and the salon's switch. */
+function placeState({ at = null, next, switchOn = true } = {}) {
+  return async ({ sessions, ids }) => {
+    const { salon, artist } = sessions;
+    const idOf = (item) => (item === "salon" ? ids.salon : item === "second" ? ids.salon2 : null);
+    await salon.post("/api/profile", { data: SALON_LOCATION });
+    const staff = (await salon.get("/api/salon-staff")).payload.data.staff.find((person) => person.artist_user_id);
+    await salon.patch("/api/salon-staff", { id: staff.id, directAllowed: true });
+    await artist.put("/api/artist/place", { salonId: idOf(at), startsOn: dateKeyAfter(0), moveBookings: true });
+    if (next !== undefined) await artist.put("/api/artist/place", { salonId: idOf(next), startsOn: dateKeyAfter(7), moveBookings: false });
+    if (!switchOn) await salon.patch("/api/salon-staff", { id: staff.id, directAllowed: false });
+  };
+}
+
+/** A second salon (made on first use) the artist has joined, for the screens that show two of them. */
+async function withSecondSalon(ctx) {
+  const { sessions, ids } = ctx;
+  if (ids.salon2) return;
+  const client = api();
+  let res = await client.post("/api/auth/login", { phone: "09126666666", password: PASSWORD });
+  if (!res.ok) res = await client.post("/api/auth/register", { phone: "09126666666", password: PASSWORD, type: "salon", name: "سالن نیلوفر" });
+  sessions.salon2 = client;
+  ids.salon2 = res.payload.data?.user?.id;
+  await client.get("/api/salon-hours");
+  const code = (await client.get("/api/salon-invites/join-code")).payload.data?.code;
+  await sessions.artist.post("/api/artist/join-salon", { salonUserId: ids.salon2, code });
+}
+
+/** The client opens the artist's page in the app, picks the first service and goes to the day and hour sheet. */
+const openBooker = async (p) => {
+  await p.locator("button.sduItem").first().click({ timeout: 6000 });
+  await p.waitForTimeout(400);
+  await p.locator(".sduPanel button", { hasText: "رزرو" }).last().click({ timeout: 4000, force: true });
+  await p.waitForTimeout(1500);
+};
+const scrollTo = (selector) => async (p) => { await p.locator(selector).first().scrollIntoViewIfNeeded({ timeout: 8000 }); await p.waitForTimeout(500); };
+
+function placeScreens() {
+  const artistOpen = (ids) => `/?open=artist-${ids.artist}`;
+  const direct = async (ctx) => { await placeState({ at: "salon" })(ctx); await makeDirectBooking(ctx); };
+  const staffSheet = [css(".profileModeRail button, [role=tab], button", "پرسنل"), tap(/^مدیریت نگار/), scrollTo(".plSwitchRow")];
+  // Tomorrow: one of نگار's own clients at her own place (18:30), then she works at سالن رز and one comes there (13:30).
+  const teamDay = async (ctx) => {
+    await placeState({})(ctx);
+    const { client2 } = ctx.sessions;
+    await client2.post("/api/artist/bookings", { artistUserId: ctx.ids.artist, service: "لاک ژل", bookingDate: dateKeyAfter(1), time: "۱۸:۳۰" });
+    await placeState({ at: "salon" })(ctx);
+    await ctx.sessions.client.post("/api/artist/bookings", { artistUserId: ctx.ids.artist, service: "لاک ژل", bookingDate: dateKeyAfter(1), time: "۱۳:۳۰" });
+  };
+  const turnOn = async (p) => { await p.getByRole("switch", { name: /^مشتری‌های خودت میان/ }).first().click({ timeout: 4000 }); await p.waitForTimeout(900); };
+  return [
+    { id: "artist-place-own", role: "artist", title: "همکاری، کارت سالن، مشتری‌ها میان جای خودش", setup: placeState({}), steps: [COLLAB], full: true },
+    { id: "artist-place-here", role: "artist", title: "همکاری، کارت سالن، الان اینجا کار می‌کنه", setup: placeState({ at: "salon" }), steps: [COLLAB], full: true },
+    { id: "artist-place-switch", role: "artist", title: "برگهٔ «از کی اینجا کار می‌کنی؟»", setup: placeState({}), steps: [COLLAB, turnOn] },
+    { id: "artist-place-blocked", role: "artist", title: "سالن مشتری‌های خودش رو بسته", setup: placeState({ at: "salon", switchOn: false }), steps: [COLLAB], full: true },
+    { id: "artist-place-dark", role: "artist", title: "همکاری، کارت سالن، شب", dark: true, setup: placeState({ at: "salon" }), steps: [COLLAB], full: true },
+    { id: "client-artist-book-place", role: "client", title: "نوبت از آرتیست، «کجا» سالن رو می‌گه", setup: placeState({ at: "salon" }), path: artistOpen, steps: [openBooker] },
+    { id: "client-artist-booking-place", role: "client", title: "جزئیات نوبت آرتیست توی سالن", setup: direct, steps: [tap(/لاک ژل/)] },
+    { id: "salon-staff-direct-switch", role: "salon", title: "مدیریت آرتیست، کلید نوبت مستقیم", setup: direct, steps: staffSheet },
+    { id: "salon-staff-direct-off", role: "salon", title: "مدیریت آرتیست، نوبت مستقیم بسته", setup: placeState({ at: "salon", switchOn: false }), steps: staffSheet },
+    { id: "salon-day-team-client", role: "salon", title: "برنامهٔ فردای سالن با «مشتری نگار» و «نگار سرش شلوغه»", setup: teamDay, steps: [tap("روز بعد"), async (p) => { await p.locator(".plTeamRow").first().waitFor({ timeout: 35000 }).catch(() => {}); }, scrollTo(".todayScheduleList")] },
+    // Last: the second salon stays in the sample database from here on.
+    { id: "artist-place-two", role: "artist", title: "دو سالن، کارت‌های کشویی، جابه‌جایی از هفتهٔ بعد", setup: async (ctx) => { await withSecondSalon(ctx); await placeState({ at: "salon", next: "second" })(ctx); }, steps: [COLLAB], full: true }
+  ];
+}
+
+/** The client books the artist straight from their page on the first day she receives at the salon. */
+async function makeDirectBooking({ sessions, ids }) {
+  const { client, artist } = sessions;
+  for (let n = 1; n <= 14; n += 1) {
+    const day = new Date();
+    day.setDate(day.getDate() + n);
+    if (getPersianWeekday(day) !== "شنبه" && getPersianWeekday(day) !== "دوشنبه") continue;
+    const made = await client.post("/api/artist/bookings", { artistUserId: ids.artist, service: "لاک ژل", bookingDate: formatPersianDateKey(day), time: "۱۶:۰۰" });
+    if (!made.ok) continue; // the artist is busy then (the sample salon booking): try the next salon day
+    await artist.patch("/api/artist/me", { kind: "booking", id: made.payload.data.booking.id, status: "تایید شده" });
+    return;
+  }
+}
 
 const SCREENS = [
   // guest
@@ -170,7 +256,10 @@ const SCREENS = [
   { id: "artist-services", role: "artist", title: "خدمات آرتیست", steps: [css(".profileModeRail button, [role=tab], button", "خدمات")] },
   { id: "artist-collab", role: "artist", title: "همکاری با سالن", steps: [css(".profileModeRail button, [role=tab], button", "همکاری")] },
   { id: "artist-customers", role: "artist", title: "مشتریان آرتیست", steps: [tab(2)] },
-  { id: "artist-settings", role: "artist", title: "تنظیمات آرتیست", steps: [tab(0)] }
+  { id: "artist-settings", role: "artist", title: "تنظیمات آرتیست", steps: [tab(0)] },
+  // where an artist on a salon team receives the clients who book them directly (owner's idea of 2026-10-24).
+  // Each screen sets the state it shows first (the choice, the salon's switch, an address), so the order does not matter.
+  ...placeScreens()
 ];
 
 async function closeArrivalDialogs(page) {
@@ -190,11 +279,13 @@ async function main() {
   const index = fs.existsSync(indexFile) ? JSON.parse(fs.readFileSync(indexFile, "utf8")) : { screens: {} };
   for (const screen of SCREENS) {
     if (only.size && !only.has(screen.id)) continue;
+    // A screen may set up the state it shows (the choice, a switch, an address) through the real API first.
+    if (screen.setup) await screen.setup({ sessions, ids });
     const context = await browser.newContext(screen.desktop
-      ? { viewport: { width: 1366, height: 820 }, locale: "fa-IR" }
-      : { viewport: { width: 390, height: 844 }, deviceScaleFactor: 1.5, locale: "fa-IR", isMobile: true, hasTouch: true });
+      ? { viewport: { width: 1366, height: 820 }, locale: "fa-IR", ...(screen.dark ? { colorScheme: "dark" } : {}) }
+      : { viewport: { width: 390, height: 844 }, deviceScaleFactor: 1.5, locale: "fa-IR", isMobile: true, hasTouch: true, ...(screen.dark ? { colorScheme: "dark" } : {}) });
     // Phones skip the about page; the one-time «+» tip counts as seen so it does not cover the screens.
-    await context.addInitScript({ content: `try { ${screen.desktop ? "" : 'localStorage.setItem("frfro-entered", "1");'} const g = Storage.prototype.getItem; Storage.prototype.getItem = function (k) { return String(k).startsWith("frfro-tip") ? "1" : g.call(this, k); }; } catch (e) {}` });
+    await context.addInitScript({ content: `try { ${screen.desktop ? "" : 'localStorage.setItem("frfro-entered", "1");'} const g = Storage.prototype.getItem; Storage.prototype.getItem = function (k) { return String(k).startsWith("frfro-tip") || k === "frfro-due-later" ? "1" : g.call(this, k); }; } catch (e) {}` });
     if (screen.role !== "guest") {
       const [name, ...rest] = sessions[screen.role].cookie().split("=");
       await context.addCookies([{ name, value: rest.join("="), url: BASE }]);

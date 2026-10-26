@@ -102,6 +102,27 @@ export const SMS_TEMPLATES = {
     faraz: (v) => ({ amount: v.amount, receipt: v.receipt, who: v.who }),
     preview: (v) => `فرفرو، پرداخت تازه: ${v.who}، ${v.amount} تومان، رسید ${v.receipt}.`
   },
+  team_removed: {
+    label: "برداشته شدن از تیم سالن (به آرتیست)",
+    env: "TEAM_REMOVED",
+    kavenegar: (v) => ({ token10: v.who }),
+    faraz: (v) => ({ who: v.who }),
+    preview: (v) => `فرفرو: ${v.who} تو رو از تیمش برداشت. نوبت‌های خودت سر جاشه.`
+  },
+  team_left: {
+    label: "رفتن آرتیست از تیم (به سالن)",
+    env: "TEAM_LEFT",
+    kavenegar: (v) => ({ token10: v.who }),
+    faraz: (v) => ({ who: v.who }),
+    preview: (v) => `فرفرو: ${v.who} از تیمت رفت. توی اپ ببین.`
+  },
+  phone_changed: {
+    label: "شمارهٔ حساب عوض شد (به شمارهٔ قبلی)",
+    env: "PHONE_CHANGED",
+    kavenegar: (v) => ({ token: v.tail }),
+    faraz: (v) => ({ tail: v.tail }),
+    preview: (v) => `فرفرو: شمارهٔ حسابت به شماره‌ای که با ${v.tail} تموم می‌شه عوض شد. اگه کار خودت نبوده، به پشتیبانی فرفرو خبر بده.`
+  },
   admin_support: {
     label: "درخواست پشتیبانی (برای مدیر)",
     env: "ADMIN_SUPPORT",

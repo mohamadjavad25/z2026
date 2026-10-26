@@ -103,5 +103,18 @@ async function _DELETE(request) {
   });
 }
 
+/** GET /api/booking-proposals?id=… (an independent artist): the free times of that booking's day to propose instead. */
+async function _GET(request) {
+  const auth = await requireUser(request);
+  if (!auth.ok) return auth.response;
+  if (auth.user.type !== "artist") return error("این کار مال آرتیسته.", 403);
+  const id = parseId(new URL(request.url).searchParams.get("id"));
+  if (!id) return error("این نوبت رو پیدا نکردیم.", 400);
+  const result = await proposals.listArtistProposalTimes({ artistUserId: auth.user.id, id });
+  if (!result.ok) return json({ error: result.message, code: result.error.toUpperCase(), ...(result.phone ? { data: { phone: result.phone } } : {}) }, { status: STATUS[result.error] || 409 });
+  return json({ data: { times: result.times } });
+}
+
+export const GET = withErrorHandling(_GET);
 export const POST = withErrorHandling(_POST);
 export const DELETE = withErrorHandling(_DELETE);

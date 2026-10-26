@@ -5,6 +5,7 @@ import * as adminRepo from "../../../../../lib/db/repos/admin.js";
 import { ensureDb } from "../../../../../lib/db/connection.js";
 import * as passwordResetRequests from "../../../../../lib/db/repos/passwordResetRequests.js";
 import * as users from "../../../../../lib/db/repos/users.js";
+import { deleteUserSessions } from "../../../../../lib/db/repos/sessions.js";
 import { withErrorHandling } from "../../../../../lib/http.js";
 
 export const runtime = "nodejs";
@@ -43,6 +44,8 @@ async function _POST(request, { params }) {
   }
 
   await users.updateUser(user.id, { password_hash: hashPassword(newPassword) });
+  // A password set for the user signs them out everywhere (owner's decision of 2026-10-25).
+  await deleteUserSessions(user.id);
   await passwordResetRequests.markResolved(id);
   await adminRepo.logAction({ adminUserId: gate.admin.id, adminLabel: gate.admin.label, action: "resolve_password_reset", targetUserId: user.id });
 

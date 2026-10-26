@@ -55,6 +55,7 @@ export function useHomeWorkspaces({
     profileLocationSaving,
     profileSettings,
     updateRegisteredProfile,
+    applyChangedPhone,
     profileSaving,
     saveProfileLocation,
     openProfileEdit,
@@ -171,7 +172,8 @@ export function useHomeWorkspaces({
     changeScheduleBookingParts,
     autoAssignScheduleBooking,
     cancelScheduleBooking,
-    withdrawScheduleProposal
+    withdrawScheduleProposal,
+    markScheduleNoShow
   } = useScheduleBookingMenu({
     artistBookingList,
     salonAppointmentList,
@@ -236,6 +238,7 @@ export function useHomeWorkspaces({
     profileLocationSaving,
     profileSettings,
     updateRegisteredProfile,
+    applyChangedPhone,
     profileSaving,
     saveProfileLocation,
     openProfileEdit,
@@ -308,6 +311,7 @@ export function useHomeWorkspaces({
     autoAssignScheduleBooking,
     cancelScheduleBooking,
     withdrawScheduleProposal,
+    markScheduleNoShow,
     activeRoleMeta,
     activeCreatedMeta,
     salonWorkTagOptions,
