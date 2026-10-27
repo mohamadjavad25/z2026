@@ -200,3 +200,20 @@
 .noticeAction,
 .scPicked button,
 .profilePostComposer .artistWorkUploadBtn { background: var(--fill-strong); color: var(--n-0); }
+
+/* 13 · the round buttons on the salon's and artist's cover (bell, support, QR): a clear frosted glass with a white
+   rim and a bolder icon, so they read on the dark poster (owner: «خیلی کم‌رنگن», 2026-10-27). They used to be
+   8–9% white and all but vanished into the pattern. Specific enough to win over the legacy !important rules. */
+.profilePanel .profileHero.is-salon .profileHeroActions.is-salonTopActions button,
+.profilePanel.page-profile:has(.createdProfile.is-artist) .profileHero.is-artist .profileHeroActions button,
+.profilePanel .profileHero .salonHeroQrBtn {
+  border: 1.5px solid color-mix(in srgb, var(--on-photo) 50%, transparent) !important;
+  background: color-mix(in srgb, var(--on-photo) 22%, transparent) !important;
+  color: var(--on-photo) !important;
+  box-shadow: 0 6px 16px rgb(var(--shadow-rgb) / 0.28) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(1.3) !important;
+  backdrop-filter: blur(14px) saturate(1.3) !important;
+}
+.profilePanel .profileHero.is-salon .profileHeroActions.is-salonTopActions button svg,
+.profilePanel.page-profile:has(.createdProfile.is-artist) .profileHero.is-artist .profileHeroActions button svg,
+.profilePanel .profileHero .salonHeroQrBtn svg { stroke-width: 2.3; filter: drop-shadow(0 1px 1px rgb(var(--shadow-rgb) / 0.35)); }
