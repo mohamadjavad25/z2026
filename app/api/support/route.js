@@ -33,7 +33,7 @@ async function _POST(request) {
   let phone = user?.phone || "";
   if (!user) {
     phone = normalizePhone(body.phone);
-    if (!isValidIranMobile(phone)) return error("شماره‌ت رو درست بزن تا بتونیم بهت زنگ بزنیم.", 400);
+    if (!isValidIranMobile(phone)) return error("شماره‌ت رو درست بزن تا بتونیم جوابت رو پیامک کنیم.", 400);
   }
 
   const who = user ? `user:${user.id}` : `phone:${phone}`;
