@@ -44,7 +44,7 @@ export function SalonNotificationsSheet() {
             onClose={() => setSalonHeroSheet(null)}
           >
             <div className="salonNotificationsPanel">
-              <article>
+              <article className={reservationRequestList.length ? "is-live" : undefined}>
                 <span><BellRing size={18} /></span>
                 <div>
                   <b>درخواست‌های نوبت</b>
@@ -52,7 +52,7 @@ export function SalonNotificationsSheet() {
                 </div>
                 <em>{toPersianDigits(reservationRequestList.length)}</em>
               </article>
-              <article>
+              <article className={pendingSalonCollabRequests.length ? "is-live" : undefined}>
                 <span><PageIcon name="collab" size={22} /></span>
                 <div>
                   <b>همکاری و پرسنل</b>
