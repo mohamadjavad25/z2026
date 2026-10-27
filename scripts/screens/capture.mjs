@@ -123,14 +123,14 @@ const artistPath = (ids) => `/artists/${ids.artist}`;
 /* ---------- «اینستاگرام» (owner's choice 2026-10-27): the page set or not, through the real API ---------- */
 const instagram = (salonPage, artistPage = salonPage) => async ({ sessions }) => {
   await sessions.salon.post("/api/profile", { data: { instagram: salonPage, ...SALON_LOCATION } });
-  await sessions.artist.post("/api/profile", { data: { instagram: artistPage } });
+  await sessions.artist.post("/api/profile", { data: { instagram: artistPage, area: "تهران، یوسف‌آباد", geo: { lat: 35.7342, lng: 51.4069 } } });
 };
 const IG_SET = instagram("salon.roz", "negar.kashi");
 const IG_NONE = instagram("");
 const toInstagram = async (p) => { await p.locator(".igSettings").first().scrollIntoViewIfNeeded({ timeout: 4000 }); await p.evaluate(() => globalThis.scrollBy(0, -120)); await p.waitForTimeout(500); };
 const IG_OPEN = css(".igSettings .profileLocationRow");
 // The public salon page scrolls inside its own box: bring its works (and the folder after them) into view.
-const toWorksEnd = async (p) => { await p.locator(".igWorksTile").first().waitFor({ timeout: 4000 }); await p.evaluate(() => { const box = document.querySelector(".salonPublicProfile"); if (box) box.scrollTop = box.scrollHeight; }); await p.waitForTimeout(600); };
+const toWorksEnd = async (p) => { await p.locator(".igWorksTile").first().waitFor({ timeout: 4000 }); await p.evaluate(() => { const box = globalThis.document.querySelector(".salonPublicProfile"); if (box) box.scrollTop = box.scrollHeight; }); await p.waitForTimeout(600); };
 // The open card is taller than the screen: show it from the field down to the bio buttons.
 const toBio = async (p) => { await p.locator(".igSettingsBioButtons").first().scrollIntoViewIfNeeded({ timeout: 4000 }); await p.evaluate(() => globalThis.scrollBy(0, 110)); await p.waitForTimeout(500); };
 
@@ -236,7 +236,7 @@ const SCREENS = [
   { id: "guest-signup-salon-errors", role: "guest", title: "ثبت‌نام سالن با خانه‌های خالی", steps: [text("سالن"), tap("بساز")] },
   { id: "guest-signup-artist", role: "guest", title: "ثبت‌نام آرتیست", steps: [text("آرتیست")] },
   { id: "guest-login", role: "guest", title: "ورود", steps: [async (p) => { await p.getByRole("button", { name: "ورود" }).last().click(); await p.waitForTimeout(900); }] },
-  { id: "guest-from-salon-link", role: "guest", title: "مهمانی که با لینک سالن آمده", path: (ids) => `/?open=salon-${ids.salon}` },
+  { id: "guest-from-salon-link", role: "guest", title: "مهمانی که با لینک سالن آمده", path: (ids) => `/?open=salon-${ids.salon}`, steps: [css(".spvBarBook.is-open")] },
   { id: "guest-salon-page", role: "guest", title: "صفحهٔ عمومی سالن", path: salonPath },
   { id: "guest-salon-page-full", role: "guest", title: "صفحهٔ عمومی سالن، کامل", path: salonPath, full: true },
   { id: "guest-salon-team-sheet", role: "guest", title: "برگهٔ آرتیست تیم در صفحهٔ سالن", setup: artistPosts, path: salonPath, steps: [css(".stmCard", "نگار کاشی")] },
@@ -311,6 +311,9 @@ const SCREENS = [
   { id: "guest-salon-page-instagram-works-end", role: "guest", title: "صفحهٔ عمومی سالن، آخر نمونه‌کارها با پوشهٔ اینستاگرام", setup: async (ctx) => { await salonPosts(ctx); await IG_SET(ctx); }, path: salonPath, steps: [toWorksEnd] },
   { id: "guest-artist-page-instagram", role: "guest", title: "صفحهٔ عمومی آرتیست با اینستاگرام", setup: async (ctx) => { await artistPosts(ctx); await IG_SET(ctx); }, path: artistPath },
   { id: "guest-artist-page-instagram-dark", role: "guest", title: "صفحهٔ عمومی آرتیست با اینستاگرام، شب", setup: IG_SET, path: artistPath, dark: true },
+  // the map pin at the start of the buttons row (owner's sketch 2026-10-27): beside «وصل شو», or beside «وصل هستی» and «تماس»
+  { id: "client-salon-in-app-two-buttons", role: "client", title: "صفحهٔ سالن داخل اپ، پین کنار دو دکمه", setup: IG_SET, path: (ids) => `/?open=salon-${ids.salon}`, steps: [css(".spvBarBook.is-open")] },
+  { id: "client-artist-in-app-two-buttons", role: "client", title: "صفحهٔ آرتیست داخل اپ، پین کنار دو دکمه", setup: IG_SET, path: (ids) => `/?open=artist-${ids.artist}`, steps: [tap("بستن")] },
   { id: "client-salon-sheet-instagram", role: "client", title: "صفحهٔ سالن داخل اپ مشتری با اینستاگرام", setup: IG_SET, path: salonPath, steps: [toWorksEnd] },
   { id: "salon-instagram-empty", role: "salon", title: "تنظیمات، اینستاگرام هنوز نذاشته", setup: IG_NONE, steps: [tab(0), toInstagram] },
   { id: "salon-instagram-open-empty", role: "salon", title: "تنظیمات، اینستاگرام باز، خالی", setup: IG_NONE, steps: [tab(0), toInstagram, IG_OPEN, toBio] },

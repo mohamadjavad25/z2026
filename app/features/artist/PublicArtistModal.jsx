@@ -2,6 +2,7 @@
 
 import { Bookmark, CalendarCheck, ChevronLeft, ChevronUp, Heart, Phone, Scissors, Share2 } from "lucide-react";
 import { PublicProfileHeader } from "../../components/PublicProfileHeader";
+import { LocationButton } from "../../components/LocationButton";
 import { folderPhotos, InstagramRow } from "../../components/InstagramFolder";
 import { BookingPausedNote } from "../../components/BookingPausedNote";
 import { ServicesDropUp } from "../../components/ServicesDropUp";
@@ -130,7 +131,6 @@ export function PublicArtistModal({
             avatarAlt={artist.name ? `تصویر پروفایل ${artist.name}` : "تصویر پروفایل آرتیست"}
             avatarPosition={artist.avatarPosition || "50% 50%"}
             name={artist.name}
-            location={artist.location}
             area={artist.area ? (String(artist.area).split("،")[0].replace(/^(شهر|روستای|دهستان)\s+/, "").trim() || String(artist.area).trim()) : ""}
             start={(
               <button type="button" className="pphRound" onClick={onClose} aria-label="بازگشت">
@@ -157,6 +157,7 @@ export function PublicArtistModal({
 
           <section className="pphInfo" aria-label={`معرفی ${artist.name || "آرتیست"}`}>
             <div className="pphActions">
+              <LocationButton name={artist.name || ""} location={artist.location} variant="action" />
               {visitorBar ? null : <ConnectToggle following={following} onToggle={onFollow} name={artist.name || ""} kind="آرتیست" icon={<Heart size={18} />} />}
               {artist.phone ? (
                 <a className="pphCall" href={`tel:${toLatinDigits(artist.phone)}`} aria-label="تماس با آرتیست">

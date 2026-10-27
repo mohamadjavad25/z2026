@@ -101,17 +101,18 @@ function LocationSheet({ name, location, onClose }) {
 }
 
 /**
- * The pin next to a salon's or artist's name on their public page. Tapping it opens the pinned
- * spot on a map, and only the map. Renders nothing until the salon or artist has dropped a pin.
+ * The map pin of a salon or artist. Tapping it opens the pinned spot on a map, and only the map. Renders nothing
+ * until the salon or artist has dropped a pin. `variant="action"`: the square button at the start of the public
+ * page's buttons row, as tall as «وصل شو» (owner's sketch 2026-10-27); "round": the small round one elsewhere.
  */
-export function LocationButton({ name = "", location = null }) {
+export function LocationButton({ name = "", location = null, variant = "round" }) {
   const [open, setOpen] = useState(false);
   if (!hasPin(location)) return null;
   return (
     <>
-      <button type="button" className="locButton" onClick={() => setOpen(true)} aria-label={`آدرس ${name} روی نقشه`} aria-haspopup="dialog">
+      <button type="button" className={variant === "action" ? "locButton is-action" : "locButton"} onClick={() => setOpen(true)} aria-label={`آدرس ${name} روی نقشه`} aria-haspopup="dialog">
         <span className="locButtonRing" aria-hidden="true" />
-        <MapPin size={17} strokeWidth={2.4} aria-hidden="true" />
+        <MapPin size={variant === "action" ? 21 : 17} strokeWidth={2.4} aria-hidden="true" />
       </button>
       {open && typeof document !== "undefined" ? (
         <LocationSheet name={name} location={location} onClose={() => setOpen(false)} />

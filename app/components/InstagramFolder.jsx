@@ -49,12 +49,12 @@ export function InstagramLink({ instagram, name = "", className, children }) {
   );
 }
 
-/** Salon page, «ب»: on the cover's bottom-left corner, across from the logo. */
+/** Salon page, «ب»: hanging off the cover's bottom-left corner the way the logo hangs off the right one (owner's
+ *  sketch 2026-10-27), the works sticking up into the cover. */
 export function InstagramCoverBadge({ instagram, name, photos }) {
   return (
     <InstagramLink instagram={instagram} name={name} className="igCoverBadge">
-      <InstagramFolder photos={photos} size={44} alive />
-      <small>اینستاگرام</small>
+      <InstagramFolder photos={photos} size={58} alive />
     </InstagramLink>
   );
 }

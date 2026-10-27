@@ -72,10 +72,12 @@ a:hover > .igFolder .igFolderPost.is-3, a:active > .igFolder .igFolderPost.is-3,
 .igFolder.is-alive .igFolderPost.is-3 { animation-delay: 0.16s; }
 @media (prefers-reduced-motion: reduce) { .igFolderPost { transition: none; } .igFolder.is-alive .igFolderPost { animation: none; } }
 
-/* Salon, «ب»: on the cover's bottom-left corner, across from the logo */
-.igCoverBadge { position: absolute; z-index: 3; left: 14px; bottom: 10px; display: flex; flex-direction: column; align-items: center; gap: 2px; text-decoration: none; }
-.igCoverBadge small { padding: 0 8px; border-radius: 99px; background: var(--brand-white); color: var(--brand-ink); font-size: 0.64rem; font-weight: 900; box-shadow: 0 4px 10px rgb(var(--shadow-rgb) / 0.25); }
-.igCoverBadge:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 3px; border-radius: 14px; }
+/* Salon, «ب»: hangs off the cover's bottom-left corner like the logo off the right one (owner's sketch 2026-10-27);
+   the works stick up into the cover, and the name keeps clear of it. */
+.igCoverBadge { position: absolute; z-index: 3; left: 22px; top: calc(var(--pph-cover) - 46px); display: block; text-decoration: none; }
+.igCoverBadge .igFolder { filter: drop-shadow(0 6px 12px rgb(var(--shadow-rgb) / 0.25)); }
+.igCoverBadge:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 3px; border-radius: 18px; }
+.pphHero.has-coverBadge .pphMeta { padding-left: 92px; }
 
 /* Salon, «الف»: the last tile of the works, or a wide card when there are none yet */
 :root .salonPublicProfile .igWorksTile, .igWorksTile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 6px 4px; min-width: 0; border: 1px solid var(--n-150); border-radius: 14px; background: linear-gradient(165deg, rgb(var(--brand-pink-rgb) / 0.16), rgb(var(--brand-violet-rgb) / 0.16)), var(--n-0); color: var(--ink); text-align: center; text-decoration: none; overflow: visible; }

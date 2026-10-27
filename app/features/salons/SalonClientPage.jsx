@@ -15,6 +15,7 @@ import {
   UserPlus
 } from "lucide-react";
 import { PublicProfileHeader } from "../../components/PublicProfileHeader";
+import { LocationButton } from "../../components/LocationButton";
 import { folderPhotos, InstagramCoverBadge, InstagramWorksTile } from "../../components/InstagramFolder";
 import { BookingPausedNote } from "../../components/BookingPausedNote";
 import { ServicesDropUp } from "../../components/ServicesDropUp";
@@ -152,7 +153,6 @@ export function SalonClientPage({
             avatarPosition={selectedSalon.avatarPosition || "50% 50%"}
             name={publicName}
             area={selectedSalon.area}
-            location={selectedSalon.location}
             coverBadge={instagram ? <InstagramCoverBadge instagram={instagram} name={publicName} photos={instagramPhotos} /> : null}
             start={(
               <button type="button" className="pphRound" onClick={onBack} aria-label="برگرد">
@@ -179,6 +179,7 @@ export function SalonClientPage({
 
           <section className="pphInfo" aria-label={`معرفی ${publicName}`}>
             <div className="pphActions">
+              <LocationButton name={publicName} location={selectedSalon.location} variant="action" />
               {visitorBar ? null : <ConnectToggle following={isFollowing} onToggle={() => onFollow(selectedSalon)} name={publicName} kind="سالن" icon={<UserPlus size={18} />} />}
               {selectedSalon.phone ? (
                 <a className="pphCall" href={`tel:${toLatinDigits(selectedSalon.phone)}`} aria-label="تماس با سالن">
