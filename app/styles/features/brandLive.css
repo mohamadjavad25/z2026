@@ -5,15 +5,17 @@
    section. Tokens: --live, --live-fill, --on-live-fill, --live-soft (tokens.css). This file loads after the
    legacy parts, so its selectors only need to match theirs. */
 
-/* 1 · the line under the tab you are on: violet into pink (salon and artist rails) */
+/* 1 · the line under the tab you are on (salon and artist rails): one flat colour, no gradient (2026-10-27).
+   «نوبت‌ها» is about clients, so pink; the salon's own sections (services, portfolio, team, collab) violet. */
 :root:root:root .profileModeRail.profileModeRail.profileModeRail.is-panelRail:not(.is-client) button.active,
 .profilePanel.page-profile:has(.createdProfile.is-artist) > .profileModeRail.is-panelRail.is-artist-rail button.active,
 .profileHero.is-salon .profileModeRail.is-panelRail.is-salon button.active {
-  box-shadow: none !important;
-  background-image: linear-gradient(90deg, var(--brand-violet), var(--brand-pink)) !important;
-  background-size: 100% 3px !important;
-  background-position: bottom !important;
-  background-repeat: no-repeat !important;
+  box-shadow: inset 0 -3px 0 var(--fill-strong) !important;
+}
+:root:root:root .profileModeRail.profileModeRail.profileModeRail.is-panelRail:not(.is-client) button.is-tab-overview.active,
+.profilePanel.page-profile:has(.createdProfile.is-artist) > .profileModeRail.is-panelRail.is-artist-rail button.is-tab-overview.active,
+.profileHero.is-salon .profileModeRail.is-panelRail.is-salon button.is-tab-overview.active {
+  box-shadow: inset 0 -3px 0 var(--live-fill) !important;
 }
 
 /* 2 · unread count on «مشتریان» */
@@ -93,7 +95,8 @@
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='8' viewBox='0 0 20 8'%3E%3Cpath d='M0 4 Q5 0 10 4 T20 4' fill='none' stroke='%23ff86b8' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E") repeat-x center;
 }
 
-/* 13 · a switch that is on: violet into pink (settings, hours, team, place). The knob stays white. */
+/* 13 · a switch that is on: one flat violet for every switch (settings, hours, team, place); they set up your
+   own business. The knob stays white. */
 .neoSettingsSwitch[data-on="true"] .neoSettingsSwitchTrack,
 .salonHeroSheetPanel.is-artist-settings .neoSettingsSwitch[data-on="true"] .neoSettingsSwitchTrack,
 .salonHeroSheetPanel.is-artist-settings.is-salon-settings .neoSettingsSwitch[data-on="true"] .neoSettingsSwitchTrack,
@@ -102,7 +105,7 @@
 .plSwitch[aria-checked="true"],
 .clwWhere .plSwitch[aria-checked="true"],
 .artistBookingSwitch input:checked {
-  background: var(--brand-blend) !important;
+  background: var(--fill-strong) !important;
 }
 
 /* 14 · today: a pink ring on today's square in the calendar, and on the day bar a pink calendar icon while it
@@ -111,3 +114,81 @@
 .bookingWeekHistoryCalDay.is-today strong { color: var(--live); }
 .dayNav.is-today .dayNavCal { color: var(--live); }
 .dayNavToday { color: var(--live); }
+
+/* 15 · no black buttons (owner's decision, 2026-10-27). Every strong fill is violet now (--fill-strong in
+   tokens.css): what you do for your own business. What you do with a client or a booking is pink, with ink text:
+   new booking (+), approve a request, invite or scan a client, «رزرو», «وصل شو». */
+.bottomNav .profileTab.is-createBooking,
+.profilePanel.page-profile.is-salon-profile ~ .bottomNav .profileTab.is-createBooking,
+.profilePanel.page-profile:has(.createdProfile.is-salon) ~ .bottomNav .profileTab.is-createBooking {
+  background: var(--live-fill) !important;
+  color: var(--on-live-fill) !important;
+  box-shadow: 0 0 0 2px var(--n-0), 0 0 0 4px rgb(var(--brand-violet-rgb) / 0.55), var(--nav-lift) !important;
+}
+.bkReviewActions .is-approve,
+.cnScanCustomerBtn,
+.cuInviteBtn,
+.spvBarBook:not(.is-open),
+.pphFollow:not(.is-following):not(.is-linked) {
+  background: var(--live-fill);
+  color: var(--on-live-fill);
+}
+.spvBarBook:not(.is-open) small { color: rgb(var(--shadow-rgb) / 0.7); }
+
+/* 16 · the last black panels and buttons. Your own business → violet: inviting an artist to the team, a new
+   portfolio post tile, the notifications ask, team notices, profile forms. A booking's own numbers → pink: the
+   day's count in the calendar. (.stfInvite and .galleryAddTile are dark islands, so their ramp stays the day one.) */
+.stfInvite {
+  background: radial-gradient(120% 140% at 100% 0%, rgb(255 255 255 / 0.14), rgb(255 255 255 / 0) 55%), var(--violet-deep);
+}
+.stfInviteIcon { color: var(--violet-deep); }
+.galleryAddTile {
+  background:
+    radial-gradient(circle at 1px 1px, rgb(255 255 255 / 0.1) 1px, transparent 0) 0 0 / 14px 14px,
+    var(--violet-deep);
+}
+.pushSoftAsk { background: var(--violet-deep); border-color: rgb(255 255 255 / 0.2); }
+.pushSoftAsk > svg, .pushSoftAsk small { color: var(--on-photo); opacity: 0.82; }
+.teamNoticeActions .is-main,
+.staffCreateForm button,
+.serviceCreateForm button,
+.profileSubmit,
+.profilePassport.active,
+.specialtySelectCount,
+.appShell.is-auth-gate .authTermsAgreement input[type="checkbox"]:checked {
+  background: var(--fill-strong);
+  color: var(--n-0);
+}
+.bookingWeekHistoryDateHeroStat { background: var(--live-fill); color: var(--on-live-fill); }
+.bookingWeekHistoryDateHeroStat small { color: rgb(var(--shadow-rgb) / 0.7); }
+.page-salons.is-active .salonClientSticky.floatingMobileCtaSplit .ctaGenerate,
+.salonClientSticky.floatingMobileCtaSplit .ctaGenerate { background: var(--live-fill); color: var(--on-live-fill); }
+/* sign-up and profile forms: their accent (submit button, picked chips) is violet for every role, not ink */
+.signupForm,
+.signupForm.is-salon,
+.signupForm.is-artist,
+.signupForm.is-client,
+.profileEditSpecialty {
+  --form-accent: var(--fill-strong);
+  --form-accent-rgb: var(--violet-deep-rgb);
+}
+
+/* 17 · the client's side: finding, connecting and booking are pink («رزرو», «اسکن QR», the scan button);
+   the client's own account and settings stay violet like everyone's */
+.cnPrimaryBtn,
+.cnChip.is-primary,
+.cnScanBtn.is-dark,
+.cnInviteBtn {
+  border-color: var(--live-fill);
+  background: var(--live-fill);
+  color: var(--on-live-fill);
+}
+.chServices button:hover .chSvcBook,
+.chServices button:focus-visible .chSvcBook { background: var(--live-fill); color: var(--on-live-fill); }
+.chSvcBook { background: var(--live-soft); color: var(--live); }
+/* the round close button of the working-hours sheet matches every other sheet's close button */
+.settingsHoursClose { background: var(--fill-strong); color: var(--n-0); }
+/* sending a booking request and sharing the salon's link with clients are with clients: pink */
+.artistBookingPopupSheet .artistBookingPopupConfirm:not(:disabled),
+.artistBookingPopupConfirm:not(:disabled),
+.ivtShare:not(:disabled) { background: var(--live-fill); color: var(--on-live-fill); }

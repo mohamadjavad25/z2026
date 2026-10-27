@@ -42,7 +42,7 @@ export function ProfileModeRail({
         <button
           type="button"
           key={tab.id}
-          className={tab.on ? "active" : ""}
+          className={`is-tab-${tab.id}${tab.on ? " active" : ""}`}
           aria-current={tab.on ? "page" : undefined}
           onClick={() => {
             tab.go();
