@@ -251,6 +251,7 @@ const SCREENS = [
   { id: "salon-notifications", role: "salon", title: "اعلان‌های سالن", steps: [tap("اعلان‌ها")] },
   { id: "salon-qr", role: "salon", title: "کد QR سالن", steps: [tap("کد QR و اسکن")] },
   { id: "salon-tomorrow", role: "salon", title: "نوبت‌های فردا", steps: [tap("روز بعد")] },
+  { id: "salon-tomorrow-dark", role: "salon", title: "نوبت‌های فردا، شب", dark: true, steps: [tap("روز بعد")] },
   { id: "salon-calendar", role: "salon", title: "تقویم نوبت‌ها", steps: [tap(/باز کردن تقویم/)] },
   { id: "salon-services", role: "salon", title: "خدمات سالن", steps: [css(".profileModeRail button, [role=tab], button", "خدمات")] },
   { id: "salon-add-service", role: "salon", title: "افزودن خدمت", steps: [css(".profileModeRail button, [role=tab], button", "خدمات"), tap(/افزودن/)] },
@@ -272,6 +273,7 @@ const SCREENS = [
   // artist
   { id: "artist-home", role: "artist", title: "خانهٔ آرتیست" },
   { id: "artist-tomorrow", role: "artist", title: "نوبت‌های فردای آرتیست", steps: [tap("روز بعد")] },
+  { id: "artist-tomorrow-dark", role: "artist", title: "نوبت‌های فردای آرتیست، شب", dark: true, steps: [tap("روز بعد")] },
   { id: "artist-break", role: "artist", title: "تایم استراحت", steps: [tap(/تایم استراحت/)] },
   { id: "artist-notifications", role: "artist", title: "اعلان‌های آرتیست", steps: [tap("اعلان‌ها")] },
   { id: "artist-services", role: "artist", title: "خدمات آرتیست", steps: [css(".profileModeRail button, [role=tab], button", "خدمات")] },

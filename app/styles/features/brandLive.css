@@ -1,0 +1,53 @@
+/* Brand pink on every screen (owner's decision, 2026-10-27).
+   Salons and artists keep violet for the fixed parts (main button, logo ring, cover). What is live, new or
+   good news is pink for everyone: the unread count, a new request, the new-booking notice, the line under the
+   tab you are on, and a soft pink light in the cover's corner. Never a pink background for a whole card or
+   section. Tokens: --live, --live-fill, --on-live-fill, --live-soft (tokens.css). This file loads after the
+   legacy parts, so its selectors only need to match theirs. */
+
+/* 1 · the line under the tab you are on: violet into pink (salon and artist rails) */
+:root:root:root .profileModeRail.profileModeRail.profileModeRail.is-panelRail:not(.is-client) button.active,
+.profilePanel.page-profile:has(.createdProfile.is-artist) > .profileModeRail.is-panelRail.is-artist-rail button.active,
+.profileHero.is-salon .profileModeRail.is-panelRail.is-salon button.active {
+  box-shadow: none !important;
+  background-image: linear-gradient(90deg, var(--brand-violet), var(--brand-pink)) !important;
+  background-size: 100% 3px !important;
+  background-position: bottom !important;
+  background-repeat: no-repeat !important;
+}
+
+/* 2 · unread count on «مشتریان» */
+.bottomNavBadge { background: var(--live-fill); color: var(--on-live-fill); }
+
+/* 3 · a request waiting for the salon or artist: a pink rail, ring and chip (the client's own view keeps amber) */
+.bkRow.is-tone-pending:not(.is-client)::before { background: var(--live-fill); }
+.bkRow.is-tone-pending:not(.is-client) .bkSide { --bk-rail: var(--live-fill); }
+.bkRow.is-tone-pending:not(.is-client) {
+  border-color: rgb(var(--brand-pink-rgb) / 0.45);
+  box-shadow: 0 0 0 3px rgb(var(--brand-pink-rgb) / 0.12), 0 6px 18px rgb(var(--shadow-rgb) / 0.05);
+}
+.bkRow.is-tone-pending:not(.is-client) .bkChip.is-status-pending { background: var(--live-fill); color: var(--on-live-fill); }
+
+/* requests on other days */
+.pendingOtherDays,
+.pendingOtherDaysList button { color: var(--live); }
+.pendingOtherDaysList button { border-color: rgb(var(--brand-pink-rgb) / 0.45); }
+.pendingOtherDaysList b { background: var(--live-fill); color: var(--on-live-fill); }
+
+/* 4 · the new-booking notice: a pink dot with a pink ring */
+.noticeAvatar { background: var(--live-fill); color: var(--on-live-fill); }
+.noticeAvatar::after { border-color: var(--brand-pink); }
+.notice-glass { box-shadow: inset 0 0 0 1px rgb(var(--ink-rgb) / 0.08), 0 18px 40px rgb(var(--brand-pink-rgb) / 0.2); }
+
+/* 5 · a soft pink light in the top corner of the salon and artist cover (an uploaded poster paints over it) */
+.profileHero.is-salon .salonHeroBanner.salonHeroBanner {
+  background:
+    radial-gradient(60% 75% at 100% 0%, rgb(var(--brand-pink-rgb) / 0.42), rgb(var(--brand-pink-rgb) / 0) 70%),
+    url("/artist-hero-doodle.webp") center / cover no-repeat !important;
+}
+.profilePanel.page-profile:has(.createdProfile.is-artist) .profileHero.is-artist > .artistHeroPoster.artistHeroPoster {
+  background-image:
+    radial-gradient(60% 75% at 100% 0%, rgb(var(--brand-pink-rgb) / 0.42), rgb(var(--brand-pink-rgb) / 0) 70%),
+    radial-gradient(circle at 18% 5%, rgba(51, 51, 55, 0.34), transparent 34%),
+    url("/artist-hero-doodle.webp");
+}

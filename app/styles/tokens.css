@@ -281,6 +281,26 @@ img, svg, picture, video, canvas {
   }
 }
 
+/* Live moments: pink for every role (2026-10-27). What is new or happening now (a fresh request, an unread
+   count, a new-booking notice) is the mascot's pink even on violet salon and artist screens, so the brand pink
+   is felt everywhere while the fixed parts keep the role colour. Small marks only: chips, dots, rails, badges. */
+:root {
+  --live: var(--pink-deep);
+  --live-fill: var(--brand-pink);
+  --on-live-fill: var(--brand-ink);
+  --live-soft: var(--pink-soft);
+}
+:root[data-theme="dark"] {
+  --live: #ff9cc6;
+  --live-soft: rgba(255, 134, 184, 0.18);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --live: #ff9cc6;
+    --live-soft: rgba(255, 134, 184, 0.18);
+  }
+}
+
 /* Role accent: salons and artists work in violet, clients in pink. */
 :root[data-role="pro"] {
   --accent: var(--violet-deep);
