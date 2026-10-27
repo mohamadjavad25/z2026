@@ -53,7 +53,8 @@ export function totpCodeAt(secret, step) {
 export const totpStepAt = (now = Date.now()) => Math.floor(now / 1000 / TOTP_PERIOD_SECONDS);
 
 /**
- * Checks a code against the current step +-1 (clock drift). Returns the matched step, or null.
+ * Checks a code against the current step, one step ahead (clock drift) and two behind, so a code still works for about a
+ * minute after the app moves on to the next one (owner's request 2026-10-27: codes ran out while typing). Returns the matched step, or null.
  * `afterStep` is the last step already used: anything at or before it is refused, so a code (even one
  * shoulder-surfed or intercepted) works exactly once.
  */
@@ -62,7 +63,7 @@ export function verifyTotp(secret, code, { now = Date.now(), afterStep = 0 } = {
   if (!/^\d{6}$/.test(given)) return null;
   const current = totpStepAt(now);
   let matched = null;
-  for (const step of [current - 1, current, current + 1]) {
+  for (const step of [current - 2, current - 1, current, current + 1]) {
     const expected = Buffer.from(totpCodeAt(secret, step));
     // Every candidate is compared (no early exit) so timing does not reveal which step matched.
     if (timingSafeEqual(expected, Buffer.from(given)) && step > afterStep && matched === null) matched = step;

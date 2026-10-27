@@ -687,8 +687,7 @@ describe("admin page (browser)", () => {
     await page.locator(".admKey").waitFor();
     const secret = (await page.locator(".admKey").innerText()).trim();
     const usedStep = totpStepAt();
-    await page.getByLabel("کد ۶ رقمی").fill(totpCodeAt(secret, usedStep));
-    await page.getByRole("button", { name: "فعال‌سازی و ورود" }).click();
+    await page.getByLabel("کد ۶ رقمی").fill(totpCodeAt(secret, usedStep)); // signs in by itself at the sixth digit
     // The rail is the page menu: one button per page (a waiting count may follow the name).
     const nav = (name) => page.locator(".admSideNav").getByRole("button", { name: new RegExp(`^${name}`) });
     await nav("کاربران").waitFor();
@@ -721,11 +720,12 @@ describe("admin page (browser)", () => {
 
     // Logout, then a normal login with the next code.
     await page.getByRole("button", { name: "خروج", exact: true }).click();
-    await page.getByRole("button", { name: "ورود", exact: true }).waitFor();
+    await page.getByRole("button", { name: "ادامه" }).waitFor();
     await page.getByLabel("شمارهٔ موبایل").fill(TEST_ADMIN3_PHONE);
     await page.getByLabel("رمز مدیر").fill(TEST_ADMIN_PASSWORD);
+    await page.getByRole("button", { name: "ادامه" }).click();
+    // The code step signs in by itself at the sixth digit.
     await page.getByLabel(/کد ۶ رقمی/).fill(totpCodeAt(secret, usedStep + 1));
-    await page.getByRole("button", { name: "ورود", exact: true }).click();
     await page.locator(".admSideNav").getByRole("button", { name: "نمای کلی" }).waitFor();
     expect(problems).toEqual([]);
     await context.close();
