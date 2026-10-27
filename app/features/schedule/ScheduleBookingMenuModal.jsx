@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { ownerAttendanceState, reliabilityView } from "../../shared/lib/attendance";
 import {
+  AlertTriangle,
   ArrowRight,
   BadgeCheck,
   CalendarCheck,
@@ -266,7 +267,7 @@ function ClientTrust({ booking }) {
     <div className={`sbmTrust${record?.warn ? " is-warn" : ""}`}>
       {record ? (
         <p>
-          <BadgeCheck size={15} aria-hidden="true" />
+          {record.warn ? <AlertTriangle size={15} aria-hidden="true" /> : <BadgeCheck size={15} aria-hidden="true" />}
           <span>{record.line}{record.warn ? ` ${record.warn}` : ""}</span>
         </p>
       ) : null}

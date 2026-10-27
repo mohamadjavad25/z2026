@@ -37,7 +37,7 @@ export function WaitlistButton({ kind, ownerId, day, dayLabel = "", services, pl
         <span>
           {current.freeNow.length
             ? `الان ساعت ${clockText(current.freeNow[0])} خالیه؛ همین روز رو یه بار دیگه بزن.`
-            : `باشه! ${dayLabel || "این روز"} اگه ${placeLabel || "جایی"} خالی شد، همون لحظه خبرت می‌کنیم.`}
+            : `باشه! ${dayLabel || "این روز"} اگه ${placeLabel || "اون‌جا"} جا خالی شد، همون لحظه خبرت می‌کنیم.`}
         </span>
       </div>
     );

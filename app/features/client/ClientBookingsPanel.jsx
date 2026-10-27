@@ -209,7 +209,7 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook, c
                   <li key={entry.id} className={entry.notified_at ? "is-open" : ""}>
                     <button type="button" className="cbpWaitMain" onClick={open}>
                       <span>{entry.owner_name || (entry.owner_kind === "artist" ? "آرتیست" : "سالن")}، {formatRelativeBookingDayLabel(entry.booking_date)}</span>
-                      <small>{entry.notified_at ? "یه جا خالی شد؛ بزن و زود بگیرش" : `${services}؛ خالی شد، خبرت می‌کنیم`}</small>
+                      <small>{entry.notified_at ? "یه جا خالی شد؛ بزن و زود بگیرش" : `${services}؛ اگه جا باز شد خبرت می‌کنیم`}</small>
                     </button>
                     {onLeaveWaitlist ? (
                       <button type="button" className="cbpWaitDrop" aria-label="دیگه خبرم نکن" onClick={() => onLeaveWaitlist(entry)}>
