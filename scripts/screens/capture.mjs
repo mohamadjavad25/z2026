@@ -108,6 +108,15 @@ async function artistPosts({ sessions }) {
     await sessions.artist.post("/api/posts", { title, tag, image });
   }
 }
+/** Three of سالن رز's own works (made once), for the screens that show its gallery. */
+async function salonPosts({ sessions }) {
+  const mine = (await sessions.salon.get("/api/salon-portfolio")).payload?.data?.portfolio || [];
+  if (mine.length) return;
+  for (const [file, title, tag] of [["hair-color.webp", "رنگ مو", "مو"], ["hair-curls.webp", "فر درشت", "مو"], ["bride-veil.webp", "عروس", "عروس"]]) {
+    const image = `data:image/webp;base64,${(await fs.promises.readFile(new URL(`../../public/brand/photos/${file}`, import.meta.url))).toString("base64")}`;
+    await sessions.salon.post("/api/salon-portfolio", { title, tag, image });
+  }
+}
 const salonPath = (ids) => `/salons/${ids.salon}`;
 const artistPath = (ids) => `/artists/${ids.artist}`;
 
@@ -118,10 +127,12 @@ const instagram = (salonPage, artistPage = salonPage) => async ({ sessions }) =>
 };
 const IG_SET = instagram("salon.roz", "negar.kashi");
 const IG_NONE = instagram("");
-const toInstagram = async (p) => { await p.locator(".igSettings").first().scrollIntoViewIfNeeded({ timeout: 4000 }); await p.evaluate(() => window.scrollBy(0, -120)); await p.waitForTimeout(500); };
+const toInstagram = async (p) => { await p.locator(".igSettings").first().scrollIntoViewIfNeeded({ timeout: 4000 }); await p.evaluate(() => globalThis.scrollBy(0, -120)); await p.waitForTimeout(500); };
 const IG_OPEN = css(".igSettings .profileLocationRow");
+// The public salon page scrolls inside its own box: bring its works (and the folder after them) into view.
+const toWorksEnd = async (p) => { await p.locator(".igWorksTile").first().waitFor({ timeout: 4000 }); await p.evaluate(() => { const box = document.querySelector(".salonPublicProfile"); if (box) box.scrollTop = box.scrollHeight; }); await p.waitForTimeout(600); };
 // The open card is taller than the screen: show it from the field down to the bio buttons.
-const toBio = async (p) => { await p.locator(".igSettingsBioButtons").first().scrollIntoViewIfNeeded({ timeout: 4000 }); await p.evaluate(() => window.scrollBy(0, 110)); await p.waitForTimeout(500); };
+const toBio = async (p) => { await p.locator(".igSettingsBioButtons").first().scrollIntoViewIfNeeded({ timeout: 4000 }); await p.evaluate(() => globalThis.scrollBy(0, 110)); await p.waitForTimeout(500); };
 
 /* ---------- where an artist on a salon team receives clients (state is set through the real API) ---------- */
 const COLLAB = css(".profileModeRail button, [role=tab], button", "همکاری");
@@ -293,10 +304,14 @@ const SCREENS = [
   { id: "artist-customers", role: "artist", title: "مشتریان آرتیست", steps: [tab(2)] },
   { id: "artist-settings", role: "artist", title: "تنظیمات آرتیست", steps: [tab(0)] },
   // «اینستاگرام»: the button next to the name on public pages, and the card in Settings in each of its states
-  { id: "guest-salon-page-instagram", role: "guest", title: "صفحهٔ عمومی سالن با اینستاگرام", setup: IG_SET, path: salonPath },
+  // salon: on the cover («ب») and after the works («الف»; a wide card while there are no works); artist: a row under the hours («ج»)
+  { id: "guest-salon-page-instagram", role: "guest", title: "صفحهٔ عمومی سالن با اینستاگرام، بدون نمونه‌کار", setup: IG_SET, path: salonPath },
   { id: "guest-salon-page-instagram-dark", role: "guest", title: "صفحهٔ عمومی سالن با اینستاگرام، شب", setup: IG_SET, path: salonPath, dark: true },
-  { id: "guest-artist-page-instagram", role: "guest", title: "صفحهٔ عمومی آرتیست با اینستاگرام", setup: IG_SET, path: artistPath },
-  { id: "client-salon-sheet-instagram", role: "client", title: "صفحهٔ سالن داخل اپ مشتری با اینستاگرام", setup: IG_SET, path: salonPath },
+  { id: "guest-salon-page-instagram-works", role: "guest", title: "صفحهٔ عمومی سالن با اینستاگرام و نمونه‌کار", setup: async (ctx) => { await salonPosts(ctx); await IG_SET(ctx); }, path: salonPath },
+  { id: "guest-salon-page-instagram-works-end", role: "guest", title: "صفحهٔ عمومی سالن، آخر نمونه‌کارها با پوشهٔ اینستاگرام", setup: async (ctx) => { await salonPosts(ctx); await IG_SET(ctx); }, path: salonPath, steps: [toWorksEnd] },
+  { id: "guest-artist-page-instagram", role: "guest", title: "صفحهٔ عمومی آرتیست با اینستاگرام", setup: async (ctx) => { await artistPosts(ctx); await IG_SET(ctx); }, path: artistPath },
+  { id: "guest-artist-page-instagram-dark", role: "guest", title: "صفحهٔ عمومی آرتیست با اینستاگرام، شب", setup: IG_SET, path: artistPath, dark: true },
+  { id: "client-salon-sheet-instagram", role: "client", title: "صفحهٔ سالن داخل اپ مشتری با اینستاگرام", setup: IG_SET, path: salonPath, steps: [toWorksEnd] },
   { id: "salon-instagram-empty", role: "salon", title: "تنظیمات، اینستاگرام هنوز نذاشته", setup: IG_NONE, steps: [tab(0), toInstagram] },
   { id: "salon-instagram-open-empty", role: "salon", title: "تنظیمات، اینستاگرام باز، خالی", setup: IG_NONE, steps: [tab(0), toInstagram, IG_OPEN, toBio] },
   { id: "salon-instagram-error", role: "salon", title: "تنظیمات، اینستاگرام، اسم اشتباه", setup: IG_NONE, steps: [tab(0), toInstagram, IG_OPEN, fill("#igSettingsInput", "سالن رز"), css(".igSettingsSave"), toBio] },

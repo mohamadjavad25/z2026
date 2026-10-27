@@ -23,6 +23,8 @@
   --brand-pink: #ff86b8;
   --brand-violet: #8b6cff;
   --brand-white: #ffffff;
+  /* Instagram's own logo colours: only for its logo (the «اینستاگرام» folder, features/instagram.css), never as a brand colour. */
+  --ig-gradient: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 6%, #fd5949 45%, #d6249f 62%, #285aeb 92%);
   --pink-deep: #c42a74;      /* pink as text or border on white (AA) */
   --violet-deep: #5b3fd6;    /* violet as text, or as a button behind white text (AA) */
   --pink-soft: #ffe3ef;

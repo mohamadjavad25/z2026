@@ -15,10 +15,6 @@
 .locButton:active { transform: scale(0.92); }
 .locButton:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 3px; }
 
-/* ── The Instagram button beside it: same size, quiet (it leads out of the app), no animation ── */
-.igButton { flex: none; width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; background: var(--surface-solid); color: var(--ink); border: 1.5px solid var(--line); text-decoration: none; }
-.igButton:active { transform: scale(0.92); }
-.igButton:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 3px; }
 
 @keyframes locHop {
   0%, 70%, 100% { transform: none; }

@@ -15,6 +15,7 @@ import {
   UserPlus
 } from "lucide-react";
 import { PublicProfileHeader } from "../../components/PublicProfileHeader";
+import { folderPhotos, InstagramCoverBadge, InstagramWorksTile } from "../../components/InstagramFolder";
 import { BookingPausedNote } from "../../components/BookingPausedNote";
 import { ServicesDropUp } from "../../components/ServicesDropUp";
 import { ServicesOnPage } from "../../components/ServicesOnPage";
@@ -122,6 +123,10 @@ export function SalonClientPage({
     : activeFilter === "salon" ? salonPosts
     : teamPosts.filter((post) => post.staffKey === activeFilter);
   const menuServices = bookWith ? bookWith.services : services;
+  // «اینستاگرام» (owner's choice 2026-10-27): on the cover («ب») and as the last tile of the works («الف»), the folder
+  // showing the salon's newest works.
+  const instagram = selectedSalon?.instagram || "";
+  const instagramPhotos = folderPhotos(allPosts);
   const weekHours = Array.isArray(selectedSalon?.hours) ? selectedSalon.hours : [];
   const todayName = PERSIAN_WEEKDAYS[new Date().getDay()];
   const prices = services.map((service) => parseTomanAmount(service.price)).filter(Boolean);
@@ -148,7 +153,7 @@ export function SalonClientPage({
             name={publicName}
             area={selectedSalon.area}
             location={selectedSalon.location}
-            instagram={selectedSalon.instagram}
+            coverBadge={instagram ? <InstagramCoverBadge instagram={instagram} name={publicName} photos={instagramPhotos} /> : null}
             start={(
               <button type="button" className="pphRound" onClick={onBack} aria-label="برگرد">
                 <ChevronLeft size={19} />
@@ -252,8 +257,13 @@ export function SalonClientPage({
               allItems={portfolioItems}
               getFallbackStyle={getPortfolioCardStyle}
               postActions={postActions}
+              endTile={instagram ? <InstagramWorksTile instagram={instagram} name={publicName} photos={instagramPhotos} className="salonClientMosaicTile is-square" /> : null}
             />
           </section>
+          ) : instagram ? (
+            <section className="spvSection" aria-label="اینستاگرام">
+              <InstagramWorksTile instagram={instagram} name={publicName} photos={[]} wide />
+            </section>
           ) : null}
 
           {visitorBar || (

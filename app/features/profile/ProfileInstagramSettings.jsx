@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Check, ChevronLeft, Copy, ImageDown, X } from "lucide-react";
-import { InstagramGlyph } from "../../components/InstagramButton";
+import { InstagramGlyph } from "../../components/InstagramFolder";
 import { INSTAGRAM_INVALID_MESSAGE, normalizeInstagram } from "../../shared/lib/instagram";
 import { InstagramStorySheet } from "./InstagramStorySheet";
 
@@ -12,8 +12,8 @@ const BIO_COPIED = "کپی شد. حالا بذارش تو بیو اینستاگ�
 /**
  * «اینستاگرام» in Settings for salons and artists (owner's choice 2026-10-27, «۲»): one row that opens the page
  * name field, the link of their public page for the Instagram bio («کپی لینک») and «استوری آماده» (a ready
- * 9:16 picture with a QR, InstagramStorySheet). The saved name shows as the round button next to their name on
- * the public page (components/InstagramButton). onSave(name) resolves to { ok, error }; "" removes the page.
+ * 9:16 picture with a QR, InstagramStorySheet). The saved page shows on the public page as the Instagram folder
+ * (components/InstagramFolder: on the cover and after the works for a salon, a row under the hours for an artist). onSave(name) resolves to { ok, error }; "" removes the page.
  */
 export function ProfileInstagramSettings({ profileType, profileId, name = "", value = "", saving = false, onSave, onNotify }) {
   const [open, setOpen] = useState(false);

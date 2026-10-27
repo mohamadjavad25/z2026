@@ -1,5 +1,6 @@
-/* «اینستاگرام» (owner's choice 2026-10-27). The round button next to the name on public pages lives in location.css
-   beside the pin. Here: the Settings card (ProfileInstagramSettings) and the ready-story sheet (InstagramStorySheet).
+/* «اینستاگرام» (owner's choices 2026-10-27). The folder icon and its three places on public pages
+   (components/InstagramFolder), the Settings card (ProfileInstagramSettings) and the ready-story sheet
+   (InstagramStorySheet).
    Saving the page is for your own account, so violet; the bio link and the story bring clients, so pink (brandLive). */
 
 .igSettingsIcon { color: var(--ink); }
@@ -49,3 +50,52 @@
 .igStoryShare, .igStorySave { background: var(--live-fill); color: var(--on-live-fill); }
 .igStorySave.is-quiet { background: var(--n-100); color: var(--n-900); }
 .igStoryButtons button:disabled { opacity: 0.6; cursor: default; }
+
+/* ── The folder: Instagram's logo, untouched, in front; three works sticking out of its top ── */
+.igFolder { --igf: 48px; position: relative; display: inline-block; flex: none; width: var(--igf); height: calc(var(--igf) * 1.42); }
+.igFolderPost { position: absolute; bottom: calc(var(--igf) * 0.52); left: 50%; width: calc(var(--igf) * 0.54); height: calc(var(--igf) * 0.86); border: calc(var(--igf) * 0.028 + 0.5px) solid var(--brand-white); border-radius: calc(var(--igf) * 0.08); background: var(--n-100) center / cover no-repeat; box-shadow: 0 calc(var(--igf) * 0.03) calc(var(--igf) * 0.08) rgb(var(--shadow-rgb) / 0.28); transform-origin: 50% 100%; transition: transform 0.45s cubic-bezier(0.3, 1.6, 0.5, 1); }
+.igFolderPost.is-1 { transform: translateX(-92%) rotate(-15deg); }
+.igFolderPost.is-2 { z-index: 1; transform: translateX(-50%) translateY(calc(var(--igf) * -0.08)) rotate(-1deg); }
+.igFolderPost.is-3 { transform: translateX(-8%) rotate(14deg); }
+.igFolderPost.is-plain.is-1 { background: linear-gradient(160deg, var(--pink-soft), var(--brand-pink)); }
+.igFolderPost.is-plain.is-2 { background: linear-gradient(160deg, var(--violet-soft), var(--brand-violet)); }
+.igFolderPost.is-plain.is-3 { background: var(--brand-blend); }
+a:hover > .igFolder .igFolderPost.is-1, a:active > .igFolder .igFolderPost.is-1, a:focus-visible > .igFolder .igFolderPost.is-1 { transform: translateX(-104%) translateY(calc(var(--igf) * -0.08)) rotate(-23deg); }
+a:hover > .igFolder .igFolderPost.is-2, a:active > .igFolder .igFolderPost.is-2, a:focus-visible > .igFolder .igFolderPost.is-2 { transform: translateX(-50%) translateY(calc(var(--igf) * -0.17)) rotate(-1deg); }
+a:hover > .igFolder .igFolderPost.is-3, a:active > .igFolder .igFolderPost.is-3, a:focus-visible > .igFolder .igFolderPost.is-3 { transform: translateX(4%) translateY(calc(var(--igf) * -0.08)) rotate(22deg); }
+.igFolderFace { position: absolute; z-index: 2; bottom: 0; left: 0; display: grid; place-items: center; width: var(--igf); height: var(--igf); border-radius: calc(var(--igf) * 0.27); background: var(--ig-gradient); color: var(--brand-white); box-shadow: 0 calc(var(--igf) * 0.06) calc(var(--igf) * 0.16) rgb(var(--shadow-rgb) / 0.22); }
+.igFolderFace::before { content: ""; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(180deg, rgb(255 255 255 / 0.22), transparent 38%); }
+.igFolderGlyph { position: relative; width: 62%; height: 62%; }
+@keyframes igPeek { 0%, 72%, 100% { translate: 0 0; } 80% { translate: 0 calc(var(--igf) * -0.05); } 88% { translate: 0 0; } }
+.igFolder.is-alive .igFolderPost { animation: igPeek 4.2s ease-in-out infinite; }
+.igFolder.is-alive .igFolderPost.is-2 { animation-delay: 0.08s; }
+.igFolder.is-alive .igFolderPost.is-3 { animation-delay: 0.16s; }
+@media (prefers-reduced-motion: reduce) { .igFolderPost { transition: none; } .igFolder.is-alive .igFolderPost { animation: none; } }
+
+/* Salon, «ب»: on the cover's bottom-left corner, across from the logo */
+.igCoverBadge { position: absolute; z-index: 3; left: 14px; bottom: 10px; display: flex; flex-direction: column; align-items: center; gap: 2px; text-decoration: none; }
+.igCoverBadge small { padding: 0 8px; border-radius: 99px; background: var(--brand-white); color: var(--brand-ink); font-size: 0.64rem; font-weight: 900; box-shadow: 0 4px 10px rgb(var(--shadow-rgb) / 0.25); }
+.igCoverBadge:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 3px; border-radius: 14px; }
+
+/* Salon, «الف»: the last tile of the works, or a wide card when there are none yet */
+:root .salonPublicProfile .igWorksTile, .igWorksTile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 6px 4px; min-width: 0; border: 1px solid var(--n-150); border-radius: 14px; background: linear-gradient(165deg, rgb(var(--brand-pink-rgb) / 0.16), rgb(var(--brand-violet-rgb) / 0.16)), var(--n-0); color: var(--ink); text-align: center; text-decoration: none; overflow: visible; }
+:root .salonPublicProfile .salonPublicPortfolio .igWorksTile.salonClientMosaicTile { border-radius: 6px !important; }
+.igWorksTile .igFolder { margin-bottom: 1px; }
+.igWorksTile:not(.is-wide) .igWorksText span { font-size: 0.6rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.igWorksTile:not(.is-wide) .igWorksText { max-width: 100%; }
+.igWorksText { display: grid; gap: 1px; min-width: 0; }
+.igWorksText b { font-size: 0.78rem; font-weight: 950; line-height: 1.45; }
+.igWorksText span { color: var(--n-600); font-size: 0.68rem; font-weight: 800; }
+:root .salonPublicProfile .igWorksTile.is-wide, .igWorksTile.is-wide { flex-direction: row; justify-content: flex-start; gap: 12px; padding: 14px 14px 12px; border-radius: 18px; text-align: right; }
+.igWorksTile.is-wide .igWorksText b { font-size: 0.86rem; }
+.igWorksTile.is-wide .igWorksText em { font-style: normal; font-weight: 900; color: var(--accent); }
+.igWorksTile:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
+
+/* Artist, «ج»: one row under «ساعت کاری», built like it */
+.igRow { display: flex; align-items: center; gap: 10px; min-height: 54px; padding: 4px 2px 8px; border-bottom: 1px solid var(--n-100); color: var(--n-900); text-decoration: none; }
+.igRowText { display: grid; min-width: 0; }
+.igRowText b { font-size: 0.84rem; font-weight: 900; }
+.igRowText span { color: var(--n-600); font-size: 0.74rem; font-weight: 800; text-align: right; }
+.igRowGo { margin-inline-start: auto; color: var(--accent); font-size: 0.8rem; font-weight: 900; }
+.igRowGo::after { content: " ‹"; }
+.igRow:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; border-radius: 10px; }

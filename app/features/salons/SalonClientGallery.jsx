@@ -31,9 +31,10 @@ function getMosaicShape(ratio, index, count) {
  *
  * postActions: { isSaved(post), toggleSave(post), share(post), view(post) }
  * A team artist's post (item.by: { name, avatar, … }, see SalonClientPage) carries their name on its tile and opens
- * with them as its owner; `owner` sets the owner for every item (an artist's own sheet in SalonTeam).
+ * with them as its owner; `owner` sets the owner for every item (an artist's own sheet in SalonTeam). `endTile` is one
+ * more tile after the works (the salon's Instagram folder).
  */
-export function SalonClientGallery({ salon, items, getFallbackStyle, postActions = null, allItems = null, owner = null }) {
+export function SalonClientGallery({ salon, items, getFallbackStyle, postActions = null, allItems = null, owner = null, endTile = null }) {
   const [selectedItem, setSelectedItem] = useState(null);
   const [imageRatios, setImageRatios] = useState({});
   // On a slow connection the pictures come last: each tile is a grey block until its small copy has arrived, and a
@@ -97,6 +98,7 @@ export function SalonClientGallery({ salon, items, getFallbackStyle, postActions
             </button>
           );
         })}
+        {endTile}
       </div>
       {anyFailed ? (
         <p className="salonGalleryRetry" role="alert">

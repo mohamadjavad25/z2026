@@ -2,6 +2,7 @@
 
 import { Bookmark, CalendarCheck, ChevronLeft, ChevronUp, Heart, Phone, Scissors, Share2 } from "lucide-react";
 import { PublicProfileHeader } from "../../components/PublicProfileHeader";
+import { folderPhotos, InstagramRow } from "../../components/InstagramFolder";
 import { BookingPausedNote } from "../../components/BookingPausedNote";
 import { ServicesDropUp } from "../../components/ServicesDropUp";
 import { ServicesOnPage } from "../../components/ServicesOnPage";
@@ -130,7 +131,6 @@ export function PublicArtistModal({
             avatarPosition={artist.avatarPosition || "50% 50%"}
             name={artist.name}
             location={artist.location}
-            instagram={artist.instagram}
             area={artist.area ? (String(artist.area).split("،")[0].replace(/^(شهر|روستای|دهستان)\s+/, "").trim() || String(artist.area).trim()) : ""}
             start={(
               <button type="button" className="pphRound" onClick={onClose} aria-label="بازگشت">
@@ -170,6 +170,8 @@ export function PublicArtistModal({
           <div className={`artistPublicBody${servicesOpen ? " is-servicesOpen" : ""}`}>
             {/* Hours sit above the posts so a long gallery never buries them. */}
             <WeeklyHours rows={weekHours} todayName={todayName} />
+            {/* «اینستاگرام» (owner's choice 2026-10-27, «ج»): one row under the hours, the folder showing their newest works. */}
+            {artist.instagram ? <InstagramRow instagram={artist.instagram} name={artist.name} photos={folderPhotos([featuredWork, ...(galleryRest || [])])} /> : null}
 
             {/* Clients pick services from the «رزرو» bar; a visiting salon or artist has no bar, so it sees them here. */}
             {visitorBar ? <ServicesOnPage services={services} /> : null}
