@@ -3335,10 +3335,6 @@
 
 
 
-.artistPublicGrid.is-single{ grid-template-columns: 1fr; }
-
-
-
 .artistPublicServiceCard.is-selected,
 .artistPublicServiceCard:hover{
   border-color: rgb(var(--ink-rgb) / 0.22);

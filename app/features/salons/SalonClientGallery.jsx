@@ -15,7 +15,9 @@ function getItemKey(item, index) {
   return String(item.id || item.image || item.title || index);
 }
 
-function getMosaicShape(ratio, index) {
+// A lone work gets the size it would have among others, never the big featured tile.
+function getMosaicShape(ratio, index, count) {
+  if (count === 1) return ratio && ratio <= 0.72 ? "is-tall" : "is-square";
   if (ratio >= 1.55) return "is-wide";
   if (ratio <= 0.72) return "is-tall";
   if (ratio >= 1.16) return "is-landscape";
@@ -69,7 +71,7 @@ export function SalonClientGallery({ salon, items, getFallbackStyle, postActions
       <div className="salonClientMosaicGallery" aria-label="گالری سالن">
         {items.map((item, index) => {
           const key = getItemKey(item, index);
-          const shape = getMosaicShape(imageRatios[key], index);
+          const shape = getMosaicShape(imageRatios[key], index, items.length);
           return (
             <button
               type="button"
