@@ -1,0 +1,249 @@
+<title>فرفرو امروز و رقبا</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap">
+<style>
+/* Layout: reading column; three role bands (client, artist, salon), each "what it does today" then a score grid against rivals. */
+:root {
+  --bg: #ffffff; --fg: #0c0d12; --muted: #5d5f6e; --line: #e6e4ee; --soft: #f5f3fb;
+  --pink: #ff86b8; --violet: #8b6cff; --ink: #0c0d12; --on-ink: #ffffff; --ink-muted: #b7b5c6;
+  --good: #1d8a55; --bad: #c4385e;
+  --blend: linear-gradient(90deg, #ff86b8, #8b6cff);
+  --font: "Vazirmatn", Tahoma, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #101118; --fg: #f1f0f6; --muted: #a3a2b4; --line: #2a2b38; --soft: #181923; --ink: #1b1c27; --good: #4fc98a; --bad: #ff7d9f; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --bg: #101118; --fg: #f1f0f6; --muted: #a3a2b4; --line: #2a2b38; --soft: #181923; --ink: #1b1c27; --good: #4fc98a; --bad: #ff7d9f; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font); font-size: 16px; line-height: 1.9; direction: rtl; }
+.band { padding-block: 40px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.band.ink { background: var(--ink); color: var(--on-ink); }
+.band.ink .muted { color: var(--ink-muted); }
+.band.soft { background: var(--soft); }
+.wrap { max-width: 760px; margin: 0 auto; display: grid; gap: 20px; }
+h1 { font-size: clamp(28px, 6vw, 40px); font-weight: 900; line-height: 1.35; margin: 0; text-wrap: balance; }
+h2 { font-size: 24px; font-weight: 900; margin: 0; text-wrap: balance; }
+h3 { font-size: 17px; font-weight: 700; margin: 0; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+.em { background: var(--blend); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.eyebrow { font-size: 13px; font-weight: 700; color: var(--violet); }
+.ink .eyebrow { color: var(--pink); }
+.scores { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.scores > div { border: 1px solid rgba(255,255,255,.14); border-radius: 16px; padding: 16px; display: grid; gap: 2px; align-content: start; }
+.scores b { font-size: clamp(30px, 8vw, 44px); font-weight: 900; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.scores small { font-size: 13px; }
+@media (max-width: 520px) { .scores { grid-template-columns: 1fr; } }
+.cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 620px) { .cols { grid-template-columns: 1fr; } }
+.box { border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: grid; gap: 8px; align-content: start; min-width: 0; background: var(--bg); }
+.box ul { margin: 0; padding-right: 18px; display: grid; gap: 6px; }
+.box h3.ok { color: var(--good); }
+.box h3.no { color: var(--bad); }
+.tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; background: var(--bg); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; min-width: 620px; }
+th, td { text-align: right; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+thead th { font-weight: 700; color: var(--muted); font-size: 13px; }
+thead th.me { color: var(--violet); }
+tr:last-child td { border-bottom: 0; }
+tr.avg td { font-weight: 900; background: var(--soft); }
+td.s { width: 92px; font-variant-numeric: tabular-nums; }
+.cell { display: grid; gap: 3px; }
+.cell span { font-weight: 700; }
+.meter { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.meter i { display: block; height: 100%; background: var(--fg); opacity: .35; border-radius: 3px; }
+td.me .meter i { background: var(--blend); opacity: 1; }
+td.me span { color: var(--violet); }
+.note { font-size: 14px; color: var(--muted); border-right: 3px solid var(--pink); padding-right: 12px; }
+.rivals { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.src { font-size: 13px; }
+a { color: var(--violet); }
+</style>
+
+<section class="band ink">
+  <div class="wrap">
+    <p class="eyebrow">فرفرو، همین امروز · ۵ آبان ۱۴۰۵</p>
+    <h1>فرفرو الان برای هر کس <span class="em">دقیقاً چی کار می‌کنه</span>، و کنار رقبا چند می‌گیره</h1>
+    <p class="muted">هر چی اینجا نوشتم از روی صفحه‌های همین الانِ اپ دیدم، نه برنامه‌های آینده. نمره‌ها از ۱۰ هستن.</p>
+    <div class="scores">
+      <div><small>برای آرتیست</small><b>۷.۸</b><small class="muted">بهترین در بازار. هیچ رقیبی این‌قدر به آرتیست نرسیده.</small></div>
+      <div><small>برای مشتری</small><b>۶.۲</b><small class="muted">نوبت گرفتن عالی، ولی پیدا کردن سالن تازه و نظر مشتری‌ها نیست.</small></div>
+      <div><small>برای سالن</small><b>۵.۸</b><small class="muted">تقویم و تیم قوی، ولی حساب‌وکتاب و بیعانه نداره.</small></div>
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap">
+    <p class="eyebrow">مشتری</p>
+    <h2>مشتری الان چی کار می‌تونه بکنه</h2>
+    <div class="cols">
+      <div class="box">
+        <h3 class="ok">الان کار می‌کنه</h3>
+        <ul>
+          <li>سالن یا آرتیستش رو با اسم، شماره، لینک یا اسکن کد پیدا می‌کنه و «وصل شو» می‌زنه.</li>
+          <li>قبل از رفتن، خدمت‌ها، قیمت، مدت هر کار، ساعت کاری، تیم و نمونه‌کار رو می‌بینه.</li>
+          <li>روز و ساعت خالی رو خودش انتخاب می‌کنه؛ چند کار توی یه نوبت، برای چند نفر، یا با یه آرتیست خاص.</li>
+          <li>تا سالن جواب بده می‌دونه کی جواب میاد؛ اگه نیاد، خودش لغو می‌شه.</li>
+          <li>خبر تأیید، لغو و یادآوری نیم ساعت قبل می‌گیره؛ «وقتش شده» یادش می‌ندازه دوباره نوبت بگیره.</li>
+          <li>جای سالن رو روی نقشه می‌بینه، نوبت‌های قبلی، ذخیره‌ها و پشتیبانی داره. همه رایگانه.</li>
+        </ul>
+      </div>
+      <div class="box">
+        <h3 class="no">الان نمی‌تونه</h3>
+        <ul>
+          <li>سالن تازه کشف کنه؛ «پیشنهاد سالن و آرتیست» هنوز به‌زودیه و دسته‌ها فقط سالن‌های خودش رو نشون می‌دن.</li>
+          <li>نظر و امتیاز مشتری‌های دیگه رو ببینه.</li>
+          <li>بیعانه یا پول خدمت رو آنلاین بده.</li>
+          <li>اپ رو از کافه‌بازار نصب کنه؛ هنوز منتظر تأییده. فعلاً از سایت.</li>
+        </ul>
+      </div>
+    </div>
+    <p class="note">خلاصه: فرفرو برای مشتری‌ای که سالنش رو می‌شناسه عالیه، ولی برای کسی که دنبال سالن تازه‌ست هنوز چیزی نداره.</p>
+  </div>
+</section>
+
+<section class="band soft">
+  <div class="wrap">
+    <p class="eyebrow">آرتیست</p>
+    <h2>آرتیست الان چی کار می‌کنه و چه سودی می‌بره</h2>
+    <div class="cols">
+      <div class="box">
+        <h3 class="ok">کاری که می‌کنه</h3>
+        <ul>
+          <li>یه صفحهٔ شخصی با نمونه‌کار، خدمت‌ها و قیمت داره و لینکش رو هر جا می‌فرسته.</li>
+          <li>ساعت کاری، تایم استراحت و حالت مرخصی رو خودش می‌چینه.</li>
+          <li>مستقیم نوبت می‌گیره و تأیید، رد یا پیشنهاد ساعت دیگه می‌ده؛ «نیومد» رو هم ثبت می‌کنه.</li>
+          <li>با اسکن کد، توی تیم یک یا چند سالن می‌ره و تعیین می‌کنه مشتری‌هاش از کی بیان کدوم سالن.</li>
+          <li>پستش رو برای صفحهٔ سالن هم می‌فرسته، اگه سالن قبول کنه.</li>
+          <li>لیست مشتری‌هاش رو داره و مشتری‌هاش با «وقتش شده» برمی‌گردن.</li>
+        </ul>
+      </div>
+      <div class="box">
+        <h3 class="ok">سودی که می‌بره</h3>
+        <ul>
+          <li>مشتری‌ها مال خودشه، نه مال سالن؛ هر جا بره، دنبالش میان.</li>
+          <li>دیگه لازم نیست تمام روز جواب دایرکت بده.</li>
+          <li>صفحه‌ش بدون فیلترشکن باز می‌شه، برخلاف اینستاگرام.</li>
+          <li>هزینه: سی روز رایگان، بعد ماهی ۳۰۰ هزار تومن.</li>
+        </ul>
+        <h3 class="no">کمبودش</h3>
+        <ul>
+          <li>مشتری تازه نمی‌آره، فقط مشتری‌های خودش رو مرتب می‌کنه.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap">
+    <p class="eyebrow">سالن</p>
+    <h2>سالن الان چی کار می‌کنه و چه سودی می‌بره</h2>
+    <div class="cols">
+      <div class="box">
+        <h3 class="ok">کاری که می‌کنه</h3>
+        <ul>
+          <li>درخواست‌های تازه رو با یه ضربه تأیید، رد یا جابه‌جا می‌کنه.</li>
+          <li>تقویم ماه، برنامهٔ امروز و فردا رو با اسم هر آرتیست می‌بینه.</li>
+          <li>نوبت تلفنی رو خودش در پنج قدم ثبت می‌کنه و برای مشتری پیامک یادآوری می‌ره.</li>
+          <li>منوی خدمات رو از فهرست آماده یا دستی می‌سازه، با قیمت و مدت.</li>
+          <li>تیم داره: دعوت آرتیست، مرخصی، دسترسی، درآمد شش هفتهٔ هر نفر.</li>
+          <li>مشتری‌هاش رو با برچسب می‌بینه: تازه، تکراری، یه مدته نیومده. با QR پیشخون و پیام آماده دعوتشون می‌کنه.</li>
+          <li>صفحهٔ عمومی با نمونه‌کار، تیم و جای روی نقشه داره.</li>
+        </ul>
+      </div>
+      <div class="box">
+        <h3 class="ok">سودی که می‌بره</h3>
+        <ul>
+          <li>دفتر نوبت و جواب دادن به تلفن کم می‌شه.</li>
+          <li>یادآوری‌ها نیومدن مشتری رو کم می‌کنه.</li>
+          <li>مشتری‌های قدیمی با «وقتش شده» برمی‌گردن.</li>
+          <li>هزینه: سی روز رایگان، بعد ماهی ۵۰۰ هزار تومن.</li>
+        </ul>
+        <h3 class="no">کمبودش</h3>
+        <ul>
+          <li>مشتری تازه کم می‌آره، چون فهرست سالن‌ها برای مشتری باز نیست.</li>
+          <li>صندوق، حساب‌وکتاب، انبار و بیعانه نداره.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band soft">
+  <div class="wrap">
+    <p class="eyebrow">رقبا</p>
+    <h2>با کی مقایسه کردم</h2>
+    <div class="rivals">
+      <div class="box"><h3>وقت قبلی و رخساره</h3><p class="muted">فهرست سالن‌ها برای مشتری، رزرو با بیعانه، و نرم‌افزار حسابداری و باشگاه مشتریان برای سالن.</p></div>
+      <div class="box"><h3>آرایشگاهچی</h3><p class="muted">فهرست بزرگ سالن‌ها، مقایسه و نظر مشتری‌ها، رزرو آنلاین.</p></div>
+      <div class="box"><h3>آرایش‌تو</h3><p class="muted">نرم‌افزار مدیریت سالن: تقویم، مشتری، گزارش، پیامک یادآوری.</p></div>
+      <div class="box"><h3>اینستاگرام و تلفن</h3><p class="muted">رقیب اصلی واقعی: نمونه‌کار در پیج، نوبت با دایرکت یا تماس، و دفتر.</p></div>
+    </div>
+    <p class="note">کافه‌بازار از اینجا باز نمی‌شد، پس امکانات رقبا رو از معرفی خودشون و چند گزارش برداشتم، نه از امتحان کردن خود اپ. نمره‌هاشون یکی دو نمره ممکنه جابه‌جا باشه.</p>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap">
+    <h2>نمره‌ها، یکی‌یکی</h2>
+    <div id="tables" style="display:grid; gap:24px;"></div>
+  </div>
+</section>
+
+<section class="band ink">
+  <div class="wrap">
+    <p class="eyebrow">نتیجه</p>
+    <h2>فرفرو کجا جلوئه، کجا عقب</h2>
+    <p>فرفرو توی سه چیز از همه جلوئه: رزرو راحت با قیمت و نمونه‌کار، کار آرتیست با چند سالن، و برگردوندن مشتری قدیمی.</p>
+    <p>سه جای خالی بزرگ داره که رقبا دارن: پیدا کردن سالن تازه برای مشتری، نظر و امتیاز مشتری‌ها، و بیعانه برای جلوگیری از نیومدن.</p>
+    <p class="muted">یعنی الان فرفرو بیشتر ابزار مرتب کردن مشتری‌های خود سالن و آرتیسته، تا جایی برای پیدا کردن مشتری تازه. این برای شروع اشکالی نداره، چون مشتری دنبال سالن خودش میاد؛ ولی برای اینکه سالن‌ها حاضر بشن ماهی ۵۰۰ هزار تومن بدن، آوردن مشتری تازه مهم می‌شه.</p>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap">
+    <p class="eyebrow">منبع‌ها</p>
+    <div class="src">
+      <p>فرفرو: صفحه‌های اپ که در ۳ و ۴ آبان ۱۴۰۵ گرفته شده و قیمت‌های اشتراک خود اپ.</p>
+      <p>رقبا: <a href="https://vaghteghabli.com/">وقت قبلی</a>، <a href="https://www.arayeshkar.com/">رخساره</a>، <a href="https://virgool.io/@fatemeh.ahmadi1999/%D8%B1%D8%B2%D8%B1%D9%88-%D8%A2%D9%86%D9%84%D8%A7%DB%8C%D9%86-%D9%86%D9%88%D8%A8%D8%AA-%D8%B3%D8%A7%D9%84%D9%86-%D9%87%D8%A7%DB%8C-%D8%B2%DB%8C%D8%A8%D8%A7%DB%8C%DB%8C-gnikcb7vyxtv">معرفی آرایشگاهچی و صندلی</a>، <a href="https://cafebazaar.ir/app/com.arayeshto.www.twa">آرایش‌تو در کافه‌بازار</a>.</p>
+    </div>
+  </div>
+</section>
+
+<script>
+const rivals = ["فرفرو", "وقت قبلی", "آرایشگاهچی", "آرایش‌تو", "اینستاگرام و تلفن"];
+const groups = [
+  { title: "برای مشتری", rows: [
+    ["پیدا کردن سالن تازه", [3,7,7,2,8]],
+    ["دیدن قیمت و نمونه‌کار قبل از رفتن", [9,6,5,4,6]],
+    ["راحتی گرفتن نوبت", [9,7,6,6,3]],
+    ["خبر و یادآوری نوبت", [8,6,4,7,2]],
+    ["اعتماد: نظر مشتری‌های دیگه", [2,6,7,2,5]],
+  ]},
+  { title: "برای آرتیست", rows: [
+    ["صفحه و نمونه‌کار", [8,3,4,3,9]],
+    ["نوبت مستقیم برای خودش", [9,3,3,4,3]],
+    ["کار با چند سالن و بردن مشتری‌هاش", [10,1,1,2,2]],
+    ["آوردن مشتری تازه", [4,5,5,3,8]],
+  ]},
+  { title: "برای سالن", rows: [
+    ["تقویم و نوبت", [8,7,5,8,3]],
+    ["تیم و پرسنل", [8,8,3,7,3]],
+    ["آوردن مشتری تازه", [4,6,6,2,8]],
+    ["نگه داشتن مشتری قدیمی", [8,8,4,6,3]],
+    ["پول و حساب‌وکتاب", [2,9,2,6,3]],
+    ["جلوگیری از نیومدن مشتری", [5,8,4,6,2]],
+  ]},
+];
+const fa = (n) => n.toLocaleString("fa-IR", { maximumFractionDigits: 1 });
+const cell = (v, me) => `<td class="s${me ? " me" : ""}"><div class="cell"><span>${fa(v)}</span><div class="meter"><i style="width:${v * 10}%"></i></div></div></td>`;
+document.getElementById("tables").innerHTML = groups.map((g) => {
+  const avg = rivals.map((_, i) => Math.round(g.rows.reduce((s, r) => s + r[1][i], 0) / g.rows.length * 10) / 10);
+  return `<div style="display:grid; gap:10px;"><h3>${g.title}</h3><div class="tablewrap"><table>
+    <thead><tr><th></th>${rivals.map((r, i) => `<th class="${i ? "" : "me"}">${r}</th>`).join("")}</tr></thead>
+    <tbody>${g.rows.map((r) => `<tr><td>${r[0]}</td>${r[1].map((v, i) => cell(v, i === 0)).join("")}</tr>`).join("")}
+    <tr class="avg"><td>میانگین</td>${avg.map((v, i) => cell(v, i === 0)).join("")}</tr></tbody></table></div></div>`;
+}).join("");
+</script>
