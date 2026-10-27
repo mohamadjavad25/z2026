@@ -62,7 +62,7 @@ export function ProfileInstagramSettings({ profileType, profileId, name = "", va
   }
 
   return (
-    <section className="profileLocationSettings igSettings" aria-label="اینستاگرام">
+    <section className="igSettings" aria-label="اینستاگرام">
       {askClear ? (
         <div className="profileLocationAsk" role="alertdialog" aria-label="برداشتن پیج اینستاگرام">
           <strong>پیج اینستاگرامت از صفحه‌ت برداشته بشه؟</strong>

@@ -3,6 +3,8 @@
    Saving the page is for your own account, so violet; the bio link and the story bring clients, so pink (brandLive). */
 
 .igSettingsIcon { color: var(--ink); }
+/* Its own card (not .profileLocationSettings, so tests and styles for the map card find only that one). */
+.igSettings { overflow: hidden; direction: rtl; text-align: right; border: 1px solid rgb(var(--ink-rgb) / 0.12); border-radius: 18px; background: rgb(var(--paper-rgb) / 0.92); }
 /* The whole section is the card (the row and the panel under it read as one), so the row drops its own card look. */
 .settingsPageBody .igSettings { border: 0; border-radius: 26px; background: var(--n-0); box-shadow: 0 8px 22px -14px rgb(var(--shadow-rgb) / 0.28); }
 .settingsPageBody .igSettings > .profileLocationRow { background: transparent; box-shadow: none; }
