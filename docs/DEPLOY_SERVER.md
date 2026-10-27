@@ -6,7 +6,7 @@
 - کاربر سیستم: `frfro`
 - کد: `/srv/frfro/app`
 - تنظیمات: `/srv/frfro/.env`
-- بکاپ‌ها: `/srv/frfro/backups`
+- بکاپ‌ها: `/var/backups/frfro` (فقط root) و نسخهٔ قفل‌شده در `/var/backups/frfro-offsite`
 
 ## ۱. نصب پیش‌نیازها (یک بار)
 
@@ -139,21 +139,28 @@ frfro ALL=NOPASSWD: /usr/bin/systemctl restart frfro
 جای GitHub Actions، روی خود سرور:
 
 ```bash
-sudo -u frfro crontab /srv/frfro/app/deploy/crontab
+sudo install -m 644 scripts/backup/frfro.cron /etc/cron.d/frfro   # همهٔ کارهای زمان‌دار، به‌عنوان root
 ```
 
 بعد از اینکه دیدی روی سرور کار می‌کنند، workflowهای `cron-*.yml` در GitHub را غیرفعال کن (Actions ← هر workflow ← Disable)، یا `APP_URL` را به `https://frfro.ir` بده. اگر هر دو هم‌زمان کار کنند مشکلی پیش نمی‌آید، فقط کار دوبار انجام می‌شود.
 
 ## ۷. بکاپ و بازیابی
 
-`scripts/backup-db.sh` هر شب ساعت ۳:۳۰ یک فایل در `/srv/frfro/backups` می‌گذارد و ۱۴ روز آخر را نگه می‌دارد. **هفته‌ای یک بار یک نسخه را از سرور بیرون ببر**، چون بکاپی که روی همان دیسک است، با از دست رفتن سرور از دست می‌رود.
+بکاپ در سه جا (تصمیم ۵ آبان ۱۴۰۵، `docs/DECISIONS.md`). اسکریپت‌ها در `scripts/backup/`.
 
-بازیابی، و **یک بار تمرینش روی یک دیتابیس جدا قبل از انتشار**:
+- **سرور اصلی:** `/opt/frfro/bin/backup-db.sh` هر شب ۳:۳۰ از `/etc/cron.d/frfro` اجرا می‌شود. `pg_dump` در `/var/backups/frfro` (فقط root)، با `pg_restore --list` چک می‌شود؛ یک نسخهٔ قفل‌شده با gpg (رمز در `/etc/frfro/backup.key`) در `/var/backups/frfro-offsite`. هر دو ۱۴ روز.
+- **آروان (۵ گیگ رایگان):** اگر `/etc/frfro/backup-s3.env` باشد، نسخهٔ قفل‌شده به `daily/` (۷ تای آخر) و جمعه‌شب‌ها به `weekly/` (۴ تای آخر) هم می‌رود. کلیدها را مالک خودش با `sudo /opt/frfro/bin/backup-offsite-setup.sh` می‌نویسد؛ اسکریپت با یک فایل آزمایشی چکشان می‌کند.
+- **کامپیوتر مالک:** کار زمان‌دار ویندوز «frfro backup pull» (`install-pull-task.ps1`) روزی یک بار و موقع ورود، `pull-backups.sh` را اجرا می‌کند: هر نسخهٔ قفل‌شده‌ای که ندارد را با کاربر `deploy` برمی‌دارد و هیچ‌وقت پاک نمی‌کند (`~/frfro-backups`، گزارش در `pull.log`). رمز بکاپ هم آن‌جاست (`backup.key`) و مالک یک نسخه‌اش را جای امن دیگری نگه می‌دارد. بدون این رمز، نسخه‌های بیرون از سرور به درد نمی‌خورند.
+- **هشدار:** اگر بکاپ ساخته یا فرستاده نشود، `/api/cron/backup-alert` به اپ «فرفرو مدیر» خبر می‌دهد.
+
+بازیابی برای بررسی روی کامپیوتر: `bash scripts/backup/restore-local.sh [فایل]` یک نسخه را باز می‌کند و در Docker (`frfro-analysis`، پورت 5440) می‌گذارد. داده‌ی واقعی کاربرهاست؛ جایی نفرستش. تمرین بازیابی ۵ آبان ۱۴۰۵ انجام شد: هر ۵۵ جدول با سرور یکی بود.
+
+بازیابی روی خود سرور:
 
 ```bash
 sudo -u postgres createdb -O frfro frfro_restore_test
-pg_restore --no-owner --dbname="postgresql://frfro:<رمز>@127.0.0.1:5432/frfro_restore_test" /srv/frfro/backups/<فایل>.dump
-psql "postgresql://frfro:<رمز>@127.0.0.1:5432/frfro_restore_test" -c "SELECT count(*) FROM users"
+sudo -u postgres pg_restore --no-owner --role=frfro -d frfro_restore_test /var/backups/frfro/<فایل>.dump
+sudo -u postgres psql frfro_restore_test -c "SELECT count(*) FROM users"
 sudo -u postgres dropdb frfro_restore_test
 ```
 
