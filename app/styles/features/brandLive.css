@@ -192,3 +192,11 @@
 .artistBookingPopupSheet .artistBookingPopupConfirm:not(:disabled),
 .artistBookingPopupConfirm:not(:disabled),
 .ivtShare:not(:disabled) { background: var(--live-fill); color: var(--on-live-fill); }
+
+/* 18 · the rest of the app (2026-10-27, «برای کل اپ»): the action button inside a notice, the remove button on
+   a picked support attachment and the post composer's upload button are violet too, and the map pin (picker and
+   «کجاست؟») is violet with its pink dot (LocationButton.jsx, MapPinPicker.jsx). The error page's button too
+   (global-error.jsx). QR codes stay dark so phones can read them. */
+.noticeAction,
+.scPicked button,
+.profilePostComposer .artistWorkUploadBtn { background: var(--fill-strong); color: var(--n-0); }

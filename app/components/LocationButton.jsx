@@ -16,7 +16,7 @@ function escapeHtml(text) {
 
 function pinHtml(label) {
   const tag = label ? `<span class="locPinTag">${escapeHtml(label)}</span>` : "";
-  return `<span class="locPin" aria-hidden="true">${tag}<span class="locPinPulse"></span><svg width="44" height="54" viewBox="0 0 38 46"><path d="M19 45s17-15.2 17-26A17 17 0 0 0 2 19c0 10.8 17 26 17 26Z" style="fill:var(--brand-ink);stroke:var(--brand-white)" stroke-width="2.5"/><circle cx="19" cy="19" r="7" style="fill:var(--brand-pink)"/></svg></span>`;
+  return `<span class="locPin" aria-hidden="true">${tag}<span class="locPinPulse"></span><svg width="44" height="54" viewBox="0 0 38 46"><path d="M19 45s17-15.2 17-26A17 17 0 0 0 2 19c0 10.8 17 26 17 26Z" style="fill:var(--violet-deep);stroke:var(--brand-white)" stroke-width="2.5"/><circle cx="19" cy="19" r="7" style="fill:var(--brand-pink)"/></svg></span>`;
 }
 
 const hasPin = (location) => Boolean(location) && Number.isFinite(location.lat) && Number.isFinite(location.lng);
