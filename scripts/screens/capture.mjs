@@ -21,7 +21,7 @@ import { formatPersianDateKey, getPersianWeekday } from "../../app/shared/lib/pe
 
 const BASE = process.env.SCREENS_BASE_URL || "http://localhost:3100";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-const OUT = path.join(ROOT, "docs/screens");
+const OUT = process.env.SCREENS_OUT || path.join(ROOT, "docs/screens"); // SCREENS_OUT: write somewhere else (a night review set, say)
 const PASSWORD = "screens-pass-123";
 const PEOPLE = {
   salon: { phone: "09121111111", type: "salon", name: "سالن رز" },
@@ -304,6 +304,7 @@ async function main() {
     if (only.size && !only.has(screen.id)) continue;
     // A screen may set up the state it shows (the choice, a switch, an address) through the real API first.
     if (screen.setup) await screen.setup({ sessions, ids });
+    if (process.env.SCREENS_DARK === "1") screen.dark = true; // every screen at night, for a night review
     const context = await browser.newContext(screen.desktop
       ? { viewport: { width: 1366, height: 820 }, locale: "fa-IR", ...(screen.dark ? { colorScheme: "dark" } : {}) }
       : { viewport: { width: 390, height: 844 }, deviceScaleFactor: 1.5, locale: "fa-IR", isMobile: true, hasTouch: true, ...(screen.dark ? { colorScheme: "dark" } : {}) });

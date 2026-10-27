@@ -21,7 +21,7 @@ export function DayNav({ items = [], selectedDay = "", onSelectDay, onOpenCalend
   const todayIndex = items.findIndex((item) => item.isToday);
   const title = current.isToday ? `امروز، ${current.label}` : `${current.label} ${current.meta || ""}`.trim();
   return (
-    <div className="dayNav" {...swipe}>
+    <div className={`dayNav${current.isToday ? " is-today" : ""}`} {...swipe}>
       <button type="button" className="dayNavStep" onClick={() => go(-1)} disabled={index <= 0} aria-label="روز قبل">
         <ChevronRight size={20} aria-hidden="true" />
       </button>
