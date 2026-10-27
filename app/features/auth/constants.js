@@ -40,7 +40,8 @@ export function normalizeProfile(profile) {
       posterPosition: profile.posterPosition || "",
       experienceYears: profile.experienceYears || profile.experience_years || "",
       managerName: profile.managerName || profile.manager_name || "",
-      location: profile.location || null
+      location: profile.location || null,
+      instagram: profile.instagram || ""
     }
   };
 }

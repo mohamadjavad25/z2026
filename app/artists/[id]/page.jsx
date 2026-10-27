@@ -5,6 +5,7 @@ import { ensureDb } from "../../lib/db/connection.js";
 import * as artists from "../../lib/db/repos/artists.js";
 import { ArtistPublicPageClient } from "./ArtistPublicPageClient";
 import { getSiteUrl } from "../../lib/siteUrl.js";
+import { instagramUrl } from "../../shared/lib/instagram.js";
 import { createShortCache } from "../../lib/shortCache.js";
 
 export const runtime = "nodejs";
@@ -84,6 +85,7 @@ function buildArtistJsonLd(artist, canonicalUrl) {
   };
   if (artist.avatar) jsonLd.image = artist.avatar;
   if (artist.service) jsonLd.jobTitle = `آرتیست ${artist.service}`;
+  if (artist.instagram) jsonLd.sameAs = [instagramUrl(artist.instagram)];
   if (artist.area) {
     jsonLd.address = {
       "@type": "PostalAddress",

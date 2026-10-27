@@ -148,6 +148,7 @@ export function SalonClientPage({
             name={publicName}
             area={selectedSalon.area}
             location={selectedSalon.location}
+            instagram={selectedSalon.instagram}
             start={(
               <button type="button" className="pphRound" onClick={onBack} aria-label="برگرد">
                 <ChevronLeft size={19} />

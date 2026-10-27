@@ -6,6 +6,7 @@ import { Bookmark, Camera, ChevronLeft, ImagePlus, Move, Pencil, Plus, Trash2 } 
 import { toPersianDigits } from "../../shared/lib/digits";
 import { ProfileSheet } from "../profile/ProfileSheet";
 import { ProfileLocationSettings } from "../profile/ProfileLocationSettings";
+import { ProfileInstagramSettings } from "../profile/ProfileInstagramSettings";
 import {
   AccountSettings,
   AppearanceSettings,
@@ -242,6 +243,8 @@ export function SettingsPage({
   profile,
   locationSaving = false,
   onSaveLocation,
+  instagramSaving = false,
+  onSaveInstagram,
   onEditProfile,
   logoSaving = false,
   posterSaving = false,
@@ -343,6 +346,16 @@ export function SettingsPage({
             location={profile?.data?.location || null}
             saving={locationSaving}
             onSave={onSaveLocation}
+          />
+
+          <ProfileInstagramSettings
+            profileType={profile?.type}
+            profileId={profile?.id}
+            name={profile?.data?.name || ""}
+            value={profile?.data?.instagram || ""}
+            saving={instagramSaving}
+            onSave={onSaveInstagram}
+            onNotify={onNotify}
           />
 
           <div className="settingsRowCard">

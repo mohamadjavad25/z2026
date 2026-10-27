@@ -13,6 +13,7 @@ import { sendTemplateSms } from "../../lib/sms.js";
 import { toLatinDigits } from "../../shared/lib/digits.js";
 import { phoneChangePurpose, verifyOtpProof } from "../../lib/otp.js";
 import { hasUniqueName, nameKey, NAME_TAKEN_MESSAGE } from "../../lib/businessName.js";
+import { INSTAGRAM_INVALID_MESSAGE, normalizeInstagram } from "../../shared/lib/instagram.js";
 
 export const runtime = "nodejs";
 
@@ -65,6 +66,13 @@ async function _POST(request) {
       experienceYears: data.experienceYears,
       managerName: data.managerName
     };
+
+    // Instagram page: salons and artists only; stored as the bare page name.
+    if (data.instagram !== undefined && auth.user.type !== "client") {
+      const instagram = normalizeInstagram(data.instagram);
+      if (instagram === null) return NextResponse.json({ error: INSTAGRAM_INVALID_MESSAGE, code: "instagram_invalid" }, { status: 400 });
+      patch.instagram = instagram;
+    }
 
     // A new phone number must be proven with an SMS code first (POST /api/auth/otp/send + /verify, purpose
     // "phone_change"): the number is how bookings made for it are matched to an account, and where a salon's

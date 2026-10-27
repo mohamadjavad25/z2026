@@ -130,6 +130,7 @@ export function PublicArtistModal({
             avatarPosition={artist.avatarPosition || "50% 50%"}
             name={artist.name}
             location={artist.location}
+            instagram={artist.instagram}
             area={artist.area ? (String(artist.area).split("،")[0].replace(/^(شهر|روستای|دهستان)\s+/, "").trim() || String(artist.area).trim()) : ""}
             start={(
               <button type="button" className="pphRound" onClick={onClose} aria-label="بازگشت">

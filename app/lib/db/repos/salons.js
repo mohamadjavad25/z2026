@@ -244,7 +244,7 @@ export async function getSalon(userId, viewerUserId = null, { withTeam = false }
   const db = await getDb();
   const row = await get(db, `
     SELECT s.*, (u.avatar <> '' OR u.avatar_url IS NOT NULL) AS avatar, (u.poster <> '' OR u.poster_url IS NOT NULL) AS has_poster, u.avatar_position, u.poster_position, u.updated_at AS user_updated_at,
-      u.geo_lat, u.geo_lng, u.address_detail
+      u.geo_lat, u.geo_lng, u.address_detail, u.instagram
     FROM salons s JOIN users u ON u.id = s.user_id
     WHERE s.user_id = $1
   `, [userId]);
@@ -278,6 +278,7 @@ export async function getSalon(userId, viewerUserId = null, { withTeam = false }
     name: row.name,
     area: row.area,
     location: publicLocation(row),
+    instagram: row.instagram || "",
     tag: row.tag,
     price: row.price,
     open: row.open,

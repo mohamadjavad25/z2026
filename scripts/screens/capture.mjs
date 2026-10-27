@@ -111,6 +111,18 @@ async function artistPosts({ sessions }) {
 const salonPath = (ids) => `/salons/${ids.salon}`;
 const artistPath = (ids) => `/artists/${ids.artist}`;
 
+/* ---------- «اینستاگرام» (owner's choice 2026-10-27): the page set or not, through the real API ---------- */
+const instagram = (salonPage, artistPage = salonPage) => async ({ sessions }) => {
+  await sessions.salon.post("/api/profile", { data: { instagram: salonPage, ...SALON_LOCATION } });
+  await sessions.artist.post("/api/profile", { data: { instagram: artistPage } });
+};
+const IG_SET = instagram("salon.roz", "negar.kashi");
+const IG_NONE = instagram("");
+const toInstagram = async (p) => { await p.locator(".igSettings").first().scrollIntoViewIfNeeded({ timeout: 4000 }); await p.evaluate(() => window.scrollBy(0, -120)); await p.waitForTimeout(500); };
+const IG_OPEN = css(".igSettings .profileLocationRow");
+// The open card is taller than the screen: show it from the field down to the bio buttons.
+const toBio = async (p) => { await p.locator(".igSettingsBioButtons").first().scrollIntoViewIfNeeded({ timeout: 4000 }); await p.evaluate(() => window.scrollBy(0, 110)); await p.waitForTimeout(500); };
+
 /* ---------- where an artist on a salon team receives clients (state is set through the real API) ---------- */
 const COLLAB = css(".profileModeRail button, [role=tab], button", "همکاری");
 const SALON_LOCATION = { area: "تهران، خیابان گلستان", addressDetail: "پلاک ۱۲، طبقه ۲", geo: { lat: 35.7219, lng: 51.3347 } };
@@ -280,6 +292,22 @@ const SCREENS = [
   { id: "artist-collab", role: "artist", title: "همکاری با سالن", steps: [css(".profileModeRail button, [role=tab], button", "همکاری")] },
   { id: "artist-customers", role: "artist", title: "مشتریان آرتیست", steps: [tab(2)] },
   { id: "artist-settings", role: "artist", title: "تنظیمات آرتیست", steps: [tab(0)] },
+  // «اینستاگرام»: the button next to the name on public pages, and the card in Settings in each of its states
+  { id: "guest-salon-page-instagram", role: "guest", title: "صفحهٔ عمومی سالن با اینستاگرام", setup: IG_SET, path: salonPath },
+  { id: "guest-salon-page-instagram-dark", role: "guest", title: "صفحهٔ عمومی سالن با اینستاگرام، شب", setup: IG_SET, path: salonPath, dark: true },
+  { id: "guest-artist-page-instagram", role: "guest", title: "صفحهٔ عمومی آرتیست با اینستاگرام", setup: IG_SET, path: artistPath },
+  { id: "client-salon-sheet-instagram", role: "client", title: "صفحهٔ سالن داخل اپ مشتری با اینستاگرام", setup: IG_SET, path: salonPath },
+  { id: "salon-instagram-empty", role: "salon", title: "تنظیمات، اینستاگرام هنوز نذاشته", setup: IG_NONE, steps: [tab(0), toInstagram] },
+  { id: "salon-instagram-open-empty", role: "salon", title: "تنظیمات، اینستاگرام باز، خالی", setup: IG_NONE, steps: [tab(0), toInstagram, IG_OPEN, toBio] },
+  { id: "salon-instagram-error", role: "salon", title: "تنظیمات، اینستاگرام، اسم اشتباه", setup: IG_NONE, steps: [tab(0), toInstagram, IG_OPEN, fill("#igSettingsInput", "سالن رز"), css(".igSettingsSave"), toBio] },
+  { id: "salon-instagram-saved", role: "salon", title: "تنظیمات، اینستاگرام ذخیره شد", setup: IG_NONE, steps: [tab(0), toInstagram, IG_OPEN, fill("#igSettingsInput", "https://www.instagram.com/salon.roz/?igsh=x1"), css(".igSettingsSave"), toInstagram] },
+  { id: "salon-instagram-set", role: "salon", title: "تنظیمات، اینستاگرام گذاشته", setup: IG_SET, steps: [tab(0), toInstagram] },
+  { id: "salon-instagram-open-set", role: "salon", title: "تنظیمات، اینستاگرام باز، پر", setup: IG_SET, steps: [tab(0), toInstagram, IG_OPEN, toBio] },
+  { id: "salon-instagram-copied", role: "salon", title: "تنظیمات، لینک بیو کپی شد", setup: IG_SET, clipboard: true, steps: [tab(0), toInstagram, IG_OPEN, toBio, css(".igSettingsCopy")] },
+  { id: "salon-instagram-remove", role: "salon", title: "تنظیمات، برداشتن پیج اینستاگرام", setup: IG_SET, steps: [tab(0), toInstagram, css(".igSettings .profileLocationRowClear"), toInstagram] },
+  { id: "salon-instagram-story", role: "salon", title: "استوری آماده", setup: IG_SET, steps: [tab(0), toInstagram, IG_OPEN, css(".igSettingsStory"), async (p) => { await p.waitForTimeout(1500); }] },
+  { id: "salon-instagram-open-dark", role: "salon", title: "تنظیمات، اینستاگرام باز، شب", setup: IG_SET, dark: true, steps: [tab(0), toInstagram, IG_OPEN, toBio] },
+  { id: "artist-instagram-open-set", role: "artist", title: "تنظیمات آرتیست، اینستاگرام باز", setup: IG_SET, steps: [tab(0), toInstagram, IG_OPEN, toBio] },
   // where an artist on a salon team receives the clients who book them directly (owner's idea of 2026-10-24).
   // Each screen sets the state it shows first (the choice, the salon's switch, an address), so the order does not matter.
   ...placeScreens()
@@ -314,6 +342,7 @@ async function main() {
       const [name, ...rest] = sessions[screen.role].cookie().split("=");
       await context.addCookies([{ name, value: rest.join("="), url: BASE }]);
     }
+    if (screen.clipboard) await context.grantPermissions(["clipboard-read", "clipboard-write"], { origin: BASE });
     const page = await context.newPage();
     const errors = [];
     page.on("pageerror", (error) => errors.push(error.message));

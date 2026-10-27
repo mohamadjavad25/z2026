@@ -26,6 +26,8 @@ export function ContentPages() {
     createdProfile,
     profileLocationSaving,
     saveProfileLocation,
+    profileInstagramSaving,
+    saveProfileInstagram,
     openProfileEdit,
     logoSaving,
     posterSaving,
@@ -93,6 +95,8 @@ export function ContentPages() {
             profile={createdProfile}
             locationSaving={profileLocationSaving}
             onSaveLocation={saveProfileLocation}
+            instagramSaving={profileInstagramSaving}
+            onSaveInstagram={saveProfileInstagram}
             onEditProfile={openProfileEdit}
             logoSaving={logoSaving}
             posterSaving={posterSaving}

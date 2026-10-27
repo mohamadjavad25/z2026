@@ -902,6 +902,7 @@ export async function getPublicArtist(userId, viewerUserId = null) {
     role: user.service ? `آرتیست ${user.service}` : "آرتیست",
     area: user.area,
     location: publicLocation(user),
+    instagram: user.instagram || "",
     // The public page's «تماس» button, same as the salon page (salons.js getSalon).
     phone: user.phone || "",
     avatar: user.avatar ? `/api/media/avatar/${user.id}` : "",

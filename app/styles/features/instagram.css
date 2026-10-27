@@ -1,0 +1,49 @@
+/* «اینستاگرام» (owner's choice 2026-10-27). The round button next to the name on public pages lives in location.css
+   beside the pin. Here: the Settings card (ProfileInstagramSettings) and the ready-story sheet (InstagramStorySheet).
+   Saving the page is for your own account, so violet; the bio link and the story bring clients, so pink (brandLive). */
+
+.igSettingsIcon { color: var(--ink); }
+/* The whole section is the card (the row and the panel under it read as one), so the row drops its own card look. */
+.settingsPageBody .igSettings { border: 0; border-radius: 26px; background: var(--n-0); box-shadow: 0 8px 22px -14px rgb(var(--shadow-rgb) / 0.28); }
+.settingsPageBody .igSettings > .profileLocationRow { background: transparent; box-shadow: none; }
+.igSettingsHandle { direction: ltr; text-align: right; }
+.igSettingsChevron { transition: transform 0.2s ease; }
+.igSettingsChevron.is-open { transform: rotate(-90deg); }
+
+.igSettingsPanel { display: grid; gap: 8px; padding: 2px 14px 14px; }
+.igSettingsLabel { color: var(--n-700); font-size: 0.78rem; font-weight: 850; }
+.igSettingsField { display: flex; align-items: center; gap: 4px; min-height: 48px; padding: 0 14px; border: 1.5px solid var(--n-200); border-radius: 16px; background: var(--n-0); }
+.igSettingsField:focus-within { border-color: var(--fill-strong); box-shadow: 0 0 0 3px var(--accent-soft); }
+.igSettingsField.is-error { border-color: var(--danger); }
+.igSettingsField > span { color: var(--n-500); font-weight: 800; }
+.igSettingsField input { flex: 1; min-width: 0; height: 46px; border: 0; background: transparent; color: var(--ink); font: inherit; font-size: 0.95rem; font-weight: 750; outline: none; }
+.igSettingsHelp, .igSettingsError { margin: 0; font-size: 0.72rem; font-weight: 750; }
+.igSettingsHelp { color: var(--n-600); }
+.igSettingsError { color: var(--danger); }
+.igSettingsButtons { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+.igSettingsButtons button, .igSettingsBioButtons button { min-height: 46px; border: 0; border-radius: 15px; font: inherit; font-size: 0.86rem; font-weight: 900; cursor: pointer; }
+.igSettingsSave { background: var(--fill-strong); color: var(--n-0); }
+.igSettingsSave:disabled { opacity: 0.6; cursor: default; }
+.igSettingsCancel { padding: 0 18px; background: var(--n-100); color: var(--n-900); }
+
+.igSettingsBio { display: grid; gap: 8px; margin-top: 6px; padding-top: 12px; border-top: 1px solid var(--n-150); }
+.igSettingsBio p { margin: 0; color: var(--n-700); font-size: 0.78rem; font-weight: 750; line-height: 1.7; }
+.igSettingsLink { padding: 10px 12px; border-radius: 14px; background: var(--n-50); color: var(--ink); font-size: 0.84rem; font-weight: 800; text-align: left; overflow-wrap: anywhere; user-select: all; }
+.igSettingsBioButtons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.igSettingsBioButtons button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.igSettingsCopy { background: var(--live-fill); color: var(--on-live-fill); }
+.igSettingsCopy.is-done { background: var(--n-100); color: var(--success); }
+.igSettingsStory { background: var(--n-100); color: var(--n-900); }
+
+/* The ready-story sheet */
+.igStoryCard { display: grid; justify-items: center; gap: 12px; }
+.igStoryTitle { margin: 0; color: var(--ink); font-size: 1.05rem; font-weight: 950; }
+.igStoryFrame { display: grid; place-items: center; width: min(62vw, 230px); aspect-ratio: 9 / 16; border-radius: 22px; overflow: hidden; background: var(--n-100); box-shadow: 0 14px 30px -14px rgb(var(--shadow-rgb) / 0.5); }
+.igStoryFrame img { width: 100%; height: 100%; object-fit: cover; }
+.igStoryFail { margin: 0; padding: 12px; color: var(--n-600); font-size: 0.8rem; text-align: center; }
+.igStoryHint { margin: 0; color: var(--n-600); font-size: 0.78rem; font-weight: 750; line-height: 1.7; text-align: center; }
+.igStoryButtons { display: grid; gap: 8px; width: 100%; }
+.igStoryButtons button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 50px; border: 0; border-radius: 16px; font: inherit; font-size: 0.9rem; font-weight: 900; cursor: pointer; }
+.igStoryShare, .igStorySave { background: var(--live-fill); color: var(--on-live-fill); }
+.igStorySave.is-quiet { background: var(--n-100); color: var(--n-900); }
+.igStoryButtons button:disabled { opacity: 0.6; cursor: default; }

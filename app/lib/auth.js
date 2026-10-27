@@ -134,7 +134,8 @@ export function publicUser(row) {
     posterPosition: row.poster_position || "",
     experienceYears: row.experience_years || "",
     managerName: row.manager_name || "",
-    location: publicLocation(row)
+    location: publicLocation(row),
+    instagram: row.instagram || ""
   };
 }
 

@@ -5,6 +5,7 @@ import { ensureDb } from "../../lib/db/connection.js";
 import * as salons from "../../lib/db/repos/salons.js";
 import { SalonPublicPageClient } from "./SalonPublicPageClient";
 import { getSiteUrl } from "../../lib/siteUrl.js";
+import { instagramUrl } from "../../shared/lib/instagram.js";
 import { createShortCache } from "../../lib/shortCache.js";
 
 export const runtime = "nodejs";
@@ -85,6 +86,7 @@ function buildSalonJsonLd(salon, canonicalUrl) {
     url: canonicalUrl
   };
   if (salon.avatar) jsonLd.image = salon.avatar;
+  if (salon.instagram) jsonLd.sameAs = [instagramUrl(salon.instagram)];
   // Deliberately NOT emitting telephone: salon.phone is the users.phone
   // column, which is this account's LOGIN credential (see getUserByPhone in
   // app/lib/db/repos/users.js) — not a business contact number the owner
