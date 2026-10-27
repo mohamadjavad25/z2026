@@ -82,3 +82,32 @@
 /* 11 · the notifications summary: a row with something waiting gets a pink count and a pink icon tile */
 .salonNotificationsPanel article.is-live > span { background: var(--live-soft); color: var(--live); }
 .salonNotificationsPanel article.is-live em { background: var(--live-fill); color: var(--on-live-fill); }
+
+/* 12 · the wavy line beside every sheet title is the mascot's curl: pink, for every role */
+.salonCustomersHead .wavyTitle::before,
+.salonCustomersHead .wavyTitle::after,
+.salonHeroSheetPanel .salonHeroSheetHead h3::before,
+.salonHeroSheetPanel .salonHeroSheetHead h3::after,
+.svcSheetHead h3::before,
+.svcSheetHead h3::after {
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='8' viewBox='0 0 20 8'%3E%3Cpath d='M0 4 Q5 0 10 4 T20 4' fill='none' stroke='%23ff86b8' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E") repeat-x center;
+}
+
+/* 13 · a switch that is on: violet into pink (settings, hours, team, place). The knob stays white. */
+.neoSettingsSwitch[data-on="true"] .neoSettingsSwitchTrack,
+.salonHeroSheetPanel.is-artist-settings .neoSettingsSwitch[data-on="true"] .neoSettingsSwitchTrack,
+.salonHeroSheetPanel.is-artist-settings.is-salon-settings .neoSettingsSwitch[data-on="true"] .neoSettingsSwitchTrack,
+.hrsSwitch[aria-checked="true"],
+.stfSwitch[aria-checked="true"],
+.plSwitch[aria-checked="true"],
+.clwWhere .plSwitch[aria-checked="true"],
+.artistBookingSwitch input:checked {
+  background: var(--brand-blend) !important;
+}
+
+/* 14 · today: a pink ring on today's square in the calendar, and on the day bar a pink calendar icon while it
+   shows today, and a pink «برگرد به امروز» while it does not */
+.bookingWeekHistoryCalDay.is-today { box-shadow: inset 0 0 0 2px var(--live-fill); }
+.bookingWeekHistoryCalDay.is-today strong { color: var(--live); }
+.dayNav.is-today .dayNavCal { color: var(--live); }
+.dayNavToday { color: var(--live); }

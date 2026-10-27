@@ -34,6 +34,9 @@ SCREENS_BASE_URL=http://localhost:3200 node scripts/screens/capture.mjs         
 SCREENS_BASE_URL=http://localhost:3200 node scripts/screens/capture.mjs salon-home    # only some ids
 ```
 
+For a night review of any set, add `SCREENS_DARK=1` (every screen at night) and `SCREENS_OUT=<folder>` (so the
+day pictures here stay as they are).
+
 In the cloud container Playwright's own browser is missing: add
 `SCREENS_CHROMIUM=/opt/pw-browsers/chromium-1243/chrome-linux64/chrome`. Logins are rate-limited per phone; when
 re-running often on the same database, empty `rate_limit_hits` there first. Dates in the pictures move with the
