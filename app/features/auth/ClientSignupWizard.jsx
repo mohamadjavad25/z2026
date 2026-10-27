@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Check, Eye, EyeOff } from "lucide-react";
 import { Button, Field } from "../../components/ui";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
+import { LegalLink } from "../../legal/LegalLink";
 import { sendCode, verifyCode } from "./otp";
 import { clearSignupDraft, readSignupDraft, saveSignupDraft } from "./signupDraft";
 
@@ -183,9 +184,9 @@ export function ClientSignupWizard({ otp, onComplete, busy = false, onLogin = nu
           ) : null}
           <Button type="submit" block loading={busyStep} loadingLabel="دارم می‌فرستم…">{needsCode ? "کد بفرست" : "ادامه"}</Button>
           <p className="suwTerms">
-            با ادامه، <a href="/terms" target="_blank" rel="noopener noreferrer">قوانین</a> رو قبول داری
+            با ادامه، <LegalLink doc="terms">قوانین</LegalLink> رو قبول داری
             {" "}<span aria-hidden="true">·</span>{" "}
-            <a href="/privacy" target="_blank" rel="noopener noreferrer">حریم خصوصی</a>
+            <LegalLink doc="privacy">حریم خصوصی</LegalLink>
           </p>
         </>
       ) : null}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { LegalLink } from "../../legal/LegalLink";
 import {
   AlertTriangle,
   ChevronDown,
@@ -326,8 +326,8 @@ export function AccountSettings({ onLogout, onDeleteAccount, onNotice, isClient 
     <>
       <div className="neoSettingsLegalLinks">
         <button type="button" onClick={() => openSupport()}>ارتباط با پشتیبانی</button>
-        <Link href="/terms">قوانین و مقررات</Link>
-        <Link href="/privacy">حریم خصوصی</Link>
+        <LegalLink doc="terms">قوانین و مقررات</LegalLink>
+        <LegalLink doc="privacy">حریم خصوصی</LegalLink>
         {APP_DOWNLOADS_OPEN ? <a className="webOnlyAppLink" href="/download">دانلود اپلیکیشن</a> : null}
       </div>
 

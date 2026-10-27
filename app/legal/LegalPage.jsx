@@ -11,27 +11,37 @@ export function LegalPage({ content }) {
           ← بازگشت به frfro
         </Link>
         <h1 className="legalPage__title">{content.title}</h1>
-        <p className="legalPage__updated">آخرین به‌روزرسانی: {content.lastUpdated}</p>
-        <p className="legalPage__intro">{content.intro}</p>
-        {content.sections.map((section) => (
-          <section key={section.heading} className="legalPage__section">
-            <h2>{section.heading}</h2>
-            {section.paragraphs.map((paragraph, index) => (
-              // Index-keyed: paragraph text isn't guaranteed unique within
-              // a section (short "· ..." list lines repeat structurally)
-              // and this content never reorders.
-              <p key={index}>{paragraph}</p>
-            ))}
-          </section>
-        ))}
-        {content.footer?.length ? (
-          <footer className="legalPage__footer">
-            {content.footer.map((line) => (
-              <p key={line}>{line}</p>
-            ))}
-          </footer>
-        ) : null}
+        <LegalBody content={content} />
       </div>
     </main>
+  );
+}
+
+/** Everything under the title. Also shown inside the app as a sheet (LegalSheet), so a
+ *  half-filled sign-up form or the settings screen never has to be left to read it. */
+export function LegalBody({ content }) {
+  return (
+    <>
+      <p className="legalPage__updated">آخرین به‌روزرسانی: {content.lastUpdated}</p>
+      <p className="legalPage__intro">{content.intro}</p>
+      {content.sections.map((section) => (
+        <section key={section.heading} className="legalPage__section">
+          <h2>{section.heading}</h2>
+          {section.paragraphs.map((paragraph, index) => (
+            // Index-keyed: paragraph text isn't guaranteed unique within
+            // a section (short "· ..." list lines repeat structurally)
+            // and this content never reorders.
+            <p key={index}>{paragraph}</p>
+          ))}
+        </section>
+      ))}
+      {content.footer?.length ? (
+        <footer className="legalPage__footer">
+          {content.footer.map((line) => (
+            <p key={line}>{line}</p>
+          ))}
+        </footer>
+      ) : null}
+    </>
   );
 }

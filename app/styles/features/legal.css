@@ -73,3 +73,8 @@
   color: var(--muted);
   margin: 0 0 var(--space-1);
 }
+
+/* The same text inside the app, in a sheet (LegalLink), so leaving the screen is never needed. */
+.legalSheet__body { padding: var(--space-2) var(--space-2) var(--space-4); }
+.legalSheet__body .legalPage__intro { font-size: var(--text-base); }
+.legalSheet__body .legalPage__section h2 { font-size: var(--text-md); }

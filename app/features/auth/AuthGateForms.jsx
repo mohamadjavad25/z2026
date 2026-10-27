@@ -13,10 +13,10 @@ import { APP_DOWNLOADS_OPEN } from "../landing/constants";
 import { OtpCodeStep } from "./OtpCodeStep";
 import { ClientSignupWizard } from "./ClientSignupWizard";
 import { confirmReset, useOtpConfig, verifyCode } from "./otp";
+import { LegalLink } from "../../legal/LegalLink";
 
-// target="_blank" (not next/link) deliberately -- this sits inside a
-// half-filled signup form; navigating away in the same tab would lose
-// whatever the user already typed.
+// LegalLink opens the text in a sheet: this sits inside a half-filled signup form,
+// and leaving the screen (a new tab is the same window in the app) lost what was typed.
 function TermsAgreement({ error, onChange }) {
   const errorId = useId();
   return (
@@ -24,9 +24,9 @@ function TermsAgreement({ error, onChange }) {
     <label className="authTermsAgreement">
       <input type="checkbox" name="agreeTerms" onChange={onChange} aria-invalid={error ? true : undefined} aria-describedby={error ? errorId : undefined} />
       <span>
-        <a href="/terms" target="_blank" rel="noopener noreferrer">قوانین و مقررات</a>
+        <LegalLink doc="terms">قوانین و مقررات</LegalLink>
         {" "}و{" "}
-        <a href="/privacy" target="_blank" rel="noopener noreferrer">حریم خصوصی</a>
+        <LegalLink doc="privacy">حریم خصوصی</LegalLink>
         {" "}رو خوندم و قبول دارم.
       </span>
     </label>
