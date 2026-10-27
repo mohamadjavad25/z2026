@@ -53,14 +53,14 @@ async function _POST(request) {
   const action = String(((await readJson(request)) || {}).action || "");
   if (action === "cleanup") {
     const removed = await control.runCleanup();
-    await admin.logAction({ adminUserId: gate.admin.id, adminLabel: gate.admin.label, action: "cleanup", detail: `نشست منقضی: ${removed.sessions} • ردیف محدودیت: ${removed.rateLimits}` });
+    await admin.logAction({ adminLabel: gate.admin.label, action: "cleanup", detail: `نشست منقضی: ${removed.sessions} • ردیف محدودیت: ${removed.rateLimits}` });
     return json({ data: removed });
   }
   if (action === "clear_errors") {
     const stepUp = requireStepUp(gate);
     if (stepUp) return stepUp;
     const removed = await control.clearClientErrors();
-    await admin.logAction({ adminUserId: gate.admin.id, adminLabel: gate.admin.label, action: "clear_errors", detail: `${removed} خطا` });
+    await admin.logAction({ adminLabel: gate.admin.label, action: "clear_errors", detail: `${removed} خطا` });
     return json({ data: { removed } });
   }
   return error("درخواست نامعتبر است.", 400);

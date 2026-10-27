@@ -19,7 +19,6 @@ async function _POST(request, { params }) {
   if (isAdminPhone(target.phone)) return error("حساب مدیر را نمی‌شود مسدود کرد.", 400);
   const updated = await admin.setSuspended(target.id, suspended);
   await admin.logAction({
-    adminUserId: gate.admin.id,
     adminLabel: gate.admin.label,
     action: suspended ? "suspend" : "unsuspend",
     targetUserId: target.id,

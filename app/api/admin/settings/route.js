@@ -58,7 +58,7 @@ async function _PUT(request) {
     : body.key === "signups"
       ? `ثبت‌نام: ${["client", "artist", "salon"].filter((role) => valid.data[role]).join("، ") || "بسته"}`
       : `پاسخ‌های آماده: ${valid.data.items.length}`;
-  await admin.logAction({ adminUserId: gate.admin.id, adminLabel: gate.admin.label, action: "settings_update", detail: summary });
+  await admin.logAction({ adminLabel: gate.admin.label, action: "settings_update", detail: summary });
   return json({ data: { [body.key]: saved } });
 }
 

@@ -103,7 +103,7 @@ export function BroadcastTab({ intent = {} }) {
               </label>
             ) : null}
             <Button disabled={!ready || busy} loading={busy} loadingLabel="در حال ارسال…" onClick={send}><Send size={17} aria-hidden="true" /> ارسال برای {num(reach?.recipients || 0)} نفر</Button>
-            <p className="admMuted">برای امنیت، پیش از ارسال رمز عبورت دوباره پرسیده می‌شود. یک پیام تکراری برای همان گروه تا ۵ دقیقه فرستاده نمی‌شود.</p>
+            <p className="admMuted">برای امنیت، پیش از ارسال رمز مدیرت دوباره پرسیده می‌شود. یک پیام تکراری برای همان گروه تا ۵ دقیقه فرستاده نمی‌شود.</p>
           </div>
         </Card>
 

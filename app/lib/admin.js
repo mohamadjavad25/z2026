@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import { verifyAdminToken, normalizePhone } from "./auth.js";
 import { getAdminFromRequest, sameOrigin } from "./adminAuth.js";
 
-/** Admins are ordinary accounts whose phone number is listed in FRFRO_ADMIN_PHONES (comma separated).
- *  Being listed is necessary but not enough: they also need a live admin session (see adminAuth.js: password + authenticator code).
+/** Admins are the phone numbers listed in FRFRO_ADMIN_PHONES (comma separated), each with its own admin account
+ *  (admin_accounts, apart from the app's users). Being listed is necessary but not enough: they also need a live
+ *  admin session (see adminAuth.js: admin password + authenticator code). `admin.id` is the admin account's id, never a user id.
  *  Remove the phone from the env var and the access is gone, even for an already-open session. */
 function adminPhones() {
   return String(process.env.FRFRO_ADMIN_PHONES || "")
@@ -41,5 +42,5 @@ export async function requireAdmin(request) {
  */
 export function requireStepUp(gate) {
   if (gate.admin?.stepUp) return null;
-  return NextResponse.json({ error: "برای این کار رمز عبورت را دوباره وارد کن.", code: "stepup_required" }, { status: 403, headers: { "Cache-Control": "no-store" } });
+  return NextResponse.json({ error: "برای این کار رمز مدیرت را دوباره وارد کن.", code: "stepup_required" }, { status: 403, headers: { "Cache-Control": "no-store" } });
 }

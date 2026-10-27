@@ -14,20 +14,20 @@ export function SecurityTab() {
   const { data, error, reload } = useAdminData("/api/admin/security");
 
   async function revoke(session) {
-    const answer = await confirmAction({ title: `همهٔ نشست‌های ${session.phone} بسته شود؟`, body: session.user_id === data.me ? "خودت هم از پنل خارج می‌شوی." : "باید دوباره با رمز و کد Authenticator وارد شود.", danger: true, confirmLabel: "بستن نشست" });
+    const answer = await confirmAction({ title: `همهٔ نشست‌های ${session.phone} بسته شود؟`, body: session.admin_id === data.me ? "خودت هم از پنل خارج می‌شوی." : "باید دوباره با رمز مدیر و کد Authenticator وارد شود.", danger: true, confirmLabel: "بستن نشست" });
     if (!answer.ok) return;
-    if (toastResult(await api.post("/api/admin/security/revoke", { userId: session.user_id }), "نشست‌ها بسته شد.")) reload();
+    if (toastResult(await api.post("/api/admin/security/revoke", { adminId: session.admin_id }), "نشست‌ها بسته شد.")) reload();
   }
 
   async function resetAuthenticator(account) {
     const answer = await confirmAction({
       title: `Authenticator ${account.phone} پاک شود؟`,
-      body: "همین الان از پنل خارج می‌شود و باید دوباره «راه‌اندازی اولیه» را انجام دهد (به رمز حسابش و کلید راه‌اندازی نیاز دارد).",
+      body: "همین الان از پنل خارج می‌شود و باید دوباره «راه‌اندازی اولیه» را انجام دهد (به کلید راه‌اندازی نیاز دارد و رمز مدیر تازه می‌سازد).",
       danger: true,
       confirmLabel: "پاک شود"
     });
     if (!answer.ok) return;
-    if (toastResult(await api.post("/api/admin/security/reset-authenticator", { userId: account.id }), "Authenticator پاک شد؛ حالا می‌تواند دوباره راه‌اندازی کند.")) reload();
+    if (toastResult(await api.post("/api/admin/security/reset-authenticator", { adminId: account.id }), "Authenticator پاک شد؛ حالا می‌تواند دوباره راه‌اندازی کند.")) reload();
   }
 
   if (!data) return <><PageHead tab="security" />{error ? <ErrorNote error={error} onRetry={reload} /> : <Loading />}</>;
@@ -41,16 +41,16 @@ export function SecurityTab() {
         <div className={`admStat${failed24h ? " is-bad" : ""}`}><small>ورود ناموفق (۲۴ ساعت)</small><b>{num(failed24h)}</b><em>{failed24h ? "بررسی کن" : "همه‌چیز آرام است"}</em></div>
       </div>
       <Card title="حساب‌های مدیر" icon={ShieldCheck}>
-        <p className="admMuted">این شماره‌ها در <span dir="ltr">FRFRO_ADMIN_PHONES</span> تعریف شده‌اند. اگر مدیری گوشی‌اش را گم کرد، Authenticatorش را اینجا پاک کن تا دوباره راه‌اندازی کند.</p>
+        <p className="admMuted">این شماره‌ها در <span dir="ltr">FRFRO_ADMIN_PHONES</span> تعریف شده‌اند. حساب مدیر از حساب اپ جداست و به ثبت‌نام در اپ نیازی ندارد. اگر مدیری گوشی‌اش را گم کرد، Authenticatorش را اینجا پاک کن تا دوباره راه‌اندازی کند.</p>
         <ul className="admList">
           {data.accounts.map((account) => (
             <li key={account.phone}>
               <span>
-                <b dir="ltr">{account.phone}</b> {account.id === data.me ? <span className="admTone is-info">تو</span> : null}
+                <b dir="ltr">{account.phone}</b> {account.id !== null && account.id === data.me ? <span className="admTone is-info">تو</span> : null}
                 <br />
-                <small>{!account.registered ? "هنوز در سایت ثبت‌نام نکرده" : account.authenticator ? `Authenticator فعال${account.online ? " • الان وارد است" : ""}` : "Authenticator هنوز راه‌اندازی نشده"}</small>
+                <small>{account.ready ? `آماده${account.online ? " • الان وارد است" : ""}` : "هنوز «راه‌اندازی اولیه» نشده"}</small>
               </span>
-              {account.registered && account.id !== data.me && account.authenticator ? <Button size="sm" variant="danger" onClick={() => resetAuthenticator(account)}><KeyRound size={15} aria-hidden="true" /> ریست Authenticator</Button> : null}
+              {account.ready && account.id !== data.me ? <Button size="sm" variant="danger" onClick={() => resetAuthenticator(account)}><KeyRound size={15} aria-hidden="true" /> ریست Authenticator</Button> : null}
             </li>
           ))}
         </ul>
@@ -58,8 +58,8 @@ export function SecurityTab() {
       <Card title="نشست‌های فعال پنل" icon={Smartphone}>
         <ul className="admList">
           {data.sessions.map((session) => (
-            <li key={session.user_id}>
-              <span><b dir="ltr">{session.phone}</b> {session.user_id === data.me ? <span className="admTone is-info">تو</span> : null}<br /><small>ورود: {fmtDate(session.created_at)} • آخرین فعالیت: {ago(session.last_seen_at)}</small></span>
+            <li key={session.admin_id}>
+              <span><b dir="ltr">{session.phone}</b> {session.admin_id === data.me ? <span className="admTone is-info">تو</span> : null}<br /><small>ورود: {fmtDate(session.created_at)} • آخرین فعالیت: {ago(session.last_seen_at)}</small></span>
               <Button size="sm" variant="danger" onClick={() => revoke(session)}><LogOut size={15} aria-hidden="true" /> بستن نشست</Button>
             </li>
           ))}

@@ -15,7 +15,7 @@ async function _POST(request, { params }) {
   const detail = id ? await ops.getUserDetail(id) : null;
   if (!detail) return error("کاربر پیدا نشد.", 404);
   await ops.killUserSessions(id);
-  await admin.logAction({ adminUserId: gate.admin.id, adminLabel: gate.admin.label, action: "force_logout", targetUserId: id });
+  await admin.logAction({ adminLabel: gate.admin.label, action: "force_logout", targetUserId: id });
   return json({ data: { ok: true } });
 }
 

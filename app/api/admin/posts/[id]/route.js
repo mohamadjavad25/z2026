@@ -20,7 +20,7 @@ async function _POST(request, { params }) {
   }
   const post = action === "delete" ? await ops.deletePost(id) : await ops.setPostPublic(id, action === "show");
   if (!post) return error("پست پیدا نشد.", 404);
-  await admin.logAction({ adminUserId: gate.admin.id, adminLabel: gate.admin.label, action: `post_${action}`, targetUserId: post.owner_user_id, detail: `#${post.id} ${post.title}` });
+  await admin.logAction({ adminLabel: gate.admin.label, action: `post_${action}`, targetUserId: post.owner_user_id, detail: `#${post.id} ${post.title}` });
   return json({ data: { post } });
 }
 

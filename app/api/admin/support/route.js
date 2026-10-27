@@ -42,8 +42,8 @@ async function _POST(request) {
   if ((!files.items.length && message.length < 2) || message.length > 2000) return error("متن پیام را بنویس (تا ۲۰۰۰ حرف).", 400);
   const user = await users.getUserById(userId);
   if (!user) return error("کاربر پیدا نشد.", 404);
-  const ticket = await support.createAdminTicket({ userId, phone: user.phone, subject: body.subject, body: message, adminUserId: gate.admin.id, attachments: files.items });
-  await admin.logAction({ adminUserId: gate.admin.id, adminLabel: gate.admin.label, action: "support_update", targetUserId: userId, detail: `#${ticket.id} شروع گفتگو` });
+  const ticket = await support.createAdminTicket({ userId, phone: user.phone, subject: body.subject, body: message, attachments: files.items });
+  await admin.logAction({ adminLabel: gate.admin.label, action: "support_update", targetUserId: userId, detail: `#${ticket.id} شروع گفتگو` });
   sendPushToUser(userId, { title: "پیام از پشتیبانی فرفرو", body: (message || attachmentSummary(files.items)).slice(0, 120), url: "/" }).catch(() => {});
   return json({ data: { id: ticket.id } }, { status: 201 });
 }

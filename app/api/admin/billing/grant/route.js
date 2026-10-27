@@ -27,7 +27,6 @@ async function _POST(request) {
   const result = await billing.grantDays({ userId, days, amountRial: amountToman * 10, note, adminLabel: gate.admin.label });
   if (!result.ok) return error(result.error, 400);
   await admin.logAction({
-    adminUserId: gate.admin.id,
     adminLabel: gate.admin.label,
     action: "billing_grant",
     targetUserId: userId,

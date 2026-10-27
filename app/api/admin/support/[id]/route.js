@@ -38,7 +38,7 @@ async function _POST(request, { params }) {
   const { ticket, target } = found;
   const body = (await readJson(request)) || {};
   const log = (action, detail = "", targetUserId = null) =>
-    admin.logAction({ adminUserId: gate.admin.id, adminLabel: gate.admin.label, action, targetUserId, detail: `#${ticket.id} ${detail}`.trim() });
+    admin.logAction({ adminLabel: gate.admin.label, action, targetUserId, detail: `#${ticket.id} ${detail}`.trim() });
 
   // A reply goes to the user (they see it in their support center and get a push if they allowed it). It can close the ticket in the same go.
   const reply = String(body.reply || "").trim();
@@ -47,7 +47,7 @@ async function _POST(request, { params }) {
   if (reply || files.items.length) {
     if (reply.length > 2000) return error("پاسخ خیلی بلند است (حداکثر ۲۰۰۰ حرف).", 400);
     if (!ticket.user_id) return error("این پیام از مهمان بدون حساب است؛ با شمارهٔ تماسش جواب بده.", 400);
-    await support.addMessage({ ticketId: ticket.id, author: "admin", authorUserId: gate.admin.id, body: reply, attachments: files.items });
+    await support.addMessage({ ticketId: ticket.id, author: "admin", body: reply, attachments: files.items });
     if (body.status === "closed") await support.updateTicket(ticket.id, { status: "closed", resolution: ticket.resolution || "answered" });
     if (body.note !== undefined) await support.updateTicket(ticket.id, { adminNote: body.note });
     await log("support_update", body.status === "closed" ? "پاسخ و بستن" : "پاسخ");
