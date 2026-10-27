@@ -34,7 +34,7 @@ export function ArtistNotificationsSheet() {
             onClose={() => setProfileView("overview")}
           >
             <div className="salonNotificationsPanel">
-              <article>
+              <article className={pendingArtistBookingRequests.length ? "is-live" : undefined}>
                 <span><BellRing size={18} /></span>
                 <div>
                   <b>نوبت‌های تازه</b>
@@ -42,7 +42,7 @@ export function ArtistNotificationsSheet() {
                 </div>
                 <em>{toPersianDigits(pendingArtistBookingRequests.length)}</em>
               </article>
-              <article>
+              <article className={pendingArtistSalonInvites.length ? "is-live" : undefined}>
                 <span><PageIcon name="collab" size={22} /></span>
                 <div>
                   <b>دعوت همکاری سالن‌ها</b>
