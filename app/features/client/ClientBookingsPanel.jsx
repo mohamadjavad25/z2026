@@ -1,13 +1,15 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Ban, CalendarClock, CheckCircle2, Clock3, History, TimerOff } from "lucide-react";
+import { Ban, BellRing, CalendarClock, CheckCircle2, Clock3, History, Sparkles, TimerOff, X } from "lucide-react";
 import { Mascot } from "../../components/Mascot";
 import { SegmentClock } from "../../components/SegmentClock";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatRelativeBookingDayLabel, resolveRollingPersianDate } from "../../shared/lib/persianCalendar";
 import { ClientBookingHistorySheet } from "./ClientBookingHistorySheet";
 import { ExpiredRequestActions } from "./ExpiredRequestActions";
+import { AttendStrip } from "./AttendStrip";
+import { ownReliabilityLine } from "../../shared/lib/attendance";
 import { AWAITING_CLIENT } from "../../shared/lib/bookingOffer";
 import {
   bookingEndLabel,
@@ -78,8 +80,9 @@ function metaOf(booking) {
  * `emptyMascot`: with that one line, the mascot fills the empty page below it (off when another card already has one).
  * `highlightKey`: the booking just made glows for a moment, so the client sees where it went.
  */
-export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook, compactEmpty = false, emptyLine = true, emptyMascot = false, highlightKey = "", clientName = "", onNotify, onFindPlaces, onOpenPlace }) {
+export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook, compactEmpty = false, emptyLine = true, emptyMascot = false, highlightKey = "", clientName = "", onNotify, onFindPlaces, onOpenPlace, record = null, waitlist = [], onLeaveWaitlist, onAttend, onCancelBooking }) {
   const [historyOpen, setHistoryOpen] = useState(false);
+  const recordLine = ownReliabilityLine(record);
 
   const { upcoming, past, notes } = useMemo(() => {
     const ahead = [];
@@ -181,10 +184,43 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook, c
                       </>
                     ) : null}
                   </div>
+                  <AttendStrip booking={booking} onAttend={onAttend} onCancel={onCancelBooking} />
                 </article>
               );
             })}
           </div>
+        ) : null}
+
+        {recordLine ? (
+          <p className={`cbpRecord${Number(record?.noShow) ? " is-mixed" : ""}`}>
+            <Sparkles size={15} aria-hidden="true" />
+            <span>{recordLine}</span>
+          </p>
+        ) : null}
+
+        {waitlist.length ? (
+          <section className="cbpWait" aria-label="منتظر جای خالی">
+            <b className="cbpWaitTitle"><BellRing size={15} aria-hidden="true" />منتظر جای خالی</b>
+            <ul>
+              {waitlist.map((entry) => {
+                const services = Array.isArray(entry.services) ? entry.services.map((item) => shortServiceLabel(item.name)).join(" + ") : "";
+                const open = () => onOpenPlace?.({ id: entry.owner_user_id, name: entry.owner_name, type: entry.owner_kind });
+                return (
+                  <li key={entry.id} className={entry.notified_at ? "is-open" : ""}>
+                    <button type="button" className="cbpWaitMain" onClick={open}>
+                      <span>{entry.owner_name || (entry.owner_kind === "artist" ? "آرتیست" : "سالن")}، {formatRelativeBookingDayLabel(entry.booking_date)}</span>
+                      <small>{entry.notified_at ? "یه جا خالی شد؛ بزن و زود بگیرش" : `${services}؛ خالی شد، خبرت می‌کنیم`}</small>
+                    </button>
+                    {onLeaveWaitlist ? (
+                      <button type="button" className="cbpWaitDrop" aria-label="دیگه خبرم نکن" onClick={() => onLeaveWaitlist(entry)}>
+                        <X size={15} aria-hidden="true" />
+                      </button>
+                    ) : null}
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
         ) : null}
 
         {notes.length ? (

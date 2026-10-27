@@ -1,16 +1,11 @@
 import { NextResponse } from "next/server";
 import { requireUser, withErrorHandling } from "../../../lib/http.js";
 import { ensureDb } from "../../../lib/db/connection.js";
-import * as salons from "../../../lib/db/repos/salons.js";
-import { salonVisitParts } from "../../../lib/salonVisitParts.js";
-import { isSlotInPast } from "../../../shared/lib/slots.js";
-import { isTooSoonToRequest } from "../../../shared/lib/bookingWindow.js";
-import { MAX_BOOKING_PARTS, MAX_GROUP_PEOPLE, expandPartsForPeople, summarizeBookingParts } from "../../../shared/lib/bookingParts.js";
+import { MAX_BOOKING_PARTS, MAX_GROUP_PEOPLE } from "../../../shared/lib/bookingParts.js";
+import { computeSalonFreeTimes as computeTimes } from "../../../lib/salonFreeTimes.js";
 import { strictDayKey } from "../../../lib/validation/bookingSlot.js";
-import { findSalonHourForDateKey, isSalonHourOpen, salonDayWindow } from "../../../shared/lib/salonAvailability.js";
 import { onlineBookingBlock } from "../../../lib/billing/access.js";
 import { availabilityKey, cachedAvailability } from "../../../lib/availabilityCache.js";
-import { buildDayBookingSlots } from "../../../shared/lib/time.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -59,28 +54,6 @@ async function _GET(request) {
   const outcome = await cachedAvailability(salonUserId, key, () => computeTimes(salonUserId, bookingDateKey, names, minutes, isClient, people, prefer));
   if (outcome.error) return noStoreJson({ error: outcome.error }, { status: outcome.status });
   return noStoreJson({ data: outcome.data });
-}
-
-async function computeTimes(salonUserId, bookingDateKey, names, minutes, isClient, people = 1, prefer = "") {
-  const salon = await salons.getSalon(salonUserId);
-  if (!salon) return { error: "سالن پیدا نشد.", status: 404 };
-  const single = salonVisitParts(salon, names.map((service, index) => ({ service, durationMinutes: minutes[index] })));
-  const parts = people > 1 ? expandPartsForPeople(single, people) : single;
-  const missing = single.find((part, index) => !part.listed && !(minutes[index] > 0));
-  if (missing) return { error: `«${missing.service}» در خدمات این سالن نیست.`, status: 400 };
-
-  const { durationMinutes } = summarizeBookingParts(parts);
-  const hour = findSalonHourForDateKey(await salons.listSalonHours(salonUserId), bookingDateKey);
-  let times = [];
-  if (isSalonHourOpen(hour)) {
-    const window = salonDayWindow(hour);
-    const candidates = buildDayBookingSlots(window.open, window.close, durationMinutes)
-      .filter((time) => !isSlotInPast(bookingDateKey, time))
-      // Same rule POST enforces for a client: the salon needs time to answer.
-      .filter((time) => !isClient || !isTooSoonToRequest(bookingDateKey, time));
-    times = await salons.listFeasibleVisitTimes(salonUserId, bookingDateKey, parts, candidates, { prefer });
-  }
-  return { data: { times, durationMinutes } };
 }
 
 export const GET = withErrorHandling(_GET);

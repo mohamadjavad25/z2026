@@ -111,6 +111,11 @@ export function ProfilePanelBody() {
     artistWorkTagMenuOpen,
     setArtistWorkTagMenuOpen,
     clientBookingList,
+    clientRecord,
+    clientWaitlist,
+    leaveClientWaitlist,
+    confirmClientAttendance,
+    cancelClientBooking,
     openSalonWorkspace,
     saveProfileLogo,
     pendingAvatarUpload,
@@ -422,6 +427,11 @@ export function ProfilePanelBody() {
                   onOpenPlace={openConnectedProfile}
                   onFindPlaces={() => goToTab("salons")}
                   onNotify={setAppToast}
+                  record={clientRecord}
+                  waitlist={clientWaitlist}
+                  onLeaveWaitlist={leaveClientWaitlist}
+                  onAttend={confirmClientAttendance}
+                  onCancelBooking={cancelClientBooking}
                 />
               )}
 

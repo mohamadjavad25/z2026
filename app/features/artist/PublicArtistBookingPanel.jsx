@@ -1,43 +1,23 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { MapPin, Store, Timer } from "lucide-react";
 import { LocationButton } from "../../components/LocationButton";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
 import { BookingSlotPicker } from "../../components/BookingSlotPicker";
-import {
-  buildPublicBookingSlots,
-  isPublicArtistSlotBlocked
-} from "./bookingUtils";
+import { isPublicArtistSlotBlocked } from "./bookingUtils";
 import { salonClientBookingDays } from "./constants";
 import { isTooSoonToRequest } from "../../shared/lib/bookingWindow";
-import { buildDayBookingSlots, getTehranClockMinutes, timeLabelToMinutes } from "../../shared/lib/time";
+import { getTehranClockMinutes, timeLabelToMinutes } from "../../shared/lib/time";
 import { resolveRollingPersianDateKey } from "../../shared/lib/persianCalendar";
-import { findSalonHourForDateKey, isSalonHourOpen, salonDayWindow } from "../../shared/lib/salonAvailability";
-import { salonTimeBlock, workplaceOn } from "../../shared/lib/artistPlace";
+import { workplaceOn } from "../../shared/lib/artistPlace";
+import { slotsInHours } from "../../shared/lib/artistFreeTimes";
+import { WaitlistButton } from "../booking/WaitlistButton";
 
 /** The day strip holds labels ("شنبه ۲ آبان"); hours and places are looked up by the real date. */
 const dateKeyOf = (day) => resolveRollingPersianDateKey(day) || day;
-
-/**
- * The 30-minute start times of one day that fit the artist's hours (the default week when none are known) and, when
- * the artist works at a salon that day, the salon's hours too (shared/lib/artistPlace.js; the server refuses the rest).
- */
-function slotsInHours(artist, day, durationMinutes) {
-  const rows = Array.isArray(artist?.hours) && artist.hours.length ? artist.hours : null;
-  let slots;
-  if (!rows) slots = buildPublicBookingSlots(durationMinutes);
-  else {
-    const row = findSalonHourForDateKey(rows, dateKeyOf(day));
-    if (!isSalonHourOpen(row)) return [];
-    const window = salonDayWindow(row);
-    slots = buildDayBookingSlots(window.open, window.close, durationMinutes);
-  }
-  const salon = workplaceOn(artist?.workplaces, dateKeyOf(day));
-  return salon ? slots.filter((slot) => !salonTimeBlock(salon.hours, dateKeyOf(day), slot, durationMinutes)) : slots;
-}
 
 /** «کجا» for the chosen day: the workplace salon with its area, or the artist's own place (named, never addressed). */
 function PlaceLine({ artist, day }) {
@@ -52,6 +32,39 @@ function PlaceLine({ artist, day }) {
         <b>{salon && salon.area ? `${salon.name}، ${salon.area}` : name}</b>
       </span>
       <LocationButton name={name} location={salon ? salon.location : artist?.location} />
+    </div>
+  );
+}
+
+/**
+ * «خبرم کن» for an artist (owner's decision of 2026-10-27): the full days are greyed out in the day strip, so they are
+ * offered here: pick one, and the client hears when a time for this service opens on it.
+ */
+function FullDaysWaitlist({ artist, fullDays, service, durationMinutes }) {
+  const [day, setDay] = useState("");
+  const shown = fullDays.slice(0, 4);
+  if (!artist?.id || !shown.length || !service?.name) return null;
+  const picked = shown.includes(day) ? day : "";
+  return (
+    <div className="plWaitDays">
+      <p>روزی که می‌خوای پره؟ بزن تا اگه جا باز شد خبرت کنیم:</p>
+      <div className="plWaitDayRow" role="group" aria-label="روزهای پر">
+        {shown.map((item) => (
+          <button type="button" key={item} aria-pressed={picked === item} className={picked === item ? "is-on" : ""} onClick={() => setDay(item)}>
+            {item}
+          </button>
+        ))}
+      </div>
+      {picked ? (
+        <WaitlistButton
+          kind="artist"
+          ownerId={artist.id}
+          day={dateKeyOf(picked)}
+          dayLabel={picked}
+          placeLabel={`پیش ${String(artist.name || "آرتیست").trim().split(/\s+/)[0]}`}
+          services={[{ name: service.name, minutes: durationMinutes }]}
+        />
+      ) : null}
     </div>
   );
 }
@@ -137,6 +150,8 @@ export function PublicArtistBookingPanel({
         onTimeChange={onSlotChange}
         emptyTimeMessage="این روز ساعت خالی‌ای به این اندازه نیست."
       />
+
+      <FullDaysWaitlist artist={artist} fullDays={fullDays} service={activeService} durationMinutes={durationMinutes} />
 
       <p className="artistPublicBookingNote">
         تا کار تموم نشه، ساعت دیگه‌ای گرفته نمی‌شه.

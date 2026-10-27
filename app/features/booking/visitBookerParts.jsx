@@ -5,6 +5,7 @@ import { ChevronDown, RotateCw } from "lucide-react";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { clockText } from "./visitBookerModel";
 import { SlowTimesNotice } from "./SlowTimesNotice";
+import { WaitlistButton } from "./WaitlistButton";
 
 /** A tel: link target from a number as the salon typed it (any digits, spaces, dashes). */
 const telHref = (phone) => `tel:${toLatinDigits(String(phone || "")).replace(/[^\d+]/g, "")}`;
@@ -33,7 +34,7 @@ function AheadNotice({ ahead, phone, onAhead }) {
   );
 }
 
-export function TimesList({ state, role, onPick, onRetry, onAhead, onChain, phone, withName = "" }) {
+export function TimesList({ state, role, onPick, onRetry, onAhead, onChain, phone, withName = "", waitlist = null }) {
   const { times } = state;
   const isClient = role === "client";
   const group = isClient && state.people > 1;
@@ -80,6 +81,16 @@ export function TimesList({ state, role, onPick, onRetry, onAhead, onChain, phon
             ? "این روز ساعتی نیست که همهٔ این کارها پشت‌سرهم جا بشن. یه روز دیگه انتخاب کن."
             : role === "artist" ? "این روز ساعت خالی‌ای به این اندازه نیست." : "این روز ساعت خالی نداره. یه روز دیگه انتخاب کن."}
         </p>
+        {isClient && waitlist ? (
+          <WaitlistButton
+            kind={waitlist.kind}
+            ownerId={waitlist.ownerId}
+            placeLabel={waitlist.placeLabel}
+            day={state.day}
+            dayLabel={waitlist.dayLabel}
+            services={state.picked.map((service) => ({ name: service.name, minutes: service.minutes }))}
+          />
+        ) : null}
         {isClient ? <AheadNotice ahead={times.ahead} phone={phone} onAhead={onAhead} /> : null}
       </>
     );

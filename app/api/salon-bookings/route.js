@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { checkWaitlistSoon } from "../../lib/waitlist.js";
 import { requireUser, validateBody, withErrorHandling, readObjectBody } from "../../lib/http.js";
 import { ensureDb } from "../../lib/db/connection.js";
 import * as salons from "../../lib/db/repos/salons.js";
@@ -245,7 +246,8 @@ async function _PATCH(request) {
     }
   }
   // What the booking's status was before this call: the client is only told about an answer that really changed it.
-  const statusBefore = (await salons.getSalonBookingRow(id, auth.user.id))?.status ?? null;
+  const rowBefore = await salons.getSalonBookingRow(id, auth.user.id);
+  const statusBefore = rowBefore?.status ?? null;
   // A new day or time for a client's booking goes to the client to accept (withClientConsent).
   const result = await salons.patchSalonBookingWithArtistSync(id, auth.user.id, patch, {
     askClient: true,
@@ -346,6 +348,10 @@ async function _PATCH(request) {
       body: `${auth.user.name || "سالن"} برای ${result.booking.service || "نوبت"} ${bookingWhen(result.booking.booking_date, result.booking.time)} رو پیشنهاد داده. قبول می‌کنی؟`
     });
   }
+
+  // A cancel, a decline or a move may free a time: anyone waiting for that day («خبرم کن») hears about it.
+  checkWaitlistSoon("salon", auth.user.id, rowBefore?.booking_date);
+  if (result.booking.booking_date !== rowBefore?.booking_date) checkWaitlistSoon("salon", auth.user.id, result.booking.booking_date);
 
   return noStoreJson({
     data: {

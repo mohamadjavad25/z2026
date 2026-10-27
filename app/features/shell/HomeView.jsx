@@ -89,6 +89,7 @@ export function HomeView() {
     cancelClientBooking,
     answerClientTimeOffer,
     answerClientProposal,
+    confirmClientAttendance,
     salonToolSheetOpen,
     salonTool,
     closeSalonToolSheet,
@@ -236,6 +237,7 @@ export function HomeView() {
           onCancelBooking={cancelClientBooking}
           onAnswerOffer={answerClientTimeOffer}
           onAnswerProposal={answerClientProposal}
+          onAttend={confirmClientAttendance}
           onNotice={setAppToast}
           onOpenPlace={(booking) => {
             setClientBookingSettings(null);

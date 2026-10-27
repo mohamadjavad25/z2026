@@ -71,6 +71,7 @@ export function SalonClientBookingModal({ open, salon, booking, onClose, onSubmi
       days={days}
       initial={{ selected: picked, day: booking.prefill?.day, time: booking.prefill?.time, name: booking.client, phone: booking.phone }}
       contactPhone={salon.phone || ""}
+      waitlist={withStaff ? null : { kind: "salon", ownerId: salonUserId, placeLabel: "توی این سالن" }}
       source={source}
       onSubmit={prefer ? (body) => onSubmit({ ...body, preferStaff: prefer }) : onSubmit}
       onDone={() => {}}

@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import { Ban, Check, CheckCircle2, Store, TimerOff, X } from "lucide-react";
+import { AlertTriangle, Ban, Check, CheckCircle2, Clock3, Store, TimerOff, X } from "lucide-react";
 import { RequestExpiryBadge } from "../schedule/RequestExpiryBadge";
 import { SegmentClock } from "../../components/SegmentClock";
 import { toPersianDigits } from "../../shared/lib/digits";
@@ -15,6 +15,7 @@ import {
   resolveBookingDurationMinutes
 } from "../artist/bookingUtils";
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
+import { ownerAttendanceState, reliabilityView } from "../../shared/lib/attendance";
 
 // Status-tone mapping, ownerType-aware — NOT a plain copy of
 // ClientBookingSettingsModal.jsx's getBookingStatusTone, because "تازه"
@@ -180,6 +181,8 @@ function scheduleRowPropsAreEqual(prev, next) {
     && prev.booking?.displayMeta === next.booking?.displayMeta
     && prev.booking?.source?.parts === next.booking?.source?.parts
     && prev.booking?.durationMinutes === next.booking?.durationMinutes
+    && prev.booking?.source?.client_confirmed_at === next.booking?.source?.client_confirmed_at
+    && prev.booking?.source?.reliability === next.booking?.source?.reliability
   );
 }
 
@@ -239,6 +242,9 @@ export const ScheduleRow = memo(function ScheduleRow({
   const showDate = date && date !== "امروز";
 
   const chipClass = showStatusTag ? `is-status-${statusTone}` : `is-${phase || "upcoming"}`;
+  // «میای؟» and the client's record across frfro (owner's decision of 2026-10-27), for the salon's or artist's eyes only.
+  const attend = !isClientBooking && statusTone === "done" ? ownerAttendanceState(booking.source, new Date(), booking.ownerType) : null;
+  const record = !isClientBooking ? reliabilityView(booking.source?.reliability) : null;
 
   // Cancelled, expired or finished: not a card, just a one-line message with its time.
   // (A request still waiting on this owner keeps its full card so it can be answered.)
@@ -290,6 +296,7 @@ export const ScheduleRow = memo(function ScheduleRow({
             <img className="bkAvatar" src={clientAvatar || "/profile-icon.svg"} alt="" aria-hidden="true" draggable={false} />
           ) : null}
           <b>{title}</b>
+          {record?.chip ? <span className={`bkRecord is-${record.tone}`} title={record.line}>{record.chip}</span> : null}
           {!isClientBooking || showStatusTag ? <span className={`bkChip ${chipClass}`}>{phaseTagLabel}</span> : null}
         </div>
         <div className="bkMeta">
@@ -325,6 +332,12 @@ export const ScheduleRow = memo(function ScheduleRow({
               )}
               {staffLabel}
             </span>
+            {attend ? (
+              <span className={`bkAttend is-${attend}`}>
+                {attend === "yes" ? <CheckCircle2 size={13} aria-hidden="true" /> : <Clock3 size={13} aria-hidden="true" />}
+                {attend === "yes" ? "گفته میاد" : "هنوز نگفته میاد"}
+              </span>
+            ) : null}
           </div>
         ) : null}
       </div>
@@ -348,6 +361,9 @@ export const ScheduleRow = memo(function ScheduleRow({
     <div className="bkGroup">
       {row}
       <div className="bkReview">
+        {record?.warn ? (
+          <p className="bkWarn" role="note"><AlertTriangle size={14} aria-hidden="true" />{record.warn}</p>
+        ) : null}
         <RequestExpiryBadge createdAt={review.createdAt} day={review.day} time={review.time} waitMinutes={review.waitMinutes} />
         <div className="bkReviewActions">
           <button type="button" className="is-approve" disabled={review.disabled || review.approveDisabled} onClick={review.onApprove}>

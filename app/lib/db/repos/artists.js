@@ -1,4 +1,5 @@
 import { getDb, withTransaction, all, get, run } from "../connection.js";
+import { clientReliability } from "./reliability.js";
 import { lockArtistDays, lockClientRequests } from "../locks.js";
 import {
   TOO_MANY_OPEN_CODE,
@@ -356,6 +357,7 @@ export async function listArtistBookings(artistUserId) {
     phone: String(row.client_phone || "").trim(),
     name: String(row.client_name || "").trim()
   }));
+  const records = await clientReliability(rows.map((row) => row.client_user_id), db);
   const result = rows.map((row, index) => {
     const client = row.client_user_id ? clientsById.get(row.client_user_id) || null : null;
     const history = historyOf(index);
@@ -368,6 +370,8 @@ export async function listArtistBookings(artistUserId) {
       proposal: proposalView(row),
       visits,
       visit_count: visits.filter((level) => level > 0).length,
+      // The client's came / «نیومد» record across all of frfro (owner's decision of 2026-10-27).
+      reliability: row.client_user_id ? records.get(Number(row.client_user_id)) || null : null,
       sourceSalon: row.source_salon_user_id
         ? {
             id: row.source_salon_user_id,

@@ -1980,3 +1980,12 @@
   .sbmScreen,
   .clientBookingSettingsStatus.is-live{ animation: none; }
 }
+
+/* The client's record and «میای؟» answer in the booking details (owner's decision 2026-10-27). */
+.sbmTrust { display: grid; gap: 6px; margin: 10px 0 0; padding: 10px 12px; border-radius: 14px; background: linear-gradient(135deg, rgb(var(--brand-pink-rgb) / 0.1), rgb(var(--brand-violet-rgb) / 0.1)); }
+.sbmTrust.is-warn { background: rgb(var(--danger-rgb) / 0.08); }
+.sbmTrust p { display: flex; align-items: flex-start; gap: 7px; margin: 0; color: var(--n-800); font-size: 0.78rem; font-weight: 800; line-height: 1.75; }
+.sbmTrust p svg { flex: none; margin-top: 4px; color: var(--accent); }
+.sbmTrust.is-warn p:first-child, .sbmTrust.is-warn p:first-child svg { color: var(--danger); }
+.sbmTrust p.is-yes, .sbmTrust p.is-yes svg { color: var(--success); }
+.sbmTrust p.is-waiting svg { color: var(--n-500); }

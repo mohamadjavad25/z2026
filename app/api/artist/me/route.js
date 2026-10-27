@@ -1,4 +1,5 @@
 import { error, json, notFound, requireUserRole, withErrorHandling, readObjectBody } from "../../../lib/http.js";
+import { checkWaitlistSoon } from "../../../lib/waitlist.js";
 import { sweepExpiredBookingRequestsIfDue } from "../../../lib/bookingExpirySweep.js";
 import * as artists from "../../../lib/db/repos/artists.js";
 import * as salons from "../../../lib/db/repos/salons.js";
@@ -239,6 +240,12 @@ async function patchOwnArtistBooking(artistUserId, body, artistName = "") {
         bookings: await artists.listArtistBookings(artistUserId)
       }
     });
+  }
+
+  // A cancel or decline frees a time: anyone waiting for that day («خبرم کن») hears about it (a salon visit's own salon too).
+  if (nextStatus === "لغو") {
+    if (salonBooking?.salon_user_id) checkWaitlistSoon("salon", salonBooking.salon_user_id, salonBooking.booking_date);
+    else checkWaitlistSoon("artist", artistUserId, current.bookingDate);
   }
 
   const answerWord = nextStatus === "تایید شده" ? "تأیید کرد" : "لغو کرد";

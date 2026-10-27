@@ -2,8 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { ServiceIcon } from "../../components/ServiceIcon";
+import { ownerAttendanceState, reliabilityView } from "../../shared/lib/attendance";
 import {
   ArrowRight,
+  BadgeCheck,
   CalendarCheck,
   Check,
   CheckCircle2,
@@ -253,6 +255,32 @@ function AutoAssignCard({ current, suggested, services, disabled, onAutoAssign }
 }
 
 /**
+ * The client's record across frfro and their «میای؟» answer (owner's decision of 2026-10-27): what lets a salon or
+ * artist feel sure without a deposit. Only for a client with an account.
+ */
+function ClientTrust({ booking }) {
+  const record = reliabilityView(booking?.reliability);
+  const attend = ownerAttendanceState({ ...booking, booking_date: booking?.booking_date || booking?.dateKey }, new Date(), booking?.ownerType === "artist" ? "artist" : "salon");
+  if (!record && !attend) return null;
+  return (
+    <div className={`sbmTrust${record?.warn ? " is-warn" : ""}`}>
+      {record ? (
+        <p>
+          <BadgeCheck size={15} aria-hidden="true" />
+          <span>{record.line}{record.warn ? ` ${record.warn}` : ""}</span>
+        </p>
+      ) : null}
+      {attend ? (
+        <p className={`is-${attend}`}>
+          {attend === "yes" ? <CheckCircle2 size={15} aria-hidden="true" /> : <Clock3 size={15} aria-hidden="true" />}
+          <span>{attend === "yes" ? "روز قبل گفته میاد." : "روز قبل ازش پرسیدیم «میای؟»؛ هنوز جواب نداده. اگه خواستی یه زنگ بزن."}</span>
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+/**
  * The salon/artist booking screen: opened from a schedule row, and opened on its own the moment
  * a client's request arrives (ScheduleMenuHost). It fills the whole app: details and artists
  * scroll, the answer (approve / decline) and the bar (change time / call / close) stay at the
@@ -439,6 +467,8 @@ export function ScheduleBookingMenuModal({
                 </div>
               ) : null}
             </div>
+
+            <ClientTrust booking={booking} />
 
             {!isSalonOwner && !readOnly && !started && !sourceSalon.name && booking.id != null ? <ArtistBookingPlace booking={booking} /> : null}
 

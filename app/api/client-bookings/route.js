@@ -4,6 +4,8 @@ import { ensureDb } from "../../lib/db/connection.js";
 import * as salons from "../../lib/db/repos/salons.js";
 import * as artists from "../../lib/db/repos/artists.js";
 import { sweepExpiredBookingRequestsIfDue } from "../../lib/bookingExpirySweep.js";
+import { clientReliability } from "../../lib/db/repos/reliability.js";
+import { listClientWaitlist } from "../../lib/db/repos/waitlist.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,12 +28,15 @@ async function _GET(request) {
   // must not depend on an owner opening their app to see it close.
   await sweepExpiredBookingRequestsIfDue();
   await salons.ensureBookingColumns();
-  const [salonBookings, artistBookings] = await Promise.all([
+  // Their own came / «نیومد» record (what salons see beside their name) and their «خبرم کن» list.
+  const [salonBookings, artistBookings, records, waitlist] = await Promise.all([
     salons.listClientSalonBookings(auth.user),
-    artists.listClientArtistBookings(auth.user)
+    artists.listClientArtistBookings(auth.user),
+    clientReliability([auth.user.id]),
+    listClientWaitlist(auth.user.id).catch(() => [])
   ]);
   return NextResponse.json(
-    { data: { salonBookings, artistBookings } },
+    { data: { salonBookings, artistBookings, reliability: records.get(Number(auth.user.id)) || null, waitlist } },
     { headers: { "Cache-Control": "no-store, no-cache, must-revalidate" } }
   );
 }

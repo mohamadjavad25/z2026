@@ -44,7 +44,8 @@ export function VisitBooker({
   onAddService,
   onEditProfile,
   contactPhone = "",
-  withName = ""
+  withName = "",
+  waitlist = null
 }) {
   return (
     <ProfileSheet
@@ -70,6 +71,7 @@ export function VisitBooker({
         onEditProfile={onEditProfile}
         contactPhone={contactPhone}
         withName={withName}
+        waitlist={waitlist}
         onClose={onClose}
       />
     </ProfileSheet>
@@ -77,7 +79,7 @@ export function VisitBooker({
 }
 
 /** `withName`: the client asked for one team member («رزرو با …»): one person only, and empty days say it is them who is full. */
-function VisitBookerForm({ role, title, subtitle, services, days, initial, customers, source, onSubmit, onDone, onAddService, onEditProfile, contactPhone, withName, onClose }) {
+function VisitBookerForm({ role, title, subtitle, services, days, initial, customers, source, onSubmit, onDone, onAddService, onEditProfile, contactPhone, withName, waitlist, onClose }) {
   // The controller lives as long as the sheet is open; what the parent passes later (fresh lists,
   // new closures) is read through refs so it never has to be recreated.
   const latest = useRef({});
@@ -287,6 +289,7 @@ function VisitBookerForm({ role, title, subtitle, services, days, initial, custo
             role={role}
             phone={contactPhone}
             withName={withName}
+            waitlist={waitlist ? { ...waitlist, dayLabel: day?.label || "" } : null}
             onPick={(time) => controller.setTime(time)}
             onRetry={() => controller.retryTimes()}
             onAhead={() => controller.goToAhead()}

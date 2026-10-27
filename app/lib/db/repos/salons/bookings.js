@@ -1,4 +1,5 @@
 import { getDb, withTransaction, all, get, run } from "../../connection.js";
+import { clientReliability } from "../reliability.js";
 import { lockClientRequests, lockSalonDay, lockVisitDay } from "../../locks.js";
 import {
   TOO_MANY_OPEN_CODE,
@@ -66,6 +67,9 @@ export function ensureBookingPartsColumns() {
     await run(db, "ALTER TABLE artist_bookings ADD COLUMN IF NOT EXISTS moved_from_booking_id INTEGER");
     // When a new time was offered to the client (migration 044): an offer nobody answers is held 6 hours.
     await run(db, "ALTER TABLE salon_bookings ADD COLUMN IF NOT EXISTS offer_at TIMESTAMPTZ");
+    // «آره، میام» (migration 058).
+    await run(db, "ALTER TABLE salon_bookings ADD COLUMN IF NOT EXISTS client_confirmed_at TIMESTAMPTZ");
+    await run(db, "ALTER TABLE artist_bookings ADD COLUMN IF NOT EXISTS client_confirmed_at TIMESTAMPTZ");
   })().catch((error) => {
     partsColumnsReady = undefined;
     throw error;
@@ -745,13 +749,16 @@ export async function listSalonBookings(salonUserId) {
     phone: normalizePhone(row.phone || row.client_phone || ""),
     name: String(row.client || row.client_name || "").trim()
   }));
+  // The client's came / «نیومد» record across all of frfro, beside their name (owner's decision of 2026-10-27).
+  const records = await clientReliability(enrichedRows.map((row) => row.client_user_id), db);
   return enrichedRows.map((row, index) => {
     const history = historyOf(index);
     const visits = buildClientVisitLevels(history);
     return {
       ...row,
       visits,
-      visit_count: visits.filter((level) => level > 0).length
+      visit_count: visits.filter((level) => level > 0).length,
+      reliability: row.client_user_id ? records.get(Number(row.client_user_id)) || null : null
     };
   });
 }

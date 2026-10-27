@@ -1625,3 +1625,18 @@ html, body { overscroll-behavior-y: none; }
 /* Booking history calendar: room under the last line for the pinned round close button, which sat on
    «برای … هنوز رزروی نیست» (owner's choice 2026-10-23). */
 .bookingWeekHistoryBody { padding-bottom: 84px; }
+
+/* «اطمینان بدون بیعانه» (owner's decision 2026-10-27): the client's record beside their name, «میای؟» on the visit. */
+.bkRecord {
+  min-height: 21px; display: inline-flex; align-items: center; padding: 0 9px; border-radius: 999px;
+  font-size: 0.62rem; font-weight: 900; white-space: nowrap;
+  background: var(--n-100); color: var(--n-700);
+}
+.bkRecord.is-good { background: linear-gradient(135deg, rgb(var(--brand-pink-rgb) / 0.18), rgb(var(--brand-violet-rgb) / 0.18)); color: var(--n-900); }
+.bkRecord.is-mid { background: rgb(var(--warning-rgb) / 0.14); color: var(--warning); }
+.bkRecord.is-bad { background: rgb(var(--danger-rgb) / 0.12); color: var(--danger); }
+.bkAttend { flex: none; display: inline-flex; align-items: center; gap: 4px; font-size: 0.66rem; font-weight: 900; white-space: nowrap; }
+.bkAttend.is-yes { color: var(--success); }
+.bkAttend.is-waiting { color: var(--n-500); }
+.bkWarn { flex: 1 1 100%; display: flex; align-items: flex-start; gap: 6px; margin: 0; padding: 8px 10px; border-radius: 12px; background: rgb(var(--danger-rgb) / 0.08); color: var(--danger); font-size: 0.72rem; font-weight: 850; line-height: 1.7; }
+.bkWarn svg { flex: none; margin-top: 3px; }
