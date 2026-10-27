@@ -3,6 +3,7 @@ import "./styles.css";
 import Script from "next/script";
 import PbdqInspector from "./components/PbdqInspector.jsx";
 import { ViewportHeightFix } from "./components/ViewportHeightFix.jsx";
+import { KeyboardSuggestionsOff } from "./components/KeyboardSuggestionsOff.jsx";
 import { PortraitLock } from "./components/PortraitLock.jsx";
 import { ClientErrorReporter } from "./components/ClientErrorReporter.jsx";
 import { PullToRefresh } from "./components/PullToRefresh.jsx";
@@ -149,6 +150,7 @@ try {
         {/* Element picker for the local design preview tool; never shipped to visitors. */}
         {process.env.NODE_ENV === "development" ? <PbdqInspector /> : null}
         <ViewportHeightFix />
+        <KeyboardSuggestionsOff />
         <PortraitLock />
         <ClientErrorReporter />
         <PullToRefresh />
