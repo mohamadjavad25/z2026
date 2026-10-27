@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { adminClient, createClient, enrolledAdminClient, registerUser } from "./helpers.js";
-import { TEST_ADMIN2_PHONE, TEST_ADMIN4_PHONE, TEST_ADMIN_PASSWORD } from "../globalSetup.js";
+import { TEST_ADMIN2_PHONE, TEST_ADMIN4_PHONE, TEST_ADMIN_PASSWORD, TEST_ADMIN_SETUP_KEY } from "../globalSetup.js";
 import { forecastNext } from "../../app/lib/db/repos/adminDashboard.js";
 
 describe("forecastNext", () => {
@@ -47,38 +47,34 @@ describe("admin dashboard", () => {
 
 // These tests use their own enrolled admin (admin4) so the 5-minute password re-check never leaks into the shared admin session other files rely on.
 describe("resetting another admin's authenticator", () => {
-  it("needs the password re-check, never works on yourself or on non-admins", async () => {
+  it("needs the password re-check, never works on yourself or on an unknown admin", async () => {
     const admin = await enrolledAdminClient(TEST_ADMIN4_PHONE);
-    const me = (await admin.get(`/api/admin/users?q=${TEST_ADMIN4_PHONE}`)).payload.data.users[0];
-    const probe = await admin.post("/api/admin/security/reset-authenticator", { userId: me.id });
+    const me = (await admin.get("/api/admin/security")).payload.data.me;
+    const probe = await admin.post("/api/admin/security/reset-authenticator", { adminId: me });
     expect(probe.status).toBe(403);
     expect(probe.payload.code).toBe("stepup_required");
-    const other = createClient();
-    const plain = await registerUser(other, { type: "client", name: "Plain" });
-    const plainId = plain.user.id;
 
     // Make sure the password re-check is fresh before the guards below.
     expect((await admin.post("/api/admin/auth/stepup", { password: TEST_ADMIN_PASSWORD })).ok).toBe(true);
-    expect((await admin.post("/api/admin/security/reset-authenticator", { userId: me.id })).status).toBe(400); // yourself
-    expect((await admin.post("/api/admin/security/reset-authenticator", { userId: plainId })).status).toBe(400); // not an admin
-    expect((await admin.post("/api/admin/security/reset-authenticator", { userId: 999999999 })).status).toBe(404);
+    expect((await admin.post("/api/admin/security/reset-authenticator", { adminId: me })).status).toBe(400); // yourself
+    expect((await admin.post("/api/admin/security/reset-authenticator", { adminId: 999999999 })).status).toBe(404);
     expect((await admin.post("/api/admin/security/reset-authenticator", {})).status).toBe(400);
-    expect((await createClient().post("/api/admin/security/reset-authenticator", { userId: plainId })).status).toBe(403);
+    expect((await createClient().post("/api/admin/security/reset-authenticator", { adminId: me })).status).toBe(403);
   });
 
   it("lists every configured admin and lets one admin clear another's authenticator so setup can run again", async () => {
     const admin = await enrolledAdminClient(TEST_ADMIN4_PHONE);
     const accounts = (await admin.get("/api/admin/security")).payload.data.accounts;
-    expect(accounts.some((account) => account.phone === TEST_ADMIN4_PHONE && account.authenticator)).toBe(true);
-    expect(accounts.every((account) => typeof account.registered === "boolean")).toBe(true);
+    expect(accounts.some((account) => account.phone === TEST_ADMIN4_PHONE && account.ready)).toBe(true);
+    expect(accounts.every((account) => typeof account.ready === "boolean")).toBe(true);
 
-    // The second admin may not be registered yet when this file runs alone.
-    await registerUser(createClient(), { type: "client", name: "Admin Two", phone: TEST_ADMIN2_PHONE }).catch(() => null);
-    const second = (await admin.get(`/api/admin/users?q=${TEST_ADMIN2_PHONE}`)).payload.data.users[0];
-    expect(second).toBeTruthy();
+    // The second admin may have no admin account yet when this file runs alone: a started setup makes one.
+    await createClient().post("/api/admin/auth/enroll/start", { phone: TEST_ADMIN2_PHONE, password: TEST_ADMIN_PASSWORD, setupKey: TEST_ADMIN_SETUP_KEY });
+    const second = (await admin.get("/api/admin/security")).payload.data.accounts.find((account) => account.phone === TEST_ADMIN2_PHONE);
+    expect(second.id).toBeTruthy();
     expect((await admin.post("/api/admin/auth/stepup", { password: TEST_ADMIN_PASSWORD })).ok).toBe(true);
-    expect((await admin.post("/api/admin/security/reset-authenticator", { userId: second.id })).ok).toBe(true);
+    expect((await admin.post("/api/admin/security/reset-authenticator", { adminId: second.id })).ok).toBe(true);
     const after = (await admin.get("/api/admin/security")).payload.data.accounts.find((account) => account.phone === TEST_ADMIN2_PHONE);
-    expect(after.authenticator).toBe(false);
+    expect(after.ready).toBe(false);
   });
 });

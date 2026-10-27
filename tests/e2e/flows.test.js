@@ -674,14 +674,14 @@ describe("admin page (browser)", () => {
     expect(await denied.page.locator(".admTabs").count()).toBe(0);
     await denied.context.close();
 
-    await registerUser(createClient(), { type: "client", name: "Admin Three", phone: TEST_ADMIN3_PHONE });
+    // No app account for this admin: the panel has its own accounts (owner's decision 2026-10-27).
     const { page, context, problems } = await newPage({ width: 1100 });
     await page.goto(`${TEST_BASE_URL}/admin`, { waitUntil: "networkidle" });
 
     // First-time setup: password + setup key -> QR/secret -> first code -> inside the panel.
     await page.getByRole("button", { name: /راه‌اندازی اولیه/ }).click();
     await page.getByLabel("شمارهٔ موبایل").fill(TEST_ADMIN3_PHONE);
-    await page.getByLabel("رمز عبور").fill(TEST_ADMIN_PASSWORD);
+    await page.getByLabel(/رمز مدیر تازه/).fill(TEST_ADMIN_PASSWORD);
     await page.getByLabel(/کلید راه‌اندازی/).fill(TEST_ADMIN_SETUP_KEY);
     await page.getByRole("button", { name: "ادامه" }).click();
     await page.locator(".admKey").waitFor();
@@ -723,7 +723,7 @@ describe("admin page (browser)", () => {
     await page.getByRole("button", { name: "خروج", exact: true }).click();
     await page.getByRole("button", { name: "ورود", exact: true }).waitFor();
     await page.getByLabel("شمارهٔ موبایل").fill(TEST_ADMIN3_PHONE);
-    await page.getByLabel("رمز عبور").fill(TEST_ADMIN_PASSWORD);
+    await page.getByLabel("رمز مدیر").fill(TEST_ADMIN_PASSWORD);
     await page.getByLabel(/کد ۶ رقمی/).fill(totpCodeAt(secret, usedStep + 1));
     await page.getByRole("button", { name: "ورود", exact: true }).click();
     await page.locator(".admSideNav").getByRole("button", { name: "نمای کلی" }).waitFor();

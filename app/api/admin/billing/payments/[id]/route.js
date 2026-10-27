@@ -52,7 +52,6 @@ async function _POST(request, { params }) {
   if (!payment.authority) return error("این پرداخت هیچ‌وقت به درگاه نرسید؛ چیزی برای پرسیدن نیست.", 409);
   const { payment: updated } = await verifyAndSettle(payment);
   await admin.logAction({
-    adminUserId: gate.admin.id,
     adminLabel: gate.admin.label,
     action: "billing_reverify",
     targetUserId: payment.user_id,
@@ -70,7 +69,6 @@ async function refund(request, gate, payment, body) {
   const result = await billing.recordRefund({ paymentId: payment.id, amountRial: amountToman * 10, days, note, adminLabel: gate.admin.label });
   if (!result.ok) return error(result.error, result.status);
   await admin.logAction({
-    adminUserId: gate.admin.id,
     adminLabel: gate.admin.label,
     action: "billing_refund",
     targetUserId: payment.user_id,

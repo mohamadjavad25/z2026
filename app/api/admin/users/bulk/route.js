@@ -21,7 +21,6 @@ async function _POST(request) {
   const done = await ops.bulkUsers(ids, action, await ops.userIdsByPhones(adminPhoneList()));
   for (const user of done) {
     await admin.logAction({
-      adminUserId: gate.admin.id,
       adminLabel: gate.admin.label,
       action: action === "logout" ? "force_logout" : action,
       targetUserId: user.id,

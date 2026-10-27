@@ -23,7 +23,7 @@ async function put(client, path, body) {
 const setStepUp = async (on) => {
   await connected;
   await db.query(
-    "UPDATE admin_sessions SET stepup_until = $2 WHERE user_id = (SELECT id FROM users WHERE phone = $1)",
+    "UPDATE admin_account_sessions SET stepup_until = $2 WHERE admin_id = (SELECT id FROM admin_accounts WHERE phone = $1)",
     [TEST_ADMIN_PHONE, on ? new Date(Date.now() + 10 * 60_000).toISOString() : null]
   );
 };

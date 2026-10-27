@@ -29,7 +29,7 @@ async function _POST(request, { params }) {
   // A password set for the user signs them out everywhere (owner's decision of 2026-10-25).
   await deleteUserSessions(id);
   await ops.killUserSessions(id);
-  await admin.logAction({ adminUserId: gate.admin.id, adminLabel: gate.admin.label, action: "set_password", targetUserId: id });
+  await admin.logAction({ adminLabel: gate.admin.label, action: "set_password", targetUserId: id });
   return json({ data: { ok: true } });
 }
 

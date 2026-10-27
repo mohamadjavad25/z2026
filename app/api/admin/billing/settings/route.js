@@ -27,7 +27,7 @@ async function _PUT(request) {
     `مهلت: ${saved.graceDays} روز`,
     !before.launchedAt && saved.launchedAt ? "شروع ماه رایگان همه" : ""
   ].filter(Boolean);
-  await admin.logAction({ adminUserId: gate.admin.id, adminLabel: gate.admin.label, action: "billing_settings", detail: parts.join(" • ") });
+  await admin.logAction({ adminLabel: gate.admin.label, action: "billing_settings", detail: parts.join(" • ") });
   return json({ data: { settings: saved } });
 }
 

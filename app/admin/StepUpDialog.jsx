@@ -48,8 +48,8 @@ export function StepUpDialog() {
     <div className="admModal" role="dialog" aria-modal="true" aria-label="تأیید دوباره">
       <form className="admCard admForm" onSubmit={submit}>
         <h2>تأیید دوباره</h2>
-        <p className="admMuted">این کار حساس است. رمز عبور حساب مدیریتت را دوباره وارد کن (تا ۵ دقیقه بعد لازم نیست دوباره بزنی).</p>
-        <Field label="رمز عبور">{(p) => <input {...p} dir="ltr" type="password" autoComplete="current-password" autoFocus value={password} onChange={(event) => setPassword(event.target.value)} required />}</Field>
+        <p className="admMuted">این کار حساس است. رمز مدیرت را دوباره وارد کن (تا ۵ دقیقه بعد لازم نیست دوباره بزنی).</p>
+        <Field label="رمز مدیر">{(p) => <input {...p} dir="ltr" type="password" autoComplete="current-password" autoFocus value={password} onChange={(event) => setPassword(event.target.value)} required />}</Field>
         {error ? <p className="admError" role="alert">{error}</p> : null}
         <Button type="submit" disabled={busy}>{busy ? "در حال بررسی…" : "تأیید"}</Button>
         <button type="button" className="admLink" onClick={() => finish(false)}>انصراف</button>

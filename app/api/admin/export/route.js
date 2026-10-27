@@ -19,7 +19,7 @@ async function _GET(request) {
   const kind = new URL(request.url).searchParams.get("kind") || "";
   if (!KINDS[kind]) return error("نوع خروجی نامعتبر است.", 400);
   const rows = await ops.exportRows(kind);
-  await admin.logAction({ adminUserId: gate.admin.id, adminLabel: gate.admin.label, action: "export", detail: `${KINDS[kind]} • ${rows.length} ردیف` });
+  await admin.logAction({ adminLabel: gate.admin.label, action: "export", detail: `${KINDS[kind]} • ${rows.length} ردیف` });
   return json({ data: { kind, rows } });
 }
 

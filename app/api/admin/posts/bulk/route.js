@@ -21,7 +21,7 @@ async function _POST(request) {
   }
   const done = await ops.bulkPosts(ids, action);
   for (const post of done) {
-    await admin.logAction({ adminUserId: gate.admin.id, adminLabel: gate.admin.label, action: `post_${action}`, targetUserId: post.owner_user_id, detail: `#${post.id} ${post.title} • گروهی` });
+    await admin.logAction({ adminLabel: gate.admin.label, action: `post_${action}`, targetUserId: post.owner_user_id, detail: `#${post.id} ${post.title} • گروهی` });
   }
   return json({ data: { changed: done.length } });
 }

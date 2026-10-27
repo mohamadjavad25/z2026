@@ -47,7 +47,7 @@ async function _POST(request, { params }) {
   // A password set for the user signs them out everywhere (owner's decision of 2026-10-25).
   await deleteUserSessions(user.id);
   await passwordResetRequests.markResolved(id);
-  await adminRepo.logAction({ adminUserId: gate.admin.id, adminLabel: gate.admin.label, action: "resolve_password_reset", targetUserId: user.id });
+  await adminRepo.logAction({ adminLabel: gate.admin.label, action: "resolve_password_reset", targetUserId: user.id });
 
   return NextResponse.json({ data: { ok: true } });
 }
