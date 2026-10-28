@@ -9,6 +9,9 @@ import { toPersianDigits } from "../../shared/lib/digits.js";
  * ("not enforced"), nothing is closed, so an ended free month reads calm ("soon"), never alarming.
  */
 const TRIAL_DAYS_FALLBACK = 30;
+/** The card in Settings turns warmer and says what is at stake once this many days or fewer are left (owner's decision 2026-10-28). */
+export const LOW_DAYS = 7;
+const LOW_SUB = "بعدش مشتری‌ها دیگه پیدات نمی‌کنن و نوبت تازه نمی‌گیری.";
 
 export function accountView(overview) {
   if (!overview?.visible || !overview.account) return null;
@@ -16,16 +19,19 @@ export function accountView(overview) {
   const until = formatPersianLongDate(account.accessEndsAt);
   const ready = Boolean(overview.checkoutReady);
   const cta = (label, emphasis = "primary") => ({ label: ready ? label : "پرداخت به‌زودی باز می‌شه", emphasis, disabled: !ready });
+  // Only when something would really close: while nobody can pay yet, nothing does, so no scare.
+  const isLow = Boolean(overview.enforced) && Number(account.daysLeft) <= LOW_DAYS;
 
   if (account.state === "trial") {
     return {
       tone: "trial",
       badge: "ماه رایگان",
       title: `${formatDaysLeft(account.daysLeft)} از ماه رایگانت مونده`,
-      sub: `تا ${until}. هر پلنی بخری از همون روز شروع می‌شه و روزی از ماه رایگانت نمی‌سوزه.`,
+      sub: isLow ? LOW_SUB : `تا ${until}. هر پلنی بخری از همون روز شروع می‌شه و روزی از ماه رایگانت نمی‌سوزه.`,
       note: "",
+      low: isLow,
       meter: Math.min(1, Math.max(0, account.daysLeft / (overview.trialDays || TRIAL_DAYS_FALLBACK))),
-      action: cta("اشتراک بخر", account.daysLeft <= 5 ? "primary" : "secondary")
+      action: cta(isLow ? "همین حالا اشتراک بخر" : "اشتراک بخر", account.daysLeft <= 5 ? "primary" : "secondary")
     };
   }
   if (account.state === "active") {
@@ -36,10 +42,11 @@ export function accountView(overview) {
       tone: "active",
       badge: "فعال",
       title: `اشتراکت تا ${until} فعاله`,
-      sub: `${formatDaysLeft(account.daysLeft)} مونده.${overview.lastPayment?.title ? ` آخرین پرداخت: ${overview.lastPayment.title}.` : ""}`,
+      sub: isLow ? LOW_SUB : `${formatDaysLeft(account.daysLeft)} مونده.${overview.lastPayment?.title ? ` آخرین پرداخت: ${overview.lastPayment.title}.` : ""}`,
       note: "",
+      low: isLow,
       meter: total ? Math.min(1, Math.max(0, account.daysLeft / total)) : null,
-      action: cta("تمدیدش کن", account.daysLeft <= 5 ? "primary" : "secondary")
+      action: cta(isLow ? "همین حالا تمدید کن" : "تمدیدش کن", account.daysLeft <= 5 ? "primary" : "secondary")
     };
   }
   if (!overview.enforced) {

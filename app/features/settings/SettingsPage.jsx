@@ -7,17 +7,14 @@ import { toPersianDigits } from "../../shared/lib/digits";
 import { ProfileSheet } from "../profile/ProfileSheet";
 import { ProfileLocationSettings } from "../profile/ProfileLocationSettings";
 import { ProfileInstagramSettings } from "../profile/ProfileInstagramSettings";
-import {
-  AccountSettings,
-  AppearanceSettings,
-  ArtistBookingSettings,
-  NotificationSettings,
-  ProfileVisibilitySettings
-} from "../profile/ProfileSettingsPanel";
+import { AccountSettings } from "../profile/ProfileSettingsPanel";
 import { SalonHoursEditor } from "../profile/SalonHoursEditor";
 import { ImagePositionEditor } from "./ImagePositionEditor";
 import { SalonRulesSettings } from "../salons/SalonRulesSettings";
 import { SubscriptionCard } from "../billing";
+import { ProfileProgress } from "./ProfileProgress";
+import { profileTodos } from "./profileProgress";
+import { AppearanceTile, ArtistBookingTile, NotificationsTile, TileSlot, VisibilityTile } from "./SettingsTiles";
 
 /**
  * The camera-icon trigger over an existing avatar/poster opens a bottom
@@ -291,7 +288,6 @@ export function SettingsPage({
         ? <><span dir="ltr">{toPersianDigits(clientPhone)}</span>{"؛ عکس، اسم، ایمیل و رمز"}</>
         : "عکس، اسم، شماره، ایمیل و رمز";
   const accountAvatar = profile?.data?.avatar || profile?.avatar || defaultAvatarFor(profile?.type);
-  const roleLabel = isArtist ? "حساب آرتیست" : isSalon ? "حساب سالن" : "حساب من";
   const savedTitle = "ذخیره‌شده‌ها";
   const savedDescription = isArtist
     ? (savedPostsCount ? `${toPersianDigits(savedPostsCount)} تا ذخیره کردی` : "هنوز چیزی ذخیره نکردی")
@@ -301,22 +297,23 @@ export function SettingsPage({
         ? `${toPersianDigits(savedPostsCount)} تا ذخیره کردی`
         : "مدل‌ها و نمونه‌کارهایی که نشون کردی";
 
+  const isPro = isArtist || isSalon;
+  const pendingKeys = new Set(
+    profileTodos({ type: profile.type, data: profile.data || {}, hasDefaultAvatar: isDefaultAvatar(accountAvatar), openDaysCount })
+      .filter((todo) => !todo.done)
+      .map((todo) => todo.key)
+  );
+
   return (
     <div className={`settingsPagePanel mobilePage page-settings ${active ? "is-active" : ""}`} id="settings">
       <div className="settingsPageBody">
-        <header className="spHeader">
-          <h2 className="spHeaderTitle">تنظیمات</h2>
-          <span className="spHeaderRole">{roleLabel}</span>
-        </header>
+        {/* The subscription is the first thing a salon or artist sees (salons and artists only; hidden until billing is on). */}
+        {isPro ? <SubscriptionCard /> : null}
 
-        {/* 0. Subscription (salons and artists): where the account stands and the one button. Hidden until billing is on. */}
-        {isArtist || isSalon ? <SubscriptionCard /> : null}
-
-        {/* 1. Identity: who you are, where you work, and what customers see of it. */}
-        <section className="spSection" aria-labelledby="spSection-profile">
-          <h3 className="spSectionTitle" id="spSection-profile">{isClient ? "پروفایلم" : "پروفایل"}</h3>
+        {/* Who you are, with the poster and logo on it. */}
+        <section className="spSection" aria-label={isClient ? "پروفایلم" : "پروفایل"}>
           <BrandCard
-            hasPoster={isArtist || isSalon}
+            hasPoster={isPro}
             poster={profile?.data?.poster || ""}
             posterPosition={profile?.data?.posterPosition || ""}
             avatar={accountAvatar}
@@ -339,80 +336,102 @@ export function SettingsPage({
             accountDescription={accountDescription}
             onEditProfile={onEditProfile}
           />
-
-          <ProfileLocationSettings
-            profileType={profile?.type}
-            value={profile?.data?.area || ""}
-            location={profile?.data?.location || null}
-            saving={locationSaving}
-            onSave={onSaveLocation}
-          />
-
-          <ProfileInstagramSettings
-            profileType={profile?.type}
-            profileId={profile?.id}
-            name={profile?.data?.name || ""}
-            value={profile?.data?.instagram || ""}
-            saving={instagramSaving}
-            onSave={onSaveInstagram}
-            onNotify={onNotify}
-          />
-
-          <div className="settingsRowCard">
-            <button type="button" className="profileLocationRow" onClick={onOpenSaved}>
-              <span className="profileLocationRowIcon" aria-hidden="true">
-                <Bookmark size={17} />
-              </span>
-              <span className="profileLocationRowInfo">
-                <strong>{savedTitle}</strong>
-                <span>{savedDescription}</span>
-              </span>
-              <ChevronLeft size={16} className="profileLocationRowChevron" aria-hidden="true" />
-            </button>
-          </div>
-
-          {isArtist || isSalon ? (
-            <div className="neoSettingsPanel">
-              <ProfileVisibilitySettings profileType={profile.type} profileSettings={profileSettings} onToggle={onToggleSetting} />
-            </div>
-          ) : null}
         </section>
 
-        {/* 2. Work and bookings: hours first, then the rules or booking switches that go with them. */}
-        {isArtist || isSalon ? (
-          <section className="spSection" aria-labelledby="spSection-work">
-            <h3 className="spSectionTitle" id="spSection-work">کار و نوبت</h3>
-            <SalonHoursEditor
-              kicker={isArtist ? "تنظیمات آرتیست" : "تنظیمات سالن"}
-              isArtist={isArtist}
-              open={hoursOpen}
-              onToggleOpen={onToggleHoursOpen}
-              hoursList={hoursList}
-              openDaysCount={openDaysCount}
-              bookings={hoursBookings}
-              onSave={onSaveHours}
+        {/* «کارهای مونده»: only while something is undone. */}
+        <ProfileProgress
+          type={profile.type}
+          data={profile.data || {}}
+          hasDefaultAvatar={isDefaultAvatar(accountAvatar)}
+          openDaysCount={openDaysCount}
+          onEditProfile={onEditProfile}
+        />
+
+        {/* Everything else is a tile: a tap opens its own editor or sheet. */}
+        <section className="spTiles" aria-label="تنظیمات">
+          <TileSlot id="location" pending={pendingKeys.has("location")}>
+            <ProfileLocationSettings
+              profileType={profile?.type}
+              value={profile?.data?.area || ""}
+              location={profile?.data?.location || null}
+              saving={locationSaving}
+              onSave={onSaveLocation}
             />
-            {isArtist ? (
-              <div className="neoSettingsPanel">
-                <ArtistBookingSettings profileSettings={profileSettings} onToggle={onToggleSetting} />
-              </div>
-            ) : null}
-            {isSalon ? <SalonRulesSettings onNotify={onNotify} /> : null}
-          </section>
-        ) : null}
+          </TileSlot>
 
-        {/* 3. Notifications and appearance: how the app talks to you on this device. */}
-        <section className="spSection" aria-labelledby="spSection-prefs">
-          <h3 className="spSectionTitle" id="spSection-prefs">اعلان و ظاهر</h3>
-          <div className="neoSettingsPanel">
-            <NotificationSettings profileType={profile.type} profileSettings={profileSettings} onToggle={onToggleSetting} />
-            <AppearanceSettings />
-          </div>
+          {isPro ? (
+            <TileSlot id="instagram" pending={pendingKeys.has("instagram")}>
+              <ProfileInstagramSettings
+                profileType={profile?.type}
+                profileId={profile?.id}
+                name={profile?.data?.name || ""}
+                value={profile?.data?.instagram || ""}
+                saving={instagramSaving}
+                onSave={onSaveInstagram}
+                onNotify={onNotify}
+              />
+            </TileSlot>
+          ) : null}
+
+          <TileSlot id="saved">
+            <div className="settingsRowCard">
+              <button type="button" className="profileLocationRow" onClick={onOpenSaved}>
+                <span className="profileLocationRowIcon" aria-hidden="true">
+                  <Bookmark size={17} />
+                </span>
+                <span className="profileLocationRowInfo">
+                  <strong>{savedTitle}</strong>
+                  <span>{savedDescription}</span>
+                </span>
+                <ChevronLeft size={16} className="profileLocationRowChevron" aria-hidden="true" />
+              </button>
+            </div>
+          </TileSlot>
+
+          {isPro ? (
+            <TileSlot id="hours" pending={pendingKeys.has("hours")}>
+              <SalonHoursEditor
+                kicker={isArtist ? "تنظیمات آرتیست" : "تنظیمات سالن"}
+                isArtist={isArtist}
+                open={hoursOpen}
+                onToggleOpen={onToggleHoursOpen}
+                hoursList={hoursList}
+                openDaysCount={openDaysCount}
+                bookings={hoursBookings}
+                onSave={onSaveHours}
+              />
+            </TileSlot>
+          ) : null}
+
+          {isSalon ? (
+            <TileSlot id="rules">
+              <SalonRulesSettings onNotify={onNotify} />
+            </TileSlot>
+          ) : null}
+
+          {isPro ? (
+            <TileSlot id="visibility">
+              <VisibilityTile profileType={profile.type} profileSettings={profileSettings} onToggle={onToggleSetting} />
+            </TileSlot>
+          ) : null}
+
+          {isArtist ? (
+            <TileSlot id="bookings">
+              <ArtistBookingTile profileSettings={profileSettings} onToggle={onToggleSetting} />
+            </TileSlot>
+          ) : null}
+
+          <TileSlot id="notifications">
+            <NotificationsTile profileType={profile.type} profileSettings={profileSettings} onToggle={onToggleSetting} />
+          </TileSlot>
+
+          <TileSlot id="appearance">
+            <AppearanceTile />
+          </TileSlot>
         </section>
 
-        {/* 4. Account: always last, so sign-out and deletion are never in the way of the settings above. */}
-        <section className="spSection" aria-labelledby="spSection-account">
-          <h3 className="spSectionTitle" id="spSection-account">حساب و پشتیبانی</h3>
+        {/* Account: always last, so sign-out and deletion are never in the way of the settings above. */}
+        <section className="spSection" aria-label="حساب و پشتیبانی">
           <div className="neoSettingsPanel">
             <AccountSettings onLogout={onLogout} onDeleteAccount={onDeleteAccount} onNotice={onNotify} isClient={isClient} />
           </div>

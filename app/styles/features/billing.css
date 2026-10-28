@@ -41,6 +41,105 @@
 .billGhostBtn { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 var(--space-3); border: 0; border-radius: var(--radius-pill); background: transparent; color: var(--accent); font: inherit; font-size: var(--text-base); font-weight: 850; cursor: pointer; }
 .billGhostBtn:hover { background: var(--accent-soft); }
 
+/* The flashy one (owner's decision 2026-10-28): violet to pink, a slow sheen, a big day count and a pink button, so the
+   one card that brings money in is seen first. A week or less (.is-low) warms it up; closed (.is-closed) turns it dark.
+   White text only sits on the violet-deep end or under a dark veil, never on pink. */
+.spSection.spPay .billCard {
+  isolation: isolate;
+  overflow: hidden;
+  gap: 12px;
+  padding: 18px 18px 16px;
+  border: 1px solid rgb(var(--on-photo-rgb) / 0.4);
+  border-radius: 28px;
+  color: var(--on-photo);
+  background:
+    linear-gradient(rgb(var(--shadow-rgb) / 0.12), rgb(var(--shadow-rgb) / 0.12)),
+    linear-gradient(225deg, var(--violet-deep) 0%, var(--brand-violet) 62%, var(--brand-pink) 100%);
+  box-shadow:
+    0 22px 40px -16px rgb(var(--brand-violet-rgb) / 0.85),
+    0 8px 18px -8px rgb(var(--brand-pink-rgb) / 0.6),
+    inset 0 1px 0 rgb(var(--on-photo-rgb) / 0.55),
+    inset 0 -22px 34px -22px rgb(var(--shadow-rgb) / 0.45);
+}
+.spSection.spPay .billCard::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(120% 70% at 85% -15%, rgb(var(--on-photo-rgb) / 0.45), transparent 55%),
+    radial-gradient(70% 60% at 0% 110%, rgb(var(--brand-pink-rgb) / 0.6), transparent 70%);
+}
+.spSection.spPay .billCard::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  top: -40%;
+  bottom: -40%;
+  inset-inline-start: -60%;
+  width: 34%;
+  pointer-events: none;
+  background: linear-gradient(100deg, transparent, rgb(var(--on-photo-rgb) / 0.45), transparent);
+  transform: skewX(-20deg);
+  animation: billSheen 5s ease-in-out infinite;
+}
+@keyframes billSheen { 0%, 55% { inset-inline-start: -60%; } 100% { inset-inline-start: 130%; } }
+.spSection.spPay .billCard > * { position: relative; z-index: 1; }
+.spSection.spPay .billCard > .billSwirl { position: absolute; z-index: 0; inset-inline-end: -34px; top: 40px; width: 150px; height: 150px; fill: none; stroke: var(--on-photo); stroke-width: 5; stroke-linecap: round; opacity: 0.16; }
+.spSection.spPay .billCard.is-low { background: linear-gradient(rgb(var(--shadow-rgb) / 0.08), rgb(var(--shadow-rgb) / 0.08)), linear-gradient(225deg, var(--violet-deep) 0%, var(--pink-deep) 70%, var(--brand-pink) 100%); }
+.spSection.spPay .billCard.is-closed {
+  border-color: rgb(var(--brand-pink-rgb) / 0.55);
+  background:
+    radial-gradient(90% 60% at 90% -10%, rgb(var(--brand-pink-rgb) / 0.35), transparent 60%),
+    radial-gradient(70% 60% at 0% 110%, rgb(var(--brand-violet-rgb) / 0.4), transparent 70%),
+    var(--brand-ink);
+  box-shadow: 0 22px 40px -16px rgb(var(--shadow-rgb) / 0.8), 0 8px 24px -8px rgb(var(--brand-pink-rgb) / 0.5), inset 0 1px 0 rgb(var(--on-photo-rgb) / 0.25);
+}
+.spSection.spPay .billCard.is-closed::before { display: none; }
+
+.spSection.spPay .billCard .billBadge { background: rgb(var(--on-photo-rgb) / 0.2); border: 1px solid rgb(var(--on-photo-rgb) / 0.4); color: var(--on-photo); backdrop-filter: blur(6px); }
+.spSection.spPay .billCard .billBadge.is-state { background: var(--on-photo); border-color: transparent; color: var(--violet-deep); }
+.spSection.spPay .billCard.is-closed .billBadge.is-state { background: var(--brand-pink); color: var(--brand-ink); }
+.spSection.spPay .billCardHead { justify-content: space-between; }
+.billBig { display: flex; align-items: flex-end; gap: 10px; }
+.billBigNum { font-size: 3.6rem; font-weight: 900; line-height: 1; letter-spacing: -0.02em; text-shadow: 0 4px 18px rgb(var(--shadow-rgb) / 0.35); }
+.billBigUnit { display: grid; padding-bottom: 6px; }
+.billBigUnit b { font-size: var(--text-md); font-weight: 900; }
+.billBigUnit small { font-size: var(--text-sm); font-weight: 700; opacity: 0.92; }
+.spSection.spPay .billCardTitle { color: var(--on-photo); font-size: var(--text-base); }
+.spSection.spPay .billCardSub,
+.spSection.spPay .billCardNote { color: var(--on-photo); max-width: 34ch; text-shadow: 0 1px 8px rgb(var(--shadow-rgb) / 0.4); font-size: var(--text-sm); }
+.spSection.spPay .billMeter { height: 9px; background: rgb(var(--shadow-rgb) / 0.28); box-shadow: inset 0 1px 2px rgb(var(--shadow-rgb) / 0.4); }
+.spSection.spPay .billMeter i { background: linear-gradient(90deg, var(--on-photo), var(--pink-soft)); box-shadow: 0 0 12px rgb(var(--on-photo-rgb) / 0.8); }
+.spSection.spPay .billPendingRow { background: rgb(var(--on-photo-rgb) / 0.2); color: var(--on-photo); }
+.spSection.spPay .billPendingRow svg { color: var(--on-photo); }
+.spSection.spPay .billCardActions { display: grid; gap: 6px; justify-content: stretch; }
+.billPayBtn {
+  min-height: 48px;
+  border: 0;
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgb(var(--on-photo-rgb) / 0.35), transparent 60%), var(--brand-pink);
+  color: var(--brand-ink);
+  font: inherit;
+  font-size: var(--text-md);
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 10px 22px -8px rgb(var(--brand-pink-rgb) / 0.9), 0 0 0 4px rgb(var(--on-photo-rgb) / 0.18), inset 0 1px 0 rgb(var(--on-photo-rgb) / 0.7);
+  animation: billGlow 2.6s ease-in-out infinite;
+}
+.billPayBtn:disabled { animation: none; opacity: 0.6; cursor: default; }
+.billPayBtn:focus-visible { outline: 2px solid var(--on-photo); outline-offset: 3px; }
+@keyframes billGlow {
+  0%, 100% { box-shadow: 0 10px 22px -8px rgb(var(--brand-pink-rgb) / 0.9), 0 0 0 4px rgb(var(--on-photo-rgb) / 0.18), inset 0 1px 0 rgb(var(--on-photo-rgb) / 0.7); }
+  50% { box-shadow: 0 10px 30px -6px rgb(var(--brand-pink-rgb)), 0 0 0 8px rgb(var(--on-photo-rgb) / 0.1), inset 0 1px 0 rgb(var(--on-photo-rgb) / 0.7); }
+}
+.spSection.spPay .billGhostBtn { justify-content: center; color: var(--on-photo); }
+.spSection.spPay .billGhostBtn:hover { background: rgb(var(--on-photo-rgb) / 0.16); }
+@media (prefers-reduced-motion: reduce) {
+  .spSection.spPay .billCard::after,
+  .billPayBtn { animation: none; }
+}
+
 /* salons: their team's artists, whom they may pay for (optional) */
 .billTeam { display: grid; gap: var(--space-3); margin-top: var(--space-3); padding: var(--space-4); border-radius: var(--radius-xl); background: var(--surface-solid); box-shadow: inset 0 0 0 1px var(--line); }
 .billTeamHead { display: flex; align-items: flex-start; gap: var(--space-2); }

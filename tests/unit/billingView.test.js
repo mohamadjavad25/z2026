@@ -29,6 +29,16 @@ describe("subscription card and reminder bar", () => {
     expect(accountView(overview({ state: "trial", daysLeft: 4 })).action.emphasis).toBe("primary");
   });
 
+  it("turns the card urgent only at seven days or fewer, and only when something would really close", () => {
+    const week = accountView(overview({ state: "active", daysLeft: 7, accessEndsAt: iso(7) }));
+    expect(week.low).toBe(true);
+    expect(week.sub).toContain("پیدات نمی‌کنن");
+    expect(week.action.label).toBe("همین حالا تمدید کن");
+    expect(accountView(overview({ state: "trial", daysLeft: 3 })).action.label).toBe("همین حالا اشتراک بخر");
+    expect(accountView(overview({ state: "active", daysLeft: 8, accessEndsAt: iso(8) })).low).toBe(false);
+    expect(accountView(overview({ state: "active", daysLeft: 3, accessEndsAt: iso(3) }, { enforced: false })).low).toBe(false);
+  });
+
   it("runs the active meter from the last payment to the end of access", () => {
     const paidAt = new Date(Date.now() - 30 * 86_400_000).toISOString();
     const view = accountView(overview({ state: "active", daysLeft: 150, accessEndsAt: iso(150) }, { lastPayment: { title: "اشتراک شش‌ماهه سالن", days: 180, paidAt } }));
