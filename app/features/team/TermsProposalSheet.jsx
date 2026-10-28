@@ -42,7 +42,8 @@ export function TermsProposalSheet({ open, otherName, initial, busy, error, onSe
     setNote("");
     setLead(7);
     setAllow(initial?.allowProposals !== false);
-  }, [open, initial]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- reset only when the content changes, not on a new object from a list refresh
+  }, [open, JSON.stringify(initial)]);
 
   const toggle = (day) => setDays((current) => (current.includes(day) ? current.filter((item) => item !== day) : [...current, day]));
   const problem = !days.length ? "دست‌کم یه روز انتخاب کن." : to <= from ? "ساعت پایان باید بعد از ساعت شروع باشه." : "";

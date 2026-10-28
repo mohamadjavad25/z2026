@@ -145,15 +145,24 @@ export async function listSalonCollabRequests(salonUserId) {
   `, [salonUserId]);
   // The numbers the salon stands on today (for the «قبل ← بعد» comparison); null until the salon saved its terms.
   const current = await getJoinTerms(salonUserId, db);
-  return rows.map((row) => ({
-    ...mapArtistCollab(row),
+  return rows.map((row) => {
+    const mapped = mapArtistCollab(row);
+    // A request from the join page carries her numbers; `baseTerms` is what the salon stands on now (the card's «قبل»).
+    const terms = row.terms_version != null
+      ? { days: mapped.days, from: mapped.from, to: mapped.to, share: mapped.share, ownShare: mapped.ownShare ?? null, note: mapped.note || "" }
+      : null;
+    return {
+    ...mapped,
+    terms,
+    baseTerms: terms && current ? { days: current.days, from: current.from, to: current.to, share: current.share, ownShare: current.ownShare ?? null } : null,
     current: current && { days: current.days, from: current.from, to: current.to, share: current.share, ownShare: current.ownShare, version: current.version },
     artistId: row.artist_user_id,
     artistName: row.artist_name || "آرتیست frfro",
     artistAvatar: row.artist_avatar && row.artist_user_id ? `/api/media/avatar/${row.artist_user_id}` : "",
     artistService: row.artist_service || "",
     artistArea: row.artist_area || ""
-  }));
+    };
+  });
 }
 
 const COLLAB_PENDING = "آماده ارسال";

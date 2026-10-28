@@ -43,6 +43,7 @@ async function _PATCH(request) {
 
   const body = await readObjectBody(request);
   const id = Number(body.id);
+  if (!Number.isInteger(id) || id <= 0) return NextResponse.json({ error: "درخواست پیدا نشد.", code: "NOT_FOUND" }, { status: 400 });
   const salonName = auth.user.name || "سالن";
   const action = ["accept", "reject", "counter"].includes(body.action)
     ? body.action

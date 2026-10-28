@@ -2,7 +2,7 @@ import { randomBytes, timingSafeEqual } from "node:crypto";
 import { getDb, all, get, run, withTransaction } from "../../connection.js";
 import { addSalonStaff } from "./staff.js";
 import { defaultArtistHours } from "../artists/hours.js";
-import { getJoinTerms, joinTermsReady, rulesLines, getSalonRulesText } from "./joinTerms.js";
+import { getJoinTerms, joinTermsReady, getSalonRulesText } from "./joinTerms.js";
 import { dateKeyAfter } from "../../../../shared/lib/artistPlace.js";
 
 const PENDING = "در انتظار تایید";
@@ -447,12 +447,14 @@ export async function getSalonJoinPreview(salonUserId, code = "") {
   const terms = await getJoinTerms(salonUserId, db);
   // The percentages are only for someone holding the link's code: the salon's id alone is public and guessable.
   const codeValid = await verifySalonJoinCode(salonUserId, code, db);
-  const { lines, more } = rulesLines(row.rules);
+  // Every line goes to the page (it shows four and a «بقیه» tap for the rest), so the agreed snapshot is never more than she could read.
+  const lines = String(row.rules || "").split("\n").map((line) => line.trim()).filter(Boolean).slice(0, 60);
+  const more = 0;
   return {
     id: row.user_id,
     name: row.name || "سالن",
     area: row.area || "",
-    rules: row.rules || "",
+    rules: codeValid ? row.rules || "" : "",
     rulesLines: codeValid ? lines : [],
     rulesMore: codeValid ? more : 0,
     avatar: row.avatar ? `/api/media/avatar/${row.user_id}` : "",
