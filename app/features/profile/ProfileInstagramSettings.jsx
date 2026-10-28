@@ -66,7 +66,7 @@ export function ProfileInstagramSettings({ profileType, profileId, name = "", va
       {askClear ? (
         <div className="profileLocationAsk" role="alertdialog" aria-label="برداشتن پیج اینستاگرام">
           <strong>پیج اینستاگرامت از صفحه‌ت برداشته بشه؟</strong>
-          <span>دکمه‌ی اینستاگرام از کنار اسمت می‌ره.</span>
+          <span>پوشه‌ی اینستاگرام از صفحه‌ت می‌ره.</span>
           <div>
             <button type="button" className="profileLocationAskYes" disabled={saving} onClick={async () => { const r = await onSave?.(""); if (r?.ok) setAskClear(false); }}>آره، بردار</button>
             <button type="button" className="profileLocationAskNo" onClick={() => setAskClear(false)}>نه، بمونه</button>

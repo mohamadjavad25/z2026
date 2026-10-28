@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { createClient, registerUser } from "./helpers.js";
+import { TEST_BASE_URL } from "../globalSetup.js";
 
 // «اینستاگرام» on salon and artist profiles (owner's choice 2026-10-27).
 describe("instagram page on the profile", () => {
@@ -45,5 +46,22 @@ describe("instagram page on the profile", () => {
     const res = await client.post("/api/profile", { data: { instagram: "client.page" } });
     expect(res.ok).toBe(true);
     expect(res.payload.data.user.instagram).toBe("");
+  });
+
+  it("refuses odd input, needs a login, and the public page links the page for search engines", async () => {
+    const anon = await createClient().post("/api/profile", { data: { instagram: "salon.anon" } });
+    expect(anon.status).toBe(401);
+
+    const salon = createClient();
+    const { user } = await registerUser(salon, { type: "salon", name: "سالن اینستا سه" });
+    await salon.post("/api/profile", { data: { instagram: "salon.three" } });
+    for (const odd of [123, ["salon.x"], { name: "salon.x" }, "a".repeat(201), "https://instagram.com/p/C9xYz12/", "<script>alert(1)</script>"]) {
+      const res = await salon.post("/api/profile", { data: { instagram: odd } });
+      expect(res.status).toBe(400);
+    }
+    expect((await createClient().get(`/api/salons/${user.id}`)).payload.data.salon.instagram).toBe("salon.three");
+
+    const html = await (await fetch(`${TEST_BASE_URL}/salons/${user.id}`)).text();
+    expect(html).toContain("https://instagram.com/salon.three");
   });
 });
