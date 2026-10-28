@@ -1,6 +1,7 @@
 import { getDb, all, get, run } from "../../connection.js";
 import { normalizePhone } from "./common.js";
 import { defaultArtistHours } from "../artists/hours.js";
+import { listLeavesFor } from "../teamAgreements.js";
 
 function artistAvatarUrl(artist) {
   return artist?.avatar ? `/api/media/avatar/${artist.id}` : "";
@@ -26,16 +27,22 @@ export async function listSalonStaff(salonUserId, runner = null) {
     await run(db, "UPDATE salon_staff SET state = 'فعال', leave_until = '', updated_at = CURRENT_TIMESTAMP WHERE id = ANY($1::int[])", [ended.map((row) => row.id)]);
     for (const row of ended) { row.state = "فعال"; row.leave_until = ""; }
   }
-  const [hoursByArtist, postsByStaff] = await Promise.all([
-    artistHoursFor(rows.map((row) => row.artist_user_id).filter(Boolean), db),
-    teamPostCounts(salonUserId, db)
+  const artistIds = rows.map((row) => row.artist_user_id).filter(Boolean);
+  const [hoursByArtist, postsByStaff, leavesByArtist, proposalBy] = await Promise.all([
+    artistHoursFor(artistIds, db),
+    teamPostCounts(salonUserId, db),
+    listLeavesFor(artistIds.map(Number), db),
+    all(db, "SELECT artist_user_id, proposed_by FROM team_term_proposals WHERE salon_user_id = $1 AND status = 'pending'", [salonUserId])
   ]);
   const result = await Promise.all(rows.map(async (row) => {
     const extra = {
       leave_until: row.state === "مرخصی" ? row.leave_until || "" : "",
       hours: hoursByArtist.get(Number(row.artist_user_id)) || [],
       posts_pending: postsByStaff.get(Number(row.id))?.pending || 0,
-      posts_approved: postsByStaff.get(Number(row.id))?.approved || 0
+      posts_approved: postsByStaff.get(Number(row.id))?.approved || 0,
+      // The artist's own leaves (today on) and who proposed the terms that are waiting for an answer, if anyone did.
+      leaves: leavesByArtist.get(Number(row.artist_user_id)) || [],
+      terms_proposed_by: proposalBy.find((item) => Number(item.artist_user_id) === Number(row.artist_user_id))?.proposed_by || ""
     };
     if (row.is_owner) return { ...(await decorateOwnerStaff(row, db)), ...extra, hours: [] };
     const artist = await resolveArtistUserForStaff(row, db);

@@ -246,6 +246,32 @@ function teamScreens() {
   ];
 }
 
+/* ---------- leave, terms and the ledger between a salon and its artist (owner's decision 2026-10-28) ----------
+ * The ledger needs FINISHED bookings, which the API cannot make: before taking «حساب» screens, add confirmed artist_bookings
+ * rows dated today with an earlier hour (a salon one with source_salon_user_id + salon_booking_id, an own one with
+ * place_salon_user_id), and one for tomorrow to fill the leave list. See docs/screens/README.md. */
+const TERMS = { days: "شنبه، یکشنبه، دوشنبه، سه‌شنبه، چهارشنبه", from: "۱۰:۰۰", to: "۱۸:۰۰", share: 60 };
+const salonProposes = async ({ sessions, ids }) => { await sessions.salon.post("/api/team-terms", { artistUserId: ids.artist, ...TERMS, to: "۲۰:۰۰", share: 65, ownShare: 80, note: "شب‌ها شلوغ می‌شیم" }); };
+const artistProposes = async ({ sessions, ids }) => { await sessions.artist.post("/api/team-terms", { salonUserId: ids.salon, ...TERMS, from: "۱۱:۰۰", to: "۱۹:۰۰", share: 70, note: "صبح‌ها برام سخته" }); };
+const artistSettles = async ({ sessions, ids }) => {
+  const open = (await sessions.artist.get(`/api/team-ledger?salonUserId=${ids.salon}`)).payload.data;
+  if (!open.waiting && open.totals.net !== 0 && !open.totals.unknown) await sessions.artist.post("/api/team-ledger", { salonUserId: ids.salon, action: "start", paid: Math.abs(open.totals.net) });
+};
+function dealScreens() {
+  const dealOnMember = [STAFF_TAB, openNegar, scrollTo(".tmDeal")];
+  return [
+    { id: "salon-team-terms", role: "salon", title: "صفحهٔ آرتیست، شرایط کار با پیشنهاد تازهٔ آرتیست", setup: async (ctx) => { await teamWorld(ctx); await artistProposes(ctx); }, steps: dealOnMember },
+    { id: "salon-team-terms-sheet", role: "salon", title: "پیشنهاد تغییر شرایط، برگهٔ سالن", setup: async (ctx) => { await teamWorld(ctx); await artistProposes(ctx); }, steps: [...dealOnMember, tap("پیشنهاد خودم")] },
+    { id: "salon-team-ledger", role: "salon", title: "حساب با آرتیست، سمت سالن", setup: teamWorld, steps: [STAFF_TAB, openNegar, tap(/^حساب با نگار/)] },
+    { id: "artist-team-terms", role: "artist", title: "همکاری، شرایط کار با پیشنهاد تازهٔ سالن", setup: async (ctx) => { await teamWorld(ctx); await salonProposes(ctx); }, steps: [COLLAB, scrollTo(".ttCard")] },
+    { id: "artist-team-ledger", role: "artist", title: "حساب من با سالن", setup: teamWorld, steps: [COLLAB, tap(/^حساب من با/)] },
+    { id: "artist-team-ledger-waiting", role: "artist", title: "حساب من با سالن، تصفیه منتظر تأیید", setup: async (ctx) => { await teamWorld(ctx); await artistSettles(ctx); }, steps: [COLLAB, tap(/^حساب من با/)] },
+    { id: "salon-team-ledger-confirm", role: "salon", title: "حساب با آرتیست، تصفیه‌ای که باید تأیید کنم", setup: async (ctx) => { await teamWorld(ctx); await artistSettles(ctx); }, steps: [STAFF_TAB, openNegar, tap(/^حساب با نگار/)] },
+    { id: "artist-leave-sheet", role: "artist", title: "همکاری، «نمی‌تونم بیام»", setup: teamWorld, steps: [COLLAB, scrollTo(".lvCard"), tap("نمی‌تونم بیام")] },
+    { id: "artist-leave-plan", role: "artist", title: "مرخصی، نوبت‌هایی که اول باید جواب بخورن", setup: teamWorld, steps: [COLLAB, scrollTo(".lvCard"), tap("نمی‌تونم بیام"), tap("ثبت مرخصی")] }
+  ];
+}
+
 /** The client books the artist straight from their page on the first day she receives at the salon. */
 async function makeDirectBooking({ sessions, ids }) {
   const { client, artist } = sessions;
@@ -362,7 +388,8 @@ const SCREENS = [
   // where an artist on a salon team receives the clients who book them directly (owner's idea of 2026-10-24).
   // Each screen sets the state it shows first (the choice, the salon's switch, an address), so the order does not matter.
   ...placeScreens(),
-  ...teamScreens()
+  ...teamScreens(),
+  ...dealScreens()
 ];
 
 async function closeArrivalDialogs(page) {

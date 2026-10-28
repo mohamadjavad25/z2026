@@ -2,21 +2,20 @@
 
 import { useEffect, useState } from "react";
 import {
-  CalendarDays,
   Check,
   Eye,
   Lock,
   MapPin,
   Pencil,
-  Percent,
   Phone,
   ShieldCheck,
-  Timer,
   UserRound
 } from "lucide-react";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { WeekStrip } from "../team/WeekStrip";
-import { leaveDayAfter, leaveLabel, weekFromHours, weekSentence } from "../team/teamWeek";
+import { TeamTermsCard } from "../team/TeamTermsCard";
+import { TeamLedgerSheet } from "../team/TeamLedgerSheet";
+import { leaveDayAfter, leaveLabel, leaveText, weekFromHours, weekSentence } from "../team/teamWeek";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { SheetClose } from "../../components/SheetClose";
 
@@ -95,10 +94,12 @@ export function SalonStaffProfileModal({
 }) {
   const [confirmEnd, setConfirmEnd] = useState(false);
   const [endReason, setEndReason] = useState("");
+  const [ledgerOpen, setLedgerOpen] = useState(false);
   const staffKey = staff?.id || staff?.name || "";
   useEffect(() => {
     setConfirmEnd(false);
     setEndReason("");
+    setLedgerOpen(false);
   }, [staffKey]);
   if (!staff) return null;
 
@@ -108,7 +109,6 @@ export function SalonStaffProfileModal({
   const staffState = staff.state || "فعال";
   const staffPhone = staff.artist_phone || staff.phone || "";
   const staffArea = staff.artist_area || "";
-  const staffBio = String(staff.artist_bio || staff.bio || "").trim();
   const staffAvatar = staff.avatar || staff.staff_avatar || "";
   const staffAccess = staff.access_level || "آرتیست";
   const isActive = staffState === "فعال";
@@ -121,9 +121,6 @@ export function SalonStaffProfileModal({
   // The salon's switch for direct bookings at the salon, and what the member's clients add up to (never who they are).
   const directAllowed = staff.directAllowed !== undefined ? Boolean(staff.directAllowed) : staff.direct_allowed !== false;
   const directStats = { clientsThisMonth: 0, connected: 0, ...(staff.direct_stats || {}) };
-  const collabDays = staffBio.match(/روزها:\s*([^·]+)/)?.[1]?.trim() || "";
-  const collabHours = staffBio.match(/ساعت:\s*([^·]+)/)?.[1]?.trim() || "";
-  const collabShare = staffBio.match(/سهم آرتیست:\s*([^·]+)/)?.[1]?.trim() || "";
 
   return (
     <div
@@ -213,6 +210,11 @@ export function SalonStaffProfileModal({
                 <button type="button" className={!staff.leave_until ? "is-on" : ""} onClick={() => onUpdate?.(staff, { state: "مرخصی", leaveUntil: "" }, "تاریخ برگشت برداشته شد.")}>تا خودم بگم</button>
               </div>
             </div>
+          ) : null}
+          {staff.leaves?.length ? (
+            <ul className="tmLeaves" aria-label="مرخصی‌هایی که خودش گذاشته">
+              {staff.leaves.map((leave) => <li key={leave.id}>{leaveText(leave)}<small>خودش گذاشته</small></li>)}
+            </ul>
           ) : null}
           <p className="smdLockNote">
             {staffState === "مرخصی"
@@ -322,14 +324,11 @@ export function SalonStaffProfileModal({
           </section>
         ) : null}
 
-        {(collabDays || collabHours || collabShare) ? (
-          <section className="smdSection">
-            <h4>شرایط همکاری</h4>
-            <div className="smdTerms">
-              {collabDays ? <span><CalendarDays size={14} />{collabDays}</span> : null}
-              {collabHours ? <span><Timer size={14} />{toPersianDigits(collabHours)}</span> : null}
-              {collabShare ? <span><Percent size={14} />سهم آرتیست {toPersianDigits(collabShare)}</span> : null}
-            </div>
+        {hasPublic && !isOwner && staff.artist_user_id ? (
+          <section className="smdSection tmDeal">
+            <TeamTermsCard pair={{ artistUserId: staff.artist_user_id }} otherName={staffName} />
+            <button type="button" className="tmLedgerBtn" onClick={() => setLedgerOpen(true)}>حساب با {staffName}</button>
+            <TeamLedgerSheet open={ledgerOpen} pair={{ artistUserId: staff.artist_user_id }} otherName={staffName} onClose={() => setLedgerOpen(false)} />
           </section>
         ) : null}
 

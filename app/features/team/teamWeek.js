@@ -1,4 +1,4 @@
-import { formatPersianDayTitle, getPersianWeekday } from "../../shared/lib/persianCalendar";
+import { formatPersianDateKey, formatPersianDayTitle, formatRelativeBookingDayLabel, getPersianWeekday, persianDateKeyToDate } from "../../shared/lib/persianCalendar";
 import { toPersianDigits } from "../../shared/lib/digits";
 
 /** The week as the app runs it (Saturday first), with the one-letter label the week strips show. */
@@ -81,15 +81,20 @@ export function leaveDayAfter(days, from = new Date()) {
  * What a member's card says about today. `person.state` is the stored word (فعال / مرخصی / غیرفعال); the words here are
  * only how it is shown (docs/COPY.md).
  */
-export function memberToday(person, week) {
+export function memberToday(person, week, from = new Date()) {
   const state = person.state || "فعال";
   if (state === "مرخصی") {
     const back = leaveLabel(person.leave_until);
     return { tone: "leave", text: back ? `مرخصیه، ${back} برمی‌گرده` : "مرخصیه" };
   }
   if (state === "غیرفعال") return { tone: "off", text: "کار نمی‌کنه" };
+  // The artist's own leave («نمی‌تونم بیام»): all of today, or some hours of it.
+  const todayKey = formatPersianDateKey(from);
+  const own = (person.leaves || []).find((leave) => leave.from <= todayKey && leave.to >= todayKey);
+  if (own && !own.start) return { tone: "leave", text: "امروز نمی‌تونه بیاد" };
   const today = week.find((item) => item.today);
   if (!week.some((item) => item.on)) return { tone: "ok", text: "سرکاره" };
+  if (today?.on && own?.start) return { tone: "ok", text: `امروز از ${toPersianDigits(hourOnly(own.start))} تا ${toPersianDigits(hourOnly(own.end))} نیست` };
   if (today?.on) return { tone: "ok", text: `امروز تا ${toPersianDigits(hourOnly(today.close))} سرکاره` };
   return { tone: "idle", text: "امروز نمی‌آد" };
 }
@@ -114,4 +119,37 @@ export function overlapHours(own = [], salon = []) {
     const right = toPersianDigits(String(Math.floor(close / 60)).padStart(2, "0"));
     return { day: mine.day, active: true, open: `${left}:${toPersianDigits(String(open % 60).padStart(2, "0"))}`, close: `${right}:${toPersianDigits(String(close % 60).padStart(2, "0"))}` };
   });
+}
+
+/** A Persian date key (YYYY-MM-DD) as «۱۲ آبان»; "" when it is not one. */
+export function keyLabel(key) {
+  const date = persianDateKeyToDate(String(key || ""));
+  if (!date) return "";
+  const parts = formatPersianDayTitle(date);
+  return `${parts.day} ${parts.monthLabel}`;
+}
+
+/** «۱۴۰۵٬۰۰۰» style money: whole tomans with a thousands mark, Persian digits. */
+export function toman(value) {
+  const number = Math.round(Number(value) || 0);
+  return `${toPersianDigits(String(Math.abs(number)).replace(/\B(?=(\d{3})+(?!\d))/g, "٬"))} تومان`;
+}
+
+/** Minutes from midnight → «۱۴:۳۰». */
+export function clockLabel(minutes) {
+  const m = Math.max(0, Math.min(1439, Math.round(minutes)));
+  return toPersianDigits(`${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`);
+}
+
+/** «۱۴:۰۰» (any digits) → minutes; 0 when it is not a time. */
+export function clockMinutes(label) {
+  const m = String(label || "").replace(/[۰-۹]/g, (d) => "۰۱۲۳۴۵۶۷۸۹".indexOf(d)).match(/^(\d{1,2}):(\d{2})$/);
+  return m ? Number(m[1]) * 60 + Number(m[2]) : 0;
+}
+
+/** «فردا، ۱۴:۰۰ تا ۱۸:۰۰» for one leave ({ from, to, start, end }). */
+export function leaveText(leave) {
+  const from = formatRelativeBookingDayLabel(leave.from);
+  const days = leave.to === leave.from ? from : `${from} تا ${formatRelativeBookingDayLabel(leave.to)}`;
+  return leave.start ? `${days}، ${toPersianDigits(leave.start)} تا ${toPersianDigits(leave.end)}` : days;
 }

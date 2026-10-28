@@ -138,3 +138,106 @@
 .cwPostRow small { color: var(--n-600); font-size: 0.7rem; font-weight: 700; }
 .cwPostRow small.is-live { color: var(--live); font-weight: 900; }
 .cwPostRow .plSwitch { flex: none; }
+
+/* ── leave, terms and the ledger (owner's decision 2026-10-28) ── */
+.tsStepper { display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
+.tsStepper button { width: 38px; height: 38px; display: grid; place-items: center; border: 0; border-radius: 50%; background: color-mix(in srgb, var(--fill-strong) 14%, transparent); color: var(--accent); cursor: pointer; }
+.tsStepper button:disabled { opacity: 0.35; cursor: default; }
+.tsStepper output { min-width: 84px; text-align: center; color: var(--n-900); font-size: 1.15rem; font-weight: 950; }
+.tsSheet, .tlSheet { display: grid; gap: 12px; padding-bottom: 88px; }
+.tsLead, .tsHint, .tlMuted { margin: 0; color: var(--n-600); font-size: 0.76rem; font-weight: 700; line-height: 1.8; }
+.tsBox { display: grid; gap: 9px; padding: 12px 14px; border: 1px solid var(--n-150); border-radius: 18px; background: var(--n-0); }
+.tsBox h4 { margin: 0; color: var(--n-900); font-size: 0.84rem; font-weight: 950; }
+.tsRow { display: grid; gap: 8px; }
+.tsPair { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: var(--n-700); font-size: 0.8rem; font-weight: 800; }
+.tsDays { display: flex; justify-content: space-between; gap: 4px; }
+.tsDays button { width: 40px; height: 40px; border: 1px dashed var(--n-300); border-radius: 50%; background: transparent; color: var(--n-500); font: inherit; font-size: 0.86rem; font-weight: 900; cursor: pointer; }
+.tsDays button.is-on { border: 0; background: color-mix(in srgb, var(--fill-strong) 18%, transparent); color: var(--accent); }
+.tsChoices { display: flex; flex-wrap: wrap; gap: 6px; }
+.tsChoices button { flex: 1; min-height: 38px; padding: 0 12px; border: 1px solid var(--n-200); border-radius: var(--radius-pill); background: var(--n-0); color: var(--n-800); font: inherit; font-size: 0.8rem; font-weight: 900; cursor: pointer; }
+.tsChoices button.is-on { background: var(--fill-strong); border-color: var(--fill-strong); color: var(--on-primary); }
+.tsOption { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; padding: 10px 12px; border: 1px solid var(--n-150); border-radius: 14px; background: var(--n-25); font: inherit; text-align: start; cursor: pointer; }
+.tsOption span { display: grid; min-width: 0; }
+.tsOption b { color: var(--n-900); font-size: 0.8rem; font-weight: 900; }
+.tsOption small { color: var(--n-600); font-size: 0.7rem; font-weight: 700; }
+.tsOption i { flex: none; font-style: normal; padding: 2px 10px; border-radius: var(--radius-pill); background: var(--n-100); color: var(--n-600); font-size: 0.7rem; font-weight: 900; }
+.tsOption.is-on i { background: var(--fill-strong); color: var(--on-primary); }
+.tsNote input { min-height: 42px; padding: 0 12px; border: 1px solid var(--n-200); border-radius: 12px; background: var(--n-0); color: var(--n-900); font: inherit; font-size: 0.84rem; }
+.tsError { margin: 0; padding: 10px 12px; border-radius: 14px; background: var(--danger-bg); color: var(--danger); font-size: 0.78rem; font-weight: 800; line-height: 1.7; }
+.tsSend, .tlSettle { min-height: 48px; border: 0; border-radius: var(--radius-pill); background: var(--fill-strong); color: var(--on-primary); font: inherit; font-size: 0.9rem; font-weight: 950; cursor: pointer; }
+.tsSend:disabled { opacity: 0.45; cursor: default; }
+.tlSettle { background: var(--live-fill); color: var(--on-live-fill); }
+
+/* «شرایط کار» card */
+.ttCard { display: grid; gap: 10px; padding: 14px; border: 1px solid var(--n-150); border-radius: 20px; background: var(--n-0); }
+.ttHead { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.ttHead b { color: var(--n-900); font-size: 0.9rem; font-weight: 950; }
+.ttHead small, .ttNotice, .ttSoon, .ttNone { color: var(--n-600); font-size: 0.72rem; font-weight: 700; line-height: 1.8; margin: 0; }
+.ttRows { display: grid; }
+.ttRows > div { display: flex; align-items: center; gap: 9px; padding: 9px 0; border-top: 1px solid var(--n-100); color: var(--n-600); font-size: 0.78rem; font-weight: 800; }
+.ttRows > div:first-child { border-top: 0; }
+.ttRows > div span { flex: 1; }
+.ttRows > div b { color: var(--n-900); font-weight: 900; }
+.ttProposal { display: grid; gap: 8px; padding: 12px; border: 1px solid var(--n-150); border-radius: 16px; background: var(--n-25); }
+.ttProposal.is-live { border: 1.5px solid rgb(var(--brand-pink-rgb) / 0.6); background: var(--live-soft); }
+.ttChip { justify-self: start; padding: 1px 11px; border-radius: var(--radius-pill); background: var(--live-fill); color: var(--on-live-fill); font-size: 0.7rem; font-weight: 900; }
+.ttChip.is-soft { background: color-mix(in srgb, var(--fill-strong) 14%, transparent); color: var(--accent); }
+.ttDiff { display: grid; gap: 5px; }
+.ttDiff > div { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; font-weight: 800; }
+.ttDiff > div span { flex: 1; color: var(--n-600); }
+.ttDiff s { color: var(--n-400); }
+.ttDiff b { color: var(--accent); }
+.ttProposal small { color: var(--n-600); font-size: 0.7rem; font-weight: 700; }
+.ttNoteText { margin: 0; color: var(--n-800); font-size: 0.78rem; font-weight: 800; }
+.ttActions { display: flex; gap: 6px; }
+.ttActions button, .tlPay button { flex: 1; min-height: 40px; border: 0; border-radius: var(--radius-pill); font: inherit; font-size: 0.78rem; font-weight: 900; cursor: pointer; padding: 0 10px; }
+.ttActions button:disabled, .tlPay button:disabled { opacity: 0.45; cursor: default; }
+.ttActions .is-pink, .tlPay .is-pink { background: var(--live-fill); color: var(--on-live-fill); }
+.ttActions .is-soft { background: color-mix(in srgb, var(--fill-strong) 14%, transparent); color: var(--accent); }
+.ttActions .is-red { background: var(--danger-bg); color: var(--danger); }
+.ttPropose, .tmLedgerBtn { min-height: 40px; border: 0; border-radius: var(--radius-pill); background: color-mix(in srgb, var(--fill-strong) 14%, transparent); color: var(--accent); font: inherit; font-size: 0.8rem; font-weight: 900; cursor: pointer; }
+.ttLink { justify-self: start; border: 0; background: transparent; color: var(--accent); font: inherit; font-size: 0.74rem; font-weight: 900; cursor: pointer; padding: 0; text-decoration: underline; }
+.tmDeal { display: grid; gap: 8px; }
+.tmLeaves { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; }
+.tmLeaves li { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 10px; border-radius: 12px; background: var(--warning-bg); color: var(--n-800); font-size: 0.74rem; font-weight: 800; }
+.tmLeaves small { color: var(--n-600); font-weight: 700; }
+
+/* ledger */
+.tlMain { display: grid; gap: 6px; padding: 14px; border-radius: 20px; background: color-mix(in srgb, var(--fill-strong) 10%, var(--n-0)); text-align: center; }
+.tlMain > small { color: var(--n-700); font-size: 0.8rem; font-weight: 800; }
+.tlMain > b { color: var(--n-900); font-size: 1.5rem; font-weight: 950; }
+.tlSplit { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.tlSplit > div { display: grid; padding: 8px; border-radius: 14px; background: var(--n-0); }
+.tlSplit small { color: var(--n-600); font-size: 0.7rem; font-weight: 700; }
+.tlSplit b { color: var(--n-900); font-size: 0.86rem; font-weight: 950; }
+.tlWarn { margin: 0; padding: 8px 10px; border-radius: 12px; background: var(--warning-bg); color: var(--warning); font-size: 0.74rem; font-weight: 800; line-height: 1.8; }
+.tlWait { display: grid; gap: 8px; padding: 12px; border: 1px solid var(--n-150); border-radius: 18px; background: var(--n-25); }
+.tlWait.is-live { border: 1.5px solid rgb(var(--brand-pink-rgb) / 0.6); background: var(--live-soft); }
+.tlWait p { margin: 0; color: var(--n-800); font-size: 0.82rem; font-weight: 800; line-height: 1.8; }
+.tlPay { display: grid; gap: 8px; padding: 12px; border: 1px solid var(--n-150); border-radius: 18px; background: var(--n-0); }
+.tlPay label { display: grid; gap: 4px; color: var(--n-700); font-size: 0.76rem; font-weight: 800; }
+.tlPay input, .tlEdit input { min-height: 42px; padding: 0 12px; border: 1px solid var(--n-200); border-radius: 12px; background: var(--n-0); color: var(--n-900); font: inherit; font-size: 0.9rem; font-weight: 900; direction: ltr; text-align: end; }
+.tlHead { display: flex; align-items: baseline; justify-content: space-between; margin: 4px 0 6px; }
+.tlHead b { color: var(--n-900); font-size: 0.86rem; font-weight: 950; }
+.tlHead small { color: var(--n-600); font-size: 0.72rem; font-weight: 700; }
+.tlLines { margin: 0 0 8px; padding: 0 12px; list-style: none; border: 1px solid var(--n-150); border-radius: 18px; background: var(--n-0); }
+.tlLines li { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--n-100); }
+.tlLines li:first-child { border-top: 0; }
+.tlLineMain { flex: 1; min-width: 0; display: grid; }
+.tlLineMain b { color: var(--n-900); font-size: 0.82rem; font-weight: 900; }
+.tlLineMain small { color: var(--n-600); font-size: 0.7rem; font-weight: 700; }
+.tlAmount { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.tlAmount b { color: var(--n-900); font-size: 0.82rem; font-weight: 950; }
+.tlAmount s { color: var(--n-400); font-size: 0.7rem; }
+.tlAmount small { color: var(--n-600); font-size: 0.7rem; font-weight: 700; }
+.tlAmount button { width: 28px; height: 28px; display: grid; place-items: center; border: 0; border-radius: 50%; background: var(--n-100); color: var(--n-700); cursor: pointer; }
+.tlEdit { display: inline-flex; gap: 6px; align-items: center; }
+.tlEdit input { width: 110px; min-height: 36px; }
+.tlEdit button { min-height: 36px; padding: 0 12px; border: 0; border-radius: var(--radius-pill); background: var(--fill-strong); color: var(--on-primary); font: inherit; font-size: 0.74rem; font-weight: 900; cursor: pointer; }
+
+/* leave card */
+.lvList { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.lvList li { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; border-radius: 14px; background: var(--warning-bg); color: var(--n-800); font-size: 0.78rem; font-weight: 800; }
+.lvList li span { display: inline-flex; align-items: center; gap: 7px; }
+.lvList button { border: 0; background: transparent; color: var(--accent); font: inherit; font-size: 0.74rem; font-weight: 900; cursor: pointer; }
+.lvBtn { min-height: 42px; border: 0; border-radius: var(--radius-pill); background: color-mix(in srgb, var(--fill-strong) 14%, transparent); color: var(--accent); font: inherit; font-size: 0.82rem; font-weight: 900; cursor: pointer; }

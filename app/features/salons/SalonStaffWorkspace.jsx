@@ -147,6 +147,7 @@ export function SalonStaffWorkspace({
                   {hasPublic && person.hours?.length ? <WeekStrip week={week} /> : null}
                 </div>
                 <div className="twTags">
+                  {person.terms_proposed_by === "artist" ? <span className="twTag is-live">پیشنهاد تازه برای شرایط کار</span> : null}
                   {pending ? <span className="twTag is-live">{toPersianDigits(pending)} نمونه‌کار منتظر تأیید توئه</span> : null}
                   {hasPublic ? <span className="twTag">{directOn ? "نوبت مستقیم باز" : "نوبت مستقیم بسته"}</span> : <span className="twTag is-gray">هنوز صفحهٔ فرفرو نداره</span>}
                 </div>

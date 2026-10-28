@@ -7,6 +7,8 @@ import { ProfileSheet } from "../profile/ProfileSheet";
 import { WeekStrip } from "../team/WeekStrip";
 import { hourOnly, overlapHours, weekFromHours, weekSentence } from "../team/teamWeek";
 import { SalonRulesNote } from "../salons/SalonRulesNote";
+import { TeamTermsCard } from "../team/TeamTermsCard";
+import { TeamLedgerSheet } from "../team/TeamLedgerSheet";
 import { getArtistTeamPosts, sendArtistTeamPost } from "../../shared/api/artists";
 import { getPosts } from "../../shared/api/posts";
 import { toPersianDigits } from "../../shared/lib/digits";
@@ -19,6 +21,7 @@ const splitRoles = (role) => String(role || "").split(/[،,]/).map((item) => ite
  * own facts. Leaving is last and quiet, with the 24-hour rule written out.
  */
 export function ArtistSalonDetails({ card, team, leaveBusy, onLeave, onOpenSelf }) {
+  const [ledgerOpen, setLedgerOpen] = useState(false);
   if (!team) return null;
   const week = weekFromHours(overlapHours(team.ownHours || [], team.salonHours || []));
   const roles = splitRoles(team.role);
@@ -49,6 +52,19 @@ export function ArtistSalonDetails({ card, team, leaveBusy, onLeave, onOpenSelf 
             {roles.length ? roles.map((role) => <span key={role} className="cwChip"><ServiceIcon name={role} size="xs" />{role}</span>) : <span className="cwSub">هنوز کارهات رو نگفتی؛ از خدمات خودت بگو.</span>}
           </div>
         </div>
+      </section>
+
+      <TeamTermsCard pair={{ salonUserId: team.salonId }} otherName={card.name} />
+
+      <section className="cwCard" aria-label="حساب من با سالن">
+        <button type="button" className="cwRowBtn" onClick={() => setLedgerOpen(true)}>
+          <span>
+            <b>حساب من با {card.name}</b>
+            <small>کارهای انجام‌شده، سهم هر کس و تصفیه</small>
+          </span>
+          <ChevronLeft size={18} aria-hidden="true" />
+        </button>
+        <TeamLedgerSheet open={ledgerOpen} pair={{ salonUserId: team.salonId }} otherName={card.name} onClose={() => setLedgerOpen(false)} />
       </section>
 
       {mates.length ? (

@@ -465,6 +465,7 @@ export function ProfilePanelBody() {
                   teams={artistTeams}
                   teamBusyId={artistTeamBusyId}
                   onLeaveTeam={leaveArtistSalonTeam}
+                  onNotice={setAppToast}
                   onInviteRespond={respondArtistSalonInvite}
                   onChanged={refreshArtistWorkspace}
                 />

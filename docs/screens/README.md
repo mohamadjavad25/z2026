@@ -43,3 +43,5 @@ re-running often on the same database, empty `rate_limit_hits` there first. Date
 day they were taken (the bookings are always "tomorrow" and "two open days ahead").
 
 To add a screen, add one line to `SCREENS` in the script (id, role, Persian title, the taps to get there).
+
+The «حساب» and «مرخصی» screens (`salon-team-ledger*`, `artist-team-ledger*`, `artist-leave-plan`) need FINISHED bookings, which the API cannot make: before taking them, add confirmed `artist_bookings` rows with SQL, dated today with an earlier hour (a salon one with `source_salon_user_id` + `salon_booking_id`, an own one with `place_salon_user_id`), and one confirmed row for tomorrow. The comment above `dealScreens()` in the script says the same.

@@ -10,6 +10,7 @@ import { TermsChips } from "../collab/TermsEditor";
 import { NEGOTIABLE } from "../collab/collabPresets";
 import { ScanFlow } from "../connect/ScanFlow";
 import { ArtistSalonDetails, ArtistSelfSheet } from "./ArtistSalonDetails";
+import { LeaveCard } from "../team/LeaveSheet";
 import { ProfileSheet } from "../profile/ProfileSheet";
 import { getArtistPlace, previewArtistPlace, saveArtistPlace } from "../../shared/api/artists";
 import { dateKeyAfter } from "../../shared/lib/artistPlace";
@@ -291,6 +292,7 @@ export function ArtistCollabBoard({
   onInviteRespond,
   onCancelProposal,
   onLeaveTeam,
+  onNotice,
   onChanged
 }) {
   const [sheet, setSheet] = useState(""); // "" | "scan" | "code"
@@ -550,6 +552,8 @@ export function ArtistCollabBoard({
           ))}
         </section>
       ) : null}
+
+      <LeaveCard onNotice={onNotice} />
 
       {connected ? <p className="clwAddLead">یه سالن دیگه هم اضافه کن</p> : null}
       <div className="cnScanRow">

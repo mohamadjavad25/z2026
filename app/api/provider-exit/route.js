@@ -9,6 +9,10 @@ export const dynamic = "force-dynamic";
 async function planFor(user, source) {
   const scope = String(source.scope || "account");
   if (scope === "account" && ["salon", "artist"].includes(user.type)) return planExit({ scope, user });
+  if (scope === "leave" && user.type === "artist") {
+    const window = { from: String(source.from || ""), to: String(source.to || source.from || ""), start: String(source.start || ""), end: String(source.end || "") };
+    return /^\d{4}-\d{2}-\d{2}$/.test(window.from) && /^\d{4}-\d{2}-\d{2}$/.test(window.to) ? planExit({ scope, user, window }) : null;
+  }
   if (scope === "team" && user.type === "artist") {
     const salonUserId = parseId(source.salonUserId);
     return salonUserId ? planExit({ scope, user, salonUserId }) : null;
