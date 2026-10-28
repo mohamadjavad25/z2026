@@ -11,7 +11,8 @@ import {
 import { visitSlotProblem } from "../../../visitSlotRules.js";
 import { isSlotInPast } from "../../../../shared/lib/slots.js";
 import * as artists from "../artists.js";
-import { formatPersianDateKey, isPersianDateKey, resolveRollingPersianDateKey } from "../../../../shared/lib/persianCalendar.js";
+import { formatPersianDateKey, getPersianWeekday, isPersianDateKey, persianDateKeyToDate, resolveRollingPersianDateKey } from "../../../../shared/lib/persianCalendar.js";
+import { currentTerms, termsAllow } from "../teamAgreements.js";
 import { BOOKING_REQUEST_WINDOW_MINUTES, minutesUntilSlotStart } from "../../../../shared/lib/bookingWindow.js";
 import {
   normalizeBookingTimeLabel,
@@ -242,7 +243,7 @@ async function loadVisitDay(db, salonUserId, bookingDate, { excludeId = null, ex
   for (const segment of held) {
     if (segment.staff) load.set(segment.staff, (load.get(segment.staff) || 0) + segment.end - segment.start);
   }
-  return { db, bookingDate, services, team, rows, held, load, artistBusy: new Map(), excludeArtistBookingIds };
+  return { db, salonUserId, bookingDate, services, team, rows, held, load, artistBusy: new Map(), agreed: new Map(), excludeArtistBookingIds };
 }
 
 async function artistBusyRanges(day, artistId) {
@@ -286,7 +287,15 @@ async function isStaffFree(day, person, start, end) {
   if (day.held.some((segment) => segment.staff === name && rangesOverlap(start, end, segment.start, segment.end))) return false;
   const artistId = Number(person.artist_user_id || 0);
   if (artistId && (await artistBusyRanges(day, artistId)).some((range) => rangesOverlap(start, end, range.start, range.end))) return false;
+  // The days and hours the two agreed (owner's decision 2026-10-28); an old text-only agreement limits nothing.
+  if (artistId && !(await agreedTermsAllow(day, artistId, start, end))) return false;
   return true;
+}
+
+async function agreedTermsAllow(day, artistId, start, end) {
+  if (!day.agreed.has(artistId)) day.agreed.set(artistId, await currentTerms(day.salonUserId, artistId, resolveRollingPersianDateKey(day.bookingDate), day.db));
+  const date = persianDateKeyToDate(resolveRollingPersianDateKey(day.bookingDate));
+  return termsAllow(day.agreed.get(artistId), day.bookingDate, date ? getPersianWeekday(date) : "", start, end);
 }
 
 function compareRanks(a, b) {

@@ -1,6 +1,6 @@
 import { getDb, all, get, run, withTransaction } from "../../connection.js";
 
-const defaultArtistHours = [
+export const defaultArtistHours = [
   { day: "شنبه", open_time: "۱۰:۰۰", close_time: "۲۰:۰۰", capacity: 8, active: true },
   { day: "یکشنبه", open_time: "۱۰:۰۰", close_time: "۲۰:۰۰", capacity: 8, active: true },
   { day: "دوشنبه", open_time: "۱۰:۰۰", close_time: "۲۰:۰۰", capacity: 8, active: true },

@@ -9,6 +9,8 @@ import { SalonRulesNote } from "../salons/SalonRulesNote";
 import { TermsChips } from "../collab/TermsEditor";
 import { NEGOTIABLE } from "../collab/collabPresets";
 import { ScanFlow } from "../connect/ScanFlow";
+import { ArtistSalonDetails, ArtistSelfSheet } from "./ArtistSalonDetails";
+import { LeaveCard } from "../team/LeaveSheet";
 import { ProfileSheet } from "../profile/ProfileSheet";
 import { getArtistPlace, previewArtistPlace, saveArtistPlace } from "../../shared/api/artists";
 import { dateKeyAfter } from "../../shared/lib/artistPlace";
@@ -283,11 +285,14 @@ export function ArtistCollabBoard({
   artistId,
   artistName = "",
   invites = [],
+  proposals = [],
   teams = [],
   teamBusyId = "",
   inviteRespondBusyId = "",
   onInviteRespond,
+  onCancelProposal,
   onLeaveTeam,
+  onNotice,
   onChanged
 }) {
   const [sheet, setSheet] = useState(""); // "" | "scan" | "code"
@@ -295,6 +300,7 @@ export function ArtistCollabBoard({
   const [active, setActive] = useState(0);
   const [menuFor, setMenuFor] = useState("");
   const [switchTo, setSwitchTo] = useState(null); // { salonId | null, name, ask? }
+  const [selfFor, setSelfFor] = useState(null); // the salon whose «خودت توی صفحهٔ سالن» sheet is open
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState({ bad: false, text: "" });
   const railRef = useRef(null);
@@ -504,19 +510,25 @@ export function ArtistCollabBoard({
                 </>
               ) : (
                 <>
-                  <TermsFacts terms={card.terms} />
                   <WhereRow
                     card={card}
                     workplace={workplace}
                     onTurnOn={() => openSwitch({ salonId: card.salonId, name: card.name })}
                     onTurnOff={() => openSwitch({ salonId: null, name: "جای خودت" })}
                   />
-                  {info?.weekCount || card.rules ? (
+                  {info?.weekCount ? (
                     <div className="clwFoot">
-                      {info?.weekCount ? <span className="clwCount">{toPersianDigits(info.weekCount)} نوبت این هفته اینجاست</span> : <span />}
-                      <SalonRulesNote rules={card.rules} />
+                      <span className="clwCount">{toPersianDigits(info.weekCount)} نوبت این هفته اینجاست</span>
                     </div>
                   ) : null}
+                  <TermsFacts terms={card.terms} />
+                  <ArtistSalonDetails
+                    card={card}
+                    team={card.terms}
+                    leaveBusy={String(teamBusyId) === String(card.salonId)}
+                    onLeave={() => onLeaveTeam?.(card.salonId)}
+                    onOpenSelf={() => setSelfFor(card.terms)}
+                  />
                 </>
               )}
             </div>
@@ -524,6 +536,24 @@ export function ArtistCollabBoard({
           {message.text ? <p className={`clwMsg${message.bad ? " is-bad" : ""}`} role="status">{message.text}</p> : null}
         </>
       ) : null}
+
+      {proposals.length ? (
+        <section className="cwCard clwProposals" aria-label="پیشنهادهای من">
+          <div className="cwHead"><b>پیشنهادهای من</b></div>
+          {proposals.map((item) => (
+            <div className="cwPostRow" key={item.id}>
+              {item.salonAvatar ? <img src={item.salonAvatar} alt="" /> : <i aria-hidden="true" />}
+              <span>
+                <b>منتظر جواب {item.salonName || "سالن"}</b>
+                <small>وقتی سالن جواب بده، بهت خبر می‌دیم.</small>
+              </span>
+              <button type="button" className="cwEdit" onClick={() => onCancelProposal?.(item.id)}>لغو</button>
+            </div>
+          ))}
+        </section>
+      ) : null}
+
+      <LeaveCard onNotice={onNotice} />
 
       {connected ? <p className="clwAddLead">یه سالن دیگه هم اضافه کن</p> : null}
       <div className="cnScanRow">
@@ -538,6 +568,7 @@ export function ArtistCollabBoard({
       </div>
       {!cards.length ? <Mascot pose="team" size={190} className="clConnMascot" /> : null}
 
+      <ArtistSelfSheet open={Boolean(selfFor)} team={selfFor} artistName={artistName} onClose={() => setSelfFor(null)} onChanged={() => onChanged?.()} />
       <SwitchSheet target={switchTo} ask={Boolean(switchTo?.ask)} busy={saving} error={switchTo && message.bad ? message.text : ""} onSave={saveSwitch} onClose={() => { setSwitchTo(null); setMessage({ bad: false, text: "" }); }} />
 
       {sheet === "scan" ? (

@@ -48,9 +48,9 @@ export function ProfilePanelBody() {
     shareSalonOwnerProfile,
     profileModeRail,
     salonWorkspace,
-    activeStaffCount,
     pendingSalonArtistInvites,
     safeSalonStaffList,
+    salonHoursList,
     joinSalonTeamAsOwner,
     removeSalonStaff,
     openNearbyArtistInvite,
@@ -291,12 +291,11 @@ export function ProfilePanelBody() {
                       <div className={`salonWorkspacePanel is-${salonWorkspace}`} aria-label="ورک‌اسپیس سالن">
                       {salonWorkspace === "staff" && (
                         <SalonStaffWorkspace
-                          activeStaffCount={activeStaffCount}
                           pendingInvites={pendingSalonArtistInvites}
                           staffList={safeSalonStaffList}
+                          salonHours={salonHoursList}
                           onInviteNearby={openNearbyArtistInvite}
                           onCancelInvite={cancelSalonArtistInvite}
-                          onOpenStaffPublic={openSalonStaffPublicProfile}
                           onManageStaff={setSelectedArtistProfile}
                           managerName={createdProfile?.data?.managerName || ""}
                           onJoinAsOwner={joinSalonTeamAsOwner}
@@ -460,10 +459,13 @@ export function ProfilePanelBody() {
                   artistId={createdProfile?.id}
                   artistName={createdProfile?.data?.name || ""}
                   invites={artistSalonInviteList}
+                  proposals={(artistCollabOffers || []).filter((item) => item.status === "آماده ارسال")}
+                  onCancelProposal={deleteArtistCollabOffer}
                   inviteRespondBusyId={artistInviteRespondBusyId}
                   teams={artistTeams}
                   teamBusyId={artistTeamBusyId}
                   onLeaveTeam={leaveArtistSalonTeam}
+                  onNotice={setAppToast}
                   onInviteRespond={respondArtistSalonInvite}
                   onChanged={refreshArtistWorkspace}
                 />

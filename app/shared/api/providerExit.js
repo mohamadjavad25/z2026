@@ -5,6 +5,7 @@ export async function getExitPlan(scope, params = {}) {
   const query = new URLSearchParams({ scope });
   if (params.salonUserId) query.set("salonUserId", String(params.salonUserId));
   if (params.staffId) query.set("staffId", String(params.staffId));
+  for (const key of ["from", "to", "start", "end"]) if (params[key]) query.set(key, String(params[key]));
   return apiFetch(`/api/provider-exit?${query}`);
 }
 

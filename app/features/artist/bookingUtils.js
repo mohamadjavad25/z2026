@@ -37,6 +37,14 @@ export function isPublicArtistSlotBlocked(artist, day, slot, durationMinutes) {
     }
   }
 
+  const dayKey = resolveRollingPersianDateKey(day);
+  for (const leave of artist?.leaves || []) {
+    if (dayKey < leave.from || dayKey > leave.to) continue;
+    const leaveStart = leave.start ? timeLabelToMinutes(leave.start) : 0;
+    const leaveEnd = leave.end ? timeLabelToMinutes(leave.end) : 1440;
+    if (rangesOverlap(start, end, leaveStart, leaveEnd)) return true;
+  }
+
   return (artist?.bookedSlots || [])
     .filter((item) => resolveRollingPersianDateKey(item.booking_date) === resolveRollingPersianDateKey(day))
     .some((item) => {

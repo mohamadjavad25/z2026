@@ -93,7 +93,7 @@ export function HomeView() {
     salonTool,
     closeSalonToolSheet,
     selectedArtistProfile,
-    selectedStaffStats,
+    openSalonWorkspace,
     selectedBookingClient,
     bookingSheetOpen,
     closeBookingSheet,
@@ -292,7 +292,6 @@ export function HomeView() {
         )}
         <SalonStaffProfileModal
           staff={selectedArtistProfile}
-          stats={selectedStaffStats}
           roleOptions={salonArtistRoleOptions}
           onClose={() => setSelectedArtistProfile(null)}
           onUpdate={(person, patch, notice) => {
@@ -304,6 +303,7 @@ export function HomeView() {
             setSelectedArtistProfile(null);
           }}
           onOpenPublic={openSalonStaffPublicProfile}
+          onOpenTeamPosts={() => { setSelectedArtistProfile(null); openSalonWorkspace("portfolio"); }}
         />
         <ClientProfileModal
           client={scheduleBookingMenu ? null : selectedBookingClient}

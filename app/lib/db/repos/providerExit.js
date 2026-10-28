@@ -4,6 +4,7 @@ import * as salons from "./salons.js";
 import * as users from "./users.js";
 import { recordCancellation } from "./salons/bookings.js";
 import { bookingStartMs } from "../../../shared/lib/reminderTiming.js";
+import { timeLabelToMinutes } from "../../../shared/lib/time.js";
 import { formatPersianDateKey } from "../../../shared/lib/persianCalendar.js";
 import { isMultiPartBooking, parseBookingParts, serializeBookingParts } from "../../../shared/lib/bookingParts.js";
 import { NEAR_BOOKING_HOURS } from "../../../shared/lib/providerRules.js";
@@ -91,6 +92,16 @@ async function collectTeam(salonUserId, names, now) {
   return rows.filter((row) => assignedTo(row, names)).map((row) => toItem("salon", row, { confirmedStatuses: SALON_CONFIRMED, team: true, now })).filter((item) => notEnded(item, now));
 }
 
+/** Does a booking fall inside a leave window ({ from, to, start, end }: date keys, and hours or "" for the whole day)? */
+function insideWindow(item, { from, to, start, end }) {
+  if (!item.date || item.date < from || item.date > to) return false;
+  if (!start || !end) return true;
+  const s = timeLabelToMinutes(start);
+  const e = timeLabelToMinutes(end);
+  const bookingStart = timeLabelToMinutes(item.time);
+  return bookingStart < e && bookingStart + item.minutes > s;
+}
+
 /** Splits the items: near (blocks), far confirmed (to resolve), waiting requests (closed or handed back). */
 function classify(items) {
   const near = items.filter((item) => item.near);
@@ -103,9 +114,21 @@ function classify(items) {
  * The plan for one kind of leaving. `scope`: "account" (user = a salon or artist), "team" (an artist leaves salon
  * `salonUserId`) or "staff" (the salon removes team member `staffId`). → { items, near, farConfirmed, waiting, unresolved, ... }
  */
-export async function planExit({ scope, user = null, salonUserId = null, staffId = null, now = new Date() }) {
+export async function planExit({ scope, user = null, salonUserId = null, staffId = null, window = null, now = new Date() }) {
   let items = [];
   let staffRows = [];
+  if (scope === "leave" && user?.type === "artist" && window) {
+    // An artist's leave (owner's decision 2026-10-28): the confirmed bookings inside the window, their own clients and
+    // those they have through any salon team, to be cancelled with notice or handed over before the leave is written.
+    const direct = await collectDirect(user.id, now);
+    const memberships = await all(await getDb(), "SELECT * FROM salon_staff WHERE artist_user_id = $1", [Number(user.id)]);
+    const team = [];
+    for (const salon of [...new Set(memberships.map((row) => Number(row.salon_user_id)))]) {
+      team.push(...await collectTeam(salon, staffNameSet(memberships.filter((row) => Number(row.salon_user_id) === salon)), now));
+    }
+    items = [...direct, ...team].filter((item) => insideWindow(item, window));
+    return { scope, items, staffRows: memberships, ...classify(items) };
+  }
   if (scope === "account" && user.type === "salon") {
     items = await collectSalon(user.id, now);
   } else if (scope === "account" && user.type === "artist") {
@@ -169,8 +192,9 @@ export async function describePlan(plan) {
     farConfirmed: await Promise.all(plan.farConfirmed.map(view)),
     unresolved: plan.unresolved.length,
     waiting: plan.waiting.length,
-    blocked: plan.near.length > 0,
-    needsChoice: plan.near.length === 0 && plan.unresolved.length > 0
+    // A leave waits for every booking inside it (near or far); the other kinds only wait for the near ones.
+    blocked: plan.scope === "leave" ? plan.near.length + plan.farConfirmed.length > 0 : plan.near.length > 0,
+    needsChoice: plan.scope !== "leave" && plan.near.length === 0 && plan.unresolved.length > 0
   };
 }
 

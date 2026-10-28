@@ -1,3 +1,5 @@
+import { leaveRangesOn } from "./leaves.js";
+import { listLeaves } from "./teamAgreements.js";
 import { getDb, withTransaction, all, get, run } from "../connection.js";
 import { lockArtistDays, lockClientRequests } from "../locks.js";
 import {
@@ -602,6 +604,7 @@ export async function listArtistBusyRanges(artistUserId, bookingDate, { excludeB
     const breakEnd = timeToMinutes(artistBreak.end);
     if (breakEnd > breakStart) ranges.push({ start: breakStart, end: breakEnd });
   }
+  ranges.push(...await leaveRangesOn(artistUserId, bookingDateKey, db));
   const bookedSlots = await listArtistBookedSlots(artistUserId, { excludeBookingId, excludeBookingIds, onlyDateKey: bookingDateKey }, db);
   for (const item of bookedSlots) {
     if (resolveRollingPersianDateKey(item.booking_date) !== bookingDateKey) continue;
@@ -882,7 +885,8 @@ export async function getPublicArtist(userId, viewerUserId = null) {
     breakTime,
     hours,
     bookingBlock,
-    workplaces
+    workplaces,
+    leaves
   ] = await Promise.all([
     listPostsByOwner(userId, null, { publicOnly: Number(viewerUserId || 0) !== Number(userId) }),
     listArtistServices(userId),
@@ -894,7 +898,8 @@ export async function getPublicArtist(userId, viewerUserId = null) {
     getArtistBreak(userId),
     listArtistHoursPublic(userId),
     onlineBookingBlock(userId, "artist"),
-    workplaceSchedule(userId)
+    workplaceSchedule(userId),
+    listLeaves(userId)
   ]);
   return {
     id: user.id,
@@ -931,6 +936,8 @@ export async function getPublicArtist(userId, viewerUserId = null) {
     bookedSlots,
     breakTime,
     hours,
+    // Upcoming leaves (no notes): the booking page greys those hours.
+    leaves: leaves.map(({ from, to, start, end }) => ({ from, to, start, end })),
     // Where the artist's clients go from today on (shared/lib/artistPlace.js): the page shows «کجا» for the chosen day
     // and offers only hours the workplace salon is open too.
     workplaces
