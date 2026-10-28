@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { CalendarPlus, CircleCheck, Undo2, CreditCard, FlaskConical, MessageSquareText, RefreshCw, Search, Settings2, Store, TriangleAlert, UserRound } from "lucide-react";
 import { Button } from "../components/ui";
 import { api } from "./adminFetch";
+import { normalizePhone } from "../shared/lib/phone";
 import { TYPE_LABEL, ago, fmtDate, fmtDay, num, toman } from "./format";
 import { PageHead } from "./PageHead";
 import { SplitView } from "./SplitView";
@@ -13,6 +14,7 @@ import { Card, EmptyState, ErrorNote, Loading, Pager, Segmented, Skeleton, Toggl
 const PAGE_SIZE = 30;
 const STATUS = [{ value: "", label: "همه" }, { value: "paid", label: "پرداخت‌شده" }, { value: "pending", label: "در انتظار" }, { value: "failed", label: "ناموفق" }];
 const SOURCE = [{ value: "", label: "همه" }, { value: "gateway", label: "درگاه" }, { value: "admin", label: "ثبت مدیر" }];
+const NO_PHONES = [];
 const GRACE = [0, 1, 3, 5, 7].map((value) => ({ value, label: `${num(value)} روز` }));
 
 /** The switch, the gateway, the SMS patterns and the price list: everything that decides whether money can come in. */
@@ -29,16 +31,14 @@ function SetupCard({ data, onSaved }) {
       const answer = await confirmAction(value.enabled
         ? {
             title: "اشتراک روشن شود؟",
-            body: data.settings.launchedAt
-              ? "اشتراک دوباره روشن می‌شود. دوره‌ی رایگان هر حساب همان قبلی است."
-              : `دوره‌ی رایگان همهٔ سالن‌ها و آرتیست‌های فعلی از امروز شروع می‌شود (حساب‌های تازه از روز ثبت‌نام). ${gateway.ready ? "بعد از دوره‌ی رایگان و مهلت، حسابی که اشتراک نخرد از جست‌وجو کنار می‌رود و نوبت آنلاین نمی‌گیرد." : "تا درگاه وصل نشود هیچ حسابی بسته نمی‌شود."}`,
+            body: `دوره‌ی رایگان همهٔ سالن‌ها و آرتیست‌های فعلی از امروز شروع می‌شود (حساب‌های تازه از روز ثبت‌نام). حسابی که قبلاً اشتراک خریده تا آخر اشتراکش فعال می‌ماند. ${gateway.ready ? "بعد از دوره‌ی رایگان و مهلت، حسابی که اشتراک نخرد از جست‌وجو کنار می‌رود و نوبت آنلاین نمی‌گیرد." : "تا درگاه وصل نشود هیچ حسابی بسته نمی‌شود."}`,
             confirmLabel: "روشن شود"
           }
         : { title: "اشتراک خاموش شود؟", body: "دیگر کسی نمی‌تواند پرداخت کند، یادآوری نمی‌رود و هیچ حسابی به‌خاطر اشتراک بسته نمی‌ماند. پرداخت‌های قبلی سر جایشان است.", danger: true, confirmLabel: "خاموش شود" });
       if (!answer.ok) return;
     }
     setBusy(true);
-    const result = await api.put("/api/admin/billing/settings", { enabled: value.enabled, graceDays: value.graceDays });
+    const result = await api.put("/api/admin/billing/settings", { enabled: value.enabled, graceDays: value.graceDays, restartFreeDays: true });
     setBusy(false);
     if (toastResult(result, "تنظیمات اشتراک ذخیره شد.")) onSaved();
   }
@@ -48,7 +48,9 @@ function SetupCard({ data, onSaved }) {
       <ul className="admBillChecks">
         <li className={data.settings.enabled ? "is-ok" : "is-missing"}>
           <b>{data.settings.enabled ? "اشتراک روشن است" : "اشتراک خاموش است"}</b>
-          <span>{data.settings.launchedAt ? `دوره‌ی رایگان حساب‌های قدیمی از ${fmtDay(data.settings.launchedAt)} شروع شد.` : "هنوز هیچ‌وقت روشن نشده؛ همه رایگان کار می‌کنند."}</span>
+          <span>{data.settings.enabled
+            ? `دوره‌ی رایگان حساب‌های قدیمی از ${fmtDay(data.settings.launchedAt)} شروع شد.`
+            : "همه رایگان کار می‌کنند. با روشن کردن، دوره‌ی رایگان همه از همان روز شروع می‌شود."}</span>
         </li>
         <li className={gateway.ready ? (gateway.sandbox ? "is-warn" : "is-ok") : "is-missing"}>
           <b>{gateway.ready ? `درگاه: ${gateway.label}` : "درگاه وصل نیست"}</b>
@@ -109,6 +111,47 @@ function SetupCard({ data, onSaved }) {
         </ul>
         <p className="admMuted">هر پیامک با الگوی خودش در سرویس پیامک فرستاده می‌شود؛ تا الگو تنظیم نشود فقط اعلان گوشی می‌رود. راهنما: docs/OPERATIONS.md، بخش «پیامک اشتراک».</p>
       </details>
+    </Card>
+  );
+}
+
+/** The owner's own numbers: always free, never in the directory or in search. Kept by number, so a new account on it counts too. */
+function TestAccountsCard({ phones, onSaved }) {
+  const [list, setList] = useState(phones);
+  const [text, setText] = useState("");
+  const [busy, setBusy] = useState(false);
+  useEffect(() => setList(phones), [phones]);
+
+  async function save(next) {
+    setBusy(true);
+    const result = await api.put("/api/admin/billing/test-accounts", { phones: next });
+    setBusy(false);
+    if (toastResult(result, "شماره‌های آزمایشی ذخیره شد.")) {
+      setText("");
+      onSaved();
+    }
+  }
+  function add() {
+    const phone = normalizePhone(text);
+    if (!phone || list.includes(phone)) return;
+    save([...list, phone]);
+  }
+
+  return (
+    <Card title="شماره‌های آزمایشی من" icon={FlaskConical}>
+      <p className="admMuted">حسابی که با این شماره‌ها باز شود (مشتری، آرتیست یا سالن) همیشه رایگان است، هیچ‌وقت بسته نمی‌شود و در فهرست و جست‌وجو دیده نمی‌شود، حتی با نوشتن خود شماره. حساب را پاک کنی و دوباره بسازی هم همین‌طور می‌ماند. با لینک صفحه‌اش هنوز می‌شود به آن رسید.</p>
+      <ul className="admFacts">
+        {list.length ? list.map((phone) => (
+          <li key={phone}>
+            <span dir="ltr">{phone}</span>
+            <Button size="sm" variant="ghost" disabled={busy} onClick={() => save(list.filter((item) => item !== phone))}>حذف</Button>
+          </li>
+        )) : <li><span>هنوز شماره‌ای ثبت نشده.</span></li>}
+      </ul>
+      <div className="admRowActions">
+        <input type="tel" inputMode="numeric" dir="ltr" value={text} placeholder="09123456789" aria-label="شمارهٔ آزمایشی" onChange={(event) => setText(event.target.value)} />
+        <Button disabled={busy || !text.trim()} loading={busy} loadingLabel="…" onClick={add}>اضافه کن</Button>
+      </div>
     </Card>
   );
 }
@@ -324,6 +367,7 @@ export function PaymentsTab({ intent = {}, onGo, setParam, onChanged }) {
     <>
       <PageHead tab="payments" />
       <SetupCard data={data} onSaved={() => { reload(); onChanged?.(); }} />
+      <TestAccountsCard phones={data.settings.testPhones || NO_PHONES} onSaved={reload} />
       <div className="admGrid admBillStats">
         <Stat label="درآمد ۲۴ ساعت" value={toman(stats.revenue.dayToman)} hint={`${num(stats.revenue.dayCount)} پرداخت`} />
         <Stat label="درآمد ۳۰ روز (اشتراک و پیامک)" value={toman(stats.revenue.monthToman)} hint={`${num(stats.revenue.monthCount)} پرداخت • کل ${toman(stats.revenue.allToman)}`} />

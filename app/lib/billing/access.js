@@ -1,4 +1,4 @@
-import { closedAccountIds, getBillingSettings } from "../db/repos/billing.js";
+import { closedAccountIds, getBillingSettings, testAccountIds } from "../db/repos/billing.js";
 import { suspendedAccountIds } from "../db/repos/users.js";
 import { activeGateway } from "../payments/index.js";
 
@@ -20,15 +20,17 @@ export const PAGE_UNAVAILABLE_MESSAGE = "این صفحه فعلاً باز نی�
 
 /**
  * Of these provider ids, the ones to leave out of directory lists and search: a suspended account always, and a
- * closed one (subscription over) only while billing is enforced.
+ * closed one (subscription over) only while billing is enforced. The owner's test numbers are always left out, so the
+ * owner can use real accounts without showing up to real clients (their page link and booking still work).
  */
 export async function hiddenProviderIds(userIds) {
   if (!userIds?.length) return new Set();
-  const [suspended, closed] = await Promise.all([
+  const [suspended, closed, tests] = await Promise.all([
     suspendedAccountIds(userIds),
-    billingEnforced().then((on) => (on ? closedAccountIds(userIds) : new Set()))
+    billingEnforced().then((on) => (on ? closedAccountIds(userIds) : new Set())),
+    testAccountIds(userIds)
   ]);
-  return new Set([...suspended, ...closed]);
+  return new Set([...suspended, ...closed, ...tests]);
 }
 
 /** Filters a list of rows by their provider id field. */
@@ -54,4 +56,11 @@ export async function onlineBookingBlock(providerUserId, kind = "salon") {
   if (!closed.has(id)) return null;
   const who = kind === "artist" ? "این آرتیست" : "این سالن";
   return { status: 403, code: "PROVIDER_INACTIVE", error: `${who} فعلاً نوبت آنلاین نمی‌گیره؛ برای نوبت مستقیم بهش زنگ بزن.` };
+}
+
+/** Filters out the owner's test accounts only (phone search: a suspended or closed account is still found by its number). */
+export async function withoutTestAccounts(rows, idOf) {
+  if (!rows?.length) return rows;
+  const tests = await testAccountIds(rows.map(idOf));
+  return tests.size ? rows.filter((row) => !tests.has(Number(idOf(row)))) : rows;
 }

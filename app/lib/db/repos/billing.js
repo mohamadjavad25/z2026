@@ -4,6 +4,7 @@ import { getSetting, saveSetting } from "./adminControl.js";
 import { DAY_MS, computeAccess, nextPeriod, receiptNumber, smsMonthKey } from "../../billing/period.js";
 import { DEFAULT_GRACE_DAYS, isBilledRole, rialToToman } from "../../billing/plans.js";
 import { addPackCredits, lockWallet, removePackCredits } from "./smsWallet.js";
+import { normalizePhone } from "../../../shared/lib/phone.js";
 
 /**
  * Subscriptions and payments for salons and artists. The only file that writes money-related rows.
@@ -122,24 +123,63 @@ export async function getBillingSettings({ fresh = false } = {}) {
     launchedAt: saved?.launchedAt || null,
     graceDays: clampGrace(saved?.graceDays ?? DEFAULT_GRACE_DAYS),
     updatedAt: saved?.updatedAt || null,
-    updatedBy: saved?.updatedBy || ""
+    updatedBy: saved?.updatedBy || "",
+    testPhones: ((await getSetting("testAccounts"))?.phones || []).map(String)
   };
   settingsCache = { at: Date.now(), value };
   return value;
 }
 
-/** `launchedAt` is set the first time billing is switched on and is kept from then on, even if billing is switched off and on again. */
-export async function saveBillingSettings({ enabled, graceDays }, label = "") {
+/**
+ * `launchedAt` is the day every older account's free month counts from. It is set the first time billing is switched on
+ * and kept after that, unless the admin switches billing on again from off with `restartFreeDays` (the panel always
+ * does): then it moves to today, so the free days count from the moment the owner presses the switch.
+ */
+export async function saveBillingSettings({ enabled, graceDays, restartFreeDays = false }, label = "") {
   const current = await getBillingSettings({ fresh: true });
-  const launchedAt = current.launchedAt || (enabled ? new Date().toISOString() : null);
+  const restart = Boolean(enabled) && !current.enabled && restartFreeDays;
+  const launchedAt = restart ? new Date().toISOString() : current.launchedAt || (enabled ? new Date().toISOString() : null);
   await saveSetting("billing", { enabled: Boolean(enabled), graceDays: clampGrace(graceDays), launchedAt }, label);
   settingsCache = null;
   return getBillingSettings({ fresh: true });
 }
 
+/* ───────────────────────── test accounts ───────────────────────── */
+
+/** The owner's test numbers, as the digits accounts are stored with. */
+export async function getTestPhones() {
+  return (await getBillingSettings()).testPhones;
+}
+
+/** Replaces the list of test numbers (at most 10; anything that is not a mobile number is rejected by the route). */
+export async function saveTestPhones(phones, label = "") {
+  const unique = [...new Set(phones.map((phone) => normalizePhone(phone)))];
+  await saveSetting("testAccounts", { phones: unique }, label);
+  settingsCache = null;
+  return (await getBillingSettings({ fresh: true })).testPhones;
+}
+
+/** Of `userIds`, the accounts behind a test number. One batch, for directory lists and search. */
+export async function testAccountIds(userIds) {
+  const ids = [...new Set((userIds || []).map(Number).filter((id) => Number.isInteger(id) && id > 0))];
+  const phones = await getTestPhones();
+  if (!ids.length || !phones.length) return new Set();
+  const db = await getDb();
+  const rows = await all(db, "SELECT id FROM users WHERE id = ANY($1::int[]) AND phone = ANY($2::text[])", [ids, phones]);
+  return new Set(rows.map((row) => Number(row.id)));
+}
+
 /* ───────────────────────── account state ───────────────────────── */
 
-function accessOf(user, paidUntil, settings, now) {
+/**
+ * An owner's test number is never charged or closed: its access never ends. `honorTestAccount: false` is for the two
+ * places that add days to an account (a payment settling, an admin grant), which must count from the real dates.
+ */
+function accessOf(user, paidUntil, settings, now, { honorTestAccount = true } = {}) {
+  if (honorTestAccount && user.phone && settings.testPhones?.includes(String(user.phone))) {
+    const forever = new Date(new Date(now).getTime() + 100 * 365 * DAY_MS);
+    return { ...computeAccess({ now, createdAt: user.created_at, launchedAt: settings.launchedAt, paidUntil: forever, graceDays: settings.graceDays }), comped: true };
+  }
   return computeAccess({ now, createdAt: user.created_at, launchedAt: settings.launchedAt, paidUntil, graceDays: settings.graceDays });
 }
 
@@ -169,7 +209,7 @@ export async function listTeamArtists(salonUserId, now = new Date()) {
     getBillingSettings(),
     all(db, `
       SELECT * FROM (
-        SELECT DISTINCT ON (u.id) u.id, u.type, u.created_at, COALESCE(NULLIF(u.name, ''), NULLIF(st.name, ''), 'آرتیست') AS name,
+        SELECT DISTINCT ON (u.id) u.id, u.type, u.phone, u.created_at, COALESCE(NULLIF(u.name, ''), NULLIF(st.name, ''), 'آرتیست') AS name,
                (u.avatar <> '' OR u.avatar_url IS NOT NULL) AS has_avatar, sub.paid_until, st.id AS staff_id
         FROM salon_staff st
         JOIN users u ON u.id = st.artist_user_id AND u.type = 'artist'
@@ -202,7 +242,7 @@ export async function closedAccountIds(userIds, now = new Date()) {
   const [settings, rows] = await Promise.all([
     getBillingSettings(),
     all(db, `
-      SELECT u.id, u.type, u.created_at, sub.paid_until
+      SELECT u.id, u.type, u.phone, u.created_at, sub.paid_until
       FROM users u LEFT JOIN subscriptions sub ON sub.user_id = u.id
       WHERE u.id = ANY($1::int[]) AND u.type IN ('salon', 'artist')
     `, [ids])
@@ -384,7 +424,7 @@ export async function grantDays({ userId, days, amountRial = 0, note = "", admin
     if (!user || !isBilledRole(user.type)) return { ok: false, error: "فقط برای حساب سالن یا آرتیست." };
     await run(client, "INSERT INTO subscriptions (user_id) VALUES ($1) ON CONFLICT (user_id) DO NOTHING", [user.id]);
     const sub = await get(client, "SELECT paid_until FROM subscriptions WHERE user_id = $1 FOR UPDATE", [user.id]);
-    const access = accessOf(user, sub?.paid_until || null, settings, now);
+    const access = accessOf(user, sub?.paid_until || null, settings, now, { honorTestAccount: false });
     const period = nextPeriod({ now, accessEndsAt: access.accessEndsAt, days });
     await run(client, "UPDATE subscriptions SET paid_until = $2, updated_at = NOW() WHERE user_id = $1", [user.id, period.end]);
     const inserted = await get(client, `

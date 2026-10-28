@@ -2,7 +2,7 @@ import { after } from "next/server";
 import * as billing from "../db/repos/billing.js";
 import { getDb, all } from "../db/connection.js";
 import { activeGateway, gatewayById, gatewayLabel } from "../payments/index.js";
-import { BEST_MONTHS, PRESELECTED_MONTHS, TRIAL_DAYS, getPlan, getSmsPack, plansFor, rialToToman } from "./plans.js";
+import { BEST_MONTHS, LAUNCH_TRIAL_DAYS, PRESELECTED_MONTHS, TRIAL_DAYS, getPlan, getSmsPack, plansFor, rialToToman } from "./plans.js";
 import { nextPeriod, refundQuote } from "./period.js";
 import { smsSummary } from "./smsCredits.js";
 import { reminderKind, reminderMessage } from "./reminders.js";
@@ -144,11 +144,19 @@ function plansWithDates(role, accessEndsAt, now) {
 export async function billingOverview(user, now = new Date()) {
   const state = await billing.getAccountState(user.id, now);
   if (!state) return { visible: false };
+  // The owner's own test number: no plans, no counting, no banner; Settings just says so (owner's request 2026-10-28).
+  if (state.access.comped) return { visible: false, testAccount: true, role: user.type };
   const gateway = activeGateway();
   const [history, pending] = await Promise.all([billing.listUserPayments(user.id, 20), billing.latestPendingPayment(user.id)]);
   // The account's own subscription: a receipt a salon holds for an artist's plan is not the salon's last payment.
   const lastPaid = history.find((row) => row.status === "paid" && row.kind !== "sms_pack" && Number(row.user_id) === Number(user.id)) || null;
   const { settings, access } = state;
+  // Billing is off and this account never paid: nothing to pay or count yet, but Settings still tells the owner what it
+  // will cost and that the free month starts the day billing is switched on (owner's request 2026-10-28).
+  if (!settings.enabled && history.length === 0) {
+    // Before payment is switched on every account that exists then gets LAUNCH_TRIAL_DAYS from that day (accounts made later get TRIAL_DAYS).
+    return { visible: false, preview: true, enabled: false, role: user.type, trialDays: LAUNCH_TRIAL_DAYS, graceDays: settings.graceDays, plans: plansWithDates(user.type, access.accessEndsAt, now) };
+  }
   const team = user.type === "salon"
     ? (await billing.listTeamArtists(user.id, now)).map((artist) => ({
         id: artist.id,

@@ -25,7 +25,7 @@ async function _PUT(request) {
   const parts = [
     `اشتراک: ${saved.enabled ? "روشن" : "خاموش"}`,
     `مهلت: ${saved.graceDays} روز`,
-    !before.launchedAt && saved.launchedAt ? "شروع دوره‌ی رایگان همه" : ""
+    saved.launchedAt && saved.launchedAt !== before.launchedAt ? "شروع دوره‌ی رایگان همه" : ""
   ].filter(Boolean);
   await admin.logAction({ adminLabel: gate.admin.label, action: "billing_settings", detail: parts.join(" • ") });
   return json({ data: { settings: saved } });

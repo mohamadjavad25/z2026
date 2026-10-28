@@ -62,9 +62,13 @@ export const SETTING_DEFAULTS = {
   // Saved answers the operator drops into a support reply with one click.
   replies: { items: [] },
   // Subscriptions for salons and artists (repos/billing.js). Changed only through /api/admin/billing/settings (password
-  // re-check). `launchedAt` is stamped the first time billing is switched on and never moves: accounts that existed
+  // re-check). `launchedAt` is stamped the first time billing is switched on and moves to today each time the panel switches it on again from off: accounts that existed
   // before it get their free month from that day.
-  billing: { enabled: false, launchedAt: null, graceDays: 3 }
+  billing: { enabled: false, launchedAt: null, graceDays: 3 },
+  // The owner's own test numbers (owner's request 2026-10-28). Kept by phone, not by account, so deleting an account and
+  // signing up again with the same number (as a client, an artist or a salon) stays a test account: always free, and
+  // never in the directory or in search. Changed only through /api/admin/billing/test-accounts.
+  testAccounts: { phones: [] }
 };
 
 function merge(key, value) {

@@ -31,6 +31,7 @@ export const ACTION_LABEL = {
   cleanup: "پاک‌سازی سامانه",
   clear_errors: "پاک‌کردن خطاهای اپ",
   billing_settings: "تغییر تنظیمات اشتراک",
+  billing_test_accounts: "تغییر شماره‌های آزمایشی",
   billing_grant: "افزودن روز به اشتراک",
   billing_reverify: "بررسی دوبارهٔ پرداخت",
   billing_refund: "ثبت بازپرداخت"
