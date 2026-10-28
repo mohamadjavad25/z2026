@@ -169,24 +169,25 @@ export async function updateUser(id, data) {
   const db = await getDb();
   const current = await getUserById(id, db);
   if (!current) return null;
-  const next = {
-    phone: data.phone ?? current.phone,
-    name: data.name ?? current.name,
-    area: data.area ?? current.area,
-    service: data.service ?? current.service,
-    email: data.email ?? current.email,
-    avatar_position: data.avatarPosition ?? data.avatar_position ?? current.avatar_position ?? "",
-    poster_position: data.posterPosition ?? data.poster_position ?? current.poster_position ?? "",
-    experience_years: data.experienceYears ?? data.experience_years ?? current.experience_years ?? "",
-    manager_name: data.managerName ?? data.manager_name ?? current.manager_name ?? "",
-    password_hash: data.password_hash ?? current.password_hash,
-    address_detail: data.addressDetail ?? current.address_detail ?? "",
-    instagram: data.instagram ?? current.instagram ?? ""
+  // Only the fields this edit carries are written (null/undefined keep what is stored). Writing back the row as it
+  // was read let two edits at the same moment undo each other, e.g. an area change wiping a just-saved Instagram page.
+  const given = {
+    phone: data.phone ?? null,
+    name: data.name ?? null,
+    area: data.area ?? null,
+    service: data.service ?? null,
+    email: data.email ?? null,
+    avatar_position: data.avatarPosition ?? data.avatar_position ?? null,
+    poster_position: data.posterPosition ?? data.poster_position ?? null,
+    experience_years: data.experienceYears ?? data.experience_years ?? null,
+    manager_name: data.managerName ?? data.manager_name ?? null,
+    password_hash: data.password_hash ?? null,
+    address_detail: data.addressDetail ?? null,
+    instagram: data.instagram ?? null
   };
   // The map pin: undefined keeps it, null removes it, { lat, lng } moves it.
-  const geo = data.geo === undefined
-    ? { lat: current.geo_lat ?? null, lng: current.geo_lng ?? null }
-    : { lat: data.geo?.lat ?? null, lng: data.geo?.lng ?? null };
+  const geoChange = data.geo !== undefined;
+  const geo = { lat: geoChange ? data.geo?.lat ?? null : null, lng: geoChange ? data.geo?.lng ?? null : null };
 
   const [avatar, poster] = await Promise.all([
     planPicture(data.avatar, "avatar", id),
@@ -195,23 +196,27 @@ export async function updateUser(id, data) {
 
   await run(db, `
     UPDATE users SET
-      phone = $1, name = $2, area = $3, service = $4, email = $5,
+      phone = COALESCE($1, phone), name = COALESCE($2, name), area = COALESCE($3, area), service = COALESCE($4, service),
+      email = COALESCE($5, email),
       avatar = CASE WHEN $6 THEN $7 ELSE avatar END, avatar_url = CASE WHEN $6 THEN $8 ELSE avatar_url END,
       poster = CASE WHEN $9 THEN $10 ELSE poster END, poster_url = CASE WHEN $9 THEN $11 ELSE poster_url END,
-      avatar_position = $12, poster_position = $13, experience_years = $14, manager_name = $15, password_hash = $16,
-      geo_lat = $18, geo_lng = $19, address_detail = $20, instagram = $23,
+      avatar_position = COALESCE($12, avatar_position, ''), poster_position = COALESCE($13, poster_position, ''),
+      experience_years = COALESCE($14, experience_years, ''), manager_name = COALESCE($15, manager_name, ''),
+      password_hash = COALESCE($16, password_hash),
+      geo_lat = CASE WHEN $24 THEN $18 ELSE geo_lat END, geo_lng = CASE WHEN $24 THEN $19 ELSE geo_lng END,
+      address_detail = COALESCE($20, address_detail, ''), instagram = COALESCE($23, instagram, ''),
       -- A new number is only "verified" when the caller proved it with a code; the old number's proof never carries over.
       phone_verified_at = CASE WHEN $21 THEN CASE WHEN $22 THEN NOW() ELSE NULL END ELSE phone_verified_at END,
       updated_at = CURRENT_TIMESTAMP
     WHERE id = $17
   `, [
-    next.phone, next.name, next.area, next.service, next.email,
+    given.phone, given.name, given.area, given.service, given.email,
     avatar.change, avatar.blob, avatar.url,
     poster.change, poster.blob, poster.url,
-    next.avatar_position, next.poster_position, next.experience_years, next.manager_name, next.password_hash, id,
-    geo.lat, geo.lng, next.address_detail,
-    next.phone !== current.phone, data.phoneVerified === true,
-    next.instagram
+    given.avatar_position, given.poster_position, given.experience_years, given.manager_name, given.password_hash, id,
+    geo.lat, geo.lng, given.address_detail,
+    given.phone !== null && given.phone !== current.phone, data.phoneVerified === true,
+    given.instagram, geoChange
   ]);
 
   // The replaced/removed pictures no longer need their Storage copies.
@@ -219,10 +224,11 @@ export async function updateUser(id, data) {
   if (poster.change && current.poster_url) await deleteStoredImage(current.poster_url);
 
   if (current.type === "salon") {
+    // Copied from the row just written, so the salon card matches the profile even when edits overlap.
     await run(db, `
-      UPDATE salons SET name = $1, area = $2, tag = $3, phone = $4, email = $5, updated_at = CURRENT_TIMESTAMP
-      WHERE user_id = $6
-    `, [next.name, next.area, next.service, next.phone, next.email, id]);
+      UPDATE salons s SET name = u.name, area = u.area, tag = u.service, phone = u.phone, email = u.email, updated_at = CURRENT_TIMESTAMP
+      FROM users u WHERE u.id = $1 AND s.user_id = u.id
+    `, [id]);
   }
   return getUserById(id, db);
 }

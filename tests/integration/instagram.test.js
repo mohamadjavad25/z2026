@@ -64,4 +64,18 @@ describe("instagram page on the profile", () => {
     const html = await (await fetch(`${TEST_BASE_URL}/salons/${user.id}`)).text();
     expect(html).toContain("https://instagram.com/salon.three");
   });
+
+  it("a profile edit at the same moment never undoes a just-saved page", async () => {
+    const artist = createClient();
+    const { user } = await registerUser(artist, { type: "artist", name: "آرتیست هم‌زمان" });
+    for (let round = 0; round < 8; round += 1) {
+      await artist.post("/api/profile", { data: { instagram: `old.${round}` } });
+      await Promise.all([
+        artist.post("/api/profile", { data: { area: "تهران" } }),
+        artist.post("/api/profile", { data: { instagram: `new.${round}` } }),
+        artist.post("/api/profile", { data: { area: "کرج" } })
+      ]);
+      expect((await createClient().get(`/api/artists/${user.id}`)).payload.data.artist.instagram).toBe(`new.${round}`);
+    }
+  });
 });
