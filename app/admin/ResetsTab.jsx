@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { KeyRound, Phone, UserRound, Wand2 } from "lucide-react";
+import { KeyRound, UserRound, Wand2 } from "lucide-react";
 import { Button } from "../components/ui";
 import { api } from "./adminFetch";
 import { ago, fmtDate } from "./format";
@@ -9,7 +9,7 @@ import { PageHead } from "./PageHead";
 import { makePassword } from "./UserDetail";
 import { CopyButton, EmptyState, ErrorNote, Loading, toastResult, useAdminData } from "./ui";
 
-/** People who forgot their password: call them, check it is really them, then give them a new one here. */
+/** People who forgot their password: make a new one here and text it to the account's own number (support never phones anyone, owner 2026-10-27). */
 export function ResetsTab({ onGo, onChanged }) {
   const { data, error, reload } = useAdminData("/api/auth/password-reset-requests");
   const [passwords, setPasswords] = useState({});
@@ -20,7 +20,9 @@ export function ResetsTab({ onGo, onChanged }) {
     setBusyId(request.id);
     const result = await api.post(`/api/auth/password-reset-requests/${request.id}/resolve`, { newPassword });
     setBusyId(null);
-    if (toastResult(result, "رمز بازنشانی شد؛ رمز جدید را به کاربر بگو.")) {
+    if (toastResult(result, "رمز بازنشانی شد؛ پیامکش آماده است، بفرستش.")) {
+      // The request leaves the list once resolved, so the text with the new password opens right away.
+      window.location.href = `sms:${request.phone}?body=${encodeURIComponent(`رمز تازهٔ فرفروت: ${newPassword}`)}`;
       reload();
       onChanged?.();
     }
@@ -32,9 +34,9 @@ export function ResetsTab({ onGo, onChanged }) {
       <PageHead tab="resets" />
       <section className="admCard">
         <ol className="admSteps">
-          <li><i>۱</i><span><b>تأیید هویت</b><small>با شمارهٔ کاربر تماس بگیر و مطمئن شو خودش است.</small></span></li>
+          <li><i>۱</i><span><b>حسابش را ببین</b><small>با «حسابش» مطمئن شو این شماره واقعاً یک حساب دارد. رمز فقط به همین شماره می‌رود، پس به دست صاحب حساب می‌رسد.</small></span></li>
           <li><i>۲</i><span><b>رمز تازه</b><small>با دکمهٔ «رمز تصادفی» یک رمز بساز.</small></span></li>
-          <li><i>۳</i><span><b>اعلام رمز</b><small>رمز را تلفنی بگو؛ همهٔ دستگاه‌هایش خارج می‌شوند.</small></span></li>
+          <li><i>۳</i><span><b>پیامک رمز</b><small>«بازنشانی» را بزن؛ پیامک با رمز خودش آماده می‌شود، فقط بفرستش. همهٔ دستگاه‌هایش خارج می‌شوند.</small></span></li>
         </ol>
         <ErrorNote error={error} onRetry={reload} />
         {!data && !error ? <Loading /> : null}
@@ -49,7 +51,6 @@ export function ResetsTab({ onGo, onChanged }) {
                     <b dir="ltr">{request.phone}</b>
                     <small>{fmtDate(request.created_at)} ({ago(request.created_at)}){request.note ? ` • ${request.note}` : ""}</small>
                     <span className="admReqTools">
-                      <a className="admChipLink" href={`tel:${request.phone}`}><Phone size={14} aria-hidden="true" /> تماس</a>
                       <button type="button" className="admChipLink" onClick={() => onGo("users", { q: request.phone })}><UserRound size={14} aria-hidden="true" /> حسابش</button>
                     </span>
                   </div>

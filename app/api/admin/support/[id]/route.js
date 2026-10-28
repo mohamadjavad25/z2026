@@ -46,7 +46,7 @@ async function _POST(request, { params }) {
   if (!files.ok) return error(files.error, 400);
   if (reply || files.items.length) {
     if (reply.length > 2000) return error("پاسخ خیلی بلند است (حداکثر ۲۰۰۰ حرف).", 400);
-    if (!ticket.user_id) return error("این پیام از مهمان بدون حساب است؛ با شمارهٔ تماسش جواب بده.", 400);
+    if (!ticket.user_id) return error("این پیام از مهمان بدون حساب است؛ با پیامک به شماره‌اش جواب بده.", 400);
     await support.addMessage({ ticketId: ticket.id, author: "admin", body: reply, attachments: files.items });
     if (body.status === "closed") await support.updateTicket(ticket.id, { status: "closed", resolution: ticket.resolution || "answered" });
     if (body.note !== undefined) await support.updateTicket(ticket.id, { adminNote: body.note });

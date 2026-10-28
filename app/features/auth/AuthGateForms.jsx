@@ -58,10 +58,10 @@ function PasswordField({ name, placeholder, autoComplete = "current-password", c
   );
 }
 
-// No SMS/OTP provider is wired in yet, so this can't be real self-service
-// password reset — it files a manual-recovery request the founder/support
-// follows up on by phone (see app/api/auth/password-reset-requests). Still
-// strictly better than the previous dead end (no recovery path at all).
+// With the SMS code switched off this can't be self-service password reset:
+// it files a manual-recovery request, and support texts a new password to the
+// account's own number from the admin panel (see app/api/auth/password-reset-requests).
+// Support never phones anyone (owner, 2026-10-27).
 function PasswordRecoveryPanel({ onClose, otp }) {
   const [phone, setPhone] = useState("");
   const [codeStep, setCodeStep] = useState(false);
@@ -162,7 +162,7 @@ function PasswordRecoveryPanel({ onClose, otp }) {
           <span className="formTitleIcon"><ShieldCheck size={18} /></span>
           <div>
             <strong>درخواستت رسید</strong>
-            <span>پشتیبانی تا ۲۴ ساعت دیگه به همین شماره زنگ می‌زنه.</span>
+            <span>پشتیبانی تا ۲۴ ساعت دیگه یه رمز تازه به همین شماره پیامک می‌کنه.</span>
           </div>
         </div>
         <Mascot pose="done" size={140} className="mascotEmpty" />
@@ -177,7 +177,7 @@ function PasswordRecoveryPanel({ onClose, otp }) {
         <span className="formTitleIcon"><ShieldCheck size={18} /></span>
         <div>
           <strong>رمزت یادت رفته؟</strong>
-          <span>{otp?.enabled ? "شماره‌ت رو بزن تا یه کد برات پیامک کنیم." : "شمارهٔ حسابت رو بزن تا پشتیبانی بهت زنگ بزنه."}</span>
+          <span>{otp?.enabled ? "شماره‌ت رو بزن تا یه کد برات پیامک کنیم." : "شمارهٔ حسابت رو بزن تا پشتیبانی یه رمز تازه برات پیامک کنه."}</span>
         </div>
       </div>
       <input
@@ -195,7 +195,7 @@ function PasswordRecoveryPanel({ onClose, otp }) {
       />
       {error ? <p className="authNotice" role="alert">{error}</p> : null}
       <button type="submit" className="profileSubmit" disabled={status === "sending"}>
-        {status === "sending" ? "دارم می‌فرستم…" : otp?.enabled ? "کد بفرست" : "زنگم بزنید"}
+        {status === "sending" ? "دارم می‌فرستم…" : otp?.enabled ? "کد بفرست" : "رمز تازه بفرستید"}
       </button>
       <p className="authSwitchHint">
         <button type="button" onClick={onClose}>برگرد به ورود</button>

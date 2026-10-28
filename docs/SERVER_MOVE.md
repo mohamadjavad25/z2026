@@ -71,7 +71,7 @@ curl --resolve frfro.ir:443:NEW https://frfro.ir/api/health
 
 ۷. **DNS را عوض کن:** رکوردهای `frfro.ir` و `www` را به NEW ببر. از اینجا به بعد کسی چیزی را از دست نمی‌دهد، چون آدرس قدیم و جدید هر دو به یک دیتابیس می‌رسند.
 
-۸. **سرور جدید، کارهای بعدی:** crontab (`deploy/crontab`)، بکاپ شبانه، `certbot renew --dry-run`. بعد پایش `https://frfro.ir/api/health` را چک کن.
+۸. **سرور جدید، کارهای بعدی:** کارهای زمان‌دار و بکاپ (`scripts/backup/`، `docs/DEPLOY_SERVER.md` «بکاپ و بازیابی»؛ `backup.key` و `backup-s3.env` را هم از سرور قدیم بیاور)، `certbot renew --dry-run`. بعد پایش `https://frfro.ir/api/health` را چک کن.
 
 ۹. **سرور قدیم را یک هفته نگه دار** (فقط برای فرستادن). بعد خاموشش کن. بسته‌های `/root/move` را روی هر دو سرور پاک کن.
 
@@ -82,10 +82,7 @@ curl --resolve frfro.ir:443:NEW https://frfro.ir/api/health
 
 ## بکاپ بیرون از سرور
 
-بکاپ شبانه (`scripts/backup-db.sh`) روی همان دیسک است و با از دست رفتن سرور از بین می‌رود. هفته‌ای یک بار آخرین بکاپ را بیرون ببر، مثلاً روی کامپیوتر ویندوز خودت در PowerShell:
-```powershell
-scp "root@SERVER:/srv/frfro/backups/$(ssh root@SERVER 'ls -t /srv/frfro/backups | head -n1')" "$HOME\frfro-backups\"
-```
+بکاپ شبانه هر شب خودش به آروان و کامپیوتر مالک می‌رود (`docs/DEPLOY_SERVER.md` «بکاپ و بازیابی»).
 بکاپ شبانه فقط دیتابیس است. env را یک بار جای امنی نگه دار، مثلاً در یک مدیر رمز. بدون آن، با بکاپ می‌شود داده را برگرداند، ولی مدیرها باید Authenticator را دوباره راه بیندازند.
 
 ## جابه‌جایی اول: از Vercel و Supabase به سرور (یک بار)
