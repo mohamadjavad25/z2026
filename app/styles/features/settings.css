@@ -33,7 +33,7 @@
     linear-gradient(135deg, var(--n-800), var(--n-900));
 }
 
-.brandCardPoster img{
+.brandCardPoster > img{
   position: absolute;
   inset: 0;
   width: 100%;
