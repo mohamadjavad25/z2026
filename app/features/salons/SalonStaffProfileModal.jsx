@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import {
-  CalendarCheck,
   CalendarDays,
   Check,
   Eye,
@@ -16,7 +15,8 @@ import {
   UserRound
 } from "lucide-react";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
-import { StaffPerformanceChart } from "./StaffPerformanceChart";
+import { WeekStrip } from "../team/WeekStrip";
+import { leaveDayAfter, leaveLabel, weekFromHours, weekSentence } from "../team/teamWeek";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { SheetClose } from "../../components/SheetClose";
 
@@ -86,12 +86,12 @@ function EditableFact({ icon: Icon, label, value, placeholder, dir, formatValue,
  */
 export function SalonStaffProfileModal({
   staff,
-  stats = null,
   roleOptions = [],
   onClose,
   onUpdate,
   onRemove,
-  onOpenPublic
+  onOpenPublic,
+  onOpenTeamPosts
 }) {
   const [confirmEnd, setConfirmEnd] = useState(false);
   const [endReason, setEndReason] = useState("");
@@ -111,8 +111,11 @@ export function SalonStaffProfileModal({
   const staffBio = String(staff.artist_bio || staff.bio || "").trim();
   const staffAvatar = staff.avatar || staff.staff_avatar || "";
   const staffAccess = staff.access_level || "آرتیست";
-  const staffBooked = staff.booked || "";
   const isActive = staffState === "فعال";
+  const week = weekFromHours(staff.hours || []);
+  const leaveBack = leaveLabel(staff.leave_until);
+  const postsPending = Number(staff.posts_pending) || 0;
+  const postsApproved = Number(staff.posts_approved) || 0;
   const hasPublic = Boolean(staff.has_artist_profile || staff.artist_user_id);
   const isOwner = Boolean(staff.is_owner);
   // The salon's switch for direct bookings at the salon, and what the member's clients add up to (never who they are).
@@ -178,7 +181,61 @@ export function SalonStaffProfileModal({
           <p className="smdSelfNote">این خودتی. از «خدمات» کارها رو به خودت بده تا نوبت‌ها به اسمت ثبت بشه؛ اگه فعلاً کار نمی‌کنی «غیرفعال» کن تا نوبت تازه برات گرفته نشه.</p>
         ) : null}
 
-        <StaffPerformanceChart stats={stats} />
+        <section className="smdSection tmNow">
+          <h4>الان</h4>
+          <div className="tmSeg" role="group" aria-label="وضعیت">
+            {[["فعال", "سرکاره"], ["مرخصی", "مرخصیه"], ["غیرفعال", "کار نمی‌کنه"]].map(([value, label]) => (
+              <button
+                type="button"
+                key={value}
+                className={`${staffState === value ? "is-on" : ""} is-${value === "فعال" ? "ok" : value === "مرخصی" ? "leave" : "off"}`}
+                aria-pressed={staffState === value}
+                onClick={() => { if (staffState !== value) onUpdate?.(staff, { state: value, leaveUntil: "" }, `وضعیت ${staffName} عوض شد.`); }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          {staffState === "مرخصی" && !isOwner ? (
+            <div className="tmLeave">
+              <span>تا کی؟ {leaveBack ? <b>{leaveBack} برمی‌گرده</b> : <b>تاریخی نذاشتی</b>}</span>
+              <div className="tmLeaveChoices" role="group" aria-label="برگشت از مرخصی">
+                {[["فردا", 1], ["۳ روز دیگه", 3], ["هفتهٔ بعد", 7]].map(([label, days]) => (
+                  <button
+                    type="button"
+                    key={label}
+                    className={staff.leave_until === leaveDayAfter(days) ? "is-on" : ""}
+                    onClick={() => onUpdate?.(staff, { state: "مرخصی", leaveUntil: leaveDayAfter(days) }, `${staffName} ${label} برمی‌گرده.`)}
+                  >
+                    {label}
+                  </button>
+                ))}
+                <button type="button" className={!staff.leave_until ? "is-on" : ""} onClick={() => onUpdate?.(staff, { state: "مرخصی", leaveUntil: "" }, "تاریخ برگشت برداشته شد.")}>تا خودم بگم</button>
+              </div>
+            </div>
+          ) : null}
+          <p className="smdLockNote">
+            {staffState === "مرخصی"
+              ? `تا اون روز برای ${staffName} نوبت تازه گرفته نمی‌شه. نوبت‌هایی که از قبل داره سر جاشونن.`
+              : staffState === "غیرفعال"
+                ? `برای ${staffName} نوبت تازه گرفته نمی‌شه. نوبت‌های قبلی سر جاشونن.`
+                : `اگه «مرخصیه» رو بزنی، می‌پرسیم تا کی.`}
+          </p>
+        </section>
+
+        {hasPublic && !isOwner ? (
+          <section className="smdSection tmHours">
+            <h4>روز و ساعتش <small><Lock size={11} aria-hidden="true" /> خودش می‌ذاره</small></h4>
+            {staff.hours?.length ? (
+              <>
+                <WeekStrip week={week} large />
+                <p className="tmHoursText">{weekSentence(week) || "فعلاً هیچ روزی کار نمی‌کنه."}</p>
+              </>
+            ) : (
+              <p className="tmHoursText">هنوز ساعتش رو نذاشته.</p>
+            )}
+          </section>
+        ) : null}
 
         <section className="smdSection">
           <h4>تماس و دسترسی</h4>
@@ -221,15 +278,22 @@ export function SalonStaffProfileModal({
               <span>سطح دسترسی</span>
               <b>{staffAccess}</b>
             </div>
-            {staffBooked ? (
-              <div className="smdRow">
-                <CalendarCheck size={15} />
-                <span>نوبت‌ها</span>
-                <b>{toPersianDigits(staffBooked)}</b>
-              </div>
-            ) : null}
           </div>
         </section>
+
+        {hasPublic && !isOwner ? (
+          <section className="smdSection tmPosts">
+            <h4>نمونه‌کارهاش</h4>
+            <div className="tmPostsRow">
+              <span>{postsApproved ? `${toPersianDigits(postsApproved)} تا روی صفحهٔ سالنه.` : "هنوز نمونه‌کاری روی صفحهٔ سالن نذاشته."}</span>
+              {postsPending ? (
+                <button type="button" className="tmLiveChip" onClick={() => onOpenTeamPosts?.()}>
+                  {toPersianDigits(postsPending)} تا منتظر تأیید توئه
+                </button>
+              ) : null}
+            </div>
+          </section>
+        ) : null}
 
         {hasPublic && !isOwner ? (
           <section className="smdSection">
@@ -312,19 +376,10 @@ export function SalonStaffProfileModal({
         </section>
 
         <footer className="smdFooter">
-          <button
-            type="button"
-            className="smdToggle"
-            onClick={() => {
-              const nextState = isActive ? "غیرفعال" : "فعال";
-              onUpdate?.(staff, { state: nextState }, `وضعیت ${staffName} عوض شد.`);
-            }}
-          >
-            {isActive ? "غیرفعالش کن" : "دوباره فعالش کن"}
-          </button>
           <button type="button" className="smdEnd" onClick={() => (isOwner ? onRemove?.(staff) : setConfirmEnd(true))}>
             {isOwner ? "خودم برم بیرون از تیم" : "تموم کردن همکاری"}
           </button>
+          {isOwner ? null : <small className="smdLockNote">{hasPublic ? `به ${staffName} اعلان و پیامک می‌دیم. می‌تونی یه خط براش بنویسی.` : "نوبت‌های قبلی سر جاشون می‌مونن."}</small>}
         </footer>
         {confirmEnd ? (
           <div className="smdConfirm" role="group" aria-label={`برداشتن ${staffName} از تیم`}>

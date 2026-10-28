@@ -1,6 +1,7 @@
 import { randomBytes, timingSafeEqual } from "node:crypto";
 import { getDb, all, get, run } from "../../connection.js";
 import { addSalonStaff } from "./staff.js";
+import { defaultArtistHours } from "../artists/hours.js";
 
 const PENDING = "در انتظار تایید";
 const ACCEPTED = "تایید شد";
@@ -517,6 +518,8 @@ export async function listArtistTeams(artistUserId) {
       st.salon_user_id,
       st.role,
       st.state,
+      st.leave_until,
+      st.direct_allowed,
       st.created_at,
       COALESCE(NULLIF(s.name, ''), su.name) AS salon_name,
       COALESCE(s.area, '') AS salon_area,
@@ -541,7 +544,34 @@ export async function listArtistTeams(artistUserId) {
     WHERE st.artist_user_id = $1
     ORDER BY st.id DESC
   `, [artistUserId]);
+  const salonIds = rows.map((row) => row.salon_user_id);
+  const staffIds = rows.map((row) => row.staff_id);
+  const [mates, salonHours, ownHours, posts] = salonIds.length ? await Promise.all([
+    all(db, `
+      SELECT st.salon_user_id, st.name, st.artist_user_id, st.is_owner, u.avatar <> '' OR u.avatar_url IS NOT NULL AS has_avatar
+      FROM salon_staff st LEFT JOIN users u ON u.id = st.artist_user_id
+      WHERE st.salon_user_id = ANY($1::int[]) AND st.state <> 'غیرفعال' AND st.artist_user_id IS DISTINCT FROM $2
+      ORDER BY st.id
+    `, [salonIds, artistUserId]),
+    all(db, "SELECT salon_user_id, day, open_time, close_time, active FROM salon_hours WHERE salon_user_id = ANY($1::int[])", [salonIds]),
+    all(db, "SELECT day, open_time, close_time, active FROM artist_hours WHERE artist_user_id = $1", [artistUserId]),
+    all(db, "SELECT staff_id, status, COUNT(*)::int AS n FROM salon_team_posts WHERE staff_id = ANY($1::int[]) GROUP BY staff_id, status", [staffIds])
+  ]) : [[], [], [], []];
+  if (salonIds.length && !ownHours.length) ownHours.push(...defaultArtistHours.map((h) => ({ day: h.day, open_time: h.open_time, close_time: h.close_time, active: h.active })));
+  const hoursOf = (list) => list.map((h) => ({ day: h.day, open: h.open_time || "", close: h.close_time || "", active: Boolean(h.active) }));
   return rows.map((row) => ({
+    leaveUntil: row.state === "مرخصی" ? row.leave_until || "" : "",
+    directAllowed: row.direct_allowed !== false,
+    // The others on this team (never their numbers): name, and their photo when they have a frfro page.
+    teammates: mates
+      .filter((m) => m.salon_user_id === row.salon_user_id)
+      .map((m) => ({ name: m.name || "", avatar: m.has_avatar && m.artist_user_id ? `/api/media/avatar/${m.artist_user_id}` : "", isOwner: Boolean(m.is_owner) })),
+    salonHours: hoursOf(salonHours.filter((h) => h.salon_user_id === row.salon_user_id)),
+    ownHours: hoursOf(ownHours),
+    posts: {
+      pending: posts.find((p) => p.staff_id === row.staff_id && p.status === "pending")?.n || 0,
+      approved: posts.find((p) => p.staff_id === row.staff_id && p.status === "approved")?.n || 0
+    },
     staffId: row.staff_id,
     salonId: row.salon_user_id,
     salonName: row.salon_name || "سالن",
