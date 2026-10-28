@@ -7,6 +7,9 @@ import { Download, Share2 } from "lucide-react";
 import { Spinner } from "../../components/Spinner";
 import { SheetClose } from "../../components/SheetClose";
 import { getPosts } from "../../shared/api/posts";
+import { getSalonServices, getSalonVisitTimes } from "../../shared/api/salons";
+import { formatPersianDateKey } from "../../shared/lib/persianCalendar";
+import { isTooSoonToRequest } from "../../shared/lib/bookingWindow";
 
 const W = 1080;
 const H = 1920;
@@ -14,12 +17,15 @@ const INK = "#0c0d12";
 const PINK = "#ff86b8";
 const VIOLET = "#8b6cff";
 const WORKS_NEEDED = 3;
+const SLOTS_PER_DAY = 6;
+const DAY_MS = 24 * 60 * 60 * 1000;
 
-// The three designs built so far (free slots wait for the owner's answer, see docs/handoff/story-handoff.md).
+// Salons and artists get the portrait, dark card and portfolio designs; free slots are for salons only (the booking calendar is theirs).
 const DESIGNS = [
   { id: "portrait", label: "پرتره" },
   { id: "dark", label: "کارت تیره" },
-  { id: "works", label: "نمونه‌کار" }
+  { id: "works", label: "نمونه‌کار" },
+  { id: "free", label: "نوبت خالی", salonOnly: true }
 ];
 
 function roundRect(ctx, x, y, w, h, r) {
@@ -126,7 +132,7 @@ function drawName(ctx, name, y) {
   ctx.fillText(name, W / 2, y);
 }
 
-function drawDark(ctx, name, url) {
+async function drawDark(ctx, name, url) {
   ctx.fillStyle = INK;
   ctx.fillRect(0, 0, W, H);
   glow(ctx, 140, 260, 760, "rgba(255,134,184,0.38)");
@@ -193,11 +199,56 @@ async function drawWorks(ctx, name, url, works) {
   await drawFooter(ctx, url, { qrY: 1180, qrSize: 340, ctaY: 1560, linkY: 1760 });
 }
 
+/** Today's and tomorrow's free start times as pink chips; a day with none says so. */
+async function drawFree(ctx, name, url, days) {
+  ctx.fillStyle = INK;
+  ctx.fillRect(0, 0, W, H);
+  glow(ctx, 140, 260, 760, "rgba(255,134,184,0.3)");
+  glow(ctx, 980, 1680, 820, "rgba(139,108,255,0.34)");
+  drawWordmark(ctx);
+  drawName(ctx, name, 400);
+
+  const chipW = 300;
+  const chipH = 96;
+  const gap = 24;
+  const startX = (W - (3 * chipW + 2 * gap)) / 2;
+  let y = 500;
+  ctx.textAlign = "center";
+  ctx.direction = "rtl";
+  for (const day of days) {
+    ctx.fillStyle = "rgba(255,255,255,0.88)";
+    ctx.font = "800 52px Vazirmatn, Tahoma, sans-serif";
+    ctx.fillText(day.label, W / 2, y);
+    if (!day.times.length) {
+      ctx.fillStyle = "rgba(255,255,255,0.7)";
+      ctx.font = "700 46px Vazirmatn, Tahoma, sans-serif";
+      ctx.fillText(`${day.label} نوبت خالی نداری`, W / 2, y + 100);
+      y += 200;
+      continue;
+    }
+    day.times.forEach((time, index) => {
+      const col = index % 3;
+      const row = Math.floor(index / 3);
+      const x = startX + col * (chipW + gap);
+      const top = y + 40 + row * (chipH + 34);
+      ctx.fillStyle = PINK;
+      roundRect(ctx, x, top, chipW, chipH, 48);
+      ctx.fill();
+      ctx.fillStyle = INK;
+      ctx.font = "900 50px Vazirmatn, Tahoma, sans-serif";
+      ctx.fillText(time, x + chipW / 2, top + 64);
+    });
+    const rows = Math.ceil(day.times.length / 3);
+    y += 40 + rows * (chipH + 34) + 60;
+  }
+  await drawFooter(ctx, url, { qrY: 1200, qrSize: 300, ctaY: 1540, linkY: 1760 });
+}
+
 /**
  * The ready 9:16 story picture, drawn on a canvas, so it needs no server and is made fresh each time. Returns the
  * PNG as a Blob (to share) and a data URL (to show and save: the site's image policy admits data: but not blob: URLs).
  */
-async function drawStory(design, { name, url, avatar, works }) {
+async function drawStory(design, { name, url, avatar, works, days }) {
   if (document.fonts?.load) {
     await Promise.all([
       document.fonts.load("900 96px Vazirmatn"),
@@ -211,10 +262,31 @@ async function drawStory(design, { name, url, avatar, works }) {
   const title = name || "فرفرو";
   if (design === "portrait") await drawPortrait(ctx, title, url, avatar);
   else if (design === "works") await drawWorks(ctx, title, url, works);
+  else if (design === "free") await drawFree(ctx, title, url, days);
   else await drawDark(ctx, title, url);
 
   const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
   return { blob, dataUrl: canvas.toDataURL("image/png") };
+}
+
+/** Today and tomorrow, as Persian day keys, with the free start times a client can still request (the same check a client's booking gets). */
+async function loadFreeSlots(salonId) {
+  const services = await getSalonServices();
+  if (!services.ok) throw new Error("services");
+  const list = services.data?.services || [];
+  const shortest = [...list].sort((a, b) => (Number(a.duration) || Infinity) - (Number(b.duration) || Infinity))[0];
+  const now = new Date();
+  const days = [
+    { label: "امروز", key: formatPersianDateKey(now) },
+    { label: "فردا", key: formatPersianDateKey(new Date(now.getTime() + DAY_MS)) }
+  ];
+  if (!shortest) return days.map((day) => ({ ...day, times: [] }));
+  return Promise.all(days.map(async (day) => {
+    const { ok, data } = await getSalonVisitTimes(salonId, day.key, [shortest.name]);
+    if (!ok) throw new Error("times");
+    const times = (data?.times || []).filter((time) => !isTooSoonToRequest(day.key, time)).slice(0, SLOTS_PER_DAY);
+    return { ...day, times };
+  }));
 }
 
 /** Public posts that have a picture, newest first, for the collage. */
@@ -230,9 +302,12 @@ async function loadWorks() {
  * «استوری آماده»: shows the picture and hands it over. Where the phone can share a file (Chrome on Android,
  * Safari on iPhone) «بفرست به اینستاگرام» opens the share list with Instagram in it; elsewhere «ذخیره عکس» saves it.
  */
-export function InstagramStorySheet({ open, name, url, avatar = "", onClose, onNotify }) {
+export function InstagramStorySheet({ open, name, url, avatar = "", profileType = "", profileId = null, onClose, onNotify }) {
+  const isSalon = profileType === "salon";
   const [design, setDesign] = useState("portrait");
   const [works, setWorks] = useState(null);
+  const [slots, setSlots] = useState(null);
+  const [slotsFailed, setSlotsFailed] = useState(false);
   const [blob, setBlob] = useState(null);
   const [preview, setPreview] = useState("");
   const [failed, setFailed] = useState(false);
@@ -241,21 +316,33 @@ export function InstagramStorySheet({ open, name, url, avatar = "", onClose, onN
     if (!open) return undefined;
     let cancelled = false;
     setWorks(null);
+    setSlots(null);
+    setSlotsFailed(false);
     loadWorks()
       .then((list) => { if (!cancelled) setWorks(list); })
       .catch(() => { if (!cancelled) setWorks([]); });
+    if (isSalon && profileId) {
+      loadFreeSlots(profileId)
+        .then((days) => { if (!cancelled) setSlots(days); })
+        .catch(() => { if (!cancelled) { setSlotsFailed(true); setSlots([]); } });
+    }
     return () => { cancelled = true; };
-  }, [open]);
+  }, [open, isSalon, profileId]);
 
   const worksReady = works !== null && works.length >= WORKS_NEEDED;
+  const dataReady = works !== null && (!isSalon || slots !== null);
 
   useEffect(() => {
-    if (!open || works === null) return undefined;
+    if (!open || !dataReady) return undefined;
     let cancelled = false;
     setFailed(false);
     setPreview("");
     setBlob(null);
-    drawStory(design, { name: name || "فرفرو", url, avatar, works: works || [] })
+    if (design === "free" && slotsFailed) {
+      setFailed(true);
+      return undefined;
+    }
+    drawStory(design, { name: name || "فرفرو", url, avatar, works: works || [], days: slots || [] })
       .then((made) => {
         if (cancelled) return;
         if (!made.blob) { setFailed(true); return; }
@@ -264,7 +351,7 @@ export function InstagramStorySheet({ open, name, url, avatar = "", onClose, onN
       })
       .catch(() => { if (!cancelled) setFailed(true); });
     return () => { cancelled = true; };
-  }, [open, design, name, url, avatar, works]);
+  }, [open, design, name, url, avatar, works, slots, slotsFailed, dataReady]);
 
   if (!open || typeof document === "undefined") return null;
 
@@ -301,7 +388,7 @@ export function InstagramStorySheet({ open, name, url, avatar = "", onClose, onN
       <article className="salonQrSheetCard igStoryCard" onClick={(event) => event.stopPropagation()}>
         <h3 className="igStoryTitle">استوری آماده</h3>
         <div className="igStoryTabs" role="tablist" aria-label="طرح استوری">
-          {DESIGNS.map((item) => {
+          {DESIGNS.filter((item) => !item.salonOnly || isSalon).map((item) => {
             const disabled = item.id === "works" && works !== null && !worksReady;
             return (
               <button

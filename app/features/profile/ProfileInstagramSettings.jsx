@@ -149,7 +149,7 @@ export function ProfileInstagramSettings({ profileType, profileId, name = "", av
         </div>
       </ProfileSheet>
 
-      <InstagramStorySheet open={storyOpen} name={name} avatar={avatar} url={publicUrl} onClose={() => setStoryOpen(false)} onNotify={onNotify} />
+      <InstagramStorySheet open={storyOpen} name={name} avatar={avatar} profileType={profileType} profileId={profileId} url={publicUrl} onClose={() => setStoryOpen(false)} onNotify={onNotify} />
     </section>
   );
 }
