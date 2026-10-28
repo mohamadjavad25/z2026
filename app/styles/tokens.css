@@ -68,6 +68,7 @@
   --focus-ring: var(--brand-violet);
   --scrim: rgba(12, 13, 18, 0.55);      /* behind sheets and dialogs, dark in both themes */
   --on-photo: #ffffff;                  /* text on pictures and dark scrims */
+  --on-photo-rgb: 255 255 255;          /* the same white as channels, for see-through layers on pictures */
   --mascot-outline: drop-shadow(1.5px 0 0 #fff) drop-shadow(-1.5px 0 0 #fff) drop-shadow(0 1.5px 0 #fff) drop-shadow(0 -1.5px 0 #fff);
   --mascot-filter: none;                /* night gives the mascot a white sticker outline, see below */
 
