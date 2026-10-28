@@ -1,8 +1,7 @@
 "use client";
 
-import { Bell, BellRing, CalendarCheck, ChevronLeft, Globe, Link2, Moon } from "lucide-react";
+import { Bell, BellRing, CalendarCheck, ChevronLeft, Globe, Link2 } from "lucide-react";
 import { useState } from "react";
-import { useThemePreference } from "../../shared/lib/useThemePreference";
 import { ProfileSheet } from "../profile/ProfileSheet";
 import { ProfileQrCodeSheet } from "../../components/ProfileQrCodeSheet";
 import { usePhonePush } from "./usePhonePush";
@@ -17,9 +16,9 @@ import {
  * One cell of the settings grid. `id` lets «کارهای مونده» find the button inside; `pending` puts the small pink dot on
  * a tile whose todo is still open.
  */
-export function TileSlot({ id, pending = false, children }) {
+export function TileSlot({ id, pending = false, wide = false, children }) {
   return (
-    <div className={`spTileSlot${pending ? " has-todo" : ""}`} data-todo-slot={id}>
+    <div className={`spTileSlot${pending ? " has-todo" : ""}${wide ? " is-wide" : ""}`} data-todo-slot={id}>
       {children}
     </div>
   );
@@ -47,14 +46,13 @@ function SheetTile({ icon: Icon, title, state, kicker = "تنظیمات", childr
   );
 }
 
-const THEME_STATE = { auto: "خودکار", light: "روز", dark: "شب" };
-
+/** Day, night and automatic sit side by side right on the page, no sheet (owner's decision 2026-10-28). */
 export function AppearanceTile() {
-  const [preference] = useThemePreference();
   return (
-    <SheetTile icon={Moon} title="ظاهر برنامه" state={THEME_STATE[preference] || "خودکار"}>
+    <div className="spAppearance">
+      <strong>ظاهر برنامه</strong>
       <AppearanceSettings bare />
-    </SheetTile>
+    </div>
   );
 }
 

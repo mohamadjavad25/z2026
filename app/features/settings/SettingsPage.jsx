@@ -425,7 +425,7 @@ export function SettingsPage({
             <NotificationsTile profileType={profile.type} profileSettings={profileSettings} onToggle={onToggleSetting} />
           </TileSlot>
 
-          <TileSlot id="appearance">
+          <TileSlot id="appearance" wide>
             <AppearanceTile />
           </TileSlot>
         </section>
