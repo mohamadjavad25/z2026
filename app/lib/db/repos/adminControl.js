@@ -62,7 +62,7 @@ export const SETTING_DEFAULTS = {
   // Saved answers the operator drops into a support reply with one click.
   replies: { items: [] },
   // Subscriptions for salons and artists (repos/billing.js). Changed only through /api/admin/billing/settings (password
-  // re-check). `launchedAt` is stamped the first time billing is switched on and never moves: accounts that existed
+  // re-check). `launchedAt` is stamped the first time billing is switched on and moves to today each time the panel switches it on again from off: accounts that existed
   // before it get their free month from that day.
   billing: { enabled: false, launchedAt: null, graceDays: 3 }
 };

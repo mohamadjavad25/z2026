@@ -10,7 +10,9 @@ export const checkoutSchema = z.object({
 /** PUT /api/admin/billing/settings */
 export const billingSettingsSchema = z.object({
   enabled: z.boolean(),
-  graceDays: z.number().int("مهلت باید عدد صحیح باشد.").min(0, "مهلت نمی‌تواند منفی باشد.").max(14, "مهلت حداکثر ۱۴ روز است.")
+  graceDays: z.number().int("مهلت باید عدد صحیح باشد.").min(0, "مهلت نمی‌تواند منفی باشد.").max(14, "مهلت حداکثر ۱۴ روز است."),
+  // Switching on from off: every account's free month starts again from today (owner's decision 2026-10-28).
+  restartFreeDays: z.boolean().optional()
 });
 
 /** POST /api/admin/billing/payments/:id { action: "refund" }: what went back to the payer and the days taken off. */

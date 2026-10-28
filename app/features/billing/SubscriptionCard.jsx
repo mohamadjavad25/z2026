@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { ChevronLeft, FlaskConical, Lock, ReceiptText, Star, UsersRound } from "lucide-react";
 import { Button } from "../../components/ui";
 import { toPersianDigits } from "../../shared/lib/digits";
+import { formatTomanNumber } from "../../shared/lib/money";
 import { accountView, teamMemberView } from "./billingView";
 import { openPaymentHistory, openPaymentResult, openPlans, refreshBilling, useBilling } from "./billingStore";
 
@@ -17,6 +18,7 @@ export function SubscriptionCard() {
   useEffect(() => {
     refreshBilling();
   }, []);
+  if (overview?.preview) return <PaymentsOffCard overview={overview} />;
   const view = accountView(overview);
   if (!view) return null;
   const meterPct = view.meter === null ? null : Math.round(view.meter * 100);
@@ -70,6 +72,47 @@ export function SubscriptionCard() {
         </div>
       </div>
       {overview.role === "salon" && overview.team?.length ? <TeamSubscriptions overview={overview} /> : null}
+    </section>
+  );
+}
+
+/**
+ * Payment is switched off (and the account never paid): nothing to buy or count yet, but the owner sees what it will
+ * cost and how the free month works (owner's request 2026-10-28). The free days start the day payment is switched on.
+ */
+function PaymentsOffCard({ overview }) {
+  return (
+    <section className="spSection spPay" aria-label="اشتراک">
+      <div className="billCard is-trial is-off">
+        <svg className="billSwirl" viewBox="0 0 120 120" aria-hidden="true">
+          <path d="M60 60c0-8 8-10 12-5s0 14-9 14-17-9-14-21 20-18 33-10 18 28 8 41-34 15-46 2" />
+        </svg>
+        <div className="billCardHead">
+          <span className="billBadge is-brand"><Star size={13} aria-hidden="true" /> اشتراک فرفرو</span>
+          <span className="billBadge is-state">فعلاً رایگانه</span>
+        </div>
+        <b className="billCardTitle">فعلاً همه‌چی رایگانه</b>
+        <p className="billCardSub">
+          پرداخت هنوز باز نشده. از روزی که باز بشه، {toPersianDigits(overview.trialDays)} روز رایگان داری و از همون روز شمارشش شروع می‌شه. بعدش با یکی از این پلن‌ها ادامه می‌دی.
+        </p>
+        <ul className="billOffPlans">
+          {overview.plans.map((plan) => (
+            <li key={plan.id} className={plan.best ? "is-best" : ""}>
+              <span className="billOffMain">
+                <b>{plan.label}{plan.best ? <em>به‌صرفه‌ترین</em> : null}</b>
+                <small>
+                  {toPersianDigits(plan.days)} روز{plan.giftMonths ? `، که ${toPersianDigits(plan.giftMonths)} ماهش هدیه‌ست` : ""}
+                </small>
+              </span>
+              <span className="billOffPrice">
+                <b>{formatTomanNumber(plan.amountToman)} <small>تومان</small></b>
+                <small>{plan.months > 1 ? `ماهی ${plan.monthlyApprox ? "حدود " : ""}${formatTomanNumber(plan.monthlyToman)}` : "ماهانه"}</small>
+              </span>
+            </li>
+          ))}
+        </ul>
+        <p className="billCardNote">وقتی ماه رایگان تموم بشه، یه پیام برات میاد و چند روز وقت داری پلن بخری.</p>
+      </div>
     </section>
   );
 }

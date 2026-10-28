@@ -144,6 +144,11 @@ export async function billingOverview(user, now = new Date()) {
   // The account's own subscription: a receipt a salon holds for an artist's plan is not the salon's last payment.
   const lastPaid = history.find((row) => row.status === "paid" && Number(row.user_id) === Number(user.id)) || null;
   const { settings, access } = state;
+  // Billing is off and this account never paid: nothing to pay or count yet, but Settings still tells the owner what it
+  // will cost and that the free month starts the day billing is switched on (owner's request 2026-10-28).
+  if (!settings.enabled && history.length === 0) {
+    return { visible: false, preview: true, enabled: false, role: user.type, trialDays: TRIAL_DAYS, graceDays: settings.graceDays, plans: plansWithDates(user.type, access.accessEndsAt, now) };
+  }
   const team = user.type === "salon"
     ? (await billing.listTeamArtists(user.id, now)).map((artist) => ({
         id: artist.id,

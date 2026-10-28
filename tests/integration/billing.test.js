@@ -107,10 +107,25 @@ describe("subscriptions: off by default", () => {
     expect((await clientUser.post("/api/billing/checkout", { plan: "salon_1m" })).status).toBe(403);
 
     const salon = await provider("salon", "Off Salon");
-    expect((await salon.client.get("/api/billing")).payload.data.visible).toBe(false);
+    const off = (await salon.client.get("/api/billing")).payload.data;
+    expect(off).toMatchObject({ visible: false, preview: true, enabled: false, role: "salon", trialDays: 30 });
+    expect(off.plans.map((plan) => plan.months)).toEqual([1, 6, 12]);
     const refused = await salon.client.post("/api/billing/checkout", { plan: "salon_1m" });
     expect(refused.status).toBe(409);
     expect(refused.payload.code).toBe("BILLING_OFF");
+  });
+
+  it("starts every free month again from the day the panel switches billing on from off", async () => {
+    await setBilling(false);
+    const kept = await setBilling(true);
+    expect(new Date(kept.launchedAt).getTime()).toBeLessThan(Date.now() - 59 * DAY);
+    await setBilling(false);
+    const before = Date.now();
+    const restarted = await setBilling(true, { restartFreeDays: true });
+    expect(new Date(restarted.launchedAt).getTime()).toBeGreaterThanOrEqual(before - 1000);
+    // The rest of this file counts on billing having launched 60 days ago.
+    await setBilling(false);
+    await db.query(`UPDATE app_settings SET value = jsonb_set(value, '{launchedAt}', to_jsonb($1::text)) WHERE key = 'billing'`, [new Date(Date.now() - 60 * DAY).toISOString()]);
   });
 
   it("needs a session for everything but the gateway's return", async () => {

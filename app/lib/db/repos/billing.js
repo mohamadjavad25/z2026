@@ -116,10 +116,15 @@ export async function getBillingSettings({ fresh = false } = {}) {
   return value;
 }
 
-/** `launchedAt` is set the first time billing is switched on and is kept from then on, even if billing is switched off and on again. */
-export async function saveBillingSettings({ enabled, graceDays }, label = "") {
+/**
+ * `launchedAt` is the day every older account's free month counts from. It is set the first time billing is switched on
+ * and kept after that, unless the admin switches billing on again from off with `restartFreeDays` (the panel always
+ * does): then it moves to today, so the free days count from the moment the owner presses the switch.
+ */
+export async function saveBillingSettings({ enabled, graceDays, restartFreeDays = false }, label = "") {
   const current = await getBillingSettings({ fresh: true });
-  const launchedAt = current.launchedAt || (enabled ? new Date().toISOString() : null);
+  const restart = Boolean(enabled) && !current.enabled && restartFreeDays;
+  const launchedAt = restart ? new Date().toISOString() : current.launchedAt || (enabled ? new Date().toISOString() : null);
   await saveSetting("billing", { enabled: Boolean(enabled), graceDays: clampGrace(graceDays), launchedAt }, label);
   settingsCache = null;
   return getBillingSettings({ fresh: true });

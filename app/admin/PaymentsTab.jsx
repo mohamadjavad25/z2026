@@ -29,16 +29,14 @@ function SetupCard({ data, onSaved }) {
       const answer = await confirmAction(value.enabled
         ? {
             title: "اشتراک روشن شود؟",
-            body: data.settings.launchedAt
-              ? "اشتراک دوباره روشن می‌شود. ماه رایگان هر حساب همان قبلی است."
-              : `ماه رایگان همهٔ سالن‌ها و آرتیست‌های فعلی از امروز شروع می‌شود (حساب‌های تازه از روز ثبت‌نام). ${gateway.ready ? "بعد از ماه رایگان و مهلت، حسابی که اشتراک نخرد از جست‌وجو کنار می‌رود و نوبت آنلاین نمی‌گیرد." : "تا درگاه وصل نشود هیچ حسابی بسته نمی‌شود."}`,
+            body: `ماه رایگان همهٔ سالن‌ها و آرتیست‌های فعلی از امروز شروع می‌شود (حساب‌های تازه از روز ثبت‌نام). حسابی که قبلاً اشتراک خریده تا آخر اشتراکش فعال می‌ماند. ${gateway.ready ? "بعد از ماه رایگان و مهلت، حسابی که اشتراک نخرد از جست‌وجو کنار می‌رود و نوبت آنلاین نمی‌گیرد." : "تا درگاه وصل نشود هیچ حسابی بسته نمی‌شود."}`,
             confirmLabel: "روشن شود"
           }
         : { title: "اشتراک خاموش شود؟", body: "دیگر کسی نمی‌تواند پرداخت کند، یادآوری نمی‌رود و هیچ حسابی به‌خاطر اشتراک بسته نمی‌ماند. پرداخت‌های قبلی سر جایشان است.", danger: true, confirmLabel: "خاموش شود" });
       if (!answer.ok) return;
     }
     setBusy(true);
-    const result = await api.put("/api/admin/billing/settings", { enabled: value.enabled, graceDays: value.graceDays });
+    const result = await api.put("/api/admin/billing/settings", { enabled: value.enabled, graceDays: value.graceDays, restartFreeDays: true });
     setBusy(false);
     if (toastResult(result, "تنظیمات اشتراک ذخیره شد.")) onSaved();
   }
@@ -48,7 +46,9 @@ function SetupCard({ data, onSaved }) {
       <ul className="admBillChecks">
         <li className={data.settings.enabled ? "is-ok" : "is-missing"}>
           <b>{data.settings.enabled ? "اشتراک روشن است" : "اشتراک خاموش است"}</b>
-          <span>{data.settings.launchedAt ? `ماه رایگان حساب‌های قدیمی از ${fmtDay(data.settings.launchedAt)} شروع شد.` : "هنوز هیچ‌وقت روشن نشده؛ همه رایگان کار می‌کنند."}</span>
+          <span>{data.settings.enabled
+            ? `ماه رایگان حساب‌های قدیمی از ${fmtDay(data.settings.launchedAt)} شروع شد.`
+            : "همه رایگان کار می‌کنند. با روشن کردن، ماه رایگان همه از همان روز شروع می‌شود."}</span>
         </li>
         <li className={gateway.ready ? (gateway.sandbox ? "is-warn" : "is-ok") : "is-missing"}>
           <b>{gateway.ready ? `درگاه: ${gateway.label}` : "درگاه وصل نیست"}</b>
