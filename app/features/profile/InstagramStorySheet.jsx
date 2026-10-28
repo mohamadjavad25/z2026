@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import QRCode from "qrcode";
-import { Download, Share2 } from "lucide-react";
+import { ChevronLeft, Download, Share2 } from "lucide-react";
 import { Spinner } from "../../components/Spinner";
 import { SheetClose } from "../../components/SheetClose";
 import { getPosts } from "../../shared/api/posts";
@@ -332,22 +332,31 @@ async function loadWorks() {
     .map((post) => ({ src: post.image_url }));
 }
 
+const INTRO = { id: "intro", label: "استوری آماده" };
+
 /**
- * «استوری آماده»: shows the picture and hands it over. Where the phone can share a file (Chrome on Android,
- * Safari on iPhone) «بفرست به اینستاگرام» opens the share list with Instagram in it; elsewhere «ذخیره عکس» saves it.
+ * «استوری آماده»: a big slider. The first slide says what this is for (post it on Instagram, clients connect from
+ * there; picture in public/brand/story), then one slide per design. Each design is drawn when its slide is reached.
+ * Where the phone can share a file (Chrome on Android, Safari on iPhone) «بفرست به اینستاگرام» opens the share
+ * list with Instagram in it; elsewhere «ذخیره عکس» saves it.
  */
 export function InstagramStorySheet({ open, name, url, avatar = "", profileType = "", profileId = null, onClose, onNotify }) {
-  const [design, setDesign] = useState("portrait");
+  const [index, setIndex] = useState(0);
   const [works, setWorks] = useState(null);
   const [slots, setSlots] = useState(null);
   const [slotsFailed, setSlotsFailed] = useState(false);
-  const [blob, setBlob] = useState(null);
-  const [preview, setPreview] = useState("");
-  const [failed, setFailed] = useState(false);
+  // Drawn pictures by design id: { blob, dataUrl } or { failed: true }.
+  const [made, setMade] = useState({});
+  const railRef = useRef(null);
+  const slides = [INTRO, ...DESIGNS];
+  const current = slides[index] || INTRO;
+  const design = current.id === "intro" ? null : current.id;
 
   useEffect(() => {
     if (!open) return undefined;
     let cancelled = false;
+    setIndex(0);
+    setMade({});
     setWorks(null);
     setSlots(null);
     setSlotsFailed(false);
@@ -365,32 +374,44 @@ export function InstagramStorySheet({ open, name, url, avatar = "", profileType 
   const worksReady = works !== null && works.length >= WORKS_NEEDED;
   const hasSlotsLoader = profileType === "salon" || profileType === "artist";
   const dataReady = works !== null && (!hasSlotsLoader || slots !== null || slotsFailed);
+  const blocked = design === "works" && works !== null && !worksReady;
 
   useEffect(() => {
-    if (!open || !dataReady) return undefined;
+    if (!open || !design || !dataReady || blocked || made[design]) return undefined;
     let cancelled = false;
-    setFailed(false);
-    setPreview("");
-    setBlob(null);
     if (design === "free" && slotsFailed) {
-      setFailed(true);
+      setMade((all) => ({ ...all, free: { failed: true } }));
       return undefined;
     }
     drawStory(design, { name: name || "فرفرو", url, avatar, works: works || [], days: slots || [] })
-      .then((made) => {
+      .then((picture) => {
         if (cancelled) return;
-        if (!made.blob) { setFailed(true); return; }
-        setBlob(made.blob);
-        setPreview(made.dataUrl);
+        setMade((all) => ({ ...all, [design]: picture.blob ? picture : { failed: true } }));
       })
-      .catch(() => { if (!cancelled) setFailed(true); });
+      .catch(() => { if (!cancelled) setMade((all) => ({ ...all, [design]: { failed: true } })); });
     return () => { cancelled = true; };
-  }, [open, design, name, url, avatar, works, slots, slotsFailed, dataReady]);
+  }, [open, design, dataReady, blocked, made, name, url, avatar, works, slots, slotsFailed]);
 
   if (!open || typeof document === "undefined") return null;
 
-  const file = blob ? new File([blob], "frfro-story.png", { type: "image/png" }) : null;
+  const picture = design ? made[design] : null;
+  const preview = picture?.dataUrl || "";
+  const file = picture?.blob ? new File([picture.blob], "frfro-story.png", { type: "image/png" }) : null;
   const canShareFile = Boolean(file && typeof navigator !== "undefined" && navigator.canShare?.({ files: [file] }));
+
+  function onRailScroll() {
+    const rail = railRef.current;
+    const first = rail?.children[0];
+    if (!first) return;
+    // RTL rails scroll to negative values in Chrome and Safari; the distance is what counts.
+    const step = first.offsetWidth + 12;
+    const next = Math.max(0, Math.min(slides.length - 1, Math.round(Math.abs(rail.scrollLeft) / step)));
+    if (next !== index) setIndex(next);
+  }
+
+  function goTo(i) {
+    railRef.current?.children[i]?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+  }
 
   async function share() {
     try {
@@ -411,51 +432,69 @@ export function InstagramStorySheet({ open, name, url, avatar = "", profileType 
     onNotify?.("عکس ذخیره شد. حالا بذارش تو استوری.");
   }
 
-  const hint = design === "works" && works !== null && !worksReady
+  const hint = blocked
     ? `حداقل ${WORKS_NEEDED} عکس تو نمونه‌کار بذار`
     : design === "portrait" && !avatar
       ? "عکس بذار تا قشنگ‌تر بشه"
       : "";
 
+  function slideBody(slide) {
+    if (slide.id === "intro") return <img src="/brand/story/story-intro.jpg" alt="استوری‌هات آماده‌ست؛ یکی رو بردار و بذار تو اینستاگرامت" />;
+    const own = made[slide.id];
+    if (own?.dataUrl) return <img src={own.dataUrl} alt={`استوری ${slide.label} ${name}`} />;
+    if (own?.failed) return <p className="igStoryFail">عکس ساخته نشد؛ دوباره بزن.</p>;
+    if (slide.id === "works" && works !== null && !worksReady) return <p className="igStoryFail">حداقل {WORKS_NEEDED} عکس تو نمونه‌کار بذار</p>;
+    return <Spinner size={40} />;
+  }
+
   return createPortal((
     <div className="salonQrSheetOverlay" role="dialog" aria-modal="true" aria-label="استوری آماده" onClick={onClose}>
       <article className="salonQrSheetCard igStoryCard" onClick={(event) => event.stopPropagation()}>
-        <h3 className="igStoryTitle">استوری آماده</h3>
-        <div className="igStoryTabs" role="tablist" aria-label="طرح استوری">
-          {DESIGNS.map((item) => {
-            const disabled = item.id === "works" && works !== null && !worksReady;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                role="tab"
-                aria-selected={design === item.id}
-                className={design === item.id ? "is-on" : ""}
-                disabled={disabled}
-                onClick={() => setDesign(item.id)}
-              >
-                {item.label}
+        <h3 className="igStoryTitle">{current.id === "intro" ? "استوری آماده" : current.label}</h3>
+        <div className="igStoryRail" ref={railRef} onScroll={onRailScroll} aria-label="استوری‌ها">
+          {slides.map((slide, i) => (
+            <div key={slide.id} className="igStorySlide" aria-hidden={i !== index}>
+              {slideBody(slide)}
+            </div>
+          ))}
+        </div>
+        <div className="igStoryDots" aria-label="اسلایدها">
+          {slides.map((slide, i) => (
+            <button
+              key={slide.id}
+              type="button"
+              className={i === index ? "is-on" : ""}
+              aria-label={slide.label}
+              aria-current={i === index ? "true" : undefined}
+              onClick={() => goTo(i)}
+            />
+          ))}
+        </div>
+        {design ? (
+          <>
+            {hint ? <p className="igStoryNote">{hint}</p> : null}
+            <p className="igStoryHint">توی استوری بذارش و برچسب لینک اینستاگرام رو با لینک صفحه‌ت روش بچسبون.</p>
+            <div className="igStoryButtons">
+              {canShareFile ? (
+                <button type="button" className="igStoryShare" disabled={!file} onClick={share}>
+                  <Share2 size={17} aria-hidden="true" />
+                  بفرست به اینستاگرام
+                </button>
+              ) : null}
+              <button type="button" className={canShareFile ? "igStorySave is-quiet" : "igStorySave"} disabled={!preview} onClick={save}>
+                <Download size={17} aria-hidden="true" />
+                ذخیره عکس
               </button>
-            );
-          })}
-        </div>
-        <div className="igStoryFrame">
-          {preview ? <img src={preview} alt={`استوری ${name}`} /> : failed ? <p className="igStoryFail">عکس ساخته نشد؛ دوباره بزن.</p> : <Spinner size={40} />}
-        </div>
-        {hint ? <p className="igStoryNote">{hint}</p> : null}
-        <p className="igStoryHint">توی استوری بذارش و برچسب لینک اینستاگرام رو با لینک صفحه‌ت روش بچسبون.</p>
-        <div className="igStoryButtons">
-          {canShareFile ? (
-            <button type="button" className="igStoryShare" disabled={!file} onClick={share}>
-              <Share2 size={17} aria-hidden="true" />
-              بفرست به اینستاگرام
+            </div>
+          </>
+        ) : (
+          <div className="igStoryButtons">
+            <button type="button" className="igStorySave" onClick={() => goTo(1)}>
+              <ChevronLeft size={17} aria-hidden="true" />
+              استوری‌هات رو ببین
             </button>
-          ) : null}
-          <button type="button" className={canShareFile ? "igStorySave is-quiet" : "igStorySave"} disabled={!preview} onClick={save}>
-            <Download size={17} aria-hidden="true" />
-            ذخیره عکس
-          </button>
-        </div>
+          </div>
+        )}
         <SheetClose onClick={onClose} />
       </article>
     </div>

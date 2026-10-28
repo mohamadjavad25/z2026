@@ -43,13 +43,15 @@
 /* The ready-story sheet */
 .igStoryCard { display: grid; justify-items: center; gap: 12px; }
 .igStoryTitle { margin: 0; color: var(--ink); font-size: 1.05rem; font-weight: 950; }
-.igStoryFrame { display: grid; place-items: center; width: min(62vw, 230px); aspect-ratio: 9 / 16; border-radius: 22px; overflow: hidden; background: var(--n-100); box-shadow: 0 14px 30px -14px rgb(var(--shadow-rgb) / 0.5); }
-.igStoryFrame img { width: 100%; height: 100%; object-fit: cover; }
+/* The big slider: one 9:16 slide per story, the first one explains the section; snaps to the middle. */
+.igStoryRail { display: flex; gap: 12px; width: 100%; padding-inline: 13%; box-sizing: border-box; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain; }
+.igStoryRail::-webkit-scrollbar { display: none; }
+.igStorySlide { flex: 0 0 100%; max-width: 330px; aspect-ratio: 9 / 16; display: grid; place-items: center; scroll-snap-align: center; border-radius: 22px; overflow: hidden; background: var(--n-100); box-shadow: 0 14px 30px -14px rgb(var(--shadow-rgb) / 0.5); }
+.igStorySlide img { width: 100%; height: 100%; object-fit: cover; }
+.igStoryDots { display: flex; gap: 8px; }
+.igStoryDots button { width: 8px; height: 8px; padding: 0; border: 0; border-radius: 4px; background: var(--n-300); cursor: pointer; transition: width 0.2s; }
+.igStoryDots button.is-on { width: 24px; background: var(--live-fill); }
 .igStoryFail { margin: 0; padding: 12px; color: var(--n-600); font-size: 0.8rem; text-align: center; }
-.igStoryTabs { display: flex; gap: 6px; width: 100%; padding: 4px; border-radius: 16px; background: var(--n-100); }
-.igStoryTabs button { flex: 1; min-height: 38px; border: 0; border-radius: 12px; background: transparent; color: var(--n-700); font: inherit; font-size: 0.8rem; font-weight: 850; cursor: pointer; }
-.igStoryTabs button.is-on { background: var(--surface-solid); color: var(--n-900); box-shadow: 0 4px 12px -6px rgb(var(--shadow-rgb) / 0.4); }
-.igStoryTabs button:disabled { opacity: 0.45; cursor: default; }
 .igStoryNote { margin: 0; color: var(--n-700); font-size: 0.78rem; font-weight: 850; text-align: center; }
 .igStoryHint { margin: 0; color: var(--n-600); font-size: 0.78rem; font-weight: 750; line-height: 1.7; text-align: center; }
 .igStoryButtons { display: grid; gap: 8px; width: 100%; }
