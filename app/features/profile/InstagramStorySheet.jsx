@@ -162,7 +162,7 @@ async function drawPortrait(ctx, name, url, avatar) {
     ctx.direction = "rtl";
     ctx.fillStyle = "rgba(255,255,255,0.92)";
     ctx.font = "900 640px Vazirmatn, Tahoma, sans-serif";
-    ctx.fillText((name || "ف").trim().slice(0, 1), W / 2, 1000);
+    ctx.fillText((name || "ف").trim().slice(0, 1), W / 2, 860);
   }
   const fade = ctx.createLinearGradient(0, H * 0.45, 0, H);
   fade.addColorStop(0, "rgba(12,13,18,0)");

@@ -98,6 +98,8 @@ const tab = (i) => async (p) => { await p.locator("nav.bottomNav > button").nth(
 const tap = (name, opts = {}) => async (p) => { await p.getByRole("button", { name, ...opts }).first().click({ timeout: 4000, force: true }); await p.waitForTimeout(900); };
 const text = (t) => async (p) => { await p.getByText(t, { exact: true }).first().click({ timeout: 4000 }); await p.waitForTimeout(900); };
 const css = (selector, hasText) => async (p) => { await p.locator(selector, hasText ? { hasText } : {}).first().click({ timeout: 4000 }); await p.waitForTimeout(900); };
+// A slide of «استوری آماده» by its dot; the picture is drawn when the slide is reached.
+const storySlide = (i) => async (p) => { await p.locator(".igStoryDots button").nth(i).click({ timeout: 4000 }); await p.waitForTimeout(3000); };
 const fill = (selector, value) => async (p) => { await p.locator(selector).fill(value, { timeout: 4000 }); };
 /** Two posts of نگار's (made once), so her card on سالن رز's page has pictures. */
 async function artistPosts({ sessions }) {
@@ -380,6 +382,11 @@ const SCREENS = [
   { id: "salon-instagram-saved", role: "salon", title: "تنظیمات، اینستاگرام ذخیره شد", setup: IG_NONE, steps: [tab(0), toInstagram, IG_OPEN, fill("#igSettingsInput", "https://www.instagram.com/salon.roz/?igsh=x1"), css(".igSettingsSave"), toInstagram] },
   { id: "salon-instagram-set", role: "salon", title: "تنظیمات، اینستاگرام گذاشته", setup: IG_SET, steps: [tab(0), toInstagram] },
   { id: "salon-instagram-open-set", role: "salon", title: "تنظیمات، اینستاگرام باز، پر", setup: IG_SET, steps: [tab(0), toInstagram, IG_OPEN, toBio] },
+  // «استوری آماده» slider (2026-10-28): the intro slide, then a design and the free slots of today and tomorrow
+  { id: "salon-story-intro", role: "salon", title: "استوری آماده، اسلاید معرفی", setup: IG_SET, steps: [tab(0), toInstagram, IG_OPEN, toBio, css(".igSettingsStory")] },
+  { id: "salon-story-portrait", role: "salon", title: "استوری آماده، پرتره", setup: IG_SET, steps: [tab(0), toInstagram, IG_OPEN, toBio, css(".igSettingsStory"), storySlide(1)] },
+  { id: "salon-story-free", role: "salon", title: "استوری آماده، نوبت خالی", setup: IG_SET, steps: [tab(0), toInstagram, IG_OPEN, toBio, css(".igSettingsStory"), storySlide(4)] },
+  { id: "artist-story-free", role: "artist", title: "استوری آماده آرتیست، نوبت خالی", setup: IG_SET, steps: [tab(0), toInstagram, IG_OPEN, toBio, css(".igSettingsStory"), storySlide(4)] },
   { id: "salon-instagram-copied", role: "salon", title: "تنظیمات، لینک بیو کپی شد", setup: IG_SET, clipboard: true, steps: [tab(0), toInstagram, IG_OPEN, toBio, css(".igSettingsCopy")] },
   { id: "salon-instagram-remove", role: "salon", title: "تنظیمات، برداشتن پیج اینستاگرام", setup: IG_SET, steps: [tab(0), toInstagram, css(".igSettings .profileLocationRowClear"), toInstagram] },
   { id: "salon-instagram-story", role: "salon", title: "استوری آماده", setup: IG_SET, steps: [tab(0), toInstagram, IG_OPEN, css(".igSettingsStory"), async (p) => { await p.waitForTimeout(1500); }] },
