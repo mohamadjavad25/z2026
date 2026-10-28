@@ -771,3 +771,86 @@ button.artistWorkTagTrigger > svg{
 .pePhoneStep > small { color: var(--n-600); font-size: 0.7rem; font-weight: 700; line-height: 1.7; }
 .pePhoneActions { display: flex; flex-wrap: wrap; gap: 8px; }
 .pePhoneProblem { margin: 0; color: var(--danger); font-size: 0.74rem; font-weight: 850; }
+
+/* ═══ Settings looks like its own place (user's request 2026-10-28) ═══════
+   The rest of the app is white (day) / ink (night). Settings gets a violet-tinted canvas,
+   a violet header, and cards that sit on it, so it never reads as one more screen of the
+   same pile. Settings are about your own account, so it is violet for every role. Only
+   brand tokens: the tint is the violet at low alpha over the ramp, so it flips at night. */
+.appShell:not(.is-auth-gate) .settingsPagePanel.page-settings {
+  --set-line: rgb(var(--brand-violet-rgb) / 0.2);
+  background-color: var(--n-50) !important;
+  background-image: linear-gradient(rgb(var(--brand-violet-rgb) / 0.13), rgb(var(--brand-violet-rgb) / 0.13)) !important;
+}
+
+.settingsPagePanel.page-settings .settingsPageBody { gap: 26px; }
+
+/* Header: a solid violet band, the one strong colour on the page. */
+.settingsPagePanel.page-settings .spHeader {
+  margin: -4px -4px 0;
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 18px;
+  background: var(--fill-strong);
+}
+.settingsPagePanel.page-settings .spHeaderTitle { color: var(--on-primary); font-size: 1.1rem; }
+.settingsPagePanel.page-settings .spHeaderRole {
+  background: rgb(var(--n-0-rgb) / 0.2);
+  color: var(--on-primary);
+}
+
+/* Section titles: bold violet with a small pink marker, so each group has a clear start. */
+.settingsPagePanel.page-settings .spSectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 2px 0;
+  color: var(--violet-deep);
+  font-size: 0.9rem;
+  font-weight: 950;
+  letter-spacing: 0;
+}
+.settingsPagePanel.page-settings .spSectionTitle::before {
+  content: "";
+  width: 5px;
+  height: 16px;
+  border-radius: 3px;
+  background: var(--brand-pink);
+}
+:root[data-theme="dark"] .settingsPagePanel.page-settings .spSectionTitle { color: var(--brand-violet); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .settingsPagePanel.page-settings .spSectionTitle { color: var(--brand-violet); }
+}
+
+/* Cards: sit on the canvas with a faint violet edge instead of a floating shadow. */
+.settingsPagePanel.page-settings .settingsPageBody .settingsRowCard,
+.settingsPagePanel.page-settings .settingsPageBody .brandCard,
+.settingsPagePanel.page-settings .settingsPageBody .neoSettingsPanel,
+.settingsPagePanel.page-settings .settingsPageBody .profileLocationRow {
+  border: 1px solid var(--set-line);
+  border-radius: 20px;
+  box-shadow: none;
+}
+.settingsPagePanel.page-settings .settingsPageBody .settingsRowCard > .profileLocationRow {
+  border: 0;
+  box-shadow: none;
+}
+/* Collapsible groups inside a card: no second border, just a thin divider. */
+.settingsPagePanel.page-settings .neoSettingsGroup {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.settingsPagePanel.page-settings .neoSettingsGroup + .neoSettingsGroup { border-top: 1px solid var(--set-line); }
+.settingsPagePanel.page-settings .neoSettingsPanel { gap: 0; overflow: hidden; }
+
+/* Row icons get the violet tint so rows read as one family. */
+.settingsPagePanel.page-settings .profileLocationRowIcon {
+  background: rgb(var(--brand-violet-rgb) / 0.16);
+  color: var(--violet-deep);
+}
+:root[data-theme="dark"] .settingsPagePanel.page-settings .profileLocationRowIcon { color: var(--brand-violet); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .settingsPagePanel.page-settings .profileLocationRowIcon { color: var(--brand-violet); }
+}
