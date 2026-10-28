@@ -118,7 +118,8 @@ describe("where an artist's clients are received (browser)", () => {
     const sp = salonView.page;
     await sp.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
     await tabOf(sp, "پرسنل").click();
-    await sp.getByRole("button", { name: /^مدیریت / }).first().click();
+    // The team tab's member card (a button named after the member) opens the member's sheet.
+    await sp.locator(".twCard").first().click();
     const toggle = sp.getByRole("switch", { name: "نوبت مستقیم توی سالن" });
     await toggle.waitFor();
     expect(await toggle.getAttribute("aria-checked")).toBe("true");
