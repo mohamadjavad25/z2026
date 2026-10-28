@@ -23,19 +23,16 @@ async function openExploreTab(page) {
   await page.getByRole("tab", { name: "پیدا کردن" }).click();
 }
 
-// While APP_DOWNLOADS_OPEN is off (features/landing/constants.js): phones open the app at "/" and
-// at /download, and nothing links to the APK.
-describe("phones go straight to the app while downloads are closed (browser)", () => {
-  it("opens the app at / and at /download for a first-time phone visitor, with «به‌زودی» instead of a download link", async () => {
+// While APP_DOWNLOADS_OPEN is on (features/landing/constants.js): a first-time phone visitor sees the
+// about page at "/" first, with the app's download links, and «اپلیکیشن و وبلاگ» is never shown.
+describe("first-time phone visitor sees the about page while downloads are open (browser)", () => {
+  it("shows the about page at / before the app, with no «به‌زودی» text and /download stays on /download", async () => {
     const { page, context, problems } = await newPage({ entered: false });
     await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
-    expect(await page.locator(".landingSlot .appLanding").isVisible()).toBe(false);
-    expect(await page.locator(".pageSlot").isVisible()).toBe(true);
-    await page.getByText("به‌زودی: اپلیکیشن و وبلاگ فرفرو").waitFor();
-    expect(await page.locator(".pageSlot a[href^='/download']").count()).toBe(0);
+    expect(await page.locator(".landingSlot .appLanding").isVisible()).toBe(true);
+    expect(await page.getByText("به‌زودی: اپلیکیشن و وبلاگ فرفرو").count()).toBe(0);
     await page.goto(`${TEST_BASE_URL}/download`, { waitUntil: "networkidle" });
-    expect(new URL(page.url()).pathname).toBe("/");
-    expect(await page.locator(".pageSlot").isVisible()).toBe(true);
+    expect(new URL(page.url()).pathname).toBe("/download");
     expect(problems).toEqual([]);
     await context.close();
   });

@@ -4,7 +4,7 @@
  * instead, phones go straight to the app at "/" (no about page first), and /download on a phone
  * opens the app. The about page still shows on tablets and desktops. Turn on to bring it all back.
  */
-export const APP_DOWNLOADS_OPEN = false;
+export const APP_DOWNLOADS_OPEN = true;
 
 /** Where the Android app is downloaded from. The APK is built from mobile/ (see mobile/README.md). */
 export const ANDROID_APK_URL = "/download/frfro.apk";
