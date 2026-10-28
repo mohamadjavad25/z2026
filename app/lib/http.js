@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireUser as requireUserCore } from "./auth.js";
 import { logger } from "./logger.js";
+import { alertAdminsServerError } from "./serverErrorAlert.js";
 
 export function json(data, init) {
   const headers = new Headers(init?.headers || {});
@@ -123,6 +124,7 @@ export function withErrorHandling(handler) {
         method: request?.method,
         url: request?.url
       });
+      alertAdminsServerError();
       return error("یه مشکلی پیش اومد؛ چند لحظه دیگه دوباره بزن.", 500);
     }
   };
