@@ -16,7 +16,7 @@ const BIO_COPIED = "کپی شد. حالا بذارش تو بیو اینستاگ�
  * 9:16 picture with a QR, InstagramStorySheet). The saved page shows on the public page as the Instagram folder
  * (components/InstagramFolder: on the cover and after the works for a salon, a row under the hours for an artist). onSave(name) resolves to { ok, error }; "" removes the page.
  */
-export function ProfileInstagramSettings({ profileType, profileId, name = "", value = "", saving = false, onSave, onNotify }) {
+export function ProfileInstagramSettings({ profileType, profileId, name = "", avatar = "", value = "", saving = false, onSave, onNotify }) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState(value ? `@${value}` : "");
   const [error, setError] = useState("");
@@ -149,7 +149,7 @@ export function ProfileInstagramSettings({ profileType, profileId, name = "", va
         </div>
       </ProfileSheet>
 
-      <InstagramStorySheet open={storyOpen} name={name} url={publicUrl} onClose={() => setStoryOpen(false)} onNotify={onNotify} />
+      <InstagramStorySheet open={storyOpen} name={name} avatar={avatar} url={publicUrl} onClose={() => setStoryOpen(false)} onNotify={onNotify} />
     </section>
   );
 }

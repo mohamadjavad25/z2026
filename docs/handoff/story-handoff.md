@@ -30,3 +30,9 @@ Owner's words: stories are the biggest door to fill the app. Give salons and art
 
 ## Earlier work in the previous session (context, not the task)
 Sales pitch pages and an Instagram Reels plan were made as Artifacts (not in the repo). Owner was unhappy with the Instagram plan output: it was text only, no real pictures or video. Quality needs real assets: real screenshots/screen recordings of the app (Playwright can record), brand art, big readable text, 8 to 15 second reels, hook in the first 2 seconds. Importing old bookings is impossible; a salon can invite its customers by QR, a ready message and scanning a client's code. Automatic SMS from frfro to a list of numbers is not built.
+
+## Progress (session 3, 2026-10-28)
+- Built the portrait («پرتره») and portfolio («نمونه‌کار») designs in `InstagramStorySheet.jsx`, with the tab row. Portrait uses the profile photo (or the first letter on a pink-violet ground, with «عکس بذار تا قشنگ‌تر بشه»). Portfolio uses the three newest public works with pictures and is off until there are three («حداقل ۳ عکس تو نمونه‌کار بذار»).
+- The sheet gets `avatar` from `SettingsPage.jsx` (not from the default avatar). Works load with `getPosts()` when the sheet opens.
+- Not built yet: free slots («نوبت خالی») is waiting for the owner's answer, because it reads the booking calendar (CLAUDE.md «Ask before building»). Stickers and big type stay for later. The mascot images are not generated yet (credit to confirm).
+- Not verified in a browser yet: the canvas drawing needs the running app and database. Check the three tabs on the Vercel preview before merging.

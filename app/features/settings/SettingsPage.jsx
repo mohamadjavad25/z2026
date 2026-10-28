@@ -360,6 +360,7 @@ export function SettingsPage({
                 profileType={profile?.type}
                 profileId={profile?.id}
                 name={profile?.data?.name || ""}
+                avatar={isDefaultAvatar(accountAvatar) ? "" : accountAvatar}
                 value={profile?.data?.instagram || ""}
                 saving={instagramSaving}
                 onSave={onSaveInstagram}
