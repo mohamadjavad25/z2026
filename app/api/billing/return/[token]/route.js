@@ -25,6 +25,7 @@ async function _GET(request, { params }) {
         id: current.id,
         status: current.status,
         title: current.title,
+        kind: current.kind,
         amountToman: current.amountToman,
         receiptNo: current.receiptNo,
         refId: current.refId,

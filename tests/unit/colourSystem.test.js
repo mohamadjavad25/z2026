@@ -16,7 +16,7 @@ function files(dir, out = []) {
   return out;
 }
 
-const all = files("app");
+const all = files("app").map((file) => file.replaceAll("\\", "/")); // forward slashes on Windows too
 const isAdmin = (file) => /(^|\/)admin/.test(file.replace(/^app\//, "")) || /\/admin[-\w]*\.css$/.test(file);
 const tokens = readFileSync("app/styles/tokens.css", "utf8");
 

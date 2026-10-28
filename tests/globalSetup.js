@@ -87,10 +87,13 @@ export async function setup() {
   fakeStorage = await startFakeStorage(FAKE_STORAGE_PORT);
   process.env.TEST_POSTGRES_URL = connectionString;
   process.env.TEST_STORAGE_URL = fakeStorage.url;
-  serverProcess = spawn("npx", ["next", "start", "-p", String(TEST_PORT)], {
+  const isWindows = process.platform === "win32";
+  serverProcess = spawn(isWindows ? "npx.cmd" : "npx", ["next", "start", "-p", String(TEST_PORT)], {
     env: { ...process.env, ...(process.env.TEST_STORAGE === "off" ? {} : { SUPABASE_URL: fakeStorage.url, SUPABASE_SERVICE_ROLE_KEY: "test-service-role-key" }), POSTGRES_URL: connectionString, NODE_ENV: "production", CRON_SECRET: TEST_CRON_SECRET, FRFRO_ADMIN_PHONES: [TEST_ADMIN_PHONE, TEST_ADMIN2_PHONE, TEST_ADMIN3_PHONE, TEST_ADMIN4_PHONE, TEST_ADMIN5_PHONE, TEST_ADMIN6_PHONE, TEST_ADMIN7_PHONE].join(","), FRFRO_ADMIN_SECRET: TEST_ADMIN_SECRET, FRFRO_ADMIN_SETUP_KEY: TEST_ADMIN_SETUP_KEY, FRFRO_SMS_PROVIDER: "test", FRFRO_OTP_REQUIRED: "0", FRFRO_REMINDER_TEST_CLOCK: "1", FRFRO_PAYMENT_GATEWAY: "sandbox" },
     stdio: ["ignore", "pipe", "pipe"],
-    detached: true
+    // Windows has no process groups to signal: npx.cmd needs a shell, and teardown kills the tree with taskkill.
+    shell: isWindows,
+    detached: !isWindows
   });
   let serverOutput = "";
   serverProcess.stdout.on("data", (chunk) => { serverOutput += chunk.toString(); });
@@ -132,8 +135,10 @@ export async function teardown() {
       // Negative pid targets the whole detached process group (the
       // `next start` process and anything it forked), not just the direct
       // child -- a plain serverProcess.kill() only signals the direct
-      // child and left orphaned next-server processes behind.
-      process.kill(-serverProcess.pid, "SIGTERM");
+      // child and left orphaned next-server processes behind. Windows has
+      // no process groups: taskkill /T takes the whole tree.
+      if (process.platform === "win32") execSync(`taskkill /pid ${serverProcess.pid} /T /F`, { stdio: "ignore" });
+      else process.kill(-serverProcess.pid, "SIGTERM");
     } catch {
       // already exited
     }

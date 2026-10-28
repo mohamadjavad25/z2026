@@ -4,6 +4,8 @@ import { Spinner } from "../../components/Spinner";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CircleCheck, CircleX, RefreshCw } from "lucide-react";
 import { Button } from "../../components/ui";
+import { Mascot } from "../../components/Mascot";
+import { toPersianDigits } from "../../shared/lib/digits";
 import { ProfileSheet } from "../profile/ProfileSheet";
 import { getBillingPayment } from "../../shared/api/billing";
 import { formatPersianLongDate } from "../../shared/lib/billingFormat";
@@ -17,7 +19,7 @@ const POLL_LIMIT = 40; // about two minutes
  * The result of one payment, back in the app. A payment still being checked is asked about every few seconds (the
  * server asks the gateway); after about two minutes the page stops asking on its own and offers a button instead.
  */
-export function PaymentResultSheet({ open, paymentId, onClose, onRetry }) {
+export function PaymentResultSheet({ open, paymentId, onClose, onRetry, onRetryPack }) {
   // onRetry reopens the same plans: for the same team artist when the salon was paying for one.
   const [payment, setPayment] = useState(null);
   const [error, setError] = useState("");
@@ -75,8 +77,9 @@ export function PaymentResultSheet({ open, paymentId, onClose, onRetry }) {
   }
 
   const status = payment?.status || "loading";
+  const pack = payment?.kind === "sms_pack";
   return (
-    <ProfileSheet open={open} kicker="اشتراک" title="نتیجهٔ پرداخت" label="نتیجهٔ پرداخت اشتراک" panelClassName="billSheet" onClose={onClose}>
+    <ProfileSheet open={open} kicker={pack ? "پیامک" : "اشتراک"} title="نتیجهٔ پرداخت" label="نتیجهٔ پرداخت اشتراک" panelClassName="billSheet" onClose={onClose}>
       {error && !payment ? (
         <div className="billResult is-bad">
           <span className="billResultIcon"><CircleX size={30} aria-hidden="true" /></span>
@@ -99,7 +102,7 @@ export function PaymentResultSheet({ open, paymentId, onClose, onRetry }) {
           <b>{waitedOut ? "بانک هنوز جواب نداده" : "دارم پرداخت رو چک می‌کنم…"}</b>
           <p>
             {waitedOut
-              ? "اگه پرداخت رو کامل کردی و پولی کم شده، نگران نباش: همین که بانک تأیید کنه، اشتراکت خودش فعال می‌شه. اگه نیمه‌کاره ولش کردی، این صفحه رو ببند؛ چیزی از حسابت کم نشده."
+              ? `اگه پرداخت رو کامل کردی و پولی کم شده، نگران نباش: همین که بانک تأیید کنه، ${pack ? "بسته‌ت خودش اضافه می‌شه" : "اشتراکت خودش فعال می‌شه"}. اگه نیمه‌کاره ولش کردی، این صفحه رو ببند؛ چیزی از حسابت کم نشده.`
               : "چند ثانیه صبر کن؛ داریم از بانک می‌پرسیم. اگه پرداخت رو کامل نکردی، می‌تونی این صفحه رو ببندی."}
           </p>
           {waitedOut ? <Button variant="secondary" icon={RefreshCw} onClick={checkAgain}>دوباره چک کن</Button> : null}
@@ -110,8 +113,13 @@ export function PaymentResultSheet({ open, paymentId, onClose, onRetry }) {
         <>
           <div className="billResult is-ok" role="status">
             <span className="billResultIcon"><CircleCheck size={30} aria-hidden="true" /></span>
-            <b>{payment.paidFor ? `اشتراک ${payment.paidFor} فعال شد` : "اشتراکت فعال شد"}</b>
-            <p>تا {formatPersianLongDate(payment.periodEnd)}. رسیدش توی «پرداخت‌هام» هم هست.</p>
+            {pack ? <Mascot pose="done" size={84} className="smsMascot" /> : null}
+            <b>{pack ? "پیامک‌هات رسید" : payment.paidFor ? `اشتراک ${payment.paidFor} فعال شد` : "اشتراکت فعال شد"}</b>
+            <p>
+              {pack
+                ? `${toPersianDigits(payment.smsCredits)} پیامک به حسابت اضافه شد و تا مصرف نکنی می‌مونه. رسیدش توی «پرداخت‌هام» هم هست.`
+                : `تا ${formatPersianLongDate(payment.periodEnd)}. رسیدش توی «پرداخت‌هام» هم هست.`}
+            </p>
           </div>
           <ReceiptDetails payment={payment} />
           <div className="billSheetActions">
@@ -130,7 +138,7 @@ export function PaymentResultSheet({ open, paymentId, onClose, onRetry }) {
           </div>
           <div className="billSheetActions">
             <Button variant="secondary" onClick={onClose}>بستن</Button>
-            <Button onClick={() => onRetry(payment.paidForUserId || null)}>دوباره بزن</Button>
+            <Button onClick={() => (pack ? onRetryPack() : onRetry(payment.paidForUserId || null))}>دوباره بزن</Button>
           </div>
         </>
       ) : null}

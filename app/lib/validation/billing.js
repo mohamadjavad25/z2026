@@ -1,11 +1,17 @@
 import { z } from "zod";
-import { PLANS } from "../billing/plans.js";
+import { PLANS, SMS_PACKS } from "../billing/plans.js";
 
-/** POST /api/billing/checkout. forUserId: a salon paying for an artist on its team (optional). */
+/**
+ * POST /api/billing/checkout: either { plan, forUserId? } (a subscription; forUserId is a salon paying for an artist on
+ * its team) or { pack } (an SMS pack, always for the signed-in account's own wallet).
+ */
 export const checkoutSchema = z.object({
-  plan: z.enum(PLANS.map((plan) => plan.id), { message: "یه پلن انتخاب کن." }),
+  plan: z.enum(PLANS.map((plan) => plan.id), { message: "یه پلن انتخاب کن." }).optional(),
+  pack: z.enum(SMS_PACKS.map((pack) => pack.id), { message: "یه بسته انتخاب کن." }).optional(),
   forUserId: z.number().int().positive("یه آرتیست انتخاب کن.").optional()
-});
+})
+  .refine((body) => Boolean(body.plan) !== Boolean(body.pack), { message: "یه پلن یا یه بسته انتخاب کن.", path: ["plan"] })
+  .refine((body) => !(body.pack && body.forUserId), { message: "بسته‌ی پیامک فقط برای حساب خودته.", path: ["pack"] });
 
 /** PUT /api/admin/billing/settings */
 export const billingSettingsSchema = z.object({

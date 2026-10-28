@@ -94,6 +94,12 @@ function SetupCard({ data, onSaved }) {
             </div>
           ))}
         </div>
+        <h3>بسته‌های پیامک • ماهی {num(data.smsIncluded)} پیامک داخل اشتراک</h3>
+        <ul className="admFacts">
+          {(data.smsPacks || []).map((pack) => (
+            <li key={pack.id}><span>{pack.title}</span><b>{toman(pack.amountToman)}</b></li>
+          ))}
+        </ul>
         <p className="admMuted">دوره‌ی رایگان {num(data.trialDays)} روز. قیمت‌ها در <span dir="ltr">app/lib/billing/plans.js</span> تعریف شده‌اند؛ تغییرشان فقط روی پرداخت‌های بعدی اثر دارد.</p>
         <h3><MessageSquareText size={15} aria-hidden="true" /> پیامک‌ها {sms.provider ? <span className="admMuted">({sms.provider})</span> : <span className="admMuted">(پیامک وصل نیست)</span>}</h3>
         <ul className="admFacts">
@@ -152,8 +158,10 @@ function PaymentDetail({ id, onGo, onSelect, onChanged }) {
 
       <div className="admWhen">
         <div><small>مبلغ</small><b>{payment.amountToman ? toman(payment.amountToman) : "هدیه"}</b></div>
-        <div><small>مدت</small><b>{num(payment.days)} روز</b></div>
-        <div><small>اعتبار تا</small><b>{payment.periodEnd ? fmtDay(payment.periodEnd) : "—"}</b></div>
+        {payment.kind === "sms_pack"
+          ? <div><small>پیامک</small><b>{num(payment.smsCredits)} تا</b></div>
+          : <div><small>مدت</small><b>{num(payment.days)} روز</b></div>}
+        {payment.kind === "sms_pack" ? null : <div><small>اعتبار تا</small><b>{payment.periodEnd ? fmtDay(payment.periodEnd) : "—"}</b></div>}
       </div>
 
       <div className="admPerson">
@@ -186,7 +194,7 @@ function PaymentDetail({ id, onGo, onSelect, onChanged }) {
         {payment.failure ? <li><span>دلیل ناموفق</span><b>{payment.failure}</b></li> : null}
         {payment.source === "gateway" ? <li><span>پرسش از درگاه</span><b>{num(payment.verifyAttempts)} بار{payment.lastVerifyAt ? ` • آخرین ${ago(payment.lastVerifyAt)}` : ""}</b></li> : null}
         {payment.detail ? <li><span>پاسخ فنی درگاه</span><b dir="ltr">{payment.detail}</b></li> : null}
-        {payment.refundedAt ? <li><span>بازپرداخت</span><b>{toman(payment.refundToman)} • {num(payment.refundDays)} روز کم شد • {fmtDate(payment.refundedAt)}</b></li> : null}
+        {payment.refundedAt ? <li><span>بازپرداخت</span><b>{toman(payment.refundToman)} • {payment.kind === "sms_pack" ? "پیامک‌های مصرف‌نشده کم شد" : `${num(payment.refundDays)} روز کم شد`} • {fmtDate(payment.refundedAt)}</b></li> : null}
         {payment.refundedAt ? <li><span>دلیل بازپرداخت</span><b>{payment.refundNote || "—"} <small className="admMuted" dir="ltr">{payment.refundAdmin}</small></b></li> : null}
       </ul>
 
@@ -318,7 +326,7 @@ export function PaymentsTab({ intent = {}, onGo, setParam, onChanged }) {
       <SetupCard data={data} onSaved={() => { reload(); onChanged?.(); }} />
       <div className="admGrid admBillStats">
         <Stat label="درآمد ۲۴ ساعت" value={toman(stats.revenue.dayToman)} hint={`${num(stats.revenue.dayCount)} پرداخت`} />
-        <Stat label="درآمد ۳۰ روز" value={toman(stats.revenue.monthToman)} hint={`${num(stats.revenue.monthCount)} پرداخت • کل ${toman(stats.revenue.allToman)}`} />
+        <Stat label="درآمد ۳۰ روز (اشتراک و پیامک)" value={toman(stats.revenue.monthToman)} hint={`${num(stats.revenue.monthCount)} پرداخت • کل ${toman(stats.revenue.allToman)}`} />
         <Stat label="اشتراک فعال" value={num(stats.accounts.active)} hint={`${num(stats.accounts.trial)} در دوره‌ی رایگان`} />
         <Stat label="نیاز به تمدید" value={num(stats.accounts.grace + stats.accounts.expired)} hint={`${num(stats.accounts.grace)} در مهلت • ${num(stats.accounts.expired)} غیرفعال`} bad={stats.accounts.expired > 0 && data.settings.enabled} />
       </div>

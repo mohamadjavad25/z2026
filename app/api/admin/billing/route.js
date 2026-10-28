@@ -4,7 +4,7 @@ import { requireAdmin } from "../../../lib/admin.js";
 import * as billing from "../../../lib/db/repos/billing.js";
 import { gatewayStatus } from "../../../lib/payments/index.js";
 import { presentPayment } from "../../../lib/billing/service.js";
-import { PLANS, TRIAL_DAYS, rialToToman } from "../../../lib/billing/plans.js";
+import { PLANS, SMS_INCLUDED_PER_MONTH, SMS_PACKS, TRIAL_DAYS, rialToToman } from "../../../lib/billing/plans.js";
 import { SMS_TEMPLATES } from "../../../lib/smsTemplates.js";
 import { smsProviderName, templateConfigured } from "../../../lib/sms.js";
 
@@ -36,12 +36,14 @@ async function _GET(request) {
     data: {
       settings,
       trialDays: TRIAL_DAYS,
+      smsIncluded: SMS_INCLUDED_PER_MONTH,
       gateway: gatewayStatus(),
       sms: {
         provider: smsProviderName(),
         templates: Object.entries(SMS_TEMPLATES).map(([key, template]) => ({ key, label: template.label, env: template.env, configured: templateConfigured(key) }))
       },
       plans: PLANS.map((plan) => ({ id: plan.id, role: plan.role, title: plan.title, days: plan.days, amountToman: rialToToman(plan.amountRial) })),
+      smsPacks: SMS_PACKS.map((pack) => ({ id: pack.id, title: pack.title, credits: pack.credits, amountToman: rialToToman(pack.amountRial) })),
       stats,
       payments: list.rows.map((row) => presentPayment(row, { admin: true })),
       total: list.total,

@@ -132,7 +132,7 @@ export function receiptText(payment) {
   const lines = [
     "رسید پرداخت فرفرو",
     payment.receiptNo ? `شمارهٔ رسید: ${payment.receiptNo}` : "",
-    `پلن: ${payment.title}`,
+    `${payment.kind === "sms_pack" ? "بسته" : "پلن"}: ${payment.title}`,
     payment.paidFor ? `برای: ${payment.paidFor}` : "",
     payment.paidBy ? `پرداخت توسط: ${payment.paidBy}` : "",
     `مبلغ: ${toPersianDigits(Number(payment.amountToman || 0).toLocaleString("en-US").replace(/,/g, "٬"))} تومان`,
@@ -141,4 +141,36 @@ export function receiptText(payment) {
     payment.periodEnd ? `اعتبار تا: ${formatPersianLongDate(payment.periodEnd)}` : ""
   ];
   return lines.filter(Boolean).join("\n");
+}
+
+/** One bubble stands for this many SMS of the monthly allowance (20 bubbles = 200 SMS). */
+export const SMS_PER_BUBBLE = 10;
+
+/**
+ * «پیامک مشتری‌هات» in Settings (owner's design of 2026-10-28: bubbles). `overview.sms` has what is left; this turns it
+ * into the words, the number of filled bubbles and the mascot. Null while billing is not shown at all.
+ */
+export function smsView(overview) {
+  // Only while subscriptions are really on: before that nothing is counted, so a card would show a made-up number.
+  const sms = overview?.visible && overview.enforced ? overview.sms : null;
+  if (!sms) return null;
+  const bubbleCount = Math.max(1, Math.round(sms.included / SMS_PER_BUBBLE));
+  const filled = Math.min(bubbleCount, Math.ceil(sms.includedLeft / SMS_PER_BUBBLE));
+  const hasPacks = sms.packCredits > 0;
+  const included = toPersianDigits(sms.included);
+  let sub = `هر ماه ${included} پیامک داخل پلنته و اول ماه دوباره پر می‌شه.`;
+  if (sms.state === "empty") sub = "پیامکت تموم شده. یادآوری نوبت برای مشتری‌هات نمی‌ره، ولی تأیید و لغو نوبت همچنان می‌رسه. یه بسته بخر یا اول ماه دوباره پر می‌شه.";
+  else if (sms.state === "low") sub = "کم مونده. اگه تموم بشه، یادآوری نوبت برای مشتری‌هات نمی‌ره.";
+  else if (hasPacks) sub = `از ${included} تای این ماه ${toPersianDigits(sms.includedLeft)} تا مونده، به‌علاوه ${toPersianDigits(sms.packCredits)} تا از بسته‌هات که تموم نمی‌شن.`;
+  const ready = Boolean(overview.checkoutReady);
+  return {
+    state: sms.state,
+    left: sms.left,
+    bubbleCount,
+    filled,
+    packCredits: sms.packCredits,
+    sub,
+    pose: sms.state === "empty" ? "lost" : "done",
+    action: { label: ready ? "بسته‌ی پیامک بخر" : "به‌زودی", disabled: !ready, emphasis: sms.state === "ok" ? "secondary" : "primary" }
+  };
 }

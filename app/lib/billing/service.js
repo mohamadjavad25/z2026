@@ -2,8 +2,9 @@ import { after } from "next/server";
 import * as billing from "../db/repos/billing.js";
 import { getDb, all } from "../db/connection.js";
 import { activeGateway, gatewayById, gatewayLabel } from "../payments/index.js";
-import { BEST_MONTHS, PRESELECTED_MONTHS, TRIAL_DAYS, getPlan, plansFor, rialToToman } from "./plans.js";
+import { BEST_MONTHS, PRESELECTED_MONTHS, TRIAL_DAYS, getPlan, getSmsPack, plansFor, rialToToman } from "./plans.js";
 import { nextPeriod, refundQuote } from "./period.js";
+import { smsSummary } from "./smsCredits.js";
 import { reminderKind, reminderMessage } from "./reminders.js";
 import { pushReachedApp, sendPushToUser } from "../push.js";
 import { sendTemplateSms, smsProviderName } from "../sms.js";
@@ -53,6 +54,8 @@ export function presentPayment(row, { admin = false, viewerId = null } = {}) {
     source: row.source,
     plan: row.plan,
     title: row.plan_title,
+    kind: row.kind || "plan",
+    smsCredits: Number(row.sms_credits || 0),
     days: row.days,
     amountToman: rialToToman(row.amount_rial),
     refId: row.ref_id || "",
@@ -92,7 +95,9 @@ export function presentPayment(row, { admin = false, viewerId = null } = {}) {
     refundAdmin: row.refund_admin || "",
     // What a refund would come to today (terms, section 4); the admin dialog starts from it.
     refundQuote: row.status === "paid" && !row.refunded_at && Number(row.amount_rial) > 0
-      ? (({ days, amountRial }) => ({ days, amountToman: rialToToman(amountRial) }))(refundQuote({ amountRial: Number(row.amount_rial), days: row.days, periodStart: row.period_start, periodEnd: row.period_end }))
+      ? row.kind === "sms_pack"
+        ? { days: 0, amountToman: rialToToman(row.amount_rial) }
+        : (({ days, amountRial }) => ({ days, amountToman: rialToToman(amountRial) }))(refundQuote({ amountRial: Number(row.amount_rial), days: row.days, periodStart: row.period_start, periodEnd: row.period_end }))
       : null,
     updatedAt: row.updated_at
   };
@@ -142,7 +147,7 @@ export async function billingOverview(user, now = new Date()) {
   const gateway = activeGateway();
   const [history, pending] = await Promise.all([billing.listUserPayments(user.id, 20), billing.latestPendingPayment(user.id)]);
   // The account's own subscription: a receipt a salon holds for an artist's plan is not the salon's last payment.
-  const lastPaid = history.find((row) => row.status === "paid" && Number(row.user_id) === Number(user.id)) || null;
+  const lastPaid = history.find((row) => row.status === "paid" && row.kind !== "sms_pack" && Number(row.user_id) === Number(user.id)) || null;
   const { settings, access } = state;
   const team = user.type === "salon"
     ? (await billing.listTeamArtists(user.id, now)).map((artist) => ({
@@ -165,6 +170,7 @@ export async function billingOverview(user, now = new Date()) {
     account: presentAccount(state),
     plans: plansWithDates(user.type, access.accessEndsAt, now),
     team,
+    sms: await smsSummary(user.id, now),
     pending: presentPayment(pending, { viewerId: user.id }),
     lastPayment: presentPayment(lastPaid, { viewerId: user.id })
   };
@@ -206,11 +212,29 @@ export async function startCheckout({ user, planId, origin, forUserId = null }) 
   if (!settings.enabled || !gateway) return fail(409, "خرید اشتراک هنوز باز نشده.", "BILLING_OFF");
 
   const payment = await billing.createPayment({ user: account, plan, gateway: gateway.id, payer });
-  const callbackUrl = `${origin}/api/billing/callback/${gateway.id}?pid=${payment.id}`;
   const description = payer ? `${plan.title} برای ${String(account.name || "").slice(0, 40)} در فرفرو` : `${plan.title} در فرفرو`;
+  return beginGateway({ payment, gateway, origin, description, mobile: user.phone });
+}
+
+/**
+ * Creates a pending payment for an SMS pack (always for the signed-in account's own wallet) and sends the payer to the
+ * gateway. Same rules as a plan: the amount comes from the pack on the server, and paid means only what verify() says.
+ */
+export async function startPackCheckout({ user, packId, origin }) {
+  const pack = getSmsPack(packId);
+  if (!pack) return fail(400, "این بسته پیدا نشد.", "BAD_PACK");
+  const [settings, gateway] = [await billing.getBillingSettings(), activeGateway()];
+  if (!settings.enabled || !gateway) return fail(409, "خرید بسته‌ی پیامک هنوز باز نشده.", "BILLING_OFF");
+  const payment = await billing.createPackPayment({ user, pack, gateway: gateway.id });
+  return beginGateway({ payment, gateway, origin, description: `${pack.title} در فرفرو`, mobile: user.phone });
+}
+
+/** Asks the gateway to start `payment` and saves its token; shared by plans and packs. */
+async function beginGateway({ payment, gateway, origin, description, mobile }) {
+  const callbackUrl = `${origin}/api/billing/callback/${gateway.id}?pid=${payment.id}`;
   let started;
   try {
-    started = await gateway.request({ payment, callbackUrl, description, mobile: user.phone, origin });
+    started = await gateway.request({ payment, callbackUrl, description, mobile, origin });
   } catch (error) {
     started = { ok: false, detail: String(error?.message || error) };
   }
@@ -311,7 +335,8 @@ export async function notifyPaid(payment) {
   const amount = formatTomanNumber(rialToToman(payment.amount_rial));
   const receipt = payment.receipt_no || "";
   const test = payment.gateway === "sandbox" ? " (آزمایشی)" : "";
-  const until = formatPersianLongDate(payment.period_end);
+  const pack = payment.kind === "sms_pack";
+  const until = pack ? "" : formatPersianLongDate(payment.period_end);
   const tasks = [];
   let receiptPhone = payment.user_phone;
   let receiptPush = null;
@@ -336,14 +361,17 @@ export async function notifyPaid(payment) {
     }
   } else if (payment.user_id) {
     receiptPush = sendPushToUser(payment.user_id, {
-      title: "اشتراکت فعال شد",
-      body: `${payment.plan_title}${test}، تا ${until}. شمارهٔ رسید ${receipt}.`,
+      title: pack ? "پیامک‌هات رسید" : "اشتراکت فعال شد",
+      body: pack
+        ? `${payment.plan_title}${test} به حسابت اضافه شد. شمارهٔ رسید ${receipt}.`
+        : `${payment.plan_title}${test}، تا ${until}. شمارهٔ رسید ${receipt}.`,
       url: `/?billing=${payment.id}`
     });
     tasks.push(receiptPush);
   }
-  // The receipt SMS is skipped when the push reached the payer's Android app (the receipt is also in the app).
-  if (receiptPhone && smsAllowedFor(payment) && !(await pushReachedApp(receiptPush))) {
+  // The receipt SMS is skipped when the push reached the payer's Android app (the receipt is also in the app). A pack's
+  // receipt is the push and the receipt page only: a text for every pack would eat the very SMS the pack was bought for.
+  if (!pack && receiptPhone && smsAllowedFor(payment) && !(await pushReachedApp(receiptPush))) {
     tasks.push(sendTemplateSms(receiptPhone, "billing_receipt", { receipt, amount, until: formatPersianShortDate(payment.period_end) }));
   }
   const account = `${payment.user_type === "salon" ? "سالن" : "آرتیست"} ${payment.user_name || ""}`.trim();

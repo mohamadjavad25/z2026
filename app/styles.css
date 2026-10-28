@@ -16,6 +16,7 @@
 @import "./styles/features/explore.css";
 @import "./styles/features/settings.css";
 @import "./styles/features/billing.css";
+@import "./styles/features/smsPack.css";
 @import "./styles/features/artist.css";
 @import "./styles/features/salon.css";
 @import "./styles/features/client.css";

@@ -31,6 +31,12 @@ export function trialEndsAt({ createdAt, launchedAt, trialDays }) {
   return new Date(Math.max(created, launched) + days * DAY_MS);
 }
 
+/** "1405-08": the Persian year and month in Tehran, the unit the monthly SMS allowance restarts on (smsCredits.js). */
+export function smsMonthKey(now = new Date()) {
+  const { year, month } = getPersianDateParts(now);
+  return `${year}-${String(month).padStart(2, "0")}`;
+}
+
 /** Whole days left until `end`, counting a started day as a day ("12 hours left" is 1 day). Never negative. */
 export function daysUntil(end, now) {
   const left = toMs(end) - toMs(now);

@@ -1,0 +1,46 @@
+/* «پیامک مشتری‌هات» (features/billing/SmsPackCard.jsx), the bubbles card under the subscription card in Settings
+   (owner's design of 2026-10-28). Tokens only, so day and night follow the theme and salons and artists get their violet
+   accent through --accent. One bubble is ten SMS: filled ones are what is left this month. */
+.smsCard {
+  position: relative;
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-xl);
+  background: var(--surface-solid);
+  box-shadow: inset 0 0 0 1px var(--line), var(--shadow-xs);
+}
+.smsCard.is-low { background: linear-gradient(var(--warning-bg), var(--warning-bg)), var(--surface-solid); box-shadow: inset 0 0 0 1px rgb(var(--warning-rgb) / 0.34); }
+.smsCard.is-empty { background: linear-gradient(rgb(var(--brand-pink-rgb) / 0.12), rgb(var(--brand-pink-rgb) / 0.12)), var(--surface-solid); box-shadow: inset 0 0 0 1px rgb(var(--brand-pink-rgb) / 0.5); }
+
+.smsHead { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.smsMain { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--space-3); min-height: 84px; }
+.smsBig { display: grid; gap: 2px; }
+.smsBig b {
+  font-size: 3.4rem;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  background: var(--brand-blend-deep);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.smsBig span { color: var(--muted); font-size: var(--text-base); font-weight: 800; }
+.smsMascot { margin-top: -30px; margin-inline-end: -6px; filter: drop-shadow(0 8px 10px rgb(var(--shadow-rgb) / 0.22)); pointer-events: none; }
+
+.smsBubbles { display: grid; grid-template-columns: repeat(10, 1fr); gap: 6px; }
+.smsBubbles span {
+  aspect-ratio: 1.25;
+  border: 1.5px solid var(--line);
+  border-radius: 9px;
+  border-end-start-radius: 2px;
+  background: transparent;
+  transition: background var(--duration-base) var(--ease-standard), border-color var(--duration-base) var(--ease-standard);
+}
+.smsBubbles span.is-on { border-color: transparent; background: var(--brand-blend); }
+.smsCard.is-low .smsBubbles span.is-on { background: var(--warning); }
+
+.smsSub { margin: 0; color: var(--muted); font-size: var(--text-base); font-weight: 650; line-height: 1.9; }
+@media (max-width: 360px) { .smsBig b { font-size: 2.9rem; } .smsMascot { height: 76px; width: auto; } }

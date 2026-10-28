@@ -8,7 +8,7 @@ import { getBilling } from "../../shared/api/billing";
  * app: the card in Settings, the reminder bar on the home page and the sheets (BillingHost). Any of them can refresh
  * it or open a sheet; all of them re-render together.
  *
- * sheet: null | { kind: "plans", forUserId } | { kind: "result", paymentId } | { kind: "history" }
+ * sheet: null | { kind: "plans", forUserId } | { kind: "result", paymentId } | { kind: "history" } | { kind: "sms" }
  * forUserId: a salon paying for one of its team's artists; null for the account's own subscription.
  */
 const INITIAL = { overview: null, loading: false, error: "", sheet: null, loadedAt: 0 };
@@ -49,6 +49,7 @@ export function refreshBilling() {
 export const openPlans = (forUserId) => update({ sheet: { kind: "plans", forUserId: Number.isInteger(forUserId) ? forUserId : null } });
 export const openPaymentResult = (paymentId) => update({ sheet: { kind: "result", paymentId: Number(paymentId) } });
 export const openPaymentHistory = () => update({ sheet: { kind: "history" } });
+export const openSmsPack = () => update({ sheet: { kind: "sms" } });
 export const closeBillingSheet = () => update({ sheet: null });
 
 /** Sign-out or a different account: forget everything. */

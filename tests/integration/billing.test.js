@@ -147,7 +147,8 @@ describe("subscriptions: buying a plan", () => {
     const overview = (await salon.client.get("/api/billing")).payload.data;
     expect(overview).toMatchObject({ visible: true, enabled: true, checkoutReady: true, enforced: true, sandbox: true, trialDays: 14 });
     expect(overview.account.state).toBe("trial");
-    expect(overview.account.daysLeft).toBe(30);
+    // Made after billing launched, so it has the 14 days for new accounts (accounts older than billing get 30 from launch).
+    expect(overview.account.daysLeft).toBe(14);
     expect(overview.plans.map((plan) => [plan.id, plan.amountToman, plan.days, plan.preselected])).toEqual([
       ["salon_1m", 500_000, 30, false],
       ["salon_6m", 2_500_000, 180, true],
@@ -411,7 +412,7 @@ describe("subscriptions: hourly sweep", () => {
 
   it("reminds once, five days before the free month ends", async () => {
     const salon = await provider("salon", "Reminder Salon");
-    await age(salon.user.id, 27);
+    await age(salon.user.id, 11);
     const first = await cron();
     expect(first.status).toBe(200);
     expect(first.data.reminders).toBeGreaterThanOrEqual(1);

@@ -1,8 +1,9 @@
 import { randomBytes } from "node:crypto";
 import { getDb, all, get, run, withTransaction } from "../connection.js";
 import { getSetting, saveSetting } from "./adminControl.js";
-import { DAY_MS, computeAccess, nextPeriod, receiptNumber } from "../../billing/period.js";
+import { DAY_MS, computeAccess, nextPeriod, receiptNumber, smsMonthKey } from "../../billing/period.js";
 import { DEFAULT_GRACE_DAYS, isBilledRole, rialToToman } from "../../billing/plans.js";
+import { addPackCredits, lockWallet, removePackCredits } from "./smsWallet.js";
 
 /**
  * Subscriptions and payments for salons and artists. The only file that writes money-related rows.
@@ -74,7 +75,18 @@ export const BILLING_DDL = [
   "ALTER TABLE payments ADD COLUMN IF NOT EXISTS refund_rial BIGINT NOT NULL DEFAULT 0 CHECK (refund_rial >= 0);",
   "ALTER TABLE payments ADD COLUMN IF NOT EXISTS refund_days INTEGER NOT NULL DEFAULT 0 CHECK (refund_days >= 0);",
   "ALTER TABLE payments ADD COLUMN IF NOT EXISTS refund_note TEXT NOT NULL DEFAULT '';",
-  "ALTER TABLE payments ADD COLUMN IF NOT EXISTS refund_admin TEXT NOT NULL DEFAULT '';"
+  "ALTER TABLE payments ADD COLUMN IF NOT EXISTS refund_admin TEXT NOT NULL DEFAULT '';",
+  // migrations/062_sms_packs.sql: SMS packs bought through the same ledger, and each account's SMS wallet.
+  "ALTER TABLE payments ADD COLUMN IF NOT EXISTS kind TEXT NOT NULL DEFAULT 'plan' CHECK (kind IN ('plan', 'sms_pack'));",
+  "ALTER TABLE payments ADD COLUMN IF NOT EXISTS sms_credits INTEGER NOT NULL DEFAULT 0 CHECK (sms_credits >= 0);",
+  "DO $$ BEGIN ALTER TABLE payments DROP CONSTRAINT IF EXISTS payments_days_check; IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'payments_kind_shape' AND conrelid = 'payments'::regclass) THEN ALTER TABLE payments ADD CONSTRAINT payments_kind_shape CHECK ((kind = 'plan' AND days > 0) OR (kind = 'sms_pack' AND days = 0 AND sms_credits > 0)); END IF; END $$;",
+  `CREATE TABLE IF NOT EXISTS sms_wallet (
+  user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  period_key TEXT NOT NULL DEFAULT '',
+  included_used INTEGER NOT NULL DEFAULT 0 CHECK (included_used >= 0),
+  pack_credits INTEGER NOT NULL DEFAULT 0 CHECK (pack_credits >= 0),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);`
 ];
 
 /** Creates the tables on first use (same DDL as migrations 033 and 034, checked by tests/unit/billingSchema.test.js). */
@@ -221,6 +233,23 @@ export async function createPayment({ user, plan, gateway, payer = null }) {
   ]);
 }
 
+/**
+ * A checkout attempt for an SMS pack: pending, no gateway token yet. Always for the account's own wallet. The pack's
+ * amount and credits are copied here and never re-read; days is 0 (the table's check enforces the pack shape).
+ */
+export async function createPackPayment({ user, pack, gateway }) {
+  await ensureBillingTables();
+  const db = await getDb();
+  return get(db, `
+    INSERT INTO payments (user_id, user_type, user_name, user_phone, plan, plan_title, days, amount_rial, gateway, return_token, kind, sms_credits)
+    VALUES ($1, $2, $3, $4, $5, $6, 0, $7, $8, $9, 'sms_pack', $10)
+    RETURNING *
+  `, [
+    user.id, user.type, String(user.name || "").slice(0, 120), String(user.phone || ""), pack.id, pack.title, pack.amountRial,
+    gateway, newToken(), pack.credits
+  ]);
+}
+
 /** Stores the gateway's token for this checkout (once), plus anything the gateway needs to remember about it. */
 export async function attachAuthority(paymentId, authority, payload = {}) {
   const db = await getDb();
@@ -299,7 +328,7 @@ export async function settlePayment(paymentId, verification, now = new Date()) {
 
     const amountOk = verification.amountRial === undefined || verification.amountRial === null || Number(verification.amountRial) === Number(payment.amount_rial);
     if (verification.status !== "paid" || !amountOk) {
-      const failure = !amountOk ? "مبلغ پرداخت‌شده با مبلغ اشتراک یکی نبود." : String(verification.failure || "پرداخت انجام نشد.").slice(0, 200);
+      const failure = !amountOk ? "مبلغ پرداخت‌شده با مبلغ سفارش یکی نبود." : String(verification.failure || "پرداخت انجام نشد.").slice(0, 200);
       const updated = await get(client, `
         UPDATE payments SET status = 'failed', failure = $2, verify_attempts = verify_attempts + 1, last_verify_at = $3,
                gateway_payload = gateway_payload || $4::jsonb, updated_at = NOW()
@@ -308,9 +337,13 @@ export async function settlePayment(paymentId, verification, now = new Date()) {
       return { payment: updated, settled: true };
     }
 
-    // Paid. Extend the account (if it still exists), then close the payment with its receipt number.
+    // Paid. Extend the account (if it still exists), then close the payment with its receipt number. An SMS pack adds its
+    // credits to the wallet instead and has no period; either way this runs once, because only a pending row gets here.
     let period = { start: null, end: null };
-    if (payment.user_id) {
+    if (payment.user_id && payment.kind === "sms_pack") {
+      const user = await get(client, "SELECT id FROM users WHERE id = $1", [payment.user_id]);
+      if (user) await addPackCredits(client, user.id, payment.sms_credits, smsMonthKey(now));
+    } else if (payment.user_id) {
       const user = await get(client, "SELECT id, type, created_at FROM users WHERE id = $1", [payment.user_id]);
       if (user) {
         await run(client, "INSERT INTO subscriptions (user_id) VALUES ($1) ON CONFLICT (user_id) DO NOTHING", [user.id]);
@@ -392,7 +425,16 @@ export async function recordRefund({ paymentId, amountRial, days, note = "", adm
     const refundDays = Math.round(Number(days));
     if (!(refundRial > 0) || refundRial > Number(payment.amount_rial)) return { ok: false, status: 400, error: "مبلغ بازپرداخت باید بیشتر از صفر و حداکثر به اندازهٔ مبلغ پرداخت باشد." };
     if (!(refundDays >= 0) || refundDays > Number(payment.days)) return { ok: false, status: 400, error: "روزهای کم‌شده نمی‌تواند بیشتر از روزهای همین پلن باشد." };
-    if (payment.user_id && refundDays > 0) {
+    // A pack is refunded whole and only while all of its credits are still there (terms, section 4: none of it used);
+    // the refund takes those credits back. A plan's refund takes days off the subscription instead.
+    if (payment.kind === "sms_pack") {
+      if (refundRial !== Number(payment.amount_rial)) return { ok: false, status: 400, error: "بسته‌ی پیامک کامل بازپرداخت می‌شه؛ مبلغ کل بسته رو بنویس." };
+      if (payment.user_id) {
+        const wallet = await lockWallet(client, payment.user_id, smsMonthKey(now));
+        if (Number(wallet.pack_credits) < Number(payment.sms_credits)) return { ok: false, status: 409, error: "از پیامک‌های این بسته مصرف شده؛ طبق قوانین بازپرداخت نداره." };
+        await removePackCredits(client, payment.user_id, payment.sms_credits, smsMonthKey(now));
+      }
+    } else if (payment.user_id && refundDays > 0) {
       const sub = await get(client, "SELECT paid_until FROM subscriptions WHERE user_id = $1 FOR UPDATE", [payment.user_id]);
       if (sub?.paid_until) {
         const end = new Date(new Date(sub.paid_until).getTime() - refundDays * DAY_MS);

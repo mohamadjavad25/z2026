@@ -10,6 +10,10 @@ export const getBilling = () => apiJson("/api/billing");
 export const startBillingCheckout = (plan, forUserId = null) =>
   apiJson("/api/billing/checkout", { method: "POST", body: JSON.stringify(forUserId ? { plan, forUserId } : { plan }) });
 
+/** POST /api/billing/checkout { pack } → { paymentId, redirect }: an SMS pack for the signed-in account's own wallet. */
+export const startSmsPackCheckout = (pack) =>
+  apiJson("/api/billing/checkout", { method: "POST", body: JSON.stringify({ pack }) });
+
 /** GET /api/billing/payments → { payments } (newest first) */
 export const listBillingPayments = () => apiJson("/api/billing/payments");
 

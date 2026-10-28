@@ -85,11 +85,15 @@ export function RefundDialog({ payment, onClose, onDone }) {
           <span>مبلغ برگشتی (تومان)</span>
           <input type="number" inputMode="numeric" min={1} max={payment.amountToman} value={Number.isFinite(amount) ? amount : ""} onChange={(event) => setAmount(Math.max(0, Math.round(Number(event.target.value) || 0)))} autoFocus />
         </label>
-        <label className="admLabel">
-          <span>روزهایی که از اشتراک کم می‌شود</span>
-          <input type="number" inputMode="numeric" min={0} max={payment.days} value={Number.isFinite(days) ? days : ""} onChange={(event) => setDays(Math.max(0, Math.round(Number(event.target.value) || 0)))} />
-          <small className="admMuted">برای پرداخت دوباره (دو بار کم شدن پول) صفر بگذار.</small>
-        </label>
+        {payment.kind === "sms_pack" ? (
+          <p className="admMuted">این یک بسته‌ی پیامک است: با ثبت بازپرداخت، پیامک‌های مصرف‌نشده‌ی همین بسته از حساب کم می‌شود.</p>
+        ) : (
+          <label className="admLabel">
+            <span>روزهایی که از اشتراک کم می‌شود</span>
+            <input type="number" inputMode="numeric" min={0} max={payment.days} value={Number.isFinite(days) ? days : ""} onChange={(event) => setDays(Math.max(0, Math.round(Number(event.target.value) || 0)))} />
+            <small className="admMuted">برای پرداخت دوباره (دو بار کم شدن پول) صفر بگذار.</small>
+          </label>
+        )}
         <label className="admLabel">
           <span>دلیل و کد پیگیری بازگشت وجه</span>
           <textarea rows={2} maxLength={300} value={note} placeholder="مثلاً: انصراف در ۷ روز، پیگیری بازگشت ۹۸۷۶۵" onChange={(event) => setNote(event.target.value)} />

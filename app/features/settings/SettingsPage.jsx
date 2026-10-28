@@ -11,7 +11,7 @@ import { AccountSettings } from "../profile/ProfileSettingsPanel";
 import { SalonHoursEditor } from "../profile/SalonHoursEditor";
 import { ImagePositionEditor } from "./ImagePositionEditor";
 import { SalonRulesSettings } from "../salons/SalonRulesSettings";
-import { SubscriptionCard } from "../billing";
+import { SmsPackCard, SubscriptionCard } from "../billing";
 import { ProfileProgress } from "./ProfileProgress";
 import { profileTodos } from "./profileProgress";
 import { AppearanceTile, ArtistBookingTile, NotificationsTile, PageLinkTile, TileSlot, VisibilityTile } from "./SettingsTiles";
@@ -303,6 +303,7 @@ export function SettingsPage({
       <div className="settingsPageBody">
         {/* The subscription is the first thing a salon or artist sees (salons and artists only; hidden until billing is on). */}
         {isPro ? <SubscriptionCard /> : null}
+        {isPro ? <SmsPackCard /> : null}
 
         {/* Who you are, with the poster and logo on it. */}
         <section className="spSection" aria-label={isClient ? "پروفایلم" : "پروفایل"}>
