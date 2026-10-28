@@ -16,7 +16,7 @@ function routes() {
       const full = join(dir, name);
       if (statSync(full).isDirectory()) walk(full);
       else if (name === "route.js") {
-        const rel = "/api/" + dir.slice(ROOT.length + 1);
+        const rel = "/api/" + dir.slice(ROOT.length + 1).replace(/\\/g, "/");
         if (/\/admin|\/cron|billing\/sandbox|auth\/logout/.test(rel)) continue;
         const methods = [...readFileSync(full, "utf8").matchAll(/export const (GET|POST|PUT|PATCH|DELETE)\b/g)].map((m) => m[1]);
         for (const method of methods) found.push({ path: rel.replace(/\[[^\]]+\]/g, "1"), method });
