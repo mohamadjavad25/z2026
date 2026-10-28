@@ -14,6 +14,8 @@ import { ScheduleRow } from "../profile/ScheduleRow";
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
 import { TeamBusyRow, TeamVisitRow, useTeamClientTimes } from "../salons/SalonDirectVisits";
 import { timeLabelToMinutes } from "../../shared/lib/time";
+import { SalonTermsRequestCard } from "../salons/SalonTermsRequestCard";
+import { useSalonTermsAnswer } from "../salons/useSalonTermsAnswer";
 
 /**
  * Salon owner overview — collab inbox + day schedule; a pending request is answered on its own card.
@@ -23,6 +25,7 @@ export function SalonScheduleDashboard({
   pendingCollabRequests = [],
   onApproveCollab,
   onDeclineCollab,
+  onCollabsChanged,
   reservationRequests = [],
   bookingDateForSlots = "",
   onApproveRequest,
@@ -44,6 +47,7 @@ export function SalonScheduleDashboard({
   // The team's own clients that day (owner's decision of 2026-10-25): received here (violet) or elsewhere (striped),
   // placed among the salon's own bookings by time.
   const teamTimes = useTeamClientTimes();
+  const termsAnswers = useSalonTermsAnswer({ onChanged: onCollabsChanged });
   const dayKey = getBookingDateKey(selectedDay);
   const dayRows = [
     ...dayAppointments.map((item, index) => ({ kind: "own", item, index, at: timeLabelToMinutes(item.time) })),
@@ -81,7 +85,21 @@ export function SalonScheduleDashboard({
           <div className="salonCollabInboxList">
             {pendingCollabRequests.map((request) => {
               const busy = String(requestBusyId) === `collab:${request.id}`;
-              const anyBusy = Boolean(requestBusyId);
+              const anyBusy = Boolean(requestBusyId) || Boolean(termsAnswers.busyId);
+              // An artist's request that carries terms (new join «برگه»): the «قبل ← بعد» card with its own three answers.
+              if (request.terms) {
+                return (
+                  <SalonTermsRequestCard
+                    key={request.id}
+                    request={request}
+                    busy={termsAnswers.busyId === String(request.id)}
+                    anyBusy={anyBusy}
+                    error={termsAnswers.errorFor(request.id)}
+                    onAnswer={termsAnswers.answer}
+                    onClearError={termsAnswers.clearError}
+                  />
+                );
+              }
               return (
               <article className="salonCollabInboxCard" key={request.id}>
                 <div className="salonCollabArtist">

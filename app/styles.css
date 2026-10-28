@@ -23,6 +23,7 @@
 @import "./styles/features/auth.css";
 @import "./styles/features/signupWizard.css";
 @import "./styles/features/joinSalon.css";
+@import "./styles/features/joinTerms.css";
 @import "./styles/features/legal.css";
 @import "./styles/features/errorPage.css";
 @import "./styles/features/booking.css";

@@ -3,10 +3,12 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, Sparkles } from "lucide-react";
-import { SalonRulesNote } from "../../features/salons/SalonRulesNote";
 import { getAuthMe } from "../../shared/api/auth";
+import { joinSalonWithTerms, sendJoinProposal } from "../../shared/api/joinTerms";
+import { JoinTermsSheet } from "./JoinTermsSheet";
 
 const PENDING_JOIN_KEY = "frfro_pending_join_salon";
+const RETRY = "نشد؛ دوباره بزن.";
 
 // The app, not the about page: a client-side navigation does not re-run the root layout's head script.
 function enterApp(router, href = "/") {
@@ -15,14 +17,15 @@ function enterApp(router, href = "/") {
 }
 
 /**
- * QR/link landing page (app/join-salon/[id]) — standalone, auth-agnostic.
- * Salon shows this as a QR code (see SalonNearbyInviteSheet's artistInviteQrCard);
- * an artist scanning it lands here and joins the team in one tap.
+ * QR/link landing page (app/join-salon/[id]) — the short «برگه» an artist reads before joining a salon's team:
+ * her share, days and hours, the salon's rules and a calm promise line; then «قبول دارم» or her own offer.
+ * Standalone and auth-agnostic: a guest reads the same paper, then signs in (the join fires after login).
  */
 export function JoinSalonPageClient({ salon, joinCode = "" }) {
   const router = useRouter();
   const [status, setStatus] = useState("checking");
-  const [errorText, setErrorText] = useState("");
+  const [terms, setTerms] = useState(salon.terms || null);
+  const [notice, setNotice] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -30,15 +33,7 @@ export function JoinSalonPageClient({ salon, joinCode = "" }) {
       .then(({ ok, data }) => {
         if (cancelled) return;
         const user = ok ? data?.user : null;
-        if (!user) {
-          setStatus("guest");
-          return;
-        }
-        if (user.type !== "artist") {
-          setStatus("wrong-role");
-          return;
-        }
-        setStatus("ready");
+        setStatus(!user ? "guest" : user.type !== "artist" ? "wrong-role" : "ready");
       })
       .catch(() => {
         if (!cancelled) setStatus("guest");
@@ -48,40 +43,48 @@ export function JoinSalonPageClient({ salon, joinCode = "" }) {
     };
   }, []);
 
-  async function handleJoin() {
+  const base = { salonUserId: salon.id, code: joinCode, termsVersion: terms?.version };
+
+  // One place for both calls: 409 TERMS_CHANGED redraws the paper with the fresh terms.
+  async function submit(request, doneStatus) {
     setStatus("joining");
-    setErrorText("");
+    setNotice("");
     try {
-      const response = await fetch("/api/artist/join-salon", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ salonUserId: salon.id, code: joinCode })
-      });
-      const payload = await response.json().catch(() => ({}));
-      if (response.ok || payload?.code === "ALREADY_STAFF") {
-        setStatus("joined");
-        return;
+      const result = await request();
+      const payload = result.payload || {};
+      if (result.ok || payload.code === "ALREADY_STAFF") {
+        setStatus(doneStatus);
+      } else if (result.status === 409 && payload.code === "TERMS_CHANGED") {
+        if (payload.terms) setTerms(payload.terms);
+        setNotice("شرایط سالن عوض شده. دوباره بخونش.");
+        setStatus("ready");
+      } else {
+        setNotice(payload.error || RETRY);
+        setStatus("ready");
       }
-      setErrorText(payload?.error || "نشد؛ دوباره بزن.");
-      setStatus("ready");
     } catch {
-      setErrorText("نشد؛ دوباره بزن.");
+      setNotice(RETRY);
       setStatus("ready");
     }
   }
+
+  const handleJoin = () => submit(() => joinSalonWithTerms(base), "joined");
+  const handlePropose = (proposal) => submit(() => sendJoinProposal({ ...base, ...proposal }), "proposed");
 
   function handleGuestContinue() {
     try {
-      window.localStorage.setItem(PENDING_JOIN_KEY, JSON.stringify({ id: salon.id, code: joinCode }));
+      window.localStorage.setItem(PENDING_JOIN_KEY, JSON.stringify({ id: salon.id, code: joinCode, termsVersion: terms?.version ?? null }));
     } catch {
       // ignore — the join simply won't auto-fire after login
     }
-    enterApp(router, `/?join=${salon.id}&k=${encodeURIComponent(joinCode)}`);
+    const version = terms?.version != null ? `&v=${encodeURIComponent(terms.version)}` : "";
+    enterApp(router, `/?join=${salon.id}&k=${encodeURIComponent(joinCode)}${version}`);
   }
 
+  const paper = status === "ready" || status === "joining" || status === "guest";
   return (
     <div className="joinSalonPage">
-      <div className="joinSalonCard">
+      <div className={`joinSalonCard${paper && salon.ready && terms ? " is-paper" : ""}`}>
         <div className={`joinSalonAvatar ${salon.avatar ? "hasImage" : ""}`}>
           {salon.avatar ? <img src={salon.avatar} alt="" /> : <Sparkles size={26} />}
         </div>
@@ -91,45 +94,44 @@ export function JoinSalonPageClient({ salon, joinCode = "" }) {
 
         {status === "checking" ? (
           <p className="joinSalonHint">یه لحظه…</p>
-        ) : status === "guest" ? (
+        ) : !salon.ready || !terms ? (
           <>
-            <p className="joinSalonHint">
-              با حساب آرتیستت وارد شو (یا یکی بساز) تا بری توی تیم «{salon.name}».
-            </p>
-            <button type="button" className="joinSalonAction" onClick={handleGuestContinue}>
-              ورود یا ساخت حساب
-            </button>
+            <p className="joinSalonHint is-warning">این لینک هنوز آماده نیست.</p>
+            <p className="joinSalonHint">از سالن بخواه شرایط همکاری رو ذخیره کنه و لینک تازه بفرسته.</p>
           </>
         ) : status === "wrong-role" ? (
           <>
-            <p className="joinSalonHint is-warning">
-              این لینک مال آرتیست‌هاست؛ با حساب آرتیستت وارد شو.
-            </p>
+            <p className="joinSalonHint is-warning">این لینک مال آرتیست‌هاست؛ با حساب آرتیستت وارد شو.</p>
             <button type="button" className="joinSalonAction is-secondary" onClick={() => router.push("/")}>
               برو به فرفرو
             </button>
           </>
-        ) : status === "joined" ? (
+        ) : status === "joined" || status === "proposed" ? (
           <div className="joinSalonSuccess">
             <CheckCircle2 size={28} aria-hidden="true" />
-            <b>اومدی توی تیم «{salon.name}»!</b>
+            {status === "joined" ? (
+              <b>اومدی توی تیم «{salon.name}»!</b>
+            ) : (
+              <>
+                <b>پیشنهادت رفت برای {salon.name}. تا جواب نده، هنوز تو تیم نیستی.</b>
+                <p className="joinSalonHint">پیشنهادت ۷ روز اعتبار داره.</p>
+              </>
+            )}
             <button type="button" className="joinSalonAction" onClick={() => enterApp(router)}>
               برو به خونه
             </button>
           </div>
         ) : (
-          <>
-            <ul className="joinSalonPerks">
-              <li>نوبت‌هایی که سالن برات می‌ذاره توی برنامه‌ت هم میاد</li>
-              <li>سالن همون لحظه خبردار می‌شه</li>
-              <li>هر وقت خواستی از «همکاری» می‌تونی از تیم بری</li>
-            </ul>
-            <SalonRulesNote rules={salon.rules} open />
-            {errorText ? <p className="joinSalonHint is-warning">{errorText}</p> : null}
-            <button type="button" className="joinSalonAction" disabled={status === "joining"} onClick={handleJoin}>
-              {status === "joining" ? "یه لحظه…" : salon.rules ? "قوانین رو قبول دارم، بریم" : `برو توی تیم ${salon.name}`}
-            </button>
-          </>
+          <JoinTermsSheet
+            salonName={salon.name}
+            terms={terms}
+            rulesLines={salon.rulesLines || []}
+            guest={status === "guest"}
+            busy={status === "joining"}
+            notice={notice}
+            onAccept={status === "guest" ? handleGuestContinue : handleJoin}
+            onPropose={handlePropose}
+          />
         )}
       </div>
     </div>

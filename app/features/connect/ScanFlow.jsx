@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { QrScanner } from "../../components/QrScanner";
-import { connectScannedClient, connectTo, joinSalonTeam, lookupScannedCode } from "../../shared/api/connections";
+import { connectScannedClient, connectTo, lookupScannedCode } from "../../shared/api/connections";
 import { SalonRulesNote } from "../salons/SalonRulesNote";
 import { createSalonInvite } from "../../shared/api/salons";
 import { readScannedCode } from "../../shared/lib/connectCodes";
@@ -129,9 +129,12 @@ export function ScanFlow({ viewerType, connect, onOpenProfile, onChanged, onClos
         if (connected) setStep({ state: "profile", profile, relation: "connected" });
         return;
       }
-      const { ok, payload } = kind === "invite"
-        ? await createSalonInvite({ artistUserId: profile.id })
-        : await joinSalonTeam(profile.id, joinCode);
+      if (kind !== "invite") {
+        // Joining a team always goes through the salon's terms page, so the artist reads and accepts them first.
+        window.location.assign(`/join-salon/${profile.id}?k=${encodeURIComponent(joinCode)}`);
+        return;
+      }
+      const { ok, payload } = await createSalonInvite({ artistUserId: profile.id });
       if (!ok) {
         setStep({ state: "message", text: payload?.error || "نشد؛ دوباره بزن." });
         return;

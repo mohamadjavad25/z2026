@@ -35,7 +35,7 @@ export function useHomeApp() {
     if (!joinSalonId && !openTarget) return;
     if (joinSalonId) {
       try {
-        window.localStorage.setItem("frfro_pending_join_salon", JSON.stringify({ id: joinSalonId, code: params.get("k") || "" }));
+        window.localStorage.setItem("frfro_pending_join_salon", JSON.stringify({ id: joinSalonId, code: params.get("k") || "", termsVersion: params.get("v") ?? null }));
       } catch {
         // ignore — join just won't auto-fire post-login
       }
@@ -117,10 +117,13 @@ export function useHomeApp() {
     // such a pending join has no code to offer and is simply dropped.
     let pendingSalonId = 0;
     let pendingCode = "";
+    let pendingVersion = null;
     try {
       const parsed = JSON.parse(pendingRaw);
       pendingSalonId = Number(parsed?.id) || 0;
       pendingCode = String(parsed?.code || "");
+      // The version of the terms she read on the join page; the server refuses (409) if they changed since.
+      pendingVersion = parsed?.termsVersion == null || parsed.termsVersion === "" ? null : Number(parsed.termsVersion);
     } catch {
       return;
     }
@@ -128,10 +131,12 @@ export function useHomeApp() {
     try {
       const { ok, payload } = await apiFetch("/api/artist/join-salon", {
         method: "POST",
-        body: JSON.stringify({ salonUserId: pendingSalonId, code: pendingCode })
+        body: JSON.stringify({ salonUserId: pendingSalonId, code: pendingCode, termsVersion: Number.isFinite(pendingVersion) ? pendingVersion : undefined })
       });
       if (ok) {
         setAppToast(`رفتی توی تیم «${payload?.data?.salon?.name || "سالن"}»!`);
+      } else if (payload?.code === "TERMS_CHANGED") {
+        setAppToast("شرایط سالن عوض شده. لینک رو دوباره باز کن و بخونش.");
       } else if (payload?.code !== "ALREADY_STAFF") {
         setAppToast(payload?.error || "نشد بری توی تیم سالن؛ دوباره بزن.");
       }

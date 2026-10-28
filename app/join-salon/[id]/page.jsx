@@ -8,11 +8,11 @@ export const runtime = "nodejs";
 
 const SITE_URL = getSiteUrl();
 
-async function loadSalonPreview(id) {
+async function loadSalonPreview(id, code = "") {
   const userId = Number(id);
   if (!Number.isFinite(userId)) return null;
   await ensureDb();
-  const salon = await salons.getSalonJoinPreview(userId);
+  const salon = await salons.getSalonJoinPreview(userId, code);
   if (!salon) return null;
   // Round-tripping through JSON.stringify/parse guarantees plain
   // objects/arrays before crossing the RSC boundary — see app/salons/[id]/page.jsx.
@@ -34,7 +34,7 @@ export async function generateMetadata({ params }) {
 export default async function JoinSalonPage({ params, searchParams }) {
   const { id } = await params;
   const { k } = await searchParams;
-  const salon = await loadSalonPreview(id);
+  const salon = await loadSalonPreview(id, String(k || ""));
   if (!salon) notFound();
   return <JoinSalonPageClient salon={salon} joinCode={String(k || "")} />;
 }

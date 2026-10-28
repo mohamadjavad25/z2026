@@ -348,8 +348,8 @@ export async function findSalonStaffForBooking(salonUserId, staffName, serviceNa
   };
 }
 
-export async function addSalonStaff(salonUserId, data) {
-  const db = await getDb();
+export async function addSalonStaff(salonUserId, data, runner = null) {
+  const db = runner || (await getDb());
   const draft = {
     artist_user_id: data.artistUserId || data.artist_user_id || null,
     name: data.name || "",
@@ -394,8 +394,8 @@ export async function addSalonStaff(salonUserId, data) {
   };
 }
 
-export async function addSalonStaffFromCollab(salonUserId, collab) {
-  const db = await getDb();
+export async function addSalonStaffFromCollab(salonUserId, collab, runner = null) {
+  const db = runner || (await getDb());
   const artistId = Number(collab?.artistId || collab?.artist_user_id || 0) || null;
   const artistName = collab?.artistName || collab?.artist_name || "آرتیست frfro";
   const role = collab?.service || collab?.artistService || "همکار سالن";
@@ -428,7 +428,7 @@ export async function addSalonStaffFromCollab(salonUserId, collab) {
       booked: "۰ وقت",
       state: "فعال",
       accessLevel: "همکار"
-    }),
+    }, db),
     created: true
   };
 }
