@@ -29,10 +29,10 @@ export function reminderMessage(kind, access, { graceDays = 3 } = {}) {
   const until = formatPersianLongDate(access.accessEndsAt);
   // SMS tokens may not contain spaces, so the SMS gets the short form (۱۴۰۵/۰۹/۲۴).
   const untilShort = formatPersianShortDate(access.accessEndsAt);
-  const what = access.state === "trial" ? "ماه رایگانت" : "اشتراکت";
+  const what = access.state === "trial" ? "دوره‌ی رایگانت" : "اشتراکت";
   if (kind === "ends_5d") {
     return {
-      title: access.state === "trial" ? "ماه رایگانت داره تموم می‌شه" : "اشتراکت داره تموم می‌شه",
+      title: access.state === "trial" ? "دوره‌ی رایگانت داره تموم می‌شه" : "اشتراکت داره تموم می‌شه",
       body: `${what} ${toPersianDigits(access.daysLeft)} روز دیگه، ${until}، تموم می‌شه. برای اینکه نوبت آنلاین قطع نشه، از تنظیمات اشتراک بخر.`,
       sms: { key: "billing_reminder", values: { days: toPersianDigits(access.daysLeft), until: untilShort } }
     };

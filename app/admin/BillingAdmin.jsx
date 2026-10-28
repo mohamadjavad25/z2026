@@ -182,7 +182,7 @@ export function AccountBilling({ userId, name, onGo }) {
       {!data.enabled ? <p className="admNote">اشتراک هنوز روشن نشده؛ این حساب فعلاً بی‌هزینه کار می‌کند. روزهایی که اضافه کنی از الان حساب می‌شوند.</p> : null}
       <AccountStateLine account={data.account} />
       <ul className="admFacts">
-        <li><span>پایان ماه رایگان</span><b>{fmtDay(data.account.trialEndsAt)}</b></li>
+        <li><span>پایان دوره‌ی رایگان</span><b>{fmtDay(data.account.trialEndsAt)}</b></li>
         <li><span>پرداخت‌شده تا</span><b>{data.account.paidUntil ? fmtDay(data.account.paidUntil) : "—"}</b></li>
         <li><span>دسترسی تا</span><b>{fmtDay(data.account.accessEndsAt)}</b></li>
       </ul>

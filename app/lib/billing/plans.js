@@ -6,7 +6,10 @@
  * yearly plan is always the cheapest per month. A change here changes what new checkouts charge; payments
  * already made keep the amount they were made with (it is copied onto the payment row).
  */
-export const TRIAL_DAYS = 30;
+/** Free days for a salon or artist who signs up after billing is switched on (owner's decision 2026-10-28). */
+export const TRIAL_DAYS = 14;
+/** Free days for accounts that already existed when billing was switched on: they keep the 30 days promised at launch. */
+export const LAUNCH_TRIAL_DAYS = 30;
 export const DEFAULT_GRACE_DAYS = 3;
 /** A new period runs this many days (not calendar months): simple to explain, and the receipt shows the exact end date. */
 export const PERIOD_DAYS = { 1: 30, 6: 180, 12: 365 };

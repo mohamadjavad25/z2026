@@ -145,7 +145,7 @@ describe("subscriptions: buying a plan", () => {
 
   it("offers the three plans with the owner's prices and dates", async () => {
     const overview = (await salon.client.get("/api/billing")).payload.data;
-    expect(overview).toMatchObject({ visible: true, enabled: true, checkoutReady: true, enforced: true, sandbox: true, trialDays: 30 });
+    expect(overview).toMatchObject({ visible: true, enabled: true, checkoutReady: true, enforced: true, sandbox: true, trialDays: 14 });
     expect(overview.account.state).toBe("trial");
     expect(overview.account.daysLeft).toBe(30);
     expect(overview.plans.map((plan) => [plan.id, plan.amountToman, plan.days, plan.preselected])).toEqual([

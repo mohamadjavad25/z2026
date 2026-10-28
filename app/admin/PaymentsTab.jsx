@@ -30,8 +30,8 @@ function SetupCard({ data, onSaved }) {
         ? {
             title: "اشتراک روشن شود؟",
             body: data.settings.launchedAt
-              ? "اشتراک دوباره روشن می‌شود. ماه رایگان هر حساب همان قبلی است."
-              : `ماه رایگان همهٔ سالن‌ها و آرتیست‌های فعلی از امروز شروع می‌شود (حساب‌های تازه از روز ثبت‌نام). ${gateway.ready ? "بعد از ماه رایگان و مهلت، حسابی که اشتراک نخرد از جست‌وجو کنار می‌رود و نوبت آنلاین نمی‌گیرد." : "تا درگاه وصل نشود هیچ حسابی بسته نمی‌شود."}`,
+              ? "اشتراک دوباره روشن می‌شود. دوره‌ی رایگان هر حساب همان قبلی است."
+              : `دوره‌ی رایگان همهٔ سالن‌ها و آرتیست‌های فعلی از امروز شروع می‌شود (حساب‌های تازه از روز ثبت‌نام). ${gateway.ready ? "بعد از دوره‌ی رایگان و مهلت، حسابی که اشتراک نخرد از جست‌وجو کنار می‌رود و نوبت آنلاین نمی‌گیرد." : "تا درگاه وصل نشود هیچ حسابی بسته نمی‌شود."}`,
             confirmLabel: "روشن شود"
           }
         : { title: "اشتراک خاموش شود؟", body: "دیگر کسی نمی‌تواند پرداخت کند، یادآوری نمی‌رود و هیچ حسابی به‌خاطر اشتراک بسته نمی‌ماند. پرداخت‌های قبلی سر جایشان است.", danger: true, confirmLabel: "خاموش شود" });
@@ -48,7 +48,7 @@ function SetupCard({ data, onSaved }) {
       <ul className="admBillChecks">
         <li className={data.settings.enabled ? "is-ok" : "is-missing"}>
           <b>{data.settings.enabled ? "اشتراک روشن است" : "اشتراک خاموش است"}</b>
-          <span>{data.settings.launchedAt ? `ماه رایگان حساب‌های قدیمی از ${fmtDay(data.settings.launchedAt)} شروع شد.` : "هنوز هیچ‌وقت روشن نشده؛ همه رایگان کار می‌کنند."}</span>
+          <span>{data.settings.launchedAt ? `دوره‌ی رایگان حساب‌های قدیمی از ${fmtDay(data.settings.launchedAt)} شروع شد.` : "هنوز هیچ‌وقت روشن نشده؛ همه رایگان کار می‌کنند."}</span>
         </li>
         <li className={gateway.ready ? (gateway.sandbox ? "is-warn" : "is-ok") : "is-missing"}>
           <b>{gateway.ready ? `درگاه: ${gateway.label}` : "درگاه وصل نیست"}</b>
@@ -94,7 +94,7 @@ function SetupCard({ data, onSaved }) {
             </div>
           ))}
         </div>
-        <p className="admMuted">ماه رایگان {num(data.trialDays)} روز. قیمت‌ها در <span dir="ltr">app/lib/billing/plans.js</span> تعریف شده‌اند؛ تغییرشان فقط روی پرداخت‌های بعدی اثر دارد.</p>
+        <p className="admMuted">دوره‌ی رایگان {num(data.trialDays)} روز. قیمت‌ها در <span dir="ltr">app/lib/billing/plans.js</span> تعریف شده‌اند؛ تغییرشان فقط روی پرداخت‌های بعدی اثر دارد.</p>
         <h3><MessageSquareText size={15} aria-hidden="true" /> پیامک‌ها {sms.provider ? <span className="admMuted">({sms.provider})</span> : <span className="admMuted">(پیامک وصل نیست)</span>}</h3>
         <ul className="admFacts">
           {sms.templates.map((template) => (
@@ -319,7 +319,7 @@ export function PaymentsTab({ intent = {}, onGo, setParam, onChanged }) {
       <div className="admGrid admBillStats">
         <Stat label="درآمد ۲۴ ساعت" value={toman(stats.revenue.dayToman)} hint={`${num(stats.revenue.dayCount)} پرداخت`} />
         <Stat label="درآمد ۳۰ روز" value={toman(stats.revenue.monthToman)} hint={`${num(stats.revenue.monthCount)} پرداخت • کل ${toman(stats.revenue.allToman)}`} />
-        <Stat label="اشتراک فعال" value={num(stats.accounts.active)} hint={`${num(stats.accounts.trial)} در ماه رایگان`} />
+        <Stat label="اشتراک فعال" value={num(stats.accounts.active)} hint={`${num(stats.accounts.trial)} در دوره‌ی رایگان`} />
         <Stat label="نیاز به تمدید" value={num(stats.accounts.grace + stats.accounts.expired)} hint={`${num(stats.accounts.grace)} در مهلت • ${num(stats.accounts.expired)} غیرفعال`} bad={stats.accounts.expired > 0 && data.settings.enabled} />
       </div>
       {stats.stuckPending ? (

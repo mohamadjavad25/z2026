@@ -3,7 +3,7 @@ import { DAY_MS, computeAccess } from "../../app/lib/billing/period.js";
 import { reminderKind, reminderMessage } from "../../app/lib/billing/reminders.js";
 
 const NOW = new Date("2026-11-15T09:00:00Z");
-const access = (createdDaysAgo, extra = {}) => computeAccess({ now: NOW, createdAt: new Date(NOW.getTime() - createdDaysAgo * DAY_MS), launchedAt: new Date(0), graceDays: 3, ...extra });
+const access = (createdDaysAgo, extra = {}) => computeAccess({ now: NOW, createdAt: new Date(NOW.getTime() - createdDaysAgo * DAY_MS), launchedAt: new Date(0), graceDays: 3, trialDays: 30, ...extra });
 
 describe("subscription reminders", () => {
   it("says nothing while more than five days are left", () => {
@@ -22,7 +22,7 @@ describe("subscription reminders", () => {
   });
 
   it("words the free month and a paid period differently", () => {
-    expect(reminderMessage("ends_5d", access(25)).title).toContain("ماه رایگان");
+    expect(reminderMessage("ends_5d", access(25)).title).toContain("دوره‌ی رایگان");
     const paid = computeAccess({ now: NOW, createdAt: new Date(0), launchedAt: new Date(0), paidUntil: new Date(NOW.getTime() + 3 * DAY_MS) });
     expect(reminderMessage("ends_5d", paid).title).toBe("اشتراکت داره تموم می‌شه");
   });

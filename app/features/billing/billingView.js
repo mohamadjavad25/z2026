@@ -25,9 +25,9 @@ export function accountView(overview) {
   if (account.state === "trial") {
     return {
       tone: "trial",
-      badge: "ماه رایگان",
-      title: `${formatDaysLeft(account.daysLeft)} از ماه رایگانت مونده`,
-      sub: isLow ? LOW_SUB : `تا ${until}. هر پلنی بخری از همون روز شروع می‌شه و روزی از ماه رایگانت نمی‌سوزه.`,
+      badge: "دوره‌ی رایگان",
+      title: `${formatDaysLeft(account.daysLeft)} از دوره‌ی رایگانت مونده`,
+      sub: isLow ? LOW_SUB : `تا ${until}. هر پلنی بخری از همون روز شروع می‌شه و روزی از دوره‌ی رایگانت نمی‌سوزه.`,
       note: "",
       low: isLow,
       meter: Math.min(1, Math.max(0, account.daysLeft / (overview.trialDays || TRIAL_DAYS_FALLBACK))),
@@ -52,7 +52,7 @@ export function accountView(overview) {
   if (!overview.enforced) {
     return {
       tone: "soon",
-      badge: "ماه رایگان تموم شد",
+      badge: "دوره‌ی رایگان تموم شد",
       title: "پرداخت اشتراک به‌زودی باز می‌شه",
       sub: "تا اون موقع همه‌چی مثل قبل کار می‌کنه و چیزی بسته نمی‌شه.",
       note: "",
@@ -102,7 +102,7 @@ export function bannerView(overview) {
       key: `${key}-${lastDay ? "1" : "5"}`,
       tone: lastDay ? "warn" : "info",
       text: account.state === "trial"
-        ? `${formatDaysLeft(account.daysLeft)} از ماه رایگانت مونده.`
+        ? `${formatDaysLeft(account.daysLeft)} از دوره‌ی رایگانت مونده.`
         : `اشتراکت ${lastDay ? "تا یه روز دیگه" : `${toPersianDigits(account.daysLeft)} روز دیگه`} تموم می‌شه.`,
       action: account.state === "trial" ? "اشتراک بخر" : "تمدید",
       kind: "plans"
@@ -120,9 +120,9 @@ export function bannerView(overview) {
  */
 export function teamMemberView(member, overview) {
   const account = member?.account || {};
-  if (account.state === "trial") return { tone: "trial", status: `ماه رایگان، ${formatDaysLeft(account.daysLeft)} مونده`, urgent: account.daysLeft <= 5 };
+  if (account.state === "trial") return { tone: "trial", status: `دوره‌ی رایگان، ${formatDaysLeft(account.daysLeft)} مونده`, urgent: account.daysLeft <= 5 };
   if (account.state === "active") return { tone: "active", status: `فعال تا ${formatPersianLongDate(account.accessEndsAt)}`, urgent: account.daysLeft <= 5 };
-  if (!overview?.enforced) return { tone: "soon", status: "ماه رایگان تموم شد", urgent: false };
+  if (!overview?.enforced) return { tone: "soon", status: "دوره‌ی رایگان تموم شد", urgent: false };
   if (account.state === "grace") return { tone: "warn", status: `تموم شده، ${formatDaysLeft(account.graceDaysLeft)} مهلت`, urgent: true };
   return { tone: "danger", status: "غیرفعال؛ توی جستجو دیده نمی‌شه", urgent: true };
 }

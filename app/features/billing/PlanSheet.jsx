@@ -14,11 +14,11 @@ import { goToGateway, rememberPendingPayment } from "./billingStore";
 function leadText(account, name = "") {
   const until = formatPersianLongDate(account?.accessEndsAt);
   if (name) {
-    if (account?.state === "trial") return `ماه رایگان ${name} تا ${until} هست. پلنی که الان بخری از همون روز شروع می‌شه.`;
+    if (account?.state === "trial") return `دوره‌ی رایگان ${name} تا ${until} هست. پلنی که الان بخری از همون روز شروع می‌شه.`;
     if (account?.state === "active") return `پلن تازه به آخر اشتراک ${name} (${until}) اضافه می‌شه.`;
     return "پلن از همین امروز شروع می‌شه.";
   }
-  if (account?.state === "trial") return `ماه رایگانت تا ${until} هست. پلنی که الان بخری از همون روز شروع می‌شه.`;
+  if (account?.state === "trial") return `دوره‌ی رایگانت تا ${until} هست. پلنی که الان بخری از همون روز شروع می‌شه.`;
   if (account?.state === "active") return `پلن تازه به آخر اشتراکت (${until}) اضافه می‌شه.`;
   return "پلن از همین امروز شروع می‌شه.";
 }

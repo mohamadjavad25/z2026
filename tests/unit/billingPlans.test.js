@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { PLANS, getPlan, plansFor, rialToToman, isBilledRole, TRIAL_DAYS } from "../../app/lib/billing/plans.js";
+import { PLANS, getPlan, plansFor, rialToToman, isBilledRole, TRIAL_DAYS, LAUNCH_TRIAL_DAYS } from "../../app/lib/billing/plans.js";
 
 describe("subscription plans", () => {
   it("charges exactly the owner's prices (toman)", () => {
@@ -32,7 +32,8 @@ describe("subscription plans", () => {
 
   it("runs each period for a fixed number of days", () => {
     expect(plansFor("salon").map((plan) => plan.days)).toEqual([30, 180, 365]);
-    expect(TRIAL_DAYS).toBe(30);
+    expect(TRIAL_DAYS).toBe(14);
+    expect(LAUNCH_TRIAL_DAYS).toBe(30);
   });
 
   it("bills only salons and artists", () => {
