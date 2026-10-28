@@ -10,6 +10,9 @@
   max-width: 460px;
   margin-inline: auto;
   display: grid;
+  /* One column no wider than the stack: without it a long pill (width: max-content) widened the column and ran
+     off the screen instead of wrapping. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 8px;
   pointer-events: none;
 }
@@ -110,6 +113,21 @@
 }
 .notice-pill { font-weight: 850; }
 .notice-pill svg { color: rgb(var(--success-rgb)); flex: none; }
+.notice-pill b { min-width: 0; overflow-wrap: anywhere; }
+
+/* A long island or pill (NoticeHost, LONG_NOTICE_CHARS) is a full-width card: the text wraps to lines and a thin
+   line at the bottom shows when it goes. */
+.notice-island.is-long,
+.notice-pill.is-long {
+  justify-self: stretch;
+  width: auto;
+  align-items: flex-start;
+  padding: 10px 14px 12px;
+  border-radius: 18px;
+}
+.notice-island.is-long .noticePulse { margin-top: 8px; }
+.notice-pill.is-long svg { margin-top: 4px; }
+.notice-island.is-long .noticeAction { align-self: center; }
 
 /* err: an error that waits for the person and shakes once */
 .notice-err {
@@ -253,6 +271,68 @@
 .notice-note.is-error > .noticeIcon { color: rgb(var(--danger-rgb)); }
 .notice-note p { margin: 0; font-weight: 750; line-height: 1.9; }
 
+/* steps: instructions in several steps, a small sheet at the bottom (StepsSheet in NoticeHost.jsx) */
+.noticeSheetLayer {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-toast) - 1); /* under the top stack, so the short «کپی شد» stays visible above the scrim */
+  display: grid;
+  align-items: end;
+}
+.noticeSheetScrim {
+  position: absolute;
+  inset: 0;
+  background: var(--scrim);
+  animation: noticeFade 0.24s ease-out both;
+}
+.noticeSheet {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 460px;
+  margin-inline: auto;
+  display: grid;
+  gap: 10px;
+  padding: 10px max(18px, env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(18px, env(safe-area-inset-left, 0px));
+  border-radius: 24px 24px 0 0;
+  background: var(--surface-solid);
+  color: var(--ink);
+  box-shadow: 0 -12px 34px rgb(var(--shadow-rgb) / 0.2);
+  animation: noticeRise 0.4s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+.noticeSheetGrab {
+  justify-self: center;
+  width: 38px;
+  height: 4px;
+  border-radius: 4px;
+  background: var(--line);
+}
+.noticeSheetTitle { font-size: 1rem; font-weight: 900; line-height: 1.7; }
+.noticeSheetSteps {
+  margin: 0;
+  padding-inline-start: 22px;
+  list-style: persian;
+  display: grid;
+  gap: 6px;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+.noticeSheetSteps li::marker { color: var(--accent); font-weight: 900; }
+.noticeSheetDone { margin-top: 4px; padding: 11px 14px; font-size: 0.9rem; }
+.noticeSheetLayer.is-leaving .noticeSheet { animation: noticeSink 0.24s ease-in forwards; }
+.noticeSheetLayer.is-leaving .noticeSheetScrim { animation: noticeFade 0.24s ease-in reverse forwards; }
+
+@keyframes noticeFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes noticeRise {
+  from { transform: translateY(100%); }
+  to { transform: none; }
+}
+@keyframes noticeSink {
+  to { transform: translateY(100%); }
+}
 @keyframes noticeIn {
   from { opacity: 0; transform: translateY(-14px) scale(0.98); }
   to { opacity: 1; transform: none; }
@@ -285,7 +365,11 @@
   .notice.is-leaving,
   .notice-island,
   .notice-pill,
-  .notice-err { animation-duration: 0.01ms !important; animation-delay: 0s !important; }
+  .notice-err,
+  .noticeSheet,
+  .noticeSheetScrim,
+  .noticeSheetLayer.is-leaving .noticeSheet,
+  .noticeSheetLayer.is-leaving .noticeSheetScrim { animation-duration: 0.01ms !important; animation-delay: 0s !important; }
   .noticePulse,
   .noticeTimer { animation: none; }
 }
