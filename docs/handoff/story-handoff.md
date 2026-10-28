@@ -34,6 +34,6 @@ Sales pitch pages and an Instagram Reels plan were made as Artifacts (not in the
 ## Progress (session 3, 2026-10-28)
 - Built the portrait («پرتره») and portfolio («نمونه‌کار») designs in `InstagramStorySheet.jsx`, with the tab row. Portrait uses the profile photo (or the first letter on a pink-violet ground, with «عکس بذار تا قشنگ‌تر بشه»). Portfolio uses the three newest public works with pictures and is off until there are three («حداقل ۳ عکس تو نمونه‌کار بذار»).
 - The sheet gets `avatar` from `SettingsPage.jsx` (not from the default avatar). Works load with `getPosts()` when the sheet opens.
-- Free slots (salons only): the owner answered «آره، همین» (today and tomorrow). Built from the salon services list and the salon availability endpoint, so the times follow the booking rules. Artists do not have a public availability read yet, so artists do not get this design.
+- Free slots: salons ask the server; artists use the public page data (busy list, break, leaves) through artistVisitTimes, same as their booking page. Both: today and tomorrow only (owner: «آره، بساز»). Artist working hours are not applied, same as the booking page today.
 - Not built yet: stickers and big type. The mascot images are not generated yet (credit to confirm).
 - Not verified in a browser yet: the canvas drawing needs the running app and database. Check the three tabs on the Vercel preview before merging.

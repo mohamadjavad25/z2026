@@ -8,8 +8,11 @@ import { Spinner } from "../../components/Spinner";
 import { SheetClose } from "../../components/SheetClose";
 import { getPosts } from "../../shared/api/posts";
 import { getSalonServices, getSalonVisitTimes } from "../../shared/api/salons";
+import { getArtist } from "../../shared/api/artists";
+import { artistVisitTimes } from "../booking/artistVisitTimes";
 import { formatPersianDateKey } from "../../shared/lib/persianCalendar";
 import { isTooSoonToRequest } from "../../shared/lib/bookingWindow";
+import { parseServiceDurationMinutes } from "../../shared/lib/time";
 
 const W = 1080;
 const H = 1920;
@@ -20,12 +23,12 @@ const WORKS_NEEDED = 3;
 const SLOTS_PER_DAY = 6;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-// Salons and artists get the portrait, dark card and portfolio designs; free slots are for salons only (the booking calendar is theirs).
+// Every design is for salons and artists alike; free slots are today and tomorrow only (owner's answer 2026-10-28).
 const DESIGNS = [
   { id: "portrait", label: "پرتره" },
   { id: "dark", label: "کارت تیره" },
   { id: "works", label: "نمونه‌کار" },
-  { id: "free", label: "نوبت خالی", salonOnly: true }
+  { id: "free", label: "نوبت خالی" }
 ];
 
 function roundRect(ctx, x, y, w, h, r) {
@@ -269,24 +272,55 @@ async function drawStory(design, { name, url, avatar, works, days }) {
   return { blob, dataUrl: canvas.toDataURL("image/png") };
 }
 
-/** Today and tomorrow, as Persian day keys, with the free start times a client can still request (the same check a client's booking gets). */
-async function loadFreeSlots(salonId) {
-  const services = await getSalonServices();
-  if (!services.ok) throw new Error("services");
-  const list = services.data?.services || [];
-  const shortest = [...list].sort((a, b) => (Number(a.duration) || Infinity) - (Number(b.duration) || Infinity))[0];
+/** Today and tomorrow, as Persian day keys. */
+function todayAndTomorrow() {
   const now = new Date();
-  const days = [
+  return [
     { label: "امروز", key: formatPersianDateKey(now) },
     { label: "فردا", key: formatPersianDateKey(new Date(now.getTime() + DAY_MS)) }
   ];
+}
+
+/**
+ * Free start times for today and tomorrow, as a client could still request them. A salon asks the server (the
+ * booking rules live there); an artist's times are worked out from the public page's own busy list, break and
+ * leaves, the same as its booking page. A closed or hidden page offers nothing.
+ */
+async function loadFreeSlots(profileType, profileId) {
+  if (profileType === "salon") {
+    const services = await getSalonServices();
+    if (!services.ok) throw new Error("services");
+    const list = services.data?.services || [];
+    const shortest = [...list].sort((a, b) => (Number(a.duration) || Infinity) - (Number(b.duration) || Infinity))[0];
+    const days = todayAndTomorrow();
+    if (!shortest) return days.map((day) => ({ ...day, times: [] }));
+    return Promise.all(days.map(async (day) => {
+      const { ok, data } = await getSalonVisitTimes(profileId, day.key, [shortest.name]);
+      if (!ok) throw new Error("times");
+      const times = (data?.times || []).filter((time) => !isTooSoonToRequest(day.key, time)).slice(0, SLOTS_PER_DAY);
+      return { ...day, times };
+    }));
+  }
+
+  const { ok, data } = await getArtist(profileId);
+  if (!ok) throw new Error("artist");
+  const artist = data?.artist;
+  const days = todayAndTomorrow();
+  if (!artist || !artist.isPublic || artist.onlineBookingPaused) return days.map((day) => ({ ...day, times: [] }));
+  const list = artist.services || [];
+  const shortest = [...list].sort((a, b) => parseServiceDurationMinutes(a.duration) - parseServiceDurationMinutes(b.duration))[0];
   if (!shortest) return days.map((day) => ({ ...day, times: [] }));
-  return Promise.all(days.map(async (day) => {
-    const { ok, data } = await getSalonVisitTimes(salonId, day.key, [shortest.name]);
-    if (!ok) throw new Error("times");
-    const times = (data?.times || []).filter((time) => !isTooSoonToRequest(day.key, time)).slice(0, SLOTS_PER_DAY);
+  const minutes = parseServiceDurationMinutes(shortest.duration);
+  return days.map((day) => {
+    const times = artistVisitTimes({
+      day: day.key,
+      minutes,
+      bookedSlots: artist.bookedSlots || [],
+      breakTime: artist.breakTime || null,
+      leaves: artist.leaves || []
+    }).slice(0, SLOTS_PER_DAY);
     return { ...day, times };
-  }));
+  });
 }
 
 /** Public posts that have a picture, newest first, for the collage. */
@@ -303,7 +337,6 @@ async function loadWorks() {
  * Safari on iPhone) «بفرست به اینستاگرام» opens the share list with Instagram in it; elsewhere «ذخیره عکس» saves it.
  */
 export function InstagramStorySheet({ open, name, url, avatar = "", profileType = "", profileId = null, onClose, onNotify }) {
-  const isSalon = profileType === "salon";
   const [design, setDesign] = useState("portrait");
   const [works, setWorks] = useState(null);
   const [slots, setSlots] = useState(null);
@@ -321,16 +354,17 @@ export function InstagramStorySheet({ open, name, url, avatar = "", profileType 
     loadWorks()
       .then((list) => { if (!cancelled) setWorks(list); })
       .catch(() => { if (!cancelled) setWorks([]); });
-    if (isSalon && profileId) {
-      loadFreeSlots(profileId)
+    if (profileId && (profileType === "salon" || profileType === "artist")) {
+      loadFreeSlots(profileType, profileId)
         .then((days) => { if (!cancelled) setSlots(days); })
         .catch(() => { if (!cancelled) { setSlotsFailed(true); setSlots([]); } });
     }
     return () => { cancelled = true; };
-  }, [open, isSalon, profileId]);
+  }, [open, profileType, profileId]);
 
   const worksReady = works !== null && works.length >= WORKS_NEEDED;
-  const dataReady = works !== null && (!isSalon || slots !== null);
+  const hasSlotsLoader = profileType === "salon" || profileType === "artist";
+  const dataReady = works !== null && (!hasSlotsLoader || slots !== null || slotsFailed);
 
   useEffect(() => {
     if (!open || !dataReady) return undefined;
@@ -388,7 +422,7 @@ export function InstagramStorySheet({ open, name, url, avatar = "", profileType 
       <article className="salonQrSheetCard igStoryCard" onClick={(event) => event.stopPropagation()}>
         <h3 className="igStoryTitle">استوری آماده</h3>
         <div className="igStoryTabs" role="tablist" aria-label="طرح استوری">
-          {DESIGNS.filter((item) => !item.salonOnly || isSalon).map((item) => {
+          {DESIGNS.map((item) => {
             const disabled = item.id === "works" && works !== null && !worksReady;
             return (
               <button
