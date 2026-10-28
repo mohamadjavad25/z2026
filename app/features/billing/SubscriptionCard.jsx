@@ -18,6 +18,7 @@ export function SubscriptionCard() {
   useEffect(() => {
     refreshBilling();
   }, []);
+  if (overview?.testAccount) return <TestAccountCard />;
   if (overview?.preview) return <PaymentsOffCard overview={overview} />;
   const view = accountView(overview);
   if (!view) return null;
@@ -72,6 +73,24 @@ export function SubscriptionCard() {
         </div>
       </div>
       {overview.role === "salon" && overview.team?.length ? <TeamSubscriptions overview={overview} /> : null}
+    </section>
+  );
+}
+
+/** The owner's own test number: always free, never listed. Nothing to buy and nothing to count. */
+function TestAccountCard() {
+  return (
+    <section className="spSection spPay" aria-label="اشتراک">
+      <div className="billCard is-trial is-off">
+        <svg className="billSwirl" viewBox="0 0 120 120" aria-hidden="true">
+          <path d="M60 60c0-8 8-10 12-5s0 14-9 14-17-9-14-21 20-18 33-10 18 28 8 41-34 15-46 2" />
+        </svg>
+        <div className="billCardHead">
+          <span className="billBadge is-brand"><FlaskConical size={13} aria-hidden="true" /> حساب آزمایشی</span>
+        </div>
+        <b className="billCardTitle">این حساب همیشه رایگانه</b>
+        <p className="billCardSub">اشتراک نمی‌خواد و بسته نمی‌شه. توی جست‌وجو و فهرست سالن‌ها و آرتیست‌ها هم دیده نمی‌شه؛ فقط با لینک صفحه‌ش می‌شه رفت سراغش.</p>
+      </div>
     </section>
   );
 }

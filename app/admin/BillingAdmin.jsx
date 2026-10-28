@@ -18,6 +18,14 @@ export function PaymentStatusTag({ status }) {
 /** Where one salon or artist stands right now, in one line plus its dates. */
 export function AccountStateLine({ account }) {
   if (!account) return null;
+  if (account.comped) {
+    return (
+      <div className="admBillState">
+        <span className="admTone is-good">حساب آزمایشی</span>
+        <span className="admMuted">همیشه رایگان و دور از فهرست</span>
+      </div>
+    );
+  }
   const meta = ACCOUNT_STATE[account.state] || ACCOUNT_STATE.trial;
   return (
     <div className="admBillState">

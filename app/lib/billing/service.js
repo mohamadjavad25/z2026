@@ -139,6 +139,8 @@ function plansWithDates(role, accessEndsAt, now) {
 export async function billingOverview(user, now = new Date()) {
   const state = await billing.getAccountState(user.id, now);
   if (!state) return { visible: false };
+  // The owner's own test number: no plans, no counting, no banner; Settings just says so (owner's request 2026-10-28).
+  if (state.access.comped) return { visible: false, testAccount: true, role: user.type };
   const gateway = activeGateway();
   const [history, pending] = await Promise.all([billing.listUserPayments(user.id, 20), billing.latestPendingPayment(user.id)]);
   // The account's own subscription: a receipt a salon holds for an artist's plan is not the salon's last payment.
