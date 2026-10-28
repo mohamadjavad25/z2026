@@ -48,7 +48,8 @@ const SITE_JSON_LD = {
       name: "فرفرو",
       alternateName: "frfro",
       logo: `${SITE_URL}/icons/icon-512.png`,
-      email: "support@frfro.ir"
+      email: "frfrosupport@gmail.com",
+      telephone: "+989030143721"
     }
   ]
 };

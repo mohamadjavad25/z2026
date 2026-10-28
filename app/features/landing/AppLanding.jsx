@@ -373,7 +373,7 @@ export async function AppLanding() {
         <div className="appLanding__footerInner">
           <div>
             <strong>فرفرو <bdi>frfro</bdi></strong>
-            <span>پشتیبانی: <a href="mailto:support@frfro.ir">support@frfro.ir</a></span>
+            <span>پشتیبانی: <a href="mailto:frfrosupport@gmail.com">frfrosupport@gmail.com</a> · <a href="tel:+989030143721">۰۹۰۳۰۱۴۳۷۲۱</a></span>
           </div>
           <nav aria-label="پیوندهای پایین صفحه">
             <Link href="/terms">قوانین و مقررات</Link>

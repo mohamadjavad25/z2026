@@ -22,11 +22,12 @@
  * already established for the wallet/chat/shop removal.
  */
 
-const SUPPORT_EMAIL = "support@frfro.ir";
+const SUPPORT_EMAIL = "frfrosupport@gmail.com";
+const SUPPORT_PHONE = "09030143721";
 
 export const termsContent = {
   title: "قوانین و مقررات استفاده از frfro",
-  lastUpdated: "[تاریخ]",
+  lastUpdated: "۱۴۰۵/۰۸/۰۶",
   intro: "با ثبت‌نام و استفاده از frfro، یعنی این قوانین رو خوندی و باهاش موافقی. اگه با بخشی از این قوانین موافق نیستی، لطفاً از frfro استفاده نکن.",
   sections: [
     {
@@ -118,20 +119,19 @@ export const termsContent = {
     {
       heading: "۱۰. تماس",
       paragraphs: [
-        `برای هر سؤالی درباره‌ی این قوانین: ${SUPPORT_EMAIL}`
+        `برای هر سؤالی درباره‌ی این قوانین: ${SUPPORT_EMAIL} یا تلفن ${SUPPORT_PHONE}`
       ]
     }
   ],
   footer: [
-    "نام حقوقی مسئول ارائه‌ی این خدمت: [نام حقوقی شرکت]",
-    "شماره ثبت: [شماره ثبت شرکت]",
-    "آدرس: [آدرس ثبتی شرکت]"
+    "نام حقوقی مسئول ارائه‌ی این خدمت: محمد جواد نیسی",
+    "آدرس: استان خوزستان، شهر اهواز، کوی مهدیس، منازل نورد لوله، خیابان ۱۰، پلاک ۳۲۸۰"
   ]
 };
 
 export const privacyContent = {
   title: "حریم خصوصی frfro",
-  lastUpdated: "[تاریخ]",
+  lastUpdated: "۱۴۰۵/۰۸/۰۶",
   intro: "frfro یه پلتفرم رزرو نوبت با سالن و آرتیست زیباییه؛ پرداخت بین مشتری و سالن، کیف‌پول یا چت داخل اپ وجود نداره. تنها پرداخت، حق اشتراک سالن‌ها و آرتیست‌هاست که در صفحهٔ درگاه بانک انجام می‌شه، پس frfro هیچ‌وقت شمارهٔ کامل کارت، رمز کارت یا محتوای پیام خصوصی کاربران رو نمی‌بینه و نگه نمی‌داره.",
   sections: [
     {
@@ -222,11 +222,13 @@ export const privacyContent = {
       heading: "۹. تماس با ما",
       paragraphs: [
         "پشتیبانی frfro",
-        SUPPORT_EMAIL
+        SUPPORT_EMAIL,
+        `تلفن: ${SUPPORT_PHONE}`
       ]
     }
   ],
   footer: [
-    "نام حقوقی مسئول پردازش داده: [نام حقوقی شرکت]"
+    "نام حقوقی مسئول پردازش داده: محمد جواد نیسی",
+    "آدرس: استان خوزستان، شهر اهواز، کوی مهدیس، منازل نورد لوله، خیابان ۱۰، پلاک ۳۲۸۰"
   ]
 };
