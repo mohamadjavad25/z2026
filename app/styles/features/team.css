@@ -36,7 +36,7 @@
 .twMain { min-width: 0; display: grid; gap: 3px; }
 .twMain b { color: var(--n-900); font-size: 0.95rem; font-weight: 950; }
 .twRoles { display: flex; flex-wrap: wrap; gap: 5px; }
-.twRoles span { display: inline-flex; align-items: center; gap: 4px; padding: 1px 9px; border-radius: var(--radius-pill); background: color-mix(in srgb, var(--fill-strong) 13%, transparent); color: var(--accent); font-size: 0.7rem; font-weight: 900; }
+.twRoles span { display: inline-flex; align-items: center; gap: 4px; padding: 1px 9px; border-radius: var(--radius-pill); background: rgb(var(--accent-rgb) / 0.13); color: var(--accent); font-size: 0.7rem; font-weight: 900; }
 .twLine { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
 .twToday { display: inline-flex; align-items: center; gap: 6px; font-size: 0.78rem; font-weight: 900; }
 .twToday i { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
@@ -44,19 +44,19 @@
 .twToday.is-leave { color: var(--warning); }
 .twToday.is-off, .twToday.is-idle { color: var(--n-600); }
 .twTags { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; }
-.twTag { padding: 1px 10px; border-radius: var(--radius-pill); background: color-mix(in srgb, var(--fill-strong) 13%, transparent); color: var(--accent); font-size: 0.68rem; font-weight: 900; }
+.twTag { padding: 1px 10px; border-radius: var(--radius-pill); background: rgb(var(--accent-rgb) / 0.13); color: var(--accent); font-size: 0.68rem; font-weight: 900; }
 .twTag.is-gray { background: var(--n-100); color: var(--n-600); }
 .twTag.is-live { background: var(--live-fill); color: var(--on-live-fill); }
 .twNone { margin: 0; padding: 18px; text-align: center; color: var(--n-600); font-size: 0.8rem; font-weight: 700; }
 .twAdd { display: grid; justify-items: center; gap: 6px; padding: 16px; border: 1.5px dashed var(--n-300); border-radius: 22px; text-align: center; }
 .twAdd b { color: var(--n-900); font-size: 0.88rem; font-weight: 950; }
 .twAdd small { color: var(--n-600); font-size: 0.72rem; font-weight: 700; }
-.twAdd button { margin-top: 4px; min-height: 36px; display: inline-flex; align-items: center; gap: 6px; padding: 0 16px; border: 0; border-radius: var(--radius-pill); background: color-mix(in srgb, var(--fill-strong) 14%, transparent); color: var(--accent); font: inherit; font-size: 0.76rem; font-weight: 900; cursor: pointer; }
+.twAdd button { margin-top: 4px; min-height: 36px; display: inline-flex; align-items: center; gap: 6px; padding: 0 16px; border: 0; border-radius: var(--radius-pill); background: rgb(var(--accent-rgb) / 0.14); color: var(--accent); font: inherit; font-size: 0.76rem; font-weight: 900; cursor: pointer; }
 
 /* week strip (shared) */
 .twWeek { display: flex; gap: 3px; }
 .twWeek i { width: 20px; height: 20px; display: grid; place-items: center; border-radius: 50%; font-style: normal; font-size: 0.62rem; font-weight: 900; }
-.twWeek i.is-on { background: color-mix(in srgb, var(--fill-strong) 15%, transparent); color: var(--accent); }
+.twWeek i.is-on { background: rgb(var(--accent-rgb) / 0.15); color: var(--accent); }
 .twWeek i.is-off { border: 1px dashed var(--n-300); color: var(--n-400); }
 .twWeek i.is-today { box-shadow: 0 0 0 2px var(--n-0), 0 0 0 3.5px var(--live-fill); }
 .twWeek.is-large { justify-content: space-between; }
@@ -100,10 +100,10 @@
 .cwCard { display: grid; gap: 10px; padding: 14px; border: 1px solid var(--n-150); border-radius: 20px; background: var(--n-0); }
 .cwHead { display: flex; align-items: center; gap: 8px; }
 .cwHead b { flex: 1; color: var(--n-900); font-size: 0.9rem; font-weight: 950; }
-.cwEdit { min-height: 30px; display: inline-flex; align-items: center; gap: 5px; padding: 0 12px; border: 0; border-radius: var(--radius-pill); background: color-mix(in srgb, var(--fill-strong) 14%, transparent); color: var(--accent); font: inherit; font-size: 0.72rem; font-weight: 900; cursor: pointer; }
+.cwEdit { min-height: 30px; display: inline-flex; align-items: center; gap: 5px; padding: 0 12px; border: 0; border-radius: var(--radius-pill); background: rgb(var(--accent-rgb) / 0.14); color: var(--accent); font: inherit; font-size: 0.72rem; font-weight: 900; cursor: pointer; }
 .cwSub { margin: 0; color: var(--n-600); font-size: 0.74rem; font-weight: 700; line-height: 1.8; }
 .cwChips { display: flex; flex-wrap: wrap; gap: 6px; }
-.cwChip { display: inline-flex; align-items: center; gap: 4px; padding: 1px 10px; border-radius: var(--radius-pill); background: color-mix(in srgb, var(--fill-strong) 13%, transparent); color: var(--accent); font-size: 0.72rem; font-weight: 900; }
+.cwChip { display: inline-flex; align-items: center; gap: 4px; padding: 1px 10px; border-radius: var(--radius-pill); background: rgb(var(--accent-rgb) / 0.13); color: var(--accent); font-size: 0.72rem; font-weight: 900; }
 .cwChip.is-live { background: var(--live-fill); color: var(--on-live-fill); }
 .cwFaces { display: flex; }
 .cwFaces img, .cwFaces span { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--n-0); object-fit: cover; background: var(--n-100); display: grid; place-items: center; color: var(--n-700); font-size: 0.72rem; font-weight: 900; margin-inline-start: -8px; }
@@ -117,7 +117,7 @@
 .cwLine:first-child { border-top: 0; }
 .cwLine > span:nth-child(2) { flex: 1; }
 .cwLine small { color: var(--n-600); font-size: 0.72rem; font-weight: 700; }
-.cwIco { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 10px; background: color-mix(in srgb, var(--fill-strong) 13%, transparent); color: var(--accent); flex: none; }
+.cwIco { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 10px; background: rgb(var(--accent-rgb) / 0.13); color: var(--accent); flex: none; }
 .cwQuiet { display: grid; justify-items: center; gap: 4px; padding: 6px 0 2px; text-align: center; }
 .cwQuiet button { border: 0; background: transparent; color: var(--danger); font: inherit; font-size: 0.8rem; font-weight: 900; cursor: pointer; }
 .cwQuiet small { color: var(--n-500); font-size: 0.68rem; font-weight: 700; }
@@ -141,7 +141,7 @@
 
 /* ── leave, terms and the ledger (owner's decision 2026-10-28) ── */
 .tsStepper { display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
-.tsStepper button { width: 38px; height: 38px; display: grid; place-items: center; border: 0; border-radius: 50%; background: color-mix(in srgb, var(--fill-strong) 14%, transparent); color: var(--accent); cursor: pointer; }
+.tsStepper button { width: 38px; height: 38px; display: grid; place-items: center; border: 0; border-radius: 50%; background: rgb(var(--accent-rgb) / 0.14); color: var(--accent); cursor: pointer; }
 .tsStepper button:disabled { opacity: 0.35; cursor: default; }
 .tsStepper output { min-width: 84px; text-align: center; color: var(--n-900); font-size: 1.15rem; font-weight: 950; }
 .tsSheet, .tlSheet { display: grid; gap: 12px; padding-bottom: 88px; }
@@ -152,7 +152,7 @@
 .tsPair { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: var(--n-700); font-size: 0.8rem; font-weight: 800; }
 .tsDays { display: flex; justify-content: space-between; gap: 4px; }
 .tsDays button { width: 40px; height: 40px; border: 1px dashed var(--n-300); border-radius: 50%; background: transparent; color: var(--n-500); font: inherit; font-size: 0.86rem; font-weight: 900; cursor: pointer; }
-.tsDays button.is-on { border: 0; background: color-mix(in srgb, var(--fill-strong) 18%, transparent); color: var(--accent); }
+.tsDays button.is-on { border: 0; background: rgb(var(--accent-rgb) / 0.18); color: var(--accent); }
 .tsChoices { display: flex; flex-wrap: wrap; gap: 6px; }
 .tsChoices button { flex: 1; min-height: 38px; padding: 0 12px; border: 1px solid var(--n-200); border-radius: var(--radius-pill); background: var(--n-0); color: var(--n-800); font: inherit; font-size: 0.8rem; font-weight: 900; cursor: pointer; }
 .tsChoices button.is-on { background: var(--fill-strong); border-color: var(--fill-strong); color: var(--on-primary); }
@@ -181,7 +181,7 @@
 .ttProposal { display: grid; gap: 8px; padding: 12px; border: 1px solid var(--n-150); border-radius: 16px; background: var(--n-25); }
 .ttProposal.is-live { border: 1.5px solid rgb(var(--brand-pink-rgb) / 0.6); background: var(--live-soft); }
 .ttChip { justify-self: start; padding: 1px 11px; border-radius: var(--radius-pill); background: var(--live-fill); color: var(--on-live-fill); font-size: 0.7rem; font-weight: 900; }
-.ttChip.is-soft { background: color-mix(in srgb, var(--fill-strong) 14%, transparent); color: var(--accent); }
+.ttChip.is-soft { background: rgb(var(--accent-rgb) / 0.14); color: var(--accent); }
 .ttDiff { display: grid; gap: 5px; }
 .ttDiff > div { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; font-weight: 800; }
 .ttDiff > div span { flex: 1; color: var(--n-600); }
@@ -193,9 +193,9 @@
 .ttActions button, .tlPay button { flex: 1; min-height: 40px; border: 0; border-radius: var(--radius-pill); font: inherit; font-size: 0.78rem; font-weight: 900; cursor: pointer; padding: 0 10px; }
 .ttActions button:disabled, .tlPay button:disabled { opacity: 0.45; cursor: default; }
 .ttActions .is-pink, .tlPay .is-pink { background: var(--live-fill); color: var(--on-live-fill); }
-.ttActions .is-soft { background: color-mix(in srgb, var(--fill-strong) 14%, transparent); color: var(--accent); }
+.ttActions .is-soft { background: rgb(var(--accent-rgb) / 0.14); color: var(--accent); }
 .ttActions .is-red { background: var(--danger-bg); color: var(--danger); }
-.ttPropose, .tmLedgerBtn { min-height: 40px; border: 0; border-radius: var(--radius-pill); background: color-mix(in srgb, var(--fill-strong) 14%, transparent); color: var(--accent); font: inherit; font-size: 0.8rem; font-weight: 900; cursor: pointer; }
+.ttPropose, .tmLedgerBtn { min-height: 40px; border: 0; border-radius: var(--radius-pill); background: rgb(var(--accent-rgb) / 0.14); color: var(--accent); font: inherit; font-size: 0.8rem; font-weight: 900; cursor: pointer; }
 .ttLink { justify-self: start; border: 0; background: transparent; color: var(--accent); font: inherit; font-size: 0.74rem; font-weight: 900; cursor: pointer; padding: 0; text-decoration: underline; }
 .tmDeal { display: grid; gap: 8px; }
 .tmLeaves { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; }
@@ -203,7 +203,7 @@
 .tmLeaves small { color: var(--n-600); font-weight: 700; }
 
 /* ledger */
-.tlMain { display: grid; gap: 6px; padding: 14px; border-radius: 20px; background: color-mix(in srgb, var(--fill-strong) 10%, var(--n-0)); text-align: center; }
+.tlMain { display: grid; gap: 6px; padding: 14px; border-radius: 20px; background: rgb(var(--accent-rgb) / 0.1); text-align: center; }
 .tlMain > small { color: var(--n-700); font-size: 0.8rem; font-weight: 800; }
 .tlMain > b { color: var(--n-900); font-size: 1.5rem; font-weight: 950; }
 .tlSplit { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -240,4 +240,4 @@
 .lvList li { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; border-radius: 14px; background: var(--warning-bg); color: var(--n-800); font-size: 0.78rem; font-weight: 800; }
 .lvList li span { display: inline-flex; align-items: center; gap: 7px; }
 .lvList button { border: 0; background: transparent; color: var(--accent); font: inherit; font-size: 0.74rem; font-weight: 900; cursor: pointer; }
-.lvBtn { min-height: 42px; border: 0; border-radius: var(--radius-pill); background: color-mix(in srgb, var(--fill-strong) 14%, transparent); color: var(--accent); font: inherit; font-size: 0.82rem; font-weight: 900; cursor: pointer; }
+.lvBtn { min-height: 42px; border: 0; border-radius: var(--radius-pill); background: rgb(var(--accent-rgb) / 0.14); color: var(--accent); font: inherit; font-size: 0.82rem; font-weight: 900; cursor: pointer; }
