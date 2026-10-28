@@ -209,8 +209,8 @@ export function NotificationSettings({ profileType, profileSettings, onToggle, b
         icon={profileSettings.reservationAlerts ? Bell : BellOff}
         label="خبرهای داخل اپ"
         description={profileType === "client"
-          ? "وقتی اپ بازه: پیام بالای صفحه و زنگ نیم ساعت قبل از نوبت. خبر تأیید و لغو نوبت همیشه روی گوشی میاد."
-          : "وقتی اپ بازه: پیام بالای صفحه برای درخواست تازه، تأیید و لغو. خبر درخواست تازه همیشه روی گوشی میاد."}
+          ? "وقتی برنامه بازه، بالای صفحه خبر می‌ده و نیم ساعت قبل نوبت زنگ می‌زنه."
+          : "وقتی برنامه بازه، بالای صفحه خبر می‌ده."}
         checked={profileSettings.reservationAlerts}
         onChange={() => onToggle("reservationAlerts")}
       />
@@ -218,7 +218,7 @@ export function NotificationSettings({ profileType, profileSettings, onToggle, b
         <SettingsToggle
           icon={profileSettings.reminders ? BellRing : BellOff}
           label="یادآوری نوبت"
-          description="یه روز و دو ساعت قبل از هر نوبت"
+          description="یه روز و دو ساعت قبل از نوبت"
           checked={profileSettings.reminders !== false}
           onChange={() => onToggle("reminders")}
         />
@@ -227,7 +227,7 @@ export function NotificationSettings({ profileType, profileSettings, onToggle, b
         <SettingsToggle
           icon={profileSettings.dueReminders !== false ? CalendarClock : BellOff}
           label="یادآوری وقتش شده"
-          description="چند هفته بعد از هر کار، یه اعلان که وقت دوباره‌ش شده"
+          description="چند هفته بعد از هر کار، یادت میندازه وقتشه"
           checked={profileSettings.dueReminders !== false}
           onChange={() => onToggle("dueReminders")}
         />
@@ -235,7 +235,7 @@ export function NotificationSettings({ profileType, profileSettings, onToggle, b
       <SettingsToggle
         icon={soundOn ? Volume2 : VolumeX}
         label="صدای اعلان‌ها"
-        description="روی همین گوشی، برای خبرها و یادآوری‌ها"
+        description="فقط روی همین گوشی"
         checked={soundOn}
         onChange={(value) => {
           setSoundOn(value);

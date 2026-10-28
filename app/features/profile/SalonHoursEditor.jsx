@@ -354,7 +354,7 @@ export function SalonHoursEditor({
         <Timer size={16} aria-hidden="true" />
         <div>
           <strong>ساعت کاری</strong>
-          <span>کدوم روزها بازی و از چه ساعتی تا چه ساعتی</span>
+          <span>روزها و ساعت‌هات</span>
         </div>
         <em className="settingsSalonHoursSummary">
           {toPersianDigits(openDaysCount)} روز باز

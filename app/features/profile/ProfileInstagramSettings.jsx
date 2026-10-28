@@ -5,6 +5,7 @@ import { Check, ChevronLeft, Copy, ImageDown, X } from "lucide-react";
 import { InstagramGlyph } from "../../components/InstagramFolder";
 import { INSTAGRAM_INVALID_MESSAGE, normalizeInstagram } from "../../shared/lib/instagram";
 import { InstagramStorySheet } from "./InstagramStorySheet";
+import { ProfileSheet } from "./ProfileSheet";
 
 // Toasts are one line: short.
 const BIO_COPIED = "کپی شد. حالا بذارش تو بیو اینستاگرامت.";
@@ -73,7 +74,7 @@ export function ProfileInstagramSettings({ profileType, profileId, name = "", va
           </div>
         </div>
       ) : (
-        <button type="button" className="profileLocationRow" onClick={() => { setOpen((v) => !v); setError(""); }} aria-expanded={open}>
+        <button type="button" className="profileLocationRow" onClick={() => { setOpen((v) => !v); setError(""); }} aria-haspopup="dialog">
           <span className="profileLocationRowIcon igSettingsIcon" aria-hidden="true">
             <InstagramGlyph size={17} />
           </span>
@@ -81,9 +82,9 @@ export function ProfileInstagramSettings({ profileType, profileId, name = "", va
             <strong>اینستاگرام</strong>
             {value
               ? <span className="igSettingsHandle" dir="ltr">@{value}</span>
-              : <span>پیجت رو بذار تا مشتری‌ها کارهات رو اونجا هم ببینن</span>}
+              : <span>پیجت رو وصل کن</span>}
           </span>
-          {value && !open ? (
+          {value ? (
             <span
               role="button"
               tabIndex={0}
@@ -95,12 +96,13 @@ export function ProfileInstagramSettings({ profileType, profileId, name = "", va
               <X size={13} />
             </span>
           ) : (
-            <ChevronLeft size={16} className={`profileLocationRowChevron igSettingsChevron${open ? " is-open" : ""}`} aria-hidden="true" />
+            <ChevronLeft size={16} className="profileLocationRowChevron igSettingsChevron" aria-hidden="true" />
           )}
         </button>
       )}
 
-      {open && !askClear ? (
+      {/* The editor opens in its own sheet, so the row never grows in place (owner's decision 2026-10-28). */}
+      <ProfileSheet open={open && !askClear} kicker="تنظیمات" title="اینستاگرام" label="اینستاگرام" onClose={() => { setOpen(false); setError(""); }}>
         <div className="igSettingsPanel">
           <label className="igSettingsLabel" htmlFor="igSettingsInput">اسم پیجت</label>
           <div className={`igSettingsField${error ? " is-error" : ""}`} dir="ltr">
@@ -145,7 +147,7 @@ export function ProfileInstagramSettings({ profileType, profileId, name = "", va
             </div>
           </div>
         </div>
-      ) : null}
+      </ProfileSheet>
 
       <InstagramStorySheet open={storyOpen} name={name} url={publicUrl} onClose={() => setStoryOpen(false)} onNotify={onNotify} />
     </section>

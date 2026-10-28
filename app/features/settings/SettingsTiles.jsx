@@ -1,9 +1,11 @@
 "use client";
 
-import { Bell, CalendarCheck, ChevronLeft, Globe, Moon } from "lucide-react";
+import { Bell, BellRing, CalendarCheck, ChevronLeft, Globe, Link2, Moon } from "lucide-react";
 import { useState } from "react";
 import { useThemePreference } from "../../shared/lib/useThemePreference";
 import { ProfileSheet } from "../profile/ProfileSheet";
+import { ProfileQrCodeSheet } from "../../components/ProfileQrCodeSheet";
+import { usePhonePush } from "./usePhonePush";
 import {
   AppearanceSettings,
   ArtistBookingSettings,
@@ -56,9 +58,46 @@ export function AppearanceTile() {
   );
 }
 
-export function NotificationsTile({ profileType, profileSettings, onToggle }) {
+const PUSH_COPY = {
+  on: "روشنه. حتی وقتی برنامه بسته‌ست، خبر نوبت‌ها میاد.",
+  off: "خاموشه. روشنش کن تا خبر نوبت‌ها از دستت نره.",
+  blocked: "مرورگر جلوشو گرفته. تو تنظیمات مرورگر، اعلان فرفرو رو آزاد کن.",
+  unsupported: "این مرورگر اعلان نمی‌ده. اگه آیفون داری، فرفرو رو به صفحهٔ اصلی گوشی اضافه کن و از اونجا باز کن."
+};
+
+/** The phone notification itself: its state, one button to turn it on, one to prove it works. */
+function PhonePushRow({ push }) {
+  const [result, setResult] = useState("");
+  async function test() {
+    setResult("");
+    const sent = await push.sendTest();
+    setResult(sent === null ? "نشد. اینترنتت رو چک کن." : sent > 0 ? "فرستادم. تا چند ثانیه دیگه میاد." : "نرسید. اعلان فرفرو رو تو تنظیمات گوشی چک کن.");
+  }
+  if (push.status === "checking") return null;
   return (
-    <SheetTile icon={Bell} title="اعلان‌ها" state={profileSettings.reservationAlerts ? "روشن" : "خاموش"}>
+    <div className="spPush" data-state={push.status}>
+      <span className="spPushIcon" aria-hidden="true"><BellRing size={17} /></span>
+      <div className="spPushCopy">
+        <b>اعلان روی گوشی</b>
+        <small>{PUSH_COPY[push.status]}</small>
+        {result ? <small className="spPushResult" role="status">{result}</small> : null}
+      </div>
+      {push.status === "off" ? (
+        <button type="button" className="spPushBtn" disabled={push.busy} onClick={push.turnOn}>{push.busy ? "صبر کن…" : "روشنش کن"}</button>
+      ) : null}
+      {push.status === "on" ? (
+        <button type="button" className="spPushBtn is-ghost" disabled={push.busy} onClick={test}>{push.busy ? "صبر کن…" : "آزمایش کن"}</button>
+      ) : null}
+    </div>
+  );
+}
+
+export function NotificationsTile({ profileType, profileSettings, onToggle }) {
+  const push = usePhonePush();
+  const state = push.status === "on" ? "روی گوشی روشنه" : push.status === "checking" ? "" : "روی گوشی خاموشه";
+  return (
+    <SheetTile icon={Bell} title="اعلان‌ها" state={state}>
+      <PhonePushRow push={push} />
       <NotificationSettings bare profileType={profileType} profileSettings={profileSettings} onToggle={onToggle} />
     </SheetTile>
   );
@@ -86,5 +125,27 @@ export function ArtistBookingTile({ profileSettings, onToggle }) {
     >
       <ArtistBookingSettings bare profileSettings={profileSettings} onToggle={onToggle} />
     </SheetTile>
+  );
+}
+
+/** The link and QR of the public page, to share (the same sheet as on the profile). */
+export function PageLinkTile({ profile }) {
+  const [open, setOpen] = useState(false);
+  const path = `/${profile.type === "salon" ? "salons" : "artists"}/${Number(profile.id)}`;
+  const url = typeof window !== "undefined" ? `${window.location.origin}${path}` : path;
+  return (
+    <>
+      <button type="button" className="profileLocationRow" onClick={() => setOpen(true)} aria-haspopup="dialog">
+        <span className="profileLocationRowIcon" aria-hidden="true">
+          <Link2 size={17} />
+        </span>
+        <span className="profileLocationRowInfo">
+          <strong>لینک صفحه‌م</strong>
+          <span>بفرست یا QR بده</span>
+        </span>
+        <ChevronLeft size={16} className="profileLocationRowChevron" aria-hidden="true" />
+      </button>
+      <ProfileQrCodeSheet open={open} url={url} name={profile.data?.name || "صفحه‌م"} onOpenChange={setOpen} />
+    </>
   );
 }

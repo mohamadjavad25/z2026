@@ -14,7 +14,7 @@ import { SalonRulesSettings } from "../salons/SalonRulesSettings";
 import { SubscriptionCard } from "../billing";
 import { ProfileProgress } from "./ProfileProgress";
 import { profileTodos } from "./profileProgress";
-import { AppearanceTile, ArtistBookingTile, NotificationsTile, TileSlot, VisibilityTile } from "./SettingsTiles";
+import { AppearanceTile, ArtistBookingTile, NotificationsTile, PageLinkTile, TileSlot, VisibilityTile } from "./SettingsTiles";
 
 /**
  * The camera-icon trigger over an existing avatar/poster opens a bottom
@@ -281,21 +281,15 @@ export function SettingsPage({
   const isClient = !isArtist && !isSalon;
   const clientPhone = String(profile?.data?.phone || "").trim();
   const accountDescription = isArtist
-    ? "عکس، اسم هنری، کارها و شماره"
+    ? "اسم هنری و شماره"
     : isSalon
-      ? "لوگو، اسم سالن و شماره"
+      ? "اسم سالن و شماره"
       : clientPhone
-        ? <><span dir="ltr">{toPersianDigits(clientPhone)}</span>{"؛ عکس، اسم، ایمیل و رمز"}</>
-        : "عکس، اسم، شماره، ایمیل و رمز";
+        ? <span dir="ltr">{toPersianDigits(clientPhone)}</span>
+        : "اسم و شماره";
   const accountAvatar = profile?.data?.avatar || profile?.avatar || defaultAvatarFor(profile?.type);
   const savedTitle = "ذخیره‌شده‌ها";
-  const savedDescription = isArtist
-    ? (savedPostsCount ? `${toPersianDigits(savedPostsCount)} تا ذخیره کردی` : "هنوز چیزی ذخیره نکردی")
-    : isSalon
-      ? "هر چی ذخیره کردی"
-      : savedPostsCount
-        ? `${toPersianDigits(savedPostsCount)} تا ذخیره کردی`
-        : "مدل‌ها و نمونه‌کارهایی که نشون کردی";
+  const savedDescription = savedPostsCount ? `${toPersianDigits(savedPostsCount)} تا` : "هنوز چیزی نیست";
 
   const isPro = isArtist || isSalon;
   const pendingKeys = new Set(
@@ -370,6 +364,12 @@ export function SettingsPage({
                 onSave={onSaveInstagram}
                 onNotify={onNotify}
               />
+            </TileSlot>
+          ) : null}
+
+          {isPro ? (
+            <TileSlot id="link">
+              <PageLinkTile profile={profile} />
             </TileSlot>
           ) : null}
 

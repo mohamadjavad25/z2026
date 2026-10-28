@@ -63,8 +63,8 @@ export function ProfileProgress({ type, data, hasDefaultAvatar, openDaysCount, o
           <b>٪{toPersianDigits(pct)}</b>
         </div>
         <div className="spProgCopy">
-          <b>پروفایلت ٪{toPersianDigits(pct)} کامله</b>
-          <small>{left.length === 1 ? "یه کار کوچیک مونده." : type === "client" ? "چند تا کار کوچیک مونده." : "با این کارها، مشتری‌های بیشتری پیدات می‌کنن."}</small>
+          <b>پروفایلت هنوز کامل نیست</b>
+          <small>{left.length === 1 ? "فقط یه کار مونده." : type === "client" ? "چند تا کار مونده." : "با اینا مشتری بیشتری پیدات می‌کنه."}</small>
         </div>
       </div>
       <div className="spProgList">

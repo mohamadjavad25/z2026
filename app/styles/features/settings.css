@@ -809,9 +809,7 @@ button.artistWorkTagTrigger > svg{
   box-shadow: 0 8px 22px -14px rgb(var(--shadow-rgb) / 0.28);
 }
 /* A tile that is being edited in place (map, Instagram page) takes the whole row. */
-.spTileSlot:has(.profileLocationMapPanel),
-.spTileSlot:has(.profileLocationAsk),
-.spTileSlot:has(.igSettingsPanel) { grid-column: 1 / -1; }
+.spTileSlot:has(.profileLocationAsk) { grid-column: 1 / -1; }
 .spTileSlot.has-todo::after {
   content: "";
   position: absolute;
@@ -879,9 +877,25 @@ button.artistWorkTagTrigger > svg{
 }
 .spTileSlot .settingsSalonHoursHead > div span,
 .spTileSlot .settingsSalonHoursChev { display: none; }
-.spTileSlot .settingsSalonHoursSummary { color: var(--muted); font-size: 0.72rem; font-style: normal; font-weight: 750; }
+.spTileSlot .settingsSalonHoursSummary { grid-column: 1; grid-row: auto; padding: 0; background: none; color: var(--muted); font-size: 0.72rem; font-style: normal; font-weight: 750; }
+.spTileSlot .settingsSalonHoursHead > svg { grid-column: 1; grid-row: auto; }
+.spTileSlot .settingsSalonHoursHead > div { grid-column: 1; grid-row: auto; }
+/* an odd tile left alone at the end fills the row */
+.spTiles > .spTileSlot:last-child:nth-child(odd) { grid-column: 1 / -1; }
 
 /* ── account: sign out and delete side by side; delete confirms in its own sheet ── */
 .spAccountBtns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .spAccountBtns:has(> :only-child) { grid-template-columns: minmax(0, 1fr); }
 .neoSettingsGroupBody.is-bare { display: grid; gap: 8px; }
+
+/* notifications sheet: the phone notification on top (owner's decision 2026-10-28) */
+.spPush { display: flex; align-items: center; gap: 12px; padding: 14px; margin-bottom: 10px; border-radius: 18px; background: var(--n-0); border: 1px solid var(--n-200); }
+.spPushIcon { flex: none; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 12px; background: var(--n-100); color: var(--ink); }
+.spPush[data-state="on"] .spPushIcon { background: var(--live-fill); color: var(--on-live-fill); }
+.spPushCopy { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.spPushCopy b { color: var(--ink); font-size: 0.9rem; font-weight: 900; }
+.spPushCopy small { color: var(--muted); font-size: 0.74rem; font-weight: 650; line-height: 1.7; }
+.spPushCopy .spPushResult { color: var(--ink); font-weight: 800; }
+.spPushBtn { flex: none; min-height: 40px; padding: 0 16px; border: 0; border-radius: 999px; background: var(--fill-strong); color: var(--n-0); font: inherit; font-size: 0.82rem; font-weight: 900; cursor: pointer; }
+.spPushBtn.is-ghost { background: var(--n-100); color: var(--ink); }
+.spPushBtn:disabled { opacity: 0.6; cursor: default; }
