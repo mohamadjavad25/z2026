@@ -8,6 +8,7 @@ import { MAX_BOOKING_MINUTES, parseRequestedMinutes } from "./validation/numbers
 import { MAX_BOOKING_PARTS, expandPartsForPeople, summarizeBookingParts } from "../shared/lib/bookingParts.js";
 import { salonVisitParts } from "./salonVisitParts.js";
 import { BOOKING_REQUEST_WINDOW_MINUTES } from "../shared/lib/bookingWindow.js";
+import { noteAdminEvent } from "./adminNews.js";
 
 function resolveRequestedDuration(body, salon, { isClient = false } = {}) {
   const serviceName = String(body.service || "").trim();
@@ -171,5 +172,6 @@ export async function createSalonBooking({ actor, salonUserId, body, data, wait 
     }
   }
   const linkedArtistIds = result.linkedArtistIds || (linkedStaff?.artist_user_id ? [linkedStaff.artist_user_id] : []);
+  if (isClient) noteAdminEvent("bookings", `${client} در ${salon.name || "سالن"}`);
   return { ok: true, booking: result.booking, artistBooking, linkedArtistIds, client, service, time };
 }

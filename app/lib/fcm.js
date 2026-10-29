@@ -55,9 +55,10 @@ async function accessToken() {
 
 /**
  * Sends one notification to one app. Returns { ok } or { ok: false, gone } — gone means the token no
- * longer belongs to an installed app and should be deleted.
+ * longer belongs to an installed app and should be deleted. A `tag` makes the phone replace the earlier
+ * notification with the same tag instead of adding a second one (the operator's running counts, adminNews.js).
  */
-export async function sendFcm(token, { title, body, url = "/", ttl = 86400 }) {
+export async function sendFcm(token, { title, body, url = "/", ttl = 86400, tag = "" }) {
   if (!fcmConfigured()) return { ok: false, gone: false };
   const sa = serviceAccount();
   const response = await fetch(`https://fcm.googleapis.com/v1/projects/${sa.project_id}/messages:send`, {
@@ -71,7 +72,7 @@ export async function sendFcm(token, { title, body, url = "/", ttl = 86400 }) {
         android: {
           priority: "HIGH",
           ttl: `${Math.max(60, Math.round(Number(ttl) || 86400))}s`,
-          notification: { channel_id: CHANNEL_ID, sound: "default", default_vibrate_timings: true, notification_priority: "PRIORITY_HIGH" }
+          notification: { channel_id: CHANNEL_ID, sound: "default", default_vibrate_timings: true, notification_priority: "PRIORITY_HIGH", ...(tag ? { tag: String(tag) } : {}) }
         }
       }
     }),

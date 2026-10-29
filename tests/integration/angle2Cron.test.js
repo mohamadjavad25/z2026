@@ -21,7 +21,7 @@ const claims = async (id) => (await q("SELECT kind FROM booking_reminders WHERE 
 describe("cron auth", () => {
   it("rejects missing, wrong, malformed, empty and prefix-only secrets with 401 on every cron route", async () => {
     const problems = [];
-    for (const route of ["send-reminders", "expire-bookings", "billing", "migrate-media"]) {
+    for (const route of ["send-reminders", "expire-bookings", "billing", "migrate-media", "admin-watch"]) {
       for (const secret of [null, "", "wrong", TEST_CRON_SECRET.slice(0, -1), `${TEST_CRON_SECRET}x`, " ", "undefined"]) {
         const res = await cron(route, {}, { secret });
         if (res.status !== 401 && res.status !== 405) problems.push(`${route} secret=${JSON.stringify(secret)} -> ${res.status}`);

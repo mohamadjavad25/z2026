@@ -3,4 +3,5 @@ SHELL=/bin/bash
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 */5  * * * * root /opt/frfro/bin/cron-call.sh expire-bookings >> /var/log/frfro-cron.log 2>&1
 */10 * * * * root /opt/frfro/bin/cron-call.sh send-reminders  >> /var/log/frfro-cron.log 2>&1
+*/5  * * * * root /opt/frfro/bin/cron-call.sh admin-watch     >> /var/log/frfro-cron.log 2>&1
 30 3 * * *   root /opt/frfro/bin/backup-db.sh >> /var/log/frfro-cron.log 2>&1

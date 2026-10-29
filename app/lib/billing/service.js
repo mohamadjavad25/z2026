@@ -10,6 +10,7 @@ import { pushReachedApp, sendPushToUser } from "../push.js";
 import { sendTemplateSms, smsProviderName } from "../sms.js";
 import { adminPhoneList } from "../admin.js";
 import { pushAdmins } from "../adminPush.js";
+import { todayCounts } from "../db/repos/adminNews.js";
 import { logger } from "../logger.js";
 import { formatPersianLongDate, formatPersianShortDate } from "../../shared/lib/billingFormat.js";
 import { formatTomanNumber } from "../../shared/lib/money.js";
@@ -384,10 +385,14 @@ export async function notifyPaid(payment) {
   }
   const account = `${payment.user_type === "salon" ? "سالن" : "آرتیست"} ${payment.user_name || ""}`.trim();
   const who = payment.payer_user_id ? `${payment.payer_name || "سالن"} برای ${account}` : account;
+  // Every payment rings (money), each replacing the last one with the day's total (adminNews.js).
+  const today = test ? null : await todayCounts().catch(() => null);
+  const dayTotal = today?.payments.count ? ` · امروز ${toPersianDigits(String(today.payments.count))} تا، ${formatTomanNumber(rialToToman(today.payments.rial))} تومان` : "";
   const adminNews = {
     title: `پرداخت تازه${test}`,
-    body: `${who}، ${payment.plan_title}، ${amount} تومان`,
-    url: `/admin?p=payments&id=${payment.id}`
+    body: `${who}، ${payment.plan_title}، ${amount} تومان${dayTotal}`,
+    url: `/admin?p=payments&id=${payment.id}`,
+    tag: "payments"
   };
   // Admins with the «فرفرو مدیر» app get it there and no SMS (adminPush.js).
   const inAdminApp = await pushAdmins(adminNews);

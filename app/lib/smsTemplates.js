@@ -129,6 +129,13 @@ export const SMS_TEMPLATES = {
     kavenegar: (v) => ({ token10: v.topic, token20: v.who }),
     faraz: (v) => ({ topic: v.topic, who: v.who }),
     preview: (v) => `فرفرو، درخواست پشتیبانی. موضوع: ${v.topic}، از: ${v.who}. در پنل مدیریت ببین.`
+  },
+  admin_alert: {
+    label: "هشدار فوری سرور (برای مدیری که اپ مدیر ندارد)",
+    env: "ADMIN_ALERT",
+    kavenegar: (v) => ({ token10: v.what }),
+    faraz: (v) => ({ what: v.what }),
+    preview: (v) => `فرفرو، هشدار: ${v.what}. توی اپ مدیر یا پنل ببین.`
   }
 };
 

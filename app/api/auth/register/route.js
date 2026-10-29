@@ -21,6 +21,7 @@ import { getSetting } from "../../../lib/db/repos/adminControl.js";
 import { REGISTER_PER_IP_HOUR } from "../../../lib/limits.js";
 import { toPersianDigits } from "../../../shared/lib/digits.js";
 import { hasUniqueName, NAME_TAKEN_MESSAGE } from "../../../lib/businessName.js";
+import { noteAdminEvent } from "../../../lib/adminNews.js";
 
 export const runtime = "nodejs";
 
@@ -130,6 +131,8 @@ async function _POST(request) {
     if (phoneVerified) await users.markPhoneVerified(user.id);
 
     if (type === "salon") await ensureSalonHours(user.id);
+
+    noteAdminEvent("signups", `${{ client: "مشتری", salon: "سالن", artist: "آرتیست" }[type] || ""} ${user.name || ""}`.trim());
 
     const session = await createSessionForUser(user.id);
     const safe = publicUser(user);

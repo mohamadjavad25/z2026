@@ -12,6 +12,7 @@ import { artistSlotProblem } from "./visitSlotRules.js";
 import { salonClosedMessage } from "../shared/lib/artistPlace.js";
 import { readBookingSlot } from "./validation/bookingSlot.js";
 import { parseRequestedMinutes } from "./validation/numbers.js";
+import { noteAdminEvent } from "./adminNews.js";
 
 export const LOGIN_TO_BOOK_MESSAGE = "برای گرفتن نوبت، شماره‌ت رو بزن";
 export const ARTIST_TOO_MANY_OPEN_MESSAGE = "چند تا درخواست منتظر جواب داری. صبر کن جواب یکی بیاد، یا یکی رو لغو کن.";
@@ -139,5 +140,6 @@ export async function createArtistBooking({ artistUserId, viewer, data, body = {
     const error = result.code === "TOO_MANY_OPEN_REQUESTS" ? ARTIST_TOO_MANY_OPEN_MESSAGE : result.error;
     return refuse(result.code === "SLOT_TAKEN" || result.code === "TOO_MANY_OPEN_REQUESTS" ? 409 : 400, error, result.code);
   }
+  if (isRequest && !result.duplicate) noteAdminEvent("bookings", `${viewer?.name || "مشتری"} پیش ${artist?.name || "آرتیست"}`);
   return { ok: true, booking: result.booking, duplicate: Boolean(result.duplicate) };
 }
