@@ -14,6 +14,15 @@ import { formatPersianDateKey, formatPersianDayTitle } from "../../shared/lib/pe
 import { isTooSoonToRequest } from "../../shared/lib/bookingWindow";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { parseServiceDurationMinutes } from "../../shared/lib/time";
+import { hasNativeStoryShare, saveStoryNative, shareStoryNative } from "../../shared/lib/storyShare";
+
+// What the person hears after each button (one line each).
+const SHARED_COPIED = "لینک صفحه‌ت کپی شد؛ توی استوری برچسب لینک رو بزن و بچسبون.";
+const SHARED_NOT_COPIED = "توی استوری برچسب لینک رو بزن و لینک صفحه‌ت رو بذار.";
+const SAVED_COPIED = "عکس ذخیره شد و لینکت کپی شد. بذارش تو استوری و برچسب لینک رو بچسبون.";
+const SAVED_NOT_COPIED = "عکس ذخیره شد. بذارش تو استوری.";
+const SAVE_DENIED = "برای ذخیره‌ی عکس، به فرفرو اجازه‌ی دسترسی به عکس‌ها رو بده.";
+const SAVE_FAILED = "عکس ذخیره نشد؛ یه بار دیگه بزن.";
 
 const W = 1080;
 const H = 1920;
@@ -444,7 +453,9 @@ export function InstagramStorySheet({ open, name, url, avatar = "", profileType 
   const preview = picture?.dataUrl || "";
   const file = picture?.blob ? new File([picture.blob], "frfro-story.png", { type: "image/png" }) : null;
   // Asked of a stand-in file, so the buttons keep their places while a picture is still being drawn.
-  const canShareFile = typeof navigator !== "undefined" && Boolean(navigator.canShare?.({ files: [file || new File([""], "frfro-story.png", { type: "image/png" })] }));
+  // Inside the Android app the app itself shares and saves (storyShare.js); the WebView can do neither.
+  const native = hasNativeStoryShare();
+  const canShareFile = native || (typeof navigator !== "undefined" && Boolean(navigator.canShare?.({ files: [file || new File([""], "frfro-story.png", { type: "image/png" })] })));
 
   function onRailScroll() {
     const rail = railRef.current;
@@ -469,26 +480,48 @@ export function InstagramStorySheet({ open, name, url, avatar = "", profileType 
     }
   }
 
+  const sharedNote = (copied) => (copied ? SHARED_COPIED : SHARED_NOT_COPIED);
+  const savedNote = (copied) => (copied ? SAVED_COPIED : SAVED_NOT_COPIED);
+
+  // Copies the link and opens the phone's share list; Instagram's «استوری» there opens the story editor with the picture.
   async function share() {
+    if (native) {
+      try {
+        const { copied } = await shareStoryNative(preview, url);
+        onNotify?.(sharedNote(copied));
+      } catch {
+        save();
+      }
+      return;
+    }
     const copied = await copyLink();
     try {
       await navigator.share({ files: [file] });
-      onNotify?.(copied ? "لینک صفحه‌ت کپی شد؛ توی استوری برچسب لینک رو بزن و بچسبون." : "توی استوری برچسب لینک رو بزن و لینک صفحه‌ت رو بذار.");
+      onNotify?.(sharedNote(copied));
     } catch (error) {
       if (error?.name !== "AbortError") save();
     }
   }
 
+  // Saves the picture (to the gallery in the app) and copies the link.
   async function save() {
     if (!preview) return;
+    if (native) {
+      try {
+        const { copied } = await saveStoryNative(preview, url);
+        onNotify?.(savedNote(copied));
+      } catch (error) {
+        onNotify?.(error?.code === "DENIED" ? SAVE_DENIED : SAVE_FAILED);
+      }
+      return;
+    }
     const a = document.createElement("a");
     a.href = preview;
     a.download = "frfro-story.png";
     document.body.appendChild(a);
     a.click();
     a.remove();
-    const copied = await copyLink();
-    onNotify?.(copied ? "عکس ذخیره شد و لینکت کپی شد. بذارش تو استوری و برچسب لینک رو بچسبون." : "عکس ذخیره شد. بذارش تو استوری.");
+    onNotify?.(savedNote(await copyLink()));
   }
 
   function slideBody(slide) {
