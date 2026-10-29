@@ -13,6 +13,7 @@ import { artistVisitTimes } from "../booking/artistVisitTimes";
 import { formatPersianDateKey } from "../../shared/lib/persianCalendar";
 import { isTooSoonToRequest } from "../../shared/lib/bookingWindow";
 import { parseServiceDurationMinutes } from "../../shared/lib/time";
+import { copyText, saveStoryImage } from "../../shared/lib/saveStoryImage";
 
 const W = 1080;
 const H = 1920;
@@ -338,7 +339,7 @@ const INTRO = { id: "intro", label: "استوری آماده" };
  * «استوری آماده»: a big slider. The first slide says what this is for (post it on Instagram, clients connect from
  * there; picture in public/brand/story), then one slide per design. Each design is drawn when its slide is reached.
  * Where the phone can share a file (Chrome on Android, Safari on iPhone) «بفرست به اینستاگرام» opens the share
- * list with Instagram in it; elsewhere «ذخیره عکس» saves it.
+ * list with Instagram in it; «ذخیره و کپی لینک» puts it in the gallery (saveStoryImage) and copies the page link.
  */
 export function InstagramStorySheet({ open, name, url, avatar = "", profileType = "", profileId = null, onClose, onNotify }) {
   const [index, setIndex] = useState(0);
@@ -413,23 +414,31 @@ export function InstagramStorySheet({ open, name, url, avatar = "", profileType 
     railRef.current?.children[i]?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
   }
 
+  // The link is copied in the same tap, so in Instagram only the link sticker is left to paste.
   async function share() {
+    const copied = url ? copyText(url) : Promise.resolve(false);
     try {
       await navigator.share({ files: [file] });
+      if (await copied) onNotify?.("لینک صفحه‌ت هم کپی شد؛ تو استوری برچسب لینک رو بزن و بچسبون.");
     } catch (error) {
       if (error?.name !== "AbortError") save();
     }
   }
 
-  function save() {
+  async function save() {
     if (!preview) return;
-    const a = document.createElement("a");
-    a.href = preview;
-    a.download = "frfro-story.png";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    onNotify?.("عکس ذخیره شد. حالا بذارش تو استوری.");
+    const copied = url ? copyText(url) : Promise.resolve(false);
+    const result = await saveStoryImage({ dataUrl: preview, file });
+    const link = (await copied) ? "لینک صفحه‌ت هم کپی شد" : "لینک کپی نشد؛ از دکمه‌ی کپی لینک اینستاگرام بردار";
+    const messages = {
+      gallery: `عکس رفت تو گالریت و ${link}. حالا تو اینستاگرام استوری رو بذار و برچسب لینک رو بچسبون.`,
+      downloaded: `عکس دانلود شد و ${link}. حالا تو اینستاگرام استوری رو بذار و برچسب لینک رو بچسبون.`,
+      shared: `${link}. تو استوری برچسب لینک رو بزن و بچسبون.`,
+      "update-app": "این نسخه‌ی اپ هنوز عکس رو ذخیره نمی‌کنه. فرفرو رو توی مرورگر گوشیت باز کن و از همین‌جا ذخیره کن.",
+      "old-android": "گوشیت اجازه نمی‌ده اپ عکس رو ذخیره کنه. فرفرو رو توی مرورگر گوشیت باز کن و از همین‌جا ذخیره کن.",
+      failed: "عکس ذخیره نشد. دوباره بزن.",
+    };
+    if (messages[result]) onNotify?.(messages[result]);
   }
 
   const hint = blocked
@@ -473,7 +482,7 @@ export function InstagramStorySheet({ open, name, url, avatar = "", profileType 
         {design ? (
           <>
             {hint ? <p className="igStoryNote">{hint}</p> : null}
-            <p className="igStoryHint">توی استوری بذارش و برچسب لینک اینستاگرام رو با لینک صفحه‌ت روش بچسبون.</p>
+            <p className="igStoryHint">با یه لمس عکس ذخیره می‌شه و لینک صفحه‌ت کپی می‌شه. تو استوری برچسب لینک رو بزن و بچسبون.</p>
             <div className="igStoryButtons">
               {canShareFile ? (
                 <button type="button" className="igStoryShare" disabled={!file} onClick={share}>
@@ -483,7 +492,7 @@ export function InstagramStorySheet({ open, name, url, avatar = "", profileType 
               ) : null}
               <button type="button" className={canShareFile ? "igStorySave is-quiet" : "igStorySave"} disabled={!preview} onClick={save}>
                 <Download size={17} aria-hidden="true" />
-                ذخیره عکس
+                ذخیره و کپی لینک
               </button>
             </div>
           </>
