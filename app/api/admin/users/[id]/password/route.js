@@ -25,7 +25,7 @@ async function _POST(request, { params }) {
   if (isAdminPhone(user.phone)) return error("رمز حساب مدیر را فقط خودش عوض می‌کند.", 400);
   const newPassword = normalizeDigits(String(((await readJson(request)) || {}).newPassword || ""));
   if (newPassword.length < 8) return error("رمز جدید باید حداقل ۸ کاراکتر باشد.", 400);
-  await users.updateUser(id, { password_hash: hashPassword(newPassword) });
+  await users.updateUser(id, { password_hash: await hashPassword(newPassword) });
   // A password set for the user signs them out everywhere (owner's decision of 2026-10-25).
   await deleteUserSessions(id);
   await ops.killUserSessions(id);

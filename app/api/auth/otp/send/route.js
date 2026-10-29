@@ -5,6 +5,7 @@ import * as users from "../../../../lib/db/repos/users.js";
 import { otpConfig, phoneChangePurpose, sendOtp } from "../../../../lib/otp.js";
 import { checkIpRateLimit, checkRateLimit } from "../../../../lib/rateLimit.js";
 import { hasUniqueName, NAME_TAKEN_MESSAGE } from "../../../../lib/businessName.js";
+import { OTP_SEND_PER_IP_HOUR } from "../../../../lib/limits.js";
 
 export const runtime = "nodejs";
 
@@ -27,7 +28,7 @@ async function _POST(request) {
 
   // One address may not burn through the hourly SMS budget everyone shares (otp.js), which would close
   // sign-up and password reset for every visitor.
-  if (!(await checkIpRateLimit(request, "otp-send", 10, 60 * 60 * 1000)).ok) {
+  if (!(await checkIpRateLimit(request, "otp-send", OTP_SEND_PER_IP_HOUR, 60 * 60 * 1000)).ok) {
     return error("زیاد کد خواستی؛ چند دقیقه دیگه دوباره بزن.", 429);
   }
 

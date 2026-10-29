@@ -1,12 +1,13 @@
 import { createHmac, randomInt, timingSafeEqual } from "node:crypto";
 import { getDb, get, run, withTransaction } from "./db/connection.js";
 import { checkRateLimit } from "./rateLimit.js";
+import { OTP_SEND_SITE_HOUR } from "./limits.js";
 import { sendVerificationSms, smsEnabled } from "./sms.js";
 
 const CODE_TTL_MINUTES = 5;
 const MAX_ATTEMPTS = 5;
 /** The site-wide hourly cap on texted codes (all sign-ups, resets and phone changes together). */
-export const OTP_GLOBAL_HOURLY_CAP = 200;
+export const OTP_GLOBAL_HOURLY_CAP = OTP_SEND_SITE_HOUR;
 export const OTP_GLOBAL_KEY = "otp-send-global";
 const PROOF_TTL_MS = 15 * 60 * 1000;
 const RESEND_SECONDS = 60;

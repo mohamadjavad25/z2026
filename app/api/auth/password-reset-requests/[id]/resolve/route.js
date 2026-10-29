@@ -43,7 +43,7 @@ async function _POST(request, { params }) {
     return NextResponse.json({ error: "با این شماره حسابی نداری." }, { status: 404 });
   }
 
-  await users.updateUser(user.id, { password_hash: hashPassword(newPassword) });
+  await users.updateUser(user.id, { password_hash: await hashPassword(newPassword) });
   // A password set for the user signs them out everywhere (owner's decision of 2026-10-25).
   await deleteUserSessions(user.id);
   await passwordResetRequests.markResolved(id);

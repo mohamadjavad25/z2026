@@ -18,3 +18,7 @@ data/*.db
 
 # Local browser link a screenshot run left behind; a dangling link here breaks next build.
 /headless_shell
+
+# Self-hosted deploy scratch (deploy/deploy.sh)
+.deploy-dist/
+deploy/.cache/

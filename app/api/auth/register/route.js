@@ -18,6 +18,7 @@ import { MAX_PASSWORD_LENGTH, registerFieldsSchema } from "../../../lib/validati
 import { otpConfig, verifyOtpProof } from "../../../lib/otp.js";
 import { isImageDataUrlInvalidType, isImageDataUrlTooLarge } from "../../../lib/mediaLimits.js";
 import { getSetting } from "../../../lib/db/repos/adminControl.js";
+import { REGISTER_PER_IP_HOUR } from "../../../lib/limits.js";
 import { toPersianDigits } from "../../../shared/lib/digits.js";
 import { hasUniqueName, NAME_TAKEN_MESSAGE } from "../../../lib/businessName.js";
 
@@ -32,7 +33,7 @@ export const runtime = "nodejs";
 const REGISTER_ATTEMPT_LIMIT = 5;
 const REGISTER_WINDOW_MS = 60 * 60 * 1000;
 // New accounts per address per hour (a salon signing up its whole team from one Wi-Fi stays well under it).
-const REGISTER_IP_LIMIT = 20;
+const REGISTER_IP_LIMIT = REGISTER_PER_IP_HOUR;
 
 async function _POST(request) {
   await ensureDb();
@@ -105,7 +106,7 @@ async function _POST(request) {
 
     const newAccount = {
       phone,
-      passwordHash: hashPassword(password),
+      passwordHash: await hashPassword(password),
       type,
       name: fields.data.name,
       area: fields.data.area,

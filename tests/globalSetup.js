@@ -89,7 +89,7 @@ export async function setup() {
   process.env.TEST_STORAGE_URL = fakeStorage.url;
   const isWindows = process.platform === "win32";
   serverProcess = spawn(isWindows ? "npx.cmd" : "npx", ["next", "start", "-p", String(TEST_PORT)], {
-    env: { ...process.env, ...(process.env.TEST_STORAGE === "off" ? {} : { SUPABASE_URL: fakeStorage.url, SUPABASE_SERVICE_ROLE_KEY: "test-service-role-key" }), POSTGRES_URL: connectionString, NODE_ENV: "production", CRON_SECRET: TEST_CRON_SECRET, FRFRO_ADMIN_PHONES: [TEST_ADMIN_PHONE, TEST_ADMIN2_PHONE, TEST_ADMIN3_PHONE, TEST_ADMIN4_PHONE, TEST_ADMIN5_PHONE, TEST_ADMIN6_PHONE, TEST_ADMIN7_PHONE].join(","), FRFRO_ADMIN_SECRET: TEST_ADMIN_SECRET, FRFRO_ADMIN_SETUP_KEY: TEST_ADMIN_SETUP_KEY, FRFRO_SMS_PROVIDER: "test", FRFRO_OTP_REQUIRED: "0", FRFRO_REMINDER_TEST_CLOCK: "1", FRFRO_PAYMENT_GATEWAY: "sandbox" },
+    env: { ...process.env, ...(process.env.TEST_STORAGE === "off" ? {} : { SUPABASE_URL: fakeStorage.url, SUPABASE_SERVICE_ROLE_KEY: "test-service-role-key" }), POSTGRES_URL: connectionString, NODE_ENV: "production", CRON_SECRET: TEST_CRON_SECRET, FRFRO_ADMIN_PHONES: [TEST_ADMIN_PHONE, TEST_ADMIN2_PHONE, TEST_ADMIN3_PHONE, TEST_ADMIN4_PHONE, TEST_ADMIN5_PHONE, TEST_ADMIN6_PHONE, TEST_ADMIN7_PHONE].join(","), FRFRO_ADMIN_SECRET: TEST_ADMIN_SECRET, FRFRO_ADMIN_SETUP_KEY: TEST_ADMIN_SETUP_KEY, FRFRO_SMS_PROVIDER: "test", FRFRO_OTP_REQUIRED: "0", FRFRO_REMINDER_TEST_CLOCK: "1", FRFRO_PAYMENT_GATEWAY: "sandbox", FRFRO_DIRECTORY_CACHE_MS: "0" },
     stdio: ["ignore", "pipe", "pipe"],
     // Windows has no process groups to signal: npx.cmd needs a shell, and teardown kills the tree with taskkill.
     shell: isWindows,

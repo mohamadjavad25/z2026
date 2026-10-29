@@ -171,7 +171,7 @@ async function checkCredentials(phoneInput, passwordInput) {
   const phone = normalizePhone(phoneInput);
   const password = normalizeDigits(String(passwordInput || ""));
   const account = await accountByPhone(phone);
-  const passwordOk = verifyPassword(password, account?.password_hash || DUMMY_PASSWORD_HASH);
+  const passwordOk = await verifyPassword(password, account?.password_hash || DUMMY_PASSWORD_HASH);
   if (!account || !passwordOk || !isAdminPhone(account.phone)) return { ok: false, phone, account };
   return { ok: true, phone, account };
 }
@@ -340,7 +340,7 @@ export async function adminEnrollStart(request, { phone: phoneInput, password, s
   await run(db, `
     INSERT INTO admin_accounts (phone, setup_secret_enc, setup_password_hash, setup_started_at) VALUES ($1, $2, $3, NOW())
     ON CONFLICT (phone) DO UPDATE SET setup_secret_enc = EXCLUDED.setup_secret_enc, setup_password_hash = EXCLUDED.setup_password_hash, setup_started_at = NOW()
-  `, [phone, encryptSecret(secret), hashPassword(newPassword)]);
+  `, [phone, encryptSecret(secret), await hashPassword(newPassword)]);
   const uri = totpUri({ secret, account: phone });
   return { ok: true, secret, uri, qr: await QRCode.toDataURL(uri, { margin: 1, width: 240 }) };
 }
@@ -356,7 +356,7 @@ export async function adminEnrollConfirm(request, { phone: phoneInput, password,
   const keyOk = safeEqual(sha256(String(setupKey || "")), sha256(expected));
   const account = keyOk && isAdminPhone(phone) ? await accountByPhone(phone) : null;
   const fresh = account?.setup_started_at && Date.now() - new Date(account.setup_started_at).getTime() < SETUP_MS;
-  const passwordOk = verifyPassword(normalizeDigits(String(password || "")), (fresh && account.setup_password_hash) || DUMMY_PASSWORD_HASH);
+  const passwordOk = await verifyPassword(normalizeDigits(String(password || "")), (fresh && account.setup_password_hash) || DUMMY_PASSWORD_HASH);
   const secret = fresh && passwordOk ? tryDecryptSecret(account.setup_secret_enc) : null;
   const step = secret ? verifyTotp(secret, normalizeDigits(String(code || ""))) : null;
   if (step === null) {

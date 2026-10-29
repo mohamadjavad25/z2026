@@ -105,10 +105,10 @@ async function _POST(request) {
       if (!data.currentPassword) {
         return NextResponse.json({ error: "برای عوض کردن رمز، رمز فعلیت رو بزن." }, { status: 400 });
       }
-      if (!verifyPassword(data.currentPassword, auth.user.password_hash)) {
+      if (!(await verifyPassword(data.currentPassword, auth.user.password_hash))) {
         return NextResponse.json({ error: "رمز فعلی اشتباهه." }, { status: 400 });
       }
-      patch.password_hash = hashPassword(data.password);
+      patch.password_hash = await hashPassword(data.password);
     }
 
     // The walk-ins typed for the old number until now stay with this account (owner's decision of 2026-10-25).
@@ -147,7 +147,7 @@ async function _DELETE(request) {
   if (!currentPassword) {
     return NextResponse.json({ error: "برای پاک کردن حساب، رمزت رو بزن." }, { status: 400 });
   }
-  if (!verifyPassword(currentPassword, auth.user.password_hash)) {
+  if (!(await verifyPassword(currentPassword, auth.user.password_hash))) {
     return NextResponse.json({ error: "رمز فعلی اشتباهه." }, { status: 400 });
   }
   // A salon or artist is never deleted while a confirmed booking starts within 24 hours; farther confirmed bookings are

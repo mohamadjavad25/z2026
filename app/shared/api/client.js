@@ -2,6 +2,8 @@ import { trackRequest } from "./busyTracker";
 import { createRequestBreaker } from "./requestBreaker";
 
 const getBreaker = createRequestBreaker();
+const OVERLOADED = new Set([502, 503, 504]);
+export const BUSY_MESSAGE = "الان یه کم شلوغه؛ چند لحظه دیگه دوباره بزن.";
 
 export async function apiFetch(path, options = {}) {
   const isGet = !options.method || String(options.method).toUpperCase() === "GET";
@@ -23,6 +25,9 @@ export async function apiFetch(path, options = {}) {
   }
   if (isGet) getBreaker.record(breakerKey, response.status);
   const payload = await response.json().catch(() => ({}));
+  // 502/503/504 come from nginx when the app is overloaded or restarting, with an HTML page and no
+  // error text: every screen that shows payload.error then says what to do instead of a blank failure.
+  if (OVERLOADED.has(response.status) && !payload.error) payload.error = BUSY_MESSAGE;
   return { ok: response.ok, status: response.status, payload, response };
 }
 

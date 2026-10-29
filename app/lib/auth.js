@@ -1,4 +1,5 @@
-import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
+import { randomBytes, scrypt, timingSafeEqual } from "node:crypto";
+import { promisify } from "node:util";
 import { ensureDb } from "./db/connection.js";
 import * as users from "./db/repos/users.js";
 import * as sessions from "./db/repos/sessions.js";
@@ -34,17 +35,21 @@ export function isValidIranMobile(value) {
   return IRAN_MOBILE_PATTERN.test(String(value || ""));
 }
 
-export function hashPassword(password) {
+// scrypt runs on Node's worker threads, not the request loop: the synchronous version stopped every
+// other request for its whole cost (about 70 ms on the main server's CPU) at each login or sign-up.
+const scryptAsync = promisify(scrypt);
+
+export async function hashPassword(password) {
   const salt = randomBytes(16).toString("hex");
-  const hash = scryptSync(normalizeDigits(password), salt, 64).toString("hex");
+  const hash = (await scryptAsync(normalizeDigits(password), salt, 64)).toString("hex");
   return `${salt}:${hash}`;
 }
 
-export function verifyPassword(password, stored) {
+export async function verifyPassword(password, stored) {
   if (!stored || !String(stored).includes(":")) return false;
   const [salt, hash] = String(stored).split(":");
   if (!salt || !hash) return false;
-  const next = scryptSync(normalizeDigits(password), salt, 64);
+  const next = await scryptAsync(normalizeDigits(password), salt, 64);
   const prev = Buffer.from(hash, "hex");
   if (prev.length !== next.length) return false;
   return timingSafeEqual(prev, next);
@@ -55,7 +60,7 @@ export function verifyPassword(password, stored) {
  * with the exact shape verifyPassword expects. Its only use is
  * app/api/auth/login/route.js's "phone not registered" branch: calling
  * verifyPassword(password, DUMMY_PASSWORD_HASH) there and discarding the
- * (always-false) result burns the same scryptSync cost a genuine "wrong
+ * (always-false) result burns the same scrypt cost a genuine "wrong
  * password" check pays, so the two cases take equal time. Without this,
  * "not found" returns instantly (no scrypt run at all) while "wrong
  * password" pays scrypt's cost -- a measurable timing side-channel an

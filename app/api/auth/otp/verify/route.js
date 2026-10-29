@@ -3,6 +3,7 @@ import { isValidIranMobile, normalizeDigits, normalizePhone } from "../../../../
 import { ensureDb } from "../../../../lib/db/connection.js";
 import { createOtpProof, otpConfig, phoneChangePurpose, verifyOtp } from "../../../../lib/otp.js";
 import { checkIpRateLimit } from "../../../../lib/rateLimit.js";
+import { OTP_VERIFY_PER_IP_15MIN } from "../../../../lib/limits.js";
 
 export const runtime = "nodejs";
 
@@ -15,7 +16,7 @@ async function _POST(request) {
   const code = normalizeDigits(String(body.code || "")).trim();
   if (!isValidIranMobile(phone) || !/^\d{5}$/.test(code)) return error("کد ۵ رقمی رو درست بزن.", 400);
   // Guessing codes across many phones from one address (the per-phone limit is in verifyOtp).
-  if (!(await checkIpRateLimit(request, "otp-verify", 30, 15 * 60 * 1000)).ok) return error("زیاد امتحان کردی؛ چند دقیقه دیگه دوباره بزن.", 429);
+  if (!(await checkIpRateLimit(request, "otp-verify", OTP_VERIFY_PER_IP_15MIN, 15 * 60 * 1000)).ok) return error("زیاد امتحان کردی؛ چند دقیقه دیگه دوباره بزن.", 429);
   let purpose = "register";
   if (body.purpose === "phone_change") {
     const auth = await requireUser(request);
