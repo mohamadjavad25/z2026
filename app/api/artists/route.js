@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
 import { ensureDb } from "../../lib/db/connection.js";
 import * as artists from "../../lib/db/repos/artists.js";
 import { withErrorHandling } from "../../lib/http.js";
 import { createShortCache } from "../../lib/shortCache.js";
+import { buildSharedJson, sharedJsonResponse } from "../../lib/sharedJson.js";
 
 export const runtime = "nodejs";
 
@@ -22,9 +22,9 @@ async function _GET(request) {
       limit: requested || DEFAULT_PAGE,
       maxLimit: requested ? 50 : DEFAULT_PAGE
     });
-    return JSON.stringify({ data: { artists: list, nextCursor } });
+    return buildSharedJson({ data: { artists: list, nextCursor } });
   });
-  return new NextResponse(body, { headers: { "Content-Type": "application/json" } });
+  return sharedJsonResponse(request, body);
 }
 
 export const GET = withErrorHandling(_GET);
