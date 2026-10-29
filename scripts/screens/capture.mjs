@@ -99,14 +99,18 @@ const tap = (name, opts = {}) => async (p) => { await p.getByRole("button", { na
 const text = (t) => async (p) => { await p.getByText(t, { exact: true }).first().click({ timeout: 4000 }); await p.waitForTimeout(900); };
 const css = (selector, hasText) => async (p) => { await p.locator(selector, hasText ? { hasText } : {}).first().click({ timeout: 4000 }); await p.waitForTimeout(900); };
 // A slide of «استوری آماده» by its dot; the picture is drawn when the slide is reached.
-const storySlide = (i) => async (p) => { await p.locator(".igStoryDots button").nth(i).click({ timeout: 4000 }); await p.waitForTimeout(3000); };
+// A design of the full-screen «استوری آماده» by its name on top; the picture is drawn when it is reached.
+const storyTab = (name) => async (p) => { await p.locator(".igStudioTabs button", { hasText: name }).first().click({ timeout: 4000 }); await p.waitForTimeout(3000); };
+const STORY_OPEN = async (p) => { await p.locator(".igSettingsStory").first().click({ timeout: 4000 }); await p.waitForTimeout(3500); };
 const fill = (selector, value) => async (p) => { await p.locator(selector).fill(value, { timeout: 4000 }); };
+// Sample works for the screens: our own pictures in scripts/screens/samples (the old AI photos in public/brand/photos are retired, owner 2026-10-29).
+const sample = async (file) => `data:image/jpeg;base64,${(await fs.promises.readFile(new URL(`./samples/${file}`, import.meta.url))).toString("base64")}`;
 /** Two posts of نگار's (made once), so her card on سالن رز's page has pictures. */
 async function artistPosts({ sessions }) {
   const mine = (await sessions.artist.get("/api/posts")).payload?.data?.posts || [];
   if (mine.length) return;
-  for (const [file, title, tag] of [["nails-chrome.webp", "ناخن کروم", "ناخن"], ["brow-lash.webp", "لیفت مژه", "ابرو و مژه"]]) {
-    const image = `data:image/webp;base64,${(await fs.promises.readFile(new URL(`../../public/brand/photos/${file}`, import.meta.url))).toString("base64")}`;
+  for (const [file, title, tag] of [["work-2.jpg", "ژلیش صورتی", "ناخن"], ["work-1.jpg", "کاشت ناخن", "ناخن"]]) {
+    const image = await sample(file);
     await sessions.artist.post("/api/posts", { title, tag, image });
   }
 }
@@ -114,8 +118,8 @@ async function artistPosts({ sessions }) {
 async function salonPosts({ sessions }) {
   const mine = (await sessions.salon.get("/api/salon-portfolio")).payload?.data?.portfolio || [];
   if (mine.length) return;
-  for (const [file, title, tag] of [["hair-color.webp", "رنگ مو", "مو"], ["hair-curls.webp", "فر درشت", "مو"], ["bride-veil.webp", "عروس", "عروس"]]) {
-    const image = `data:image/webp;base64,${(await fs.promises.readFile(new URL(`../../public/brand/photos/${file}`, import.meta.url))).toString("base64")}`;
+  for (const [file, title, tag] of [["work-3.jpg", "سالن", "ناخن"], ["work-2.jpg", "ژلیش صورتی", "ناخن"], ["work-1.jpg", "مانیکور", "ناخن"]]) {
+    const image = await sample(file);
     await sessions.salon.post("/api/salon-portfolio", { title, tag, image });
   }
 }
@@ -134,7 +138,8 @@ const IG_OPEN = css(".igSettings .profileLocationRow");
 // The public salon page scrolls inside its own box: bring its works (and the folder after them) into view.
 const toWorksEnd = async (p) => { await p.locator(".igWorksTile").first().waitFor({ timeout: 4000 }); await p.evaluate(() => { const box = globalThis.document.querySelector(".salonPublicProfile"); if (box) box.scrollTop = box.scrollHeight; }); await p.waitForTimeout(600); };
 // The open card is taller than the screen: show it from the field down to the bio buttons.
-const toBio = async (p) => { await p.locator(".igSettingsBioButtons").first().scrollIntoViewIfNeeded({ timeout: 4000 }); await p.evaluate(() => globalThis.scrollBy(0, 110)); await p.waitForTimeout(500); };
+// The Instagram editor is a short sheet from the bottom (2026-10-29): give it a moment to rise and load the story card.
+const toBio = async (p) => { await p.locator(".igSheet").first().waitFor({ timeout: 4000 }); await p.waitForTimeout(1500); };
 
 /* ---------- where an artist on a salon team receives clients (state is set through the real API) ---------- */
 const COLLAB = css(".profileModeRail button, [role=tab], button", "همکاری");
@@ -383,10 +388,9 @@ const SCREENS = [
   { id: "salon-instagram-set", role: "salon", title: "تنظیمات، اینستاگرام گذاشته", setup: IG_SET, steps: [tab(0), toInstagram] },
   { id: "salon-instagram-open-set", role: "salon", title: "تنظیمات، اینستاگرام باز، پر", setup: IG_SET, steps: [tab(0), toInstagram, IG_OPEN, toBio] },
   // «استوری آماده» slider (2026-10-28): the intro slide, then a design and the free slots of today and tomorrow
-  { id: "salon-story-intro", role: "salon", title: "استوری آماده، اسلاید معرفی", setup: IG_SET, steps: [tab(0), toInstagram, IG_OPEN, toBio, css(".igSettingsStory")] },
-  { id: "salon-story-portrait", role: "salon", title: "استوری آماده، پرتره", setup: IG_SET, steps: [tab(0), toInstagram, IG_OPEN, toBio, css(".igSettingsStory"), storySlide(1)] },
-  { id: "salon-story-free", role: "salon", title: "استوری آماده، نوبت خالی", setup: IG_SET, steps: [tab(0), toInstagram, IG_OPEN, toBio, css(".igSettingsStory"), storySlide(4)] },
-  { id: "artist-story-free", role: "artist", title: "استوری آماده آرتیست، نوبت خالی", setup: IG_SET, steps: [tab(0), toInstagram, IG_OPEN, toBio, css(".igSettingsStory"), storySlide(4)] },
+  { id: "salon-story-free", role: "salon", title: "استوری آماده، نوبت خالی", setup: IG_SET, steps: [tab(0), toInstagram, IG_OPEN, toBio, STORY_OPEN] },
+  { id: "salon-story-works", role: "salon", title: "استوری آماده، نمونه‌کار", setup: async (ctx) => { await salonPosts(ctx); await IG_SET(ctx); }, steps: [tab(0), toInstagram, IG_OPEN, toBio, STORY_OPEN, storyTab("نمونه‌کار")] },
+  { id: "artist-story-free", role: "artist", title: "استوری آماده آرتیست، نوبت خالی", setup: IG_SET, steps: [tab(0), toInstagram, IG_OPEN, toBio, STORY_OPEN] },
   { id: "salon-instagram-copied", role: "salon", title: "تنظیمات، لینک بیو کپی شد", setup: IG_SET, clipboard: true, steps: [tab(0), toInstagram, IG_OPEN, toBio, css(".igSettingsCopy")] },
   { id: "salon-instagram-remove", role: "salon", title: "تنظیمات، برداشتن پیج اینستاگرام", setup: IG_SET, steps: [tab(0), toInstagram, css(".igSettings .profileLocationRowClear"), toInstagram] },
   { id: "salon-instagram-story", role: "salon", title: "استوری آماده", setup: IG_SET, steps: [tab(0), toInstagram, IG_OPEN, css(".igSettingsStory"), async (p) => { await p.waitForTimeout(1500); }] },
