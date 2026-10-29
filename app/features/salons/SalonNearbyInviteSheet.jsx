@@ -8,8 +8,10 @@ import { ProfileSheet } from "../profile/ProfileSheet";
 import { useQrCode } from "../../shared/hooks/useQrCode";
 import { CAPACITY_PRESETS, DAY_PRESETS, HOUR_RANGE_PRESETS, PresetRow, SHARE_PRESETS } from "../collab/collabPresets";
 import { ServiceIcon } from "../../components/ServiceIcon";
-import { getSalonJoinCode } from "../../shared/api/salons";
-import { ComingSoon } from "../../components/ComingSoon";
+import { getSalonJoinCode, getSalonRules } from "../../shared/api/salons";
+import { getSalonJoinTerms } from "../../shared/api/joinTerms";
+import { JoinTermsCard, JoinTermsPrompt } from "./JoinTermsCard";
+import { rulesToLines } from "./joinTermsFormat";
 
 const DEFAULT_TERMS = {
   days: DAY_PRESETS[2].value,
@@ -79,8 +81,8 @@ function InviteTermsPanel({ terms, onChange, onConfirm, onCancel, busy }) {
  * Salon owner — add-artist sheet: QR/link join (fast, in-person — the artist
  * scans and lands on /join-salon/[id] already knowing who they're joining)
  * plus the nearby-artist invite list for artists who aren't standing in front of
- * the owner. The list is switched off for now (NEARBY_ARTISTS_ENABLED in
- * useSalonInviteActions.js): with no artists passed in, «به زودی» shows instead.
+ * the owner, and «شرایط همکاری» (JoinTermsCard) that the QR only shows after. The list is switched off for now
+ * (NEARBY_ARTISTS_ENABLED in useSalonInviteActions.js): with no artists passed in, nothing shows there.
  */
 export function SalonNearbyInviteSheet({
   open,
@@ -114,6 +116,32 @@ export function SalonNearbyInviteSheet({
     ? `${window.location.origin}/join-salon/${salonId}?k=${encodeURIComponent(joinCode)}`
     : "";
   const qrDataUrl = useQrCode(joinUrl, open);
+
+  // «شرایط همکاری»: the QR only shows once the salon has saved its terms (owner's design 2026-10-28).
+  const [joinTerms, setJoinTerms] = useState({ status: "loading", terms: null, rulesCount: 0 });
+  const [termsSheetOpen, setTermsSheetOpen] = useState(false);
+  const [termsReload, setTermsReload] = useState(0);
+  useEffect(() => {
+    if (!open) return undefined;
+    let cancelled = false;
+    setJoinTerms((current) => (current.status === "ready" ? current : { ...current, status: "loading" }));
+    Promise.all([getSalonJoinTerms(), getSalonRules().catch(() => null)])
+      .then(([termsRes, rulesRes]) => {
+        if (cancelled) return;
+        if (!termsRes.ok) {
+          setJoinTerms((current) => ({ ...current, status: "error" }));
+          return;
+        }
+        setJoinTerms({ status: "ready", terms: termsRes.data?.terms || null, rulesCount: rulesToLines(rulesRes?.data?.rules).length });
+      })
+      .catch(() => {
+        if (!cancelled) setJoinTerms((current) => ({ ...current, status: "error" }));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, termsReload]);
+  const termsSaved = joinTerms.status === "ready" && Boolean(joinTerms.terms);
 
   function toggleTerms(artist) {
     const id = String(artist.id || artist.name);
@@ -164,7 +192,18 @@ export function SalonNearbyInviteSheet({
       panelClassName="artistInviteSheet"
       onClose={onClose}
     >
-      {salonId ? (
+      {joinTerms.status === "loading" ? (
+        <div className="ivtEmpty"><Spinner size={32} /></div>
+      ) : joinTerms.status === "error" ? (
+        <section className="jtPrompt is-error" role="alert">
+          <p>نشد؛ دوباره بزن.</p>
+          <button type="button" onClick={() => setTermsReload((value) => value + 1)}>دوباره</button>
+        </section>
+      ) : !termsSaved ? (
+        <JoinTermsPrompt onOpen={() => setTermsSheetOpen(true)} />
+      ) : null}
+
+      {salonId && termsSaved ? (
         <section className="ivtHero" aria-label="اومدن به تیم با QR">
           <p className="ivtEyebrow">سریع‌ترین راه</p>
           <h4 className="ivtTitle">یه اسکن، آرتیست میاد توی تیم</h4>
@@ -190,6 +229,14 @@ export function SalonNearbyInviteSheet({
           </div>
         </section>
       ) : null}
+
+      <JoinTermsCard
+        terms={termsSaved ? joinTerms.terms : null}
+        rulesCount={joinTerms.rulesCount}
+        sheetOpen={termsSheetOpen}
+        onSheetOpenChange={setTermsSheetOpen}
+        onSaved={(terms) => setJoinTerms((current) => ({ ...current, status: "ready", terms }))}
+      />
 
       {loading || artists.length ? (
         <div className="ivtSectionHead">
@@ -247,13 +294,7 @@ export function SalonNearbyInviteSheet({
             );
           })}
         </div>
-      ) : (
-        <ComingSoon
-          className="ivtSoon"
-          title="پیشنهاد آرتیست‌های نزدیک"
-          text="به‌زودی آرتیست‌های دور و بر سالنت رو اینجا می‌بینی. تا اون موقع، کد یا لینک بالا رو برای آرتیستی که می‌شناسی بفرست."
-        />
-      )}
+      ) : null}
     </ProfileSheet>
   );
 }

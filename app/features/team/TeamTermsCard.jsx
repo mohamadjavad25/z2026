@@ -11,7 +11,7 @@ const fmtHours = (terms) => (terms.from && terms.to ? `${toPersianDigits(terms.f
 const fmtShare = (value) => (Number.isInteger(value) ? `${toPersianDigits(value)} درصد` : "");
 
 /** One line of «قبل ← بعد» for what a proposal changes; nothing when it is the same. */
-function diffRows(current, next) {
+export function diffRows(current, next) {
   const rows = [];
   if ((current.days || "") !== (next.days || "")) rows.push(["روزها", current.days || "—", next.days]);
   if (fmtHours(current) !== fmtHours(next)) rows.push(["ساعت", fmtHours(current) || "—", fmtHours(next)]);

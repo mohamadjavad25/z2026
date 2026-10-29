@@ -354,6 +354,7 @@ export function ProfilePanelBody() {
                       pendingCollabRequests={pendingSalonCollabRequests}
                       onApproveCollab={(id) => updateSalonCollabRequest(id, "تایید شد")}
                       onDeclineCollab={(id) => updateSalonCollabRequest(id, "رد شد")}
+                      onCollabsChanged={() => refreshSalonSystemData?.()}
                       reservationRequests={reservationRequestList}
                       bookingDateForSlots={bookingDateForSlots}
                       onApproveRequest={approveReservationRequest}

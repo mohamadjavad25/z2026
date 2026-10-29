@@ -4,6 +4,7 @@ import { isProfileSaved, insertFollow, notifyNewFollower } from "./social.js";
 import { getSettings, DEFAULT_SETTINGS } from "./userSettings.js";
 import { countFollowing, defaultHours } from "./salons/common.js";
 import { listSalonHours } from "./salons/hours.js";
+import { bumpJoinTermsVersion } from "./salons/joinTerms.js";
 import { listSalonPortfolio } from "./salons/portfolio.js";
 import { listSalonServices } from "./salons/services.js";
 import { listSalonStaff } from "./salons/staff.js";
@@ -40,6 +41,7 @@ export {
   getOrCreateSalonJoinSecret,
   getSalonJoinPreview
 } from "./salons/invites.js";
+export { getJoinTerms, saveJoinTerms, joinTermsReady, rulesLines, getSalonRulesText } from "./salons/joinTerms.js";
 
 /**
  * Cursor-paginated when `limit` is given (GET /api/salons); called with no
@@ -355,6 +357,9 @@ export async function getSalonRules(userId) {
 export async function updateSalonRules(userId, rules) {
   const db = await getDb();
   const text = String(rules ?? "").replace(/\r\n/g, "\n").trim().slice(0, SALON_RULES_MAX_LENGTH);
+  const before = await get(db, "SELECT rules FROM salons WHERE user_id = $1", [userId]);
   await run(db, "UPDATE salons SET rules = $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2", [text, userId]);
+  // The join page shows these rules next to the terms: changed rules mean a page read earlier is out of date (TERMS_CHANGED).
+  if ((before?.rules || "") !== text) await bumpJoinTermsVersion(userId, db);
   return text;
 }

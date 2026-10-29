@@ -14,7 +14,13 @@ const START_CHOICES = [[7, "۷ روز دیگه"], [14, "۱۴ روز دیگه"], 
  * days away, owner's answer 3 of 2026-10-28). Either side opens it; `initial` is the current terms, or the waiting
  * proposal when answering it with a counter-offer. The server judges the hours against the salon's own (the error shows here).
  */
-export function TermsProposalSheet({ open, otherName, initial, busy, error, onSend, onClose }) {
+export function TermsProposalSheet({ open, otherName, initial, busy, error, onSend, onClose, mode = "change" }) {
+  // "change": a change to a standing team (start day + note). "join": an artist's offer before joining (note, no start day);
+  // "counter": the salon's answer to that offer (same form).
+  // "salon": the salon writing its own join terms (no note, no start day; adds «آرتیست می‌تونه پیشنهاد خودش رو بده»).
+  const isSalon = mode === "salon";
+  const withLead = mode === "change";
+  const [allow, setAllow] = useState(true);
   const [days, setDays] = useState([]);
   const [from, setFrom] = useState(10 * 60);
   const [to, setTo] = useState(18 * 60);
@@ -35,7 +41,9 @@ export function TermsProposalSheet({ open, otherName, initial, busy, error, onSe
     setOwn(Number.isInteger(initial?.ownShare) ? initial.ownShare : 70);
     setNote("");
     setLead(7);
-  }, [open, initial]);
+    setAllow(initial?.allowProposals !== false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- reset only when the content changes, not on a new object from a list refresh
+  }, [open, JSON.stringify(initial)]);
 
   const toggle = (day) => setDays((current) => (current.includes(day) ? current.filter((item) => item !== day) : [...current, day]));
   const problem = !days.length ? "دست‌کم یه روز انتخاب کن." : to <= from ? "ساعت پایان باید بعد از ساعت شروع باشه." : "";
@@ -45,13 +53,17 @@ export function TermsProposalSheet({ open, otherName, initial, busy, error, onSe
     to: clockLabel(to),
     share,
     ownShare: separate ? own : null,
-    note: note.trim(),
-    effectiveFrom: dateKeyAfter(lead)
+    ...(isSalon ? { allowProposals: allow } : { note: note.trim() }),
+    ...(withLead ? { effectiveFrom: dateKeyAfter(lead) } : {})
   });
 
   return (
-    <ProfileSheet open={open} kicker="شرایط کار" title={`پیشنهاد تو به ${otherName}`} panelClassName="tsSheet" onClose={onClose}>
-      <p className="tsLead">فقط چیزی رو عوض کن که می‌خوای عوض شه. تا {otherName} جواب نده، شرایط قبلی می‌مونه.</p>
+    <ProfileSheet open={open} kicker={isSalon ? "سالن" : "شرایط کار"} title={isSalon ? "شرایط همکاری" : `پیشنهاد تو به ${otherName}`} panelClassName="tsSheet" onClose={onClose}>
+      {isSalon ? (
+        <p className="tsLead">برای آرتیست‌های تازه‌ست؛ کسایی که الان تو تیمن دست نمی‌خورن.</p>
+      ) : (
+        <p className="tsLead">فقط چیزی رو عوض کن که می‌خوای عوض شه. {mode === "join" ? `تا ${otherName} جواب نده، هنوز تو تیم نیستی.` : mode === "counter" ? `تا ${otherName} جواب نده، هنوز تو تیمت نیست.` : `تا ${otherName} جواب نده، شرایط قبلی می‌مونه.`}</p>
+      )}
 
       <section className="tsBox" aria-label="روزها">
         <h4>روزها</h4>
@@ -80,23 +92,32 @@ export function TermsProposalSheet({ open, otherName, initial, busy, error, onSe
         {separate ? <Stepper label="سهم آرتیست از مشتری‌های خودش" value={own} onChange={setOwn} min={0} max={100} step={5} format={(value) => `${toPersianDigits(value)} درصد`} /> : null}
       </section>
 
-      <section className="tsBox" aria-label="از کی">
-        <h4>از کی اجرا بشه؟</h4>
-        <div className="tsChoices" role="group" aria-label="از کی">
-          {START_CHOICES.map(([value, label]) => (
-            <button type="button" key={value} className={lead === value ? "is-on" : ""} aria-pressed={lead === value} onClick={() => setLead(value)}>{label}</button>
-          ))}
-        </div>
-        <p className="tsHint">نوبت‌هایی که تا اون روز گرفته شده سر جاشون می‌مونن.</p>
-      </section>
+      {withLead ? (
+        <section className="tsBox" aria-label="از کی">
+          <h4>از کی اجرا بشه؟</h4>
+          <div className="tsChoices" role="group" aria-label="از کی">
+            {START_CHOICES.map(([value, label]) => (
+              <button type="button" key={value} className={lead === value ? "is-on" : ""} aria-pressed={lead === value} onClick={() => setLead(value)}>{label}</button>
+            ))}
+          </div>
+          <p className="tsHint">نوبت‌هایی که تا اون روز گرفته شده سر جاشون می‌مونن.</p>
+        </section>
+      ) : null}
 
-      <label className="tsBox tsNote">
-        <h4>یه خط برای {otherName} (اگه خواستی)</h4>
-        <input type="text" value={note} maxLength={120} placeholder="مثلاً: صبح‌ها برام سخته" onChange={(event) => setNote(event.target.value)} />
-      </label>
+      {isSalon ? (
+        <button type="button" className={`tsOption${allow ? " is-on" : ""}`} aria-pressed={allow} onClick={() => setAllow((value) => !value)}>
+          <span><b>آرتیست می‌تونه پیشنهاد خودش رو بده</b><small>اگه خاموشش کنی، آرتیست فقط می‌تونه قبول کنه یا نیاد.</small></span>
+          <i aria-hidden="true">{allow ? "روشن" : "خاموش"}</i>
+        </button>
+      ) : (
+        <label className="tsBox tsNote">
+          <h4>یه خط برای {otherName} (اگه خواستی)</h4>
+          <input type="text" value={note} maxLength={120} placeholder="مثلاً: صبح‌ها برام سخته" onChange={(event) => setNote(event.target.value)} />
+        </label>
+      )}
 
       {error || problem ? <p className="tsError" role="alert">{error || problem}</p> : null}
-      <button type="button" className="tsSend" disabled={busy || Boolean(problem)} onClick={send}>{busy ? "یه لحظه…" : `بفرست برای ${otherName}`}</button>
+      <button type="button" className="tsSend" disabled={busy || Boolean(problem)} onClick={send}>{busy ? "یه لحظه…" : isSalon ? "ذخیره" : `بفرست برای ${otherName}`}</button>
     </ProfileSheet>
   );
 }
