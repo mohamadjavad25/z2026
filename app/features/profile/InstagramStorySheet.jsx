@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Download, X } from "lucide-react";
+import { Check, Download, X } from "lucide-react";
 import { InstagramGlyph } from "../../components/InstagramFolder";
 import { Spinner } from "../../components/Spinner";
 import { SheetBackHandler } from "../../components/SheetClose";
@@ -38,7 +38,11 @@ const SLOTS_PER_DAY = 3;
 const DAY_MS = 24 * 60 * 60 * 1000;
 // Instagram covers about the top 14% and bottom 14% of a story with its own bars: nothing important goes there.
 const SAFE_TOP = 230;
-const FOOT_Y = 1700;
+// The link box sits just above Instagram's bottom bar; everything else stays above it.
+const LINK_BOX_Y = 1450;
+const LINK_BOX_H = 190;
+// The name row is optional (owner's decision 2026-10-30): Instagram already shows the page's own name and picture.
+const WHO_KEY = "frfro-story-who";
 
 // Free slots first (what fills the chair), then the works. No QR and no portrait (owner's decision 2026-10-29):
 // the link goes on the story as Instagram's own link sticker, so the picture stays clean.
@@ -126,10 +130,20 @@ function drawGround(ctx, photo, photoHeight) {
   }
 }
 
-/** Avatar (or the first letter on the blend) and the name, top right, under Instagram's own top bar. */
+/** True when the name starts in Latin letters ("sara"), so its row reads from the left. */
+function isLatinName(name) {
+  const first = String(name || "").match(/[A-Za-z؀-ۿ]/);
+  return Boolean(first && /[A-Za-z]/.test(first[0]));
+}
+
+/**
+ * Avatar (or the first letter on the blend) and the name under Instagram's own top bar: top right, or top left for a
+ * Latin name (owner's decision 2026-10-30; only this row flips, the rest of the story stays right to left).
+ */
 function drawWho(ctx, name, avatarImg) {
   const size = 128;
-  const x = W - 80 - size;
+  const latin = isLatinName(name);
+  const x = latin ? 80 : W - 80 - size;
   const y = SAFE_TOP;
   ctx.save();
   ctx.beginPath();
@@ -150,41 +164,84 @@ function drawWho(ctx, name, avatarImg) {
     ctx.fillText((name || "ف").trim().slice(0, 1), x + size / 2, y + size / 2 + 24);
   }
   ctx.restore();
-  ctx.textAlign = "right";
-  ctx.direction = "rtl";
+  ctx.direction = latin ? "ltr" : "rtl";
+  ctx.textAlign = latin ? "left" : "right";
   ctx.fillStyle = "#ffffff";
-  fitFont(ctx, name, 900, 58, x - 120);
-  ctx.fillText(name, x - 26, y + size / 2 + 20);
+  fitFont(ctx, name, 900, 58, W - 160 - size - 26);
+  ctx.fillText(name, latin ? x + size + 26 : x - 26, y + size / 2 + 20);
 }
 
-function drawKick(ctx, text, y) {
+function drawKick(ctx, text, y, right = W - 80) {
   ctx.textAlign = "right";
   ctx.direction = "rtl";
   ctx.fillStyle = PINK;
   ctx.font = `800 46px ${FONT}`;
-  ctx.fillText(text, W - 80, y);
+  ctx.fillText(text, right, y);
 }
 
-/** Two big lines: the first white, the second in the blend. */
-function drawHeadline(ctx, first, second, y, size) {
+/** Big lines ending at `right`: the first white, the rest in the blend. Returns the y under the last line. */
+function drawHeadline(ctx, lines, y, size, right = W - 80, maxWidth = W - 160) {
   ctx.textAlign = "right";
   ctx.direction = "rtl";
+  lines.forEach((line, index) => {
+    fitFont(ctx, line, 900, size, maxWidth);
+    ctx.fillStyle = index === 0 ? "#ffffff" : blendFill(ctx, right, ctx.measureText(line).width);
+    ctx.fillText(line, right, y + index * size * 1.1);
+  });
+  return y + (lines.length - 1) * size * 1.1;
+}
+
+/**
+ * The link box at the bottom (owner's sketch 2026-10-30): «رزرو با همین لینک», an arrow, and a dashed slot where
+ * Instagram's link sticker goes; the sticker covers the slot's hint.
+ */
+function drawLinkBox(ctx) {
+  const x = 80;
+  const w = W - 160;
+  const y = LINK_BOX_Y;
+  const mid = y + LINK_BOX_H / 2;
+  roundRect(ctx, x, y, w, LINK_BOX_H, 52);
+  ctx.fillStyle = "rgba(255,255,255,0.07)";
+  ctx.fill();
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = "rgba(255,255,255,0.16)";
+  ctx.stroke();
+
+  const label = "رزرو با همین لینک";
+  ctx.direction = "rtl";
+  ctx.textAlign = "right";
   ctx.fillStyle = "#ffffff";
-  fitFont(ctx, first, 900, size, W - 160);
-  ctx.fillText(first, W - 80, y);
-  fitFont(ctx, second, 900, size, W - 160);
-  ctx.fillStyle = blendFill(ctx, W - 80, ctx.measureText(second).width);
-  ctx.fillText(second, W - 80, y + size * 1.08);
-}
+  ctx.font = `900 46px ${FONT}`;
+  const labelRight = x + w - 38;
+  ctx.fillText(label, labelRight, mid + 16);
+  const arrowRight = labelRight - ctx.measureText(label).width - 24;
+  const arrowLeft = arrowRight - 84;
+  ctx.save();
+  ctx.strokeStyle = PINK;
+  ctx.lineWidth = 8;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.beginPath();
+  ctx.moveTo(arrowRight, mid);
+  ctx.lineTo(arrowLeft, mid);
+  ctx.moveTo(arrowLeft + 22, mid - 22);
+  ctx.lineTo(arrowLeft, mid);
+  ctx.lineTo(arrowLeft + 22, mid + 22);
+  ctx.stroke();
 
-function drawFoot(ctx) {
-  ctx.direction = "rtl";
-  ctx.font = `700 38px ${FONT}`;
-  ctx.fillStyle = "rgba(255,255,255,0.82)";
-  ctx.textAlign = "right";
-  ctx.fillText("رزرو آنلاین، با لینک همین استوری", W - 80, FOOT_Y);
-  ctx.textAlign = "left";
-  ctx.fillText("↓", 80, FOOT_Y);
+  const slotX = x + 34;
+  const slotW = arrowLeft - 22 - slotX;
+  const slotH = 124;
+  roundRect(ctx, slotX, mid - slotH / 2, slotW, slotH, 30);
+  ctx.setLineDash([16, 12]);
+  ctx.lineWidth = 5;
+  ctx.strokeStyle = "rgba(255,134,184,0.85)";
+  ctx.stroke();
+  ctx.restore();
+  ctx.textAlign = "center";
+  ctx.fillStyle = "rgba(255,255,255,0.5)";
+  ctx.font = `700 32px ${FONT}`;
+  ctx.fillText("برچسب لینک اینجا", slotX + slotW / 2, mid + 11);
 }
 
 /** «امروز · پنجشنبه» / «فردا · شنبه ۹ آبان» */
@@ -193,29 +250,39 @@ function dayLine(day) {
   return day.label === "امروز" ? `امروز · ${title.weekday}` : `فردا · ${title.full}`;
 }
 
-/** Several free times: up to three big chips a day. Today's are white, tomorrow's outlined. */
-async function drawFree(ctx, { name, avatar, works, days }) {
-  const [photo, avatarImg] = await Promise.all([loadImage(works[0]?.src), loadImage(avatar)]);
-  drawGround(ctx, photo, 960);
-  drawWho(ctx, name, avatarImg);
+/**
+ * Several free times (owner's sketch 2026-10-30): the times in one column on the right, three a day stacked (today's
+ * white, tomorrow's outlined), and the words beside them; the link box underneath.
+ */
+async function drawFree(ctx, { name, avatar, works, days, showWho }) {
+  const [photo, avatarImg] = await Promise.all([loadImage(works[0]?.src), showWho ? loadImage(avatar) : null]);
+  drawGround(ctx, photo, 620);
+  if (showWho) drawWho(ctx, name, avatarImg);
   const open = days.filter((day) => day.times.length);
-  let y = photo ? 700 : 640;
-  drawKick(ctx, "وقت‌های خالی", y);
-  drawHeadline(ctx, "رزرو کن", "تا پر نشده", y + 130, 120);
-  y += 130 + 120 * 1.08 + 120;
-  const chipW = 290;
-  const chipH = 116;
-  const gap = 25;
+  const colW = 400;
+  const chipH = 104;
+  const chipGap = 18;
+  const labelH = 62;
+  const dayGap = 40;
+  const dayH = (day) => labelH + Math.min(day.times.length, SLOTS_PER_DAY) * (chipH + chipGap) - chipGap;
+  const timesH = open.reduce((sum, day) => sum + dayH(day), 0) + dayGap * Math.max(0, open.length - 1);
+  const textH = 600;
+  const areaTop = showWho ? SAFE_TOP + 218 : SAFE_TOP + 20;
+  const areaBottom = LINK_BOX_Y - 70;
+  const blockH = Math.max(timesH, textH);
+  const top = areaTop + Math.max(0, (areaBottom - areaTop - blockH) / 2);
+
+  let y = top + (blockH - timesH) / 2;
+  const chipX = W - 80 - colW;
   open.forEach((day, dayIndex) => {
     ctx.textAlign = "right";
     ctx.direction = "rtl";
     ctx.fillStyle = "rgba(255,255,255,0.9)";
-    ctx.font = `800 42px ${FONT}`;
-    ctx.fillText(dayLine(day), W - 80, y);
-    y += 36;
-    day.times.slice(0, SLOTS_PER_DAY).forEach((time, index) => {
-      const x = W - 80 - (index + 1) * chipW - index * gap;
-      roundRect(ctx, x, y, chipW, chipH, 36);
+    ctx.font = `800 40px ${FONT}`;
+    ctx.fillText(dayLine(day), W - 80, y + 40);
+    let chipY = y + labelH;
+    day.times.slice(0, SLOTS_PER_DAY).forEach((time) => {
+      roundRect(ctx, chipX, chipY, colW, chipH, 34);
       if (dayIndex === 0) {
         ctx.fillStyle = "#ffffff";
         ctx.fill();
@@ -229,21 +296,34 @@ async function drawFree(ctx, { name, avatar, works, days }) {
         ctx.fillStyle = "#ffffff";
       }
       ctx.textAlign = "center";
-      ctx.font = `900 60px ${FONT}`;
-      ctx.fillText(toPersianDigits(time), x + chipW / 2, y + 80);
+      ctx.font = `900 58px ${FONT}`;
+      ctx.fillText(toPersianDigits(time), chipX + colW / 2, chipY + 73);
+      chipY += chipH + chipGap;
     });
-    y += chipH + 70;
+    y += dayH(day) + dayGap;
   });
-  drawFoot(ctx);
+
+  const textRight = chipX - 44;
+  const textWidth = textRight - 80;
+  const textTop = top + (blockH - textH) / 2;
+  drawKick(ctx, "وقت‌های خالی", textTop + 46, textRight);
+  const last = drawHeadline(ctx, ["رزرو کن", "تا پر", "نشده"], textTop + 204, 118, textRight, textWidth);
+  ctx.textAlign = "right";
+  ctx.direction = "rtl";
+  ctx.fillStyle = "rgba(255,255,255,0.78)";
+  ctx.font = `700 38px ${FONT}`;
+  ctx.fillText("با همین لینک،", textRight, last + 80);
+  ctx.fillText("بی‌تماس و بی‌پیام", textRight, last + 140);
+  drawLinkBox(ctx);
 }
 
 /** Exactly one free time (a cancellation, say): the time itself, huge, with the service under it. */
-async function drawOneFree(ctx, { name, avatar, works, day }) {
-  const [photo, avatarImg] = await Promise.all([loadImage(works[0]?.src), loadImage(avatar)]);
-  drawGround(ctx, photo, 1100);
+async function drawOneFree(ctx, { name, avatar, works, day, showWho }) {
+  const [photo, avatarImg] = await Promise.all([loadImage(works[0]?.src), showWho ? loadImage(avatar) : null]);
+  drawGround(ctx, photo, 1000);
   if (!photo) glow(ctx, 1000, 1700, 700, "rgba(139,108,255,0.4)");
-  drawWho(ctx, name, avatarImg);
-  const y = photo ? 1000 : 880;
+  if (showWho) drawWho(ctx, name, avatarImg);
+  const y = photo ? 820 : 720;
   drawKick(ctx, "یه وقت خالی شد", y);
   ctx.textAlign = "right";
   ctx.direction = "rtl";
@@ -263,19 +343,21 @@ async function drawOneFree(ctx, { name, avatar, works, day }) {
     ctx.fillStyle = INK;
     ctx.fillText(day.service, W - 80 - 42, y + 522);
   }
-  drawFoot(ctx);
+  drawLinkBox(ctx);
 }
 
 /** Three of the newest works in a collage: one tall tile and two stacked beside it. */
-async function drawWorks(ctx, { name, avatar, works, profileType }) {
-  const [avatarImg, ...pictures] = await Promise.all([loadImage(avatar), ...works.slice(0, WORKS_NEEDED).map((work) => loadImage(work.src))]);
+async function drawWorks(ctx, { name, avatar, works, profileType, showWho }) {
+  const [avatarImg, ...pictures] = await Promise.all([showWho ? loadImage(avatar) : null, ...works.slice(0, WORKS_NEEDED).map((work) => loadImage(work.src))]);
   drawGround(ctx, null, 0);
-  drawWho(ctx, name, avatarImg);
-  const top = SAFE_TOP + 190;
+  if (showWho) drawWho(ctx, name, avatarImg);
+  const top = showWho ? SAFE_TOP + 190 : SAFE_TOP + 40;
+  const tall = showWho ? 660 : 780;
+  const half = (tall - 22) / 2;
   const tiles = [
-    { x: 460, y: top, w: 560, h: 840 },
-    { x: 60, y: top, w: 380, h: 409 },
-    { x: 60, y: top + 431, w: 380, h: 409 }
+    { x: 460, y: top, w: 560, h: tall },
+    { x: 60, y: top, w: 380, h: half },
+    { x: 60, y: top + half + 22, w: 380, h: half }
   ];
   tiles.forEach((tile, index) => {
     ctx.save();
@@ -286,10 +368,10 @@ async function drawWorks(ctx, { name, avatar, works, profileType }) {
     if (pictures[index]) drawCover(ctx, pictures[index], tile.x, tile.y, tile.w, tile.h);
     ctx.restore();
   });
-  const y = top + 840 + 110;
+  const y = top + tall + 100;
   drawKick(ctx, profileType === "salon" ? "نمونه‌کارهای ما" : "نمونه‌کارهای من", y);
-  drawHeadline(ctx, "نوبت بعدی", "مال تو", y + 120, 104);
-  drawFoot(ctx);
+  drawHeadline(ctx, ["نوبت بعدی", "مال تو"], y + 116, 96);
+  drawLinkBox(ctx);
 }
 
 /**
@@ -404,6 +486,8 @@ export function InstagramStorySheet({ open, name, url, avatar = "", profileType 
   const [slotsFailed, setSlotsFailed] = useState(false);
   // Drawn pictures by design id: { blob, dataUrl } or { failed: true }.
   const [made, setMade] = useState({});
+  // Off unless the person turned it on before (owner's decision 2026-10-30).
+  const [showWho, setShowWho] = useState(false);
   const railRef = useRef(null);
   const closeRef = useRef(null);
   // The parent passes a new onClose on every render; read through a ref so the app's regular refresh (every few
@@ -420,6 +504,11 @@ export function InstagramStorySheet({ open, name, url, avatar = "", profileType 
     setWorks(null);
     setSlots(null);
     setSlotsFailed(false);
+    try {
+      setShowWho(window.localStorage.getItem(WHO_KEY) === "1");
+    } catch {
+      setShowWho(false);
+    }
     loadWorks()
       .then((list) => { if (!cancelled) setWorks(list); })
       .catch(() => { if (!cancelled) setWorks([]); });
@@ -446,12 +535,23 @@ export function InstagramStorySheet({ open, name, url, avatar = "", profileType 
   useEffect(() => {
     if (!open || !dataReady || problems[design] || made[design]) return undefined;
     let cancelled = false;
-    drawStory(design, { name: name || "فرفرو", avatar, works: works || [], days: slots || [], profileType })
+    drawStory(design, { name: name || "فرفرو", avatar, works: works || [], days: slots || [], profileType, showWho })
       .then((picture) => { if (!cancelled) setMade((all) => ({ ...all, [design]: picture.blob ? picture : { failed: true } })); })
       .catch(() => { if (!cancelled) setMade((all) => ({ ...all, [design]: { failed: true } })); });
     return () => { cancelled = true; };
     // problems[design] is derived from works/slots, which are listed.
-  }, [open, design, dataReady, made, name, avatar, works, slots, slotsFailed, profileType]);
+  }, [open, design, dataReady, made, name, avatar, works, slots, slotsFailed, profileType, showWho]);
+
+  function toggleWho() {
+    const next = !showWho;
+    setShowWho(next);
+    setMade({});
+    try {
+      window.localStorage.setItem(WHO_KEY, next ? "1" : "0");
+    } catch {
+      // Private mode: the choice just lasts while the sheet is open.
+    }
+  }
 
   if (!open || typeof document === "undefined") return null;
 
@@ -558,6 +658,10 @@ export function InstagramStorySheet({ open, name, url, avatar = "", profileType 
             </button>
           ))}
         </div>
+        <button type="button" className={`igStudioWho${showWho ? " is-on" : ""}`} aria-pressed={showWho} onClick={toggleWho}>
+          <span className="igStudioWhoBox" aria-hidden="true">{showWho ? <Check size={14} strokeWidth={3} /> : null}</span>
+          اسم و عکس
+        </button>
         <button type="button" ref={closeRef} className="igStudioClose" onClick={onClose} aria-label="بستن استوری آماده">
           <X size={20} aria-hidden="true" />
         </button>

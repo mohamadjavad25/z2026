@@ -24,9 +24,16 @@
 </head>
 <body>
   <img src="icon.png" alt="">
-  <h1>اتصال به اینترنت برقرار نیست</h1>
-  <p>اینترنت گوشی را بررسی کن و دوباره امتحان کن. اگر فیلترشکن روشنه، خاموشش کن یا یکی دیگه امتحان کن.</p>
+  <h1 id="title">اتصال به اینترنت برقرار نیست</h1>
+  <p id="text">اینترنت گوشی را بررسی کن و دوباره امتحان کن. اگر فیلترشکن روشنه، خاموشش کن یا یکی دیگه امتحان کن.</p>
   <button type="button" onclick="location.href='https://frfro.ir'">تلاش دوباره</button>
-  <script>window.addEventListener("online", function () { location.href = "https://frfro.ir"; });</script>
+  <script>
+    // MainActivity adds ?vpn=1 when the phone has a VPN on (2026-10-30).
+    if (/[?&]vpn=1/.test(location.search)) {
+      document.getElementById("title").textContent = "فیلترشکنت روشنه";
+      document.getElementById("text").textContent = "فرفرو با فیلترشکن کند می‌شه یا اصلاً باز نمی‌شه. خاموشش کن و دوباره امتحان کن.";
+    }
+    window.addEventListener("online", function () { location.href = "https://frfro.ir"; });
+  </script>
 </body>
 </html>

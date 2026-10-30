@@ -51,6 +51,8 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Tells whether a VPN is on, to say so when the site is slow to open (granted silently, no prompt) -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- QR scanner and photo capture for posts -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />

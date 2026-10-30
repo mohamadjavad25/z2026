@@ -68,6 +68,11 @@ body:has(.igStudio) .bottomNav, body:has(.igStudio) .floatingMobileCta { opacity
 .igStudioTabs { display: flex; gap: 2px; padding: 3px; border-radius: 99px; background: rgb(var(--n-0-rgb) / 0.12); }
 .igStudioTabs button { min-height: 36px; padding: 0 16px; border: 0; border-radius: 99px; background: transparent; color: rgb(var(--n-0-rgb) / 0.72); font: inherit; font-size: 0.82rem; font-weight: 850; cursor: pointer; }
 .igStudioTabs button.is-on { background: var(--n-0); color: var(--n-950); }
+/* Name and picture on the story, off by default: Instagram already shows them above it (owner's decision 2026-10-30). */
+.igStudioWho { display: inline-flex; align-items: center; gap: 7px; min-height: 36px; margin-inline-start: auto; padding: 0 12px; border: 0; border-radius: 99px; background: rgb(var(--n-0-rgb) / 0.12); color: rgb(var(--n-0-rgb) / 0.82); font: inherit; font-size: 0.8rem; font-weight: 850; cursor: pointer; }
+.igStudioWhoBox { display: grid; place-items: center; width: 18px; height: 18px; border: 2px solid rgb(var(--n-0-rgb) / 0.6); border-radius: 6px; }
+.igStudioWho.is-on { color: var(--n-0); }
+.igStudioWho.is-on .igStudioWhoBox { border-color: var(--brand-pink); background: var(--brand-pink); color: var(--brand-ink); }
 .igStudioClose { display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border: 0; border-radius: 50%; background: rgb(var(--n-0-rgb) / 0.12); color: var(--n-0); cursor: pointer; }
 .igStudioRail { display: flex; min-height: 0; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain; }
 .igStudioRail::-webkit-scrollbar { display: none; }

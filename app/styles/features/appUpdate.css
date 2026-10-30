@@ -11,7 +11,7 @@
 .appUpdMain, .appUpdLater { width: 100%; min-height: 50px; border: 0; border-radius: var(--radius-lg); font: inherit; font-size: var(--text-md); font-weight: 800; cursor: pointer; }
 .appUpdMain { background: var(--violet-deep); color: var(--n-0); }
 .appUpdLater { background: rgb(var(--ink-rgb) / 0.06); color: var(--ink); }
-.appUpdMain:focus-visible, .appUpdLater:focus-visible, .appUpdPill:focus-visible { outline: 3px solid var(--pink); outline-offset: 2px; }
+.appUpdMain:focus-visible, .appUpdLater:focus-visible, .appUpdPill:focus-visible { outline: 3px solid var(--brand-pink); outline-offset: 2px; }
 
 /* The pill beside the bell on the profile cover. */
 .appUpdPill { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 12px; border: 0; border-radius: var(--radius-pill); background: var(--violet-deep); color: var(--n-0); font: inherit; font-size: var(--text-sm); font-weight: 800; white-space: nowrap; cursor: pointer; box-shadow: 0 6px 18px rgb(var(--shadow-rgb) / 0.25); }
