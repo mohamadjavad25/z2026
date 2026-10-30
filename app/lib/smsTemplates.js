@@ -67,6 +67,13 @@ export const SMS_TEMPLATES = {
     faraz: (v) => ({ who: v.who, day: v.day, time: v.time, artist: v.artist }),
     preview: (v) => `فرفرو: ${v.who} می‌خواد نوبتت (${v.day} ساعت ${v.time}) رو بده به ${v.artist}. قبول می‌کنی؟ توی فرفرو جواب بده؛ تا جواب ندی، همه‌چی سر جاشه.`
   },
+  booking_made_for_you: {
+    label: "سالن یا آرتیست خودش برای مشتری نوبت ثبت کرد (به مشتری)",
+    env: "BOOKING_MADE",
+    kavenegar: (v) => ({ token: v.time, token10: v.day, token20: v.who }),
+    faraz: (v) => ({ who: v.who, day: v.day, time: v.time }),
+    preview: (v) => `فرفرو: ${v.who} برات نوبت ثبت کرد، ${v.day} ساعت ${v.time}. برای دیدن یا لغوش وارد فرفرو شو: frfro.ir`
+  },
   billing_receipt: {
     label: "رسید پرداخت اشتراک",
     env: "BILLING_RECEIPT",
@@ -115,6 +122,13 @@ export const SMS_TEMPLATES = {
     kavenegar: (v) => ({ token10: v.who }),
     faraz: (v) => ({ who: v.who }),
     preview: (v) => `فرفرو: ${v.who} از تیمت رفت. توی اپ ببین.`
+  },
+  team_salon_gone: {
+    label: "حذف حساب سالن (به آرتیست‌های تیمش)",
+    env: "TEAM_SALON_GONE",
+    kavenegar: (v) => ({ token10: v.who }),
+    faraz: (v) => ({ who: v.who }),
+    preview: (v) => `فرفرو: ${v.who} حسابش رو پاک کرد و همکاری باهاش تموم شد. نوبت‌های خودت سر جاشه.`
   },
   phone_changed: {
     label: "شمارهٔ حساب عوض شد (به شمارهٔ قبلی)",

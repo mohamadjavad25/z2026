@@ -10,6 +10,7 @@ import { isMultiPartBooking, parseBookingParts, serializeBookingParts } from "..
 import { NEAR_BOOKING_HOURS } from "../../../shared/lib/providerRules.js";
 import { noticeClientCancelledByProvider } from "../../providerNotices.js";
 import { notifyConnection } from "../../connectionNotify.js";
+import { notifyTeamEnd } from "../../teamNotify.js";
 import { salonGone } from "../../artistPlaceRelease.js";
 import { deleteClientAccount } from "./clientExit.js";
 
@@ -331,6 +332,7 @@ export async function deleteProviderAccount({ user, cancelAll = false, byAdmin =
     if (item.team) continue;
     await cancelItem(item, { by: "gone", userId: user.id, actor: user });
   }
+  let teamToTell = [];
   if (user.type === "artist") {
     // The salons the artist worked for: confirmed team bookings are cancelled (by provider: the salon is staying),
     // waiting ones go back to the salon unassigned; every salon is told.
@@ -353,8 +355,13 @@ export async function deleteProviderAccount({ user, cancelAll = false, byAdmin =
     if (after.near.length) return BLOCKED(after);
   }
   // A salon's direct bookings (clients an artist receives there) move back to the artist's own place, with notice.
+  if (user.type === "salon") {
+    // Every artist on the team hears the salon is gone (card + push + SMS); the team is read before the account goes.
+    teamToTell = (await all(await getDb(), "SELECT DISTINCT artist_user_id FROM salon_staff WHERE salon_user_id = $1 AND artist_user_id IS NOT NULL", [Number(user.id)])).map((row) => row.artist_user_id);
+  }
   if (user.type === "salon") await salonGone({ salonUserId: user.id, salonName: user.name || "" });
   await users.deleteUserDetachingPhone(user.id);
+  for (const artistUserId of teamToTell) notifyTeamEnd({ kind: "gone", toUserId: artistUserId, from: { name: user.name || "" } });
   await closeOrphanBookings();
   return { ok: true };
 }
