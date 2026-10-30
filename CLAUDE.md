@@ -11,7 +11,7 @@ The owner builds frfro alone with Claude and never touches code: they report wha
 
 ## Pinned priority (owner, 2026-10-30)
 
-At the start of every session, before any other work, tell the owner (plain Persian, one or two sentences) that the open item 0 in `docs/HEALTH.md` is waiting: one phone with two names shows as one client in the customers list. Ask if they want to deal with it now. Remove this section when it is fixed.
+At the start of every session, before any other work, tell the owner (plain Persian, one or two sentences) that the open item 0 in `docs/HEALTH.md` is waiting: one phone with two names shows as one client in the customers list. Ask if they want to deal with it now. When it is fixed, in the same change: delete this section, delete item 0 from `docs/HEALTH.md`, add a dated lesson to «درس‌ها» in `docs/HEALTH.md` (what went wrong, why, the rule that prevents it), add the decision to `docs/DECISIONS.md`, update the customers section in `docs/PROJECT_NOTES.md`, and keep the test. No leftover reminder anywhere.
 
 ## Which server (owner's rule, 2026-10-20)
 
