@@ -105,8 +105,8 @@
 شانزده پیامک، هر کدام با الگوی جدا در سرویس پیامک و یک متغیر محیطی. تا الگو تنظیم نشود، فقط اعلان گوشی می‌رود. متن پیشنهادی و نام متغیرها در `app/lib/smsTemplates.js` است:
 | پیامک | کاوه‌نگار | فراز اس‌ام‌اس | متغیرها |
 |---|---|---|---|
-| درخواست نوبت تازه (به سالن یا آرتیست) | `KAVENEGAR_TEMPLATE_BOOKING_REQUEST` | `FARAZSMS_PATTERN_BOOKING_REQUEST` | token=ساعت، token10=روز، token20=مشتری و خدمت / `%who%` `%day%` `%time%` |
-| جواب درخواست نوبت (به مشتری) | `…_BOOKING_ANSWER` | `…_BOOKING_ANSWER` | token=ساعت، token10=روز، token20=سالن و نتیجه / `%who%` `%day%` `%time%` `%result%` |
+| درخواست نوبت تازه (به سالن یا آرتیست) | `KAVENEGAR_TEMPLATE_BOOKING_REQUEST` | `FARAZSMS_PATTERN_BOOKING_REQUEST` | token=ساعت، token10=روز، token20=مشتری و خدمت / `%who%` `%day%` `%time%` (فراز `zc58GHAryU`، ویرایش ۲۰۲۶-۱۰-۳۰ پس از رد «تبلیغاتی»: «فرفرو: درخواست نوبت. مشتری: %who%، روز: %day%، ساعت: %time%. در فرفرو جواب بده.») |
+| جواب درخواست نوبت (به مشتری) | `…_BOOKING_ANSWER` | `…_BOOKING_ANSWER` | token=ساعت، token10=روز، token20=سالن و نتیجه / `%who%` `%day%` `%time%` `%result%` (فراز `qnCuaNPMk1`، ویرایش ۲۰۲۶-۱۰-۳۰ پس از رد «نام قبل از هر متغیر»: «فرفرو: وضعیت نوبت شما. محل: %who%، روز: %day%، ساعت: %time%، نتیجه: %result%.») |
 | یادآوری دو ساعت قبل (فقط به مشتری‌ای که هیچ اعلانی به او نرسید، بیشتر آیفون) | `…_BOOKING_REMINDER` | `…_BOOKING_REMINDER` | token=ساعت، token10=سالن / `%who%` `%time%` |
 | لغو نوبت از طرف مشتری (به سالن یا آرتیست) | `…_BOOKING_CLIENT_CANCELLED` | `…_BOOKING_CLIENT_CANCELLED` | token=ساعت، token10=روز، token20=مشتری / `%who%` `%day%` `%time%` |
 | رسید پرداخت (به پرداخت‌کننده) | `KAVENEGAR_TEMPLATE_BILLING_RECEIPT` | `FARAZSMS_PATTERN_BILLING_RECEIPT` | token=شمارهٔ رسید، token2=مبلغ، token3=تاریخ پایان / `%receipt%` `%amount%` `%until%` |

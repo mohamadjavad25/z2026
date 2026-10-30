@@ -16,14 +16,14 @@ export const SMS_TEMPLATES = {
     env: "BOOKING_REQUEST",
     kavenegar: (v) => ({ token: v.time, token10: v.day, token20: v.who }),
     faraz: (v) => ({ who: v.who, day: v.day, time: v.time }),
-    preview: (v) => `فرفرو: درخواست تازه از ${v.who}، ${v.day} ساعت ${v.time}. توی اپ جواب بده.`
+    preview: (v) => `فرفرو: درخواست نوبت. مشتری: ${v.who}، روز: ${v.day}، ساعت: ${v.time}. در فرفرو جواب بده.`
   },
   booking_answer: {
     label: "جواب درخواست نوبت (به مشتری)",
     env: "BOOKING_ANSWER",
     kavenegar: (v) => ({ token: v.time, token10: v.day, token20: `${v.who} ${v.result}` }),
     faraz: (v) => ({ who: v.who, day: v.day, time: v.time, result: v.result }),
-    preview: (v) => `فرفرو: نوبتت ${v.day} ساعت ${v.time} توی ${v.who} ${v.result}.`
+    preview: (v) => `فرفرو: وضعیت نوبت شما. محل: ${v.who}، روز: ${v.day}، ساعت: ${v.time}، نتیجه: ${v.result}.`
   },
   booking_reminder: {
     label: "یادآوری نوبت، دو ساعت قبل (به مشتری بدون اعلان)",
