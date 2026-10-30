@@ -354,12 +354,16 @@ export async function deleteProviderAccount({ user, cancelAll = false, byAdmin =
     const after = await planExit({ scope: "account", user, now: new Date() });
     if (after.near.length) return BLOCKED(after);
   }
-  // A salon's direct bookings (clients an artist receives there) move back to the artist's own place, with notice.
   if (user.type === "salon") {
     // Every artist on the team hears the salon is gone (card + push + SMS); the team is read before the account goes.
-    teamToTell = (await all(await getDb(), "SELECT DISTINCT artist_user_id FROM salon_staff WHERE salon_user_id = $1 AND artist_user_id IS NOT NULL", [Number(user.id)])).map((row) => row.artist_user_id);
+    // The owner's own row (is_owner) is the salon itself, not a team artist.
+    teamToTell = (await all(await getDb(), `
+      SELECT DISTINCT artist_user_id FROM salon_staff
+      WHERE salon_user_id = $1 AND artist_user_id IS NOT NULL AND artist_user_id <> $1 AND NOT is_owner
+    `, [Number(user.id)])).map((row) => row.artist_user_id);
+    // A salon's direct bookings (clients an artist receives there) move back to the artist's own place, with notice.
+    await salonGone({ salonUserId: user.id, salonName: user.name || "" });
   }
-  if (user.type === "salon") await salonGone({ salonUserId: user.id, salonName: user.name || "" });
   await users.deleteUserDetachingPhone(user.id);
   for (const artistUserId of teamToTell) notifyTeamEnd({ kind: "gone", toUserId: artistUserId, from: { name: user.name || "" } });
   await closeOrphanBookings();
