@@ -292,6 +292,11 @@ export function ProfilePanelBody() {
                       {salonWorkspace === "staff" && (
                         <SalonStaffWorkspace
                           pendingInvites={pendingSalonArtistInvites}
+                          collabRequests={pendingSalonCollabRequests}
+                          collabBusyId={salonRequestBusyId}
+                          onApproveCollab={(id) => updateSalonCollabRequest(id, "تایید شد")}
+                          onDeclineCollab={(id) => updateSalonCollabRequest(id, "رد شد")}
+                          onCollabsChanged={() => refreshSalonSystemData?.()}
                           staffList={safeSalonStaffList}
                           salonHours={salonHoursList}
                           onInviteNearby={openNearbyArtistInvite}
@@ -351,10 +356,6 @@ export function ProfilePanelBody() {
                     <div className="salonDayInline">{salonDayNav}</div>
                     <div className="salonDaySwipe" {...salonDaySwipe}>
                     <SalonScheduleDashboard
-                      pendingCollabRequests={pendingSalonCollabRequests}
-                      onApproveCollab={(id) => updateSalonCollabRequest(id, "تایید شد")}
-                      onDeclineCollab={(id) => updateSalonCollabRequest(id, "رد شد")}
-                      onCollabsChanged={() => refreshSalonSystemData?.()}
                       reservationRequests={reservationRequestList}
                       bookingDateForSlots={bookingDateForSlots}
                       onApproveRequest={approveReservationRequest}
@@ -442,6 +443,8 @@ export function ProfilePanelBody() {
                   requestBusyId={artistRequestBusyId}
                   onApproveRequest={confirmArtistBookingRequest}
                   onDeclineRequest={declineArtistBookingRequest}
+                  onTeam={(artistTeams || []).length > 0}
+                  onNotice={setAppToast}
                 />
               )}
 
@@ -466,7 +469,6 @@ export function ProfilePanelBody() {
                   teams={artistTeams}
                   teamBusyId={artistTeamBusyId}
                   onLeaveTeam={leaveArtistSalonTeam}
-                  onNotice={setAppToast}
                   onInviteRespond={respondArtistSalonInvite}
                   onChanged={refreshArtistWorkspace}
                 />

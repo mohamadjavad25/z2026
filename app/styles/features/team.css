@@ -235,9 +235,3 @@
 .tlEdit input { width: 110px; min-height: 36px; }
 .tlEdit button { min-height: 36px; padding: 0 12px; border: 0; border-radius: var(--radius-pill); background: var(--fill-strong); color: var(--on-primary); font: inherit; font-size: 0.74rem; font-weight: 900; cursor: pointer; }
 
-/* leave card */
-.lvList { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
-.lvList li { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; border-radius: 14px; background: var(--warning-bg); color: var(--n-800); font-size: 0.78rem; font-weight: 800; }
-.lvList li span { display: inline-flex; align-items: center; gap: 7px; }
-.lvList button { border: 0; background: transparent; color: var(--accent); font: inherit; font-size: 0.74rem; font-weight: 900; cursor: pointer; }
-.lvBtn { min-height: 42px; border: 0; border-radius: var(--radius-pill); background: rgb(var(--accent-rgb) / 0.14); color: var(--accent); font: inherit; font-size: 0.82rem; font-weight: 900; cursor: pointer; }

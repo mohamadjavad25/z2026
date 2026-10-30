@@ -1,11 +1,13 @@
 import { PageIcon } from "../../components/PageIcon";
+import { toPersianDigits } from "../../shared/lib/digits";
 
 /**
  * The tab row under a salon's or artist's profile header. Both roles get the same names in the same
  * order, and both open on «نوبت‌ها» (user's choice 2026-10-23):
  *   salon:  نوبت‌ها (overview: the schedule) · خدمات · نمونه‌کار · پرسنل
  *   artist: نوبت‌ها (overview: the schedule) · خدمات · نمونه‌کار · همکاری
- * A client's page has no tab row (ClientHome).
+ * A client's page has no tab row (ClientHome). `badges` puts a count on a tab ({ staff, collabs }): artists asking to
+ * join the salon, or salons inviting the artist, so the owner sees where the answer waits (2026-10-30).
  */
 export function ProfileModeRail({
   profileType,
@@ -14,6 +16,7 @@ export function ProfileModeRail({
   onOverview,
   onSalonWorkspace,
   onProfileView,
+  badges = {},
   placement = "panel"
 }) {
   const salon = profileType === "salon";
@@ -53,6 +56,7 @@ export function ProfileModeRail({
         >
           <PageIcon name={tab.icon} size={20} />
           <span>{tab.label}</span>
+          {badges[tab.id] > 0 ? <em className="pmrBadge" aria-label={`${toPersianDigits(badges[tab.id])} تازه`}>{toPersianDigits(badges[tab.id])}</em> : null}
         </button>
       ))}
     </div>

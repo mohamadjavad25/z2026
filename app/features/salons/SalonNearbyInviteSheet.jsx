@@ -97,30 +97,38 @@ export function SalonNearbyInviteSheet({
   const [copied, setCopied] = useState(false);
   const [expandedId, setExpandedId] = useState("");
   const [terms, setTerms] = useState(DEFAULT_TERMS);
-  // The link only works carrying this secret (see app/lib/db/repos/salons/invites.js) — without
-  // it the sheet shows no link at all rather than one that would 400 when scanned.
-  const [joinCode, setJoinCode] = useState("");
-  useEffect(() => {
-    if (!open) return undefined;
-    let cancelled = false;
-    getSalonJoinCode()
-      .then(({ ok, data }) => {
-        if (!cancelled && ok) setJoinCode(String(data?.code || ""));
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, [open]);
-  const joinUrl = open && salonId && joinCode && typeof window !== "undefined"
-    ? `${window.location.origin}/join-salon/${salonId}?k=${encodeURIComponent(joinCode)}`
-    : "";
-  const qrDataUrl = useQrCode(joinUrl, open);
-
   // «شرایط همکاری»: the QR only shows once the salon has saved its terms (owner's design 2026-10-28).
   const [joinTerms, setJoinTerms] = useState({ status: "loading", terms: null, rulesCount: 0 });
   const [termsSheetOpen, setTermsSheetOpen] = useState(false);
   const [termsReload, setTermsReload] = useState(0);
+  const termsSaved = joinTerms.status === "ready" && Boolean(joinTerms.terms);
+
+  // The link only works carrying this secret (see app/lib/db/repos/salons/invites.js) — without
+  // it the sheet shows no link at all rather than one that would 400 when scanned.
+  // The server hands out the code only once the terms are saved (409 before that), so it is asked again the moment
+  // they are: asking once on open left a salon that saved its terms in this sheet with a spinner for good (2026-10-30).
+  const [joinCode, setJoinCode] = useState("");
+  const [codeFailed, setCodeFailed] = useState(false);
+  const [codeReload, setCodeReload] = useState(0);
+  useEffect(() => {
+    if (!open || !termsSaved) return undefined;
+    let cancelled = false;
+    setCodeFailed(false);
+    getSalonJoinCode()
+      .then(({ ok, data }) => {
+        if (cancelled) return;
+        if (ok && data?.code) setJoinCode(String(data.code));
+        else setCodeFailed(true);
+      })
+      .catch(() => { if (!cancelled) setCodeFailed(true); });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, termsSaved, codeReload]);
+  const joinUrl = open && salonId && joinCode && typeof window !== "undefined"
+    ? `${window.location.origin}/join-salon/${salonId}?k=${encodeURIComponent(joinCode)}`
+    : "";
+  const qrDataUrl = useQrCode(joinUrl, open);
   useEffect(() => {
     if (!open) return undefined;
     let cancelled = false;
@@ -141,7 +149,6 @@ export function SalonNearbyInviteSheet({
       cancelled = true;
     };
   }, [open, termsReload]);
-  const termsSaved = joinTerms.status === "ready" && Boolean(joinTerms.terms);
 
   function toggleTerms(artist) {
     const id = String(artist.id || artist.name);
@@ -213,7 +220,13 @@ export function SalonNearbyInviteSheet({
             <span className="ivtCorner is-bl" aria-hidden="true" />
             <span className="ivtCorner is-br" aria-hidden="true" />
             <div className="ivtQr">
-              {qrDataUrl ? <img src={qrDataUrl} alt={`کد پیوستن به تیم ${salonName}`} /> : <span className="ivtQrWait"><Spinner size={44} /></span>}
+              {qrDataUrl ? <img src={qrDataUrl} alt={`کد پیوستن به تیم ${salonName}`} />
+                : codeFailed ? (
+                  <span className="ivtQrWait ivtQrFailed" role="alert">
+                    <small>کد ساخته نشد.</small>
+                    <button type="button" onClick={() => setCodeReload((value) => value + 1)}>دوباره بزن</button>
+                  </span>
+                ) : <span className="ivtQrWait"><Spinner size={44} /></span>}
             </div>
           </div>
           <p className="ivtHint">کد رو به آرتیست نشون بده، یا لینک رو براش بفرست.</p>

@@ -1980,3 +1980,19 @@
   .sbmScreen,
   .clientBookingSettingsStatus.is-live{ animation: none; }
 }
+
+/* «تایم استراحت» and «مرخصی» side by side, half each (2026-10-30). */
+.artistBookingsToolbar.has-leave{
+  grid-template-columns: 1fr 1fr;
+}
+.artistBookingsToolbar.has-leave .artistBreakBtn{
+  justify-content: center;
+  width: 100%;
+}
+.artistBreakBanner.is-leave{
+  background: var(--warning-bg);
+}
+.artistBreakBanner > button:disabled{
+  opacity: 0.6;
+  cursor: default;
+}

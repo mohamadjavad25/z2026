@@ -1,7 +1,7 @@
 import { toPersianDigits } from "../../../shared/lib/digits";
 import { formatPersianDateKey, formatRelativeBookingDayLabel } from "../../../shared/lib/persianCalendar";
 import { ProfileSheet } from "../../profile/ProfileSheet";
-import { BellRing, Check, X, TimerOff } from "lucide-react";
+import { BellRing, Check, ChevronLeft, X, TimerOff } from "lucide-react";
 import { PageIcon } from "../../../components/PageIcon";
 import { ServiceIcon } from "../../../components/ServiceIcon";
 import { SegmentClock } from "../../../components/SegmentClock";
@@ -19,7 +19,8 @@ export function SalonNotificationsSheet() {
     setSalonHeroSheet,
     salonRequestBusyId,
     approveReservationRequest,
-    declineReservationRequest
+    declineReservationRequest,
+    openSalonWorkspace
   } = useHome();
 
   // «نوبت‌های پیش‌رو»: today and later, without cancelled or expired ones (it used to count every booking and was
@@ -52,14 +53,16 @@ export function SalonNotificationsSheet() {
                 </div>
                 <em>{toPersianDigits(reservationRequestList.length)}</em>
               </article>
-              <article className={pendingSalonCollabRequests.length ? "is-live" : undefined}>
+              {/* A button, not a note: the requests are answered in «پرسنل» (2026-10-30; tapping it used to do nothing). */}
+              <button type="button" className={`salonNoticeRow${pendingSalonCollabRequests.length ? " is-live" : ""}`} onClick={() => openSalonWorkspace("staff")}>
                 <span><PageIcon name="collab" size={22} /></span>
                 <div>
                   <b>همکاری و پرسنل</b>
-                  <small>{pendingSalonCollabRequests.length ? `${toPersianDigits(pendingSalonCollabRequests.length)} درخواست همکاری منتظر جوابته.` : "درخواست تازه‌ای نیست."}</small>
+                  <small>{pendingSalonCollabRequests.length ? `${toPersianDigits(pendingSalonCollabRequests.length)} درخواست همکاری منتظر جوابته. بزن تا ببینی.` : "درخواست تازه‌ای نیست."}</small>
                 </div>
                 <em>{toPersianDigits(pendingSalonCollabRequests.length)}</em>
-              </article>
+                <ChevronLeft size={16} className="salonNoticeGo" aria-hidden="true" />
+              </button>
               <article>
                 <span><PageIcon name="bookings" size={22} /></span>
                 <div>

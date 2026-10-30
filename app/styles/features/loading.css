@@ -79,6 +79,8 @@
 
 /* Spinner inside a QR frame. */
 .ivtQrWait { display: grid; place-items: center; }
+.ivtQrFailed { gap: 8px; text-align: center; color: var(--n-700); }
+.ivtQrFailed button { padding: 8px 16px; border: 0; border-radius: 999px; background: var(--violet-deep); color: var(--brand-white); font: inherit; font-weight: 700; cursor: pointer; }
 
 @media (prefers-reduced-motion: reduce) {
   .loadSpinner { animation-duration: 2.4s; }

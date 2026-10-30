@@ -73,8 +73,7 @@ async function people() {
     }
     for (const [name, price, duration] of [["کاشت ناخن", "800000", "۹۰ دقیقه"], ["لاک ژل", "450000", "۶۰ دقیقه"]]) await artist.post("/api/artist/me", { name, price, duration });
     await artist2.post("/api/artist/me", { name: "میکاپ عروس", price: "5000000", duration: "۱۸۰ دقیقه" });
-    const code = (await salon.get("/api/salon-invites/join-code")).payload.data?.code;
-    await artist.post("/api/artist/join-salon", { salonUserId: ids.salon, code });
+    await artist.post("/api/artist/join-salon", { salonUserId: ids.salon, ...(await joinCodeOf(salon)) });
     for (const who of [client, client2]) {
       await who.post("/api/follows", { targetUserId: ids.salon, follow: true });
       await who.post("/api/follows", { targetUserId: ids.artist, follow: true });
@@ -95,6 +94,13 @@ async function people() {
 // Helpers keep the steps short; a step that fails is logged and the screen is still taken as it stands.
 const tab = (i) => async (p) => { await p.locator("nav.bottomNav > button").nth(i).click(); await p.waitForTimeout(900); };
 // force: a top-of-screen notice can sit over a button for a few seconds; a screenshot run does not wait it out.
+/** A salon's join code and terms version; saves the default «شرایط همکاری» first (needed since 2026-10-28 before any QR). */
+async function joinCodeOf(salonClient) {
+  let terms = (await salonClient.get("/api/salon-join-terms")).payload.data?.terms;
+  if (!terms) terms = (await salonClient.put("/api/salon-join-terms", { days: "شنبه، یکشنبه، دوشنبه، سه‌شنبه، چهارشنبه", from: "10:00", to: "18:00", share: 60, allowProposals: true })).payload.data?.terms;
+  const code = (await salonClient.get("/api/salon-invites/join-code")).payload.data?.code;
+  return { code, termsVersion: terms?.version };
+}
 const tap = (name, opts = {}) => async (p) => { await p.getByRole("button", { name, ...opts }).first().click({ timeout: 4000, force: true }); await p.waitForTimeout(900); };
 const text = (t) => async (p) => { await p.getByText(t, { exact: true }).first().click({ timeout: 4000 }); await p.waitForTimeout(900); };
 const css = (selector, hasText) => async (p) => { await p.locator(selector, hasText ? { hasText } : {}).first().click({ timeout: 4000 }); await p.waitForTimeout(900); };
@@ -170,8 +176,7 @@ async function withSecondSalon(ctx) {
   sessions.salon2 = client;
   ids.salon2 = res.payload.data?.user?.id;
   await client.get("/api/salon-hours");
-  const code = (await client.get("/api/salon-invites/join-code")).payload.data?.code;
-  await sessions.artist.post("/api/artist/join-salon", { salonUserId: ids.salon2, code });
+  await sessions.artist.post("/api/artist/join-salon", { salonUserId: ids.salon2, ...(await joinCodeOf(client)) });
 }
 
 /** The client opens the artist's page in the app, picks the first service and goes to the day and hour sheet. */
@@ -226,8 +231,7 @@ async function teamWorld(ctx) {
   await artistPosts(ctx);
   const team = (await sessions.salon.get("/api/salon-staff")).payload.data.staff;
   if (!team.some((person) => person.artist_user_id === ids.artist2)) {
-    const code = (await sessions.salon.get("/api/salon-invites/join-code")).payload.data?.code;
-    await sessions.artist2.post("/api/artist/join-salon", { salonUserId: ids.salon, code });
+    await sessions.artist2.post("/api/artist/join-salon", { salonUserId: ids.salon, ...(await joinCodeOf(sessions.salon)) });
   }
   const after = (await sessions.salon.get("/api/salon-staff")).payload.data.staff;
   const mina = after.find((person) => person.artist_user_id === ids.artist2);
@@ -274,8 +278,8 @@ function dealScreens() {
     { id: "artist-team-ledger", role: "artist", title: "حساب من با سالن", setup: teamWorld, steps: [COLLAB, tap(/^حساب من با/)] },
     { id: "artist-team-ledger-waiting", role: "artist", title: "حساب من با سالن، تصفیه منتظر تأیید", setup: async (ctx) => { await teamWorld(ctx); await artistSettles(ctx); }, steps: [COLLAB, tap(/^حساب من با/)] },
     { id: "salon-team-ledger-confirm", role: "salon", title: "حساب با آرتیست، تصفیه‌ای که باید تأیید کنم", setup: async (ctx) => { await teamWorld(ctx); await artistSettles(ctx); }, steps: [STAFF_TAB, openNegar, tap(/^حساب با نگار/)] },
-    { id: "artist-leave-sheet", role: "artist", title: "همکاری، «نمی‌تونم بیام»", setup: teamWorld, steps: [COLLAB, scrollTo(".lvCard"), tap("نمی‌تونم بیام")] },
-    { id: "artist-leave-plan", role: "artist", title: "مرخصی، نوبت‌هایی که اول باید جواب بخورن", setup: teamWorld, steps: [COLLAB, scrollTo(".lvCard"), tap("نمی‌تونم بیام"), tap("ثبت مرخصی")] }
+    { id: "artist-leave-sheet", role: "artist", title: "نوبت‌ها، «مرخصی» کنار «تایم استراحت»", setup: teamWorld, steps: [scrollTo(".artistBookingsToolbar"), tap("مرخصی", { exact: true })] },
+    { id: "artist-leave-plan", role: "artist", title: "مرخصی، نوبت‌هایی که اول باید جواب بخورن", setup: teamWorld, steps: [scrollTo(".artistBookingsToolbar"), tap("مرخصی", { exact: true }), tap("ثبت مرخصی")] }
   ];
 }
 

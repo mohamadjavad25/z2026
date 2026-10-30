@@ -16,11 +16,11 @@ const SPANS = [["today", "امروز"], ["tomorrow", "فردا"], ["days", "چن
  * «نمی‌تونم بیام» (owner's decision 2026-10-28): an artist's leave for today, tomorrow or some days, the whole day or some
  * hours. It stops new bookings in that time; bookings already inside it must first be handed over or cancelled with notice
  * (the same list as leaving a team), so nobody's booking is broken without a word. The salons they work with are told.
- * The card shows the upcoming leaves with «برش دار»; the sheet makes a new one.
+ * Since 2026-10-30 (owner's request: small and clean, like the break) it is a «مرخصی» button beside «تایم استراحت» on the
+ * artist's bookings, shown only to an artist on a salon's team, with one slim line per upcoming leave and «برش دار».
  */
-export function LeaveCard({ onNotice }) {
+export function useArtistLeaves({ onNotice }) {
   const [leaves, setLeaves] = useState([]);
-  const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState("");
 
   const load = useCallback(async () => {
@@ -28,7 +28,7 @@ export function LeaveCard({ onNotice }) {
       const result = await getLeaves();
       if (result.ok) setLeaves(result.data?.leaves || []);
     } catch {
-      // the card shows no leaves until it loads
+      // no lines until it loads
     }
   }, []);
   useEffect(() => { load(); }, [load]);
@@ -46,26 +46,22 @@ export function LeaveCard({ onNotice }) {
     }
   }
 
-  return (
-    <section className="cwCard lvCard" aria-label="مرخصی">
-      <div className="cwHead"><b>مرخصی</b></div>
-      {leaves.length ? (
-        <ul className="lvList">
-          {leaves.map((leave) => (
-            <li key={leave.id}>
-              <span><CalendarOff size={15} aria-hidden="true" />{leaveText(leave)}</span>
-              <button type="button" disabled={busy === String(leave.id)} onClick={() => remove(leave)}>برش دار</button>
-            </li>
-          ))}
-        </ul>
-      ) : <p className="cwSub">مرخصی نداری. یه روز یا چند ساعت نمی‌تونی بیای؟ بگو تا مشتری تازه اون وقت نوبت نگیره.</p>}
-      <button type="button" className="lvBtn" onClick={() => setOpen(true)}>نمی‌تونم بیام</button>
-      <LeaveSheet open={open} onClose={() => setOpen(false)} onDone={(message) => { setOpen(false); load(); onNotice?.(message); }} />
-    </section>
-  );
+  return { leaves, busy, load, remove };
 }
 
-function LeaveSheet({ open, onClose, onDone }) {
+/** One slim line per upcoming leave, styled like the daily break's line. */
+export function LeaveLines({ leaves, busy, onRemove }) {
+  if (!leaves.length) return null;
+  return leaves.map((leave) => (
+    <div className="artistBreakBanner is-leave" key={leave.id}>
+      <CalendarOff size={15} aria-hidden="true" />
+      <span>مرخصی: <b>{leaveText(leave)}</b></span>
+      <button type="button" disabled={busy === String(leave.id)} onClick={() => onRemove(leave)}>{busy === String(leave.id) ? "…" : "برش دار"}</button>
+    </div>
+  ));
+}
+
+export function LeaveSheet({ open, onClose, onDone }) {
   const [span, setSpan] = useState("tomorrow");
   const [lastDay, setLastDay] = useState(3);
   const [hours, setHours] = useState(false);
@@ -99,7 +95,7 @@ function LeaveSheet({ open, onClose, onDone }) {
   }
 
   return (
-    <ProfileSheet open={open} kicker="مرخصی" title="کی نمی‌تونی بیای؟" panelClassName="tsSheet" onClose={onClose}>
+    <ProfileSheet open={open} kicker="مرخصی" title="کی نمی‌تونی بیای؟" panelClassName="tsSheet" onClose={onClose} hideClose>
       <div className="tsChoices" role="group" aria-label="کی">
         {SPANS.map(([value, label]) => <button type="button" key={value} className={span === value ? "is-on" : ""} aria-pressed={span === value} onClick={() => { setSpan(value); setPlan(null); }}>{label}</button>)}
       </div>

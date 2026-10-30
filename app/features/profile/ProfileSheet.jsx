@@ -8,6 +8,10 @@ export function ProfileSheet({ open, kicker = "پروفایل", title, label, pa
   // Every sheet in the app shares this shell, so Escape-to-close only
   // needs to live in one place to cover all of them.
   const panelRef = useRef(null);
+  // Parents pass a new onClose on every render. Read through a ref so a background refresh does not re-run the effect
+  // below, whose cleanup hands focus back to the opener: that closed the phone's keyboard mid-typing (2026-10-30).
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
   // Keyboard / screen-reader support: focus moves into the sheet when it opens, Tab stays
   // inside it, and focus returns to whatever opened it when it closes.
@@ -22,7 +26,7 @@ export function ProfileSheet({ open, kicker = "پروفایل", title, label, pa
     });
     const handleKeyDown = (event) => {
       if (event.key === "Escape") {
-        onClose?.();
+        onCloseRef.current?.();
         return;
       }
       if (event.key !== "Tab") return;
@@ -47,7 +51,7 @@ export function ProfileSheet({ open, kicker = "پروفایل", title, label, pa
       document.removeEventListener("keydown", handleKeyDown);
       if (opener instanceof HTMLElement && document.contains(opener)) opener.focus({ preventScroll: true });
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open || typeof document === "undefined") return null;
 

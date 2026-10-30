@@ -3,7 +3,7 @@ import { readObjectBody, requireUser, withErrorHandling } from "../../lib/http.j
 import { ensureDb } from "../../lib/db/connection.js";
 import * as artists from "../../lib/db/repos/artists.js";
 import * as salons from "../../lib/db/repos/salons.js";
-import { notifyConnection } from "../../lib/connectionNotify.js";
+import { TEAM_URL, notifyConnection } from "../../lib/connectionNotify.js";
 
 export const runtime = "nodejs";
 
@@ -65,11 +65,11 @@ async function _PATCH(request) {
   const collab = result.collab;
   const artistId = collab?.artistId || result.artistUserId;
   if (action === "accept") {
-    notifyConnection(artistId, { title: "سالن پیشنهادت رو قبول کرد", body: `${salonName} پیشنهادت رو قبول کرد؛ حالا توی تیمشی.`, url: "/" });
+    notifyConnection(artistId, { title: "سالن پیشنهادت رو قبول کرد", body: `${salonName} پیشنهادت رو قبول کرد؛ حالا توی تیمشی.`, url: TEAM_URL });
   } else if (action === "reject") {
-    notifyConnection(artistId, { title: "سالن فعلاً پیشنهادت رو نخواست", body: `${salonName} فعلاً پیشنهادت رو نخواست.`, url: "/" });
+    notifyConnection(artistId, { title: "سالن فعلاً پیشنهادت رو نخواست", body: `${salonName} فعلاً پیشنهادت رو نخواست.`, url: TEAM_URL });
   } else if (action === "counter") {
-    notifyConnection(artistId, { title: "سالن شرایط خودش رو پیشنهاد داد", body: `${salonName} با شرایط دیگه‌ای جواب داد؛ از «دعوت‌ها» ببین و جواب بده.`, url: "/" });
+    notifyConnection(artistId, { title: "سالن شرایط خودش رو پیشنهاد داد", body: `${salonName} با شرایط دیگه‌ای جواب داد؛ توی «همکاری» ببین و جواب بده.`, url: TEAM_URL });
   }
 
   return NextResponse.json({

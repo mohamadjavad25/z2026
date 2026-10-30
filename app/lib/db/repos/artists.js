@@ -3,7 +3,7 @@ import { listLeaves, checkTerms } from "./teamAgreements.js";
 import { getJoinTerms, joinTermsReady } from "./salons/joinTerms.js";
 import { addSalonStaffFromCollab } from "./salons/staff.js";
 import { createSalonArtistInvite, lockTeamPair, verifySalonJoinCode, writeAgreedTerms } from "./salons/invites.js";
-import { notifyConnection } from "../../connectionNotify.js";
+import { TEAM_URL, notifyConnection } from "../../connectionNotify.js";
 import { getDb, withTransaction, all, get, run } from "../connection.js";
 import { lockArtistDays, lockClientRequests } from "../locks.js";
 import {
@@ -148,8 +148,11 @@ export async function listSalonCollabRequests(salonUserId) {
   return rows.map((row) => {
     const mapped = mapArtistCollab(row);
     // A request from the join page carries her numbers; `baseTerms` is what the salon stands on now (the card's «قبل»).
+    // share_percent is a text column (older free-text proposals); a join-page request always stored a whole number, and
+    // the card and the counter form need it as one (as text the card's «بعد» came out empty, 2026-10-30).
+    const share = Number.isInteger(Number(mapped.share)) && String(mapped.share).trim() !== "" ? Number(mapped.share) : null;
     const terms = row.terms_version != null
-      ? { days: mapped.days, from: mapped.from, to: mapped.to, share: mapped.share, ownShare: mapped.ownShare ?? null, note: mapped.note || "" }
+      ? { days: mapped.days, from: mapped.from, to: mapped.to, share, ownShare: mapped.ownShare ?? null, note: mapped.note || "" }
       : null;
     return {
     ...mapped,
@@ -215,7 +218,7 @@ export async function addArtistCollab(userId, data) {
   if (pendingInvite) {
     return {
       ok: false,
-      error: "این سالن قبلاً دعوتت کرده؛ از «دعوت‌ها» جوابش رو بده.",
+      error: "این سالن قبلاً دعوتت کرده؛ توی «همکاری» جوابش رو بده.",
       code: "INVITE_PENDING"
     };
   }
@@ -310,7 +313,7 @@ export async function expireJoinProposals({ artistUserId = null, salonUserId = n
     notifyConnection(row.artist_user_id, {
       title: "پیشنهادت بی‌جواب موند",
       body: `${row.salon_name || "سالن"} تا ${JOIN_PROPOSAL_DAYS} روز جواب نداد. اگه خواستی دوباره بفرست.`,
-      url: "/"
+      url: TEAM_URL
     });
   }
   return rows.length;
@@ -351,7 +354,7 @@ export async function createJoinProposal(artistUserId, input) {
       return { ok: false, code: "TERMS_CHANGED", error: "سالن شرایط رو عوض کرده؛ یه بار دیگه ببین و بعد پیشنهادت رو بفرست.", terms };
     }
     if (await get(tx, "SELECT 1 FROM salon_artist_invites WHERE salon_user_id = $1 AND artist_user_id = $2 AND status = 'در انتظار تایید' LIMIT 1", [salonUserId, artistUserId])) {
-      return { ok: false, code: "INVITE_PENDING", error: "این سالن قبلاً دعوتت کرده؛ از «دعوت‌ها» جوابش رو بده." };
+      return { ok: false, code: "INVITE_PENDING", error: "این سالن قبلاً دعوتت کرده؛ توی «همکاری» جوابش رو بده." };
     }
     if (await get(tx, "SELECT 1 FROM artist_collabs WHERE salon_user_id = $1 AND artist_user_id = $2 AND status = $3 LIMIT 1", [salonUserId, artistUserId, COLLAB_PENDING])) {
       return { ok: false, code: "PENDING_EXISTS", error: "سالن هنوز به پیشنهاد قبلیت جواب نداده." };

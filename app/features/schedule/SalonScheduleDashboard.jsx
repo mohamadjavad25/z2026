@@ -1,11 +1,10 @@
 "use client";
 
-import { Check, ChevronLeft, MoreHorizontal, X } from "lucide-react";
+import { ChevronLeft, MoreHorizontal } from "lucide-react";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { Mascot } from "../../components/Mascot";
 import { SegmentClock } from "../../components/SegmentClock";
 import { SkeletonList } from "../../components/Skeleton";
-import { toPersianDigits } from "../../shared/lib/digits";
 import { requestMinutesLeft } from "../../shared/lib/bookingWindow";
 import { getBookingDateKey, isArtistBookingOnExactDate } from "../artist";
 import { PendingOtherDays } from "./PendingOtherDays";
@@ -14,18 +13,13 @@ import { ScheduleRow } from "../profile/ScheduleRow";
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
 import { TeamBusyRow, TeamVisitRow, useTeamClientTimes } from "../salons/SalonDirectVisits";
 import { timeLabelToMinutes } from "../../shared/lib/time";
-import { SalonTermsRequestCard } from "../salons/SalonTermsRequestCard";
-import { useSalonTermsAnswer } from "../salons/useSalonTermsAnswer";
 
 /**
- * Salon owner overview — collab inbox + day schedule; a pending request is answered on its own card.
+ * Salon owner overview — the day schedule; a pending booking request is answered on its own row. Artists asking to
+ * join are in «پرسنل» (SalonCollabInbox), not here (2026-10-30).
  * Presentational: lists + callbacks; schedule triad/memos stay in HomeApp.
  */
 export function SalonScheduleDashboard({
-  pendingCollabRequests = [],
-  onApproveCollab,
-  onDeclineCollab,
-  onCollabsChanged,
   reservationRequests = [],
   bookingDateForSlots = "",
   onApproveRequest,
@@ -47,7 +41,6 @@ export function SalonScheduleDashboard({
   // The team's own clients that day (owner's decision of 2026-10-25): received here (violet) or elsewhere (striped),
   // placed among the salon's own bookings by time.
   const teamTimes = useTeamClientTimes();
-  const termsAnswers = useSalonTermsAnswer({ onChanged: onCollabsChanged });
   const dayKey = getBookingDateKey(selectedDay);
   const dayRows = [
     ...dayAppointments.map((item, index) => ({ kind: "own", item, index, at: timeLabelToMinutes(item.time) })),
@@ -73,70 +66,6 @@ export function SalonScheduleDashboard({
 
   return (
     <div className="salonDashboard">
-      {pendingCollabRequests.length > 0 && (
-        <section className="salonCollabInbox" aria-label="پیشنهادهای همکاری آرتیست‌ها">
-          <div className="boardHead">
-            <div>
-              <span>پیشنهاد همکاری</span>
-              <strong>آرتیست‌هایی که می‌خوان با سالنت کار کنن</strong>
-            </div>
-            <b>{toPersianDigits(pendingCollabRequests.length)} تازه</b>
-          </div>
-          <div className="salonCollabInboxList">
-            {pendingCollabRequests.map((request) => {
-              const busy = String(requestBusyId) === `collab:${request.id}`;
-              const anyBusy = Boolean(requestBusyId) || Boolean(termsAnswers.busyId);
-              // An artist's request that carries terms (new join «برگه»): the «قبل ← بعد» card with its own three answers.
-              if (request.terms) {
-                return (
-                  <SalonTermsRequestCard
-                    key={request.id}
-                    request={request}
-                    busy={termsAnswers.busyId === String(request.id)}
-                    anyBusy={anyBusy}
-                    error={termsAnswers.errorFor(request.id)}
-                    onAnswer={termsAnswers.answer}
-                    onClearError={termsAnswers.clearError}
-                  />
-                );
-              }
-              return (
-              <article className="salonCollabInboxCard" key={request.id}>
-                <div className="salonCollabArtist">
-                  <span className={`salonCollabAvatar ${request.artistAvatar ? "hasImage" : ""}`} aria-hidden="true">
-                    {request.artistAvatar ? <img src={request.artistAvatar} alt="" /> : String(request.artistName || "آ").slice(0, 1)}
-                  </span>
-                  <div>
-                    <strong>{request.artistName}</strong>
-                    <small>{request.artistService || request.artistArea || "آرتیست frfro"}</small>
-                  </div>
-                </div>
-                <div className="salonCollabDeal">
-                  <b className="svcInline"><ServiceIcon emoji={request.service_emoji} name={request.service} size="xs" />{shortServiceLabel(request.service)}</b>
-                  <span>{request.days}</span>
-                  <em>{request.from} تا {request.to}، {request.capacity} نفر در روز</em>
-                </div>
-                <div className="salonCollabSharePill">
-                  <b>{request.share}٪</b>
-                  <span>سهم آرتیست</span>
-                </div>
-                <div className="requestActions">
-                  <button type="button" className="is-approve" disabled={anyBusy} onClick={() => onApproveCollab?.(request.id)}>
-                    <Check size={15} />
-                    {busy ? "…" : "تأیید"}
-                  </button>
-                  <button type="button" className="is-decline" disabled={anyBusy} onClick={() => onDeclineCollab?.(request.id)}>
-                    <X size={15} />
-                    رد
-                  </button>
-                </div>
-              </article>
-              );
-            })}
-          </div>
-        </section>
-      )}
-
       <section className="salonTodaySchedule">
         <BookingWeekRail
           tabs={weekTabs}

@@ -404,6 +404,10 @@ export function InstagramStorySheet({ open, name, url, avatar = "", profileType 
   const [made, setMade] = useState({});
   const railRef = useRef(null);
   const closeRef = useRef(null);
+  // The parent passes a new onClose on every render; read through a ref so the app's regular refresh (every few
+  // seconds) does not re-run the load below and throw the drawn pictures away (owner's report 2026-10-30).
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
   const design = DESIGNS[index]?.id || "free";
 
   useEffect(() => {
@@ -425,10 +429,10 @@ export function InstagramStorySheet({ open, name, url, avatar = "", profileType 
       setSlots([]);
     }
     const raf = requestAnimationFrame(() => closeRef.current?.focus({ preventScroll: true }));
-    const onKey = (event) => { if (event.key === "Escape") onClose?.(); };
+    const onKey = (event) => { if (event.key === "Escape") onCloseRef.current?.(); };
     document.addEventListener("keydown", onKey);
     return () => { cancelled = true; cancelAnimationFrame(raf); document.removeEventListener("keydown", onKey); };
-  }, [open, profileType, profileId, onClose]);
+  }, [open, profileType, profileId]);
 
   const worksReady = works !== null && works.length >= WORKS_NEEDED;
   const dataReady = works !== null && slots !== null;

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { Mascot } from "../../components/Mascot";
-import { ChevronLeft, Coffee, MoreHorizontal, Store } from "lucide-react";
+import { CalendarOff, ChevronLeft, Coffee, MoreHorizontal, Store } from "lucide-react";
 import { SegmentClock } from "../../components/SegmentClock";
 import { SkeletonList } from "../../components/Skeleton";
 import { getBookingDateKey, isArtistBookingOnExactDate } from "../artist";
@@ -12,10 +12,12 @@ import { DayNav, useDaySwipe } from "../profile/DayNav";
 import { ScheduleRow } from "../profile/ScheduleRow";
 import { PendingOtherDays } from "./PendingOtherDays";
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
+import { LeaveLines, LeaveSheet, useArtistLeaves } from "../team/LeaveSheet";
 
 /**
  * Artist owner — bookings/schedule tab.
- * Presentational: day list + break banner; scheduleNow memo + menu open stay in HomeApp.
+ * Presentational: day list + break banner; scheduleNow memo + menu open stay in HomeApp. «مرخصی» sits beside the
+ * break only for an artist on a salon's team (`onTeam`, owner's decision 2026-10-30).
  */
 export function ArtistScheduleBoard({
   breakTime = null,
@@ -32,9 +34,15 @@ export function ArtistScheduleBoard({
   requests = [],
   requestBusyId = "",
   onApproveRequest,
-  onDeclineRequest
+  onDeclineRequest,
+  onTeam = false,
+  onNotice
 }) {
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [leaveOpen, setLeaveOpen] = useState(false);
+  const leave = useArtistLeaves({ onNotice });
+  // On a team, or still holding a leave from one (left the salon since): a leave that blocks bookings stays removable.
+  const showLeave = onTeam || leave.leaves.length > 0;
   const daySwipe = useDaySwipe(weekTabs, selectedDay, onSelectDay);
   const requestsById = new Map(requests.map((request) => [String(request.id), request]));
   const reviewFor = (booking) => {
@@ -79,7 +87,7 @@ export function ArtistScheduleBoard({
             </div>
           )}
         </div>
-        <div className="artistBookingsToolbar">
+        <div className={`artistBookingsToolbar${showLeave ? " has-leave" : ""}`}>
           <button
             type="button"
             className={`artistBreakBtn ${breakTime ? "is-active" : ""}`}
@@ -88,6 +96,12 @@ export function ArtistScheduleBoard({
             <Coffee size={15} />
             تایم استراحت
           </button>
+          {showLeave ? (
+            <button type="button" className={`artistBreakBtn ${leave.leaves.length ? "is-active" : ""}`} onClick={() => setLeaveOpen(true)}>
+              <CalendarOff size={15} />
+              مرخصی
+            </button>
+          ) : null}
         </div>
         {breakTime ? (
           <div className="artistBreakBanner">
@@ -98,7 +112,12 @@ export function ArtistScheduleBoard({
             <button type="button" onClick={onOpenBreakEditor}>ویرایش</button>
           </div>
         ) : null}
+        {showLeave ? <LeaveLines leaves={leave.leaves} busy={leave.busy} onRemove={leave.remove} /> : null}
       </section>
+
+      {showLeave ? (
+        <LeaveSheet open={leaveOpen} onClose={() => setLeaveOpen(false)} onDone={(message) => { setLeaveOpen(false); leave.load(); onNotice?.(message); }} />
+      ) : null}
 
       <BookingHistoryCalendarSheet
         open={historyOpen}

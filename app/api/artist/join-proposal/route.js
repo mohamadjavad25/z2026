@@ -1,7 +1,7 @@
 import { ensureDb } from "../../../lib/db/connection.js";
 import { json, notFound, readObjectBody, requireUserRole, withErrorHandling } from "../../../lib/http.js";
 import { createJoinProposal } from "../../../lib/db/repos/artists.js";
-import { notifyConnection } from "../../../lib/connectionNotify.js";
+import { TEAM_URL, notifyConnection } from "../../../lib/connectionNotify.js";
 import { checkRateLimit } from "../../../lib/rateLimit.js";
 
 export const runtime = "nodejs";
@@ -43,7 +43,7 @@ async function _POST(request) {
   notifyConnection(Number(body.salonUserId), {
     title: `${auth.user.name || "یه آرتیست"} شرایط خودش رو پیشنهاد داد`,
     body: "ببین و جواب بده؛ تا ۷ روز وقت داری.",
-    url: "/"
+    url: TEAM_URL
   });
   return json({ data: { collab: result.collab } }, { status: 201 });
 }

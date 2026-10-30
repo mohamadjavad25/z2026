@@ -58,7 +58,7 @@ export function TermsProposalSheet({ open, otherName, initial, busy, error, onSe
   });
 
   return (
-    <ProfileSheet open={open} kicker={isSalon ? "سالن" : "شرایط کار"} title={isSalon ? "شرایط همکاری" : `پیشنهاد تو به ${otherName}`} panelClassName="tsSheet" onClose={onClose}>
+    <ProfileSheet open={open} kicker={isSalon ? "سالن" : "شرایط کار"} title={isSalon ? "شرایط همکاری" : `پیشنهاد تو به ${otherName}`} panelClassName="tsSheet" onClose={onClose} hideClose>
       {isSalon ? (
         <p className="tsLead">برای آرتیست‌های تازه‌ست؛ کسایی که الان تو تیمن دست نمی‌خورن.</p>
       ) : (

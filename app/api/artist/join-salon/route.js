@@ -1,6 +1,6 @@
 import { json, notFound, requireUserRole, withErrorHandling } from "../../../lib/http.js";
 import * as salons from "../../../lib/db/repos/salons.js";
-import { notifyConnection } from "../../../lib/connectionNotify.js";
+import { TEAM_URL, notifyConnection } from "../../../lib/connectionNotify.js";
 
 export const runtime = "nodejs";
 
@@ -30,7 +30,7 @@ async function _POST(request) {
   notifyConnection(salonUserId, {
     title: "یه آرتیست تازه اومد توی تیمت",
     body: `${auth.user.name || "یه آرتیست"} با کد سالنت اومد توی تیم.`,
-    url: "/"
+    url: TEAM_URL
   });
   return json({ data: result }, { status: 201 });
 }

@@ -148,6 +148,8 @@ describe("requests with the artist's own numbers", () => {
     await propose(a.client, salon.user.id, code, version, { share: 65, ownShare: 90, note: "سلام" });
     const list = (await client.get("/api/salon-collabs")).payload.data.collabs;
     expect(list[0]).toMatchObject({ days: DEFAULT_JOIN_TERMS.days, from: "10:00", to: "18:00", share: "65", ownShare: 90, note: "سلام", current: { share: 50, version } });
+    // The card's «بعد» and the counter form need her share as a number (as text the card showed nothing, 2026-10-30).
+    expect(list[0].terms).toMatchObject({ share: 65, ownShare: 90 });
     expect(list[0].expiresAt).toBeTruthy();
 
     const accepted = await client.patch("/api/salon-collabs", { id: list[0].id, action: "accept" });

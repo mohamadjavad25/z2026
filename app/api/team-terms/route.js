@@ -1,7 +1,7 @@
 import { json, readObjectBody, withErrorHandling } from "../../lib/http.js";
 import { requireTeamPair } from "../../lib/teamPair.js";
 import { answerProposal, checkTerms, propose, termsOverview } from "../../lib/db/repos/teamAgreements.js";
-import { notifyConnection } from "../../lib/connectionNotify.js";
+import { TEAM_URL, notifyConnection } from "../../lib/connectionNotify.js";
 import { checkRateLimit } from "../../lib/rateLimit.js";
 
 export const runtime = "nodejs";
@@ -35,7 +35,7 @@ async function _POST(request) {
   const checked = await checkTerms(pair.salonUserId, body);
   if (!checked.ok) return json({ error: checked.error, code: "INVALID" }, { status: 400 });
   await propose({ salonUserId: pair.salonUserId, artistUserId: pair.artistUserId, by: pair.side, value: checked.value, effectiveFrom: body.effectiveFrom });
-  notifyConnection(otherSide(pair), { title: `${pair.user.name || "طرف همکارت"} شرایط تازه پیشنهاد داد`, body: "ببین و جواب بده. تا جواب ندی، شرایط قبلی می‌مونه.", url: "/" });
+  notifyConnection(otherSide(pair), { title: `${pair.user.name || "طرف همکارت"} شرایط تازه پیشنهاد داد`, body: "ببین و جواب بده. تا جواب ندی، شرایط قبلی می‌مونه.", url: TEAM_URL });
   return json({ data: { side: pair.side, ...(await termsOverview(pair.salonUserId, pair.artistUserId)) } }, { status: 201 });
 }
 
@@ -51,8 +51,8 @@ async function _PATCH(request) {
     const [status, message] = REFUSALS[result.code] || REFUSALS.NOT_FOUND;
     return json({ error: message, code: result.code }, { status });
   }
-  if (action === "accept") notifyConnection(otherSide(pair), { title: "پیشنهادت قبول شد", body: `${pair.user.name || "طرف همکارت"} شرایط تازه رو قبول کرد.`, url: "/" });
-  if (action === "reject") notifyConnection(otherSide(pair), { title: "پیشنهادت قبول نشد", body: `${pair.user.name || "طرف همکارت"} شرایط تازه رو قبول نکرد؛ شرایط قبلی می‌مونه.`, url: "/" });
+  if (action === "accept") notifyConnection(otherSide(pair), { title: "پیشنهادت قبول شد", body: `${pair.user.name || "طرف همکارت"} شرایط تازه رو قبول کرد.`, url: TEAM_URL });
+  if (action === "reject") notifyConnection(otherSide(pair), { title: "پیشنهادت قبول نشد", body: `${pair.user.name || "طرف همکارت"} شرایط تازه رو قبول نکرد؛ شرایط قبلی می‌مونه.`, url: TEAM_URL });
   return json({ data: { side: pair.side, ...(await termsOverview(pair.salonUserId, pair.artistUserId)) } });
 }
 

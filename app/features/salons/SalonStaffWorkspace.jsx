@@ -6,6 +6,7 @@ import { toPersianDigits } from "../../shared/lib/digits";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { ServiceIconStrip } from "../../components/ServiceIconStrip";
 import { SalonOwnerTeamCard } from "./SalonOwnerTeamCard";
+import { SalonCollabInbox } from "./SalonCollabInbox";
 import { SalonTeamToday } from "../team/SalonTeamToday";
 import { WeekStrip } from "../team/WeekStrip";
 import { memberToday, weekFromHours } from "../team/teamWeek";
@@ -15,12 +16,18 @@ const DEFAULT_AVATAR = "/profile-icon.svg";
 const splitRoles = (role) => String(role || "").split(/[،,]/).map((item) => item.trim()).filter(Boolean);
 
 /**
- * Salon owner — «پرسنل» tab (owner's choice of 2026-10-28, docs/DECISIONS.md): a header with the invite button, filters
+ * Salon owner — «پرسنل» tab (owner's choice of 2026-10-28, docs/DECISIONS.md): a header with the invite button, artists
+ * asking to join (SalonCollabInbox, moved here from «نوبت‌ها» on 2026-10-30), filters
  * that do something, a «لیست | امروز» switch, and one live card per member (their work, today, this week). A card opens
  * the member's own page (SalonStaffProfileModal). No booking or money numbers here (owner's decision 2026-10-25).
  */
 export function SalonStaffWorkspace({
   pendingInvites = [],
+  collabRequests = [],
+  collabBusyId = "",
+  onApproveCollab,
+  onDeclineCollab,
+  onCollabsChanged,
   staffList = [],
   salonHours = [],
   onInviteNearby,
@@ -65,6 +72,14 @@ export function SalonStaffWorkspace({
           دعوت آرتیست
         </button>
       </div>
+
+      <SalonCollabInbox
+        requests={collabRequests}
+        busyId={collabBusyId}
+        onApprove={onApproveCollab}
+        onDecline={onDeclineCollab}
+        onChanged={onCollabsChanged}
+      />
 
       {everyone > 1 ? (
         <div className="twSeg" role="group" aria-label="نمایش تیم">

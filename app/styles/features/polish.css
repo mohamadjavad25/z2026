@@ -659,6 +659,11 @@
 }
 .sheetClose:active { transform: translateX(-50%) scale(0.94) !important; }
 .sheetClose:disabled { opacity: 0.5; }
+/* A sheet opened over another one (e.g. «شرایط همکاری» over «آرتیست بیار»): the X under it sits above every sheet and
+   floated over the new form, closing both at once (owner's report 2026-10-30). Each sheet's X lands in <body> just
+   before its own sheet, so an X with two sheets after it belongs to a sheet underneath: hide it. Back still closes
+   the top sheet first. */
+.sheetClose:has(~ :is(.salonHeroSheetBackdrop, .salonQrSheetOverlay) ~ :is(.salonHeroSheetBackdrop, .salonQrSheetOverlay)) { display: none; }
 
 /* ---- Busy overlay for sheets (temporary look; a branded loader replaces it later) ---- */
 .sheetBusy {
@@ -1017,12 +1022,18 @@ body:has([role="dialog"], [aria-modal="true"], .scOverlay, .supOverlay) .cbtPill
   font-size: 0.9rem !important;
   font-weight: 800 !important;
   text-align: center;
-  white-space: nowrap;
+  /* Wraps: a long title («مشتری‌هایی که خودشون ازت نوبت می‌گیرن هم بیان …؟») kept on one line pushed the whole sheet
+     wider than the phone and cut its text off at both sides (found 2026-10-30). */
+  white-space: normal;
+  text-wrap: balance;
+  line-height: 1.7;
 }
+.salonHeroSheetPanel .salonHeroSheetHead > div { min-width: 0; }
 .salonHeroSheetPanel .salonHeroSheetHead h3::before,
 .salonHeroSheetPanel .salonHeroSheetHead h3::after {
   content: "";
   flex: 1;
+  min-width: 16px;
   height: 8px;
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='8' viewBox='0 0 20 8'%3E%3Cpath d='M0 4 Q5 0 10 4 T20 4' fill='none' stroke='%23b3b3b3' stroke-width='1.6'/%3E%3C/svg%3E") repeat-x center;
 }
