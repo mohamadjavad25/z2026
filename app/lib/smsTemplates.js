@@ -114,14 +114,14 @@ export const SMS_TEMPLATES = {
     env: "TEAM_REMOVED",
     kavenegar: (v) => ({ token10: v.who }),
     faraz: (v) => ({ who: v.who }),
-    preview: (v) => `فرفرو: ${v.who} تو رو از تیمش برداشت. نوبت‌های خودت سر جاشه.`
+    preview: (v) => `فرفرو: ${v.who} شما را از تیمش برداشت و همکاری‌تان تمام شد. نوبت‌های خودت سر جایش است.`
   },
   team_left: {
     label: "رفتن آرتیست از تیم (به سالن)",
     env: "TEAM_LEFT",
     kavenegar: (v) => ({ token10: v.who }),
     faraz: (v) => ({ who: v.who }),
-    preview: (v) => `فرفرو: ${v.who} از تیمت رفت. توی اپ ببین.`
+    preview: (v) => `فرفرو: ${v.who} از تیم شما رفت و دیگر نوبت تازه‌ای به نامش ثبت نمی‌شود.`
   },
   team_salon_gone: {
     label: "حذف حساب سالن (به آرتیست‌های تیمش)",
