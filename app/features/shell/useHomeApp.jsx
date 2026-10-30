@@ -749,6 +749,13 @@ export function useHomeApp() {
     unseenFollowerCount,
     ...homeChromeState,
     ...homeWorkspacesState,
+    // Screens refresh right after an action with these (accepting a join request, a scanned code, an invite). They
+    // were missing here, so every `refresh…?.()` in the home screens did nothing and the screen waited for the next
+    // poll or a reload (owner's report 2026-10-30).
+    refreshSalonSystemData,
+    refreshArtistWorkspace,
+    setSalonCollabRequestList,
+    setSalonStaffList,
     activeTab,
     setAppToast,
     pushSoftAskVisible,

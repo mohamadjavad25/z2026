@@ -73,6 +73,8 @@ export function ProfilePanelBody() {
     setAppToast,
     refreshSalonSystemData,
     refreshArtistWorkspace,
+    setSalonCollabRequestList,
+    setSalonStaffList,
     clearSalonWorkImage,
     salonWorkTagOptions,
     salonWorkTagMenuOpen,
@@ -296,7 +298,12 @@ export function ProfilePanelBody() {
                           collabBusyId={salonRequestBusyId}
                           onApproveCollab={(id) => updateSalonCollabRequest(id, "تایید شد")}
                           onDeclineCollab={(id) => updateSalonCollabRequest(id, "رد شد")}
-                          onCollabsChanged={() => refreshSalonSystemData?.()}
+                          onCollabsChanged={(data) => {
+                            // The answer already carries the new lists: show them at once, then catch up the rest.
+                            if (Array.isArray(data?.collabs)) setSalonCollabRequestList(data.collabs);
+                            if (Array.isArray(data?.staff)) setSalonStaffList(data.staff);
+                            refreshSalonSystemData?.();
+                          }}
                           staffList={safeSalonStaffList}
                           salonHours={salonHoursList}
                           onInviteNearby={openNearbyArtistInvite}
