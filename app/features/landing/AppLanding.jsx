@@ -381,6 +381,10 @@ export async function AppLanding() {
             <Link href="/privacy">حریم خصوصی</Link>
             <EnterAppButton className="appLanding__enterLink">ورود به فرفرو</EnterAppButton>
           </nav>
+          {/* eNamad badge: their code, unchanged (changing it is not allowed). */}
+          <a className="appLanding__trust" referrerPolicy="origin" target="_blank" href="https://trustseal.enamad.ir/?id=8439818&Code=kdrswMfJscYMIJmUvV60S2sy3F2rXOEA">
+            <img referrerPolicy="origin" src="https://trustseal.enamad.ir/logo.aspx?id=8439818&Code=kdrswMfJscYMIJmUvV60S2sy3F2rXOEA" alt="" style={{ cursor: "pointer" }} code="kdrswMfJscYMIJmUvV60S2sy3F2rXOEA" />
+          </a>
         </div>
       </footer>
     </main>

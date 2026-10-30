@@ -33,7 +33,8 @@ function buildCsp() {
     "script-src": ["'self'", "'unsafe-inline'"],
     "style-src": ["'self'", "'unsafe-inline'"],
     "font-src": ["'self'"],
-    "img-src": ["'self'", "data:", "https://*.tile.openstreetmap.org"],
+    // trustseal.enamad.ir: the eNamad badge in the about page footer (AppLanding.jsx).
+    "img-src": ["'self'", "data:", "https://*.tile.openstreetmap.org", "https://trustseal.enamad.ir"],
     "connect-src": ["'self'", "https://nominatim.openstreetmap.org"],
     // blob:: a voice note just recorded in the support chat plays back before it is sent.
     "media-src": ["'self'", "blob:"],
