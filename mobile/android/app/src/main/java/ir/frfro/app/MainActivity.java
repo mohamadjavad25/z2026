@@ -11,6 +11,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(FrfroPushPlugin.class);
         registerPlugin(DeviceLocationPlugin.class);
         registerPlugin(StorySaverPlugin.class);
+        registerPlugin(StorySharePlugin.class);
         super.onCreate(savedInstanceState);
     }
 }
