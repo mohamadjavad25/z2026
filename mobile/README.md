@@ -40,11 +40,14 @@
 
 ### انتشار نسخهٔ جدید در سایت
 فایل نصبی سایت در `public/download/frfro.apk` است (دکمه‌های صفحهٔ `/download` به آن اشاره می‌کنند).
-1. `versionCode` را یکی بالا ببر و `versionName` را در `android/app/build.gradle` عوض کن.
+1. `versionCode` را در `android/app/build.gradle` یکی بالا ببر؛ `versionName` همیشه 1.0.0 می‌ماند (تصمیم مالک).
 2. نسخهٔ امضاشده را بساز (workflow «Android app» با کلید، یا روی کامپیوتر با `./gradlew assembleUserRelease`).
 3. فایل `app-user-release.apk` را جای `public/download/frfro.apk` بگذار و `ANDROID_APP_VERSION` را در `app/features/landing/constants.js` عوض کن.
 
-برای هر نسخهٔ جدید فروشگاه، `versionCode` (یکی بیشتر) و `versionName` را در `android/app/build.gradle` بالا ببر.
+برای هر نسخهٔ جدید فروشگاه، `versionCode` را در `android/app/build.gradle` یکی بالا ببر (`versionName` همان 1.0.0). بعد از اینکه کافه‌بازار نسخه را منتشر کرد، در پنل مدیر ← تنظیمات ← «اپ اندروید در کافه‌بازار» همان شماره را بنویس تا اپ‌های قدیمی‌تر دکمهٔ «به‌روزرسانی» را ببینند. تا قبلش ننویس، وگرنه کاربر به کافه‌بازاری فرستاده می‌شود که هنوز نسخهٔ تازه ندارد.
+
+### اپ قدیمی، سایت تازه (۲۰۲۶-۱۰-۳۰)
+سایت فوری به همه می‌رسد، اپ فقط با به‌روزرسانی از کافه‌بازار. هر قابلیتی که به افزونهٔ تازه‌ای در اپ نیاز دارد باید سه حالت داشته باشد: اپ تازه، اپ قدیمی (با `appTooOldFor` در `app/shared/lib/appUpdate.js` بفهم و `askForAppUpdate(...)` را صدا بزن)، و مرورگر یا آیفون. هیچ دکمه‌ای در اپ قدیمی نباید بگوید «انجام شد» وقتی کاری نکرده؛ تست `tests/unit/appUpdate.test.js` جلوی لینک دانلودِ بی‌چک را می‌گیرد. نسخه‌ها: ساخت ۲ (کافه‌بازار، از ۲۰۲۶-۱۰-۲۵) افزونه‌های `ContactPicker` و `FrfroPush` را دارد؛ ساخت ۳ به آن `DeviceLocation`، `StorySaver`، `StoryShare` (با `shareText` برای همهٔ دکمه‌های اشتراک) را اضافه می‌کند.
 
 ### ساخت روی کامپیوتر خودت
 Node 22، JDK 21 و Android Studio لازم است:

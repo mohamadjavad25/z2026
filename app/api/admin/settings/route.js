@@ -32,6 +32,10 @@ const SCHEMAS = {
       title: z.string().trim().min(1, "عنوان پاسخ آماده را بنویس.").max(60, "عنوان حداکثر ۶۰ حرف است."),
       body: z.string().trim().min(2, "متن پاسخ آماده را بنویس.").max(2000, "متن حداکثر ۲۰۰۰ حرف است.")
     })).max(40, "حداکثر ۴۰ پاسخ آماده.")
+  }),
+  androidApp: z.object({
+    latestBuild: z.number().int().min(1, "شمارهٔ ساخت باید ۱ یا بیشتر باشد.").max(100000),
+    forceUpdate: z.boolean()
   })
 };
 
@@ -57,7 +61,9 @@ async function _PUT(request) {
     ? `اعلان: ${valid.data.enabled ? "روشن" : "خاموش"} • ${valid.data.text.slice(0, 80)}`
     : body.key === "signups"
       ? `ثبت‌نام: ${["client", "artist", "salon"].filter((role) => valid.data[role]).join("، ") || "بسته"}`
-      : `پاسخ‌های آماده: ${valid.data.items.length}`;
+      : body.key === "androidApp"
+        ? `اپ اندروید: آخرین ساخت ${valid.data.latestBuild}${valid.data.forceUpdate ? " • به‌روزرسانی اجباری" : ""}`
+        : `پاسخ‌های آماده: ${valid.data.items.length}`;
   await admin.logAction({ adminLabel: gate.admin.label, action: "settings_update", detail: summary });
   return json({ data: { [body.key]: saved } });
 }

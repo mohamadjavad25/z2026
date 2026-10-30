@@ -70,4 +70,5 @@
 @import "./styles/features/theme.css";
 @import "./styles/features/brandLive.css";
 @import "./styles/features/portraitLock.css";
+@import "./styles/features/appUpdate.css";
 @import "./styles/islands.css";

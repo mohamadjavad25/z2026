@@ -7,8 +7,9 @@ android {
         applicationId "ir.frfro.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        // Raise both for every store upload (versionCode must always go up).
-        versionCode 2
+        // Raise versionCode for every store upload (it must always go up); versionName stays 1.0.0 (owner's rule).
+        // The site reads versionCode to ask older apps to update (app/shared/lib/appUpdate.js).
+        versionCode 3
         versionName "1.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {

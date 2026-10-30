@@ -33,7 +33,8 @@ import java.io.OutputStream;
  * navigator.share for files nor downloads, so the app does both.
  *  - share({ data, link }): copies the link, then opens the phone's share list with the picture;
  *    Instagram's «استوری» there puts it straight into the story editor;
- *  - save({ data, link }): saves the picture to the gallery (Pictures/frfro) and copies the link.
+ *  - save({ data, link }): saves the picture to the gallery (Pictures/frfro) and copies the link;
+ *  - shareText({ text, title }): the share list with plain text, for every other share button on the site.
  * data is the PNG as base64 without the "data:" prefix. Both resolve { copied } (the link reached
  * the clipboard); save rejects with "DENIED" when Android 9 or older refused the storage permission.
  */
@@ -71,6 +72,30 @@ public class StorySharePlugin extends Plugin {
             getActivity().startActivity(chooser);
             call.resolve(copied(copied));
         } catch (IOException | IllegalArgumentException | ActivityNotFoundException e) {
+            call.reject("Not shared", "UNAVAILABLE");
+        }
+    }
+
+    /**
+     * shareText({ text, title }): the phone's share list with plain text (a page link, an invite). The WebView has no
+     * navigator.share, so the site's share buttons use this through app/shared/lib/appShare.js.
+     */
+    @PluginMethod
+    public void shareText(PluginCall call) {
+        String text = call.getString("text");
+        if (text == null || text.isEmpty()) {
+            call.reject("No text");
+            return;
+        }
+        try {
+            Intent send = new Intent(Intent.ACTION_SEND);
+            send.setType("text/plain");
+            send.putExtra(Intent.EXTRA_TEXT, text);
+            String title = call.getString("title");
+            if (title != null && !title.isEmpty()) send.putExtra(Intent.EXTRA_SUBJECT, title);
+            getActivity().startActivity(Intent.createChooser(send, null));
+            call.resolve();
+        } catch (ActivityNotFoundException e) {
             call.reject("Not shared", "UNAVAILABLE");
         }
     }

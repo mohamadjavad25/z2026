@@ -1,0 +1,17 @@
+/* Asking to update the Android app (features/appUpdate). Above every sheet, the ready story included. */
+.appUpd { position: fixed; inset: 0; z-index: var(--z-top-sheet); display: flex; align-items: flex-end; justify-content: center; background: rgb(var(--shadow-rgb) / 0.45); direction: rtl; }
+.appUpd.is-forced { align-items: center; padding: 24px; background: var(--bg); }
+.appUpdCard { width: min(100%, 440px); display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; color: var(--ink); }
+.appUpdCard.is-sheet { padding: 12px 18px calc(18px + env(safe-area-inset-bottom)); border-radius: var(--radius-xl) var(--radius-xl) 0 0; background: var(--surface-solid); box-shadow: 0 -12px 40px rgb(var(--shadow-rgb) / 0.2); }
+.appUpdGrab { width: 42px; height: 5px; border-radius: var(--radius-pill); background: rgb(var(--ink-rgb) / 0.14); }
+/* A soft pink disc behind the character, so its black body reads on the night sheet too. */
+.appUpdMascot { height: auto; margin-top: 2px; padding: 10px 14px 0; border-radius: 50% 50% 46% 46%; background: radial-gradient(closest-side, var(--pink-soft) 0 92%, transparent 100%); }
+.appUpdCard h2 { margin: 0; font-size: var(--text-xl); font-weight: 900; line-height: 1.5; }
+.appUpdCard p { margin: 0 0 6px; font-size: var(--text-md); line-height: 1.85; color: rgb(var(--ink-rgb) / 0.72); }
+.appUpdMain, .appUpdLater { width: 100%; min-height: 50px; border: 0; border-radius: var(--radius-lg); font: inherit; font-size: var(--text-md); font-weight: 800; cursor: pointer; }
+.appUpdMain { background: var(--violet-deep); color: var(--n-0); }
+.appUpdLater { background: rgb(var(--ink-rgb) / 0.06); color: var(--ink); }
+.appUpdMain:focus-visible, .appUpdLater:focus-visible, .appUpdPill:focus-visible { outline: 3px solid var(--pink); outline-offset: 2px; }
+
+/* The pill beside the bell on the profile cover. */
+.appUpdPill { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 12px; border: 0; border-radius: var(--radius-pill); background: var(--violet-deep); color: var(--n-0); font: inherit; font-size: var(--text-sm); font-weight: 800; white-space: nowrap; cursor: pointer; box-shadow: 0 6px 18px rgb(var(--shadow-rgb) / 0.25); }

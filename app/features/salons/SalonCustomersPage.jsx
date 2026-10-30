@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { askForAppUpdate } from "../../shared/lib/appUpdate";
 import { PageIcon } from "../../components/PageIcon";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { ArrowDownUp, CalendarCheck, Check, CalendarPlus, ContactRound, Link2, MessageSquare, Phone, Repeat2, Search, Sparkles, Trash2, UserPlus, Users, X } from "lucide-react";
@@ -202,7 +203,7 @@ export function SalonCustomersPage({ active, bookings = [], followers = [], owne
   const [sort, setSort] = useState("recent");
   const [openKey, setOpenKey] = useState("");
   const [canPickContact, setCanPickContact] = useState(false);
-  const [contactNotice, setContactNotice] = useState(""); // "update" | "failed"
+  const [contactNotice, setContactNotice] = useState(""); // "failed"
   // Booking ids just taken off the list, so the row goes at once; the server's mark hides them on the next load.
   const [hiddenIds, setHiddenIds] = useState(() => new Set());
   const [toast, setToast] = useState("");
@@ -255,7 +256,7 @@ export function SalonCustomersPage({ active, bookings = [], followers = [], owne
 
   async function chooseContact() {
     if (contactPickerNeedsAppUpdate()) {
-      setContactNotice("update");
+      askForAppUpdate("انتخاب از مخاطب‌های گوشی توی نسخهٔ تازه‌ست. به‌روزش کن؛ یه دقیقه طول می‌کشه.");
       return;
     }
     let contact = null;
@@ -451,16 +452,9 @@ export function SalonCustomersPage({ active, bookings = [], followers = [], owne
         ))}
       </div>
       {contactNotice ? (
-        <ProfileSheet open kicker="مخاطبین" title={contactNotice === "update" ? "اپ رو به‌روز کن" : "مخاطب‌ها باز نشد"} onClose={() => setContactNotice("")}>
+        <ProfileSheet open kicker="مخاطبین" title="مخاطب‌ها باز نشد" onClose={() => setContactNotice("")}>
           <div className="cuSheetBody">
-            {contactNotice === "update" ? (
-              <>
-                <p className="cuNotice">برای انتخاب از مخاطب‌های گوشی، نسخهٔ تازهٔ اپ فرفرو رو نصب کن.</p>
-                <a className="cuBookBtn" href="/download">نسخهٔ تازه رو بگیر</a>
-              </>
-            ) : (
-              <p className="cuNotice">مخاطب‌های گوشی باز نشد؛ دوباره بزن.</p>
-            )}
+            <p className="cuNotice">مخاطب‌های گوشی باز نشد؛ دوباره بزن.</p>
           </div>
         </ProfileSheet>
       ) : null}

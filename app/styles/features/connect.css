@@ -567,6 +567,9 @@
   font-size: 0.9rem;
   font-weight: 900;
   text-decoration: none;
+  border: 0;
+  font-family: inherit;
+  cursor: pointer;
 }
 
 /* Status line under a scanned profile (team member, invite sent, ...) */

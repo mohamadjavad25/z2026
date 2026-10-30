@@ -7,6 +7,7 @@ import { KeyboardSuggestionsOff } from "./components/KeyboardSuggestionsOff.jsx"
 import { PortraitLock } from "./components/PortraitLock.jsx";
 import { ClientErrorReporter } from "./components/ClientErrorReporter.jsx";
 import { PullToRefresh } from "./components/PullToRefresh.jsx";
+import { AppUpdateHost } from "./features/appUpdate/AppUpdateHost.jsx";
 import { getSiteUrl } from "./lib/siteUrl.js";
 import { THEME_BOOT_SCRIPT } from "./shared/lib/theme.js";
 import { AppLanding } from "./features/landing/AppLanding";
@@ -155,6 +156,7 @@ try {
         <PortraitLock />
         <ClientErrorReporter />
         <PullToRefresh />
+        <AppUpdateHost />
         <LargeScreenGate landing={<AppLanding />}>{children}</LargeScreenGate>
         <Script id="sw-register" strategy="afterInteractive">
           {`if ("serviceWorker" in navigator) {

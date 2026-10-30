@@ -7,6 +7,8 @@ import { Download, X } from "lucide-react";
 import { getMyConnectCode } from "../../shared/api/connections";
 import { useQrCode } from "../../shared/hooks/useQrCode";
 import { useBackHandler } from "../../shared/hooks/useBackHandler";
+import { hasNativeStoryShare, saveStoryNative } from "../../shared/lib/storyShare";
+import { appTooOldFor, askForAppUpdate } from "../../shared/lib/appUpdate";
 
 /**
  * «اسکن شو»: the client's personal QR. A salon or artist scans it (from their
@@ -17,6 +19,7 @@ export function MyCodeSheet({ name = "", avatar = "", onClose }) {
   const [code, setCode] = useState("");
   const [failed, setFailed] = useState(false);
   const qr = useQrCode(code, Boolean(code));
+  const [saved, setSaved] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -36,6 +39,22 @@ export function MyCodeSheet({ name = "", avatar = "", onClose }) {
     return () => document.removeEventListener("keydown", onKey);
   }, [onClose]);
 
+  // The app's WebView cannot download: the app saves to the gallery itself, and an app too old for that asks for the update.
+  const nativeSave = hasNativeStoryShare();
+  const inApp = nativeSave || appTooOldFor("StoryShare");
+  async function saveInApp() {
+    if (!nativeSave) {
+      askForAppUpdate("ذخیرهٔ عکس کد توی گالری توی نسخهٔ تازه‌ست. به‌روزش کن؛ یه دقیقه طول می‌کشه.");
+      return;
+    }
+    try {
+      await saveStoryNative(qr, "");
+      setSaved("عکس کد توی گالریت ذخیره شد.");
+    } catch (error) {
+      setSaved(error?.code === "DENIED" ? "برای ذخیرهٔ عکس، به فرفرو اجازهٔ دسترسی به عکس‌ها رو بده." : "عکس ذخیره نشد؛ یه بار دیگه بزن.");
+    }
+  }
+
   if (typeof document === "undefined") return null;
 
   return createPortal(
@@ -54,12 +73,18 @@ export function MyCodeSheet({ name = "", avatar = "", onClose }) {
         {qr ? <img src={qr} alt="کد QR شخصی تو" /> : failed ? <p role="alert">کد باز نشد؛ دوباره بزن.</p> : <span className="ivtQrWait" role="status" aria-label="در حال آماده‌سازی"><Spinner size={44} /></span>}
       </div>
       <p className="cnCodeHint">این کد رو به سالن یا آرتیستت نشون بده. اسکنش که کنه، به هم وصل می‌شید.</p>
-      {qr ? (
+      {qr && inApp ? (
+        <button type="button" className="cnCodeSave" onClick={saveInApp}>
+          <Download size={18} aria-hidden="true" />
+          عکس کد رو ذخیره کن
+        </button>
+      ) : qr ? (
         <a className="cnCodeSave" href={qr} download="frfro-code.png">
           <Download size={18} aria-hidden="true" />
           عکس کد رو ذخیره کن
         </a>
       ) : null}
+      {saved ? <p className="cnCodeHint" role="status">{saved}</p> : null}
     </div>,
     document.body
   );

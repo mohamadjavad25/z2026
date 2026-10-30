@@ -15,6 +15,7 @@ import { isTooSoonToRequest } from "../../shared/lib/bookingWindow";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { parseServiceDurationMinutes } from "../../shared/lib/time";
 import { hasNativeStoryShare, saveStoryNative, shareStoryNative } from "../../shared/lib/storyShare";
+import { appTooOldFor, askForAppUpdate } from "../../shared/lib/appUpdate";
 
 // What the person hears after each button (one line each).
 const SHARED_COPIED = "لینک صفحه‌ت کپی شد؛ توی استوری برچسب لینک رو بزن و بچسبون.";
@@ -23,6 +24,7 @@ const SAVED_COPIED = "عکس ذخیره شد و لینکت کپی شد. بذار
 const SAVED_NOT_COPIED = "عکس ذخیره شد. بذارش تو استوری.";
 const SAVE_DENIED = "برای ذخیره‌ی عکس، به فرفرو اجازه‌ی دسترسی به عکس‌ها رو بده.";
 const SAVE_FAILED = "عکس ذخیره نشد؛ یه بار دیگه بزن.";
+const NEEDS_UPDATE = "ذخیرهٔ استوری و فرستادنش به اینستاگرام توی نسخهٔ تازه‌ست. به‌روزش کن؛ یه دقیقه طول می‌کشه.";
 
 const W = 1080;
 const H = 1920;
@@ -459,7 +461,9 @@ export function InstagramStorySheet({ open, name, url, avatar = "", profileType 
   // Asked of a stand-in file, so the buttons keep their places while a picture is still being drawn.
   // Inside the Android app the app itself shares and saves (storyShare.js); the WebView can do neither.
   const native = hasNativeStoryShare();
-  const canShareFile = native || (typeof navigator !== "undefined" && Boolean(navigator.canShare?.({ files: [file || new File([""], "frfro-story.png", { type: "image/png" })] })));
+  // An app from before StorySharePlugin can do neither; it would only pretend to save (2026-10-30), so it asks for the update.
+  const oldApp = !native && appTooOldFor("StoryShare");
+  const canShareFile = native || oldApp || (typeof navigator !== "undefined" && Boolean(navigator.canShare?.({ files: [file || new File([""], "frfro-story.png", { type: "image/png" })] })));
 
   function onRailScroll() {
     const rail = railRef.current;
@@ -489,6 +493,10 @@ export function InstagramStorySheet({ open, name, url, avatar = "", profileType 
 
   // Copies the link and opens the phone's share list; Instagram's «استوری» there opens the story editor with the picture.
   async function share() {
+    if (oldApp) {
+      askForAppUpdate(NEEDS_UPDATE);
+      return;
+    }
     if (native) {
       try {
         const { copied } = await shareStoryNative(preview, url);
@@ -510,6 +518,10 @@ export function InstagramStorySheet({ open, name, url, avatar = "", profileType 
   // Saves the picture (to the gallery in the app) and copies the link.
   async function save() {
     if (!preview) return;
+    if (oldApp) {
+      askForAppUpdate(NEEDS_UPDATE);
+      return;
+    }
     if (native) {
       try {
         const { copied } = await saveStoryNative(preview, url);
