@@ -72,7 +72,7 @@ export const SMS_TEMPLATES = {
     env: "BOOKING_MADE",
     kavenegar: (v) => ({ token: v.time, token10: v.day, token20: v.who }),
     faraz: (v) => ({ who: v.who, day: v.day, time: v.time }),
-    preview: (v) => `فرفرو: ${v.who} برات نوبت ثبت کرد، ${v.day} ساعت ${v.time}. برای دیدن یا لغوش وارد فرفرو شو: frfro.ir`
+    preview: (v) => `فرفرو: ${v.who} برایت نوبت ${v.day} ساعت ${v.time} ثبت کرد. در فرفرو ببین.`
   },
   billing_receipt: {
     label: "رسید پرداخت اشتراک",
@@ -128,7 +128,7 @@ export const SMS_TEMPLATES = {
     env: "TEAM_SALON_GONE",
     kavenegar: (v) => ({ token10: v.who }),
     faraz: (v) => ({ who: v.who }),
-    preview: (v) => `فرفرو: ${v.who} حسابش رو پاک کرد و همکاری باهاش تموم شد. نوبت‌های خودت سر جاشه.`
+    preview: (v) => `فرفرو: ${v.who} حسابش را حذف کرد و همکاری‌تان تمام شد. نوبت‌های خودت سر جایش است.`
   },
   phone_changed: {
     label: "شمارهٔ حساب عوض شد (به شمارهٔ قبلی)",
