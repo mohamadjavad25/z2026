@@ -19,6 +19,25 @@ import { ProfileQrCodeSheet } from "../../components/ProfileQrCodeSheet";
  * Single component: one wrapper + salon layout fork; artist is an additive overlay.
  * State/panels stay in HomeApp — only callbacks + display stats are passed.
  */
+// The round picture. While it loads (weak network, filter-breaker on) it shows a soft brand-tinted placeholder instead of
+// a bare white disc, then fades in once it has arrived (owner's report 2026-10-31).
+function AvatarImage({ src, position }) {
+  const [loaded, setLoaded] = useState(false);
+  return (
+    <img
+      className={`profileAvatarImage${loaded ? " is-loaded" : ""}`}
+      src={src}
+      alt=""
+      aria-hidden="true"
+      decoding="async"
+      style={{ objectPosition: position }}
+      ref={(node) => { if (node?.complete && node.naturalWidth && !loaded) setLoaded(true); }}
+      onLoad={() => setLoaded(true)}
+      onError={() => setLoaded(true)}
+    />
+  );
+}
+
 // Eye next to the owner's name: opens their page as clients see it.
 function PublicPreviewButton({ onClick }) {
   if (typeof onClick !== "function") return null;
@@ -123,7 +142,7 @@ export function ProfileHero({
           onOpenChange={setQrSheetOpen}
         />
         <div className="salonHeroAvatarFrame">
-          <img className="profileAvatarImage" src={avatar} alt="" aria-hidden="true" style={{ objectPosition: avatarPosition }} />
+          <AvatarImage src={avatar} position={avatarPosition} />
         </div>
 
         <div className="salonHeroMeta">
@@ -161,7 +180,7 @@ export function ProfileHero({
         </button>
         <SupportButton className="clientBeautyHeroBell cphBell cphSupport" size={18} />
         <span className="cphAvatar">
-          <img className="profileAvatarImage" src={avatar} alt="" aria-hidden="true" style={{ objectPosition: avatarPosition }} />
+          <AvatarImage src={avatar} position={avatarPosition} />
         </span>
         <div className="cphMeta">
           <h2>{name}</h2>
@@ -179,7 +198,7 @@ export function ProfileHero({
         </div>
       ) : null}
       <div className="profileStoryAvatarWrap">
-        <img className="profileAvatarImage" src={avatar} alt="" aria-hidden="true" style={{ objectPosition: avatarPosition }} />
+        <AvatarImage src={avatar} position={avatarPosition} />
       </div>
       <div className="profileHeroCopy">
         {type === "artist" && <PublicPreviewButton onClick={onPreviewPublic} />}
@@ -201,11 +220,6 @@ export function ProfileHero({
           </span>
         )}
       </div>
-      {type === "artist" && (
-        <div className="artistHeroStats" aria-label="آمار آرتیست">
-          <span><b>{toPersianDigits(artistStats?.bookingCount ?? 0)}</b> نوبت پیش‌رو</span>
-        </div>
-      )}
       <ProfileHeroActions
         activePanel={activePanel}
         profileType={type}

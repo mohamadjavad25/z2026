@@ -304,8 +304,16 @@
   display: block;
   object-fit: cover;
   object-position: center 40%;
-  background: linear-gradient(135deg, var(--n-900), var(--n-900) 58%, var(--n-400));
+  /* Placeholder while the picture loads: a soft brand tint on the card surface, never a white disc (2026-10-31). */
+  background: linear-gradient(135deg, rgb(var(--accent-rgb) / 0.22), rgb(var(--ink-rgb) / 0.08));
+  background-color: var(--n-25);
 }
+
+.profileAvatarImage:not(.is-loaded) { animation: avatarWait 1.4s ease-in-out infinite alternate; }
+.profileAvatarImage.is-loaded { animation: avatarIn 0.35s ease-out; }
+@keyframes avatarWait { from { opacity: 0.7; } to { opacity: 1; } }
+@keyframes avatarIn { from { opacity: 0.4; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .profileAvatarImage { animation: none !important; } }
 
 .profileHero p {
   margin: 0 0 4px;
