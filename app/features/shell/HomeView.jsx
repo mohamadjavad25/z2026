@@ -1,5 +1,6 @@
 "use client";
 
+import { TeamNoticeHost } from "../team/TeamNoticeHost";
 import { SalonClientBookingModal, SalonToolSheets, SalonStaffProfileModal, SalonNearbyInviteSheet } from "../salons";
 import { salonInventory, salonTasks } from "./mockData";
 import { salonArtistRoleOptions } from "../../shared/constants/roles";
@@ -92,7 +93,7 @@ export function HomeView() {
     salonTool,
     closeSalonToolSheet,
     selectedArtistProfile,
-    selectedStaffStats,
+    openSalonWorkspace,
     selectedBookingClient,
     bookingSheetOpen,
     closeBookingSheet,
@@ -105,6 +106,7 @@ export function HomeView() {
     profileEditAvatar,
     handleProfileAvatarUpload,
     updateRegisteredProfile,
+    applyChangedPhone,
     profileSaving,
     salonPreviewWork,
     previewingArtistWork,
@@ -290,18 +292,18 @@ export function HomeView() {
         )}
         <SalonStaffProfileModal
           staff={selectedArtistProfile}
-          stats={selectedStaffStats}
           roleOptions={salonArtistRoleOptions}
           onClose={() => setSelectedArtistProfile(null)}
           onUpdate={(person, patch, notice) => {
             updateSalonStaff(person.name, patch, notice);
             setSelectedArtistProfile({ ...person, ...patch });
           }}
-          onRemove={(person) => {
-            removeSalonStaff(person.name);
+          onRemove={(person, options) => {
+            removeSalonStaff(person.name, options);
             setSelectedArtistProfile(null);
           }}
           onOpenPublic={openSalonStaffPublicProfile}
+          onOpenTeamPosts={() => { setSelectedArtistProfile(null); openSalonWorkspace("portfolio"); }}
         />
         <ClientProfileModal
           client={scheduleBookingMenu ? null : selectedBookingClient}
@@ -330,6 +332,7 @@ export function HomeView() {
           onAvatarUpload={handleProfileAvatarUpload}
           onClearAvatar={() => setProfileEditAvatar("")}
           onSubmit={updateRegisteredProfile}
+          onPhoneChanged={applyChangedPhone}
           saving={profileSaving}
         />
         <ArtistWorkPreviewModal
@@ -389,6 +392,7 @@ export function HomeView() {
           onDelete={createdProfile?.type === "salon" ? deleteSalonService : deleteArtistService}
         />
         <NoticeHost />
+        <TeamNoticeHost profileType={createdProfile?.type || ""} />
 
         <PushSoftAsk />
         {authChecked ? <SiteNotice role={createdProfile?.type || ""} /> : null}

@@ -9,10 +9,10 @@ import { reportClientError } from "./shared/lib/reportClientError";
 // inline styles (no className/external CSS) for the same reason: app/
 // styles.css is imported by the layout this is replacing, so it can't be
 // relied on here. Colours come from a tiny inline <style> so the page still
-// follows the device's day/night setting (the same ink, pink and mist as tokens.css).
+// follows the device's day/night setting (the same ink, violet and mist as tokens.css; no black buttons).
 const FALLBACK_CSS = `
-  :root { --ge-bg: #f3f2f8; --ge-ink: #0c0d12; --ge-muted: #62667a; --ge-btn: #0c0d12; --ge-on-btn: #ffffff; color-scheme: light dark; }
-  @media (prefers-color-scheme: dark) { :root { --ge-bg: #0c0d12; --ge-ink: #f7f7fb; --ge-muted: #a0a4b6; --ge-btn: #ff86b8; --ge-on-btn: #0c0d12; } }
+  :root { --ge-bg: #f3f2f8; --ge-ink: #0c0d12; --ge-muted: #62667a; --ge-btn: #5b3fd6; --ge-on-btn: #ffffff; color-scheme: light dark; }
+  @media (prefers-color-scheme: dark) { :root { --ge-bg: #0c0d12; --ge-ink: #f7f7fb; --ge-muted: #a0a4b6; --ge-btn: #8b6cff; --ge-on-btn: #0c0d12; } }
 `;
 export default function GlobalError({ error, reset }) {
   useEffect(() => {

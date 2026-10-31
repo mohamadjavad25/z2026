@@ -27,7 +27,8 @@
 .qrScanner,
 .cnCodeSheet,
 .cnSheetRoot,
-.clConnBoard {
+.clConnBoard,
+.clwBoard {
   --cn-ink: var(--n-900);
   --cn-muted: var(--n-600);
   --cn-line: var(--n-150);
@@ -566,6 +567,9 @@
   font-size: 0.9rem;
   font-weight: 900;
   text-decoration: none;
+  border: 0;
+  font-family: inherit;
+  cursor: pointer;
 }
 
 /* Status line under a scanned profile (team member, invite sent, ...) */
@@ -647,6 +651,7 @@
 .cnSheetPanel .cnEmpty.is-compact { background: var(--cn-soft); }
 .cnInviteRow { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
 a.cnInviteBtn { text-decoration: none; }
+.cnCopyBtn { display: inline-flex; align-items: center; gap: 6px; }
 
 /* ═══ «دعوت مشتری‌ها» (salon/artist customers page, InviteClientsSheet) ═══ */
 .icsMessage { margin-top: 12px; }

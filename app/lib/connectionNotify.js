@@ -1,5 +1,8 @@
 import { sendPushToUser } from "./push.js";
 
+/** Where a team notice opens: the salon's «پرسنل» or the artist's «همکاری» tab (useTeamDeepLink, 2026-10-30). */
+export const TEAM_URL = "/?team=1";
+
 /**
  * Best-effort push for salon <-> artist connection events (invite sent /
  * answered, proposal sent / answered, QR join, member removed). Fire-and-forget:

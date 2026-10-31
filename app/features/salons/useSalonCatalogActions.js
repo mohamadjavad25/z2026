@@ -1,6 +1,6 @@
 import { useCallback } from "react";
-import { updateSalonStaff as updateSalonStaffApi, deleteSalonStaff, joinSalonTeamAsOwner as joinSalonTeamAsOwnerApi, updateSalonHours, createSalonService as createSalonServiceApi, updateSalonService as updateSalonServiceApi, deleteSalonService as deleteSalonServiceApi } from "../../shared/api/salons";
-import { notifyFromResponse, getApiErrorMessage } from "../../shared/lib/apiNotify";
+import { updateSalonStaff as updateSalonStaffApi, deleteSalonStaff, joinSalonTeamAsOwner as joinSalonTeamAsOwnerApi, saveSalonHoursWeek as saveSalonHoursWeekRequest, createSalonService as createSalonServiceApi, updateSalonService as updateSalonServiceApi, deleteSalonService as deleteSalonServiceApi } from "../../shared/api/salons";
+import { notifyFromResponse } from "../../shared/lib/apiNotify";
 import { exitRefusalOf, openExitDialog } from "../exit/exitDialogBus";
 
 export function useSalonCatalogActions({
@@ -62,19 +62,20 @@ export function useSalonCatalogActions({
     }
   }, [setSalonStaffList, shellNotify, refreshSalonSystemData]);
 
-  const removeSalonStaff = useCallback(async (name) => {
+  // `confirmed`: the staff sheet already asked (and maybe took the salon's one-line `reason` for the artist).
+  const removeSalonStaff = useCallback(async (name, { confirmed = false, reason = "" } = {}) => {
     const person = safeSalonStaffList.find((item) => item.name === name);
     if (!person?.id) return;
     const question = person.is_owner
       ? "خودت از تیم بری بیرون؟ کارتت می‌مونه و روشنش کنی برمی‌گردی. کارهایی که دستی به خودت داده بودی بدون آرتیست می‌مونن؛ نوبت‌های قبلی سر جاشون می‌مونن."
       : `«${person.name}» از تیم برداشته بشه؟ این کار برگشت نداره.`;
-    if (typeof window !== "undefined" && !window.confirm(question)) {
+    if (!confirmed && typeof window !== "undefined" && !window.confirm(question)) {
       return;
     }
     // One try; a refusal because of confirmed bookings (owner's rules of 2026-10-22) opens the list dialog, whose
     // «ادامه» repeats this same try (with «لغو همهٔ نوبت‌ها» when chosen).
     const attempt = async ({ cancelAll = false } = {}) => {
-      const result = await deleteSalonStaff(person.id, { cancelAll });
+      const result = await deleteSalonStaff(person.id, { cancelAll, reason });
       const { ok, payload } = result;
       if (!ok) {
         const refusal = exitRefusalOf(result);
@@ -122,76 +123,19 @@ export function useSalonCatalogActions({
     }
   }, [safeSalonStaffList, createdProfile?.id, onArtistCollabOffersPatch, shellNotify]);
 
-  const updateSalonHour = useCallback(async (hour, patch) => {
-    const nextHour = { ...hour, ...patch };
+  /** The hours sheet's «ذخیره»: the whole week in one request. true when it was saved. */
+  const saveSalonHoursWeek = useCallback(async (hours) => {
     try {
-      const result = await updateSalonHours(nextHour);
-      if (!notifyFromResponse(shellNotify, result, { failure: "ساعت کاری ذخیره نشد؛ دوباره بزن." })) {
-        return;
-      }
+      const result = await saveSalonHoursWeekRequest(hours);
+      if (!notifyFromResponse(shellNotify, result, { failure: "ساعت کاری ذخیره نشد؛ دوباره بزن." })) return false;
       setSalonHoursList(result.payload.data?.hours || []);
-      shellNotify(`ساعت کاری ${nextHour.day} ذخیره شد.`);
+      shellNotify("ساعت کاری ذخیره شد.");
+      return true;
     } catch {
       shellNotify("ساعت کاری ذخیره نشد؛ دوباره بزن.");
+      return false;
     }
   }, [shellNotify]);
-
-  const updateSalonHoursPreset = useCallback(async (preset) => {
-    const weekendDays = new Set(["پنجشنبه", "جمعه"]);
-    const nextHours = salonHoursList.map((hour) => {
-      const isWeekend = weekendDays.has(hour.day);
-      if (preset === "standard") {
-        return { ...hour, open_time: "۱۰:۰۰", close_time: "۲۰:۰۰", capacity: 8, active: !isWeekend };
-      }
-      if (preset === "extended") {
-        return { ...hour, open_time: "۱۰:۰۰", close_time: "۲۲:۰۰", capacity: 12, active: true };
-      }
-      return { ...hour, open_time: "۱۲:۰۰", close_time: "۱۸:۰۰", capacity: 5, active: isWeekend };
-    });
-    try {
-      const results = await Promise.all(nextHours.map((hour) => updateSalonHours(hour)));
-      const failed = results.find((item) => !item.ok);
-      if (failed) {
-        shellNotify(getApiErrorMessage(failed.payload, "ساعت کاری ذخیره نشد؛ دوباره بزن."));
-        return;
-      }
-      const latestHours = results[results.length - 1]?.payload?.data?.hours || nextHours;
-      setSalonHoursList(latestHours);
-      shellNotify("قالب ساعت کاری روی همهٔ روزها نشست.");
-    } catch {
-      shellNotify("ساعت کاری ذخیره نشد؛ دوباره بزن.");
-    }
-  }, [salonHoursList, shellNotify]);
-
-  /**
-   * Copies one day's open/close time + capacity onto every other open day,
-   * in one batch — the tedious part of the hours editor was setting the
-   * same start/end time on each day one at a time; this is the "apply to
-   * the rest of the week" shortcut for that. Closed days are left alone.
-   */
-  const copySalonHourToOpenDays = useCallback(async (sourceHour) => {
-    const targets = salonHoursList.filter((hour) => hour.active);
-    try {
-      // Sequential on purpose (not Promise.all): several concurrent
-      // authenticated PATCHes racing the session-touch poll (GET
-      // /api/artist/me-equivalent presence heartbeat) could land out of
-      // order and make the client-side hours list flicker/reset mid-update.
-      let latestHours = salonHoursList;
-      for (const hour of targets) {
-        const nextHour = { ...hour, open_time: sourceHour.open_time, close_time: sourceHour.close_time, capacity: sourceHour.capacity };
-        const result = await updateSalonHours(nextHour);
-        if (!result.ok) {
-          shellNotify(getApiErrorMessage(result.payload, "ساعت روی بقیهٔ روزها ننشست؛ دوباره بزن."));
-          return;
-        }
-        latestHours = result.payload.data?.hours || latestHours;
-      }
-      setSalonHoursList(latestHours);
-      shellNotify("همین ساعت روی بقیهٔ روزهای باز نشست.");
-    } catch {
-      shellNotify("ساعت روی بقیهٔ روزها ننشست؛ دوباره بزن.");
-    }
-  }, [salonHoursList, shellNotify]);
 
   /** Dedicated salon "add service" form (name/price/duration only, no hint/tone). */
   const addSalonService = useCallback(async (event) => {
@@ -417,9 +361,7 @@ export function useSalonCatalogActions({
     updateSalonStaff,
     removeSalonStaff,
     joinSalonTeamAsOwner,
-    updateSalonHour,
-    updateSalonHoursPreset,
-    copySalonHourToOpenDays,
+    saveSalonHoursWeek,
     addSalonService,
     assignSalonServiceArtist,
     toggleSalonServiceArtist,

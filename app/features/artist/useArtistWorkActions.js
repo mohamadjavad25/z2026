@@ -1,5 +1,21 @@
 import { createPost, updatePost, deletePost } from "../../shared/api/posts";
 import { mapPortfolioItem } from "../posts/mappers";
+import { sendArtistTeamPost } from "../../shared/api/artists";
+
+/**
+ * Sends the post to (or takes it back from) each salon whose switch the artist changed in the sheet. → the first
+ * refusal's text, or "" when all went through, and whether anything was sent.
+ */
+async function applySalonSends(postId, salonSends = {}) {
+  let refusal = "";
+  let sent = false;
+  for (const [salonId, on] of Object.entries(salonSends)) {
+    const result = await sendArtistTeamPost(postId, Number(salonId), on ? "send" : "withdraw").catch(() => null);
+    if (!result?.ok) refusal = refusal || result?.payload?.error || "به سالن نرسید؛ دوباره بفرست.";
+    else if (on) sent = true;
+  }
+  return { refusal, sent };
+}
 
 export function useArtistWorkActions({
   setPreviewingArtistWorkId,
@@ -107,8 +123,9 @@ export function useArtistWorkActions({
             : [saved, ...items]
         ));
       }
+      const sends = saved?.id ? await applySalonSends(saved.id, editingArtistWork.salonSends) : { refusal: "", sent: false };
       setEditingArtistWork(null);
-      notify("نمونه‌کارت ذخیره شد!");
+      notify(sends.refusal || (sends.sent ? "ذخیره شد و رفت پیش سالن تا قبولش کنه." : "نمونه‌کارت ذخیره شد!"));
       void syncArtistPosts().catch(() => {});
     } catch {
       notify("نمونه‌کار ذخیره نشد؛ دوباره بزن.");

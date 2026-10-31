@@ -5,12 +5,14 @@ import { useHome } from "../shell/HomeContext";
 import { PlanSheet } from "./PlanSheet";
 import { PaymentResultSheet } from "./PaymentResultSheet";
 import { PaymentsSheet } from "./PaymentsSheet";
+import { SmsPackSheet } from "./SmsPackSheet";
 import {
   closeBillingSheet,
   markPendingShown,
   openPaymentHistory,
   openPaymentResult,
   openPlans,
+  openSmsPack,
   readPendingPayment,
   refreshBilling,
   resetBilling,
@@ -22,6 +24,7 @@ import {
  *   - /?billing=<id>    the result page's «بازگشت به فرفرو» link and the receipt push notification
  *   - /?billing=plans   a reminder push notification: straight to the plans
  *   - /?billing=history the push an artist gets when their salon paid for them: their receipts
+ *   - /?billing=sms     straight to the SMS packs
  *   - a checkout this browser started (in the Android app the bank opens in the phone's browser): when the app is
  *     shown again, the result opens by itself, once.
  */
@@ -44,6 +47,7 @@ export function BillingHost() {
     if (/^\d+$/.test(value)) openPaymentResult(value);
     else if (value === "plans") openPlans();
     else if (value === "history") openPaymentHistory();
+    else if (value === "sms") openSmsPack();
     params.delete("billing");
     const rest = params.toString();
     window.history.replaceState(window.history.state, "", `${window.location.pathname}${rest ? `?${rest}` : ""}${window.location.hash}`);
@@ -76,7 +80,8 @@ export function BillingHost() {
   return (
     <>
       <PlanSheet open={planSheetOpen} overview={overview} forMember={forMember} onClose={closeBillingSheet} />
-      <PaymentResultSheet open={sheet?.kind === "result"} paymentId={sheet?.paymentId} onClose={closeBillingSheet} onRetry={openPlans} />
+      <SmsPackSheet open={sheet?.kind === "sms"} overview={overview} onClose={closeBillingSheet} />
+      <PaymentResultSheet open={sheet?.kind === "result"} paymentId={sheet?.paymentId} onClose={closeBillingSheet} onRetry={openPlans} onRetryPack={openSmsPack} />
       <PaymentsSheet open={sheet?.kind === "history"} onClose={closeBillingSheet} />
     </>
   );

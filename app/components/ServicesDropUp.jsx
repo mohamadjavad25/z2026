@@ -34,9 +34,10 @@ function groupServices(services) {
  * several (e.g. nails and makeup in one visit); confirming hands them, in the
  * order picked, to `onConfirm`. Render it next to the `.spvBar`. It has no
  * header or close button (more room for the list); it closes from the bar's
- * «بستن», the dim backdrop, Back or Escape. `title` is its accessible name.
+ * «بستن», the dim backdrop, Back or Escape. `title` is its accessible name. With `browseOnly` (online booking
+ * paused) the services are only shown: nothing to pick, no «رزرو».
  */
-export function ServicesDropUp({ open, title, services, focusNames = null, focusLabel = "", onConfirm, onClose }) {
+export function ServicesDropUp({ open, title, services, focusNames = null, focusLabel = "", browseOnly = false, note = "", onConfirm, onClose }) {
   useBackHandler(open, onClose);
   const list = Array.isArray(services) ? services : [];
   // Services the client came for (a category tapped on «سالن و آرتیست من») are listed first, in a group of their own.
@@ -80,6 +81,7 @@ export function ServicesDropUp({ open, title, services, focusNames = null, focus
       <button type="button" className="sduDim" aria-label="بستن فهرست خدمات" onClick={onClose} />
       <div className="sduPanel" role="dialog" aria-modal="true" aria-label={title}>
         <div className="sduInner">
+          {note ? <p className="sduNote">{note}</p> : null}
           {list.length === 0 ? (
             <div className="sduEmpty" role="status">
               <ServiceIconStrip size="md" />
@@ -119,13 +121,12 @@ export function ServicesDropUp({ open, title, services, focusNames = null, focus
                       const key = serviceKey(service);
                       const amount = parseTomanAmount(service.price);
                       const on = pickedKeys.includes(key);
+                      const Item = browseOnly ? "div" : "button";
                       return (
-                        <button
-                          type="button"
+                        <Item
+                          {...(browseOnly ? {} : { type: "button", "aria-pressed": on, onClick: () => toggle(key) })}
                           key={key}
-                          className={`sduItem${on ? " is-selected" : ""}`}
-                          aria-pressed={on}
-                          onClick={() => toggle(key)}
+                          className={`sduItem${on ? " is-selected" : ""}${browseOnly ? " is-static" : ""}`}
                         >
                           <ServiceIcon emoji={service.emoji} name={service.name} size="sm" />
                           <span className="sduItemBody">
@@ -135,14 +136,15 @@ export function ServicesDropUp({ open, title, services, focusNames = null, focus
                           <span className="sduItemPrice">
                             {amount ? <>{formatTomanNumber(amount)} <small>تومان</small></> : <small>قیمت توافقی</small>}
                           </span>
-                          <span className="sduCheck" aria-hidden="true"><Check size={14} strokeWidth={3} /></span>
-                        </button>
+                          {browseOnly ? null : <span className="sduCheck" aria-hidden="true"><Check size={14} strokeWidth={3} /></span>}
+                        </Item>
                       );
                     })}
                   </section>
                 ))}
               </div>
 
+              {browseOnly ? null : (
               <div className="sduFoot">
                 {picked.length > 1 ? (
                   <p className="sduSummary" aria-live="polite">
@@ -158,6 +160,7 @@ export function ServicesDropUp({ open, title, services, focusNames = null, focus
                   {totalAmount ? <small>{formatTomanNumber(totalAmount)} تومان</small> : null}
                 </button>
               </div>
+              )}
             </>
           )}
         </div>

@@ -139,6 +139,12 @@ export function useScheduleBookingMenu({
     return patchSalonAppointment(scheduleBookingMenu, { withdrawProposal: true }, "پیشنهاد رو پس گرفتی؛ نوبت همون ساعت قبلیه.");
   }, [scheduleBookingMenu, patchSalonAppointment]);
 
+  // «نیومد» on a booking that has started, or taking it back; the screen stays open on the live booking.
+  const markScheduleNoShow = useCallback(async (noShow) => {
+    if (!scheduleBookingMenu) return false;
+    return patchSalonAppointment(scheduleBookingMenu, { noShow }, noShow ? "زدی که نیومد." : "برگشت؛ دیگه «نیومد» نیست.");
+  }, [scheduleBookingMenu, patchSalonAppointment]);
+
   return {
     scheduleBookingMenu,
     setScheduleBookingMenu,
@@ -151,6 +157,7 @@ export function useScheduleBookingMenu({
     changeScheduleBookingParts,
     autoAssignScheduleBooking,
     cancelScheduleBooking,
-    withdrawScheduleProposal
+    withdrawScheduleProposal,
+    markScheduleNoShow
   };
 }

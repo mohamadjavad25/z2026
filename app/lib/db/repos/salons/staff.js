@@ -1,5 +1,7 @@
 import { getDb, all, get, run } from "../../connection.js";
 import { normalizePhone } from "./common.js";
+import { defaultArtistHours } from "../artists/hours.js";
+import { listLeavesFor } from "../teamAgreements.js";
 
 function artistAvatarUrl(artist) {
   return artist?.avatar ? `/api/media/avatar/${artist.id}` : "";
@@ -18,8 +20,31 @@ export async function listSalonStaff(salonUserId, runner = null) {
   // any staff member not yet linked to an artist account -- independent
   // per row, so resolve (and self-heal artist_user_id) for every row
   // concurrently instead of one at a time.
+  // A leave with a return day ends by itself: the member goes back to «فعال» on that day (owner's decision 2026-10-28).
+  const today = new Date().toISOString().slice(0, 10);
+  const ended = rows.filter((row) => row.state === "مرخصی" && row.leave_until && row.leave_until <= today);
+  if (ended.length) {
+    await run(db, "UPDATE salon_staff SET state = 'فعال', leave_until = '', updated_at = CURRENT_TIMESTAMP WHERE id = ANY($1::int[])", [ended.map((row) => row.id)]);
+    for (const row of ended) { row.state = "فعال"; row.leave_until = ""; }
+  }
+  const artistIds = rows.map((row) => row.artist_user_id).filter(Boolean);
+  const [hoursByArtist, postsByStaff, leavesByArtist, proposalBy] = await Promise.all([
+    artistHoursFor(artistIds, db),
+    teamPostCounts(salonUserId, db),
+    listLeavesFor(artistIds.map(Number), db),
+    all(db, "SELECT artist_user_id, proposed_by FROM team_term_proposals WHERE salon_user_id = $1 AND status = 'pending'", [salonUserId])
+  ]);
   const result = await Promise.all(rows.map(async (row) => {
-    if (row.is_owner) return decorateOwnerStaff(row, db);
+    const extra = {
+      leave_until: row.state === "مرخصی" ? row.leave_until || "" : "",
+      hours: hoursByArtist.get(Number(row.artist_user_id)) || [],
+      posts_pending: postsByStaff.get(Number(row.id))?.pending || 0,
+      posts_approved: postsByStaff.get(Number(row.id))?.approved || 0,
+      // The artist's own leaves (today on) and who proposed the terms that are waiting for an answer, if anyone did.
+      leaves: leavesByArtist.get(Number(row.artist_user_id)) || [],
+      terms_proposed_by: proposalBy.find((item) => Number(item.artist_user_id) === Number(row.artist_user_id))?.proposed_by || ""
+    };
+    if (row.is_owner) return { ...(await decorateOwnerStaff(row, db)), ...extra, hours: [] };
     const artist = await resolveArtistUserForStaff(row, db);
     if (artist?.id && !row.artist_user_id) {
       await run(db, `
@@ -41,10 +66,46 @@ export async function listSalonStaff(salonUserId, runner = null) {
       artist_bio: row.bio || "",
       artist_service: artist?.service || "",
       artist_phone: artist?.phone || row.phone || "",
-      has_artist_profile: Boolean(artist?.id)
+      has_artist_profile: Boolean(artist?.id),
+      ...extra,
+      hours: artist?.id ? hoursByArtist.get(Number(artist.id)) || [] : []
     };
   }));
   return result;
+}
+
+/** The artists' own weekly hours (what the salon sees read-only on a member's page): { day, open, close, active } per day. */
+async function artistHoursFor(artistIds, db) {
+  const map = new Map();
+  if (!artistIds.length) return map;
+  const rows = await all(db, "SELECT artist_user_id, day, open_time, close_time, active FROM artist_hours WHERE artist_user_id = ANY($1::int[])", [artistIds]);
+  // An artist who never opened their hours has the app's default week (it is written the first time they use it; a read does not write).
+  for (const id of artistIds) {
+    if (!rows.some((row) => Number(row.artist_user_id) === Number(id))) {
+      for (const h of defaultArtistHours) rows.push({ artist_user_id: id, day: h.day, open_time: h.open_time, close_time: h.close_time, active: h.active });
+    }
+  }
+  for (const row of rows) {
+    const list = map.get(Number(row.artist_user_id)) || [];
+    list.push({ day: row.day, open: row.open_time || "", close: row.close_time || "", active: Boolean(row.active) });
+    map.set(Number(row.artist_user_id), list);
+  }
+  return map;
+}
+
+/** Per team member: how many of their posts wait for the salon's yes and how many are on its page. */
+async function teamPostCounts(salonUserId, db) {
+  const rows = await all(db, `
+    SELECT staff_id, status, COUNT(*)::int AS n FROM salon_team_posts
+    WHERE salon_user_id = $1 AND status IN ('pending', 'approved') GROUP BY staff_id, status
+  `, [salonUserId]);
+  const map = new Map();
+  for (const row of rows) {
+    const entry = map.get(Number(row.staff_id)) || { pending: 0, approved: 0 };
+    entry[row.status] = row.n;
+    map.set(Number(row.staff_id), entry);
+  }
+  return map;
 }
 
 async function resolveArtistUserForStaff(staff, runner = null) {
@@ -287,8 +348,8 @@ export async function findSalonStaffForBooking(salonUserId, staffName, serviceNa
   };
 }
 
-export async function addSalonStaff(salonUserId, data) {
-  const db = await getDb();
+export async function addSalonStaff(salonUserId, data, runner = null) {
+  const db = runner || (await getDb());
   const draft = {
     artist_user_id: data.artistUserId || data.artist_user_id || null,
     name: data.name || "",
@@ -333,8 +394,8 @@ export async function addSalonStaff(salonUserId, data) {
   };
 }
 
-export async function addSalonStaffFromCollab(salonUserId, collab) {
-  const db = await getDb();
+export async function addSalonStaffFromCollab(salonUserId, collab, runner = null) {
+  const db = runner || (await getDb());
   const artistId = Number(collab?.artistId || collab?.artist_user_id || 0) || null;
   const artistName = collab?.artistName || collab?.artist_name || "آرتیست frfro";
   const role = collab?.service || collab?.artistService || "همکار سالن";
@@ -367,7 +428,7 @@ export async function addSalonStaffFromCollab(salonUserId, collab) {
       booked: "۰ وقت",
       state: "فعال",
       accessLevel: "همکار"
-    }),
+    }, db),
     created: true
   };
 }
@@ -388,6 +449,10 @@ export async function updateSalonStaff(id, salonUserId, data) {
       `, [data.state ?? current.state, data.phone ?? current.phone, current.id]);
     }
     return getSalonOwnerStaff(salonUserId, db);
+  }
+  // The salon's switch for direct bookings at the salon (owner's idea of 2026-10-24); not the manager's own row.
+  if (data.directAllowed !== undefined && data.directAllowed !== null) {
+    await run(db, "UPDATE salon_staff SET direct_allowed = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 AND salon_user_id = $3", [Boolean(data.directAllowed), id, salonUserId]);
   }
   // A member linked to a real artist account owns their own identity and field of
   // activity (name, phone, specialty come from the artist's profile); the salon
@@ -421,6 +486,13 @@ export async function updateSalonStaff(id, salonUserId, data) {
     id,
     salonUserId
   ]);
+  // The return day of a leave: only a real future day, only while on leave. A change of state without a day clears it;
+  // a save that carries the old row along (the app sends the whole member) leaves it as it is.
+  if (data.leaveUntil !== undefined || nextDraft.state !== current.state) {
+    const asked = typeof data.leaveUntil === "string" ? data.leaveUntil : "";
+    const valid = /^\d{4}-\d{2}-\d{2}$/.test(asked) && asked > new Date().toISOString().slice(0, 10);
+    await run(db, "UPDATE salon_staff SET leave_until = $1 WHERE id = $2 AND salon_user_id = $3", [nextDraft.state === "مرخصی" && valid ? asked : "", id, salonUserId]);
+  }
   const updated = await get(db, "SELECT * FROM salon_staff WHERE id = $1", [id]);
   const artist = await resolveArtistUserForStaff(updated, db);
   return {

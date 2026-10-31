@@ -2,10 +2,12 @@ import { useState } from "react";
 import { AuthGateForms } from "../../auth";
 import { ProfileHero } from "../../profile/ProfileHero";
 import { openLocationSettings } from "../../profile/locationEvents";
-import { ProfileCompleteness } from "../../profile/ProfileCompleteness";
+import { ProfileCompleteness, ProfileReadyCelebration } from "../../profile/ProfileCompleteness";
+import { DueRemindersSection } from "../../dueReminders/DueReminders";
 import { BillingBanner } from "../../billing";
 import { SalonStaffWorkspace, SalonServicesWorkspace } from "../../salons";
 import { ProfileGallery } from "../../profile/ProfileGallery";
+import { SalonTeamPostsPanel } from "../../salons/SalonTeamPostsPanel";
 import { SalonScheduleDashboard, ArtistScheduleBoard } from "../../schedule";
 import { ArtistOverviewReviews, ArtistServicesPanel, ArtistCollabBoard } from "../../artist";
 import { ClientHome } from "../../client";
@@ -46,9 +48,9 @@ export function ProfilePanelBody() {
     shareSalonOwnerProfile,
     profileModeRail,
     salonWorkspace,
-    activeStaffCount,
     pendingSalonArtistInvites,
     safeSalonStaffList,
+    salonHoursList,
     joinSalonTeamAsOwner,
     removeSalonStaff,
     openNearbyArtistInvite,
@@ -71,6 +73,8 @@ export function ProfilePanelBody() {
     setAppToast,
     refreshSalonSystemData,
     refreshArtistWorkspace,
+    setSalonCollabRequestList,
+    setSalonStaffList,
     clearSalonWorkImage,
     salonWorkTagOptions,
     salonWorkTagMenuOpen,
@@ -127,6 +131,7 @@ export function ProfilePanelBody() {
     activeArtistScheduleDayLabel,
     artistServiceList,
     openArtistServiceCreate,
+    artistServiceCreateOpen,
     salonDirectory,
     artistCollabOffers,
     artistSalonInviteList,
@@ -172,7 +177,15 @@ export function ProfilePanelBody() {
                 setSignupStep("form");
                 setAuthNotice("");
               }}
-              onSwitchToLogin={() => { setAuthMode("login"); setAuthNotice(""); }}
+              onSwitchToLogin={(takenPhone) => {
+                // With a phone: sign-up found it already has an account, so the login opens with it filled in.
+                const taken = typeof takenPhone === "string" && takenPhone ? takenPhone : "";
+                if (taken) {
+                  try { window.localStorage.setItem("frfro_last_phone", taken); } catch { /* only fills the form */ }
+                }
+                setAuthMode("login");
+                setAuthNotice(taken ? "این شماره حساب داره؛ با رمزت وارد شو." : "");
+              }}
               onSwitchToSignup={() => { setAuthMode("signup"); setSignupStep("role"); setAuthNotice(""); }}
               onBackToRole={() => setSignupStep("role")}
               onLoginSubmit={handleLoginSubmit}
@@ -239,6 +252,15 @@ export function ProfilePanelBody() {
               <BillingBanner />
             ) : null}
 
+            {createdProfile?.type === "salon" || createdProfile?.type === "artist" ? (
+              <ProfileReadyCelebration
+                profile={createdProfile}
+                serviceCount={createdProfile.type === "salon" ? salonServiceList.length : artistServiceList.length}
+                ready={!(createdProfile.type === "salon" ? salonWorkspaceLoading : artistWorkspaceLoading)}
+                paused={artistServiceCreateOpen}
+              />
+            ) : null}
+
             {/* Wait for the workspace to load: until then the service count reads 0 and a complete profile would flash the card. */}
             {(createdProfile?.type === "salon" || createdProfile?.type === "artist") && createdProfile.type === profileType && profileView === "overview" && !salonWorkspace
               && !(createdProfile.type === "salon" ? salonWorkspaceLoading : artistWorkspaceLoading) ? (
@@ -271,12 +293,21 @@ export function ProfilePanelBody() {
                       <div className={`salonWorkspacePanel is-${salonWorkspace}`} aria-label="ورک‌اسپیس سالن">
                       {salonWorkspace === "staff" && (
                         <SalonStaffWorkspace
-                          activeStaffCount={activeStaffCount}
                           pendingInvites={pendingSalonArtistInvites}
+                          collabRequests={pendingSalonCollabRequests}
+                          collabBusyId={salonRequestBusyId}
+                          onApproveCollab={(id) => updateSalonCollabRequest(id, "تایید شد")}
+                          onDeclineCollab={(id) => updateSalonCollabRequest(id, "رد شد")}
+                          onCollabsChanged={(data) => {
+                            // The answer already carries the new lists: show them at once, then catch up the rest.
+                            if (Array.isArray(data?.collabs)) setSalonCollabRequestList(data.collabs);
+                            if (Array.isArray(data?.staff)) setSalonStaffList(data.staff);
+                            refreshSalonSystemData?.();
+                          }}
                           staffList={safeSalonStaffList}
+                          salonHours={salonHoursList}
                           onInviteNearby={openNearbyArtistInvite}
                           onCancelInvite={cancelSalonArtistInvite}
-                          onOpenStaffPublic={openSalonStaffPublicProfile}
                           onManageStaff={setSelectedArtistProfile}
                           managerName={createdProfile?.data?.managerName || ""}
                           onJoinAsOwner={joinSalonTeamAsOwner}
@@ -285,6 +316,7 @@ export function ProfilePanelBody() {
                       )}
 
                       {salonWorkspace === "hours" && (
+                        <DueRemindersSection reloadKey={salonServiceList.length}>
                         <SalonServicesWorkspace
                           services={salonServiceList}
                           staffList={safeSalonStaffList}
@@ -295,8 +327,10 @@ export function ProfilePanelBody() {
                           onClearArtists={(service) => assignSalonServiceArtist(service, null)}
                           onEdit={editArtistService}
                         />
+                        </DueRemindersSection>
                       )}
 
+                      {salonWorkspace === "portfolio" && <SalonTeamPostsPanel onNotify={setAppToast} />}
                       {salonWorkspace === "portfolio" && (
                         <ProfileGallery
                           label="نمونه‌کارها"
@@ -329,9 +363,6 @@ export function ProfilePanelBody() {
                     <div className="salonDayInline">{salonDayNav}</div>
                     <div className="salonDaySwipe" {...salonDaySwipe}>
                     <SalonScheduleDashboard
-                      pendingCollabRequests={pendingSalonCollabRequests}
-                      onApproveCollab={(id) => updateSalonCollabRequest(id, "تایید شد")}
-                      onDeclineCollab={(id) => updateSalonCollabRequest(id, "رد شد")}
                       reservationRequests={reservationRequestList}
                       bookingDateForSlots={bookingDateForSlots}
                       onApproveRequest={approveReservationRequest}
@@ -419,15 +450,19 @@ export function ProfilePanelBody() {
                   requestBusyId={artistRequestBusyId}
                   onApproveRequest={confirmArtistBookingRequest}
                   onDeclineRequest={declineArtistBookingRequest}
+                  onTeam={(artistTeams || []).length > 0}
+                  onNotice={setAppToast}
                 />
               )}
 
               {profileView === "services" && profileType === "artist" && (
-                <ArtistServicesPanel
-                  services={artistServiceList}
-                  onCreate={openArtistServiceCreate}
-                  onEdit={editArtistService}
-                />
+                <DueRemindersSection reloadKey={artistServiceList.length}>
+                  <ArtistServicesPanel
+                    services={artistServiceList}
+                    onCreate={openArtistServiceCreate}
+                    onEdit={editArtistService}
+                  />
+                </DueRemindersSection>
               )}
 
               {profileView === "collabs" && profileType === "artist" && (
@@ -435,6 +470,8 @@ export function ProfilePanelBody() {
                   artistId={createdProfile?.id}
                   artistName={createdProfile?.data?.name || ""}
                   invites={artistSalonInviteList}
+                  proposals={(artistCollabOffers || []).filter((item) => item.status === "آماده ارسال")}
+                  onCancelProposal={deleteArtistCollabOffer}
                   inviteRespondBusyId={artistInviteRespondBusyId}
                   teams={artistTeams}
                   teamBusyId={artistTeamBusyId}

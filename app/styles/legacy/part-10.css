@@ -1328,7 +1328,8 @@
   gap: 10px;
 }
 
-.salonNotificationsPanel article {
+.salonNotificationsPanel article,
+.salonNotificationsPanel button.salonNoticeRow {
   display: grid;
   grid-template-columns: 44px minmax(0, 1fr) auto;
   align-items: center;
@@ -1340,7 +1341,8 @@
   box-shadow: 0 12px 26px rgb(var(--shadow-rgb) / 0.06);
 }
 
-.salonNotificationsPanel article > span {
+.salonNotificationsPanel article > span,
+.salonNotificationsPanel button.salonNoticeRow > span {
   width: 44px;
   height: 44px;
   display: grid;
@@ -1350,7 +1352,8 @@
   color: var(--n-900);
 }
 
-.salonNotificationsPanel article div {
+.salonNotificationsPanel article div,
+.salonNotificationsPanel button.salonNoticeRow div {
   display: grid;
   gap: 3px;
   min-width: 0;

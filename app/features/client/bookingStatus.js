@@ -5,12 +5,12 @@ import { scheduleBookingParts } from "../../shared/lib/bookingParts";
 import { getTehranClockMinutes, normalizeBookingTimeLabel, timeLabelToMinutes } from "../../shared/lib/time";
 
 /** Plain-language status for a booking row (the stored values are internal: تازه / درخواست ...). */
-export function bookingStatusLabel(status = "") {
+export function bookingStatusLabel(status = "", waitsOn = "salon") {
   if (status === "تایید شده" || status === "تایید") return "تأیید شد";
   if (status === "لغو") return "لغو شد";
   if (status === "منقضی شده") return "منقضی شد";
   if (status === AWAITING_CLIENT) return "در انتظار تو";
-  return "منتظر سالن";
+  return waitsOn === "artist" ? "منتظر آرتیست" : "منتظر سالن";
 }
 
 export function bookingStatusTone(status = "") {

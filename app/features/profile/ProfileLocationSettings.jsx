@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronLeft, MapPin, X } from "lucide-react";
 import { onOpenLocationSettings } from "./locationEvents";
 import { MapPinPicker } from "./MapPinPicker";
+import { ProfileSheet } from "./ProfileSheet";
 import { PROVINCES } from "./iranCities";
 
 export { PROVINCES };
@@ -22,17 +23,15 @@ export function ProfileLocationSettings({
   onSave
 }) {
   const [mapOpen, setMapOpen] = useState(false);
-  const panelRef = useRef(null);
+  // One tap on the small ✕ must never delete a saved spot: it asks first.
+  const [askClear, setAskClear] = useState(false);
   const address = String(value || "");
   const savedPin = Number.isFinite(location?.lat) && Number.isFinite(location?.lng)
     ? { lat: location.lat, lng: location.lng }
     : null;
 
-  // Asked from the profile hero: open the editor and bring it into view once Settings shows.
-  useEffect(() => onOpenLocationSettings(() => {
-    setMapOpen(true);
-    setTimeout(() => panelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
-  }), []);
+  // Asked from the profile hero: open the editor once Settings shows.
+  useEffect(() => onOpenLocationSettings(() => setMapOpen(true)), []);
 
   async function save(next) {
     await onSave?.(next);
@@ -42,8 +41,19 @@ export function ProfileLocationSettings({
   const hasAddress = Boolean(address);
 
   return (
-    <section className="profileLocationSettings" aria-label="جام روی نقشه" ref={panelRef}>
-      {!mapOpen && (
+    <section className="profileLocationSettings" aria-label="جام روی نقشه">
+      {askClear && (
+        <div className="profileLocationAsk" role="alertdialog" aria-label="پاک کردن جا از نقشه">
+          <strong>جات از روی نقشه پاک بشه؟</strong>
+          <span>مشتری‌ها دیگه آدرست رو نمی‌بینن.</span>
+          <div>
+            <button type="button" className="profileLocationAskYes" disabled={saving} onClick={async () => { await onSave?.({ area: "" }); setAskClear(false); }}>آره، پاک کن</button>
+            <button type="button" className="profileLocationAskNo" onClick={() => setAskClear(false)}>نه، بمونه</button>
+          </div>
+        </div>
+      )}
+
+      {!askClear && (
         <button type="button" className="profileLocationRow" onClick={() => setMapOpen(true)}>
           <span className="profileLocationRowIcon" aria-hidden="true">
             <MapPin size={17} />
@@ -53,10 +63,10 @@ export function ProfileLocationSettings({
             <span>
               {hasAddress
                 ? [address, location?.detail].filter(Boolean).join("، ")
-                : profileType === "salon" ? "سالنت کجاست؟ روی نقشه نشونش بده" : profileType === "client" ? "تا سالن‌های نزدیکت رو ببینی" : "کجا کار می‌کنی؟ روی نقشه نشونش بده"}
+                : profileType === "client" ? "سالن‌های نزدیکت رو ببین" : "روی نقشه نشون بده"}
             </span>
             {hasAddress && !savedPin && profileType !== "client" ? (
-              <small className="profileLocationNoPin">هنوز پین نذاشتی؛ بزن و بذار تا مشتری راحت پیدات کنه.</small>
+              <small className="profileLocationNoPin">پین نذاشتی هنوز</small>
             ) : null}
           </span>
           {hasAddress ? (
@@ -64,8 +74,8 @@ export function ProfileLocationSettings({
               role="button"
               tabIndex={0}
               className="profileLocationRowClear"
-              onClick={(e) => { e.stopPropagation(); onSave?.({ area: "" }); }}
-              onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); onSave?.({ area: "" }); } }}
+              onClick={(e) => { e.stopPropagation(); setAskClear(true); }}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); setAskClear(true); } }}
               aria-label="پاک کردن جام از نقشه"
             >
               <X size={13} />
@@ -76,10 +86,12 @@ export function ProfileLocationSettings({
         </button>
       )}
 
-      {mapOpen && (
+      {/* The map opens in its own sheet, so the row never grows in place (owner's decision 2026-10-28). */}
+      <ProfileSheet open={mapOpen} kicker="تنظیمات" title="جام روی نقشه" label="جام روی نقشه" onClose={() => setMapOpen(false)}>
         <div className="profileLocationMapPanel">
           <MapPinPicker
             initialPin={savedPin}
+            initialAddress={address}
             initialDetail={location?.detail || ""}
             askDetail={profileType !== "client"}
             saving={saving}
@@ -88,7 +100,7 @@ export function ProfileLocationSettings({
             onCancel={() => setMapOpen(false)}
           />
         </div>
-      )}
+      </ProfileSheet>
     </section>
   );
 }

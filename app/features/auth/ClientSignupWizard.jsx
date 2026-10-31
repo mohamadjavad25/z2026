@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Check, Eye, EyeOff } from "lucide-react";
 import { Button, Field } from "../../components/ui";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
+import { LegalLink } from "../../legal/LegalLink";
 import { sendCode, verifyCode } from "./otp";
 import { clearSignupDraft, readSignupDraft, saveSignupDraft } from "./signupDraft";
 
@@ -68,10 +69,10 @@ export function ClientSignupWizard({ otp, onComplete, busy = false, onLogin = nu
     setError("");
     setBusyBlock(false);
     try {
-      const { ok, status, payload } = await sendCode(cleanPhone, "register", { type: "client", name: "" });
+      const { ok, payload } = await sendCode(cleanPhone, "register", { type: "client", name: "" });
       if (!ok) {
-        // The number already has an account: go to the login with it filled in instead of an error to read.
-        if (status === 409 && payload?.code !== "name_taken" && onLogin) { onLogin(cleanPhone); return false; }
+        // The number already has an account: to the login with it filled in, not an error to read.
+        if (payload?.code === "phone_taken" && onLogin) { onLogin(cleanPhone); return false; }
         if (payload?.code === "otp_busy") setBusyBlock(true);
         setError(payload?.error || "پیامک نرفت؛ یه کم بعد دوباره بزن.");
         return false;
@@ -183,9 +184,9 @@ export function ClientSignupWizard({ otp, onComplete, busy = false, onLogin = nu
           ) : null}
           <Button type="submit" block loading={busyStep} loadingLabel="دارم می‌فرستم…">{needsCode ? "کد بفرست" : "ادامه"}</Button>
           <p className="suwTerms">
-            با ادامه، <a href="/terms" target="_blank" rel="noopener noreferrer">قوانین</a> رو قبول داری
+            با ادامه، <LegalLink doc="terms">قوانین</LegalLink> رو قبول داری
             {" "}<span aria-hidden="true">·</span>{" "}
-            <a href="/privacy" target="_blank" rel="noopener noreferrer">حریم خصوصی</a>
+            <LegalLink doc="privacy">حریم خصوصی</LegalLink>
           </p>
         </>
       ) : null}

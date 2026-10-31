@@ -18,6 +18,14 @@ export function PaymentStatusTag({ status }) {
 /** Where one salon or artist stands right now, in one line plus its dates. */
 export function AccountStateLine({ account }) {
   if (!account) return null;
+  if (account.comped) {
+    return (
+      <div className="admBillState">
+        <span className="admTone is-good">حساب آزمایشی</span>
+        <span className="admMuted">همیشه رایگان و دور از فهرست</span>
+      </div>
+    );
+  }
   const meta = ACCOUNT_STATE[account.state] || ACCOUNT_STATE.trial;
   return (
     <div className="admBillState">
@@ -85,11 +93,15 @@ export function RefundDialog({ payment, onClose, onDone }) {
           <span>مبلغ برگشتی (تومان)</span>
           <input type="number" inputMode="numeric" min={1} max={payment.amountToman} value={Number.isFinite(amount) ? amount : ""} onChange={(event) => setAmount(Math.max(0, Math.round(Number(event.target.value) || 0)))} autoFocus />
         </label>
-        <label className="admLabel">
-          <span>روزهایی که از اشتراک کم می‌شود</span>
-          <input type="number" inputMode="numeric" min={0} max={payment.days} value={Number.isFinite(days) ? days : ""} onChange={(event) => setDays(Math.max(0, Math.round(Number(event.target.value) || 0)))} />
-          <small className="admMuted">برای پرداخت دوباره (دو بار کم شدن پول) صفر بگذار.</small>
-        </label>
+        {payment.kind === "sms_pack" ? (
+          <p className="admMuted">این یک بسته‌ی پیامک است: با ثبت بازپرداخت، پیامک‌های مصرف‌نشده‌ی همین بسته از حساب کم می‌شود.</p>
+        ) : (
+          <label className="admLabel">
+            <span>روزهایی که از اشتراک کم می‌شود</span>
+            <input type="number" inputMode="numeric" min={0} max={payment.days} value={Number.isFinite(days) ? days : ""} onChange={(event) => setDays(Math.max(0, Math.round(Number(event.target.value) || 0)))} />
+            <small className="admMuted">برای پرداخت دوباره (دو بار کم شدن پول) صفر بگذار.</small>
+          </label>
+        )}
         <label className="admLabel">
           <span>دلیل و کد پیگیری بازگشت وجه</span>
           <textarea rows={2} maxLength={300} value={note} placeholder="مثلاً: انصراف در ۷ روز، پیگیری بازگشت ۹۸۷۶۵" onChange={(event) => setNote(event.target.value)} />
@@ -182,7 +194,7 @@ export function AccountBilling({ userId, name, onGo }) {
       {!data.enabled ? <p className="admNote">اشتراک هنوز روشن نشده؛ این حساب فعلاً بی‌هزینه کار می‌کند. روزهایی که اضافه کنی از الان حساب می‌شوند.</p> : null}
       <AccountStateLine account={data.account} />
       <ul className="admFacts">
-        <li><span>پایان ماه رایگان</span><b>{fmtDay(data.account.trialEndsAt)}</b></li>
+        <li><span>پایان دوره‌ی رایگان</span><b>{fmtDay(data.account.trialEndsAt)}</b></li>
         <li><span>پرداخت‌شده تا</span><b>{data.account.paidUntil ? fmtDay(data.account.paidUntil) : "—"}</b></li>
         <li><span>دسترسی تا</span><b>{fmtDay(data.account.accessEndsAt)}</b></li>
       </ul>

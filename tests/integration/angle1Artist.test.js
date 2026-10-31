@@ -23,7 +23,7 @@ describe("direct bookings with an independent artist", () => {
     const { artist } = await makeArtist("A1 Hours Artist");
     const c = await makeClient();
     // default hours 10-20, Friday closed
-    const friday = (() => { const d = new Date(); for (let i = 1; i < 14; i += 1) { const x = new Date(); x.setDate(x.getDate() + i); if (new Intl.DateTimeFormat("fa-IR", { weekday: "long" }).format(x) === "جمعه") return x; } })();
+    const friday = (() => { const d = new Date(); for (let i = 1; i < 14; i += 1) { const x = new Date(); x.setDate(x.getDate() + i); if (new Intl.DateTimeFormat("fa-IR", { weekday: "long", timeZone: "Asia/Tehran" }).format(x) === "جمعه") return x; } })();
     const { formatPersianDateKey } = await import("../../app/shared/lib/persianCalendar.js");
     const fridayKey = formatPersianDateKey(friday);
     const results = {};

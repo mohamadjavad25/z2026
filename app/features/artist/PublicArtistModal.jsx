@@ -1,7 +1,9 @@
 "use client";
 
-import { Bookmark, CalendarCheck, ChevronLeft, ChevronUp, Heart, Phone, Share2 } from "lucide-react";
+import { Bookmark, CalendarCheck, ChevronLeft, ChevronUp, Heart, Phone, Scissors, Share2 } from "lucide-react";
 import { PublicProfileHeader } from "../../components/PublicProfileHeader";
+import { LocationButton } from "../../components/LocationButton";
+import { folderPhotos, InstagramRow } from "../../components/InstagramFolder";
 import { BookingPausedNote } from "../../components/BookingPausedNote";
 import { ServicesDropUp } from "../../components/ServicesDropUp";
 import { ServicesOnPage } from "../../components/ServicesOnPage";
@@ -45,6 +47,8 @@ export function PublicArtistModal({
   onShare,
   onSave,
   onFollow,
+  // A salon or artist looking at this page (opened from a scanned code): their own bar replaces «رزرو» and «وصل شو».
+  visitorBar = null,
   onViewChange,
   onGalleryFilterChange,
   onOpenWork,
@@ -94,6 +98,11 @@ export function PublicArtistModal({
 
   const prices = (services || []).map((service) => parseTomanAmount(service.price)).filter(Boolean);
   const fromPrice = prices.length ? Math.min(...prices) : 0;
+  // On the bottom bar: how many services and the lowest price, e.g. «۸ خدمت، قیمت از ۴ تومان».
+  const barNote = [
+    (services || []).length ? `${toPersianDigits((services || []).length)} خدمت` : "",
+    fromPrice ? `قیمت از ${formatTomanNumber(fromPrice)} تومان` : ""
+  ].filter(Boolean).join("، ");
   const weekHours = Array.isArray(artist.hours) ? artist.hours : [];
   const todayName = PERSIAN_WEEKDAYS[new Date().getDay()];
   function startBooking(picked) {
@@ -122,7 +131,6 @@ export function PublicArtistModal({
             avatarAlt={artist.name ? `تصویر پروفایل ${artist.name}` : "تصویر پروفایل آرتیست"}
             avatarPosition={artist.avatarPosition || "50% 50%"}
             name={artist.name}
-            location={artist.location}
             area={artist.area ? (String(artist.area).split("،")[0].replace(/^(شهر|روستای|دهستان)\s+/, "").trim() || String(artist.area).trim()) : ""}
             start={(
               <button type="button" className="pphRound" onClick={onClose} aria-label="بازگشت">
@@ -149,7 +157,8 @@ export function PublicArtistModal({
 
           <section className="pphInfo" aria-label={`معرفی ${artist.name || "آرتیست"}`}>
             <div className="pphActions">
-              <ConnectToggle following={following} onToggle={onFollow} name={artist.name || ""} kind="آرتیست" icon={<Heart size={18} />} />
+              <LocationButton name={artist.name || ""} location={artist.location} variant="action" />
+              {visitorBar ? null : <ConnectToggle following={following} onToggle={onFollow} name={artist.name || ""} kind="آرتیست" icon={<Heart size={18} />} />}
               {artist.phone ? (
                 <a className="pphCall" href={`tel:${toLatinDigits(artist.phone)}`} aria-label="تماس با آرتیست">
                   <Phone size={18} /> تماس
@@ -162,8 +171,11 @@ export function PublicArtistModal({
           <div className={`artistPublicBody${servicesOpen ? " is-servicesOpen" : ""}`}>
             {/* Hours sit above the posts so a long gallery never buries them. */}
             <WeeklyHours rows={weekHours} todayName={todayName} />
+            {/* «اینستاگرام» (owner's choice 2026-10-27, «ج»): one row under the hours, the folder showing their newest works. */}
+            {artist.instagram ? <InstagramRow instagram={artist.instagram} name={artist.name} photos={folderPhotos([featuredWork, ...(galleryRest || [])])} /> : null}
 
-            <ServicesOnPage services={services} onPick={(service) => startBooking([service])} />
+            {/* Clients pick services from the «رزرو» bar; a visiting salon or artist has no bar, so it sees them here. */}
+            {visitorBar ? <ServicesOnPage services={services} /> : null}
 
             <div className="artistPublicContent" key={view}>
               <>
@@ -179,12 +191,15 @@ export function PublicArtistModal({
                 </>
             </div>
 
+            {visitorBar || (
+            <>
             <ServicesDropUp
               open={servicesOpen}
               title={`خدمات ${artist.name || "آرتیست"}`}
               services={services}
               focusNames={focus?.names}
               focusLabel={focus?.label ? `مناسب «${focus.label}»` : ""}
+              browseOnly={Boolean(artist.onlineBookingPaused)}
               onConfirm={startBooking}
               onClose={() => setServicesOpen(false)}
             />
@@ -196,12 +211,14 @@ export function PublicArtistModal({
                 aria-expanded={servicesOpen}
                 aria-haspopup="dialog"
               >
-                <CalendarCheck size={19} />
-                {servicesOpen ? "بستن" : "رزرو"}
-                {fromPrice && !servicesOpen ? <small>قیمت از {formatTomanNumber(fromPrice)} تومان</small> : null}
+                {artist.onlineBookingPaused ? <Scissors size={19} /> : <CalendarCheck size={19} />}
+                {servicesOpen ? "بستن" : artist.onlineBookingPaused ? "خدمات و قیمت‌ها" : "رزرو"}
+                {barNote && !servicesOpen ? <small>{barNote}</small> : null}
                 <ChevronUp size={18} className={`spvBarChevron${servicesOpen ? " is-open" : ""}`} aria-hidden="true" />
               </button>
             </nav>
+            </>
+            )}
           </div>
 
           <ProfileSheet

@@ -64,14 +64,14 @@ async function _POST(request) {
   if (!recipients) return error("این گروه الان کسی را ندارد.", 400);
   // Recorded before anything goes out: the same message to the same group twice in a few minutes is almost always a
   // double click, or a retry while the first one is still sending.
-  const claimed = await control.claimBroadcast({ segment, channels, title, body: text, url, recipients, adminUserId: gate.admin.id, adminLabel: gate.admin.label });
+  const claimed = await control.claimBroadcast({ segment, channels, title, body: text, url, recipients, adminLabel: gate.admin.label });
   if (!claimed) return error("همین پیام چند دقیقه پیش برای همین گروه فرستاده شد.", 409);
-  const inboxed = channels.includes("inbox") ? await control.inboxSegment(segment, { title: title || "پیام از فرفرو", body: text, adminUserId: gate.admin.id }) : 0;
+  const inboxed = channels.includes("inbox") ? await control.inboxSegment(segment, { title: title || "پیام از فرفرو", body: text }) : 0;
   const pushed = channels.includes("push")
     ? await pushAll(await control.pushableUserIds(segment), { title: title || "فرفرو", body: text.slice(0, 180), url: url || "/", ttl: 3 * 24 * 3600 })
     : 0;
   const record = (await control.finishBroadcast(claimed.id, { inboxed, pushed })) || claimed;
-  await admin.logAction({ adminUserId: gate.admin.id, adminLabel: gate.admin.label, action: "broadcast", detail: `#${record.id} ${segment} • ${recipients} نفر • ${text.slice(0, 80)}` });
+  await admin.logAction({ adminLabel: gate.admin.label, action: "broadcast", detail: `#${record.id} ${segment} • ${recipients} نفر • ${text.slice(0, 80)}` });
   return json({ data: { broadcast: record } }, { status: 201 });
 }
 

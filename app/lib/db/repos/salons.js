@@ -4,14 +4,16 @@ import { isProfileSaved, insertFollow, notifyNewFollower } from "./social.js";
 import { getSettings, DEFAULT_SETTINGS } from "./userSettings.js";
 import { countFollowing, defaultHours } from "./salons/common.js";
 import { listSalonHours } from "./salons/hours.js";
+import { bumpJoinTermsVersion } from "./salons/joinTerms.js";
 import { listSalonPortfolio } from "./salons/portfolio.js";
 import { listSalonServices } from "./salons/services.js";
 import { listSalonStaff } from "./salons/staff.js";
+import { listPublicTeam } from "./salons/team.js";
 import { onlineBookingBlock, withoutHiddenProviders } from "../../billing/access.js";
 import { publicLocation } from "../../location.js";
 
 export { ensureBookingPartsColumns as ensureBookingColumns, answerSalonTimeOffer, cancelSalonBookingByClient, draftSingleBookingStaff, getSalonBookingRow, listBookingMoveTimes, listBookingStaffOptions, listFeasibleVisitTimes, previewVisit, suggestBookingStaff, listSalonBookings, listUnavailableSlots, listClientSalonBookings, addSalonBooking, updateSalonBooking, cancelSalonBooking, patchSalonBookingWithArtistSync, syncSalonBookingFromArtistMirror, recordCancellation, invalidateUnavailable } from "./salons/bookings.js";
-export { ensureSalonHours, listSalonHours, updateSalonHour } from "./salons/hours.js";
+export { ensureSalonHours, listSalonHours, updateSalonHour, saveSalonHoursWeek } from "./salons/hours.js";
 export { listSalonPortfolio, addSalonPortfolio, updateSalonPortfolio, deleteSalonPortfolio } from "./salons/portfolio.js";
 export { listSalonServices, addSalonService, updateSalonService, deleteSalonService } from "./salons/services.js";
 export {
@@ -39,6 +41,7 @@ export {
   getOrCreateSalonJoinSecret,
   getSalonJoinPreview
 } from "./salons/invites.js";
+export { getJoinTerms, saveJoinTerms, joinTermsReady, rulesLines, getSalonRulesText } from "./salons/joinTerms.js";
 
 /**
  * Cursor-paginated when `limit` is given (GET /api/salons); called with no
@@ -238,11 +241,12 @@ export async function listSavedSalonsForUser(userId) {
   return result;
 }
 
-export async function getSalon(userId, viewerUserId = null) {
+/** `withTeam`: also the public page's team cards and their posts (`team`, salons/team.js); booking paths leave it off. */
+export async function getSalon(userId, viewerUserId = null, { withTeam = false } = {}) {
   const db = await getDb();
   const row = await get(db, `
     SELECT s.*, (u.avatar <> '' OR u.avatar_url IS NOT NULL) AS avatar, (u.poster <> '' OR u.poster_url IS NOT NULL) AS has_poster, u.avatar_position, u.poster_position, u.updated_at AS user_updated_at,
-      u.geo_lat, u.geo_lng, u.address_detail
+      u.geo_lat, u.geo_lng, u.address_detail, u.instagram
     FROM salons s JOIN users u ON u.id = s.user_id
     WHERE s.user_id = $1
   `, [userId]);
@@ -268,6 +272,7 @@ export async function getSalon(userId, viewerUserId = null) {
     listSalonHours(userId, db),
     onlineBookingBlock(row.user_id, "salon")
   ]);
+  const team = withTeam ? await listPublicTeam(staff, userId, db) : undefined;
   return {
     id: row.user_id,
     user_id: row.user_id,
@@ -275,6 +280,7 @@ export async function getSalon(userId, viewerUserId = null) {
     name: row.name,
     area: row.area,
     location: publicLocation(row),
+    instagram: row.instagram || "",
     tag: row.tag,
     price: row.price,
     open: row.open,
@@ -313,6 +319,8 @@ export async function getSalon(userId, viewerUserId = null) {
     services,
     portfolio,
     staff,
+    // The team cards and the team's posts on the public page (salons/team.js), when asked for.
+    ...(team ? { team } : {}),
     hours
   };
 }
@@ -349,6 +357,9 @@ export async function getSalonRules(userId) {
 export async function updateSalonRules(userId, rules) {
   const db = await getDb();
   const text = String(rules ?? "").replace(/\r\n/g, "\n").trim().slice(0, SALON_RULES_MAX_LENGTH);
+  const before = await get(db, "SELECT rules FROM salons WHERE user_id = $1", [userId]);
   await run(db, "UPDATE salons SET rules = $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2", [text, userId]);
+  // The join page shows these rules next to the terms: changed rules mean a page read earlier is out of date (TERMS_CHANGED).
+  if ((before?.rules || "") !== text) await bumpJoinTermsVersion(userId, db);
   return text;
 }

@@ -2,9 +2,10 @@
 
 import { Spinner } from "../../components/Spinner";
 import { useEffect } from "react";
-import { ChevronLeft, FlaskConical, ReceiptText, UsersRound } from "lucide-react";
+import { ChevronLeft, FlaskConical, Lock, ReceiptText, Star, UsersRound } from "lucide-react";
 import { Button } from "../../components/ui";
 import { toPersianDigits } from "../../shared/lib/digits";
+import { formatTomanNumber } from "../../shared/lib/money";
 import { accountView, teamMemberView } from "./billingView";
 import { openPaymentHistory, openPaymentResult, openPlans, refreshBilling, useBilling } from "./billingStore";
 
@@ -17,18 +18,36 @@ export function SubscriptionCard() {
   useEffect(() => {
     refreshBilling();
   }, []);
+  if (overview?.testAccount) return <TestAccountCard />;
+  if (overview?.preview) return <PaymentsOffCard overview={overview} />;
   const view = accountView(overview);
   if (!view) return null;
   const meterPct = view.meter === null ? null : Math.round(view.meter * 100);
+  // The big number is the days left, only while there are some. A week or less (view.low) turns the card warmer; closed or in
+  // grace, it turns dark (owner's decision 2026-10-28, the card is the flashy one on the page).
+  const daysLeft = view.tone === "trial" || view.tone === "active" ? Math.max(0, Number(overview.account?.daysLeft) || 0) : null;
+  const closed = view.tone === "warn" || view.tone === "danger";
+  const low = Boolean(view.low);
 
   return (
-    <section className="spSection" aria-labelledby="spSection-billing">
-      <h3 className="spSectionTitle" id="spSection-billing">اشتراک</h3>
-      <div className={`billCard is-${view.tone}`}>
+    <section className="spSection spPay" aria-label="اشتراک">
+      <div className={`billCard is-${view.tone}${low ? " is-low" : ""}${closed ? " is-closed" : ""}`}>
+        <svg className="billSwirl" viewBox="0 0 120 120" aria-hidden="true">
+          <path d="M60 60c0-8 8-10 12-5s0 14-9 14-17-9-14-21 20-18 33-10 18 28 8 41-34 15-46 2" />
+        </svg>
         <div className="billCardHead">
-          <span className="billBadge">{view.badge}</span>
+          <span className="billBadge is-brand">
+            {closed ? <Lock size={13} aria-hidden="true" /> : <Star size={13} aria-hidden="true" />} اشتراک فرفرو
+          </span>
+          <span className="billBadge is-state">{view.badge}</span>
           {overview.sandbox ? <span className="billBadge is-test"><FlaskConical size={13} aria-hidden="true" /> آزمایشی</span> : null}
         </div>
+        {daysLeft !== null ? (
+          <div className="billBig" aria-hidden="true">
+            <span className="billBigNum">{toPersianDigits(daysLeft)}</span>
+            <span className="billBigUnit"><b>روز</b><small>مونده</small></span>
+          </div>
+        ) : null}
         <b className="billCardTitle">{view.title}</b>
         <p className="billCardSub">{view.sub}</p>
         {meterPct !== null ? (
@@ -45,13 +64,74 @@ export function SubscriptionCard() {
           </button>
         ) : null}
         <div className="billCardActions">
-          <Button variant={view.action.emphasis} disabled={view.action.disabled} onClick={openPlans}>{view.action.label}</Button>
+          <button type="button" className="billPayBtn" disabled={view.action.disabled} onClick={openPlans}>
+            {view.action.label}
+          </button>
           <button type="button" className="billGhostBtn" onClick={openPaymentHistory}>
             <ReceiptText size={16} aria-hidden="true" /> پرداخت‌هام
           </button>
         </div>
       </div>
       {overview.role === "salon" && overview.team?.length ? <TeamSubscriptions overview={overview} /> : null}
+    </section>
+  );
+}
+
+/** The owner's own test number: always free, never listed. Nothing to buy and nothing to count. */
+function TestAccountCard() {
+  return (
+    <section className="spSection spPay" aria-label="اشتراک">
+      <div className="billCard is-trial is-off">
+        <svg className="billSwirl" viewBox="0 0 120 120" aria-hidden="true">
+          <path d="M60 60c0-8 8-10 12-5s0 14-9 14-17-9-14-21 20-18 33-10 18 28 8 41-34 15-46 2" />
+        </svg>
+        <div className="billCardHead">
+          <span className="billBadge is-brand"><FlaskConical size={13} aria-hidden="true" /> حساب آزمایشی</span>
+        </div>
+        <b className="billCardTitle">این حساب همیشه رایگانه</b>
+        <p className="billCardSub">اشتراک نمی‌خواد و بسته نمی‌شه. توی جست‌وجو و فهرست سالن‌ها و آرتیست‌ها هم دیده نمی‌شه؛ فقط با لینک صفحه‌ش می‌شه رفت سراغش.</p>
+      </div>
+    </section>
+  );
+}
+
+/**
+ * Payment is switched off (and the account never paid): nothing to buy or count yet, but the owner sees what it will
+ * cost and how the free month works (owner's request 2026-10-28). The free days start the day payment is switched on.
+ */
+function PaymentsOffCard({ overview }) {
+  return (
+    <section className="spSection spPay" aria-label="اشتراک">
+      <div className="billCard is-trial is-off">
+        <svg className="billSwirl" viewBox="0 0 120 120" aria-hidden="true">
+          <path d="M60 60c0-8 8-10 12-5s0 14-9 14-17-9-14-21 20-18 33-10 18 28 8 41-34 15-46 2" />
+        </svg>
+        <div className="billCardHead">
+          <span className="billBadge is-brand"><Star size={13} aria-hidden="true" /> اشتراک فرفرو</span>
+          <span className="billBadge is-state">فعلاً رایگانه</span>
+        </div>
+        <b className="billCardTitle">فعلاً همه‌چی رایگانه</b>
+        <p className="billCardSub">
+          پرداخت هنوز باز نشده. از روزی که باز بشه، {toPersianDigits(overview.trialDays)} روز رایگان داری و از همون روز شمارشش شروع می‌شه. بعدش با یکی از این پلن‌ها ادامه می‌دی.
+        </p>
+        <ul className="billOffPlans">
+          {overview.plans.map((plan) => (
+            <li key={plan.id} className={plan.best ? "is-best" : ""}>
+              <span className="billOffMain">
+                <b>{plan.label}{plan.best ? <em>به‌صرفه‌ترین</em> : null}</b>
+                <small>
+                  {toPersianDigits(plan.days)} روز{plan.giftMonths ? `، که ${toPersianDigits(plan.giftMonths)} ماهش هدیه‌ست` : ""}
+                </small>
+              </span>
+              <span className="billOffPrice">
+                <b>{formatTomanNumber(plan.amountToman)} <small>تومان</small></b>
+                <small>{plan.months > 1 ? `ماهی ${plan.monthlyApprox ? "حدود " : ""}${formatTomanNumber(plan.monthlyToman)}` : "ماهانه"}</small>
+              </span>
+            </li>
+          ))}
+        </ul>
+        <p className="billCardNote">وقتی دوره‌ی رایگان تموم بشه، یه پیام برات میاد و چند روز وقت داری پلن بخری.</p>
+      </div>
     </section>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { thumbUrl } from "../../shared/lib/mediaUrl";
-import { ImagePlus, Lock, Pin, Plus } from "lucide-react";
+import { Clock, ImagePlus, Lock, Pin, Plus, Store } from "lucide-react";
 import { SkeletonList } from "../../components/Skeleton";
 import { Mascot } from "../../components/Mascot";
 import { ProfilePostComposer, queuePostFile } from "./ProfilePostComposer";
@@ -48,7 +48,8 @@ export function ProfileGallery({
   composeShowVisibility = true,
   composeShowPin = true,
   loading = false,
-  composeSubmitLabel = "ذخیره"
+  composeSubmitLabel = "ذخیره",
+  composeSalons = []
 }) {
   const showFilters = Array.isArray(filters) && filters.length > 2 && typeof onFilterChange === "function";
   const hasItems = items.length > 0;
@@ -188,9 +189,11 @@ export function ProfileGallery({
                   <div className="profileGalleryCardCopy">
                     {item.title || item.tag ? <h3>{item.title || item.tag}</h3> : null}
                   </div>
-                  {item.featured || item.isPublic === false ? (
+                  {item.featured || item.isPublic === false || item.teamFlag ? (
                     <div className="profileGalleryFlags">
                       {item.isPublic === false ? <span title="فقط خودت می‌بینی"><Lock size={12} /></span> : null}
+                      {item.teamFlag === "approved" ? <span title="توی صفحهٔ سالن هم هست"><Store size={12} /></span> : null}
+                      {item.teamFlag === "pending" ? <span title="منتظر تأیید سالن"><Clock size={12} /></span> : null}
                       {item.featured ? <span title="سنجاق‌شده"><Pin size={12} /></span> : null}
                     </div>
                   ) : null}
@@ -232,6 +235,7 @@ export function ProfileGallery({
           showPin={composeShowPin}
           pinnedCount={items.filter((item) => item.featured && String(item.id) !== String(composeValue.id)).length}
           submitLabel={composeSubmitLabel}
+          salonTeams={composeSalons}
         />
       ) : null}
     </>

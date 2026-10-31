@@ -47,7 +47,6 @@ async function _POST(request, { params }) {
   }
   const { booking } = before;
   await admin.logAction({
-    adminUserId: gate.admin.id,
     adminLabel: gate.admin.label,
     action: "booking_cancel",
     targetUserId: booking.client_user_id || booking.provider_id || null,

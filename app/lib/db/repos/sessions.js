@@ -51,10 +51,20 @@ export async function getSessionUser(token) {
            CASE WHEN u.poster <> '' OR u.poster_url IS NOT NULL THEN '1' ELSE '' END AS poster,
            u.avatar_position, u.poster_position, u.experience_years, u.manager_name,
            u.last_seen_at, u.created_at, u.updated_at, u.avatar_url, u.poster_url, u.phone_verified_at,
-           u.geo_lat, u.geo_lng, u.address_detail
+           u.geo_lat, u.geo_lng, u.address_detail, u.instagram
     FROM sessions s
     JOIN users u ON u.id = s.user_id
     WHERE s.token = $1 AND s.expires_at > NOW() AND u.suspended_at IS NULL
   `, [hashToken(token)]);
   return row || null;
+}
+
+/**
+ * Signs an account out everywhere except the session in `keepToken` (owner's decision of 2026-10-25): after a password
+ * or phone change, a phone left in a taxi or a stolen session stops working, while the phone that made the change
+ * stays in.
+ */
+export async function deleteOtherUserSessions(userId, keepToken) {
+  const db = await getDb();
+  await run(db, "DELETE FROM sessions WHERE user_id = $1 AND token <> $2", [userId, hashToken(keepToken)]);
 }

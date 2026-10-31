@@ -1,6 +1,7 @@
 import { getDb, all, get, run, withTransaction } from "../connection.js";
 import { uploadImageDataUrl, deleteStoredImage } from "../../storage.js";
 import { ensureMediaColumns } from "../mediaSchema.js";
+import { resendTeamPostAfterNewImage } from "./salons/teamPosts.js";
 
 // Both image/ownerAvatar are stored as raw data:<type>;base64,<data> strings
 // in the DB but shipped here as media-endpoint URLs, never inline -- this
@@ -234,6 +235,8 @@ export async function updatePost(id, ownerUserId, data, runner = null, options =
   ]);
   await syncOwnerPostCount(db, ownerUserId);
   if (imageChanged) {
+    // A salon approved the old picture, not this one: it goes back to «درخواست‌های تیم» (owner's decision 2026-10-26).
+    await resendTeamPostAfterNewImage(id, db);
     // The replaced picture's Storage copies are no longer needed.
     await Promise.all([deleteStoredImage(current.image_url), deleteStoredImage(current.thumb_url)]);
     const stored = await get(db, "SELECT updated_at::text AS stamp FROM posts WHERE id = $1", [id]);

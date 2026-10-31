@@ -11,7 +11,8 @@ import {
 import { visitSlotProblem } from "../../../visitSlotRules.js";
 import { isSlotInPast } from "../../../../shared/lib/slots.js";
 import * as artists from "../artists.js";
-import { formatPersianDateKey, isPersianDateKey, resolveRollingPersianDateKey } from "../../../../shared/lib/persianCalendar.js";
+import { formatPersianDateKey, getPersianWeekday, isPersianDateKey, persianDateKeyToDate, resolveRollingPersianDateKey } from "../../../../shared/lib/persianCalendar.js";
+import { currentTerms, termsAllow } from "../teamAgreements.js";
 import { BOOKING_REQUEST_WINDOW_MINUTES, minutesUntilSlotStart } from "../../../../shared/lib/bookingWindow.js";
 import {
   normalizeBookingTimeLabel,
@@ -27,6 +28,7 @@ import { listSalonServices } from "./services.js";
 import { listSalonHours } from "./hours.js";
 import { resolveBookingServiceEmoji } from "../serviceEmoji.js";
 import { bumpSalonAvailability } from "../../../availabilityCache.js";
+import { publicLocation } from "../../../location.js";
 import { findSalonStaffForBooking, listSalonStaff } from "./staff.js";
 import {
   groupConsecutiveParts,
@@ -39,7 +41,7 @@ import {
 } from "../../../../shared/lib/bookingParts.js";
 import { AWAITING_CLIENT } from "../../../../shared/lib/bookingOffer.js";
 import { toPersianDigits } from "../../../../shared/lib/digits.js";
-import { isProposalLapsed, proposalView } from "../../../../shared/lib/providerRules.js";
+import { hasStarted, isProposalLapsed, proposalView } from "../../../../shared/lib/providerRules.js";
 
 let partsColumnsReady;
 /**
@@ -122,11 +124,11 @@ async function findBookingClient(row, runner) {
     // check is correct here and, unlike a REPLACE()-wrapped comparison,
     // can use the column's own UNIQUE index.
     const byNormalized = await get(runner, `
-      SELECT id, (avatar <> '' OR avatar_url IS NOT NULL) AS avatar, avatar_position FROM users WHERE phone = $1 LIMIT 1
+      SELECT id, name, (avatar <> '' OR avatar_url IS NOT NULL) AS avatar, avatar_position FROM users WHERE phone = $1 LIMIT 1
     `, [phone]);
     if (byNormalized) return byNormalized;
     const byRaw = await get(runner, `
-      SELECT id, (avatar <> '' OR avatar_url IS NOT NULL) AS avatar, avatar_position FROM users WHERE phone = $1 LIMIT 1
+      SELECT id, name, (avatar <> '' OR avatar_url IS NOT NULL) AS avatar, avatar_position FROM users WHERE phone = $1 LIMIT 1
     `, [rawPhone]);
     if (byRaw) return byRaw;
   }
@@ -136,7 +138,7 @@ async function findBookingClient(row, runner) {
 
 function buildClientVisitLevels(historyRows) {
   const recent = [...historyRows]
-    .filter((item) => item && item.status !== "لغو")
+    .filter((item) => item && item.status !== "لغو" && !item.no_show_at)
     .sort((a, b) => Number(a.id || 0) - Number(b.id || 0))
     .slice(-10);
   const visits = Array.from({ length: 10 }, () => 0);
@@ -241,7 +243,7 @@ async function loadVisitDay(db, salonUserId, bookingDate, { excludeId = null, ex
   for (const segment of held) {
     if (segment.staff) load.set(segment.staff, (load.get(segment.staff) || 0) + segment.end - segment.start);
   }
-  return { db, bookingDate, services, team, rows, held, load, artistBusy: new Map(), excludeArtistBookingIds };
+  return { db, salonUserId, bookingDate, services, team, rows, held, load, artistBusy: new Map(), agreed: new Map(), excludeArtistBookingIds };
 }
 
 async function artistBusyRanges(day, artistId) {
@@ -285,7 +287,15 @@ async function isStaffFree(day, person, start, end) {
   if (day.held.some((segment) => segment.staff === name && rangesOverlap(start, end, segment.start, segment.end))) return false;
   const artistId = Number(person.artist_user_id || 0);
   if (artistId && (await artistBusyRanges(day, artistId)).some((range) => rangesOverlap(start, end, range.start, range.end))) return false;
+  // The days and hours the two agreed (owner's decision 2026-10-28); an old text-only agreement limits nothing.
+  if (artistId && !(await agreedTermsAllow(day, artistId, start, end))) return false;
   return true;
+}
+
+async function agreedTermsAllow(day, artistId, start, end) {
+  if (!day.agreed.has(artistId)) day.agreed.set(artistId, await currentTerms(day.salonUserId, artistId, resolveRollingPersianDateKey(day.bookingDate), day.db));
+  const date = persianDateKeyToDate(resolveRollingPersianDateKey(day.bookingDate));
+  return termsAllow(day.agreed.get(artistId), day.bookingDate, date ? getPersianWeekday(date) : "", start, end);
 }
 
 function compareRanks(a, b) {
@@ -301,7 +311,12 @@ function compareRanks(a, b) {
  * so far, then whoever did the service right before (one hand-over fewer), then whoever has the
  * least booked that day, then the salon's own order. A service nobody can take stays unassigned.
  */
-async function draftVisitParts(day, time, parts) {
+/**
+ * `prefer` is a team member's name a client asked for («رزرو با …» on the salon page, owner's decision 2026-10-26):
+ * a service with no artist named then goes to that person only, under the same rules (free then, seats left); if
+ * they cannot take it the service stays unstaffed, so the time is not offered and a request for it is refused.
+ */
+async function draftVisitParts(day, time, parts, { prefer = "" } = {}) {
   const drafted = [];
   const visitMinutes = new Map();
   // What this visit has already given each artist (a group's people run side by side: one artist cannot be two of them).
@@ -317,7 +332,10 @@ async function draftVisitParts(day, time, parts) {
     }
     if (!staff) {
       let best = null;
-      const pool = draftPool(day, part.service);
+      // The one asked for, if this service is theirs (the same pool the draft takes from: linked, else anyone).
+      const pool = prefer
+        ? draftPool(day, part.service).filter((person) => staffName(person) === prefer)
+        : draftPool(day, part.service);
       // The seats at this hour: working team members free then, less those the salon's unassigned entries take.
       let freeSeats = 0;
       for (const person of day.team) {
@@ -370,14 +388,14 @@ function visitOverlaps(day, time, parts) {
  * could do gets a free artist, and nothing overlaps the salon's other bookings. One service
  * is just a visit of one part.
  */
-export async function listFeasibleVisitTimes(salonUserId, bookingDate, parts, times) {
+export async function listFeasibleVisitTimes(salonUserId, bookingDate, parts, times, { prefer = "" } = {}) {
   await ensureBookingPartsColumns();
   const list = parseBookingParts(parts).map((part) => ({ ...part, staff: "" }));
   if (!list.length) return [];
   const day = await loadVisitDay(await getDb(), salonUserId, bookingDate);
   const feasible = [];
   for (const time of times) {
-    const drafted = await draftVisitParts(day, time, list);
+    const drafted = await draftVisitParts(day, time, list, { prefer });
     if (!findUnstaffedPart(day, drafted) && !visitOverlaps(day, time, drafted)) feasible.push(time);
   }
   return feasible;
@@ -393,12 +411,12 @@ export async function listFeasibleVisitTimes(salonUserId, bookingDate, parts, ti
  * salon or their own calendar then), `skilled` (linked to the service) and `away` (their state when
  * inactive or on leave): the salon's artist picker. Null when there is no service.
  */
-export async function previewVisit(salonUserId, bookingDate, time, parts, { withOptions = false } = {}) {
+export async function previewVisit(salonUserId, bookingDate, time, parts, { withOptions = false, prefer = "" } = {}) {
   await ensureBookingPartsColumns();
   const list = parseBookingParts(parts);
   if (!list.length) return null;
   const day = await loadVisitDay(await getDb(), salonUserId, bookingDate);
-  const drafted = await draftVisitParts(day, time, list);
+  const drafted = await draftVisitParts(day, time, list, { prefer });
   const teamByName = new Map(day.team.map((person) => [staffName(person), person]));
   const planned = [];
   for (const part of scheduleBookingParts(time, drafted)) {
@@ -720,6 +738,9 @@ export async function listSalonBookings(salonUserId) {
       ...own,
       proposal: proposalView(row),
       client_user_id: row.client_user_id || client?.id || null,
+      // The account's own name (the booking's `client` is what the salon typed): the customers list uses it as the main
+      // name of a number that has a frfro account (owner's decision 2026-10-31).
+      client_account_name: client?.name || "",
       client_avatar: avatar,
       clientAvatar: avatar,
       client_avatar_position: avatarPosition,
@@ -755,6 +776,7 @@ export async function listClientSalonBookings(user) {
   // The backup salon's name, and for a request that was moved, the salon it went to / came from.
   const rows = await all(db, `
     SELECT b.*, s.name AS salon_name, s.area AS salon_area, s.phone AS salon_phone, s.user_id AS source_salon_user_id, (u.avatar <> '' OR u.avatar_url IS NOT NULL) AS salon_avatar,
+      u.geo_lat AS salon_geo_lat, u.geo_lng AS salon_geo_lng,
       fs.name AS fallback_name, ts.name AS moved_to_name, os.name AS moved_from_name
     FROM salon_bookings b
     LEFT JOIN salons s ON s.user_id = b.salon_user_id
@@ -780,6 +802,8 @@ export async function listClientSalonBookings(user) {
     // existing "‹thing› حذف‌شده" convention for a deleted parent row.
     salonName: row.salon_name || (row.salon_user_id ? "سالن" : "سالن حذف‌شده"),
     salonArea: row.salon_area || "",
+    // The salon's pin for «کجا» in the client's booking details (the same pin as on its public page).
+    placeLocation: publicLocation({ area: row.salon_area, geo_lat: row.salon_geo_lat, geo_lng: row.salon_geo_lng }),
     salonPhone: row.salon_phone || "",
     salonAvatar: row.salon_avatar && row.source_salon_user_id ? `/api/media/avatar/${row.source_salon_user_id}` : "",
     sourceSalonUserId: row.source_salon_user_id || row.salon_user_id
@@ -898,7 +922,7 @@ async function addDraftedSingleSalonBooking(salonUserId, data, durationMinutes) 
       await lockVisitDay(db, salonUserId, data.bookingDate, staffList.map((person) => person.artist_user_id));
       const day = await loadVisitDay(db, salonUserId, data.bookingDate);
       const service = String(data.service || "").trim();
-      const drafted = await draftVisitParts(day, data.time, [{ service, minutes: durationMinutes, staff: "" }]);
+      const drafted = await draftVisitParts(day, data.time, [{ service, minutes: durationMinutes, staff: "" }], { prefer: data.preferStaff || "" });
       if (findUnstaffedPart(day, drafted)) {
         return { ok: false, error: "no_staff", message: `این ساعت برای «${service}» آرتیست آزاد نداریم؛ یه ساعت دیگه بزن.` };
       }
@@ -982,7 +1006,7 @@ async function addMultiPartSalonBooking(salonUserId, data) {
       if (gate) return gate;
       await lockVisitDay(db, salonUserId, data.bookingDate, staffList.map((person) => person.artist_user_id));
       const day = await loadVisitDay(db, salonUserId, data.bookingDate);
-      const parts = await draftVisitParts(day, data.time, parseBookingParts(data.parts));
+      const parts = await draftVisitParts(day, data.time, parseBookingParts(data.parts), { prefer: data.preferStaff || "" });
       // A client's request must find an artist for every service someone at the salon does
       // (the same rule listFeasibleVisitTimes shows them); the salon may leave one open.
       const unstaffed = data.requireStaff ? findUnstaffedPart(day, parts) : null;
@@ -1303,6 +1327,12 @@ async function patchSalonBookingUncached(id, salonUserId, data, options = {}) {
   // The expiry sweep is the one caller allowed to close a request whose day went by unanswered.
   if (!allowPast && isPersianDateKey(current.booking_date) && current.booking_date < formatPersianDateKey(new Date())) {
     return { ok: false, error: "past" };
+  }
+  // A confirmed visit that has started is no longer the salon's to cancel: «نیومد» takes its place
+  // (owner's decision of 2026-10-25; /api/booking-no-show). The client's own cancel stops at the start too.
+  if (data.status === "لغو" && options.cancelledBy?.by === "provider" && ["تایید شده", "تازه"].includes(current.status)
+    && hasStarted(current.booking_date, current.time)) {
+    return { ok: false, error: "started" };
   }
 
   // An already-expired request (bookingExpirySweep.js) already told the client

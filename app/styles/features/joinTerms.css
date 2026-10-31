@@ -1,0 +1,57 @@
+/* «شرایط همکاری سالن» (owner's design 2026-10-28): the salon's card under the QR (jt*), the artist's join «برگه» (jp*) and
+   the salon's answer card (jtAnswer). Tokens only. Violet (--fill-strong) is what you do for your own business or account,
+   pink with ink text (--live-*) is what is new or live. The join page has no data-role, so violet is --fill-strong, not --accent. */
+
+/* ── salon: card under the QR, and the prompt before the terms are saved ── */
+.jtCard { display: grid; gap: 8px; margin-top: 12px; padding: 14px 16px; border-radius: 22px; background: var(--n-0); box-shadow: 0 8px 22px -14px rgb(var(--shadow-rgb) / 0.28); }
+.jtHead { display: flex; align-items: center; gap: 8px; }
+.jtHead b { color: var(--n-900); font-size: 0.95rem; font-weight: 950; }
+.jtChip { padding: 1px 10px; border-radius: var(--radius-pill); background: var(--live-fill); color: var(--on-live-fill); font-size: 0.68rem; font-weight: 900; }
+.jtSummary { margin: 0; color: var(--n-800); font-size: 0.86rem; font-weight: 800; line-height: 1.8; }
+.jtFoot { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.jtFoot small { color: var(--n-600); font-size: 0.74rem; font-weight: 700; }
+.jtEdit { flex: none; min-height: 36px; padding: 0 18px; border: 0; border-radius: var(--radius-pill); background: var(--fill-strong); color: var(--on-primary); font: inherit; font-size: 0.8rem; font-weight: 900; cursor: pointer; }
+
+.jtPrompt { display: grid; justify-items: center; gap: 10px; padding: 18px 16px; border: 1.5px solid rgb(var(--brand-pink-rgb) / 0.6); border-radius: 22px; background: var(--live-soft); text-align: center; }
+.jtPrompt p { margin: 0; color: var(--n-900); font-size: 0.9rem; font-weight: 900; line-height: 1.8; }
+.jtPrompt button { min-height: 42px; padding: 0 24px; border: 0; border-radius: var(--radius-pill); background: var(--live-fill); color: var(--on-live-fill); font: inherit; font-size: 0.86rem; font-weight: 950; cursor: pointer; }
+.jtPrompt.is-error { border-color: var(--danger); background: var(--danger-bg); }
+.jtPrompt.is-error p { color: var(--danger); }
+
+/* ── artist: the join «برگه» (app/join-salon/[id]) ── */
+.joinSalonCard.is-paper { max-width: 420px; }
+.jpBody { width: 100%; display: grid; gap: 12px; margin-top: var(--space-3); text-align: start; }
+.jpShare { display: grid; justify-items: center; gap: 4px; padding: 16px 14px; border-radius: 22px; background: rgb(var(--brand-violet-rgb) / 0.12); text-align: center; }
+.jpShare small { color: var(--n-700); font-size: 0.8rem; font-weight: 800; }
+.jpShare strong { color: var(--n-900); font-size: 2.6rem; font-weight: 950; line-height: 1.2; }
+.jpShare em { color: var(--n-700); font-size: 0.76rem; font-style: normal; font-weight: 800; }
+.jpChips { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 6px; }
+.jpChips span { display: inline-flex; align-items: center; gap: 5px; padding: 4px 12px; border-radius: var(--radius-pill); background: var(--n-0); color: var(--n-800); font-size: 0.76rem; font-weight: 900; }
+.jpChips span.is-live { background: var(--live-fill); color: var(--on-live-fill); }
+
+.jpRules { display: grid; gap: 8px; padding: 12px 14px; border: 1px solid var(--n-150); border-radius: 18px; background: var(--n-0); }
+.jpRules h2 { margin: 0; color: var(--n-900); font-size: 0.86rem; font-weight: 950; }
+.jpRules ul, .jpCalm ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.jpRules li, .jpCalm li { position: relative; padding-inline-start: 14px; color: var(--n-800); font-size: 0.8rem; font-weight: 700; line-height: 1.8; }
+.jpRules li::before, .jpCalm li::before { content: ""; position: absolute; inset-inline-start: 0; top: 0.8em; width: 5px; height: 5px; border-radius: 50%; background: var(--fill-strong); }
+.jpMore { justify-self: start; padding: 0; border: 0; background: transparent; color: var(--fill-strong); font: inherit; font-size: 0.78rem; font-weight: 900; cursor: pointer; text-decoration: underline; }
+
+.jpCalm { display: grid; gap: 8px; }
+.jpCalm p { margin: 0; color: var(--n-700); font-size: 0.8rem; font-weight: 700; line-height: 1.9; }
+.jpCalm button { padding: 0; border: 0; background: transparent; color: var(--fill-strong); font: inherit; font-size: inherit; font-weight: 900; cursor: pointer; text-decoration: underline; }
+.jpCalm ul { padding: 10px 12px; border-radius: 14px; background: var(--n-25); }
+.jpNotice { max-width: none; margin: 0; text-align: center; }
+
+.jpActions { display: grid; gap: 8px; }
+.jpAccept, .jpOffer { min-height: 50px; border: 0; border-radius: var(--radius-lg); font: inherit; font-size: var(--text-base); font-weight: 950; cursor: pointer; }
+.jpAccept { background: var(--fill-strong); color: var(--on-primary); }
+.jpOffer { background: rgb(var(--brand-violet-rgb) / 0.14); color: var(--fill-strong); }
+.jpAccept:disabled, .jpOffer:disabled { opacity: 0.5; cursor: default; }
+.jpFixed { margin: 0; color: var(--n-600); font-size: 0.78rem; font-weight: 700; line-height: 1.8; text-align: center; }
+
+/* ── salon: an artist's request with terms (workspace «درخواست‌ها») ── */
+.ttProposal.jtAnswer { gap: 10px; padding: 14px; border-radius: 20px; }
+.jtAnswerWho { display: flex; align-items: center; gap: 10px; }
+.jtAnswerWho > div { flex: 1; min-width: 0; display: grid; }
+.jtAnswerWho strong { color: var(--n-900); font-size: 0.9rem; font-weight: 950; }
+.jtAnswerWho small { color: var(--n-600); font-size: 0.72rem; font-weight: 700; }

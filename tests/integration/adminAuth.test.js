@@ -26,16 +26,15 @@ describe("admin login (password + authenticator code)", () => {
     expect(early.payload.error).toMatch(/[؀-ۿ]/);
   });
 
-  it("setup needs the setup key, the right password and a listed phone, and answers every failure the same way", async () => {
+  it("setup needs the setup key and a listed phone, answers every failure the same way, and wants an 8-character password", async () => {
     const client = createClient();
     const base = { ...credentials, setupKey: TEST_ADMIN_SETUP_KEY };
     const wrongKey = await client.post("/api/admin/auth/enroll/start", { ...base, setupKey: "nope" }, ipHeader());
-    const wrongPassword = await client.post("/api/admin/auth/enroll/start", { ...base, password: "bad-password" }, ipHeader());
     const user = await registerUser(createClient(), { type: "client", name: "Not Admin" });
     const notListed = await client.post("/api/admin/auth/enroll/start", { phone: user.phone, password: user.password, setupKey: TEST_ADMIN_SETUP_KEY }, ipHeader());
-    for (const result of [wrongKey, wrongPassword, notListed]) expect(result.status).toBe(401);
-    expect(wrongKey.payload).toEqual(wrongPassword.payload);
+    for (const result of [wrongKey, notListed]) expect(result.status).toBe(401);
     expect(wrongKey.payload).toEqual(notListed.payload);
+    expect((await client.post("/api/admin/auth/enroll/start", { ...base, password: "short" }, ipHeader())).status).toBe(400);
   });
 
   it("links an authenticator and logs in; the confirm step rejects a wrong code", async () => {
@@ -56,11 +55,6 @@ describe("admin login (password + authenticator code)", () => {
     expect(confirmed.ok).toBe(true);
     expect((await client.get("/api/admin/me")).payload.data.isAdmin).toBe(true);
     expect((await client.get("/api/admin/stats")).ok).toBe(true);
-  });
-
-  it("cannot be set up a second time (nobody can swap the authenticator), even with every credential", async () => {
-    const again = await createClient().post("/api/admin/auth/enroll/start", { ...credentials, setupKey: TEST_ADMIN_SETUP_KEY }, ipHeader());
-    expect(again.status).toBe(401);
   });
 
   it("logs in with a fresh code, refuses a reused or wrong code, and logout ends the session", async () => {
@@ -98,5 +92,32 @@ describe("admin login (password + authenticator code)", () => {
     }
     expect(statuses.slice(0, 8).every((status) => status === 401)).toBe(true);
     expect(statuses[9]).toBe(429);
+  });
+
+  it("needs no app account: after the app account with the admin's phone is deleted, setup again and login still work", async () => {
+    // Admin 2's app account was made in the first test (as an ordinary client). Delete it.
+    const appUser = createClient();
+    expect((await appUser.post("/api/auth/login", { phone: TEST_ADMIN2_PHONE, password: TEST_ADMIN_PASSWORD })).ok).toBe(true);
+    expect((await appUser.delete("/api/profile", { currentPassword: TEST_ADMIN_PASSWORD, cancelAll: true })).ok).toBe(true);
+
+    // Setup again (lost password or phone): a new admin password and a new authenticator replace the old ones.
+    const base = { ...credentials, password: "brand-new-pass", setupKey: TEST_ADMIN_SETUP_KEY };
+    const client = createClient();
+    const started = await client.post("/api/admin/auth/enroll/start", base, ipHeader());
+    expect(started.ok).toBe(true);
+    const newSecret = started.payload.data.secret;
+    expect(newSecret).not.toBe(secret);
+    const wrongPassword = await client.post("/api/admin/auth/enroll/confirm", { ...credentials, setupKey: TEST_ADMIN_SETUP_KEY, code: totpCodeAt(newSecret, totpStepAt()) }, ipHeader());
+    expect(wrongPassword.status).toBe(401); // the confirm must carry the password chosen at the start
+    const confirmed = await client.post("/api/admin/auth/enroll/confirm", { ...base, code: totpCodeAt(newSecret, totpStepAt()) }, ipHeader());
+    expect(confirmed.ok).toBe(true);
+    expect((await client.get("/api/admin/stats")).ok).toBe(true);
+
+    // The old password is refused now; the new one works with the new authenticator.
+    const nextCode = totpCodeAt(newSecret, totpStepAt() + 1);
+    expect((await createClient().post("/api/admin/auth/login", { ...credentials, code: nextCode }, ipHeader())).status).toBe(401);
+    const fresh = createClient();
+    expect((await fresh.post("/api/admin/auth/login", { ...base, code: nextCode }, ipHeader())).ok).toBe(true);
+    expect((await fresh.get("/api/admin/stats")).ok).toBe(true);
   });
 });

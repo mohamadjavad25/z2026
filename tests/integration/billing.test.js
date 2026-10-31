@@ -23,7 +23,7 @@ async function put(client, path, body) {
 const setStepUp = async (on) => {
   await connected;
   await db.query(
-    "UPDATE admin_sessions SET stepup_until = $2 WHERE user_id = (SELECT id FROM users WHERE phone = $1)",
+    "UPDATE admin_account_sessions SET stepup_until = $2 WHERE admin_id = (SELECT id FROM admin_accounts WHERE phone = $1)",
     [TEST_ADMIN_PHONE, on ? new Date(Date.now() + 10 * 60_000).toISOString() : null]
   );
 };
@@ -107,10 +107,25 @@ describe("subscriptions: off by default", () => {
     expect((await clientUser.post("/api/billing/checkout", { plan: "salon_1m" })).status).toBe(403);
 
     const salon = await provider("salon", "Off Salon");
-    expect((await salon.client.get("/api/billing")).payload.data.visible).toBe(false);
+    const off = (await salon.client.get("/api/billing")).payload.data;
+    expect(off).toMatchObject({ visible: false, preview: true, enabled: false, role: "salon", trialDays: 30 });
+    expect(off.plans.map((plan) => plan.months)).toEqual([1, 6, 12]);
     const refused = await salon.client.post("/api/billing/checkout", { plan: "salon_1m" });
     expect(refused.status).toBe(409);
     expect(refused.payload.code).toBe("BILLING_OFF");
+  });
+
+  it("starts every free month again from the day the panel switches billing on from off", async () => {
+    await setBilling(false);
+    const kept = await setBilling(true);
+    expect(new Date(kept.launchedAt).getTime()).toBeLessThan(Date.now() - 59 * DAY);
+    await setBilling(false);
+    const before = Date.now();
+    const restarted = await setBilling(true, { restartFreeDays: true });
+    expect(new Date(restarted.launchedAt).getTime()).toBeGreaterThanOrEqual(before - 1000);
+    // The rest of this file counts on billing having launched 60 days ago.
+    await setBilling(false);
+    await db.query(`UPDATE app_settings SET value = jsonb_set(value, '{launchedAt}', to_jsonb($1::text)) WHERE key = 'billing'`, [new Date(Date.now() - 60 * DAY).toISOString()]);
   });
 
   it("needs a session for everything but the gateway's return", async () => {
@@ -145,9 +160,10 @@ describe("subscriptions: buying a plan", () => {
 
   it("offers the three plans with the owner's prices and dates", async () => {
     const overview = (await salon.client.get("/api/billing")).payload.data;
-    expect(overview).toMatchObject({ visible: true, enabled: true, checkoutReady: true, enforced: true, sandbox: true, trialDays: 30 });
+    expect(overview).toMatchObject({ visible: true, enabled: true, checkoutReady: true, enforced: true, sandbox: true, trialDays: 14 });
     expect(overview.account.state).toBe("trial");
-    expect(overview.account.daysLeft).toBe(30);
+    // Made after billing launched, so it has the 14 days for new accounts (accounts older than billing get 30 from launch).
+    expect(overview.account.daysLeft).toBe(14);
     expect(overview.plans.map((plan) => [plan.id, plan.amountToman, plan.days, plan.preselected])).toEqual([
       ["salon_1m", 500_000, 30, false],
       ["salon_6m", 2_500_000, 180, true],
@@ -411,7 +427,7 @@ describe("subscriptions: hourly sweep", () => {
 
   it("reminds once, five days before the free month ends", async () => {
     const salon = await provider("salon", "Reminder Salon");
-    await age(salon.user.id, 27);
+    await age(salon.user.id, 11);
     const first = await cron();
     expect(first.status).toBe(200);
     expect(first.data.reminders).toBeGreaterThanOrEqual(1);

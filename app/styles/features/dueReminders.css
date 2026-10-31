@@ -1,0 +1,50 @@
+/* «وقتش شده» on the salon's and the artist's side (features/dueReminders, owner's decisions 2026-10-25). */
+.dueCard { display: grid; gap: 10px; margin: 0 0 14px; padding: 14px; border-radius: 18px; background: var(--accent-soft); }
+.dueCardHead { display: flex; align-items: center; gap: 10px; }
+.dueCardHead > span:last-child { display: grid; gap: 1px; }
+.dueCardHead b { font-size: 0.86rem; font-weight: 950; }
+.dueCardHead small { color: var(--n-600); font-size: 0.68rem; font-weight: 800; }
+.dueCardIcon { display: inline-grid; flex: none; place-items: center; width: 32px; height: 32px; border-radius: 11px; background: var(--n-0); color: var(--fill-violet); }
+.dueCard > p { margin: 0; color: var(--n-700); font-size: 0.74rem; font-weight: 750; line-height: 1.8; }
+.dueCardList { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.dueCardList li { display: inline-flex; gap: 5px; padding: 4px 9px; border-radius: 9px; background: var(--n-0); font-size: 0.7rem; font-weight: 850; }
+.dueCardList li em { font-style: normal; color: var(--n-600); }
+.dueCardList li.is-more { color: var(--n-600); }
+.dueCardActions { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; }
+.dueCardActions .dueBtn { min-height: 40px; padding: 0 16px; }
+.dueLink { min-height: 40px; padding: 0 4px; border: 0; background: none; color: var(--n-700); font: inherit; font-size: 0.76rem; font-weight: 850; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }
+.dueLink:focus-visible { outline: 2px solid var(--n-900); outline-offset: 2px; }
+.dueBtn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0 14px; border: 1px solid var(--n-200); border-radius: 13px; background: var(--n-0); color: var(--n-900); font: inherit; font-size: 0.82rem; font-weight: 900; cursor: pointer; }
+.dueBtn.is-main { border-color: transparent; background: var(--fill-strong); color: var(--n-0); }
+.dueBtn.is-wide { width: 100%; }
+.dueBtn:disabled { opacity: 0.55; cursor: default; }
+.dueBtn:focus-visible, .dueList button:focus-visible, .dueChips button:focus-visible, .dueTexts button:focus-visible { outline: 2px solid var(--n-900); outline-offset: 2px; }
+
+.dueSection { display: grid; gap: 10px; margin-top: 18px; padding: 16px; border: 1px solid var(--n-100); border-radius: 20px; background: var(--n-0); }
+.dueSection h3 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 0.9rem; font-weight: 950; }
+.dueSection > p { margin: 0; color: var(--n-600); font-size: 0.74rem; font-weight: 750; line-height: 1.8; }
+.dueList { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.dueList button { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 54px; padding: 8px 12px; border: 1px solid var(--n-100); border-radius: 14px; background: var(--n-25); color: var(--n-900); font: inherit; text-align: start; cursor: pointer; }
+.dueList button > span:not(.serviceIcon) { display: grid; flex: 1; min-width: 0; gap: 2px; }
+.dueList button > .serviceIcon { flex: none; }
+.dueList b { font-size: 0.82rem; font-weight: 900; }
+.dueList small { overflow: hidden; color: var(--n-600); font-size: 0.7rem; font-weight: 750; text-overflow: ellipsis; white-space: nowrap; }
+.dueList em { flex: none; font-style: normal; font-size: 0.72rem; font-weight: 900; color: var(--success); }
+.dueList em.is-off { color: var(--n-600); }
+
+.dueEditor { display: grid; gap: 10px; padding-bottom: 8px; }
+.dueLabel { margin: 4px 0 0; font-size: 0.8rem; font-weight: 950; }
+.dueChips { display: flex; flex-wrap: wrap; gap: 6px; }
+.dueChips button { min-height: 40px; padding: 0 12px; border: 1px solid var(--n-200); border-radius: 12px; background: var(--n-0); color: var(--n-900); font: inherit; font-size: 0.76rem; font-weight: 850; cursor: pointer; }
+.dueChips button.is-on, .dueTexts button.is-on { border-color: var(--n-900); background: var(--fill-strong); color: var(--n-0); }
+.dueNote { color: var(--n-600); font-size: 0.7rem; font-weight: 750; }
+.dueTexts { display: grid; gap: 6px; }
+.dueTexts button { min-height: 44px; padding: 8px 12px; border: 1px solid var(--n-200); border-radius: 12px; background: var(--n-0); color: var(--n-900); font: inherit; font-size: 0.78rem; font-weight: 800; line-height: 1.7; text-align: start; cursor: pointer; }
+.dueCustom { display: grid; gap: 4px; }
+.dueCustom textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--n-200); border-radius: 12px; background: var(--n-0); color: var(--n-900); font: inherit; font-size: 0.82rem; resize: vertical; }
+.dueCustom small { color: var(--n-600); font-size: 0.68rem; font-weight: 750; }
+.duePreview { display: grid; gap: 2px; padding: 12px; border-radius: 14px; background: var(--n-50); }
+.duePreview small { color: var(--n-600); font-size: 0.66rem; font-weight: 800; }
+.duePreview b { font-size: 0.84rem; font-weight: 950; }
+.duePreview span { color: var(--n-700); font-size: 0.74rem; font-weight: 750; }
+.dueProblem { margin: 0; color: var(--danger); font-size: 0.74rem; font-weight: 850; }

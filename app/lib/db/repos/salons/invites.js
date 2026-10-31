@@ -1,6 +1,9 @@
 import { randomBytes, timingSafeEqual } from "node:crypto";
-import { getDb, all, get, run } from "../../connection.js";
+import { getDb, all, get, run, withTransaction } from "../../connection.js";
 import { addSalonStaff } from "./staff.js";
+import { defaultArtistHours } from "../artists/hours.js";
+import { getJoinTerms, joinTermsReady, getSalonRulesText } from "./joinTerms.js";
+import { dateKeyAfter } from "../../../../shared/lib/artistPlace.js";
 
 const PENDING = "در انتظار تایید";
 const ACCEPTED = "تایید شد";
@@ -14,6 +17,8 @@ function mapSalonInvite(row) {
     salonId: row.salon_user_id,
     salonName: row.salon_name || "",
     salonAvatar: row.salon_avatar && row.salon_user_id ? `/api/media/avatar/${row.salon_user_id}` : "",
+    salonPoster: row.salon_poster && row.salon_user_id ? `/api/media/poster/${row.salon_user_id}` : "",
+    salonPosterPosition: row.salon_poster_position || "",
     salonArea: row.salon_area || "",
     salonRules: row.salon_rules || "",
     artistId: row.artist_user_id,
@@ -49,6 +54,7 @@ export async function listSalonArtistInvites(salonUserId, { status } = {}) {
           u.phone AS artist_phone,
           s.name AS salon_name,
           (salon_user.avatar <> '' OR salon_user.avatar_url IS NOT NULL) AS salon_avatar,
+          (salon_user.poster <> '' OR salon_user.poster_url IS NOT NULL) AS salon_poster, salon_user.poster_position AS salon_poster_position,
           s.area AS salon_area,
           s.rules AS salon_rules
         FROM salon_artist_invites i
@@ -68,6 +74,7 @@ export async function listSalonArtistInvites(salonUserId, { status } = {}) {
           u.phone AS artist_phone,
           s.name AS salon_name,
           (salon_user.avatar <> '' OR salon_user.avatar_url IS NOT NULL) AS salon_avatar,
+          (salon_user.poster <> '' OR salon_user.poster_url IS NOT NULL) AS salon_poster, salon_user.poster_position AS salon_poster_position,
           s.area AS salon_area,
           s.rules AS salon_rules
         FROM salon_artist_invites i
@@ -93,6 +100,7 @@ export async function listArtistSalonInvites(artistUserId, { status } = {}) {
           u.phone AS artist_phone,
           s.name AS salon_name,
           (salon_user.avatar <> '' OR salon_user.avatar_url IS NOT NULL) AS salon_avatar,
+          (salon_user.poster <> '' OR salon_user.poster_url IS NOT NULL) AS salon_poster, salon_user.poster_position AS salon_poster_position,
           s.area AS salon_area,
           s.rules AS salon_rules
         FROM salon_artist_invites i
@@ -112,6 +120,7 @@ export async function listArtistSalonInvites(artistUserId, { status } = {}) {
           u.phone AS artist_phone,
           s.name AS salon_name,
           (salon_user.avatar <> '' OR salon_user.avatar_url IS NOT NULL) AS salon_avatar,
+          (salon_user.poster <> '' OR salon_user.poster_url IS NOT NULL) AS salon_poster, salon_user.poster_position AS salon_poster_position,
           s.area AS salon_area,
           s.rules AS salon_rules
         FROM salon_artist_invites i
@@ -146,6 +155,7 @@ async function getInviteRow(id, runner = null) {
       u.phone AS artist_phone,
       s.name AS salon_name,
       (salon_user.avatar <> '' OR salon_user.avatar_url IS NOT NULL) AS salon_avatar,
+      (salon_user.poster <> '' OR salon_user.poster_url IS NOT NULL) AS salon_poster, salon_user.poster_position AS salon_poster_position,
       s.area AS salon_area,
           s.rules AS salon_rules
     FROM salon_artist_invites i
@@ -156,8 +166,8 @@ async function getInviteRow(id, runner = null) {
   `, [id]);
 }
 
-export async function createSalonArtistInvite(salonUserId, data) {
-  const db = await getDb();
+export async function createSalonArtistInvite(salonUserId, data, runner = null) {
+  const db = runner || (await getDb());
   const artistUserId = Number(data.artistUserId || data.artist_user_id || 0);
   if (!artistUserId) {
     return { ok: false, error: "این آرتیست رو پیدا نکردیم.", code: "INVALID_ARTIST" };
@@ -270,7 +280,7 @@ export async function createSalonArtistInvite(salonUserId, data) {
  * was a mistake, and can invalidate the link for good by regenerating its
  * join code from the invite sheet.
  */
-export async function joinSalonByArtist(salonUserId, artistUserId, code) {
+export async function joinSalonByArtist(salonUserId, artistUserId, code, { termsVersion } = {}) {
   const db = await getDb();
   const salon = await get(db, `
     SELECT s.name, s.area, us.settings ->> 'salonJoinCode' AS join_secret
@@ -292,57 +302,103 @@ export async function joinSalonByArtist(salonUserId, artistUserId, code) {
     return { ok: false, error: "این آرتیست رو پیدا نکردیم.", code: "ARTIST_NOT_FOUND" };
   }
 
-  const alreadyStaff = await get(db, `
-    SELECT id FROM salon_staff WHERE salon_user_id = $1 AND artist_user_id = $2 LIMIT 1
-  `, [salonUserId, artistUserId]);
-  if (alreadyStaff) {
-    return { ok: false, error: "تو همین الان توی تیم این سالنی.", code: "ALREADY_STAFF" };
-  }
-
   const role = artist.service || "آرتیست";
   const bio = "پیوستن با اسکن کد QR سالن";
 
-  const existingInvite = await get(db, `
-    SELECT id FROM salon_artist_invites WHERE salon_user_id = $1 AND artist_user_id = $2 LIMIT 1
-  `, [salonUserId, artistUserId]);
+  // Everything below is one transaction behind a lock on the pair: two taps (or two phones) of the same artist cannot both
+  // pass «not on the team yet» and add her twice, and the terms she agrees to are read under a share lock, so a salon
+  // saving new numbers at that moment waits and the artist either agrees to the old ones (still her version) or is refused.
+  return withTransaction(null, async (tx) => {
+    await lockTeamPair(tx, salonUserId, artistUserId);
 
-  if (existingInvite) {
-    await run(db, `
-      UPDATE salon_artist_invites
-      SET role = $1, bio = $2, status = $3, updated_at = CURRENT_TIMESTAMP
-      WHERE id = $4
-    `, [role, bio, ACCEPTED, existingInvite.id]);
-  } else {
-    await run(db, `
-      INSERT INTO salon_artist_invites
-        (salon_user_id, artist_user_id, role, bio, access_level, status)
-      VALUES ($1, $2, $3, $4, $5, $6)
-    `, [salonUserId, artistUserId, role, bio, "همکار", ACCEPTED]);
-  }
+    const alreadyStaff = await get(tx, `
+      SELECT id FROM salon_staff WHERE salon_user_id = $1 AND artist_user_id = $2 LIMIT 1
+    `, [salonUserId, artistUserId]);
+    if (alreadyStaff) {
+      return { ok: false, error: "تو همین الان توی تیم این سالنی.", code: "ALREADY_STAFF" };
+    }
 
-  // Joining answers any proposal this artist had pending with the same salon.
-  await run(db, `
-    UPDATE artist_collabs
-    SET status = 'تایید شد', updated_at = CURRENT_TIMESTAMP
-    WHERE salon_user_id = $1 AND artist_user_id = $2 AND status = 'آماده ارسال'
-  `, [salonUserId, artistUserId]);
+    const terms = await getJoinTerms(salonUserId, tx, { lock: true });
+    if (!joinTermsReady(terms)) {
+      return { ok: false, error: "این لینک هنوز آماده نیست؛ از سالن بخواه شرایط همکاری رو بذاره.", code: "TERMS_NOT_READY" };
+    }
+    if (Number(termsVersion) !== terms.version) {
+      return { ok: false, error: "سالن شرایط رو عوض کرده؛ یه بار دیگه ببین و بعد بپیوند.", code: "TERMS_CHANGED", terms };
+    }
 
-  const staffPerson = await addSalonStaff(salonUserId, {
-    artist_user_id: artistUserId,
-    name: artist.name,
-    phone: artist.phone || "",
-    role,
-    bio,
-    booked: "۰ وقت",
-    state: "فعال",
-    access_level: "همکار"
+    const existingInvite = await get(tx, `
+      SELECT id FROM salon_artist_invites WHERE salon_user_id = $1 AND artist_user_id = $2 LIMIT 1
+    `, [salonUserId, artistUserId]);
+
+    if (existingInvite) {
+      await run(tx, `
+        UPDATE salon_artist_invites
+        SET role = $1, bio = $2, status = $3, days = $5, from_time = $6, to_time = $7, share_percent = $8, updated_at = CURRENT_TIMESTAMP
+        WHERE id = $4
+      `, [role, bio, ACCEPTED, existingInvite.id, terms.days, terms.from, terms.to, String(terms.share)]);
+    } else {
+      await run(tx, `
+        INSERT INTO salon_artist_invites
+          (salon_user_id, artist_user_id, role, bio, access_level, status, days, from_time, to_time, share_percent)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      `, [salonUserId, artistUserId, role, bio, "همکار", ACCEPTED, terms.days, terms.from, terms.to, String(terms.share)]);
+    }
+
+    // Joining answers any proposal this artist had pending with the same salon.
+    await run(tx, `
+      UPDATE artist_collabs
+      SET status = 'تایید شد', updated_at = CURRENT_TIMESTAMP
+      WHERE salon_user_id = $1 AND artist_user_id = $2 AND status = 'آماده ارسال'
+    `, [salonUserId, artistUserId]);
+
+    const staffPerson = await addSalonStaff(salonUserId, {
+      artist_user_id: artistUserId,
+      name: artist.name,
+      phone: artist.phone || "",
+      role,
+      bio,
+      booked: "۰ وقت",
+      state: "فعال",
+      access_level: "همکار"
+    }, tx);
+
+    await writeAgreedTerms(tx, { salonUserId, artistUserId, terms, source: "join_page" });
+
+    return {
+      ok: true,
+      staffPerson,
+      terms,
+      salon: { id: salonUserId, name: salon.name || "سالن", area: salon.area || "" }
+    };
   });
+}
 
-  return {
-    ok: true,
-    staffPerson,
-    salon: { id: salonUserId, name: salon.name || "سالن", area: salon.area || "" }
-  };
+/** Serialises everything that adds or answers a membership for one salon+artist pair (salon_staff has no unique pair). */
+export async function lockTeamPair(tx, salonUserId, artistUserId) {
+  await run(tx, "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", [`team-pair:${Number(salonUserId)}:${Number(artistUserId)}`]);
+  await run(tx, "SELECT 1 FROM salon_staff WHERE salon_user_id = $1 AND artist_user_id = $2 FOR UPDATE", [Number(salonUserId), Number(artistUserId)]);
+}
+
+/**
+ * The «agreed» row of a new member: terms effective today, with the salon's rules text of this moment. Leftover rows that
+ * start later (from an earlier membership) are dropped so they cannot override what was just agreed; past rows stay (the
+ * ledger prices old visits with them).
+ */
+export async function writeAgreedTerms(tx, { salonUserId, artistUserId, terms, source }) {
+  const today = dateKeyAfter(0);
+  const rules = await getSalonRulesText(salonUserId, tx);
+  await run(tx, "DELETE FROM team_terms WHERE salon_user_id = $1 AND artist_user_id = $2 AND effective_from > $3", [Number(salonUserId), Number(artistUserId), today]);
+  await run(tx, `
+    INSERT INTO team_terms (salon_user_id, artist_user_id, effective_from, days, from_time, to_time, share_percent, own_share_percent, rules_snapshot, source)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+  `, [Number(salonUserId), Number(artistUserId), today, terms.days, terms.from, terms.to, terms.share, terms.ownShare ?? null, rules, source]);
+}
+
+/** True when `code` is the salon's join secret (constant time). */
+export async function verifySalonJoinCode(salonUserId, code, runner = null) {
+  const db = runner || (await getDb());
+  const row = await get(db, "SELECT settings ->> 'salonJoinCode' AS secret FROM user_settings WHERE user_id = $1", [Number(salonUserId)]);
+  return secretsMatch(row?.secret, code);
 }
 
 // Same shape as the client's personal connect secret (app/lib/db/repos/connections.js):
@@ -380,7 +436,7 @@ export async function getOrCreateSalonJoinSecret(salonUserId) {
  *  fuller (owner-facing) shape. Works even if the salon set its public
  *  showcase private — that toggle is about the client-facing storefront,
  *  unrelated to whether staff can join the team. */
-export async function getSalonJoinPreview(salonUserId) {
+export async function getSalonJoinPreview(salonUserId, code = "") {
   const db = await getDb();
   const row = await get(db, `
     SELECT s.user_id, s.name, s.area, s.rules, (u.avatar <> '' OR u.avatar_url IS NOT NULL) AS avatar
@@ -388,12 +444,23 @@ export async function getSalonJoinPreview(salonUserId) {
     WHERE s.user_id = $1
   `, [salonUserId]);
   if (!row) return null;
+  const terms = await getJoinTerms(salonUserId, db);
+  // The percentages are only for someone holding the link's code: the salon's id alone is public and guessable.
+  const codeValid = await verifySalonJoinCode(salonUserId, code, db);
+  // Every line goes to the page (it shows four and a «بقیه» tap for the rest), so the agreed snapshot is never more than she could read.
+  const lines = String(row.rules || "").split("\n").map((line) => line.trim()).filter(Boolean).slice(0, 60);
+  const more = 0;
   return {
     id: row.user_id,
     name: row.name || "سالن",
     area: row.area || "",
-    rules: row.rules || "",
-    avatar: row.avatar ? `/api/media/avatar/${row.user_id}` : ""
+    rules: codeValid ? row.rules || "" : "",
+    rulesLines: codeValid ? lines : [],
+    rulesMore: codeValid ? more : 0,
+    avatar: row.avatar ? `/api/media/avatar/${row.user_id}` : "",
+    ready: joinTermsReady(terms),
+    codeValid,
+    terms: codeValid && joinTermsReady(terms) ? terms : null
   };
 }
 
@@ -510,11 +577,14 @@ export async function listArtistTeams(artistUserId) {
       st.salon_user_id,
       st.role,
       st.state,
+      st.leave_until,
+      st.direct_allowed,
       st.created_at,
       COALESCE(NULLIF(s.name, ''), su.name) AS salon_name,
       COALESCE(s.area, '') AS salon_area,
       COALESCE(s.rules, '') AS salon_rules,
       (su.avatar <> '' OR su.avatar_url IS NOT NULL) AS salon_avatar,
+      (su.poster <> '' OR su.poster_url IS NOT NULL) AS salon_poster, su.poster_position AS salon_poster_position,
       COALESCE(i.days, c.days, '') AS days,
       COALESCE(i.from_time, c.from_time, '') AS from_time,
       COALESCE(i.to_time, c.to_time, '') AS to_time,
@@ -533,13 +603,42 @@ export async function listArtistTeams(artistUserId) {
     WHERE st.artist_user_id = $1
     ORDER BY st.id DESC
   `, [artistUserId]);
+  const salonIds = rows.map((row) => row.salon_user_id);
+  const staffIds = rows.map((row) => row.staff_id);
+  const [mates, salonHours, ownHours, posts] = salonIds.length ? await Promise.all([
+    all(db, `
+      SELECT st.salon_user_id, st.name, st.artist_user_id, st.is_owner, u.avatar <> '' OR u.avatar_url IS NOT NULL AS has_avatar
+      FROM salon_staff st LEFT JOIN users u ON u.id = st.artist_user_id
+      WHERE st.salon_user_id = ANY($1::int[]) AND st.state <> 'غیرفعال' AND st.artist_user_id IS DISTINCT FROM $2
+      ORDER BY st.id
+    `, [salonIds, artistUserId]),
+    all(db, "SELECT salon_user_id, day, open_time, close_time, active FROM salon_hours WHERE salon_user_id = ANY($1::int[])", [salonIds]),
+    all(db, "SELECT day, open_time, close_time, active FROM artist_hours WHERE artist_user_id = $1", [artistUserId]),
+    all(db, "SELECT staff_id, status, COUNT(*)::int AS n FROM salon_team_posts WHERE staff_id = ANY($1::int[]) GROUP BY staff_id, status", [staffIds])
+  ]) : [[], [], [], []];
+  if (salonIds.length && !ownHours.length) ownHours.push(...defaultArtistHours.map((h) => ({ day: h.day, open_time: h.open_time, close_time: h.close_time, active: h.active })));
+  const hoursOf = (list) => list.map((h) => ({ day: h.day, open: h.open_time || "", close: h.close_time || "", active: Boolean(h.active) }));
   return rows.map((row) => ({
+    leaveUntil: row.state === "مرخصی" ? row.leave_until || "" : "",
+    directAllowed: row.direct_allowed !== false,
+    // The others on this team (never their numbers): name, and their photo when they have a frfro page.
+    teammates: mates
+      .filter((m) => m.salon_user_id === row.salon_user_id)
+      .map((m) => ({ name: m.name || "", avatar: m.has_avatar && m.artist_user_id ? `/api/media/avatar/${m.artist_user_id}` : "", isOwner: Boolean(m.is_owner) })),
+    salonHours: hoursOf(salonHours.filter((h) => h.salon_user_id === row.salon_user_id)),
+    ownHours: hoursOf(ownHours),
+    posts: {
+      pending: posts.find((p) => p.staff_id === row.staff_id && p.status === "pending")?.n || 0,
+      approved: posts.find((p) => p.staff_id === row.staff_id && p.status === "approved")?.n || 0
+    },
     staffId: row.staff_id,
     salonId: row.salon_user_id,
     salonName: row.salon_name || "سالن",
     salonArea: row.salon_area || "",
     salonRules: row.salon_rules || "",
     salonAvatar: row.salon_avatar ? `/api/media/avatar/${row.salon_user_id}` : "",
+    salonPoster: row.salon_poster ? `/api/media/poster/${row.salon_user_id}` : "",
+    salonPosterPosition: row.salon_poster_position || "",
     role: row.role || "",
     state: row.state || "فعال",
     since: row.created_at,

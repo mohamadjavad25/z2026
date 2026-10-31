@@ -5,13 +5,14 @@ import { Check, Locate, MapPin, Search, X } from "lucide-react";
 // Bundled with the app instead of fetched from unpkg, so the map never depends on a CDN being reachable.
 import "leaflet/dist/leaflet.css";
 import { PROVINCES } from "./iranCities";
+import { deviceLocationEnabled, locationPermissionDenied, openDeviceLocationSettings } from "../../shared/lib/deviceLocation";
 
 const ALL_CITIES = PROVINCES.flatMap((province) => province.cities.map((city) => ({ ...city, province: province.name })));
 const IRAN_CENTER = { lat: 32.4279, lng: 53.688 };
 const CITY_ZOOM = 13;
 const PIN_ZOOM = 17;
 
-const PIN_HTML = `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="#14161d" stroke="#fff" stroke-width="1.5"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3" fill="#fff" stroke="#14161d"/></svg>`;
+const PIN_HTML = `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="#5b3fd6" stroke="#fff" stroke-width="1.5"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3" fill="#fff" stroke="#5b3fd6"/></svg>`;
 
 function nearestCity(lat, lng) {
   return ALL_CITIES.reduce(
@@ -31,12 +32,16 @@ function nearestCity(lat, lng) {
  * shape as «ثبت لوکیشن» in Settings; `area` is the street address when the map service answers,
  * else the nearest city.
  */
-export function MapPinPicker({ initialPin = null, initialDetail = "", askDetail = true, saving = false, saveLabel = "همین‌جا رو ذخیره کن", onSave, onCancel }) {
+export function MapPinPicker({ initialPin = null, initialAddress = "", initialDetail = "", askDetail = true, saving = false, saveLabel = "همین‌جا رو ذخیره کن", onSave, onCancel }) {
   const [pin, setPin] = useState(initialPin);
-  const [address, setAddress] = useState("");
+  // A reopened saved spot starts with its saved address, so «ذخیره» never waits for the map service to answer again.
+  const [address, setAddress] = useState(initialAddress);
   const [addressLoading, setAddressLoading] = useState(false);
   const [locating, setLocating] = useState(false);
   const [note, setNote] = useState("");
+  // The phone's location is off ("off", the app can tell) or nothing came back ("unsure", a browser
+  // cannot tell why): the map waits for it to be switched on instead of searching on and on.
+  const [locationOff, setLocationOff] = useState(null);
   const [query, setQuery] = useState("");
   const [detail, setDetail] = useState(initialDetail);
 
@@ -92,29 +97,75 @@ export function MapPinPicker({ initialPin = null, initialDetail = "", askDetail 
     lookUpAddress(position.lat, position.lng);
   }
 
-  // The phone's own position: precise first; if that fails for a reason other than permission,
-  // once more without high accuracy (often answers indoors or when GPS is slow).
-  function locate() {
+  // The phone's own position. Inside the app the phone is asked first whether its location is on;
+  // when it is off nothing is searched until it is switched on (owner's request 2026-10-26). Then
+  // precise first; if that fails for a reason other than permission, once more without high
+  // accuracy (often answers indoors or when GPS is slow).
+  async function locate() {
     if (!navigator.geolocation) {
       setNote("این گوشی جات رو نمی‌گه؛ روی نقشه بزن یا اسم شهرت رو بنویس.");
       return;
     }
     setNote("");
+    if (await locationPermissionDenied()) {
+      setLocationOff(null);
+      setNote("به جات دسترسی نداریم؛ روی نقشه بزن یا اسم شهرت رو بنویس.");
+      return;
+    }
+    if ((await deviceLocationEnabled()) === false) {
+      setLocationOff("off");
+      return;
+    }
+    setLocationOff(null);
     setLocating(true);
     const done = ({ coords }) => {
       setLocating(false);
+      setLocationOff(null);
       placePin({ lat: coords.latitude, lng: coords.longitude }, PIN_ZOOM);
     };
-    const failed = (error) => {
+    const failed = async (error) => {
       setLocating(false);
-      setNote(error?.code === 1
-        ? "به جات دسترسی نداریم؛ روی نقشه بزن یا اسم شهرت رو بنویس."
-        : "جات پیدا نشد؛ روی نقشه بزن یا اسم شهرت رو بنویس.");
+      if (error?.code === 1) {
+        setNote("به جات دسترسی نداریم؛ روی نقشه بزن یا اسم شهرت رو بنویس.");
+        return;
+      }
+      setLocationOff((await deviceLocationEnabled()) === false ? "off" : "unsure");
     };
     navigator.geolocation.getCurrentPosition(done, (error) => {
       if (error?.code === 1) return failed(error);
-      navigator.geolocation.getCurrentPosition(done, failed, { enableHighAccuracy: false, timeout: 15000, maximumAge: 300000 });
-    }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 });
+      navigator.geolocation.getCurrentPosition(done, failed, { enableHighAccuracy: false, timeout: 8000, maximumAge: 300000 });
+    }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
+  }
+
+  const locateRef = useRef(locate);
+  locateRef.current = locate;
+
+  // While the location is off: look again when the person comes back from the phone's settings,
+  // and inside the app every two seconds too (switching it on from the top bar leaves the page in
+  // front). Once it is on, the search starts by itself.
+  useEffect(() => {
+    if (!locationOff) return undefined;
+    let busy = false;
+    async function check() {
+      if (busy || document.visibilityState !== "visible") return;
+      busy = true;
+      const enabled = await deviceLocationEnabled();
+      busy = false;
+      if (enabled === true || (enabled === null && locationOff === "unsure")) locateRef.current();
+    }
+    function onVisible() {
+      if (document.visibilityState === "visible") check();
+    }
+    document.addEventListener("visibilitychange", onVisible);
+    const timer = locationOff === "off" ? setInterval(check, 2000) : null;
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      if (timer) clearInterval(timer);
+    };
+  }, [locationOff]);
+
+  async function turnLocationOn() {
+    if (!(await openDeviceLocationSettings())) locate();
   }
 
   useEffect(() => {
@@ -127,7 +178,10 @@ export function MapPinPicker({ initialPin = null, initialDetail = "", askDetail 
       const map = L.map(boxRef.current, { center: [start.lat, start.lng], zoom: initialPin ? PIN_ZOOM : 5, zoomControl: false, attributionControl: false });
       L.control.zoom({ position: "bottomleft" }).addTo(map);
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
-      map.on("click", (event) => placePin({ lat: event.latlng.lat, lng: event.latlng.lng }));
+      map.on("click", (event) => {
+        setLocationOff(null);
+        placePin({ lat: event.latlng.lat, lng: event.latlng.lng });
+      });
       mapRef.current = map;
       setTimeout(() => map.invalidateSize(), 120);
       if (initialPin) placePin(initialPin);
@@ -146,6 +200,7 @@ export function MapPinPicker({ initialPin = null, initialDetail = "", askDetail 
   function pickCity(city) {
     setQuery("");
     setNote("");
+    setLocationOff(null);
     placePin({ lat: city.lat, lng: city.lng }, CITY_ZOOM);
   }
 
@@ -188,6 +243,20 @@ export function MapPinPicker({ initialPin = null, initialDetail = "", askDetail 
       </div>
 
       {note ? <p className="mppNote" role="status">{note}</p> : null}
+      {locationOff && !pin ? (
+        <div className="mppOff" role="status">
+          <p>
+            {locationOff === "off"
+              ? "لوکیشن گوشیت خاموشه. روشنش کن تا جات رو پیدا کنیم."
+              : "جات پیدا نشد. اگه لوکیشن گوشیت خاموشه، روشنش کن و دوباره بگرد."}
+          </p>
+          <button type="button" className="mppOffBtn" onClick={locationOff === "off" ? turnLocationOn : locate}>
+            <Locate size={15} aria-hidden="true" />
+            {locationOff === "off" ? "روشن کردن لوکیشن" : "دوباره بگرد"}
+          </button>
+          <small>یا روی نقشه بزن یا اسم شهرت رو بنویس.</small>
+        </div>
+      ) : null}
       <p className="mppAddress">
         <MapPin size={15} aria-hidden="true" />
         <span>

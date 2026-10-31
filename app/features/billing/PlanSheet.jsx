@@ -8,16 +8,17 @@ import { startBillingCheckout } from "../../shared/api/billing";
 import { formatPersianLongDate } from "../../shared/lib/billingFormat";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatToman, formatTomanNumber } from "../../shared/lib/money";
+import { LegalLink } from "../../legal/LegalLink";
 import { goToGateway, rememberPendingPayment } from "./billingStore";
 
 function leadText(account, name = "") {
   const until = formatPersianLongDate(account?.accessEndsAt);
   if (name) {
-    if (account?.state === "trial") return `ماه رایگان ${name} تا ${until} هست. پلنی که الان بخری از همون روز شروع می‌شه.`;
+    if (account?.state === "trial") return `دوره‌ی رایگان ${name} تا ${until} هست. پلنی که الان بخری از همون روز شروع می‌شه.`;
     if (account?.state === "active") return `پلن تازه به آخر اشتراک ${name} (${until}) اضافه می‌شه.`;
     return "پلن از همین امروز شروع می‌شه.";
   }
-  if (account?.state === "trial") return `ماه رایگانت تا ${until} هست. پلنی که الان بخری از همون روز شروع می‌شه.`;
+  if (account?.state === "trial") return `دوره‌ی رایگانت تا ${until} هست. پلنی که الان بخری از همون روز شروع می‌شه.`;
   if (account?.state === "active") return `پلن تازه به آخر اشتراکت (${until}) اضافه می‌شه.`;
   return "پلن از همین امروز شروع می‌شه.";
 }
@@ -125,7 +126,7 @@ export function PlanSheet({ open, overview, forMember = null, onClose }) {
 
       <p className="billFine">
         پرداخت توی صفحهٔ امن بانکه و فرفرو شمارهٔ کارتت رو نمی‌بینه. تمدید خودکار نداریم؛ بی‌اجازه‌ت پولی کم نمی‌شه.
-        با پرداخت، <a href="/terms" target="_blank" rel="noreferrer">قوانین و مقررات</a> رو قبول داری.
+        با پرداخت، <LegalLink doc="terms">قوانین و مقررات</LegalLink> رو قبول داری.
       </p>
     </ProfileSheet>
   );

@@ -17,10 +17,11 @@ import { AWAITING_CLIENT } from "../../shared/lib/bookingOffer.js";
 import { createSalonBooking } from "../../lib/salonBookingCreate.js";
 import { requestedServiceNames, validFallbackSalon } from "../../lib/bookingFallback.js";
 import { BOOKING_REQUEST_WINDOW_MINUTES } from "../../shared/lib/bookingWindow.js";
-import { bookingWhen, smsBookingAnswer, smsNewBookingRequest } from "../../lib/bookingSms.js";
+import { bookingWhen, noticeClientBookedByProvider, smsBookingAnswer, smsNewBookingRequest } from "../../lib/bookingSms.js";
 import { notifyStaff } from "../../lib/staffNotify.js";
 import { noticeClientCancelledByProvider, noticeClientTimeProposal } from "../../lib/providerNotices.js";
 import * as proposals from "../../lib/db/repos/bookingProposals.js";
+import { STARTED_NO_CANCEL_TEXT } from "../../shared/lib/providerRules.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -133,6 +134,12 @@ async function _POST(request) {
       body: `${client}، ${service}، ${bookingWhen(result.booking.booking_date, time)}`
     }).catch(() => null);
     smsNewBookingRequest(salonUserId, { client, service, bookingDate: result.booking.booking_date, time, fromUserId: auth.user.id }, push);
+  }
+  // The salon entered it for a client by hand: the client is told (push for an account, SMS for the number).
+  if (auth.user.type === "salon" && !result.duplicate) {
+    noticeClientBookedByProvider({ id: auth.user.id, type: "salon", name: auth.user.name }, {
+      kind: "salon", id: result.booking.id, phone: result.booking.phone, bookingDate: result.booking.booking_date, time
+    });
   }
   // The team artist whose visit it is hears about it too (waiting for the salon's answer, or booked by the salon).
   if (!result.duplicate) {
@@ -257,6 +264,9 @@ async function _PATCH(request) {
     }
     if (result.error === "past") {
       return noStoreJson({ error: "رزرو گذشته قابل ویرایش نیست." }, { status: 409 });
+    }
+    if (result.error === "started") {
+      return noStoreJson({ error: STARTED_NO_CANCEL_TEXT, code: "BOOKING_STARTED" }, { status: 409 });
     }
     if (result.error === "expired") {
       return noStoreJson({

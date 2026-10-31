@@ -1,0 +1,23 @@
+/* Team posts waiting for the salon's yes, above the salon's own «نمونه‌کارها» (SalonTeamPostsPanel.jsx). */
+.teamPosts { display: grid; gap: 14px; margin: 0 0 16px; }
+.teamPostsBlock { display: grid; gap: 8px; padding: 14px; border: 1.5px solid var(--n-100); border-radius: var(--radius-lg); background: var(--n-0); }
+.teamPostsBlock h3 { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--n-900); font-size: 0.92rem; font-weight: 900; }
+.teamPostsBlock h3 span { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: var(--radius-pill); background: var(--accent-fill); color: var(--on-accent-fill); font-size: 0.72rem; }
+.teamPostsBlock p { margin: 0; color: var(--n-600); font-size: 0.74rem; font-weight: 700; line-height: 1.7; }
+.teamPostsList { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.teamPostsReq { display: grid; grid-template-columns: 56px 1fr; gap: 8px 10px; align-items: center; padding: 8px; border: 1px solid var(--n-100); border-radius: var(--radius-md); }
+.teamPostsReq img, .teamPostsReq > i { width: 56px; height: 70px; border-radius: 10px; object-fit: cover; background: var(--n-100); }
+.teamPostsReqText { display: grid; gap: 2px; min-width: 0; }
+.teamPostsReqText b { color: var(--n-900); font-size: 0.82rem; font-weight: 900; }
+.teamPostsReqText small { overflow: hidden; color: var(--n-600); font-size: 0.72rem; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.teamPostsReqActions { display: flex; grid-column: 1 / -1; gap: 8px; }
+.teamPostsReqActions button, .teamPostsConfirm button { display: inline-flex; flex: 1; align-items: center; justify-content: center; gap: 5px; min-height: 38px; border: 1.5px solid var(--n-150); border-radius: 12px; background: var(--n-0); color: var(--n-900); font: inherit; font-size: 0.78rem; font-weight: 900; cursor: pointer; }
+.teamPostsReqActions button.is-yes, .teamPostsConfirm button.is-yes { border-color: transparent; background: var(--fill-strong); color: var(--n-0); }
+.teamPostsReqActions button:disabled, .teamPostsConfirm button:disabled, .teamPostsRemove:disabled { opacity: 0.55; cursor: default; }
+.teamPostsStrip { display: flex; gap: 10px; margin: 0; padding: 0 0 4px; overflow-x: auto; list-style: none; scrollbar-width: none; }
+.teamPostsStrip li { display: grid; flex: 0 0 112px; gap: 4px; align-content: start; }
+.teamPostsStrip img, .teamPostsStrip li > i { width: 112px; height: 140px; border-radius: 12px; object-fit: cover; background: var(--n-100); }
+.teamPostsStrip small { overflow: hidden; color: var(--n-700); font-size: 0.7rem; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+.teamPostsRemove { min-height: 32px; border: 1px solid var(--n-150); border-radius: 10px; background: transparent; color: var(--n-700); font: inherit; font-size: 0.7rem; font-weight: 900; cursor: pointer; }
+.teamPostsConfirm { display: grid; gap: 4px; }
+.teamPostsConfirm button { min-height: 32px; font-size: 0.7rem; }

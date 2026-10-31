@@ -1,8 +1,8 @@
 import { describe, it, expect, afterAll } from "vitest";
 import {
-  CONFIRMED, CANCELLED, EXPIRED, openDb, daysAgoKey, moveBooking, tehranMinutes, expirySweep, reminderSweep,
+  CONFIRMED, CANCELLED, EXPIRED, openDb, daysAgoKey, moveBooking, tehranMinutes, clockAgo, expirySweep, reminderSweep,
   newSalon, newDirectArtist, newClient, requestSalon, requestArtist, confirmSalon, confirmArtist,
-  cancelBySalon, cancelByArtist, cancelByClient, salonRow, clientSalonRow, artistRow, clientArtistRow,
+  cancelBySalon, cancelByArtist, cancelByClient, salonRow, clientSalonRow, clientArtistRow,
   moveToDaysAgo, moveToStartedAgo, answerSmsTo
 } from "./afterVisitKit.js";
 
@@ -102,39 +102,39 @@ describe("after the visit: who may still change it", () => {
     expect((await salonRow(ctx, booking.id)).status).toBe(CONFIRMED);
   });
 
-  // Since the provider rules of 2026-10-22 a confirmed visit cancelled by its salon or artist gets the apology text
-  // (booking_cancelled_by_provider, «… را لغو کرد. بابت این اتفاق متأسفیم.») instead of the plain «لغو شد» answer.
-  it("gap: the salon CAN cancel today's visit after it ended, and the client gets the apology text", async () => {
-    if (tehranMinutes() < 150) return; // needs a visit that ended earlier today
+  // Since the owner's decision of 2026-10-25 a confirmed visit that has started is no longer its salon's or artist's to
+  // cancel: «نیومد» (POST /api/booking-no-show) takes its place, and the client gets no text.
+  it("fixed: the salon can't cancel today's visit once it started; the client hears nothing", async () => {
+    if (tehranMinutes() < 150) return; // needs a visit that started earlier today
     const { ctx, client, booking } = await confirmedSalonVisit("SalonSameDay");
     await moveToStartedAgo(db, "salon_bookings", booking.id, 120);
-    const answersBefore = (await answerSmsTo(db, client.phone)).length;
-    expect((await cancelBySalon(ctx, booking.id)).ok).toBe(true);
-    expect((await clientSalonRow(client, booking.id)).status).toBe(CANCELLED);
-    expect((await answerSmsTo(db, client.phone)).length).toBe(answersBefore);
-    expect((await apologySmsTo(client.phone)).at(-1)).toContain("لغو کرد");
+    const apologiesBefore = (await apologySmsTo(client.phone)).length;
+    const refused = await cancelBySalon(ctx, booking.id);
+    expect(refused.status).toBe(409);
+    expect(refused.payload.code).toBe("BOOKING_STARTED");
+    expect((await clientSalonRow(client, booking.id)).status).toBe(CONFIRMED);
+    expect((await apologySmsTo(client.phone)).length).toBe(apologiesBefore);
   });
 
-  it("gap: an independent artist CAN cancel a visit from three days ago, and the client gets the apology text", async () => {
+  it("fixed: an independent artist can't cancel a visit from three days ago", async () => {
     const { a, client, booking } = await confirmedArtistVisit("ArtistPast");
     await moveToDaysAgo(db, "artist_bookings", booking.id, 3);
-    const answersBefore = (await answerSmsTo(db, client.phone)).length;
-    expect((await cancelByArtist(a, booking.id)).ok).toBe(true);
-    expect((await clientArtistRow(client, booking.id)).status).toBe(CANCELLED);
-    expect((await artistRow(a, booking.id)).status).toBe(CANCELLED);
-    expect((await answerSmsTo(db, client.phone)).length).toBe(answersBefore);
-    expect((await apologySmsTo(client.phone)).at(-1)).toContain("لغو کرد");
+    const refused = await cancelByArtist(a, booking.id);
+    expect(refused.status).toBe(409);
+    expect(refused.payload.code).toBe("BOOKING_STARTED");
+    expect((await clientArtistRow(client, booking.id)).status).toBe(CONFIRMED);
   });
 
-  it("gap: a salon's team artist CAN cancel last week's salon visit, and the salon's booking flips to «لغو» too", async () => {
+  it("fixed: a salon's team artist can't cancel last week's salon visit", async () => {
     const { ctx, client, booking } = await confirmedSalonVisit("TeamPast", { withArtist: true });
     await moveToDaysAgo(db, "salon_bookings", booking.id, 7);
     const mirror = (await ctx.artistClient.get("/api/artist/me")).payload.data.bookings
       .find((b) => b.client_name === client.user.name && b.status === CONFIRMED);
     expect(mirror).toBeTruthy();
-    expect((await ctx.artistClient.patch("/api/artist/me", { kind: "booking", id: mirror.id, status: CANCELLED })).ok).toBe(true);
-    expect((await salonRow(ctx, booking.id)).status).toBe(CANCELLED);
-    expect((await clientSalonRow(client, booking.id)).status).toBe(CANCELLED);
+    const refused = await ctx.artistClient.patch("/api/artist/me", { kind: "booking", id: mirror.id, status: CANCELLED });
+    expect(refused.status).toBe(409);
+    expect((await salonRow(ctx, booking.id)).status).toBe(CONFIRMED);
+    expect((await clientSalonRow(client, booking.id)).status).toBe(CONFIRMED);
   });
 
   it("fixed (rare): a team-artist request whose time is taken on the artist's calendar is closed by the sweep", async () => {
@@ -160,5 +160,64 @@ describe("after the visit: who may still change it", () => {
     await moveToStartedAgo(db, "salon_bookings", booking.id, 30);
     expect((await confirmSalon(ctx, booking.id)).ok).toBe(false);
     expect((await clientSalonRow(client, booking.id)).status).not.toBe(CONFIRMED);
+  });
+});
+
+/** Puts a booking `hours` hours behind now (yesterday when needed), so «نیومد» windows can be tested at any time of day. */
+async function moveToHoursAgo(table, id, hours) {
+  const minutes = Math.round(hours * 60);
+  const now = tehranMinutes();
+  if (now >= minutes) return moveToStartedAgo(db, table, id, minutes);
+  return moveBooking(db, table, id, { date: daysAgoKey(1), time: clockAgo(minutes - 1440) });
+}
+
+const noShow = (api, kind, id, value = true) => api.post("/api/booking-no-show", { kind, id, noShow: value });
+
+describe("«نیومد» (owner's decision of 2026-10-25)", () => {
+  it("the salon marks a visit that started; the client sees it, nobody is texted, the customers count follows", async () => {
+    const { ctx, client, booking } = await confirmedSalonVisit("NoShowSalon", { withArtist: true });
+    const textsBefore = (await answerSmsTo(db, client.phone)).length;
+    await moveToHoursAgo("salon_bookings", booking.id, 3);
+    const marked = await noShow(ctx.salonClient, "salon", booking.id);
+    expect(marked.status).toBe(200);
+    const salonSide = marked.payload.data.bookings.find((b) => b.id === booking.id);
+    expect(salonSide.no_show_at).toBeTruthy();
+    expect(salonSide.status).toBe(CONFIRMED);
+    expect((await clientSalonRow(client, booking.id)).no_show_at).toBeTruthy();
+    // The team artist's calendar copy carries the mark too.
+    const mirror = (await ctx.artistClient.get("/api/artist/me")).payload.data.bookings.find((b) => b.client_name === client.user.name);
+    expect(mirror.no_show_at).toBeTruthy();
+    expect((await answerSmsTo(db, client.phone)).length).toBe(textsBefore);
+    // Taken back: the mark goes, on both sides.
+    expect((await noShow(ctx.salonClient, "salon", booking.id, false)).status).toBe(200);
+    expect((await clientSalonRow(client, booking.id)).no_show_at).toBeFalsy();
+  });
+
+  it("not before the visit starts, and not more than 24 hours after", async () => {
+    const { ctx, booking } = await confirmedSalonVisit("NoShowWindow");
+    const early = await noShow(ctx.salonClient, "salon", booking.id);
+    expect(early.status).toBe(409);
+    await moveToDaysAgo(db, "salon_bookings", booking.id, 2);
+    const late = await noShow(ctx.salonClient, "salon", booking.id);
+    expect(late.status).toBe(409);
+    expect((await salonRow(ctx, booking.id)).no_show_at).toBeFalsy();
+  });
+
+  it("only a confirmed booking, only its own salon or artist", async () => {
+    const ctx = await newSalon("NoShowRequest");
+    const client = await newClient("C NoShowRequest");
+    const waiting = (await requestSalon(ctx, client)).payload.data.booking;
+    expect((await noShow(ctx.salonClient, "salon", waiting.id)).status).toBe(409);
+    const { booking } = await confirmedSalonVisit("NoShowOther");
+    await moveToHoursAgo("salon_bookings", booking.id, 2);
+    expect((await noShow(ctx.salonClient, "salon", booking.id)).status).toBe(404);
+    expect((await noShow(client.api, "salon", booking.id)).status).toBe(403);
+  });
+
+  it("an independent artist marks their own direct visit", async () => {
+    const { a, client, booking } = await confirmedArtistVisit("NoShowArtist");
+    await moveToHoursAgo("artist_bookings", booking.id, 5);
+    expect((await noShow(a.artistClient, "artist", booking.id)).status).toBe(200);
+    expect((await clientArtistRow(client, booking.id)).no_show_at).toBeTruthy();
   });
 });

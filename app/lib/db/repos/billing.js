@@ -1,8 +1,10 @@
 import { randomBytes } from "node:crypto";
 import { getDb, all, get, run, withTransaction } from "../connection.js";
 import { getSetting, saveSetting } from "./adminControl.js";
-import { DAY_MS, computeAccess, nextPeriod, receiptNumber } from "../../billing/period.js";
+import { DAY_MS, computeAccess, nextPeriod, receiptNumber, smsMonthKey } from "../../billing/period.js";
 import { DEFAULT_GRACE_DAYS, isBilledRole, rialToToman } from "../../billing/plans.js";
+import { addPackCredits, lockWallet, removePackCredits } from "./smsWallet.js";
+import { normalizePhone } from "../../../shared/lib/phone.js";
 
 /**
  * Subscriptions and payments for salons and artists. The only file that writes money-related rows.
@@ -74,7 +76,18 @@ export const BILLING_DDL = [
   "ALTER TABLE payments ADD COLUMN IF NOT EXISTS refund_rial BIGINT NOT NULL DEFAULT 0 CHECK (refund_rial >= 0);",
   "ALTER TABLE payments ADD COLUMN IF NOT EXISTS refund_days INTEGER NOT NULL DEFAULT 0 CHECK (refund_days >= 0);",
   "ALTER TABLE payments ADD COLUMN IF NOT EXISTS refund_note TEXT NOT NULL DEFAULT '';",
-  "ALTER TABLE payments ADD COLUMN IF NOT EXISTS refund_admin TEXT NOT NULL DEFAULT '';"
+  "ALTER TABLE payments ADD COLUMN IF NOT EXISTS refund_admin TEXT NOT NULL DEFAULT '';",
+  // migrations/062_sms_packs.sql: SMS packs bought through the same ledger, and each account's SMS wallet.
+  "ALTER TABLE payments ADD COLUMN IF NOT EXISTS kind TEXT NOT NULL DEFAULT 'plan' CHECK (kind IN ('plan', 'sms_pack'));",
+  "ALTER TABLE payments ADD COLUMN IF NOT EXISTS sms_credits INTEGER NOT NULL DEFAULT 0 CHECK (sms_credits >= 0);",
+  "DO $$ BEGIN ALTER TABLE payments DROP CONSTRAINT IF EXISTS payments_days_check; IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'payments_kind_shape' AND conrelid = 'payments'::regclass) THEN ALTER TABLE payments ADD CONSTRAINT payments_kind_shape CHECK ((kind = 'plan' AND days > 0) OR (kind = 'sms_pack' AND days = 0 AND sms_credits > 0)); END IF; END $$;",
+  `CREATE TABLE IF NOT EXISTS sms_wallet (
+  user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  period_key TEXT NOT NULL DEFAULT '',
+  included_used INTEGER NOT NULL DEFAULT 0 CHECK (included_used >= 0),
+  pack_credits INTEGER NOT NULL DEFAULT 0 CHECK (pack_credits >= 0),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);`
 ];
 
 /** Creates the tables on first use (same DDL as migrations 033 and 034, checked by tests/unit/billingSchema.test.js). */
@@ -110,24 +123,63 @@ export async function getBillingSettings({ fresh = false } = {}) {
     launchedAt: saved?.launchedAt || null,
     graceDays: clampGrace(saved?.graceDays ?? DEFAULT_GRACE_DAYS),
     updatedAt: saved?.updatedAt || null,
-    updatedBy: saved?.updatedBy || ""
+    updatedBy: saved?.updatedBy || "",
+    testPhones: ((await getSetting("testAccounts"))?.phones || []).map(String)
   };
   settingsCache = { at: Date.now(), value };
   return value;
 }
 
-/** `launchedAt` is set the first time billing is switched on and is kept from then on, even if billing is switched off and on again. */
-export async function saveBillingSettings({ enabled, graceDays }, label = "") {
+/**
+ * `launchedAt` is the day every older account's free month counts from. It is set the first time billing is switched on
+ * and kept after that, unless the admin switches billing on again from off with `restartFreeDays` (the panel always
+ * does): then it moves to today, so the free days count from the moment the owner presses the switch.
+ */
+export async function saveBillingSettings({ enabled, graceDays, restartFreeDays = false }, label = "") {
   const current = await getBillingSettings({ fresh: true });
-  const launchedAt = current.launchedAt || (enabled ? new Date().toISOString() : null);
+  const restart = Boolean(enabled) && !current.enabled && restartFreeDays;
+  const launchedAt = restart ? new Date().toISOString() : current.launchedAt || (enabled ? new Date().toISOString() : null);
   await saveSetting("billing", { enabled: Boolean(enabled), graceDays: clampGrace(graceDays), launchedAt }, label);
   settingsCache = null;
   return getBillingSettings({ fresh: true });
 }
 
+/* ───────────────────────── test accounts ───────────────────────── */
+
+/** The owner's test numbers, as the digits accounts are stored with. */
+export async function getTestPhones() {
+  return (await getBillingSettings()).testPhones;
+}
+
+/** Replaces the list of test numbers (at most 10; anything that is not a mobile number is rejected by the route). */
+export async function saveTestPhones(phones, label = "") {
+  const unique = [...new Set(phones.map((phone) => normalizePhone(phone)))];
+  await saveSetting("testAccounts", { phones: unique }, label);
+  settingsCache = null;
+  return (await getBillingSettings({ fresh: true })).testPhones;
+}
+
+/** Of `userIds`, the accounts behind a test number. One batch, for directory lists and search. */
+export async function testAccountIds(userIds) {
+  const ids = [...new Set((userIds || []).map(Number).filter((id) => Number.isInteger(id) && id > 0))];
+  const phones = await getTestPhones();
+  if (!ids.length || !phones.length) return new Set();
+  const db = await getDb();
+  const rows = await all(db, "SELECT id FROM users WHERE id = ANY($1::int[]) AND phone = ANY($2::text[])", [ids, phones]);
+  return new Set(rows.map((row) => Number(row.id)));
+}
+
 /* ───────────────────────── account state ───────────────────────── */
 
-function accessOf(user, paidUntil, settings, now) {
+/**
+ * An owner's test number is never charged or closed: its access never ends. `honorTestAccount: false` is for the two
+ * places that add days to an account (a payment settling, an admin grant), which must count from the real dates.
+ */
+function accessOf(user, paidUntil, settings, now, { honorTestAccount = true } = {}) {
+  if (honorTestAccount && user.phone && settings.testPhones?.includes(String(user.phone))) {
+    const forever = new Date(new Date(now).getTime() + 100 * 365 * DAY_MS);
+    return { ...computeAccess({ now, createdAt: user.created_at, launchedAt: settings.launchedAt, paidUntil: forever, graceDays: settings.graceDays }), comped: true };
+  }
   return computeAccess({ now, createdAt: user.created_at, launchedAt: settings.launchedAt, paidUntil, graceDays: settings.graceDays });
 }
 
@@ -157,7 +209,7 @@ export async function listTeamArtists(salonUserId, now = new Date()) {
     getBillingSettings(),
     all(db, `
       SELECT * FROM (
-        SELECT DISTINCT ON (u.id) u.id, u.type, u.created_at, COALESCE(NULLIF(u.name, ''), NULLIF(st.name, ''), 'آرتیست') AS name,
+        SELECT DISTINCT ON (u.id) u.id, u.type, u.phone, u.created_at, COALESCE(NULLIF(u.name, ''), NULLIF(st.name, ''), 'آرتیست') AS name,
                (u.avatar <> '' OR u.avatar_url IS NOT NULL) AS has_avatar, sub.paid_until, st.id AS staff_id
         FROM salon_staff st
         JOIN users u ON u.id = st.artist_user_id AND u.type = 'artist'
@@ -190,7 +242,7 @@ export async function closedAccountIds(userIds, now = new Date()) {
   const [settings, rows] = await Promise.all([
     getBillingSettings(),
     all(db, `
-      SELECT u.id, u.type, u.created_at, sub.paid_until
+      SELECT u.id, u.type, u.phone, u.created_at, sub.paid_until
       FROM users u LEFT JOIN subscriptions sub ON sub.user_id = u.id
       WHERE u.id = ANY($1::int[]) AND u.type IN ('salon', 'artist')
     `, [ids])
@@ -218,6 +270,23 @@ export async function createPayment({ user, plan, gateway, payer = null }) {
   `, [
     user.id, user.type, String(user.name || "").slice(0, 120), String(user.phone || ""), plan.id, plan.title, plan.days, plan.amountRial,
     gateway, newToken(), payer ? payer.id : null, payer ? String(payer.name || "").slice(0, 120) : ""
+  ]);
+}
+
+/**
+ * A checkout attempt for an SMS pack: pending, no gateway token yet. Always for the account's own wallet. The pack's
+ * amount and credits are copied here and never re-read; days is 0 (the table's check enforces the pack shape).
+ */
+export async function createPackPayment({ user, pack, gateway }) {
+  await ensureBillingTables();
+  const db = await getDb();
+  return get(db, `
+    INSERT INTO payments (user_id, user_type, user_name, user_phone, plan, plan_title, days, amount_rial, gateway, return_token, kind, sms_credits)
+    VALUES ($1, $2, $3, $4, $5, $6, 0, $7, $8, $9, 'sms_pack', $10)
+    RETURNING *
+  `, [
+    user.id, user.type, String(user.name || "").slice(0, 120), String(user.phone || ""), pack.id, pack.title, pack.amountRial,
+    gateway, newToken(), pack.credits
   ]);
 }
 
@@ -299,7 +368,7 @@ export async function settlePayment(paymentId, verification, now = new Date()) {
 
     const amountOk = verification.amountRial === undefined || verification.amountRial === null || Number(verification.amountRial) === Number(payment.amount_rial);
     if (verification.status !== "paid" || !amountOk) {
-      const failure = !amountOk ? "مبلغ پرداخت‌شده با مبلغ اشتراک یکی نبود." : String(verification.failure || "پرداخت انجام نشد.").slice(0, 200);
+      const failure = !amountOk ? "مبلغ پرداخت‌شده با مبلغ سفارش یکی نبود." : String(verification.failure || "پرداخت انجام نشد.").slice(0, 200);
       const updated = await get(client, `
         UPDATE payments SET status = 'failed', failure = $2, verify_attempts = verify_attempts + 1, last_verify_at = $3,
                gateway_payload = gateway_payload || $4::jsonb, updated_at = NOW()
@@ -308,9 +377,13 @@ export async function settlePayment(paymentId, verification, now = new Date()) {
       return { payment: updated, settled: true };
     }
 
-    // Paid. Extend the account (if it still exists), then close the payment with its receipt number.
+    // Paid. Extend the account (if it still exists), then close the payment with its receipt number. An SMS pack adds its
+    // credits to the wallet instead and has no period; either way this runs once, because only a pending row gets here.
     let period = { start: null, end: null };
-    if (payment.user_id) {
+    if (payment.user_id && payment.kind === "sms_pack") {
+      const user = await get(client, "SELECT id FROM users WHERE id = $1", [payment.user_id]);
+      if (user) await addPackCredits(client, user.id, payment.sms_credits, smsMonthKey(now));
+    } else if (payment.user_id) {
       const user = await get(client, "SELECT id, type, created_at FROM users WHERE id = $1", [payment.user_id]);
       if (user) {
         await run(client, "INSERT INTO subscriptions (user_id) VALUES ($1) ON CONFLICT (user_id) DO NOTHING", [user.id]);
@@ -351,7 +424,7 @@ export async function grantDays({ userId, days, amountRial = 0, note = "", admin
     if (!user || !isBilledRole(user.type)) return { ok: false, error: "فقط برای حساب سالن یا آرتیست." };
     await run(client, "INSERT INTO subscriptions (user_id) VALUES ($1) ON CONFLICT (user_id) DO NOTHING", [user.id]);
     const sub = await get(client, "SELECT paid_until FROM subscriptions WHERE user_id = $1 FOR UPDATE", [user.id]);
-    const access = accessOf(user, sub?.paid_until || null, settings, now);
+    const access = accessOf(user, sub?.paid_until || null, settings, now, { honorTestAccount: false });
     const period = nextPeriod({ now, accessEndsAt: access.accessEndsAt, days });
     await run(client, "UPDATE subscriptions SET paid_until = $2, updated_at = NOW() WHERE user_id = $1", [user.id, period.end]);
     const inserted = await get(client, `
@@ -392,7 +465,16 @@ export async function recordRefund({ paymentId, amountRial, days, note = "", adm
     const refundDays = Math.round(Number(days));
     if (!(refundRial > 0) || refundRial > Number(payment.amount_rial)) return { ok: false, status: 400, error: "مبلغ بازپرداخت باید بیشتر از صفر و حداکثر به اندازهٔ مبلغ پرداخت باشد." };
     if (!(refundDays >= 0) || refundDays > Number(payment.days)) return { ok: false, status: 400, error: "روزهای کم‌شده نمی‌تواند بیشتر از روزهای همین پلن باشد." };
-    if (payment.user_id && refundDays > 0) {
+    // A pack is refunded whole and only while all of its credits are still there (terms, section 4: none of it used);
+    // the refund takes those credits back. A plan's refund takes days off the subscription instead.
+    if (payment.kind === "sms_pack") {
+      if (refundRial !== Number(payment.amount_rial)) return { ok: false, status: 400, error: "بسته‌ی پیامک کامل بازپرداخت می‌شه؛ مبلغ کل بسته رو بنویس." };
+      if (payment.user_id) {
+        const wallet = await lockWallet(client, payment.user_id, smsMonthKey(now));
+        if (Number(wallet.pack_credits) < Number(payment.sms_credits)) return { ok: false, status: 409, error: "از پیامک‌های این بسته مصرف شده؛ طبق قوانین بازپرداخت نداره." };
+        await removePackCredits(client, payment.user_id, payment.sms_credits, smsMonthKey(now));
+      }
+    } else if (payment.user_id && refundDays > 0) {
       const sub = await get(client, "SELECT paid_until FROM subscriptions WHERE user_id = $1 FOR UPDATE", [payment.user_id]);
       if (sub?.paid_until) {
         const end = new Date(new Date(sub.paid_until).getTime() - refundDays * DAY_MS);

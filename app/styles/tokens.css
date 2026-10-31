@@ -23,6 +23,8 @@
   --brand-pink: #ff86b8;
   --brand-violet: #8b6cff;
   --brand-white: #ffffff;
+  /* Instagram's own logo colours: only for its logo (the «اینستاگرام» folder, features/instagram.css), never as a brand colour. */
+  --ig-gradient: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 6%, #fd5949 45%, #d6249f 62%, #285aeb 92%);
   --pink-deep: #c42a74;      /* pink as text or border on white (AA) */
   --violet-deep: #5b3fd6;    /* violet as text, or as a button behind white text (AA) */
   --pink-soft: #ffe3ef;
@@ -66,6 +68,7 @@
   --focus-ring: var(--brand-violet);
   --scrim: rgba(12, 13, 18, 0.55);      /* behind sheets and dialogs, dark in both themes */
   --on-photo: #ffffff;                  /* text on pictures and dark scrims */
+  --on-photo-rgb: 255 255 255;          /* the same white as channels, for see-through layers on pictures */
   --mascot-outline: drop-shadow(1.5px 0 0 #fff) drop-shadow(-1.5px 0 0 #fff) drop-shadow(0 1.5px 0 #fff) drop-shadow(0 -1.5px 0 #fff);
   --mascot-filter: none;                /* night gives the mascot a white sticker outline, see below */
 
@@ -281,6 +284,26 @@ img, svg, picture, video, canvas {
   }
 }
 
+/* Live moments: pink for every role (2026-10-27). What is new or happening now (a fresh request, an unread
+   count, a new-booking notice) is the mascot's pink even on violet salon and artist screens, so the brand pink
+   is felt everywhere while the fixed parts keep the role colour. Small marks only: chips, dots, rails, badges. */
+:root {
+  --live: var(--pink-deep);
+  --live-fill: var(--brand-pink);
+  --on-live-fill: var(--brand-ink);
+  --live-soft: var(--pink-soft);
+}
+:root[data-theme="dark"] {
+  --live: #ff9cc6;
+  --live-soft: rgba(255, 134, 184, 0.18);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --live: #ff9cc6;
+    --live-soft: rgba(255, 134, 184, 0.18);
+  }
+}
+
 /* Role accent: salons and artists work in violet, clients in pink. */
 :root[data-role="pro"] {
   --accent: var(--violet-deep);
@@ -299,21 +322,23 @@ img, svg, picture, video, canvas {
   }
 }
 
-/* Strong fills: the filled "main action" look (primary buttons, active chips, selected tabs, the + button).
-   Day: ink. Night: pink, the one moment of colour in the dark UI. Text on them uses --n-0, which is white by day
-   and near-black by night, so contrast holds both ways. */
+/* Strong fills: the filled "main action" look (primary buttons, active chips, selected tabs, switches).
+   No black buttons (owner's decision, 2026-10-27): they are violet, one flat colour, for every role. Day: deep violet
+   with white text. Night: violet with near-black text (--n-0 flips at night, so contrast holds both ways).
+   Actions with a client or a booking (new booking, approve, invite, book, connect) are pink instead: brandLive.css.
+   --fill-strong-grad is kept as a name only; it is flat now (no gradients on buttons). */
 :root {
-  --fill-strong: var(--brand-ink);
-  --fill-strong-grad: linear-gradient(135deg, #2b2e3b 0%, #0c0d12 100%);
+  --fill-strong: var(--violet-deep);
+  --fill-strong-grad: linear-gradient(var(--violet-deep), var(--violet-deep));
 }
 :root[data-theme="dark"] {
-  --fill-strong: var(--brand-pink);
-  --fill-strong-grad: linear-gradient(135deg, #ff9cc6 0%, #ff86b8 55%, #f26fa6 100%);
+  --fill-strong: var(--brand-violet);
+  --fill-strong-grad: linear-gradient(var(--brand-violet), var(--brand-violet));
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --fill-strong: var(--brand-pink);
-    --fill-strong-grad: linear-gradient(135deg, #ff9cc6 0%, #ff86b8 55%, #f26fa6 100%);
+    --fill-strong: var(--brand-violet);
+    --fill-strong-grad: linear-gradient(var(--brand-violet), var(--brand-violet));
   }
 }
 
@@ -337,18 +362,6 @@ img, svg, picture, video, canvas {
     --signal-hot: #ff6fa9;
     --fill-hot: #ff86b8;
     --fill-violet: #8b6cff;
-  }
-}
-
-/* Salons and artists work in violet: their night-time strong fills are violet, not pink. */
-:root[data-theme="dark"][data-role="pro"] {
-  --fill-strong: #bcaeff;
-  --fill-strong-grad: linear-gradient(135deg, #d3c8ff 0%, #bcaeff 55%, #a891ff 100%);
-}
-@media (prefers-color-scheme: dark) {
-  :root[data-role="pro"]:not([data-theme="light"]) {
-    --fill-strong: var(--brand-violet);
-    --fill-strong-grad: linear-gradient(135deg, #a68cff 0%, #8b6cff 55%, #7656f0 100%);
   }
 }
 

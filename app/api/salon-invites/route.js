@@ -1,6 +1,6 @@
 import { json, notFound, requireUserRole, withErrorHandling } from "../../lib/http.js";
 import * as salons from "../../lib/db/repos/salons.js";
-import { notifyConnection } from "../../lib/connectionNotify.js";
+import { TEAM_URL, notifyConnection } from "../../lib/connectionNotify.js";
 
 export const runtime = "nodejs";
 
@@ -24,7 +24,7 @@ async function _POST(request) {
   notifyConnection(result.invite?.artistId, {
     title: "یه سالن دعوتت کرد",
     body: `${auth.user.name || "یه سالن"} دعوتت کرد توی تیمش؛ شرایط رو ببین و جواب بده.`,
-    url: "/"
+    url: TEAM_URL
   });
   return json({
     data: {

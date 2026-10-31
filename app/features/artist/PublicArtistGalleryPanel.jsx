@@ -42,7 +42,7 @@ export function PublicArtistGalleryPanel({
       )}
 
       {featured || safeRest.length ? (
-        <div className={`artistPublicGrid ${(featured ? 1 : 0) + safeRest.length === 1 ? "is-single" : ""}`}>
+        <div className="artistPublicGrid">
           {featured ? (
             <article
               className="artistPublicCard"

@@ -27,6 +27,8 @@ export const profileUpdateSchema = z.object({
   posterPosition: z.string().max(50).optional(),
   experienceYears: z.union([z.string(), z.number()]).transform((v) => String(v)).pipe(z.string().max(20)).optional(),
   managerName: z.string().trim().max(120).optional(),
+  // Instagram page in any pasted shape; the route cleans it to the page name (shared/lib/instagram.js). "" removes it.
+  instagram: z.string().trim().max(200).optional(),
   // "" means "not changing it" (the route ignores a falsy password).
   password: z.union([z.literal(""), z.string().min(6).max(200)]).optional(),
   currentPassword: z.string().optional(),

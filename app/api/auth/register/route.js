@@ -18,8 +18,10 @@ import { MAX_PASSWORD_LENGTH, registerFieldsSchema } from "../../../lib/validati
 import { otpConfig, verifyOtpProof } from "../../../lib/otp.js";
 import { isImageDataUrlInvalidType, isImageDataUrlTooLarge } from "../../../lib/mediaLimits.js";
 import { getSetting } from "../../../lib/db/repos/adminControl.js";
+import { REGISTER_PER_IP_HOUR } from "../../../lib/limits.js";
 import { toPersianDigits } from "../../../shared/lib/digits.js";
 import { hasUniqueName, NAME_TAKEN_MESSAGE } from "../../../lib/businessName.js";
+import { noteAdminEvent } from "../../../lib/adminNews.js";
 
 export const runtime = "nodejs";
 
@@ -32,7 +34,7 @@ export const runtime = "nodejs";
 const REGISTER_ATTEMPT_LIMIT = 5;
 const REGISTER_WINDOW_MS = 60 * 60 * 1000;
 // New accounts per address per hour (a salon signing up its whole team from one Wi-Fi stays well under it).
-const REGISTER_IP_LIMIT = 20;
+const REGISTER_IP_LIMIT = REGISTER_PER_IP_HOUR;
 
 async function _POST(request) {
   await ensureDb();
@@ -50,7 +52,7 @@ async function _POST(request) {
       return NextResponse.json({ error: "شماره تماس باید یک شماره موبایل معتبر ایران باشد (مثلا 09123456789)." }, { status: 400 });
     }
 
-    // Phone verification: required once SMS is on and FRFRO_OTP_REQUIRED=1; a proof that is sent must always be valid.
+    // Phone verification: required whenever SMS is on (otpConfig); a proof that is sent must always be valid.
     const proof = String(body.otpProof || "");
     if ((otpConfig().required || proof) && !verifyOtpProof(proof, phone, "register")) {
       return NextResponse.json({ error: "اول کد پیامکی رو بزن تا شماره‌ت تأیید شه.", code: "otp_required" }, { status: 400 });
@@ -89,7 +91,7 @@ async function _POST(request) {
       );
     }
     if (await users.getUserByPhone(phone)) {
-      return NextResponse.json({ error: "با این شماره قبلاً حساب ساختی؛ وارد شو." }, { status: 409 });
+      return NextResponse.json({ error: "این شماره حساب داره؛ با رمزت وارد شو.", code: "phone_taken" }, { status: 409 });
     }
     if (hasUniqueName(type) && (await users.isBusinessNameTaken(fields.data.name))) {
       return NextResponse.json({ error: NAME_TAKEN_MESSAGE, code: "name_taken" }, { status: 409 });
@@ -105,7 +107,7 @@ async function _POST(request) {
 
     const newAccount = {
       phone,
-      passwordHash: hashPassword(password),
+      passwordHash: await hashPassword(password),
       type,
       name: fields.data.name,
       area: fields.data.area,
@@ -130,6 +132,8 @@ async function _POST(request) {
 
     if (type === "salon") await ensureSalonHours(user.id);
 
+    noteAdminEvent("signups", `${{ client: "مشتری", salon: "سالن", artist: "آرتیست" }[type] || ""} ${user.name || ""}`.trim());
+
     const session = await createSessionForUser(user.id);
     const safe = publicUser(user);
     const response = NextResponse.json({ data: { user: safe } });
@@ -137,7 +141,7 @@ async function _POST(request) {
     return response;
   } catch (error) {
     // Two sign-ups for one number at the same moment: the database's unique key lets exactly one through.
-    if (error?.code === "23505") return NextResponse.json({ error: "با این شماره قبلاً حساب ساختی؛ وارد شو." }, { status: 409 });
+    if (error?.code === "23505") return NextResponse.json({ error: "این شماره حساب داره؛ با رمزت وارد شو.", code: "phone_taken" }, { status: 409 });
     const badInput = clientErrorResponse(error);
     if (badInput) return badInput;
     console.error(error);

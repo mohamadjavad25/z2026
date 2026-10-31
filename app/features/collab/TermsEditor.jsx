@@ -91,9 +91,9 @@ export function summarizeTerms({ days, from, to, share, capacity }) {
 export function TermsChips({ days, from, to, share, capacity }) {
   const items = [
     days ? { key: "d", text: days } : null,
-    from && to ? { key: "t", text: `${from} تا ${to}` } : null,
-    share ? { key: "s", text: share === NEGOTIABLE ? "سهم توافقی" : `${share}٪ سهم` } : null,
-    capacity ? { key: "c", text: capacity === NEGOTIABLE ? "ظرفیت توافقی" : `ظرفیت ${capacity}` } : null
+    from && to ? { key: "t", text: `${toPersianDigits(from)} تا ${toPersianDigits(to)}` } : null,
+    share ? { key: "s", text: share === NEGOTIABLE ? "سهم توافقی" : `${toPersianDigits(share)}٪ سهم` } : null,
+    capacity ? { key: "c", text: capacity === NEGOTIABLE ? "ظرفیت توافقی" : `ظرفیت ${toPersianDigits(capacity)}` } : null
   ].filter(Boolean);
   if (!items.length) return null;
   return (

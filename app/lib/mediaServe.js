@@ -59,8 +59,10 @@ const USER_PICTURES = {
 export async function serveUserPicture(request, userId, which) {
   const col = USER_PICTURES[which];
   const db = await getDb();
+  // octet_length reads the stored size; length() unpacked the whole base64 picture just to count it
+  // (the costliest query in the load test of 2026-10-20).
   const meta = await get(db, `
-    SELECT updated_at::text AS stamp, length(${col.blob}) AS size, ${col.url} AS url
+    SELECT updated_at::text AS stamp, octet_length(${col.blob}) AS size, ${col.url} AS url
     FROM users WHERE id = $1 AND (${col.blob} <> '' OR ${col.url} IS NOT NULL)
   `, [userId]);
   if (!meta) return new Response(null, { status: 404 });

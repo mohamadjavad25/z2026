@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { LegalLink } from "../../legal/LegalLink";
+import { ProfileSheet } from "./ProfileSheet";
 import {
   AlertTriangle,
   ChevronDown,
@@ -9,6 +10,7 @@ import {
   Bell,
   BellOff,
   BellRing,
+  CalendarClock,
   CalendarCheck,
   LogOut,
   Globe,
@@ -29,6 +31,8 @@ import { useThemePreference } from "../../shared/lib/useThemePreference";
 import { playSound } from "../../shared/lib/sounds";
 import { openSupport } from "../support";
 import { ExitPlanPanel } from "../exit/ExitPlanPanel";
+import { ClientExitPanel, getClientExitPlan } from "../exit/ClientExitPanel";
+import { CANCEL_ALL_AND_DELETE } from "../../shared/lib/clientExitText";
 import { CANCEL_ALL_AND_TEXT } from "../../shared/lib/providerRules";
 
 const DELETE_CONFIRM_WORD = "حذف";
@@ -46,7 +50,10 @@ function DeleteAccountConfirm({ onConfirm, onCancel, busy, error, exit = null, o
   const [password, setPassword] = useState("");
   const matches = typed.trim() === DELETE_CONFIRM_WORD && password.length > 0;
   // A salon or artist with confirmed bookings: the list of what stands in the way (owner's rules of 2026-10-22).
-  const stuck = Boolean(exit?.plan && (exit.plan.blocked || exit.plan.needsChoice));
+  // A client (scope "client"): bookings within 24 hours block it, the rest go with «لغو همه و پاک کردن حساب».
+  const clientPlan = exit?.plan?.scope === "client" ? exit.plan : null;
+  const stuck = clientPlan ? Boolean(clientPlan.blocked) : Boolean(exit?.plan && (exit.plan.blocked || exit.plan.needsChoice));
+  const cancelAll = Boolean(clientPlan?.needsChoice);
   return (
     <div className="neoSettingsDeleteConfirm" role="alertdialog" aria-label="پاک کردن حساب">
       <div className="neoSettingsDeleteConfirmHead">
@@ -72,7 +79,9 @@ function DeleteAccountConfirm({ onConfirm, onCancel, busy, error, exit = null, o
         disabled={busy}
       />
       {error ? <p className="neoSettingsDeleteConfirmError">{error}</p> : null}
-      {exit?.plan ? (
+      {clientPlan ? (
+        <ClientExitPanel plan={clientPlan} onPlan={onExitPlan} onNotice={onNotice} />
+      ) : exit?.plan ? (
         <ExitPlanPanel
           plan={exit.plan}
           scope="account"
@@ -83,15 +92,15 @@ function DeleteAccountConfirm({ onConfirm, onCancel, busy, error, exit = null, o
           onConfirm={matches ? ({ cancelAll }) => onConfirm(password, { cancelAll }) : null}
         />
       ) : null}
-      {exit?.plan && exit.plan.needsChoice && !matches ? <p className="neoSettingsDeleteConfirmError">برای «{CANCEL_ALL_AND_TEXT}» اول کلمهٔ «{DELETE_CONFIRM_WORD}» و رمزت رو بنویس.</p> : null}
+      {exit?.plan && !clientPlan && exit.plan.needsChoice && !matches ? <p className="neoSettingsDeleteConfirmError">برای «{CANCEL_ALL_AND_TEXT}» اول کلمهٔ «{DELETE_CONFIRM_WORD}» و رمزت رو بنویس.</p> : null}
       <div className="neoSettingsDeleteConfirmActions">
         <button type="button" onClick={onCancel} disabled={busy}>
           <X size={15} />
           انصراف
         </button>
-        <button type="button" className="is-danger" disabled={!matches || busy || stuck} onClick={() => onConfirm(password)}>
+        <button type="button" className="is-danger" disabled={!matches || busy || stuck} onClick={() => onConfirm(password, cancelAll ? { cancelAll: true } : undefined)}>
           <Trash2 size={15} />
-          {busy ? "دارم پاک می‌کنم…" : "پاکش کن"}
+          {busy ? "دارم پاک می‌کنم…" : cancelAll ? CANCEL_ALL_AND_DELETE : "پاکش کن"}
         </button>
       </div>
     </div>
@@ -153,8 +162,10 @@ function ThemePicker() {
   );
 }
 
-function SettingsGroup({ title, children, defaultOpen = true }) {
+/** `bare`: no collapsible head, for when the group already sits in a sheet that carries the title. */
+function SettingsGroup({ title, children, defaultOpen = true, bare = false }) {
   const [open, setOpen] = useState(defaultOpen);
+  if (bare) return <div className="neoSettingsGroupBody is-bare">{children}</div>;
   return (
     <div className={`neoSettingsGroup ${open ? "is-open" : ""}`}>
       <button
@@ -177,9 +188,9 @@ function SettingsGroup({ title, children, defaultOpen = true }) {
  */
 
 /** Day / night / auto theme picker. */
-export function AppearanceSettings() {
+export function AppearanceSettings({ bare = false }) {
   return (
-    <SettingsGroup title="ظاهر برنامه">
+    <SettingsGroup title="ظاهر برنامه" bare={bare}>
       <ThemePicker />
     </SettingsGroup>
   );
@@ -190,16 +201,16 @@ export function AppearanceSettings() {
  * «reservationAlerts» switch only governs what shows inside the open app: the phone notification and SMS about a
  * booking always go (audit 2026-10-22: the old label promised more than it did).
  */
-export function NotificationSettings({ profileType, profileSettings, onToggle }) {
+export function NotificationSettings({ profileType, profileSettings, onToggle, bare = false }) {
   const [soundOn, setSoundOn] = useSoundPreference();
   return (
-    <SettingsGroup title="اعلان‌ها">
+    <SettingsGroup title="اعلان‌ها" bare={bare}>
       <SettingsToggle
         icon={profileSettings.reservationAlerts ? Bell : BellOff}
         label="خبرهای داخل اپ"
         description={profileType === "client"
-          ? "وقتی اپ بازه: پیام بالای صفحه و زنگ نیم ساعت قبل از نوبت. خبر تأیید و لغو نوبت همیشه روی گوشی میاد."
-          : "وقتی اپ بازه: پیام بالای صفحه برای درخواست تازه، تأیید و لغو. خبر درخواست تازه همیشه روی گوشی میاد."}
+          ? "وقتی برنامه بازه، بالای صفحه خبر می‌ده و نیم ساعت قبل نوبت زنگ می‌زنه."
+          : "وقتی برنامه بازه، بالای صفحه خبر می‌ده."}
         checked={profileSettings.reservationAlerts}
         onChange={() => onToggle("reservationAlerts")}
       />
@@ -207,15 +218,24 @@ export function NotificationSettings({ profileType, profileSettings, onToggle })
         <SettingsToggle
           icon={profileSettings.reminders ? BellRing : BellOff}
           label="یادآوری نوبت"
-          description="یه روز و دو ساعت قبل از هر نوبت"
+          description="یه روز و دو ساعت قبل از نوبت"
           checked={profileSettings.reminders !== false}
           onChange={() => onToggle("reminders")}
+        />
+      )}
+      {profileType === "client" && (
+        <SettingsToggle
+          icon={profileSettings.dueReminders !== false ? CalendarClock : BellOff}
+          label="یادآوری وقتش شده"
+          description="چند هفته بعد از هر کار، یادت میندازه وقتشه"
+          checked={profileSettings.dueReminders !== false}
+          onChange={() => onToggle("dueReminders")}
         />
       )}
       <SettingsToggle
         icon={soundOn ? Volume2 : VolumeX}
         label="صدای اعلان‌ها"
-        description="روی همین گوشی، برای خبرها و یادآوری‌ها"
+        description="فقط روی همین گوشی"
         checked={soundOn}
         onChange={(value) => {
           setSoundOn(value);
@@ -232,10 +252,10 @@ export function NotificationSettings({ profileType, profileSettings, onToggle })
  * What customers can see of an artist or salon. Clients have no public
  * profile, so for them this renders nothing.
  */
-export function ProfileVisibilitySettings({ profileType, profileSettings, onToggle }) {
+export function ProfileVisibilitySettings({ profileType, profileSettings, onToggle, bare = false }) {
   if (profileType !== "artist" && profileType !== "salon") return null;
   return (
-    <SettingsGroup title="نمایش برای مشتری‌ها">
+    <SettingsGroup title="نمایش برای مشتری‌ها" bare={bare}>
       <SettingsToggle
         icon={profileSettings.publicPortfolio ? Globe : Lock}
         label={profileType === "artist" ? "صفحه‌م برای همه" : "صفحهٔ سالن برای همه"}
@@ -261,9 +281,9 @@ export function ProfileVisibilitySettings({ profileType, profileSettings, onTogg
 }
 
 /** Artist booking capacity: vacation mode, direct booking, instant confirm and reminders. */
-export function ArtistBookingSettings({ profileSettings, onToggle }) {
+export function ArtistBookingSettings({ profileSettings, onToggle, bare = false }) {
   return (
-    <SettingsGroup title="نوبت‌ها">
+    <SettingsGroup title="نوبت‌ها" bare={bare}>
       <SettingsToggle
         icon={Moon}
         label="حالت مرخصی"
@@ -299,7 +319,7 @@ export function ArtistBookingSettings({ profileSettings, onToggle }) {
 }
 
 /** Support, legal pages, sign-out and account deletion. Always the last section. */
-export function AccountSettings({ onLogout, onDeleteAccount, onNotice }) {
+export function AccountSettings({ onLogout, onDeleteAccount, onNotice, isClient = false }) {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [deleteError, setDeleteError] = useState("");
@@ -309,18 +329,50 @@ export function AccountSettings({ onLogout, onDeleteAccount, onNotice }) {
     <>
       <div className="neoSettingsLegalLinks">
         <button type="button" onClick={() => openSupport()}>ارتباط با پشتیبانی</button>
-        <Link href="/terms">قوانین و مقررات</Link>
-        <Link href="/privacy">حریم خصوصی</Link>
+        <LegalLink doc="terms">قوانین و مقررات</LegalLink>
+        <LegalLink doc="privacy">حریم خصوصی</LegalLink>
         {APP_DOWNLOADS_OPEN ? <a className="webOnlyAppLink" href="/download">دانلود اپلیکیشن</a> : null}
       </div>
 
-      <button type="button" className="neoSettingsLogout" onClick={onLogout}>
-        <LogOut size={16} />
-        <span>خروج</span>
-      </button>
+      <div className="spAccountBtns">
+        <button type="button" className="neoSettingsLogout" onClick={onLogout}>
+          <LogOut size={16} />
+          <span>خروج</span>
+        </button>
 
+        {onDeleteAccount ? (
+          <button
+            type="button"
+            className="neoSettingsDelete"
+            onClick={async () => {
+              setDeleteConfirmOpen(true);
+              if (!isClient) return;
+              // A client sees their open bookings before typing anything (owner's decision 2026-10-26).
+              const result = await getClientExitPlan().catch(() => null);
+              const plan = result?.ok ? result.payload?.data?.plan : null;
+              if (plan && (plan.near.length || plan.rest.length)) setDeleteExit({ plan });
+            }}
+          >
+            <Trash2 size={16} />
+            <span>پاک کردن حساب</span>
+          </button>
+        ) : null}
+      </div>
+
+      {/* Deleting lives in its own sheet (owner's decision 2026-10-28), so it is never one stray tap from «خروج». */}
       {onDeleteAccount ? (
-        deleteConfirmOpen ? (
+        <ProfileSheet
+          open={deleteConfirmOpen}
+          kicker="حساب"
+          title="پاک کردن حساب"
+          label="پاک کردن حساب"
+          onClose={() => {
+            if (deleteBusy) return;
+            setDeleteConfirmOpen(false);
+            setDeleteError("");
+            setDeleteExit(null);
+          }}
+        >
           <DeleteAccountConfirm
             busy={deleteBusy}
             error={deleteError}
@@ -347,12 +399,7 @@ export function AccountSettings({ onLogout, onDeleteAccount, onNotice }) {
               }
             }}
           />
-        ) : (
-          <button type="button" className="neoSettingsDelete" onClick={() => setDeleteConfirmOpen(true)}>
-            <Trash2 size={16} />
-            <span>پاک کردن حساب</span>
-          </button>
-        )
+        </ProfileSheet>
       ) : null}
     </>
   );

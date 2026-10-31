@@ -20,7 +20,7 @@ import {
   openProposalOf,
   requestWaitNote
 } from "./bookingStatus";
-import { ARTIST_GONE_TEXT, SALON_GONE_TEXT, cancelledByProviderText } from "../../shared/lib/providerRules";
+import { ARTIST_GONE_TEXT, SALON_GONE_TEXT, cancelledByProviderText, noShowClientText, proposalLapsedLine } from "../../shared/lib/providerRules";
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
 
 function dayOf(booking) {
@@ -48,6 +48,7 @@ function noteOf(booking) {
   if (tone === "bad" && booking.cancelled_by === "provider") return { Icon: Ban, tone, text: cancelledByProviderText(booking.bookingSource === "artist" ? "artist" : "salon", booking.salonName || booking.salon_name || ""), when };
   if (tone === "bad") return { Icon: Ban, tone, text: `نوبت ${service} در ${place} لغو شد`, when };
   if (tone === "expired") return { Icon: TimerOff, tone, text: `${place} به درخواست ${service} جواب نداد؛ تموم شد`, when };
+  if (booking.no_show_at) return { Icon: Ban, tone: "bad", text: noShowClientText(booking.bookingSource === "artist" ? "artist" : "salon", booking.salonName || booking.salon_name || ""), when };
   return { Icon: CheckCircle2, tone: "done", text: `نوبت ${service} در ${place} انجام شد`, when };
 }
 
@@ -155,6 +156,12 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook, c
                       <p className="cvNote">
                         <CalendarClock size={14} aria-hidden="true" />
                         {booking.bookingSource === "artist" ? "آرتیست" : "سالن"} می‌خواد نوبتت رو جابه‌جا کنه؛ کارت رو باز کن و جواب بده.
+                      </p>
+                    ) : null}
+                    {!proposal && booking.proposal_lapsed_at ? (
+                      <p className="cvNote">
+                        <CalendarClock size={14} aria-hidden="true" />
+                        {proposalLapsedLine(booking)}
                       </p>
                     ) : null}
                     {waitNote ? (

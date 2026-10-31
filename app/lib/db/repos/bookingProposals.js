@@ -67,7 +67,7 @@ export async function proposeSalonTime({ salonUserId, id, date = "", time = "" }
     if (!SALON_CONFIRMED.includes(locked.status)) return refuse("not_confirmed");
     if (locked.booking_date !== current.booking_date || normalizeBookingTimeLabel(locked.time || "") !== normalizeBookingTimeLabel(current.time || "") || locked.staff !== current.staff) return refuse("changed");
     await run(tx, `
-      UPDATE salon_bookings SET proposal_date = $1, proposal_time = $2, proposal_staff = '', proposal_from = '', proposal_at = NOW() WHERE id = $3
+      UPDATE salon_bookings SET proposal_date = $1, proposal_time = $2, proposal_staff = '', proposal_from = '', proposal_at = NOW(), proposal_lapsed_at = NULL WHERE id = $3
     `, [dateKey, clock, Number(id)]);
     return { ok: true, booking: await get(tx, "SELECT * FROM salon_bookings WHERE id = $1", [Number(id)]), kind: "salon", toDate: dateKey, toTime: clock };
   });
@@ -110,7 +110,7 @@ export async function proposeSalonHandover({ salonUserId, id, toStaff, fromNames
     if (!locked) return refuse("missing");
     if (!SALON_CONFIRMED.includes(locked.status)) return refuse("not_confirmed");
     if (locked.booking_date !== current.booking_date || normalizeBookingTimeLabel(locked.time || "") !== normalizeBookingTimeLabel(current.time || "") || locked.staff !== current.staff || locked.parts !== current.parts) return refuse("changed");
-    await run(tx, "UPDATE salon_bookings SET proposal_date = '', proposal_time = '', proposal_staff = $1, proposal_from = $2, proposal_at = NOW() WHERE id = $3", [target, mine.join("\n"), Number(id)]);
+    await run(tx, "UPDATE salon_bookings SET proposal_date = '', proposal_time = '', proposal_staff = $1, proposal_from = $2, proposal_at = NOW(), proposal_lapsed_at = NULL WHERE id = $3", [target, mine.join("\n"), Number(id)]);
     return { ok: true, booking: await get(tx, "SELECT * FROM salon_bookings WHERE id = $1", [Number(id)]), kind: "salon", toStaff: target, fromStaff: mine[0] };
   });
 }
@@ -136,7 +136,7 @@ export async function proposeArtistTime({ artistUserId, id, date = "", time = ""
     if (!locked) return refuse("missing");
     if (!ARTIST_CONFIRMED.includes(locked.status)) return refuse("not_confirmed");
     if (locked.booking_date !== current.booking_date || normalizeBookingTimeLabel(locked.time || "") !== normalizeBookingTimeLabel(current.time || "")) return refuse("changed");
-    await run(tx, "UPDATE artist_bookings SET proposal_date = $1, proposal_time = $2, proposal_at = NOW() WHERE id = $3", [dateKey, clock, Number(id)]);
+    await run(tx, "UPDATE artist_bookings SET proposal_date = $1, proposal_time = $2, proposal_at = NOW(), proposal_lapsed_at = NULL WHERE id = $3", [dateKey, clock, Number(id)]);
     return { ok: true, booking: await get(tx, "SELECT * FROM artist_bookings WHERE id = $1", [Number(id)]), kind: "artist", toDate: dateKey, toTime: clock };
   });
 }
@@ -283,14 +283,16 @@ function lapsedInfo(kind, row) {
 async function closeLapsedSalonProposal(id) {
   const db = await getDb();
   return get(db, `
-    UPDATE salon_bookings SET proposal_date = '', proposal_time = '', proposal_staff = '', proposal_from = '', proposal_at = NULL
+    UPDATE salon_bookings SET proposal_date = '', proposal_time = '', proposal_staff = '', proposal_from = '', proposal_at = NULL,
+      proposal_lapsed_at = CASE WHEN status IN ('تایید شده', 'تایید', 'تازه') THEN NOW() ELSE proposal_lapsed_at END
     WHERE id = $1 AND proposal_at IS NOT NULL RETURNING *
   `, [Number(id)]);
 }
 async function closeLapsedArtistProposal(id) {
   const db = await getDb();
   return get(db, `
-    UPDATE artist_bookings SET proposal_date = '', proposal_time = '', proposal_at = NULL
+    UPDATE artist_bookings SET proposal_date = '', proposal_time = '', proposal_at = NULL,
+      proposal_lapsed_at = CASE WHEN status IN ('تایید شده', 'تایید', 'تازه') THEN NOW() ELSE proposal_lapsed_at END
     WHERE id = $1 AND proposal_at IS NOT NULL RETURNING *
   `, [Number(id)]);
 }
@@ -310,9 +312,37 @@ export async function sweepLapsedProposals(now = new Date()) {
       const dead = !(kind === "salon" ? SALON_CONFIRMED : ARTIST_CONFIRMED).includes(row.status) || isProposalLapsed(row, now);
       if (!dead) continue;
       const done = kind === "salon" ? await closeLapsedSalonProposal(row.id) : await closeLapsedArtistProposal(row.id);
-      if (done) closed.push({ kind, booking: row, providerUserId: row[providerColumn] || null, clientUserId: row.client_user_id || null });
+      if (!done) continue;
+      const provider = row[providerColumn] ? await get(db, "SELECT name FROM users WHERE id = $1", [row[providerColumn]]) : null;
+      closed.push({ kind, booking: row, providerUserId: row[providerColumn] || null, providerName: provider?.name || "", clientUserId: row.client_user_id || null });
     }
   }
   return closed;
 }
 
+
+/**
+ * The times an independent artist may propose for one of their confirmed direct bookings, on the booking's own day:
+ * every 30-minute start inside their hours that is still ahead and free (the same checks proposeArtistTime makes).
+ * { ok: true, times: ["14:00", …] } or a refusal ("missing" | "not_confirmed" | "too_late").
+ */
+export async function listArtistProposalTimes({ artistUserId, id }) {
+  const db = await getDb();
+  const current = await get(db, "SELECT * FROM artist_bookings WHERE id = $1 AND artist_user_id = $2 AND source_salon_user_id IS NULL", [Number(id), Number(artistUserId)]);
+  if (!current) return refuse("missing");
+  if (!ARTIST_CONFIRMED.includes(current.status)) return refuse("not_confirmed");
+  if (leadProblem(current.booking_date, current.time)) return refuse("too_late", { phone: current.client_phone || "" });
+  const dateKey = current.booking_date;
+  const own = normalizeBookingTimeLabel(current.time || "");
+  const minutes = Math.max(15, Number(current.duration_minutes) || 60);
+  const hours = await artists.listArtistHours(Number(artistUserId));
+  const times = [];
+  for (let start = 0; start + minutes <= 24 * 60; start += 30) {
+    const clock = `${String(Math.floor(start / 60)).padStart(2, "0")}:${String(start % 60).padStart(2, "0")}`;
+    if (clock === own || isSlotInPast(dateKey, clock)) continue;
+    if (artistSlotProblem({ hours, bookingDateKey: dateKey, time: clock, durationMinutes: minutes })) continue;
+    if (await artists.isArtistSlotBlocked(Number(artistUserId), dateKey, clock, minutes, Number(id))) continue;
+    times.push(clock);
+  }
+  return { ok: true, times };
+}

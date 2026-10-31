@@ -1,0 +1,168 @@
+/* Soft tints of the two role colours, translucent so they sit on day and night surfaces alike (the fixed --violet-soft / --pink-soft stay light at night). */
+:root {
+  --pl-violet-bg: rgb(var(--brand-violet-rgb) / 0.14);
+  --pl-pink-bg: rgb(var(--brand-pink-rgb) / 0.2);
+  --pl-violet-ink: var(--violet-deep);
+  --pl-pink-ink: var(--pink-deep);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --pl-violet-ink: #bfb0ff; --pl-pink-ink: #ff9cc7; }
+}
+:root[data-theme="dark"] { --pl-violet-ink: #bfb0ff; --pl-pink-ink: #ff9cc7; }
+/* The wallet cards stay dark in day and night (white text on a picture), so their shade is the brand ink's channels, not --ink-rgb, which turns light at night. */
+:root { --clw-shade-rgb: 12 13 18; }
+
+/* ═══ Where an artist's own clients are received: one workplace at a time (owner's decision of 2026-10-25) ═══
+   The artist's wallet cards (collab tab), the salon's switch and rows, and «کجا» on the client's booking sheet.
+   Colours come from the role tokens only: the salon is the violet side, the artist's own place the pink one. */
+.plChips button:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+
+/* The salon's switch for one member (inside the member's manage sheet) */
+.plSwitchRow { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border: 1px solid var(--n-150); border-radius: 18px; background: var(--n-0); }
+.plSwitchRow > span { display: grid; gap: 1px; min-width: 0; }
+.plSwitchRow b { color: var(--n-900); font-size: 0.9rem; font-weight: 900; }
+.plSwitchRow small { color: var(--n-600); font-size: 0.74rem; font-weight: 700; line-height: 1.7; }
+.plSwitch { position: relative; flex: none; width: 50px; height: 30px; padding: 0; border: 0; border-radius: 999px; background: var(--n-300); cursor: pointer; transition: background 0.15s; }
+.plSwitch::after { content: ""; position: absolute; top: 3px; inset-inline-start: 3px; width: 24px; height: 24px; border-radius: 50%; background: var(--n-0); box-shadow: 0 2px 6px rgb(var(--shadow-rgb) / 0.25); transition: inset-inline-start 0.15s; }
+.plSwitch[aria-checked="true"] { background: var(--success); }
+.plSwitch[aria-checked="true"]::after { inset-inline-start: 23px; }
+.plSwitch:disabled { opacity: 0.5; cursor: default; }
+.plSwitch:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+.plStats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.plStat { display: grid; gap: 0; padding: 10px 12px; border-radius: 16px; background: var(--n-50); }
+.plStat b { color: var(--n-900); font-size: 1.35rem; font-weight: 950; line-height: 1.4; }
+.plStat span { color: var(--n-600); font-size: 0.72rem; font-weight: 800; }
+
+/* The salon's day list: a team member's own client received here (violet) or busy elsewhere (striped) */
+.todayScheduleList > .plTeamRow { margin: 8px 0; }
+.plTeamRow { display: grid; grid-template-columns: 64px minmax(0, 1fr); align-items: center; gap: 10px; padding: 10px 12px; border-radius: 18px; border-inline-start: 4px solid var(--brand-violet); background: var(--pl-violet-bg); }
+.plTeamRow.is-busy { border-inline-start-color: var(--n-300); background: repeating-linear-gradient(135deg, var(--n-50) 0 10px, var(--n-100) 10px 20px); }
+.plTeamTime { display: grid; justify-items: center; line-height: 1.4; }
+.plTeamTime b { color: var(--n-900); font-size: 0.95rem; font-weight: 950; }
+.plTeamTime small { color: var(--n-600); font-size: 0.68rem; font-weight: 800; }
+.plTeamText { display: grid; gap: 1px; min-width: 0; line-height: 1.6; }
+.plTeamText b { color: var(--n-900); font-size: 0.86rem; font-weight: 900; overflow-wrap: anywhere; }
+.plTeamText small { color: var(--n-600); font-size: 0.72rem; font-weight: 750; }
+.plTeamTag { justify-self: start; padding: 0 8px; border-radius: 999px; background: var(--n-0); color: var(--pl-violet-ink); font-size: 0.7rem; font-weight: 950; }
+
+/* «جای نوبت» in the artist's booking sheet */
+.plBookingPlace { display: grid; gap: 8px; padding: 12px 14px; border: 1px solid var(--n-150); border-radius: 18px; background: var(--n-0); }
+.plBookingLabel { display: inline-flex; align-items: center; gap: 6px; color: var(--n-700); font-size: 0.8rem; font-weight: 900; }
+.plChips { display: flex; flex-wrap: wrap; gap: 6px; }
+.plChips button { min-height: 36px; padding: 0 14px; border: 1.5px solid var(--n-150); border-radius: 999px; background: var(--n-0); color: var(--n-800); font: inherit; font-size: 0.82rem; font-weight: 850; cursor: pointer; }
+.plChips button.is-on { border-color: var(--brand-violet); background: var(--pl-violet-bg); color: var(--pl-violet-ink); }
+.plChips button:disabled { opacity: 0.6; cursor: default; }
+.plBookingMsg { color: var(--success); font-size: 0.76rem; font-weight: 800; }
+.plBookingMsg.is-bad { color: var(--danger); }
+
+/* Asked before a saved spot is cleared (settings → جام روی نقشه) */
+.profileLocationAsk { display: grid; gap: 4px; padding: 14px; border: 1px solid var(--n-150); border-radius: 20px; background: var(--n-0); }
+.profileLocationAsk strong { color: var(--n-900); font-size: 0.92rem; font-weight: 950; }
+.profileLocationAsk > span { color: var(--n-600); font-size: 0.78rem; font-weight: 700; }
+.profileLocationAsk > div { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+.profileLocationAsk button { min-height: 42px; border-radius: 14px; font: inherit; font-size: 0.86rem; font-weight: 900; cursor: pointer; }
+.profileLocationAskYes { border: 1.5px solid var(--danger); background: transparent; color: var(--danger); }
+.profileLocationAskNo { border: 0; background: var(--primary); color: var(--on-primary); }
+.profileLocationAsk button:disabled { opacity: 0.5; cursor: default; }
+
+/* «کجا» on the client's booking sheet (the artist's public page) */
+.plWhere { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--n-150); border-radius: 18px; background: var(--n-0); }
+.plWhereIcon { display: grid; place-items: center; flex: none; width: 34px; height: 34px; border-radius: 12px; background: var(--pl-violet-bg); color: var(--pl-violet-ink); }
+.plWhereText { display: grid; flex: 1; min-width: 0; line-height: 1.55; }
+.plWhereText small { color: var(--n-600); font-size: 0.7rem; font-weight: 800; }
+.plWhereText b { color: var(--n-900); font-size: 0.88rem; font-weight: 900; overflow-wrap: anywhere; }
+
+/* ═══ The artist's collab tab: salons as wallet cards (owner's choice of 2026-10-25) ═══ */
+.clwBoard { display: grid; gap: 12px; }
+.clwNow { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; padding: 8px 12px; border-radius: 14px; background: var(--n-50); color: var(--n-700); font-size: 0.78rem; font-weight: 800; }
+.clwNow b { color: var(--n-900); font-weight: 950; }
+.clwNowDot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); box-shadow: 0 0 0 3px rgb(var(--success-rgb) / 0.18); }
+.clwNowNext { display: inline-flex; align-items: center; gap: 6px; margin-inline-start: auto; color: var(--pl-violet-ink); }
+.clwNowNext button { padding: 0 8px; border: 1px solid var(--n-150); border-radius: 9px; background: var(--n-0); color: var(--danger); font: inherit; font-size: 0.72rem; font-weight: 900; cursor: pointer; }
+
+.clwRail { display: flex; gap: 10px; margin: 0 -16px -14px; padding: 2px 16px 20px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: 16px; scrollbar-width: none; overscroll-behavior-x: contain; }
+.clwRail::-webkit-scrollbar { display: none; }
+.clwCard { position: relative; flex: 0 0 84%; display: grid; align-content: space-between; min-height: 150px; padding: 12px 14px; border-radius: 24px; overflow: hidden; scroll-snap-align: start; color: var(--brand-white); background: linear-gradient(135deg, var(--brand-ink) 0%, var(--violet-deep) 58%, var(--pink-deep) 100%); box-shadow: 0 10px 26px rgb(var(--violet-deep-rgb) / 0.22); cursor: pointer; transition: transform var(--duration-fast) var(--ease-standard), opacity var(--duration-fast) var(--ease-standard); }
+.clwRail.is-single .clwCard { flex-basis: 100%; }
+.clwCard:not(.is-active) { opacity: 0.78; transform: scale(0.96); }
+.clwCard.is-invite { background: linear-gradient(135deg, var(--brand-ink) 0%, var(--pink-deep) 55%, var(--brand-pink) 100%); }
+.clwCover { position: absolute; inset: 0; }
+.clwCover::before { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 20% 30%, rgb(255 255 255 / 0.16) 0 1.5px, transparent 2px) 0 0 / 18px 18px; }
+.clwCover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.clwCover::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgb(var(--clw-shade-rgb) / 0.12) 0%, rgb(var(--clw-shade-rgb) / 0.62) 100%); }
+.clwTop, .clwWho { position: relative; z-index: 1; display: flex; align-items: center; gap: 10px; }
+.clwTop { justify-content: space-between; }
+.clwBadge { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px; border-radius: 999px; background: var(--brand-white); color: var(--violet-deep); font-size: 0.72rem; font-weight: 950; white-space: nowrap; }
+.clwBadge::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.clwBadge.is-here::before { background: var(--success); box-shadow: 0 0 0 3px rgb(var(--success-rgb) / 0.2); }
+.clwBadge.is-invite { color: var(--pink-deep); }
+.clwBadge.is-team { background: rgb(255 255 255 / 0.2); color: var(--brand-white); }
+.clwMore { display: grid; place-items: center; width: 34px; height: 34px; border: 0; border-radius: 12px; background: rgb(255 255 255 / 0.18); color: var(--brand-white); cursor: pointer; }
+.clwAvatar { display: grid; place-items: center; flex: none; width: 48px; height: 48px; border-radius: 16px; overflow: hidden; background: rgb(255 255 255 / 0.22); border: 2px solid rgb(255 255 255 / 0.55); color: var(--brand-white); font-size: 1.1rem; font-weight: 950; }
+.clwAvatar img { width: 100%; height: 100%; object-fit: cover; }
+.clwWho > span:last-child { display: grid; min-width: 0; line-height: 1.5; }
+.clwWho b { font-size: 1.08rem; font-weight: 950; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-shadow: 0 1px 6px rgb(var(--clw-shade-rgb) / 0.35); }
+.clwWho small { color: rgb(255 255 255 / 0.85); font-size: 0.76rem; font-weight: 750; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.clwMenu { position: absolute; z-index: 2; top: 50px; inset-inline-end: 12px; min-width: 140px; padding: 4px; border: 1px solid var(--n-150); border-radius: 14px; background: var(--n-0); box-shadow: var(--shadow-lg); }
+.clwMenu button { display: flex; align-items: center; gap: 6px; width: 100%; min-height: 40px; padding: 0 10px; border: 0; border-radius: 10px; background: transparent; color: var(--n-800); font: inherit; font-size: 0.82rem; font-weight: 900; cursor: pointer; }
+.clwMenu button.is-danger { color: var(--danger); }
+.clwMenu button:disabled { opacity: 0.5; }
+
+.clwDots { display: flex; justify-content: center; gap: 2px; margin-top: -6px; }
+.clwDots button { width: 22px; height: 22px; padding: 0; border: 0; background: transparent; cursor: pointer; display: grid; place-items: center; }
+.clwDots button::before { content: ""; width: 7px; height: 7px; border-radius: 9px; background: var(--n-300); transition: width var(--duration-fast) var(--ease-standard); }
+.clwDots button.is-on::before { width: 18px; background: var(--pl-violet-ink); }
+
+.clwPanel { display: grid; gap: 10px; padding: 12px; border: 1px solid var(--n-150); border-radius: 22px; background: var(--n-0); }
+.clwInviteLead { margin: 0; color: var(--n-900); font-size: 0.88rem; font-weight: 900; }
+.clwFacts { display: grid; border: 1px solid var(--n-150); border-radius: 16px; text-align: center; }
+.clwFacts > span { display: grid; gap: 1px; padding: 8px 4px; line-height: 1.5; min-width: 0; }
+.clwFacts > span + span { border-inline-start: 1px solid var(--n-150); }
+.clwFacts small { color: var(--n-600); font-size: 0.68rem; font-weight: 800; }
+.clwFacts b { color: var(--n-900); font-size: 0.8rem; font-weight: 900; overflow-wrap: anywhere; }
+.clwWhere { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 18px; background: var(--n-50); }
+.clwWhere.is-on { background: var(--pl-violet-bg); }
+.clwWhereIcon { display: grid; place-items: center; flex: none; width: 34px; height: 34px; border-radius: 12px; background: var(--n-0); color: var(--pl-violet-ink); }
+.clwWhereText { display: grid; flex: 1; min-width: 0; line-height: 1.55; }
+.clwWhereText b { color: var(--n-900); font-size: 0.86rem; font-weight: 900; }
+.clwWhereText small { color: var(--n-600); font-size: 0.72rem; font-weight: 750; }
+.clwWhere .plSwitch[aria-checked="true"] { background: var(--violet-deep); }
+.clwFoot { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.clwFoot .salonRulesNote { margin: 0; }
+.clwCount { display: inline-flex; align-items: center; gap: 6px; color: var(--n-700); font-size: 0.76rem; font-weight: 850; }
+.clwCount::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--pl-pink-ink); }
+.clwMsg { margin: 0; padding: 8px 12px; border-radius: 14px; background: var(--success-bg); color: var(--success); font-size: 0.78rem; font-weight: 850; line-height: 1.7; }
+.clwMsg.is-bad { background: var(--danger-bg); color: var(--danger); }
+
+.clwBtn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 46px; padding: 0 16px; border-radius: 15px; font: inherit; font-size: 0.9rem; font-weight: 900; cursor: pointer; }
+.clwBtn.is-primary { border: 0; background: var(--primary); color: var(--on-primary); }
+.clwBtn.is-ghost { border: 1.5px solid var(--n-150); background: var(--n-0); color: var(--n-800); }
+.clwBtn.is-wide { width: 100%; }
+.clwBtn:disabled { opacity: 0.5; cursor: default; }
+.clwBtn:focus-visible, .clwMore:focus-visible, .clwDots button:focus-visible, .clwMenu button:focus-visible, .clwDays button:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+.clwSheetActions { display: grid; grid-template-columns: 1fr 2fr; gap: 8px; }
+.clwSheet .clwSheetActions { margin-top: 4px; }
+.clwSheetText { margin: 0 0 6px; color: var(--n-700); font-size: 0.84rem; font-weight: 750; line-height: 1.85; }
+.clwDays { display: flex; gap: 6px; margin-inline: -4px; padding: 2px 4px 8px; overflow-x: auto; scrollbar-width: none; }
+.clwDays::-webkit-scrollbar { display: none; }
+.clwDays button { flex: none; min-height: 40px; padding: 0 14px; border: 1.5px solid var(--n-150); border-radius: 14px; background: var(--n-0); color: var(--n-800); font: inherit; font-size: 0.82rem; font-weight: 850; white-space: nowrap; cursor: pointer; }
+.clwDays button.is-on { border-color: var(--violet-deep); background: var(--pl-violet-bg); color: var(--pl-violet-ink); }
+/* The switch sheet (2026-10-26): one question a step; step two lists the bookings that would move. */
+.clwChoices { display: grid; gap: 8px; margin-bottom: 10px; }
+.clwChoices button { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 52px; padding: 0 16px; border: 1.5px solid var(--n-150); border-radius: 16px; background: var(--n-0); color: var(--n-900); font: inherit; text-align: start; cursor: pointer; }
+.clwChoices b { font-size: 0.9rem; font-weight: 900; }
+.clwChoices small { color: var(--n-600); font-size: 0.72rem; font-weight: 750; }
+.clwChoices button.is-on { border-color: var(--violet-deep); background: var(--pl-violet-bg); color: var(--pl-violet-ink); }
+.clwChoices button:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+.clwChoices + .clwDays { margin-bottom: 6px; }
+.clwBks { display: grid; gap: 6px; max-height: 44vh; margin: 0 0 8px; padding: 0; overflow-y: auto; list-style: none; }
+.clwBk { display: grid; gap: 1px; padding: 10px 14px; border: 1.5px solid var(--n-150); border-radius: 14px; background: var(--n-0); line-height: 1.6; }
+.clwBk b { color: var(--n-900); font-size: 0.84rem; font-weight: 900; }
+.clwBk span { color: var(--n-700); font-size: 0.76rem; font-weight: 750; }
+.clwBk.is-stay { opacity: 0.7; }
+.clwBk em { color: var(--danger); font-size: 0.72rem; font-style: normal; font-weight: 800; }
+.clwNote { margin: 0 0 10px; color: var(--n-600); font-size: 0.74rem; font-weight: 750; text-align: center; }
+.clwSheetStack { display: grid; gap: 8px; }
+.clwSheet .clwMsg { margin-bottom: 8px; }
+@media (prefers-reduced-motion: reduce) { .clwCard, .clwDots button::before { transition: none; } }
+.clwAddLead { margin: 6px 2px -2px; color: var(--n-700); font-size: 0.82rem; font-weight: 900; }

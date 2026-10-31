@@ -1,3 +1,5 @@
+import { toPersianDigits } from "../../shared/lib/digits.js";
+
 /**
  * Subscription plans for salons and artists (owner's decision 2026-10-16). Clients never pay.
  *
@@ -6,7 +8,10 @@
  * yearly plan is always the cheapest per month. A change here changes what new checkouts charge; payments
  * already made keep the amount they were made with (it is copied onto the payment row).
  */
-export const TRIAL_DAYS = 30;
+/** Free days for a salon or artist who signs up after billing is switched on (owner's decision 2026-10-28). */
+export const TRIAL_DAYS = 14;
+/** Free days for accounts that already existed when billing was switched on: they keep the 30 days promised at launch. */
+export const LAUNCH_TRIAL_DAYS = 30;
 export const DEFAULT_GRACE_DAYS = 3;
 /** A new period runs this many days (not calendar months): simple to explain, and the receipt shows the exact end date. */
 export const PERIOD_DAYS = { 1: 30, 6: 180, 12: 365 };
@@ -55,3 +60,24 @@ export function getPlan(id) {
 }
 
 export const rialToToman = (rial) => Math.floor(Number(rial || 0) / 10);
+
+/**
+ * SMS packs (owner's decision 2026-10-28). Each salon or artist account may text its own clients SMS_INCLUDED_PER_MONTH
+ * times a Persian month inside the subscription; a pack adds credits that never expire. Packs are paid through the same
+ * gateway flow as a plan. Prices are in RIAL like the plans; the cost to us is about 222 toman an SMS (Faraz, 2026-10-28),
+ * so these leave a margin. A change here changes what new checkouts charge, not payments already made.
+ */
+export const SMS_INCLUDED_PER_MONTH = 200;
+/** Below this many left (all sources together) the card turns to «کم مونده». */
+export const SMS_LOW_AT = 40;
+const SMS_PACK_DEFS = [
+  { credits: 100, amountRial: 400_000 },
+  { credits: 300, amountRial: 1_050_000 }
+];
+export const SMS_PACKS = Object.freeze(SMS_PACK_DEFS.map((pack) => Object.freeze({
+  id: `sms_${pack.credits}`,
+  credits: pack.credits,
+  amountRial: pack.amountRial,
+  title: `بسته‌ی ${toPersianDigits(pack.credits)} پیامک`
+})));
+export const getSmsPack = (id) => SMS_PACKS.find((pack) => pack.id === id) || null;

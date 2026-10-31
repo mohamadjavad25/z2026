@@ -4,11 +4,11 @@ import { ProfileModeRail } from "../profile/ProfileModeRail";
 import { DayNav, useDaySwipe } from "../profile/DayNav";
 import { useBackHandler } from "../../shared/hooks/useBackHandler";
 import { BACK_PRIORITY } from "../../shared/lib/backStack";
+import { useTeamDeepLink } from "./useTeamDeepLink";
 
 export function useHomeChrome({
   salonHoursList,
   activeSalonHours,
-  selectedSalonHourDay,
   salonAppointmentList,
   createdProfile,
   artistBookingList,
@@ -79,12 +79,6 @@ export function useHomeChrome({
   setSalonWeekHistoryOpen
 }) {
   const {
-    salonHoursPresets,
-    activeHoursPreset,
-    activeHoursPresetMeta,
-    weeklyCapacityTotal,
-    selectedSalonHour,
-    salonHourTimeOptions,
     bookingCustomerOptions,
     selectedStaffStats,
     salonHistoryAppointments,
@@ -103,7 +97,6 @@ export function useHomeChrome({
   } = useScheduleViews({
     salonHoursList,
     activeSalonHours,
-    selectedSalonHourDay,
     salonAppointmentList,
     createdProfile,
     artistBookingList,
@@ -210,6 +203,9 @@ export function useHomeChrome({
   );
   useBackHandler(Boolean(createdProfile) && activeTab !== "profile", () => goToTab("profile"), BACK_PRIORITY.tab);
 
+  // /?team=1 (a team notice tapped, TEAM_URL): the salon's «پرسنل» or the artist's «همکاری», where the answer waits.
+  useTeamDeepLink({ profileType: createdProfile?.type, goToTab, openSalonWorkspace, setProfileView });
+
   const profileModeRail = (
     <ProfileModeRail
       placement="panel"
@@ -222,6 +218,7 @@ export function useHomeChrome({
       }}
       onSalonWorkspace={openSalonWorkspace}
       onProfileView={setProfileView}
+      badges={{ staff: pendingSalonCollabRequests?.length || 0, collabs: pendingArtistSalonInvites?.length || 0 }}
     />
   );
 
@@ -244,12 +241,6 @@ export function useHomeChrome({
   const salonDaySwipe = useDaySwipe(salonHeroWeekTabs, activeScheduleDateKey, setScheduleViewDay);
 
   return {
-    salonHoursPresets,
-    activeHoursPreset,
-    activeHoursPresetMeta,
-    weeklyCapacityTotal,
-    selectedSalonHour,
-    salonHourTimeOptions,
     bookingCustomerOptions,
     selectedStaffStats,
     salonHistoryAppointments,

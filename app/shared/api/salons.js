@@ -40,9 +40,10 @@ export async function getSalonBookings(salonUserId) {
  * can be requested. `services`: names, or { name, minutes } (minutes count only for a service
  * the salon does not list).
  */
-export async function getSalonVisitTimes(salonUserId, day, services, people = 1) {
+export async function getSalonVisitTimes(salonUserId, day, services, people = 1, prefer = "") {
   const query = new URLSearchParams({ salonUserId: String(salonUserId), day: String(day || "") });
   if (people > 1) query.set("people", String(people));
+  if (prefer) query.set("prefer", prefer);
   for (const service of services) {
     query.append("service", typeof service === "string" ? service : service.name);
     if (service?.minutes) query.append("minutes", String(service.minutes));
@@ -68,9 +69,10 @@ export async function getSalonFallbacks(salonUserId, day, time, services) {
  * ("" = the system's), used only for the salon's own session. For the salon each part also has `free`
  * and `options`. A plan the salon cannot take is `ok: false` with the reason, not an error.
  */
-export async function getSalonVisitPreview(salonUserId, day, time, services, staff = [], people = 1) {
+export async function getSalonVisitPreview(salonUserId, day, time, services, staff = [], people = 1, prefer = "") {
   const query = new URLSearchParams({ salonUserId: String(salonUserId), day: String(day || ""), time: String(time || "") });
   if (people > 1) query.set("people", String(people));
+  if (prefer) query.set("prefer", prefer);
   for (const service of services) {
     query.append("service", typeof service === "string" ? service : service.name);
     if (service?.minutes) query.append("minutes", String(service.minutes));
@@ -128,11 +130,11 @@ export async function getSalonHours() {
   return apiJson("/api/salon-hours");
 }
 
-/** PATCH /api/salon-hours → { hour } singular (not full list) */
-export async function updateSalonHours(body) {
+/** PATCH /api/salon-hours with the whole week → { hours } (all days saved, or none) */
+export async function saveSalonHoursWeek(hours) {
   return apiFetch("/api/salon-hours", {
     method: "PATCH",
-    body: JSON.stringify(body)
+    body: JSON.stringify({ hours })
   });
 }
 
@@ -194,6 +196,19 @@ export async function deleteSalonPortfolio(id) {
   });
 }
 
+/** GET /api/salon-team-posts → { requests, approved } team posts waiting for the salon's yes / on its page */
+export async function getSalonTeamPosts() {
+  return apiJson("/api/salon-team-posts");
+}
+
+/** POST /api/salon-team-posts { postId, action: "approve" | "decline" | "remove" } → same shape as GET */
+export async function decideSalonTeamPost(postId, action) {
+  return apiJson("/api/salon-team-posts", {
+    method: "POST",
+    body: JSON.stringify({ postId, action })
+  });
+}
+
 /** GET /api/salon-staff → { staff } owner-only */
 export async function getSalonStaff() {
   return apiJson("/api/salon-staff");
@@ -229,10 +244,10 @@ export async function updateSalonStaff(body) {
  * DELETE /api/salon-staff → { ok, staff, endedCollabs, artistNotified, artistUserId }
  * May end linked artist collabs.
  */
-export async function deleteSalonStaff(id, { cancelAll = false } = {}) {
+export async function deleteSalonStaff(id, { cancelAll = false, reason = "" } = {}) {
   return apiFetch("/api/salon-staff", {
     method: "DELETE",
-    body: JSON.stringify({ id, ...(cancelAll ? { cancelAll: true } : {}) })
+    body: JSON.stringify({ id, ...(cancelAll ? { cancelAll: true } : {}), ...(reason ? { reason } : {}) })
   });
 }
 
@@ -287,4 +302,9 @@ export async function saveSalonRules(rules) {
     method: "PUT",
     body: JSON.stringify({ rules })
   });
+}
+
+/** GET /api/salon-staff/direct → { visits }: the clients the team's artists receive at this salon from their own pages (when and who, never the client) */
+export async function getSalonDirectVisits() {
+  return apiJson("/api/salon-staff/direct");
 }

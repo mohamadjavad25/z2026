@@ -8,7 +8,7 @@ import { APP_DOWNLOADS_OPEN, ENTER_APP_EVENT, LARGE_SCREEN_QUERY } from "./const
 // tablet or desktop the about/download page is shown instead (landing.css).
 // /terms and /privacy stay readable because the about page links to them; /pay (the
 // result after the bank, and the test bank) must show wherever the bank sends the payer.
-const ALWAYS_SHOWN = ["/admin", "/download", "/terms", "/privacy", "/pay"];
+const ALWAYS_SHOWN = ["/admin", "/download", "/terms", "/privacy", "/pricing", "/pay"];
 
 function isAlwaysShown(pathname) {
   return ALWAYS_SHOWN.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));

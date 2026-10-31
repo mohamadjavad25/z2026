@@ -1,6 +1,6 @@
 import { json, notFound, requireUserRole, withErrorHandling } from "../../../lib/http.js";
 import * as salons from "../../../lib/db/repos/salons.js";
-import { notifyConnection } from "../../../lib/connectionNotify.js";
+import { TEAM_URL, notifyConnection } from "../../../lib/connectionNotify.js";
 
 export const runtime = "nodejs";
 
@@ -33,7 +33,7 @@ async function _PATCH(request) {
     body: accepted
       ? `${auth.user.name || "آرتیست"} دعوتت رو قبول کرد و حالا توی تیمته.`
       : `${auth.user.name || "آرتیست"} فعلاً نمی‌تونه بیاد توی تیمت.`,
-    url: "/"
+    url: TEAM_URL
   });
   return json({
     data: {

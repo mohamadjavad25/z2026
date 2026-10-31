@@ -52,6 +52,8 @@
 .pcPin.is-on { border-color: var(--n-900); }
 .pcPin.is-on i { background: var(--fill-strong); color: var(--n-0); }
 .pcPin:disabled { opacity: 0.55; cursor: default; }
+.pcPin.is-static { cursor: default; border-style: dashed; }
+.pcPin.is-static small { color: var(--n-600); }
 .pcMissing { margin: 0; text-align: center; color: var(--warning); font-size: 0.74rem; font-weight: 800; }
 
 /* ---- Gallery flags ---- */

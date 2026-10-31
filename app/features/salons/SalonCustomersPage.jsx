@@ -1,18 +1,21 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { askForAppUpdate } from "../../shared/lib/appUpdate";
 import { PageIcon } from "../../components/PageIcon";
 import { ServiceIcon } from "../../components/ServiceIcon";
-import { ArrowDownUp, CalendarCheck, CalendarPlus, ContactRound, Link2, MessageSquare, Phone, Repeat2, Search, Sparkles, UserPlus, Users } from "lucide-react";
+import { ArrowDownUp, CalendarCheck, Check, CalendarPlus, ContactRound, Link2, MessageSquare, Phone, Repeat2, Search, Sparkles, Trash2, UserPlus, Users, X } from "lucide-react";
 import { ProfileSheet } from "../profile/ProfileSheet";
 import { bookingStatusLabel, bookingStatusTone } from "../client/bookingStatus";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { formatRelativeBookingDayLabel, resolveRollingPersianDate } from "../../shared/lib/persianCalendar";
-import { buildBookingCustomers, describeFollowTime, pickFreshFollowers, phoneKey } from "./customers";
+import { buildBookingCustomers, customerMatchesQuery, describeFollowTime, pickFreshFollowers, phoneKey } from "./customers";
 import { contactPickerNeedsAppUpdate, contactPickerSupported, localPhoneOf, pickContact } from "../../shared/lib/contactPicker";
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
 import { buildClientInviteText, buildInviteSmsHref } from "../../shared/lib/inviteSms";
 import { InviteClientsSheet } from "../connect/InviteClientsSheet";
+import { NO_SHOW_LABEL } from "../../shared/lib/providerRules";
+import { apiFetch } from "../../shared/api/client";
 
 export { buildBookingCustomers };
 
@@ -49,8 +52,40 @@ function Avatar({ customer, size = "" }) {
   );
 }
 
-function CustomerSheet({ customer, invite, onBook, onClose }) {
+/** The other names a number is known by (owner's decision 2026-10-31): two chips at most, then «+۳». */
+function OtherNames({ customer }) {
+  const others = customer.otherNames || [];
+  if (!others.length) return null;
+  return (
+    <span className="cuNames" aria-label={`اسم‌های دیگه: ${others.join("، ")}`}>
+      {others.slice(0, 2).map((name) => <i className="cuNameChip" key={name}>{name}</i>)}
+      {others.length > 2 ? <i className="cuNameChip is-more">+{toPersianDigits(others.length - 2)}</i> : null}
+    </span>
+  );
+}
+
+/** Under the name: the number, «حسابش رو پاک کرده» for a deleted account, or «شماره نداره». */
+function PhoneLine({ customer }) {
+  if (customer.accountDeleted) return <span className="cuDeletedTag">حسابش رو پاک کرده</span>;
+  return <span dir="ltr">{customer.phone ? toPersianDigits(customer.phone) : "شماره نداره"}</span>;
+}
+
+function CustomerSheet({ customer, invite, onBook, onRemove, onClose }) {
+  const [confirming, setConfirming] = useState(false);
+  const [removing, setRemoving] = useState(false);
+  const [removeError, setRemoveError] = useState("");
+  useEffect(() => {
+    setConfirming(false);
+    setRemoveError("");
+  }, [customer?.key]);
   if (!customer) return null;
+  async function remove() {
+    setRemoving(true);
+    setRemoveError("");
+    const ok = await onRemove(customer);
+    setRemoving(false);
+    if (!ok) setRemoveError("برداشته نشد؛ اینترنتت رو چک کن و دوباره بزن.");
+  }
   // Not connected yet (a walk-in or a phone booking): one SMS with the page link, so next time they book themselves.
   const inviteHref = !customer.isFollower && customer.phone && invite?.url
     ? buildInviteSmsHref(customer.phone, buildClientInviteText({ placeName: invite.name, url: invite.url }))
@@ -62,9 +97,14 @@ function CustomerSheet({ customer, invite, onBook, onClose }) {
           <Avatar customer={customer} size="is-lg" />
           <div>
             <b>{customer.name}</b>
-            <span dir="ltr">{customer.phone ? toPersianDigits(customer.phone) : "شماره نداره"}</span>
+            <PhoneLine customer={customer} />
           </div>
         </div>
+        {customer.accountDeleted ? (
+          <p className="cuNotice">
+            {customer.name} حسابش رو از فرفرو پاک کرده. دیگه نمی‌تونی بهش زنگ بزنی یا براش نوبت بذاری. نوبت‌های قبلیش توی تقویمت می‌مونه.
+          </p>
+        ) : null}
         {customer.isFollower ? (
           <p className={`cuFollowNote${customer.noBookingYet ? " is-waiting" : ""}`}>
             <UserPlus size={15} aria-hidden="true" />
@@ -89,35 +129,89 @@ function CustomerSheet({ customer, invite, onBook, onClose }) {
             <Link2 size={16} aria-hidden="true" /> لینک نوبت رو بفرست
           </a>
         ) : null}
-        {onBook ? (
+        {onBook && !customer.accountDeleted ? (
           <button type="button" className="cuBookBtn" onClick={() => onBook(customer)}>
             <CalendarPlus size={16} aria-hidden="true" /> نوبت تازه
           </button>
         ) : null}
         <div className="cuStats">
-          <span><b>{toPersianDigits(customer.completed)}</b>انجام‌شده</span>
+          <span className="is-came"><b>{toPersianDigits(customer.completed)}</b>اومد</span>
+          <span className={customer.noShow ? "is-noshow" : ""}><b>{toPersianDigits(customer.noShow)}</b>نیومد</span>
           <span><b>{toPersianDigits(customer.upcoming)}</b>پیش‌رو</span>
           <span><b>{toPersianDigits(customer.cancelled)}</b>لغو</span>
         </div>
+        {customer.names?.length > 1 ? (
+          <>
+            <h4 className="cuHistoryTitle">اسم‌هایی که با این شماره ثبت شده</h4>
+            <ul className="cuNameRows">
+              {customer.names.map((entry) => (
+                <li key={entry.key}>
+                  <b>{entry.name}{entry.isMain ? " (اسم اصلی)" : ""}</b>
+                  <small>
+                    {entry.visitCount ? `${toPersianDigits(entry.visitCount)} بار نوبت` : "هنوز نوبتی نداره"}
+                    {entry.upcoming > 0 ? `، ${toPersianDigits(entry.upcoming)} نوبت پیش‌رو` : ""}
+                  </small>
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : null}
         {customer.bookings.length ? <h4 className="cuHistoryTitle">نوبت‌هاش</h4> : null}
         <ul className="cuHistory">
           {customer.bookings.map((booking, index) => {
-            const tone = bookingStatusTone(booking.status || "تازه");
+            const noShow = Boolean(booking.no_show_at || booking.noShowAt);
+            const tone = noShow ? "bad" : bookingStatusTone(booking.status || "تازه");
             const date = booking.booking_date || booking.date || "";
             return (
               <li key={booking.id || index}>
                 <ServiceIcon emoji={booking.service_emoji} name={booking.service} size="xs" />
                 <div>
                   <b>{shortServiceLabel(booking.service) || "خدمت"}</b>
-                  <small>{date ? formatRelativeBookingDayLabel(date) : "—"}{booking.time ? `، ${toPersianDigits(booking.time)}` : ""}</small>
+                  <small>
+                    {customer.names?.length > 1 && booking.client ? `${booking.client}، ` : ""}
+                    {date ? formatRelativeBookingDayLabel(date) : "—"}{booking.time ? `، ${toPersianDigits(booking.time)}` : ""}
+                  </small>
                 </div>
-                <em className={`is-${tone}`}>{bookingStatusLabel(booking.status)}</em>
+                <em className={`is-${tone}`}>{noShow ? NO_SHOW_LABEL : bookingStatusLabel(booking.status)}</em>
               </li>
             );
           })}
         </ul>
+        {customer.removable && onRemove ? (
+          confirming ? (
+            <div className="cuRemoveAsk" role="group" aria-label="برداشتن از لیست">
+              <b>{customer.name} از لیست مشتری‌هات برداشته بشه؟</b>
+              <small>نوبت‌های قبلیش توی تقویم می‌مونه.</small>
+              {removeError ? <small className="cuRemoveError" role="alert">{removeError}</small> : null}
+              <div className="cuRemoveChoices">
+                <button type="button" className="cuRemoveBtn" onClick={remove} disabled={removing}>
+                  {removing ? "صبر کن…" : "آره، بردار"}
+                </button>
+                <button type="button" className="cuRemoveKeep" onClick={() => setConfirming(false)} disabled={removing}>نه، بمونه</button>
+              </div>
+            </div>
+          ) : (
+            <button type="button" className="cuRemoveBtn" onClick={() => setConfirming(true)}>
+              <Trash2 size={16} aria-hidden="true" /> از لیست مشتری‌هام بردار
+            </button>
+          )
+        ) : null}
       </div>
     </ProfileSheet>
+  );
+}
+
+/**
+ * How often the customer came and didn't: a green box and, once there is a «نیومد», a red one next to it
+ * (owner's request 2026-10-25). Nothing while there is no past visit yet.
+ */
+function CameTally({ came = 0, noShow = 0 }) {
+  if (!came && !noShow) return null;
+  return (
+    <span className="cuTally" aria-label={`${toPersianDigits(came)} بار اومد، ${toPersianDigits(noShow)} بار نیومد`}>
+      {came ? <i className="is-came"><Check size={12} aria-hidden="true" />{toPersianDigits(came)} بار اومد</i> : null}
+      {noShow ? <i className="is-noshow"><X size={12} aria-hidden="true" />{toPersianDigits(noShow)} بار نیومد</i> : null}
+    </span>
   );
 }
 
@@ -140,12 +234,33 @@ export function SalonCustomersPage({ active, bookings = [], followers = [], owne
   const [sort, setSort] = useState("recent");
   const [openKey, setOpenKey] = useState("");
   const [canPickContact, setCanPickContact] = useState(false);
-  const [contactNotice, setContactNotice] = useState(""); // "update" | "failed"
+  const [contactNotice, setContactNotice] = useState(""); // "failed"
+  // Booking ids just taken off the list, so the row goes at once; the server's mark hides them on the next load.
+  const [hiddenIds, setHiddenIds] = useState(() => new Set());
+  const [toast, setToast] = useState("");
   useEffect(() => {
     setCanPickContact(Boolean(onBookCustomer) && (contactPickerSupported() || contactPickerNeedsAppUpdate()));
   }, [onBookCustomer]);
 
-  const customers = useMemo(() => buildBookingCustomers(bookings, followers), [bookings, followers]);
+  const customers = useMemo(
+    () => buildBookingCustomers(hiddenIds.size ? bookings.filter((booking) => !hiddenIds.has(booking.id)) : bookings, followers),
+    [bookings, followers, hiddenIds]
+  );
+  useEffect(() => {
+    if (!toast) return undefined;
+    const timer = setTimeout(() => setToast(""), 3000);
+    return () => clearTimeout(timer);
+  }, [toast]);
+
+  async function removeCustomer(customer) {
+    const ids = customer.bookings.map((booking) => booking.id).filter(Boolean);
+    const { ok } = await apiFetch("/api/customers/hide", { method: "POST", body: JSON.stringify({ bookingIds: ids }) });
+    if (!ok) return false;
+    setHiddenIds((current) => new Set([...current, ...ids]));
+    setOpenKey("");
+    setToast(`${customer.name} از لیستت برداشته شد.`);
+    return true;
+  }
   const freshFollowers = useMemo(() => pickFreshFollowers(customers), [customers]);
   const waitingCount = useMemo(() => customers.filter((item) => item.noBookingYet).length, [customers]);
   const repeatCount = useMemo(() => customers.filter((item) => item.visitCount >= 2).length, [customers]);
@@ -154,14 +269,13 @@ export function SalonCustomersPage({ active, bookings = [], followers = [], owne
   const lapsedCount = useMemo(() => customers.filter((item) => isLapsed(item, todayTime)).length, [customers, todayTime]);
 
   const visibleCustomers = useMemo(() => {
-    const q = toLatinDigits(query.trim());
     let list = customers.filter((item) => {
       if (filter === "upcoming" && item.upcoming === 0) return false;
       if (filter === "repeat" && item.visitCount < 2) return false;
       if (filter === "lapsed" && !isLapsed(item, todayTime)) return false;
       if (filter === "nobooking" && !item.noBookingYet) return false;
-      if (!q) return true;
-      return item.name.includes(query.trim()) || toLatinDigits(item.phone).includes(q);
+      // Any of the names a number is known by finds the card (owner's decision 2026-10-31).
+      return customerMatchesQuery(item, query);
     });
     if (sort === "visits") list = [...list].sort((a, b) => b.visitCount - a.visitCount);
     else if (sort === "name") list = [...list].sort((a, b) => a.name.localeCompare(b.name, "fa"));
@@ -172,7 +286,7 @@ export function SalonCustomersPage({ active, bookings = [], followers = [], owne
 
   async function chooseContact() {
     if (contactPickerNeedsAppUpdate()) {
-      setContactNotice("update");
+      askForAppUpdate("انتخاب از مخاطب‌های گوشی توی نسخهٔ تازه‌ست. به‌روزش کن؛ یه دقیقه طول می‌کشه.");
       return;
     }
     let contact = null;
@@ -237,7 +351,7 @@ export function SalonCustomersPage({ active, bookings = [], followers = [], owne
                       {customer.name}
                       {customer.isNewFollower ? <em className="cuNewTag">تازه</em> : null}
                     </b>
-                    <span dir="ltr">{customer.phone ? toPersianDigits(customer.phone) : "شماره نداره"}</span>
+                    <PhoneLine customer={customer} />
                     <small className="cuFreshMeta">
                       <span>{describeFollowTime(customer.followedAt)}</span>
                       <i className={customer.noBookingYet ? "is-waiting" : "is-booked"}>
@@ -335,12 +449,13 @@ export function SalonCustomersPage({ active, bookings = [], followers = [], owne
           </div>
         ) : null}
         {visibleCustomers.map((customer) => (
-          <article className="salonCustomerRow" key={customer.key}>
+          <article className={`salonCustomerRow${customer.accountDeleted ? " is-deleted" : ""}`} key={customer.key}>
             <button type="button" className="cuRowMain" onClick={() => setOpenKey(customer.key)} aria-label={`جزئیات ${customer.name}`}>
               <Avatar customer={customer} />
               <span className="salonCustomerInfo">
                 <b>{customer.name}</b>
-                <span dir="ltr">{customer.phone ? toPersianDigits(customer.phone) : "شماره نداره"}</span>
+                <PhoneLine customer={customer} />
+                <OtherNames customer={customer} />
                 {customer.lastService ? (
                   <em className="salonCustomerService"><ServiceIcon name={customer.lastService} size="xs" />{customer.lastService}</em>
                 ) : null}
@@ -356,6 +471,7 @@ export function SalonCustomersPage({ active, bookings = [], followers = [], owne
                     {customer.isFollower ? "، وصل شده" : ""}
                   </small>
                 )}
+                <CameTally came={customer.completed} noShow={customer.noShow} />
               </span>
             </button>
             {customer.phone ? (
@@ -367,16 +483,9 @@ export function SalonCustomersPage({ active, bookings = [], followers = [], owne
         ))}
       </div>
       {contactNotice ? (
-        <ProfileSheet open kicker="مخاطبین" title={contactNotice === "update" ? "اپ رو به‌روز کن" : "مخاطب‌ها باز نشد"} onClose={() => setContactNotice("")}>
+        <ProfileSheet open kicker="مخاطبین" title="مخاطب‌ها باز نشد" onClose={() => setContactNotice("")}>
           <div className="cuSheetBody">
-            {contactNotice === "update" ? (
-              <>
-                <p className="cuNotice">برای انتخاب از مخاطب‌های گوشی، نسخهٔ تازهٔ اپ فرفرو رو نصب کن.</p>
-                <a className="cuBookBtn" href="/download">نسخهٔ تازه رو بگیر</a>
-              </>
-            ) : (
-              <p className="cuNotice">مخاطب‌های گوشی باز نشد؛ دوباره بزن.</p>
-            )}
+            <p className="cuNotice">مخاطب‌های گوشی باز نشد؛ دوباره بزن.</p>
           </div>
         </ProfileSheet>
       ) : null}
@@ -397,8 +506,10 @@ export function SalonCustomersPage({ active, bookings = [], followers = [], owne
           setOpenKey("");
           onBookCustomer({ client: customer.name, phone: customer.phone });
         } : undefined}
+        onRemove={removeCustomer}
         onClose={() => setOpenKey("")}
       />
+      {toast ? <div className="cuToast" role="status">{toast}</div> : null}
     </div>
   );
 }

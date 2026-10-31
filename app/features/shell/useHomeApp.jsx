@@ -9,7 +9,7 @@ import { useContinueService } from "../follow/useContinueService";
 import { useArtistWorkspace } from "../artist";
 import { apiFetch } from "../../shared/api/client";
 import { connectTo } from "../../shared/api/connections";
-import { parseOpenParam, peekPendingOpen, rememberPendingOpen, takePendingOpen } from "../../shared/lib/appHandoff";
+import { cleanPendingServices, parseOpenParam, peekPendingOpen, rememberPendingOpen, takePendingOpen } from "../../shared/lib/appHandoff";
 import { notify } from "../../shared/notice/noticeStore";
 import { pushNotificationsSupported, subscribeToPushNotifications } from "./homeAppHelpers";
 import { appPushAvailable, startAppPush } from "../../shared/lib/nativePush";
@@ -35,7 +35,7 @@ export function useHomeApp() {
     if (!joinSalonId && !openTarget) return;
     if (joinSalonId) {
       try {
-        window.localStorage.setItem("frfro_pending_join_salon", JSON.stringify({ id: joinSalonId, code: params.get("k") || "" }));
+        window.localStorage.setItem("frfro_pending_join_salon", JSON.stringify({ id: joinSalonId, code: params.get("k") || "", termsVersion: params.get("v") ?? null }));
       } catch {
         // ignore — join just won't auto-fire post-login
       }
@@ -44,9 +44,14 @@ export function useHomeApp() {
       // The public page may have stored the name already; a bare link (a desktop QR) has only the id.
       const stored = peekPendingOpen();
       // Keep what the guest had ticked on the public page (name and services) when the same place is opened by id.
-      rememberPendingOpen({ ...openTarget, name: stored?.id === openTarget.id ? stored.name : "", services: stored?.id === openTarget.id ? stored.services : [] });
+      // `&s=…`: a «وقتش شده» push names the service, so the booking form opens on it (owner's decision of 2026-10-25).
+      const named = cleanPendingServices(params.getAll("s"));
+      const same = stored?.id === openTarget.id;
+      rememberPendingOpen({ ...openTarget, name: same ? stored.name : "", services: named.length ? named : same ? stored.services : [], staffId: same && !named.length ? stored.staffId : 0 });
     }
-    window.history.replaceState({}, "", window.location.pathname);
+    // Keep the router's own history state: replacing it with {} made Next treat the page as a new one on its next
+    // history change, so closing the services menu that opened here remounted the app back on the home screen.
+    window.history.replaceState(window.history.state, "", window.location.pathname);
   }, []);
   // What a guest came for, so the sign-up screen can say it and skip the role picker
   // (null, or { kind: "open", name, type, id } / { kind: "join" }); read once on mount, after the effect above.
@@ -112,10 +117,13 @@ export function useHomeApp() {
     // such a pending join has no code to offer and is simply dropped.
     let pendingSalonId = 0;
     let pendingCode = "";
+    let pendingVersion = null;
     try {
       const parsed = JSON.parse(pendingRaw);
       pendingSalonId = Number(parsed?.id) || 0;
       pendingCode = String(parsed?.code || "");
+      // The version of the terms she read on the join page; the server refuses (409) if they changed since.
+      pendingVersion = parsed?.termsVersion == null || parsed.termsVersion === "" ? null : Number(parsed.termsVersion);
     } catch {
       return;
     }
@@ -123,10 +131,12 @@ export function useHomeApp() {
     try {
       const { ok, payload } = await apiFetch("/api/artist/join-salon", {
         method: "POST",
-        body: JSON.stringify({ salonUserId: pendingSalonId, code: pendingCode })
+        body: JSON.stringify({ salonUserId: pendingSalonId, code: pendingCode, termsVersion: Number.isFinite(pendingVersion) ? pendingVersion : undefined })
       });
       if (ok) {
         setAppToast(`رفتی توی تیم «${payload?.data?.salon?.name || "سالن"}»!`);
+      } else if (payload?.code === "TERMS_CHANGED") {
+        setAppToast("شرایط سالن عوض شده. لینک رو دوباره باز کن و بخونش.");
       } else if (payload?.code !== "ALREADY_STAFF") {
         setAppToast(payload?.error || "نشد بری توی تیم سالن؛ دوباره بزن.");
       }
@@ -157,7 +167,7 @@ export function useHomeApp() {
     if (place.type !== "artist") setActiveTab("salons");
     // The guest had ticked a service on the public page: open the page plain and let it open the booking form on that service.
     if (target.services?.length && place.type !== "artist") {
-      continueServiceRef.current?.begin(place.id, target.services);
+      continueServiceRef.current?.begin(place.id, target.services, target.staffId);
       c.openConnectedProfile?.(place, null);
       return;
     }
@@ -415,6 +425,10 @@ export function useHomeApp() {
     artistRequestBusyId,
     confirmArtistBookingRequest,
     declineArtistBookingRequest,
+    markArtistNoShow,
+    proposeArtistBookingTime,
+    withdrawArtistProposal,
+    cancelArtistConfirmedBooking,
     artistGalleryFilter,
     setArtistGalleryFilter,
     artistPortfolioItems,
@@ -447,18 +461,8 @@ export function useHomeApp() {
     artistHoursList,
     artistHoursOpen,
     setArtistHoursOpen,
-    selectedArtistHourDay,
-    setSelectedArtistHourDay,
-    artistHoursPresets,
-    activeArtistHoursPreset,
-    activeArtistHoursPresetMeta,
-    selectedArtistHour,
-    artistHourTimeOptions,
     openArtistHoursDaysCount,
-    weeklyArtistCapacityTotal,
-    updateArtistHour,
-    updateArtistHoursPreset,
-    copyArtistHourToOpenDays,
+    saveArtistHoursWeek,
     visibleArtistPortfolio,
     artistGalleryTags,
     artistGalleryItems,
@@ -528,8 +532,6 @@ export function useHomeApp() {
     setSalonPortfolioList,
     salonHoursList,
     setSalonHoursList,
-    selectedSalonHourDay,
-    setSelectedSalonHourDay,
     selectedStaffName,
     setSelectedStaffName,
     selectedArtistProfile,
@@ -575,9 +577,7 @@ export function useHomeApp() {
     updateSalonStaff,
     removeSalonStaff,
     joinSalonTeamAsOwner,
-    updateSalonHour,
-    updateSalonHoursPreset,
-    copySalonHourToOpenDays,
+    saveSalonHoursWeek,
     addSalonService,
     assignSalonServiceArtist,
     toggleSalonServiceArtist,
@@ -666,7 +666,6 @@ export function useHomeApp() {
   const homeChromeState = useHomeChrome({
     salonHoursList,
     activeSalonHours,
-    selectedSalonHourDay,
     salonAppointmentList,
     createdProfile,
     artistBookingList,
@@ -747,13 +746,16 @@ export function useHomeApp() {
     arrivalIntent,
     ownerFollowers,
     refreshOwnerFollowers,
-    // The profile page's scanner and the customers page's scan button call these after a team join or invite;
-    // they used to be missing here, so nothing refreshed until the page was reloaded.
-    refreshSalonSystemData,
-    refreshArtistWorkspace,
     unseenFollowerCount,
     ...homeChromeState,
     ...homeWorkspacesState,
+    // Screens refresh right after an action with these (accepting a join request, a scanned code, an invite). They
+    // were missing here, so every `refresh…?.()` in the home screens did nothing and the screen waited for the next
+    // poll or a reload (owner's report 2026-10-30).
+    refreshSalonSystemData,
+    refreshArtistWorkspace,
+    setSalonCollabRequestList,
+    setSalonStaffList,
     activeTab,
     setAppToast,
     pushSoftAskVisible,
@@ -825,6 +827,10 @@ export function useHomeApp() {
     artistRequestBusyId,
     confirmArtistBookingRequest,
     declineArtistBookingRequest,
+    markArtistNoShow,
+    proposeArtistBookingTime,
+    withdrawArtistProposal,
+    cancelArtistConfirmedBooking,
     artistGalleryFilter,
     setArtistGalleryFilter,
     setPreviewingArtistWorkId,
@@ -844,17 +850,8 @@ export function useHomeApp() {
     setArtistCollabDraft,
     setArtistBookingSelectedDay,
     artistHoursList,
-    setSelectedArtistHourDay,
-    artistHoursPresets,
-    activeArtistHoursPreset,
-    activeArtistHoursPresetMeta,
-    selectedArtistHour,
-    artistHourTimeOptions,
     openArtistHoursDaysCount,
-    weeklyArtistCapacityTotal,
-    updateArtistHour,
-    updateArtistHoursPreset,
-    copyArtistHourToOpenDays,
+    saveArtistHoursWeek,
     visibleArtistPortfolio,
     artistGalleryTags,
     artistGalleryItems,
@@ -890,7 +887,6 @@ export function useHomeApp() {
     salonServiceList,
     salonPortfolioList,
     salonHoursList,
-    setSelectedSalonHourDay,
     selectedArtistProfile,
     setSelectedArtistProfile,
     selectedBookingClient,
@@ -925,9 +921,7 @@ export function useHomeApp() {
     updateSalonStaff,
     removeSalonStaff,
     joinSalonTeamAsOwner,
-    updateSalonHour,
-    updateSalonHoursPreset,
-    copySalonHourToOpenDays,
+    saveSalonHoursWeek,
     assignSalonServiceArtist,
     toggleSalonServiceArtist,
     deleteSalonService,

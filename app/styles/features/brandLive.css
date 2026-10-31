@@ -1,0 +1,240 @@
+/* Brand pink on every screen (owner's decision, 2026-10-27).
+   Salons and artists keep violet for the fixed parts (main button, logo ring, cover). What is live, new or
+   good news is pink for everyone: the unread count, a new request, the new-booking notice, the line under the
+   tab you are on, and a soft pink light in the cover's corner. Never a pink background for a whole card or
+   section. Tokens: --live, --live-fill, --on-live-fill, --live-soft (tokens.css). This file loads after the
+   legacy parts, so its selectors only need to match theirs. */
+
+/* 1 · the line under the tab you are on (salon and artist rails): one flat colour, no gradient (2026-10-27).
+   «نوبت‌ها» is about clients, so pink; the salon's own sections (services, portfolio, team, collab) violet. */
+:root:root:root .profileModeRail.profileModeRail.profileModeRail.is-panelRail:not(.is-client) button.active,
+.profilePanel.page-profile:has(.createdProfile.is-artist) > .profileModeRail.is-panelRail.is-artist-rail button.active,
+.profileHero.is-salon .profileModeRail.is-panelRail.is-salon button.active {
+  box-shadow: inset 0 -3px 0 var(--fill-strong) !important;
+}
+:root:root:root .profileModeRail.profileModeRail.profileModeRail.is-panelRail:not(.is-client) button.is-tab-overview.active,
+.profilePanel.page-profile:has(.createdProfile.is-artist) > .profileModeRail.is-panelRail.is-artist-rail button.is-tab-overview.active,
+.profileHero.is-salon .profileModeRail.is-panelRail.is-salon button.is-tab-overview.active {
+  box-shadow: inset 0 -3px 0 var(--live-fill) !important;
+}
+
+/* 2 · unread count on «مشتریان» */
+.bottomNavBadge { background: var(--live-fill); color: var(--on-live-fill); }
+
+/* 3 · a request waiting for the salon or artist: a pink rail, ring and chip (the client's own view keeps amber) */
+.bkRow.is-tone-pending:not(.is-client)::before { background: var(--live-fill); }
+.bkRow.is-tone-pending:not(.is-client) .bkSide { --bk-rail: var(--live-fill); }
+.bkRow.is-tone-pending:not(.is-client) {
+  border-color: rgb(var(--brand-pink-rgb) / 0.45);
+  box-shadow: 0 0 0 3px rgb(var(--brand-pink-rgb) / 0.12), 0 6px 18px rgb(var(--shadow-rgb) / 0.05);
+}
+.bkRow.is-tone-pending:not(.is-client) .bkChip.is-status-pending { background: var(--live-fill); color: var(--on-live-fill); }
+
+/* requests on other days */
+.pendingOtherDays,
+.pendingOtherDaysList button { color: var(--live); }
+.pendingOtherDaysList button { border-color: rgb(var(--brand-pink-rgb) / 0.45); }
+.pendingOtherDaysList b { background: var(--live-fill); color: var(--on-live-fill); }
+
+/* 4 · the new-booking notice: a pink dot with a pink ring */
+.noticeAvatar { background: var(--live-fill); color: var(--on-live-fill); }
+.noticeAvatar::after { border-color: var(--brand-pink); }
+.notice-glass { box-shadow: inset 0 0 0 1px rgb(var(--ink-rgb) / 0.08), 0 18px 40px rgb(var(--brand-pink-rgb) / 0.2); }
+
+/* 5 · a soft pink light in the top corner of the salon and artist cover (an uploaded poster paints over it) */
+.profileHero.is-salon .salonHeroBanner.salonHeroBanner {
+  background:
+    radial-gradient(60% 75% at 100% 0%, rgb(var(--brand-pink-rgb) / 0.42), rgb(var(--brand-pink-rgb) / 0) 70%),
+    url("/artist-hero-doodle.webp") center / cover no-repeat !important;
+}
+.profilePanel.page-profile:has(.createdProfile.is-artist) .profileHero.is-artist > .artistHeroPoster.artistHeroPoster {
+  background-image:
+    radial-gradient(60% 75% at 100% 0%, rgb(var(--brand-pink-rgb) / 0.42), rgb(var(--brand-pink-rgb) / 0) 70%),
+    radial-gradient(circle at 18% 5%, rgba(51, 51, 55, 0.34), transparent 34%),
+    url("/artist-hero-doodle.webp");
+}
+
+/* 6 · the request sheet a salon or artist answers in: its status chip is pink while it waits for them
+   (the client's own booking sheet keeps amber, where it means "wait") */
+:root[data-role="pro"] .clientBookingSettingsStatus.is-pending { background: var(--live-fill); color: var(--on-live-fill); }
+
+/* 7 · «نوبت‌های تازه» in the notifications: the count and each request's day tag; expired ones stay grey */
+.salonRequestsBoard:not(.salonExpiredNoticeBoard) .boardHead b { background: var(--live-fill); color: var(--on-live-fill); }
+.salonRequestsBoard:not(.salonExpiredNoticeBoard) .boardHead span { color: var(--live); }
+.salonRequestsBoard:not(.salonExpiredNoticeBoard) .reservationRequestCard {
+  border-color: rgb(var(--brand-pink-rgb) / 0.45);
+  box-shadow: inset -3px 0 0 var(--live-fill), 0 6px 14px rgb(var(--shadow-rgb) / 0.04);
+}
+.salonRequestsBoard:not(.salonExpiredNoticeBoard) .requestCardWhen em { background: var(--live-soft); color: var(--live); }
+
+/* 8 · artists asking to join the salon: the count */
+.salonCollabInbox .boardHead b { background: var(--live-fill); color: var(--on-live-fill); }
+.salonCollabInbox .boardHead span { color: var(--live); }
+
+/* 9 · «تازه وصل شدن» on the customers page: new people and their «تازه» tag; no line on top of the card */
+.cuFresh::before { content: none; }
+.cuFreshItem.is-new { background: var(--live-soft); box-shadow: inset 0 0 0 1px var(--live-fill); }
+.cuNewTag { background: var(--live-fill); color: var(--on-live-fill); }
+
+/* 10 · the count of team post requests waiting for the salon, and the dot on the bell when something is unread */
+.teamPostsBlock h3 span { background: var(--live-fill); color: var(--on-live-fill); }
+.profileHeroActions button.has-notifications::after,
+.profileHero.is-salon .profileHeroActions.is-salonTopActions button:first-child.has-notifications::after { background: var(--live-fill); }
+
+/* 11 · the notifications summary: a row with something waiting gets a pink count and a pink icon tile */
+.salonNotificationsPanel article.is-live > span,
+.salonNotificationsPanel .salonNoticeRow.is-live > span { background: var(--live-soft); color: var(--live); }
+.salonNotificationsPanel article.is-live em,
+.salonNotificationsPanel .salonNoticeRow.is-live em { background: var(--live-fill); color: var(--on-live-fill); }
+
+/* 12 · the wavy line beside every sheet title is the mascot's curl: pink, for every role */
+.salonCustomersHead .wavyTitle::before,
+.salonCustomersHead .wavyTitle::after,
+.salonHeroSheetPanel .salonHeroSheetHead h3::before,
+.salonHeroSheetPanel .salonHeroSheetHead h3::after,
+.svcSheetHead h3::before,
+.svcSheetHead h3::after {
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='8' viewBox='0 0 20 8'%3E%3Cpath d='M0 4 Q5 0 10 4 T20 4' fill='none' stroke='%23ff86b8' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E") repeat-x center;
+}
+
+/* 13 · a switch that is on: one flat violet for every switch (settings, hours, team, place); they set up your
+   own business. The knob stays white. */
+.neoSettingsSwitch[data-on="true"] .neoSettingsSwitchTrack,
+.salonHeroSheetPanel.is-artist-settings .neoSettingsSwitch[data-on="true"] .neoSettingsSwitchTrack,
+.salonHeroSheetPanel.is-artist-settings.is-salon-settings .neoSettingsSwitch[data-on="true"] .neoSettingsSwitchTrack,
+.hrsSwitch[aria-checked="true"],
+.stfSwitch[aria-checked="true"],
+.plSwitch[aria-checked="true"],
+.clwWhere .plSwitch[aria-checked="true"],
+.artistBookingSwitch input:checked {
+  background: var(--fill-strong) !important;
+}
+
+/* 14 · today: a pink ring on today's square in the calendar, and on the day bar a pink calendar icon while it
+   shows today, and a pink «برگرد به امروز» while it does not */
+.bookingWeekHistoryCalDay.is-today { box-shadow: inset 0 0 0 2px var(--live-fill); }
+.bookingWeekHistoryCalDay.is-today strong { color: var(--live); }
+.dayNav.is-today .dayNavCal { color: var(--live); }
+.dayNavToday { color: var(--live); }
+
+/* 15 · no black buttons (owner's decision, 2026-10-27). Every strong fill is violet now (--fill-strong in
+   tokens.css): what you do for your own business. What you do with a client or a booking is pink, with ink text:
+   new booking (+), approve a request, invite or scan a client, «رزرو», «وصل شو». */
+.bottomNav .profileTab.is-createBooking,
+.profilePanel.page-profile.is-salon-profile ~ .bottomNav .profileTab.is-createBooking,
+.profilePanel.page-profile:has(.createdProfile.is-salon) ~ .bottomNav .profileTab.is-createBooking {
+  background: var(--live-fill) !important;
+  color: var(--on-live-fill) !important;
+  box-shadow: 0 0 0 2px var(--n-0), 0 0 0 4px rgb(var(--brand-violet-rgb) / 0.55), var(--nav-lift) !important;
+}
+.bkReviewActions .is-approve,
+.cnScanCustomerBtn,
+.cuInviteBtn,
+.spvBarBook:not(.is-open),
+.pphFollow:not(.is-following):not(.is-linked) {
+  background: var(--live-fill);
+  color: var(--on-live-fill);
+}
+.spvBarBook:not(.is-open) small { color: rgb(var(--shadow-rgb) / 0.7); }
+
+/* 16 · the last black panels and buttons. Your own business → violet: inviting an artist to the team, a new
+   portfolio post tile, the notifications ask, team notices, profile forms. A booking's own numbers → pink: the
+   day's count in the calendar. (.stfInvite and .galleryAddTile are dark islands, so their ramp stays the day one.) */
+.stfInvite {
+  background: radial-gradient(120% 140% at 100% 0%, rgb(255 255 255 / 0.14), rgb(255 255 255 / 0) 55%), var(--violet-deep);
+}
+.stfInviteIcon { color: var(--violet-deep); }
+.galleryAddTile {
+  background:
+    radial-gradient(circle at 1px 1px, rgb(255 255 255 / 0.1) 1px, transparent 0) 0 0 / 14px 14px,
+    var(--violet-deep);
+}
+.pushSoftAsk { background: var(--violet-deep); border-color: rgb(255 255 255 / 0.2); }
+.pushSoftAsk > svg, .pushSoftAsk small { color: var(--on-photo); opacity: 0.82; }
+.teamNoticeActions .is-main,
+.staffCreateForm button,
+.serviceCreateForm button,
+.profileSubmit,
+.profilePassport.active,
+.specialtySelectCount,
+.appShell.is-auth-gate .authTermsAgreement input[type="checkbox"]:checked {
+  background: var(--fill-strong);
+  color: var(--n-0);
+}
+.bookingWeekHistoryDateHeroStat { background: var(--live-fill); color: var(--on-live-fill); }
+.bookingWeekHistoryDateHeroStat small { color: rgb(var(--shadow-rgb) / 0.7); }
+.page-salons.is-active .salonClientSticky.floatingMobileCtaSplit .ctaGenerate,
+.salonClientSticky.floatingMobileCtaSplit .ctaGenerate { background: var(--live-fill); color: var(--on-live-fill); }
+/* sign-up and profile forms: their accent (submit button, picked chips) is violet for every role, not ink */
+.signupForm,
+.signupForm.is-salon,
+.signupForm.is-artist,
+.signupForm.is-client,
+.profileEditSpecialty {
+  --form-accent: var(--fill-strong);
+  --form-accent-rgb: var(--violet-deep-rgb);
+}
+
+/* 17 · the client's side: finding, connecting and booking are pink («رزرو», «اسکن QR», the scan button);
+   the client's own account and settings stay violet like everyone's */
+.cnPrimaryBtn,
+.cnChip.is-primary,
+.cnScanBtn.is-dark,
+.cnInviteBtn {
+  border-color: var(--live-fill);
+  background: var(--live-fill);
+  color: var(--on-live-fill);
+}
+.chServices button:hover .chSvcBook,
+.chServices button:focus-visible .chSvcBook { background: var(--live-fill); color: var(--on-live-fill); }
+.chSvcBook { background: var(--live-soft); color: var(--live); }
+/* the round close button of the working-hours sheet matches every other sheet's close button */
+.settingsHoursClose { background: var(--fill-strong); color: var(--n-0); }
+/* sending a booking request and sharing the salon's link with clients are with clients: pink */
+.artistBookingPopupSheet .artistBookingPopupConfirm:not(:disabled),
+.artistBookingPopupConfirm:not(:disabled),
+.ivtShare:not(:disabled) { background: var(--live-fill); color: var(--on-live-fill); }
+
+/* 18 · the rest of the app (2026-10-27, «برای کل اپ»): the action button inside a notice, the remove button on
+   a picked support attachment and the post composer's upload button are violet too, and the map pin (picker and
+   «کجاست؟») is violet with its pink dot (LocationButton.jsx, MapPinPicker.jsx). The error page's button too
+   (global-error.jsx). QR codes stay dark so phones can read them. */
+.noticeAction,
+.scPicked button,
+.profilePostComposer .artistWorkUploadBtn { background: var(--fill-strong); color: var(--n-0); }
+
+/* 13 · the round buttons on the salon's and artist's cover (bell, support, QR): a clear frosted glass with a white
+   rim and a bolder icon, so they read on the dark poster (owner: «خیلی کم‌رنگن», 2026-10-27). They used to be
+   8–9% white and all but vanished into the pattern. Specific enough to win over the legacy !important rules. */
+.profilePanel .profileHero.is-salon .profileHeroActions.is-salonTopActions button,
+.profilePanel.page-profile:has(.createdProfile.is-artist) .profileHero.is-artist .profileHeroActions button,
+.profilePanel .profileHero .salonHeroQrBtn {
+  border: 1.5px solid rgb(var(--on-photo-rgb) / 0.5) !important;
+  background: rgb(var(--on-photo-rgb) / 0.22) !important;
+  color: var(--on-photo) !important;
+  box-shadow: 0 6px 16px rgb(var(--shadow-rgb) / 0.28) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(1.3) !important;
+  backdrop-filter: blur(14px) saturate(1.3) !important;
+}
+.profilePanel .profileHero.is-salon .profileHeroActions.is-salonTopActions button svg,
+.profilePanel.page-profile:has(.createdProfile.is-artist) .profileHero.is-artist .profileHeroActions button svg,
+.profilePanel .profileHero .salonHeroQrBtn svg { stroke-width: 2.3; filter: drop-shadow(0 1px 1px rgb(var(--shadow-rgb) / 0.35)); }
+
+/* A count on a profile tab (ProfileModeRail `badges`): artists asking to join «پرسنل», salons inviting to «همکاری». */
+.profileModeRail button { position: relative; }
+.profileModeRail .pmrBadge {
+  position: absolute; top: 2px; inset-inline-end: 18%;
+  min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px;
+  display: grid; place-items: center;
+  background: var(--brand-pink); color: var(--brand-ink);
+  font-style: normal; font-size: 0.66rem; font-weight: 800; line-height: 1;
+  box-shadow: 0 0 0 2px var(--n-0);
+}
+
+/* «همکاری و پرسنل» in the salon's notices is a button that opens «پرسنل». */
+.salonNotificationsPanel button.salonNoticeRow {
+  width: 100%; grid-template-columns: 44px minmax(0, 1fr) auto auto;
+  font: inherit; text-align: start; color: inherit; cursor: pointer;
+}
+.salonNotificationsPanel button.salonNoticeRow:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
+.salonNotificationsPanel .salonNoticeGo { color: var(--n-500); }

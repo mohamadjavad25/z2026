@@ -1,6 +1,7 @@
 import { toPersianDigits } from "./digits.js";
 import { normalizeBookingTimeLabel } from "./time.js";
 import { bookingStartMs } from "./reminderTiming.js";
+import { formatRelativeBookingDayLabel } from "./persianCalendar.js";
 
 /**
  * The owner's rules of 2026-10-22 about a confirmed booking (docs/DECISIONS.md): it is never broken without the
@@ -111,4 +112,51 @@ export function proposalView(row, now = new Date()) {
     staff: row.proposal_staff || "",
     expiresAt: deadline === null ? null : new Date(deadline).toISOString()
   };
+}
+
+/**
+ * «نیومد» (owner's decision of 2026-10-25, roadmap ۱۴ stage 1). Once a confirmed booking has started its salon or artist
+ * can't cancel it any more; until NO_SHOW_HOURS after the start they can mark that the client did not come, then it is
+ * closed for good. The status stays confirmed; `no_show_at` carries the mark.
+ */
+export const NO_SHOW_HOURS = 24;
+export const NO_SHOW_LABEL = "نیومد";
+export const NO_SHOW_UNDO_LABEL = "اومده بود، برگردون";
+export const STARTED_NO_CANCEL_TEXT = "این نوبت شروع شده و دیگه لغو نمی‌شه. اگه مشتری نیومده، «نیومد» رو بزن.";
+export const STARTED_TEAM_NO_CANCEL_TEXT = "این نوبت شروع شده و دیگه لغو نمی‌شه. اگه مشتری نیومده، سالن «نیومد» رو می‌زنه.";
+export const NO_SHOW_WRONG_LABEL = "اشتباهه؟";
+
+/** «سالن رز زده که نیومدی.» (what the client sees on the booking) */
+export function noShowClientText(type, name) {
+  return `${providerLabel(type, name)} زده که نیومدی.`;
+}
+
+/**
+ * Where a confirmed booking stands for «نیومد»: "ahead" (not started), "open" (started, the mark can still be set or
+ * taken back), "closed" (more than NO_SHOW_HOURS after the start), or null when the time can't be read.
+ */
+export function noShowPhase(bookingDate, time, now = new Date()) {
+  const minutes = minutesToStart(bookingDate, time, now);
+  if (minutes === null) return null;
+  if (minutes > 0) return "ahead";
+  return -minutes <= NO_SHOW_HOURS * 60 ? "open" : "closed";
+}
+
+/** True once a confirmed booking's start has come (so it can't be cancelled by its salon or artist any more). */
+export function hasStarted(bookingDate, time, now = new Date()) {
+  const minutes = minutesToStart(bookingDate, time, now);
+  return minutes !== null && minutes <= 0;
+}
+
+/** «نوبتت همون شنبه ساعت ۱۰ سر جاشه.» after a proposal ran out unanswered (owner's wording of 2026-10-25). */
+export function proposalLapsedClientText(booking) {
+  const day = booking?.booking_date ? formatRelativeBookingDayLabel(booking.booking_date) : "";
+  const when = [day, booking?.time ? `ساعت ${shortClock(booking.time)}` : ""].filter(Boolean).join(" ");
+  return when ? `نوبتت همون ${toPersianDigits(when)} سر جاشه.` : "نوبتت همون‌طور که بود سر جاشه.";
+}
+
+/** The client's card line: «پیشنهاد سالن رز تموم شد. نوبتت همون شنبه ساعت ۱۰ سر جاشه.» */
+export function proposalLapsedLine(booking) {
+  const type = booking?.bookingSource === "artist" ? "artist" : "salon";
+  return `پیشنهاد ${providerLabel(type, booking?.salonName || booking?.salon_name || "")} تموم شد. ${proposalLapsedClientText(booking)}`;
 }

@@ -102,7 +102,7 @@ export async function sweepBookingReminders(now = new Date()) {
     const ttl = (bookingStartMs(booking.booking_date, booking.time, now) - now.getTime()) / 1000;
     const push = await sendPushToUser(booking.client_user_id, { ...message, url: "/", ttl }).catch(() => ({ sent: 0 }));
     result.sent += push.sent || 0;
-    if (kind === "soon") smsBookingReminder(booking.client_user_id, { providerName: booking.place, time: booking.time }, push);
+    if (kind === "soon") smsBookingReminder(booking.client_user_id, { providerName: booking.place, time: booking.time, payerUserId: booking.owner_user_id }, push);
   };
   let next = 0;
   const worker = async () => {

@@ -242,6 +242,8 @@ export function usePublicArtistProfile({
       const { ok, status, payload } = await createArtistBooking({
         artistUserId: selectedPublicArtist.id,
         service: service.name,
+        // Several services for one visit: each name, so the artist's menu is checked one by one.
+        ...(service.items?.length > 1 ? { parts: service.items.map((item) => ({ service: item.name })) } : {}),
         bookingDate: publicArtistBookingDay,
         time: publicArtistBookingSlot,
         durationMinutes,

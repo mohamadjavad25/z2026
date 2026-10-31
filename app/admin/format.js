@@ -31,6 +31,7 @@ export const ACTION_LABEL = {
   cleanup: "پاک‌سازی سامانه",
   clear_errors: "پاک‌کردن خطاهای اپ",
   billing_settings: "تغییر تنظیمات اشتراک",
+  billing_test_accounts: "تغییر شماره‌های آزمایشی",
   billing_grant: "افزودن روز به اشتراک",
   billing_reverify: "بررسی دوبارهٔ پرداخت",
   billing_refund: "ثبت بازپرداخت"
@@ -89,7 +90,7 @@ export const num = (value) => toPersianDigits(Number(value || 0).toLocaleString(
 export const PAYMENT_STATUS = { paid: { label: "پرداخت‌شده", tone: "good" }, pending: { label: "در انتظار", tone: "warn" }, failed: { label: "ناموفق", tone: "bad" }, refunded: { label: "بازپرداخت‌شده", tone: "warn" } };
 /** Where a salon or artist stands (app/lib/billing/period.js). */
 export const ACCOUNT_STATE = {
-  trial: { label: "ماه رایگان", tone: "info" },
+  trial: { label: "دوره‌ی رایگان", tone: "info" },
   active: { label: "اشتراک فعال", tone: "good" },
   grace: { label: "مهلت تمدید", tone: "warn" },
   expired: { label: "غیرفعال", tone: "bad" }

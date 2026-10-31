@@ -77,7 +77,7 @@ export function SalonRulesSettings({ onNotify }) {
           </span>
           <span className="profileLocationRowInfo">
             <strong>قوانین و شرایط سالن</strong>
-            <span>{saved ? `${toPersianDigits(lineCount)} بند` : "هنوز قانونی ننوشتی؛ اگه داری، بنویس تا آرتیست‌ها بدونن"}</span>
+            <span>{saved ? `${toPersianDigits(lineCount)} بند` : "هنوز ننوشتی"}</span>
           </span>
           <ChevronLeft size={16} className="profileLocationRowChevron" aria-hidden="true" />
         </button>

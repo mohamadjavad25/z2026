@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { SalonClientPage } from "../../features/salons/SalonClientPage";
 import { getVisibleSalonServiceItems } from "../../features/salons/useSalonDirectory";
 import { FollowSheet, useFollowGate } from "../../features/follow";
+import { BusinessVisitorBar, businessVisitorKind } from "../../features/connect/BusinessVisitorBar";
 import { goToAppFor, pickedServiceNames } from "../../shared/lib/appHandoff";
 
 // Standalone, unauthenticated rendering of a single salon's public profile.
@@ -26,9 +27,21 @@ function getPortfolioCardStyle(item) {
 export function SalonPublicPageClient({ salon }) {
   const router = useRouter();
   const goToApp = () => router.push("/");
-  // `picked`: the service(s) the visitor ticked in the services menu; they are kept through sign-up so the booking form opens on them.
-  const openHere = (picked = null) => goToAppFor(router, { type: "salon", id: salon.id, name: salon.name, services: pickedServiceNames(picked) });
+  // `picked`: the service(s) the visitor ticked in the services menu; they are kept through sign-up so the booking form opens on them,
+  // with the team member they chose on a team card («رزرو با …») when there was one.
+  const openHere = (picked = null, options = {}) => goToAppFor(router, {
+    type: "salon",
+    id: salon.id,
+    name: salon.name,
+    services: pickedServiceNames(picked),
+    staffId: options?.withStaff?.staffId
+  });
   const followGate = useFollowGate({ targetId: salon.id, targetName: salon.name, targetType: "salon" });
+  // A salon or artist who scanned this page's code: their own bar instead of «رزرو» and «وصل شو» (owner's decision 2026-10-25).
+  const visitorTarget = { type: "salon", id: salon.id, name: salon.name, area: salon.area || "" };
+  const visitorBar = businessVisitorKind(followGate.viewer, visitorTarget)
+    ? <BusinessVisitorBar viewer={followGate.viewer} target={visitorTarget} />
+    : null;
 
   const handleShare = () => {
     if (typeof window === "undefined") return;
@@ -54,6 +67,7 @@ export function SalonPublicPageClient({ salon }) {
       onSave={() => openHere()}
       onShare={handleShare}
       onOpenBooking={openHere}
+      visitorBar={visitorBar}
     />
     <FollowSheet gate={followGate} />
     </>

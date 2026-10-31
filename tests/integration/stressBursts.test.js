@@ -89,7 +89,7 @@ describe("money races", () => {
   it("15 parallel bank callbacks for ONE payment credit the subscription once", async () => {
     await connected;
     const admin = await adminClient();
-    await db.query("UPDATE admin_sessions SET stepup_until = $2 WHERE user_id = (SELECT id FROM users WHERE phone = $1)", ["09120000001", new Date(Date.now() + 10 * 60_000).toISOString()]);
+    await db.query("UPDATE admin_account_sessions SET stepup_until = $2 WHERE admin_id = (SELECT id FROM admin_accounts WHERE phone = $1)", ["09120000001", new Date(Date.now() + 10 * 60_000).toISOString()]);
     const on = await fetch(`${TEST_BASE_URL}/api/admin/billing/settings`, { method: "PUT", headers: { "Content-Type": "application/json", Cookie: admin.cookie() }, body: JSON.stringify({ enabled: true, graceDays: 3 }) });
     note("billing on", on.status);
     try {

@@ -260,10 +260,6 @@
   gap: 8px !important;
 }
 
-.artistPublicGrid.is-single {
-  grid-template-columns: 1fr !important;
-}
-
 .artistPublicCard {
   min-height: 0 !important;
   border-radius: 12px !important;

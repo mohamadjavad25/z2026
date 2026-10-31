@@ -15,7 +15,8 @@ const DEFAULT_PROFILE_SETTINGS = {
   vacationMode: false,
   directBooking: true,
   autoConfirm: false,
-  reminders: true
+  reminders: true,
+  dueReminders: true
 };
 
 /**
@@ -55,6 +56,7 @@ export function useProfileEditor({
   const [profileEditOpen, setProfileEditOpen] = useState(false);
   const [profileEditAvatar, setProfileEditAvatar] = useState("");
   const [profileLocationSaving, setProfileLocationSaving] = useState(false);
+  const [profileInstagramSaving, setProfileInstagramSaving] = useState(false);
   const [profileSaving, setProfileSaving] = useState(false);
   const profileSavingRef = useRef(false);
   const [profileSettings, setProfileSettings] = useState(DEFAULT_PROFILE_SETTINGS);
@@ -87,6 +89,15 @@ export function useProfileEditor({
       cancelled = true;
     };
   }, [createdProfile?.id]);
+
+  // «شمارهٔ موبایل» was changed from the profile sheet (PhoneChangeBox): the saved account replaces the old one.
+  const applyChangedPhone = useCallback((user) => {
+    const profile = normalizeProfile(user);
+    if (!profile) return;
+    writeAuthSession(profile);
+    setCreatedProfile(profile);
+    notify("شماره‌ت عوض شد. بقیهٔ گوشی‌هات از حساب بیرون رفتن.");
+  }, [notify, setCreatedProfile, writeAuthSession]);
 
   const updateRegisteredProfile = useCallback(async (event) => {
     event.preventDefault();
@@ -128,7 +139,6 @@ export function useProfileEditor({
         name: text(data.name),
         area: text(data.area),
         service: text(data.service) || text(createdProfile.data.service),
-        phone: text(data.phone),
         email: text(data.email),
         experienceYears: text(data.experienceYears) || text(createdProfile.data.experienceYears),
         managerName: text(data.managerName) || text(createdProfile.data.managerName),
@@ -206,6 +216,31 @@ export function useProfileEditor({
       setProfileLocationSaving(false);
     }
   }, [createdProfile, lockSession, writeAuthSession, setCreatedProfile, setProfileType, notify]);
+
+  // The Instagram page name from «اینستاگرام» in Settings; "" removes it. Resolves to { ok, error } so the card can
+  // show the server's reason under its field.
+  const saveProfileInstagram = useCallback(async (instagram) => {
+    if (!createdProfile) return { ok: false };
+    const removing = !instagram;
+    setProfileInstagramSaving(true);
+    try {
+      const { ok, payload } = await apiFetch("/api/profile", {
+        method: "POST",
+        body: JSON.stringify({ data: { instagram } })
+      });
+      const profile = ok ? normalizeProfile(payload.data?.user) : null;
+      if (!profile) return { ok: false, error: payload?.error || "ذخیره نشد؛ دوباره بزن." };
+      lockSession();
+      writeAuthSession(profile);
+      setCreatedProfile(profile);
+      notify(removing ? "پیج اینستاگرامت از صفحه‌ت برداشته شد." : "ذخیره شد. حالا توی صفحه‌ت دیده میشه.");
+      return { ok: true };
+    } catch {
+      return { ok: false, error: "ذخیره نشد؛ اینترنتت رو یه نگاه بنداز و دوباره بزن." };
+    } finally {
+      setProfileInstagramSaving(false);
+    }
+  }, [createdProfile, lockSession, writeAuthSession, setCreatedProfile, notify]);
 
   const openProfileEdit = useCallback(() => {
     setProfileEditAvatar(createdProfile?.data?.avatar || "");
@@ -400,10 +435,13 @@ export function useProfileEditor({
     profileEditAvatar,
     setProfileEditAvatar,
     profileLocationSaving,
+    profileInstagramSaving,
     profileSaving,
     profileSettings,
     updateRegisteredProfile,
+    applyChangedPhone,
     saveProfileLocation,
+    saveProfileInstagram,
     openProfileEdit,
     handleProfileAvatarUpload,
     toggleProfileSetting,

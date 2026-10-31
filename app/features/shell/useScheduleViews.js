@@ -1,6 +1,6 @@
 import { useMemo, useEffect } from "react";
 import { useAppSounds } from "./useAppSounds";
-import { SALON_HOUR_TIME_OPTIONS, timeLabelToMinutes } from "../../shared/lib/time";
+import { timeLabelToMinutes } from "../../shared/lib/time";
 import { buildBookingCustomers, computeStaffStats } from "../salons";
 import { getBookingDateKey, getBookingDateOffsetDays, buildExactBookingDateTabsCentered, isArtistBookingOnSelectedDay, isArtistBookingOnExactDate } from "../artist";
 import { isPersianDateKey, formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar";
@@ -12,7 +12,6 @@ import { normalizeSalonScheduleBooking, withScheduleTimeline, normalizeArtistSch
 export function useScheduleViews({
   salonHoursList,
   activeSalonHours,
-  selectedSalonHourDay,
   salonAppointmentList,
   createdProfile,
   artistBookingList,
@@ -34,42 +33,6 @@ export function useScheduleViews({
   scheduleNow,
   artistServiceList
 }) {
-  const salonHoursPresets = [
-    { id: "standard", label: "معمولی", detail: "شنبه تا چهارشنبه، ۱۰ تا ۲۰، ظرفیت ۸" },
-    { id: "extended", label: "پرفشار", detail: "همه روزها باز، ۱۰ تا ۲۲، ظرفیت ۱۲" },
-    { id: "weekend", label: "آخر هفته", detail: "پنجشنبه و جمعه، ۱۲ تا ۱۸، ظرفیت ۵" }
-  ];
-  const activeHoursPreset = useMemo(() => {
-    if (!salonHoursList.length) return null;
-    const weekendDays = new Set(["پنجشنبه", "جمعه"]);
-    const matches = (predicate) => salonHoursList.every(predicate);
-    if (matches((hour) => {
-      const isWeekend = weekendDays.has(hour.day);
-      return hour.open_time === "۱۰:۰۰" && hour.close_time === "۲۰:۰۰" && Number(hour.capacity) === 8 && Boolean(hour.active) === !isWeekend;
-    })) return "standard";
-    if (matches((hour) => hour.open_time === "۱۰:۰۰" && hour.close_time === "۲۲:۰۰" && Number(hour.capacity) === 12 && Boolean(hour.active))) return "extended";
-    if (matches((hour) => {
-      const isWeekend = weekendDays.has(hour.day);
-      return hour.open_time === "۱۲:۰۰" && hour.close_time === "۱۸:۰۰" && Number(hour.capacity) === 5 && Boolean(hour.active) === isWeekend;
-    })) return "weekend";
-    return null;
-  }, [salonHoursList]);
-  const activeHoursPresetMeta = salonHoursPresets.find((preset) => preset.id === activeHoursPreset) || null;
-  const weeklyCapacityTotal = activeSalonHours.reduce((total, item) => total + Number(item.capacity || 0), 0);
-  const selectedSalonHour = useMemo(() => {
-    if (!salonHoursList.length) return null;
-    return salonHoursList.find((hour) => hour.day === selectedSalonHourDay)
-      || salonHoursList.find((hour) => hour.active)
-      || salonHoursList[0]
-      || null;
-  }, [salonHoursList, selectedSalonHourDay]);
-  const salonHourTimeOptions = useMemo(() => {
-    const options = [...SALON_HOUR_TIME_OPTIONS];
-    [selectedSalonHour?.open_time, selectedSalonHour?.close_time].forEach((value) => {
-      if (value && !options.includes(value)) options.push(value);
-    });
-    return options;
-  }, [selectedSalonHour]);
   const scheduleDayOptions = useMemo(() => {
     const fromHours = salonHoursList.map((hour) => hour.day).filter(Boolean);
     const fromBookings = salonAppointmentList
@@ -347,12 +310,6 @@ export function useScheduleViews({
   ), [artistBookingList, activeArtistScheduleDateKey, artistServiceList, scheduleNow]);
 
   return {
-    salonHoursPresets,
-    activeHoursPreset,
-    activeHoursPresetMeta,
-    weeklyCapacityTotal,
-    selectedSalonHour,
-    salonHourTimeOptions,
     bookingCustomerOptions,
     selectedStaffStats,
     salonHistoryAppointments,

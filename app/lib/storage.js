@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { parseMediaDataUrl, ALLOWED_POSTER_TYPES } from "./db/repos/media.js";
+import { s3Config, s3Request } from "./s3.js";
 
 /**
  * Supabase Storage dual-write path -- see migrations/008_media_storage_urls.sql
@@ -37,8 +38,10 @@ function getStorageClient() {
   return cachedClient;
 }
 
+// Two backends, the same public-URL model: S3-compatible object storage (Arvan on the main server, see
+// app/lib/s3.js) when FRFRO_S3_* is set, otherwise Supabase Storage (the Vercel copy).
 export function isStorageConfigured() {
-  return Boolean(getStorageClient());
+  return Boolean(s3Config() || getStorageClient());
 }
 
 const BUCKET = process.env.SUPABASE_STORAGE_BUCKET || "media";
@@ -65,6 +68,8 @@ function ensureBucket(client) {
 
 /** The public URL prefix of our bucket, used to recognise (and safely fetch) our own objects. */
 export function storagePublicPrefix() {
+  const s3 = s3Config();
+  if (s3) return `${s3.publicBase}/`;
   const base = String(process.env.SUPABASE_URL || "").replace(/\/+$/, "");
   return base ? `${base}/storage/v1/object/public/${BUCKET}/` : "";
 }
@@ -78,6 +83,16 @@ export function isOwnStorageUrl(url) {
 /** Removes an object we uploaded earlier (replaced or deleted picture). Best-effort, never throws. */
 export async function deleteStoredImage(url) {
   if (!isOwnStorageUrl(url)) return;
+  const s3 = s3Config();
+  if (s3) {
+    try {
+      const res = await s3Request(s3, "DELETE", url.slice(storagePublicPrefix().length));
+      if (!res.ok && res.status !== 404) console.error("Object storage delete failed:", res.status);
+    } catch (error) {
+      console.error("Object storage delete failed:", error.message);
+    }
+    return;
+  }
   const client = getStorageClient();
   if (!client) return;
   try {
@@ -122,6 +137,24 @@ export function buildStorageKey(kind, ownerId, contentType) {
 export async function uploadImageDataUrl(dataUrl, { kind, ownerId, allowedTypes = ALLOWED_POSTER_TYPES } = {}) {
   const parsed = parseMediaDataUrl(dataUrl, allowedTypes);
   if (!parsed) return null;
+  const s3 = s3Config();
+  if (s3) {
+    try {
+      const key = buildStorageKey(kind, ownerId, parsed.contentType);
+      const res = await s3Request(s3, "PUT", key, {
+        body: Buffer.from(parsed.base64, "base64"),
+        headers: { "Content-Type": parsed.contentType, "Cache-Control": `public, max-age=${YEAR_SECONDS}, immutable`, "x-amz-acl": "public-read" }
+      });
+      if (!res.ok) {
+        console.error(`Object storage upload failed (${kind}/${ownerId}):`, res.status, (await res.text().catch(() => "")).slice(0, 200));
+        return null;
+      }
+      return `${s3.publicBase}/${key}`;
+    } catch (error) {
+      console.error(`Object storage upload threw (${kind}/${ownerId}):`, error.message);
+      return null;
+    }
+  }
   const client = getStorageClient();
   if (!client) return null;
   try {

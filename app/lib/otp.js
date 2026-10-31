@@ -1,12 +1,13 @@
 import { createHmac, randomInt, timingSafeEqual } from "node:crypto";
 import { getDb, get, run, withTransaction } from "./db/connection.js";
 import { checkRateLimit } from "./rateLimit.js";
+import { OTP_SEND_SITE_HOUR } from "./limits.js";
 import { sendVerificationSms, smsEnabled } from "./sms.js";
 
 const CODE_TTL_MINUTES = 5;
 const MAX_ATTEMPTS = 5;
 /** The site-wide hourly cap on texted codes (all sign-ups, resets and phone changes together). */
-export const OTP_GLOBAL_HOURLY_CAP = 200;
+export const OTP_GLOBAL_HOURLY_CAP = OTP_SEND_SITE_HOUR;
 export const OTP_GLOBAL_KEY = "otp-send-global";
 const PROOF_TTL_MS = 15 * 60 * 1000;
 const RESEND_SECONDS = 60;
@@ -21,10 +22,14 @@ function secret() {
   return process.env.FRFRO_OTP_SECRET || process.env.CRON_SECRET || "";
 }
 
-/** Whether the app can send codes, and whether sign-up demands one (set FRFRO_OTP_REQUIRED=1 once SMS works). */
+/**
+ * Whether the app can send codes, and whether sign-up demands one. Whenever SMS works, sign-up needs the code
+ * (owner's decision 2026-10-25: otherwise anyone could sign up with a number that isn't theirs). Only a test setup
+ * that makes accounts straight through the API turns it off, with FRFRO_OTP_REQUIRED=0; never on a real server.
+ */
 export function otpConfig() {
   const enabled = smsEnabled();
-  return { enabled, required: enabled && process.env.FRFRO_OTP_REQUIRED === "1", resendSeconds: RESEND_SECONDS };
+  return { enabled, required: enabled && process.env.FRFRO_OTP_REQUIRED !== "0", resendSeconds: RESEND_SECONDS };
 }
 
 const hashCode = (phone, purpose, code) => createHmac("sha256", secret()).update(`${phone}|${purpose}|${code}`).digest("hex");

@@ -6,21 +6,21 @@ const daysAgo = (n) => new Date(NOW.getTime() - n * DAY_MS);
 const daysAhead = (n) => new Date(NOW.getTime() + n * DAY_MS);
 
 describe("subscription periods", () => {
-  it("starts the free month at sign-up, or at launch for accounts older than billing", () => {
-    expect(trialEndsAt({ createdAt: daysAgo(5), launchedAt: daysAgo(100) }).getTime()).toBe(daysAhead(25).getTime());
+  it("gives a new account 14 days from sign-up, and an account older than billing 30 days from launch", () => {
+    expect(trialEndsAt({ createdAt: daysAgo(5), launchedAt: daysAgo(100) }).getTime()).toBe(daysAhead(9).getTime());
     expect(trialEndsAt({ createdAt: daysAgo(400), launchedAt: daysAgo(10) }).getTime()).toBe(daysAhead(20).getTime());
-    expect(trialEndsAt({ createdAt: daysAgo(400), launchedAt: null }).getTime()).toBe(daysAgo(370).getTime());
+    expect(trialEndsAt({ createdAt: daysAgo(400), launchedAt: null }).getTime()).toBe(daysAgo(386).getTime());
   });
 
-  it("is in the free month, then grace, then expired", () => {
+  it("is in the free period, then grace, then expired", () => {
     const base = { now: NOW, launchedAt: daysAgo(200), graceDays: 3 };
-    const trial = computeAccess({ ...base, createdAt: daysAgo(10) });
-    expect(trial).toMatchObject({ state: "trial", open: true, daysLeft: 20 });
+    const trial = computeAccess({ ...base, createdAt: daysAgo(5) });
+    expect(trial).toMatchObject({ state: "trial", open: true, daysLeft: 9 });
 
-    const grace = computeAccess({ ...base, createdAt: daysAgo(31) });
+    const grace = computeAccess({ ...base, createdAt: daysAgo(15) });
     expect(grace).toMatchObject({ state: "grace", open: true, daysLeft: 0, graceDaysLeft: 2 });
 
-    const expired = computeAccess({ ...base, createdAt: daysAgo(40) });
+    const expired = computeAccess({ ...base, createdAt: daysAgo(20) });
     expect(expired).toMatchObject({ state: "expired", open: false, daysLeft: 0, graceDaysLeft: 0 });
   });
 

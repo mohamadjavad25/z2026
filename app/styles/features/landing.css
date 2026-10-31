@@ -717,6 +717,9 @@ html.native-app .webOnlyAppLink { display: none !important; }
 .appLanding__footerInner nav { display: flex; flex-wrap: wrap; gap: var(--space-4); }
 .appLanding__footerInner a { text-decoration: none; transition: color var(--duration-fast) ease; }
 .appLanding__footerInner a:hover { color: #fff; }
+/* The eNamad badge is a picture with a white background: give it a white tile on the ink footer. */
+.appLanding__trust { display: inline-flex; padding: 6px; border-radius: 12px; background: #fff; }
+.appLanding__trust img { display: block; }
 
 /* ---------- Motion ---------- */
 @keyframes landingRibbon { to { transform: translateX(50%); } }

@@ -1,3 +1,4 @@
+import pg from "pg";
 import { TEST_BASE_URL } from "../globalSetup.js";
 import { formatPersianDateKey, getPersianWeekday } from "../../app/shared/lib/persianCalendar.js";
 
@@ -31,6 +32,7 @@ export function createClient(initialCookie = "") {
     get: (path, opts) => request(path, { ...opts, method: "GET" }),
     post: (path, body, opts) => request(path, { ...opts, method: "POST", body }),
     patch: (path, body, opts) => request(path, { ...opts, method: "PATCH", body }),
+    put: (path, body, opts) => request(path, { ...opts, method: "PUT", body }),
     delete: (path, body, opts) => request(path, { ...opts, method: "DELETE", body })
   };
 }
@@ -95,13 +97,36 @@ export async function registerUser(client, { type = "client", name = "Test User"
   }
 }
 
+/** What salons in tests offer unless a test saves its own: every open day, 10:00 to 18:00 (inside the default opening hours), 50%. */
+export const DEFAULT_JOIN_TERMS = { days: "شنبه، یکشنبه، دوشنبه، سه‌شنبه، چهارشنبه، پنجشنبه", from: "10:00", to: "18:00", share: 50 };
+
+/** The salon's saved join terms; saves DEFAULT_JOIN_TERMS first when it has none (a join link needs them). → { version, ... } */
+export async function ensureJoinTerms(salonClient, terms = DEFAULT_JOIN_TERMS) {
+  const current = await salonClient.get("/api/salon-join-terms");
+  if (current.ok && current.payload.data.terms) return current.payload.data.terms;
+  const saved = await salonClient.put("/api/salon-join-terms", terms);
+  if (!saved.ok) throw new Error(`saving salon join terms failed: ${JSON.stringify(saved.payload)}`);
+  return saved.payload.data.terms;
+}
+
 /** POST /api/artist/join-salon on the artist's behalf, fetching the salon's own join
  *  code first (as the real "artist scans the salon's QR" flow does) -- the endpoint
- *  rejects a bare salonUserId with no code (see app/lib/db/repos/salons/invites.js). */
-export async function joinSalonAsArtist(artistClient, salonClient, salonUserId) {
+ *  rejects a bare salonUserId with no code (see app/lib/db/repos/salons/invites.js).
+ *  The salon's terms are saved on demand and their version sent, as the join page does. */
+export async function joinSalonAsArtist(artistClient, salonClient, salonUserId, { keepTerms = false } = {}) {
+  const terms = await ensureJoinTerms(salonClient);
   const code = await salonClient.get("/api/salon-invites/join-code");
   if (!code.ok) throw new Error(`fetching salon join code failed: ${JSON.stringify(code.payload)}`);
-  return artistClient.post("/api/artist/join-salon", { salonUserId, code: code.payload.data.code });
+  const res = await artistClient.post("/api/artist/join-salon", { salonUserId, code: code.payload.data.code, termsVersion: terms.version });
+  // Most tests were written before agreed terms limited a member's days and hours: they want a member with no limits,
+  // so the agreed row is dropped (the pair falls back to «no terms», as before). Pass { keepTerms: true } to keep it.
+  const artistId = res.payload?.data?.staffPerson?.artist_user_id;
+  if (res.ok && artistId && !keepTerms) {
+    const db = new pg.Client({ connectionString: process.env.TEST_POSTGRES_URL });
+    await db.connect();
+    try { await db.query("DELETE FROM team_terms WHERE salon_user_id = $1 AND artist_user_id = $2", [salonUserId, artistId]); } finally { await db.end(); }
+  }
+  return res;
 }
 
 /** A Persian date key a few open (non-Friday) days from now, so booking tests never land on a past slot. */

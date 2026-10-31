@@ -2,11 +2,10 @@
 
 import { useState } from "react";
 import { QrScanner } from "../../components/QrScanner";
-import { connectScannedClient, connectTo, joinSalonTeam, lookupScannedCode } from "../../shared/api/connections";
+import { connectScannedClient, connectTo, lookupScannedCode } from "../../shared/api/connections";
 import { SalonRulesNote } from "../salons/SalonRulesNote";
 import { createSalonInvite } from "../../shared/api/salons";
 import { readScannedCode } from "../../shared/lib/connectCodes";
-import { notify } from "../../shared/notice/noticeStore";
 import { ConnectionCard } from "./ConnectionCard";
 
 const TYPE_NAME = { salon: "سالن", artist: "آرتیست" };
@@ -38,8 +37,9 @@ function profileAction(viewerType, profile, relation, joinCode) {
   if (relation === "member") return { note: "توی تیم همین سالنی." };
   // A plain salon profile code proves nothing about who showed it -- only the
   // salon's own dedicated QR/link (with a secret) can join the team instantly.
+  // Without it, the artist can send a collaboration proposal from the salon's page (owner's decision 2026-10-25).
   if (!joinCode) {
-    return { note: "این کد صفحهٔ سالنه، نه کد تیم. از سالن‌دار بخواه از «پرسنل ← دعوت آرتیست» کد تیم رو نشونت بده، یا «کد من» رو بزن و کد خودت رو نشونش بده تا دعوتت کنه." };
+    return { note: "این کد صفحهٔ سالنه؛ برای اومدن به تیم، پیشنهاد همکاری بفرست تا سالن جواب بده.", label: "پیشنهاد همکاری", kind: "propose" };
   }
   return {
     note: profile.rules ? "با رفتن به تیم، قوانین سالن رو قبول داری." : "می‌ری توی پرسنل این سالن.",
@@ -110,6 +110,11 @@ export function ScanFlow({ viewerType, connect, onOpenProfile, onChanged, onClos
   }
 
   async function runAction(kind, profile, joinCode) {
+    if (kind === "propose") {
+      // The salon's public page has the proposal form (BusinessVisitorBar).
+      window.location.assign(`/salons/${Number(profile.id)}`);
+      return;
+    }
     if (kind === "open") {
       onClose?.();
       onOpenProfile?.(profile);
@@ -124,21 +129,18 @@ export function ScanFlow({ viewerType, connect, onOpenProfile, onChanged, onClos
         if (connected) setStep({ state: "profile", profile, relation: "connected" });
         return;
       }
-      const { ok, payload } = kind === "invite"
-        ? await createSalonInvite({ artistUserId: profile.id })
-        : await joinSalonTeam(profile.id, joinCode);
+      if (kind !== "invite") {
+        // Joining a team always goes through the salon's terms page, so the artist reads and accepts them first.
+        window.location.assign(`/join-salon/${profile.id}?k=${encodeURIComponent(joinCode)}`);
+        return;
+      }
+      const { ok, payload } = await createSalonInvite({ artistUserId: profile.id });
       if (!ok) {
         setStep({ state: "message", text: payload?.error || "نشد؛ دوباره بزن." });
         return;
       }
+      setStep({ state: "profile", profile, relation: kind === "invite" ? "invited" : "member" });
       onChanged?.(kind);
-      if (kind === "join") {
-        // Joined: back to the page the scanner opened over, which now shows the team, with a line saying so.
-        notify(`رفتی توی تیم «${profile.name || "سالن"}»!`);
-        onClose?.();
-        return;
-      }
-      setStep({ state: "profile", profile, relation: "invited" });
     } catch {
       setStep({ state: "message", text: "وصل نشد؛ دوباره بزن." });
     } finally {

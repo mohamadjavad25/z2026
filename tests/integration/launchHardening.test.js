@@ -1,6 +1,7 @@
 import { describe, it, expect, afterAll } from "vitest";
 import pg from "pg";
 import { createClient, registerUser, uniquePhone, futureBookingDay } from "./helpers.js";
+import { LOGIN_PER_IP_15MIN, OTP_SEND_PER_IP_HOUR } from "../../app/lib/limits.js";
 
 /**
  * The pre-launch fixes: a password the form would refuse is refused by the server too, public auth routes are
@@ -42,18 +43,18 @@ describe("per-address throttles", () => {
   it("stops one address walking wrong passwords across many phones", async () => {
     const ip = freshIp();
     const statuses = [];
-    for (let i = 0; i < 31; i += 1) {
+    for (let i = 0; i <= LOGIN_PER_IP_15MIN; i += 1) {
       statuses.push((await createClient().post("/api/auth/login", { phone: uniquePhone(), password: "wrongpass1" }, fromIp(ip))).status);
     }
-    expect(statuses.slice(0, 30).every((status) => status === 401)).toBe(true);
-    expect(statuses[30]).toBe(429);
+    expect(statuses.slice(0, LOGIN_PER_IP_15MIN).every((status) => status === 401)).toBe(true);
+    expect(statuses[LOGIN_PER_IP_15MIN]).toBe(429);
     // Another address is not affected.
     expect((await createClient().post("/api/auth/login", { phone: uniquePhone(), password: "wrongpass1" }, fromIp(freshIp()))).status).toBe(401);
   });
 
   it("ignores an address the caller typed in front of the proxy's own", async () => {
     const ip = freshIp();
-    for (let i = 0; i < 30; i += 1) {
+    for (let i = 0; i < LOGIN_PER_IP_15MIN; i += 1) {
       await createClient().post("/api/auth/login", { phone: uniquePhone(), password: "wrongpass1" }, fromIp(ip));
     }
     // A forged first X-Forwarded-For entry changes nothing: the proxy's X-Real-IP decides.
@@ -66,11 +67,11 @@ describe("per-address throttles", () => {
   it("limits SMS codes per address so nobody can use up everyone's hourly budget", async () => {
     const ip = freshIp();
     const statuses = [];
-    for (let i = 0; i < 11; i += 1) {
+    for (let i = 0; i <= OTP_SEND_PER_IP_HOUR; i += 1) {
       statuses.push((await createClient().post("/api/auth/otp/send", { phone: uniquePhone(), purpose: "register" }, fromIp(ip))).status);
     }
-    expect(statuses.slice(0, 10).every((status) => status === 200)).toBe(true);
-    expect(statuses[10]).toBe(429);
+    expect(statuses.slice(0, OTP_SEND_PER_IP_HOUR).every((status) => status === 200)).toBe(true);
+    expect(statuses[OTP_SEND_PER_IP_HOUR]).toBe(429);
   });
 });
 
@@ -87,7 +88,7 @@ describe("booking SMS", () => {
     });
     expect(created.status).toBe(201);
     const toSalon = await eventually(() => smsTo(salon.phone, "booking_request"), (list) => list.length > 0);
-    expect(toSalon[0]).toContain("درخواست تازه");
+    expect(toSalon[0]).toContain("درخواست نوبت");
     expect(toSalon[0]).toContain("مشتری پیامک");
 
     const approved = await salonClient.patch("/api/salon-bookings", { id: created.payload.data.booking.id, status: "تایید شده" });

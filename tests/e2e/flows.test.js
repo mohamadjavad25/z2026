@@ -23,19 +23,16 @@ async function openExploreTab(page) {
   await page.getByRole("tab", { name: "پیدا کردن" }).click();
 }
 
-// While APP_DOWNLOADS_OPEN is off (features/landing/constants.js): phones open the app at "/" and
-// at /download, and nothing links to the APK.
-describe("phones go straight to the app while downloads are closed (browser)", () => {
-  it("opens the app at / and at /download for a first-time phone visitor, with «به‌زودی» instead of a download link", async () => {
+// While APP_DOWNLOADS_OPEN is on (features/landing/constants.js): a first-time phone visitor sees the
+// about page at "/" first, with the app's download links, and «اپلیکیشن و وبلاگ» is never shown.
+describe("first-time phone visitor sees the about page while downloads are open (browser)", () => {
+  it("shows the about page at / before the app, with no «به‌زودی» text and /download stays on /download", async () => {
     const { page, context, problems } = await newPage({ entered: false });
     await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
-    expect(await page.locator(".landingSlot .appLanding").isVisible()).toBe(false);
-    expect(await page.locator(".pageSlot").isVisible()).toBe(true);
-    await page.getByText("به‌زودی: اپلیکیشن و وبلاگ فرفرو").waitFor();
-    expect(await page.locator(".pageSlot a[href^='/download']").count()).toBe(0);
+    expect(await page.locator(".landingSlot .appLanding").isVisible()).toBe(true);
+    expect(await page.getByText("به‌زودی: اپلیکیشن و وبلاگ فرفرو").count()).toBe(0);
     await page.goto(`${TEST_BASE_URL}/download`, { waitUntil: "networkidle" });
-    expect(new URL(page.url()).pathname).toBe("/");
-    expect(await page.locator(".pageSlot").isVisible()).toBe(true);
+    expect(new URL(page.url()).pathname).toBe("/download");
     expect(problems).toEqual([]);
     await context.close();
   });
@@ -290,7 +287,7 @@ describe("client starts from what they want (browser)", () => {
   });
 
 
-  it("from the home card: search by name, open the salon, its services are on the page, a tap goes to the times", async () => {
+  it("from the home card: search by name, open the salon, its services are behind «رزرو», a pick goes to the times", async () => {
     const { name } = await seedSalon();
     const clientApi = createClient();
     await registerUser(clientApi, { type: "client", name: "مشتری خانه" });
@@ -300,18 +297,24 @@ describe("client starts from what they want (browser)", () => {
     const home = page.locator(".clientHome .cnPage.is-compact");
     await home.getByPlaceholder("اسم سالن یا آرتیست").fill(name);
     await home.locator(".cnCard").filter({ hasText: name }).first().getByRole("button", { name: "وصل شو" }).click();
-    // the salon page lists its services with their prices, and the bottom button says «رزرو نوبت»
-    const row = page.locator(".sopRow", { hasText: "کوتاهی مو" });
-    await row.waitFor();
-    expect(await row.innerText()).toContain("دقیقه");
-    expect(await page.locator(".spvBarBook").innerText()).toContain("رزرو");
-    await row.click();
+    // the services are not listed on the page twice: the bottom button says how many and from what price
+    const bar = page.locator(".spvBarBook");
+    await bar.waitFor();
+    expect(await page.locator(".sopRow").count()).toBe(0);
+    const barText = await bar.innerText();
+    expect(barText).toContain("رزرو");
+    expect(barText).toContain("خدمت، قیمت از");
+    await bar.click();
+    const item = page.locator(".sduItem", { hasText: "کوتاهی مو" });
+    expect(await item.innerText()).toContain("دقیقه");
+    await item.click();
+    await page.locator(".sduConfirm").click();
     // the time screen: a way back, the first free time marked «زودترین», the wait question folded
     await page.locator(".vbTime.is-on.is-earliest").waitFor();
     expect(await page.locator(".wcFold").innerText()).toContain("۱ ساعت صبر می‌کنم");
     await page.getByRole("button", { name: "برگشت" }).click();
     await page.locator(".vbTime").first().waitFor({ state: "detached" });
-    await page.locator(".sopRow").first().waitFor();
+    await page.locator(".spvBarBook").waitFor();
     expect(problems).toEqual([]);
     await context.close();
   });
@@ -549,7 +552,7 @@ describe("salon day at the top of the bookings (browser)", () => {
     await nav.getByRole("button", { name: "برگرد به امروز" }).click();
     await nav.getByRole("button", { name: "برگرد به امروز" }).waitFor({ state: "detached" });
     await nav.locator(".dayNavDay").click();
-    await page.getByText("تقویم نوبت‌ها").first().waitFor();
+    await page.getByText("تقویم نوبت‌ها", { exact: true }).first().waitFor();
     expect(problems).toEqual([]);
     await context.close();
   });
@@ -668,21 +671,20 @@ describe("admin page (browser)", () => {
     expect(await denied.page.locator(".admTabs").count()).toBe(0);
     await denied.context.close();
 
-    await registerUser(createClient(), { type: "client", name: "Admin Three", phone: TEST_ADMIN3_PHONE });
+    // No app account for this admin: the panel has its own accounts (owner's decision 2026-10-27).
     const { page, context, problems } = await newPage({ width: 1100 });
     await page.goto(`${TEST_BASE_URL}/admin`, { waitUntil: "networkidle" });
 
     // First-time setup: password + setup key -> QR/secret -> first code -> inside the panel.
     await page.getByRole("button", { name: /راه‌اندازی اولیه/ }).click();
     await page.getByLabel("شمارهٔ موبایل").fill(TEST_ADMIN3_PHONE);
-    await page.getByLabel("رمز عبور").fill(TEST_ADMIN_PASSWORD);
+    await page.getByLabel(/رمز مدیر تازه/).fill(TEST_ADMIN_PASSWORD);
     await page.getByLabel(/کلید راه‌اندازی/).fill(TEST_ADMIN_SETUP_KEY);
     await page.getByRole("button", { name: "ادامه" }).click();
     await page.locator(".admKey").waitFor();
     const secret = (await page.locator(".admKey").innerText()).trim();
     const usedStep = totpStepAt();
-    await page.getByLabel("کد ۶ رقمی").fill(totpCodeAt(secret, usedStep));
-    await page.getByRole("button", { name: "فعال‌سازی و ورود" }).click();
+    await page.getByLabel("کد ۶ رقمی").fill(totpCodeAt(secret, usedStep)); // signs in by itself at the sixth digit
     // The rail is the page menu: one button per page (a waiting count may follow the name).
     const nav = (name) => page.locator(".admSideNav").getByRole("button", { name: new RegExp(`^${name}`) });
     await nav("کاربران").waitFor();
@@ -715,11 +717,12 @@ describe("admin page (browser)", () => {
 
     // Logout, then a normal login with the next code.
     await page.getByRole("button", { name: "خروج", exact: true }).click();
-    await page.getByRole("button", { name: "ورود", exact: true }).waitFor();
+    await page.getByRole("button", { name: "ادامه" }).waitFor();
     await page.getByLabel("شمارهٔ موبایل").fill(TEST_ADMIN3_PHONE);
-    await page.getByLabel("رمز عبور").fill(TEST_ADMIN_PASSWORD);
+    await page.getByLabel("رمز مدیر").fill(TEST_ADMIN_PASSWORD);
+    await page.getByRole("button", { name: "ادامه" }).click();
+    // The code step signs in by itself at the sixth digit.
     await page.getByLabel(/کد ۶ رقمی/).fill(totpCodeAt(secret, usedStep + 1));
-    await page.getByRole("button", { name: "ورود", exact: true }).click();
     await page.locator(".admSideNav").getByRole("button", { name: "نمای کلی" }).waitFor();
     expect(problems).toEqual([]);
     await context.close();

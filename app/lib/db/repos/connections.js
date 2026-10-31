@@ -3,7 +3,7 @@ import { getDb, all, get, run } from "../connection.js";
 import { toLatinDigits } from "../../../shared/lib/digits.js";
 import { parseProfileLink } from "../../../shared/lib/connectCodes.js";
 import { serviceInCategory } from "../../../shared/constants/clientCategories.js";
-import { withoutHiddenProviders } from "../../billing/access.js";
+import { withoutHiddenProviders, withoutTestAccounts } from "../../billing/access.js";
 
 /**
  * A client's "salons and artists" — the people they book with.
@@ -231,6 +231,8 @@ export async function searchProfiles(query, clientUserId) {
       ORDER BY u.id
       LIMIT ${SEARCH_LIMIT}
     `, [phone]);
+    // The owner's test numbers never come up, not even when someone types the exact number.
+    rows = await withoutTestAccounts(rows, (row) => row.id);
   } else {
     by = "name";
     if (text.length < 2) return { by, results: [] };

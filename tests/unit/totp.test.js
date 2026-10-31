@@ -23,7 +23,9 @@ describe("totp", () => {
     expect(verifyTotp(RFC_SECRET, totpCodeAt(RFC_SECRET, step), { now })).toBe(step);
     expect(verifyTotp(RFC_SECRET, totpCodeAt(RFC_SECRET, step - 1), { now })).toBe(step - 1);
     expect(verifyTotp(RFC_SECRET, totpCodeAt(RFC_SECRET, step + 1), { now })).toBe(step + 1);
+    expect(verifyTotp(RFC_SECRET, totpCodeAt(RFC_SECRET, step - 2), { now })).toBe(step - 2);
     expect(verifyTotp(RFC_SECRET, totpCodeAt(RFC_SECRET, step + 2), { now })).toBeNull();
+    expect(verifyTotp(RFC_SECRET, totpCodeAt(RFC_SECRET, step - 3), { now })).toBeNull();
     expect(verifyTotp(RFC_SECRET, "12345", { now })).toBeNull();
     expect(verifyTotp(RFC_SECRET, "abcdef", { now })).toBeNull();
   });

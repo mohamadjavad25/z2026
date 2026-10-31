@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Info, MessageSquareQuote, Megaphone, Pencil, Plus, Sparkles, Trash2, UserPlus } from "lucide-react";
+import { Info, MessageSquareQuote, Megaphone, Pencil, Plus, Smartphone, Sparkles, Trash2, UserPlus } from "lucide-react";
 import { Button } from "../components/ui";
 import { api } from "./adminFetch";
 import { forgetCannedReplies } from "./CannedReplies";
@@ -183,6 +183,46 @@ function RepliesCard({ initial }) {
   );
 }
 
+/**
+ * The Android app on Cafe Bazaar: the build number live there. Raised only after Bazaar has published the new build, so
+ * people with an older app are asked to update (pill beside the bell, update sheet) only when the update is really there.
+ */
+function AndroidAppCard({ initial }) {
+  const [build, setBuild] = useState(String(initial.latestBuild || ""));
+  const [saved, setSaved] = useState(initial);
+  const [busy, setBusy] = useState(false);
+  const number = Number(build);
+  const valid = Number.isInteger(number) && number >= 1;
+  async function submit(next) {
+    if (next.forceUpdate && !saved.forceUpdate) {
+      const answer = await confirmAction({ title: "به‌روزرسانی اجباری شود؟", body: "هر کس اپ قدیمی‌تر دارد، تا به‌روز نکند فقط صفحهٔ به‌روزرسانی را می‌بیند. فقط وقتی که اپ قدیمی واقعاً خراب است.", danger: true, confirmLabel: "اجباری شود" });
+      if (!answer.ok) return;
+    }
+    setBusy(true);
+    const result = await save("androidApp", next, "تنظیم اپ اندروید ذخیره شد.");
+    setBusy(false);
+    if (result) {
+      setSaved(result);
+      setBuild(String(result.latestBuild));
+    }
+  }
+  return (
+    <Card title="اپ اندروید در کافه‌بازار" icon={Smartphone} id="androidApp" actions={<Saved setting={saved} />}>
+      <p className="admMuted">هر وقت کافه‌بازار نسخهٔ تازه را منتشر کرد، شمارهٔ ساختش را اینجا بنویس. از آن لحظه کسی که اپ قدیمی‌تر دارد کنار زنگ دکمهٔ «به‌روزرسانی» می‌بیند. تا قبلش، دکمه‌هایی که اپ قدیمی بلد نیست می‌گویند «توی نسخهٔ بعدی میاد».</p>
+      <div className="admForm">
+        <label className="admLabel">
+          <span>شمارهٔ ساخت آخرین نسخهٔ منتشرشده (versionCode)</span>
+          <input type="number" inputMode="numeric" dir="ltr" min={1} value={build} onChange={(event) => setBuild(event.target.value)} />
+        </label>
+        <Toggle checked={saved.forceUpdate} disabled={busy || !valid} onChange={(forceUpdate) => submit({ latestBuild: number, forceUpdate })} label={saved.forceUpdate ? "به‌روزرسانی اجباری روشن است" : "به‌روزرسانی اجباری خاموش است"} hint="فقط برای وقتی که اپ قدیمی واقعاً خراب است" />
+        <div className="admRowActions">
+          <Button disabled={!valid || busy || number === saved.latestBuild} loading={busy} loadingLabel="…" onClick={() => submit({ latestBuild: number, forceUpdate: saved.forceUpdate })}>ذخیرهٔ شماره</Button>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
 /** Settings the operator changes without a deploy. Each card saves on its own. */
 export function SettingsTab({ intent = {} }) {
   const { data, error, reload } = useAdminData("/api/admin/settings");
@@ -195,6 +235,7 @@ export function SettingsTab({ intent = {} }) {
           <div className="admStack">
             <SignupsCard initial={data.signups} focus={intent.focus === "signups"} />
             <RepliesCard initial={data.replies} />
+            <AndroidAppCard initial={data.androidApp} />
           </div>
         </div>
       )}

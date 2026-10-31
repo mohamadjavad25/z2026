@@ -87,7 +87,7 @@ describe("a number whose account is deleted and then taken by someone else", () 
     const day = pickDay({ min: 3 }).key;
     const made = await oldApi.post("/api/salon-bookings", { salonUserId: salon.id, service: "کوتاهی مو", bookingDate: day, time: "۱۱:۰۰", client: old.user.name, phone });
     expect(made.status).toBe(201);
-    await oldApi.delete("/api/profile", { currentPassword: "testpass123" });
+    await oldApi.delete("/api/profile", { currentPassword: "testpass123", cancelAll: true });
     const [orphan] = await salonRows(salon.id);
     note("after delete, client_user_id =", orphan.client_user_id, "phone kept =", orphan.phone);
     const newApi = createClient();

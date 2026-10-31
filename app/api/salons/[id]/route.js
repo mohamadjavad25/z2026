@@ -20,7 +20,7 @@ async function _GET(request, context) {
     return NextResponse.json({ error: PAGE_UNAVAILABLE_MESSAGE }, { status: 404 });
   }
   const viewer = await getUserFromRequest(request);
-  const salon = await salons.getSalon(userId, viewer?.id || null);
+  const salon = await salons.getSalon(userId, viewer?.id || null, { withTeam: true });
   if (!salon) {
     return NextResponse.json({ error: "سالن پیدا نشد." }, { status: 404 });
   }
@@ -30,6 +30,9 @@ async function _GET(request, context) {
   if (!salon.isPublic && viewer?.id !== userId) {
     return NextResponse.json({ error: "سالن پیدا نشد." }, { status: 404 });
   }
+  // The number is the owner's login phone: only a signed-in viewer gets it (the app's «تماس با سالن»); the public
+  // web page never shows it, so an anonymous request does not get it either.
+  if (!viewer) delete salon.phone;
   return NextResponse.json({ data: { salon } });
 }
 

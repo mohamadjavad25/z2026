@@ -3,9 +3,18 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { apiFetch } from "../../shared/api/client";
 import { getAuthMe } from "../../shared/api/auth";
-import { createSalonInvite } from "../../shared/api/salons";
+import { businessVisitorKind } from "../connect/BusinessVisitorBar";
 
 const TYPE_NAME = { salon: "سالن", artist: "آرتیست" };
+
+/** What a salon or artist visitor is told instead of being connected: the bar at the bottom says what they can do. */
+function businessVisitorLine(user, target) {
+  const kind = businessVisitorKind(user, target);
+  const who = `با حساب ${TYPE_NAME[user.type]} وارد شدی`;
+  if (kind === "invite") return `${who}؛ وصل شدن مال مشتری‌هاست. اگه می‌خوای بیاد توی تیمت، «دعوت به تیمم» رو بزن.`;
+  if (kind === "propose") return `${who}؛ وصل شدن مال مشتری‌هاست. برای کار کردن اینجا «پیشنهاد همکاری» بفرست.`;
+  return `${who}؛ این صفحه رو فقط می‌تونی ببینی.`;
+}
 
 /**
  * «وصل شو» on a public salon or artist page (the page a QR code or a shared link opens).
@@ -14,11 +23,11 @@ const TYPE_NAME = { salon: "سالن", artist: "آرتیست" };
  * makes one right here in a sheet; afterwards the follow is done on the very same page and a thank-you
  * is shown. Nothing sends them to the app in between.
  *
- * A follow is for clients. A salon or artist who lands here (a salon owner scanned an artist's code, say) is
- * never made a follower: a salon asking for an artist sends a team invite, and anything else gets a plain
- * sentence on what to do instead (`outcome`).
+ * Only clients connect (owner's decision 2026-10-25). A salon or artist who logs in here is never connected: the
+ * sheet closes, a line says why, and the page's bottom bar (BusinessVisitorBar) offers «دعوت به تیمم» or
+ * «پیشنهاد همکاری» instead.
  *
- * sheet: "closed" | "account" (sign up / log in) | "done" (thank-you) | "owner" (the `outcome` text)
+ * sheet: "closed" | "account" (sign up / log in) | "done" (thank-you)
  */
 export function useFollowGate({ targetId, targetName, targetType = "salon" }) {
   const [viewer, setViewer] = useState(undefined); // undefined: still checking · null: not signed in
@@ -27,7 +36,6 @@ export function useFollowGate({ targetId, targetName, targetType = "salon" }) {
   const [sheet, setSheet] = useState("closed");
   const [justCreated, setJustCreated] = useState(false);
   const [notice, setNotice] = useState("");
-  const [outcome, setOutcome] = useState(null); // { title, text } for a salon or artist visitor
   const busyRef = useRef(false);
 
   useEffect(() => {
@@ -53,7 +61,7 @@ export function useFollowGate({ targetId, targetName, targetType = "salon" }) {
 
   useEffect(() => {
     if (!notice) return undefined;
-    const timer = window.setTimeout(() => setNotice(""), 3200);
+    const timer = window.setTimeout(() => setNotice(""), notice.length > 60 ? 6500 : 3200);
     return () => window.clearTimeout(timer);
   }, [notice]);
 
@@ -72,42 +80,6 @@ export function useFollowGate({ targetId, targetName, targetType = "salon" }) {
     }
   }, [targetId]);
 
-  /** A salon or artist visitor: invites the artist to the salon's team, or says why nothing happens. Resolves to "". */
-  const handleOwner = useCallback(async (user) => {
-    const show = (title, text) => {
-      setOutcome({ title, text });
-      setSheet("owner");
-    };
-    if (user.type === targetType) {
-      show("وصل نمی‌شن", `این صفحه مال یه ${TYPE_NAME[targetType]}ـه؛ ${TYPE_NAME[user.type]}ها به هم وصل نمی‌شن.`);
-    } else if (user.type === "artist") {
-      show("کد تیم لازمه", `برای رفتن به تیم «${targetName}»، از سالن‌دار بخواه از «پرسنل ← دعوت آرتیست» کد تیم رو نشونت بده و از بخش «همکاری» اسکنش کن. یا «کد من» رو بزن و کدت رو نشونش بده تا دعوتت کنه.`);
-    } else if (user.type === "salon") {
-      try {
-        const { ok, payload } = await createSalonInvite({ artistUserId: Number(targetId) });
-        if (ok) {
-          show(
-            payload.data?.created === false ? "قبلاً دعوتش کرده بودی" : "دعوت رفت",
-            payload.data?.created === false
-              ? `منتظر جواب «${targetName}» هستی.`
-              : `دعوت برای «${targetName}» رفت. تا قبول نکنه، توی تیمت نمیاد؛ جوابش رو توی اعلان‌هات می‌بینی.`
-          );
-        } else if (payload?.code === "PENDING_EXISTS") {
-          show("قبلاً دعوتش کرده بودی", `منتظر جواب «${targetName}» هستی.`);
-        } else if (payload?.code === "ALREADY_STAFF" || payload?.code === "ALREADY_ACCEPTED") {
-          show("توی تیمته", `«${targetName}» از قبل توی تیم توئه.`);
-        } else {
-          show("دعوت نرفت", payload?.error || "دعوت نرفت؛ دوباره بزن.");
-        }
-      } catch {
-        show("دعوت نرفت", "دعوت نرفت؛ دوباره بزن.");
-      }
-    } else {
-      setSheet("closed");
-    }
-    return "";
-  }, [targetId, targetName, targetType]);
-
   const onFollowClick = useCallback(async () => {
     if (viewer === undefined || busyRef.current) return;
     if (!viewer) {
@@ -119,14 +91,7 @@ export function useFollowGate({ targetId, targetName, targetType = "salon" }) {
       return;
     }
     if (viewer.type !== "client") {
-      busyRef.current = true;
-      setBusy(true);
-      try {
-        await handleOwner(viewer);
-      } finally {
-        busyRef.current = false;
-        setBusy(false);
-      }
+      setNotice(businessVisitorLine(viewer, { id: targetId, type: targetType }));
       return;
     }
     busyRef.current = true;
@@ -147,7 +112,7 @@ export function useFollowGate({ targetId, targetName, targetType = "salon" }) {
       busyRef.current = false;
       setBusy(false);
     }
-  }, [viewer, following, targetId, targetName, setFollow, handleOwner]);
+  }, [viewer, following, targetId, targetName, targetType, setFollow]);
 
   /** The visitor just made an account or logged in inside the sheet: follow now and say thanks. */
   const onAccountReady = useCallback(async (user, { created = false } = {}) => {
@@ -157,7 +122,11 @@ export function useFollowGate({ targetId, targetName, targetType = "salon" }) {
       setNotice("این صفحهٔ خودته.");
       return "";
     }
-    if (user?.type && user.type !== "client") return handleOwner(user);
+    if (user?.type && user.type !== "client") {
+      setSheet("closed");
+      setNotice(businessVisitorLine(user, { id: targetId, type: targetType }));
+      return "";
+    }
     const failure = await setFollow(true);
     if (failure) {
       setSheet("closed");
@@ -167,7 +136,7 @@ export function useFollowGate({ targetId, targetName, targetType = "salon" }) {
     setJustCreated(created);
     setSheet("done");
     return "";
-  }, [targetId, setFollow, handleOwner]);
+  }, [targetId, targetType, setFollow]);
 
   return {
     viewer,
@@ -176,7 +145,6 @@ export function useFollowGate({ targetId, targetName, targetType = "salon" }) {
     sheet,
     justCreated,
     notice,
-    outcome,
     targetName,
     targetId,
     targetType,

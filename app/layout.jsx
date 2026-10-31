@@ -3,9 +3,11 @@ import "./styles.css";
 import Script from "next/script";
 import PbdqInspector from "./components/PbdqInspector.jsx";
 import { ViewportHeightFix } from "./components/ViewportHeightFix.jsx";
+import { KeyboardSuggestionsOff } from "./components/KeyboardSuggestionsOff.jsx";
 import { PortraitLock } from "./components/PortraitLock.jsx";
 import { ClientErrorReporter } from "./components/ClientErrorReporter.jsx";
 import { PullToRefresh } from "./components/PullToRefresh.jsx";
+import { AppUpdateHost } from "./features/appUpdate/AppUpdateHost.jsx";
 import { getSiteUrl } from "./lib/siteUrl.js";
 import { THEME_BOOT_SCRIPT } from "./shared/lib/theme.js";
 import { AppLanding } from "./features/landing/AppLanding";
@@ -47,7 +49,8 @@ const SITE_JSON_LD = {
       name: "فرفرو",
       alternateName: "frfro",
       logo: `${SITE_URL}/icons/icon-512.png`,
-      email: "support@frfro.ir"
+      email: "frfrosupport@gmail.com",
+      telephone: "+989030143721"
     }
   ]
 };
@@ -149,9 +152,11 @@ try {
         {/* Element picker for the local design preview tool; never shipped to visitors. */}
         {process.env.NODE_ENV === "development" ? <PbdqInspector /> : null}
         <ViewportHeightFix />
+        <KeyboardSuggestionsOff />
         <PortraitLock />
         <ClientErrorReporter />
         <PullToRefresh />
+        <AppUpdateHost />
         <LargeScreenGate landing={<AppLanding />}>{children}</LargeScreenGate>
         <Script id="sw-register" strategy="afterInteractive">
           {`if ("serviceWorker" in navigator) {

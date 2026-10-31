@@ -1,6 +1,7 @@
 import { withTransaction, getDb, all, get, run } from "../connection.js";
 import { uploadImageDataUrl, deleteStoredImage } from "../../storage.js";
 import { nameKey } from "../../businessName.js";
+import { phoneLast10 } from "../../../shared/lib/phone.js";
 
 /**
  * Every column except the picture bytes. avatar/poster come back as a '1' / '' flag (a picture
@@ -13,7 +14,7 @@ const USER_COLUMNS = `
   CASE WHEN poster <> '' OR poster_url IS NOT NULL THEN '1' ELSE '' END AS poster,
   avatar_position, poster_position, experience_years, manager_name,
   last_seen_at, created_at, updated_at, avatar_url, poster_url, suspended_at,
-  geo_lat, geo_lng, address_detail
+  geo_lat, geo_lng, address_detail, instagram
 `;
 
 export async function getUserById(id, runner = null) {
@@ -44,7 +45,7 @@ export async function getUserProfileById(id, runner = null) {
   const db = runner || (await getDb());
   return (await get(db, `
     SELECT id, name, phone, type, area, service, experience_years, avatar_position, poster_position,
-      geo_lat, geo_lng, address_detail,
+      geo_lat, geo_lng, address_detail, instagram,
       (avatar <> '' OR avatar_url IS NOT NULL) AS avatar,
       (poster <> '' OR poster_url IS NOT NULL) AS poster
     FROM users WHERE id = $1
@@ -169,23 +170,25 @@ export async function updateUser(id, data) {
   const db = await getDb();
   const current = await getUserById(id, db);
   if (!current) return null;
-  const next = {
-    phone: data.phone ?? current.phone,
-    name: data.name ?? current.name,
-    area: data.area ?? current.area,
-    service: data.service ?? current.service,
-    email: data.email ?? current.email,
-    avatar_position: data.avatarPosition ?? data.avatar_position ?? current.avatar_position ?? "",
-    poster_position: data.posterPosition ?? data.poster_position ?? current.poster_position ?? "",
-    experience_years: data.experienceYears ?? data.experience_years ?? current.experience_years ?? "",
-    manager_name: data.managerName ?? data.manager_name ?? current.manager_name ?? "",
-    password_hash: data.password_hash ?? current.password_hash,
-    address_detail: data.addressDetail ?? current.address_detail ?? ""
+  // Only the fields this edit carries are written (null/undefined keep what is stored). Writing back the row as it
+  // was read let two edits at the same moment undo each other, e.g. an area change wiping a just-saved Instagram page.
+  const given = {
+    phone: data.phone ?? null,
+    name: data.name ?? null,
+    area: data.area ?? null,
+    service: data.service ?? null,
+    email: data.email ?? null,
+    avatar_position: data.avatarPosition ?? data.avatar_position ?? null,
+    poster_position: data.posterPosition ?? data.poster_position ?? null,
+    experience_years: data.experienceYears ?? data.experience_years ?? null,
+    manager_name: data.managerName ?? data.manager_name ?? null,
+    password_hash: data.password_hash ?? null,
+    address_detail: data.addressDetail ?? null,
+    instagram: data.instagram ?? null
   };
   // The map pin: undefined keeps it, null removes it, { lat, lng } moves it.
-  const geo = data.geo === undefined
-    ? { lat: current.geo_lat ?? null, lng: current.geo_lng ?? null }
-    : { lat: data.geo?.lat ?? null, lng: data.geo?.lng ?? null };
+  const geoChange = data.geo !== undefined;
+  const geo = { lat: geoChange ? data.geo?.lat ?? null : null, lng: geoChange ? data.geo?.lng ?? null : null };
 
   const [avatar, poster] = await Promise.all([
     planPicture(data.avatar, "avatar", id),
@@ -194,22 +197,27 @@ export async function updateUser(id, data) {
 
   await run(db, `
     UPDATE users SET
-      phone = $1, name = $2, area = $3, service = $4, email = $5,
+      phone = COALESCE($1, phone), name = COALESCE($2, name), area = COALESCE($3, area), service = COALESCE($4, service),
+      email = COALESCE($5, email),
       avatar = CASE WHEN $6 THEN $7 ELSE avatar END, avatar_url = CASE WHEN $6 THEN $8 ELSE avatar_url END,
       poster = CASE WHEN $9 THEN $10 ELSE poster END, poster_url = CASE WHEN $9 THEN $11 ELSE poster_url END,
-      avatar_position = $12, poster_position = $13, experience_years = $14, manager_name = $15, password_hash = $16,
-      geo_lat = $18, geo_lng = $19, address_detail = $20,
+      avatar_position = COALESCE($12, avatar_position, ''), poster_position = COALESCE($13, poster_position, ''),
+      experience_years = COALESCE($14, experience_years, ''), manager_name = COALESCE($15, manager_name, ''),
+      password_hash = COALESCE($16, password_hash),
+      geo_lat = CASE WHEN $24 THEN $18 ELSE geo_lat END, geo_lng = CASE WHEN $24 THEN $19 ELSE geo_lng END,
+      address_detail = COALESCE($20, address_detail, ''), instagram = COALESCE($23, instagram, ''),
       -- A new number is only "verified" when the caller proved it with a code; the old number's proof never carries over.
       phone_verified_at = CASE WHEN $21 THEN CASE WHEN $22 THEN NOW() ELSE NULL END ELSE phone_verified_at END,
       updated_at = CURRENT_TIMESTAMP
     WHERE id = $17
   `, [
-    next.phone, next.name, next.area, next.service, next.email,
+    given.phone, given.name, given.area, given.service, given.email,
     avatar.change, avatar.blob, avatar.url,
     poster.change, poster.blob, poster.url,
-    next.avatar_position, next.poster_position, next.experience_years, next.manager_name, next.password_hash, id,
-    geo.lat, geo.lng, next.address_detail,
-    next.phone !== current.phone, data.phoneVerified === true
+    given.avatar_position, given.poster_position, given.experience_years, given.manager_name, given.password_hash, id,
+    geo.lat, geo.lng, given.address_detail,
+    given.phone !== null && given.phone !== current.phone, data.phoneVerified === true,
+    given.instagram, geoChange
   ]);
 
   // The replaced/removed pictures no longer need their Storage copies.
@@ -217,10 +225,11 @@ export async function updateUser(id, data) {
   if (poster.change && current.poster_url) await deleteStoredImage(current.poster_url);
 
   if (current.type === "salon") {
+    // Copied from the row just written, so the salon card matches the profile even when edits overlap.
     await run(db, `
-      UPDATE salons SET name = $1, area = $2, tag = $3, phone = $4, email = $5, updated_at = CURRENT_TIMESTAMP
-      WHERE user_id = $6
-    `, [next.name, next.area, next.service, next.phone, next.email, id]);
+      UPDATE salons s SET name = u.name, area = u.area, tag = u.service, phone = u.phone, email = u.email, updated_at = CURRENT_TIMESTAMP
+      FROM users u WHERE u.id = $1 AND s.user_id = u.id
+    `, [id]);
   }
   return getUserById(id, db);
 }
@@ -264,7 +273,8 @@ export async function isFollowing(followerId, targetId, runner = null) {
  * Deletes an account for good, and first cuts its phone number off every booking it left behind (owner's decision
  * 2026-10-22): the account's own bookings, and the walk-ins a salon or artist typed for that number, lose the
  * number (the name and the visit stay for the salon's own records). So whoever takes the number over later sees
- * nothing of the previous person's bookings. Returns the deleted row ({ id, phone, name, type }) or null.
+ * nothing of the previous person's bookings. Those rows are also marked `client_account_deleted_at`, so the salon's
+ * customers page says «حسابش رو پاک کرده» rather than «شماره نداره» (owner's decision 2026-10-26). Returns the deleted row ({ id, phone, name, type }) or null.
  */
 export async function deleteUserDetachingPhone(id) {
   const userId = Number(id);
@@ -276,11 +286,77 @@ export async function deleteUserDetachingPhone(id) {
     const key = row.phone_verified_at ? String(row.phone || "").trim() : "";
     for (const [table, column] of [["salon_bookings", "phone"], ["artist_bookings", "client_phone"]]) {
       await run(client, `
-        UPDATE ${table} SET ${column} = ''
+        UPDATE ${table} SET ${column} = '', client_account_deleted_at = COALESCE(client_account_deleted_at, CURRENT_TIMESTAMP)
         WHERE client_user_id = $1 OR ($2 <> '' AND client_user_id IS NULL AND phone_normalized = frfro_phone_key($2))
       `, [userId, key]);
     }
     await run(client, "DELETE FROM users WHERE id = $1", [userId]);
     return row;
   });
+}
+
+/**
+ * Before an account's number changes (owner's decision of 2026-10-25): the walk-ins a salon or artist typed for the
+ * OLD number until now are tied to the account for good, so the history stays with the person. Rows typed later for
+ * the old number belong to whoever has that number then. Only when the account had proved the old number (SMS code),
+ * the same bar the client's booking list uses.
+ */
+export async function lockOldNumberBookings(userId) {
+  const db = await getDb();
+  const row = await get(db, "SELECT phone, phone_verified_at FROM users WHERE id = $1", [Number(userId)]);
+  const key = row?.phone_verified_at ? String(row.phone || "").trim() : "";
+  if (!key) return;
+  for (const table of ["salon_bookings", "artist_bookings"]) {
+    await run(db, `UPDATE ${table} SET client_user_id = $1 WHERE client_user_id IS NULL AND phone_normalized = frfro_phone_key($2)`, [Number(userId), key]);
+  }
+}
+
+/**
+ * «اسم رو عوض کن» (owner's decision 2026-10-31): every booking of this owner for one phone gets one name -- the older
+ * ones too -- so a name typed wrong once is put right everywhere. Bookings tied to a frfro account are left alone (an
+ * account's name is its own), and a salon's rename follows into the bookings it handed to its artists. Returns how
+ * many bookings changed. The phone is compared by its last ten digits, the way the customers list groups numbers.
+ */
+export async function renameCustomerBookings(owner, phone, name) {
+  const key = phoneLast10(phone);
+  const clean = String(name || "").trim().slice(0, 80);
+  if (key.length < 10 || !clean) return 0;
+  return withTransaction(null, async (client) => {
+    if (owner.type === "salon") {
+      const own = await run(client, `
+        UPDATE salon_bookings SET client = $1
+        WHERE salon_user_id = $2 AND client_user_id IS NULL AND right(phone_normalized, 10) = $3 AND client <> $1
+      `, [clean, Number(owner.id), key]);
+      // The copies an artist of the team sees of this salon's bookings.
+      const mirrored = await run(client, `
+        UPDATE artist_bookings SET client_name = $1
+        WHERE source_salon_user_id = $2 AND client_user_id IS NULL AND right(phone_normalized, 10) = $3 AND client_name <> $1
+      `, [clean, Number(owner.id), key]);
+      return (own?.rowCount || 0) + (mirrored?.rowCount || 0);
+    }
+    const info = await run(client, `
+      UPDATE artist_bookings SET client_name = $1
+      WHERE artist_user_id = $2 AND client_user_id IS NULL AND right(phone_normalized, 10) = $3 AND client_name <> $1
+    `, [clean, Number(owner.id), key]);
+    return info?.rowCount || 0;
+  });
+}
+
+/**
+ * «از لیست مشتری‌هام بردار» (owner's decision 2026-10-26): a salon or artist takes a customer off its customers page.
+ * Only for a customer with no number left (a deleted account, or a walk-in typed without one); the bookings stay in
+ * the calendar and the numbers. Only the owner's own rows are touched. Returns how many rows were marked.
+ */
+export async function hideCustomerBookings(owner, bookingIds = []) {
+  const ids = [...new Set((Array.isArray(bookingIds) ? bookingIds : []).map(Number).filter((id) => Number.isInteger(id) && id > 0))].slice(0, 2000);
+  if (!ids.length) return 0;
+  const [table, ownerColumn, phoneColumn] = owner.type === "salon"
+    ? ["salon_bookings", "salon_user_id", "phone"]
+    : ["artist_bookings", "artist_user_id", "client_phone"];
+  const db = await getDb();
+  const info = await run(db, `
+    UPDATE ${table} SET customers_hidden_at = CURRENT_TIMESTAMP
+    WHERE id = ANY($1::int[]) AND ${ownerColumn} = $2 AND COALESCE(${phoneColumn}, '') = '' AND customers_hidden_at IS NULL
+  `, [ids, Number(owner.id)]);
+  return info?.rowCount || 0;
 }

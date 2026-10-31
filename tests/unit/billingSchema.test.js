@@ -8,9 +8,12 @@ const up = (file) => squash(readFileSync(file, "utf8").split("-- Down Migration"
 
 describe("billing schema", () => {
   it("creates the same tables in the migrations and on first use", () => {
-    const migrations = `${up("migrations/033_billing.sql")} ${up("migrations/034_billing_payer_refund.sql")}`;
+    const migrations = `${up("migrations/033_billing.sql")} ${up("migrations/034_billing_payer_refund.sql")} ${up("migrations/062_sms_packs.sql")}`;
     for (const statement of BILLING_DDL) expect(migrations).toContain(squash(statement));
-    const count = (migrations.match(/CREATE (UNIQUE )?(TABLE|INDEX)|ALTER TABLE/g) || []).length;
+    // A DO block (migration 062 swaps a CHECK) is one statement however many ALTERs it holds.
+    const blocks = migrations.match(/DO \$\$ .*? END \$\$;/g) || [];
+    const flat = migrations.replace(/DO \$\$ .*? END \$\$;/g, "");
+    const count = (flat.match(/CREATE (UNIQUE )?(TABLE|INDEX)|ALTER TABLE/g) || []).length + blocks.length;
     expect(BILLING_DDL.length).toBe(count);
   });
 });

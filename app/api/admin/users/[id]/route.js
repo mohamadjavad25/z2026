@@ -33,7 +33,7 @@ async function _DELETE(request, { params }) {
   const body = (await readJson(request)) || {};
   if (String(body.confirmPhone || "").trim() !== detail.user.phone) return error("برای حذف، شمارهٔ کاربر را دقیقاً وارد کن.", 400);
   const removed = await ops.deleteUser(id);
-  await admin.logAction({ adminUserId: gate.admin.id, adminLabel: gate.admin.label, action: "delete_user", detail: `${removed.phone} ${removed.name}` });
+  await admin.logAction({ adminLabel: gate.admin.label, action: "delete_user", detail: `${removed.phone} ${removed.name}` });
   return json({ data: { ok: true } });
 }
 
@@ -64,7 +64,6 @@ async function _PATCH(request, { params }) {
   }
   await users.updateUser(id, changes);
   await admin.logAction({
-    adminUserId: gate.admin.id,
     adminLabel: gate.admin.label,
     action: "edit_user",
     targetUserId: id,

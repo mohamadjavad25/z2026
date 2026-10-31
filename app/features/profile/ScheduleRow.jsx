@@ -15,6 +15,7 @@ import {
   resolveBookingDurationMinutes
 } from "../artist/bookingUtils";
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
+import { sharedPhoneLabel } from "../salons/customers";
 
 // Status-tone mapping, ownerType-aware — NOT a plain copy of
 // ClientBookingSettingsModal.jsx's getBookingStatusTone, because "تازه"
@@ -115,10 +116,11 @@ export function normalizeArtistScheduleBooking(booking, serviceList = []) {
     date,
     time: booking?.time || "",
     staff: "",
-    staffLabel: sourceSalon?.name || "شخصی",
+    staffLabel: sourceSalon?.name || (booking?.placeSalon?.name ? `شخصی، ${booking.placeSalon.name}` : "شخصی"),
     staffAvatar: sourceSalonAvatar,
     staffInitial: (sourceSalon?.name || client || "م").trim().slice(0, 1) || "م",
     sourceSalon,
+    placeSalon: booking?.placeSalon || null,
     visits,
     visitCount: visits.filter((level) => level > 0).length,
     durationMinutes: resolveBookingDurationMinutes(booking, serviceList),
@@ -175,6 +177,7 @@ function scheduleRowPropsAreEqual(prev, next) {
     && prev.booking?.source?.status === next.booking?.source?.status
     && prev.variant === next.variant
     && prev.review === next.review
+    && String(prev.sharedWith || "") === String(next.sharedWith || "")
     && prev.booking?.displayTitle === next.booking?.displayTitle
     && prev.booking?.displayMeta === next.booking?.displayMeta
     && prev.booking?.source?.parts === next.booking?.source?.parts
@@ -187,7 +190,9 @@ export const ScheduleRow = memo(function ScheduleRow({
   onOpenClient,
   onAction,
   variant = "default",
-  review = null
+  review = null,
+  /** The other names booked with this booking's number (buildSharedPhoneLookup): «هم‌شماره با …». */
+  sharedWith = []
 }) {
   const {
     phase,
@@ -245,16 +250,18 @@ export const ScheduleRow = memo(function ScheduleRow({
   if (!review && (statusTone === "bad" || statusTone === "expired" || finished)) {
     const who = title || "مشتری";
     const what = shortServiceLabel(service);
-    const NoteIcon = statusTone === "bad" ? Ban : statusTone === "expired" ? TimerOff : CheckCircle2;
+    // «نیومد» (owner's decision of 2026-10-25): a finished visit the salon or artist marked as a no-show.
+    const noShow = finished && Boolean(booking.source?.no_show_at || booking.no_show_at || booking.noShowAt);
+    const NoteIcon = statusTone === "bad" || noShow ? Ban : statusTone === "expired" ? TimerOff : CheckCircle2;
     const text = statusTone === "bad"
       ? `نوبت ${who} لغو شد`
       : statusTone === "expired"
         ? `درخواست ${who} بی‌جواب موند`
-        : `نوبت ${who} انجام شد`;
+        : noShow ? `${who} نیومد` : `نوبت ${who} انجام شد`;
     return (
       <button
         type="button"
-        className={`cvMsg is-${finished ? "done" : statusTone}`}
+        className={`cvMsg is-${noShow ? "bad" : finished ? "done" : statusTone}`}
         aria-label={`${text}، ${meta}، ${date}، ${time}`}
         onClick={() => onAction?.(actionPayload)}
       >
@@ -297,6 +304,7 @@ export const ScheduleRow = memo(function ScheduleRow({
               <span>{date}</span>
             </>
           ) : null}
+          {!isClientBooking && sharedWith.length ? <span className="bkSame">{sharedPhoneLabel(sharedWith)}</span> : null}
         </div>
         {!isClientBooking ? (
           <div className="bkFoot">

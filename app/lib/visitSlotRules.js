@@ -1,5 +1,5 @@
 import { isSlotInPast } from "../shared/lib/slots.js";
-import { BOOKING_REQUEST_LEAD_MINUTES, isTooSoonToRequest } from "../shared/lib/bookingWindow.js";
+import { BOOKING_REQUEST_LEAD_MINUTES, TOO_FAR_TEXT, isTooFarToRequest, isTooSoonToRequest } from "../shared/lib/bookingWindow.js";
 import { findSalonHourForDateKey, isSalonHourOpen, salonDayWindow } from "../shared/lib/salonAvailability.js";
 import { PUBLIC_BOOKING_SLOT_STEP, buildDayBookingSlots, timeLabelToMinutes } from "../shared/lib/time.js";
 import { toPersianDigits } from "../shared/lib/digits.js";
@@ -24,6 +24,7 @@ export function visitSlotProblem({ hours, bookingDateKey, time, durationMinutes,
       code: "TOO_SOON"
     };
   }
+  if (isClient && isTooFarToRequest(bookingDateKey, now)) return { status: 409, error: TOO_FAR_TEXT, code: "TOO_FAR" };
   const hour = findSalonHourForDateKey(hours, bookingDateKey);
   if (!isSalonHourOpen(hour)) {
     return { status: 409, error: "سالن این روز تعطیله.", code: "SALON_CLOSED" };

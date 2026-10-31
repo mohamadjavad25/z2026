@@ -5,6 +5,7 @@ import { ensureDb } from "../../lib/db/connection.js";
 import * as salons from "../../lib/db/repos/salons.js";
 import { SalonPublicPageClient } from "./SalonPublicPageClient";
 import { getSiteUrl } from "../../lib/siteUrl.js";
+import { instagramUrl } from "../../shared/lib/instagram.js";
 import { createShortCache } from "../../lib/shortCache.js";
 
 export const runtime = "nodejs";
@@ -24,7 +25,7 @@ async function loadSalonFresh(id) {
   await ensureDb();
   // A suspended account has no public page: `{ unavailable: true }` makes the page say so in one sentence.
   if ((await suspendedAccountIds([userId])).has(userId)) return { unavailable: true };
-  const salon = await salons.getSalon(userId);
+  const salon = await salons.getSalon(userId, null, { withTeam: true });
   if (!salon) return null;
   // A salon switched to "خصوصی" in تنظیمات → پروفایل عمومی سالن must stay
   // hidden here too — GET /api/salons/[id] enforces the exact same rule for
@@ -34,7 +35,9 @@ async function loadSalonFresh(id) {
   // Round-tripping through JSON.stringify/parse guarantees plain
   // objects/arrays throughout (services/portfolio/staff/hours) before
   // crossing the "use client" SalonPublicPageClient RSC boundary.
-  return JSON.parse(JSON.stringify(salon));
+  // The page never shows the number, and it is the owner's login phone: it stays out of the HTML.
+  const { phone: _loginPhone, ...shown } = salon;
+  return JSON.parse(JSON.stringify(shown));
 }
 
 export async function generateMetadata({ params }) {
@@ -83,6 +86,7 @@ function buildSalonJsonLd(salon, canonicalUrl) {
     url: canonicalUrl
   };
   if (salon.avatar) jsonLd.image = salon.avatar;
+  if (salon.instagram) jsonLd.sameAs = [instagramUrl(salon.instagram)];
   // Deliberately NOT emitting telephone: salon.phone is the users.phone
   // column, which is this account's LOGIN credential (see getUserByPhone in
   // app/lib/db/repos/users.js) — not a business contact number the owner

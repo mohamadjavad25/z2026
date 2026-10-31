@@ -18,9 +18,10 @@ export function artistBusySlots(bookings) {
  * `minutes` long: their day's grid, minus what has started, their break and their other bookings.
  * The server checks the same overlap when the booking is sent.
  */
-export function artistVisitTimes({ day, minutes, bookings, breakTime, now = new Date() }) {
+export function artistVisitTimes({ day, minutes, bookings, bookedSlots, breakTime, leaves = [], now = new Date() }) {
   const soon = new Date(now.getTime() + ARTIST_BOOKING_LEAD_MINUTES * 60_000);
-  const artist = { breakTime, bookedSlots: artistBusySlots(bookings) };
+  // A public page already has its busy list in the slot shape (bookedSlots); the owner's own list is mapped first.
+  const artist = { breakTime, leaves, bookedSlots: bookedSlots || artistBusySlots(bookings) };
   return buildPublicBookingSlots(minutes).filter((slot) => (
     !isSlotInPast(day, slot, soon) && !isPublicArtistSlotBlocked(artist, day, slot, minutes)
   ));

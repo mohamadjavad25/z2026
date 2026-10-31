@@ -1,7 +1,7 @@
 import { toPersianDigits } from "../../../shared/lib/digits";
 import { formatRelativeBookingDayLabel } from "../../../shared/lib/persianCalendar";
 import { ProfileSheet } from "../../profile/ProfileSheet";
-import { BellRing, CalendarClock, TimerOff } from "lucide-react";
+import { BellRing, CalendarClock, ChevronLeft, TimerOff } from "lucide-react";
 import { PageIcon } from "../../../components/PageIcon";
 import { ServiceIcon } from "../../../components/ServiceIcon";
 import { SegmentClock } from "../../../components/SegmentClock";
@@ -34,7 +34,7 @@ export function ArtistNotificationsSheet() {
             onClose={() => setProfileView("overview")}
           >
             <div className="salonNotificationsPanel">
-              <article>
+              <article className={pendingArtistBookingRequests.length ? "is-live" : undefined}>
                 <span><BellRing size={18} /></span>
                 <div>
                   <b>نوبت‌های تازه</b>
@@ -42,14 +42,16 @@ export function ArtistNotificationsSheet() {
                 </div>
                 <em>{toPersianDigits(pendingArtistBookingRequests.length)}</em>
               </article>
-              <article>
+              {/* Opens «همکاری», where invites are answered (2026-10-30; it used to be a note that did nothing). */}
+              <button type="button" className={`salonNoticeRow${pendingArtistSalonInvites.length ? " is-live" : ""}`} onClick={() => setProfileView("collabs")}>
                 <span><PageIcon name="collab" size={22} /></span>
                 <div>
                   <b>دعوت همکاری سالن‌ها</b>
-                  <small>{pendingArtistSalonInvites.length ? `${toPersianDigits(pendingArtistSalonInvites.length)} دعوت همکاری منتظر جوابته.` : "دعوت تازه‌ای نیست."}</small>
+                  <small>{pendingArtistSalonInvites.length ? `${toPersianDigits(pendingArtistSalonInvites.length)} دعوت همکاری منتظر جوابته. بزن تا ببینی.` : "دعوت تازه‌ای نیست."}</small>
                 </div>
                 <em>{toPersianDigits(pendingArtistSalonInvites.length)}</em>
-              </article>
+                <ChevronLeft size={16} className="salonNoticeGo" aria-hidden="true" />
+              </button>
               <article>
                 <span><CalendarClock size={18} /></span>
                 <div>

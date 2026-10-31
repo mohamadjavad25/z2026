@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Calls one /api/cron/<job> endpoint on this server with the shared CRON_SECRET (see deploy/crontab).
+# Calls one /api/cron/<job> endpoint on this server with the shared CRON_SECRET (see scripts/backup/frfro.cron).
 # Talks to the app directly on 127.0.0.1, so it works even while the public domain or TLS has a problem.
 set -euo pipefail
 job="${1:?usage: cron-call.sh <expire-bookings|send-reminders|billing|migrate-media>}"

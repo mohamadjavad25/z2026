@@ -73,3 +73,44 @@
   color: var(--muted);
   margin: 0 0 var(--space-1);
 }
+
+/* The same text inside the app, in a sheet (LegalLink), so leaving the screen is never needed. */
+.legalSheet__body { padding: var(--space-2) var(--space-2) var(--space-4); }
+.legalSheet__body .legalPage__intro { font-size: var(--text-base); }
+.legalSheet__body .legalPage__section h2 { font-size: var(--text-md); }
+
+/* Public price list (/pricing): rows like a receipt, prices on the end side. */
+.pricePage__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.pricePage__list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-top: 1px dashed var(--line);
+  font-size: var(--text-base);
+  color: var(--ink);
+}
+
+.pricePage__list li:first-child {
+  border-top: 0;
+}
+
+.pricePage__list b {
+  font-weight: 800;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.pricePage__gift {
+  margin-inline-start: var(--space-2);
+  color: var(--muted);
+  font-size: var(--text-xs);
+}

@@ -47,7 +47,7 @@ export function ReceiptDetails({ payment }) {
   const rows = [
     ["شمارهٔ رسید", payment.receiptNo ? <span dir="ltr">{payment.receiptNo}</span> : "—"],
     ["وضعیت", <PaymentStatusChip key="status" status={chipStatus(payment)} />],
-    ["پلن", payment.title],
+    [payment.kind === "sms_pack" ? "بسته" : "پلن", payment.title],
     payment.paidFor ? ["برای", payment.paidFor] : null,
     payment.paidBy ? ["پرداخت کرده", payment.paidBy] : null,
     ["مبلغ", payment.amountToman ? formatToman(payment.amountToman) : "رایگان (هدیه)"],

@@ -1,20 +1,21 @@
 import { createCipheriv, createDecipheriv, createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import QRCode from "qrcode";
 import { all, getDb, get, run } from "./db/connection.js";
-import * as users from "./db/repos/users.js";
 import * as adminRepo from "./db/repos/admin.js";
-import { DUMMY_PASSWORD_HASH, normalizeDigits, normalizePhone, verifyPassword } from "./auth.js";
+import { DUMMY_PASSWORD_HASH, hashPassword, normalizeDigits, normalizePhone, verifyPassword } from "./auth.js";
 import { checkRateLimit, clientIp } from "./rateLimit.js";
 import { adminPhoneList, isAdminPhone } from "./admin.js";
 import { generateTotpSecret, totpUri, verifyTotp } from "./totp.js";
 
 /**
- * Hardened admin login. Everything here is separate from the normal user login:
+ * Hardened admin login, apart from the app's accounts (owner's decision 2026-10-27): an admin is a row in admin_accounts,
+ * not a user. Whether an app account with the same phone exists, or gets deleted, changes nothing here.
  *   1. the phone must be in FRFRO_ADMIN_PHONES,
- *   2. the account password must be right,
+ *   2. the admin password (its own, not the app's) must be right,
  *   3. a fresh 6-digit code from the admin's authenticator app must be right (each code works once),
  * and the result is a dedicated admin session (own cookie, 30 min idle / 8 h absolute, bound to the browser, SameSite=Strict).
- * The first-time authenticator setup additionally needs FRFRO_ADMIN_SETUP_KEY, so knowing a password alone can never enroll anyone.
+ * Setup (first time, or again after a lost password or phone) needs FRFRO_ADMIN_SETUP_KEY and sets both a new password and
+ * a new authenticator; the old ones keep working until the first code of the new one is typed.
  * Every failure looks identical to the caller; the real reason goes only to the audit log.
  */
 export const ADMIN_COOKIE = process.env.NODE_ENV === "production" ? "__Host-frfro_admin" : "frfro_admin";
@@ -22,31 +23,38 @@ const IDLE_MS = 30 * 60 * 1000;
 const ABSOLUTE_MS = 8 * 60 * 60 * 1000;
 const TOUCH_EVERY_MS = 60 * 1000;
 const WINDOW_MS = 15 * 60 * 1000;
+const SETUP_MS = 15 * 60 * 1000;
+export const ADMIN_PASSWORD_MIN = 8;
 
 export const GENERIC_FAILURE = "اطلاعات ورود درست نیست.";
 
 let tablesReady;
-/** Creates the admin tables on first use (same DDL as migrations/021_admin_security.sql, idempotent), so no manual database step is needed. */
+/** Creates the admin tables on first use (same DDL as migrations/057_admin_accounts.sql, idempotent), so no manual database step is needed. */
 function ensureAdminTables() {
   tablesReady ??= (async () => {
     const db = await getDb();
-    await run(db, `CREATE TABLE IF NOT EXISTS admin_totp (
-      user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-      secret_enc TEXT NOT NULL,
-      enabled_at TIMESTAMPTZ,
-      last_step BIGINT NOT NULL DEFAULT 0,
+    await run(db, `CREATE TABLE IF NOT EXISTS admin_accounts (
+      id SERIAL PRIMARY KEY,
+      phone TEXT NOT NULL UNIQUE,
+      password_hash TEXT,
+      totp_secret_enc TEXT,
+      totp_enabled_at TIMESTAMPTZ,
+      totp_last_step BIGINT NOT NULL DEFAULT 0,
+      setup_secret_enc TEXT,
+      setup_password_hash TEXT,
+      setup_started_at TIMESTAMPTZ,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )`);
-    await run(db, `CREATE TABLE IF NOT EXISTS admin_sessions (
+    await run(db, `CREATE TABLE IF NOT EXISTS admin_account_sessions (
       token_hash TEXT PRIMARY KEY,
-      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      admin_id INTEGER NOT NULL REFERENCES admin_accounts(id) ON DELETE CASCADE,
       ua_hash TEXT NOT NULL DEFAULT '',
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       last_seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      expires_at TIMESTAMPTZ NOT NULL
+      expires_at TIMESTAMPTZ NOT NULL,
+      stepup_until TIMESTAMPTZ
     )`);
-    await run(db, "CREATE INDEX IF NOT EXISTS idx_admin_sessions_user ON admin_sessions (user_id)");
-    await run(db, "ALTER TABLE admin_sessions ADD COLUMN IF NOT EXISTS stepup_until TIMESTAMPTZ");
+    await run(db, "CREATE INDEX IF NOT EXISTS idx_admin_account_sessions_admin ON admin_account_sessions (admin_id)");
   })().catch((error) => {
     tablesReady = undefined; // retry on the next request instead of caching a failure
     throw error;
@@ -61,7 +69,7 @@ function adminSecret() {
   return value.length >= 32 ? value : "";
 }
 
-/** Whether first-time setup can work at all: FRFRO_ADMIN_SETUP_KEY must be set on the server and 16+ characters (the value itself is never exposed). */
+/** Whether setup can work at all: FRFRO_ADMIN_SETUP_KEY must be set on the server and 16+ characters (the value itself is never exposed). */
 export const setupKeyConfigured = () => (process.env.FRFRO_ADMIN_SETUP_KEY || "").length >= 16;
 
 /** False until FRFRO_ADMIN_SECRET (32+ random characters) is set: the admin login then refuses everything (fails closed). */
@@ -87,6 +95,7 @@ function decryptSecret(stored) {
 
 /** Reads a stored authenticator secret, or null when it cannot be decrypted (e.g. FRFRO_ADMIN_SECRET was changed since it was saved). */
 function tryDecryptSecret(stored) {
+  if (!stored) return null;
   try {
     return decryptSecret(stored);
   } catch {
@@ -130,11 +139,11 @@ export function clearAdminCookie(response) {
   response.cookies.set(ADMIN_COOKIE, "", { httpOnly: true, sameSite: "strict", path: "/", secure: process.env.NODE_ENV === "production", expires: new Date(0) });
 }
 
-async function audit(action, { user = null, phone = "", detail = "", request }) {
+/** admin_actions.admin_user_id points at users, so admin events carry only the phone (admin_label). */
+async function audit(action, { phone = "", detail = "", request }) {
   try {
     await adminRepo.logAction({
-      adminUserId: user?.id ?? null,
-      adminLabel: phone || user?.phone || "",
+      adminLabel: phone,
       action,
       detail: `${detail}${request ? ` ip=${clientIp(request)}` : ""}`.trim()
     });
@@ -151,31 +160,38 @@ async function allowed(request, phone, scope, perPhone, perIp) {
   return (await checkRateLimit(`admin-${scope}:${phone}`, perPhone, WINDOW_MS)).ok;
 }
 
-/** Phone + password check that costs the same whatever is wrong, and only ever passes for listed, active admins. */
+async function accountByPhone(phone) {
+  if (!phone) return null;
+  const db = await getDb();
+  return get(db, "SELECT * FROM admin_accounts WHERE phone = $1", [phone]);
+}
+
+/** Phone + admin password check that costs the same whatever is wrong, and only ever passes for listed admins. */
 async function checkCredentials(phoneInput, passwordInput) {
   const phone = normalizePhone(phoneInput);
   const password = normalizeDigits(String(passwordInput || ""));
-  const user = phone ? await users.getUserByPhone(phone) : null;
-  const passwordOk = verifyPassword(password, user?.password_hash || DUMMY_PASSWORD_HASH);
-  if (!user || !passwordOk || user.suspended_at || !isAdminPhone(user.phone)) return { ok: false, phone, user };
-  return { ok: true, phone, user };
+  const account = await accountByPhone(phone);
+  const passwordOk = await verifyPassword(password, account?.password_hash || DUMMY_PASSWORD_HASH);
+  if (!account || !passwordOk || !isAdminPhone(account.phone)) return { ok: false, phone, account };
+  return { ok: true, phone, account };
 }
 
-async function createAdminSession(userId, request) {
+async function createAdminSession(adminId, request) {
   const token = randomBytes(32).toString("hex");
   const now = Date.now();
   const expiresAt = now + ABSOLUTE_MS;
   const db = await getDb();
-  await run(db, "DELETE FROM admin_sessions WHERE expires_at < NOW() OR user_id = $1", [userId]); // one live session per admin
-  await run(db, "INSERT INTO admin_sessions (token_hash, user_id, ua_hash, expires_at) VALUES ($1, $2, $3, $4)", [sha256(token), userId, userAgentHash(request), new Date(expiresAt).toISOString()]);
+  await run(db, "DELETE FROM admin_account_sessions WHERE expires_at < NOW() OR admin_id = $1", [adminId]); // one live session per admin
+  await run(db, "INSERT INTO admin_account_sessions (token_hash, admin_id, ua_hash, expires_at) VALUES ($1, $2, $3, $4)", [sha256(token), adminId, userAgentHash(request), new Date(expiresAt).toISOString()]);
   return { token, expiresAt };
 }
 
 export async function destroyAdminSession(request) {
   const token = request.cookies.get(ADMIN_COOKIE)?.value;
   if (!token) return;
+  await ensureAdminTables();
   const db = await getDb();
-  await run(db, "DELETE FROM admin_sessions WHERE token_hash = $1", [sha256(token)]);
+  await run(db, "DELETE FROM admin_account_sessions WHERE token_hash = $1", [sha256(token)]);
 }
 
 /** Resolves the admin session cookie to { id, phone, name } or null. Enforces idle/absolute expiry, browser binding, and that the phone is still listed. */
@@ -187,35 +203,35 @@ export async function getAdminFromRequest(request) {
   const db = await getDb();
   const hash = sha256(token);
   const row = await get(db, `
-    SELECT s.user_id, s.ua_hash, s.last_seen_at, s.expires_at, s.stepup_until, u.phone, u.name, u.suspended_at
-    FROM admin_sessions s JOIN users u ON u.id = s.user_id
+    SELECT s.admin_id, s.ua_hash, s.last_seen_at, s.expires_at, s.stepup_until, a.phone
+    FROM admin_account_sessions s JOIN admin_accounts a ON a.id = s.admin_id
     WHERE s.token_hash = $1 AND s.expires_at > NOW()
   `, [hash]);
   const now = Date.now();
   const idleOk = row && now - new Date(row.last_seen_at).getTime() < IDLE_MS;
-  if (!row || !idleOk || row.suspended_at || !isAdminPhone(row.phone) || row.ua_hash !== userAgentHash(request)) {
-    if (row) await run(db, "DELETE FROM admin_sessions WHERE token_hash = $1", [hash]);
+  if (!row || !idleOk || !isAdminPhone(row.phone) || row.ua_hash !== userAgentHash(request)) {
+    if (row) await run(db, "DELETE FROM admin_account_sessions WHERE token_hash = $1", [hash]);
     return null;
   }
-  if (now - new Date(row.last_seen_at).getTime() > TOUCH_EVERY_MS) await run(db, "UPDATE admin_sessions SET last_seen_at = NOW() WHERE token_hash = $1", [hash]);
-  return { id: row.user_id, phone: row.phone, name: row.name || "", stepUp: Boolean(row.stepup_until && new Date(row.stepup_until).getTime() > now) };
+  if (now - new Date(row.last_seen_at).getTime() > TOUCH_EVERY_MS) await run(db, "UPDATE admin_account_sessions SET last_seen_at = NOW() WHERE token_hash = $1", [hash]);
+  return { id: row.admin_id, phone: row.phone, name: "", stepUp: Boolean(row.stepup_until && new Date(row.stepup_until).getTime() > now) };
 }
 
 const STEPUP_MS = 5 * 60 * 1000;
 
-/** Re-checks the admin's password; on success the session may run dangerous actions for 5 minutes. */
+/** Re-checks the admin password; on success the session may run dangerous actions for 5 minutes. */
 export async function adminStepUp(request, admin, password) {
   await ensureAdminTables();
   if (!(await allowed(request, admin.phone, "stepup", 6, 15))) return { ok: false, status: 429 };
   const check = await checkCredentials(admin.phone, password);
-  if (!check.ok || check.user.id !== admin.id) {
-    await audit("stepup_failed", { user: { id: admin.id, phone: admin.phone }, request });
+  if (!check.ok || check.account.id !== admin.id) {
+    await audit("stepup_failed", { phone: admin.phone, request });
     return { ok: false, status: 401 };
   }
   const token = request.cookies.get(ADMIN_COOKIE)?.value || "";
   const db = await getDb();
-  await run(db, "UPDATE admin_sessions SET stepup_until = $2 WHERE token_hash = $1", [sha256(token), new Date(Date.now() + STEPUP_MS).toISOString()]);
-  await audit("stepup", { user: { id: admin.id, phone: admin.phone }, request });
+  await run(db, "UPDATE admin_account_sessions SET stepup_until = $2 WHERE token_hash = $1", [sha256(token), new Date(Date.now() + STEPUP_MS).toISOString()]);
+  await audit("stepup", { phone: admin.phone, request });
   return { ok: true };
 }
 
@@ -224,53 +240,57 @@ export async function listAdminSessions() {
   await ensureAdminTables();
   const db = await getDb();
   return all(db, `
-    SELECT s.user_id, u.phone, u.name, s.created_at, s.last_seen_at, s.expires_at
-    FROM admin_sessions s JOIN users u ON u.id = s.user_id
+    SELECT s.admin_id, a.phone, s.created_at, s.last_seen_at, s.expires_at
+    FROM admin_account_sessions s JOIN admin_accounts a ON a.id = s.admin_id
     WHERE s.expires_at > NOW() ORDER BY s.last_seen_at DESC
   `);
 }
 
-/** Every phone listed in FRFRO_ADMIN_PHONES with its state: registered?, authenticator linked?, signed in right now? */
+/** Every phone listed in FRFRO_ADMIN_PHONES with its state: set up?, signed in right now? */
 export async function listAdminAccounts() {
   await ensureAdminTables();
   const phones = adminPhoneList();
   if (!phones.length) return [];
   const db = await getDb();
   const rows = await all(db, `
-    SELECT u.id, u.phone, u.name, t.enabled_at,
-           EXISTS (SELECT 1 FROM admin_sessions s WHERE s.user_id = u.id AND s.expires_at > NOW()) AS online
-    FROM users u LEFT JOIN admin_totp t ON t.user_id = u.id
-    WHERE u.phone = ANY($1) ORDER BY u.id
+    SELECT a.id, a.phone, a.totp_enabled_at,
+           EXISTS (SELECT 1 FROM admin_account_sessions s WHERE s.admin_id = a.id AND s.expires_at > NOW()) AS online
+    FROM admin_accounts a WHERE a.phone = ANY($1) ORDER BY a.id
   `, [phones]);
   const known = new Map(rows.map((row) => [row.phone, row]));
   return phones.map((phone) => {
     const row = known.get(phone);
-    return row
-      ? { id: row.id, phone, name: row.name || "", registered: true, authenticator: Boolean(row.enabled_at), online: row.online }
-      : { id: null, phone, name: "", registered: false, authenticator: false, online: false };
+    return { id: row?.id ?? null, phone, ready: Boolean(row?.totp_enabled_at), online: Boolean(row?.online) };
   });
 }
 
-/** Forgets one admin's authenticator and ends their sessions, so they can run the first-time setup again. */
-export async function resetAdminAuthenticator(userId) {
+/** Switches one admin's authenticator off and ends their sessions; they get back in only through setup (with the setup key). */
+export async function resetAdminAuthenticator(adminId) {
   await ensureAdminTables();
   const db = await getDb();
-  await run(db, "DELETE FROM admin_totp WHERE user_id = $1", [Number(userId)]);
-  await run(db, "DELETE FROM admin_sessions WHERE user_id = $1", [Number(userId)]);
+  await run(db, "UPDATE admin_accounts SET totp_secret_enc = NULL, totp_enabled_at = NULL, setup_secret_enc = NULL, setup_password_hash = NULL, setup_started_at = NULL WHERE id = $1", [Number(adminId)]);
+  await run(db, "DELETE FROM admin_account_sessions WHERE admin_id = $1", [Number(adminId)]);
 }
 
 /** Ends every live session of one admin (their next request lands on the login form). */
-export async function revokeAdminSessions(userId) {
+export async function revokeAdminSessions(adminId) {
   await ensureAdminTables();
   const db = await getDb();
-  await run(db, "DELETE FROM admin_sessions WHERE user_id = $1", [Number(userId)]);
+  await run(db, "DELETE FROM admin_account_sessions WHERE admin_id = $1", [Number(adminId)]);
+}
+
+/** The admin account row of a listed phone, for the security tab's actions. */
+export async function getAdminAccount(adminId) {
+  await ensureAdminTables();
+  const db = await getDb();
+  return get(db, "SELECT id, phone FROM admin_accounts WHERE id = $1", [Number(adminId)]);
 }
 
 function failure(status = 401) {
   return { ok: false, status, error: status === 429 ? "تلاش‌های ورود زیاد بود. بعداً دوباره امتحان کن." : GENERIC_FAILURE };
 }
 
-/** Step 3 of the login: phone + password + current authenticator code. */
+/** Phone + admin password + current authenticator code. */
 export async function adminLogin(request, { phone: phoneInput, password, code }) {
   const phone = normalizePhone(phoneInput);
   if (!adminAuthConfigured()) return failure();
@@ -280,75 +300,78 @@ export async function adminLogin(request, { phone: phoneInput, password, code })
     return failure(429);
   }
   const check = await checkCredentials(phone, password);
-  const db = await getDb();
-  const row = check.ok ? await get(db, "SELECT secret_enc, last_step FROM admin_totp WHERE user_id = $1 AND enabled_at IS NOT NULL", [check.user.id]) : null;
-  const secret = row ? tryDecryptSecret(row.secret_enc) : null;
-  const step = secret ? verifyTotp(secret, normalizeDigits(String(code || "")), { afterStep: Number(row.last_step) }) : null;
-  if (!check.ok || !row || step === null) {
-    const reason = !check.ok ? "bad phone/password or not an admin" : !row ? "authenticator not set up" : !secret ? "authenticator unreadable (admin secret changed), re-enroll needed" : "bad code";
+  const account = check.ok && check.account.totp_enabled_at ? check.account : null;
+  const secret = account ? tryDecryptSecret(account.totp_secret_enc) : null;
+  const step = secret ? verifyTotp(secret, normalizeDigits(String(code || "")), { afterStep: Number(account.totp_last_step) }) : null;
+  if (!check.ok || !account || step === null) {
+    const reason = !check.ok ? "bad phone/password or not an admin" : !account ? "authenticator not set up" : !secret ? "authenticator unreadable (admin secret changed), setup needed" : "bad code";
     await audit("login_failed", { phone, detail: reason, request });
     return failure();
   }
-  // Atomic: only the request that moves last_step forward wins, so one code can never be accepted twice in parallel.
-  const claimed = await get(db, "UPDATE admin_totp SET last_step = $2 WHERE user_id = $1 AND last_step < $2 RETURNING user_id", [check.user.id, step]);
+  // Atomic: only the request that moves totp_last_step forward wins, so one code can never be accepted twice in parallel.
+  const db = await getDb();
+  const claimed = await get(db, "UPDATE admin_accounts SET totp_last_step = $2 WHERE id = $1 AND totp_last_step < $2 RETURNING id", [account.id, step]);
   if (!claimed) {
     await audit("login_failed", { phone, detail: "code reused", request });
     return failure();
   }
-  const session = await createAdminSession(check.user.id, request);
-  await audit("login", { user: check.user, request });
+  const session = await createAdminSession(account.id, request);
+  await audit("login", { phone, request });
   return { ok: true, session };
 }
 
-/** First-time setup, part 1: proves password + setup key, then hands out a fresh authenticator secret (QR + manual key). */
+/** Setup, part 1: a listed phone + the setup key + a new admin password; hands out a fresh authenticator secret (QR + manual key).
+ *  Nothing changes for the admin yet: the current password and authenticator keep working until part 2 succeeds. */
 export async function adminEnrollStart(request, { phone: phoneInput, password, setupKey }) {
   const phone = normalizePhone(phoneInput);
   const expected = process.env.FRFRO_ADMIN_SETUP_KEY || "";
   if (!adminAuthConfigured() || expected.length < 16) return failure();
   await ensureAdminTables();
   if (!(await allowed(request, phone, "enroll", 10, 15))) return failure(429);
-  const check = await checkCredentials(phone, password);
+  const newPassword = normalizeDigits(String(password || ""));
   const keyOk = safeEqual(sha256(String(setupKey || "")), sha256(expected));
-  const db = await getDb();
-  const existing = check.ok ? await get(db, "SELECT enabled_at, secret_enc FROM admin_totp WHERE user_id = $1", [check.user.id]) : null;
-  // An enabled authenticator whose secret can no longer be decrypted was saved under a different FRFRO_ADMIN_SECRET, so it can
-  // never sign anyone in again. Re-enrolling over it still needs the password and the server-side setup key, exactly like the first time.
-  const stale = Boolean(existing?.enabled_at) && tryDecryptSecret(existing.secret_enc) === null;
-  if (!check.ok || !keyOk || (existing?.enabled_at && !stale)) {
-    await audit("enroll_failed", { phone, detail: !check.ok ? "bad phone/password or not an admin" : !keyOk ? "bad setup key" : "already enrolled", request });
+  if (!keyOk || !isAdminPhone(phone)) {
+    await audit("enroll_failed", { phone, detail: !keyOk ? "bad setup key" : "not an admin phone", request });
     return failure();
   }
+  if (newPassword.length < ADMIN_PASSWORD_MIN) return { ok: false, status: 400, error: `رمز مدیر دست‌کم ${ADMIN_PASSWORD_MIN} حرف باشد.` };
   const secret = generateTotpSecret();
+  const db = await getDb();
   await run(db, `
-    INSERT INTO admin_totp (user_id, secret_enc) VALUES ($1, $2)
-    ON CONFLICT (user_id) DO UPDATE SET secret_enc = EXCLUDED.secret_enc, last_step = 0, enabled_at = NULL, created_at = NOW()
-    WHERE admin_totp.enabled_at IS NULL OR admin_totp.secret_enc = $3
-  `, [check.user.id, encryptSecret(secret), existing?.secret_enc || ""]);
-  if (stale) await audit("enroll_reset_stale", { user: check.user, detail: "unreadable authenticator replaced", request });
-  const uri = totpUri({ secret, account: check.user.phone });
+    INSERT INTO admin_accounts (phone, setup_secret_enc, setup_password_hash, setup_started_at) VALUES ($1, $2, $3, NOW())
+    ON CONFLICT (phone) DO UPDATE SET setup_secret_enc = EXCLUDED.setup_secret_enc, setup_password_hash = EXCLUDED.setup_password_hash, setup_started_at = NOW()
+  `, [phone, encryptSecret(secret), await hashPassword(newPassword)]);
+  const uri = totpUri({ secret, account: phone });
   return { ok: true, secret, uri, qr: await QRCode.toDataURL(uri, { margin: 1, width: 240 }) };
 }
 
-/** First-time setup, part 2: the admin types the first code from the app; if right, the authenticator is switched on and they are logged in. */
+/** Setup, part 2: the first code from the app. If right, the new password and authenticator replace the old ones,
+ *  every other session of this admin ends, and this browser is signed in. */
 export async function adminEnrollConfirm(request, { phone: phoneInput, password, setupKey, code }) {
   const phone = normalizePhone(phoneInput);
   const expected = process.env.FRFRO_ADMIN_SETUP_KEY || "";
   if (!adminAuthConfigured() || expected.length < 16) return failure();
   await ensureAdminTables();
   if (!(await allowed(request, phone, "enroll", 10, 15))) return failure(429);
-  const check = await checkCredentials(phone, password);
   const keyOk = safeEqual(sha256(String(setupKey || "")), sha256(expected));
-  const db = await getDb();
-  const row = check.ok && keyOk ? await get(db, "SELECT secret_enc, enabled_at FROM admin_totp WHERE user_id = $1", [check.user.id]) : null;
-  const secret = row && !row.enabled_at ? tryDecryptSecret(row.secret_enc) : null;
+  const account = keyOk && isAdminPhone(phone) ? await accountByPhone(phone) : null;
+  const fresh = account?.setup_started_at && Date.now() - new Date(account.setup_started_at).getTime() < SETUP_MS;
+  const passwordOk = await verifyPassword(normalizeDigits(String(password || "")), (fresh && account.setup_password_hash) || DUMMY_PASSWORD_HASH);
+  const secret = fresh && passwordOk ? tryDecryptSecret(account.setup_secret_enc) : null;
   const step = secret ? verifyTotp(secret, normalizeDigits(String(code || ""))) : null;
   if (step === null) {
     await audit("enroll_failed", { phone, detail: "confirm failed", request });
     return failure();
   }
-  const enabled = await get(db, "UPDATE admin_totp SET enabled_at = NOW(), last_step = $2 WHERE user_id = $1 AND enabled_at IS NULL RETURNING user_id", [check.user.id, step]);
+  const db = await getDb();
+  // Atomic: the pending setup is used once; a second confirm with the same code finds nothing to switch on.
+  const enabled = await get(db, `
+    UPDATE admin_accounts SET password_hash = setup_password_hash, totp_secret_enc = setup_secret_enc, totp_enabled_at = NOW(), totp_last_step = $2,
+      setup_secret_enc = NULL, setup_password_hash = NULL, setup_started_at = NULL
+    WHERE id = $1 AND setup_secret_enc = $3 RETURNING id
+  `, [account.id, step, account.setup_secret_enc]);
   if (!enabled) return failure();
-  const session = await createAdminSession(check.user.id, request);
-  await audit("enroll", { user: check.user, request });
+  const session = await createAdminSession(account.id, request);
+  await audit("enroll", { phone, request });
   return { ok: true, session };
 }

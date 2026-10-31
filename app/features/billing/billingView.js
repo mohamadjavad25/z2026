@@ -9,6 +9,9 @@ import { toPersianDigits } from "../../shared/lib/digits.js";
  * ("not enforced"), nothing is closed, so an ended free month reads calm ("soon"), never alarming.
  */
 const TRIAL_DAYS_FALLBACK = 30;
+/** The card in Settings turns warmer and says what is at stake once this many days or fewer are left (owner's decision 2026-10-28). */
+export const LOW_DAYS = 7;
+const LOW_SUB = "بعدش مشتری‌ها دیگه پیدات نمی‌کنن و نوبت تازه نمی‌گیری.";
 
 export function accountView(overview) {
   if (!overview?.visible || !overview.account) return null;
@@ -16,16 +19,19 @@ export function accountView(overview) {
   const until = formatPersianLongDate(account.accessEndsAt);
   const ready = Boolean(overview.checkoutReady);
   const cta = (label, emphasis = "primary") => ({ label: ready ? label : "پرداخت به‌زودی باز می‌شه", emphasis, disabled: !ready });
+  // Only when something would really close: while nobody can pay yet, nothing does, so no scare.
+  const isLow = Boolean(overview.enforced) && Number(account.daysLeft) <= LOW_DAYS;
 
   if (account.state === "trial") {
     return {
       tone: "trial",
-      badge: "ماه رایگان",
-      title: `${formatDaysLeft(account.daysLeft)} از ماه رایگانت مونده`,
-      sub: `تا ${until}. هر پلنی بخری از همون روز شروع می‌شه و روزی از ماه رایگانت نمی‌سوزه.`,
+      badge: "دوره‌ی رایگان",
+      title: `${formatDaysLeft(account.daysLeft)} از دوره‌ی رایگانت مونده`,
+      sub: isLow ? LOW_SUB : `تا ${until}. هر پلنی بخری از همون روز شروع می‌شه و روزی از دوره‌ی رایگانت نمی‌سوزه.`,
       note: "",
+      low: isLow,
       meter: Math.min(1, Math.max(0, account.daysLeft / (overview.trialDays || TRIAL_DAYS_FALLBACK))),
-      action: cta("اشتراک بخر", account.daysLeft <= 5 ? "primary" : "secondary")
+      action: cta(isLow ? "همین حالا اشتراک بخر" : "اشتراک بخر", account.daysLeft <= 5 ? "primary" : "secondary")
     };
   }
   if (account.state === "active") {
@@ -36,16 +42,17 @@ export function accountView(overview) {
       tone: "active",
       badge: "فعال",
       title: `اشتراکت تا ${until} فعاله`,
-      sub: `${formatDaysLeft(account.daysLeft)} مونده.${overview.lastPayment?.title ? ` آخرین پرداخت: ${overview.lastPayment.title}.` : ""}`,
+      sub: isLow ? LOW_SUB : `${formatDaysLeft(account.daysLeft)} مونده.${overview.lastPayment?.title ? ` آخرین پرداخت: ${overview.lastPayment.title}.` : ""}`,
       note: "",
+      low: isLow,
       meter: total ? Math.min(1, Math.max(0, account.daysLeft / total)) : null,
-      action: cta("تمدیدش کن", account.daysLeft <= 5 ? "primary" : "secondary")
+      action: cta(isLow ? "همین حالا تمدید کن" : "تمدیدش کن", account.daysLeft <= 5 ? "primary" : "secondary")
     };
   }
   if (!overview.enforced) {
     return {
       tone: "soon",
-      badge: "ماه رایگان تموم شد",
+      badge: "دوره‌ی رایگان تموم شد",
       title: "پرداخت اشتراک به‌زودی باز می‌شه",
       sub: "تا اون موقع همه‌چی مثل قبل کار می‌کنه و چیزی بسته نمی‌شه.",
       note: "",
@@ -95,7 +102,7 @@ export function bannerView(overview) {
       key: `${key}-${lastDay ? "1" : "5"}`,
       tone: lastDay ? "warn" : "info",
       text: account.state === "trial"
-        ? `${formatDaysLeft(account.daysLeft)} از ماه رایگانت مونده.`
+        ? `${formatDaysLeft(account.daysLeft)} از دوره‌ی رایگانت مونده.`
         : `اشتراکت ${lastDay ? "تا یه روز دیگه" : `${toPersianDigits(account.daysLeft)} روز دیگه`} تموم می‌شه.`,
       action: account.state === "trial" ? "اشتراک بخر" : "تمدید",
       kind: "plans"
@@ -113,9 +120,9 @@ export function bannerView(overview) {
  */
 export function teamMemberView(member, overview) {
   const account = member?.account || {};
-  if (account.state === "trial") return { tone: "trial", status: `ماه رایگان، ${formatDaysLeft(account.daysLeft)} مونده`, urgent: account.daysLeft <= 5 };
+  if (account.state === "trial") return { tone: "trial", status: `دوره‌ی رایگان، ${formatDaysLeft(account.daysLeft)} مونده`, urgent: account.daysLeft <= 5 };
   if (account.state === "active") return { tone: "active", status: `فعال تا ${formatPersianLongDate(account.accessEndsAt)}`, urgent: account.daysLeft <= 5 };
-  if (!overview?.enforced) return { tone: "soon", status: "ماه رایگان تموم شد", urgent: false };
+  if (!overview?.enforced) return { tone: "soon", status: "دوره‌ی رایگان تموم شد", urgent: false };
   if (account.state === "grace") return { tone: "warn", status: `تموم شده، ${formatDaysLeft(account.graceDaysLeft)} مهلت`, urgent: true };
   return { tone: "danger", status: "غیرفعال؛ توی جستجو دیده نمی‌شه", urgent: true };
 }
@@ -125,7 +132,7 @@ export function receiptText(payment) {
   const lines = [
     "رسید پرداخت فرفرو",
     payment.receiptNo ? `شمارهٔ رسید: ${payment.receiptNo}` : "",
-    `پلن: ${payment.title}`,
+    `${payment.kind === "sms_pack" ? "بسته" : "پلن"}: ${payment.title}`,
     payment.paidFor ? `برای: ${payment.paidFor}` : "",
     payment.paidBy ? `پرداخت توسط: ${payment.paidBy}` : "",
     `مبلغ: ${toPersianDigits(Number(payment.amountToman || 0).toLocaleString("en-US").replace(/,/g, "٬"))} تومان`,
@@ -134,4 +141,36 @@ export function receiptText(payment) {
     payment.periodEnd ? `اعتبار تا: ${formatPersianLongDate(payment.periodEnd)}` : ""
   ];
   return lines.filter(Boolean).join("\n");
+}
+
+/** One bubble stands for this many SMS of the monthly allowance (20 bubbles = 200 SMS). */
+export const SMS_PER_BUBBLE = 10;
+
+/**
+ * «پیامک مشتری‌هات» in Settings (owner's design of 2026-10-28: bubbles). `overview.sms` has what is left; this turns it
+ * into the words, the number of filled bubbles and the mascot. Null while billing is not shown at all.
+ */
+export function smsView(overview) {
+  // Only while subscriptions are really on: before that nothing is counted, so a card would show a made-up number.
+  const sms = overview?.visible && overview.enforced ? overview.sms : null;
+  if (!sms) return null;
+  const bubbleCount = Math.max(1, Math.round(sms.included / SMS_PER_BUBBLE));
+  const filled = Math.min(bubbleCount, Math.ceil(sms.includedLeft / SMS_PER_BUBBLE));
+  const hasPacks = sms.packCredits > 0;
+  const included = toPersianDigits(sms.included);
+  let sub = `هر ماه ${included} پیامک داخل پلنته و اول ماه دوباره پر می‌شه.`;
+  if (sms.state === "empty") sub = "پیامکت تموم شده. یادآوری نوبت برای مشتری‌هات نمی‌ره، ولی تأیید و لغو نوبت همچنان می‌رسه. یه بسته بخر یا اول ماه دوباره پر می‌شه.";
+  else if (sms.state === "low") sub = "کم مونده. اگه تموم بشه، یادآوری نوبت برای مشتری‌هات نمی‌ره.";
+  else if (hasPacks) sub = `از ${included} تای این ماه ${toPersianDigits(sms.includedLeft)} تا مونده، به‌علاوه ${toPersianDigits(sms.packCredits)} تا از بسته‌هات که تموم نمی‌شن.`;
+  const ready = Boolean(overview.checkoutReady);
+  return {
+    state: sms.state,
+    left: sms.left,
+    bubbleCount,
+    filled,
+    packCredits: sms.packCredits,
+    sub,
+    pose: sms.state === "empty" ? "lost" : "done",
+    action: { label: ready ? "بسته‌ی پیامک بخر" : "به‌زودی", disabled: !ready, emphasis: sms.state === "ok" ? "secondary" : "primary" }
+  };
 }

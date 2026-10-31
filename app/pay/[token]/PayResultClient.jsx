@@ -72,7 +72,9 @@ export function PayResultClient({ token }) {
           <>
             <span className="payIcon"><CircleCheck size={34} aria-hidden="true" /></span>
             <h1>پرداخت شد!</h1>
-            <p>{payment.title}، تا <b>{formatPersianLongDate(payment.periodEnd)}</b> فعال شد.</p>
+            {payment.kind === "sms_pack"
+              ? <p>{payment.title} به حسابت اضافه شد.</p>
+              : <p>{payment.title}، تا <b>{formatPersianLongDate(payment.periodEnd)}</b> فعال شد.</p>}
             <dl className="payFacts">
               <div><dt>مبلغ</dt><dd>{formatToman(payment.amountToman)}</dd></div>
               <div><dt>شمارهٔ رسید</dt><dd dir="ltr">{payment.receiptNo}</dd></div>

@@ -1,4 +1,4 @@
-import { DEFAULT_GRACE_DAYS, TRIAL_DAYS } from "./plans.js";
+import { DEFAULT_GRACE_DAYS, LAUNCH_TRIAL_DAYS, TRIAL_DAYS } from "./plans.js";
 import { getPersianDateParts } from "../../shared/lib/persianCalendar.js";
 
 /**
@@ -6,7 +6,7 @@ import { getPersianDateParts } from "../../shared/lib/persianCalendar.js";
  * (tests/unit/billingPeriod.test.js) and the API, the gate and the reminders all use the same answers.
  *
  * Access runs until the later of two dates:
- *   - the end of the free month: 30 days from sign-up, or from the day billing was switched on for
+ *   - the end of the free period: 14 days from sign-up, or 30 days from the day billing was switched on for
  *     accounts that existed before that (nobody is surprised by a bill the day it launches);
  *   - `paid_until`: the end of the last paid (or admin-granted) period.
  * After that come a few grace days where everything still works, then the account is "expired".
@@ -19,9 +19,22 @@ const toMs = (value) => {
   return Number.isFinite(ms) ? ms : 0;
 };
 
-export function trialEndsAt({ createdAt, launchedAt, trialDays = TRIAL_DAYS }) {
-  const base = Math.max(toMs(createdAt), toMs(launchedAt));
-  return new Date(base + trialDays * DAY_MS);
+/**
+ * Accounts made after billing was switched on get TRIAL_DAYS from sign-up. Accounts made before get LAUNCH_TRIAL_DAYS
+ * from the switch-on day, as promised at launch. `trialDays` overrides both (tests and the admin view).
+ */
+export function trialEndsAt({ createdAt, launchedAt, trialDays }) {
+  const created = toMs(createdAt);
+  const launched = toMs(launchedAt);
+  const existing = launched > 0 && created < launched;
+  const days = trialDays ?? (existing ? LAUNCH_TRIAL_DAYS : TRIAL_DAYS);
+  return new Date(Math.max(created, launched) + days * DAY_MS);
+}
+
+/** "1405-08": the Persian year and month in Tehran, the unit the monthly SMS allowance restarts on (smsCredits.js). */
+export function smsMonthKey(now = new Date()) {
+  const { year, month } = getPersianDateParts(now);
+  return `${year}-${String(month).padStart(2, "0")}`;
 }
 
 /** Whole days left until `end`, counting a started day as a day ("12 hours left" is 1 day). Never negative. */
@@ -34,7 +47,7 @@ export function daysUntil(end, now) {
  * state: "trial" (free month), "active" (paid period running), "grace" (ended, a few days to pay),
  * "expired" (hidden from search, no new online bookings).
  */
-export function computeAccess({ now = new Date(), createdAt, launchedAt = null, paidUntil = null, graceDays = DEFAULT_GRACE_DAYS, trialDays = TRIAL_DAYS }) {
+export function computeAccess({ now = new Date(), createdAt, launchedAt = null, paidUntil = null, graceDays = DEFAULT_GRACE_DAYS, trialDays }) {
   const nowMs = toMs(now);
   const trialEnd = trialEndsAt({ createdAt, launchedAt, trialDays });
   const paidEndMs = toMs(paidUntil);

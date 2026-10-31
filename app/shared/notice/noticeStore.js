@@ -5,7 +5,7 @@
  *
  * Input is a plain string (the old `setAppToast("...")` call shape, tone inferred from
  * the words) or an object:
- *   { kind, tone, title, text, big, label, avatar, p, action: { label, onClick }, timer, id, onClose }
+ *   { kind, tone, title, text, big, label, avatar, p, action: { label, onClick }, timer, id, onClose, steps }
  *
  * Kinds (pick by what the notice is, not by how important it sounds):
  *   island  a live pill, auto-hides. Quick confirmation. Default for success and info.
@@ -16,6 +16,11 @@
  *   ban     a promotion with a big number. Stays until closed.
  *   err     an error with a short shake. Stays until closed. Default for error tone.
  *   note    the operator's app-wide notice (SiteNotice). Stays until closed.
+ *
+ * A notice at the top is for short news («لینک کپی شد»). A longer one turns into a full-width card by itself
+ * (NoticeHost, LONG_NOTICE_CHARS). Instructions in several steps never go on top: pass
+ * `steps: { title, items: [...], doneLabel? }` with a short `title`, and the short title shows on top while the
+ * steps open in a small sheet at the bottom that stays until «باشه» (user's decision 2026-10-28).
  */
 
 /** Same word lists the sound hook used before the notices existed, so sounds keep matching; the rest are the
@@ -35,6 +40,20 @@ const DEFAULT_TIMER = {
 };
 
 const MAX_VISIBLE = 3;
+/** One steps sheet at a time; a new one replaces the old. */
+const STEPS_ID = "notice-steps";
+
+/**
+ * A notice that leaves by itself stays at least long enough to be read: about 14 letters a second plus two seconds
+ * to notice it, up to 15 seconds. A long message used to vanish before its end was read.
+ */
+const READ_MS_PER_CHAR = 70;
+const READ_MS_MAX = 15000;
+export function readingTime(base, timer) {
+  if (!timer) return timer;
+  const length = `${base.title || ""} ${base.text || ""} ${base.big || ""}`.trim().length;
+  return Math.max(timer, Math.min(READ_MS_MAX, 2000 + length * READ_MS_PER_CHAR));
+}
 
 let items = [];
 let sequence = 0;
@@ -53,12 +72,13 @@ export function inferTone(text = "") {
  * stays does the oldest go.
  */
 function keepVisible(list) {
-  const next = [...list];
+  const sheets = list.filter((item) => item.kind === "steps");
+  const next = list.filter((item) => item.kind !== "steps");
   while (next.length > MAX_VISIBLE) {
     const passing = next.findIndex((item) => item.timer > 0);
     next.splice(passing >= 0 ? passing : 0, 1);
   }
-  return next;
+  return [...next, ...sheets];
 }
 
 function emit() {
@@ -70,7 +90,11 @@ function emit() {
  * so the same message is never stacked twice.
  */
 export function notify(input) {
-  const base = typeof input === "string" ? { title: input } : { ...(input || {}) };
+  const { steps, ...base } = typeof input === "string" ? { title: input } : { ...(input || {}) };
+  if (steps?.items?.length) {
+    const sheet = { kind: "steps", tone: "info", id: STEPS_ID, timer: 0, ...steps };
+    items = [...items.filter((item) => item.id !== STEPS_ID), sheet];
+  }
   const tone = base.tone || inferTone(base.title || base.text || "");
   const kind = base.kind || (tone === "error" ? "err" : "island");
   const notice = {
@@ -78,7 +102,7 @@ export function notify(input) {
     tone,
     kind,
     id: base.id || `notice-${++sequence}`,
-    timer: base.timer ?? DEFAULT_TIMER[kind] ?? 0
+    timer: base.timer ?? readingTime(base, DEFAULT_TIMER[kind] ?? 0)
   };
   items = keepVisible([...items.filter((item) => item.id !== notice.id), notice]);
   emit();

@@ -7,22 +7,23 @@ import { FRESH_DAYS } from "./nativePush.js";
  * for FRESH_DAYS counts as gone.
  */
 
-export async function saveToken(userId, token) {
+/** Tokens belong to the admin account (admin_accounts, migration 057), not to an app user: user_id stays empty. */
+export async function saveToken(adminId, token) {
   const value = String(token || "").trim();
-  if (!userId || !value || value.length > 4096) return { ok: false, error: "توکن نامعتبر است." };
+  if (!adminId || !value || value.length > 4096) return { ok: false, error: "توکن نامعتبر است." };
   const db = await getDb();
   await run(db, `
-    INSERT INTO admin_push_tokens (user_id, token)
-    VALUES ($1, $2)
-    ON CONFLICT (token) DO UPDATE SET user_id = excluded.user_id, last_seen_at = now()
-  `, [Number(userId), value]);
+    INSERT INTO admin_push_tokens (admin_id, user_id, token)
+    VALUES ($1, NULL, $2)
+    ON CONFLICT (token) DO UPDATE SET admin_id = excluded.admin_id, user_id = NULL, last_seen_at = now()
+  `, [Number(adminId), value]);
   return { ok: true };
 }
 
-export async function removeToken(userId, token) {
-  if (!userId || !token) return;
+export async function removeToken(adminId, token) {
+  if (!adminId || !token) return;
   const db = await getDb();
-  await run(db, "DELETE FROM admin_push_tokens WHERE user_id = $1 AND token = $2", [Number(userId), String(token)]);
+  await run(db, "DELETE FROM admin_push_tokens WHERE admin_id = $1 AND token = $2", [Number(adminId), String(token)]);
 }
 
 export async function removeTokenById(id) {
@@ -31,13 +32,13 @@ export async function removeTokenById(id) {
   await run(db, "DELETE FROM admin_push_tokens WHERE id = $1", [Number(id)]);
 }
 
-/** Fresh tokens of the accounts whose phone is in `phones` (the current FRFRO_ADMIN_PHONES), with each one's phone. */
+/** Fresh tokens of the admin accounts whose phone is in `phones` (the current FRFRO_ADMIN_PHONES), with each one's phone. */
 export async function listFreshTokensForPhones(phones) {
   if (!phones?.length) return [];
   const db = await getDb();
   return all(db, `
-    SELECT t.id, t.token, u.phone FROM admin_push_tokens t JOIN users u ON u.id = t.user_id
-    WHERE u.phone = ANY($1::text[]) AND u.suspended_at IS NULL
+    SELECT t.id, t.token, a.phone FROM admin_push_tokens t JOIN admin_accounts a ON a.id = t.admin_id
+    WHERE a.phone = ANY($1::text[])
       AND t.last_seen_at > now() - make_interval(days => $2)
   `, [phones, FRESH_DAYS]).catch(() => []);
 }

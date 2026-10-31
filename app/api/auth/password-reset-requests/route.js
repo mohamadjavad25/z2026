@@ -19,7 +19,8 @@ const REQUEST_WINDOW_MS = 60 * 60 * 1000;
 // No real SMS/OTP provider is wired in yet (deliberately deferred to just
 // before public launch — see project notes), so self-service password reset
 // isn't possible today. This route only files a manual-recovery request for
-// the founder/support to act on by phone; GET/resolve below are gated by a
+// support to answer by texting a new password to that number (support never
+// phones anyone); GET/resolve below are gated by a
 // shared admin token since there's no admin login system yet either.
 async function _POST(request) {
   await ensureDb();

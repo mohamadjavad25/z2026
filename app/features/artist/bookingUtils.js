@@ -37,6 +37,14 @@ export function isPublicArtistSlotBlocked(artist, day, slot, durationMinutes) {
     }
   }
 
+  const dayKey = resolveRollingPersianDateKey(day);
+  for (const leave of artist?.leaves || []) {
+    if (dayKey < leave.from || dayKey > leave.to) continue;
+    const leaveStart = leave.start ? timeLabelToMinutes(leave.start) : 0;
+    const leaveEnd = leave.end ? timeLabelToMinutes(leave.end) : 1440;
+    if (rangesOverlap(start, end, leaveStart, leaveEnd)) return true;
+  }
+
   return (artist?.bookedSlots || [])
     .filter((item) => resolveRollingPersianDateKey(item.booking_date) === resolveRollingPersianDateKey(day))
     .some((item) => {
@@ -125,9 +133,9 @@ export function buildExactBookingDateTabsCentered(daysBefore = 3, daysAfter = 3)
 export function getBookingDateOffsetDays(dateKey, from = new Date()) {
   const resolved = persianDateKeyToDate(dateKey, from);
   if (!resolved) return 0;
-  const start = new Date(from.getFullYear(), from.getMonth(), from.getDate());
-  const end = new Date(resolved.getFullYear(), resolved.getMonth(), resolved.getDate());
-  return Math.round((end - start) / 86400000);
+  // Both are the same moment of their Tehran day (persianCalendar's day values), so the difference is whole days.
+  const start = persianDateKeyToDate(formatPersianDateKey(from), from);
+  return Math.round((resolved - start) / 86400000);
 }
 
 export function getArtistBookingDayRank(date) {
@@ -303,14 +311,23 @@ export function mapArtistBooking(row) {
     dateKey: resolveRollingPersianDateKey(date),
     client: profile?.name || row.client_name || row.client || "",
     clientUserId: profile?.id || row.client_user_id || null,
+    // The account's own name, when the number belongs to a frfro account (the customers list's main name).
+    client_account_name: profile?.id ? String(profile.name || "") : "",
     clientAvatar: profile?.avatar || "",
     clientArea: profile?.area || "",
     clientType: profile?.type || "client",
     sourceSalon: row.sourceSalon || row.source_salon || null,
+    placeSalon: row.placeSalon || null,
     phone: profile?.phone || row.client_phone || row.phone || "",
     service: row.service || "",
     service_emoji: row.service_emoji || "",
     status: row.status || "تایید",
+    booking_date: row.booking_date || "",
+    no_show_at: row.no_show_at || null,
+    client_account_deleted_at: row.client_account_deleted_at || null,
+    customers_hidden_at: row.customers_hidden_at || null,
+    proposal: row.proposal || null,
+    cancelled_by: row.cancelled_by || "",
     createdAt: row.created_at || "",
     waitMinutes: bookingWaitMinutes(row),
     durationMinutes: Number(row.duration_minutes || 0) || 60,

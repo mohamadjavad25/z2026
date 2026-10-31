@@ -1,19 +1,35 @@
 import * as artists from "./db/repos/artists.js";
 import * as users from "./db/repos/users.js";
 import * as userSettings from "./db/repos/userSettings.js";
+import * as artistPlace from "./db/repos/artistPlace.js";
 import { onlineBookingBlock } from "./billing/access.js";
 import { isSlotInPast } from "../shared/lib/slots.js";
-import { BOOKING_REQUEST_LEAD_MINUTES, isTooSoonToRequest } from "../shared/lib/bookingWindow.js";
+import { BOOKING_REQUEST_LEAD_MINUTES, TOO_FAR_TEXT, isTooFarToRequest, isTooSoonToRequest } from "../shared/lib/bookingWindow.js";
 import { toPersianDigits } from "../shared/lib/digits.js";
 import { parseServiceDurationMinutes } from "../shared/lib/time.js";
+import { joinServiceNames } from "../shared/lib/serviceBundle.js";
 import { artistSlotProblem } from "./visitSlotRules.js";
+import { salonClosedMessage } from "../shared/lib/artistPlace.js";
 import { readBookingSlot } from "./validation/bookingSlot.js";
 import { parseRequestedMinutes } from "./validation/numbers.js";
+import { noteAdminEvent } from "./adminNews.js";
 
 export const LOGIN_TO_BOOK_MESSAGE = "برای گرفتن نوبت، شماره‌ت رو بزن";
 export const ARTIST_TOO_MANY_OPEN_MESSAGE = "چند تا درخواست منتظر جواب داری. صبر کن جواب یکی بیاد، یا یکی رو لغو کن.";
 
 const refuse = (status, error, code = "") => ({ ok: false, status, error, code });
+
+/**
+ * The menu names a client's request asks for, in visit order: `parts` when several were sent; else the one
+ * `service`, or, when that exact name isn't listed, its « + »-joined names (shared/lib/serviceBundle).
+ */
+function requestedArtistServiceNames(data, service, findListed) {
+  const parts = (data.parts || []).map((part) => String(part?.service || "").trim()).filter(Boolean);
+  if (parts.length >= 2) return parts;
+  if (findListed(service)) return [service];
+  const joined = service.split(" + ").map((name) => name.trim()).filter(Boolean);
+  return joined.length >= 2 ? joined : [service];
+}
 
 /**
  * One new booking with an independent artist, with every check POST /api/artist/bookings makes: not
@@ -31,7 +47,9 @@ export async function createArtistBooking({ artistUserId, viewer, data, body = {
   // one and the time a real clock time, the length a whole number of minutes. Nothing is guessed.
   const artist = await users.getUserById(artistUserId);
   if (!artist || artist.type !== "artist") return refuse(404, "این آرتیست رو پیدا نکردیم.");
-  const service = String(data.service || "").trim();
+  let service = String(data.service || "").trim();
+  const partNames = (data.parts || []).map((part) => String(part?.service || "").trim()).filter(Boolean);
+  if (!service && partNames.length) service = partNames.join(" + ");
   if (!service) return refuse(400, "یه کار انتخاب کن.");
   const slot = readBookingSlot(data.bookingDate || data.booking_date || data.date || "", data.time ?? "");
   if (!slot.ok) return refuse(slot.status, slot.error);
@@ -46,6 +64,7 @@ export async function createArtistBooking({ artistUserId, viewer, data, body = {
   if (!isOwner && isTooSoonToRequest(day, time)) {
     return refuse(409, `این ساعت خیلی نزدیکه؛ آرتیست باید دست‌کم ${toPersianDigits(BOOKING_REQUEST_LEAD_MINUTES)} دقیقه وقت داشته باشه جواب بده. یه ساعت دیرتر بزن.`);
   }
+  if (!isOwner && isTooFarToRequest(day)) return refuse(409, TOO_FAR_TEXT.replace("سالن", "آرتیست"), "TOO_FAR");
   // An artist whose subscription has closed (and no salon of theirs covers them) takes no new online requests.
   if (!isOwner) {
     const blocked = await onlineBookingBlock(artistUserId, "artist");
@@ -61,10 +80,19 @@ export async function createArtistBooking({ artistUserId, viewer, data, body = {
   let durationMinutes = requested.minutes || 0;
   if (!isOwner) {
     // Only what is on the artist's own menu can be asked for, and its length is the artist's (never the client's).
-    const listed = (await artists.listArtistServices(artistUserId))
-      .find((item) => String(item.name || "").trim() === service);
-    if (!listed) return refuse(400, `«${service}» توی کارهای این آرتیست نیست.`, "SERVICE_NOT_LISTED");
-    durationMinutes = listed.duration ? parseServiceDurationMinutes(listed.duration) : 60;
+    // Several services picked for one visit come as `parts`, or joined with « + » in `service` (a request the
+    // expiry sweep sends on): each one must be listed, and the visit lasts their lengths added up.
+    const menu = await artists.listArtistServices(artistUserId);
+    const findListed = (name) => menu.find((item) => String(item.name || "").trim() === name);
+    const names = requestedArtistServiceNames(data, service, findListed);
+    const lengths = [];
+    for (const name of names) {
+      const listed = findListed(name);
+      if (!listed) return refuse(400, `«${name}» توی کارهای این آرتیست نیست.`, "SERVICE_NOT_LISTED");
+      lengths.push(listed.duration ? parseServiceDurationMinutes(listed.duration) : 60);
+    }
+    durationMinutes = lengths.reduce((sum, minutes) => sum + minutes, 0);
+    if (names.length > 1) service = joinServiceNames(names);
   }
   durationMinutes = durationMinutes > 0 ? Math.min(720, Math.max(15, durationMinutes)) : undefined;
   // The artist's own working hours, closed weekdays and 30-minute step count here exactly as a salon's do.
@@ -75,6 +103,11 @@ export async function createArtistBooking({ artistUserId, viewer, data, body = {
     durationMinutes: durationMinutes || 60
   });
   if (slotProblem) return refuse(slotProblem.status, slotProblem.error, slotProblem.code);
+  // Where it is held: the artist's workplace on that day (shared/lib/artistPlace.js), a salon or their own place. A client
+  // is only offered hours inside both the artist's and that salon's hours; the artist's own entry may go anywhere.
+  const place = await artistPlace.placeForBooking(artistUserId, { dateKey: day, time, minutes: durationMinutes || 60 });
+  if (place.block && !isOwner) return refuse(409, salonClosedMessage(place.salonName), "SALON_CLOSED");
+  const placeSalonUserId = place.block ? null : place.salonUserId;
   // A client's request waits as long as they chose (an hour, or until the appointment), maybe with a backup artist.
   const isRequest = !isOwner && Boolean(viewer?.id);
   const result = await artists.addArtistBooking(artistUserId, {
@@ -88,6 +121,7 @@ export async function createArtistBooking({ artistUserId, viewer, data, body = {
     fallbackArtistUserId: isRequest ? wait.fallbackArtistUserId || null : null,
     movedFromBookingId: wait.movedFromBookingId || null,
     durationMinutes,
+    placeSalonUserId,
     duration_minutes: undefined,
     // `duration` (text) would be read when no number is given; the number above is the only length.
     duration: durationMinutes ? undefined : data.duration,
@@ -106,5 +140,6 @@ export async function createArtistBooking({ artistUserId, viewer, data, body = {
     const error = result.code === "TOO_MANY_OPEN_REQUESTS" ? ARTIST_TOO_MANY_OPEN_MESSAGE : result.error;
     return refuse(result.code === "SLOT_TAKEN" || result.code === "TOO_MANY_OPEN_REQUESTS" ? 409 : 400, error, result.code);
   }
+  if (isRequest && !result.duplicate) noteAdminEvent("bookings", `${viewer?.name || "مشتری"} پیش ${artist?.name || "آرتیست"}`);
   return { ok: true, booking: result.booking, duplicate: Boolean(result.duplicate) };
 }

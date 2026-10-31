@@ -5,6 +5,7 @@ import { ensureDb } from "../../lib/db/connection.js";
 import * as artists from "../../lib/db/repos/artists.js";
 import { ArtistPublicPageClient } from "./ArtistPublicPageClient";
 import { getSiteUrl } from "../../lib/siteUrl.js";
+import { instagramUrl } from "../../shared/lib/instagram.js";
 import { createShortCache } from "../../lib/shortCache.js";
 
 export const runtime = "nodejs";
@@ -34,7 +35,9 @@ async function loadArtistFresh(id) {
   // Round-tripping through JSON.stringify/parse guarantees plain
   // objects/arrays throughout (posts/services/bookedSlots) before crossing
   // the "use client" ArtistPublicPageClient RSC boundary.
-  return JSON.parse(JSON.stringify(artist));
+  // The page never shows the number, and it is the artist's login phone: it stays out of the HTML.
+  const { phone: _loginPhone, ...shown } = artist;
+  return JSON.parse(JSON.stringify(shown));
 }
 
 export async function generateMetadata({ params }) {
@@ -82,6 +85,7 @@ function buildArtistJsonLd(artist, canonicalUrl) {
   };
   if (artist.avatar) jsonLd.image = artist.avatar;
   if (artist.service) jsonLd.jobTitle = `آرتیست ${artist.service}`;
+  if (artist.instagram) jsonLd.sameAs = [instagramUrl(artist.instagram)];
   if (artist.area) {
     jsonLd.address = {
       "@type": "PostalAddress",

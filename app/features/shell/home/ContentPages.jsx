@@ -26,6 +26,8 @@ export function ContentPages() {
     createdProfile,
     profileLocationSaving,
     saveProfileLocation,
+    profileInstagramSaving,
+    saveProfileInstagram,
     openProfileEdit,
     logoSaving,
     posterSaving,
@@ -51,30 +53,12 @@ export function ContentPages() {
     logoutAccount,
     deleteAccountPermanently,
     settingsHoursOpen,
-    artistHoursPresets,
-    salonHoursPresets,
-    activeArtistHoursPreset,
-    activeHoursPreset,
-    activeArtistHoursPresetMeta,
-    activeHoursPresetMeta,
     artistHoursList,
     salonHoursList,
-    selectedArtistHour,
-    selectedSalonHour,
-    artistHourTimeOptions,
-    salonHourTimeOptions,
     openArtistHoursDaysCount,
     activeSalonHours,
-    weeklyArtistCapacityTotal,
-    weeklyCapacityTotal,
-    updateArtistHoursPreset,
-    updateSalonHoursPreset,
-    copyArtistHourToOpenDays,
-    copySalonHourToOpenDays,
-    setSelectedArtistHourDay,
-    setSelectedSalonHourDay,
-    updateArtistHour,
-    updateSalonHour,
+    saveArtistHoursWeek,
+    saveSalonHoursWeek,
     salonAppointmentList,
     artistBookingList,
     ownerFollowers,
@@ -82,6 +66,7 @@ export function ContentPages() {
     selectedSalon,
     sharePost,
     recordPostView,
+    openPublicArtistProfile,
     salonClientTab,
     isFollowingSelectedSalon,
     isSavedSelectedSalon,
@@ -110,6 +95,8 @@ export function ContentPages() {
             profile={createdProfile}
             locationSaving={profileLocationSaving}
             onSaveLocation={saveProfileLocation}
+            instagramSaving={profileInstagramSaving}
+            onSaveInstagram={saveProfileInstagram}
             onEditProfile={openProfileEdit}
             logoSaving={logoSaving}
             posterSaving={posterSaving}
@@ -138,18 +125,10 @@ export function ContentPages() {
             onDeleteAccount={deleteAccountPermanently}
             hoursOpen={settingsHoursOpen}
             onToggleHoursOpen={() => setSettingsHoursOpen((open) => !open)}
-            hoursPresets={createdProfile?.type === "artist" ? artistHoursPresets : salonHoursPresets}
-            activeHoursPresetId={createdProfile?.type === "artist" ? activeArtistHoursPreset : activeHoursPreset}
-            activeHoursPresetMeta={createdProfile?.type === "artist" ? activeArtistHoursPresetMeta : activeHoursPresetMeta}
             hoursList={createdProfile?.type === "artist" ? artistHoursList : salonHoursList}
-            selectedHour={createdProfile?.type === "artist" ? selectedArtistHour : selectedSalonHour}
-            hourTimeOptions={createdProfile?.type === "artist" ? artistHourTimeOptions : salonHourTimeOptions}
             openDaysCount={createdProfile?.type === "artist" ? openArtistHoursDaysCount : activeSalonHours.length}
-            weeklyCapacityTotal={createdProfile?.type === "artist" ? weeklyArtistCapacityTotal : weeklyCapacityTotal}
-            onSelectHoursPreset={createdProfile?.type === "artist" ? updateArtistHoursPreset : updateSalonHoursPreset}
-            onCopyHourToOpenDays={createdProfile?.type === "artist" ? copyArtistHourToOpenDays : copySalonHourToOpenDays}
-            onSelectHourDay={createdProfile?.type === "artist" ? setSelectedArtistHourDay : setSelectedSalonHourDay}
-            onUpdateHour={createdProfile?.type === "artist" ? updateArtistHour : updateSalonHour}
+            onSaveHours={createdProfile?.type === "artist" ? saveArtistHoursWeek : saveSalonHoursWeek}
+            hoursBookings={createdProfile?.type === "artist" ? artistBookingList : salonAppointmentList}
           />
 
           {createdProfile?.type === "salon" && (
@@ -197,11 +176,12 @@ export function ContentPages() {
             ) : null}
             postActions={{
               isSaved: (post) => savedPostTitles.includes(String(post.id)),
+              // A team artist's post on the salon's page (post.by) is saved as theirs.
               toggleSave: (post) => toggleSavedPost(post.title, mapSharedPost({
                 ...post,
-                ownerUserId: selectedSalon?.id,
-                ownerType: "salon",
-                salon: selectedSalon?.name
+                ownerUserId: post.by ? post.ownerUserId : selectedSalon?.id,
+                ownerType: post.by ? "artist" : "salon",
+                salon: post.by ? post.by.name : selectedSalon?.name
               })),
               share: sharePost,
               view: recordPostView
@@ -217,6 +197,7 @@ export function ContentPages() {
             onShare={shareSalonProfile}
             onTabChange={setSalonClientTab}
             onOpenBooking={openSalonClientBooking}
+            onOpenArtist={(member) => openPublicArtistProfile({ id: member.artistId, name: member.name, avatar: member.avatar })}
             continueFor={continueService?.strip}
             onContinue={continueService?.onContinue}
             onDismissContinue={continueService?.dismiss}

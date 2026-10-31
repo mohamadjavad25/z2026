@@ -113,6 +113,19 @@ export async function getArtistTeams() {
   return apiJson("/api/artist/teams");
 }
 
+/** GET /api/artist/team-posts → { teams: [{ salonId, name }], statuses: { [postId]: { [salonId]: status } } } */
+export async function getArtistTeamPosts() {
+  return apiJson("/api/artist/team-posts");
+}
+
+/** POST /api/artist/team-posts { postId, salonUserId, action: "send" | "withdraw" } → same shape as GET */
+export async function sendArtistTeamPost(postId, salonUserId, action = "send") {
+  return apiJson("/api/artist/team-posts", {
+    method: "POST",
+    body: JSON.stringify({ postId, salonUserId, action })
+  });
+}
+
 /** DELETE /api/artist/teams { salonUserId } → leave that team → { data: { teams } } */
 export async function leaveArtistTeam(body) {
   return apiFetch("/api/artist/teams", {
@@ -149,10 +162,32 @@ export async function getArtistHours() {
   return apiJson("/api/artist-hours");
 }
 
-/** PATCH /api/artist-hours → { hour, hours } body: { day, open_time?, close_time?, capacity?, active? } */
-export async function updateArtistHours(body) {
+/** PATCH /api/artist-hours with the whole week → { hours } (all days saved, or none) */
+export async function saveArtistHoursWeek(hours) {
   return apiFetch("/api/artist-hours", {
     method: "PATCH",
-    body: JSON.stringify(body)
+    body: JSON.stringify({ hours })
   });
+}
+
+/** GET /api/artist/place → { data: { workplace: { current, savedCurrent, next, teams } } }: where the artist's own clients go. */
+export async function getArtistPlace() {
+  return apiJson("/api/artist/place");
+}
+
+/** GET /api/artist/place/preview → { data: { moving, staying } }: the bookings a switch to `salonId` (null = own place) from `startsOn` would move. */
+export async function previewArtistPlace(salonId, startsOn) {
+  const query = new URLSearchParams({ startsOn });
+  if (salonId) query.set("salonId", String(salonId));
+  return apiJson(`/api/artist/place/preview?${query}`);
+}
+
+/** PUT /api/artist/place { salonId: number | null, startsOn, moveBookings } → { data: { workplace, moved, kept } } */
+export async function saveArtistPlace(body) {
+  return apiFetch("/api/artist/place", { method: "PUT", body: JSON.stringify(body) });
+}
+
+/** PUT /api/artist-bookings/:id/place { salonUserId: number | null } → the artist says where one booking is held. */
+export async function moveArtistBookingPlace(id, salonUserId) {
+  return apiFetch(`/api/artist-bookings/${id}/place`, { method: "PUT", body: JSON.stringify({ salonUserId }) });
 }

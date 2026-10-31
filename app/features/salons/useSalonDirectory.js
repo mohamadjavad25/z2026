@@ -371,7 +371,8 @@ export function useSalonDirectory({
 
   // `service`: a service name, or a service object — several services picked
   // together arrive as one bundle (shared/lib/serviceBundle) with summed duration.
-  const openSalonClientBooking = useCallback((service = "") => {
+  // `options.withStaff` ({ staffId, name, bookingName }): «رزرو با …» from a team card (SalonTeam.jsx).
+  const openSalonClientBooking = useCallback((service = "", options = {}) => {
     if (!selectedSalon) return;
     const picked = service && typeof service === "object" ? service : null;
     const serviceItems = getBookableSalonServiceItems(selectedSalon);
@@ -385,6 +386,7 @@ export function useSalonDirectory({
       open: true,
       service: nextService,
       bundle: picked?.items ? picked : null,
+      withStaff: options?.withStaff || null,
       client: current.client || createdProfile?.data?.name || "",
       phone: current.phone || createdProfile?.data?.phone || ""
     }));

@@ -145,7 +145,6 @@ const settingsList = (owner) => [
   navBiz(0)
 ];
 
-const PRESETS = ["۹ تا ۱۷", "۱۰ تا ۲۰", "۱۲ تا ۲۱"];
 const week = (hours, fridayOpen = true) => ({
   t: "rows",
   id: "week",
@@ -154,10 +153,9 @@ const week = (hours, fridayOpen = true) => ({
     return { a: day, b: open ? hours : "تعطیل", toggle: Boolean(open) };
   })
 });
-const hoursScreen = (preset, hours, fridayOpen = true) => [
+const hoursScreen = (hours, fridayOpen = true) => [
   { t: "bar", text: "ساعت کاری", back: true },
-  { t: "head", text: "قالب ساعت کاری", sub: "قالب بزن، بعد هر روز را با یک لمس تنظیم کن" },
-  { t: "chips", id: "presets", items: PRESETS, on: preset },
+  { t: "head", text: "ساعت کاری", sub: "کدوم روزها بازی و از چه ساعتی تا چه ساعتی" },
   week(hours, fridayOpen)
 ];
 
@@ -272,9 +270,8 @@ export const LEARN_ROLES = [
           { screen: "form", els: signup({ title: "سالن", nameLabel: "نام سالن", name: SALON, typing: "name" }), tap: "name", say: "اسم سالن را بنویس.", ms: 3200 },
           { screen: "form", els: signup({ title: "سالن", nameLabel: "نام سالن", name: SALON, phone: "۰۹۱۲۱۲۳۴۵۶۷", password: true, terms: true }), tap: "submit", say: "شماره و رمز را بزن، قوانین را تیک بزن و «بساز».", ms: 3600 },
           { screen: "settings", els: settingsList("salon"), tap: "settings.1", say: "در «تنظیمات»، «ساعت کاری» را باز کن." },
-          { screen: "hours", els: hoursScreen(-1, ""), tap: "presets.1", say: "یک قالب ساعت را بزن؛ همهٔ روزها با هم پر می‌شوند." },
-          { screen: "hours", els: hoursScreen(1, "۱۰:۰۰ تا ۲۰:۰۰"), tap: "week.6", say: "روز تعطیل را با یک لمس ببند." },
-          { screen: "hours", els: hoursScreen(1, "۱۰:۰۰ تا ۲۰:۰۰", false), toast: "ساعت کاری ذخیره شد", say: "مشتری‌ها فقط در همین ساعت‌ها می‌توانند نوبت بگیرند.", ms: 3400 }
+          { screen: "hours", els: hoursScreen("۱۰ تا ۲۰"), tap: "week.6", say: "روز تعطیل را با یک لمس ببند." },
+          { screen: "hours", els: hoursScreen("۱۰ تا ۲۰", false), toast: "ساعت کاری ذخیره شد.", say: "«ذخیره» را بزن؛ مشتری‌ها فقط در همین ساعت‌ها می‌توانند نوبت بگیرند.", ms: 3400 }
         ]
       },
       {
@@ -383,12 +380,13 @@ export const LEARN_ROLES = [
             sheet: {
               title: "افزودن آرتیست",
               els: [
+                { t: "rows", id: "terms", items: [{ a: "شرایط همکاری", b: "شنبه تا چهارشنبه، ۱۰ تا ۱۸، سهم آرتیست ۶۰٪" }] },
                 { t: "qr", name: SALON, text: "کد را به آرتیست نشان بده، یا لینک را برایش بفرست." },
                 { t: "btn", id: "send", text: "ارسال لینک" }
               ]
             },
             tap: "send",
-            say: "کد را نشان بده یا «ارسال لینک» را بزن."
+            say: "اول شرایط همکاری را ببین و ذخیره کن؛ بعد کد را نشان بده یا «ارسال لینک» را بزن."
           },
           { screen: "staff", els: [salonHero(), salonRail(3), { t: "head", text: "اعضای تیم" }, { t: "rows", id: "team", items: [{ a: ARTIST, b: "ناخن", badge: "فعال" }] }, navBiz(1)], toast: `${ARTIST} به تیم پیوست`, say: "آرتیست لینک را باز می‌کند و می‌پیوندد؛ نوبت‌های سالن به اسم او هم ثبت می‌شود.", ms: 3600 }
         ]
@@ -457,8 +455,8 @@ export const LEARN_ROLES = [
         text: "ساعت کاری خودت را بچین و نوبت‌ها را تأیید کن.",
         scenes: [
           { screen: "settings", els: settingsList("artist"), tap: "settings.1", say: "در «تنظیمات»، «ساعت کاری» را باز کن." },
-          { screen: "hours", els: hoursScreen(-1, ""), tap: "presets.0", say: "قالب ساعت را بزن و روزهای تعطیل را ببند." },
-          { screen: "hours", els: hoursScreen(0, "۹:۰۰ تا ۱۷:۰۰", false), toast: "ساعت کاری ذخیره شد", say: "مشتری‌ها فقط ساعت‌های آزاد تو را می‌بینند." },
+          { screen: "hours", els: hoursScreen("۱۰ تا ۲۰"), tap: "week.6", say: "روزهای تعطیل را ببند و «ذخیره» را بزن." },
+          { screen: "hours", els: hoursScreen("۱۰ تا ۲۰", false), toast: "ساعت کاری ذخیره شد.", say: "مشتری‌ها فقط ساعت‌های آزاد تو را می‌بینند." },
           {
             screen: "requests",
             els: [artistHero(), artistRail(0), { t: "head", text: "نوبت‌های تازه", sub: "نیاز به تایید شما" }, { t: "request", id: "req", name: CLIENT, service: "مانیکور", when: "دوشنبه · ۱۱:۳۰", badge: "تازه", tone: "new", btn: "تایید" }, navBiz(1)],
@@ -491,15 +489,15 @@ export const LEARN_ROLES = [
             screen: "scan",
             els: scanScreen(null),
             sheet: {
-              title: `قوانین ${SALON}`,
+              title: `دعوت به تیم ${SALON}`,
               els: [
-                { t: "rows", id: "terms", items: [{ a: "روزهای حضور", b: "شنبه تا چهارشنبه" }, { a: "ساعت کاری", b: "۱۰:۰۰ تا ۱۸:۰۰" }, { a: "سهم آرتیست", b: "۴۰٪" }, { a: "ظرفیت روزانه", b: "۶ نفر در روز" }] },
-                { t: "note", text: "با پیوستن، قوانین سالن را می‌پذیری." },
-                { t: "btn", id: "join", text: "قوانین رو قبول دارم، بریم" }
+                { t: "rows", id: "terms", items: [{ a: "سهم تو", b: "۶۰٪" }, { a: "روزها", b: "شنبه تا چهارشنبه" }, { a: "ساعت", b: "۱۰ تا ۱۸" }] },
+                { t: "note", text: "تغییر فقط با موافقت هر دو. هر وقت خواستی می‌تونی از تیم بری." },
+                { t: "btn", id: "join", text: "قبول دارم" }
               ]
             },
             tap: "join",
-            say: "قوانین همکاری را بخوان و «قوانین رو قبول دارم، بریم» رو بزن.",
+            say: "شرایط را بخوان و «قبول دارم» را بزن؛ اگر نمی‌خواهی، «پیشنهاد خودم رو می‌دم» هست.",
             ms: 3600
           },
           {
