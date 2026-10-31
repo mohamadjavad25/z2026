@@ -45,14 +45,24 @@ export function SalonNotificationsSheet() {
             onClose={() => setSalonHeroSheet(null)}
           >
             <div className="salonNotificationsPanel">
-              <article className={reservationRequestList.length ? "is-live" : undefined}>
+              {/* Every row is a button (2026-10-31; only «همکاری» used to react). Requests: down to the answers, or back to the schedule when empty. */}
+              <button
+                type="button"
+                className={`salonNoticeRow${reservationRequestList.length ? " is-live" : ""}`}
+                onClick={() => {
+                  const board = typeof document !== "undefined" ? document.getElementById("salonRequestsBoard") : null;
+                  if (board) board.scrollIntoView({ behavior: "smooth", block: "start" });
+                  else setSalonHeroSheet(null);
+                }}
+              >
                 <span><BellRing size={18} /></span>
                 <div>
                   <b>درخواست‌های نوبت</b>
-                  <small>{reservationRequestList.length ? `${toPersianDigits(reservationRequestList.length)} درخواست منتظر جوابته.` : "فعلاً درخواستی نیست."}</small>
+                  <small>{reservationRequestList.length ? `${toPersianDigits(reservationRequestList.length)} درخواست منتظر جوابته. بزن تا ببینی.` : "فعلاً درخواستی نیست."}</small>
                 </div>
                 <em>{toPersianDigits(reservationRequestList.length)}</em>
-              </article>
+                <ChevronLeft size={16} className="salonNoticeGo" aria-hidden="true" />
+              </button>
               {/* A button, not a note: the requests are answered in «پرسنل» (2026-10-30; tapping it used to do nothing). */}
               <button type="button" className={`salonNoticeRow${pendingSalonCollabRequests.length ? " is-live" : ""}`} onClick={() => openSalonWorkspace("staff")}>
                 <span><PageIcon name="collab" size={22} /></span>
@@ -63,18 +73,19 @@ export function SalonNotificationsSheet() {
                 <em>{toPersianDigits(pendingSalonCollabRequests.length)}</em>
                 <ChevronLeft size={16} className="salonNoticeGo" aria-hidden="true" />
               </button>
-              <article>
+              <button type="button" className="salonNoticeRow" onClick={() => setSalonHeroSheet(null)}>
                 <span><PageIcon name="bookings" size={22} /></span>
                 <div>
                   <b>نوبت‌های پیش‌رو</b>
                   <small>{aheadText}</small>
                 </div>
                 <em>{toPersianDigits(ahead.length)}</em>
-              </article>
+                <ChevronLeft size={16} className="salonNoticeGo" aria-hidden="true" />
+              </button>
             </div>
 
             {reservationRequestList.length > 0 && (
-              <section className="salonRequestsBoard" aria-label="درخواست‌هایی که منتظر جوابن">
+              <section className="salonRequestsBoard" id="salonRequestsBoard" aria-label="درخواست‌هایی که منتظر جوابن">
                 <div className="boardHead">
                   <div>
                     <span>درخواست‌های نوبت</span>
